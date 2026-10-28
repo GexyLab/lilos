@@ -1,0 +1,42 @@
+:root {
+  /* Brand */
+  --accent: #3b6ef5;
+  --accent-soft: #e8eefe;
+  --danger: #e5484d;
+
+  /* Light surfaces (windows) */
+  --text: #1f2328;
+  --dim: #6b7280;
+  --faint: #9aa1ad;
+  --surface: #ffffff;
+  --chrome: #f4f5f7;
+  --hover: #eceef1;
+  --border: #e2e4e8;
+
+  /* Desk */
+  --canvas: #1f2227;
+  --canvas-dot: rgba(255, 255, 255, .09);
+  --on-canvas: #e9ebef;
+
+  /* Dark chrome (taskbar, menus, HUD) */
+  --bar: #16181d;
+  --bar-border: #2a2d34;
+  --bar-text: #d7dae0;
+  --bar-dim: #8a909b;
+  --bar-hover: rgba(255, 255, 255, .08);
+  --panel: rgba(24, 26, 31, .97);
+  --panel-border: #2c3038;
+  --field: #24272e;
+
+  /* Shape */
+  --radius-sm: 4px;
+  --radius: 7px;
+  --shadow-pop: 0 12px 32px -8px rgba(0, 0, 0, .55);
+
+  /* Layout */
+  --taskbar-h: 34px;
+
+  /* Type */
+  --font: Inter, system-ui, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+}

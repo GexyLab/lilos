@@ -1,0 +1,19 @@
+.taskbar {
+  position: fixed; left: 0; right: 0; bottom: 0; height: var(--taskbar-h); z-index: 9000;
+  display: flex; align-items: center; gap: 4px; padding: 0 4px;
+  background: var(--bar); color: var(--bar-text); border-top: 1px solid var(--bar-border);
+}
+
+.tb-start { width: 34px; height: 28px; border-radius: var(--radius-sm); display: grid; place-items: center; }
+.tb-start:hover, .tb-start.active { background: var(--bar-hover); }
+
+.tb-tasks { flex: 1; min-width: 0; height: 100%; display: flex; align-items: center; gap: 2px; }
+
+.tb-tray { display: flex; align-items: center; height: 100%; }
+.tb-user { display: flex; align-items: center; gap: 7px; height: 28px; padding: 0 10px 0 8px; font-size: 12px; }
+.clock {
+  display: flex; align-items: baseline; gap: 8px; height: 18px; padding: 0 8px 0 10px;
+  border-left: 1px solid var(--bar-border); font-size: 12px; white-space: nowrap; font-variant-numeric: tabular-nums;
+}
+.clock-date { color: var(--bar-dim); }
+.clock-time { font-weight: 500; }

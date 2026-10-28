@@ -1,0 +1,32 @@
+.canvas {
+  position: fixed; inset: 0 0 var(--taskbar-h) 0; overflow: hidden; touch-action: none;
+  background-color: var(--canvas);
+  background-image: radial-gradient(circle, var(--canvas-dot) 1px, transparent 1.3px);
+}
+.canvas.space, .canvas.space * { cursor: grab !important; }
+.canvas.panning, .canvas.panning * { cursor: grabbing !important; }
+
+.world { position: absolute; left: 0; top: 0; width: 0; height: 0; transform-origin: 0 0; }
+.obj { position: absolute; }
+
+/* ---------- HUD ---------- */
+.hud {
+  position: fixed; right: 10px; bottom: calc(var(--taskbar-h) + 10px); z-index: 8000; width: 182px;
+  background: var(--panel); border: 1px solid var(--panel-border); border-radius: 6px; overflow: hidden;
+  color: var(--bar-dim);
+}
+.minimap { position: relative; height: 110px; cursor: pointer; overflow: hidden; border-bottom: 1px solid var(--panel-border); }
+.minimap i { position: absolute; display: block; pointer-events: none; }
+.minimap .mm-item { background: #7b8494; border-radius: 1px; min-width: 2px; min-height: 2px; }
+.minimap .mm-window { background: #5d6472; border-radius: 1px; }
+.minimap .mm-obj { background: #4b515c; }
+.minimap .mm-view { border: 1.5px solid var(--accent); background: rgba(59, 110, 245, .12); border-radius: 2px; }
+
+.zoombar { display: flex; align-items: center; height: 28px; padding: 0 2px; }
+.zoombar button {
+  height: 24px; min-width: 26px; border-radius: var(--radius-sm);
+  display: grid; place-items: center; font-size: 11.5px; font-weight: 500;
+}
+.zoombar button:hover { background: var(--bar-hover); color: #fff; }
+.zoombar .ico { width: 13px; height: 13px; }
+.zoom-pct { flex: 1; font-variant-numeric: tabular-nums; }

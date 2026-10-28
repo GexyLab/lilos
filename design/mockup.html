@@ -1,0 +1,807 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>lilOS Desktop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --accent: #3b6ef5;
+    --accent-soft: #e8eefe;
+    --text: #1f2328;
+    --dim: #6b7280;
+    --faint: #9aa1ad;
+    --surface: #ffffff;
+    --chrome: #f4f5f7;
+    --hover: #eceef1;
+    --border: #e2e4e8;
+    --bar: #16181d;
+    --bar-text: #d7dae0;
+    --canvas: #1f2227;
+    --taskbar-h: 34px;
+    --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font: 12.5px/1.4 Inter, system-ui, "Segoe UI", sans-serif;
+    color: var(--text); overflow: hidden; user-select: none; background: var(--canvas);
+  }
+  svg { display: block; }
+  .ico { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* ---------- Infinite canvas ---------- */
+  .viewport {
+    position: fixed; inset: 0 0 var(--taskbar-h) 0; overflow: hidden; cursor: default;
+    background-color: var(--canvas);
+    background-image: radial-gradient(circle, rgba(255,255,255,.09) 1px, transparent 1.3px);
+  }
+  .viewport.panning, .viewport.space, .viewport.space * { cursor: grab !important; }
+  .viewport.panning * { cursor: grabbing !important; }
+  .world { position: absolute; left: 0; top: 0; width: 0; height: 0; transform-origin: 0 0; }
+  .obj { position: absolute; }
+
+  .frame { border: 1px dashed rgba(255,255,255,.13); border-radius: 10px; background: rgba(255,255,255,.015); }
+  .frame label { position: absolute; top: -20px; left: 2px; font-size: 11.5px; font-weight: 500; color: rgba(255,255,255,.5); white-space: nowrap; }
+
+  /* Desktop icons */
+  .dicon { width: 70px; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 6px 2px; border-radius: 5px; color: #e9ebef; z-index: 1; }
+  .dicon:hover { background: rgba(255,255,255,.07); }
+  .dicon.selected { background: rgba(59,110,245,.35); }
+  .dicon .glyph { height: 30px; display: grid; place-items: center; }
+  .dicon span { font-size: 11px; text-align: center; line-height: 1.2; text-shadow: 0 1px 2px rgba(0,0,0,.5); }
+
+  .folder { width: 30px; height: 26px; color: #6f9bff; }
+  .folder.sm { width: 16px; height: 14px; }
+  .doc { width: 24px; height: 30px; }
+  .doc.sm { width: 14px; height: 16px; }
+  .tile { width: 30px; height: 30px; border-radius: 7px; display: grid; place-items: center; color: #fff; background: #3a3f4b; box-shadow: 0 0 0 1px rgba(255,255,255,.08) inset; }
+  .tile .ico { width: 16px; height: 16px; }
+
+  /* Sticky notes */
+  .note { width: 200px; min-height: 150px; background: #fff1a8; color: #3d3510; border-radius: 4px; z-index: 1; box-shadow: 0 8px 20px -8px rgba(0,0,0,.5); display: flex; flex-direction: column; }
+  .note.blue { background: #cfe0ff; color: #1c2c4d; }
+  .note .grip { height: 14px; flex: none; cursor: move; border-radius: 4px 4px 0 0; background: rgba(0,0,0,.05); }
+  .note .body { flex: 1; padding: 8px 12px 12px; font-size: 12.5px; line-height: 1.5; outline: none; user-select: text; cursor: text; }
+  .note .body b { display: block; margin-bottom: 2px; }
+
+  /* ---------- Windows ---------- */
+  .window {
+    display: flex; flex-direction: column; background: var(--surface);
+    border-radius: 7px; overflow: hidden;
+    box-shadow: 0 0 0 1px rgba(0,0,0,.25), 0 10px 28px -8px rgba(0,0,0,.5);
+  }
+  .window.hidden { display: none; }
+  .window.max { border-radius: 0; }
+  .titlebar { height: 30px; flex: none; display: flex; align-items: center; padding: 0 4px 0 10px; gap: 8px; background: var(--chrome); border-bottom: 1px solid var(--border); }
+  .window.inactive .titlebar { background: #fafafb; }
+  .window.inactive .title { color: var(--faint); }
+  .title { flex: 1; display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 500; white-space: nowrap; overflow: hidden; }
+  .title .ico { width: 14px; height: 14px; color: var(--dim); }
+  .title em { font-style: normal; color: var(--faint); font-weight: 400; }
+  .controls { display: flex; }
+  .controls button { width: 28px; height: 24px; border: 0; border-radius: 4px; background: none; color: var(--dim); display: grid; place-items: center; cursor: pointer; }
+  .controls button:hover { background: var(--hover); color: var(--text); }
+  .controls button.close:hover { background: #e5484d; color: #fff; }
+  .controls .ico { width: 12px; height: 12px; }
+  .resize { position: absolute; right: 0; bottom: 0; width: 14px; height: 14px; cursor: nwse-resize; z-index: 2; }
+  .window.max .resize { display: none; }
+
+  .toolbar { height: 32px; flex: none; display: flex; align-items: center; gap: 4px; padding: 0 6px; border-bottom: 1px solid var(--border); }
+  .btn { width: 24px; height: 24px; border-radius: 4px; display: grid; place-items: center; color: var(--dim); }
+  .btn:hover { background: var(--hover); color: var(--text); }
+  .btn.off { opacity: .35; }
+  .btn.on { background: var(--hover); color: var(--text); }
+  .btn .ico { width: 14px; height: 14px; }
+  .field { height: 24px; display: flex; align-items: center; gap: 6px; padding: 0 8px; border: 1px solid var(--border); border-radius: 4px; background: #fff; color: var(--dim); font-size: 12px; white-space: nowrap; overflow: hidden; }
+  .field .ico { width: 13px; height: 13px; flex: none; }
+
+  /* File manager */
+  .fm { flex: 1; display: flex; min-height: 0; }
+  .fm aside { width: 150px; flex: none; padding: 6px; border-right: 1px solid var(--border); background: #fafafb; overflow: auto; }
+  .fm aside h6 { font-size: 10.5px; font-weight: 600; color: var(--faint); text-transform: uppercase; letter-spacing: .05em; padding: 8px 6px 3px; }
+  .fm aside a { display: flex; align-items: center; gap: 7px; height: 24px; padding: 0 6px; border-radius: 4px; color: var(--text); }
+  .fm aside a:hover { background: var(--hover); }
+  .fm aside a .ico { width: 14px; height: 14px; color: var(--dim); }
+  .fm aside a.active { background: var(--accent-soft); color: var(--accent); font-weight: 500; }
+  .fm aside a.active .ico { color: var(--accent); }
+  .fm aside .dot { width: 8px; height: 8px; border-radius: 50%; margin: 0 3px; }
+  .fm main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  table { width: 100%; border-collapse: collapse; }
+  .list { flex: 1; overflow: auto; }
+  th { position: sticky; top: 0; background: #fff; text-align: left; font-weight: 500; color: var(--dim); font-size: 11.5px; height: 26px; padding: 0 10px; border-bottom: 1px solid var(--border); }
+  td { height: 24px; padding: 0 10px; white-space: nowrap; color: var(--dim); }
+  td:first-child { color: var(--text); }
+  td .name { display: flex; align-items: center; gap: 8px; }
+  td.num, th.num { text-align: right; }
+  tbody tr:nth-child(even) { background: #fafbfc; }
+  tbody tr:hover { background: var(--hover); }
+  tbody tr.selected { background: var(--accent); }
+  tbody tr.selected td { color: #fff; }
+  .statusbar { height: 24px; flex: none; display: flex; align-items: center; justify-content: space-between; padding: 0 10px; font-size: 11px; color: var(--dim); border-top: 1px solid var(--border); background: #fafafb; }
+
+  /* Editor */
+  .editor { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+  .etabs { height: 30px; flex: none; display: flex; background: var(--chrome); border-bottom: 1px solid var(--border); }
+  .etab { display: flex; align-items: center; gap: 6px; padding: 0 12px; font-size: 12px; color: var(--dim); border-right: 1px solid var(--border); }
+  .etab.on { background: #fff; color: var(--text); box-shadow: inset 0 2px 0 var(--accent); margin-bottom: -1px; }
+  .etab i { width: 6px; height: 6px; border-radius: 50%; background: var(--faint); }
+  .code { flex: 1; display: flex; overflow: auto; font: 12px/19px var(--mono); padding: 6px 0; user-select: text; }
+  .gutter { padding: 0 10px 0 12px; text-align: right; color: #b4b9c2; white-space: pre; }
+  .src { flex: 1; white-space: pre; color: #2b3038; }
+  .src .h { color: #3b6ef5; font-weight: 500; }
+  .src .m { color: var(--faint); }
+  .src .k { color: #c2410c; }
+  .src .cur { background: #f3f6ff; display: inline-block; width: 100%; }
+  .caret { display: inline-block; width: 1.5px; height: 14px; background: var(--accent); vertical-align: -2px; animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* Browser */
+  .browser { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+  .tabs { height: 30px; flex: none; display: flex; align-items: end; gap: 1px; padding: 0 6px; background: var(--chrome); border-bottom: 1px solid var(--border); }
+  .tab { height: 26px; display: flex; align-items: center; gap: 6px; padding: 0 10px; width: 150px; font-size: 12px; color: var(--dim); border-radius: 5px 5px 0 0; }
+  .tab.on { background: #fff; color: var(--text); border: 1px solid var(--border); border-bottom: 0; margin-bottom: -1px; height: 27px; }
+  .tab .fav { width: 10px; height: 10px; border-radius: 2px; flex: none; }
+  .tab span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tab .ico { width: 10px; height: 10px; color: var(--faint); }
+  .page { flex: 1; display: flex; min-height: 0; background: #fff; }
+  .page nav { width: 170px; flex: none; padding: 14px 10px; border-right: 1px solid var(--border); font-size: 12px; }
+  .page nav b { display: block; font-size: 11px; color: var(--faint); text-transform: uppercase; letter-spacing: .05em; margin: 10px 6px 4px; font-weight: 600; }
+  .page nav b:first-child { margin-top: 0; }
+  .page nav a { display: block; padding: 3px 6px; border-radius: 4px; color: var(--dim); }
+  .page nav a.on { color: var(--accent); background: var(--accent-soft); font-weight: 500; }
+  .page article { flex: 1; padding: 16px 22px; overflow: auto; font-size: 12.5px; line-height: 1.6; color: #3a404a; user-select: text; }
+  .page h1 { font-size: 18px; color: var(--text); font-weight: 600; margin-bottom: 6px; letter-spacing: -.01em; }
+  .page h2 { font-size: 13.5px; color: var(--text); font-weight: 600; margin: 14px 0 4px; }
+  .page pre { font: 11.5px/1.6 var(--mono); background: #f6f7f9; border: 1px solid var(--border); border-radius: 5px; padding: 8px 10px; margin-top: 6px; color: #2b3038; }
+
+  /* Terminal */
+  .term { flex: 1; background: #15171c; color: #c9ced8; font: 12px/18px var(--mono); padding: 8px 10px; overflow: auto; white-space: pre; user-select: text; }
+  .term .p { color: #6fd08c; } .term .d { color: #7aa2ff; } .term .g { color: #6b7280; } .term .y { color: #e8c468; }
+  .window.term-win .titlebar { background: #1f2228; border-color: #2b2f37; }
+  .window.term-win .title, .window.term-win .title .ico, .window.term-win .controls button { color: #aab0bb; }
+  .window.term-win .controls button:hover { background: #2b2f37; color: #fff; }
+  .window.term-win .controls button.close:hover { background: #e5484d; }
+  .window.term-win.inactive .titlebar { background: #1b1d22; }
+
+  /* Calendar */
+  .cal { flex: 1; display: flex; flex-direction: column; padding: 8px 10px 10px; min-height: 0; }
+  .cal header { display: flex; align-items: center; gap: 4px; margin-bottom: 6px; }
+  .cal header b { flex: 1; font-size: 13px; font-weight: 600; }
+  .days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; text-align: center; }
+  .days span { height: 24px; line-height: 24px; border-radius: 4px; font-size: 12px; }
+  .days .wd { color: var(--faint); font-size: 10.5px; font-weight: 600; text-transform: uppercase; }
+  .days .we { color: var(--faint); }
+  .days .today { background: var(--accent); color: #fff; font-weight: 600; }
+  .days .ev { position: relative; }
+  .days .ev::after { content: ""; position: absolute; left: 50%; bottom: 2px; width: 4px; height: 4px; margin-left: -2px; border-radius: 50%; background: #e5484d; }
+  .events { margin-top: 8px; border-top: 1px solid var(--border); padding-top: 6px; display: grid; gap: 2px; }
+  .events div { display: flex; gap: 8px; align-items: center; height: 22px; font-size: 12px; }
+  .events time { width: 72px; white-space: nowrap; color: var(--dim); font-variant-numeric: tabular-nums; }
+  .events i { width: 3px; height: 14px; border-radius: 2px; }
+
+  /* ---------- HUD (minimap + zoom) ---------- */
+  .hud { position: fixed; right: 10px; bottom: calc(var(--taskbar-h) + 10px); z-index: 8000; width: 182px; background: rgba(22,24,29,.92); border: 1px solid #2c3038; border-radius: 6px; overflow: hidden; color: #aab0bb; }
+  .minimap { position: relative; height: 110px; cursor: pointer; border-bottom: 1px solid #2c3038; overflow: hidden; }
+  .minimap i { position: absolute; display: block; }
+  .minimap .f { border: 1px dashed rgba(255,255,255,.18); border-radius: 2px; }
+  .minimap .w { background: #5d6472; border-radius: 1px; }
+  .minimap .n { background: #b9a95a; }
+  .minimap .v { border: 1.5px solid var(--accent); background: rgba(59,110,245,.12); border-radius: 2px; }
+  .zoombar { display: flex; align-items: center; height: 28px; padding: 0 2px; }
+  .zoombar button { height: 24px; min-width: 26px; border: 0; border-radius: 4px; background: none; color: inherit; display: grid; place-items: center; cursor: pointer; font: 500 11.5px Inter, sans-serif; }
+  .zoombar button:hover { background: rgba(255,255,255,.08); color: #fff; }
+  .zoombar .pct { flex: 1; font-variant-numeric: tabular-nums; }
+  .zoombar .ico { width: 13px; height: 13px; }
+
+  /* ---------- Taskbar ---------- */
+  .taskbar {
+    position: fixed; left: 0; right: 0; bottom: 0; height: var(--taskbar-h); z-index: 9000;
+    display: flex; align-items: center; gap: 2px; padding: 0 4px; background: var(--bar); color: var(--bar-text);
+    border-top: 1px solid #2a2d34;
+  }
+  .tb { height: 28px; display: flex; align-items: center; gap: 7px; padding: 0 8px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+  .tb:hover { background: rgba(255,255,255,.07); }
+  .tb .ico { width: 15px; height: 15px; }
+  .logo { width: 16px; height: 16px; border-radius: 4px; background: var(--accent); position: relative; }
+  .logo::after { content: ""; position: absolute; inset: 5px; border-radius: 1px; background: var(--bar); }
+  .tsearch { width: 200px; height: 24px; margin: 0 6px 0 2px; display: flex; align-items: center; gap: 6px; padding: 0 8px; border-radius: 4px; background: #24272e; color: #8a909b; font-size: 12px; }
+  .tsearch .ico { width: 13px; height: 13px; }
+  .tsearch kbd { margin-left: auto; font: 10.5px var(--mono); color: #6b7280; }
+  .tasks { flex: 1; display: flex; gap: 2px; min-width: 0; }
+  .task { width: 160px; position: relative; color: #aab0bb; }
+  .task span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .task.min { opacity: .55; }
+  .task.focused { background: rgba(255,255,255,.1); color: #fff; }
+  .task.focused::after { content: ""; position: absolute; left: 8px; right: 8px; bottom: 0; height: 2px; border-radius: 1px; background: var(--accent); }
+  .pinned { display: flex; padding-right: 6px; margin-right: 4px; border-right: 1px solid #2f333b; }
+  .pinned .tb { padding: 0 7px; color: #8a909b; }
+  .tray { display: flex; align-items: center; gap: 2px; color: #aab0bb; }
+  .tray .tb { padding: 0 6px; }
+  .clock { font: 500 12px Inter, sans-serif; color: var(--bar-text); padding: 0 8px; white-space: nowrap; }
+  .clock small { color: #8a909b; font-weight: 400; margin-left: 6px; font-size: 12px; }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="i-folder" viewBox="0 0 30 26">
+      <path d="M1 4a2.5 2.5 0 0 1 2.5-2.5h7l3 3h13A2.5 2.5 0 0 1 29 7v2H1z" fill="currentColor" opacity=".7"/>
+      <path d="M1 9a2 2 0 0 1 2-2h24a2 2 0 0 1 2 2v14a2.5 2.5 0 0 1-2.5 2.5h-23A2.5 2.5 0 0 1 1 23z" fill="currentColor"/>
+    </symbol>
+    <symbol id="i-file" viewBox="0 0 24 30">
+      <path d="M3 .75h12.5l7.75 7.75V27a2.25 2.25 0 0 1-2.25 2.25H3A2.25 2.25 0 0 1 .75 27V3A2.25 2.25 0 0 1 3 .75z" fill="#fff" stroke="#c4c9d1" stroke-width="1.5"/>
+      <path d="M15.5.75V7a1.5 1.5 0 0 0 1.5 1.5h6.25" fill="none" stroke="#c4c9d1" stroke-width="1.5"/>
+      <rect x="4" y="19" width="16" height="6" rx="1.5" fill="currentColor"/>
+    </symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.2 3 14.8 0 18M12 3c-3 3.2-3 14.8 0 18"/></symbol>
+    <symbol id="i-code" viewBox="0 0 24 24"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5M14 4l-4 16"/></symbol>
+    <symbol id="i-term" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9l3 3-3 3M12 15h5"/></symbol>
+    <symbol id="i-files" viewBox="0 0 24 24"><path d="M3 6.5A1.5 1.5 0 0 1 4.5 5H9l2 2h8.5A1.5 1.5 0 0 1 21 8.5v9a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 17.5z"/></symbol>
+    <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></symbol>
+    <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></symbol>
+    <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 17l-5-5-9 8"/></symbol>
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></symbol>
+    <symbol id="i-doc" viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M9 12h7M9 16h7"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></symbol>
+    <symbol id="i-wifi" viewBox="0 0 24 24"><path d="M2 9a15 15 0 0 1 20 0M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0"/><circle cx="12" cy="19" r=".8"/></symbol>
+    <symbol id="i-vol" viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16.5 9a4 4 0 0 1 0 6M19 6.5a8 8 0 0 1 0 11"/></symbol>
+    <symbol id="i-bat" viewBox="0 0 24 24"><rect x="2" y="7" width="18" height="10" rx="2.5"/><path d="M22 11v2M5 10v4M8 10v4M11 10v4M14 10v4"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4zM10 20a2 2 0 0 0 4 0"/></symbol>
+    <symbol id="i-left" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
+    <symbol id="i-right" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></symbol>
+    <symbol id="i-up" viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v5h-5"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></symbol>
+    <symbol id="i-list" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="4" y="4" width="6.5" height="6.5" rx="1"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-min" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+    <symbol id="i-max" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="1.5"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+    <symbol id="i-fit" viewBox="0 0 24 24"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></symbol>
+  </defs>
+</svg>
+
+<div class="viewport" id="viewport">
+  <div class="world" id="world">
+
+    <!-- Areas -->
+    <div class="obj frame" style="left:84px; top:26px; width:1348px; height:840px;"><label>Lavoro · Progetto lilOS</label></div>
+    <div class="obj frame" style="left:1480px; top:26px; width:690px; height:420px;"><label>Personale</label></div>
+
+    <!-- Desktop icons -->
+    <div class="obj dicon" style="left:8px; top:30px;" data-open="files"><div class="glyph"><svg class="folder"><use href="#i-folder"/></svg></div><span>Documenti</span></div>
+    <div class="obj dicon" style="left:8px; top:98px;"><div class="glyph"><svg class="folder" style="color:#e8b44c"><use href="#i-folder"/></svg></div><span>Progetti</span></div>
+    <div class="obj dicon" style="left:8px; top:166px;"><div class="glyph"><svg class="doc" style="color:#e5484d"><use href="#i-file"/></svg></div><span>report-q3.pdf</span></div>
+    <div class="obj dicon" style="left:8px; top:234px;" data-open="editor"><div class="glyph"><svg class="doc" style="color:#3b6ef5"><use href="#i-file"/></svg></div><span>appunti.md</span></div>
+    <div class="obj dicon" style="left:8px; top:302px;" data-open="term"><div class="glyph"><div class="tile"><svg class="ico"><use href="#i-term"/></svg></div></div><span>Terminale</span></div>
+    <div class="obj dicon" style="left:8px; top:370px;"><div class="glyph"><div class="tile"><svg class="ico"><use href="#i-trash"/></svg></div></div><span>Cestino</span></div>
+
+    <!-- File manager -->
+    <section class="obj window" id="w-files" style="left:94px; top:36px; width:640px; height:440px;">
+      <div class="titlebar">
+        <div class="title"><svg class="ico"><use href="#i-files"/></svg>Documenti <em>— File</em></div>
+        <div class="controls">
+          <button data-act="min"><svg class="ico"><use href="#i-min"/></svg></button>
+          <button data-act="max"><svg class="ico"><use href="#i-max"/></svg></button>
+          <button class="close" data-act="close"><svg class="ico"><use href="#i-x"/></svg></button>
+        </div>
+      </div>
+      <div class="toolbar">
+        <span class="btn"><svg class="ico"><use href="#i-left"/></svg></span>
+        <span class="btn off"><svg class="ico"><use href="#i-right"/></svg></span>
+        <span class="btn"><svg class="ico"><use href="#i-up"/></svg></span>
+        <div class="field" style="flex:1">/home/eugenio/Documenti</div>
+        <span class="btn on"><svg class="ico"><use href="#i-list"/></svg></span>
+        <span class="btn"><svg class="ico"><use href="#i-grid"/></svg></span>
+        <div class="field" style="width:140px"><svg class="ico"><use href="#i-search"/></svg>Cerca</div>
+      </div>
+      <div class="fm">
+        <aside>
+          <h6>Risorse</h6>
+          <a><svg class="ico"><use href="#i-home"/></svg>Home</a>
+          <a class="active"><svg class="ico"><use href="#i-doc"/></svg>Documenti</a>
+          <a><svg class="ico"><use href="#i-download"/></svg>Download</a>
+          <a><svg class="ico"><use href="#i-image"/></svg>Immagini</a>
+          <a><svg class="ico"><use href="#i-clock"/></svg>Recenti</a>
+          <a><svg class="ico"><use href="#i-trash"/></svg>Cestino</a>
+          <h6>Etichette</h6>
+          <a><span class="dot" style="background:#e5484d"></span>Urgente</a>
+          <a><span class="dot" style="background:#30a46c"></span>Lavoro</a>
+          <a><span class="dot" style="background:#e8b44c"></span>Personale</a>
+        </aside>
+        <main>
+          <div class="list">
+            <table>
+              <thead><tr><th>Nome</th><th>Modificato</th><th class="num">Dimensione</th><th>Tipo</th></tr></thead>
+              <tbody>
+                <tr><td><div class="name"><svg class="folder sm"><use href="#i-folder"/></svg>Clienti</div></td><td>27/10/2026 18:02</td><td class="num">—</td><td>Cartella</td></tr>
+                <tr><td><div class="name"><svg class="folder sm"><use href="#i-folder"/></svg>Contratti</div></td><td>21/10/2026 09:15</td><td class="num">—</td><td>Cartella</td></tr>
+                <tr class="selected"><td><div class="name"><svg class="folder sm"><use href="#i-folder"/></svg>Progetto lilOS</div></td><td>28/10/2026 07:30</td><td class="num">—</td><td>Cartella</td></tr>
+                <tr><td><div class="name"><svg class="folder sm"><use href="#i-folder"/></svg>Ricevute 2026</div></td><td>14/10/2026 12:40</td><td class="num">—</td><td>Cartella</td></tr>
+                <tr><td><div class="name"><svg class="doc sm" style="color:#3b6ef5"><use href="#i-file"/></svg>appunti.md</div></td><td>28/10/2026 07:41</td><td class="num">3 KB</td><td>Markdown</td></tr>
+                <tr><td><div class="name"><svg class="doc sm" style="color:#30a46c"><use href="#i-file"/></svg>budget-2026.csv</div></td><td>26/10/2026 16:22</td><td class="num">48 KB</td><td>CSV</td></tr>
+                <tr><td><div class="name"><svg class="doc sm" style="color:#e5484d"><use href="#i-file"/></svg>report-q3.pdf</div></td><td>20/10/2026 11:05</td><td class="num">2,1 MB</td><td>PDF</td></tr>
+                <tr><td><div class="name"><svg class="doc sm" style="color:#8e4ec6"><use href="#i-file"/></svg>presentazione.pptx</div></td><td>18/10/2026 15:48</td><td class="num">8,4 MB</td><td>Presentazione</td></tr>
+                <tr><td><div class="name"><svg class="doc sm" style="color:#e8b44c"><use href="#i-file"/></svg>schema-ui.png</div></td><td>12/10/2026 10:11</td><td class="num">640 KB</td><td>Immagine</td></tr>
+                <tr><td><div class="name"><svg class="doc sm" style="color:#3b6ef5"><use href="#i-file"/></svg>verbale-riunione.docx</div></td><td>09/10/2026 17:30</td><td class="num">96 KB</td><td>Documento</td></tr>
+                <tr><td><div class="name"><svg class="doc sm" style="color:#6b7280"><use href="#i-file"/></svg>backup.zip</div></td><td>01/10/2026 08:00</td><td class="num">1,2 GB</td><td>Archivio</td></tr>
+                <tr><td><div class="name"><svg class="doc sm" style="color:#30a46c"><use href="#i-file"/></svg>fatture.xlsx</div></td><td>30/09/2026 14:19</td><td class="num">210 KB</td><td>Foglio di calcolo</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="statusbar"><span>12 elementi · 1 selezionato</span><span>24,6 GB liberi</span></div>
+        </main>
+      </div>
+    </section>
+
+    <!-- Browser -->
+    <section class="obj window" id="w-browser" style="left:742px; top:36px; width:680px; height:440px;">
+      <div class="titlebar">
+        <div class="title"><svg class="ico"><use href="#i-globe"/></svg>Documentazione <em>— Browser</em></div>
+        <div class="controls">
+          <button data-act="min"><svg class="ico"><use href="#i-min"/></svg></button>
+          <button data-act="max"><svg class="ico"><use href="#i-max"/></svg></button>
+          <button class="close" data-act="close"><svg class="ico"><use href="#i-x"/></svg></button>
+        </div>
+      </div>
+      <div class="browser">
+        <div class="tabs">
+          <div class="tab on"><span class="fav" style="background:#3b6ef5"></span><span>Documentazione</span><svg class="ico"><use href="#i-x"/></svg></div>
+          <div class="tab"><span class="fav" style="background:#30a46c"></span><span>Posta — 3 non lette</span><svg class="ico"><use href="#i-x"/></svg></div>
+          <div class="tab"><span class="fav" style="background:#e8b44c"></span><span>Issue tracker</span><svg class="ico"><use href="#i-x"/></svg></div>
+          <span class="btn" style="align-self:center"><svg class="ico"><use href="#i-plus"/></svg></span>
+        </div>
+        <div class="toolbar">
+          <span class="btn"><svg class="ico"><use href="#i-left"/></svg></span>
+          <span class="btn off"><svg class="ico"><use href="#i-right"/></svg></span>
+          <span class="btn"><svg class="ico"><use href="#i-refresh"/></svg></span>
+          <div class="field" style="flex:1"><svg class="ico"><use href="#i-lock"/></svg><span style="color:var(--text)">docs.lilos.app</span>/canvas/api</div>
+        </div>
+        <div class="page">
+          <nav>
+            <b>Guida</b>
+            <a>Introduzione</a>
+            <a>Installazione</a>
+            <b>API</b>
+            <a>Finestre</a>
+            <a class="on">Canvas</a>
+            <a>File system</a>
+            <a>App e permessi</a>
+          </nav>
+          <article>
+            <h1>Canvas</h1>
+            Il desktop è una superficie infinita: le finestre hanno coordinate nel mondo, la camera decide cosa vedi. Zoom e spostamento non toccano le app.
+            <h2>Muovere la camera</h2>
+            <pre>lilos.canvas.focus('w-editor')   // inquadra una finestra
+lilos.canvas.zoomTo(1.5, { x, y })
+lilos.canvas.fit()               // mostra tutto</pre>
+            <h2>Eventi</h2>
+            La camera emette <code>pan</code> e <code>zoom</code>; le finestre <code>focus</code>, <code>resize</code>, <code>close</code>.
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Editor -->
+    <section class="obj window" id="w-editor" style="left:94px; top:484px; width:520px; height:372px;">
+      <div class="titlebar">
+        <div class="title"><svg class="ico"><use href="#i-code"/></svg>appunti.md <em>— Editor</em></div>
+        <div class="controls">
+          <button data-act="min"><svg class="ico"><use href="#i-min"/></svg></button>
+          <button data-act="max"><svg class="ico"><use href="#i-max"/></svg></button>
+          <button class="close" data-act="close"><svg class="ico"><use href="#i-x"/></svg></button>
+        </div>
+      </div>
+      <div class="editor">
+        <div class="etabs">
+          <div class="etab on">appunti.md <i></i></div>
+          <div class="etab">todo.txt</div>
+        </div>
+        <div class="code">
+<div class="gutter">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12</div><div class="src"><span class="h"># lilOS — note di sviluppo</span>
+
+<span class="h">## Fatto</span>
+<span class="m">-</span> <span class="k">[x]</span> Window manager: drag, focus, riduci
+<span class="m">-</span> <span class="k">[x]</span> Desktop come canvas infinito + zoom
+
+<span class="h">## Da fare</span>
+<span class="m">-</span> <span class="k">[ ]</span> File system virtuale su IndexedDB
+<span class="m">-</span> <span class="k">[ ]</span> Snap delle finestre alle aree
+<span class="m">-</span> <span class="k">[ ]</span> Menu contestuale (tasto destro)
+<span class="cur"><span class="m">-</span> <span class="k">[ ]</span> Web app in iframe<span class="caret"></span></span>
+</div>
+        </div>
+        <div class="statusbar"><span>Markdown · UTF-8</span><span>Riga 11, col 22</span></div>
+      </div>
+    </section>
+
+    <!-- Terminal -->
+    <section class="obj window term-win" id="w-term" style="left:622px; top:484px; width:560px; height:260px;">
+      <div class="titlebar">
+        <div class="title"><svg class="ico"><use href="#i-term"/></svg>~/progetti/lilos <em>— Terminale</em></div>
+        <div class="controls">
+          <button data-act="min"><svg class="ico"><use href="#i-min"/></svg></button>
+          <button data-act="max"><svg class="ico"><use href="#i-max"/></svg></button>
+          <button class="close" data-act="close"><svg class="ico"><use href="#i-x"/></svg></button>
+        </div>
+      </div>
+<div class="term"><span class="p">eugenio@lilos</span>:<span class="d">~/progetti/lilos</span>$ npm run dev
+
+<span class="g">&gt; lilos@0.1.0 dev</span>
+<span class="g">&gt; vite</span>
+
+  <span class="p">VITE v6.2.0</span>  pronto in <b>312 ms</b>
+
+  ➜  Local:   <span class="d">http://localhost:5173/</span>
+  ➜  Network: <span class="g">usa --host per esporre</span>
+  <span class="y">[hmr]</span> aggiornato /src/canvas/camera.js
+<span class="p">eugenio@lilos</span>:<span class="d">~/progetti/lilos</span>$ <span class="caret" style="background:#c9ced8"></span></div>
+    </section>
+
+    <!-- Calendar (area Personale) -->
+    <section class="obj window" id="w-cal" style="left:1490px; top:36px; width:420px; height:400px;">
+      <div class="titlebar">
+        <div class="title"><svg class="ico"><use href="#i-cal"/></svg>Calendario</div>
+        <div class="controls">
+          <button data-act="min"><svg class="ico"><use href="#i-min"/></svg></button>
+          <button data-act="max"><svg class="ico"><use href="#i-max"/></svg></button>
+          <button class="close" data-act="close"><svg class="ico"><use href="#i-x"/></svg></button>
+        </div>
+      </div>
+      <div class="cal">
+        <header>
+          <b>Ottobre 2026</b>
+          <span class="btn"><svg class="ico"><use href="#i-left"/></svg></span>
+          <span class="btn"><svg class="ico"><use href="#i-right"/></svg></span>
+        </header>
+        <div class="days" id="days"></div>
+        <div class="events">
+          <div><time>Oggi 10:00</time><i style="background:#3b6ef5"></i>Call con il cliente</div>
+          <div><time>Oggi 15:30</time><i style="background:#30a46c"></i>Revisione design canvas</div>
+          <div><time>Ven 30</time><i style="background:#e5484d"></i>Consegna report Q3</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Sticky notes -->
+    <div class="obj note" style="left:1922px; top:36px;"><div class="grip"></div><div class="body" contenteditable spellcheck="false"><b>Venerdì</b>Chiamare il commercialista per le fatture di settembre.</div></div>
+    <div class="obj note blue" style="left:1922px; top:200px; min-height:120px;"><div class="grip"></div><div class="body" contenteditable spellcheck="false"><b>Spesa</b>Caffè, carta stampante, pile AA.</div></div>
+  </div>
+</div>
+
+
+<div class="hud" title="Rotella: zoom · Trascina lo sfondo: sposta · Spazio + trascina: sposta ovunque · Shift+1: mostra tutto · Doppio clic sul titolo: ingrandisci">
+  <div class="minimap" id="minimap"></div>
+  <div class="zoombar">
+    <button id="zOut" title="Riduci (Ctrl −)"><svg class="ico"><use href="#i-min"/></svg></button>
+    <button class="pct" id="zPct" title="Zoom al 100% (Ctrl 0)">100%</button>
+    <button id="zIn" title="Ingrandisci (Ctrl +)"><svg class="ico"><use href="#i-plus"/></svg></button>
+    <button id="zFit" title="Mostra tutto (Shift 1)"><svg class="ico"><use href="#i-fit"/></svg></button>
+  </div>
+</div>
+
+<!-- Taskbar -->
+<nav class="taskbar">
+  <div class="tb"><div class="logo"></div></div>
+  <div class="tsearch"><svg class="ico"><use href="#i-search"/></svg>Cerca<kbd>Ctrl K</kbd></div>
+  <div class="pinned">
+    <div class="tb" title="Posta"><svg class="ico"><use href="#i-mail"/></svg></div>
+    <div class="tb" title="Impostazioni"><svg class="ico"><use href="#i-gear"/></svg></div>
+  </div>
+  <div class="tasks">
+    <div class="tb task" data-win="files"><svg class="ico"><use href="#i-files"/></svg><span>Documenti — File</span></div>
+    <div class="tb task" data-win="browser"><svg class="ico"><use href="#i-globe"/></svg><span>Documentazione — Browser</span></div>
+    <div class="tb task" data-win="editor"><svg class="ico"><use href="#i-code"/></svg><span>appunti.md — Editor</span></div>
+    <div class="tb task" data-win="term"><svg class="ico"><use href="#i-term"/></svg><span>Terminale</span></div>
+    <div class="tb task" data-win="cal"><svg class="ico"><use href="#i-cal"/></svg><span>Calendario</span></div>
+  </div>
+  <div class="tray">
+    <div class="tb"><svg class="ico"><use href="#i-wifi"/></svg></div>
+    <div class="tb"><svg class="ico"><use href="#i-vol"/></svg></div>
+    <div class="tb"><svg class="ico"><use href="#i-bat"/></svg></div>
+    <div class="tb"><svg class="ico"><use href="#i-bell"/></svg></div>
+    <div class="clock"><span id="tTime">09:41</span><small id="tDate">28/10/2026</small></div>
+  </div>
+</nav>
+
+<script>
+  // ---------- Clock & calendar ----------
+  function tick() {
+    const d = new Date();
+    document.getElementById('tTime').textContent = d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+    document.getElementById('tDate').textContent = d.toLocaleDateString('it-IT');
+  }
+  tick(); setInterval(tick, 10000);
+
+  (function buildCalendar() {
+    const days = document.getElementById('days');
+    let html = ['lun', 'mar', 'mer', 'gio', 'ven', 'sab', 'dom'].map(d => `<span class="wd">${d}</span>`).join('');
+    const offset = (new Date(2026, 9, 1).getDay() + 6) % 7;
+    html += '<span></span>'.repeat(offset);
+    for (let d = 1; d <= 31; d++) {
+      const wd = (offset + d - 1) % 7;
+      const cls = [d === 28 && 'today', wd > 4 && 'we', [28, 30].includes(d) && 'ev'].filter(Boolean).join(' ');
+      html += `<span class="${cls}">${d}</span>`;
+    }
+    days.innerHTML = html;
+  })();
+
+  // ---------- Camera ----------
+  const vp = document.getElementById('viewport');
+  const world = document.getElementById('world');
+  const cam = { x: 0, y: 0, s: 1 };
+  const clampS = s => Math.min(3, Math.max(0.1, s));
+  let anim;
+
+  function apply() {
+    world.style.transform = `translate(${cam.x}px, ${cam.y}px) scale(${cam.s})`;
+    let g = 24 * cam.s;
+    while (g < 12) g *= 4;
+    vp.style.backgroundSize = `${g}px ${g}px`;
+    vp.style.backgroundPosition = `${cam.x}px ${cam.y}px`;
+    document.getElementById('zPct').textContent = Math.round(cam.s * 100) + '%';
+    drawMinimap();
+  }
+
+  function zoomAt(cx, cy, f) {
+    const s = clampS(cam.s * f), k = s / cam.s;
+    cam.x = cx - (cx - cam.x) * k;
+    cam.y = cy - (cy - cam.y) * k;
+    cam.s = s;
+    apply();
+  }
+
+  function animateTo(x, y, s) {
+    cancelAnimationFrame(anim);
+    const from = { ...cam }, t0 = performance.now();
+    const step = now => {
+      const p = 1 - Math.pow(1 - Math.min(1, (now - t0) / 280), 3);
+      cam.x = from.x + (x - from.x) * p;
+      cam.y = from.y + (y - from.y) * p;
+      cam.s = from.s + (s - from.s) * p;
+      apply();
+      if (p < 1) anim = requestAnimationFrame(step);
+    };
+    anim = requestAnimationFrame(step);
+  }
+
+  const rectOf = el => ({ x: el.offsetLeft, y: el.offsetTop, w: el.offsetWidth, h: el.offsetHeight });
+  function union(rs) {
+    const x = Math.min(...rs.map(r => r.x)), y = Math.min(...rs.map(r => r.y));
+    return { x, y, w: Math.max(...rs.map(r => r.x + r.w)) - x, h: Math.max(...rs.map(r => r.y + r.h)) - y };
+  }
+  const viewRect = () => ({ x: -cam.x / cam.s, y: -cam.y / cam.s, w: vp.clientWidth / cam.s, h: vp.clientHeight / cam.s });
+
+  function frameRect(r, margin, maxS = 1) {
+    const W = vp.clientWidth, H = vp.clientHeight;
+    const s = clampS(Math.min((W - 2 * margin) / r.w, (H - 2 * margin) / r.h, maxS));
+    animateTo((W - r.w * s) / 2 - r.x * s, (H - r.h * s) / 2 - r.y * s, s);
+  }
+  const visibleObjs = () => [...world.querySelectorAll('.obj:not(.hidden)')];
+  const fitAll = () => frameRect(union(visibleObjs().map(rectOf)), 40);
+
+  function bringIntoView(w) {
+    const r = rectOf(w), v = viewRect();
+    if (r.x >= v.x && r.y >= v.y && r.x + r.w <= v.x + v.w && r.y + r.h <= v.y + v.h) return;
+    if (r.w <= v.w && r.h <= v.h)
+      animateTo(vp.clientWidth / 2 - (r.x + r.w / 2) * cam.s, vp.clientHeight / 2 - (r.y + r.h / 2) * cam.s, cam.s);
+    else frameRect(r, 24, cam.s);
+  }
+
+  // ---------- Minimap ----------
+  const mm = document.getElementById('minimap');
+  let mmMap = null, mmDrag = false;
+  function drawMinimap() {
+    const items = [...world.querySelectorAll('.frame, .window:not(.hidden), .note')];
+    const view = viewRect();
+    if (!mmDrag) {
+      const b = union([...items.map(rectOf), view]);
+      const pad = 8, W = mm.clientWidth - pad * 2, H = mm.clientHeight - pad * 2;
+      const k = Math.min(W / b.w, H / b.h);
+      mmMap = { k, ox: pad + (W - b.w * k) / 2 - b.x * k, oy: pad + (H - b.h * k) / 2 - b.y * k };
+    }
+    const { k, ox, oy } = mmMap;
+    const box = (r, c) => `<i class="${c}" style="left:${ox + r.x * k}px;top:${oy + r.y * k}px;width:${r.w * k}px;height:${r.h * k}px"></i>`;
+    mm.innerHTML = items.map(el => box(rectOf(el), el.classList.contains('frame') ? 'f' : el.classList.contains('note') ? 'n' : 'w')).join('') + box(view, 'v');
+  }
+  function mmNavigate(e) {
+    const r = mm.getBoundingClientRect(), { k, ox, oy } = mmMap;
+    const wx = (e.clientX - r.left - ox) / k, wy = (e.clientY - r.top - oy) / k;
+    cancelAnimationFrame(anim);
+    cam.x = vp.clientWidth / 2 - wx * cam.s;
+    cam.y = vp.clientHeight / 2 - wy * cam.s;
+    apply();
+  }
+  mm.addEventListener('pointerdown', e => {
+    mmDrag = true; mm.setPointerCapture(e.pointerId); mmNavigate(e);
+    const move = ev => mmNavigate(ev);
+    const up = () => { mmDrag = false; mm.removeEventListener('pointermove', move); mm.removeEventListener('pointerup', up); drawMinimap(); };
+    mm.addEventListener('pointermove', move); mm.addEventListener('pointerup', up);
+  });
+
+  // ---------- Pan & zoom input ----------
+  let spaceDown = false;
+
+  vp.addEventListener('pointerdown', e => {
+    const onBg = !e.target.closest('.window, .note, .dicon');
+    if (!(e.button === 1 || spaceDown || (e.button === 0 && onBg))) return;
+    e.preventDefault(); e.stopPropagation();
+    if (onBg) document.querySelectorAll('.dicon.selected').forEach(o => o.classList.remove('selected'));
+    cancelAnimationFrame(anim);
+    const sx = e.clientX - cam.x, sy = e.clientY - cam.y;
+    vp.classList.add('panning');
+    const move = ev => { cam.x = ev.clientX - sx; cam.y = ev.clientY - sy; apply(); };
+    const up = () => { vp.classList.remove('panning'); removeEventListener('pointermove', move); removeEventListener('pointerup', up); };
+    addEventListener('pointermove', move); addEventListener('pointerup', up);
+  }, true);
+
+  vp.addEventListener('wheel', e => {
+    // Over a window the wheel scrolls its content; Ctrl (or trackpad pinch) always zooms
+    if (!e.ctrlKey && e.target.closest('.window, .note')) return;
+    e.preventDefault();
+    cancelAnimationFrame(anim);
+    const unit = e.deltaMode === 1 ? 16 : 1;
+    const r = vp.getBoundingClientRect();
+    zoomAt(e.clientX - r.left, e.clientY - r.top, Math.exp(-e.deltaY * unit * (e.ctrlKey ? 0.01 : 0.0015)));
+  }, { passive: false });
+  addEventListener('wheel', e => { if (e.ctrlKey) e.preventDefault(); }, { passive: false });
+
+  const editing = () => document.activeElement?.isContentEditable;
+  const zoomCenter = f => { cancelAnimationFrame(anim); zoomAt(vp.clientWidth / 2, vp.clientHeight / 2, f); };
+  addEventListener('keydown', e => {
+    if (e.code === 'Space' && !editing()) { e.preventDefault(); spaceDown = true; vp.classList.add('space'); }
+    if (e.ctrlKey && (e.key === '+' || e.key === '=')) { e.preventDefault(); zoomCenter(1.2); }
+    if (e.ctrlKey && e.key === '-') { e.preventDefault(); zoomCenter(1 / 1.2); }
+    if (e.ctrlKey && e.key === '0') { e.preventDefault(); zoomCenter(1 / cam.s); }
+    if (e.shiftKey && e.code === 'Digit1' && !editing()) { e.preventDefault(); fitAll(); }
+  });
+  addEventListener('keyup', e => { if (e.code === 'Space') { spaceDown = false; vp.classList.remove('space'); } });
+
+  document.getElementById('zIn').onclick = () => zoomCenter(1.2);
+  document.getElementById('zOut').onclick = () => zoomCenter(1 / 1.2);
+  document.getElementById('zPct').onclick = () => zoomCenter(1 / cam.s);
+  document.getElementById('zFit').onclick = fitAll;
+  addEventListener('resize', apply);
+
+  // ---------- Objects: drag, resize, z-order ----------
+  let z = 10;
+  function draggable(el, handle) {
+    handle.addEventListener('pointerdown', e => {
+      if (e.button !== 0 || e.target.closest('button, .resize') || el.classList.contains('max')) return;
+      const sx = e.clientX, sy = e.clientY, ox = el.offsetLeft, oy = el.offsetTop;
+      let moved = false;
+      const move = ev => {
+        if (!moved && Math.hypot(ev.clientX - sx, ev.clientY - sy) < 3) return;
+        moved = true;
+        el.style.left = ox + (ev.clientX - sx) / cam.s + 'px';
+        el.style.top = oy + (ev.clientY - sy) / cam.s + 'px';
+        drawMinimap();
+      };
+      const up = () => { removeEventListener('pointermove', move); removeEventListener('pointerup', up); };
+      addEventListener('pointermove', move); addEventListener('pointerup', up);
+    });
+  }
+  document.querySelectorAll('.note, .dicon').forEach(el => {
+    draggable(el, el.querySelector('.grip') || el);
+    el.addEventListener('pointerdown', () => { el.style.zIndex = ++z; });
+  });
+
+  // ---------- Windows ----------
+  const wins = [...document.querySelectorAll('.window')];
+  const taskOf = w => document.querySelector(`.task[data-win="${w.id.slice(2)}"]`);
+
+  function focusWin(w) {
+    w.style.zIndex = ++z;
+    wins.forEach(o => {
+      o.classList.toggle('inactive', o !== w);
+      taskOf(o)?.classList.toggle('focused', o === w);
+    });
+  }
+  function hideWin(w) {
+    w.classList.add('hidden');
+    taskOf(w)?.classList.add('min');
+    taskOf(w)?.classList.remove('focused');
+    drawMinimap();
+  }
+  function openWin(name) {
+    const w = document.getElementById('w-' + name);
+    if (!w) return;
+    w.classList.remove('hidden');
+    const t = taskOf(w);
+    if (t) { t.classList.remove('min'); t.style.display = ''; }
+    focusWin(w);
+    bringIntoView(w);
+  }
+
+  // Maximize = window as big as the screen, camera at 100% on it. Second click restores both.
+  function toggleMax(w) {
+    if (w._restore) {
+      const p = w._restore;
+      Object.assign(w.style, { left: p.x + 'px', top: p.y + 'px', width: p.w + 'px', height: p.h + 'px' });
+      w.classList.remove('max');
+      w._restore = null;
+      animateTo(p.cam.x, p.cam.y, p.cam.s);
+    } else {
+      const r = rectOf(w);
+      w._restore = { ...r, cam: { ...cam } };
+      Object.assign(w.style, { width: vp.clientWidth + 'px', height: vp.clientHeight + 'px' });
+      w.classList.add('max');
+      animateTo(-r.x, -r.y, 1);
+    }
+  }
+
+  ['w-cal', 'w-browser', 'w-term', 'w-editor', 'w-files'].forEach(id => focusWin(document.getElementById(id)));
+
+  wins.forEach(w => {
+    w.addEventListener('pointerdown', () => focusWin(w));
+    const bar = w.querySelector('.titlebar');
+    draggable(w, bar);
+    bar.addEventListener('dblclick', e => { if (!e.target.closest('button')) toggleMax(w); });
+
+    const grip = document.createElement('div');
+    grip.className = 'resize';
+    w.appendChild(grip);
+    grip.addEventListener('pointerdown', e => {
+      e.stopPropagation();
+      focusWin(w);
+      const sx = e.clientX, sy = e.clientY, ow = w.offsetWidth, oh = w.offsetHeight;
+      const move = ev => {
+        w.style.width = Math.max(280, ow + (ev.clientX - sx) / cam.s) + 'px';
+        w.style.height = Math.max(160, oh + (ev.clientY - sy) / cam.s) + 'px';
+        drawMinimap();
+      };
+      const up = () => { removeEventListener('pointermove', move); removeEventListener('pointerup', up); };
+      addEventListener('pointermove', move); addEventListener('pointerup', up);
+    });
+
+    w.querySelectorAll('[data-act]').forEach(b => b.addEventListener('click', () => {
+      const act = b.dataset.act;
+      if (act === 'max') return toggleMax(w);
+      hideWin(w);
+      if (act === 'close' && taskOf(w)) taskOf(w).style.display = 'none';
+    }));
+  });
+
+  document.querySelectorAll('.task').forEach(t => t.addEventListener('click', () => {
+    const w = document.getElementById('w-' + t.dataset.win);
+    if (!w.classList.contains('hidden') && t.classList.contains('focused')) hideWin(w);
+    else openWin(t.dataset.win);
+  }));
+
+  // ---------- Desktop icons & file list ----------
+  document.querySelectorAll('.dicon').forEach(i => {
+    i.addEventListener('click', () => {
+      document.querySelectorAll('.dicon').forEach(o => o.classList.remove('selected'));
+      i.classList.add('selected');
+    });
+    i.addEventListener('dblclick', () => i.dataset.open && openWin(i.dataset.open));
+  });
+  document.querySelectorAll('tbody tr').forEach(r => r.addEventListener('click', () => {
+    document.querySelectorAll('tbody tr').forEach(o => o.classList.remove('selected'));
+    r.classList.add('selected');
+  }));
+
+  apply();
+</script>
+</body>
+</html>
