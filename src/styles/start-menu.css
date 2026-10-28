@@ -18,18 +18,18 @@
 .sm-search input { flex: 1; min-width: 0; background: none; border: 0; outline: none; color: var(--bar-text); font-size: 12.5px; }
 .sm-search input::placeholder { color: var(--bar-dim); }
 
-.sm-heading { padding: 2px 14px 4px; font-size: 10.5px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #6b7280; }
+.sm-heading { padding: 2px 14px 4px; font-size: 10.5px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--bar-dim); }
 
 .sm-list { flex: 1; min-height: 80px; overflow: auto; padding: 0 6px 6px; }
 .sm-item {
   width: 100%; height: 32px; display: flex; align-items: center; gap: 10px; padding: 0 8px;
   border-radius: var(--radius-sm); text-align: left; font-size: 12.5px;
 }
-.sm-item.active { background: var(--bar-hover); color: #fff; }
+.sm-item.active { background: var(--bar-hover); color: var(--bar-strong); }
 .sm-item .app-icon { width: 22px; height: 22px; border-radius: 6px; }
 .sm-empty { padding: 20px 8px; text-align: center; color: var(--bar-dim); }
 
 .sm-footer { display: flex; align-items: center; gap: 2px; padding: 6px 6px 6px 12px; border-top: 1px solid var(--panel-border); }
 .sm-user { flex: 1; display: flex; align-items: center; gap: 8px; font-size: 12.5px; }
 .sm-btn { width: 28px; height: 28px; border-radius: var(--radius-sm); display: grid; place-items: center; color: var(--bar-dim); }
-.sm-btn:hover { background: var(--bar-hover); color: #fff; }
+.sm-btn:hover { background: var(--bar-hover); color: var(--bar-strong); }

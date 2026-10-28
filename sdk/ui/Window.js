@@ -22,6 +22,10 @@ export const WINDOW_EDGES = ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'];
  * Before closing on the user's request, the window manager asks canClose() if the window sets it
  * (e.g. to offer saving changes): return true / false, or a Promise of it.
  *
+ * To be reopened later as it is (workareas save their windows), an app window sets getState():
+ * it returns plain JSON data, given back to the app as `args` when the window is recreated.
+ *   win.getState = () => ({ file: editor.fileId })
+ *
  * Events (intents, emitted by the controls):
  *   'minimize' | 'maximize' | 'close'
  * Events (state):
@@ -34,6 +38,8 @@ export class Window extends Emitter {
   #abort = new AbortController();
   /** Optional: () => boolean | Promise<boolean>, asked before closing on the user's request. */
   canClose = null;
+  /** Optional: () => JSON data to recreate the window with (passed back to the app as args). */
+  getState = null;
   #controls = { minimize: true, maximize: true, close: true };
   #edges = new Set(WINDOW_EDGES);
 

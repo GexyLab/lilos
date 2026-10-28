@@ -1,0 +1,13 @@
+/* Dragging files and folders between views (src/items/itemDrag.js) */
+.drop-target { background: var(--accent-soft) !important; outline: 1px dashed var(--accent); outline-offset: -1px; }
+.item-ghost {
+  position: fixed; left: 0; top: 0; z-index: 100000; pointer-events: none;
+  display: flex; align-items: center; gap: 6px; max-width: 240px; padding: 4px 9px 4px 6px;
+  background: var(--field-bg); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-pop); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.item-ghost-icon { width: 16px; height: 16px; flex: none; display: grid; place-items: center; }
+.item-ghost-icon .icon-folder { width: 16px; height: 14px; }
+.item-ghost-icon .icon-file { width: 13px; height: 16px; }
+.item-ghost-icon .app-icon { width: 16px; height: 16px; border-radius: 4px; }
+body.items-dragging, body.items-dragging * { cursor: grabbing !important; user-select: none !important; }

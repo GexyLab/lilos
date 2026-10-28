@@ -1,0 +1,11 @@
+/* ---------- Settings app: context menu editor (menuEditor.js) ---------- */
+.mm-ctl { display: flex; gap: 2px; flex: none; }
+.mm-btn { width: 26px; height: 24px; display: grid; place-items: center; border-radius: var(--radius-sm); color: var(--dim); }
+.mm-btn:hover:not(:disabled) { background: var(--hover); color: var(--text); }
+.mm-btn:disabled { opacity: .3; cursor: default; }
+.mm-btn .ico { width: 13px; height: 13px; }
+.mm-add { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 6px; max-width: 470px; }
+.mm-add .ctl-select { min-width: 120px; }
+.mm-add .ctl-text { width: 170px; }
+.mm-note { width: 100%; text-align: right; color: var(--danger); font-size: 11px; }
+.mm-note:empty { display: none; }

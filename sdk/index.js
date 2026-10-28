@@ -11,7 +11,10 @@ export { storage, uid } from './core/storage.js';
 export { session, initials } from './core/session.js';
 export { settings } from './core/settings.js';
 export { shortcuts, comboFromEvent } from './core/shortcuts.js';
+export { menus } from './core/menus.js';
+export { UndoStack, history } from './core/history.js';
 export { fs } from './core/fs.js';
+export { tags, TAG_COLORS } from './core/tags.js';
 export { splitName, fileType, fileTypeList } from './core/fileTypes.js';
 
 // UI
@@ -22,6 +25,7 @@ export { appIcon } from './ui/appIcon.js';
 export { toggle, selectField, segmented, swatches, slider, textField, actionButton } from './ui/controls.js';
 export { shortcutField } from './ui/shortcutField.js';
 export { selectionGesture } from './ui/selectionGesture.js';
+export { toast } from './ui/toast.js';
 
 // Windows
 export { Window, WINDOW_EDGES } from './ui/Window.js';

@@ -1,5 +1,5 @@
 import { h, session, appIcon, avatar, closeMenu, icon, shortcuts } from '@lilos/sdk';
-import { apps, launch } from '../apps/registry.js';
+import { installedApps, launch } from '../apps/registry.js';
 
 /** Launcher opened by the logo button (or Ctrl+K): app search, app list, user footer. */
 export class StartMenu {
@@ -62,7 +62,8 @@ export class StartMenu {
 
   #render() {
     const query = this.input.value.trim().toLowerCase();
-    this.#results = apps.filter(app => app.name.toLowerCase().includes(query));
+    // Only the apps installed in the current workspace
+    this.#results = installedApps().filter(app => app.name.toLowerCase().includes(query));
     this.heading.textContent = query ? 'Risultati' : 'App';
     this.list.replaceChildren(...this.#results.map((app, i) =>
       h('button', {

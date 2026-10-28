@@ -10,5 +10,16 @@
   },
   "devDependencies": {
     "vite": "^8.3.5"
+  },
+  "dependencies": {
+    "@shikijs/core": "4.5.0",
+    "@shikijs/engine-javascript": "4.5.0",
+    "@shikijs/langs": "4.5.0",
+    "@shikijs/themes": "4.5.0",
+    "vscode-css-languageservice": "6.3.10",
+    "vscode-html-languageservice": "5.6.2",
+    "vscode-json-languageservice": "5.7.2",
+    "vscode-languageserver-textdocument": "1.0.15",
+    "web-tree-sitter": "0.27.1"
   }
 }

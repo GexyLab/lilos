@@ -1,30 +1,64 @@
+/*
+ * Design tokens. Two families:
+ *   window surfaces (light by default)          --text, --surface, --chrome, --field-bg, --syn-* …
+ *   desk and system chrome (dark by default)    --canvas, --bar*, --panel*, --mm-* …
+ * Themes (<html data-theme>): "dark" darkens the windows too, "light" lightens the desk and chrome too.
+ */
 :root {
   /* Brand */
   --accent: #3b6ef5;
-  --accent-soft: color-mix(in srgb, var(--accent) 12%, #fff);
+  --accent-soft: color-mix(in srgb, var(--accent) 12%, var(--surface));
   --accent-strong: color-mix(in srgb, var(--accent) 86%, #000);
   --accent-tint: color-mix(in srgb, var(--accent) 30%, transparent);
   --danger: #e5484d;
+  --warning: #d9822b;
 
-  /* Light surfaces (windows) */
+  /* Window surfaces */
   --text: #1f2328;
   --dim: #6b7280;
   --faint: #9aa1ad;
   --surface: #ffffff;
   --chrome: #f4f5f7;
+  --side: #fafafb;          /* sidebars, status bars, inactive title bars */
+  --stripe: #fafbfc;        /* alternate rows, editor gutter */
+  --field-bg: #ffffff;      /* inputs, buttons, popups on a surface */
   --hover: #eceef1;
   --border: #e2e4e8;
+  --toggle-off: #cdd1d8;
+  --notice-bg: #fff8e6;
+  --notice-border: #f0dca8;
+  --notice-text: #b7791f;
+
+  /* Code (Editor) */
+  --code: #2b3038;
+  --line-num: #b4b9c2;
+  --current-line: #f3f6ff;
+  --syn-kw: #cf222e;
+  --syn-st: #0a3069;
+  --syn-nu: #0550ae;
+  --syn-cm: #6e7781;
+  --syn-fn: #8250df;
+  --syn-pr: #116329;
+  --syn-pu: #953800;
+  --syn-ty: #953800;
+  --syn-hd: #0550ae;
 
   /* Desk */
   --canvas: #1f2227;
   --canvas-dot: rgba(255, 255, 255, .09);
   --on-canvas: #e9ebef;
+  --on-canvas-hover: rgba(255, 255, 255, .07);
+  --on-canvas-shadow: 0 1px 2px rgba(0, 0, 0, .6);
+  --mm-item: #7b8494;
+  --mm-window: #5d6472;
+  --mm-obj: #4b515c;
 
-  /* Dark chrome (taskbar, menus, HUD) */
+  /* System chrome (taskbar, menus, HUD) */
   --bar: #16181d;
   --bar-border: #2a2d34;
   --bar-text: #d7dae0;
   --bar-dim: #8a909b;
+  --bar-strong: #ffffff;    /* text on hover/active */
   --bar-hover: rgba(255, 255, 255, .08);
   --panel: rgba(24, 26, 31, .97);
   --panel-border: #2c3038;
@@ -41,4 +75,58 @@
   /* Type */
   --font: Inter, system-ui, "Segoe UI", sans-serif;
   --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+}
+
+/* Dark theme: windows dark as well */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --text: #e4e7ec;
+  --dim: #9aa1ad;
+  --faint: #6f7783;
+  --surface: #1b1d22;
+  --chrome: #23262c;
+  --side: #1f2227;
+  --stripe: #1e2126;
+  --field-bg: #15171b;
+  --hover: #2c3038;
+  --border: #33373f;
+  --toggle-off: #4a505b;
+  --notice-bg: #2e2716;
+  --notice-border: #4d401c;
+  --notice-text: #e3a54a;
+  --code: #d4d8df;
+  --line-num: #5b616c;
+  --current-line: #232a3a;
+  --syn-kw: #ff7b72;
+  --syn-st: #a5d6ff;
+  --syn-nu: #79c0ff;
+  --syn-cm: #8b949e;
+  --syn-fn: #d2a8ff;
+  --syn-pr: #7ee787;
+  --syn-pu: #ffa657;
+  --syn-ty: #ffa657;
+  --syn-hd: #79c0ff;
+}
+
+/* Light theme: desk and system chrome light as well */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --canvas: #e6e8ec;
+  --canvas-dot: rgba(0, 0, 0, .13);
+  --on-canvas: #1f2328;
+  --on-canvas-hover: rgba(0, 0, 0, .06);
+  --on-canvas-shadow: 0 1px 2px rgba(255, 255, 255, .8);
+  --mm-item: #8a93a3;
+  --mm-window: #b3bac6;
+  --mm-obj: #c9ced6;
+  --bar: #f6f7f9;
+  --bar-border: #d8dbe1;
+  --bar-text: #1f2328;
+  --bar-dim: #6b7280;
+  --bar-strong: #000000;
+  --bar-hover: rgba(0, 0, 0, .06);
+  --panel: rgba(255, 255, 255, .98);
+  --panel-border: #d8dbe1;
+  --field: #eceef1;
+  --shadow-pop: 0 12px 32px -8px rgba(0, 0, 0, .25);
 }

@@ -28,12 +28,16 @@
   padding: 0 8px; border-radius: var(--radius-sm); text-align: left; font-size: 12.5px;
 }
 .menu-item .ico { width: 14px; height: 14px; color: var(--bar-dim); }
+.menu-swatch { width: 9px; height: 9px; margin-right: -2px; flex: none; border-radius: 50%; box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--panel) 70%, transparent); }
 .menu-item:hover:not(:disabled), .menu-item:focus-visible { background: var(--accent); color: #fff; outline: none; }
 .menu-item:hover:not(:disabled) .ico, .menu-item:focus-visible .ico, .menu-item:hover:not(:disabled) kbd { color: #fff; }
 .menu-item.danger:hover:not(:disabled), .menu-item.danger:focus-visible { background: var(--danger); }
 .menu-item:disabled { opacity: .4; cursor: default; }
 .menu-label { flex: 1; white-space: nowrap; }
 .menu-item kbd { font-size: 10.5px; color: var(--bar-dim); }
+.menu-arrow { font-size: 14px; line-height: 1; color: var(--bar-dim); margin-right: -2px; }
+.menu-item.has-sub[aria-expanded="true"] { background: var(--bar-hover); }
+.menu-item:hover:not(:disabled) .menu-arrow, .menu-item:focus-visible .menu-arrow { color: #fff; }
 .menu-sep { height: 1px; margin: 4px 6px; background: var(--panel-border); }
 
 /* ---------- Selection gesture (selectionGesture) ---------- */
@@ -42,3 +46,13 @@
   fill: color-mix(in srgb, var(--accent) 14%, transparent); stroke: var(--accent); stroke-width: 1;
 }
 .sel-overlay path { stroke-dasharray: 4 3; stroke-linejoin: round; }
+
+/* ---------- Toast (ui/toast.js) ---------- */
+.toast {
+  position: fixed; z-index: 10000; left: 50%; bottom: 64px; transform: translate(-50%, 8px);
+  max-width: min(520px, calc(100vw - 32px)); padding: 9px 14px; border-radius: 8px;
+  background: var(--panel); color: var(--bar-text); border: 1px solid var(--panel-border);
+  box-shadow: var(--shadow-pop); font-size: 12.5px;
+  opacity: 0; pointer-events: none; transition: opacity .15s, transform .15s;
+}
+.toast.on { opacity: 1; transform: translate(-50%, 0); }

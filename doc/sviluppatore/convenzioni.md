@@ -22,9 +22,16 @@
 
 - Stili dell'SDK in `sdk/styles/`, importati da `sdk/styles/index.css`. Stili del sistema in `src/styles/`, uno per area, importati da `main.js`.
 - Colori, raggi, ombre e font vengono da `sdk/styles/tokens.css`. Un valore nuovo che si ripete diventa un token.
+- **Nessun colore scritto a mano**: altrimenti non segue il tema chiaro/scuro. Per le superfici delle finestre usa `--surface`, `--side`, `--field-bg`, `--text`, `--border`…; per scrivania e barra `--canvas`, `--bar*`, `--panel*`. Il bianco va bene solo per il testo su `--accent` o `--danger`.
 - Classi brevi con un prefisso per area: `tb-` barra, `sm-` menu di avvio, `mm-` minimappa, `ditem` elementi del desktop.
 - Interfaccia densa: testi a 11,5–12,5 px, spaziature piccole. La priorità è lo spazio di lavoro.
 - `user-select: none` è impostato su `body`: riattivalo (`user-select: text`) dove serve selezionare testo.
+
+## Dipendenze
+
+- Solo quando servono davvero, con una decisione registrata in [Decisioni](../interna/decisioni.md).
+- **Versioni esatte** in `package.json` (`--save-exact`), pubblicate da almeno due settimane, licenza compatibile, **senza script di installazione**. Pacchetti con script di compilazione nativa (come le grammatiche Tree-sitter) non diventano dipendenze: se ne copiano i file necessari con uno script (`scripts/vendor-tree-sitter.mjs`).
+- Caricate al bisogno con `import()` dall'app che le usa, mai dall'avvio del sistema.
 
 ## Sicurezza
 

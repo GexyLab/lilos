@@ -80,17 +80,21 @@ const win = new SettingsWindow({
 | `storage`, `uid` | core/storage.js | Salvataggio JSON nel browser; identificatori |
 | `session`, `initials` | core/session.js | Utente e lingua correnti |
 | `settings` | core/settings.js | Preferenze dell'utente, con valori predefiniti e tipi controllati |
-| `fs` | core/fs.js | File system virtuale: cartelle, file e collegamenti alle app, salvati e validati; contenuto dei file con `read` / `write` (IndexedDB) |
+| `fs` | core/fs.js | File system virtuale: cartelle, file e collegamenti alle app, salvati e validati; contenuto dei file con `read` / `write` (IndexedDB); `snapshot` / `restore` per rimettere ciò che è stato eliminato; cestino (`trash`, `trashed`, `untrash`, `purge`, `purgeTrash`, `unscopeTrash`, `trashRoot`); proprietario (`workspace`) e cartelle private dei workspace; tag sui nodi (`setTags`, `tagged`, `dropTag`, `hiddenTags`, `setHiddenTags`, `isHidden`) |
 | `splitName`, `fileType`, `fileTypeList` | core/fileTypes.js | Nome ed estensione; tipo, colore ed etichetta di un file; elenco dei tipi conosciuti |
+| `tags`, `TAG_COLORS` | core/tags.js | Tag colorati da mettere su file e cartelle: elenco, creazione, nome, colore, visibile o invisibile (un tag invisibile nasconde i suoi elementi); i colori proposti |
+| `UndoStack`, `history` | core/history.js | Annulla e ripeti: la cronologia di un posto; l'annulla centrale, che agisce su chi ha il focus |
 | `shortcuts`, `comboFromEvent` | core/shortcuts.js | Scorciatoie da tastiera: comandi, combinazioni modificabili dall'utente, esecuzione |
 | `icon`, `logo` | ui/icons.js | Simboli dell'interfaccia e logo |
-| `openMenu`, `closeMenu` | ui/ContextMenu.js | Menu a comparsa |
+| `openMenu`, `closeMenu` | ui/ContextMenu.js | Menu a comparsa, con sottomenu |
+| `menus` | core/menus.js | Menu configurabili: azioni, disposizione predefinita, disposizione scelta dall'utente |
+| `toast` | ui/toast.js | Breve messaggio in basso, uno alla volta |
 | `avatar` | ui/avatar.js | Iniziali dell'utente |
 | `appIcon` | ui/appIcon.js | Riquadro colorato con il simbolo di un'app |
 | `toggle`, `selectField`, `segmented`, `swatches`, `slider`, `textField`, `actionButton` | ui/controls.js | Controlli dei moduli |
 | `shortcutField` | ui/shortcutField.js | Editor delle combinazioni di un comando (per le impostazioni) |
 | `selectionGesture` | ui/selectionGesture.js | Selezione trascinando: rettangolo o percorso libero |
-| `Window`, `WINDOW_EDGES` | ui/Window.js | Cornice di una finestra: barra del titolo, controlli e bordi di ridimensionamento attivabili uno per uno, contenuto |
+| `Window`, `WINDOW_EDGES` | ui/Window.js | Cornice di una finestra: barra del titolo, controlli e bordi di ridimensionamento attivabili uno per uno, contenuto; `canClose` e `getState` facoltativi |
 | `SettingsView` | ui/SettingsView.js | Impaginazione a tab delle impostazioni |
 | `SettingsWindow` | ui/SettingsWindow.js | Base di ogni finestra di impostazioni: `Window` + `SettingsView` |
 | `SDK_VERSION` | package.json | Versione dell'SDK |
@@ -101,10 +105,12 @@ Stili (`@lilos/sdk/styles.css`):
 | --- | --- |
 | `tokens.css` | Colori, raggi, ombre, font |
 | `base.css` | Reset, `.ico`, `.logo`, movimento ridotto |
-| `components.css` | `.app-icon`, `.avatar`, `.menu`, `.sel-overlay` |
+| `components.css` | `.app-icon`, `.avatar`, `.menu`, `.sel-overlay`, `.toast` |
 | `controls.css` | Controlli dei moduli e editor delle scorciatoie (`.ctl-*`) |
 | `window.css` | Cornice delle finestre (`.window`, `.win-*`) |
 | `settings.css` | Impaginazione delle impostazioni (`.settings`, `.st-*`) |
+
+I temi: `<html data-theme="dark">` scurisce anche le superfici delle finestre, `data-theme="light"` schiarisce anche scrivania, barra e menu (vedi `tokens.css`). I componenti usano solo i token, mai colori fissi, così seguono il tema.
 
 Il colore principale è uno solo, `--accent`: le varianti (`--accent-soft`, `--accent-strong`, `--accent-tint`) ne derivano con `color-mix`. Cambiando `--accent` cambia tutta l'interfaccia.
 
@@ -123,10 +129,12 @@ Firme, parametri ed esempi: [riferimento API](../doc/sviluppatore/api.md).
 
 ## Versione
 
-`0.2.1`. Finché la versione è `0.x` l'API può cambiare: ogni modifica incompatibile alza la versione minore e va annotata qui sotto.
+`0.2.3`. Finché la versione è `0.x` l'API può cambiare: ogni modifica incompatibile alza la versione minore e va annotata qui sotto.
 
 ### Modifiche
 
+- **0.2.3** (compatibile): workspace nel file system. I nodi hanno `workspace?` (il proprietario) e `private?` (cartella visibile solo al suo workspace); nuovi `fs.workspace`, `fs.setWorkspace(id)` (evento `scope`), `fs.claim(workspaceId)`, `fs.makePrivate(id, workspaceId)`, `fs.share(id, parentId, name)`, `fs.ownedCount(workspaceId)`; `fs.create` accetta `workspace` e `private`. Con un workspace impostato, le cartelle private degli altri e tutto ciò che contengono non esistono per `get`, `exists`, `children`, `ancestors`, `resolve`, `path`, `read`, `write`, `rename`, `move`, `remove`, `snapshot`, `restore`. Simbolo `workspace`. Cestino: seconda radice nascosta `fs.trashRoot` (`'trash'`); `fs.trash(ids)` (restituisce gli id cestinati, salta i nodi di sistema), `fs.trashed()` (elementi visibili dal workspace attuale, più recenti prima, con `trashed: { at, from, scope? }`, `inside` e `bytes`), `fs.untrash(ids)` (restituisce `[{ id, parent }]`; torna nella cartella d'origine o, se non c'è più o non è visibile, nella radice, con nome unico), `fs.purge(ids)`, `fs.purgeTrash(time?)` (senza tempo svuota ciò che il workspace vede; con il tempo elimina tutto ciò che è stato cestinato prima, di qualsiasi workspace), `fs.unscopeTrash(workspaceId)`; evento `trash`. `trash` emette `change` di tipo `remove` con `trashed: true`, `untrash` emette `create` per ogni nodo. I nodi nel cestino non esistono per `get`, `exists`, `children`, `resolve`… e `ownedCount` non li conta. Gli elementi cestinati da una cartella privata si vedono solo da quel workspace. Tag: nuovi `tags` e `TAG_COLORS` (`core/tags.js`: `list`, `get`, `byName`, `create`, `rename`, `setColor`, `setVisible`, `remove`, evento `change`; salvati in `lilos:tags`); i nodi hanno `tags?` (id dei tag, al massimo 30) e `fs` ha `setTags(id, tagIds)`, `tagged(tagId)`, `dropTag(tagId)`, `hiddenTags`, `setHiddenTags(ids)`, `isHidden(id)`. I nodi con un tag nascosto sono esclusi da `children` (quindi da ogni elenco) ma `get`, `exists`, `resolve` e `tagged` li trovano ancora. I getter di `fs` ora restituiscono copie che non condividono l'array `tags`. L'evento `scope` significa ora "cambia ciò che è visibile": un altro workspace o i tag nascosti. `openMenu`: voce con `swatch: '#rrggbb'` (pallino colorato prima dell'etichetta). Simboli `tag`, `eyeOff`, `link`.
+- **0.2.2**: menu configurabili (`menus`), sottomenu in `openMenu` (voce con `items`), token per i temi chiaro e scuro (`--side`, `--stripe`, `--field-bg`, `--toggle-off`, `--notice-*`, `--syn-*`, `--code`, `--bar-strong`, `--mm-*`, `--on-canvas-*`, `--warning`) con `data-theme="dark" | "light"` su `<html>`; `fs.move(id, parentId)` con l'evento `change` di tipo `move` (`from`, `ids`); simboli `check`, `arrowDown`, `folderOpen`, `sidebar`, `workarea`; `Window.getState`, funzione facoltativa che restituisce i dati con cui ricreare la finestra (la usano le workarea per riaprirla com'era); annulla e ripeti: `UndoStack` e `history` (cronologie collegate agli elementi, Ctrl Z agisce su chi ha il focus), `toast(text, { timeout })` (breve messaggio in basso), `fs.snapshot(ids)` e `fs.restore(snapshot)` (per rimettere ciò che è stato eliminato), simboli `undo`, `redo`.
 - **0.2.1**: contenuto dei file. `fs.read(id)` e `fs.write(id, text)` (IndexedDB, con ripiego in memoria), dimensione reale dei file; `Window.canClose` per chiedere conferma prima della chiusura; `fileTypeList()`; simbolo `save`.
 - **0.2.0** (incompatibile): finestre ridimensionabili da tutti i bordi e gli angoli; controlli e bordi attivabili singolarmente. `Window` accetta `controls`, `resizable` come elenco di bordi, `maxWidth`/`maxHeight`, `closable`; nuovi `setControl`, `setControls`, `setResizable`, `constrain`, getter `controls` e `resizable` (ora un elenco), evento `controls`, export `WINDOW_EDGES`. **Tolti**: `grip` (al suo posto `.win-edge[data-edge]`) e le proprietà `maximizable`/`resizable` booleane (usa `controls.maximize` e `resizable.length`). La finestra non ritaglia più il contenuto: lo fanno barra del titolo e corpo.
 - **0.1.3**: file system e selezione. Nuovi export `fs`, `splitName`, `fileType` (spostati da `src/desktop/fileTypes.js`), `selectionGesture`. `Window` ha `active` e la convenzione dell'evento `launch`. Nuovi simboli `arrowLeft`, `arrowRight`, `arrowUp`, `list`, `home`, `download`, `monitor`, `lasso`.

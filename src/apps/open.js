@@ -1,5 +1,5 @@
 import { fs, splitName, storage, fileTypeList } from '@lilos/sdk';
-import { apps, launch } from './registry.js';
+import { apps, launch, isInstalled } from './registry.js';
 
 /**
  * Which app opens which file, by extension ('' = no extension).
@@ -33,13 +33,16 @@ function overrides() {
   return valid;
 }
 
-/** The app that opens files with this extension, or null (ask). */
+/** The app chosen for files with this extension, or null (ask). The choice is the same in every workspace. */
 export function appFor(ext) {
   const choice = overrides()[ext];
   if (choice === ASK) return null;
   if (choice) return apps.find(a => a.id === choice) ?? null;
   return defaultAppFor(ext);
 }
+
+/** File apps installed in the current workspace (the ones "Apri con" offers). */
+export const installedFileApps = () => fileApps().filter(app => isInstalled(app.id));
 
 /** true if the user changed the default for this extension. */
 export const isCustom = ext => Object.hasOwn(overrides(), ext);
@@ -72,9 +75,12 @@ export function setChooser(fn) {
   chooser = fn;
 }
 
-/** Opens a file with its app; without one (or with choose: true) shows the "Apri con" window. */
+/**
+ * Opens a file with its app; without one, with one not installed in this workspace, or with
+ * choose: true, shows the "Apri con" window.
+ */
 export function openFile(node, { choose = false } = {}) {
   const app = choose ? null : appFor(extensionOf(node));
-  if (app) return launch(app.id, { file: node.id });
+  if (app && isInstalled(app.id)) return launch(app.id, { file: node.id });
   chooser?.(node);
 }

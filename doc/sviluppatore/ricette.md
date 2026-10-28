@@ -19,6 +19,10 @@ Procedure passo per passo per le modifiche più comuni. Per i dettagli delle fun
 - [Aggiungere uno stile](#aggiungere-uno-stile)
 - [Cambiare gli elementi del primo avvio](#cambiare-gli-elementi-del-primo-avvio)
 - [Leggere e modificare cartelle e file](#leggere-e-modificare-cartelle-e-file)
+- [Aggiungere annulla e ripeti a un'app](#aggiungere-annulla-e-ripeti-a-unapp)
+- [Far sapere a un'app di quale workspace è un file](#far-sapere-a-unapp-di-quale-workspace-è-un-file)
+- [Usare i tag in un'app](#usare-i-tag-in-unapp)
+- [Rendere trascinabili file e cartelle in un'app](#rendere-trascinabili-file-e-cartelle-in-unapp)
 - [Aggiungere qualcosa all'SDK](#aggiungere-qualcosa-allsdk)
 
 ---
@@ -36,7 +40,7 @@ Procedure passo per passo per le modifiche più comuni. Per i dettagli delle fun
    - `name`: nome mostrato, in italiano.
    - `color`: deve garantire un buon contrasto con il simbolo bianco.
 
-L'app compare subito nel menu di avvio e nella ricerca. Finché non ha `load`, avviarla scrive solo "app non ancora disponibile" in console. Per darle una finestra vedi la ricetta successiva.
+Con `system: true` l'app è installata in ogni workspace e non si può disinstallare (File e Impostazioni); senza, ogni workspace la installa o la toglie in Impostazioni → Workspace. L'app compare nel menu di avvio e nella ricerca **dei workspace in cui è installata**. Un'app nuova arriva installata in tutti i workspace, anche in quelli già salvati (ognuno ricorda in `known` le app che lilOS aveva: quelle che non c'erano si aggiungono alla lettura); un'app che l'utente ha tolto resta tolta. Finché non ha `load`, avviarla scrive solo "app non ancora disponibile" in console. Per darle una finestra vedi la ricetta successiva.
 
 Per metterne un collegamento sul desktop, aggiungi un elemento `{ type: 'app', name: 'Note', app: 'notes' }` (vedi [Cambiare gli elementi del primo avvio](#cambiare-gli-elementi-del-primo-avvio)).
 
@@ -162,6 +166,30 @@ bus.on('item:open', node => {
 
 `app:launch` è già gestito da `connectLauncher` (`src/apps/launcher.js`), che apre le finestre delle app; `item:open` di una cartella la apre nell'app File (`main.js`), di un file per ora viene solo scritto in console.
 
+## Far riaprire la finestra di un'app da una workarea
+
+Quando una workarea viene ridotta a icona chiude le sue finestre, e quando si riapre le ricrea. Per ritrovare la tua app come era (il documento aperto, la cartella mostrata…), dille cosa ricordare.
+
+1. Nel modulo dell'app imposta `win.getState`: una funzione senza parametri che restituisce un **oggetto semplice** (solo dati JSON):
+
+   ```js
+   export default function createNotes({ args }) {
+     const win = new Window({ title: 'Note', icon: 'pencil' });
+     const notes = new NotesView(win);
+     notes.open(args?.note ?? null);                    // 2. accetta gli stessi dati in args
+     win.getState = () => ({ note: notes.currentId });  // 1. cosa ricordare
+     return win;
+   }
+   ```
+
+2. Accetta quei dati in `args`: la workarea li passa all'app, dentro `args`, quando ricrea la finestra (`launcher.restore`). Controlla sempre quello che arriva: il file o la cartella possono non esistere più.
+3. Tieni lo stato **piccolo**: al massimo 4000 caratteri di JSON. Se lo supera viene scartato e la finestra si riapre senza argomenti. Ricorda id e opzioni, mai contenuti.
+4. Se `getState` non c'è, restituisce `null` o lancia un errore, la finestra si riapre con gli argomenti vuoti (ma nella stessa posizione e con le stesse dimensioni). Un errore viene solo scritto in console.
+5. Il testo non salvato non va nello stato: se la finestra ha modifiche, imposta anche `win.canClose` e la workarea lo chiederà all'utente prima di ridurre.
+6. Per distinguere "nessun valore" da "valore assente", usa `'chiave' in args`, come fa l'Editor con `args.folder` (`null` vuol dire nessuna cartella, mancante vuol dire l'ultima aperta).
+
+Vale solo per le finestre aperte con `app` (cioè avviate dal launcher). Le finestre secondarie, aperte con `openWindow`, si chiudono e non si riaprono. Controllo dello stato salvato: [Riferimento API → `lilos:workareas`](api.md#lilosworkareas).
+
 ## Mettere un nuovo tipo di oggetto sulla scrivania
 
 Esempio: una nota adesiva.
@@ -276,6 +304,7 @@ storage.set('notes', notes);
 - Valida sempre il valore letto: può essere vecchio, rovinato o modificato a mano.
 - Se lo stato cambia molto spesso (durante un trascinamento, per esempio), salva al rilascio oppure con un ritardo, come fa `Canvas` con la camera (300 ms).
 - Aggiungi la chiave alla tabella in [Riferimento API → Dati salvati](api.md#dati-salvati).
+- Se lo stato è del singolo workspace (come la vista o le finestre aperte), non per tutto lilOS, usa la chiave `ws:<id>:<parte>` (`workspaceKey` in `src/workspaces/store.js`) e aggiungi la parte a `PARTS`, altrimenti non viene cancellata quando il workspace è eliminato. Le preferenze (tema, scorciatoie, menu, tipi di file) restano globali.
 
 `localStorage` è adatto a impostazioni e stati piccoli. Per contenuti di file servirà IndexedDB (vedi la [roadmap](../interna/stato-e-roadmap.md)).
 
@@ -306,7 +335,7 @@ export const seedItems = [
 
 Con `export const seedItems = [];` la scrivania parte vuota.
 
-Gli elementi di esempio vengono usati solo al primo avvio, cioè quando `lilos:fs` non esiste. Per vedere la modifica nel tuo browser esegui `['fs', 'desktop-layout'].forEach(k => localStorage.removeItem('lilos:' + k))` e ricarica (elimina anche cartelle e file creati).
+Gli elementi di esempio vengono usati solo al primo avvio, cioè quando `lilos:fs` non esiste. Per vedere la modifica nel tuo browser esegui `['fs', 'workspaces'].forEach(k => localStorage.removeItem('lilos:' + k))` e ricarica (elimina anche cartelle e file creati; le chiavi `lilos:ws:<id>:…` dei workspace spariti si cancellano da sole all'avvio). Gli elementi di esempio vanno nella Scrivania del workspace «Principale».
 
 ## Leggere e modificare cartelle e file
 
@@ -320,7 +349,7 @@ const notes = fs.create(docs.id, { type: 'folder', name: 'Note' });     // nome 
 fs.create(notes.id, { type: 'file', name: 'idee.txt' });
 fs.children(notes.id);           // copie dei nodi
 fs.rename(notes.id, 'Appunti');  // restituisce il nome finale
-fs.remove(notes.id);             // definitivo, contenuto compreso
+fs.remove(notes.id);             // contenuto compreso: per riaverlo serve uno snapshot (vedi sotto)
 
 const off = fs.on('change', e => {
   if (e.parent === notes.id) refresh();   // 'create' | 'rename' | 'update' | 'remove'
@@ -329,8 +358,140 @@ const off = fs.on('change', e => {
 
 - Mostra le modifiche reagendo agli eventi `change`, non dopo le tue chiamate: così vedi anche quelle fatte da altre parti (desktop, app File).
 - In una finestra togli l'iscrizione alla chiusura: `win.on('destroy', off)`.
-- I nodi di sistema (`system: true`) non si rinominano né eliminano: disattiva le relative azioni. Per eliminare cartelle dall'interfaccia usa `confirmRemove` (`src/items/confirmRemove.js`), che chiede conferma per quelle non vuote.
+- I nodi di sistema (`system: true`) non si rinominano né eliminano: disattiva le relative azioni. Per eliminare dall'interfaccia usa `confirmRemove` (`src/items/confirmRemove.js`), che rispetta le impostazioni `deleteConfirm` e `deletePermanent` (di norma sposta nel cestino) e, con una `UndoStack`, rende l'eliminazione annullabile (vedi [Aggiungere annulla e ripeti a un'app](#aggiungere-annulla-e-ripeti-a-unapp)).
 - Per selezionare, aprire, rinominare ed eliminare con le scorciatoie comuni, iscrivi la tua vista con `addTarget` (`src/items/targets.js`), come fa l'app File.
+
+## Aggiungere annulla e ripeti a un'app
+
+Ctrl Z e Ctrl Y agiscono sulla cronologia di chi ha il focus: la tua finestra (o un suo pannello) deve avere la propria. Non serve registrare scorciatoie.
+
+```js
+import { Window, UndoStack, history } from '@lilos/sdk';
+
+export default function MyApp() {
+  const win = new Window({ title: 'Note' });
+  const stack = new UndoStack();
+  const detach = history.attach(win.el, stack);     // vale per tutta la finestra
+  win.on('destroy', detach);
+
+  function rename(id, name) {
+    const before = fs.get(id).name;
+    const after = fs.rename(id, name);               // prima fai l'azione…
+    stack.push({                                      // …poi la registri
+      label: `Rinomina «${before}» in «${after}»`,
+      undo: () => { if (!fs.exists(id)) throw new Error('L’elemento non esiste più'); fs.rename(id, before); },
+      redo: () => { if (!fs.exists(id)) throw new Error('L’elemento non esiste più'); fs.rename(id, after); },
+    });
+  }
+  return win;
+}
+```
+
+1. Crea una `UndoStack` per ogni posto che ha il suo "Annulla": una finestra, un pannello. Non condividerne una tra posti diversi.
+2. Collegala con `history.attach(el, stack)` all'elemento che contiene quello che l'utente modifica (`win.el` per tutta la finestra, o il pannello). Vince l'elemento più vicino al focus. Conserva la funzione restituita e chiamala alla chiusura (`win.on('destroy', detach)`).
+3. Dopo ogni azione che si può annullare, `stack.push({ label, undo, redo })`. L'`label` finisce nel messaggio in basso ("Annullato: …"), quindi scrivila come un'azione: `Elimina «nota.txt»`. In alternativa `await stack.run({ label, do, undo })` fa l'azione e la registra.
+4. `undo` e `redo` possono essere asincrone. Se quello su cui agiscono non c'è più, **lanciano un errore**: la voce viene tolta e l'utente vede "Non si può più fare: …". Non restare in silenzio e non lasciare la voce bloccata.
+5. Per azioni sul file system usa gli aiuti di `src/items/fsHistory.js` (`removeNodes`, `recordCreated`, `renameNode`, `moveNode`) e `confirmRemove(ids, x, y, stack)` (e `restoreNodes` per il cestino): spostano nel cestino, o prendono uno `snapshot` se l'eliminazione è definitiva, e controllano che gli elementi esistano. Chiama `recordCreated` dopo la rinomina iniziale, per fare di creare e dare il nome un solo passo.
+6. Per un editor di testo tuo, collega un gestore con `text: true`: `history.attach(textarea, { text: true, undo, redo })`. Senza `text: true`, nei campi di testo Ctrl Z resta al browser. `undo` e `redo` restituiscono una stringa (anche vuota) se è andata bene, `null` se no.
+7. Una finestra **senza** cronologia non fa nulla con Ctrl Z, e non tocca la scrivania dietro: non serve fare altro.
+
+Le cronologie vivono solo in memoria: dopo la ricarica sono vuote. Ogni `UndoStack` ricorda fino a 100 voci (`new UndoStack({ limit })`).
+
+Per provare in sviluppo: `lilos.history.resolve()` mostra il gestore su cui agirebbe Ctrl Z in quel momento.
+
+## Far sapere a un'app di quale workspace è un file
+
+Ogni nodo creato porta `workspace`, l'id del workspace che l'ha creato: non cambia spostandolo o rinominandolo. I nodi senza `workspace` sono le cartelle di sistema condivise (e i nodi di prima dei workspace non ancora assegnati).
+
+```js
+import { fs } from '@lilos/sdk';
+import { describeWorkspace, onWorkspacesChange } from '../../workspaces/info.js';   // dal sistema, non dall'SDK
+
+const node = fs.get(id);
+const owner = describeWorkspace(node.workspace);   // { id, name, color, removed, current } o null
+const label = !owner ? 'Condiviso' : owner.removed ? `${owner.name} (eliminato)` : owner.name;
+
+const off = onWorkspacesChange(() => refresh());   // nome o colore cambiati, workspace eliminato…
+win.on('destroy', off);
+```
+
+- `describeWorkspace` conosce anche i workspace eliminati (`removed: true`): così i loro file dicono ancora di chi erano. `null` vuol dire senza proprietario o id sconosciuto.
+- Il colore è già validato (`#rrggbb`), ma resta un dato salvato: mettilo in `style.background`, mai dentro HTML scritto a mano.
+- L'isolamento non va programmato: `fs` nasconde da solo le Scrivanie degli altri workspace. Non serve filtrare nulla nella tua app.
+- Reagisci anche a `fs.on('scope', …)`: cambiando workspace cambia ciò che `fs` mostra, quindi rileggi l'albero (e se la tua finestra tiene aperto un nodo che ora non si vede, `fs.exists(id)` è falso: aspetta il ritorno del workspace invece di chiudere o perdere il testo).
+- Una finestra appartiene al workspace in cui è stata aperta e resta nascosta quando l'utente se ne va: non farle assumere che sia sempre visibile, e non chiuderla quando cambia workspace.
+- Un'app dell'SDK (sotto `sdk/`) non può importare `src/workspaces/info.js`: legge solo `node.workspace` e lascia al sistema il nome e il colore.
+
+## Usare i tag in un'app
+
+I tag sono definiti nell'SDK e uguali in tutti i workspace. Un tag si mette su un nodo con `fs.setTags`. Dettagli in [tags](api.md#sdkcoretagsjs) e nella decisione [D29](../interna/decisioni.md#d29-i-tag-stanno-sui-nodi-e-un-tag-invisibile-nasconde-gli-elementi).
+
+```js
+import { fs, tags } from '@lilos/sdk';
+
+// Leggere
+const lista = tags.list();                          // [{ id, name, color, visible }]
+const urgente = tags.byName('Urgente') ?? tags.create({ name: 'Urgente' });   // create lancia un errore se il nome è vuoto o doppio
+const nodi = fs.tagged(urgente.id);                 // tutti gli elementi con il tag, anche quelli nascosti
+
+// Mettere e togliere (setTags sostituisce l'elenco intero del nodo)
+const attuali = fs.get(id).tags ?? [];
+fs.setTags(id, [...attuali, urgente.id]);
+fs.setTags(id, attuali.filter(t => t !== urgente.id));
+
+// Reagire
+const off1 = tags.on('change', () => ridisegnaPallini());   // nome, colore, visibile, nuovo o eliminato
+const off2 = fs.on('scope', () => rileggiElenco());         // un tag invisibile cambia ciò che si vede
+win.on('destroy', () => { off1(); off2(); });
+```
+
+- Un tag **invisibile** nasconde gli elementi che lo hanno: `fs.children()` non li dà. Se la tua app mostra elenchi, usa `children()` e non dovrai fare nulla; gli elementi non compaiono finché il tag è invisibile.
+- `get`, `exists`, `resolve` e `tagged` trovano ancora gli elementi nascosti: una finestra che tiene aperto un file con un tag invisibile continua a funzionare. Per sapere se un nodo è nascosto: `fs.isHidden(id)`.
+- Per mettere o togliere un tag a più nodi con un menu usa `tagSubmenu(ids)` e `setTag(ids, tagId, on)` di `src/tags/tagUi.js` (solo dal sistema, non dall'SDK); `tagDots(node)` disegna i pallini.
+- I nodi di sistema non hanno tag: `setTags` lancia un errore, `setTag` li salta.
+- Il colore di un tag è un dato salvato (già validato come `#rrggbb`): mettilo in `style.background`, mai dentro HTML scritto a mano.
+- Aprire File sulla vista di un tag: `launch('files', { tag: tag.id })`. Aprire Impostazioni → Tag: `launch('settings', { tab: 'tags' })`.
+- Mettere o togliere un tag non si annulla con Ctrl Z: non c'è una voce nella cronologia.
+
+## Rendere trascinabili file e cartelle in un'app
+
+Se la tua app mostra file e cartelle (un elenco, un albero, una griglia), usa `src/items/itemDrag.js`: così si trascinano da e verso scrivania, File ed Editor, con lo stesso aspetto e lo stesso annulla. Non usare il drag and drop nativo di HTML5 (vedi [D30](../interna/decisioni.md#d30-un-solo-modulo-di-trascinamento-per-tutte-le-viste-di-file-e-cartelle)). Contratti completi: [Riferimento API → itemDrag.js](api.md#itemdragjs).
+
+```js
+import { h, UndoStack, history } from '@lilos/sdk';
+import { markItem, dropZone, dragItems } from '../../items/itemDrag.js';
+
+const stack = new UndoStack();                       // la cronologia della tua vista
+const detach = history.attach(win.el, stack);
+win.on('destroy', detach);
+
+// 1. Marca ogni elemento che mostra un nodo (cartelle: accettano rilasci; file: lasciano passare)
+const row = node => markItem(h('div', { class: 'row', dataset: { id: node.id } }, node.name), node);
+
+// 2. Rendi la lista una zona di rilascio: i nodi vanno nella cartella che mostra
+const stopZone = dropZone(list, { folder: () => cartellaMostrata });
+win.on('destroy', stopZone);
+
+// 3. Avvia il trascinamento dal pointerdown di una riga
+list.addEventListener('pointerdown', e => {
+  if (e.button !== 0 || !e.target.closest('.row')) return;
+  dragItems(e, {
+    ids: [...selezione],            // id dei nodi: con più elementi, tutta la selezione
+    stack,                          // lo spostamento si registra qui, una sola volta
+    onEnd: ({ moved }) => { if (!moved) { /* era un clic */ } },
+  });
+}, { signal: win.signal });
+```
+
+1. **`markItem(el, node)`** su ogni elemento che rappresenta un nodo. Non serve altro per far accettare rilasci a una cartella; i nodi di sistema non si spostano mai.
+2. **`dropZone(el, zone)`** per le aree che accettano rilasci senza essere una cartella marcata. `zone.folder(hit)` dice in quale cartella vanno i nodi (`null` = niente rilascio); `hit` è l'elemento sotto il puntatore, utile per decidere in base alla riga. Per una zona che non sposta ometti `folder` e dai `drop(ids, ev, stack)` e, se serve, `accepts(ids)`. Se la stessa area deve fare cose diverse a seconda del punto (la barra laterale di File: centro di una voce = sposta, bordo = crea un collegamento), usa `target(hit, x, y, ids)` e restituisci `{ el, run }`: marcare ogni voce con `markItem` non basterebbe.
+3. **`dragItems(e, options)`** dal `pointerdown` (sinistro) di un elemento selezionato. Passa sempre `stack`: se lo ometti lo spostamento funziona ma non si annulla. `onEnd({ moved })` distingue un clic da un trascinamento: usalo per restringere la selezione, come fa File.
+4. **Non gestisci tu il resto**: il fantasma, l'evidenziamento (`.drop-target`), Esc e il blocco sopra le finestre sono già fatti. `ghost: false` se vuoi muovere tu gli elementi (come fa la scrivania).
+5. **Evidenziare altro** della zona stessa: `highlight(folder)` restituisce l'elemento che prende `.drop-target` (nell'Editor, la riga della cartella o l'intero pannello).
+6. **Elementi che non devono riceverne né darne**: non marcarli (File non marca le righe del cestino e non avvia il trascinamento lì). Per il menu «Aggiungi alla barra laterale di File» metti `linkEntry(ids)` nel tuo menu: restituisce `null` se non serve, quindi filtra con `.filter(Boolean)`.
+7. **Togli la zona alla chiusura**: `dropZone` restituisce la funzione che la toglie. Gli elementi marcati spariscono col loro DOM.
+
+Prova: trascina un file dalla tua vista sulla scrivania e su una finestra File; con Ctrl Z nella tua vista deve tornare dov'era.
 
 ## Aggiungere qualcosa all'SDK
 

@@ -3,18 +3,30 @@ import { Emitter, h, icon, trackDrag, shortcuts } from '@lilos/sdk';
 const CASCADE = 24;
 const Z_BASE = 100;
 
+/** World rect from the inline position and size (also right for hidden windows). */
+const styleRect = el => ({
+  x: parseFloat(el.style.left) || 0, y: parseFloat(el.style.top) || 0,
+  w: parseFloat(el.style.width) || el.offsetWidth, h: parseFloat(el.style.height) || el.offsetHeight,
+});
+
 /**
  * Hosts SDK Windows on the canvas: placement, focus and stacking, drag, resize from any enabled edge,
  * maximize (window as big as the screen, camera at 100% on it), minimize, close,
  * and one taskbar button per window. Controls a window has turned off are respected everywhere
  * (taskbar button, title bar double click, shortcuts).
  *
- * Events: 'focus' (window | null) — null when the desk itself gets the focus.
+ * Workspaces: every window belongs to the workspace that was current when it opened. Only the
+ * windows of the current workspace are shown, with their taskbar buttons, and only they count for
+ * `windows`, get(key), focus and cycling; the others stay alive, hidden, as they were.
+ *
+ * Events: 'focus' (window | null) — null when the desk itself gets the focus; 'open' and 'close' (window).
  */
 export class WindowManager extends Emitter {
-  #order = [];          // bottom → top
-  #entries = new Map(); // window → { key, task, restore }
+  #order = [];          // bottom → top, every workspace
+  #entries = new Map(); // window → { key, app, task, restore, workspace }
   #opened = 0;
+  #workspace = null;
+  #lastActive = new Map();   // workspace → its window that had the focus when the user left it
   active = null;
 
   constructor(canvas, taskbar) {
@@ -26,31 +38,109 @@ export class WindowManager extends Emitter {
 
     const group = 'Finestre';
     shortcuts.register({ id: 'windows.close', label: 'Chiudi la finestra attiva', group, keys: ['Alt+W'], whenEditing: true, when: () => !!this.active?.controls.close, run: () => this.requestClose(this.active) });
-    shortcuts.register({ id: 'windows.next', label: 'Passa alla finestra successiva', group, keys: ['Alt+N'], whenEditing: true, when: () => this.#order.length > 0, run: () => this.cycle() });
+    shortcuts.register({ id: 'windows.next', label: 'Passa alla finestra successiva', group, keys: ['Alt+N'], whenEditing: true, when: () => this.windows.length > 0, run: () => this.cycle() });
   }
 
   /** Brings the bottom-most window to the front (restoring it if minimized): repeated, it visits them all. */
   cycle() {
-    const next = this.#order.length > 1 || this.#hidden(this.#order[0]) || this.active !== this.#order[0] ? this.#order[0] : null;
+    const order = this.windows;
+    const next = order.length > 1 || this.#hidden(order[0]) || this.active !== order[0] ? order[0] : null;
     if (next) this.show(next);
   }
 
-  /** The open window registered under `key`, if any. */
+  /** The open window of the current workspace registered under `key`, if any. */
   get(key) {
-    return [...this.#entries].find(([, e]) => e.key === key)?.[0] ?? null;
+    return [...this.#entries].find(([, e]) => e.key === key && e.workspace === this.#workspace)?.[0] ?? null;
   }
 
+  /** Windows of the current workspace, bottom → top. */
   get windows() {
-    return [...this.#order];
+    return this.windowsOf(this.#workspace);
   }
 
-  /** Places a new window at the center of the view (cascading) and focuses it. */
-  open(win, { key = null } = {}) {
+  /** Windows of a workspace, bottom → top. */
+  windowsOf(workspace) {
+    return this.#order.filter(w => this.#entries.get(w).workspace === workspace);
+  }
+
+  /** The current workspace (null when workspaces are not in use). */
+  get workspace() { return this.#workspace; }
+
+  /** Shows the windows of `id` (focusing the one that had the focus there) and hides all the others. */
+  setWorkspace(id) {
+    if (id === this.#workspace) return;
+    this.#lastActive.set(this.#workspace, this.active);
+    this.#workspace = id;
+    for (const [win, e] of this.#entries) {
+      const away = e.workspace !== id;
+      win.el.classList.toggle('ws-away', away);
+      e.task.classList.toggle('ws-away', away);
+    }
+    const last = this.#lastActive.get(id);
+    this.focus(last && this.#entries.has(last) && !this.#hidden(last) ? last : null);
+    this.canvas.changed();
+  }
+
+  /**
+   * Moves every window of another workspace into the current one, cascading in the middle of the
+   * view (a workspace being deleted: its windows, unsaved text included, are not lost).
+   */
+  adopt(workspace) {
+    if (workspace === this.#workspace) return;
     const v = this.canvas.viewRect();
+    for (const win of this.windowsOf(workspace)) {
+      const entry = this.#entries.get(win);
+      entry.workspace = this.#workspace;
+      win.el.classList.remove('ws-away');
+      entry.task.classList.remove('ws-away');
+      const r = styleRect(win.el);
+      const shift = (this.#opened++ % 6) * CASCADE;
+      win.moveTo(v.x + v.w / 2 - r.w / 2 + shift, v.y + v.h / 2 - r.h / 2 + shift);
+    }
+    this.#lastActive.delete(workspace);
+    this.canvas.changed();
+  }
+
+  /** The app a window belongs to (as given to open), or null for secondary windows. */
+  appOf(win) {
+    return this.#entries.get(win)?.app ?? null;
+  }
+
+  /**
+   * Position and state of a window in world coordinates: { x, y, w, h, minimized, maximized }.
+   * A maximized window reports the size it gets back when restored.
+   */
+  geometry(win) {
+    const restore = this.#entries.get(win)?.restore;
+    const r = restore?.rect ?? styleRect(win.el);
+    return { ...r, minimized: this.#hidden(win), maximized: !!restore };
+  }
+
+  /**
+   * Places a new window and focuses it. By default at the center of the view (cascading);
+   * `center` is a world point to center it on instead, `bounds` a world rect to keep it inside
+   * (its top-left corner wins when it is too big); `at` ({ x, y, w?, h?, minimized? }) puts it
+   * back exactly there without moving the camera (windows restored by a workarea).
+   * `workspace` (the current one by default): a window for another workspace opens hidden, without
+   * taking the focus, and shows up when the user goes there.
+   */
+  open(win, { key = null, app = null, center = null, bounds = null, at = null, workspace = this.#workspace } = {}) {
     const w = win.el.offsetWidth || parseFloat(win.el.style.width);
     const hgt = win.el.offsetHeight || parseFloat(win.el.style.height);
-    const shift = (this.#opened++ % 6) * CASCADE;
-    win.moveTo(v.x + (v.w - w) / 2 + shift, v.y + (v.h - hgt) / 2 + shift);
+    if (at) {
+      if (at.w && at.h) win.resizeTo(at.w, at.h);
+      win.moveTo(at.x, at.y);
+    } else {
+      const v = this.canvas.viewRect();
+      const c = center ?? { x: v.x + v.w / 2, y: v.y + v.h / 2 };
+      const shift = (this.#opened++ % 6) * CASCADE;
+      let x = c.x - w / 2 + shift, y = c.y - hgt / 2 + shift;
+      if (bounds) {
+        x = Math.max(bounds.x, Math.min(x, bounds.x + bounds.w - w));
+        y = Math.max(bounds.y, Math.min(y, bounds.y + bounds.h - hgt));
+      }
+      win.moveTo(x, y);
+    }
 
     const task = h('button', {
       class: 'tb-task', type: 'button',
@@ -59,11 +149,28 @@ export class WindowManager extends Emitter {
     }, icon(win.glyph), h('span', {}, win.title));
     this.taskbar.tasks.append(task);
 
-    this.#entries.set(win, { key, task, restore: null });
+    this.#entries.set(win, { key, app, task, restore: null, workspace });
     this.#order.push(win);
     this.canvas.add(win.el);
     this.#bind(win, task);
-    this.show(win);
+    const away = workspace !== this.#workspace;
+    win.el.classList.toggle('ws-away', away);
+    task.classList.toggle('ws-away', away);
+    if (at?.minimized && win.controls.minimize) {
+      win.el.hidden = true;
+      task.classList.add('min');
+      this.canvas.changed();
+    } else if (away) {
+      win.el.hidden = false;
+      this.canvas.changed();
+    } else if (at) {
+      win.el.hidden = false;
+      this.focus(win);
+      this.canvas.changed();
+    } else {
+      this.show(win);
+    }
+    this.emit('open', win);
     return win;
   }
 
@@ -77,7 +184,7 @@ export class WindowManager extends Emitter {
   }
 
   focus(win) {
-    if (win && !this.#entries.has(win)) return;
+    if (win && this.#entries.get(win)?.workspace !== this.#workspace) return;   // unknown, or in another workspace
     if (win) {
       this.#order = [...this.#order.filter(w => w !== win), win];
       this.#order.forEach((w, i) => { w.el.style.zIndex = String(Z_BASE + i); });
@@ -139,6 +246,7 @@ export class WindowManager extends Emitter {
     win.destroy();
     if (this.active === win) this.focus(this.#topVisible());
     this.canvas.changed();
+    this.emit('close', win);
   }
 
   // ---------- Internals ----------
@@ -148,7 +256,7 @@ export class WindowManager extends Emitter {
   }
 
   #topVisible() {
-    return [...this.#order].reverse().find(w => !this.#hidden(w)) ?? null;
+    return this.windows.reverse().find(w => !this.#hidden(w)) ?? null;
   }
 
   #bind(win, task) {

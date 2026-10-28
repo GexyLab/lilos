@@ -1,0 +1,25 @@
+/* Workspaces (src/workspaces/) */
+
+/* Windows and taskbar buttons of the other workspaces: alive, not shown */
+.window.ws-away, .tb-task.ws-away { display: none !important; }
+
+/* Taskbar switcher, right of the logo */
+.tb-ws {
+  height: 28px; max-width: 180px; min-width: 0; display: flex; align-items: center; gap: 7px; padding: 0 8px 0 10px;
+  border-radius: var(--radius-sm); font-size: 12px; color: var(--bar-text);
+}
+.tb-ws:hover { background: var(--bar-hover); }
+.tb-ws-dot { width: 9px; height: 9px; flex: none; border-radius: 50%; box-shadow: 0 0 0 2px color-mix(in srgb, var(--bar-text) 18%, transparent); }
+.tb-ws-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
+.tb-ws .ico { width: 11px; height: 11px; flex: none; color: var(--bar-dim); }
+
+/* Who a file belongs to (File Manager) */
+.ws-owner { display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
+.ws-owner.removed, .ws-owner.shared { color: var(--dim); }
+.ws-owner > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ws-owner-dot { width: 8px; height: 8px; flex: none; border-radius: 50%; }
+.ws-owner.removed > span:last-child { font-style: italic; }
+.ws-owner.shared .ws-owner-dot { background: transparent; box-shadow: inset 0 0 0 1.5px currentColor; opacity: .5; }
+
+/* Settings → Workspace → Tutti */
+.ws-settings-actions { display: flex; gap: 6px; justify-content: flex-end; }

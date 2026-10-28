@@ -1,0 +1,72 @@
+/* ---------- Workareas (src/workareas/) ---------- */
+
+/* The area lets the pointer through to the desk: only the title bar and the edges take it */
+.wa-area {
+  z-index: 0; pointer-events: none; box-sizing: border-box;
+  border: 1.5px dashed color-mix(in srgb, var(--accent) 55%, transparent); border-radius: 10px;
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+}
+.wa-area.current { border-style: solid; border-color: var(--accent); background: color-mix(in srgb, var(--accent) 9%, transparent); }
+.wa-area.moving, .wa-area.resizing { background: color-mix(in srgb, var(--accent) 14%, transparent); }
+
+.wa-head {
+  pointer-events: auto; position: absolute; left: 0; right: 0; top: 0; height: 34px;
+  display: flex; align-items: center; gap: 6px; padding: 0 6px 0 12px;
+  color: var(--on-canvas); cursor: grab; user-select: none;
+  border-bottom: 1px dashed color-mix(in srgb, var(--accent) 35%, transparent);
+}
+.wa-area.moving .wa-head { cursor: grabbing; }
+.wa-head > .ico { width: 15px; height: 15px; flex: none; color: var(--accent); }
+.wa-title {
+  flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: 13px; font-weight: 600; text-shadow: var(--on-canvas-shadow);
+}
+.wa-title-input {
+  flex: 1; min-width: 0; height: 24px; padding: 0 6px; font: 600 13px var(--font);
+  color: var(--text); background: var(--field-bg); border: 1px solid var(--accent); border-radius: 4px; outline: 0;
+}
+.wa-btn { width: 24px; height: 24px; flex: none; border-radius: var(--radius-sm); display: grid; place-items: center; color: var(--on-canvas); opacity: .75; }
+.wa-btn:hover { opacity: 1; background: var(--on-canvas-hover); }
+.wa-btn .ico { width: 14px; height: 14px; }
+
+.wa-edge { pointer-events: auto; position: absolute; }
+.wa-edge.n, .wa-edge.s { left: 10px; right: 10px; height: 8px; cursor: ns-resize; }
+.wa-edge.e, .wa-edge.w { top: 10px; bottom: 10px; width: 8px; cursor: ew-resize; }
+.wa-edge.n { top: -5px; } .wa-edge.s { bottom: -5px; }
+.wa-edge.e { right: -5px; } .wa-edge.w { left: -5px; }
+.wa-edge.ne, .wa-edge.nw, .wa-edge.se, .wa-edge.sw { width: 14px; height: 14px; }
+.wa-edge.ne { top: -6px; right: -6px; cursor: nesw-resize; }
+.wa-edge.sw { bottom: -6px; left: -6px; cursor: nesw-resize; }
+.wa-edge.nw { top: -6px; left: -6px; cursor: nwse-resize; }
+.wa-edge.se { bottom: -6px; right: -6px; cursor: nwse-resize; }
+
+/* Icon of a reduced workarea (desktop/itemIcons.js) */
+.icon-workarea { width: 34px; height: 30px; }
+.icon-workarea .wa-i-frame { fill: var(--accent-tint); stroke: var(--accent); }
+.icon-workarea .wa-i-back { fill: var(--accent); }
+.icon-workarea .wa-i-front { fill: var(--on-canvas); stroke: var(--accent); }
+
+.minimap .mm-workarea { border: 1px dashed var(--accent); border-radius: 2px; background: color-mix(in srgb, var(--accent) 8%, transparent); }
+
+/* Properties window (workareas/properties.js) */
+.wa-props { height: 100%; overflow: auto; padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 10px; font-size: 12.5px; }
+.wa-props h3 { margin: 8px 0 0; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--dim); }
+.wa-props-field { display: flex; flex-direction: column; gap: 4px; }
+.wa-props-field > span { color: var(--dim); font-size: 11.5px; }
+.wa-props-field .ctl-text { width: 100%; }
+.wa-props-desc {
+  width: 100%; resize: vertical; min-height: 52px; padding: 6px 8px; font: inherit; color: var(--text);
+  background: var(--field-bg); border: 1px solid var(--border); border-radius: var(--radius-sm); outline: 0;
+}
+.wa-props-desc:focus { border-color: var(--accent); }
+.wa-props-dates { margin: 0; display: grid; grid-template-columns: max-content 1fr; gap: 4px 14px; }
+.wa-props-dates dt { color: var(--dim); }
+.wa-props-dates dd { margin: 0; }
+.wa-props-meta { display: flex; flex-direction: column; gap: 6px; }
+.wa-meta-row { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr) 26px; gap: 6px; align-items: center; }
+.wa-meta-row .ctl-text { width: 100%; min-width: 0; }
+.wa-meta-remove { width: 26px; height: 26px; border-radius: var(--radius-sm); display: grid; place-items: center; color: var(--dim); }
+.wa-meta-remove:hover { background: var(--hover); color: var(--danger); }
+.wa-meta-remove .ico { width: 13px; height: 13px; }
+.wa-props-empty, .wa-props-note { margin: 0; color: var(--faint); }
+.wa-props-actions { display: flex; }

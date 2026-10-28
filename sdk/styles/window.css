@@ -14,7 +14,7 @@
   background: var(--chrome); border-bottom: 1px solid var(--border); cursor: default;
   border-radius: var(--radius) var(--radius) 0 0;
 }
-.window.inactive .win-titlebar { background: #fafafb; }
+.window.inactive .win-titlebar { background: var(--side); }
 .window.inactive .win-title { color: var(--faint); }
 .win-title { flex: 1; min-width: 0; display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 500; white-space: nowrap; overflow: hidden; }
 .win-title .ico { width: 14px; height: 14px; color: var(--dim); }

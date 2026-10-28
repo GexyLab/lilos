@@ -1,6 +1,6 @@
 import { Window, h, appIcon, actionButton, fileType } from '@lilos/sdk';
 import { launch } from './registry.js';
-import { fileApps, appFor, extensionOf, setAppFor } from './open.js';
+import { installedFileApps, appFor, extensionOf, setAppFor } from './open.js';
 
 /**
  * "Apri con": choose the app for a file, optionally remembering it for the extension.
@@ -12,8 +12,9 @@ export function createOpenWith(wm) {
   return node => {
     if (current) wm.close(current);
     const ext = extensionOf(node);
-    const candidates = fileApps();
-    const suggested = appFor(ext)?.id ?? candidates[0]?.id ?? null;
+    const candidates = installedFileApps();
+    const preferred = appFor(ext)?.id;
+    const suggested = candidates.some(a => a.id === preferred) ? preferred : candidates[0]?.id ?? null;
     let chosen = suggested;
 
     const win = new Window({

@@ -38,12 +38,13 @@ export class Canvas extends Emitter {
   #anim = 0;
   #saveTimer = 0;
   #space = false;
+  #key;
 
-  constructor(parent) {
+  /** `key`: where the camera is saved ('lilos:<key>'); every workspace has its own. */
+  constructor(parent, { key = 'camera' } = {}) {
     super();
-    const saved = storage.get('camera');
-    this.cam = { x: 0, y: 0, s: 1 };
-    if (saved && [saved.x, saved.y, saved.s].every(Number.isFinite)) this.cam = { x: saved.x, y: saved.y, s: clampZoom(saved.s) };
+    this.#key = key;
+    this.cam = this.#savedCamera();
 
     this.world = h('div', { class: 'world' });
     this.el = h('div', { class: 'canvas' }, this.world);
@@ -54,6 +55,29 @@ export class Canvas extends Emitter {
     this.#bindKeys();
     addEventListener('resize', () => this.#apply());
     this.#apply();
+  }
+
+  /**
+   * Saves the camera under the current key now, then takes the one saved under `key` (another
+   * workspace's view), without animation.
+   */
+  useCamera(key) {
+    this.flushCamera();
+    this.#key = key;
+    cancelAnimationFrame(this.#anim);
+    this.cam = this.#savedCamera();
+    this.#apply();
+  }
+
+  /** Writes the camera now instead of waiting for the delayed save. */
+  flushCamera() {
+    clearTimeout(this.#saveTimer);
+    storage.set(this.#key, this.cam);
+  }
+
+  #savedCamera() {
+    const saved = storage.get(this.#key);
+    return saved && [saved.x, saved.y, saved.s].every(Number.isFinite) ? { x: saved.x, y: saved.y, s: clampZoom(saved.s) } : { x: 0, y: 0, s: 1 };
   }
 
   get width() { return this.el.clientWidth; }
@@ -148,8 +172,16 @@ export class Canvas extends Emitter {
     this.animateTo((this.width - rect.w * s) / 2 - rect.x * s, (this.height - rect.h * s) / 2 - rect.y * s, s);
   }
 
-  /** Show every object; back to the origin when the desk is empty. */
+  /**
+   * Optional: () → world rect | null. When it returns a rect, fit() frames it instead of
+   * everything (the workarea being worked in).
+   */
+  fitScope = null;
+
+  /** Show every object (or the fitScope rect); back to the origin when the desk is empty. */
   fit() {
+    const scoped = this.fitScope?.();
+    if (scoped) return this.frame(scoped);
     const objects = this.objects();
     if (!objects.length) return this.animateTo(0, 0, 1);
     this.frame(union(objects.map(el => this.rectOf(el))));
@@ -177,7 +209,7 @@ export class Canvas extends Emitter {
     this.emit('camera', this.cam);
     this.changed();
     clearTimeout(this.#saveTimer);
-    this.#saveTimer = setTimeout(() => storage.set('camera', this.cam), 300);
+    this.#saveTimer = setTimeout(() => storage.set(this.#key, this.cam), 300);
   }
 
   // ---------- Input ----------

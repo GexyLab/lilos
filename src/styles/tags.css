@@ -1,0 +1,31 @@
+/* Tags (src/tags/, sdk tags) */
+
+.tag-dots { display: inline-flex; align-items: center; gap: 3px; flex: none; }
+.tag-dot {
+  width: 8px; height: 8px; flex: none; border-radius: 50%;
+  box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--surface) 80%, transparent);
+}
+.tag-more { font-size: 10px; color: var(--dim); }
+
+/* On the desk: dots at the lower right of the icon */
+.ditem-glyph { position: relative; }
+.ditem-tags { position: absolute; left: calc(50% + 10px); bottom: -2px; display: flex; gap: 2px; }
+.ditem-tags .tag-dot { box-shadow: 0 0 0 1.5px var(--canvas); }
+.ditem-tags .tag-more { color: var(--on-canvas); }
+
+/* File: after the name in the list, on the icon in the grid */
+.fm-name .tag-dots { margin-left: -2px; }
+.fm-row.selected .tag-more { color: #fff; }
+.fm-tile-icon { position: relative; }
+.fm-tile-tags { position: absolute; left: calc(50% + 10px); bottom: -2px; display: flex; gap: 2px; }
+
+/* File: a tag's view has its own columns (name, location, type, workspace) */
+.fm-head.tagged, .fm-row.tagged { grid-template-columns: minmax(160px, 1fr) minmax(120px, 220px) 118px 124px; }
+
+/* File: tags in the sidebar */
+.fm-place.fm-tag .tag-dot { margin: 0 3px; }
+.fm-place.fm-tag > span:nth-child(2) { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fm-place.fm-tag .ico { width: 13px; height: 13px; }
+
+/* Settings → Tag */
+.tag-settings-actions { display: flex; gap: 6px; justify-content: flex-end; }

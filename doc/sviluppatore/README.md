@@ -16,13 +16,16 @@ npm install
 npm run dev       # server di sviluppo su http://localhost:5173
 npm run build     # build di produzione in dist/
 npm run preview   # serve dist/ su http://localhost:4173
+node scripts/vendor-tree-sitter.mjs   # aggiorna le grammatiche Tree-sitter in public/tree-sitter/
 ```
+
+Le dipendenze dell'Editor caricate al bisogno (e quelle usate solo nei worker) sono elencate in `optimizeDeps.include` di `vite.config.js`: così il server di sviluppo le prepara all'avvio invece di scoprirle una alla volta e ricaricare la pagina. Se ne aggiungi una, aggiungila anche lì.
 
 Dopo aver modificato `vite.config.js` (o se lo crei) riavvia `npm run dev`: un server già avviato non vede un file di configurazione creato dopo il suo avvio, e la pagina dà errore 500 su `src/main.js`.
 
 Non ci sono dipendenze a runtime: solo Vite come strumento di sviluppo. Il codice è JavaScript moderno (moduli ES, campi privati `#`) senza framework e senza TypeScript.
 
-In sviluppo `window.lilos` espone `{ bus, canvas, desktop, taskbar, wm, settings, shortcuts, fs }` per provare le API dalla console del browser:
+In sviluppo `window.lilos` espone `{ bus, canvas, desktop, taskbar, wm, workareas, workspaces, settings, shortcuts, fs, history }` per provare le API dalla console del browser:
 
 ```js
 lilos.canvas.animateTo(0, 0, 2)
@@ -61,11 +64,14 @@ sdk/                    @lilos/sdk (vedi sdk/README.md)
     settings.js         preferenze con valori predefiniti e tipi controllati
     shortcuts.js        scorciatoie da tastiera: comandi e combinazioni modificabili
     fs.js               file system virtuale: albero di cartelle, file e collegamenti
+    tags.js             tag colorati da mettere su file e cartelle; i tag invisibili nascondono i loro elementi
+    history.js          UndoStack e history: annulla e ripeti, per chi ha il focus
     db.js               archivio su IndexedDB per il contenuto dei file (interno)
     fileTypes.js        nome ed estensione; tipo, colore ed etichetta dall'estensione
   ui/                   componenti riutilizzabili
     icons.js            simboli SVG e logo
     ContextMenu.js      menu a comparsa
+    toast.js            breve messaggio in basso
     avatar.js           iniziali dell'utente
     appIcon.js          riquadro colorato con il simbolo di un'app
     controls.js         controlli dei moduli (interruttore, menu, segmenti, colori…)
@@ -85,10 +91,17 @@ sdk/                    @lilos/sdk (vedi sdk/README.md)
 src/
   main.js               bootstrap: importa gli stili, monta canvas, HUD, desktop, taskbar, finestre
   systemSettings.js     impostazioni del sistema: valori predefiniti, applicazione, modo di selezione
+  systemTrash.js        pulizia automatica del cestino (`setupTrash`)
+  systemHistory.js      scorciatoie Ctrl Z / Ctrl Y, messaggi e voci di menu dell'annulla e ripeti
   systemFs.js           cartelle di sistema, riempimento al primo avvio, migrazione della vecchia scrivania
   items/
     targets.js          comandi sugli elementi (Apri, Rinomina, Elimina…) comuni a desktop e File
-    confirmRemove.js    eliminazione con conferma per le cartelle non vuote
+    confirmRemove.js    eliminare come dicono le impostazioni: cestino o definitivo, con o senza conferma
+    fsHistory.js        azioni sul file system che finiscono in una cronologia (elimina, ripristina, crea, rinomina, sposta)
+    itemDrag.js         trascinamento di file e cartelle, uguale in ogni vista (`markItem`, `dropZone`, `dragItems`)
+    links.js            ordine della barra laterale di File: voci fisse e collegamenti (`links`, `linkEntry`)
+  tags/
+    tagUi.js            pallini dei tag, mettere e togliere un tag, sottomenu Tag dei menu
   canvas/               la scrivania infinita
     Canvas.js           camera (spostamento e zoom), oggetti in coordinate mondo
     Minimap.js          mappa in miniatura cliccabile
@@ -96,10 +109,10 @@ src/
   desktop/              elementi sulla scrivania
     Desktop.js          selezione, trascinamento, rinomina, elimina, menu, salvataggio
     DesktopItem.js      un singolo elemento (cartella, file, app)
-    itemIcons.js        icone grandi di cartelle e file
+    itemIcons.js        icone grandi di cartelle, file e workarea
     seed.js             elementi della Scrivania al primo avvio
   apps/
-    registry.js         elenco delle app e launch()
+    registry.js         elenco delle app, quali sono installate nel workspace attuale, launch()
     launcher.js         da app:launch a finestre: carica l'app e la apre
     settings/
       SettingsApp.js    l'app Impostazioni
@@ -109,19 +122,39 @@ src/
     editor/
       EditorApp.js      l'app Editor
       highlight.js      evidenziazione per linguaggio
+      complete.js       suggerimenti interni (quando non c'è un language server)
+      lang/             linguaggi, motori (Tree-sitter, TextMate, semplice), impostazioni
+      lsp/              client LSP, server nei worker (JSON, CSS, HTML), conversioni
+      EditorSettings.js finestra Impostazioni dell'Editor
+      FileTree.js       pannello a destra con la cartella aperta
       editor.css        i suoi stili
+    filePicker.js       finestra per scegliere un file o una cartella di lilOS
     open.js             quale app apre quale tipo di file
     openWith.js         finestra "Apri con"
     commands.js         scorciatoie delle app dichiarate nel registro
+  workareas/            aree della scrivania che tengono insieme icone e finestre
+    Workareas.js        gestore: appartenenza, workarea attuale, ridurre a icona, riaprire, spostare
+    WorkareaFrame.js    il DOM di un'area: barra del titolo e bordi
+    store.js            salvataggio in lilos:ws:<id>:workareas, validazione, limiti
+    properties.js       finestra delle proprietà (titolo, descrizione, metadati)
+  workspaces/           scrivanie separate
+    Workspaces.js       gestore: elenco, cambio, creazione, eliminazione, app installate, finestre ricordate
+    WorkspaceSwitcher.js pulsante nella barra (colore e nome) e suo menu
+    setup.js            avvio: carica l'elenco, migra i dati di prima dei workspace, ripara
+    store.js            salvataggio in lilos:workspaces, validazione, limiti, chiavi lilos:ws:<id>:…
+    info.js             cosa le app possono sapere dei workspace (nome e colore di un proprietario)
   windows/
-    WindowManager.js    finestre sulla scrivania: posizione, focus, trascinamento, barra
+    WindowManager.js    finestre sulla scrivania: posizione, focus, trascinamento, barra, workspace di ogni finestra
   taskbar/
-    Taskbar.js          pulsante logo, area finestre, utente e orologio
+    Taskbar.js          pulsante logo, area finestre, utente e orologio (il pulsante workspace lo aggiunge Workspaces)
     StartMenu.js        menu di avvio con ricerca
     Clock.js            data e ora
   styles/               stili del sistema, uno per area
     canvas.css          scrivania, HUD, minimappa
     desktop.css         elementi del desktop
+    workareas.css       aree, barra del titolo, finestra delle proprietà
+    workspaces.css      pulsante nella barra, finestre nascoste, pallino del proprietario
+    tags.css            pallini dei tag sulle icone e nell'elenco di File
     taskbar.css         barra in basso
     start-menu.css      menu di avvio
 ```
@@ -133,13 +166,19 @@ src/
 `src/main.js` importa i CSS e crea i componenti in quest'ordine:
 
 ```
-Canvas(root)          la scrivania, a tutto schermo sopra la barra
+setupFileSystem()     cartelle di sistema condivise (Documenti, Immagini, Download)
+setupWorkspaces(…)    carica i workspace, migra e ripara, imposta quello attuale in fs
+Canvas(root, { key }) la scrivania, a tutto schermo sopra la barra; camera del workspace attuale
 createHud(canvas)     pannello in basso a destra
-Desktop(canvas)       carica gli elementi salvati (o quelli di esempio) e li aggiunge al canvas
+Desktop(canvas, desk, layoutKey)  gli elementi della scrivania del workspace attuale
 Taskbar(root)         barra in basso, che crea a sua volta lo StartMenu
 WindowManager(…)      finestre sulla scrivania e pulsanti nella barra
-connectLauncher(wm)   apre le app quando arriva app:launch
+connectLauncher(wm)   apre le app quando arriva app:launch (e riapre quelle salvate: restore)
+Workareas(…, { key }) aree della scrivania: usa canvas, desktop, wm e launcher
+Workspaces(…)         cambio di workspace, pulsante nella barra; riapre le finestre salvate fuori dalle workarea
 ```
+
+Il file system si prepara prima di tutto il resto: `setupWorkspaces` deve girare quando nessun workspace è ancora impostato in `fs` (tutto è visibile), perché assegna proprietari e crea le scrivanie.
 
 Prima di tutto `main.js` importa `systemSettings.js`, che dichiara le impostazioni e applica quelle globali (colore principale, animazioni). Poi collega le altre: `snap` al desktop, `minimap` all'HUD, e il focus delle finestre alle scorciatoie del desktop.
 
@@ -205,16 +244,66 @@ I componenti si parlano in due modi:
 
 Cartelle, file e collegamenti alle app sono nodi del file system virtuale `fs` dell'SDK, un albero con radice `root` salvato in `lilos:fs`. Il contenuto dei file sta in IndexedDB (`fs.read` / `fs.write`, asincroni).
 
-- Le cartelle di sistema (Scrivania, Documenti, Immagini, Download) sono create da `setupFileSystem()` (`src/systemFs.js`) e non si possono rinominare né eliminare.
-- La **scrivania è la vista della cartella `/Scrivania`**: il `Desktop` crea, rinomina ed elimina tramite `fs` e si aggiorna sugli eventi `change`. Le posizioni sono salvate a parte, in `lilos:desktop-layout`.
+- Le cartelle di sistema condivise (Documenti, Immagini, Download) sono create da `setupFileSystem()` (`src/systemFs.js`); la cartella Scrivania è creata per ogni workspace da `setupWorkspaces()`. Nessuna di queste si può rinominare né eliminare.
+- La **scrivania è la vista della cartella `/Scrivania` del workspace attuale**: il `Desktop` crea, rinomina ed elimina tramite `fs` e si aggiorna sugli eventi `change`. Le posizioni sono salvate a parte, in `lilos:ws:<id>:desktop-layout`.
 - L'app **File** è un'altra vista dello stesso albero: quello che cambia da una parte si vede subito nell'altra.
 - I comandi Apri, Rinomina, Elimina, Seleziona tutto e Togli la selezione sono comuni: `src/items/targets.js` li registra una volta e li esegue sulla vista attiva (il desktop se nessuna finestra ha il focus, altrimenti la finestra File attiva).
 
+### Trascinare file e cartelle tra le viste
+
+Scrivania, app File e pannello dell'Editor trascinano file e cartelle con lo stesso modulo, `src/items/itemDrag.js`, senza conoscersi: una vista marca i suoi elementi (`markItem`, attributo `data-node`), registra le aree che accettano rilasci (`dropZone`) e avvia il trascinamento su `pointerdown` (`dragItems`). Il bersaglio si cerca nel DOM sotto il puntatore, e lo spostamento (`moveNodes`) è un solo passo nella cronologia della vista da cui si parte. L'ordine della barra laterale di File, con i collegamenti, è in `src/items/links.js`. Perché è fatto così: [D30](../interna/decisioni.md#d30-un-solo-modulo-di-trascinamento-per-tutte-le-viste-di-file-e-cartelle). Per usarlo in una vista nuova: [ricette](ricette.md#rendere-trascinabili-file-e-cartelle-in-unapp), contratti in [api.md](api.md#itemdragjs).
+
+### Annulla e ripeti
+
+Ogni posto che ha azioni da annullare tiene una `UndoStack` e la collega a un suo elemento con `history.attach` (SDK): la scrivania è la cronologia **radice** (`desktop.history`), ogni finestra File ha la sua, il pannello della cartella dell'Editor la sua, il testo dell'Editor usa quella del browser. Ctrl Z e Ctrl Y (registrati da `src/systemHistory.js`) non sanno chi li riceve: `history.resolve()` parte dall'elemento con il focus e sale tra i genitori fino al primo con un gestore. Senza focus vale la finestra attiva; una finestra senza cronologia (Impostazioni) non fa nulla, e non tocca la scrivania dietro; senza finestra attiva vale la scrivania. Nei campi di testo Ctrl Z resta al browser, salvo gestori con `text: true`. Eliminare è annullabile perché di norma sposta nel cestino (`fs.trash`, annullare è `fs.untrash`, vedi [D28](../interna/decisioni.md#d28-il-cestino-è-una-seconda-radice-nascosta-del-file-system)); con l'eliminazione definitiva `fs.snapshot` copia i nodi e i contenuti prima di `fs.remove`. Le cronologie stanno solo in memoria. Dettagli in [api.md](api.md#sdkcorehistoryjs) e [ricette](ricette.md#aggiungere-annulla-e-ripeti-a-unapp).
+
 ### Aprire i file
 
-Un file si apre con l'app associata alla sua estensione: le app dichiarano nel registro le estensioni che aprono (`opens`), l'utente cambia le associazioni in Impostazioni → Usabilità → Tipi di file. Senza app associata compare la finestra "Apri con" (`src/apps/openWith.js`). Tutto passa da `openFile(node)` in `src/apps/open.js`, usato da `main.js` (per `item:open`) e dall'app File. L'app riceve `args.file`.
+Un file si apre con l'app associata alla sua estensione (se è installata nel workspace attuale; altrimenti compare "Apri con", che propone solo le app installate): le app dichiarano nel registro le estensioni che aprono (`opens`), l'utente cambia le associazioni in Impostazioni → Usabilità → Tipi di file. Senza app associata compare la finestra "Apri con" (`src/apps/openWith.js`). Tutto passa da `openFile(node)` in `src/apps/open.js`, usato da `main.js` (per `item:open`) e dall'app File. L'app riceve `args.file`.
 
 Le scorciatoie di un'app sono dichiarate nel registro (`commands`) e registrate all'avvio, così compaiono nelle Impostazioni anche prima di aprire l'app; la finestra dell'app fornisce il gestore con `handleCommand`.
+
+### Editor: linguaggi
+
+L'evidenziazione ha tre motori, scelti per linguaggio: **Tree-sitter** (WebAssembly; grammatiche in `public/tree-sitter/`), **TextMate** (Shiki con espressioni regolari JavaScript) e il **semplice** di `highlight.js`. Suggerimenti ed errori arrivano da un **Language Server** (protocollo LSP): JSON, CSS e HTML girano nel browser in Web Worker; per altri linguaggi si può collegare un server esterno via WebSocket. Senza server, l'Editor usa i suoi vocabolari (`complete.js`). Tutto è caricato solo quando serve: chi non apre l'Editor non scarica nulla di questo.
+
+### Workarea
+
+Una workarea (`src/workareas/`) è un rettangolo della scrivania con un titolo. Non possiede nulla: **l'appartenenza è geometrica**. Un elemento del desktop o una finestra appartiene alla workarea aperta che contiene il suo centro, quindi spostarlo dentro o fuori, o ridimensionare l'area, cambia il contenuto senza altro lavoro. Le workarea aperte non si sovrappongono.
+
+L'area è un oggetto del canvas (`.wa-area.obj`, messo sotto tutto il resto) che lascia passare il puntatore: solo barra del titolo e bordi lo prendono, dentro i clic arrivano alla scrivania, quindi selezione, menu e finestre funzionano come ovunque. Trascinare la barra sposta l'area con elementi e finestre.
+
+`Workareas` tiene anche la **workarea attuale** (l'ultima in cui l'utente ha fatto clic o la cui finestra ha il focus) e restringe ad essa le richieste: `Desktop.scopeItems()` per Seleziona tutto, il riordino e il rettangolo di selezione, `canvas.fitScope` per Mostra tutto, `setLaunchScope()` del launcher per le app (una finestra per app per ambito, aperta dentro l'area).
+
+Ridotta a icona, una workarea chiede a ogni finestra `canClose`, salva lo stato delle finestre delle app (`Window.getState`, posizione, dimensione, ridotta o no), le chiude, nasconde gli elementi e mette sulla scrivania un `DesktopItem` con `workarea` impostato, che non è un nodo del file system. Riaprendola, `launcher.restore()` ricrea le finestre. Lo stato delle finestre delle workarea aperte viene salvato anche mentre si lavora, per sopravvivere al ricaricamento. Vedi [Workarea](api.md#workareas) e la decisione D25.
+
+### Workspace
+
+Un workspace (`src/workspaces/`) è una scrivania separata: ha la sua cartella Scrivania, la sua vista, le posizioni degli elementi, le workarea, le finestre aperte e le app installate. Documenti, Immagini e Download sono condivise. Vedi la decisione D27.
+
+- **L'isolamento sta in `fs`.** La Scrivania di un workspace è una cartella `private` con `workspace` = id del proprietario. Con `fs.setWorkspace(id)` impostato, `fs` fa finta che le cartelle private degli altri workspace (e tutto ciò che contengono) non esistano: File, selettori e pannello dell'Editor rispettano l'isolamento senza saperlo. Ogni nodo creato porta `workspace` (chi l'ha fatto), che non cambia se lo si sposta o rinomina; le cartelle di sistema condivise non hanno proprietario. Le viste che mostrano il proprietario (la colonna Workspace di File) usano `describeWorkspace` di `src/workspaces/info.js`.
+- **Cambiare workspace** (`Workspaces.switchTo`) salva il workspace lasciato (finestre, workarea, posizioni, vista), poi cambia in quest'ordine `fs.setWorkspace`, `wm.setWorkspace`, `canvas.useCamera`, `desktop.load`, `workareas.load`. Le finestre del workspace lasciato **restano aperte e nascoste** (classe `ws-away`), con il testo non salvato; ogni finestra appartiene al workspace che era attuale quando è stata aperta. I cambi sono messi in coda e uno alla volta.
+- **App installate per workspace.** Il registro sa quali app sono `system` (File, Impostazioni: sempre installate) e chiede a un filtro (`setInstalledFilter`, impostato da `Workspaces`) quali sono installate nel workspace attuale. Menu di avvio, `launch` e "Apri con" lo rispettano. Le associazioni dei tipi di file restano globali; preferenze, tema, scorciatoie e menu sono globali.
+- **Finestre ricordate.** Le finestre delle app fuori da ogni workarea sono salvate per workspace in `lilos:ws:<id>:windows` (400 ms dopo ogni cambiamento e alla chiusura della pagina) e riaperte la prima volta che il workspace viene mostrato nella sessione.
+- **Eliminare** non cancella mai file: la Scrivania diventa `/Documenti/Scrivania di <nome>` (rimossa se vuota), le finestre delle app passano nel workspace attuale (`wm.adopt`), quelle secondarie (selettori, proprietà delle workarea…) si chiudono, e nell'elenco salvato resta una voce "rimossa" perché i file creati da quel workspace dicano ancora di chi erano.
+- **Avvio e migrazione**: `setupWorkspaces` fa nascere "Principale" dai dati di prima dei workspace e ripara elenco e scrivanie. Dettagli in [Dati salvati](api.md#lilosworkspaces).
+
+### Tag
+
+I tag (`tags` dell'SDK, `sdk/core/tags.js`) sono etichette colorate con un nome, uguali in tutti i workspace. Vedi la decisione D29.
+
+- **Le definizioni stanno nell'SDK, l'assegnazione sui nodi.** Un nodo ha `tags` (id dei tag); si cambia con `fs.setTags`. `fs.tagged(id)` dà tutti gli elementi con un tag, ovunque il workspace attuale veda.
+- **Invisibile significa nascosto.** `tags` comunica a `fs` i tag invisibili (`fs.setHiddenTags`, all'avvio e a ogni cambio). `fs.children()` esclude i nodi che ne hanno uno: è l'unico punto, quindi scrivania, File, selettore, pannello dell'Editor e conteggi lo rispettano senza saperlo. `get`, `exists`, `resolve` e `tagged` li trovano ancora, così le finestre aperte e la vista del tag continuano a funzionare.
+- **Chi mostra elenchi** deve ascoltare `fs` `scope` (cambia ciò che è visibile: un altro workspace o i tag nascosti) oltre a `change`, e `tags` `change` per nomi e colori. La scrivania si riallinea da sola (`#reconcile`).
+- **L'interfaccia** sta in `src/tags/tagUi.js` (pallini, `setTag`, sottomenu Tag); la gestione in Impostazioni → Tag, la ricerca nella vista del tag di File (`launch('files', { tag })`).
+
+### Menu configurabili
+
+Il menu del tasto destro sulla scrivania non è scritto nel codice del desktop: il desktop dichiara azioni e disposizione predefinita nel registro `menus` dell'SDK, e l'utente la cambia nelle Impostazioni. Per un nuovo menu configurabile: `menus.defineAction`, `menus.register`, `openMenu(x, y, menus.build(id, ctx))`.
+
+### Temi
+
+`<html data-theme="dark" | "light">` (impostazione `theme`) cambia i token di `sdk/styles/tokens.css`. Gli stili devono usare solo token, mai colori fissi: un colore scritto a mano resta uguale in entrambi i temi.
 
 ### Finestre
 
@@ -230,11 +319,17 @@ Quando una finestra ha il focus, le scorciatoie del desktop (Canc, Invio, F2, Ct
 
 | Chiave | Contenuto | Scritta da |
 | --- | --- | --- |
-| `lilos:camera` | `{ x, y, s }` | `Canvas`, 300 ms dopo l'ultimo movimento |
+| `lilos:workspaces` | `{ current, list }`: i workspace (nome, colore, cartella Scrivania, app installate) | `Workspaces`, a ogni modifica |
+| `lilos:ws:<id>:camera` | `{ x, y, s }` della vista del workspace | `Canvas`, 300 ms dopo l'ultimo movimento |
 | `lilos:fs` | tutti i nodi del file system | `fs`, a ogni modifica |
-| `lilos:desktop-layout` | posizioni sulla scrivania, `{ id: [x, y] }` | `Desktop`, dopo spostamenti e creazioni |
+| `lilos:tags` | i tag: `{ id, name, color, visible }` (i tag messi sui nodi sono nel campo `tags` di `lilos:fs`) | `tags`, a ogni modifica |
+| `lilos:ws:<id>:desktop-layout` | posizioni sulla scrivania, `{ id: [x, y] }` | `Desktop`, dopo spostamenti e creazioni |
+| `lilos:ws:<id>:windows` | finestre delle app fuori dalle workarea, da riaprire | `Workspaces`, 400 ms dopo ogni cambiamento |
+| `lilos:ws:<id>:workareas` | workarea: area, titolo, descrizione, metadati, elementi nascosti e finestre da riaprire | `Workareas`, a ogni modifica; le finestre 400 ms dopo ogni cambiamento |
 | `lilos:files-view` | vista dell'app File (`"list"` o `"grid"`) | app File |
 | `lilos:file-apps` | app scelte per i tipi di file | `setAppFor` (Impostazioni, Apri con) |
+| `lilos:files-sidebar` | ordine della sezione Collegamenti della barra laterale di File: id di nodi (voci fisse e collegamenti) e la chiave `desk`; al massimo 80, uguali in ogni workspace | `links` |
+| `lilos:editor-tree` | cartella aperta nell'Editor, cartelle espanse, larghezza del pannello | `FileTree` (Editor) |
 | IndexedDB `lilos` → `contents` | contenuto dei file | `fs.write` |
 | `lilos:settings` | oggetto con le impostazioni | `settings`, a ogni cambiamento |
 | `lilos:shortcuts` | combinazioni personalizzate | `shortcuts`, a ogni modifica |

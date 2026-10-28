@@ -18,9 +18,9 @@
 .hud.no-minimap .minimap { display: none; }
 .minimap { position: relative; height: 110px; cursor: pointer; overflow: hidden; border-bottom: 1px solid var(--panel-border); }
 .minimap i { position: absolute; display: block; pointer-events: none; }
-.minimap .mm-item { background: #7b8494; border-radius: 1px; min-width: 2px; min-height: 2px; }
-.minimap .mm-window { background: #5d6472; border-radius: 1px; }
-.minimap .mm-obj { background: #4b515c; }
+.minimap .mm-item { background: var(--mm-item); border-radius: 1px; min-width: 2px; min-height: 2px; }
+.minimap .mm-window { background: var(--mm-window); border-radius: 1px; }
+.minimap .mm-obj { background: var(--mm-obj); }
 .minimap .mm-view { border: 1.5px solid var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent); border-radius: 2px; }
 
 .zoombar { display: flex; align-items: center; height: 28px; padding: 0 2px; }
@@ -28,6 +28,6 @@
   height: 24px; min-width: 26px; border-radius: var(--radius-sm);
   display: grid; place-items: center; font-size: 11.5px; font-weight: 500;
 }
-.zoombar button:hover { background: var(--bar-hover); color: #fff; }
+.zoombar button:hover { background: var(--bar-hover); color: var(--bar-strong); }
 .zoombar .ico { width: 13px; height: 13px; }
 .zoom-pct { flex: 1; font-variant-numeric: tabular-nums; }

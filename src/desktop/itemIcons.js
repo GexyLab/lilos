@@ -21,8 +21,17 @@ export function fileIcon(name) {
     `<text x="12" y="23.4" text-anchor="middle" font-size="${badge.length > 3 ? 4.6 : 5.6}" font-weight="700" fill="#fff" font-family="Inter, system-ui, sans-serif">${badge}</text>`);
 }
 
-/** Icon for any desktop item data ({ type: 'folder' | 'file' | 'app', ... }). */
+/** A reduced workarea: a dashed frame with two small windows inside (colors from the theme). */
+export function workareaIcon() {
+  return svg('0 0 34 30', 'icon-workarea',
+    '<rect class="wa-i-frame" x="1.5" y="1.5" width="31" height="27" rx="4" stroke-width="1.6" stroke-dasharray="4 2.5"/>' +
+    '<rect class="wa-i-back" x="5.5" y="7" width="13" height="10" rx="1.5"/>' +
+    '<rect class="wa-i-front" x="15.5" y="13" width="13" height="11" rx="1.5" stroke-width="1.2"/>');
+}
+
+/** Icon for any desktop item data ({ type: 'folder' | 'file' | 'app' | 'workarea', ... }). */
 export function itemIcon(data) {
+  if (data.type === 'workarea') return workareaIcon();
   if (data.type === 'folder') return folderIcon(data.color);
   if (data.type === 'app') return appIcon(getApp(data.app));
   return fileIcon(data.name);

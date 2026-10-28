@@ -1,16 +1,20 @@
 import { h, splitName } from '@lilos/sdk';
 import { itemIcon } from './itemIcons.js';
+import { tagDots } from '../tags/tagUi.js';
+import { markItem } from '../items/itemDrag.js';
 
 /**
- * A folder, file or app shortcut placed on the desk.
+ * A folder, file or app shortcut placed on the desk (or a reduced workarea's icon).
  * Data shape: a file system node plus its position, { id, type, name, x, y, color?, app?, … }
+ * File system items are marked as such (itemDrag.js): a folder accepts files and folders dropped on it.
  */
 export class DesktopItem {
   constructor(data) {
     this.data = data;
-    this.glyph = h('div', { class: 'ditem-glyph' }, itemIcon(data));
+    this.glyph = h('div', { class: 'ditem-glyph' }, itemIcon(data), tagDots(data, 'ditem-tags'));
     this.label = h('span', { class: 'ditem-label' }, data.name);
     this.el = h('div', { class: 'ditem', dataset: { kind: 'item', id: data.id } }, this.glyph, this.label);
+    if (data.type !== 'workarea') markItem(this.el, data);
     this.moveTo(data.x, data.y);
   }
 
@@ -28,11 +32,11 @@ export class DesktopItem {
     this.el.classList.toggle('selected', selected);
   }
 
-  /** New name or metadata from the file system (the icon can change with the extension or color). */
-  setData({ name, color }) {
-    Object.assign(this.data, { name, color });
+  /** New name or metadata from the file system (the icon can change with the extension, color or tags). */
+  setData({ name, color, tags }) {
+    Object.assign(this.data, { name, color, tags });
     this.label.textContent = name;
-    this.glyph.replaceChildren(itemIcon(this.data));
+    this.glyph.replaceChildren(itemIcon(this.data), tagDots(this.data, 'ditem-tags') ?? '');
   }
 
   /** Inline rename. Resolves with the new (trimmed) name, or null if cancelled/unchanged. */
