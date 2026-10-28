@@ -1,5 +1,5 @@
 import { h } from '../core/dom.js';
-import { icon } from '../ui/icons.js';
+import { icon } from './icons.js';
 
 /** App tile: colored square + glyph. Size comes from the context's CSS. */
 export function appIcon(app, className = 'app-icon') {

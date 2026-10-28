@@ -1,0 +1,11 @@
+/* ---------- "Apri con" window (apps/openWith.js) ---------- */
+.ow { flex: 1; display: flex; flex-direction: column; gap: 10px; padding: 14px 16px 12px; user-select: none; }
+.ow-text { color: var(--text); line-height: 1.45; overflow-wrap: anywhere; }
+.ow-list { display: flex; flex-direction: column; gap: 2px; border: 1px solid var(--border); border-radius: 6px; padding: 4px; }
+.ow-app { height: 36px; display: flex; align-items: center; gap: 10px; padding: 0 8px; border-radius: var(--radius-sm); text-align: left; }
+.ow-app:hover { background: var(--hover); }
+.ow-app.on { background: var(--accent-soft); color: var(--accent); font-weight: 500; }
+.ow-app .app-icon { width: 24px; height: 24px; border-radius: 6px; }
+.ow-remember { display: flex; align-items: center; gap: 8px; color: var(--dim); font-size: 12px; cursor: pointer; }
+.ow-remember input { accent-color: var(--accent); }
+.ow-buttons { margin-top: auto; display: flex; justify-content: flex-end; gap: 6px; }

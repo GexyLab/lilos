@@ -1,10 +1,9 @@
-import { h } from '../core/dom.js';
+import { h, splitName } from '@lilos/sdk';
 import { itemIcon } from './itemIcons.js';
-import { splitName } from './fileTypes.js';
 
 /**
  * A folder, file or app shortcut placed on the desk.
- * Data shape: { id, type: 'folder' | 'file' | 'app', name, x, y, color?, app? }
+ * Data shape: a file system node plus its position, { id, type, name, x, y, color?, app?, … }
  */
 export class DesktopItem {
   constructor(data) {
@@ -29,8 +28,9 @@ export class DesktopItem {
     this.el.classList.toggle('selected', selected);
   }
 
-  setName(name) {
-    this.data.name = name;
+  /** New name or metadata from the file system (the icon can change with the extension or color). */
+  setData({ name, color }) {
+    Object.assign(this.data, { name, color });
     this.label.textContent = name;
     this.glyph.replaceChildren(itemIcon(this.data));
   }

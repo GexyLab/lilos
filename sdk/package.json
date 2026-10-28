@@ -1,0 +1,14 @@
+{
+  "name": "@lilos/sdk",
+  "private": true,
+  "version": "0.2.1",
+  "description": "Componenti e utilità di base di lilOS, condivisi dal sistema e dalle app",
+  "type": "module",
+  "exports": {
+    ".": "./index.js",
+    "./styles.css": "./styles/index.css"
+  },
+  "sideEffects": [
+    "*.css"
+  ]
+}

@@ -1,10 +1,5 @@
-import { h } from '../core/dom.js';
-import { session } from '../core/session.js';
+import { h, session, appIcon, avatar, closeMenu, icon, shortcuts } from '@lilos/sdk';
 import { apps, launch } from '../apps/registry.js';
-import { appIcon } from '../apps/appIcon.js';
-import { avatar } from '../ui/avatar.js';
-import { closeMenu } from '../ui/ContextMenu.js';
-import { icon } from '../ui/icons.js';
 
 /** Launcher opened by the logo button (or Ctrl+K): app search, app list, user footer. */
 export class StartMenu {
@@ -34,9 +29,7 @@ export class StartMenu {
     addEventListener('pointerdown', e => {
       if (this.isOpen && !this.el.contains(e.target) && !anchor.contains(e.target)) this.close();
     }, true);
-    addEventListener('keydown', e => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); this.toggle(); }
-    });
+    shortcuts.register({ id: 'system.startMenu', label: 'Apri o chiudi il menu di avvio', group: 'Generale', keys: ['Ctrl+K'], whenEditing: true, run: () => this.toggle() });
     this.#render();
   }
 
@@ -94,7 +87,7 @@ export class StartMenu {
     // The menu owns the keyboard while focused: desktop/canvas shortcuts must not fire underneath
     e.stopPropagation();
     const n = this.#results.length;
-    if (e.key === 'Escape' || ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k')) {
+    if (e.key === 'Escape' || shortcuts.matches(e, 'system.startMenu')) {
       e.preventDefault();
       this.close();
       this.anchor.focus();

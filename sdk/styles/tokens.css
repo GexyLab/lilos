@@ -1,7 +1,9 @@
 :root {
   /* Brand */
   --accent: #3b6ef5;
-  --accent-soft: #e8eefe;
+  --accent-soft: color-mix(in srgb, var(--accent) 12%, #fff);
+  --accent-strong: color-mix(in srgb, var(--accent) 86%, #000);
+  --accent-tint: color-mix(in srgb, var(--accent) 30%, transparent);
   --danger: #e5484d;
 
   /* Light surfaces (windows) */

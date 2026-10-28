@@ -1,0 +1,537 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>lilOS — Finestra impostazioni</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --accent: #3b6ef5; --accent-soft: #e8eefe; --danger: #e5484d;
+    --text: #1f2328; --dim: #6b7280; --faint: #9aa1ad;
+    --surface: #ffffff; --chrome: #f4f5f7; --hover: #eceef1; --border: #e2e4e8; --side: #fafafb;
+    --canvas: #1f2227; --canvas-dot: rgba(255,255,255,.09); --on-canvas: #e9ebef;
+    --bar: #16181d; --bar-border: #2a2d34; --bar-text: #d7dae0; --bar-dim: #8a909b; --bar-hover: rgba(255,255,255,.08);
+    --radius-sm: 4px; --radius: 7px; --taskbar-h: 34px;
+    --font: Inter, system-ui, "Segoe UI", sans-serif; --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body { font: 12.5px/1.4 var(--font); color: var(--text); background: var(--canvas); overflow: hidden; user-select: none; -webkit-font-smoothing: antialiased; }
+  button, select, input { font: inherit; color: inherit; }
+  button { background: none; border: 0; cursor: pointer; }
+  svg { display: block; }
+  .ico { width: 15px; height: 15px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* ---------- Desk ---------- */
+  .desk { position: fixed; inset: 0 0 var(--taskbar-h) 0; background-image: radial-gradient(circle, var(--canvas-dot) 1px, transparent 1.3px); background-size: 24px 24px; }
+
+  /* ---------- Window (same frame as design/mockup.html) ---------- */
+  .window {
+    position: absolute; display: flex; flex-direction: column; background: var(--surface);
+    border-radius: var(--radius); overflow: hidden;
+    box-shadow: 0 0 0 1px rgba(0,0,0,.25), 0 10px 28px -8px rgba(0,0,0,.5);
+  }
+  .window.inactive .titlebar { background: #fafafb; }
+  .window.inactive .title { color: var(--faint); }
+  .titlebar { height: 30px; flex: none; display: flex; align-items: center; padding: 0 4px 0 10px; gap: 8px; background: var(--chrome); border-bottom: 1px solid var(--border); }
+  .title { flex: 1; display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 500; white-space: nowrap; overflow: hidden; }
+  .title .ico { width: 14px; height: 14px; color: var(--dim); }
+  .title em { font-style: normal; color: var(--faint); font-weight: 400; }
+  .controls { display: flex; }
+  .controls button { width: 28px; height: 24px; border-radius: var(--radius-sm); color: var(--dim); display: grid; place-items: center; }
+  .controls button:hover { background: var(--hover); color: var(--text); }
+  .controls button.close:hover { background: var(--danger); color: #fff; }
+  .controls .ico { width: 12px; height: 12px; }
+
+  /* ---------- Settings shell ---------- */
+  .settings { flex: 1; display: flex; min-height: 0; }
+
+  /* Main tabs: vertical, left */
+  .st-side { width: 184px; flex: none; display: flex; flex-direction: column; background: var(--side); border-right: 1px solid var(--border); }
+  .st-search { margin: 8px 8px 4px; height: 26px; display: flex; align-items: center; gap: 6px; padding: 0 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: #fff; color: var(--faint); }
+  .st-search .ico { width: 13px; height: 13px; }
+  .st-search input { flex: 1; min-width: 0; border: 0; outline: 0; background: none; font-size: 12px; color: var(--text); }
+  .st-search input::placeholder { color: var(--faint); }
+  .st-search:focus-within { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+  .st-tabs { flex: 1; overflow: auto; padding: 2px 6px 8px; }
+  .st-group { font-size: 10.5px; font-weight: 600; color: var(--faint); text-transform: uppercase; letter-spacing: .05em; padding: 10px 6px 3px; }
+  .st-tab { width: 100%; height: 26px; display: flex; align-items: center; gap: 8px; padding: 0 6px; border-radius: var(--radius-sm); color: var(--text); text-align: left; }
+  .st-tab:hover { background: var(--hover); }
+  .st-tab .ico { width: 14px; height: 14px; color: var(--dim); }
+  .st-tab span { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .st-tab.on { background: var(--accent-soft); color: var(--accent); font-weight: 500; }
+  .st-tab.on .ico { color: var(--accent); }
+  .st-tab .st-badge { flex: none; }
+  .st-badge { min-width: 16px; height: 16px; padding: 0 5px; border-radius: 8px; background: var(--accent); color: #fff; font-size: 10px; font-weight: 600; line-height: 16px; text-align: center; }
+
+  /* Content of the main tab */
+  .st-main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .st-head { flex: none; padding: 14px 20px 0; }
+  .st-head h1 { font-size: 15px; font-weight: 600; letter-spacing: -.01em; }
+  .st-head p { color: var(--dim); font-size: 12px; margin-top: 2px; }
+  .st-head:not(:has(+ .st-subtabs)) { padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+
+  /* Secondary tabs: horizontal labels */
+  .st-subtabs { flex: none; display: flex; gap: 2px; padding: 8px 14px 0; border-bottom: 1px solid var(--border); }
+  .st-subtab { position: relative; height: 30px; padding: 0 8px; color: var(--dim); font-size: 12px; font-weight: 500; }
+  .st-subtab:hover { color: var(--text); }
+  .st-subtab.on { color: var(--text); }
+  .st-subtab.on::after { content: ""; position: absolute; left: 6px; right: 6px; bottom: -1px; height: 2px; border-radius: 2px 2px 0 0; background: var(--accent); }
+
+  .st-body { flex: 1; overflow: auto; padding: 14px 20px 20px; }
+  .st-section + .st-section { margin-top: 16px; }
+  .st-section h2 { font-size: 11.5px; font-weight: 600; color: var(--dim); margin: 0 2px 6px; }
+  .st-card { border: 1px solid var(--border); border-radius: 6px; }
+  .st-row { min-height: 42px; display: flex; align-items: center; gap: 16px; padding: 7px 12px; }
+  .st-row + .st-row { border-top: 1px solid var(--border); }
+  .st-row .lbl { flex: 1; min-width: 0; }
+  .st-row .lbl b { display: block; font-weight: 500; }
+  .st-row .lbl small { display: block; color: var(--dim); font-size: 11.5px; margin-top: 1px; }
+  .st-row .val { color: var(--dim); font-variant-numeric: tabular-nums; }
+
+  /* Footer: optional, for dialogs that apply on confirm */
+  .st-foot { flex: none; height: 44px; display: flex; align-items: center; gap: 6px; padding: 0 10px 0 12px; border-top: 1px solid var(--border); background: var(--side); }
+  .st-foot .grow { flex: 1; }
+  .st-foot .note { color: var(--dim); font-size: 11.5px; }
+
+  /* ---------- Controls ---------- */
+  .btn { height: 26px; padding: 0 12px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: #fff; font-weight: 500; font-size: 12px; }
+  .btn:hover { background: var(--chrome); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn.primary:hover { background: #2f60e0; }
+  .btn.link { border-color: transparent; background: none; color: var(--dim); padding: 0 6px; }
+  .btn.link:hover { color: var(--text); background: var(--hover); }
+
+  .toggle { width: 30px; height: 17px; flex: none; border-radius: 9px; background: #cdd1d8; position: relative; transition: background .15s; }
+  .toggle::after { content: ""; position: absolute; top: 2px; left: 2px; width: 13px; height: 13px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.25); transition: transform .15s; }
+  .toggle.on { background: var(--accent); }
+  .toggle.on::after { transform: translateX(13px); }
+
+  .select { height: 26px; min-width: 150px; padding: 0 26px 0 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M7 10l5 5 5-5'/%3E%3C/svg%3E") no-repeat right 6px center / 14px; appearance: none; font-size: 12px; }
+  .text { height: 26px; width: 200px; padding: 0 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: #fff; font-size: 12px; outline: 0; user-select: text; }
+  .select:focus, .text:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); outline: 0; }
+
+  .seg { display: inline-flex; padding: 2px; border-radius: 5px; background: var(--chrome); border: 1px solid var(--border); }
+  .seg button { height: 22px; padding: 0 10px; border-radius: 3px; color: var(--dim); font-size: 12px; font-weight: 500; }
+  .seg button.on { background: #fff; color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+
+  .range { display: flex; align-items: center; gap: 8px; }
+  .range input { width: 140px; accent-color: var(--accent); }
+  .range .val { width: 34px; text-align: right; }
+
+  .kbd { font: 11px var(--mono); padding: 2px 6px; border: 1px solid var(--border); border-bottom-width: 2px; border-radius: 4px; background: #fff; color: var(--text); }
+
+  .themes { display: flex; gap: 10px; padding: 12px; }
+  .theme { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 12px; color: var(--dim); }
+  .theme .thumb { width: 104px; height: 64px; border-radius: 6px; border: 1px solid var(--border); overflow: hidden; position: relative; }
+  .theme.on { color: var(--text); font-weight: 500; }
+  .theme.on .thumb { box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--accent); border-color: transparent; }
+  .thumb i { position: absolute; display: block; border-radius: 3px; }
+
+  .swatches { display: flex; gap: 8px; }
+  .swatch { width: 18px; height: 18px; border-radius: 50%; }
+  .swatch.on { box-shadow: 0 0 0 2px #fff, 0 0 0 3.5px currentColor; }
+
+  /* Properties window specifics */
+  .props-head { display: flex; align-items: center; gap: 10px; padding: 0 0 12px; }
+  .props-head svg.folder { width: 34px; height: 30px; color: #e8b44c; }
+  .check { display: flex; align-items: center; gap: 8px; }
+  .check i { width: 15px; height: 15px; border-radius: 3px; border: 1px solid #c4c9d1; background: #fff; display: grid; place-items: center; }
+  .check i.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .check i .ico { width: 11px; height: 11px; stroke-width: 2.6; }
+  .kv { display: grid; grid-template-columns: 92px 1fr; row-gap: 6px; column-gap: 12px; padding: 10px 12px; }
+  .kv dt { color: var(--dim); }
+  .kv dd { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .kv dd.mono { font: 11.5px var(--mono); }
+
+  /* ---------- Annotations (render only) ---------- */
+  .pin { position: absolute; z-index: 5; width: 18px; height: 18px; border-radius: 50%; background: #f5a524; color: #1b1300; font: 700 10.5px/18px var(--font); text-align: center; box-shadow: 0 0 0 2px rgba(0,0,0,.35); pointer-events: none; }
+  .legend { position: absolute; width: 440px; color: var(--bar-text); background: rgba(24,26,31,.94); border: 1px solid #2c3038; border-radius: 6px; padding: 12px 14px; font-size: 12px; line-height: 1.5; }
+  .legend h3 { font-size: 12.5px; font-weight: 600; color: #fff; margin-bottom: 8px; }
+  .legend ol { list-style: none; display: grid; gap: 7px; }
+  .legend li { display: flex; gap: 9px; }
+  .legend li .pin { position: static; flex: none; box-shadow: none; margin-top: 1px; color: #1b1300; }
+  .legend li span { color: var(--bar-dim); }
+  .legend li b { color: var(--bar-text); font-weight: 600; }
+
+  /* ---------- Taskbar ---------- */
+  .taskbar { position: fixed; left: 0; right: 0; bottom: 0; height: var(--taskbar-h); display: flex; align-items: center; gap: 4px; padding: 0 6px; background: var(--bar); border-top: 1px solid var(--bar-border); color: var(--bar-text); }
+  .tb-start { width: 30px; height: 26px; display: grid; place-items: center; border-radius: var(--radius-sm); }
+  .tb-start:hover { background: var(--bar-hover); }
+  .tb-start svg { width: 16px; height: 16px; color: var(--accent); }
+  .tb-task { height: 26px; max-width: 200px; display: flex; align-items: center; gap: 7px; padding: 0 9px; border-radius: var(--radius-sm); font-size: 12px; color: var(--bar-dim); }
+  .tb-task .ico { width: 14px; height: 14px; }
+  .tb-task.on { background: var(--bar-hover); color: #fff; box-shadow: inset 0 -2px 0 var(--accent); }
+  .tb-sep { width: 1px; height: 16px; background: var(--bar-border); margin: 0 4px; }
+  .tb-tray { margin-left: auto; display: flex; align-items: center; gap: 12px; padding-right: 6px; font-size: 12px; }
+  .tb-user { display: flex; align-items: center; gap: 7px; }
+  .avatar { width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; background: linear-gradient(135deg, var(--accent), #8b5cf6); color: #fff; font-size: 9.5px; font-weight: 600; }
+  .clock { display: flex; gap: 8px; font-variant-numeric: tabular-nums; }
+  .clock span:first-child { color: var(--bar-dim); }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></symbol>
+    <symbol id="i-palette" viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0 0 18c1.2 0 1.8-.8 1.8-1.7 0-1.3-1-1.6-1-2.6 0-.9.7-1.4 1.6-1.4H17a4 4 0 0 0 4-4c0-4.6-4-8.3-9-8.3z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10.5" cy="7" r="1"/><circle cx="15.5" cy="7.5" r="1"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="4" y="4" width="6.5" height="6.5" rx="1"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1"/></symbol>
+    <symbol id="i-window" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/></symbol>
+    <symbol id="i-keyboard" viewBox="0 0 24 24"><rect x="2.5" y="6" width="19" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.2-4 4.3-6 8-6s6.8 2 8 6"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z"/></symbol>
+    <symbol id="i-disk" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 14h18M7 17h.01"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5h.01"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></symbol>
+    <symbol id="i-share" viewBox="0 0 24 24"><circle cx="18" cy="5.5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="18.5" r="2.5"/><path d="M8.2 10.8l7.6-4M8.2 13.2l7.6 4"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+    <symbol id="i-min" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+    <symbol id="i-max" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="1.5"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+    <symbol id="i-folder" viewBox="0 0 30 26"><path d="M1 4a2.5 2.5 0 0 1 2.5-2.5h7l3 3h13A2.5 2.5 0 0 1 29 7v2H1z" fill="currentColor" opacity=".7" stroke="none"/><path d="M1 9a2 2 0 0 1 2-2h24a2 2 0 0 1 2 2v14a2.5 2.5 0 0 1-2.5 2.5h-23A2.5 2.5 0 0 1 1 23z" fill="currentColor" stroke="none"/></symbol>
+  </defs>
+</svg>
+
+<div class="desk">
+
+  <!-- ===== Impostazioni: tab principali + tab secondari, modifiche applicate subito ===== -->
+  <section class="window" id="w-settings" style="left:56px; top:44px; width:800px; height:560px;">
+    <div class="titlebar">
+      <div class="title"><svg class="ico"><use href="#i-gear"/></svg>Impostazioni <em id="st-title">— Aspetto</em></div>
+      <div class="controls">
+        <button aria-label="Riduci"><svg class="ico"><use href="#i-min"/></svg></button>
+        <button aria-label="Ingrandisci"><svg class="ico"><use href="#i-max"/></svg></button>
+        <button class="close" aria-label="Chiudi"><svg class="ico"><use href="#i-x"/></svg></button>
+      </div>
+    </div>
+    <div class="settings">
+      <aside class="st-side">
+        <label class="st-search"><svg class="ico"><use href="#i-search"/></svg><input type="text" placeholder="Cerca impostazioni" aria-label="Cerca impostazioni"></label>
+        <nav class="st-tabs" id="st-tabs" role="tablist" aria-orientation="vertical"></nav>
+      </aside>
+      <main class="st-main">
+        <header class="st-head"><h1 id="st-h1"></h1><p id="st-desc"></p></header>
+        <div class="st-subtabs" id="st-subtabs" role="tablist"></div>
+        <div class="st-body" id="st-body" role="tabpanel"></div>
+      </main>
+    </div>
+  </section>
+  <span class="pin" style="left:36px; top:215px">1</span>
+  <span class="pin" style="left:864px; top:100px">2</span>
+  <span class="pin" style="left:864px; top:142px">3</span>
+  <span class="pin" style="left:864px; top:300px">4</span>
+
+  <!-- ===== Proprietà cartella: stessa base, finestra piccola, con piè di pagina ===== -->
+  <section class="window inactive" style="left:912px; top:44px; width:500px; height:400px;">
+    <div class="titlebar">
+      <div class="title"><svg class="ico"><use href="#i-info"/></svg>Proprietà <em>— Progetti</em></div>
+      <div class="controls">
+        <button class="close" aria-label="Chiudi"><svg class="ico"><use href="#i-x"/></svg></button>
+      </div>
+    </div>
+    <div class="settings">
+      <aside class="st-side" style="width:140px">
+        <nav class="st-tabs" style="padding-top:6px">
+          <button class="st-tab on"><svg class="ico"><use href="#i-info"/></svg><span>Generale</span></button>
+          <button class="st-tab"><svg class="ico"><use href="#i-share"/></svg><span>Condivisione</span></button>
+          <button class="st-tab"><svg class="ico"><use href="#i-lock"/></svg><span>Sicurezza</span></button>
+        </nav>
+      </aside>
+      <main class="st-main">
+        <div class="st-body" style="padding-top:14px">
+          <div class="props-head">
+            <svg class="folder" viewBox="0 0 30 26"><use href="#i-folder"/></svg>
+            <input class="text" style="flex:1" value="Progetti" aria-label="Nome">
+          </div>
+          <div class="st-card">
+            <dl class="kv">
+              <dt>Tipo</dt><dd>Cartella</dd>
+              <dt>Posizione</dt><dd class="mono">/Scrivania</dd>
+              <dt>Contenuto</dt><dd>14 elementi, 38,2 MB</dd>
+              <dt>Creata</dt><dd>12 ottobre 2026, 09:14</dd>
+            </dl>
+          </div>
+          <div class="st-section" style="margin-top:12px">
+            <div class="st-card">
+              <div class="st-row">
+                <div class="lbl"><b>Colore</b></div>
+                <div class="swatches">
+                  <span class="swatch" style="background:#6f9bff; color:#6f9bff"></span>
+                  <span class="swatch on" style="background:#e8b44c; color:#e8b44c"></span>
+                  <span class="swatch" style="background:#30a46c; color:#30a46c"></span>
+                  <span class="swatch" style="background:#e5484d; color:#e5484d"></span>
+                  <span class="swatch" style="background:#8e4ec6; color:#8e4ec6"></span>
+                </div>
+              </div>
+              <div class="st-row">
+                <div class="lbl"><b>Nascosta</b></div>
+                <span class="check"><i></i></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <footer class="st-foot">
+          <span class="note">1 modifica non salvata</span>
+          <span class="grow"></span>
+          <button class="btn">Annulla</button>
+          <button class="btn">Applica</button>
+          <button class="btn primary">OK</button>
+        </footer>
+      </main>
+    </div>
+  </section>
+  <span class="pin" style="left:1418px; top:412px">5</span>
+
+  <div class="legend" style="left:912px; top:468px;">
+    <h3>Finestra impostazioni: struttura di base</h3>
+    <ol>
+      <li><span class="pin">1</span><span><b>Tab principali</b> in verticale a sinistra, con icona, gruppi facoltativi, contatore e ricerca.</span></li>
+      <li><span class="pin">2</span><span><b>Intestazione</b> del tab principale: titolo e una riga di descrizione.</span></li>
+      <li><span class="pin">3</span><span><b>Tab secondari</b> con etichette orizzontali. Facoltativi: Generale e Account non li hanno.</span></li>
+      <li><span class="pin">4</span><span><b>Contenuto</b>: sezioni di righe etichetta + controllo. Scorre con la rotella.</span></li>
+      <li><span class="pin">5</span><span><b>Piè di pagina</b> facoltativo per le finestre che applicano solo alla conferma. Senza piè di pagina le modifiche valgono subito.</span></li>
+    </ol>
+  </div>
+</div>
+
+<nav class="taskbar">
+  <button class="tb-start" aria-label="Menu lilOS"><svg viewBox="0 0 16 16"><path fill="currentColor" fill-rule="evenodd" d="M4 0h8a4 4 0 0 1 4 4v8a4 4 0 0 1-4 4H4a4 4 0 0 1-4-4V4a4 4 0 0 1 4-4zm2 5a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1z"/></svg></button>
+  <span class="tb-sep"></span>
+  <div class="tb-task on"><svg class="ico"><use href="#i-gear"/></svg><span>Impostazioni</span></div>
+  <div class="tb-task"><svg class="ico"><use href="#i-info"/></svg><span>Proprietà — Progetti</span></div>
+  <div class="tb-tray">
+    <div class="tb-user"><span class="avatar">E</span><span>Eugenio</span></div>
+    <div class="clock"><span>mer 28 ott</span><span>10:24</span></div>
+  </div>
+</nav>
+
+<script>
+  // Render only: the real component will build the same structure from a config like this one.
+  const TABS = [
+    { group: 'Sistema' },
+    { id: 'general', label: 'Generale', icon: 'gear', desc: 'Lingua, formati e avvio della sessione.', sections: [
+      { title: 'Lingua e area geografica', rows: [
+        { label: 'Lingua', ctl: ['select', 'Italiano'] },
+        { label: 'Formato della data', desc: 'Usato nella barra e nelle app', ctl: ['select', 'mer 28 ott 2026'] },
+        { label: 'Primo giorno della settimana', ctl: ['seg', ['Lunedì', 'Domenica'], 0] },
+      ] },
+      { title: 'Sessione', rows: [
+        { label: 'Riapri le finestre all’avvio', desc: 'Ripristina le finestre aperte all’ultima chiusura', ctl: ['toggle', true] },
+        { label: 'Suoni di sistema', ctl: ['toggle', false] },
+      ] },
+    ] },
+    { id: 'appearance', label: 'Aspetto', icon: 'palette', desc: 'Tema, colori e caratteri dell’interfaccia.', subtabs: {
+      Tema: [
+        { title: 'Modalità', custom: 'themes' },
+        { title: 'Colore principale', rows: [{ label: 'Colore', desc: 'Selezione, pulsanti e tab attivi', ctl: ['swatches'] }] },
+        { title: 'Interfaccia', rows: [
+          { label: 'Densità', desc: 'Compatta mostra più contenuto', ctl: ['seg', ['Compatta', 'Normale', 'Ampia'], 0] },
+          { label: 'Raggio degli angoli', ctl: ['range', 7, 'px'] },
+          { label: 'Trasparenza dei pannelli', ctl: ['toggle', true] },
+          { label: 'Animazioni', desc: 'Disattivale per ridurre il movimento', ctl: ['toggle', true] },
+        ] },
+      ],
+      Sfondo: [
+        { title: 'Scrivania', rows: [
+          { label: 'Motivo', ctl: ['seg', ['Puntini', 'Griglia', 'Nessuno'], 0] },
+          { label: 'Colore di sfondo', ctl: ['select', 'Grafite'] },
+          { label: 'Intensità del motivo', ctl: ['range', 9, '%'] },
+        ] },
+      ],
+      Caratteri: [
+        { title: 'Testo', rows: [
+          { label: 'Carattere dell’interfaccia', ctl: ['select', 'Inter'] },
+          { label: 'Carattere a spaziatura fissa', ctl: ['select', 'JetBrains Mono'] },
+          { label: 'Dimensione', ctl: ['range', 12.5, 'px'] },
+        ] },
+      ],
+      Icone: [
+        { title: 'Elementi del desktop', rows: [
+          { label: 'Dimensione delle icone', ctl: ['seg', ['Piccole', 'Medie', 'Grandi'], 1] },
+          { label: 'Mostra le estensioni dei file', ctl: ['toggle', true] },
+        ] },
+      ],
+    } },
+    { id: 'desk', label: 'Scrivania', icon: 'grid', desc: 'Navigazione e comportamento della scrivania infinita.', subtabs: {
+      Navigazione: [{ title: 'Rotella e trackpad', rows: [
+        { label: 'Rotella del mouse', ctl: ['seg', ['Zoom', 'Scorri'], 0] },
+        { label: 'Velocità dello zoom', ctl: ['range', 50, '%'] },
+        { label: 'Zoom massimo', ctl: ['select', '300%'] },
+      ] }],
+      Griglia: [{ title: 'Allineamento', rows: [
+        { label: 'Allinea alla griglia', ctl: ['toggle', true] },
+        { label: 'Passo della griglia', ctl: ['select', '8 px'] },
+      ] }],
+      Minimappa: [{ title: 'Pannello', rows: [
+        { label: 'Mostra la minimappa', ctl: ['toggle', true] },
+        { label: 'Posizione', ctl: ['seg', ['Sinistra', 'Destra'], 1] },
+      ] }],
+    } },
+    { id: 'windows', label: 'Finestre', icon: 'window', desc: 'Apertura, posizione e comportamento delle finestre.', subtabs: {
+      Comportamento: [{ title: 'Apertura', rows: [
+        { label: 'Apri le nuove finestre', ctl: ['select', 'Al centro della vista'] },
+        { label: 'Inquadra la finestra attivata dalla barra', ctl: ['toggle', true] },
+      ] }],
+      Barra: [{ title: 'Pulsanti', rows: [
+        { label: 'Raggruppa le finestre della stessa app', ctl: ['toggle', false] },
+      ] }],
+    } },
+    { id: 'keyboard', label: 'Tastiera', icon: 'keyboard', desc: 'Scorciatoie da tastiera.', subtabs: {
+      Scorciatoie: [{ title: 'Sistema', rows: [
+        { label: 'Menu di avvio', ctl: ['kbd', 'Ctrl K'] },
+        { label: 'Mostra tutto', ctl: ['kbd', 'Shift 1'] },
+        { label: 'Zoom al 100%', ctl: ['kbd', 'Ctrl 0'] },
+        { label: 'Rinomina', ctl: ['kbd', 'F2'] },
+      ] }],
+      Digitazione: [{ title: 'Tasti', rows: [
+        { label: 'Ritardo di ripetizione', ctl: ['range', 40, '%'] },
+      ] }],
+    } },
+    { group: 'Utente' },
+    { id: 'account', label: 'Account', icon: 'user', desc: 'Il tuo profilo su lilOS.', sections: [
+      { title: 'Profilo', rows: [
+        { label: 'Nome', ctl: ['text', 'Eugenio'] },
+        { label: 'Immagine del profilo', desc: 'Senza immagine vengono usate le iniziali', ctl: ['button', 'Scegli…'] },
+      ] },
+    ] },
+    { id: 'notifications', label: 'Notifiche', icon: 'bell', badge: 3, desc: 'Avvisi delle app e del sistema.', sections: [
+      { title: 'Generale', rows: [
+        { label: 'Mostra le notifiche', ctl: ['toggle', true] },
+        { label: 'Non disturbare', ctl: ['toggle', false] },
+      ] },
+    ] },
+    { id: 'privacy', label: 'Privacy', icon: 'shield', desc: 'Dati salvati e autorizzazioni delle app.', subtabs: {
+      Dati: [{ title: 'Archiviazione locale', rows: [
+        { label: 'Spazio usato nel browser', ctl: ['value', '38 KB'] },
+        { label: 'Ripristina la scrivania iniziale', desc: 'Elimina posizioni e nomi salvati', ctl: ['button', 'Ripristina…'] },
+      ] }],
+      Autorizzazioni: [{ title: 'App', rows: [
+        { label: 'Notifiche del browser', ctl: ['select', 'Chiedi'] },
+      ] }],
+    } },
+    { group: '' },
+    { id: 'about', label: 'Informazioni', icon: 'info', desc: 'Versione e dettagli di lilOS.', sections: [
+      { title: 'lilOS', rows: [
+        { label: 'Versione', ctl: ['value', '0.1.0'] },
+        { label: 'Browser', ctl: ['value', 'Edge 141'] },
+      ] },
+    ] },
+  ];
+
+  const el = (tag, cls, ...kids) => {
+    const n = document.createElement(tag);
+    if (cls) n.className = cls;
+    n.append(...kids.filter(k => k != null));
+    return n;
+  };
+  const ico = name => {
+    const s = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    s.setAttribute('class', 'ico');
+    s.innerHTML = `<use href="#i-${name}"/>`;
+    return s;
+  };
+
+  function control([type, a, b]) {
+    if (type === 'toggle') {
+      const t = el('button', 'toggle' + (a ? ' on' : ''));
+      t.setAttribute('role', 'switch');
+      t.onclick = () => t.classList.toggle('on');
+      return t;
+    }
+    if (type === 'select') { const s = el('select', 'select', el('option', '', a)); return s; }
+    if (type === 'text') { const i = el('input', 'text'); i.value = a; return i; }
+    if (type === 'button') return el('button', 'btn', a);
+    if (type === 'value') return el('span', 'val', a);
+    if (type === 'kbd') return el('span', 'kbd', a);
+    if (type === 'seg') {
+      const g = el('div', 'seg', ...a.map((o, i) => el('button', i === b ? 'on' : '', o)));
+      g.onclick = e => { if (e.target.tagName === 'BUTTON') [...g.children].forEach(x => x.classList.toggle('on', x === e.target)); };
+      return g;
+    }
+    if (type === 'range') {
+      const v = el('span', 'val', a + b);
+      const r = el('input');
+      Object.assign(r, { type: 'range', min: 0, max: b === '%' ? 100 : 20, step: b === '%' ? 1 : 0.5, value: a });
+      r.oninput = () => { v.textContent = r.value + b; };
+      return el('div', 'range', r, v);
+    }
+    if (type === 'swatches') {
+      const colors = ['#3b6ef5', '#7c5cdb', '#c2417a', '#e5484d', '#d9822b', '#30a46c', '#0d9488', '#5f6673'];
+      const g = el('div', 'swatches', ...colors.map((c, i) => {
+        const s = el('button', 'swatch' + (i === 0 ? ' on' : ''));
+        s.style.background = s.style.color = c;
+        return s;
+      }));
+      g.onclick = e => { if (e.target.classList.contains('swatch')) [...g.children].forEach(x => x.classList.toggle('on', x === e.target)); };
+      return g;
+    }
+  }
+
+  function themes() {
+    const thumb = (bg, bar, win, side) => {
+      const t = el('div', 'thumb');
+      t.style.background = bg;
+      t.innerHTML = `<i style="left:0;right:0;bottom:0;height:8px;border-radius:0;background:${bar}"></i>`
+        + `<i style="left:14px;top:10px;width:62px;height:38px;background:${win};box-shadow:0 2px 6px rgba(0,0,0,.25)"></i>`
+        + `<i style="left:14px;top:10px;width:18px;height:38px;border-radius:3px 0 0 3px;background:${side}"></i>`;
+      return t;
+    };
+    const opts = [
+      ['Scuro', thumb('#1f2227', '#16181d', '#ffffff', '#eef0f3')],
+      ['Chiaro', thumb('#e9ebef', '#ffffff', '#ffffff', '#eef0f3')],
+      ['Automatico', thumb('linear-gradient(90deg,#1f2227 50%,#e9ebef 50%)', 'linear-gradient(90deg,#16181d 50%,#fff 50%)', '#ffffff', '#eef0f3')],
+    ];
+    const g = el('div', 'themes', ...opts.map(([name, t], i) => el('button', 'theme' + (i === 0 ? ' on' : ''), t, name)));
+    g.onclick = e => { const b = e.target.closest('.theme'); if (b) [...g.children].forEach(x => x.classList.toggle('on', x === b)); };
+    return g;
+  }
+
+  function renderSections(sections) {
+    return sections.map(s => el('section', 'st-section', el('h2', '', s.title),
+      el('div', 'st-card', ...(s.custom === 'themes' ? [themes()] : s.rows.map(r =>
+        el('div', 'st-row', el('div', 'lbl', el('b', '', r.label), r.desc ? el('small', '', r.desc) : null), control(r.ctl)))))));
+  }
+
+  const $ = id => document.getElementById(id);
+  const subtabsNode = $('st-subtabs');
+  let current = 'appearance';
+  let sub = {};
+
+  function render() {
+    const tab = TABS.find(t => t.id === current);
+    $('st-tabs').replaceChildren(...TABS.map(t => {
+      if (!t.id) return t.group ? el('div', 'st-group', t.group) : el('div', 'st-group', ' ');
+      const b = el('button', 'st-tab' + (t.id === current ? ' on' : ''), ico(t.icon), el('span', '', t.label), t.badge ? el('span', 'st-badge', String(t.badge)) : null);
+      b.setAttribute('role', 'tab');
+      b.setAttribute('aria-selected', String(t.id === current));
+      b.onclick = () => { current = t.id; render(); };
+      return b;
+    }));
+    $('st-title').textContent = '— ' + tab.label;
+    $('st-h1').textContent = tab.label;
+    $('st-desc').textContent = tab.desc;
+
+    // Secondary tabs are optional: the strip is detached when the main tab has none
+    const subs = tab.subtabs ? Object.keys(tab.subtabs) : [];
+    const active = sub[tab.id] ?? subs[0];
+    if (subs.length) document.querySelector('.st-head').after(subtabsNode);
+    else subtabsNode.remove();
+    subtabsNode.replaceChildren(...subs.map(name => {
+      const b = el('button', 'st-subtab' + (name === active ? ' on' : ''), name);
+      b.setAttribute('role', 'tab');
+      b.onclick = () => { sub[tab.id] = name; render(); };
+      return b;
+    }));
+    $('st-body').replaceChildren(...renderSections(subs.length ? tab.subtabs[active] : tab.sections));
+    $('st-body').scrollTop = 0;
+  }
+
+  render();
+</script>
+</body>
+</html>

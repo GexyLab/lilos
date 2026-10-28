@@ -1,7 +1,4 @@
-import { h } from '../core/dom.js';
-import { session } from '../core/session.js';
-import { avatar } from '../ui/avatar.js';
-import { logo } from '../ui/icons.js';
+import { h, session, avatar, logo, shortcuts } from '@lilos/sdk';
 import { createClock } from './Clock.js';
 import { StartMenu } from './StartMenu.js';
 
@@ -9,10 +6,13 @@ import { StartMenu } from './StartMenu.js';
 export class Taskbar {
   constructor(parent) {
     this.startButton = h('button', {
-      class: 'tb-start', title: 'Menu (Ctrl K)', 'aria-label': 'Menu lilOS', 'aria-haspopup': 'dialog', 'aria-expanded': 'false',
+      class: 'tb-start', 'aria-label': 'Menu lilOS', 'aria-haspopup': 'dialog', 'aria-expanded': 'false',
     }, logo());
     this.startMenu = new StartMenu(this.startButton);
     this.startButton.addEventListener('click', () => this.startMenu.toggle());
+    const title = () => { const k = shortcuts.label('system.startMenu'); this.startButton.title = k ? `Menu (${k})` : 'Menu'; };
+    shortcuts.on('change', title);
+    title();
 
     /** The window manager will mount one button per open window here. */
     this.tasks = h('div', { class: 'tb-tasks' });

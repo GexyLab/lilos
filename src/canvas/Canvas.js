@@ -1,10 +1,11 @@
-import { Emitter } from '../core/events.js';
-import { h, isEditing, trackDrag } from '../core/dom.js';
-import { storage } from '../core/storage.js';
+import { Emitter, h, isEditing, trackDrag, storage, shortcuts } from '@lilos/sdk';
 
 const MIN_ZOOM = 0.1;
 const MAX_ZOOM = 3;
 const GRID = 24;
+
+const reducedMotion = () =>
+  document.documentElement.dataset.motion === 'off' || matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 const clampZoom = s => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, s));
 
@@ -23,12 +24,14 @@ export function union(rects) {
  * (x, y = screen translation in px, s = zoom) decides what is visible.
  *
  * Input: wheel = zoom at cursor (Ctrl/pinch zooms even over [data-wheel="native"] elements),
- * drag on empty space / middle button / Space+drag = pan.
+ * middle button / Space+drag (one finger on touch screens) = pan; left button on empty space is
+ * left to listeners ('background:press'), e.g. for selection.
  *
  * Events:
  *   'camera'                   camera moved or zoomed
  *   'change'                   camera or objects changed (minimap redraw)
- *   'background:click'         click on empty space (PointerEvent)
+ *   'background:press'         left button pressed on empty space (PointerEvent), not panning
+ *   'background:click'         click on empty space without moving (PointerEvent)
  *   'background:contextmenu'   right click on empty space (MouseEvent)
  */
 export class Canvas extends Emitter {
@@ -121,6 +124,7 @@ export class Canvas extends Emitter {
   }
 
   animateTo(x, y, s, duration = 280) {
+    if (reducedMotion()) return this.setCamera(x, y, s);
     cancelAnimationFrame(this.#anim);
     const from = { ...this.cam };
     const to = { x, y, s: clampZoom(s) };
@@ -181,7 +185,17 @@ export class Canvas extends Emitter {
   #bindPointer() {
     this.el.addEventListener('pointerdown', e => {
       const onBackground = !e.target.closest('.obj');
-      if (!(e.button === 1 || this.#space || (e.button === 0 && onBackground))) return;
+      // Pan: middle button or Space anywhere; one finger on the background of a touch screen
+      const pan = e.button === 1 || this.#space || (e.button === 0 && onBackground && e.pointerType === 'touch');
+      if (!pan) {
+        if (e.button !== 0 || !onBackground) return;
+        // Left button on the background belongs to the listeners (selection); a click without moving is background:click
+        e.preventDefault();
+        document.activeElement?.blur?.();
+        this.emit('background:press', e);
+        trackDrag(e, { onEnd: (moved, ev) => { if (!moved) this.emit('background:click', ev); } });
+        return;
+      }
       // Capture phase: panning wins over whatever object is under the pointer
       e.preventDefault();
       e.stopPropagation();
@@ -200,6 +214,8 @@ export class Canvas extends Emitter {
     }, true);
 
     this.el.addEventListener('contextmenu', e => {
+      // Already handled by an object (its target may even have been re-rendered away)
+      if (e.defaultPrevented) return;
       e.preventDefault();
       if (!e.target.closest('.obj')) this.emit('background:contextmenu', e);
     });
@@ -221,25 +237,20 @@ export class Canvas extends Emitter {
   }
 
   #bindKeys() {
+    const group = 'Scrivania';
+    shortcuts.register({ id: 'desk.zoomIn', label: 'Ingrandisci', group, keys: ['Ctrl+Plus', 'Ctrl+Equal'], whenEditing: true, repeat: true, run: () => this.zoomBy(1.2) });
+    shortcuts.register({ id: 'desk.zoomOut', label: 'Riduci', group, keys: ['Ctrl+Minus'], whenEditing: true, repeat: true, run: () => this.zoomBy(1 / 1.2) });
+    shortcuts.register({ id: 'desk.zoomReset', label: 'Zoom al 100%', group, keys: ['Ctrl+0'], whenEditing: true, run: () => this.resetZoom() });
+    shortcuts.register({ id: 'desk.fit', label: 'Mostra tutto', group, keys: ['Shift+1'], run: () => this.fit() });
+
+    // Hold Space to pan: a fixed key, not a command
     const releaseSpace = () => { this.#space = false; this.el.classList.remove('space'); };
     addEventListener('keydown', e => {
-      const mod = e.ctrlKey || e.metaKey;
-      if (e.code === 'Space' && !isEditing()) {
+      // Space on a focused control (or inside a window) belongs to it, not to panning
+      if (e.code === 'Space' && !isEditing() && !e.target.closest?.('.window, button, select, a[href]')) {
         e.preventDefault();
         this.#space = true;
         this.el.classList.add('space');
-      } else if (mod && (e.key === '+' || e.key === '=')) {
-        e.preventDefault();
-        this.zoomBy(1.2);
-      } else if (mod && e.key === '-') {
-        e.preventDefault();
-        this.zoomBy(1 / 1.2);
-      } else if (mod && e.key === '0') {
-        e.preventDefault();
-        this.resetZoom();
-      } else if (e.shiftKey && e.code === 'Digit1' && !isEditing()) {
-        e.preventDefault();
-        this.fit();
       }
     });
     addEventListener('keyup', e => { if (e.code === 'Space') releaseSpace(); });

@@ -1,7 +1,5 @@
-import { svg } from '../core/dom.js';
-import { appIcon } from '../apps/appIcon.js';
+import { svg, appIcon, fileType } from '@lilos/sdk';
 import { getApp } from '../apps/registry.js';
-import { fileType } from './fileTypes.js';
 
 export const FOLDER_COLOR = '#6f9bff';
 

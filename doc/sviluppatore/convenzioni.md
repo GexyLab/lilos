@@ -1,0 +1,55 @@
+# Convenzioni
+
+## Lingua
+
+- **Interfaccia** (testi visibili, tooltip, `aria-label`): italiano.
+- **Codice** (nomi di variabili, funzioni, classi) e **commenti**: inglese.
+- **Documentazione e messaggi di commit**: italiano.
+
+## JavaScript
+
+- Moduli ES, un componente per file. Le classi hanno il nome in PascalCase e il file si chiama come la classe (`Canvas.js`); i moduli di funzioni sono in camelCase (`fileTypes.js`).
+- Nessun framework. Il DOM si crea con `h()` e `svg()` dell'SDK.
+- Le basi riutilizzabili stanno nell'SDK (`sdk/`) e si importano solo da `@lilos/sdk`. Il codice in `sdk/` non importa mai da `src/`. Regole complete in [sdk/README.md](../../sdk/README.md#regole).
+- Un componente crea il proprio DOM, lo espone in `this.el` e, se ha senso, lo aggiunge da solo al genitore che riceve nel costruttore.
+- Stato e metodi interni sono privati con `#`. Le proprietà pubbliche sono quelle che altri moduli usano davvero.
+- Eventi: un componente che ha qualcosa da notificare estende `Emitter`. Le richieste che attraversano il sistema passano dal `bus`.
+- Commenti brevi: una riga JSDoc sopra le funzioni pubbliche che non si spiegano da sole, e un commento solo dove il *perché* non è ovvio (per esempio "Capture phase: panning wins over whatever object is under the pointer").
+- Costanti numeriche in testa al file, in MAIUSCOLO (`SNAP`, `CELL`, `MIN_ZOOM`).
+- Funzioni freccia per callback brevi, `function` per le funzioni esportate.
+
+## CSS
+
+- Stili dell'SDK in `sdk/styles/`, importati da `sdk/styles/index.css`. Stili del sistema in `src/styles/`, uno per area, importati da `main.js`.
+- Colori, raggi, ombre e font vengono da `sdk/styles/tokens.css`. Un valore nuovo che si ripete diventa un token.
+- Classi brevi con un prefisso per area: `tb-` barra, `sm-` menu di avvio, `mm-` minimappa, `ditem` elementi del desktop.
+- Interfaccia densa: testi a 11,5–12,5 px, spaziature piccole. La priorità è lo spazio di lavoro.
+- `user-select: none` è impostato su `body`: riattivalo (`user-select: text`) dove serve selezionare testo.
+
+## Sicurezza
+
+- Il testo dell'utente (nomi di file, contenuti) va nel DOM **solo** come stringa figlia di `h()` o con `textContent`. Mai `innerHTML` con dati dell'utente.
+- `svg()` riceve solo markup statico scritto nel codice. Se un valore dinamico deve finire in un SVG, va ripulito prima: `fileIcon` per esempio limita l'estensione a `[A-Z0-9]` e prende il colore da una tabella fissa.
+- I dati letti da `storage` vanno validati prima dell'uso.
+- Script e fogli di stile esterni: oggi solo Google Fonts in `index.html`. Prima di aggiungerne altri, valuta di includerli come dipendenza npm.
+
+## Accessibilità
+
+- I pulsanti con sola icona hanno `aria-label` e `title`.
+- Le icone decorative hanno `aria-hidden="true"`, che `svg()` aggiunge da solo.
+- I menu usano `role="menu"` e `role="menuitem"`; il menu di avvio usa `role="dialog"`, con una lista `role="listbox"` e opzioni con `aria-selected`.
+- Ogni azione disponibile con il mouse deve avere un'alternativa da tastiera, oppure va segnalata come limite in [Stato e roadmap](../interna/stato-e-roadmap.md).
+- Il focus deve restare visibile: `:focus-visible` mostra un bordo nel colore principale.
+
+## Scorciatoie da tastiera
+
+- Ogni scorciatoia è un comando registrato con `shortcuts.register` (vedi la [ricetta](ricette.md#aggiungere-una-scorciatoia-da-tastiera)): niente listener `keydown` per le scorciatoie.
+- Nelle etichette usa `shortcuts.label(id)`, mai i tasti scritti a mano.
+- I tasti di navigazione interni a un componente (frecce, Invio, Esc) restano nel componente; un componente che si apre sopra gli altri (menu, finestre di dialogo) ferma la propagazione dei tasti mentre è attivo.
+- Se gestisci un tasto a mano, controlla `isEditing()` e usa `e.ctrlKey || e.metaKey` al posto del solo Ctrl.
+
+## Git
+
+- Ramo principale: `main`.
+- Messaggi di commit in italiano, con un titolo che descrive il risultato ("Aggiunge il gestore delle finestre"), seguito se serve da una riga vuota e dai dettagli.
+- `node_modules` e `dist` non vanno nel repository.

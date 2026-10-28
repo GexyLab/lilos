@@ -27,3 +27,6 @@ export function fileType(name) {
     color: type?.color ?? '#6b7280',
   };
 }
+
+/** Every known type group: [{ label, color, exts }] (copies). */
+export const fileTypeList = () => TYPES.map(t => ({ label: t.label, color: t.color, exts: [...t.exts] }));

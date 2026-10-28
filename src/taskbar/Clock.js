@@ -1,5 +1,4 @@
-import { h } from '../core/dom.js';
-import { session } from '../core/session.js';
+import { h, session } from '@lilos/sdk';
 
 /** Date + time, refreshed on the minute. */
 export function createClock() {

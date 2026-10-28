@@ -1,4 +1,4 @@
-import { h } from '../core/dom.js';
+import { h } from '@lilos/sdk';
 import { union } from './Canvas.js';
 
 const PAD = 8;

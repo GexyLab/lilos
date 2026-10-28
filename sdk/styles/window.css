@@ -1,0 +1,47 @@
+/* ---------- Window frame (light surface, see design/mockup.html) ---------- */
+/* Not clipped itself, so the resize handles can stick out of the border:
+   the title bar and the body round their own corners instead. */
+.window {
+  display: flex; flex-direction: column; background: var(--surface); color: var(--text);
+  border-radius: var(--radius);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, .25), 0 10px 28px -8px rgba(0, 0, 0, .5);
+}
+.window[hidden] { display: none; }
+.window.max, .window.max .win-titlebar, .window.max .win-body { border-radius: 0; }
+
+.win-titlebar {
+  height: 30px; flex: none; display: flex; align-items: center; gap: 8px; padding: 0 4px 0 10px;
+  background: var(--chrome); border-bottom: 1px solid var(--border); cursor: default;
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+.window.inactive .win-titlebar { background: #fafafb; }
+.window.inactive .win-title { color: var(--faint); }
+.win-title { flex: 1; min-width: 0; display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 500; white-space: nowrap; overflow: hidden; }
+.win-title .ico { width: 14px; height: 14px; color: var(--dim); }
+.win-title-text { overflow: hidden; text-overflow: ellipsis; }
+.win-title em { font-style: normal; font-weight: 400; color: var(--faint); overflow: hidden; text-overflow: ellipsis; }
+
+.win-controls { display: flex; flex: none; }
+.win-controls button { width: 28px; height: 24px; border-radius: var(--radius-sm); color: var(--dim); display: grid; place-items: center; }
+.win-controls button:hover { background: var(--hover); color: var(--text); }
+.win-controls .win-close:hover { background: var(--danger); color: #fff; }
+.win-controls .ico { width: 12px; height: 12px; }
+
+.win-body {
+  flex: 1; min-height: 0; display: flex; flex-direction: column; user-select: text;
+  overflow: hidden; border-radius: 0 0 var(--radius) var(--radius);
+}
+
+/* Resize handles: straddle the border (half outside, half inside), above everything.
+   Only the extreme corner of the close button belongs to the top-right handle. */
+.win-edges { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
+.win-edge { position: absolute; pointer-events: auto; }
+.win-edge.n, .win-edge.s { left: 8px; right: 8px; height: 8px; cursor: ns-resize; }
+.win-edge.e, .win-edge.w { top: 8px; bottom: 8px; width: 8px; cursor: ew-resize; }
+.win-edge.n { top: -4px; } .win-edge.s { bottom: -4px; }
+.win-edge.e { right: -4px; } .win-edge.w { left: -4px; }
+.win-edge.ne, .win-edge.nw, .win-edge.se, .win-edge.sw { width: 12px; height: 12px; }
+.win-edge.nw { top: -4px; left: -4px; cursor: nwse-resize; } .win-edge.se { bottom: -4px; right: -4px; cursor: nwse-resize; }
+.win-edge.ne { top: -4px; right: -4px; cursor: nesw-resize; } .win-edge.sw { bottom: -4px; left: -4px; cursor: nesw-resize; }
+.window.max .win-edges { display: none; }
+.window.resizing, .window.resizing * { user-select: none; }

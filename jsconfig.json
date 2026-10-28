@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "target": "es2022",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "checkJs": false,
+    "baseUrl": ".",
+    "paths": {
+      "@lilos/sdk": ["sdk/index.js"]
+    }
+  },
+  "include": ["src", "sdk"]
+}

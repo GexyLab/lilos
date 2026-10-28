@@ -19,3 +19,9 @@ kbd { font-family: var(--mono); }
   fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round;
 }
 .logo { width: 16px; height: 16px; color: var(--accent); }
+
+/* Reduced motion: set by the system (data-motion="off") or requested by the OS */
+:root[data-motion="off"] *, :root[data-motion="off"] *::before, :root[data-motion="off"] *::after { animation: none !important; transition: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}

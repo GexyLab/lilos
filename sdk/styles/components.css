@@ -35,3 +35,10 @@
 .menu-label { flex: 1; white-space: nowrap; }
 .menu-item kbd { font-size: 10.5px; color: var(--bar-dim); }
 .menu-sep { height: 1px; margin: 4px 6px; background: var(--panel-border); }
+
+/* ---------- Selection gesture (selectionGesture) ---------- */
+.sel-overlay { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 5; pointer-events: none; overflow: visible; }
+.sel-overlay rect, .sel-overlay path {
+  fill: color-mix(in srgb, var(--accent) 14%, transparent); stroke: var(--accent); stroke-width: 1;
+}
+.sel-overlay path { stroke-dasharray: 4 3; stroke-linejoin: round; }
