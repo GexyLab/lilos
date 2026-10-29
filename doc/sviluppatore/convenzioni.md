@@ -20,7 +20,7 @@
 
 ## CSS
 
-- Stili dell'SDK in `sdk/styles/`, importati da `sdk/styles/index.css`. Stili del sistema in `src/styles/`, uno per area, importati da `main.js`.
+- Stili dell'SDK in `sdk/styles/`, importati da `sdk/styles/index.css`. Stili del sistema in `src/styles/`, uno per area, importati da `system.js`.
 - Colori, raggi, ombre e font vengono da `sdk/styles/tokens.css`. Un valore nuovo che si ripete diventa un token.
 - **Nessun colore scritto a mano**: altrimenti non segue il tema chiaro/scuro. Per le superfici delle finestre usa `--surface`, `--side`, `--field-bg`, `--text`, `--border`…; per scrivania e barra `--canvas`, `--bar*`, `--panel*`. Il bianco va bene solo per il testo su `--accent` o `--danger`.
 - Classi brevi con un prefisso per area: `tb-` barra, `sm-` menu di avvio, `mm-` minimappa, `ditem` elementi del desktop.
@@ -30,7 +30,7 @@
 ## Dipendenze
 
 - Solo quando servono davvero, con una decisione registrata in [Decisioni](../interna/decisioni.md).
-- **Versioni esatte** in `package.json` (`--save-exact`), pubblicate da almeno due settimane, licenza compatibile, **senza script di installazione**. Pacchetti con script di compilazione nativa (come le grammatiche Tree-sitter) non diventano dipendenze: se ne copiano i file necessari con uno script (`scripts/vendor-tree-sitter.mjs`).
+- **Versioni esatte** in `package.json` (`--save-exact`), pubblicate da almeno due settimane, licenza compatibile, **senza script di installazione**. Pacchetti con script di compilazione nativa (come le grammatiche Tree-sitter dell'Editor) non diventano dipendenze: se ne copiano i file necessari con uno script (l'Editor lo fa nel repository ufficiale, con `npm run vendor:tree-sitter`). Lo stesso vale per i moduli del kernel: il kernel li installa con `--ignore-scripts`. lilOS stesso non ha dipendenze a runtime; quelle delle app di sistema stanno nel repository ufficiale.
 - Caricate al bisogno con `import()` dall'app che le usa, mai dall'avvio del sistema.
 
 ## Sicurezza
@@ -38,6 +38,8 @@
 - Il testo dell'utente (nomi di file, contenuti) va nel DOM **solo** come stringa figlia di `h()` o con `textContent`. Mai `innerHTML` con dati dell'utente.
 - `svg()` riceve solo markup statico scritto nel codice. Se un valore dinamico deve finire in un SVG, va ripulito prima: `fileIcon` per esempio limita l'estensione a `[A-Z0-9]` e prende il colore da una tabella fissa.
 - I dati letti da `storage` vanno validati prima dell'uso.
+- **Kernel**: ogni modulo valida ciò che riceve (il kernel limita solo la forma); un errore voluto si lancia con `ctx.fail(codice, messaggio)` (messaggio in italiano, pensato per l'utente), mai con il testo di un errore interno. Un modulo `fs` controlla gli accessi dentro di sé. Nessun segreto nei file del repository: `users.json`, `repos.json`, chiavi `.pem` e token restano fuori da git. Le richieste che modificano passano da `kernel.request` (aggiunge `X-Lilos: 1`).
+- **App installate**: il codice di un'app non gira mai nella pagina di lilOS, **tranne** le app di sistema (`system: true`), che il kernel accetta solo dal repository ufficiale e che girano dentro lilOS senza sandbox: tratta quel repository come parte di lilOS (stesse revisioni, nessun codice di terzi).
 - Script e fogli di stile esterni: oggi solo Google Fonts in `index.html`. Prima di aggiungerne altri, valuta di includerli come dipendenza npm.
 
 ## Accessibilità
@@ -57,6 +59,6 @@
 
 ## Git
 
-- Ramo principale: `main`.
+- Ramo predefinito: `development` (c'è anche `production`).
 - Messaggi di commit in italiano, con un titolo che descrive il risultato ("Aggiunge il gestore delle finestre"), seguito se serve da una riga vuota e dai dettagli.
 - `node_modules` e `dist` non vanno nel repository.

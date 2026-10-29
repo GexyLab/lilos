@@ -1,6 +1,6 @@
 # Stato e roadmap
 
-Aggiornato al 28 ottobre 2026 (tag, trascinamento tra viste e collegamenti aggiunti, SDK 0.2.3 non ancora rilasciata; ultimo commit: 1762512).
+Aggiornato al 29 ottobre 2026 (kernel, accesso degli utenti, app installate, repository, AppStore e app di sistema nel repository ufficiale aggiunti, non ancora in un commit; SDK 0.3.0; ultimo commit: f737c36; repository ufficiale: tag v1.0.0).
 
 ## Cosa c'è
 
@@ -12,27 +12,32 @@ Aggiornato al 28 ottobre 2026 (tag, trascinamento tra viste e collegamenti aggiu
 | Barra in basso | Fatta: logo, pulsante del workspace, area finestre, utente, data e ora |
 | Menu di avvio | Fatto: ricerca, tastiera, piè di pagina con utente |
 | Menu contestuale | Componente riutilizzabile fatto |
-| SDK `@lilos/sdk` | Fatto (0.2.3): basi, controlli, `Window`, `SettingsView`, `SettingsWindow`, `settings`, `shortcuts`, `fs`, `selectionGesture` |
-| File system | Fatto: cartelle, file con contenuto (IndexedDB) e collegamenti, cartelle di sistema, migrazione della vecchia scrivania |
+| SDK `@lilos/sdk` | Fatto (0.3.0): basi, controlli, `Window`, `SettingsView`, `SettingsWindow`, `settings`, `shortcuts`, `fs`, `selectionGesture`; collegamento al kernel (`kernel`, `KernelError`, `apps`, `repositories`, `kernelModules`, `storage.keys`, `storage.bytes`, `fs.reset`); invio al kernel a blocchi |
+| File system | Fatto: cartelle, file con contenuto e collegamenti, cartelle di sistema, migrazione della vecchia scrivania. Salvato nel database del kernel (IndexedDB ne tiene una copia); senza kernel l'SDK usa il browser |
 | Associazioni dei tipi di file | Fatte: predefinite dal registro, modificabili in Impostazioni → Usabilità → Tipi di file, finestra "Apri con" |
 | Selezione sulla scrivania | Fatta: clic, Ctrl/Shift, rettangolo, percorso libero (Alt + trascina, modificabile) |
 | Scorciatoie da tastiera | Fatte: registro unico, 20 comandi, modificabili in Impostazioni → Usabilità → Scorciatoie, con controllo di conflitti e combinazioni non valide |
 | Gestore delle finestre | Fatto, versione di base: apertura, focus, trascinamento, ridimensionamento da tutti i bordi e gli angoli, ingrandisci, riduci, chiudi, pulsanti nella barra; controlli e bordi attivabili uno per uno |
 | Finestra base delle impostazioni | Fatta (`SettingsWindow`), dal render approvato `design/settings-window.html` |
-| App | File (File Manager), Editor e Impostazioni fatte. Le altre 6 del registro **da fare** |
+| App di sistema | File (File Manager), Editor, Impostazioni e AppStore fatte (29 ottobre 2026), ma **non in questo repository**: sono pacchetti di [lilos-plugins-official](https://github.com/GexyLab/lilos-plugins-official) (privato, tag `v1.0.0`) che girano dentro lilOS senza sandbox e che il kernel installa da solo se mancano ([D38](decisioni.md#d38-le-app-di-sistema-vengono-dal-repository-ufficiale-e-girano-dentro-lilos), [D41](decisioni.md#d41-le-app-di-sistema-mancanti-si-installano-allavvio-del-kernel)). Nel registro non c'è più nessuna app integrata. Le app segnaposto (Browser, Terminale, Calendario, Immagini, Musica, Posta) sono state tolte |
 | Editor: cartelle | Fatto: Apri un file / Apri una cartella, pannello a destra ridimensionabile con creazione, rinomina, spostamento (trascinamento, anche da e verso scrivania e File, o "Sposta in…" dentro la radice) ed eliminazione |
 | Editor: linguaggi | Fatto: Tree-sitter (JS, Python, JSON, CSS, HTML, Shell), TextMate (anche grammatiche aggiunte), Language Server nel browser (JSON, CSS, HTML) ed esterni via WebSocket, schemi JSON da file o web |
 | Menu configurabili | Fatto per lo sfondo della scrivania (sottomenu Nuovo, azioni, app, separatori, ordine) |
 | Tema chiaro / scuro | Fatto |
 | Workarea | Fatte (28 ottobre 2026): aree della scrivania con titolo, appartenenza per centro, niente sovrapposizioni, spostamento e ridimensionamento, ridurre a icona e riaprire con le finestre com'erano, proprietà con metadati, finestre salvate al ricaricamento. Vedi [D25](decisioni.md#d25-workarea-aree-della-scrivania-con-contenuto-geometrico) |
 | Annulla e ripeti | Fatti (28 ottobre 2026): Ctrl Z / Ctrl Y centrali, per chi ha il focus ([D26](decisioni.md#d26-annulla-e-ripeti-centrali-per-chi-ha-il-focus)). Scrivania (creare, rinominare, eliminare con il contenuto, spostare, riordinare, workarea), finestra File, pannello della cartella dell'Editor e testo dell'Editor. Messaggi in basso, voci di menu `edit.undo` / `edit.redo` |
-| Workspace | Fatti (28 ottobre 2026): scrivanie separate, ognuna con cartella Scrivania privata, vista, posizioni, workarea, finestre e app installate; Documenti, Immagini e Download condivise; proprietario su ogni nodo e colonna Workspace in File; pulsante nella barra e Ctrl Alt ← / →; finestre nascoste (non chiuse) cambiando workspace e ricordate al ricaricamento anche fuori dalle workarea; app installate per workspace; Impostazioni → Workspace; eliminazione che tiene i file; migrazione dei dati precedenti in «Principale». Vedi [D27](decisioni.md#d27-workspace-scrivanie-separate-isolate-dal-file-system) |
+| Workspace | Fatti (28 ottobre 2026): scrivanie separate, ognuna con cartella Scrivania privata, vista, posizioni, workarea, finestre e app installate; Documenti, Immagini e Download condivise; proprietario su ogni nodo e colonna Workspace in File; pulsante nella barra e Ctrl Alt ← / →; finestre nascoste (non chiuse) cambiando workspace e ricordate al ricaricamento anche fuori dalle workarea; app nascoste per workspace (dal 29 ottobre 2026 le app si installano in lilOS, non nel workspace); Impostazioni → Workspace; eliminazione che tiene i file; migrazione dei dati precedenti in «Principale». Vedi [D27](decisioni.md#d27-workspace-scrivanie-separate-isolate-dal-file-system) |
 | Cestino | Fatto (28 ottobre 2026): eliminare sposta nel cestino (seconda radice nascosta di `fs`, [D28](decisioni.md#d28-il-cestino-è-una-seconda-radice-nascosta-del-file-system)), che sopravvive alla ricarica. Voce Cestino in File (ripristina, elimina definitivamente, ripristina tutto, svuota), pulizia automatica dopo 30 giorni (modificabile), conferma e «elimina definitivamente» configurabili in Impostazioni → Usabilità → Cestino. Visibile per workspace per ciò che viene dalla Scrivania privata |
 | Tag | Fatti (28 ottobre 2026): etichette colorate (8 colori) da mettere su file e cartelle dal menu del tasto destro → Tag, uguali in tutti i workspace ([D29](decisioni.md#d29-i-tag-stanno-sui-nodi-e-un-tag-invisibile-nasconde-gli-elementi)). Pallini sulle icone e in File, vista del tag in File (tutti gli elementi con quel tag, ovunque) con "Mostra nella cartella", Impostazioni → Tag (nuovo, nome, colore, visibile, elimina). Un tag invisibile nasconde i suoi elementi ovunque; si ritrovano dalla vista del tag |
 | Trascinamento di file e cartelle | Fatto (28 ottobre 2026): un solo modulo (`src/items/itemDrag.js`, [D30](decisioni.md#d30-un-solo-modulo-di-trascinamento-per-tutte-le-viste-di-file-e-cartelle)) per scrivania, app File (elenco, icone, percorso, barra laterale) e pannello dell'Editor: si sposta tutta la selezione da una vista all'altra, con fantasma, Esc e un solo passo di annulla nella vista di partenza; rilasciando sul Cestino si elimina |
 | Barra laterale di File: collegamenti e ordine | Fatti (28 ottobre 2026): la sezione «Collegamenti» in cima contiene le voci fisse (Home, Scrivania, Documenti…) e i collegamenti dell'utente, nell'ordine che sceglie trascinando; Tag e Cestino stanno sotto, fuori dall'ordine. Si aggiungono trascinando tra due voci o dal menu «Aggiungi alla barra laterale di File» (scrivania, File, Editor); al centro di una cartella il rilascio sposta davvero. Eliminare un collegamento (×, Canc, menu) toglie solo la voce e si annulla con Ctrl Z nella finestra File. `src/items/links.js`, `lilos:files-sidebar`, al massimo 80, uguali in tutti i workspace |
 | Apertura di cartelle e file | Fatta: cartelle nell'app File, file con l'app associata o "Apri con" |
-| Utenti | **Da fare.** Nome fisso in `sdk/core/session.js` |
+| Kernel | Fatto (29 ottobre 2026): backend Node modulare in `system/kernel/` ([D31](decisioni.md#d31-un-kernel-modulare-con-il-controllo-degli-accessi-dentro-il-modulo-del-file-system)), con i moduli `users-basic` ([D32](decisioni.md#d32-utenti-in-un-file-il-modulo-users-basic)) e `fs-postgres` ([D33](decisioni.md#d33-il-file-system-del-kernel-sta-in-postgresql)); API per accesso, home dell'utente, impostazioni e app; riga di comando per gli utenti |
+| Utenti | Fatti (29 ottobre 2026): schermata di accesso, uscita dal menu di avvio, nuovo accesso se la sessione scade, trasferimento una tantum dei dati che il browser aveva prima ([D34](decisioni.md#d34-il-frontend-tiene-i-dati-in-memoria-e-li-sincronizza-per-differenze)). Ogni utente ha la sua cartella; senza modulo di accesso c'è un solo utente |
+| App installate | Fatte (29 ottobre 2026): pacchetti con `lilos.json`, installazione da un repository git o da una cartella locale, firma, permessi, operazioni per utente, esecuzione in iframe isolato per quelle non di sistema ([D35](decisioni.md#d35-le-app-locali-girano-in-un-iframe-sandbox-senza-allow-same-origin), [D36](decisioni.md#d36-le-app-installate-sono-di-tutti-le-operazioni-di-installazione-sono-per-utente), [D37](decisioni.md#d37-fiducia-nei-pacchetti-origine-firma-e-permessi)). Si installano dall'AppStore, dall'SDK (`apps.install`) o con le API; esempio in `examples/apps/note/`. Un'app installata vale per tutti i workspace, che possono solo nasconderla (non le necessarie) |
+| AppStore | Fatto (29 ottobre 2026, app di sistema): schede App (Disponibili, Installate), Moduli del kernel (Disponibili, Installati, riavvio del kernel) e Repository (aggiungi, rimuovi); avviso per ciò che non è ufficiale; i non amministratori vedono ma non cambiano |
+| Repository | Fatti (29 ottobre 2026): origini via `git`, anche per repository privati, con le credenziali git del computer del kernel; l'ufficiale sempre presente, altri aggiunti da un amministratore, ognuno con un `catalog.json` ([D39](decisioni.md#d39-i-pacchetti-si-prendono-con-git)) |
+| Moduli del kernel come pacchetti | Fatti (29 ottobre 2026): `users-basic` e `fs-postgres` sono anche nel repository ufficiale; un amministratore installa, aggiorna e toglie i moduli dall'AppStore e riavvia il kernel (`npm run kernel` passa da `run.js`); i dati si conservano alla rimozione ([D40](decisioni.md#d40-i-moduli-del-kernel-si-installano-come-pacchetti-e-valgono-dopo-il-riavvio)) |
 | Test automatici | **Da fare.** Vedi [Processo](processo.md) |
 
 ## Limiti noti
@@ -48,7 +53,7 @@ Aggiornato al 28 ottobre 2026 (tag, trascinamento tra viste e collegamenti aggiu
 - **Tag: al massimo 100 tag**, 30 per elemento, nomi di 30 caratteri.
 - **Cestino: l'eliminazione definitiva non si annulla.** Vale per "Elimina definitivamente" nel cestino, per lo svuotamento, per la pulizia automatica e, con "Elimina definitivamente" attivo nelle impostazioni, per l'eliminazione dopo una ricarica (finché la pagina è aperta resta Ctrl Z).
 - **Cestino: non si apre dalla scrivania.** Si raggiunge da File (barra laterale) o da Impostazioni → Usabilità → Cestino; non c'è un'icona sulla scrivania. Le workarea eliminate non passano dal cestino (si annulla solo con Ctrl Z).
-- **Cestino: occupa spazio.** I nodi cestinati restano in `lilos:fs` (`localStorage`) e i contenuti in IndexedDB fino all'eliminazione definitiva, e non c'è un limite di dimensione, solo di tempo (`trashRetention`).
+- **Cestino: occupa spazio.** I nodi cestinati restano nella cartella dell'utente, nel database del kernel, fino all'eliminazione definitiva, e non c'è un limite di dimensione, solo di tempo (`trashRetention`).
 - **Cestino: non si apre né si rinomina un elemento cestinato**; va prima ripristinato. Il ripristino non permette di scegliere la cartella: torna dove era, o in Home se non c'è più.
 - **Le cronologie si perdono.** Stanno solo in memoria: vuote dopo una ricarica; quella dell'app File è per finestra e si perde chiudendola.
 - **Annulla solo in alcuni posti.** Impostazioni e le altre finestre non hanno una cronologia: Ctrl Z non fa nulla (e non agisce sulla scrivania dietro). Non si annullano le modifiche fatte nella finestra delle proprietà di una workarea, né ridurre a icona e riaprire una workarea.
@@ -58,7 +63,7 @@ Aggiornato al 28 ottobre 2026 (tag, trascinamento tra viste e collegamenti aggiu
 - **Barra laterale di File: aggiungere collegamenti e riordinare non si annulla** (eliminare un collegamento e spostare un elemento in una cartella sì). Un collegamento a un nodo che non si vede (cestino, Scrivania di un altro workspace) non compare ma resta nell'ordine. Tag e Cestino non si trascinano e non fanno parte dell'ordine.
 - **Blocco Tag della barra laterale di File: non è un bersaglio** (al centro non succede niente; non si assegna un tag trascinando un elemento su di lui).
 - **Niente navigazione da tastiera tra gli elementi.** Non si possono scegliere gli elementi con le frecce.
-- **Più schede aperte si sovrascrivono.** Ogni scheda salva l'intero desktop (compreso l'elenco dei workspace): l'ultima che salva vince e cancella le modifiche fatte nelle altre. Non c'è sincronizzazione tra schede (si potrebbe usare l'evento `storage`).
+- **Più schede aperte si sovrascrivono.** Ogni scheda manda al kernel le sue differenze e, sul singolo nodo o sulla singola chiave, vince l'ultima scrittura: l'elenco dei workspace, per esempio, è una chiave sola, quindi quello della scheda che salva per ultima cancella le modifiche fatte nelle altre. Non c'è sincronizzazione in diretta tra schede.
 - **Workspace: al massimo 20.** Oltre, «Nuovo workspace» mostra un messaggio.
 - **Workspace: finestre di un workspace eliminato.** Passano nel workspace attuale e si mettono al centro della vista, anche dentro una workarea attuale. Le finestre secondarie (selettori, proprietà…) si chiudono.
 - **Workspace: file condiviso aperto altrove.** Un file condiviso aperto in un Editor di un altro workspace e poi spostato nella Scrivania privata del workspace attuale diventa invisibile a quell'Editor: salvare fallisce.
@@ -86,8 +91,30 @@ Aggiornato al 28 ottobre 2026 (tag, trascinamento tra viste e collegamenti aggiu
 - **Copia e taglia/incolla**: si sposta con il trascinamento, ma non si copia, e non ci sono taglia/copia/incolla.
 - **Nell'app File manca il rettangolo di selezione** (c'è sulla scrivania).
 - **Il rettangolo di selezione non fa scorrere la vista** quando si arriva al bordo dello schermo.
-- **Spazio di `localStorage`**: tutto il file system sta in una chiave; con molte migliaia di nodi si potrebbe arrivare al limite del browser (di solito 5 MB).
+- **Senza il kernel il sistema non parte.** La schermata iniziale chiede di avviarlo (`npm run kernel`). L'SDK da solo, senza kernel, salva ancora nel browser (con il limite di `localStorage`, di solito 5 MB, perché tutto il file system sta in una chiave).
+- **Limiti del kernel.** Un file al massimo 10 MB; una chiave delle impostazioni 512 KB; i metadati di un nodo 4 KB. Un valore o un file più grande viene rifiutato e lilOS riprova senza riuscirci, avvisando «Modifiche non salvate». Il numero di modifiche invece non è più un limite: lilOS le manda a blocchi (2000 nodi, oppure 200 chiavi e 4 MB, per richiesta; il kernel ne accetta al più 5000 e 500).
+- **Riaprire le finestre e lanciare un'app insieme.** Se si lancia un'app (per esempio File) mentre all'avvio lilOS sta ancora riaprendo le finestre salvate, può comparire una **seconda finestra** dell'app: ogni app dovrebbe averne una sola per ambito.
+- **Un'app installata da un altro utente o da un'altra scheda compare solo ricaricando.** Il browser conosce l'elenco delle app dall'avvio e si aggiorna da solo soltanto per ciò che fa lui stesso (installare, aggiornare, rimuovere dall'AppStore).
 - **Schermi touch.** Un dito sposta la vista, ma lo zoom con due dita non è gestito (funziona solo il pizzico del trackpad, che il browser trasmette come Ctrl + rotella). Non c'è un'alternativa al tasto destro.
+
+### Kernel e app installate
+
+- **Il primo avvio richiede `git`, la rete e l'accesso al repository ufficiale.** Il repository è privato: il kernel usa le credenziali git del suo computer. Senza, il kernel parte e non installa le app di sistema (log: «App di sistema non installate»): lilOS non ha File, Impostazioni né AppStore ([D41](decisioni.md#d41-le-app-di-sistema-mancanti-si-installano-allavvio-del-kernel)). Servono anche, ogni volta, per installare o aggiornare da qualunque repository.
+- **Le app di sistema girano senza sandbox.** Chi può scrivere nel repository ufficiale scrive codice che gira nella pagina di ogni utente ([D38](decisioni.md#d38-le-app-di-sistema-vengono-dal-repository-ufficiale-e-girano-dentro-lilos)). `@lilos/system` è un contratto: togliere un export rompe le app installate.
+- **Le app di sistema non si provano in locale.** Non c'è un server di sviluppo e un clone locale non conta come repository ufficiale: per provare si manda un ramo e si aggiorna l'app da lì con una versione più alta.
+- **Il kernel non aggiorna da solo le app già installate.** All'avvio installa solo quelle che mancano: tutte le app di `apps.bootstrap` al primo avvio, poi solo le necessarie (un Editor rimosso resta rimosso). Gli aggiornamenti si fanno dall'AppStore.
+- **Il riavvio del kernel funziona solo con `npm run kernel`.** Fuori da `run.js` l'AppStore dice di riavviare a mano. Durante il riavvio lilOS non può salvare per qualche secondo.
+- **Solo la versione più alta di un repository.** L'AppStore installa e propone l'ultimo tag; per una versione precedente servono le API (`ref`).
+- **Solo indirizzi `https://`** per i repository (e un percorso locale in sviluppo): niente `ssh://`.
+- **Moduli del kernel: i dati restano alla rimozione.** La cartella con i dati (per esempio gli utenti di `users-basic`) si cancella a mano. Un modulo messo a mano si toglie ma non si aggiorna dall'AppStore.
+- **Moduli del kernel: solo gli amministratori li vedono.** Gli altri utenti leggono «Solo un amministratore vede e gestisce i moduli del kernel».
+- **I widget non si vedono.** Il manifesto li valida (`contributes.widgets`, permesso `desktop.widget`) ma lilOS non li mostra sulla scrivania.
+- **Permessi dichiarati ma senza effetto.** Il ponte `window.lilos` offre solo file, dati propri, titolo, avvisi e appunti in scrittura. `clipboard.read`, `media.*`, `geo`, `apps.call`, `ai.*`, `background` e `ui.menus` si possono dichiarare ma non hanno funzioni. I permessi `use` non vengono chiesti all'utente a ogni uso.
+- **App remote senza accesso al proprio servizio.** Il permesso `auth.remote` esiste, ma non c'è ancora un token da dare all'app remota.
+- **Nessuna sincronizzazione in diretta tra schede** (vedi sopra): ogni scheda manda le sue differenze, e sul singolo nodo vince l'ultima scrittura.
+- **Operazioni di installazione solo all'apertura di lilOS.** Girano per ogni utente la prima volta che incontra l'app (vedi [D36](decisioni.md#d36-le-app-installate-sono-di-tutti-le-operazioni-di-installazione-sono-per-utente)); il ripristino «Scrivania e file iniziali» le fa ripetere al ricaricamento.
+- **Un solo kernel per volta.** `users.json` si riscrive intero senza blocchi tra processi: due kernel accesi sullo stesso file si sovrascriverebbero (vedi [D32](decisioni.md#d32-utenti-in-un-file-il-modulo-users-basic)).
+- **Il sito statico di `npm run build` non basta.** Il frontend parla con `/api` della stessa origine: in sviluppo e con `npm run preview` lo inoltra Vite al kernel su 127.0.0.1:8790; per la produzione serve un server che faccia lo stesso, e non è ancora descritto.
 
 ### Tecnici
 
@@ -107,9 +134,14 @@ Fatto: vedi la tabella sopra (compreso il ridimensionamento da tutti i bordi e i
 
 ### 2. Struttura delle app
 
-Fatto: caricamento al primo avvio (`load` nel registro) ed export predefinito `({ args }) → Window`. Resta da definire il contesto passato alle app (accesso ai file, comunicazione con altre app).
+Fatto: caricamento al primo avvio (`load` nel registro) ed export predefinito `({ args }) → Window`. Resta da definire il contesto passato alle app non di sistema (accesso ai file, comunicazione con altre app).
 
-Prossime app: visualizzatore di Immagini (dipende dai contenuti binari), Terminale.
+Le app segnaposto del registro sono state tolte (29 ottobre 2026). Ora le app si aggiungono come pacchetti installati, con l'AppStore (vedi [D35](decisioni.md#d35-le-app-locali-girano-in-un-iframe-sandbox-senza-allow-same-origin) e [D36](decisioni.md#d36-le-app-installate-sono-di-tutti-le-operazioni-di-installazione-sono-per-utente)). Resta da fare:
+
+- i widget sulla scrivania;
+- il token per le app remote (`auth.remote`) e le funzioni del ponte che mancano, con i permessi `use` chiesti all'utente a ogni uso (`clipboard.read`, fotocamera, microfono, posizione…);
+- la sincronizzazione in diretta tra schede e tra utenti (oggi vince l'ultima scrittura; un'app installata da altri compare solo ricaricando);
+- un visualizzatore di Immagini (dipende dai contenuti binari) e un Terminale, come app installabili.
 
 ### 3. File system: contenuti e spostamenti
 
@@ -137,8 +169,12 @@ I workspace sono fatti (vedi la tabella). Idee, non ancora decise: preferenze pe
 
 ### 7. Impostazioni e utente
 
-Nome utente, sfondo e colore principale, poi un vero accesso.
+L'accesso con più utenti c'è (29 ottobre 2026). Restano: cambiare la password e il nome dall'interfaccia (oggi la password si cambia solo da riga di comando e il nome visibile solo modificando `users.json` a mano), sfondo, e la sincronizzazione in diretta tra schede o dispositivi.
+
+### 7 bis. Kernel
+
+Fatto: i moduli si installano dall'AppStore ([D40](decisioni.md#d40-i-moduli-del-kernel-si-installano-come-pacchetti-e-valgono-dopo-il-riavvio)). Restano: l'isolamento dei moduli, la pubblicazione in produzione (server che inoltra `/api`, HTTPS con `secureCookies`), un secondo modulo di accesso per più kernel o accessi esterni.
 
 ### 8. Qualità
 
-Test automatici nel repository (vedi [Processo](processo.md#test-automatici)), validazione dei dati salvati, gestione delle schede multiple.
+Test automatici nel repository (vedi [Processo](processo.md#test-automatici)), validazione dei dati salvati, sincronizzazione delle schede multiple.

@@ -4,13 +4,42 @@
 
 Il repository non ha ancora una suite di test. Prima di ogni commit:
 
-1. `npm run build` deve terminare senza errori.
-2. Prova la modifica nel browser con `npm run dev`, con la console aperta: non devono comparire errori.
+1. `npm run build` deve terminare senza errori (prima genera `public/host/`).
+2. Prova la modifica nel browser con il kernel (`npm run kernel`) e `npm run dev` accesi (vedi [Avvio](../sviluppatore/README.md#avvio)), con la console aperta: non devono comparire errori. Al primo avvio il kernel ha bisogno di `git` e dell'accesso al repository ufficiale, da cui installa File, Editor, Impostazioni e AppStore.
 3. Ripeti la parte della lista seguente che riguarda l'area toccata.
+
+Le modifiche al kernel (`system/kernel/`) si provano con il kernel acceso e un utente di prova: non c'è ancora una suite di test.
+
+**Le app di sistema non sono in questo repository.** Una modifica a File, Editor, Impostazioni o AppStore si fa e si verifica nel repository ufficiale ([come](../sviluppatore/README.md#le-app-di-sistema-e-il-repository-ufficiale)); una modifica a lilOS che tocca `src/systemApi.js`, gli argomenti con cui il sistema avvia quelle app o la forma dei dati che condividono va provata con le app installate, e con `npm run build` anche del repository ufficiale se cambia un export.
 
 ### Lista di controllo manuale
 
-Parti da una scrivania pulita: `localStorage.clear()` nella console, poi ricarica.
+Parti da una scrivania pulita: accedi con un utente nuovo (`npm run kernel:cli -- users-basic add prova`), oppure usa Impostazioni → Archiviazione → «Scrivania e file iniziali», che ricarica lilOS. I dati dell'utente stanno nel database del kernel, non più nel browser.
+
+**Accesso e kernel**
+- [ ] Con il kernel spento compare «Il kernel di lilOS non risponde» e **Riprova** funziona quando lo si riavvia.
+- [ ] Con un modulo di accesso attivo, senza sessione compare «Accedi a lilOS»; una password sbagliata mostra l'errore; dopo 5 errori sullo stesso utente i tentativi si rallentano.
+- [ ] **Esci** (menu di avvio) salva, torna alla schermata di accesso e cancella da IndexedDB il database `lilos:<id utente>`.
+- [ ] Lasciando scadere la sessione (o togliendo il cookie) mentre si lavora, compare «Sessione scaduta»; accedendo con lo stesso utente le modifiche in attesa vengono salvate.
+- [ ] Se nel browser ci sono dati di prima del kernel (`localStorage` con chiavi `lilos:`), con la cartella dell'utente vuota compare «Dati in questo browser»; **Porta nel mio account** li trasferisce e li cancella dal browser.
+- [ ] Ricaricando la pagina, e accedendo da un altro browser con lo stesso utente, la scrivania è la stessa.
+
+**App installate**
+- [ ] Con `examples/apps/note/` installata (vedi [ricette](../sviluppatore/ricette.md#installare-unapp-dallesempio)), compare nel menu di avvio e nelle impostazioni di ogni workspace; nasconderla in un workspace la toglie solo lì.
+- [ ] La prima volta crea `Documenti/Note/Benvenuto.txt` e il collegamento sulla scrivania; la seconda no.
+- [ ] Rimuoverla toglie ciò che aveva creato; un file modificato finisce nel Cestino.
+
+**App di sistema, AppStore e repository** (serve un amministratore)
+- [ ] Con un database e un kernel nuovi (nessuna app installata), il kernel installa File, Editor, Impostazioni e AppStore prima di mettersi in ascolto; nel log compaiono le installazioni. Riavviandolo non reinstalla nulla.
+- [ ] Con `git` senza accesso al repository ufficiale (per esempio senza credenziali) il kernel parte lo stesso e scrive «App di sistema non installate (…)»; lilOS si apre senza quelle app.
+- [ ] Menu di avvio: File, Editor, Impostazioni, AppStore. In Impostazioni → Workspace → Questo workspace l'Editor si può nascondere; File, Impostazioni e AppStore no.
+- [ ] AppStore → App → Disponibili: una sezione per repository, con nome, versione, descrizione ed editore; «Installata» per ciò che c'è. Installate: «Necessaria a lilOS» sulle tre necessarie, nessun pulsante Rimuovi su di loro; «Cerca aggiornamenti» dice «è già aggiornata» se non c'è nulla; Reinstalla funziona.
+- [ ] Rimuovere l'Editor lo toglie dal menu e da «Apri con»; riavviando il kernel torna (è in `apps.bootstrap`).
+- [ ] AppStore → Repository: aggiungere un repository con un `catalog.json` (anche un clone locale se `apps.allowLocalSources` è acceso) mostra le sue app e i suoi moduli; un indirizzo sbagliato dà un errore e non si salva; l'ufficiale è «Sempre presente» e non si rimuove.
+- [ ] Un'app di un repository non ufficiale: la finestra di installazione mostra i permessi e l'avviso «Non verificata…» con il pulsante «Installa comunque»; installata, compare nel menu; rimuovendola le sue cose vanno via come per l'esempio.
+- [ ] AppStore → Moduli del kernel: installare un modulo mostra l'avviso del codice nel kernel e poi «Riavvio necessario»; «Riavvia il kernel» (con `npm run kernel`) lo riavvia e il modulo risulta «In uso». Rimuoverne uno con dati dice che i dati restano. Con il kernel avviato direttamente con `node` il riavvio dice di farlo a mano.
+- [ ] Con un utente non amministratore: tutte le schede si vedono ma senza pulsanti per cambiare; Moduli del kernel dice che serve un amministratore.
+- [ ] Un'app installata da un altro utente o da un'altra scheda compare nel menu solo dopo aver ricaricato (limite noto).
 
 **Scrivania**
 - [ ] Spazio + trascina e il tasto centrale spostano la vista, anche partendo da sopra gli elementi; trascinare lo sfondo con il tasto sinistro **non** la sposta.
@@ -22,8 +51,8 @@ Parti da una scrivania pulita: `localStorage.clear()` nella console, poi ricaric
 - [ ] Ricaricando, la vista resta dov'era.
 
 **Elementi**
-- [ ] Al primo avvio compaiono i 5 elementi di esempio (Progetti, benvenuto.txt, File, Terminale, Impostazioni) e le cartelle di sistema.
-- [ ] Una vecchia `lilos:desktop` viene migrata con le posizioni e poi eliminata.
+- [ ] Al primo avvio compaiono i 5 elementi di esempio (Progetti, benvenuto.txt, File, Editor, Impostazioni) e le cartelle di sistema.
+- [ ] Una vecchia `lilos:desktop` viene migrata con le posizioni e poi eliminata (solo senza kernel o nei dati portati con il trasferimento).
 - [ ] Clic seleziona; Ctrl + clic aggiunge e toglie; clic sullo sfondo ed Esc tolgono la selezione; Ctrl A seleziona tutto.
 - [ ] Il trascinamento sposta tutta la selezione e allinea alla griglia al rilascio; Ctrl Z rimette le icone dove erano.
 - [ ] Tasto destro sullo sfondo → Nuova cartella: compare nel punto del clic con il nome in modifica.
@@ -92,7 +121,7 @@ Parti da una scrivania pulita: `localStorage.clear()` nella console, poi ricaric
 - [ ] Cambiando workspace le finestre aperte spariscono (anche dalla barra) senza chiudersi: tornando, l'Editor ha ancora il testo non salvato; il focus torna alla finestra che l'aveva. Ctrl Z riparte dalla cronologia della nuova scrivania.
 - [ ] Ricaricando, le finestre fuori dalle workarea tornano per ogni workspace (quelle del workspace non attuale alla prima visita), nella stessa posizione.
 - [ ] File: colonna Workspace con pallino e nome, ordinabile; «Condiviso» sulle cartelle di sistema; un file creato in Documenti da un workspace dice quale, anche visto da un altro; nella vista a icone il tooltip dice «Workspace: …».
-- [ ] Impostazioni → Workspace → Questo workspace: rinomina e colore si vedono subito nel pulsante e in File; il numero di elementi creati cresce creando file; disinstallare un'app la toglie dal menu di avvio e chiude (chiedendo, se ci sono modifiche) le sue finestre; avviare un collegamento a un'app non installata mostra un messaggio; aprire un file la cui app non è installata mostra «Apri con» con solo le app installate.
+- [ ] Impostazioni → Workspace → Questo workspace: rinomina e colore si vedono subito nel pulsante e in File; il numero di elementi creati cresce creando file; nascondere un'app la toglie dal menu di avvio e chiude (chiedendo, se ci sono modifiche) le sue finestre; avviare un collegamento a un'app nascosta mostra un messaggio; aprire un file la cui app è nascosta mostra «Apri con» con solo le app installate.
 - [ ] Impostazioni → Workspace → Tutti: Passa a questo, Elimina… (due clic), Crea; l'ultimo workspace non si elimina.
 - [ ] Eliminare un workspace con file sulla scrivania: la cartella Documenti/Scrivania di <nome> li contiene; con la scrivania vuota non resta nessuna cartella; le sue finestre delle app compaiono nel workspace attuale con il testo non salvato, quelle secondarie si chiudono; i file creati da quel workspace in altre cartelle mostrano «Nome (eliminato)».
 - [ ] Con 20 workspace «Nuovo workspace» mostra un messaggio.
@@ -157,7 +186,7 @@ Il passo successivo è portare questa verifica nel repository:
 Due cose utili da sapere per scrivere i test:
 
 - per il doppio clic usare `page.mouse.click(x, y, { count: 2 })`;
-- svuotare `localStorage` e ricaricare prima di ogni test, altrimenti lo stato salvato da un test influenza il successivo.
+- partire ogni test da un utente nuovo (o da Impostazioni → Archiviazione → «Scrivania e file iniziali»), altrimenti lo stato salvato nel kernel da un test influenza il successivo. Il test deve avviare il database (`npm run db:up`) e il kernel (`npm run kernel`, con accesso al repository ufficiale per le app di sistema) o usarne uno proprio; `npm run preview` inoltra `/api` al kernel come `npm run dev`.
 
 ## Agenti di Claude Code
 
@@ -176,21 +205,27 @@ Nessun agente fa commit o push: si decide dopo aver letto i report.
 ## Dipendenze
 
 - `npm install` installa le versioni esatte di `package-lock.json`; nessun pacchetto ha script di installazione.
-- Le grammatiche Tree-sitter stanno in `public/tree-sitter/` (nel repository). Per aggiornarle, cambia le versioni in `scripts/vendor-tree-sitter.mjs` e lancia `node scripts/vendor-tree-sitter.mjs`.
+- lilOS non ha dipendenze a runtime. Quelle dell'Editor (e le grammatiche Tree-sitter, che si aggiornano con `npm run vendor:tree-sitter`) stanno nel repository ufficiale.
 - Prima di aggiungere una dipendenza: [Convenzioni → Dipendenze](../sviluppatore/convenzioni.md#dipendenze).
 
 ## Git
 
-- Repository: https://github.com/GexyLab/lilos, ramo `main`.
-- Finora si è lavorato direttamente su `main`. Con più persone conviene passare a un ramo per funzionalità e a pull request.
+- Repository: https://github.com/GexyLab/lilos. Il ramo predefinito è `development`; c'è anche `production`.
+- Finora si è lavorato direttamente su `development`. Con più persone conviene passare a un ramo per funzionalità e a pull request.
 - Messaggi di commit in italiano (vedi [Convenzioni](../sviluppatore/convenzioni.md#git)).
-- Non riscrivere la storia di `main` già pubblicata (niente `push --force`).
+- Non riscrivere la storia dei rami già pubblicati (niente `push --force`).
+- **Mai nel repository**: `system/kernel/modules/users-basic_1.0.0/users.json` (utenti e hash delle password; è ignorato da un `.gitignore` del modulo), `system/kernel/repos.json` (i repository aggiunti: ignorato), chiavi private degli editori (`.pem`) e qualunque credenziale di accesso ai repository (stanno nella configurazione di git del computer del kernel, non nel progetto).
+- **Repository ufficiale delle app**: [GexyLab/lilos-plugins-official](https://github.com/GexyLab/lilos-plugins-official), privato, tag `v1.0.0`. Contiene le app di sistema e i moduli `users-basic` e `fs-postgres`. Ha il suo ciclo di versioni: `version` nei suoi manifesti, `npm run build`, commit di sorgenti e `apps/`, tag `vX.Y.Z` ([come](../sviluppatore/ricette.md#aggiungere-o-aggiornare-unapp-di-sistema)).
 
 ## Rilascio
 
-Non c'è ancora un ambiente pubblicato. `npm run build` produce in `dist/` un sito statico che si può pubblicare su qualsiasi hosting statico.
+Non c'è ancora un ambiente pubblicato. `npm run build` produce in `dist/` il frontend, ma da solo non basta: il sistema parla con il kernel su `/api`, della **stessa origine** della pagina (il cookie di sessione ha `Path=/api`). In sviluppo, e con `npm run preview`, lo inoltra Vite a `127.0.0.1:8790`; in produzione serve un server che serva `dist/` e inoltri `/api` al kernel. Questo passaggio non è ancora descritto né deciso.
 
-Su GitHub Pages il sito sarebbe servito da `/lilos/`: in quel caso va impostato `base: '/lilos/'` in una `vite.config.js`, altrimenti script, stili e favicon vengono cercati nella radice del dominio.
+Il kernel va avviato con `npm run kernel` (`system/kernel/run.js`), che lo riavvia quando serve (codice di uscita 75, dopo aver installato o tolto un modulo): un gestore di servizi che lo avviasse direttamente dovrebbe fare lo stesso. Al primo avvio il kernel installa le app di sistema dal repository ufficiale: la macchina del kernel ha bisogno di `git`, della rete e delle credenziali per quel repository; senza, lilOS parte privo di File, Impostazioni e AppStore. Lo stesso vale per ogni installazione o aggiornamento da repository.
+
+In produzione il kernel andrà configurato con `origins` (i siti ammessi per le richieste che modificano), `secureCookies: true` con HTTPS, `LILOS_PG_URL` verso un database con una propria password, `apps.allowLocalSources` spento e, per le app, `trustedPublishers`. Non usare la configurazione di sviluppo (`lilos`/`lilos`).
+
+Su GitHub Pages il frontend sarebbe servito da `/lilos/`, ma senza un kernel dietro `/api` non partirebbe.
 
 ## Documentazione
 

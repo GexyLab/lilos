@@ -1,18 +1,24 @@
 # lilOS
 
-Desktop web su una scrivania infinita: canvas con zoom e spostamento, elementi del desktop (cartelle, file, app), workarea (aree della scrivania che tengono insieme icone e finestre), workspace (scrivanie separate, ognuna con i suoi elementi, finestre e app), barra delle applicazioni e menu di avvio.
+Desktop web su una scrivania infinita: canvas con zoom e spostamento, elementi del desktop (cartelle, file, app), workarea (aree della scrivania che tengono insieme icone e finestre), workspace (scrivanie separate, ognuna con i suoi elementi, finestre e app visibili), barra delle applicazioni e menu di avvio. I dati stanno in un backend, il **kernel** (`system/kernel/`), con un account per ogni utente. Le app (File, Editor, Impostazioni e AppStore comprese) e i moduli del kernel sono pacchetti che si installano dai repository: quello ufficiale è [GexyLab/lilos-plugins-official](https://github.com/GexyLab/lilos-plugins-official).
 
 Documentazione completa in [doc/](doc/README.md): [guida utente](doc/utente/guida.md), [sviluppatore](doc/sviluppatore/README.md), [interna](doc/interna/README.md). SDK: [sdk/README.md](sdk/README.md).
 
 ## Avvio
 
-Le dipendenze (per l'Editor: Shiki per TextMate, web-tree-sitter, i servizi di linguaggio di VS Code) sono bloccate a versioni precise e vengono caricate solo quando servono. Le grammatiche Tree-sitter sono già in `public/tree-sitter/`; per aggiornarle: `node scripts/vendor-tree-sitter.mjs`.
+lilOS non ha dipendenze a runtime (solo Vite per lo sviluppo). File, Editor, Impostazioni e AppStore **non sono in questo repository**: stanno nel repository ufficiale e il kernel installa da solo, all'avvio, quelle che mancano. Per questo al primo avvio servono il comando `git` e l'accesso a quel repository (che è privato: si usano le credenziali git del computer). Dettagli in [doc/sviluppatore](doc/sviluppatore/README.md#il-kernel-il-backend).
 
 ```bash
 npm install
-npm run dev      # http://localhost:5173
-npm run build    # build in dist/
+npm run kernel:setup                                    # una volta: dipendenze dei moduli del kernel
+npm run db:up                                           # PostgreSQL in Docker (127.0.0.1:5433)
+npm run kernel:cli -- users-basic add <nome> --admin    # una volta: crea un utente
+npm run kernel                                          # il kernel su http://127.0.0.1:8790 (al primo avvio installa le app di sistema)
+npm run dev                                             # lilOS su http://localhost:5173 (/api va al kernel)
+npm run build                                           # build in dist/
 ```
+
+Il sistema non parte senza il kernel. Serve Node.js 22 o più recente e, per il database di sviluppo, Docker. Dettagli in [doc/sviluppatore](doc/sviluppatore/README.md#il-kernel-il-backend).
 
 ## Struttura
 
@@ -20,13 +26,24 @@ npm run build    # build in dist/
 sdk/                    @lilos/sdk: basi riutilizzabili da sistema e app
   index.js              unico punto d'ingresso
   core/                 h(), svg(), trackDrag(), Emitter + bus, storage, session
+  core/kernel.js        client del kernel: richieste, accesso, sincronizzazione delle modifiche
+  core/apps.js          app installate: elenco, installa, aggiorna, rimuovi
   core/settings.js      preferenze dell'utente
-  core/fs.js            file system virtuale (cartelle, file, collegamenti; contenuti su IndexedDB)
+  core/fs.js            file system virtuale (cartelle, file, collegamenti; salvato nel kernel)
   core/tags.js          tag colorati per ritrovare file e cartelle, anche nascondendoli
   ui/                   icone, menu, controlli, Window, SettingsView, SettingsWindow
   styles/               token, base, componenti, finestre (@lilos/sdk/styles.css)
+scripts/
+  host-shims.mjs        genera public/host/sdk.js e system.js (predev, prebuild)
+public/host/            i moduli che le app di sistema importano come @lilos/sdk e @lilos/system (generati)
+system/
+  kernel/               il backend: moduli (users-basic, fs-postgres), API, repository, installazione di app e moduli, riga di comando; run.js lo avvia e lo riavvia
+examples/apps/note/     app di esempio (lilos.json, index.js)
 src/                    il sistema, costruito sull'SDK
-  main.js               bootstrap: monta canvas, HUD, desktop, taskbar
+  main.js               avvio: accesso e collegamento al kernel (boot/), poi system.js
+  system.js             bootstrap: monta canvas, HUD, desktop, taskbar
+  systemApi.js          @lilos/system: l'API di sistema per le app di sistema
+  boot/                 schermate di accesso e avvio, trasferimento dei dati di prima del kernel
   canvas/
     Canvas.js           scrivania infinita: camera (pan/zoom), oggetti in coordinate mondo
     Minimap.js          panoramica cliccabile
@@ -43,11 +60,9 @@ src/                    il sistema, costruito sull'SDK
   items/                comandi comuni a desktop e File, eliminazione (cestino, conferma), trascinamento tra viste, ordine e collegamenti della barra di File
   tags/                 pallini e menu dei tag, usati da scrivania, File e Impostazioni
   apps/
-    registry.js         app note, quali sono installate nel workspace + launch()
+    registry.js         le app installate (nessuna è integrata), quali sono visibili nel workspace + launch()
+    packages/           app installate: nel registro; le app di sistema girano in lilOS, le altre in una finestra isolata con il ponte window.lilos; operazioni per utente
     launcher.js         apre le app in finestre
-    settings/           app Impostazioni
-    files/              app File (File Manager)
-    editor/             app Editor: Tree-sitter, TextMate, Language Server (JSON, CSS, HTML), schemi JSON
     open.js             quale app apre quale tipo di file
     openWith.js         finestra "Apri con"
     commands.js         scorciatoie delle app
@@ -73,7 +88,7 @@ doc/                    documentazione utente, sviluppatore e interna
 | Spostarsi | Spazio + trascina, tasto centrale (un dito sugli schermi touch) |
 | Selezionare | clic, trascina sullo sfondo (rettangolo), Alt + trascina (mano libera, modificabile), Ctrl/Shift per aggiungere |
 | Mostra tutto | Shift 1 |
-| Menu di avvio | pulsante logo, Ctrl K |
+| Menu di avvio | pulsante logo, Ctrl K; in fondo Impostazioni ed Esci (con più utenti) |
 | Elementi | doppio clic apre, F2 rinomina, Canc elimina (nel Cestino), Ctrl A seleziona tutto, Ctrl/Shift + clic selezione multipla |
 | Spostare file e cartelle | trascina un elemento (o la selezione) su una cartella: sulla scrivania, in File (elenco, percorso, barra laterale) o nel pannello dell'Editor, anche da una vista all'altra; Esc annulla; rilasciato sul Cestino lo elimina; tra due voci della sezione Collegamenti di File crea un collegamento, e le voci si riordinano trascinandole (con × o Canc si elimina un collegamento) |
 | Annulla / ripeti | Ctrl Z / Ctrl Y (o Ctrl Shift Z), dove stai lavorando: scrivania, finestra File, testo e pannello dell'Editor |
@@ -82,7 +97,7 @@ doc/                    documentazione utente, sviluppatore e interna
 | Workspace | pulsante accanto al logo (menu: elenco, Nuovo workspace, Gestisci), Ctrl Alt → / Ctrl Alt ← per passare al successivo o al precedente |
 | Tag | tasto destro su un elemento → Tag (assegna, "Nuovo tag…", "Gestisci i tag…"); in File, voce del tag nella barra laterale per vedere tutti gli elementi con quel tag; Impostazioni → Tag per colori e visibilità (un tag invisibile nasconde i suoi elementi) |
 | Finestre | trascina il titolo, bordi e angoli per ridimensionare, doppio clic sul titolo per ingrandire, pulsante nella barra per riaprire o ridurre, Alt W chiude, Alt N passa alla successiva |
-| Editor | Ctrl S salva, Ctrl Alt N nuovo documento, Ctrl O apri un file, Ctrl Alt O apri una cartella (pannello a destra), Ctrl B mostra o nasconde la cartella, Ctrl Spazio suggerimenti (compaiono anche da soli), Tab / Shift Tab rientro |
+| Editor (app opzionale) | Ctrl S salva, Ctrl Alt N nuovo documento, Ctrl O apri un file, Ctrl Alt O apri una cartella (pannello a destra), Ctrl B mostra o nasconde la cartella, Ctrl Spazio suggerimenti (compaiono anche da soli), Tab / Shift Tab rientro |
 
 Tutte le scorciatoie (tranne Spazio + trascina e i tasti di navigazione nei menu) si cambiano in Impostazioni → Usabilità → Scorciatoie.
 
@@ -91,7 +106,7 @@ Tutte le scorciatoie (tranne Spazio + trascina e i tasti di navigazione nei menu
 - Le basi riutilizzabili nascono nell'SDK e si importano da `@lilos/sdk`. L'SDK non importa mai da `src/`.
 - Tutto ciò che sta sulla scrivania si aggiunge con `canvas.add(el)` e ha `data-kind` (usato dalla minimappa).
 - Gli elementi con `data-wheel="native"` (es. contenuto delle finestre) scorrono con la rotella invece di zoomare.
-- Le app comunicano col sistema tramite `bus` dell'SDK. Un'app è un modulo con `load` nel registro che restituisce una `Window`; le cartelle si aprono nell'app File, i file con l'app associata al tipo (Impostazioni → Usabilità → Tipi di file) o con la finestra "Apri con".
+- Le app comunicano col sistema tramite `bus` dell'SDK. Ogni app è un pacchetto (`lilos.json`) installato dal kernel: un'app di sistema (File, Editor, Impostazioni, AppStore: dal repository ufficiale) gira dentro lilOS e usa `@lilos/sdk` e `@lilos/system`; un'altra app gira in un iframe isolato e parla con lilOS solo con `window.lilos`; le cartelle si aprono nell'app File, i file con l'app associata al tipo (Impostazioni → Usabilità → Tipi di file) o con la finestra "Apri con".
 - Ogni finestra che modifica impostazioni usa `SettingsWindow` dell'SDK.
 - Cartelle e file passano dal file system dell'SDK (`fs`); la scrivania è la vista della cartella `/Scrivania` del workspace attuale (privata: gli altri workspace non la vedono). Ogni nodo creato ricorda il workspace che l'ha fatto.
 - Ogni scorciatoia è un comando registrato con `shortcuts.register` dell'SDK, così l'utente può cambiarla.

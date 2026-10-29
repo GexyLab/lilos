@@ -2,6 +2,7 @@ import { Emitter } from './events.js';
 import { storage, uid } from './storage.js';
 import { splitName } from './fileTypes.js';
 import { contents } from './db.js';
+import { kernel } from './kernel.js';
 
 const STORAGE_KEY = 'fs';
 const ROOT = 'root';
@@ -13,9 +14,11 @@ const TAG_ID = /^[\w-]{1,40}$/;
 const MAX_TAGS = 30;   // per node
 
 /**
- * Virtual file system: a tree of folders, files and app shortcuts. The tree (names and metadata)
- * is persisted under 'lilos:fs'; file contents (text) live in IndexedDB, read and written with
- * the asynchronous read() / write().
+ * Virtual file system: a tree of folders, files and app shortcuts, kept whole in memory. Connected
+ * to the kernel, the tree is the user's home: loaded at start-up and kept in sync by differences
+ * (only the nodes that changed are sent, a moment later); file contents are read and written
+ * there with the asynchronous read() / write(). Without the kernel the tree is saved under
+ * 'lilos:fs' and the contents in IndexedDB.
  *
  *   Node: { id, type: 'folder' | 'file' | 'app', name, parent, created, modified,
  *           size?, color?, app?, system?, workspace?, private?, tags? }   size: bytes of the content (UTF-8)
@@ -57,11 +60,25 @@ class FileSystem extends Emitter {
   /** False when nothing was stored yet (first start): the system seeds the tree. */
   loaded = false;
 
+  /** Connected to the kernel: sends the nodes that changed. */
+  #tracker = null;
+
   constructor() {
     super();
-    this.#load(storage.get(STORAGE_KEY));
-    // Contents whose node is gone (deleted, or the tree was reset): clean up after start-up
-    setTimeout(() => this.#collectContents(), 3000);
+    if (kernel.connected) {
+      this.#load(kernel.data.nodes);
+      this.loaded = !kernel.data.fresh;
+      const read = () => new Map([...this.#nodes].filter(([id]) => id !== ROOT && id !== TRASH));
+      this.#tracker = kernel.track('fs', {
+        read,
+        send: (set, remove, options) => this.#send(set.map(([, n]) => n), remove, options),
+      });
+      this.#tracker.reset();   // what was just loaded is what the kernel has
+    } else {
+      this.#load(storage.get(STORAGE_KEY));
+      // Contents whose node is gone (deleted, or the tree was reset): clean up after start-up
+      setTimeout(() => this.#collectContents(), 3000);
+    }
   }
 
   get root() { return ROOT; }
@@ -192,6 +209,7 @@ class FileSystem extends Emitter {
   async read(id) {
     const node = this.#find(id);
     if (!node || node.type !== 'file') throw new Error('Il file non esiste');
+    await this.#tracker?.flush();   // a file just created must exist in the kernel
     const text = await contents.get(id);
     return typeof text === 'string' ? text : '';
   }
@@ -201,6 +219,7 @@ class FileSystem extends Emitter {
     const node = this.#find(id);
     if (!node || node.type !== 'file') throw new Error('Il file non esiste');
     const value = String(text);
+    await this.#tracker?.flush();
     await contents.set(id, value);
     if (!this.#nodes.has(id)) return;   // removed while saving
     node.size = new TextEncoder().encode(value).length;
@@ -269,6 +288,7 @@ class FileSystem extends Emitter {
     this.#touch(restored[0].parent, Date.now());
     this.#save();
     for (const node of restored) this.emit('change', { type: 'create', node: copy(node), parent: node.parent });
+    await this.#tracker?.flush();
     for (const node of restored) {
       if (node.type === 'file' && typeof texts[node.id] === 'string') await contents.set(node.id, texts[node.id]);
     }
@@ -285,6 +305,21 @@ class FileSystem extends Emitter {
     this.#touch(node.parent, Date.now());
     this.#save();
     this.emit('change', { type: 'remove', node: copy(node), parent: node.parent, ids });
+  }
+
+  /**
+   * Deletes every node, system folders and trashed items included, with their contents, without
+   * events: for the system's reset, which reloads lilOS after it (the tree is seeded again).
+   * Resolves once saved.
+   */
+  async reset() {
+    for (const id of [...this.#nodes.keys()]) {
+      if (id === ROOT || id === TRASH) continue;
+      this.#nodes.delete(id);
+      contents.delete(id);
+    }
+    if (this.#tracker) await this.#tracker.flush();
+    else storage.remove(STORAGE_KEY);
   }
 
   // ---------- Trash ----------
@@ -589,8 +624,27 @@ class FileSystem extends Emitter {
     if (node) node.modified = time;
   }
 
+  /**
+   * Sends changes to the kernel in batches of 2000 (it accepts at most 5000 per request):
+   * parents before children, so a folder exists before what goes in it, then the removals.
+   */
+  async #send(put, remove, { keepalive } = {}) {
+    const BATCH = 2000;
+    const depth = id => {
+      let d = 0;
+      for (let n = this.#nodes.get(id); n && d < 256; n = this.#nodes.get(n.parent)) d++;
+      return d;
+    };
+    const sorted = put.length > BATCH ? [...put].sort((a, b) => depth(a.id) - depth(b.id)) : put;
+    const batches = [];
+    for (let i = 0; i < sorted.length; i += BATCH) batches.push({ put: sorted.slice(i, i + BATCH), remove: [] });
+    for (let i = 0; i < remove.length; i += BATCH) batches.push({ put: [], remove: remove.slice(i, i + BATCH) });
+    for (const body of batches) await kernel.request('POST', '/fs/sync', body, { keepalive: keepalive && batches.length === 1 });
+  }
+
   #save() {
-    storage.set(STORAGE_KEY, [...this.#nodes.values()]);
+    if (this.#tracker) this.#tracker.schedule();
+    else storage.set(STORAGE_KEY, [...this.#nodes.values()]);
   }
 
   /** Stored data is untrusted: keep only well-formed nodes reachable from the root. */

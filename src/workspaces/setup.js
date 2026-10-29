@@ -13,15 +13,9 @@ export const appIds = () => new Set(apps.map(a => a.id));
  * by the last save of the page, or left by a workspace deleted in another tab.
  */
 function dropOrphanKeys(live) {
-  try {
-    const orphans = [];
-    for (let i = 0; i < localStorage.length; i++) {
-      const m = /^lilos:(ws:([\w-]+):.+)$/.exec(localStorage.key(i));
-      if (m && !live.has(m[2])) orphans.push(m[1]);
-    }
-    orphans.forEach(key => storage.remove(key));
-  } catch {
-    /* storage blocked: nothing to clean */
+  for (const key of storage.keys()) {
+    const m = /^ws:([\w-]+):.+$/.exec(key);
+    if (m && !live.has(m[1])) storage.remove(key);
   }
 }
 

@@ -19,4 +19,5 @@ Obiettivi:
 Riferimenti:
 
 - Repository: https://github.com/GexyLab/lilos
+- Repository ufficiale delle app e dei moduli (privato; File, Editor, Impostazioni, AppStore): https://github.com/GexyLab/lilos-plugins-official
 - Mockup visivo delle finestre e delle app: `design/mockup.html` (da aprire direttamente nel browser).

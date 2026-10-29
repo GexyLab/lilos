@@ -6,7 +6,7 @@ Registro delle scelte di architettura. Ogni voce dice cosa si è deciso, perché
 
 ## D1. JavaScript senza framework, con Vite
 
-> Aggiornata da [D21](#d21-tree-sitter-textmate-e-language-server-nelleditor): l'Editor usa alcune dipendenze a runtime, caricate solo quando serve.
+> Aggiornata da [D21](#d21-tree-sitter-textmate-e-language-server-nelleditor): l'Editor usa alcune dipendenze a runtime, caricate solo quando serve. Dal 29 ottobre 2026 l'Editor sta nel repository ufficiale ([D38](#d38-le-app-di-sistema-vengono-dal-repository-ufficiale-e-girano-dentro-lilos)) e lilOS è di nuovo senza dipendenze a runtime.
 
 **Decisione.** Moduli ES in JavaScript, nessun framework UI, Vite solo come server di sviluppo e per la build.
 
@@ -58,6 +58,8 @@ Registro delle scelte di architettura. Ogni voce dice cosa si è deciso, perché
 **Conseguenze.** Gli eventi sono il contratto tra i moduli: vanno documentati in `sdk/core/events.js` e nel [riferimento API](../sviluppatore/api.md#eventi-del-bus).
 
 ## D6. localStorage per stato piccolo, mai eccezioni
+
+> Aggiornata da [D34](#d34-il-frontend-tiene-i-dati-in-memoria-e-li-sincronizza-per-differenze): con il kernel collegato `storage` tiene i valori in memoria e li salva nella cartella dell'utente; `localStorage` resta per quando il kernel non c'è.
 
 **Decisione.** `storage` incapsula `localStorage` con prefisso `lilos:`, JSON e `try/catch` su ogni accesso.
 
@@ -187,6 +189,8 @@ Registro delle scelte di architettura. Ogni voce dice cosa si è deciso, perché
 
 ## D17. Contenuto dei file su IndexedDB
 
+> Aggiornata da [D34](#d34-il-frontend-tiene-i-dati-in-memoria-e-li-sincronizza-per-differenze): con il kernel collegato il contenuto dei file sta nel database del kernel; IndexedDB ne tiene solo una copia, per quando il kernel non risponde.
+
 **Decisione.** L'albero del file system resta in `lilos:fs` (sincrono, piccolo); il contenuto dei file va in IndexedDB (`lilos` → `contents`, chiave = id del file), con `fs.read` / `fs.write` asincroni. Se IndexedDB non c'è, il contenuto resta in memoria. I contenuti orfani si eliminano dopo l'avvio.
 
 **Perché.** `localStorage` ha pochi MB ed è sincrono: va bene per i metadati, non per i testi. Era previsto da D6 e D15.
@@ -217,7 +221,7 @@ Registro delle scelte di architettura. Ogni voce dice cosa si è deciso, perché
 
 > Superata da [D21](#d21-tree-sitter-textmate-e-language-server-nelleditor): i vocabolari restano solo quando non c'è un language server.
 
-**Decisione.** I suggerimenti dell'Editor vengono da elenchi scritti nel progetto (`src/apps/editor/complete.js`) e da un riconoscimento del contesto con espressioni regolari, più le parole del documento. Si aprono da soli mentre si scrive e con Ctrl Spazio (scorciatoia modificabile).
+**Decisione.** I suggerimenti dell'Editor vengono da elenchi scritti nel progetto (`complete.js` dell'Editor, oggi nel repository ufficiale) e da un riconoscimento del contesto con espressioni regolari, più le parole del documento. Si aprono da soli mentre si scrive e con Ctrl Spazio (scorciatoia modificabile).
 
 **Perché.** Nessuna dipendenza (D1), risposta immediata, e copre i casi frequenti (parole chiave, proprietà e valori CSS, tag e attributi HTML).
 
@@ -229,6 +233,8 @@ Registro delle scelte di architettura. Ogni voce dice cosa si è deciso, perché
 - **Snippet** nel formato di VS Code/TextMate (`$1`, `$0` per le posizioni del cursore), al posto del nostro `|`.
 
 ## D21. Tree-sitter, TextMate e Language Server nell'Editor
+
+> Dal 29 ottobre 2026 l'Editor non è più in questo repository ma nel repository ufficiale ([D38](#d38-le-app-di-sistema-vengono-dal-repository-ufficiale-e-girano-dentro-lilos)): le dipendenze, `public/tree-sitter/` e `vendor-tree-sitter.mjs` descritti qui stanno là (`npm run vendor:tree-sitter`). lilOS stesso è tornato senza dipendenze a runtime.
 
 **Decisione.** L'Editor supporta i formati standard: grammatiche **Tree-sitter** (`web-tree-sitter`, grammatiche ufficiali copiate in `public/tree-sitter/`), grammatiche **TextMate** (Shiki con il motore di espressioni regolari JavaScript; anche file `.tmLanguage.json` aggiunti dall'utente) e il **Language Server Protocol** (client scritto nel progetto; server nel browser per JSON, CSS e HTML con i servizi di linguaggio di VS Code in Web Worker; server esterni via WebSocket). Per JSON si può indicare uno schema da un file di lilOS o da un indirizzo web, oltre a `$schema`. Il motore si sceglie per linguaggio nelle Impostazioni dell'Editor.
 
@@ -315,6 +321,8 @@ Registro delle scelte di architettura. Ogni voce dice cosa si è deciso, perché
 **Quando ripensarla.** Se serviranno cronologie che sopravvivono alla ricarica (andrebbero salvate, con un limite di spazio), un annulla globale che attraversi più posti.
 
 ## D27. Workspace: scrivanie separate, isolate dal file system
+
+> In parte superata da [D36](#d36-le-app-installate-sono-di-tutti-le-operazioni-di-installazione-sono-per-utente): le app non si installano più per workspace. Un'app installata in lilOS vale per tutti i workspace e ognuno può solo nasconderla (il campo `apps` di un workspace è l'elenco delle app **visibili**). Il resto vale ancora.
 
 **Decisione.** Un **workspace** (`src/workspaces/`) è una scrivania completa e separata. Ne ha una per sé: la cartella Scrivania, la vista, le posizioni degli elementi, le workarea, le finestre aperte e le app installate. L'elenco è in `lilos:workspaces`; le parti di ciascuno in `lilos:ws:<id>:camera | desktop-layout | workareas | windows`. Le regole:
 
@@ -428,3 +436,202 @@ Registro delle scelte di architettura. Ogni voce dice cosa si è deciso, perché
 - Non c'è copia (Ctrl), né apertura automatica delle cartelle al passaggio, né spostamento da tastiera su scrivania e File; il blocco Tag della barra laterale non è un bersaglio (al centro non fa nulla).
 
 **Quando ripensarla.** Se serviranno la copia o il taglia/copia/incolla (conviene allora un'operazione scelta dal bersaglio, non dalla vista di partenza), il trascinamento da e verso il sistema operativo (qui il drag nativo diventa inevitabile, per i file esterni), lo spostamento da tastiera, oppure se le viste diventassero così tante da rendere lenta la ricerca dal DOM.
+
+## D31. Un kernel modulare, con il controllo degli accessi dentro il modulo del file system
+
+**Decisione.** Il backend è un processo Node (`system/kernel/`, `npm run kernel`) che non sa niente di utenti o di database. Carica **moduli** dalla cartella `system/kernel/modules/<nome>_<versione>/` (un `module.json` con `provides` e `requires`, un `index.js` con `init(ctx)`, `stop()` ed eventuali `commands`) e li avvia nell'ordine che le dipendenze richiedono. Quali moduli si usano lo dice `system/kernel/config.json`. I servizi che il kernel stesso usa sono tre, con l'interfaccia fissata in `src/services.js`: `auth` (accesso e sessioni), `users` (le persone) e `fs` (il file system). Un modulo può aggiungere endpoint propri con `ctx.route`, sotto `/api/modules/<nome>/…`, solo per utenti che hanno fatto l'accesso.
+
+Il **controllo degli accessi sta nel modulo `fs`**: ogni metodo riceve chi chiede (`{ kind: 'user', id, … }` oppure `{ kind: 'kernel' }`) e rifiuta ciò che non è permesso (`not_found` per ciò che non si deve nemmeno sapere che esiste, `forbidden` per ciò che si vede ma non si cambia). Il kernel instrada, controlla chi sta chiedendo e passa oltre.
+
+Senza un modulo `auth` lilOS ha un solo utente (`local`, amministratore) e il kernel rifiuta di partire su un indirizzo che non sia di questo computer (127.0.0.1).
+
+**Perché.** Il modulo che custodisce i dati è l'unico che può garantire chi li legge: se il controllo stesse nel kernel, il modulo `fs` diventerebbe un semplice archivio e il kernel dovrebbe conoscere regole (le aree, le home) che dipendono da come i dati sono salvati. Con moduli sostituibili si può cambiare database senza toccare il kernel né il frontend.
+
+**Alternative scartate.** Un backend unico con database e utenti dentro: più semplice oggi, ma ogni cambio di archivio o di sistema di accesso tocca tutto. Controllo degli accessi nel kernel: ogni modulo `fs` erediterebbe regole che non può verificare.
+
+**Conseguenze.**
+
+- Chi scrive un modulo `fs` deve scrivere anche le regole di accesso: è la parte che non va sbagliata.
+- ~~Non c'è un sistema di installazione dei moduli.~~ Superato da [D40](#d40-i-moduli-del-kernel-si-installano-come-pacchetti-e-valgono-dopo-il-riavvio): un amministratore li installa dall'AppStore. A mano si può ancora: un modulo si mette nella cartella `modules/` e si attiva in `config.json`; `npm run kernel:setup` installa le dipendenze di quelli che hanno un `package.json`.
+- I moduli girano nello stesso processo del kernel, con gli stessi permessi: un modulo non è isolato.
+- Il kernel mette le intestazioni di sicurezza a ogni risposta (`Cache-Control: no-store`, `nosniff`, una CSP che vieta tutto) e per le richieste che modificano pretende `X-Lilos: 1` e, se il browser manda `Origin`, che sia ammessa.
+
+**Quando ripensarla.** Quando serviranno più moduli per lo stesso servizio o l'isolamento dei moduli in processi separati (l'installazione dall'interfaccia c'è: [D40](#d40-i-moduli-del-kernel-si-installano-come-pacchetti-e-valgono-dopo-il-riavvio)).
+
+## D32. Utenti in un file: il modulo `users-basic`
+
+**Decisione.** Il primo modulo di accesso, `users-basic_1.0.0`, tiene utenti e sessioni in un solo file, `users.json`, nella cartella del modulo (ignorato da git: contiene gli hash delle password). Le password sono salvate con scrypt (costo 2^15). Dopo l'accesso il browser riceve un cookie `lilos_session` `HttpOnly; SameSite=Strict; Path=/api`, con un token casuale: nel file resta **solo il suo hash SHA-256**. Una sessione dura al massimo 30 giorni e scade dopo 7 senza uso (`sessionDays` e `idleDays` nella configurazione del modulo). I tentativi sbagliati sono limitati: dopo 5 per nome utente, o dopo 20 per indirizzo, l'attesa raddoppia a ogni errore (2 secondi, 4, 8…) fino a 15 minuti; il conteggio è in memoria e riparte col kernel. Gli utenti si gestiscono da riga di comando: `npm run kernel:cli -- users-basic add <nome> [--admin]`, `passwd`, `remove`, `list`.
+
+**Perché.** Nessun servizio in più da avviare e nessuna dipendenza: basta Node. Salvare solo l'hash del token vuol dire che neppure chi legge il file può usare le sessioni; il cookie con `SameSite=Strict` e l'intestazione `X-Lilos` rendono difficile far agire il browser da un altro sito.
+
+**Conseguenze.**
+
+- Il file si riscrive intero a ogni cambiamento, uno alla volta, passando da un file temporaneo. Va bene per pochi utenti con un solo kernel acceso; **due kernel sullo stesso file si sovrascriverebbero**.
+- Il file si rilegge quando cambia (la riga di comando lo modifica mentre il kernel gira) e si controlla a ogni lettura, perché si può anche modificare a mano.
+- Rimuovere un utente non cancella la sua home: resta nel file system.
+- Cambiare la password chiude tutte le sue sessioni.
+- Non c'è registrazione né recupero della password: l'amministratore usa la riga di comando.
+
+**Quando ripensarla.** Con molti utenti, più kernel in parallelo, o accessi esterni (OAuth, SSO): sarà un altro modulo che fornisce `auth` e `users`.
+
+## D33. Il file system del kernel sta in PostgreSQL
+
+**Decisione.** Il modulo `fs-postgres_1.0.0` salva ogni cartella, file e collegamento come riga della tabella `lilos_nodes` (`schema.sql`, applicato a ogni avvio: crea solo ciò che manca). Il contenuto è una colonna `bytea`; eliminare una cartella porta con sé il sottoalbero (`on delete cascade`). Ogni nodo ha un'**area** che prende dal genitore e non cambia: `root`, `system`, `app` (`/system/app`), `commons` (`/system/commons`), `tmp` (`/system/tmp`), `homes` (`/home`) e `home` (`/home/<utente>`). Le regole: ogni utente legge e scrive solo la propria home; `/system/app` e `/system/commons` li leggono tutti ma li scrive solo il kernel; `/system/tmp` e l'elenco delle home sono del kernel; niente si sposta da una home all'altra. Per lo sviluppo c'è un PostgreSQL in Docker (`docker-compose.yml` nel modulo, `npm run db:up` e `npm run db:down`), raggiungibile solo da questo computer, su `127.0.0.1:5433`; in produzione l'indirizzo si dà con la variabile `LILOS_PG_URL`, che vince su `url` della configurazione.
+
+**Perché.** Un database dà transazioni (le modifiche del frontend arrivano in un'unica `apply`, tutte o nessuna) e interrogazioni sull'albero senza costruirle a mano. Le aree rendono esplicite le regole di accesso invece di ricavarle dai nomi.
+
+**Conseguenze.**
+
+- Serve un PostgreSQL acceso per far partire il kernel (il modulo riprova a connettersi dieci volte, a un secondo di distanza).
+- I nomi in una cartella non sono unici nel database: `lookup()` prende il più vecchio. L'unicità la garantisce lilOS nel frontend.
+- La password dell'ambiente di sviluppo (`lilos`/`lilos`) è nota: non va usata fuori dal proprio computer.
+- Ogni file è letto e scritto intero (una colonna `bytea`).
+
+**Quando ripensarla.** Se i file diventeranno grandi, o se servirà un archivio diverso (disco, oggetti): basterà un altro modulo che fornisce `fs`.
+
+## D34. Il frontend tiene i dati in memoria e li sincronizza per differenze
+
+**Decisione.** Il frontend si collega al kernel prima di tutto il resto (`src/main.js` → `src/boot/boot.js`: legge la sessione, mostra la schermata di accesso se serve, poi `kernel.connect()` carica con `GET /api/boot` l'albero, le impostazioni e le app). Solo dopo importa il sistema (`src/system.js`, l'ex `main.js`), perché l'SDK legge quei dati appena viene caricato. Da lì:
+
+- `storage` e `fs` restano **sincroni e in memoria**, con la stessa API di prima. Ogni cambiamento è segnato; 300 ms dopo l'ultimo, un tracker confronta lo stato con quello che il kernel ha già (testo JSON per chiave) e manda **solo le differenze**: `POST /api/storage` per le chiavi, `POST /api/fs/sync` per i nodi, in una transazione.
+- Se l'invio fallisce, riprova aspettando sempre di più (da un secondo a 30 secondi) e avvisa l'utente; con la sessione scaduta aspetta un nuovo accesso (`kernel.resume()`). Quando la pagina si nasconde o si chiude manda quel che resta, con `keepalive`.
+- Il **contenuto dei file** non è in memoria: `fs.read` e `fs.write` vanno al kernel (dopo aver mandato i nodi in attesa, perché il file deve esistere). IndexedDB ne tiene una copia nel database `lilos:<id utente>`, usata solo per leggere se il kernel non risponde, e viene cancellata all'uscita.
+- I dati che questo browser aveva prima del kernel (`lilos:*` in `localStorage` e IndexedDB `lilos`) si portano **una volta sola** nell'account, se l'utente lo vuole e la sua home è vuota, e poi si cancellano dal browser.
+
+**Perché.** Tutto il sistema usa `fs` e `storage` in modo sincrono (viste, annulla, menu): renderli asincroni avrebbe riscritto ogni modulo. Mandare le differenze invece dell'intero albero tiene piccole le richieste e permette di salvare un nodo alla volta.
+
+**Alternative scartate.** API asincrone verso il kernel a ogni lettura: troppo lavoro e troppo lento per le viste. Mandare l'intero albero a ogni modifica: pesante, e peggiora i conflitti.
+
+**Conseguenze.**
+
+- **Più schede si sovrascrivono ancora.** Ogni scheda manda le proprie differenze e sul singolo nodo vince l'ultima scrittura. Non c'è sincronizzazione in diretta tra schede.
+- L'SDK senza kernel funziona ancora come prima (solo nel browser), ma **il sistema parte solo con il kernel**: se non risponde, la schermata iniziale chiede di avviarlo.
+- Chiudere la pagina con modifiche non ancora inviate mostra l'avviso del browser (`kernel.pending`).
+
+**Quando ripensarla.** Quando serviranno più schede o più dispositivi aperti insieme (sincronizzazione in diretta, con un canale dal kernel) o file grandi e binari.
+
+## D35. Le app locali girano in un iframe `sandbox` senza `allow-same-origin`
+
+> Vale per le app che non sono di sistema. Le app di sistema del repository ufficiale girano dentro lilOS, senza sandbox: [D38](#d38-le-app-di-sistema-vengono-dal-repository-ufficiale-e-girano-dentro-lilos).
+
+**Decisione.** Un'app installata di tipo `local` si esegue in un `<iframe sandbox="allow-scripts">` e nient'altro: la pagina non ha un'origine propria, quindi non vede il DOM, i cookie, `localStorage` né IndexedDB di lilOS. Il documento (`srcdoc`) lo costruisce lilOS: una `Content-Security-Policy` in `<meta>` che permette solo il codice messo da lilOS, le librerie del manifesto e le origini dei permessi `net:` (`connect-src`), il ponte `window.lilos` e il codice dell'app. **Il codice si scarica dal kernel e se ne controlla l'hash con quello del manifesto prima di eseguirlo**; lo stesso vale per le librerie con `cache`. L'app parla con lilOS solo con messaggi (`postMessage`), e ogni messaggio è controllato in `src/apps/packages/host.js` contro i permessi del manifesto. Poiché l'origine è opaca, il messaggio si riconosce dalla finestra che lo manda, non dall'origine. Un'app di tipo `remote` è invece un sito: un iframe sul suo indirizzo (`https`, o `http://localhost`), con `allow-same-origin` che vale per il **suo** sito; lilOS rifiuta un indirizzo con la propria origine.
+
+**Perché.** Un'app è codice di altri. In un iframe con la stessa origine di lilOS potrebbe leggere ogni dato dell'utente, e agire con la sua sessione verso il kernel. Senza `allow-same-origin` il browser stesso impedisce l'accesso, e i permessi diventano ciò che il ponte concede.
+
+**Alternative scartate.** Eseguire il codice dell'app nella pagina di lilOS: nessun isolamento. Un iframe con `allow-same-origin`: cancella l'isolamento. Un Web Worker: non ha interfaccia.
+
+**Conseguenze.**
+
+- L'app non ha `localStorage`, cookie né accesso diretto a `fs`: usa `lilos.storage` e `lilos.files` (vedi [API → apps/packages](../sviluppatore/api.md#appspackages)).
+- Tutta l'interazione è asincrona.
+- Le librerie senza `cache` si caricano dall'indirizzo del manifesto con `integrity` (e quell'indirizzo entra nella CSP).
+- Le app remote non hanno ancora un modo per sapere chi è l'utente (`auth.remote` è nell'elenco dei permessi, ma il token non c'è).
+- I widget sono validati nel manifesto ma lilOS non li mostra.
+
+**Quando ripensarla.** Quando servirà far girare codice senza interfaccia (permesso `background`) o quando le app remote avranno un accesso al proprio servizio.
+
+## D36. Le app installate sono di tutti, le operazioni di installazione sono per utente
+
+**Decisione.** Installare un'app (solo un amministratore) scrive il pacchetto una volta sola in `/system/app/<id>/<versione>` e le librerie condivise in `/system/commons/<libreria>/<versione>`: vale per **tutti gli utenti e tutti i workspace**. Ogni workspace può soltanto **nasconderla** (Impostazioni → Workspace). Ciò che il manifesto chiede di fare *nella cartella di ogni utente* (`install` e `update`: cartelle, file di esempio, collegamento sulla scrivania, tag, impostazioni) lo esegue **lilOS nel browser, per ciascun utente, la prima volta che incontra l'app** (e, a ogni nuova versione, i passi di `update` che riguardano le versioni saltate), e **non sovrascrive mai** ciò che c'è già. Ciò che ha creato è scritto, per utente, nella chiave `app-setup`. Quando l'app viene rimossa lilOS toglie ciò che aveva creato; ciò che l'utente ha modificato (un file con la data cambiata, una cartella non vuota) e i percorsi delle operazioni `remove` del manifesto vanno nel **Cestino**. I dati propri dell'app (`lilos.storage`) si cancellano.
+
+**Perché.** Le operazioni parlano il linguaggio del desktop (la Scrivania del workspace, i tag, le impostazioni dell'utente): solo lilOS lo conosce. Farle all'installazione, nel kernel, obbligherebbe a conoscere tutti gli utenti e a lasciare indietro quelli che arrivano dopo.
+
+**Alternative scartate.** Eseguirle per tutti gli utenti dal kernel durante l'installazione. Un'installazione per utente e per workspace (era il modello di [D27](#d27-workspace-scrivanie-separate-isolate-dal-file-system)): complica e non serve, perché le app sono comunque dello stesso sistema.
+
+**Conseguenze.**
+
+- Le operazioni girano quando l'utente apre lilOS, non all'installazione. Un utente che non accede non le riceve.
+- Se due schede dello stesso utente si aprono insieme, entrambe potrebbero eseguirle (non sovrascrivono, ma potrebbero creare un doppio collegamento sulla scrivania).
+- Il ripristino «Scrivania e file iniziali» cancella anche `app-setup`: dopo il ricaricamento le app installate ricreano cartelle, file ed elementi sulla scrivania.
+
+**Quando ripensarla.** Quando le app avranno dati che l'amministratore vuole mettere nelle cartelle degli utenti già esistenti, o quando un'operazione dovrà vedere cose che il browser non vede.
+
+## D37. Fiducia nei pacchetti: origine, firma e permessi
+
+> Aggiornata da [D39](#d39-i-pacchetti-si-prendono-con-git) (le origini passano da `git`, non più dall'API di GitHub né da `LILOS_GITHUB_TOKEN`) e da [D38](#d38-le-app-di-sistema-vengono-dal-repository-ufficiale-e-girano-dentro-lilos) (le app di sistema).
+
+**Decisione.** Un pacchetto ha un manifesto `lilos.json` con l'elenco dei suoi file e l'hash di ciascuno; il kernel li controlla tutti prima di scriverli. Si installa da un repository git (anche privato; era GitHub con la variabile `LILOS_GITHUB_TOKEN`, ora vedi D39; la versione è l'ultimo tag `vX.Y.Z`, oppure il `ref` indicato, e si registra il commit) o da una cartella del computer del kernel, **solo con `apps.allowLocalSources: true`** nella configurazione (sviluppo). Un'app può essere **di sistema** (`system: true`, con i permessi riservati) soltanto se viene dal repository ufficiale `GexyLab/lilos-plugins-official`. Un'app è **verificata** se è firmata (Ed25519 sul manifesto senza `signature`, chiavi in ordine) e la sua chiave è in `apps.trustedPublishers` della configurazione; un'app non verificata si installa solo con `allowUnsigned` (l'interfaccia dovrà mostrare un avviso). Una firma che non corrisponde al manifesto è **sempre** rifiutata. I permessi sono un elenco chiuso con quattro livelli: `implicit` (dati propri, avvisi, appunti in scrittura…), `install` (li concede chi installa), `use` (concessi all'installazione e da richiedere ancora a ogni uso: appunti in lettura, fotocamera, microfono, posizione) e `reserved` (solo app di sistema).
+
+**Perché.** Un amministratore deve poter decidere se fidarsi, e sapere che ciò che gira è ciò che ha approvato: hash per ogni file, firma per l'editore, permessi dichiarati.
+
+**Conseguenze.**
+
+- La chiave di un editore si dà fuori banda (`pack.js --keygen` la stampa; chi si fida la mette in `config.json`).
+- ~~Il repository ufficiale non è ancora raggiungibile pubblicamente: oggi non si può installare un'app di sistema.~~ Ora il repository ufficiale esiste (privato) e il kernel ne installa le app all'avvio ([D41](#d41-le-app-di-sistema-mancanti-si-installano-allavvio-del-kernel)).
+- Alcuni permessi sono accettati dal manifesto ma il ponte non ha ancora le funzioni che li userebbero: `clipboard.read`, `media.*`, `geo`, `apps.call`, `ai.*`, `background`, `desktop.widget`, `ui.menus`. Vedi [Stato e roadmap](stato-e-roadmap.md).
+
+**Quando ripensarla.** Quando ci sarà un catalogo pubblico di app (l'interfaccia per installarle c'è: l'AppStore).
+
+## D38. Le app di sistema vengono dal repository ufficiale e girano dentro lilOS
+
+**Decisione.** File, Editor, Impostazioni e AppStore **non stanno più nel repository di lilOS**: sono pacchetti di [GexyLab/lilos-plugins-official](https://github.com/GexyLab/lilos-plugins-official), un repository privato che contiene anche i moduli del kernel `users-basic` e `fs-postgres` (tag `v1.0.0`). Un pacchetto con `system: true` nel manifesto è un'**app di sistema**: il kernel la accetta solo se viene da quel repository ([D37](#d37-fiducia-nei-pacchetti-origine-firma-e-permessi)) e lilOS la esegue **dentro la propria pagina, senza sandbox**. Il modulo si importa con `import()` da `/api/apps/<id>/v/<versione>/<entry>` (la versione è nel percorso, così blocchi, worker e file `.wasm` si risolvono accanto al modulo) e i fogli di stile elencati in `styles` si caricano con lui. L'app importa `@lilos/sdk` e `@lilos/system`, ma nel build restano esterni: a runtime sono `/host/sdk.js` e `/host/system.js`, file generati da `scripts/host-shims.mjs` (`predev`, `prebuild`) che rileggono `globalThis.__lilosHost`, impostato da `src/system.js` con l'SDK e con `src/systemApi.js`. `@lilos/system` è l'API di sistema per le app di sistema (colori, cartelle, registro delle app, apertura dei file, trascinamento, tag…). Il manifesto ha tre campi nuovi: `description`, `required` (app necessaria: non si rimuove né si nasconde) e `styles`. Il registro delle app non ha più app integrate: `system` vuol dire necessaria (`required`) e `trusted` app di sistema (`system`).
+
+**Perché.** Le app ufficiali sono parte del sistema: condividono con lui il file system, la cronologia, il trascinamento tra viste, i menu e le impostazioni. Un'app in iframe isolato ([D35](#d35-le-app-locali-girano-in-un-iframe-sandbox-senza-allow-same-origin)) vede solo ciò che il ponte `window.lilos` offre (file, dati propri, titolo, avvisi, appunti in scrittura): troppo poco. Fuori dal repository di lilOS, le app (l'Editor ha molte dipendenze) si aggiornano senza rilasciare lilOS e il sistema resta senza dipendenze a runtime. Usare l'SDK di lilOS invece di averne una copia per app dà un solo `fs`, una sola connessione al kernel e nessun duplicato nel pacchetto.
+
+**Alternative scartate.** Tenere le app nel repository di lilOS (il sistema porta con sé tutte le dipendenze dell'Editor, e ogni modifica è un rilascio di lilOS). Farle girare nel sandbox con un ponte più ampio (si rifarebbe `fs`, la cronologia e il trascinamento attraverso messaggi). Una copia dell'SDK dentro ogni app (due `fs` e due connessioni al kernel nella stessa pagina).
+
+**Conseguenze.**
+
+- **Chi controlla il repository ufficiale controlla codice che gira nella pagina di ogni utente, con la sua sessione.** Il repository va tenuto privato e protetto; `apps.officialKey` permette di pretendere anche una firma.
+- `src/systemApi.js` (come `sdk/index.js`) è un contratto con le app già installate: togliere o rinominare un export le rompe; un export nuovo va rilasciato in lilOS **prima** dell'app che lo usa. Ogni export deve avere la forma `export { a, b } from '…'` su una riga, altrimenti lo script non lo ri-esporta.
+- Il kernel installa i file così come sono: il risultato del build (`apps/<id>/dist/` e `lilos.json` con gli hash) **si committa** nel repository ufficiale.
+- Non c'è un server di sviluppo per le app, e un clone locale non è "ufficiale": per provare una modifica si manda un ramo e si aggiorna l'app da quel ramo con una versione più alta (vedi [README per sviluppatori](../sviluppatore/README.md#le-app-di-sistema-e-il-repository-ufficiale)).
+- I file di una versione si mettono in cache per sempre (`immutable`): cambiare il codice senza alzare la versione non ha effetto nei browser che l'hanno già scaricato.
+- Senza il repository raggiungibile al primo avvio lilOS parte senza File, Impostazioni e AppStore ([D41](#d41-le-app-di-sistema-mancanti-si-installano-allavvio-del-kernel)).
+- Le tre app necessarie non si nascondono, quindi se una si rompe non si può toglierla dal menu; l'Editor sì.
+
+**Quando ripensarla.** Se altri autori vorranno la stessa integrazione (serve un modo di concederla, oltre all'origine), se lilOS dovrà funzionare offline dal primo avvio, o se un'app di sistema dovrà essere isolata (per esempio un'app che apre contenuti di altri).
+
+## D39. I pacchetti si prendono con git
+
+**Decisione.** L'origine di un pacchetto (app o modulo del kernel) è una cartella di un repository **git**, letta con il comando `git` del computer del kernel: `{ type: 'git', url, ref?, path? }`; `{ type: 'github', repo: 'proprietario/nome', … }` è lo stesso, scritto in breve; `{ type: 'local', dir }` è una cartella semplice, solo per sviluppare (`apps.allowLocalSources`). I repository privati si leggono con le credenziali che git ha già sul computer (credential helper, token, chiavi): il kernel non ne conserva e non esiste più `LILOS_GITHUB_TOKEN` ([D37](#d37-fiducia-nei-pacchetti-origine-firma-e-permessi)). Senza `ref` si usa il tag di versione più alto (`v1.2.3` o `1.2.3`), altrimenti il ramo predefinito; il commit risolto si registra nello stato, e gli aggiornamenti partono da lì. Il repository si scarica in una copia temporanea (`fetch --depth 1`) **senza conversione delle fine riga**, per non alterare gli hash del manifesto. L'indirizzo è `https://…`; un percorso assoluto di un repository locale vale solo con `allowLocalSources`. I repository da cui si pesca sono l'**ufficiale** (sempre presente) e quelli aggiunti da un amministratore (`system/kernel/repos.json`, ignorato da git, al massimo 30). Ognuno ha un `catalog.json` che elenca le cartelle delle app e dei moduli.
+
+**Perché.** Un solo meccanismo per ogni host (GitHub, GitLab, un server proprio) e per i repository privati, senza passare per le API di un fornitore e senza che il kernel custodisca segreti. I tag danno le versioni; il commit registrato rende ripetibile un'installazione.
+
+**Alternative scartate.** L'API HTTP di GitHub con un token nella configurazione (solo GitHub, un segreto in più nel kernel: era il modello di D37). Scaricare archivi da un indirizzo (nessun modo uniforme di dire la versione e di autenticarsi).
+
+**Conseguenze.**
+
+- Il computer del kernel deve avere `git`, la rete e le credenziali. `git` non può chiedere una password (`GIT_TERMINAL_PROMPT=0`): se non le ha già, fallisce con un errore.
+- Un tag nuovo è una versione nuova: pubblicare è `git tag` e `git push`. Con tag sparsi senza numero di versione (per esempio `latest`) si usa il ramo.
+- Un pacchetto pesa al massimo 80 MB e 2000 file (20 MB l'uno); ogni comando git ha 180 secondi.
+- Le fine riga devono essere quelle committate: chi lavora su Windows con `core.autocrlf` rischia hash che non corrispondono.
+- Un repository si legge sempre alla versione più alta: non c'è un modo, dall'interfaccia, di installare una versione precedente.
+
+**Quando ripensarla.** Se serviranno indirizzi `ssh://`, repository enormi, o un catalogo che non sia un repository.
+
+## D40. I moduli del kernel si installano come pacchetti e valgono dopo il riavvio
+
+**Decisione.** Un modulo del kernel può stare in un repository (cartella con `module.json`, elencata in `modules` di `catalog.json`) e un **amministratore** lo installa, aggiorna e toglie dall'AppStore (`system/kernel/src/apps/modulePackage.js`). L'installazione copia il modulo in `modules/<nome>_<versione>/` con un `source.json` (da dove viene), installa le dipendenze (`npm ci --omit=dev --ignore-scripts`) e lo accende in `config.json` con `defaultConfig`. Prima di cambiare la configurazione il kernel **verifica che si avvierebbe** con quei moduli (dipendenze soddisfatte, un modulo che fornisce `fs`, e senza `auth` solo su `127.0.0.1`); se no, rifiuta e lascia tutto com'era. Un modulo non ufficiale si installa solo con `allowUnsigned`, cioè dopo l'avviso nell'AppStore: il suo codice gira nel kernel con accesso completo. Ogni modifica vale **dal riavvio**: `POST /api/kernel/restart` fa uscire il kernel con il codice 75 e `system/kernel/run.js` (`npm run kernel`) lo riavvia; fuori da `run.js` la richiesta risponde che non è possibile. `module.json` ha due campi nuovi: `data` (i file dei dati del modulo) e `defaultConfig`. Aggiornando, i file di `data` passano alla nuova versione; **rimuovendo**, le cartelle che li contengono restano (gli utenti di `users-basic` non spariscono).
+
+**Perché.** Chi gestisce lilOS non deve copiare cartelle a mano per cambiare il database o il sistema di accesso, e deve poterlo fare con la stessa fiducia (ufficiale o avviso) delle app. I moduli sono caricati all'avvio e tengono riferimenti l'uno all'altro: sostituirli a caldo sarebbe fragile, riavviare è semplice e sicuro. Non perdere i dati alla rimozione evita di cancellare gli account con un clic.
+
+**Alternative scartate.** Caricare e scaricare moduli a caldo (servizi già agganciati ad altri moduli). Isolare i moduli in processi separati (resta nella lista di [D31](#d31-un-kernel-modulare-con-il-controllo-degli-accessi-dentro-il-modulo-del-file-system)). Lasciare l'installazione a mano.
+
+**Conseguenze.**
+
+- Per qualche secondo, durante il riavvio, il kernel non risponde: i salvataggi in attesa si ripetono da soli ([D34](#d34-il-frontend-tiene-i-dati-in-memoria-e-li-sincronizza-per-differenze)).
+- Un modulo senza `source.json` (messo a mano) si vede nell'AppStore come «Installato a mano» e non si aggiorna da lì; si può togliere.
+- Le cartelle conservate alla rimozione si cancellano a mano. Reinstallare la stessa versione le riusa.
+- Due versioni restano sul disco dopo un aggiornamento (quella in uso e la precedente).
+- Gli endpoint di un modulo stanno sotto `/api/modules/<nome>/…`, lo stesso prefisso delle rotte di amministrazione (`/api/modules/:nome/update`): un modulo con un proprio percorso `/update` nasconderebbe quella rotta.
+
+**Quando ripensarla.** Se servirà cambiare moduli senza interrompere il servizio, o isolarli.
+
+## D41. Le app di sistema mancanti si installano all'avvio del kernel
+
+**Decisione.** La configurazione ha `apps.bootstrap`: gli `id` delle app che lilOS vuole sempre (predefinito `files`, `editor`, `settings`, `appstore`). All'avvio, dopo aver registrato le rotte e **prima di mettersi in ascolto**, il kernel (`kernel.js`, `#bootstrapApps`) controlla quali mancano; se ce ne sono, legge il catalogo del repository ufficiale e le installa dall'ultimo tag, come kernel, concedendo i permessi del loro manifesto. Se il repository non risponde (rete, `git`, credenziali), il kernel parte lo stesso e lo scrive nel log: lilOS gira senza quelle app.
+
+**Perché.** Un lilOS senza File, Impostazioni e AppStore non è usabile, e l'AppStore non può installare sé stesso. Così basta avviare il kernel: niente passi a mano per le app ufficiali.
+
+**Alternative scartate.** Tenerle nel repository di lilOS ([D38](#d38-le-app-di-sistema-vengono-dal-repository-ufficiale-e-girano-dentro-lilos)). Chiedere all'amministratore di installarle dal browser (serve già l'AppStore). Installarle al primo accesso dal frontend (il kernel non sarebbe l'unico a decidere).
+
+**Conseguenze.**
+
+- **Il primo avvio richiede `git`, la rete e l'accesso al repository ufficiale.** Dal secondo le app sono nel database e non serve più nulla finché non si aggiornano.
+- L'avvio è più lungo la prima volta (il kernel non ascolta finché non ha finito).
+- Si installano solo le app **mancanti**: non si aggiornano. Gli aggiornamenti si fanno dall'AppStore.
+- Al primo avvio (nessuna app installata) il kernel installa tutte le app di `bootstrap`; dopo, solo quelle necessarie (`required`) che mancano. Un'app che l'amministratore rimuove (l'Editor: le altre sono necessarie) resta rimossa.
+- Il catalogo ufficiale deve contenere le app indicate: una assente viene saltata con un avviso nel log.
+
+**Quando ripensarla.** Se le app di sistema diventeranno molte o opzionali, se il kernel dovrà partire senza rete, o se servirà aggiornarle da sole.

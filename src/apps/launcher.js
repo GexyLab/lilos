@@ -23,7 +23,7 @@ export function setLaunchScope(value) {
  * emits 'launch' on it with the new args). App modules export a default function
  * ({ args, openWindow }) → Window; openWindow(win, key?) opens a secondary window (settings,
  * pickers): with a key, a window already open with that key is shown instead and returned.
- * An app that is not installed in the current workspace does not start (a message says so).
+ * An app hidden in the current workspace does not start (a message says so).
  * The window belongs to the workspace that was current when the app was asked for, even if the
  * user changes workspace while it loads.
  *
@@ -53,7 +53,7 @@ export function connectLauncher(wm) {
   bus.on('app:launch', async ({ id, args }) => {
     const app = getApp(id);
     if (!app?.load) return console.info('[lilos] app non ancora disponibile:', id);
-    if (!isInstalled(id)) return toast(`${app.name} non è installata in questo workspace. Si aggiunge da Impostazioni → Workspace.`, { timeout: 5000 });
+    if (!isInstalled(id)) return toast(`${app.name} è nascosta in questo workspace. Si mostra da Impostazioni → Workspace.`, { timeout: 5000 });
     const open = wm.windows.find(w => wm.appOf(w) === id && scope.includes(w));
     if (open) {
       open.emit('launch', args);

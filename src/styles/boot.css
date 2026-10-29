@@ -1,0 +1,27 @@
+/* Screens before lilOS starts (src/boot/): sign-in, messages; also signing in again over lilOS */
+.boot {
+  position: fixed; inset: 0; z-index: 10000; display: grid; place-items: center; padding: 16px;
+  background: var(--canvas); color: var(--text);
+}
+.boot.overlay { background: color-mix(in srgb, var(--canvas) 82%, transparent); backdrop-filter: blur(6px); }
+.boot-card {
+  width: min(340px, 100%); display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 28px 26px 24px;
+  border: 1px solid var(--border); border-radius: 12px; background: var(--surface);
+  box-shadow: 0 18px 48px rgb(0 0 0 / .28);
+}
+.boot-logo { width: 40px; height: 40px; }
+.boot-card h1 { font-size: 17px; font-weight: 500; text-align: center; }
+.boot-text { font-size: 12.5px; line-height: 1.5; color: var(--dim); text-align: center; }
+.boot-form { align-self: stretch; display: flex; flex-direction: column; gap: 10px; margin-top: 6px; }
+.boot-form label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--dim); }
+.boot-form .ctl-text { width: 100%; height: 30px; font-size: 13px; }
+.boot-form .ctl-btn { height: 30px; margin-top: 4px; }
+.boot-error { min-height: 16px; font-size: 12px; color: var(--danger); }
+.boot-error:empty { min-height: 0; }
+.boot-buttons { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 8px; }
+.boot-spinner {
+  width: 22px; height: 22px; margin: 6px 0 2px; border-radius: 50%;
+  border: 2px solid var(--border); border-top-color: var(--accent); animation: boot-spin .8s linear infinite;
+}
+@keyframes boot-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .boot-spinner { animation-duration: 3s; } }

@@ -1,0 +1,54 @@
+{
+  "id": "esempio.note",
+  "version": "1.0.0",
+  "kind": "local",
+  "name": "Note",
+  "icon": {
+    "glyph": "file",
+    "color": "#d9822b"
+  },
+  "publisher": {
+    "id": "esempio",
+    "name": "Esempio"
+  },
+  "sdk": "1",
+  "entry": "index.js",
+  "permissions": [
+    "fs.write:~/Documenti/Note",
+    "ui.shortcuts",
+    "desktop.items"
+  ],
+  "contributes": {
+    "window": {
+      "width": 640,
+      "height": 420
+    },
+    "commands": [
+      {
+        "id": "esempio.note.save",
+        "label": "Salva la nota",
+        "keys": [
+          "Ctrl+S"
+        ]
+      }
+    ]
+  },
+  "install": [
+    {
+      "op": "mkdir",
+      "path": "~/Documenti/Note"
+    },
+    {
+      "op": "write",
+      "path": "~/Documenti/Note/Benvenuto.txt",
+      "text": "Questa nota l'ha creata l'app Note quando l'hai incontrata la prima volta.\n"
+    },
+    {
+      "op": "desktopItem",
+      "target": "app"
+    }
+  ],
+  "files": {
+    "index.js": "sha256-EiH+yFkDtJTsVKuJqSQ3vtAOuFcgx8ODpBhkcD/xdHw="
+  }
+}

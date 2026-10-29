@@ -1,0 +1,18 @@
+# PostgreSQL for development: only reachable from this computer.
+# For production set LILOS_PG_URL to a database with its own password.
+services:
+  postgres:
+    image: postgres:16
+    container_name: lilos-postgres
+    environment:
+      POSTGRES_USER: lilos
+      POSTGRES_PASSWORD: lilos
+      POSTGRES_DB: lilos
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - lilos-pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  lilos-pgdata:

@@ -1,4 +1,4 @@
-import { h, session, appIcon, avatar, closeMenu, icon, shortcuts } from '@lilos/sdk';
+import { h, session, appIcon, avatar, closeMenu, icon, shortcuts, kernel, toast } from '@lilos/sdk';
 import { installedApps, launch } from '../apps/registry.js';
 
 /** Launcher opened by the logo button (or Ctrl+K): app search, app list, user footer. */
@@ -19,7 +19,9 @@ export class StartMenu {
       h('div', { class: 'sm-footer' },
         h('div', { class: 'sm-user' }, avatar(session.user), h('span', {}, session.user.name)),
         h('button', { class: 'sm-btn', title: 'Impostazioni', 'aria-label': 'Impostazioni', onclick: () => this.#launch('settings') }, icon('gear')),
-        h('button', { class: 'sm-btn', title: 'Riavvia sessione', 'aria-label': 'Riavvia sessione', onclick: () => location.reload() }, icon('power')),
+        kernel.mode === 'multi'
+          ? h('button', { class: 'sm-btn', title: 'Esci', 'aria-label': 'Esci', onclick: () => this.#logout() }, icon('power'))
+          : h('button', { class: 'sm-btn', title: 'Riavvia sessione', 'aria-label': 'Riavvia sessione', onclick: () => location.reload() }, icon('power')),
       ),
     );
     document.body.append(this.el);
@@ -107,5 +109,17 @@ export class StartMenu {
   #launch(id) {
     this.close();
     launch(id);
+  }
+
+  /** Saves what is pending, signs out and goes back to the sign-in screen. */
+  async #logout() {
+    this.close();
+    try {
+      await kernel.logout();
+    } catch (err) {
+      toast(`Uscita non riuscita: ${err.message}`);
+      return;
+    }
+    location.reload();
   }
 }

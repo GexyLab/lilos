@@ -1,0 +1,18 @@
+{
+  "name": "users-basic",
+  "version": "1.0.0",
+  "description": "Utenti e accesso con password, salvati in users.json nella cartella del modulo",
+  "kernel": "1",
+  "provides": [
+    "auth",
+    "users"
+  ],
+  "requires": [],
+  "data": [
+    "users.json"
+  ],
+  "defaultConfig": {
+    "sessionDays": 30,
+    "idleDays": 7
+  }
+}

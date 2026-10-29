@@ -2,13 +2,36 @@
 
 lilOS è un desktop che si usa dal browser. Al posto di uno schermo fisso c'è una **scrivania infinita**: puoi spostarti in qualsiasi direzione, ingrandire e rimpicciolire, e sistemare cartelle, file e app dove preferisci.
 
-> lilOS è in sviluppo. Per ora le app disponibili sono **File**, **Editor** e **Impostazioni**.
+> lilOS è in sviluppo. Le app che ci sono sempre sono **File**, **Impostazioni** e **AppStore**; c'è anche l'**Editor**, che si può togliere. Altre app le può installare un amministratore dall'AppStore (vedi [L'AppStore](#lappstore)).
 
 ## Lo schermo
 
 - **La scrivania** occupa quasi tutto lo schermo. Lo sfondo a puntini ti aiuta a capire quando ti stai spostando o stai cambiando zoom.
 - **Il pannello in basso a destra** mostra una mappa in miniatura della scrivania e i controlli dello zoom.
 - **La barra in basso**: a sinistra il pulsante con il logo di lilOS, che apre il menu di avvio, e subito dopo il pulsante del [workspace](#i-workspace) (un pallino colorato e il nome); al centro un pulsante per ogni finestra aperta; a destra il tuo nome, la data e l'ora. Passando sopra la data vedi la data completa.
+
+## Accedere e uscire
+
+Se lilOS ha più utenti, all'apertura compare **Accedi a lilOS**: scrivi il **nome utente** e la **password** e premi **Accedi**. Gli account li crea chi gestisce lilOS: da qui non si può crearne uno. Se lilOS ha un solo utente non c'è nulla da scrivere e si entra direttamente.
+
+- Se sbagli la password compare un messaggio. Dopo alcuni tentativi sbagliati (5 con lo stesso nome utente) lilOS ti fa aspettare, e l'attesa si allunga a ogni errore: riprova tra poco.
+- Se compare **Il kernel di lilOS non risponde**, il programma che conserva i tuoi dati non è acceso. Chi gestisce lilOS deve avviarlo; poi premi **Riprova**.
+- Il tuo spazio è tuo: ogni utente ha le sue cartelle, i suoi file e le sue impostazioni, e gli altri non li vedono.
+
+**Uscire.** Apri il menu di avvio e premi il pulsante di accensione in fondo, **Esci**. lilOS salva quello che stava ancora salvando, cancella dal browser la copia dei tuoi file e torna alla schermata di accesso. Il testo che non hai ancora salvato in una finestra (con Ctrl S) **si perde**: salvalo prima. Su un computer che non è solo tuo, esci sempre. Se lilOS ha un solo utente il pulsante si chiama **Riavvia sessione** e si limita a ricaricare la pagina.
+
+**La sessione scade.** Per sicurezza, dopo molti giorni (o dopo alcuni giorni senza usare lilOS) devi accedere di nuovo. Se succede mentre lavori compare **Sessione scaduta**: accedi con lo stesso utente e le modifiche che aspettavano vengono salvate. Se provi con un altro utente lilOS non lo accetta.
+
+**Salvare.** lilOS salva da solo, un attimo dopo ogni modifica. Se non riesce (per esempio il computer ha perso la connessione) compare **Modifiche non salvate** e lilOS riprova da solo; quando ci riesce compare **Modifiche salvate**. Finché è così non chiudere la pagina: il browser ti avvisa se ci sono modifiche che non sono ancora arrivate.
+
+### I dati che il browser aveva prima
+
+Se usavi lilOS prima degli account, il tuo browser può ancora avere cartelle, file e impostazioni di allora. Al primo accesso, se il tuo spazio è ancora vuoto, compare **Dati in questo browser**:
+
+- **Porta nel mio account** li trasferisce nel tuo spazio, una volta sola, e poi li **cancella da questo browser**;
+- **Non ora** li lascia dove sono. La domanda torna ad ogni apertura finché il tuo spazio resta vuoto; se inizi a lavorare, non compare più e quei dati restano nel browser, inutilizzati.
+
+Se lo spazio non è vuoto (per esempio hai già lavorato da un altro browser) la domanda non compare.
 
 ## Muoversi sulla scrivania
 
@@ -47,7 +70,7 @@ Sulla scrivania ci sono tre tipi di elementi:
 - **File**, con un foglio bianco e una fascia colorata che riporta l'estensione (TXT, PDF, …). Il colore dipende dal tipo di file, vedi [Tipi di file](#tipi-di-file).
 - **App**, con un riquadro colorato e il simbolo dell'app: sono collegamenti per avviarla.
 
-Al primo avvio trovi alcuni elementi di esempio: la cartella Progetti, il file benvenuto.txt e i collegamenti a File, Terminale e Impostazioni.
+Al primo avvio trovi alcuni elementi di esempio: la cartella Progetti, il file benvenuto.txt e i collegamenti a File, Editor e Impostazioni.
 
 Gli elementi della scrivania sono il contenuto della cartella **Scrivania**: li ritrovi anche nell'app [File](#lapp-file).
 
@@ -178,7 +201,7 @@ Si elimina solo la workarea: le icone e le finestre che contiene restano sulla s
 
 ## I workspace
 
-Un **workspace** è una scrivania a parte. Ognuno ha i suoi elementi sulla scrivania, le sue finestre aperte, le sue workarea, il punto della scrivania che stavi guardando e le sue app. Serve a separare lavori diversi, per esempio "Lavoro" e "Casa": cambiando workspace vedi solo le cose di quel lavoro.
+Un **workspace** è una scrivania a parte. Ognuno ha i suoi elementi sulla scrivania, le sue finestre aperte, le sue workarea, il punto della scrivania che stavi guardando e le app che mostra. Serve a separare lavori diversi, per esempio "Lavoro" e "Casa": cambiando workspace vedi solo le cose di quel lavoro.
 
 Al primo avvio c'è un solo workspace, **Principale**. Se usavi lilOS prima dei workspace, tutto quello che avevi si trova lì.
 
@@ -197,7 +220,7 @@ Il workspace che lasci resta **esattamente com'era**. Le sue finestre non si chi
 | --- | --- |
 | Scrivania (la cartella **Scrivania**) | Separata. Gli altri workspace non la vedono affatto: non compare né nell'app File, né quando scegli un file o una cartella, né nel pannello dell'Editor |
 | Posizione degli elementi, vista, workarea, finestre aperte | Separate |
-| App installate | Separate (vedi sotto) |
+| App visibili | Separate (vedi sotto): le app si installano per tutti, ogni workspace sceglie quali mostrare |
 | **Documenti**, **Immagini**, **Download** | Condivise: tutti i workspace vedono gli stessi file |
 | Tema, colore principale, scorciatoie, menu del tasto destro, app dei tipi di file | Uguali in tutti i workspace |
 
@@ -205,18 +228,18 @@ Ogni file e cartella ricorda **il workspace che l'ha creato**. Non cambia se lo 
 
 ### Le app di ogni workspace
 
-**File** e **Impostazioni** ci sono sempre. Le altre app si possono installare o togliere in ogni workspace, da Impostazioni → Workspace → Questo workspace. Il menu di avvio mostra solo le app installate nel workspace in cui sei.
+**File**, **Impostazioni** e **AppStore** ci sono sempre. Le altre app (anche l'Editor e quelle [installate](#app-installate)) valgono per tutti i workspace, ma ognuno può **nasconderne** alcune, da Impostazioni → Workspace → Questo workspace. Il menu di avvio mostra solo le app visibili nel workspace in cui sei.
 
-- Se avvii un'app che qui non è installata (per esempio da un collegamento sulla scrivania), compare un messaggio che ti dice dove aggiungerla.
-- Se apri un file e la sua app non è installata, compare **Apri con**, che propone solo le app installate. La scelta dell'app per ogni tipo di file è la stessa in tutti i workspace.
-- Se togli un'app, le sue finestre in questo workspace si chiudono (se hanno modifiche non salvate ti viene chiesto).
+- Se avvii un'app che qui è nascosta (per esempio da un collegamento sulla scrivania), compare un messaggio che ti dice dove mostrarla.
+- Se apri un file e la sua app è nascosta, compare **Apri con**, che propone solo le app visibili. La scelta dell'app per ogni tipo di file è la stessa in tutti i workspace.
+- Se nascondi un'app, le sue finestre in questo workspace si chiudono (se hanno modifiche non salvate ti viene chiesto).
 
 ### Creare, rinominare, eliminare
 
 Apri **Impostazioni → Workspace**. Ci sono due schede.
 
-- **Questo workspace**: il **nome** (al massimo 40 caratteri), il **colore** (è il pallino nella barra e accanto ai suoi file in File), quanti file, cartelle e collegamenti ha creato, e un interruttore per ogni app.
-- **Tutti**: l'elenco dei workspace, con quanti elementi hanno creato e quante app hanno. **Passa a questo** ti ci porta, **Elimina…** lo elimina, **Crea** ne fa uno nuovo con la scrivania vuota e tutte le app. Puoi averne **al massimo 20**. L'ultimo workspace non si può eliminare.
+- **Questo workspace**: il **nome** (al massimo 40 caratteri), il **colore** (è il pallino nella barra e accanto ai suoi file in File), quanti file, cartelle e collegamenti ha creato, e un interruttore per ogni app (acceso: l'app è visibile).
+- **Tutti**: l'elenco dei workspace, con quanti elementi hanno creato e quante app mostrano. **Passa a questo** ti ci porta, **Elimina…** lo elimina, **Crea** ne fa uno nuovo con la scrivania vuota e tutte le app visibili. Puoi averne **al massimo 20**. L'ultimo workspace non si può eliminare.
 
 Un workspace nuovo si crea anche dal menu del pulsante nella barra (**Nuovo workspace**) e ti ci porta subito.
 
@@ -225,7 +248,7 @@ Un workspace nuovo si crea anche dal menu del pulsante nella barra (**Nuovo work
 - se la sua scrivania non era vuota, diventa la cartella **Documenti → Scrivania di** *nome del workspace*; se era vuota sparisce;
 - i file che ha creato in altre cartelle restano dove sono e in File la colonna dice **nome (eliminato)**;
 - le sue finestre aperte passano nel workspace in cui sei, al centro della vista, con il testo non salvato. Le finestre di servizio (per esempio la scelta di un file o le proprietà di una workarea) si chiudono;
-- **si perdono** la posizione degli elementi, le workarea, il punto della scrivania che guardava e l'elenco delle sue app. Non si possono recuperare.
+- **si perdono** la posizione degli elementi, le workarea, il punto della scrivania che guardava e l'elenco delle app che nascondeva. Non si possono recuperare.
 
 ### Cosa non è ancora possibile
 
@@ -233,8 +256,8 @@ Un workspace nuovo si crea anche dal menu del pulsante nella barra (**Nuovo work
 - Le preferenze (tema, scorciatoie, menu) sono le stesse per tutti i workspace.
 - Le scrivanie degli altri workspace non si vedono: per scambiare un file tra workspace tienilo in Documenti, Immagini o Download.
 - Se apri un file condiviso (per esempio in Documenti) con l'Editor in un workspace, vai in un altro workspace e lì lo sposti nella tua scrivania, l'Editor del primo non lo vede più e non può salvarlo.
-- Se hai lilOS aperto in più schede del browser, l'ultima che salva vince: i workspace creati in un'altra scheda possono andare persi.
-- Le app aggiunte a lilOS in futuro arrivano installate in tutti i workspace; quelle che hai tolto restano tolte.
+- Se hai lilOS aperto in più schede del browser, ogni scheda salva per conto suo e per ogni elemento vince l'ultima che salva: i workspace creati in un'altra scheda possono andare persi. Usa una scheda sola.
+- Le app aggiunte a lilOS in futuro arrivano visibili in tutti i workspace; quelle che hai nascosto restano nascoste.
 - Dopo aver ricaricato la pagina le finestre di servizio non tornano, le finestre ingrandite tornano non ingrandite e Impostazioni si riapre sulla prima scheda.
 
 ## L'app File
@@ -309,13 +332,13 @@ L'elenco mostra, dal più recente: **Nome**, **Eliminato** (data e ora), **Dimen
 Cose da sapere:
 
 - Dopo **30 giorni** (se non cambi il periodo) quello che è nel cestino viene eliminato definitivamente. In **Impostazioni → Usabilità → Cestino → Conserva gli elementi per** scegli da 1 giorno a 1 anno, oppure "Per sempre". La pulizia avviene quando apri lilOS e poi ogni ora.
-- Il cestino occupa spazio nel browser come gli altri file. Nelle impostazioni vedi quanti elementi contiene e quanto pesano.
+- Il cestino occupa spazio come gli altri file. Nelle impostazioni vedi quanti elementi contiene e quanto pesano.
 - Quello che elimini dalla **Scrivania** di un workspace compare nel cestino solo di quel workspace. Se elimini il workspace, quegli elementi diventano visibili da tutti.
 - Ripristinare la scrivania e i file iniziali (Impostazioni → Archiviazione) svuota anche il cestino.
 
 ## L'Editor
 
-L'**Editor** apre e modifica i file di testo e di codice (txt, md, js, css, html, json, py e altri). Si apre facendo doppio clic su un file, dal menu di avvio o con **Ctrl Alt N** per un documento nuovo.
+L'**Editor** apre e modifica i file di testo e di codice (txt, md, js, css, html, json, py e altri). Un amministratore può rimuoverlo dall'[AppStore](#lappstore); chiunque può nasconderlo nel proprio workspace. Si apre facendo doppio clic su un file, dal menu di avvio o con **Ctrl Alt N** per un documento nuovo.
 
 - **A sinistra**, i numeri di riga; la riga su cui si trova il cursore è evidenziata.
 - **Colori**: parole chiave, testi, numeri e commenti sono colorati secondo il linguaggio, riconosciuto dall'estensione del file. Puoi cambiarlo dal menu in alto a destra (Testo, Markdown, JavaScript, CSS, HTML, JSON, Python).
@@ -501,6 +524,50 @@ In **Impostazioni → Tag**, nella scheda del tag, **Elimina…** (due clic, il 
 - Cercare per tag dal menu di avvio: si cerca solo in File.
 - Avere tag diversi in ogni workspace: sono uguali in tutti.
 
+## L'AppStore
+
+L'**AppStore** è l'app dove si vedono le app e i «moduli del kernel» (le parti di lilOS che stanno dietro le quinte, come la gestione degli utenti) che si possono installare, e da dove un amministratore le installa, le aggiorna e le toglie. Aprilo dal menu di avvio. C'è sempre e non si può rimuovere.
+
+**Chi può fare cosa.** Tutti vedono cosa c'è e cosa è installato. Solo un **amministratore** può installare, aggiornare e rimuovere app, aggiungere o togliere repository e gestire i moduli del kernel. Chi non lo è vede, al posto dei pulsanti, una scritta («Disponibile», «Installata»…), e nella scheda dei moduli il messaggio «Solo un amministratore vede e gestisce i moduli del kernel».
+
+A sinistra ci sono tre schede.
+
+### App
+
+- **Disponibili.** Una sezione per ogni *repository* (un indirizzo da cui lilOS prende app; quello ufficiale c'è sempre, gli altri sono segnati «non ufficiale»). Ogni app mostra nome, versione, a cosa serve e chi l'ha fatta. Accanto: **Installa**, oppure «Installata», oppure **Aggiorna a** *versione* se ce n'è una più nuova.
+- **Installate.** L'elenco di ciò che c'è, con da dove viene, se è «Verificata» e «Necessaria a lilOS» per le app che non si possono togliere (File, Impostazioni, AppStore). Per ogni app: **Aggiorna a** *versione* (o **Cerca aggiornamenti**), **Reinstalla** (rifà l'installazione della stessa versione, senza cancellare niente) e **Rimuovi**.
+
+Prima di installare compare una finestra che dice **cosa potrà fare l'app** (per esempio «Leggere e modificare i file in Home/Documenti/Note»). Se l'app non viene dal repository ufficiale e non è firmata da un editore di cui lilOS si fida, c'è anche un avviso: *non si può sapere chi l'ha scritta né che il codice non sia stato modificato*. **Installa comunque** vuol dire accettare questo rischio: fallo solo se ti fidi di chi la distribuisce. Aggiornando, la finestra compare solo se l'app chiede permessi nuovi o non è ufficiale.
+
+### Moduli del kernel
+
+Solo per gli amministratori. Sono parti di lilOS: dove stanno gli utenti, dove stanno i file. **Installa** mostra sempre una finestra di conferma, perché il codice di un modulo ha accesso a tutto: utenti e file di tutti. Dopo ogni installazione, aggiornamento o rimozione compare **Riavvio necessario** con il pulsante **Riavvia il kernel**: le modifiche valgono solo dopo. Durante il riavvio (qualche secondo) lilOS può non riuscire a salvare e riprova da solo.
+
+- Se il riavvio da qui non è possibile (il kernel non è stato avviato nel modo previsto), compare un messaggio: chi gestisce lilOS deve riavviarlo a mano.
+- Un modulo che lascerebbe lilOS senza file system, o senza accesso mentre lilOS è raggiungibile da altri computer, non si installa e non si rimuove: compare il motivo.
+- **Rimuovere un modulo non cancella i suoi dati** (per esempio gli utenti): restano sul computer del kernel, e compare «i suoi dati restano».
+- **Attenzione**: togliere il modulo di accesso o il file system da un lilOS in uso è pericoloso. Fallo solo sapendo cosa succede.
+
+### Repository
+
+L'elenco degli indirizzi da cui lilOS prende app e moduli. Quello ufficiale è «Sempre presente». Un amministratore può **aggiungere** un repository (l'indirizzo, che deve contenere l'elenco di ciò che offre, e un nome facoltativo) e **rimuoverlo**: rimuovere un repository non toglie le app già installate. Se un repository non si apre compare «Repository non raggiungibile» con il motivo (rete, accesso negato…): per un repository privato il computer su cui gira il kernel deve avere l'accesso.
+
+### Dopo un'installazione
+
+L'app compare subito nel menu di avvio **per chi l'ha installata**. Gli altri utenti, o un'altra scheda del browser già aperta, la vedono solo dopo aver **ricaricato la pagina**.
+
+## App installate
+
+Oltre a File, Editor, Impostazioni e AppStore, che vengono dal repository ufficiale e fanno parte di lilOS, un amministratore può **installare altre app** dall'[AppStore](#lappstore). Un'app installata c'è per tutti gli utenti e per tutti i workspace: compare nel menu di avvio e si apre in una finestra come le altre.
+
+- **Un'app può preparare le sue cose.** La prima volta che incontri un'app nuova, lilOS può creare per te qualche cartella o file di esempio, un collegamento sulla scrivania del workspace in cui sei, un tag. Non sostituisce mai quello che hai già.
+- **Un'app vede solo ciò che le è stato permesso.** Per esempio può leggere e modificare soltanto i file di una cartella precisa. Non può leggere il resto della scrivania né gli altri dati di lilOS. I file che apri con l'app sono sempre accessibili all'app. (File, Editor, Impostazioni e AppStore sono parte di lilOS e non hanno questo limite.)
+- **Nasconderla in un workspace.** In **Impostazioni → Workspace → Questo workspace** ogni app ha un interruttore: spento, l'app sparisce dal menu di avvio e da "Apri con" in quel workspace, e le sue finestre si chiudono (se hanno modifiche non salvate ti viene chiesto). L'app resta installata e negli altri workspace non cambia niente. File, Impostazioni e AppStore non si nascondono.
+- **Quando l'amministratore la rimuove**, sparisce da tutti i workspace e le sue finestre si chiudono. Quello che l'app aveva creato per te viene tolto; **quello che hai modificato o riempito va nel Cestino** (compare un messaggio con quanti elementi), così non perdi il tuo lavoro. I dati che l'app teneva per sé (le sue impostazioni) si cancellano.
+- **L'Editor è un caso a parte.** Se lo rimuovi, i file di testo non hanno più un'app che li apre finché non lo reinstalli. Attenzione: **torna da solo** quando il kernel viene riavviato (anche solo per installare un modulo), a meno che chi gestisce lilOS non lo tolga dall'elenco delle app da installare all'avvio. Per non vederlo basta nasconderlo nel workspace.
+
+Cosa non è ancora possibile: i widget sulla scrivania non si vedono ancora, e se ripristini la scrivania e i file iniziali un'app non rifà le sue cartelle e i suoi file di esempio.
+
 ## Menu contestuale
 
 In **Impostazioni → Usabilità → Menu contestuale** decidi cosa compare con il tasto destro su un punto vuoto della scrivania.
@@ -516,13 +583,13 @@ Le voci **Annulla** e **Ripeti** del menu agiscono sempre sulla scrivania. Le mo
 
 ## Apri con
 
-Quando apri un file e nessuna app è associata al suo tipo (o hai scelto "Chiedi ogni volta", o l'app associata non è installata nel workspace in cui sei), compare la finestra **Apri con**:
+Quando apri un file e nessuna app è associata al suo tipo (o hai scelto "Chiedi ogni volta", o l'app associata è nascosta nel workspace in cui sei), compare la finestra **Apri con**:
 
 - scegli l'app nell'elenco (frecce su e giù, o clic);
 - spunta **Usa sempre quest'app per i file .xxx** per non doverlo più scegliere;
 - **Apri** (o Invio, o doppio clic sull'app) apre il file; **Annulla** o Esc chiude.
 
-Se nessuna app installata può aprire il file, la finestra lo dice.
+Se nessuna app visibile può aprire il file, la finestra lo dice.
 
 ## Le finestre
 
@@ -558,14 +625,14 @@ Le modifiche valgono subito e restano salvate.
 | Aspetto | Movimento | Animazioni attive o spente. Se nel sistema operativo hai chiesto di ridurre il movimento, le animazioni restano ridotte comunque. |
 | Scrivania | Elementi | Allineamento alla griglia degli elementi trascinati |
 | Scrivania | Panoramica | Mappa in miniatura visibile o nascosta |
-| Workspace | Questo workspace | Nome, colore e app installate del workspace in cui sei (vedi [I workspace](#i-workspace)) |
+| Workspace | Questo workspace | Nome, colore e app visibili del workspace in cui sei (vedi [I workspace](#i-workspace)) |
 | Workspace | Tutti | Passare a un workspace, eliminarlo o crearne uno nuovo |
 | Tag | — | Creare, rinominare ed eliminare i tag; il colore, se sono visibili o invisibili, quanti elementi hanno; aprirne gli elementi in File (vedi [I tag](#i-tag)) |
 | Usabilità | Menu contestuale | Le voci del menu del tasto destro sulla scrivania (vedi [Menu contestuale](#menu-contestuale)) |
 | Usabilità | Tipi di file | Per ogni estensione (.txt, .md, .png…, e "Senza estensione"), l'app che apre i file di quel tipo, oppure "Chiedi ogni volta". "Ripristina tutti" torna alle app predefinite |
 | Usabilità | Cestino | Se chiedere conferma prima di eliminare, se eliminare definitivamente senza passare dal cestino, per quanto tempo il cestino conserva gli elementi; aprire e svuotare il cestino (vedi [Il Cestino](#il-cestino)) |
 | Usabilità | Scorciatoie | Le combinazioni di tasti di ogni comando (vedi [Cambiare le scorciatoie](#cambiare-le-scorciatoie)) e, nella sezione Mouse, la combinazione per la selezione a mano libera (Alt, Ctrl + Alt o Alt + Shift) |
-| Archiviazione | — | Quanto spazio usa lilOS nel browser, compreso il contenuto dei file; ripristino di impostazioni, scorciatoie e app dei tipi di file; ripristino della scrivania e dei file iniziali (con i workspace) |
+| Archiviazione | — | Quanto spazio usano le tue impostazioni e il contenuto dei tuoi file; ripristino di impostazioni, scorciatoie e app dei tipi di file; ripristino della scrivania e dei file iniziali (con i workspace) |
 | Informazioni | — | Versione di lilOS, browser, lingua |
 
 I due pulsanti di ripristino chiedono conferma: al primo clic il pulsante diventa rosso, e solo un secondo clic entro pochi secondi esegue l'operazione. **Ripristinare la scrivania e i file iniziali** elimina tutte le cartelle e i file che hai creato, ovunque si trovino, **tutti i workspace** (si riparte da uno solo, Principale), **tutti i tag**, le workarea, le posizioni e la vista salvate, poi ricarica lilOS. Non si può annullare.
@@ -574,26 +641,27 @@ I due pulsanti di ripristino chiedono conferma: al primo clic il pulsante divent
 
 Aprilo con il **pulsante del logo** in basso a sinistra oppure con **Ctrl K**.
 
-- Scrivi per cercare un'app per nome. Compaiono le app installate nel workspace in cui sei.
+- Scrivi per cercare un'app per nome. Compaiono le app visibili nel workspace in cui sei.
 - Usa le **frecce** per scegliere e **Invio** per avviare, oppure fai clic sull'app.
 - **Esc** o di nuovo **Ctrl K** chiudono il menu. Si chiude anche facendo clic fuori.
 
 In fondo al menu trovi il tuo nome e due pulsanti:
 
 - **Impostazioni** (ingranaggio): apre la finestra delle impostazioni.
-- **Riavvia sessione** (simbolo di accensione): ricarica lilOS. Non perdi nulla, perché tutto è già salvato.
+- **Esci** (simbolo di accensione, se lilOS ha più utenti): chiude la tua sessione e torna alla schermata di accesso (vedi [Accedere e uscire](#accedere-e-uscire)). Se lilOS ha un solo utente il pulsante si chiama **Riavvia sessione** e ricarica lilOS.
 
-App del menu: File, Browser, Editor, Terminale, Calendario, Immagini, Musica, Posta, Impostazioni. File e Impostazioni ci sono in ogni workspace; le altre solo dove sono installate.
+App del menu: File, Editor, Impostazioni, AppStore e le [app installate](#app-installate). File, Impostazioni e AppStore ci sono in ogni workspace; le altre in quelli dove non le hai nascoste.
 
 ## I tuoi dati
 
 lilOS salva da solo, mentre lavori, le cartelle e i file con i loro nomi e il loro contenuto (quando salvi nell'Editor), i tag e quelli che hai messo su file e cartelle, l'ordine e i collegamenti della barra di File (gli stessi in tutti i workspace), la posizione degli elementi sulla scrivania, il punto della scrivania che stavi guardando e le impostazioni. Tutto questo è salvato per ogni [workspace](#i-workspace). Anche le workarea sono salvate. Dopo aver ricaricato la pagina le finestre di ogni workspace si riaprono dove erano, dentro e fuori dalle workarea (quelle di un workspace in cui non sei si riaprono la prima volta che ci vai). Il testo non ancora salvato in una finestra però non si salva da solo: ricaricando la pagina si perde, quindi salva con Ctrl S. Il resto lo ritrovi com'era.
 
-Il salvataggio avviene **nel browser che stai usando**:
+Il salvataggio avviene **nel tuo spazio su lilOS**, non nel browser:
 
-- con un altro browser o un altro computer trovi una scrivania diversa;
-- cancellando i dati di navigazione del sito torni alla scrivania iniziale;
-- in una finestra di navigazione privata le modifiche possono andare perse alla chiusura.
+- con un altro browser o un altro computer, dopo aver fatto l'accesso, trovi la stessa scrivania;
+- cancellare i dati di navigazione del sito non cancella la tua scrivania (vedi [Accedere e uscire](#accedere-e-uscire) per i dati che il browser aveva prima);
+- se lilOS non riesce a salvare, compare un avviso e riprova da solo; non chiudere la pagina finché non compare **Modifiche salvate**;
+- un'impostazione o un file cambiato in due schede insieme: vince l'ultima che salva. Usa una scheda sola.
 
 ## Tipi di file
 
@@ -675,7 +743,7 @@ Le modifiche valgono subito e restano salvate.
 ## Domande frequenti
 
 **Ho fatto doppio clic su un'app e non succede niente.**
-È normale in questa fase: a parte File, Editor e Impostazioni, le app non sono ancora state realizzate.
+Probabilmente è un collegamento a un'app che non c'è più (per esempio i collegamenti a Terminale, Browser, Calendario, Immagini, Musica o Posta delle versioni precedenti, o un'app rimossa dall'amministratore): cancellalo. Le app che ci sono sempre sono File, Impostazioni e AppStore; le altre le installa un amministratore (vedi [L'AppStore](#lappstore)).
 
 **Un file si apre con l'app sbagliata, o mi chiede ogni volta.**
 Cambia l'app in Impostazioni → Usabilità → Tipi di file, oppure spunta "Usa sempre quest'app" nella finestra Apri con.
@@ -710,8 +778,23 @@ Se mancano dalla scrivania o da File, forse hanno un **tag invisibile**: un tag 
 **Un file di un altro workspace non si vede.**
 La cartella Scrivania di ogni workspace è visibile solo da lì. Per condividere un file con gli altri workspace tienilo in Documenti, Immagini o Download. Se hai eliminato il workspace, i suoi file sono in Documenti → Scrivania di *nome*.
 
+**Mancano File, Impostazioni o l'AppStore, o il menu di avvio non ha app.**
+Quelle app arrivano dal repository ufficiale, e il kernel le installa da solo quando parte. Se in quel momento il computer del kernel non riusciva a raggiungerlo (niente rete, accesso negato), lilOS parte senza. Chiedi a chi gestisce lilOS di sistemare l'accesso e di riavviare il kernel: le app compaiono da sole.
+
+**Ho installato un'app ma un altro utente (o un'altra scheda) non la vede.**
+Deve ricaricare la pagina.
+
 **Un'app non parte e compare un messaggio.**
-L'app non è installata nel workspace in cui sei. Attivala in Impostazioni → Workspace → Questo workspace.
+L'app è nascosta nel workspace in cui sei. Mostrala in Impostazioni → Workspace → Questo workspace.
+
+**All'apertura compare "Il kernel di lilOS non risponde".**
+Il programma che conserva i tuoi dati non è acceso: chiedi a chi gestisce lilOS di avviarlo, poi premi **Riprova**. I tuoi dati non sono persi.
+
+**Compare "Modifiche non salvate".**
+lilOS non riesce a raggiungere il suo archivio (il computer ha perso la connessione, o l'archivio è spento). Riprova da solo ogni poco; non chiudere la pagina. Quando ci riesce compare "Modifiche salvate".
+
+**Ho dimenticato la password.**
+Non si può recuperare da lilOS: chiedi a chi lo gestisce di cambiartela. Dopo il cambio devi accedere di nuovo ovunque.
 
 **Lo zoom del browser cambia invece della scrivania.**
 Non dovrebbe succedere: lilOS intercetta Ctrl + rotella. Se succede, fai clic sulla scrivania e riprova.

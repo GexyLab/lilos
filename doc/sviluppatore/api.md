@@ -14,6 +14,8 @@ Gli altri moduli (`src/`) sono il sistema: scrivania, desktop, barra.
 - [sdk/core/events.js](#sdkcoreeventsjs)
 - [sdk/core/storage.js](#sdkcorestoragejs)
 - [sdk/core/session.js](#sdkcoresessionjs)
+- [sdk/core/kernel.js](#sdkcorekerneljs)
+- [sdk/core/apps.js](#sdkcoreappsjs)
 - [sdk/core/settings.js](#sdkcoresettingsjs)
 - [sdk/core/shortcuts.js](#sdkcoreshortcutsjs)
 - [sdk/core/fs.js](#sdkcorefsjs)
@@ -29,11 +31,12 @@ Gli altri moduli (`src/`) sono il sistema: scrivania, desktop, barra.
 - [workareas/](#workareas)
 - [workspaces/](#workspaces)
 - [systemFs.js](#systemfsjs)
-- [apps/files/FilesApp.js](#appsfilesfilesappjs)
+- [App di sistema](#app-di-sistema)
+- [systemApi.js (`@lilos/system`)](#systemapijs-lilossystem)
 - [apps/open.js e apps/openWith.js](#appsopenjs-e-appsopenwithjs)
 - [apps/commands.js](#appscommandsjs)
-- [apps/editor/](#appseditor)
 - [apps/registry.js e apps/launcher.js](#appsregistryjs-e-appslauncherjs)
+- [apps/packages/](#appspackages)
 - [windows/WindowManager.js](#windowswindowmanagerjs)
 - [systemSettings.js](#systemsettingsjs)
 - [systemTrash.js](#systemtrashjs)
@@ -46,6 +49,7 @@ Gli altri moduli (`src/`) sono il sistema: scrivania, desktop, barra.
 - [sdk/ui/selectionGesture.js](#sdkuiselectiongesturejs)
 - [sdk/ui/Window.js](#sdkuiwindowjs)
 - [sdk/ui/SettingsView.js e sdk/ui/SettingsWindow.js](#sdkuisettingsviewjs-e-sdkuisettingswindowjs)
+- [Il kernel](#il-kernel)
 - [Eventi del bus](#eventi-del-bus)
 - [Dati salvati](#dati-salvati)
 
@@ -112,11 +116,15 @@ Istanza condivisa di `Emitter` per gli eventi di sistema. Vedi [Eventi del bus](
 
 ### `storage`
 
+Dove vivono i valori dipende da [`kernel`](#sdkcorekerneljs). **Collegato** (sempre, nel sistema): una `Map` in memoria, caricata all'avvio dalla cartella `.config` dell'utente e mandata al kernel 300 ms dopo ogni cambiamento, solo per le chiavi cambiate, in richieste da al massimo 200 chiavi e 4 MB; le chiavi accettate sono `[\w:.-]{1,120}` e un valore può pesare al massimo 512 KB (JSON). **Non collegato** (l'SDK da solo): `localStorage` con il prefisso `lilos:`.
+
 | Metodo | Descrizione |
 | --- | --- |
-| `get(key, fallback?)` | Legge e decodifica `lilos:<key>`. Restituisce `fallback` se manca o non è JSON valido. |
-| `set(key, value)` | Codifica e salva. In caso di errore (storage pieno o bloccato) non fa nulla. |
+| `get(key, fallback?)` | Legge e decodifica la chiave (una copia). Restituisce `fallback` se manca o non è JSON valido. |
+| `set(key, value)` | Codifica e salva. Collegato passa dal JSON come `localStorage`: `undefined`, funzioni e date perdono la forma. Senza kernel, in caso di errore (storage pieno o bloccato) non fa nulla. |
 | `remove(key)` | Elimina la chiave. |
+| `keys()` | Le chiavi salvate, senza prefisso. |
+| `bytes()` | Dimensione approssimata dei dati salvati, in byte di testo JSON (chiavi e valori). |
 
 Nessun metodo lancia eccezioni. **Il valore letto non è validato**: chi legge deve controllarne la forma (vedi come `Canvas` valida la camera).
 
@@ -128,8 +136,101 @@ Identificatore breve e unico nella sessione, basato su ora, contatore e una part
 
 ## sdk/core/session.js
 
-- `session`: `{ user: { name }, locale }`. Oggi è un valore fisso (`'Eugenio'`, `'it-IT'`), in attesa di un login.
+- `session`: `{ user: { name, username? }, locale }`. `user` è l'utente collegato al kernel (`kernel.user`); senza kernel è `{ name: 'Utente' }`. `locale` è `'it-IT'`.
 - `initials(name)`: fino a due iniziali maiuscole (`'Mario Rossi'` → `'MR'`).
+
+---
+
+## sdk/core/kernel.js
+
+Il client del kernel (il backend, vedi [Il kernel](#il-kernel)). Si importa da `@lilos/sdk` o, senza caricare il resto dell'SDK (lo fa l'avvio, `src/boot/`), da `@lilos/sdk/kernel`.
+
+```js
+import { kernel, KernelError } from '@lilos/sdk';
+```
+
+### `class KernelError extends Error`
+
+`{ status, code, message }`. `status` è lo stato HTTP (`0` se il kernel non risponde); `code` è il codice del kernel (`invalid`, `unauthorized`, `invalid_credentials`, `forbidden`, `not_found`, `conflict`, `too_large`, `rate_limited`, `unavailable`, `internal`) oppure `'offline'` quando manca la risposta. `message` è in italiano e si può mostrare all'utente.
+
+### `kernel`
+
+`Emitter`. Il sistema lo collega prima di avviarsi (`src/boot/boot.js`): dopo `connect()` `storage`, `fs` e `contents` lavorano con il kernel.
+
+| Membro | Descrizione |
+| --- | --- |
+| `connected` | `true` quando `connect()` ha caricato i dati dell'utente. |
+| `mode` | `'multi'` (gli utenti accedono) o `'single'` (un utente, senza accesso); `null` prima di `session()`. |
+| `user` | `{ id, username, name, role }` dell'utente collegato, o `null`. |
+| `data` | Ciò che `GET /api/boot` ha restituito: `{ user, fresh, nodes, storage, apps }`. Lo leggono `storage`, `fs` e `apps` appena vengono caricati. |
+| `request(method, path, body?, { text = false, keepalive = false })` | Una richiesta a `/api<path>`, con il cookie e l'intestazione `X-Lilos: 1`. `body` oggetto = JSON, stringa = testo. Restituisce il JSON della risposta (il testo con `text: true`, `undefined` per 204). Lancia `KernelError`. Una risposta 401 con l'utente connesso, in modalità `multi`, emette anche `signedout`. |
+| `session()` | `GET /api/session` → `{ mode, user }`; aggiorna `mode` e `user`. |
+| `login(username, password)` | Accede; restituisce l'utente. Lancia `KernelError` (`invalid_credentials`, `rate_limited`). |
+| `logout()` | Manda ciò che è in attesa (gli errori si ignorano), chiude la sessione, esegue le funzioni di `onLogout` (gli errori si ignorano) e azzera `user`. |
+| `onLogout(fn)` | `fn()` (anche asincrona) parte all'uscita: serve a cancellare le copie locali. Lo usa `contents` per IndexedDB. |
+| `connect()` | Carica i dati dell'utente (`GET /api/boot`), imposta `connected` e fa partire l'invio quando la pagina si nasconde o si chiude (`keepalive`). Una volta sola, dopo l'accesso. |
+| `track(name, { read, send, base? })` | Tiene qualcosa in sincronia con il kernel mandando solo le differenze. `read()` dà una `Map` chiave → valore di com'è ora; `send(set, remove, options)` manda ciò che è cambiato (`set`: `[[chiave, valore]]`, `remove`: `[chiave]`); `base` è ciò che il kernel ha già. Restituisce `{ schedule(delay = 300), flush(options), reset(), dirty }`. Se `send` lancia, riprova aspettando sempre di più (da 1 a 30 secondi), tranne con 401: allora aspetta `resume()`. |
+| `flush(options?)` | Aspetta che le modifiche arrivino al kernel. Con una stringa, solo quel tracker (`'fs'`, `'storage'`); altrimenti tutti, con `{ keepalive }`. |
+| `pending` | `true` se ci sono modifiche non ancora inviate (il sistema lo usa per l'avviso alla chiusura). |
+| `resume()` | Dopo un nuovo accesso: rimanda ciò che aspettava. |
+
+Eventi: `status` `{ saving, error }` (`error`: testo mentre le modifiche non si salvano e vengono ritentate) e `signedout` (la sessione è finita). Esempio:
+
+```js
+kernel.on('status', ({ error }) => { if (error) console.warn('non salvato:', error); });
+```
+
+---
+
+## sdk/core/apps.js
+
+### `apps`
+
+Le app installate in lilOS (pacchetti in `/system/app`, per tutti gli utenti e i workspace; File, Editor, Impostazioni e AppStore comprese). Non va confuso con `apps` di `src/apps/registry.js` (le app che lilOS sa avviare, che sono le stesse con il loro stato di avvio). L'elenco arriva con `kernel.connect()`.
+
+| Metodo | Descrizione |
+| --- | --- |
+| `list()` | Copie dello stato di ogni app: `{ id, version, previous, kind, system, required, source, signed, publisher, granted, installed, updated, manifest }`. `source` è `{ type: 'git', url, ref, commit, path? }` (o `{ type: 'local', dir }`). |
+| `get(id)` | Una app o `null`. |
+| `refresh()` | Rilegge l'elenco dal kernel ed emette `change` per ciò che è diverso. |
+| `install(source, { grant = [], allowUnsigned = false })` | Installa (solo amministratori). `source`: `{ type: 'git', url, ref?, path? }` (un repository git; vedi [Origini dei pacchetti](#origini-dei-pacchetti-sourcesjs)), `{ type: 'github', repo: 'proprietario/nome', ref?, path? }` (lo stesso, scritto in breve) o `{ type: 'local', dir }` (cartella assoluta sul computer del kernel, solo con `apps.allowLocalSources`). `grant`: i permessi del manifesto che non sono impliciti. `allowUnsigned`: l'utente ha accettato l'avviso per un'app non verificabile. Restituisce l'app. Lancia `KernelError` (`forbidden` per permessi mancanti o app non verificata, `conflict` se è già installata…). |
+| `update(id, { ref, reinstall = false, grant = [], allowUnsigned = false })` | Aggiorna dall'origine dell'app (all'ultima versione, o a `ref`). Con `reinstall` riscrive la stessa versione senza cancellare nulla. Restituisce l'app con `unchanged: true` se non c'era nulla di nuovo. |
+| `uninstall(id)` | Rimuove l'app (non quelle necessarie, `required`). |
+| `file(id, path)` | Il testo di un file della versione in uso (il codice). |
+| `library(name, version)` | Il testo di una libreria con `cache: true`. |
+
+Evento `change` `{ id, app }`: un'app è stata installata o aggiornata (`app` è lo stato nuovo) o rimossa (`app` è `null`). Solo `refresh()` — chiamato da `install`, `update` e `uninstall` — lo emette: se un altro amministratore o un'altra scheda installa un'app, questa scheda se ne accorge solo dopo una `refresh()` o una ricarica (non c'è sincronizzazione in diretta).
+
+### `repositories`
+
+I repository da cui arrivano app e moduli: quello ufficiale (sempre presente) e quelli aggiunti da un amministratore. Vedi [Repository](#repository-reposjs).
+
+| Metodo | Descrizione |
+| --- | --- |
+| `list()` | `[{ id, name, url, official }]` (utenti). |
+| `add(url, name?)` | Aggiunge un repository dopo aver letto il suo `catalog.json` (amministratori). `name` assente: quello del catalogo, o l'indirizzo. Lancia `conflict` se c'è già, `invalid` se il catalogo manca o l'indirizzo non va. |
+| `remove(id)` | Toglie un repository (amministratori; non l'ufficiale). Le app già installate restano. |
+| `catalog(id)` | Cosa offre il repository alla sua ultima versione: `{ repo, name, ref, commit, apps: [{ path, manifest } \| { path, error }], modules: [{ path, module } \| { path, error }] }` (utenti). Per installare: `apps.install({ type: 'git', url: repo.url, path, ref })`. |
+
+### `kernelModules`
+
+I moduli del kernel come pacchetti (solo amministratori). Girano nel kernel con accesso completo: ogni modifica vale dal **riavvio**. Vedi [Moduli come pacchetti](#moduli-come-pacchetti-modulepackagejs).
+
+| Metodo | Descrizione |
+| --- | --- |
+| `list()` | `[{ name, version, description, provides, requires, enabled, running, versions, source }]`. `enabled`: la versione attiva nella configurazione (`null` se spento); `running`: quella in uso adesso; se differiscono serve un riavvio. |
+| `install(source, { allowUnsigned = false })` | Installa e accende il modulo → `{ name, version, restartRequired: true }`. Un modulo non ufficiale richiede `allowUnsigned: true`. |
+| `update(name, { ref, allowUnsigned = false })` | Aggiorna dall'origine registrata → `{ name, version, previous, restartRequired }`, oppure `{ name, version, unchanged: true }`. |
+| `remove(name)` | Spegne il modulo e cancella le sue cartelle, tranne quelle che contengono i suoi dati → `{ name, kept, restartRequired }` (`kept`: cartelle conservate). |
+| `restart()` | Chiede al kernel di riavviarsi (`POST /api/kernel/restart`). Funziona solo se il kernel è stato avviato con `npm run kernel`; altrimenti lancia `unavailable`. Durante il riavvio (qualche secondo) le richieste falliscono: i salvataggi in attesa si ripetono da soli. |
+
+Esempio, in sviluppo, per installare l'app di esempio:
+
+```js
+await apps.install({ type: 'local', dir: 'C:/percorso/di/lilos/examples/apps/note' }, {
+  grant: ['fs.write:~/Documenti/Note', 'ui.shortcuts', 'desktop.items'], allowUnsigned: true,
+});
+```
 
 ---
 
@@ -201,7 +302,7 @@ Combinazione canonica di un evento `keydown`, o `null` se è premuto solo un mod
 
 ### `fs`
 
-File system virtuale: un albero di cartelle, file e collegamenti alle app. L'albero (nomi e metadati) è salvato in `lilos:fs`; il contenuto dei file (testo) in IndexedDB, letto e scritto in modo asincrono.
+File system virtuale: un albero di cartelle, file e collegamenti alle app, tenuto per intero in memoria. **Collegato al kernel** (sempre, nel sistema) è la cartella dell'utente: l'albero si carica all'avvio e ogni modifica è mandata al kernel 300 ms dopo l'ultima, solo per i nodi cambiati (`POST /api/fs/sync`, vedi [Il kernel](#il-kernel)); il contenuto dei file (testo) si legge e scrive dal kernel in modo asincrono, e prima di farlo `read` e `write` mandano ciò che è in attesa (un file appena creato deve esistere là). **Non collegato** (l'SDK da solo) l'albero è salvato in `lilos:fs` e il contenuto in IndexedDB.
 
 ```js
 { id, type: 'folder' | 'file' | 'app', name, parent, created, modified,   // date in ms
@@ -263,13 +364,15 @@ File system virtuale: un albero di cartelle, file e collegamenti alle app. L'alb
 
 `rename`, `move` e `remove` lanciano un errore sui nodi di sistema e sulla radice.
 
+`reset()` → `Promise`: elimina **ogni** nodo (di sistema, nel cestino, con il loro contenuto), senza eventi, e aspetta che il kernel l'abbia saputo (senza kernel toglie `lilos:fs`). Lo usa il ripristino «Scrivania e file iniziali» di Impostazioni, che poi cancella le altre chiavi e ricarica lilOS: dopo `reset()` il sistema non è in uno stato utilizzabile senza ricaricare.
+
 Evento `trash` (senza dati): è cambiato ciò che il cestino contiene (`trash`, `untrash`, `purge`, `purgeTrash`, `unscopeTrash`). Chi mostra il cestino rilegge `trashed()`.
 
 Evento `scope`: `id` del workspace attuale (o `null`). Significa "cambia ciò che è visibile": un altro workspace (`setWorkspace`) o i tag nascosti (`setHiddenTags`, stesso id di prima). Le viste leggono di nuovo l'albero.
 
 Evento `change`: `{ type: 'create' | 'rename' | 'update' | 'move' | 'remove', node, parent, from?, ids? }`. Per `remove`, `ids` sono tutti i nodi eliminati, contenuto compreso (con `trashed: true` sono finiti nel cestino, non eliminati); per `move`, `from` è la cartella di prima e `ids` il sottoalbero spostato (chi tiene aperto un file controlla `e.ids.includes(id)`: il suo percorso è cambiato).
 
-I contenuti stanno nel database IndexedDB `lilos`, archivio `contents`, con chiave l'`id` del file. Se IndexedDB non è disponibile (alcune modalità private) restano in memoria fino alla ricarica. Qualche secondo dopo l'avvio vengono eliminati i contenuti dei nodi che non esistono più (per esempio dopo il ripristino dei file iniziali).
+Collegati al kernel, i contenuti stanno nel database del kernel (con il nodo, e spariscono con lui); IndexedDB `lilos:<id utente>` (archivio `contents`, chiave l'`id` del file) ne tiene una copia: ciò che si è letto o scritto, usato solo per leggere quando il kernel non risponde (`offline`), e cancellato quando l'utente esce. Non collegati, stanno nel database IndexedDB `lilos`, archivio `contents`; se IndexedDB non è disponibile (alcune modalità private) restano in memoria fino alla ricarica, e qualche secondo dopo l'avvio si eliminano i contenuti dei nodi che non esistono più.
 
 Alla lettura da `lilos:fs` vengono tenuti solo i nodi ben formati raggiungibili dalla radice: tipi sconosciuti, nomi non validi, nodi orfani, cicli e nomi duplicati nella stessa cartella vengono scartati (tranne tra cartelle private di workspace diversi). `workspace` è tenuto solo se è un id valido e `private` solo per cartelle con un proprietario. `tags` è tenuto solo sui nodi che non sono di sistema, ripulito come in `setTags` (id validi, senza doppioni, al massimo 30); `setTags` non controlla che i tag esistano, ma i tag che non esistono più non si vedono da nessuna parte. Si parte da due radici (`root` e `trash`): i figli diretti del cestino senza un `trashed` valido (`at` numero, `from` testo) si scartano, e lì i nomi possono ripetersi. `ownedCount` non conta i nodi nel cestino.
 
@@ -481,7 +584,7 @@ Il pannello completo: minimappa, pulsanti −/+, percentuale (clic = 100%), "Mos
 | `items` | `Map<id, DesktopItem>` |
 | `selection` | `Set<DesktopItem>` |
 | `folder` | Id della cartella mostrata. |
-| `keyboard` | `true` se le scorciatoie del desktop sono attive. `main.js` lo mette a `false` quando una finestra ha il focus. |
+| `keyboard` | `true` se le scorciatoie del desktop sono attive. `system.js` lo mette a `false` quando una finestra ha il focus. |
 | `workareas` | Il gestore `Workareas`, o `null`. Lo imposta `Workareas` nel costruttore; senza, il desktop si comporta come prima. |
 | `history` | `UndoStack` della scrivania: è il gestore radice di `history` (lo imposta `setupHistory`, vedi [systemHistory.js](#systemhistoryjs)). |
 | `snapToGrid` | Se `true` (predefinito) gli elementi trascinati si allineano alla griglia. Collegato all'impostazione `snap`. |
@@ -787,13 +890,13 @@ Lettura, controllo e scrittura di `lilos:ws:<id>:workareas` (formato in [Dati sa
 
 ## workspaces/
 
-Scrivanie separate. Panoramica e motivazioni: [README per sviluppatori](README.md#workspace) e decisione D27. Il modulo dipende dall'SDK, da `desktop/`, `canvas/`, `workareas/`, `windows/` e `apps/`; lo crea `main.js`.
+Scrivanie separate. Panoramica e motivazioni: [README per sviluppatori](README.md#workspace) e decisione D27. Il modulo dipende dall'SDK, da `desktop/`, `canvas/`, `workareas/`, `windows/` e `apps/`; lo crea `system.js`.
 
 ### `class Workspaces extends Emitter` (`Workspaces.js`)
 
 `new Workspaces({ state, canvas, desktop, wm, launcher, workareas, taskbar })`; `state` è il valore restituito da `setupWorkspaces`. Nel costruttore:
 
-- imposta il filtro delle app installate del registro (`setInstalledFilter`) e collega `info.js`;
+- imposta il filtro delle app visibili del registro (`setInstalledFilter`), segue il `registry` (un'app installata si aggiunge a `apps` e `known` di ogni workspace vivo; una rimossa si toglie e ne chiude le finestre) e collega `info.js`;
 - dice al gestore delle finestre qual è il workspace attuale e riapre le finestre salvate fuori dalle workarea (`lilos:ws:<id>:windows`);
 - registra le scorciatoie del gruppo Workspace, attive anche mentre si scrive e solo se i workspace sono almeno due: `workspaces.next` (Ctrl Alt →) e `workspaces.previous` (Ctrl Alt ←);
 - crea il `WorkspaceSwitcher`, il pulsante nella barra;
@@ -810,17 +913,17 @@ Un workspace vivo è `{ id, name, color, created, desk, apps }` (vedi [`lilos:wo
 | `ownedCount(id)` | Quanti file, cartelle e collegamenti ha creato (`fs.ownedCount`). |
 | `switchTo(id)` | Mostra un altro workspace. Messo in coda con le eliminazioni; `Promise` che risolve quando le sue finestre sono tornate. Non fa nulla per un id sconosciuto o già attuale. Salva il workspace lasciato (chiude i menu, conferma le rinomine in corso, salva finestre, workarea e posizioni), poi cambia `fs`, finestre, camera, scrivania e workarea, emette `switch` e mostra il messaggio «Workspace «nome»». Le finestre del workspace lasciato restano aperte, nascoste. La cronologia della scrivania riparte. |
 | `step(dir)` | Il successivo (`1`) o il precedente (`-1`), tornando al giro. Non fa nulla con un solo workspace. |
-| `create({ name?, color? })` | Nuovo workspace con la Scrivania vuota e tutte le app installate. Restituisce l'id; `null` (con un messaggio) se ce ne sono già 20. Nome predefinito «Workspace N», colore il primo accento non usato. **Non lo mostra**: chiama `switchTo(id)`. |
+| `create({ name?, color? })` | Nuovo workspace con la Scrivania vuota e tutte le app visibili. Restituisce l'id; `null` (con un messaggio) se ce ne sono già 20. Nome predefinito «Workspace N», colore il primo accento non usato. **Non lo mostra**: chiama `switchTo(id)`. |
 | `rename(id, name)`, `setColor(id, color)` | Cambiano nome (ripulito, al massimo 40 caratteri; vuoto o uguale si ignora) e colore (esadecimale `#rrggbb`). |
-| `isInstalled(appId, id?)` | `true` se l'app è installata nel workspace (l'attuale se manca `id`); le app `system` sempre. |
-| `setInstalled(appId, on, id?)` | Installa o disinstalla (non le app `system`). Disinstallando nell'attuale chiude le finestre di quell'app con `requestClose`: ognuna può chiedere conferma se ha modifiche non salvate. |
+| `isInstalled(appId, id?)` | `true` se l'app è visibile nel workspace (l'attuale se manca `id`); le app `system` sempre. |
+| `setInstalled(appId, on, id?)` | Mostra o nasconde l'app nel workspace (non le app `system`); l'app resta installata in lilOS. Nascondendola nell'attuale chiude le finestre di quell'app con `requestClose`: ognuna può chiedere conferma se ha modifiche non salvate. |
 | `remove(id)` | Elimina un workspace (mai l'ultimo), in coda. Se è l'attuale mostra prima il successivo. La Scrivania diventa `/Documenti/Scrivania di <nome>` (con `fs.share`; rimossa se vuota); ciò che aveva cestinato dalla sua Scrivania diventa visibile a tutti (`fs.unscopeTrash`); le finestre delle app passano nel workspace attuale (`wm.adopt`), quelle secondarie si chiudono; chiavi `lilos:ws:<id>:…` cancellate; nell'elenco resta la voce "rimossa". Promise: il percorso della vecchia Scrivania, `''` se era vuota, `null` se non ha eliminato nulla. File e cartelle creati altrove restano dove sono. |
 
 **Eventi**
 
 | Evento | Payload | Quando |
 | --- | --- | --- |
-| `change` | — | Cambiati elenco, nomi, colori o app installate. |
+| `change` | — | Cambiati elenco, nomi, colori o app visibili. |
 | `switch` | `id` | Mostrato un altro workspace. |
 
 ### `setup.js`
@@ -875,16 +978,16 @@ Quale app apre quale file, per estensione. Le scelte predefinite vengono da `ope
 
 | Funzione | Descrizione |
 | --- | --- |
-| `openFile(node, { choose? })` | Apre il file con la sua app (`launch(app, { file: id })`); senza app associata, con un'app **non installata nel workspace attuale**, o con `choose: true`, mostra la finestra "Apri con". |
+| `openFile(node, { choose? })` | Apre il file con la sua app (`launch(app, { file: id })`); senza app associata, con un'app **nascosta nel workspace attuale**, o con `choose: true`, mostra la finestra "Apri con". |
 | `appFor(ext)` | L'app per quell'estensione, o `null` (chiedi). La scelta è la stessa in ogni workspace. |
 | `defaultAppFor(ext)` | L'app predefinita secondo il registro, o `null`. |
 | `setAppFor(ext, appId \| 'ask' \| null)` | Salva la scelta; uguale alla predefinita (o `null`) la toglie. |
 | `resetAppsFor()` | Torna a tutte le predefinite. |
 | `fileApps()` | App che aprono file (hanno `opens` e `load`). |
-| `installedFileApps()` | Quelle installate nel workspace attuale: le propone "Apri con". |
+| `installedFileApps()` | Quelle visibili nel workspace attuale: le propone "Apri con". |
 | `knownExtensions()` | Estensioni da elencare: tipi conosciuti, quelle aperte dalle app, quelle scelte, quelle dei file esistenti. |
 | `extensionOf(node)` | Estensione in minuscolo. |
-| `setChooser(fn)` | Il sistema registra la funzione che mostra "Apri con" (`main.js`). |
+| `setChooser(fn)` | Il sistema registra la funzione che mostra "Apri con" (`system.js`). |
 
 Il launcher passa alle app anche `openWindow(win, key?)` per le finestre secondarie (con una chiave, se è già aperta mostra quella).
 
@@ -900,77 +1003,75 @@ Scorciatoie delle app, dichiarate nel registro (`commands`) e registrate all'avv
 
 ---
 
-## apps/editor/
+## App di sistema
 
-### `EditorApp.js`
+File, Editor, Impostazioni e AppStore **non stanno in questo repository**: sono pacchetti di [GexyLab/lilos-plugins-official](https://github.com/GexyLab/lilos-plugins-official) (sorgenti in `src/<app>/`, pacchetto pronto in `apps/<id>/`) che il kernel installa all'avvio se mancano ([D41](../interna/decisioni.md#d41-le-app-di-sistema-mancanti-si-installano-allavvio-del-kernel)). Come si lavora su di loro: [README per sviluppatori](README.md#le-app-di-sistema-e-il-repository-ufficiale). Qui c'è quello che lilOS si aspetta da loro e che gli dà.
 
-L'app Editor, su `Window`. Export predefinito `({ args, openWindow }) → Window`; `args.file` apre un file, `args.folder` apre una cartella nel pannello di destra (`FileTree.js`). Un documento per finestra; l'evento `launch` con un altro file o un'altra cartella li apre nella stessa finestra (chiedendo prima se ci sono modifiche). Senza la proprietà `args.folder` torna l'ultima cartella aperta; `args.folder: null` significa nessuna cartella (finestra riaperta com'era); `args.sidebar === false` apre il pannello chiuso. `win.getState()` restituisce `{ file, folder, sidebar? }` (`sidebar: false` solo se il pannello è chiuso), usato dalle workarea.
+Un'app di sistema è un modulo ES come le altre: l'export predefinito riceve `{ args, openWindow }` e restituisce una `Window` (vedi [apps/registry.js e apps/launcher.js](#appsregistryjs-e-appslauncherjs)). Importa `@lilos/sdk` e [`@lilos/system`](#systemapijs-lilossystem); non ha sandbox.
 
-- Testo in una `textarea` trasparente sopra una copia evidenziata (`pre`) con le stesse misure; numeri di riga a sinistra, riga corrente evidenziata.
-- Salva con `fs.write`; un documento nuovo viene creato nella cartella aperta a destra, se c'è, altrimenti in `/Documenti`, come "Senza titolo.txt".
-- Barra in alto: Nuovo documento, Apri un file… e Apri una cartella… (con `pickFile`), Salva, Mostra nella cartella, schema JSON, linguaggio, impostazioni, pannello della cartella (`aria-pressed`).
-- Con modifiche non salvate: barra di conferma (Salva / Non salvare / Annulla) prima di chiudere (`win.canClose`), aprire un altro file o crearne uno nuovo; avviso del browser su `beforeunload`.
-- Comandi `editor.save` (Ctrl S), `editor.new` (Ctrl Alt N), `editor.openFile` (Ctrl O), `editor.openFolder` (Ctrl Alt O), `editor.sidebar` (Ctrl B) e `editor.complete` (Ctrl Spazio) tramite `handleCommand`.
-- Segue `fs`: file eliminato (il testo resta), rinominato, spostato o con una cartella sopra rinominata (nuovo percorso e nuovo URI per il language server).
-- Suggerimenti (`complete.js`): un elenco `role="listbox"` sotto la parola (sopra se sotto non c'è spazio), collegato alla `textarea` con `aria-autocomplete`, `aria-expanded`, `aria-activedescendant`. Si apre da solo quando si scrive un carattere di parola (o `.`, `<`, `&`, `@`, uno spazio dentro un tag HTML), si aggiorna con Backspace, si chiude con spazi, a capo, clic, scorrimento o perdita del focus. Mentre è aperto: frecce, Pag ↑/↓, Invio/Tab per accettare, Esc per chiudere. Accettare sostituisce la parola iniziata; un `|` nel testo da inserire indica dove va il cursore. In CSS, dopo una proprietà si aprono subito i suoi valori.
-- Tab / Shift Tab rientro di due spazi, Invio mantiene il rientro, Esc esce dal testo. Gli inserimenti passano da `execCommand('insertText')` per conservare Annulla.
-- Ctrl Z / Ctrl Y nel testo: `history.attach(input, { text: true, undo, redo })`. Il gestore chiude i suggerimenti, rimette il focus nella `textarea` e usa `document.execCommand('undo' | 'redo')`, cioè la cronologia della `textarea` (scrittura, suggerimenti, rientri). Restituisce `''` se è andato a buon fine, `null` altrimenti: l'etichetta è vuota, quindi in basso non compare nessun messaggio.
-- Oltre 300 000 caratteri il testo non viene colorato, per restare veloce.
+Argomenti (`args`) che il sistema usa per avviarle, e stato per le workarea (`win.getState`):
 
-### `complete.js`
+| App (`id`) | `args` | `getState()` |
+| --- | --- | --- |
+| File (`files`) | `folder`: id della cartella da aprire (altrimenti Home); `trash: true` (o `folder === fs.trashRoot`) apre il Cestino; `tag`: id di un tag che esiste, apre la vista di quel tag. Sulla finestra già aperta arriva l'evento `launch` e mostra la nuova cartella. | `{ folder }` (`fs.trashRoot` per il Cestino, `'tag:<id>'` per un tag) |
+| Editor (`editor`) | `file`: id del file da aprire; `folder`: cartella del pannello a destra (assente: l'ultima aperta; `null`: nessuna); `sidebar: false`: pannello chiuso. Apre i tipi di file dichiarati in `contributes.fileTypes` del suo manifesto. | `{ file, folder, sidebar? }` |
+| Impostazioni (`settings`) | `tab`: id di una scheda (`'workspaces'`, `'tags'`…), anche a finestra già aperta; `tagFor`: id dei nodi su cui metterà il prossimo tag creato (lo manda «Nuovo tag…» del sottomenu Tag). | nessuno (si riapre sulla prima scheda) |
+| AppStore (`appstore`) | `tab`: id di una scheda, quando la finestra è già aperta (evento `launch`). | nessuno |
 
-`complete(text, caret, lang, { manual })` → `{ from, items }` o `null`.
+Il sistema dipende da questi argomenti (`launch('files', { folder })` in `system.js`, `launch('settings', { tab: 'workspaces' })` nel pulsante del workspace): cambiarli nell'app rompe il sistema. Il sistema non dipende invece dall'esistenza delle app: se una manca, `launch` scrive solo un'informazione in console (`app non ancora disponibile`).
 
-- `from`: inizio della parola da completare; `items`: `[{ label, insert, kind, detail }]`, al massimo 100, prima quelli che iniziano con quanto scritto (maiuscole uguali, poi diverse), poi quelli che lo contengono (da 2 lettere). Tipi (`kind`): `kw`, `fn`, `pr`, `val`, `tag`, `attr`, `abc` (parola del documento).
-- Per linguaggio: JavaScript e Python (parole chiave, globali/predefinite, membri dopo il punto), CSS (proprietà, valori per proprietà, `var(--…)` del file, regole `@`, selettori), HTML (tag con chiusura, attributi globali e del tag, tag da chiudere, entità), JSON (chiavi del file, valori), Markdown (linguaggi dei blocchi, parole), testo (parole). Più le parole del documento.
-- Automatico (`manual: false`): serve almeno 1 carattere (3 per testo e Markdown) salvo dove il contesto basta (dopo `.`, `<`, `</`, `: ` in CSS, l'apertura di un blocco Markdown); niente dentro stringhe e commenti. Manuale: risponde sempre.
-- I vocabolari sono elenchi nel file; vedi la decisione D20 sul passaggio a formati standard.
+Cosa salvano (chiavi di `storage`, vedi [Dati salvati](#dati-salvati)): File `files-view`; Editor `editor-lang`, `editor-tree`; Impostazioni nulla di proprio (usa `settings`, `shortcuts`, `tags`, `menus`…). Le associazioni dei tipi di file e l'ordine della barra laterale di File sono del sistema (`file-apps`, `files-sidebar`).
 
-### `highlight.js`
-
-- `LANGUAGES`: `text`, `markdown`, `javascript`, `css`, `html`, `json`, `python`, ognuno `{ label, rules: [[RegExp, classe]] }`. Le espressioni non devono avere gruppi di cattura (usa `(?:…)`).
-- `languageFor(name)`: il linguaggio dall'estensione.
-- `tokenize(text, lang)` → `[[classe | null, testo], …]`. Classi: `kw` parola chiave, `st` testo, `nu` numero, `cm` commento, `fn` funzione/link, `pr` proprietà, `pu` punteggiatura, `hd` titolo, `bd` grassetto, `it` corsivo (stili `.tk-*` in `editor.css`).
-- Il risultato diventa nodi di testo e `span`, mai HTML.
+Permessi dichiarati nei manifesti ufficiali: File `fs.write:~`, `fs.workspaces`, `tags.write`, `desktop.items`; Editor `fs.write:~`, `ui.shortcuts`, `net:https://json.schemastore.org`; Impostazioni `settings.system`, `workspaces.manage`, `tags.write`, `ui.shortcuts`; AppStore `apps.manage`. Per le app di sistema non c'è un controllo a ogni uso (non passano dal ponte): i permessi servono al kernel per accettare il manifesto e a mostrare cosa fa l'app.
 
 ---
 
-## apps/files/FilesApp.js
+## systemApi.js (`@lilos/system`)
 
-L'app File (File Manager), su `Window`. Export predefinito `({ args }) → Window`; `args.folder` è la cartella da aprire (altrimenti Home); `args.trash: true` (o `args.folder === fs.trashRoot`) apre il cestino; `args.tag` (id di un tag che esiste) apre la vista di quel tag. `win.getState()` restituisce `{ folder }` (`fs.trashRoot` se mostra il cestino, `'tag:<id>'` se mostra un tag; un tag che non esiste più si ignora e si apre Home). L'evento `launch` sulla finestra già aperta mostra la nuova cartella.
+`src/systemApi.js`: ciò che il sistema dà alle app di sistema oltre all'SDK. Un'app lo importa come `@lilos/system`; il build non lo include. A runtime il browser carica `/host/system.js`, generato da `scripts/host-shims.mjs` (lo eseguono `predev` e `prebuild`), che ri-esporta per nome ciò che `system.js` ha messo in `globalThis.__lilosHost.system`. Lo stesso vale per `@lilos/sdk` → `/host/sdk.js` → `globalThis.__lilosHost.sdk`. Se il modulo viene importato prima che lilOS sia pronto, lancia «lilOS non è pronto».
 
-- Barra: Indietro, Avanti, Su, percorso cliccabile, Nuova cartella, vista elenco/icone (salvata in `lilos:files-view`), ricerca nella cartella.
-- Barra laterale: Home e le cartelle di sistema (attiva quella che contiene la cartella aperta), il blocco dei tag, i collegamenti e la voce **Cestino**, nell'ordine scelto dall'utente (vedi sotto).
-- **Cestino.** Mostra `fs.trashed()` come se fosse una cartella (id `fs.trashRoot`, che non è un nodo): colonne Nome, Eliminato, Dimensione, Tipo, Posizione originale; la barra di stato dice dopo quanto tempo si eliminano gli elementi (`trashRetention`). Si ridisegna sull'evento `trash`. Gli elementi non si aprono né si rinominano e "Nuova cartella" è disattivata. Menu dell'elemento: Ripristina (`restoreNodes`, annullabile, con un `toast` che dice dove sono andati) ed Elimina definitivamente… (`fs.purge`, chiede **sempre** conferma, non si annulla). Menu dello sfondo: Ripristina tutto e Svuota il cestino… (`fs.purgeTrash()`). Canc nel cestino è Elimina definitivamente.
-- **Tag.** Nella barra laterale, dopo la sezione Collegamenti, l'intestazione «Tag» e una voce per tag (pallino con il colore e nome; i tag invisibili hanno il simbolo `eyeOff`), fuori dall'ordine dei collegamenti e senza `data-entry`. La vista di un tag mostra `fs.tagged(id)` come se fosse una cartella (id `'tag:<id>'`, che non è un nodo): tutti gli elementi con quel tag, anche quelli nascosti, che il workspace attuale vede. Colonne Nome, Posizione (`Home` o il percorso della cartella), Tipo, Workspace; ricerca, ordinamento, apri, rinomina ed elimina funzionano; "Nuova cartella" è disattivata. Menu dell'elemento: **Mostra nella cartella** (`reveal`: apre la cartella con l'elemento selezionato; se l'elemento è nascosto da un tag invisibile non lo seleziona e lo dice nella barra di stato) e **Togli il tag «X»**; menu dello sfondo: Gestisci i tag… e la vista. Barra di stato: «Tutti gli elementi con questo tag» o, con il tag invisibile, «Tag invisibile: questi elementi sono nascosti altrove». Se il tag viene eliminato, la finestra torna a Home. Si ridisegna sugli eventi `change` di `tags` e sulle modifiche di `fs`. In ogni vista, il menu di un elemento ha il sottomenu **Tag** e i pallini dei tag compaiono dopo il nome (elenco, `tagDots`) o sull'icona (vista a icone).
-- Elenco: colonne Nome, Modificato, Dimensione, Tipo, Workspace, ordinabili (le cartelle restano in cima); vista a icone. La colonna Workspace mostra un pallino con il colore e il nome del workspace che ha creato il nodo (`describeWorkspace`): «Condiviso» per i nodi senza proprietario (le cartelle di sistema), «Nome (eliminato)» se il workspace non esiste più, «Sconosciuto» per un id non in elenco. Nella vista a icone il tooltip dice «Workspace: …». Si aggiorna quando i workspace cambiano.
-- Vede solo ciò che il workspace attuale può vedere (`fs`): la Scrivania degli altri non compare. Se il workspace cambia e la cartella aperta non è visibile da lì, la finestra (nascosta) resta com'è e torna con il suo workspace.
-- **Trascinamento** (vedi [itemDrag.js](#itemdragjs)): righe (elenco) e riquadri (icone) sono marcati con `markItem`, tranne nel cestino. Trascinare un elemento selezionato sposta **tutta la selezione** (`stack` = `history` della finestra). Un clic semplice su uno di più elementi selezionati restringe la selezione a lui **al rilascio** (non alla pressione, per poterli trascinare). Bersagli: le cartelle (righe e riquadri), l'elenco (`dropZone` per la cartella mostrata: non nel cestino e non nelle viste dei tag), le cartelle del percorso in alto e la barra laterale (vedi sotto). Nella barra, al centro del **Cestino** si elimina con `removeNodes(stack, ids)` (sempre nel cestino, anche con `deletePermanent`; annullabile nella finestra di partenza) con un toast, se almeno un nodo non è di sistema; al centro del blocco **Tag** non succede niente.
-- **Barra laterale.** In cima la sezione «Collegamenti» (`section.fm-side-links`, intestazione «Collegamenti»): le voci fisse (Home, Scrivania, Documenti, Immagini, Download) e i collegamenti, nell'ordine scelto dall'utente (`links`, vedi [links.js](#linksjs)). Dopo di lei, **fuori dall'ordine e non spostabili**: il blocco dei Tag, il separatore e il Cestino (`[data-trash]`). Ogni voce della sezione ha `data-entry` (la chiave dell'ordine) e, se apre una cartella, `data-folder`; **non usa `markItem`**. Un collegamento è una riga `div.fm-link-row[data-entry]` con il pulsante `.fm-link` e il pulsante `.fm-link-x` (×). La barra è una `dropZone` con `target`, perché lo stesso elemento ha due significati: `#sideTarget(hit, x, y, ids)` decide dalla posizione del puntatore. Sul **Cestino** (centro o bordi) i nodi vanno sempre nel cestino (`removeNodes`; accetta solo se almeno un nodo non è di sistema) e non si crea mai un collegamento. Sui Tag e nello spazio sotto il Cestino non c'è bersaglio (nessuna linea, nessuna azione). Nella sezione, al **centro** di una voce con `data-folder` i nodi si spostano nella cartella (`movableInto` / `moveInto`, annullabile). Vicino al **bordo** (fascia di `min(8, altezza/4)` px), al centro del collegamento a un file, o nella parte vuota in fondo alla sezione (circa 10 px), si chiama `links.place(chiavi, indice, defaults)`: una linea (`.fm-gap`) mostra dove andrà; un elemento già nella sezione si sposta lì invece di duplicarsi; un solo elemento rilasciato dov'è già non è un bersaglio. Toast «Collegamento aggiunto» o «N collegamenti aggiunti». Le voci della sezione si trascinano con `dragItems({ ids: [nodo] })` (tranne dal pulsante ×) e si riordinano così; trascinate fuori dalla barra trascinano il nodo vero. Clic su un collegamento: una cartella si mostra, un file si apre (`openFile`), un'app si avvia. **Eliminare un collegamento** (`#unlink`): toglie solo la chiave (`links.remove`), con il pulsante ×, il tasto Canc sul pulsante con il focus (`stopPropagation`, quindi non agisce sugli elementi selezionati nell'elenco) o la voce «Elimina il collegamento» del menu (insieme a Apri e Mostra nella cartella, `reveal`). Registra un passo `Elimina il collegamento a «nome»` nella `history` della finestra (undo: `links.place` alla posizione di prima; redo: `links.remove`), mostra il toast «Collegamento a «nome» eliminato» e riporta il focus sull'elenco. Le voci fisse non si eliminano. Il menu degli elementi ha **Aggiungi alla barra laterale di File** (`linkEntry`). Si ridisegna sull'evento `change` di `links`. Riordinare e aggiungere non sono annullabili.
-- Selezione: clic, Ctrl + clic, Shift + clic (intervallo), frecce (con Shift), Home/Fine. Backspace e Alt ↑ salgono, Alt ←/→ vanno indietro e avanti. Sono tasti di navigazione fissi.
-- È un *target* dei comandi sugli elementi quando la sua finestra è attiva. Rinomina in linea; i nodi di sistema non si rinominano né eliminano.
-- Apre le cartelle al suo interno, avvia le app, apre i file con `openFile` (app associata o "Apri con"); nel menu del tasto destro "Apri con…".
-- Segue gli eventi `change` di `fs`; se la cartella aperta viene eliminata, passa alla cartella che la conteneva.
-- `history`: una `UndoStack` per finestra, collegata a `win.el` con `history.attach` (e scollegata alla chiusura). Registra creare (con il nome: un passo), rinominare, eliminare e spostare con il trascinamento (anche verso la scrivania o l'Editor), tramite [`fsHistory.js`](#fshistoryjs) e `confirmRemove`. Chiusa la finestra, la cronologia si perde.
+**È un contratto con le app installate**: togliere o rinominare un export rompe le app di sistema già installate. Aggiungere è sicuro. Ogni export deve avere la forma `export { a, b } from '…'` su una sola riga (lo script legge solo quelle). Dopo aver aggiunto un export, rigenera gli shim (`npm run dev` e `npm run build` lo fanno da soli).
+
+| Export | Da | A cosa serve |
+| --- | --- | --- |
+| `version` | `package.json` | Versione di lilOS |
+| `ACCENTS`, `LASSO_OPTIONS`, `RETENTION_OPTIONS` | `systemSettings.js` | Scelte di colore principale, selezione a mano libera e conservazione del cestino |
+| `SYSTEM_FOLDERS`, `DESK_NAME` | `systemFs.js` | Cartelle di sistema e nome della Scrivania |
+| `FOLDER_COLOR`, `itemIcon` | `desktop/itemIcons.js` | Icone di cartelle e file |
+| `WORKSPACE_LIMITS` | `workspaces/store.js` | Limiti dei workspace (alias di `LIMITS`) |
+| `describeWorkspace`, `onWorkspacesChange`, `workspaceManager` | `workspaces/info.js` | Nome e colore di un workspace; il gestore dei workspace |
+| `apps`, `registry`, `getApp`, `isInstalled`, `installedApps`, `launch` | `apps/registry.js` | Il registro delle app (non l'`apps` dell'SDK) |
+| `fileApps`, `appFor`, `defaultAppFor`, `setAppFor`, `resetAppsFor`, `knownExtensions`, `openFile` | `apps/open.js` | Quale app apre quale file |
+| `handleCommand` | `apps/commands.js` | Un'app gestisce un suo comando |
+| `pickFile` | `apps/filePicker.js` | Selettore di file e cartelle |
+| `addTarget` | `items/targets.js` | Comandi sugli elementi |
+| `links`, `linkEntry` | `items/links.js` | Collegamenti della barra laterale di File |
+| `markItem`, `dropZone`, `dragItems`, `movableInto`, `moveInto` | `items/itemDrag.js` | Trascinamento di file e cartelle |
+| `recordCreated`, `renameNode`, `moveNode`, `restoreNodes`, `removeNodes` | `items/fsHistory.js` | Azioni sul file system che entrano nella cronologia |
+| `confirmRemove` | `items/confirmRemove.js` | Eliminare come dicono le impostazioni |
+| `tagDots`, `tagSubmenu`, `setTag` | `tags/tagUi.js` | Interfaccia dei tag |
+
+Per le firme vedi le sezioni dei moduli di origine in questa pagina.
 
 ---
 
 ## apps/registry.js e apps/launcher.js
 
-- `apps`: array di `{ id, name, glyph, color, system?, load?, opens?, commands? }`. `system: true` (File, Impostazioni): sempre installata in ogni workspace. `opens`: estensioni che l'app apre per impostazione predefinita (`''` = senza estensione); un'app con `opens` riceve `args.file`. `commands`: scorciatoie dell'app `{ id, label, keys, whenEditing? }`, registrate all'avvio (vedi [apps/commands.js](#appscommandsjs)).
-- `glyph` è un nome accettato da `icon()`. `load` importa il modulo dell'app (`() => import('./settings/SettingsApp.js')`); le app senza `load` non sono ancora realizzate.
+- `apps`: array **vivo** di `{ id, name, glyph, color, system?, trusted?, load, opens?, commands?, package }`. **Nessuna app è integrata**: il registro contiene solo le app installate dal kernel (`packages.js` le aggiunge e le toglie). `package` è lo stato e il manifesto; `load` ne importa il modulo (vedi [apps/packages](#appspackages)). `system: true` significa che l'app è **necessaria** (`required` nel manifesto): sempre visibile in ogni workspace e non rimovibile. `trusted: true` significa app di sistema (`system` nel manifesto): gira dentro lilOS, senza sandbox. `opens`: estensioni che l'app apre per impostazione predefinita (`''` = senza estensione; da `contributes.fileTypes`); un'app con `opens` riceve `args.file`. `commands`: scorciatoie dell'app `{ id, label, keys, whenEditing? }`, registrate all'avvio (vedi [apps/commands.js](#appscommandsjs)).
+- `glyph` è un nome accettato da `icon()` (predefinito `help`).
+- `registry`: `Emitter`. Evento `change` `{ id, app }` quando un'app viene aggiunta o sostituita (`app` è la nuova voce) o rimossa (`app` è `null`).
+- `registerApp(app)`: aggiunge l'app o sostituisce quella con lo stesso id (una nuova versione). `unregisterApp(id)`: la toglie. Le chiama `packages.js`.
 - `getApp(id)` → l'app o `undefined`.
-- L'app Impostazioni accetta `args.tab` (id di una scheda, per esempio `'workspaces'`) e si apre su quella, anche se è già aperta.
-- `isInstalled(id)` → `true` se l'app esiste ed è installata nel workspace attuale (le `system` sempre). `installedApps()` → quelle installate, nell'ordine del registro. `setInstalledFilter(fn)`: il sistema (`Workspaces`) imposta `fn(appId) → boolean`; predefinito: tutte installate. Il menu di avvio mostra solo le installate.
+- `isInstalled(id)` → `true` se l'app esiste ed è visibile nel workspace attuale (le `system` sempre; il nome viene da quando le app si installavano per workspace). `installedApps()` → quelle visibili, nell'ordine del registro. `setInstalledFilter(fn)`: il sistema (`Workspaces`) imposta `fn(appId) → boolean`; predefinito: tutte visibili. Il menu di avvio mostra solo le visibili.
 - `launch(id, args?)`: emette `app:launch` con `{ id, args }`.
-- `connectLauncher(wm)`: trasforma `app:launch` in finestre. Al primo avvio carica il modulo dell'app e chiama il suo export predefinito `({ args }) → Window`, poi apre la finestra con `wm.open(win, { app: id, center, bounds })`. Se l'app ha già una finestra **nell'ambito attuale** (e nel workspace attuale) la riporta in primo piano (ed emette `launch`). Le app senza `load` scrivono un avviso in console. Un'app **non installata** nel workspace attuale non parte: un messaggio (`toast`) dice di aggiungerla da Impostazioni → Workspace. La finestra appartiene al workspace attuale al momento della richiesta, anche se l'utente cambia workspace mentre l'app si carica (in quel caso si apre nascosta nel suo workspace).
-- `connectLauncher(wm)` restituisce `{ restore }`. `restore({ app, state, rect }, { workspace = wm.workspace })` ricrea la finestra di un'app com'era: chiama il suo export con `state` come `args` e la apre con `wm.open(win, { app, at: rect, workspace })`, senza spostare la camera. Restituisce una Promise con la finestra, o `null` se l'app non esiste, non è installata nel workspace attuale o non parte.
+- `connectLauncher(wm)`: trasforma `app:launch` in finestre. Al primo avvio carica il modulo dell'app e chiama il suo export predefinito `({ args, openWindow }) → Window`, poi apre la finestra con `wm.open(win, { app: id, center, bounds })`. Se l'app ha già una finestra **nell'ambito attuale** (e nel workspace attuale) la riporta in primo piano (ed emette `launch`). Le app senza `load` (o inesistenti) scrivono un avviso in console. Un'app **nascosta** nel workspace attuale non parte: un messaggio (`toast`) dice di mostrarla da Impostazioni → Workspace. La finestra appartiene al workspace attuale al momento della richiesta, anche se l'utente cambia workspace mentre l'app si carica (in quel caso si apre nascosta nel suo workspace).
+- `connectLauncher(wm)` restituisce `{ restore }`. `restore({ app, state, rect }, { workspace = wm.workspace })` ricrea la finestra di un'app com'era: chiama il suo export con `state` come `args` e la apre con `wm.open(win, { app, at: rect, workspace })`, senza spostare la camera. Restituisce una Promise con la finestra, o `null` se l'app non esiste, è nascosta nel workspace attuale o non parte.
 - `setLaunchScope({ includes, center, bounds })`: stringe l'ambito in cui il launcher lavora (lo imposta `Workareas`). `includes(win)` → `boolean` dice quali finestre aperte contano come "la finestra dell'app" (una per app per ambito); `center(win)` → punto del mondo o `null` dove va una finestra nuova (`null`: il centro della vista); `bounds()` → rettangolo del mondo o `null` in cui deve restare. Predefinito: tutta la scrivania, nessun centro né limite. `openWindow` delle app (finestre secondarie) usa lo stesso centro e gli stessi limiti.
 
 ### Modulo di un'app
 
 ```js
-// src/apps/notes/NotesApp.js
+// src/notes/NotesApp.js (nel repository ufficiale, per un'app di sistema)
 import { Window, h } from '@lilos/sdk';
 
 export default function createNotes({ args }) {
@@ -979,6 +1080,118 @@ export default function createNotes({ args }) {
   return win;
 }
 ```
+
+---
+
+## apps/packages/
+
+Le app installate (pacchetti) nel sistema, di sistema e non. Panoramica: [README per sviluppatori](README.md#app-installate-pacchetti); ricetta: [Creare un'app installabile](ricette.md#creare-unapp-installabile-pacchetto); decisioni D35-D38.
+
+### Manifesto `lilos.json`
+
+Validato dal kernel (`system/kernel/src/apps/manifest.js`), che scarta i campi che non conosce.
+
+| Campo | Significato |
+| --- | --- |
+| `id` | Minuscolo, cifre, punti e trattini, 2-64 caratteri (`acme.note`). È anche l'id nel registro. |
+| `version` | `x.y.z`. |
+| `kind` | `'local'` (codice del pacchetto: in iframe isolato, o dentro lilOS se è un'app di sistema) o `'remote'` (un sito in un iframe). |
+| `name` | Nome mostrato, fino a 40 caratteri. |
+| `icon?` | `{ glyph, color }`: nome di un simbolo (`icon()`) e colore `#rrggbb`. Predefiniti `help` e `#5f6673`. |
+| `publisher` | `{ id, name, key? }`; `key` è la chiave pubblica Ed25519 (`ed25519:<base64>`). |
+| `sdk` | `"1"`. |
+| `description?` | Una frase che dice cosa fa (fino a 300 caratteri); la mostra l'AppStore. |
+| `system?` | Solo `true`, e solo per app dal repository ufficiale ([D38](../interna/decisioni.md#d38-le-app-di-sistema-vengono-dal-repository-ufficiale-e-girano-dentro-lilos)): l'app gira **dentro lilOS, senza sandbox**, e può chiedere i permessi riservati. |
+| `required?` | Solo `true`, e solo con `system`: l'app è necessaria a lilOS, non si rimuove né si nasconde. |
+| `entry` | Solo `local`: uno dei file del pacchetto, un modulo ES. In un'app non di sistema ha tutto già dentro; un'app di sistema può avere più file (blocchi, worker, file `.wasm`) accanto all'entry. |
+| `styles?` | Solo app di sistema: fogli di stile `.css` del pacchetto (fino a 10, tra i `files`) che lilOS carica insieme all'app. |
+| `files` | `{ percorso: 'sha256-<base64>' }`: ogni file del pacchetto (fino a 1000, percorsi di fino a 16 livelli con `[\w.-]`). Lo riempie `pack.js` (o, nel repository ufficiale, `scripts/build.mjs`). |
+| `url` | Solo `remote`: `https://…` (o `http://localhost`). Non può avere l'origine di lilOS. |
+| `libraries?` | `[{ name, version, url, integrity: 'sha384-…', cache? }]`, fino a 30, solo `https`. Con `cache: true` il kernel la scarica una volta in `/system/commons` e la dà inline; senza, il browser la carica dall'`url` (che entra nella CSP). |
+| `permissions?` | Elenco di permessi (fino a 50), vedi sotto. |
+| `contributes?` | `window: { width, height }` (200-4000 × 150-4000); `fileTypes: [estensione]` (fino a 50); `commands: [{ id, label, keys? }]` (fino a 30, l'`id` inizia con l'id dell'app + `.`, `keys` fino a 3 e richiede `ui.shortcuts`); `widgets: [{ id, name, width, height }]` (fino a 10, richiede `desktop.widget`; **validati ma non mostrati**). |
+| `install?`, `update?`, `uninstall?` | Operazioni, vedi sotto. `update`: `[{ from: '<1.2.0', ops: [...] }]` (`from`: `<x.y.z`, `<=x.y.z` o `x.y.z`). |
+| `signature?` | `ed25519:<base64>` sul manifesto senza `signature`, con le chiavi in ordine. |
+
+Un manifesto non può superare 256 KB.
+
+### Permessi
+
+Un permesso è `nome` oppure `nome:parametro`. Un permesso non nell'elenco, o con il parametro sbagliato, fa rifiutare il manifesto. Livelli: **implicit** (dato senza chiedere), **install** (lo concede chi installa, con `grant`), **use** (concesso all'installazione e da richiedere all'utente a ogni uso; **oggi non si chiede**), **reserved** (solo `system: true`).
+
+| Permesso | Livello | Significato | Effetto oggi |
+| --- | --- | --- | --- |
+| `fs.app`, `fs.tmp` | implicit | I propri dati / file temporanei | `lilos.storage` funziona sempre; `tmp` non ha ancora funzioni |
+| `fs.open` | implicit | I file che l'app apre | L'app può leggere e scrivere il file con cui è stata aperta |
+| `fs.read:<~/percorso>` | install | Leggere i file in quel percorso | `lilos.files.read` e `list` |
+| `fs.write:<~/percorso>` | install | Leggere e modificare i file in quel percorso | `lilos.files.*` |
+| `tags.read`, `tags.write` | install | Vedere / creare e assegnare tag | `tags.write` serve all'operazione `tag` |
+| `desktop.items` | install | Mettere elementi sulla scrivania | Serve all'operazione `desktopItem` |
+| `desktop.widget` | install | Mostrare widget | Nessuno (i widget non si mostrano) |
+| `ui.notify` | implicit | Mostrare avvisi | `lilos.ui.toast` |
+| `ui.menus`, `ui.commands` | install | Aggiungere voci ai menu / comandi | Nessuno (i comandi si registrano comunque da `contributes.commands`) |
+| `ui.shortcuts` | install | Scorciatoie da tastiera | Richiesto da `commands[].keys` |
+| `clipboard.write` | implicit | Copiare negli appunti | `lilos.clipboard.write` |
+| `clipboard.read` | use | Leggere gli appunti | Nessuno |
+| `net:<origine>` | install | Collegarsi a un sito (`https://api.esempio.it`, senza percorso) | Apre `connect-src` della CSP |
+| `media.camera`, `media.microphone`, `geo` | use | Fotocamera, microfono, posizione | Nessuno (l'iframe non ha `allow`) |
+| `apps.call:<id app>` | install | Usare le azioni di un'altra app | Nessuno |
+| `ai.use`, `ai.expose` | install | Usare l'intelligenza artificiale / esporre le proprie azioni | Nessuno |
+| `background` | install | Lavorare anche a lilOS chiuso | Nessuno |
+| `auth.remote` | implicit | Accedere al proprio servizio (app remote) | Nessuno: il token non c'è |
+| `fs.workspaces`, `apps.manage`, `workspaces.manage`, `settings.system` | reserved | Funzioni di sistema | Nessuno: le app di sistema non passano dal ponte, usano `@lilos/system` e l'SDK; i permessi servono a farne accettare il manifesto e a descriverle |
+
+I percorsi sono nella forma `~/Documenti/Note`: `~` è la radice del file system dell'utente. `fs.read:~` o `fs.write:~` coprono tutto. Il confronto non distingue le maiuscole e non esce dalla cartella indicata.
+
+### Operazioni
+
+Le operazioni di `install`, `update` e `uninstall` (fino a 100 ciascuna) lilOS le esegue per l'utente la prima volta che incontra l'app, senza sovrascrivere. I percorsi cominciano con `~` e non contengono `..`.
+
+| `op` | Campi | Che cosa fa | Permesso richiesto |
+| --- | --- | --- | --- |
+| `mkdir` | `path` | Crea la cartella e quelle mancanti del percorso | `fs.write` su `path` |
+| `write` | `path`, `text` (fino a 64 KB) | Crea il file con quel testo, se non esiste | `fs.write` su `path` |
+| `copy` | `from` (un file del pacchetto), `to` | Crea il file copiando dal pacchetto, se non esiste | `fs.write` su `to` |
+| `desktopItem` | `target`: `'app'` (per ora l'unico valore accettato) | Mette sulla scrivania del workspace attuale il collegamento all'app, se non c'è già | `desktop.items` |
+| `tag` | `name`, `color?` | Crea il tag, se non esiste | `tags.write` |
+| `setting` | `key`, `value` | Imposta `app:<id>:<key>` nei dati dell'utente, se non c'è | — |
+| `remove` | `path`, `ask?` | Solo in `uninstall`: porta nel Cestino quel percorso, se esiste | `fs.write` su `path` |
+
+Ciò che l'app ha creato per un utente è scritto nella chiave `app-setup` di quell'utente: `{ [id]: { version, name, made, uninstall } }`. Quando l'app non c'è più `undo` toglie ciò che aveva creato: i nodi non toccati (file con la data di modifica uguale, cartelle vuote) si eliminano, gli altri vanno nel Cestino, i tag non usati si tolgono, le impostazioni e le chiavi `app:<id>:*` si cancellano.
+
+### `window.lilos` (`bridge.js`)
+
+L'unico modo che un'app `local` ha di raggiungere lilOS. Ogni chiamata è un messaggio controllato da `host.js` e restituisce una `Promise`; un errore (permesso negato, file inesistente, valore troppo grande) la rifiuta con `Error(message)`.
+
+| Funzione | Descrizione |
+| --- | --- |
+| `lilos.app` | `{ id, version, args }`: `args` è ciò con cui l'app è stata avviata (per un file, `{ file: id }`), o `null`. |
+| `lilos.on(evento, fn)` → `off` | Eventi: `launch` (nuovi argomenti, a finestra già aperta), `command` (`id` di un comando di `contributes.commands`, quando l'utente preme la sua scorciatoia), `theme` (i token di colore sono cambiati; il bridge li applica da solo a `:root`). |
+| `lilos.window.setTitle(testo)` | Titolo della finestra (fino a 100 caratteri). |
+| `lilos.ui.toast(testo)` | Avviso in basso (fino a 200 caratteri). |
+| `lilos.files.read(rif)` → testo | `rif`: `~/percorso` (coperto da `fs.read` o `fs.write`) oppure l'id di un file con cui l'app è stata aperta. |
+| `lilos.files.write(rif, testo)` | Scrive (fino a 10 milioni di caratteri); crea il file se la cartella esiste. Serve `fs.write`. |
+| `lilos.files.list(percorso)` → `[{ name, type, size, modified }]` | Contenuto di una cartella (`fs.read` o `fs.write`). |
+| `lilos.files.mkdir(percorso)` | Crea una cartella (la cartella che la contiene deve esistere; se c'è già non fa nulla). Serve `fs.write`. |
+| `lilos.storage.get(chiave)` → valore o `null` | Dati propri dell'app per l'utente. Chiavi `[\w.-]{1,64}`; salvati come `app:<id>:<chiave>`. |
+| `lilos.storage.set(chiave, valore)` | Fino a 256 KB di JSON per valore. |
+| `lilos.clipboard.write(testo)` | Copia negli appunti. |
+
+I percorsi sono quelli che l'utente vede dal workspace attuale: `~/Scrivania` è la scrivania del workspace in cui l'app gira. Le variabili di tema (`--accent`, `--text`, `--surface`…) sono disponibili nei CSS dell'app. Le scorciatoie arrivano come `command` con i tasti scelti dall'utente in Impostazioni.
+
+### `packages.js`
+
+- `registerPackages()`: prima dei workspace, mette ogni app installata nel registro. Per ogni app crea la voce con `system` = `required`, `trusted` = `system`, e `load`: per un'app di sistema `local` è `loadSystemApp`, per le altre `packageModule`.
+- `loadSystemApp(pkg)` (interna): per ogni foglio di `styles` aggiunge un `<link rel="stylesheet" data-app="<id>">` (e toglie quelli di una versione precedente), poi fa `import()` di `/api/apps/<id>/v/<versione>/<entry>`. Il percorso contiene la versione, quindi i blocchi, i worker e i file che il modulo carica con percorsi relativi si risolvono accanto a lui, e il browser li tiene in cache per sempre (`immutable`): **una versione non si cambia, se ne pubblica una nuova**. Alla rimozione di un'app i suoi fogli di stile si tolgono.
+- `connectPackages({ desk })` → `Promise`: dopo l'avvio, segue `apps` (`change`: aggiunge, sostituisce o toglie nel registro) e fa le operazioni per l'utente. `desk()` dà l'id della Scrivania del workspace attuale.
+
+### `host.js`
+
+(per le app **non** di sistema: quelle di sistema non hanno finestra isolata)
+
+- `packageModule(pkg)` → `{ default: ({ args }) => Window }`: il modulo che il launcher carica per un'app installata. Una finestra per app, come le altre. `getState()` restituisce `{ file }` se l'app è stata aperta con un file (così le workarea la riaprono con lo stesso file).
+- App `local`: `<iframe sandbox="allow-scripts">` con `srcdoc`. Il documento contiene: la CSP in `<meta>` (`default-src 'none'`; `script-src 'unsafe-inline'` più gli indirizzi delle librerie non in cache; `style-src 'unsafe-inline'`; immagini, font e media solo `data:`/`blob:`; `connect-src` con le origini dei permessi `net:`, altrimenti `'none'`; `form-action 'none'`; `base-uri 'none'`), il ponte, le librerie e il codice. Il codice e le librerie in cache si controllano con gli hash prima di essere inseriti; se non corrispondono la finestra non si apre.
+- App `remote`: `<iframe sandbox="allow-scripts allow-same-origin allow-forms allow-popups" src=url>`. lilOS risponde ai messaggi del ponte che il sito gli manda (stesse funzioni, stessi permessi), ma non gli dà `window.lilos`; quel protocollo non è documentato né stabile.
 
 ---
 
@@ -1022,7 +1235,7 @@ Gli `z-index` delle finestre partono da 100 e seguono l'ordine di sovrapposizion
 
 ## systemSettings.js
 
-Dichiara le impostazioni del sistema e le applica. Va importato per primo da `main.js`.
+Dichiara le impostazioni del sistema e le applica. Va importato per primo da `system.js`.
 
 | Chiave | Predefinito | Effetto |
 | --- | --- | --- |
@@ -1042,13 +1255,13 @@ Esporta anche `ACCENTS`, i colori proposti dall'app Impostazioni, `RETENTION_OPT
 
 ## systemTrash.js
 
-`setupTrash()`: chiamata da `main.js`. Elimina per sempre ciò che è nel cestino da più di `trashRetention` giorni (`fs.purgeTrash(Date.now() - giorni * 86 400 000)`, di tutti i workspace, non solo dell'attuale): all'avvio, ogni ora e quando l'impostazione cambia. Con `trashRetention` a `0` non fa nulla.
+`setupTrash()`: chiamata da `system.js`. Elimina per sempre ciò che è nel cestino da più di `trashRetention` giorni (`fs.purgeTrash(Date.now() - giorni * 86 400 000)`, di tutti i workspace, non solo dell'attuale): all'avvio, ogni ora e quando l'impostazione cambia. Con `trashRetention` a `0` non fa nulla.
 
 ---
 
 ## systemHistory.js
 
-`setupHistory({ root, activeWindow })`: collega l'annulla e ripeti centrale al sistema. La chiama `main.js` con `{ root: desktop.history, activeWindow: () => wm.active }`.
+`setupHistory({ root, activeWindow })`: collega l'annulla e ripeti centrale al sistema. La chiama `system.js` con `{ root: desktop.history, activeWindow: () => wm.active }`.
 
 - `history.setRoot(root)` e `history.setContext(() => activeWindow()?.el ?? null)`.
 - Scorciatoie nel gruppo **Modifica** (si cambiano in Impostazioni → Usabilità → Scorciatoie): `edit.undo` (Ctrl Z) e `edit.redo` (Ctrl Y, Ctrl Shift Z). Funzionano anche mentre si scrive (`whenEditing`) e si ripetono tenendo premuto (`repeat`); `when` è `history.handles(…)`, quindi nei campi di testo senza `text: true` il tasto resta al browser.
@@ -1070,7 +1283,7 @@ Esporta anche `ACCENTS`, i colori proposti dall'app Impostazioni, `RETENTION_OPT
 
 Stili in `src/styles/tags.css` (`.tag-dots`, `.tag-dot`, `.ditem-tags`, `.fm-tag`…).
 
-**Scheda Tag di Impostazioni** (`tagSections` in `SettingsApp.js`, dopo la scheda Workspace). Una sezione «Nuovo tag» (nome e **Crea**, anche con Invio; un errore, come un nome già preso, esce in un `toast`) e una sezione per tag con Nome, Colore (`swatches` con `TAG_COLORS`), Visibile (interruttore, con la spiegazione di cosa succede) ed Elementi (quanti ne vede il workspace attuale, **Mostra in File** e **Elimina…** in due clic, che chiama `tags.remove`). Si ridisegna sull'evento `change` di `tags`. Argomenti di `launch('settings', …)`: `tab: 'tags'` apre la scheda e dà il focus al campo del nuovo tag; `tagFor: string[]` sono gli id degli elementi che prenderanno il prossimo tag creato lì (i nodi che non esistono si ignorano; l'elenco si svuota dopo la creazione).
+**Scheda Tag di Impostazioni** (`tagSections` in `SettingsApp.js`, nel repository ufficiale, dopo la scheda Workspace). Una sezione «Nuovo tag» (nome e **Crea**, anche con Invio; un errore, come un nome già preso, esce in un `toast`) e una sezione per tag con Nome, Colore (`swatches` con `TAG_COLORS`), Visibile (interruttore, con la spiegazione di cosa succede) ed Elementi (quanti ne vede il workspace attuale, **Mostra in File** e **Elimina…** in due clic, che chiama `tags.remove`). Si ridisegna sull'evento `change` di `tags`. Argomenti di `launch('settings', …)`: `tab: 'tags'` apre la scheda e dà il focus al campo del nuovo tag; `tagFor: string[]` sono gli id degli elementi che prenderanno il prossimo tag creato lì (i nodi che non esistono si ignorano; l'elenco si svuota dopo la creazione).
 
 ---
 
@@ -1096,7 +1309,7 @@ Stili in `src/styles/tags.css` (`.tag-dots`, `.tag-dot`, `.ditem-tags`, `.fm-tag
 | `open()`, `close()`, `toggle()` | Apre, chiude, alterna. All'apertura chiude un eventuale menu contestuale, svuota la ricerca e dà il focus al campo. |
 | `isOpen` | Stato. |
 
-Registra la scorciatoia `system.startMenu` (Ctrl K, gruppo Generale, attiva anche mentre si scrive); la stessa combinazione lo chiude quando il focus è dentro il menu. Il tooltip del pulsante del logo segue la scorciatoia. La ricerca filtra per nome (contiene, senza distinguere maiuscole e minuscole) le app **installate nel workspace attuale** (`installedApps()`).
+Registra la scorciatoia `system.startMenu` (Ctrl K, gruppo Generale, attiva anche mentre si scrive); la stessa combinazione lo chiude quando il focus è dentro il menu. Il tooltip del pulsante del logo segue la scorciatoia. La ricerca filtra per nome (contiene, senza distinguere maiuscole e minuscole) le app **visibili nel workspace attuale** (`installedApps()`). Il pulsante in fondo è **Esci** (`kernel.logout()`, poi ricarica la pagina; un errore mostra «Uscita non riuscita: …» e non esce) quando `kernel.mode` è `'multi'`, altrimenti **Riavvia sessione** (ricarica la pagina).
 
 ### `createClock()` → `HTMLElement`
 
@@ -1364,68 +1577,6 @@ Predefinito: **Nuovo** (Cartella, Workarea, separatore, Documento di testo, Docu
 
 ---
 
-## apps/editor/lang/ e apps/editor/lsp/
-
-L'Editor sceglie per ogni linguaggio un **motore di evidenziazione** e, se c'è, un **language server**.
-
-### `lang/languages.js`
-
-- Linguaggi: `{ id, label, exts, textmate?, treesitter?, simple, server? }`. Integrati: testo, Markdown, JavaScript, TypeScript, CSS, HTML, XML, JSON, Python, Shell, YAML; più quelli delle grammatiche TextMate aggiunte (id `tm:<scopeName>`, estensioni da `fileTypes`).
-- `languages()`, `getLanguage(id)`, `languageForName(name)` (le grammatiche aggiunte hanno la precedenza), `enginesFor(lang)`, `engineFor(lang)` (scelto nelle impostazioni o il migliore disponibile), `loadCustomGrammars()` → problemi `[{ fileId, name, error }]`, `languageEvents` (`change`).
-
-### `lang/engines.js`
-
-`highlighter(lang, engine)` → `Promise<{ engine, tokenize(text) }>`; `tokenize` restituisce `[[classe | null, testo, colore?, stileFont?], …]`.
-
-- **Tree-sitter** (`web-tree-sitter`): grammatiche in `public/tree-sitter/<nome>/` (`.wasm` e `highlights.scm`, copiate da `scripts/vendor-tree-sitter.mjs`). Le catture diventano classi `tk-*`; per lo stesso nodo vale l'ultima regola del file.
-- **TextMate** (Shiki con il motore di espressioni regolari JavaScript, senza WebAssembly): colori dal tema `github-light` o `github-dark`, secondo il tema di lilOS. Oltre 100 000 caratteri si usa il motore semplice.
-- **Semplice**: `highlight.js`.
-
-### `lang/config.js`
-
-`editorConfig`: `get(sezione)`, `set(sezione, valore)`, `setEntry(sezione, chiave, valore)`, evento `change`. Sezioni: `engines`, `builtin` (`{ json, css, html }`), `external` (`[{ lang, url }]`, solo `ws://`/`wss://`), `schemas` (`{ fileId: { type: 'file', id } | { type: 'url', url } }`, solo `http(s)`), `grammars` (id di file). Salvato in `lilos:editor-lang`, validato alla lettura.
-
-### `lsp/`
-
-- `jsonrpc.js`: `Connection` JSON-RPC 2.0 (richieste, notifiche, risposte, errori), indipendente dal trasporto.
-- `client.js`: `LanguageClient` (initialize, sincronizzazione completa del documento, completamento, diagnostica, configurazione, shutdown); trasporti `workerTransport(worker)` e `socketTransport(url)` (un messaggio JSON per frame; accetta anche l'intestazione `Content-Length`). Stato: `starting` → `ready` | `error` | `closed`.
-- `manager.js`: `clientFor(lang)` (server esterno se configurato, altrimenti quello nel browser; condiviso tra le finestre, ricreato se è andato in errore), `fileUri(id)` (`file:///lilos/…`), `schemaUri(source)`, `servers` (evento `changed`). Fornisce gli schemi ai server (`workspace/didChangeConfiguration` con `json.schemas`) e risponde alla richiesta `lilos/schemaContent` leggendo i file di lilOS o scaricando gli indirizzi web (senza cookie).
-- `workers/`: server LSP minimi in Web Worker attorno a `vscode-json-languageservice` (completamento, validazione, JSON Schema), `vscode-css-languageservice` (completamento, validazione), `vscode-html-languageservice` (completamento).
-- `convert.js`: `positionAt`, `offsetAt`, `expandSnippet` (`$1`, `${1:testo}`, `${1|a,b|}`, `$0`), `fromServer(items, text, caret)` → suggerimenti dell'Editor.
-
-### `EditorSettings.js`
-
-### `FileTree.js`
-
-`new FileTree({ win, openWindow })` (un `Emitter`): il pannello a destra con il contenuto della cartella aperta, che ne è la radice. `el` è l'`aside` da inserire; l'Editor lo mette dopo il testo in `.ed-main`.
-
-| Membro | Descrizione |
-| --- | --- |
-| `root` | Id della cartella aperta, o `null` (pannello nascosto). |
-| `setRoot(id)` | Apre una cartella come radice (`null` la chiude); evento `root`. |
-| `FileTree.savedRoot()` | La radice salvata l'ultima volta, se esiste ancora. |
-| `setCurrent(id)` | Evidenzia il file aperto nell'Editor e apre le cartelle sopra di lui. |
-| `collapsed`, `setCollapsed(bool)` | Pannello nascosto dall'utente, con la radice ancora aperta; evento `layout`. |
-| `width`, `resize(px, save?)` | Larghezza: almeno 160 px, al massimo il 60% della finestra. |
-| `create(type, parentId?)` | Nuovo file (`nuovo.txt`) o cartella dentro la radice, poi subito la rinomina; un file nuovo si apre quando ha il nome. |
-| `rename(id)`, `remove(id)` | Rinomina nella riga; elimina con `confirmRemove`. La radice non si rinomina né si elimina da qui. |
-| `move(id, parentId)`, `moveTo(id)` | Sposta dentro la radice con `moveNode` (registra nella cronologia; gli errori compaiono in fondo al pannello); `moveTo` chiede la cartella con `pickFile({ kind: 'folder', within: root, exclude: id })`. |
-
-| `history` | `UndoStack` del pannello, collegata a `el`: creare (con il nome: un passo), rinominare, spostare, eliminare. Ctrl Z agisce su di lei quando il focus è nel pannello. |
-
-Evento `open` (id del file) quando si apre un file: doppio clic, Invio, menu Apri.
-
-- Albero `role="tree"` con righe `treeitem` (`aria-level`, `aria-expanded`, `aria-selected`) e `aria-activedescendant`; cartelle prima, poi file, in ordine alfabetico.
-- Trascinamento con [itemDrag.js](#itemdragjs): le righe sono marcate con `markItem` (cartelle e file) e il pannello è una `dropZone`: rilasciando su una riga di cartella i nodi vi entrano, su una riga di file vanno nella cartella di quel file, sulla parte vuota nella radice (la zona evidenzia la riga o il pannello). Si trascina una riga alla volta (non le cartelle di sistema), quindi anche **da e verso** la scrivania e l'app File, e fuori dalla radice. `stack` è la `history` del pannello; la riga trascinata ha la classe `dragging`. Le voci del menu hanno **Aggiungi ai collegamenti** (`linkEntry`). «Sposta in…» (`moveTo`) resta limitato alla radice, perché il selettore parte da lì.
-- Invio, F2 e Canc sono le scorciatoie degli elementi (`addTarget`, attivo quando il focus è nell'albero); frecce, Home, Fine, ← → fissi. Il doppio clic si riconosce da `click` con `detail === 2`, perché la selezione non ricostruisce le righe ma l'apertura delle cartelle sì.
-- Separatore `role="separator"` sul bordo sinistro: trascinamento, frecce (Shift: passi più lunghi), Home / Fine, doppio clic per la larghezza iniziale.
-- Segue gli eventi di `fs`: si chiude se la radice viene eliminata, aggiorna il titolo se viene rinominata; mentre si rinomina una riga non si ridisegna.
-- Salva in `lilos:editor-tree` `{ root, expanded, width }`.
-
-`openEditorSettings(openWindow)`: la finestra Impostazioni dell'Editor (una sola), con le sezioni Evidenziazione, Language server, Schemi JSON.
-
----
-
 ## apps/filePicker.js
 
 `pickFile(openWindow, { title, exts?, text?, kind?, within?, exclude? })` → `Promise<node | null>`: finestra per scegliere un file di lilOS (ricerca per nome o percorso, frecce, Invio, doppio clic, Esc).
@@ -1436,20 +1587,223 @@ Evento `open` (id del file) quando si apre un file: doppio clic, Invio, menu Apr
 
 ---
 
+## Il kernel
+
+Il backend (`system/kernel/`). Panoramica: [README per sviluppatori](README.md#kernel); decisioni D31-D33 e D37-D41. Il frontend lo usa con [`kernel`](#sdkcorekerneljs).
+
+### API HTTP
+
+Tutto sta sotto `/api`. Le risposte sono JSON, con `Cache-Control: no-store`, `X-Content-Type-Options: nosniff` e una CSP che vieta tutto. Gli errori sono `{ error: codice, message }` con questi stati: `invalid` 400, `unauthorized` 401, `invalid_credentials` 401, `forbidden` 403, `not_found` 404, `conflict` 409, `too_large` 413, `rate_limited` 429 (con `Retry-After`), `unavailable` 503; un errore non previsto è `internal` 500 e il messaggio non dice altro. Un metodo non ammesso dà 405 con `Allow`.
+
+Le richieste che modificano (tutte tranne `GET` e `HEAD`) devono avere l'intestazione `X-Lilos: 1` e, se il browser manda `Origin`, questa deve essere in `origins` della configurazione o, con `loopbackOrigins: true`, un `http://localhost`, `127.0.0.1` o `[::1]`; altrimenti `forbidden`. Senza un modulo di accesso chiunque raggiunga il kernel è l'unico utente: per questo ascolta solo su questo computer.
+
+| Metodo e percorso | Chi | Corpo → risposta |
+| --- | --- | --- |
+| `GET /api/session` | tutti | → `{ mode: 'multi' \| 'single', user \| null }` |
+| `POST /api/session` | tutti | `{ username, password }` → `{ user }` e il cookie `lilos_session` (`HttpOnly; SameSite=Strict; Path=/api`, `Secure` con `secureCookies`). Con un solo utente: `invalid`. |
+| `DELETE /api/session` | tutti | Chiude la sessione e cancella il cookie |
+| `GET /api/boot` | utenti | → `{ user, fresh, nodes, storage, apps }`: tutto ciò che serve per partire. `fresh`: la cartella dell'utente è vuota. `apps` è l'elenco di `GET /api/apps`, ma senza nascondere l'origine `local` ai non amministratori |
+| `POST /api/fs/sync` | utenti | `{ put: [nodo], remove: [id] }`, in una transazione; al massimo 5000 voci e 8 MB. L'SDK ne manda al massimo 2000 per richiesta (prima i nodi, con i genitori prima dei figli, poi le eliminazioni), quindi non c'è un limite al numero di modifiche di una volta sola |
+| `GET /api/fs/content/:id` | utenti | → testo del file |
+| `PUT /api/fs/content/:id` | utenti | testo del file (fino a 10 MB) |
+| `POST /api/storage` | utenti | `{ set: { chiave: valore }, remove: [chiave] }`; al massimo 500 chiavi per volta, 512 KB per valore (JSON). L'SDK ne manda al massimo 200 e circa 4 MB per richiesta |
+| `GET /api/apps` | utenti | → app installate `[{ ...stato, manifest }]`. Agli utenti non amministratori l'origine `local` mostra solo `{ type: 'local' }` |
+| `GET /api/apps/:id/file?path=…` | utenti | → un file della versione in uso (il codice) |
+| `GET /api/apps/:id/v/:version/<percorso>` | utenti | → un file di quella versione (la in uso o la precedente), con il percorso nell'URL: da qui lilOS importa le app di sistema, e i loro blocchi, worker e file `.wasm` si risolvono accanto al modulo. Risposta con `Cache-Control: private, max-age=31536000, immutable` e una CSP che permette a quel codice di caricare le proprie risorse dalla stessa origine (`default-src 'self' blob: data:; script-src 'self' blob: 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'`). |
+| `GET /api/commons/:name/:version` | utenti | → una libreria in cache |
+| `POST /api/apps` | amministratori | `{ source, grant, allowUnsigned }` → stato dell'app |
+| `POST /api/apps/:id/update` | amministratori | `{ ref?, reinstall?, grant, allowUnsigned }` → stato (con `unchanged: true` se non c'è nulla di nuovo) |
+| `DELETE /api/apps/:id` | amministratori | Rimuove (non le app di sistema) |
+| `GET /api/repos` | utenti | → `[{ id, name, url, official }]`: l'ufficiale e quelli aggiunti |
+| `POST /api/repos` | amministratori | `{ url, name? }` → il repository. Legge `catalog.json` prima di salvare |
+| `DELETE /api/repos/:id` | amministratori | Toglie un repository (non l'ufficiale) |
+| `GET /api/repos/:id/catalog` | utenti | → cosa offre il repository: app e moduli (vedi [Repository](#repository-reposjs)) |
+| `GET /api/modules` | amministratori | → moduli del kernel installati (vedi [Moduli come pacchetti](#moduli-come-pacchetti-modulepackagejs)) |
+| `POST /api/modules` | amministratori | `{ source, allowUnsigned }` → `{ name, version, restartRequired }` |
+| `POST /api/modules/:name/update` | amministratori | `{ ref?, allowUnsigned }` → `{ name, version, previous, restartRequired }` o `{ …, unchanged: true }` |
+| `DELETE /api/modules/:name` | amministratori | → `{ name, kept, restartRequired }` |
+| `POST /api/kernel/restart` | amministratori | Il kernel si ferma ed esce con il codice 75: `npm run kernel` lo riavvia. Senza `run.js` (variabile `LILOS_SUPERVISED` assente): `unavailable` |
+| `/api/modules/<nome>/…` | utenti | Gli endpoint dei moduli (`ctx.route`) |
+
+I percorsi possono finire con `*` (`/api/apps/:id/v/:version/*`): il resto del percorso arriva in `params.rest`.
+
+**Nodi di `/api/fs/sync`.** `{ id, parent, name, type: 'folder' \| 'file' \| 'app', created, modified, color?, app?, system?, workspace?, private?, tags?, trashed? }`: gli id di lilOS (`[\w-]{1,64}`; `root` e `trash` solo come `parent`) diventano `<home>/<id>`, in una cartella per utente. Il contenuto dei file non passa di qui. I metadati extra (i campi dopo `modified`) non possono superare 4 KB per nodo.
+
+**Dentro la home** di ogni utente: `~trash` (la radice del Cestino, nominata `.trash`) e `~config` (nominata `.config`, un file JSON per ogni chiave di `storage`). Una chiave è `[\w:.-]{1,120}`.
+
+**Chi è l'utente.** `principal` è `{ kind: 'user', id, username, name, role: 'admin' \| 'user' }`. Senza modulo `auth` è sempre `{ id: 'local', username: 'utente', name: 'Utente', role: 'admin' }`.
+
+### Configurazione (`config.json`)
+
+```json
+{
+  "host": "127.0.0.1", "port": 8790,
+  "origins": [], "loopbackOrigins": true, "secureCookies": false,
+  "modules": [
+    { "name": "users-basic", "version": "1.0.0", "config": { "sessionDays": 30, "idleDays": 7 } },
+    { "name": "fs-postgres", "version": "1.0.0", "config": { "url": "postgres://lilos:lilos@127.0.0.1:5433/lilos" } }
+  ],
+  "apps": { "allowLocalSources": true, "trustedPublishers": {}, "officialKey": null, "bootstrap": ["files", "editor", "settings", "appstore"] }
+}
+```
+
+| Campo | Significato |
+| --- | --- |
+| `host`, `port` | Dove ascolta. Senza modulo `auth` solo `127.0.0.1`, `::1` o `localhost`. `LILOS_KERNEL_HOST` e `LILOS_KERNEL_PORT` hanno la precedenza. |
+| `origins`, `loopbackOrigins` | Origini ammesse per le richieste che modificano. |
+| `secureCookies` | Aggiunge `Secure` al cookie (con HTTPS). |
+| `modules` | Moduli da avviare, `{ name, version?, config? }`. Senza `version`: la più alta installata. Un modulo indicato due volte, non installato, o che richiede un servizio che nessun modulo attivo fornisce, ferma il kernel. |
+| `apps.allowLocalSources` | Permette di installare app da una cartella del computer del kernel (solo sviluppo). |
+| `apps.trustedPublishers` | `{ idEditore: 'ed25519:<chiave>' }`: gli editori di cui ci si fida. |
+| `apps.officialKey` | Se c'è, le app di sistema devono essere firmate con questa chiave. |
+| `apps.bootstrap` | Gli `id` delle app che il kernel installa dal repository ufficiale, all'avvio, se mancano (predefinito: `files`, `editor`, `settings`, `appstore`). Vedi [D41](../interna/decisioni.md#d41-le-app-di-sistema-mancanti-si-installano-allavvio-del-kernel). |
+
+Il file si può cambiare con la variabile `LILOS_KERNEL_CONFIG`. Il kernel richiede un modulo che fornisce `fs`. Installare, aggiornare o togliere un modulo con l'AppStore riscrive la lista `modules` di questo file (passando da `config.json.tmp`, ignorato da git).
+
+`repos.json`, nella cartella del kernel (`system/kernel/`, ignorato da git), contiene i repository aggiunti da un amministratore: `[{ id, name, url }]`, al massimo 30. L'ufficiale non è nel file: c'è sempre.
+
+### Avvio e riavvio (`run.js`)
+
+`npm run kernel` esegue `system/kernel/run.js`, che avvia `src/main.js` come processo figlio con `LILOS_SUPERVISED=1` e lo riavvia quando esce con il codice **75** (lo fa `POST /api/kernel/restart`, dopo aver installato, aggiornato o tolto un modulo). Con qualunque altro codice, `run.js` termina con quello. Avviare `src/main.js` direttamente funziona, ma senza riavvio automatico.
+
+All'avvio il kernel carica i moduli, registra le rotte e prima di ascoltare **installa le app di sistema che mancano** (`apps.bootstrap`, vedi [D41](../interna/decisioni.md#d41-le-app-di-sistema-mancanti-si-installano-allavvio-del-kernel)): legge il catalogo del repository ufficiale e installa ciascuna app mancante, dall'ultimo tag, concedendo i permessi del suo manifesto. Se il repository non risponde (rete, `git` mancante, credenziali), il kernel parte lo stesso, scrive nel log «App di sistema non installate (…)» e lilOS gira senza quelle app.
+
+### Moduli
+
+Cartella `modules/<nome>_<x.y.z>/` con:
+
+- `module.json`: `{ name, version, description, kernel: "1", provides: [servizio], requires: [servizio] }`. `name` e `version` devono corrispondere alla cartella e `kernel` a quello del kernel (`1`).
+- `index.js`: `export default { init(ctx), stop?(), commands? }`.
+
+`ctx` (il contesto di `init`):
+
+| Membro | Descrizione |
+| --- | --- |
+| `name`, `version`, `dir`, `config` | Il modulo, la sua cartella (può tenerci file propri) e la sua parte di configurazione. |
+| `log` | Logger. |
+| `fail(codice, messaggio)` | Lancia un errore voluto (i codici sono quelli della tabella degli errori). |
+| `provide(servizio, impl)` | Fornisce un servizio dichiarato in `provides`; per `auth`, `users` e `fs` il kernel controlla che `impl` abbia tutti i metodi. |
+| `service(nome)` | Un servizio dichiarato in `requires`. |
+| `route(metodo, percorso, handler)` | Endpoint `/api/modules/<nome><percorso>`, solo per utenti con l'accesso fatto. `handler({ principal, params, query, json(limite?), req, res })` restituisce JSON (nulla = 204). Il percorso è `/parola/:param`, con `[\w:-]`. |
+
+`commands` sono i comandi della riga di comando: `npm run kernel:cli -- <modulo> <comando> [argomenti] [--opzione valore] [--interruttore]`; ricevono `{ services, args: { positional, flags }, prompt, ctx }`. `prompt.password(domanda, { confirm })` chiede una password senza mostrarla (o la prende da `LILOS_PASSWORD` se non c'è un terminale).
+
+### Servizi (`services.js`)
+
+Il kernel controlla che questi metodi esistano; ogni modulo può fornire anche servizi con altri nomi.
+
+| Servizio | Metodi |
+| --- | --- |
+| `auth` | `login(username, password, { ip })` → `{ token, user, expires }` (lancia `invalid_credentials` o `rate_limited`); `session(token)` → `user \| null`; `logout(token)`; `logoutAll(userId)` |
+| `users` | `get(id)`, `list()`, `create({ username, name, password, role })`, `setPassword(id, password)`, `remove(id)` |
+| `fs` | `home(principal)` → `{ id, path, created }`; `stat(principal, id)`; `list(principal, id)`; `tree(principal, id, { content })`; `lookup(principal, path)`; `apply(principal, { put, remove })` (una transazione); `read(principal, id)` → `Buffer`; `write(principal, id, Buffer)`; `remove(principal, ids)` |
+
+Un nodo del servizio `fs` è `{ id, parent, name, type: 'folder' \| 'file' \| 'app', meta, size, created, modified, content? }`. Chi chiede è un `principal`: `{ kind: 'user', … }` o `KERNEL` (`{ kind: 'kernel' }`, usato per installare le app). Il modulo `fs` rifiuta ciò che il principal non può fare: `not_found` per ciò che non deve sapere che esiste, `forbidden` per ciò che vede ma non cambia.
+
+### `users-basic_1.0.0`
+
+Configurazione: `sessionDays` (30) e `idleDays` (7). Tutto sta in `users.json` nella cartella del modulo:
+
+```json
+{ "version": 1, "users": [
+  { "id": "…", "username": "eugenio", "name": "Eugenio", "role": "admin", "password": "scrypt$32768$8$1$<sale>$<hash>", "created": 1793180000000,
+    "sessions": [{ "hash": "<sha256 del token>", "created": 0, "expires": 0, "seen": 0 }] }
+] }
+```
+
+- Nome utente: `[a-z0-9][a-z0-9._-]` da 2 a 32 caratteri; password da 8 a 256 caratteri; ruoli `admin` e `user`.
+- Il cookie contiene un token casuale; qui si salva solo il suo SHA-256. Al massimo 20 sessioni per utente. Una sessione finisce dopo `sessionDays` dall'accesso o `idleDays` senza uso; l'ultimo uso si salva al massimo una volta all'ora.
+- Tentativi: dopo 5 password sbagliate per lo stesso nome utente, o 20 dallo stesso indirizzo, l'attesa raddoppia a ogni errore (2 s, 4 s…, al massimo 15 minuti) e il kernel risponde `rate_limited` con `Retry-After`. Il conteggio è in memoria. Con un nome utente che non esiste il tempo di risposta è lo stesso.
+- Il file si rilegge quando cambia e si valida a ogni lettura; si riscrive intero, una modifica alla volta. Cambiare la password chiude tutte le sessioni dell'utente.
+- Comandi: `add <nome> [--name "Nome visibile"] [--admin]`, `passwd <nome>`, `remove <nome>` (la home resta nel file system), `list`.
+
+### `fs-postgres_1.0.0`
+
+Configurazione: `url` (la variabile `LILOS_PG_URL` vince) e `poolSize` (10). All'avvio applica `schema.sql` (tabella `lilos_nodes`: `id`, `parent`, `name`, `type`, `area`, `owner`, `meta`, `size`, `created`, `modified`, `content`, `rev`) e crea le cartelle di base.
+
+| Area | Percorso | Chi legge | Chi scrive |
+| --- | --- | --- | --- |
+| `root`, `system`, `homes` | `/`, `/system`, `/home` | solo il kernel | il kernel |
+| `app` | `/system/app` | tutti gli utenti | il kernel |
+| `commons` | `/system/commons` | tutti gli utenti | il kernel |
+| `tmp` | `/system/tmp` | il kernel | il kernel |
+| `home` | `/home/<utente>` | quell'utente | quell'utente |
+
+Un nodo prende area e proprietario dal genitore alla creazione e non li cambia: niente si sposta da una home all'altra né fuori dalle home. Le cartelle di base e le home non si rinominano né si rimuovono. Eliminare una cartella elimina ciò che contiene. I nomi in una cartella non sono unici: `lookup` prende il più vecchio e ignora maiuscole e minuscole.
+
+### Origini dei pacchetti (`sources.js`)
+
+Un pacchetto (app o modulo) è una cartella di un repository **git**, letta con il comando `git` del computer del kernel. Quindi un repository privato si legge con le credenziali che git ha già (credential helper, token, chiavi SSH); non serve nessuna variabile del kernel (`LILOS_GITHUB_TOKEN` non esiste più). Il kernel imposta `GIT_TERMINAL_PROMPT=0`: se git chiede una password, fallisce.
+
+| Origine | Campi | Note |
+| --- | --- | --- |
+| `{ type: 'git' }` | `url`, `ref?`, `path?` | `url` `https://…`; con `apps.allowLocalSources` anche il percorso assoluto di un repository su questo computer. `ref`: tag, ramo o commit (`[\w./-]`, fino a 200). `path`: cartella nel repository (`apps/notes`, fino a 11 livelli). |
+| `{ type: 'github' }` | `repo: 'proprietario/nome'`, `ref?`, `path?` | Come `git` con `url: https://github.com/<repo>`. |
+| `{ type: 'local' }` | `dir` | Cartella semplice, percorso assoluto; solo con `apps.allowLocalSources`. Per sviluppare. |
+
+- **Senza `ref`** si usa il tag di versione più alto (`v1.2.3` o `1.2.3`); se non ce ne sono, il ramo predefinito (`HEAD`).
+- Il repository si scarica in una copia temporanea (`fetch --depth 1`), condivisa per due minuti tra richieste vicine. I file sono quelli del commit, **senza conversione delle fine riga** (`core.autocrlf=false`): altrimenti gli hash del manifesto non corrisponderebbero.
+- Lo stato dell'app o del modulo registra la fonte risolta: `{ type: 'git', url, ref, commit, path? }`. Gli aggiornamenti ripartono dall'`url` e dal `path`.
+- Limiti: 20 MB per file, 80 MB e 2000 file per pacchetto; 180 s per ogni comando git. Copiando un modulo si ignorano i file che iniziano con un punto e `node_modules`.
+- Un messaggio di errore di git viene riportato (ridotto alla prima riga, senza le credenziali nell'indirizzo) come `unavailable`.
+- È "ufficiale" l'origine `git` con l'`url` del repository ufficiale (confronto senza maiuscole, senza `.git` né `/` finali).
+
+`fetchPackage(source)` legge `lilos.json`, lo valida e scarica i file elencati.
+
+### Repository (`repos.js`)
+
+Un repository ha un `catalog.json` alla radice:
+
+```json
+{ "name": "Il mio repository", "apps": ["apps/note"], "modules": ["modules/mio"] }
+```
+
+`apps` e `modules` sono elenchi di cartelle (fino a 200 l'uno, percorsi come `apps/note`). Ogni cartella di app contiene `lilos.json`, ogni cartella di modulo `module.json`. Le voci non valide non fermano il catalogo: compaiono con `error`.
+
+`Repos`: `list()` (l'ufficiale per primo: `{ id: 'official', name: 'lilOS ufficiale', url: 'https://github.com/GexyLab/lilos-plugins-official', official: true }`), `get(id)`, `add(principal, { url, name? })`, `remove(principal, id)`, `catalog(id)`. `add` e `remove` sono per amministratori; `add` legge il catalogo prima di salvare (un indirizzo sbagliato si scopre subito), rifiuta quelli già presenti e oltre 30. `catalog(id)` risponde alla versione più alta, e il suo `ref` è quello da passare per installare esattamente quella versione.
+
+### Installazione delle app (`installer.js`, `manifest.js`)
+
+- `installer.js`: `install` (rifiuta un'app già installata), `update` (nuova versione, `ref` anche più vecchio, o `reinstall`; si tengono la versione in uso e la precedente), `uninstall`. L'hash di ogni file e quello delle librerie (`integrity`) si controllano prima di scrivere. La libreria in `/system/commons` è condivisa tra le app che la usano (`meta.usedBy`) e si elimina quando nessuno la usa più. Lo stato (`id`, `version`, `previous`, `kind`, `system`, `required`, `source`, `signed`, `publisher`, `granted`, `installed`, `updated`) sta nel `meta.state` della cartella `/system/app/<id>`.
+- `update` con `reinstall` riscrive **lo stesso commit** registrato in `source.commit`: non porta codice nuovo. Per averlo serve una versione più alta (o `ref` di un'altra versione, anche precedente).
+- Fiducia: una firma presente ma sbagliata è sempre rifiutata; un'app è *verificata* se firmata da un editore di `trustedPublishers` con la chiave giusta, o se è di sistema e viene dal repository ufficiale; altrimenti serve `allowUnsigned`. Un'app con `system: true` da un altro repository è rifiutata, e un'app di sistema resta di sistema negli aggiornamenti. `uninstall` rifiuta le app `required`.
+- `tools/pack.js`: `node system/kernel/tools/pack.js <cartella> [--sign chiave.pem]` riempie `files` (esclusi `lilos.json`, i file che iniziano con un punto e `node_modules`) e controlla il manifesto; con `--sign` aggiunge `publisher.key` e `signature`. `--keygen chiave.pem` crea una chiave Ed25519 e stampa la pubblica.
+
+### Moduli come pacchetti (`modulePackage.js`)
+
+`ModuleAdmin` installa, aggiorna e toglie moduli del kernel da un repository. Un modulo è codice che gira **nel kernel, con accesso completo**: solo gli amministratori, e uno non ufficiale solo con `allowUnsigned` (l'AppStore mostra l'avviso). Il kernel carica i moduli all'avvio, quindi ogni modifica richiede il riavvio ([`run.js`](#avvio-e-riavvio-runjs)).
+
+`module.json`, oltre ai campi di [Moduli](#moduli) (qui `name` minuscolo, `version`, `kernel: "1"`, `provides`, `requires`):
+
+| Campo | Significato |
+| --- | --- |
+| `description?` | Fino a 300 caratteri. |
+| `data?` | File in cui il modulo tiene i suoi dati (`["users.json"]`). Si portano alla nuova versione negli aggiornamenti e si conservano, con la loro cartella, alla rimozione. |
+| `defaultConfig?` | Oggetto: la configurazione con cui il modulo viene acceso in `config.json`. |
+
+- **Installazione.** Copia il pacchetto in `modules/<nome>_<versione>/` (con `source.json`: da dove viene, `{ type, url, ref, commit, path, installed }`), esegue `npm ci` (o `npm install` senza lockfile; `--omit=dev --ignore-scripts`) se c'è un `package.json`, e lo aggiunge a `modules` in `config.json` con `defaultConfig`. Prima **verifica che il kernel si avvierebbe** con quella lista (dipendenze soddisfatte, un modulo che fornisce `fs`, e senza `auth` solo `host` locale): se no, lascia tutto com'era e lancia `conflict`.
+- **Aggiornamento.** Parte dal `source.json` registrato (con `ref` opzionale), copia la nuova versione accanto alla vecchia, ci porta i file di `data`, aggiorna la versione in `config.json` e tiene le due versioni più recenti. Senza versione più alta risponde `unchanged: true`. Un modulo senza `source.json` (messo a mano) non si aggiorna da qui.
+- **Rimozione.** Toglie il modulo da `config.json` (dopo aver verificato che il kernel si avvierebbe senza) e cancella le cartelle delle sue versioni, **tranne quelle che contengono file di `data`**: gli utenti di `users-basic` restano. Reinstallando la stessa versione quella cartella si riusa.
+- `list()`: i moduli trovati in `modules/`, con `enabled` (versione in `config.json`), `running` (in uso adesso) e `source`; anche quelli già tolti ma ancora in esecuzione fino al riavvio.
+
+---
+
 ## Eventi del bus
 
 | Evento | Payload | Emesso da | Gestito da |
 | --- | --- | --- | --- |
 | `app:launch` | `{ id, args }` | `launch()`: menu di avvio, collegamenti sul desktop | `connectLauncher` (`apps/launcher.js`) |
-| `item:open` | nodo del file system | `Desktop.open()` per cartelle e file | `main.js`: le cartelle si aprono nell'app File (`launch('files', { folder })`), i file con `openFile` |
+| `item:open` | nodo del file system | `Desktop.open()` per cartelle e file | `system.js`: le cartelle si aprono nell'app File (`launch('files', { folder })`), i file con `openFile` |
 
 Quando aggiungi un evento, documentalo qui e nel commento in testa a `sdk/core/events.js`.
+
+Gli eventi di `kernel` (`status`, `signedout`), `apps` (`change`) e `registry` (`change`) non passano dal bus: sono degli `Emitter` di quei moduli.
 
 ---
 
 ## Dati salvati
 
-Tutte le chiavi hanno il prefisso `lilos:`.
+Tutte le chiavi hanno il prefisso `lilos:`, che è quello di `localStorage`. Collegato al kernel (come fa il sistema) le chiavi non stanno nel browser: ogni chiave è un file JSON, senza prefisso, nella cartella `.config` dell'utente, nel database del kernel (`lilos:camera` è la chiave `camera`). Per questo `localStorage.clear()` non azzera nulla; per ripartire vedi [l'avvio](README.md#avvio). Lo stesso vale per `lilos:fs` e per il contenuto dei file, che con il kernel sono nodi della cartella dell'utente. Le sole cose che il sistema tiene nel browser sono la copia dei contenuti (IndexedDB `lilos:<id utente>`, cancellata all'uscita) e, finché non vengono portati nell'account, i dati di prima del kernel.
 
 ### `lilos:workspaces`
 
@@ -1460,7 +1814,7 @@ I workspace, con quello attuale:
   "current": "m1x2a0k3f",
   "list": [
     { "id": "m1x2a0k3f", "name": "Principale", "color": "#3b6ef5", "created": 1793180000000,
-      "desk": "m1x2a0k3g", "apps": ["editor", "terminal"], "known": ["files", "browser", "editor", "terminal", "calendar", "images", "music", "mail", "settings"] },
+      "desk": "m1x2a0k3g", "apps": ["editor", "esempio.note"], "known": ["files", "editor", "settings", "esempio.note"] },
     { "id": "m1x2d9e8c", "name": "Cliente Rossi", "color": "#30a46c", "created": 1793190000000, "removed": 1793200000000 }
   ]
 }
@@ -1470,8 +1824,8 @@ I workspace, con quello attuale:
 | --- | --- |
 | `id` | Identificativo; è anche il `workspace` dei nodi che ha creato. |
 | `desk` | Id della sua cartella Scrivania (privata). Solo nei workspace vivi. |
-| `apps` | Id delle app installate. Le app `system` (File, Impostazioni) sono sempre installate e non serve elencarle. Una nuova voce senza `apps` le ha tutte. |
-| `known` | Id delle app che lilOS aveva all'ultimo salvataggio. Alla lettura, le app del registro che non ci sono vengono aggiunte ad `apps`: un'app nuova arriva installata, una tolta dall'utente resta tolta. Senza `known` (dati di prima) si considerano note tutte le app del registro. |
+| `apps` | Id delle app **visibili** nel workspace (le installate in lilOS e non nascoste). Le app `system` (File, Impostazioni) sono sempre visibili e non serve elencarle. Una nuova voce senza `apps` le ha tutte. |
+| `known` | Id delle app che lilOS aveva all'ultimo salvataggio. Alla lettura, le app del registro che non ci sono vengono aggiunte ad `apps`: un'app nuova arriva visibile, una nascosta dall'utente resta nascosta. Senza `known` (dati di prima) si considerano note tutte le app del registro. |
 | `removed` | Data di eliminazione. Una voce "rimossa" non ha `desk` né `apps`: resta solo perché i file creati da quel workspace dicano ancora di chi erano (File mostra «Nome (eliminato)»). |
 
 Controllo alla lettura, perché il dato non è affidabile: `list` deve essere un elenco (si leggono al massimo 120 voci); `id` di 1-40 caratteri tra lettere, cifre, `_` e `-`, senza duplicati; `name` ripulito (spazi, al massimo 40 caratteri), «Workspace» se vuoto; `color` esadecimale `#rrggbb`, altrimenti il primo accento; `created` numero finito, altrimenti l'ora della lettura; una voce viva senza `desk` è scartata; `apps` tiene solo id del registro, più quelli che `known` non conteneva; `known` è riscritto con gli id del registro attuale; al massimo 20 workspace vivi e 100 rimossi (gli ultimi). Se `current` non è un workspace vivo, `setupWorkspaces` sceglie il primo.
@@ -1506,7 +1860,7 @@ Array di tutti i nodi del file system (vedi [sdk/core/fs.js](#sdkcorefsjs)), rad
 ```json
 [
   { "id": "m1x2a0k3f", "type": "folder", "name": "Scrivania", "parent": "root", "created": 1793180000000, "modified": 1793180000000, "system": true },
-  { "id": "m1x2a0l9q", "type": "app", "name": "Terminale", "parent": "m1x2a0k3f", "created": 1793180000000, "modified": 1793180000000, "app": "terminal" }
+  { "id": "m1x2a0l9q", "type": "app", "name": "Editor", "parent": "m1x2a0k3f", "created": 1793180000000, "modified": 1793180000000, "app": "editor" }
 ]
 ```
 
@@ -1544,11 +1898,11 @@ Disposizioni dei menu scelte dall'utente: `{ "desktop.background": [ …voci… 
 
 ### `lilos:editor-lang`
 
-Impostazioni dell'Editor (vedi `lang/config.js`). Validate alla lettura.
+Impostazioni dell'Editor (motori di evidenziazione, grammatiche aggiunte, language server esterni, schemi JSON): le scrive e le valida l'app Editor (`lang/config.js`, nel repository ufficiale). Il sistema non le legge.
 
 ### `lilos:editor-tree`
 
-Pannello della cartella dell'Editor: `{ "root": id | null, "expanded": [id…], "width": px }`. Alla lettura la radice vale solo se è ancora una cartella, gli id non stringa sono scartati, la larghezza è riportata tra i limiti.
+Pannello della cartella dell'Editor (scritto dall'app Editor, `FileTree.js`): `{ "root": id | null, "expanded": [id…], "width": px }`. Alla lettura la radice vale solo se è ancora una cartella, gli id non stringa sono scartati, la larghezza è riportata tra i limiti.
 
 ### `lilos:workareas`
 
