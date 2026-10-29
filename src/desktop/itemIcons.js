@@ -18,7 +18,7 @@ export function fileIcon(name) {
     '<path d="M3 .75h12.5l7.75 7.75V27a2.25 2.25 0 0 1-2.25 2.25H3A2.25 2.25 0 0 1 .75 27V3A2.25 2.25 0 0 1 3 .75z" fill="#fff" stroke="#c4c9d1" stroke-width="1.5"/>' +
     '<path d="M15.5.75V7a1.5 1.5 0 0 0 1.5 1.5h6.25" fill="none" stroke="#c4c9d1" stroke-width="1.5"/>' +
     `<rect x="3" y="17.5" width="18" height="8" rx="1.5" fill="${color}"/>` +
-    `<text x="12" y="23.4" text-anchor="middle" font-size="${badge.length > 3 ? 4.6 : 5.6}" font-weight="700" fill="#fff" font-family="Inter, system-ui, sans-serif">${badge}</text>`);
+    `<text x="12" y="23.4" text-anchor="middle" font-size="${badge.length > 3 ? 4.6 : 5.6}" font-weight="600" fill="#fff" font-family="Manrope, system-ui, sans-serif">${badge}</text>`);
 }
 
 /** A reduced workarea: a dashed frame with two small windows inside (colors from the theme). */

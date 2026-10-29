@@ -1,7 +1,7 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; }
 body {
-  font: 12.5px/1.4 var(--font);
+  font: 300 12.5px/1.4 var(--font);
   color: var(--text);
   background: var(--canvas);
   overflow: hidden;

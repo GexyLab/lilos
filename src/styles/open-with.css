@@ -4,7 +4,7 @@
 .ow-list { display: flex; flex-direction: column; gap: 2px; border: 1px solid var(--border); border-radius: 6px; padding: 4px; }
 .ow-app { height: 36px; display: flex; align-items: center; gap: 10px; padding: 0 8px; border-radius: var(--radius-sm); text-align: left; }
 .ow-app:hover { background: var(--hover); }
-.ow-app.on { background: var(--accent-soft); color: var(--accent); font-weight: 500; }
+.ow-app.on { background: var(--accent-soft); color: var(--accent); font-weight: 400; }
 .ow-app .app-icon { width: 24px; height: 24px; border-radius: 6px; }
 .ow-remember { display: flex; align-items: center; gap: 8px; color: var(--dim); font-size: 12px; cursor: pointer; }
 .ow-remember input { accent-color: var(--accent); }
@@ -24,7 +24,7 @@
 .fp-item { height: 28px; display: flex; align-items: center; gap: 8px; padding: 0 8px; border-radius: var(--radius-sm); white-space: nowrap; }
 .fp-item:hover { background: var(--hover); }
 .fp-item.on { background: var(--accent-soft); }
-.fp-badge { flex: none; min-width: 32px; padding: 0 4px; border-radius: 3px; color: #fff; font: 700 9px/16px var(--font); text-align: center; }
+.fp-badge { flex: none; min-width: 32px; padding: 0 4px; border-radius: 3px; color: #fff; font: 600 9px/16px var(--font); text-align: center; }
 .fp-name { color: var(--text); overflow: hidden; text-overflow: ellipsis; }
 .fp-path { flex: 1; min-width: 0; color: var(--faint); font: 11px var(--mono); overflow: hidden; text-overflow: ellipsis; text-align: right; }
 .fp-empty { padding: 30px 8px; text-align: center; color: var(--faint); }

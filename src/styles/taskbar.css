@@ -16,7 +16,7 @@
   border-left: 1px solid var(--bar-border); font-size: 12px; white-space: nowrap; font-variant-numeric: tabular-nums;
 }
 .clock-date { color: var(--bar-dim); }
-.clock-time { font-weight: 500; }
+.clock-time { font-weight: 400; }
 
 /* One button per open window (WindowManager) */
 .tb-task {
