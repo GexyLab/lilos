@@ -13,7 +13,7 @@ usa la rotella per lo zoom, trascina sullo sfondo per selezionare.
   le sue finestre e le sue app. Documenti, Immagini e Download sono di tutti.
 
 Le scorciatoie e le app che aprono i file si cambiano in
-Impostazioni → Usabilità.
+Sistema → Usabilità.
 `;
 
 /** Name of every workspace's desk folder (private: each workspace sees only its own). */

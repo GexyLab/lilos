@@ -39,12 +39,12 @@ Procedure passo per passo per le modifiche più comuni. Per i dettagli delle fun
 
 Nel registro di lilOS non ci sono app scritte nel codice: ogni app è un **pacchetto installato** dal kernel, e compare nel menu di avvio (e nella ricerca) **dei workspace in cui è visibile** quando viene installata. Quindi:
 
-- per un'app di lilOS (File Manager, Editor, Impostazioni, AppStore e simili): [Aggiungere o aggiornare un'app di sistema](#aggiungere-o-aggiornare-unapp-di-sistema), nel repository ufficiale;
+- per un'app di lilOS (File Manager, Editor, Sistema, AppStore e simili): [Aggiungere o aggiornare un'app di sistema](#aggiungere-o-aggiornare-unapp-di-sistema), nel repository ufficiale;
 - per un'app di altri: [Creare un'app installabile](#creare-unapp-installabile-pacchetto).
 
 Il nome (`name`), il simbolo (`icon.glyph`, un nome accettato da `icon()`; se serve uno nuovo, vedi [Aggiungere un simbolo](#aggiungere-un-simbolo)) e il colore (`icon.color`, con un buon contrasto con il simbolo bianco) stanno nel manifesto. L'`id` è stabile: finisce nei collegamenti sul desktop, quindi non va cambiato dopo il rilascio.
 
-Un'app con `required: true` (solo di sistema) è sempre visibile in ogni workspace; le altre ogni workspace può nasconderle in Impostazioni → Workspace. Un'app nuova arriva visibile in tutti i workspace, anche in quelli già salvati (ognuno ricorda in `known` le app che lilOS aveva: quelle che non c'erano si aggiungono alla lettura); un'app che l'utente ha nascosto resta nascosta.
+Un'app con `required: true` (solo di sistema) è sempre visibile in ogni workspace; le altre ogni workspace può nasconderle in Sistema → Workspace. Un'app nuova arriva visibile in tutti i workspace, anche in quelli già salvati (ognuno ricorda in `known` le app che lilOS aveva: quelle che non c'erano si aggiungono alla lettura); un'app che l'utente ha nascosto resta nascosta.
 
 Per metterne un collegamento sul desktop, aggiungi un elemento `{ type: 'app', name: 'Note', app: 'notes' }` (vedi [Cambiare gli elementi del primo avvio](#cambiare-gli-elementi-del-primo-avvio)); un'app può anche farselo mettere con l'operazione `desktopItem` del manifesto.
 
@@ -91,7 +91,7 @@ Le app di sistema stanno nel repository ufficiale ([GexyLab/lilos-plugins-offici
 
 ## Far aprire dei file alla tua app
 
-1. Nel manifesto dichiara le estensioni che l'app apre per impostazione predefinita: `"contributes": { "fileTypes": ["csv", "tsv"] }` (nel registro diventano `opens`). L'app compare anche tra le scelte di Impostazioni → Usabilità → Tipi di file e della finestra "Apri con".
+1. Nel manifesto dichiara le estensioni che l'app apre per impostazione predefinita: `"contributes": { "fileTypes": ["csv", "tsv"] }` (nel registro diventano `opens`). L'app compare anche tra le scelte di Sistema → Usabilità → Tipi di file e della finestra "Apri con".
 2. L'export predefinito riceve `args.file` con l'id del file; leggi il contenuto con `await fs.read(id)` e salvalo con `await fs.write(id, text)`.
 3. Gestisci l'evento `launch` sulla finestra: arriva quando l'utente apre un altro file mentre l'app è già aperta.
 4. Segui `fs.on('change', …)` per accorgerti se il file aperto viene rinominato (`rename`) o eliminato (`remove`, controlla `e.ids`).
@@ -111,7 +111,7 @@ Per aprire un file dal codice del sistema usa `openFile(node)` (`src/apps/open.j
 
 ## Dare scorciatoie alla tua app
 
-1. Nel manifesto: `"contributes": { "commands": [{ "id": "notes.save", "label": "Salva", "keys": ["Ctrl+S"] }] }` (l'`id` inizia con l'id dell'app e un punto; `keys` richiede il permesso `ui.shortcuts`). Vengono registrate all'avvio nel gruppo con il nome dell'app e si possono cambiare nelle Impostazioni anche prima che l'app sia aperta. Sono attive anche mentre si scrive (`whenEditing: false` per il contrario).
+1. Nel manifesto: `"contributes": { "commands": [{ "id": "notes.save", "label": "Salva", "keys": ["Ctrl+S"] }] }` (l'`id` inizia con l'id dell'app e un punto; `keys` richiede il permesso `ui.shortcuts`). Vengono registrate all'avvio nel gruppo con il nome dell'app e si possono cambiare in Sistema anche prima che l'app sia aperta. Sono attive anche mentre si scrive (`whenEditing: false` per il contrario).
 2. Nella finestra: `const off = handleCommand('notes.save', { isActive: () => win.active, run: () => save() })` e `win.on('destroy', off)`.
 3. La stessa combinazione può stare in app diverse solo se non sono attive insieme: oggi il registro non lo permette, scegli combinazioni libere (`shortcuts.owner(combo)`).
 
@@ -152,8 +152,8 @@ const win = new SettingsWindow({
 
 1. Dichiarala in `src/systemSettings.js` dentro `settings.define({...})`, con il valore predefinito (che ne fissa il tipo).
 2. Applicala: se è globale (stile, `<html>`), con `settings.watch` nello stesso file; se riguarda un componente, in `system.js` (`settings.watch('snap', on => { desktop.snapToGrid = on; })`). Valida i valori che finiscono in CSS o nel DOM.
-3. Aggiungi la riga nell'app Impostazioni (`src/settings/SettingsApp.js` nel repository ufficiale) e, se serve, al pulsante "Impostazioni predefinite".
-4. Documentala nella tabella di [systemSettings.js](api.md#systemsettingsjs) e nella [guida utente](../utente/guida.md#impostazioni).
+3. Aggiungi la riga nell'app Sistema (`src/settings/SettingsApp.js` nel repository ufficiale) e, se serve, al pulsante "Impostazioni predefinite".
+4. Documentala nella tabella di [systemSettings.js](api.md#systemsettingsjs) e nella [guida utente](../utente/guida.md#sistema).
 
 ## Aggiungere un simbolo
 
@@ -279,7 +279,7 @@ I menu del desktop sono costruiti in `Desktop.#backgroundMenu` (sfondo) e `Deskt
 
 ## Aggiungere una scorciatoia da tastiera
 
-Non aggiungere listener `keydown` per le scorciatoie: registra un comando nel registro `shortcuts` dell'SDK, così l'utente può cambiarlo da Impostazioni → Usabilità → Scorciatoie.
+Non aggiungere listener `keydown` per le scorciatoie: registra un comando nel registro `shortcuts` dell'SDK, così l'utente può cambiarlo da Sistema → Usabilità → Scorciatoie.
 
 ```js
 import { shortcuts } from '@lilos/sdk';
@@ -287,7 +287,7 @@ import { shortcuts } from '@lilos/sdk';
 shortcuts.register({
   id: 'items.duplicate',                 // stabile: finisce nei dati salvati
   label: 'Duplica gli elementi selezionati',
-  group: 'Elementi',                     // sezione nelle Impostazioni
+  group: 'Elementi',                     // sezione in Sistema
   keys: ['Ctrl+D'],                      // predefinite, in forma canonica
   when: () => this.keyboard && this.selection.size > 0,
   run: () => this.duplicate([...this.selection]),
@@ -358,7 +358,7 @@ export const seedItems = [
 
 Con `export const seedItems = [];` la scrivania parte vuota.
 
-Gli elementi di esempio vengono usati solo al primo avvio di un utente, cioè quando la sua cartella è vuota. Per vederli di nuovo accedi con un utente nuovo (`npm run kernel:cli -- users-basic add prova`) oppure usa Impostazioni → Archiviazione → «Scrivania e file iniziali» (elimina anche cartelle e file creati; le chiavi `ws:<id>:…` dei workspace spariti si cancellano da sole all'avvio). Gli elementi di esempio vanno nella Scrivania del workspace «Principale».
+Gli elementi di esempio vengono usati solo al primo avvio di un utente, cioè quando la sua cartella è vuota. Per vederli di nuovo accedi con un utente nuovo (`npm run kernel:cli -- users-basic add prova`) oppure usa Sistema → Archiviazione → «Scrivania e file iniziali» (elimina anche cartelle e file creati; le chiavi `ws:<id>:…` dei workspace spariti si cancellano da sole all'avvio). Gli elementi di esempio vanno nella Scrivania del workspace «Principale».
 
 ## Leggere e modificare cartelle e file
 
@@ -473,7 +473,7 @@ win.on('destroy', () => { off1(); off2(); });
 - Per mettere o togliere un tag a più nodi con un menu usa `tagSubmenu(ids)` e `setTag(ids, tagId, on)` di `src/tags/tagUi.js` (solo dal sistema, non dall'SDK); `tagDots(node)` disegna i pallini.
 - I nodi di sistema non hanno tag: `setTags` lancia un errore, `setTag` li salta.
 - Il colore di un tag è un dato salvato (già validato come `#rrggbb`): mettilo in `style.background`, mai dentro HTML scritto a mano.
-- Aprire File Manager sulla vista di un tag: `launch('files', { tag: tag.id })`. Aprire Impostazioni → Tag: `launch('settings', { tab: 'tags' })`.
+- Aprire File Manager sulla vista di un tag: `launch('files', { tag: tag.id })`. Aprire Sistema → Tag: `launch('settings', { tab: 'tags' })`.
 - Mettere o togliere un tag non si annulla con Ctrl Z: non c'è una voce nella cronologia.
 
 ## Rendere trascinabili file e cartelle in un'app
@@ -572,7 +572,7 @@ Un pacchetto è una cartella con `lilos.json` (il manifesto) e i suoi file. Il c
 
 `install`, `update` e `uninstall` nel manifesto sono elenchi di operazioni (`mkdir`, `write`, `copy`, `desktopItem`, `tag`, `setting`, e `remove` solo in `uninstall`) che lilOS esegue **per ogni utente** la prima volta che incontra l'app, senza sovrascrivere nulla. Ogni operazione che tocca file chiede il permesso `fs.write` sul percorso; `desktopItem` chiede `desktop.items`, `tag` chiede `tags.write`. I percorsi iniziano con `~` (la cartella dell'utente) e si scrivono con i nomi che si vedono nel File Manager (`~/Documenti/Note`). Dettagli in [API → apps/packages](api.md#appspackages).
 
-Le scorciatoie si dichiarano in `contributes.commands` (`{ id, label, keys }`: l'`id` inizia con l'id dell'app e `keys` richiede il permesso `ui.shortcuts`); l'app le riceve come evento `lilos.on('command', id => …)` e l'utente le cambia in Impostazioni → Usabilità → Scorciatoie. Le estensioni che l'app apre si dichiarano in `contributes.fileTypes`.
+Le scorciatoie si dichiarano in `contributes.commands` (`{ id, label, keys }`: l'`id` inizia con l'id dell'app e `keys` richiede il permesso `ui.shortcuts`); l'app le riceve come evento `lilos.on('command', id => …)` e l'utente le cambia in Sistema → Usabilità → Scorciatoie. Le estensioni che l'app apre si dichiarano in `contributes.fileTypes`.
 
 ## Aggiungere un punto d'ingresso a un'app
 

@@ -4,7 +4,7 @@ const DAY = 86_400_000;
 const HOUR = 3_600_000;
 
 /**
- * Deletes for good what has been in the trash longer than Impostazioni → Usabilità → Cestino
+ * Deletes for good what has been in the trash longer than Sistema → Usabilità → Cestino
  * says (trashRetention, in days; 0 keeps everything): at start-up, every hour and when the
  * period changes (then it says how many went). Every workspace's trashed items count, not only
  * the current one's.

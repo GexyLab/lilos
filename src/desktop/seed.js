@@ -4,5 +4,5 @@ export const seedItems = [
   { type: 'file', name: 'benvenuto.txt' },
   { type: 'app', name: 'File Manager', app: 'files' },
   { type: 'app', name: 'Editor', app: 'editor' },
-  { type: 'app', name: 'Impostazioni', app: 'settings' },
+  { type: 'app', name: 'Sistema', app: 'settings' },
 ];

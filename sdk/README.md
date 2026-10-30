@@ -17,7 +17,7 @@ Nel repository il nome `@lilos/sdk` è collegato alla cartella `sdk/` da `vite.c
 
 ### Le app di sistema
 
-File, Editor, Impostazioni e AppStore sono costruiti a parte (repository [lilos-plugins-official](https://github.com/GexyLab/lilos-plugins-official)) e importano `@lilos/sdk` senza includerlo nel pacchetto. A runtime il browser carica `/host/sdk.js`, un modulo generato da `scripts/host-shims.mjs` che ri-esporta, per nome, tutto ciò che `sdk/index.js` esporta: le app di sistema usano così l'SDK di lilOS, una sola copia (un solo `fs`, una sola connessione al kernel). Conseguenze per chi scrive l'SDK: togliere o rinominare un export rompe le app di sistema già installate, e ogni export di `index.js` deve avere la forma `export { a, b } from '…'` (le altre non vengono ri-esportate). Le app di sistema usano anche `@lilos/system`, che non fa parte dell'SDK: è `src/systemApi.js` ([riferimento](../doc/sviluppatore/api.md#systemapijs-lilossystem)).
+File Manager, Editor, Sistema e AppStore sono costruiti a parte (repository [lilos-plugins-official](https://github.com/GexyLab/lilos-plugins-official)) e importano `@lilos/sdk` senza includerlo nel pacchetto. A runtime il browser carica `/host/sdk.js`, un modulo generato da `scripts/host-shims.mjs` che ri-esporta, per nome, tutto ciò che `sdk/index.js` esporta: le app di sistema usano così l'SDK di lilOS, una sola copia (un solo `fs`, una sola connessione al kernel). Conseguenze per chi scrive l'SDK: togliere o rinominare un export rompe le app di sistema già installate, e ogni export di `index.js` deve avere la forma `export { a, b } from '…'` (le altre non vengono ri-esportate). Le app di sistema usano anche `@lilos/system`, che non fa parte dell'SDK: è `src/systemApi.js` ([riferimento](../doc/sviluppatore/api.md#systemapijs-lilossystem)).
 
 ### Il kernel
 
@@ -34,7 +34,7 @@ shortcuts.register({
   when: () => notesWindowIsActive,   // facoltativo
   run: () => createNote(),
 });
-// Compare da solo in Impostazioni → Usabilità → Scorciatoie, dove l'utente può cambiarla.
+// Compare da solo in Sistema → Usabilità → Scorciatoie, dove l'utente può cambiarla.
 ```
 
 ### Esempio: una finestra con controlli scelti

@@ -13,7 +13,7 @@ La documentazione è divisa per chi la legge.
 
 ## Stato
 
-lilOS è in sviluppo. Oggi ci sono la scrivania, gli elementi del desktop, le finestre, i workspace, le workarea, i tag, il Cestino, l'accesso con più utenti e un backend (il kernel) che conserva i dati di ogni utente. File Manager, Editor, Impostazioni e AppStore sono pacchetti del repository ufficiale che il kernel installa da solo; con l'AppStore un amministratore installa altre app e moduli del kernel da altri repository. Il dettaglio è in [Stato e roadmap](interna/stato-e-roadmap.md).
+lilOS è in sviluppo. Oggi ci sono la scrivania, gli elementi del desktop, le finestre, i workspace, le workarea, i tag, il Cestino, l'accesso con più utenti e un backend (il kernel) che conserva i dati di ogni utente. File Manager, Editor, Sistema e AppStore sono pacchetti del repository ufficiale che il kernel installa da solo; con l'AppStore un amministratore installa altre app e moduli del kernel da altri repository. Il dettaglio è in [Stato e roadmap](interna/stato-e-roadmap.md).
 
 ## Aggiornare questa documentazione
 

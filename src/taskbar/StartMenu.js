@@ -19,7 +19,7 @@ export class StartMenu {
       this.list,
       h('div', { class: 'sm-footer' },
         h('div', { class: 'sm-user' }, avatar(session.user), h('span', {}, session.user.name)),
-        h('button', { class: 'sm-btn', title: 'Impostazioni', 'aria-label': 'Impostazioni', onclick: () => this.#launch('settings') }, icon('gear')),
+        h('button', { class: 'sm-btn', title: 'Sistema', 'aria-label': 'Sistema', onclick: () => this.#launch('settings') }, icon('gear')),
         kernel.mode === 'multi'
           ? h('button', { class: 'sm-btn', title: 'Esci', 'aria-label': 'Esci', onclick: () => this.#logout() }, icon('power'))
           : h('button', { class: 'sm-btn', title: 'Riavvia sessione', 'aria-label': 'Riavvia sessione', onclick: () => location.reload() }, icon('power')),

@@ -3,7 +3,7 @@ import { SettingsView } from './SettingsView.js';
 
 /**
  * Base of every window that edits settings: a Window whose body is a SettingsView.
- * The subtitle follows the selected main tab ("Impostazioni — Aspetto").
+ * The subtitle follows the selected main tab ("Sistema — Aspetto").
  *
  *   new SettingsWindow({ title, icon, tabs, footer?, search?, width?, height? })
  *

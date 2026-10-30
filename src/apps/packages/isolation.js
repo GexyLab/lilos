@@ -1,7 +1,7 @@
 import { apps as installed, kernel } from '@lilos/sdk';
 
 /**
- * How an installed app runs. An administrator chooses it for every app (Impostazioni → App →
+ * How an installed app runs. An administrator chooses it for every app (Sistema → App →
  * Sicurezza) and, if they want, for a single one (the app's Proprietà → Sicurezza): the app's own
  * choice wins. Isolated is the default.
  *

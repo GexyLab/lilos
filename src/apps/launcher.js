@@ -67,7 +67,7 @@ export function connectLauncher(wm) {
   bus.on('app:launch', async ({ id, args, entry = 'main' }) => {
     const app = getApp(id);
     if (!app?.load) return console.info('[lilos] app non ancora disponibile:', id);
-    if (!isInstalled(id)) return toast(`${app.name} è nascosta in questo workspace. Si mostra da Impostazioni → Workspace.`, { timeout: 5000 });
+    if (!isInstalled(id)) return toast(`${app.name} è nascosta in questo workspace. Si mostra da Sistema → Workspace.`, { timeout: 5000 });
     const open = wm.windows.find(w => wm.appOf(w) === id && (w.entry ?? 'main') === entry && scope.includes(w));
     if (open) {
       open.emit('launch', args);

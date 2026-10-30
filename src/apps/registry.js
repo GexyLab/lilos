@@ -2,7 +2,7 @@ import { bus, Emitter } from '@lilos/sdk';
 
 /**
  * The apps lilOS has: the ones installed in /system/app (packages, registered at start-up and
- * when installed: see packages/packages.js). File, Editor, Impostazioni and AppStore are packages
+ * when installed: see packages/packages.js). File Manager, Editor, Sistema (settings) and AppStore are packages
  * of the official repository too, installed by the kernel when missing.
  *
  *   { id, name, glyph, color, system?, trusted?, load: () => module, opens?: [ext], commands?: [cmd], package }

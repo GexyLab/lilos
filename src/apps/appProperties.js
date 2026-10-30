@@ -7,7 +7,7 @@ import { describePermission } from './packages/permissions.js';
 /**
  * "Proprietà…" of an app: Generale (version, publisher, where it comes from, its entry points),
  * Permessi (what it may do) and Sicurezza (how it runs: isolated or not; only an administrator
- * changes it, for this app only — the rule for every app is in Impostazioni → App → Sicurezza).
+ * changes it, for this app only — the rule for every app is in Sistema → App → Sicurezza).
  * One window per app (key `app-props:<id>`).
  */
 let wm = null;

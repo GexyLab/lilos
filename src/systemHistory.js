@@ -27,7 +27,7 @@ export function setupHistory({ root, activeWindow }) {
   history.on('redo', ({ label }) => { if (label) toast(`Ripetuto: ${label}`); });
   history.on('error', ({ error }) => toast(`Non si può più fare: ${error?.message ?? 'errore'}`));
 
-  // Usable in the menus (Impostazioni → Usabilità → Menu contestuale): on the desk's history
+  // Usable in the menus (Sistema → Usabilità → Menu contestuale): on the desk's history
   menus.defineAction('edit.undo', {
     label: 'Annulla', icon: 'undo', shortcut: 'edit.undo',
     enabled: () => root.canUndo, run: () => history.undoOn(root),

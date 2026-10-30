@@ -5,16 +5,16 @@
 Il repository non ha ancora una suite di test. Prima di ogni commit:
 
 1. `npm run build` deve terminare senza errori (prima genera `public/host/`).
-2. Prova la modifica nel browser con il kernel (`npm run kernel`) e `npm run dev` accesi (vedi [Avvio](../sviluppatore/README.md#avvio)), con la console aperta: non devono comparire errori. Al primo avvio il kernel ha bisogno di `git` e dell'accesso al repository ufficiale, da cui installa File Manager, Editor, Impostazioni e AppStore.
+2. Prova la modifica nel browser con il kernel (`npm run kernel`) e `npm run dev` accesi (vedi [Avvio](../sviluppatore/README.md#avvio)), con la console aperta: non devono comparire errori. Al primo avvio il kernel ha bisogno di `git` e dell'accesso al repository ufficiale, da cui installa File Manager, Editor, Sistema e AppStore.
 3. Ripeti la parte della lista seguente che riguarda l'area toccata.
 
 Le modifiche al kernel (`system/kernel/`) si provano con il kernel acceso e un utente di prova: non c'è ancora una suite di test.
 
-**Le app di sistema non sono in questo repository.** Una modifica a File Manager, Editor, Impostazioni o AppStore si fa e si verifica nel repository ufficiale ([come](../sviluppatore/README.md#le-app-di-sistema-e-il-repository-ufficiale)); una modifica a lilOS che tocca `src/systemApi.js`, gli argomenti con cui il sistema avvia quelle app o la forma dei dati che condividono va provata con le app installate, e con `npm run build` anche del repository ufficiale se cambia un export.
+**Le app di sistema non sono in questo repository.** Una modifica a File Manager, Editor, Sistema o AppStore si fa e si verifica nel repository ufficiale ([come](../sviluppatore/README.md#le-app-di-sistema-e-il-repository-ufficiale)); una modifica a lilOS che tocca `src/systemApi.js`, gli argomenti con cui il sistema avvia quelle app o la forma dei dati che condividono va provata con le app installate, e con `npm run build` anche del repository ufficiale se cambia un export.
 
 ### Lista di controllo manuale
 
-Parti da una scrivania pulita: accedi con un utente nuovo (`npm run kernel:cli -- users-basic add prova`), oppure usa Impostazioni → Archiviazione → «Scrivania e file iniziali», che ricarica lilOS. I dati dell'utente stanno nel database del kernel, non più nel browser.
+Parti da una scrivania pulita: accedi con un utente nuovo (`npm run kernel:cli -- users-basic add prova`), oppure usa Sistema → Archiviazione → «Scrivania e file iniziali», che ricarica lilOS. I dati dell'utente stanno nel database del kernel, non più nel browser.
 
 **Accesso e kernel**
 - [ ] Con il kernel spento compare «Il kernel di lilOS non risponde» e **Riprova** funziona quando lo si riavvia.
@@ -30,9 +30,9 @@ Parti da una scrivania pulita: accedi con un utente nuovo (`npm run kernel:cli -
 - [ ] Rimuoverla toglie ciò che aveva creato; un file modificato finisce nel Cestino.
 
 **App di sistema, AppStore e repository** (serve un amministratore)
-- [ ] Con un database e un kernel nuovi (nessuna app installata), il kernel installa File Manager, Editor, Impostazioni e AppStore prima di mettersi in ascolto; nel log compaiono le installazioni. Riavviandolo non reinstalla nulla.
+- [ ] Con un database e un kernel nuovi (nessuna app installata), il kernel installa File Manager, Editor, Sistema e AppStore prima di mettersi in ascolto; nel log compaiono le installazioni. Riavviandolo non reinstalla nulla.
 - [ ] Con `git` senza accesso al repository ufficiale (per esempio senza credenziali) il kernel parte lo stesso e scrive «App di sistema non installate (…)»; lilOS si apre senza quelle app.
-- [ ] Menu di avvio: File Manager, Editor, Impostazioni, AppStore. In Impostazioni → Workspace → Questo workspace l'Editor si può nascondere; File Manager, Impostazioni e AppStore no.
+- [ ] Menu di avvio: File Manager, Editor, Sistema, AppStore. In Sistema → Workspace → Questo workspace l'Editor si può nascondere; File Manager, Sistema e AppStore no.
 - [ ] AppStore: le schede delle categorie elencano le card (icona, nome, versione, descrizione, repository) con Installa / Installata; la ricerca filtra solo la scheda aperta e Esc la cancella. Un clic su una card apre i dettagli con il README renderizzato (niente HTML, immagini non caricate). Installati: «Necessaria a lilOS» sulle tre necessarie, nessun pulsante Rimuovi su di loro; «Cerca aggiornamenti» dice «è già aggiornata» se non c'è nulla; Reinstalla funziona.
 - [ ] Rimuovere l'Editor lo toglie dal menu e da «Apri con»; riavviando il kernel torna (è in `apps.bootstrap`).
 - [ ] AppStore → Opzioni: con «Mostra i repository non ufficiali» spento le schede mostrano solo l'ufficiale. Aggiungere un repository con un `catalog.json` (anche un clone locale se `apps.allowLocalSources` è acceso) mostra le sue app e i suoi moduli; un indirizzo sbagliato dà un errore e non si salva; l'ufficiale è «Sempre presente» e non si rimuove.
@@ -44,14 +44,14 @@ Parti da una scrivania pulita: accedi con un utente nuovo (`npm run kernel:cli -
 **Scrivania**
 - [ ] Spazio + trascina e il tasto centrale spostano la vista, anche partendo da sopra gli elementi; trascinare lo sfondo con il tasto sinistro **non** la sposta.
 - [ ] Trascinare lo sfondo disegna il rettangolo e seleziona quello che tocca; Alt + trascina disegna il percorso libero e seleziona quello che ha il centro dentro; con Ctrl o Shift si aggiunge alla selezione; il disegno sparisce al rilascio.
-- [ ] Cambiando in Impostazioni la combinazione del percorso libero (es. Ctrl + Alt), Alt da solo disegna il rettangolo.
+- [ ] Cambiando in Sistema la combinazione del percorso libero (es. Ctrl + Alt), Alt da solo disegna il rettangolo.
 - [ ] La rotella fa zoom attorno al puntatore; la percentuale nel pannello si aggiorna.
 - [ ] Ctrl + / Ctrl − / Ctrl 0 e Shift 1 funzionano; Ctrl + rotella non cambia lo zoom della pagina.
 - [ ] Clic e trascinamento sulla minimappa spostano la vista.
 - [ ] Ricaricando, la vista resta dov'era.
 
 **Elementi**
-- [ ] Al primo avvio compaiono i 5 elementi di esempio (Progetti, benvenuto.txt, File Manager, Editor, Impostazioni) e le cartelle di sistema.
+- [ ] Al primo avvio compaiono i 5 elementi di esempio (Progetti, benvenuto.txt, File Manager, Editor, Sistema) e le cartelle di sistema.
 - [ ] Una vecchia `lilos:desktop` viene migrata con le posizioni e poi eliminata (solo senza kernel o nei dati portati con il trasferimento).
 - [ ] Clic seleziona; Ctrl + clic aggiunge e toglie; clic sullo sfondo ed Esc tolgono la selezione; Ctrl A seleziona tutto.
 - [ ] Il trascinamento sposta tutta la selezione e allinea alla griglia al rilascio; Ctrl Z rimette le icone dove erano.
@@ -61,9 +61,9 @@ Parti da una scrivania pulita: accedi con un utente nuovo (`npm run kernel:cli -
 - [ ] Canc elimina; Riordina icone dispone gli elementi nella vista.
 - [ ] Ricaricando, posizioni e nomi restano.
 
-**Finestre e Impostazioni**
-- [ ] Impostazioni si apre dal menu di avvio, dal piè di pagina del menu e dal collegamento sul desktop; avviandola di nuovo torna in primo piano la stessa finestra.
-- [ ] Il titolo segue la sezione ("Impostazioni — Aspetto"); frecce su/giù cambiano sezione, sinistra/destra le schede.
+**Finestre e Sistema**
+- [ ] Sistema si apre dal menu di avvio, dal piè di pagina del menu e dal collegamento sul desktop; avviandola di nuovo torna in primo piano la stessa finestra.
+- [ ] Il titolo segue la sezione ("Sistema — Aspetto"); frecce su/giù cambiano sezione, sinistra/destra le schede.
 - [ ] La ricerca filtra le sezioni e mostra la scheda giusta; Esc la svuota; "Nessun risultato" se non trova nulla.
 - [ ] Colore principale, animazioni, griglia e minimappa hanno effetto subito e restano dopo la ricarica.
 - [ ] Trascinamento dalla barra del titolo; ridimensionamento da ognuno degli 8 bordi e angoli (il lato opposto resta fermo), anche a zoom diversi da 100%; dimensioni minime e massime rispettate; il centro del pulsante Chiudi chiude, non ridimensiona.
@@ -78,7 +78,7 @@ Parti da una scrivania pulita: accedi con un utente nuovo (`npm run kernel:cli -
 - [ ] Nuova cartella e nuovo file con rinomina in linea; F2, Canc, Invio, Ctrl A, Esc funzionano come sulla scrivania; frecce e Shift per selezionare.
 - [ ] Le cartelle di sistema non si rinominano né eliminano; eliminare (Canc, menu) chiede conferma con un piccolo menu e sposta nel cestino.
 - [ ] Ordinamento per colonna, vista a icone (ricordata), messaggio per i file senza app.
-- [ ] Pannelli: all'inizio Informazioni aperto e Anteprima chiusa; i pulsanti della barra, Alt I, Alt P (anche cambiati in Impostazioni), la X e la voce «Informazioni» del tasto destro (anche nel Cestino) li aprono e chiudono; stato e larghezze restano dopo la ricarica (`lilos:files-panels`).
+- [ ] Pannelli: all'inizio Informazioni aperto e Anteprima chiusa; i pulsanti della barra, Alt I, Alt P (anche cambiati in Sistema), la X e la voce «Informazioni» del tasto destro (anche nel Cestino) li aprono e chiudono; stato e larghezze restano dopo la ricarica (`lilos:files-panels`).
 - [ ] Larghezza: trascinando il bordo sinistro, con ←/→ (Shift a passi lunghi), Home/Fine e doppio clic (300 px anteprima, 260 informazioni; da 180 a 720); con la finestra stretta i pannelli si restringono lasciando 260 px all'elenco e tornano alla larghezza scelta allargando.
 - [ ] Anteprima: file di testo (nota se oltre 100.000 caratteri), SVG come immagine senza eseguire script, cartella (doppio clic su una voce la apre), collegamento a un'app, più elementi («uno alla volta»), elemento nel Cestino (chiede di ripristinare); si aggiorna al salvataggio.
 - [ ] Informazioni: un elemento, più elementi (elenco di nomi fino a 30), nessuna selezione (cartella aperta, Cestino, vista di un tag).
@@ -101,7 +101,7 @@ Parti da una scrivania pulita: accedi con un utente nuovo (`npm run kernel:cli -
 
 **Cestino**
 - [ ] Eliminare un file o una cartella (anche con contenuto) chiede conferma ("Sposta nel cestino…") e lo manda nel cestino; Ctrl Z lo rimette; ricaricando, l'elemento è ancora nel File Manager → Cestino.
-- [ ] Impostazioni → Usabilità → Cestino: senza "Chiedi conferma" si elimina subito; con "Elimina definitivamente" l'elemento non va nel cestino e si recupera solo con Ctrl Z fino alla ricarica.
+- [ ] Sistema → Usabilità → Cestino: senza "Chiedi conferma" si elimina subito; con "Elimina definitivamente" l'elemento non va nel cestino e si recupera solo con Ctrl Z fino alla ricarica.
 - [ ] File Manager → Cestino: colonne Nome / Eliminato / Dimensione / Tipo / Posizione originale ordinabili; gli elementi non si aprono né si rinominano; Nuova cartella è disattivata.
 - [ ] Ripristina (menu, anche su più elementi) rimette nella cartella d'origine, o in Home se non c'è più, con numero aggiunto se il nome esiste; compare il messaggio con la destinazione; Ctrl Z li rimette nel cestino. Ripristina tutto dal menu dello sfondo.
 - [ ] Canc o "Elimina definitivamente…" nel cestino e "Svuota il cestino…" chiedono sempre conferma; dopo, gli elementi non tornano con Ctrl Z.
@@ -113,31 +113,31 @@ Parti da una scrivania pulita: accedi con un utente nuovo (`npm run kernel:cli -
 - [ ] Sulla scrivania (nessuna finestra in primo piano): creare con nome, rinominare, eliminare (anche una cartella con file dentro), trascinare, Riordina icone e creare, spostare, rinominare, eliminare una workarea si annullano con Ctrl Z e si ripetono con Ctrl Y e Ctrl Shift Z; un elemento eliminato torna con il contenuto e al suo posto; in basso compare "Annullato: …" / "Ripetuto: …".
 - [ ] Con il focus in una finestra del File Manager, Ctrl Z annulla solo le azioni di quella finestra (crea con nome, rinomina, elimina), non quelle della scrivania.
 - [ ] Nell'Editor: Ctrl Z nel testo annulla la scrittura; con il focus nel pannello della cartella annulla crea, rinomina, sposta, elimina del pannello.
-- [ ] In Impostazioni Ctrl Z non fa nulla e non tocca la scrivania; in un campo di testo annulla la scrittura del campo.
+- [ ] In Sistema Ctrl Z non fa nulla e non tocca la scrivania; in un campo di testo annulla la scrittura del campo.
 - [ ] Dopo aver annullato un'eliminazione la cui cartella è stata tolta, compare "Non si può più fare: …" e la voce sparisce.
-- [ ] Dopo una ricarica Ctrl Z non annulla nulla. Le scorciatoie si cambiano in Impostazioni → Usabilità → Scorciatoie (gruppo Modifica).
+- [ ] Dopo una ricarica Ctrl Z non annulla nulla. Le scorciatoie si cambiano in Sistema → Usabilità → Scorciatoie (gruppo Modifica).
 
 **Workspace**
 - [ ] Al primo avvio c'è il workspace «Principale» (pulsante accanto al logo con pallino e nome) con gli elementi di esempio. Con dati di prima dei workspace (`lilos:fs` con `/Scrivania`, `lilos:camera`, `lilos:desktop-layout`, `lilos:workareas`) compare «Principale» con gli stessi elementi, posizioni, vista e workarea; le vecchie chiavi non ci sono più e ci sono quelle `lilos:ws:<id>:…`.
-- [ ] Menu del pulsante: elenco con la spunta sull'attuale, Successivo / Precedente (disattivi con un solo workspace), Nuovo workspace (lo crea e ci passa, con scrivania vuota), Gestisci i workspace… (apre Impostazioni → Workspace). Ctrl Alt → e Ctrl Alt ← cambiano workspace anche mentre si scrive; compare «Workspace «nome»».
+- [ ] Menu del pulsante: elenco con la spunta sull'attuale, Successivo / Precedente (disattivi con un solo workspace), Nuovo workspace (lo crea e ci passa, con scrivania vuota), Gestisci i workspace… (apre Sistema → Workspace). Ctrl Alt → e Ctrl Alt ← cambiano workspace anche mentre si scrive; compare «Workspace «nome»».
 - [ ] La scrivania del nuovo workspace è vuota; la sua cartella Scrivania non si vede nell'altro, né nel File Manager (barra laterale, percorso, ricerca), né nei selettori, né nel pannello dell'Editor. Documenti, Immagini e Download si vedono da tutti.
 - [ ] Ogni workspace ricorda vista, posizioni e workarea; ricaricando, il workspace attuale resta quello.
 - [ ] Cambiando workspace le finestre aperte spariscono (anche dalla barra) senza chiudersi: tornando, l'Editor ha ancora il testo non salvato; il focus torna alla finestra che l'aveva. Ctrl Z riparte dalla cronologia della nuova scrivania.
 - [ ] Ricaricando, le finestre fuori dalle workarea tornano per ogni workspace (quelle del workspace non attuale alla prima visita), nella stessa posizione.
 - [ ] File: colonna Workspace con pallino e nome, ordinabile; «Condiviso» sulle cartelle di sistema; un file creato in Documenti da un workspace dice quale, anche visto da un altro; nella vista a icone il tooltip dice «Workspace: …».
-- [ ] Impostazioni → Workspace → Questo workspace: rinomina e colore si vedono subito nel pulsante e nel File Manager; il numero di elementi creati cresce creando file; nascondere un'app la toglie dal menu di avvio e chiude (chiedendo, se ci sono modifiche) le sue finestre; avviare un collegamento a un'app nascosta mostra un messaggio; aprire un file la cui app è nascosta mostra «Apri con» con solo le app installate.
-- [ ] Impostazioni → Workspace → Tutti: Passa a questo, Elimina… (due clic), Crea; l'ultimo workspace non si elimina.
+- [ ] Sistema → Workspace → Questo workspace: rinomina e colore si vedono subito nel pulsante e nel File Manager; il numero di elementi creati cresce creando file; nascondere un'app la toglie dal menu di avvio e chiude (chiedendo, se ci sono modifiche) le sue finestre; avviare un collegamento a un'app nascosta mostra un messaggio; aprire un file la cui app è nascosta mostra «Apri con» con solo le app installate.
+- [ ] Sistema → Workspace → Tutti: Passa a questo, Elimina… (due clic), Crea; l'ultimo workspace non si elimina.
 - [ ] Eliminare un workspace con file sulla scrivania: la cartella Documenti/Scrivania di <nome> li contiene; con la scrivania vuota non resta nessuna cartella; le sue finestre delle app compaiono nel workspace attuale con il testo non salvato, quelle secondarie si chiudono; i file creati da quel workspace in altre cartelle mostrano «Nome (eliminato)».
 - [ ] Con 20 workspace «Nuovo workspace» mostra un messaggio.
-- [ ] Riparazioni: cancellando `lilos:workspaces` con `lilos:fs` intatto tornano i workspace (nome «Workspace recuperato»); chiavi `lilos:ws:xyz:…` di un workspace inesistente spariscono all'avvio. Ripristino «Scrivania e file iniziali» in Impostazioni cancella anche workspace e workarea.
+- [ ] Riparazioni: cancellando `lilos:workspaces` con `lilos:fs` intatto tornano i workspace (nome «Workspace recuperato»); chiavi `lilos:ws:xyz:…` di un workspace inesistente spariscono all'avvio. Ripristino «Scrivania e file iniziali» in Sistema cancella anche workspace e workarea.
 
 **Tag**
-- [ ] Tasto destro su un file o una cartella (scrivania e File Manager) → Tag: un pallino colorato per tag; "Nuovo tag…" apre Impostazioni → Tag con il campo del nome attivo; il tag creato lì va sugli elementi selezionati. Su una cartella di sistema (Documenti…) la voce Tag è disattivata.
+- [ ] Tasto destro su un file o una cartella (scrivania e File Manager) → Tag: un pallino colorato per tag; "Nuovo tag…" apre Sistema → Tag con il campo del nome attivo; il tag creato lì va sugli elementi selezionati. Su una cartella di sistema (Documenti…) la voce Tag è disattivata.
 - [ ] Scegliere un tag lo mette (pallino in basso a destra dell'icona sulla scrivania, nelle icone di File Manager, dopo il nome nell'elenco); con più elementi selezionati, se tutti l'hanno compare la spunta e sceglierlo lo toglie a tutti, altrimenti lo mette a tutti. Dopo 4 tag compare «+n»; i nomi sono nel tooltip.
-- [ ] Impostazioni → Tag: Crea (anche con Invio); nome vuoto o già usato (anche con maiuscole diverse) mostra un messaggio e non crea; un nuovo tag prende il primo colore non usato; rinominare, cambiare colore e interruttore Visibile hanno effetto subito sui pallini e nel File Manager; Elementi dice quanti sono; Mostra nel File Manager apre la vista del tag; Elimina… chiede due clic.
+- [ ] Sistema → Tag: Crea (anche con Invio); nome vuoto o già usato (anche con maiuscole diverse) mostra un messaggio e non crea; un nuovo tag prende il primo colore non usato; rinominare, cambiare colore e interruttore Visibile hanno effetto subito sui pallini e nel File Manager; Elementi dice quanti sono; Mostra nel File Manager apre la vista del tag; Elimina… chiede due clic.
 - [ ] File Manager → barra laterale → Tag: una voce per tag (il tag invisibile ha l'occhio barrato). La vista mostra tutti gli elementi con quel tag, anche in cartelle diverse e sulla scrivania, con colonne Nome / Posizione / Tipo / Workspace; ricerca, ordinamento, apri, rinomina, elimina funzionano; Nuova cartella è disattivata; "Mostra nella cartella" apre la cartella con l'elemento selezionato; "Togli il tag «X»" lo toglie; la barra di stato dice «Tutti gli elementi con questo tag». La finestra ricorda la vista dopo la ricarica.
 - [ ] Rendere invisibile un tag: gli elementi spariscono subito da scrivania, File Manager (elenco, ricerca, conteggi), selettore dei file e pannello dell'Editor, ma restano nella vista del tag (barra di stato «Tag invisibile: …»); una finestra dell'Editor con un file nascosto continua a funzionare. Tornando visibile, gli elementi ricompaiono sulla scrivania nello stesso posto, anche dopo la ricarica. "Mostra nella cartella" su un elemento nascosto non lo seleziona e lo dice.
-- [ ] Un elemento che prende un tag invisibile sparisce dalla scrivania; togliendogli il tag ricompare. Eliminare un tag invisibile (Impostazioni → Tag → Elimina…) fa ricomparire i suoi elementi.
+- [ ] Un elemento che prende un tag invisibile sparisce dalla scrivania; togliendogli il tag ricompare. Eliminare un tag invisibile (Sistema → Tag → Elimina…) fa ricomparire i suoi elementi.
 - [ ] Nel cestino un elemento con tag conserva il tag al ripristino; i tag valgono in tutti i workspace, ma la vista del tag mostra solo ciò che il workspace attuale vede.
 - [ ] `lilos:tags` manomesso (tipi sbagliati, id doppi, nomi doppi, colori non validi) viene ripulito senza errori; "Scrivania e file iniziali" cancella anche i tag.
 - [ ] Mettere o togliere un tag non si annulla con Ctrl Z (limite noto).
@@ -149,7 +149,7 @@ Parti da una scrivania pulita: accedi con un utente nuovo (`npm run kernel:cli -
 - [ ] Chiudere, Alt W, aprire un altro file o Ctrl Alt N con modifiche: barra Salva / Non salvare / Annulla.
 - [ ] File Manager aperto rinominato o eliminato altrove: titolo aggiornato / testo conservato.
 - [ ] Suggerimenti per ogni linguaggio (JS, CSS con valori dopo la proprietà, HTML con tag chiusi e attributi, JSON, Python, Markdown, testo); frecce, Invio, Tab, Esc, clic, Ctrl Spazio; niente da soli in stringhe e commenti; la riga che chiude un blocco Markdown non propone linguaggi.
-- [ ] Impostazioni → Usabilità → Tipi di file: cambiare un'estensione su "Chiedi ogni volta" fa comparire "Apri con"; "Usa sempre" la ricorda; un tipo senza app (es. .png) chiede sempre; "Apri con…" nel tasto destro.
+- [ ] Sistema → Usabilità → Tipi di file: cambiare un'estensione su "Chiedi ogni volta" fa comparire "Apri con"; "Usa sempre" la ricorda; un tipo senza app (es. .png) chiede sempre; "Apri con…" nel tasto destro.
 
 **Linguaggi dell'Editor**
 - [ ] JavaScript con Tree-sitter (nome delle funzioni colorato), Markdown con TextMate; cambiare motore nelle Impostazioni dell'Editor ha effetto subito.
@@ -160,12 +160,12 @@ Parti da una scrivania pulita: accedi con un utente nuovo (`npm run kernel:cli -
 
 **Menu contestuale e tema**
 - [ ] Tasto destro sullo sfondo: Nuovo (sottomenu) con mouse e tastiera (→ ←, Esc chiude un livello); "Pagina HTML" crea il file con lo scheletro.
-- [ ] Impostazioni → Usabilità → Menu contestuale: spostare, togliere, aggiungere voci, app, separatori, nuovi elementi con modello; Ripristina.
-- [ ] Impostazioni → Aspetto → Colori → Tema: Chiaro e Scuro cambiano scrivania, barra, menu, finestre ed evidenziazione; restano dopo la ricarica.
+- [ ] Sistema → Usabilità → Menu contestuale: spostare, togliere, aggiungere voci, app, separatori, nuovi elementi con modello; Ripristina.
+- [ ] Sistema → Aspetto → Colori → Tema: Chiaro e Scuro cambiano scrivania, barra, menu, finestre ed evidenziazione; restano dopo la ricarica.
 
 **Scorciatoie**
 - [ ] Le combinazioni iniziali funzionano (Ctrl K, Ctrl + / − / 0, Shift 1, Invio, F2, Canc, Ctrl A, Esc, Alt W, Alt N), solo nei contesti giusti (desktop con il focus, finestra attiva, non mentre si scrive salvo zoom, menu e finestre).
-- [ ] In Impostazioni → Usabilità → Scorciatoie: aggiungere, togliere, ripristinare; Esc e clic altrove annullano la registrazione.
+- [ ] In Sistema → Usabilità → Scorciatoie: aggiungere, togliere, ripristinare; Esc e clic altrove annullano la registrazione.
 - [ ] Combinazioni non valide spiegate (lettera da sola, Tab, riservate dal browser, comandi attivi nei campi senza Ctrl/Alt); conflitto con Sostituisci/Annulla.
 - [ ] Menu contestuali, tooltip dell'HUD e del logo mostrano le combinazioni attuali.
 - [ ] Le personalizzazioni restano dopo la ricarica; `lilos:shortcuts` manomesso viene ignorato.
@@ -190,7 +190,7 @@ Il passo successivo è portare questa verifica nel repository:
 Due cose utili da sapere per scrivere i test:
 
 - per il doppio clic usare `page.mouse.click(x, y, { count: 2 })`;
-- partire ogni test da un utente nuovo (o da Impostazioni → Archiviazione → «Scrivania e file iniziali»), altrimenti lo stato salvato nel kernel da un test influenza il successivo. Il test deve avviare il database (`npm run db:up`) e il kernel (`npm run kernel`, con accesso al repository ufficiale per le app di sistema) o usarne uno proprio; `npm run preview` inoltra `/api` al kernel come `npm run dev`.
+- partire ogni test da un utente nuovo (o da Sistema → Archiviazione → «Scrivania e file iniziali»), altrimenti lo stato salvato nel kernel da un test influenza il successivo. Il test deve avviare il database (`npm run db:up`) e il kernel (`npm run kernel`, con accesso al repository ufficiale per le app di sistema) o usarne uno proprio; `npm run preview` inoltra `/api` al kernel come `npm run dev`.
 
 ## Agenti di Claude Code
 
@@ -225,7 +225,7 @@ Nessun agente fa commit o push: si decide dopo aver letto i report.
 
 Non c'è ancora un ambiente pubblicato. `npm run build` produce in `dist/` il frontend, ma da solo non basta: il sistema parla con il kernel su `/api`, della **stessa origine** della pagina (il cookie di sessione ha `Path=/api`). In sviluppo, e con `npm run preview`, lo inoltra Vite a `127.0.0.1:8790`; in produzione serve un server che serva `dist/` e inoltri `/api` al kernel. Questo passaggio non è ancora descritto né deciso.
 
-Il kernel va avviato con `npm run kernel` (`system/kernel/run.js`), che lo riavvia quando serve (codice di uscita 75, dopo aver installato o tolto un modulo): un gestore di servizi che lo avviasse direttamente dovrebbe fare lo stesso. Al primo avvio il kernel installa le app di sistema dal repository ufficiale: la macchina del kernel ha bisogno di `git`, della rete e delle credenziali per quel repository; senza, lilOS parte privo di File Manager, Impostazioni e AppStore. Lo stesso vale per ogni installazione o aggiornamento da repository.
+Il kernel va avviato con `npm run kernel` (`system/kernel/run.js`), che lo riavvia quando serve (codice di uscita 75, dopo aver installato o tolto un modulo): un gestore di servizi che lo avviasse direttamente dovrebbe fare lo stesso. Al primo avvio il kernel installa le app di sistema dal repository ufficiale: la macchina del kernel ha bisogno di `git`, della rete e delle credenziali per quel repository; senza, lilOS parte privo di File Manager, Sistema e AppStore. Lo stesso vale per ogni installazione o aggiornamento da repository.
 
 In produzione il kernel andrà configurato con `origins` (i siti ammessi per le richieste che modificano), `secureCookies: true` con HTTPS, `LILOS_PG_URL` verso un database con una propria password, `apps.allowLocalSources` spento e, per le app, `trustedPublishers`. Non usare la configurazione di sviluppo (`lilos`/`lilos`).
 

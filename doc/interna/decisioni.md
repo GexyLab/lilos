@@ -131,7 +131,7 @@ Registro delle scelte di architettura. Ogni voce dice cosa si è deciso, perché
 
 ## D12. Preferenze dichiarate, con il tipo fissato dal valore predefinito
 
-**Decisione.** `settings` (SDK) accetta solo chiavi dichiarate con `define()`; il valore predefinito fissa il tipo e i valori salvati di tipo diverso vengono scartati. Le impostazioni del sistema sono dichiarate in `src/systemSettings.js`. L'app Impostazioni mostra solo impostazioni che funzionano davvero.
+**Decisione.** `settings` (SDK) accetta solo chiavi dichiarate con `define()`; il valore predefinito fissa il tipo e i valori salvati di tipo diverso vengono scartati. Le impostazioni del sistema sono dichiarate in `src/systemSettings.js`. L'app Sistema mostra solo impostazioni che funzionano davvero.
 
 **Perché.** `localStorage` non è affidabile (D6): così un valore rovinato o manomesso non arriva al codice. Un solo punto in cui sono dichiarate evita chiavi scritte in modi diversi.
 
@@ -147,9 +147,9 @@ Registro delle scelte di architettura. Ogni voce dice cosa si è deciso, perché
 
 ## D14. Un registro unico delle scorciatoie, modificabili dall'utente
 
-**Decisione.** Tutte le scorciatoie sono comandi registrati in `shortcuts` (SDK) con `id`, etichetta, gruppo, combinazioni predefinite e condizione di attività (`when`). Un solo listener esegue il comando corrispondente. Le combinazioni sono stringhe canoniche (`'Ctrl+Shift+A'`); l'utente le cambia da Impostazioni → Usabilità → Scorciatoie e vengono salvate solo quelle personalizzate (`lilos:shortcuts`). I tasti di navigazione dentro i componenti (frecce, Invio, Esc nei menu e nei tab) e Spazio + trascina restano fissi.
+**Decisione.** Tutte le scorciatoie sono comandi registrati in `shortcuts` (SDK) con `id`, etichetta, gruppo, combinazioni predefinite e condizione di attività (`when`). Un solo listener esegue il comando corrispondente. Le combinazioni sono stringhe canoniche (`'Ctrl+Shift+A'`); l'utente le cambia da Sistema → Usabilità → Scorciatoie e vengono salvate solo quelle personalizzate (`lilos:shortcuts`). I tasti di navigazione dentro i componenti (frecce, Invio, Esc nei menu e nei tab) e Spazio + trascina restano fissi.
 
-**Perché.** Prima ogni componente aveva il suo listener con i tasti scritti a mano: impossibile cambiarli, elencarli o evitare conflitti. Con un registro, ogni nuovo comando compare da solo nelle Impostazioni e le etichette di menu e tooltip restano giuste.
+**Perché.** Prima ogni componente aveva il suo listener con i tasti scritti a mano: impossibile cambiarli, elencarli o evitare conflitti. Con un registro, ogni nuovo comando compare da solo in Sistema e le etichette di menu e tooltip restano giuste.
 
 **Scelte di dettaglio.**
 
@@ -199,11 +199,11 @@ Registro delle scelte di architettura. Ogni voce dice cosa si è deciso, perché
 
 ## D18. Associazioni dei tipi di file e "Apri con"
 
-**Decisione.** Le app dichiarano nel registro le estensioni che aprono (`opens`): sono le predefinite. L'utente le cambia per ogni estensione in Impostazioni → Usabilità → Tipi di file, anche con "Chiedi ogni volta"; si salvano solo le scelte diverse dalla predefinita (`lilos:file-apps`). Senza app associata compare la finestra "Apri con", che può ricordare la scelta.
+**Decisione.** Le app dichiarano nel registro le estensioni che aprono (`opens`): sono le predefinite. L'utente le cambia per ogni estensione in Sistema → Usabilità → Tipi di file, anche con "Chiedi ogni volta"; si salvano solo le scelte diverse dalla predefinita (`lilos:file-apps`). Senza app associata compare la finestra "Apri con", che può ricordare la scelta.
 
 **Perché.** Richiesta esplicita; è il modello che gli utenti conoscono dai sistemi operativi.
 
-**Conseguenze.** Tutte le aperture di file passano da `openFile`. Le scorciatoie delle app sono dichiarate nel registro (`commands`) e registrate all'avvio, così sono nelle Impostazioni anche prima che l'app venga caricata.
+**Conseguenze.** Tutte le aperture di file passano da `openFile`. Le scorciatoie delle app sono dichiarate nel registro (`commands`) e registrate all'avvio, così sono in Sistema anche prima che l'app venga caricata.
 
 ## D19. Editor con textarea ed evidenziazione sovrapposta, senza librerie
 
@@ -293,7 +293,7 @@ Registro delle scelte di architettura. Ogni voce dice cosa si è deciso, perché
 
 **Conseguenze.**
 
-- Le finestre ridotte, secondarie (selettori, proprietà, impostazioni dell'Editor) e quelle ingrandite non si ricordano com'erano: le secondarie si chiudono, le ingrandite tornano non ingrandite, Impostazioni riparte dalla prima scheda.
+- Le finestre ridotte, secondarie (selettori, proprietà, impostazioni dell'Editor) e quelle ingrandite non si ricordano com'erano: le secondarie si chiudono, le ingrandite tornano non ingrandite, Sistema riparte dalla prima scheda.
 - L'app che vuole riaprirsi com'era imposta `getState` e accetta i dati in `args` (vedi la [ricetta](../sviluppatore/ricette.md#far-riaprire-la-finestra-di-unapp-da-una-workarea)); lo stato è al massimo 4000 caratteri di JSON.
 - Gli elementi nascosti di una workarea ridotta restano nodi di `/Scrivania`: compaiono nel File Manager.
 - Le workarea sono dati di sistema, non nodi del file system: le icone delle workarea non sono salvate nelle posizioni della scrivania (`lilos:ws:<id>:desktop-layout`).
@@ -310,7 +310,7 @@ Registro delle scelte di architettura. Ogni voce dice cosa si è deciso, perché
 
 **Conseguenze.**
 
-- **Una cronologia per posto, non una globale.** Chi aggiunge un'app con azioni annullabili crea la sua `UndoStack` e la collega (vedi la [ricetta](../sviluppatore/ricette.md#aggiungere-annulla-e-ripeti-a-unapp)). Le finestre senza cronologia (Impostazioni) non annullano nulla.
+- **Una cronologia per posto, non una globale.** Chi aggiunge un'app con azioni annullabili crea la sua `UndoStack` e la collega (vedi la [ricetta](../sviluppatore/ricette.md#aggiungere-annulla-e-ripeti-a-unapp)). Le finestre senza cronologia (Sistema) non annullano nulla.
 - **Voci asincrone.** `undo` e `redo` possono restituire una Promise (lo snapshot legge i contenuti da IndexedDB). Un solo passo alla volta: finché uno è in corso, gli altri rispondono `null`.
 - **Una voce che fallisce si toglie.** Se `undo` o `redo` lancia (per esempio la cartella non esiste più), la voce viene scartata e compare "Non si può più fare: …": la cronologia non resta mai bloccata.
 - **I campi di testo tengono l'annulla del browser**, a meno che il gestore dica `text: true`. L'Editor lo dice e usa `document.execCommand('undo' | 'redo')`: la cronologia della `textarea` include scrittura, suggerimenti e rientri, che non si possono rifare a mano.
@@ -329,7 +329,7 @@ Registro delle scelte di architettura. Ogni voce dice cosa si è deciso, perché
 - **L'isolamento sta in `fs`, non nelle viste.** La Scrivania di un workspace è una cartella `private` con `workspace` = il suo id. Con `fs.setWorkspace(id)`, le cartelle private degli altri workspace e tutto ciò che contengono non esistono per nessuna operazione di `fs`. Documenti, Immagini e Download sono condivise.
 - **Ogni nodo ricorda chi l'ha creato** (`workspace`), anche fuori dalla propria Scrivania; spostare o rinominare non lo cambia. Le cartelle di sistema condivise non hanno proprietario. Il File Manager mostra il proprietario in una colonna.
 - **Cambiare workspace non chiude nulla.** Le finestre del workspace lasciato restano aperte e nascoste (`ws-away`), con il testo non salvato; la cronologia annulla della scrivania riparte. Le finestre delle app fuori dalle workarea si salvano per workspace e si riaprono alla prima visita della sessione.
-- **App installate per workspace.** File Manager e Impostazioni sono `system` (sempre installate). Menu di avvio e "Apri con" mostrano solo le installate; un'app non installata non parte (messaggio). Disinstallare chiude, chiedendo, le finestre di quell'app nel workspace attuale. Le associazioni dei tipi di file restano globali.
+- **App installate per workspace.** File Manager e Sistema sono `system` (sempre installate). Menu di avvio e "Apri con" mostrano solo le installate; un'app non installata non parte (messaggio). Disinstallare chiude, chiedendo, le finestre di quell'app nel workspace attuale. Le associazioni dei tipi di file restano globali.
 - **Eliminare un workspace non cancella mai file** (neanche quelli nel cestino: dal [D28](#d28-il-cestino-è-una-seconda-radice-nascosta-del-file-system) ciò che aveva cestinato dalla sua Scrivania diventa visibile a tutti, `fs.unscopeTrash`). La sua Scrivania diventa `/Documenti/Scrivania di <nome>` (rimossa se vuota; `fs.share`), le sue finestre delle app passano nel workspace attuale con il testo non salvato (`wm.adopt`; le secondarie si chiudono). Workarea, vista, posizioni e app installate si perdono. Nell'elenco resta una voce "rimossa" con nome e colore, perché i suoi file dicano ancora di chi erano.
 - **Preferenze globali.** Tema, colore principale, scorciatoie, menu e tipi di file valgono per tutti i workspace.
 - **Avvio e migrazione.** I dati di prima dei workspace diventano un workspace «Principale», proprietario di tutti i nodi esistenti (`fs.claim`), con la vecchia `/Scrivania` resa privata e le chiavi `camera`, `desktop-layout`, `workareas` portate sotto `ws:<id>:`. All'avvio si ripara: Scrivania privata senza workspace (il workspace torna), workspace senza Scrivania (ne riceve una vuota), chiavi di workspace inesistenti (cancellate). Al massimo 20 workspace vivi.
@@ -345,7 +345,7 @@ Registro delle scelte di architettura. Ogni voce dice cosa si è deciso, perché
 - Una finestra appartiene al workspace in cui è nata; `wm.windows` e `wm.get` guardano solo il workspace attuale.
 - Un file condiviso aperto in un Editor di un altro workspace e poi spostato nella Scrivania privata del workspace attuale diventa invisibile a quell'Editor: salvare fallisce.
 - Le finestre di un workspace eliminato finiscono al centro della vista attuale, anche dentro una workarea attuale.
-- Un'app nuova nel registro non è installata nei workspace già salvati: l'utente la attiva in Impostazioni → Workspace.
+- Un'app nuova nel registro non è installata nei workspace già salvati: l'utente la attiva in Sistema → Workspace.
 - Più schede del browser continuano a sovrascriversi (vedi i limiti noti).
 
 **Quando ripensarla.** Se serviranno preferenze per workspace, condivisione di una cartella tra alcuni workspace (oggi: tutti o uno), o l'accesso di più utenti (i workspace diventerebbero per utente).
@@ -534,7 +534,7 @@ Senza un modulo `auth` lilOS ha un solo utente (`local`, amministratore) e il ke
 
 ## D36. Le app installate sono di tutti, le operazioni di installazione sono per utente
 
-**Decisione.** Installare un'app (solo un amministratore) scrive il pacchetto una volta sola in `/system/app/<id>/<versione>` e le librerie condivise in `/system/commons/<libreria>/<versione>`: vale per **tutti gli utenti e tutti i workspace**. Ogni workspace può soltanto **nasconderla** (Impostazioni → Workspace). Ciò che il manifesto chiede di fare *nella cartella di ogni utente* (`install` e `update`: cartelle, file di esempio, collegamento sulla scrivania, tag, impostazioni) lo esegue **lilOS nel browser, per ciascun utente, la prima volta che incontra l'app** (e, a ogni nuova versione, i passi di `update` che riguardano le versioni saltate), e **non sovrascrive mai** ciò che c'è già. Ciò che ha creato è scritto, per utente, nella chiave `app-setup`. Quando l'app viene rimossa lilOS toglie ciò che aveva creato; ciò che l'utente ha modificato (un file con la data cambiata, una cartella non vuota) e i percorsi delle operazioni `remove` del manifesto vanno nel **Cestino**. I dati propri dell'app (`lilos.storage`) si cancellano.
+**Decisione.** Installare un'app (solo un amministratore) scrive il pacchetto una volta sola in `/system/app/<id>/<versione>` e le librerie condivise in `/system/commons/<libreria>/<versione>`: vale per **tutti gli utenti e tutti i workspace**. Ogni workspace può soltanto **nasconderla** (Sistema → Workspace). Ciò che il manifesto chiede di fare *nella cartella di ogni utente* (`install` e `update`: cartelle, file di esempio, collegamento sulla scrivania, tag, impostazioni) lo esegue **lilOS nel browser, per ciascun utente, la prima volta che incontra l'app** (e, a ogni nuova versione, i passi di `update` che riguardano le versioni saltate), e **non sovrascrive mai** ciò che c'è già. Ciò che ha creato è scritto, per utente, nella chiave `app-setup`. Quando l'app viene rimossa lilOS toglie ciò che aveva creato; ciò che l'utente ha modificato (un file con la data cambiata, una cartella non vuota) e i percorsi delle operazioni `remove` del manifesto vanno nel **Cestino**. I dati propri dell'app (`lilos.storage`) si cancellano.
 
 **Perché.** Le operazioni parlano il linguaggio del desktop (la Scrivania del workspace, i tag, le impostazioni dell'utente): solo lilOS lo conosce. Farle all'installazione, nel kernel, obbligherebbe a conoscere tutti gli utenti e a lasciare indietro quelli che arrivano dopo.
 
@@ -566,7 +566,7 @@ Senza un modulo `auth` lilOS ha un solo utente (`local`, amministratore) e il ke
 
 ## D38. Le app di sistema vengono dal repository ufficiale e girano dentro lilOS
 
-**Decisione.** File Manager, Editor, Impostazioni e AppStore **non stanno più nel repository di lilOS**: sono pacchetti di [GexyLab/lilos-plugins-official](https://github.com/GexyLab/lilos-plugins-official), un repository privato che contiene anche i moduli del kernel `users-basic` e `fs-postgres` (tag `v1.0.0`). Un pacchetto con `system: true` nel manifesto è un'**app di sistema**: il kernel la accetta solo se viene da quel repository ([D37](#d37-fiducia-nei-pacchetti-origine-firma-e-permessi)) e lilOS la esegue **dentro la propria pagina, senza sandbox**. Il modulo si importa con `import()` da `/api/apps/<id>/v/<versione>/<entry>` (la versione è nel percorso, così blocchi, worker e file `.wasm` si risolvono accanto al modulo) e i fogli di stile elencati in `styles` si caricano con lui. L'app importa `@lilos/sdk` e `@lilos/system`, ma nel build restano esterni: a runtime sono `/host/sdk.js` e `/host/system.js`, file generati da `scripts/host-shims.mjs` (`predev`, `prebuild`) che rileggono `globalThis.__lilosHost`, impostato da `src/system.js` con l'SDK e con `src/systemApi.js`. `@lilos/system` è l'API di sistema per le app di sistema (colori, cartelle, registro delle app, apertura dei file, trascinamento, tag…). Il manifesto ha tre campi nuovi: `description`, `required` (app necessaria: non si rimuove né si nasconde) e `styles`. Il registro delle app non ha più app integrate: `system` vuol dire necessaria (`required`) e `trusted` app di sistema (`system`).
+**Decisione.** File Manager, Editor, Sistema e AppStore **non stanno più nel repository di lilOS**: sono pacchetti di [GexyLab/lilos-plugins-official](https://github.com/GexyLab/lilos-plugins-official), un repository privato che contiene anche i moduli del kernel `users-basic` e `fs-postgres` (tag `v1.0.0`). Un pacchetto con `system: true` nel manifesto è un'**app di sistema**: il kernel la accetta solo se viene da quel repository ([D37](#d37-fiducia-nei-pacchetti-origine-firma-e-permessi)) e lilOS la esegue **dentro la propria pagina, senza sandbox**. Il modulo si importa con `import()` da `/api/apps/<id>/v/<versione>/<entry>` (la versione è nel percorso, così blocchi, worker e file `.wasm` si risolvono accanto al modulo) e i fogli di stile elencati in `styles` si caricano con lui. L'app importa `@lilos/sdk` e `@lilos/system`, ma nel build restano esterni: a runtime sono `/host/sdk.js` e `/host/system.js`, file generati da `scripts/host-shims.mjs` (`predev`, `prebuild`) che rileggono `globalThis.__lilosHost`, impostato da `src/system.js` con l'SDK e con `src/systemApi.js`. `@lilos/system` è l'API di sistema per le app di sistema (colori, cartelle, registro delle app, apertura dei file, trascinamento, tag…). Il manifesto ha tre campi nuovi: `description`, `required` (app necessaria: non si rimuove né si nasconde) e `styles`. Il registro delle app non ha più app integrate: `system` vuol dire necessaria (`required`) e `trusted` app di sistema (`system`).
 
 **Perché.** Le app ufficiali sono parte del sistema: condividono con lui il file system, la cronologia, il trascinamento tra viste, i menu e le impostazioni. Un'app in iframe isolato ([D35](#d35-le-app-locali-girano-in-un-iframe-sandbox-senza-allow-same-origin)) vede solo ciò che il ponte `window.lilos` offre (file, dati propri, titolo, avvisi, appunti in scrittura): troppo poco. Fuori dal repository di lilOS, le app (l'Editor ha molte dipendenze) si aggiornano senza rilasciare lilOS e il sistema resta senza dipendenze a runtime. Usare l'SDK di lilOS invece di averne una copia per app dà un solo `fs`, una sola connessione al kernel e nessun duplicato nel pacchetto.
 
@@ -579,7 +579,7 @@ Senza un modulo `auth` lilOS ha un solo utente (`local`, amministratore) e il ke
 - Il kernel installa i file così come sono: il risultato del build (`apps/<id>/dist/` e `lilos.json` con gli hash) **si committa** nel repository ufficiale.
 - Non c'è un server di sviluppo per le app, e un clone locale non è "ufficiale": per provare una modifica si manda un ramo e si aggiorna l'app da quel ramo con una versione più alta (vedi [README per sviluppatori](../sviluppatore/README.md#le-app-di-sistema-e-il-repository-ufficiale)).
 - I file di una versione si mettono in cache per sempre (`immutable`): cambiare il codice senza alzare la versione non ha effetto nei browser che l'hanno già scaricato.
-- Senza il repository raggiungibile al primo avvio lilOS parte senza File Manager, Impostazioni e AppStore ([D41](#d41-le-app-di-sistema-mancanti-si-installano-allavvio-del-kernel)).
+- Senza il repository raggiungibile al primo avvio lilOS parte senza File Manager, Sistema e AppStore ([D41](#d41-le-app-di-sistema-mancanti-si-installano-allavvio-del-kernel)).
 - Le tre app necessarie non si nascondono, quindi se una si rompe non si può toglierla dal menu; l'Editor sì.
 
 **Quando ripensarla.** Se altri autori vorranno la stessa integrazione (serve un modo di concederla, oltre all'origine), se lilOS dovrà funzionare offline dal primo avvio, o se un'app di sistema dovrà essere isolata (per esempio un'app che apre contenuti di altri).
@@ -624,7 +624,7 @@ Senza un modulo `auth` lilOS ha un solo utente (`local`, amministratore) e il ke
 
 **Decisione.** La configurazione ha `apps.bootstrap`: gli `id` delle app che lilOS vuole sempre (predefinito `files`, `editor`, `settings`, `appstore`). All'avvio, dopo aver registrato le rotte e **prima di mettersi in ascolto**, il kernel (`kernel.js`, `#bootstrapApps`) controlla quali mancano; se ce ne sono, legge il catalogo del repository ufficiale e le installa dall'ultimo tag, come kernel, concedendo i permessi del loro manifesto. Se il repository non risponde (rete, `git`, credenziali), il kernel parte lo stesso e lo scrive nel log: lilOS gira senza quelle app.
 
-**Perché.** Un lilOS senza File Manager, Impostazioni e AppStore non è usabile, e l'AppStore non può installare sé stesso. Così basta avviare il kernel: niente passi a mano per le app ufficiali.
+**Perché.** Un lilOS senza File Manager, Sistema e AppStore non è usabile, e l'AppStore non può installare sé stesso. Così basta avviare il kernel: niente passi a mano per le app ufficiali.
 
 **Alternative scartate.** Tenerle nel repository di lilOS ([D38](#d38-le-app-di-sistema-vengono-dal-repository-ufficiale-e-girano-dentro-lilos)). Chiedere all'amministratore di installarle dal browser (serve già l'AppStore). Installarle al primo accesso dal frontend (il kernel non sarebbe l'unico a decidere).
 
@@ -642,7 +642,7 @@ Senza un modulo `auth` lilOS ha un solo utente (`local`, amministratore) e il ke
 
 **Decisione.** Un'app installata con `sdk` `"2"` non è più «un modulo che gira all'avvio»: esporta **una funzione per ogni punto d'ingresso**. `main` è la finestra che apre l'utente; il manifesto può dichiararne altri (`entrypoints`, al massimo 20), di tipo `window` (un'altra finestra) o `background` (nessuna finestra: risponde alle chiamate con `lilos.handle`). Li avvia il sistema (`callEntrypoint`) o un'app: le proprie con `lilos.app.call` e `lilos.app.connect` (un canale `MessagePort`), quelle di altre app con `lilos.apps.call`, che richiede il permesso `apps.call:<app>` (finora dichiarabile ma senza effetto). Un background parte alla prima chiamata, si ferma dopo 5 minuti senza usi e resta acceso solo se lo chiede (`keepAlive`), mostrandosi nella barra con un pulsante «Ferma». Un'app passa a un'altra un `file` solo se l'ha ricevuto lei; ogni altro dato arriva così com'è e chi risponde lo controlla.
 
-Le app `local` con `sdk` `"2"` girano in **due modi**, scelti da un amministratore: una regola generale (Impostazioni → App → Sicurezza, `meta.security.isolated` della cartella `/system/app/.security`) e, per una singola app, una scelta propria (Proprietà → Sicurezza, `isolated` nello stato dell'app: `true`, `false` o `null` per la regola generale). Il predefinito è **isolato**.
+Le app `local` con `sdk` `"2"` girano in **due modi**, scelti da un amministratore: una regola generale (Sistema → App → Sicurezza, `meta.security.isolated` della cartella `/system/app/.security`) e, per una singola app, una scelta propria (Proprietà → Sicurezza, `isolated` nello stato dell'app: `true`, `false` o `null` per la regola generale). Il predefinito è **isolato**.
 
 | | Isolata | Non isolata |
 | --- | --- | --- |
@@ -660,7 +660,7 @@ Le app di sistema girano sempre nella pagina; le app `remote` e quelle con `sdk`
 
 **Conseguenze.**
 
-- **Un'app non isolata può fare tutto ciò che può fare l'utente.** I permessi del manifesto restano scritti e si vedono (Proprietà → Permessi), ma non la limitano. Chi sceglie la modalità deve fidarsi dell'editore: l'interfaccia lo dice nella scheda Sicurezza e in Impostazioni.
+- **Un'app non isolata può fare tutto ciò che può fare l'utente.** I permessi del manifesto restano scritti e si vedono (Proprietà → Permessi), ma non la limitano. Chi sceglie la modalità deve fidarsi dell'editore: l'interfaccia lo dice nella scheda Sicurezza e in Sistema.
 - Il cambio di modalità non agisce su ciò che è già aperto. La scelta per una singola app ne ferma i background (l'app cambia nel registro); la regola generale no: i background già avviati restano come sono finché non si fermano.
 - Un'app con `sdk` `"1"` non si può rendere non isolata, né dichiarare `entrypoints`; per cambiare serve aggiornare il manifesto a `sdk` `"2"` e il codice a esportare `main`.
 - Un'app non isolata disegna in uno Shadow DOM: gli stili di lilOS non entrano (le variabili di tema sì), e gli stili dell'app non escono.

@@ -2,7 +2,7 @@ import { fs, openMenu, settings } from '@lilos/sdk';
 import { removeNodes } from './fsHistory.js';
 
 /**
- * Deleting files and folders, as set in Impostazioni → Usabilità → Cestino: into the trash or for
+ * Deleting files and folders, as set in Sistema → Usabilità → Cestino: into the trash or for
  * good (deletePermanent), asking first or not (deleteConfirm).
  */
 
