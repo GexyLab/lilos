@@ -10,7 +10,7 @@
 }
 .tb-ws:hover { background: var(--bar-hover); }
 .tb-ws-dot { width: 9px; height: 9px; flex: none; border-radius: 50%; box-shadow: 0 0 0 2px color-mix(in srgb, var(--bar-text) 18%, transparent); }
-.tb-ws-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
+.tb-ws-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 400; }
 .tb-ws .ico { width: 11px; height: 11px; flex: none; color: var(--bar-dim); }
 
 /* Who a file belongs to (File Manager) */

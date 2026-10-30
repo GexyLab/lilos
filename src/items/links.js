@@ -118,5 +118,5 @@ export const links = new Links();
 /** Menu entry that adds a link to the File Manager's sidebar, or null if they all have one already. */
 export function linkEntry(ids) {
   const fresh = ids.filter(id => !links.has(id) && fs.exists(id) && id !== fs.root && !fs.get(id).system);
-  return fresh.length ? { label: 'Aggiungi alla barra laterale di File', icon: 'link', action: () => links.add(fresh) } : null;
+  return fresh.length ? { label: 'Aggiungi alla barra laterale del File Manager', icon: 'link', action: () => links.add(fresh) } : null;
 }

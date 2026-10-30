@@ -16,10 +16,10 @@
 }
 .window.inactive .win-titlebar { background: var(--side); }
 .window.inactive .win-title { color: var(--faint); }
-.win-title { flex: 1; min-width: 0; display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 500; white-space: nowrap; overflow: hidden; }
+.win-title { flex: 1; min-width: 0; display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 400; white-space: nowrap; overflow: hidden; }
 .win-title .ico { width: 14px; height: 14px; color: var(--dim); }
 .win-title-text { overflow: hidden; text-overflow: ellipsis; }
-.win-title em { font-style: normal; font-weight: 400; color: var(--faint); overflow: hidden; text-overflow: ellipsis; }
+.win-title em { font-style: normal; font-weight: 300; color: var(--faint); overflow: hidden; text-overflow: ellipsis; }
 
 .win-controls { display: flex; flex: none; }
 .win-controls button { width: 28px; height: 24px; border-radius: var(--radius-sm); color: var(--dim); display: grid; place-items: center; }

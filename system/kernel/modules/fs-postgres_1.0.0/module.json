@@ -1,0 +1,13 @@
+{
+  "name": "fs-postgres",
+  "version": "1.0.0",
+  "description": "File system di lilOS su un database PostgreSQL, con il controllo degli accessi",
+  "kernel": "1",
+  "provides": [
+    "fs"
+  ],
+  "requires": [],
+  "defaultConfig": {
+    "url": "postgres://lilos:lilos@127.0.0.1:5433/lilos"
+  }
+}

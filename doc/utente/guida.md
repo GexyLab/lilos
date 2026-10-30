@@ -2,13 +2,36 @@
 
 lilOS è un desktop che si usa dal browser. Al posto di uno schermo fisso c'è una **scrivania infinita**: puoi spostarti in qualsiasi direzione, ingrandire e rimpicciolire, e sistemare cartelle, file e app dove preferisci.
 
-> lilOS è in sviluppo. Per ora le app disponibili sono **File**, **Editor** e **Impostazioni**.
+> lilOS è in sviluppo. Le app che ci sono sempre sono **File Manager**, **Impostazioni** e **AppStore**; c'è anche l'**Editor**, che si può togliere. Altre app le può installare un amministratore dall'AppStore (vedi [L'AppStore](#lappstore)).
 
 ## Lo schermo
 
 - **La scrivania** occupa quasi tutto lo schermo. Lo sfondo a puntini ti aiuta a capire quando ti stai spostando o stai cambiando zoom.
 - **Il pannello in basso a destra** mostra una mappa in miniatura della scrivania e i controlli dello zoom.
 - **La barra in basso**: a sinistra il pulsante con il logo di lilOS, che apre il menu di avvio, e subito dopo il pulsante del [workspace](#i-workspace) (un pallino colorato e il nome); al centro un pulsante per ogni finestra aperta; a destra il tuo nome, la data e l'ora. Passando sopra la data vedi la data completa.
+
+## Accedere e uscire
+
+Se lilOS ha più utenti, all'apertura compare **Accedi a lilOS**: scrivi il **nome utente** e la **password** e premi **Accedi**. Gli account li crea chi gestisce lilOS: da qui non si può crearne uno. Se lilOS ha un solo utente non c'è nulla da scrivere e si entra direttamente.
+
+- Se sbagli la password compare un messaggio. Dopo alcuni tentativi sbagliati (5 con lo stesso nome utente) lilOS ti fa aspettare, e l'attesa si allunga a ogni errore: riprova tra poco.
+- Se compare **Il kernel di lilOS non risponde**, il programma che conserva i tuoi dati non è acceso. Chi gestisce lilOS deve avviarlo; poi premi **Riprova**.
+- Il tuo spazio è tuo: ogni utente ha le sue cartelle, i suoi file e le sue impostazioni, e gli altri non li vedono.
+
+**Uscire.** Apri il menu di avvio e premi il pulsante di accensione in fondo, **Esci**. lilOS salva quello che stava ancora salvando, cancella dal browser la copia dei tuoi file e torna alla schermata di accesso. Il testo che non hai ancora salvato in una finestra (con Ctrl S) **si perde**: salvalo prima. Su un computer che non è solo tuo, esci sempre. Se lilOS ha un solo utente il pulsante si chiama **Riavvia sessione** e si limita a ricaricare la pagina.
+
+**La sessione scade.** Per sicurezza, dopo molti giorni (o dopo alcuni giorni senza usare lilOS) devi accedere di nuovo. Se succede mentre lavori compare **Sessione scaduta**: accedi con lo stesso utente e le modifiche che aspettavano vengono salvate. Se provi con un altro utente lilOS non lo accetta.
+
+**Salvare.** lilOS salva da solo, un attimo dopo ogni modifica. Se non riesce (per esempio il computer ha perso la connessione) compare **Modifiche non salvate** e lilOS riprova da solo; quando ci riesce compare **Modifiche salvate**. Finché è così non chiudere la pagina: il browser ti avvisa se ci sono modifiche che non sono ancora arrivate.
+
+### I dati che il browser aveva prima
+
+Se usavi lilOS prima degli account, il tuo browser può ancora avere cartelle, file e impostazioni di allora. Al primo accesso, se il tuo spazio è ancora vuoto, compare **Dati in questo browser**:
+
+- **Porta nel mio account** li trasferisce nel tuo spazio, una volta sola, e poi li **cancella da questo browser**;
+- **Non ora** li lascia dove sono. La domanda torna ad ogni apertura finché il tuo spazio resta vuoto; se inizi a lavorare, non compare più e quei dati restano nel browser, inutilizzati.
+
+Se lo spazio non è vuoto (per esempio hai già lavorato da un altro browser) la domanda non compare.
 
 ## Muoversi sulla scrivania
 
@@ -47,9 +70,9 @@ Sulla scrivania ci sono tre tipi di elementi:
 - **File**, con un foglio bianco e una fascia colorata che riporta l'estensione (TXT, PDF, …). Il colore dipende dal tipo di file, vedi [Tipi di file](#tipi-di-file).
 - **App**, con un riquadro colorato e il simbolo dell'app: sono collegamenti per avviarla.
 
-Al primo avvio trovi alcuni elementi di esempio: la cartella Progetti, il file benvenuto.txt e i collegamenti a File, Terminale e Impostazioni.
+Al primo avvio trovi alcuni elementi di esempio: la cartella Progetti, il file benvenuto.txt e i collegamenti a File Manager, Editor e Impostazioni. Se usavi lilOS prima che l'app si chiamasse File Manager, sulla scrivania trovi ancora l'icona con il vecchio nome «File»: è lo stesso collegamento, puoi rinominarla.
 
-Gli elementi della scrivania sono il contenuto della cartella **Scrivania**: li ritrovi anche nell'app [File](#lapp-file).
+Gli elementi della scrivania sono il contenuto della cartella **Scrivania**: li ritrovi anche nel [File Manager](#il-file-manager).
 
 ### Selezionare
 
@@ -67,20 +90,29 @@ Quando un elemento è selezionato, il nome viene mostrato per intero (fino a qua
 
 Trascina un elemento dove vuoi. Se più elementi sono selezionati, si spostano tutti insieme. Al rilascio si allineano a una griglia invisibile, così restano in ordine.
 
-Puoi anche **mettere file e cartelle dentro una cartella**: trascinali sopra una cartella, che si evidenzia, e rilasciali. Funziona con una cartella della scrivania, con una cartella aperta in una finestra File o con una cartella nel pannello dell'[Editor](#aprire-una-cartella). In basso compare un messaggio, per esempio "Spostato «note.txt» in Documenti". Le cartelle dentro cui metti un elemento non possono essere l'elemento stesso o una cartella che lo contiene.
+Puoi anche **mettere file e cartelle dentro una cartella**: trascinali sopra una cartella, che si evidenzia, e rilasciali. Funziona con una cartella della scrivania, con una cartella aperta in una finestra del File Manager o con una cartella nel pannello dell'[Editor](#aprire-una-cartella). In basso compare un messaggio, per esempio "Spostato «note.txt» in Documenti". Le cartelle dentro cui metti un elemento non possono essere l'elemento stesso o una cartella che lo contiene.
 
 - Vicino al puntatore compare il nome di ciò che trascini (o quanti elementi sono).
 - **Esc** durante il trascinamento annulla: tutto resta com'era.
 - Rilasciando sopra una finestra, il rilascio vale per la finestra: se non c'è una cartella sotto il puntatore, le icone tornano dove erano.
-- Si può trascinare anche nell'altro verso: dalla finestra File o dall'Editor sulla scrivania. L'elemento si sposta nella cartella Scrivania e compare dove hai rilasciato.
+- Si può trascinare anche nell'altro verso: dalla finestra del File Manager o dall'Editor sulla scrivania. L'elemento si sposta nella cartella Scrivania e compare dove hai rilasciato.
 - **Ctrl Z** rimette tutto dov'era (vedi [Annullare e ripetere](#annullare-e-ripetere)).
 - Gli elementi si **spostano**, non si copiano: non c'è ancora un modo per copiare con il trascinamento. Le cartelle non si aprono da sole passandoci sopra, e le cartelle di sistema (Documenti, Immagini, Download) non si possono spostare.
 
 ### Aprire
 
-**Doppio clic** oppure **Invio** sugli elementi selezionati. Le cartelle si aprono nell'app [File](#lapp-file), le app si avviano, i file si aprono con l'app associata al loro tipo (i file di testo e di codice nell'[Editor](#leditor)). Se nessuna app è associata compare la finestra [Apri con](#apri-con).
+**Doppio clic** oppure **Invio** sugli elementi selezionati. Le cartelle si aprono nel [File Manager](#il-file-manager), le app si avviano, i file si aprono con l'app associata al loro tipo (i file di testo e di codice nell'[Editor](#leditor)). Se nessuna app è associata compare la finestra [Apri con](#apri-con).
 
 Con il tasto destro su un file, **Apri con…** permette di scegliere l'app anche quando ce n'è già una associata.
+
+### Proprietà
+
+Tasto destro su **un** elemento → **Proprietà…**. Se ne hai selezionati più di uno la voce non compare. Nel File Manager c'è la stessa voce.
+
+- **Per una cartella o un file** si apre una piccola finestra, solo da leggere: il tipo, dove si trova, quanto pesa (per una cartella, quanti file e cartelle contiene e la loro dimensione), quando è stato creato e modificato, il workspace, i tag e, per un file, l'app con cui si apre. Se l'elemento cambia mentre la finestra è aperta, si aggiorna; se sparisce, la finestra si chiude. Per ogni elemento c'è una sola finestra.
+- **Per un'app** (un collegamento sulla scrivania) si aprono le proprietà dell'app, che trovi anche con il tasto destro su un'app nel menu di avvio. Vedi [Proprietà di un'app](#proprietà-di-unapp).
+
+Una **workarea** ha le sue proprietà, con il titolo e la descrizione (vedi [Le workarea](#le-workarea)).
 
 ### Creare cartelle e file
 
@@ -156,7 +188,7 @@ Il tasto destro sullo sfondo dentro l'area mostra prima le voci della workarea: 
 Pulsante con il trattino nella barra del titolo, oppure tasto destro → **Riduci a icona**.
 
 - Se una finestra ha modifiche non salvate (per esempio un testo nell'Editor), lilOS chiede cosa fare. Con **Annulla** la workarea resta com'è.
-- Le finestre si chiudono, ma lilOS ricorda le app, dove erano e che cosa mostravano (per esempio il file aperto nell'Editor o la cartella aperta in File). Il testo non salvato non viene ricordato: per questo lo chiede prima.
+- Le finestre si chiudono, ma lilOS ricorda le app, dove erano e che cosa mostravano (per esempio il file aperto nell'Editor o la cartella aperta nel File Manager). Il testo non salvato non viene ricordato: per questo lo chiede prima.
 - Le icone dell'area spariscono dalla scrivania. Al loro posto resta **una sola icona**, nell'angolo in alto a sinistra dell'area.
 
 L'icona si usa come le altre: **doppio clic** o **Invio** la riapre. L'area torna al suo posto con le icone, le finestre si riaprono e la vista la inquadra. **F2** la rinomina. Trascinandola, sposti l'area nascosta con tutto il suo contenuto. Se al ritorno l'area coprirebbe un'altra workarea aperta, viene spostata a destra con il suo contenuto.
@@ -172,13 +204,13 @@ Si elimina solo la workarea: le icone e le finestre che contiene restano sulla s
 - Riaprendo una workarea, le finestre di servizio (per esempio la scelta di un file o le proprietà) non tornano: vengono chiuse.
 - Le impostazioni si riaprono sulla prima scheda.
 - Le finestre ingrandite tornano non ingrandite.
-- Le icone nascoste da una workarea ridotta compaiono comunque nell'app File, nella cartella Scrivania.
+- Le icone nascoste da una workarea ridotta compaiono comunque nel File Manager, nella cartella Scrivania.
 - Le voci della workarea nel tasto destro si trovano solo sullo sfondo della scrivania.
 - Se hai già personalizzato il menu del tasto destro, la voce **Workarea** in **Nuovo** non viene aggiunta da sola: aggiungila da Impostazioni → Usabilità → Menu contestuale.
 
 ## I workspace
 
-Un **workspace** è una scrivania a parte. Ognuno ha i suoi elementi sulla scrivania, le sue finestre aperte, le sue workarea, il punto della scrivania che stavi guardando e le sue app. Serve a separare lavori diversi, per esempio "Lavoro" e "Casa": cambiando workspace vedi solo le cose di quel lavoro.
+Un **workspace** è una scrivania a parte. Ognuno ha i suoi elementi sulla scrivania, le sue finestre aperte, le sue workarea, il punto della scrivania che stavi guardando e le app che mostra. Serve a separare lavori diversi, per esempio "Lavoro" e "Casa": cambiando workspace vedi solo le cose di quel lavoro.
 
 Al primo avvio c'è un solo workspace, **Principale**. Se usavi lilOS prima dei workspace, tutto quello che avevi si trova lì.
 
@@ -195,37 +227,37 @@ Il workspace che lasci resta **esattamente com'era**. Le sue finestre non si chi
 
 | Cosa | Com'è |
 | --- | --- |
-| Scrivania (la cartella **Scrivania**) | Separata. Gli altri workspace non la vedono affatto: non compare né nell'app File, né quando scegli un file o una cartella, né nel pannello dell'Editor |
+| Scrivania (la cartella **Scrivania**) | Separata. Gli altri workspace non la vedono affatto: non compare né nel File Manager, né quando scegli un file o una cartella, né nel pannello dell'Editor |
 | Posizione degli elementi, vista, workarea, finestre aperte | Separate |
-| App installate | Separate (vedi sotto) |
+| App visibili | Separate (vedi sotto): le app si installano per tutti, ogni workspace sceglie quali mostrare |
 | **Documenti**, **Immagini**, **Download** | Condivise: tutti i workspace vedono gli stessi file |
 | Tema, colore principale, scorciatoie, menu del tasto destro, app dei tipi di file | Uguali in tutti i workspace |
 
-Ogni file e cartella ricorda **il workspace che l'ha creato**. Non cambia se lo sposti o lo rinomini. Nell'app File, in vista elenco, la colonna **Workspace** mostra un pallino con il colore e il nome del workspace; **Condiviso** compare sulle cartelle principali, che non sono di nessuno. In vista a icone, il suggerimento che compare passando sopra un elemento dice «Workspace: …». Fai clic sull'intestazione per ordinare per workspace.
+Ogni file e cartella ricorda **il workspace che l'ha creato**. Non cambia se lo sposti o lo rinomini. Nel File Manager, in vista elenco, la colonna **Workspace** mostra un pallino con il colore e il nome del workspace; **Condiviso** compare sulle cartelle principali, che non sono di nessuno. In vista a icone, il suggerimento che compare passando sopra un elemento dice «Workspace: …». Fai clic sull'intestazione per ordinare per workspace.
 
 ### Le app di ogni workspace
 
-**File** e **Impostazioni** ci sono sempre. Le altre app si possono installare o togliere in ogni workspace, da Impostazioni → Workspace → Questo workspace. Il menu di avvio mostra solo le app installate nel workspace in cui sei.
+**File Manager**, **Impostazioni** e **AppStore** ci sono sempre. Le altre app (anche l'Editor e quelle [installate](#app-installate)) valgono per tutti i workspace, ma ognuno può **nasconderne** alcune, da Impostazioni → Workspace → Questo workspace. Il menu di avvio mostra solo le app visibili nel workspace in cui sei.
 
-- Se avvii un'app che qui non è installata (per esempio da un collegamento sulla scrivania), compare un messaggio che ti dice dove aggiungerla.
-- Se apri un file e la sua app non è installata, compare **Apri con**, che propone solo le app installate. La scelta dell'app per ogni tipo di file è la stessa in tutti i workspace.
-- Se togli un'app, le sue finestre in questo workspace si chiudono (se hanno modifiche non salvate ti viene chiesto).
+- Se avvii un'app che qui è nascosta (per esempio da un collegamento sulla scrivania), compare un messaggio che ti dice dove mostrarla.
+- Se apri un file e la sua app è nascosta, compare **Apri con**, che propone solo le app visibili. La scelta dell'app per ogni tipo di file è la stessa in tutti i workspace.
+- Se nascondi un'app, le sue finestre in questo workspace si chiudono (se hanno modifiche non salvate ti viene chiesto).
 
 ### Creare, rinominare, eliminare
 
 Apri **Impostazioni → Workspace**. Ci sono due schede.
 
-- **Questo workspace**: il **nome** (al massimo 40 caratteri), il **colore** (è il pallino nella barra e accanto ai suoi file in File), quanti file, cartelle e collegamenti ha creato, e un interruttore per ogni app.
-- **Tutti**: l'elenco dei workspace, con quanti elementi hanno creato e quante app hanno. **Passa a questo** ti ci porta, **Elimina…** lo elimina, **Crea** ne fa uno nuovo con la scrivania vuota e tutte le app. Puoi averne **al massimo 20**. L'ultimo workspace non si può eliminare.
+- **Questo workspace**: il **nome** (al massimo 40 caratteri), il **colore** (è il pallino nella barra e accanto ai suoi file nel File Manager), quanti file, cartelle e collegamenti ha creato, e un interruttore per ogni app (acceso: l'app è visibile).
+- **Tutti**: l'elenco dei workspace, con quanti elementi hanno creato e quante app mostrano. **Passa a questo** ti ci porta, **Elimina…** lo elimina, **Crea** ne fa uno nuovo con la scrivania vuota e tutte le app visibili. Puoi averne **al massimo 20**. L'ultimo workspace non si può eliminare.
 
 Un workspace nuovo si crea anche dal menu del pulsante nella barra (**Nuovo workspace**) e ti ci porta subito.
 
 **Eliminare un workspace** chiede due clic: al primo il pulsante diventa rosso, il secondo (entro pochi secondi) conferma. Nessun file viene cancellato:
 
 - se la sua scrivania non era vuota, diventa la cartella **Documenti → Scrivania di** *nome del workspace*; se era vuota sparisce;
-- i file che ha creato in altre cartelle restano dove sono e in File la colonna dice **nome (eliminato)**;
+- i file che ha creato in altre cartelle restano dove sono e nel File Manager la colonna dice **nome (eliminato)**;
 - le sue finestre aperte passano nel workspace in cui sei, al centro della vista, con il testo non salvato. Le finestre di servizio (per esempio la scelta di un file o le proprietà di una workarea) si chiudono;
-- **si perdono** la posizione degli elementi, le workarea, il punto della scrivania che guardava e l'elenco delle sue app. Non si possono recuperare.
+- **si perdono** la posizione degli elementi, le workarea, il punto della scrivania che guardava e l'elenco delle app che nascondeva. Non si possono recuperare.
 
 ### Cosa non è ancora possibile
 
@@ -233,17 +265,18 @@ Un workspace nuovo si crea anche dal menu del pulsante nella barra (**Nuovo work
 - Le preferenze (tema, scorciatoie, menu) sono le stesse per tutti i workspace.
 - Le scrivanie degli altri workspace non si vedono: per scambiare un file tra workspace tienilo in Documenti, Immagini o Download.
 - Se apri un file condiviso (per esempio in Documenti) con l'Editor in un workspace, vai in un altro workspace e lì lo sposti nella tua scrivania, l'Editor del primo non lo vede più e non può salvarlo.
-- Se hai lilOS aperto in più schede del browser, l'ultima che salva vince: i workspace creati in un'altra scheda possono andare persi.
-- Le app aggiunte a lilOS in futuro arrivano installate in tutti i workspace; quelle che hai tolto restano tolte.
+- Se hai lilOS aperto in più schede del browser, ogni scheda salva per conto suo e per ogni elemento vince l'ultima che salva: i workspace creati in un'altra scheda possono andare persi. Usa una scheda sola.
+- Le app aggiunte a lilOS in futuro arrivano visibili in tutti i workspace; quelle che hai nascosto restano nascoste.
 - Dopo aver ricaricato la pagina le finestre di servizio non tornano, le finestre ingrandite tornano non ingrandite e Impostazioni si riapre sulla prima scheda.
 
-## L'app File
+## Il File Manager
 
-**File** mostra le cartelle e il loro contenuto. Aprila dal menu di avvio o dal collegamento sulla scrivania, oppure fai doppio clic su una cartella della scrivania: si apre direttamente lì. Dal tasto destro su un punto vuoto della scrivania, **Apri la Scrivania in File** mostra gli elementi della scrivania come elenco.
+**File Manager** mostra le cartelle e il loro contenuto. Aprilo dal menu di avvio o dal collegamento sulla scrivania, oppure fai doppio clic su una cartella della scrivania: si apre direttamente lì. Dal tasto destro su un punto vuoto della scrivania, **Apri la Scrivania nel File Manager** mostra gli elementi della scrivania come elenco.
 
 - **A sinistra**, la barra laterale. In cima la sezione **Collegamenti**: Home e le cartelle principali (Scrivania, Documenti, Immagini, Download) e i collegamenti che aggiungi tu (vedi [Collegamenti nella barra laterale](#collegamenti-nella-barra-laterale)), nell'ordine che scegli trascinandoli. Sotto, la voce **Tag** con un elemento per ogni tag che hai creato (vedi [I tag](#i-tag)) e in fondo il **Cestino** (vedi [Il Cestino](#il-cestino)): queste restano sempre al loro posto. Le cartelle principali non si possono rinominare né eliminare. **Scrivania** è quella del workspace in cui sei; Documenti, Immagini e Download sono di tutti.
-- **In alto**: Indietro, Avanti, Cartella superiore; il percorso (fai clic su una parte per tornarci); **Nuova cartella**; vista **elenco** o **a icone**; la ricerca nella cartella aperta (Esc la svuota).
+- **In alto**: Indietro, Avanti, Cartella superiore; il percorso (fai clic su una parte per tornarci); **Nuova cartella**; vista **elenco** o **a icone**; i pulsanti che aprono e chiudono i pannelli Anteprima e Informazioni; la ricerca nella cartella aperta (Esc la svuota).
 - **Al centro**: il contenuto della cartella. In vista elenco ci sono le colonne Nome, Modificato, Dimensione, Tipo e Workspace (il workspace che ha creato l'elemento, vedi [I workspace](#i-workspace)): fai clic su un'intestazione per ordinare, di nuovo per invertire l'ordine. Le cartelle restano sempre in cima.
+- **A destra**, due pannelli che si aprono e si chiudono: **Informazioni** e **Anteprima** (vedi [Anteprima e Informazioni](#anteprima-e-informazioni)).
 - **In basso**: quanti elementi ci sono e quanti sono selezionati, il percorso della cartella o un messaggio.
 
 Con gli elementi della cartella fai le stesse cose della scrivania: clic, Ctrl + clic, **Shift + clic** per selezionare un intervallo, doppio clic o Invio per aprire, F2 per rinominare, Canc per eliminare (nel cestino: eliminare definitivamente), Ctrl A per selezionare tutto. Dal tasto destro su un punto vuoto puoi creare cartelle e file di testo. **Ctrl Z** annulla quello che hai fatto in questa finestra (vedi [Annullare e ripetere](#annullare-e-ripetere)).
@@ -256,7 +289,39 @@ Tasti per muoversi nell'elenco (non modificabili):
 | Backspace o Alt ↑ | Cartella superiore |
 | Alt ← / Alt → | Indietro / Avanti |
 
-Quello che fai in File vale anche per la scrivania, e viceversa: una cartella creata in Scrivania compare subito sulla scrivania.
+Quello che fai nel File Manager vale anche per la scrivania, e viceversa: una cartella creata in Scrivania compare subito sulla scrivania.
+
+### Anteprima e Informazioni
+
+Il File Manager ha due pannelli a destra dell'elenco. Servono per guardare un elemento senza aprirlo. All'inizio **Informazioni** è aperto e **Anteprima** è chiusa.
+
+| Come | Cosa fa |
+| --- | --- |
+| Pulsante dell'anteprima o **Alt P** | Apre o chiude l'**Anteprima**, accanto all'elenco |
+| Pulsante delle informazioni o **Alt I** | Apre o chiude le **Informazioni**, al bordo destro della finestra |
+| **×** nell'intestazione del pannello | Chiude il pannello |
+| Tasto destro su un elemento → **Informazioni** | Apre le informazioni di quell'elemento (anche nel Cestino) |
+
+Alt P e Alt I si cambiano in Impostazioni → Usabilità → Scorciatoie (vedi [Cambiare le scorciatoie](#cambiare-le-scorciatoie)).
+
+**Anteprima** mostra l'elemento selezionato:
+
+- un **file di testo**: i primi 100.000 caratteri, con una nota se il file è più lungo;
+- un'**immagine SVG**: il disegno, senza eseguire eventuali script che contiene;
+- una **cartella**: il suo contenuto (le prime 200 voci); con un doppio clic su una voce la apri;
+- un **collegamento a un'app**: l'app a cui porta.
+
+Il pulsante **Apri** (**Avvia** per un'app) nell'intestazione apre l'elemento. Se selezioni più elementi, l'anteprima ne mostra uno alla volta e lo dice. Per gli elementi nel Cestino chiede di ripristinarli prima. Se salvi il file mentre lo guardi, l'anteprima si aggiorna.
+
+**Informazioni** descrive la selezione:
+
+- **Un elemento**: tipo ed estensione, dimensione (anche in byte), per le cartelle quanti elementi contengono e la dimensione totale, il percorso (nel Cestino: quando è stato eliminato e la posizione originale), quando è stato creato e modificato, il workspace, i tag e gli attributi (di sistema, privata, nascosto da un tag invisibile, nella barra laterale). Per i file di testo anche righe, parole e caratteri (fino a 5 MB).
+- **Più elementi**: quanti sono per tipo, la dimensione totale, gli elementi dentro le cartelle, i tipi, la posizione (comune, o il numero di cartelle diverse), la data più vecchia e la più recente, i workspace, i tag e quelli in comune, e l'elenco dei nomi (al massimo 30).
+- **Nessun elemento selezionato**: la cartella aperta; nel Cestino il riepilogo (contenuto, dimensione, ultima eliminazione, per quanto tempo si conservano); nella vista di un tag, il riepilogo di quel tag.
+
+**Larghezza.** Trascina il bordo sinistro del pannello. Con la tastiera, sul bordo: **←** e **→** (con Shift a passi più lunghi), **Home** e **Fine** per il minimo e il massimo, doppio clic per tornare alla larghezza iniziale (300 pixel l'anteprima, 260 le informazioni). Ogni pannello va da 180 a 720 pixel. Se la finestra è stretta, i pannelli si restringono per lasciare all'elenco almeno 260 pixel, e tornano alla larghezza scelta quando la allarghi.
+
+lilOS ricorda quali pannelli sono aperti e quanto sono larghi, e li ritrova alla riapertura.
 
 ### Spostare con il trascinamento
 
@@ -266,7 +331,7 @@ Trascina file e cartelle (uno o più selezionati) e rilasciali su una cartella p
 - sulla **parte vuota dell'elenco**: vanno nella cartella che stai guardando;
 - su una **parte del percorso** in alto, per portarli in una cartella più su;
 - su una **cartella della sezione Collegamenti** (Home, Scrivania, Documenti… o il collegamento a una cartella): rilascia al **centro** della voce;
-- su una cartella della **scrivania** o di un'altra finestra File, o nel pannello dell'[Editor](#aprire-una-cartella), e viceversa.
+- su una cartella della **scrivania** o di un'altra finestra del File Manager, o nel pannello dell'[Editor](#aprire-una-cartella), e viceversa.
 
 Cosa succede:
 
@@ -275,28 +340,28 @@ Cosa succede:
 - **Esc** durante il trascinamento annulla.
 - Se un elemento è selezionato insieme ad altri, un clic semplice su di esso lascia selezionato solo lui; il trascinamento invece sposta tutta la selezione.
 - Se nella cartella di destinazione c'è già un elemento con lo stesso nome, lilOS aggiunge un numero.
-- **Ctrl Z** nella finestra File da cui hai trascinato rimette tutto nelle cartelle d'origine, con i nomi di prima (vedi [Annullare e ripetere](#annullare-e-ripetere)).
+- **Ctrl Z** nella finestra del File Manager da cui hai trascinato rimette tutto nelle cartelle d'origine, con i nomi di prima (vedi [Annullare e ripetere](#annullare-e-ripetere)).
 - Rilasciando sul **Cestino** (in fondo alla barra a sinistra, al centro o ai bordi) gli elementi vengono eliminati: finiscono nel Cestino e Ctrl Z li rimette. Le cartelle di sistema restano dove sono.
 - Non si può rilasciare nel Cestino aperto né nella vista di un tag. Sui **Tag** della barra a sinistra e nello spazio vuoto sotto il Cestino non succede niente (nessuna linea, nessuna azione). Gli elementi nel Cestino non si possono trascinare.
 - Si **spostano**, non si copiano: non c'è ancora un modo per copiare con il trascinamento. Le cartelle non si aprono da sole passandoci sopra, e non c'è un modo per spostare con la tastiera.
 
 ### Collegamenti nella barra laterale
 
-In cima alla barra a sinistra di File, la sezione **Collegamenti** tiene a portata di clic le cartelle e i file che usi di più. Contiene Home, Scrivania, Documenti, Immagini e Download e i collegamenti che aggiungi tu, nell'ordine che preferisci. Sotto di lei ci sono i **Tag** e il **Cestino**, fuori dall'ordine: non si spostano.
+In cima alla barra a sinistra del File Manager, la sezione **Collegamenti** tiene a portata di clic le cartelle e i file che usi di più. Contiene Home, Scrivania, Documenti, Immagini e Download e i collegamenti che aggiungi tu, nell'ordine che preferisci. Sotto di lei ci sono i **Tag** e il **Cestino**, fuori dall'ordine: non si spostano.
 
-- **Aggiungere**: trascina file o cartelle nella sezione, **tra due voci** (compare una linea che mostra dove andrà), sopra il collegamento a un **file**, oppure nella parte vuota in fondo alla sezione (circa 10 pixel). Oppure tasto destro su un elemento → **Aggiungi alla barra laterale di File** (aggiunge in fondo; la voce compare anche nel pannello dell'[Editor](#aprire-una-cartella) e sulla scrivania, e non per le cartelle di sistema). Compare "Collegamento aggiunto". Un collegamento che esiste già non si duplica. Al massimo 80 voci: quando sono troppe, le più vecchie vengono tolte.
+- **Aggiungere**: trascina file o cartelle nella sezione, **tra due voci** (compare una linea che mostra dove andrà), sopra il collegamento a un **file**, oppure nella parte vuota in fondo alla sezione (circa 10 pixel). Oppure tasto destro su un elemento → **Aggiungi alla barra laterale del File Manager** (aggiunge in fondo; la voce compare anche nel pannello dell'[Editor](#aprire-una-cartella) e sulla scrivania, e non per le cartelle di sistema). Compare "Collegamento aggiunto". Un collegamento che esiste già non si duplica. Al massimo 80 voci: quando sono troppe, le più vecchie vengono tolte.
 - **Dove rilasci conta**: al **centro** di una cartella (una voce fissa o un collegamento a una cartella) l'elemento si **sposta** davvero in quella cartella, con Ctrl Z per annullare. Vicino al **bordo** di una voce (circa 8 pixel) si crea un collegamento in quel punto. Sul **Cestino** l'elemento finisce sempre nel Cestino: non si crea mai un collegamento. Sui **Tag** non succede niente.
 - **Riordinare**: trascina una voce della sezione su un'altra posizione, tra due voci. Vale per i collegamenti e per le voci fisse (Home, Scrivania, Documenti…). I Tag e il Cestino non entrano nell'ordine.
 - **Usare**: un clic apre la voce. Una cartella si mostra nella finestra, un file si apre con la sua app, un'app (un collegamento della scrivania) si avvia.
 - **Trascinare fuori dalla barra**: trascinando un collegamento fuori dalla barra trascini l'elemento vero. Rilasciandolo su una cartella, per esempio, lo sposti.
-- **Eliminare un collegamento**: toglie solo la voce dalla barra, il file o la cartella restano dove sono. Tre modi: il pulsante **×** che compare passando il mouse sulla voce (o quando ha il focus), il tasto **Canc** su un collegamento con il focus (non tocca i file selezionati nell'elenco), oppure tasto destro → **Elimina il collegamento**. Compare "Collegamento a «nome» eliminato" e **Ctrl Z** nella finestra File lo rimette al suo posto. Le voci fisse (Home, Scrivania…) non si eliminano.
+- **Eliminare un collegamento**: toglie solo la voce dalla barra, il file o la cartella restano dove sono. Tre modi: il pulsante **×** che compare passando il mouse sulla voce (o quando ha il focus), il tasto **Canc** su un collegamento con il focus (non tocca i file selezionati nell'elenco), oppure tasto destro → **Elimina il collegamento**. Compare "Collegamento a «nome» eliminato" e **Ctrl Z** nella finestra del File Manager lo rimette al suo posto. Le voci fisse (Home, Scrivania…) non si eliminano.
 - **Tasto destro** su un collegamento: **Apri**, **Mostra nella cartella** (apre la cartella dove si trova l'elemento) e **Elimina il collegamento**.
 - Il collegamento segue l'elemento: se lo rinomini o lo sposti, il collegamento resta valido. Se lo metti nel Cestino, o se si trova sulla Scrivania di un altro workspace, il collegamento non si vede (e ricompare, al suo posto, se l'elemento torna visibile).
 - L'ordine della barra e i collegamenti sono gli stessi in tutti i [workspace](#i-workspace).
 
 ## Il Cestino
 
-Il **Cestino** raccoglie file e cartelle eliminati, con tutto il loro contenuto. Aprilo da **File**, con la voce **Cestino** in fondo alla barra a sinistra, oppure da **Impostazioni → Usabilità → Cestino** con **Apri il cestino**.
+Il **Cestino** raccoglie file e cartelle eliminati, con tutto il loro contenuto. Aprilo da **File Manager**, con la voce **Cestino** in fondo alla barra a sinistra, oppure da **Impostazioni → Usabilità → Cestino** con **Apri il cestino**.
 
 L'elenco mostra, dal più recente: **Nome**, **Eliminato** (data e ora), **Dimensione**, **Tipo** e **Posizione originale**. Fai clic su un'intestazione per ordinare. In basso trovi dopo quanto tempo gli elementi vengono eliminati definitivamente.
 
@@ -309,28 +374,28 @@ L'elenco mostra, dal più recente: **Nome**, **Eliminato** (data e ora), **Dimen
 Cose da sapere:
 
 - Dopo **30 giorni** (se non cambi il periodo) quello che è nel cestino viene eliminato definitivamente. In **Impostazioni → Usabilità → Cestino → Conserva gli elementi per** scegli da 1 giorno a 1 anno, oppure "Per sempre". La pulizia avviene quando apri lilOS e poi ogni ora.
-- Il cestino occupa spazio nel browser come gli altri file. Nelle impostazioni vedi quanti elementi contiene e quanto pesano.
+- Il cestino occupa spazio come gli altri file. Nelle impostazioni vedi quanti elementi contiene e quanto pesano.
 - Quello che elimini dalla **Scrivania** di un workspace compare nel cestino solo di quel workspace. Se elimini il workspace, quegli elementi diventano visibili da tutti.
 - Ripristinare la scrivania e i file iniziali (Impostazioni → Archiviazione) svuota anche il cestino.
 
 ## L'Editor
 
-L'**Editor** apre e modifica i file di testo e di codice (txt, md, js, css, html, json, py e altri). Si apre facendo doppio clic su un file, dal menu di avvio o con **Ctrl Alt N** per un documento nuovo.
+L'**Editor** apre e modifica i file di testo e di codice (txt, md, js, css, html, json, py e altri). Un amministratore può rimuoverlo dall'[AppStore](#lappstore); chiunque può nasconderlo nel proprio workspace. Si apre facendo doppio clic su un file, dal menu di avvio o con **Ctrl Alt N** per un documento nuovo.
 
 - **A sinistra**, i numeri di riga; la riga su cui si trova il cursore è evidenziata.
 - **Colori**: parole chiave, testi, numeri e commenti sono colorati secondo il linguaggio, riconosciuto dall'estensione del file. Puoi cambiarlo dal menu in alto a destra (Testo, Markdown, JavaScript, CSS, HTML, JSON, Python).
-- **In alto**: Nuovo documento, Apri un file…, Apri una cartella…, Salva, Mostra nella cartella (apre File dove si trova il file); all'estrema destra il pulsante che mostra o nasconde la cartella aperta.
+- **In alto**: Nuovo documento, Apri un file…, Apri una cartella…, Salva, Mostra nella cartella (apre il File Manager dove si trova il file); all'estrema destra il pulsante che mostra o nasconde la cartella aperta.
 - **In basso**: riga e colonna del cursore, numero di righe, stato del documento (Salvato, Modificato, Nuovo documento).
 
 ### Aprire una cartella
 
-Con **Apri una cartella…** (o **Ctrl Alt O**) scegli una cartella: compare in un pannello **a destra** con tutto il suo contenuto. Quella cartella è la **radice**: dal pannello gestisci quello che c'è dentro senza uscire dall'Editor. Puoi anche fare clic destro su una cartella nell'app File e scegliere **Apri nell'Editor**.
+Con **Apri una cartella…** (o **Ctrl Alt O**) scegli una cartella: compare in un pannello **a destra** con tutto il suo contenuto. Quella cartella è la **radice**: dal pannello gestisci quello che c'è dentro senza uscire dall'Editor. Puoi anche fare clic destro su una cartella nel File Manager e scegliere **Apri nell'Editor**.
 
 - **Aprire**: un clic su una cartella la apre o la chiude; doppio clic (o Invio) su un file lo apre nell'Editor. Il file aperto è evidenziato.
 - **Creare**: i pulsanti in alto nel pannello (Nuovo file, Nuova cartella) creano dentro la cartella selezionata, nella cartella del file selezionato o nella radice; anche dal clic destro. Scrivi subito il nome e premi Invio (Esc annulla). Un file nuovo si apre da solo.
 - **Rinominare**: F2, oppure clic destro → Rinomina.
-- **Spostare**: trascina un elemento su una cartella (la destinazione si evidenzia); rilascialo su un file per portarlo nella cartella di quel file, o nella parte vuota del pannello per portarlo nella radice. Puoi trascinare anche da e verso la scrivania e l'app File: porta l'elemento fuori dal pannello (per esempio sulla scrivania), oppure trascina qui un elemento da lì. Esc annulla il trascinamento. Oppure clic destro → **Sposta in…** e scegli la cartella: questa scelta resta dentro la radice. Se nella destinazione c'è già un elemento con lo stesso nome, viene aggiunto un numero. Dal pannello si trascina un elemento alla volta, e le cartelle di sistema non si spostano.
-- **Barra laterale di File**: clic destro → **Aggiungi alla barra laterale di File** mette l'elemento tra i collegamenti dell'app [File](#collegamenti-nella-barra-laterale).
+- **Spostare**: trascina un elemento su una cartella (la destinazione si evidenzia); rilascialo su un file per portarlo nella cartella di quel file, o nella parte vuota del pannello per portarlo nella radice. Puoi trascinare anche da e verso la scrivania e il File Manager: porta l'elemento fuori dal pannello (per esempio sulla scrivania), oppure trascina qui un elemento da lì. Esc annulla il trascinamento. Oppure clic destro → **Sposta in…** e scegli la cartella: questa scelta resta dentro la radice. Se nella destinazione c'è già un elemento con lo stesso nome, viene aggiunto un numero. Dal pannello si trascina un elemento alla volta, e le cartelle di sistema non si spostano.
+- **Barra laterale del File Manager**: clic destro → **Aggiungi alla barra laterale del File Manager** mette l'elemento tra i collegamenti del [File Manager](#collegamenti-nella-barra-laterale).
 - **Eliminare**: Canc, oppure clic destro → Elimina. Gli elementi vanno nel Cestino (vedi [Il Cestino](#il-cestino)); di solito viene chiesta prima conferma. Puoi annullare con Ctrl Z finché il pannello ha il focus.
 - **Larghezza**: trascina il bordo sinistro del pannello. Con la tastiera: Tab fino al bordo, poi frecce ← → (Shift per passi più lunghi), Home per la larghezza minima; doppio clic sul bordo per tornare a quella iniziale.
 - **Nascondere**: Ctrl B o il pulsante all'estrema destra della barra; la ✕ nel pannello chiude la cartella.
@@ -382,7 +447,7 @@ Mentre scrivi:
 
 Ctrl S, Ctrl Alt N, Ctrl O, Ctrl Alt O, Ctrl B e Ctrl Spazio si cambiano in Impostazioni → Usabilità → Scorciatoie, sezione Editor.
 
-Un documento nuovo, al primo salvataggio, viene creato nella cartella aperta a destra o, se non ce n'è una, in **Documenti**, con il nome "Senza titolo.txt"; poi puoi rinominarlo dall'app File o dalla scrivania.
+Un documento nuovo, al primo salvataggio, viene creato nella cartella aperta a destra o, se non ce n'è una, in **Documenti**, con il nome "Senza titolo.txt"; poi puoi rinominarlo dal File Manager o dalla scrivania.
 
 Il titolo della finestra mostra un pallino (•) quando ci sono modifiche non salvate. Se chiudi la finestra, apri un altro file o crei un documento nuovo con modifiche non salvate, l'Editor chiede: **Salva**, **Non salvare** o **Annulla**. Anche chiudendo o ricaricando la pagina del browser compare un avviso.
 
@@ -428,7 +493,7 @@ Vale anche la chiave `"$schema"` scritta nel file. Con uno schema, i suggeriment
 | Dove | Cosa si può annullare |
 | --- | --- |
 | Scrivania (nessuna finestra in primo piano) | Creare, rinominare ed eliminare cartelle e file (anche cartelle con il loro contenuto); spostare le icone, anche con il trascinamento; spostare file e cartelle dentro una cartella trascinandoli da qui; Riordina icone. Per le workarea: creare, rinominare, spostare, ridimensionare ed eliminare |
-| Finestra File | Creare, rinominare, eliminare e ripristinare dal cestino; spostare file e cartelle trascinandoli da questa finestra |
+| Finestra del File Manager | Creare, rinominare, eliminare e ripristinare dal cestino; spostare file e cartelle trascinandoli da questa finestra |
 | Editor, nel testo | Scrittura, suggerimenti accettati, rientri: come in un normale editor di testo |
 | Editor, nel pannello della cartella | Creare, rinominare, spostare ed eliminare |
 
@@ -437,14 +502,14 @@ Creare un elemento e dargli il nome è una sola azione: Ctrl Z lo toglie. Un ele
 Cose da sapere:
 
 - **Dopo aver ricaricato la pagina l'elenco è vuoto**: si può annullare solo quello che hai fatto da quando hai aperto lilOS.
-- Se una finestra File viene chiusa, le sue azioni non si possono più annullare.
+- Se una finestra del File Manager viene chiusa, le sue azioni non si possono più annullare.
 - Le finestre senza elenco, come le Impostazioni, non fanno nulla con Ctrl Z, e non toccano la scrivania dietro di loro.
 - Nei campi di testo (per esempio la ricerca, o il nome mentre lo scrivi) Ctrl Z annulla la scrittura, come in ogni programma.
 - Se un'azione non si può più annullare (per esempio la cartella dove si trovava un elemento eliminato non esiste più), compare "Non si può più fare: …" e quell'azione viene tolta dall'elenco.
 - Non si annullano: ridurre a icona o riaprire una workarea, e le modifiche fatte nella finestra delle proprietà di una workarea.
-- **Il trascinamento si annulla dove è partito.** Se trascini da una finestra File alla scrivania, Ctrl Z funziona nella finestra File (non sulla scrivania), e viceversa. Lo spostamento di più elementi si annulla in un colpo solo, e ognuno torna nella sua cartella con il nome di prima.
+- **Il trascinamento si annulla dove è partito.** Se trascini da una finestra del File Manager alla scrivania, Ctrl Z funziona nella finestra del File Manager (non sulla scrivania), e viceversa. Lo spostamento di più elementi si annulla in un colpo solo, e ognuno torna nella sua cartella con il nome di prima.
 - Annullando lo spostamento di un solo elemento con **Sposta in…** nel pannello dell'Editor, se per evitare un doppione gli era stato aggiunto un numero, il numero resta. Con il trascinamento invece il nome di prima torna.
-- Eliminare un collegamento della barra di File si annulla con Ctrl Z nella finestra File. Aggiungere un collegamento o riordinare le voci non si annulla (lo spostamento di un elemento in una cartella con il trascinamento sì).
+- Eliminare un collegamento della barra del File Manager si annulla con Ctrl Z nella finestra del File Manager. Aggiungere un collegamento o riordinare le voci non si annulla (lo spostamento di un elemento in una cartella con il trascinamento sì).
 - Una volta fatta una nuova azione, quelle annullate non si possono più ripetere. Ogni elenco ricorda le ultime 100 azioni.
 
 ## I tag
@@ -460,11 +525,11 @@ Il nome può avere al massimo 30 caratteri e non può essere uguale a quello di 
 
 ### Assegnare e togliere un tag
 
-Tasto destro su uno o più file o cartelle (sulla scrivania o in File) → **Tag**. Il sottomenu elenca i tag, ognuno con il suo colore.
+Tasto destro su uno o più file o cartelle (sulla scrivania o nel File Manager) → **Tag**. Il sottomenu elenca i tag, ognuno con il suo colore.
 
 - Scegli un tag per metterlo. Se lo scegli di nuovo, lo togli.
 - Con più elementi selezionati, un segno di spunta indica un tag che hanno **tutti**. Sceglierlo lo toglie a tutti; se non ce l'hanno tutti, lo mette a tutti.
-- I tag compaiono come pallini colorati: in basso a destra dell'icona, sulla scrivania e in File; dopo il nome, nell'elenco di File. Se sono più di 4 si vede "+" e il numero; passando il mouse sopra si leggono i nomi.
+- I tag compaiono come pallini colorati: in basso a destra dell'icona, sulla scrivania e nel File Manager; dopo il nome, nell'elenco del File Manager. Se sono più di 4 si vede "+" e il numero; passando il mouse sopra si leggono i nomi.
 - Le cartelle principali (Documenti, Immagini, Download…) non si possono etichettare.
 - Mettere o togliere un tag **non si annulla** con Ctrl Z: se sbagli, ripeti la scelta.
 
@@ -474,7 +539,7 @@ In **Impostazioni → Tag** ogni tag ha il suo riquadro. In **Colore** scegli tr
 
 ### Cercare per tag
 
-In **File**, nella barra a sinistra sotto **Tag**, fai clic su un tag: vedi **tutti gli elementi che lo hanno**, ovunque siano (la tua scrivania e le cartelle condivise). Un file di un altro workspace che non sta nelle cartelle condivise non si vede.
+In **File Manager**, nella barra a sinistra sotto **Tag**, fai clic su un tag: vedi **tutti gli elementi che lo hanno**, ovunque siano (la tua scrivania e le cartelle condivise). Un file di un altro workspace che non sta nelle cartelle condivise non si vede.
 
 - Nell'elenco vedi Nome, **Posizione** (la cartella in cui sta l'elemento), Tipo e Workspace.
 - Puoi cercare per nome, ordinare, aprire, rinominare ed eliminare gli elementi, come in una cartella. Non puoi creare cartelle lì.
@@ -483,7 +548,7 @@ In **File**, nella barra a sinistra sotto **Tag**, fai clic su un tag: vedi **tu
 
 ### Rendere un tag invisibile
 
-In **Impostazioni → Tag**, spegni **Visibile** per un tag. Da quel momento **gli elementi che hanno quel tag spariscono ovunque**: dalla scrivania, da File, dai selettori di file e dal pannello dell'Editor. Non sono eliminati: li ritrovi cliccando il tag in File (nella barra laterale i tag invisibili hanno un occhio barrato; in basso compare «Tag invisibile: questi elementi sono nascosti altrove»). Accendi di nuovo **Visibile** e gli elementi tornano dove erano, anche sulla scrivania.
+In **Impostazioni → Tag**, spegni **Visibile** per un tag. Da quel momento **gli elementi che hanno quel tag spariscono ovunque**: dalla scrivania, dal File Manager, dai selettori di file e dal pannello dell'Editor. Non sono eliminati: li ritrovi cliccando il tag nel File Manager (nella barra laterale i tag invisibili hanno un occhio barrato; in basso compare «Tag invisibile: questi elementi sono nascosti altrove»). Accendi di nuovo **Visibile** e gli elementi tornano dove erano, anche sulla scrivania.
 
 - Un elemento che prende un tag invisibile sparisce subito. Se gli togli il tag, ricompare.
 - Nel menu **Tag**, accanto ai tag invisibili c'è scritto «(nasconde)»: scegliere un tag così fa sparire l'elemento.
@@ -498,8 +563,89 @@ In **Impostazioni → Tag**, nella scheda del tag, **Elimina…** (due clic, il 
 
 - Annullare con Ctrl Z un tag messo o tolto.
 - Una scorciatoia da tastiera per i tag.
-- Cercare per tag dal menu di avvio: si cerca solo in File.
+- Cercare per tag dal menu di avvio: si cerca solo nel File Manager.
 - Avere tag diversi in ogni workspace: sono uguali in tutti.
+
+## L'AppStore
+
+L'**AppStore** è l'app dove si vedono le app e i «moduli del kernel» (le parti di lilOS che stanno dietro le quinte, come la gestione degli utenti) che si possono installare, e da dove un amministratore le installa, le aggiorna e le toglie. Aprilo dal menu di avvio. C'è sempre e non si può rimuovere.
+
+**Chi può fare cosa.** Tutti vedono cosa c'è e cosa è installato. Solo un **amministratore** può installare, aggiornare e rimuovere app, aggiungere o togliere repository e gestire i moduli del kernel. Chi non lo è vede, al posto dei pulsanti, una scritta («Disponibile», «Installata»…), e nella scheda dei moduli il messaggio «Solo un amministratore vede e gestisce i moduli del kernel».
+
+A sinistra ci sono tre schede.
+
+### App
+
+- **Disponibili.** Una sezione per ogni *repository* (un indirizzo da cui lilOS prende app; quello ufficiale c'è sempre, gli altri sono segnati «non ufficiale»). Ogni app mostra nome, versione, a cosa serve e chi l'ha fatta. Accanto: **Installa**, oppure «Installata», oppure **Aggiorna a** *versione* se ce n'è una più nuova.
+- **Installate.** L'elenco di ciò che c'è, con da dove viene, se è «Verificata» e «Necessaria a lilOS» per le app che non si possono togliere (File Manager, Impostazioni, AppStore). Per ogni app: **Aggiorna a** *versione* (o **Cerca aggiornamenti**), **Reinstalla** (rifà l'installazione della stessa versione, senza cancellare niente) e **Rimuovi**.
+
+Prima di installare compare una finestra che dice **cosa potrà fare l'app** (per esempio «Leggere e modificare i file in Home/Documenti/Note»). Se l'app non viene dal repository ufficiale e non è firmata da un editore di cui lilOS si fida, c'è anche un avviso: *non si può sapere chi l'ha scritta né che il codice non sia stato modificato*. **Installa comunque** vuol dire accettare questo rischio: fallo solo se ti fidi di chi la distribuisce. Aggiornando, la finestra compare solo se l'app chiede permessi nuovi o non è ufficiale.
+
+### Moduli del kernel
+
+Solo per gli amministratori. Sono parti di lilOS: dove stanno gli utenti, dove stanno i file. **Installa** mostra sempre una finestra di conferma, perché il codice di un modulo ha accesso a tutto: utenti e file di tutti. Dopo ogni installazione, aggiornamento o rimozione compare **Riavvio necessario** con il pulsante **Riavvia il kernel**: le modifiche valgono solo dopo. Durante il riavvio (qualche secondo) lilOS può non riuscire a salvare e riprova da solo.
+
+- Se il riavvio da qui non è possibile (il kernel non è stato avviato nel modo previsto), compare un messaggio: chi gestisce lilOS deve riavviarlo a mano.
+- Un modulo che lascerebbe lilOS senza file system, o senza accesso mentre lilOS è raggiungibile da altri computer, non si installa e non si rimuove: compare il motivo.
+- **Rimuovere un modulo non cancella i suoi dati** (per esempio gli utenti): restano sul computer del kernel, e compare «i suoi dati restano».
+- **Attenzione**: togliere il modulo di accesso o il file system da un lilOS in uso è pericoloso. Fallo solo sapendo cosa succede.
+
+### Repository
+
+L'elenco degli indirizzi da cui lilOS prende app e moduli. Quello ufficiale è «Sempre presente». Un amministratore può **aggiungere** un repository (l'indirizzo, che deve contenere l'elenco di ciò che offre, e un nome facoltativo) e **rimuoverlo**: rimuovere un repository non toglie le app già installate. Se un repository non si apre compare «Repository non raggiungibile» con il motivo (rete, accesso negato…): per un repository privato il computer su cui gira il kernel deve avere l'accesso.
+
+### Dopo un'installazione
+
+L'app compare subito nel menu di avvio **per chi l'ha installata**. Gli altri utenti, o un'altra scheda del browser già aperta, la vedono solo dopo aver **ricaricato la pagina**.
+
+## App installate
+
+Oltre a File Manager, Editor, Impostazioni e AppStore, che vengono dal repository ufficiale e fanno parte di lilOS, un amministratore può **installare altre app** dall'[AppStore](#lappstore). Un'app installata c'è per tutti gli utenti e per tutti i workspace: compare nel menu di avvio e si apre in una finestra come le altre.
+
+- **Un'app può preparare le sue cose.** La prima volta che incontri un'app nuova, lilOS può creare per te qualche cartella o file di esempio, un collegamento sulla scrivania del workspace in cui sei, un tag. Non sostituisce mai quello che hai già.
+- **Un'app vede solo ciò che le è stato permesso.** Per esempio può leggere e modificare soltanto i file di una cartella precisa. Non può leggere il resto della scrivania né gli altri dati di lilOS. I file che apri con l'app sono sempre accessibili all'app. (File Manager, Editor, Impostazioni e AppStore sono parte di lilOS e non hanno questo limite.) Questo vale per le app **isolate**, che è come girano di solito: vedi [Isolate e non isolate](#isolate-e-non-isolate).
+- **Alcune app lavorano anche senza finestra.** Un'app può avere parti che girano in secondo piano (per esempio per contare le parole delle tue note) e che si avviano da sole quando servono. Si fermano dopo circa 5 minuti senza essere usate. Se un'app deve restare attiva (per esempio perché tiene in memoria qualcosa che ti serve), compare nella barra in basso un'icona con un fulmine: vedi [Le app che restano attive](#le-app-che-restano-attive).
+- **Nasconderla in un workspace.** In **Impostazioni → Workspace → Questo workspace** ogni app ha un interruttore: spento, l'app sparisce dal menu di avvio e da "Apri con" in quel workspace, e le sue finestre si chiudono (se hanno modifiche non salvate ti viene chiesto). L'app resta installata e negli altri workspace non cambia niente. File Manager, Impostazioni e AppStore non si nascondono.
+- **Quando l'amministratore la rimuove**, sparisce da tutti i workspace e le sue finestre si chiudono. Quello che l'app aveva creato per te viene tolto; **quello che hai modificato o riempito va nel Cestino** (compare un messaggio con quanti elementi), così non perdi il tuo lavoro. I dati che l'app teneva per sé (le sue impostazioni) si cancellano.
+- **L'Editor è un caso a parte.** Se lo rimuovi, i file di testo non hanno più un'app che li apre finché non lo reinstalli. Attenzione: **torna da solo** quando il kernel viene riavviato (anche solo per installare un modulo), a meno che chi gestisce lilOS non lo tolga dall'elenco delle app da installare all'avvio. Per non vederlo basta nasconderlo nel workspace.
+
+### Proprietà di un'app
+
+Per vedere che cosa è un'app: tasto destro sull'app nel menu di avvio → **Proprietà…** (o tasto destro sul suo collegamento sulla scrivania → **Proprietà…**). La finestra ha tre schede:
+
+| Scheda | Cosa c'è |
+| --- | --- |
+| **Generale** | Nome, descrizione, versione, l'editore (con «Firma verificata» oppure «Non verificata»), da dove viene, quando è stata installata e aggiornata, e le sue parti: la finestra principale, che si apre quando apri l'app, e le altre (finestre o parti in secondo piano) che avviano il sistema e le altre app |
+| **Permessi** | Che cosa l'app può fare, scritto in parole (per esempio «Leggere e modificare i file in Home/Documenti/Note»), com'è stato concesso quando è stata installata |
+| **Sicurezza** | Come gira l'app: isolata o no (vedi sotto) |
+
+Una sola finestra di proprietà per app. Se l'app viene rimossa mentre è aperta, si chiude.
+
+### Isolate e non isolate
+
+Un'app installata può girare in due modi.
+
+- **Isolata** (è il modo di lilOS di partenza). L'app è chiusa in una «scatola»: vede solo quello che i suoi permessi le concedono, niente altro di lilOS.
+- **Non isolata.** L'app gira dentro la pagina di lilOS: è più veloce, ma **può fare tutto quello che puoi fare tu**, anche quello che i suoi permessi non prevedono (leggere e modificare ogni tuo file, ogni impostazione, e agire come te). Scegli questo modo solo per app di cui ti fidi davvero.
+
+**Solo un amministratore** sceglie come girano le app. Gli altri utenti vedono il modo in uso, senza poterlo cambiare. Ci sono due posti:
+
+- **Impostazioni → App → Sicurezza.** L'interruttore **Esegui le app isolate** decide per tutte le app. Sotto, l'elenco delle app installate: per ognuna vedi come gira e se il modo è quello di tutte le altre o una scelta solo sua; il pulsante **Proprietà…** apre la sua scheda Sicurezza.
+- **Proprietà → Sicurezza** di una singola app, con tre scelte: **Come le altre app** (segue l'interruttore generale), **Isolata**, **Non isolata**.
+
+Il cambio vale **dalla prossima volta che apri l'app**: le finestre già aperte restano come sono (chiudile e riaprile). Le parti in secondo piano dell'app si fermano subito.
+
+Alcune app hanno un solo modo, e la scheda Sicurezza lo spiega:
+
+- **File Manager, Editor, Impostazioni e AppStore** fanno parte di lilOS e girano sempre dentro lilOS.
+- Le **app che sono un sito** (app remote) girano sempre isolate, nel loro sito.
+- Le **app scritte per una versione più vecchia** di lilOS girano solo isolate.
+
+### Le app che restano attive
+
+Quando un'app in secondo piano deve restare attiva, nella barra in basso compare un'icona con un **fulmine** (con un numero se sono più di una). Ci passi sopra per vedere il nome; con un clic si apre un menu: per ogni app puoi aprire le sue **Proprietà…** oppure **Ferma**. Fermarla interrompe quello che stava facendo e le fa dimenticare quello che teneva in memoria; si riavvia da sola alla prossima richiesta. L'icona sparisce quando non ce ne sono.
+
+Cosa non è ancora possibile: i widget sulla scrivania non si vedono ancora, e se ripristini la scrivania e i file iniziali un'app non rifà le sue cartelle e i suoi file di esempio.
 
 ## Menu contestuale
 
@@ -516,13 +662,13 @@ Le voci **Annulla** e **Ripeti** del menu agiscono sempre sulla scrivania. Le mo
 
 ## Apri con
 
-Quando apri un file e nessuna app è associata al suo tipo (o hai scelto "Chiedi ogni volta", o l'app associata non è installata nel workspace in cui sei), compare la finestra **Apri con**:
+Quando apri un file e nessuna app è associata al suo tipo (o hai scelto "Chiedi ogni volta", o l'app associata è nascosta nel workspace in cui sei), compare la finestra **Apri con**:
 
 - scegli l'app nell'elenco (frecce su e giù, o clic);
 - spunta **Usa sempre quest'app per i file .xxx** per non doverlo più scegliere;
 - **Apri** (o Invio, o doppio clic sull'app) apre il file; **Annulla** o Esc chiude.
 
-Se nessuna app installata può aprire il file, la finestra lo dice.
+Se nessuna app visibile può aprire il file, la finestra lo dice.
 
 ## Le finestre
 
@@ -540,7 +686,7 @@ Nella barra in basso, il pulsante di una finestra la porta in primo piano e la m
 
 Fai clic su una finestra per portarla davanti alle altre. Mentre una finestra è in primo piano, i tasti come Canc o Ctrl A agiscono sulla finestra e non sugli elementi della scrivania. Fai clic su un punto della scrivania per tornare a usarli sugli elementi.
 
-Ogni app ha una sola finestra: avviandola di nuovo torna in primo piano quella già aperta.
+Ogni app ha di solito una sola finestra: avviandola di nuovo torna in primo piano quella già aperta. Un'app installata può avere anche altre finestre (per esempio una per le impostazioni); ognuna è unica allo stesso modo.
 
 La rotella sopra il contenuto di una finestra lo fa scorrere; Ctrl + rotella fa sempre zoom.
 
@@ -558,14 +704,15 @@ Le modifiche valgono subito e restano salvate.
 | Aspetto | Movimento | Animazioni attive o spente. Se nel sistema operativo hai chiesto di ridurre il movimento, le animazioni restano ridotte comunque. |
 | Scrivania | Elementi | Allineamento alla griglia degli elementi trascinati |
 | Scrivania | Panoramica | Mappa in miniatura visibile o nascosta |
-| Workspace | Questo workspace | Nome, colore e app installate del workspace in cui sei (vedi [I workspace](#i-workspace)) |
+| Workspace | Questo workspace | Nome, colore e app visibili del workspace in cui sei (vedi [I workspace](#i-workspace)) |
 | Workspace | Tutti | Passare a un workspace, eliminarlo o crearne uno nuovo |
-| Tag | — | Creare, rinominare ed eliminare i tag; il colore, se sono visibili o invisibili, quanti elementi hanno; aprirne gli elementi in File (vedi [I tag](#i-tag)) |
+| Tag | — | Creare, rinominare ed eliminare i tag; il colore, se sono visibili o invisibili, quanti elementi hanno; aprirne gli elementi nel File Manager (vedi [I tag](#i-tag)) |
 | Usabilità | Menu contestuale | Le voci del menu del tasto destro sulla scrivania (vedi [Menu contestuale](#menu-contestuale)) |
 | Usabilità | Tipi di file | Per ogni estensione (.txt, .md, .png…, e "Senza estensione"), l'app che apre i file di quel tipo, oppure "Chiedi ogni volta". "Ripristina tutti" torna alle app predefinite |
 | Usabilità | Cestino | Se chiedere conferma prima di eliminare, se eliminare definitivamente senza passare dal cestino, per quanto tempo il cestino conserva gli elementi; aprire e svuotare il cestino (vedi [Il Cestino](#il-cestino)) |
 | Usabilità | Scorciatoie | Le combinazioni di tasti di ogni comando (vedi [Cambiare le scorciatoie](#cambiare-le-scorciatoie)) e, nella sezione Mouse, la combinazione per la selezione a mano libera (Alt, Ctrl + Alt o Alt + Shift) |
-| Archiviazione | — | Quanto spazio usa lilOS nel browser, compreso il contenuto dei file; ripristino di impostazioni, scorciatoie e app dei tipi di file; ripristino della scrivania e dei file iniziali (con i workspace) |
+| App | Sicurezza | Se le app installate girano isolate o no: una scelta per tutte (la cambia solo un amministratore) e l'elenco di come gira ognuna; il pulsante **Proprietà…** (vedi [Isolate e non isolate](#isolate-e-non-isolate)) |
+| Archiviazione | — | Quanto spazio usano le tue impostazioni e il contenuto dei tuoi file; ripristino di impostazioni, scorciatoie e app dei tipi di file; ripristino della scrivania e dei file iniziali (con i workspace) |
 | Informazioni | — | Versione di lilOS, browser, lingua |
 
 I due pulsanti di ripristino chiedono conferma: al primo clic il pulsante diventa rosso, e solo un secondo clic entro pochi secondi esegue l'operazione. **Ripristinare la scrivania e i file iniziali** elimina tutte le cartelle e i file che hai creato, ovunque si trovino, **tutti i workspace** (si riparte da uno solo, Principale), **tutti i tag**, le workarea, le posizioni e la vista salvate, poi ricarica lilOS. Non si può annullare.
@@ -574,26 +721,28 @@ I due pulsanti di ripristino chiedono conferma: al primo clic il pulsante divent
 
 Aprilo con il **pulsante del logo** in basso a sinistra oppure con **Ctrl K**.
 
-- Scrivi per cercare un'app per nome. Compaiono le app installate nel workspace in cui sei.
+- Scrivi per cercare un'app per nome. Compaiono le app visibili nel workspace in cui sei.
 - Usa le **frecce** per scegliere e **Invio** per avviare, oppure fai clic sull'app.
+- **Tasto destro** su un'app: **Apri**, oppure **Proprietà…** (vedi [Proprietà di un'app](#proprietà-di-unapp)).
 - **Esc** o di nuovo **Ctrl K** chiudono il menu. Si chiude anche facendo clic fuori.
 
 In fondo al menu trovi il tuo nome e due pulsanti:
 
 - **Impostazioni** (ingranaggio): apre la finestra delle impostazioni.
-- **Riavvia sessione** (simbolo di accensione): ricarica lilOS. Non perdi nulla, perché tutto è già salvato.
+- **Esci** (simbolo di accensione, se lilOS ha più utenti): chiude la tua sessione e torna alla schermata di accesso (vedi [Accedere e uscire](#accedere-e-uscire)). Se lilOS ha un solo utente il pulsante si chiama **Riavvia sessione** e ricarica lilOS.
 
-App del menu: File, Browser, Editor, Terminale, Calendario, Immagini, Musica, Posta, Impostazioni. File e Impostazioni ci sono in ogni workspace; le altre solo dove sono installate.
+App del menu: File Manager, Editor, Impostazioni, AppStore e le [app installate](#app-installate). File Manager, Impostazioni e AppStore ci sono in ogni workspace; le altre in quelli dove non le hai nascoste.
 
 ## I tuoi dati
 
-lilOS salva da solo, mentre lavori, le cartelle e i file con i loro nomi e il loro contenuto (quando salvi nell'Editor), i tag e quelli che hai messo su file e cartelle, l'ordine e i collegamenti della barra di File (gli stessi in tutti i workspace), la posizione degli elementi sulla scrivania, il punto della scrivania che stavi guardando e le impostazioni. Tutto questo è salvato per ogni [workspace](#i-workspace). Anche le workarea sono salvate. Dopo aver ricaricato la pagina le finestre di ogni workspace si riaprono dove erano, dentro e fuori dalle workarea (quelle di un workspace in cui non sei si riaprono la prima volta che ci vai). Il testo non ancora salvato in una finestra però non si salva da solo: ricaricando la pagina si perde, quindi salva con Ctrl S. Il resto lo ritrovi com'era.
+lilOS salva da solo, mentre lavori, le cartelle e i file con i loro nomi e il loro contenuto (quando salvi nell'Editor), i tag e quelli che hai messo su file e cartelle, l'ordine e i collegamenti della barra del File Manager (gli stessi in tutti i workspace), la posizione degli elementi sulla scrivania, il punto della scrivania che stavi guardando e le impostazioni. Tutto questo è salvato per ogni [workspace](#i-workspace). Anche le workarea sono salvate. Dopo aver ricaricato la pagina le finestre di ogni workspace si riaprono dove erano, dentro e fuori dalle workarea (quelle di un workspace in cui non sei si riaprono la prima volta che ci vai). Il testo non ancora salvato in una finestra però non si salva da solo: ricaricando la pagina si perde, quindi salva con Ctrl S. Il resto lo ritrovi com'era.
 
-Il salvataggio avviene **nel browser che stai usando**:
+Il salvataggio avviene **nel tuo spazio su lilOS**, non nel browser:
 
-- con un altro browser o un altro computer trovi una scrivania diversa;
-- cancellando i dati di navigazione del sito torni alla scrivania iniziale;
-- in una finestra di navigazione privata le modifiche possono andare perse alla chiusura.
+- con un altro browser o un altro computer, dopo aver fatto l'accesso, trovi la stessa scrivania;
+- cancellare i dati di navigazione del sito non cancella la tua scrivania (vedi [Accedere e uscire](#accedere-e-uscire) per i dati che il browser aveva prima);
+- se lilOS non riesce a salvare, compare un avviso e riprova da solo; non chiudere la pagina finché non compare **Modifiche salvate**;
+- un'impostazione o un file cambiato in due schede insieme: vince l'ultima che salva. Usa una scheda sola.
 
 ## Tipi di file
 
@@ -636,6 +785,8 @@ Queste sono le combinazioni iniziali. Puoi cambiarle tutte in **Impostazioni →
 | Ctrl Alt O | Apri una cartella nell'Editor |
 | Ctrl B | Mostra o nascondi la cartella nell'Editor |
 | Ctrl Spazio | Suggerimenti nell'Editor |
+| Alt P | Apri o chiudi l'anteprima nel File Manager |
+| Alt I | Apri o chiudi le informazioni nel File Manager |
 
 Questi tasti invece non si possono cambiare:
 
@@ -675,7 +826,7 @@ Le modifiche valgono subito e restano salvate.
 ## Domande frequenti
 
 **Ho fatto doppio clic su un'app e non succede niente.**
-È normale in questa fase: a parte File, Editor e Impostazioni, le app non sono ancora state realizzate.
+Probabilmente è un collegamento a un'app che non c'è più (per esempio i collegamenti a Terminale, Browser, Calendario, Immagini, Musica o Posta delle versioni precedenti, o un'app rimossa dall'amministratore): cancellalo. Le app che ci sono sempre sono File Manager, Impostazioni e AppStore; le altre le installa un amministratore (vedi [L'AppStore](#lappstore)).
 
 **Un file si apre con l'app sbagliata, o mi chiede ogni volta.**
 Cambia l'app in Impostazioni → Usabilità → Tipi di file, oppure spunta "Usa sempre quest'app" nella finestra Apri con.
@@ -687,10 +838,10 @@ Il trascinamento con il tasto sinistro ora serve a selezionare. Per spostarti ti
 Le workarea aperte non possono sovrapporsi: scegli un punto fuori da ogni area, oppure rimpicciolisci o sposta quella vicina.
 
 **Ho eliminato un elemento per sbaglio. Posso recuperarlo?**
-Sì. Di solito è nel **Cestino**: aprilo da File (barra a sinistra), tasto destro sull'elemento → **Ripristina**. Se l'hai appena eliminato, **Ctrl Z** lo rimette a posto. Se hai scelto di eliminare definitivamente (nelle impostazioni), lo recuperi solo con Ctrl Z e solo finché non ricarichi la pagina. Se l'hai eliminato anche dal cestino, o il cestino l'ha svuotato dopo il periodo impostato, non si può più recuperare.
+Sì. Di solito è nel **Cestino**: aprilo dal File Manager (barra a sinistra), tasto destro sull'elemento → **Ripristina**. Se l'hai appena eliminato, **Ctrl Z** lo rimette a posto. Se hai scelto di eliminare definitivamente (nelle impostazioni), lo recuperi solo con Ctrl Z e solo finché non ricarichi la pagina. Se l'hai eliminato anche dal cestino, o il cestino l'ha svuotato dopo il periodo impostato, non si può più recuperare.
 
 **Come metto un file in una cartella?**
-Trascinalo sulla cartella e rilascia: funziona sulla scrivania, in File e nell'Editor, anche da una all'altra. Vedi [Spostare](#spostare) e [Spostare con il trascinamento](#spostare-con-il-trascinamento). Con Ctrl Z torna dov'era.
+Trascinalo sulla cartella e rilascia: funziona sulla scrivania, nel File Manager e nell'Editor, anche da una all'altra. Vedi [Spostare](#spostare) e [Spostare con il trascinamento](#spostare-con-il-trascinamento). Con Ctrl Z torna dov'era.
 
 **Trascino un file su una cartella ma non succede niente.**
 La cartella non si evidenzia se lì non si può rilasciare: è la cartella in cui il file già si trova, o il file è una cartella e la destinazione è lei stessa o una cartella al suo interno; le cartelle di sistema non si spostano. Sopra una finestra conta solo quello che c'è sotto il puntatore, non la scrivania dietro. Nella vista di un tag e nel Cestino aperto non si rilascia. Con Esc il trascinamento si annulla.
@@ -698,20 +849,40 @@ La cartella non si evidenzia se lì non si può rilasciare: è la cartella in cu
 **Posso copiare un file trascinandolo?**
 Non ancora: il trascinamento sposta soltanto.
 
-**Un collegamento nella barra di File è sparito.**
+**Un collegamento nella barra del File Manager è sparito.**
 Non si vede se l'elemento è nel Cestino o sulla Scrivania di un altro workspace; ricompare, al suo posto, quando l'elemento torna visibile. Se hai più di 80 voci, le più vecchie vengono tolte. Per rimetterlo: trascina l'elemento tra due voci della barra. Il ripristino "Scrivania e file iniziali" (Impostazioni → Archiviazione) azzera anche la barra.
 
 **Non trovo più i miei elementi o una finestra.**
 Controlla di essere nel workspace giusto: il nome è nel pulsante accanto al logo. Poi premi Shift 1 per inquadrare tutto, oppure guarda la mappa in miniatura. Per una finestra, usa il suo pulsante nella barra in basso.
 
 **Dove sono finiti i miei file?**
-Se mancano dalla scrivania o da File, forse hanno un **tag invisibile**: un tag invisibile nasconde ovunque gli elementi che lo hanno. Apri File, fai clic sul tag nella barra a sinistra (quelli invisibili hanno un occhio barrato) e li trovi lì. Per farli tornare, accendi **Visibile** in Impostazioni → Tag, oppure togli il tag agli elementi. Se non è questo, prova anche il [Cestino](#il-cestino) e controlla di essere nel workspace giusto.
+Se mancano dalla scrivania o dal File Manager, forse hanno un **tag invisibile**: un tag invisibile nasconde ovunque gli elementi che lo hanno. Apri il File Manager, fai clic sul tag nella barra a sinistra (quelli invisibili hanno un occhio barrato) e li trovi lì. Per farli tornare, accendi **Visibile** in Impostazioni → Tag, oppure togli il tag agli elementi. Se non è questo, prova anche il [Cestino](#il-cestino) e controlla di essere nel workspace giusto.
 
 **Un file di un altro workspace non si vede.**
 La cartella Scrivania di ogni workspace è visibile solo da lì. Per condividere un file con gli altri workspace tienilo in Documenti, Immagini o Download. Se hai eliminato il workspace, i suoi file sono in Documenti → Scrivania di *nome*.
 
+**Mancano File Manager, Impostazioni o l'AppStore, o il menu di avvio non ha app.**
+Quelle app arrivano dal repository ufficiale, e il kernel le installa da solo quando parte. Se in quel momento il computer del kernel non riusciva a raggiungerlo (niente rete, accesso negato), lilOS parte senza. Chiedi a chi gestisce lilOS di sistemare l'accesso e di riavviare il kernel: le app compaiono da sole.
+
+**Ho installato un'app ma un altro utente (o un'altra scheda) non la vede.**
+Deve ricaricare la pagina.
+
 **Un'app non parte e compare un messaggio.**
-L'app non è installata nel workspace in cui sei. Attivala in Impostazioni → Workspace → Questo workspace.
+L'app è nascosta nel workspace in cui sei. Mostrala in Impostazioni → Workspace → Questo workspace.
+
+Oppure l'app non è riuscita ad avviarsi: il messaggio dice «*nome* non è partita» e il motivo. Se l'amministratore ha appena cambiato come gira l'app, chiudi la finestra e riaprila.
+
+**Come faccio a sapere se un'app può fare troppo?**
+Tasto destro sull'app nel menu di avvio → **Proprietà…**: la scheda **Permessi** elenca cosa può fare, la scheda **Sicurezza** dice se gira isolata. Un'app non isolata può fare tutto quello che puoi fare tu, quindi lasciala così solo se ti fidi di chi l'ha scritta. Solo un amministratore cambia il modo.
+
+**All'apertura compare "Il kernel di lilOS non risponde".**
+Il programma che conserva i tuoi dati non è acceso: chiedi a chi gestisce lilOS di avviarlo, poi premi **Riprova**. I tuoi dati non sono persi.
+
+**Compare "Modifiche non salvate".**
+lilOS non riesce a raggiungere il suo archivio (il computer ha perso la connessione, o l'archivio è spento). Riprova da solo ogni poco; non chiudere la pagina. Quando ci riesce compare "Modifiche salvate".
+
+**Ho dimenticato la password.**
+Non si può recuperare da lilOS: chiedi a chi lo gestisce di cambiartela. Dopo il cambio devi accedere di nuovo ovunque.
 
 **Lo zoom del browser cambia invece della scrivania.**
 Non dovrebbe succedere: lilOS intercetta Ctrl + rotella. Se succede, fai clic sulla scrivania e riprova.

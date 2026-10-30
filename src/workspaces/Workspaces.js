@@ -1,5 +1,5 @@
 import { Emitter, fs, storage, uid, shortcuts, toast, closeMenu } from '@lilos/sdk';
-import { setInstalledFilter, getApp } from '../apps/registry.js';
+import { setInstalledFilter, getApp, registry } from '../apps/registry.js';
 import { ACCENTS } from '../systemSettings.js';
 import { cleanSavedWindow, LIMITS as AREA_LIMITS } from '../workareas/store.js';
 import { appIds, createDesk } from './setup.js';
@@ -37,6 +37,20 @@ export class Workspaces extends Emitter {
     Object.assign(this, { canvas, desktop, wm, launcher, workareas, taskbar });
     this.#state = state;
     setInstalledFilter(id => this.get(this.#state.current)?.apps.includes(id) ?? true);
+    // An app installed in lilOS is for every workspace (each may hide it); a removed one leaves them all
+    registry.on('change', ({ id, app }) => {
+      for (const ws of this.#state.list.filter(w => !w.removed)) {
+        if (app && !ws.known.includes(id)) {
+          ws.apps.push(id);
+          ws.known.push(id);
+        } else if (!app) {
+          ws.apps = ws.apps.filter(a => a !== id);
+          ws.known = ws.known.filter(a => a !== id);
+          this.wm.windowsOf(ws.id).filter(w => this.wm.appOf(w) === id).forEach(w => this.wm.requestClose(w));
+        }
+      }
+      this.#save();
+    });
     connectWorkspaceInfo(this);
     wm.setWorkspace(state.current);
     this.#booted.add(state.current);   // its workareas reopen their windows by themselves at start-up

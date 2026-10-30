@@ -1,6 +1,10 @@
-/** Current user and locale. Placeholder until there is a real login. */
+import { kernel } from './kernel.js';
+
+/** Current user (the one signed in to the kernel) and locale. */
 export const session = {
-  user: { name: 'Eugenio' },
+  get user() {
+    return kernel.user ? { name: kernel.user.name, username: kernel.user.username } : { name: 'Utente' };
+  },
   locale: 'it-IT',
 };
 

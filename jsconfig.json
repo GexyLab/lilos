@@ -6,7 +6,8 @@
     "checkJs": false,
     "baseUrl": ".",
     "paths": {
-      "@lilos/sdk": ["sdk/index.js"]
+      "@lilos/sdk": ["sdk/index.js"],
+      "@lilos/sdk/kernel": ["sdk/core/kernel.js"]
     }
   },
   "include": ["src", "sdk"]

@@ -1,0 +1,3 @@
+# Users, password hashes and sessions: never in the repository
+users.json
+users.json.tmp

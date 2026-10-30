@@ -40,7 +40,7 @@ export class SettingsView extends Emitter {
     this.subtabList = h('div', { class: 'st-subtabs', role: 'tablist', 'aria-orientation': 'horizontal' });
     this.panel = h('div', { class: 'st-body', role: 'tabpanel', 'aria-labelledby': `${this.#ids}-h`, tabindex: '-1' });
 
-    const searchInput = search && h('input', { type: 'text', placeholder: 'Cerca impostazioni', 'aria-label': 'Cerca impostazioni', spellcheck: 'false' });
+    const searchInput = !search ? null : h('input', { type: 'text', placeholder: 'Cerca impostazioni', 'aria-label': 'Cerca impostazioni', spellcheck: 'false' });
     searchInput?.addEventListener('input', () => this.#filter(searchInput.value));
     searchInput?.addEventListener('keydown', e => {
       if (e.key === 'Escape' && searchInput.value) { e.stopPropagation(); searchInput.value = ''; this.#filter(''); }

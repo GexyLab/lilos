@@ -6,6 +6,7 @@ import { confirmRemove, deleteNodes, deleteLabel } from '../items/confirmRemove.
 import { recordCreated, renameNode } from '../items/fsHistory.js';
 import { dragItems, dropZone, moveInto } from '../items/itemDrag.js';
 import { linkEntry } from '../items/links.js';
+import { showProperties } from '../items/properties.js';
 import { selectionMode } from '../systemSettings.js';
 import { BACKGROUND_MENU, registerDesktopMenu, initialContent } from './menu.js';
 import { DesktopItem } from './DesktopItem.js';
@@ -492,6 +493,7 @@ export class Desktop {
       tagSubmenu(selected.filter(it => !it.workarea).map(it => it.id)),
       linkEntry(selected.filter(it => !it.workarea).map(it => it.id)),
       free && { label: 'Crea una workarea con la selezione', icon: 'workarea', action: () => this.workareas.createAround(selected) },
+      !many && { label: 'Proprietà…', icon: 'info', action: () => showProperties(item.id) },
       '-',
       { label: many ? `Elimina ${selected.length} elementi` : 'Elimina', icon: 'trash', shortcut: shortcuts.label('items.delete'), danger: true, action: () => this.remove(selected) },
     ].filter(Boolean));
