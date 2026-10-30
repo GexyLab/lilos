@@ -472,7 +472,7 @@ I messaggi dei server sono in inglese.
 
 **Schemi JSON.** Uno schema descrive quali chiavi e valori sono ammessi in un file JSON. Con un file JSON salvato aperto, il pulsante **Schema** in alto permette di scegliere:
 
-- **un file di lilOS** (per esempio `/Documenti/persona.schema.json`);
+- **un file di lilOS** (per esempio `/home/<utente>/Documenti/persona.schema.json`);
 - **un indirizzo web** (per esempio `https://www.schemastore.org/package.json`). Il sito deve permettere di essere letto da altre pagine: molti schemi pubblici lo permettono, ma un indirizzo che reindirizza altrove può non funzionare;
 - **nessuno schema**.
 

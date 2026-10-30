@@ -12,7 +12,7 @@ export function pickFile(openWindow, { title = 'Scegli un file', exts = null, te
   return new Promise(resolve => {
     const all = [];
     const folders = kind === 'folder';
-    const add = n => all.push({ ...n, path: n.id === fs.root ? '/' : fs.path(n.id) });
+    const add = n => all.push({ ...n, path: fs.path(n.id) });
     const walk = id => fs.children(id).forEach(n => {
       if (n.id === exclude) return;
       if (n.type === 'folder') { if (folders) add(n); walk(n.id); }
@@ -52,7 +52,7 @@ export function pickFile(openWindow, { title = 'Scegli un file', exts = null, te
         ? h('span', { class: 'fp-badge folder' }, icon('folder'))
         : h('span', { class: 'fp-badge', style: { background: fileType(n.name).color } }, fileType(n.name).badge || 'FILE'),
         h('span', { class: 'fp-name' }, n.id === fs.root ? 'Home' : n.name),
-        h('span', { class: 'fp-path' }, n.id === fs.root ? '/' : n.path.slice(0, -n.name.length - 1) || '/')))
+        h('span', { class: 'fp-path' }, n.id === fs.root ? n.path : n.path.slice(0, -n.name.length - 1))))
         : [h('div', { class: 'fp-empty' }, all.length ? 'Nulla corrisponde alla ricerca' : folders ? 'Nessuna cartella' : `Nessun file${exts ? ` .${exts.join(', .')}` : ''} in lilOS`)]));
     };
     search.addEventListener('input', render);

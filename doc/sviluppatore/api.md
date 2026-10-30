@@ -162,7 +162,7 @@ import { kernel, KernelError } from '@lilos/sdk';
 | `connected` | `true` quando `connect()` ha caricato i dati dell'utente. |
 | `mode` | `'multi'` (gli utenti accedono) o `'single'` (un utente, senza accesso); `null` prima di `session()`. |
 | `user` | `{ id, username, name, role }` dell'utente collegato, o `null`. |
-| `data` | Ciò che `GET /api/boot` ha restituito: `{ user, fresh, nodes, storage, apps, appSecurity }`. Lo leggono `storage`, `fs` e `apps` appena vengono caricati. |
+| `data` | Ciò che `GET /api/boot` ha restituito: `{ user, home, fresh, nodes, storage, apps, appSecurity }`. Lo leggono `storage`, `fs` e `apps` appena vengono caricati. |
 | `request(method, path, body?, { text = false, blob = false, keepalive = false })` | Una richiesta a `/api<path>`, con il cookie e l'intestazione `X-Lilos: 1`. `body` oggetto = JSON, stringa = testo, `Blob` / `ArrayBuffer` / array tipizzato = byte (`application/octet-stream`). Restituisce il JSON della risposta (il testo con `text: true`, un `Blob` con `blob: true`, `undefined` per 204). Lancia `KernelError`. Una risposta 401 con l'utente connesso, in modalità `multi`, emette anche `signedout`. |
 | `session()` | `GET /api/session` → `{ mode, user }`; aggiorna `mode` e `user`. |
 | `login(username, password)` | Accede; restituisce l'utente. Lancia `KernelError` (`invalid_credentials`, `rate_limited`). |
@@ -329,13 +329,14 @@ File system virtuale: un albero di cartelle, file e collegamenti alle app, tenut
 
 | Membro | Descrizione |
 | --- | --- |
-| `root` | Id della radice (`'root'`). |
+| `root` | Id della radice (`'root'`), la home dell'utente. |
+| `home` | Il percorso della radice: `'/home/<utente>'` collegati al kernel (com'è nel suo file system), `'~'` senza. |
 | `loaded` | `false` al primo avvio (niente di salvato): il sistema riempie l'albero. |
 | `get(id)`, `exists(id)` | Il nodo (o `null`), se esiste. |
 | `children(id)` | Figli diretti, in ordine di creazione. |
 | `ancestors(id)` | Dalla radice al nodo compreso. |
-| `path(id)` | `'/Scrivania/Progetti'` (`'/'` per la radice). |
-| `resolve(path)` | Il nodo a quel percorso, o `null`. |
+| `path(id)` | Il percorso vero, dalla home: `'/home/eugenio/Documenti/Note'` (`fs.home` per la radice; senza kernel `'~/Documenti/Note'`). |
+| `resolve(path)` | Il nodo a quel percorso, o `null`. Accetta il percorso di `path` (`'/home/eugenio/Documenti'`), quello con `~` (`'~/Documenti'`) e, senza nessuno dei due, un percorso dentro la home (`'/Documenti'`). Le app passano sempre `~/…`: così una cartella chiamata `home` nella home non si confonde con il prefisso. |
 | `isInside(id, ancestorId)` | `true` se `id` è `ancestorId` o sta dentro. |
 | `count(id)` | Quanti nodi contiene una cartella, a ogni livello. |
 | `uniqueName(parentId, name, exceptId?)` | Il nome libero più vicino. |
@@ -1684,7 +1685,7 @@ Le richieste che modificano (tutte tranne `GET` e `HEAD`) devono avere l'intesta
 | `GET /api/session` | tutti | → `{ mode: 'multi' \| 'single', user \| null }` |
 | `POST /api/session` | tutti | `{ username, password }` → `{ user }` e il cookie `lilos_session` (`HttpOnly; SameSite=Strict; Path=/api`, `Secure` con `secureCookies`). Con un solo utente: `invalid`. |
 | `DELETE /api/session` | tutti | Chiude la sessione e cancella il cookie |
-| `GET /api/boot` | utenti | → `{ user, fresh, nodes, storage, apps, appSecurity }`: tutto ciò che serve per partire. `fresh`: la cartella dell'utente è vuota. `apps` è l'elenco di `GET /api/apps`, ma senza nascondere l'origine `local` ai non amministratori. `appSecurity`: `{ isolated }`, la regola generale su come girano le app |
+| `GET /api/boot` | utenti | → `{ user, home, fresh, nodes, storage, apps, appSecurity }`: tutto ciò che serve per partire. `home`: il percorso della home nel file system (`/home/<utente>`), da cui `fs.path` parte. `fresh`: la cartella dell'utente è vuota. `apps` è l'elenco di `GET /api/apps`, ma senza nascondere l'origine `local` ai non amministratori. `appSecurity`: `{ isolated }`, la regola generale su come girano le app |
 | `POST /api/fs/sync` | utenti | `{ put: [nodo], remove: [id] }`, in una transazione; al massimo 5000 voci e 8 MB. L'SDK ne manda al massimo 2000 per richiesta (prima i nodi, con i genitori prima dei figli, poi le eliminazioni), quindi non c'è un limite al numero di modifiche di una volta sola |
 | `GET /api/fs/content/:id` | utenti | → testo del file |
 | `PUT /api/fs/content/:id` | utenti | testo del file (fino a 10 MB) |

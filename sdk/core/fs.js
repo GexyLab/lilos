@@ -128,16 +128,32 @@ class FileSystem extends Emitter {
     return chain;
   }
 
-  /** '/Scrivania/Progetti' ('/' for the root). */
-  path(id) {
-    const names = this.ancestors(id).slice(1).map(n => n.name);
-    return '/' + names.join('/');
+  /**
+   * Path of the root, the user's home: '/home/<user>' connected to the kernel (as the kernel's file
+   * system has it), '~' without.
+   */
+  get home() {
+    const path = kernel.connected && kernel.data.home;
+    return typeof path === 'string' && path.startsWith('/') ? path.replace(/\/+$/, '') : '~';
   }
 
-  /** Node at a path ('/Documenti/Note'), or null. Case-insensitive like names. */
+  /** '/home/eugenio/Documenti/Note' (home for the root). */
+  path(id) {
+    return [this.home, ...this.ancestors(id).slice(1).map(n => n.name)].join('/');
+  }
+
+  /**
+   * Node at a path, or null. Case-insensitive like names. The path starts at the home
+   * ('/home/eugenio/Documenti/Note', as path() gives it), at '~' ('~/Documenti/Note') or, without
+   * either, in the home all the same ('/Documenti/Note').
+   */
   resolve(path) {
+    path = String(path);
+    const lower = path.toLowerCase(), home = this.home.toLowerCase();
+    if (lower === home || lower.startsWith(home + '/')) path = path.slice(home.length);
+    else if (path === '~' || path.startsWith('~/')) path = path.slice(1);
     let node = this.#nodes.get(ROOT);
-    for (const part of String(path).split('/').filter(Boolean)) {
+    for (const part of path.split('/').filter(Boolean)) {
       node = [...this.#nodes.values()].find(n => n.parent === node.id && n.name.toLowerCase() === part.toLowerCase() && this.#visible(n));
       if (!node) return null;
     }
