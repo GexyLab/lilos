@@ -101,6 +101,7 @@ Puoi correggere codice di prodotto solo quando la correzione è chiara, piccola 
 
 - Solo istanze locali (`localhost`). Niente servizi esterni.
 - Gli script temporanei vanno nella cartella temporanea, non nel repository. Nel repository vanno solo test e configurazione utili a tutti.
+- I dati creati per i test (utenti, file e cartelle, home nel database, app installate, impostazioni, `localStorage`, script e screenshot temporanei, server avviati) vanno eliminati quando i test finiscono, sia che passino sia che falliscano. Se qualcosa non si può eliminare, scrivilo nel report.
 - Non fare commit né push.
 
 ## Report
