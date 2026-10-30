@@ -21,7 +21,7 @@ export function setLaunchScope(value) {
 }
 
 /**
- * Turns 'app:launch' ({ id, args, entry }) into windows: loads the app module on first use and
+ * Turns 'app:launch' ({ id, args, entry, files }) into windows: loads the app module on first use and
  * opens one window per app and entry point in the current scope (launching it again brings the
  * existing window back and emits 'launch' on it with the new args). App modules export a default
  * function ({ args, openWindow, entry }) → Window (system apps: their other window entry points
@@ -52,10 +52,10 @@ export function connectLauncher(wm) {
 
   // A window entry point other than main: system apps export it by name, installed apps get it as `entry`.
   // Its window saves { [ENTRY]: name, args: its state } to come back as the same entry point
-  const create = async (app, args, entry = 'main') => {
+  const create = async (app, args, entry = 'main', files = []) => {
     const mod = await app.load();
     const make = entry !== 'main' && app.trusted && typeof mod[entry] === 'function' ? mod[entry] : mod.default;
-    const win = await make({ args, openWindow, entry });
+    const win = await make({ args, openWindow, entry, files });
     win.entry = entry;
     if (entry !== 'main') {
       const state = win.getState;
@@ -64,12 +64,14 @@ export function connectLauncher(wm) {
     return win;
   };
 
-  bus.on('app:launch', async ({ id, args, entry = 'main' }) => {
+  // files: ids the user handed the app with this launch (installed apps may then read and write them)
+  bus.on('app:launch', async ({ id, args, entry = 'main', files = [] }) => {
     const app = getApp(id);
     if (!app?.load) return console.info('[lilos] app non ancora disponibile:', id);
     if (!isInstalled(id)) return toast(`${app.name} è nascosta in questo workspace. Si mostra da Sistema → Workspace.`, { timeout: 5000 });
     const open = wm.windows.find(w => wm.appOf(w) === id && (w.entry ?? 'main') === entry && scope.includes(w));
     if (open) {
+      if (files.length) open.emit('grant', files);
       open.emit('launch', args);
       return wm.show(open);
     }
@@ -79,7 +81,7 @@ export function connectLauncher(wm) {
 
     loading.add(key);
     try {
-      const win = await create(app, args, entry);
+      const win = await create(app, args, entry, files);
       if (wm.workspace !== workspace) wm.open(win, { app: id, workspace });   // changed meanwhile: it waits there
       else wm.open(win, { app: id, center: scope.center(win), bounds: scope.bounds() });
     } catch (err) {

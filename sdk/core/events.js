@@ -19,8 +19,11 @@ export class Emitter {
 
 /**
  * System-wide bus. Current events:
- *   'app:launch'  { id, args, entry? }   an app was requested (start menu, desktop shortcut);
- *                                        entry: one of its window entry points ('main' by default)
- *   'item:open'   item data      a folder/file on the desktop was opened
+ *   'app:launch'    { id, args, entry?, files? }   an app was requested (start menu, desktop shortcut);
+ *                                        entry: one of its window entry points ('main' by default);
+ *                                        files: ids of files the user handed it (it may read and write them)
+ *   'item:open'     item data      a folder/file on the desktop was opened
+ *   'system:ready'  { at }         lilOS is up (apps, settings, desk, saved windows back); once per page
+ *   'user:login'    { user, workspace }   right after, the user is in: what starts with them starts
  */
 export const bus = new Emitter();

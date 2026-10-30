@@ -671,3 +671,49 @@ Le app di sistema girano sempre nella pagina; le app `remote` e quelle con `sdk`
 - Non sono implementate le pipe, la Cassaforte né i metadati per app sui nodi del file system (una chiave per file che dica all'app che lo ha cifrato come leggerlo).
 
 **Quando ripensarla.** Quando arriveranno le pipe (se serve dichiarare chi si iscrive a quali eventi, e con quali permessi), quando la Cassaforte avrà bisogno di vedere i file di altre app, se un'app non isolata dovrà essere limitata comunque (per esempio con una CSP), o se i background dovranno vivere anche a lilOS chiuso (permesso `background`).
+
+## D43. Gli elementi fissi della scrivania non sono file
+
+**Decisione.** Su ogni scrivania (di ogni workspace) ci sono sempre Home, Documenti, Immagini, File Manager, Download e Cestino (`src/desktop/fixedItems.js`, elenco `FIXED_ITEMS`). Non sono nodi del file system: `Desktop` li monta a ogni caricamento accanto ai nodi della cartella Scrivania, con id `fixed:<chiave>`. Non si rinominano né si eliminano, si aprono e si spostano come gli altri, e la posizione si salva nello stesso elenco delle posizioni della scrivania. Il File Manager esce dal seed del primo avvio.
+
+**Perché.** I luoghi che si usano di più (la casa, le cartelle condivise, il cestino) devono essere a un gesto di distanza e trascinabili, anche per mettere un file nel cestino con il mouse. Se fossero collegamenti o cartelle normali, l'utente potrebbe eliminarli o rinominarli, e ogni workspace avrebbe la sua copia da mantenere.
+
+**Alternative scartate.** Creare nodi (collegamenti) nella Scrivania di ogni workspace: si possono eliminare, vanno ricreati per i workspace nuovi e per gli utenti già esistenti, e finiscono nel File Manager come elementi della cartella. Mostrarli in una barra separata dalla scrivania: non si trascinano sulla scrivania infinita come gli altri elementi.
+
+**Conseguenze.**
+
+- L'elenco è nel codice, non configurabile: Sistema → Scrivania → Elementi lo mostra solo da leggere, tramite `DESK_FIXED_ITEMS` di `@lilos/system`. Aggiungerne o toglierne uno richiede una modifica a `fixedItems.js` e il rilascio di lilOS prima dell'app Sistema che lo usa.
+- Chi aveva già il collegamento al File Manager sulla scrivania lo conserva: ora ci sono due icone e il vecchio collegamento si elimina a mano.
+- Documenti, Immagini e Download si trovano per nome tra le cartelle di sistema nella radice (`fixedFolder`): se manca, l'elemento resta e un clic mostra un messaggio.
+- Gli elementi fissi non hanno tag, collegamenti né Proprietà, e `arrange()` li mette per primi nell'ordine dell'elenco.
+
+**Quando ripensarla.** Se si vorrà poter nascondere o aggiungere elementi fissi per utente, o se i widget della scrivania daranno un altro modo di avere luoghi sempre presenti.
+
+## D44. Avvio automatico: due eventi, app solo nella prima scheda, servizi nel kernel
+
+**Decisione.** lilOS emette due eventi sul bus, una volta per pagina, dopo che le finestre salvate sono tornate (`workspaces.ready` e `workareas.ready`): `system:ready` `{ at }` («Sistema pronto») e, subito dopo, `user:login` `{ user, workspace }` («Utente entrato»). Su `user:login` si aprono le **app dell'utente** scelte in Sistema → Avvio (`src/apps/startup.js`); su `system:ready` si legheranno i **servizi** (fase 2).
+
+- **App all'avvio.** Una lista per utente, chiave salvata `startup-apps`: `[{ app, entries: [{ entry, params }] }]`. Si aprono nell'ordine, nel workspace attuale, solo se l'impostazione `startupApps` è accesa. Un'app nascosta nel workspace o rimossa si salta (e se è rimossa esce dalla lista).
+- **Solo la prima scheda.** L'apertura avviene solo nella prima scheda dell'utente in quel browser: Web Locks, lucchetto `lilos:avvio:<id utente>` tenuto finché la scheda è aperta. Le altre si aprono pulite.
+- **`?avvio=no`** nell'indirizzo salta l'avvio per quel caricamento, con un avviso.
+- **Parametri dichiarati nel manifesto.** Un punto d'ingresso di tipo finestra può dichiarare `params` (`text`, `number`, `boolean`, `choice`, `file`, `folder`; al massimo 10). Sono gli `args` della finestra, i mancanti prendono il predefinito. Un `file` si consegna all'app (può leggerlo e scriverlo, anche se isolata); una `folder` arriva come id alle app di sistema e come percorso `~/…` a quelle installate, perché il ponte lavora per percorsi. Senza `params` dichiarati, vale un oggetto JSON qualsiasi fino a 4 KB. Anche le app con `sdk` `"1"` possono dichiarare `entrypoints`, ma solo `main`, per i suoi `params`.
+- **Due tipi di parti senza finestra** (deciso con l'utente il 31 ottobre 2026). `background` resta **nel browser**, a richiesta: serve alle parti che tengono segreti dell'utente (come le chiavi della futura Cassaforte), che il kernel non deve vedere. Un nuovo `kind: 'service'` girerà **nel kernel**, e partirà con il sistema.
+
+**Piano in tre fasi.**
+
+1. **App all'avvio e i due eventi**: fatta.
+2. **Servizi nel kernel**: un modulo del kernel che li esegue con `isolated-vm`, un processo per servizio, il permesso `background`; i servizi di sistema li sceglie l'amministratore e partono sempre. Si legano a `system:ready`.
+3. **Scheda Servizi** in Sistema → Avvio e il servizio `updates` dell'AppStore (controllo degli aggiornamenti anche a lilOS chiuso).
+
+**Perché.** Chi apre lilOS ogni giorno con gli stessi strumenti deve ritrovarli. E alcune cose (aggiornamenti, sincronizzazioni, pipe) devono funzionare anche quando nessuna scheda è aperta, cosa che un `background` nel browser non può fare. Due eventi, e non uno, perché i servizi dipendono dal sistema e le app dall'utente.
+
+**Alternative scartate.** Aprire le app in ogni scheda: con due schede ogni app comparirebbe due volte. Un campo `args` libero nel manifesto o nell'elenco: l'interfaccia non potrebbe chiederlo né controllarlo, e il manifesto non dice cosa un'app accetta. Far girare tutti i servizi nel kernel, comprese le parti con i segreti: il kernel vedrebbe le chiavi dell'utente.
+
+**Conseguenze.**
+
+- `@lilos/system` esporta `startup`; il manifesto, `params`; il bus, due eventi; `launch()` e `app:launch`, `files`.
+- Se un'app all'avvio si blocca, si esce con `?avvio=no`, o spegnendo «Apri le app quando entri».
+- Se un file o una cartella dei parametri è stato eliminato, l'app non si apre e un messaggio lo dice.
+- Le sessioni cambieranno con i servizi (l'utente avrà una sessione a lilOS chiuso): non sono state prese in conto ora.
+
+**Quando ripensarla.** Quando arriveranno i servizi (fase 2), se le sessioni cambieranno, o se un'app dovrà aprirsi in ogni scheda.

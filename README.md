@@ -57,6 +57,7 @@ src/                    il sistema, costruito sull'SDK
     Desktop.js          selezione, trascinamento, rinomina, elimina, menu contestuali, salvataggio
     DesktopItem.js      componente singolo (cartella / file / app)
     itemIcons.js        icone grandi di cartelle, file e workarea
+    fixedItems.js       elementi fissi: Home, Documenti, Immagini, File Manager, Download, Cestino
     seed.js             elementi della Scrivania al primo avvio
   systemSettings.js     impostazioni del sistema
   systemHistory.js      annulla e ripeti (Ctrl Z, Ctrl Y)
@@ -69,6 +70,7 @@ src/                    il sistema, costruito sull'SDK
     packages/           app installate: nel registro; le app di sistema girano in lilOS, le altre isolate (sandbox, con l'oggetto lilos) o, se un amministratore lo sceglie, nella pagina di lilOS; punti d'ingresso in background; operazioni per utente
     launcher.js         apre le app in finestre
     entrypoints.js      punti d'ingresso delle app (finestre e background)
+    startup.js          app che si aprono da sole all'ingresso (Sistema → Avvio)
     appProperties.js    "Proprietà…" di un'app: Generale, Permessi, Sicurezza
     open.js             quale app apre quale tipo di file
     openWith.js         finestra "Apri con"

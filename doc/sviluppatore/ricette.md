@@ -358,6 +358,8 @@ export const seedItems = [
 
 Con `export const seedItems = [];` la scrivania parte vuota.
 
+Gli elementi fissi (Home, Documenti, Immagini, File Manager, Download, Cestino) non sono nel seed: li aggiunge sempre `src/desktop/fixedItems.js` (vedi [desktop/fixedItems.js](api.md#desktopfixeditemsjs)).
+
 Gli elementi di esempio vengono usati solo al primo avvio di un utente, cioè quando la sua cartella è vuota. Per vederli di nuovo accedi con un utente nuovo (`npm run kernel:cli -- users-basic add prova`) oppure usa Sistema → Archiviazione → «Scrivania e file iniziali» (elimina anche cartelle e file creati; le chiavi `ws:<id>:…` dei workspace spariti si cancellano da sole all'avvio). Gli elementi di esempio vanno nella Scrivania del workspace «Principale».
 
 ## Leggere e modificare cartelle e file

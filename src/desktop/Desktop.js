@@ -1,4 +1,4 @@
-import { bus, fs, storage, openMenu, shortcuts, selectionGesture, menus, UndoStack, tags } from '@lilos/sdk';
+import { bus, fs, storage, openMenu, shortcuts, selectionGesture, menus, UndoStack, tags, toast } from '@lilos/sdk';
 import { launch } from '../apps/registry.js';
 import { openFile } from '../apps/open.js';
 import { addTarget } from '../items/targets.js';
@@ -10,6 +10,7 @@ import { showProperties } from '../items/properties.js';
 import { selectionMode } from '../systemSettings.js';
 import { BACKGROUND_MENU, registerDesktopMenu, initialContent } from './menu.js';
 import { DesktopItem } from './DesktopItem.js';
+import { FIXED_ITEMS, fixedData, fixedId, fixedRank, openFixed, acceptDrops } from './fixedItems.js';
 import { tagSubmenu } from '../tags/tagUi.js';
 import { HEADER as AREA_HEADER } from '../workareas/WorkareaFrame.js';
 
@@ -29,6 +30,9 @@ const snap = v => Math.round(v / SNAP) * SNAP;
  * Creating, renaming and removing go through `fs`; the view follows its 'change' events,
  * so changes made elsewhere (File Manager) show up here too.
  * Opening an item launches apps and emits 'item:open' for folders and files.
+ *
+ * Every desk also shows the fixed items (fixedItems.js: Home, Documenti, the trash…): not in
+ * the file system, they cannot be renamed or deleted; their positions are saved with the others.
  *
  * With workareas (src/workareas/), the desk also shows the icons of reduced workareas (items with
  * a `workarea` id, not in the file system), and the requests made inside an area — select all,
@@ -61,7 +65,7 @@ export class Desktop {
 
     this.#layoutKey = layoutKey;
     this.#layout = this.#readLayout();
-    fs.children(folderId).forEach(node => this.#mount(node));
+    this.#mountAll();
     this.save();
 
     fs.on('change', e => this.#sync(e));
@@ -69,7 +73,14 @@ export class Desktop {
     dropZone(canvas.el, { folder: () => this.folder, highlight: () => null, drop: (ids, ev, stack) => this.#dropHere(ids, ev, stack) });
     // A tag made invisible or visible again: items leave or come back. Tag colors: redraw the dots
     fs.on('scope', () => this.#reconcile());
-    tags.on('change', () => this.items.forEach(it => { if (!it.workarea && fs.exists(it.id)) it.setData(fs.get(it.id)); }));
+    // The trash on the desk looks full or empty
+    fs.on('trash', () => {
+      const trash = this.items.get(fixedId('trash'));
+      if (!trash) return;
+      trash.data.full = fs.trashed().length > 0;
+      trash.setData(trash.data);
+    });
+    tags.on('change', () => this.items.forEach(it => { if (!it.workarea && !it.fixed && fs.exists(it.id)) it.setData(fs.get(it.id)); }));
     canvas.on('background:press', e => this.#selectByDrag(e));
     canvas.on('background:click', e => { if (!e.ctrlKey && !e.metaKey && !e.shiftKey) this.select([]); });
     canvas.on('background:contextmenu', e => this.#backgroundMenu(e));
@@ -108,7 +119,7 @@ export class Desktop {
     this.folder = folderId;
     this.#layoutKey = layoutKey;
     this.#layout = this.#readLayout();
-    fs.children(folderId).forEach(node => this.#mount(node));
+    this.#mountAll();
     this.save();
     this.canvas.changed();
   }
@@ -161,6 +172,7 @@ export class Desktop {
 
   open(item) {
     if (item.workarea) this.workareas?.expand(item.workarea);
+    else if (item.fixed) openFixed(item.fixed);
     else if (item.data.type === 'app') launch(item.data.app);
     else bus.emit('item:open', fs.get(item.id));
   }
@@ -181,6 +193,7 @@ export class Desktop {
   }
 
   async rename(item, record = true) {
+    if (item.fixed) return;
     const name = await item.editName();
     if (!name) return;
     if (item.workarea) this.workareas?.rename(item.workarea, name, { record });
@@ -192,10 +205,17 @@ export class Desktop {
   /**
    * Files and folders: into the trash or for good, asking first or not (see confirmRemove).
    * Workarea icons: only the workarea goes, its content comes back on the desk (asks first).
+   * Fixed items stay: alone, a message says they cannot be deleted.
    */
-  remove(items) {
-    const r = items[0]?.el.getBoundingClientRect();
-    const x = r ? r.left + r.width / 2 : innerWidth / 2, y = r ? r.bottom : innerHeight / 2;
+  remove(selected) {
+    const items = selected.filter(it => !it.fixed);
+    if (!items.length) {
+      if (selected.length) toast(selected.length === 1 ? `«${selected[0].data.name}» è un elemento fisso della scrivania: non si può eliminare` : 'Gli elementi fissi della scrivania non si possono eliminare');
+      return;
+    }
+    if (items.length < selected.length) toast('Gli elementi fissi della scrivania restano: si elimina solo il resto');
+    const r = items[0].el.getBoundingClientRect();
+    const x = r.left + r.width / 2, y = r.bottom;
     const areas = items.filter(it => it.workarea).map(it => it.workarea);
     const nodes = items.filter(it => !it.workarea).map(it => it.id);
     if (!areas.length) return confirmRemove(nodes, x, y, this.history);
@@ -212,16 +232,17 @@ export class Desktop {
   }
 
   /**
-   * Sort (folders, files, apps — then by name) and line up: inside the current workarea, its items
-   * in its area; elsewhere, the items outside every workarea, in the visible part of the desk
-   * (skipping the places covered by an area, so nothing ends up inside one).
+   * Sort (the fixed items in their order, then folders, files, apps — then by name) and line up:
+   * inside the current workarea, its items in its area; elsewhere, the items outside every
+   * workarea, in the visible part of the desk (skipping the places covered by an area, so nothing
+   * ends up inside one).
    */
   arrange() {
     const current = this.workareas?.current;
     const rect = current && this.workareas.get(current).rect;
     const items = current ? this.workareas.itemsIn(current) : this.visibleItems().filter(it => !this.workareas?.itemWorkarea(it));
-    const sorted = items.sort((a, b) =>
-      (TYPE_ORDER[a.data.type] ?? 3) - (TYPE_ORDER[b.data.type] ?? 3) || a.data.name.localeCompare(b.data.name, 'it', { numeric: true }));
+    const rank = it => (it.fixed ? fixedRank(it.id) - FIXED_ITEMS.length : TYPE_ORDER[it.data.type] ?? 3);
+    const sorted = items.sort((a, b) => rank(a) - rank(b) || a.data.name.localeCompare(b.data.name, 'it', { numeric: true }));
     const v = this.canvas.viewRect();
     const box = rect
       ? { x: rect.x + MARGIN, y: rect.y + AREA_HEADER + MARGIN, h: rect.h - AREA_HEADER - MARGIN * 2 }
@@ -305,7 +326,7 @@ export class Desktop {
     if (!fs.exists(this.folder)) return;
     const nodes = fs.children(this.folder);
     const ids = new Set(nodes.map(n => n.id));
-    const gone = [...this.items.values()].filter(it => !it.workarea && !ids.has(it.id)).map(it => it.id);
+    const gone = [...this.items.values()].filter(it => !it.workarea && !it.fixed && !ids.has(it.id)).map(it => it.id);
     const added = nodes.filter(n => !this.items.has(n.id));
     if (!gone.length && !added.length) return;
     this.select([...this.selection].filter(it => !gone.includes(it.id)));
@@ -325,6 +346,22 @@ export class Desktop {
       this.items.delete(id);
       this.selection.delete(item);
     }
+  }
+
+  /**
+   * The desk folder's items and the fixed ones. Items with a saved place go first, so that the
+   * others (a fixed item on a desk that never had it, the seed on first start) take free slots.
+   */
+  #mountAll() {
+    const nodes = fs.children(this.folder);
+    const placed = nodes.filter(n => this.#savedPosition(n.id));
+    placed.forEach(n => this.#mount(n));
+    for (const fixed of FIXED_ITEMS) {
+      const item = this.#mount(fixedData(fixed));
+      item.fixed = fixed;
+      acceptDrops(item.el, fixed);
+    }
+    nodes.filter(n => !placed.includes(n)).forEach(n => this.#mount(n));
   }
 
   #mount(node) {
@@ -419,7 +456,7 @@ export class Desktop {
       this.canvas.changed();
     };
     dragItems(e, {
-      ids: group.filter(g => !g.it.workarea).map(g => g.it.id),
+      ids: group.filter(g => !g.it.workarea && !g.it.fixed).map(g => g.it.id),
       stack: this.history,
       ghost: false,
       threshold: 4,
@@ -484,18 +521,29 @@ export class Desktop {
         { label: 'Elimina la workarea…', icon: 'trash', shortcut: shortcuts.label('items.delete'), danger: true, action: () => this.remove([item]) },
       ]);
     }
+    if (!many && item.fixed) {
+      return openMenu(e.clientX, e.clientY, [
+        { label: 'Apri', icon: 'open', shortcut: shortcuts.label('items.open'), action: () => this.open(item) },
+        { label: 'Elementi fissi della scrivania…', icon: 'info', action: () => launch('settings', { tab: 'desk' }) },
+      ]);
+    }
+    // Fixed items are not files: no tags, links or deleting
+    const nodes = selected.filter(it => !it.workarea && !it.fixed).map(it => it.id);
+    const deletable = selected.filter(it => !it.fixed);
     // Items outside every workarea can become a new one
     const free = this.workareas && selected.every(it => !it.workarea && !this.workareas.itemWorkarea(it));
     openMenu(e.clientX, e.clientY, [
       { label: many ? `Apri ${selected.length} elementi` : 'Apri', icon: 'open', shortcut: shortcuts.label('items.open'), action: () => selected.forEach(it => this.open(it)) },
       !many && item.data.type === 'file' && { label: 'Apri con…', icon: 'open', action: () => openFile(fs.get(item.id), { choose: true }) },
       { label: 'Rinomina', icon: 'pencil', shortcut: shortcuts.label('items.rename'), disabled: many, action: () => this.rename(item) },
-      tagSubmenu(selected.filter(it => !it.workarea).map(it => it.id)),
-      linkEntry(selected.filter(it => !it.workarea).map(it => it.id)),
+      nodes.length && tagSubmenu(nodes),
+      nodes.length && linkEntry(nodes),
       free && { label: 'Crea una workarea con la selezione', icon: 'workarea', action: () => this.workareas.createAround(selected) },
       !many && { label: 'Proprietà…', icon: 'info', action: () => showProperties(item.id) },
       '-',
-      { label: many ? `Elimina ${selected.length} elementi` : 'Elimina', icon: 'trash', shortcut: shortcuts.label('items.delete'), danger: true, action: () => this.remove(selected) },
+      deletable.length
+        ? { label: deletable.length > 1 ? `Elimina ${deletable.length} elementi` : 'Elimina', icon: 'trash', shortcut: shortcuts.label('items.delete'), danger: true, action: () => this.remove(deletable) }
+        : { label: 'Elimina', icon: 'trash', disabled: true },
     ].filter(Boolean));
   }
 }

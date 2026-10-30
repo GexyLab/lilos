@@ -11,6 +11,7 @@ settings.define({
   deleteConfirm: true,     // ask before deleting files and folders
   deletePermanent: false,  // delete for good instead of moving to the trash
   trashRetention: 30,      // days an item stays in the trash before it is deleted for good (0: forever)
+  startupApps: true,       // open the apps chosen in Sistema → Avvio when the user comes in (apps/startup.js)
 });
 
 /** How long the trash keeps what it holds (days; 0 never deletes by itself). */

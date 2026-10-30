@@ -8,6 +8,14 @@
 .ctl-btn.primary:hover { background: var(--accent-strong); }
 .ctl-btn.danger { color: var(--danger); }
 .ctl-btn.danger.primary { background: var(--danger); border-color: var(--danger); color: #fff; }
+/* A button waiting for its operation (busyButton): spinner beside the label */
+button[aria-busy="true"] { cursor: progress; }
+button[aria-busy="true"]::before {
+  content: ""; display: inline-block; width: .9em; height: .9em; margin-right: .5em; vertical-align: -.15em; box-sizing: border-box;
+  border-radius: 50%; border: 1.5px solid currentColor; border-right-color: transparent; animation: ctl-spin .7s linear infinite;
+}
+@keyframes ctl-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { button[aria-busy="true"]::before { animation-duration: 2.5s; } }
 
 .ctl-toggle { width: 30px; height: 17px; flex: none; border-radius: 9px; background: var(--toggle-off); position: relative; transition: background .15s; }
 .ctl-toggle::after {

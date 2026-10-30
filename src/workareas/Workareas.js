@@ -58,7 +58,8 @@ export class Workareas extends Emitter {
       bounds: () => (this.#current ? this.boundsOf(this.#current) : null),
     });
 
-    this.#mountAll(true);
+    /** Resolves when the windows saved in the open areas are back (at start-up). */
+    this.ready = Promise.allSettled(this.#mountAll(true));
 
     this.#bindCurrent();
     canvas.on('change', () => this.#saveSoon());

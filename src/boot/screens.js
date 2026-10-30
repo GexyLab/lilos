@@ -43,6 +43,7 @@ export function loginScreen(root, login, { title = 'Accedi a lilOS', text, onto 
     form.addEventListener('submit', async e => {
       e.preventDefault();
       submit.disabled = true;
+      submit.setAttribute('aria-busy', 'true');
       error.textContent = '';
       try {
         await login(user.value.trim(), pass.value);
@@ -53,6 +54,7 @@ export function loginScreen(root, login, { title = 'Accedi a lilOS', text, onto 
         pass.select();
       } finally {
         submit.disabled = false;
+        submit.removeAttribute('aria-busy');
       }
     });
     user.focus();

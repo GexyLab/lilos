@@ -21,7 +21,9 @@ import { parsePermission, coversPath } from './permissions.js';
  *       main: { kind: 'window' },             what the user opens (implied when missing)
  *       vault: { kind: 'background', file?: 'dist/vault.js', label?: 'Cassaforte' },
  *       unlock: { kind: 'window', window?: { width, height } },
- *     },                                      each one is the export with its name of `file` (`entry` by default)
+ *       today: { kind: 'window', params?: { view: { type: 'choice', label: 'Vista', options: [{ value, label }] } } },
+ *     },                                      each one is the export with its name of `file` (`entry` by default);
+ *                                             sdk '1' may only describe `main` (its params)
  *     files: { 'dist/index.js': 'sha256-<base64>', … },     every file of the package, with its hash
  *     url: 'https://notes.example.com/',      remote: the page that is the app
  *     libraries: [{ name, version, url, integrity: 'sha384-…', cache?: true }],
@@ -36,6 +38,11 @@ import { parsePermission, coversPath } from './permissions.js';
  *   { op: 'mkdir', path }   { op: 'write', path, text, ifMissing? }   { op: 'copy', from, to, ifMissing? }
  *   { op: 'desktopItem', target: 'app' }   { op: 'tag', name, color? }   { op: 'setting', key, value }
  *   { op: 'remove', path, ask? }   only in uninstall
+ *
+ * Params of an entry point: what it accepts as args, so lilOS can ask for it (Sistema → Avvio).
+ *   { name: { type, label, description?, default?, …by type } }, at most 10
+ *   'text' { maxLength? }   'number' { min?, max? }   'boolean'   'choice' { options: [{ value, label }] }
+ *   'file' (the id of a file the user chose: the app may read and write it)   'folder' (a folder the user chose)
  */
 const ID = /^[a-z0-9][a-z0-9.-]{1,63}$/;
 const SEMVER = /^(\d{1,6})\.(\d{1,6})\.(\d{1,6})$/;
@@ -48,7 +55,9 @@ const EXT = /^[a-z0-9]{0,10}$/;
 const KEY = /^[\w.-]{1,64}$/;
 const HOME_PATH = /^~(\/[^/\0]{1,255}){1,16}$/;
 const ENTRY = /^[a-z][a-zA-Z0-9]{0,30}$/;
-const MAX = { files: 1000, ops: 100, text: 64 << 10, commands: 30, widgets: 10, permissions: 50, libraries: 30, entrypoints: 20 };
+const PARAM = /^[a-zA-Z][a-zA-Z0-9_]{0,30}$/;
+const MAX = { files: 1000, ops: 100, text: 64 << 10, commands: 30, widgets: 10, permissions: 50, libraries: 30, entrypoints: 20, params: 10, options: 50 };
+const PARAM_TYPES = ['text', 'number', 'boolean', 'choice', 'file', 'folder'];
 export const CATEGORIES = ['system', 'productivity', 'media', 'development', 'other'];
 const windowSize = w => w?.width >= 200 && w.width <= 4000 && w.height >= 150 && w.height <= 4000;
 
@@ -106,6 +115,36 @@ function checkOps(ops, permissions, where, files) {
   }
 }
 
+/** Checks the params of an entry point (see above); `wrong(msg)` throws. */
+function checkParams(params, wrong) {
+  if (!params || typeof params !== 'object' || Array.isArray(params) || Object.keys(params).length > MAX.params) wrong('params non validi (al massimo 10)');
+  for (const [name, p] of Object.entries(params)) {
+    const off = msg => wrong(`parametro ${name.slice(0, 40)}: ${msg}`);
+    if (!PARAM.test(name) || !p || typeof p !== 'object' || Array.isArray(p)) off('nome o forma non validi');
+    if (!PARAM_TYPES.includes(p.type)) off(`type deve essere uno di ${PARAM_TYPES.join(', ')}`);
+    if (!str(p.label, 60)) off('etichetta mancante o troppo lunga');
+    if (p.description !== undefined && !str(p.description, 200)) off('descrizione non valida');
+    const num = v => v === undefined || (typeof v === 'number' && Number.isFinite(v));
+    if (p.type === 'text' && (p.maxLength !== undefined && !(Number.isInteger(p.maxLength) && p.maxLength >= 1 && p.maxLength <= 2000))) off('maxLength tra 1 e 2000');
+    if (p.type === 'number' && (!num(p.min) || !num(p.max) || (p.min !== undefined && p.max !== undefined && p.min > p.max))) off('min e max non validi');
+    if (p.type === 'choice') {
+      const options = Array.isArray(p.options) && p.options.length >= 1 && p.options.length <= MAX.options ? p.options : off('options: da 1 a 50 scelte');
+      for (const o of options) {
+        if (!o || !((typeof o.value === 'string' && o.value.length <= 100) || num(o.value)) || o.value === undefined || !str(o.label, 60)) off('scelta non valida ({ value, label })');
+      }
+    }
+    if (p.default !== undefined) {
+      const ok = {
+        text: v => typeof v === 'string' && v.length <= (p.maxLength ?? 2000),
+        number: v => num(v) && !(p.min > v) && !(p.max < v),
+        boolean: v => typeof v === 'boolean',
+        choice: v => p.options.some(o => o.value === v),
+      }[p.type];
+      if (!ok?.(p.default)) off('valore predefinito non valido (file e cartelle non ne hanno)');
+    }
+  }
+}
+
 /** Validates a manifest (untrusted JSON). Returns it cleaned of unknown fields. */
 export function checkManifest(raw) {
   const m = raw && typeof raw === 'object' && !Array.isArray(raw) ? raw : fail('invalid', 'Manifesto non valido');
@@ -140,8 +179,9 @@ export function checkManifest(raw) {
 
   if (m.entrypoints !== undefined) {
     const e = m.entrypoints;
-    if (m.kind !== 'local' || String(m.sdk) !== '2') bad('entrypoints: solo nelle app locali con sdk "2"');
+    if (m.kind !== 'local') bad('entrypoints: solo nelle app locali');
     if (!e || typeof e !== 'object' || Array.isArray(e) || Object.keys(e).length > MAX.entrypoints) bad('entrypoints non validi');
+    if (String(m.sdk) !== '2' && Object.keys(e).some(name => name !== 'main')) bad('entrypoints: con sdk "1" solo main (per i suoi params)');
     for (const [name, ep] of Object.entries(e)) {
       const wrong = msg => bad(`punto d’ingresso ${name.slice(0, 40)}: ${msg}`);
       if (!ENTRY.test(name) || !ep || typeof ep !== 'object' || Array.isArray(ep)) wrong('nome o forma non validi');
@@ -149,6 +189,7 @@ export function checkManifest(raw) {
       if (ep.file !== undefined && (!files[ep.file] || !/\.m?js$/.test(ep.file))) wrong('file non nel pacchetto o non .js');
       if (ep.label !== undefined && !str(ep.label, 60)) wrong('etichetta non valida');
       if (ep.window !== undefined && (ep.kind !== 'window' || !windowSize(ep.window))) wrong('dimensioni della finestra non valide');
+      if (ep.params !== undefined) checkParams(ep.params, wrong);
     }
     if (e.main && e.main.kind !== 'window') bad('il punto d’ingresso main deve essere una finestra');
   }

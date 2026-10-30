@@ -31,6 +31,7 @@ import { Desktop } from './desktop/Desktop.js';
 import { Taskbar } from './taskbar/Taskbar.js';
 import { WindowManager } from './windows/WindowManager.js';
 import { connectLauncher } from './apps/launcher.js';
+import { connectStartup } from './apps/startup.js';
 import { Workareas } from './workareas/Workareas.js';
 import { setupHistory } from './systemHistory.js';
 import { setupWorkspaces } from './workspaces/setup.js';
@@ -66,6 +67,14 @@ const workareas = new Workareas({ canvas, desktop, wm, launcher, key: key('worka
 const workspaces = new Workspaces({ state, canvas, desktop, wm, launcher, workareas, taskbar });
 connectPackages({ desk: () => workspaces.current?.desk ?? null }).catch(err => console.error('[lilos] app:', err));
 setupHistory({ root: desktop.history, activeWindow: () => wm.active });
+
+// Up, then the user is in (what starts by itself: apps/startup.js). After the saved windows are
+// back, so an app that opens by itself finds its window instead of opening a second one.
+connectStartup();
+Promise.all([workspaces.ready, workareas.ready]).then(() => {
+  bus.emit('system:ready', { at: Date.now() });
+  bus.emit('user:login', { user: kernel.data?.user ?? null, workspace: workspaces.currentId ?? null });
+});
 
 // The desktop keeps the keyboard only while no window is focused
 wm.on('focus', win => { desktop.keyboard = !win; });

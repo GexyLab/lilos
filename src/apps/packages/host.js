@@ -104,6 +104,7 @@ function connectBridge(win, frame, pkg, handles) {
   addEventListener('message', onMessage);
   const offKeys = shortcuts.on('change', () => post({ event: 'keys', data: commandKeys(pkg.manifest) }));
   const offTheme = watchTheme(() => post({ event: 'theme', data: theme() }));
+  win.on('grant', ids => ids.forEach(id => handles.add(id)));
   win.on('launch', args => {
     if (args?.file) handles.add(args.file);
     post({ event: 'launch', data: args ?? null });
@@ -164,6 +165,7 @@ async function mountInPage(win, pkg, entry, args, handles) {
   // The keyboard reaches lilOS's page: shortcuts go to the active window of the app
   const offs = (manifest.contributes?.commands ?? []).map(cmd => handleCommand(cmd.id, { isActive: () => win.active, run: () => emit('command', cmd.id) }));
   offs.push(...watchTheme(() => emit('theme', theme())));
+  win.on('grant', ids => ids.forEach(id => handles.add(id)));
   win.on('launch', a => {
     if (a?.file) handles.add(a.file);
     emit('launch', a ?? null);
@@ -177,10 +179,13 @@ async function mountInPage(win, pkg, entry, args, handles) {
   if (typeof out === 'function') dispose = out;
 }
 
-/** The module of an installed app, as the launcher expects it: default({ args, entry }) → Window. */
+/**
+ * The module of an installed app, as the launcher expects it: default({ args, entry, files }) → Window.
+ * The app may read and write args.file and the `files` the user handed it.
+ */
 export function packageModule(pkg) {
   return {
-    default: async ({ args, entry = 'main' }) => {
+    default: async ({ args, entry = 'main', files = [] }) => {
       const { manifest } = pkg;
       const ep = entrypoints(manifest)[entry];
       if (ep?.kind !== 'window') throw new Error(`${manifest.name} non ha la finestra ${entry}`);
@@ -188,7 +193,7 @@ export function packageModule(pkg) {
       const title = entry === 'main' ? manifest.name : ep.label ?? manifest.name;
       const win = new Window({ title, icon: manifest.icon?.glyph ?? 'help', width: size.width ?? 720, height: size.height ?? 480 });
       win.body.classList.add('pkg-body');
-      const handles = new Set(args?.file ? [args.file] : []);
+      const handles = new Set([...(args?.file ? [args.file] : []), ...files]);
       win.getState = () => (args?.file ? { file: args.file } : null);
       if (manifest.kind === 'local' && !isIsolated(pkg)) {
         await mountInPage(win, pkg, entry, args, handles);

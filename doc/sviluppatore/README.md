@@ -156,11 +156,13 @@ src/
     Desktop.js          selezione, trascinamento, rinomina, elimina, menu, salvataggio
     DesktopItem.js      un singolo elemento (cartella, file, app)
     itemIcons.js        icone grandi di cartelle, file e workarea
+    fixedItems.js       elementi fissi: Home, Documenti, Immagini, File Manager, Download, Cestino
     seed.js             elementi della Scrivania al primo avvio
   apps/
     registry.js         elenco delle app installate (nessuna è integrata), quali sono visibili nel workspace attuale, launch()
     launcher.js         da app:launch a finestre: carica l'app e la apre (una finestra per app e punto d'ingresso)
     entrypoints.js      punti d'ingresso delle app: callEntrypoint, connectEntrypoint, entrypointsOf
+    startup.js          app che si aprono da sole all'ingresso (eventi system:ready e user:login)
     appProperties.js    finestra "Proprietà…" di un'app: schede Generale, Permessi, Sicurezza
     filePicker.js       finestra per scegliere un file o una cartella di lilOS
     open.js             quale app apre quale tipo di file

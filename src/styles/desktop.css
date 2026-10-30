@@ -10,6 +10,15 @@
 .ditem-glyph { height: 32px; display: grid; place-items: center; filter: drop-shadow(0 2px 4px rgba(0, 0, 0, .3)); pointer-events: none; }
 .icon-folder { width: 34px; height: 30px; }
 .icon-file { width: 26px; height: 32px; }
+/* Fixed items (fixedItems.js): places with their glyph on the folder, the trash */
+.icon-place { position: relative; display: grid; place-items: center; }
+.icon-place .icon-place-glyph { position: absolute; left: 50%; top: 58%; width: 13px; height: 13px; transform: translate(-50%, -50%); color: #fff; stroke-width: 2.1; }
+.icon-trash { width: 28px; height: 32px; }
+.trash-i-lid { fill: #7b8494; }
+.trash-i-handle { fill: none; stroke: #7b8494; stroke-width: 1.5; }
+.trash-i-body { fill: #b1b8c3; }
+.trash-i-rib { fill: none; stroke: #858e9d; stroke-width: 1.6; stroke-linecap: round; }
+.trash-i-paper { fill: #fff; stroke: #c4c9d1; stroke-width: 1; stroke-linejoin: round; }
 
 .ditem-label {
   max-width: 100%; padding: 0 2px; border-radius: 3px;

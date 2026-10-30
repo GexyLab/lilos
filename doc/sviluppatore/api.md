@@ -27,6 +27,7 @@ Gli altri moduli (`src/`) sono il sistema: scrivania, desktop, barra.
 - [desktop/Desktop.js](#desktopdesktopjs)
 - [desktop/DesktopItem.js](#desktopdesktopitemjs)
 - [desktop/itemIcons.js](#desktopitemiconsjs)
+- [desktop/fixedItems.js](#desktopfixeditemsjs)
 - [items/](#items)
 - [workareas/](#workareas)
 - [workspaces/](#workspaces)
@@ -36,6 +37,7 @@ Gli altri moduli (`src/`) sono il sistema: scrivania, desktop, barra.
 - [apps/open.js e apps/openWith.js](#appsopenjs-e-appsopenwithjs)
 - [apps/commands.js](#appscommandsjs)
 - [apps/registry.js e apps/launcher.js](#appsregistryjs-e-appslauncherjs)
+- [apps/startup.js](#appsstartupjs)
 - [apps/packages/](#appspackages)
 - [windows/WindowManager.js](#windowswindowmanagerjs)
 - [systemSettings.js](#systemsettingsjs)
@@ -583,7 +585,7 @@ Il pannello completo: minimappa, pulsanti −/+, percentuale (clic = 100%), "Mos
 
 ### `class Desktop`
 
-`new Desktop(canvas, folderId, layoutKey = 'desktop-layout')`: la scrivania come vista della cartella `folderId` del file system (la Scrivania del workspace attuale). Un `DesktopItem` per ogni nodo; posizioni da `lilos:<layoutKey>` (il sistema passa `ws:<id>:desktop-layout`), oppure il primo posto libero in colonna. Segue gli eventi `change` di `fs`, quindi mostra anche le modifiche fatte altrove (File Manager).
+`new Desktop(canvas, folderId, layoutKey = 'desktop-layout')`: la scrivania come vista della cartella `folderId` del file system (la Scrivania del workspace attuale). Un `DesktopItem` per ogni nodo; posizioni da `lilos:<layoutKey>` (il sistema passa `ws:<id>:desktop-layout`), oppure il primo posto libero in colonna. Segue gli eventi `change` di `fs`, quindi mostra anche le modifiche fatte altrove (File Manager). In più monta sempre gli **elementi fissi** ([desktop/fixedItems.js](#desktopfixeditemsjs)): prima gli elementi con una posizione salvata, poi i fissi, poi gli altri, così chi non ha posizione prende i posti liberi. Ogni elemento fisso ha `item.fixed` (la voce di `FIXED_ITEMS`), non è un nodo del file system e si salva sotto `fixed:<key>`.
 
 **Proprietà**
 
@@ -605,11 +607,11 @@ Il pannello completo: minimappa, pulsanti −/+, percentuale (clic = 100%), "Mos
 | `load(folderId, layoutKey)` | Mostra un'altra cartella come scrivania (un altro workspace): toglie gli elementi, monta quelli della nuova cartella con le posizioni di `layoutKey`, svuota la selezione e **la cronologia**. Salva prima le posizioni attuali con `save()`. Le icone delle workarea tornano con `Workareas.load`. |
 | `select(items)` | Sostituisce la selezione. `select([])` la svuota. |
 | `toggle(item)` | Aggiunge o toglie un elemento dalla selezione. |
-| `open(item)` | Un'icona di workarea (`item.workarea`) riapre la workarea (`workareas.expand`). Un'app chiama `launch(data.app)`; cartelle e file emettono `item:open` con il nodo del file system. |
+| `open(item)` | Un'icona di workarea (`item.workarea`) riapre la workarea (`workareas.expand`). Un elemento fisso (`item.fixed`) chiama `openFixed`. Un'app chiama `launch(data.app)`; cartelle e file emettono `item:open` con il nodo del file system. |
 | `create(type, at)` | Crea (tramite `fs`) una cartella (`'folder'`) o un file di testo (`'file'`) centrato sul punto del mondo `at`, lo seleziona e avvia la rinomina. |
-| `rename(item)` | Rinomina dentro l'etichetta, poi `fs.rename` (che rende il nome unico); per un'icona di workarea, `workareas.rename`. Restituisce una Promise. |
-| `remove(items)` | Elimina con `confirmRemove` (nel cestino, annullabile con `history`): chiede conferma se `deleteConfirm` è attivo. Le icone di workarea passano da `workareas.confirmRemove` (chiede sempre; il contenuto resta sulla scrivania). Con file e workarea insieme un solo menu chiede per tutto. |
-| `arrange()` | Ordina (cartelle, file, app, poi per nome) e dispone in colonne. Con una workarea attuale, solo i suoi elementi e dentro la sua area (sotto la barra del titolo). Altrimenti gli elementi fuori da ogni workarea, nella parte visibile, saltando i posti coperti dalle aree. |
+| `rename(item)` | Rinomina dentro l'etichetta, poi `fs.rename` (che rende il nome unico); per un'icona di workarea, `workareas.rename`; un elemento fisso non si rinomina (ritorna subito). Restituisce una Promise. |
+| `remove(items)` | Elimina con `confirmRemove` (nel cestino, annullabile con `history`): chiede conferma se `deleteConfirm` è attivo. Le icone di workarea passano da `workareas.confirmRemove` (chiede sempre; il contenuto resta sulla scrivania). Con file e workarea insieme un solo menu chiede per tutto. Gli elementi fissi vengono scartati: se resta solo quelli, mostra un `toast` («… è un elemento fisso della scrivania: non si può eliminare») e non fa altro. |
+| `arrange()` | Ordina (elementi fissi nell'ordine di `FIXED_ITEMS`, poi cartelle, file, app, poi per nome) e dispone in colonne. Con una workarea attuale, solo i suoi elementi e dentro la sua area (sotto la barra del titolo). Altrimenti gli elementi fuori da ogni workarea, nella parte visibile, saltando i posti coperti dalle aree. |
 | `visibleItems()` | Elementi in vista: quelli non nascosti (cioè non chiusi dentro una workarea ridotta a icona). |
 | `scopeItems()` | Su cosa agiscono le richieste della scrivania: gli elementi della workarea attuale (`workareas.itemsIn`), altrimenti `visibleItems()`. Lo usano Seleziona tutto e `selectAll`. |
 | `addItem(item)` | Mette sulla scrivania un `DesktopItem` che non è un nodo del file system (le icone delle workarea): lo registra in `items`, lo lega a selezione e trascinamento e lo aggiunge al canvas. Non viene salvato nelle posizioni della scrivania. |
@@ -628,7 +630,7 @@ Il pannello completo: minimappa, pulsanti −/+, percentuale (clic = 100%), "Mos
 - su una finestra senza bersaglio, fuori dalla scrivania o con Esc, tutto torna com'era e non si registra nulla;
 - un clic semplice su un elemento già selezionato insieme ad altri restringe la selezione a lui, al rilascio.
 
-Il canvas è una `dropZone` (`folder: () => this.folder`, nessun evidenziamento): nodi rilasciati da un'altra vista vanno nella cartella della scrivania e si dispongono in colonne (`ROWS`) dal punto di rilascio, allineato alla griglia. Il menu di un elemento ha **Aggiungi ai collegamenti** (`linkEntry`).
+Il canvas è una `dropZone` (`folder: () => this.folder`, nessun evidenziamento): nodi rilasciati da un'altra vista vanno nella cartella della scrivania e si dispongono in colonne (`ROWS`) dal punto di rilascio, allineato alla griglia. Il menu di un elemento ha **Aggiungi ai collegamenti** (`linkEntry`). Gli elementi fissi non entrano mai tra gli `ids` trascinati nei nodi, e il loro menu (da soli) ha solo **Apri** ed **Elementi fissi della scrivania…** (apre `launch('settings', { tab: 'desk' })`); in una selezione mista il menu omette tag e collegamenti per loro e **Elimina** agisce sugli altri (disabilitato se sono tutti fissi).
 
 **Selezione trascinando** (`background:press`): rettangolo, oppure percorso libero se sono premuti i modificatori dell'impostazione `lasso`; Ctrl/Shift aggiungono alla selezione. Se parte dentro una workarea aperta, può prendere solo gli elementi di quella. Vedi `selectionMode` in [systemSettings.js](#systemsettingsjs).
 
@@ -649,16 +651,19 @@ Il canvas è una `dropZone` (`folder: () => this.folder`, nessun evidenziamento)
 ```js
 {
   id: string,
-  type: 'folder' | 'file' | 'app',
+  type: 'folder' | 'file' | 'app' | 'trash',   // 'trash' solo per l'elemento fisso Cestino
   name: string,
   x: number, y: number,   // coordinate mondo
   color?: string,         // solo cartelle: colore dell'icona
   app?: string,           // solo app: id nel registro
   tags?: string[],        // id dei tag: i pallini in basso a destra dell'icona
+  fixed?: string,         // solo elementi fissi: la chiave (es. 'home')
+  glyph?: string,         // solo cartelle fisse: simbolo SDK sull'icona (vedi placeIcon)
+  full?: boolean,         // solo Cestino: true se contiene elementi
 }
 ```
 
-DOM: `div.ditem[data-kind="item"][data-id]` con `.ditem-glyph` e `.ditem-label`. Gli elementi che sono nodi del file system sono marcati con `markItem` (`data-node`), quindi una cartella sulla scrivania accetta rilasci; le icone delle workarea (`type: 'workarea'`) non sono marcate.
+DOM: `div.ditem[data-kind="item"][data-id]` con `.ditem-glyph` e `.ditem-label`. Gli elementi che sono nodi del file system sono marcati con `markItem` (`data-node`), quindi una cartella sulla scrivania accetta rilasci; le icone delle workarea (`type: 'workarea'`) e gli elementi fissi (`data.fixed`) non sono marcate da `DesktopItem`: i fissi si marcano da soli con `acceptDrops`.
 
 | Membro | Descrizione |
 | --- | --- |
@@ -680,7 +685,34 @@ DOM: `div.ditem[data-kind="item"][data-id]` con `.ditem-glyph` e `.ditem-label`.
 - `FOLDER_COLOR`: colore predefinito delle cartelle, `#6f9bff`.
 - `folderIcon(color?)`, `fileIcon(name)`: icone SVG grandi.
 - `workareaIcon()`: icona di una workarea ridotta (cornice tratteggiata con due piccole finestre).
-- `itemIcon(data)`: l'icona giusta per qualsiasi nodo del file system (usata anche dal File Manager) e, con `data.type === 'workarea'`, per le icone delle workarea.
+- `placeIcon(glyph, color?)`: un luogo della scrivania (Home, Documenti…): la cartella con sopra il simbolo SDK `glyph`.
+- `trashIcon(full = false)`: il cestino; con `full` ha della carta che esce.
+- `itemIcon(data)`: l'icona giusta per qualsiasi nodo del file system (usata anche dal File Manager) e, con `data.type === 'workarea'`, per le icone delle workarea. Con `type: 'trash'` dà `trashIcon(data.full)`; una cartella con `data.glyph` dà `placeIcon(data.glyph, data.color)`.
+
+---
+
+## desktop/fixedItems.js
+
+Gli elementi fissi: su ogni scrivania (di ogni workspace) ci sono sempre, non sono file, non si rinominano né si eliminano. Si aprono e si spostano come gli altri e la posizione si salva nelle posizioni della scrivania sotto `fixed:<key>`. Li monta `Desktop`.
+
+- `FIXED_ITEMS`: elenco congelato, in quest'ordine. Ogni voce ha `key`, `name`, `kind`, `glyph`, `description` e, per le app, `app`.
+
+  | `key` | `name` | `kind` | Cosa apre |
+  | --- | --- | --- | --- |
+  | `home` | Home | `home` | La cartella principale (`fs.root`) |
+  | `documents` | Documenti | `folder` | La cartella di sistema omonima |
+  | `images` | Immagini | `folder` | La cartella di sistema omonima |
+  | `files` | File Manager | `app` (`app: 'files'`) | L'app File Manager |
+  | `downloads` | Download | `folder` | La cartella di sistema omonima |
+  | `trash` | Cestino | `trash` | Il cestino nel File Manager |
+
+- `fixedId(key)`: l'id sulla scrivania, `'fixed:' + key`. `fixedOf(id)`: la voce di `FIXED_ITEMS`, o `null` per qualsiasi altro id. `fixedRank(id)`: la posizione nell'elenco (`-1` se non è un elemento fisso); la usa `arrange()`.
+- `fixedFolder(item)`: l'id della cartella che la voce apre (`fs.root` per `home`; per `folder` la cartella di sistema non privata con quel nome nella radice, esclusa la Scrivania), o `null` per app, cestino e cartella non trovata.
+- `openFixed(item)`: un'app si avvia; il cestino fa `launch('files', { trash: true })`; una cartella fa `launch('files', { folder })`. Se la cartella non c'è, `toast` «La cartella … non c’è più».
+- `fixedData(item)`: i dati per `DesktopItem` (`{ id, name, fixed, type, … }`): `type: 'app'` con `app`, `type: 'trash'` con `full: fs.trashed().length > 0`, altrimenti `type: 'folder'` con `glyph`. `x` e `y` li dà il `Desktop`.
+- `acceptDrops(el, item)`: rende l'elemento un bersaglio di rilascio. Home e cartelle si marcano con `markItem` (file e cartelle si spostano lì, annullabile). Il cestino è una `dropZone` che accetta i nodi esistenti non di sistema, li manda a `removeNodes(stack, ids)` (annullabile con Ctrl Z) e mostra un `toast`. L'app File Manager non accetta nulla.
+
+`Desktop` ridisegna il Cestino (`full`) a ogni evento `trash` di `fs`. Il sistema espone `FIXED_ITEMS` come `DESK_FIXED_ITEMS` (vedi [systemApi.js](#systemapijs-lilossystem)): lo usa Sistema → Scrivania → Elementi per l'elenco «Elementi fissi».
 
 ---
 
@@ -783,6 +815,8 @@ Aree della scrivania che tengono insieme elementi e finestre. Panoramica e motiv
 - chiama `setLaunchScope(…)` con la workarea attuale come ambito;
 - carica le workarea salvate sotto `key` ([`lilos:ws:<id>:workareas`](#lilosworkareas)): le workarea ridotte nascondono i loro elementi e mettono l'icona, quelle aperte mostrano l'area e riaprono le finestre salvate;
 - salva le finestre 400 ms dopo ogni `change` del canvas e ogni `open`/`close` del gestore delle finestre, e alla chiusura della pagina (`pagehide`).
+
+La proprietà `ready` è una Promise (`Promise.allSettled`) che si risolve quando le finestre salvate nelle workarea aperte sono tornate. `system.js` la aspetta, con `workspaces.ready`, prima di emettere `system:ready`.
 
 **Cronologia**: creare (con la rinomina iniziale: un passo), rinominare (dalla barra del titolo o dall'icona con F2; non dalla finestra delle proprietà), spostare, ridimensionare ed eliminare vanno in `desktop.history`. Ridurre a icona e riaprire non vengono registrati. `rename(id, title, { record = false })` e `remove(id, { record = true })` hanno l'opzione `record`. Annullando un'eliminazione la workarea torna aperta, nello stesso punto; se lì ora c'è un'altra workarea, l'annullamento fallisce. I messaggi brevi ("Le aree non possono sovrapporsi") usano `toast()`.
 
@@ -905,7 +939,7 @@ Scrivanie separate. Panoramica e motivazioni: [README per sviluppatori](README.m
 `new Workspaces({ state, canvas, desktop, wm, launcher, workareas, taskbar })`; `state` è il valore restituito da `setupWorkspaces`. Nel costruttore:
 
 - imposta il filtro delle app visibili del registro (`setInstalledFilter`), segue il `registry` (un'app installata si aggiunge a `apps` e `known` di ogni workspace vivo; una rimossa si toglie e ne chiude le finestre) e collega `info.js`;
-- dice al gestore delle finestre qual è il workspace attuale e riapre le finestre salvate fuori dalle workarea (`lilos:ws:<id>:windows`);
+- dice al gestore delle finestre qual è il workspace attuale e riapre le finestre salvate fuori dalle workarea (`lilos:ws:<id>:windows`); la proprietà `ready` è la Promise che si risolve quando sono tornate (vale per il primo workspace);
 - registra le scorciatoie del gruppo Workspace, attive anche mentre si scrive e solo se i workspace sono almeno due: `workspaces.next` (Ctrl Alt →) e `workspaces.previous` (Ctrl Alt ←);
 - crea il `WorkspaceSwitcher`, il pulsante nella barra;
 - salva le finestre 400 ms dopo ogni `open`/`close` del gestore delle finestre e `change` del canvas, e alla chiusura della pagina.
@@ -1046,12 +1080,14 @@ Permessi dichiarati nei manifesti ufficiali: File Manager `fs.write:~`, `fs.work
 | `ACCENTS`, `LASSO_OPTIONS`, `RETENTION_OPTIONS` | `systemSettings.js` | Scelte di colore principale, selezione a mano libera e conservazione del cestino |
 | `SYSTEM_FOLDERS`, `DESK_NAME` | `systemFs.js` | Cartelle di sistema e nome della Scrivania |
 | `FOLDER_COLOR`, `itemIcon` | `desktop/itemIcons.js` | Icone di cartelle e file |
+| `DESK_FIXED_ITEMS` | `desktop/fixedItems.js` | L'elenco degli elementi fissi della scrivania (alias di `FIXED_ITEMS`) |
 | `WORKSPACE_LIMITS` | `workspaces/store.js` | Limiti dei workspace (alias di `LIMITS`) |
 | `describeWorkspace`, `onWorkspacesChange`, `workspaceManager` | `workspaces/info.js` | Nome e colore di un workspace; il gestore dei workspace |
 | `apps`, `registry`, `getApp`, `isInstalled`, `installedApps`, `launch` | `apps/registry.js` | Il registro delle app (non l'`apps` dell'SDK) |
 | `fileApps`, `appFor`, `defaultAppFor`, `setAppFor`, `resetAppsFor`, `knownExtensions`, `openFile` | `apps/open.js` | Quale app apre quale file |
 | `handleCommand` | `apps/commands.js` | Un'app gestisce un suo comando |
 | `callEntrypoint`, `connectEntrypoint`, `entrypointsOf` | `apps/entrypoints.js` | Avviare un punto d'ingresso di un'app, collegarsi a uno in background, elencare quelli di un'app (vedi [Punti d'ingresso](#punti-dingresso-entrypointsjs)) |
+| `startup` | `apps/startup.js` | Le app che si aprono da sole (vedi [apps/startup.js](#appsstartupjs)) |
 | `executionMode`, `canChangeExecution` | `apps/packages/isolation.js` | Come gira un'app installata; se l'utente può cambiarlo (è amministratore) |
 | `describePermission` | `apps/packages/permissions.js` | Un permesso in italiano (`'fs.read:~/Documenti'` → «Leggere i file in Home/Documenti») |
 | `showAppProperties`, `showAppSecurity` | `apps/appProperties.js` | Aprono "Proprietà…" di un'app (la seconda sulla scheda Sicurezza) |
@@ -1076,7 +1112,7 @@ Per le firme vedi le sezioni dei moduli di origine in questa pagina.
 - `registerApp(app)`: aggiunge l'app o sostituisce quella con lo stesso id (una nuova versione). `unregisterApp(id)`: la toglie. Le chiama `packages.js`.
 - `getApp(id)` → l'app o `undefined`.
 - `isInstalled(id)` → `true` se l'app esiste ed è visibile nel workspace attuale (le `system` sempre; il nome viene da quando le app si installavano per workspace). `installedApps()` → quelle visibili, nell'ordine del registro. `setInstalledFilter(fn)`: il sistema (`Workspaces`) imposta `fn(appId) → boolean`; predefinito: tutte visibili. Il menu di avvio mostra solo le visibili.
-- `launch(id, args?, entry = 'main')`: emette `app:launch` con `{ id, args, entry }`. `entry` è uno dei punti d'ingresso di tipo finestra dell'app; l'utente apre sempre `main`.
+- `launch(id, args?, entry = 'main', { files = [] } = {})`: emette `app:launch` con `{ id, args, entry, files }`. `entry` è uno dei punti d'ingresso di tipo finestra dell'app; l'utente apre sempre `main`. `files`: id di file consegnati all'app. Il launcher li passa al modulo (`({ args, openWindow, entry, files })`); in un'app installata diventano handle leggibili e scrivibili (`packageModule` in `host.js`), anche se isolata. Se la finestra è già aperta, il launcher emette `grant` (con gli id) su di essa prima di `launch`, e gli handle crescono.
 - `connectLauncher(wm)`: trasforma `app:launch` in finestre. Al primo avvio carica il modulo dell'app e chiama il suo export predefinito `({ args, openWindow, entry }) → Window` (per un'app di sistema e un `entry` diverso da `main`, l'export con quel nome), poi apre la finestra con `wm.open(win, { app: id, center, bounds })`. Se l'app ha già una finestra di **quel punto d'ingresso** **nell'ambito attuale** (e nel workspace attuale) la riporta in primo piano (ed emette `launch`). Una finestra che non è `main` salva `{ __entry, args }` come stato, così le workarea la riaprono dallo stesso punto d'ingresso. Se l'app non parte, un messaggio (`toast`) lo dice. Le app senza `load` (o inesistenti) scrivono un avviso in console. Un'app **nascosta** nel workspace attuale non parte: un messaggio (`toast`) dice di mostrarla da Sistema → Workspace. La finestra appartiene al workspace attuale al momento della richiesta, anche se l'utente cambia workspace mentre l'app si carica (in quel caso si apre nascosta nel suo workspace).
 - `connectLauncher(wm)` restituisce `{ restore }`. `restore({ app, state, rect }, { workspace = wm.workspace })` ricrea la finestra di un'app com'era: chiama il suo export con `state` come `args` e la apre con `wm.open(win, { app, at: rect, workspace })`, senza spostare la camera. Restituisce una Promise con la finestra, o `null` se l'app non esiste, è nascosta nel workspace attuale o non parte.
 - `setLaunchScope({ includes, center, bounds })`: stringe l'ambito in cui il launcher lavora (lo imposta `Workareas`). `includes(win)` → `boolean` dice quali finestre aperte contano come "la finestra dell'app" (una per app per ambito); `center(win)` → punto del mondo o `null` dove va una finestra nuova (`null`: il centro della vista); `bounds()` → rettangolo del mondo o `null` in cui deve restare. Predefinito: tutta la scrivania, nessun centro né limite. `openWindow` delle app (finestre secondarie) usa lo stesso centro e gli stessi limiti.
@@ -1096,7 +1132,41 @@ export default function createNotes({ args }) {
 
 ---
 
-## apps/packages/
+## apps/startup.js
+
+Cosa parte da solo quando l'utente entra (Sistema → Avvio). Due eventi del bus (vedi [Eventi del bus](#eventi-del-bus)) segnano i momenti: `system:ready` (lilOS è su) e `user:login` (subito dopo). `connectStartup()`, chiamata da `system.js`, ascolta `user:login` e toglie dalla lista un'app quando viene rimossa dal registro.
+
+All'ingresso, se `startupApps` è acceso, apre le app della lista **nell'ordine**, nel **workspace attuale**, ciascuna con i punti d'ingresso scelti. Salta le app nascoste in quel workspace o non più presenti, e i punti d'ingresso che non esistono più. Se un file o una cartella dei parametri non c'è più, quell'apertura è saltata con un messaggio (`toast`) che lo dice.
+
+- **Solo la prima scheda.** L'apertura avviene solo nella prima scheda dell'utente in questo browser: `navigator.locks.request('lilos:avvio:<id utente>', { ifAvailable: true })`, con il lucchetto tenuto finché la scheda è aperta. Le altre schede si aprono pulite. Senza Web Locks si apre sempre. Senza kernel l'id è `local`.
+- **`?avvio=no`** nell'indirizzo salta l'avvio per quel caricamento (con un messaggio). È la via d'uscita se qualcosa all'avvio si blocca.
+
+### `startup` (`@lilos/system`)
+
+`Emitter` con l'evento `change` (la lista è cambiata).
+
+| Membro | Cosa fa |
+| --- | --- |
+| `skipped` | `true` se l'indirizzo ha `?avvio=no` |
+| `apps()` | La lista salvata, controllata: `[{ app, entries: [{ entry, params }] }]` |
+| `windowEntries(appId)` | I punti d'ingresso di tipo finestra: `[{ entry, label, params }]`, `main` per primo; `label` è «Finestra principale» per `main`; `params` è lo schema del manifesto o `null`. `[]` se l'app non c'è |
+| `checkParams(schema, values)` | Controlla i parametri e restituisce quelli da salvare. Lancia un errore leggibile se non sono validi. Vedi sotto |
+| `addApp(appId)` | Aggiunge l'app in fondo, con `main` e senza parametri. Lancia «App non installata» se non ha finestre; non fa nulla se c'è già; massimo 50 app |
+| `removeApp(appId)` | Toglie l'app dalla lista |
+| `setEntry(appId, entry, on)` | Accende o spegne un punto d'ingresso (con `on` l'app entra in lista se manca). Spegnendo l'ultimo l'app esce dalla lista. I punti d'ingresso restano nell'ordine del manifesto |
+| `setParams(appId, entry, params)` | Salva i parametri di un punto d'ingresso già acceso; se non sono validi lancia e non salva |
+
+### Parametri
+
+I parametri diventano gli `args` della finestra.
+
+- **Il punto d'ingresso dichiara `params`** (nel manifesto, vedi [Manifesto](#manifesto-lilosjson)): ogni valore è controllato contro il suo tipo; valori non validi lanciano `<etichetta>: valore non valido`; valori vuoti o di un nome non dichiarato si scartano. All'apertura i mancanti prendono il `default`.
+- **Non li dichiara**: un oggetto JSON qualsiasi, fino a 4 KB (`JSON.stringify`), passato così com'è.
+- `file`: nell'`args` c'è l'id del file, e l'id è anche consegnato all'app (`files`), che lo può leggere e scrivere, anche se isolata. `folder`: l'id per le app di sistema; il percorso `~/…` per le app installate (il ponte lavora per percorsi, e serve un permesso `fs` che lo copra).
+
+### Dati salvati
+
+Chiave `startup-apps` (vedi [Dati salvati](#startup-apps)).
 
 Le app installate (pacchetti) nel sistema, di sistema e non. Panoramica: [README per sviluppatori](README.md#app-installate-pacchetti); ricetta: [Creare un'app installabile](ricette.md#creare-unapp-installabile-pacchetto); decisioni D35-D38 e D42.
 
@@ -1112,13 +1182,13 @@ Validato dal kernel (`system/kernel/src/apps/manifest.js`), che scarta i campi c
 | `name` | Nome mostrato, fino a 40 caratteri. |
 | `icon?` | `{ glyph, color }`: nome di un simbolo (`icon()`) e colore `#rrggbb`. Predefiniti `help` e `#5f6673`. |
 | `publisher` | `{ id, name, key? }`; `key` è la chiave pubblica Ed25519 (`ed25519:<base64>`). |
-| `sdk` | `"1"` o `"2"` (accetta anche i numeri 1 e 2). Con `"1"` il codice dell'app gira in cima al suo modulo, con `lilos` globale, **solo isolato**, e non ha `entrypoints`. Con `"2"` ogni punto d'ingresso è una funzione esportata dal modulo (vedi `entrypoints` e [Punti d'ingresso](#punti-dingresso-entrypointsjs)). |
+| `sdk` | `"1"` o `"2"` (accetta anche i numeri 1 e 2). Con `"1"` il codice dell'app gira in cima al suo modulo, con `lilos` globale, **solo isolato**, e può dichiarare `entrypoints` solo per `main` (per i suoi `params`). Con `"2"` ogni punto d'ingresso è una funzione esportata dal modulo (vedi `entrypoints` e [Punti d'ingresso](#punti-dingresso-entrypointsjs)). |
 | `description?` | Una frase che dice cosa fa (fino a 300 caratteri); la mostra l'AppStore. |
 | `category?` | Dove l'AppStore la elenca: uno tra `system`, `productivity`, `media`, `development`, `other` (esportati come `CATEGORIES` da `manifest.js`). Se manca vale `other`; un altro valore rende il manifesto non valido. |
 | `system?` | Solo `true`, e solo per app dal repository ufficiale ([D38](../interna/decisioni.md#d38-le-app-di-sistema-vengono-dal-repository-ufficiale-e-girano-dentro-lilos)): l'app gira **dentro lilOS, senza sandbox**, e può chiedere i permessi riservati. |
 | `required?` | Solo `true`, e solo con `system`: l'app è necessaria a lilOS, non si rimuove né si nasconde. |
 | `entry` | Solo `local`: uno dei file del pacchetto, un modulo ES. In un'app non di sistema ha tutto già dentro; un'app di sistema può avere più file (blocchi, worker, file `.wasm`) accanto all'entry. |
-| `entrypoints?` | Solo app `local` con `sdk` `"2"` (altrimenti il manifesto è rifiutato): le parti dell'app che altri possono avviare. Oggetto `{ nome: { kind, file?, label?, window? } }`, al massimo 20. `nome`: `/^[a-z][a-zA-Z0-9]{0,30}$/`, ed è anche il nome dell'export da chiamare. `kind`: `'window'` o `'background'`. `file?`: un `.js` o `.mjs` tra i `files` (predefinito `entry`). `label?`: fino a 60 caratteri (titolo della finestra, nome nella barra per un background). `window?`: `{ width, height }` (200-4000 × 150-4000), **solo per `window`**. `main` esiste sempre come finestra, anche se non è dichiarato; se è dichiarato deve essere `kind: 'window'`. |
+| `entrypoints?` | Solo app `local` (con `sdk` `"1"` solo `main`, per i suoi `params`; altrimenti il manifesto è rifiutato): le parti dell'app che altri possono avviare. Oggetto `{ nome: { kind, file?, label?, window?, params? } }`, al massimo 20. `nome`: `/^[a-z][a-zA-Z0-9]{0,30}$/`, ed è anche il nome dell'export da chiamare. `kind`: `'window'` o `'background'`. `file?`: un `.js` o `.mjs` tra i `files` (predefinito `entry`). `label?`: fino a 60 caratteri (titolo della finestra, nome nella barra per un background). `window?`: `{ width, height }` (200-4000 × 150-4000), **solo per `window`**. `main` esiste sempre come finestra, anche se non è dichiarato; se è dichiarato deve essere `kind: 'window'`. `params?`: cosa accetta come `args`, perché lilOS possa chiederlo (Sistema → Avvio); vedi [Parametri dei punti d'ingresso](#parametri-dei-punti-dingresso). |
 | `styles?` | Solo app di sistema: fogli di stile `.css` del pacchetto (fino a 10, tra i `files`) che lilOS carica insieme all'app. |
 | `files` | `{ percorso: 'sha256-<base64>' }`: ogni file del pacchetto (fino a 1000, percorsi di fino a 16 livelli con `[\w.-]`). Lo riempie `pack.js` (o, nel repository ufficiale, `scripts/build.mjs`). |
 | `url` | Solo `remote`: `https://…` (o `http://localhost`). Non può avere l'origine di lilOS. |
@@ -1247,11 +1317,37 @@ I punti d'ingresso sono le parti di un'app che si avviano da sole: `main` (la fi
 
 | Export | Descrizione |
 | --- | --- |
-| `entrypointsOf(app)` | `{ nome: { kind, file?, label?, window? } }` di un'app del registro. `main` c'è sempre. Per le app senza pacchetto: solo `main`. |
+| `entrypointsOf(app)` | `{ nome: { kind, file?, label?, window?, params? } }` di un'app del registro. `main` c'è sempre. Per le app senza pacchetto: solo `main`. |
 | `callEntrypoint(appId, entry = 'main', data = null, { from = null })` → `Promise` | Avvia il punto d'ingresso. `window`: apre la finestra con `data` come `args` (`launch(appId, data, entry)`) e dà `null`. `background`: lo avvia se serve e dà ciò che restituisce il suo `lilos.handle`; `from` è l'id dell'app che chiama. Lancia se l'app non esiste, è nascosta nel workspace attuale o non ha quel punto d'ingresso. |
 | `connectEntrypoint(appId, entry)` → `Promise<MessagePort>` | Un canale con un punto d'ingresso `background`; per una finestra lancia. |
 
 Chi chiama dal sistema (`@lilos/system`, app di sistema) non ha permessi da verificare; un'app installata passa da `lilos.app.call` (i propri) o `lilos.apps.call` (di altre, con `apps.call:<id>`), che chiamano queste funzioni con `from` = id dell'app.
+
+#### Parametri dei punti d'ingresso
+
+`params` (in `entrypoints.<nome>`) descrive gli `args` che una finestra accetta, così lilOS può chiederli all'utente (oggi in Sistema → Avvio, vedi [apps/startup.js](#appsstartupjs)). Oggetto `{ nome: parametro }`, al massimo 10; `nome`: `/^[a-zA-Z][a-zA-Z0-9_]{0,30}$/`.
+
+| Campo | Significato |
+| --- | --- |
+| `type` | `text`, `number`, `boolean`, `choice`, `file` o `folder` |
+| `label` | Obbligatoria, fino a 60 caratteri |
+| `description?` | Fino a 200 caratteri |
+| `default?` | Valore predefinito, del tipo giusto (non per `file` e `folder`) |
+| `maxLength?` | Solo `text`: da 1 a 2000 (predefinito 2000) |
+| `min?`, `max?` | Solo `number`: `min` non oltre `max` |
+| `options` | Solo `choice`, obbligatoria: da 1 a 50 `{ value, label }`; `value` è una stringa (fino a 100 caratteri) o un numero, `label` fino a 60 |
+
+```json
+"entrypoints": {
+  "main": { "kind": "window", "params": {
+    "file": { "type": "file", "label": "File da aprire" },
+    "view": { "type": "choice", "label": "Vista", "default": "list",
+              "options": [{ "value": "list", "label": "Elenco" }, { "value": "grid", "label": "Griglia" }] }
+  } }
+}
+```
+
+All'apertura la finestra riceve `args = { file, view }`. Un `file` è l'id del file e viene anche consegnato all'app, che lo può leggere e scrivere. Una `folder` arriva come id alle app di sistema e come percorso `~/…` a quelle installate; per leggerla serve un permesso `fs.read` o `fs.write` che la copra.
 
 ### Background (`background.js`)
 
@@ -1331,6 +1427,7 @@ Dichiara le impostazioni del sistema e le applica. Va importato per primo da `sy
 | `deletePermanent` | `false` | Elimina senza passare dal cestino (`removeNodes` con `permanent`) |
 | `trashRetention` | `30` | Giorni in cui il cestino conserva gli elementi (`0`: per sempre); `systemTrash.js` elimina il resto |
 | `lasso` | `'Alt'` | Modificatori che trasformano il trascinamento sullo sfondo in selezione a mano libera: `'Alt'`, `'Ctrl+Alt'` o `'Alt+Shift'` (`LASSO_OPTIONS`) |
+| `startupApps` | `true` | Con `false` le app scelte in Sistema → Avvio non si aprono all'ingresso (vedi [apps/startup.js](#appsstartupjs)) |
 
 Esporta anche `ACCENTS`, i colori proposti dall'app Sistema, `RETENTION_OPTIONS` (`[{ value, label }]`: 1, 7, 14, 30, 60, 90, 365 giorni e `0` «Per sempre», per `trashRetention`), `LASSO_OPTIONS` e `selectionMode(event)` → `{ mode: 'lasso' | 'rect', additive }`: percorso libero se sono premuti tutti i modificatori di `lasso`; `additive` (si aggiunge alla selezione) con Ctrl/Cmd o Shift, se non fanno parte della combinazione del percorso.
 
@@ -1464,7 +1561,8 @@ Controlli per impostazioni e finestre di dialogo. Ognuno restituisce il suo elem
 | `swatches({ value, colors, onChange, label })` | `div[role=radiogroup]` | Colori; `colors` come le opzioni (`label` = nome del colore). |
 | `slider({ value, min, max, step, unit, onChange, label })` | `div` con `input[type=range]` | `onChange` al rilascio; il valore mostrato si aggiorna mentre si trascina. |
 | `textField({ value, placeholder, onChange, onInput, label })` | `input` | `onChange` alla conferma (Invio o uscita dal campo), `onInput` a ogni tasto. |
-| `actionButton({ label, primary, danger, onClick })` | `button` | Pulsante. |
+| `actionButton({ label, primary, danger, spinner, onClick })` | `button` | Pulsante. Con `spinner: true`, se `onClick` restituisce una Promise il pulsante aspetta come con `busyButton`. Non va messo quando la Promise aspetta l'utente (una finestra di scelta). |
+| `busyButton(button, work)` | Promise | Mette un pulsante in attesa finché `work` (una Promise o una funzione che la restituisce) non finisce: rotella accanto all'etichetta, `disabled` e `aria-busy="true"`. Risolve o fallisce come `work`. La rotella viene da `button[aria-busy="true"]` in `controls.css`: vale per ogni `button`, anche impostando l'attributo a mano. |
 
 ---
 
@@ -1880,8 +1978,10 @@ Un repository ha un `catalog.json` alla radice:
 
 | Evento | Payload | Emesso da | Gestito da |
 | --- | --- | --- | --- |
-| `app:launch` | `{ id, args, entry? }` | `launch()`: menu di avvio, collegamenti sul desktop, `callEntrypoint`. `entry`: un punto d'ingresso di tipo finestra (`'main'` se manca) | `connectLauncher` (`apps/launcher.js`) |
+| `app:launch` | `{ id, args, entry?, files? }` | `launch()`: menu di avvio, collegamenti sul desktop, `callEntrypoint`, avvio automatico. `entry`: un punto d'ingresso di tipo finestra (`'main'` se manca). `files`: id di file che l'utente consegna all'app (`[]` se manca); un'app installata può leggerli e scriverli | `connectLauncher` (`apps/launcher.js`) |
 | `item:open` | nodo del file system | `Desktop.open()` per cartelle e file | `system.js`: le cartelle si aprono nel File Manager (`launch('files', { folder })`), i file con `openFile` |
+| `system:ready` | `{ at }` (`Date.now()`) | `system.js`, una volta per pagina, quando le finestre salvate del primo workspace (`workspaces.ready`) e delle workarea aperte (`workareas.ready`) sono tornate | Chi vuole partire con il sistema. Nella fase 2 vi si legheranno i servizi del kernel |
+| `user:login` | `{ user, workspace }` (`kernel.data.user` o `null`; id del workspace attuale o `null`) | `system.js`, subito dopo `system:ready` | `connectStartup` (`apps/startup.js`): apre le app dell'avvio |
 
 Quando aggiungi un evento, documentalo qui e nel commento in testa a `sdk/core/events.js`.
 
@@ -2071,5 +2171,18 @@ Oggetto con le impostazioni (vedi `settings` e `systemSettings.js`):
 ```
 
 Le chiavi non dichiarate e i valori di tipo diverso dal predefinito vengono ignorati.
+
+### `startup-apps`
+
+Le app che si aprono da sole, per utente, nell'ordine in cui si aprono (vedi [apps/startup.js](#appsstartupjs)). Come le altre chiavi è `lilos:startup-apps` nel browser, o il file `startup-apps` nella `.config` dell'utente:
+
+```json
+[
+  { "app": "files", "entries": [ { "entry": "main", "params": { "folder": "m1x2a0k3h" } } ] },
+  { "app": "esempio.note", "entries": [ { "entry": "main", "params": {} }, { "entry": "today", "params": { "view": "week" } } ] }
+]
+```
+
+Validato alla lettura: al massimo 50 app, senza duplicati, ciascuna con al massimo 20 punti d'ingresso (nome come nel manifesto, senza duplicati) e `params` un oggetto (altrimenti `{}`); un'app senza punti d'ingresso validi si scarta. Un `file` o `folder` è l'id di un nodo.
 
 Se cambi la forma di questi dati, prevedi una migrazione dei dati già salvati oppure cambia nome alla chiave.

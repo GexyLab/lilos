@@ -24,7 +24,7 @@ export { icon, logo } from './ui/icons.js';
 export { openMenu, closeMenu } from './ui/ContextMenu.js';
 export { avatar } from './ui/avatar.js';
 export { appIcon } from './ui/appIcon.js';
-export { toggle, selectField, segmented, swatches, slider, textField, actionButton } from './ui/controls.js';
+export { toggle, selectField, segmented, swatches, slider, textField, actionButton, busyButton } from './ui/controls.js';
 export { shortcutField } from './ui/shortcutField.js';
 export { selectionGesture } from './ui/selectionGesture.js';
 export { toast } from './ui/toast.js';

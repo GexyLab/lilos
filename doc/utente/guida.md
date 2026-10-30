@@ -64,15 +64,28 @@ Il pulsante **?** nel pannello ricorda i comandi principali.
 
 ## Cartelle, file e app
 
-Sulla scrivania ci sono tre tipi di elementi:
+Sulla scrivania ci sono tre tipi di elementi, più alcuni [elementi fissi](#gli-elementi-fissi):
 
 - **Cartelle**, con l'icona a forma di cartella.
 - **File**, con un foglio bianco e una fascia colorata che riporta l'estensione (TXT, PDF, …). Il colore dipende dal tipo di file, vedi [Tipi di file](#tipi-di-file).
 - **App**, con un riquadro colorato e il simbolo dell'app: sono collegamenti per avviarla.
 
-Al primo avvio trovi alcuni elementi di esempio: la cartella Progetti, il file benvenuto.txt e i collegamenti a File Manager, Editor e Sistema. Se usavi lilOS prima che le app si chiamassero File Manager e Sistema, sulla scrivania puoi trovare ancora le icone con i vecchi nomi «File» e «Impostazioni»: sono gli stessi collegamenti, puoi rinominarli.
+Al primo avvio trovi alcuni elementi di esempio: la cartella Progetti, il file benvenuto.txt e i collegamenti a Editor e Sistema (il File Manager è tra gli [elementi fissi](#gli-elementi-fissi)). Se usavi lilOS prima che le app si chiamassero File Manager e Sistema, sulla scrivania puoi trovare ancora le icone con i vecchi nomi «File» e «Impostazioni»: sono gli stessi collegamenti, puoi rinominarli.
 
 Gli elementi della scrivania sono il contenuto della cartella **Scrivania**: li ritrovi anche nel [File Manager](#il-file-manager).
+
+### Gli elementi fissi
+
+Su ogni scrivania, in ogni workspace, ci sono sempre sei elementi: **Home**, **Documenti**, **Immagini**, **File Manager**, **Download** e **Cestino**. Non sono file della cartella Scrivania, quindi non li trovi nel File Manager.
+
+- **Si aprono** con doppio clic o **Invio**: Home, Documenti, Immagini e Download si aprono nel [File Manager](#il-file-manager), il File Manager si avvia, il Cestino mostra il [Cestino](#il-cestino).
+- **Si spostano** come gli altri elementi, e la posizione resta salvata. Su una scrivania che non li aveva ancora, compaiono nei primi posti liberi.
+- **Non si rinominano e non si eliminano.** Con **Canc** o **Elimina** non succede niente, a parte un messaggio che lo spiega. Se hai selezionato anche altri elementi, vengono eliminati solo quelli. Il tasto destro offre **Apri** e **Elementi fissi della scrivania…**, che porta a Sistema.
+- **Accettano elementi trascinati.** Su Home, Documenti, Immagini e Download i file e le cartelle si **spostano** lì, come su una cartella qualsiasi. Sul Cestino finiscono nel cestino, con **Ctrl Z** li riprendi. L'icona del Cestino mostra della carta quando dentro c'è qualcosa.
+
+L'elenco è in Sistema → Scrivania → Elementi, sezione «Elementi fissi»: si può solo leggere, non si possono togliere.
+
+Se usavi lilOS prima di questa novità, il collegamento al File Manager che avevi già sulla scrivania resta: ora c'è anche l'elemento fisso, e il vecchio collegamento lo puoi eliminare.
 
 ### Selezionare
 
@@ -146,7 +159,7 @@ Le cartelle di sistema non si possono eliminare. Eliminare una workarea è diver
 
 ### Riordinare
 
-Tasto destro su un punto vuoto → **Riordina icone**. Gli elementi vengono messi in colonna nella parte di scrivania che stai guardando: prima le cartelle, poi i file, poi le app, ciascun gruppo in ordine alfabetico.
+Tasto destro su un punto vuoto → **Riordina icone**. Gli elementi vengono messi in colonna nella parte di scrivania che stai guardando: prima gli elementi fissi, nel loro ordine (Home, Documenti, Immagini, File Manager, Download, Cestino), poi le cartelle, i file e le app, ciascun gruppo in ordine alfabetico.
 
 ## Le workarea
 
@@ -271,7 +284,7 @@ Un workspace nuovo si crea anche dal menu del pulsante nella barra (**Nuovo work
 
 ## Il File Manager
 
-**File Manager** mostra le cartelle e il loro contenuto. Aprilo dal menu di avvio o dal collegamento sulla scrivania, oppure fai doppio clic su una cartella della scrivania: si apre direttamente lì. Dal tasto destro su un punto vuoto della scrivania, **Apri la Scrivania nel File Manager** mostra gli elementi della scrivania come elenco.
+**File Manager** mostra le cartelle e il loro contenuto. Aprilo dal menu di avvio o dall'elemento **File Manager** della scrivania, oppure fai doppio clic su una cartella della scrivania: si apre direttamente lì. Dal tasto destro su un punto vuoto della scrivania, **Apri la Scrivania nel File Manager** mostra gli elementi della scrivania come elenco.
 
 - **A sinistra**, la barra laterale. In cima la sezione **Collegamenti**: Home e le cartelle principali (Scrivania, Documenti, Immagini, Download) e i collegamenti che aggiungi tu (vedi [Collegamenti nella barra laterale](#collegamenti-nella-barra-laterale)), nell'ordine che scegli trascinandoli. Sotto, la voce **Tag** con un elemento per ogni tag che hai creato (vedi [I tag](#i-tag)) e in fondo il **Cestino** (vedi [Il Cestino](#il-cestino)): queste restano sempre al loro posto. Le cartelle principali non si possono rinominare né eliminare. **Scrivania** è quella del workspace in cui sei; Documenti, Immagini e Download sono di tutti.
 - **In alto**: Indietro, Avanti, Cartella superiore; il percorso (fai clic su una parte per tornarci); **Nuova cartella**; vista **elenco** o **a icone**; i pulsanti che aprono e chiudono i pannelli Anteprima e Informazioni; la ricerca nella cartella aperta (Esc la svuota).
@@ -749,7 +762,7 @@ Le modifiche valgono subito e restano salvate.
 | --- | --- | --- |
 | Aspetto | Colori | Il tema, **Chiaro** o **Scuro** (scrivania, barra, menu e finestre), e il colore principale di lilOS: selezioni, pulsanti, schede attive, logo |
 | Aspetto | Movimento | Animazioni attive o spente. Se nel sistema operativo hai chiesto di ridurre il movimento, le animazioni restano ridotte comunque. |
-| Scrivania | Elementi | Allineamento alla griglia degli elementi trascinati |
+| Scrivania | Elementi | L'elenco degli elementi fissi della scrivania (solo da leggere) e l'allineamento alla griglia degli elementi trascinati |
 | Scrivania | Panoramica | Mappa in miniatura visibile o nascosta |
 | Workspace | Questo workspace | Nome, colore e app visibili del workspace in cui sei (vedi [I workspace](#i-workspace)) |
 | Workspace | Tutti | Passare a un workspace, eliminarlo o crearne uno nuovo |
@@ -759,10 +772,34 @@ Le modifiche valgono subito e restano salvate.
 | Usabilità | Cestino | Se chiedere conferma prima di eliminare, se eliminare definitivamente senza passare dal cestino, per quanto tempo il cestino conserva gli elementi; aprire e svuotare il cestino (vedi [Il Cestino](#il-cestino)) |
 | Usabilità | Scorciatoie | Le combinazioni di tasti di ogni comando (vedi [Cambiare le scorciatoie](#cambiare-le-scorciatoie)) e, nella sezione Mouse, la combinazione per la selezione a mano libera (Alt, Ctrl + Alt o Alt + Shift) |
 | App | Sicurezza | Se le app installate girano isolate o no: una scelta per tutte (la cambia solo un amministratore) e l'elenco di come gira ognuna; il pulsante **Proprietà…** (vedi [Isolate e non isolate](#isolate-e-non-isolate)) |
+| Avvio | Opzioni | Se le app scelte si aprono da sole quando entri (vedi [Aprire le app all'avvio](#aprire-le-app-allavvio)) |
+| Avvio | App | Quali app si aprono da sole, con quale finestra e con quali scelte (cartella, file…) |
 | Archiviazione | — | Quanto spazio usano le tue impostazioni e il contenuto dei tuoi file; ripristino di impostazioni, scorciatoie e app dei tipi di file; ripristino della scrivania e dei file iniziali (con i workspace) |
 | Informazioni | — | Versione di lilOS, browser, lingua |
 
 I due pulsanti di ripristino chiedono conferma: al primo clic il pulsante diventa rosso, e solo un secondo clic entro pochi secondi esegue l'operazione. **Ripristinare la scrivania e i file iniziali** elimina tutte le cartelle e i file che hai creato, ovunque si trovino, **tutti i workspace** (si riparte da uno solo, Principale), **tutti i tag**, le workarea, le posizioni e la vista salvate, poi ricarica lilOS. Non si può annullare.
+
+### Aprire le app all'avvio
+
+Puoi far aprire da sole alcune app, ogni volta che entri in lilOS. Le trovi in **Sistema → Avvio**.
+
+**Opzioni**
+
+- **Apri le app quando entri**: l'interruttore che le accende tutte o le spegne tutte. Le scelte fatte in **App** restano salvate.
+- **Avvio senza app**: se qualcosa non va, aggiungi `?avvio=no` in fondo all'indirizzo di lilOS e ricarica. Per quella volta non si apre nessuna app; compare un avviso. La volta dopo (senza `?avvio=no`) tutto torna come prima.
+
+**App**
+
+1. Premi **Aggiungi…** e scegli un'app dall'elenco. Si apre la sua finestra principale.
+2. Se l'app ha più finestre, ogni finestra ha il suo **interruttore**: accendi quelle che vuoi aprire.
+3. Sotto ogni finestra accesa compaiono le sue **scelte**, per esempio la cartella da mostrare nel File Manager, il file da aprire nell'Editor, l'immagine in Photo o la sezione di Sistema. Per cartelle e file premi **Scegli…**; la **x** li toglie. Le scelte si salvano da sole, appena le cambi. Un'app che non descrive le sue scelte ha un campo di testo per le impostazioni avanzate: serve solo a chi sa cosa scrivere.
+4. **Rimuovi dall'avvio** toglie l'app dall'elenco. Anche se spegni tutte le sue finestre l'app esce dall'elenco.
+
+Le app si aprono nell'ordine dell'elenco, nel workspace in cui sei quando entri. Se un'app è nascosta in quel workspace, o l'hai tolta da lilOS, viene saltata (se l'hai tolta, esce anche dall'elenco). Se il file o la cartella scelti non ci sono più, quella finestra non si apre e un avviso lo dice.
+
+Le app si aprono **solo nella prima scheda** di lilOS di questo browser. Se ne apri una seconda, quella resta vuota. Chiudendo la prima, la scheda successiva che apri riparte da capo e riapre le app.
+
+Le app si aprono dopo che le finestre che avevi lasciato aperte sono tornate; se un'app ha già la sua finestra, la rivedi in primo piano invece di averne due.
 
 ## Il menu di avvio
 
@@ -782,7 +819,7 @@ App del menu: File Manager, Editor, Sistema, AppStore e le [app installate](#app
 
 ## I tuoi dati
 
-lilOS salva da solo, mentre lavori, le cartelle e i file con i loro nomi e il loro contenuto (quando salvi nell'Editor), i tag e quelli che hai messo su file e cartelle, l'ordine e i collegamenti della barra del File Manager (gli stessi in tutti i workspace), la posizione degli elementi sulla scrivania, il punto della scrivania che stavi guardando e le impostazioni. Tutto questo è salvato per ogni [workspace](#i-workspace). Anche le workarea sono salvate. Dopo aver ricaricato la pagina le finestre di ogni workspace si riaprono dove erano, dentro e fuori dalle workarea (quelle di un workspace in cui non sei si riaprono la prima volta che ci vai). Il testo non ancora salvato in una finestra però non si salva da solo: ricaricando la pagina si perde, quindi salva con Ctrl S. Il resto lo ritrovi com'era.
+lilOS salva da solo, mentre lavori, le cartelle e i file con i loro nomi e il loro contenuto (quando salvi nell'Editor), i tag e quelli che hai messo su file e cartelle, l'ordine e i collegamenti della barra del File Manager (gli stessi in tutti i workspace), la posizione degli elementi sulla scrivania, il punto della scrivania che stavi guardando, le app che si aprono da sole quando entri e le impostazioni. Tutto questo è salvato per ogni [workspace](#i-workspace). Anche le workarea sono salvate. Dopo aver ricaricato la pagina le finestre di ogni workspace si riaprono dove erano, dentro e fuori dalle workarea (quelle di un workspace in cui non sei si riaprono la prima volta che ci vai). Il testo non ancora salvato in una finestra però non si salva da solo: ricaricando la pagina si perde, quindi salva con Ctrl S. Il resto lo ritrovi com'era.
 
 Il salvataggio avviene **nel tuo spazio su lilOS**, non nel browser:
 

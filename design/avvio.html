@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>lilOS — Avvio automatico</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --accent: #3b6ef5; --accent-soft: #e8eefe; --danger: #e5484d; --ok: #30a46c; --warning: #d9822b;
+    --text: #1f2328; --dim: #6b7280; --faint: #9aa1ad;
+    --surface: #ffffff; --chrome: #f4f5f7; --hover: #eceef1; --border: #e2e4e8; --side: #fafafb; --stripe: #fafbfc;
+    --toggle-off: #cdd1d8;
+    --canvas: #1f2227; --canvas-dot: rgba(255,255,255,.09);
+    --bar: #16181d; --bar-border: #2a2d34; --bar-text: #d7dae0; --bar-dim: #8a909b; --bar-hover: rgba(255,255,255,.08);
+    --panel: rgba(24,26,31,.97); --panel-border: #2c3038;
+    --radius-sm: 4px; --radius: 7px; --taskbar-h: 34px;
+    --font: Manrope, system-ui, "Segoe UI", sans-serif; --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body { font: 12.5px/1.4 var(--font); color: var(--text); background: var(--canvas); overflow: auto; user-select: none; -webkit-font-smoothing: antialiased; }
+  button, select, input, textarea { font: inherit; color: inherit; }
+  button { background: none; border: 0; cursor: pointer; }
+  svg { display: block; }
+  .ico { width: 15px; height: 15px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+
+  .desk { position: relative; min-height: max(880px, calc(100vh - var(--taskbar-h))); min-width: 1400px; padding-bottom: 40px; background-image: radial-gradient(circle, var(--canvas-dot) 1px, transparent 1.3px); background-size: 24px 24px; }
+
+  /* Window */
+  .window { position: absolute; display: flex; flex-direction: column; background: var(--surface); border-radius: var(--radius); overflow: hidden; box-shadow: 0 0 0 1px rgba(0,0,0,.25), 0 10px 28px -8px rgba(0,0,0,.5); }
+  .titlebar { height: 30px; flex: none; display: flex; align-items: center; padding: 0 4px 0 10px; gap: 8px; background: var(--chrome); border-bottom: 1px solid var(--border); }
+  .title { flex: 1; display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 500; white-space: nowrap; overflow: hidden; }
+  .title .ico { width: 14px; height: 14px; color: var(--dim); }
+  .title em { font-style: normal; color: var(--faint); font-weight: 400; }
+  .controls { display: flex; }
+  .controls button { width: 28px; height: 24px; border-radius: var(--radius-sm); color: var(--dim); display: grid; place-items: center; }
+  .controls button:hover { background: var(--hover); color: var(--text); }
+  .controls button.close:hover { background: var(--danger); color: #fff; }
+  .controls .ico { width: 12px; height: 12px; }
+
+  /* Settings shell (sdk/styles/settings.css) */
+  .settings { flex: 1; display: flex; min-height: 0; }
+  .st-side { width: 184px; flex: none; display: flex; flex-direction: column; background: var(--side); border-right: 1px solid var(--border); }
+  .st-search { margin: 8px 8px 4px; height: 26px; display: flex; align-items: center; gap: 6px; padding: 0 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: #fff; color: var(--faint); }
+  .st-search .ico { width: 13px; height: 13px; }
+  .st-search input { flex: 1; min-width: 0; border: 0; outline: 0; background: none; font-size: 12px; }
+  .st-tabs { flex: 1; overflow: auto; padding: 2px 6px 8px; }
+  .st-group { padding: 10px 6px 3px; font-size: 10.5px; font-weight: 500; letter-spacing: .05em; text-transform: uppercase; color: var(--faint); }
+  .st-tab { width: 100%; height: 26px; display: flex; align-items: center; gap: 8px; padding: 0 6px; border-radius: var(--radius-sm); text-align: left; }
+  .st-tab:hover { background: var(--hover); }
+  .st-tab .ico { width: 14px; height: 14px; color: var(--dim); }
+  .st-tab span { flex: 1; white-space: nowrap; }
+  .st-tab.on { background: var(--accent-soft); color: var(--accent); }
+  .st-tab.on .ico { color: var(--accent); }
+  .st-tab.new::after { content: "nuovo"; font-size: 9.5px; font-weight: 600; color: #b7791f; background: #fff3d6; border-radius: 3px; padding: 0 4px; }
+  .st-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .st-head { flex: none; padding: 14px 20px 0; }
+  .st-head h1 { font-size: 15px; font-weight: 500; letter-spacing: -.01em; }
+  .st-head p { margin-top: 2px; color: var(--dim); font-size: 12px; }
+  .st-subtabs { flex: none; display: flex; gap: 2px; padding: 8px 14px 0; border-bottom: 1px solid var(--border); }
+  .st-subtab { position: relative; height: 30px; padding: 0 8px; color: var(--dim); font-size: 12px; }
+  .st-subtab:hover, .st-subtab.on { color: var(--text); }
+  .st-subtab.on::after { content: ""; position: absolute; left: 6px; right: 6px; bottom: -1px; height: 2px; border-radius: 2px 2px 0 0; background: var(--accent); }
+  .st-body { flex: 1; overflow: auto; padding: 14px 20px 20px; }
+  .st-section + .st-section { margin-top: 16px; }
+  .st-section h2 { margin: 0 2px 6px; font-size: 11.5px; font-weight: 500; color: var(--dim); }
+  .st-section > p.hint { margin: -2px 2px 8px; font-size: 11.5px; color: var(--faint); }
+  .st-card { border: 1px solid var(--border); border-radius: 6px; }
+  .st-card + .st-card { margin-top: 10px; }
+  .st-row { min-height: 42px; display: flex; align-items: center; gap: 12px; padding: 7px 12px; }
+  .st-row + .st-row, .st-row + .params, .params + .st-row { border-top: 1px solid var(--border); }
+  .st-label { flex: 1; min-width: 0; }
+  .st-label b { display: block; font-weight: 400; }
+  .st-label small { display: block; margin-top: 1px; color: var(--dim); font-size: 11.5px; }
+  .st-label code, .mono { font: 11px var(--mono); color: var(--faint); }
+
+  /* Controls (sdk/styles/controls.css) */
+  .btn { height: 26px; padding: 0 10px; display: inline-flex; align-items: center; gap: 5px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: #fff; font-size: 12px; white-space: nowrap; }
+  .btn:hover { background: var(--chrome); }
+  .btn .ico { width: 13px; height: 13px; }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn.icon { width: 26px; padding: 0; justify-content: center; }
+  .btn.link { border-color: transparent; background: none; color: var(--dim); }
+  .btn.link:hover { color: var(--danger); background: var(--hover); }
+  .btn[disabled] { opacity: .45; cursor: default; }
+  .toggle { width: 30px; height: 17px; flex: none; border-radius: 9px; background: var(--toggle-off); position: relative; transition: background .15s; }
+  .toggle::after { content: ""; position: absolute; top: 2px; left: 2px; width: 13px; height: 13px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.25); transition: transform .15s; }
+  .toggle.on { background: var(--accent); }
+  .toggle.on::after { transform: translateX(13px); }
+  .select { height: 26px; min-width: 168px; padding: 0 26px 0 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M7 10l5 5 5-5'/%3E%3C/svg%3E") no-repeat right 6px center / 14px; appearance: none; font-size: 12px; }
+  .select[disabled] { color: var(--dim); background-color: var(--chrome); }
+  .text { height: 26px; padding: 0 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: #fff; font-size: 12px; outline: 0; user-select: text; }
+  .text:focus, .select:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); outline: 0; }
+
+  /* Services */
+  .appico { width: 26px; height: 26px; flex: none; border-radius: 6px; display: grid; place-items: center; color: #fff; }
+  .appico .ico { width: 15px; height: 15px; }
+  .state { display: inline-flex; align-items: center; gap: 5px; }
+  .state i { width: 7px; height: 7px; border-radius: 50%; background: var(--faint); }
+  .state.on i { background: var(--ok); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ok) 18%, transparent); }
+  .state.err { color: var(--danger); }
+  .state.err i { background: var(--danger); }
+  .acts { display: flex; gap: 4px; }
+  .acts .btn:last-child { width: 68px; justify-content: center; }
+
+  /* Apps */
+  .app-head { min-height: 46px; background: var(--stripe); border-radius: 6px 6px 0 0; }
+  .app-head b { font-weight: 500 !important; }
+  .ep-row { padding-left: 50px; }
+  .params { padding: 8px 12px 10px 92px; display: grid; grid-template-columns: 96px 1fr; gap: 6px 10px; align-items: center; background: #fff; }
+  .params label { color: var(--dim); font-size: 11.5px; }
+  .params .field { display: flex; gap: 6px; }
+  .params .field .text { flex: 1; min-width: 0; }
+  .params textarea { grid-column: 1 / -1; height: 52px; resize: vertical; padding: 6px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font: 11.5px/1.45 var(--mono); user-select: text; }
+  .params .note { grid-column: 1 / -1; font-size: 11px; color: var(--faint); }
+  .add-row { border: 1px dashed #cdd1d8; border-radius: 6px; margin-top: 10px; color: var(--dim); }
+  .add-row .plus { width: 26px; height: 26px; border-radius: 6px; border: 1px dashed #cdd1d8; display: grid; place-items: center; }
+
+  /* Popup menu (Aggiungi…) */
+  .menu { position: absolute; z-index: 10; width: 230px; padding: 4px; background: var(--panel); border: 1px solid var(--panel-border); border-radius: var(--radius); box-shadow: 0 12px 32px -8px rgba(0,0,0,.55); color: var(--bar-text); }
+  .menu .mh { padding: 6px 8px 4px; font-size: 10.5px; color: var(--bar-dim); text-transform: uppercase; letter-spacing: .05em; }
+  .menu button { width: 100%; height: 28px; display: flex; align-items: center; gap: 8px; padding: 0 8px; border-radius: var(--radius-sm); text-align: left; }
+  .menu button:hover, .menu button.hl { background: var(--bar-hover); color: #fff; }
+  .menu .appico { width: 18px; height: 18px; border-radius: 4px; }
+  .menu .appico .ico { width: 11px; height: 11px; }
+
+  /* Annotations (render only) */
+  .legend { position: absolute; width: 470px; color: var(--bar-text); background: rgba(24,26,31,.94); border: 1px solid #2c3038; border-radius: 6px; padding: 14px 16px; font-size: 12px; line-height: 1.55; }
+  .legend h3 { font-size: 13px; font-weight: 600; color: #fff; margin-bottom: 8px; }
+  .legend h4 { font-size: 11px; font-weight: 600; color: var(--bar-dim); text-transform: uppercase; letter-spacing: .05em; margin: 12px 0 6px; }
+  .legend ol { list-style: none; display: grid; gap: 7px; counter-reset: n; }
+  .legend li { display: flex; gap: 9px; color: var(--bar-dim); }
+  .legend li::before { counter-increment: n; content: counter(n); flex: none; width: 18px; height: 18px; border-radius: 50%; background: #f5a524; color: #1b1300; font: 700 10.5px/18px var(--font); text-align: center; margin-top: 1px; }
+  .legend li b { color: var(--bar-text); font-weight: 600; }
+  .legend code { font: 11px var(--mono); color: #c9d4ff; }
+  .flow { display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; align-items: center; }
+  .flow .ev { font: 600 11px var(--mono); color: #1b1300; background: #f5a524; border-radius: 3px; padding: 1px 6px; justify-self: start; }
+  .flow .step { color: var(--bar-text); }
+  .flow .arrow { grid-column: 1 / -1; color: var(--bar-dim); padding-left: 18px; font-size: 11px; }
+
+  /* Taskbar */
+  .taskbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; height: var(--taskbar-h); display: flex; align-items: center; gap: 4px; padding: 0 6px; background: var(--bar); border-top: 1px solid var(--bar-border); color: var(--bar-text); }
+  .tb-start { width: 30px; height: 26px; display: grid; place-items: center; border-radius: var(--radius-sm); }
+  .tb-start svg { width: 16px; height: 16px; color: var(--accent); }
+  .tb-task { height: 26px; display: flex; align-items: center; gap: 7px; padding: 0 9px; border-radius: var(--radius-sm); font-size: 12px; color: var(--bar-dim); }
+  .tb-task .ico { width: 14px; height: 14px; }
+  .tb-task.on { background: var(--bar-hover); color: #fff; box-shadow: inset 0 -2px 0 var(--accent); }
+  .tb-sep { width: 1px; height: 16px; background: var(--bar-border); margin: 0 4px; }
+  .tb-tray { margin-left: auto; display: flex; align-items: center; gap: 12px; padding-right: 6px; font-size: 12px; }
+  .tb-bg { display: flex; align-items: center; gap: 5px; height: 24px; padding: 0 7px; border-radius: var(--radius-sm); color: var(--bar-dim); }
+  .tb-bg .ico { width: 13px; height: 13px; }
+  .tb-bg b { font-weight: 600; color: var(--bar-text); }
+  .avatar { width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; background: linear-gradient(135deg, var(--accent), #8b5cf6); color: #fff; font-size: 9.5px; font-weight: 600; }
+  .clock { display: flex; gap: 8px; font-variant-numeric: tabular-nums; }
+  .clock span:first-child { color: var(--bar-dim); }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></symbol>
+    <symbol id="i-palette" viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0 0 18c1.2 0 1.8-.8 1.8-1.7 0-1.3-1-1.6-1-2.6 0-.9.7-1.4 1.6-1.4H17a4 4 0 0 0 4-4c0-4.6-4-8.3-9-8.3z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10.5" cy="7" r="1"/><circle cx="15.5" cy="7.5" r="1"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="4" y="4" width="6.5" height="6.5" rx="1"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1"/></symbol>
+    <symbol id="i-workspace" viewBox="0 0 24 24"><rect x="3" y="5" width="13" height="10" rx="1.5"/><path d="M8 19h13V9"/></symbol>
+    <symbol id="i-tag" viewBox="0 0 24 24"><path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.3"/></symbol>
+    <symbol id="i-access" viewBox="0 0 24 24"><circle cx="12" cy="4.5" r="1.8"/><path d="M5 8.5l7 1.5 7-1.5M12 10v5l-3.5 6M12 15l3.5 6"/></symbol>
+    <symbol id="i-window" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/></symbol>
+    <symbol id="i-power" viewBox="0 0 24 24"><path d="M12 3v8"/><path d="M6.3 6.8a8 8 0 1 0 11.4 0"/></symbol>
+    <symbol id="i-disk" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 14h18M7 17h.01"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5h.01"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></symbol>
+    <symbol id="i-redo" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v5h-5"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></symbol>
+    <symbol id="i-pencil" viewBox="0 0 24 24"><path d="M4 20l1-4L16 5l3 3L8 19z"/></symbol>
+    <symbol id="i-code" viewBox="0 0 24 24"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></symbol>
+    <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M21 16l-5-5-8 8"/></symbol>
+    <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 3L5 13h6l-1 8 8-10h-6z"/></symbol>
+    <symbol id="i-min" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+    <symbol id="i-max" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="1.5"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  </defs>
+</svg>
+
+<div class="desk">
+
+  <section class="window" style="left:40px; top:36px; width:860px; height:800px;">
+    <div class="titlebar">
+      <div class="title"><svg class="ico"><use href="#i-gear"/></svg>Sistema <em>— Avvio</em></div>
+      <div class="controls">
+        <button aria-label="Riduci"><svg class="ico"><use href="#i-min"/></svg></button>
+        <button aria-label="Ingrandisci"><svg class="ico"><use href="#i-max"/></svg></button>
+        <button class="close" aria-label="Chiudi"><svg class="ico"><use href="#i-x"/></svg></button>
+      </div>
+    </div>
+    <div class="settings">
+      <aside class="st-side">
+        <label class="st-search"><svg class="ico"><use href="#i-search"/></svg><input type="text" placeholder="Cerca impostazioni" aria-label="Cerca impostazioni"></label>
+        <nav class="st-tabs">
+          <div class="st-group">Sistema</div>
+          <button class="st-tab"><svg class="ico"><use href="#i-palette"/></svg><span>Aspetto</span></button>
+          <button class="st-tab"><svg class="ico"><use href="#i-grid"/></svg><span>Scrivania</span></button>
+          <button class="st-tab"><svg class="ico"><use href="#i-workspace"/></svg><span>Workspace</span></button>
+          <button class="st-tab"><svg class="ico"><use href="#i-tag"/></svg><span>Tag</span></button>
+          <button class="st-tab"><svg class="ico"><use href="#i-access"/></svg><span>Usabilità</span></button>
+          <button class="st-tab"><svg class="ico"><use href="#i-window"/></svg><span>App</span></button>
+          <button class="st-tab on new"><svg class="ico"><use href="#i-power"/></svg><span>Avvio</span></button>
+          <div class="st-group">Dati</div>
+          <button class="st-tab"><svg class="ico"><use href="#i-disk"/></svg><span>Archiviazione</span></button>
+          <div class="st-group"></div>
+          <button class="st-tab"><svg class="ico"><use href="#i-info"/></svg><span>Informazioni</span></button>
+        </nav>
+      </aside>
+      <main class="st-main">
+        <header class="st-head"><h1>Avvio</h1><p>Servizi e app che partono da soli all’avvio di lilOS e quando entri.</p></header>
+        <div class="st-subtabs" role="tablist">
+          <button class="st-subtab" data-tab="options">Opzioni</button>
+          <button class="st-subtab" data-tab="services">Servizi</button>
+          <button class="st-subtab on" data-tab="apps">App</button>
+        </div>
+
+        <!-- ===== Opzioni ===== -->
+        <div class="st-body" data-panel="options" hidden>
+          <div class="st-section">
+            <h2>Avvio automatico</h2>
+            <div class="st-card">
+              <div class="st-row">
+                <div class="st-label"><b>Avvia i servizi automaticamente</b><small>Quando entri partono i tuoi servizi scelti in Servizi. Quelli scelti da un amministratore per tutti partono comunque.</small></div>
+                <button class="toggle on" aria-label="Avvia i servizi automaticamente"></button>
+              </div>
+              <div class="st-row">
+                <div class="st-label"><b>Apri le app quando entri</b><small>Quando entri si aprono le app scelte in App, con i loro parametri.</small></div>
+                <button class="toggle on" aria-label="Apri le app quando entri"></button>
+              </div>
+            </div>
+          </div>
+          <div class="st-section">
+            <h2>Se qualcosa non va</h2>
+            <div class="st-card">
+              <div class="st-row">
+                <div class="st-label"><b>Avvio senza servizi né app</b><small>Per una volta sola: apri lilOS con <code>?avvio=no</code> in fondo all’indirizzo. Le scelte salvate restano.</small></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== Servizi ===== -->
+        <div class="st-body" data-panel="services" hidden>
+          <div class="st-section">
+            <h2>Servizi installati</h2>
+            <p class="hint">Le parti delle app che lavorano nel kernel, senza finestra, anche a lilOS chiuso. «All’avvio del sistema» vale per tutti gli utenti e lo sceglie un amministratore; «All’accesso» solo per te.</p>
+            <div class="st-card">
+              <div class="st-row">
+                <span class="appico" style="background:#2f855a"><svg class="ico"><use href="#i-disk"/></svg></span>
+                <div class="st-label"><b>Backup · Copia notturna</b><small><span class="state on"><i></i>Acceso da 14 min</span> · <code>nightly</code></small></div>
+                <select class="select" aria-label="Avvio di Backup · Copia notturna"><option>Non si avvia</option><option>All’accesso</option><option selected>All’avvio del sistema</option></select>
+                <div class="acts"><button class="btn icon" title="Riavvia"><svg class="ico"><use href="#i-redo"/></svg></button><button class="btn">Spegni</button></div>
+              </div>
+              <div class="st-row">
+                <span class="appico" style="background:#3b6ef5"><svg class="ico"><use href="#i-download"/></svg></span>
+                <div class="st-label"><b>AppStore · Aggiornamenti</b><small><span class="state on"><i></i>Acceso da 14 min</span> · <code>updates</code></small></div>
+                <select class="select" aria-label="Avvio di AppStore · Aggiornamenti"><option>Non si avvia</option><option selected>All’accesso</option><option>All’avvio del sistema</option></select>
+                <div class="acts"><button class="btn icon" title="Riavvia"><svg class="ico"><use href="#i-redo"/></svg></button><button class="btn">Spegni</button></div>
+              </div>
+              <div class="st-row">
+                <span class="appico" style="background:#8e4ec6"><svg class="ico"><use href="#i-calendar"/></svg></span>
+                <div class="st-label"><b>Agenda · Promemoria</b><small><span class="state err"><i></i>Non è partito: errore nel codice</span> · <code>reminders</code></small></div>
+                <select class="select" aria-label="Avvio di Agenda · Promemoria"><option>Non si avvia</option><option selected>All’accesso</option><option>All’avvio del sistema</option></select>
+                <div class="acts"><button class="btn icon" title="Riavvia" disabled><svg class="ico"><use href="#i-redo"/></svg></button><button class="btn">Accendi</button></div>
+              </div>
+              <div class="st-row">
+                <span class="appico" style="background:#d9822b"><svg class="ico"><use href="#i-image"/></svg></span>
+                <div class="st-label"><b>Photo · Miniature</b><small><span class="state"><i></i>Spento</span> · <code>thumbs</code></small></div>
+                <select class="select" aria-label="Avvio di Photo · Miniature"><option selected>Non si avvia</option><option>All’accesso</option><option>All’avvio del sistema</option></select>
+                <div class="acts"><button class="btn icon" title="Riavvia" disabled><svg class="ico"><use href="#i-redo"/></svg></button><button class="btn">Accendi</button></div>
+              </div>
+            </div>
+          </div>
+          <div class="st-section">
+            <h2>Come li vede chi non è amministratore</h2>
+            <div class="st-card">
+              <div class="st-row">
+                <span class="appico" style="background:#2f855a"><svg class="ico"><use href="#i-disk"/></svg></span>
+                <div class="st-label"><b>Backup · Copia notturna</b><small><span class="state on"><i></i>Acceso da 14 min</span> · scelto da un amministratore</small></div>
+                <select class="select" disabled aria-label="Avvio di Backup · Copia notturna"><option>All’avvio del sistema</option></select>
+                <div class="acts"><button class="btn icon" title="Riavvia"><svg class="ico"><use href="#i-redo"/></svg></button><button class="btn">Spegni</button></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== App ===== -->
+        <div class="st-body" data-panel="apps">
+          <div class="st-section">
+            <h2>Si aprono quando entri</h2>
+            <p class="hint">Nel workspace in cui si apre lilOS, nell’ordine dell’elenco. Togli tutti i punti d’ingresso di un’app e l’app esce dall’elenco.</p>
+
+            <div class="st-card">
+              <div class="st-row app-head">
+                <span class="appico" style="background:#e8b44c"><svg class="ico"><use href="#i-folder"/></svg></span>
+                <div class="st-label"><b>File Manager</b><small>1 di 1 punto d’ingresso</small></div>
+                <button class="btn link">Rimuovi dall’avvio</button>
+              </div>
+              <div class="st-row ep-row">
+                <button class="toggle on" aria-label="Finestra principale"></button>
+                <div class="st-label"><b>Finestra principale</b><small><code>main</code></small></div>
+              </div>
+              <div class="params">
+                <label>Cartella</label>
+                <div class="field"><input class="text" value="/Documenti/Progetti" aria-label="Cartella"><button class="btn">Scegli…</button></div>
+              </div>
+            </div>
+
+            <div class="st-card">
+              <div class="st-row app-head">
+                <span class="appico" style="background:#8e4ec6"><svg class="ico"><use href="#i-calendar"/></svg></span>
+                <div class="st-label"><b>Agenda</b><small>2 di 3 punti d’ingresso</small></div>
+                <button class="btn link">Rimuovi dall’avvio</button>
+              </div>
+              <div class="st-row ep-row">
+                <button class="toggle on" aria-label="Finestra principale"></button>
+                <div class="st-label"><b>Finestra principale</b><small><code>main</code></small></div>
+              </div>
+              <div class="params">
+                <label>Vista</label>
+                <div class="field"><select class="select" aria-label="Vista"><option>Giorno</option><option selected>Settimana</option><option>Mese</option></select></div>
+                <label>Mostra il fine settimana</label>
+                <div class="field"><button class="toggle on" aria-label="Mostra il fine settimana"></button></div>
+              </div>
+              <div class="st-row ep-row">
+                <button class="toggle on" aria-label="Oggi"></button>
+                <div class="st-label"><b>Oggi</b><small><code>today</code> · finestra piccola</small></div>
+              </div>
+              <div class="params">
+                <label>Parametri (JSON)</label><span></span>
+                <textarea aria-label="Parametri di Oggi" spellcheck="false">{ "compatta": true }</textarea>
+                <span class="note">Questo punto d’ingresso non descrive i suoi parametri: arrivano all’app così come sono, come args.</span>
+              </div>
+              <div class="st-row ep-row">
+                <button class="toggle" aria-label="Nuovo evento"></button>
+                <div class="st-label"><b>Nuovo evento</b><small><code>newEvent</code></small></div>
+              </div>
+            </div>
+
+            <div class="st-row add-row" style="position:relative">
+              <span class="plus"><svg class="ico"><use href="#i-plus"/></svg></span>
+              <div class="st-label"><b>Aggiungi un’app all’avvio</b><small>Si apre la sua finestra principale; poi scegli altri punti d’ingresso e parametri</small></div>
+              <button class="btn" id="add-btn">Aggiungi…</button>
+            <div class="menu" id="add-menu" style="right:8px; bottom:40px;">
+            <div class="mh">App installate</div>
+            <button class="hl"><span class="appico" style="background:#3b6ef5"><svg class="ico"><use href="#i-download"/></svg></span>AppStore</button>
+            <button><span class="appico" style="background:#d9822b"><svg class="ico"><use href="#i-image"/></svg></span>Photo</button>
+            <button><span class="appico" style="background:#5f6673"><svg class="ico"><use href="#i-gear"/></svg></span>Sistema</button>
+            <button><span class="appico" style="background:#1f6feb"><svg class="ico"><use href="#i-code"/></svg></span>Terminale</button>
+            </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </section>
+
+
+  <aside class="legend" style="left:930px; top:36px;" data-legend="apps">
+    <h3>Avvio · App</h3>
+    <ol>
+      <li><span>Solo le app con almeno un punto d’ingresso <b>finestra</b> attivo. I punti d’ingresso <b>background</b> sono servizi e stanno nel tab Servizi.</span></li>
+      <li><span>Ogni punto d’ingresso si attiva da solo. Spenti tutti, l’app <b>esce dall’elenco</b>; «Rimuovi dall’avvio» li spegne tutti in un colpo.</span></li>
+      <li><span>I <b>parametri</b> diventano gli <code>args</code> della finestra (gli stessi di <code>launch(id, args, entry)</code>). Se il manifesto li descrive con il nuovo campo <code>params</code>, compare un modulo (testo, numero, sì/no, scelta, file, cartella); altrimenti un campo JSON, controllato al salvataggio.</span></li>
+      <li><span>File e cartelle si scelgono con il selettore di lilOS: valgono come «dati all’app dall’utente». Si salva l’id del nodo; se sparisce, quel punto d’ingresso salta con un avviso.</span></li>
+      <li><span><b>Aggiungi…</b> elenca le app installate non ancora nell’elenco; aggiunta, parte con la finestra principale attiva.</span></li>
+    </ol>
+    <h4>Quando parte cosa</h4>
+    <div class="flow">
+      <span class="ev">system:ready</span><span class="step">«Sistema pronto»: lilOS caricato (app, impostazioni, scrivania)</span>
+      <span class="arrow">↳ servizi «All’avvio del sistema» (scelti dall’amministratore, per tutti)</span>
+      <span class="ev">user:login</span><span class="step">«Utente entrato»: subito dopo, con l’utente e il workspace</span>
+      <span class="arrow">↳ servizi «All’accesso» dell’utente, poi le sue app in ordine</span>
+    </div>
+  </aside>
+
+  <aside class="legend" style="left:930px; top:36px;" data-legend="services" hidden>
+    <h3>Avvio · Servizi</h3>
+    <ol>
+      <li><span>Un servizio è un punto d’ingresso <code>kind: 'service'</code> di un’app installata: gira <b>nel kernel</b>, anche a lilOS chiuso (permesso <code>background</code>). I <code>background</code> restano nel browser, a richiesta, e qui non compaiono.</span></li>
+      <li><span><b>Avvio</b>: Non si avvia · All’accesso (tuo) · All’avvio del sistema (solo amministratori, per tutti gli utenti, parte sempre; gli altri lo vedono bloccato).</span></li>
+      <li><span>Un servizio acceso <b>resta acceso</b> finché non lo spegni; il kernel ne fa girare uno solo, quindi lo stato è lo stesso in ogni scheda.</span></li>
+      <li><span><b>Riavvia</b> = ferma e riparte con il codice attuale. Se cade riparte da solo (1 s, 5 s, 30 s); dopo 3 cadute in 5 minuti resta spento e la riga mostra l’errore.</span></li>
+      <li><span>Riceve <code>args: { reason: 'system:ready' | 'user:login' | 'manual', …params }</code>: anche i servizi hanno i loro parametri.</span></li>
+    </ol>
+  </aside>
+
+  <aside class="legend" style="left:930px; top:36px;" data-legend="options" hidden>
+    <h3>Avvio · Opzioni</h3>
+    <ol>
+      <li><span>Due interruttori <b>personali</b>: spengono tutto l’avvio automatico dei servizi (dei due eventi) o delle app, senza perdere le scelte negli altri tab.</span></li>
+      <li><span>Con i servizi spenti qui, i servizi restano usabili: partono alla prima chiamata come oggi.</span></li>
+      <li><span><code>?avvio=no</code>: via d’uscita se un servizio o un’app all’avvio blocca lilOS e non si riesce ad arrivare a Sistema.</span></li>
+    </ol>
+  </aside>
+</div>
+
+<nav class="taskbar">
+  <button class="tb-start" aria-label="Menu lilOS"><svg viewBox="0 0 16 16"><path fill="currentColor" fill-rule="evenodd" d="M4 0h8a4 4 0 0 1 4 4v8a4 4 0 0 1-4 4H4a4 4 0 0 1-4-4V4a4 4 0 0 1 4-4zm2 5a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1z"/></svg></button>
+  <span class="tb-sep"></span>
+  <div class="tb-task"><svg class="ico"><use href="#i-folder"/></svg><span>File Manager — Progetti</span></div>
+  <div class="tb-task"><svg class="ico"><use href="#i-calendar"/></svg><span>Agenda</span></div>
+  <div class="tb-task"><svg class="ico"><use href="#i-pencil"/></svg><span>da-fare.md</span></div>
+  <div class="tb-task on"><svg class="ico"><use href="#i-gear"/></svg><span>Sistema</span></div>
+  <div class="tb-tray">
+    <div class="tb-bg" title="Servizi accesi: Backup · Copia notturna, AppStore · Aggiornamenti"><svg class="ico"><use href="#i-bolt"/></svg><b>2</b></div>
+    <span class="avatar">E</span>
+    <div class="clock"><span>ven 30 ott</span><span>10:24</span></div>
+  </div>
+</nav>
+
+<script>
+  // Render only: switches the secondary tabs and the matching notes
+  const tabs = document.querySelectorAll('.st-subtab');
+  tabs.forEach(t => t.addEventListener('click', () => {
+    const id = t.dataset.tab;
+    tabs.forEach(x => x.classList.toggle('on', x === t));
+    document.querySelectorAll('[data-panel]').forEach(p => { p.hidden = p.dataset.panel !== id; });
+    document.querySelectorAll('[data-legend]').forEach(p => { p.hidden = p.dataset.legend !== id; });
+  }));
+  document.getElementById('add-btn').addEventListener('click', () => { const m = document.getElementById('add-menu'); m.hidden = !m.hidden; });
+  document.querySelectorAll('.toggle').forEach(t => t.addEventListener('click', () => t.classList.toggle('on')));
+</script>
+</body>
+</html>

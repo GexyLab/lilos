@@ -55,6 +55,8 @@ export class Workspaces extends Emitter {
     wm.setWorkspace(state.current);
     this.#booted.add(state.current);   // its workareas reopen their windows by themselves at start-up
     this.#queue = this.#restoreWindows(state.current).catch(err => console.error('[lilos] workspace:', err));
+    /** Resolves when the windows saved in the first workspace are back. */
+    this.ready = this.#queue;
 
     const group = 'Workspace';
     shortcuts.register({ id: 'workspaces.next', label: 'Passa al workspace successivo', group, keys: ['Ctrl+Alt+ArrowRight'], whenEditing: true, when: () => this.list().length > 1, run: () => this.step(1) });

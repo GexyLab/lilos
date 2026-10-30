@@ -95,7 +95,28 @@ export function textField({ value = '', placeholder, onChange, onInput, label } 
   return el;
 }
 
-export function actionButton({ label, primary = false, danger = false, onClick } = {}) {
+/**
+ * Marks a button as waiting: a spinner beside its label, and off until `work` (a promise, or a
+ * function returning one) settles. Resolves or rejects as `work` does.
+ */
+export async function busyButton(button, work) {
+  button.disabled = true;
+  button.setAttribute('aria-busy', 'true');
+  try {
+    return await (typeof work === 'function' ? work() : work);
+  } finally {
+    button.disabled = false;
+    button.removeAttribute('aria-busy');
+  }
+}
+
+/** spinner: when onClick returns a promise, the button waits for it (see busyButton). */
+export function actionButton({ label, primary = false, danger = false, spinner = false, onClick } = {}) {
   const cls = ['ctl-btn', primary && 'primary', danger && 'danger'].filter(Boolean).join(' ');
-  return h('button', { class: cls, type: 'button', onclick: onClick }, label);
+  const el = h('button', { class: cls, type: 'button' }, label);
+  el.addEventListener('click', e => {
+    const result = onClick?.(e);
+    if (spinner && typeof result?.then === 'function') busyButton(el, result).catch(() => {});
+  });
+  return el;
 }

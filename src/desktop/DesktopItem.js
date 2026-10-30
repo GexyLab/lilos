@@ -4,9 +4,10 @@ import { tagDots } from '../tags/tagUi.js';
 import { markItem } from '../items/itemDrag.js';
 
 /**
- * A folder, file or app shortcut placed on the desk (or a reduced workarea's icon).
+ * A folder, file or app shortcut placed on the desk (or a reduced workarea's icon, or a fixed item).
  * Data shape: a file system node plus its position, { id, type, name, x, y, color?, app?, … }
  * File system items are marked as such (itemDrag.js): a folder accepts files and folders dropped on it.
+ * Fixed items (fixedItems.js, data.fixed set) are not nodes: they mark themselves.
  */
 export class DesktopItem {
   constructor(data) {
@@ -14,7 +15,7 @@ export class DesktopItem {
     this.glyph = h('div', { class: 'ditem-glyph' }, itemIcon(data), tagDots(data, 'ditem-tags'));
     this.label = h('span', { class: 'ditem-label' }, data.name);
     this.el = h('div', { class: 'ditem', dataset: { kind: 'item', id: data.id } }, this.glyph, this.label);
-    if (data.type !== 'workarea') markItem(this.el, data);
+    if (data.type !== 'workarea' && !data.fixed) markItem(this.el, data);
     this.moveTo(data.x, data.y);
   }
 
