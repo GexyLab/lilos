@@ -80,7 +80,6 @@ export function connectPackages({ desk }) {
 
 // ---------- Per-user setup ----------
 
-const resolveHome = path => fs.resolve(path.slice(1) || '/');
 const parentOf = path => path.slice(0, path.lastIndexOf('/')) || '~';
 const nameOf = path => path.slice(path.lastIndexOf('/') + 1);
 
@@ -94,16 +93,16 @@ async function run(pkg, ops) {
         let path = '~';
         for (const part of o.path.slice(2).split('/')) {
           const next = `${path}/${part}`;
-          if (!resolveHome(next)) {
-            const node = fs.create(resolveHome(path).id, { type: 'folder', name: part });
+          if (!fs.resolve(next)) {
+            const node = fs.create(fs.resolve(path).id, { type: 'folder', name: part });
             made.push({ kind: 'node', id: node.id, modified: node.modified });
           }
           path = next;
         }
       } else if (o.op === 'write' || o.op === 'copy') {
         const path = o.op === 'write' ? o.path : o.to;
-        const parent = resolveHome(parentOf(path));
-        if (resolveHome(path) || !parent) continue;
+        const parent = fs.resolve(parentOf(path));
+        if (fs.resolve(path) || !parent) continue;
         const text = o.op === 'write' ? o.text : await installed.file(pkg.id, o.from);
         const node = fs.create(parent.id, { type: 'file', name: nameOf(path) });
         await fs.write(node.id, text);
@@ -148,7 +147,7 @@ function undo(record, id) {
   }
   // Explicit 'remove' operations of the manifest: to the trash, so nothing is lost by mistake
   for (const o of record.uninstall ?? []) {
-    const node = o.op === 'remove' && resolveHome(o.path);
+    const node = o.op === 'remove' && fs.resolve(o.path);
     if (node) trash.push(node.id);
   }
   if (trash.length) {

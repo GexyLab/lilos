@@ -162,8 +162,8 @@ import { kernel, KernelError } from '@lilos/sdk';
 | `connected` | `true` quando `connect()` ha caricato i dati dell'utente. |
 | `mode` | `'multi'` (gli utenti accedono) o `'single'` (un utente, senza accesso); `null` prima di `session()`. |
 | `user` | `{ id, username, name, role }` dell'utente collegato, o `null`. |
-| `data` | Ciò che `GET /api/boot` ha restituito: `{ user, fresh, nodes, storage, apps, appSecurity }`. Lo leggono `storage`, `fs` e `apps` appena vengono caricati. |
-| `request(method, path, body?, { text = false, keepalive = false })` | Una richiesta a `/api<path>`, con il cookie e l'intestazione `X-Lilos: 1`. `body` oggetto = JSON, stringa = testo. Restituisce il JSON della risposta (il testo con `text: true`, `undefined` per 204). Lancia `KernelError`. Una risposta 401 con l'utente connesso, in modalità `multi`, emette anche `signedout`. |
+| `data` | Ciò che `GET /api/boot` ha restituito: `{ user, home, fresh, nodes, storage, apps, appSecurity }`. Lo leggono `storage`, `fs` e `apps` appena vengono caricati. |
+| `request(method, path, body?, { text = false, blob = false, keepalive = false })` | Una richiesta a `/api<path>`, con il cookie e l'intestazione `X-Lilos: 1`. `body` oggetto = JSON, stringa = testo, `Blob` / `ArrayBuffer` / array tipizzato = byte (`application/octet-stream`). Restituisce il JSON della risposta (il testo con `text: true`, un `Blob` con `blob: true`, `undefined` per 204). Lancia `KernelError`. Una risposta 401 con l'utente connesso, in modalità `multi`, emette anche `signedout`. |
 | `session()` | `GET /api/session` → `{ mode, user }`; aggiorna `mode` e `user`. |
 | `login(username, password)` | Accede; restituisce l'utente. Lancia `KernelError` (`invalid_credentials`, `rate_limited`). |
 | `logout()` | Manda ciò che è in attesa (gli errori si ignorano), chiude la sessione, esegue le funzioni di `onLogout` (gli errori si ignorano) e azzera `user`. |
@@ -215,7 +215,8 @@ I repository da cui arrivano app e moduli: quello ufficiale (sempre presente) e 
 | `list()` | `[{ id, name, url, official }]` (utenti). |
 | `add(url, name?)` | Aggiunge un repository dopo aver letto il suo `catalog.json` (amministratori). `name` assente: quello del catalogo, o l'indirizzo. Lancia `conflict` se c'è già, `invalid` se il catalogo manca o l'indirizzo non va. |
 | `remove(id)` | Toglie un repository (amministratori; non l'ufficiale). Le app già installate restano. |
-| `catalog(id)` | Cosa offre il repository alla sua ultima versione: `{ repo, name, ref, commit, apps: [{ path, manifest } \| { path, error }], modules: [{ path, module } \| { path, error }] }` (utenti). Per installare: `apps.install({ type: 'git', url: repo.url, path, ref })`. |
+| `catalog(id)` | Cosa offre il repository alla sua ultima versione: `{ repo, name, ref, commit, apps: [{ path, manifest, readme } \| { path, error }], modules: [{ path, module, readme } \| { path, error }] }` (utenti). `readme` è il testo di `README.md` nella cartella del pacchetto (Markdown) oppure `null`; oltre 64 KB è tagliato alla fine di una riga e la voce ha `readmeTruncated: true`. Per installare: `apps.install({ type: 'git', url: repo.url, path, ref })`. |
+| `readme(id, path)` | Il `README.md` completo di un pacchetto del catalogo (`path` come lo elenca il catalogo), come testo (utenti). |
 
 ### `kernelModules`
 
@@ -223,7 +224,7 @@ I moduli del kernel come pacchetti (solo amministratori). Girano nel kernel con 
 
 | Metodo | Descrizione |
 | --- | --- |
-| `list()` | `[{ name, version, description, provides, requires, enabled, running, versions, source }]`. `enabled`: la versione attiva nella configurazione (`null` se spento); `running`: quella in uso adesso; se differiscono serve un riavvio. |
+| `list()` | `[{ name, version, description, icon, provides, requires, enabled, running, versions, source }]`. `icon`: `{ glyph, color }` del `module.json`, o `null`. `enabled`: la versione attiva nella configurazione (`null` se spento); `running`: quella in uso adesso; se differiscono serve un riavvio. |
 | `install(source, { allowUnsigned = false })` | Installa e accende il modulo → `{ name, version, restartRequired: true }`. Un modulo non ufficiale richiede `allowUnsigned: true`. |
 | `update(name, { ref, allowUnsigned = false })` | Aggiorna dall'origine registrata → `{ name, version, previous, restartRequired }`, oppure `{ name, version, unchanged: true }`. |
 | `remove(name)` | Spegne il modulo e cancella le sue cartelle, tranne quelle che contengono i suoi dati → `{ name, kept, restartRequired }` (`kept`: cartelle conservate). |
@@ -328,21 +329,23 @@ File system virtuale: un albero di cartelle, file e collegamenti alle app, tenut
 
 | Membro | Descrizione |
 | --- | --- |
-| `root` | Id della radice (`'root'`). |
+| `root` | Id della radice (`'root'`), la home dell'utente. |
+| `home` | Il percorso della radice: `'/home/<utente>'` collegati al kernel (com'è nel suo file system), `'~'` senza. |
 | `loaded` | `false` al primo avvio (niente di salvato): il sistema riempie l'albero. |
 | `get(id)`, `exists(id)` | Il nodo (o `null`), se esiste. |
 | `children(id)` | Figli diretti, in ordine di creazione. |
 | `ancestors(id)` | Dalla radice al nodo compreso. |
-| `path(id)` | `'/Scrivania/Progetti'` (`'/'` per la radice). |
-| `resolve(path)` | Il nodo a quel percorso, o `null`. |
+| `path(id)` | Il percorso vero, dalla home: `'/home/eugenio/Documenti/Note'` (`fs.home` per la radice; senza kernel `'~/Documenti/Note'`). |
+| `resolve(path)` | Il nodo a quel percorso, o `null`. Accetta il percorso di `path` (`'/home/eugenio/Documenti'`), quello con `~` (`'~/Documenti'`) e, senza nessuno dei due, un percorso dentro la home (`'/Documenti'`). Le app passano sempre `~/…`: così una cartella chiamata `home` nella home non si confonde con il prefisso. |
 | `isInside(id, ancestorId)` | `true` se `id` è `ancestorId` o sta dentro. |
 | `count(id)` | Quanti nodi contiene una cartella, a ogni livello. |
 | `uniqueName(parentId, name, exceptId?)` | Il nome libero più vicino. |
 | `create(parentId, { type, name, color?, app?, size?, system?, id?, workspace?, private? })` | Crea e restituisce il nodo (`id` facoltativo, per le migrazioni). `workspace` è il proprietario: predefinito il workspace attuale (`fs.workspace`); le cartelle di sistema condivise (`system` senza `private`) non hanno proprietario. `private: true` solo per una cartella con un proprietario. Lancia un errore se la cartella non esiste, il tipo non è valido o `workspace` non è un id valido. |
 | `rename(id, name)` | Rinomina e restituisce il nome finale. |
 | `update(id, { color })` | Cambia i metadati che non sono il nome. |
-| `read(id)` | `Promise<string>`: il contenuto del file (`''` se non ne ha). |
-| `write(id, text)` | `Promise`: salva il contenuto, aggiorna `size` e `modified` ed emette `change` di tipo `update`. |
+| `read(id)` | `Promise<string>`: il contenuto del file come testo (`''` se non ne ha). |
+| `readBlob(id, { type? })` | `Promise<Blob>`: il contenuto del file come byte (vuoto se non ne ha), per le immagini e gli altri file binari. Il tipo del `Blob` viene dall'estensione (`'image/png'` per un `.png`, `'image/svg+xml'` per un `.svg`…), oppure è `type`. |
+| `write(id, data)` | `Promise`: salva il contenuto, testo (una stringa) o byte (`Blob`, `ArrayBuffer` o array tipizzato), aggiorna `size` (in byte) e `modified` ed emette `change` di tipo `update`. I byte arrivano al kernel così come sono (`PUT /api/fs/content/:id`) e tornano uguali con `readBlob` (`GET /api/fs/content/:id?raw=1`). |
 | `move(id, parentId)` | Sposta il nodo (con il contenuto) in un'altra cartella e restituisce il nome finale, reso unico lì. Lancia un errore se la destinazione non è una cartella o sta dentro il nodo stesso. |
 | `remove(id)` | Elimina il nodo e, per le cartelle, tutto il contenuto (anche quello dei file). Il contenuto si perde: per poterlo riavere prendi prima uno `snapshot`, oppure usa `trash`. Non vale per i nodi nel cestino (`purge`). |
 | `trashRoot` | Id della radice nascosta del cestino (`'trash'`); non è un nodo: `get` non la vede. |
@@ -364,7 +367,7 @@ File system virtuale: un albero di cartelle, file e collegamenti alle app, tenut
 | `hiddenTags` | Id dei tag i cui elementi sono nascosti (copia). |
 | `setHiddenTags(tagIds)` | Imposta i tag nascosti (lo fa `tags` dai tag invisibili, all'avvio e a ogni cambio). Emette `scope` se l'insieme cambia. |
 | `isHidden(id)` | `true` se il nodo esiste e ha un tag nascosto. |
-| `snapshot(ids)` | `Promise<{ nodes, contents }>`: copia i nodi (e, per le cartelle, tutto quello che contengono) con il testo dei file. Gli id che non esistono o sono ripetuti si saltano. Va preso **prima** di `remove`. |
+| `snapshot(ids)` | `Promise<{ nodes, contents }>`: copia i nodi (e, per le cartelle, tutto quello che contengono) con il contenuto dei file, come byte (testo e immagini tornano identici). Gli id che non esistono o sono ripetuti si saltano. Va preso **prima** di `remove`. |
 | `restore(snapshot)` | `Promise<string[]>`: rimette quello che `snapshot` ha copiato, con gli stessi id, gli stessi metadati e lo stesso contenuto. Il nome diventa unico se nel frattempo è stato preso. Si saltano i nodi la cui cartella non c'è più (o non è visibile) e gli id che esistono di nuovo. Emette un `change` di tipo `create` per ogni nodo rimesso; restituisce gli id rimessi (`[]` se non ha potuto rimettere nulla). |
 
 `rename`, `move` e `remove` lanciano un errore sui nodi di sistema e sulla radice.
@@ -1021,13 +1024,13 @@ Argomenti (`args`) che il sistema usa per avviarle, e stato per le workarea (`wi
 | File Manager (`files`) | `folder`: id della cartella da aprire (altrimenti Home); `trash: true` (o `folder === fs.trashRoot`) apre il Cestino; `tag`: id di un tag che esiste, apre la vista di quel tag. Sulla finestra già aperta arriva l'evento `launch` e mostra la nuova cartella. | `{ folder }` (`fs.trashRoot` per il Cestino, `'tag:<id>'` per un tag) |
 | Editor (`editor`) | `file`: id del file da aprire; `folder`: cartella del pannello a destra (assente: l'ultima aperta; `null`: nessuna); `sidebar: false`: pannello chiuso. Apre i tipi di file dichiarati in `contributes.fileTypes` del suo manifesto. | `{ file, folder, sidebar? }` |
 | Impostazioni (`settings`) | `tab`: id di una scheda (`'workspaces'`, `'tags'`…), anche a finestra già aperta; `tagFor`: id dei nodi su cui metterà il prossimo tag creato (lo manda «Nuovo tag…» del sottomenu Tag). | nessuno (si riapre sulla prima scheda) |
-| AppStore (`appstore`) | `tab`: id di una scheda, quando la finestra è già aperta (evento `launch`). | nessuno |
+| AppStore (`appstore`) | `tab`: `installed`, `updates`, l'id di una categoria (`system`, `productivity`, `media`, `development`, `other`), `kernel` o `options` (anche `apps`, `modules`, `repos`, dei vecchi collegamenti); anche a finestra già aperta (evento `launch`). | nessuno |
 
 Il sistema dipende da questi argomenti (`launch('files', { folder })` in `system.js`, `launch('settings', { tab: 'workspaces' })` nel pulsante del workspace): cambiarli nell'app rompe il sistema. Il sistema non dipende invece dall'esistenza delle app: se una manca, `launch` scrive solo un'informazione in console (`app non ancora disponibile`).
 
 Cosa salvano (chiavi di `storage`, vedi [Dati salvati](#dati-salvati)): File Manager `files-view`, `files-panels`; Editor `editor-lang`, `editor-tree`; Impostazioni nulla di proprio (usa `settings`, `shortcuts`, `tags`, `menus`…). Le associazioni dei tipi di file e l'ordine della barra laterale del File Manager sono del sistema (`file-apps`, `files-sidebar`).
 
-Permessi dichiarati nei manifesti ufficiali: File Manager `fs.write:~`, `fs.workspaces`, `tags.write`, `desktop.items`, `ui.shortcuts`; Editor `fs.write:~`, `ui.shortcuts`, `net:https://json.schemastore.org`; Impostazioni `settings.system`, `workspaces.manage`, `tags.write`, `ui.shortcuts`; AppStore `apps.manage`. Per le app di sistema non c'è un controllo a ogni uso (non passano dal ponte): i permessi servono al kernel per accettare il manifesto e a mostrare cosa fa l'app.
+Permessi dichiarati nei manifesti ufficiali: File Manager `fs.write:~`, `fs.workspaces`, `tags.write`, `desktop.items`, `ui.shortcuts`; Editor `fs.write:~`, `ui.shortcuts`, `net:https://json.schemastore.org`; Photo `fs.write:~`, `ui.shortcuts`; Impostazioni `settings.system`, `workspaces.manage`, `tags.write`, `ui.shortcuts`; AppStore `apps.manage`. Per le app di sistema non c'è un controllo a ogni uso (non passano dal ponte): i permessi servono al kernel per accettare il manifesto e a mostrare cosa fa l'app.
 
 ---
 
@@ -1111,6 +1114,7 @@ Validato dal kernel (`system/kernel/src/apps/manifest.js`), che scarta i campi c
 | `publisher` | `{ id, name, key? }`; `key` è la chiave pubblica Ed25519 (`ed25519:<base64>`). |
 | `sdk` | `"1"` o `"2"` (accetta anche i numeri 1 e 2). Con `"1"` il codice dell'app gira in cima al suo modulo, con `lilos` globale, **solo isolato**, e non ha `entrypoints`. Con `"2"` ogni punto d'ingresso è una funzione esportata dal modulo (vedi `entrypoints` e [Punti d'ingresso](#punti-dingresso-entrypointsjs)). |
 | `description?` | Una frase che dice cosa fa (fino a 300 caratteri); la mostra l'AppStore. |
+| `category?` | Dove l'AppStore la elenca: uno tra `system`, `productivity`, `media`, `development`, `other` (esportati come `CATEGORIES` da `manifest.js`). Se manca vale `other`; un altro valore rende il manifesto non valido. |
 | `system?` | Solo `true`, e solo per app dal repository ufficiale ([D38](../interna/decisioni.md#d38-le-app-di-sistema-vengono-dal-repository-ufficiale-e-girano-dentro-lilos)): l'app gira **dentro lilOS, senza sandbox**, e può chiedere i permessi riservati. |
 | `required?` | Solo `true`, e solo con `system`: l'app è necessaria a lilOS, non si rimuove né si nasconde. |
 | `entry` | Solo `local`: uno dei file del pacchetto, un modulo ES. In un'app non di sistema ha tutto già dentro; un'app di sistema può avere più file (blocchi, worker, file `.wasm`) accanto all'entry. |
@@ -1362,7 +1366,7 @@ Esporta anche `ACCENTS`, i colori proposti dall'app Impostazioni, `RETENTION_OPT
 
 Stili in `src/styles/tags.css` (`.tag-dots`, `.tag-dot`, `.ditem-tags`, `.fm-tag`…).
 
-**Scheda Tag di Impostazioni** (`tagSections` in `SettingsApp.js`, nel repository ufficiale, dopo la scheda Workspace). Una sezione «Nuovo tag» (nome e **Crea**, anche con Invio; un errore, come un nome già preso, esce in un `toast`) e una sezione per tag con Nome, Colore (`swatches` con `TAG_COLORS`), Visibile (interruttore, con la spiegazione di cosa succede) ed Elementi (quanti ne vede il workspace attuale, **Mostra in File** e **Elimina…** in due clic, che chiama `tags.remove`). Si ridisegna sull'evento `change` di `tags`. Argomenti di `launch('settings', …)`: `tab: 'tags'` apre la scheda e dà il focus al campo del nuovo tag; `tagFor: string[]` sono gli id degli elementi che prenderanno il prossimo tag creato lì (i nodi che non esistono si ignorano; l'elenco si svuota dopo la creazione).
+**Scheda Tag di Impostazioni** (`tagSections` in `SettingsApp.js`, nel repository ufficiale, dopo la scheda Workspace). Una sezione «Nuovo tag» (nome e **Crea**, anche con Invio; un errore, come un nome già preso, esce in un `toast`) e una sezione per tag con Nome, Colore (`swatches` con `TAG_COLORS`), Visibile (interruttore, con la spiegazione di cosa succede) ed Elementi (quanti ne vede il workspace attuale, **Mostra nel File Manager** e **Elimina…** in due clic, che chiama `tags.remove`). Si ridisegna sull'evento `change` di `tags`. Argomenti di `launch('settings', …)`: `tab: 'tags'` apre la scheda e dà il focus al campo del nuovo tag; `tagFor: string[]` sono gli id degli elementi che prenderanno il prossimo tag creato lì (i nodi che non esistono si ignorano; l'elenco si svuota dopo la creazione).
 
 ---
 
@@ -1681,7 +1685,7 @@ Le richieste che modificano (tutte tranne `GET` e `HEAD`) devono avere l'intesta
 | `GET /api/session` | tutti | → `{ mode: 'multi' \| 'single', user \| null }` |
 | `POST /api/session` | tutti | `{ username, password }` → `{ user }` e il cookie `lilos_session` (`HttpOnly; SameSite=Strict; Path=/api`, `Secure` con `secureCookies`). Con un solo utente: `invalid`. |
 | `DELETE /api/session` | tutti | Chiude la sessione e cancella il cookie |
-| `GET /api/boot` | utenti | → `{ user, fresh, nodes, storage, apps, appSecurity }`: tutto ciò che serve per partire. `fresh`: la cartella dell'utente è vuota. `apps` è l'elenco di `GET /api/apps`, ma senza nascondere l'origine `local` ai non amministratori. `appSecurity`: `{ isolated }`, la regola generale su come girano le app |
+| `GET /api/boot` | utenti | → `{ user, home, fresh, nodes, storage, apps, appSecurity }`: tutto ciò che serve per partire. `home`: il percorso della home nel file system (`/home/<utente>`), da cui `fs.path` parte. `fresh`: la cartella dell'utente è vuota. `apps` è l'elenco di `GET /api/apps`, ma senza nascondere l'origine `local` ai non amministratori. `appSecurity`: `{ isolated }`, la regola generale su come girano le app |
 | `POST /api/fs/sync` | utenti | `{ put: [nodo], remove: [id] }`, in una transazione; al massimo 5000 voci e 8 MB. L'SDK ne manda al massimo 2000 per richiesta (prima i nodi, con i genitori prima dei figli, poi le eliminazioni), quindi non c'è un limite al numero di modifiche di una volta sola |
 | `GET /api/fs/content/:id` | utenti | → testo del file |
 | `PUT /api/fs/content/:id` | utenti | testo del file (fino a 10 MB) |
@@ -1700,6 +1704,7 @@ Le richieste che modificano (tutte tranne `GET` e `HEAD`) devono avere l'intesta
 | `POST /api/repos` | amministratori | `{ url, name? }` → il repository. Legge `catalog.json` prima di salvare |
 | `DELETE /api/repos/:id` | amministratori | Toglie un repository (non l'ufficiale) |
 | `GET /api/repos/:id/catalog` | utenti | → cosa offre il repository: app e moduli (vedi [Repository](#repository-reposjs)) |
+| `GET /api/repos/:id/readme?path=` | utenti | → il `README.md` completo di un pacchetto del catalogo, come testo |
 | `GET /api/modules` | amministratori | → moduli del kernel installati (vedi [Moduli come pacchetti](#moduli-come-pacchetti-modulepackagejs)) |
 | `POST /api/modules` | amministratori | `{ source, allowUnsigned }` → `{ name, version, restartRequired }` |
 | `POST /api/modules/:name/update` | amministratori | `{ ref?, allowUnsigned }` → `{ name, version, previous, restartRequired }` o `{ …, unchanged: true }` |
@@ -1840,7 +1845,7 @@ Un repository ha un `catalog.json` alla radice:
 { "name": "Il mio repository", "apps": ["apps/note"], "modules": ["modules/mio"] }
 ```
 
-`apps` e `modules` sono elenchi di cartelle (fino a 200 l'uno, percorsi come `apps/note`). Ogni cartella di app contiene `lilos.json`, ogni cartella di modulo `module.json`. Le voci non valide non fermano il catalogo: compaiono con `error`.
+`apps` e `modules` sono elenchi di cartelle (fino a 200 l'uno, percorsi come `apps/note`). Ogni cartella di app contiene `lilos.json`, ogni cartella di modulo `module.json`; può contenere anche un `README.md` (Markdown), che `catalog(id)` restituisce come `readme` (`null` se manca; oltre 64 KB tagliato, con `readmeTruncated: true`). Il testo completo si legge con `readme(id, path)` (`GET /api/repos/:id/readme?path=`). Le voci non valide non fermano il catalogo: compaiono con `error`.
 
 `Repos`: `list()` (l'ufficiale per primo: `{ id: 'official', name: 'lilOS ufficiale', url: 'https://github.com/GexyLab/lilos-plugins-official', official: true }`), `get(id)`, `add(principal, { url, name? })`, `remove(principal, id)`, `catalog(id)`. `add` e `remove` sono per amministratori; `add` legge il catalogo prima di salvare (un indirizzo sbagliato si scopre subito), rifiuta quelli già presenti e oltre 30. `catalog(id)` risponde alla versione più alta, e il suo `ref` è quello da passare per installare esattamente quella versione.
 
@@ -1860,6 +1865,7 @@ Un repository ha un `catalog.json` alla radice:
 | Campo | Significato |
 | --- | --- |
 | `description?` | Fino a 300 caratteri. |
+| `icon?` | `{ glyph, color }` come per le app: `glyph` un nome di simbolo (lettere e cifre, inizia con una lettera minuscola, 2-31 caratteri), `color` `#rrggbb`. Un valore diverso rende il `module.json` non valido. `list()` lo restituisce (o `null`). |
 | `data?` | File in cui il modulo tiene i suoi dati (`["users.json"]`). Si portano alla nuova versione negli aggiornamenti e si conservano, con la loro cartella, alla rimozione. |
 | `defaultConfig?` | Oggetto: la configurazione con cui il modulo viene acceso in `config.json`. |
 

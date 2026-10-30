@@ -11,7 +11,7 @@ const MAX_TEXT = 10 << 20;
 const STORAGE_KEY = /^[\w.-]{1,64}$/;
 
 /** '~/Documenti/a.txt' → the node, if visible from the current workspace. */
-const resolveHome = path => (typeof path === 'string' && /^~(\/[^/]+)*$/.test(path) ? fs.resolve(path.slice(1) || '/') : null);
+const resolveHome = path => (typeof path === 'string' && /^~(\/[^/]+)*$/.test(path) ? fs.resolve(path) : null);
 const splitPath = path => [path.slice(0, path.lastIndexOf('/')) || '~', path.slice(path.lastIndexOf('/') + 1)];
 const fail = msg => { throw new Error(msg); };
 

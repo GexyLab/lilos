@@ -12,16 +12,24 @@ const MAX_NAME = 255;
 const WORKSPACE_ID = /^[\w-]{1,40}$/;
 const TAG_ID = /^[\w-]{1,40}$/;
 const MAX_TAGS = 30;   // per node
+/** Type of the Blob readBlob() gives, by extension. */
+const MIME = {
+  png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp', bmp: 'image/bmp',
+  avif: 'image/avif', ico: 'image/x-icon', svg: 'image/svg+xml', pdf: 'application/pdf', json: 'application/json',
+  txt: 'text/plain', md: 'text/markdown', html: 'text/html', css: 'text/css', js: 'text/javascript',
+  mp3: 'audio/mpeg', wav: 'audio/wav', ogg: 'audio/ogg', mp4: 'video/mp4', webm: 'video/webm',
+};
 
 /**
  * Virtual file system: a tree of folders, files and app shortcuts, kept whole in memory. Connected
  * to the kernel, the tree is the user's home: loaded at start-up and kept in sync by differences
  * (only the nodes that changed are sent, a moment later); file contents are read and written
  * there with the asynchronous read() / write(). Without the kernel the tree is saved under
- * 'lilos:fs' and the contents in IndexedDB.
+ * 'lilos:fs' and the contents in IndexedDB. A content is text or bytes (an image): write() takes
+ * either, read() gives text, readBlob() bytes.
  *
  *   Node: { id, type: 'folder' | 'file' | 'app', name, parent, created, modified,
- *           size?, color?, app?, system?, workspace?, private?, tags? }   size: bytes of the content (UTF-8)
+ *           size?, color?, app?, system?, workspace?, private?, tags? }   size: bytes of the content
  *
  * Names are unique inside a folder (case-insensitive): create() and rename() add a number
  * when needed. System nodes (system: true) cannot be renamed or removed.
@@ -120,16 +128,32 @@ class FileSystem extends Emitter {
     return chain;
   }
 
-  /** '/Scrivania/Progetti' ('/' for the root). */
-  path(id) {
-    const names = this.ancestors(id).slice(1).map(n => n.name);
-    return '/' + names.join('/');
+  /**
+   * Path of the root, the user's home: '/home/<user>' connected to the kernel (as the kernel's file
+   * system has it), '~' without.
+   */
+  get home() {
+    const path = kernel.connected && kernel.data.home;
+    return typeof path === 'string' && path.startsWith('/') ? path.replace(/\/+$/, '') : '~';
   }
 
-  /** Node at a path ('/Documenti/Note'), or null. Case-insensitive like names. */
+  /** '/home/eugenio/Documenti/Note' (home for the root). */
+  path(id) {
+    return [this.home, ...this.ancestors(id).slice(1).map(n => n.name)].join('/');
+  }
+
+  /**
+   * Node at a path, or null. Case-insensitive like names. The path starts at the home
+   * ('/home/eugenio/Documenti/Note', as path() gives it), at '~' ('~/Documenti/Note') or, without
+   * either, in the home all the same ('/Documenti/Note').
+   */
   resolve(path) {
+    path = String(path);
+    const lower = path.toLowerCase(), home = this.home.toLowerCase();
+    if (lower === home || lower.startsWith(home + '/')) path = path.slice(home.length);
+    else if (path === '~' || path.startsWith('~/')) path = path.slice(1);
     let node = this.#nodes.get(ROOT);
-    for (const part of String(path).split('/').filter(Boolean)) {
+    for (const part of path.split('/').filter(Boolean)) {
       node = [...this.#nodes.values()].find(n => n.parent === node.id && n.name.toLowerCase() === part.toLowerCase() && this.#visible(n));
       if (!node) return null;
     }
@@ -214,15 +238,30 @@ class FileSystem extends Emitter {
     return typeof text === 'string' ? text : '';
   }
 
-  /** Saves the text content of a file; updates size and modification date ('update' event). */
-  async write(id, text) {
+  /**
+   * Content of a file as bytes: a Blob (empty if it has none yet), typed from the file's
+   * extension ('image/png' for a .png…) unless `type` is given.
+   */
+  async readBlob(id, { type } = {}) {
     const node = this.#find(id);
     if (!node || node.type !== 'file') throw new Error('Il file non esiste');
-    const value = String(text);
+    await this.#tracker?.flush();
+    const blob = (await contents.getBlob(id)) ?? new Blob([]);
+    return new Blob([blob], { type: type ?? MIME[splitName(node.name)[1].toLowerCase()] ?? '' });
+  }
+
+  /**
+   * Saves the content of a file: text (a string), or bytes (a Blob, an ArrayBuffer or a typed
+   * array). Updates size and modification date ('update' event).
+   */
+  async write(id, data) {
+    const node = this.#find(id);
+    if (!node || node.type !== 'file') throw new Error('Il file non esiste');
+    const value = data instanceof Blob ? data : data instanceof ArrayBuffer || ArrayBuffer.isView(data) ? new Blob([data]) : String(data);
     await this.#tracker?.flush();
     await contents.set(id, value);
     if (!this.#nodes.has(id)) return;   // removed while saving
-    node.size = new TextEncoder().encode(value).length;
+    node.size = value instanceof Blob ? value.size : new TextEncoder().encode(value).length;
     node.modified = Date.now();
     this.#touch(node.parent, node.modified);
     this.#save();
@@ -260,13 +299,14 @@ class FileSystem extends Emitter {
       if (!this.#find(id) || nodes.some(n => n.id === id)) continue;
       for (const i of [id, ...this.#descendants(id)]) nodes.push(copy(this.#nodes.get(i)));
     }
-    const texts = {};
+    // As bytes: text and images come back exactly as they were
+    const data = {};
     for (const n of nodes) {
       if (n.type !== 'file') continue;
-      const text = await contents.get(n.id);
-      if (typeof text === 'string') texts[n.id] = text;
+      const blob = await contents.getBlob(n.id);
+      if (blob instanceof Blob) data[n.id] = blob;
     }
-    return { nodes, contents: texts };
+    return { nodes, contents: data };
   }
 
   /**
@@ -275,7 +315,7 @@ class FileSystem extends Emitter {
    * current workspace, are skipped, so are ids that exist again.
    * Emits a 'create' for each node put back. Resolves with the ids restored.
    */
-  async restore({ nodes, contents: texts = {} }) {
+  async restore({ nodes, contents: data = {} }) {
     const restored = [];
     for (const n of nodes) {
       const parent = this.#find(n.parent);
@@ -290,7 +330,8 @@ class FileSystem extends Emitter {
     for (const node of restored) this.emit('change', { type: 'create', node: copy(node), parent: node.parent });
     await this.#tracker?.flush();
     for (const node of restored) {
-      if (node.type === 'file' && typeof texts[node.id] === 'string') await contents.set(node.id, texts[node.id]);
+      const value = data[node.id];
+      if (node.type === 'file' && (typeof value === 'string' || value instanceof Blob)) await contents.set(node.id, value);
     }
     return restored.map(n => n.id);
   }

@@ -22,6 +22,7 @@ const OFFICIAL = Object.freeze({ id: 'official', name: 'lilOS ufficiale', url: '
 const SUBPATH = /^(?!.*\.\.)[\w.-]+(\/[\w.-]+){0,10}$/;
 const MAX_REPOS = 30;
 const MAX_ENTRIES = 200;
+const MAX_README = 64 << 10;
 
 async function readRepos() {
   try {
@@ -94,22 +95,39 @@ export class Repos {
 
   /**
    * What a repository offers, at its latest version tag:
-   *   { repo, ref, commit, name, apps: [{ path, manifest } | { path, error }], modules: [{ path, module } | { path, error }] }
+   *   { repo, ref, commit, name, apps: [{ path, manifest, readme, readmeTruncated? } | { path, error }],
+   *     modules: [{ path, module, readme, readmeTruncated? } | { path, error }] }
+   * readme: the text of README.md in the package folder (Markdown), or null. Past 64 KB it is cut at
+   * the end of a line and readmeTruncated is true: readme() gives it whole.
    */
   async catalog(id) {
     const repo = await this.get(id);
     const { name, apps, modules, read, source } = await this.#readCatalog(repo.url);
-    const entry = async (path, file, check) => {
+    const readme = async path => {
+      const text = await read(`${path}/README.md`).then(b => b.toString('utf8'), () => null);
+      if (text === null || Buffer.byteLength(text) <= MAX_README) return { readme: text };
+      const cut = Buffer.from(text).subarray(0, MAX_README).toString('utf8').replace(/�$/, '');
+      return { readme: cut.includes('\n') ? cut.slice(0, cut.lastIndexOf('\n') + 1) : cut, readmeTruncated: true };
+    };
+    const entry = async (path, file, check, key) => {
       try {
-        return { path, value: check(JSON.parse((await read(`${path}/${file}`)).toString('utf8'))) };
+        return { path, [key]: check(JSON.parse((await read(`${path}/${file}`)).toString('utf8'))), ...await readme(path) };
       } catch (err) {
         return { path, error: err.message };
       }
     };
     return {
       repo, name, ref: source.ref, commit: source.commit,
-      apps: (await Promise.all(apps.map(p => entry(p, 'lilos.json', checkManifest)))).map(({ path, value, error }) => (error ? { path, error } : { path, manifest: value })),
-      modules: (await Promise.all(modules.map(p => entry(p, 'module.json', checkModule)))).map(({ path, value, error }) => (error ? { path, error } : { path, module: value })),
+      apps: await Promise.all(apps.map(p => entry(p, 'lilos.json', checkManifest, 'manifest'))),
+      modules: await Promise.all(modules.map(p => entry(p, 'module.json', checkModule, 'module'))),
     };
+  }
+
+  /** The whole README.md of a package of the catalog (`path` as the catalog lists it). */
+  async readme(id, path) {
+    const repo = await this.get(id);
+    const { apps, modules, read } = await this.#readCatalog(repo.url);
+    if (![...apps, ...modules].includes(path)) fail('not_found', 'Pacchetto non presente nel catalogo');
+    return (await read(`${path}/README.md`)).toString('utf8');
   }
 }

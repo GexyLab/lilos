@@ -12,7 +12,8 @@ import { parsePermission, coversPath } from './permissions.js';
  *     sdk: '1' | '2',                         '1': the app's code runs at the top of the module, only in a sandbox;
  *                                             '2': each entry point is an exported function (see entrypoints)
  *     description?: 'Appunti veloci',
- *     system?: true,                          only from the official repository: runs inside lilOS, no sandbox
+ *     category?: 'productivity',              where the AppStore lists it (CATEGORIES; 'other' when missing)
+ *     system?: true,                         only from the official repository: runs inside lilOS, no sandbox
  *     required?: true,                        a system app that cannot be removed or hidden
  *     styles?: ['dist/index.css'],            system apps: stylesheets lilOS loads with the app
  *     entry: 'dist/index.js',                 local: one ES module, with everything it imports bundled
@@ -48,6 +49,7 @@ const KEY = /^[\w.-]{1,64}$/;
 const HOME_PATH = /^~(\/[^/\0]{1,255}){1,16}$/;
 const ENTRY = /^[a-z][a-zA-Z0-9]{0,30}$/;
 const MAX = { files: 1000, ops: 100, text: 64 << 10, commands: 30, widgets: 10, permissions: 50, libraries: 30, entrypoints: 20 };
+export const CATEGORIES = ['system', 'productivity', 'media', 'development', 'other'];
 const windowSize = w => w?.width >= 200 && w.width <= 4000 && w.height >= 150 && w.height <= 4000;
 
 const str = (v, max = 200) => typeof v === 'string' && v.trim() && v.length <= max;
@@ -119,6 +121,7 @@ export function checkManifest(raw) {
   if (m.system !== undefined && m.system !== true) bad('system può essere solo true');
   if (m.required !== undefined && (m.required !== true || !m.system)) bad('required vale solo per le app di sistema');
   if (m.description !== undefined && !str(m.description, 300)) bad('descrizione non valida');
+  if (m.category !== undefined && !CATEGORIES.includes(m.category)) bad(`categoria non valida (${CATEGORIES.join(', ')})`);
 
   const files = m.files ?? {};
   if (typeof files !== 'object' || Array.isArray(files) || Object.keys(files).length > MAX.files) bad('elenco dei file non valido');

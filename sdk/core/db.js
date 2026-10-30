@@ -1,7 +1,7 @@
 import { kernel } from './kernel.js';
 
 /**
- * File contents (text), by node id. Connected to the kernel they live in the user's home and
+ * File contents (text or bytes), by node id. Connected to the kernel they live in the user's home and
  * IndexedDB keeps a copy of what was read or written (database 'lilos:<user id>'), used when the
  * kernel does not answer. Without the kernel IndexedDB ('lilos') is where they live.
  * Asynchronous; never throws for the local part: without IndexedDB (some private modes) memory
@@ -56,22 +56,38 @@ const local = {
 
 const path = key => `/fs/content/${encodeURIComponent(key)}`;
 
+/** A stored value as text, or as a Blob (undefined stays undefined: nothing stored). */
+const asText = value => (value instanceof Blob ? value.text() : value);
+const asBlob = value => (value instanceof Blob ? value : typeof value === 'string' ? new Blob([value]) : value);
+
+/** From the kernel (text or bytes), keeping a local copy; offline, the local copy. */
+async function fetchContent(key, blob) {
+  if (!kernel.connected) return local.get(key);
+  try {
+    const value = blob
+      ? await kernel.request('GET', `${path(key)}?raw=1`, undefined, { blob: true })
+      : await kernel.request('GET', path(key), undefined, { text: true });
+    local.set(key, value);
+    return value;
+  } catch (err) {
+    if (err.code !== 'offline') throw err;
+    const cached = await local.get(key);
+    if (typeof cached === 'string' || cached instanceof Blob) return cached;
+    throw err;
+  }
+}
+
+/**
+ * Values are text (a string) or bytes (a Blob): get() always gives text, getBlob() always bytes,
+ * whatever was stored.
+ */
 export const contents = {
-  async get(key) {
-    if (!kernel.connected) return local.get(key);
-    try {
-      const text = await kernel.request('GET', path(key), undefined, { text: true });
-      local.set(key, text);
-      return text;
-    } catch (err) {
-      if (err.code !== 'offline') throw err;
-      const cached = await local.get(key);
-      if (typeof cached === 'string') return cached;
-      throw err;
-    }
-  },
+  get: async key => asText(await fetchContent(key, false)),
+  getBlob: async key => asBlob(await fetchContent(key, true)),
+  /** value: a string or a Blob. */
   async set(key, value) {
-    if (kernel.connected) await kernel.request('PUT', path(key), String(value));
+    if (!(value instanceof Blob)) value = String(value);
+    if (kernel.connected) await kernel.request('PUT', path(key), value);
     await local.set(key, value);
   },
   /** Connected, the kernel removes a file's content with its node: only the local copy goes. */

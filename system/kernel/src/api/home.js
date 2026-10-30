@@ -1,5 +1,5 @@
 import { fail } from '../errors.js';
-import { readBody } from '../http.js';
+import { readBody, send } from '../http.js';
 import { visible } from './apps.js';
 
 /**
@@ -10,10 +10,11 @@ import { visible } from './apps.js';
  *   .trash     the trash root of lilOS
  *   .config    lilOS's settings and preferences: one file per key, JSON
  *
- *   GET  /api/boot                 { user, fresh, nodes, storage, apps, appSecurity }   everything lilOS needs to start
+ *   GET  /api/boot                 { user, home, fresh, nodes, storage, apps, appSecurity }   everything lilOS needs to start
+ *                                  (home: the path of the home in the file system, '/home/<user>')
  *   POST /api/fs/sync              { put: [node], remove: [id] }     one transaction
- *   GET  /api/fs/content/:id       text of a file
- *   PUT  /api/fs/content/:id       saves the text of a file
+ *   GET  /api/fs/content/:id       text of a file (?raw=1: its bytes, application/octet-stream)
+ *   PUT  /api/fs/content/:id       saves the content of a file, text or bytes, as it comes
  *   POST /api/storage              { set: { key: value }, remove: [key] }
  *
  * Access control is the fs module's: these only translate ids and check the shape of the data.
@@ -30,12 +31,13 @@ const MAX_CONTENT = 10 << 20;
 const finite = v => Number.isFinite(v);
 
 class HomeView {
-  constructor(fs, principal, homeId) {
+  constructor(fs, principal, home) {
     this.fs = fs;
     this.principal = principal;
-    this.homeId = homeId;
-    this.trashId = `${homeId}/~trash`;
-    this.configId = `${homeId}/~config`;
+    this.homeId = home.id;
+    this.homePath = home.path;
+    this.trashId = `${this.homeId}/~trash`;
+    this.configId = `${this.homeId}/~config`;
   }
 
   toBack(id, { parent = false } = {}) {
@@ -64,7 +66,7 @@ async function openHome(kernel, principal) {
   if (!principal) fail('unauthorized', 'Accesso richiesto');
   const fs = kernel.service('fs');
   const home = await fs.home(principal);
-  const view = new HomeView(fs, principal, home.id);
+  const view = new HomeView(fs, principal, home);
   if (home.created || !ensured.has(home.id)) {
     const now = Date.now();
     const folder = (id, name) => ({ id, parent: home.id, name, type: 'folder', meta: {}, created: now, modified: now });
@@ -111,6 +113,7 @@ export function homeRoutes(kernel) {
     }
     return {
       user: { id: principal.id, username: principal.username, name: principal.name, role: principal.role },
+      home: view.homePath,
       fresh: !nodes.length && !Object.keys(storage).length,
       nodes,
       storage,
@@ -126,9 +129,11 @@ export function homeRoutes(kernel) {
     await view.fs.apply(principal, { put: put.map(n => toBackNode(view, n)), remove: remove.map(id => view.toBack(id)) });
   });
 
-  router.add('GET', '/api/fs/content/:id', async ({ principal, params }) => {
+  router.add('GET', '/api/fs/content/:id', async ({ res, principal, params, query }) => {
     const view = await openHome(kernel, principal);
-    return (await view.fs.read(principal, view.toBack(params.id))).toString('utf8');
+    const data = await view.fs.read(principal, view.toBack(params.id));
+    if (query.get('raw') !== '1') return data.toString('utf8');
+    send(res, 200, data, { 'Content-Type': 'application/octet-stream' });
   });
 
   router.add('PUT', '/api/fs/content/:id', async ({ req, principal, params }) => {

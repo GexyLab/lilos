@@ -33,8 +33,12 @@ class Kernel extends Emitter {
   #trackers = new Map();
   #onLogout = [];
 
-  /** One request; JSON in and out (`text` for raw text). Throws KernelError. */
-  async request(method, path, body, { text = false, keepalive = false } = {}) {
+  /**
+   * One request; JSON in and out (`text` for raw text, `blob` for bytes). A string body goes as
+   * text, a Blob, ArrayBuffer or typed array as bytes, anything else as JSON. Throws KernelError.
+   */
+  async request(method, path, body, { text = false, blob = false, keepalive = false } = {}) {
+    const bytes = body instanceof Blob || body instanceof ArrayBuffer || ArrayBuffer.isView(body);
     let res;
     try {
       res = await fetch(API + path, {
@@ -43,9 +47,9 @@ class Kernel extends Emitter {
         keepalive,
         headers: {
           'X-Lilos': '1',
-          ...(body !== undefined && { 'Content-Type': typeof body === 'string' ? 'text/plain; charset=utf-8' : 'application/json' }),
+          ...(body !== undefined && { 'Content-Type': bytes ? 'application/octet-stream' : typeof body === 'string' ? 'text/plain; charset=utf-8' : 'application/json' }),
         },
-        body: body === undefined ? undefined : typeof body === 'string' ? body : JSON.stringify(body),
+        body: body === undefined ? undefined : bytes || typeof body === 'string' ? body : JSON.stringify(body),
       });
     } catch {
       throw new KernelError(0, 'offline', 'Il kernel di lilOS non risponde');
@@ -56,7 +60,7 @@ class Kernel extends Emitter {
       throw new KernelError(res.status, err.error ?? 'internal', err.message ?? `Errore ${res.status}`);
     }
     if (res.status === 204) return undefined;
-    return text ? res.text() : res.json();
+    return blob ? res.blob() : text ? res.text() : res.json();
   }
 
   /** { mode, user }: who is signed in (user null if nobody). */

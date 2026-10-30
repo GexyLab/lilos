@@ -677,16 +677,17 @@ Un modulo in un repository si installa, si aggiorna e si toglie dall'AppStore (M
    ```
 
    - `description` (fino a 300 caratteri) la mostra l'AppStore.
+   - `icon` (facoltativo) è `{ "glyph": "user", "color": "#5f6673" }`, come per le app: l'AppStore lo usa per la card.
    - `defaultConfig` è la configurazione con cui il kernel accende il modulo in `config.json` quando lo si installa.
    - `data` elenca i file in cui il modulo tiene i suoi dati (nomi semplici, nella cartella del modulo; leggili da `ctx.dir`). Negli aggiornamenti passano alla nuova versione; alla rimozione la cartella che li contiene **resta**. Lascialo fuori se il modulo non ha dati propri.
    - Le dipendenze npm vanno in `package.json` con il suo `package-lock.json`: il kernel lancia `npm ci --omit=dev --ignore-scripts`, quindi niente pacchetti con script di installazione.
-2. Aggiungi la cartella a `modules` in `catalog.json`.
+2. Aggiungi la cartella a `modules` in `catalog.json`. Se vuoi, metti nella cartella un `README.md`: l'AppStore lo mostra nei dettagli del modulo.
 3. Committa e crea il tag `vX.Y.Z` (alza `version` a ogni rilascio; le due versioni più recenti restano sul disco).
-4. Da amministratore: AppStore → Moduli del kernel → Disponibili → Installa. Un modulo non ufficiale chiede di confermare l'avviso (gira nel kernel con accesso completo). Prima di scrivere in `config.json`, il kernel controlla che si avvierebbe con quel modulo (dipendenze, un modulo `fs`, `auth` o `host` locale): se no, dice perché e non cambia nulla. Poi **Riavvia il kernel**.
+4. Da amministratore: AppStore → Kernel → Installa. Un modulo non ufficiale chiede di confermare l'avviso (gira nel kernel con accesso completo). Prima di scrivere in `config.json`, il kernel controlla che si avvierebbe con quel modulo (dipendenze, un modulo `fs`, `auth` o `host` locale): se no, dice perché e non cambia nulla. Poi **Riavvia il kernel**.
 
 ## Fare un repository non ufficiale
 
-Qualunque repository git con un `catalog.json` alla radice si aggiunge all'AppStore (scheda Repository → Aggiungi) e offre app e moduli. Le app di un repository non ufficiale non possono essere di sistema (`system: true` è rifiutato) e sono "non verificate": si installano solo confermando l'avviso, a meno che l'editore le firmi e il kernel si fidi della sua chiave (vedi [Creare un'app installabile](#creare-unapp-installabile-pacchetto)).
+Qualunque repository git con un `catalog.json` alla radice si aggiunge all'AppStore (Opzioni → Aggiungi un repository) e offre app e moduli. Le app di un repository non ufficiale non possono essere di sistema (`system: true` è rifiutato) e sono "non verificate": si installano solo confermando l'avviso, a meno che l'editore le firmi e il kernel si fidi della sua chiave (vedi [Creare un'app installabile](#creare-unapp-installabile-pacchetto)).
 
 1. Struttura:
 
@@ -700,11 +701,11 @@ Qualunque repository git con un `catalog.json` alla radice si aggiunge all'AppSt
    { "name": "Il mio repository", "apps": ["apps/note"], "modules": ["modules/mio"] }
    ```
 
-   `name` è il nome mostrato (fino a 60 caratteri); `apps` e `modules` sono cartelle del repository (fino a 200 l'uno, percorsi tipo `apps/note`: lettere, cifre, `.`, `_`, `-`). Ogni cartella d'app ha `lilos.json` con gli hash (`node system/kernel/tools/pack.js apps/note`); ogni cartella di modulo ha `module.json`. Una voce sbagliata non rompe il catalogo: compare nell'AppStore come «Pacchetto non valido» con il motivo.
+   `name` è il nome mostrato (fino a 60 caratteri); `apps` e `modules` sono cartelle del repository (fino a 200 l'uno, percorsi tipo `apps/note`: lettere, cifre, `.`, `_`, `-`). Ogni cartella d'app ha `lilos.json` con gli hash (`node system/kernel/tools/pack.js apps/note`); ogni cartella di modulo ha `module.json`. Ogni cartella può avere un `README.md` (Markdown, fino a 64 KB): l'AppStore lo mostra nei dettagli del pacchetto, senza HTML, con link solo `http(s)` e senza caricare le immagini. In `lilos.json` puoi dichiarare `category` (`system`, `productivity`, `media`, `development` o `other`, predefinita) per metterla nella scheda giusta. Una voce sbagliata non rompe il catalogo: compare nell'AppStore come «Pacchetto non valido» con il motivo.
 2. **Gli hash devono corrispondere ai byte committati.** Il kernel non converte le fine riga: se Git le cambia al commit (`core.autocrlf`), il file non corrisponde più al suo hash e l'installazione fallisce. Se lavori su Windows, aggiungi un `.gitattributes` con `* -text` e rifai `pack.js`.
 3. Committa, crea il tag `v1.0.0` e pubblicalo. Senza tag il kernel usa il ramo predefinito; con più tag, il più alto.
-4. Da amministratore: AppStore → Repository → Aggiungi, con l'indirizzo `https://…` e un nome facoltativo. Il kernel legge subito il catalogo: un indirizzo sbagliato o senza `catalog.json` dà un errore. Un repository privato si legge con le credenziali git del computer del kernel. Con `apps.allowLocalSources` si può dare anche il percorso assoluto di un clone locale (sviluppo).
-5. Per una versione nuova: alza `version`, rifai `pack.js`, committa e crea un tag più alto. In AppStore → Installate compare «Disponibile la …».
+4. Da amministratore: AppStore → Opzioni → Aggiungi un repository, con l'indirizzo `https://…` e un nome facoltativo. Il kernel legge subito il catalogo: un indirizzo sbagliato o senza `catalog.json` dà un errore. Un repository privato si legge con le credenziali git del computer del kernel. Con `apps.allowLocalSources` si può dare anche il percorso assoluto di un clone locale (sviluppo).
+5. Per una versione nuova: alza `version`, rifai `pack.js`, committa e crea un tag più alto. In AppStore → Aggiornamenti compare la nuova versione.
 
 ## Aggiungere qualcosa all'SDK
 
