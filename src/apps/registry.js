@@ -52,6 +52,7 @@ export const isInstalled = id => !!getApp(id) && (getApp(id).system === true || 
 /** Apps shown in the current workspace, in registry order. */
 export const installedApps = () => apps.filter(app => isInstalled(app.id));
 
-export function launch(id, args) {
-  bus.emit('app:launch', { id, args });
+/** Opens the app; `entry`: one of its window entry points other than main (see entrypoints.js). */
+export function launch(id, args, entry = 'main') {
+  bus.emit('app:launch', { id, args, entry });
 }

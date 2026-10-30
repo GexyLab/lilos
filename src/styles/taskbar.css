@@ -10,6 +10,11 @@
 .tb-tasks { flex: 1; min-width: 0; height: 100%; display: flex; align-items: center; gap: 2px; }
 
 .tb-tray { display: flex; align-items: center; height: 100%; }
+/* Apps working in the background (BackgroundApps.js) */
+.tb-bg { display: flex; align-items: center; gap: 3px; height: 28px; padding: 0 8px; border-radius: var(--radius-sm); color: var(--bar-text); font-size: 11px; }
+.tb-bg[hidden] { display: none; }
+.tb-bg:hover { background: var(--bar-hover); }
+.tb-bg .ico { width: 15px; height: 15px; color: var(--accent); }
 .tb-user { display: flex; align-items: center; gap: 7px; height: 28px; padding: 0 10px 0 8px; font-size: 12px; }
 .clock {
   display: flex; align-items: baseline; gap: 8px; height: 18px; padding: 0 8px 0 10px;

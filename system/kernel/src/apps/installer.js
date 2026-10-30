@@ -14,7 +14,13 @@ import { cleanSource, fetchPackage, isOfficial } from './sources.js';
  *   /system/commons/<lib>/<version>  libraries with cache: true, meta.usedBy: [app ids]
  *   /system/tmp/<id>                 the app's temporary files, removed with it
  *
- *   State: { id, version, previous, kind, system, required, source, signed, publisher, granted, installed, updated }
+ *   State: { id, version, previous, kind, system, required, source, signed, publisher, granted, installed, updated,
+ *            isolated }   isolated: true | false (how the app runs, chosen by an admin) or null (the general rule)
+ *
+ *   /system/app/.security            folder 'app-security', meta.security: the general rule, { isolated }
+ *                                    (true when missing; not in /system/app's own meta: /system is fixed)
+ *   Isolated: in a sandbox (an iframe without an origin of its own); not isolated: in lilOS's page
+ *   and in a Web Worker, with everything the user can do. System apps always run inside lilOS.
  *
  * Only admins install: an app is for every user and every workspace. What an app does in each
  * user's home (its install operations) runs in lilOS, for each user, the first time they meet it.
@@ -25,10 +31,11 @@ const MAX_LIBRARY = 20 << 20;
 const appId = id => `app:${id}`;
 const versionId = (id, version) => `app:${id}/${version}`;
 const libId = (name, version) => `lib:${name}/${version}`;
+const SECURITY = 'app-security';
 
-function requireAdmin(principal) {
+function requireAdmin(principal, message = 'Solo un amministratore installa o rimuove app') {
   if (principal?.kind === 'kernel') return;
-  if (principal?.kind !== 'user' || principal.role !== 'admin') fail('forbidden', 'Solo un amministratore installa o rimuove app');
+  if (principal?.kind !== 'user' || principal.role !== 'admin') fail('forbidden', message);
 }
 
 export class Installer {
@@ -70,6 +77,35 @@ export class Installer {
       }
     }
     return out;
+  }
+
+  /** The general rule for every app: { isolated }. Any signed-in user may read it. */
+  async security() {
+    const node = await this.#fs.stat(KERNEL, SECURITY);
+    return { isolated: node?.meta?.security?.isolated !== false };
+  }
+
+  async setSecurity(principal, { isolated } = {}) {
+    requireAdmin(principal, 'Solo un amministratore cambia la modalità di esecuzione delle app');
+    if (typeof isolated !== 'boolean') fail('invalid', 'isolated deve essere true o false');
+    const node = await this.#fs.stat(KERNEL, SECURITY);
+    await this.#put({ ...(node ?? { id: SECURITY, parent: 'fs:app', name: '.security', type: 'folder' }), meta: { ...node?.meta, security: { isolated } } });
+    log.info(`Modalità di esecuzione predefinita: ${isolated ? 'isolata' : 'non isolata'} (${principal.username ?? 'kernel'})`);
+    this.#changed(null);
+    return { isolated };
+  }
+
+  /** How one app runs: true (isolated), false (not isolated) or null (the general rule). */
+  async setAppSecurity(principal, id, isolated) {
+    requireAdmin(principal, 'Solo un amministratore cambia la modalità di esecuzione delle app');
+    if (isolated !== true && isolated !== false && isolated !== null) fail('invalid', 'isolated deve essere true, false o null');
+    const state = await this.state(id) ?? fail('not_found', 'App non installata');
+    if (state.system || state.kind !== 'local') fail('invalid', 'Le app di sistema e le app remote hanno una sola modalità di esecuzione');
+    const next = { ...state, isolated };
+    await this.#saveState(next);
+    log.info(`${id}: modalità di esecuzione ${isolated === null ? 'predefinita' : isolated ? 'isolata' : 'non isolata'} (${principal.username ?? 'kernel'})`);
+    this.#changed(id);
+    return next;
   }
 
   /** A file of an installed app: of its current version, or of `version` (the current or the previous one). */
@@ -184,7 +220,7 @@ export class Installer {
     const state = {
       id: manifest.id, version: manifest.version, previous: null, kind: manifest.kind, system: manifest.system === true, required: manifest.required === true,
       source: pkg.source, signed, publisher: { id: manifest.publisher.id, name: manifest.publisher.name },
-      granted: needsGrant(manifest.permissions ?? []), installed: now, updated: now,
+      granted: needsGrant(manifest.permissions ?? []), installed: now, updated: now, isolated: null,
     };
     await this.#saveState(state);
     log.info(`Installata ${manifest.id} ${manifest.version} (${signed ? 'verificata' : 'non verificata'}) da ${principal.username ?? 'kernel'}`);

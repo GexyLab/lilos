@@ -1,5 +1,6 @@
-import { h, session, appIcon, avatar, closeMenu, icon, shortcuts, kernel, toast } from '@lilos/sdk';
+import { h, session, appIcon, avatar, closeMenu, openMenu, icon, shortcuts, kernel, toast } from '@lilos/sdk';
 import { installedApps, launch } from '../apps/registry.js';
+import { showAppProperties } from '../apps/appProperties.js';
 
 /** Launcher opened by the logo button (or Ctrl+K): app search, app list, user footer. */
 export class StartMenu {
@@ -71,6 +72,13 @@ export class StartMenu {
       h('button', {
         class: 'sm-item', role: 'option', tabindex: '-1',
         onclick: () => this.#launch(app.id),
+        oncontextmenu: e => {
+          e.preventDefault();
+          openMenu(e.clientX, e.clientY, [
+            { label: 'Apri', icon: 'open', action: () => this.#launch(app.id) },
+            { label: 'Proprietà…', icon: 'info', action: () => { this.close(); showAppProperties(app.id); } },
+          ]);
+        },
         onpointermove: () => this.#setActive(i),
       }, appIcon(app), h('span', {}, app.name))));
     if (!this.#results.length) this.list.append(h('div', { class: 'sm-empty' }, `Nessuna app per “${this.input.value.trim()}”`));

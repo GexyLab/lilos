@@ -9,12 +9,18 @@ import { parsePermission, coversPath } from './permissions.js';
  *     id: 'acme.notes', version: '1.2.0', kind: 'local' | 'remote', name: 'Note',
  *     icon: { glyph: 'note', color: '#f2c94c' },
  *     publisher: { id: 'acme', name: 'Acme Srl', key?: 'ed25519:<base64>' },
- *     sdk: '1',
+ *     sdk: '1' | '2',                         '1': the app's code runs at the top of the module, only in a sandbox;
+ *                                             '2': each entry point is an exported function (see entrypoints)
  *     description?: 'Appunti veloci',
  *     system?: true,                          only from the official repository: runs inside lilOS, no sandbox
  *     required?: true,                        a system app that cannot be removed or hidden
  *     styles?: ['dist/index.css'],            system apps: stylesheets lilOS loads with the app
  *     entry: 'dist/index.js',                 local: one ES module, with everything it imports bundled
+ *     entrypoints?: {                         sdk '2', local apps: the parts of the app others may start
+ *       main: { kind: 'window' },             what the user opens (implied when missing)
+ *       vault: { kind: 'background', file?: 'dist/vault.js', label?: 'Cassaforte' },
+ *       unlock: { kind: 'window', window?: { width, height } },
+ *     },                                      each one is the export with its name of `file` (`entry` by default)
  *     files: { 'dist/index.js': 'sha256-<base64>', … },     every file of the package, with its hash
  *     url: 'https://notes.example.com/',      remote: the page that is the app
  *     libraries: [{ name, version, url, integrity: 'sha384-…', cache?: true }],
@@ -40,7 +46,9 @@ const GLYPH = /^[a-z][a-zA-Z0-9]{1,30}$/;
 const EXT = /^[a-z0-9]{0,10}$/;
 const KEY = /^[\w.-]{1,64}$/;
 const HOME_PATH = /^~(\/[^/\0]{1,255}){1,16}$/;
-const MAX = { files: 1000, ops: 100, text: 64 << 10, commands: 30, widgets: 10, permissions: 50, libraries: 30 };
+const ENTRY = /^[a-z][a-zA-Z0-9]{0,30}$/;
+const MAX = { files: 1000, ops: 100, text: 64 << 10, commands: 30, widgets: 10, permissions: 50, libraries: 30, entrypoints: 20 };
+const windowSize = w => w?.width >= 200 && w.width <= 4000 && w.height >= 150 && w.height <= 4000;
 
 const str = (v, max = 200) => typeof v === 'string' && v.trim() && v.length <= max;
 const list = (v, max) => (v === undefined ? [] : Array.isArray(v) && v.length <= max ? v : fail('invalid', 'Elenco troppo lungo o non valido nel manifesto'));
@@ -106,7 +114,7 @@ export function checkManifest(raw) {
   if (!str(m.name, 40)) bad('nome mancante');
   if (!m.publisher || !KEY.test(m.publisher.id ?? '') || !str(m.publisher.name, 80)) bad('editore mancante');
   if (m.publisher.key !== undefined && !/^ed25519:[A-Za-z0-9+/]{43}=$/.test(m.publisher.key)) bad('chiave dell’editore non valida');
-  if (String(m.sdk) !== '1') bad('versione dell’SDK non supportata');
+  if (String(m.sdk) !== '1' && String(m.sdk) !== '2') bad('versione dell’SDK non supportata');
   if (m.icon !== undefined && (!GLYPH.test(m.icon?.glyph ?? '') || !HEX.test(m.icon?.color ?? ''))) bad('icona non valida');
   if (m.system !== undefined && m.system !== true) bad('system può essere solo true');
   if (m.required !== undefined && (m.required !== true || !m.system)) bad('required vale solo per le app di sistema');
@@ -127,6 +135,21 @@ export function checkManifest(raw) {
     if (url.protocol !== 'https:' && !(url.protocol === 'http:' && url.hostname === 'localhost')) bad('url deve essere https');
   }
 
+  if (m.entrypoints !== undefined) {
+    const e = m.entrypoints;
+    if (m.kind !== 'local' || String(m.sdk) !== '2') bad('entrypoints: solo nelle app locali con sdk "2"');
+    if (!e || typeof e !== 'object' || Array.isArray(e) || Object.keys(e).length > MAX.entrypoints) bad('entrypoints non validi');
+    for (const [name, ep] of Object.entries(e)) {
+      const wrong = msg => bad(`punto d’ingresso ${name.slice(0, 40)}: ${msg}`);
+      if (!ENTRY.test(name) || !ep || typeof ep !== 'object' || Array.isArray(ep)) wrong('nome o forma non validi');
+      if (ep.kind !== 'window' && ep.kind !== 'background') wrong('kind deve essere "window" o "background"');
+      if (ep.file !== undefined && (!files[ep.file] || !/\.m?js$/.test(ep.file))) wrong('file non nel pacchetto o non .js');
+      if (ep.label !== undefined && !str(ep.label, 60)) wrong('etichetta non valida');
+      if (ep.window !== undefined && (ep.kind !== 'window' || !windowSize(ep.window))) wrong('dimensioni della finestra non valide');
+    }
+    if (e.main && e.main.kind !== 'window') bad('il punto d’ingresso main deve essere una finestra');
+  }
+
   const permissions = list(m.permissions, MAX.permissions);
   for (const p of permissions) if (!parsePermission(p)) bad(`permesso sconosciuto: ${String(p).slice(0, 60)}`);
   if (!m.system && permissions.some(p => parsePermission(p).level === 'reserved')) bad('chiede permessi riservati alle app di sistema');
@@ -140,7 +163,7 @@ export function checkManifest(raw) {
 
   const c = m.contributes ?? {};
   if (typeof c !== 'object' || Array.isArray(c)) bad('contributes non valido');
-  if (c.window !== undefined && !(c.window.width >= 200 && c.window.width <= 4000 && c.window.height >= 150 && c.window.height <= 4000)) bad('dimensioni della finestra non valide');
+  if (c.window !== undefined && !windowSize(c.window)) bad('dimensioni della finestra non valide');
   for (const ext of list(c.fileTypes, 50)) if (typeof ext !== 'string' || !EXT.test(ext)) bad('tipo di file non valido');
   for (const cmd of list(c.commands, MAX.commands)) {
     if (!KEY.test(cmd?.id ?? '') || !cmd.id.startsWith(`${m.id}.`) || !str(cmd.label, 60)) bad('comando non valido (l’id inizia con l’id dell’app)');

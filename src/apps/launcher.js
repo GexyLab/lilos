@@ -8,6 +8,9 @@ import { apps, getApp, isInstalled } from './registry.js';
  */
 let scope = { includes: () => true, center: () => null, bounds: () => null };
 
+/** Key of the saved state of a window that is not the app's main one. */
+const ENTRY = '__entry';
+
 /**
  * scope: { includes(win) → boolean, center(win) → world point | null, bounds() → world rect | null }.
  * includes() says which open windows count as "the app's window" here; center(win) where a new
@@ -18,11 +21,13 @@ export function setLaunchScope(value) {
 }
 
 /**
- * Turns 'app:launch' into windows: loads the app module on first use and opens one
- * window per app in the current scope (launching it again brings the existing window back and
- * emits 'launch' on it with the new args). App modules export a default function
- * ({ args, openWindow }) → Window; openWindow(win, key?) opens a secondary window (settings,
+ * Turns 'app:launch' ({ id, args, entry }) into windows: loads the app module on first use and
+ * opens one window per app and entry point in the current scope (launching it again brings the
+ * existing window back and emits 'launch' on it with the new args). App modules export a default
+ * function ({ args, openWindow, entry }) → Window (system apps: their other window entry points
+ * as exports with that name); openWindow(win, key?) opens a secondary window (settings,
  * pickers): with a key, a window already open with that key is shown instead and returned.
+ * The user always opens `main`; the others are started by the system and by apps (entrypoints.js).
  * An app hidden in the current workspace does not start (a message says so).
  * The window belongs to the workspace that was current when the app was asked for, even if the
  * user changes workspace while it loads.
@@ -45,31 +50,41 @@ export function connectLauncher(wm) {
     return wm.open(win, { key, center: scope.center(win), bounds: scope.bounds() });
   };
 
-  const create = async (app, args) => {
-    const { default: make } = await app.load();
-    return make({ args, openWindow });
+  // A window entry point other than main: system apps export it by name, installed apps get it as `entry`.
+  // Its window saves { [ENTRY]: name, args: its state } to come back as the same entry point
+  const create = async (app, args, entry = 'main') => {
+    const mod = await app.load();
+    const make = entry !== 'main' && app.trusted && typeof mod[entry] === 'function' ? mod[entry] : mod.default;
+    const win = await make({ args, openWindow, entry });
+    win.entry = entry;
+    if (entry !== 'main') {
+      const state = win.getState;
+      win.getState = () => ({ [ENTRY]: entry, args: state ? state() : args ?? null });
+    }
+    return win;
   };
 
-  bus.on('app:launch', async ({ id, args }) => {
+  bus.on('app:launch', async ({ id, args, entry = 'main' }) => {
     const app = getApp(id);
     if (!app?.load) return console.info('[lilos] app non ancora disponibile:', id);
     if (!isInstalled(id)) return toast(`${app.name} è nascosta in questo workspace. Si mostra da Impostazioni → Workspace.`, { timeout: 5000 });
-    const open = wm.windows.find(w => wm.appOf(w) === id && scope.includes(w));
+    const open = wm.windows.find(w => wm.appOf(w) === id && (w.entry ?? 'main') === entry && scope.includes(w));
     if (open) {
       open.emit('launch', args);
       return wm.show(open);
     }
     const workspace = wm.workspace;
-    const key = `${workspace}/${id}`;
+    const key = `${workspace}/${id}#${entry}`;
     if (loading.has(key)) return;
 
     loading.add(key);
     try {
-      const win = await create(app, args);
+      const win = await create(app, args, entry);
       if (wm.workspace !== workspace) wm.open(win, { app: id, workspace });   // changed meanwhile: it waits there
       else wm.open(win, { app: id, center: scope.center(win), bounds: scope.bounds() });
     } catch (err) {
       console.error(`[lilos] impossibile avviare ${id}:`, err);
+      toast(`${app.name} non è partita: ${err.message}`, { timeout: 6000 });
     } finally {
       loading.delete(key);
     }
@@ -84,7 +99,9 @@ export function connectLauncher(wm) {
       const app = getApp(id);
       if (!app?.load || !isInstalled(id)) return null;
       try {
-        return wm.open(await create(app, state ?? undefined), { app: id, at: rect, workspace });
+        const entry = typeof state?.[ENTRY] === 'string' ? state[ENTRY] : 'main';
+        const args = entry === 'main' ? state ?? undefined : state.args ?? undefined;
+        return wm.open(await create(app, args, entry), { app: id, at: rect, workspace });
       } catch (err) {
         console.error(`[lilos] impossibile riaprire ${id}:`, err);
         return null;

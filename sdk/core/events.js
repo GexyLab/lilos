@@ -19,7 +19,8 @@ export class Emitter {
 
 /**
  * System-wide bus. Current events:
- *   'app:launch'  { id, args }   an app was requested (start menu, desktop shortcut)
+ *   'app:launch'  { id, args, entry? }   an app was requested (start menu, desktop shortcut);
+ *                                        entry: one of its window entry points ('main' by default)
  *   'item:open'   item data      a folder/file on the desktop was opened
  */
 export const bus = new Emitter();

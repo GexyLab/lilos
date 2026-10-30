@@ -14,6 +14,11 @@ export { describeWorkspace, onWorkspacesChange, workspaceManager } from './works
 export { apps, registry, getApp, isInstalled, installedApps, launch } from './apps/registry.js';
 export { fileApps, appFor, defaultAppFor, setAppFor, resetAppsFor, knownExtensions, openFile } from './apps/open.js';
 export { handleCommand } from './apps/commands.js';
+export { callEntrypoint, connectEntrypoint, entrypointsOf } from './apps/entrypoints.js';
+export { executionMode, canChangeExecution } from './apps/packages/isolation.js';
+export { describePermission } from './apps/packages/permissions.js';
+export { showAppProperties, showAppSecurity } from './apps/appProperties.js';
+export { showProperties } from './items/properties.js';
 export { pickFile } from './apps/filePicker.js';
 export { addTarget } from './items/targets.js';
 export { links, linkEntry } from './items/links.js';

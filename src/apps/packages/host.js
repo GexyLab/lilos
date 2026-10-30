@@ -1,26 +1,28 @@
-import { Window, h, fs, toast, storage, shortcuts, settings, apps as installed } from '@lilos/sdk';
-import { BRIDGE_SOURCE } from './bridge.js';
-import { coversPath } from './permissions.js';
+import { Window, h, shortcuts, settings } from '@lilos/sdk';
+import { BRIDGE_SOURCE, lilosApi } from './bridge.js';
+import { appCode, libraryCode, entrypoints, escapeAttr, inline, netOrigins } from './code.js';
+import { isIsolated } from './isolation.js';
+import { hostMethods, invoke, transferOf } from './methods.js';
+import { handleCommand } from '../commands.js';
 
 /**
- * Windows of installed apps.
+ * Windows of installed apps. The code is read from the kernel and checked against the hashes of
+ * the manifest before it runs, whatever the way it runs (isolation.js):
  *
- * Local apps run in an iframe with sandbox="allow-scripts" and nothing else: a page with no
- * origin of its own (no access to lilOS, its storage, cookies or DOM), no forms, popups or
- * navigation of the page; its Content-Security-Policy allows only the code lilOS puts in it, the
- * libraries of the manifest and the network origins of its 'net:' permissions. The code is read
- * from the kernel and checked against the hashes of the manifest before it runs. The app talks
- * to lilOS only through messages (bridge.js), each checked here against its permissions.
+ * Isolated: an iframe with sandbox="allow-scripts" and nothing else: a page with no origin of its
+ * own (no access to lilOS, its storage, cookies or DOM), no forms, popups or navigation of the
+ * page; its Content-Security-Policy allows only the code lilOS puts in it, the libraries of the
+ * manifest and the network origins of its 'net:' permissions. The app talks to lilOS only through
+ * messages (bridge.js), each checked against its permissions (methods.js).
+ *
+ * Not isolated (sdk '2' only): the app's module runs in lilOS's page and draws in a Shadow DOM
+ * inside the window, which keeps its styles and lilOS's apart. It gets the same `lilos`, called
+ * directly; nothing stops it from going around it.
  *
  * Remote apps are their own site in an iframe: they get the same messages for title and notices.
  */
 const TOKENS = ['--accent', '--accent-soft', '--text', '--dim', '--faint', '--surface', '--chrome', '--side', '--field-bg', '--hover', '--border', '--danger', '--radius-sm'];
-const MAX_TEXT = 10 << 20;
-const STORAGE_KEY = /^[\w.-]{1,64}$/;
-
-const escapeAttr = s => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-// Inline code must not close its <script> early
-const inline = code => code.replace(/<\/(script)/gi, '<\\/$1').replace(/<!--/g, '<\\!--');
+const SHADOW_CSS = ':host{all:initial;display:block;height:100%;overflow:auto;box-sizing:border-box;background:var(--surface);color:var(--text);font:13px/1.4 var(--font)}';
 
 function theme() {
   const css = getComputedStyle(document.documentElement);
@@ -29,17 +31,8 @@ function theme() {
   return vars;
 }
 
-async function sha256(text) {
-  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
-  return `sha256-${btoa(String.fromCharCode(...new Uint8Array(digest)))}`;
-}
-
-async function sri(text, integrity) {
-  const algo = { sha256: 'SHA-256', sha384: 'SHA-384', sha512: 'SHA-512' }[integrity.slice(0, 6)];
-  if (!algo) return false;
-  const digest = await crypto.subtle.digest(algo, new TextEncoder().encode(text));
-  return integrity.slice(7) === btoa(String.fromCharCode(...new Uint8Array(digest)));
-}
+/** Calls fn when theme or accent change; returns the functions that stop it. */
+const watchTheme = fn => ['theme', 'accent'].map(key => settings.watch(key, () => requestAnimationFrame(fn)));
 
 /** The current keys of the app's commands: { 'Ctrl+S': 'acme.notes.save' }. */
 function commandKeys(manifest) {
@@ -48,107 +41,69 @@ function commandKeys(manifest) {
   return map;
 }
 
-async function documentFor(pkg, args) {
+// ---------- Isolated: a sandbox ----------
+
+async function documentFor(pkg, args, entry) {
   const { manifest } = pkg;
-  const code = await installed.file(pkg.id, manifest.entry);
-  if (await sha256(code) !== manifest.files[manifest.entry]) throw new Error(`Il codice di ${manifest.name} non corrisponde al manifesto`);
+  const ep = entrypoints(manifest)[entry];
+  const code = await appCode(pkg, ep.file ?? manifest.entry);
   const scripts = [], cdn = [];
   for (const lib of manifest.libraries ?? []) {
     if (lib.cache) {
-      const text = await installed.library(lib.name, lib.version);
-      if (!await sri(text, lib.integrity)) throw new Error(`La libreria ${lib.name} non corrisponde al suo hash`);
-      scripts.push(`<script>${inline(text)}</script>`);
+      scripts.push(`<script>${inline(await libraryCode(lib))}</script>`);
     } else {
       cdn.push(lib.url);
       scripts.push(`<script src="${escapeAttr(lib.url)}" integrity="${escapeAttr(lib.integrity)}" crossorigin="anonymous"></script>`);
     }
   }
-  const net = (manifest.permissions ?? []).filter(p => p.startsWith('net:')).map(p => p.slice(4));
+  const net = netOrigins(manifest);
   const csp = [
-    "default-src 'none'", `script-src 'unsafe-inline' ${cdn.join(' ')}`, "style-src 'unsafe-inline'",
+    "default-src 'none'", `script-src 'unsafe-inline' blob: 'wasm-unsafe-eval' ${cdn.join(' ')}`, "style-src 'unsafe-inline'",
     'img-src data: blob:', 'font-src data:', 'media-src data: blob:', 'worker-src blob:',
     `connect-src ${net.length ? net.join(' ') : "'none'"}`, "form-action 'none'", "base-uri 'none'",
   ].join('; ');
-  const info = { id: pkg.id, version: pkg.version, args: args ?? null, keys: commandKeys(manifest), theme: theme() };
+  const info = { id: pkg.id, version: pkg.version, entry, args: args ?? null, keys: commandKeys(manifest), theme: theme() };
+  // sdk '1': the module is the app; sdk '2': the entry point is one of its exports
+  const run = String(manifest.sdk) === '2'
+    ? `<script type="module">
+(async () => {
+  const mod = await import(URL.createObjectURL(new Blob([${inline(JSON.stringify(code))}], { type: 'text/javascript' })));
+  const run = mod[${JSON.stringify(entry)}];
+  if (typeof run !== 'function') throw new Error('Il codice non esporta ' + ${JSON.stringify(entry)});
+  await run({ lilos, root: document.body, args: lilos.app.args });
+})().catch(err => parent.postMessage({ lilos: 1, id: 0, method: 'app.failed', params: [String(err && err.message || err)] }, '*'));
+</script>`
+    : `<script type="module">${inline(code)}</script>`;
   return `<!doctype html><html lang="it"><head><meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="${escapeAttr(csp)}">
 <style>html,body{margin:0;height:100%;background:var(--surface);color:var(--text);font:13px/1.4 var(--font,system-ui)}</style>
 <script data-info="${escapeAttr(JSON.stringify(info))}">${inline(BRIDGE_SOURCE)}</script>
 ${scripts.join('\n')}
-</head><body><script type="module">${inline(code)}</script></body></html>`;
+${run}
+</head><body></body></html>`;
 }
 
-/** '~/Documenti/a.txt' → the node, if visible from the current workspace. */
-const resolveHome = path => (typeof path === 'string' && /^~(\/[^/]+)*$/.test(path) ? fs.resolve(path.slice(1) || '/') : null);
-const splitPath = path => [path.slice(0, path.lastIndexOf('/')) || '~', path.slice(path.lastIndexOf('/') + 1)];
-
-/** Answers the messages of one app window. Returns the function that stops it. */
+/** Answers the messages of one sandboxed window. Returns the function that stops it. */
 function connectBridge(win, frame, pkg, handles) {
-  const perms = pkg.manifest.permissions ?? [];
-  const fail = msg => { throw new Error(msg); };
-  const target = (ref, write) => {
-    if (handles.has(ref)) return fs.get(ref) ?? fail('Il file non esiste più');
-    if (!coversPath(perms, ref, { write })) fail(`Permesso negato: ${ref}`);
-    return resolveHome(ref);
-  };
-  const methods = {
-    'window.setTitle': text => win.setTitle(String(text).slice(0, 100)),
-    'ui.toast': text => toast(String(text).slice(0, 200)),
-    'clipboard.write': text => navigator.clipboard.writeText(String(text).slice(0, MAX_TEXT)),
-    'files.read': async ref => {
-      const node = target(ref, false) ?? fail('Il file non esiste');
-      if (node.type !== 'file') fail('Non è un file');
-      return fs.read(node.id);
-    },
-    'files.write': async (ref, text) => {
-      if (String(text).length > MAX_TEXT) fail('Testo troppo lungo');
-      let node = target(ref, true);
-      if (!node) {
-        const [dir, name] = splitPath(ref);
-        const parent = resolveHome(dir) ?? fail('La cartella non esiste');
-        node = fs.create(parent.id, { type: 'file', name });
-      }
-      if (node.type !== 'file') fail('Non è un file');
-      await fs.write(node.id, text);
-    },
-    'files.list': path => {
-      if (!coversPath(perms, path, { write: false })) fail(`Permesso negato: ${path}`);
-      const node = resolveHome(path) ?? fail('La cartella non esiste');
-      return fs.children(node.id).map(n => ({ name: n.name, type: n.type, size: n.size ?? 0, modified: n.modified }));
-    },
-    'files.mkdir': path => {
-      if (!coversPath(perms, path, { write: true })) fail(`Permesso negato: ${path}`);
-      if (resolveHome(path)) return;
-      const [dir, name] = splitPath(path);
-      fs.create((resolveHome(dir) ?? fail('La cartella non esiste')).id, { type: 'folder', name });
-    },
-    'storage.get': key => (STORAGE_KEY.test(key) ? storage.get(`app:${pkg.id}:${key}`, null) : fail('Chiave non valida')),
-    'storage.set': (key, value) => {
-      if (!STORAGE_KEY.test(key)) fail('Chiave non valida');
-      if ((JSON.stringify(value) ?? '').length > 256 << 10) fail('Valore troppo grande');
-      storage.set(`app:${pkg.id}:${key}`, value);
-    },
-  };
+  const methods = hostMethods({ pkg, win, handles });
   // A local app's origin is opaque ('*' is the only way to reach it); a remote app gets messages only at its own
   const targetOrigin = pkg.manifest.kind === 'remote' ? new URL(pkg.manifest.url).origin : '*';
-  const post = msg => frame.contentWindow?.postMessage({ lilos: 1, ...msg }, targetOrigin);
+  const post = (msg, transfer = []) => frame.contentWindow?.postMessage({ lilos: 1, ...msg }, targetOrigin, transfer);
   const onMessage = async e => {
     // Only this window's frame; its origin is opaque ('null'), so the source is what identifies it
     if (e.source !== frame.contentWindow || e.data?.lilos !== 1 || typeof e.data.method !== 'string') return;
     if (targetOrigin !== '*' && e.origin !== targetOrigin) return;
     const { id, method, params } = e.data;
-    const run = Object.hasOwn(methods, method) ? methods[method] : null;
     try {
-      if (!run) fail(`Funzione sconosciuta: ${method}`);
-      post({ id, result: await run(...(Array.isArray(params) ? params : [])) ?? null });
+      const result = (await invoke(methods, method, params)) ?? null;
+      post({ id, result }, transferOf(result));
     } catch (err) {
       post({ id, error: err.message });
     }
   };
   addEventListener('message', onMessage);
   const offKeys = shortcuts.on('change', () => post({ event: 'keys', data: commandKeys(pkg.manifest) }));
-  const offTheme = [settings.watch('theme', () => requestAnimationFrame(() => post({ event: 'theme', data: theme() }))),
-    settings.watch('accent', () => requestAnimationFrame(() => post({ event: 'theme', data: theme() })))];
+  const offTheme = watchTheme(() => post({ event: 'theme', data: theme() }));
   win.on('launch', args => {
     if (args?.file) handles.add(args.file);
     post({ event: 'launch', data: args ?? null });
@@ -160,29 +115,97 @@ function connectBridge(win, frame, pkg, handles) {
   };
 }
 
-/** The module of an installed app, as the launcher expects it: default({ args }) → Window. */
+// ---------- Not isolated: in lilOS's page ----------
+
+const pageLibraries = new Map();   // 'name@version' → Promise (loaded once, as classic scripts)
+const pageModules = new Map();     // 'id@version/file' → Promise<module>
+
+function loadPageLibraries(manifest) {
+  return Promise.all((manifest.libraries ?? []).map(lib => {
+    const key = `${lib.name}@${lib.version}`;
+    if (!pageLibraries.has(key)) {
+      pageLibraries.set(key, libraryCode(lib).then(text => new Promise((resolve, reject) => {
+        const s = h('script', { src: URL.createObjectURL(new Blob([text], { type: 'text/javascript' })) });
+        s.onload = resolve;
+        s.onerror = () => reject(new Error(`Libreria ${lib.name} non caricata`));
+        document.head.append(s);
+      })));
+      pageLibraries.get(key).catch(() => pageLibraries.delete(key));
+    }
+    return pageLibraries.get(key);
+  }));
+}
+
+function pageModule(pkg, file) {
+  const key = `${pkg.id}@${pkg.version}/${file}`;
+  if (!pageModules.has(key)) {
+    pageModules.set(key, appCode(pkg, file).then(code => import(/* @vite-ignore */ URL.createObjectURL(new Blob([code], { type: 'text/javascript' })))));
+    pageModules.get(key).catch(() => pageModules.delete(key));
+  }
+  return pageModules.get(key);
+}
+
+async function mountInPage(win, pkg, entry, args, handles) {
+  const { manifest } = pkg;
+  const ep = entrypoints(manifest)[entry];
+  await loadPageLibraries(manifest);
+  const mod = await pageModule(pkg, ep.file ?? manifest.entry);
+  const run = mod[entry];
+  if (typeof run !== 'function') throw new Error(`Il codice di ${manifest.name} non esporta ${entry}`);
+
+  const host = h('div', { class: 'pkg-host' });
+  const root = host.attachShadow({ mode: 'open' });
+  root.append(h('style', {}, SHADOW_CSS));
+  win.body.append(host);
+
+  const methods = hostMethods({ pkg, win, handles });
+  const info = { id: pkg.id, version: pkg.version, entry, args: args ?? null };
+  const { api, emit } = lilosApi((method, ...params) => Promise.resolve().then(() => invoke(methods, method, params)), info);
+  // The keyboard reaches lilOS's page: shortcuts go to the active window of the app
+  const offs = (manifest.contributes?.commands ?? []).map(cmd => handleCommand(cmd.id, { isActive: () => win.active, run: () => emit('command', cmd.id) }));
+  offs.push(...watchTheme(() => emit('theme', theme())));
+  win.on('launch', a => {
+    if (a?.file) handles.add(a.file);
+    emit('launch', a ?? null);
+  });
+  let dispose = null;
+  win.on('destroy', () => {
+    offs.forEach(off => off?.());
+    try { dispose?.(); } catch (err) { console.error(`[lilos] ${pkg.id}:`, err); }
+  });
+  const out = await run({ lilos: api, root, args: args ?? null });
+  if (typeof out === 'function') dispose = out;
+}
+
+/** The module of an installed app, as the launcher expects it: default({ args, entry }) → Window. */
 export function packageModule(pkg) {
   return {
-    default: async ({ args }) => {
+    default: async ({ args, entry = 'main' }) => {
       const { manifest } = pkg;
-      const size = manifest.contributes?.window ?? {};
-      const win = new Window({ title: manifest.name, icon: manifest.icon?.glyph ?? 'help', width: size.width ?? 720, height: size.height ?? 480 });
+      const ep = entrypoints(manifest)[entry];
+      if (ep?.kind !== 'window') throw new Error(`${manifest.name} non ha la finestra ${entry}`);
+      const size = ep.window ?? manifest.contributes?.window ?? {};
+      const title = entry === 'main' ? manifest.name : ep.label ?? manifest.name;
+      const win = new Window({ title, icon: manifest.icon?.glyph ?? 'help', width: size.width ?? 720, height: size.height ?? 480 });
       win.body.classList.add('pkg-body');
       const handles = new Set(args?.file ? [args.file] : []);
+      win.getState = () => (args?.file ? { file: args.file } : null);
+      if (manifest.kind === 'local' && !isIsolated(pkg)) {
+        await mountInPage(win, pkg, entry, args, handles);
+        return win;
+      }
       let frame;
       if (manifest.kind === 'remote') {
         if (new URL(manifest.url).origin === location.origin) throw new Error('Un’app remota non può avere l’indirizzo di lilOS');
         frame = h('iframe', { class: 'pkg-frame', src: manifest.url, sandbox: 'allow-scripts allow-same-origin allow-forms allow-popups', referrerpolicy: 'no-referrer', allow: '' });
       } else {
         frame = h('iframe', { class: 'pkg-frame', sandbox: 'allow-scripts', referrerpolicy: 'no-referrer', allow: '' });
-        frame.srcdoc = await documentFor(pkg, args);
+        frame.srcdoc = await documentFor(pkg, args, entry);
       }
       win.body.append(frame);
       const stop = connectBridge(win, frame, pkg, handles);
       win.on('destroy', stop);
-      win.getState = () => (args?.file ? { file: args.file } : null);
       return win;
     },
   };
 }
-

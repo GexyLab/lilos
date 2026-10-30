@@ -9,6 +9,7 @@ import './styles/workspaces.css';
 import './styles/tags.css';
 import './styles/items.css';
 import './styles/packages.css';
+import './styles/properties.css';
 
 import './systemSettings.js';
 import * as sdk from '@lilos/sdk';
@@ -22,6 +23,8 @@ import { launch } from './apps/registry.js';
 import { registerPackages, connectPackages } from './apps/packages/packages.js';
 import { openFile, setChooser } from './apps/open.js';
 import { createOpenWith } from './apps/openWith.js';
+import { connectProperties } from './items/properties.js';
+import { connectAppProperties } from './apps/appProperties.js';
 import { Canvas } from './canvas/Canvas.js';
 import { createHud } from './canvas/Hud.js';
 import { Desktop } from './desktop/Desktop.js';
@@ -57,6 +60,8 @@ const wm = new WindowManager(canvas, taskbar);
 wm.setWorkspace(space.id);   // before any window opens (workareas reopen theirs right away)
 const launcher = connectLauncher(wm);
 setChooser(createOpenWith(wm));
+connectProperties(wm);
+connectAppProperties(wm);
 const workareas = new Workareas({ canvas, desktop, wm, launcher, key: key('workareas') });
 const workspaces = new Workspaces({ state, canvas, desktop, wm, launcher, workareas, taskbar });
 connectPackages({ desk: () => workspaces.current?.desk ?? null }).catch(err => console.error('[lilos] app:', err));

@@ -18,14 +18,39 @@ import { kernel } from './kernel.js';
  *       without deleting anything
  *   await apps.uninstall(id)
  *
- * Event 'change' { id, app | null }: an app was installed, updated or removed (null).
+ * How apps run (admins change it; lilOS reads it when an app starts):
+ *   apps.security() → { isolated }               the general rule (isolated unless an admin chose otherwise)
+ *   await apps.setSecurity({ isolated })
+ *   await apps.setAppSecurity(id, isolated)      true | false, or null for the general rule (app state: `isolated`)
+ *
+ * Events: 'change' { id, app | null }: an app was installed, updated or removed (null);
+ * 'security' { isolated }: the general rule changed.
  */
 class Apps extends Emitter {
   #list = [];
+  #security = { isolated: true };
 
   constructor() {
     super();
-    if (kernel.connected) this.#list = Array.isArray(kernel.data.apps) ? kernel.data.apps : [];
+    if (kernel.connected) {
+      this.#list = Array.isArray(kernel.data.apps) ? kernel.data.apps : [];
+      this.#security = { isolated: kernel.data.appSecurity?.isolated !== false };
+    }
+  }
+
+  security() {
+    return { ...this.#security };
+  }
+
+  async setSecurity({ isolated }) {
+    const next = await kernel.request('PUT', '/apps-security', { isolated: isolated === true });
+    this.#security = { isolated: next.isolated !== false };
+    this.emit('security', this.security());
+  }
+
+  async setAppSecurity(id, isolated) {
+    await kernel.request('PUT', `/apps/${encodeURIComponent(id)}/security`, { isolated: typeof isolated === 'boolean' ? isolated : null });
+    await this.refresh();
   }
 
   list() {
@@ -44,6 +69,11 @@ class Apps extends Emitter {
     this.#list = next;
     for (const app of next) if (before.get(app.id) !== JSON.stringify(app)) this.emit('change', { id: app.id, app: structuredClone(app) });
     for (const id of before.keys()) if (!next.some(a => a.id === id)) this.emit('change', { id, app: null });
+    const security = await kernel.request('GET', '/apps-security').catch(() => null);
+    if (security && (security.isolated !== false) !== this.#security.isolated) {
+      this.#security = { isolated: security.isolated !== false };
+      this.emit('security', this.security());
+    }
   }
 
   async install(source, { grant = [], allowUnsigned = false } = {}) {

@@ -10,7 +10,7 @@ import { visible } from './apps.js';
  *   .trash     the trash root of lilOS
  *   .config    lilOS's settings and preferences: one file per key, JSON
  *
- *   GET  /api/boot                 { user, fresh, nodes, storage, apps }   everything lilOS needs to start
+ *   GET  /api/boot                 { user, fresh, nodes, storage, apps, appSecurity }   everything lilOS needs to start
  *   POST /api/fs/sync              { put: [node], remove: [id] }     one transaction
  *   GET  /api/fs/content/:id       text of a file
  *   PUT  /api/fs/content/:id       saves the text of a file
@@ -115,6 +115,7 @@ export function homeRoutes(kernel) {
       nodes,
       storage,
       apps: (await kernel.installer.list()).map(a => visible(a, principal)),
+      appSecurity: await kernel.installer.security(),
     };
   });
 

@@ -9,6 +9,9 @@ import { send } from '../http.js';
  *   POST   /api/apps                     { source, grant, allowUnsigned }          admins
  *   POST   /api/apps/:id/update          { ref, reinstall, grant, allowUnsigned }  admins
  *   DELETE /api/apps/:id                                                          admins
+ *   GET    /api/apps-security            { isolated }   how apps run unless an app has its own choice
+ *   PUT    /api/apps-security            { isolated: true | false }                admins
+ *   PUT    /api/apps/:id/security        { isolated: true | false | null }         admins (null: the general rule)
  */
 const ID = /^[a-z0-9][a-z0-9.-]{1,63}$/;
 const TYPES = { js: 'text/javascript', mjs: 'text/javascript', css: 'text/css', json: 'application/json', svg: 'image/svg+xml', png: 'image/png', wasm: 'application/wasm', html: 'text/plain', txt: 'text/plain', md: 'text/plain' };
@@ -66,6 +69,21 @@ export function appRoutes(kernel) {
 
   router.add('DELETE', '/api/apps/:id', async ({ principal, params }) => {
     await installer.uninstall(signedIn(principal), appParam(params.id));
+  });
+
+  router.add('GET', '/api/apps-security', async ({ principal }) => {
+    signedIn(principal);
+    return installer.security();
+  });
+
+  router.add('PUT', '/api/apps-security', async ({ principal, json }) => {
+    const body = await json(4 << 10);
+    return installer.setSecurity(signedIn(principal), { isolated: body.isolated });
+  });
+
+  router.add('PUT', '/api/apps/:id/security', async ({ principal, params, json }) => {
+    const body = await json(4 << 10);
+    return visible(await installer.setAppSecurity(signedIn(principal), appParam(params.id), body.isolated ?? null), principal);
   });
 }
 

@@ -1,6 +1,6 @@
 {
   "id": "esempio.note",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "kind": "local",
   "name": "Note",
   "icon": {
@@ -11,8 +11,17 @@
     "id": "esempio",
     "name": "Esempio"
   },
-  "sdk": "1",
+  "sdk": "2",
   "entry": "index.js",
+  "entrypoints": {
+    "main": {
+      "kind": "window"
+    },
+    "stats": {
+      "kind": "background",
+      "label": "Conta le parole delle note"
+    }
+  },
   "permissions": [
     "fs.write:~/Documenti/Note",
     "ui.shortcuts",
@@ -49,6 +58,6 @@
     }
   ],
   "files": {
-    "index.js": "sha256-EiH+yFkDtJTsVKuJqSQ3vtAOuFcgx8ODpBhkcD/xdHw="
+    "index.js": "sha256-ig4ZpIhLkD+QOLPVU1uvBQZJfJcpOmlmVlVy/TKNHSM="
   }
 }

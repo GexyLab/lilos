@@ -1,5 +1,6 @@
 import { h, session, avatar, logo, shortcuts } from '@lilos/sdk';
 import { createClock } from './Clock.js';
+import { createBackgroundApps } from './BackgroundApps.js';
 import { StartMenu } from './StartMenu.js';
 
 /** Bottom bar: start button · task area (window buttons, later) · user and clock. */
@@ -21,6 +22,7 @@ export class Taskbar {
       this.startButton,
       this.tasks,
       h('div', { class: 'tb-tray' },
+        createBackgroundApps(),
         h('div', { class: 'tb-user', title: session.user.name }, avatar(session.user), h('span', {}, session.user.name)),
         createClock(),
       ),
