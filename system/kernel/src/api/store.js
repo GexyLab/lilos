@@ -7,6 +7,7 @@ import { logger } from '../log.js';
  *   POST   /api/repos                    { url, name? } → repo
  *   DELETE /api/repos/:id
  *   GET    /api/repos/:id/catalog        apps and modules the repository offers (see repos.js)
+ *   GET    /api/repos/:id/readme?path=   the whole README.md of one of its packages (text)
  *   GET    /api/modules                  installed kernel modules (see modulePackage.js)
  *   POST   /api/modules                  { source, allowUnsigned } → { name, version, restartRequired }
  *   POST   /api/modules/:name/update     { ref?, allowUnsigned }
@@ -35,6 +36,10 @@ export function storeRoutes(kernel) {
   router.add('GET', '/api/repos/:id/catalog', async ({ principal, params }) => {
     signedIn(principal);
     return repos.catalog(params.id);
+  });
+  router.add('GET', '/api/repos/:id/readme', async ({ principal, params, query }) => {
+    signedIn(principal);
+    return repos.readme(params.id, query.get('path') ?? '');
   });
 
   router.add('GET', '/api/modules', async ({ principal }) => {

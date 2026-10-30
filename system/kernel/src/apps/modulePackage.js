@@ -16,7 +16,8 @@ import { logger } from '../log.js';
  * (allowUnsigned). The kernel loads modules when it starts: every change asks for a restart.
  *
  * module.json, besides what modules.js reads:
- *   description, data?: ['users.json']   files the module keeps its data in: carried to the new
+ *   icon?: { glyph: 'user', color: '#5f6673' }   how the AppStore shows it, as for apps
+ *   description, data?: ['users.json']  files the module keeps its data in: carried to the new
  *                                        version on update, and kept (with its folder) on removal
  *   defaultConfig?: {}                   its configuration when it is turned on
  * Each module folder gets source.json: where it came from ({ type, url, ref, commit, path }).
@@ -26,6 +27,7 @@ const log = logger('modules');
 const NAME = /^[a-z][a-z0-9-]{0,40}$/;
 const SERVICE = /^[a-z][a-z0-9.-]{0,40}$/;
 const DATA = /^[\w.-]{1,100}$/;
+const validIcon = i => /^[a-z][a-zA-Z0-9]{1,30}$/.test(i?.glyph ?? '') && /^#[0-9a-fA-F]{6}$/.test(i?.color ?? '');
 
 export function checkModule(raw) {
   const m = raw && typeof raw === 'object' && !Array.isArray(raw) ? raw : fail('invalid', 'module.json non valido');
@@ -39,6 +41,7 @@ export function checkModule(raw) {
   if (m.data !== undefined && (!Array.isArray(m.data) || m.data.some(f => typeof f !== 'string' || !DATA.test(f)))) bad('data non valido');
   if (m.defaultConfig !== undefined && (typeof m.defaultConfig !== 'object' || Array.isArray(m.defaultConfig))) bad('defaultConfig non valido');
   if (m.description !== undefined && (typeof m.description !== 'string' || m.description.length > 300)) bad('descrizione non valida');
+  if (m.icon !== undefined && !validIcon(m.icon)) bad('icona non valida');
   return m;
 }
 
@@ -77,7 +80,7 @@ export class ModuleAdmin {
     this.#allowLocal = allowLocalSources;
   }
 
-  /** [{ name, version, description, provides, requires, enabled, running, versions, source }] */
+  /** [{ name, version, description, icon, provides, requires, enabled, running, versions, source }] */
   async list() {
     const config = await loadConfig();
     const out = [];
@@ -88,7 +91,7 @@ export class ModuleAdmin {
       const manifest = await readJson(join(shown.dir, 'module.json')) ?? {};
       const running = this.#kernel.modules.find(m => m.name === name);
       out.push({
-        name, version: shown.version, description: String(manifest.description ?? ''),
+        name, version: shown.version, description: String(manifest.description ?? ''), icon: validIcon(manifest.icon) ? manifest.icon : null,
         provides: manifest.provides ?? [], requires: manifest.requires ?? [],
         enabled, running: running?.version ?? null, versions: versions.map(v => v.version),
         source: await readJson(join(shown.dir, 'source.json')),
@@ -97,7 +100,7 @@ export class ModuleAdmin {
     // Removed (folder gone) but still running until the restart
     for (const m of this.#kernel.modules) {
       if (out.some(o => o.name === m.name)) continue;
-      out.push({ name: m.name, version: m.version, description: m.description, provides: m.provides, requires: m.requires, enabled: null, running: m.version, versions: [], source: null });
+      out.push({ name: m.name, version: m.version, description: m.description, icon: null, provides: m.provides, requires: m.requires, enabled: null, running: m.version, versions: [], source: null });
     }
     return out;
   }

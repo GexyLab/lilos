@@ -110,8 +110,11 @@ export const apps = new Apps();
  * Repositories apps and kernel modules come from (the official one and those an admin added).
  *   repositories.list() → [{ id, name, url, official }]
  *   repositories.add(url, name?)  /  remove(id)            admins
- *   repositories.catalog(id) → { repo, name, ref, commit, apps: [{ path, manifest } | { path, error }],
- *                                modules: [{ path, module } | { path, error }] }
+ *   repositories.catalog(id) → { repo, name, ref, commit, apps: [{ path, manifest, readme } | { path, error }],
+ *                                modules: [{ path, module, readme } | { path, error }] }
+ *       readme: README.md of the package folder (Markdown) or null; past 64 KB it is cut and
+ *       readmeTruncated is true
+ *   repositories.readme(id, path) → the whole README.md of a package of the catalog (text)
  * To install from a catalog: apps.install({ type: 'git', url: repo.url, path }) (the latest version).
  */
 export const repositories = {
@@ -119,11 +122,12 @@ export const repositories = {
   add: (url, name) => kernel.request('POST', '/repos', { url, ...(name && { name }) }),
   remove: id => kernel.request('DELETE', `/repos/${encodeURIComponent(id)}`),
   catalog: id => kernel.request('GET', `/repos/${encodeURIComponent(id)}/catalog`),
+  readme: (id, path) => kernel.request('GET', `/repos/${encodeURIComponent(id)}/readme?path=${encodeURIComponent(path)}`, undefined, { text: true }),
 };
 
 /**
  * Kernel modules (admins). They run inside the kernel: any change takes effect after restart().
- *   kernelModules.list() → [{ name, version, description, provides, requires, enabled, running, versions, source }]
+ *   kernelModules.list() → [{ name, version, description, icon, provides, requires, enabled, running, versions, source }]
  *   kernelModules.install(source, { allowUnsigned })  → { name, version, restartRequired }
  *   kernelModules.update(name, { ref, allowUnsigned })
  *   kernelModules.remove(name)                        → { kept: [folders kept for their data] }

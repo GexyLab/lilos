@@ -598,29 +598,48 @@ In **Impostazioni → Tag**, nella scheda del tag, **Elimina…** (due clic, il 
 
 L'**AppStore** è l'app dove si vedono le app e i «moduli del kernel» (le parti di lilOS che stanno dietro le quinte, come la gestione degli utenti) che si possono installare, e da dove un amministratore le installa, le aggiorna e le toglie. Aprilo dal menu di avvio. C'è sempre e non si può rimuovere.
 
-**Chi può fare cosa.** Tutti vedono cosa c'è e cosa è installato. Solo un **amministratore** può installare, aggiornare e rimuovere app, aggiungere o togliere repository e gestire i moduli del kernel. Chi non lo è vede, al posto dei pulsanti, una scritta («Disponibile», «Installata»…), e nella scheda dei moduli il messaggio «Solo un amministratore vede e gestisce i moduli del kernel».
+**Chi può fare cosa.** Tutti vedono cosa c'è e cosa è installato. Solo un **amministratore** può installare, aggiornare e rimuovere app, aggiungere o togliere repository e gestire i moduli del kernel. Chi non lo è vede, al posto dei pulsanti, una scritta («Disponibile», «Installata»…) e non ha la scheda **Kernel**.
 
-A sinistra ci sono tre schede.
+**Cercare.** In alto c'è una casella di ricerca. Cerca solo nella scheda aperta, e ogni scheda ricorda il suo testo. **Esc** lo cancella.
 
-### App
+Sotto la casella ci sono le schede.
 
-- **Disponibili.** Una sezione per ogni *repository* (un indirizzo da cui lilOS prende app; quello ufficiale c'è sempre, gli altri sono segnati «non ufficiale»). Ogni app mostra nome, versione, a cosa serve e chi l'ha fatta. Accanto: **Installa**, oppure «Installata», oppure **Aggiorna a** *versione* se ce n'è una più nuova.
-- **Installate.** L'elenco di ciò che c'è, con da dove viene, se è «Verificata» e «Necessaria a lilOS» per le app che non si possono togliere (File Manager, Impostazioni, AppStore). Per ogni app: **Aggiorna a** *versione* (o **Cerca aggiornamenti**), **Reinstalla** (rifà l'installazione della stessa versione, senza cancellare niente) e **Rimuovi**.
+### Installati
+
+Le app e i moduli che ci sono, in due gruppi: **App** e **Moduli del kernel**. Ogni elemento è una scheda con icona, nome, versione e descrizione.
+
+### Aggiornamenti
+
+Le novità disponibili, con il loro numero accanto al nome della scheda. Un amministratore, quando sono più di una, trova **Aggiorna tutto**.
+
+### Le categorie
+
+Poi c'è una scheda per ogni categoria che ha almeno un elemento: **Sistema**, **Produttività**, **Multimedia**, **Sviluppo**, **Altro**. Ogni categoria mette insieme ciò che offrono tutti i repository (un *repository* è un indirizzo da cui lilOS prende app; quello ufficiale c'è sempre, gli altri sono segnati «non ufficiale»). Prima vengono gli elementi da installare, poi quelli già installati.
+
+Ogni scheda mostra icona, nome, versione, a cosa serve, il nome del repository e, se serve, l'etichetta «non ufficiale». Accanto c'è un pulsante o una scritta: **Installa**, **Aggiorna**, «Installata» oppure «Da un altro repository» (c'è già un'app con quel nome, arrivata da un altro posto).
+
+**Un clic su una scheda** apre i dettagli: editore, tipo, categoria, se è «Verificata» o «non ufficiale», versione, da dove viene, i permessi che chiede e le istruzioni scritte da chi l'ha fatta (il file README, se c'è). Se il README è molto lungo se ne vede solo l'inizio: **Scarica il README completo** lo salva nella cartella **Download**, da cui si apre con l'Editor. Da lì un amministratore può **Installare**, **Aggiornare**, **Cercare aggiornamenti**, **Reinstallare** (rifà l'installazione della stessa versione, senza cancellare niente) o **Rimuovere**; tutti possono **Aprire**. Le app che non si possono togliere (File Manager, Impostazioni, AppStore) sono segnate «Necessaria a lilOS».
+
+Il testo delle istruzioni si mostra in forma semplice: niente pagine web incorporate, i collegamenti si aprono in una nuova scheda del browser e solo se sono indirizzi web, e le immagini non si caricano (si vede il loro testo alternativo).
 
 Prima di installare compare una finestra che dice **cosa potrà fare l'app** (per esempio «Leggere e modificare i file in Home/Documenti/Note»). Se l'app non viene dal repository ufficiale e non è firmata da un editore di cui lilOS si fida, c'è anche un avviso: *non si può sapere chi l'ha scritta né che il codice non sia stato modificato*. **Installa comunque** vuol dire accettare questo rischio: fallo solo se ti fidi di chi la distribuisce. Aggiornando, la finestra compare solo se l'app chiede permessi nuovi o non è ufficiale.
 
-### Moduli del kernel
+### Kernel
 
-Solo per gli amministratori. Sono parti di lilOS: dove stanno gli utenti, dove stanno i file. **Installa** mostra sempre una finestra di conferma, perché il codice di un modulo ha accesso a tutto: utenti e file di tutti. Dopo ogni installazione, aggiornamento o rimozione compare **Riavvio necessario** con il pulsante **Riavvia il kernel**: le modifiche valgono solo dopo. Durante il riavvio (qualche secondo) lilOS può non riuscire a salvare e riprova da solo.
+Solo per gli amministratori: i moduli del kernel. Sono parti di lilOS: dove stanno gli utenti, dove stanno i file. **Installa** mostra sempre una finestra di conferma, perché il codice di un modulo ha accesso a tutto: utenti e file di tutti. Dopo ogni installazione, aggiornamento o rimozione compare un avviso con il pulsante **Riavvia il kernel**: le modifiche valgono solo dopo. L'avviso compare anche in Installati e Aggiornamenti. Durante il riavvio (qualche secondo) lilOS può non riuscire a salvare e riprova da solo.
 
 - Se il riavvio da qui non è possibile (il kernel non è stato avviato nel modo previsto), compare un messaggio: chi gestisce lilOS deve riavviarlo a mano.
 - Un modulo che lascerebbe lilOS senza file system, o senza accesso mentre lilOS è raggiungibile da altri computer, non si installa e non si rimuove: compare il motivo.
 - **Rimuovere un modulo non cancella i suoi dati** (per esempio gli utenti): restano sul computer del kernel, e compare «i suoi dati restano».
 - **Attenzione**: togliere il modulo di accesso o il file system da un lilOS in uso è pericoloso. Fallo solo sapendo cosa succede.
 
-### Repository
+### Opzioni
 
-L'elenco degli indirizzi da cui lilOS prende app e moduli. Quello ufficiale è «Sempre presente». Un amministratore può **aggiungere** un repository (l'indirizzo, che deve contenere l'elenco di ciò che offre, e un nome facoltativo) e **rimuoverlo**: rimuovere un repository non toglie le app già installate. Se un repository non si apre compare «Repository non raggiungibile» con il motivo (rete, accesso negato…): per un repository privato il computer su cui gira il kernel deve avere l'accesso.
+Il link **Opzioni**, in basso a destra, apre:
+
+- **Mostra i repository non ufficiali.** Acceso (come di solito), le schede elencano anche ciò che offrono i repository aggiunti. Spento, solo il repository ufficiale. È una preferenza tua.
+- **I repository.** L'elenco degli indirizzi da cui lilOS prende app e moduli, con quante app e moduli offre ciascuno, i pacchetti che non sono validi e gli eventuali errori. Quello ufficiale è «Sempre presente». Un amministratore può **rimuovere** un repository (le app già installate restano) e **aggiungerne** uno con **Aggiungi un repository**: l'indirizzo, che deve contenere l'elenco di ciò che offre, e un nome facoltativo. Se un repository non si apre compare «Non raggiungibile» con il motivo (rete, accesso negato…): per un repository privato il computer su cui gira il kernel deve avere l'accesso.
+- **Ricarica.** Rilegge i repository.
 
 ### Dopo un'installazione
 
