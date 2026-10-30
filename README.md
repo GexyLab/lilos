@@ -1,12 +1,12 @@
 # lilOS
 
-Desktop web su una scrivania infinita: canvas con zoom e spostamento, elementi del desktop (cartelle, file, app), workarea (aree della scrivania che tengono insieme icone e finestre), workspace (scrivanie separate, ognuna con i suoi elementi, finestre e app visibili), barra delle applicazioni e menu di avvio. I dati stanno in un backend, il **kernel** (`system/kernel/`), con un account per ogni utente. Le app (File, Editor, Impostazioni e AppStore comprese) e i moduli del kernel sono pacchetti che si installano dai repository: quello ufficiale è [GexyLab/lilos-plugins-official](https://github.com/GexyLab/lilos-plugins-official).
+Desktop web su una scrivania infinita: canvas con zoom e spostamento, elementi del desktop (cartelle, file, app), workarea (aree della scrivania che tengono insieme icone e finestre), workspace (scrivanie separate, ognuna con i suoi elementi, finestre e app visibili), barra delle applicazioni e menu di avvio. I dati stanno in un backend, il **kernel** (`system/kernel/`), con un account per ogni utente. Le app (File Manager, Editor, Impostazioni e AppStore comprese) e i moduli del kernel sono pacchetti che si installano dai repository: quello ufficiale è [GexyLab/lilos-plugins-official](https://github.com/GexyLab/lilos-plugins-official).
 
 Documentazione completa in [doc/](doc/README.md): [guida utente](doc/utente/guida.md), [sviluppatore](doc/sviluppatore/README.md), [interna](doc/interna/README.md). SDK: [sdk/README.md](sdk/README.md).
 
 ## Avvio
 
-lilOS non ha dipendenze a runtime (solo Vite per lo sviluppo). File, Editor, Impostazioni e AppStore **non sono in questo repository**: stanno nel repository ufficiale e il kernel installa da solo, all'avvio, quelle che mancano. Per questo al primo avvio servono il comando `git` e l'accesso a quel repository (che è privato: si usano le credenziali git del computer). Dettagli in [doc/sviluppatore](doc/sviluppatore/README.md#il-kernel-il-backend).
+lilOS non ha dipendenze a runtime (solo Vite per lo sviluppo). File Manager, Editor, Impostazioni e AppStore **non sono in questo repository**: stanno nel repository ufficiale e il kernel installa da solo, all'avvio, quelle che mancano. Per questo al primo avvio servono il comando `git` e l'accesso a quel repository (che è privato: si usano le credenziali git del computer). Dettagli in [doc/sviluppatore](doc/sviluppatore/README.md#il-kernel-il-backend).
 
 ```bash
 npm install
@@ -57,8 +57,8 @@ src/                    il sistema, costruito sull'SDK
   systemHistory.js      annulla e ripeti (Ctrl Z, Ctrl Y)
   systemTrash.js        pulizia automatica del cestino
   systemFs.js           cartelle di sistema, primo avvio, migrazione
-  items/                comandi comuni a desktop e File, eliminazione (cestino, conferma), trascinamento tra viste, ordine e collegamenti della barra di File
-  tags/                 pallini e menu dei tag, usati da scrivania, File e Impostazioni
+  items/                comandi comuni a desktop e File Manager, eliminazione (cestino, conferma), trascinamento tra viste, ordine e collegamenti della barra del File Manager
+  tags/                 pallini e menu dei tag, usati da scrivania, File Manager e Impostazioni
   apps/
     registry.js         le app installate (nessuna è integrata), quali sono visibili nel workspace + launch()
     packages/           app installate: nel registro; le app di sistema girano in lilOS, le altre in una finestra isolata con il ponte window.lilos; operazioni per utente
@@ -90,12 +90,12 @@ doc/                    documentazione utente, sviluppatore e interna
 | Mostra tutto | Shift 1 |
 | Menu di avvio | pulsante logo, Ctrl K; in fondo Impostazioni ed Esci (con più utenti) |
 | Elementi | doppio clic apre, F2 rinomina, Canc elimina (nel Cestino), Ctrl A seleziona tutto, Ctrl/Shift + clic selezione multipla |
-| Spostare file e cartelle | trascina un elemento (o la selezione) su una cartella: sulla scrivania, in File (elenco, percorso, barra laterale) o nel pannello dell'Editor, anche da una vista all'altra; Esc annulla; rilasciato sul Cestino lo elimina; tra due voci della sezione Collegamenti di File crea un collegamento, e le voci si riordinano trascinandole (con × o Canc si elimina un collegamento) |
-| Annulla / ripeti | Ctrl Z / Ctrl Y (o Ctrl Shift Z), dove stai lavorando: scrivania, finestra File, testo e pannello dell'Editor |
+| Spostare file e cartelle | trascina un elemento (o la selezione) su una cartella: sulla scrivania, nel File Manager (elenco, percorso, barra laterale) o nel pannello dell'Editor, anche da una vista all'altra; Esc annulla; rilasciato sul Cestino lo elimina; tra due voci della sezione Collegamenti del File Manager crea un collegamento, e le voci si riordinano trascinandole (con × o Canc si elimina un collegamento) |
+| Annulla / ripeti | Ctrl Z / Ctrl Y (o Ctrl Shift Z), dove stai lavorando: scrivania, finestra del File Manager, testo e pannello dell'Editor |
 | Nuova cartella / file / workarea | tasto destro sullo sfondo → Nuovo |
 | Workarea | tasto destro su un'icona selezionata → Crea una workarea con la selezione; trascina la barra del titolo per spostarla, bordi e angoli per ridimensionarla, doppio clic sul titolo per rinominarla, pulsante con il trattino per ridurla a icona (doppio clic o Invio sull'icona la riapre) |
 | Workspace | pulsante accanto al logo (menu: elenco, Nuovo workspace, Gestisci), Ctrl Alt → / Ctrl Alt ← per passare al successivo o al precedente |
-| Tag | tasto destro su un elemento → Tag (assegna, "Nuovo tag…", "Gestisci i tag…"); in File, voce del tag nella barra laterale per vedere tutti gli elementi con quel tag; Impostazioni → Tag per colori e visibilità (un tag invisibile nasconde i suoi elementi) |
+| Tag | tasto destro su un elemento → Tag (assegna, "Nuovo tag…", "Gestisci i tag…"); nel File Manager, voce del tag nella barra laterale per vedere tutti gli elementi con quel tag; Impostazioni → Tag per colori e visibilità (un tag invisibile nasconde i suoi elementi) |
 | Finestre | trascina il titolo, bordi e angoli per ridimensionare, doppio clic sul titolo per ingrandire, pulsante nella barra per riaprire o ridurre, Alt W chiude, Alt N passa alla successiva |
 | Editor (app opzionale) | Ctrl S salva, Ctrl Alt N nuovo documento, Ctrl O apri un file, Ctrl Alt O apri una cartella (pannello a destra), Ctrl B mostra o nasconde la cartella, Ctrl Spazio suggerimenti (compaiono anche da soli), Tab / Shift Tab rientro |
 
@@ -106,7 +106,7 @@ Tutte le scorciatoie (tranne Spazio + trascina e i tasti di navigazione nei menu
 - Le basi riutilizzabili nascono nell'SDK e si importano da `@lilos/sdk`. L'SDK non importa mai da `src/`.
 - Tutto ciò che sta sulla scrivania si aggiunge con `canvas.add(el)` e ha `data-kind` (usato dalla minimappa).
 - Gli elementi con `data-wheel="native"` (es. contenuto delle finestre) scorrono con la rotella invece di zoomare.
-- Le app comunicano col sistema tramite `bus` dell'SDK. Ogni app è un pacchetto (`lilos.json`) installato dal kernel: un'app di sistema (File, Editor, Impostazioni, AppStore: dal repository ufficiale) gira dentro lilOS e usa `@lilos/sdk` e `@lilos/system`; un'altra app gira in un iframe isolato e parla con lilOS solo con `window.lilos`; le cartelle si aprono nell'app File, i file con l'app associata al tipo (Impostazioni → Usabilità → Tipi di file) o con la finestra "Apri con".
+- Le app comunicano col sistema tramite `bus` dell'SDK. Ogni app è un pacchetto (`lilos.json`) installato dal kernel: un'app di sistema (File Manager, Editor, Impostazioni, AppStore: dal repository ufficiale) gira dentro lilOS e usa `@lilos/sdk` e `@lilos/system`; un'altra app gira in un iframe isolato e parla con lilOS solo con `window.lilos`; le cartelle si aprono nel File Manager, i file con l'app associata al tipo (Impostazioni → Usabilità → Tipi di file) o con la finestra "Apri con".
 - Ogni finestra che modifica impostazioni usa `SettingsWindow` dell'SDK.
 - Cartelle e file passano dal file system dell'SDK (`fs`); la scrivania è la vista della cartella `/Scrivania` del workspace attuale (privata: gli altri workspace non la vedono). Ogni nodo creato ricorda il workspace che l'ha fatto.
 - Ogni scorciatoia è un comando registrato con `shortcuts.register` dell'SDK, così l'utente può cambiarla.

@@ -35,7 +35,7 @@ npm run dev                                             # lilOS su http://localh
 
 - Il nome utente ha 2-32 caratteri tra lettere minuscole, cifre, punto, trattino e trattino basso; la password da 8 a 256 caratteri. Senza terminale la password si dà con la variabile `LILOS_PASSWORD`. Altri comandi: `passwd <nome>`, `remove <nome>`, `list`.
 - `npm run dev` inoltra `/api` a `127.0.0.1:8790` (Vite, `server.proxy`; lo stesso fa `npm run preview`): il browser vede una sola origine, quindi il cookie di sessione funziona.
-- **Al primo avvio il kernel ha bisogno di `git` e dell'accesso al repository ufficiale** ([GexyLab/lilos-plugins-official](https://github.com/GexyLab/lilos-plugins-official), privato): File, Editor, Impostazioni e AppStore non sono in questo repository e il kernel le installa da lì, se mancano, prima di mettersi in ascolto. L'accesso è quello che `git` ha già sul computer (credential helper, token, chiave SSH): prova con `git ls-remote https://github.com/GexyLab/lilos-plugins-official`. Senza accesso il kernel parte lo stesso e scrive nel log «App di sistema non installate (…)», ma lilOS non ha File, Impostazioni né AppStore. Una volta installate, le app restano nel database e non servono più né rete né `git` (finché non si aggiornano o se ne installano altre).
+- **Al primo avvio il kernel ha bisogno di `git` e dell'accesso al repository ufficiale** ([GexyLab/lilos-plugins-official](https://github.com/GexyLab/lilos-plugins-official), privato): File Manager, Editor, Impostazioni e AppStore non sono in questo repository e il kernel le installa da lì, se mancano, prima di mettersi in ascolto. L'accesso è quello che `git` ha già sul computer (credential helper, token, chiave SSH): prova con `git ls-remote https://github.com/GexyLab/lilos-plugins-official`. Senza accesso il kernel parte lo stesso e scrive nel log «App di sistema non installate (…)», ma lilOS non ha File Manager, Impostazioni né AppStore. Una volta installate, le app restano nel database e non servono più né rete né `git` (finché non si aggiornano o se ne installano altre).
 - `npm run kernel` esegue `system/kernel/run.js`: avvia il kernel e lo riavvia quando esce con il codice 75, cioè quando un amministratore installa, aggiorna o toglie un modulo dall'AppStore. Con `node system/kernel/src/main.js` il kernel parte ma non si riavvia da solo (e `POST /api/kernel/restart` risponde che non è possibile).
 - La configurazione è `system/kernel/config.json` (o il file in `LILOS_KERNEL_CONFIG`): `host`, `port`, `origins` (siti ammessi per le richieste che modificano), `loopbackOrigins`, `secureCookies`, `modules` e `apps` (`allowLocalSources`, `trustedPublishers`, `officialKey`, `bootstrap`). `LILOS_KERNEL_HOST` e `LILOS_KERNEL_PORT` cambiano indirizzo e porta; `LILOS_PG_URL` l'indirizzo del database (vince su `url` del modulo `fs-postgres`). I repository aggiunti da un amministratore sono in `system/kernel/repos.json` (ignorato da git).
 - Se nella configurazione non c'è un modulo di accesso lilOS ha un solo utente e il kernel accetta solo `host` 127.0.0.1.
@@ -140,11 +140,11 @@ src/
   systemHistory.js      scorciatoie Ctrl Z / Ctrl Y, messaggi e voci di menu dell'annulla e ripeti
   systemFs.js           cartelle di sistema, riempimento al primo avvio, migrazione della vecchia scrivania
   items/
-    targets.js          comandi sugli elementi (Apri, Rinomina, Elimina…) comuni a desktop e File
+    targets.js          comandi sugli elementi (Apri, Rinomina, Elimina…) comuni a desktop e File Manager
     confirmRemove.js    eliminare come dicono le impostazioni: cestino o definitivo, con o senza conferma
     fsHistory.js        azioni sul file system che finiscono in una cronologia (elimina, ripristina, crea, rinomina, sposta)
     itemDrag.js         trascinamento di file e cartelle, uguale in ogni vista (`markItem`, `dropZone`, `dragItems`)
-    links.js            ordine della barra laterale di File: voci fisse e collegamenti (`links`, `linkEntry`)
+    links.js            ordine della barra laterale del File Manager: voci fisse e collegamenti (`links`, `linkEntry`)
   tags/
     tagUi.js            pallini dei tag, mettere e togliere un tag, sottomenu Tag dei menu
   canvas/               la scrivania infinita
@@ -192,7 +192,7 @@ src/
     workspaces.css      pulsante nella barra, finestre nascoste, pallino del proprietario
     boot.css            schermate di accesso e di avvio
     packages.css        finestre delle app installate
-    tags.css            pallini dei tag sulle icone e nell'elenco di File
+    tags.css            pallini dei tag sulle icone e nell'elenco del File Manager
     taskbar.css         barra in basso
     start-menu.css      menu di avvio
 ```
@@ -278,7 +278,7 @@ Tastiera: le scorciatoie passano tutte dal registro `shortcuts` dell'SDK. Ogni c
 I componenti si parlano in due modi:
 
 - **Eventi del componente**: `Canvas` estende `Emitter` ed emette `camera`, `change`, `background:press`, `background:click` e `background:contextmenu`. La minimappa ascolta `change`, il desktop gli eventi `background:*`.
-- **Bus di sistema** (`bus` dell'SDK): per le richieste che attraversano il sistema. Oggi `app:launch` (avviare un'app) e `item:open` (aprire una cartella o un file). Chi li emette non sa chi li gestirà: `app:launch` lo gestisce `connectLauncher`; `item:open` di una cartella la apre nell'app File, di un file per ora viene solo scritto in console.
+- **Bus di sistema** (`bus` dell'SDK): per le richieste che attraversano il sistema. Oggi `app:launch` (avviare un'app) e `item:open` (aprire una cartella o un file). Chi li emette non sa chi li gestirà: `app:launch` lo gestisce `connectLauncher`; `item:open` di una cartella la apre nel File Manager, di un file per ora viene solo scritto in console.
 - **Impostazioni** (`settings` dell'SDK): chi dipende da una preferenza la segue con `settings.watch(key, fn)`.
 
 ### File system
@@ -288,19 +288,19 @@ Cartelle, file e collegamenti alle app sono nodi del file system virtuale `fs` d
 - Le cartelle di sistema condivise (Documenti, Immagini, Download) sono create da `setupFileSystem()` (`src/systemFs.js`); la cartella Scrivania è creata per ogni workspace da `setupWorkspaces()`. Nessuna di queste si può rinominare né eliminare.
 - La **scrivania è la vista della cartella `/Scrivania` del workspace attuale**: il `Desktop` crea, rinomina ed elimina tramite `fs` e si aggiorna sugli eventi `change`. Le posizioni sono salvate a parte, in `lilos:ws:<id>:desktop-layout`.
 - L'app **File** è un'altra vista dello stesso albero: quello che cambia da una parte si vede subito nell'altra.
-- I comandi Apri, Rinomina, Elimina, Seleziona tutto e Togli la selezione sono comuni: `src/items/targets.js` li registra una volta e li esegue sulla vista attiva (il desktop se nessuna finestra ha il focus, altrimenti la finestra File attiva).
+- I comandi Apri, Rinomina, Elimina, Seleziona tutto e Togli la selezione sono comuni: `src/items/targets.js` li registra una volta e li esegue sulla vista attiva (il desktop se nessuna finestra ha il focus, altrimenti la finestra del File Manager attiva).
 
 ### Trascinare file e cartelle tra le viste
 
-Scrivania, app File e pannello dell'Editor trascinano file e cartelle con lo stesso modulo, `src/items/itemDrag.js`, senza conoscersi: una vista marca i suoi elementi (`markItem`, attributo `data-node`), registra le aree che accettano rilasci (`dropZone`) e avvia il trascinamento su `pointerdown` (`dragItems`). Il bersaglio si cerca nel DOM sotto il puntatore, e lo spostamento (`moveNodes`) è un solo passo nella cronologia della vista da cui si parte. L'ordine della barra laterale di File, con i collegamenti, è in `src/items/links.js`. Perché è fatto così: [D30](../interna/decisioni.md#d30-un-solo-modulo-di-trascinamento-per-tutte-le-viste-di-file-e-cartelle). Per usarlo in una vista nuova: [ricette](ricette.md#rendere-trascinabili-file-e-cartelle-in-unapp), contratti in [api.md](api.md#itemdragjs).
+Scrivania, File Manager e pannello dell'Editor trascinano file e cartelle con lo stesso modulo, `src/items/itemDrag.js`, senza conoscersi: una vista marca i suoi elementi (`markItem`, attributo `data-node`), registra le aree che accettano rilasci (`dropZone`) e avvia il trascinamento su `pointerdown` (`dragItems`). Il bersaglio si cerca nel DOM sotto il puntatore, e lo spostamento (`moveNodes`) è un solo passo nella cronologia della vista da cui si parte. L'ordine della barra laterale del File Manager, con i collegamenti, è in `src/items/links.js`. Perché è fatto così: [D30](../interna/decisioni.md#d30-un-solo-modulo-di-trascinamento-per-tutte-le-viste-di-file-e-cartelle). Per usarlo in una vista nuova: [ricette](ricette.md#rendere-trascinabili-file-e-cartelle-in-unapp), contratti in [api.md](api.md#itemdragjs).
 
 ### Annulla e ripeti
 
-Ogni posto che ha azioni da annullare tiene una `UndoStack` e la collega a un suo elemento con `history.attach` (SDK): la scrivania è la cronologia **radice** (`desktop.history`), ogni finestra File ha la sua, il pannello della cartella dell'Editor la sua, il testo dell'Editor usa quella del browser. Ctrl Z e Ctrl Y (registrati da `src/systemHistory.js`) non sanno chi li riceve: `history.resolve()` parte dall'elemento con il focus e sale tra i genitori fino al primo con un gestore. Senza focus vale la finestra attiva; una finestra senza cronologia (Impostazioni) non fa nulla, e non tocca la scrivania dietro; senza finestra attiva vale la scrivania. Nei campi di testo Ctrl Z resta al browser, salvo gestori con `text: true`. Eliminare è annullabile perché di norma sposta nel cestino (`fs.trash`, annullare è `fs.untrash`, vedi [D28](../interna/decisioni.md#d28-il-cestino-è-una-seconda-radice-nascosta-del-file-system)); con l'eliminazione definitiva `fs.snapshot` copia i nodi e i contenuti prima di `fs.remove`. Le cronologie stanno solo in memoria. Dettagli in [api.md](api.md#sdkcorehistoryjs) e [ricette](ricette.md#aggiungere-annulla-e-ripeti-a-unapp).
+Ogni posto che ha azioni da annullare tiene una `UndoStack` e la collega a un suo elemento con `history.attach` (SDK): la scrivania è la cronologia **radice** (`desktop.history`), ogni finestra del File Manager ha la sua, il pannello della cartella dell'Editor la sua, il testo dell'Editor usa quella del browser. Ctrl Z e Ctrl Y (registrati da `src/systemHistory.js`) non sanno chi li riceve: `history.resolve()` parte dall'elemento con il focus e sale tra i genitori fino al primo con un gestore. Senza focus vale la finestra attiva; una finestra senza cronologia (Impostazioni) non fa nulla, e non tocca la scrivania dietro; senza finestra attiva vale la scrivania. Nei campi di testo Ctrl Z resta al browser, salvo gestori con `text: true`. Eliminare è annullabile perché di norma sposta nel cestino (`fs.trash`, annullare è `fs.untrash`, vedi [D28](../interna/decisioni.md#d28-il-cestino-è-una-seconda-radice-nascosta-del-file-system)); con l'eliminazione definitiva `fs.snapshot` copia i nodi e i contenuti prima di `fs.remove`. Le cronologie stanno solo in memoria. Dettagli in [api.md](api.md#sdkcorehistoryjs) e [ricette](ricette.md#aggiungere-annulla-e-ripeti-a-unapp).
 
 ### Aprire i file
 
-Un file si apre con l'app associata alla sua estensione (se è visibile nel workspace attuale; altrimenti compare "Apri con", che propone solo le app visibili): le app dichiarano nel manifesto le estensioni che aprono (`contributes.fileTypes`, nel registro `opens`), l'utente cambia le associazioni in Impostazioni → Usabilità → Tipi di file. Senza app associata compare la finestra "Apri con" (`src/apps/openWith.js`). Tutto passa da `openFile(node)` in `src/apps/open.js`, usato da `system.js` (per `item:open`) e dall'app File. L'app riceve `args.file`.
+Un file si apre con l'app associata alla sua estensione (se è visibile nel workspace attuale; altrimenti compare "Apri con", che propone solo le app visibili): le app dichiarano nel manifesto le estensioni che aprono (`contributes.fileTypes`, nel registro `opens`), l'utente cambia le associazioni in Impostazioni → Usabilità → Tipi di file. Senza app associata compare la finestra "Apri con" (`src/apps/openWith.js`). Tutto passa da `openFile(node)` in `src/apps/open.js`, usato da `system.js` (per `item:open`) e dal File Manager. L'app riceve `args.file`.
 
 Le scorciatoie di un'app sono dichiarate nel registro (`commands`) e registrate all'avvio, così compaiono nelle Impostazioni anche prima di aprire l'app; la finestra dell'app fornisce il gestore con `handleCommand`.
 
@@ -328,7 +328,7 @@ location.reload();
 
 `reinstall` non serve a questo: riscrive lo stesso commit. E ogni versione ha un suo percorso in cache per sempre (`immutable`): se cambi codice senza alzare `version`, il browser tiene il vecchio.
 
-**Se manca il repository.** Senza `git` o senza credenziali il kernel non installa le app di sistema (log: «App di sistema non installate»); lilOS parte, ma senza File, Impostazioni e AppStore. Si ripara correggendo l'accesso e riavviando il kernel.
+**Se manca il repository.** Senza `git` o senza credenziali il kernel non installa le app di sistema (log: «App di sistema non installate»); lilOS parte, ma senza File Manager, Impostazioni e AppStore. Si ripara correggendo l'accesso e riavviando il kernel.
 
 ### Workarea
 
@@ -344,9 +344,9 @@ Ridotta a icona, una workarea chiede a ogni finestra `canClose`, salva lo stato 
 
 Un workspace (`src/workspaces/`) è una scrivania separata: ha la sua cartella Scrivania, la sua vista, le posizioni degli elementi, le workarea, le finestre aperte e le app che mostra (quelle installate meno le nascoste). Documenti, Immagini e Download sono condivise. Vedi la decisione D27.
 
-- **L'isolamento sta in `fs`.** La Scrivania di un workspace è una cartella `private` con `workspace` = id del proprietario. Con `fs.setWorkspace(id)` impostato, `fs` fa finta che le cartelle private degli altri workspace (e tutto ciò che contengono) non esistano: File, selettori e pannello dell'Editor rispettano l'isolamento senza saperlo. Ogni nodo creato porta `workspace` (chi l'ha fatto), che non cambia se lo si sposta o rinomina; le cartelle di sistema condivise non hanno proprietario. Le viste che mostrano il proprietario (la colonna Workspace di File) usano `describeWorkspace` di `src/workspaces/info.js`.
+- **L'isolamento sta in `fs`.** La Scrivania di un workspace è una cartella `private` con `workspace` = id del proprietario. Con `fs.setWorkspace(id)` impostato, `fs` fa finta che le cartelle private degli altri workspace (e tutto ciò che contengono) non esistano: File Manager, selettori e pannello dell'Editor rispettano l'isolamento senza saperlo. Ogni nodo creato porta `workspace` (chi l'ha fatto), che non cambia se lo si sposta o rinomina; le cartelle di sistema condivise non hanno proprietario. Le viste che mostrano il proprietario (la colonna Workspace di File Manager) usano `describeWorkspace` di `src/workspaces/info.js`.
 - **Cambiare workspace** (`Workspaces.switchTo`) salva il workspace lasciato (finestre, workarea, posizioni, vista), poi cambia in quest'ordine `fs.setWorkspace`, `wm.setWorkspace`, `canvas.useCamera`, `desktop.load`, `workareas.load`. Le finestre del workspace lasciato **restano aperte e nascoste** (classe `ws-away`), con il testo non salvato; ogni finestra appartiene al workspace che era attuale quando è stata aperta. I cambi sono messi in coda e uno alla volta.
-- **App visibili per workspace.** Le app si installano in lilOS (per tutti) e ogni workspace può solo nasconderle. Il registro sa quali app sono `system` (le necessarie: File, Impostazioni, AppStore; sempre visibili) e chiede a un filtro (`setInstalledFilter`, impostato da `Workspaces`) quali sono visibili nel workspace attuale. Menu di avvio, `launch` e "Apri con" lo rispettano. Quando un'app viene installata o rimossa, `Workspaces` la aggiunge o toglie a ogni workspace. Le associazioni dei tipi di file restano globali; preferenze, tema, scorciatoie e menu sono globali.
+- **App visibili per workspace.** Le app si installano in lilOS (per tutti) e ogni workspace può solo nasconderle. Il registro sa quali app sono `system` (le necessarie: File Manager, Impostazioni, AppStore; sempre visibili) e chiede a un filtro (`setInstalledFilter`, impostato da `Workspaces`) quali sono visibili nel workspace attuale. Menu di avvio, `launch` e "Apri con" lo rispettano. Quando un'app viene installata o rimossa, `Workspaces` la aggiunge o toglie a ogni workspace. Le associazioni dei tipi di file restano globali; preferenze, tema, scorciatoie e menu sono globali.
 - **Finestre ricordate.** Le finestre delle app fuori da ogni workarea sono salvate per workspace in `lilos:ws:<id>:windows` (400 ms dopo ogni cambiamento e alla chiusura della pagina) e riaperte la prima volta che il workspace viene mostrato nella sessione.
 - **Eliminare** non cancella mai file: la Scrivania diventa `/Documenti/Scrivania di <nome>` (rimossa se vuota), le finestre delle app passano nel workspace attuale (`wm.adopt`), quelle secondarie (selettori, proprietà delle workarea…) si chiudono, e nell'elenco salvato resta una voce "rimossa" perché i file creati da quel workspace dicano ancora di chi erano.
 - **Avvio e migrazione**: `setupWorkspaces` fa nascere "Principale" dai dati di prima dei workspace e ripara elenco e scrivanie. Dettagli in [Dati salvati](api.md#lilosworkspaces).
@@ -356,9 +356,9 @@ Un workspace (`src/workspaces/`) è una scrivania separata: ha la sua cartella S
 I tag (`tags` dell'SDK, `sdk/core/tags.js`) sono etichette colorate con un nome, uguali in tutti i workspace. Vedi la decisione D29.
 
 - **Le definizioni stanno nell'SDK, l'assegnazione sui nodi.** Un nodo ha `tags` (id dei tag); si cambia con `fs.setTags`. `fs.tagged(id)` dà tutti gli elementi con un tag, ovunque il workspace attuale veda.
-- **Invisibile significa nascosto.** `tags` comunica a `fs` i tag invisibili (`fs.setHiddenTags`, all'avvio e a ogni cambio). `fs.children()` esclude i nodi che ne hanno uno: è l'unico punto, quindi scrivania, File, selettore, pannello dell'Editor e conteggi lo rispettano senza saperlo. `get`, `exists`, `resolve` e `tagged` li trovano ancora, così le finestre aperte e la vista del tag continuano a funzionare.
+- **Invisibile significa nascosto.** `tags` comunica a `fs` i tag invisibili (`fs.setHiddenTags`, all'avvio e a ogni cambio). `fs.children()` esclude i nodi che ne hanno uno: è l'unico punto, quindi scrivania, File Manager, selettore, pannello dell'Editor e conteggi lo rispettano senza saperlo. `get`, `exists`, `resolve` e `tagged` li trovano ancora, così le finestre aperte e la vista del tag continuano a funzionare.
 - **Chi mostra elenchi** deve ascoltare `fs` `scope` (cambia ciò che è visibile: un altro workspace o i tag nascosti) oltre a `change`, e `tags` `change` per nomi e colori. La scrivania si riallinea da sola (`#reconcile`).
-- **L'interfaccia** sta in `src/tags/tagUi.js` (pallini, `setTag`, sottomenu Tag); la gestione in Impostazioni → Tag, la ricerca nella vista del tag di File (`launch('files', { tag })`).
+- **L'interfaccia** sta in `src/tags/tagUi.js` (pallini, `setTag`, sottomenu Tag); la gestione in Impostazioni → Tag, la ricerca nella vista del tag del File Manager (`launch('files', { tag })`).
 
 ### Menu configurabili
 
@@ -372,7 +372,7 @@ Il menu del tasto destro sulla scrivania non è scritto nel codice del desktop: 
 
 La cornice (`Window`) sta nell'SDK e non sa nulla della scrivania: mostra titolo, controlli e maniglie di ridimensionamento e segnala le richieste (`minimize`, `maximize`, `close`). Ogni controllo e ogni bordo si accende e si spegne da solo (`controls`, `resizable`, `setControl`, `setResizable`). Il `WindowManager` del sistema le ospita sulla scrivania e decide: posizione, focus, trascinamento, ridimensionamento dai bordi attivi, pulsante nella barra, e rispetta i controlli spenti anche nella barra, nel doppio clic sul titolo e nelle scorciatoie.
 
-Un'app è un modulo caricato al primo avvio (`load` nel registro). Il suo export predefinito riceve `{ args }` e restituisce una `Window`. Ogni app ha al massimo una finestra: avviarla di nuovo riporta in primo piano quella aperta ed emette su di essa l'evento `launch` con i nuovi argomenti (così il doppio clic su un'altra cartella la mostra nella finestra File già aperta).
+Un'app è un modulo caricato al primo avvio (`load` nel registro). Il suo export predefinito riceve `{ args }` e restituisce una `Window`. Ogni app ha al massimo una finestra: avviarla di nuovo riporta in primo piano quella aperta ed emette su di essa l'evento `launch` con i nuovi argomenti (così il doppio clic su un'altra cartella la mostra nella finestra del File Manager già aperta).
 
 Quando una finestra ha il focus, le scorciatoie del desktop (Canc, Invio, F2, Ctrl A, Esc) sono disattivate. Un clic su un punto della scrivania fuori dalle finestre restituisce il focus al desktop.
 
@@ -407,7 +407,7 @@ Un'app installata è un pacchetto: `lilos.json` con i suoi file. Decisioni: [D38
 
 - **Nel kernel** (`system/kernel/src/apps/`): `manifest.js` valida il manifesto, `permissions.js` elenca i permessi, `sources.js` scarica il pacchetto con `git` (o da una cartella locale), `repos.js` legge i repository e i loro cataloghi, `installer.js` installa, aggiorna e rimuove le app, `modulePackage.js` fa lo stesso per i moduli del kernel. Il pacchetto sta in `/system/app/<id>/<versione>`, le librerie con `cache: true` in `/system/commons/<libreria>/<versione>` e `/system/tmp/<id>` è riservata ai file temporanei dell'app (si toglie con l'app; oggi nessuna funzione del ponte la usa). Si tengono la versione in uso e la precedente. Installare, aggiornare e rimuovere è riservato agli amministratori.
 - **Nel frontend** (`src/apps/packages/`): `packages.js` mette le app installate nel registro (`registerApp` / `unregisterApp`) e le tiene allineate quando cambiano; `host.js` crea la finestra e l'iframe; `bridge.js` è il codice `window.lilos` che gira dentro l'iframe; `permissions.js` controlla i percorsi.
-- **Registro.** `src/apps/registry.js` è dinamico: `apps` si modifica con `registerApp` e `unregisterApp`, ed emette `change` su `registry`. **Nessuna app è integrata**: anche File, Editor, Impostazioni e AppStore sono pacchetti. Nel registro `system` vuol dire app necessaria (`required`: sempre visibile) e `trusted` app di sistema (`system`: gira in lilOS).
+- **Registro.** `src/apps/registry.js` è dinamico: `apps` si modifica con `registerApp` e `unregisterApp`, ed emette `change` su `registry`. **Nessuna app è integrata**: anche File Manager, Editor, Impostazioni e AppStore sono pacchetti. Nel registro `system` vuol dire app necessaria (`required`: sempre visibile) e `trusted` app di sistema (`system`: gira in lilOS).
 - **Operazioni per utente.** `packages.js` (`setupUser`) esegue `install` e `update` del manifesto per l'utente che ha aperto lilOS, la prima volta che incontra l'app, e le registra in `app-setup` (versione, ciò che ha creato, passi di `uninstall`). Non sovrascrive. Se l'app non c'è più, toglie ciò che aveva creato; ciò che l'utente ha modificato va nel Cestino, i dati propri dell'app (`app:<id>:*`) si cancellano.
 - **Workspace.** Un'app installata vale per tutti: `Workspaces` la aggiunge a `apps` e `known` di ogni workspace quando compare nel registro, e la toglie (chiudendone le finestre) quando sparisce. Ogni workspace può nasconderla con `setInstalled` (non le necessarie).
 - **Esecuzione.** Un'app di sistema `local` gira dentro lilOS (vedi [Le app di sistema](#le-app-di-sistema-e-il-repository-ufficiale)). Un'altra app `local` gira in `<iframe sandbox="allow-scripts">` (origine opaca): lilOS scarica il codice dal kernel, ne controlla l'hash con il manifesto, costruisce il documento con una CSP (`net:` apre `connect-src`) e lo mette in `srcdoc`. Un'app `remote` è il suo sito in un iframe (`https`, o `http://localhost`).
@@ -425,9 +425,10 @@ Un'app installata è un pacchetto: `lilos.json` con i suoi file. Decisioni: [D38
 | `lilos:ws:<id>:desktop-layout` | posizioni sulla scrivania, `{ id: [x, y] }` | `Desktop`, dopo spostamenti e creazioni |
 | `lilos:ws:<id>:windows` | finestre delle app fuori dalle workarea, da riaprire | `Workspaces`, 400 ms dopo ogni cambiamento |
 | `lilos:ws:<id>:workareas` | workarea: area, titolo, descrizione, metadati, elementi nascosti e finestre da riaprire | `Workareas`, a ogni modifica; le finestre 400 ms dopo ogni cambiamento |
-| `lilos:files-view` | vista dell'app File (`"list"` o `"grid"`) | app File |
+| `lilos:files-view` | vista del File Manager (`"list"` o `"grid"`) | File Manager |
+| `lilos:files-panels` | pannelli Informazioni e Anteprima del File Manager: `{ info: { open, width }, preview: { open, width } }` | File Manager |
 | `lilos:file-apps` | app scelte per i tipi di file | `setAppFor` (Impostazioni, Apri con) |
-| `lilos:files-sidebar` | ordine della sezione Collegamenti della barra laterale di File: id di nodi (voci fisse e collegamenti) e la chiave `desk`; al massimo 80, uguali in ogni workspace | `links` |
+| `lilos:files-sidebar` | ordine della sezione Collegamenti della barra laterale del File Manager: id di nodi (voci fisse e collegamenti) e la chiave `desk`; al massimo 80, uguali in ogni workspace | `links` |
 | `lilos:editor-tree` | cartella aperta nell'Editor, cartelle espanse, larghezza del pannello | `FileTree` (Editor) |
 | IndexedDB `lilos` → `contents` | contenuto dei file (solo senza kernel; con il kernel: copia in IndexedDB `lilos:<id utente>`, cancellata all'uscita) | `fs.write` |
 | `lilos:app-setup` | per utente: che cosa hanno fatto le app installate, per annullarlo quando l'app viene rimossa | `packages.js` |

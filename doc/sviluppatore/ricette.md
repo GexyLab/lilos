@@ -38,7 +38,7 @@ Procedure passo per passo per le modifiche più comuni. Per i dettagli delle fun
 
 Nel registro di lilOS non ci sono app scritte nel codice: ogni app è un **pacchetto installato** dal kernel, e compare nel menu di avvio (e nella ricerca) **dei workspace in cui è visibile** quando viene installata. Quindi:
 
-- per un'app di lilOS (File, Editor, Impostazioni, AppStore e simili): [Aggiungere o aggiornare un'app di sistema](#aggiungere-o-aggiornare-unapp-di-sistema), nel repository ufficiale;
+- per un'app di lilOS (File Manager, Editor, Impostazioni, AppStore e simili): [Aggiungere o aggiornare un'app di sistema](#aggiungere-o-aggiornare-unapp-di-sistema), nel repository ufficiale;
 - per un'app di altri: [Creare un'app installabile](#creare-unapp-installabile-pacchetto).
 
 Il nome (`name`), il simbolo (`icon.glyph`, un nome accettato da `icon()`; se serve uno nuovo, vedi [Aggiungere un simbolo](#aggiungere-un-simbolo)) e il colore (`icon.color`, con un buon contrasto con il simbolo bianco) stanno nel manifesto. L'`id` è stabile: finisce nei collegamenti sul desktop, quindi non va cambiato dopo il rilascio.
@@ -186,7 +186,7 @@ bus.on('item:open', node => {
 
 `on` restituisce la funzione per annullare l'iscrizione: chiamala quando il componente viene distrutto.
 
-`app:launch` è già gestito da `connectLauncher` (`src/apps/launcher.js`), che apre le finestre delle app; `item:open` di una cartella la apre nell'app File (`system.js`), di un file per ora viene solo scritto in console.
+`app:launch` è già gestito da `connectLauncher` (`src/apps/launcher.js`), che apre le finestre delle app; `item:open` di una cartella la apre nel File Manager (`system.js`), di un file per ora viene solo scritto in console.
 
 ## Far riaprire la finestra di un'app da una workarea
 
@@ -378,10 +378,10 @@ const off = fs.on('change', e => {
 });
 ```
 
-- Mostra le modifiche reagendo agli eventi `change`, non dopo le tue chiamate: così vedi anche quelle fatte da altre parti (desktop, app File).
+- Mostra le modifiche reagendo agli eventi `change`, non dopo le tue chiamate: così vedi anche quelle fatte da altre parti (desktop, File Manager).
 - In una finestra togli l'iscrizione alla chiusura: `win.on('destroy', off)`.
 - I nodi di sistema (`system: true`) non si rinominano né eliminano: disattiva le relative azioni. Per eliminare dall'interfaccia usa `confirmRemove` (`src/items/confirmRemove.js`), che rispetta le impostazioni `deleteConfirm` e `deletePermanent` (di norma sposta nel cestino) e, con una `UndoStack`, rende l'eliminazione annullabile (vedi [Aggiungere annulla e ripeti a un'app](#aggiungere-annulla-e-ripeti-a-unapp)).
-- Per selezionare, aprire, rinominare ed eliminare con le scorciatoie comuni, iscrivi la tua vista con `addTarget` (`src/items/targets.js`), come fa l'app File.
+- Per selezionare, aprire, rinominare ed eliminare con le scorciatoie comuni, iscrivi la tua vista con `addTarget` (`src/items/targets.js`), come fa il File Manager.
 
 ## Aggiungere annulla e ripeti a un'app
 
@@ -472,12 +472,12 @@ win.on('destroy', () => { off1(); off2(); });
 - Per mettere o togliere un tag a più nodi con un menu usa `tagSubmenu(ids)` e `setTag(ids, tagId, on)` di `src/tags/tagUi.js` (solo dal sistema, non dall'SDK); `tagDots(node)` disegna i pallini.
 - I nodi di sistema non hanno tag: `setTags` lancia un errore, `setTag` li salta.
 - Il colore di un tag è un dato salvato (già validato come `#rrggbb`): mettilo in `style.background`, mai dentro HTML scritto a mano.
-- Aprire File sulla vista di un tag: `launch('files', { tag: tag.id })`. Aprire Impostazioni → Tag: `launch('settings', { tab: 'tags' })`.
+- Aprire File Manager sulla vista di un tag: `launch('files', { tag: tag.id })`. Aprire Impostazioni → Tag: `launch('settings', { tab: 'tags' })`.
 - Mettere o togliere un tag non si annulla con Ctrl Z: non c'è una voce nella cronologia.
 
 ## Rendere trascinabili file e cartelle in un'app
 
-Se la tua app mostra file e cartelle (un elenco, un albero, una griglia), usa `src/items/itemDrag.js`: così si trascinano da e verso scrivania, File ed Editor, con lo stesso aspetto e lo stesso annulla. Non usare il drag and drop nativo di HTML5 (vedi [D30](../interna/decisioni.md#d30-un-solo-modulo-di-trascinamento-per-tutte-le-viste-di-file-e-cartelle)). Contratti completi: [Riferimento API → itemDrag.js](api.md#itemdragjs).
+Se la tua app mostra file e cartelle (un elenco, un albero, una griglia), usa `src/items/itemDrag.js`: così si trascinano da e verso scrivania, File Manager ed Editor, con lo stesso aspetto e lo stesso annulla. Non usare il drag and drop nativo di HTML5 (vedi [D30](../interna/decisioni.md#d30-un-solo-modulo-di-trascinamento-per-tutte-le-viste-di-file-e-cartelle)). Contratti completi: [Riferimento API → itemDrag.js](api.md#itemdragjs).
 
 ```js
 import { h, UndoStack, history } from '@lilos/sdk';
@@ -506,14 +506,14 @@ list.addEventListener('pointerdown', e => {
 ```
 
 1. **`markItem(el, node)`** su ogni elemento che rappresenta un nodo. Non serve altro per far accettare rilasci a una cartella; i nodi di sistema non si spostano mai.
-2. **`dropZone(el, zone)`** per le aree che accettano rilasci senza essere una cartella marcata. `zone.folder(hit)` dice in quale cartella vanno i nodi (`null` = niente rilascio); `hit` è l'elemento sotto il puntatore, utile per decidere in base alla riga. Per una zona che non sposta ometti `folder` e dai `drop(ids, ev, stack)` e, se serve, `accepts(ids)`. Se la stessa area deve fare cose diverse a seconda del punto (la barra laterale di File: centro di una voce = sposta, bordo = crea un collegamento), usa `target(hit, x, y, ids)` e restituisci `{ el, run }`: marcare ogni voce con `markItem` non basterebbe.
-3. **`dragItems(e, options)`** dal `pointerdown` (sinistro) di un elemento selezionato. Passa sempre `stack`: se lo ometti lo spostamento funziona ma non si annulla. `onEnd({ moved })` distingue un clic da un trascinamento: usalo per restringere la selezione, come fa File.
+2. **`dropZone(el, zone)`** per le aree che accettano rilasci senza essere una cartella marcata. `zone.folder(hit)` dice in quale cartella vanno i nodi (`null` = niente rilascio); `hit` è l'elemento sotto il puntatore, utile per decidere in base alla riga. Per una zona che non sposta ometti `folder` e dai `drop(ids, ev, stack)` e, se serve, `accepts(ids)`. Se la stessa area deve fare cose diverse a seconda del punto (la barra laterale del File Manager: centro di una voce = sposta, bordo = crea un collegamento), usa `target(hit, x, y, ids)` e restituisci `{ el, run }`: marcare ogni voce con `markItem` non basterebbe.
+3. **`dragItems(e, options)`** dal `pointerdown` (sinistro) di un elemento selezionato. Passa sempre `stack`: se lo ometti lo spostamento funziona ma non si annulla. `onEnd({ moved })` distingue un clic da un trascinamento: usalo per restringere la selezione, come fa il File Manager.
 4. **Non gestisci tu il resto**: il fantasma, l'evidenziamento (`.drop-target`), Esc e il blocco sopra le finestre sono già fatti. `ghost: false` se vuoi muovere tu gli elementi (come fa la scrivania).
 5. **Evidenziare altro** della zona stessa: `highlight(folder)` restituisce l'elemento che prende `.drop-target` (nell'Editor, la riga della cartella o l'intero pannello).
-6. **Elementi che non devono riceverne né darne**: non marcarli (File non marca le righe del cestino e non avvia il trascinamento lì). Per il menu «Aggiungi alla barra laterale di File» metti `linkEntry(ids)` nel tuo menu: restituisce `null` se non serve, quindi filtra con `.filter(Boolean)`.
+6. **Elementi che non devono riceverne né darne**: non marcarli (il File Manager non marca le righe del cestino e non avvia il trascinamento lì). Per il menu «Aggiungi alla barra laterale del File Manager» metti `linkEntry(ids)` nel tuo menu: restituisce `null` se non serve, quindi filtra con `.filter(Boolean)`.
 7. **Togli la zona alla chiusura**: `dropZone` restituisce la funzione che la toglie. Gli elementi marcati spariscono col loro DOM.
 
-Prova: trascina un file dalla tua vista sulla scrivania e su una finestra File; con Ctrl Z nella tua vista deve tornare dov'era.
+Prova: trascina un file dalla tua vista sulla scrivania e su una finestra del File Manager; con Ctrl Z nella tua vista deve tornare dov'era.
 
 ## Creare un'app installabile (pacchetto)
 
@@ -565,7 +565,7 @@ Un pacchetto è una cartella con `lilos.json` (il manifesto) e i suoi file. Il c
    Chi installa deve fidarsi dell'editore: mette la chiave pubblica in `system/kernel/config.json`, in `"apps": { "trustedPublishers": { "acme": "ed25519:…" } }`. Una firma che non corrisponde al manifesto è sempre rifiutata; un'app senza firma, o di un editore sconosciuto, si installa solo con `allowUnsigned`.
 5. Installala (ricetta successiva). Per cambiare il codice: ripeti `pack.js`, poi aggiorna con `reinstall` (stessa versione) oppure alza `version` e aggiorna.
 
-`install`, `update` e `uninstall` nel manifesto sono elenchi di operazioni (`mkdir`, `write`, `copy`, `desktopItem`, `tag`, `setting`, e `remove` solo in `uninstall`) che lilOS esegue **per ogni utente** la prima volta che incontra l'app, senza sovrascrivere nulla. Ogni operazione che tocca file chiede il permesso `fs.write` sul percorso; `desktopItem` chiede `desktop.items`, `tag` chiede `tags.write`. I percorsi iniziano con `~` (la cartella dell'utente) e si scrivono con i nomi che si vedono in File (`~/Documenti/Note`). Dettagli in [API → apps/packages](api.md#appspackages).
+`install`, `update` e `uninstall` nel manifesto sono elenchi di operazioni (`mkdir`, `write`, `copy`, `desktopItem`, `tag`, `setting`, e `remove` solo in `uninstall`) che lilOS esegue **per ogni utente** la prima volta che incontra l'app, senza sovrascrivere nulla. Ogni operazione che tocca file chiede il permesso `fs.write` sul percorso; `desktopItem` chiede `desktop.items`, `tag` chiede `tags.write`. I percorsi iniziano con `~` (la cartella dell'utente) e si scrivono con i nomi che si vedono nel File Manager (`~/Documenti/Note`). Dettagli in [API → apps/packages](api.md#appspackages).
 
 Le scorciatoie si dichiarano in `contributes.commands` (`{ id, label, keys }`: l'`id` inizia con l'id dell'app e `keys` richiede il permesso `ui.shortcuts`); l'app le riceve come evento `lilos.on('command', id => …)` e l'utente le cambia in Impostazioni → Usabilità → Scorciatoie. Le estensioni che l'app apre si dichiarano in `contributes.fileTypes`.
 

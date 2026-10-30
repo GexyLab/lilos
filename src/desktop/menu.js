@@ -59,7 +59,7 @@ export function registerDesktopMenu(desktop) {
     label: 'Crea un elemento', icon: 'filePlus', menus: scope, params: createParams,
     run: (ctx, p) => desktop.create(p.kind, ctx.at, { name: p.name, content: p.content, template: p.template }),
   });
-  menus.defineAction('desktop.openInFiles', { label: 'Apri la Scrivania in File', icon: 'folder', menus: scope, run: () => launch('files', { folder: desktop.folder }) });
+  menus.defineAction('desktop.openInFiles', { label: 'Apri la Scrivania nel File Manager', icon: 'folder', menus: scope, run: () => launch('files', { folder: desktop.folder }) });
   menus.defineAction('desktop.arrange', { label: 'Riordina icone', icon: 'grid', menus: scope, run: () => desktop.arrange() });
   menus.defineAction('desktop.selectAll', { label: 'Seleziona tutto', icon: 'check', menus: scope, shortcut: 'items.selectAll', run: () => desktop.select(desktop.scopeItems()) });
   menus.defineAction('workarea.create', {

@@ -6,7 +6,7 @@ const WELCOME = `Benvenuto in lilOS!
 Questa è una scrivania infinita: tieni premuto Spazio e trascina per spostarti,
 usa la rotella per lo zoom, trascina sullo sfondo per selezionare.
 
-- Doppio clic su una cartella: si apre nell'app File.
+- Doppio clic su una cartella: si apre nel File Manager.
 - Doppio clic su un file di testo: si apre nell'Editor (come questo).
 - Ctrl K apre il menu di avvio, Ctrl S salva nell'Editor.
 - Il pulsante accanto al logo cambia workspace: ognuno ha la sua scrivania,

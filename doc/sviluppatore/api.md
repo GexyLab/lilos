@@ -186,7 +186,7 @@ kernel.on('status', ({ error }) => { if (error) console.warn('non salvato:', err
 
 ### `apps`
 
-Le app installate in lilOS (pacchetti in `/system/app`, per tutti gli utenti e i workspace; File, Editor, Impostazioni e AppStore comprese). Non va confuso con `apps` di `src/apps/registry.js` (le app che lilOS sa avviare, che sono le stesse con il loro stato di avvio). L'elenco arriva con `kernel.connect()`.
+Le app installate in lilOS (pacchetti in `/system/app`, per tutti gli utenti e i workspace; File Manager, Editor, Impostazioni e AppStore comprese). Non va confuso con `apps` di `src/apps/registry.js` (le app che lilOS sa avviare, che sono le stesse con il loro stato di avvio). L'elenco arriva con `kernel.connect()`.
 
 | Metodo | Descrizione |
 | --- | --- |
@@ -319,7 +319,7 @@ File system virtuale: un albero di cartelle, file e collegamenti alle app, tenut
 - Tutti i metodi di lettura restituiscono **copie** che non condividono nemmeno l'array `tags`: l'albero si cambia solo con i metodi.
 - **Cestino.** `trash` sposta i nodi sotto una seconda radice nascosta (`fs.trashRoot`, `'trash'`). Per tutti gli altri metodi (`get`, `exists`, `children`, `resolve`, `read`, `snapshot`…) i nodi cestinati **non esistono**: si vedono solo con `trashed()`. Vedi [D28](../interna/decisioni.md#d28-il-cestino-è-una-seconda-radice-nascosta-del-file-system).
 - **Workspace.** Con un workspace impostato (`setWorkspace`), le cartelle `private` degli altri workspace e tutto ciò che contengono **non esistono**: `get`, `exists`, `children`, `ancestors`, `resolve`, `path`, `read`, `write`, `rename`, `move`, `remove`, `snapshot` e `restore` le ignorano (come un id sconosciuto). Senza workspace impostato (all'avvio, prima di `setupWorkspaces`) tutto è visibile. Due cartelle private di workspace diversi possono avere lo stesso nome nella stessa cartella (non si vedono mai insieme). Ogni nodo creato con un workspace impostato porta il suo id in `workspace`.
-- **Tag.** Un nodo con un tag nascosto (`setHiddenTags`) è escluso da `children()`, quindi da scrivania, File, selettore, pannello dell'Editor e conteggi, ma **esiste ancora**: `get`, `exists`, `resolve`, `ancestors`, `path`, `read` e `tagged` lo trovano. Così le finestre aperte, l'Editor e le scorciatoie continuano a funzionare. Un elemento dentro una cartella nascosta non è nascosto a sua volta (se non ha il tag), ma non si raggiunge finché la cartella è nascosta. Il campo `tags` si conserva in cestino, `snapshot`/`restore` e `move`. Vedi [D29](../interna/decisioni.md#d29-i-tag-stanno-sui-nodi-e-un-tag-invisibile-nasconde-gli-elementi).
+- **Tag.** Un nodo con un tag nascosto (`setHiddenTags`) è escluso da `children()`, quindi da scrivania, File Manager, selettore, pannello dell'Editor e conteggi, ma **esiste ancora**: `get`, `exists`, `resolve`, `ancestors`, `path`, `read` e `tagged` lo trovano. Così le finestre aperte, l'Editor e le scorciatoie continuano a funzionare. Un elemento dentro una cartella nascosta non è nascosto a sua volta (se non ha il tag), ma non si raggiunge finché la cartella è nascosta. Il campo `tags` si conserva in cestino, `snapshot`/`restore` e `move`. Vedi [D29](../interna/decisioni.md#d29-i-tag-stanno-sui-nodi-e-un-tag-invisibile-nasconde-gli-elementi).
 
 | Membro | Descrizione |
 | --- | --- |
@@ -389,7 +389,7 @@ Tag che si mettono su file e cartelle (`fs.setTags`) per ritrovarli ovunque sian
 ```
 
 - I nomi sono unici senza distinguere maiuscole e minuscole, spazi ripuliti, al massimo 30 caratteri. Al massimo 100 tag.
-- Un tag **invisibile** (`visible: false`) nasconde gli elementi che lo hanno, ovunque: `tags` lo comunica a `fs.setHiddenTags` all'avvio e a ogni cambio. Gli elementi si ritrovano con `fs.tagged` (in File, la vista del tag).
+- Un tag **invisibile** (`visible: false`) nasconde gli elementi che lo hanno, ovunque: `tags` lo comunica a `fs.setHiddenTags` all'avvio e a ogni cambio. Gli elementi si ritrovano con `fs.tagged` (nel File Manager, la vista del tag).
 - Alla lettura da `lilos:tags`: si tengono i tag con `id` di 1-40 caratteri tra lettere, cifre, `_` e `-`, senza doppioni; il nome è ripulito e unico; il colore non esadecimale diventa il primo di `TAG_COLORS`; `visible` è vero salvo `false`.
 
 | Membro | Descrizione |
@@ -575,7 +575,7 @@ Il pannello completo: minimappa, pulsanti −/+, percentuale (clic = 100%), "Mos
 
 ### `class Desktop`
 
-`new Desktop(canvas, folderId, layoutKey = 'desktop-layout')`: la scrivania come vista della cartella `folderId` del file system (la Scrivania del workspace attuale). Un `DesktopItem` per ogni nodo; posizioni da `lilos:<layoutKey>` (il sistema passa `ws:<id>:desktop-layout`), oppure il primo posto libero in colonna. Segue gli eventi `change` di `fs`, quindi mostra anche le modifiche fatte altrove (app File).
+`new Desktop(canvas, folderId, layoutKey = 'desktop-layout')`: la scrivania come vista della cartella `folderId` del file system (la Scrivania del workspace attuale). Un `DesktopItem` per ogni nodo; posizioni da `lilos:<layoutKey>` (il sistema passa `ws:<id>:desktop-layout`), oppure il primo posto libero in colonna. Segue gli eventi `change` di `fs`, quindi mostra anche le modifiche fatte altrove (File Manager).
 
 **Proprietà**
 
@@ -672,7 +672,7 @@ DOM: `div.ditem[data-kind="item"][data-id]` con `.ditem-glyph` e `.ditem-label`.
 - `FOLDER_COLOR`: colore predefinito delle cartelle, `#6f9bff`.
 - `folderIcon(color?)`, `fileIcon(name)`: icone SVG grandi.
 - `workareaIcon()`: icona di una workarea ridotta (cornice tratteggiata con due piccole finestre).
-- `itemIcon(data)`: l'icona giusta per qualsiasi nodo del file system (usata anche dall'app File) e, con `data.type === 'workarea'`, per le icone delle workarea.
+- `itemIcon(data)`: l'icona giusta per qualsiasi nodo del file system (usata anche dal File Manager) e, con `data.type === 'workarea'`, per le icone delle workarea.
 
 ---
 
@@ -680,7 +680,7 @@ DOM: `div.ditem[data-kind="item"][data-id]` con `.ditem-glyph` e `.ditem-label`.
 
 ### `targets.js`
 
-Comandi sugli elementi comuni a tutte le viste (desktop, app File), registrati una volta da `registerItemCommands()` nel gruppo **Elementi**: `items.open` (Invio), `items.rename` (F2, con un solo elemento selezionato), `items.delete` (Canc), `items.selectAll` (Ctrl A), `items.deselect` (Esc).
+Comandi sugli elementi comuni a tutte le viste (desktop, File Manager), registrati una volta da `registerItemCommands()` nel gruppo **Elementi**: `items.open` (Invio), `items.rename` (F2, con un solo elemento selezionato), `items.delete` (Canc), `items.selectAll` (Ctrl A), `items.deselect` (Esc).
 
 - `addTarget({ isActive, selectionSize, open, rename, remove, selectAll, deselect })`: una vista si iscrive; restituisce la funzione per togliersi. I comandi agiscono sul primo target con `isActive()` vero.
 - `activeTarget()`: il target attivo, o `null`.
@@ -695,7 +695,7 @@ Eliminare file e cartelle come dicono le impostazioni `deleteConfirm` e `deleteP
 
 ### `fsHistory.js`
 
-Azioni sul file system che finiscono in una `UndoStack`. Scrivania, app File e pannello dell'Editor usano le stesse, ciascuna con la propria cronologia. Ogni funzione fa l'azione e la registra (`stack` può essere `null`: allora la fa e basta). Undo e redo controllano che l'elemento esista ancora: se no lanciano un errore e la cronologia toglie la voce.
+Azioni sul file system che finiscono in una `UndoStack`. Scrivania, File Manager e pannello dell'Editor usano le stesse, ciascuna con la propria cronologia. Ogni funzione fa l'azione e la registra (`stack` può essere `null`: allora la fa e basta). Undo e redo controllano che l'elemento esista ancora: se no lanciano un errore e la cronologia toglie la voce.
 
 | Funzione | Descrizione |
 | --- | --- |
@@ -708,7 +708,7 @@ Azioni sul file system che finiscono in una `UndoStack`. Scrivania, app File e p
 
 ### `itemDrag.js`
 
-Trascinamento di file e cartelle, uguale in ogni vista che li mostra (scrivania, app File, pannello dell'Editor, app tue). Motivazioni in [D30](../interna/decisioni.md#d30-un-solo-modulo-di-trascinamento-per-tutte-le-viste-di-file-e-cartelle); come si usa in [Ricette](ricette.md#rendere-trascinabili-file-e-cartelle-in-unapp). Lo stile (`.drop-target`, `.item-ghost`, `body.items-dragging`) è in `src/styles/items.css`.
+Trascinamento di file e cartelle, uguale in ogni vista che li mostra (scrivania, File Manager, pannello dell'Editor, app tue). Motivazioni in [D30](../interna/decisioni.md#d30-un-solo-modulo-di-trascinamento-per-tutte-le-viste-di-file-e-cartelle); come si usa in [Ricette](ricette.md#rendere-trascinabili-file-e-cartelle-in-unapp). Lo stile (`.drop-target`, `.item-ghost`, `body.items-dragging`) è in `src/styles/items.css`.
 
 | Funzione | Descrizione |
 | --- | --- |
@@ -725,7 +725,7 @@ Trascinamento di file e cartelle, uguale in ogni vista che li mostra (scrivania,
 | `folder(hit)` | Restituisce l'id della cartella in cui vanno i nodi, o `null` (nessun rilascio). `hit` è l'elemento sotto il puntatore. Se c'è, i nodi si controllano con `movableInto` e, di norma, si spostano con `moveInto`. |
 | `drop(ids, ev, stack)` | Fa lei il rilascio. Con `folder` sostituisce il `moveInto` (i `ids` sono già filtrati); senza `folder` è l'unica azione. |
 | `accepts(ids)` | Per le zone senza `folder`: `false` per rifiutare. Senza `drop` una zona senza `folder` non accetta nulla. |
-| `target(hit, x, y, ids)` | Per le zone che decidono tutto da sole: restituisce `{ el, run(ev, stack) }` (`el` prende `drop-target`) o `null`. `x` e `y` sono le coordinate del puntatore. Ha la precedenza su `folder`, `drop` e `accepts`. Serve quando bisogna distinguere punti diversi della stessa area, come il centro e i bordi di una voce della barra laterale di File. |
+| `target(hit, x, y, ids)` | Per le zone che decidono tutto da sole: restituisce `{ el, run(ev, stack) }` (`el` prende `drop-target`) o `null`. `x` e `y` sono le coordinate del puntatore. Ha la precedenza su `folder`, `drop` e `accepts`. Serve quando bisogna distinguere punti diversi della stessa area, come il centro e i bordi di una voce della barra laterale del File Manager. |
 | `highlight(folder)` | L'elemento che riceve la classe `drop-target`, o `null` per non evidenziare nulla. Predefinito: la zona stessa. Con `folder` riceve l'id calcolato; senza, `null`. |
 
 **Opzioni di `dragItems`**
@@ -743,7 +743,7 @@ Come si trova il bersaglio: si prende l'elemento sotto il puntatore (`document.e
 
 ### `links.js`
 
-L'ordine della sezione «Collegamenti» nella barra laterale dell'app File: le voci fisse (Home, Scrivania, Documenti, Immagini, Download) e i collegamenti a file e cartelle trascinati lì. Il blocco dei tag e il Cestino stanno fuori dall'ordine.
+L'ordine della sezione «Collegamenti» nella barra laterale del File Manager: le voci fisse (Home, Scrivania, Documenti, Immagini, Download) e i collegamenti a file e cartelle trascinati lì. Il blocco dei tag e il Cestino stanno fuori dall'ordine.
 
 L'ordine è una lista di **chiavi**: un id di nodo (una voce fissa, con Home = `'root'`, oppure un collegamento) o `'desk'` (la Scrivania del workspace attuale, che ha un id diverso in ogni workspace). Le chiavi `'tags'` e `'trash'`, presenti nei salvataggi di una versione precedente, vengono tolte alla lettura (e il valore ripulito viene salvato).
 
@@ -759,7 +759,7 @@ L'ordine è una lista di **chiavi**: un id di nodo (una voce fissa, con Home = `
   | `remove(id)` | Toglie davvero la chiave dall'ordine (non resta tra quelle nascoste). Non fa nulla se non c'è. |
 
   Al massimo **80** chiavi: oltre, restano le ultime. Le chiavi non visibili ora restano salvate, al loro posto relativo (dopo la chiave che le precedeva). Si salva in `lilos:files-sidebar` ([Dati salvati](#lilosfiles-sidebar)); i vecchi collegamenti di `lilos:files-links` si leggono una volta, si aggiungono in fondo e la vecchia chiave si toglie.
-- `linkEntry(ids)` → voce di menu o `null`: `{ label: 'Aggiungi alla barra laterale di File', icon: 'link', action }` (aggiunge in fondo con `links.add`) per i nodi non ancora collegati, esclusi radice e nodi di sistema; `null` se non ce n'è nessuno (usalo in un array di `openMenu` con `.filter(Boolean)`). La usano i menu della scrivania, dell'app File e del pannello dell'Editor.
+- `linkEntry(ids)` → voce di menu o `null`: `{ label: 'Aggiungi alla barra laterale del File Manager', icon: 'link', action }` (aggiunge in fondo con `links.add`) per i nodi non ancora collegati, esclusi radice e nodi di sistema; `null` se non ce n'è nessuno (usalo in un array di `openMenu` con `.filter(Boolean)`). La usano i menu della scrivania, del File Manager e del pannello dell'Editor.
 
 ---
 
@@ -949,7 +949,7 @@ Lettura, controllo e scrittura di `lilos:workspaces` (formato in [Dati salvati](
 
 ### `info.js`
 
-Ciò che le app possono sapere dei workspace senza dipendere dal gestore (l'app File lo usa per la colonna Workspace). Il gestore si collega da solo.
+Ciò che le app possono sapere dei workspace senza dipendere dal gestore (il File Manager lo usa per la colonna Workspace). Il gestore si collega da solo.
 
 | Export | Descrizione |
 | --- | --- |
@@ -966,7 +966,7 @@ Il pulsante nella barra a destra del logo (`button.tb-ws`: pallino con il colore
 ## systemFs.js
 
 - `DESK_NAME`: `'Scrivania'`, il nome della cartella di ogni workspace.
-- `SYSTEM_FOLDERS`: le cartelle sotto la radice, con il simbolo per la barra laterale di File: Scrivania, Documenti, Immagini, Download.
+- `SYSTEM_FOLDERS`: le cartelle sotto la radice, con il simbolo per la barra laterale del File Manager: Scrivania, Documenti, Immagini, Download.
 - `setupFileSystem()` → `{ firstStart }` (`true` se non c'era nulla di salvato). Crea le cartelle di sistema **condivise** che mancano (Documenti, Immagini, Download). La Scrivania non la crea: ogni workspace ha la sua (`setupWorkspaces`). Va chiamata prima che un workspace sia impostato.
 - `fillDesk(deskId, layoutKey)`: al primo avvio riempie una Scrivania con gli elementi della vecchia scrivania piatta (`lilos:desktop`, che poi viene eliminata) o con `seed.js`, e scrive le posizioni sotto `layoutKey`.
 
@@ -1013,16 +1013,16 @@ Argomenti (`args`) che il sistema usa per avviarle, e stato per le workarea (`wi
 
 | App (`id`) | `args` | `getState()` |
 | --- | --- | --- |
-| File (`files`) | `folder`: id della cartella da aprire (altrimenti Home); `trash: true` (o `folder === fs.trashRoot`) apre il Cestino; `tag`: id di un tag che esiste, apre la vista di quel tag. Sulla finestra già aperta arriva l'evento `launch` e mostra la nuova cartella. | `{ folder }` (`fs.trashRoot` per il Cestino, `'tag:<id>'` per un tag) |
+| File Manager (`files`) | `folder`: id della cartella da aprire (altrimenti Home); `trash: true` (o `folder === fs.trashRoot`) apre il Cestino; `tag`: id di un tag che esiste, apre la vista di quel tag. Sulla finestra già aperta arriva l'evento `launch` e mostra la nuova cartella. | `{ folder }` (`fs.trashRoot` per il Cestino, `'tag:<id>'` per un tag) |
 | Editor (`editor`) | `file`: id del file da aprire; `folder`: cartella del pannello a destra (assente: l'ultima aperta; `null`: nessuna); `sidebar: false`: pannello chiuso. Apre i tipi di file dichiarati in `contributes.fileTypes` del suo manifesto. | `{ file, folder, sidebar? }` |
 | Impostazioni (`settings`) | `tab`: id di una scheda (`'workspaces'`, `'tags'`…), anche a finestra già aperta; `tagFor`: id dei nodi su cui metterà il prossimo tag creato (lo manda «Nuovo tag…» del sottomenu Tag). | nessuno (si riapre sulla prima scheda) |
 | AppStore (`appstore`) | `tab`: id di una scheda, quando la finestra è già aperta (evento `launch`). | nessuno |
 
 Il sistema dipende da questi argomenti (`launch('files', { folder })` in `system.js`, `launch('settings', { tab: 'workspaces' })` nel pulsante del workspace): cambiarli nell'app rompe il sistema. Il sistema non dipende invece dall'esistenza delle app: se una manca, `launch` scrive solo un'informazione in console (`app non ancora disponibile`).
 
-Cosa salvano (chiavi di `storage`, vedi [Dati salvati](#dati-salvati)): File `files-view`; Editor `editor-lang`, `editor-tree`; Impostazioni nulla di proprio (usa `settings`, `shortcuts`, `tags`, `menus`…). Le associazioni dei tipi di file e l'ordine della barra laterale di File sono del sistema (`file-apps`, `files-sidebar`).
+Cosa salvano (chiavi di `storage`, vedi [Dati salvati](#dati-salvati)): File Manager `files-view`, `files-panels`; Editor `editor-lang`, `editor-tree`; Impostazioni nulla di proprio (usa `settings`, `shortcuts`, `tags`, `menus`…). Le associazioni dei tipi di file e l'ordine della barra laterale del File Manager sono del sistema (`file-apps`, `files-sidebar`).
 
-Permessi dichiarati nei manifesti ufficiali: File `fs.write:~`, `fs.workspaces`, `tags.write`, `desktop.items`; Editor `fs.write:~`, `ui.shortcuts`, `net:https://json.schemastore.org`; Impostazioni `settings.system`, `workspaces.manage`, `tags.write`, `ui.shortcuts`; AppStore `apps.manage`. Per le app di sistema non c'è un controllo a ogni uso (non passano dal ponte): i permessi servono al kernel per accettare il manifesto e a mostrare cosa fa l'app.
+Permessi dichiarati nei manifesti ufficiali: File Manager `fs.write:~`, `fs.workspaces`, `tags.write`, `desktop.items`, `ui.shortcuts`; Editor `fs.write:~`, `ui.shortcuts`, `net:https://json.schemastore.org`; Impostazioni `settings.system`, `workspaces.manage`, `tags.write`, `ui.shortcuts`; AppStore `apps.manage`. Per le app di sistema non c'è un controllo a ogni uso (non passano dal ponte): i permessi servono al kernel per accettare il manifesto e a mostrare cosa fa l'app.
 
 ---
 
@@ -1045,7 +1045,7 @@ Permessi dichiarati nei manifesti ufficiali: File `fs.write:~`, `fs.workspaces`,
 | `handleCommand` | `apps/commands.js` | Un'app gestisce un suo comando |
 | `pickFile` | `apps/filePicker.js` | Selettore di file e cartelle |
 | `addTarget` | `items/targets.js` | Comandi sugli elementi |
-| `links`, `linkEntry` | `items/links.js` | Collegamenti della barra laterale di File |
+| `links`, `linkEntry` | `items/links.js` | Collegamenti della barra laterale del File Manager |
 | `markItem`, `dropZone`, `dragItems`, `movableInto`, `moveInto` | `items/itemDrag.js` | Trascinamento di file e cartelle |
 | `recordCreated`, `renameNode`, `moveNode`, `restoreNodes`, `removeNodes` | `items/fsHistory.js` | Azioni sul file system che entrano nella cronologia |
 | `confirmRemove` | `items/confirmRemove.js` | Eliminare come dicono le impostazioni |
@@ -1273,7 +1273,7 @@ Esporta anche `ACCENTS`, i colori proposti dall'app Impostazioni, `RETENTION_OPT
 
 ## tags/tagUi.js e scheda Tag
 
-`src/tags/tagUi.js`, usato da scrivania, File e Impostazioni:
+`src/tags/tagUi.js`, usato da scrivania, File Manager e Impostazioni:
 
 | Export | Descrizione |
 | --- | --- |
@@ -1793,7 +1793,7 @@ Un repository ha un `catalog.json` alla radice:
 | Evento | Payload | Emesso da | Gestito da |
 | --- | --- | --- | --- |
 | `app:launch` | `{ id, args }` | `launch()`: menu di avvio, collegamenti sul desktop | `connectLauncher` (`apps/launcher.js`) |
-| `item:open` | nodo del file system | `Desktop.open()` per cartelle e file | `system.js`: le cartelle si aprono nell'app File (`launch('files', { folder })`), i file con `openFile` |
+| `item:open` | nodo del file system | `Desktop.open()` per cartelle e file | `system.js`: le cartelle si aprono nel File Manager (`launch('files', { folder })`), i file con `openFile` |
 
 Quando aggiungi un evento, documentalo qui e nel commento in testa a `sdk/core/events.js`.
 
@@ -1824,9 +1824,9 @@ I workspace, con quello attuale:
 | --- | --- |
 | `id` | Identificativo; è anche il `workspace` dei nodi che ha creato. |
 | `desk` | Id della sua cartella Scrivania (privata). Solo nei workspace vivi. |
-| `apps` | Id delle app **visibili** nel workspace (le installate in lilOS e non nascoste). Le app `system` (File, Impostazioni) sono sempre visibili e non serve elencarle. Una nuova voce senza `apps` le ha tutte. |
+| `apps` | Id delle app **visibili** nel workspace (le installate in lilOS e non nascoste). Le app `system` (File Manager, Impostazioni) sono sempre visibili e non serve elencarle. Una nuova voce senza `apps` le ha tutte. |
 | `known` | Id delle app che lilOS aveva all'ultimo salvataggio. Alla lettura, le app del registro che non ci sono vengono aggiunte ad `apps`: un'app nuova arriva visibile, una nascosta dall'utente resta nascosta. Senza `known` (dati di prima) si considerano note tutte le app del registro. |
-| `removed` | Data di eliminazione. Una voce "rimossa" non ha `desk` né `apps`: resta solo perché i file creati da quel workspace dicano ancora di chi erano (File mostra «Nome (eliminato)»). |
+| `removed` | Data di eliminazione. Una voce "rimossa" non ha `desk` né `apps`: resta solo perché i file creati da quel workspace dicano ancora di chi erano (File Manager mostra «Nome (eliminato)»). |
 
 Controllo alla lettura, perché il dato non è affidabile: `list` deve essere un elenco (si leggono al massimo 120 voci); `id` di 1-40 caratteri tra lettere, cifre, `_` e `-`, senza duplicati; `name` ripulito (spazi, al massimo 40 caratteri), «Workspace» se vuoto; `color` esadecimale `#rrggbb`, altrimenti il primo accento; `created` numero finito, altrimenti l'ora della lettura; una voce viva senza `desk` è scartata; `apps` tiene solo id del registro, più quelli che `known` non conteneva; `known` è riscritto con gli id del registro attuale; al massimo 20 workspace vivi e 100 rimossi (gli ultimi). Se `current` non è un workspace vivo, `setupWorkspaces` sceglie il primo.
 
@@ -1948,11 +1948,15 @@ Controllo alla lettura, perché il dato non è affidabile:
 
 ### `lilos:files-view`
 
-Vista dell'app File: `"list"` o `"grid"`.
+Vista del File Manager: `"list"` o `"grid"`.
+
+### `lilos:files-panels`
+
+Pannelli a destra del File Manager (`src/files/SidePanel.js` nel repository ufficiale): `{ info: { open, width }, preview: { open, width } }`. `width` è in pixel, tra 180 e 720; i valori predefiniti sono Informazioni aperto a 260 px e Anteprima chiusa a 300 px. Scritta a ogni apertura, chiusura o cambio di larghezza.
 
 ### `lilos:files-sidebar`
 
-L'ordine della sezione «Collegamenti» della barra laterale di File: array di chiavi, uguale in tutti i workspace (`src/items/links.js`):
+L'ordine della sezione «Collegamenti» della barra laterale del File Manager: array di chiavi, uguale in tutti i workspace (`src/items/links.js`):
 
 ```json
 ["root", "desk", "m1x2a0k3f", "m1x2a0l9q"]
