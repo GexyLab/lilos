@@ -31,7 +31,7 @@ function readContents() {
         cursor.onsuccess = () => {
           const c = cursor.result;
           if (!c) return db.close(), resolve(out);
-          if (typeof c.key === 'string' && typeof c.value === 'string') out.set(c.key, c.value);
+          if (typeof c.key === 'string' && (typeof c.value === 'string' || c.value instanceof Blob)) out.set(c.key, c.value);
           c.continue();
         };
         cursor.onerror = () => { db.close(); resolve(out); };

@@ -486,6 +486,34 @@ Vale anche la chiave `"$schema"` scritta nel file. Con uno schema, i suggeriment
 | Language server | Accendere o spegnere i server nel browser (JSON, CSS, HTML); collegare un **server esterno** via WebSocket (`ws://…`) per un linguaggio, per esempio TypeScript avviato sul tuo computer con un ponte WebSocket |
 | Schemi JSON | Vedere e togliere gli schemi associati ai file |
 
+## Photo
+
+**Photo** mostra le immagini (PNG, JPEG, GIF, WebP, BMP, AVIF, ICO e SVG) e permette qualche ritocco. Non c'è di serie: un amministratore la installa dall'[AppStore](#lappstore). Si apre facendo doppio clic su un'immagine o dal menu di avvio. Le immagini SVG si aprono di solito nell'Editor: per vederle in Photo usa **Apri con**.
+
+### Portare le immagini in lilOS
+
+- **Importa dal computer** (la freccia verso l'alto nella barra) sceglie una o più immagini dal tuo computer e le copia in lilOS, nella cartella dell'immagine aperta oppure in **Immagini**. Puoi anche **trascinarle** dal computer dentro la finestra di Photo.
+- **Scarica** (la freccia verso il basso) salva sul tuo computer l'immagine aperta, con le modifiche fatte.
+- Le frecce ai lati dell'immagine (o **←** e **→**) passano alle altre immagini della stessa cartella.
+
+### Gli strumenti
+
+| Strumento | Tasto | Cosa fa |
+|---|---|---|
+| Guarda e sposta | V | Trascinando sposti l'immagine quando è più grande della finestra |
+| Disegna | B | Disegna a mano libera: colore, spessore e opacità nella barra sotto. **Gomma** cancella e rende trasparente |
+| Testo | T | Clic sull'immagine e scrivi; **Invio** mette il testo sull'immagine, **Maiusc Invio** va a capo, **Esc** annulla. Colore, carattere, dimensione e grassetto nella barra sotto |
+| Ritaglia | C | Trascina il riquadro, i suoi bordi o gli angoli (proporzioni libere, come l'immagine, 1:1, 4:3, 16:9…), poi **Ritaglia** o **Invio** |
+
+**Ridimensiona** cambia larghezza e altezza, in pixel o in percentuale, mantenendo le proporzioni se il lucchetto è attivo. **Converti** salva una copia in PNG, JPEG (più leggero, senza trasparenza) o WebP, con la qualità che scegli, e la apre se vuoi.
+
+### Zoom, annullare e salvare
+
+- **+** e **−** (o Ctrl e la rotella del mouse) ingrandiscono e riducono; **0** adatta l'immagine alla finestra, **1** la mostra a dimensione reale. La percentuale è scritta in basso a destra.
+- **Ctrl Z** e **Ctrl Y** annullano e ripetono le ultime 20 modifiche.
+- **Ctrl S** salva sopra il file, nel suo formato. GIF, SVG, BMP, AVIF e ICO non si possono riscrivere: Photo propone di salvare una copia in PNG, JPEG o WebP.
+- Con modifiche non salvate il titolo mostra un pallino (•) e, prima di chiudere o di passare a un'altra immagine, Photo chiede: **Salva**, **Non salvare** o **Annulla**.
+
 ## Annullare e ripetere
 
 **Ctrl Z** annulla l'ultima azione, **Ctrl Y** (o **Ctrl Shift Z**) la ripete. Agiscono **dove stai lavorando**: ogni posto ha il suo elenco di azioni, e lilOS sceglie quello dove hai fatto clic per ultimo. In basso compare un breve messaggio, per esempio "Annullato: Elimina «Appunti»" o "Ripetuto: Rinomina…".
