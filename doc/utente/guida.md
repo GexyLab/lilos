@@ -544,7 +544,7 @@ In **File Manager**, nella barra a sinistra sotto **Tag**, fai clic su un tag: v
 - Nell'elenco vedi Nome, **Posizione** (la cartella in cui sta l'elemento), Tipo e Workspace.
 - Puoi cercare per nome, ordinare, aprire, rinominare ed eliminare gli elementi, come in una cartella. Non puoi creare cartelle lì.
 - Tasto destro su un elemento → **Mostra nella cartella** apre la cartella dove sta; **Togli il tag «nome»** lo toglie.
-- Dalla scheda del tag in Impostazioni, **Mostra in File** apre la stessa vista.
+- Dalla scheda del tag in Impostazioni, **Mostra nel File Manager** apre la stessa vista.
 
 ### Rendere un tag invisibile
 
