@@ -513,6 +513,8 @@ Senza un modulo `auth` lilOS ha un solo utente (`local`, amministratore) e il ke
 ## D35. Le app locali girano in un iframe `sandbox` senza `allow-same-origin`
 
 > Vale per le app che non sono di sistema. Le app di sistema del repository ufficiale girano dentro lilOS, senza sandbox: [D38](#d38-le-app-di-sistema-vengono-dal-repository-ufficiale-e-girano-dentro-lilos).
+>
+> **Rivista da [D42](#d42-punti-dingresso-e-due-modalità-di-esecuzione-per-le-app) (30 ottobre 2026).** L'iframe `sandbox` resta il **modo predefinito**, ma non è più l'unico: un amministratore può far girare una singola app, o tutte, **non isolate** (finestra nella pagina di lilOS, background in un Web Worker). Valgono ancora per sempre isolate le app `remote` e quelle con `sdk` `"1"`. Quando sotto si legge «sempre» e «solo», si intende «per impostazione predefinita».
 
 **Decisione.** Un'app installata di tipo `local` si esegue in un `<iframe sandbox="allow-scripts">` e nient'altro: la pagina non ha un'origine propria, quindi non vede il DOM, i cookie, `localStorage` né IndexedDB di lilOS. Il documento (`srcdoc`) lo costruisce lilOS: una `Content-Security-Policy` in `<meta>` che permette solo il codice messo da lilOS, le librerie del manifesto e le origini dei permessi `net:` (`connect-src`), il ponte `window.lilos` e il codice dell'app. **Il codice si scarica dal kernel e se ne controlla l'hash con quello del manifesto prima di eseguirlo**; lo stesso vale per le librerie con `cache`. L'app parla con lilOS solo con messaggi (`postMessage`), e ogni messaggio è controllato in `src/apps/packages/host.js` contro i permessi del manifesto. Poiché l'origine è opaca, il messaggio si riconosce dalla finestra che lo manda, non dall'origine. Un'app di tipo `remote` è invece un sito: un iframe sul suo indirizzo (`https`, o `http://localhost`), con `allow-same-origin` che vale per il **suo** sito; lilOS rifiuta un indirizzo con la propria origine.
 
@@ -558,7 +560,7 @@ Senza un modulo `auth` lilOS ha un solo utente (`local`, amministratore) e il ke
 
 - La chiave di un editore si dà fuori banda (`pack.js --keygen` la stampa; chi si fida la mette in `config.json`).
 - ~~Il repository ufficiale non è ancora raggiungibile pubblicamente: oggi non si può installare un'app di sistema.~~ Ora il repository ufficiale esiste (privato) e il kernel ne installa le app all'avvio ([D41](#d41-le-app-di-sistema-mancanti-si-installano-allavvio-del-kernel)).
-- Alcuni permessi sono accettati dal manifesto ma il ponte non ha ancora le funzioni che li userebbero: `clipboard.read`, `media.*`, `geo`, `apps.call`, `ai.*`, `background`, `desktop.widget`, `ui.menus`. Vedi [Stato e roadmap](stato-e-roadmap.md).
+- Alcuni permessi sono accettati dal manifesto ma il ponte non ha ancora le funzioni che li userebbero: `clipboard.read`, `media.*`, `geo`, `ai.*`, `background`, `desktop.widget`, `ui.menus` (`apps.call` ora ha `lilos.apps.call`, [D42](#d42-punti-dingresso-e-due-modalità-di-esecuzione-per-le-app)). Vedi [Stato e roadmap](stato-e-roadmap.md).
 
 **Quando ripensarla.** Quando ci sarà un catalogo pubblico di app (l'interfaccia per installarle c'è: l'AppStore).
 
@@ -635,3 +637,37 @@ Senza un modulo `auth` lilOS ha un solo utente (`local`, amministratore) e il ke
 - Il catalogo ufficiale deve contenere le app indicate: una assente viene saltata con un avviso nel log.
 
 **Quando ripensarla.** Se le app di sistema diventeranno molte o opzionali, se il kernel dovrà partire senza rete, o se servirà aggiornarle da sole.
+
+## D42. Punti d'ingresso e due modalità di esecuzione per le app
+
+**Decisione.** Un'app installata con `sdk` `"2"` non è più «un modulo che gira all'avvio»: esporta **una funzione per ogni punto d'ingresso**. `main` è la finestra che apre l'utente; il manifesto può dichiararne altri (`entrypoints`, al massimo 20), di tipo `window` (un'altra finestra) o `background` (nessuna finestra: risponde alle chiamate con `lilos.handle`). Li avvia il sistema (`callEntrypoint`) o un'app: le proprie con `lilos.app.call` e `lilos.app.connect` (un canale `MessagePort`), quelle di altre app con `lilos.apps.call`, che richiede il permesso `apps.call:<app>` (finora dichiarabile ma senza effetto). Un background parte alla prima chiamata, si ferma dopo 5 minuti senza usi e resta acceso solo se lo chiede (`keepAlive`), mostrandosi nella barra con un pulsante «Ferma». Un'app passa a un'altra un `file` solo se l'ha ricevuto lei; ogni altro dato arriva così com'è e chi risponde lo controlla.
+
+Le app `local` con `sdk` `"2"` girano in **due modi**, scelti da un amministratore: una regola generale (Impostazioni → App → Sicurezza, `meta.security.isolated` della cartella `/system/app/.security`) e, per una singola app, una scelta propria (Proprietà → Sicurezza, `isolated` nello stato dell'app: `true`, `false` o `null` per la regola generale). Il predefinito è **isolato**.
+
+| | Isolata | Non isolata |
+| --- | --- | --- |
+| Finestra | `<iframe sandbox="allow-scripts">` | Pagina di lilOS, in uno Shadow DOM |
+| Background | iframe `sandbox` nascosto | Web Worker con l'origine di lilOS |
+| Cosa può fare l'app | Quello che concedono `lilos` e i permessi | **Tutto ciò che può fare l'utente**, permessi o no |
+
+Le app di sistema girano sempre nella pagina; le app `remote` e quelle con `sdk` `"1"` sempre isolate (una sola modalità, il kernel rifiuta la scelta per le prime due). Il cambio vale dalla prossima apertura. Il codice è lo stesso nei due modi: `lilosApi()` costruisce l'oggetto `lilos` attorno a una funzione `call`, che nella sandbox manda messaggi e nella pagina chiama direttamente.
+
+**Perché.** Servono app che fanno lavoro senza interfaccia e che si parlano: l'app **Cassaforte** (cifratura per file, che terrà le chiavi in un background) e, più avanti, le **pipe** sugli eventi (un'app che si iscrive a ciò che succede ai file e lo passa a un'altra). Entrambe hanno bisogno di punti d'ingresso con nome e permessi tra app. La modalità non isolata c'è perché la sandbox ha un costo (ogni app è una pagina a parte, i dati passano per messaggi, il disegno non condivide gli stili) e perché alcune app, di cui l'amministratore si fida, hanno bisogno di fare più di quanto il ponte permetta. Che sia una scelta di un amministratore, con un avviso, e che il predefinito resti isolato mantiene l'idea di [D35](#d35-le-app-locali-girano-in-un-iframe-sandbox-senza-allow-same-origin).
+
+**Un background isolato non è un Worker.** La prima idea era far girare il background isolato in un Web Worker creato dalla sandbox. Su Chrome non funziona: un Worker dentro una sandbox senza origine **non ha `crypto.subtle`** (non è un contesto sicuro), che serve proprio alla Cassaforte, e i worker a modulo non partono. Così il background isolato è un **iframe `sandbox` nascosto**, senza interfaccia. Chrome esegue un iframe sandbox in un processo separato: non rallenta la pagina di lilOS anche se l'app lavora molto. Il Worker resta per la modalità non isolata, dove l'origine è quella di lilOS.
+
+**Alternative scartate.** Isolare tutto in un Worker (vedi sopra). Far girare tutto non isolato (D35: codice di altri con la sessione dell'utente). Permessi che limitano anche le app non isolate: non si possono imporre a codice che gira nella pagina.
+
+**Conseguenze.**
+
+- **Un'app non isolata può fare tutto ciò che può fare l'utente.** I permessi del manifesto restano scritti e si vedono (Proprietà → Permessi), ma non la limitano. Chi sceglie la modalità deve fidarsi dell'editore: l'interfaccia lo dice nella scheda Sicurezza e in Impostazioni.
+- Il cambio di modalità non agisce su ciò che è già aperto. La scelta per una singola app ne ferma i background (l'app cambia nel registro); la regola generale no: i background già avviati restano come sono finché non si fermano.
+- Un'app con `sdk` `"1"` non si può rendere non isolata, né dichiarare `entrypoints`; per cambiare serve aggiornare il manifesto a `sdk` `"2"` e il codice a esportare `main`.
+- Un'app non isolata disegna in uno Shadow DOM: gli stili di lilOS non entrano (le variabili di tema sì), e gli stili dell'app non escono.
+- `@lilos/system` ha export nuovi (`callEntrypoint`, `connectEntrypoint`, `entrypointsOf`, `executionMode`, `canChangeExecution`, `describePermission`, `showAppProperties`, `showAppSecurity`, `showProperties`): vanno rilasciati in lilOS prima delle app che li usano ([D38](#d38-le-app-di-sistema-vengono-dal-repository-ufficiale-e-girano-dentro-lilos)).
+- Il kernel conserva la scelta nello stato dell'app (`isolated`) e la regola generale nella cartella `/system/app/.security`: un'app aggiornata mantiene la sua scelta, una rimossa la perde.
+- Le finestre di un punto d'ingresso diverso da `main` sono una per app e per punto d'ingresso, e tornano dalle workarea con lo stesso punto d'ingresso.
+- Non c'è ancora un modo di sapere chi chiama oltre a `from` (l'id dell'app, o `null` per il sistema), e `apps.call` non chiede conferma all'utente a ogni uso.
+- Non sono implementate le pipe, la Cassaforte né i metadati per app sui nodi del file system (una chiave per file che dica all'app che lo ha cifrato come leggerlo).
+
+**Quando ripensarla.** Quando arriveranno le pipe (se serve dichiarare chi si iscrive a quali eventi, e con quali permessi), quando la Cassaforte avrà bisogno di vedere i file di altre app, se un'app non isolata dovrà essere limitata comunque (per esempio con una CSP), o se i background dovranno vivere anche a lilOS chiuso (permesso `background`).

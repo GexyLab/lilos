@@ -145,6 +145,7 @@ src/
     fsHistory.js        azioni sul file system che finiscono in una cronologia (elimina, ripristina, crea, rinomina, sposta)
     itemDrag.js         trascinamento di file e cartelle, uguale in ogni vista (`markItem`, `dropZone`, `dragItems`)
     links.js            ordine della barra laterale del File Manager: voci fisse e collegamenti (`links`, `linkEntry`)
+    properties.js       finestra "Proprietà…" di un file o una cartella (un collegamento a un'app apre quelle dell'app)
   tags/
     tagUi.js            pallini dei tag, mettere e togliere un tag, sottomenu Tag dei menu
   canvas/               la scrivania infinita
@@ -158,16 +159,22 @@ src/
     seed.js             elementi della Scrivania al primo avvio
   apps/
     registry.js         elenco delle app installate (nessuna è integrata), quali sono visibili nel workspace attuale, launch()
-    launcher.js         da app:launch a finestre: carica l'app e la apre
+    launcher.js         da app:launch a finestre: carica l'app e la apre (una finestra per app e punto d'ingresso)
+    entrypoints.js      punti d'ingresso delle app: callEntrypoint, connectEntrypoint, entrypointsOf
+    appProperties.js    finestra "Proprietà…" di un'app: schede Generale, Permessi, Sicurezza
     filePicker.js       finestra per scegliere un file o una cartella di lilOS
     open.js             quale app apre quale tipo di file
     openWith.js         finestra "Apri con"
     commands.js         scorciatoie delle app dichiarate nel registro
     packages/
       packages.js       app installate nel registro (le app di sistema si importano da qui: loadSystemApp) e operazioni per utente (install, update, uninstall)
-      host.js           finestra e iframe di un'app non di sistema, controllo dei permessi
-      bridge.js         il codice window.lilos che gira nell'iframe
-      permissions.js    controllo dei percorsi dei permessi fs.read / fs.write
+      host.js           finestra di un'app non di sistema: in un iframe sandbox (isolata) o nella pagina, in uno Shadow DOM (non isolata)
+      background.js     punti d'ingresso in background: iframe sandbox nascosto o Web Worker, arresto dopo 5 minuti, keepAlive
+      isolation.js      come gira un'app (executionMode): isolata, non isolata, di sistema, remota
+      methods.js        le richieste che l'app può fare (lilos.*), controllate con i permessi; uguali per finestre e background
+      code.js           il codice dell'app e le librerie, controllati con gli hash; punti d'ingresso del manifesto
+      bridge.js         l'oggetto lilos (lilosApi) e il codice che lo porta nella sandbox e nel Worker
+      permissions.js    controllo dei percorsi dei permessi fs.read / fs.write; descrizione dei permessi in italiano
   workareas/            aree della scrivania che tengono insieme icone e finestre
     Workareas.js        gestore: appartenenza, workarea attuale, ridurre a icona, riaprire, spostare
     WorkareaFrame.js    il DOM di un'area: barra del titolo e bordi
@@ -183,7 +190,8 @@ src/
     WindowManager.js    finestre sulla scrivania: posizione, focus, trascinamento, barra, workspace di ogni finestra
   taskbar/
     Taskbar.js          pulsante logo, area finestre, utente e orologio (il pulsante workspace lo aggiunge Workspaces)
-    StartMenu.js        menu di avvio con ricerca; Esci (con più utenti) o Riavvia sessione
+    StartMenu.js        menu di avvio con ricerca; tasto destro su un'app: Apri, Proprietà…; Esci (con più utenti) o Riavvia sessione
+    BackgroundApps.js   icona con le app in background che sono rimaste attive (keepAlive) e "Ferma"
     Clock.js            data e ora
   styles/               stili del sistema, uno per area
     canvas.css          scrivania, HUD, minimappa
@@ -406,11 +414,13 @@ Dentro l'SDK `kernel` (`sdk/core/kernel.js`) fa le richieste e tiene i **tracker
 Un'app installata è un pacchetto: `lilos.json` con i suoi file. Decisioni: [D38](../interna/decisioni.md#d38-le-app-di-sistema-vengono-dal-repository-ufficiale-e-girano-dentro-lilos), [D35](../interna/decisioni.md#d35-le-app-locali-girano-in-un-iframe-sandbox-senza-allow-same-origin), [D36](../interna/decisioni.md#d36-le-app-installate-sono-di-tutti-le-operazioni-di-installazione-sono-per-utente), [D37](../interna/decisioni.md#d37-fiducia-nei-pacchetti-origine-firma-e-permessi). Contratti: [API → apps/packages](api.md#appspackages) e [Il kernel](api.md#il-kernel).
 
 - **Nel kernel** (`system/kernel/src/apps/`): `manifest.js` valida il manifesto, `permissions.js` elenca i permessi, `sources.js` scarica il pacchetto con `git` (o da una cartella locale), `repos.js` legge i repository e i loro cataloghi, `installer.js` installa, aggiorna e rimuove le app, `modulePackage.js` fa lo stesso per i moduli del kernel. Il pacchetto sta in `/system/app/<id>/<versione>`, le librerie con `cache: true` in `/system/commons/<libreria>/<versione>` e `/system/tmp/<id>` è riservata ai file temporanei dell'app (si toglie con l'app; oggi nessuna funzione del ponte la usa). Si tengono la versione in uso e la precedente. Installare, aggiornare e rimuovere è riservato agli amministratori.
-- **Nel frontend** (`src/apps/packages/`): `packages.js` mette le app installate nel registro (`registerApp` / `unregisterApp`) e le tiene allineate quando cambiano; `host.js` crea la finestra e l'iframe; `bridge.js` è il codice `window.lilos` che gira dentro l'iframe; `permissions.js` controlla i percorsi.
+- **Nel frontend** (`src/apps/packages/`): `packages.js` mette le app installate nel registro (`registerApp` / `unregisterApp`) e le tiene allineate quando cambiano; `isolation.js` dice come gira ogni app; `host.js` crea la finestra (iframe sandbox o Shadow DOM nella pagina); `background.js` fa girare i punti d'ingresso senza finestra; `methods.js` esegue le richieste dell'app dopo averle controllate con i permessi; `bridge.js` costruisce l'oggetto `lilos` (lo stesso in tutti i modi di girare); `permissions.js` controlla i percorsi.
 - **Registro.** `src/apps/registry.js` è dinamico: `apps` si modifica con `registerApp` e `unregisterApp`, ed emette `change` su `registry`. **Nessuna app è integrata**: anche File Manager, Editor, Impostazioni e AppStore sono pacchetti. Nel registro `system` vuol dire app necessaria (`required`: sempre visibile) e `trusted` app di sistema (`system`: gira in lilOS).
 - **Operazioni per utente.** `packages.js` (`setupUser`) esegue `install` e `update` del manifesto per l'utente che ha aperto lilOS, la prima volta che incontra l'app, e le registra in `app-setup` (versione, ciò che ha creato, passi di `uninstall`). Non sovrascrive. Se l'app non c'è più, toglie ciò che aveva creato; ciò che l'utente ha modificato va nel Cestino, i dati propri dell'app (`app:<id>:*`) si cancellano.
 - **Workspace.** Un'app installata vale per tutti: `Workspaces` la aggiunge a `apps` e `known` di ogni workspace quando compare nel registro, e la toglie (chiudendone le finestre) quando sparisce. Ogni workspace può nasconderla con `setInstalled` (non le necessarie).
-- **Esecuzione.** Un'app di sistema `local` gira dentro lilOS (vedi [Le app di sistema](#le-app-di-sistema-e-il-repository-ufficiale)). Un'altra app `local` gira in `<iframe sandbox="allow-scripts">` (origine opaca): lilOS scarica il codice dal kernel, ne controlla l'hash con il manifesto, costruisce il documento con una CSP (`net:` apre `connect-src`) e lo mette in `srcdoc`. Un'app `remote` è il suo sito in un iframe (`https`, o `http://localhost`).
+- **Esecuzione.** Un'app di sistema `local` gira dentro lilOS (vedi [Le app di sistema](#le-app-di-sistema-e-il-repository-ufficiale)). Un'altra app `local` gira **isolata** (il predefinito) in `<iframe sandbox="allow-scripts">` (origine opaca): lilOS scarica il codice dal kernel, ne controlla l'hash con il manifesto, costruisce il documento con una CSP (`net:` apre `connect-src`) e lo mette in `srcdoc`. Se un amministratore lo sceglie (per tutte le app o per una), un'app con `sdk` `"2"` gira invece **non isolata**: la finestra nella pagina di lilOS, in uno Shadow DOM, e i punti d'ingresso in background in un Web Worker; l'app può allora fare tutto ciò che fa l'utente. Un'app `remote` è il suo sito in un iframe (`https`, o `http://localhost`), sempre isolata, come le app con `sdk` `"1"`. Dettagli: [API → Modalità di esecuzione](api.md#modalità-di-esecuzione-isolationjs), decisione [D42](../interna/decisioni.md#d42-punti-dingresso-e-due-modalità-di-esecuzione-per-le-app).
+- **Punti d'ingresso.** Un'app con `sdk` `"2"` esporta una funzione per ogni punto d'ingresso: `main` (la finestra che apre l'utente) e quelli di `entrypoints` nel manifesto, finestre o in background. Le avvia il sistema (`callEntrypoint` di `@lilos/system`) o un'app (`lilos.app.call`, `lilos.apps.call` con il permesso `apps.call:<id>`). Un punto d'ingresso in background si ferma dopo 5 minuti senza chiamate, a meno che chieda `lilos.app.keepAlive()`. Vedi [API → Punti d'ingresso](api.md#punti-dingresso-entrypointsjs).
+- **Proprietà.** "Proprietà…" (menu di una cartella o un file sulla scrivania, `showProperties`; menu di avvio e collegamenti sulla scrivania per le app, `showAppProperties`) apre una finestra per elemento; quella di un'app ha le schede Generale, Permessi e Sicurezza.
 
 ### Persistenza
 

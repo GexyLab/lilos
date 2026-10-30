@@ -43,7 +43,7 @@ class Apps extends Emitter {
   }
 
   async setSecurity({ isolated }) {
-    const next = await kernel.request('PUT', '/apps-security', { isolated: isolated === true });
+    const next = await kernel.request('PUT', '/apps-security', { isolated });
     this.#security = { isolated: next.isolated !== false };
     this.emit('security', this.security());
   }

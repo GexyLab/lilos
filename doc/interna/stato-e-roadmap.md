@@ -1,6 +1,6 @@
 # Stato e roadmap
 
-Aggiornato al 30 ottobre 2026 (File Manager 1.1.0 con Informazioni e Anteprima; kernel, accesso degli utenti, app installate, repository, AppStore e app di sistema nel repository ufficiale aggiunti, non ancora in un commit; SDK 0.3.0; ultimo commit: f737c36; repository ufficiale: tag v1.1.0).
+Aggiornato al 30 ottobre 2026 (File Manager 1.1.0 con Informazioni e Anteprima; kernel, accesso degli utenti, app installate, repository, AppStore e app di sistema nel repository ufficiale aggiunti, non ancora in un commit; punti d'ingresso delle app, modalità isolata / non isolata e «Proprietà…» fatti sul ramo `app-entrypoints-pipes` (a6b984d); SDK 0.3.0; ultimo commit: c4b0a50; repository ufficiale: tag v1.1.0).
 
 ## Cosa c'è
 
@@ -36,6 +36,9 @@ Aggiornato al 30 ottobre 2026 (File Manager 1.1.0 con Informazioni e Anteprima; 
 | Kernel | Fatto (29 ottobre 2026): backend Node modulare in `system/kernel/` ([D31](decisioni.md#d31-un-kernel-modulare-con-il-controllo-degli-accessi-dentro-il-modulo-del-file-system)), con i moduli `users-basic` ([D32](decisioni.md#d32-utenti-in-un-file-il-modulo-users-basic)) e `fs-postgres` ([D33](decisioni.md#d33-il-file-system-del-kernel-sta-in-postgresql)); API per accesso, home dell'utente, impostazioni e app; riga di comando per gli utenti |
 | Utenti | Fatti (29 ottobre 2026): schermata di accesso, uscita dal menu di avvio, nuovo accesso se la sessione scade, trasferimento una tantum dei dati che il browser aveva prima ([D34](decisioni.md#d34-il-frontend-tiene-i-dati-in-memoria-e-li-sincronizza-per-differenze)). Ogni utente ha la sua cartella; senza modulo di accesso c'è un solo utente |
 | App installate | Fatte (29 ottobre 2026): pacchetti con `lilos.json`, installazione da un repository git o da una cartella locale, firma, permessi, operazioni per utente, esecuzione in iframe isolato per quelle non di sistema ([D35](decisioni.md#d35-le-app-locali-girano-in-un-iframe-sandbox-senza-allow-same-origin), [D36](decisioni.md#d36-le-app-installate-sono-di-tutti-le-operazioni-di-installazione-sono-per-utente), [D37](decisioni.md#d37-fiducia-nei-pacchetti-origine-firma-e-permessi)). Si installano dall'AppStore, dall'SDK (`apps.install`) o con le API; esempio in `examples/apps/note/`. Un'app installata vale per tutti i workspace, che possono solo nasconderla (non le necessarie) |
+| Punti d'ingresso delle app | Fatti (30 ottobre 2026, [D42](decisioni.md#d42-punti-dingresso-e-due-modalità-di-esecuzione-per-le-app)): manifesto con `sdk` `"2"` ed `entrypoints` (finestre e background); un'app esporta una funzione per punto d'ingresso; `lilos.app.call` / `connect` / `keepAlive`, `lilos.apps.call` con il permesso `apps.call:<app>`, `lilos.handle`; `callEntrypoint`, `connectEntrypoint`, `entrypointsOf` in `@lilos/system`; i background si fermano dopo 5 minuti senza usi, salvo `keepAlive` (icona nella barra con «Ferma»). Esempio: `examples/apps/note/` (finestra `main` e background `stats`) |
+| Modalità di esecuzione delle app | Fatta (30 ottobre 2026, D42): isolata (predefinita: iframe `sandbox`, anche per i background) o non isolata (pagina di lilOS in uno Shadow DOM; background in un Web Worker), scelta da un amministratore per tutte le app (Impostazioni → App → Sicurezza) o per una (Proprietà → Sicurezza); vale dalla prossima apertura. App di sistema sempre nella pagina; remote e `sdk` `"1"` sempre isolate |
+| Proprietà… | Fatta (30 ottobre 2026): finestra per file e cartelle (tipo, posizione, dimensione, date, workspace, tag; sola lettura) dal menu del tasto destro sulla scrivania e dal File Manager; per le app (menu di avvio con il tasto destro, collegamento sulla scrivania, icona dei background nella barra, Impostazioni → App → Sicurezza) le schede Generale, Permessi e Sicurezza |
 | AppStore | Fatto (29 ottobre 2026, app di sistema): schede App (Disponibili, Installate), Moduli del kernel (Disponibili, Installati, riavvio del kernel) e Repository (aggiungi, rimuovi); avviso per ciò che non è ufficiale; i non amministratori vedono ma non cambiano |
 | Repository | Fatti (29 ottobre 2026): origini via `git`, anche per repository privati, con le credenziali git del computer del kernel; l'ufficiale sempre presente, altri aggiunti da un amministratore, ognuno con un `catalog.json` ([D39](decisioni.md#d39-i-pacchetti-si-prendono-con-git)) |
 | Moduli del kernel come pacchetti | Fatti (29 ottobre 2026): `users-basic` e `fs-postgres` sono anche nel repository ufficiale; un amministratore installa, aggiorna e toglie i moduli dall'AppStore e riavvia il kernel (`npm run kernel` passa da `run.js`); i dati si conservano alla rimozione ([D40](decisioni.md#d40-i-moduli-del-kernel-si-installano-come-pacchetti-e-valgono-dopo-il-riavvio)) |
@@ -100,6 +103,10 @@ Aggiornato al 30 ottobre 2026 (File Manager 1.1.0 con Informazioni e Anteprima; 
 
 ### Kernel e app installate
 
+- **Un'app non isolata può fare tutto ciò che può fare l'utente.** I permessi che ha dichiarato non la limitano più (D42). Solo un amministratore la sceglie, e non per le app di sistema, remote o con `sdk` `"1"`.
+- **Il cambio di modalità non agisce su ciò che è già aperto.** Vale dalla prossima apertura; i background dell'app si fermano subito.
+- **Solo `sdk` `"2"` ha punti d'ingresso.** Le app con `sdk` `"1"` restano un modulo che gira all'avvio, solo isolate.
+- **I background non vivono a lilOS chiuso.** Girano solo nella sessione aperta, per utente e scheda (il permesso `background` non fa nulla).
 - **Il primo avvio richiede `git`, la rete e l'accesso al repository ufficiale.** Il repository è privato: il kernel usa le credenziali git del suo computer. Senza, il kernel parte e non installa le app di sistema (log: «App di sistema non installate»): lilOS non ha File Manager, Impostazioni né AppStore ([D41](decisioni.md#d41-le-app-di-sistema-mancanti-si-installano-allavvio-del-kernel)). Servono anche, ogni volta, per installare o aggiornare da qualunque repository.
 - **Le app di sistema girano senza sandbox.** Chi può scrivere nel repository ufficiale scrive codice che gira nella pagina di ogni utente ([D38](decisioni.md#d38-le-app-di-sistema-vengono-dal-repository-ufficiale-e-girano-dentro-lilos)). `@lilos/system` è un contratto: togliere un export rompe le app installate.
 - **Le app di sistema non si provano in locale.** Non c'è un server di sviluppo e un clone locale non conta come repository ufficiale: per provare si manda un ramo e si aggiorna l'app da lì con una versione più alta.
@@ -110,7 +117,7 @@ Aggiornato al 30 ottobre 2026 (File Manager 1.1.0 con Informazioni e Anteprima; 
 - **Moduli del kernel: i dati restano alla rimozione.** La cartella con i dati (per esempio gli utenti di `users-basic`) si cancella a mano. Un modulo messo a mano si toglie ma non si aggiorna dall'AppStore.
 - **Moduli del kernel: solo gli amministratori li vedono.** Gli altri utenti leggono «Solo un amministratore vede e gestisce i moduli del kernel».
 - **I widget non si vedono.** Il manifesto li valida (`contributes.widgets`, permesso `desktop.widget`) ma lilOS non li mostra sulla scrivania.
-- **Permessi dichiarati ma senza effetto.** Il ponte `window.lilos` offre solo file, dati propri, titolo, avvisi e appunti in scrittura. `clipboard.read`, `media.*`, `geo`, `apps.call`, `ai.*`, `background` e `ui.menus` si possono dichiarare ma non hanno funzioni. I permessi `use` non vengono chiesti all'utente a ogni uso.
+- **Permessi dichiarati ma senza effetto.** L'oggetto `lilos` offre file, dati propri, titolo, avvisi, appunti in scrittura e i punti d'ingresso (`apps.call` ha effetto dal 30 ottobre 2026). `clipboard.read`, `media.*`, `geo`, `ai.*`, `background` e `ui.menus` si possono dichiarare ma non hanno funzioni. I permessi `use` non vengono chiesti all'utente a ogni uso.
 - **App remote senza accesso al proprio servizio.** Il permesso `auth.remote` esiste, ma non c'è ancora un token da dare all'app remota.
 - **Nessuna sincronizzazione in diretta tra schede** (vedi sopra): ogni scheda manda le sue differenze, e sul singolo nodo vince l'ultima scrittura.
 - **Operazioni di installazione solo all'apertura di lilOS.** Girano per ogni utente la prima volta che incontra l'app (vedi [D36](decisioni.md#d36-le-app-installate-sono-di-tutti-le-operazioni-di-installazione-sono-per-utente)); il ripristino «Scrivania e file iniziali» le fa ripetere al ricaricamento.
@@ -143,6 +150,15 @@ Le app segnaposto del registro sono state tolte (29 ottobre 2026). Ora le app si
 - il token per le app remote (`auth.remote`) e le funzioni del ponte che mancano, con i permessi `use` chiesti all'utente a ogni uso (`clipboard.read`, fotocamera, microfono, posizione…);
 - la sincronizzazione in diretta tra schede e tra utenti (oggi vince l'ultima scrittura; un'app installata da altri compare solo ricaricando);
 - un visualizzatore di Immagini (dipende dai contenuti binari) e un Terminale, come app installabili.
+
+#### Punti d'ingresso: cosa resta
+
+I punti d'ingresso sono la base per due cose **non ancora costruite** ([D42](decisioni.md#d42-punti-dingresso-e-due-modalità-di-esecuzione-per-le-app)):
+
+- **Cassaforte**: un'app per cifrare i file uno per uno, con le chiavi tenute in un background (`keepAlive`). Non esiste ancora.
+- **Pipe sugli eventi**: un'app si iscrive a ciò che succede (per esempio a un file salvato) e passa il risultato a un'altra. Non esistono ancora: oggi un'app può solo chiamare un punto d'ingresso, non iscriversi a eventi.
+- **Metadati per app sui nodi**: non c'è ancora un modo per un'app di annotare un file o una cartella (per esempio «questo file è cifrato dalla Cassaforte»).
+- `apps.call` non chiede conferma all'utente a ogni uso, e chi riceve non conosce altro di chi chiama oltre all'id dell'app.
 
 ### 3. File system: contenuti e spostamenti
 

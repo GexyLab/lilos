@@ -25,6 +25,7 @@ Procedure passo per passo per le modifiche più comuni. Per i dettagli delle fun
 - [Usare i tag in un'app](#usare-i-tag-in-unapp)
 - [Rendere trascinabili file e cartelle in un'app](#rendere-trascinabili-file-e-cartelle-in-unapp)
 - [Creare un'app installabile (pacchetto)](#creare-unapp-installabile-pacchetto)
+- [Aggiungere un punto d'ingresso a un'app](#aggiungere-un-punto-dingresso-a-unapp)
 - [Installare un'app dall'esempio](#installare-unapp-dallesempio)
 - [Usare il kernel dal sistema o dall'SDK](#usare-il-kernel-dal-sistema-o-dallsdk)
 - [Aggiungere un modulo al kernel](#aggiungere-un-modulo-al-kernel)
@@ -517,7 +518,7 @@ Prova: trascina un file dalla tua vista sulla scrivania e su una finestra del Fi
 
 ## Creare un'app installabile (pacchetto)
 
-Un pacchetto è una cartella con `lilos.json` (il manifesto) e i suoi file. Il codice gira in un iframe isolato e parla con lilOS solo con `window.lilos` (contratto in [API → apps/packages](api.md#appspackages)). Le app di sistema sono un'altra cosa: vedi [Aggiungere o aggiornare un'app di sistema](#aggiungere-o-aggiornare-unapp-di-sistema). Un esempio completo è in `examples/apps/note/`.
+Un pacchetto è una cartella con `lilos.json` (il manifesto) e i suoi file. Il codice gira, per impostazione predefinita, in un iframe isolato e parla con lilOS solo con l'oggetto `lilos` (contratto in [API → apps/packages](api.md#appspackages)); un amministratore può far girare l'app anche **non isolata**, nella pagina di lilOS, dove potrebbe fare tutto ciò che fa l'utente: scrivi il codice in modo che funzioni uguale nei due modi, usando solo `lilos` e `root` (niente `document.body`, niente `fetch` verso lilOS, niente `window.parent`). Le app di sistema sono un'altra cosa: vedi [Aggiungere o aggiornare un'app di sistema](#aggiungere-o-aggiornare-unapp-di-sistema). Un esempio completo è in `examples/apps/note/`.
 
 1. Crea la cartella con il manifesto minimo:
 
@@ -529,22 +530,26 @@ Un pacchetto è una cartella con `lilos.json` (il manifesto) e i suoi file. Il c
      "name": "Note",
      "icon": { "glyph": "file", "color": "#d9822b" },
      "publisher": { "id": "acme", "name": "Acme" },
-     "sdk": "1",
+     "sdk": "2",
      "entry": "index.js",
      "permissions": ["fs.write:~/Documenti/Note"],
      "contributes": { "window": { "width": 640, "height": 420 } }
    }
    ```
 
-   L'`id` è minuscolo, con cifre, punti e trattini (2-64 caratteri). `entry` è **un solo modulo ES** con tutto ciò che importa già dentro (niente `import` verso altri file). Le librerie esterne si elencano in `libraries` con `integrity` (e `cache: true` per farle tenere al kernel).
-2. Scrivi `index.js` usando `lilos` (le funzioni sono asincrone):
+   L'`id` è minuscolo, con cifre, punti e trattini (2-64 caratteri). `entry` è **un solo modulo ES** con tutto ciò che importa già dentro (niente `import` verso altri file). Le librerie esterne si elencano in `libraries` con `integrity` (e `cache: true` per farle tenere al kernel). `"sdk": "2"` vuol dire che il modulo esporta una funzione per punto d'ingresso; con `"1"` il modulo è l'app stessa, gira per intero all'avvio con `lilos` globale e solo isolato (e non può avere `entrypoints`).
+2. Scrivi `index.js`: esporta `main`, la finestra che apre l'utente. Riceve `lilos` (le funzioni sono asincrone), `root` (dove disegnare) e `args`:
 
    ```js
-   const { files, ui, window: win } = lilos;
-   win.setTitle('Note');
-   const text = await files.read('~/Documenti/Note/uno.txt');
-   await files.write('~/Documenti/Note/uno.txt', text + '\nciao');
-   ui.toast('Salvato');
+   export async function main({ lilos, root }) {
+     const { files, ui, window: win } = lilos;
+     win.setTitle('Note');
+     const area = document.createElement('textarea');
+     area.value = await files.read('~/Documenti/Note/uno.txt');
+     root.append(area);
+     ui.toast('Aperta');
+     return () => { /* facoltativo: chiamata quando la finestra si chiude */ };
+   }
    ```
 
    Per i dati dell'app bastano `lilos.storage.get(chiave)` e `lilos.storage.set(chiave, valore)`. I nomi che arrivano dall'utente si mettono con `textContent`, mai con `innerHTML`.
@@ -568,6 +573,36 @@ Un pacchetto è una cartella con `lilos.json` (il manifesto) e i suoi file. Il c
 `install`, `update` e `uninstall` nel manifesto sono elenchi di operazioni (`mkdir`, `write`, `copy`, `desktopItem`, `tag`, `setting`, e `remove` solo in `uninstall`) che lilOS esegue **per ogni utente** la prima volta che incontra l'app, senza sovrascrivere nulla. Ogni operazione che tocca file chiede il permesso `fs.write` sul percorso; `desktopItem` chiede `desktop.items`, `tag` chiede `tags.write`. I percorsi iniziano con `~` (la cartella dell'utente) e si scrivono con i nomi che si vedono nel File Manager (`~/Documenti/Note`). Dettagli in [API → apps/packages](api.md#appspackages).
 
 Le scorciatoie si dichiarano in `contributes.commands` (`{ id, label, keys }`: l'`id` inizia con l'id dell'app e `keys` richiede il permesso `ui.shortcuts`); l'app le riceve come evento `lilos.on('command', id => …)` e l'utente le cambia in Impostazioni → Usabilità → Scorciatoie. Le estensioni che l'app apre si dichiarano in `contributes.fileTypes`.
+
+## Aggiungere un punto d'ingresso a un'app
+
+Un punto d'ingresso è una parte dell'app che si avvia da sola, con o senza finestra: serve per fare lavoro senza interfaccia (contare, cifrare, sincronizzare) o per avere più finestre. Solo per le app con `"sdk": "2"`. L'esempio `examples/apps/note/` ha un background `stats` che conta le parole delle note.
+
+1. Dichiara il punto d'ingresso nel manifesto (`main` è sempre una finestra e c'è anche se non lo scrivi):
+
+   ```json
+   "entrypoints": {
+     "main": { "kind": "window" },
+     "stats": { "kind": "background", "label": "Conta le parole delle note" }
+   }
+   ```
+
+   Il nome è `/^[a-z][a-zA-Z0-9]{0,30}$/` ed è il nome dell'export. Con `file` un punto d'ingresso vive in un altro file del pacchetto (`.js` o `.mjs`); `label` è il titolo di una finestra o il nome nella barra per un background; `window: { width, height }` vale solo per le finestre.
+2. Esporta la funzione con quel nome. Un background non ha `root`; risponde con `lilos.handle`:
+
+   ```js
+   export function stats({ lilos }) {
+     lilos.handle(async (data, { from }) => {
+       const list = (await lilos.files.list('~/Documenti/Note')).filter(f => f.type === 'file');
+       return { notes: list.length };   // il valore torna a chi ha chiamato
+     });
+   }
+   ```
+3. Chiamalo dalla stessa app con `await lilos.app.call('stats', dati)`. Se è una finestra, si apre (o torna in primo piano) con `dati` come `args` e la risposta è `null`. Per un canale continuo usa `lilos.app.connect('stats')` (una `MessagePort`; il background riceve l'evento `connect`).
+4. Per chiamare l'azione di **un'altra app** dichiara `apps.call:<id dell'altra app>` tra i `permissions` e usa `lilos.apps.call('altra.app', 'cifra', dati)`. Un `file` si può passare solo se l'app lo ha ricevuto (aperto con lei o passatole); il resto dei dati arriva così com'è: chi risponde deve controllarne la forma e le dimensioni, perché non sa chi lo ha costruito.
+5. Un background si ferma da solo dopo 5 minuti senza chiamate. Se deve restare (per esempio tiene chiavi in memoria) chiama `lilos.app.keepAlive()`: compare l'icona nella barra e l'utente può fermarlo. Cambiare modalità di esecuzione, aggiornare o rimuovere l'app lo ferma.
+
+Per chiamare un punto d'ingresso da un'app di sistema: `callEntrypoint(appId, entry, data)` di `@lilos/system` (non servono permessi). Per le app di sistema ogni punto d'ingresso è un export con quel nome del loro modulo.
 
 ## Installare un'app dall'esempio
 

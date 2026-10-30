@@ -105,6 +105,15 @@ Puoi anche **mettere file e cartelle dentro una cartella**: trascinali sopra una
 
 Con il tasto destro su un file, **Apri con…** permette di scegliere l'app anche quando ce n'è già una associata.
 
+### Proprietà
+
+Tasto destro su **un** elemento → **Proprietà…**. Se ne hai selezionati più di uno la voce non compare. Nel File Manager c'è la stessa voce.
+
+- **Per una cartella o un file** si apre una piccola finestra, solo da leggere: il tipo, dove si trova, quanto pesa (per una cartella, quanti file e cartelle contiene e la loro dimensione), quando è stato creato e modificato, il workspace, i tag e, per un file, l'app con cui si apre. Se l'elemento cambia mentre la finestra è aperta, si aggiorna; se sparisce, la finestra si chiude. Per ogni elemento c'è una sola finestra.
+- **Per un'app** (un collegamento sulla scrivania) si aprono le proprietà dell'app, che trovi anche con il tasto destro su un'app nel menu di avvio. Vedi [Proprietà di un'app](#proprietà-di-unapp).
+
+Una **workarea** ha le sue proprietà, con il titolo e la descrizione (vedi [Le workarea](#le-workarea)).
+
 ### Creare cartelle e file
 
 Fai clic con il **tasto destro** su un punto vuoto e apri **Nuovo**: scegli **Cartella**, **Workarea** (vedi [Le workarea](#le-workarea)), **Documento di testo**, **Documento Markdown** o **Pagina HTML** (che parte già con lo scheletro di una pagina). L'elemento compare dove hai fatto clic e puoi scriverne subito il nome.
@@ -262,7 +271,7 @@ Un workspace nuovo si crea anche dal menu del pulsante nella barra (**Nuovo work
 
 ## Il File Manager
 
-**File Manager** mostra le cartelle e il loro contenuto. Aprilo dal menu di avvio o dal collegamento sulla scrivania, oppure fai doppio clic su una cartella della scrivania: si apre direttamente lì. Dal tasto destro su un punto vuoto della scrivania, **Apri la Scrivania in File** mostra gli elementi della scrivania come elenco.
+**File Manager** mostra le cartelle e il loro contenuto. Aprilo dal menu di avvio o dal collegamento sulla scrivania, oppure fai doppio clic su una cartella della scrivania: si apre direttamente lì. Dal tasto destro su un punto vuoto della scrivania, **Apri la Scrivania nel File Manager** mostra gli elementi della scrivania come elenco.
 
 - **A sinistra**, la barra laterale. In cima la sezione **Collegamenti**: Home e le cartelle principali (Scrivania, Documenti, Immagini, Download) e i collegamenti che aggiungi tu (vedi [Collegamenti nella barra laterale](#collegamenti-nella-barra-laterale)), nell'ordine che scegli trascinandoli. Sotto, la voce **Tag** con un elemento per ogni tag che hai creato (vedi [I tag](#i-tag)) e in fondo il **Cestino** (vedi [Il Cestino](#il-cestino)): queste restano sempre al loro posto. Le cartelle principali non si possono rinominare né eliminare. **Scrivania** è quella del workspace in cui sei; Documenti, Immagini e Download sono di tutti.
 - **In alto**: Indietro, Avanti, Cartella superiore; il percorso (fai clic su una parte per tornarci); **Nuova cartella**; vista **elenco** o **a icone**; i pulsanti che aprono e chiudono i pannelli Anteprima e Informazioni; la ricerca nella cartella aperta (Esc la svuota).
@@ -594,10 +603,47 @@ L'app compare subito nel menu di avvio **per chi l'ha installata**. Gli altri ut
 Oltre a File Manager, Editor, Impostazioni e AppStore, che vengono dal repository ufficiale e fanno parte di lilOS, un amministratore può **installare altre app** dall'[AppStore](#lappstore). Un'app installata c'è per tutti gli utenti e per tutti i workspace: compare nel menu di avvio e si apre in una finestra come le altre.
 
 - **Un'app può preparare le sue cose.** La prima volta che incontri un'app nuova, lilOS può creare per te qualche cartella o file di esempio, un collegamento sulla scrivania del workspace in cui sei, un tag. Non sostituisce mai quello che hai già.
-- **Un'app vede solo ciò che le è stato permesso.** Per esempio può leggere e modificare soltanto i file di una cartella precisa. Non può leggere il resto della scrivania né gli altri dati di lilOS. I file che apri con l'app sono sempre accessibili all'app. (File Manager, Editor, Impostazioni e AppStore sono parte di lilOS e non hanno questo limite.)
+- **Un'app vede solo ciò che le è stato permesso.** Per esempio può leggere e modificare soltanto i file di una cartella precisa. Non può leggere il resto della scrivania né gli altri dati di lilOS. I file che apri con l'app sono sempre accessibili all'app. (File Manager, Editor, Impostazioni e AppStore sono parte di lilOS e non hanno questo limite.) Questo vale per le app **isolate**, che è come girano di solito: vedi [Isolate e non isolate](#isolate-e-non-isolate).
+- **Alcune app lavorano anche senza finestra.** Un'app può avere parti che girano in secondo piano (per esempio per contare le parole delle tue note) e che si avviano da sole quando servono. Si fermano dopo circa 5 minuti senza essere usate. Se un'app deve restare attiva (per esempio perché tiene in memoria qualcosa che ti serve), compare nella barra in basso un'icona con un fulmine: vedi [Le app che restano attive](#le-app-che-restano-attive).
 - **Nasconderla in un workspace.** In **Impostazioni → Workspace → Questo workspace** ogni app ha un interruttore: spento, l'app sparisce dal menu di avvio e da "Apri con" in quel workspace, e le sue finestre si chiudono (se hanno modifiche non salvate ti viene chiesto). L'app resta installata e negli altri workspace non cambia niente. File Manager, Impostazioni e AppStore non si nascondono.
 - **Quando l'amministratore la rimuove**, sparisce da tutti i workspace e le sue finestre si chiudono. Quello che l'app aveva creato per te viene tolto; **quello che hai modificato o riempito va nel Cestino** (compare un messaggio con quanti elementi), così non perdi il tuo lavoro. I dati che l'app teneva per sé (le sue impostazioni) si cancellano.
 - **L'Editor è un caso a parte.** Se lo rimuovi, i file di testo non hanno più un'app che li apre finché non lo reinstalli. Attenzione: **torna da solo** quando il kernel viene riavviato (anche solo per installare un modulo), a meno che chi gestisce lilOS non lo tolga dall'elenco delle app da installare all'avvio. Per non vederlo basta nasconderlo nel workspace.
+
+### Proprietà di un'app
+
+Per vedere che cosa è un'app: tasto destro sull'app nel menu di avvio → **Proprietà…** (o tasto destro sul suo collegamento sulla scrivania → **Proprietà…**). La finestra ha tre schede:
+
+| Scheda | Cosa c'è |
+| --- | --- |
+| **Generale** | Nome, descrizione, versione, l'editore (con «Firma verificata» oppure «Non verificata»), da dove viene, quando è stata installata e aggiornata, e le sue parti: la finestra principale, che si apre quando apri l'app, e le altre (finestre o parti in secondo piano) che avviano il sistema e le altre app |
+| **Permessi** | Che cosa l'app può fare, scritto in parole (per esempio «Leggere e modificare i file in Home/Documenti/Note»), com'è stato concesso quando è stata installata |
+| **Sicurezza** | Come gira l'app: isolata o no (vedi sotto) |
+
+Una sola finestra di proprietà per app. Se l'app viene rimossa mentre è aperta, si chiude.
+
+### Isolate e non isolate
+
+Un'app installata può girare in due modi.
+
+- **Isolata** (è il modo di lilOS di partenza). L'app è chiusa in una «scatola»: vede solo quello che i suoi permessi le concedono, niente altro di lilOS.
+- **Non isolata.** L'app gira dentro la pagina di lilOS: è più veloce, ma **può fare tutto quello che puoi fare tu**, anche quello che i suoi permessi non prevedono (leggere e modificare ogni tuo file, ogni impostazione, e agire come te). Scegli questo modo solo per app di cui ti fidi davvero.
+
+**Solo un amministratore** sceglie come girano le app. Gli altri utenti vedono il modo in uso, senza poterlo cambiare. Ci sono due posti:
+
+- **Impostazioni → App → Sicurezza.** L'interruttore **Esegui le app isolate** decide per tutte le app. Sotto, l'elenco delle app installate: per ognuna vedi come gira e se il modo è quello di tutte le altre o una scelta solo sua; il pulsante **Proprietà…** apre la sua scheda Sicurezza.
+- **Proprietà → Sicurezza** di una singola app, con tre scelte: **Come le altre app** (segue l'interruttore generale), **Isolata**, **Non isolata**.
+
+Il cambio vale **dalla prossima volta che apri l'app**: le finestre già aperte restano come sono (chiudile e riaprile). Le parti in secondo piano dell'app si fermano subito.
+
+Alcune app hanno un solo modo, e la scheda Sicurezza lo spiega:
+
+- **File Manager, Editor, Impostazioni e AppStore** fanno parte di lilOS e girano sempre dentro lilOS.
+- Le **app che sono un sito** (app remote) girano sempre isolate, nel loro sito.
+- Le **app scritte per una versione più vecchia** di lilOS girano solo isolate.
+
+### Le app che restano attive
+
+Quando un'app in secondo piano deve restare attiva, nella barra in basso compare un'icona con un **fulmine** (con un numero se sono più di una). Ci passi sopra per vedere il nome; con un clic si apre un menu: per ogni app puoi aprire le sue **Proprietà…** oppure **Ferma**. Fermarla interrompe quello che stava facendo e le fa dimenticare quello che teneva in memoria; si riavvia da sola alla prossima richiesta. L'icona sparisce quando non ce ne sono.
 
 Cosa non è ancora possibile: i widget sulla scrivania non si vedono ancora, e se ripristini la scrivania e i file iniziali un'app non rifà le sue cartelle e i suoi file di esempio.
 
@@ -640,7 +686,7 @@ Nella barra in basso, il pulsante di una finestra la porta in primo piano e la m
 
 Fai clic su una finestra per portarla davanti alle altre. Mentre una finestra è in primo piano, i tasti come Canc o Ctrl A agiscono sulla finestra e non sugli elementi della scrivania. Fai clic su un punto della scrivania per tornare a usarli sugli elementi.
 
-Ogni app ha una sola finestra: avviandola di nuovo torna in primo piano quella già aperta.
+Ogni app ha di solito una sola finestra: avviandola di nuovo torna in primo piano quella già aperta. Un'app installata può avere anche altre finestre (per esempio una per le impostazioni); ognuna è unica allo stesso modo.
 
 La rotella sopra il contenuto di una finestra lo fa scorrere; Ctrl + rotella fa sempre zoom.
 
@@ -665,6 +711,7 @@ Le modifiche valgono subito e restano salvate.
 | Usabilità | Tipi di file | Per ogni estensione (.txt, .md, .png…, e "Senza estensione"), l'app che apre i file di quel tipo, oppure "Chiedi ogni volta". "Ripristina tutti" torna alle app predefinite |
 | Usabilità | Cestino | Se chiedere conferma prima di eliminare, se eliminare definitivamente senza passare dal cestino, per quanto tempo il cestino conserva gli elementi; aprire e svuotare il cestino (vedi [Il Cestino](#il-cestino)) |
 | Usabilità | Scorciatoie | Le combinazioni di tasti di ogni comando (vedi [Cambiare le scorciatoie](#cambiare-le-scorciatoie)) e, nella sezione Mouse, la combinazione per la selezione a mano libera (Alt, Ctrl + Alt o Alt + Shift) |
+| App | Sicurezza | Se le app installate girano isolate o no: una scelta per tutte (la cambia solo un amministratore) e l'elenco di come gira ognuna; il pulsante **Proprietà…** (vedi [Isolate e non isolate](#isolate-e-non-isolate)) |
 | Archiviazione | — | Quanto spazio usano le tue impostazioni e il contenuto dei tuoi file; ripristino di impostazioni, scorciatoie e app dei tipi di file; ripristino della scrivania e dei file iniziali (con i workspace) |
 | Informazioni | — | Versione di lilOS, browser, lingua |
 
@@ -676,6 +723,7 @@ Aprilo con il **pulsante del logo** in basso a sinistra oppure con **Ctrl K**.
 
 - Scrivi per cercare un'app per nome. Compaiono le app visibili nel workspace in cui sei.
 - Usa le **frecce** per scegliere e **Invio** per avviare, oppure fai clic sull'app.
+- **Tasto destro** su un'app: **Apri**, oppure **Proprietà…** (vedi [Proprietà di un'app](#proprietà-di-unapp)).
 - **Esc** o di nuovo **Ctrl K** chiudono il menu. Si chiude anche facendo clic fuori.
 
 In fondo al menu trovi il tuo nome e due pulsanti:
@@ -821,6 +869,11 @@ Deve ricaricare la pagina.
 
 **Un'app non parte e compare un messaggio.**
 L'app è nascosta nel workspace in cui sei. Mostrala in Impostazioni → Workspace → Questo workspace.
+
+Oppure l'app non è riuscita ad avviarsi: il messaggio dice «*nome* non è partita» e il motivo. Se l'amministratore ha appena cambiato come gira l'app, chiudi la finestra e riaprila.
+
+**Come faccio a sapere se un'app può fare troppo?**
+Tasto destro sull'app nel menu di avvio → **Proprietà…**: la scheda **Permessi** elenca cosa può fare, la scheda **Sicurezza** dice se gira isolata. Un'app non isolata può fare tutto quello che puoi fare tu, quindi lasciala così solo se ti fidi di chi l'ha scritta. Solo un amministratore cambia il modo.
 
 **All'apertura compare "Il kernel di lilOS non risponde".**
 Il programma che conserva i tuoi dati non è acceso: chiedi a chi gestisce lilOS di avviarlo, poi premi **Riprova**. I tuoi dati non sono persi.

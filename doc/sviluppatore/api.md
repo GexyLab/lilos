@@ -162,7 +162,7 @@ import { kernel, KernelError } from '@lilos/sdk';
 | `connected` | `true` quando `connect()` ha caricato i dati dell'utente. |
 | `mode` | `'multi'` (gli utenti accedono) o `'single'` (un utente, senza accesso); `null` prima di `session()`. |
 | `user` | `{ id, username, name, role }` dell'utente collegato, o `null`. |
-| `data` | Ciò che `GET /api/boot` ha restituito: `{ user, fresh, nodes, storage, apps }`. Lo leggono `storage`, `fs` e `apps` appena vengono caricati. |
+| `data` | Ciò che `GET /api/boot` ha restituito: `{ user, fresh, nodes, storage, apps, appSecurity }`. Lo leggono `storage`, `fs` e `apps` appena vengono caricati. |
 | `request(method, path, body?, { text = false, keepalive = false })` | Una richiesta a `/api<path>`, con il cookie e l'intestazione `X-Lilos: 1`. `body` oggetto = JSON, stringa = testo. Restituisce il JSON della risposta (il testo con `text: true`, `undefined` per 204). Lancia `KernelError`. Una risposta 401 con l'utente connesso, in modalità `multi`, emette anche `signedout`. |
 | `session()` | `GET /api/session` → `{ mode, user }`; aggiorna `mode` e `user`. |
 | `login(username, password)` | Accede; restituisce l'utente. Lancia `KernelError` (`invalid_credentials`, `rate_limited`). |
@@ -190,7 +190,10 @@ Le app installate in lilOS (pacchetti in `/system/app`, per tutti gli utenti e i
 
 | Metodo | Descrizione |
 | --- | --- |
-| `list()` | Copie dello stato di ogni app: `{ id, version, previous, kind, system, required, source, signed, publisher, granted, installed, updated, manifest }`. `source` è `{ type: 'git', url, ref, commit, path? }` (o `{ type: 'local', dir }`). |
+| `list()` | Copie dello stato di ogni app: `{ id, version, previous, kind, system, required, source, signed, publisher, granted, installed, updated, isolated, manifest }`. `source` è `{ type: 'git', url, ref, commit, path? }` (o `{ type: 'local', dir }`). `isolated`: `true` o `false` se un amministratore ha scelto come gira questa app, `null` per la regola generale. |
+| `security()` | `{ isolated }`: la regola generale su come girano le app (`true` se un amministratore non ha scelto altro). Una copia; si legge dai dati di avvio (`appSecurity`). |
+| `setSecurity({ isolated })` | Cambia la regola generale (solo amministratori; `isolated` deve essere `true` o `false`). Emette `security`. Lancia `KernelError` (`forbidden`, `invalid`). |
+| `setAppSecurity(id, isolated)` | Sceglie come gira una sola app (solo amministratori): `true`, `false`, oppure `null` per tornare alla regola generale. Lancia `invalid` per le app di sistema e le remote, che hanno una sola modalità. Poi fa `refresh()`. |
 | `get(id)` | Una app o `null`. |
 | `refresh()` | Rilegge l'elenco dal kernel ed emette `change` per ciò che è diverso. |
 | `install(source, { grant = [], allowUnsigned = false })` | Installa (solo amministratori). `source`: `{ type: 'git', url, ref?, path? }` (un repository git; vedi [Origini dei pacchetti](#origini-dei-pacchetti-sourcesjs)), `{ type: 'github', repo: 'proprietario/nome', ref?, path? }` (lo stesso, scritto in breve) o `{ type: 'local', dir }` (cartella assoluta sul computer del kernel, solo con `apps.allowLocalSources`). `grant`: i permessi del manifesto che non sono impliciti. `allowUnsigned`: l'utente ha accettato l'avviso per un'app non verificabile. Restituisce l'app. Lancia `KernelError` (`forbidden` per permessi mancanti o app non verificata, `conflict` se è già installata…). |
@@ -199,7 +202,9 @@ Le app installate in lilOS (pacchetti in `/system/app`, per tutti gli utenti e i
 | `file(id, path)` | Il testo di un file della versione in uso (il codice). |
 | `library(name, version)` | Il testo di una libreria con `cache: true`. |
 
-Evento `change` `{ id, app }`: un'app è stata installata o aggiornata (`app` è lo stato nuovo) o rimossa (`app` è `null`). Solo `refresh()` — chiamato da `install`, `update` e `uninstall` — lo emette: se un altro amministratore o un'altra scheda installa un'app, questa scheda se ne accorge solo dopo una `refresh()` o una ricarica (non c'è sincronizzazione in diretta).
+Evento `change` `{ id, app }`: un'app è stata installata o aggiornata (`app` è lo stato nuovo) o rimossa (`app` è `null`). Solo `refresh()` — chiamato da `install`, `update`, `uninstall` e `setAppSecurity` — lo emette: se un altro amministratore o un'altra scheda installa un'app, questa scheda se ne accorge solo dopo una `refresh()` o una ricarica (non c'è sincronizzazione in diretta).
+
+Evento `security` `{ isolated }`: la regola generale è cambiata (lo emettono `setSecurity` e `refresh()` quando la trova diversa). Il cambio di modalità vale dalla prossima apertura dell'app (o dal prossimo avvio del suo punto d'ingresso in background), non per ciò che è già aperto.
 
 ### `repositories`
 
@@ -1007,7 +1012,7 @@ Scorciatoie delle app, dichiarate nel registro (`commands`) e registrate all'avv
 
 File, Editor, Impostazioni e AppStore **non stanno in questo repository**: sono pacchetti di [GexyLab/lilos-plugins-official](https://github.com/GexyLab/lilos-plugins-official) (sorgenti in `src/<app>/`, pacchetto pronto in `apps/<id>/`) che il kernel installa all'avvio se mancano ([D41](../interna/decisioni.md#d41-le-app-di-sistema-mancanti-si-installano-allavvio-del-kernel)). Come si lavora su di loro: [README per sviluppatori](README.md#le-app-di-sistema-e-il-repository-ufficiale). Qui c'è quello che lilOS si aspetta da loro e che gli dà.
 
-Un'app di sistema è un modulo ES come le altre: l'export predefinito riceve `{ args, openWindow }` e restituisce una `Window` (vedi [apps/registry.js e apps/launcher.js](#appsregistryjs-e-appslauncherjs)). Importa `@lilos/sdk` e [`@lilos/system`](#systemapijs-lilossystem); non ha sandbox.
+Un'app di sistema è un modulo ES come le altre: l'export predefinito riceve `{ args, openWindow }` e restituisce una `Window` (vedi [apps/registry.js e apps/launcher.js](#appsregistryjs-e-appslauncherjs)). Importa `@lilos/sdk` e [`@lilos/system`](#systemapijs-lilossystem); non ha sandbox. Se dichiara `entrypoints` (manifesto con `sdk` `"2"`), ogni punto d'ingresso è un export **con quel nome** dello stesso modulo (o del suo `file`): una finestra è una funzione `({ args, openWindow, entry }) → Window`, un background è una funzione `({ lilos, args })` che chiama `lilos.handle` (stesso oggetto `lilos` delle app installate, sempre nella pagina di lilOS; vedi [Background](#background-backgroundjs)).
 
 Argomenti (`args`) che il sistema usa per avviarle, e stato per le workarea (`win.getState`):
 
@@ -1043,6 +1048,11 @@ Permessi dichiarati nei manifesti ufficiali: File Manager `fs.write:~`, `fs.work
 | `apps`, `registry`, `getApp`, `isInstalled`, `installedApps`, `launch` | `apps/registry.js` | Il registro delle app (non l'`apps` dell'SDK) |
 | `fileApps`, `appFor`, `defaultAppFor`, `setAppFor`, `resetAppsFor`, `knownExtensions`, `openFile` | `apps/open.js` | Quale app apre quale file |
 | `handleCommand` | `apps/commands.js` | Un'app gestisce un suo comando |
+| `callEntrypoint`, `connectEntrypoint`, `entrypointsOf` | `apps/entrypoints.js` | Avviare un punto d'ingresso di un'app, collegarsi a uno in background, elencare quelli di un'app (vedi [Punti d'ingresso](#punti-dingresso-entrypointsjs)) |
+| `executionMode`, `canChangeExecution` | `apps/packages/isolation.js` | Come gira un'app installata; se l'utente può cambiarlo (è amministratore) |
+| `describePermission` | `apps/packages/permissions.js` | Un permesso in italiano (`'fs.read:~/Documenti'` → «Leggere i file in Home/Documenti») |
+| `showAppProperties`, `showAppSecurity` | `apps/appProperties.js` | Aprono "Proprietà…" di un'app (la seconda sulla scheda Sicurezza) |
+| `showProperties` | `items/properties.js` | Apre "Proprietà…" di un file o una cartella (di un collegamento a un'app apre quelle dell'app) |
 | `pickFile` | `apps/filePicker.js` | Selettore di file e cartelle |
 | `addTarget` | `items/targets.js` | Comandi sugli elementi |
 | `links`, `linkEntry` | `items/links.js` | Collegamenti della barra laterale del File Manager |
@@ -1063,8 +1073,8 @@ Per le firme vedi le sezioni dei moduli di origine in questa pagina.
 - `registerApp(app)`: aggiunge l'app o sostituisce quella con lo stesso id (una nuova versione). `unregisterApp(id)`: la toglie. Le chiama `packages.js`.
 - `getApp(id)` → l'app o `undefined`.
 - `isInstalled(id)` → `true` se l'app esiste ed è visibile nel workspace attuale (le `system` sempre; il nome viene da quando le app si installavano per workspace). `installedApps()` → quelle visibili, nell'ordine del registro. `setInstalledFilter(fn)`: il sistema (`Workspaces`) imposta `fn(appId) → boolean`; predefinito: tutte visibili. Il menu di avvio mostra solo le visibili.
-- `launch(id, args?)`: emette `app:launch` con `{ id, args }`.
-- `connectLauncher(wm)`: trasforma `app:launch` in finestre. Al primo avvio carica il modulo dell'app e chiama il suo export predefinito `({ args, openWindow }) → Window`, poi apre la finestra con `wm.open(win, { app: id, center, bounds })`. Se l'app ha già una finestra **nell'ambito attuale** (e nel workspace attuale) la riporta in primo piano (ed emette `launch`). Le app senza `load` (o inesistenti) scrivono un avviso in console. Un'app **nascosta** nel workspace attuale non parte: un messaggio (`toast`) dice di mostrarla da Impostazioni → Workspace. La finestra appartiene al workspace attuale al momento della richiesta, anche se l'utente cambia workspace mentre l'app si carica (in quel caso si apre nascosta nel suo workspace).
+- `launch(id, args?, entry = 'main')`: emette `app:launch` con `{ id, args, entry }`. `entry` è uno dei punti d'ingresso di tipo finestra dell'app; l'utente apre sempre `main`.
+- `connectLauncher(wm)`: trasforma `app:launch` in finestre. Al primo avvio carica il modulo dell'app e chiama il suo export predefinito `({ args, openWindow, entry }) → Window` (per un'app di sistema e un `entry` diverso da `main`, l'export con quel nome), poi apre la finestra con `wm.open(win, { app: id, center, bounds })`. Se l'app ha già una finestra di **quel punto d'ingresso** **nell'ambito attuale** (e nel workspace attuale) la riporta in primo piano (ed emette `launch`). Una finestra che non è `main` salva `{ __entry, args }` come stato, così le workarea la riaprono dallo stesso punto d'ingresso. Se l'app non parte, un messaggio (`toast`) lo dice. Le app senza `load` (o inesistenti) scrivono un avviso in console. Un'app **nascosta** nel workspace attuale non parte: un messaggio (`toast`) dice di mostrarla da Impostazioni → Workspace. La finestra appartiene al workspace attuale al momento della richiesta, anche se l'utente cambia workspace mentre l'app si carica (in quel caso si apre nascosta nel suo workspace).
 - `connectLauncher(wm)` restituisce `{ restore }`. `restore({ app, state, rect }, { workspace = wm.workspace })` ricrea la finestra di un'app com'era: chiama il suo export con `state` come `args` e la apre con `wm.open(win, { app, at: rect, workspace })`, senza spostare la camera. Restituisce una Promise con la finestra, o `null` se l'app non esiste, è nascosta nel workspace attuale o non parte.
 - `setLaunchScope({ includes, center, bounds })`: stringe l'ambito in cui il launcher lavora (lo imposta `Workareas`). `includes(win)` → `boolean` dice quali finestre aperte contano come "la finestra dell'app" (una per app per ambito); `center(win)` → punto del mondo o `null` dove va una finestra nuova (`null`: il centro della vista); `bounds()` → rettangolo del mondo o `null` in cui deve restare. Predefinito: tutta la scrivania, nessun centro né limite. `openWindow` delle app (finestre secondarie) usa lo stesso centro e gli stessi limiti.
 
@@ -1085,7 +1095,7 @@ export default function createNotes({ args }) {
 
 ## apps/packages/
 
-Le app installate (pacchetti) nel sistema, di sistema e non. Panoramica: [README per sviluppatori](README.md#app-installate-pacchetti); ricetta: [Creare un'app installabile](ricette.md#creare-unapp-installabile-pacchetto); decisioni D35-D38.
+Le app installate (pacchetti) nel sistema, di sistema e non. Panoramica: [README per sviluppatori](README.md#app-installate-pacchetti); ricetta: [Creare un'app installabile](ricette.md#creare-unapp-installabile-pacchetto); decisioni D35-D38 e D42.
 
 ### Manifesto `lilos.json`
 
@@ -1095,15 +1105,16 @@ Validato dal kernel (`system/kernel/src/apps/manifest.js`), che scarta i campi c
 | --- | --- |
 | `id` | Minuscolo, cifre, punti e trattini, 2-64 caratteri (`acme.note`). È anche l'id nel registro. |
 | `version` | `x.y.z`. |
-| `kind` | `'local'` (codice del pacchetto: in iframe isolato, o dentro lilOS se è un'app di sistema) o `'remote'` (un sito in un iframe). |
+| `kind` | `'local'` (codice del pacchetto: isolato in una sandbox o no a seconda di [come gira](#modalità-di-esecuzione-isolationjs); dentro lilOS se è un'app di sistema) o `'remote'` (un sito in un iframe, sempre isolato). |
 | `name` | Nome mostrato, fino a 40 caratteri. |
 | `icon?` | `{ glyph, color }`: nome di un simbolo (`icon()`) e colore `#rrggbb`. Predefiniti `help` e `#5f6673`. |
 | `publisher` | `{ id, name, key? }`; `key` è la chiave pubblica Ed25519 (`ed25519:<base64>`). |
-| `sdk` | `"1"`. |
+| `sdk` | `"1"` o `"2"` (accetta anche i numeri 1 e 2). Con `"1"` il codice dell'app gira in cima al suo modulo, con `lilos` globale, **solo isolato**, e non ha `entrypoints`. Con `"2"` ogni punto d'ingresso è una funzione esportata dal modulo (vedi `entrypoints` e [Punti d'ingresso](#punti-dingresso-entrypointsjs)). |
 | `description?` | Una frase che dice cosa fa (fino a 300 caratteri); la mostra l'AppStore. |
 | `system?` | Solo `true`, e solo per app dal repository ufficiale ([D38](../interna/decisioni.md#d38-le-app-di-sistema-vengono-dal-repository-ufficiale-e-girano-dentro-lilos)): l'app gira **dentro lilOS, senza sandbox**, e può chiedere i permessi riservati. |
 | `required?` | Solo `true`, e solo con `system`: l'app è necessaria a lilOS, non si rimuove né si nasconde. |
 | `entry` | Solo `local`: uno dei file del pacchetto, un modulo ES. In un'app non di sistema ha tutto già dentro; un'app di sistema può avere più file (blocchi, worker, file `.wasm`) accanto all'entry. |
+| `entrypoints?` | Solo app `local` con `sdk` `"2"` (altrimenti il manifesto è rifiutato): le parti dell'app che altri possono avviare. Oggetto `{ nome: { kind, file?, label?, window? } }`, al massimo 20. `nome`: `/^[a-z][a-zA-Z0-9]{0,30}$/`, ed è anche il nome dell'export da chiamare. `kind`: `'window'` o `'background'`. `file?`: un `.js` o `.mjs` tra i `files` (predefinito `entry`). `label?`: fino a 60 caratteri (titolo della finestra, nome nella barra per un background). `window?`: `{ width, height }` (200-4000 × 150-4000), **solo per `window`**. `main` esiste sempre come finestra, anche se non è dichiarato; se è dichiarato deve essere `kind: 'window'`. |
 | `styles?` | Solo app di sistema: fogli di stile `.css` del pacchetto (fino a 10, tra i `files`) che lilOS carica insieme all'app. |
 | `files` | `{ percorso: 'sha256-<base64>' }`: ogni file del pacchetto (fino a 1000, percorsi di fino a 16 livelli con `[\w.-]`). Lo riempie `pack.js` (o, nel repository ufficiale, `scripts/build.mjs`). |
 | `url` | Solo `remote`: `https://…` (o `http://localhost`). Non può avere l'origine di lilOS. |
@@ -1135,9 +1146,9 @@ Un permesso è `nome` oppure `nome:parametro`. Un permesso non nell'elenco, o co
 | `clipboard.read` | use | Leggere gli appunti | Nessuno |
 | `net:<origine>` | install | Collegarsi a un sito (`https://api.esempio.it`, senza percorso) | Apre `connect-src` della CSP |
 | `media.camera`, `media.microphone`, `geo` | use | Fotocamera, microfono, posizione | Nessuno (l'iframe non ha `allow`) |
-| `apps.call:<id app>` | install | Usare le azioni di un'altra app | Nessuno |
+| `apps.call:<id app>` | install | Usare le azioni di un'altra app | `lilos.apps.call(<id app>, entry, data)`. Per i propri punti d'ingresso (`lilos.app.call`) non serve. Dentro: **un'app passa a un'altra un `file` solo se l'ha ricevuto lei** (aperto con l'app o passatole); gli altri dati arrivano così come sono e chi li riceve deve controllarli |
 | `ai.use`, `ai.expose` | install | Usare l'intelligenza artificiale / esporre le proprie azioni | Nessuno |
-| `background` | install | Lavorare anche a lilOS chiuso | Nessuno |
+| `background` | install | Lavorare anche a lilOS chiuso | Nessuno (non c'entra con i punti d'ingresso `background`, che non richiedono permessi e girano solo finché lilOS è aperto) |
 | `auth.remote` | implicit | Accedere al proprio servizio (app remote) | Nessuno: il token non c'è |
 | `fs.workspaces`, `apps.manage`, `workspaces.manage`, `settings.system` | reserved | Funzioni di sistema | Nessuno: le app di sistema non passano dal ponte, usano `@lilos/system` e l'SDK; i permessi servono a farne accettare il manifesto e a descriverle |
 
@@ -1161,13 +1172,35 @@ Ciò che l'app ha creato per un utente è scritto nella chiave `app-setup` di qu
 
 ### `window.lilos` (`bridge.js`)
 
-L'unico modo che un'app `local` ha di raggiungere lilOS. Ogni chiamata è un messaggio controllato da `host.js` e restituisce una `Promise`; un errore (permesso negato, file inesistente, valore troppo grande) la rifiuta con `Error(message)`.
+L'unico modo che un'app `local` ha di raggiungere lilOS (un'app non isolata potrebbe aggirarlo: vedi [Modalità di esecuzione](#modalità-di-esecuzione-isolationjs)). L'oggetto è lo stesso in ogni modo di girare: `lilosApi()` lo costruisce attorno a una funzione `call(metodo, ...parametri)`. Nella sandbox `call` manda un messaggio alla pagina di lilOS (`BRIDGE_SOURCE`, finestre) o passa da una `MessagePort` (`SANDBOX_RUNTIME_SOURCE`, background isolato); in un Web Worker (background non isolato) passa da una `MessagePort`; in una finestra non isolata è una chiamata diretta. Ogni richiesta la controlla `methods.js` contro i permessi e restituisce una `Promise`; un errore (permesso negato, file inesistente, valore troppo grande) la rifiuta con `Error(message)`.
+
+Un'app con `sdk` `"2"` esporta una funzione per punto d'ingresso, e la riceve con questo oggetto:
+
+```js
+// finestra: root è dove disegnare (uno Shadow DOM se non isolata, il body della sandbox se isolata)
+export async function main({ lilos, root, args }) {
+  root.append(/* … */);
+  return () => { /* chiamata alla chiusura della finestra (facoltativo) */ };
+}
+
+// punto d'ingresso in background (kind: 'background'), senza `root`
+export function stats({ lilos, args }) {
+  lilos.handle(async (data, { from }) => ({ ok: true }));
+}
+```
+
+Con `sdk` `"1"` il modulo è l'app: gira per intero all'avvio con `window.lilos` e solo in una sandbox.
 
 | Funzione | Descrizione |
 | --- | --- |
-| `lilos.app` | `{ id, version, args }`: `args` è ciò con cui l'app è stata avviata (per un file, `{ file: id }`), o `null`. |
-| `lilos.on(evento, fn)` → `off` | Eventi: `launch` (nuovi argomenti, a finestra già aperta), `command` (`id` di un comando di `contributes.commands`, quando l'utente preme la sua scorciatoia), `theme` (i token di colore sono cambiati; il bridge li applica da solo a `:root`). |
-| `lilos.window.setTitle(testo)` | Titolo della finestra (fino a 100 caratteri). |
+| `lilos.app` | `{ id, version, entry, args, call, connect, keepAlive }`: `entry` è il punto d'ingresso in esecuzione; `args` è ciò con cui è stato avviato (per un file, `{ file: id }`), o `null`. |
+| `lilos.app.call(entry, data)` → risultato | Avvia un punto d'ingresso **della stessa app**. Una finestra si apre (o torna in primo piano) con `data` come `args` e il risultato è `null`; un background risponde con ciò che restituisce la sua funzione di `lilos.handle`. `data` è copiato (clone strutturato); se contiene `file`, quel file deve essere uno che l'app ha ricevuto. |
+| `lilos.app.connect(entry)` → `MessagePort` | Un canale con un punto d'ingresso **in background** della stessa app; l'altro lato lo riceve come evento `connect`. Per trasmettere dati continui o grandi senza passare da una chiamata per volta. |
+| `lilos.app.keepAlive(attivo)` | Solo in un background. Con `true` (predefinito) non si ferma dopo i 5 minuti senza chiamate e compare nella barra in basso (icona delle app in background), da dove l'utente lo può fermare; con `false` torna normale. Fermarlo cancella ciò che teneva in memoria. |
+| `lilos.apps.call(app, entry, data)` → risultato | Come `lilos.app.call`, per un punto d'ingresso **di un'altra app**. Serve il permesso `apps.call:<id app>`. L'app deve essere installata e visibile nel workspace attuale. Un `file` si può passare solo se l'app lo ha ricevuto; ogni altro dato arriva così com'è e **chi lo riceve deve controllarlo** (la forma, i tipi, le dimensioni). |
+| `lilos.handle(fn)` | Solo in un background: `fn(data, { from })` risponde alle chiamate; `from` è l'id dell'app che chiama (`null` se è il sistema). Il valore restituito, o `null`, torna a chi ha chiamato. Senza `handle` le chiamate falliscono. Un `file` ricevuto nei dati si può leggere e scrivere con `lilos.files` come se l'app fosse stata aperta con lui. |
+| `lilos.on(evento, fn)` → `off` | Eventi: `launch` (nuovi argomenti, a finestra già aperta), `command` (`id` di un comando di `contributes.commands`, quando l'utente preme la sua scorciatoia; solo nelle finestre), `theme` (i token di colore sono cambiati; nella sandbox il bridge li applica da solo a `:root`), `connect` (`MessagePort`, in un background: qualcuno ha chiamato `lilos.app.connect`). |
+| `lilos.window.setTitle(testo)` | Titolo della finestra (fino a 100 caratteri). Solo in una finestra: in un background fallisce. |
 | `lilos.ui.toast(testo)` | Avviso in basso (fino a 200 caratteri). |
 | `lilos.files.read(rif)` → testo | `rif`: `~/percorso` (coperto da `fs.read` o `fs.write`) oppure l'id di un file con cui l'app è stata aperta. |
 | `lilos.files.write(rif, testo)` | Scrive (fino a 10 milioni di caratteri); crea il file se la cartella esiste. Serve `fs.write`. |
@@ -1185,12 +1218,58 @@ I percorsi sono quelli che l'utente vede dal workspace attuale: `~/Scrivania` è
 - `loadSystemApp(pkg)` (interna): per ogni foglio di `styles` aggiunge un `<link rel="stylesheet" data-app="<id>">` (e toglie quelli di una versione precedente), poi fa `import()` di `/api/apps/<id>/v/<versione>/<entry>`. Il percorso contiene la versione, quindi i blocchi, i worker e i file che il modulo carica con percorsi relativi si risolvono accanto a lui, e il browser li tiene in cache per sempre (`immutable`): **una versione non si cambia, se ne pubblica una nuova**. Alla rimozione di un'app i suoi fogli di stile si tolgono.
 - `connectPackages({ desk })` → `Promise`: dopo l'avvio, segue `apps` (`change`: aggiunge, sostituisce o toglie nel registro) e fa le operazioni per l'utente. `desk()` dà l'id della Scrivania del workspace attuale.
 
+### Modalità di esecuzione (`isolation.js`)
+
+Un'app installata gira in due modi. **Isolata** (il predefinito): le finestre sono in un `<iframe sandbox="allow-scripts">` e i background in un iframe `sandbox` nascosto; l'app raggiunge lilOS solo con `lilos`, e solo nei limiti dei permessi. **Non isolata**: la finestra gira nella pagina di lilOS, disegnata in uno Shadow DOM, e il background in un Web Worker con l'origine di lilOS. Più veloce, ma l'app **può fare tutto ciò che può fare l'utente** (leggere ogni file e ogni dato di lilOS, chiamare il kernel con la sua sessione), permessi o no: i permessi non la limitano più.
+
+La modalità la sceglie un amministratore: una regola generale (la cartella `/system/app/.security`, `meta.security.isolated`, vedi [rotte del kernel](#il-kernel); in Impostazioni → App → Sicurezza) e, per una sola app, una scelta propria (`isolated` nello stato dell'app; "Proprietà…" → Sicurezza). La scelta dell'app, se c'è, vince.
+
+`executionMode(pkg)` → `{ mode, fixed, reason?, own? }`:
+
+| `mode` | Quando | `fixed` |
+| --- | --- | --- |
+| `'system'` | App di sistema: gira sempre dentro lilOS, senza sandbox | `true` |
+| `'remote'` | App `remote`: un sito in un iframe, sempre isolato | `true` |
+| `'isolated'` | App con `sdk` `"1"` (solo isolata, `fixed: true`), oppure `sdk` `"2"` con la regola (o la scelta) isolata | `false` per `sdk` 2 |
+| `'open'` | App `sdk` `"2"` non isolata | `false` |
+
+`own` è la scelta dell'app (`true`, `false`, `null`); `reason` spiega perché la modalità non si può cambiare. `isIsolated(pkg)` (interna) è vero per `isolated` e `remote`. `canChangeExecution()` → `true` se il kernel è collegato e l'utente è amministratore (il kernel controlla comunque). Il cambio **vale dalla prossima apertura**: le finestre già aperte e i background già avviati restano come sono, e quando lo stato di un'app cambia i suoi background si fermano.
+
+Perché non un Worker anche per l'isolato: un Worker dentro una sandbox senza origine non è un contesto sicuro (non ha `crypto.subtle`) e i worker a modulo non partono; l'iframe `sandbox` invece Chrome lo esegue in un processo separato, quindi non rallenta la pagina di lilOS ([D42](../interna/decisioni.md#d42-punti-dingresso-e-due-modalità-di-esecuzione-per-le-app)).
+
+### Punti d'ingresso (`entrypoints.js`)
+
+I punti d'ingresso sono le parti di un'app che si avviano da sole: `main` (la finestra che apre l'utente) e quelle dichiarate in `entrypoints` del manifesto.
+
+| Export | Descrizione |
+| --- | --- |
+| `entrypointsOf(app)` | `{ nome: { kind, file?, label?, window? } }` di un'app del registro. `main` c'è sempre. Per le app senza pacchetto: solo `main`. |
+| `callEntrypoint(appId, entry = 'main', data = null, { from = null })` → `Promise` | Avvia il punto d'ingresso. `window`: apre la finestra con `data` come `args` (`launch(appId, data, entry)`) e dà `null`. `background`: lo avvia se serve e dà ciò che restituisce il suo `lilos.handle`; `from` è l'id dell'app che chiama. Lancia se l'app non esiste, è nascosta nel workspace attuale o non ha quel punto d'ingresso. |
+| `connectEntrypoint(appId, entry)` → `Promise<MessagePort>` | Un canale con un punto d'ingresso `background`; per una finestra lancia. |
+
+Chi chiama dal sistema (`@lilos/system`, app di sistema) non ha permessi da verificare; un'app installata passa da `lilos.app.call` (i propri) o `lilos.apps.call` (di altre, con `apps.call:<id>`), che chiamano queste funzioni con `from` = id dell'app.
+
+### Background (`background.js`)
+
+Gestisce i punti d'ingresso `background`: si avviano alla prima chiamata, uno per app e per nome, per tutta la sessione (non per workspace), e si fermano dopo **5 minuti senza chiamate** (il controllo gira ogni 30 secondi), alla disconnessione dell'utente e quando l'app cambia (nuova versione, rimossa, modalità cambiata). Con `lilos.app.keepAlive()` restano accesi.
+
+- Isolato: un iframe `sandbox="allow-scripts"` nascosto (`.pkg-background`, con una CSP simile a quella delle finestre) che esegue `SANDBOX_RUNTIME_SOURCE`.
+- Non isolato: un `Worker` da un `Blob` (`WORKER_SOURCE`) con l'origine di lilOS.
+- App di sistema: l'export con quel nome, chiamato nella pagina di lilOS.
+
+Il codice (verificato con l'hash) e le librerie del manifesto si mandano all'avvio con un `init`; le richieste dell'app tornano per una `MessagePort` e si controllano con i permessi come per le finestre. Se il codice non parte, un avviso lo dice e l'istanza si ferma. Export: `call(app, entry, data, from)`, `connect(app, entry)`, `running()` → `[{ key, appId, name, label, glyph, keepAlive }]`, `stop(key)`, `stopApp(id)`, e `backgroundApps` (`Emitter`, evento `change` quando se ne avvia o ferma uno o cambia `keepAlive`). La barra in basso ha un'icona (`src/taskbar/BackgroundApps.js`) con l'elenco di quelli con `keepAlive`: per ognuno aprono le proprietà dell'app e "Ferma".
+
+### `methods.js`
+
+`hostMethods({ pkg, win?, handles, instance? })` costruisce le funzioni che l'app può chiamare (i nomi di `lilos.*`, più `app.failed` che usa il ponte per segnalare un errore) e le controlla contro i permessi; è lo stesso per finestre e background, isolati o no. `invoke(methods, nome, parametri)` esegue una richiesta (rifiuta i nomi sconosciuti). `handles`: gli id dei file con cui l'app è stata aperta o che le sono stati passati.
+
 ### `host.js`
 
 (per le app **non** di sistema: quelle di sistema non hanno finestra isolata)
 
-- `packageModule(pkg)` → `{ default: ({ args }) => Window }`: il modulo che il launcher carica per un'app installata. Una finestra per app, come le altre. `getState()` restituisce `{ file }` se l'app è stata aperta con un file (così le workarea la riaprono con lo stesso file).
-- App `local`: `<iframe sandbox="allow-scripts">` con `srcdoc`. Il documento contiene: la CSP in `<meta>` (`default-src 'none'`; `script-src 'unsafe-inline'` più gli indirizzi delle librerie non in cache; `style-src 'unsafe-inline'`; immagini, font e media solo `data:`/`blob:`; `connect-src` con le origini dei permessi `net:`, altrimenti `'none'`; `form-action 'none'`; `base-uri 'none'`), il ponte, le librerie e il codice. Il codice e le librerie in cache si controllano con gli hash prima di essere inseriti; se non corrispondono la finestra non si apre.
+- `packageModule(pkg)` → `{ default: ({ args, entry = 'main' }) => Window }`: il modulo che il launcher carica per un'app installata. Una finestra per app e punto d'ingresso, come le altre; titolo e dimensioni vengono dal punto d'ingresso (`label`, `window`), poi da `contributes.window`. `getState()` restituisce `{ file }` se l'app è stata aperta con un file (così le workarea la riaprono con lo stesso file).
+- App `local` non isolata (solo `sdk` `"2"`): il modulo si importa da un `Blob` e la funzione `entry` riceve `{ lilos, root, args }`, con `root` uno Shadow DOM (`.pkg-host`) dentro la finestra. Gli stili di lilOS non vi entrano (le variabili di tema `--accent`, `--text`… sì, perché ereditano); le scorciatoie di `contributes.commands` valgono per la finestra attiva dell'app. Se la funzione restituisce una funzione, la chiama alla chiusura della finestra.
+- App `local` isolata: `<iframe sandbox="allow-scripts">` con `srcdoc`. Il documento contiene: la CSP in `<meta>` (`default-src 'none'`; `script-src 'unsafe-inline'` più gli indirizzi delle librerie non in cache; `style-src 'unsafe-inline'`; immagini, font e media solo `data:`/`blob:`; `connect-src` con le origini dei permessi `net:`, altrimenti `'none'`; `form-action 'none'`; `base-uri 'none'`), il ponte, le librerie e il codice. Il codice e le librerie in cache si controllano con gli hash prima di essere inseriti; se non corrispondono la finestra non si apre.
 - App `remote`: `<iframe sandbox="allow-scripts allow-same-origin allow-forms allow-popups" src=url>`. lilOS risponde ai messaggi del ponte che il sito gli manda (stesse funzioni, stessi permessi), ma non gli dà `window.lilos`; quel protocollo non è documentato né stabile.
 
 ---
@@ -1602,7 +1681,7 @@ Le richieste che modificano (tutte tranne `GET` e `HEAD`) devono avere l'intesta
 | `GET /api/session` | tutti | → `{ mode: 'multi' \| 'single', user \| null }` |
 | `POST /api/session` | tutti | `{ username, password }` → `{ user }` e il cookie `lilos_session` (`HttpOnly; SameSite=Strict; Path=/api`, `Secure` con `secureCookies`). Con un solo utente: `invalid`. |
 | `DELETE /api/session` | tutti | Chiude la sessione e cancella il cookie |
-| `GET /api/boot` | utenti | → `{ user, fresh, nodes, storage, apps }`: tutto ciò che serve per partire. `fresh`: la cartella dell'utente è vuota. `apps` è l'elenco di `GET /api/apps`, ma senza nascondere l'origine `local` ai non amministratori |
+| `GET /api/boot` | utenti | → `{ user, fresh, nodes, storage, apps, appSecurity }`: tutto ciò che serve per partire. `fresh`: la cartella dell'utente è vuota. `apps` è l'elenco di `GET /api/apps`, ma senza nascondere l'origine `local` ai non amministratori. `appSecurity`: `{ isolated }`, la regola generale su come girano le app |
 | `POST /api/fs/sync` | utenti | `{ put: [nodo], remove: [id] }`, in una transazione; al massimo 5000 voci e 8 MB. L'SDK ne manda al massimo 2000 per richiesta (prima i nodi, con i genitori prima dei figli, poi le eliminazioni), quindi non c'è un limite al numero di modifiche di una volta sola |
 | `GET /api/fs/content/:id` | utenti | → testo del file |
 | `PUT /api/fs/content/:id` | utenti | testo del file (fino a 10 MB) |
@@ -1614,6 +1693,9 @@ Le richieste che modificano (tutte tranne `GET` e `HEAD`) devono avere l'intesta
 | `POST /api/apps` | amministratori | `{ source, grant, allowUnsigned }` → stato dell'app |
 | `POST /api/apps/:id/update` | amministratori | `{ ref?, reinstall?, grant, allowUnsigned }` → stato (con `unchanged: true` se non c'è nulla di nuovo) |
 | `DELETE /api/apps/:id` | amministratori | Rimuove (non le app di sistema) |
+| `GET /api/apps-security` | utenti | → `{ isolated }`: la regola generale su come girano le app (`true` se non è stata cambiata) |
+| `PUT /api/apps-security` | amministratori | `{ isolated: true \| false }` → `{ isolated }`. Altro che un booleano: `invalid` |
+| `PUT /api/apps/:id/security` | amministratori | `{ isolated: true \| false \| null }` (`null`, o assente: la regola generale) → stato dell'app. `invalid` per le app di sistema e le remote (una sola modalità), `not_found` se non è installata |
 | `GET /api/repos` | utenti | → `[{ id, name, url, official }]`: l'ufficiale e quelli aggiunti |
 | `POST /api/repos` | amministratori | `{ url, name? }` → il repository. Legge `catalog.json` prima di salvare |
 | `DELETE /api/repos/:id` | amministratori | Toglie un repository (non l'ufficiale) |
@@ -1764,7 +1846,7 @@ Un repository ha un `catalog.json` alla radice:
 
 ### Installazione delle app (`installer.js`, `manifest.js`)
 
-- `installer.js`: `install` (rifiuta un'app già installata), `update` (nuova versione, `ref` anche più vecchio, o `reinstall`; si tengono la versione in uso e la precedente), `uninstall`. L'hash di ogni file e quello delle librerie (`integrity`) si controllano prima di scrivere. La libreria in `/system/commons` è condivisa tra le app che la usano (`meta.usedBy`) e si elimina quando nessuno la usa più. Lo stato (`id`, `version`, `previous`, `kind`, `system`, `required`, `source`, `signed`, `publisher`, `granted`, `installed`, `updated`) sta nel `meta.state` della cartella `/system/app/<id>`.
+- `installer.js`: `install` (rifiuta un'app già installata), `update` (nuova versione, `ref` anche più vecchio, o `reinstall`; si tengono la versione in uso e la precedente), `uninstall`. L'hash di ogni file e quello delle librerie (`integrity`) si controllano prima di scrivere. La libreria in `/system/commons` è condivisa tra le app che la usano (`meta.usedBy`) e si elimina quando nessuno la usa più. Lo stato (`id`, `version`, `previous`, `kind`, `system`, `required`, `source`, `signed`, `publisher`, `granted`, `installed`, `updated`, `isolated`) sta nel `meta.state` della cartella `/system/app/<id>`. `isolated` è `true`, `false` (scelta di un amministratore per quell'app) o `null` (la regola generale, il valore con cui nasce); la regola generale è `meta.security.isolated` della cartella `/system/app/.security` (`true` se manca). `security()`, `setSecurity()` e `setAppSecurity()` leggono e scrivono questi valori; le ultime due solo per un amministratore (o il kernel).
 - `update` con `reinstall` riscrive **lo stesso commit** registrato in `source.commit`: non porta codice nuovo. Per averlo serve una versione più alta (o `ref` di un'altra versione, anche precedente).
 - Fiducia: una firma presente ma sbagliata è sempre rifiutata; un'app è *verificata* se firmata da un editore di `trustedPublishers` con la chiave giusta, o se è di sistema e viene dal repository ufficiale; altrimenti serve `allowUnsigned`. Un'app con `system: true` da un altro repository è rifiutata, e un'app di sistema resta di sistema negli aggiornamenti. `uninstall` rifiuta le app `required`.
 - `tools/pack.js`: `node system/kernel/tools/pack.js <cartella> [--sign chiave.pem]` riempie `files` (esclusi `lilos.json`, i file che iniziano con un punto e `node_modules`) e controlla il manifesto; con `--sign` aggiunge `publisher.key` e `signature`. `--keygen chiave.pem` crea una chiave Ed25519 e stampa la pubblica.
@@ -1792,7 +1874,7 @@ Un repository ha un `catalog.json` alla radice:
 
 | Evento | Payload | Emesso da | Gestito da |
 | --- | --- | --- | --- |
-| `app:launch` | `{ id, args }` | `launch()`: menu di avvio, collegamenti sul desktop | `connectLauncher` (`apps/launcher.js`) |
+| `app:launch` | `{ id, args, entry? }` | `launch()`: menu di avvio, collegamenti sul desktop, `callEntrypoint`. `entry`: un punto d'ingresso di tipo finestra (`'main'` se manca) | `connectLauncher` (`apps/launcher.js`) |
 | `item:open` | nodo del file system | `Desktop.open()` per cartelle e file | `system.js`: le cartelle si aprono nel File Manager (`launch('files', { folder })`), i file con `openFile` |
 
 Quando aggiungi un evento, documentalo qui e nel commento in testa a `sdk/core/events.js`.

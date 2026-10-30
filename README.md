@@ -57,12 +57,14 @@ src/                    il sistema, costruito sull'SDK
   systemHistory.js      annulla e ripeti (Ctrl Z, Ctrl Y)
   systemTrash.js        pulizia automatica del cestino
   systemFs.js           cartelle di sistema, primo avvio, migrazione
-  items/                comandi comuni a desktop e File Manager, eliminazione (cestino, conferma), trascinamento tra viste, ordine e collegamenti della barra del File Manager
+  items/                "Proprietà…" di file e cartelle, comandi comuni a desktop e File Manager, eliminazione (cestino, conferma), trascinamento tra viste, ordine e collegamenti della barra del File Manager
   tags/                 pallini e menu dei tag, usati da scrivania, File Manager e Impostazioni
   apps/
     registry.js         le app installate (nessuna è integrata), quali sono visibili nel workspace + launch()
-    packages/           app installate: nel registro; le app di sistema girano in lilOS, le altre in una finestra isolata con il ponte window.lilos; operazioni per utente
+    packages/           app installate: nel registro; le app di sistema girano in lilOS, le altre isolate (sandbox, con l'oggetto lilos) o, se un amministratore lo sceglie, nella pagina di lilOS; punti d'ingresso in background; operazioni per utente
     launcher.js         apre le app in finestre
+    entrypoints.js      punti d'ingresso delle app (finestre e background)
+    appProperties.js    "Proprietà…" di un'app: Generale, Permessi, Sicurezza
     open.js             quale app apre quale tipo di file
     openWith.js         finestra "Apri con"
     commands.js         scorciatoie delle app
@@ -72,7 +74,8 @@ src/                    il sistema, costruito sull'SDK
     WindowManager.js    finestre sulla scrivania e nella barra
   taskbar/
     Taskbar.js          pulsante logo · pulsante workspace · area finestre · utente e orologio
-    StartMenu.js        menu di avvio con ricerca app
+    StartMenu.js        menu di avvio con ricerca app (tasto destro: Apri, Proprietà…)
+    BackgroundApps.js   icona delle app in background rimaste attive, con "Ferma"
     Clock.js
   styles/               uno stile per area del sistema
 design/                 render statici di riferimento (finestre, app, finestra impostazioni)
@@ -106,7 +109,7 @@ Tutte le scorciatoie (tranne Spazio + trascina e i tasti di navigazione nei menu
 - Le basi riutilizzabili nascono nell'SDK e si importano da `@lilos/sdk`. L'SDK non importa mai da `src/`.
 - Tutto ciò che sta sulla scrivania si aggiunge con `canvas.add(el)` e ha `data-kind` (usato dalla minimappa).
 - Gli elementi con `data-wheel="native"` (es. contenuto delle finestre) scorrono con la rotella invece di zoomare.
-- Le app comunicano col sistema tramite `bus` dell'SDK. Ogni app è un pacchetto (`lilos.json`) installato dal kernel: un'app di sistema (File Manager, Editor, Impostazioni, AppStore: dal repository ufficiale) gira dentro lilOS e usa `@lilos/sdk` e `@lilos/system`; un'altra app gira in un iframe isolato e parla con lilOS solo con `window.lilos`; le cartelle si aprono nel File Manager, i file con l'app associata al tipo (Impostazioni → Usabilità → Tipi di file) o con la finestra "Apri con".
+- Le app comunicano col sistema tramite `bus` dell'SDK. Ogni app è un pacchetto (`lilos.json`) installato dal kernel: un'app di sistema (File Manager, Editor, Impostazioni, AppStore: dal repository ufficiale) gira dentro lilOS e usa `@lilos/sdk` e `@lilos/system`; un'altra app gira, per impostazione predefinita, in un iframe isolato e parla con lilOS solo con l'oggetto `lilos` (un amministratore può farla girare non isolata: allora può fare tutto ciò che fa l'utente) e può avere punti d'ingresso in background; le cartelle si aprono nel File Manager, i file con l'app associata al tipo (Impostazioni → Usabilità → Tipi di file) o con la finestra "Apri con".
 - Ogni finestra che modifica impostazioni usa `SettingsWindow` dell'SDK.
 - Cartelle e file passano dal file system dell'SDK (`fs`); la scrivania è la vista della cartella `/Scrivania` del workspace attuale (privata: gli altri workspace non la vedono). Ogni nodo creato ricorda il workspace che l'ha fatto.
 - Ogni scorciatoia è un comando registrato con `shortcuts.register` dell'SDK, così l'utente può cambiarla.
