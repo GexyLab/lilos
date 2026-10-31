@@ -9,6 +9,7 @@ export { h, svg, isEditing, trackDrag } from './core/dom.js';
 export { Emitter, bus } from './core/events.js';
 export { storage, uid } from './core/storage.js';
 export { session, initials } from './core/session.js';
+export { locale, LANGUAGES } from './core/locale.js';
 export { kernel, KernelError } from './core/kernel.js';
 export { apps, repositories, kernelModules } from './core/apps.js';
 export { settings } from './core/settings.js';

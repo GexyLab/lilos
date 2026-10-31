@@ -13,7 +13,7 @@ import { services } from './services.js';
  *                lilos.handle() function returns
  *   service      no window, in the kernel (services.js): the same, through the kernel
  */
-export const entrypointsOf = app => (app?.package ? entrypoints(app.package.manifest) : { main: { kind: 'window' } });
+export const entrypointsOf = app => (app?.package ? entrypoints(app.text ?? app.package.manifest) : { main: { kind: 'window' } });
 
 function find(appId, entry) {
   const app = getApp(appId);

@@ -32,6 +32,9 @@ const text = args => args.map(a => {
 }).join(' ');
 const log = level => (...args) => _log.applyIgnored(undefined, [level, text(args)]);
 globalThis.console = Object.freeze({ log: log('info'), info: log('info'), debug: log('info'), warn: log('warn'), error: log('error') });
+// lilos.locale: the kernel sends the translations engine as text (the SDK's i18n.js) with the app's strings
+const locale = typeof info.i18n === 'string' ? (0, eval)('(' + info.i18n + ')')(info.locale).locale : null;
+delete info.i18n;
 
 const timers = new Map();
 let nextTimer = 1;
@@ -62,6 +65,7 @@ globalThis.__fire = id => {
 let handler = null;
 const lilos = Object.freeze({
   app: Object.freeze({ id: info.id, version: info.version, entry: info.entry, args: info.args, user: info.user }),
+  ...(locale && { locale }),
   handle(fn) {
     if (typeof fn !== 'function') throw new TypeError('lilos.handle vuole una funzione');
     handler = fn;

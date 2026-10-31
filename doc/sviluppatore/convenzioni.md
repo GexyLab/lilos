@@ -2,7 +2,8 @@
 
 ## Lingua
 
-- **Interfaccia** (testi visibili, tooltip, `aria-label`): italiano.
+- **Interfaccia di lilOS** (testi visibili, tooltip, `aria-label`): italiano. Non è ancora tradotta.
+- **Interfaccia delle app**: i testi visibili si scrivono con `t()` da `lilos.locale.i18n` (o `locale.forApp(id).i18n` per le app di sistema), in un `locales.json` con inglese obbligatorio; i testi del manifesto sono in inglese, con le traduzioni nelle chiavi `@`. Vedi [Traduzioni delle app](api.md#traduzioni-delle-app-sdkcorelocalejs-e-sdkcorei18njs).
 - **Codice** (nomi di variabili, funzioni, classi) e **commenti**: inglese.
 - **Documentazione e messaggi di commit**: italiano.
 

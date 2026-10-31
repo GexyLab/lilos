@@ -1,3 +1,5 @@
+import { locale } from '@lilos/sdk';
+
 /**
  * `lilos`: what an installed app has of lilOS, the same object however the app runs
  * (see host.js and background.js):
@@ -10,12 +12,15 @@
  * Every call is a request that lilOS checks against the app's permissions. Everything is asynchronous.
  *
  *   lilos.app                            { id, version, entry, args }
+ *   lilos.locale                         { code, i18n: { t(key, params), lang, date(), number() } }: the system's
+ *                                        locale and the app's strings for it (see the SDK's i18n.js); synchronous
  *   lilos.app.call(entry, data) → result       starts one of the app's own entry points
  *   lilos.app.connect(entry) → MessagePort     a channel with one of its background entry points
  *   lilos.app.keepAlive(on)                    background: stay running (lilOS shows it in the taskbar)
  *   lilos.apps.call(appId, entry, data) → result   another app's entry point (permission apps.call:<appId>)
  *   lilos.handle(fn)                           background: answers calls, fn(data, { from }) → result
- *   lilos.on(event, fn) → off            'launch' (args), 'command' (id), 'theme', 'connect' (port, background)
+ *   lilos.on(event, fn) → off            'launch' (args), 'command' (id), 'theme', 'connect' (port, background),
+ *                                        'locale' ({ code, lang }: lilos.locale already has the new strings)
  *   lilos.window.setTitle(text)          windows only
  *   lilos.ui.toast(text)
  *   lilos.files.read(ref) → text         ref: '~/Documenti/a.txt' or the id of a file opened with the app
@@ -33,13 +38,20 @@
 
 /**
  * Builds `lilos` around `call(method, ...params) → Promise`. Serialized (toString) into the code
- * lilOS puts in a sandbox or a worker: it must not use anything from outside itself.
+ * lilOS puts in a sandbox or a worker: it must not use anything from outside itself; the
+ * translations engine comes as `i18nApi` (the SDK's locale.engine), and info.locale are the
+ * resolved strings ({ code, lang, strings }). A 'locale' event brings new ones.
  * Returns { api, emit(event, data), answer(data, from) → result of the lilos.handle() function }.
  */
-export function lilosApi(call, info) {
+export function lilosApi(call, info, i18nApi) {
   const listeners = new Map();
   let handler = null;
+  const locale = i18nApi(info.locale);
   const emit = (event, data) => {
+    if (event === 'locale') {
+      locale.set(data);
+      data = { code: locale.locale.code, lang: locale.locale.i18n.lang };
+    }
     for (const fn of listeners.get(event) || []) {
       try { fn(data); } catch (err) { console.error(err); }
     }
@@ -51,6 +63,7 @@ export function lilosApi(call, info) {
       connect: entry => call('app.connect', String(entry)),
       keepAlive: on => call('app.keepAlive', on !== false),
     }),
+    locale: locale.locale,
     apps: Object.freeze({ call: (app, entry, data) => call('apps.call', String(app), String(entry), data ?? null) }),
     handle(fn) { handler = typeof fn === 'function' ? fn : null; },
     on(event, fn) {
@@ -84,7 +97,7 @@ export function lilosApi(call, info) {
  * requests go through the port, the libraries load as classic scripts, then the entry point's
  * export is called. Text, not a function: Vite rewrites the import() of the source it serves.
  */
-const RUNTIME = `function runtime(lilosApi, init) {
+const RUNTIME = `function runtime(lilosApi, i18nApi, init) {
   const { port, info, libs, code } = init;
   const pending = new Map();
   let next = 1;
@@ -93,7 +106,7 @@ const RUNTIME = `function runtime(lilosApi, init) {
     pending.set(id, { resolve, reject });
     port.postMessage({ lilos: 1, id, method, params });
   });
-  const { api, emit, answer } = lilosApi(call, info);
+  const { api, emit, answer } = lilosApi(call, info, i18nApi);
   let started = null;   // calls and channels wait for the entry point to be running
   port.onmessage = async e => {
     const m = e.data;
@@ -141,18 +154,20 @@ const RUNTIME = `function runtime(lilosApi, init) {
 /** The script of a Web Worker that runs a background entry point (not isolated). */
 export const WORKER_SOURCE = `'use strict';
 const lilosApi = ${lilosApi.toString()};
+const i18nApi = ${locale.engine.toString()};
 const runtime = ${RUNTIME};
-onmessage = e => { onmessage = null; runtime(lilosApi, e.data); };`;
+onmessage = e => { onmessage = null; runtime(lilosApi, i18nApi, e.data); };`;
 
 /** The script of the hidden sandbox that runs a background entry point (isolated). */
 export const SANDBOX_RUNTIME_SOURCE = `(() => {
   'use strict';
   const lilosApi = ${lilosApi.toString()};
+  const i18nApi = ${locale.engine.toString()};
   const runtime = ${RUNTIME};
   addEventListener('message', function start(e) {
     if (e.source !== parent || !e.data || e.data.lilos !== 1 || !e.data.init) return;
     removeEventListener('message', start);
-    runtime(lilosApi, e.data.init);
+    runtime(lilosApi, i18nApi, e.data.init);
   });
 })();`;
 
@@ -164,6 +179,7 @@ export const SANDBOX_RUNTIME_SOURCE = `(() => {
 export const BRIDGE_SOURCE = `(() => {
   'use strict';
   const lilosApi = ${lilosApi.toString()};
+  const i18nApi = ${locale.engine.toString()};
   const pending = new Map();
   let next = 1;
   const info = JSON.parse(document.currentScript.dataset.info);
@@ -177,7 +193,7 @@ export const BRIDGE_SOURCE = `(() => {
   const applyTheme = vars => { for (const [k, v] of Object.entries(vars || {})) document.documentElement.style.setProperty(k, v); };
   applyTheme(info.theme);
   delete info.theme;
-  const { api, emit } = lilosApi(call, info);
+  const { api, emit } = lilosApi(call, info, i18nApi);
   addEventListener('message', e => {
     if (e.source !== parent) return;
     const m = e.data;

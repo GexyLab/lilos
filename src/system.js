@@ -44,8 +44,8 @@ watchSession();
 watchSaving();
 // What system apps import as /host/sdk.js and /host/system.js (scripts/host-shims.mjs)
 globalThis.__lilosHost = Object.freeze({ sdk, system: systemApi });
-// Installed apps first: the workspaces show every app they find
-registerPackages();
+// Installed apps first (with their translations): the workspaces show every app they find
+await registerPackages();
 // Shared folders first, then the workspaces (each with its own desk): fs then shows only the current one's
 const state = setupWorkspaces(setupFileSystem());
 setupTrash();

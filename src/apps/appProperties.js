@@ -36,7 +36,7 @@ function sourceLabel(source) {
 function generalSections(app) {
   const pkg = app.package;
   if (!pkg) return [{ rows: [{ label: 'App', control: app.name }] }];
-  const { manifest } = pkg;
+  const manifest = app.text ?? pkg.manifest;   // in the system's language
   const entries = Object.entries(entrypointsOf(app));
   return [
     {

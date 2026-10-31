@@ -34,6 +34,7 @@ sdk/                    @lilos/sdk: basi riutilizzabili da sistema e app
   core/kernel.js        client del kernel: richieste, accesso, sincronizzazione delle modifiche
   core/apps.js          app installate: elenco, installa, aggiorna, rimuovi
   core/settings.js      preferenze dell'utente
+  core/locale.js        lingua del sistema e traduzioni delle app (con core/i18n.js, il motore)
   core/fs.js            file system virtuale (cartelle, file, collegamenti; salvato nel kernel)
   core/tags.js          tag colorati per ritrovare file e cartelle, anche nascondendoli
   ui/                   icone, menu, controlli, Window, SettingsView, SettingsWindow

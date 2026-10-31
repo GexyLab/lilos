@@ -1,6 +1,8 @@
 import { createHash, createPublicKey, verify } from 'node:crypto';
 import { fail } from '../errors.js';
 import { parsePermission, coversPath } from './permissions.js';
+// The translations engine of the SDK: the same checks as lilOS's (it has no imports)
+import { parseLocales } from '../../../../sdk/core/i18n.js';
 
 /**
  * The manifest of an app package (lilos.json at the root of the package).
@@ -16,6 +18,8 @@ import { parsePermission, coversPath } from './permissions.js';
  *     system?: true,                         only from the official repository: runs inside lilOS, no sandbox
  *     required?: true,                        a system app that cannot be removed or hidden
  *     styles?: ['dist/index.css'],            system apps: stylesheets lilOS loads with the app
+ *     locales?: 'locales.json',               local apps: the translations file (the SDK's i18n.js); the
+ *                                             manifest's texts are in English, '@' keys translate them
  *     entry: 'dist/index.js',                 local: one ES module, with everything it imports bundled
  *     entrypoints?: {                         sdk '2', local apps: the parts of the app others may start
  *       main: { kind: 'window' },             what the user opens (implied when missing)
@@ -172,7 +176,9 @@ export function checkManifest(raw) {
   if (m.kind === 'local') {
     if (!files[m.entry]) bad('entry deve essere uno dei file del pacchetto');
     for (const css of list(m.styles, 10)) if (!m.system || !files[css] || !css.endsWith('.css')) bad('styles: solo file .css del pacchetto, nelle app di sistema');
+    if (m.locales !== undefined && (typeof m.locales !== 'string' || !files[m.locales] || !m.locales.endsWith('.json'))) bad('locales: un file .json del pacchetto');
   } else {
+    if (m.locales !== undefined) bad('locales: solo per le app locali');
     let url;
     try { url = new URL(m.url); } catch { bad('url non valido'); }
     if (url.protocol !== 'https:' && !(url.protocol === 'http:' && url.hostname === 'localhost')) bad('url deve essere https');
@@ -264,6 +270,13 @@ export function checkFiles(manifest, files) {
   for (const [path, hash] of Object.entries(manifest.files ?? {})) {
     const data = files.get(path) ?? fail('invalid', `Manca il file ${path}`);
     if (sha256(data) !== hash) fail('invalid', `Il file ${path} è diverso da quello del manifesto (hash)`);
+  }
+  if (manifest.locales) {
+    try {
+      parseLocales(files.get(manifest.locales).toString('utf8'));
+    } catch (err) {
+      fail('invalid', err.message);
+    }
   }
 }
 

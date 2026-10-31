@@ -1,4 +1,4 @@
-import { h, Emitter, kernel, toast } from '@lilos/sdk';
+import { h, Emitter, kernel, toast, locale } from '@lilos/sdk';
 import { lilosApi, WORKER_SOURCE, SANDBOX_RUNTIME_SOURCE } from './bridge.js';
 import { appCode, librariesCode, entrypoints, inline, escapeAttr, netOrigins } from './code.js';
 import { isIsolated } from './isolation.js';
@@ -44,6 +44,7 @@ class Instance {
   #halt = () => {};
   #answer = null;    // system apps: lilos.handle() of the module, called directly
   #emit = null;
+  #offLocale = () => {};
   port = null;
   keepAlive = false;
   used = Date.now();
@@ -55,6 +56,12 @@ class Instance {
     this.key = `${app.id}#${entry}`;
     this.handles = new Set();
     this.methods = hostMethods({ pkg: this.pkg, handles: this.handles, instance: this });
+    // The system's language changed: the entry point gets its strings again
+    this.#offLocale = locale.on('change', () => {
+      const data = locale.strings(this.pkg.id);
+      if (this.#emit) this.#emit('locale', data);
+      else this.port?.postMessage({ lilos: 1, event: 'locale', data });
+    });
     this.ready = this.#start();
     this.ready.catch(err => {
       console.error(`[lilos] ${this.key}:`, err);
@@ -64,17 +71,17 @@ class Instance {
   }
 
   get label() {
-    return entrypoints(this.pkg.manifest)[this.entry]?.label ?? this.app.name;
+    return entrypoints(locale.manifest(this.pkg.manifest))[this.entry]?.label ?? this.app.name;
   }
 
   async #start() {
     const { pkg, entry } = this;
     const ep = entrypoints(pkg.manifest)[entry];
-    const info = { id: pkg.id, version: pkg.version, entry, args: null };
+    const info = { id: pkg.id, version: pkg.version, entry, args: null, locale: locale.strings(pkg.id) };
     if (pkg.system) {
       const mod = await this.app.load();
       if (typeof mod[entry] !== 'function') throw new Error(`Il codice non esporta ${entry}`);
-      const { api, emit, answer } = lilosApi((method, ...params) => Promise.resolve().then(() => invoke(this.methods, method, params)), info);
+      const { api, emit, answer } = lilosApi((method, ...params) => Promise.resolve().then(() => invoke(this.methods, method, params)), info, locale.engine);
       this.#answer = answer;
       this.#emit = emit;
       await mod[entry]({ lilos: api, args: null });
@@ -156,6 +163,7 @@ class Instance {
   stop() {
     if (instances.get(this.key) !== this) return;
     instances.delete(this.key);
+    this.#offLocale();
     this.#halt();
     this.port?.close();
     this.port = null;

@@ -1,7 +1,8 @@
-import { apps as installed, fs, storage, tags, toast, h } from '@lilos/sdk';
+import { apps as installed, fs, storage, tags, toast, h, locale } from '@lilos/sdk';
 import { registerApp, unregisterApp, getApp } from '../registry.js';
 import { registerAppCommands } from '../commands.js';
 import { packageModule } from './host.js';
+import { appCode } from './code.js';
 
 /**
  * Installed apps (the SDK's `apps`, from /system/app) in lilOS's registry, kept in step while
@@ -35,18 +36,42 @@ function loadSystemApp(pkg) {
   return import(/* @vite-ignore */ base + pkg.manifest.entry);
 }
 
-const entry = pkg => ({
-  id: pkg.id,
-  name: pkg.manifest.name,
-  glyph: pkg.manifest.icon?.glyph ?? 'help',
-  color: pkg.manifest.icon?.color ?? '#5f6673',
-  system: pkg.required === true,   // never hidden
-  trusted: pkg.system === true,    // runs without a sandbox
-  package: pkg,
-  ...(pkg.manifest.contributes?.fileTypes?.length && { opens: pkg.manifest.contributes.fileTypes }),
-  commands: (pkg.manifest.contributes?.commands ?? []).map(c => ({ id: c.id, label: c.label, keys: c.keys ?? [] })),
-  load: pkg.system === true && pkg.kind === 'local' ? () => loadSystemApp(pkg) : async () => packageModule(pkg),
-});
+/**
+ * The translations file of an app (manifest `locales`), checked against the manifest, into the
+ * SDK's locale: the app's strings, and its name and commands in the system's language.
+ * A file that is missing or not valid leaves the app in English (the manifest's texts).
+ */
+async function loadLocales(pkg) {
+  if (!pkg.manifest.locales) return locale.unload(pkg.id);
+  try {
+    locale.load(pkg.id, locale.parse(await appCode(pkg, pkg.manifest.locales)));
+  } catch (err) {
+    console.error(`[lilos] traduzioni di ${pkg.id}:`, err.message);
+    locale.unload(pkg.id);
+  }
+}
+
+const entry = pkg => {
+  let text = null, code = null;
+  // The manifest with its texts in the system's language (name, commands, entry points)
+  const localized = () => {
+    if (code !== locale.code) [text, code] = [locale.manifest(pkg.manifest), locale.code];
+    return text;
+  };
+  return {
+    id: pkg.id,
+    get name() { return localized().name; },
+    get text() { return localized(); },
+    glyph: pkg.manifest.icon?.glyph ?? 'help',
+    color: pkg.manifest.icon?.color ?? '#5f6673',
+    system: pkg.required === true,   // never hidden
+    trusted: pkg.system === true,    // runs without a sandbox
+    package: pkg,
+    ...(pkg.manifest.contributes?.fileTypes?.length && { opens: pkg.manifest.contributes.fileTypes }),
+    get commands() { return (localized().contributes?.commands ?? []).map(c => ({ id: c.id, label: c.label, keys: c.keys ?? [] })); },
+    load: pkg.system === true && pkg.kind === 'local' ? () => loadSystemApp(pkg) : async () => packageModule(pkg),
+  };
+};
 
 function add(pkg) {
   commandsOff.get(pkg.id)?.();
@@ -60,19 +85,34 @@ function remove(id) {
   commandsOff.get(id)?.();
   commandsOff.delete(id);
   unregisterApp(id);
+  locale.unload(id);
 }
 
-/** Before the workspaces load: every installed app in the registry. */
-export function registerPackages() {
-  installed.list().forEach(add);
+/** Before the workspaces load: every installed app in the registry, with its translations. */
+export async function registerPackages() {
+  const list = installed.list();
+  await Promise.all(list.map(loadLocales));
+  list.forEach(add);
+  // The commands are listed in Sistema with the app's texts: again in the new language
+  locale.on('change', () => {
+    for (const [id, off] of commandsOff) {
+      off();
+      const app = getApp(id);
+      if (app) commandsOff.set(id, registerAppCommands([app]));
+    }
+  });
 }
 
 /** After the system is up: changes while running, and the per-user setup. `desk()`: the current desk folder id. */
 export function connectPackages({ desk }) {
   deskOf = desk;
-  installed.on('change', ({ id, app }) => {
-    if (app) add(app);
-    else remove(id);
+  installed.on('change', async ({ id, app }) => {
+    if (app) {
+      await loadLocales(app);
+      add(app);
+    } else {
+      remove(id);
+    }
     setupUser().catch(err => console.error('[lilos] app:', err));
   });
   return setupUser();
@@ -110,7 +150,7 @@ async function run(pkg, ops) {
       } else if (o.op === 'desktopItem' && o.target === 'app') {
         const desk = deskOf();
         if (!desk || fs.children(desk).some(n => n.type === 'app' && n.app === pkg.id)) continue;
-        const node = fs.create(desk, { type: 'app', name: pkg.manifest.name, app: pkg.id });
+        const node = fs.create(desk, { type: 'app', name: locale.manifest(pkg.manifest).name, app: pkg.id });
         made.push({ kind: 'node', id: node.id, modified: node.modified });
       } else if (o.op === 'tag') {
         if (tags.byName(o.name)) continue;

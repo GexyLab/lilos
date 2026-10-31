@@ -608,6 +608,38 @@ Un punto d'ingresso è una parte dell'app che si avvia da sola, con o senza fine
 
 Per chiamare un punto d'ingresso da un'app di sistema: `callEntrypoint(appId, entry, data)` di `@lilos/system` (non servono permessi). Per le app di sistema ogni punto d'ingresso è un export con quel nome del loro modulo.
 
+## Tradurre un'app
+
+Un'app installata o di sistema ha un solo file di traduzioni, con l'inglese come lingua predefinita. Formato completo e regole: [API → Traduzioni delle app](api.md#traduzioni-delle-app-sdkcorelocalejs-e-sdkcorei18njs).
+
+1. Scrivi nel manifesto i testi **in inglese** e indica il file (solo app `local`):
+
+   ```json
+   { "name": "Notes", "description": "Take notes.", "locales": "locales.json" }
+   ```
+2. Crea `locales.json` accanto al manifesto. `en` è obbligatoria; per ogni testo del manifesto aggiungi la chiave `@`:
+
+   ```json
+   {
+     "en": { "strings": { "@name": "Notes", "@description": "Take notes.", "save": "Save", "notes.count": { "one": "{n} note", "other": "{n} notes" } } },
+     "it": { "strings": { "@name": "Note", "@description": "Prendi appunti.", "save": "Salva", "notes.count": { "one": "{n} nota", "other": "{n} note" } } }
+   }
+   ```
+3. Nel codice usa `lilos.locale.i18n.t()` quando disegni (non quando il modulo si carica) e ridisegna con `lilos.on('locale', …)`:
+
+   ```js
+   export function main({ lilos, root }) {
+     const { t } = lilos.locale.i18n;
+     const draw = () => { root.textContent = `${t('save')} · ${t('notes.count', { n: 3 })}`; };
+     draw();
+     lilos.on('locale', draw);
+   }
+   ```
+4. Se `locales.json` è tra i file del pacchetto, `pack.js` lo mette in `files` con il suo hash. Il kernel lo controlla all'installazione: un file non valido (manca `en`, forma plurale senza `other`, tag di lingua sbagliato…) fa fallire l'installazione.
+5. Per provare: Sistema → Lingua, scegli la lingua. Una lingua che l'app non ha ricade su `en`; una chiave mancante mostra la chiave e scrive un avviso in console.
+
+Le app ufficiali usano `appI18n(id, tabella)` di `src/shared/i18n.js` nel repository [lilos-plugins-official](https://github.com/GexyLab/lilos-plugins-official), che dà `locale.forApp(id).i18n` e ha un ripiego per i lilOS più vecchi, e controllano i file con `scripts/check-locales.mjs`.
+
 ## Installare un'app dall'esempio
 
 Serve un utente amministratore (`--admin`) e il kernel con `apps.allowLocalSources` acceso (lo è nella `config.json` del repository). Con lilOS aperto in sviluppo, nella console del browser (`lilos.kernel` esiste solo in sviluppo):

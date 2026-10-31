@@ -1,4 +1,4 @@
-import { Window, h, shortcuts, settings } from '@lilos/sdk';
+import { Window, h, shortcuts, settings, locale } from '@lilos/sdk';
 import { BRIDGE_SOURCE, lilosApi } from './bridge.js';
 import { appCode, libraryCode, entrypoints, escapeAttr, inline, netOrigins } from './code.js';
 import { isIsolated } from './isolation.js';
@@ -62,7 +62,8 @@ async function documentFor(pkg, args, entry) {
     'img-src data: blob:', 'font-src data:', 'media-src data: blob:', 'worker-src blob:',
     `connect-src ${net.length ? net.join(' ') : "'none'"}`, "form-action 'none'", "base-uri 'none'",
   ].join('; ');
-  const info = { id: pkg.id, version: pkg.version, entry, args: args ?? null, keys: commandKeys(manifest), theme: theme() };
+  const strings = locale.strings(pkg.id);
+  const info = { id: pkg.id, version: pkg.version, entry, args: args ?? null, keys: commandKeys(manifest), theme: theme(), locale: strings };
   // sdk '1': the module is the app; sdk '2': the entry point is one of its exports
   const run = String(manifest.sdk) === '2'
     ? `<script type="module">
@@ -74,7 +75,7 @@ async function documentFor(pkg, args, entry) {
 })().catch(err => parent.postMessage({ lilos: 1, id: 0, method: 'app.failed', params: [String(err && err.message || err)] }, '*'));
 </script>`
     : `<script type="module">${inline(code)}</script>`;
-  return `<!doctype html><html lang="it"><head><meta charset="utf-8">
+  return `<!doctype html><html lang="${escapeAttr(strings.lang)}"><head><meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="${escapeAttr(csp)}">
 <style>html,body{margin:0;height:100%;background:var(--surface);color:var(--text);font:13px/1.4 var(--font,system-ui)}</style>
 <script data-info="${escapeAttr(JSON.stringify(info))}">${inline(BRIDGE_SOURCE)}</script>
@@ -104,6 +105,7 @@ function connectBridge(win, frame, pkg, handles) {
   addEventListener('message', onMessage);
   const offKeys = shortcuts.on('change', () => post({ event: 'keys', data: commandKeys(pkg.manifest) }));
   const offTheme = watchTheme(() => post({ event: 'theme', data: theme() }));
+  const offLocale = locale.on('change', () => post({ event: 'locale', data: locale.strings(pkg.id) }));
   win.on('grant', ids => ids.forEach(id => handles.add(id)));
   win.on('launch', args => {
     if (args?.file) handles.add(args.file);
@@ -112,6 +114,7 @@ function connectBridge(win, frame, pkg, handles) {
   return () => {
     removeEventListener('message', onMessage);
     offKeys?.();
+    offLocale();
     offTheme.forEach(off => off?.());
   };
 }
@@ -160,11 +163,12 @@ async function mountInPage(win, pkg, entry, args, handles) {
   win.body.append(host);
 
   const methods = hostMethods({ pkg, win, handles });
-  const info = { id: pkg.id, version: pkg.version, entry, args: args ?? null };
-  const { api, emit } = lilosApi((method, ...params) => Promise.resolve().then(() => invoke(methods, method, params)), info);
+  const info = { id: pkg.id, version: pkg.version, entry, args: args ?? null, locale: locale.strings(pkg.id) };
+  const { api, emit } = lilosApi((method, ...params) => Promise.resolve().then(() => invoke(methods, method, params)), info, locale.engine);
   // The keyboard reaches lilOS's page: shortcuts go to the active window of the app
   const offs = (manifest.contributes?.commands ?? []).map(cmd => handleCommand(cmd.id, { isActive: () => win.active, run: () => emit('command', cmd.id) }));
   offs.push(...watchTheme(() => emit('theme', theme())));
+  offs.push(locale.on('change', () => emit('locale', locale.strings(pkg.id))));
   win.on('grant', ids => ids.forEach(id => handles.add(id)));
   win.on('launch', a => {
     if (a?.file) handles.add(a.file);
@@ -190,7 +194,8 @@ export function packageModule(pkg) {
       const ep = entrypoints(manifest)[entry];
       if (ep?.kind !== 'window') throw new Error(`${manifest.name} non ha la finestra ${entry}`);
       const size = ep.window ?? manifest.contributes?.window ?? {};
-      const title = entry === 'main' ? manifest.name : ep.label ?? manifest.name;
+      const text = locale.manifest(manifest);
+      const title = entry === 'main' ? text.name : entrypoints(text)[entry].label ?? text.name;
       const win = new Window({ title, icon: manifest.icon?.glyph ?? 'help', width: size.width ?? 720, height: size.height ?? 480 });
       win.body.classList.add('pkg-body');
       const handles = new Set([...(args?.file ? [args.file] : []), ...files]);

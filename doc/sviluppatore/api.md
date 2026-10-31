@@ -138,8 +138,125 @@ Identificatore breve e unico nella sessione, basato su ora, contatore e una part
 
 ## sdk/core/session.js
 
-- `session`: `{ user: { name, username? }, locale }`. `user` è l'utente collegato al kernel (`kernel.user`); senza kernel è `{ name: 'Utente' }`. `locale` è `'it-IT'`.
+- `session`: `{ user: { name, username? }, locale }`. `user` è l'utente collegato al kernel (`kernel.user`); senza kernel è `{ name: 'Utente' }`. `locale` è la lingua del sistema (`'it-IT'`, `'en-US'`…): segue l'impostazione `language`, vedi [Traduzioni delle app](#traduzioni-delle-app-sdkcorelocalejs-e-sdkcorei18njs).
 - `initials(name)`: fino a due iniziali maiuscole (`'Mario Rossi'` → `'MR'`).
+
+---
+
+## Traduzioni delle app (sdk/core/locale.js e sdk/core/i18n.js)
+
+Ogni app ha **un file di traduzioni** (`locales.json`, indicato da `locales` nel [manifesto](#manifesto-lilosjson)). La lingua è una sola per tutto il sistema, scelta in Sistema → Lingua. lilOS legge il file prima di avviare l'app e le dà le stringhe già risolte in `lilos.locale`: l'app non carica nulla e `t()` è sincrono. I testi dell'interfaccia di lilOS stesso non sono ancora tradotti (restano in italiano): si traducono solo le app.
+
+### Il file `locales.json`
+
+```json
+{
+  "en":    { "strings": {
+    "@name": "Notes", "@description": "Take notes.", "@commands.notes.new.label": "New note",
+    "save": "Save", "files.count": { "zero": "No files", "one": "{n} file", "other": "{n} files" }
+  } },
+  "it":    { "strings": {
+    "@name": "Note", "@description": "Prendi appunti.", "@commands.notes.new.label": "Nuova nota",
+    "save": "Salva", "files.count": { "one": "{n} file", "other": "{n} file" }
+  } },
+  "it-CH": { "extends": "it", "strings": { "save": "Memorizza" } }
+}
+```
+
+| Parte | Regola |
+| --- | --- |
+| Lingue | Una chiave per lingua (`en`, `it`, `it-CH`…), scritta come tag BCP 47; si salva in forma canonica (`it-it` → `it-IT`). Al massimo 50. **`en` è obbligatoria**: è la lingua predefinita. |
+| `extends?` | Un'altra lingua del file, in cui cercare ciò che manca (`it-CH` estende `it`). Deve esistere e non può essere la lingua stessa. |
+| `strings?` | `{ chiave: valore }`. Chiave: `/^@?[\w.:-]{1,200}$/`. In tutto il file al massimo 5000 stringhe. |
+| Valore | Un testo (fino a 4000 caratteri) con segnaposto `{nome}`, oppure le **forme plurali** `{ zero?, one?, two?, few?, many?, other }`: `other` è obbligatoria, le altre facoltative; ogni forma è un testo. |
+| File | JSON, fino a 1 MiB di testo. |
+
+Un file che non rispetta queste regole è rifiutato per intero con `Error('File delle traduzioni non valido: …')`. Il kernel lo controlla all'installazione e all'aggiornamento (l'app non si installa). lilOS e i servizi lo ricontrollano quando lo leggono: un file illeggibile, o diverso dal suo hash nel manifesto, lascia l'app in inglese (i testi del manifesto) e scrive un messaggio in console.
+
+**Dove si cerca una stringa**, per la lingua del sistema `it-CH`: `it-CH` → le lingue che estende → la lingua senza regione (`it`) → le lingue che estende → `en` → la chiave stessa (con un `console.warn`, una volta per chiave). Una stringa mancante in una lingua si prende dalla successiva.
+
+**Plurali.** `t(chiave, { n })` sceglie la forma con `Intl.PluralRules` della lingua del file in uso (`i18n.lang`) applicato a `params.n`. Se `n` vale `0` e la stringa ha `zero`, si usa `zero`. Se manca la forma scelta si usa `other`. Senza `n` vale `0`.
+
+**Segnaposto.** `{nome}` si sostituisce con `String(params.nome)`; un segnaposto senza parametro resta com'è.
+
+### Chiavi `@`: i testi del manifesto
+
+I testi che lilOS mostra senza eseguire l'app (nome, comandi, finestre) stanno **nel manifesto, in inglese**. Le loro traduzioni stanno nello stesso file, con una chiave che comincia per `@`: è il percorso del testo nel manifesto, e gli elementi di un elenco si indicano con il loro `id` (`value` per le opzioni).
+
+| Chiave | Testo tradotto |
+| --- | --- |
+| `@name` | `name` |
+| `@description` | `description` |
+| `@commands.<id>.label` | `contributes.commands[].label` |
+| `@widgets.<id>.name` | `contributes.widgets[].name` |
+| `@entrypoints.<nome>.label` | `entrypoints.<nome>.label` |
+| `@entrypoints.<nome>.params.<param>.label` | `label` di un parametro |
+| `@entrypoints.<nome>.params.<param>.description` | `description` di un parametro |
+| `@entrypoints.<nome>.params.<param>.options.<valore>.label` | `label` di un'opzione di un parametro `choice` |
+
+Ciò che non ha la chiave resta come dice il manifesto. Le chiavi `@` sono stringhe come le altre (stanno anche in `lilos.locale`), ma servono a lilOS.
+
+### `locale` (SDK)
+
+Esportato da `@lilos/sdk` insieme a `LANGUAGES`. È un `Emitter`.
+
+| Membro | Descrizione |
+| --- | --- |
+| `LANGUAGES` | `['en-US', 'en-GB', 'it-IT', 'de-DE', 'es-ES', 'fr-FR', 'pt-BR']`: le lingue che Sistema → Lingua propone oltre ad «Automatica». Un'app che non ha la lingua scelta ricade su `en`. |
+| `locale.code` | La lingua del sistema (`'it-IT'`): l'impostazione `language` (predefinita `'auto'`, che usa `navigator.language`), oppure `'en'` se non si riesce a risolverla. Segue l'impostazione mentre lilOS è aperto. |
+| `locale.forApp(id)` | `{ code, i18n }` di un'app: ha la stessa forma di `lilos.locale` delle app installate. Le app di sistema lo usano così: `const { t } = locale.forApp('files').i18n`. L'oggetto è sempre lo stesso per quell'id e cambia le sue stringhe quando cambia la lingua. Un id senza traduzioni dà un oggetto che restituisce le chiavi. |
+| `locale.manifest(manifesto, tabella?)` | Una copia del manifesto con i testi nella lingua del sistema (chiavi `@`). Senza `tabella` usa quella dell'app installata con l'id del manifesto; con `tabella` (per esempio quella di un catalogo) usa la data. |
+| `locale.parse(testo)` → tabella | Controlla il file (testo o oggetto) e lo restituisce `{ [lingua]: { extends, strings } }`. Lancia se non è valido. |
+| `locale.resolve(tabella, codice?)` → `{ code, lang, strings }` | Le stringhe per quel codice (predefinito `locale.code`) con ogni ripiego già applicato; `lang` è la lingua del file scelta. Senza tabella: `lang: 'en'`, nessuna stringa. |
+| `locale.load(id, tabella)`, `locale.unload(id)` | Il sistema registra o toglie la tabella di un'app; l'oggetto di `forApp(id)` si aggiorna. |
+| `locale.strings(id)` | Le stringhe già risolte dell'app (`resolve` sulla sua tabella). |
+| `locale.table(id)` | La tabella dell'app, o `null`. |
+| `locale.engine` | Il motore (`i18nApi` di `i18n.js`). Il sistema lo mette (come testo, con `toString()`) nelle sandbox e nei worker delle app. |
+
+Evento `change` `{ code }`: la lingua del sistema è cambiata. Gli oggetti di `forApp()` hanno già le nuove stringhe; alle app installate arriva l'evento `locale`. La lingua risolta è salvata anche nella chiave [`locale`](#locale), perché il kernel la conosca per i servizi dell'utente.
+
+`session.locale` è la lingua del sistema (`locale.code`), in sola lettura. Lo usano l'orologio e le date delle proprietà.
+
+`i18n.js` non ha import, perché lo stesso codice gira nella pagina di lilOS, nelle sandbox e nei worker (`bridge.js` lo inserisce come testo) e nel kernel (che lo importa da `sdk/core/i18n.js`). Esporta anche `parseLocales`, `localeChain`, `resolveLocale`, `localizeManifest`, `canonicalLocale`, `i18nApi`, `DEFAULT_LANG` (`'en'`) e `LOCALE_LIMITS`; fuori dal sistema si usano da `locale`.
+
+### `lilos.locale`
+
+Ciò che un'app (di sistema o installata) ha della lingua. Sincrono, uguale in ogni modo di girare.
+
+| Membro | Descrizione |
+| --- | --- |
+| `lilos.locale.code` | La lingua del sistema (`'it-IT'`). Cambia con la lingua. |
+| `lilos.locale.i18n.t(chiave, params?)` | Il testo della chiave (vedi sopra); `params` riempie i `{segnaposto}` e sceglie il plurale con `n`. |
+| `lilos.locale.i18n.lang` | La lingua del file dell'app in uso (`'it'`; `'en'` se l'app non ha la lingua del sistema né una che la completi, o non ha traduzioni). Può essere diversa da `code`. |
+| `lilos.locale.i18n.date(valore, opzioni?)` | `Intl.DateTimeFormat(code, opzioni)`; `valore` è una `Date` o un tempo in millisecondi. |
+| `lilos.locale.i18n.number(valore, opzioni?)` | `Intl.NumberFormat(code, opzioni)`. |
+
+Date e numeri seguono `code` (la lingua del sistema); il plurale segue `lang` (la lingua dei testi). Gli oggetti sono congelati.
+
+Chiama `t()` quando disegni, non quando il modulo si carica: la lingua può cambiare mentre l'app è aperta. L'evento `lilos.on('locale', ({ code, lang }) => …)` arriva quando `lilos.locale` ha già le nuove stringhe: ridisegna ciò che hai già mostrato.
+
+```js
+export function main({ lilos, root }) {
+  const { t, date } = lilos.locale.i18n;   // le funzioni leggono sempre le stringhe di adesso
+  const draw = () => {
+    const p = document.createElement('p');
+    p.textContent = `${t('files.count', { n: 3 })} · ${date(Date.now(), { dateStyle: 'medium' })}`;
+    root.replaceChildren(p);
+  };
+  draw();
+  lilos.on('locale', draw);
+}
+```
+
+Dove c'è `lilos.locale`:
+
+- **Finestre e background**, isolati o no, e **app di sistema** (nella pagina): le stringhe arrivano con le informazioni con cui parte l'app (`info.locale`) e il motore è lo stesso codice (`lilosApi(call, info, i18nApi)` in `bridge.js`).
+- **Servizi nel kernel**: `lilos.locale` c'è, ma le stringhe sono quelle **del momento in cui il servizio parte** e non c'è l'evento `locale`. La lingua è quella dell'utente a cui il servizio appartiene (la chiave `locale`, `'en'` se non c'è); un servizio di sistema (senza utente) è sempre in inglese. Se l'utente cambia lingua, il servizio la segue al riavvio.
+- `<html lang>` di una finestra isolata è la `lang` del file dell'app.
+
+### Dove lilOS mostra le traduzioni
+
+`registerPackages()` legge i file prima di mettere le app nel registro ([packages.js](#packagesjs)). La voce di ogni app nel registro ha `name` e `text` (il manifesto tradotto) come getter che seguono la lingua, e `commands` con le etichette tradotte. Li usano il titolo delle finestre, i comandi in Sistema → Scorciatoie (che si ripubblicano al cambio di lingua), le etichette dei punti d'ingresso e dei loro parametri (`entrypointsOf`, Sistema → Avvio), le proprietà dell'app e il nome del collegamento che l'operazione `desktopItem` mette sulla scrivania. I nomi di cartelle e file già creati non cambiano. Il catalogo di un repository porta, per ogni app, `locales`: la sua tabella con le sole chiavi `@`, così l'AppStore può mostrare nome e descrizione con `locale.manifest(manifesto, locales)`.
 
 ---
 
@@ -217,7 +334,7 @@ I repository da cui arrivano app e moduli: quello ufficiale (sempre presente) e 
 | `list()` | `[{ id, name, url, official }]` (utenti). |
 | `add(url, name?)` | Aggiunge un repository dopo aver letto il suo `catalog.json` (amministratori). `name` assente: quello del catalogo, o l'indirizzo. Lancia `conflict` se c'è già, `invalid` se il catalogo manca o l'indirizzo non va. |
 | `remove(id)` | Toglie un repository (amministratori; non l'ufficiale). Le app già installate restano. |
-| `catalog(id)` | Cosa offre il repository alla sua ultima versione: `{ repo, name, ref, commit, apps: [{ path, manifest, readme } \| { path, error }], modules: [{ path, module, readme } \| { path, error }] }` (utenti). `readme` è il testo di `README.md` nella cartella del pacchetto (Markdown) oppure `null`; oltre 64 KB è tagliato alla fine di una riga e la voce ha `readmeTruncated: true`. Per installare: `apps.install({ type: 'git', url: repo.url, path, ref })`. |
+| `catalog(id)` | Cosa offre il repository alla sua ultima versione: `{ repo, name, ref, commit, apps: [{ path, manifest, locales, readme } \| { path, error }], modules: [{ path, module, readme } \| { path, error }] }` (utenti). `readme` è il testo di `README.md` nella cartella del pacchetto (Markdown) oppure `null`; oltre 64 KB è tagliato alla fine di una riga e la voce ha `readmeTruncated: true`. `locales` (solo nelle app) è la tabella delle traduzioni dell'app con le sole chiavi `@` (i testi del manifesto), oppure `null` se l'app non ne ha o il file non è valido: `locale.manifest(manifest, locales)` mostra il manifesto nella lingua dell'utente. Per installare: `apps.install({ type: 'git', url: repo.url, path, ref })`. |
 | `readme(id, path)` | Il `README.md` completo di un pacchetto del catalogo (`path` come lo elenca il catalogo), come testo (utenti). |
 
 ### `kernelModules`
@@ -1184,7 +1301,7 @@ Validato dal kernel (`system/kernel/src/apps/manifest.js`), che scarta i campi c
 | `id` | Minuscolo, cifre, punti e trattini, 2-64 caratteri (`acme.note`). È anche l'id nel registro. |
 | `version` | `x.y.z`. |
 | `kind` | `'local'` (codice del pacchetto: isolato in una sandbox o no a seconda di [come gira](#modalità-di-esecuzione-isolationjs); dentro lilOS se è un'app di sistema) o `'remote'` (un sito in un iframe, sempre isolato). |
-| `name` | Nome mostrato, fino a 40 caratteri. |
+| `name` | Nome mostrato, fino a 40 caratteri. In inglese: le altre lingue stanno nel file `locales` (chiave `@name`). |
 | `icon?` | `{ glyph, color }`: nome di un simbolo (`icon()`) e colore `#rrggbb`. Predefiniti `help` e `#5f6673`. |
 | `publisher` | `{ id, name, key? }`; `key` è la chiave pubblica Ed25519 (`ed25519:<base64>`). |
 | `sdk` | `"1"` o `"2"` (accetta anche i numeri 1 e 2). Con `"1"` il codice dell'app gira in cima al suo modulo, con `lilos` globale, **solo isolato**, e può dichiarare `entrypoints` solo per `main` (per i suoi `params`) e i punti d'ingresso `service` (che non usano il suo modulo come app: il loro codice sta in un `file` a parte). Con `"2"` ogni punto d'ingresso è una funzione esportata dal modulo (vedi `entrypoints` e [Punti d'ingresso](#punti-dingresso-entrypointsjs)). |
@@ -1195,6 +1312,7 @@ Validato dal kernel (`system/kernel/src/apps/manifest.js`), che scarta i campi c
 | `entry` | Solo `local`: uno dei file del pacchetto, un modulo ES. In un'app non di sistema ha tutto già dentro; un'app di sistema può avere più file (blocchi, worker, file `.wasm`) accanto all'entry. |
 | `entrypoints?` | Solo app `local` (con `sdk` `"1"` solo `main`, per i suoi `params`, e i `service`; altrimenti il manifesto è rifiutato): le parti dell'app che altri possono avviare. Oggetto `{ nome: { kind, file?, label?, window?, params? } }`, al massimo 20. `nome`: `/^[a-z][a-zA-Z0-9]{0,30}$/`, ed è anche il nome dell'export da chiamare. `kind`: `'window'`, `'background'` (nel browser, a richiesta) o `'service'` (nel kernel, anche a lilOS chiuso; richiede il permesso `background`, altrimenti il manifesto è rifiutato; vedi [Servizi](#servizi-delle-app-appsappservicesjs)). `file?`: un `.js` o `.mjs` tra i `files` (predefinito `entry`). `label?`: fino a 60 caratteri (titolo della finestra, nome nella barra per un background). `window?`: `{ width, height }` (200-4000 × 150-4000), **solo per `window`**. `main` esiste sempre come finestra, anche se non è dichiarato; se è dichiarato deve essere `kind: 'window'`. `params?`: cosa accetta come `args`, perché lilOS possa chiederlo (Sistema → Avvio); vedi [Parametri dei punti d'ingresso](#parametri-dei-punti-dingresso). |
 | `styles?` | Solo app di sistema: fogli di stile `.css` del pacchetto (fino a 10, tra i `files`) che lilOS carica insieme all'app. |
+| `locales?` | Solo app `local`: un file `.json` tra i `files`, le traduzioni dell'app (formato e regole in [Traduzioni delle app](#traduzioni-delle-app-sdkcorelocalejs-e-sdkcorei18njs)). I testi del manifesto (`name`, `description`, `label` di comandi e punti d'ingresso, `name` dei widget, `label` e `description` dei parametri) sono **in inglese**; le chiavi `@` del file li traducono. Il kernel controlla il file all'installazione e all'aggiornamento e lo rifiuta se non è valido; un `locales` in un'app `remote` fa rifiutare il manifesto. Senza `locales` l'app resta in inglese. |
 | `files` | `{ percorso: 'sha256-<base64>' }`: ogni file del pacchetto (fino a 1000, percorsi di fino a 16 livelli con `[\w.-]`). Lo riempie `pack.js` (o, nel repository ufficiale, `scripts/build.mjs`). |
 | `url` | Solo `remote`: `https://…` (o `http://localhost`). Non può avere l'origine di lilOS. |
 | `libraries?` | `[{ name, version, url, integrity: 'sha384-…', cache? }]`, fino a 30, solo `https`. Con `cache: true` il kernel la scarica una volta in `/system/commons` e la dà inline; senza, il browser la carica dall'`url` (che entra nella CSP). |
@@ -1278,7 +1396,8 @@ Con `sdk` `"1"` il modulo è l'app: gira per intero all'avvio con `window.lilos`
 | `lilos.app.keepAlive(attivo)` | Solo in un background. Con `true` (predefinito) non si ferma dopo i 5 minuti senza chiamate e compare nella barra in basso (icona delle app in background), da dove l'utente lo può fermare; con `false` torna normale. Fermarlo cancella ciò che teneva in memoria. |
 | `lilos.apps.call(app, entry, data)` → risultato | Come `lilos.app.call`, per un punto d'ingresso **di un'altra app**. Serve il permesso `apps.call:<id app>`. L'app deve essere installata e visibile nel workspace attuale. Un `file` si può passare solo se l'app lo ha ricevuto; ogni altro dato arriva così com'è e **chi lo riceve deve controllarlo** (la forma, i tipi, le dimensioni). |
 | `lilos.handle(fn)` | Solo in un background: `fn(data, { from })` risponde alle chiamate; `from` è l'id dell'app che chiama (`null` se è il sistema). Il valore restituito, o `null`, torna a chi ha chiamato. Senza `handle` le chiamate falliscono. Un `file` ricevuto nei dati si può leggere e scrivere con `lilos.files` come se l'app fosse stata aperta con lui. |
-| `lilos.on(evento, fn)` → `off` | Eventi: `launch` (nuovi argomenti, a finestra già aperta), `command` (`id` di un comando di `contributes.commands`, quando l'utente preme la sua scorciatoia; solo nelle finestre), `theme` (i token di colore sono cambiati; nella sandbox il bridge li applica da solo a `:root`), `connect` (`MessagePort`, in un background: qualcuno ha chiamato `lilos.app.connect`). |
+| `lilos.locale` | `{ code, i18n: { t(chiave, params?), lang, date(valore, opzioni?), number(valore, opzioni?) } }`: la lingua del sistema e le stringhe dell'app per quella lingua, già risolte (a differenza del resto di `lilos`, **sincrono**). Non richiede permessi. Vedi [`lilos.locale`](#liloslocale). |
+| `lilos.on(evento, fn)` → `off` | Eventi: `launch` (nuovi argomenti, a finestra già aperta), `command` (`id` di un comando di `contributes.commands`, quando l'utente preme la sua scorciatoia; solo nelle finestre), `theme` (i token di colore sono cambiati; nella sandbox il bridge li applica da solo a `:root`), `connect` (`MessagePort`, in un background: qualcuno ha chiamato `lilos.app.connect`), `locale` (`{ code, lang }`: la lingua del sistema è cambiata e `lilos.locale` ha già le nuove stringhe; non nei servizi). |
 | `lilos.window.setTitle(testo)` | Titolo della finestra (fino a 100 caratteri). Solo in una finestra: in un background fallisce. |
 | `lilos.ui.toast(testo)` | Avviso in basso (fino a 200 caratteri). |
 | `lilos.files.read(rif)` → testo | `rif`: `~/percorso` (coperto da `fs.read` o `fs.write`) oppure l'id di un file con cui l'app è stata aperta. |
@@ -1293,9 +1412,9 @@ I percorsi sono quelli che l'utente vede dal workspace attuale: `~/Scrivania` è
 
 ### `packages.js`
 
-- `registerPackages()`: prima dei workspace, mette ogni app installata nel registro. Per ogni app crea la voce con `system` = `required`, `trusted` = `system`, e `load`: per un'app di sistema `local` è `loadSystemApp`, per le altre `packageModule`.
+- `registerPackages()` → `Promise`: prima dei workspace, legge il file di traduzioni di ogni app (`manifest.locales`, controllato con il suo hash; se manca o non è valido l'app resta in inglese e c'è un messaggio in console) e mette ogni app installata nel registro. Si aspetta con `await`. Per ogni app crea la voce con `name` e `text` (il manifesto tradotto) che seguono la lingua del sistema, `system` = `required`, `trusted` = `system`, e `load`: per un'app di sistema `local` è `loadSystemApp`, per le altre `packageModule`.
 - `loadSystemApp(pkg)` (interna): per ogni foglio di `styles` aggiunge un `<link rel="stylesheet" data-app="<id>">` (e toglie quelli di una versione precedente), poi fa `import()` di `/api/apps/<id>/v/<versione>/<entry>`. Il percorso contiene la versione, quindi i blocchi, i worker e i file che il modulo carica con percorsi relativi si risolvono accanto a lui, e il browser li tiene in cache per sempre (`immutable`): **una versione non si cambia, se ne pubblica una nuova**. Alla rimozione di un'app i suoi fogli di stile si tolgono.
-- `connectPackages({ desk })` → `Promise`: dopo l'avvio, segue `apps` (`change`: aggiunge, sostituisce o toglie nel registro) e fa le operazioni per l'utente. `desk()` dà l'id della Scrivania del workspace attuale.
+- `connectPackages({ desk })` → `Promise`: dopo l'avvio, segue `apps` (`change`: legge le traduzioni, poi aggiunge, sostituisce o toglie nel registro; togliendo scarica anche le traduzioni) e fa le operazioni per l'utente. `desk()` dà l'id della Scrivania del workspace attuale.
 
 ### Modalità di esecuzione (`isolation.js`)
 
@@ -1500,7 +1619,7 @@ Registra la scorciatoia `system.startMenu` (Ctrl K, gruppo Generale, attiva anch
 
 ### `createClock()` → `HTMLElement`
 
-Data breve e ora secondo `session.locale`, aggiornate allo scoccare di ogni minuto. Il tooltip contiene la data completa.
+Data breve e ora secondo `session.locale` (la lingua del sistema), aggiornate allo scoccare di ogni minuto. Il tooltip contiene la data completa.
 
 ---
 
@@ -1897,7 +2016,7 @@ Il kernel controlla che questi metodi esistano; ogni modulo può fornire anche s
 | `auth` | `login(username, password, { ip })` → `{ token, user, expires }` (lancia `invalid_credentials` o `rate_limited`); `session(token)` → `user \| null`; `logout(token)`; `logoutAll(userId)` |
 | `users` | `get(id)`, `list()`, `create({ username, name, password, role })`, `setPassword(id, password)`, `remove(id)` |
 | `fs` | `home(principal)` → `{ id, path, created }`; `stat(principal, id)`; `list(principal, id)`; `tree(principal, id, { content })`; `lookup(principal, path)`; `apply(principal, { put, remove })` (una transazione); `read(principal, id)` → `Buffer`; `write(principal, id, Buffer)`; `remove(principal, ids)` |
-| `runtime` | Facoltativo: senza, lilOS non ha servizi. `start({ key, code, info, limits }, host)` → `Promise<handle>`, che si risolve quando il punto d'ingresso è partito (o rifiuta con il motivo). `code`: il modulo ES del servizio, che esporta una funzione col nome `info.entry` e la riceve con `{ lilos, args }`. `info`: `{ id, version, entry, args, user: { id, username, name } \| null }`. `limits`: `{ memoryMb, cpuMs }` (memoria del servizio; tempo di una sola esecuzione del suo codice). `host`: `{ call(metodo, parametri)` → `Promise` (l'API `lilos`, controllata dal kernel), `log(livello, testo)` (ciò che scrive con `console.*`), `exit(motivo)` (si è fermato da solo: errore, memoria, crash) `}`. `handle`: `{ request(data, from)` → `Promise<risultato>` (ciò che restituisce il suo `lilos.handle`), `stop()` → `Promise }`. Vedi [Servizi delle app](#servizi-delle-app-appsappservicesjs) |
+| `runtime` | Facoltativo: senza, lilOS non ha servizi. `start({ key, code, info, limits }, host)` → `Promise<handle>`, che si risolve quando il punto d'ingresso è partito (o rifiuta con il motivo). `code`: il modulo ES del servizio, che esporta una funzione col nome `info.entry` e la riceve con `{ lilos, args }`. `info`: `{ id, version, entry, args, user: { id, username, name } \| null, locale, i18n }`, dove `locale` è `{ code, lang, strings }` (le stringhe già risolte, vedi [`lilos.locale`](#liloslocale)) e `i18n` è il testo del motore (`i18nApi` di `sdk/core/i18n.js`, `toString()`): il runner lo valuta e dà al servizio `lilos.locale`. `limits`: `{ memoryMb, cpuMs }` (memoria del servizio; tempo di una sola esecuzione del suo codice). `host`: `{ call(metodo, parametri)` → `Promise` (l'API `lilos`, controllata dal kernel), `log(livello, testo)` (ciò che scrive con `console.*`), `exit(motivo)` (si è fermato da solo: errore, memoria, crash) `}`. `handle`: `{ request(data, from)` → `Promise<risultato>` (ciò che restituisce il suo `lilos.handle`), `stop()` → `Promise }`. Vedi [Servizi delle app](#servizi-delle-app-appsappservicesjs) |
 
 Un nodo del servizio `fs` è `{ id, parent, name, type: 'folder' \| 'file' \| 'app', meta, size, created, modified, content? }`. Chi chiede è un `principal`: `{ kind: 'user', … }` o `KERNEL` (`{ kind: 'kernel' }`, usato per installare le app). Il modulo `fs` rifiuta ciò che il principal non può fare: `not_found` per ciò che non deve sapere che esiste, `forbidden` per ciò che vede ma non cambia.
 
@@ -1968,6 +2087,7 @@ Un repository ha un `catalog.json` alla radice:
 - `installer.js`: `install` (rifiuta un'app già installata), `update` (nuova versione, `ref` anche più vecchio, o `reinstall`; si tengono la versione in uso e la precedente), `uninstall`. L'hash di ogni file e quello delle librerie (`integrity`) si controllano prima di scrivere. La libreria in `/system/commons` è condivisa tra le app che la usano (`meta.usedBy`) e si elimina quando nessuno la usa più. Lo stato (`id`, `version`, `previous`, `kind`, `system`, `required`, `source`, `signed`, `publisher`, `granted`, `installed`, `updated`, `isolated`) sta nel `meta.state` della cartella `/system/app/<id>`. `isolated` è `true`, `false` (scelta di un amministratore per quell'app) o `null` (la regola generale, il valore con cui nasce); la regola generale è `meta.security.isolated` della cartella `/system/app/.security` (`true` se manca). `security()`, `setSecurity()` e `setAppSecurity()` leggono e scrivono questi valori; le ultime due solo per un amministratore (o il kernel).
 - `update` con `reinstall` riscrive **lo stesso commit** registrato in `source.commit`: non porta codice nuovo. Per averlo serve una versione più alta (o `ref` di un'altra versione, anche precedente).
 - Fiducia: una firma presente ma sbagliata è sempre rifiutata; un'app è *verificata* se firmata da un editore di `trustedPublishers` con la chiave giusta, o se è di sistema e viene dal repository ufficiale; altrimenti serve `allowUnsigned`. Un'app con `system: true` da un altro repository è rifiutata, e un'app di sistema resta di sistema negli aggiornamenti. `uninstall` rifiuta le app `required`.
+- `manifest.js` controlla anche `locales` (un file `.json` tra i `files`, solo per app `local`) e, con `checkFiles` all'installazione e all'aggiornamento, che il file passi `parseLocales` di `sdk/core/i18n.js`: il kernel importa il motore dell'SDK ([D45](../interna/decisioni.md#d45-un-file-di-traduzioni-per-app-inglese-predefinito-un-solo-motore)), così le regole sono le stesse di lilOS. Un file non valido fa fallire l'installazione con `invalid`.
 - `tools/pack.js`: `node system/kernel/tools/pack.js <cartella> [--sign chiave.pem]` riempie `files` (esclusi `lilos.json`, i file che iniziano con un punto e `node_modules`) e controlla il manifesto; con `--sign` aggiunge `publisher.key` e `signature`. `--keygen chiave.pem` crea una chiave Ed25519 e stampa la pubblica.
 
 ### Moduli come pacchetti (`modulePackage.js`)
@@ -2046,6 +2166,7 @@ Un servizio **scelto per tutti** gira solo come sistema: chiamate e comandi vann
 | `lilos.app` | `{ id, version, entry, args, user }`: `user` è `{ id, username, name }`, o `null` per un servizio di sistema |
 | `lilos.handle(fn)` | `fn(data, from)` risponde alle chiamate: `from` è l'id dell'app che chiama o `null` (a differenza dei background, **`from` è direttamente l'id**, non un oggetto `{ from }`). Il valore restituito (JSON) torna a chi chiama. Senza `handle` le chiamate falliscono |
 | `lilos.storage.get(chiave)` → valore o `null`; `lilos.storage.set(chiave, valore)` | Dati propri. Chiavi `[\w.-]{1,64}`, fino a 256 KB per valore. Per un utente: gli stessi dati delle finestre (lilOS li rilegge **solo al ricaricamento**). Per il sistema: un solo file di 1 MB |
+| `lilos.locale` | `{ code, i18n }` come nelle finestre ([`lilos.locale`](#liloslocale)), con le stringhe dell'app nella lingua dell'utente a cui appartiene il servizio (la chiave `locale`; `'en'` se non c'è) o in inglese per un servizio di sistema. **Fissate all'avvio**: non cambiano finché il servizio non riparte, e non c'è l'evento `locale`. Il file di traduzioni si rilegge dal pacchetto a ogni avvio, con l'hash del manifesto; se non si legge o non è valido, il servizio è in inglese e il kernel scrive un avviso nel proprio log |
 | `lilos.files.read(percorso)` → testo; `write(percorso, testo)`; `list(percorso)` → `[{ name, type, size, modified }]`; `mkdir(percorso)` | Percorsi `~/…`, con `fs.read` o `fs.write` come per le finestre (testo fino a 10 milioni di caratteri; `list` nasconde i nomi che iniziano con un punto). **Solo per un servizio di un utente**: nel sistema falliscono con `forbidden`. I file creati si vedono in lilOS dopo un ricaricamento |
 | `lilos.net.fetch(url, { method, headers, body })` → `{ status, headers, body }` | Solo le origini dei permessi `net:`; metodi GET, HEAD, POST, PUT, PATCH, DELETE; non segue i reindirizzamenti; `cookie` e `host` si scartano; corpo e risposta di testo fino a 5 MB; 30 s |
 | `lilos.apps.updates()` → `[{ id, name, version, latest, repo }]` | Le app installate che hanno una versione più nuova nel repository da cui vengono (`name` e `latest` dal catalogo, `version` è l'installata, `repo` il nome del repository o `''`). Serve il permesso `apps.manage`, altrimenti `forbidden`. Confronta gli indirizzi dei repository normalizzati; un catalogo che non si legge si riprova una volta, poi si salta (con un avviso nel registro del kernel). Può durare a lungo: non aspettarlo all'avvio |
@@ -2305,6 +2426,10 @@ Oggetto con le impostazioni (vedi `settings` e `systemSettings.js`):
 Le chiavi non dichiarate e i valori di tipo diverso dal predefinito vengono ignorati.
 
 ### `startup-apps`
+
+### `locale`
+
+La lingua del sistema scelta dall'utente, già risolta (`'it-IT'`; mai `'auto'`). La scrive l'SDK (`locale`, a ogni avvio e a ogni cambio) e la legge il **kernel**, che con essa decide la lingua dei servizi dell'utente (`apps/appServices.js`, `readUserKey(…, 'locale', 'en')`); un valore che non è un testo vale `'en'`. Come le altre chiavi è `lilos:locale` nel browser, o il file `locale` nella `.config` dell'utente. La scelta dell'utente è l'impostazione `language` (`'auto'` o un tag), dentro [`lilos:settings`](#lilossettings).
 
 Le app che si aprono da sole, per utente, nell'ordine in cui si aprono (vedi [apps/startup.js](#appsstartupjs)). Come le altre chiavi è `lilos:startup-apps` nel browser, o il file `startup-apps` nella `.config` dell'utente:
 

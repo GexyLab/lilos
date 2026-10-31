@@ -4,6 +4,7 @@ import { randomBytes } from 'node:crypto';
 import { fail } from '../errors.js';
 import { KERNEL_DIR } from '../config.js';
 import { checkManifest } from './manifest.js';
+import { parseLocales } from '../../../../sdk/core/i18n.js';
 import { checkModule } from './modulePackage.js';
 import { OFFICIAL_URL, cleanSource, normalizeUrl, openSource } from './sources.js';
 
@@ -95,10 +96,12 @@ export class Repos {
 
   /**
    * What a repository offers, at its latest version tag:
-   *   { repo, ref, commit, name, apps: [{ path, manifest, readme, readmeTruncated? } | { path, error }],
+   *   { repo, ref, commit, name, apps: [{ path, manifest, locales, readme, readmeTruncated? } | { path, error }],
    *     modules: [{ path, module, readme, readmeTruncated? } | { path, error }] }
    * readme: the text of README.md in the package folder (Markdown), or null. Past 64 KB it is cut at
    * the end of a line and readmeTruncated is true: readme() gives it whole.
+   * locales: the app's translations file with only the texts of the manifest ('@' keys), or null:
+   * the SDK's locale.manifest(manifest, locales) shows them in the user's language.
    */
   async catalog(id) {
     const repo = await this.get(id);
@@ -109,9 +112,20 @@ export class Repos {
       const cut = Buffer.from(text).subarray(0, MAX_README).toString('utf8').replace(/�$/, '');
       return { readme: cut.includes('\n') ? cut.slice(0, cut.lastIndexOf('\n') + 1) : cut, readmeTruncated: true };
     };
+    const locales = async (path, manifest) => {
+      if (!manifest.locales) return null;
+      try {
+        const table = parseLocales((await read(`${path}/${manifest.locales}`)).toString('utf8'));
+        for (const lang of Object.values(table)) lang.strings = Object.fromEntries(Object.entries(lang.strings).filter(([k]) => k.startsWith('@')));
+        return table;
+      } catch {
+        return null;
+      }
+    };
     const entry = async (path, file, check, key) => {
       try {
-        return { path, [key]: check(JSON.parse((await read(`${path}/${file}`)).toString('utf8'))), ...await readme(path) };
+        const value = check(JSON.parse((await read(`${path}/${file}`)).toString('utf8')));
+        return { path, [key]: value, ...(key === 'manifest' && { locales: await locales(path, value) }), ...await readme(path) };
       } catch (err) {
         return { path, error: err.message };
       }

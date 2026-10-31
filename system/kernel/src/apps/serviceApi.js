@@ -23,6 +23,9 @@ import { logger } from '../log.js';
  *   apps.updates()                               → [{ id, name, version, latest, repo }]: installed apps with a newer
  *                                                version in the repository they came from (permission apps.manage)
  *
+ * Besides the requests, the service has lilos.locale ({ code, i18n }, as in lilOS: the SDK's
+ * i18n.js): its strings in its user's language (English for the system), as they were when it started.
+ *
  * Returns { invoke(method, params) }.
  */
 const STORAGE_KEY = /^[\w.-]{1,64}$/;

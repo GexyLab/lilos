@@ -740,3 +740,33 @@ Le app di sistema girano sempre nella pagina; le app `remote` e quelle con `sdk`
 - Un'app che cambia i dati di un utente da un servizio non avvisa le finestre aperte (lo storage non si aggiorna in diretta).
 
 **Quando ripensarla.** Se le sessioni cambieranno (e con loro "entrare"), se i servizi dovranno usare librerie o parlarsi tra loro, se la versione di Node supportata da `isolated-vm` cambierà, o se un'app dovrà aprirsi in ogni scheda.
+
+## D45. Un file di traduzioni per app, inglese predefinito, un solo motore
+
+**Decisione.** Le app si traducono con **un solo file** (`locales.json`, indicato da `locales` nel manifesto): `{ lingua: { extends?, strings } }`, con l'inglese (`en`) obbligatorio. La lingua è una per tutto il sistema (impostazione `language`, `'auto'` = lingua del browser; Sistema → Lingua). Una stringa si cerca nella lingua esatta (`it-CH`), in quelle che estende, nella lingua senza regione (`it`), in `en`, e infine è la chiave stessa. Le stringhe sono testi con `{segnaposto}` o forme plurali (`Intl.PluralRules` su `params.n`, con `zero` facoltativo). I testi del manifesto (nome, comandi, etichette) sono **in inglese** nel manifesto e si traducono con chiavi che cominciano per `@` nello stesso file.
+
+lilOS legge il file **prima** di avviare l'app e le dà le stringhe già risolte: `lilos.locale` (`code`, `i18n.t`, `i18n.lang`, `i18n.date`, `i18n.number`) è **sincrono**, e al cambio di lingua arriva l'evento `locale`. Il nome `lilos.locale.i18n` è stato scelto dall'utente.
+
+**Il motore è uno solo**: `sdk/core/i18n.js`, **senza import**. Gira nella pagina di lilOS, nelle sandbox e nei worker (`bridge.js` lo inserisce come testo, con `toString()`, come già fa con `lilosApi`) e nel **kernel**, che lo importa dall'SDK (`manifest.js` per controllare il file, `appServices.js` per i servizi, `repos.js` per il catalogo). Il controllo del file è quindi lo stesso in installazione e in esecuzione.
+
+**Perché.**
+
+- **Un file per app, non uno per lingua**: l'autore vede insieme le stringhe e scopre subito quelle che mancano; il pacchetto resta di un file in più; il manifesto, con un solo hash per file, non deve elencare le lingue.
+- **Inglese predefinito e obbligatorio**: dà sempre un ripiego e un testo a cui tornare. Per questo i testi del manifesto sono in inglese: lilOS li mostra (menu, proprietà, AppStore) senza eseguire l'app né leggere altro.
+- **Stringhe già risolte prima dell'avvio**: `t()` può essere sincrono. Con un caricamento asincrono ogni app dovrebbe aspettare prima di disegnare, e ogni finestra avrebbe un istante senza testo.
+- **Il file è un dato di chi scrive l'app, non codice**: `parseLocales` tiene solo ciò che si aspetta, con limiti (1 MiB, 50 lingue, 5000 stringhe, 4000 caratteri per testo, chiavi `[\w.:-]`), e il kernel lo rifiuta all'installazione.
+- **Il kernel importa dall'SDK**: due copie delle regole si sarebbero allontanate. Il motore non ha import proprio per questo e per poterlo mandare nelle sandbox come testo.
+
+**Alternative scartate.** Un file per lingua (`it.json`, `en.json`): più file da firmare con hash e da tenere allineati. Chiavi nel manifesto stesso (`name: { en, it }`): manifesti grossi e un formato che il kernel deve conoscere campo per campo. Un servizio di traduzione che le app chiamano (`await t()`): app che aspettano prima di disegnare. Pacchetti di lingua installabili: per ora rinviati (sotto).
+
+**Conseguenze.**
+
+- `session.locale` non è più `'it-IT'` fisso: segue la lingua del sistema, quindi orologio e date delle proprietà seguono la scelta.
+- Il sistema scrive la lingua risolta nella chiave `locale` dell'utente: è l'unico modo che il kernel ha di conoscerla (le impostazioni vivono nel browser). Un utente che non ha mai aperto lilOS con questa versione ha i servizi in inglese.
+- Le stringhe di un **servizio** sono fissate all'avvio: per cambiarle serve riavviarlo. I servizi di sistema sono sempre in inglese.
+- Il catalogo di un repository porta per ogni app la tabella con le sole chiavi `@`, perché l'AppStore mostri nome e descrizione nella lingua dell'utente senza scaricare il pacchetto.
+- Le app di sistema usano `locale.forApp(id)` dell'SDK. Un lilOS più vecchio non ha `locale`: le app ufficiali tengono un ripiego in italiano (`src/shared/i18n.js` del repository ufficiale). `@lilos/sdk` ha export nuovi e va rilasciato prima delle app che li usano ([D38](#d38-le-app-di-sistema-vengono-dal-repository-ufficiale-e-girano-dentro-lilos)).
+- I nomi già creati (cartelle, file, collegamento sulla scrivania) non si ritraducono.
+- La traduzione di un nome non ha il limite di 40 caratteri del manifesto (vale quello di 4000 per tutti i testi).
+
+**Quando ripensarla.** Quando si tradurrà l'interfaccia di lilOS (oggi in italiano: potrebbe usare lo stesso motore, con il proprio file), quando si vorranno **pacchetti di lingua installabili** da altri (un file `.lang.json` per aggiungere una lingua a tutte le app, già abbozzato con il suo schema) o lingue da destra a sinistra, e se un'app avrà bisogno di cambiare lingua a un servizio già avviato.

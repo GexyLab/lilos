@@ -665,6 +665,7 @@ Oltre a File Manager, Editor, Sistema e AppStore, che vengono dal repository uff
 - **Un'app può preparare le sue cose.** La prima volta che incontri un'app nuova, lilOS può creare per te qualche cartella o file di esempio, un collegamento sulla scrivania del workspace in cui sei, un tag. Non sostituisce mai quello che hai già.
 - **Un'app vede solo ciò che le è stato permesso.** Per esempio può leggere e modificare soltanto i file di una cartella precisa. Non può leggere il resto della scrivania né gli altri dati di lilOS. I file che apri con l'app sono sempre accessibili all'app. (File Manager, Editor, Sistema e AppStore sono parte di lilOS e non hanno questo limite.) Questo vale per le app **isolate**, che è come girano di solito: vedi [Isolate e non isolate](#isolate-e-non-isolate).
 - **Alcune app lavorano anche senza finestra.** Un'app può avere parti che girano in secondo piano (per esempio per contare le parole delle tue note) e che si avviano da sole quando servono. Si fermano dopo circa 5 minuti senza essere usate. Se un'app deve restare attiva (per esempio perché tiene in memoria qualcosa che ti serve), compare nella barra in basso un'icona con un fulmine: vedi [Le app che restano attive](#le-app-che-restano-attive).
+- **Parla la tua lingua, se può.** Il nome dell'app, i suoi comandi e i suoi testi seguono la lingua scelta in [Sistema → Lingua](#la-lingua). Se l'app non la conosce, usa l'inglese.
 - **Nasconderla in un workspace.** In **Sistema → Workspace → Questo workspace** ogni app ha un interruttore: spento, l'app sparisce dal menu di avvio e da "Apri con" in quel workspace, e le sue finestre si chiudono (se hanno modifiche non salvate ti viene chiesto). L'app resta installata e negli altri workspace non cambia niente. File Manager, Sistema e AppStore non si nascondono.
 - **Quando l'amministratore la rimuove**, sparisce da tutti i workspace e le sue finestre si chiudono. Quello che l'app aveva creato per te viene tolto; **quello che hai modificato o riempito va nel Cestino** (compare un messaggio con quanti elementi), così non perdi il tuo lavoro. I dati che l'app teneva per sé (le sue impostazioni) si cancellano.
 - **L'Editor è un caso a parte.** Se lo rimuovi, i file di testo non hanno più un'app che li apre finché non lo reinstalli. Attenzione: **torna da solo** quando il kernel viene riavviato (anche solo per installare un modulo), a meno che chi gestisce lilOS non lo tolga dall'elenco delle app da installare all'avvio. Per non vederlo basta nasconderlo nel workspace.
@@ -762,6 +763,7 @@ Le modifiche valgono subito e restano salvate.
 | --- | --- | --- |
 | Aspetto | Colori | Il tema, **Chiaro** o **Scuro** (scrivania, barra, menu e finestre), e il colore principale di lilOS: selezioni, pulsanti, schede attive, logo |
 | Aspetto | Movimento | Animazioni attive o spente. Se nel sistema operativo hai chiesto di ridurre il movimento, le animazioni restano ridotte comunque. |
+| Lingua | — | La lingua delle app: quella del browser o una a scelta (vedi [La lingua](#la-lingua)) |
 | Scrivania | Elementi | L'elenco degli elementi fissi della scrivania (solo da leggere) e l'allineamento alla griglia degli elementi trascinati |
 | Scrivania | Panoramica | Mappa in miniatura visibile o nascosta |
 | Workspace | Questo workspace | Nome, colore e app visibili del workspace in cui sei (vedi [I workspace](#i-workspace)) |
@@ -779,6 +781,18 @@ Le modifiche valgono subito e restano salvate.
 | Informazioni | — | Versione di lilOS, browser, lingua |
 
 I due pulsanti di ripristino chiedono conferma: al primo clic il pulsante diventa rosso, e solo un secondo clic entro pochi secondi esegue l'operazione. **Ripristinare la scrivania e i file iniziali** elimina tutte le cartelle e i file che hai creato, ovunque si trovino, **tutti i workspace** (si riparte da uno solo, Principale), **tutti i tag**, le workarea, le posizioni e la vista salvate, poi ricarica lilOS. Non si può annullare.
+
+### La lingua
+
+In **Sistema → Lingua** scegli in che lingua vuoi le app: la lingua del browser (la scelta automatica) oppure una di queste: inglese (Stati Uniti o Regno Unito), italiano, tedesco, spagnolo, francese, portoghese (Brasile).
+
+- **Il cambio vale subito.** Le app aperte si aggiornano da sole, o al più alla prossima volta che le apri; non serve ricaricare la pagina. Cambiano anche i nomi delle app nel menu di avvio e nei titoli delle finestre, la data e l'ora nella barra in basso (al minuto successivo).
+- **Se un'app non ha la tua lingua, usa l'inglese.** Succede anche per i testi che mancano: compare l'inglese, o il nome interno del testo.
+- **Le parti in sottofondo** (i servizi) usano la lingua che avevi quando sono partite. Per cambiarla spegni e riaccendi il servizio in **Sistema → Avvio → Servizi**, o aspetta che riparta. I servizi che lavorano per tutti gli utenti sono sempre in inglese.
+- **Solo le app sono tradotte.** Menu, finestre di lilOS e messaggi del sistema restano in italiano, qualunque lingua scegli. Non puoi ancora aggiungere lingue nuove da solo.
+- **I nomi che hai già creato non cambiano.** Cartelle, file e collegamenti che esistono già (anche il collegamento a un'app sulla scrivania) si chiamano come quando sono stati creati.
+
+La scelta vale per il tuo utente: ognuno ha la sua lingua.
 
 ### Aprire le app all'avvio
 
@@ -968,6 +982,9 @@ La cartella Scrivania di ogni workspace è visibile solo da lì. Per condividere
 
 **Mancano File Manager, Sistema o l'AppStore, o il menu di avvio non ha app.**
 Quelle app arrivano dal repository ufficiale, e il kernel le installa da solo quando parte. Se in quel momento il computer del kernel non riusciva a raggiungerlo (niente rete, accesso negato), lilOS parte senza. Chiedi a chi gestisce lilOS di sistemare l'accesso e di riavviare il kernel: le app compaiono da sole.
+
+**Ho cambiato la lingua ma un'app resta in inglese (o in un'altra lingua).**
+L'app non ha la lingua che hai scelto: in quel caso usa l'inglese. Il menu e le finestre di lilOS sono comunque solo in italiano. Una parte in sottofondo cambia lingua quando riparte (vedi [La lingua](#la-lingua)).
 
 **Ho installato un'app ma un altro utente (o un'altra scheda) non la vede.**
 Deve ricaricare la pagina.

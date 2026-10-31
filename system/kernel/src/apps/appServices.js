@@ -5,6 +5,7 @@ import { logger } from '../log.js';
 import { readUserKey, writeUserKey } from '../api/home.js';
 import { sha256 } from './manifest.js';
 import { serviceApi } from './serviceApi.js';
+import { i18nApi, parseLocales, resolveLocale } from '../../../../sdk/core/i18n.js';
 
 /**
  * The services of installed apps: entry points of kind 'service' (manifest.js), run by the
@@ -286,6 +287,7 @@ export class AppServices extends EventEmitter {
     const code = await this.#kernel.installer.file(KERNEL, pkg.id, file);
     if (sha256(code) !== pkg.manifest.files?.[file]) throw new Error('il codice non corrisponde al manifesto');
     const params = withDefaults(service.params, inst.binding?.params ?? {});
+    const locale = await this.#locale(pkg, inst.principal);
     const api = serviceApi({
       kernel: this.#kernel, app: pkg, owner: inst.principal,
       notify: text => this.emit('notify', { owner: inst.owner, app: pkg.id, text }),
@@ -298,6 +300,7 @@ export class AppServices extends EventEmitter {
       info: {
         id: pkg.id, version: pkg.version, entry: inst.entry, args: { reason: inst.reason, ...params },
         user: inst.principal ? { id: inst.principal.id, username: inst.principal.username, name: inst.principal.name } : null,
+        locale, i18n: i18nApi.toString(),
       },
       limits: LIMITS,
     }, {
@@ -311,6 +314,26 @@ export class AppServices extends EventEmitter {
     inst.since = Date.now();
     this.#line(inst, 'info', `Acceso (${inst.reason})`);
     this.#changed(inst);
+  }
+
+  /**
+   * The app's strings for the service (lilos.locale): in the language of its user (the locale
+   * lilOS stores for them, 'locale' in .config), English for the system. A translations file
+   * that cannot be read leaves it in English.
+   */
+  async #locale(pkg, principal) {
+    const code = principal ? await readUserKey(this.#kernel, principal, 'locale', 'en') : 'en';
+    let table = null;
+    if (pkg.manifest.locales) {
+      try {
+        const text = await this.#kernel.installer.file(KERNEL, pkg.id, pkg.manifest.locales);
+        if (sha256(text) !== pkg.manifest.files?.[pkg.manifest.locales]) throw new Error('il file non corrisponde al manifesto');
+        table = parseLocales(text.toString('utf8'));
+      } catch (err) {
+        log.warn(`Traduzioni di ${pkg.id}: ${err.message}`);
+      }
+    }
+    return resolveLocale(table, typeof code === 'string' ? code : 'en');
   }
 
   /** It stopped by itself: start it again, unless it keeps failing. */
