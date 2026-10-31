@@ -696,14 +696,23 @@ Le app di sistema girano sempre nella pagina; le app `remote` e quelle con `sdk`
 - **App all'avvio.** Una lista per utente, chiave salvata `startup-apps`: `[{ app, entries: [{ entry, params }] }]`. Si aprono nell'ordine, nel workspace attuale, solo se l'impostazione `startupApps` è accesa. Un'app nascosta nel workspace o rimossa si salta (e se è rimossa esce dalla lista).
 - **Solo la prima scheda.** L'apertura avviene solo nella prima scheda dell'utente in quel browser: Web Locks, lucchetto `lilos:avvio:<id utente>` tenuto finché la scheda è aperta. Le altre si aprono pulite.
 - **`?avvio=no`** nell'indirizzo salta l'avvio per quel caricamento, con un avviso.
-- **Parametri dichiarati nel manifesto.** Un punto d'ingresso di tipo finestra può dichiarare `params` (`text`, `number`, `boolean`, `choice`, `file`, `folder`; al massimo 10). Sono gli `args` della finestra, i mancanti prendono il predefinito. Un `file` si consegna all'app (può leggerlo e scriverlo, anche se isolata); una `folder` arriva come id alle app di sistema e come percorso `~/…` a quelle installate, perché il ponte lavora per percorsi. Senza `params` dichiarati, vale un oggetto JSON qualsiasi fino a 4 KB. Anche le app con `sdk` `"1"` possono dichiarare `entrypoints`, ma solo `main`, per i suoi `params`.
+- **Parametri dichiarati nel manifesto.** Un punto d'ingresso di tipo finestra può dichiarare `params` (`text`, `number`, `boolean`, `choice`, `file`, `folder`; al massimo 10). Sono gli `args` della finestra, i mancanti prendono il predefinito. Un `file` si consegna all'app (può leggerlo e scriverlo, anche se isolata); una `folder` arriva come id alle app di sistema e come percorso `~/…` a quelle installate, perché il ponte lavora per percorsi. Senza `params` dichiarati, vale un oggetto JSON qualsiasi fino a 4 KB. Anche le app con `sdk` `"1"` possono dichiarare `entrypoints`, ma solo `main` (per i suoi `params`) e i `service` (fase 3: così le app di sistema, che sono `sdk` `"1"`, hanno servizi senza passare a `"2"`).
 - **Due tipi di parti senza finestra** (deciso con l'utente il 31 ottobre 2026). `background` resta **nel browser**, a richiesta: serve alle parti che tengono segreti dell'utente (come le chiavi della futura Cassaforte), che il kernel non deve vedere. Il nuovo `kind: 'service'` gira **nel kernel** e parte con il sistema o con l'utente, anche a lilOS chiuso.
 
 **Piano in tre fasi.**
 
 1. **App all'avvio e i due eventi**: fatta.
-2. **Servizi nel kernel**: fatta (31 ottobre 2026, non ancora in un commit). Un modulo del kernel (`services-isolate`) li esegue con `isolated-vm`, un processo per servizio; il permesso `background` serve a dichiararli; i servizi di tutti li sceglie l'amministratore. Dettagli sotto.
-3. **Scheda Servizi** in Sistema → Avvio e il servizio `updates` dell'AppStore (controllo degli aggiornamenti anche a lilOS chiuso).
+2. **Servizi nel kernel**: fatta (31 ottobre 2026, d262f7b). Un modulo del kernel (`services-isolate`) li esegue con `isolated-vm`, un processo per servizio; il permesso `background` serve a dichiararli; i servizi di tutti li sceglie l'amministratore. Dettagli sotto.
+3. **Scheda Servizi** in Sistema → Avvio e il servizio `updates` dell'AppStore (controllo degli aggiornamenti anche a lilOS chiuso): fatta (31 ottobre 2026, non ancora in un commit; Sistema 1.3.0, AppStore 1.2.0). **Con la fase 3 l'avvio automatico è completo.** Dettagli sotto.
+
+**Fase 3: scelte di dettaglio** (31 ottobre 2026).
+
+- **Interfaccia in Sistema** (1.3.0). Sottoscheda **Servizi** in Avvio, tra Opzioni e App: stato, quando parte (Non si avvia, All'accesso, All'avvio del sistema solo per gli amministratori), parametri se parte da solo, Riavvia, Accendi/Spegni e Registro in una finestra. Si aggiorna con gli eventi del kernel. Chi non è amministratore vede bloccati i servizi scelti per tutti. In Opzioni, la riga «Avvia i servizi automaticamente».
+- **Passare da utente a sistema riavvia.** `setStartup` ferma l'istanza che non vale più e, se era accesa, la riaccende subito nell'altra forma: altrimenti chi sposta un servizio lo troverebbe spento senza averlo chiesto.
+- **`lilos.apps.updates()`.** Un servizio non può chiamare `apps.*` del browser, quindi il kernel offre una sola chiamata di sola lettura (permesso `apps.manage`): le app installate con una versione più nuova nel repository da cui vengono. Un catalogo che non si legge si riprova una volta (un altro lo può leggere nello stesso momento), poi si salta.
+- **Servizio `updates` dell'AppStore** (1.2.0). All'avvio e ogni `ore` ore (predefinito 24, da 1 a 168) controlla e avvisa **una volta per versione** (ricorda in `updates.told`). Non parte da solo: l'utente lo accende in AppStore → Opzioni («Controlla gli aggiornamenti all'avvio», che lo mette All'accesso e lo accende) o in Sistema.
+- **Servizi di app di sistema.** Il codice di un servizio non passa da Vite: `build.mjs` copia `src/<app>/services/*.js` in `dist/` così com'è, perché dentro l'isolato non esistono `import`.
+- **Avvisi con il nome dell'app**: `src/apps/services.js` mostra `<nome dell'app>: <testo>`, non l'id.
 
 **Fase 2: scelte di dettaglio** (31 ottobre 2026).
 
@@ -730,4 +739,4 @@ Le app di sistema girano sempre nella pagina; le app `remote` e quelle con `sdk`
 - Un servizio di un utente parte solo se l'utente fa una richiesta dopo l'avvio del kernel: a lilOS chiuso, dopo un riavvio del kernel, non parte finché non si riapre.
 - Un'app che cambia i dati di un utente da un servizio non avvisa le finestre aperte (lo storage non si aggiorna in diretta).
 
-**Quando ripensarla.** Se le sessioni cambieranno (e con loro "entrare"), quando arriverà la fase 3, se i servizi dovranno usare librerie o parlarsi tra loro, se la versione di Node supportata da `isolated-vm` cambierà, o se un'app dovrà aprirsi in ogni scheda.
+**Quando ripensarla.** Se le sessioni cambieranno (e con loro "entrare"), se i servizi dovranno usare librerie o parlarsi tra loro, se la versione di Node supportata da `isolated-vm` cambierà, o se un'app dovrà aprirsi in ogni scheda.

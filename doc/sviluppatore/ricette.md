@@ -89,6 +89,8 @@ Le app di sistema stanno nel repository ufficiale ([GexyLab/lilos-plugins-offici
 4. Se serve una funzione del sistema che `@lilos/system` non offre, aggiungi l'export a `src/systemApi.js` in lilOS (una riga `export { … } from '…'`) e rilascia **prima** lilOS: le app che lo usano non partono su un lilOS più vecchio.
 5. Build, commit, tag come sopra. Per farla installare da sola all'avvio del kernel aggiungi l'`id` a `apps.bootstrap` (predefinito: `files`, `editor`, `settings`, `appstore`); altrimenti si installa dall'AppStore.
 
+**Aggiungere un servizio a un'app di sistema.** Scrivi `src/<app>/services/<nome>.js` con un export `async function <nome>({ lilos, args })` e **nessun `import`**; dichiaralo in `app.json` (`entrypoints.<nome>` con `kind: "service"` e `file: "dist/<nome>.js"`, più il permesso `background`). Il build lo copia in `dist/` così com'è. Dettagli e un esempio in [Servizi delle app](api.md#servizi-delle-app-appsappservicesjs).
+
 ## Far aprire dei file alla tua app
 
 1. Nel manifesto dichiara le estensioni che l'app apre per impostazione predefinita: `"contributes": { "fileTypes": ["csv", "tsv"] }` (nel registro diventano `opens`). L'app compare anche tra le scelte di Sistema → Usabilità → Tipi di file e della finestra "Apri con".

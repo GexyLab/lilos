@@ -772,7 +772,8 @@ Le modifiche valgono subito e restano salvate.
 | Usabilità | Cestino | Se chiedere conferma prima di eliminare, se eliminare definitivamente senza passare dal cestino, per quanto tempo il cestino conserva gli elementi; aprire e svuotare il cestino (vedi [Il Cestino](#il-cestino)) |
 | Usabilità | Scorciatoie | Le combinazioni di tasti di ogni comando (vedi [Cambiare le scorciatoie](#cambiare-le-scorciatoie)) e, nella sezione Mouse, la combinazione per la selezione a mano libera (Alt, Ctrl + Alt o Alt + Shift) |
 | App | Sicurezza | Se le app installate girano isolate o no: una scelta per tutte (la cambia solo un amministratore) e l'elenco di come gira ognuna; il pulsante **Proprietà…** (vedi [Isolate e non isolate](#isolate-e-non-isolate)) |
-| Avvio | Opzioni | Se le app scelte si aprono da sole quando entri (vedi [Aprire le app all'avvio](#aprire-le-app-allavvio)) |
+| Avvio | Opzioni | Se le app scelte si aprono da sole quando entri e se partono i servizi (vedi [Aprire le app all'avvio](#aprire-le-app-allavvio)) |
+| Avvio | Servizi | Le parti delle app che lavorano in sottofondo: se sono accese, quando partono, e i pulsanti per accenderle, spegnerle e leggerne il registro (vedi [Servizi in sottofondo](#servizi-in-sottofondo)) |
 | Avvio | App | Quali app si aprono da sole, con quale finestra e con quali scelte (cartella, file…) |
 | Archiviazione | — | Quanto spazio usano le tue impostazioni e il contenuto dei tuoi file; ripristino di impostazioni, scorciatoie e app dei tipi di file; ripristino della scrivania e dei file iniziali (con i workspace) |
 | Informazioni | — | Versione di lilOS, browser, lingua |
@@ -785,6 +786,7 @@ Puoi far aprire da sole alcune app, ogni volta che entri in lilOS. Le trovi in *
 
 **Opzioni**
 
+- **Avvia i servizi automaticamente**: l'interruttore dei tuoi servizi in sottofondo (vedi [Servizi in sottofondo](#servizi-in-sottofondo)).
 - **Apri le app quando entri**: l'interruttore che le accende tutte o le spegne tutte. Le scelte fatte in **App** restano salvate.
 - **Avvio senza app**: se qualcosa non va, aggiungi `?avvio=no` in fondo all'indirizzo di lilOS e ricarica. Per quella volta non si apre nessuna app; compare un avviso. La volta dopo (senza `?avvio=no`) tutto torna come prima.
 
@@ -801,7 +803,24 @@ Le app si aprono **solo nella prima scheda** di lilOS di questo browser. Se ne a
 
 Le app si aprono dopo che le finestre che avevi lasciato aperte sono tornate; se un'app ha già la sua finestra, la rivedi in primo piano invece di averne due.
 
-**Cosa arriverà.** Alcune app potranno anche lavorare in sottofondo, per esempio controllare gli aggiornamenti, anche quando lilOS è chiuso. Si sceglieranno in **Sistema → Avvio → Servizi**. Questa scheda **non c'è ancora**.
+### Servizi in sottofondo
+
+Alcune app hanno una parte che lavora in sottofondo, senza finestra, anche quando lilOS è chiuso. Per esempio l'AppStore può controllare se ci sono aggiornamenti. La chiamiamo **servizio**. Li trovi in **Sistema → Avvio → Servizi**.
+
+Per ogni servizio vedi il nome dell'app, se è **Acceso**, **Spento** o **Fermo** (con il motivo), e da quanto. Puoi:
+
+- **Scegliere quando parte**: **Non si avvia**, **All'accesso** (parte quando entri tu) o **All'avvio del sistema** (parte con lilOS, per tutti gli utenti). Quest'ultima la possono scegliere solo gli amministratori. Se la sceglie un amministratore, tu vedi la scelta bloccata.
+- **Accendere** o **Spegnere** il servizio subito, e **Riavviarlo** (l'icona con la freccia).
+- Aprire il **Registro**, una finestra con le ultime righe che il servizio ha scritto.
+- Cambiare le **scelte** del servizio (per esempio ogni quante ore controlla), che compaiono sotto di lui quando parte da solo. Valgono dalla prossima partenza.
+
+In **Opzioni** l'interruttore **Avvia i servizi automaticamente** spegne tutti i tuoi servizi insieme: le scelte restano salvate. I servizi scelti da un amministratore per tutti partono comunque.
+
+Se sposti un servizio acceso da «All'accesso» a «All'avvio del sistema», o al contrario, riparte subito.
+
+I servizi hanno bisogno di un componente del sistema, `services-isolate`. Se manca, la scheda lo dice: si aggiunge dall'AppStore (scheda **Kernel**), e un amministratore deve riavviare il sistema.
+
+**Aggiornamenti dell'AppStore.** In **AppStore → Opzioni** l'interruttore **Controlla gli aggiornamenti all'avvio** accende il servizio dell'AppStore: quando entri, e poi ogni giorno anche a lilOS chiuso, controlla se le app installate hanno una versione nuova. Se ne trova, compare un avviso con il nome dell'app e la versione; per ogni versione ti avvisa una volta sola. L'avviso si vede solo se lilOS è aperto. Se un amministratore ha scelto quel servizio per tutti, l'interruttore è bloccato e si cambia da **Sistema → Avvio → Servizi**.
 
 ## Il menu di avvio
 

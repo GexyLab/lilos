@@ -75,6 +75,7 @@ const lilos = Object.freeze({
   }),
   net: Object.freeze({ fetch: (url, options) => call('net.fetch', [url, options ?? {}]) }),
   ui: Object.freeze({ notify: text => call('ui.notify', [text]) }),
+  apps: Object.freeze({ updates: () => call('apps.updates', []) }),
 });
 globalThis.__start = fn => fn({ lilos, args: info.args });
 globalThis.__request = async (data, from) => {

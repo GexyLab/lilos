@@ -1,4 +1,5 @@
 import { Emitter, kernel, toast } from '@lilos/sdk';
+import { getApp } from './registry.js';
 
 /**
  * The services of installed apps (entry points of kind 'service'): they run in the kernel, also
@@ -69,7 +70,7 @@ export function connectServices() {
     source.addEventListener('notify', e => {
       try {
         const { app, text } = JSON.parse(e.data);
-        toast(`${app}: ${String(text).slice(0, 200)}`, { timeout: 6000 });
+        toast(`${getApp(app)?.name ?? app}: ${String(text).slice(0, 200)}`, { timeout: 6000 });
       } catch { /* not ours */ }
     });
   };

@@ -24,7 +24,7 @@ import { parsePermission, coversPath } from './permissions.js';
  *       unlock: { kind: 'window', window?: { width, height } },
  *       today: { kind: 'window', params?: { view: { type: 'choice', label: 'Vista', options: [{ value, label }] } } },
  *     },                                      each one is the export with its name of `file` (`entry` by default);
- *                                             sdk '1' may only describe `main` (its params)
+ *                                             sdk '1' may only describe `main` (its params) and services
  *     files: { 'dist/index.js': 'sha256-<base64>', … },     every file of the package, with its hash
  *     url: 'https://notes.example.com/',      remote: the page that is the app
  *     libraries: [{ name, version, url, integrity: 'sha384-…', cache?: true }],
@@ -182,7 +182,7 @@ export function checkManifest(raw) {
     const e = m.entrypoints;
     if (m.kind !== 'local') bad('entrypoints: solo nelle app locali');
     if (!e || typeof e !== 'object' || Array.isArray(e) || Object.keys(e).length > MAX.entrypoints) bad('entrypoints non validi');
-    if (String(m.sdk) !== '2' && Object.keys(e).some(name => name !== 'main')) bad('entrypoints: con sdk "1" solo main (per i suoi params)');
+    if (String(m.sdk) !== '2' && Object.entries(e).some(([name, ep]) => name !== 'main' && ep?.kind !== 'service')) bad('entrypoints: con sdk "1" solo main (per i suoi params) e i service');
     for (const [name, ep] of Object.entries(e)) {
       const wrong = msg => bad(`punto d’ingresso ${name.slice(0, 40)}: ${msg}`);
       if (!ENTRY.test(name) || !ep || typeof ep !== 'object' || Array.isArray(ep)) wrong('nome o forma non validi');

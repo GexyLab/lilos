@@ -2,6 +2,9 @@ import { randomBytes } from 'node:crypto';
 import { fail } from '../errors.js';
 import { KERNEL } from '../services.js';
 import { coversPath } from './permissions.js';
+import { compareVersions } from './manifest.js';
+import { normalizeUrl } from './sources.js';
+import { logger } from '../log.js';
 
 /**
  * The lilos API of a service (see appServices.js): what it may ask of the kernel, each request
@@ -17,6 +20,8 @@ import { coversPath } from './permissions.js';
  *   net.fetch(url, { method, headers, body })    → { status, headers, body }: only the origins of its
  *                                                net: permissions, no redirects followed, text, 5 MB, 30 s
  *   ui.notify(text)                              a message in the owner's lilOS (system: the admins')
+ *   apps.updates()                               → [{ id, name, version, latest, repo }]: installed apps with a newer
+ *                                                version in the repository they came from (permission apps.manage)
  *
  * Returns { invoke(method, params) }.
  */
@@ -29,6 +34,7 @@ const MAX_FETCH = 5 << 20;
 const METHODS = new Set(['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE']);
 
 const newId = () => randomBytes(9).toString('base64url');
+const log = logger('services');
 
 export function serviceApi({ kernel, app, owner, notify, readUserKey, writeUserKey }) {
   const fs = kernel.service('fs');
@@ -144,6 +150,27 @@ export function serviceApi({ kernel, app, owner, notify, readUserKey, writeUserK
     },
 
     'ui.notify': text => notify(String(text ?? '').slice(0, 200)),
+
+    'apps.updates': async () => {
+      if (!perms.includes('apps.manage')) fail('forbidden', 'Permesso negato: apps.manage');
+      const installed = await kernel.installer.list();
+      const out = [];
+      for (const repo of await kernel.repos.list()) {
+        // Once more before giving up: a repository read at the same moment by someone else can fail once
+        const catalog = await kernel.repos.catalog(repo.id).catch(() => kernel.repos.catalog(repo.id)).catch(err => {
+          log.warn(`${app.id}: catalogo di ${repo.name ?? repo.url} non letto: ${err.message}`);
+          return null;
+        });
+        for (const entry of catalog?.apps ?? []) {
+          const have = entry.manifest && installed.find(a => a.id === entry.manifest.id);
+          if (!have?.source?.url || normalizeUrl(have.source.url) !== normalizeUrl(repo.url)) continue;
+          if (compareVersions(entry.manifest.version, have.version) > 0) {
+            out.push({ id: have.id, name: entry.manifest.name, version: have.version, latest: entry.manifest.version, repo: repo.name ?? '' });
+          }
+        }
+      }
+      return out;
+    },
   };
 
   return {

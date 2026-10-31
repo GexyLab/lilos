@@ -188,9 +188,17 @@ export class AppServices extends EventEmitter {
     const services = when === 'login' ? [...without(user.services), binding] : without(user.services);
     await writeUserKey(this.#kernel, principal, USER_KEY, { enabled: user.enabled, services });
 
-    // Moving between the system and a user changes which instance is the service's
-    if (when === 'system' && !isSystem) await this.#stop(this.#instances.get(this.#key(principal.id, app, entry)));
-    if (when !== 'system' && isSystem) await this.#stop(this.#instances.get(this.#key(SYSTEM, app, entry)));
+    // Moving between the system and a user changes which instance is the service's: one that was on goes on as the other
+    const from = when === 'system' && !isSystem ? principal.id : when !== 'system' && isSystem ? SYSTEM : null;
+    if (from) {
+      const old = this.#instances.get(this.#key(from, app, entry));
+      const wasOn = old && old.status !== 'off' && old.status !== 'error';
+      await this.#stop(old);
+      if (wasOn && when !== 'none') {
+        const owner = when === 'system' ? { owner: SYSTEM, principal: null } : { owner: principal.id, principal };
+        await this.#start({ service, ...owner, binding }, 'manual').catch(err => log.warn(err.message));
+      }
+    }
     this.emit('change', { owner: when === 'system' || isSystem ? SYSTEM : principal.id, app, entry });
     return this.list(principal);
   }
