@@ -32,6 +32,7 @@ import { Taskbar } from './taskbar/Taskbar.js';
 import { WindowManager } from './windows/WindowManager.js';
 import { connectLauncher } from './apps/launcher.js';
 import { connectStartup } from './apps/startup.js';
+import { connectServices } from './apps/services.js';
 import { Workareas } from './workareas/Workareas.js';
 import { setupHistory } from './systemHistory.js';
 import { setupWorkspaces } from './workspaces/setup.js';
@@ -71,6 +72,7 @@ setupHistory({ root: desktop.history, activeWindow: () => wm.active });
 // Up, then the user is in (what starts by itself: apps/startup.js). After the saved windows are
 // back, so an app that opens by itself finds its window instead of opening a second one.
 connectStartup();
+connectServices();
 Promise.all([workspaces.ready, workareas.ready]).then(() => {
   bus.emit('system:ready', { at: Date.now() });
   bus.emit('user:login', { user: kernel.data?.user ?? null, workspace: workspaces.currentId ?? null });

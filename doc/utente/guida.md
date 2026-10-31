@@ -801,6 +801,8 @@ Le app si aprono **solo nella prima scheda** di lilOS di questo browser. Se ne a
 
 Le app si aprono dopo che le finestre che avevi lasciato aperte sono tornate; se un'app ha già la sua finestra, la rivedi in primo piano invece di averne due.
 
+**Cosa arriverà.** Alcune app potranno anche lavorare in sottofondo, per esempio controllare gli aggiornamenti, anche quando lilOS è chiuso. Si sceglieranno in **Sistema → Avvio → Servizi**. Questa scheda **non c'è ancora**.
+
 ## Il menu di avvio
 
 Aprilo con il **pulsante del logo** in basso a sinistra oppure con **Ctrl K**.

@@ -15,7 +15,7 @@ lilOS non ha dipendenze a runtime (solo Vite per lo sviluppo). File Manager, Edi
 
 ```bash
 npm install
-npm run kernel:setup                                    # una volta: dipendenze dei moduli del kernel
+npm run kernel:setup                                    # una volta: dipendenze dei moduli del kernel (anche isolated-vm, per i servizi)
 npm run db:up                                           # PostgreSQL in Docker (127.0.0.1:5433)
 npm run kernel:cli -- users-basic add <nome> --admin    # una volta: crea un utente
 npm run kernel                                          # il kernel su http://127.0.0.1:8790 (al primo avvio installa le app di sistema)
@@ -42,7 +42,7 @@ scripts/
   host-shims.mjs        genera public/host/sdk.js e system.js (predev, prebuild)
 public/host/            i moduli che le app di sistema importano come @lilos/sdk e @lilos/system (generati)
 system/
-  kernel/               il backend: moduli (users-basic, fs-postgres), API, repository, installazione di app e moduli, riga di comando; run.js lo avvia e lo riavvia
+  kernel/               il backend: moduli (users-basic, fs-postgres, services-isolate: fa girare i servizi delle app), API, repository, installazione di app e moduli, riga di comando; run.js lo avvia e lo riavvia
 examples/apps/note/     app di esempio (lilos.json, index.js)
 src/                    il sistema, costruito sull'SDK
   main.js               avvio: accesso e collegamento al kernel (boot/), poi system.js
@@ -71,6 +71,7 @@ src/                    il sistema, costruito sull'SDK
     launcher.js         apre le app in finestre
     entrypoints.js      punti d'ingresso delle app (finestre e background)
     startup.js          app che si aprono da sole all'ingresso (Sistema → Avvio)
+    services.js         servizi delle app nel kernel: client e avvisi
     appProperties.js    "Proprietà…" di un'app: Generale, Permessi, Sicurezza
     open.js             quale app apre quale tipo di file
     openWith.js         finestra "Apri con"
@@ -116,7 +117,7 @@ Tutte le scorciatoie (tranne Spazio + trascina e i tasti di navigazione nei menu
 - Le basi riutilizzabili nascono nell'SDK e si importano da `@lilos/sdk`. L'SDK non importa mai da `src/`.
 - Tutto ciò che sta sulla scrivania si aggiunge con `canvas.add(el)` e ha `data-kind` (usato dalla minimappa).
 - Gli elementi con `data-wheel="native"` (es. contenuto delle finestre) scorrono con la rotella invece di zoomare.
-- Le app comunicano col sistema tramite `bus` dell'SDK. Ogni app è un pacchetto (`lilos.json`) installato dal kernel: un'app di sistema (File Manager, Editor, Sistema, AppStore: dal repository ufficiale) gira dentro lilOS e usa `@lilos/sdk` e `@lilos/system`; un'altra app gira, per impostazione predefinita, in un iframe isolato e parla con lilOS solo con l'oggetto `lilos` (un amministratore può farla girare non isolata: allora può fare tutto ciò che fa l'utente) e può avere punti d'ingresso in background; le cartelle si aprono nel File Manager, i file con l'app associata al tipo (Sistema → Usabilità → Tipi di file) o con la finestra "Apri con".
+- Le app comunicano col sistema tramite `bus` dell'SDK. Ogni app è un pacchetto (`lilos.json`) installato dal kernel: un'app di sistema (File Manager, Editor, Sistema, AppStore: dal repository ufficiale) gira dentro lilOS e usa `@lilos/sdk` e `@lilos/system`; un'altra app gira, per impostazione predefinita, in un iframe isolato e parla con lilOS solo con l'oggetto `lilos` (un amministratore può farla girare non isolata: allora può fare tutto ciò che fa l'utente) e può avere punti d'ingresso in background (nel browser) o servizi (nel kernel, anche a lilOS chiuso); le cartelle si aprono nel File Manager, i file con l'app associata al tipo (Sistema → Usabilità → Tipi di file) o con la finestra "Apri con".
 - Ogni finestra che modifica impostazioni usa `SettingsWindow` dell'SDK.
 - Cartelle e file passano dal file system dell'SDK (`fs`); la scrivania è la vista della cartella `/Scrivania` del workspace attuale (privata: gli altri workspace non la vedono). Ogni nodo creato ricorda il workspace che l'ha fatto.
 - Ogni scorciatoia è un comando registrato con `shortcuts.register` dell'SDK, così l'utente può cambiarla.

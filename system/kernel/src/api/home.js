@@ -79,6 +79,29 @@ async function openHome(kernel, principal) {
   return view;
 }
 
+/** A key of the user's .config (what lilOS's storage keeps), or `fallback` when missing or damaged. */
+export async function readUserKey(kernel, principal, key, fallback = null) {
+  const view = await openHome(kernel, principal);
+  try {
+    return JSON.parse((await view.fs.read(principal, view.keyId(key))).toString('utf8'));
+  } catch {
+    return fallback;
+  }
+}
+
+/** Writes a key of the user's .config (JSON, at most 512 KB). lilOS sees it after it reloads. */
+export async function writeUserKey(kernel, principal, key, value) {
+  const view = await openHome(kernel, principal);
+  const text = JSON.stringify(value) ?? 'null';
+  if (text.length > MAX_VALUE) fail('too_large', `Valore troppo grande: ${key}`);
+  const id = view.keyId(key);
+  if (!(await view.fs.stat(principal, id))) {
+    const now = Date.now();
+    await view.fs.apply(principal, { put: [{ id, parent: view.configId, name: key, type: 'file', meta: {}, created: now, modified: now }] });
+  }
+  await view.fs.write(principal, id, Buffer.from(text, 'utf8'));
+}
+
 /** A node from lilOS → a node for the fs service. */
 function toBackNode(view, n) {
   if (!n || typeof n !== 'object') fail('invalid', 'Elemento non valido');

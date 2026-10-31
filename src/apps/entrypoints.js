@@ -1,6 +1,7 @@
 import { getApp, isInstalled, launch } from './registry.js';
 import { entrypoints } from './packages/code.js';
 import * as background from './packages/background.js';
+import { services } from './services.js';
 
 /**
  * Entry points: the parts of an app that can start on their own. When the user opens an app its
@@ -10,6 +11,7 @@ import * as background from './packages/background.js';
  *   window       opens that window of the app (or brings it back), with `data` as its args
  *   background   no window: runs in the background (background.js) and answers with what its
  *                lilos.handle() function returns
+ *   service      no window, in the kernel (services.js): the same, through the kernel
  */
 export const entrypointsOf = app => (app?.package ? entrypoints(app.package.manifest) : { main: { kind: 'window' } });
 
@@ -29,6 +31,7 @@ export async function callEntrypoint(appId, entry = 'main', data = null, { from 
     launch(appId, data ?? undefined, entry);
     return null;
   }
+  if (ep.kind === 'service') return services.call(appId, entry, data, from);
   return background.call(app, entry, data, from);
 }
 

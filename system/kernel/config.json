@@ -19,6 +19,11 @@
       "config": {
         "url": "postgres://lilos:lilos@127.0.0.1:5433/lilos"
       }
+    },
+    {
+      "name": "services-isolate",
+      "version": "1.0.0",
+      "config": {}
     }
   ],
   "apps": {

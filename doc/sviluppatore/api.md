@@ -1088,6 +1088,7 @@ Permessi dichiarati nei manifesti ufficiali: File Manager `fs.write:~`, `fs.work
 | `handleCommand` | `apps/commands.js` | Un'app gestisce un suo comando |
 | `callEntrypoint`, `connectEntrypoint`, `entrypointsOf` | `apps/entrypoints.js` | Avviare un punto d'ingresso di un'app, collegarsi a uno in background, elencare quelli di un'app (vedi [Punti d'ingresso](#punti-dingresso-entrypointsjs)) |
 | `startup` | `apps/startup.js` | Le app che si aprono da sole (vedi [apps/startup.js](#appsstartupjs)) |
+| `services` | `apps/services.js` | I servizi delle app nel kernel: elenco, scelte, avvio e arresto, chiamate, registro (vedi [Servizi delle app](#servizi-delle-app-appsappservicesjs)) |
 | `executionMode`, `canChangeExecution` | `apps/packages/isolation.js` | Come gira un'app installata; se l'utente può cambiarlo (è amministratore) |
 | `describePermission` | `apps/packages/permissions.js` | Un permesso in italiano (`'fs.read:~/Documenti'` → «Leggere i file in Home/Documenti») |
 | `showAppProperties`, `showAppSecurity` | `apps/appProperties.js` | Aprono "Proprietà…" di un'app (la seconda sulla scheda Sicurezza) |
@@ -1168,6 +1169,10 @@ I parametri diventano gli `args` della finestra.
 
 Chiave `startup-apps` (vedi [Dati salvati](#startup-apps)).
 
+---
+
+## apps/packages/
+
 Le app installate (pacchetti) nel sistema, di sistema e non. Panoramica: [README per sviluppatori](README.md#app-installate-pacchetti); ricetta: [Creare un'app installabile](ricette.md#creare-unapp-installabile-pacchetto); decisioni D35-D38 e D42.
 
 ### Manifesto `lilos.json`
@@ -1188,7 +1193,7 @@ Validato dal kernel (`system/kernel/src/apps/manifest.js`), che scarta i campi c
 | `system?` | Solo `true`, e solo per app dal repository ufficiale ([D38](../interna/decisioni.md#d38-le-app-di-sistema-vengono-dal-repository-ufficiale-e-girano-dentro-lilos)): l'app gira **dentro lilOS, senza sandbox**, e può chiedere i permessi riservati. |
 | `required?` | Solo `true`, e solo con `system`: l'app è necessaria a lilOS, non si rimuove né si nasconde. |
 | `entry` | Solo `local`: uno dei file del pacchetto, un modulo ES. In un'app non di sistema ha tutto già dentro; un'app di sistema può avere più file (blocchi, worker, file `.wasm`) accanto all'entry. |
-| `entrypoints?` | Solo app `local` (con `sdk` `"1"` solo `main`, per i suoi `params`; altrimenti il manifesto è rifiutato): le parti dell'app che altri possono avviare. Oggetto `{ nome: { kind, file?, label?, window?, params? } }`, al massimo 20. `nome`: `/^[a-z][a-zA-Z0-9]{0,30}$/`, ed è anche il nome dell'export da chiamare. `kind`: `'window'` o `'background'`. `file?`: un `.js` o `.mjs` tra i `files` (predefinito `entry`). `label?`: fino a 60 caratteri (titolo della finestra, nome nella barra per un background). `window?`: `{ width, height }` (200-4000 × 150-4000), **solo per `window`**. `main` esiste sempre come finestra, anche se non è dichiarato; se è dichiarato deve essere `kind: 'window'`. `params?`: cosa accetta come `args`, perché lilOS possa chiederlo (Sistema → Avvio); vedi [Parametri dei punti d'ingresso](#parametri-dei-punti-dingresso). |
+| `entrypoints?` | Solo app `local` (con `sdk` `"1"` solo `main`, per i suoi `params`; altrimenti il manifesto è rifiutato): le parti dell'app che altri possono avviare. Oggetto `{ nome: { kind, file?, label?, window?, params? } }`, al massimo 20. `nome`: `/^[a-z][a-zA-Z0-9]{0,30}$/`, ed è anche il nome dell'export da chiamare. `kind`: `'window'`, `'background'` (nel browser, a richiesta) o `'service'` (nel kernel, anche a lilOS chiuso; richiede il permesso `background`, altrimenti il manifesto è rifiutato; vedi [Servizi](#servizi-delle-app-appsappservicesjs)). `file?`: un `.js` o `.mjs` tra i `files` (predefinito `entry`). `label?`: fino a 60 caratteri (titolo della finestra, nome nella barra per un background). `window?`: `{ width, height }` (200-4000 × 150-4000), **solo per `window`**. `main` esiste sempre come finestra, anche se non è dichiarato; se è dichiarato deve essere `kind: 'window'`. `params?`: cosa accetta come `args`, perché lilOS possa chiederlo (Sistema → Avvio); vedi [Parametri dei punti d'ingresso](#parametri-dei-punti-dingresso). |
 | `styles?` | Solo app di sistema: fogli di stile `.css` del pacchetto (fino a 10, tra i `files`) che lilOS carica insieme all'app. |
 | `files` | `{ percorso: 'sha256-<base64>' }`: ogni file del pacchetto (fino a 1000, percorsi di fino a 16 livelli con `[\w.-]`). Lo riempie `pack.js` (o, nel repository ufficiale, `scripts/build.mjs`). |
 | `url` | Solo `remote`: `https://…` (o `http://localhost`). Non può avere l'origine di lilOS. |
@@ -1222,7 +1227,7 @@ Un permesso è `nome` oppure `nome:parametro`. Un permesso non nell'elenco, o co
 | `media.camera`, `media.microphone`, `geo` | use | Fotocamera, microfono, posizione | Nessuno (l'iframe non ha `allow`) |
 | `apps.call:<id app>` | install | Usare le azioni di un'altra app | `lilos.apps.call(<id app>, entry, data)`. Per i propri punti d'ingresso (`lilos.app.call`) non serve. Dentro: **un'app passa a un'altra un `file` solo se l'ha ricevuto lei** (aperto con l'app o passatole); gli altri dati arrivano così come sono e chi li riceve deve controllarli |
 | `ai.use`, `ai.expose` | install | Usare l'intelligenza artificiale / esporre le proprie azioni | Nessuno |
-| `background` | install | Lavorare anche a lilOS chiuso | Nessuno (non c'entra con i punti d'ingresso `background`, che non richiedono permessi e girano solo finché lilOS è aperto) |
+| `background` | install | Lavorare anche a lilOS chiuso | Serve ai punti d'ingresso `service`, che girano nel kernel (senza il permesso il manifesto è rifiutato). Non c'entra con i punti d'ingresso `background`, che non richiedono permessi e girano solo finché lilOS è aperto |
 | `auth.remote` | implicit | Accedere al proprio servizio (app remote) | Nessuno: il token non c'è |
 | `fs.workspaces`, `apps.manage`, `workspaces.manage`, `settings.system` | reserved | Funzioni di sistema | Nessuno: le app di sistema non passano dal ponte, usano `@lilos/system` e l'SDK; i permessi servono a farne accettare il manifesto e a descriverle |
 
@@ -1318,14 +1323,16 @@ I punti d'ingresso sono le parti di un'app che si avviano da sole: `main` (la fi
 | Export | Descrizione |
 | --- | --- |
 | `entrypointsOf(app)` | `{ nome: { kind, file?, label?, window?, params? } }` di un'app del registro. `main` c'è sempre. Per le app senza pacchetto: solo `main`. |
-| `callEntrypoint(appId, entry = 'main', data = null, { from = null })` → `Promise` | Avvia il punto d'ingresso. `window`: apre la finestra con `data` come `args` (`launch(appId, data, entry)`) e dà `null`. `background`: lo avvia se serve e dà ciò che restituisce il suo `lilos.handle`; `from` è l'id dell'app che chiama. Lancia se l'app non esiste, è nascosta nel workspace attuale o non ha quel punto d'ingresso. |
-| `connectEntrypoint(appId, entry)` → `Promise<MessagePort>` | Un canale con un punto d'ingresso `background`; per una finestra lancia. |
+| `callEntrypoint(appId, entry = 'main', data = null, { from = null })` → `Promise` | Avvia il punto d'ingresso. `window`: apre la finestra con `data` come `args` (`launch(appId, data, entry)`) e dà `null`. `background`: lo avvia se serve e dà ciò che restituisce il suo `lilos.handle`; `from` è l'id dell'app che chiama. `service`: passa dal kernel (`services.call`, vedi [Servizi](#servizi-delle-app-appsappservicesjs)); lo avvia se serve e dà ciò che restituisce il suo `lilos.handle`. Lancia se l'app non esiste, è nascosta nel workspace attuale o non ha quel punto d'ingresso. |
+| `connectEntrypoint(appId, entry)` → `Promise<MessagePort>` | Un canale con un punto d'ingresso `background`; per una finestra lancia. Un `service` non ha canali (il codice del servizio non ha `connect`). |
+
+**`background` o `service`?** Un `background` gira **nel browser**, a richiesta, e solo finché lilOS è aperto: serve a ciò che tiene segreti dell'utente, che il kernel non deve vedere. Un `service` gira **nel kernel**, può partire con il sistema o all'ingresso dell'utente e continua anche a lilOS chiuso; ha però un `lilos` più povero (vedi [Servizi](#servizi-delle-app-appsappservicesjs)) e richiede il permesso `background`. Nel manifesto: `"sync": { "kind": "service", "label": "Sincronizza" }`.
 
 Chi chiama dal sistema (`@lilos/system`, app di sistema) non ha permessi da verificare; un'app installata passa da `lilos.app.call` (i propri) o `lilos.apps.call` (di altre, con `apps.call:<id>`), che chiamano queste funzioni con `from` = id dell'app.
 
 #### Parametri dei punti d'ingresso
 
-`params` (in `entrypoints.<nome>`) descrive gli `args` che una finestra accetta, così lilOS può chiederli all'utente (oggi in Sistema → Avvio, vedi [apps/startup.js](#appsstartupjs)). Oggetto `{ nome: parametro }`, al massimo 10; `nome`: `/^[a-zA-Z][a-zA-Z0-9_]{0,30}$/`.
+`params` (in `entrypoints.<nome>`) descrive gli `args` che una finestra accetta, così lilOS può chiederli all'utente (oggi in Sistema → Avvio, vedi [apps/startup.js](#appsstartupjs)). Lo stesso schema vale per un punto d'ingresso `service`: i parametri scelti arrivano nel suo `args`, insieme a `reason` (vedi [Servizi delle app](#servizi-delle-app-appsappservicesjs)); per `file` e `folder` sono percorsi `~/…`. Oggetto `{ nome: parametro }`, al massimo 10; `nome`: `/^[a-zA-Z][a-zA-Z0-9_]{0,30}$/`.
 
 | Campo | Significato |
 | --- | --- |
@@ -1807,6 +1814,13 @@ Le richieste che modificano (tutte tranne `GET` e `HEAD`) devono avere l'intesta
 | `POST /api/modules` | amministratori | `{ source, allowUnsigned }` → `{ name, version, restartRequired }` |
 | `POST /api/modules/:name/update` | amministratori | `{ ref?, allowUnsigned }` → `{ name, version, previous, restartRequired }` o `{ …, unchanged: true }` |
 | `DELETE /api/modules/:name` | amministratori | → `{ name, kept, restartRequired }` |
+| `GET /api/services` | utenti | → `{ available, enabled, admin, services }`: i servizi delle app (`kind: 'service'`) con quando partono e come sono ora, per questo utente (vedi [Servizi delle app](#servizi-delle-app-appsappservicesjs)) |
+| `PUT /api/services-options` | utenti | `{ enabled: true \| false }` → `{ enabled }`: se i servizi dell'utente partono quando entra. Altro che un booleano: `invalid` |
+| `PUT /api/services/:app/:entry/startup` | utenti (`system`: amministratori) | `{ when: 'none' \| 'login' \| 'system', params? }` → come `GET /api/services`. `forbidden` per `system` (o per cambiare un servizio già di sistema) se non si è amministratori |
+| `POST /api/services/:app/:entry/start`, `…/stop`, `…/restart` | utenti (servizi di tutti: amministratori) | → `{ status, error }` |
+| `POST /api/services/:app/:entry/call` | utenti | `{ data?, from? }` (fino a 1 MB; `from` un id di app) → `{ result }`: ciò che restituisce `lilos.handle` del servizio. Lo avvia se è spento |
+| `GET /api/services/:app/:entry/log` | utenti (servizi di tutti: amministratori) | → `{ lines: [{ at, level, text }] }` |
+| `GET /api/services-events` | utenti | Flusso `text/event-stream` (un commento ogni 25 s per tenerlo aperto): `change` `{ owner, app, entry }` quando cambia un servizio dell'utente o del sistema, `notify` `{ app, text }` per ciò che un suo servizio manda con `lilos.ui.notify` (e, per gli amministratori, quelli di sistema). Negli altri endpoint `/api/services/:app/:entry/…`: `invalid` se `app` o `entry` hanno una forma non valida, `not_found` se il servizio non esiste |
 | `POST /api/kernel/restart` | amministratori | Il kernel si ferma ed esce con il codice 75: `npm run kernel` lo riavvia. Senza `run.js` (variabile `LILOS_SUPERVISED` assente): `unavailable` |
 | `/api/modules/<nome>/…` | utenti | Gli endpoint dei moduli (`ctx.route`) |
 
@@ -1826,7 +1840,8 @@ I percorsi possono finire con `*` (`/api/apps/:id/v/:version/*`): il resto del p
   "origins": [], "loopbackOrigins": true, "secureCookies": false,
   "modules": [
     { "name": "users-basic", "version": "1.0.0", "config": { "sessionDays": 30, "idleDays": 7 } },
-    { "name": "fs-postgres", "version": "1.0.0", "config": { "url": "postgres://lilos:lilos@127.0.0.1:5433/lilos" } }
+    { "name": "fs-postgres", "version": "1.0.0", "config": { "url": "postgres://lilos:lilos@127.0.0.1:5433/lilos" } },
+    { "name": "services-isolate", "version": "1.0.0", "config": {} }
   ],
   "apps": { "allowLocalSources": true, "trustedPublishers": {}, "officialKey": null, "bootstrap": ["files", "editor", "settings", "appstore"] }
 }
@@ -1867,7 +1882,7 @@ Cartella `modules/<nome>_<x.y.z>/` con:
 | `name`, `version`, `dir`, `config` | Il modulo, la sua cartella (può tenerci file propri) e la sua parte di configurazione. |
 | `log` | Logger. |
 | `fail(codice, messaggio)` | Lancia un errore voluto (i codici sono quelli della tabella degli errori). |
-| `provide(servizio, impl)` | Fornisce un servizio dichiarato in `provides`; per `auth`, `users` e `fs` il kernel controlla che `impl` abbia tutti i metodi. |
+| `provide(servizio, impl)` | Fornisce un servizio dichiarato in `provides`; per `auth`, `users`, `fs` e `runtime` il kernel controlla che `impl` abbia tutti i metodi. |
 | `service(nome)` | Un servizio dichiarato in `requires`. |
 | `route(metodo, percorso, handler)` | Endpoint `/api/modules/<nome><percorso>`, solo per utenti con l'accesso fatto. `handler({ principal, params, query, json(limite?), req, res })` restituisce JSON (nulla = 204). Il percorso è `/parola/:param`, con `[\w:-]`. |
 
@@ -1882,6 +1897,7 @@ Il kernel controlla che questi metodi esistano; ogni modulo può fornire anche s
 | `auth` | `login(username, password, { ip })` → `{ token, user, expires }` (lancia `invalid_credentials` o `rate_limited`); `session(token)` → `user \| null`; `logout(token)`; `logoutAll(userId)` |
 | `users` | `get(id)`, `list()`, `create({ username, name, password, role })`, `setPassword(id, password)`, `remove(id)` |
 | `fs` | `home(principal)` → `{ id, path, created }`; `stat(principal, id)`; `list(principal, id)`; `tree(principal, id, { content })`; `lookup(principal, path)`; `apply(principal, { put, remove })` (una transazione); `read(principal, id)` → `Buffer`; `write(principal, id, Buffer)`; `remove(principal, ids)` |
+| `runtime` | Facoltativo: senza, lilOS non ha servizi. `start({ key, code, info, limits }, host)` → `Promise<handle>`, che si risolve quando il punto d'ingresso è partito (o rifiuta con il motivo). `code`: il modulo ES del servizio, che esporta una funzione col nome `info.entry` e la riceve con `{ lilos, args }`. `info`: `{ id, version, entry, args, user: { id, username, name } \| null }`. `limits`: `{ memoryMb, cpuMs }` (memoria del servizio; tempo di una sola esecuzione del suo codice). `host`: `{ call(metodo, parametri)` → `Promise` (l'API `lilos`, controllata dal kernel), `log(livello, testo)` (ciò che scrive con `console.*`), `exit(motivo)` (si è fermato da solo: errore, memoria, crash) `}`. `handle`: `{ request(data, from)` → `Promise<risultato>` (ciò che restituisce il suo `lilos.handle`), `stop()` → `Promise }`. Vedi [Servizi delle app](#servizi-delle-app-appsappservicesjs) |
 
 Un nodo del servizio `fs` è `{ id, parent, name, type: 'folder' \| 'file' \| 'app', meta, size, created, modified, content? }`. Chi chiede è un `principal`: `{ kind: 'user', … }` o `KERNEL` (`{ kind: 'kernel' }`, usato per installare le app). Il modulo `fs` rifiuta ciò che il principal non può fare: `not_found` per ciò che non deve sapere che esiste, `forbidden` per ciò che vede ma non cambia.
 
@@ -1972,6 +1988,112 @@ Un repository ha un `catalog.json` alla radice:
 - **Rimozione.** Toglie il modulo da `config.json` (dopo aver verificato che il kernel si avvierebbe senza) e cancella le cartelle delle sue versioni, **tranne quelle che contengono file di `data`**: gli utenti di `users-basic` restano. Reinstallando la stessa versione quella cartella si riusa.
 - `list()`: i moduli trovati in `modules/`, con `enabled` (versione in `config.json`), `running` (in uso adesso) e `source`; anche quelli già tolti ma ancora in esecuzione fino al riavvio.
 
+### Servizi delle app (`apps/appServices.js`)
+
+I punti d'ingresso `kind: 'service'` (vedi [Manifesto](#manifesto-lilosjson)) girano **nel kernel**, anche a lilOS chiuso. Li esegue il servizio `runtime` di un modulo ([`services-isolate`](#services-isolate_100)); `AppServices` (`kernel.appServices`) decide chi li avvia e quando. Senza un modulo `runtime` lilOS funziona, ma senza servizi (`GET /api/services` dà `available: false`).
+
+**Proprietario.** Ogni istanza ha un proprietario: un **utente** (il servizio gira per lui, con la sua home) oppure il **sistema** (`'*'` negli eventi e nelle chiavi interne: nessun utente, una sola istanza per tutti). Un servizio di sistema non ha home: ha solo i propri dati e la rete.
+
+**Quando partono.**
+
+| Momento | Chi parte | Come |
+| --- | --- | --- |
+| `system:ready` | I servizi scelti per tutti, come sistema | Il kernel li avvia dopo aver iniziato ad ascoltare |
+| `user:login` | I servizi che l'utente ha scelto, come lui, se non ha spento l'interruttore (`enabled`) | La **prima richiesta** di quell'utente in questa esecuzione del kernel (`principalOf`), o il suo accesso (`POST /api/session`): anche una sessione ancora valida conta. Quando esce (`DELETE /api/session`) i suoi servizi si fermano e al prossimo ingresso ripartono |
+| a mano o a chiamata | Quello indicato | `start` / `restart`, o una chiamata (`lilos.apps.call`, `services.call`) a un servizio spento: poi resta acceso, finché non lo si ferma o finché il proprietario non esce |
+
+Un servizio **scelto per tutti** gira solo come sistema: chiamate e comandi vanno a quell'istanza, e solo gli amministratori lo avviano, fermano o ne leggono il registro. Sceglierlo (o toglierlo dalla scelta di tutti) lo fanno solo gli amministratori.
+
+**Cosa riceve.** La funzione esportata col nome del punto d'ingresso, come per un background: `export function sync({ lilos, args })`. `args` è `{ reason, ...params }`: `reason` è `'system:ready'`, `'user:login'`, `'manual'` o `'call'`; `params` sono i parametri scelti (controllati contro quelli dichiarati nel manifesto, con i predefiniti riempiti; stessi tipi di [Parametri dei punti d'ingresso](#parametri-dei-punti-dingresso); `file` e `folder` sono percorsi `~/…`). Senza `params` dichiarati: un oggetto JSON fino a 4 KB.
+
+**Ripartenze e registro.**
+
+- Se si ferma da solo (errore, memoria, processo terminato) riparte dopo 1 s, poi 5 s, poi 30 s. Alla quarta volta entro 5 minuti resta spento, con stato `error` e l'ultimo errore. Se non riesce nemmeno a partire (codice che non corrisponde al manifesto, errore nell'avvio, `import`), lo stato è subito `error` e **non** riparte da solo: serve `start` o `restart`.
+- Ogni istanza tiene le ultime **200 righe** di registro (`console.*`, accensioni, spegnimenti, errori; ogni riga fino a 2000 caratteri).
+- Se l'app si aggiorna, i servizi accesi ripartono con il codice nuovo (non quelli in `error`); se l'app viene rimossa si fermano, e l'app esce dall'elenco dei servizi di sistema. Il codice si controlla con l'hash del manifesto prima di partire.
+
+**Stati.** `'off'`, `'starting'`, `'on'`, `'error'`.
+
+**Dati salvati.**
+
+| Cosa | Dove |
+| --- | --- |
+| Scelte dell'utente | Chiave `startup-services` della `.config` dell'utente: `{ enabled, services: [{ app, entry, params }] }` (`enabled` è `true` se manca; al massimo 100 servizi, senza duplicati). Vedi [Dati salvati](#startup-services) |
+| Scelte per tutti | Nodo `/system/app/.startup` (id `app-startup`, cartella): `meta.startup.services` con la stessa forma. Lo scrive il kernel |
+| Dati di un servizio **di sistema** | File `app:<id>/~data` (nome `.data`) nella cartella dell'app, JSON, fino a 1 MB; si cancella con l'app |
+| Dati di un servizio **di un utente** | Le stesse chiavi di `lilos.storage` nelle finestre: `app:<id>:<chiave>` nella `.config` dell'utente |
+
+**Interfaccia (`AppServices`).** Eventi `change` `{ owner, app, entry }` e `notify` `{ owner, app, text }`.
+
+| Metodo | Cosa fa |
+| --- | --- |
+| `available` | `true` se c'è il servizio `runtime` |
+| `catalog()` | I servizi delle app installate |
+| `list(principal)` | Ciò che mostra Sistema: `{ available, enabled, admin, services }`, ciascuno `{ app, entry, label, name, glyph, color, params, startup: 'none' \| 'login' \| 'system', values, system, canControl, status, since, error }` |
+| `setStartup(principal, app, entry, { when, params? })` | `when`: `'none'`, `'login'` (per l'utente) o `'system'` (per tutti: amministratori). Senza `params` tiene quelli già scelti. Passando da utente a sistema (o viceversa) ferma l'istanza che non vale più |
+| `setOptions(principal, { enabled })` | Interruttore dei servizi dell'utente |
+| `control(principal, app, entry, action)` | `'start'`, `'stop'` o `'restart'` → `{ status, error }`. `start` su un servizio in `error` lo riavvia da capo |
+| `call(principal, app, entry, data, from)` | Avvia se serve e dà ciò che restituisce il suo `lilos.handle` (un errore del servizio è `invalid`, un servizio che non parte `unavailable`; massimo 60 s) |
+| `log(principal, app, entry)` | `{ lines: [{ at, level, text }] }` |
+| `userSeen(principal)`, `userLeft(userId)`, `systemReady()`, `stopAll()` | I momenti descritti sopra, e l'arresto del kernel |
+
+`kernel.stop()` ferma tutti i servizi e chiude anche le connessioni aperte (i flussi di `/api/services-events` altrimenti terrebbero il server acceso).
+
+**`lilos` dentro un servizio** (`apps/serviceApi.js`). Il codice gira in un isolato V8 senza DOM, senza `import`, senza `fetch` né `require`: ha solo `lilos` (congelato), `console`, `setTimeout`, `setInterval`, `clearTimeout`, `clearInterval`. Ogni richiesta passa dal kernel, che la controlla con i permessi dell'app e la esegue per il proprietario.
+
+| Funzione | Descrizione |
+| --- | --- |
+| `lilos.app` | `{ id, version, entry, args, user }`: `user` è `{ id, username, name }`, o `null` per un servizio di sistema |
+| `lilos.handle(fn)` | `fn(data, from)` risponde alle chiamate: `from` è l'id dell'app che chiama o `null` (a differenza dei background, **`from` è direttamente l'id**, non un oggetto `{ from }`). Il valore restituito (JSON) torna a chi chiama. Senza `handle` le chiamate falliscono |
+| `lilos.storage.get(chiave)` → valore o `null`; `lilos.storage.set(chiave, valore)` | Dati propri. Chiavi `[\w.-]{1,64}`, fino a 256 KB per valore. Per un utente: gli stessi dati delle finestre (lilOS li rilegge **solo al ricaricamento**). Per il sistema: un solo file di 1 MB |
+| `lilos.files.read(percorso)` → testo; `write(percorso, testo)`; `list(percorso)` → `[{ name, type, size, modified }]`; `mkdir(percorso)` | Percorsi `~/…`, con `fs.read` o `fs.write` come per le finestre (testo fino a 10 milioni di caratteri; `list` nasconde i nomi che iniziano con un punto). **Solo per un servizio di un utente**: nel sistema falliscono con `forbidden`. I file creati si vedono in lilOS dopo un ricaricamento |
+| `lilos.net.fetch(url, { method, headers, body })` → `{ status, headers, body }` | Solo le origini dei permessi `net:`; metodi GET, HEAD, POST, PUT, PATCH, DELETE; non segue i reindirizzamenti; `cookie` e `host` si scartano; corpo e risposta di testo fino a 5 MB; 30 s |
+| `lilos.ui.notify(testo)` | Un avviso (fino a 200 caratteri) nel lilOS del proprietario: l'utente stesso, o gli amministratori per un servizio di sistema. Arriva solo se lilOS è aperto |
+| `console.log/info/debug/warn/error` | Vanno nel registro del servizio |
+| `setTimeout`, `setInterval` | I timer li dà il processo ospite (fino a 1000; un intervallo non scende sotto 10 ms). Un errore in un timer finisce nel registro |
+
+Un `lilos.app.call`, `keepAlive`, `connect`, `window`, `clipboard` o `apps.call` **non esistono** nei servizi. Le librerie del manifesto (`libraries`) non vengono caricate nei servizi, per ora: il codice deve avere tutto dentro.
+
+```js
+// kind: 'service', permessi: ["background", "net:https://api.esempio.it"]
+export async function sync({ lilos, args }) {
+  lilos.handle(async (data, from) => ({ ok: true, from }));
+  const run = async () => {
+    const res = await lilos.net.fetch('https://api.esempio.it/novita');
+    await lilos.storage.set('ultima', res.body);
+    if (res.status === 200) await lilos.ui.notify('Ci sono novità');
+  };
+  await run();
+  setInterval(run, 60 * 60_000);
+}
+```
+
+**Endpoint** (`api/services.js`, solo utenti con l'accesso fatto). Vedi anche [API HTTP](#api-http).
+
+**Client in lilOS** (`services`, esportato da `@lilos/system`, file `src/apps/services.js`): un `Emitter` con l'evento `change` `{ app, entry }`.
+
+| Membro | Cosa fa |
+| --- | --- |
+| `list()` | `GET /api/services` |
+| `start(app, entry)`, `stop(...)`, `restart(...)` | Come `control`; poi emette `change` |
+| `setStartup(app, entry, when, params?)` | Come `setStartup`; poi emette `change` |
+| `setEnabled(on)` | Interruttore dei servizi dell'utente |
+| `log(app, entry)` | Le righe del registro |
+| `call(app, entry, data = null, from = null)` | Ciò che restituisce `lilos.handle` del servizio |
+
+`connectServices()` (chiamata da `system.js`, solo con il kernel e se c'è `EventSource`) apre `/api/services-events`: gli eventi `change` diventano eventi di `services`, e ogni `notify` diventa un avviso (`toast`, 6 secondi) del tipo `<id app>: <testo>`. Lo chiude all'uscita dell'utente.
+
+### `services-isolate_1.0.0`
+
+Modulo del kernel che fornisce `runtime` (`modules/services-isolate_1.0.0/`; attivo in `config.json`). Configurazione: nessuna. Richiede Node da 22 a 25 (`isolated-vm` 6.2.0, con i binari già compilati); le sue dipendenze si installano con `npm run kernel:setup`.
+
+- **Un processo Node per servizio** (`runner.js`), avviato con `--permission`: legge solo la cartella del modulo (`--allow-fs-read`), non può avviare programmi né worker; `--allow-addons` serve a `isolated-vm`. L'ambiente del processo è vuoto (solo `SystemRoot`).
+- **Il codice dell'app** gira in un isolato V8 dentro quel processo, con **128 MB** di memoria e **10 secondi** per ogni esecuzione (avvio, ogni chiamata, ogni timer). Non ha `import` (un `import` fa fallire l'avvio), `require`, `process`, rete né file.
+- Un'esecuzione oltre i 10 s, un errore all'avvio, la memoria esaurita o un crash fermano solo quel servizio: `host.exit(motivo)` e il gestore lo fa ripartire. Una chiamata senza risposta in 60 s fallisce.
+- Fermare un servizio manda `stop` al processo e, dopo 2 s, lo termina. `stop()` del modulo termina tutti i processi.
+
+Interfaccia `runtime`: vedi [Servizi (`services.js`)](#servizi-servicesjs).
+
 ---
 
 ## Eventi del bus
@@ -1980,7 +2102,7 @@ Un repository ha un `catalog.json` alla radice:
 | --- | --- | --- | --- |
 | `app:launch` | `{ id, args, entry?, files? }` | `launch()`: menu di avvio, collegamenti sul desktop, `callEntrypoint`, avvio automatico. `entry`: un punto d'ingresso di tipo finestra (`'main'` se manca). `files`: id di file che l'utente consegna all'app (`[]` se manca); un'app installata può leggerli e scriverli | `connectLauncher` (`apps/launcher.js`) |
 | `item:open` | nodo del file system | `Desktop.open()` per cartelle e file | `system.js`: le cartelle si aprono nel File Manager (`launch('files', { folder })`), i file con `openFile` |
-| `system:ready` | `{ at }` (`Date.now()`) | `system.js`, una volta per pagina, quando le finestre salvate del primo workspace (`workspaces.ready`) e delle workarea aperte (`workareas.ready`) sono tornate | Chi vuole partire con il sistema. Nella fase 2 vi si legheranno i servizi del kernel |
+| `system:ready` | `{ at }` (`Date.now()`) | `system.js`, una volta per pagina, quando le finestre salvate del primo workspace (`workspaces.ready`) e delle workarea aperte (`workareas.ready`) sono tornate | Chi vuole partire con il sistema. I servizi del kernel **non** passano da qui: il kernel ha i suoi momenti `system:ready` e `user:login` (vedi [Servizi delle app](#servizi-delle-app-appsappservicesjs)), che non dipendono da una pagina aperta |
 | `user:login` | `{ user, workspace }` (`kernel.data.user` o `null`; id del workspace attuale o `null`) | `system.js`, subito dopo `system:ready` | `connectStartup` (`apps/startup.js`): apre le app dell'avvio |
 
 Quando aggiungi un evento, documentalo qui e nel commento in testa a `sdk/core/events.js`.
@@ -2186,3 +2308,13 @@ Le app che si aprono da sole, per utente, nell'ordine in cui si aprono (vedi [ap
 Validato alla lettura: al massimo 50 app, senza duplicati, ciascuna con al massimo 20 punti d'ingresso (nome come nel manifesto, senza duplicati) e `params` un oggetto (altrimenti `{}`); un'app senza punti d'ingresso validi si scarta. Un `file` o `folder` è l'id di un nodo.
 
 Se cambi la forma di questi dati, prevedi una migrazione dei dati già salvati oppure cambia nome alla chiave.
+
+### `startup-services`
+
+I servizi delle app che partono da soli all'ingresso dell'utente, e se partono (vedi [Servizi delle app](#servizi-delle-app-appsappservicesjs)). A differenza delle altre chiavi la scrive e la legge **il kernel**: è il file `startup-services` nella `.config` dell'utente (`readUserKey` e `writeUserKey` di `api/home.js`, JSON fino a 512 KB). lilOS la usa solo tramite `/api/services`.
+
+```json
+{ "enabled": true, "services": [ { "app": "appstore", "entry": "updates", "params": { "ogniOre": 6 } } ] }
+```
+
+`enabled` vale `true` se manca. Si controlla a ogni lettura: al massimo 100 servizi, `app` e `entry` nella forma del manifesto, senza duplicati, `params` un oggetto (altrimenti `{}`). I servizi **scelti per tutti** non sono qui: stanno nel nodo `/system/app/.startup` (`meta.startup.services`, stessa forma di `services`). I dati dei servizi di sistema stanno in `app:<id>/~data` (vedi [Servizi delle app](#servizi-delle-app-appsappservicesjs)).

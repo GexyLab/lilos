@@ -1,0 +1,12 @@
+{
+  "name": "lilos-module-services-isolate",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22 <26"
+  },
+  "dependencies": {
+    "isolated-vm": "6.2.0"
+  }
+}

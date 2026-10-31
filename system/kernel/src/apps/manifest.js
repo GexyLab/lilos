@@ -19,7 +19,8 @@ import { parsePermission, coversPath } from './permissions.js';
  *     entry: 'dist/index.js',                 local: one ES module, with everything it imports bundled
  *     entrypoints?: {                         sdk '2', local apps: the parts of the app others may start
  *       main: { kind: 'window' },             what the user opens (implied when missing)
- *       vault: { kind: 'background', file?: 'dist/vault.js', label?: 'Cassaforte' },
+ *       vault: { kind: 'background', file?: 'dist/vault.js', label?: 'Cassaforte' },   in the browser, on demand
+ *       sync: { kind: 'service', label?: 'Sincronizza' },   in the kernel, also with lilOS closed (needs 'background')
  *       unlock: { kind: 'window', window?: { width, height } },
  *       today: { kind: 'window', params?: { view: { type: 'choice', label: 'Vista', options: [{ value, label }] } } },
  *     },                                      each one is the export with its name of `file` (`entry` by default);
@@ -185,7 +186,7 @@ export function checkManifest(raw) {
     for (const [name, ep] of Object.entries(e)) {
       const wrong = msg => bad(`punto d’ingresso ${name.slice(0, 40)}: ${msg}`);
       if (!ENTRY.test(name) || !ep || typeof ep !== 'object' || Array.isArray(ep)) wrong('nome o forma non validi');
-      if (ep.kind !== 'window' && ep.kind !== 'background') wrong('kind deve essere "window" o "background"');
+      if (!['window', 'background', 'service'].includes(ep.kind)) wrong('kind deve essere "window", "background" o "service"');
       if (ep.file !== undefined && (!files[ep.file] || !/\.m?js$/.test(ep.file))) wrong('file non nel pacchetto o non .js');
       if (ep.label !== undefined && !str(ep.label, 60)) wrong('etichetta non valida');
       if (ep.window !== undefined && (ep.kind !== 'window' || !windowSize(ep.window))) wrong('dimensioni della finestra non valide');
@@ -195,6 +196,7 @@ export function checkManifest(raw) {
   }
 
   const permissions = list(m.permissions, MAX.permissions);
+  if (Object.values(m.entrypoints ?? {}).some(ep => ep?.kind === 'service') && !permissions.includes('background')) bad('i punti d’ingresso service richiedono il permesso background');
   for (const p of permissions) if (!parsePermission(p)) bad(`permesso sconosciuto: ${String(p).slice(0, 60)}`);
   if (!m.system && permissions.some(p => parsePermission(p).level === 'reserved')) bad('chiede permessi riservati alle app di sistema');
 

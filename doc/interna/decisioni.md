@@ -560,7 +560,7 @@ Senza un modulo `auth` lilOS ha un solo utente (`local`, amministratore) e il ke
 
 - La chiave di un editore si dà fuori banda (`pack.js --keygen` la stampa; chi si fida la mette in `config.json`).
 - ~~Il repository ufficiale non è ancora raggiungibile pubblicamente: oggi non si può installare un'app di sistema.~~ Ora il repository ufficiale esiste (privato) e il kernel ne installa le app all'avvio ([D41](#d41-le-app-di-sistema-mancanti-si-installano-allavvio-del-kernel)).
-- Alcuni permessi sono accettati dal manifesto ma il ponte non ha ancora le funzioni che li userebbero: `clipboard.read`, `media.*`, `geo`, `ai.*`, `background`, `desktop.widget`, `ui.menus` (`apps.call` ora ha `lilos.apps.call`, [D42](#d42-punti-dingresso-e-due-modalità-di-esecuzione-per-le-app)). Vedi [Stato e roadmap](stato-e-roadmap.md).
+- Alcuni permessi sono accettati dal manifesto ma il ponte non ha ancora le funzioni che li userebbero: `clipboard.read`, `media.*`, `geo`, `ai.*`, `desktop.widget`, `ui.menus` (`apps.call` ora ha `lilos.apps.call`, [D42](#d42-punti-dingresso-e-due-modalità-di-esecuzione-per-le-app)). Vedi [Stato e roadmap](stato-e-roadmap.md).
 
 **Quando ripensarla.** Quando ci sarà un catalogo pubblico di app (l'interfaccia per installarle c'è: l'AppStore).
 
@@ -670,7 +670,7 @@ Le app di sistema girano sempre nella pagina; le app `remote` e quelle con `sdk`
 - Non c'è ancora un modo di sapere chi chiama oltre a `from` (l'id dell'app, o `null` per il sistema), e `apps.call` non chiede conferma all'utente a ogni uso.
 - Non sono implementate le pipe, la Cassaforte né i metadati per app sui nodi del file system (una chiave per file che dica all'app che lo ha cifrato come leggerlo).
 
-**Quando ripensarla.** Quando arriveranno le pipe (se serve dichiarare chi si iscrive a quali eventi, e con quali permessi), quando la Cassaforte avrà bisogno di vedere i file di altre app, se un'app non isolata dovrà essere limitata comunque (per esempio con una CSP), o se i background dovranno vivere anche a lilOS chiuso (permesso `background`).
+**Quando ripensarla.** Quando arriveranno le pipe (se serve dichiarare chi si iscrive a quali eventi, e con quali permessi), quando la Cassaforte avrà bisogno di vedere i file di altre app, se un'app non isolata dovrà essere limitata comunque (per esempio con una CSP). *(Il caso dei background a lilOS chiuso è superato in parte: i servizi nel kernel, [D44](#d44-avvio-automatico-due-eventi-app-solo-nella-prima-scheda-servizi-nel-kernel), vivono a lilOS chiuso con il permesso `background`; i background restano nel browser.)*
 
 ## D43. Gli elementi fissi della scrivania non sono file
 
@@ -691,19 +691,30 @@ Le app di sistema girano sempre nella pagina; le app `remote` e quelle con `sdk`
 
 ## D44. Avvio automatico: due eventi, app solo nella prima scheda, servizi nel kernel
 
-**Decisione.** lilOS emette due eventi sul bus, una volta per pagina, dopo che le finestre salvate sono tornate (`workspaces.ready` e `workareas.ready`): `system:ready` `{ at }` («Sistema pronto») e, subito dopo, `user:login` `{ user, workspace }` («Utente entrato»). Su `user:login` si aprono le **app dell'utente** scelte in Sistema → Avvio (`src/apps/startup.js`); su `system:ready` si legheranno i **servizi** (fase 2).
+**Decisione.** lilOS emette due eventi sul bus, una volta per pagina, dopo che le finestre salvate sono tornate (`workspaces.ready` e `workareas.ready`): `system:ready` `{ at }` («Sistema pronto») e, subito dopo, `user:login` `{ user, workspace }` («Utente entrato»). Su `user:login` si aprono le **app dell'utente** scelte in Sistema → Avvio (`src/apps/startup.js`); i **servizi** (fase 2, fatta) partono invece dal kernel, con i suoi momenti `system:ready` e `user:login`, che non dipendono da una pagina aperta.
 
 - **App all'avvio.** Una lista per utente, chiave salvata `startup-apps`: `[{ app, entries: [{ entry, params }] }]`. Si aprono nell'ordine, nel workspace attuale, solo se l'impostazione `startupApps` è accesa. Un'app nascosta nel workspace o rimossa si salta (e se è rimossa esce dalla lista).
 - **Solo la prima scheda.** L'apertura avviene solo nella prima scheda dell'utente in quel browser: Web Locks, lucchetto `lilos:avvio:<id utente>` tenuto finché la scheda è aperta. Le altre si aprono pulite.
 - **`?avvio=no`** nell'indirizzo salta l'avvio per quel caricamento, con un avviso.
 - **Parametri dichiarati nel manifesto.** Un punto d'ingresso di tipo finestra può dichiarare `params` (`text`, `number`, `boolean`, `choice`, `file`, `folder`; al massimo 10). Sono gli `args` della finestra, i mancanti prendono il predefinito. Un `file` si consegna all'app (può leggerlo e scriverlo, anche se isolata); una `folder` arriva come id alle app di sistema e come percorso `~/…` a quelle installate, perché il ponte lavora per percorsi. Senza `params` dichiarati, vale un oggetto JSON qualsiasi fino a 4 KB. Anche le app con `sdk` `"1"` possono dichiarare `entrypoints`, ma solo `main`, per i suoi `params`.
-- **Due tipi di parti senza finestra** (deciso con l'utente il 31 ottobre 2026). `background` resta **nel browser**, a richiesta: serve alle parti che tengono segreti dell'utente (come le chiavi della futura Cassaforte), che il kernel non deve vedere. Un nuovo `kind: 'service'` girerà **nel kernel**, e partirà con il sistema.
+- **Due tipi di parti senza finestra** (deciso con l'utente il 31 ottobre 2026). `background` resta **nel browser**, a richiesta: serve alle parti che tengono segreti dell'utente (come le chiavi della futura Cassaforte), che il kernel non deve vedere. Il nuovo `kind: 'service'` gira **nel kernel** e parte con il sistema o con l'utente, anche a lilOS chiuso.
 
 **Piano in tre fasi.**
 
 1. **App all'avvio e i due eventi**: fatta.
-2. **Servizi nel kernel**: un modulo del kernel che li esegue con `isolated-vm`, un processo per servizio, il permesso `background`; i servizi di sistema li sceglie l'amministratore e partono sempre. Si legano a `system:ready`.
+2. **Servizi nel kernel**: fatta (31 ottobre 2026, non ancora in un commit). Un modulo del kernel (`services-isolate`) li esegue con `isolated-vm`, un processo per servizio; il permesso `background` serve a dichiararli; i servizi di tutti li sceglie l'amministratore. Dettagli sotto.
 3. **Scheda Servizi** in Sistema → Avvio e il servizio `updates` dell'AppStore (controllo degli aggiornamenti anche a lilOS chiuso).
+
+**Fase 2: scelte di dettaglio** (31 ottobre 2026).
+
+- **Un modulo, non il kernel.** I servizi li esegue un servizio opzionale del kernel, `runtime` (modulo `services-isolate_1.0.0`, attivo in `config.json`). Senza il modulo lilOS funziona, senza servizi. Isolamento: un processo Node per servizio, con il modello di permessi di Node (`--permission`: legge solo la cartella del modulo, niente programmi né worker, `--allow-addons` per `isolated-vm`) e il codice dell'app in un isolato V8 con 128 MB e 10 s per ogni esecuzione. Niente `import`, `require`, `process`, rete né file: solo `lilos`, le cui richieste tornano al kernel, che le controlla con i permessi dell'app. Un crash o un ciclo infinito fermano solo quel servizio.
+- **Proprietario: utente o sistema (`*`).** Un servizio gira per un utente (con la sua home) o come sistema (nessun utente: una sola istanza per tutti, senza file, solo dati propri e rete). Un servizio **scelto per tutti** gira **solo come sistema**: chiamate e comandi di chiunque vanno a quell'istanza, e solo gli amministratori lo scelgono, avviano, fermano o ne leggono il registro. Le scelte per tutti stanno nel nodo `/system/app/.startup`, quelle per un utente nella chiave `startup-services` della sua `.config`.
+- **Quando partono.** `system:ready`: il kernel avvia i servizi di tutti dopo aver iniziato ad ascoltare. `user:login`: la **prima richiesta di quell'utente in questa esecuzione del kernel** (anche con una sessione ancora valida) o il suo accesso; un interruttore per utente (`enabled`) li spegne. Il logout li ferma; i servizi partiti a mano o a chiamata restano accesi fino all'arresto o all'uscita del proprietario.
+- **Ripartenze.** Se un servizio si ferma da solo riparte dopo 1, 5 e 30 s; dopo tre volte entro 5 minuti resta spento, con l'errore. Ogni istanza tiene 200 righe di registro. Un'app aggiornata riavvia i suoi servizi con il codice nuovo; un'app rimossa li ferma e esce dall'elenco dei servizi di tutti.
+- **Dati.** Per un utente lo storage è lo stesso delle finestre (`app:<id>:<chiave>` nella `.config`): lilOS lo rilegge solo quando si ricarica la pagina, quindi un valore scritto da un servizio mentre lilOS è aperto si vede dopo un ricaricamento. Lo stesso per i file che un servizio crea nella home. Per il sistema, un file `.data` nella cartella dell'app.
+- **Avvisi.** `lilos.ui.notify` manda un evento al flusso `/api/services-events` (SSE) del proprietario, che lilOS mostra come avviso; se lilOS è chiuso l'avviso si perde.
+- **Librerie del manifesto.** Per ora non si caricano nei servizi: il codice deve avere tutto dentro.
+- **Node 22-25.** `isolated-vm` 6.2 ha binari già compilati solo per queste versioni: il modulo dichiara `engines` `>=22 <26`. `npm run kernel:setup` lo installa.
 
 **Perché.** Chi apre lilOS ogni giorno con gli stessi strumenti deve ritrovarli. E alcune cose (aggiornamenti, sincronizzazioni, pipe) devono funzionare anche quando nessuna scheda è aperta, cosa che un `background` nel browser non può fare. Due eventi, e non uno, perché i servizi dipendono dal sistema e le app dall'utente.
 
@@ -714,6 +725,9 @@ Le app di sistema girano sempre nella pagina; le app `remote` e quelle con `sdk`
 - `@lilos/system` esporta `startup`; il manifesto, `params`; il bus, due eventi; `launch()` e `app:launch`, `files`.
 - Se un'app all'avvio si blocca, si esce con `?avvio=no`, o spegnendo «Apri le app quando entri».
 - Se un file o una cartella dei parametri è stato eliminato, l'app non si apre e un messaggio lo dice.
-- Le sessioni cambieranno con i servizi (l'utente avrà una sessione a lilOS chiuso): non sono state prese in conto ora.
+- `@lilos/system` esporta anche `services`; il kernel ha le rotte `/api/services*`, l'interfaccia `runtime` e il nodo `/system/app/.startup`; il manifesto ha `kind: 'service'` e il permesso `background` ora ha un effetto (serve per i servizi).
+- Le sessioni non sono cambiate: per ora un utente "è entrato" alla sua prima richiesta, e ogni uscita (`DELETE /api/session`) ferma i suoi servizi anche se ha altre sessioni aperte. Con sessioni che durano a lilOS chiuso il significato di "entrare" e "uscire" va rivisto.
+- Un servizio di un utente parte solo se l'utente fa una richiesta dopo l'avvio del kernel: a lilOS chiuso, dopo un riavvio del kernel, non parte finché non si riapre.
+- Un'app che cambia i dati di un utente da un servizio non avvisa le finestre aperte (lo storage non si aggiorna in diretta).
 
-**Quando ripensarla.** Quando arriveranno i servizi (fase 2), se le sessioni cambieranno, o se un'app dovrà aprirsi in ogni scheda.
+**Quando ripensarla.** Se le sessioni cambieranno (e con loro "entrare"), quando arriverà la fase 3, se i servizi dovranno usare librerie o parlarsi tra loro, se la versione di Node supportata da `isolated-vm` cambierà, o se un'app dovrà aprirsi in ogni scheda.

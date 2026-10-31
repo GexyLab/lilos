@@ -11,6 +11,8 @@ import { Installer } from './apps/installer.js';
 import { Repos } from './apps/repos.js';
 import { ModuleAdmin } from './apps/modulePackage.js';
 import { storeRoutes } from './api/store.js';
+import { serviceRoutes } from './api/services.js';
+import { AppServices } from './apps/appServices.js';
 import { KERNEL } from './services.js';
 
 const log = logger('kernel');
@@ -57,10 +59,12 @@ export class Kernel {
     this.installer = new Installer(this.services.get('fs'), config);
     this.repos = new Repos(config);
     this.moduleAdmin = new ModuleAdmin(this, config);
+    this.appServices = new AppServices(this);
     sessionRoutes(this);
     homeRoutes(this);
     appRoutes(this);
     storeRoutes(this);
+    serviceRoutes(this);
     await this.#bootstrapApps(config.bootstrapApps);
 
     this.#server = createServer((req, res) => this.#handle(req, res));
@@ -69,6 +73,8 @@ export class Kernel {
       this.#server.listen(config.port, config.host, resolve);
     });
     log.info(`In ascolto su http://${config.host}:${config.port} (${this.multiUser ? 'multiutente' : 'utente singolo'})`);
+    // system:ready — the services an admin chose for everyone
+    this.appServices.systemReady().catch(err => log.error('Servizi all’avvio', err));
   }
 
   /**
@@ -98,13 +104,20 @@ export class Kernel {
     }
   }
 
-  /** The principal of a request: the signed-in user, the only user without auth, or null. */
+  /**
+   * The principal of a request: the signed-in user, the only user without auth, or null.
+   * The first request of a user in this run is their user:login (their services start).
+   */
   async principalOf(req) {
-    if (!this.multiUser) return { kind: 'user', ...LOCAL_USER };
-    const token = cookies(req)[SESSION_COOKIE];
-    if (!token) return null;
-    const user = await this.service('auth').session(token);
-    return user ? { kind: 'user', id: user.id, username: user.username, name: user.name, role: user.role } : null;
+    let principal = null;
+    if (!this.multiUser) principal = { kind: 'user', ...LOCAL_USER };
+    else {
+      const token = cookies(req)[SESSION_COOKIE];
+      const user = token ? await this.service('auth').session(token) : null;
+      if (user) principal = { kind: 'user', id: user.id, username: user.username, name: user.name, role: user.role };
+    }
+    if (principal) this.appServices?.userSeen(principal);
+    return principal;
   }
 
   async #handle(req, res) {
@@ -132,7 +145,13 @@ export class Kernel {
   }
 
   async stop() {
-    await new Promise(resolve => (this.#server ? this.#server.close(resolve) : resolve()));
+    await this.appServices?.stopAll();
+    // Event streams (/api/services-events) stay open: close them, or close() waits for ever
+    await new Promise(resolve => {
+      if (!this.#server) return resolve();
+      this.#server.close(resolve);
+      this.#server.closeAllConnections();
+    });
     for (const mod of [...this.modules].reverse()) {
       try { await mod.impl.stop?.(); } catch (err) { log.error(`Arresto di ${mod.name}`, err); }
     }

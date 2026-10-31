@@ -1,0 +1,12 @@
+{
+  "name": "services-isolate",
+  "version": "1.0.0",
+  "description": "Fa girare i servizi delle app (punti d'ingresso service) isolati: un processo per servizio, il codice in un isolato V8",
+  "kernel": "1",
+  "icon": { "glyph": "bolt", "color": "#d9822b" },
+  "provides": [
+    "runtime"
+  ],
+  "requires": [],
+  "defaultConfig": {}
+}

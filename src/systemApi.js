@@ -17,6 +17,7 @@ export { fileApps, appFor, defaultAppFor, setAppFor, resetAppsFor, knownExtensio
 export { handleCommand } from './apps/commands.js';
 export { callEntrypoint, connectEntrypoint, entrypointsOf } from './apps/entrypoints.js';
 export { startup } from './apps/startup.js';
+export { services } from './apps/services.js';
 export { executionMode, canChangeExecution } from './apps/packages/isolation.js';
 export { describePermission } from './apps/packages/permissions.js';
 export { showAppProperties, showAppSecurity } from './apps/appProperties.js';

@@ -28,11 +28,24 @@
  *   remove(principal, ids)
  *
  *   node: { id, parent, name, type: 'folder' | 'file' | 'app', meta: {}, size, created, modified, content? }
+ *
+ * runtime  Runs the services of installed apps (manifest entry points of kind 'service'), each isolated
+ *          from the kernel and from the others. Optional: without it lilOS has no services.
+ *   start({ key, code, info, limits }, host) → Promise<handle>   resolves when the entry point has started
+ *     code    the ES module of the service; its export named info.entry gets ({ lilos, args })
+ *     info    { id, version, entry, args, user: { id, username, name } | null }
+ *     limits  { memoryMb, cpuMs }   memory of the service, time a single run of its code may take
+ *     host    { call(method, params) → Promise   the lilos API, checked by the kernel (apps/serviceApi.js)
+ *               log(level, text)                 what the service writes with console.*
+ *               exit(reason) }                   it stopped by itself (error, memory, crash)
+ *   handle: { request(data, from) → Promise<result>   what its lilos.handle() function returns
+ *             stop() → Promise }
  */
 export const INTERFACES = {
   auth: ['login', 'session', 'logout', 'logoutAll'],
   users: ['get', 'list', 'create', 'setPassword', 'remove'],
   fs: ['home', 'stat', 'list', 'tree', 'lookup', 'apply', 'read', 'write', 'remove'],
+  runtime: ['start'],
 };
 
 export const KERNEL = Object.freeze({ kind: 'kernel' });
