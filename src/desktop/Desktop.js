@@ -1,4 +1,4 @@
-import { bus, fs, storage, openMenu, shortcuts, selectionGesture, menus, UndoStack, tags, toast } from '@lilos/sdk';
+import { bus, fs, storage, settings, openMenu, shortcuts, selectionGesture, menus, UndoStack, tags, toast } from '@lilos/sdk';
 import { launch } from '../apps/registry.js';
 import { openFile } from '../apps/open.js';
 import { addTarget } from '../items/targets.js';
@@ -10,7 +10,7 @@ import { showProperties } from '../items/properties.js';
 import { selectionMode } from '../systemSettings.js';
 import { BACKGROUND_MENU, registerDesktopMenu, initialContent } from './menu.js';
 import { DesktopItem } from './DesktopItem.js';
-import { FIXED_ITEMS, fixedData, fixedId, fixedRank, openFixed, acceptDrops } from './fixedItems.js';
+import { FIXED_ITEMS, fixedData, fixedId, fixedOf, fixedRank, openFixed, acceptDrops, isFixedShown, setFixedShown } from './fixedItems.js';
 import { tagSubmenu } from '../tags/tagUi.js';
 import { HEADER as AREA_HEADER } from '../workareas/WorkareaFrame.js';
 
@@ -31,8 +31,9 @@ const snap = v => Math.round(v / SNAP) * SNAP;
  * so changes made elsewhere (File Manager) show up here too.
  * Opening an item launches apps and emits 'item:open' for folders and files.
  *
- * Every desk also shows the fixed items (fixedItems.js: Home, Documenti, the trash…): not in
- * the file system, they cannot be renamed or deleted; their positions are saved with the others.
+ * Every desk also shows the fixed items (fixedItems.js: Home, Documenti, the trash…) that are
+ * turned on: not in the file system, they cannot be renamed or deleted; their positions are saved
+ * with the others, and kept while they are off.
  *
  * With workareas (src/workareas/), the desk also shows the icons of reduced workareas (items with
  * a `workarea` id, not in the file system), and the requests made inside an area — select all,
@@ -80,6 +81,8 @@ export class Desktop {
       trash.data.full = fs.trashed().length > 0;
       trash.setData(trash.data);
     });
+    // Fixed items turned on or off in Sistema → Scrivania → Elementi
+    settings.on('change:deskHidden', () => this.#syncFixed());
     tags.on('change', () => this.items.forEach(it => { if (!it.workarea && !it.fixed && fs.exists(it.id)) it.setData(fs.get(it.id)); }));
     canvas.on('background:press', e => this.#selectByDrag(e));
     canvas.on('background:click', e => { if (!e.ctrlKey && !e.metaKey && !e.shiftKey) this.select([]); });
@@ -99,10 +102,10 @@ export class Desktop {
   /** Saves the positions (of file system items; workarea icons are saved with their workarea). */
   save() {
     const positions = Object.fromEntries([...this.items].filter(([, it]) => !it.workarea).map(([id, it]) => [id, [it.data.x, it.data.y]]));
-    // Items hidden by an invisible tag, or in the trash, keep their place for when they come back
+    // Items hidden by an invisible tag, in the trash or turned off (fixed) keep their place for when they come back
     const trashed = new Set(fs.trashed().filter(n => n.trashed.from === this.folder).map(n => n.id));
     for (const [id, p] of Object.entries(this.#layout)) {
-      if (!positions[id] && ((fs.get(id)?.parent === this.folder && fs.isHidden(id)) || trashed.has(id))) positions[id] = p;
+      if (!positions[id] && ((fs.get(id)?.parent === this.folder && fs.isHidden(id)) || trashed.has(id) || fixedOf(id))) positions[id] = p;
     }
     storage.set(this.#layoutKey, positions);
   }
@@ -356,12 +359,26 @@ export class Desktop {
     const nodes = fs.children(this.folder);
     const placed = nodes.filter(n => this.#savedPosition(n.id));
     placed.forEach(n => this.#mount(n));
-    for (const fixed of FIXED_ITEMS) {
-      const item = this.#mount(fixedData(fixed));
-      item.fixed = fixed;
-      acceptDrops(item.el, fixed);
-    }
+    FIXED_ITEMS.filter(f => isFixedShown(f.key)).forEach(f => this.#mountFixed(f));
     nodes.filter(n => !placed.includes(n)).forEach(n => this.#mount(n));
+  }
+
+  #mountFixed(fixed) {
+    const item = this.#mount(fixedData(fixed));
+    item.fixed = fixed;
+    acceptDrops(item.el, fixed);
+  }
+
+  /** Fixed items in step with the setting: those turned off go (keeping their place), the others come. */
+  #syncFixed() {
+    const off = FIXED_ITEMS.filter(f => !isFixedShown(f.key) && this.items.has(fixedId(f.key)));
+    const on = FIXED_ITEMS.filter(f => isFixedShown(f.key) && !this.items.has(fixedId(f.key)));
+    if (!off.length && !on.length) return;
+    this.select([...this.selection].filter(it => !off.includes(it.fixed)));
+    this.#unmount(off.map(f => fixedId(f.key)));
+    on.forEach(f => this.#mountFixed(f));
+    this.canvas.changed();
+    this.save();
   }
 
   #mount(node) {
@@ -524,6 +541,10 @@ export class Desktop {
     if (!many && item.fixed) {
       return openMenu(e.clientX, e.clientY, [
         { label: 'Apri', icon: 'open', shortcut: shortcuts.label('items.open'), action: () => this.open(item) },
+        { label: 'Togli dalla scrivania', icon: 'eyeOff', action: () => {
+          setFixedShown(item.fixed.key, false);
+          toast(`«${item.data.name}» si rimette in Sistema → Scrivania → Elementi`);
+        } },
         { label: 'Elementi fissi della scrivania…', icon: 'info', action: () => launch('settings', { tab: 'desk' }) },
       ]);
     }

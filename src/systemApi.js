@@ -9,7 +9,7 @@ export { version } from '../package.json';
 export { ACCENTS, LASSO_OPTIONS, RETENTION_OPTIONS } from './systemSettings.js';
 export { SYSTEM_FOLDERS, DESK_NAME } from './systemFs.js';
 export { FOLDER_COLOR, itemIcon } from './desktop/itemIcons.js';
-export { FIXED_ITEMS as DESK_FIXED_ITEMS } from './desktop/fixedItems.js';
+export { FIXED_ITEMS as DESK_FIXED_ITEMS, isFixedShown, setFixedShown } from './desktop/fixedItems.js';
 export { LIMITS as WORKSPACE_LIMITS } from './workspaces/store.js';
 export { describeWorkspace, onWorkspacesChange, workspaceManager } from './workspaces/info.js';
 export { apps, registry, getApp, isInstalled, installedApps, launch } from './apps/registry.js';

@@ -1,4 +1,4 @@
-import { fs, toast } from '@lilos/sdk';
+import { fs, settings, toast } from '@lilos/sdk';
 import { launch } from '../apps/registry.js';
 import { removeNodes } from '../items/fsHistory.js';
 import { dropZone, markItem } from '../items/itemDrag.js';
@@ -7,10 +7,11 @@ import { DESK_NAME } from '../systemFs.js';
 const PREFIX = 'fixed:';
 
 /**
- * Items always on every desk, in this order (listed in Sistema → Scrivania → Elementi). They are
- * not files: they point at a place (Home, a shared system folder, the trash) or an app, cannot be
- * renamed or deleted, and keep their position in the desk's layout like any other item
- * (under 'fixed:<key>'). Some fields are for Sistema, which reads this list.
+ * Items on every desk, in this order (listed in Sistema → Scrivania → Elementi, where each one is
+ * turned on or off for all the desks: the 'deskHidden' setting). They are not files: they point
+ * at a place (Home, a shared system folder, the trash) or an app, cannot be renamed or deleted,
+ * and keep their position in the desk's layout like any other item (under 'fixed:<key>'), also
+ * while turned off. Some fields are for Sistema, which reads this list.
  *   key          stable id
  *   name         label on the desk
  *   kind         'home' | 'folder' (a system folder, by name) | 'app' | 'trash'
@@ -25,6 +26,22 @@ export const FIXED_ITEMS = Object.freeze([
   { key: 'downloads', name: 'Download', kind: 'folder', glyph: 'download', description: 'La cartella Download, condivisa da tutti i workspace' },
   { key: 'trash', name: 'Cestino', kind: 'trash', glyph: 'trash', description: 'Apre il cestino; ci si possono trascinare file e cartelle' },
 ].map(Object.freeze));
+
+/** Keys of the fixed items turned off (a saved setting, so untrusted). */
+function hiddenKeys() {
+  const saved = settings.get('deskHidden');
+  return Array.isArray(saved) ? saved.filter(k => typeof k === 'string') : [];
+}
+
+/** True if the fixed item `key` is on the desks. */
+export const isFixedShown = key => !hiddenKeys().includes(key);
+
+/** Puts the fixed item `key` on every desk, or takes it off (setting 'deskHidden'). */
+export function setFixedShown(key, shown) {
+  if (!FIXED_ITEMS.some(f => f.key === key)) return;
+  const others = hiddenKeys().filter(k => k !== key);
+  settings.set('deskHidden', shown ? others : [...others, key]);
+}
 
 /** Desk item id of a fixed item, and back (null for any other id). */
 export const fixedId = key => PREFIX + key;

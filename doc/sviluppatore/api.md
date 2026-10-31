@@ -702,7 +702,7 @@ Il pannello completo: minimappa, pulsanti −/+, percentuale (clic = 100%), "Mos
 
 ### `class Desktop`
 
-`new Desktop(canvas, folderId, layoutKey = 'desktop-layout')`: la scrivania come vista della cartella `folderId` del file system (la Scrivania del workspace attuale). Un `DesktopItem` per ogni nodo; posizioni da `lilos:<layoutKey>` (il sistema passa `ws:<id>:desktop-layout`), oppure il primo posto libero in colonna. Segue gli eventi `change` di `fs`, quindi mostra anche le modifiche fatte altrove (File Manager). In più monta sempre gli **elementi fissi** ([desktop/fixedItems.js](#desktopfixeditemsjs)): prima gli elementi con una posizione salvata, poi i fissi, poi gli altri, così chi non ha posizione prende i posti liberi. Ogni elemento fisso ha `item.fixed` (la voce di `FIXED_ITEMS`), non è un nodo del file system e si salva sotto `fixed:<key>`.
+`new Desktop(canvas, folderId, layoutKey = 'desktop-layout')`: la scrivania come vista della cartella `folderId` del file system (la Scrivania del workspace attuale). Un `DesktopItem` per ogni nodo; posizioni da `lilos:<layoutKey>` (il sistema passa `ws:<id>:desktop-layout`), oppure il primo posto libero in colonna. Segue gli eventi `change` di `fs`, quindi mostra anche le modifiche fatte altrove (File Manager). In più monta gli **elementi fissi** accesi ([desktop/fixedItems.js](#desktopfixeditemsjs)): prima gli elementi con una posizione salvata, poi i fissi, poi gli altri, così chi non ha posizione prende i posti liberi. Ogni elemento fisso ha `item.fixed` (la voce di `FIXED_ITEMS`), non è un nodo del file system e si salva sotto `fixed:<key>`; la posizione resta salvata anche mentre è spento. Al cambio dell'impostazione `deskHidden` toglie i fissi spenti e monta quelli riaccesi.
 
 **Proprietà**
 
@@ -747,7 +747,7 @@ Il pannello completo: minimappa, pulsanti −/+, percentuale (clic = 100%), "Mos
 - su una finestra senza bersaglio, fuori dalla scrivania o con Esc, tutto torna com'era e non si registra nulla;
 - un clic semplice su un elemento già selezionato insieme ad altri restringe la selezione a lui, al rilascio.
 
-Il canvas è una `dropZone` (`folder: () => this.folder`, nessun evidenziamento): nodi rilasciati da un'altra vista vanno nella cartella della scrivania e si dispongono in colonne (`ROWS`) dal punto di rilascio, allineato alla griglia. Il menu di un elemento ha **Aggiungi ai collegamenti** (`linkEntry`). Gli elementi fissi non entrano mai tra gli `ids` trascinati nei nodi, e il loro menu (da soli) ha solo **Apri** ed **Elementi fissi della scrivania…** (apre `launch('settings', { tab: 'desk' })`); in una selezione mista il menu omette tag e collegamenti per loro e **Elimina** agisce sugli altri (disabilitato se sono tutti fissi).
+Il canvas è una `dropZone` (`folder: () => this.folder`, nessun evidenziamento): nodi rilasciati da un'altra vista vanno nella cartella della scrivania e si dispongono in colonne (`ROWS`) dal punto di rilascio, allineato alla griglia. Il menu di un elemento ha **Aggiungi ai collegamenti** (`linkEntry`). Gli elementi fissi non entrano mai tra gli `ids` trascinati nei nodi, e il loro menu (da soli) ha solo **Apri**, **Togli dalla scrivania** (`setFixedShown(key, false)`, con un `toast` che dice dove rimetterlo) ed **Elementi fissi della scrivania…** (apre `launch('settings', { tab: 'desk' })`); in una selezione mista il menu omette tag e collegamenti per loro e **Elimina** agisce sugli altri (disabilitato se sono tutti fissi).
 
 **Selezione trascinando** (`background:press`): rettangolo, oppure percorso libero se sono premuti i modificatori dell'impostazione `lasso`; Ctrl/Shift aggiungono alla selezione. Se parte dentro una workarea aperta, può prendere solo gli elementi di quella. Vedi `selectionMode` in [systemSettings.js](#systemsettingsjs).
 
@@ -810,7 +810,7 @@ DOM: `div.ditem[data-kind="item"][data-id]` con `.ditem-glyph` e `.ditem-label`.
 
 ## desktop/fixedItems.js
 
-Gli elementi fissi: su ogni scrivania (di ogni workspace) ci sono sempre, non sono file, non si rinominano né si eliminano. Si aprono e si spostano come gli altri e la posizione si salva nelle posizioni della scrivania sotto `fixed:<key>`. Li monta `Desktop`.
+Gli elementi fissi: su ogni scrivania (di ogni workspace) ci sono quelli accesi (tutti, all'inizio), non sono file, non si rinominano né si eliminano. Si aprono e si spostano come gli altri e la posizione si salva nelle posizioni della scrivania sotto `fixed:<key>`. Li monta `Desktop`.
 
 - `FIXED_ITEMS`: elenco congelato, in quest'ordine. Ogni voce ha `key`, `name`, `kind`, `glyph`, `description` e, per le app, `app`.
 
@@ -824,12 +824,13 @@ Gli elementi fissi: su ogni scrivania (di ogni workspace) ci sono sempre, non so
   | `trash` | Cestino | `trash` | Il cestino nel File Manager |
 
 - `fixedId(key)`: l'id sulla scrivania, `'fixed:' + key`. `fixedOf(id)`: la voce di `FIXED_ITEMS`, o `null` per qualsiasi altro id. `fixedRank(id)`: la posizione nell'elenco (`-1` se non è un elemento fisso); la usa `arrange()`.
+- `isFixedShown(key)`: `true` se l'elemento è acceso. `setFixedShown(key, shown)`: lo accende o lo spegne su tutte le scrivanie (chiavi sconosciute ignorate). Gli spenti sono le chiavi nell'impostazione `deskHidden`; un valore salvato che non è un array di stringhe vale come nessuno.
 - `fixedFolder(item)`: l'id della cartella che la voce apre (`fs.root` per `home`; per `folder` la cartella di sistema non privata con quel nome nella radice, esclusa la Scrivania), o `null` per app, cestino e cartella non trovata.
 - `openFixed(item)`: un'app si avvia; il cestino fa `launch('files', { trash: true })`; una cartella fa `launch('files', { folder })`. Se la cartella non c'è, `toast` «La cartella … non c’è più».
 - `fixedData(item)`: i dati per `DesktopItem` (`{ id, name, fixed, type, … }`): `type: 'app'` con `app`, `type: 'trash'` con `full: fs.trashed().length > 0`, altrimenti `type: 'folder'` con `glyph`. `x` e `y` li dà il `Desktop`.
 - `acceptDrops(el, item)`: rende l'elemento un bersaglio di rilascio. Home e cartelle si marcano con `markItem` (file e cartelle si spostano lì, annullabile). Il cestino è una `dropZone` che accetta i nodi esistenti non di sistema, li manda a `removeNodes(stack, ids)` (annullabile con Ctrl Z) e mostra un `toast`. L'app File Manager non accetta nulla.
 
-`Desktop` ridisegna il Cestino (`full`) a ogni evento `trash` di `fs`. Il sistema espone `FIXED_ITEMS` come `DESK_FIXED_ITEMS` (vedi [systemApi.js](#systemapijs-lilossystem)): lo usa Sistema → Scrivania → Elementi per l'elenco «Elementi fissi».
+`Desktop` ridisegna il Cestino (`full`) a ogni evento `trash` di `fs`. Il sistema espone `FIXED_ITEMS` come `DESK_FIXED_ITEMS` (vedi [systemApi.js](#systemapijs-lilossystem)): con `isFixedShown` e `setFixedShown`: Sistema → Scrivania → Elementi li usa per l'elenco «Elementi fissi», con un interruttore per elemento (senza `setFixedShown`, cioè con un lilOS più vecchio, mostra «Fisso»).
 
 ---
 
@@ -1197,7 +1198,7 @@ Permessi dichiarati nei manifesti ufficiali: File Manager `fs.write:~`, `fs.work
 | `ACCENTS`, `LASSO_OPTIONS`, `RETENTION_OPTIONS` | `systemSettings.js` | Scelte di colore principale, selezione a mano libera e conservazione del cestino |
 | `SYSTEM_FOLDERS`, `DESK_NAME` | `systemFs.js` | Cartelle di sistema e nome della Scrivania |
 | `FOLDER_COLOR`, `itemIcon` | `desktop/itemIcons.js` | Icone di cartelle e file |
-| `DESK_FIXED_ITEMS` | `desktop/fixedItems.js` | L'elenco degli elementi fissi della scrivania (alias di `FIXED_ITEMS`) |
+| `DESK_FIXED_ITEMS`, `isFixedShown`, `setFixedShown` | `desktop/fixedItems.js` | L'elenco degli elementi fissi della scrivania (alias di `FIXED_ITEMS`) e quali sono accesi |
 | `WORKSPACE_LIMITS` | `workspaces/store.js` | Limiti dei workspace (alias di `LIMITS`) |
 | `describeWorkspace`, `onWorkspacesChange`, `workspaceManager` | `workspaces/info.js` | Nome e colore di un workspace; il gestore dei workspace |
 | `apps`, `registry`, `getApp`, `isInstalled`, `installedApps`, `launch` | `apps/registry.js` | Il registro delle app (non l'`apps` dell'SDK) |
@@ -1553,6 +1554,7 @@ Dichiara le impostazioni del sistema e le applica. Va importato per primo da `sy
 | `deletePermanent` | `false` | Elimina senza passare dal cestino (`removeNodes` con `permanent`) |
 | `trashRetention` | `30` | Giorni in cui il cestino conserva gli elementi (`0`: per sempre); `systemTrash.js` elimina il resto |
 | `lasso` | `'Alt'` | Modificatori che trasformano il trascinamento sullo sfondo in selezione a mano libera: `'Alt'`, `'Ctrl+Alt'` o `'Alt+Shift'` (`LASSO_OPTIONS`) |
+| `deskHidden` | `[]` | Chiavi degli elementi fissi spenti (vedi [desktop/fixedItems.js](#desktopfixeditemsjs)) |
 | `startupApps` | `true` | Con `false` le app scelte in Sistema → Avvio non si aprono all'ingresso (vedi [apps/startup.js](#appsstartupjs)) |
 
 Esporta anche `ACCENTS`, i colori proposti dall'app Sistema, `RETENTION_OPTIONS` (`[{ value, label }]`: 1, 7, 14, 30, 60, 90, 365 giorni e `0` «Per sempre», per `trashRetention`), `LASSO_OPTIONS` e `selectionMode(event)` → `{ mode: 'lasso' | 'rect', additive }`: percorso libero se sono premuti tutti i modificatori di `lasso`; `additive` (si aggiunge alla selezione) con Ctrl/Cmd o Shift, se non fanno parte della combinazione del percorso.

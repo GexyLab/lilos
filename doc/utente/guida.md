@@ -76,14 +76,14 @@ Gli elementi della scrivania sono il contenuto della cartella **Scrivania**: li 
 
 ### Gli elementi fissi
 
-Su ogni scrivania, in ogni workspace, ci sono sempre sei elementi: **Home**, **Documenti**, **Immagini**, **File Manager**, **Download** e **Cestino**. Non sono file della cartella Scrivania, quindi non li trovi nel File Manager.
+Su ogni scrivania, in ogni workspace, ci sono sei elementi: **Home**, **Documenti**, **Immagini**, **File Manager**, **Download** e **Cestino**. All'inizio ci sono tutti; puoi togliere quelli che non ti servono (vedi sotto). Non sono file della cartella Scrivania, quindi non li trovi nel File Manager.
 
 - **Si aprono** con doppio clic o **Invio**: Home, Documenti, Immagini e Download si aprono nel [File Manager](#il-file-manager), il File Manager si avvia, il Cestino mostra il [Cestino](#il-cestino).
 - **Si spostano** come gli altri elementi, e la posizione resta salvata. Su una scrivania che non li aveva ancora, compaiono nei primi posti liberi.
-- **Non si rinominano e non si eliminano.** Con **Canc** o **Elimina** non succede niente, a parte un messaggio che lo spiega. Se hai selezionato anche altri elementi, vengono eliminati solo quelli. Il tasto destro offre **Apri** e **Elementi fissi della scrivania…**, che porta a Sistema.
+- **Non si rinominano e non si eliminano.** Con **Canc** o **Elimina** non succede niente, a parte un messaggio che lo spiega. Se hai selezionato anche altri elementi, vengono eliminati solo quelli. Il tasto destro offre **Apri**, **Togli dalla scrivania** ed **Elementi fissi della scrivania…**, che porta a Sistema.
 - **Accettano elementi trascinati.** Su Home, Documenti, Immagini e Download i file e le cartelle si **spostano** lì, come su una cartella qualsiasi. Sul Cestino finiscono nel cestino, con **Ctrl Z** li riprendi. L'icona del Cestino mostra della carta quando dentro c'è qualcosa.
 
-L'elenco è in Sistema → Scrivania → Elementi, sezione «Elementi fissi»: si può solo leggere, non si possono togliere.
+L'elenco è in Sistema → Scrivania → Elementi, sezione «Elementi fissi»: ogni elemento ha un interruttore. Spento, l'elemento sparisce dalle scrivanie di tutti i workspace; riacceso, torna dove l'avevi lasciato. Lo stesso fa **Togli dalla scrivania** nel tasto destro.
 
 Se usavi lilOS prima di questa novità, il collegamento al File Manager che avevi già sulla scrivania resta: ora c'è anche l'elemento fisso, e il vecchio collegamento lo puoi eliminare.
 
@@ -764,7 +764,7 @@ Le modifiche valgono subito e restano salvate.
 | Aspetto | Colori | Il tema, **Chiaro** o **Scuro** (scrivania, barra, menu e finestre), e il colore principale di lilOS: selezioni, pulsanti, schede attive, logo |
 | Aspetto | Movimento | Animazioni attive o spente. Se nel sistema operativo hai chiesto di ridurre il movimento, le animazioni restano ridotte comunque. |
 | Lingua | — | La lingua delle app: quella del browser o una a scelta (vedi [La lingua](#la-lingua)) |
-| Scrivania | Elementi | L'elenco degli elementi fissi della scrivania (solo da leggere) e l'allineamento alla griglia degli elementi trascinati |
+| Scrivania | Elementi | Gli elementi fissi della scrivania, ognuno con il suo interruttore, e l'allineamento alla griglia degli elementi trascinati |
 | Scrivania | Panoramica | Mappa in miniatura visibile o nascosta |
 | Workspace | Questo workspace | Nome, colore e app visibili del workspace in cui sei (vedi [I workspace](#i-workspace)) |
 | Workspace | Tutti | Passare a un workspace, eliminarlo o crearne uno nuovo |
