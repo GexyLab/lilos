@@ -3,15 +3,18 @@ import { launch } from '../apps/registry.js';
 import { removeNodes } from '../items/fsHistory.js';
 import { dropZone, markItem } from '../items/itemDrag.js';
 import { DESK_NAME } from '../systemFs.js';
+import { workspaceManager } from '../workspaces/info.js';
 
 const PREFIX = 'fixed:';
 
 /**
- * Items on every desk, in this order (listed in Sistema → Scrivania → Elementi, where each one is
- * turned on or off for all the desks: the 'deskHidden' setting). They are not files: they point
- * at a place (Home, a shared system folder, the trash) or an app, cannot be renamed or deleted,
- * and keep their position in the desk's layout like any other item (under 'fixed:<key>'), also
- * while turned off. Some fields are for Sistema, which reads this list.
+ * Items on the desks, in this order (listed in Sistema → Workspace, where each one is turned on
+ * or off for one workspace or for all of them). Each workspace keeps the keys turned off on its
+ * desk (its `hidden`); the 'deskHidden' setting holds those of "all", for the workspaces that never
+ * chose (new ones, or saved before this). They are not files: they point at a place (Home, a
+ * shared system folder, the trash) or an app, cannot be renamed or deleted, and keep their
+ * position in the desk's layout like any other item (under 'fixed:<key>'), also while turned
+ * off. Some fields are for Sistema, which reads this list.
  *   key          stable id
  *   name         label on the desk
  *   kind         'home' | 'folder' (a system folder, by name) | 'app' | 'trash'
@@ -27,20 +30,36 @@ export const FIXED_ITEMS = Object.freeze([
   { key: 'trash', name: 'Cestino', kind: 'trash', glyph: 'trash', description: 'Apre il cestino; ci si possono trascinare file e cartelle' },
 ].map(Object.freeze));
 
-/** Keys of the fixed items turned off (a saved setting, so untrusted). */
-function hiddenKeys() {
-  const saved = settings.get('deskHidden');
-  return Array.isArray(saved) ? saved.filter(k => typeof k === 'string') : [];
+const known = key => FIXED_ITEMS.some(f => f.key === key);
+/** Keys of fixed items in a saved list (untrusted). */
+const cleanKeys = saved => (Array.isArray(saved) ? [...new Set(saved.filter(known))] : []);
+const withKey = (keys, key, shown) => (shown ? keys.filter(k => k !== key) : [...keys.filter(k => k !== key), key]);
+
+/** Keys turned off on a workspace's desk (the current one by default); before workspaces, those of all. */
+function hiddenKeys(workspace) {
+  const manager = workspaceManager();
+  const ws = manager?.get(workspace ?? manager.currentId);
+  return cleanKeys(ws?.hidden ?? settings.get('deskHidden'));
 }
 
-/** True if the fixed item `key` is on the desks. */
-export const isFixedShown = key => !hiddenKeys().includes(key);
+/** True if the fixed item `key` is on the desk of a workspace (the current one by default). */
+export const isFixedShown = (key, workspace) => !hiddenKeys(workspace).includes(key);
 
-/** Puts the fixed item `key` on every desk, or takes it off (setting 'deskHidden'). */
-export function setFixedShown(key, shown) {
-  if (!FIXED_ITEMS.some(f => f.key === key)) return;
-  const others = hiddenKeys().filter(k => k !== key);
-  settings.set('deskHidden', shown ? others : [...others, key]);
+/** Puts the fixed item `key` on the desk of a workspace (the current one by default), or takes it off. */
+export function setFixedShown(key, shown, workspace) {
+  if (!known(key)) return;
+  const manager = workspaceManager();
+  if (!manager) return settings.set('deskHidden', withKey(hiddenKeys(), key, shown));
+  const id = workspace ?? manager.currentId;
+  manager.setHiddenFixed({ [id]: withKey(hiddenKeys(id), key, shown) });
+}
+
+/** Puts the fixed item `key` on every desk, or takes it off everywhere: new workspaces get the same. */
+export function setFixedShownEverywhere(key, shown) {
+  if (!known(key)) return;
+  const manager = workspaceManager();
+  manager?.setHiddenFixed(Object.fromEntries(manager.list().map(w => [w.id, withKey(hiddenKeys(w.id), key, shown)])));
+  settings.set('deskHidden', withKey(cleanKeys(settings.get('deskHidden')), key, shown));
 }
 
 /** Desk item id of a fixed item, and back (null for any other id). */

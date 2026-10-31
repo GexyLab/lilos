@@ -83,7 +83,12 @@ Su ogni scrivania, in ogni workspace, ci sono sei elementi: **Home**, **Document
 - **Non si rinominano e non si eliminano.** Con **Canc** o **Elimina** non succede niente, a parte un messaggio che lo spiega. Se hai selezionato anche altri elementi, vengono eliminati solo quelli. Il tasto destro offre **Apri**, **Togli dalla scrivania** ed **Elementi fissi della scrivania…**, che porta a Sistema.
 - **Accettano elementi trascinati.** Su Home, Documenti, Immagini e Download i file e le cartelle si **spostano** lì, come su una cartella qualsiasi. Sul Cestino finiscono nel cestino, con **Ctrl Z** li riprendi. L'icona del Cestino mostra della carta quando dentro c'è qualcosa.
 
-L'elenco è in Sistema → Scrivania → Elementi, sezione «Elementi fissi»: ogni elemento ha un interruttore. Spento, l'elemento sparisce dalle scrivanie di tutti i workspace; riacceso, torna dove l'avevi lasciato. Lo stesso fa **Togli dalla scrivania** nel tasto destro.
+Ogni workspace ha i suoi. Si scelgono in Sistema → Workspace, sezione «Elementi fissi», dove ogni elemento ha un interruttore:
+
+- nella scheda **Questo workspace**, o in quella di un altro workspace, l'interruttore vale solo per la scrivania di quel workspace. Spento, l'elemento sparisce da lì; riacceso, torna dove l'avevi lasciato;
+- nella scheda **Tutti**, l'interruttore lo accende o lo spegne in tutti i workspace insieme, e anche in quelli che creerai dopo. Se è acceso solo in alcuni, sotto il nome lo dice (per esempio «Acceso in 2 workspace su 3»).
+
+**Togli dalla scrivania**, nel tasto destro, lo toglie solo dal workspace in cui sei. In Sistema → Scrivania → Elementi trovi un pulsante che porta lì.
 
 Se usavi lilOS prima di questa novità, il collegamento al File Manager che avevi già sulla scrivania resta: ora c'è anche l'elemento fisso, e il vecchio collegamento lo puoi eliminare.
 
@@ -260,8 +265,9 @@ Ogni file e cartella ricorda **il workspace che l'ha creato**. Non cambia se lo 
 
 Apri **Sistema → Workspace**. Ci sono due schede.
 
-- **Questo workspace**: il **nome** (al massimo 40 caratteri), il **colore** (è il pallino nella barra e accanto ai suoi file nel File Manager), quanti file, cartelle e collegamenti ha creato, e un interruttore per ogni app (acceso: l'app è visibile).
-- **Tutti**: l'elenco dei workspace, con quanti elementi hanno creato e quante app mostrano. **Passa a questo** ti ci porta, **Elimina…** lo elimina, **Crea** ne fa uno nuovo con la scrivania vuota e tutte le app visibili. Puoi averne **al massimo 20**. L'ultimo workspace non si può eliminare.
+- **Questo workspace**: il **nome** (al massimo 40 caratteri), il **colore** (è il pallino nella barra e accanto ai suoi file nel File Manager), quanti file, cartelle e collegamenti ha creato, un interruttore per ogni app (acceso: l'app è visibile) e uno per ogni [elemento fisso](#gli-elementi-fissi) della sua scrivania.
+- **una scheda per ogni altro workspace**, con il suo nome: le stesse impostazioni, per cambiarle senza passarci. **Passa a questo** ti ci porta.
+- **Tutti**: l'elenco dei workspace, con quanti elementi hanno creato e quante app mostrano. **Passa a questo** ti ci porta, **Elimina…** lo elimina, **Crea** ne fa uno nuovo con la scrivania vuota e tutte le app visibili. Puoi averne **al massimo 20**. L'ultimo workspace non si può eliminare. Sotto, gli elementi fissi da accendere o spegnere in tutti i workspace insieme.
 
 Un workspace nuovo si crea anche dal menu del pulsante nella barra (**Nuovo workspace**) e ti ci porta subito.
 
@@ -764,10 +770,11 @@ Le modifiche valgono subito e restano salvate.
 | Aspetto | Colori | Il tema, **Chiaro** o **Scuro** (scrivania, barra, menu e finestre), e il colore principale di lilOS: selezioni, pulsanti, schede attive, logo |
 | Aspetto | Movimento | Animazioni attive o spente. Se nel sistema operativo hai chiesto di ridurre il movimento, le animazioni restano ridotte comunque. |
 | Lingua | — | La lingua delle app: quella del browser o una a scelta (vedi [La lingua](#la-lingua)) |
-| Scrivania | Elementi | Gli elementi fissi della scrivania, ognuno con il suo interruttore, e l'allineamento alla griglia degli elementi trascinati |
+| Scrivania | Elementi | L'allineamento alla griglia degli elementi trascinati, e un pulsante che porta agli elementi fissi (in Workspace) |
 | Scrivania | Panoramica | Mappa in miniatura visibile o nascosta |
-| Workspace | Questo workspace | Nome, colore e app visibili del workspace in cui sei (vedi [I workspace](#i-workspace)) |
-| Workspace | Tutti | Passare a un workspace, eliminarlo o crearne uno nuovo |
+| Workspace | Questo workspace | Nome, colore, app visibili ed elementi fissi del workspace in cui sei (vedi [I workspace](#i-workspace)) |
+| Workspace | *nome di un altro workspace* | Le stesse impostazioni per quel workspace, e Passa a questo |
+| Workspace | Tutti | Passare a un workspace, eliminarlo o crearne uno nuovo; elementi fissi accesi o spenti in tutti i workspace |
 | Tag | — | Creare, rinominare ed eliminare i tag; il colore, se sono visibili o invisibili, quanti elementi hanno; aprirne gli elementi nel File Manager (vedi [I tag](#i-tag)) |
 | Usabilità | Menu contestuale | Le voci del menu del tasto destro sulla scrivania (vedi [Menu contestuale](#menu-contestuale)) |
 | Usabilità | Tipi di file | Per ogni estensione (.txt, .md, .png…, e "Senza estensione"), l'app che apre i file di quel tipo, oppure "Chiedi ogni volta". "Ripristina tutti" torna alle app predefinite |

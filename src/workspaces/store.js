@@ -5,6 +5,7 @@ const STORAGE_KEY = 'workspaces';
 const MAX_WORKSPACES = 20;
 const MAX_REMOVED = 100;
 const MAX_NAME = 40;
+const MAX_HIDDEN = 50;
 const ID = /^[\w-]{1,40}$/;
 const COLOR = /^#[0-9a-f]{6}$/i;
 
@@ -15,12 +16,13 @@ export const PARTS = ['camera', 'desktop-layout', 'workareas', 'windows'];
  * Saved workspaces ('lilos:workspaces'), validated on load: stored data is untrusted.
  *
  *   { current: id, list: [Workspace] }
- *   Workspace: { id, name, color, created, desk, apps: [app ids], known: [app ids] }
+ *   Workspace: { id, name, color, created, desk, apps: [app ids], known: [app ids], hidden: [keys] | null }
  *   Removed:   { id, name, color, created, removed }   kept so the files they made still say whose they are
  *
  * `desk` is the workspace's private desk folder; `apps` the apps installed in it (system apps are
  * always installed and need not be listed); `known` the apps lilOS had when it was last saved, so
- * an app added to lilOS later arrives installed (one the user removed stays removed).
+ * an app added to lilOS later arrives installed (one the user removed stays removed); `hidden` the
+ * fixed items turned off on its desk (null: those of every workspace, see desktop/fixedItems.js).
  * Everything else a workspace has (camera, desk positions, workareas, windows) lives in its own
  * keys: see workspaceKey().
  */
@@ -41,7 +43,8 @@ function cleanWorkspace(raw, now, appIds) {
   // Apps lilOS did not have when this was saved: installed (without `known`, every app was known)
   const known = new Set(Array.isArray(raw.known) ? raw.known : Array.isArray(raw.apps) ? [...appIds] : []);
   const added = [...appIds].filter(a => !known.has(a));
-  return { ...base, desk: raw.desk, apps: [...new Set([...installed, ...added])], known: [...appIds] };
+  const hidden = Array.isArray(raw.hidden) ? raw.hidden.filter(k => typeof k === 'string' && ID.test(k)).slice(0, MAX_HIDDEN) : null;
+  return { ...base, desk: raw.desk, apps: [...new Set([...installed, ...added])], known: [...appIds], hidden };
 }
 
 /** { current, list }: `list` has live and removed workspaces; `current` may be invalid (the caller fixes it). */
@@ -61,7 +64,7 @@ export function saveWorkspaces(state) {
 }
 
 export function newWorkspace({ name, color, desk, apps, id = uid() }) {
-  return { id, name: cleanName(name) || 'Workspace', color: cleanColor(color), created: Date.now(), desk, apps: [...apps], known: [...apps] };
+  return { id, name: cleanName(name) || 'Workspace', color: cleanColor(color), created: Date.now(), desk, apps: [...apps], known: [...apps], hidden: null };
 }
 
 /** Removes every key of a workspace. */

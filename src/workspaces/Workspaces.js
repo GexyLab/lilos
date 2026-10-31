@@ -52,6 +52,7 @@ export class Workspaces extends Emitter {
       this.#save();
     });
     connectWorkspaceInfo(this);
+    desktop.syncFixed();   // the desk was filled before, with the fixed items of every workspace
     wm.setWorkspace(state.current);
     this.#booted.add(state.current);   // its workareas reopen their windows by themselves at start-up
     this.#queue = this.#restoreWindows(state.current).catch(err => console.error('[lilos] workspace:', err));
@@ -197,6 +198,18 @@ export class Workspaces extends Emitter {
       toast(kept ? `Workspace «${ws.name}» eliminato. La sua scrivania ora è ${kept}` : `Workspace «${ws.name}» eliminato`, { timeout: 6000 });
       return kept;
     });
+  }
+
+  /**
+   * Sets the fixed desk items turned off in some workspaces: { [id]: keys } (desktop/fixedItems.js
+   * checks the keys). The current desk follows at once.
+   */
+  setHiddenFixed(byId) {
+    const changed = Object.entries(byId).filter(([id]) => this.get(id));
+    if (!changed.length) return;
+    changed.forEach(([id, keys]) => { this.get(id).hidden = [...keys]; });
+    this.#save();
+    if (Object.hasOwn(byId, this.#state.current)) this.desktop.syncFixed();
   }
 
   // ---------- Internals ----------

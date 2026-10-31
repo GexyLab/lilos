@@ -702,7 +702,7 @@ Il pannello completo: minimappa, pulsanti −/+, percentuale (clic = 100%), "Mos
 
 ### `class Desktop`
 
-`new Desktop(canvas, folderId, layoutKey = 'desktop-layout')`: la scrivania come vista della cartella `folderId` del file system (la Scrivania del workspace attuale). Un `DesktopItem` per ogni nodo; posizioni da `lilos:<layoutKey>` (il sistema passa `ws:<id>:desktop-layout`), oppure il primo posto libero in colonna. Segue gli eventi `change` di `fs`, quindi mostra anche le modifiche fatte altrove (File Manager). In più monta gli **elementi fissi** accesi ([desktop/fixedItems.js](#desktopfixeditemsjs)): prima gli elementi con una posizione salvata, poi i fissi, poi gli altri, così chi non ha posizione prende i posti liberi. Ogni elemento fisso ha `item.fixed` (la voce di `FIXED_ITEMS`), non è un nodo del file system e si salva sotto `fixed:<key>`; la posizione resta salvata anche mentre è spento. Al cambio dell'impostazione `deskHidden` toglie i fissi spenti e monta quelli riaccesi.
+`new Desktop(canvas, folderId, layoutKey = 'desktop-layout')`: la scrivania come vista della cartella `folderId` del file system (la Scrivania del workspace attuale). Un `DesktopItem` per ogni nodo; posizioni da `lilos:<layoutKey>` (il sistema passa `ws:<id>:desktop-layout`), oppure il primo posto libero in colonna. Segue gli eventi `change` di `fs`, quindi mostra anche le modifiche fatte altrove (File Manager). In più monta gli **elementi fissi** accesi ([desktop/fixedItems.js](#desktopfixeditemsjs)): prima gli elementi con una posizione salvata, poi i fissi, poi gli altri, così chi non ha posizione prende i posti liberi. Ogni elemento fisso ha `item.fixed` (la voce di `FIXED_ITEMS`), non è un nodo del file system e si salva sotto `fixed:<key>`; la posizione resta salvata anche mentre è spento. `syncFixed()` toglie i fissi spenti nel workspace attuale e monta quelli riaccesi: lo chiamano `Workspaces` (all'avvio, perché la scrivania è stata riempita prima che i workspace ci fossero, e a ogni `setHiddenFixed` che tocca l'attuale) e il cambio dell'impostazione `deskHidden`.
 
 **Proprietà**
 
@@ -747,7 +747,7 @@ Il pannello completo: minimappa, pulsanti −/+, percentuale (clic = 100%), "Mos
 - su una finestra senza bersaglio, fuori dalla scrivania o con Esc, tutto torna com'era e non si registra nulla;
 - un clic semplice su un elemento già selezionato insieme ad altri restringe la selezione a lui, al rilascio.
 
-Il canvas è una `dropZone` (`folder: () => this.folder`, nessun evidenziamento): nodi rilasciati da un'altra vista vanno nella cartella della scrivania e si dispongono in colonne (`ROWS`) dal punto di rilascio, allineato alla griglia. Il menu di un elemento ha **Aggiungi ai collegamenti** (`linkEntry`). Gli elementi fissi non entrano mai tra gli `ids` trascinati nei nodi, e il loro menu (da soli) ha solo **Apri**, **Togli dalla scrivania** (`setFixedShown(key, false)`, con un `toast` che dice dove rimetterlo) ed **Elementi fissi della scrivania…** (apre `launch('settings', { tab: 'desk' })`); in una selezione mista il menu omette tag e collegamenti per loro e **Elimina** agisce sugli altri (disabilitato se sono tutti fissi).
+Il canvas è una `dropZone` (`folder: () => this.folder`, nessun evidenziamento): nodi rilasciati da un'altra vista vanno nella cartella della scrivania e si dispongono in colonne (`ROWS`) dal punto di rilascio, allineato alla griglia. Il menu di un elemento ha **Aggiungi ai collegamenti** (`linkEntry`). Gli elementi fissi non entrano mai tra gli `ids` trascinati nei nodi, e il loro menu (da soli) ha solo **Apri**, **Togli dalla scrivania** (`setFixedShown(key, false)`, solo nel workspace attuale, con un `toast` che dice dove rimetterlo) ed **Elementi fissi della scrivania…** (apre `launch('settings', { tab: 'workspaces', subtab: 'current' })`); in una selezione mista il menu omette tag e collegamenti per loro e **Elimina** agisce sugli altri (disabilitato se sono tutti fissi).
 
 **Selezione trascinando** (`background:press`): rettangolo, oppure percorso libero se sono premuti i modificatori dell'impostazione `lasso`; Ctrl/Shift aggiungono alla selezione. Se parte dentro una workarea aperta, può prendere solo gli elementi di quella. Vedi `selectionMode` in [systemSettings.js](#systemsettingsjs).
 
@@ -824,13 +824,17 @@ Gli elementi fissi: su ogni scrivania (di ogni workspace) ci sono quelli accesi 
   | `trash` | Cestino | `trash` | Il cestino nel File Manager |
 
 - `fixedId(key)`: l'id sulla scrivania, `'fixed:' + key`. `fixedOf(id)`: la voce di `FIXED_ITEMS`, o `null` per qualsiasi altro id. `fixedRank(id)`: la posizione nell'elenco (`-1` se non è un elemento fisso); la usa `arrange()`.
-- `isFixedShown(key)`: `true` se l'elemento è acceso. `setFixedShown(key, shown)`: lo accende o lo spegne su tutte le scrivanie (chiavi sconosciute ignorate). Gli spenti sono le chiavi nell'impostazione `deskHidden`; un valore salvato che non è un array di stringhe vale come nessuno.
+- Accesi e spenti sono **per workspace**: ogni workspace tiene le chiavi spente sulla sua scrivania nel campo `hidden` (vedi [`lilos:workspaces`](#lilosworkspaces)); l'impostazione `deskHidden` tiene quelle di «tutti», che valgono per i workspace con `hidden: null` (i nuovi e quelli salvati prima). Chiavi sconosciute ignorate; un valore salvato che non è un array vale come nessuna chiave.
+  - `isFixedShown(key, workspace?)`: `true` se l'elemento è acceso sulla scrivania del workspace (l'attuale se manca).
+  - `setFixedShown(key, shown, workspace?)`: lo accende o lo spegne in quel workspace (l'attuale se manca), con `Workspaces.setHiddenFixed`.
+  - `setFixedShownEverywhere(key, shown)`: lo accende o lo spegne in tutti i workspace vivi e in `deskHidden`, quindi anche nei workspace creati dopo.
+  - Prima che i workspace esistano (all'avvio, mentre la scrivania si riempie) vale `deskHidden`, e `setFixedShown` cambia quello.
 - `fixedFolder(item)`: l'id della cartella che la voce apre (`fs.root` per `home`; per `folder` la cartella di sistema non privata con quel nome nella radice, esclusa la Scrivania), o `null` per app, cestino e cartella non trovata.
 - `openFixed(item)`: un'app si avvia; il cestino fa `launch('files', { trash: true })`; una cartella fa `launch('files', { folder })`. Se la cartella non c'è, `toast` «La cartella … non c’è più».
 - `fixedData(item)`: i dati per `DesktopItem` (`{ id, name, fixed, type, … }`): `type: 'app'` con `app`, `type: 'trash'` con `full: fs.trashed().length > 0`, altrimenti `type: 'folder'` con `glyph`. `x` e `y` li dà il `Desktop`.
 - `acceptDrops(el, item)`: rende l'elemento un bersaglio di rilascio. Home e cartelle si marcano con `markItem` (file e cartelle si spostano lì, annullabile). Il cestino è una `dropZone` che accetta i nodi esistenti non di sistema, li manda a `removeNodes(stack, ids)` (annullabile con Ctrl Z) e mostra un `toast`. L'app File Manager non accetta nulla.
 
-`Desktop` ridisegna il Cestino (`full`) a ogni evento `trash` di `fs`. Il sistema espone `FIXED_ITEMS` come `DESK_FIXED_ITEMS` (vedi [systemApi.js](#systemapijs-lilossystem)): con `isFixedShown` e `setFixedShown`: Sistema → Scrivania → Elementi li usa per l'elenco «Elementi fissi», con un interruttore per elemento (senza `setFixedShown`, cioè con un lilOS più vecchio, mostra «Fisso»).
+`Desktop` ridisegna il Cestino (`full`) a ogni evento `trash` di `fs`. Il sistema espone `FIXED_ITEMS` come `DESK_FIXED_ITEMS` (vedi [systemApi.js](#systemapijs-lilossystem)), con `isFixedShown`, `setFixedShown` e `setFixedShownEverywhere`. Sistema (1.5.0) li usa in Workspace: la sezione «Elementi fissi» delle schede di ogni workspace (un interruttore per elemento in quel workspace) e di Tutti (`setFixedShownEverywhere`, con «Acceso in X workspace su N» quando non è uguale ovunque). Con un lilOS senza `setFixedShownEverywhere` la sezione è solo in Tutti, come scelta unica per tutte le scrivanie (o «Fisso», senza `setFixedShown`). Scrivania → Elementi ha solo un pulsante che porta a Workspace.
 
 ---
 
@@ -1057,12 +1061,13 @@ Scrivanie separate. Panoramica e motivazioni: [README per sviluppatori](README.m
 `new Workspaces({ state, canvas, desktop, wm, launcher, workareas, taskbar })`; `state` è il valore restituito da `setupWorkspaces`. Nel costruttore:
 
 - imposta il filtro delle app visibili del registro (`setInstalledFilter`), segue il `registry` (un'app installata si aggiunge a `apps` e `known` di ogni workspace vivo; una rimossa si toglie e ne chiude le finestre) e collega `info.js`;
+- chiama `desktop.syncFixed()`, perché la scrivania mostri gli elementi fissi del workspace attuale;
 - dice al gestore delle finestre qual è il workspace attuale e riapre le finestre salvate fuori dalle workarea (`lilos:ws:<id>:windows`); la proprietà `ready` è la Promise che si risolve quando sono tornate (vale per il primo workspace);
 - registra le scorciatoie del gruppo Workspace, attive anche mentre si scrive e solo se i workspace sono almeno due: `workspaces.next` (Ctrl Alt →) e `workspaces.previous` (Ctrl Alt ←);
 - crea il `WorkspaceSwitcher`, il pulsante nella barra;
 - salva le finestre 400 ms dopo ogni `open`/`close` del gestore delle finestre e `change` del canvas, e alla chiusura della pagina.
 
-Un workspace vivo è `{ id, name, color, created, desk, apps }` (vedi [`lilos:workspaces`](#lilosworkspaces)). In sviluppo il gestore è `lilos.workspaces`.
+Un workspace vivo è `{ id, name, color, created, desk, apps, known, hidden }` (vedi [`lilos:workspaces`](#lilosworkspaces)). In sviluppo il gestore è `lilos.workspaces`.
 
 | Membro | Descrizione |
 | --- | --- |
@@ -1077,13 +1082,14 @@ Un workspace vivo è `{ id, name, color, created, desk, apps }` (vedi [`lilos:wo
 | `rename(id, name)`, `setColor(id, color)` | Cambiano nome (ripulito, al massimo 40 caratteri; vuoto o uguale si ignora) e colore (esadecimale `#rrggbb`). |
 | `isInstalled(appId, id?)` | `true` se l'app è visibile nel workspace (l'attuale se manca `id`); le app `system` sempre. |
 | `setInstalled(appId, on, id?)` | Mostra o nasconde l'app nel workspace (non le app `system`); l'app resta installata in lilOS. Nascondendola nell'attuale chiude le finestre di quell'app con `requestClose`: ognuna può chiedere conferma se ha modifiche non salvate. |
+| `setHiddenFixed(byId)` | `{ [id]: chiavi }`: gli elementi fissi spenti in quei workspace (id sconosciuti ignorati; le chiavi le controlla `fixedItems.js`). Salva ed emette `change`; se tocca l'attuale chiama `desktop.syncFixed()`. |
 | `remove(id)` | Elimina un workspace (mai l'ultimo), in coda. Se è l'attuale mostra prima il successivo. La Scrivania diventa `/Documenti/Scrivania di <nome>` (con `fs.share`; rimossa se vuota); ciò che aveva cestinato dalla sua Scrivania diventa visibile a tutti (`fs.unscopeTrash`); le finestre delle app passano nel workspace attuale (`wm.adopt`), quelle secondarie si chiudono; chiavi `lilos:ws:<id>:…` cancellate; nell'elenco resta la voce "rimossa". Promise: il percorso della vecchia Scrivania, `''` se era vuota, `null` se non ha eliminato nulla. File e cartelle creati altrove restano dove sono. |
 
 **Eventi**
 
 | Evento | Payload | Quando |
 | --- | --- | --- |
-| `change` | — | Cambiati elenco, nomi, colori o app visibili. |
+| `change` | — | Cambiati elenco, nomi, colori, app visibili o elementi fissi. |
 | `switch` | `id` | Mostrato un altro workspace. |
 
 ### `setup.js`
@@ -1198,7 +1204,7 @@ Permessi dichiarati nei manifesti ufficiali: File Manager `fs.write:~`, `fs.work
 | `ACCENTS`, `LASSO_OPTIONS`, `RETENTION_OPTIONS` | `systemSettings.js` | Scelte di colore principale, selezione a mano libera e conservazione del cestino |
 | `SYSTEM_FOLDERS`, `DESK_NAME` | `systemFs.js` | Cartelle di sistema e nome della Scrivania |
 | `FOLDER_COLOR`, `itemIcon` | `desktop/itemIcons.js` | Icone di cartelle e file |
-| `DESK_FIXED_ITEMS`, `isFixedShown`, `setFixedShown` | `desktop/fixedItems.js` | L'elenco degli elementi fissi della scrivania (alias di `FIXED_ITEMS`) e quali sono accesi |
+| `DESK_FIXED_ITEMS`, `isFixedShown`, `setFixedShown`, `setFixedShownEverywhere` | `desktop/fixedItems.js` | L'elenco degli elementi fissi della scrivania (alias di `FIXED_ITEMS`) e quali sono accesi, per workspace o in tutti |
 | `WORKSPACE_LIMITS` | `workspaces/store.js` | Limiti dei workspace (alias di `LIMITS`) |
 | `describeWorkspace`, `onWorkspacesChange`, `workspaceManager` | `workspaces/info.js` | Nome e colore di un workspace; il gestore dei workspace |
 | `apps`, `registry`, `getApp`, `isInstalled`, `installedApps`, `launch` | `apps/registry.js` | Il registro delle app (non l'`apps` dell'SDK) |
@@ -1554,7 +1560,7 @@ Dichiara le impostazioni del sistema e le applica. Va importato per primo da `sy
 | `deletePermanent` | `false` | Elimina senza passare dal cestino (`removeNodes` con `permanent`) |
 | `trashRetention` | `30` | Giorni in cui il cestino conserva gli elementi (`0`: per sempre); `systemTrash.js` elimina il resto |
 | `lasso` | `'Alt'` | Modificatori che trasformano il trascinamento sullo sfondo in selezione a mano libera: `'Alt'`, `'Ctrl+Alt'` o `'Alt+Shift'` (`LASSO_OPTIONS`) |
-| `deskHidden` | `[]` | Chiavi degli elementi fissi spenti (vedi [desktop/fixedItems.js](#desktopfixeditemsjs)) |
+| `deskHidden` | `[]` | Chiavi degli elementi fissi spenti in tutti i workspace: valgono per quelli che non hanno scelto (`hidden: null`) e per i nuovi (vedi [desktop/fixedItems.js](#desktopfixeditemsjs)) |
 | `startupApps` | `true` | Con `false` le app scelte in Sistema → Avvio non si aprono all'ingresso (vedi [apps/startup.js](#appsstartupjs)) |
 
 Esporta anche `ACCENTS`, i colori proposti dall'app Sistema, `RETENTION_OPTIONS` (`[{ value, label }]`: 1, 7, 14, 30, 60, 90, 365 giorni e `0` «Per sempre», per `trashRetention`), `LASSO_OPTIONS` e `selectionMode(event)` → `{ mode: 'lasso' | 'rect', additive }`: percorso libero se sono premuti tutti i modificatori di `lasso`; `additive` (si aggiunge alla selezione) con Ctrl/Cmd o Shift, se non fanno parte della combinazione del percorso.
@@ -2257,7 +2263,7 @@ I workspace, con quello attuale:
   "current": "m1x2a0k3f",
   "list": [
     { "id": "m1x2a0k3f", "name": "Principale", "color": "#3b6ef5", "created": 1793180000000,
-      "desk": "m1x2a0k3g", "apps": ["editor", "esempio.note"], "known": ["files", "editor", "settings", "esempio.note"] },
+      "desk": "m1x2a0k3g", "apps": ["editor", "esempio.note"], "known": ["files", "editor", "settings", "esempio.note"], "hidden": ["images"] },
     { "id": "m1x2d9e8c", "name": "Cliente Rossi", "color": "#30a46c", "created": 1793190000000, "removed": 1793200000000 }
   ]
 }
@@ -2269,9 +2275,10 @@ I workspace, con quello attuale:
 | `desk` | Id della sua cartella Scrivania (privata). Solo nei workspace vivi. |
 | `apps` | Id delle app **visibili** nel workspace (le installate in lilOS e non nascoste). Le app `system` (File Manager, Sistema) sono sempre visibili e non serve elencarle. Una nuova voce senza `apps` le ha tutte. |
 | `known` | Id delle app che lilOS aveva all'ultimo salvataggio. Alla lettura, le app del registro che non ci sono vengono aggiunte ad `apps`: un'app nuova arriva visibile, una nascosta dall'utente resta nascosta. Senza `known` (dati di prima) si considerano note tutte le app del registro. |
+| `hidden` | Chiavi degli [elementi fissi](#desktopfixeditemsjs) spenti sulla sua scrivania, o `null`: valgono quelli dell'impostazione `deskHidden` (i workspace nuovi, e quelli salvati prima di questo campo). Si riempie alla prima scelta per quel workspace o in Tutti. |
 | `removed` | Data di eliminazione. Una voce "rimossa" non ha `desk` né `apps`: resta solo perché i file creati da quel workspace dicano ancora di chi erano (File Manager mostra «Nome (eliminato)»). |
 
-Controllo alla lettura, perché il dato non è affidabile: `list` deve essere un elenco (si leggono al massimo 120 voci); `id` di 1-40 caratteri tra lettere, cifre, `_` e `-`, senza duplicati; `name` ripulito (spazi, al massimo 40 caratteri), «Workspace» se vuoto; `color` esadecimale `#rrggbb`, altrimenti il primo accento; `created` numero finito, altrimenti l'ora della lettura; una voce viva senza `desk` è scartata; `apps` tiene solo id del registro, più quelli che `known` non conteneva; `known` è riscritto con gli id del registro attuale; al massimo 20 workspace vivi e 100 rimossi (gli ultimi). Se `current` non è un workspace vivo, `setupWorkspaces` sceglie il primo.
+Controllo alla lettura, perché il dato non è affidabile: `list` deve essere un elenco (si leggono al massimo 120 voci); `id` di 1-40 caratteri tra lettere, cifre, `_` e `-`, senza duplicati; `name` ripulito (spazi, al massimo 40 caratteri), «Workspace» se vuoto; `color` esadecimale `#rrggbb`, altrimenti il primo accento; `created` numero finito, altrimenti l'ora della lettura; una voce viva senza `desk` è scartata; `apps` tiene solo id del registro, più quelli che `known` non conteneva; `known` è riscritto con gli id del registro attuale; `hidden` tiene solo testi come gli `id` (al massimo 50), `null` se non è un elenco; al massimo 20 workspace vivi e 100 rimossi (gli ultimi). Se `current` non è un workspace vivo, `setupWorkspaces` sceglie il primo.
 
 ### `lilos:ws:<id>:…`
 

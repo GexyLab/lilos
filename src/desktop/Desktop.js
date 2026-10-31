@@ -81,8 +81,8 @@ export class Desktop {
       trash.data.full = fs.trashed().length > 0;
       trash.setData(trash.data);
     });
-    // Fixed items turned on or off in Sistema → Scrivania → Elementi
-    settings.on('change:deskHidden', () => this.#syncFixed());
+    // Fixed items turned on or off for every workspace (those of one workspace: Workspaces calls syncFixed)
+    settings.on('change:deskHidden', () => this.syncFixed());
     tags.on('change', () => this.items.forEach(it => { if (!it.workarea && !it.fixed && fs.exists(it.id)) it.setData(fs.get(it.id)); }));
     canvas.on('background:press', e => this.#selectByDrag(e));
     canvas.on('background:click', e => { if (!e.ctrlKey && !e.metaKey && !e.shiftKey) this.select([]); });
@@ -369,8 +369,8 @@ export class Desktop {
     acceptDrops(item.el, fixed);
   }
 
-  /** Fixed items in step with the setting: those turned off go (keeping their place), the others come. */
-  #syncFixed() {
+  /** Fixed items in step with the current workspace: those turned off go (keeping their place), the others come. */
+  syncFixed() {
     const off = FIXED_ITEMS.filter(f => !isFixedShown(f.key) && this.items.has(fixedId(f.key)));
     const on = FIXED_ITEMS.filter(f => isFixedShown(f.key) && !this.items.has(fixedId(f.key)));
     if (!off.length && !on.length) return;
@@ -396,9 +396,16 @@ export class Desktop {
     return Array.isArray(p) && Number.isFinite(p[0]) && Number.isFinite(p[1]) ? { x: p[0], y: p[1] } : null;
   }
 
-  /** First grid slot from the top-left corner of the desk that no item occupies (and no area covers). */
+  /**
+   * First grid slot from the top-left corner of the desk that no item occupies (and no area
+   * covers). The place of a fixed item turned off counts as taken: it comes back there.
+   */
   #freeSlot() {
     const taken = new Set([...this.items.values()].map(it => `${it.data.x},${it.data.y}`));
+    for (const f of FIXED_ITEMS) {
+      const p = !this.items.has(fixedId(f.key)) && this.#savedPosition(fixedId(f.key));
+      if (p) taken.add(`${p.x},${p.y}`);
+    }
     for (let i = 0; ; i++) {
       const slot = { x: MARGIN + Math.floor(i / ROWS) * CELL.w, y: MARGIN + (i % ROWS) * CELL.h };
       if (!taken.has(`${slot.x},${slot.y}`) && !this.#inArea(slot)) return slot;
@@ -543,9 +550,9 @@ export class Desktop {
         { label: 'Apri', icon: 'open', shortcut: shortcuts.label('items.open'), action: () => this.open(item) },
         { label: 'Togli dalla scrivania', icon: 'eyeOff', action: () => {
           setFixedShown(item.fixed.key, false);
-          toast(`«${item.data.name}» si rimette in Sistema → Scrivania → Elementi`);
+          toast(`«${item.data.name}» si rimette in Sistema → Workspace → Questo workspace`);
         } },
-        { label: 'Elementi fissi della scrivania…', icon: 'info', action: () => launch('settings', { tab: 'desk' }) },
+        { label: 'Elementi fissi della scrivania…', icon: 'info', action: () => launch('settings', { tab: 'workspaces', subtab: 'current' }) },
       ]);
     }
     // Fixed items are not files: no tags, links or deleting

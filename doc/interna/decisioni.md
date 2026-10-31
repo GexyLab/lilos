@@ -682,7 +682,8 @@ Le app di sistema girano sempre nella pagina; le app `remote` e quelle con `sdk`
 
 **Conseguenze.**
 
-- L'elenco è nel codice, non configurabile: Sistema → Scrivania → Elementi lo mostra solo da leggere, tramite `DESK_FIXED_ITEMS` di `@lilos/system`. Aggiungerne o toglierne uno richiede una modifica a `fixedItems.js` e il rilascio di lilOS prima dell'app Sistema che lo usa.
+- L'elenco è nel codice: Sistema lo legge da `DESK_FIXED_ITEMS` di `@lilos/system`. Aggiungerne o toglierne uno richiede una modifica a `fixedItems.js` e il rilascio di lilOS prima dell'app Sistema che lo usa. Si può solo accendere o spegnere ogni elemento.
+- Acceso o spento è **per workspace** (31 ottobre 2026): ogni scrivania ha usi diversi, e un workspace di lavoro può non volere Immagini o Download. Lo tiene il workspace (`hidden` in `lilos:workspaces`), non un'impostazione per workspace, perché è un dato del workspace come le app visibili, e se ne va con lui. L'impostazione `deskHidden` resta come scelta di «tutti»: la seguono i workspace che non hanno mai scelto (`hidden: null`, cioè i nuovi e quelli salvati prima), e Sistema → Workspace → Tutti la cambia insieme a tutti i workspace. Alternativa scartata: un valore a tre stati per workspace (eredita / acceso / spento), più flessibile ma difficile da capire in un elenco di interruttori.
 - Chi aveva già il collegamento al File Manager sulla scrivania lo conserva: ora ci sono due icone e il vecchio collegamento si elimina a mano.
 - Documenti, Immagini e Download si trovano per nome tra le cartelle di sistema nella radice (`fixedFolder`): se manca, l'elemento resta e un clic mostra un messaggio.
 - Gli elementi fissi non hanno tag, collegamenti né Proprietà, e `arrange()` li mette per primi nell'ordine dell'elenco.
