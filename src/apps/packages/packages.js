@@ -109,7 +109,7 @@ export async function registerPackages() {
   const list = installed.list();
   await Promise.all(list.map(loadLocales));
   list.forEach(add);
-  // The commands are listed in Sistema with the app's texts: again in the new language
+  // The commands are listed in Control Panel with the app's texts: again in the new language
   locale.on('change', () => {
     for (const [id, off] of commandsOff) {
       off();

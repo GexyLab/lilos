@@ -60,7 +60,7 @@ import { parseLocales } from '../../../../sdk/core/i18n.js';
  *
  * Badge: a sign on the icon of the items the app has data on (node.apps[id]): { glyph: 'lock', label }.
  *
- * Params of an entry point: what it accepts as args, so lilOS can ask for it (Sistema → Avvio).
+ * Params of an entry point: what it accepts as args, so lilOS can ask for it (Control Panel → Avvio).
  *   { name: { type, label, description?, default?, …by type } }, at most 10
  *   'text' { maxLength? }   'number' { min?, max? }   'boolean'   'choice' { options: [{ value, label }] }
  *   'file' (the id of a file the user chose: the app may read and write it)   'folder' (a folder the user chose)

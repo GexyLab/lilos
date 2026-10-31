@@ -32,7 +32,7 @@ export async function signOut() {
 /**
  * The user's page, over the desk and the windows (the taskbar stays visible), opened from the
  * user's name in the taskbar or in the menu: name and photo, what ends or locks the session or
- * restarts the system, a few account settings and facts about this session. Sistema → Pagina
+ * restarts the system, a few account settings and facts about this session. Control Panel → Pagina
  * utente chooses what it shows (items.js). Drawn again at every opening, so what it says is current.
  */
 export class UserPage {

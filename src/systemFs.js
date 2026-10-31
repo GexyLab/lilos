@@ -12,8 +12,8 @@ usa la rotella per lo zoom, trascina sullo sfondo per selezionare.
 - Il pulsante accanto al logo cambia workspace: ognuno ha la sua scrivania,
   le sue finestre e le sue app. Documenti, Immagini e Download sono di tutti.
 
-Le scorciatoie e le app che aprono i file si cambiano in
-Sistema → Usabilità.
+Le scorciatoie e le app che aprono i file si cambiano nel
+Pannello di controllo → Usabilità.
 `;
 
 /** Name of every workspace's desk folder (private: each workspace sees only its own). */

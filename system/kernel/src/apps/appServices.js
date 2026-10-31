@@ -12,7 +12,7 @@ import { i18nApi, parseLocales, resolveLocale } from '../../../../sdk/core/i18n.
  * 'runtime' service of a kernel module (services-isolate), each for an owner: a user, or the
  * system (nobody: one instance for everyone).
  *
- * When they start (Sistema → Avvio):
+ * When they start (Control Panel → Avvio):
  *   system:ready   when the kernel starts: the ones an admin chose for everyone, as the system
  *                  (node /system/app/.startup, meta.startup: { services: [{ app, entry, params }] })
  *   user:login     the first time the kernel sees a user in this run (sign-in, or a session still
@@ -149,7 +149,7 @@ export class AppServices extends EventEmitter {
     return { enabled: raw?.enabled !== false, services: bindings(raw?.services) };
   }
 
-  /** What Sistema shows: every service, with when it starts and how it is now, for this user. */
+  /** What Control Panel shows: every service, with when it starts and how it is now, for this user. */
   async list(principal) {
     const [catalog, system, mine] = await Promise.all([this.catalog(), this.systemStartup(), this.userStartup(principal)]);
     const services = catalog.map(s => {

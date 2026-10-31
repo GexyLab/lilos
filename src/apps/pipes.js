@@ -187,7 +187,7 @@ export function connectPipes() {
   });
 }
 
-/** The pipes of an app (Proprietà, Sistema): [{ event, stage, entry, where, from: 'manifest' | 'code' }]. */
+/** The pipes of an app (Proprietà, Control Panel): [{ event, stage, entry, where, from: 'manifest' | 'code' }]. */
 export function appPipes(id) {
   const pkg = pkgOf(id);
   const out = manifestPipes(pkg).map(p => ({ event: p.event, stage: p.stage, entry: p.entry, where: p.where ?? null, from: 'manifest' }));

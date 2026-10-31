@@ -3,11 +3,11 @@ import { settings } from '@lilos/sdk';
 /**
  * What the user page (opened from the user's name in the taskbar or in the menu) can show, by
  * group, in this order. Name and photo are always there; each of these is turned on or off in
- * Sistema → Pagina utente (the 'userPageHidden' setting holds the keys turned off). Some fields
- * are for Sistema, which reads these lists.
+ * Control Panel → Pagina utente (the 'userPageHidden' setting holds the keys turned off). Some fields
+ * are for Control Panel, which reads these lists.
  *   key          stable id
  *   group        key of its group
- *   name         label in Sistema
+ *   name         label in Control Panel
  *   glyph        SDK icon
  *   description  what it shows or does
  */
@@ -27,7 +27,7 @@ export const USER_PAGE_ITEMS = Object.freeze([
   { key: 'photo', group: 'account', glyph: 'camera', name: 'Foto profilo', description: 'Scegliere, cambiare o togliere la foto' },
   { key: 'theme', group: 'account', glyph: 'palette', name: 'Tema', description: 'Chiaro o scuro' },
   { key: 'language', group: 'account', glyph: 'globe', name: 'Lingua', description: 'La lingua delle app' },
-  { key: 'settings', group: 'account', glyph: 'gear', name: 'Tutte le impostazioni', description: 'Apre Sistema' },
+  { key: 'settings', group: 'account', glyph: 'gear', name: 'Tutte le impostazioni', description: 'Apre il Pannello di controllo' },
   { key: 'workspace', group: 'session', glyph: 'workspace', name: 'Workspace', description: 'Quello in cui sei e quanti ce ne sono' },
   { key: 'windows', group: 'session', glyph: 'window', name: 'Finestre aperte', description: 'Quante finestre sono aperte e quante app lavorano in background' },
   { key: 'startup', group: 'session', glyph: 'power', name: 'All’avvio', description: 'Quante app si aprono quando entri' },

@@ -3,7 +3,7 @@ import { getApp, isInstalled, launch, registry } from './registry.js';
 import { entrypointsOf } from './entrypoints.js';
 
 /**
- * What starts by itself (Sistema → Avvio). Two events of the bus mark the moments (system.js):
+ * What starts by itself (Control Panel → Avvio). Two events of the bus mark the moments (system.js):
  *   'system:ready'  lilOS is up
  *   'user:login'    right after, the user is in: their apps open
  *

@@ -3,5 +3,5 @@ export const seedItems = [
   { type: 'folder', name: 'Progetti', color: '#e8b44c' },
   { type: 'file', name: 'benvenuto.txt' },
   { type: 'app', name: 'Editor', app: 'editor' },
-  { type: 'app', name: 'Sistema', app: 'settings' },
+  { type: 'app', name: 'Pannello di controllo', app: 'settings' },
 ];

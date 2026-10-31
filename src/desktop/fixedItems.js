@@ -8,17 +8,17 @@ import { workspaceManager } from '../workspaces/info.js';
 const PREFIX = 'fixed:';
 
 /**
- * Items on the desks, in this order (listed in Sistema → Workspace, where each one is turned on
+ * Items on the desks, in this order (listed in Control Panel → Workspace, where each one is turned on
  * or off for one workspace or for all of them). Each workspace keeps the keys turned off on its
  * desk (its `hidden`); the 'deskHidden' setting holds those of "all", for the workspaces that never
  * chose (new ones, or saved before this). They are not files: they point at a place (Home, a
  * shared system folder, the trash) or an app, cannot be renamed or deleted, and keep their
  * position in the desk's layout like any other item (under 'fixed:<key>'), also while turned
- * off. Some fields are for Sistema, which reads this list.
+ * off. Some fields are for Control Panel, which reads this list.
  *   key          stable id
  *   name         label on the desk
  *   kind         'home' | 'folder' (a system folder, by name) | 'app' | 'trash'
- *   glyph        SDK icon for the list in Sistema (and the badge on folders)
+ *   glyph        SDK icon for the list in Control Panel (and the badge on folders)
  *   description  what it opens
  */
 export const FIXED_ITEMS = Object.freeze([

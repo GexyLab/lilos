@@ -5,7 +5,7 @@ import { DEFAULT_LANG, canonicalLocale, i18nApi, localizeManifest, parseLocales,
 
 settings.define({ language: 'auto' });   // 'auto' (the browser's language) or a language tag ('it-IT')
 
-/** The languages Sistema offers besides 'auto'. Apps without one of them fall back to English. */
+/** The languages Control Panel offers besides 'auto'. Apps without one of them fall back to English. */
 export const LANGUAGES = ['en-US', 'en-GB', 'it-IT', 'de-DE', 'es-ES', 'fr-FR', 'pt-BR'];
 
 /** The locale the system is in: the setting, or the browser's language for 'auto'. */

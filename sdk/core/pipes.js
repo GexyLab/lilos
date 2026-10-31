@@ -50,7 +50,7 @@ import { splitName } from './fileTypes.js';
  *     check?(data, stage) → data   cleans what a handler gave back (throws if not valid)
  *     timeout?: ms }
  *
- * Events: 'change' — the catalog, the subscriptions or the order changed (Sistema shows the chains)
+ * Events: 'change' — the catalog, the subscriptions or the order changed (Control Panel shows the chains)
  */
 const STAGES = ['before', 'after'];
 const BANDS = ['first', 'middle', 'last'];

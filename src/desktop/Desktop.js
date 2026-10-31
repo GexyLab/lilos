@@ -553,7 +553,7 @@ export class Desktop {
         { label: 'Apri', icon: 'open', shortcut: shortcuts.label('items.open'), action: () => this.open(item) },
         { label: 'Togli dalla scrivania', icon: 'eyeOff', action: () => {
           setFixedShown(item.fixed.key, false);
-          toast(`«${item.data.name}» si rimette in Sistema → Workspace → Questo workspace`);
+          toast(`«${item.data.name}» si rimette dal Pannello di controllo → Workspace → Questo workspace`);
         } },
         { label: 'Elementi fissi della scrivania…', icon: 'info', action: () => launch('settings', { tab: 'workspaces', subtab: 'current' }) },
       ]);

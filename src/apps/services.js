@@ -4,7 +4,7 @@ import { getApp } from './registry.js';
 /**
  * The services of installed apps (entry points of kind 'service'): they run in the kernel, also
  * with lilOS closed (see the kernel's apps/appServices.js). Here lilOS asks about them and gets
- * told when they change, through the kernel's event stream (/api/services-events): Sistema → Avvio
+ * told when they change, through the kernel's event stream (/api/services-events): Control Panel → Avvio
  * shows them, and what a service says with lilos.ui.notify() becomes a message.
  *
  *   list() → { available, enabled, admin, services: [{ app, entry, label, name, glyph, color, params,
@@ -58,7 +58,7 @@ class Services extends Emitter {
 
 export const services = new Services();
 
-/** Listens to the kernel while lilOS runs: changes for Sistema, messages of the services as toasts. */
+/** Listens to the kernel while lilOS runs: changes for Control Panel, messages of the services as toasts. */
 export function connectServices() {
   if (!kernel.connected || typeof EventSource !== 'function') return;
   let source = null;

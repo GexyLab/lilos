@@ -24,7 +24,7 @@ export class StartMenu {
       h('div', { class: 'sm-footer' },
         h('button', { class: 'sm-user', type: 'button', title: 'Pagina utente', onclick: () => { this.close(); this.onUser?.(); } },
           avatar(session.user, 'avatar user-avatar'), h('span', {}, session.user.name)),
-        h('button', { class: 'sm-btn', title: 'Sistema', 'aria-label': 'Sistema', onclick: () => this.#launch('settings') }, icon('gear')),
+        h('button', { class: 'sm-btn', title: 'Pannello di controllo', 'aria-label': 'Pannello di controllo', onclick: () => this.#launch('settings') }, icon('gear')),
         kernel.mode === 'multi'
           ? h('button', { class: 'sm-btn', title: 'Esci', 'aria-label': 'Esci', onclick: () => { this.close(); signOut(); } }, icon('power'))
           : h('button', { class: 'sm-btn', title: 'Riavvia sessione', 'aria-label': 'Riavvia sessione', onclick: () => { this.close(); signOut(); } }, icon('power')),

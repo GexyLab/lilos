@@ -70,7 +70,7 @@ export function connectLauncher(wm) {
   bus.on('app:launch', async ({ id, args, entry = 'main', files = [] }) => {
     const app = getApp(id);
     if (!app?.load) return console.info('[lilos] app non ancora disponibile:', id);
-    if (!isInstalled(id)) return toast(`${app.name} è nascosta in questo workspace. Si mostra da Sistema → Workspace.`, { timeout: 5000 });
+    if (!isInstalled(id)) return toast(`${app.name} è nascosta in questo workspace. Si mostra dal Pannello di controllo → Workspace.`, { timeout: 5000 });
     // Being updated, or updated and waiting for lilOS to restart: its old code must not start again
     if (blockedLaunch(id)) return;
     // The app.launch pipe: a handler may change the args, or stop it
