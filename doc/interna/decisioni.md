@@ -854,3 +854,36 @@ lilOS legge il file **prima** di avviare l'app e le dà le stringhe già risolte
 - Un'app di cifratura non installata lascia i file illeggibili: lilOS li tratta come «di un'app che manca», non li apre e sull'icona mostra un lucchetto grigio con «Serve l'app …».
 
 **Quando ripensarla.** Quando un servizio nel kernel dovrà reagire agli eventi (vedi sopra); se serviranno eventi sugli utenti (quando il frontend avrà operazioni sugli utenti); se due gestori sullo stesso contenuto (per esempio compressione e cifratura) mostreranno che le fasce non bastano; se il limite di 1 KB per app, di 8 app e di 2 KB in tutto per nodo si rivelerà stretto; se serviranno protezioni contro il rollback e la scrittura non atomica; e se un'app non isolata dovrà essere esclusa dai file sbloccati.
+
+---
+
+## D48. La pagina utente e il blocco come fine della sessione
+
+**Decisione.** Il nome dell'utente nella barra (e in fondo al menu di avvio) apre una **pagina a tutto schermo** (`src/user/`, 31 ottobre 2026) con le cose personali: nome e foto, **Blocca**, **Chiudi sessione**, **Riavvia il sistema** (solo amministratori), tema, lingua, foto profilo e qualche dato della sessione (workspace, finestre, app all'avvio, spazio usato, versione). Cosa mostra lo sceglie l'utente in Sistema → Pagina utente: l'elenco delle voci sta nel sistema (`USER_PAGE_ITEMS`), le scelte nell'impostazione `userPageHidden` (le chiavi spente).
+
+**Blocca = fine della sessione sul kernel.** `lockSession()` salva, chiama `DELETE /api/session` e copre lilOS con una schermata opaca che chiede la password dello **stesso** utente. Le finestre restano aperte sotto (con `inert`, fuori dalla portata anche della tastiera) e tornano com'erano. Un altro utente non è accettato: c'è «Accedi con un altro utente», che ricarica la pagina.
+
+**Perché.**
+
+- Un blocco solo grafico si aggira: basta ricaricare la pagina, o aprire lilOS da un'altra scheda, perché il cookie di sessione è ancora valido. Terminare la sessione sul kernel rende il blocco vero: senza password non si ottiene più nulla, né da questa scheda né da altre.
+- Il kernel offre già tutto: la fine della sessione e il nuovo accesso (lo stesso meccanismo di «Sessione scaduta», `signInAgain`) funzionano già con le finestre aperte. Il blocco ne è un caso d'uso, senza API nuove.
+- I servizi dell'utente si fermano a ogni uscita ([D44](#d44-avvio-automatico-due-eventi-app-solo-nella-prima-scheda-servizi-nel-kernel)) e ripartono all'accesso: con il blocco succede lo stesso, ed è coerente con l'idea di non lasciare lavorare a nome di chi non è davanti allo schermo.
+- La pagina è un'unica vista per tutto ciò che riguarda l'utente, invece di sparpagliarlo tra barra, menu e Sistema. Le voci si accendono e si spengono perché non tutti vogliono Blocca o Riavvia il sistema a un clic di distanza.
+
+**Alternative scartate.**
+
+- Un blocco solo nel browser (uno strato sopra la pagina): si toglie ricaricando.
+- Fermare la sessione e ricaricare la pagina: si perderebbe il testo non salvato nelle finestre.
+
+**Conseguenze.**
+
+- **Il blocco chiude la sessione, ma non svuota le copie locali.** A differenza di `kernel.logout()`, `lockSession` non chiama `onLogout`: le copie dei contenuti in IndexedDB restano nel browser, perché al ritorno serve ritrovare tutto com'era. Chi vuole che nulla resti nel browser deve **Chiudere la sessione**.
+- **Blocca esiste solo con più utenti** (`kernel.mode === 'multi'`). Con un utente solo non c'è una password da chiedere; «Chiudi sessione» diventa «Riavvia sessione».
+- **Se chiudere la sessione sul kernel fallisce, il blocco non parte** (un avviso lo dice): meglio non bloccare che fingere.
+- **Il riavvio del sistema funziona solo se il kernel è stato avviato con `npm run kernel`** (il kernel si rilancia da solo). Altrimenti risponde con un errore e la pagina mostra un avviso. Passa da `restartKernel()` (`apps/updates.js`), che prima chiede alle finestre di salvare; chi è collegato perde il kernel per qualche secondo.
+- **`signOut()` chiede alle finestre prima di uscire** (anche dal pulsante del menu di avvio): una finestra con lavoro non salvato può fermare l'uscita.
+- **La foto sta nelle impostazioni** (`userPhoto`, JPEG 192 px come `data:` URL, validato alla lettura), non tra i file: segue l'utente in ogni browser e non occupa il file system. Il tetto (200 000 caratteri) tiene piccolo il file delle impostazioni.
+- **Nome visualizzato e password non si cambiano da qui**: il kernel non ha un'API per farlo; né per elencare gli utenti collegati. Sono voci possibili quando l'avrà.
+- **`@lilos/system` cresce** (`USER_PAGE_GROUPS`, `USER_PAGE_ITEMS`, `isUserPageShown`, `setUserPageShown`): Sistema 1.7.0 li usa, quindi va rilasciato dopo lilOS ([D38](#d38-le-app-di-sistema-vengono-dal-repository-ufficiale-e-girano-dentro-lilos)).
+
+**Quando ripensarla.** Quando il kernel potrà cambiare nome e password e dire chi è collegato (la pagina potrà offrirli); se serviranno blocchi che non perdano la sessione su altre schede; se il riavvio dovrà funzionare anche senza `npm run kernel`.

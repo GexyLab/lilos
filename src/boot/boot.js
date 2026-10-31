@@ -40,20 +40,53 @@ async function offerImport(root) {
   await importLocalData(kernel);
 }
 
+let signingIn = false;   // the sign-in over lilOS is open (session expired, or locked)
+
+/** Signs the same user in again over the running lilOS, then sends what was waiting. */
+async function signInAgain(options) {
+  signingIn = true;
+  await loginScreen(null, async (username, password) => {
+    const { user } = await kernel.request('POST', '/session', { username, password });
+    if (user.id !== kernel.data.user.id) {
+      await kernel.request('DELETE', '/session').catch(() => {});
+      throw new Error(`Qui è aperta la sessione di ${kernel.data.user.username}: accedi con quell'utente`);
+    }
+  }, { onto: document.body, ...options });
+  signingIn = false;
+  kernel.resume();
+}
+
 /** While lilOS runs: when the session ends, sign in again over it; nothing waiting is lost. */
 export function watchSession() {
-  let open = false;
-  kernel.on('signedout', async () => {
-    if (open) return;
-    open = true;
-    await loginScreen(null, async (username, password) => {
-      const { user } = await kernel.request('POST', '/session', { username, password });
-      if (user.id !== kernel.data.user.id) {
-        await kernel.request('DELETE', '/session').catch(() => {});
-        throw new Error(`Qui è aperta la sessione di ${kernel.data.user.username}: accedi con quell'utente`);
-      }
-    }, { title: 'Sessione scaduta', text: 'Accedi di nuovo: le modifiche in attesa verranno salvate.', onto: document.body });
-    open = false;
-    kernel.resume();
+  kernel.on('signedout', () => {
+    if (!signingIn) signInAgain({ title: 'Sessione scaduta', text: 'Accedi di nuovo: le modifiche in attesa verranno salvate.' });
   });
+}
+
+/**
+ * Locks lilOS (more users only): saves what is pending and ends the session on the kernel, so that
+ * loading the page again asks to sign in too; the windows stay open under a screen that asks the
+ * same user's password. Resolves when the user is back. The user's services stop meanwhile, as at
+ * any sign-out, and start again when they sign in.
+ */
+export async function lockSession() {
+  if (signingIn || kernel.mode !== 'multi') return;
+  signingIn = true;
+  try {
+    await kernel.flush();
+    await kernel.request('DELETE', '/session');
+  } catch (err) {
+    signingIn = false;
+    throw err;
+  }
+  const { username, name } = kernel.data.user;
+  // Out of reach of the keyboard too while locked
+  const under = [...document.body.children].filter(e => !e.inert);
+  under.forEach(e => { e.inert = true; });
+  await signInAgain({
+    title: 'lilOS è bloccato', text: `Inserisci la password di ${name} per tornare.`, username, opaque: true,
+    // Session already ended: lilOS starts again from the sign-in
+    other: { label: 'Accedi con un altro utente', onClick: () => location.reload() },
+  });
+  under.forEach(e => { e.inert = false; });
 }

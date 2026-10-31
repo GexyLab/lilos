@@ -29,7 +29,9 @@
 .sm-item .app-icon { width: 22px; height: 22px; border-radius: 6px; }
 .sm-empty { padding: 20px 8px; text-align: center; color: var(--bar-dim); }
 
-.sm-footer { display: flex; align-items: center; gap: 2px; padding: 6px 6px 6px 12px; border-top: 1px solid var(--panel-border); }
-.sm-user { flex: 1; display: flex; align-items: center; gap: 8px; font-size: 12.5px; }
+.sm-footer { display: flex; align-items: center; gap: 2px; padding: 6px; border-top: 1px solid var(--panel-border); }
+.sm-user { flex: 1; min-width: 0; height: 28px; display: flex; align-items: center; gap: 8px; padding: 0 6px; border-radius: var(--radius-sm); font-size: 12.5px; text-align: left; }
+.sm-user span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sm-user:hover { background: var(--bar-hover); color: var(--bar-strong); }
 .sm-btn { width: 28px; height: 28px; border-radius: var(--radius-sm); display: grid; place-items: center; color: var(--bar-dim); }
 .sm-btn:hover { background: var(--bar-hover); color: var(--bar-strong); }

@@ -199,8 +199,12 @@ src/
     info.js             cosa le app possono sapere dei workspace (nome e colore di un proprietario)
   windows/
     WindowManager.js    finestre sulla scrivania: posizione, focus, trascinamento, barra, workspace di ogni finestra
+  user/
+    UserPage.js         pagina utente a tutto schermo; `signOut()`
+    items.js            voci della pagina (`USER_PAGE_ITEMS`) e quali sono accese
+    photo.js            foto profilo: scelta, ritaglio, validazione
   taskbar/
-    Taskbar.js          pulsante logo, area finestre, utente e orologio (il pulsante workspace lo aggiunge Workspaces)
+    Taskbar.js          pulsante logo, area finestre, utente (pulsante) e orologio (il pulsante workspace lo aggiunge Workspaces)
     StartMenu.js        menu di avvio con ricerca; tasto destro su un'app: Apri, Proprietà…; Esci (con più utenti) o Riavvia sessione
     BackgroundApps.js   icona con le app in background che sono rimaste attive (keepAlive) e "Ferma"
     Clock.js            data e ora
@@ -214,6 +218,7 @@ src/
     tags.css            pallini dei tag sulle icone e nell'elenco del File Manager
     taskbar.css         barra in basso
     start-menu.css      menu di avvio
+    user-page.css       pagina utente e foto sugli avatar
 ```
 
 ## Architettura
@@ -255,6 +260,7 @@ document.body
 │  │     └─ .window.obj  finestre (z-index da 100, in ordine di sovrapposizione)
 │  ├─ .hud               z-index 8000
 │  └─ .taskbar           z-index 9000
+├─ .user-page            z-index 8800: sopra scrivania, finestre e HUD, ma non sulla barra (finisce dove inizia)
 ├─ .start-menu           z-index 9500
 └─ .menu                 z-index 9600 (al massimo uno)
 ```

@@ -85,8 +85,9 @@ src/                    il sistema, costruito sull'SDK
   workspaces/           scrivanie separate: elenco salvato, avvio e migrazione, cambio, pulsante nella barra
   windows/
     WindowManager.js    finestre sulla scrivania e nella barra
+  user/                 pagina utente a tutto schermo (nome, foto, Blocca, Esci, Riavvia il sistema, tema, lingua)
   taskbar/
-    Taskbar.js          pulsante logo · pulsante workspace · area finestre · utente e orologio
+    Taskbar.js          pulsante logo · pulsante workspace · area finestre · utente (apre la pagina utente) e orologio
     StartMenu.js        menu di avvio con ricerca app (tasto destro: Apri, Proprietà…)
     BackgroundApps.js   icona delle app in background rimaste attive, con "Ferma"
     Clock.js
@@ -104,7 +105,8 @@ doc/                    documentazione utente, sviluppatore e interna
 | Spostarsi | Spazio + trascina, tasto centrale (un dito sugli schermi touch) |
 | Selezionare | clic, trascina sullo sfondo (rettangolo), Alt + trascina (mano libera, modificabile), Ctrl/Shift per aggiungere |
 | Mostra tutto | Shift 1 |
-| Menu di avvio | pulsante logo, Ctrl K; in fondo Sistema ed Esci (con più utenti) |
+| Menu di avvio | pulsante logo, Ctrl K; in fondo il tuo nome (apre la pagina utente), Sistema ed Esci (con più utenti) |
+| Pagina utente | clic sul tuo nome nella barra o nel menu di avvio; Esc la chiude |
 | Elementi | doppio clic apre, F2 rinomina, Canc elimina (nel Cestino), Ctrl A seleziona tutto, Ctrl/Shift + clic selezione multipla |
 | Spostare file e cartelle | trascina un elemento (o la selezione) su una cartella: sulla scrivania, nel File Manager (elenco, percorso, barra laterale) o nel pannello dell'Editor, anche da una vista all'altra; Esc annulla; rilasciato sul Cestino lo elimina; tra due voci della sezione Collegamenti del File Manager crea un collegamento, e le voci si riordinano trascinandole (con × o Canc si elimina un collegamento) |
 | Annulla / ripeti | Ctrl Z / Ctrl Y (o Ctrl Shift Z), dove stai lavorando: scrivania, finestra del File Manager, testo e pannello dell'Editor |

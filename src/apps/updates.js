@@ -1,4 +1,5 @@
-import { Emitter, Window, h, toast, actionButton } from '@lilos/sdk';
+import { Emitter, Window, h, toast, actionButton, kernel, kernelModules } from '@lilos/sdk';
+import { progressScreen } from '../boot/screens.js';
 import { getApp, registry } from './registry.js';
 import { entrypointsOf } from './entrypoints.js';
 import { buildOf, matchesFrom, settled, wasLoaded } from './packages/packages.js';
@@ -287,6 +288,35 @@ export async function restartSystem() {
   if (wm && !(await askWindows(wm.all()))) return false;
   location.reload();
   return true;
+}
+
+/** Asks every window that may hold unsaved work whether it may close, as restartSystem() does. */
+export const windowsMayClose = () => (wm ? askWindows(wm.all()) : Promise.resolve(true));
+
+/**
+ * Restarts the whole system (admins): the windows are asked first, as by restartSystem(), what is
+ * pending is saved, the kernel stops and starts again (only when started by "npm run kernel": the
+ * kernel says so otherwise), then lilOS loads again. Everyone signed in loses the kernel for a few
+ * seconds. Resolves false if a window said no; throws if the kernel does not restart.
+ */
+export async function restartKernel() {
+  if (wm && !(await askWindows(wm.all()))) return false;
+  await kernel.flush();
+  await kernelModules.restart();
+  const host = document.body.appendChild(h('div'));
+  progressScreen(host, 'Riavvio del sistema…');
+  host.firstChild.classList.add('overlay', 'opaque');
+  await kernelRestarted();
+  location.reload();
+  return true;
+}
+
+/** Waits for the kernel to go away and to answer again (each at most a minute): then lilOS can load. */
+async function kernelRestarted() {
+  const wait = ms => new Promise(r => setTimeout(r, ms));
+  const answers = () => kernel.session().then(() => true, () => false);
+  for (const end = Date.now() + 60_000; Date.now() < end && (await answers()); ) await wait(300);
+  for (const end = Date.now() + 60_000; Date.now() < end && !(await answers()); ) await wait(1000);
 }
 
 /** Asks to restart now or later (later: the taskbar keeps a button for it). */

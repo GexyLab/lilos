@@ -23,8 +23,10 @@ function card(root, ...children) {
 /**
  * Sign-in form: resolves once `login(username, password)` succeeds; its errors are shown.
  * `onto`: an element to cover (signing in again over a running lilOS) instead of replacing root.
+ * `username`: asks only the password of this user. `other`: { label, onClick } of a second button.
+ * `opaque`: what is under it does not show through.
  */
-export function loginScreen(root, login, { title = 'Accedi a lilOS', text, onto = null } = {}) {
+export function loginScreen(root, login, { title = 'Accedi a lilOS', text, onto = null, username = null, other = null, opaque = false } = {}) {
   return new Promise(resolve => {
     const user = el('input', { class: 'ctl-text', type: 'text', name: 'username', autocomplete: 'username', autocapitalize: 'none', spellcheck: 'false', required: '' });
     const pass = el('input', { class: 'ctl-text', type: 'password', name: 'password', autocomplete: 'current-password', required: '' });
@@ -33,11 +35,13 @@ export function loginScreen(root, login, { title = 'Accedi a lilOS', text, onto 
     const form = el('form', { class: 'boot-form' },
       el('label', {}, el('span', {}, 'Nome utente'), user),
       el('label', {}, el('span', {}, 'Password'), pass),
-      error, submit);
+      error, submit,
+      other ? el('button', { class: 'ctl-btn', type: 'button', onclick: other.onClick }, other.label) : null);
     const host = onto ? el('div') : root;
     const { screen } = card(host, el('h1', {}, title), text ? el('p', { class: 'boot-text' }, text) : null, form);
     if (onto) {
       screen.classList.add('overlay');
+      screen.classList.toggle('opaque', opaque);
       onto.append(screen);
     }
     form.addEventListener('submit', async e => {
@@ -57,7 +61,13 @@ export function loginScreen(root, login, { title = 'Accedi a lilOS', text, onto 
         submit.removeAttribute('aria-busy');
       }
     });
-    user.focus();
+    if (username) {
+      user.value = username;
+      user.readOnly = true;
+      pass.focus();
+    } else {
+      user.focus();
+    }
   });
 }
 

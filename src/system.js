@@ -10,6 +10,7 @@ import './styles/tags.css';
 import './styles/items.css';
 import './styles/packages.css';
 import './styles/properties.css';
+import './styles/user-page.css';
 
 import './systemSettings.js';
 import * as sdk from '@lilos/sdk';
@@ -29,6 +30,7 @@ import { Canvas } from './canvas/Canvas.js';
 import { createHud } from './canvas/Hud.js';
 import { Desktop } from './desktop/Desktop.js';
 import { Taskbar } from './taskbar/Taskbar.js';
+import { UserPage } from './user/UserPage.js';
 import { WindowManager } from './windows/WindowManager.js';
 import { connectLauncher } from './apps/launcher.js';
 import { connectUpdates } from './apps/updates.js';
@@ -67,6 +69,7 @@ const wm = new WindowManager(canvas, taskbar);
 wm.setWorkspace(space.id);   // before any window opens (workareas reopen theirs right away)
 const launcher = connectLauncher(wm);
 connectUpdates(wm, launcher);
+new UserPage({ taskbar, wm });
 setChooser(createOpenWith(wm));
 connectProperties(wm);
 connectAppProperties(wm);

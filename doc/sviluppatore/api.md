@@ -47,6 +47,7 @@ Gli altri moduli (`src/`) sono il sistema: scrivania, desktop, barra.
 - [systemHistory.js](#systemhistoryjs)
 - [tags/tagUi.js e scheda Tag](#tagstaguijs-e-scheda-tag)
 - [taskbar/](#taskbar)
+- [user/ (la pagina utente)](#user-la-pagina-utente)
 - [sdk/ui/](#sdkui)
 - [sdk/ui/controls.js](#sdkuicontrolsjs)
 - [sdk/ui/shortcutField.js](#sdkuishortcutfieldjs)
@@ -1318,6 +1319,7 @@ Permessi dichiarati nei manifesti ufficiali: File Manager `fs.write:~`, `fs.work
 | `SYSTEM_FOLDERS`, `DESK_NAME` | `systemFs.js` | Cartelle di sistema e nome della Scrivania |
 | `FOLDER_COLOR`, `itemIcon`, `itemBadges` | `desktop/itemIcons.js` | Icone di cartelle e file; i segni delle app sulle icone |
 | `DESK_FIXED_ITEMS`, `isFixedShown`, `setFixedShown`, `setFixedShownEverywhere` | `desktop/fixedItems.js` | L'elenco degli elementi fissi della scrivania (alias di `FIXED_ITEMS`) e quali sono accesi, per workspace o in tutti |
+| `USER_PAGE_GROUPS`, `USER_PAGE_ITEMS`, `isUserPageShown`, `setUserPageShown` | `user/items.js` | Cosa può mostrare la pagina utente e quali voci sono accese (vedi [user/](#user-la-pagina-utente)) |
 | `WORKSPACE_LIMITS` | `workspaces/store.js` | Limiti dei workspace (alias di `LIMITS`) |
 | `describeWorkspace`, `onWorkspacesChange`, `workspaceManager` | `workspaces/info.js` | Nome e colore di un workspace; il gestore dei workspace |
 | `apps`, `registry`, `getApp`, `isInstalled`, `installedApps`, `launch` | `apps/registry.js` | Il registro delle app (non l'`apps` dell'SDK) |
@@ -1489,6 +1491,8 @@ else for (const r of out) console.log(r.id, r.error ?? r.result.version);
 | `requestRestart(reason, key = reason)` | Il sistema (o un'app di sistema) chiede il riavvio: per esempio l'AppStore dopo il riavvio del kernel per i moduli. Salva il motivo (stessa `key`: lo sostituisce), emette `updates` `change` e mostra subito «Riavviare lilOS?» (`Promise`, si risolve alla risposta). |
 | `restartSystem()` | Chiede alle finestre con `canClose` (tutte, `wm.all()`) e ricarica la pagina (`location.reload()`); i workspace riaprono le finestre. `Promise<boolean>`: `false` se una ha rifiutato. |
 | `updates` | `Emitter`. Evento `change`: cosa è in attesa è cambiato. `updates.pending()` → `[{ id, name, version, kind: 'reopen' \| 'restart', reason }]` (copie); `updates.restartReasons()` → `string[]` (i motivi di `requestRestart` e quelli delle app in attesa di riavvio). |
+| `windowsMayClose()` | Chiede alle finestre con `canClose` (tutte, `wm.all()`) se possono chiudersi, come `restartSystem()` ma senza ricaricare. `Promise<boolean>`; `true` se il gestore delle finestre non c'è ancora. Non è in `@lilos/system`. |
+| `restartKernel()` | Riavvia il kernel (solo amministratori). Chiede alle finestre come `restartSystem()` (`false` se una rifiuta), poi `kernel.flush()` e `kernelModules.restart()` (`POST /api/kernel/restart`), mostra la schermata opaca «Riavvio del sistema…», aspetta che il kernel smetta di rispondere e torni a rispondere (al massimo un minuto per fase) e ricarica la pagina. Lancia se il kernel rifiuta (per esempio non è stato avviato con `npm run kernel`). Non è in `@lilos/system`. |
 
 Le funzioni `reopenApp(id)`, `askRestart()`, `blockedLaunch(id)` e `restartWanted(range, from)` sono esportate dal modulo ma **non** da `@lilos/system`.
 
@@ -1797,6 +1801,8 @@ Dichiara le impostazioni del sistema e le applica. Va importato per primo da `sy
 | `lasso` | `'Alt'` | Modificatori che trasformano il trascinamento sullo sfondo in selezione a mano libera: `'Alt'`, `'Ctrl+Alt'` o `'Alt+Shift'` (`LASSO_OPTIONS`) |
 | `deskHidden` | `[]` | Chiavi degli elementi fissi spenti in tutti i workspace: valgono per quelli che non hanno scelto (`hidden: null`) e per i nuovi (vedi [desktop/fixedItems.js](#desktopfixeditemsjs)) |
 | `startupApps` | `true` | Con `false` le app scelte in Sistema → Avvio non si aprono all'ingresso (vedi [apps/startup.js](#appsstartupjs)) |
+| `userPhoto` | `''` | La foto profilo: un JPEG quadrato di 192 px come URL `data:image/jpeg;base64,…`, `''` per nessuna. Alla lettura (`userPhoto()` in `user/photo.js`) un valore più lungo di 200 000 caratteri o che non è un JPEG in base64 conta come nessuna foto. Se c'è, il sistema mette `--user-photo: url(…)` e `data-user-photo` su `<html>` (vedi [user/](#user-la-pagina-utente)) |
+| `userPageHidden` | `[]` | Chiavi delle voci che la pagina utente non mostra (`USER_PAGE_ITEMS[].key`). Le chiavi sconosciute si ignorano e i doppioni si tolgono alla lettura |
 
 Esporta anche `ACCENTS`, i colori proposti dall'app Sistema, `RETENTION_OPTIONS` (`[{ value, label }]`: 1, 7, 14, 30, 60, 90, 365 giorni e `0` «Per sempre», per `trashRetention`), `LASSO_OPTIONS` e `selectionMode(event)` → `{ mode: 'lasso' | 'rect', additive }`: percorso libero se sono premuti tutti i modificatori di `lasso`; `additive` (si aggiunge alla selezione) con Ctrl/Cmd o Shift, se non fanno parte della combinazione del percorso.
 
@@ -1847,6 +1853,7 @@ Stili in `src/styles/tags.css` (`.tag-dots`, `.tag-dot`, `.ditem-tags`, `.fm-tag
 | `el` | `nav.taskbar` |
 | `startButton` | Pulsante con il logo. |
 | `startMenu` | L'istanza di `StartMenu`. |
+| `userButton` | `button.tb-user` con avatar (`.avatar.user-avatar`) e nome dell'utente; `aria-haspopup="dialog"`, `aria-expanded`, classe `active` mentre la pagina utente è aperta. Lo collega `UserPage`. |
 | `tasks` | Contenitore `.tb-tasks` dei pulsanti delle finestre (`.tb-task`), gestito dal `WindowManager`. |
 
 ### `class StartMenu`
@@ -1857,12 +1864,88 @@ Stili in `src/styles/tags.css` (`.tag-dots`, `.tag-dot`, `.ditem-tags`, `.fm-tag
 | --- | --- |
 | `open()`, `close()`, `toggle()` | Apre, chiude, alterna. All'apertura chiude un eventuale menu contestuale, svuota la ricerca e dà il focus al campo. |
 | `isOpen` | Stato. |
+| `onUser`, `onOpen` | Funzioni che collega `UserPage` (predefinite `null`). `onUser()` parte quando si preme il nome in fondo al menu (che prima si chiude); `onOpen()` a ogni apertura del menu. |
 
-Registra la scorciatoia `system.startMenu` (Ctrl K, gruppo Generale, attiva anche mentre si scrive); la stessa combinazione lo chiude quando il focus è dentro il menu. Il tooltip del pulsante del logo segue la scorciatoia. La ricerca filtra per nome (contiene, senza distinguere maiuscole e minuscole) le app **visibili nel workspace attuale** (`installedApps()`). Il pulsante in fondo è **Esci** (`kernel.logout()`, poi ricarica la pagina; un errore mostra «Uscita non riuscita: …» e non esce) quando `kernel.mode` è `'multi'`, altrimenti **Riavvia sessione** (ricarica la pagina).
+Registra la scorciatoia `system.startMenu` (Ctrl K, gruppo Generale, attiva anche mentre si scrive); la stessa combinazione lo chiude quando il focus è dentro il menu. Il tooltip del pulsante del logo segue la scorciatoia. La ricerca filtra per nome (contiene, senza distinguere maiuscole e minuscole) le app **visibili nel workspace attuale** (`installedApps()`). Il pulsante in fondo è **Esci** quando `kernel.mode` è `'multi'`, altrimenti **Riavvia sessione**: in entrambi i casi chiude il menu e chiama `signOut()` (vedi [user/](#user-la-pagina-utente)). Il nome in fondo è un pulsante (`.sm-user`, titolo «Pagina utente»).
 
 ### `createClock()` → `HTMLElement`
 
 Data breve e ora secondo `session.locale` (la lingua del sistema), aggiornate allo scoccare di ogni minuto. Il tooltip contiene la data completa.
+
+---
+
+## user/ (la pagina utente)
+
+La pagina a tutto schermo che si apre dal nome dell'utente. Decisione: [D48](../interna/decisioni.md#d48-la-pagina-utente-e-il-blocco-come-fine-della-sessione). Per l'utente: [La pagina utente](../utente/guida.md#la-pagina-utente).
+
+### `class UserPage` (`user/UserPage.js`)
+
+`new UserPage({ taskbar, wm })` (lo crea `system.js`). Crea `section.user-page[role="dialog"][aria-modal="true"]` in `document.body`: sopra scrivania e finestre, sotto la barra (`src/styles/user-page.css`).
+
+| Membro | Descrizione |
+| --- | --- |
+| `open()`, `close()`, `toggle()` | Apre, chiude, alterna. `open()` ridisegna tutto (i dati sono sempre aggiornati), azzera la conferma del riavvio e dà il focus a `.up-close`. `close()` rida il focus a `taskbar.userButton` se era dentro la pagina. |
+| `isOpen` | Stato. |
+
+- **Chi apre.** Il clic su `taskbar.userButton` (alterna) e `taskbar.startMenu.onUser`. `taskbar.startMenu.onOpen` la chiude.
+- **Chi chiude.** Esc (se sta chiedendo di riavviare, Esc torna solo alle azioni), `wm` `open` (si apre una finestra), un `pointerdown` sulla barra fuori dal pulsante utente.
+- **Tastiera.** La pagina ferma la propagazione di `keydown`: le scorciatoie della scrivania non scattano sotto. Tab resta dentro la pagina.
+- **Si ridisegna** quando cambiano `theme`, `language`, `userPhoto`, `userPageHidden` o `startupApps` (`settings` `change:<chiave>`), rimettendo il focus sul controllo che l'aveva (`data-key`).
+- **Contenuto.** Intestazione (avatar, nome sempre; `details`: nome utente e ruolo, «Amministratore» o «Utente»), azioni, due schede («Account» e «Questa sessione») e il piè di pagina (`about`: `lilOS <version> · <host>`). Una voce spenta (`isUserPageShown`) non si disegna; una scheda senza voci sparisce. Le righe che portano a Sistema usano `launch('settings', args)` con `{ tab: 'startup', subtab: 'apps' }`, `{ tab: 'storage' }` o `{ tab: 'workspaces' }`.
+- **Azioni.** «Blocca» solo con `kernel.mode === 'multi'`. «Chiudi sessione» (`multi`) o «Riavvia sessione» (`single`) chiamano `signOut()`. «Riavvia il sistema» solo con `kernel.data.user.role === 'admin'`: chiede conferma nella pagina («Riavvia ora» / «Annulla») e poi chiama `restartKernel()` ([apps/updates.js](#riavvio)); un errore diventa un `toast`.
+- **Cosa legge.** Il numero di finestre da `wm.all()`, le app in sottofondo da `running()` (`apps/packages/background.js`), le app all'avvio da `startup.apps()`, lo spazio da `fs` (somma di `size` sotto `fs.root`), il workspace da `workspaceManager()`.
+
+### `signOut()` (`user/UserPage.js`)
+
+`Promise<void>`. Con `kernel.mode !== 'multi'` chiama `restartSystem()`. Altrimenti chiede alle finestre (`windowsMayClose()`; se una rifiuta non fa nulla), poi `kernel.logout()` e `location.reload()`; un errore mostra «Uscita non riuscita: …» e non esce. Lo usano anche i pulsanti del menu di avvio.
+
+### `lockSession()` (`boot/boot.js`)
+
+`Promise<void>`: si risolve quando l'utente è tornato. Non fa nulla con `kernel.mode !== 'multi'` o se è già in corso un accesso. Passi:
+
+1. `kernel.flush()` e `DELETE /api/session`: **la sessione finisce sul kernel** (D48). Se uno dei due fallisce lancia, e lo stato non cambia. Non esegue `onLogout`: le copie locali dei contenuti restano.
+2. Mette `inert` su ogni figlio di `document.body` che non lo era.
+3. `signInAgain(…)` mostra `loginScreen` con `username` dell'utente, `opaque: true` e il pulsante «Accedi con un altro utente» (`location.reload()`, che porta alla schermata di accesso, perché la sessione è già chiusa).
+4. A password corretta toglie `inert` e `kernel.resume()` rimanda ciò che aspettava.
+
+I servizi dell'utente si fermano alla fine della sessione e ripartono al nuovo accesso (evento `user:login`, vedi [startup-services](#startup-services)).
+
+`loginScreen(root, login, { title, text, onto, username, other, opaque })` (`boot/screens.js`) ha tre opzioni nuove, usate con `onto`: `username` (chiede solo la password di quell'utente), `other` (`{ label, onClick }`, un secondo pulsante) e `opaque` (aggiunge la classe `opaque` alla schermata: niente trasparenza sopra lilOS).
+
+### `items.js`
+
+`USER_PAGE_GROUPS`: `[{ key, name }]` in ordine: `header` (Intestazione), `actions` (Azioni), `account` (Account), `session` (Questa sessione), `footer` (Piè di pagina). `USER_PAGE_ITEMS`: `[{ key, group, glyph, name, description }]`, congelati; l'app Sistema li legge per disegnare la scheda «Pagina utente».
+
+| `key` | `group` | `glyph` | Cosa è |
+| --- | --- | --- | --- |
+| `details` | `header` | `user` | Nome utente e ruolo sotto il nome |
+| `lock` | `actions` | `lock` | Blocca (solo `multi`) |
+| `logout` | `actions` | `logout` | Chiudi sessione / Riavvia sessione |
+| `restart` | `actions` | `restart` | Riavvia il sistema (solo amministratori) |
+| `photo` | `account` | `camera` | Foto profilo: la riga e il pulsante sulla foto |
+| `theme` | `account` | `palette` | Tema |
+| `language` | `account` | `globe` | Lingua |
+| `settings` | `account` | `gear` | Tutte le impostazioni |
+| `workspace` | `session` | `workspace` | Workspace attuale |
+| `windows` | `session` | `window` | Finestre aperte e app in sottofondo |
+| `startup` | `session` | `power` | App all'avvio |
+| `storage` | `session` | `disk` | Spazio usato |
+| `about` | `footer` | `info` | Versione e indirizzo |
+
+- `isUserPageShown(key)` → `boolean`: `true` se `key` non è in `userPageHidden` (anche per chiavi sconosciute).
+- `setUserPageShown(key, shown)`: aggiunge o toglie `key` da `userPageHidden`; ignora le chiavi sconosciute. Una voce nuova nell'elenco è accesa per chi ha già salvato `userPageHidden`.
+
+Il nome e la foto non sono voci: ci sono sempre. Una voce nuova va aggiunta qui (Sistema la mostra da sola, ma ha i testi tradotti in `locales.json`: aggiungili) e disegnata in `UserPage.js`.
+
+### `photo.js`
+
+| Export | Descrizione |
+| --- | --- |
+| `userPhoto()` | La foto salvata (URL `data:`) o `''` se manca o non è valida: solo `data:image/jpeg;base64,` con caratteri base64 e al massimo 200 000 caratteri. I valori salvati non sono affidabili e arrivano in uno stile CSS. |
+| `choosePhoto()` | Apre il selettore di file (`image/*`). Rifiuta file sopra 25 MB e quelli che non si aprono come immagine (`toast`). Ritaglia il centro a quadrato, 192×192 px, sfondo bianco sotto le trasparenze, JPEG qualità 0,86, e salva in `userPhoto`. |
+| `removePhoto()` | `userPhoto` torna `''`. |
+
+Il modulo osserva `userPhoto`: con una foto valida mette `--user-photo: url("…")` e `data-user-photo` su `<html>`, altrimenti li toglie. Ogni avatar con la classe `user-avatar` mostra la foto (CSS in `user-page.css`); la barra, il menu e la pagina usano `avatar(user, 'avatar user-avatar')`. Per far comparire la foto su un altro avatar dell'utente basta aggiungere la classe.
 
 ---
 
@@ -1873,7 +1956,7 @@ Data breve e ora secondo `session.locale` (la lingua del sistema), aggiornate al
 - `icon(name, className = 'ico')`: simbolo SVG 24×24 disegnato con `currentColor`. Con un nome sconosciuto mostra `help`.
 - `logo(className = 'logo')`: il logo di lilOS.
 
-Simboli disponibili: `search`, `plus`, `minus`, `x`, `fit`, `zoom`, `grid`, `folder`, `folderPlus`, `file`, `filePlus`, `open`, `pencil`, `trash`, `globe`, `code`, `terminal`, `gear`, `calendar`, `image`, `music`, `mail`, `power`, `help`, `info`, `max`, `palette`, `disk`, `user`, `window`, `keyboard`, `accessibility`, `arrowLeft`, `arrowRight`, `arrowDown`, `arrowUp`, `list`, `home`, `download`, `monitor`, `check`, `save`, `lasso`, `folderOpen`, `sidebar`, `workarea`, `workspace`, `undo`, `redo`, `tag`, `eyeOff`, `link`.
+Simboli disponibili: `search`, `plus`, `minus`, `x`, `fit`, `zoom`, `grid`, `folder`, `folderPlus`, `file`, `filePlus`, `open`, `pencil`, `trash`, `globe`, `code`, `terminal`, `gear`, `calendar`, `image`, `music`, `mail`, `power`, `help`, `info`, `max`, `palette`, `disk`, `user`, `window`, `keyboard`, `accessibility`, `arrowLeft`, `arrowRight`, `arrowDown`, `arrowUp`, `list`, `home`, `download`, `monitor`, `check`, `save`, `lasso`, `folderOpen`, `sidebar`, `workarea`, `workspace`, `undo`, `redo`, `tag`, `eyeOff`, `link`, `logout`, `restart`, `camera`.
 
 ### `toast.js`
 

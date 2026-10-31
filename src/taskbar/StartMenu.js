@@ -1,9 +1,13 @@
-import { h, session, appIcon, avatar, closeMenu, openMenu, icon, shortcuts, kernel, toast } from '@lilos/sdk';
+import { h, session, appIcon, avatar, closeMenu, openMenu, icon, shortcuts, kernel } from '@lilos/sdk';
 import { installedApps, launch } from '../apps/registry.js';
 import { showAppProperties } from '../apps/appProperties.js';
+import { signOut } from '../user/UserPage.js';
 
 /** Launcher opened by the logo button (or Ctrl+K): app search, app list, user footer. */
 export class StartMenu {
+  /** Set by the user page: called when the user's name is clicked, and when the menu opens. */
+  onUser = null;
+  onOpen = null;
   #results = [];
   #active = 0;
 
@@ -18,11 +22,12 @@ export class StartMenu {
       this.heading,
       this.list,
       h('div', { class: 'sm-footer' },
-        h('div', { class: 'sm-user' }, avatar(session.user), h('span', {}, session.user.name)),
+        h('button', { class: 'sm-user', type: 'button', title: 'Pagina utente', onclick: () => { this.close(); this.onUser?.(); } },
+          avatar(session.user, 'avatar user-avatar'), h('span', {}, session.user.name)),
         h('button', { class: 'sm-btn', title: 'Sistema', 'aria-label': 'Sistema', onclick: () => this.#launch('settings') }, icon('gear')),
         kernel.mode === 'multi'
-          ? h('button', { class: 'sm-btn', title: 'Esci', 'aria-label': 'Esci', onclick: () => this.#logout() }, icon('power'))
-          : h('button', { class: 'sm-btn', title: 'Riavvia sessione', 'aria-label': 'Riavvia sessione', onclick: () => location.reload() }, icon('power')),
+          ? h('button', { class: 'sm-btn', title: 'Esci', 'aria-label': 'Esci', onclick: () => { this.close(); signOut(); } }, icon('power'))
+          : h('button', { class: 'sm-btn', title: 'Riavvia sessione', 'aria-label': 'Riavvia sessione', onclick: () => { this.close(); signOut(); } }, icon('power')),
       ),
     );
     document.body.append(this.el);
@@ -42,6 +47,7 @@ export class StartMenu {
 
   open() {
     closeMenu();
+    this.onOpen?.();
     this.input.value = '';
     this.#render();
     this.el.classList.add('open');
@@ -117,17 +123,5 @@ export class StartMenu {
   #launch(id) {
     this.close();
     launch(id);
-  }
-
-  /** Saves what is pending, signs out and goes back to the sign-in screen. */
-  async #logout() {
-    this.close();
-    try {
-      await kernel.logout();
-    } catch (err) {
-      toast(`Uscita non riuscita: ${err.message}`);
-      return;
-    }
-    location.reload();
   }
 }

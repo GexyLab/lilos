@@ -13,6 +13,8 @@ settings.define({
   trashRetention: 30,      // days an item stays in the trash before it is deleted for good (0: forever)
   deskHidden: [],          // keys of the fixed desk items turned off in every workspace (desktop/fixedItems.js)
   startupApps: true,       // open the apps chosen in Sistema → Avvio when the user comes in (apps/startup.js)
+  userPhoto: '',           // profile photo: a small JPEG as a data: URL, '' for none (user/photo.js)
+  userPageHidden: [],      // keys of what the user page does not show (user/items.js)
 });
 
 /** How long the trash keeps what it holds (days; 0 never deletes by itself). */

@@ -19,13 +19,18 @@ export class Taskbar {
     /** The window manager will mount one button per open window here. */
     this.tasks = h('div', { class: 'tb-tasks' });
 
+    /** Opens the user page (connected by UserPage). */
+    this.userButton = h('button', {
+      class: 'tb-user', type: 'button', title: 'Pagina utente', 'aria-haspopup': 'dialog', 'aria-expanded': 'false',
+    }, avatar(session.user, 'avatar user-avatar'), h('span', {}, session.user.name));
+
     this.el = h('nav', { class: 'taskbar' },
       this.startButton,
       this.tasks,
       h('div', { class: 'tb-tray' },
         createPendingUpdates(),
         createBackgroundApps(),
-        h('div', { class: 'tb-user', title: session.user.name }, avatar(session.user), h('span', {}, session.user.name)),
+        this.userButton,
         createClock(),
       ),
     );

@@ -1,6 +1,6 @@
 # Stato e roadmap
 
-Aggiornato al 31 ottobre 2026 (pipe sugli eventi, dati delle app sui file, voci di menu delle app e FileCrypt, sul ramo `filecrypt` di lilOS (da 669fd03) e del repository ufficiale, non ancora in un commit né in un tag; aggiornamento delle app senza codice vecchio, con AppStore 1.4.0 nel tag v1.8.0 del repository ufficiale; traduzioni delle app, con le app ufficiali tradotte nel tag v1.6.0; avvio automatico fase 3, scheda Servizi in Sistema 1.3.0 e servizio `updates` in AppStore 1.2.0, non ancora in un commit né nel repository ufficiale: l'avvio automatico è completo; fase 2, i servizi nel kernel, in d262f7b; avvio automatico fase 1 ed elementi fissi della scrivania in f08967e; l'app Impostazioni ora si chiama Sistema; File Manager 1.1.0 con Informazioni e Anteprima; kernel, accesso degli utenti, app installate, repository, AppStore e app di sistema nel repository ufficiale aggiunti; punti d'ingresso delle app, modalità isolata / non isolata e «Proprietà…» fatti sul ramo `app-entrypoints-pipes` (a6b984d); SDK 0.3.0 (0.3.1 da rilasciare); repository ufficiale: tag v1.8.0, con l'AppStore 1.4.0).
+Aggiornato al 31 ottobre 2026 (pagina utente e blocco della sessione, su `development`; pipe sugli eventi, dati delle app sui file, voci di menu delle app e FileCrypt, sul ramo `filecrypt` di lilOS (da 669fd03) e del repository ufficiale, non ancora in un commit né in un tag; aggiornamento delle app senza codice vecchio, con AppStore 1.4.0 nel tag v1.8.0 del repository ufficiale; traduzioni delle app, con le app ufficiali tradotte nel tag v1.6.0; avvio automatico fase 3, scheda Servizi in Sistema 1.3.0 e servizio `updates` in AppStore 1.2.0, non ancora in un commit né nel repository ufficiale: l'avvio automatico è completo; fase 2, i servizi nel kernel, in d262f7b; avvio automatico fase 1 ed elementi fissi della scrivania in f08967e; l'app Impostazioni ora si chiama Sistema; File Manager 1.1.0 con Informazioni e Anteprima; kernel, accesso degli utenti, app installate, repository, AppStore e app di sistema nel repository ufficiale aggiunti; punti d'ingresso delle app, modalità isolata / non isolata e «Proprietà…» fatti sul ramo `app-entrypoints-pipes` (a6b984d); SDK 0.3.0 (0.3.1 da rilasciare); repository ufficiale: tag v1.8.0, con l'AppStore 1.4.0).
 
 ## Cosa c'è
 
@@ -11,6 +11,7 @@ Aggiornato al 31 ottobre 2026 (pipe sugli eventi, dati delle app sui file, voci 
 | Elementi del desktop | Fatti: cartella, file, app; selezione multipla, trascinamento con griglia, rinomina, elimina, riordina, menu contestuali, salvataggio |
 | Barra in basso | Fatta: logo, pulsante del workspace, area finestre, utente, data e ora |
 | Menu di avvio | Fatto: ricerca, tastiera, piè di pagina con utente |
+| Pagina utente | Fatta (31 ottobre 2026, su `development`; app Sistema 1.7.0 nel repository ufficiale, non ancora in un tag): pagina a tutto schermo dal nome nella barra o nel menu ([D48](decisioni.md#d48-la-pagina-utente-e-il-blocco-come-fine-della-sessione)). Nome e foto, Blocca (fine della sessione sul kernel), Chiudi sessione, Riavvia il sistema (amministratori), foto profilo, tema, lingua, workspace, finestre, app all'avvio, spazio usato, versione; Sistema → Pagina utente sceglie le voci |
 | Menu contestuale | Componente riutilizzabile fatto |
 | SDK `@lilos/sdk` | Fatto (0.3.0): basi, controlli, `Window`, `SettingsView`, `SettingsWindow`, `settings`, `shortcuts`, `fs`, `selectionGesture`; collegamento al kernel (`kernel`, `KernelError`, `apps`, `repositories`, `kernelModules`, `storage.keys`, `storage.bytes`, `fs.reset`); invio al kernel a blocchi |
 | File system | Fatto: cartelle, file con contenuto e collegamenti, cartelle di sistema, migrazione della vecchia scrivania. Salvato nel database del kernel (IndexedDB ne tiene una copia); senza kernel l'SDK usa il browser |
@@ -110,6 +111,8 @@ Aggiornato al 31 ottobre 2026 (pipe sugli eventi, dati delle app sui file, voci 
 - **Riaprire le finestre e lanciare un'app insieme.** Se si lancia un'app (per esempio File Manager) mentre all'avvio lilOS sta ancora riaprendo le finestre salvate, può comparire una **seconda finestra** dell'app: ogni app dovrebbe averne una sola per ambito.
 - **Le altre schede vedono un'app cambiata solo se il kernel è raggiungibile.** Il flusso `/api/apps-events` rilegge l'elenco delle app (installate, aggiornate, tolte da altri); i file e le altre cose (per esempio le impostazioni) non si sincronizzano ancora in diretta. Una finestra aperta con la versione di prima la usa finché non si riavvia l'app dal pulsante nella barra.
 - **Schermi touch.** Un dito sposta la vista, ma lo zoom con due dita non è gestito (funziona solo il pizzico del trackpad, che il browser trasmette come Ctrl + rotella). Non c'è un'alternativa al tasto destro.
+- **Pagina utente: il blocco lascia le copie locali.** Blocca chiude la sessione sul kernel ma non cancella dal browser la copia dei contenuti (lo fa solo Chiudi sessione). Vedi [D48](decisioni.md#d48-la-pagina-utente-e-il-blocco-come-fine-della-sessione).
+- **Pagina utente: Riavvia il sistema solo col kernel di `npm run kernel`.** Se il kernel è stato avviato in altro modo risponde con un errore e la pagina lo segnala. Blocca non c'è con un solo utente.
 
 ### Kernel e app installate
 
@@ -214,6 +217,8 @@ I workspace sono fatti (vedi la tabella). Idee, non ancora decise: preferenze pe
 ### 7. Impostazioni e utente
 
 L'accesso con più utenti c'è (29 ottobre 2026). Restano: cambiare la password e il nome dall'interfaccia (oggi la password si cambia solo da riga di comando e il nome visibile solo modificando `users.json` a mano), sfondo, e la sincronizzazione in diretta tra schede o dispositivi.
+
+La pagina utente (31 ottobre 2026) aspetta il kernel per due voci: **cambiare nome visualizzato e password** (il kernel non ha un'API: oggi la password si cambia da riga di comando) e **vedere chi altro è collegato** (il kernel non elenca le sessioni). Con quelle API la pagina potrà offrirle come voci nuove di `USER_PAGE_ITEMS`.
 
 ### 7 bis. Kernel
 

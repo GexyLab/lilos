@@ -8,7 +8,7 @@ lilOS è un desktop che si usa dal browser. Al posto di uno schermo fisso c'è u
 
 - **La scrivania** occupa quasi tutto lo schermo. Lo sfondo a puntini ti aiuta a capire quando ti stai spostando o stai cambiando zoom.
 - **Il pannello in basso a destra** mostra una mappa in miniatura della scrivania e i controlli dello zoom.
-- **La barra in basso**: a sinistra il pulsante con il logo di lilOS, che apre il menu di avvio, e subito dopo il pulsante del [workspace](#i-workspace) (un pallino colorato e il nome); al centro un pulsante per ogni finestra aperta; a destra il tuo nome, la data e l'ora. Passando sopra la data vedi la data completa.
+- **La barra in basso**: a sinistra il pulsante con il logo di lilOS, che apre il menu di avvio, e subito dopo il pulsante del [workspace](#i-workspace) (un pallino colorato e il nome); al centro un pulsante per ogni finestra aperta; a destra il tuo nome (un pulsante: apre la [pagina utente](#la-pagina-utente)), la data e l'ora. Passando sopra la data vedi la data completa.
 
 ## Accedere e uscire
 
@@ -18,7 +18,7 @@ Se lilOS ha più utenti, all'apertura compare **Accedi a lilOS**: scrivi il **no
 - Se compare **Il kernel di lilOS non risponde**, il programma che conserva i tuoi dati non è acceso. Chi gestisce lilOS deve avviarlo; poi premi **Riprova**.
 - Il tuo spazio è tuo: ogni utente ha le sue cartelle, i suoi file e le sue impostazioni, e gli altri non li vedono.
 
-**Uscire.** Apri il menu di avvio e premi il pulsante di accensione in fondo, **Esci**. lilOS salva quello che stava ancora salvando, cancella dal browser la copia dei tuoi file e torna alla schermata di accesso. Il testo che non hai ancora salvato in una finestra (con Ctrl S) **si perde**: salvalo prima. Su un computer che non è solo tuo, esci sempre. Se lilOS ha un solo utente il pulsante si chiama **Riavvia sessione** e si limita a ricaricare la pagina.
+**Uscire.** Apri il menu di avvio e premi il pulsante di accensione in fondo, **Esci**. Prima le finestre con modifiche non salvate ti chiedono se salvarle; poi lilOS salva quello che stava ancora salvando, cancella dal browser la copia dei tuoi file e torna alla schermata di accesso. Su un computer che non è solo tuo, esci sempre. Se lilOS ha un solo utente il pulsante si chiama **Riavvia sessione**: dopo la stessa domanda delle finestre ricarica la pagina. Puoi uscire anche dalla [pagina utente](#la-pagina-utente).
 
 **La sessione scade.** Per sicurezza, dopo molti giorni (o dopo alcuni giorni senza usare lilOS) devi accedere di nuovo. Se succede mentre lavori compare **Sessione scaduta**: accedi con lo stesso utente e le modifiche che aspettavano vengono salvate. Se provi con un altro utente lilOS non lo accetta.
 
@@ -294,7 +294,7 @@ Un workspace nuovo si crea anche dal menu del pulsante nella barra (**Nuovo work
 
 - **A sinistra**, la barra laterale. In cima la sezione **Collegamenti**: Home e le cartelle principali (Scrivania, Documenti, Immagini, Download) e i collegamenti che aggiungi tu (vedi [Collegamenti nella barra laterale](#collegamenti-nella-barra-laterale)), nell'ordine che scegli trascinandoli. Sotto, la voce **Tag** con un elemento per ogni tag che hai creato (vedi [I tag](#i-tag)) e in fondo il **Cestino** (vedi [Il Cestino](#il-cestino)): queste restano sempre al loro posto. Le cartelle principali non si possono rinominare né eliminare. **Scrivania** è quella del workspace in cui sei; Documenti, Immagini e Download sono di tutti.
 - **In alto**: Indietro, Avanti, Cartella superiore; il percorso (fai clic su una parte per tornarci); **Nuova cartella**; vista **elenco** o **a icone**; i pulsanti che aprono e chiudono i pannelli Anteprima e Informazioni; la ricerca nella cartella aperta (Esc la svuota).
-- **Al centro**: il contenuto della cartella. In vista elenco ci sono le colonne Nome, Modificato, Dimensione, Tipo e Workspace (il workspace che ha creato l'elemento, vedi [I workspace](#i-workspace)): fai clic su un'intestazione per ordinare, di nuovo per invertire l'ordine. Le cartelle restano sempre in cima. Trascina il bordo destro di un'intestazione per allargare o stringere la colonna; con un doppio clic sul bordo la colonna diventa larga quanto il contenuto più lungo. Se le colonne non ci stanno, l'elenco scorre di lato. Tasto destro su un'intestazione (o su un punto vuoto → **Colonne**) per mostrare o nascondere le colonne (Nome resta sempre), **Adatta tutte le colonne al contenuto** o **Ripristina le colonne**. Larghezze e colonne nascoste valgono per tutte le cartelle, il Cestino e i tag, e il File Manager le ricorda.
+- **Al centro**: il contenuto della cartella. In vista elenco ci sono le colonne Nome, Modificato, Dimensione, Tipo e Workspace (il workspace che ha creato l'elemento, vedi [I workspace](#i-workspace)): fai clic su un'intestazione per ordinare, di nuovo per invertire l'ordine. Le cartelle restano sempre in cima.
 - **A destra**, due pannelli che si aprono e si chiudono: **Informazioni** e **Anteprima** (vedi [Anteprima e Informazioni](#anteprima-e-informazioni)).
 - **In basso**: quanti elementi ci sono e quanti sono selezionati, il percorso della cartella o un messaggio.
 
@@ -847,6 +847,7 @@ Le modifiche valgono subito e restano salvate.
 | --- | --- | --- |
 | Aspetto | Colori | Il tema, **Chiaro** o **Scuro** (scrivania, barra, menu e finestre), e il colore principale di lilOS: selezioni, pulsanti, schede attive, logo |
 | Aspetto | Movimento | Animazioni attive o spente. Se nel sistema operativo hai chiesto di ridurre il movimento, le animazioni restano ridotte comunque. |
+| Pagina utente | — | Cosa mostra la [pagina utente](#la-pagina-utente): un interruttore per ogni voce, in gruppi (vedi [Scegliere cosa mostra](#scegliere-cosa-mostra)) |
 | Lingua | — | La lingua delle app: quella del browser o una a scelta (vedi [La lingua](#la-lingua)) |
 | Scrivania | Elementi | L'allineamento alla griglia degli elementi trascinati, e un pulsante che porta agli elementi fissi (in Workspace) |
 | Scrivania | Panoramica | Mappa in miniatura visibile o nascosta |
@@ -931,12 +932,67 @@ Aprilo con il **pulsante del logo** in basso a sinistra oppure con **Ctrl K**.
 - **Tasto destro** su un'app: **Apri**, oppure **Proprietà…** (vedi [Proprietà di un'app](#proprietà-di-unapp)).
 - **Esc** o di nuovo **Ctrl K** chiudono il menu. Si chiude anche facendo clic fuori.
 
-In fondo al menu trovi il tuo nome e due pulsanti:
+In fondo al menu trovi il tuo nome (premilo per aprire la [pagina utente](#la-pagina-utente)) e due pulsanti:
 
 - **Sistema** (ingranaggio): apre la finestra di Sistema, con le impostazioni di lilOS.
 - **Esci** (simbolo di accensione, se lilOS ha più utenti): chiude la tua sessione e torna alla schermata di accesso (vedi [Accedere e uscire](#accedere-e-uscire)). Se lilOS ha un solo utente il pulsante si chiama **Riavvia sessione** e ricarica lilOS.
 
 App del menu: File Manager, Editor, Sistema, AppStore e le [app installate](#app-installate). File Manager, Sistema e AppStore ci sono in ogni workspace; le altre in quelli dove non le hai nascoste.
+
+## La pagina utente
+
+È la pagina con le cose che riguardano te: la tua foto, uscire o bloccare lilOS, tema e lingua, qualche numero su quello che stai usando. Occupa tutto lo schermo, tranne la barra in basso.
+
+**Aprirla.** Premi il tuo **nome** nella barra in basso, oppure il tuo nome in fondo al [menu di avvio](#il-menu-di-avvio).
+
+**Chiuderla.** Premi **Esc** o il pulsante in alto a destra. Si chiude anche da sola se apri una finestra o usi un'altra parte della barra. Le finestre che avevi aperte restano dove sono.
+
+In alto ci sono sempre il tuo **nome** e la tua **foto**. Sotto il nome trovi il nome con cui accedi e se sei amministratore. Le altre voci le scegli tu (vedi [Scegliere cosa mostra](#scegliere-cosa-mostra)).
+
+### Le azioni
+
+| Voce | Cosa fa |
+| --- | --- |
+| **Blocca** | Copre lo schermo e chiede di nuovo la tua password. Le finestre restano aperte sotto. Compare solo se lilOS ha più utenti. |
+| **Chiudi sessione** | Come **Esci** nel menu di avvio: salva, chiude e torna alla schermata di accesso (vedi [Accedere e uscire](#accedere-e-uscire)). Se lilOS ha un solo utente si chiama **Riavvia sessione** e ricarica lilOS. |
+| **Riavvia il sistema** | Solo per gli amministratori. Chiede conferma nella pagina stessa. |
+
+**Blocca.** Usalo quando ti allontani. Scrivi la tua password per tornare e ritrovi le finestre com'erano. Se preferisci, **Accedi con un altro utente** ti porta alla schermata di accesso. Bloccare è più che coprire lo schermo: lilOS chiude la tua sessione, quindi se ricarichi la pagina ti viene chiesto di accedere di nuovo. Intanto i servizi in sottofondo delle tue app si fermano, come quando esci, e ripartono quando accedi.
+
+**Chiudi sessione.** Prima di uscire, lilOS chiede alle finestre che hanno testo non salvato se possono chiudersi. Se una dice di no, non esci. Anche il pulsante **Esci** del menu di avvio fa così.
+
+**Riavvia il sistema.** Riavvia il programma che conserva i dati di tutti gli utenti. Premendolo compare una domanda: **Riavvia ora** o **Annulla**. Se confermi, le finestre con testo non salvato ti chiedono cosa fare; poi compare **Riavvio del sistema…** e, quando il sistema è tornato, lilOS si ricarica da solo. Chi è collegato in quel momento perde la connessione per qualche secondo. **Funziona solo se chi gestisce lilOS lo ha avviato con `npm run kernel`**: altrimenti compare un avviso e il sistema non si riavvia.
+
+### Le impostazioni dell'account
+
+| Voce | Cosa fa |
+| --- | --- |
+| **Foto profilo** | Scegli un'immagine dal computer, oppure cambiala o toglila. Puoi usare anche il pulsante con la macchina fotografica sulla foto. |
+| **Tema** | **Chiaro** o **Scuro**, come in Sistema. |
+| **Lingua** | **Automatica** (quella del browser) o una lingua a scelta, come in Sistema. |
+| **Tutte le impostazioni** | Apre [Sistema](#sistema). |
+
+**La foto profilo.** lilOS ritaglia l'immagine a quadrato dal centro e la riduce: l'originale non viene conservato. Non si accettano immagini sopra i 25 MB; se un file non si apre come immagine compare un avviso. La foto sostituisce le iniziali nella barra, nel menu di avvio e in questa pagina. Togliendola tornano le iniziali.
+
+### Questa sessione
+
+| Voce | Cosa mostra | Premendola |
+| --- | --- | --- |
+| **Workspace** | Il nome del workspace in cui sei e, se ce n'è più di uno, quale sei (per esempio «Principale (1 di 2)») | Apre le impostazioni dei workspace |
+| **Finestre aperte** | Quante finestre sono aperte e quante app lavorano in sottofondo | Niente: è solo un'informazione |
+| **All'avvio** | Quante app si aprono quando entri, oppure «Spento» | Apre Sistema → Avvio → App |
+| **Spazio usato** | Quanto occupano i tuoi file | Apre Sistema → Archiviazione |
+
+In fondo alla pagina c'è la **versione di lilOS** e l'indirizzo a cui sei collegato.
+
+### Scegliere cosa mostra
+
+Apri **Sistema → Pagina utente**. Trovi un interruttore per ogni voce, raggruppate come nella pagina (Intestazione, Azioni, Account, Questa sessione, Piè di pagina). Spegni quello che non ti serve: la voce sparisce subito dalla pagina. Il nome e la foto ci sono sempre. Se spegni **Foto profilo** non puoi più cambiare la foto da lì; quella già scelta resta. **Impostazioni predefinite**, in Sistema → Archiviazione, riaccende tutte le voci (la foto non viene toccata).
+
+### Cosa non è ancora possibile
+
+- Cambiare il nome visualizzato o la password: lilOS non lo permette ancora.
+- Vedere chi altro è collegato.
 
 ## I tuoi dati
 
