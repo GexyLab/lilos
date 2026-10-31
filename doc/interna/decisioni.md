@@ -560,7 +560,7 @@ Senza un modulo `auth` lilOS ha un solo utente (`local`, amministratore) e il ke
 
 - La chiave di un editore si dà fuori banda (`pack.js --keygen` la stampa; chi si fida la mette in `config.json`).
 - ~~Il repository ufficiale non è ancora raggiungibile pubblicamente: oggi non si può installare un'app di sistema.~~ Ora il repository ufficiale esiste (privato) e il kernel ne installa le app all'avvio ([D41](#d41-le-app-di-sistema-mancanti-si-installano-allavvio-del-kernel)).
-- Alcuni permessi sono accettati dal manifesto ma il ponte non ha ancora le funzioni che li userebbero: `clipboard.read`, `media.*`, `geo`, `ai.*`, `desktop.widget`, `ui.menus` (`apps.call` ora ha `lilos.apps.call`, [D42](#d42-punti-dingresso-e-due-modalità-di-esecuzione-per-le-app)). Vedi [Stato e roadmap](stato-e-roadmap.md).
+- Alcuni permessi sono accettati dal manifesto ma il ponte non ha ancora le funzioni che li userebbero: `clipboard.read`, `media.*`, `geo`, `ai.*`, `desktop.widget` (`apps.call` ora ha `lilos.apps.call`, [D42](#d42-punti-dingresso-e-due-modalità-di-esecuzione-per-le-app); `ui.menus` ha effetto dal 31 ottobre 2026, [D47](#d47-pipe-sugli-eventi-dati-delle-app-sui-file-e-filecrypt)). Vedi [Stato e roadmap](stato-e-roadmap.md).
 
 **Quando ripensarla.** Quando ci sarà un catalogo pubblico di app (l'interfaccia per installarle c'è: l'AppStore).
 
@@ -652,9 +652,9 @@ Le app `local` con `sdk` `"2"` girano in **due modi**, scelti da un amministrato
 
 Le app di sistema girano sempre nella pagina; le app `remote` e quelle con `sdk` `"1"` sempre isolate (una sola modalità, il kernel rifiuta la scelta per le prime due). Il cambio vale dalla prossima apertura. Il codice è lo stesso nei due modi: `lilosApi()` costruisce l'oggetto `lilos` attorno a una funzione `call`, che nella sandbox manda messaggi e nella pagina chiama direttamente.
 
-**Perché.** Servono app che fanno lavoro senza interfaccia e che si parlano: l'app **Cassaforte** (cifratura per file, che terrà le chiavi in un background) e, più avanti, le **pipe** sugli eventi (un'app che si iscrive a ciò che succede ai file e lo passa a un'altra). Entrambe hanno bisogno di punti d'ingresso con nome e permessi tra app. La modalità non isolata c'è perché la sandbox ha un costo (ogni app è una pagina a parte, i dati passano per messaggi, il disegno non condivide gli stili) e perché alcune app, di cui l'amministratore si fida, hanno bisogno di fare più di quanto il ponte permetta. Che sia una scelta di un amministratore, con un avviso, e che il predefinito resti isolato mantiene l'idea di [D35](#d35-le-app-locali-girano-in-un-iframe-sandbox-senza-allow-same-origin).
+**Perché.** Servono app che fanno lavoro senza interfaccia e che si parlano: l'app di cifratura per file (che tiene le chiavi in un background; nata come «Cassaforte», oggi **FileCrypt**) e le **pipe** sugli eventi (un'app che si iscrive a ciò che succede ai file e lo cambia o lo ferma). Entrambe sono arrivate con [D47](#d47-pipe-sugli-eventi-dati-delle-app-sui-file-e-filecrypt). Entrambe hanno bisogno di punti d'ingresso con nome e permessi tra app. La modalità non isolata c'è perché la sandbox ha un costo (ogni app è una pagina a parte, i dati passano per messaggi, il disegno non condivide gli stili) e perché alcune app, di cui l'amministratore si fida, hanno bisogno di fare più di quanto il ponte permetta. Che sia una scelta di un amministratore, con un avviso, e che il predefinito resti isolato mantiene l'idea di [D35](#d35-le-app-locali-girano-in-un-iframe-sandbox-senza-allow-same-origin).
 
-**Un background isolato non è un Worker.** La prima idea era far girare il background isolato in un Web Worker creato dalla sandbox. Su Chrome non funziona: un Worker dentro una sandbox senza origine **non ha `crypto.subtle`** (non è un contesto sicuro), che serve proprio alla Cassaforte, e i worker a modulo non partono. Così il background isolato è un **iframe `sandbox` nascosto**, senza interfaccia. Chrome esegue un iframe sandbox in un processo separato: non rallenta la pagina di lilOS anche se l'app lavora molto. Il Worker resta per la modalità non isolata, dove l'origine è quella di lilOS.
+**Un background isolato non è un Worker.** La prima idea era far girare il background isolato in un Web Worker creato dalla sandbox. Su Chrome non funziona: un Worker dentro una sandbox senza origine **non ha `crypto.subtle`** (non è un contesto sicuro), che serve proprio a un'app di cifratura, e i worker a modulo non partono. Così il background isolato è un **iframe `sandbox` nascosto**, senza interfaccia. Chrome esegue un iframe sandbox in un processo separato: non rallenta la pagina di lilOS anche se l'app lavora molto. Il Worker resta per la modalità non isolata, dove l'origine è quella di lilOS.
 
 **Alternative scartate.** Isolare tutto in un Worker (vedi sopra). Far girare tutto non isolato (D35: codice di altri con la sessione dell'utente). Permessi che limitano anche le app non isolate: non si possono imporre a codice che gira nella pagina.
 
@@ -668,9 +668,9 @@ Le app di sistema girano sempre nella pagina; le app `remote` e quelle con `sdk`
 - Il kernel conserva la scelta nello stato dell'app (`isolated`) e la regola generale nella cartella `/system/app/.security`: un'app aggiornata mantiene la sua scelta, una rimossa la perde.
 - Le finestre di un punto d'ingresso diverso da `main` sono una per app e per punto d'ingresso, e tornano dalle workarea con lo stesso punto d'ingresso.
 - Non c'è ancora un modo di sapere chi chiama oltre a `from` (l'id dell'app, o `null` per il sistema), e `apps.call` non chiede conferma all'utente a ogni uso.
-- Non sono implementate le pipe, la Cassaforte né i metadati per app sui nodi del file system (una chiave per file che dica all'app che lo ha cifrato come leggerlo).
+- Quando fu scritta questa decisione non c'erano le pipe, l'app di cifratura né i dati per app sui nodi del file system (una chiave per file che dica all'app che lo ha cifrato come leggerlo). Sono arrivati il 31 ottobre 2026: vedi [D47](#d47-pipe-sugli-eventi-dati-delle-app-sui-file-e-filecrypt).
 
-**Quando ripensarla.** Quando arriveranno le pipe (se serve dichiarare chi si iscrive a quali eventi, e con quali permessi), quando la Cassaforte avrà bisogno di vedere i file di altre app, se un'app non isolata dovrà essere limitata comunque (per esempio con una CSP). *(Il caso dei background a lilOS chiuso è superato in parte: i servizi nel kernel, [D44](#d44-avvio-automatico-due-eventi-app-solo-nella-prima-scheda-servizi-nel-kernel), vivono a lilOS chiuso con il permesso `background`; i background restano nel browser.)*
+**Quando ripensarla.** Se un'app non isolata dovrà essere limitata comunque (per esempio con una CSP). *(Il caso dei background a lilOS chiuso è superato in parte: i servizi nel kernel, [D44](#d44-avvio-automatico-due-eventi-app-solo-nella-prima-scheda-servizi-nel-kernel), vivono a lilOS chiuso con il permesso `background`; i background restano nel browser.)*
 
 ## D43. Gli elementi fissi della scrivania non sono file
 
@@ -698,7 +698,7 @@ Le app di sistema girano sempre nella pagina; le app `remote` e quelle con `sdk`
 - **Solo la prima scheda.** L'apertura avviene solo nella prima scheda dell'utente in quel browser: Web Locks, lucchetto `lilos:avvio:<id utente>` tenuto finché la scheda è aperta. Le altre si aprono pulite.
 - **`?avvio=no`** nell'indirizzo salta l'avvio per quel caricamento, con un avviso.
 - **Parametri dichiarati nel manifesto.** Un punto d'ingresso di tipo finestra può dichiarare `params` (`text`, `number`, `boolean`, `choice`, `file`, `folder`; al massimo 10). Sono gli `args` della finestra, i mancanti prendono il predefinito. Un `file` si consegna all'app (può leggerlo e scriverlo, anche se isolata); una `folder` arriva come id alle app di sistema e come percorso `~/…` a quelle installate, perché il ponte lavora per percorsi. Senza `params` dichiarati, vale un oggetto JSON qualsiasi fino a 4 KB. Anche le app con `sdk` `"1"` possono dichiarare `entrypoints`, ma solo `main` (per i suoi `params`) e i `service` (fase 3: così le app di sistema, che sono `sdk` `"1"`, hanno servizi senza passare a `"2"`).
-- **Due tipi di parti senza finestra** (deciso con l'utente il 31 ottobre 2026). `background` resta **nel browser**, a richiesta: serve alle parti che tengono segreti dell'utente (come le chiavi della futura Cassaforte), che il kernel non deve vedere. Il nuovo `kind: 'service'` gira **nel kernel** e parte con il sistema o con l'utente, anche a lilOS chiuso.
+- **Due tipi di parti senza finestra** (deciso con l'utente il 31 ottobre 2026). `background` resta **nel browser**, a richiesta: serve alle parti che tengono segreti dell'utente (come le chiavi di FileCrypt, [D47](#d47-pipe-sugli-eventi-dati-delle-app-sui-file-e-filecrypt)), che il kernel non deve vedere. Il nuovo `kind: 'service'` gira **nel kernel** e parte con il sistema o con l'utente, anche a lilOS chiuso.
 
 **Piano in tre fasi.**
 
@@ -798,3 +798,59 @@ lilOS legge il file **prima** di avviare l'app e le dà le stringhe già risolte
 - I testi di `updates.js` sono in italiano, come il resto dell'interfaccia di lilOS.
 
 **Quando ripensarla.** Quando le app potranno salvare e ripristinare il proprio stato da sole (si potrebbe riaprirle senza avvisi), quando lilOS tradurrà la sua interfaccia, o se l'avviso per ogni aggiornamento si rivelasse troppo invadente (per esempio con aggiornamenti automatici).
+
+## D47. Pipe sugli eventi, dati delle app sui file e FileCrypt
+
+**Decisione.** Tre pezzi nati insieme (31 ottobre 2026, ramo `filecrypt`, non ancora in un commit), perché il terzo ha bisogno degli altri due.
+
+1. **Pipe sugli eventi** (`sdk/core/pipes.js`, eventi in `sdk/core/pipeCatalog.js`). Ogni operazione del sistema che altri possono guardare o cambiare è un *evento* dichiarato in un catalogo, con due fasi: `before` (prima dell'operazione: si può cambiare la richiesta o fermarla) e `after` (sul risultato, in ordine inverso, così due app che si sovrappongono, una che comprime e una che cifra, si annidano). Un'app si iscrive dal manifesto (`contributes.pipes`: lilOS avvia il suo punto d'ingresso in background quando l'evento arriva) o dal codice (`lilos.pipes.subscribe`), con i permessi `pipe:<evento>` o `pipe.own:<evento>` (solo i file che l'app ha segnato). Ogni iscrizione chiede una fascia (prima, in mezzo, ultima); dentro la fascia conta l'ordine scelto dall'utente (Sistema → App → Pipe, chiave `pipes-order`). Gli eventi aperti alle app in modifica sono `file.open`, `file.read`, `file.write` e `app.launch`; gli altri (creare, rinominare, spostare, copiare, eliminare, cestino, tag, finestre, workspace, impostazioni) le app li guardano soltanto, dopo che sono avvenuti. Gli eventi protetti (`system.ready`, `session.*`, `apps.*`, `permissions.change`, `settings.system`, `pipes.change`) sono solo di lilOS e delle app di sistema. Un'app può anche dichiarare eventi propri (`<id app>.<una parola>`, al massimo 20) e farli passare dalle pipe (`lilos.pipes.define` e `run`).
+2. **Dati delle app sui file.** Ogni nodo può avere `apps`: per ogni app un piccolo oggetto che solo lei scrive (al massimo 1 KB di JSON per app, 8 app per nodo e 2 KB in tutto per nodo). Con `content: true` l'app dichiara che il contenuto è suo (per esempio cifrato): senza l'app, lilOS non lo apre, non lo legge e non lo scrive così com'è (la guardia è in `src/apps/pipes.js`; vale anche se l'app c'è ma le sue pipe `file.read` (dopo) e `file.write` (prima) non sono attive: nel dubbio non si apre). Solo un'app con i permessi `pipe` o `pipe.own` sia su `file.read` sia su `file.write` può segnare un contenuto come suo, altrimenti potrebbe chiudere l'utente fuori dai suoi file. `fs.write(id, dati, { mark })` salva contenuto e segno nello stesso cambiamento, e `fs.copy` / `fs.copyContent` copiano il contenuto così com'è con i dati dell'app: una copia cifrata resta cifrata.
+3. **Voci di menu e segni sulle icone** (`contributes.actions` e `contributes.badge`, permesso `ui.menus`). Un'app aggiunge voci al menu di file e cartelle (che avviano un suo punto d'ingresso con i file scelti) e un segno sull'icona di ciò su cui ha dati. Ora `ui.menus` ha un effetto.
+
+**FileCrypt** è la prima app che usa tutto questo: cifra un file al suo posto con una password, ne tiene le chiavi in un background e lo decifra e cifra da sola quando lilOS lo legge o lo salva. Dopo una revisione di sicurezza (31 ottobre 2026): al massimo 4 destinatari nell'intestazione e un limite di lavoro per lo sblocco (un file ostile non blocca il vault), password normalizzate NFC con minimo 8 caratteri controllato anche nel vault, impostazioni validate, chiavi azzerate al blocco, blocco per inattività che salta i file mostrati in una finestra (`lilos.files.shown`), un errore distinto «La password è giusta, ma il file è stato cambiato o è rovinato» da «Password sbagliata». Non è di sistema: è un'app installata, isolata di default, nel repository ufficiale (`apps/filecrypt/`, 1.0.0; con File Manager 1.2.1, Sistema 1.6.0 e Terminale 1.1.1).
+
+**Perché.**
+
+- Cifrare i file non si può fare con un'app che sta a lato: deve esserci quando un file si apre, si legge e si salva, anche se a farlo è un'altra app (l'Editor, Photo). Perciò non bastavano i punti d'ingresso di [D42](#d42-punti-dingresso-e-due-modalità-di-esecuzione-per-le-app): serviva poter stare in mezzo a quelle operazioni.
+- Un errore o un tempo scaduto (15 secondi) di un gestore **fa fallire l'operazione**: non si salta mai. Altrimenti un file verrebbe salvato in chiaro perché la sua cifratura non ha risposto.
+- Le operazioni che un'app chiede **saltano i suoi stessi gestori** (altrimenti la cifratura cifrerebbe ciò che sta cifrando), e il numero di operazioni che passano dalle pipe è limitato (256 insieme, 32 chieste da una stessa app; al posto del vecchio limite di profondità 16), così come le iscrizioni (50 per app).
+- **Un contenuto di un'app non lo vedono le altre.** Per `file.open`, `file.read` e `file.write` di un file con `node.apps[x].content`, girano solo i gestori di lilOS e quelli dell'app `x`; e ogni gestore vede sul nodo (e in `source`) solo i dati della propria app, non quelli delle altre. Una app che si iscrive a tutti i file non può quindi leggere un file cifrato da un'altra né sapere cosa le altre vi hanno segnato.
+- **Chi può passare un file e a chi.** Un'app passa a un'altra (`app.call`, `apps.call`) solo file che ha già (`file` e `files`). lilOS dà a un'app l'accesso a un file che arriva in una pipe solo se il suo albero (`fs.appMeta`) conferma che l'ha segnato lei, non perché lo dicano i dati. Un gestore di `file.open` può dare il file solo a un'app che apre file; un gestore di `app.launch` cambia gli `args` ma non `file` e `files`. Nei nomi degli `edit` non sono ammessi `__proto__`, `constructor` e `prototype`.
+- Il segno dell'app e il contenuto vanno salvati insieme (`mark`): se si separassero, resterebbe un file cifrato che nessuno sa leggere o un segno su un file in chiaro.
+- Quando il segno ha `content: true` la cronologia di annulla viene ripulita di quel contenuto (`fs.scrub`): Ctrl Z non deve rimettere in chiaro un file appena cifrato.
+- Le fasce e l'ordine dell'utente servono a rendere prevedibile cosa succede quando due app si iscrivono allo stesso evento.
+
+**Scelte fatte lungo la strada.**
+
+- **Il nome.** L'app doveva chiamarsi «Cassaforte» (così in D42); su richiesta dell'utente si chiama **FileCrypt**.
+- **Formato binario, non base64.** Il file cifrato è `LILOS-ENC/1`: un'intestazione, poi il contenuto cifrato, in byte. Con il testo in base64 un file occuperebbe un terzo in più; si può fare così perché ora lilOS salva byte (`fs.write` con `Blob`, `PUT /api/fs/content/:id`).
+- **ChaCha20-Poly1305 dentro il codice dell'app.** La libreria (`@noble/ciphers`) non ha una versione che si carichi come script classico, quindi non può stare in `libraries` del manifesto: il codice sta nel pacchetto. Argon2id viene invece da `hash-wasm`, tramite `libraries` con `cache: true`.
+- **Niente `<form>` nelle finestre delle app isolate.** La sandbox non ha `allow-forms`: il submit di un modulo non parte. Le finestre di FileCrypt usano un pulsante e il tasto Invio.
+- **`users.*` non c'è nel catalogo.** Il progetto originale prevedeva eventi sugli utenti, ma nel frontend non esiste nessuna operazione sugli utenti: si gestiscono dalla riga di comando del kernel.
+- **I servizi del kernel non si iscrivono alle pipe.** I punti d'ingresso `kind: 'service'` ([D44](#d44-avvio-automatico-due-eventi-app-solo-nella-prima-scheda-servizi-nel-kernel)) girano nel kernel e le pipe nel browser: non è mai stato progettato come unirli. **È una domanda aperta**: un servizio che reagisse a un file salvato dovrebbe passare per il browser, o il kernel dovrebbe avere le sue pipe.
+
+**Alternative scartate.**
+
+- Un semplice bus di eventi a cui ci si iscrive per guardare (come `bus`): non permette di cambiare né fermare l'operazione, che è ciò che serve a una cifratura.
+- Saltare il gestore che sbaglia e proseguire: vedi sopra, scriverebbe in chiaro.
+- Fare la cifratura nel kernel: il kernel vedrebbe la password e le chiavi (lo stesso motivo per cui un `background` resta nel browser, D44).
+
+**Conseguenze.**
+
+- **L'SDK e `@lilos/system` crescono.** `pipes` e `PipeStopped` (SDK); `itemBadges`, `appActionEntries`, `appPipes` (`@lilos/system`): vanno rilasciati in lilOS prima delle app che li usano ([D38](#d38-le-app-di-sistema-vengono-dal-repository-ufficiale-e-girano-dentro-lilos)). Sistema 1.6.0 si avvia anche senza pipe (la scheda dice «Questa versione di lilOS non ha le pipe»).
+- **`openFile` è asincrono**, perché passa da `file.open`; `fs.read`, `readBlob` e `write` accettano `caller` (chi chiede) e passano dalle pipe solo se qualcuno le vuole.
+- **Fermare il vault dalla barra cancella le chiavi e chiude le finestre dei file cifrati**, come un blocco (chi ha modifiche non salvate è prima avvisato): niente resta in chiaro su schermo né, al salvataggio, su disco.
+- **Le versioni in chiaro possono restare nei backup di PostgreSQL**; la cronologia di annulla viene ripulita.
+- **Mentre un file è sbloccato, un'app non isolata o uno script nella pagina lo può leggere** (le app non isolate possono tutto, D42).
+- Il kernel conserva `apps` nei metadati dei nodi, che sono limitati a 4 KB per nodo in tutto (`MAX_META` in `home.js`): per questo i dati di tutte le app su un nodo stanno insieme in al massimo 2 KB (`setAppMeta` lancia «Troppi dati delle app su questo elemento»).
+- **Dati di un'app che non c'è più.** Nelle Proprietà di un elemento, per i dati di un'app non installata c'è una riga «Dati di `<id>`» con il pulsante **Rimuovi**. Il contenuto resta com'è (un file cifrato resta illeggibile), ma lilOS smette di rifiutarsi di aprirlo.
+- **Limiti che restano** (decisi di accettarli per ora):
+  - il rollback non è rilevato: chi può scrivere il file può rimetterci una versione cifrata precedente valida;
+  - contenuto e segno non arrivano al kernel in modo atomico: se il browser si chiude nel mezzo può restare un file cifrato senza segno, o un segno su un file in chiaro;
+  - l'anteprima del File Manager tiene in memoria il chiaro che ha letto finché non cambia la selezione;
+  - un modello di file cifrato copiato con «Nuovo da modello» esce in chiaro;
+  - `cp` del Terminale su un file cifrato bloccato lo sovrascrive (il Terminale è un'app di sistema);
+  - i servizi del kernel leggono e scrivono il contenuto grezzo (non passano dalle pipe).
+- Un'app di cifratura non installata lascia i file illeggibili: lilOS li tratta come «di un'app che manca», non li apre e sull'icona mostra un lucchetto grigio con «Serve l'app …».
+
+**Quando ripensarla.** Quando un servizio nel kernel dovrà reagire agli eventi (vedi sopra); se serviranno eventi sugli utenti (quando il frontend avrà operazioni sugli utenti); se due gestori sullo stesso contenuto (per esempio compressione e cifratura) mostreranno che le fasce non bastano; se il limite di 1 KB per app, di 8 app e di 2 KB in tutto per nodo si rivelerà stretto; se serviranno protezioni contro il rollback e la scrittura non atomica; e se un'app non isolata dovrà essere esclusa dai file sbloccati.

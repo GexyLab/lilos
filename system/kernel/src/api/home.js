@@ -22,7 +22,7 @@ import { visible } from './apps.js';
 const FRONT_ID = /^[\w-]{1,64}$/;
 const KEY = /^[\w:.-]{1,120}$/;
 const TYPES = new Set(['folder', 'file', 'app']);
-const META = ['color', 'app', 'system', 'workspace', 'private', 'tags', 'trashed'];
+const META = ['color', 'app', 'system', 'workspace', 'private', 'tags', 'trashed', 'apps'];
 const MAX_NODES = 5000;
 const MAX_META = 4 << 10;
 const MAX_VALUE = 512 << 10;

@@ -1,9 +1,10 @@
-import { h, Emitter, kernel, toast, locale } from '@lilos/sdk';
+import { h, Emitter, kernel, toast, locale, bus, fs } from '@lilos/sdk';
 import { lilosApi, WORKER_SOURCE, SANDBOX_RUNTIME_SOURCE } from './bridge.js';
 import { appCode, librariesCode, entrypoints, inline, escapeAttr, netOrigins } from './code.js';
 import { isIsolated } from './isolation.js';
 import { hostMethods, invoke, transferOf } from './methods.js';
 import { registry } from '../registry.js';
+import { pipeTarget } from '../pipes.js';
 
 /**
  * Background entry points of installed apps: started when someone calls them (the system, the
@@ -43,6 +44,7 @@ class Instance {
   #next = 1;
   #halt = () => {};
   #answer = null;    // system apps: lilos.handle() of the module, called directly
+  #pipe = null;      // system apps: its lilos.pipes functions, called directly
   #emit = null;
   #offLocale = () => {};
   port = null;
@@ -55,7 +57,9 @@ class Instance {
     this.entry = entry;
     this.key = `${app.id}#${entry}`;
     this.handles = new Set();
-    this.methods = hostMethods({ pkg: this.pkg, handles: this.handles, instance: this });
+    // lilOS calls its lilos.pipes functions like a call, marked with the subscription
+    this.pipes = pipeTarget({ key: this.key, pkg: this.pkg, entry, handles: this.handles, deliver: (sub, data, ctx) => this.#call({ pipe: sub, data, ctx }) });
+    this.methods = hostMethods({ pkg: this.pkg, handles: this.handles, instance: this, pipe: this.pipes });
     // The system's language changed: the entry point gets its strings again
     this.#offLocale = locale.on('change', () => {
       const data = locale.strings(this.pkg.id);
@@ -81,8 +85,9 @@ class Instance {
     if (pkg.system) {
       const mod = await this.app.load();
       if (typeof mod[entry] !== 'function') throw new Error(`Il codice non esporta ${entry}`);
-      const { api, emit, answer } = lilosApi((method, ...params) => Promise.resolve().then(() => invoke(this.methods, method, params)), info, locale.engine);
+      const { api, emit, answer, pipe } = lilosApi((method, ...params) => Promise.resolve().then(() => invoke(this.methods, method, params)), info, locale.engine);
       this.#answer = answer;
+      this.#pipe = pipe;
       this.#emit = emit;
       await mod[entry]({ lilos: api, args: null });
       return;
@@ -130,17 +135,29 @@ class Instance {
     }
   }
 
-  /** A call to the entry point: what its lilos.handle() function returns. */
+  /**
+   * A call to the entry point: what its lilos.handle() function returns. The files in `data`
+   * (file, files) are handed to it.
+   */
   async request(data, from) {
+    if (data && typeof data === 'object') {
+      if (typeof data.file === 'string') this.handles.add(data.file);
+      if (Array.isArray(data.files)) data.files.filter(f => typeof f === 'string').forEach(f => this.handles.add(f));
+    }
+    return this.#call({ data, from });
+  }
+
+  async #call(message) {
     await this.ready;
     this.used = Date.now();
-    if (data && typeof data === 'object' && typeof data.file === 'string') this.handles.add(data.file);
-    if (this.#answer) return this.#answer(data, from);
+    if (message.pipe && this.#pipe) return this.#pipe(message.pipe, message.data, message.ctx);
+    if (!message.pipe && this.#answer) return this.#answer(message.data, message.from);
     if (!this.port) throw new Error(`${this.app.name} si è fermata`);
     return new Promise((resolve, reject) => {
       const id = this.#next++;
       this.#requests.set(id, { resolve, reject });
-      this.port.postMessage({ lilos: 1, request: id, data, from });
+      if (message.pipe) setTimeout(() => this.#requests.delete(id), 60_000);   // the pipe gave up already
+      this.port.postMessage({ lilos: 1, request: id, ...message });
     });
   }
 
@@ -163,6 +180,11 @@ class Instance {
   stop() {
     if (instances.get(this.key) !== this) return;
     instances.delete(this.key);
+    this.pipes.close();
+    // What it held in memory is gone (an encryption app's keys): the windows of the files whose
+    // content is its own close, as when it locks them
+    const own = [...this.handles].filter(id => fs.appMeta(id, this.app.id)?.content === true);
+    if (own.length) bus.emit('files:locked', own);
     this.#offLocale();
     this.#halt();
     this.port?.close();
@@ -197,6 +219,9 @@ function instanceOf(app, entry) {
 
 /** Calls a background entry point (starting it if needed). */
 export const call = (app, entry, data, from) => instanceOf(app, entry).request(data ?? null, from ?? null);
+
+/** Starts a background entry point if it is not running; resolves once its code ran. */
+export const start = (app, entry) => instanceOf(app, entry).ready;
 
 /** A MessagePort to a background entry point (starting it if needed). */
 export const connect = (app, entry) => instanceOf(app, entry).connect();

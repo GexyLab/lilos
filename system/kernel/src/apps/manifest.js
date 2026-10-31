@@ -34,7 +34,8 @@ import { parseLocales } from '../../../../sdk/core/i18n.js';
  *     libraries: [{ name, version, url, integrity: 'sha384-…', cache?: true }],
  *     permissions: ['fs.read:~/Documenti', 'net:https://api.example.com', …],
  *     contributes: { window: { width, height }, fileTypes: ['md'], commands: [{ id, label, keys }],
- *                    widgets: [{ id, name, width, height, resizable }], settings: [...], actions: [...] },
+ *                    widgets: [{ id, name, width, height, resizable }], settings: [...],
+ *                    pipes: [pipe], actions: [action], badge: { glyph, label } },
  *     install: [op], update: [{ from: '<1.2.0', ops: [op] }], uninstall: [op],
  *     restartOnUpdate?: true | '<2.0.0',      updating to this version needs lilOS to restart (always, or
  *                                             only from the versions in the range, like update's `from`)
@@ -45,6 +46,19 @@ import { parseLocales } from '../../../../sdk/core/i18n.js';
  *   { op: 'mkdir', path }   { op: 'write', path, text, ifMissing? }   { op: 'copy', from, to, ifMissing? }
  *   { op: 'desktopItem', target: 'app' }   { op: 'tag', name, color? }   { op: 'setting', key, value }
  *   { op: 'remove', path, ask? }   only in uninstall
+ *
+ * Pipes (sdk '2', local apps): events of the system the app handles even when it is not running:
+ * lilOS starts the background entry point when the event comes and gives it to the handler the
+ * entry point subscribed (lilos.pipes.subscribe). Needs 'pipe:<event>', or 'pipe.own:<event>' when
+ * `where` is { meta: 'own' } (only the files the app marked). Protected events: system apps only.
+ *   { event: 'file.read', stage: 'before' | 'after', entry: 'vault', position?: 'first' | 'middle' | 'last', where? }
+ *
+ * Actions (needs 'ui.menus'): entries of the menu of files and folders, that start an entry point
+ * with { files: [ids] } (the app may read and write them). `when`: which items they are for.
+ *   { id: '<app id>.encrypt', label: 'Encrypt…', entry: 'encrypt', on: 'file' | 'folder' | 'item',
+ *     glyph?, when?: { meta?: 'own' | 'none', ext?: ['txt'] }, many?: true }   many: also for a selection
+ *
+ * Badge: a sign on the icon of the items the app has data on (node.apps[id]): { glyph: 'lock', label }.
  *
  * Params of an entry point: what it accepts as args, so lilOS can ask for it (Sistema → Avvio).
  *   { name: { type, label, description?, default?, …by type } }, at most 10
@@ -63,7 +77,11 @@ const KEY = /^[\w.-]{1,64}$/;
 const HOME_PATH = /^~(\/[^/\0]{1,255}){1,16}$/;
 const ENTRY = /^[a-z][a-zA-Z0-9]{0,30}$/;
 const PARAM = /^[a-zA-Z][a-zA-Z0-9_]{0,30}$/;
-const MAX = { files: 1000, ops: 100, text: 64 << 10, commands: 30, widgets: 10, permissions: 50, libraries: 30, entrypoints: 20, params: 10, options: 50 };
+const MAX = { files: 1000, ops: 100, text: 64 << 10, commands: 30, widgets: 10, permissions: 50, libraries: 30, entrypoints: 20, params: 10, options: 50, pipes: 30, actions: 20 };
+const EVENT = /^[a-z0-9][a-z0-9.-]{0,63}\.[a-z][a-zA-Z0-9]{0,40}$/;
+/** Events only lilOS and system apps subscribe to (the SDK's pipeCatalog.js). */
+const PROTECTED = ['system.ready', 'session.', 'apps.', 'permissions.', 'settings.system', 'pipes.'];
+export const isProtectedEvent = name => PROTECTED.some(p => (p.endsWith('.') ? name.startsWith(p) : name === p));
 const PARAM_TYPES = ['text', 'number', 'boolean', 'choice', 'file', 'folder'];
 export const CATEGORIES = ['system', 'productivity', 'media', 'development', 'other'];
 const windowSize = w => w?.width >= 200 && w.width <= 4000 && w.height >= 150 && w.height <= 4000;
@@ -119,6 +137,17 @@ function checkOps(ops, permissions, where, files) {
         break;
       default: bad('sconosciuta');
     }
+  }
+}
+
+/** The where of a pipe: { meta: 'own', ext: [..], type, app: [..] }. */
+function checkWhere(w, wrong) {
+  if (!w || typeof w !== 'object' || Array.isArray(w)) wrong('where non valido');
+  for (const [k, v] of Object.entries(w)) {
+    if (k === 'meta') { if (v !== 'own') wrong('where.meta: solo "own"'); }
+    else if (k === 'type') { if (!['file', 'folder', 'app'].includes(v)) wrong('where.type non valido'); }
+    else if (k === 'ext' || k === 'app') { if (!Array.isArray(v) || v.length > 50 || v.some(x => typeof x !== 'string' || x.length > 64)) wrong(`where.${k}: un elenco di testi`); }
+    else wrong(`where.${k.slice(0, 30)} non si usa`);
   }
 }
 
@@ -228,6 +257,35 @@ export function checkManifest(raw) {
     if (!KEY.test(w?.id ?? '') || !str(w.name, 40) || !(w.width >= 80 && w.width <= 1200 && w.height >= 60 && w.height <= 1200)) bad('widget non valido');
   }
   if (list(c.widgets, MAX.widgets).length && !permissions.includes('desktop.widget')) bad('i widget richiedono il permesso desktop.widget');
+  const eps = m.entrypoints ?? {};
+  for (const p of list(c.pipes, MAX.pipes)) {
+    const wrong = msg => bad(`pipe ${String(p?.event).slice(0, 60)}: ${msg}`);
+    if (!p || typeof p !== 'object' || !EVENT.test(p.event ?? '')) wrong('evento non valido');
+    if (p.stage !== 'before' && p.stage !== 'after') wrong('stage deve essere "before" o "after"');
+    if (!Object.hasOwn(eps, p.entry) || eps[p.entry]?.kind !== 'background') wrong('entry deve essere un punto d’ingresso background');
+    if (p.position !== undefined && !['first', 'middle', 'last'].includes(p.position)) wrong('position non valida');
+    const own = p.where?.meta === 'own';
+    if (p.where !== undefined) checkWhere(p.where, wrong);
+    if (!permissions.includes(`pipe:${p.event}`) && !(own && permissions.includes(`pipe.own:${p.event}`))) wrong(`serve il permesso pipe:${p.event}${own ? ` o pipe.own:${p.event}` : ''}`);
+    if (isProtectedEvent(p.event) && !m.system) wrong('evento riservato alle app di sistema');
+  }
+  for (const a of list(c.actions, MAX.actions)) {
+    const wrong = msg => bad(`azione ${String(a?.id).slice(0, 60)}: ${msg}`);
+    if (!a || !KEY.test(a.id ?? '') || !a.id.startsWith(`${m.id}.`)) wrong('id non valido (inizia con l’id dell’app)');
+    if (!str(a.label, 60)) wrong('etichetta mancante o troppo lunga');
+    if (a.entry !== 'main' && !Object.hasOwn(eps, a.entry)) wrong('entry non è un punto d’ingresso dell’app');
+    if (eps[a.entry]?.kind === 'service') wrong('un’azione non avvia un service');
+    if (!['file', 'folder', 'item'].includes(a.on)) wrong('on deve essere "file", "folder" o "item"');
+    if (a.glyph !== undefined && !GLYPH.test(a.glyph)) wrong('glyph non valido');
+    if (a.many !== undefined && a.many !== true) wrong('many può essere solo true');
+    if (a.when !== undefined) {
+      if (!a.when || typeof a.when !== 'object' || Array.isArray(a.when) || Object.keys(a.when).some(k => k !== 'meta' && k !== 'ext')) wrong('when non valido');
+      if (a.when.meta !== undefined && a.when.meta !== 'own' && a.when.meta !== 'none') wrong('when.meta: "own" o "none"');
+      if (a.when.ext !== undefined && (!Array.isArray(a.when.ext) || a.when.ext.length > 50 || a.when.ext.some(e => typeof e !== 'string' || !EXT.test(e)))) wrong('when.ext non valido');
+    }
+  }
+  if (list(c.actions, MAX.actions).length && !permissions.includes('ui.menus')) bad('le azioni richiedono il permesso ui.menus');
+  if (c.badge !== undefined && (!c.badge || !GLYPH.test(c.badge.glyph ?? '') || !str(c.badge.label, 40))) bad('badge non valido ({ glyph, label })');
 
   checkOps(m.install, permissions, 'install', files);
   checkOps(m.uninstall, permissions, 'uninstall', files);

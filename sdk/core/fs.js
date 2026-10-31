@@ -3,6 +3,7 @@ import { storage, uid } from './storage.js';
 import { splitName } from './fileTypes.js';
 import { contents } from './db.js';
 import { kernel } from './kernel.js';
+import { pipes } from './pipeCatalog.js';
 
 const STORAGE_KEY = 'fs';
 const ROOT = 'root';
@@ -12,6 +13,10 @@ const MAX_NAME = 255;
 const WORKSPACE_ID = /^[\w-]{1,40}$/;
 const TAG_ID = /^[\w-]{1,40}$/;
 const MAX_TAGS = 30;   // per node
+const APP_ID = /^[a-z0-9][a-z0-9.-]{1,63}$/;
+const MAX_APPS = 8;          // apps with data on one node
+const MAX_APP_META = 1024;   // characters of JSON, per app
+const MAX_APPS_META = 2048;  // all apps together: the kernel takes at most 4 KB of metadata per node
 /** Type of the Blob readBlob() gives, by extension. */
 const MIME = {
   png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp', bmp: 'image/bmp',
@@ -29,7 +34,15 @@ const MIME = {
  * either, read() gives text, readBlob() bytes.
  *
  *   Node: { id, type: 'folder' | 'file' | 'app', name, parent, created, modified,
- *           size?, color?, app?, system?, workspace?, private?, tags? }   size: bytes of the content
+ *           size?, color?, app?, system?, workspace?, private?, tags?, apps? }   size: bytes of the content
+ *
+ * Apps' data on a node (setAppMeta): `apps` holds, per app id, a small object only that app writes
+ * (lilOS checks it). `content: true` in it says that the content is the app's to read: without the
+ * app, lilOS does not hand it out as it is (an encrypted file). Copies keep it, the name does not change.
+ *
+ * Contents go through the pipes of the events file.read and file.write (pipes.js): an app may
+ * change what is read and written (decrypt, encrypt). `caller` (who asks: { app, opened } or
+ * { system: true }) is what the handlers see; the operations an app asks for skip its own handlers.
  *
  * Names are unique inside a folder (case-insensitive): create() and rename() add a number
  * when needed. System nodes (system: true) cannot be renamed or removed.
@@ -64,6 +77,8 @@ class FileSystem extends Emitter {
   #nodes = new Map();
   #workspace = null;
   #hiddenTags = new Set();
+  /** Snapshots still held (by the undo history): scrub() takes contents out of them. */
+  #snapshots = new Set();   // WeakRefs
 
   /** False when nothing was stored yet (first start): the system seeds the tree. */
   loaded = false;
@@ -189,6 +204,7 @@ class FileSystem extends Emitter {
     const owner = workspace !== undefined ? workspace : system && !own ? null : this.#workspace;
     if (owner != null && !validWorkspace(owner)) throw new Error('Workspace non valido');
     if (own && (type !== 'folder' || !owner)) throw new Error('Solo una cartella con un workspace può essere privata');
+    pipes.runSync('file.create', { parent: parentId, type, name });
     const now = Date.now();
     const node = {
       id: id ?? uid(), type, name: '', parent: parentId,
@@ -205,6 +221,7 @@ class FileSystem extends Emitter {
     this.#touch(parentId, now);
     this.#save();
     this.emit('change', { type: 'create', node: copy(node), parent: parentId });
+    pipes.notify('file.create', { node: copy(node) });
     return copy(node);
   }
 
@@ -213,10 +230,13 @@ class FileSystem extends Emitter {
     const node = this.#editable(id);
     const unique = this.#unique(node.parent, checkName(name), id, node);
     if (unique === node.name) return unique;
+    pipes.runSync('file.rename', { node: copy(node), name: unique });
+    const from = node.name;
     node.name = unique;
     node.modified = Date.now();
     this.#save();
     this.emit('change', { type: 'rename', node: copy(node), parent: node.parent });
+    pipes.notify('file.rename', { node: copy(node), from });
     return unique;
   }
 
@@ -229,43 +249,156 @@ class FileSystem extends Emitter {
     this.emit('change', { type: 'update', node: copy(node), parent: node.parent });
   }
 
-  /** Text content of a file ('' if it has none yet). */
-  async read(id) {
+  /** Data of an app on a node (a copy), or null. */
+  appMeta(id, appId) {
+    const value = this.#find(id)?.apps?.[appId];
+    return value ? structuredClone(value) : null;
+  }
+
+  /**
+   * Sets (or, with null, takes away) the data of an app on a node: a plain object of at most
+   * 1 KB of JSON. Setting `content: true` takes the node's old contents out of the undo history
+   * (scrub): they may be what the app is protecting. Emits an 'update' change.
+   */
+  setAppMeta(id, appId, value) {
     const node = this.#find(id);
-    if (!node || node.type !== 'file') throw new Error('Il file non esiste');
+    if (!node || id === ROOT) throw new Error('Elemento inesistente');
+    this.#setApp(node, appId, value);
+    this.#save();
+    this.emit('change', { type: 'update', node: copy(node), parent: node.parent });
+  }
+
+  /** Text content of a file ('' if it has none yet). */
+  async read(id, { caller = null } = {}) {
+    const node = this.#file(id);
     await this.#tracker?.flush();   // a file just created must exist in the kernel
-    const text = await contents.get(id);
-    return typeof text === 'string' ? text : '';
+    if (!pipes.wants('file.read', { node: copy(node) }, caller)) {
+      const text = await contents.get(id);
+      return typeof text === 'string' ? text : '';
+    }
+    return (await this.#readThrough(node, caller)).text();
   }
 
   /**
    * Content of a file as bytes: a Blob (empty if it has none yet), typed from the file's
    * extension ('image/png' for a .png…) unless `type` is given.
    */
-  async readBlob(id, { type } = {}) {
-    const node = this.#find(id);
-    if (!node || node.type !== 'file') throw new Error('Il file non esiste');
+  async readBlob(id, { type, caller = null } = {}) {
+    const node = this.#file(id);
     await this.#tracker?.flush();
-    const blob = (await contents.getBlob(id)) ?? new Blob([]);
+    const blob = pipes.wants('file.read', { node: copy(node) }, caller)
+      ? await this.#readThrough(node, caller)
+      : (await contents.getBlob(id)) ?? new Blob([]);
     return new Blob([blob], { type: type ?? MIME[splitName(node.name)[1].toLowerCase()] ?? '' });
   }
 
   /**
    * Saves the content of a file: text (a string), or bytes (a Blob, an ArrayBuffer or a typed
    * array). Updates size and modification date ('update' event).
+   * mark: { app, value } also sets that app's data on the node (setAppMeta) once the content is
+   * saved, in the same change: a content and the mark that says how to read it never part.
    */
-  async write(id, data) {
-    const node = this.#find(id);
-    if (!node || node.type !== 'file') throw new Error('Il file non esiste');
-    const value = data instanceof Blob ? data : data instanceof ArrayBuffer || ArrayBuffer.isView(data) ? new Blob([data]) : String(data);
+  async write(id, data, { caller = null, mark = null } = {}) {
+    let node = this.#file(id);
+    if (mark) checkAppMeta(mark.app, mark.value);
+    let value = data instanceof Blob ? data : data instanceof ArrayBuffer || ArrayBuffer.isView(data) ? new Blob([data]) : String(data);
     await this.#tracker?.flush();
+    if (pipes.wants('file.write', { node: copy(node) }, caller)) {
+      const out = await pipes.around('file.write', { node: copy(node), content: toBlob(value) }, async d => {
+        await this.#store(id, d.content);
+        return { node: copy(this.#nodes.get(id) ?? node) };
+      }, { caller });
+      node = this.#nodes.get(out.node.id);
+    } else {
+      await this.#store(id, value);
+      node = this.#nodes.get(id);
+    }
+    if (!node) return;   // removed while saving
+    if (mark) this.#setApp(node, mark.app, mark.value);
+    this.#save();
+    this.emit('change', { type: 'update', node: copy(node), parent: node.parent });
+  }
+
+  /**
+   * A copy of a file (its content as it is stored, and the apps' data on it) in a folder, with
+   * `name` or its own (made unique). An encrypted file stays encrypted. Returns the new node.
+   */
+  async copy(id, parentId, { name } = {}) {
+    const source = this.#file(id);
+    await this.#tracker?.flush();
+    const blob = (await contents.getBlob(id)) ?? new Blob([]);
+    const created = this.create(parentId, { type: 'file', name: name ?? source.name, size: blob.size });
+    const node = this.#nodes.get(created.id);
+    if (source.apps) node.apps = structuredClone(source.apps);
+    await this.#tracker?.flush();
+    await contents.set(node.id, blob);
+    this.#save();
+    this.emit('change', { type: 'update', node: copy(node), parent: node.parent });
+    pipes.notify('file.copy', { node: copy(node), source: copy(source) });
+    return copy(node);
+  }
+
+  /** Puts the stored content of a file, and the apps' data on it, into another existing file. */
+  async copyContent(fromId, toId) {
+    const source = this.#file(fromId);
+    const target = this.#file(toId);
+    await this.#tracker?.flush();
+    await this.#store(toId, (await contents.getBlob(fromId)) ?? new Blob([]));
+    if (!this.#nodes.has(toId)) return;
+    if (source.apps) target.apps = structuredClone(source.apps);
+    else delete target.apps;
+    this.#save();
+    this.emit('change', { type: 'update', node: copy(target), parent: target.parent });
+    pipes.notify('file.copy', { node: copy(target), source: copy(source) });
+  }
+
+  /** The bytes of a file through the file.read pipe. */
+  async #readThrough(node, caller) {
+    const out = await pipes.around('file.read', { node: copy(node) }, async () => ({ node: copy(node), content: (await contents.getBlob(node.id)) ?? new Blob([]) }), { caller });
+    return out.content;
+  }
+
+  /** Saves a content as it is; size and dates follow. The caller saves the tree and tells. */
+  async #store(id, value) {
     await contents.set(id, value);
-    if (!this.#nodes.has(id)) return;   // removed while saving
+    const node = this.#nodes.get(id);
+    if (!node) return;
     node.size = value instanceof Blob ? value.size : new TextEncoder().encode(value).length;
     node.modified = Date.now();
     this.#touch(node.parent, node.modified);
-    this.#save();
-    this.emit('change', { type: 'update', node: copy(node), parent: node.parent });
+  }
+
+  #file(id) {
+    const node = this.#find(id);
+    if (!node || node.type !== 'file') throw new Error('Il file non esiste');
+    return node;
+  }
+
+  #setApp(node, appId, value) {
+    checkAppMeta(appId, value);
+    if (value == null) {
+      if (!node.apps?.[appId]) return;
+      delete node.apps[appId];
+      if (!Object.keys(node.apps).length) delete node.apps;
+      return;
+    }
+    if (!node.apps?.[appId] && Object.keys(node.apps ?? {}).length >= MAX_APPS) throw new Error('Troppe app hanno dati su questo elemento');
+    const next = { ...node.apps, [appId]: structuredClone(value) };
+    if (JSON.stringify(next).length > MAX_APPS_META) throw new Error('Troppi dati delle app su questo elemento');
+    node.apps = next;
+    if (value.content === true) this.scrub(node.id);
+  }
+
+  /**
+   * Takes the contents of these nodes out of every snapshot still held (the undo history): putting
+   * them back gives an empty file. For a content that must not stay anywhere in clear.
+   */
+  scrub(...ids) {
+    for (const ref of this.#snapshots) {
+      const snap = ref.deref();
+      if (!snap) { this.#snapshots.delete(ref); continue; }
+      for (const id of ids) if (Object.hasOwn(snap.contents, id)) delete snap.contents[id];
+    }
   }
 
   /**
@@ -278,6 +411,7 @@ class FileSystem extends Emitter {
     if (!target || target.type !== 'folder') throw new Error('La cartella di destinazione non esiste');
     if (this.isInside(parentId, id)) throw new Error('Una cartella non può andare dentro se stessa');
     if (node.parent === parentId) return node.name;
+    pipes.runSync('file.move', { node: copy(node), to: parentId });
     const from = node.parent;
     node.name = this.#unique(parentId, node.name, id, node);
     node.parent = parentId;
@@ -286,6 +420,7 @@ class FileSystem extends Emitter {
     this.#touch(parentId, now);
     this.#save();
     this.emit('change', { type: 'move', node: copy(node), parent: parentId, from, ids: [id, ...this.#descendants(id)] });
+    pipes.notify('file.move', { node: copy(node), from });
     return node.name;
   }
 
@@ -306,7 +441,9 @@ class FileSystem extends Emitter {
       const blob = await contents.getBlob(n.id);
       if (blob instanceof Blob) data[n.id] = blob;
     }
-    return { nodes, contents: data };
+    const snap = { nodes, contents: data };
+    this.#snapshots.add(new WeakRef(snap));
+    return snap;
   }
 
   /**
@@ -341,11 +478,13 @@ class FileSystem extends Emitter {
     const node = this.#editable(id);
     const ids = [id, ...this.#descendants(id)];
     if (ids.some(i => this.#nodes.get(i).system)) throw new Error('Contiene cartelle di sistema');
+    pipes.runSync('file.remove', { node: copy(node), ids });
     ids.forEach(i => this.#nodes.delete(i));
     ids.forEach(i => contents.delete(i));
     this.#touch(node.parent, Date.now());
     this.#save();
     this.emit('change', { type: 'remove', node: copy(node), parent: node.parent, ids });
+    pipes.notify('file.remove', { node: copy(node), ids });
   }
 
   /**
@@ -377,6 +516,7 @@ class FileSystem extends Emitter {
       if (!node || node.system || done.includes(id)) continue;
       const inside = this.#descendants(id);
       if (inside.some(i => this.#nodes.get(i).system)) continue;
+      pipes.runSync('trash.put', { ids: [id] });
       const from = node.parent;
       const scope = this.ancestors(from).reverse().find(n => n.private)?.workspace;
       node.parent = TRASH;
@@ -388,6 +528,7 @@ class FileSystem extends Emitter {
     if (done.length) {
       this.#save();
       this.emit('trash');
+      pipes.notify('trash.put', { ids: done });
     }
     return done;
   }
@@ -433,6 +574,7 @@ class FileSystem extends Emitter {
       }
     }
     this.emit('trash');
+    pipes.notify('trash.restore', { ids: restored.map(r => r.id) });
     return restored;
   }
 
@@ -477,10 +619,12 @@ class FileSystem extends Emitter {
     const node = this.#editable(id);
     const clean = cleanTags(tagIds);
     if (clean.join() === (node.tags ?? []).join()) return;
+    pipes.runSync('tags.assign', { node: copy(node), tags: clean });
     if (clean.length) node.tags = clean;
     else delete node.tags;
     this.#save();
     this.emit('change', { type: 'update', node: copy(node), parent: node.parent });
+    pipes.notify('tags.assign', { node: copy(node), tags: clean });
   }
 
   /**
@@ -619,11 +763,13 @@ class FileSystem extends Emitter {
 
   #purge(ids) {
     if (!ids.length) return 0;
+    pipes.runSync('trash.purge', { count: ids.length });
     const all = ids.flatMap(id => [id, ...this.#descendants(id)]);
     all.forEach(i => this.#nodes.delete(i));
     all.forEach(i => contents.delete(i));
     this.#save();
     this.emit('trash');
+    pipes.notify('trash.purge', { count: ids.length });
     return ids.length;
   }
 
@@ -729,6 +875,7 @@ class FileSystem extends Emitter {
           ...(own && { private: true }),
           ...(trashed && { trashed }),
           ...(n.system !== true && cleanTags(n.tags).length && { tags: cleanTags(n.tags) }),
+          ...(cleanApps(n.apps) && { apps: cleanApps(n.apps) }),
         });
         if (n.type === 'folder') queue.push(n.id);
       }
@@ -736,8 +883,32 @@ class FileSystem extends Emitter {
   }
 }
 
-/** A copy of a node that shares nothing with it (`tags` is an array). */
-const copy = n => ({ ...n, ...(n.tags && { tags: [...n.tags] }) });
+/** A copy of a node that shares nothing with it (`tags` is an array, `apps` objects). */
+const copy = n => ({ ...n, ...(n.tags && { tags: [...n.tags] }), ...(n.apps && { apps: structuredClone(n.apps) }) });
+
+const toBlob = v => (v instanceof Blob ? v : new Blob([v]));
+
+/** An app's data on a node: a plain object of JSON, small (null: none). Throws if not valid. */
+function checkAppMeta(appId, value) {
+  if (typeof appId !== 'string' || !APP_ID.test(appId)) throw new Error('App non valida');
+  if (value == null) return;
+  if (typeof value !== 'object' || Array.isArray(value)) throw new Error('I dati di un’app sono un oggetto');
+  const text = JSON.stringify(value);
+  if (!text || text.length > MAX_APP_META) throw new Error('Dati dell’app troppo grandi (al massimo 1 KB)');
+}
+
+/** Stored apps' data (untrusted): only valid entries, or null. */
+function cleanApps(raw) {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+  const out = {};
+  for (const [appId, value] of Object.entries(raw).slice(0, MAX_APPS)) {
+    try {
+      checkAppMeta(appId, value);
+      if (value) out[appId] = JSON.parse(JSON.stringify(value));
+    } catch { /* dropped */ }
+  }
+  return Object.keys(out).length && JSON.stringify(out).length <= MAX_APPS_META ? out : null;
+}
 
 /** Tag ids: strings of 1-40 letters, digits, _ and -, no duplicates, at most `max`. */
 function cleanTags(list, max = MAX_TAGS) {

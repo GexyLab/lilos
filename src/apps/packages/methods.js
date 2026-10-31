@@ -1,6 +1,7 @@
-import { fs, toast, storage } from '@lilos/sdk';
+import { fs, toast, storage, pipes, bus } from '@lilos/sdk';
 import { coversPath } from './permissions.js';
 import { callEntrypoint, connectEntrypoint } from '../entrypoints.js';
+import { openFile } from '../open.js';
 
 /**
  * What an installed app may ask of lilOS through `lilos` (see bridge.js), each request checked
@@ -8,42 +9,76 @@ import { callEntrypoint, connectEntrypoint } from '../entrypoints.js';
  * isolated could go around them, an isolated one cannot.
  */
 const MAX_TEXT = 10 << 20;
+const MAX_BYTES = 10 << 20;
 const STORAGE_KEY = /^[\w.-]{1,64}$/;
+const STAGES = ['before', 'after'];
+const MAX_EVENTS = 20;   // events an app defines
+const POSITIONS = ['first', 'middle', 'last'];
 
 /** '~/Documenti/a.txt' → the node, if visible from the current workspace. */
 const resolveHome = path => (typeof path === 'string' && /^~(\/[^/]+)*$/.test(path) ? fs.resolve(path) : null);
 const splitPath = path => [path.slice(0, path.lastIndexOf('/')) || '~', path.slice(path.lastIndexOf('/') + 1)];
 const fail = msg => { throw new Error(msg); };
 
+/** The contents an app writes: text, or bytes (a Blob, an ArrayBuffer, a typed array). */
+function content(data) {
+  if (data instanceof Blob) return data.size <= MAX_BYTES ? data : fail('File troppo grande');
+  if (data instanceof ArrayBuffer || ArrayBuffer.isView(data)) return data.byteLength <= MAX_BYTES ? new Blob([data]) : fail('File troppo grande');
+  const text = String(data);
+  return text.length <= MAX_TEXT ? text : fail('Testo troppo lungo');
+}
+
 /**
- * ctx: { pkg, win?, handles, instance? }
+ * ctx: { pkg, win?, handles, instance?, pipe? }
  *   win        the app's window (null in the background)
  *   handles    ids of the files the app was opened with or handed: it may read and write them
  *   instance   the background entry point (background.js), for keepAlive
+ *   pipe       its place in the pipes (pipes.js pipeTarget), for lilos.pipes
  */
-export function hostMethods({ pkg, win = null, handles, instance = null }) {
+export function hostMethods({ pkg, win = null, handles, instance = null, pipe = null }) {
   const perms = pkg.manifest.permissions ?? [];
   const target = (ref, write) => {
     if (handles.has(ref)) return fs.get(ref) ?? fail('Il file non esiste più');
     if (!coversPath(perms, ref, { write })) fail(`Permesso negato: ${ref}`);
     return resolveHome(ref);
   };
-  // An app hands another one only files it may use itself
+  const fileOf = (ref, write) => {
+    const node = target(ref, write) ?? fail('Il file non esiste');
+    return node.type === 'file' ? node : fail('Non è un file');
+  };
+  // Who asks, for the handlers of the pipes: its own handlers are skipped
+  const caller = node => ({ app: pkg.id, opened: handles.has(node.id), ...(pkg.system && { system: true }) });
+  const ownEvent = name => {
+    const def = typeof name === 'string' ? pipes.describe(name) : null;
+    return def?.owner === pkg.id ? name : fail(`L’evento ${String(name).slice(0, 60)} non è di ${pkg.manifest.name}`);
+  };
+  // An app hands another one (or another part of itself) only files it may use itself
   const handed = data => {
-    if (data && typeof data === 'object' && 'file' in data && !handles.has(data.file)) fail('Si può passare solo un file aperto con l’app');
+    if (!data || typeof data !== 'object') return data;
+    const ids = [...('file' in data ? [data.file] : []), ...('files' in data ? (Array.isArray(data.files) ? data.files : [null]) : [])];
+    if (ids.length > 100 || ids.some(id => typeof id !== 'string' || !handles.has(id))) fail('Si possono passare solo file aperti con l’app');
     return data;
+  };
+  // content: true says lilOS must not read the file without the app: only for an app that reads
+  // and writes its contents through the pipes (it would lock the user out of their files otherwise)
+  const ownsContent = ['file.read', 'file.write'].every(e => perms.includes(`pipe:${e}`) || perms.includes(`pipe.own:${e}`));
+  const claim = value => {
+    if (value && typeof value === 'object' && value.content === true && !ownsContent) fail('Permesso negato: solo un’app con le pipe file.read e file.write segna un contenuto come suo');
+    return value;
   };
   return {
     'window.setTitle': text => (win ? win.setTitle(String(text).slice(0, 100)) : fail('Solo una finestra ha un titolo')),
+    // As the close button: the window manager closes it
+    'window.close': () => (win ? win.emit('close') : fail('Solo una finestra si chiude')),
     'ui.toast': text => toast(String(text).slice(0, 200)),
     'clipboard.write': text => navigator.clipboard.writeText(String(text).slice(0, MAX_TEXT)),
-    'files.read': async ref => {
-      const node = target(ref, false) ?? fail('Il file non esiste');
-      if (node.type !== 'file') fail('Non è un file');
-      return fs.read(node.id);
+    'files.read': async (ref, options) => {
+      const node = fileOf(ref, false);
+      return options?.bytes === true ? fs.readBlob(node.id, { caller: caller(node) }) : fs.read(node.id, { caller: caller(node) });
     },
-    'files.write': async (ref, text) => {
-      if (String(text).length > MAX_TEXT) fail('Testo troppo lungo');
+    // options.mark: the app's own data on the file, saved with the content (null takes it away)
+    'files.write': async (ref, data, options) => {
+      const value = content(data);
       let node = target(ref, true);
       if (!node) {
         const [dir, name] = splitPath(ref);
@@ -51,8 +86,55 @@ export function hostMethods({ pkg, win = null, handles, instance = null }) {
         node = fs.create(parent.id, { type: 'file', name });
       }
       if (node.type !== 'file') fail('Non è un file');
-      await fs.write(node.id, String(text));
+      const mark = options && typeof options === 'object' && 'mark' in options ? { app: pkg.id, value: claim(options.mark ?? null) } : null;
+      await fs.write(node.id, value, { caller: caller(node), mark });
     },
+    // A file the app may use: its name and the app's own data on it
+    'files.info': ref => {
+      const node = target(ref, false) ?? fail('Il file non esiste');
+      return { id: node.id, name: node.name, type: node.type, size: node.size ?? 0, modified: node.modified, path: fs.path(node.id), meta: fs.appMeta(node.id, pkg.id) };
+    },
+    'files.setMeta': (ref, value) => {
+      const node = target(ref, true) ?? fail('Il file non esiste');
+      fs.setAppMeta(node.id, pkg.id, claim(value ?? null));
+    },
+    // Opens one of its files with its app (the file.open pipe again: after unlocking it, for one)
+    'files.open': ref => {
+      if (!handles.has(ref)) fail('Si apre solo un file aperto con l’app o che le è stato passato');
+      openFile(fs.get(ref) ?? fail('Il file non esiste più'));
+    },
+    // Files the app has locked again: lilOS closes the windows that show them
+    'files.locked': ids => {
+      const list = (Array.isArray(ids) ? ids : []).filter(id => handles.has(id) && fs.appMeta(id, pkg.id));
+      if (list.length) bus.emit('files:locked', list);
+      return list.length;
+    },
+    // Which of its files are shown in a window now (they are in use: not locked for inactivity)
+    'files.shown': ids => {
+      const list = (Array.isArray(ids) ? ids : []).filter(id => handles.has(id));
+      const shown = [];
+      bus.emit('files:shown', { ids: list, answer: id => shown.push(id) });
+      return [...new Set(shown)];
+    },
+    'pipes.subscribe': (event, opts) => {
+      if (!pipe) fail('Questa parte dell’app non si iscrive alle pipe');
+      const o = opts && typeof opts === 'object' ? opts : {};
+      if (o.stage !== undefined && !STAGES.includes(o.stage)) fail('stage deve essere "before" o "after"');
+      if (o.position !== undefined && !POSITIONS.includes(o.position)) fail('position non valida');
+      return pipe.subscribe(String(event), { stage: o.stage ?? 'after', position: o.position ?? 'middle', where: o.where ?? null });
+    },
+    'pipes.unsubscribe': sub => pipe?.unsubscribe(String(sub)),
+    // Its own events ('<app id>.<name>'): defined, then run (the result after every handler)
+    'pipes.define': (name, def) => {
+      const d = def && typeof def === 'object' ? def : {};
+      const fields = v => (Array.isArray(v) ? v.filter(f => typeof f === 'string' && /^(?!__proto__$|constructor$|prototype$)\w{1,40}$/.test(f)).slice(0, 20) : []);
+      if (!pipes.has(String(name)) && pipes.catalog().filter(e => e.owner === pkg.id).length >= MAX_EVENTS) fail(`Al massimo ${MAX_EVENTS} eventi per app`);
+      pipes.define(String(name), {
+        label: typeof d.label === 'string' ? d.label : String(name), description: typeof d.description === 'string' ? d.description : '',
+        edit: { before: fields(d.edit?.before), after: fields(d.edit?.after) }, stop: d.stop === true, owner: pkg.id,
+      });
+    },
+    'pipes.run': (name, data) => pipes.run(ownEvent(name), data && typeof data === 'object' ? data : { value: data ?? null }, { caller: { app: pkg.id } }),
     'files.list': path => {
       if (!coversPath(perms, path, { write: false })) fail(`Permesso negato: ${path}`);
       const node = resolveHome(path) ?? fail('La cartella non esiste');

@@ -34,6 +34,8 @@ import { connectLauncher } from './apps/launcher.js';
 import { connectUpdates } from './apps/updates.js';
 import { connectStartup } from './apps/startup.js';
 import { connectServices } from './apps/services.js';
+import { connectPipes } from './apps/pipes.js';
+import { connectSystemEvents } from './apps/systemEvents.js';
 import { Workareas } from './workareas/Workareas.js';
 import { setupHistory } from './systemHistory.js';
 import { setupWorkspaces } from './workspaces/setup.js';
@@ -47,6 +49,8 @@ watchSaving();
 globalThis.__lilosHost = Object.freeze({ sdk, system: systemApi });
 // Installed apps first (with their translations): the workspaces show every app they find
 await registerPackages();
+// Their pipes (manifest contributes.pipes), before anything opens or reads a file
+connectPipes();
 // Shared folders first, then the workspaces (each with its own desk): fs then shows only the current one's
 const state = setupWorkspaces(setupFileSystem());
 setupTrash();
@@ -68,6 +72,7 @@ connectProperties(wm);
 connectAppProperties(wm);
 const workareas = new Workareas({ canvas, desktop, wm, launcher, key: key('workareas') });
 const workspaces = new Workspaces({ state, canvas, desktop, wm, launcher, workareas, taskbar });
+connectSystemEvents({ wm, workspaces });
 connectPackages({ desk: () => workspaces.current?.desk ?? null }).catch(err => console.error('[lilos] app:', err));
 setupHistory({ root: desktop.history, activeWindow: () => wm.active });
 

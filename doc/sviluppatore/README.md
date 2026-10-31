@@ -88,6 +88,8 @@ sdk/                    @lilos/sdk (vedi sdk/README.md)
     settings.js         preferenze con valori predefiniti e tipi controllati
     shortcuts.js        scorciatoie da tastiera: comandi e combinazioni modificabili
     fs.js               file system virtuale: albero di cartelle, file e collegamenti
+    pipes.js            pipe sugli eventi: iscriversi a ciò che succede, cambiarlo o fermarlo (before / after, fasce, ordine dell'utente)
+    pipeCatalog.js      gli eventi del sistema (file.open, file.read, file.write, app.launch…); da qui l'SDK esporta pipes e PipeStopped
     tags.js             tag colorati da mettere su file e cartelle; i tag invisibili nascondono i loro elementi
     history.js          UndoStack e history: annulla e ripeti, per chi ha il focus
     db.js               contenuto dei file: dal kernel, con una copia in IndexedDB (interno)
@@ -158,7 +160,7 @@ src/
   desktop/              elementi sulla scrivania
     Desktop.js          selezione, trascinamento, rinomina, elimina, menu, salvataggio
     DesktopItem.js      un singolo elemento (cartella, file, app)
-    itemIcons.js        icone grandi di cartelle, file e workarea
+    itemIcons.js        icone grandi di cartelle, file e workarea, con i segni (badge) delle app
     fixedItems.js       elementi fissi: Home, Documenti, Immagini, File Manager, Download, Cestino
     seed.js             elementi della Scrivania al primo avvio
   apps/
@@ -168,6 +170,9 @@ src/
     startup.js          app che si aprono da sole all'ingresso (eventi system:ready e user:login)
     services.js         client dei servizi delle app nel kernel (services) e connectServices(): avvisi dei servizi
     appProperties.js    finestra "Proprietà…" di un'app: schede Generale, Permessi, Sicurezza
+    pipes.js            le app installate nelle pipe (iscrizioni del manifesto e del codice, permessi) e la guardia dei file di un'app che manca
+    appActions.js       voci che le app aggiungono al menu di file e cartelle (contributes.actions)
+    systemEvents.js     gli eventi del catalogo che non passano da fs (finestre, workspace, impostazioni, app, sessione) e files:locked
     filePicker.js       finestra per scegliere un file o una cartella di lilOS
     open.js             quale app apre quale tipo di file
     openWith.js         finestra "Apri con"
@@ -317,6 +322,14 @@ Ogni posto che ha azioni da annullare tiene una `UndoStack` e la collega a un su
 Un file si apre con l'app associata alla sua estensione (se è visibile nel workspace attuale; altrimenti compare "Apri con", che propone solo le app visibili): le app dichiarano nel manifesto le estensioni che aprono (`contributes.fileTypes`, nel registro `opens`), l'utente cambia le associazioni in Sistema → Usabilità → Tipi di file. Senza app associata compare la finestra "Apri con" (`src/apps/openWith.js`). Tutto passa da `openFile(node)` in `src/apps/open.js`, usato da `system.js` (per `item:open`) e dal File Manager. L'app riceve `args.file`.
 
 Le scorciatoie di un'app sono dichiarate nel registro (`commands`) e registrate all'avvio, così compaiono in Sistema anche prima di aprire l'app; la finestra dell'app fornisce il gestore con `handleCommand`.
+
+### Pipe, dati delle app sui file e voci di menu
+
+Ogni operazione che le app possono guardare o cambiare (aprire, leggere e salvare un file, avviare un'app, e molte altre) è un *evento* di un catalogo (`sdk/core/pipeCatalog.js`), e il motore (`sdk/core/pipes.js`) lo fa passare da una catena di gestori, prima (`before`) e dopo (`after`, in ordine inverso) l'operazione. `fs.read`, `fs.write`, `openFile` e il launcher chiamano `pipes.around`; le operazioni immediate di `fs` chiamano `pipes.runSync` e `pipes.notify`; `src/apps/systemEvents.js` manda gli altri. Un'app installata entra nella catena dal manifesto (`contributes.pipes`: lilOS avvia il suo background quando serve) o dal codice (`lilos.pipes.subscribe`), con i permessi `pipe:<evento>` o `pipe.own:<evento>` (`src/apps/pipes.js`). Un gestore che sbaglia o non risponde in 15 secondi fa fallire l'operazione. Riferimento: [pipes](api.md#sdkcorepipesjs-e-sdkcorepipecatalogjs) e [decisione D47](../interna/decisioni.md#d47-pipe-sugli-eventi-dati-delle-app-sui-file-e-filecrypt); ricetta: [Intervenire su un evento con una pipe](ricette.md#intervenire-su-un-evento-con-una-pipe).
+
+I nodi del file system possono portare `apps`: un piccolo oggetto per app (1 KB, al massimo 8 app e 2 KB in tutto) che solo quell'app scrive (`fs.setAppMeta`, `lilos.files.setMeta`, `fs.write(…, { mark })`). Con `content: true` il contenuto è dell'app: senza di lei lilOS non lo apre. Il campo viaggia verso il kernel con il nodo (`/api/fs/sync`).
+
+Con `ui.menus` un'app aggiunge voci al menu di file e cartelle (`contributes.actions`, `src/apps/appActions.js`) e un segno sull'icona di ciò su cui ha dati (`contributes.badge`, `itemBadges` in `src/desktop/itemIcons.js`). FileCrypt, nel repository ufficiale, è la prima app che usa tutto questo.
 
 ### Le app di sistema e il repository ufficiale
 

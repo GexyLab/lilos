@@ -26,7 +26,8 @@ const LABELS = {
   geo: 'Conoscere la posizione', 'apps.call': 'Avviare parti dell’app', 'ai.use': 'Usare l’intelligenza artificiale',
   'ai.expose': 'Rendere le proprie azioni disponibili all’assistente', background: 'Lavorare anche quando lilOS è chiuso',
   'auth.remote': 'Accedere al proprio servizio', 'apps.manage': 'Installare e rimuovere app', 'workspaces.manage': 'Gestire i workspace',
-  'settings.system': 'Cambiare le impostazioni di sistema',
+  'settings.system': 'Cambiare le impostazioni di sistema', pipe: 'Vedere e cambiare ciò che passa dall’evento',
+  'pipe.own': 'Gestire i propri file nell’evento',
 };
 
 /** 'fs.read:~/Documenti' → 'Leggere i file in Home/Documenti'. */

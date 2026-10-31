@@ -8,7 +8,7 @@
 export { version } from '../package.json';
 export { ACCENTS, LASSO_OPTIONS, RETENTION_OPTIONS } from './systemSettings.js';
 export { SYSTEM_FOLDERS, DESK_NAME } from './systemFs.js';
-export { FOLDER_COLOR, itemIcon } from './desktop/itemIcons.js';
+export { FOLDER_COLOR, itemIcon, itemBadges } from './desktop/itemIcons.js';
 export { FIXED_ITEMS as DESK_FIXED_ITEMS, isFixedShown, setFixedShown, setFixedShownEverywhere } from './desktop/fixedItems.js';
 export { LIMITS as WORKSPACE_LIMITS } from './workspaces/store.js';
 export { describeWorkspace, onWorkspacesChange, workspaceManager } from './workspaces/info.js';
@@ -16,6 +16,8 @@ export { apps, registry, getApp, isInstalled, installedApps, launch } from './ap
 export { fileApps, appFor, defaultAppFor, setAppFor, resetAppsFor, knownExtensions, openFile } from './apps/open.js';
 export { handleCommand } from './apps/commands.js';
 export { callEntrypoint, connectEntrypoint, entrypointsOf } from './apps/entrypoints.js';
+export { appActionEntries } from './apps/appActions.js';
+export { appPipes } from './apps/pipes.js';
 export { startup } from './apps/startup.js';
 export { services } from './apps/services.js';
 export { updateApps, requestRestart, restartSystem, updates } from './apps/updates.js';

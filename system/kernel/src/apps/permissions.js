@@ -5,7 +5,9 @@
  *   use        granted at installation, asked again to the user each time they are used
  *   reserved   only for system apps (from the official repository)
  *
- * Parameters follow a colon: 'fs.read:~/Documenti', 'net:https://api.example.com', 'apps.call:notes'.
+ * Parameters follow a colon: 'fs.read:~/Documenti', 'net:https://api.example.com', 'apps.call:notes',
+ * 'pipe:file.write' (the app sees and changes what goes through an event: see the SDK's pipes.js),
+ * 'pipe.own:file.read' (the same, only for the files the app marked itself).
  */
 export const PERMISSIONS = {
   'fs.app': { level: 'implicit', label: 'I propri dati' },
@@ -32,6 +34,8 @@ export const PERMISSIONS = {
   'ai.use': { level: 'install', label: 'Usare l’intelligenza artificiale' },
   'ai.expose': { level: 'install', label: 'Rendere le proprie azioni disponibili all’assistente' },
   background: { level: 'install', label: 'Lavorare anche quando lilOS è chiuso' },
+  pipe: { level: 'install', label: 'Vedere e cambiare ciò che passa dall’evento', param: 'event' },
+  'pipe.own': { level: 'install', label: 'Gestire i propri file nell’evento', param: 'event' },
   'auth.remote': { level: 'implicit', label: 'Accedere al proprio servizio' },
   'apps.manage': { level: 'reserved', label: 'Installare e rimuovere app' },
   'workspaces.manage': { level: 'reserved', label: 'Gestire i workspace' },
@@ -49,6 +53,7 @@ const PARAM = {
     }
   },
   app: v => /^[a-z0-9][a-z0-9.-]{1,63}$/.test(v),
+  event: v => /^[a-z0-9][a-z0-9.-]{0,63}\.[a-z][a-zA-Z0-9]{0,40}$/.test(v),
 };
 
 /** { name, param, level, label } for a permission string, or null if it is not one. */

@@ -26,6 +26,8 @@ Procedure passo per passo per le modifiche più comuni. Per i dettagli delle fun
 - [Rendere trascinabili file e cartelle in un'app](#rendere-trascinabili-file-e-cartelle-in-unapp)
 - [Creare un'app installabile (pacchetto)](#creare-unapp-installabile-pacchetto)
 - [Aggiungere un punto d'ingresso a un'app](#aggiungere-un-punto-dingresso-a-unapp)
+- [Intervenire su un evento con una pipe](#intervenire-su-un-evento-con-una-pipe)
+- [Aggiungere voci di menu e un segno sull'icona a un'app](#aggiungere-voci-di-menu-e-un-segno-sullicona-a-unapp)
 - [Installare un'app dall'esempio](#installare-unapp-dallesempio)
 - [Usare il kernel dal sistema o dall'SDK](#usare-il-kernel-dal-sistema-o-dallsdk)
 - [Aggiungere un modulo al kernel](#aggiungere-un-modulo-al-kernel)
@@ -639,6 +641,80 @@ Un'app installata o di sistema ha un solo file di traduzioni, con l'inglese come
 5. Per provare: Sistema → Lingua, scegli la lingua. Una lingua che l'app non ha ricade su `en`; una chiave mancante mostra la chiave e scrive un avviso in console.
 
 Le app ufficiali usano `appI18n(id, tabella)` di `src/shared/i18n.js` nel repository [lilos-plugins-official](https://github.com/GexyLab/lilos-plugins-official), che dà `locale.forApp(id).i18n` e ha un ripiego per i lilOS più vecchi, e controllano i file con `scripts/check-locales.mjs`.
+
+## Intervenire su un evento con una pipe
+
+Una pipe fa stare la tua app in mezzo a un'operazione del sistema (aprire, leggere o salvare un file, avviare un'app) per cambiarla o fermarla. Per l'esempio, un'app `acme.trim` toglie gli spazi in fondo ai file di testo **che ha segnato lei**. Serve `"sdk": "2"`, un punto d'ingresso `background` e un permesso per l'evento. Riferimento: [pipes](api.md#sdkcorepipesjs-e-sdkcorepipecatalogjs) e [decisione D47](../interna/decisioni.md#d47-pipe-sugli-eventi-dati-delle-app-sui-file-e-filecrypt).
+
+1. Nel manifesto dichiara il punto d'ingresso, il permesso e la pipe. Con `where: { meta: 'own' }` basta `pipe.own:<evento>` (solo i tuoi file); senza serve `pipe:<evento>` (ogni file):
+
+   ```json
+   "entrypoints": {
+     "main": { "kind": "window" },
+     "trim": { "kind": "background", "label": "Pulisce i file segnati" }
+   },
+   "permissions": ["pipe.own:file.write"],
+   "contributes": {
+     "pipes": [
+       { "event": "file.write", "stage": "before", "entry": "trim", "position": "last", "where": { "meta": "own" } }
+     ]
+   }
+   ```
+
+   `stage` è `before` (prima del salvataggio: puoi cambiare `content` o fermarlo) o `after` (sul risultato). `position` dice se vuoi essere tra i primi, a metà o tra gli ultimi della catena; l'utente poi può riordinare in Sistema → App → Pipe. Gli eventi che si possono cambiare sono `file.open`, `file.read`, `file.write` e `app.launch`; gli altri si possono solo guardare, e quelli di sistema (`session.*`, `apps.*`…) sono delle app di sistema.
+2. Nel punto d'ingresso dai la funzione che gestisce l'evento. Ripeti la fase e il `where` del manifesto: i permessi si controllano anche qui, e quelli del manifesto sono la tua iscrizione (non se ne crea una seconda):
+
+   ```js
+   export function trim({ lilos }) {
+     lilos.pipes.subscribe('file.write', { stage: 'before', where: { meta: 'own' } },
+       async ({ node, content }, ctx) => {
+         // content è un Blob; ctx = { event, stage, position, total, prev, next, caller }
+         const text = (await content.text()).replace(/\s+$/, '');
+         return { data: { content: new Blob([text]) } };   // o niente, o { stop: { error: 'Non si salva' } }
+       });
+   }
+   ```
+
+   Si prendono solo i campi che l'evento lascia cambiare in quella fase (per `file.write`/`before` è `content`). Se la funzione lancia un errore o non risponde entro 15 secondi, **il salvataggio fallisce**: non viene mai saltata.
+3. Segna i file su cui la pipe deve agire. `where: { meta: 'own' }` guarda `node.apps['acme.trim']`: lo imposti con `lilos.files.setMeta(id, { v: 1 })` o salvando con `lilos.files.write(rif, dati, { mark: { v: 1 } })` (contenuto e segno insieme). Il segno è un oggetto di al massimo 1 KB (2 KB in tutto per i dati di tutte le app su un file). Aggiungi `content: true` solo se il contenuto è tuo da leggere (per esempio cifrato): senza la tua app, o se le sue pipe `file.read` / `file.write` non sono attive, lilOS non apre né legge quel file, e la cronologia di annulla ne perde il contenuto. Serve il permesso `pipe:` o `pipe.own:` sia per `file.read` sia per `file.write` (negli esempi sopra aggiungi `pipe.own:file.read`). Per un file con `content: true` le pipe delle altre app non girano e ogni gestore vede solo i tuoi dati in `node.apps`. Se il punto d'ingresso in background si ferma, le finestre dei file tuoi si chiudono; `lilos.files.shown(ids)` dice quali sono mostrati (per non bloccarli per inattività) e `lilos.files.locked(ids)` chiede di chiudere le finestre di file che hai richiuso.
+4. I file segnati da te che arrivano in una pipe si possono leggere e scrivere con `lilos.files` (`lilos.files.read(id, { bytes: true })`). Le operazioni che chiedi tu **non passano dai tuoi gestori**, quindi leggere o scrivere lì dentro non ti richiama.
+5. Per gli eventi dell'app: `await lilos.pipes.define('acme.trim.cleaned', { label: 'File pulito', edit: { after: ['text'] } })` e `await lilos.pipes.run('acme.trim.cleaned', { text })` fanno passare i tuoi dati dalle pipe di chi si è iscritto.
+
+Per provarla: installa l'app, segna un file, salvalo e controlla il contenuto. Sistema → App → Pipe mostra la catena di `file.write` con la tua app.
+
+## Aggiungere voci di menu e un segno sull'icona a un'app
+
+Un'app installata aggiunge voci al menu del tasto destro di file e cartelle e un segno sull'icona di ciò su cui ha dati. Serve il permesso `ui.menus` (senza, il manifesto è rifiutato). Esempio, per segnare i file con `acme.trim`:
+
+1. Nel manifesto:
+
+   ```json
+   "entrypoints": {
+     "main": { "kind": "window" },
+     "mark": { "kind": "background" }
+   },
+   "permissions": ["ui.menus"],
+   "contributes": {
+     "actions": [
+       { "id": "acme.trim.mark", "label": "Segna per la pulizia", "entry": "mark", "on": "file", "glyph": "check", "when": { "meta": "none" }, "many": true }
+     ],
+     "badge": { "glyph": "check", "label": "Pulito da Acme" }
+   }
+   ```
+
+   `id` inizia con l'id dell'app; `on` è `file`, `folder` o `item`; `when.meta` `none` vale per i nodi che l'app non ha segnato, `own` per quelli che ha segnato (`when.ext` limita alle estensioni); `many: true` fa comparire la voce anche con più elementi selezionati. `entry` è un punto d'ingresso dell'app (`main` o un altro, non un `service`).
+2. Il punto d'ingresso riceve `{ files: [id], action: id }` e può leggere e scrivere quei file. Un background risponde con `lilos.handle`; una finestra li trova negli `args`:
+
+   ```js
+   export function mark({ lilos }) {
+     lilos.handle(async ({ files }) => {
+       for (const id of files) await lilos.files.setMeta(id, { v: 1 });
+       lilos.ui.toast(`${files.length} file segnati`);
+     });
+   }
+   ```
+3. Il segno (`badge`) compare da solo sull'icona dei nodi con `apps['acme.trim']`, sulla scrivania e nel File Manager. Le voci compaiono nel menu della scrivania e in quello del File Manager (con `appActionEntries`, se fai una vista tua: vedi [apps/pipes.js, apps/appActions.js e apps/systemEvents.js](api.md#appspipesjs-appsappactionsjs-e-appssystemeventsjs)).
+4. Traduzioni: `@actions.acme.trim.mark.label` e `@badge.label` nel `locales.json` (vedi [Tradurre un'app](#tradurre-unapp)).
 
 ## Installare un'app dall'esempio
 

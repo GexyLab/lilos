@@ -1,4 +1,4 @@
-import { fs, splitName, storage, fileTypeList } from '@lilos/sdk';
+import { fs, splitName, storage, fileTypeList, pipes, PipeStopped, toast } from '@lilos/sdk';
 import { apps, launch, isInstalled } from './registry.js';
 
 /**
@@ -77,10 +77,22 @@ export function setChooser(fn) {
 
 /**
  * Opens a file with its app; without one, with one not installed in this workspace, or with
- * choose: true, shows the "Apri con" window.
+ * choose: true, shows the "Apri con" window. It goes through the file.open pipe first: a handler
+ * may give it to another app, or stop it (an encrypted file asks for its password first).
+ * Resolves when it is decided; an error is told to the user.
  */
-export function openFile(node, { choose = false } = {}) {
-  const app = choose ? null : appFor(extensionOf(node));
-  if (app && isInstalled(app.id)) return launch(app.id, { file: node.id });
+export async function openFile(node, { choose = false } = {}) {
+  const chosen = choose ? null : appFor(extensionOf(node));
+  let app = chosen && isInstalled(chosen.id) ? chosen.id : null;
+  if (pipes.wants('file.open', { node, app }, { system: true })) {
+    try {
+      ({ app } = await pipes.around('file.open', { node: fs.get(node.id) ?? node, app }, d => d, { caller: { system: true } }));
+    } catch (err) {
+      if (!(err instanceof PipeStopped && err.silent)) toast(err.message, { timeout: 6000 });
+      return;
+    }
+  }
+  // A handler may only hand the file to an app that opens files (not to any app at all)
+  if (typeof app === 'string' && isInstalled(app) && fileApps().some(a => a.id === app)) return launch(app, { file: node.id });
   chooser?.(node);
 }

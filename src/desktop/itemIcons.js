@@ -45,13 +45,34 @@ export function workareaIcon() {
 }
 
 /**
+ * The signs installed apps put on the icon of the items they have data on (node.apps, manifest
+ * contributes.badge): [{ glyph, label, color }]. A content whose app is gone gets a lock.
+ */
+export function itemBadges(data) {
+  if (!data?.apps || typeof data.apps !== 'object') return [];
+  const out = [];
+  for (const [id, value] of Object.entries(data.apps)) {
+    const app = getApp(id);
+    const badge = app?.text?.contributes?.badge;
+    if (badge?.glyph) out.push({ glyph: badge.glyph, label: badge.label ?? app.name, color: app.color });
+    else if (!app && value?.content === true) out.push({ glyph: 'lock', label: `Serve l’app ${id}`, color: '#5f6673' });
+  }
+  return out;
+}
+
+/**
  * Icon for any desktop item data ({ type: 'folder' | 'file' | 'app' | 'workarea' | 'trash', ... });
- * a folder with a `glyph` is a place (see fixedItems.js), the trash shows if it is `full`.
+ * a folder with a `glyph` is a place (see fixedItems.js), the trash shows if it is `full`. Files and
+ * folders carry the signs of the apps that have data on them (itemBadges).
  */
 export function itemIcon(data) {
   if (data.type === 'workarea') return workareaIcon();
   if (data.type === 'trash') return trashIcon(data.full);
-  if (data.type === 'folder') return data.glyph ? placeIcon(data.glyph, data.color) : folderIcon(data.color);
   if (data.type === 'app') return appIcon(getApp(data.app));
-  return fileIcon(data.name);
+  const base = data.type === 'folder' ? (data.glyph ? placeIcon(data.glyph, data.color) : folderIcon(data.color)) : fileIcon(data.name);
+  const badges = itemBadges(data);
+  if (!badges.length) return base;
+  const label = badges.map(b => b.label).join(', ');
+  return h('span', { class: 'icon-badged', title: label, 'aria-label': label },
+    base, h('span', { class: 'icon-badges' }, ...badges.map(b => h('span', { class: 'icon-badge', style: { backgroundColor: b.color } }, icon(b.glyph)))));
 }

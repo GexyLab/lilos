@@ -1,4 +1,4 @@
-import { bus, menus, toast } from '@lilos/sdk';
+import { bus, menus, toast, pipes, PipeStopped } from '@lilos/sdk';
 import { apps, getApp, isInstalled } from './registry.js';
 import { blockedLaunch } from './updates.js';
 
@@ -73,6 +73,24 @@ export function connectLauncher(wm) {
     if (!isInstalled(id)) return toast(`${app.name} è nascosta in questo workspace. Si mostra da Sistema → Workspace.`, { timeout: 5000 });
     // Being updated, or updated and waiting for lilOS to restart: its old code must not start again
     if (blockedLaunch(id)) return;
+    // The app.launch pipe: a handler may change the args, or stop it
+    if (pipes.wants('app.launch', { id, entry, args }, { system: true })) {
+      try {
+        const given = args;
+        ({ args } = await pipes.around('app.launch', { id, entry, args: args ?? null }, d => d, { caller: { system: true } }));
+        // Handlers change the options of a launch, never which files the app gets
+        if (args && typeof args === 'object') {
+          const { file, files: list, ...rest } = args;
+          args = { ...rest, ...(given?.file !== undefined && { file: given.file }), ...(given?.files !== undefined && { files: given.files }) };
+        } else if (given?.file !== undefined || given?.files !== undefined) {
+          args = given;
+        }
+        args ??= undefined;
+      } catch (err) {
+        if (!(err instanceof PipeStopped && err.silent)) toast(err.message, { timeout: 6000 });
+        return;
+      }
+    }
     const open = wm.windows.find(w => wm.appOf(w) === id && (w.entry ?? 'main') === entry && scope.includes(w));
     if (open) {
       if (files.length) open.emit('grant', files);

@@ -1,5 +1,6 @@
 import { bus, fs, storage, settings, openMenu, shortcuts, selectionGesture, menus, UndoStack, tags, toast } from '@lilos/sdk';
-import { launch } from '../apps/registry.js';
+import { launch, registry } from '../apps/registry.js';
+import { appActionEntries } from '../apps/appActions.js';
 import { openFile } from '../apps/open.js';
 import { addTarget } from '../items/targets.js';
 import { confirmRemove, deleteNodes, deleteLabel } from '../items/confirmRemove.js';
@@ -84,6 +85,8 @@ export class Desktop {
     // Fixed items turned on or off for every workspace (those of one workspace: Workspaces calls syncFixed)
     settings.on('change:deskHidden', () => this.syncFixed());
     tags.on('change', () => this.items.forEach(it => { if (!it.workarea && !it.fixed && fs.exists(it.id)) it.setData(fs.get(it.id)); }));
+    // An app came or went: the signs it puts on icons too
+    registry.on('change', () => this.items.forEach(it => { if (!it.workarea && !it.fixed && fs.get(it.id)?.apps) it.setData(fs.get(it.id)); }));
     canvas.on('background:press', e => this.#selectByDrag(e));
     canvas.on('background:click', e => { if (!e.ctrlKey && !e.metaKey && !e.shiftKey) this.select([]); });
     canvas.on('background:contextmenu', e => this.#backgroundMenu(e));
@@ -568,6 +571,7 @@ export class Desktop {
       nodes.length && linkEntry(nodes),
       free && { label: 'Crea una workarea con la selezione', icon: 'workarea', action: () => this.workareas.createAround(selected) },
       !many && { label: 'Proprietà…', icon: 'info', action: () => showProperties(item.id) },
+      ...appActionEntries(nodes, { separator: true }),
       '-',
       deletable.length
         ? { label: deletable.length > 1 ? `Elimina ${deletable.length} elementi` : 'Elimina', icon: 'trash', shortcut: shortcuts.label('items.delete'), danger: true, action: () => this.remove(deletable) }

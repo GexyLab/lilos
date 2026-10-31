@@ -36,6 +36,7 @@ sdk/                    @lilos/sdk: basi riutilizzabili da sistema e app
   core/settings.js      preferenze dell'utente
   core/locale.js        lingua del sistema e traduzioni delle app (con core/i18n.js, il motore)
   core/fs.js            file system virtuale (cartelle, file, collegamenti; salvato nel kernel)
+  core/pipes.js         pipe sugli eventi: le app si mettono in mezzo a ciò che succede (con core/pipeCatalog.js, gli eventi)
   core/tags.js          tag colorati per ritrovare file e cartelle, anche nascondendoli
   ui/                   icone, menu, controlli, Window, SettingsView, SettingsWindow
   styles/               token, base, componenti, finestre (@lilos/sdk/styles.css)
@@ -57,7 +58,7 @@ src/                    il sistema, costruito sull'SDK
   desktop/
     Desktop.js          selezione, trascinamento, rinomina, elimina, menu contestuali, salvataggio
     DesktopItem.js      componente singolo (cartella / file / app)
-    itemIcons.js        icone grandi di cartelle, file e workarea
+    itemIcons.js        icone grandi di cartelle, file e workarea, con i segni delle app
     fixedItems.js       elementi fissi: Home, Documenti, Immagini, File Manager, Download, Cestino
     seed.js             elementi della Scrivania al primo avvio
   systemSettings.js     impostazioni del sistema
@@ -75,6 +76,9 @@ src/                    il sistema, costruito sull'SDK
     services.js         servizi delle app nel kernel: client e avvisi
     appProperties.js    "Proprietà…" di un'app: Generale, Permessi, Sicurezza
     open.js             quale app apre quale tipo di file
+    pipes.js            le app installate nelle pipe sugli eventi (iscrizioni, permessi)
+    appActions.js       voci che le app aggiungono al menu di file e cartelle
+    systemEvents.js     eventi del sistema per le pipe: finestre, workspace, impostazioni, app, sessione
     openWith.js         finestra "Apri con"
     commands.js         scorciatoie delle app
   workareas/            aree della scrivania con icone e finestre: ridurre a icona, riaprire, proprietà

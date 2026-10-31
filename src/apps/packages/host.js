@@ -4,6 +4,7 @@ import { appCode, libraryCode, entrypoints, escapeAttr, inline, netOrigins } fro
 import { isIsolated } from './isolation.js';
 import { hostMethods, invoke, transferOf } from './methods.js';
 import { handleCommand } from '../commands.js';
+import { pipeTarget } from '../pipes.js';
 
 /**
  * Windows of installed apps. The code is read from the kernel and checked against the hashes of
@@ -30,6 +31,11 @@ function theme() {
   vars['--font'] = getComputedStyle(document.body).fontFamily;
   return vars;
 }
+
+let windows = 0;
+
+/** A window's place in the pipes: lilOS calls its lilos.pipes functions through `deliver`. */
+const windowPipe = (pkg, entry, handles, deliver) => pipeTarget({ key: `${pkg.id}#${entry}#w${++windows}`, pkg, entry, handles, deliver });
 
 /** Calls fn when theme or accent change; returns the functions that stop it. */
 const watchTheme = fn => ['theme', 'accent'].map(key => settings.watch(key, () => requestAnimationFrame(fn)));
@@ -85,15 +91,31 @@ ${run}
 }
 
 /** Answers the messages of one sandboxed window. Returns the function that stops it. */
-function connectBridge(win, frame, pkg, handles) {
-  const methods = hostMethods({ pkg, win, handles });
+function connectBridge(win, frame, pkg, handles, entry) {
   // A local app's origin is opaque ('*' is the only way to reach it); a remote app gets messages only at its own
   const targetOrigin = pkg.manifest.kind === 'remote' ? new URL(pkg.manifest.url).origin : '*';
   const post = (msg, transfer = []) => frame.contentWindow?.postMessage({ lilos: 1, ...msg }, targetOrigin, transfer);
+  const replies = new Map();
+  let next = 1;
+  const pipe = pkg.manifest.kind === 'local' ? windowPipe(pkg, entry, handles, (sub, data, ctx) => new Promise((resolve, reject) => {
+    const request = next++;
+    replies.set(request, { resolve, reject });
+    // The pipe gives up after its own timeout: the reply that never comes is not kept
+    setTimeout(() => replies.delete(request), 60_000);
+    post({ request, pipe: sub, data, ctx });
+  })) : null;
+  const methods = hostMethods({ pkg, win, handles, pipe });
   const onMessage = async e => {
     // Only this window's frame; its origin is opaque ('null'), so the source is what identifies it
-    if (e.source !== frame.contentWindow || e.data?.lilos !== 1 || typeof e.data.method !== 'string') return;
+    if (e.source !== frame.contentWindow || e.data?.lilos !== 1) return;
     if (targetOrigin !== '*' && e.origin !== targetOrigin) return;
+    if (e.data.reply && replies.has(e.data.reply)) {
+      const r = replies.get(e.data.reply);
+      replies.delete(e.data.reply);
+      if (e.data.error) r.reject(new Error(e.data.error)); else r.resolve(e.data.result);
+      return;
+    }
+    if (typeof e.data.method !== 'string') return;
     const { id, method, params } = e.data;
     try {
       const result = (await invoke(methods, method, params)) ?? null;
@@ -113,6 +135,8 @@ function connectBridge(win, frame, pkg, handles) {
   });
   return () => {
     removeEventListener('message', onMessage);
+    pipe?.close();
+    for (const r of replies.values()) r.reject(new Error(`${pkg.manifest.name}: la finestra si è chiusa`));
     offKeys?.();
     offLocale();
     offTheme.forEach(off => off?.());
@@ -162,9 +186,12 @@ async function mountInPage(win, pkg, entry, args, handles) {
   root.append(h('style', {}, SHADOW_CSS));
   win.body.append(host);
 
-  const methods = hostMethods({ pkg, win, handles });
+  let dispatch = null;
+  const pipe = windowPipe(pkg, entry, handles, (sub, data, ctx) => dispatch(sub, data, ctx));
+  const methods = hostMethods({ pkg, win, handles, pipe });
   const info = { id: pkg.id, version: pkg.version, entry, args: args ?? null, locale: locale.strings(pkg.id) };
-  const { api, emit } = lilosApi((method, ...params) => Promise.resolve().then(() => invoke(methods, method, params)), info, locale.engine);
+  const { api, emit, pipe: answerPipe } = lilosApi((method, ...params) => Promise.resolve().then(() => invoke(methods, method, params)), info, locale.engine);
+  dispatch = answerPipe;
   // The keyboard reaches lilOS's page: shortcuts go to the active window of the app
   const offs = (manifest.contributes?.commands ?? []).map(cmd => handleCommand(cmd.id, { isActive: () => win.active, run: () => emit('command', cmd.id) }));
   offs.push(...watchTheme(() => emit('theme', theme())));
@@ -176,6 +203,7 @@ async function mountInPage(win, pkg, entry, args, handles) {
   });
   let dispose = null;
   win.on('destroy', () => {
+    pipe.close();
     offs.forEach(off => off?.());
     try { dispose?.(); } catch (err) { console.error(`[lilos] ${pkg.id}:`, err); }
   });
@@ -213,7 +241,7 @@ export function packageModule(pkg) {
         frame.srcdoc = await documentFor(pkg, args, entry);
       }
       win.body.append(frame);
-      const stop = connectBridge(win, frame, pkg, handles);
+      const stop = connectBridge(win, frame, pkg, handles, entry);
       win.on('destroy', stop);
       return win;
     },

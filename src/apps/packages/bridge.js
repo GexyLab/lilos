@@ -22,11 +22,22 @@ import { locale } from '@lilos/sdk';
  *   lilos.on(event, fn) → off            'launch' (args), 'command' (id), 'theme', 'connect' (port, background),
  *                                        'locale' ({ code, lang }: lilos.locale already has the new strings)
  *   lilos.window.setTitle(text)          windows only
+ *   lilos.window.close()                 the window closes, as with its close button
  *   lilos.ui.toast(text)
- *   lilos.files.read(ref) → text         ref: '~/Documenti/a.txt' or the id of a file opened with the app
- *   lilos.files.write(ref, text)         creates the file if its folder exists
+ *   lilos.files.read(ref, { bytes? }) → text | Blob   ref: '~/Documenti/a.txt' or the id of a file opened with the app
+ *   lilos.files.write(ref, data, { mark? })   text or bytes; creates the file if its folder exists.
+ *                                        mark: the app's own data on the file, saved with it (null: none)
+ *   lilos.files.info(ref) → { id, name, type, size, modified, path, meta }   meta: the app's data on it
+ *   lilos.files.setMeta(ref, value)      the app's own data on the file (null takes it away)
+ *   lilos.files.open(id)                 opens a file the app was handed, with its app
+ *   lilos.files.locked(ids)              files the app locked again: lilOS closes the windows showing them
+ *   lilos.files.shown(ids) → ids         which of these files a window shows now
  *   lilos.files.list(path) → [{ name, type, size, modified }]
  *   lilos.files.mkdir(path)
+ *   lilos.pipes.subscribe(event, { stage, position, where }, fn) → off   fn(data, ctx) → { data } | { stop } | nothing
+ *                                        (the SDK's pipes.js; permission pipe:<event> or pipe.own:<event>)
+ *   lilos.pipes.define(name, { label, edit, stop })   an event of the app's own: '<app id>.<name>'
+ *   lilos.pipes.run(name, data) → data   runs it through its handlers
  *   lilos.storage.get(key) / set(key, value)    the app's own data, for the signed-in user
  *   lilos.clipboard.write(text)
  *
@@ -41,10 +52,12 @@ import { locale } from '@lilos/sdk';
  * lilOS puts in a sandbox or a worker: it must not use anything from outside itself; the
  * translations engine comes as `i18nApi` (the SDK's locale.engine), and info.locale are the
  * resolved strings ({ code, lang, strings }). A 'locale' event brings new ones.
- * Returns { api, emit(event, data), answer(data, from) → result of the lilos.handle() function }.
+ * Returns { api, emit(event, data), answer(data, from) → result of the lilos.handle() function,
+ * pipe(sub, data, ctx) → result of a lilos.pipes.subscribe() function }.
  */
 export function lilosApi(call, info, i18nApi) {
   const listeners = new Map();
+  const subs = new Map();
   let handler = null;
   const locale = i18nApi(info.locale);
   const emit = (event, data) => {
@@ -71,13 +84,31 @@ export function lilosApi(call, info, i18nApi) {
       listeners.get(event).push(fn);
       return () => listeners.set(event, listeners.get(event).filter(f => f !== fn));
     },
-    window: Object.freeze({ setTitle: text => call('window.setTitle', String(text)) }),
+    window: Object.freeze({ setTitle: text => call('window.setTitle', String(text)), close: () => call('window.close') }),
     ui: Object.freeze({ toast: text => call('ui.toast', String(text)) }),
     files: Object.freeze({
-      read: ref => call('files.read', ref),
-      write: (ref, text) => call('files.write', ref, String(text)),
+      read: (ref, options) => call('files.read', ref, options ?? null),
+      write: (ref, data, options) => call('files.write', ref, data instanceof Blob || data instanceof ArrayBuffer || ArrayBuffer.isView(data) ? data : String(data), options ?? null),
+      info: ref => call('files.info', ref),
+      setMeta: (ref, value) => call('files.setMeta', ref, value ?? null),
+      open: ref => call('files.open', ref),
+      locked: ids => call('files.locked', ids),
+      shown: ids => call('files.shown', ids),
       list: path => call('files.list', path),
       mkdir: path => call('files.mkdir', path),
+    }),
+    pipes: Object.freeze({
+      async subscribe(event, options, fn) {
+        if (typeof fn !== 'function') throw new Error('Manca la funzione della pipe');
+        const sub = await call('pipes.subscribe', String(event), options ?? null);
+        subs.set(sub, fn);
+        return () => {
+          subs.delete(sub);
+          return call('pipes.unsubscribe', sub);
+        };
+      },
+      define: (name, def) => call('pipes.define', String(name), def ?? null),
+      run: (name, data) => call('pipes.run', String(name), data ?? null),
     }),
     storage: Object.freeze({
       get: key => call('storage.get', key),
@@ -89,7 +120,12 @@ export function lilosApi(call, info, i18nApi) {
     if (!handler) throw new Error(`${info.id}: ${info.entry} non risponde alle chiamate (manca lilos.handle)`);
     return handler(data, { from });
   };
-  return { api, emit, answer };
+  const pipe = async (sub, data, ctx) => {
+    const fn = subs.get(sub);
+    if (!fn) throw new Error(`${info.id}: nessuna funzione per questa pipe`);
+    return (await fn(data, ctx)) ?? null;
+  };
+  return { api, emit, answer, pipe };
 }
 
 /**
@@ -106,7 +142,7 @@ const RUNTIME = `function runtime(lilosApi, i18nApi, init) {
     pending.set(id, { resolve, reject });
     port.postMessage({ lilos: 1, id, method, params });
   });
-  const { api, emit, answer } = lilosApi(call, info, i18nApi);
+  const { api, emit, answer, pipe } = lilosApi(call, info, i18nApi);
   let started = null;   // calls and channels wait for the entry point to be running
   port.onmessage = async e => {
     const m = e.data;
@@ -114,7 +150,8 @@ const RUNTIME = `function runtime(lilosApi, i18nApi, init) {
     if (m.request) {
       try {
         await started;
-        port.postMessage({ lilos: 1, reply: m.request, result: (await answer(m.data, m.from)) ?? null });
+        const result = m.pipe ? await pipe(m.pipe, m.data, m.ctx) : await answer(m.data, m.from);
+        port.postMessage({ lilos: 1, reply: m.request, result: result ?? null });
       } catch (err) {
         port.postMessage({ lilos: 1, reply: m.request, error: String(err?.message ?? err) });
       }
@@ -193,11 +230,20 @@ export const BRIDGE_SOURCE = `(() => {
   const applyTheme = vars => { for (const [k, v] of Object.entries(vars || {})) document.documentElement.style.setProperty(k, v); };
   applyTheme(info.theme);
   delete info.theme;
-  const { api, emit } = lilosApi(call, info, i18nApi);
-  addEventListener('message', e => {
+  const { api, emit, pipe } = lilosApi(call, info, i18nApi);
+  addEventListener('message', async e => {
     if (e.source !== parent) return;
     const m = e.data;
     if (!m || m.lilos !== 1) return;
+    // lilOS calls one of the window's pipe functions
+    if (m.request && m.pipe) {
+      try {
+        parent.postMessage({ lilos: 1, reply: m.request, result: (await pipe(m.pipe, m.data, m.ctx)) ?? null }, '*');
+      } catch (err) {
+        parent.postMessage({ lilos: 1, reply: m.request, error: String(err && err.message || err) }, '*');
+      }
+      return;
+    }
     if (m.event === 'keys') { keys = m.data || {}; return; }
     if (m.event === 'theme') applyTheme(m.data);
     if (m.event) return emit(m.event, m.data);

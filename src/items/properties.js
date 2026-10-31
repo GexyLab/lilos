@@ -1,11 +1,13 @@
-import { Window, h, fs, tags, session, fileType } from '@lilos/sdk';
+import { Window, h, fs, tags, session, fileType, actionButton } from '@lilos/sdk';
 import { describeWorkspace } from '../workspaces/info.js';
 import { appFor, extensionOf } from '../apps/open.js';
 import { showAppProperties } from '../apps/appProperties.js';
+import { itemBadges } from '../desktop/itemIcons.js';
+import { getApp } from '../apps/registry.js';
 
 /**
- * "Proprietà…" of a file or folder: what it is, where, how big, when, whose, its tags and (files)
- * the app that opens it. Read only; it follows changes while open and closes when the item goes.
+ * "Proprietà…" of a file or folder: what it is, where, how big, when, whose, its tags, (files)
+ * the app that opens it, and what installed apps say of it (their signs: "Cifrato con FileCrypt"). Read only; it follows changes while open and closes when the item goes.
  * A desktop shortcut to an app shows the app's properties (appProperties.js).
  * One window per item (key `props:<id>`).
  */
@@ -52,6 +54,14 @@ function rows(node) {
   out.push(...row('Workspace', owner ? owner.name : 'Condiviso da tutti i workspace'));
   const names = (node.tags ?? []).map(t => tags.get(t)).filter(Boolean);
   out.push(...row('Tag', names.length ? h('span', { class: 'props-tags' }, ...names.map(t => h('span', { class: 'props-tag' }, h('i', { style: { background: t.color } }), t.name))) : 'Nessuno'));
+  const marks = itemBadges(node);
+  if (marks.length) out.push(...row('App', marks.map(b => b.label).join(', ')));
+  // Data of an app that is gone: it can be taken away (the content stays as it is stored: an
+  // encrypted file stays unreadable, but lilOS no longer refuses to open it)
+  for (const id of Object.keys(node.apps ?? {}).filter(id => !getApp(id))) {
+    out.push(...row(`Dati di ${id}`, h('span', { class: 'props-orphan' }, 'L’app non è installata ',
+      actionButton({ label: 'Rimuovi', onClick: () => fs.setAppMeta(node.id, id, null) }))));
+  }
   return out;
 }
 

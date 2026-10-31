@@ -19,6 +19,7 @@ Gli altri moduli (`src/`) sono il sistema: scrivania, desktop, barra.
 - [sdk/core/settings.js](#sdkcoresettingsjs)
 - [sdk/core/shortcuts.js](#sdkcoreshortcutsjs)
 - [sdk/core/fs.js](#sdkcorefsjs)
+- [sdk/core/pipes.js e sdk/core/pipeCatalog.js](#sdkcorepipesjs-e-sdkcorepipecatalogjs)
 - [sdk/core/tags.js](#sdkcoretagsjs)
 - [sdk/core/history.js](#sdkcorehistoryjs)
 - [sdk/core/fileTypes.js](#sdkcorefiletypesjs)
@@ -36,6 +37,7 @@ Gli altri moduli (`src/`) sono il sistema: scrivania, desktop, barra.
 - [systemApi.js (`@lilos/system`)](#systemapijs-lilossystem)
 - [apps/open.js e apps/openWith.js](#appsopenjs-e-appsopenwithjs)
 - [apps/commands.js](#appscommandsjs)
+- [apps/pipes.js, apps/appActions.js e apps/systemEvents.js](#appspipesjs-appsappactionsjs-e-appssystemeventsjs)
 - [apps/registry.js e apps/launcher.js](#appsregistryjs-e-appslauncherjs)
 - [apps/startup.js](#appsstartupjs)
 - [apps/packages/](#appspackages)
@@ -189,6 +191,8 @@ I testi che lilOS mostra senza eseguire l'app (nome, comandi, finestre) stanno *
 | `@description` | `description` |
 | `@commands.<id>.label` | `contributes.commands[].label` |
 | `@widgets.<id>.name` | `contributes.widgets[].name` |
+| `@actions.<id>.label` | `contributes.actions[].label` |
+| `@badge.label` | `contributes.badge.label` |
 | `@entrypoints.<nome>.label` | `entrypoints.<nome>.label` |
 | `@entrypoints.<nome>.params.<param>.label` | `label` di un parametro |
 | `@entrypoints.<nome>.params.<param>.description` | `description` di un parametro |
@@ -437,13 +441,16 @@ File system virtuale: un albero di cartelle, file e collegamenti alle app, tenut
   system?,    // non si può rinominare né eliminare
   workspace?, // id del workspace che l'ha creato (non cambia se lo si sposta o rinomina)
   private?,   // solo cartelle: visibile solo nel workspace proprietario (la Scrivania di un workspace)
-  tags? }     // id dei tag (SDK `tags`), al massimo 30, senza doppioni; mai sui nodi di sistema
+  tags?,      // id dei tag (SDK `tags`), al massimo 30, senza doppioni; mai sui nodi di sistema
+  apps? }     // dati delle app su questo nodo: { [id app]: oggetto }, vedi sotto
 ```
 
 - I nomi sono unici dentro una cartella senza distinguere maiuscole e minuscole: `create` e `rename` aggiungono un numero se serve (`nota.txt` → `nota 2.txt`). Non possono essere vuoti né contenere `/` (diventa `-`); al massimo 255 caratteri.
 - Tutti i metodi di lettura restituiscono **copie** che non condividono nemmeno l'array `tags`: l'albero si cambia solo con i metodi.
 - **Cestino.** `trash` sposta i nodi sotto una seconda radice nascosta (`fs.trashRoot`, `'trash'`). Per tutti gli altri metodi (`get`, `exists`, `children`, `resolve`, `read`, `snapshot`…) i nodi cestinati **non esistono**: si vedono solo con `trashed()`. Vedi [D28](../interna/decisioni.md#d28-il-cestino-è-una-seconda-radice-nascosta-del-file-system).
 - **Workspace.** Con un workspace impostato (`setWorkspace`), le cartelle `private` degli altri workspace e tutto ciò che contengono **non esistono**: `get`, `exists`, `children`, `ancestors`, `resolve`, `path`, `read`, `write`, `rename`, `move`, `remove`, `snapshot` e `restore` le ignorano (come un id sconosciuto). Senza workspace impostato (all'avvio, prima di `setupWorkspaces`) tutto è visibile. Due cartelle private di workspace diversi possono avere lo stesso nome nella stessa cartella (non si vedono mai insieme). Ogni nodo creato con un workspace impostato porta il suo id in `workspace`.
+- **Dati delle app.** `apps` tiene, per ogni id di app (`/^[a-z0-9][a-z0-9.-]{1,63}$/`), un oggetto che solo quell'app scrive (il ponte `lilos.files.setMeta` e `lilos.files.write(…, { mark })` scrivono sempre sotto l'id dell'app che chiama): al massimo **1 KB di JSON** per app, **8 app** per nodo e **2 KB in tutto** per i dati di tutte le app (il kernel accetta 4 KB di metadati per nodo). Con `content: true` l'app dice che il contenuto del file è suo (per esempio cifrato): senza l'app installata lilOS non lo apre, non lo legge e non lo scrive (guardia di `apps/pipes.js`, che scatta anche se l'app c'è ma le sue pipe `file.read` / `after` e `file.write` / `before` non sono attive). Per `file.open`, `file.read` e `file.write` di un tale file girano solo i gestori di lilOS e quelli di quell'app (vedi [pipes](#sdkcorepipesjs-e-sdkcorepipecatalogjs)). Le copie (`copy`, `copyContent`) portano `apps` con sé; rinominare e spostare non lo toccano. Alla lettura da `lilos:fs` si tengono solo le voci valide. Con `content: true`, `setAppMeta` e `write(…, { mark })` chiamano `scrub` sul nodo.
+- **Pipe.** `read`, `readBlob` e `write` passano dagli eventi `file.read` e `file.write` ([pipes](#sdkcorepipesjs-e-sdkcorepipecatalogjs)) solo se qualche gestore li vuole per quel file; `caller` dice chi chiede (`{ app, opened }` per un'app installata, `{ system: true }` per lilOS, `null` se non si sa) e le operazioni chieste da un'app saltano i gestori di quella stessa app. Le operazioni immediate (`create`, `rename`, `move`, `remove`, `trash`, `purge`, `setTags`) chiamano prima `pipes.runSync` (solo i gestori sincroni di lilOS, che possono fermarle) e dopo `pipes.notify` (le app guardano); `untrash`, `copy` e `copyContent` solo `notify`.
 - **Tag.** Un nodo con un tag nascosto (`setHiddenTags`) è escluso da `children()`, quindi da scrivania, File Manager, selettore, pannello dell'Editor e conteggi, ma **esiste ancora**: `get`, `exists`, `resolve`, `ancestors`, `path`, `read` e `tagged` lo trovano. Così le finestre aperte, l'Editor e le scorciatoie continuano a funzionare. Un elemento dentro una cartella nascosta non è nascosto a sua volta (se non ha il tag), ma non si raggiunge finché la cartella è nascosta. Il campo `tags` si conserva in cestino, `snapshot`/`restore` e `move`. Vedi [D29](../interna/decisioni.md#d29-i-tag-stanno-sui-nodi-e-un-tag-invisibile-nasconde-gli-elementi).
 
 | Membro | Descrizione |
@@ -462,9 +469,14 @@ File system virtuale: un albero di cartelle, file e collegamenti alle app, tenut
 | `create(parentId, { type, name, color?, app?, size?, system?, id?, workspace?, private? })` | Crea e restituisce il nodo (`id` facoltativo, per le migrazioni). `workspace` è il proprietario: predefinito il workspace attuale (`fs.workspace`); le cartelle di sistema condivise (`system` senza `private`) non hanno proprietario. `private: true` solo per una cartella con un proprietario. Lancia un errore se la cartella non esiste, il tipo non è valido o `workspace` non è un id valido. |
 | `rename(id, name)` | Rinomina e restituisce il nome finale. |
 | `update(id, { color })` | Cambia i metadati che non sono il nome. |
-| `read(id)` | `Promise<string>`: il contenuto del file come testo (`''` se non ne ha). |
-| `readBlob(id, { type? })` | `Promise<Blob>`: il contenuto del file come byte (vuoto se non ne ha), per le immagini e gli altri file binari. Il tipo del `Blob` viene dall'estensione (`'image/png'` per un `.png`, `'image/svg+xml'` per un `.svg`…), oppure è `type`. |
-| `write(id, data)` | `Promise`: salva il contenuto, testo (una stringa) o byte (`Blob`, `ArrayBuffer` o array tipizzato), aggiorna `size` (in byte) e `modified` ed emette `change` di tipo `update`. I byte arrivano al kernel così come sono (`PUT /api/fs/content/:id`) e tornano uguali con `readBlob` (`GET /api/fs/content/:id?raw=1`). |
+| `read(id, { caller? })` | `Promise<string>`: il contenuto del file come testo (`''` se non ne ha), passando da `file.read` se qualcuno lo vuole. |
+| `readBlob(id, { type?, caller? })` | `Promise<Blob>`: il contenuto del file come byte (vuoto se non ne ha), per le immagini e gli altri file binari. Il tipo del `Blob` viene dall'estensione (`'image/png'` per un `.png`, `'image/svg+xml'` per un `.svg`…), oppure è `type`. |
+| `write(id, data, { caller?, mark? })` | `Promise`: salva il contenuto, testo (una stringa) o byte (`Blob`, `ArrayBuffer` o array tipizzato), aggiorna `size` (in byte) e `modified` ed emette `change` di tipo `update`. I byte arrivano al kernel così come sono (`PUT /api/fs/content/:id`) e tornano uguali con `readBlob` (`GET /api/fs/content/:id?raw=1`). Passa da `file.write` (un gestore può cambiare `content` o fermare il salvataggio). `mark: { app, value }` imposta anche i dati di quell'app sul nodo (`setAppMeta`) dopo il salvataggio, nello stesso cambiamento: un contenuto e il segno che dice come leggerlo non si separano mai. I dati di `mark` si controllano prima di salvare. |
+| `copy(id, parentId, { name? })` | `Promise<node>`: una copia del file in una cartella, con `name` (o il suo nome) reso unico. Copia il contenuto **così com'è nel kernel** (non passa dalle pipe: un file cifrato resta cifrato) e i dati delle app (`apps`). Emette `change` di tipo `create` e poi `update`; `file.copy` dopo. |
+| `copyContent(fromId, toId)` | `Promise`: mette il contenuto memorizzato di un file, e i suoi `apps`, dentro un altro file che esiste già. Emette `change` di tipo `update` e `file.copy`. |
+| `appMeta(id, appId)` | Una copia dei dati di quell'app sul nodo, o `null`. |
+| `setAppMeta(id, appId, value)` | Imposta i dati di un'app su un nodo (anche una cartella), o li toglie con `null`. `value` è un oggetto semplice di al massimo 1 KB di JSON. Lancia un errore per un id di app non valido, per un `value` che non è un oggetto o è troppo grande (1 KB per app), per più di 8 app sul nodo o più di 2 KB di dati di tutte le app insieme («Troppi dati delle app su questo elemento») e per l'elemento inesistente o la radice. Con `content: true` ripulisce la cronologia di annulla di quel contenuto (`scrub`). Emette `change` di tipo `update`. Solo il sistema e le app di sistema lo chiamano direttamente: un'app installata passa da `lilos.files.setMeta`. |
+| `scrub(...ids)` | Toglie il contenuto di questi nodi da ogni `snapshot` ancora tenuto (la cronologia di annulla): rimetterli darebbe un file vuoto. Serve a un contenuto che non deve restare da nessuna parte in chiaro. |
 | `move(id, parentId)` | Sposta il nodo (con il contenuto) in un'altra cartella e restituisce il nome finale, reso unico lì. Lancia un errore se la destinazione non è una cartella o sta dentro il nodo stesso. |
 | `remove(id)` | Elimina il nodo e, per le cartelle, tutto il contenuto (anche quello dei file). Il contenuto si perde: per poterlo riavere prendi prima uno `snapshot`, oppure usa `trash`. Non vale per i nodi nel cestino (`purge`). |
 | `trashRoot` | Id della radice nascosta del cestino (`'trash'`); non è un nodo: `get` non la vede. |
@@ -502,6 +514,106 @@ Evento `change`: `{ type: 'create' | 'rename' | 'update' | 'move' | 'remove', no
 Collegati al kernel, i contenuti stanno nel database del kernel (con il nodo, e spariscono con lui); IndexedDB `lilos:<id utente>` (archivio `contents`, chiave l'`id` del file) ne tiene una copia: ciò che si è letto o scritto, usato solo per leggere quando il kernel non risponde (`offline`), e cancellato quando l'utente esce. Non collegati, stanno nel database IndexedDB `lilos`, archivio `contents`; se IndexedDB non è disponibile (alcune modalità private) restano in memoria fino alla ricarica, e qualche secondo dopo l'avvio si eliminano i contenuti dei nodi che non esistono più.
 
 Alla lettura da `lilos:fs` vengono tenuti solo i nodi ben formati raggiungibili dalla radice: tipi sconosciuti, nomi non validi, nodi orfani, cicli e nomi duplicati nella stessa cartella vengono scartati (tranne tra cartelle private di workspace diversi). `workspace` è tenuto solo se è un id valido e `private` solo per cartelle con un proprietario. `tags` è tenuto solo sui nodi che non sono di sistema, ripulito come in `setTags` (id validi, senza doppioni, al massimo 30); `setTags` non controlla che i tag esistano, ma i tag che non esistono più non si vedono da nessuna parte. Si parte da due radici (`root` e `trash`): i figli diretti del cestino senza un `trashed` valido (`at` numero, `from` testo) si scartano, e lì i nomi possono ripetersi. `ownedCount` non conta i nodi nel cestino.
+
+---
+
+## sdk/core/pipes.js e sdk/core/pipeCatalog.js
+
+Pipe sugli eventi: le operazioni del sistema che altri possono guardare, cambiare o fermare. Decisione: [D47](../interna/decisioni.md#d47-pipe-sugli-eventi-dati-delle-app-sui-file-e-filecrypt). `pipes.js` è il motore; `pipeCatalog.js` dichiara gli eventi del sistema e riesporta `pipes` e `PipeStopped`, che l'SDK esporta da lì (`import { pipes, PipeStopped } from '@lilos/sdk'`), così ogni evento ha il suo catalogo comunque si arrivi.
+
+Un **evento** ha due fasi:
+
+- **`before`**: prima dell'operazione. Un gestore può cambiare la richiesta (solo i campi che l'evento lascia cambiare) o fermarla.
+- **`after`**: sul risultato. Può cambiarlo (se l'evento lo permette) o solo guardarlo. Gira **in ordine inverso** rispetto a `before`: chi cambia per primo all'andata cambia per ultimo al ritorno, così due gestori che si sovrappongono (uno comprime, uno cifra) si annidano.
+
+Un gestore si iscrive a un evento e a una fase, chiedendo di essere tra i primi (`'first'`), a metà (`'middle'`, predefinito) o tra gli ultimi (`'last'`). Dentro una fascia conta l'ordine scelto dall'utente (`setOrder`), poi chi è arrivato prima. La catena si fissa quando l'evento parte.
+
+**Il gestore** riceve `(data, ctx)` e restituisce:
+
+| Risposta | Effetto |
+| --- | --- |
+| niente | i dati proseguono come sono |
+| `{ data }` | i dati cambiati: si prendono **solo i campi che l'evento lascia cambiare** in quella fase; se l'evento ha un `check`, lo controlla (se lancia, l'operazione fallisce) |
+| `{ stop: { error?, silent? } }` | l'operazione non avviene e fallisce con `error` (fino a 300 caratteri; predefinito «Operazione fermata»). `silent: true`: nessuno va avvisato, il gestore se n'è occupato. Solo per gli eventi con `stop: true`, altrimenti è un errore |
+
+`ctx` è `{ event, stage, position, total, prev, next, caller }`: `position` il posto nella catena (0 il primo) e `total` quanti sono; `prev` e `next` chi sta prima e dopo (`{ app, entry, name }` per un'app, `{ system: true, name }` per lilOS, `null` ai bordi); `caller` chi ha chiesto l'operazione (`{ app, opened }` per un'app installata, con `opened: true` se il file le è stato consegnato; `{ system: true }` per lilOS e le app di sistema; `null` se non si sa).
+
+**Regole che non cambiano.**
+
+- Un gestore che **lancia un errore o non risponde entro 15 secondi** (`timeout` dell'evento) fa fallire l'operazione: non viene mai saltato. Il messaggio è `<nome del gestore>: <errore>`.
+- Quello che un gestore fa mentre gestisce un evento non passa di nuovo dai suoi stessi gestori: **le operazioni chieste da un'app saltano i gestori di quella stessa app** (`caller.app`).
+- **Limiti**: 50 iscrizioni per app («Al massimo 50 iscrizioni per app»; non valgono per lilOS e le app di sistema); al massimo 256 operazioni che passano dalle pipe in contemporanea («Troppe operazioni in corso») e 32 chieste da una stessa app («Troppe operazioni in corso per questa app»). Sostituiscono il vecchio limite di 16 pipe una dentro l'altra.
+- **I contenuti di un'app non li vedono le altre.** Per `file.open`, `file.read` e `file.write` di un file con `node.apps[x].content === true` girano solo i gestori di lilOS e di `x`: gli altri non sono chiamati. In più ogni gestore (non di lilOS) vede su `node` e `source` solo i dati della **propria** app in `apps`, non quelli delle altre.
+- Il filtro `where` si controlla in lilOS, senza svegliare il gestore.
+
+### `pipes`
+
+| Membro | Descrizione |
+| --- | --- |
+| `define(name, def)` | Dichiara un evento. `name`: `/^[a-z0-9][a-z0-9.-]{0,63}\.[a-z][a-zA-Z0-9]{0,40}$/` (`file.open`, `acme.notes.saved`). `def`: `{ label, description?, edit?: { before?: [campo], after?: [campo] }, stop?, protected?, sync?, owner?, check?(data, stage) → data, timeout? }`. `edit` elenca i campi che un gestore può cambiare in ciascuna fase. `stop`: l'evento si può fermare. `protected`: solo lilOS e le app di sistema si iscrivono. `sync`: operazione immediata: `before` è solo per i gestori sincroni di lilOS (`runSync`), gli altri guardano dopo (`notify`). `owner`: l'evento è di un'app e il nome è `<id app>.<una parola>` (la parola: `/^[a-z][a-zA-Z0-9]{0,40}$/`). `timeout`: millisecondi (15000). Ridefinire un evento di un altro proprietario lancia un errore. Emette `change`. |
+| `forgetApp(appId)` | Toglie gli eventi di un'app e tutte le sue iscrizioni (l'app è stata rimossa). |
+| `has(name)` | `true` se l'evento esiste. |
+| `describe(name)` | La definizione senza le funzioni (`{ name, label, description, edit, stop, protected, sync, owner, timeout }`), o `null`. |
+| `catalog()` | Tutti gli eventi, in ordine di nome. |
+| `subscribe(name, { stage = 'after', position = 'middle', where = null }, handler, owner = {})` → `off` | Iscrive un gestore. `owner`: `{ key, app?, entry?, name, trusted?, sync? }`; `key` è il nome stabile del gestore (serve all'ordine dell'utente: `'filecrypt#vault'`, `'lilos:content'`), `name` quello che si mostra, `trusted` lilOS o un'app di sistema (può iscriversi agli eventi protetti e dare una funzione come `where`), `sync` il gestore risponde subito (serve per `before` di un evento `sync`, solo `trusted`). Lancia un errore per un evento sconosciuto, una fase o fascia non valida, un evento protetto senza `trusted`, un `before` di un evento `sync` senza `trusted` e `sync`, e più di 50 iscrizioni di una stessa app non `trusted`. |
+| `chain(name, stage)` | La catena nell'ordine in cui gira `before` (per `after` si legge al contrario): `[{ key, app, entry, name, position, where }]`; `where` è `'lilOS'` se è una funzione. |
+| `setOrder(name, stage, keys)` | Imposta l'ordine dell'utente dentro le fasce: elenco di `key` di `chain()` (al massimo 100); `null` torna all'ordine di arrivo. Salva in `pipes-order` ([Dati salvati](#pipes-order)) e emette `change`. |
+| `isCustomOrder(name, stage)` | `true` se l'utente ha scelto un ordine. |
+| `wants(name, data, caller?)` | `true` se qualche gestore di una delle due fasi sarebbe chiamato per questi dati. Lo usa `fs` per non perdere tempo quando nessuno ascolta. |
+| `around(name, data, op, { caller? })` | `Promise`: catena `before` su `data`, poi `op(data)` → risultato, poi catena `after` (inversa) sul risultato. Lancia `PipeStopped` se un gestore ferma, `Error` se ne fallisce uno. |
+| `run(name, data, options?)` | Un evento senza operazione propria (di un'app): i dati dopo le due catene. |
+| `runSync(name, data, { caller? })` | La fase `before` di un evento immediato: solo gestori sincroni di lilOS. Restituisce i dati; lancia `PipeStopped` se uno ferma, un errore se uno risponde con una Promise. |
+| `notify(name, data, { caller? })` | La fase `after` per guardare: nessuno aspetta i gestori, ognuno riceve una **copia** dei dati (`structuredClone`) e ciò che restituisce o lancia non cambia nulla (un errore finisce in console). |
+
+Evento `change` (senza dati): è cambiato il catalogo, un'iscrizione o l'ordine.
+
+**`where`** filtra i dati per cui il gestore è chiamato (un oggetto; solo lilOS può dare anche una funzione `(data) → boolean`):
+
+| Chiave | Significato |
+| --- | --- |
+| `meta: 'own'` | solo i file che l'app del gestore ha segnato (`node.apps[app]`) |
+| `ext: ['txt']` | solo file con queste estensioni (minuscole; `''` = senza estensione) |
+| `type: 'file' \| 'folder' \| 'app'` | solo nodi di questo tipo |
+| `app: ['editor']` | solo `app.launch` di queste app (confronta `data.id`) |
+
+### `class PipeStopped extends Error`
+
+`new PipeStopped(message?, { silent = false })`: l'errore di un'operazione fermata da un gestore. `name` `'PipeStopped'`, `silent` come nella risposta del gestore. Chi avvia un'operazione che passa dalle pipe lo distingue dagli altri errori (`openFile` e il launcher non mostrano l'avviso se è `silent`).
+
+### Gli eventi del sistema (`pipeCatalog.js`)
+
+**Aperti alle app in modifica** (prima e dopo; tutti fermabili):
+
+| Evento | Dati | Cosa cambia un gestore |
+| --- | --- | --- |
+| `file.open` | `{ node, app }` | `before`: `app`, l'id dell'app che lo apre (`null`: la finestra «Apri con») |
+| `file.read` | `before` `{ node }`; `after` `{ node, content }` | `after`: `content`, un `Blob` (o un testo, che diventa `Blob`) |
+| `file.write` | `before` `{ node, content }`; `after` `{ node }` | `before`: `content` |
+| `app.launch` | `{ id, entry, args }` | `before`: `args` |
+
+**Aperti alle app solo per guardare** (`after`; la fase `before` è dei gestori sincroni di lilOS, che possono fermarli):
+
+`file.create` `{ node }` · `file.rename` `{ node, from }` · `file.move` `{ node, from }` · `file.copy` `{ node, source }` · `file.remove` `{ node, ids }` · `trash.put` `{ ids }` · `trash.restore` `{ ids }` · `trash.purge` `{ count }` · `tags.assign` `{ node, tags }` · `window.open` / `window.close` `{ app, entry, title }` · `workspace.switch` `{ from, to }` · `settings.change` `{ key, value }`.
+
+**Protetti** (solo lilOS e le app di sistema; solo per guardare): `system.ready` `{ at }` · `session.login` `{ user, workspace }` · `session.logout` `{}` · `apps.install` `{ id, version }` · `apps.update` `{ id, version, from }` · `apps.remove` `{ id }` · `permissions.change` `{ id, granted }` · `settings.system` `{ isolated }` (solo il modo in cui girano le app) · `pipes.change` `{}`.
+
+I contenuti viaggiano come `Blob`. Gli eventi sugli utenti (`users.*`) non ci sono: il frontend non ha operazioni sugli utenti.
+
+**Esempio** (nel sistema o in un'app di sistema; un'app installata usa `lilos.pipes.subscribe`):
+
+```js
+import { pipes } from '@lilos/sdk';
+
+// Non lascia aprire i file che iniziano con un punto
+const off = pipes.subscribe('file.open', { stage: 'before', position: 'first' },
+  ({ node }) => (node.name.startsWith('.') ? { stop: { error: 'Questo file non si apre' } } : undefined),
+  { key: 'acme:nodot', name: 'Acme' });
+
+// Ogni salvataggio dei .txt passa da una funzione che cambia il contenuto
+pipes.subscribe('file.write', { stage: 'before', where: { ext: ['txt'] } },
+  async ({ content }) => ({ data: { content: new Blob([(await content.text()).trim()]) } }),
+  { key: 'acme:trim', name: 'Acme' });
+```
 
 ---
 
@@ -804,7 +916,8 @@ DOM: `div.ditem[data-kind="item"][data-id]` con `.ditem-glyph` e `.ditem-label`.
 - `workareaIcon()`: icona di una workarea ridotta (cornice tratteggiata con due piccole finestre).
 - `placeIcon(glyph, color?)`: un luogo della scrivania (Home, Documenti…): la cartella con sopra il simbolo SDK `glyph`.
 - `trashIcon(full = false)`: il cestino; con `full` ha della carta che esce.
-- `itemIcon(data)`: l'icona giusta per qualsiasi nodo del file system (usata anche dal File Manager) e, con `data.type === 'workarea'`, per le icone delle workarea. Con `type: 'trash'` dà `trashIcon(data.full)`; una cartella con `data.glyph` dà `placeIcon(data.glyph, data.color)`.
+- `itemBadges(data)` → `[{ glyph, label, color }]`: i segni che le app installate mettono sull'icona di un nodo, uno per ogni app che ha dati sul nodo (`data.apps`) e dichiara `contributes.badge` (il simbolo, il testo, il colore dell'app). Se l'app non c'è più e i suoi dati hanno `content: true`, un lucchetto grigio con «Serve l'app `<id>`».
+- `itemIcon(data)`: l'icona giusta per qualsiasi nodo del file system, con i segni di `itemBadges` in un angolo (`.icon-badged`; il testo nel `title` e `aria-label`) (usata anche dal File Manager) e, con `data.type === 'workarea'`, per le icone delle workarea. Con `type: 'trash'` dà `trashIcon(data.full)`; una cartella con `data.glyph` dà `placeIcon(data.glyph, data.color)`.
 
 ---
 
@@ -1144,7 +1257,7 @@ Quale app apre quale file, per estensione. Le scelte predefinite vengono da `ope
 
 | Funzione | Descrizione |
 | --- | --- |
-| `openFile(node, { choose? })` | Apre il file con la sua app (`launch(app, { file: id })`); senza app associata, con un'app **nascosta nel workspace attuale**, o con `choose: true`, mostra la finestra "Apri con". |
+| `openFile(node, { choose? })` | `Promise`: apre il file con la sua app (`launch(app, { file: id })`); senza app associata, con un'app **nascosta nel workspace attuale**, o con `choose: true`, mostra la finestra "Apri con". Prima passa dall'evento `file.open` ([pipes](#sdkcorepipesjs-e-sdkcorepipecatalogjs)): un gestore può dare il file a un'altra app (`app`, solo se è un'app che apre file) o fermarlo; l'errore si mostra in un avviso (non se `silent`). Si risolve quando è deciso. |
 | `appFor(ext)` | L'app per quell'estensione, o `null` (chiedi). La scelta è la stessa in ogni workspace. |
 | `defaultAppFor(ext)` | L'app predefinita secondo il registro, o `null`. |
 | `setAppFor(ext, appId \| 'ask' \| null)` | Salva la scelta; uguale alla predefinita (o `null`) la toglie. |
@@ -1203,7 +1316,7 @@ Permessi dichiarati nei manifesti ufficiali: File Manager `fs.write:~`, `fs.work
 | `version` | `package.json` | Versione di lilOS |
 | `ACCENTS`, `LASSO_OPTIONS`, `RETENTION_OPTIONS` | `systemSettings.js` | Scelte di colore principale, selezione a mano libera e conservazione del cestino |
 | `SYSTEM_FOLDERS`, `DESK_NAME` | `systemFs.js` | Cartelle di sistema e nome della Scrivania |
-| `FOLDER_COLOR`, `itemIcon` | `desktop/itemIcons.js` | Icone di cartelle e file |
+| `FOLDER_COLOR`, `itemIcon`, `itemBadges` | `desktop/itemIcons.js` | Icone di cartelle e file; i segni delle app sulle icone |
 | `DESK_FIXED_ITEMS`, `isFixedShown`, `setFixedShown`, `setFixedShownEverywhere` | `desktop/fixedItems.js` | L'elenco degli elementi fissi della scrivania (alias di `FIXED_ITEMS`) e quali sono accesi, per workspace o in tutti |
 | `WORKSPACE_LIMITS` | `workspaces/store.js` | Limiti dei workspace (alias di `LIMITS`) |
 | `describeWorkspace`, `onWorkspacesChange`, `workspaceManager` | `workspaces/info.js` | Nome e colore di un workspace; il gestore dei workspace |
@@ -1211,13 +1324,15 @@ Permessi dichiarati nei manifesti ufficiali: File Manager `fs.write:~`, `fs.work
 | `fileApps`, `appFor`, `defaultAppFor`, `setAppFor`, `resetAppsFor`, `knownExtensions`, `openFile` | `apps/open.js` | Quale app apre quale file |
 | `handleCommand` | `apps/commands.js` | Un'app gestisce un suo comando |
 | `callEntrypoint`, `connectEntrypoint`, `entrypointsOf` | `apps/entrypoints.js` | Avviare un punto d'ingresso di un'app, collegarsi a uno in background, elencare quelli di un'app (vedi [Punti d'ingresso](#punti-dingresso-entrypointsjs)) |
+| `appActionEntries` | `apps/appActions.js` | Le voci che le app installate aggiungono al menu di file e cartelle (vedi [apps/pipes.js, apps/appActions.js e apps/systemEvents.js](#appspipesjs-appsappactionsjs-e-appssystemeventsjs)) |
+| `appPipes` | `apps/pipes.js` | Le pipe di un'app: dal manifesto e dal codice |
 | `startup` | `apps/startup.js` | Le app che si aprono da sole (vedi [apps/startup.js](#appsstartupjs)) |
 | `updateApps`, `requestRestart`, `restartSystem`, `updates` | `apps/updates.js` | Aggiornare app senza lasciare codice vecchio, chiedere il riavvio di lilOS (vedi [apps/updates.js](#appsupdatesjs)) |
 | `services` | `apps/services.js` | I servizi delle app nel kernel: elenco, scelte, avvio e arresto, chiamate, registro (vedi [Servizi delle app](#servizi-delle-app-appsappservicesjs)) |
 | `executionMode`, `canChangeExecution` | `apps/packages/isolation.js` | Come gira un'app installata; se l'utente può cambiarlo (è amministratore) |
 | `describePermission` | `apps/packages/permissions.js` | Un permesso in italiano (`'fs.read:~/Documenti'` → «Leggere i file in Home/Documenti») |
 | `showAppProperties`, `showAppSecurity` | `apps/appProperties.js` | Aprono "Proprietà…" di un'app (la seconda sulla scheda Sicurezza) |
-| `showProperties` | `items/properties.js` | Apre "Proprietà…" di un file o una cartella (di un collegamento a un'app apre quelle dell'app) |
+| `showProperties` | `items/properties.js` | Apre "Proprietà…" di un file o una cartella (di un collegamento a un'app apre quelle dell'app); se un'app ha dati sul nodo, una riga «App» con i suoi segni (`itemBadges`); per i dati di un'app non installata, una riga «Dati di `<id>`» con **Rimuovi** (`fs.setAppMeta(id, app, null)`) |
 | `pickFile` | `apps/filePicker.js` | Selettore di file e cartelle |
 | `addTarget` | `items/targets.js` | Comandi sugli elementi |
 | `links`, `linkEntry` | `items/links.js` | Collegamenti della barra laterale del File Manager |
@@ -1227,6 +1342,44 @@ Permessi dichiarati nei manifesti ufficiali: File Manager `fs.write:~`, `fs.work
 | `tagDots`, `tagSubmenu`, `setTag` | `tags/tagUi.js` | Interfaccia dei tag |
 
 Per le firme vedi le sezioni dei moduli di origine in questa pagina.
+
+---
+
+## apps/pipes.js, apps/appActions.js e apps/systemEvents.js
+
+Come le app installate entrano nelle pipe ([pipes](#sdkcorepipesjs-e-sdkcorepipecatalogjs)), come aggiungono voci di menu e quali eventi non passano da `fs`. Il sistema li collega in `system.js`: `connectPipes()` prima di aprire qualunque cosa, `connectSystemEvents({ wm, workspaces })` poi.
+
+### `apps/pipes.js`
+
+Le app installate hanno due modi di iscriversi.
+
+- **Dal manifesto** (`contributes.pipes`): appena l'app è installata lilOS iscrive il gestore al suo posto. Quando l'evento arriva, lilOS avvia il punto d'ingresso `background` indicato (`background.start`, fino a 15 secondi) e gli consegna l'evento: il gestore è la funzione che il punto d'ingresso ha dato a `lilos.pipes.subscribe` quando è partito (la stessa iscrizione, non una seconda: un solo posto nella catena). Se non si iscrive in tempo, l'operazione fallisce con «`<app>` non gestisce `<evento>` (manca `lilos.pipes.subscribe`)». Vale solo per le app `local`.
+- **Dal codice** (`lilos.pipes.subscribe`): dura finché vive quella finestra o quel punto d'ingresso in background. La `key` del gestore resta la stessa a ogni avvio (`<app>#<entry>:<evento>/<fase>`), così l'ordine scelto dall'utente resta.
+
+**Permessi.** `pipe:<evento>`, oppure `pipe.own:<evento>` se `where` è `{ meta: 'own' }`. Gli eventi protetti solo alle app di sistema; la fase `before` di un evento immediato a nessuna app. Gli eventi che l'app ha definito lei non chiedono permessi. Senza permesso: «Permesso negato: pipe:`<evento>`».
+
+**Accesso ai file.** Se i dati di un evento hanno un file che l'app ha segnato, quella parte dell'app può leggerlo e scriverlo (`handles`); altri file arrivano solo come dati. L'accesso si dà solo se l'albero di lilOS (`fs.appMeta(id, app)`) conferma che il file è segnato da quell'app: non basta quello che dicono i dati dell'evento.
+
+**Guardia di lilOS** (`lilos:content`, tra i primi di `before` di `file.open`, `file.read` e `file.write`): un file con `apps[id].content === true` non si apre, non si legge e non si scrive se `id` non è installato **oppure** se l'app c'è ma non ha attive le sue pipe `file.read` (`after`) e `file.write` (`before`): la guardia nega nel dubbio. Si toglie dalle Proprietà dell'elemento (riga «Dati di `<id>`» → **Rimuovi**, solo per un'app non installata): il contenuto resta com'è, ma lilOS non lo rifiuta più. L'errore è «Per aprire «`<nome>`» serve l'app `<app>`: installala dall'AppStore».
+
+| Export | Descrizione |
+| --- | --- |
+| `connectPipes()` | All'avvio, dopo il registro: la guardia, le iscrizioni del manifesto di ogni app e un ascolto di `registry` (`change`) che le rifà per una nuova versione o le toglie (con gli eventi propri, `pipes.forgetApp`) se l'app sparisce. |
+| `checkPipe(pkg, event, { stage, where })` | Lancia un errore se l'app non può iscriversi in quel modo (evento sconosciuto, permesso, evento protetto, `before` di un evento immediato). |
+| `pipeTarget({ key, pkg, entry, handles, deliver })` | La parte di un'app che prende chiamate di pipe (una finestra o un background). Restituisce `{ target, subscribe(event, opts), unsubscribe(sub), close() }`; lo usano `host.js` e `background.js`. |
+| `appPipes(id)` | `[{ event, stage, entry, where, from: 'manifest' \| 'code' }]`: le pipe di un'app (Sistema → App → Pipe, Proprietà). |
+
+L'evento `pipes.change` parte 50 ms dopo l'ultima iscrizione che cambia.
+
+### `apps/appActions.js`
+
+`appActionEntries(ids, { separator = false })` → voci per `openMenu`: quelle che le app installate (con il permesso `ui.menus`) dichiarano in `contributes.actions` per questi nodi. Una voce compare se vale per **tutti** i nodi (`on`: `'file'`, `'folder'` o `'item'`, ciascuno non di tipo `app`; `when.meta`: `'own'` = segnato dall'app, `'none'` = non segnato; `when.ext`), e per più di un nodo solo se ha `many: true`. `icon` è `glyph` o quello dell'app. `separator: true` mette un `'-'` davanti se ci sono voci (altrimenti `[]`). Scegliendola, se il punto d'ingresso è una finestra, lilOS la apre con `{ files, action }` come `args` e i file consegnati; se è un background lo chiama con `{ files, action }` (`from` è `'lilos'`, non `null` come per le altre chiamate del sistema). Un errore è un avviso con il nome dell'app. Il menu della scrivania le aggiunge ai nodi selezionati; il File Manager le prende da `@lilos/system`.
+
+### `apps/systemEvents.js`
+
+`connectSystemEvents({ wm, workspaces })` manda con `pipes.notify` gli eventi del catalogo che non passano da `fs`: `window.open` e `window.close` (dal gestore delle finestre), `workspace.switch`, `settings.change`, `settings.system` (quando cambia il modo in cui girano le app), `apps.install` / `apps.update` / `apps.remove` / `permissions.change` (da `apps`: confronta versione e permessi concessi con quelli di prima), `system.ready` e `session.login` (dal bus `system:ready` e `user:login`) e `session.logout`.
+
+Ascolta anche l'evento del bus `files:locked` (id di file): chiede di chiudere (`wm.requestClose`) le finestre il cui `getState().file` è uno di quelli, perché ciò che mostrano è in chiaro e il file è tornato bloccato; una finestra con modifiche non salvate chiede prima di chiudersi. Lo emette `lilos.files.locked` e anche `background.js` quando si ferma un punto d'ingresso in background: chiude così le finestre dei file il cui contenuto è di quell'app (`fs.appMeta(id, app).content === true`). Risponde anche a `files:shown` (`{ ids, answer(id) }`): dice quali di quei file una finestra mostra, per `lilos.files.shown`.
 
 ---
 
@@ -1241,6 +1394,7 @@ Per le firme vedi le sezioni dei moduli di origine in questa pagina.
 - `launch(id, args?, entry = 'main', { files = [] } = {})`: emette `app:launch` con `{ id, args, entry, files }`. `entry` è uno dei punti d'ingresso di tipo finestra dell'app; l'utente apre sempre `main`. `files`: id di file consegnati all'app. Il launcher li passa al modulo (`({ args, openWindow, entry, files })`); in un'app installata diventano handle leggibili e scrivibili (`packageModule` in `host.js`), anche se isolata. Se la finestra è già aperta, il launcher emette `grant` (con gli id) su di essa prima di `launch`, e gli handle crescono.
 - `connectLauncher(wm)`: trasforma `app:launch` in finestre. Al primo avvio carica il modulo dell'app e chiama il suo export predefinito `({ args, openWindow, entry }) → Window` (per un'app di sistema e un `entry` diverso da `main`, l'export con quel nome), poi apre la finestra con `wm.open(win, { app: id, center, bounds })`. Se l'app ha già una finestra di **quel punto d'ingresso** **nell'ambito attuale** (e nel workspace attuale) la riporta in primo piano (ed emette `launch`). Una finestra che non è `main` salva `{ __entry, args }` come stato, così le workarea la riaprono dallo stesso punto d'ingresso. Se l'app non parte, un messaggio (`toast`) lo dice. Le app senza `load` (o inesistenti) scrivono un avviso in console. Un'app **nascosta** nel workspace attuale non parte: un messaggio (`toast`) dice di mostrarla da Sistema → Workspace. La finestra appartiene al workspace attuale al momento della richiesta, anche se l'utente cambia workspace mentre l'app si carica (in quel caso si apre nascosta nel suo workspace).
 - Il launcher passa a ogni app un `openWindow` che apre le finestre secondarie con `owner` = l'id dell'app, e prima di avviare un'app chiede a `blockedLaunch(id)` (`apps/updates.js`): se l'app si sta aggiornando o aspetta il riavvio di lilOS, non parte e l'utente ne vede il motivo.
+- Prima di aprire una finestra il launcher fa passare l'avvio dall'evento `app.launch` `{ id, entry, args }` ([pipes](#sdkcorepipesjs-e-sdkcorepipecatalogjs)), se qualcuno lo vuole: un gestore può cambiare `args` o fermare l'avvio (l'errore è un avviso, non se `silent`), ma non `file` e `files`: quelli restano come li ha dati chi avvia. Un `args` che resta `null` torna `undefined`.
 - `connectLauncher(wm)` restituisce `{ restore }`. `restore({ app, state, rect }, { workspace = wm.workspace })` ricrea la finestra di un'app com'era: chiama il suo export con `state` come `args` e la apre con `wm.open(win, { app, at: rect, workspace })`, senza spostare la camera. Restituisce una Promise con la finestra, o `null` se l'app non esiste, è nascosta nel workspace attuale o non parte.
 - `setLaunchScope({ includes, center, bounds })`: stringe l'ambito in cui il launcher lavora (lo imposta `Workareas`). `includes(win)` → `boolean` dice quali finestre aperte contano come "la finestra dell'app" (una per app per ambito); `center(win)` → punto del mondo o `null` dove va una finestra nuova (`null`: il centro della vista); `bounds()` → rettangolo del mondo o `null` in cui deve restare. Predefinito: tutta la scrivania, nessun centro né limite. `openWindow` delle app (finestre secondarie) usa lo stesso centro e gli stessi limiti.
 
@@ -1379,10 +1533,16 @@ Validato dal kernel (`system/kernel/src/apps/manifest.js`), che scarta i campi c
 | `url` | Solo `remote`: `https://…` (o `http://localhost`). Non può avere l'origine di lilOS. |
 | `libraries?` | `[{ name, version, url, integrity: 'sha384-…', cache? }]`, fino a 30, solo `https`. Con `cache: true` il kernel la scarica una volta in `/system/commons` e la dà inline; senza, il browser la carica dall'`url` (che entra nella CSP). |
 | `permissions?` | Elenco di permessi (fino a 50), vedi sotto. |
-| `contributes?` | `window: { width, height }` (200-4000 × 150-4000); `fileTypes: [estensione]` (fino a 50); `commands: [{ id, label, keys? }]` (fino a 30, l'`id` inizia con l'id dell'app + `.`, `keys` fino a 3 e richiede `ui.shortcuts`); `widgets: [{ id, name, width, height }]` (fino a 10, richiede `desktop.widget`; **validati ma non mostrati**). |
+| `contributes?` | `window: { width, height }` (200-4000 × 150-4000); `fileTypes: [estensione]` (fino a 50); `commands: [{ id, label, keys? }]` (fino a 30, l'`id` inizia con l'id dell'app + `.`, `keys` fino a 3 e richiede `ui.shortcuts`); `widgets: [{ id, name, width, height }]` (fino a 10, richiede `desktop.widget`; **validati ma non mostrati**); `pipes`, `actions`, `badge` (vedi sotto). |
 | `install?`, `update?`, `uninstall?` | Operazioni, vedi sotto. `update`: `[{ from: '<1.2.0', ops: [...] }]` (`from`: `<x.y.z`, `<=x.y.z` o `x.y.z`). |
 | `restartOnUpdate?` | `true` o un intervallo come `update.from` (`'<2.0.0'`, `'<=1.2.0'`, `'1.2.0'`): aggiornando a questa versione lilOS propone di riavviarsi. Con un intervallo vale solo se si arriva da una versione che lo soddisfa. Conta solo se la pagina ha già eseguito il codice vecchio dell'app. Altro: manifesto non valido. Da usare solo quando il ricaricamento a caldo non basta (stato condiviso nella pagina, moduli tenuti da altri): vedi [apps/updates.js](#appsupdatesjs). |
 | `signature?` | `ed25519:<base64>` sul manifesto senza `signature`, con le chiavi in ordine. |
+
+**`contributes.pipes`** (solo app `local`, `sdk` `"2"`; fino a 30): le pipe a cui l'app è iscritta anche quando non gira. `[{ event, stage, entry, position?, where? }]`: `event` un evento del catalogo ([pipes](#sdkcorepipesjs-e-sdkcorepipecatalogjs)), `stage` `'before'` o `'after'`, `entry` un punto d'ingresso `background` (lilOS lo avvia quando l'evento arriva), `position` `'first'`, `'middle'` (predefinito) o `'last'`, `where` come in `pipes.subscribe`. Serve il permesso `pipe:<evento>` (o `pipe.own:<evento>` se `where` è `{ meta: 'own' }`); gli eventi protetti solo alle app di sistema. Il punto d'ingresso dà la funzione con `lilos.pipes.subscribe(evento, { stage }, fn)` quando parte.
+
+**`contributes.actions`** (richiede `ui.menus`; fino a 20): voci nel menu di file e cartelle. `[{ id, label, entry, on, glyph?, when?, many? }]`: `id` inizia con l'id dell'app e un punto; `label` fino a 60 caratteri; `entry` `'main'` o un punto d'ingresso dell'app che non sia un `service`; `on` `'file'`, `'folder'` o `'item'` (entrambi); `glyph` un simbolo; `when` `{ meta?: 'own' \| 'none', ext?: [estensione] }` (`'own'` solo per i nodi con dati dell'app, `'none'` solo per gli altri); `many: true` la voce compare anche con più elementi selezionati. Il punto d'ingresso riceve `{ files: [id], action: id }` e può leggere e scrivere quei file.
+
+**`contributes.badge`**: `{ glyph, label }` (`label` fino a 40 caratteri), il segno che lilOS mette sull'icona dei nodi su cui l'app ha dati (`node.apps[id]`).
 
 Un manifesto non può superare 256 KB.
 
@@ -1400,7 +1560,10 @@ Un permesso è `nome` oppure `nome:parametro`. Un permesso non nell'elenco, o co
 | `desktop.items` | install | Mettere elementi sulla scrivania | Serve all'operazione `desktopItem` |
 | `desktop.widget` | install | Mostrare widget | Nessuno (i widget non si mostrano) |
 | `ui.notify` | implicit | Mostrare avvisi | `lilos.ui.toast` |
-| `ui.menus`, `ui.commands` | install | Aggiungere voci ai menu / comandi | Nessuno (i comandi si registrano comunque da `contributes.commands`) |
+| `ui.menus` | install | Aggiungere voci ai menu | Le voci di `contributes.actions` nel menu di file e cartelle (senza il permesso il manifesto è rifiutato) |
+| `ui.commands` | install | Aggiungere comandi | Nessuno (i comandi si registrano comunque da `contributes.commands`) |
+| `pipe:<evento>` | install | Vedere e cambiare ciò che passa da quell'evento | `lilos.pipes.subscribe` e `contributes.pipes` su quell'evento, per ogni elemento. Gli eventi protetti solo per le app di sistema; la fase `before` di un evento immediato per nessuna app |
+| `pipe.own:<evento>` | install | Lo stesso, solo per i file che l'app ha segnato | Come `pipe:` ma con `where: { meta: 'own' }` |
 | `ui.shortcuts` | install | Scorciatoie da tastiera | Richiesto da `commands[].keys` |
 | `clipboard.write` | implicit | Copiare negli appunti | `lilos.clipboard.write` |
 | `clipboard.read` | use | Leggere gli appunti | Nessuno |
@@ -1454,19 +1617,28 @@ Con `sdk` `"1"` il modulo è l'app: gira per intero all'avvio con `window.lilos`
 | Funzione | Descrizione |
 | --- | --- |
 | `lilos.app` | `{ id, version, entry, args, call, connect, keepAlive }`: `entry` è il punto d'ingresso in esecuzione; `args` è ciò con cui è stato avviato (per un file, `{ file: id }`), o `null`. |
-| `lilos.app.call(entry, data)` → risultato | Avvia un punto d'ingresso **della stessa app**. Una finestra si apre (o torna in primo piano) con `data` come `args` e il risultato è `null`; un background risponde con ciò che restituisce la sua funzione di `lilos.handle`. `data` è copiato (clone strutturato); se contiene `file`, quel file deve essere uno che l'app ha ricevuto. |
+| `lilos.app.call(entry, data)` → risultato | Avvia un punto d'ingresso **della stessa app**. Una finestra si apre (o torna in primo piano) con `data` come `args` e il risultato è `null`; un background risponde con ciò che restituisce la sua funzione di `lilos.handle`. `data` è copiato (clone strutturato); se contiene `file`, quel file (e ogni id di `files`, al massimo 100) deve essere uno che l'app ha ricevuto. |
 | `lilos.app.connect(entry)` → `MessagePort` | Un canale con un punto d'ingresso **in background** della stessa app; l'altro lato lo riceve come evento `connect`. Per trasmettere dati continui o grandi senza passare da una chiamata per volta. |
 | `lilos.app.keepAlive(attivo)` | Solo in un background. Con `true` (predefinito) non si ferma dopo i 5 minuti senza chiamate e compare nella barra in basso (icona delle app in background), da dove l'utente lo può fermare; con `false` torna normale. Fermarlo cancella ciò che teneva in memoria. |
-| `lilos.apps.call(app, entry, data)` → risultato | Come `lilos.app.call`, per un punto d'ingresso **di un'altra app**. Serve il permesso `apps.call:<id app>`. L'app deve essere installata e visibile nel workspace attuale. Un `file` si può passare solo se l'app lo ha ricevuto; ogni altro dato arriva così com'è e **chi lo riceve deve controllarlo** (la forma, i tipi, le dimensioni). |
+| `lilos.apps.call(app, entry, data)` → risultato | Come `lilos.app.call`, per un punto d'ingresso **di un'altra app**. Serve il permesso `apps.call:<id app>`. L'app deve essere installata e visibile nel workspace attuale. Un `file` (o i `files`, al massimo 100) si può passare solo se l'app lo ha ricevuto; ogni altro dato arriva così com'è e **chi lo riceve deve controllarlo** (la forma, i tipi, le dimensioni). |
 | `lilos.handle(fn)` | Solo in un background: `fn(data, { from })` risponde alle chiamate; `from` è l'id dell'app che chiama (`null` se è il sistema). Il valore restituito, o `null`, torna a chi ha chiamato. Senza `handle` le chiamate falliscono. Un `file` ricevuto nei dati si può leggere e scrivere con `lilos.files` come se l'app fosse stata aperta con lui. |
 | `lilos.locale` | `{ code, i18n: { t(chiave, params?), lang, date(valore, opzioni?), number(valore, opzioni?) } }`: la lingua del sistema e le stringhe dell'app per quella lingua, già risolte (a differenza del resto di `lilos`, **sincrono**). Non richiede permessi. Vedi [`lilos.locale`](#liloslocale). |
 | `lilos.on(evento, fn)` → `off` | Eventi: `launch` (nuovi argomenti, a finestra già aperta), `command` (`id` di un comando di `contributes.commands`, quando l'utente preme la sua scorciatoia; solo nelle finestre), `theme` (i token di colore sono cambiati; nella sandbox il bridge li applica da solo a `:root`), `connect` (`MessagePort`, in un background: qualcuno ha chiamato `lilos.app.connect`), `locale` (`{ code, lang }`: la lingua del sistema è cambiata e `lilos.locale` ha già le nuove stringhe; non nei servizi). |
 | `lilos.window.setTitle(testo)` | Titolo della finestra (fino a 100 caratteri). Solo in una finestra: in un background fallisce. |
+| `lilos.window.close()` | La finestra si chiude, come con il suo pulsante. Solo in una finestra. |
 | `lilos.ui.toast(testo)` | Avviso in basso (fino a 200 caratteri). |
-| `lilos.files.read(rif)` → testo | `rif`: `~/percorso` (coperto da `fs.read` o `fs.write`) oppure l'id di un file con cui l'app è stata aperta. |
-| `lilos.files.write(rif, testo)` | Scrive (fino a 10 milioni di caratteri); crea il file se la cartella esiste. Serve `fs.write`. |
+| `lilos.files.read(rif, { bytes? })` → testo \| `Blob` | `rif`: `~/percorso` (coperto da `fs.read` o `fs.write`) oppure l'id di un file con cui l'app è stata aperta. Con `bytes: true` un `Blob`. Passa da `file.read` (i gestori delle altre app possono cambiare il contenuto; i propri no). |
+| `lilos.files.write(rif, dati, { mark? })` | Scrive testo (fino a 10 milioni di caratteri) o byte (`Blob`, `ArrayBuffer`, array tipizzato, fino a 10 MiB); crea il file se la cartella esiste. Serve `fs.write`. Passa da `file.write`. Se `options` ha `mark` (anche `null`) i dati propri dell'app sul file (`setMeta`) si salvano insieme al contenuto: `null` li toglie. Un `mark` con `content: true` è permesso solo a un'app con `pipe:` o `pipe.own:` sia su `file.read` sia su `file.write` («Permesso negato…»). |
+| `lilos.files.info(rif)` → `{ id, name, type, size, modified, path, meta }` | Il nome e i dati propri dell'app su quel file (`meta`, o `null`). Serve poter leggere `rif`. |
+| `lilos.files.setMeta(rif, valore)` | I dati propri dell'app sul file (un oggetto di al massimo 1 KB di JSON; `null` li toglie). Serve poter scrivere `rif`. Con `content: true` (stesso permesso di `mark`, vedi sopra) la cronologia di annulla perde il contenuto del file. |
+| `lilos.files.open(id)` | Apre con la sua app un file che l'app ha ricevuto (passando da `file.open`). Un altro id: errore. |
+| `lilos.files.locked(ids)` → quanti | Dice che l'app ha richiuso questi file (solo quelli ricevuti e con dati dell'app): lilOS chiede di chiudere le finestre che li mostrano (come con il pulsante di chiusura: chi ha modifiche non salvate chiede prima). |
+| `lilos.files.shown(ids)` → `[id]` | Quali di questi file (solo quelli ricevuti) sono mostrati in una finestra ora. Serve a non bloccarli per inattività mentre sono in uso. |
 | `lilos.files.list(percorso)` → `[{ name, type, size, modified }]` | Contenuto di una cartella (`fs.read` o `fs.write`). |
 | `lilos.files.mkdir(percorso)` | Crea una cartella (la cartella che la contiene deve esistere; se c'è già non fa nulla). Serve `fs.write`. |
+| `lilos.pipes.subscribe(evento, { stage = 'after', position = 'middle', where }, fn)` → `Promise<off>` | Iscrive la parte dell'app (finestra o background) a un evento ([pipes](#sdkcorepipesjs-e-sdkcorepipecatalogjs)). `fn(data, ctx)` (anche asincrona) restituisce niente, `{ data }` o `{ stop: { error, silent } }`. Serve `pipe:<evento>` o `pipe.own:<evento>` con `where: { meta: 'own' }`. Dura finché la parte gira. Un file segnato dall'app che arriva nei dati si può leggere e scrivere. |
+| `lilos.pipes.define(nome, { label, description, edit, stop })` | Dichiara un evento dell'app, `<id app>.<una parola>` (al massimo 20 per app). `edit` `{ before: [campo], after: [campo] }`: i nomi `__proto__`, `constructor` e `prototype` si scartano. |
+| `lilos.pipes.run(nome, dati)` → dati | Fa passare un evento dell'app dalle pipe e restituisce i dati dopo i gestori. Solo i propri eventi; un valore che non è un oggetto diventa `{ value }`. |
 | `lilos.storage.get(chiave)` → valore o `null` | Dati propri dell'app per l'utente. Chiavi `[\w.-]{1,64}`; salvati come `app:<id>:<chiave>`. |
 | `lilos.storage.set(chiave, valore)` | Fino a 256 KB di JSON per valore. |
 | `lilos.clipboard.write(testo)` | Copia negli appunti. |
@@ -1548,11 +1720,11 @@ Gestisce i punti d'ingresso `background`: si avviano alla prima chiamata, uno pe
 - Non isolato: un `Worker` da un `Blob` (`WORKER_SOURCE`) con l'origine di lilOS.
 - App di sistema: l'export con quel nome, chiamato nella pagina di lilOS.
 
-Il codice (verificato con l'hash) e le librerie del manifesto si mandano all'avvio con un `init`; le richieste dell'app tornano per una `MessagePort` e si controllano con i permessi come per le finestre. Se il codice non parte, un avviso lo dice e l'istanza si ferma. Export: `call(app, entry, data, from)`, `connect(app, entry)`, `running()` → `[{ key, appId, name, label, glyph, keepAlive }]`, `stop(key)`, `stopApp(id)`, e `backgroundApps` (`Emitter`, evento `change` quando se ne avvia o ferma uno o cambia `keepAlive`). La barra in basso ha un'icona (`src/taskbar/BackgroundApps.js`) con l'elenco di quelli con `keepAlive`: per ognuno aprono le proprietà dell'app e "Ferma".
+Il codice (verificato con l'hash) e le librerie del manifesto si mandano all'avvio con un `init`; le richieste dell'app tornano per una `MessagePort` e si controllano con i permessi come per le finestre. Se il codice non parte, un avviso lo dice e l'istanza si ferma. Ogni istanza ha il suo posto nelle pipe (`pipeTarget`): quando arriva un evento, lilOS chiama la funzione data a `lilos.pipes.subscribe` come una chiamata con `pipe`, `data` e `ctx`; alla chiusura dell'istanza le iscrizioni cadono. Export: `call(app, entry, data, from)`, `start(app, entry)` (avvia il punto d'ingresso se serve e si risolve quando il suo codice è partito: lo usa `apps/pipes.js` per le pipe del manifesto), `connect(app, entry)`, `running()` → `[{ key, appId, name, label, glyph, keepAlive }]`, `stop(key)`, `stopApp(id)`, e `backgroundApps` (`Emitter`, evento `change` quando se ne avvia o ferma uno o cambia `keepAlive`). La barra in basso ha un'icona (`src/taskbar/BackgroundApps.js`) con l'elenco di quelli con `keepAlive`: per ognuno aprono le proprietà dell'app e "Ferma".
 
 ### `methods.js`
 
-`hostMethods({ pkg, win?, handles, instance? })` costruisce le funzioni che l'app può chiamare (i nomi di `lilos.*`, più `app.failed` che usa il ponte per segnalare un errore) e le controlla contro i permessi; è lo stesso per finestre e background, isolati o no. `invoke(methods, nome, parametri)` esegue una richiesta (rifiuta i nomi sconosciuti). `handles`: gli id dei file con cui l'app è stata aperta o che le sono stati passati.
+`hostMethods({ pkg, win?, handles, instance?, pipe? })` costruisce le funzioni che l'app può chiamare (i nomi di `lilos.*`, più `app.failed` che usa il ponte per segnalare un errore) e le controlla contro i permessi; è lo stesso per finestre e background, isolati o no. `invoke(methods, nome, parametri)` esegue una richiesta (rifiuta i nomi sconosciuti). `handles`: gli id dei file con cui l'app è stata aperta o che le sono stati passati. `pipe`: il posto dell'app nelle pipe (`pipeTarget` di `apps/pipes.js`), per `lilos.pipes`; senza, `pipes.subscribe` fallisce. Ogni lettura e scrittura di file dice a `fs` chi chiede (`caller`: `{ app, opened }`, con `system: true` per le app di sistema): così le pipe saltano i gestori della stessa app e sanno se il file le è stato consegnato.
 
 ### `host.js`
 
@@ -1562,6 +1734,8 @@ Il codice (verificato con l'hash) e le librerie del manifesto si mandano all'avv
 - App `local` non isolata (solo `sdk` `"2"`): il modulo si importa da un `Blob` e la funzione `entry` riceve `{ lilos, root, args }`, con `root` uno Shadow DOM (`.pkg-host`) dentro la finestra. Gli stili di lilOS non vi entrano (le variabili di tema `--accent`, `--text`… sì, perché ereditano); le scorciatoie di `contributes.commands` valgono per la finestra attiva dell'app. Se la funzione restituisce una funzione, la chiama alla chiusura della finestra.
 - App `local` isolata: `<iframe sandbox="allow-scripts">` con `srcdoc`. Il documento contiene: la CSP in `<meta>` (`default-src 'none'`; `script-src 'unsafe-inline'` più gli indirizzi delle librerie non in cache; `style-src 'unsafe-inline'`; immagini, font e media solo `data:`/`blob:`; `connect-src` con le origini dei permessi `net:`, altrimenti `'none'`; `form-action 'none'`; `base-uri 'none'`), il ponte, le librerie e il codice. Il codice e le librerie in cache si controllano con gli hash prima di essere inseriti; se non corrispondono la finestra non si apre.
 - App `remote`: `<iframe sandbox="allow-scripts allow-same-origin allow-forms allow-popups" src=url>`. lilOS risponde ai messaggi del ponte che il sito gli manda (stesse funzioni, stessi permessi), ma non gli dà `window.lilos`; quel protocollo non è documentato né stabile.
+
+Ogni finestra di un'app `local` ha il suo posto nelle pipe (`windowPipe`, che usa `pipeTarget`): lilOS chiama le funzioni di `lilos.pipes.subscribe` della finestra con un messaggio `{ request, pipe, data, ctx }` (nella sandbox) o direttamente (non isolata), e la risposta torna come `{ reply }`. Alla chiusura della finestra le sue iscrizioni cadono e le chiamate in sospeso falliscono.
 
 ---
 
@@ -2015,7 +2189,7 @@ Le richieste che modificano (tutte tranne `GET` e `HEAD`) devono avere l'intesta
 
 I percorsi possono finire con `*` (`/api/apps/:id/v/:version/*`): il resto del percorso arriva in `params.rest`.
 
-**Nodi di `/api/fs/sync`.** `{ id, parent, name, type: 'folder' \| 'file' \| 'app', created, modified, color?, app?, system?, workspace?, private?, tags?, trashed? }`: gli id di lilOS (`[\w-]{1,64}`; `root` e `trash` solo come `parent`) diventano `<home>/<id>`, in una cartella per utente. Il contenuto dei file non passa di qui. I metadati extra (i campi dopo `modified`) non possono superare 4 KB per nodo.
+**Nodi di `/api/fs/sync`.** `{ id, parent, name, type: 'folder' \| 'file' \| 'app', created, modified, color?, app?, system?, workspace?, private?, tags?, trashed?, apps? }`: gli id di lilOS (`[\w-]{1,64}`; `root` e `trash` solo come `parent`) diventano `<home>/<id>`, in una cartella per utente. Il contenuto dei file non passa di qui. I metadati extra (i campi dopo `modified`, `apps` compreso) non possono superare 4 KB per nodo in tutto (`too_large`: «Troppi dati in un elemento»): `apps` non supera 2 KB in tutto (lo garantisce `fs`), così sta nel limite.
 
 **Dentro la home** di ogni utente: `~trash` (la radice del Cestino, nominata `.trash`) e `~config` (nominata `.config`, un file JSON per ogni chiave di `storage`). Una chiave è `[\w:.-]{1,120}`.
 
@@ -2305,6 +2479,8 @@ Interfaccia `runtime`: vedi [Servizi (`services.js`)](#servizi-servicesjs).
 | `item:open` | nodo del file system | `Desktop.open()` per cartelle e file | `system.js`: le cartelle si aprono nel File Manager (`launch('files', { folder })`), i file con `openFile` |
 | `system:ready` | `{ at }` (`Date.now()`) | `system.js`, una volta per pagina, quando le finestre salvate del primo workspace (`workspaces.ready`) e delle workarea aperte (`workareas.ready`) sono tornate | Chi vuole partire con il sistema. I servizi del kernel **non** passano da qui: il kernel ha i suoi momenti `system:ready` e `user:login` (vedi [Servizi delle app](#servizi-delle-app-appsappservicesjs)), che non dipendono da una pagina aperta |
 | `user:login` | `{ user, workspace }` (`kernel.data.user` o `null`; id del workspace attuale o `null`) | `system.js`, subito dopo `system:ready` | `connectStartup` (`apps/startup.js`): apre le app dell'avvio |
+| `files:locked` | `[id]` (id di file) | `lilos.files.locked` (il ponte `methods.js`); `background.js` quando si ferma un punto d'ingresso in background con file suoi | `connectSystemEvents` (`apps/systemEvents.js`): chiede di chiudere le finestre che mostrano quei file |
+| `files:shown` | `{ ids, answer(id) }` | `lilos.files.shown` (il ponte `methods.js`) | `connectSystemEvents`: chiama `answer(id)` per ogni file di `ids` mostrato in una finestra |
 
 Quando aggiungi un evento, documentalo qui e nel commento in testa a `sdk/core/events.js`.
 
@@ -2486,6 +2662,8 @@ Solo i comandi personalizzati, con le loro combinazioni (un array vuoto = nessun
 
 Alla lettura vengono scartate le voci che non sono array di combinazioni canoniche; alla registrazione del comando, quelle con una combinazione non valida per quel comando.
 
+Un nodo può avere anche `"apps": { "<id app>": { … } }`: i dati delle app su quel nodo (al massimo 8 app, 1 KB di JSON ciascuna e 2 KB in tutto; le voci non valide si scartano alla lettura). Il campo viaggia con il nodo verso il kernel (`/api/fs/sync`).
+
 ### `lilos:settings`
 
 Oggetto con le impostazioni (vedi `settings` e `systemSettings.js`):
@@ -2524,3 +2702,11 @@ I servizi delle app che partono da soli all'ingresso dell'utente, e se partono (
 ```
 
 `enabled` vale `true` se manca. Si controlla a ogni lettura: al massimo 100 servizi, `app` e `entry` nella forma del manifesto, senza duplicati, `params` un oggetto (altrimenti `{}`). I servizi **scelti per tutti** non sono qui: stanno nel nodo `/system/app/.startup` (`meta.startup.services`, stessa forma di `services`). I dati dei servizi di sistema stanno in `app:<id>/~data` (vedi [Servizi delle app](#servizi-delle-app-appsappservicesjs)).
+
+### `pipes-order`
+
+L'ordine che l'utente ha scelto per i gestori delle pipe (Sistema → App → Pipe), dentro ogni fascia. Oggetto `{ "<evento>/<fase>": [chiave, …] }`, con al massimo 100 chiavi per elenco. Come le altre chiavi è `lilos:pipes-order` nel browser, o il file `pipes-order` nella `.config` dell'utente. La chiave di un gestore è quella di `pipes.chain()`: `<app>#<punto d'ingresso>` per le iscrizioni del manifesto (`filecrypt#vault`), `<app>#<punto d'ingresso>:<evento>/<fase>` per quelle fatte dal codice. Un gestore che non è nell'elenco va dopo quelli elencati, in ordine di arrivo.
+
+```json
+{ "file.write/before": ["filecrypt#vault"] }
+```

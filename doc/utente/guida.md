@@ -127,7 +127,7 @@ Con il tasto destro su un file, **Apri con…** permette di scegliere l'app anch
 
 Tasto destro su **un** elemento → **Proprietà…**. Se ne hai selezionati più di uno la voce non compare. Nel File Manager c'è la stessa voce.
 
-- **Per una cartella o un file** si apre una piccola finestra, solo da leggere: il tipo, dove si trova, quanto pesa (per una cartella, quanti file e cartelle contiene e la loro dimensione), quando è stato creato e modificato, il workspace, i tag e, per un file, l'app con cui si apre. Se l'elemento cambia mentre la finestra è aperta, si aggiorna; se sparisce, la finestra si chiude. Per ogni elemento c'è una sola finestra.
+- **Per una cartella o un file** si apre una piccola finestra, solo da leggere: il tipo, dove si trova, quanto pesa (per una cartella, quanti file e cartelle contiene e la loro dimensione), quando è stato creato e modificato, il workspace, i tag e, per un file, l'app con cui si apre. Se un'app ha segnato l'elemento (per esempio un file cifrato) c'è anche una riga **App** con il suo segno (per esempio «Cifrato con FileCrypt»); se quell'app non è più installata, una riga **Dati di** *nome dell'app* con il pulsante **Rimuovi**. Se l'elemento cambia mentre la finestra è aperta, si aggiorna; se sparisce, la finestra si chiude. Per ogni elemento c'è una sola finestra.
 - **Per un'app** (un collegamento sulla scrivania) si aprono le proprietà dell'app, che trovi anche con il tasto destro su un'app nel menu di avvio. Vedi [Proprietà di un'app](#proprietà-di-unapp).
 
 Una **workarea** ha le sue proprietà, con il titolo e la descrizione (vedi [Le workarea](#le-workarea)).
@@ -701,6 +701,8 @@ Oltre a File Manager, Editor, Sistema e AppStore, che vengono dal repository uff
 - **Un'app vede solo ciò che le è stato permesso.** Per esempio può leggere e modificare soltanto i file di una cartella precisa. Non può leggere il resto della scrivania né gli altri dati di lilOS. I file che apri con l'app sono sempre accessibili all'app. (File Manager, Editor, Sistema e AppStore sono parte di lilOS e non hanno questo limite.) Questo vale per le app **isolate**, che è come girano di solito: vedi [Isolate e non isolate](#isolate-e-non-isolate).
 - **Alcune app lavorano anche senza finestra.** Un'app può avere parti che girano in secondo piano (per esempio per contare le parole delle tue note) e che si avviano da sole quando servono. Si fermano dopo circa 5 minuti senza essere usate. Se un'app deve restare attiva (per esempio perché tiene in memoria qualcosa che ti serve), compare nella barra in basso un'icona con un fulmine: vedi [Le app che restano attive](#le-app-che-restano-attive).
 - **Parla la tua lingua, se può.** Il nome dell'app, i suoi comandi e i suoi testi seguono la lingua scelta in [Sistema → Lingua](#la-lingua). Se l'app non la conosce, usa l'inglese.
+- **Può aggiungere voci al menu del tasto destro.** Un'app può mettere una sua voce nel menu di file e cartelle (per esempio **Cifra…** di [FileCrypt](#filecrypt)) e un piccolo segno sull'icona degli elementi su cui ha lavorato (per esempio un lucchetto). Se l'app non c'è più e l'elemento era suo, l'icona mostra un lucchetto grigio e passandoci sopra leggi quale app serve.
+- **Può intervenire quando apri o salvi un file.** Un'app può, per esempio, chiederti una password prima di aprire un file. Le app che lo fanno e l'ordine in cui lavorano si vedono in **Sistema → App → Pipe** (vedi [Sistema](#sistema)). Un'app deve avere il permesso per farlo, e lo vedi nelle sue Proprietà → Permessi.
 - **Nasconderla in un workspace.** In **Sistema → Workspace → Questo workspace** ogni app ha un interruttore: spento, l'app sparisce dal menu di avvio e da "Apri con" in quel workspace, e le sue finestre si chiudono (se hanno modifiche non salvate ti viene chiesto). L'app resta installata e negli altri workspace non cambia niente. File Manager, Sistema e AppStore non si nascondono.
 - **Quando l'amministratore la rimuove**, sparisce da tutti i workspace e le sue finestre si chiudono. Quello che l'app aveva creato per te viene tolto; **quello che hai modificato o riempito va nel Cestino** (compare un messaggio con quanti elementi), così non perdi il tuo lavoro. I dati che l'app teneva per sé (le sue impostazioni) si cancellano.
 - **L'Editor è un caso a parte.** Se lo rimuovi, i file di testo non hanno più un'app che li apre finché non lo reinstalli. Attenzione: **torna da solo** quando il kernel viene riavviato (anche solo per installare un modulo), a meno che chi gestisce lilOS non lo tolga dall'elenco delle app da installare all'avvio. Per non vederlo basta nasconderlo nel workspace.
@@ -742,6 +744,53 @@ Alcune app hanno un solo modo, e la scheda Sicurezza lo spiega:
 Quando un'app in secondo piano deve restare attiva, nella barra in basso compare un'icona con un **fulmine** (con un numero se sono più di una). Ci passi sopra per vedere il nome; con un clic si apre un menu: per ogni app puoi aprire le sue **Proprietà…** oppure **Ferma**. Fermarla interrompe quello che stava facendo e le fa dimenticare quello che teneva in memoria; si riavvia da sola alla prossima richiesta. L'icona sparisce quando non ce ne sono.
 
 Cosa non è ancora possibile: i widget sulla scrivania non si vedono ancora, e se ripristini la scrivania e i file iniziali un'app non rifà le sue cartelle e i suoi file di esempio.
+
+## FileCrypt
+
+FileCrypt è un'app che **cifra un singolo file con una password**: dopo, il file si apre solo se scrivi la password. Non c'è fra le app che ci sono sempre: la installa un amministratore dall'[AppStore](#lappstore). Il file resta dov'è, con lo stesso nome; cambia solo il contenuto, che nessuno può leggere senza la password (nemmeno chi gestisce lilOS).
+
+> **Se dimentichi la password, il file è perso.** Nessuno può recuperarlo, nemmeno un amministratore. Non si può annullare. Scegli una password che ricordi o che hai scritto in un posto sicuro.
+
+### Cifrare un file
+
+1. Tasto destro sul file (sulla scrivania o nel File Manager) → **Cifra…**.
+2. Scrivi la password due volte (almeno 8 caratteri; sotto il campo vedi se è debole o robusta). Sotto **Avanzate** puoi scegliere il metodo di cifratura: quello già scelto va bene per quasi tutti.
+3. Premi **Cifra** (o Invio). Il file è cifrato e sull'icona compare un **lucchetto**.
+
+### Aprire un file cifrato
+
+Doppio clic sul file: compare la finestra **Sblocca**. Scrivi la password e premi **Sblocca** (o Invio): il file si apre nell'app di sempre (l'Editor, Photo…). Quando lo salvi, **torna cifrato da solo**. Una password sbagliata dà il messaggio **Password sbagliata**. Se la password è giusta ma compare **La password è giusta, ma il file è stato cambiato o è rovinato**, il file è stato modificato da fuori o si è danneggiato: non si può aprire.
+
+### Bloccare di nuovo
+
+Un file sbloccato resta sbloccato finché non lo blocchi. Si blocca di nuovo:
+
+- con il tasto destro sul file → **Blocca** (anche su più file scelti insieme);
+- dalla finestra di FileCrypt (aprila dal menu di avvio): ci sono l'elenco dei file sbloccati, **Blocca** per ognuno e **Blocca tutti**;
+- da solo, dopo 15 minuti senza usarlo (non mentre il file è aperto in una finestra). Il tempo si cambia nelle **Impostazioni** della finestra di FileCrypt (**Blocca di nuovo dopo**; **Mai da solo** lo spegne);
+- quando esci dal tuo account;
+- quando fermi FileCrypt dalla barra in basso (l'icona con il fulmine, poi **Ferma**).
+
+Le finestre che mostrano un file appena bloccato si chiudono; se una ha modifiche non salvate, prima te lo chiede.
+
+### Togliere la cifratura
+
+Tasto destro sul file cifrato → **Rimuovi cifratura…**, poi la password: il file torna in chiaro e chiunque lo veda lo può leggere.
+
+### Copie
+
+Una copia di un file cifrato (per esempio fatta con il comando `cp` del Terminale) resta cifrata e si apre con la stessa password.
+
+### Da sapere
+
+- **Si cifra solo il contenuto.** Il nome, la dimensione, le date e i tag restano visibili a chi vede il file.
+- **Se disinstalli FileCrypt**, i file restano cifrati e intatti, ma non si aprono finché non la reinstalli: sulla loro icona compare un lucchetto grigio e, passandoci sopra, leggi quale app serve.
+- **Fermare FileCrypt dalla barra** cancella le chiavi e chiude le finestre dei file cifrati (come un blocco: chi ha modifiche non salvate te lo chiede prima). Per riaprire un file serve di nuovo la password.
+- **Un file cifrato si può tornare a una versione precedente.** Chi può scrivere il file può rimetterci una sua versione cifrata più vecchia, e FileCrypt non se ne accorge.
+- **Se il browser si chiude proprio mentre cifri o togli la cifratura**, può restare un file cifrato che lilOS non riconosce come tale, o l'opposto. Controlla il lucchetto e rifai l'operazione.
+- **Il chiaro può restare per un po' in giro.** L'anteprima del File Manager tiene in memoria il contenuto letto finché non cambi selezione. Un modello copiato da un file cifrato con **Nuovo da modello** esce in chiaro. Il comando `cp` del Terminale su un file cifrato bloccato lo sovrascrive. I servizi in sottofondo di lilOS leggono e scrivono il contenuto così com'è, cioè cifrato.
+- **Mentre un file è sbloccato**, un'app che non gira isolata (vedi [Isolate e non isolate](#isolate-e-non-isolate)) lo può leggere. Blocca il file appena hai finito.
+- **Le versioni vecchie.** Se il file è stato salvato in chiaro prima di cifrarlo, chi gestisce lilOS può avere copie di sicurezza con quelle versioni. La cronologia dell'Annulla (Ctrl Z) non le rimette.
 
 ## Menu contestuale
 
@@ -810,6 +859,7 @@ Le modifiche valgono subito e restano salvate.
 | Usabilità | Cestino | Se chiedere conferma prima di eliminare, se eliminare definitivamente senza passare dal cestino, per quanto tempo il cestino conserva gli elementi; aprire e svuotare il cestino (vedi [Il Cestino](#il-cestino)) |
 | Usabilità | Scorciatoie | Le combinazioni di tasti di ogni comando (vedi [Cambiare le scorciatoie](#cambiare-le-scorciatoie)) e, nella sezione Mouse, la combinazione per la selezione a mano libera (Alt, Ctrl + Alt o Alt + Shift) |
 | App | Sicurezza | Se le app installate girano isolate o no: una scelta per tutte (la cambia solo un amministratore) e l'elenco di come gira ognuna; il pulsante **Proprietà…** (vedi [Isolate e non isolate](#isolate-e-non-isolate)) |
+| App | Pipe | Cosa fanno le app quando succede qualcosa (aprire, leggere o salvare un file, avviare un'app…): per ogni azione le app che intervengono, nell'ordine in cui lavorano, prima e dopo l'azione. Se due app intervengono nello stesso momento puoi spostarne una **Su** o **Giù** dentro il suo gruppo (tra i primi, in mezzo, tra gli ultimi); **Ripristina** torna all'ordine di installazione. Vedi solo ciò che accade in questa scheda del browser |
 | Avvio | Opzioni | Se le app scelte si aprono da sole quando entri e se partono i servizi (vedi [Aprire le app all'avvio](#aprire-le-app-allavvio)) |
 | Avvio | Servizi | Le parti delle app che lavorano in sottofondo: se sono accese, quando partono, e i pulsanti per accenderle, spegnerle e leggerne il registro (vedi [Servizi in sottofondo](#servizi-in-sottofondo)) |
 | Avvio | App | Quali app si aprono da sole, con quale finestra e con quali scelte (cartella, file…) |
@@ -1041,6 +1091,12 @@ Il programma che conserva i tuoi dati non è acceso: chiedi a chi gestisce lilOS
 
 **Compare "Modifiche non salvate".**
 lilOS non riesce a raggiungere il suo archivio (il computer ha perso la connessione, o l'archivio è spento). Riprova da solo ogni poco; non chiudere la pagina. Quando ci riesce compare "Modifiche salvate".
+
+**Ho dimenticato la password di un file cifrato con FileCrypt.**
+Non si può recuperare: il file è perso. Nemmeno un amministratore può aprirlo. Vedi [FileCrypt](#filecrypt).
+
+**Un file ha un lucchetto grigio e non si apre.**
+È stato cifrato da un'app che ora non è installata. Chiedi all'amministratore di installarla di nuovo dall'AppStore: il file è ancora intatto. Se l'app non tornerà, tasto destro sul file → **Proprietà…**: la riga **Dati di** *nome dell'app* ha il pulsante **Rimuovi**. Il file resta com'è (cifrato, quindi illeggibile) ma lilOS smette di rifiutarsi di aprirlo.
 
 **Ho dimenticato la password.**
 Non si può recuperare da lilOS: chiedi a chi lo gestisce di cambiartela. Dopo il cambio devi accedere di nuovo ovunque.

@@ -34,8 +34,8 @@ export class DesktopItem {
   }
 
   /** New name or metadata from the file system (the icon can change with the extension, color or tags). */
-  setData({ name, color, tags }) {
-    Object.assign(this.data, { name, color, tags });
+  setData({ name, color, tags, apps }) {
+    Object.assign(this.data, { name, color, tags, apps });
     this.label.textContent = name;
     this.glyph.replaceChildren(itemIcon(this.data), tagDots(this.data, 'ditem-tags') ?? '');
   }
