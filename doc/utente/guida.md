@@ -305,10 +305,33 @@ Tasti per muoversi nell'elenco (non modificabili):
 | Tasti | Azione |
 | --- | --- |
 | Frecce (con Shift per estendere la selezione), Home, Fine | Muoviti tra gli elementi |
+| → / ← (vista elenco) | Apri / chiudi la cartella nell'elenco (vedi [Aprire le cartelle nell'elenco](#aprire-le-cartelle-nellelenco)) |
 | Backspace o Alt ↑ | Cartella superiore |
 | Alt ← / Alt → | Indietro / Avanti |
 
 Quello che fai nel File Manager vale anche per la scrivania, e viceversa: una cartella creata in Scrivania compare subito sulla scrivania.
+
+### Aprire le cartelle nell'elenco
+
+In vista elenco ogni cartella ha un triangolo **›** prima dell'icona. Il triangolo apre la cartella **sul posto**: il suo contenuto compare sotto, un po' più a destra, e puoi aprire anche le cartelle che contiene. Così vedi più livelli insieme, come un albero, senza cambiare cartella.
+
+| Come | Cosa fa |
+| --- | --- |
+| Clic sul triangolo | Apre o chiude la cartella |
+| **Alt** + clic sul triangolo | Apre o chiude la cartella con tutte le sue sottocartelle |
+| **→** | Apre la cartella; se è già aperta, va al primo elemento che contiene |
+| **←** | Chiude la cartella; su un elemento al suo interno, torna alla cartella che lo contiene |
+| Tasto destro su una cartella → **Mostra il contenuto qui** / **Nascondi il contenuto** | Apre o chiude la cartella |
+| Tasto destro su una cartella → **Mostra il contenuto con tutte le sottocartelle** | Apre la cartella e tutto quello che contiene |
+| Tasto destro su un punto vuoto → **Chiudi tutte le cartelle** | Chiude tutte le cartelle aperte nell'elenco |
+
+Il doppio clic su una cartella la apre come prima, al posto di quella che stai guardando.
+
+- Ogni livello segue l'ordinamento scelto, con le cartelle in cima.
+- La ricerca cerca anche nelle cartelle aperte. Una cartella che non corrisponde resta visibile se contiene qualcosa che corrisponde.
+- Selezione, trascinamento, rinomina ed eliminazione funzionano anche sugli elementi delle cartelle aperte.
+- Se chiudi una cartella con dentro elementi selezionati, la selezione passa alla cartella.
+- Nel Cestino e nella vista a icone le cartelle non si aprono sul posto.
 
 ### Anteprima e Informazioni
 
