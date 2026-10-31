@@ -713,7 +713,7 @@ Per vedere che cosa è un'app: tasto destro sull'app nel menu di avvio → **Pro
 
 | Scheda | Cosa c'è |
 | --- | --- |
-| **Generale** | Nome, descrizione, versione, l'editore (con «Firma verificata» oppure «Non verificata»), da dove viene, quando è stata installata e aggiornata, e le sue parti: la finestra principale, che si apre quando apri l'app, e le altre (finestre o parti in secondo piano) che avviano il sistema e le altre app |
+| **Generale** | Nome, descrizione, versione, l'editore (con «Firma verificata», «Verificata: dal repository ufficiale» oppure «Non verificata»), da dove viene, quando è stata installata e aggiornata, e le sue parti: la finestra principale, che si apre quando apri l'app, e le altre (finestre o parti in secondo piano) che avviano il sistema e le altre app |
 | **Permessi** | Che cosa l'app può fare, scritto in parole (per esempio «Leggere e modificare i file in Home/Documenti/Note»), com'è stato concesso quando è stata installata |
 | **Sicurezza** | Come gira l'app: isolata o no (vedi sotto) |
 

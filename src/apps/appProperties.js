@@ -45,7 +45,7 @@ function generalSections(app) {
         { label: 'Nome', control: manifest.name },
         manifest.description && { label: 'Descrizione', control: manifest.description },
         { label: 'Versione', control: pkg.version },
-        { label: 'Editore', description: pkg.signed ? 'Firma verificata' : 'Non verificata: nessuna firma riconosciuta', control: pkg.publisher?.name ?? manifest.publisher?.name ?? '—' },
+        { label: 'Editore', description: pkg.signed ? (pkg.manifest?.signature ? 'Firma verificata' : 'Verificata: dal repository ufficiale') : 'Non verificata: nessuna firma riconosciuta', control: pkg.publisher?.name ?? manifest.publisher?.name ?? '—' },
         { label: 'Provenienza', control: sourceLabel(pkg.source) },
         { label: 'Installata', control: dateLabel(pkg.installed) },
         { label: 'Aggiornata', control: dateLabel(pkg.updated) },

@@ -122,17 +122,21 @@ export class Installer {
     return this.#fs.read(principal, `${libId(name, version)}/${folder.meta.file}`);
   }
 
-  /** Signed by a known publisher (true), not verifiable (false); a signature that does not match throws. */
+  /**
+   * Verified (true): signed by a known publisher, or from the official repository (with the
+   * official signature when officialKey is set). Not verifiable: false. A signature that does not match throws.
+   */
   #trust(manifest, source) {
     const key = manifest.publisher.key;
     if (manifest.signature && !verifySignature(manifest, key)) fail('forbidden', 'La firma del pacchetto non corrisponde: è stato modificato. Installazione rifiutata.');
     const trusted = this.#config.trustedPublishers?.[manifest.publisher.id];
     const signed = !!manifest.signature && !!trusted && trusted === key;
+    const official = isOfficial(source) && (!this.#config.officialKey || (!!manifest.signature && key === this.#config.officialKey));
     if (manifest.system) {
       if (!isOfficial(source)) fail('forbidden', 'Le app di sistema si installano solo dal repository ufficiale GexyLab/lilos-plugins-official');
-      if (this.#config.officialKey && !(manifest.signature && key === this.#config.officialKey)) fail('forbidden', 'App di sistema senza la firma ufficiale');
+      if (!official) fail('forbidden', 'App di sistema senza la firma ufficiale');
     }
-    return signed || (manifest.system === true && isOfficial(source));
+    return signed || official;
   }
 
   #checkGrant(manifest, grant, already = []) {
