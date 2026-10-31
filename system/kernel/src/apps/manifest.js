@@ -36,6 +36,8 @@ import { parseLocales } from '../../../../sdk/core/i18n.js';
  *     contributes: { window: { width, height }, fileTypes: ['md'], commands: [{ id, label, keys }],
  *                    widgets: [{ id, name, width, height, resizable }], settings: [...], actions: [...] },
  *     install: [op], update: [{ from: '<1.2.0', ops: [op] }], uninstall: [op],
+ *     restartOnUpdate?: true | '<2.0.0',      updating to this version needs lilOS to restart (always, or
+ *                                             only from the versions in the range, like update's `from`)
  *     signature?: 'ed25519:<base64>'         over the manifest without "signature" (keys sorted)
  *   }
  *
@@ -232,6 +234,9 @@ export function checkManifest(raw) {
   for (const step of list(m.update, 20)) {
     if (!step || typeof step.from !== 'string' || !/^(<=?|=)?\d+\.\d+\.\d+$/.test(step.from)) bad('update: "from" non valido');
     checkOps(step.ops, permissions, 'update', files);
+  }
+  if (m.restartOnUpdate !== undefined && m.restartOnUpdate !== true && !(typeof m.restartOnUpdate === 'string' && /^(<=?|=)?\d+\.\d+\.\d+$/.test(m.restartOnUpdate))) {
+    bad('restartOnUpdate: true o un intervallo di versioni come "<2.0.0"');
   }
   if (m.signature !== undefined && !/^ed25519:[A-Za-z0-9+/]{86}==$/.test(m.signature)) bad('firma non valida');
   if (JSON.stringify(m).length > 256 << 10) bad('troppo grande');

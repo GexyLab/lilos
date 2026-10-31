@@ -1,5 +1,6 @@
 import { bus, menus, toast } from '@lilos/sdk';
 import { apps, getApp, isInstalled } from './registry.js';
+import { blockedLaunch } from './updates.js';
 
 /**
  * Where launching acts: by default one window per app on the whole desk. Workareas narrow it:
@@ -44,10 +45,11 @@ export function connectLauncher(wm) {
   });
 
   const loading = new Set();
-  const openWindow = (win, key = null) => {
+  // Secondary windows belong to the app that opens them (an update closes them with it)
+  const windowOpener = owner => (win, key = null) => {
     const open = key && wm.get(key);
     if (open) { wm.show(open); return open; }
-    return wm.open(win, { key, center: scope.center(win), bounds: scope.bounds() });
+    return wm.open(win, { key, owner, center: scope.center(win), bounds: scope.bounds() });
   };
 
   // A window entry point other than main: system apps export it by name, installed apps get it as `entry`.
@@ -55,7 +57,7 @@ export function connectLauncher(wm) {
   const create = async (app, args, entry = 'main', files = []) => {
     const mod = await app.load();
     const make = entry !== 'main' && app.trusted && typeof mod[entry] === 'function' ? mod[entry] : mod.default;
-    const win = await make({ args, openWindow, entry, files });
+    const win = await make({ args, openWindow: windowOpener(app.id), entry, files });
     win.entry = entry;
     if (entry !== 'main') {
       const state = win.getState;
@@ -69,6 +71,8 @@ export function connectLauncher(wm) {
     const app = getApp(id);
     if (!app?.load) return console.info('[lilos] app non ancora disponibile:', id);
     if (!isInstalled(id)) return toast(`${app.name} è nascosta in questo workspace. Si mostra da Sistema → Workspace.`, { timeout: 5000 });
+    // Being updated, or updated and waiting for lilOS to restart: its old code must not start again
+    if (blockedLaunch(id)) return;
     const open = wm.windows.find(w => wm.appOf(w) === id && (w.entry ?? 'main') === entry && scope.includes(w));
     if (open) {
       if (files.length) open.emit('grant', files);

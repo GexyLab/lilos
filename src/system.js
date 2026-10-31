@@ -31,6 +31,7 @@ import { Desktop } from './desktop/Desktop.js';
 import { Taskbar } from './taskbar/Taskbar.js';
 import { WindowManager } from './windows/WindowManager.js';
 import { connectLauncher } from './apps/launcher.js';
+import { connectUpdates } from './apps/updates.js';
 import { connectStartup } from './apps/startup.js';
 import { connectServices } from './apps/services.js';
 import { Workareas } from './workareas/Workareas.js';
@@ -61,6 +62,7 @@ const taskbar = new Taskbar(root);
 const wm = new WindowManager(canvas, taskbar);
 wm.setWorkspace(space.id);   // before any window opens (workareas reopen theirs right away)
 const launcher = connectLauncher(wm);
+connectUpdates(wm, launcher);
 setChooser(createOpenWith(wm));
 connectProperties(wm);
 connectAppProperties(wm);

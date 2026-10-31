@@ -3,5 +3,12 @@
 .pkg-frame { display: block; width: 100%; height: 100%; border: 0; background: var(--surface); }
 /* Not isolated: the app draws in a Shadow DOM of this element */
 .pkg-host { width: 100%; height: 100%; }
+/* Asking before an update and before restarting lilOS (src/apps/updates.js) */
+.upd-dialog { display: flex; flex-direction: column; gap: 10px; padding: 18px 20px 16px; font-size: 12.5px; line-height: 1.5; }
+.upd-dialog p, .upd-dialog ul { margin: 0; }
+.upd-dialog ul { padding-left: 18px; }
+.upd-lead { font-weight: 500; }
+.upd-restart { color: var(--danger); }
+.upd-buttons { margin-top: 6px; display: flex; gap: 8px; justify-content: flex-end; }
 /* Background entry points of isolated apps: a sandbox nobody sees */
 .pkg-background { position: fixed; width: 0; height: 0; border: 0; visibility: hidden; pointer-events: none; }

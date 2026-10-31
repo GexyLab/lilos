@@ -47,6 +47,7 @@ export class Installer {
   }
 
   onChange(fn) { this.#listeners.add(fn); }
+  offChange(fn) { this.#listeners.delete(fn); }
   #changed(id) { this.#listeners.forEach(fn => fn(id)); }
 
   async #put(node) {

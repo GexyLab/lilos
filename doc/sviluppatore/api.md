@@ -1212,6 +1212,7 @@ Permessi dichiarati nei manifesti ufficiali: File Manager `fs.write:~`, `fs.work
 | `handleCommand` | `apps/commands.js` | Un'app gestisce un suo comando |
 | `callEntrypoint`, `connectEntrypoint`, `entrypointsOf` | `apps/entrypoints.js` | Avviare un punto d'ingresso di un'app, collegarsi a uno in background, elencare quelli di un'app (vedi [Punti d'ingresso](#punti-dingresso-entrypointsjs)) |
 | `startup` | `apps/startup.js` | Le app che si aprono da sole (vedi [apps/startup.js](#appsstartupjs)) |
+| `updateApps`, `requestRestart`, `restartSystem`, `updates` | `apps/updates.js` | Aggiornare app senza lasciare codice vecchio, chiedere il riavvio di lilOS (vedi [apps/updates.js](#appsupdatesjs)) |
 | `services` | `apps/services.js` | I servizi delle app nel kernel: elenco, scelte, avvio e arresto, chiamate, registro (vedi [Servizi delle app](#servizi-delle-app-appsappservicesjs)) |
 | `executionMode`, `canChangeExecution` | `apps/packages/isolation.js` | Come gira un'app installata; se l'utente può cambiarlo (è amministratore) |
 | `describePermission` | `apps/packages/permissions.js` | Un permesso in italiano (`'fs.read:~/Documenti'` → «Leggere i file in Home/Documenti») |
@@ -1239,6 +1240,7 @@ Per le firme vedi le sezioni dei moduli di origine in questa pagina.
 - `isInstalled(id)` → `true` se l'app esiste ed è visibile nel workspace attuale (le `system` sempre; il nome viene da quando le app si installavano per workspace). `installedApps()` → quelle visibili, nell'ordine del registro. `setInstalledFilter(fn)`: il sistema (`Workspaces`) imposta `fn(appId) → boolean`; predefinito: tutte visibili. Il menu di avvio mostra solo le visibili.
 - `launch(id, args?, entry = 'main', { files = [] } = {})`: emette `app:launch` con `{ id, args, entry, files }`. `entry` è uno dei punti d'ingresso di tipo finestra dell'app; l'utente apre sempre `main`. `files`: id di file consegnati all'app. Il launcher li passa al modulo (`({ args, openWindow, entry, files })`); in un'app installata diventano handle leggibili e scrivibili (`packageModule` in `host.js`), anche se isolata. Se la finestra è già aperta, il launcher emette `grant` (con gli id) su di essa prima di `launch`, e gli handle crescono.
 - `connectLauncher(wm)`: trasforma `app:launch` in finestre. Al primo avvio carica il modulo dell'app e chiama il suo export predefinito `({ args, openWindow, entry }) → Window` (per un'app di sistema e un `entry` diverso da `main`, l'export con quel nome), poi apre la finestra con `wm.open(win, { app: id, center, bounds })`. Se l'app ha già una finestra di **quel punto d'ingresso** **nell'ambito attuale** (e nel workspace attuale) la riporta in primo piano (ed emette `launch`). Una finestra che non è `main` salva `{ __entry, args }` come stato, così le workarea la riaprono dallo stesso punto d'ingresso. Se l'app non parte, un messaggio (`toast`) lo dice. Le app senza `load` (o inesistenti) scrivono un avviso in console. Un'app **nascosta** nel workspace attuale non parte: un messaggio (`toast`) dice di mostrarla da Sistema → Workspace. La finestra appartiene al workspace attuale al momento della richiesta, anche se l'utente cambia workspace mentre l'app si carica (in quel caso si apre nascosta nel suo workspace).
+- Il launcher passa a ogni app un `openWindow` che apre le finestre secondarie con `owner` = l'id dell'app, e prima di avviare un'app chiede a `blockedLaunch(id)` (`apps/updates.js`): se l'app si sta aggiornando o aspetta il riavvio di lilOS, non parte e l'utente ne vede il motivo.
 - `connectLauncher(wm)` restituisce `{ restore }`. `restore({ app, state, rect }, { workspace = wm.workspace })` ricrea la finestra di un'app com'era: chiama il suo export con `state` come `args` e la apre con `wm.open(win, { app, at: rect, workspace })`, senza spostare la camera. Restituisce una Promise con la finestra, o `null` se l'app non esiste, è nascosta nel workspace attuale o non parte.
 - `setLaunchScope({ includes, center, bounds })`: stringe l'ambito in cui il launcher lavora (lo imposta `Workareas`). `includes(win)` → `boolean` dice quali finestre aperte contano come "la finestra dell'app" (una per app per ambito); `center(win)` → punto del mondo o `null` dove va una finestra nuova (`null`: il centro della vista); `bounds()` → rettangolo del mondo o `null` in cui deve restare. Predefinito: tutta la scrivania, nessun centro né limite. `openWindow` delle app (finestre secondarie) usa lo stesso centro e gli stessi limiti.
 
@@ -1295,6 +1297,59 @@ Chiave `startup-apps` (vedi [Dati salvati](#startup-apps)).
 
 ---
 
+## apps/updates.js
+
+Aggiornare le app mentre lilOS gira, senza lasciare in pagina codice vecchio. Il sistema lo collega all'avvio con `connectUpdates(wm, launcher)` (`system.js`); l'AppStore 1.4.0 e oltre lo usa per `Aggiorna`, `Aggiorna tutto` e `Reinstalla`. Decisione: [D46](../interna/decisioni.md#d46-aggiornare-le-app-ricaricamento-a-caldo-riavvio-solo-quando-serve). Testi in italiano (l'interfaccia di lilOS non è ancora tradotta).
+
+### `updateApps(items, { from = null, reinstall = false } = {})` (`@lilos/system`)
+
+`items`: `[{ id, run, restartOnUpdate? }]`. `run()` è l'aggiornamento vero (di solito `apps.update(id, …)`) e deve restituire lo stato dell'app; `restartOnUpdate` è quello della versione in arrivo, se si conosce già (il catalogo), per dirlo prima di cominciare. `from`: l'id dell'app che chiama; se è tra quelle da aggiornare si chiude e si riapre. `reinstall`: cambiano solo le parole dell'avviso.
+
+Passi:
+
+1. Per ogni app calcola cosa si chiuderà: le sue finestre in ogni workspace (`wm.windowsOfApp`, anche le secondarie con `owner`), se ha punti d'ingresso `service` o `background`, e se serve il riavvio (`restartOnUpdate` soddisfatto **e** `wasLoaded(id)`).
+2. Se c'è qualcosa da chiudere o il riavvio è previsto, mostra l'avviso («Annulla» / «Chiudi e aggiorna»). Se l'utente annulla: restituisce `null`, nulla è cambiato.
+3. Chiede, una alla volta, alle finestre con `canClose` (portando l'utente nel loro workspace). Se una dice no: avviso «Aggiornamento annullato», restituisce `null`.
+4. Segna le app come in aggiornamento (`blockedLaunch` le blocca), chiude le finestre, ferma i background (`stopApp`).
+5. Per ogni app: `await run()`, `await settled(id)`, poi controlla che il codice nuovo si carichi (`app.load()` per le app di sistema, `appCode` per le altre). Se non si carica, o `restartOnUpdate` si applica (con la versione di partenza), l'app resta in attesa del riavvio.
+6. Se `from` era tra le app, riapre le sue finestre principali (`launcher.restore`) con il codice nuovo, a meno che aspetti il riavvio. Se qualche app aspetta il riavvio, mostra «Riavviare lilOS?».
+
+Restituisce `[{ id, result } | { id, error }]` (un errore di un'app non ferma le altre) oppure `null`. Lancia se lilOS non è ancora pronto.
+
+```js
+import { updateApps } from '@lilos/system';
+import { apps } from '@lilos/sdk';
+
+const out = await updateApps(
+  [{ id: 'acme.note', run: () => apps.update('acme.note') }],
+  { from: 'appstore' },
+);
+if (out === null) console.log('annullato');
+else for (const r of out) console.log(r.id, r.error ?? r.result.version);
+```
+
+### Riavvio
+
+| Export | Descrizione |
+| --- | --- |
+| `requestRestart(reason, key = reason)` | Il sistema (o un'app di sistema) chiede il riavvio: per esempio l'AppStore dopo il riavvio del kernel per i moduli. Salva il motivo (stessa `key`: lo sostituisce), emette `updates` `change` e mostra subito «Riavviare lilOS?» (`Promise`, si risolve alla risposta). |
+| `restartSystem()` | Chiede alle finestre con `canClose` (tutte, `wm.all()`) e ricarica la pagina (`location.reload()`); i workspace riaprono le finestre. `Promise<boolean>`: `false` se una ha rifiutato. |
+| `updates` | `Emitter`. Evento `change`: cosa è in attesa è cambiato. `updates.pending()` → `[{ id, name, version, kind: 'reopen' \| 'restart', reason }]` (copie); `updates.restartReasons()` → `string[]` (i motivi di `requestRestart` e quelli delle app in attesa di riavvio). |
+
+Le funzioni `reopenApp(id)`, `askRestart()`, `blockedLaunch(id)` e `restartWanted(range, from)` sono esportate dal modulo ma **non** da `@lilos/system`.
+
+### Aggiornamenti fatti altrove
+
+Il modulo ascolta `registry` `change` e ricorda `{ version, build }` di ogni app. Se cambiano senza che `updateApps` sia in corso (un'altra scheda, un altro utente):
+
+- se `restartOnUpdate` si applica e la pagina aveva eseguito il codice vecchio: l'app passa a `kind: 'restart'`, un avviso, e `blockedLaunch` la blocca fino al riavvio;
+- altrimenti, se l'app ha finestre aperte qui (`windowsOfApp`): `kind: 'reopen'` e un avviso; `reopenApp(id)` le chiude (chiedendo prima), le riapre con il codice nuovo e toglie la voce;
+- altrimenti non succede nulla: al prossimo avvio l'app è quella nuova.
+
+Il pulsante nella barra è `createPendingUpdates()` (`taskbar/PendingUpdates.js`, classe `tb-bg tb-updates`, icona `download`, nascosto se non c'è nulla; rosso con `restart` quando ci sono motivi di riavvio). Il menu elenca «Riavvia *nome* (*versione*)» per le app `reopen` e, per i motivi di riavvio, i testi e «Riavvia lilOS».
+
+---
+
 ## apps/packages/
 
 Le app installate (pacchetti) nel sistema, di sistema e non. Panoramica: [README per sviluppatori](README.md#app-installate-pacchetti); ricetta: [Creare un'app installabile](ricette.md#creare-unapp-installabile-pacchetto); decisioni D35-D38 e D42.
@@ -1326,6 +1381,7 @@ Validato dal kernel (`system/kernel/src/apps/manifest.js`), che scarta i campi c
 | `permissions?` | Elenco di permessi (fino a 50), vedi sotto. |
 | `contributes?` | `window: { width, height }` (200-4000 × 150-4000); `fileTypes: [estensione]` (fino a 50); `commands: [{ id, label, keys? }]` (fino a 30, l'`id` inizia con l'id dell'app + `.`, `keys` fino a 3 e richiede `ui.shortcuts`); `widgets: [{ id, name, width, height }]` (fino a 10, richiede `desktop.widget`; **validati ma non mostrati**). |
 | `install?`, `update?`, `uninstall?` | Operazioni, vedi sotto. `update`: `[{ from: '<1.2.0', ops: [...] }]` (`from`: `<x.y.z`, `<=x.y.z` o `x.y.z`). |
+| `restartOnUpdate?` | `true` o un intervallo come `update.from` (`'<2.0.0'`, `'<=1.2.0'`, `'1.2.0'`): aggiornando a questa versione lilOS propone di riavviarsi. Con un intervallo vale solo se si arriva da una versione che lo soddisfa. Conta solo se la pagina ha già eseguito il codice vecchio dell'app. Altro: manifesto non valido. Da usare solo quando il ricaricamento a caldo non basta (stato condiviso nella pagina, moduli tenuti da altri): vedi [apps/updates.js](#appsupdatesjs). |
 | `signature?` | `ed25519:<base64>` sul manifesto senza `signature`, con le chiavi in ordine. |
 
 Un manifesto non può superare 256 KB.
@@ -1420,8 +1476,10 @@ I percorsi sono quelli che l'utente vede dal workspace attuale: `~/Scrivania` è
 ### `packages.js`
 
 - `registerPackages()` → `Promise`: prima dei workspace, legge il file di traduzioni di ogni app (`manifest.locales`, controllato con il suo hash; se manca o non è valido l'app resta in inglese e c'è un messaggio in console) e mette ogni app installata nel registro. Si aspetta con `await`. Per ogni app crea la voce con `name` e `text` (il manifesto tradotto) che seguono la lingua del sistema, `system` = `required`, `trusted` = `system`, e `load`: per un'app di sistema `local` è `loadSystemApp`, per le altre `packageModule`.
-- `loadSystemApp(pkg)` (interna): per ogni foglio di `styles` aggiunge un `<link rel="stylesheet" data-app="<id>">` (e toglie quelli di una versione precedente), poi fa `import()` di `/api/apps/<id>/v/<versione>/<entry>`. Il percorso contiene la versione, quindi i blocchi, i worker e i file che il modulo carica con percorsi relativi si risolvono accanto a lui, e il browser li tiene in cache per sempre (`immutable`): **una versione non si cambia, se ne pubblica una nuova**. Alla rimozione di un'app i suoi fogli di stile si tolgono.
-- `connectPackages({ desk })` → `Promise`: dopo l'avvio, segue `apps` (`change`: legge le traduzioni, poi aggiunge, sostituisce o toglie nel registro; togliendo scarica anche le traduzioni) e fa le operazioni per l'utente. `desk()` dà l'id della Scrivania del workspace attuale.
+- `loadSystemApp(pkg)` (interna): per ogni foglio di `styles` aggiunge un `<link rel="stylesheet" data-app="<id>">` (e toglie quelli di una versione precedente), poi fa `import()` di `/api/apps/<id>/v/<versione>+<build>/<entry>`. `build` è `buildOf(pkg)`: l'impronta FNV-1a (in base 36) degli hash dei file del manifesto. Il percorso contiene versione e build, quindi i blocchi, i worker e i file che il modulo carica con percorsi relativi si risolvono accanto a lui, e il browser li tiene in cache per sempre (`immutable`): il browser non riusa mai un modulo vecchio, nemmeno reinstallando la stessa versione con file diversi (cambia il build, quindi l'indirizzo). Il kernel accetta `+<build>` e lo ignora. Alla rimozione di un'app i suoi fogli di stile si tolgono.
+- `buildOf(pkg)` → `string`: il build di un pacchetto (vedi sopra). `matchesFrom(range, version)` → `boolean`: `version` rispetta `'<1.2.0'`, `'<=1.2.0'` o `'1.2.0'`? (la usano `update.from` e `restartOnUpdate`).
+- `wasLoaded(id)` → `boolean`: questa pagina ha eseguito il codice dell'app (una versione qualsiasi). `settled(id)` → `Promise`: si risolve quando l'ultimo cambiamento dell'app (installata, aggiornata, tolta) è nel registro.
+- `connectPackages({ desk })` → `Promise`: dopo l'avvio, segue `apps` (`change`: legge le traduzioni, poi aggiunge, sostituisce o toglie nel registro, un cambiamento dopo l'altro per ogni app; togliendo scarica anche le traduzioni) e fa le operazioni per l'utente. Apre anche `EventSource('/api/apps-events')`: a ogni evento `change` (con 150 ms di attesa per raggruppare) chiama `apps.refresh()`, così le app cambiate da altri utenti, da altre schede o da altri programmi arrivano nel registro; se il flusso si riconnette (il kernel è ripartito) rilegge l'elenco; si chiude all'uscita dell'utente. Senza kernel non fa nulla. `desk()` dà l'id della Scrivania del workspace attuale.
 
 ### Modalità di esecuzione (`isolation.js`)
 
@@ -1517,12 +1575,15 @@ Il codice (verificato con l'hash) e le librerie del manifesto si mandano all'avv
 
 | Membro | Descrizione |
 | --- | --- |
-| `open(win, { key?, app?, center?, bounds?, at?, workspace? })` | Mette la finestra, aggiunge il pulsante nella barra, le dà il focus ed emette `open`. Per impostazione predefinita al centro della vista (le successive scalate di 24 px). `key` permette di ritrovarla con `get`; `app` è l'id dell'app a cui appartiene (vedi `appOf`); `center` è un punto del mondo su cui centrarla; `bounds` un rettangolo del mondo in cui tenerla (se è troppo grande vince l'angolo in alto a sinistra); `at` (`{ x, y, w?, h?, minimized? }`) la rimette esattamente lì, senza muovere la camera e senza cascata (`minimized` la apre ridotta a icona, senza focus). `workspace` (predefinito l'attuale): una finestra per un altro workspace si apre nascosta, senza focus, e compare quando l'utente ci va. |
+| `open(win, { key?, app?, owner?, center?, bounds?, at?, workspace? })` | Mette la finestra, aggiunge il pulsante nella barra, le dà il focus ed emette `open`. Per impostazione predefinita al centro della vista (le successive scalate di 24 px). `key` permette di ritrovarla con `get`; `app` è l'id dell'app a cui appartiene (vedi `appOf`); `owner` l'app che ha aperto una finestra secondaria (il launcher lo mette in `openWindow` di ogni app; se manca vale `app`): `windowsOfApp` la conta tra le finestre di quell'app; `center` è un punto del mondo su cui centrarla; `bounds` un rettangolo del mondo in cui tenerla (se è troppo grande vince l'angolo in alto a sinistra); `at` (`{ x, y, w?, h?, minimized? }`) la rimette esattamente lì, senza muovere la camera e senza cascata (`minimized` la apre ridotta a icona, senza focus). `workspace` (predefinito l'attuale): una finestra per un altro workspace si apre nascosta, senza focus, e compare quando l'utente ci va. |
 | `appOf(win)` | L'app data a `open` come `app`, o `null` (finestre secondarie: impostazioni, selettori, proprietà). |
 | `geometry(win)` | `{ x, y, w, h, minimized, maximized }` in coordinate mondo. Una finestra ingrandita riporta le misure che riavrà ripristinata. |
 | `get(key)` | La finestra aperta con quella chiave **nel workspace attuale**, o `null`. |
 | `windows` | Finestre aperte del workspace attuale, dalla più in basso alla più in alto. |
 | `windowsOf(workspace)` | Finestre di un workspace, dalla più in basso alla più in alto. |
+| `all()` | Le finestre di tutti i workspace, dalla più in basso alla più in alto (una copia). |
+| `workspaceOf(win)` | Il workspace di una finestra, o `null`. |
+| `windowsOfApp(id)` | Le finestre di un'app in tutti i workspace: quelle con `app` = `id` e le secondarie con `owner` = `id`. |
 | `workspace` | Il workspace attuale (`null` se non in uso). |
 | `setWorkspace(id)` | Mostra le finestre di `id` (dà il focus a quella che l'aveva quando l'utente se n'è andato) e nasconde tutte le altre. |
 | `adopt(workspace)` | Sposta nel workspace attuale tutte le finestre di un altro (un workspace eliminato), scalate al centro della vista attuale — anche dentro una workarea attuale. Il testo non salvato resta. |
@@ -1924,7 +1985,8 @@ Le richieste che modificano (tutte tranne `GET` e `HEAD`) devono avere l'intesta
 | `POST /api/storage` | utenti | `{ set: { chiave: valore }, remove: [chiave] }`; al massimo 500 chiavi per volta, 512 KB per valore (JSON). L'SDK ne manda al massimo 200 e circa 4 MB per richiesta |
 | `GET /api/apps` | utenti | → app installate `[{ ...stato, manifest }]`. Agli utenti non amministratori l'origine `local` mostra solo `{ type: 'local' }` |
 | `GET /api/apps/:id/file?path=…` | utenti | → un file della versione in uso (il codice) |
-| `GET /api/apps/:id/v/:version/<percorso>` | utenti | → un file di quella versione (la in uso o la precedente), con il percorso nell'URL: da qui lilOS importa le app di sistema, e i loro blocchi, worker e file `.wasm` si risolvono accanto al modulo. Risposta con `Cache-Control: private, max-age=31536000, immutable` e una CSP che permette a quel codice di caricare le proprie risorse dalla stessa origine (`default-src 'self' blob: data:; script-src 'self' blob: 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'`). |
+| `GET /api/apps/:id/v/:version/<percorso>` | utenti | → un file di quella versione (la in uso o la precedente), con il percorso nell'URL. `:version` è `x.y.z` oppure `x.y.z+<build>` (`build`: 1-16 caratteri `[a-z0-9]`): il kernel ignora il build, serve solo perché il browser, che tiene per sempre i moduli importati, veda un indirizzo nuovo quando il pacchetto cambia a parità di versione: da qui lilOS importa le app di sistema, e i loro blocchi, worker e file `.wasm` si risolvono accanto al modulo. Risposta con `Cache-Control: private, max-age=31536000, immutable` e una CSP che permette a quel codice di caricare le proprie risorse dalla stessa origine (`default-src 'self' blob: data:; script-src 'self' blob: 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'`). |
+| `GET /api/apps-events` | utenti | Flusso `text/event-stream` (`Cache-Control: no-store`). Evento `change` con dati `{ id }` ogni volta che un'app viene installata, aggiornata o tolta, da chiunque (`id` è `null` per la regola generale su come girano le app). Un commento `: ok` ogni 25 secondi tiene aperta la connessione. Lo ascolta `connectPackages`. |
 | `GET /api/commons/:name/:version` | utenti | → una libreria in cache |
 | `POST /api/apps` | amministratori | `{ source, grant, allowUnsigned }` → stato dell'app |
 | `POST /api/apps/:id/update` | amministratori | `{ ref?, reinstall?, grant, allowUnsigned }` → stato (con `unchanged: true` se non c'è nulla di nuovo) |
@@ -2246,7 +2308,7 @@ Interfaccia `runtime`: vedi [Servizi (`services.js`)](#servizi-servicesjs).
 
 Quando aggiungi un evento, documentalo qui e nel commento in testa a `sdk/core/events.js`.
 
-Gli eventi di `kernel` (`status`, `signedout`), `apps` (`change`) e `registry` (`change`) non passano dal bus: sono degli `Emitter` di quei moduli.
+Gli eventi di `kernel` (`status`, `signedout`), `apps` (`change`), `registry` (`change`) e `updates` (`change`) non passano dal bus: sono degli `Emitter` di quei moduli.
 
 ---
 

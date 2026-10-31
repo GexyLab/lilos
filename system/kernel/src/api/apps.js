@@ -5,6 +5,9 @@ import { send } from '../http.js';
  *   GET    /api/apps                     installed apps: [{ ...state, manifest }]
  *   GET    /api/apps/:id/file?path=…     a file of the app (its code, for lilOS to run it)
  *   GET    /api/apps/:id/v/:version/<path>   the same, path-like: system apps are imported from here
+ *                                        (:version may end in '+<build>': only for the browser's cache)
+ *   GET    /api/apps-events              text/event-stream: 'change' { id } when an app is installed,
+ *                                        updated or removed (id null: the general security rule)
  *   GET    /api/commons/:name/:version   a cached library
  *   POST   /api/apps                     { source, grant, allowUnsigned }          admins
  *   POST   /api/apps/:id/update          { ref, reinstall, grant, allowUnsigned }  admins
@@ -19,6 +22,10 @@ const FILE_PATH = /^(?!.*\.\.)[\w.-]+(\/[\w.-]+){0,15}$/;
 // System apps run inside lilOS: their modules and workers are loaded from here, so their own
 // requests (chunks, workers, wasm) must be allowed
 const CODE_CSP = "default-src 'self' blob: data:; script-src 'self' blob: 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'";
+// '1.2.0' or '1.2.0+<build>': lilOS adds the build so that a new package of the same version gets a
+// new address (the files are cached for good, and the browser keeps the modules it imported)
+const CODE_VERSION = /^(\d+\.\d+\.\d+)(\+[a-z0-9]{1,16})?$/;
+const HEARTBEAT = 25_000;
 
 const signedIn = principal => principal ?? fail('unauthorized', 'Accesso richiesto');
 const appParam = id => (ID.test(id) ? id : fail('invalid', 'App non valida'));
@@ -43,10 +50,25 @@ export function appRoutes(kernel) {
 
   // Path-like, so that a module's relative imports (chunks, workers) resolve next to it
   router.add('GET', '/api/apps/:id/v/:version/*', async ({ principal, params, res }) => {
-    if (!FILE_PATH.test(params.rest) || !/^\d+\.\d+\.\d+$/.test(params.version)) fail('invalid', 'Percorso non valido');
-    const data = await installer.file(signedIn(principal), appParam(params.id), params.rest, params.version);
+    const version = CODE_VERSION.exec(params.version)?.[1];
+    if (!FILE_PATH.test(params.rest) || !version) fail('invalid', 'Percorso non valido');
+    const data = await installer.file(signedIn(principal), appParam(params.id), params.rest, version);
     const type = TYPES[params.rest.split('.').pop()] ?? 'application/octet-stream';
     send(res, 200, data, { 'Content-Type': type.startsWith('text/') || type.endsWith('json') ? `${type}; charset=utf-8` : type, 'Content-Security-Policy': CODE_CSP, 'Cache-Control': 'private, max-age=31536000, immutable' });
+  });
+
+  // lilOS reads the list again and puts the new version in place (in every open session)
+  router.add('GET', '/api/apps-events', async ({ req, res, principal }) => {
+    signedIn(principal);
+    res.writeHead(200, { 'Content-Type': 'text/event-stream; charset=utf-8', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff', 'X-Accel-Buffering': 'no' });
+    const onChange = id => res.write(`event: change\ndata: ${JSON.stringify({ id })}\n\n`);
+    installer.onChange(onChange);
+    const beat = setInterval(() => res.write(': ok\n\n'), HEARTBEAT);
+    res.write(': ok\n\n');
+    req.on('close', () => {
+      clearInterval(beat);
+      installer.offChange(onChange);
+    });
   });
 
   router.add('GET', '/api/commons/:name/:version', async ({ principal, params, res }) => {

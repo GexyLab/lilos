@@ -771,3 +771,30 @@ lilOS legge il file **prima** di avviare l'app e le dà le stringhe già risolte
 - La traduzione di un nome non ha il limite di 40 caratteri del manifesto (vale quello di 4000 per tutti i testi).
 
 **Quando ripensarla.** Quando si tradurrà l'interfaccia di lilOS (oggi in italiano: potrebbe usare lo stesso motore, con il proprio file), quando si vorranno **pacchetti di lingua installabili** da altri (un file `.lang.json` per aggiungere una lingua a tutte le app, già abbozzato con il suo schema) o lingue da destra a sinistra, e se un'app avrà bisogno di cambiare lingua a un servizio già avviato.
+
+## D46. Aggiornare le app: ricaricamento a caldo, riavvio solo quando serve
+
+**Decisione.** Aggiornando (o reinstallando) un'app mentre lilOS gira, lilOS la sostituisce **a caldo**: chiude tutto ciò che l'app aveva aperto, aggiorna, e la volta dopo parte il codice nuovo. Il **riavvio di lilOS** (ricarica della pagina) si propone solo in tre casi: l'app lo chiede con `restartOnUpdate` nel manifesto (`true`, o un intervallo come `"<2.0.0"`, valutato sulla versione di partenza e solo se la pagina aveva eseguito il codice vecchio), la versione nuova non si carica, o il sistema lo chiede con `requestRestart(reason, key)` (l'AppStore lo usa dopo il riavvio del kernel per i moduli). Finché non si riavvia, quell'app non si apre. Il codice è in `src/apps/updates.js`.
+
+**Come.**
+
+- `updateApps()` mostra prima cosa si chiude: le finestre dell'app in ogni workspace (comprese le secondarie aperte con `wm.open(..., { owner })`) e i suoi background e servizi. Le finestre con `canClose` possono chiedere di salvare, ciascuna mostrata nel proprio workspace; se una rifiuta, non parte nulla.
+- Le app di sistema si importano da `/api/apps/<id>/v/<versione>+<build>/…`, con `build` = impronta FNV-1a degli hash dei file del manifesto. Il kernel accetta `+<build>` e lo ignora.
+- Il kernel offre un flusso `GET /api/apps-events` (`change` `{ id }`): ogni sessione, scheda o utente rilegge l'elenco delle app. Se l'app cambiata ha finestre aperte, un pulsante nella barra offre di riavviarla (chiude e riapre le finestre con il codice nuovo); se chiede il riavvio, il pulsante è rosso e propone di riavviare lilOS.
+
+**Perché.**
+
+- Il browser tiene per sempre ogni modulo importato da un indirizzo. Con solo `v/<versione>/`, reinstallare la stessa versione con file diversi (o un pacchetto di sviluppo) lasciava in pagina il codice vecchio. Il build nell'indirizzo rende nuovo l'indirizzo senza chiedere al kernel di capire nulla.
+- Riavviare sempre sarebbe sicuro ma pesante: chiude tutto per aggiornare un'app. Quasi tutte le app non lasciano nulla in pagina che il ricaricamento a caldo non sostituisca, quindi il riavvio è l'eccezione che l'autore dichiara.
+- Chiudere tutto ciò che l'app ha aperto (anche i servizi e le finestre secondarie) evita che il codice vecchio e quello nuovo convivano e che un servizio vecchio chiami finestre nuove.
+- Chiedere di salvare prima rende l'aggiornamento sicuro per il lavoro dell'utente; un rifiuto lo annulla del tutto, per non lasciare le app a metà.
+
+**Alternative scartate.** Riavviare lilOS a ogni aggiornamento (vedi sopra). Lasciare aperte le finestre vecchie accanto al codice nuovo (due versioni insieme).
+
+**Conseguenze.**
+
+- Un'app che tiene stato in modo condiviso nella pagina (moduli, `window`, listener globali) deve dichiarare `restartOnUpdate`: il ricaricamento a caldo non scarica i moduli già importati. Le finestre già aperte restano con il codice vecchio finché l'app non si riavvia (anche in un'altra scheda).
+- Solo chi chiama `updateApps` (l'AppStore) ottiene l'avviso, la chiusura e la riapertura: chi chiama `apps.update` direttamente aggiorna il pacchetto, e le altre schede lo vedono solo come aggiornamento fatto altrove.
+- I testi di `updates.js` sono in italiano, come il resto dell'interfaccia di lilOS.
+
+**Quando ripensarla.** Quando le app potranno salvare e ripristinare il proprio stato da sole (si potrebbe riaprirle senza avvisi), quando lilOS tradurrà la sua interfaccia, o se l'avviso per ogni aggiornamento si rivelasse troppo invadente (per esempio con aggiornamenti automatici).

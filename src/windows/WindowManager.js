@@ -23,7 +23,7 @@ const styleRect = el => ({
  */
 export class WindowManager extends Emitter {
   #order = [];          // bottom → top, every workspace
-  #entries = new Map(); // window → { key, app, task, restore, workspace }
+  #entries = new Map(); // window → { key, app, owner, task, restore, workspace }
   #opened = 0;
   #workspace = null;
   #lastActive = new Map();   // workspace → its window that had the focus when the user left it
@@ -61,6 +61,21 @@ export class WindowManager extends Emitter {
   /** Windows of a workspace, bottom → top. */
   windowsOf(workspace) {
     return this.#order.filter(w => this.#entries.get(w).workspace === workspace);
+  }
+
+  /** Windows of every workspace, bottom → top. */
+  all() {
+    return [...this.#order];
+  }
+
+  /** The workspace a window belongs to. */
+  workspaceOf(win) {
+    return this.#entries.get(win)?.workspace ?? null;
+  }
+
+  /** Every window of an app, in every workspace: its own and the secondary ones it opened. */
+  windowsOfApp(id) {
+    return this.#order.filter(w => this.#entries.get(w).app === id || this.#entries.get(w).owner === id);
   }
 
   /** The current workspace (null when workspaces are not in use). */
@@ -123,8 +138,9 @@ export class WindowManager extends Emitter {
    * back exactly there without moving the camera (windows restored by a workarea).
    * `workspace` (the current one by default): a window for another workspace opens hidden, without
    * taking the focus, and shows up when the user goes there.
+   * `owner`: the app that opened a secondary window (closed with it when the app is updated).
    */
-  open(win, { key = null, app = null, center = null, bounds = null, at = null, workspace = this.#workspace } = {}) {
+  open(win, { key = null, app = null, owner = null, center = null, bounds = null, at = null, workspace = this.#workspace } = {}) {
     const w = win.el.offsetWidth || parseFloat(win.el.style.width);
     const hgt = win.el.offsetHeight || parseFloat(win.el.style.height);
     if (at) {
@@ -149,7 +165,7 @@ export class WindowManager extends Emitter {
     }, icon(win.glyph), h('span', {}, win.title));
     this.taskbar.tasks.append(task);
 
-    this.#entries.set(win, { key, app, task, restore: null, workspace });
+    this.#entries.set(win, { key, app, owner: owner ?? app, task, restore: null, workspace });
     this.#order.push(win);
     this.canvas.add(win.el);
     this.#bind(win, task);

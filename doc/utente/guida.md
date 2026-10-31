@@ -660,9 +660,38 @@ Il link **Opzioni**, in basso a destra, apre:
 - **I repository.** L'elenco degli indirizzi da cui lilOS prende app e moduli, con quante app e moduli offre ciascuno, i pacchetti che non sono validi e gli eventuali errori. Quello ufficiale è «Sempre presente». Un amministratore può **rimuovere** un repository (le app già installate restano) e **aggiungerne** uno con **Aggiungi un repository**: l'indirizzo, che deve contenere l'elenco di ciò che offre, e un nome facoltativo. Se un repository non si apre compare «Non raggiungibile» con il motivo (rete, accesso negato…): per un repository privato il computer su cui gira il kernel deve avere l'accesso.
 - **Ricarica.** Rilegge i repository.
 
+### Aggiornare un'app
+
+Un amministratore aggiorna un'app con **Aggiorna** (o **Aggiorna tutto**), o la riscrive con **Reinstalla**. Un'app aggiornata riparte sempre con il codice nuovo, mai con quello vecchio.
+
+Se l'app ha finestre aperte o lavora in sottofondo, prima compare un avviso con il titolo «Aggiornare *nome*?» (o «Reinstallare»). Dice cosa verrà chiuso: tutte le finestre dell'app, in **tutti i workspace**, comprese quelle secondarie che ha aperto (per esempio le impostazioni), e quello che fa in sottofondo. Hai due scelte:
+
+- **Annulla**: non cambia nulla.
+- **Chiudi e aggiorna**: le finestre si chiudono e l'app si aggiorna.
+
+Se una finestra ha modifiche non salvate, lilOS ti chiede cosa fare, una finestra alla volta, mostrandola nel suo workspace. Se rispondi di non chiuderla, l'**aggiornamento non parte** e non cambia nulla. Mentre l'app si aggiorna non si può aprire: compare «si sta aggiornando: un momento».
+
+Se aggiorni l'AppStore stesso, si chiude e si riapre da sola, nello stesso punto, con la versione nuova.
+
+**Quando lilOS chiede di riavviarsi.** Di solito non serve: l'app nuova è pronta subito. Compare l'avviso «Riavviare lilOS?», con i pulsanti **Più tardi** e **Riavvia ora**, solo se:
+
+- l'app dice che per funzionare ha bisogno del riavvio;
+- la versione nuova non riesce a partire senza riavviare;
+- un modulo del kernel appena aggiornato è stato riavviato e lilOS deve ricaricarsi per usarlo.
+
+Con **Più tardi** puoi continuare a lavorare, ma quell'app **non si apre** finché non riavvii: se provi ad aprirla ricompare l'avviso. Con **Riavvia ora** lilOS ti chiede di salvare le finestre che hanno modifiche, poi ricarica la pagina. Le finestre che avevi aperte si riaprono come erano. Se hai scelto «Più tardi», nella barra in basso a destra resta il pulsante di riavvio descritto qui sotto.
+
+### Quando un'app viene aggiornata altrove
+
+Se un amministratore aggiorna, installa o toglie un'app da un'altra scheda o da un altro computer, lilOS se ne accorge da solo, senza ricaricare la pagina: l'elenco delle app si aggiorna, e le app nuove compaiono nel menu di avvio.
+
+Se l'app aggiornata ha **finestre aperte** da te, quelle continuano a usare la versione di prima. Compare un avviso e, nella barra in basso a destra (accanto all'icona delle app che restano attive), un pulsante con una freccia verso il basso. Passandoci sopra si legge «App aggiornate da riavviare». Con un clic si apre un menu con una voce **Riavvia *nome* (*versione*)** per ogni app: lilOS chiude le sue finestre (chiedendo di salvare, se serve) e le riapre con la versione nuova.
+
+Se l'app chiede il riavvio di lilOS, il pulsante è **rosso**, il menu elenca i motivi e offre **Riavvia lilOS**. Finché non riavvii, quell'app non si apre. Il pulsante sparisce quando non c'è più niente da riavviare.
+
 ### Dopo un'installazione
 
-L'app compare subito nel menu di avvio **per chi l'ha installata**. Gli altri utenti, o un'altra scheda del browser già aperta, la vedono solo dopo aver **ricaricato la pagina**.
+L'app compare subito nel menu di avvio per chi l'ha installata, e dopo un istante anche per gli altri utenti e per le altre schede già aperte: non serve ricaricare la pagina.
 
 ## App installate
 
@@ -994,7 +1023,10 @@ Quelle app arrivano dal repository ufficiale, e il kernel le installa da solo qu
 L'app non ha la lingua che hai scelto: in quel caso usa l'inglese. Il menu e le finestre di lilOS sono comunque solo in italiano. Una parte in sottofondo cambia lingua quando riparte (vedi [La lingua](#la-lingua)).
 
 **Ho installato un'app ma un altro utente (o un'altra scheda) non la vede.**
-Deve ricaricare la pagina.
+Dovrebbe comparire da sola dopo un istante. Se non succede, ricarica la pagina.
+
+**Ho aggiornato un'app ma vedo ancora la versione di prima.**
+Le finestre già aperte restano com'erano finché non le riavvii: usa il pulsante con la freccia verso il basso nella barra in basso a destra, oppure chiudi e riapri la finestra. Se l'app chiede di riavviare lilOS, riavvia da quel pulsante (rosso) o dall'avviso.
 
 **Un'app non parte e compare un messaggio.**
 L'app è nascosta nel workspace in cui sei. Mostrala in Sistema → Workspace → Questo workspace.

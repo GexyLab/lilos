@@ -1,4 +1,4 @@
-import { apps as installed, fs, storage, tags, toast, h, locale } from '@lilos/sdk';
+import { apps as installed, fs, storage, tags, toast, h, locale, kernel } from '@lilos/sdk';
 import { registerApp, unregisterApp, getApp } from '../registry.js';
 import { registerAppCommands } from '../commands.js';
 import { packageModule } from './host.js';
@@ -16,15 +16,29 @@ import { appCode } from './code.js';
  */
 const SETUP_KEY = 'app-setup';
 const commandsOff = new Map();
+const settling = new Map();   // id → the change being put in place
+const loaded = new Set();     // apps whose code this page has run (any version)
 let deskOf = () => null;
 
 /**
+ * A short mark of a package's files (FNV-1a of their hashes): a package written again with the
+ * same version but other files gets another one, so another address for its code.
+ */
+export function buildOf(pkg) {
+  const text = JSON.stringify(pkg.manifest?.files ?? pkg.updated ?? '');
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < text.length; i++) hash = Math.imul(hash ^ text.charCodeAt(i), 0x01000193);
+  return (hash >>> 0).toString(36);
+}
+
+/**
  * A system app (from the official repository) runs inside lilOS: its module is imported from the
- * kernel, at a path with its version, so its chunks and workers load next to it; it shares
- * lilOS's SDK and system modules through /host/sdk.js and /host/system.js.
+ * kernel, at a path with its version and build, so its chunks and workers load next to it; it
+ * shares lilOS's SDK and system modules through /host/sdk.js and /host/system.js. The browser
+ * keeps every module it imported: a new package gets a new address, never the old code.
  */
 function loadSystemApp(pkg) {
-  const base = `/api/apps/${encodeURIComponent(pkg.id)}/v/${pkg.version}/`;
+  const base = `/api/apps/${encodeURIComponent(pkg.id)}/v/${pkg.version}+${buildOf(pkg)}/`;
   for (const link of document.querySelectorAll(`link[data-app="${CSS.escape(pkg.id)}"]`)) {
     if (!link.href.includes(base)) link.remove();   // an older version's
   }
@@ -69,7 +83,9 @@ const entry = pkg => {
     package: pkg,
     ...(pkg.manifest.contributes?.fileTypes?.length && { opens: pkg.manifest.contributes.fileTypes }),
     get commands() { return (localized().contributes?.commands ?? []).map(c => ({ id: c.id, label: c.label, keys: c.keys ?? [] })); },
-    load: pkg.system === true && pkg.kind === 'local' ? () => loadSystemApp(pkg) : async () => packageModule(pkg),
+    load: pkg.system === true && pkg.kind === 'local'
+      ? () => { loaded.add(pkg.id); return loadSystemApp(pkg); }
+      : async () => { loaded.add(pkg.id); return packageModule(pkg); },
   };
 };
 
@@ -103,19 +119,47 @@ export async function registerPackages() {
   });
 }
 
-/** After the system is up: changes while running, and the per-user setup. `desk()`: the current desk folder id. */
+/** True if this page has run the app's code (some version of it) since it was loaded. */
+export const wasLoaded = id => loaded.has(id);
+
+/** Resolves when the last change of the app (installed, updated, removed) is in the registry. */
+export const settled = id => settling.get(id) ?? Promise.resolve();
+
+/**
+ * After the system is up: changes while running, and the per-user setup. `desk()`: the current desk folder id.
+ * The kernel tells every open session when apps change (/api/apps-events), whoever changed them.
+ */
 export function connectPackages({ desk }) {
   deskOf = desk;
-  installed.on('change', async ({ id, app }) => {
-    if (app) {
-      await loadLocales(app);
-      add(app);
-    } else {
-      remove(id);
-    }
+  installed.on('change', ({ id, app }) => {
+    const done = (settling.get(id) ?? Promise.resolve()).then(async () => {
+      if (app) {
+        await loadLocales(app);
+        add(app);
+      } else {
+        remove(id);
+      }
+    }).catch(err => console.error(`[lilos] app ${id}:`, err));
+    settling.set(id, done);
     setupUser().catch(err => console.error('[lilos] app:', err));
   });
+  listenToKernel();
   return setupUser();
+}
+
+function listenToKernel() {
+  if (!kernel.connected || typeof EventSource !== 'function') return;
+  let timer = 0;
+  const refresh = () => {
+    clearTimeout(timer);
+    timer = setTimeout(() => installed.refresh().catch(err => console.warn('[lilos] app:', err.message)), 150);
+  };
+  const source = new EventSource('/api/apps-events');
+  source.addEventListener('change', refresh);
+  // Connected again (the kernel restarted): what changed meanwhile
+  let opened = false;
+  source.addEventListener('open', () => { if (opened) refresh(); opened = true; });
+  kernel.onLogout(() => source.close());
 }
 
 // ---------- Per-user setup ----------
@@ -223,7 +267,8 @@ function setupUser() {
   return running;
 }
 
-function matchesFrom(range, version) {
+/** '<1.2.0', '<=1.2.0', '1.2.0' (exact): does `version` match? */
+export function matchesFrom(range, version) {
   const m = /^(<=?|=)?(\d+)\.(\d+)\.(\d+)$/.exec(range);
   const v = /^(\d+)\.(\d+)\.(\d+)$/.exec(version ?? '');
   if (!m || !v) return false;
