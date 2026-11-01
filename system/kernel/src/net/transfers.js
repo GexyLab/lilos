@@ -581,11 +581,14 @@ export class Transfers {
       },
     });
     source.on('error', err => counter.destroy(err));
+    // Until the destination reads it, nobody else listens: a cancel or a pause meanwhile must not
+    // become an unhandled error (the destination gets the error when it reads, or the abort)
+    counter.on('error', () => {});
     signal.addEventListener('abort', () => { source.destroy(signal.reason); counter.destroy(signal.reason); }, { once: true });
     source.pipe(counter);
     if (dst.mount) {
       it.partial = name;
-      await this.#net.write(p, dst.mount, joinPath(dst.path, name), counter, { start, signal });
+      await this.#net.write(p, dst.mount, joinPath(dst.path, name), counter, { start, signal, size: it.size - start });
       return;
     }
     const view = await openHome(this.#kernel, p);

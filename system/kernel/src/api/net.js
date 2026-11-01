@@ -99,8 +99,10 @@ export function netRoutes(kernel) {
     });
     req.on('error', err => body.destroy(err));
     req.on('close', () => { if (!req.complete) { controller.abort(); body.destroy(new Error('Invio interrotto')); } });
+    body.on('error', () => {});   // the driver gets it through the stream it reads
     req.pipe(body);
-    await net.write(signedIn(principal), mountId(params), query.get('path') ?? '', body, { signal: controller.signal });
+    const length = Number(req.headers['content-length']);
+    await net.write(signedIn(principal), mountId(params), query.get('path') ?? '', body, { signal: controller.signal, ...(Number.isSafeInteger(length) && { size: length }) });
   });
 
   router.add('POST', '/api/net/mounts/:id/ops', async ({ principal, params, json }) => {

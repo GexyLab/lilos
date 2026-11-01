@@ -164,7 +164,7 @@ export class Network {
     if (body.values !== undefined) {
       const { values, secret } = checkFields(driver, body.values, rawSecret);
       // Another server: what was confirmed of the old one does not count
-      if (values.host !== r.values.host || values.port !== r.values.port) r.trust = null;
+      if (['host', 'port', 'url'].some(k => values[k] !== r.values[k])) r.trust = null;
       reconnect = JSON.stringify(values) !== JSON.stringify(r.values);
       r.values = values;
       if (Object.keys(secret).length) {
@@ -368,6 +368,7 @@ export class Network {
     from = cleanPath(from);
     to = cleanPath(to);
     if (from === '/' || to === '/') fail('invalid', 'Percorso non valido');
+    await this.#unwatch(principal, id, from);
     await this.use(principal, id, s => s.rename(from, to), { retry: false });
   }
 
@@ -375,7 +376,22 @@ export class Network {
   async removePath(principal, id, path) {
     path = cleanPath(path);
     if (path === '/') fail('invalid', 'La cartella principale della connessione non si elimina');
+    await this.#unwatch(principal, id, path);
     await this.use(principal, id, s => removeTree(s, path), { retry: false });
+  }
+
+  /**
+   * Stops watching a folder and what is inside it, before it is removed or renamed: a folder
+   * watched is open on the server, and some protocols (SMB) remove it only once it is closed.
+   */
+  async #unwatch(principal, id, path) {
+    const user = await this.#user(principal);
+    const live = user.live.get(id);
+    if (!live?.watched.size) return;
+    const inside = p => p === path || p.startsWith(path === '/' ? '/' : `${path}/`);
+    const stops = [...live.watched].filter(([p]) => inside(p));
+    for (const [p] of stops) live.watched.delete(p);
+    await Promise.all(stops.map(([, stop]) => Promise.resolve().then(stop).catch(() => {})));
   }
 
   /** The content of a file as a stream (from `start`). */
@@ -385,10 +401,10 @@ export class Network {
   }
 
   /** Writes a file from a stream (a new or empty file can be written with an empty one). */
-  async write(principal, id, path, source, { start = 0, signal } = {}) {
+  async write(principal, id, path, source, { start = 0, signal, size } = {}) {
     path = cleanPath(path);
     if (path === '/') fail('invalid', 'Percorso non valido');
-    await this.use(principal, id, s => s.write(path, source, { start, signal }), { retry: false });
+    await this.use(principal, id, s => s.write(path, source, { start, signal, ...(Number.isSafeInteger(size) && size >= 0 && { size }) }), { retry: false });
   }
 
   /** What the connection can do midway (resume) and its session, for the transfers. */

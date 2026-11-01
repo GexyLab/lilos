@@ -28,10 +28,13 @@ import { KernelError, fail } from '../errors.js';
  *   list(path) → [{ name, type: 'file' | 'folder', size, modified }]
  *   stat(path) → entry | null
  *   read(path, { start, signal }) → Readable          bytes from `start`
- *   write(path, source, { start, signal })             a file from a stream; start > 0 adds to what is
- *                                                      there (resuming), only when resume.write
+ *   write(path, source, { start, signal, size? })      a file from a stream; start > 0 adds to what is
+ *                                                      there (resuming), only when resume.write; size:
+ *                                                      the bytes the stream brings, when known
  *   mkdir(path); rename(from, to); remove(path, { folder })   folder: an empty folder
- *   watch?(path, onChange) → stop()                    tells when what is in a folder changes
+ *   watch?(path, onChange) → stop()                    tells when what is in a folder changes; stop()
+ *                                                      may return a promise: resolved once the folder is
+ *                                                      no longer held open
  *   resume: { read, write }                            whether read and write can start midway
  *   onLost?(fn)                                        fn() when the connection drops by itself
  *   close()
