@@ -792,9 +792,9 @@ Nel **Pannello di controllo → Tag**, nella scheda del tag, **Elimina…** (due
 
 ## L'AppStore
 
-L'**AppStore** è l'app dove si vedono le app e i «moduli del kernel» (le parti di lilOS che stanno dietro le quinte, come la gestione degli utenti) che si possono installare, e da dove un amministratore le installa, le aggiorna e le toglie. Aprilo dal menu di avvio. C'è sempre e non si può rimuovere.
+L'**AppStore** è l'app dove si vedono le app e i «moduli del kernel» (le parti di lilOS che stanno dietro le quinte, come la gestione degli utenti) che si possono installare, e da dove un amministratore le installa, le aggiorna e le toglie. Da qui si aggiorna anche **lilOS stesso** (vedi [Aggiornare lilOS](#aggiornare-lilos)). Aprilo dal menu di avvio. C'è sempre e non si può rimuovere.
 
-**Chi può fare cosa.** Tutti vedono cosa c'è e cosa è installato. Solo un **amministratore** può installare, aggiornare e rimuovere app, aggiungere o togliere repository e gestire i moduli del kernel. Chi non lo è vede, al posto dei pulsanti, una scritta («Disponibile», «Installata»…) e non ha la scheda **Kernel**.
+**Chi può fare cosa.** Tutti vedono cosa c'è e cosa è installato. Solo un **amministratore** può installare, aggiornare e rimuovere app, aggiornare lilOS, aggiungere o togliere repository e gestire i moduli del kernel. Chi non lo è vede, al posto dei pulsanti, una scritta («Disponibile», «Installata»…) e non ha la scheda **Kernel**.
 
 **Cercare.** In alto c'è una casella di ricerca. Cerca solo nella scheda aperta, e ogni scheda ricorda il suo testo. **Esc** lo cancella.
 
@@ -806,7 +806,7 @@ Le app e i moduli che ci sono, in due gruppi: **App** e **Moduli del kernel**. O
 
 ### Aggiornamenti
 
-Le novità disponibili, con il loro numero accanto al nome della scheda. Un amministratore, quando sono più di una, trova **Aggiorna tutto**.
+Le novità disponibili, con il loro numero accanto al nome della scheda. Se c'è una versione nuova di lilOS, compare anche qui. Un amministratore, quando sono più di una, trova **Aggiorna tutto**.
 
 ### Le categorie
 
@@ -828,6 +828,33 @@ Solo per gli amministratori: i moduli del kernel. Sono parti di lilOS: dove stan
 - Un modulo che lascerebbe lilOS senza file system, o senza accesso mentre lilOS è raggiungibile da altri computer, non si installa e non si rimuove: compare il motivo.
 - **Rimuovere un modulo non cancella i suoi dati** (per esempio gli utenti): restano sul computer del kernel, e compare «i suoi dati restano».
 - **Attenzione**: togliere il modulo di accesso o il file system da un lilOS in uso è pericoloso. Fallo solo sapendo cosa succede.
+
+### Aggiornare lilOS
+
+Anche lilOS ha una versione, e le versioni nuove arrivano dal repository ufficiale. In **Installati** (e in **Aggiornamenti**, quando ce n'è una nuova) trovi la scheda **lilOS** con la versione in uso. Un clic apre i dettagli: le novità di ogni versione (il registro delle modifiche), le istruzioni e le versioni di lilOS che sono ancora sul computer. Solo un amministratore può aggiornare.
+
+**Aggiornare.**
+
+1. Apri i dettagli di lilOS e scegli **Aggiorna**.
+2. La versione nuova viene scaricata e messa **accanto** a quella in uso, senza toccarla. Compare l'avviso «parte al prossimo riavvio del kernel» con il pulsante **Riavvia il kernel**.
+3. Con **Riavvia il kernel** lilOS riparte con la versione nuova. Per qualche secondo può non riuscire a salvare, e riprova da solo. Poi lilOS ti chiede «Riavviare lilOS?»: se accetti, ti chiede di salvare le finestre con modifiche, ricarica la pagina e le finestre si riaprono come erano.
+
+Prima di scaricare, lilOS controlla che la versione nuova funzioni con quello che hai: se un modulo del kernel o un'app installata non è compatibile, l'aggiornamento non parte e il messaggio dice cosa aggiornare prima. Controlla anche che il programma che fa girare lilOS sul computer (Node.js) sia abbastanza recente.
+
+**Se la versione nuova non parte.** lilOS la prova per un massimo di 5 minuti. Se si ferma o non risponde, torna da solo alla versione di prima. Non si perde niente: i tuoi file e le tue impostazioni non fanno parte della versione. Un amministratore trova poi un avviso «Aggiornamento di lilOS non riuscito», con il motivo e le ultime righe del registro del kernel. Puoi riprovare più tardi.
+
+**Se parte.** Un amministratore trova la domanda «lilOS aggiornato alla *versione*», con la versione di prima ancora sul computer. Hai due scelte:
+
+- **Mantieni**: la versione di prima resta, per poterci tornare.
+- **Elimina la *versione***: la versione di prima viene cancellata.
+
+Se chiudi la domanda senza rispondere, ricompare la volta dopo.
+
+**Tornare a una versione di prima.** Nei dettagli di lilOS, sotto le versioni conservate, ogni versione che non è in uso ha **Usa questa versione** ed **Elimina**. Con **Usa questa versione** si torna a quella al prossimo riavvio del kernel (**Riavvia il kernel**); anche questo cambio viene provato, e con gli stessi controlli di compatibilità. **Annulla il cambio** rimette la versione in uso, se non hai ancora riavviato. **Elimina** cancella una versione conservata, per sempre. La versione in uso e quella che partirà al prossimo riavvio non si possono eliminare.
+
+**Se hai altre schede aperte.** Quando lilOS riparte con un'altra versione, ogni scheda aperta ti chiede di riavviare lilOS (cioè ricaricare la pagina).
+
+**Se lilOS gira da una copia di lavoro del codice** (lo fanno gli sviluppatori), vedi la versione ma non si aggiorna da qui: si aggiorna con gli strumenti di sviluppo.
 
 ### Opzioni
 
@@ -1385,6 +1412,9 @@ Se mancano dalla scrivania o dal File Manager, forse hanno un **tag invisibile**
 
 **Un file di un altro workspace non si vede.**
 La cartella Scrivania di ogni workspace è visibile solo da lì. Per condividere un file con gli altri workspace tienilo in Documenti, Immagini o Download. Se hai eliminato il workspace, i suoi file sono in Documenti → Scrivania di *nome*.
+
+**Dopo un aggiornamento di lilOS compare «Aggiornamento di lilOS non riuscito».**
+La versione nuova non è partita e lilOS è tornato da solo a quella di prima: va tutto come prima dell'aggiornamento. L'avviso dice il motivo. Chi gestisce lilOS può guardare il registro del kernel; poi si può riprovare dall'AppStore.
 
 **Mancano File Manager, Pannello di controllo o l'AppStore, o il menu di avvio non ha app.**
 Quelle app arrivano dal repository ufficiale, e il kernel le installa da solo quando parte. Se in quel momento il computer del kernel non riusciva a raggiungerlo (niente rete, accesso negato), lilOS parte senza. Chiedi a chi gestisce lilOS di sistemare l'accesso e di riavviare il kernel: le app compaiono da sole.

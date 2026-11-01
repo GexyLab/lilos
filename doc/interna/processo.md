@@ -236,6 +236,8 @@ Nessun agente fa commit o push: si decide dopo aver letto i report.
 
 ## Rilascio
 
+**Versione di lilOS.** È `version` di `package.json` (`1.8.0` al 1° novembre 2026) e va alzata insieme al tag `v<versione>` di questo repository. Un lilOS installato la prende dal repository ufficiale ([D57](decisioni.md#d57-lilos-si-aggiorna-dal-repository-ufficiale-come-un-pacchetto)). Per pubblicare una versione: [Pubblicare una versione di lilOS](../sviluppatore/ricette.md#pubblicare-una-versione-di-lilos). `npm run release` rifiuta di partire con modifiche non salvate; alla fine controlla `CHANGELOG.md` e fai commit e tag nel repository ufficiale.
+
 Non c'è ancora un ambiente pubblicato. `npm run build` produce in `dist/` il frontend, ma da solo non basta: il sistema parla con il kernel su `/api`, della **stessa origine** della pagina (il cookie di sessione ha `Path=/api`). In sviluppo, e con `npm run preview`, lo inoltra Vite a `127.0.0.1:8790`; in produzione serve un server che serva `dist/` e inoltri `/api` al kernel. Questo passaggio non è ancora descritto né deciso.
 
 Per i servizi delle app serve anche Node da 22 a 25 sul computer del kernel (`isolated-vm` 6.2; `npm run kernel:setup` lo installa). Il kernel va avviato con `npm run kernel` (`system/kernel/run.js`), che lo riavvia quando serve (codice di uscita 75, dopo aver installato o tolto un modulo): un gestore di servizi che lo avviasse direttamente dovrebbe fare lo stesso. Al primo avvio il kernel installa le app di sistema dal repository ufficiale: la macchina del kernel ha bisogno di `git`, della rete e delle credenziali per quel repository; senza, lilOS parte privo di File Manager, Pannello di controllo e AppStore. Lo stesso vale per ogni installazione o aggiornamento da repository.

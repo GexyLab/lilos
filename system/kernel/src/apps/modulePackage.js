@@ -3,7 +3,7 @@ import { cp, mkdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promis
 import { dirname, join } from 'node:path';
 import { promisify } from 'node:util';
 import { fail } from '../errors.js';
-import { KERNEL_DIR, MODULES_DIR, loadConfig } from '../config.js';
+import { DATA_DIR, MODULES_DIR, loadConfig } from '../config.js';
 import { KERNEL_API, resolveModules, scanModules } from '../modules.js';
 import { compareVersions, parseVersion } from './manifest.js';
 import { cleanSource, isOfficial, openSource, walk } from './sources.js';
@@ -47,7 +47,7 @@ export function checkModule(raw) {
 
 const requireAdmin = p => (p?.kind === 'kernel' || p?.role === 'admin' ? p : fail('forbidden', 'Solo un amministratore gestisce i moduli del kernel'));
 const exists = path => stat(path).then(() => true, () => false);
-const configFile = () => process.env.LILOS_KERNEL_CONFIG ?? join(KERNEL_DIR, 'config.json');
+const configFile = () => process.env.LILOS_KERNEL_CONFIG ?? join(DATA_DIR, 'config.json');
 
 async function editConfig(fn) {
   const raw = JSON.parse(await readFile(configFile(), 'utf8'));
@@ -62,7 +62,7 @@ async function readJson(path) {
 
 const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 
-async function installDependencies(dir) {
+export async function installDependencies(dir) {
   if (!await exists(join(dir, 'package.json'))) return;
   const command = await exists(join(dir, 'package-lock.json')) ? 'ci' : 'install';
   try {
@@ -70,6 +70,24 @@ async function installDependencies(dir) {
   } catch (err) {
     fail('unavailable', `Dipendenze del modulo non installate: ${String(err.stderr || err.message).split('\n')[0]}`.slice(0, 300));
   }
+}
+
+/**
+ * Writes a module opened from its source (openSource) into `dest`: its files, the data files of the
+ * version it replaces (`from`), source.json, then its dependencies.
+ */
+export async function writeModule(opened, manifest, dest, { from = null } = {}) {
+  for (const path of await walk(opened.base)) {
+    if (path === 'source.json') continue;
+    const target = join(dest, ...path.split('/'));
+    await mkdir(dirname(target), { recursive: true });
+    await writeFile(target, await opened.read(path));
+  }
+  for (const file of from ? manifest.data ?? [] : []) {
+    if (await exists(join(from, file))) await cp(join(from, file), join(dest, file));
+  }
+  await writeFile(join(dest, 'source.json'), JSON.stringify({ ...opened.source, installed: Date.now() }, null, 2));
+  await installDependencies(dest);
 }
 
 export class ModuleAdmin {
@@ -127,17 +145,7 @@ export class ModuleAdmin {
     const reused = await exists(dest);
     if (reused && (enabled.has(manifest.name) || !(await exists(join(dest, 'source.json'))))) fail('conflict', `${manifest.name} ${manifest.version} è già installato`);
     try {
-      for (const path of await walk(opened.base)) {
-        if (path === 'source.json') continue;
-        const target = join(dest, ...path.split('/'));
-        await mkdir(dirname(target), { recursive: true });
-        await writeFile(target, await opened.read(path));
-      }
-      for (const file of from ? manifest.data ?? [] : []) {
-        if (await exists(join(from, file))) await cp(join(from, file), join(dest, file));
-      }
-      await writeFile(join(dest, 'source.json'), JSON.stringify({ ...opened.source, installed: Date.now() }, null, 2));
-      await installDependencies(dest);
+      await writeModule(opened, manifest, dest, { from });
     } catch (err) {
       if (!reused) await rm(dest, { recursive: true, force: true }).catch(() => {});
       throw err;

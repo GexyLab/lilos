@@ -1,8 +1,9 @@
-import { Emitter, Window, h, actionButton, kernel, kernelModules } from '@lilos/sdk';
+import { Emitter, Window, h, actionButton, kernel, kernelModules, systemReleases } from '@lilos/sdk';
+import { version as pageVersion } from '../../package.json';
 import { progressScreen } from '../boot/screens.js';
 import { getApp, registry } from './registry.js';
 import { entrypointsOf } from './entrypoints.js';
-import { buildOf, matchesFrom, settled, wasLoaded } from './packages/packages.js';
+import { buildOf, kernelEvents, matchesFrom, settled, wasLoaded } from './packages/packages.js';
 import { stopApp } from './packages/background.js';
 import { appCode } from './packages/code.js';
 import { workspaceManager } from '../workspaces/info.js';
@@ -24,6 +25,10 @@ import { notify } from '../notifications/notify.js';
  *
  * An app updated elsewhere (another tab, another user) is in the registry right away; its windows
  * open here keep the old code: the taskbar offers to restart the app (or lilOS, if it asks).
+ *
+ * lilOS itself (systemReleases) changes version when the kernel restarts: every page whose code is
+ * of another version asks to load again (checkSystemVersion), and the admins hear how the change
+ * went (systemNotices).
  *
  *   updates.pending() → [{ id, name, version, kind: 'reopen' | 'restart', reason }]
  * Events: 'change' — what is pending changed.
@@ -126,9 +131,10 @@ const reopen = (id, saved) => Promise.all(saved.map(({ state, rect, workspace })
 
 // ---------- Dialogs ----------
 
-/** A small window with a text and buttons; resolves with the value of the button pressed (null: closed). */
+/** A small window with a text and buttons; resolves with the value of the button pressed (null: closed). The promise has close(). */
 function dialog({ title, glyph, body, buttons }) {
-  return new Promise(resolve => {
+  let close = null;
+  const asked = new Promise(resolve => {
     // Short at first: its content overflows, so scrollHeight below is the content's own height
     const win = new Window({ title, icon: glyph, width: 460, height: 100, minHeight: 100, minimizable: false, maximizable: false, resizable: false });
     let answered = false;
@@ -138,6 +144,7 @@ function dialog({ title, glyph, body, buttons }) {
       resolve(value);
       win.emit('close');
     };
+    close = () => answer(null);
     win.on('destroy', () => answer(null));
     const content = h('div', { class: 'upd-dialog' }, ...body,
       h('div', { class: 'upd-buttons' }, ...buttons.map(b => actionButton({ label: b.label, primary: b.primary, onClick: () => answer(b.value) }))));
@@ -147,6 +154,8 @@ function dialog({ title, glyph, body, buttons }) {
     requestAnimationFrame(() => win.resizeTo(460, Math.min(560, content.scrollHeight + win.titlebar.offsetHeight + 2)));
     content.querySelector('.upd-buttons .primary')?.focus();
   });
+  asked.close = close;
+  return asked;
 }
 
 const count = (n, one, many) => (n === 1 ? `1 ${one}` : `${n} ${many}`);
@@ -321,14 +330,20 @@ async function kernelRestarted() {
 }
 
 /** Asks to restart now or later (later: the taskbar keeps a button for it). */
+let restartAsked = null;   // the question open now: one at a time, asked again when a reason comes
+
 export async function askRestart({ title = 'Riavviare lilOS?', lead = null } = {}) {
+  restartAsked?.close();
   const reasons = updates.restartReasons();
   const body = [
     lead ? h('p', { class: 'upd-lead' }, lead) : h('p', { class: 'upd-lead' }, 'Per completare l’aggiornamento bisogna riavviare lilOS.'),
     reasons.length ? h('ul', {}, ...reasons.map(r => h('li', {}, r))) : null,
     h('p', {}, 'Tutte le finestre verranno chiuse e riaperte: salva il lavoro nelle altre app.'),
   ].filter(Boolean);
-  const now = await dialog({ title, glyph: 'power', body, buttons: [{ label: 'Più tardi', value: false }, { label: 'Riavvia ora', primary: true, value: true }] });
+  const asked = dialog({ title, glyph: 'power', body, buttons: [{ label: 'Più tardi', value: false }, { label: 'Riavvia ora', primary: true, value: true }] });
+  restartAsked = asked;
+  const now = await asked;
+  if (restartAsked === asked) restartAsked = null;
   if (now) await restartSystem();
 }
 
@@ -340,4 +355,74 @@ export function requestRestart(reason, key = reason) {
   restartReasons.set(key, reason);
   updates.emit('change');
   return askRestart();
+}
+
+// ---------- lilOS itself ----------
+
+/**
+ * The kernel came back (it restarts to change version): if it runs another version of lilOS than
+ * this page, load again; if it is the same, a new version may have failed (admins hear it now).
+ */
+kernelEvents.on('back', () => checkSystemVersion().catch(err => console.warn('[lilos] versione di lilOS:', err.message)));
+
+export async function checkSystemVersion() {
+  if (restartReasons.has('lilos-version')) return;
+  const info = await systemReleases.info().catch(() => null);
+  if (!info || info.mode !== 'installed') return;
+  if (info.version === pageVersion) return info.failed ? systemNotices() : undefined;
+  await requestRestart(`lilOS è stato aggiornato alla versione ${info.version}`, 'lilos-version');
+}
+
+/**
+ * Once lilOS is up, to admins: the last version installed did not start (lilOS went back by
+ * itself), or it did and the version before is still kept: delete it or keep it? Closing the
+ * question without answering asks again next time.
+ */
+let noticing = false;
+
+export async function systemNotices() {
+  if (kernel.data?.user?.role !== 'admin' || !wm || noticing) return;
+  noticing = true;
+  try {
+    await showNotices(await systemReleases.info().catch(() => null));
+  } finally {
+    noticing = false;
+  }
+}
+
+async function showNotices(info) {
+  if (info?.failed) {
+    const { failed } = info;
+    await dialog({
+      title: 'Aggiornamento di lilOS non riuscito', glyph: 'warning',
+      body: [
+        h('p', { class: 'upd-lead' }, `lilOS ${failed.version} ${failed.reason}: lilOS è tornato da solo alla versione ${info.version}.`),
+        h('p', {}, 'Non si è perso nulla. Puoi riprovare dall’AppStore; il registro del kernel dice cosa non ha funzionato.'),
+        failed.log?.length ? h('pre', { class: 'upd-log' }, failed.log.slice(-8).join('\n')) : null,
+      ].filter(Boolean),
+      buttons: [{ label: 'OK', primary: true, value: true }],
+    });
+    await systemReleases.acknowledge('failed').catch(err => console.warn('[lilos] aggiornamento:', err.message));
+  }
+  if (info?.updated) {
+    const { from } = info.updated;
+    const answer = await dialog({
+      title: `lilOS aggiornato alla ${info.version}`, glyph: 'download',
+      body: [
+        h('p', { class: 'upd-lead' }, `L’aggiornamento è andato a buon fine: è in uso lilOS ${info.version}.`),
+        h('p', {}, `La versione di prima (${from}) è ancora installata e serve solo per tornarci dall’AppStore. Vuoi eliminarla?`),
+      ],
+      buttons: [{ label: 'Mantieni', value: 'keep' }, { label: `Elimina la ${from}`, primary: true, value: 'delete' }],
+    });
+    try {
+      if (answer === 'delete') {
+        await systemReleases.remove(from);
+        notify(`lilOS ${from} eliminato`);
+      } else if (answer === 'keep') {
+        await systemReleases.acknowledge('updated');
+      }
+    } catch (err) {
+      notify(err.message, { level: 'error' });
+    }
+  }
 }

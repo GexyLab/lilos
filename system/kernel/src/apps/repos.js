@@ -2,10 +2,11 @@ import { readFile, writeFile, rename } from 'node:fs/promises';
 import { join } from 'node:path';
 import { randomBytes } from 'node:crypto';
 import { fail } from '../errors.js';
-import { KERNEL_DIR } from '../config.js';
+import { DATA_DIR } from '../config.js';
 import { checkManifest } from './manifest.js';
 import { parseLocales } from '../../../../sdk/core/i18n.js';
 import { checkModule } from './modulePackage.js';
+import { checkSystem } from './systemPackage.js';
 import { OFFICIAL_URL, cleanSource, normalizeUrl, openSource } from './sources.js';
 
 /**
@@ -17,8 +18,10 @@ import { OFFICIAL_URL, cleanSource, normalizeUrl, openSource } from './sources.j
  * A repository has catalog.json at its root, listing the package folders:
  *   { name: 'lilOS ufficiale', apps: ['apps/files', …], modules: ['modules/users-basic', …] }
  * Each app folder has lilos.json (see manifest.js), each module folder module.json (modulePackage.js).
+ * The official one also has lilOS itself: "system": 'system/lilos', a folder with system.json,
+ * README.md and CHANGELOG.md (systemPackage.js); other repositories cannot offer it.
  */
-const FILE = join(KERNEL_DIR, 'repos.json');
+const FILE = join(DATA_DIR, 'repos.json');
 const OFFICIAL = Object.freeze({ id: 'official', name: 'lilOS ufficiale', url: 'https://github.com/GexyLab/lilos-plugins-official', official: true });
 const SUBPATH = /^(?!.*\.\.)[\w.-]+(\/[\w.-]+){0,10}$/;
 const MAX_REPOS = 30;
@@ -91,27 +94,34 @@ export class Repos {
       fail('invalid', 'catalog.json manca o non è JSON valido');
     }
     const paths = v => (Array.isArray(v) ? v : []).filter(p => typeof p === 'string' && SUBPATH.test(p)).slice(0, MAX_ENTRIES);
-    return { name: typeof raw.name === 'string' ? raw.name.slice(0, 60) : '', apps: paths(raw.apps), modules: paths(raw.modules), read, source };
+    return {
+      name: typeof raw.name === 'string' ? raw.name.slice(0, 60) : '', apps: paths(raw.apps), modules: paths(raw.modules),
+      system: typeof raw.system === 'string' && SUBPATH.test(raw.system) ? raw.system : null, read, source,
+    };
   }
 
   /**
    * What a repository offers, at its latest version tag:
    *   { repo, ref, commit, name, apps: [{ path, manifest, locales, readme, readmeTruncated? } | { path, error }],
-   *     modules: [{ path, module, readme, readmeTruncated? } | { path, error }] }
+   *     modules: [{ path, module, readme, readmeTruncated? } | { path, error }],
+   *     system: { path, system, readme, readmeTruncated?, changelog, changelogTruncated? } | { path, error } | null }
    * readme: the text of README.md in the package folder (Markdown), or null. Past 64 KB it is cut at
-   * the end of a line and readmeTruncated is true: readme() gives it whole.
+   * the end of a line and readmeTruncated is true: readme() gives it whole. The same for lilOS's
+   * CHANGELOG.md. system: lilOS, only in the official repository (system.json with `files` turned
+   * into how many they are).
    * locales: the app's translations file with only the texts of the manifest ('@' keys), or null:
    * the SDK's locale.manifest(manifest, locales) shows them in the user's language.
    */
   async catalog(id) {
     const repo = await this.get(id);
-    const { name, apps, modules, read, source } = await this.#readCatalog(repo.url);
-    const readme = async path => {
-      const text = await read(`${path}/README.md`).then(b => b.toString('utf8'), () => null);
-      if (text === null || Buffer.byteLength(text) <= MAX_README) return { readme: text };
+    const { name, apps, modules, system, read, source } = await this.#readCatalog(repo.url);
+    const doc = async (path, file = 'README.md', key = 'readme') => {
+      const text = await read(`${path}/${file}`).then(b => b.toString('utf8'), () => null);
+      if (text === null || Buffer.byteLength(text) <= MAX_README) return { [key]: text };
       const cut = Buffer.from(text).subarray(0, MAX_README).toString('utf8').replace(/�$/, '');
-      return { readme: cut.includes('\n') ? cut.slice(0, cut.lastIndexOf('\n') + 1) : cut, readmeTruncated: true };
+      return { [key]: cut.includes('\n') ? cut.slice(0, cut.lastIndexOf('\n') + 1) : cut, [`${key}Truncated`]: true };
     };
+    const readme = path => doc(path);
     const locales = async (path, manifest) => {
       if (!manifest.locales) return null;
       try {
@@ -134,14 +144,20 @@ export class Repos {
       repo, name, ref: source.ref, commit: source.commit,
       apps: await Promise.all(apps.map(p => entry(p, 'lilos.json', checkManifest, 'manifest'))),
       modules: await Promise.all(modules.map(p => entry(p, 'module.json', checkModule, 'module'))),
+      system: repo.official && system ? await entry(system, 'system.json', raw => {
+        const { files, ...rest } = checkSystem(raw);
+        return { ...rest, files: Object.keys(files).length };
+      }, 'system').then(async e => (e.error ? e : { ...e, ...await doc(system, 'CHANGELOG.md', 'changelog') })) : null,
     };
   }
 
-  /** The whole README.md of a package of the catalog (`path` as the catalog lists it). */
-  async readme(id, path) {
+  /** The whole README.md of a package of the catalog (`path` as the catalog lists it); of lilOS also CHANGELOG.md. */
+  async readme(id, path, file = 'README.md') {
     const repo = await this.get(id);
-    const { apps, modules, read } = await this.#readCatalog(repo.url);
-    if (![...apps, ...modules].includes(path)) fail('not_found', 'Pacchetto non presente nel catalogo');
-    return (await read(`${path}/README.md`)).toString('utf8');
+    const { apps, modules, system, read } = await this.#readCatalog(repo.url);
+    const isSystem = repo.official && !!system && path === system;
+    if (![...apps, ...modules].includes(path) && !isSystem) fail('not_found', 'Pacchetto non presente nel catalogo');
+    if (file !== 'README.md' && !(isSystem && file === 'CHANGELOG.md')) fail('invalid', 'File non valido');
+    return (await read(`${path}/${file}`)).toString('utf8');
   }
 }

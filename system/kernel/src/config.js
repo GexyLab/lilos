@@ -1,10 +1,36 @@
+import { existsSync, readFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
-import { dirname, join, resolve } from 'node:path';
+import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-/** system/kernel: the kernel's own folder. */
+/** system/kernel: the kernel's own folder (its code). */
 export const KERNEL_DIR = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-export const MODULES_DIR = join(KERNEL_DIR, 'modules');
+
+/**
+ * Where lilOS runs from:
+ *   development   a copy of the lilOS repository: code, config.json, repos.json and modules/ are
+ *                 all in system/kernel (KERNEL_DIR); Vite serves the page
+ *   installed     a folder made by tools/install.js: run.js, current.json, config.json, repos.json
+ *                 and modules/ at the top, each version of lilOS in releases/<version> (system.json,
+ *                 web/, system/kernel/…: see apps/systemPackage.js); the kernel serves web/
+ * RELEASE_DIR: the release this kernel is part of; INSTALL_DIR: the folder that holds releases/.
+ * DATA_DIR: where config.json, repos.json and modules/ are (LILOS_DATA_DIR changes it).
+ */
+const releaseRoot = resolve(KERNEL_DIR, '..', '..');
+const inRelease = existsSync(join(releaseRoot, 'system.json')) && basename(dirname(releaseRoot)) === 'releases';
+export const RELEASE_DIR = inRelease ? releaseRoot : null;
+export const INSTALL_DIR = inRelease ? dirname(dirname(releaseRoot)) : null;
+export const DATA_DIR = process.env.LILOS_DATA_DIR ? resolve(process.env.LILOS_DATA_DIR) : INSTALL_DIR ?? KERNEL_DIR;
+export const MODULES_DIR = join(DATA_DIR, 'modules');
+
+/** The version of lilOS running: its release's system.json, or the repository's package.json. */
+export const SYSTEM_VERSION = (() => {
+  try {
+    return String(JSON.parse(readFileSync(RELEASE_DIR ? join(RELEASE_DIR, 'system.json') : join(releaseRoot, 'package.json'), 'utf8')).version);
+  } catch {
+    return '0.0.0';
+  }
+})();
 
 const NAME = /^[a-z][a-z0-9-]{0,40}$/;
 const VERSION = /^\d+\.\d+\.\d+$/;
@@ -19,7 +45,7 @@ const VERSION = /^\d+\.\d+\.\d+$/;
  * LILOS_KERNEL_HOST and LILOS_KERNEL_PORT override host and port.
  */
 export async function loadConfig() {
-  const file = process.env.LILOS_KERNEL_CONFIG ?? join(KERNEL_DIR, 'config.json');
+  const file = process.env.LILOS_KERNEL_CONFIG ?? join(DATA_DIR, 'config.json');
   const raw = JSON.parse(await readFile(file, 'utf8'));
   const port = Number(process.env.LILOS_KERNEL_PORT ?? raw.port ?? 8790);
   if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('Porta non valida');

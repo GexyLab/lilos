@@ -1112,3 +1112,43 @@ lilOS legge il file **prima** di avviare l'app e le dà le stringhe già risolte
 - Aggiornare l'app che apre un tipo rifà tutte le miniature di quel tipo.
 
 **Quando ripensarle.** Se la lentezza si vede (allora: una cache persistente con chiave sul contenuto, o la creazione in anticipo), o se altre app vogliono miniature non immagini.
+
+## D57. lilOS si aggiorna dal repository ufficiale, come un pacchetto
+
+**Decisione.** Tutto ciò che di lilOS non è un'app o un modulo (la pagina, il kernel e i file dell'SDK che il kernel importa) è un pacchetto del repository ufficiale, sotto `system/lilos` (`"system": "system/lilos"` in `catalog.json`). Un amministratore lo vede come una voce dell'AppStore («lilOS») e lo aggiorna come gli altri pacchetti. Deciso con l'utente il 1° novembre 2026. Il codice è in `system/kernel/src/apps/systemPackage.js`; contratti in [API → lilOS come pacchetto](../sviluppatore/api.md#lilos-come-pacchetto-systempackagejs).
+
+- **Solo amministratori, solo dal repository ufficiale.** Un repository aggiunto non può offrire lilOS (il catalogo ignora `system` se il repository non è l'ufficiale).
+- **Nel repository ufficiale va solo la build** da installare, con il suo `README.md` e `CHANGELOG.md`, mai i sorgenti di lilOS. La fa `npm run release -- <cartella del repository ufficiale>` (`scripts/release.mjs`) a partire da un commit di questo repository. La versione di lilOS è quella di `package.json` (era `0.1.0`, ora `1.8.0`): va alzata insieme al tag.
+- **Versioni affiancate.** In un lilOS installato ogni versione sta in `releases/<versione>`, `current.json` dice quale parte, e `run.js` (fisso, fuori dalle release) la avvia. I dati (`config.json`, `repos.json`, `modules/`) stanno fuori dalle release.
+- **Se la nuova versione non parte**, `run.js` torna da solo alla precedente e scrive `failed` in `current.json`: gli amministratori ne hanno l'avviso. **Se parte**, scrive `updated` e lilOS chiede agli amministratori se eliminare la versione vecchia (Mantieni / Elimina).
+- **Una copia del repository (sviluppo, Vite) mostra la versione ma non si aggiorna da qui**: si aggiorna con git (`update`, `use`, `remove` e `acknowledge` lanciano `conflict`).
+
+**Perché.**
+
+- **Una sola strada per aggiornare.** App e moduli si aggiornavano dall'AppStore, lilOS no: chi lo installava doveva scaricare i sorgenti, e ogni installazione restava ferma a una versione. Con un pacchetto in più, l'amministratore ha una voce sola per tutto.
+- **Non pubblicare i sorgenti.** Il repository ufficiale è la fonte di ciò che gira, non il luogo dove si sviluppa lilOS. Una build con l'hash di ogni file (`system.json`) basta a installare e controllare; i sorgenti hanno il loro repository.
+- **Affiancare invece di sostituire.** Sovrascrivere i file di un kernel in esecuzione lascia una versione a metà se qualcosa si interrompe. Una cartella nuova accanto alla vecchia si scrive con calma (in una cartella temporanea, poi rinominata) e tornare indietro è cambiare un nome in `current.json`.
+- **`run.js` fisso.** È l'unica parte che deve funzionare quando la versione nuova è rotta: se si aggiornasse con le versioni, un errore lì non avrebbe nessuno che lo ripari. Per questo è piccolo, senza dipendenze dal resto, e `tools/install.js` lo copia solo all'installazione.
+- **Prova con ritorno automatico.** Una versione nuova che non parte lascerebbe lilOS spento e raggiungibile solo a mano. `run.js` la tiene «in prova» (`trial`) finché il kernel non manda `ready` (5 minuti al massimo) e, in caso contrario, riparte la precedente. L'utente non deve saper nulla.
+- **Chiedere prima di eliminare la versione vecchia.** Subito dopo un aggiornamento è proprio la versione a cui si vorrebbe tornare se qualcosa non va; cancellarla da soli toglierebbe la via d'uscita, tenerla per sempre riempirebbe il disco. La scelta è dell'amministratore, e se non risponde la domanda ricompare.
+- **Compatibilità controllata prima, non dopo.** Una versione nuova che lascia fuori un modulo (`kernel` diverso) o un'app (`sdk`, nuovo campo `lilos` del manifesto) la romperebbe al riavvio. `update` e `use` rifiutano e dicono cosa aggiornare prima; `installer.js` fa il controllo inverso (un'app che chiede un'altra versione di lilOS non si installa).
+- **Il kernel serve la pagina** in un lilOS installato (`web.js`): non c'è Vite, e la pagina e il kernel di una release sono sempre della stessa versione.
+
+**Alternative scartate.**
+
+- Aggiornare con git un clone sul server: richiede sorgenti, `npm install` e Vite sul computer che fa girare lilOS, e non ha il ritorno automatico.
+- Sostituire i file sul posto: nessuna via di ritorno se l'aggiornamento si interrompe.
+- Un repository separato per lilOS: un secondo indirizzo di fiducia da configurare, e la compatibilità tra app e lilOS starebbe in due posti.
+- Cancellare da soli la versione vecchia dopo un avvio riuscito: si perderebbe la possibilità di tornare indietro per un problema che si vede solo dopo ore.
+
+**Conseguenze.**
+
+- Per rilasciare lilOS: alzare `version` in `package.json`, fare il commit, `npm run release -- <repository ufficiale>`, controllare `CHANGELOG.md`, commit e tag nel repository ufficiale, e tag `v<versione>` in questo repository (il changelog parte dal tag della versione prima). Il comando rifiuta di partire con modifiche non salvate.
+- `sdk/package.json` deve dichiarare `core/pipeCatalog.js` tra i `sideEffects`: la build di produzione, che prima nessuno usava, lo scartava e la pagina si bloccava con «Evento sconosciuto: file.open».
+- Il manifesto di un'app può avere `lilos` (un intervallo come `>=1.8.0 <2.0.0`); `SDK_VERSIONS` (`['1', '2']`) e la versione dell'API dei moduli (`KERNEL_API`) finiscono in `system.json` e si controllano contro app e moduli installati.
+- Il ritorno automatico copre solo il kernel che non parte o non risponde: una pagina rotta ma servita non lo fa scattare. Per questo l'amministratore può tornare a mano con **Usa questa versione**.
+- L'integrità è l'hash di ogni file in `system.json`, scritto dallo stesso repository: protegge da file danneggiati, non da un repository ufficiale compromesso (la firma di `officialKey` non si controlla per lilOS).
+- I dati non cambiano con la versione, quindi una versione che cambiasse il loro formato in modo incompatibile non permetterebbe di tornare indietro: oggi non c'è una migrazione né un controllo.
+- L'aggiornamento non cambia la pagina già aperta: ogni scheda chiede di riavviare lilOS quando il kernel torna con un'altra versione (`checkSystemVersion`).
+
+**Quando ripensarla.** Quando la firma sarà usata per lilOS stesso (oggi si fida del repository), quando le migrazioni dei dati renderanno pericoloso tornare indietro, o se servirà più di un canale (anteprime, versioni stabili).

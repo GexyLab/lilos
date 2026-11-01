@@ -37,6 +37,8 @@ import { parseLocales } from '../../../../sdk/core/i18n.js';
  *                    widgets: [{ id, name, width, height, resizable }], settings: [...],
  *                    pipes: [pipe], events: [event], actions: [action], menus: [menu], badge: { glyph, label } },
  *     install: [op], update: [{ from: '<1.2.0', ops: [op] }], uninstall: [op],
+ *     lilos?: '>=1.8.0' | '>=1.8.0 <2.0.0',   the versions of lilOS the app works with (one or two bounds):
+ *                                             not installed elsewhere, and lilOS is not updated past them
  *     restartOnUpdate?: true | '<2.0.0',      updating to this version needs lilOS to restart (always, or
  *                                             only from the versions in the range, like update's `from`)
  *     signature?: 'ed25519:<base64>'         over the manifest without "signature" (keys sorted)
@@ -102,6 +104,19 @@ export const parseVersion = v => SEMVER.exec(v)?.slice(1).map(Number) ?? null;
 export function compareVersions(a, b) {
   const pa = parseVersion(a), pb = parseVersion(b);
   return pa[0] - pb[0] || pa[1] - pb[1] || pa[2] - pb[2];
+}
+
+/** The app SDK versions this kernel runs (manifest `sdk`). */
+export const SDK_VERSIONS = ['1', '2'];
+
+/** '>=1.8.0', '<2.0.0', '>=1.8.0 <2.0.0' (each bound >=, >, <=, < or = and a version): does `version` match all? */
+export const LILOS_RANGE = /^(>=|<=|>|<|=)?\d{1,6}\.\d{1,6}\.\d{1,6}( (>=|<=|>|<|=)?\d{1,6}\.\d{1,6}\.\d{1,6})?$/;
+export function inRange(range, version) {
+  return range.split(' ').every(bound => {
+    const [, op = '=', v] = /^(>=|<=|>|<|=)?(.+)$/.exec(bound);
+    const c = compareVersions(version, v);
+    return { '>=': c >= 0, '>': c > 0, '<=': c <= 0, '<': c < 0, '=': c === 0 }[op];
+  });
 }
 
 /** '<1.2.0', '<=1.2.0', '1.2.0' (exact): does `version` match? */
@@ -200,7 +215,8 @@ export function checkManifest(raw) {
   if (!str(m.name, 40)) bad('nome mancante');
   if (!m.publisher || !KEY.test(m.publisher.id ?? '') || !str(m.publisher.name, 80)) bad('editore mancante');
   if (m.publisher.key !== undefined && !/^ed25519:[A-Za-z0-9+/]{43}=$/.test(m.publisher.key)) bad('chiave dell’editore non valida');
-  if (String(m.sdk) !== '1' && String(m.sdk) !== '2') bad('versione dell’SDK non supportata');
+  if (!SDK_VERSIONS.includes(String(m.sdk))) bad('versione dell’SDK non supportata');
+  if (m.lilos !== undefined && !(typeof m.lilos === 'string' && LILOS_RANGE.test(m.lilos))) bad('lilos: versioni di lilOS come ">=1.8.0" o ">=1.8.0 <2.0.0"');
   if (m.icon !== undefined && (!GLYPH.test(m.icon?.glyph ?? '') || !HEX.test(m.icon?.color ?? ''))) bad('icona non valida');
   if (m.system !== undefined && m.system !== true) bad('system può essere solo true');
   if (m.required !== undefined && (m.required !== true || !m.system)) bad('required vale solo per le app di sistema');

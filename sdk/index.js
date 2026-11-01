@@ -11,7 +11,7 @@ export { storage, uid } from './core/storage.js';
 export { session, initials } from './core/session.js';
 export { locale, LANGUAGES } from './core/locale.js';
 export { kernel, KernelError } from './core/kernel.js';
-export { apps, repositories, kernelModules } from './core/apps.js';
+export { apps, repositories, kernelModules, systemReleases } from './core/apps.js';
 export { notifications } from './core/notifications.js';
 export { settings } from './core/settings.js';
 export { shortcuts, comboFromEvent } from './core/shortcuts.js';

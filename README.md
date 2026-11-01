@@ -23,7 +23,19 @@ npm run dev                                             # lilOS su http://localh
 npm run build                                           # build in dist/
 ```
 
-Il sistema non parte senza il kernel. Serve Node.js 22 o più recente e, per il database di sviluppo, Docker. Dettagli in [doc/sviluppatore](doc/sviluppatore/README.md#il-kernel-il-backend).
+Il sistema non parte senza il kernel. Serve Node.js 22 o più recente e, per il database di sviluppo, Docker.
+
+### Installare da una release
+
+Un lilOS installato non usa Vite né i sorgenti: il kernel serve anche la pagina, e un amministratore lo aggiorna dall'AppStore (voce **lilOS**: la versione nuova parte al riavvio del kernel, e se non parte lilOS torna da solo alla precedente). La release sta nella cartella `system/lilos` del repository ufficiale; da lì:
+
+```bash
+node system/kernel/tools/install.js <cartella>                  # una nuova installazione (moduli dal repository ufficiale)
+node system/kernel/tools/install.js <cartella> --from <system/kernel di questa copia>   # con configurazione, moduli e utenti
+cd <cartella> && node run.js
+```
+
+Per fare la release di questa versione (la versione di lilOS è `version` di `package.json`): `npm run release -- <cartella del repository ufficiale>`. Nel repository ufficiale vanno solo la build, `README.md` e `CHANGELOG.md`. Dettagli: [ricette](doc/sviluppatore/ricette.md#pubblicare-una-versione-di-lilos). Dettagli in [doc/sviluppatore](doc/sviluppatore/README.md#il-kernel-il-backend).
 
 ## Struttura
 
@@ -32,7 +44,7 @@ sdk/                    @lilos/sdk: basi riutilizzabili da sistema e app
   index.js              unico punto d'ingresso
   core/                 h(), svg(), trackDrag(), Emitter + bus, storage, session
   core/kernel.js        client del kernel: richieste, accesso, sincronizzazione delle modifiche
-  core/apps.js          app installate: elenco, installa, aggiorna, rimuovi
+  core/apps.js          app installate: elenco, installa, aggiorna, rimuovi; repository, moduli del kernel e versioni di lilOS (systemReleases)
   core/settings.js      preferenze dell'utente
   core/locale.js        lingua del sistema e traduzioni delle app (con core/i18n.js, il motore)
   core/fs.js            file system virtuale (cartelle, file, collegamenti; salvato nel kernel)
@@ -42,9 +54,10 @@ sdk/                    @lilos/sdk: basi riutilizzabili da sistema e app
   styles/               token, base, componenti, finestre (@lilos/sdk/styles.css)
 scripts/
   host-shims.mjs        genera public/host/sdk.js e system.js (predev, prebuild)
+  release.mjs           la build di lilOS per il repository ufficiale (npm run release)
 public/host/            i moduli che le app di sistema importano come @lilos/sdk e @lilos/system (generati)
 system/
-  kernel/               il backend: moduli (users-basic, fs-postgres, services-isolate: fa girare i servizi delle app, notifications-basic: le notifiche), API, repository, installazione di app e moduli, riga di comando; run.js lo avvia e lo riavvia
+  kernel/               il backend: moduli (users-basic, fs-postgres, services-isolate: fa girare i servizi delle app, notifications-basic: le notifiche), API, repository, installazione di app e moduli, aggiornamenti di lilOS (releases/ e current.json in un lilOS installato), riga di comando; run.js lo avvia, lo riavvia e prova le versioni nuove
 examples/apps/note/     app di esempio (lilos.json, index.js)
 src/                    il sistema, costruito sull'SDK
   main.js               avvio: accesso e collegamento al kernel (boot/), poi system.js

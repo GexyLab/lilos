@@ -1,4 +1,4 @@
-import { apps as installed, fs, storage, tags, h, locale, kernel } from '@lilos/sdk';
+import { Emitter, apps as installed, fs, storage, tags, h, locale, kernel } from '@lilos/sdk';
 import { registerApp, unregisterApp, getApp, CATEGORIES } from '../registry.js';
 import { registerAppCommands } from '../commands.js';
 import { packageModule } from './host.js';
@@ -149,6 +149,9 @@ export function connectPackages({ desk }) {
   return setupUser();
 }
 
+/** 'back': the kernel answers again after it went away (it restarted, maybe with another version of lilOS). */
+export const kernelEvents = new Emitter();
+
 function listenToKernel() {
   if (!kernel.connected || typeof EventSource !== 'function') return;
   let timer = 0;
@@ -160,7 +163,13 @@ function listenToKernel() {
   source.addEventListener('change', refresh);
   // Connected again (the kernel restarted): what changed meanwhile
   let opened = false;
-  source.addEventListener('open', () => { if (opened) refresh(); opened = true; });
+  source.addEventListener('open', () => {
+    if (opened) {
+      refresh();
+      kernelEvents.emit('back');
+    }
+    opened = true;
+  });
   kernel.onLogout(() => source.close());
 }
 

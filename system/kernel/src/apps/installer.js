@@ -1,7 +1,8 @@
 import { fail } from '../errors.js';
 import { KERNEL } from '../services.js';
 import { logger } from '../log.js';
-import { checkFiles, checkIntegrity, compareVersions, verifySignature } from './manifest.js';
+import { SYSTEM_VERSION } from '../config.js';
+import { checkFiles, checkIntegrity, compareVersions, inRange, verifySignature } from './manifest.js';
 import { needsGrant } from './permissions.js';
 import { cleanSource, fetchPackage, isOfficial } from './sources.js';
 
@@ -36,6 +37,11 @@ const SECURITY = 'app-security';
 function requireAdmin(principal, message = 'Solo un amministratore installa o rimuove app') {
   if (principal?.kind === 'kernel') return;
   if (principal?.kind !== 'user' || principal.role !== 'admin') fail('forbidden', message);
+}
+
+/** An app that says which versions of lilOS it works with (manifest `lilos`) installs only on those. */
+function checkLilos(manifest) {
+  if (manifest.lilos && !inRange(manifest.lilos, SYSTEM_VERSION)) fail('conflict', `${manifest.name} ${manifest.version} richiede lilOS ${manifest.lilos} (questo è il ${SYSTEM_VERSION})`);
 }
 
 export class Installer {
@@ -215,6 +221,7 @@ export class Installer {
     const pkg = await fetchPackage(source);
     const { manifest } = pkg;
     checkFiles(manifest, pkg.files);
+    checkLilos(manifest);
     if (await this.state(manifest.id)) fail('conflict', `${manifest.name} è già installata: per una nuova versione usa l'aggiornamento`);
     const signed = this.#trust(manifest, pkg.source);
     if (!signed && !allowUnsigned) fail('forbidden', 'App non verificata: si installa solo confermando l’avviso (allowUnsigned)');
@@ -251,6 +258,7 @@ export class Installer {
     const { manifest } = pkg;
     if (manifest.id !== id) fail('invalid', `Il pacchetto è dell'app ${manifest.id}, non di ${id}`);
     checkFiles(manifest, pkg.files);
+    checkLilos(manifest);
     const order = compareVersions(manifest.version, state.version);
     if (!reinstall && order === 0) return { ...state, unchanged: true };
     if (!reinstall && order < 0 && ref === undefined) fail('conflict', `La versione disponibile (${manifest.version}) è più vecchia di quella installata`);

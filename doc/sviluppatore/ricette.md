@@ -32,6 +32,8 @@ Procedure passo per passo per le modifiche più comuni. Per i dettagli delle fun
 - [Usare il kernel dal sistema o dall'SDK](#usare-il-kernel-dal-sistema-o-dallsdk)
 - [Aggiungere un modulo al kernel](#aggiungere-un-modulo-al-kernel)
 - [Pubblicare un modulo del kernel come pacchetto](#pubblicare-un-modulo-del-kernel-come-pacchetto)
+- [Pubblicare una versione di lilOS](#pubblicare-una-versione-di-lilos)
+- [Installare lilOS da una release](#installare-lilos-da-una-release)
 - [Fare un repository non ufficiale](#fare-un-repository-non-ufficiale)
 - [Aggiungere qualcosa all'SDK](#aggiungere-qualcosa-allsdk)
 
@@ -864,6 +866,44 @@ Un modulo in un repository si installa, si aggiorna e si toglie dall'AppStore (M
 2. Aggiungi la cartella a `modules` in `catalog.json`. Se vuoi, metti nella cartella un `README.md`: l'AppStore lo mostra nei dettagli del modulo.
 3. Committa e crea il tag `vX.Y.Z` (alza `version` a ogni rilascio; le due versioni più recenti restano sul disco).
 4. Da amministratore: AppStore → Kernel → Installa. Un modulo non ufficiale chiede di confermare l'avviso (gira nel kernel con accesso completo). Prima di scrivere in `config.json`, il kernel controlla che si avvierebbe con quel modulo (dipendenze, un modulo `fs`, `auth` o `host` locale): se no, dice perché e non cambia nulla. Poi **Riavvia il kernel**.
+
+## Pubblicare una versione di lilOS
+
+Una versione di lilOS (la pagina, il kernel, ciò che il kernel usa dell'SDK) si pubblica nel repository ufficiale come build, mai come sorgenti, e un amministratore la installa dall'AppStore. Decisione: [D57](../interna/decisioni.md#d57-lilos-si-aggiorna-dal-repository-ufficiale-come-un-pacchetto). Contratti: [API → lilOS come pacchetto](api.md#lilos-come-pacchetto-systempackagejs).
+
+1. Alza `version` in `package.json` (la versione di lilOS è quella: `system.json` la copia). Se la versione nuova cambia l'API dei moduli o le versioni di `sdk` delle app (`KERNEL_API` in `modules.js`, `SDK_VERSIONS` in `manifest.js`), ricordati che gli utenti con moduli o app vecchi non potranno aggiornare finché non li aggiornano.
+2. Salva tutto in un commit: `npm run release` rifiuta di partire con modifiche non salvate (`--allow-dirty` solo per provare; i file si prendono dalla cartella di lavoro).
+3. Metti il tag `v<versione>` su quel commit: il changelog nasce dai messaggi dei commit dal tag della versione prima.
+4. Con una copia del repository ufficiale accanto:
+
+   ```bash
+   npm run release -- ../lilos-plugins-official
+   ```
+
+   Il comando costruisce la pagina, copia il kernel e i file dell'SDK che importa, calcola gli hash e scrive `system/lilos/` (`web/`, `system/kernel/`, `sdk/…`, `package.json`, `system.json`), aggiunge a `CHANGELOG.md` la sezione della versione e mette `"system": "system/lilos"` in `catalog.json`. `README.md` lo scrive solo se manca.
+5. Apri `system/lilos/CHANGELOG.md` e riscrivi la sezione nuova: sono messaggi di commit, vanno resi comprensibili a chi amministra lilOS.
+6. Nel repository ufficiale: commit e tag `vX.Y.Z` come per le app. L'AppStore legge sempre l'ultimo tag.
+7. Provala prima su un lilOS installato (vedi [Installare lilOS da una release](#installare-lilos-da-una-release)): AppStore → lilOS → **Aggiorna**, poi **Riavvia il kernel**. Per vedere il ritorno automatico, rendi la versione volutamente non avviabile in una prova e controlla che `current.json` torni alla precedente con `failed`.
+
+Un'app che funziona solo da una certa versione di lilOS lo dice nel manifesto con `lilos` (per esempio `"lilos": ">=1.8.0"`): il kernel non la installa su una versione fuori intervallo, e non aggiorna lilOS a una versione che la lascerebbe fuori.
+
+## Installare lilOS da una release
+
+La prima installazione di un lilOS che si aggiorna dall'AppStore. Serve Node.js 22 o più recente, `git` e, con la configurazione di serie, PostgreSQL. La release è la cartella `system/lilos` del repository ufficiale (o la sua copia).
+
+```bash
+cd lilos-plugins-official/system/lilos
+node system/kernel/tools/install.js ../../../lilos-installato
+cd ../../../lilos-installato
+node releases/1.8.0/system/kernel/cli.js users-basic add eugenio --admin
+node run.js
+```
+
+- Senza `--from` usa la configurazione della release e installa i suoi moduli dal repository ufficiale.
+- Con `--from <cartella>` prende `config.json`, `repos.json` e `modules/` (con i dati, per esempio gli utenti) da `system/kernel` di una copia del repository o da un altro lilOS installato: stesso database, quindi stessi utenti e file. I moduli ripartono senza `node_modules`: l'installazione li rifà dai lockfile.
+- Rifiuta una cartella dove lilOS è già installato (`current.json`): da lì le versioni nuove arrivano dall'AppStore.
+- Il kernel serve anche la pagina, su `http://127.0.0.1:8790` (porta di `config.json`): non servono Vite né `npm run dev`.
+- Per passare a un'altra cartella dati, `LILOS_DATA_DIR` cambia dove stanno `config.json`, `repos.json` e `modules/`.
 
 ## Fare un repository non ufficiale
 

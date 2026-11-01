@@ -344,8 +344,8 @@ I repository da cui arrivano app e moduli: quello ufficiale (sempre presente) e 
 | `list()` | `[{ id, name, url, official }]` (utenti). |
 | `add(url, name?)` | Aggiunge un repository dopo aver letto il suo `catalog.json` (amministratori). `name` assente: quello del catalogo, o l'indirizzo. Lancia `conflict` se c'è già, `invalid` se il catalogo manca o l'indirizzo non va. |
 | `remove(id)` | Toglie un repository (amministratori; non l'ufficiale). Le app già installate restano. |
-| `catalog(id)` | Cosa offre il repository alla sua ultima versione: `{ repo, name, ref, commit, apps: [{ path, manifest, locales, readme } \| { path, error }], modules: [{ path, module, readme } \| { path, error }] }` (utenti). `readme` è il testo di `README.md` nella cartella del pacchetto (Markdown) oppure `null`; oltre 64 KB è tagliato alla fine di una riga e la voce ha `readmeTruncated: true`. `locales` (solo nelle app) è la tabella delle traduzioni dell'app con le sole chiavi `@` (i testi del manifesto), oppure `null` se l'app non ne ha o il file non è valido: `locale.manifest(manifest, locales)` mostra il manifesto nella lingua dell'utente. Per installare: `apps.install({ type: 'git', url: repo.url, path, ref })`. |
-| `readme(id, path)` | Il `README.md` completo di un pacchetto del catalogo (`path` come lo elenca il catalogo), come testo (utenti). |
+| `catalog(id)` | Cosa offre il repository alla sua ultima versione: `{ repo, name, ref, commit, apps: [{ path, manifest, locales, readme } \| { path, error }], modules: [{ path, module, readme } \| { path, error }], system: { path, system, readme, changelog } \| { path, error } \| null }` (utenti). `system` è lilOS stesso (vedi [`systemReleases`](#systemreleases)): c'è solo nel repository ufficiale, altrimenti è `null`; `system.files` è il numero dei file della release, non l'elenco. `readme` è il testo di `README.md` nella cartella del pacchetto (Markdown) oppure `null`; oltre 64 KB è tagliato alla fine di una riga e la voce ha `readmeTruncated: true`. `locales` (solo nelle app) è la tabella delle traduzioni dell'app con le sole chiavi `@` (i testi del manifesto), oppure `null` se l'app non ne ha o il file non è valido: `locale.manifest(manifest, locales)` mostra il manifesto nella lingua dell'utente. Per installare: `apps.install({ type: 'git', url: repo.url, path, ref })`. |
+| `readme(id, path, file?)` | Il `README.md` completo di un pacchetto del catalogo (`path` come lo elenca il catalogo), come testo (utenti). Per lilOS (`path` = `system.path`, solo nel repository ufficiale) `file` può essere `'CHANGELOG.md'`; qualunque altro `file` lancia `invalid`. |
 
 ### `kernelModules`
 
@@ -358,6 +358,30 @@ I moduli del kernel come pacchetti (solo amministratori). Girano nel kernel con 
 | `update(name, { ref, allowUnsigned = false })` | Aggiorna dall'origine registrata → `{ name, version, previous, restartRequired }`, oppure `{ name, version, unchanged: true }`. |
 | `remove(name)` | Spegne il modulo e cancella le sue cartelle, tranne quelle che contengono i suoi dati → `{ name, kept, restartRequired }` (`kept`: cartelle conservate). |
 | `restart()` | Chiede al kernel di riavviarsi (`POST /api/kernel/restart`). Funziona solo se il kernel è stato avviato con `npm run kernel`; altrimenti lancia `unavailable`. Durante il riavvio (qualche secondo) le richieste falliscono: i salvataggi in attesa si ripetono da soli. |
+
+### `systemReleases`
+
+Le versioni di lilOS stesso (la pagina, il kernel e ciò che usano dell'SDK), dal repository ufficiale. Vedi [lilOS come pacchetto](#lilos-come-pacchetto-systempackagejs). Cambiare versione vale dal **riavvio** del kernel (`kernelModules.restart()`), e solo per gli amministratori. Se la nuova versione non parte, il kernel torna da solo a quella di prima.
+
+| Metodo | Descrizione |
+| --- | --- |
+| `info()` | `{ version, mode }` per ogni utente: `version` è quella in uso, `mode` è `'installed'` (lilOS installato da una release) o `'development'` (una copia del repository). Gli amministratori hanno anche `kernel` (versione dell'API dei moduli), `sdk` (versioni dell'SDK delle app che il kernel esegue), `releases` (versioni conservate, la più recente per prima), `next` (la versione che parte al prossimo riavvio, `null` se è quella in uso), `previous` (la versione a cui si torna), `updated` (`{ from, at }`: l'ultimo aggiornamento è andato a buon fine e la versione `from` è ancora conservata) e `failed` (`{ version, at, reason, log }`: l'ultima versione provata non è partita; `log` sono le ultime righe del kernel). In sviluppo `releases` è `[]` e gli altri sono `null`. |
+| `update({ ref? })` | Prende la versione più recente del repository ufficiale (o quella di `ref`), controlla l'hash di ogni file e la affianca a quella in uso → `{ version, previous, restartRequired: true }`, oppure `{ version, unchanged: true }` se è già quella in uso. Lancia `conflict` se la versione disponibile è più vecchia (senza `ref`), se lilOS è in sviluppo, se serve un Node.js più recente, se un modulo del kernel o un'app non è compatibile (il messaggio li elenca: vanno aggiornati prima). |
+| `use(version)` | Sceglie un'altra versione tra quelle conservate (anche più vecchia), con gli stessi controlli di compatibilità → `{ version, restartRequired: true }`. Con la versione in uso annulla il cambio in attesa del riavvio → `{ version, restartRequired: false }`. `not_found` se la versione non c'è. |
+| `remove(version)` | Cancella una versione conservata → `{ removed }`. `conflict` per quella in uso o quella che parte al prossimo riavvio. |
+| `acknowledge('updated' \| 'failed')` | Segna come visto l'avviso e lo toglie da `info()` (`updated`: la versione di prima resta conservata). |
+
+Tutti, tranne `info()`, lanciano `forbidden` se chi chiama non è un amministratore. Esempio:
+
+```js
+const { version, mode } = await systemReleases.info();
+if (mode === 'installed') {
+  const done = await systemReleases.update();
+  if (done.restartRequired) await kernelModules.restart();
+}
+```
+
+Dopo il riavvio la pagina aperta è ancora quella vecchia: lilOS (`src/apps/updates.js`) se ne accorge quando il kernel torna (`kernelEvents` emette `back`, in `src/apps/packages/packages.js`), confronta `info().version` con la versione di `package.json` con cui la pagina è stata costruita e, se diverse, chiede di riavviare lilOS (cioè ricaricare la pagina). Agli amministratori chiede anche se eliminare la versione di prima (`updated`) o li avvisa del ritorno automatico (`failed`).
 
 Esempio, in sviluppo, per installare l'app di esempio:
 
@@ -1589,6 +1613,7 @@ Validato dal kernel (`system/kernel/src/apps/manifest.js`), che scarta i campi c
 | `permissions?` | Elenco di permessi (fino a 50), vedi sotto. |
 | `contributes?` | `window: { width, height }` (200-4000 × 150-4000); `fileTypes: [estensione]` (fino a 50); `commands: [{ id, label, keys? }]` (fino a 30, l'`id` inizia con l'id dell'app + `.`, `keys` fino a 3 e richiede `ui.shortcuts`); `widgets: [{ id, name, width, height }]` (fino a 10, richiede `desktop.widget`; **validati ma non mostrati**); `pipes`, `actions`, `menus`, `badge` (vedi sotto). |
 | `install?`, `update?`, `uninstall?` | Operazioni, vedi sotto. `update`: `[{ from: '<1.2.0', ops: [...] }]` (`from`: `<x.y.z`, `<=x.y.z` o `x.y.z`). |
+| `lilos?` | Le versioni di lilOS con cui l'app funziona: un limite (`'>=1.8.0'`) o due separati da uno spazio (`'>=1.8.0 <2.0.0'`); operatori `>=`, `>`, `<=`, `<`, `=` (senza operatore vale `=`), versione `x.y.z`. Il kernel non installa né aggiorna l'app su una versione di lilOS fuori intervallo (`conflict`), e non aggiorna lilOS a una versione che lascerebbe fuori un'app installata. Senza il campo conta solo `sdk`. |
 | `restartOnUpdate?` | `true` o un intervallo come `update.from` (`'<2.0.0'`, `'<=1.2.0'`, `'1.2.0'`): aggiornando a questa versione lilOS propone di riavviarsi. Con un intervallo vale solo se si arriva da una versione che lo soddisfa. Conta solo se la pagina ha già eseguito il codice vecchio dell'app. Altro: manifesto non valido. Da usare solo quando il ricaricamento a caldo non basta (stato condiviso nella pagina, moduli tenuti da altri): vedi [apps/updates.js](#appsupdatesjs). |
 | `signature?` | `ed25519:<base64>` sul manifesto senza `signature`, con le chiavi in ordine. |
 
@@ -2540,7 +2565,7 @@ Le richieste che modificano (tutte tranne `GET` e `HEAD`) devono avere l'intesta
 | `POST /api/repos` | amministratori | `{ url, name? }` → il repository. Legge `catalog.json` prima di salvare |
 | `DELETE /api/repos/:id` | amministratori | Toglie un repository (non l'ufficiale) |
 | `GET /api/repos/:id/catalog` | utenti | → cosa offre il repository: app e moduli (vedi [Repository](#repository-reposjs)) |
-| `GET /api/repos/:id/readme?path=` | utenti | → il `README.md` completo di un pacchetto del catalogo, come testo |
+| `GET /api/repos/:id/readme?path=&file=` | utenti | → il `README.md` completo di un pacchetto del catalogo, come testo. `file` è `README.md` (predefinito) o, per lilOS nel repository ufficiale, `CHANGELOG.md` |
 | `GET /api/modules` | amministratori | → moduli del kernel installati (vedi [Moduli come pacchetti](#moduli-come-pacchetti-modulepackagejs)) |
 | `POST /api/modules` | amministratori | `{ source, allowUnsigned }` → `{ name, version, restartRequired }` |
 | `POST /api/modules/:name/update` | amministratori | `{ ref?, allowUnsigned }` → `{ name, version, previous, restartRequired }` o `{ …, unchanged: true }` |
@@ -2558,7 +2583,14 @@ Le richieste che modificano (tutte tranne `GET` e `HEAD`) devono avere l'intesta
 | `POST /api/notifications/remove` | utenti | `{ ids? }` → 204. Senza `ids`, tutte |
 | `PUT /api/notifications-options` | utenti | `{ keep }` → `{ keep }`: quante ne conserva l'utente, un intero da 1 a 200 (`invalid` altrimenti) |
 | `POST /api/kernel/restart` | amministratori | Il kernel si ferma ed esce con il codice 75: `npm run kernel` lo riavvia. Senza `run.js` (variabile `LILOS_SUPERVISED` assente): `unavailable` |
+| `GET /api/system` | utenti | → `{ version, mode }`; agli amministratori anche `kernel`, `sdk`, `releases`, `next`, `previous`, `updated`, `failed` (vedi [`systemReleases`](#systemreleases)) |
+| `POST /api/system/update` | amministratori | `{ ref? }` → `{ version, previous, restartRequired }` o `{ version, unchanged: true }` |
+| `POST /api/system/use` | amministratori | `{ version }` → `{ version, restartRequired }` |
+| `DELETE /api/system/releases/:version` | amministratori | Cancella una versione conservata → `{ removed }` |
+| `POST /api/system/acknowledge` | amministratori | `{ notice: 'updated' \| 'failed' }` → 204 |
 | `/api/modules/<nome>/…` | utenti | Gli endpoint dei moduli (`ctx.route`) |
+
+In un lilOS installato il kernel serve anche la pagina: ogni `GET` e `HEAD` fuori da `/api` che non corrisponde a un endpoint risponde con il file di `web/` della release (`web.js`); un indirizzo senza estensione che non è un file dà `index.html`. I file in `assets/` hanno l'hash nel nome e si tengono per un anno, gli altri si richiedono ogni volta (`no-cache`). In sviluppo la serve Vite.
 
 I percorsi possono finire con `*` (`/api/apps/:id/v/:version/*`): il resto del percorso arriva in `params.rest`.
 
@@ -2601,6 +2633,14 @@ Il file si può cambiare con la variabile `LILOS_KERNEL_CONFIG`. Il kernel richi
 ### Avvio e riavvio (`run.js`)
 
 `npm run kernel` esegue `system/kernel/run.js`, che avvia `src/main.js` come processo figlio con `LILOS_SUPERVISED=1` e lo riavvia quando esce con il codice **75** (lo fa `POST /api/kernel/restart`, dopo aver installato, aggiornato o tolto un modulo). Con qualunque altro codice, `run.js` termina con quello. Avviare `src/main.js` direttamente funziona, ma senza riavvio automatico.
+
+In un lilOS installato (c'è `current.json` accanto a `run.js`) `run.js` avvia `releases/<versione di current.json>/system/kernel/src/main.js`. Una versione appena installata (`trial: true`) è **in prova**: `run.js` ne legge l'output (lo mostra come sempre e tiene le ultime 40 righe) e aspetta che il kernel mandi il messaggio `{ lilos: 'ready' }` (`process.send` in `main.js`, quando ascolta) entro **5 minuti**.
+
+- Se arriva: toglie `trial` e, se c'è una `previous`, scrive `updated: { from, at }`.
+- Se il processo esce prima, o non risponde in tempo (allora `run.js` lo ferma), riparte la `previous`: `current.json` diventa `{ version: previous, previous: null, failed: { version, at, reason, log } }`. Senza `previous` (o se la sua cartella non c'è) `run.js` esce con 1.
+- Ctrl+C o `SIGTERM` fermano e basta, senza tornare indietro.
+
+`run.js` sta fuori dalle release e non si aggiorna con lilOS: va tenuto semplice. `tools/install.js` ne copia la versione della release al momento dell'installazione.
 
 All'avvio il kernel carica i moduli, registra le rotte e prima di ascoltare **installa le app di sistema che mancano** (`apps.bootstrap`, vedi [D41](../interna/decisioni.md#d41-le-app-di-sistema-mancanti-si-installano-allavvio-del-kernel)): legge il catalogo del repository ufficiale e installa ciascuna app mancante, dall'ultimo tag, concedendo i permessi del suo manifesto. Se il repository non risponde (rete, `git` mancante, credenziali), il kernel parte lo stesso, scrive nel log «App di sistema non installate (…)» e lilOS gira senza quelle app.
 
@@ -2697,6 +2737,8 @@ Un repository ha un `catalog.json` alla radice:
 { "name": "Il mio repository", "apps": ["apps/note"], "modules": ["modules/mio"] }
 ```
 
+Il repository ufficiale ha anche `"system": "system/lilos"`: la cartella con la release di lilOS ([lilOS come pacchetto](#lilos-come-pacchetto-systempackagejs)). Negli altri repository `system` è ignorato.
+
 `apps` e `modules` sono elenchi di cartelle (fino a 200 l'uno, percorsi come `apps/note`). Ogni cartella di app contiene `lilos.json`, ogni cartella di modulo `module.json`; può contenere anche un `README.md` (Markdown), che `catalog(id)` restituisce come `readme` (`null` se manca; oltre 64 KB tagliato, con `readmeTruncated: true`). Il testo completo si legge con `readme(id, path)` (`GET /api/repos/:id/readme?path=`). Le voci non valide non fermano il catalogo: compaiono con `error`.
 
 `Repos`: `list()` (l'ufficiale per primo: `{ id: 'official', name: 'lilOS ufficiale', url: 'https://github.com/GexyLab/lilos-plugins-official', official: true }`), `get(id)`, `add(principal, { url, name? })`, `remove(principal, id)`, `catalog(id)`. `add` e `remove` sono per amministratori; `add` legge il catalogo prima di salvare (un indirizzo sbagliato si scopre subito), rifiuta quelli già presenti e oltre 30. `catalog(id)` risponde alla versione più alta, e il suo `ref` è quello da passare per installare esattamente quella versione.
@@ -2704,6 +2746,7 @@ Un repository ha un `catalog.json` alla radice:
 ### Installazione delle app (`installer.js`, `manifest.js`)
 
 - `installer.js`: `install` (rifiuta un'app già installata), `update` (nuova versione, `ref` anche più vecchio, o `reinstall`; si tengono la versione in uso e la precedente), `uninstall`. L'hash di ogni file e quello delle librerie (`integrity`) si controllano prima di scrivere. La libreria in `/system/commons` è condivisa tra le app che la usano (`meta.usedBy`) e si elimina quando nessuno la usa più. Lo stato (`id`, `version`, `previous`, `kind`, `system`, `required`, `source`, `signed`, `publisher`, `granted`, `installed`, `updated`, `isolated`) sta nel `meta.state` della cartella `/system/app/<id>`. `isolated` è `true`, `false` (scelta di un amministratore per quell'app) o `null` (la regola generale, il valore con cui nasce); la regola generale è `meta.security.isolated` della cartella `/system/app/.security` (`true` se manca). `security()`, `setSecurity()` e `setAppSecurity()` leggono e scrivono questi valori; le ultime due solo per un amministratore (o il kernel).
+- `manifest.js` controlla anche il campo `lilos` (`LILOS_RANGE`; `inRange(intervallo, versione)`) ed esporta `SDK_VERSIONS` (`['1', '2']`, i valori ammessi di `sdk`; `system.json` li ripete). `installer.js` rifiuta con `conflict`, in `install` e `update`, un'app il cui `lilos` non comprende la versione in uso (`SYSTEM_VERSION` di `config.js`).
 - `manifest.js` controlla anche `locales` (un file `.json` tra i `files`, solo per app `local`) e, con `checkFiles` all'installazione e all'aggiornamento, che il file passi `parseLocales` di `sdk/core/i18n.js`: il kernel importa il motore dell'SDK ([D45](../interna/decisioni.md#d45-un-file-di-traduzioni-per-app-inglese-predefinito-un-solo-motore)), così le regole sono le stesse di lilOS. Un file non valido fa fallire l'installazione con `invalid`.
 - `update` con `reinstall` riscrive **lo stesso commit** registrato in `source.commit`: non porta codice nuovo. Per averlo serve una versione più alta (o `ref` di un'altra versione, anche precedente).
 - Fiducia: una firma presente ma sbagliata è sempre rifiutata; un'app è *verificata* se firmata da un editore di `trustedPublishers` con la chiave giusta, o se viene dal repository ufficiale (di sistema o no; con `officialKey` serve anche la firma ufficiale); altrimenti serve `allowUnsigned`. Un'app con `system: true` da un altro repository è rifiutata, e un'app di sistema resta di sistema negli aggiornamenti. `uninstall` rifiuta le app `required`.
@@ -2726,6 +2769,84 @@ Un repository ha un `catalog.json` alla radice:
 - **Aggiornamento.** Parte dal `source.json` registrato (con `ref` opzionale), copia la nuova versione accanto alla vecchia, ci porta i file di `data`, aggiorna la versione in `config.json` e tiene le due versioni più recenti. Senza versione più alta risponde `unchanged: true`. Un modulo senza `source.json` (messo a mano) non si aggiorna da qui.
 - **Rimozione.** Toglie il modulo da `config.json` (dopo aver verificato che il kernel si avvierebbe senza) e cancella le cartelle delle sue versioni, **tranne quelle che contengono file di `data`**: gli utenti di `users-basic` restano. Reinstallando la stessa versione quella cartella si riusa.
 - `list()`: i moduli trovati in `modules/`, con `enabled` (versione in `config.json`), `running` (in uso adesso) e `source`; anche quelli già tolti ma ancora in esecuzione fino al riavvio.
+
+### lilOS come pacchetto (`systemPackage.js`)
+
+Anche lilOS è un pacchetto del repository ufficiale ([D57](../interna/decisioni.md#d57-lilos-si-aggiorna-dal-repository-ufficiale-come-un-pacchetto)): la **build** di una versione (la pagina, il kernel e i file dell'SDK che il kernel importa), mai i sorgenti. `SystemReleases` (`kernel.system`) la installa accanto a quella in uso. Solo amministratori, solo dal repository ufficiale; endpoint in [API HTTP](#api-http), client in [`systemReleases`](#systemreleases).
+
+**Modalità** (`config.js`). Il kernel capisce da dove gira guardando se la sua radice (due cartelle sopra `system/kernel`) è `releases/<versione>/` e ha un `system.json`:
+
+| Esportazione | Sviluppo (copia del repository) | Installato |
+| --- | --- | --- |
+| `KERNEL_DIR` | `system/kernel` | `system/kernel` dentro la release |
+| `RELEASE_DIR` | `null` | `<cartella>/releases/<versione>` |
+| `INSTALL_DIR` | `null` | `<cartella>`, quella con `run.js` e `current.json` |
+| `DATA_DIR` | `KERNEL_DIR`, dove stanno `config.json`, `repos.json`, `modules/` | `INSTALL_DIR` (con la variabile `LILOS_DATA_DIR` si sceglie un'altra cartella) |
+| `SYSTEM_VERSION` | `version` di `package.json` | `version` di `system.json` della release |
+| La pagina | la serve Vite | la serve il kernel (`web.js`) da `web/` della release |
+
+`MODULES_DIR` è `DATA_DIR/modules` e `repos.json` sta in `DATA_DIR`: i dati restano fuori dalle release, quindi cambiare versione non li sposta. In sviluppo `info()` funziona, mentre `update`, `use`, `remove` e `acknowledge` lanciano `conflict` («si aggiorna con git»).
+
+**Cartella di un lilOS installato.**
+
+```
+<cartella>/
+  run.js                 avvia la versione di current.json (fisso, non si aggiorna con lilOS)
+  package.json           { "type": "module" }
+  current.json           quale versione parte, e gli esiti
+  config.json, repos.json, modules/     i dati
+  releases/
+    1.8.0/               una cartella per versione
+      system.json, README.md, CHANGELOG.md
+      web/               la pagina costruita
+      system/kernel/     il kernel
+      sdk/…              i file dell'SDK che il kernel importa
+```
+
+**`system.json`** (nella radice di una release, scritto da `scripts/release.mjs`):
+
+| Campo | Significato |
+| --- | --- |
+| `name` | Sempre `'lilos'`. |
+| `version` | `x.y.z`: quella di `package.json` quando si fa la release. |
+| `kernel` | Intero: la versione dell'API dei moduli (`KERNEL_API`; i moduli la dichiarano in `module.json`, `kernel`). |
+| `sdk` | `['1', '2']`: i valori di `sdk` dei manifesti che il kernel esegue (`SDK_VERSIONS`). |
+| `node` | Intero: la versione minima di Node.js (dall'`engines` di `system/kernel/package.json`, 22 se manca). |
+| `commit?`, `date?` | Il commit e la data (`AAAA-MM-GG`) della release. |
+| `files` | `{ percorso: 'sha256-<base64>' }`: tutti i file (fino a 5000, 200 MB in tutto), compresi `web/index.html` e `system/kernel/src/main.js`, che devono esserci. |
+
+`checkSystem(raw)` lo valida e lancia `invalid`.
+
+**`current.json`** (lo scrivono il kernel e `run.js`, con un file temporaneo e un rinomina):
+
+| Campo | Significato |
+| --- | --- |
+| `version` | La versione che parte all'avvio. |
+| `previous` | La versione a cui tornare se `version` non parte, o `null`. |
+| `trial?` | `true`: `version` non è ancora stata provata (`run.js` la mette in prova). |
+| `updated?` | `{ from, at }`: la prova è riuscita e `from` è ancora conservata. Lo toglie `acknowledge('updated')`, o `remove(from)`. |
+| `failed?` | `{ version, at, reason, log }`: la prova è fallita e `run.js` è tornato a `previous`. Lo toglie `acknowledge('failed')`, o il prossimo aggiornamento. |
+
+**`update`.** Legge `catalog.system` del repository ufficiale, controlla `system.json`, confronta con `SYSTEM_VERSION` (uguale: `unchanged`), controlla la compatibilità, scarica ogni file verificandone l'hash in una cartella temporanea e la rinomina in `releases/<versione>` (una cartella lasciata da un tentativo fallito si riscrive). Poi scrive `current.json` con la versione nuova, `previous` = quella in uso e `trial: true`. Non riavvia: lo fa l'amministratore (`kernelModules.restart()`).
+
+**Compatibilità** (in `update` e `use`; il messaggio dice cosa aggiornare prima):
+
+- Node.js in uso almeno `node`.
+- Ogni modulo acceso in `config.json` deve dichiarare un `kernel` uguale a quello della nuova versione.
+- Ogni app installata deve avere `sdk` tra quelli della nuova versione e, se ha `lilos`, un intervallo che comprende la nuova versione.
+
+**Prova e ritorno.** Vedi [Avvio e riavvio](#avvio-e-riavvio-runjs).
+
+**Costruire una release** (`npm run release -- <cartella del repository ufficiale> [--allow-dirty]`, `scripts/release.mjs`). Costruisce la pagina con Vite in una cartella temporanea (`dist/` non cambia) e scrive in `<repository>/system/lilos`:
+
+- `web/` (la pagina), `system/kernel/` (`cli.js`, `setup.js`, `run.js`, `package.json` e i file tracciati da git di `src/` e `tools/`) e `system/kernel/config.json` (quello di git, con `allowLocalSources: false`);
+- i file dell'SDK fuori dal kernel che il kernel importa (li trova seguendo gli `import` relativi), `package.json` (`type: module`) e `system.json`;
+- `README.md` solo se manca, e `CHANGELOG.md` con una sezione nuova per la versione (i messaggi dei commit dal tag `v<versione prima>` di questo repository);
+- in `catalog.json` del repository ufficiale, `"system": "system/lilos"` se manca.
+
+Rifiuta di partire se ci sono modifiche non salvate (`--allow-dirty` solo per provare: i file si prendono dalla cartella di lavoro). Nel repository ufficiale vanno solo la build, `README.md` e `CHANGELOG.md`. Dopo: controllare il changelog, commit e tag nel repository ufficiale. Passi in [Pubblicare una versione di lilOS](ricette.md#pubblicare-una-versione-di-lilos).
+
+**Prima installazione** (`system/kernel/tools/install.js`, lanciato dalla release scaricata): `node system/kernel/tools/install.js <cartella> [--from <cartella del kernel>]`. Verifica Node.js e gli hash, scrive `releases/<versione>`, `run.js`, `package.json` e `current.json` (`{ version, previous: null }`). Senza `--from` copia la configurazione della release e installa i suoi moduli dal repository ufficiale; con `--from` copia `config.json`, `repos.json` e `modules/` (senza `node_modules`, reinstallati dai lockfile) di una copia del repository o di un altro lilOS installato, così utenti e file sono gli stessi. Rifiuta una cartella dove lilOS è già installato.
 
 ### Servizi delle app (`apps/appServices.js`)
 

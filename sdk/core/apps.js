@@ -111,10 +111,13 @@ export const apps = new Apps();
  *   repositories.list() → [{ id, name, url, official }]
  *   repositories.add(url, name?)  /  remove(id)            admins
  *   repositories.catalog(id) → { repo, name, ref, commit, apps: [{ path, manifest, readme } | { path, error }],
- *                                modules: [{ path, module, readme } | { path, error }] }
+ *                                modules: [{ path, module, readme } | { path, error }],
+ *                                system: { path, system, readme, changelog } | { path, error } | null }
+ *       system: lilOS itself, only in the official repository (see systemReleases below)
  *       readme: README.md of the package folder (Markdown) or null; past 64 KB it is cut and
  *       readmeTruncated is true
- *   repositories.readme(id, path) → the whole README.md of a package of the catalog (text)
+ *   repositories.readme(id, path, file?) → the whole README.md of a package of the catalog (text);
+ *       file 'CHANGELOG.md' for lilOS (catalog `system`)
  * To install from a catalog: apps.install({ type: 'git', url: repo.url, path }) (the latest version).
  */
 export const repositories = {
@@ -122,7 +125,7 @@ export const repositories = {
   add: (url, name) => kernel.request('POST', '/repos', { url, ...(name && { name }) }),
   remove: id => kernel.request('DELETE', `/repos/${encodeURIComponent(id)}`),
   catalog: id => kernel.request('GET', `/repos/${encodeURIComponent(id)}/catalog`),
-  readme: (id, path) => kernel.request('GET', `/repos/${encodeURIComponent(id)}/readme?path=${encodeURIComponent(path)}`, undefined, { text: true }),
+  readme: (id, path, file) => kernel.request('GET', `/repos/${encodeURIComponent(id)}/readme?path=${encodeURIComponent(path)}${file ? `&file=${encodeURIComponent(file)}` : ''}`, undefined, { text: true }),
 };
 
 /**
@@ -139,4 +142,25 @@ export const kernelModules = {
   update: (name, { ref, allowUnsigned = false } = {}) => kernel.request('POST', `/modules/${encodeURIComponent(name)}/update`, { ref, allowUnsigned }),
   remove: name => kernel.request('DELETE', `/modules/${encodeURIComponent(name)}`),
   restart: () => kernel.request('POST', '/kernel/restart', {}),
+};
+
+/**
+ * lilOS itself: the version running and, for admins, its versions from the official repository
+ * (catalog `system`: repositories.catalog('official').system). A new version runs after
+ * kernelModules.restart(); if it does not come up the kernel goes back to the one before by itself.
+ *   systemReleases.info() → { version, mode: 'installed' | 'development' }, for admins also
+ *       { kernel, sdk, releases: [versions kept], next: version starting at the restart | null,
+ *         previous, updated: { from, at } | null, failed: { version, at, reason, log } | null }
+ *   systemReleases.update({ ref }) → { version, previous, restartRequired } | { version, unchanged }
+ *   systemReleases.use(version)     → { version, restartRequired }   another version kept
+ *   systemReleases.remove(version)  deletes a version kept (not the one running or starting)
+ *   systemReleases.acknowledge('updated' | 'failed')   the notice was seen ('updated': the one before stays)
+ * In development (a copy of the repository) only info() works: git updates it.
+ */
+export const systemReleases = {
+  info: () => kernel.request('GET', '/system'),
+  update: ({ ref } = {}) => kernel.request('POST', '/system/update', { ...(ref && { ref }) }),
+  use: version => kernel.request('POST', '/system/use', { version }),
+  remove: version => kernel.request('DELETE', `/system/releases/${encodeURIComponent(version)}`),
+  acknowledge: notice => kernel.request('POST', '/system/acknowledge', { notice }),
 };

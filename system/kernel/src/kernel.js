@@ -1,6 +1,7 @@
 import { createServer } from 'node:http';
 import { EventEmitter } from 'node:events';
-import { loadConfig, MODULES_DIR } from './config.js';
+import { join } from 'node:path';
+import { loadConfig, MODULES_DIR, RELEASE_DIR, SYSTEM_VERSION } from './config.js';
 import { resolveModules, startModule } from './modules.js';
 import { Router, send, readJson, cookies, checkOrigin, checkHost } from './http.js';
 import { KernelError, fail } from './errors.js';
@@ -14,6 +15,9 @@ import { ModuleAdmin } from './apps/modulePackage.js';
 import { storeRoutes } from './api/store.js';
 import { serviceRoutes } from './api/services.js';
 import { notificationRoutes } from './api/notifications.js';
+import { systemRoutes } from './api/system.js';
+import { SystemReleases } from './apps/systemPackage.js';
+import { webFiles } from './web.js';
 import { AppServices } from './apps/appServices.js';
 import { KERNEL } from './services.js';
 
@@ -27,6 +31,7 @@ const LOCAL_USER = Object.freeze({ id: 'local', username: 'utente', name: 'Utent
  * The kernel: loads the modules named in the configuration, collects the services they provide
  * and serves lilOS's API. Everything that touches a resource (users, files, databases) is done by
  * a module behind a service; the kernel only routes, checks who is asking and passes it on.
+ * In an installed lilOS it also serves the page (web.js).
  */
 export class Kernel {
   services = new Map();
@@ -35,6 +40,7 @@ export class Kernel {
   /** 'user' { owner, event, data }: for that user's open lilOS pages (api/services.js streams them) */
   events = new EventEmitter().setMaxListeners(0);   // one listener per open page
   #server = null;
+  #web = RELEASE_DIR ? webFiles(join(RELEASE_DIR, 'web')) : null;
 
   static async start() {
     const kernel = new Kernel();
@@ -71,12 +77,14 @@ export class Kernel {
     this.repos = new Repos(config);
     this.moduleAdmin = new ModuleAdmin(this, config);
     this.appServices = new AppServices(this);
+    this.system = new SystemReleases(this);
     sessionRoutes(this);
     homeRoutes(this);
     appRoutes(this);
     storeRoutes(this);
     serviceRoutes(this);
     notificationRoutes(this);
+    systemRoutes(this);
     await this.#bootstrapApps(config.bootstrapApps);
 
     this.#server = createServer((req, res) => this.#handle(req, res));
@@ -84,7 +92,7 @@ export class Kernel {
       this.#server.once('error', reject);
       this.#server.listen(config.port, config.host, resolve);
     });
-    log.info(`In ascolto su http://${config.host}:${config.port} (${this.multiUser ? 'multiutente' : 'utente singolo'})`);
+    log.info(`lilOS ${SYSTEM_VERSION}${RELEASE_DIR ? '' : ' (copia di sviluppo)'} in ascolto su http://${config.host}:${config.port} (${this.multiUser ? 'multiutente' : 'utente singolo'})`);
     // system:ready — the services an admin chose for everyone
     this.appServices.systemReady().catch(err => log.error('Servizi all’avvio', err));
   }
@@ -137,6 +145,7 @@ export class Kernel {
       checkHost(req, this.config);
       const url = new URL(req.url, 'http://kernel');
       const found = this.router.match(req.method, url.pathname);
+      if (!found && this.#web && !url.pathname.startsWith('/api/') && await this.#web(req, res, url.pathname)) return;
       if (!found) return send(res, 404, { error: 'not_found', message: 'Risorsa inesistente' });
       if (!found.handler) return send(res, 405, { error: 'invalid', message: 'Metodo non permesso' }, { Allow: found.allowed.join(', ') });
       checkOrigin(req, this.config);

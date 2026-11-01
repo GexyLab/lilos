@@ -5,6 +5,8 @@ const log = logger('kernel');
 
 try {
   const kernel = await Kernel.start();
+  // Up: run.js keeps a version of lilOS just installed only after this (see run.js)
+  process.send?.({ lilos: 'ready' });
   let stopping = false;
   const stop = async () => {
     if (stopping) return;

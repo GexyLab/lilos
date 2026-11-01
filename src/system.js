@@ -34,7 +34,7 @@ import { Taskbar } from './taskbar/Taskbar.js';
 import { UserPage } from './user/UserPage.js';
 import { WindowManager } from './windows/WindowManager.js';
 import { connectLauncher } from './apps/launcher.js';
-import { connectUpdates } from './apps/updates.js';
+import { connectUpdates, systemNotices } from './apps/updates.js';
 import { connectStartup } from './apps/startup.js';
 import { connectServices } from './apps/services.js';
 import { connectNotifications } from './notifications/connect.js';
@@ -91,6 +91,8 @@ connectServices();
 Promise.all([workspaces.ready, workareas.ready]).then(() => {
   bus.emit('system:ready', { at: Date.now() });
   bus.emit('user:login', { user: kernel.data?.user ?? null, workspace: workspaces.currentId ?? null });
+  // How the last change of lilOS's version went (admins)
+  systemNotices().catch(err => console.error('[lilos] aggiornamento di lilOS:', err));
 });
 
 // The desktop keeps the keyboard only while no window is focused

@@ -10,5 +10,6 @@
 .upd-lead { font-weight: 500; }
 .upd-restart { color: var(--danger); }
 .upd-buttons { margin-top: 6px; display: flex; gap: 8px; justify-content: flex-end; }
+.upd-log { margin: 0; max-height: 120px; overflow: auto; padding: 8px 10px; border-radius: 6px; background: var(--field-bg); border: 1px solid var(--border); font: 11px/1.45 var(--mono); white-space: pre-wrap; word-break: break-all; }
 /* Background entry points of isolated apps: a sandbox nobody sees */
 .pkg-background { position: fixed; width: 0; height: 0; border: 0; visibility: hidden; pointer-events: none; }
