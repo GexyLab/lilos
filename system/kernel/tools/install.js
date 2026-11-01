@@ -49,23 +49,39 @@ try {
     await writeFile(join(root, 'package.json'), `${JSON.stringify({ name: 'lilos-installed', private: true, type: 'module', scripts: { start: 'node run.js' } }, null, 2)}\n`);
   }
 
-  const { installDependencies, writeModule, checkModule } = await import('../src/apps/modulePackage.js');
+  const { installDependencies, writeModule, checkModule, adoptModule } = await import('../src/apps/modulePackage.js');
+  const { Repos } = await import('../src/apps/repos.js');
+  const { openSource } = await import('../src/apps/sources.js');
+  const official = () => new Repos({ allowLocalSources: false }).catalog('official');
   if (from) {
     const source = resolve(from);
     if (!await exists(join(source, 'config.json'))) throw new Error(`In ${source} non c'è config.json`);
     for (const file of ['config.json', 'repos.json']) if (await exists(join(source, file))) await cp(join(source, file), join(root, file));
     // Without node_modules: installed again here, from each module's lockfile
     await cp(join(source, 'modules'), join(root, 'modules'), { recursive: true, filter: path => !/[\\/]node_modules([\\/]|$)/.test(path) });
+    // Modules put in by hand that are the official ones become official: the AppStore updates them
+    let catalog = null;
     for (const dir of await readdir(join(root, 'modules')).catch(() => [])) {
       console.log(`  modulo ${dir}`);
-      await installDependencies(join(root, 'modules', dir));
+      const path = join(root, 'modules', dir);
+      const [name, version] = dir.split('_');
+      if (!await exists(join(path, 'source.json'))) {
+        try {
+          catalog ??= await official();
+          const entry = catalog.modules.find(m => m.module?.name === name && m.module.version === version);
+          const opened = entry && await openSource({ type: 'git', url: catalog.repo.url, ref: catalog.ref, path: entry.path });
+          if (opened && await adoptModule(opened, checkModule(JSON.parse((await opened.read('module.json')).toString('utf8'))), path)) continue;
+          console.log('    installato a mano: non è quello del repository ufficiale, non si aggiornerà dall\'AppStore');
+        } catch (err) {
+          console.log(`    installato a mano (repository ufficiale non raggiungibile: ${err.message})`);
+        }
+      }
+      await installDependencies(path);
     }
   } else {
     if (!await exists(join(root, 'config.json'))) await cp(join(dest, 'system', 'kernel', 'config.json'), join(root, 'config.json'));
     const config = JSON.parse(await readFile(join(root, 'config.json'), 'utf8'));
-    const { Repos } = await import('../src/apps/repos.js');
-    const { openSource } = await import('../src/apps/sources.js');
-    const catalog = await new Repos({ allowLocalSources: false }).catalog('official');
+    const catalog = await official();
     for (const want of config.modules ?? []) {
       const entry = catalog.modules.find(m => m.module?.name === want.name) ?? null;
       if (!entry) throw new Error(`Il modulo ${want.name} non è nel repository ufficiale`);

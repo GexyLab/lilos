@@ -613,7 +613,8 @@ Senza un modulo `auth` lilOS ha un solo utente (`local`, amministratore) e il ke
 **Conseguenze.**
 
 - Per qualche secondo, durante il riavvio, il kernel non risponde: i salvataggi in attesa si ripetono da soli ([D34](#d34-il-frontend-tiene-i-dati-in-memoria-e-li-sincronizza-per-differenze)).
-- Un modulo senza `source.json` (messo a mano) si vede nell'AppStore come «Installato a mano» e non si aggiorna da lì; si può togliere.
+- Un modulo senza `source.json` (messo a mano) si vede nell'AppStore come «Installato a mano» e non si aggiorna da lì; si può togliere. Se il catalogo ufficiale offre un modulo con lo stesso nome, l'AppStore lo mostra due volte: la scheda del catalogo dice «Da un altro repository».
+- Per questo `tools/install.js --from` riconosce i moduli copiati che sono quelli ufficiali (stesso nome, versione e codice; `module.json` uguale tranne `icon` e `description`; oltre al codice, solo i file di `data`): li riscrive dal repository ufficiale con `source.json`, tenendo i dati. Gli altri restano messi a mano.
 - Le cartelle conservate alla rimozione si cancellano a mano. Reinstallare la stessa versione le riusa.
 - Due versioni restano sul disco dopo un aggiornamento (quella in uso e la precedente).
 - Gli endpoint di un modulo stanno sotto `/api/modules/<nome>/…`, lo stesso prefisso delle rotte di amministrazione (`/api/modules/:nome/update`): un modulo con un proprio percorso `/update` nasconderebbe quella rotta.

@@ -90,6 +90,29 @@ export async function writeModule(opened, manifest, dest, { from = null } = {}) 
   await installDependencies(dest);
 }
 
+/**
+ * A module put in `dir` by hand (no source.json) that is the one opened from its source: same
+ * module.json (but for icon and description) and the same code, with only its data files besides.
+ * Then it is written again from the source, with source.json, so that it updates from the AppStore;
+ * its data stay. Returns whether it did.
+ */
+export async function adoptModule(opened, manifest, dir) {
+  if (await exists(join(dir, 'source.json'))) return false;
+  const local = await readJson(join(dir, 'module.json'));
+  const bare = ({ icon, description, ...rest } = {}) => JSON.stringify(rest);
+  if (!local || bare(local) !== bare(manifest)) return false;
+  const text = data => data.toString('latin1').replace(/\r\n/g, '\n');
+  const offered = new Set(await walk(opened.base));
+  const present = await walk(dir);
+  if ([...offered].some(path => path !== 'README.md' && !present.includes(path))) return false;
+  for (const path of present) {
+    if (path === 'module.json' || manifest.data?.includes(path)) continue;
+    if (!offered.has(path) || text(await readFile(join(dir, ...path.split('/')))) !== text(await opened.read(path))) return false;
+  }
+  await writeModule(opened, manifest, dir);
+  return true;
+}
+
 export class ModuleAdmin {
   #kernel; #allowLocal;
 

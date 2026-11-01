@@ -900,7 +900,7 @@ node run.js
 ```
 
 - Senza `--from` usa la configurazione della release e installa i suoi moduli dal repository ufficiale.
-- Con `--from <cartella>` prende `config.json`, `repos.json` e `modules/` (con i dati, per esempio gli utenti) da `system/kernel` di una copia del repository o da un altro lilOS installato: stesso database, quindi stessi utenti e file. I moduli ripartono senza `node_modules`: l'installazione li rifà dai lockfile.
+- Con `--from <cartella>` prende `config.json`, `repos.json` e `modules/` (con i dati, per esempio gli utenti) da `system/kernel` di una copia del repository o da un altro lilOS installato: stesso database, quindi stessi utenti e file. I moduli ripartono senza `node_modules`: l'installazione li rifà dai lockfile. Un modulo copiato senza `source.json` che è uguale a quello del repository ufficiale (stessa versione, stesso codice) viene riscritto da lì, tenendo i dati, così l'AppStore lo aggiorna; gli altri restano «installati a mano» e lo script lo dice.
 - Rifiuta una cartella dove lilOS è già installato (`current.json`): da lì le versioni nuove arrivano dall'AppStore.
 - Il kernel serve anche la pagina, su `http://127.0.0.1:8790` (porta di `config.json`): non servono Vite né `npm run dev`.
 - Per passare a un'altra cartella dati, `LILOS_DATA_DIR` cambia dove stanno `config.json`, `repos.json` e `modules/`.
