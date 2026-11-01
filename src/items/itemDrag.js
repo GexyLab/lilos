@@ -1,6 +1,6 @@
 import { h, fs } from '@lilos/sdk';
 import { itemIcon } from '../desktop/itemIcons.js';
-import { moveNodes } from './fsHistory.js';
+import { moveNodes, restoreNodes } from './fsHistory.js';
 import { notify } from '../notifications/notify.js';
 
 /**
@@ -24,6 +24,9 @@ import { notify } from '../notifications/notify.js';
  *
  * The move is recorded once, in the undo history of the view the drag started from (`stack`).
  * A window hides what is behind it: a drop over a window never reaches the desk below.
+ *
+ * Items of the trash (the File Manager's trash view) are dragged the same way: dropped into a
+ * folder, they are put back there (fs.untrash with the folder), not where they came from.
  */
 const zones = new WeakMap();
 
@@ -41,11 +44,14 @@ export function dropZone(el, zone) {
 
 /**
  * The ids among `ids` that can go into `folderId`, or null if the drop is not possible there
- * (not a folder, a dragged folder is the target or holds it, nothing would change).
+ * (not a folder, a dragged folder is the target or holds it, nothing would change). Items of the
+ * trash can go into any folder.
  */
 export function movableInto(ids, folderId) {
   const folder = folderId && fs.get(folderId);
   if (folder?.type !== 'folder') return null;
+  const trashed = ids.filter(id => fs.isTrashed(id));
+  if (trashed.length) return trashed;
   const nodes = ids.map(id => fs.get(id)).filter(n => n && !n.system);
   if (nodes.some(n => fs.isInside(folderId, n.id))) return null;
   const movable = nodes.filter(n => n.parent !== folderId).map(n => n.id);
@@ -81,13 +87,23 @@ function zoneTarget(el, zone, ids, x, y) {
   return { el: zone.highlight ? zone.highlight(null) : el, run: (ev, stack) => zone.drop(ids, ev, stack) };
 }
 
-/** Moves the nodes into a folder (one undo step in `stack`) and says where they went. */
+/**
+ * Moves the nodes into a folder (one undo step in `stack`) and says where they went. Items of the
+ * trash are put back into it instead. Returns the ids moved or put back.
+ */
 export function moveInto(stack, ids, folderId) {
+  const where = folderId === fs.root ? 'Home' : fs.path(folderId);
+  const what = done => (done.length === 1 ? `«${fs.get(done[0]).name}»` : `${done.length} elementi`);
+  const ending = done => (done.length === 1 ? 'o' : 'i');
+  if (ids.some(id => fs.isTrashed(id))) {
+    const restored = restoreNodes(stack, ids, folderId).map(r => r.id);
+    if (restored.length) notify(`Ripristinat${ending(restored)} ${what(restored)} in ${where}`, { level: 'success' });
+    return restored;
+  }
   try {
     const moved = moveNodes(stack, ids, folderId);
     if (!moved.length) return [];
-    const what = moved.length === 1 ? `«${fs.get(moved[0]).name}»` : `${moved.length} elementi`;
-    notify(`Spostat${moved.length === 1 ? 'o' : 'i'} ${what} in ${folderId === fs.root ? 'Home' : fs.path(folderId)}`, { level: 'success' });
+    notify(`Spostat${ending(moved)} ${what(moved)} in ${where}`, { level: 'success' });
     return moved;
   } catch (err) {
     notify(`Non si può spostare: ${err.message}`, { level: 'error' });
@@ -96,7 +112,7 @@ export function moveInto(stack, ids, folderId) {
 }
 
 function ghostFor(ids) {
-  const node = ids.length === 1 && fs.get(ids[0]);
+  const node = ids.length === 1 && (fs.get(ids[0]) ?? fs.trashed().find(n => n.id === ids[0]));
   return h('div', { class: 'item-ghost', 'aria-hidden': 'true' },
     node ? h('span', { class: 'item-ghost-icon' }, itemIcon(node)) : null,
     h('span', {}, node ? node.name : `${ids.length} elementi`));

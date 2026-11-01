@@ -418,7 +418,9 @@ Cosa succede:
 - Se nella cartella di destinazione c'è già un elemento con lo stesso nome, lilOS aggiunge un numero.
 - **Ctrl Z** nella finestra del File Manager da cui hai trascinato rimette tutto nelle cartelle d'origine, con i nomi di prima (vedi [Annullare e ripetere](#annullare-e-ripetere)).
 - Rilasciando sul **Cestino** (in fondo alla barra a sinistra, al centro o ai bordi) gli elementi vengono eliminati: finiscono nel Cestino e Ctrl Z li rimette. Le cartelle di sistema restano dove sono.
-- Non si può rilasciare nel Cestino aperto né nella vista di un tag. Sui **Tag** della barra a sinistra e nello spazio vuoto sotto il Cestino non succede niente (nessuna linea, nessuna azione). Gli elementi nel Cestino non si possono trascinare.
+- Rilasciando nel **Cestino aperto** (nel suo elenco) gli elementi vengono eliminati allo stesso modo.
+- Gli elementi **del Cestino** si trascinano fuori per ripristinarli dove li lasci (vedi [Il Cestino](#il-cestino)).
+- Non si può rilasciare nella vista di un tag. Sui **Tag** della barra a sinistra e nello spazio vuoto sotto il Cestino non succede niente (nessuna linea, nessuna azione).
 - Si **spostano**, non si copiano: non c'è ancora un modo per copiare con il trascinamento. Le cartelle non si aprono da sole passandoci sopra, e non c'è un modo per spostare con la tastiera.
 
 ### Collegamenti nella barra laterale
@@ -442,7 +444,9 @@ Il **Cestino** raccoglie file e cartelle eliminati, con tutto il loro contenuto.
 L'elenco mostra, dal più recente: **Nome**, **Eliminato** (data e ora), **Dimensione**, **Tipo** e **Posizione originale**. Fai clic su un'intestazione per ordinare. In basso trovi dopo quanto tempo gli elementi vengono eliminati definitivamente.
 
 - **Ripristinare**: tasto destro su un elemento → **Ripristina**. Torna nella cartella da cui era partito; se quella cartella non esiste più, torna in Home. Se nella cartella c'è già un elemento con lo stesso nome, lilOS aggiunge un numero. Compare un messaggio che dice dove è andato, e con **Ctrl Z** lo rimetti nel cestino.
+- **Ripristinare trascinando**: trascina uno o più elementi fuori dal cestino e lasciali su una cartella (della scrivania, della barra a sinistra, di un'altra finestra del File Manager…) o su un punto vuoto della scrivania. Tornano **lì**, non nella cartella da cui erano partiti; sulla scrivania si mettono nel punto in cui li lasci. Una notifica dice dove sono andati e **Ctrl Z** nel Cestino li rimette dentro. Rilasciarli sul Cestino stesso non fa niente.
 - **Ripristinare tutto**: tasto destro su un punto vuoto → **Ripristina tutto**.
+- **Mettere nel cestino trascinando**: lascia file e cartelle sull'icona del Cestino della scrivania, sulla voce **Cestino** del File Manager o nell'elenco del Cestino aperto. **Ctrl Z** nella vista da cui li hai trascinati li rimette.
 - **Eliminare definitivamente**: tasto destro su un elemento → **Elimina definitivamente…**, oppure **Canc**. lilOS chiede sempre conferma, anche se l'hai tolta nelle impostazioni, perché **questa azione non si può annullare**.
 - **Svuotare il cestino**: tasto destro su un punto vuoto → **Svuota il cestino…**, oppure il **Pannello di controllo → Usabilità → Cestino → Svuota…**. Anche questa chiede conferma e non si può annullare.
 - Gli elementi nel cestino non si aprono e non si rinominano: ripristinali prima.

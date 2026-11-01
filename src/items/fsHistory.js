@@ -57,11 +57,11 @@ function trashNodes(stack, nodes) {
 }
 
 /**
- * Takes nodes out of the trash, back where they were (see fs.untrash). Undo moves them to the
- * trash again. Returns [{ id, parent }] for each one put back.
+ * Takes nodes out of the trash, back where they were or into the folder `parentId` (see
+ * fs.untrash). Undo moves them to the trash again. Returns [{ id, parent }] for each one put back.
  */
-export function restoreNodes(stack, ids) {
-  const restored = fs.untrash(ids);
+export function restoreNodes(stack, ids, parentId = null) {
+  const restored = fs.untrash(ids, parentId);
   let back = restored.map(r => r.id);
   if (back.length) {
     stack?.push({
@@ -71,7 +71,7 @@ export function restoreNodes(stack, ids) {
         if (!back.length) throw new Error('Gli elementi non esistono più');
       },
       redo: () => {
-        if (!fs.untrash(back).length) throw new Error('Gli elementi non sono più nel cestino');
+        if (!fs.untrash(back, parentId).length) throw new Error('Gli elementi non sono più nel cestino');
       },
     });
   }

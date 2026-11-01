@@ -68,9 +68,10 @@ const MIME = {
  *
  * Trash: trash() moves nodes, with what they contain, under a second, hidden root. For every
  * other method they no longer exist (a 'remove' event with `trashed: true` is emitted); trashed()
- * lists them, untrash() puts them back where they were (a 'create' for each node), purge() and
- * purgeTrash() delete them for good. Items trashed from a private folder are seen in the trash
- * only from that workspace. Event 'trash': what the trash holds changed.
+ * lists them (isTrashed() for one id), untrash() puts them back where they were or into a given
+ * folder (a 'create' for each node), purge() and purgeTrash() delete them for good. Items trashed
+ * from a private folder are seen in the trash only from that workspace. Event 'trash': what the
+ * trash holds changed.
  *   Trashed item: node + trashed: { at, from, scope? }   from: the parent it left; scope: the workspace
  */
 class FileSystem extends Emitter {
@@ -548,16 +549,25 @@ class FileSystem extends Emitter {
       .sort((a, b) => b.trashed.at - a.trashed.at);
   }
 
+  /** True if `id` is an item in the trash that the current workspace sees (see trashed()). */
+  isTrashed(id) {
+    const node = this.#nodes.get(id);
+    return node?.parent === TRASH && this.#trashVisible(node);
+  }
+
   /**
    * Puts trashed nodes back into the folder they came from (if it is gone or cannot be seen, into
-   * the root), with a unique name. Returns [{ id, parent }] for each one put back.
+   * the root), or into `parentId` when given (a visible folder, or nothing is put back), with a
+   * unique name. Returns [{ id, parent }] for each one put back.
    */
-  untrash(ids) {
+  untrash(ids, parentId = null) {
+    const into = parentId == null ? null : this.#find(parentId);
+    if (parentId != null && into?.type !== 'folder') return [];
     const restored = [];
     for (const id of ids) {
       const node = this.#nodes.get(id);
       if (node?.parent !== TRASH || !this.#trashVisible(node)) continue;
-      const back = this.#find(node.trashed.from);
+      const back = into ?? this.#find(node.trashed.from);
       const parent = back?.type === 'folder' ? back.id : ROOT;
       delete node.trashed;
       node.parent = parent;
