@@ -74,6 +74,19 @@ export function icon(name, className = 'ico') {
   return svg('0 0 24 24', className, GLYPHS[name] ?? GLYPHS.help);
 }
 
+const masks = new Map();
+
+/** The glyph as a CSS url() to use as a mask (app tiles cut it out): drawn a bit bolder. */
+export function glyphMask(name) {
+  const key = GLYPHS[name] ? name : 'help';
+  if (!masks.has(key)) {
+    const svgText = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.3" '
+      + `stroke-linecap="round" stroke-linejoin="round">${GLYPHS[key]}</svg>`;
+    masks.set(key, `url("data:image/svg+xml,${encodeURIComponent(svgText)}")`);
+  }
+  return masks.get(key);
+}
+
 export function logo(className = 'logo') {
   return svg('0 0 16 16', className,
     '<path fill="currentColor" fill-rule="evenodd" d="M4 0h8a4 4 0 0 1 4 4v8a4 4 0 0 1-4 4H4a4 4 0 0 1-4-4V4a4 4 0 0 1 4-4zm2 5a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1z"/>');

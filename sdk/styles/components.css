@@ -1,11 +1,15 @@
-/* ---------- App icon ---------- */
-.app-icon {
-  width: 32px; height: 32px; flex: none; border-radius: 8px;
-  display: grid; place-items: center; color: #fff;
-  background-image: linear-gradient(rgba(255, 255, 255, .14), rgba(0, 0, 0, .08));
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .12);
+/* ---------- App icon (appIcon.js) ----------
+   A flat square in the app color with the glyph cut out: the tile is drawn by ::before, so
+   size is the only thing a context sets, and shape and proportions are the same at any size. */
+.app-icon { position: relative; display: block; width: 32px; height: 32px; flex: none; }
+.app-icon::before {
+  content: ''; position: absolute; inset: 0; border-radius: 4%;
+  background: var(--app-color, #5f6673);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .12);   /* keeps dark tiles apart from a dark desk */
+  -webkit-mask: var(--app-glyph) center / 58% no-repeat, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: var(--app-glyph) center / 58% no-repeat exclude, linear-gradient(#000 0 0);
 }
-.app-icon .ico { width: 55%; height: 55%; }
 
 /* ---------- Avatar ---------- */
 .avatar {

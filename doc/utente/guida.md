@@ -68,8 +68,8 @@ Il pulsante **?** nel pannello ricorda i comandi principali.
 Sulla scrivania ci sono tre tipi di elementi, più alcuni [elementi fissi](#gli-elementi-fissi):
 
 - **Cartelle**, con l'icona a forma di cartella.
-- **File**, con un foglio bianco e una fascia colorata che riporta l'estensione (TXT, PDF, …). Il colore dipende dal tipo di file, vedi [Tipi di file](#tipi-di-file).
-- **App**, con un riquadro colorato e il simbolo dell'app: sono collegamenti per avviarla.
+- **File**, con un foglio chiaro e una fascia colorata con l'estensione ritagliata (TXT, PDF, …). Il colore dipende dal tipo di file, vedi [Tipi di file](#tipi-di-file).
+- **App**, con un quadrato colorato e il simbolo dell'app ritagliato: sono collegamenti per avviarla.
 
 Al primo avvio trovi alcuni elementi di esempio: la cartella Progetti, il file benvenuto.txt e i collegamenti a Editor e Pannello di controllo (il File Manager è tra gli [elementi fissi](#gli-elementi-fissi)). Se usavi lilOS prima che le app si chiamassero File Manager e Pannello di controllo, sulla scrivania puoi trovare ancora le icone con i vecchi nomi «File», «Impostazioni» o «Sistema»: sono gli stessi collegamenti, puoi rinominarli.
 
@@ -1067,7 +1067,7 @@ Un messaggio può avere un'etichetta: **Errore**, **Avviso** o **Fatto**. Se lil
 Sopra l'area di notifica, in basso a destra, compare la **barra delle notifiche**. Per ogni notifica vedi chi l'ha mandata (l'app, con la sua icona, oppure lilOS), la data e l'ora, il testo e, se serve, un'etichetta: **Errore**, **Avviso** o **Fatto**.
 
 - **La più nuova sta in cima.** Se ne arrivano altre, la barra cresce fino a 5 notifiche una sopra l'altra. Le più vecchie non si vedono più lì, ma restano nell'elenco.
-- **Sparisce da sola** 5 secondi dopo l'ultima arrivata; una linea sotto di lei mostra il tempo che resta. Finché il mouse è sopra la barra, o la tastiera è dentro, resta dov'è.
+- **Sparisce da sola** 10 secondi dopo l'ultima arrivata; una linea sotto di lei mostra il tempo che resta. Finché il mouse è sopra la barra, o la tastiera è dentro, resta dov'è.
 - **Un clic sulla notifica** apre l'app che l'ha mandata, se la notifica ha qualcosa da aprire (il passaggio del mouse mostra «Apri *nome*»), e la segna come letta. Non consegna mai file all'app: se l'app ne ha bisogno, sceglili tu.
 - **La ×** toglie la notifica dalla barra, ma resta nell'elenco.
 - **Esc** chiude la barra.

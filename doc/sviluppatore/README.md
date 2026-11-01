@@ -101,7 +101,7 @@ sdk/                    @lilos/sdk (vedi sdk/README.md)
     ContextMenu.js      menu a comparsa
     toast.js            vecchio nome di una notifica da lilOS (`notifications.send`)
     avatar.js           iniziali dell'utente
-    appIcon.js          riquadro colorato con il simbolo di un'app
+    appIcon.js          icona di un'app: quadrato colorato col simbolo ritagliato
     controls.js         controlli dei moduli (interruttore, menu, segmenti, colori…)
     shortcutField.js    editor delle combinazioni di un comando
     selectionGesture.js selezione trascinando: rettangolo o percorso libero

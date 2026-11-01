@@ -980,9 +980,9 @@ DOM: `div.ditem[data-kind="item"][data-id]` con `.ditem-glyph` e `.ditem-label`.
 ## desktop/itemIcons.js
 
 - `FOLDER_COLOR`: colore predefinito delle cartelle, `#6f9bff`.
-- `folderIcon(color?)`, `fileIcon(name)`: icone SVG grandi.
+- `folderIcon(color?, glyph?)`, `fileIcon(name)`: icone SVG, nello stesso stile di `appIcon` (forme piatte a spigoli vivi, dettagli ritagliati): la cartella ha linguetta e corpo di un solo colore separati da un taglio, con `glyph` ritagliato nel corpo; il file è un foglio chiaro con l'angolo piegato staccato e una fascia del colore del tipo con l'estensione ritagliata. Le parti ritagliate usano `<mask>` con id unici nella pagina.
 - `workareaIcon()`: icona di una workarea ridotta (cornice tratteggiata con due piccole finestre).
-- `placeIcon(glyph, color?)`: un luogo della scrivania (Home, Documenti…): la cartella con sopra il simbolo SDK `glyph`.
+- `placeIcon(glyph, color?)`: un luogo della scrivania (Home, Documenti…): la cartella con il simbolo SDK `glyph` ritagliato (`folderIcon(color, glyph)`).
 - `trashIcon(full = false)`: il cestino; con `full` ha della carta che esce.
 - `itemBadges(data)` → `[{ glyph, label, color }]`: i segni che le app installate mettono sull'icona di un nodo, uno per ogni app che ha dati sul nodo (`data.apps`) e dichiara `contributes.badge` (il simbolo, il testo, il colore dell'app). Se l'app non c'è più e i suoi dati hanno `content: true`, un lucchetto grigio con «Serve l'app `<id>`».
 - `itemIcon(data, { preview = 0 } = {})`: l'icona giusta per qualsiasi nodo del file system, con i segni di `itemBadges` in un angolo (`.icon-badged`; il testo nel `title` e `aria-label`) (usata anche dal File Manager) e, con `data.type === 'workarea'`, per le icone delle workarea. Con `type: 'trash'` dà `trashIcon(data.full)`; una cartella con `data.glyph` dà `placeIcon(data.glyph, data.color)`. Con `preview > 0` e un file (`type` non `folder`, non `fixed`) l'icona di base è `thumbnailIcon(data, { size: preview, fallback: fileIcon(data.name) })` ([apps/thumbnails.js](#miniature-dei-file-thumbnailsjs)): la miniatura dell'app, quando c'è, al posto dell'icona; `preview` è il lato lungo in pixel CSS. I segni delle app restano sopra. Cartelle, app, workarea e cestino ignorano `preview`.
@@ -2028,7 +2028,7 @@ Dichiara le impostazioni del sistema e le applica. Va importato per primo da `sy
 | `startupApps` | `true` | Con `false` le app scelte nel Pannello di controllo → Avvio non si aprono all'ingresso (vedi [apps/startup.js](#appsstartupjs)) |
 | `userPhoto` | `''` | La foto profilo: un JPEG quadrato di 192 px come URL `data:image/jpeg;base64,…`, `''` per nessuna. Alla lettura (`userPhoto()` in `user/photo.js`) un valore più lungo di 200 000 caratteri o che non è un JPEG in base64 conta come nessuna foto. Se c'è, il sistema mette `--user-photo: url(…)` e `data-user-photo` su `<html>` (vedi [user/](#user-la-pagina-utente)) |
 | `notifyShown` | `5` | Quante notifiche la barra delle notifiche mostra insieme (`NotificationBell`; almeno 1 nel codice). Il Pannello di controllo propone 1-8 e 10 |
-| `notifySeconds` | `5` | Secondi per cui la barra resta dopo l'ultima notifica arrivata (almeno 1 nel codice). Il Pannello di controllo propone 3, 5, 8, 10, 15, 30 e 60 |
+| `notifySeconds` | `10` | Secondi per cui la barra resta dopo l'ultima notifica arrivata (almeno 1 nel codice). Il Pannello di controllo propone 3, 5, 8, 10, 15, 30 e 60 |
 | `userPageHidden` | `[]` | Chiavi delle voci che la pagina utente non mostra (`USER_PAGE_ITEMS[].key`). Le chiavi sconosciute si ignorano e i doppioni si tolgono alla lettura |
 
 Esporta anche `ACCENTS`, i colori proposti dall'app Pannello di controllo, `DESK_COLORS` (`[{ value, label }]`: 10 colori per `deskColor`, sei scuri e quattro chiari: Grafite, Notte, Blu profondo, Bosco, Prugna, Terra, Nebbia, Cielo, Salvia, Sabbia), `RETENTION_OPTIONS` (`[{ value, label }]`: 1, 7, 14, 30, 60, 90, 365 giorni e `0` «Per sempre», per `trashRetention`), `LASSO_OPTIONS` e `selectionMode(event)` → `{ mode: 'lasso' | 'rect', additive }`: percorso libero se sono premuti tutti i modificatori di `lasso`; `additive` (si aggiunge alla selezione) con Ctrl/Cmd o Shift, se non fanno parte della combinazione del percorso.
@@ -2292,7 +2292,7 @@ Una voce con `swatch: '#rrggbb'` mostra un pallino colorato (`.menu-swatch`) pri
 
 ### `appIcon.js`
 
-`appIcon(app, className = 'app-icon')`: riquadro colorato con il simbolo di un'app (`{ glyph, color }`, come le voci del registro). Con un'app sconosciuta mostra un riquadro grigio con il punto interrogativo. La dimensione è decisa dal CSS del contesto.
+`appIcon(app, className?)`: l'icona di un'app (`{ glyph, color }`, come le voci del registro), nello stile «ritaglio»: un quadrato pieno del colore dell'app con il simbolo ritagliato, che lascia vedere ciò che c'è dietro. Con un'app sconosciuta mostra un quadrato grigio con il punto interrogativo. `className` si aggiunge a `app-icon` (non la sostituisce). Il contesto decide solo la dimensione (`width` e `height` su `.app-icon`): forma, angoli e proporzioni del simbolo sono gli stessi a ogni misura, e il quadrato lo disegna `::before`, quindi `border-radius`, `background` o regole su `.app-icon .ico` del contesto non hanno effetto.
 
 ---
 

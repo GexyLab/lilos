@@ -4,10 +4,18 @@ import { thumbnailIcon } from '../apps/thumbnails.js';
 
 export const FOLDER_COLOR = '#6f9bff';
 
-export function folderIcon(color = FOLDER_COLOR) {
+// Same language as the app tiles (appIcon): flat shapes, square corners, details cut out so the
+// background shows through. Masks need ids unique in the page.
+let maskId = 0;
+
+/** A folder: the tab and the body in one color, split by a cut; `glyph` is cut out of the body. */
+export function folderIcon(color = FOLDER_COLOR, glyph = null) {
+  const id = `lilos-folder-${++maskId}`;
   const el = svg('0 0 30 26', 'icon-folder',
-    '<path d="M1 4a2.5 2.5 0 0 1 2.5-2.5h7l3 3h13A2.5 2.5 0 0 1 29 7v2H1z" fill="currentColor" opacity=".7"/>' +
-    '<path d="M1 9a2 2 0 0 1 2-2h24a2 2 0 0 1 2 2v14a2.5 2.5 0 0 1-2.5 2.5h-23A2.5 2.5 0 0 1 1 23z" fill="currentColor"/>');
+    (glyph ? `<mask id="${id}"><rect width="30" height="26" fill="#fff"/><g transform="translate(9 11.25) scale(.5)" fill="none" stroke="#000" `
+      + `stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round">${icon(glyph).innerHTML}</g></mask>` : '') +
+    '<path d="M1 1.5h9.8l2.6 2.6H29V8H1z" fill="currentColor"/>' +
+    `<path d="M1 9.5h28V25H1z" fill="currentColor"${glyph ? ` mask="url(#${id})"` : ''}/>`);
   el.style.color = color;
   return el;
 }
@@ -15,16 +23,18 @@ export function folderIcon(color = FOLDER_COLOR) {
 export function fileIcon(name) {
   // badge is sanitized to [A-Z0-9] and color comes from the type table: safe to interpolate
   const { badge, color } = fileType(name);
+  const id = `lilos-file-${++maskId}`;
   return svg('0 0 24 30', 'icon-file',
-    '<path d="M3 .75h12.5l7.75 7.75V27a2.25 2.25 0 0 1-2.25 2.25H3A2.25 2.25 0 0 1 .75 27V3A2.25 2.25 0 0 1 3 .75z" fill="#fff" stroke="#c4c9d1" stroke-width="1.5"/>' +
-    '<path d="M15.5.75V7a1.5 1.5 0 0 0 1.5 1.5h6.25" fill="none" stroke="#c4c9d1" stroke-width="1.5"/>' +
-    `<rect x="3" y="17.5" width="18" height="8" rx="1.5" fill="${color}"/>` +
-    `<text x="12" y="23.4" text-anchor="middle" font-size="${badge.length > 3 ? 4.6 : 5.6}" font-weight="600" fill="#fff" font-family="Manrope, system-ui, sans-serif">${badge}</text>`);
+    '<path d="M1 .5h13v10h9.5v19H1z" fill="#dfe3e9"/>' +
+    '<path d="M15.5 .5l8 8h-8z" fill="#a9b1bd"/>' +
+    (badge ? `<mask id="${id}"><rect width="24" height="30" fill="#fff"/><text x="12.25" y="24.6" text-anchor="middle" font-size="${badge.length > 3 ? 4.8 : 5.8}" `
+      + `font-weight="700" fill="#000" font-family="Manrope, system-ui, sans-serif">${badge}</text></mask>` : '') +
+    `<rect x="1" y="18.5" width="22.5" height="8.5" fill="${color}"${badge ? ` mask="url(#${id})"` : ''}/>`);
 }
 
-/** A place on the desk (Home, Documenti…): a folder with the place's glyph on it. */
+/** A place on the desk (Home, Documenti…): a folder with the place's glyph cut out of it. */
 export function placeIcon(glyph, color) {
-  return h('span', { class: 'icon-place' }, folderIcon(color), icon(glyph, 'ico icon-place-glyph'));
+  return folderIcon(color, glyph);
 }
 
 /** The trash on the desk: a bin, with paper sticking out when something is in it. */

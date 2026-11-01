@@ -17,7 +17,7 @@
   padding: 10px 34px 11px 11px; text-align: left; color: inherit; border-radius: inherit;
 }
 button.nt-main { cursor: pointer; }
-.nt-main .app-icon { width: 30px; height: 30px; border-radius: 7px; }
+.nt-main .app-icon { width: 30px; height: 30px; }
 .nt-lilos { background: var(--bar); color: var(--accent); }
 .nt-lilos .logo { width: 15px; height: 15px; }
 .nt-body { min-width: 0; }

@@ -16,14 +16,12 @@
 /* On the desk a bit taller than an icon, so that items still fit their grid cell (Desktop.js CELL) */
 .ditem-glyph:has(.icon-thumb-box.shown) { height: 40px; }
 .ditem-glyph .icon-thumb { max-width: 56px; max-height: 40px; }
-/* Fixed items (fixedItems.js): places with their glyph on the folder, the trash */
-.icon-place { position: relative; display: grid; place-items: center; }
-.icon-place .icon-place-glyph { position: absolute; left: 50%; top: 58%; width: 13px; height: 13px; transform: translate(-50%, -50%); color: #fff; stroke-width: 2.1; }
 /* Signs of apps on an item (itemBadges): bottom right of the icon, small and round */
 .icon-badged { position: relative; display: inline-grid; place-items: center; }
 .icon-badges { position: absolute; right: -5px; bottom: -3px; display: flex; gap: 1px; }
 .icon-badge { width: 14px; height: 14px; border-radius: 50%; display: grid; place-items: center; color: #fff; box-shadow: 0 0 0 1.5px var(--surface, #fff); }
 .icon-badge .ico { width: 9px; height: 9px; stroke-width: 2.6; }
+/* Fixed items (fixedItems.js): the trash */
 .icon-trash { width: 28px; height: 32px; }
 .trash-i-lid { fill: #7b8494; }
 .trash-i-handle { fill: none; stroke: #7b8494; stroke-width: 1.5; }
