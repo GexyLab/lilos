@@ -635,6 +635,48 @@ Questi tasti valgono solo nella finestra della Calcolatrice e non si cambiano da
 - I numeri seguono la lingua del sistema (in italiano 1.234,5).
 - Con una versione di lilOS precedente a questa, l'icona della Calcolatrice è un punto di domanda.
 
+## Tastiera a schermo
+
+La **Tastiera a schermo** ti fa scrivere con il mouse o con il dito, senza la tastiera vera. Non c'è di serie: un amministratore la installa dall'[AppStore](#lappstore). Si apre dal menu di avvio, nella scheda Sistema.
+
+È una finestra come le altre: la sposti dalla barra del titolo e si ingrandisce e rimpicciolisce con lo zoom. Ha due particolarità:
+
+- **Non toglie il focus.** Quando tocchi un tasto, le lettere vanno nella finestra in cui stavi scrivendo (il cursore resta lì). Prima di usarla fai clic nel campo dove vuoi scrivere.
+- **Sta sempre sopra** le altre finestre.
+
+Nelle app che mostrano un altro sito web (le app remote) i tasti non arrivano: lilOS non può scrivere dentro un sito che non è suo.
+
+### I tasti
+
+- **Lettere, numeri e simboli.** Il tasto scrive il carattere indicato. In piccolo, come su una tastiera vera, vedi il carattere che scrive con Maiusc (in alto a sinistra) e quello con AltGr (in basso a destra, colorato). Con **Maiusc** attivo le etichette cambiano e mostrano quello che il tasto scrive ora. **Bloc Maiusc** cambia solo le lettere.
+- **Altri tasti.** Invio, Tab (porta al campo successivo della stessa finestra), Backspace, Spazio, Canc e le frecce fanno quello che farebbero sulla tastiera vera. Le frecce spostano il cursore nei campi di testo; con **Maiusc** premuto selezionano. Su un pulsante, Spazio e Invio lo premono.
+- **Riga in basso.** Esc, Ctrl, Alt, il tasto del layout (**IT** o **EN**), Spazio (con il nome del layout), AltGr, Canc e le frecce.
+- **Scorciatoie.** Con **Ctrl** premuto: **A** seleziona tutto, **C** copia, **X** taglia, **V** incolla, **Z** annulla, **Y** ripete. Con Ctrl, Backspace e Canc cancellano una parola, e le frecce saltano di parola.
+- **Tenere premuto.** Un tasto tenuto premuto si ripete dopo circa mezzo secondo.
+- **Tastiera vera.** Se premi un tasto sulla tastiera vera, si illumina anche quello sullo schermo.
+
+### Maiusc, Ctrl, Alt e AltGr
+
+Questi tasti si usano insieme a un altro tasto:
+
+- **Un tocco**: vale per il tasto successivo, poi si spegne da solo.
+- **Due tocchi veloci** (a meno di mezzo secondo l'uno dall'altro): il tasto resta **bloccato** e compare un pallino. Un altro tocco lo spegne.
+
+Con **AltGr** attivo i tasti mostrano il loro terzo carattere (per esempio **€** sulla E); quelli che non ne hanno uno mostrano la lettera attenuata.
+
+### Layout italiano e americano
+
+Si cambia con il tasto **IT** / **EN**. La scelta resta salvata. Al primo avvio la tastiera sceglie in base alla lingua del sistema.
+
+- **Italiano.** Invio è alto due righe. Con AltGr: **E** scrive €, **è** scrive [ (con Maiusc {), **+** scrive ] (con Maiusc }), **ò** scrive @, **à** scrive #, **'** scrive ` e **ì** scrive ~.
+- **Americano.** Il tasto Alt di destra è un secondo Alt, non AltGr.
+
+### Da sapere
+
+- Con una versione di lilOS precedente a questa, la tastiera mostra un messaggio che chiede di aggiornare lilOS.
+- Nelle app isolate (vedi [Isolate e non isolate](#isolate-e-non-isolate)) **Ctrl C**, **Ctrl X** e **Ctrl V** possono non funzionare: il browser le permette solo a un gesto fatto proprio lì.
+- **Su** e **Giù** nei campi di testo su più righe si muovono per righe del testo, non per righe come appaiono sullo schermo: se una riga va a capo, il cursore salta alla riga logica precedente o successiva.
+
 ## Annullare e ripetere
 
 **Ctrl Z** annulla l'ultima azione, **Ctrl Y** (o **Ctrl Shift Z**) la ripete. Agiscono **dove stai lavorando**: ogni posto ha il suo elenco di azioni, e lilOS sceglie quello dove hai fatto clic per ultimo. In basso compare un breve messaggio, per esempio "Annullato: Elimina «Appunti»" o "Ripetuto: Rinomina…".

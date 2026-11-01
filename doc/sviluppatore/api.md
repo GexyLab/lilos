@@ -42,6 +42,7 @@ Gli altri moduli (`src/`) sono il sistema: scrivania, desktop, barra.
 - [apps/registry.js e apps/launcher.js](#appsregistryjs-e-appslauncherjs)
 - [apps/startup.js](#appsstartupjs)
 - [apps/packages/](#appspackages)
+- [input/sendKey.js](#inputsendkeyjs)
 - [windows/WindowManager.js](#windowswindowmanagerjs)
 - [systemSettings.js](#systemsettingsjs)
 - [systemTrash.js](#systemtrashjs)
@@ -1366,6 +1367,7 @@ Permessi dichiarati nei manifesti ufficiali: File Manager `fs.write:~`, `fs.work
 | `apps`, `registry`, `getApp`, `isInstalled`, `installedApps`, `launch` | `apps/registry.js` | Il registro delle app (non l'`apps` dell'SDK) |
 | `fileApps`, `appFor`, `defaultAppFor`, `setAppFor`, `resetAppsFor`, `knownExtensions`, `openFile` | `apps/open.js` | Quale app apre quale file |
 | `handleCommand` | `apps/commands.js` | Un'app gestisce un suo comando |
+| `sendKey` | `input/sendKey.js` | Manda un tasto all'elemento con il focus, come un tasto vero ([input/sendKey.js](#inputsendkeyjs)) |
 | `callEntrypoint`, `connectEntrypoint`, `entrypointsOf` | `apps/entrypoints.js` | Avviare un punto d'ingresso di un'app, collegarsi a uno in background, elencare quelli di un'app (vedi [Punti d'ingresso](#punti-dingresso-entrypointsjs)) |
 | `appActionEntries` | `apps/appActions.js` | Le voci che le app installate aggiungono al menu di file e cartelle (vedi [apps/pipes.js, apps/appActions.js e apps/systemEvents.js](#appspipesjs-appsappactionsjs-e-appssystemeventsjs)) |
 | `appPipes` | `apps/pipes.js` | Le pipe di un'app: dal manifesto e dal codice |
@@ -1787,6 +1789,31 @@ Ogni finestra di un'app `local` ha il suo posto nelle pipe (`windowPipe`, che us
 
 ---
 
+## input/sendKey.js
+
+`sendKey(key)` (esportata da `@lilos/system`, per le tastiere a schermo) manda un tasto all'elemento che ha il focus, come farebbe un tasto vero. Non restituisce niente.
+
+```js
+import { sendKey } from '@lilos/system';
+
+sendKey({ key: 'a', code: 'KeyA', text: 'a' });
+sendKey({ key: 'Backspace', code: 'Backspace', ctrl: true });   // cancella una parola
+sendKey({ key: 'z', code: 'KeyZ', ctrl: true });                // annulla
+```
+
+| Campo di `key` | Descrizione |
+| --- | --- |
+| `key`, `code` | Come in un `KeyboardEvent` (`code` predefinito `''`) |
+| `text` | Cosa scrive il tasto (niente per le scorciatoie con Ctrl o Alt); senza `text` un tasto non scrive |
+| `ctrl`, `alt`, `shift`, `meta`, `altGraph` | I modificatori premuti (predefiniti `false`) |
+
+- **Dove va.** L'elemento col focus è cercato nella pagina di lilOS, scendendo negli Shadow DOM (le app non isolate). Se il focus è nella sandbox di un'app isolata (`iframe.pkg-frame` con `srcdoc`), il tasto va al bridge con un messaggio `{ lilos: 1, key }` e lì lo digita lo stesso codice (`typeKey`, inserito come testo in `BRIDGE_SOURCE`). Le app remote non ricevono niente.
+- **Eventi.** L'elemento riceve `keydown` e, per un tasto che scrive (senza Ctrl, Alt o Meta) o per Invio, `keypress`; se nessuno li annulla (`preventDefault`) lilOS fa l'azione del browser, poi arriva `keyup`. L'azione è fatta da lilOS perché un tasto creato da uno script non fa niente da solo.
+- **Azioni.** Scrivere (`execCommand('insertText')`, quindi Ctrl+Z annulla); Backspace e Canc (con Ctrl cancellano la parola); frecce, Home, Fine, PagSu e PagGiù nei campi di testo e nei `contenteditable` (con Maiusc selezionano, con Ctrl vanno per parola o alle estremità); Invio (a capo in una `textarea` o in un `contenteditable`, invio del modulo in un `input`, clic su un pulsante); Tab e Maiusc+Tab (all'elemento successivo o precedente **della stessa finestra**); Spazio e Invio su pulsanti e simili (clic); Ctrl+A, C, X, V, Z, Y (Ctrl+Maiusc+Z ripete). Con Alt (non AltGr) non succede niente.
+- **Limiti.** Su e Giù nelle `textarea` si muovono per righe del testo, non per righe visive. Ctrl+C, X e V nelle app isolate possono non funzionare: l'iframe non ha un'attivazione dell'utente (Ctrl+V legge gli appunti con `navigator.clipboard.readText`).
+
+---
+
 ## windows/WindowManager.js
 
 ### `class WindowManager extends Emitter`
@@ -1824,7 +1851,7 @@ Eventi: `focus` con la finestra o `null`; `open` e `close` con la finestra (le a
 
 Scorciatoie registrate (gruppo Finestre, attive anche mentre si scrive): `windows.close` (Alt W, solo se la finestra attiva ha il controllo `close`) e `windows.next` (Alt N).
 
-Gli `z-index` delle finestre partono da 100 e seguono l'ordine di sovrapposizione.
+Gli `z-index` delle finestre partono da 100 e seguono l'ordine di sovrapposizione; quelle con `onTop` partono da 900 (sopra le altre, sotto gli elementi della scrivania trascinati). Una finestra con `focusable: false`, quando viene portata avanti, non prende il focus: `setActive(false)`, e il focus e la finestra attiva restano dov'erano. Non diventa mai la finestra attiva e non viene scelta per il focus quando un'altra si chiude.
 
 ---
 
@@ -2177,6 +2204,8 @@ new Window({
   minWidth = 320, minHeight = 200, maxWidth = Infinity, maxHeight = Infinity,
   controls = { minimize: true, maximize: true, close: true },   // ognuno attivabile da solo
   resizable = true,                                             // true, false o un elenco di bordi
+  focusable = true,                                             // false: non prende mai il focus
+  onTop = false,                                                // true: resta sopra le finestre senza
   minimizable?, maximizable?, closable?,                        // scorciatoie per controls.*
 })
 ```
@@ -2192,6 +2221,8 @@ win.setControl('close', false);       // per esempio durante un salvataggio
 win.setResizable(['e', 'w']);         // solo in larghezza
 ```
 
+**Finestre che non prendono il focus** (`focusable: false`, per le tastiere a schermo). Cliccarla la porta avanti, ma il focus e la finestra attiva restano dove erano: il `mousedown` fuori da `input`, `textarea`, `select` e `[contenteditable]` ha `preventDefault`, così il focus del browser non si sposta. Ha la classe `no-focus`, appare sempre inattiva, non diventa mai la finestra attiva e non viene scelta per il focus quando un'altra si chiude. `onTop: true` la tiene sopra le finestre senza (`z-index` da 900 invece che da 100, ma sotto gli elementi della scrivania trascinati). Le due opzioni sono indipendenti. Le gestisce il `WindowManager`.
+
 DOM: `section.window[data-kind="window"][role="dialog"]` con `.win-titlebar` (e i pulsanti in `.win-controls`), `.win-body` (`data-wheel="native"`) e `.win-edges` con una `.win-edge[data-edge]` per ogni bordo attivo. Le maniglie stanno a cavallo del bordo (4 px dentro e 4 fuori). La classe `resizable` indica che c'è almeno un bordo attivo.
 
 | Membro | Descrizione |
@@ -2201,6 +2232,7 @@ DOM: `section.window[data-kind="window"][role="dialog"]` con `.win-titlebar` (e 
 | `controls` | Copia di `{ minimize, maximize, close }`. |
 | `resizable` | Bordi attivi, nell'ordine di `WINDOW_EDGES` (`[]` se non si ridimensiona). |
 | `minWidth`, `minHeight`, `maxWidth`, `maxHeight` | Limiti delle dimensioni. |
+| `focusable`, `onTop` | Le opzioni del costruttore, lette dal `WindowManager`. |
 | `setControl(name, enabled)`, `setControls({ … })` | Accende o spegne uno o più controlli; emette `controls`. |
 | `setResizable(value)` | `true`, `false` o elenco di bordi; emette `controls`. |
 | `constrain(w, h)` | `{ w, h }` riportati entro i limiti. |

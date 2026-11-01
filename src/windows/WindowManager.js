@@ -42,9 +42,13 @@ export class WindowManager extends Emitter {
     shortcuts.register({ id: 'windows.next', label: 'Passa alla finestra successiva', group, keys: ['Alt+N'], whenEditing: true, when: () => this.windows.length > 0, run: () => this.cycle() });
   }
 
-  /** Brings the bottom-most window to the front (restoring it if minimized): repeated, it visits them all. */
+  /**
+   * Brings the bottom-most window to the front (restoring it if minimized): repeated, it visits them
+   * all, except those that never take the focus (on-screen keyboard).
+   */
   cycle() {
-    const order = this.windows;
+    const order = this.windows.filter(w => w.focusable !== false);
+    if (!order.length) return;
     const next = order.length > 1 || this.#hidden(order[0]) || this.active !== order[0] ? order[0] : null;
     if (next) this.show(next);
   }

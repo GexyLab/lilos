@@ -199,6 +199,8 @@ src/
     setup.js            avvio: carica l'elenco, migra i dati di prima dei workspace, ripara
     store.js            salvataggio in lilos:workspaces, validazione, limiti, chiavi lilos:ws:<id>:…
     info.js             cosa le app possono sapere dei workspace (nome e colore di un proprietario)
+  input/
+    sendKey.js          sendKey(): manda un tasto all'elemento col focus (tastiere a schermo)
   windows/
     WindowManager.js    finestre sulla scrivania: posizione, focus, trascinamento, barra, workspace di ogni finestra
   user/

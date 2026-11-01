@@ -83,6 +83,8 @@ src/                    il sistema, costruito sull'SDK
     commands.js         scorciatoie delle app
   workareas/            aree della scrivania con icone e finestre: ridurre a icona, riaprire, proprietà
   workspaces/           scrivanie separate: elenco salvato, avvio e migrazione, cambio, pulsante nella barra delle applicazioni
+  input/
+    sendKey.js          tasti mandati senza tastiera (tastiere a schermo)
   windows/
     WindowManager.js    finestre sulla scrivania e nella barra delle applicazioni
   user/                 pagina utente a tutto schermo (nome, foto, Blocca, Esci, Riavvia il sistema, tema, lingua)

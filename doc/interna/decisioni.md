@@ -1018,3 +1018,26 @@ lilOS legge il file **prima** di avviare l'app e le dà le stringhe già risolte
 - Chi aveva copiato lo stile `.toast` dall'SDK deve portarselo.
 
 **Quando ripensarla.** Se l'elenco si riempie di conferme e nasconde le notifiche importanti (allora: messaggi brevi che non si conservano, o un livello che non viene conservato), o se il limite di 20 conservate diventa stretto.
+
+---
+
+## D53. Le tastiere a schermo sono app di sistema e lilOS esegue l'azione del browser
+
+**Decisione.** Una tastiera a schermo è un'app di sistema (1° novembre 2026). `sendKey(key)` (`@lilos/system`, `src/input/sendKey.js`) manda un tasto all'elemento col focus: invia `keydown`, `keypress` e `keyup` e, se nessuno li annulla, esegue l'azione che il browser farebbe (scrivere, cancellare, muovere il cursore, Invio, Tab, Ctrl+A/C/X/V/Z/Y). Per non togliere il focus a chi sta scrivendo, `Window` ha le opzioni `focusable: false` e `onTop: true`.
+
+**Perché.**
+
+- Solo un'app di sistema vive nella pagina di lilOS e può raggiungere l'elemento col focus nelle altre finestre (anche nello Shadow DOM delle app non isolate e, con un messaggio al bridge, nella sandbox di quelle isolate). Un'app installata, per scelta ([D42](#d42-punti-dingresso-e-due-modalità-di-esecuzione-per-le-app)), non deve poter scrivere nelle altre.
+- Un tasto creato da uno script (`isTrusted: false`) non fa niente da solo: nessuna lettera nei campi, nessun cursore che si muove. Per questo lilOS esegue l'azione da sé.
+- `focusable: false` è nella finestra e non nell'app, perché tocca il focus e l'ordine delle finestre, che sono del `WindowManager`.
+
+**Alternative scartate.** Tastiera come app installata (non può arrivare alle altre finestre); un permesso per «scrivere nelle altre app» (ogni app potrebbe scrivere dove vuole); un campo di testo proprio dentro la tastiera (non scrive nelle altre app).
+
+**Conseguenze.**
+
+- Si imita il browser, non lo si usa: ogni azione nuova va aggiunta a `sendKey`. Limiti noti: Su e Giù nelle `textarea` vanno per righe logiche; Ctrl+C, X e V nelle app isolate possono non funzionare, perché l'iframe non ha l'attivazione dell'utente.
+- Le app remote (un sito proprio) non ricevono tasti: lilOS non ha codice dentro.
+- Il bridge dell'app isolata ha un messaggio in più (`key`) e porta con sé il codice di `typeKey`.
+- `sendKey` entra nel contratto di `@lilos/system`: non si toglie senza rompere le tastiere già installate.
+
+**Quando ripensarla.** Se serve una tastiera per le app remote, o se le azioni da imitare crescono tanto da rendere pesante il codice.
