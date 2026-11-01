@@ -4,4 +4,4 @@ repos.json.tmp
 config.json.tmp
 
 # Network connections and transfers of the users (net/network.js, net/transfers.js)
-net/
+/net/
