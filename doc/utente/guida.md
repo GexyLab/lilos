@@ -769,7 +769,7 @@ Sotto la casella ci sono le schede.
 
 ### Installati
 
-Le app e i moduli che ci sono, in due gruppi: **App** e **Moduli del kernel**. Ogni elemento è una scheda con icona, nome, versione e descrizione.
+Le app e i moduli che ci sono, in due gruppi: **App** e **Moduli del kernel**. Ogni elemento è una scheda con icona, nome, versione e descrizione. Per un amministratore ogni app che non è necessaria a lilOS ha il pulsante **Disinstalla**: chiede conferma, poi toglie l'app per tutti gli utenti, con le sue impostazioni e i suoi dati. I file che l'app aveva creato si eliminano, o finiscono nel Cestino se qualcuno li ha modificati; gli altri file restano dove sono.
 
 ### Aggiornamenti
 
@@ -781,7 +781,7 @@ Poi c'è una scheda per ogni categoria che ha almeno un elemento: **Pannello di 
 
 Ogni scheda mostra icona, nome, versione, a cosa serve, il nome del repository e, se serve, l'etichetta «non ufficiale». Accanto c'è un pulsante o una scritta: **Installa**, **Aggiorna**, «Installata» oppure «Da un altro repository» (c'è già un'app con quel nome, arrivata da un altro posto).
 
-**Un clic su una scheda** apre i dettagli: editore, tipo, categoria, se è «Verificata» o «non ufficiale», versione, da dove viene, i permessi che chiede e le istruzioni scritte da chi l'ha fatta (il file README, se c'è). Se il README è molto lungo se ne vede solo l'inizio: **Scarica il README completo** lo salva nella cartella **Download**, da cui si apre con l'Editor. Da lì un amministratore può **Installare**, **Aggiornare**, **Cercare aggiornamenti**, **Reinstallare** (rifà l'installazione della stessa versione, senza cancellare niente) o **Rimuovere**; tutti possono **Aprire**. Le app che non si possono togliere (File Manager, Pannello di controllo, AppStore) sono segnate «Necessaria a lilOS».
+**Un clic su una scheda** apre i dettagli: editore, tipo, categoria, se è «Verificata» o «non ufficiale», versione, da dove viene, i permessi che chiede e le istruzioni scritte da chi l'ha fatta (il file README, se c'è). Se il README è molto lungo se ne vede solo l'inizio: **Scarica il README completo** lo salva nella cartella **Download**, da cui si apre con l'Editor. Da lì un amministratore può **Installare**, **Aggiornare**, **Cercare aggiornamenti**, **Reinstallare** (rifà l'installazione della stessa versione, senza cancellare niente), **Disinstallare** un'app o **Rimuovere** un modulo; tutti possono **Aprire**. Le app che non si possono togliere (File Manager, Pannello di controllo, AppStore) sono segnate «Necessaria a lilOS».
 
 Il testo delle istruzioni si mostra in forma semplice: niente pagine web incorporate, i collegamenti si aprono in una nuova scheda del browser e solo se sono indirizzi web, e le immagini non si caricano (si vede il loro testo alternativo).
 
