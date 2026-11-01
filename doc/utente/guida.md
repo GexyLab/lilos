@@ -487,6 +487,8 @@ La connessione compare nella barra a sinistra con un pallino che dice com'è: **
 
 Attenzione alle password: con l'**FTP** semplice e con un indirizzo WebDAV `http://` viaggiano in chiaro sulla rete. Se il server ha FTPS, SFTP o `https://`, usa quelli.
 
+Se lilOS ha più utenti, a collegarsi ai server è il computer su cui gira lilOS, non il tuo: per questo non ci si può collegare a quel computer stesso, e di serie neanche agli indirizzi della sua rete locale (per esempio `192.168.…`, dove di solito sta un NAS). Se provi, compare **Indirizzo non permesso per le connessioni di rete**: chi gestisce lilOS può aprire la rete locale, o solo l'indirizzo del vostro NAS, nella configurazione.
+
 ### Confermare il server
 
 Quando ti colleghi a un server di cui lilOS non si fida ancora, si ferma e ti mostra la sua **impronta** in una finestra **Conferma il server di «nome»**:

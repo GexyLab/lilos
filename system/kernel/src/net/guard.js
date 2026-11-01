@@ -12,7 +12,7 @@ const ALWAYS = rules([
   ['0.0.0.0', 8, 'ipv4'], ['127.0.0.0', 8, 'ipv4'], ['169.254.0.0', 16, 'ipv4'], ['224.0.0.0', 4, 'ipv4'],
   ['::', 128, 'ipv6'], ['::1', 128, 'ipv6'], ['fe80::', 10, 'ipv6'], ['ff00::', 8, 'ipv6'],
 ]);
-/** The local network: allowed unless the admin says otherwise (a NAS is the usual server). */
+/** The local network: closed unless the admin opens it (net.allowPrivate) or lets ranges through (net.allow). */
 const PRIVATE = rules([
   ['10.0.0.0', 8, 'ipv4'], ['172.16.0.0', 12, 'ipv4'], ['192.168.0.0', 16, 'ipv4'], ['100.64.0.0', 10, 'ipv4'], ['fc00::', 7, 'ipv6'],
 ]);
@@ -21,15 +21,15 @@ const PRIVATE = rules([
  * Where users may make the kernel connect (a network connection's server). With one user (no
  * sign-in) anything: the user can reach those hosts anyway. With several users the kernel's network
  * is shared: never this machine, link-local addresses (cloud metadata) or multicast; the local
- * network unless config.json says `net: { allowPrivate: false }`; `net.allow: ['10.1.0.0/16', …]`
- * lets ranges through all the same. Checked when a connection is saved, tried and opened (each time:
+ * network only when config.json says `net: { allowPrivate: true }`, or the ranges in
+ * `net.allow: ['192.168.1.50/32', …]` (a NAS). Checked when a connection is saved, tried and opened (each time:
  * a name can point elsewhere later).
  */
 export class NetGuard {
   constructor(kernel) {
     const cfg = kernel.config?.net ?? {};
     this.enabled = !!kernel.multiUser;
-    this.allowPrivate = cfg.allowPrivate !== false;
+    this.allowPrivate = cfg.allowPrivate === true;
     this.allow = new BlockList();
     for (const range of Array.isArray(cfg.allow) ? cfg.allow : []) {
       const [address, prefix] = String(range).split('/');

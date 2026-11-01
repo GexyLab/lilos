@@ -41,7 +41,8 @@ const VERSION = /^\d+\.\d+\.\d+$/;
  *     modules: [{ name, version?, config? }],
  *     apps: { allowLocalSources, trustedPublishers: { id: 'ed25519:<key>' }, officialKey?,
  *             bootstrap: [app ids installed from the official repository when missing] },
- *     net: { allowPrivate, allow: ['10.1.0.0/16'] } }   where users may connect, with sign-in (net/guard.js)
+ *     net: { allowPrivate, allow: ['192.168.1.50/32'] } }   where users may connect, with sign-in (net/guard.js):
+ *                                                          the local network is closed unless opened here
  * allowLocalSources lets apps be installed from a folder of this computer (development only).
  * LILOS_KERNEL_HOST and LILOS_KERNEL_PORT override host and port.
  */
