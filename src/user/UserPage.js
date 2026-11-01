@@ -48,13 +48,11 @@ export class UserPage {
     this.el.addEventListener('keydown', e => this.#onKey(e));
     document.body.append(this.el);
 
-    const button = taskbar.userButton;
-    button.addEventListener('click', () => this.toggle());
     taskbar.startMenu.onUser = () => this.open();
     taskbar.startMenu.onOpen = () => this.close();
-    // Something else comes to the front: a window opens, another part of the taskbar is used
+    // Something else comes to the front: a window opens, the taskbar is used
     wm.on('open', () => this.close());
-    taskbar.el.addEventListener('pointerdown', e => { if (!button.contains(e.target)) this.close(); }, true);
+    taskbar.el.addEventListener('pointerdown', () => this.close(), true);
   }
 
   get isOpen() {
@@ -66,8 +64,6 @@ export class UserPage {
     this.#confirming = false;
     this.#render();
     this.el.hidden = false;
-    this.#taskbar.userButton.classList.add('active');
-    this.#taskbar.userButton.setAttribute('aria-expanded', 'true');
     this.#offs = WATCHED.map(key => settings.on(`change:${key}`, () => this.#render()));
     this.el.querySelector('.up-close').focus();
   }
@@ -78,9 +74,8 @@ export class UserPage {
     this.el.hidden = true;
     this.#offs.forEach(off => off());
     this.#offs = [];
-    this.#taskbar.userButton.classList.remove('active');
-    this.#taskbar.userButton.setAttribute('aria-expanded', 'false');
-    if (hadFocus) this.#taskbar.userButton.focus();
+    // Back to the start button: the page is opened from the start menu
+    if (hadFocus) this.#taskbar.startButton.focus();
   }
 
   toggle() {

@@ -17,8 +17,6 @@
 .tb-bg .ico { width: 15px; height: 15px; color: var(--accent); }
 /* Updates not finished yet (PendingUpdates.js): lilOS waiting to restart stands out */
 .tb-updates.restart .ico { color: var(--danger); }
-.tb-user { display: flex; align-items: center; gap: 7px; height: 28px; padding: 0 10px 0 8px; border-radius: var(--radius-sm); font-size: 12px; }
-.tb-user:hover, .tb-user.active { background: var(--bar-hover); color: var(--bar-strong); }
 .clock {
   display: flex; align-items: baseline; gap: 8px; height: 18px; padding: 0 8px 0 10px;
   border-left: 1px solid var(--bar-border); font-size: 12px; white-space: nowrap; font-variant-numeric: tabular-nums;

@@ -1899,8 +1899,7 @@ Stili in `src/styles/tags.css` (`.tag-dots`, `.tag-dot`, `.ditem-tags`, `.fm-tag
 | `el` | `nav.taskbar`, con `aria-label` «Barra delle applicazioni». |
 | `startButton` | Pulsante con il logo. |
 | `startMenu` | L'istanza di `StartMenu`. |
-| `notificationBell` | La `NotificationBell` ([notifications/](#notifications-le-notifiche-nellinterfaccia)): il suo `button` sta nell'area di notifica, in `.tb-notify-area` (`role="group"`, `aria-label` «Area di notifica»), con gli aggiornamenti da riavviare (`createPendingUpdates()`) e le app in background (`createBackgroundApps()`), in quest'ordine. L'area sta nel `div.tb-tray` prima del pulsante dell'utente e dell'orologio. |
-| `userButton` | `button.tb-user` con avatar (`.avatar.user-avatar`) e nome dell'utente; `aria-haspopup="dialog"`, `aria-expanded`, classe `active` mentre la pagina utente è aperta. Lo collega `UserPage`. |
+| `notificationBell` | La `NotificationBell` ([notifications/](#notifications-le-notifiche-nellinterfaccia)): il suo `button` sta nell'area di notifica, in `.tb-notify-area` (`role="group"`, `aria-label` «Area di notifica»), con gli aggiornamenti da riavviare (`createPendingUpdates()`) e le app in background (`createBackgroundApps()`), in quest'ordine. L'area sta nel `div.tb-tray` prima dell'orologio. |
 | `tasks` | Contenitore `.tb-tasks` dei pulsanti delle finestre (`.tb-task`), gestito dal `WindowManager`. |
 
 ### `class StartMenu`
@@ -1991,7 +1990,7 @@ Una notifica da lilOS stesso, per ciò che **non risponde a un'azione appena fat
 
 ## user/ (la pagina utente)
 
-La pagina a tutto schermo che si apre dal nome dell'utente. Decisione: [D48](../interna/decisioni.md#d48-la-pagina-utente-e-il-blocco-come-fine-della-sessione). Per l'utente: [La pagina utente](../utente/guida.md#la-pagina-utente).
+La pagina a tutto schermo che si apre dal nome dell'utente nel menu di avvio. Decisione: [D48](../interna/decisioni.md#d48-la-pagina-utente-e-il-blocco-come-fine-della-sessione). Per l'utente: [La pagina utente](../utente/guida.md#la-pagina-utente).
 
 ### `class UserPage` (`user/UserPage.js`)
 
@@ -1999,11 +1998,11 @@ La pagina a tutto schermo che si apre dal nome dell'utente. Decisione: [D48](../
 
 | Membro | Descrizione |
 | --- | --- |
-| `open()`, `close()`, `toggle()` | Apre, chiude, alterna. `open()` ridisegna tutto (i dati sono sempre aggiornati), azzera la conferma del riavvio e dà il focus a `.up-close`. `close()` rida il focus a `taskbar.userButton` se era dentro la pagina. |
+| `open()`, `close()`, `toggle()` | Apre, chiude, alterna. `open()` ridisegna tutto (i dati sono sempre aggiornati), azzera la conferma del riavvio e dà il focus a `.up-close`. `close()` rida il focus a `taskbar.startButton` se era dentro la pagina. |
 | `isOpen` | Stato. |
 
-- **Chi apre.** Il clic su `taskbar.userButton` (alterna) e `taskbar.startMenu.onUser`. `taskbar.startMenu.onOpen` la chiude.
-- **Chi chiude.** Esc (se sta chiedendo di riavviare, Esc torna solo alle azioni), `wm` `open` (si apre una finestra), un `pointerdown` sulla barra fuori dal pulsante utente.
+- **Chi apre.** `taskbar.startMenu.onUser` (il nome in alto nel menu di avvio). `taskbar.startMenu.onOpen` la chiude.
+- **Chi chiude.** Esc (se sta chiedendo di riavviare, Esc torna solo alle azioni), `wm` `open` (si apre una finestra), un `pointerdown` sulla barra.
 - **Tastiera.** La pagina ferma la propagazione di `keydown`: le scorciatoie della scrivania non scattano sotto. Tab resta dentro la pagina.
 - **Si ridisegna** quando cambiano `theme`, `language`, `userPhoto`, `userPageHidden` o `startupApps` (`settings` `change:<chiave>`), rimettendo il focus sul controllo che l'aveva (`data-key`).
 - **Contenuto.** Intestazione (avatar, nome sempre; `details`: nome utente e ruolo, «Amministratore» o «Utente»), azioni, due schede («Account» e «Questa sessione») e il piè di pagina (`about`: `lilOS <version> · <host>`). Una voce spenta (`isUserPageShown`) non si disegna; una scheda senza voci sparisce. Le righe che portano al Pannello di controllo usano `launch('settings', args)` con `{ tab: 'startup', subtab: 'apps' }`, `{ tab: 'storage' }` o `{ tab: 'workspaces' }`.

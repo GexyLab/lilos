@@ -8,7 +8,7 @@ lilOS è un desktop che si usa dal browser. Al posto di uno schermo fisso c'è u
 
 - **La scrivania** occupa quasi tutto lo schermo. Lo sfondo a puntini ti aiuta a capire quando ti stai spostando o stai cambiando zoom.
 - **Il pannello in basso a destra** mostra una mappa in miniatura della scrivania e i controlli dello zoom.
-- **La barra delle applicazioni**, in basso: a sinistra il pulsante con il logo di lilOS, che apre il menu di avvio, e subito dopo il pulsante del [workspace](#i-workspace) (un pallino colorato e il nome); al centro un pulsante per ogni finestra aperta; a destra l'**area di notifica**, il tuo nome (un pulsante: apre la [pagina utente](#la-pagina-utente)), la data e l'ora. Passando sopra la data vedi la data completa.
+- **La barra delle applicazioni**, in basso: a sinistra il pulsante con il logo di lilOS, che apre il menu di avvio, e subito dopo il pulsante del [workspace](#i-workspace) (un pallino colorato e il nome); al centro un pulsante per ogni finestra aperta; a destra l'**area di notifica**, la data e l'ora. Passando sopra la data vedi la data completa.
 - **L'area di notifica**, nella parte destra della barra delle applicazioni, raccoglie quello che richiede attenzione: il pulsante con la freccia verso il basso quando ci sono [app aggiornate da riavviare](#quando-unapp-viene-aggiornata-altrove), l'icona con il fulmine quando ci sono [app che restano attive](#le-app-che-restano-attive) e, sempre, la campanella delle [notifiche](#le-notifiche), con il numero di quelle da leggere.
 
 ## Accedere e uscire
@@ -1054,7 +1054,7 @@ App del menu: File Manager, Editor, Pannello di controllo, AppStore e le [app in
 
 È la pagina con le cose che riguardano te: la tua foto, uscire o bloccare lilOS, tema e lingua, qualche numero su quello che stai usando. Occupa tutto lo schermo, tranne la barra delle applicazioni.
 
-**Aprirla.** Premi il tuo **nome** nella barra delle applicazioni, oppure il tuo nome in fondo al [menu di avvio](#il-menu-di-avvio).
+**Aprirla.** Premi il tuo **nome** in alto a destra nel [menu di avvio](#il-menu-di-avvio).
 
 **Chiuderla.** Premi **Esc** o il pulsante in alto a destra. Si chiude anche da sola se apri una finestra o usi un'altra parte della barra delle applicazioni. Le finestre che avevi aperte restano dove sono.
 

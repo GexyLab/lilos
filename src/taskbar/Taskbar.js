@@ -1,4 +1,4 @@
-import { h, session, avatar, logo, shortcuts } from '@lilos/sdk';
+import { h, logo, shortcuts } from '@lilos/sdk';
 import { createClock } from './Clock.js';
 import { createBackgroundApps } from './BackgroundApps.js';
 import { createPendingUpdates } from './PendingUpdates.js';
@@ -8,7 +8,7 @@ import { NotificationBell } from '../notifications/NotificationBell.js';
 /**
  * The taskbar (barra delle applicazioni), at the bottom: start button · a button per window ·
  * notification area (system tray: updates to finish, apps in the background, the notifications'
- * bell) · user and clock.
+ * bell) · clock. The user page opens from the start menu.
  */
 export class Taskbar {
   constructor(parent) {
@@ -24,11 +24,6 @@ export class Taskbar {
     /** The window manager will mount one button per open window here. */
     this.tasks = h('div', { class: 'tb-tasks' });
 
-    /** Opens the user page (connected by UserPage). */
-    this.userButton = h('button', {
-      class: 'tb-user', type: 'button', title: 'Pagina utente', 'aria-haspopup': 'dialog', 'aria-expanded': 'false',
-    }, avatar(session.user, 'avatar user-avatar'), h('span', {}, session.user.name));
-
     /** The notifications' bell and bar (connected by notifications/connect.js). */
     this.notificationBell = new NotificationBell();
 
@@ -40,7 +35,6 @@ export class Taskbar {
           createPendingUpdates(),
           createBackgroundApps(),
           this.notificationBell.button),
-        this.userButton,
         createClock(),
       ),
     );
