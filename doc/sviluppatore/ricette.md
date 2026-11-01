@@ -611,6 +611,33 @@ Un punto d'ingresso è una parte dell'app che si avvia da sola, con o senza fine
 
 Per chiamare un punto d'ingresso da un'app di sistema: `callEntrypoint(appId, entry, data)` di `@lilos/system` (non servono permessi). Per le app di sistema ogni punto d'ingresso è un export con quel nome del loro modulo.
 
+## Mostrare l'anteprima dei file della tua app
+
+Il File Manager sa mostrare testo e SVG; per gli altri tipi di file può farla la tua app. Solo per `"sdk": "2"`. Contratto completo: [riferimento API](api.md#anteprima-dei-file-fatta-dalle-app-filepreviewjs).
+
+1. Fai aprire alla tua app il tipo di file (vedi [Far aprire dei file alla tua app](#far-aprire-dei-file-alla-tua-app)): l'anteprima la fa l'app che apre quel tipo, cioè la scelta dell'utente o l'app predefinita.
+2. Dichiara un punto d'ingresso `background` di nome `filePreview`:
+
+   ```json
+   "entrypoints": {
+     "main": { "kind": "window" },
+     "filePreview": { "kind": "background" }
+   }
+   ```
+3. Esporta la funzione `filePreview` e rispondi con `{ text }`, `{ image }` (un `Blob` `image/*`) o `{ html }`, più una `note` facoltativa:
+
+   ```js
+   export function filePreview({ lilos }) {
+     lilos.handle(async ({ file }) => {
+       const image = await lilos.files.read(file, { bytes: true });   // un Blob con il tipo dell'estensione; il file è solo da leggere
+       return { image, note: 'Disegno' };
+     });
+   }
+   ```
+4. Rispondi `null` quando non c'è niente da mostrare: il File Manager userà la sua anteprima.
+
+Da ricordare: hai 10 secondi; `text` e `html` al massimo 1 MB, `image` 20 MB; l'`html` viene ripulito (niente script, link, form, risorse esterne: immagini e font solo `data:`) e gira in un iframe senza permessi; non puoi scrivere il file né passarlo ad altre app. Se sbagli, l'utente vede l'anteprima di sempre e tu un avviso in console.
+
 ## Tradurre un'app
 
 Un'app installata o di sistema ha un solo file di traduzioni, con l'inglese come lingua predefinita. Formato completo e regole: [API → Traduzioni delle app](api.md#traduzioni-delle-app-sdkcorelocalejs-e-sdkcorei18njs).

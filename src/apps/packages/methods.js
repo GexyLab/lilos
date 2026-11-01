@@ -30,16 +30,19 @@ function content(data) {
 }
 
 /**
- * ctx: { pkg, win?, handles, instance?, pipe? }
+ * ctx: { pkg, win?, handles, readOnly?, instance?, pipe? }
  *   win        the app's window (null in the background)
  *   handles    ids of the files the app was opened with or handed: it may read and write them
+ *   readOnly   ids of the files handed to it only to read, while a call lasts (a preview, see
+ *              filePreview.js): anything with has(id)
  *   instance   the background entry point (background.js), for keepAlive
  *   pipe       its place in the pipes (pipes.js pipeTarget), for lilos.pipes
  */
-export function hostMethods({ pkg, win = null, handles, instance = null, pipe = null }) {
+export function hostMethods({ pkg, win = null, handles, readOnly = new Set(), instance = null, pipe = null }) {
   const perms = pkg.manifest.permissions ?? [];
   const target = (ref, write) => {
     if (handles.has(ref)) return fs.get(ref) ?? fail('Il file non esiste più');
+    if (readOnly.has(ref)) return write ? fail('Il file è stato passato solo da leggere') : fs.get(ref) ?? fail('Il file non esiste più');
     if (!coversPath(perms, ref, { write })) fail(`Permesso negato: ${ref}`);
     return resolveHome(ref);
   };
@@ -48,7 +51,7 @@ export function hostMethods({ pkg, win = null, handles, instance = null, pipe = 
     return node.type === 'file' ? node : fail('Non è un file');
   };
   // Who asks, for the handlers of the pipes: its own handlers are skipped
-  const caller = node => ({ app: pkg.id, opened: handles.has(node.id), ...(pkg.system && { system: true }) });
+  const caller = node => ({ app: pkg.id, opened: handles.has(node.id) || readOnly.has(node.id), ...(pkg.system && { system: true }) });
   const ownEvent = name => {
     const def = typeof name === 'string' ? pipes.describe(name) : null;
     return def?.owner === pkg.id ? name : fail(`L’evento ${String(name).slice(0, 60)} non è di ${pkg.manifest.name}`);

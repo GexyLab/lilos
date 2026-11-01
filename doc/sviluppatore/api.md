@@ -1372,6 +1372,7 @@ Permessi dichiarati nei manifesti ufficiali: File Manager `fs.write:~`, `fs.work
 | `handleCommand` | `apps/commands.js` | Un'app gestisce un suo comando |
 | `sendKey` | `input/sendKey.js` | Manda un tasto all'elemento con il focus, come un tasto vero ([input/sendKey.js](#inputsendkeyjs)) |
 | `callEntrypoint`, `connectEntrypoint`, `entrypointsOf` | `apps/entrypoints.js` | Avviare un punto d'ingresso di un'app, collegarsi a uno in background, elencare quelli di un'app (vedi [Punti d'ingresso](#punti-dingresso-entrypointsjs)) |
+| `filePreview`, `previewAppFor`, `PREVIEW_ENTRY` | `apps/filePreview.js` | L'anteprima di un file fatta dall'app che lo apre, l'app che la fa e il nome del punto d'ingresso (`'filePreview'`; vedi [Anteprima dei file fatta dalle app](#anteprima-dei-file-fatta-dalle-app-filepreviewjs)) |
 | `appActionEntries` | `apps/appActions.js` | Le voci che le app installate aggiungono al menu di file e cartelle (vedi [apps/pipes.js, apps/appActions.js e apps/systemEvents.js](#appspipesjs-appsappactionsjs-e-appssystemeventsjs)) |
 | `appPipes` | `apps/pipes.js` | Le pipe di un'app: dal manifesto e dal codice |
 | `startup` | `apps/startup.js` | Le app che si aprono da sole (vedi [apps/startup.js](#appsstartupjs)) |
@@ -1741,6 +1742,8 @@ I punti d'ingresso sono le parti di un'app che si avviano da sole: `main` (la fi
 
 **`background` o `service`?** Un `background` gira **nel browser**, a richiesta, e solo finché lilOS è aperto: serve a ciò che tiene segreti dell'utente, che il kernel non deve vedere. Un `service` gira **nel kernel**, può partire con il sistema o all'ingresso dell'utente e continua anche a lilOS chiuso; ha però un `lilos` più povero (vedi [Servizi](#servizi-delle-app-appsappservicesjs)) e richiede il permesso `background`. Nel manifesto: `"sync": { "kind": "service", "label": "Sincronizza" }`.
 
+**Nomi che lilOS conosce.** `filePreview` (solo `background`) è il punto d'ingresso con cui l'app prepara l'anteprima dei suoi file nel File Manager: lo chiama lilOS, non l'app ([Anteprima dei file fatta dalle app](#anteprima-dei-file-fatta-dalle-app-filepreviewjs)).
+
 Chi chiama dal sistema (`@lilos/system`, app di sistema) non ha permessi da verificare; un'app installata passa da `lilos.app.call` (i propri) o `lilos.apps.call` (di altre, con `apps.call:<id>`), che chiamano queste funzioni con `from` = id dell'app.
 
 #### Parametri dei punti d'ingresso
@@ -1769,6 +1772,60 @@ Chi chiama dal sistema (`@lilos/system`, app di sistema) non ha permessi da veri
 
 All'apertura la finestra riceve `args = { file, view }`. Un `file` è l'id del file e viene anche consegnato all'app, che lo può leggere e scrivere. Una `folder` arriva come id alle app di sistema e come percorso `~/…` a quelle installate; per leggerla serve un permesso `fs.read` o `fs.write` che la copra.
 
+### Anteprima dei file fatta dalle app (`filePreview.js`)
+
+`src/apps/filePreview.js`: il File Manager mostra l'anteprima di un file; se l'app che apre quel tipo di file sa farla meglio, lo dichiara con un punto d'ingresso `filePreview` e la fa lei. Serve `"sdk": "2"`; il punto d'ingresso è di tipo `background`.
+
+| Export | Descrizione |
+| --- | --- |
+| `PREVIEW_ENTRY` | `'filePreview'`, il nome del punto d'ingresso |
+| `previewAppFor(node)` → `app` o `null` | L'app che fa l'anteprima di quel nodo: `appFor(estensione)` (la scelta dell'utente o l'app predefinita, vedi [apps/open.js e apps/openWith.js](#appsopenjs-e-appsopenwithjs)), se è un pacchetto installato nel workspace e ha un punto d'ingresso `filePreview` di tipo `background`. `null` per cartelle, collegamenti, elementi nel cestino e in ogni altro caso. |
+| `filePreview(node)` → `Promise<{ app, text, html o image, note } o null>` | Chiama l'app e controlla la risposta. `app` è l'id dell'app. `null` se nessuna app fa l'anteprima o se l'app risponde `null`. Rifiuta se l'app dà un errore, una risposta non valida o non risponde in 10 secondi. |
+
+Nella risposta di `filePreview` c'è uno solo tra `text` (stringa), `image` (`Blob`) e `html` (un documento intero già ripulito); `note` è `null` se manca.
+
+**Cosa riceve l'app.** Il suo `lilos.handle` viene chiamato con `data = { file }` (l'id del file) e `from` = `null`. Il file le è passato **solo in lettura**: `lilos.files.read(file)` (anche con `{ bytes: true }`) e `lilos.files.info(file)` funzionano; `write` e `setMeta` falliscono con «Il file è stato passato solo da leggere». Non lo può passare ad altre app né aprire con `files.open`, e lo può leggere solo mentre risponde a quella chiamata. Per le pipe (`caller.opened` è vero) il file conta come consegnato all'app: per esempio FileCrypt lo decifra per lei come farebbe all'apertura.
+
+**Cosa risponde.** Un oggetto con **uno** di questi campi (se ce n'è più di uno vale il primo in quest'ordine: `text`, `html`, `image`) e una `note` facoltativa, oppure `null` («niente da mostrare»):
+
+| Campo | Contenuto | Limite |
+| --- | --- | --- |
+| `text` | Testo semplice | Tagliato a 1 MB (il File Manager ne mostra i primi 100.000 caratteri) |
+| `html` | Una pagina HTML | Al massimo 1 MB, altrimenti errore |
+| `image` | Un `Blob` con tipo `image/*` | Al massimo 20 MB, altrimenti errore; un tipo che non è `image/*` è un errore |
+| `note` | Una riga sotto l'anteprima | Tagliata a 200 caratteri; ignorata se vuota o non è una stringa |
+
+Il tempo è di **10 secondi** dalla chiamata. Una risposta che non è un oggetto, o senza nessuno dei tre campi, è un errore.
+
+**Sicurezza dell'`html`.** L'app può essere installata da chiunque, quindi la sua pagina non è di fiducia:
+
+- `DOMParser` la analizza e lilOS toglie `script`, `noscript`, `base`, `meta`, `link`, `iframe`, `frame`, `frameset`, `object`, `embed`, `portal`, `form` e le animazioni SVG `set`, `animate`, `animateMotion`, `animateTransform` (con cui un SVG può cambiare un `href`); da `a` e `area` toglie `href`, `xlink:href`, `target` e `ping`. Restano testo, stile e immagini.
+- Aggiunge una CSP in `<meta>`: `default-src 'none'; style-src 'unsafe-inline'; img-src data:; font-src data:`. Immagini e font solo `data:`; niente rete.
+- Aggiunge uno stile con `color-scheme` e i token del tema come variabili CSS (`--accent`, `--text`, `--dim`, `--surface`, `--border`, `--font`…, gli stessi delle finestre isolate, da `theme()` di [host.js](#hostjs)), e un corpo con margine di 12 px, testo `var(--text)` e sfondo trasparente.
+- `filePreview` restituisce un documento intero, da mettere in `<iframe sandbox="" srcdoc>`: **senza** `allow-scripts`, `allow-forms`, `allow-popups` e `allow-same-origin`.
+
+**Errori.** Se `filePreview` rifiuta (errore dell'app, risposta non valida, limiti superati, tempo scaduto), il File Manager mostra la sua anteprima di sempre e scrive un avviso in console: l'utente non vede un errore. Con `null` mostra la sua anteprima senza avviso.
+
+Nel File Manager (1.6.0) il pannello Anteprima usa `system.filePreview` solo se esiste (un lilOS più vecchio mostra l'anteprima interna). Il testo va in un `<pre>` (tagliato a 100.000 caratteri), l'immagine in un `<img>` (da un object URL), l'`html` nell'iframe; sotto c'è «Anteprima creata da *app*», con la `note` dopo un punto mediano. Cartelle, collegamenti e cestino non passano da qui.
+
+```js
+// Nell'app (manifesto: "sdk": "2", "entrypoints": { "filePreview": { "kind": "background" } })
+export function filePreview({ lilos }) {
+  lilos.handle(async ({ file }) => {
+    const text = await lilos.files.read(file);          // solo lettura
+    const rows = text.split('\n').filter(Boolean);
+    if (!rows.length) return null;                      // il File Manager usa la sua anteprima
+    const esc = s => s.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c]);
+    return {
+      html: `<ul>${rows.slice(0, 50).map(r => `<li>${esc(r)}</li>`).join('')}</ul>`,
+      note: `${rows.length} righe`,
+    };
+  });
+}
+```
+
+Dal sistema: `const p = await system.filePreview(node); if (p?.html) frame.srcdoc = p.html;`.
+
 ### Background (`background.js`)
 
 Gestisce i punti d'ingresso `background`: si avviano alla prima chiamata, uno per app e per nome, per tutta la sessione (non per workspace), e si fermano dopo **5 minuti senza chiamate** (il controllo gira ogni 30 secondi), alla disconnessione dell'utente e quando l'app cambia (nuova versione, rimossa, modalità cambiata). Con `lilos.app.keepAlive()` restano accesi.
@@ -1777,15 +1834,17 @@ Gestisce i punti d'ingresso `background`: si avviano alla prima chiamata, uno pe
 - Non isolato: un `Worker` da un `Blob` (`WORKER_SOURCE`) con l'origine di lilOS.
 - App di sistema: l'export con quel nome, chiamato nella pagina di lilOS.
 
-Il codice (verificato con l'hash) e le librerie del manifesto si mandano all'avvio con un `init`; le richieste dell'app tornano per una `MessagePort` e si controllano con i permessi come per le finestre. Se il codice non parte, un avviso lo dice e l'istanza si ferma. Ogni istanza ha il suo posto nelle pipe (`pipeTarget`): quando arriva un evento, lilOS chiama la funzione data a `lilos.pipes.subscribe` come una chiamata con `pipe`, `data` e `ctx`; alla chiusura dell'istanza le iscrizioni cadono. Export: `call(app, entry, data, from)`, `start(app, entry)` (avvia il punto d'ingresso se serve e si risolve quando il suo codice è partito: lo usa `apps/pipes.js` per le pipe del manifesto), `connect(app, entry)`, `running()` → `[{ key, appId, name, label, glyph, keepAlive }]`, `stop(key)`, `stopApp(id)`, e `backgroundApps` (`Emitter`, evento `change` quando se ne avvia o ferma uno o cambia `keepAlive`). L'area di notifica della barra delle applicazioni ha un'icona (`src/taskbar/BackgroundApps.js`) con l'elenco di quelli con `keepAlive`: per ognuno aprono le proprietà dell'app e "Ferma".
+Il codice (verificato con l'hash) e le librerie del manifesto si mandano all'avvio con un `init`; le richieste dell'app tornano per una `MessagePort` e si controllano con i permessi come per le finestre. Se il codice non parte, un avviso lo dice e l'istanza si ferma. Ogni istanza ha il suo posto nelle pipe (`pipeTarget`): quando arriva un evento, lilOS chiama la funzione data a `lilos.pipes.subscribe` come una chiamata con `pipe`, `data` e `ctx`; alla chiusura dell'istanza le iscrizioni cadono. Export: `call(app, entry, data, from, { readOnly })` (con `readOnly: true` i file di `data` si danno all'app solo da leggere e solo finché la chiamata non finisce: vanno nella mappa `readOnly` dell'istanza (id → chiamate in corso) invece che in `handles`, e ne escono quando l'app risponde o fallisce, vedi [Anteprima dei file fatta dalle app](#anteprima-dei-file-fatta-dalle-app-filepreviewjs); `request(data, from, { readOnly })` dell'istanza fa lo stesso), `start(app, entry)` (avvia il punto d'ingresso se serve e si risolve quando il suo codice è partito: lo usa `apps/pipes.js` per le pipe del manifesto), `connect(app, entry)`, `running()` → `[{ key, appId, name, label, glyph, keepAlive }]`, `stop(key)`, `stopApp(id)`, e `backgroundApps` (`Emitter`, evento `change` quando se ne avvia o ferma uno o cambia `keepAlive`). L'area di notifica della barra delle applicazioni ha un'icona (`src/taskbar/BackgroundApps.js`) con l'elenco di quelli con `keepAlive`: per ognuno aprono le proprietà dell'app e "Ferma".
 
 ### `methods.js`
 
-`hostMethods({ pkg, win?, handles, instance?, pipe? })` costruisce le funzioni che l'app può chiamare (i nomi di `lilos.*`, più `app.failed` che usa il ponte per segnalare un errore) e le controlla contro i permessi; è lo stesso per finestre e background, isolati o no. `invoke(methods, nome, parametri)` esegue una richiesta (rifiuta i nomi sconosciuti). `handles`: gli id dei file con cui l'app è stata aperta o che le sono stati passati. `pipe`: il posto dell'app nelle pipe (`pipeTarget` di `apps/pipes.js`), per `lilos.pipes`; senza, `pipes.subscribe` fallisce. Ogni lettura e scrittura di file dice a `fs` chi chiede (`caller`: `{ app, opened }`, con `system: true` per le app di sistema): così le pipe saltano i gestori della stessa app e sanno se il file le è stato consegnato.
+`hostMethods({ pkg, win?, handles, readOnly?, instance?, pipe? })` costruisce le funzioni che l'app può chiamare (i nomi di `lilos.*`, più `app.failed` che usa il ponte per segnalare un errore) e le controlla contro i permessi; è lo stesso per finestre e background, isolati o no. `invoke(methods, nome, parametri)` esegue una richiesta (rifiuta i nomi sconosciuti). `handles`: gli id dei file con cui l'app è stata aperta o che le sono stati passati. `readOnly` (un `Set` o una `Map`: basta `has(id)`; vuoto se manca): gli id dei file passati solo da leggere, per la durata di una chiamata; leggerli e chiederne le informazioni funziona senza permessi `fs`, scriverli fallisce con «Il file è stato passato solo da leggere». `pipe`: il posto dell'app nelle pipe (`pipeTarget` di `apps/pipes.js`), per `lilos.pipes`; senza, `pipes.subscribe` fallisce. Ogni lettura e scrittura di file dice a `fs` chi chiede (`caller`: `{ app, opened }`, con `system: true` per le app di sistema): così le pipe saltano i gestori della stessa app e sanno se il file le è stato consegnato (`opened` è vero anche per i file in `readOnly`).
 
 ### `host.js`
 
 (per le app **non** di sistema: quelle di sistema non hanno finestra isolata)
+
+- `theme()` → `{ '--accent': …, '--font': …, … }`: i token del tema (colori, `--radius-sm`, e in `--font` il carattere del `body`) che lilOS manda alle finestre isolate. È esportata anche per `filePreview.js`, che li mette nell'anteprima `html`.
 
 - `packageModule(pkg)` → `{ default: ({ args, entry = 'main' }) => Window }`: il modulo che il launcher carica per un'app installata. Una finestra per app e punto d'ingresso, come le altre; titolo e dimensioni vengono dal punto d'ingresso (`label`, `window`), poi da `contributes.window`. `getState()` restituisce `{ file }` se l'app è stata aperta con un file (così le workarea la riaprono con lo stesso file).
 - App `local` non isolata (solo `sdk` `"2"`): il modulo si importa da un `Blob` e la funzione `entry` riceve `{ lilos, root, args }`, con `root` uno Shadow DOM (`.pkg-host`) dentro la finestra. Gli stili di lilOS non vi entrano (le variabili di tema `--accent`, `--text`… sì, perché ereditano); le scorciatoie di `contributes.commands` valgono per la finestra attiva dell'app. Se la funzione restituisce una funzione, la chiama alla chiusura della finestra.

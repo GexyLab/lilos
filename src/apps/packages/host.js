@@ -25,7 +25,8 @@ import { pipeTarget } from '../pipes.js';
 const TOKENS = ['--accent', '--accent-soft', '--text', '--dim', '--faint', '--surface', '--chrome', '--side', '--field-bg', '--hover', '--border', '--danger', '--radius-sm'];
 const SHADOW_CSS = ':host{all:initial;display:block;height:100%;overflow:auto;box-sizing:border-box;background:var(--surface);color:var(--text);font:13px/1.4 var(--font)}';
 
-function theme() {
+/** The theme tokens apps get as CSS variables (also the pages of the previews, filePreview.js). */
+export function theme() {
   const css = getComputedStyle(document.documentElement);
   const vars = Object.fromEntries(TOKENS.map(t => [t, css.getPropertyValue(t).trim()]).filter(([, v]) => v));
   vars['--font'] = getComputedStyle(document.body).fontFamily;

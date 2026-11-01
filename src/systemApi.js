@@ -17,6 +17,7 @@ export { apps, registry, getApp, isInstalled, installedApps, launch } from './ap
 export { fileApps, appFor, defaultAppFor, setAppFor, resetAppsFor, knownExtensions, openFile } from './apps/open.js';
 export { handleCommand } from './apps/commands.js';
 export { callEntrypoint, connectEntrypoint, entrypointsOf } from './apps/entrypoints.js';
+export { filePreview, previewAppFor, PREVIEW_ENTRY } from './apps/filePreview.js';
 export { appActionEntries } from './apps/appActions.js';
 export { appPipes } from './apps/pipes.js';
 export { startup } from './apps/startup.js';

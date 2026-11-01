@@ -1065,3 +1065,25 @@ lilOS legge il file **prima** di avviare l'app e le dà le stringhe già risolte
 - Un sottomenu con una sola voce costa un passaggio in più: va usato quando raccoglie azioni dello stesso tema.
 
 **Quando ripensarla.** Se più app vogliono mettere voci nello stesso posto (allora: sottomenu di sistema con id noti, come «Comprimi» o «Invia a»), o se serve un livello in più.
+
+## D55. L'anteprima dei file la può fare l'app che li apre
+
+**Decisione.** Un'app dichiara un punto d'ingresso `background` di nome `filePreview` (`sdk` 2); quando il File Manager deve mostrare un file, lilOS (`filePreview` di `@lilos/system`, `src/apps/filePreview.js`) lo chiede all'app che apre quel tipo (`appFor`). L'app risponde con `text`, `image` o `html` (più una `note`), oppure `null`. Limiti: 1 MB di testo e di html, 20 MB di immagine, 10 secondi. Decisa il 1° novembre 2026, con il File Manager 1.6.0.
+
+**Perché.**
+
+- **Sola lettura.** L'anteprima compare con un clic, senza che l'utente abbia chiesto di aprire niente: un'app che potesse scrivere il file, o passarlo ad altre app, avrebbe un'occasione in più di farlo di nascosto. Per questo il file va in un insieme `readOnly` e non in `handles`: si legge, non si scrive, non si inoltra. E vale solo finché dura la chiamata: quando l'app risponde (o fallisce) il file le viene tolto, così non può tornare a leggere più tardi i file di cui ha fatto l'anteprima. Se l'app non risponde in tempo, il File Manager smette di aspettarla, ma il file resta leggibile finché la sua chiamata non finisce davvero. Conta però come file consegnato all'app per le pipe (FileCrypt lo decifra per lei).
+- **Html ripulito, iframe senza permessi, CSP.** L'html è di un'app installata da chiunque e finisce nella pagina di lilOS. Un iframe `sandbox=""` toglie script, form e popup, ma non i modi di uscire senza script (un link, un `meta refresh`, un `base`, un `href` animato da un SVG): per questo lilOS toglie anche quei tag e attributi. La CSP (`default-src 'none'`, immagini e font solo `data:`) impedisce che l'anteprima chiami la rete solo perché è stata aperta. Tre difese, perché ciascuna da sola ha buchi noti.
+- **Fallback silenzioso.** L'anteprima è un aiuto, non il lavoro dell'utente: se l'app sbaglia o tarda, il File Manager mostra quella di sempre e scrive un avviso in console. Una notifica o un errore a ogni clic su un file sarebbero peggio del difetto. Un lilOS più vecchio, senza `system.filePreview`, si comporta allo stesso modo.
+- **L'app che apre il tipo.** Non serve una nuova associazione: la scelta dell'utente per un tipo di file decide anche chi ne fa l'anteprima.
+
+**Alternative scartate.** Dare all'app un elemento nella pagina di lilOS (può rubare spazio ed eventi); lasciare l'html senza pulizia e fidarsi solo della sandbox; permettere i link (porterebbero l'utente altrove da una pagina che non ha scelto); mostrare un errore quando l'app fallisce.
+
+**Conseguenze.**
+
+- `filePreview`, `previewAppFor` e `PREVIEW_ENTRY` entrano nel contratto di `@lilos/system`; `theme()` di `host.js` è esportata.
+- Se nasce un altro modo di uscire da una pagina senza script, va aggiunto all'elenco dei tag tolti o alla CSP.
+- Un'app che apre molti tipi fa tutte le anteprime con lo stesso punto d'ingresso: deve guardare l'estensione (`lilos.files.info`).
+- Un html con link, form o contenuti esterni si vede senza quelle parti.
+
+**Quando ripensarla.** Se le app vogliono anteprime interattive (allora: un iframe con `allow-scripts` e un canale di messaggi, come le finestre isolate), o se servono altre forme di risposta (audio, video, PDF).

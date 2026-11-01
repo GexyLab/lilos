@@ -58,9 +58,10 @@ class Instance {
     this.entry = entry;
     this.key = `${app.id}#${entry}`;
     this.handles = new Set();
+    this.readOnly = new Map();   // file id → calls in progress that handed it to read
     // lilOS calls its lilos.pipes functions like a call, marked with the subscription
     this.pipes = pipeTarget({ key: this.key, pkg: this.pkg, entry, handles: this.handles, deliver: (sub, data, ctx) => this.#call({ pipe: sub, data, ctx }) });
-    this.methods = hostMethods({ pkg: this.pkg, handles: this.handles, instance: this, pipe: this.pipes });
+    this.methods = hostMethods({ pkg: this.pkg, handles: this.handles, readOnly: this.readOnly, instance: this, pipe: this.pipes });
     // The system's language changed: the entry point gets its strings again
     this.#offLocale = locale.on('change', () => {
       const data = locale.strings(this.pkg.id);
@@ -138,14 +139,25 @@ class Instance {
 
   /**
    * A call to the entry point: what its lilos.handle() function returns. The files in `data`
-   * (file, files) are handed to it.
+   * (file, files) are handed to it; with readOnly only to read, and only until it answers.
    */
-  async request(data, from) {
+  async request(data, from, { readOnly = false } = {}) {
+    const ids = [];
     if (data && typeof data === 'object') {
-      if (typeof data.file === 'string') this.handles.add(data.file);
-      if (Array.isArray(data.files)) data.files.filter(f => typeof f === 'string').forEach(f => this.handles.add(f));
+      if (typeof data.file === 'string') ids.push(data.file);
+      if (Array.isArray(data.files)) ids.push(...data.files.filter(f => typeof f === 'string'));
     }
-    return this.#call({ data, from });
+    if (!readOnly) {
+      ids.forEach(id => this.handles.add(id));
+      return this.#call({ data, from });
+    }
+    // Counted: two calls at once may hand the same file
+    ids.forEach(id => this.readOnly.set(id, (this.readOnly.get(id) ?? 0) + 1));
+    try {
+      return await this.#call({ data, from });
+    } finally {
+      ids.forEach(id => (this.readOnly.get(id) > 1 ? this.readOnly.set(id, this.readOnly.get(id) - 1) : this.readOnly.delete(id)));
+    }
   }
 
   async #call(message) {
@@ -218,8 +230,8 @@ function instanceOf(app, entry) {
   return inst;
 }
 
-/** Calls a background entry point (starting it if needed). */
-export const call = (app, entry, data, from) => instanceOf(app, entry).request(data ?? null, from ?? null);
+/** Calls a background entry point (starting it if needed). options: { readOnly } (see request). */
+export const call = (app, entry, data, from, options) => instanceOf(app, entry).request(data ?? null, from ?? null, options);
 
 /** Starts a background entry point if it is not running; resolves once its code ran. */
 export const start = (app, entry) => instanceOf(app, entry).ready;

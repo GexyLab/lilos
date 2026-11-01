@@ -358,6 +358,8 @@ Alt P e Alt I si cambiano nel Pannello di controllo → Usabilità → Scorciato
 - una **cartella**: il suo contenuto (le prime 200 voci); con un doppio clic su una voce la apri;
 - un **collegamento a un'app**: l'app a cui porta.
 
+Per alcuni tipi di file l'anteprima la prepara l'app che li apre (per esempio mostra un disegno o una pagina al posto del testo). Lo vedi dalla riga **Anteprima creata da…** sotto l'anteprima. Se quell'app non risponde o sbaglia, vedi l'anteprima di sempre.
+
 Il pulsante **Apri** (**Avvia** per un'app) nell'intestazione apre l'elemento. Se selezioni più elementi, l'anteprima ne mostra uno alla volta e lo dice. Per gli elementi nel Cestino chiede di ripristinarli prima. Se salvi il file mentre lo guardi, l'anteprima si aggiorna.
 
 **Informazioni** descrive la selezione:
