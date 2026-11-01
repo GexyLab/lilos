@@ -677,6 +677,27 @@ Si cambia con il tasto **IT** / **EN**. La scelta resta salvata. Al primo avvio 
 - Nelle app isolate (vedi [Isolate e non isolate](#isolate-e-non-isolate)) **Ctrl C**, **Ctrl X** e **Ctrl V** possono non funzionare: il browser le permette solo a un gesto fatto proprio lì.
 - **Su** e **Giù** nei campi di testo su più righe si muovono per righe del testo, non per righe come appaiono sullo schermo: se una riga va a capo, il cursore salta alla riga logica precedente o successiva.
 
+## Zip
+
+**Zip** comprime file e cartelle in archivi `.zip` e li estrae. Non c'è di serie: un amministratore la installa dall'[AppStore](#lappstore). All'installazione chiede di poter leggere e modificare i file della tua home, perché deve leggere il contenuto delle cartelle e scrivere l'archivio accanto.
+
+Si usa dal menu del tasto destro, sulla scrivania e nel File Manager, con la voce **Comprimi**:
+
+- **Comprimi → Zip** su file e cartelle che non sono archivi: crea l'archivio nella stessa cartella. Con un solo elemento l'archivio prende il suo nome (`Foto` → `Foto.zip`, `nota.txt` → `nota.zip`); con più elementi selezionati si chiama `Archivio.zip`. Le cartelle entrano con tutto ciò che contengono, anche le cartelle vuote.
+- **Comprimi → Unzip** su un file `.zip` (anche più di uno): lo estrae nella stessa cartella. Se l'archivio contiene una sola cartella, ottieni quella cartella; altrimenti una cartella nuova con il nome dell'archivio raccoglie tutto.
+
+Un nome già usato prende un numero (`Foto 2.zip`, `Foto 2`): Zip non sovrascrive mai niente. A lavoro finito compare una notifica, per esempio "Creato «Foto.zip» (12 file, 3,4 MB)".
+
+Con il doppio clic su un file `.zip` si apre la finestra di Zip, con l'elenco di ciò che contiene (cartelle, file e dimensioni) e il pulsante **Estrai qui**.
+
+### Da sapere
+
+- Archivi e file estratti arrivano a 10 MB ciascuno, come ogni file di lilOS; in tutto Zip lavora su al massimo 256 MB e 10.000 file per volta.
+- Le immagini, i video, la musica e gli altri archivi entrano nello `.zip` così come sono, senza comprimerli di nuovo: lo sono già.
+- Dall'archivio restano fuori, e la notifica lo dice, gli elementi protetti da password, quelli con percorsi pericolosi (`..`), quelli compressi con metodi diversi da Deflate e i file più grandi di 10 MB. Le cartelle `__MACOSX` e i file `.DS_Store`, `Thumbs.db` e `desktop.ini` si saltano senza avviso.
+- Con una selezione che mescola archivi `.zip` e altri elementi la voce **Comprimi** non compare.
+- Serve una versione di lilOS con i sottomenu per le voci delle app.
+
 ## Annullare e ripetere
 
 **Ctrl Z** annulla l'ultima azione, **Ctrl Y** (o **Ctrl Shift Z**) la ripete. Agiscono **dove stai lavorando**: ogni posto ha il suo elenco di azioni, e lilOS sceglie quello dove hai fatto clic per ultimo. In basso compare un breve messaggio, per esempio "Annullato: Elimina «Appunti»" o "Ripetuto: Rinomina…".

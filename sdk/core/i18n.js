@@ -122,6 +122,7 @@ export function resolveLocale(table, code) {
  * key of a text is its path in the manifest, with the items of a list named by their id (value
  * for options):
  *   @name   @description   @commands.<id>.label   @widgets.<id>.name   @actions.<id>.label   @badge.label
+ *   @menus.<id>.label
  *   @entrypoints.<name>.label
  *   @entrypoints.<name>.params.<param>.label   @entrypoints.<name>.params.<param>.description
  *   @entrypoints.<name>.params.<param>.options.<value>.label
@@ -139,6 +140,7 @@ export function localizeManifest(manifest, strings) {
   for (const cmd of m.contributes?.commands ?? []) set(cmd, 'label', `@commands.${cmd.id}.label`);
   for (const widget of m.contributes?.widgets ?? []) set(widget, 'name', `@widgets.${widget.id}.name`);
   for (const action of Array.isArray(m.contributes?.actions) ? m.contributes.actions : []) if (isPlain(action)) set(action, 'label', `@actions.${action.id}.label`);
+  for (const menu of Array.isArray(m.contributes?.menus) ? m.contributes.menus : []) if (isPlain(menu)) set(menu, 'label', `@menus.${menu.id}.label`);
   if (isPlain(m.contributes?.badge)) set(m.contributes.badge, 'label', '@badge.label');
   for (const [name, ep] of Object.entries(m.entrypoints ?? {})) {
     if (!isPlain(ep)) continue;

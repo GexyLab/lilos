@@ -1041,3 +1041,27 @@ lilOS legge il file **prima** di avviare l'app e le dà le stringhe già risolte
 - `sendKey` entra nel contratto di `@lilos/system`: non si toglie senza rompere le tastiere già installate.
 
 **Quando ripensarla.** Se serve una tastiera per le app remote, o se le azioni da imitare crescono tanto da rendere pesante il codice.
+
+## D54. Le voci delle app nel menu dei file possono stare in un sottomenu
+
+**Decisione.** Un'app raggruppa le sue azioni (`contributes.actions`) in sottomenu che dichiara in `contributes.menus: [{ id, label, glyph? }]`; un'azione con `menu: "<id>"` va in quel sottomenu (1° novembre 2026, per l'app Zip: **Comprimi → Zip / Unzip**). `when` accetta anche `notExt`: l'azione vale per tutto tranne i file con quelle estensioni.
+
+- Il sottomenu compare solo se almeno una delle sue azioni vale per gli elementi scelti, al posto della prima di esse; dentro ci sono solo quelle che valgono.
+- I sottomenu sono di una sola app: due app non ne condividono uno, nemmeno con la stessa etichetta.
+- L'etichetta si traduce con la chiave `@menus.<id>.label` del `locales.json`.
+- Il kernel controlla id (inizia con l'id dell'app, uno per menu, al massimo 10), etichetta, simbolo e che `menu` di un'azione sia uno di essi.
+
+**Perché.**
+
+- L'utente voleva una voce **Comprimi** con dentro **Zip** o **Unzip** secondo l'elemento: le azioni piatte non bastavano.
+- Senza `notExt` «Zip» sarebbe comparso anche sugli archivi: con `ext` si può dire solo «questi tipi», non «tutti tranne questi».
+- Un lilOS precedente ignora `menu` e mostra le azioni una per una: il campo non rompe niente.
+
+**Alternative scartate.** Il sottomenu descritto in ogni azione (`menu: { label, glyph }` ripetuto, con il rischio di etichette diverse); un sottomenu comune a più app (chi ne decide nome e ordine?); azioni annidate (`items` dentro un'azione: più profondità di quella che serve).
+
+**Conseguenze.**
+
+- Un manifesto con `when.notExt` è rifiutato da un kernel precedente: l'app Zip vuole questa versione di lilOS.
+- Un sottomenu con una sola voce costa un passaggio in più: va usato quando raccoglie azioni dello stesso tema.
+
+**Quando ripensarla.** Se più app vogliono mettere voci nello stesso posto (allora: sottomenu di sistema con id noti, come «Comprimi» o «Invia a»), o se serve un livello in più.

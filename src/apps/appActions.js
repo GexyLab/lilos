@@ -8,12 +8,17 @@ import { notify } from '../notifications/notify.js';
  * permission ui.menus); their signs on icons are in desktop/itemIcons.js. An action starts one of the app's
  * entry points with { files: [ids], action: id }; the app may read and write those files.
  *
- *   { id, label, entry, on: 'file' | 'folder' | 'item', glyph?, when?: { meta?: 'own' | 'none', ext? }, many? }
+ *   { id, label, entry, on: 'file' | 'folder' | 'item', glyph?, when?: { meta?: 'own' | 'none', ext?, notExt? }, many?, menu? }
+ *
+ * Actions with `menu` go in that submenu of the app (contributes.menus: [{ id, label, glyph? }]),
+ * shown only when some of them are for these nodes.
  */
-const actionsOf = app => {
+const allowed = app => {
   const pkg = app?.package;
-  if (!pkg || !(pkg.manifest.permissions ?? []).includes('ui.menus')) return [];
-  const list = app.text?.contributes?.actions;
+  return !!pkg && (pkg.manifest.permissions ?? []).includes('ui.menus');
+};
+const listOf = (app, key) => {
+  const list = allowed(app) ? app.text?.contributes?.[key] : null;
   return Array.isArray(list) ? list : [];
 };
 
@@ -23,7 +28,9 @@ function fits(action, appId, node) {
   const marked = !!node.apps && Object.hasOwn(node.apps, appId);
   if (action.when?.meta === 'own' && !marked) return false;
   if (action.when?.meta === 'none' && marked) return false;
-  if (action.when?.ext && !(node.type === 'file' && action.when.ext.includes(splitName(node.name)[1].toLowerCase()))) return false;
+  const ext = node.type === 'file' ? splitName(node.name)[1].toLowerCase() : null;
+  if (action.when?.ext && !(ext !== null && action.when.ext.includes(ext))) return false;
+  if (action.when?.notExt && ext !== null && action.when.notExt.includes(ext)) return false;
   return true;
 }
 
@@ -47,10 +54,19 @@ export function appActionEntries(ids, { separator = false } = {}) {
   if (!nodes.length) return [];
   const out = [];
   for (const app of installedApps()) {
-    for (const action of actionsOf(app)) {
+    const menus = new Map(listOf(app, 'menus').map(m => [m?.id, m]));
+    const submenus = new Map();   // menu id → its entry, at the place of its first action
+    for (const action of listOf(app, 'actions')) {
       if (nodes.length > 1 && !action.many) continue;
       if (!nodes.every(n => fits(action, app.id, n))) continue;
-      out.push({ label: action.label, icon: action.glyph ?? app.glyph, action: () => run(app, action, nodes.map(n => n.id)) });
+      const entry = { label: action.label, icon: action.glyph ?? app.glyph, action: () => run(app, action, nodes.map(n => n.id)) };
+      const menu = menus.get(action.menu);
+      if (!menu) { out.push(entry); continue; }
+      if (!submenus.has(menu.id)) {
+        submenus.set(menu.id, { label: menu.label, icon: menu.glyph ?? app.glyph, items: [] });
+        out.push(submenus.get(menu.id));
+      }
+      submenus.get(menu.id).items.push(entry);
     }
   }
   return separator && out.length ? ['-', ...out] : out;

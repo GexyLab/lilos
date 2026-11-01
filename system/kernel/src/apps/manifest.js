@@ -35,7 +35,7 @@ import { parseLocales } from '../../../../sdk/core/i18n.js';
  *     permissions: ['fs.read:~/Documenti', 'net:https://api.example.com', …],
  *     contributes: { window: { width, height }, fileTypes: ['md'], commands: [{ id, label, keys }],
  *                    widgets: [{ id, name, width, height, resizable }], settings: [...],
- *                    pipes: [pipe], actions: [action], badge: { glyph, label } },
+ *                    pipes: [pipe], actions: [action], menus: [menu], badge: { glyph, label } },
  *     install: [op], update: [{ from: '<1.2.0', ops: [op] }], uninstall: [op],
  *     restartOnUpdate?: true | '<2.0.0',      updating to this version needs lilOS to restart (always, or
  *                                             only from the versions in the range, like update's `from`)
@@ -56,7 +56,9 @@ import { parseLocales } from '../../../../sdk/core/i18n.js';
  * Actions (needs 'ui.menus'): entries of the menu of files and folders, that start an entry point
  * with { files: [ids] } (the app may read and write them). `when`: which items they are for.
  *   { id: '<app id>.encrypt', label: 'Encrypt…', entry: 'encrypt', on: 'file' | 'folder' | 'item',
- *     glyph?, when?: { meta?: 'own' | 'none', ext?: ['txt'] }, many?: true }   many: also for a selection
+ *     glyph?, when?: { meta?: 'own' | 'none', ext?: ['txt'], notExt?: ['zip'] }, many?: true,
+ *     menu?: '<app id>.compress' }   many: also for a selection; menu: in that submenu of the app
+ * Submenus of the actions: menus: [{ id: '<app id>.compress', label: 'Compress', glyph? }]
  *
  * Badge: a sign on the icon of the items the app has data on (node.apps[id]): { glyph: 'lock', label }.
  *
@@ -77,7 +79,7 @@ const KEY = /^[\w.-]{1,64}$/;
 const HOME_PATH = /^~(\/[^/\0]{1,255}){1,16}$/;
 const ENTRY = /^[a-z][a-zA-Z0-9]{0,30}$/;
 const PARAM = /^[a-zA-Z][a-zA-Z0-9_]{0,30}$/;
-const MAX = { files: 1000, ops: 100, text: 64 << 10, commands: 30, widgets: 10, permissions: 50, libraries: 30, entrypoints: 20, params: 10, options: 50, pipes: 30, actions: 20 };
+const MAX = { files: 1000, ops: 100, text: 64 << 10, commands: 30, widgets: 10, permissions: 50, libraries: 30, entrypoints: 20, params: 10, options: 50, pipes: 30, actions: 20, menus: 10 };
 const EVENT = /^[a-z0-9][a-z0-9.-]{0,63}\.[a-z][a-zA-Z0-9]{0,40}$/;
 /** Events only lilOS and system apps subscribe to (the SDK's pipeCatalog.js). */
 const PROTECTED = ['system.ready', 'session.', 'apps.', 'permissions.', 'settings.system', 'pipes.'];
@@ -269,6 +271,14 @@ export function checkManifest(raw) {
     if (!permissions.includes(`pipe:${p.event}`) && !(own && permissions.includes(`pipe.own:${p.event}`))) wrong(`serve il permesso pipe:${p.event}${own ? ` o pipe.own:${p.event}` : ''}`);
     if (isProtectedEvent(p.event) && !m.system) wrong('evento riservato alle app di sistema');
   }
+  const menus = new Set();
+  for (const menu of list(c.menus, MAX.menus)) {
+    if (!menu || !KEY.test(menu.id ?? '') || !menu.id.startsWith(`${m.id}.`) || menus.has(menu.id)) bad('menu non valido (l’id inizia con l’id dell’app, uno per menu)');
+    if (!str(menu.label, 60)) bad(`menu ${menu.id}: etichetta mancante o troppo lunga`);
+    if (menu.glyph !== undefined && !GLYPH.test(menu.glyph)) bad(`menu ${menu.id}: glyph non valido`);
+    menus.add(menu.id);
+  }
+  const extList = v => Array.isArray(v) && v.length <= 50 && v.every(e => typeof e === 'string' && EXT.test(e));
   for (const a of list(c.actions, MAX.actions)) {
     const wrong = msg => bad(`azione ${String(a?.id).slice(0, 60)}: ${msg}`);
     if (!a || !KEY.test(a.id ?? '') || !a.id.startsWith(`${m.id}.`)) wrong('id non valido (inizia con l’id dell’app)');
@@ -278,10 +288,12 @@ export function checkManifest(raw) {
     if (!['file', 'folder', 'item'].includes(a.on)) wrong('on deve essere "file", "folder" o "item"');
     if (a.glyph !== undefined && !GLYPH.test(a.glyph)) wrong('glyph non valido');
     if (a.many !== undefined && a.many !== true) wrong('many può essere solo true');
+    if (a.menu !== undefined && !menus.has(a.menu)) wrong('menu non è uno dei menu dell’app (contributes.menus)');
     if (a.when !== undefined) {
-      if (!a.when || typeof a.when !== 'object' || Array.isArray(a.when) || Object.keys(a.when).some(k => k !== 'meta' && k !== 'ext')) wrong('when non valido');
+      if (!a.when || typeof a.when !== 'object' || Array.isArray(a.when) || Object.keys(a.when).some(k => !['meta', 'ext', 'notExt'].includes(k))) wrong('when non valido');
       if (a.when.meta !== undefined && a.when.meta !== 'own' && a.when.meta !== 'none') wrong('when.meta: "own" o "none"');
-      if (a.when.ext !== undefined && (!Array.isArray(a.when.ext) || a.when.ext.length > 50 || a.when.ext.some(e => typeof e !== 'string' || !EXT.test(e)))) wrong('when.ext non valido');
+      if (a.when.ext !== undefined && !extList(a.when.ext)) wrong('when.ext non valido');
+      if (a.when.notExt !== undefined && !extList(a.when.notExt)) wrong('when.notExt non valido');
     }
   }
   if (list(c.actions, MAX.actions).length && !permissions.includes('ui.menus')) bad('le azioni richiedono il permesso ui.menus');
