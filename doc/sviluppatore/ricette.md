@@ -212,7 +212,8 @@ Quando una workarea viene ridotta a icona chiude le sue finestre, e quando si ri
 2. Accetta quei dati in `args`: la workarea li passa all'app, dentro `args`, quando ricrea la finestra (`launcher.restore`). Controlla sempre quello che arriva: il file o la cartella possono non esistere più.
 3. Tieni lo stato **piccolo**: al massimo 4000 caratteri di JSON. Se lo supera viene scartato e la finestra si riapre senza argomenti. Ricorda id e opzioni, mai contenuti.
 4. Se `getState` non c'è, restituisce `null` o lancia un errore, la finestra si riapre con gli argomenti vuoti (ma nella stessa posizione e con le stesse dimensioni). Un errore viene solo scritto in console.
-5. Il testo non salvato non va nello stato: se la finestra ha modifiche, imposta anche `win.canClose` e la workarea lo chiederà all'utente prima di ridurre.
+5. Il testo non salvato non va nello stato: se la finestra ha modifiche, imposta anche `win.canClose` e la workarea lo chiederà all'utente prima di ridurre. In alternativa tienilo da parte tu, nello `storage` dell'utente (come l'Editor, che salva le bozze), e riprendilo da un id messo nello stato.
+   Per una finestra che mostra più file (schede) restituisci anche `files: [id…]` e, se vuoi, imposta `win.closeFiles = ids => …`: quando un file torna bloccato (`files:locked`) il sistema chiude solo quelle schede. Per sapere che la finestra è stata chiusa davvero, e non ricreata, ascolta `win.on('dismiss', …)` (non c'è quando lilOS la chiude per ricrearla).
 6. Per distinguere "nessun valore" da "valore assente", usa `'chiave' in args`, come fa l'Editor con `args.folder` (`null` vuol dire nessuna cartella, mancante vuol dire l'ultima aperta).
 
 Vale solo per le finestre aperte con `app` (cioè avviate dal launcher). Le finestre secondarie, aperte con `openWindow`, si chiudono e non si riaprono. Controllo dello stato salvato: [Riferimento API → `lilos:workareas`](api.md#lilosworkareas).

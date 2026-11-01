@@ -248,6 +248,8 @@ export class WindowManager extends Emitter {
   async requestClose(win) {
     if (!this.#entries.has(win)) return false;
     if (win.canClose && !(await win.canClose())) return false;
+    if (!this.#entries.has(win)) return false;   // closed meanwhile
+    win.emit('dismiss');
     this.close(win);
     return true;
   }

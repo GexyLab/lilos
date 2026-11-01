@@ -969,3 +969,21 @@ lilOS legge il file **prima** di avviare l'app e le dà le stringhe già risolte
 - Il cambio di workspace non chiude più il menu: `Workspaces` non lo chiude e il menu si ridisegna da solo (`switch`).
 
 **Quando ripensarla.** Se serviranno raccolte di app a scelta dell'utente (non solo le preferite), una storia condivisa tra workspace, la ricerca di tutti i file o le impostazioni, o se 100 voci per elenco e 30 giorni non bastano.
+
+---
+
+## D51. L'Editor con le schede tiene da parte il lavoro invece di chiedere
+
+**Decisione.** L'Editor 1.2.0 (repository ufficiale) apre ogni documento in una scheda. **Chiudere la finestra non chiede di salvare**: schede e testo non salvato restano nello `storage` dell'utente e tornano.
+
+- Chiavi `editor-tabs` (sessioni: una per finestra, più `closed` per quelle chiuse dall'utente) e `editor-draft:<scheda>` (`{ text, base, time }`, scritta circa 1 s dopo l'ultima modifica). Impostazione `tabs.reopen` in `editor-lang`, accesa di partenza.
+- lilOS aggiunge due cose generali: l'evento **`dismiss`** di `Window` (emesso da `wm.requestClose` dopo `canClose`, mai da `wm.close`) e `getState().files` / `win.closeFiles(ids)` per `files:locked` e `files:shown`.
+- **Perché `dismiss`**: l'app deve distinguere «l'utente ha chiuso» (le schede passano alla sessione `closed`) da «lilOS ricrea la finestra» (workarea, aggiornamento: la sessione resta alla finestra, che la riprende da `getState().session`). `destroy` non lo dice.
+- Restano le domande per i file con contenuto di un'app (FileCrypt: il testo non deve uscire dal file) e per i testi oltre circa 2 milioni di caratteri.
+- Sessioni non riaperte da 90 giorni cancellate con le bozze.
+
+**Alternative scartate.** Chiedere sempre alla chiusura (come prima: perde lavoro se il browser si chiude, un documento alla volta); salvare in automatico nel file (cambia il file senza che l'utente lo voglia); tenere le bozze in memoria (si perdono al ricaricamento).
+
+**Conseguenze.** Le bozze sono testo in chiaro nello `storage` dell'utente, fuori dal file. Un file cambiato nel frattempo si segnala al ritorno (Tieni la mia versione / Usa quella del file). Un `files:locked` chiude solo le schede, non la finestra.
+
+**Quando ripensarla.** Se le bozze dovessero poter essere cifrate, o se altre app con documenti vorranno lo stesso comportamento (allora la logica di sessioni va nell'SDK).

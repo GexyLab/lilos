@@ -40,15 +40,25 @@ export function connectSystemEvents({ wm, workspaces }) {
   bus.on('user:login', data => pipes.notify('session.login', data));
   kernel.onLogout(() => pipes.notify('session.logout', {}));
 
-  const fileOf = win => {
-    try { return win.getState?.()?.file ?? null; } catch { return null; }   // a window without state
+  // The files a window shows: getState().files (a window with tabs), or its one file
+  const filesOf = win => {
+    let state = null;
+    try { state = win.getState?.() ?? null; } catch { return []; }   // a window without state
+    const list = Array.isArray(state?.files) ? state.files : [state?.file];
+    return list.filter(id => typeof id === 'string');
   };
   // Windows that show a file just locked again (an encrypted one) close: what they show is in
-  // clear. Asked like the close button, so a window with unsaved changes says so first
+  // clear. Asked like the close button, so a window with unsaved changes says so first. A window
+  // with closeFiles(ids) closes only what shows those files (its tabs) and stays open
   bus.on('files:locked', ids => {
-    for (const win of [...wm.windows]) if (ids.includes(fileOf(win))) wm.requestClose(win);
+    for (const win of [...wm.windows]) {
+      const shown = filesOf(win).filter(id => ids.includes(id));
+      if (!shown.length) continue;
+      if (typeof win.closeFiles === 'function') win.closeFiles(shown);
+      else wm.requestClose(win);
+    }
   });
   bus.on('files:shown', ({ ids, answer }) => {
-    for (const win of wm.windows) if (ids.includes(fileOf(win))) answer(fileOf(win));
+    for (const win of wm.windows) for (const id of filesOf(win)) if (ids.includes(id)) answer(id);
   });
 }

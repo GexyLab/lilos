@@ -1335,13 +1335,13 @@ Argomenti (`args`) che il sistema usa per avviarle, e stato per le workarea (`wi
 | App (`id`) | `args` | `getState()` |
 | --- | --- | --- |
 | File Manager (`files`) | `folder`: id della cartella da aprire (altrimenti Home); `trash: true` (o `folder === fs.trashRoot`) apre il Cestino; `tag`: id di un tag che esiste, apre la vista di quel tag. Sulla finestra già aperta arriva l'evento `launch` e mostra la nuova cartella. | `{ folder }` (`fs.trashRoot` per il Cestino, `'tag:<id>'` per un tag) |
-| Editor (`editor`) | `file`: id del file da aprire; `folder`: cartella del pannello a destra (assente: l'ultima aperta; `null`: nessuna); `sidebar: false`: pannello chiuso. Apre i tipi di file dichiarati in `contributes.fileTypes` del suo manifesto. | `{ file, folder, sidebar? }` |
+| Editor (`editor`) | `file`: id del file da aprire (in una scheda nuova o in quella che lo mostra già); `folder`: cartella del pannello a destra (assente: l'ultima aperta; `null`: nessuna); `sidebar: false`: pannello chiuso; `session`: id della sessione di schede da riprendere (lo mette `getState`). Senza `session`, la finestra riprende le schede messe da parte da finestre chiuse dall'utente. Apre i tipi di file dichiarati in `contributes.fileTypes` del suo manifesto. | `{ session, file, files, folder, sidebar? }` (`files`: i file delle schede, per `files:locked`) |
 | Pannello di controllo (`settings`) | `tab`: id di una scheda (`'workspaces'`, `'tags'`…), anche a finestra già aperta; `tagFor`: id dei nodi su cui metterà il prossimo tag creato (lo manda «Nuovo tag…» del sottomenu Tag). | nessuno (si riapre sulla prima scheda) |
 | AppStore (`appstore`) | `tab`: `installed`, `updates`, l'id di una categoria (`system`, `productivity`, `media`, `development`, `other`), `kernel` o `options` (anche `apps`, `modules`, `repos`, dei vecchi collegamenti); anche a finestra già aperta (evento `launch`). | nessuno |
 
 Il sistema dipende da questi argomenti (`launch('files', { folder })` in `system.js`, `launch('settings', { tab: 'workspaces' })` nel pulsante del workspace): cambiarli nell'app rompe il sistema. Il sistema non dipende invece dall'esistenza delle app: se una manca, `launch` scrive solo un'informazione in console (`app non ancora disponibile`).
 
-Cosa salvano (chiavi di `storage`, vedi [Dati salvati](#dati-salvati)): File Manager `files-view`, `files-panels`; Editor `editor-lang`, `editor-tree`; Pannello di controllo nulla di proprio (usa `settings`, `shortcuts`, `tags`, `menus`…). Le associazioni dei tipi di file e l'ordine della barra laterale del File Manager sono del sistema (`file-apps`, `files-sidebar`).
+Cosa salvano (chiavi di `storage`, vedi [Dati salvati](#dati-salvati)): File Manager `files-view`, `files-panels`; Editor `editor-lang`, `editor-tree`, `editor-tabs`, `editor-draft:<scheda>`; Pannello di controllo nulla di proprio (usa `settings`, `shortcuts`, `tags`, `menus`…). Le associazioni dei tipi di file e l'ordine della barra laterale del File Manager sono del sistema (`file-apps`, `files-sidebar`).
 
 Permessi dichiarati nei manifesti ufficiali: File Manager `fs.write:~`, `fs.workspaces`, `tags.write`, `desktop.items`, `ui.shortcuts`; Editor `fs.write:~`, `ui.shortcuts`, `net:https://json.schemastore.org`; Photo `fs.write:~`, `ui.shortcuts`; Pannello di controllo `settings.system`, `workspaces.manage`, `tags.write`, `ui.shortcuts`; AppStore `apps.manage`. Per le app di sistema non c'è un controllo a ogni uso (non passano dal ponte): i permessi servono al kernel per accettare il manifesto e a mostrare cosa fa l'app.
 
@@ -1422,7 +1422,7 @@ L'evento `pipes.change` parte 50 ms dopo l'ultima iscrizione che cambia.
 
 `connectSystemEvents({ wm, workspaces })` manda con `pipes.notify` gli eventi del catalogo che non passano da `fs`: `window.open` e `window.close` (dal gestore delle finestre), `workspace.switch`, `settings.change`, `settings.system` (quando cambia il modo in cui girano le app), `apps.install` / `apps.update` / `apps.remove` / `permissions.change` (da `apps`: confronta versione e permessi concessi con quelli di prima), `system.ready` e `session.login` (dal bus `system:ready` e `user:login`) e `session.logout`.
 
-Ascolta anche l'evento del bus `files:locked` (id di file): chiede di chiudere (`wm.requestClose`) le finestre il cui `getState().file` è uno di quelli, perché ciò che mostrano è in chiaro e il file è tornato bloccato; una finestra con modifiche non salvate chiede prima di chiudersi. Lo emette `lilos.files.locked` e anche `background.js` quando si ferma un punto d'ingresso in background: chiude così le finestre dei file il cui contenuto è di quell'app (`fs.appMeta(id, app).content === true`). Risponde anche a `files:shown` (`{ ids, answer(id) }`): dice quali di quei file una finestra mostra, per `lilos.files.shown`.
+Ascolta anche l'evento del bus `files:locked` (id di file): agisce sulle finestre il cui `getState().file`, o uno di `getState().files` (la lista, per le finestre con schede), è uno di quelli, perché ciò che mostrano è in chiaro e il file è tornato bloccato. Se la finestra ha `win.closeFiles(ids)`, la chiama con gli id che mostra tra quelli bloccati e la finestra resta aperta (l'Editor chiude solo le schede); altrimenti chiede di chiuderla (`wm.requestClose`) e una finestra con modifiche non salvate chiede prima di chiudersi. Lo emette `lilos.files.locked` e anche `background.js` quando si ferma un punto d'ingresso in background: chiude così le finestre dei file il cui contenuto è di quell'app (`fs.appMeta(id, app).content === true`). Risponde anche a `files:shown` (`{ ids, answer(id) }`): dice quali di quei file una finestra mostra (`file` e `files` di `getState()`), per `lilos.files.shown`.
 
 ---
 
@@ -1814,7 +1814,7 @@ Ogni finestra di un'app `local` ha il suo posto nelle pipe (`windowPipe`, che us
 | `focus(win \| null)` | Porta in primo piano e attiva la finestra; `null` dà il focus alla scrivania. |
 | `minimize(win)` | Nasconde la finestra; il focus passa alla finestra visibile più in alto. |
 | `toggleMaximize(win)` | Finestra grande come lo schermo, con la vista al 100% su di essa; di nuovo per ripristinare dimensioni, posizione e vista. Non ingrandisce se il controllo `maximize` è spento; se viene spento mentre la finestra è ingrandita, la ripristina. |
-| `requestClose(win)` | Chiusura chiesta dall'utente (pulsante, Alt W): chiede prima `win.canClose()`, se c'è. `Promise<boolean>`: chiusa o no. |
+| `requestClose(win)` | Chiusura chiesta dall'utente (pulsante, Alt W): chiede prima `win.canClose()`, se c'è; se dice sì, emette `dismiss` sulla finestra e la chiude. `Promise<boolean>`: chiusa o no (`false` anche se nel frattempo è stata chiusa da altri). `close(win)` invece non emette `dismiss`. |
 | `close(win)` | Chiude subito, senza chiedere: toglie il pulsante e chiama `win.destroy()`. |
 | `cycle()` | Porta in primo piano la finestra più in basso (riaprendola se ridotta a icona): ripetuto, le visita tutte. |
 
@@ -2204,8 +2204,9 @@ DOM: `section.window[data-kind="window"][role="dialog"]` con `.win-titlebar` (e 
 | `setControl(name, enabled)`, `setControls({ … })` | Accende o spegne uno o più controlli; emette `controls`. |
 | `setResizable(value)` | `true`, `false` o elenco di bordi; emette `controls`. |
 | `constrain(w, h)` | `{ w, h }` riportati entro i limiti. |
-| `canClose` | Facoltativo: funzione `() => boolean \| Promise<boolean>` chiesta dal gestore prima di chiudere su richiesta dell'utente (pulsante, Alt W). Per esempio l'Editor la usa per proporre di salvare. |
-| `getState` | Facoltativo: funzione `() => dati JSON` (oggetto semplice) con cui ricreare la finestra. Le workarea la chiamano prima di chiudere le finestre delle app e danno il risultato all'app come `args` quando la riaprono. Vedi la [ricetta](ricette.md#far-riaprire-la-finestra-di-unapp-da-una-workarea). Predefinito `null`: la finestra si riapre senza argomenti. |
+| `canClose` | Facoltativo: funzione `() => boolean \| Promise<boolean>` chiesta dal gestore prima di chiudere su richiesta dell'utente (pulsante, Alt W). Per esempio un'app che non tiene da parte il testo la usa per proporre di salvare. |
+| `getState` | Facoltativo: funzione `() => dati JSON` (oggetto semplice) con cui ricreare la finestra. Le workarea la chiamano prima di chiudere le finestre delle app e danno il risultato all'app come `args` quando la riaprono. Vedi la [ricetta](ricette.md#far-riaprire-la-finestra-di-unapp-da-una-workarea). Predefinito `null`: la finestra si riapre senza argomenti. Per dire quali file mostra, restituisce `file` (id) o, con più schede, `files` (lista di id): il sistema li legge per `files:locked` e `files:shown`. |
+| `closeFiles` | Facoltativo: funzione `(ids) => void` che chiude solo ciò che mostra quei file (le sue schede), senza chiudere la finestra. La chiama `files:locked` al posto di `wm.requestClose`. |
 | `active` | `true` se la finestra è nella pagina, visibile e attiva. |
 | `signal` | `AbortSignal` annullato da `destroy()`: passalo ad `addEventListener(…, { signal })` per i listener del contenuto, così spariscono con la finestra. |
 | `setTitle(title, subtitle?)` | Aggiorna la barra del titolo (`Titolo — Sottotitolo`) ed emette `title`. |
@@ -2213,7 +2214,7 @@ DOM: `section.window[data-kind="window"][role="dialog"]` con `.win-titlebar` (e 
 | `setActive(bool)`, `setMaximized(bool)` | Aspetto attivo/inattivo e ingrandito. |
 | `destroy()` | Annulla `signal`, toglie l'elemento ed emette `destroy`. |
 
-Eventi: `minimize`, `maximize` (anche doppio clic sulla barra del titolo, se il controllo è attivo), `close` sono richieste dei pulsanti; `title`, `controls` (`{ controls, resizable }`) e `destroy` sono cambiamenti di stato. Per convenzione il launcher emette `launch` (con gli argomenti) quando l'app viene avviata di nuovo mentre la finestra è aperta.
+Eventi: `minimize`, `maximize` (anche doppio clic sulla barra del titolo, se il controllo è attivo), `close` sono richieste dei pulsanti; `title`, `controls` (`{ controls, resizable }`) e `destroy` sono cambiamenti di stato. `dismiss` precede `destroy` quando la finestra si chiude perché le è stato chiesto (`wm.requestClose`: pulsante, scorciatoia, file bloccato di nuovo, app nascosta) e quindi non tornerà: chi tiene da parte il suo stato per riaprirlo qui lo lascia andare (o, come l’Editor, lo passa alla prossima finestra nuova). Non viene emesso quando lilOS chiude la finestra per ricrearla dallo stato (`wm.close`: workarea ridotta a icona, aggiornamento dell'app). Per convenzione il launcher emette `launch` (con gli argomenti) quando l'app viene avviata di nuovo mentre la finestra è aperta.
 
 ---
 
@@ -2699,8 +2700,8 @@ Modulo del kernel che fornisce `notifications` (`modules/notifications-basic_1.0
 | `item:open` | nodo del file system | `Desktop.open()` per cartelle e file | `system.js`: le cartelle si aprono nel File Manager (`launch('files', { folder })`), i file con `openFile` |
 | `system:ready` | `{ at }` (`Date.now()`) | `system.js`, una volta per pagina, quando le finestre salvate del primo workspace (`workspaces.ready`) e delle workarea aperte (`workareas.ready`) sono tornate | Chi vuole partire con il sistema. I servizi del kernel **non** passano da qui: il kernel ha i suoi momenti `system:ready` e `user:login` (vedi [Servizi delle app](#servizi-delle-app-appsappservicesjs)), che non dipendono da una pagina aperta |
 | `user:login` | `{ user, workspace }` (`kernel.data.user` o `null`; id del workspace attuale o `null`) | `system.js`, subito dopo `system:ready` | `connectStartup` (`apps/startup.js`): apre le app dell'avvio |
-| `files:locked` | `[id]` (id di file) | `lilos.files.locked` (il ponte `methods.js`); `background.js` quando si ferma un punto d'ingresso in background con file suoi | `connectSystemEvents` (`apps/systemEvents.js`): chiede di chiudere le finestre che mostrano quei file |
-| `files:shown` | `{ ids, answer(id) }` | `lilos.files.shown` (il ponte `methods.js`) | `connectSystemEvents`: chiama `answer(id)` per ogni file di `ids` mostrato in una finestra |
+| `files:locked` | `[id]` (id di file) | `lilos.files.locked` (il ponte `methods.js`); `background.js` quando si ferma un punto d'ingresso in background con file suoi | `connectSystemEvents` (`apps/systemEvents.js`): per le finestre che mostrano quei file (`getState().file` o `.files`) chiama `win.closeFiles(ids)` se c'è, altrimenti chiede di chiuderle |
+| `files:shown` | `{ ids, answer(id) }` | `lilos.files.shown` (il ponte `methods.js`) | `connectSystemEvents`: chiama `answer(id)` per ogni file di `ids` mostrato in una finestra (`getState().file` o `.files`) |
 
 Quando aggiungi un evento, documentalo qui e nel commento in testa a `sdk/core/events.js`.
 
@@ -2808,7 +2809,15 @@ Disposizioni dei menu scelte dall'utente: `{ "desktop.background": [ …voci… 
 
 ### `lilos:editor-lang`
 
-Impostazioni dell'Editor (motori di evidenziazione, grammatiche aggiunte, language server esterni, schemi JSON): le scrive e le valida l'app Editor (`lang/config.js`, nel repository ufficiale). Il sistema non le legge.
+Impostazioni dell'Editor (motori di evidenziazione, grammatiche aggiunte, language server esterni, schemi JSON): le scrive e le valida l'app Editor (`lang/config.js`, nel repository ufficiale). Contengono anche la sezione `tabs: { reopen }` (`true` di partenza: l'Editor tiene da parte schede e bozze alla chiusura). Il sistema non le legge.
+
+### `lilos:editor-tabs`
+
+Schede dell'Editor (scritte da `sessions.js` nell'app Editor): `{ "sessions": { "<id>": { "used": ms, "active": chiave, "tabs": [ … ] } } }`. Una sessione per finestra; quella delle finestre chiuse dall'utente ha id `closed`. Ogni scheda ha una chiave; le sessioni non riaperte da 90 giorni sono cancellate con le loro bozze.
+
+### `lilos:editor-draft:<chiave scheda>`
+
+Testo non salvato di una scheda: `{ "text", "base", "time" }` (`base` è il contenuto del file da cui si è partiti, per accorgersi che è cambiato). Scritta circa 1 s dopo l'ultima modifica. Non c'è per i file il cui contenuto è di un'app (FileCrypt) né oltre circa 2 milioni di caratteri.
 
 ### `lilos:editor-tree`
 

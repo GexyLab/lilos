@@ -206,8 +206,8 @@ Il tasto destro sullo sfondo dentro l'area mostra prima le voci della workarea: 
 
 Pulsante con il trattino nella barra del titolo, oppure tasto destro → **Riduci a icona**.
 
-- Se una finestra ha modifiche non salvate (per esempio un testo nell'Editor), lilOS chiede cosa fare. Con **Annulla** la workarea resta com'è.
-- Le finestre si chiudono, ma lilOS ricorda le app, dove erano e che cosa mostravano (per esempio il file aperto nell'Editor o la cartella aperta nel File Manager). Il testo non salvato non viene ricordato: per questo lo chiede prima.
+- Se una finestra ha modifiche non salvate (per esempio un'immagine ritoccata), lilOS chiede cosa fare. L'Editor no: tiene da parte schede e testo (vedi [Chiudere l'Editor senza perdere niente](#chiudere-leditor-senza-perdere-niente)). Con **Annulla** la workarea resta com'è.
+- Le finestre si chiudono, ma lilOS ricorda le app, dove erano e che cosa mostravano (per esempio il file aperto nell'Editor o la cartella aperta nel File Manager). Il testo non salvato di una finestra non viene ricordato: per questo lo chiede prima.
 - Le icone dell'area spariscono dalla scrivania. Al loro posto resta **una sola icona**, nell'angolo in alto a sinistra dell'area.
 
 L'icona si usa come le altre: **doppio clic** o **Invio** la riapre. L'area torna al suo posto con le icone, le finestre si riaprono e la vista la inquadra. **F2** la rinomina. Trascinandola, sposti l'area nascosta con tutto il suo contenuto. Se al ritorno l'area coprirebbe un'altra workarea aperta, viene spostata a destra con il suo contenuto.
@@ -431,6 +431,7 @@ L'**Editor** apre e modifica i file di testo e di codice (txt, md, js, css, html
 - **Colori**: parole chiave, testi, numeri e commenti sono colorati secondo il linguaggio, riconosciuto dall'estensione del file. Puoi cambiarlo dal menu in alto a destra (Testo, Markdown, JavaScript, CSS, HTML, JSON, Python).
 - **In alto**: Nuovo documento, Apri un file…, Apri una cartella…, Salva, Mostra nella cartella (apre il File Manager dove si trova il file); all'estrema destra il pulsante che mostra o nasconde la cartella aperta.
 - **In basso**: riga e colonna del cursore, numero di righe, stato del documento (Salvato, Modificato, Nuovo documento).
+- **Sopra il testo**: una [scheda](#le-schede-delleditor) per ogni documento aperto.
 
 ### Aprire una cartella
 
@@ -490,13 +491,50 @@ Mentre scrivi:
 | Ctrl Y, Ctrl Shift Z | Ripete quello che hai annullato |
 | Esc | Esce dal testo (poi Tab sposta il focus sui pulsanti) |
 
-Ctrl S, Ctrl Alt N, Ctrl O, Ctrl Alt O, Ctrl B e Ctrl Spazio si cambiano nel Pannello di controllo → Usabilità → Scorciatoie, sezione Editor.
+Ctrl S, Ctrl Alt N, Ctrl O, Ctrl Alt O, Ctrl B e Ctrl Spazio (come le scorciatoie delle schede, qui sotto) si cambiano nel Pannello di controllo → Usabilità → Scorciatoie, sezione Editor.
 
 Un documento nuovo, al primo salvataggio, viene creato nella cartella aperta a destra o, se non ce n'è una, in **Documenti**, con il nome "Senza titolo.txt"; poi puoi rinominarlo dal File Manager o dalla scrivania.
 
-Il titolo della finestra mostra un pallino (•) quando ci sono modifiche non salvate. Se chiudi la finestra, apri un altro file o crei un documento nuovo con modifiche non salvate, l'Editor chiede: **Salva**, **Non salvare** o **Annulla**. Anche chiudendo o ricaricando la pagina del browser compare un avviso.
+Il titolo della finestra mostra un pallino (•) quando ci sono modifiche non salvate. Se chiudi una scheda con modifiche, l'Editor chiede: **Salva**, **Non salvare** o **Annulla**. Chiudendo la finestra invece non chiede niente: vedi [Chiudere l'Editor senza perdere niente](#chiudere-leditor-senza-perdere-niente).
 
-L'Editor apre un documento alla volta. Se il file aperto viene rinominato o spostato altrove, titolo e percorso si aggiornano; se viene eliminato, il testo resta nell'Editor finché non lo salvi (viene ricreato in Documenti).
+Se un file aperto viene rinominato o spostato altrove, titolo e percorso si aggiornano; se viene eliminato, il testo resta nell'Editor finché non lo salvi (viene ricreato in Documenti).
+
+### Le schede dell'Editor
+
+Ogni documento aperto ha la sua **scheda**, sopra il testo.
+
+- **Nome e stato**: sulla scheda c'è il nome del file. Se ci sono modifiche non salvate compare un pallino; passandoci sopra con il mouse torna la **×** per chiudere. Se due file aperti si chiamano uguale, accanto al nome compare la loro cartella.
+- **Nuovo documento**: il pulsante **+** (o **Ctrl Alt N**) crea una scheda "Senza titolo", poi "Senza titolo 2" e così via. Anche un doppio clic nello spazio libero della barra ne crea una.
+- **Aprire un file** (con Apri, dal pannello della cartella o dal File Manager) lo apre in una scheda nuova. Se è già aperto, mostra la sua scheda. Un "Senza titolo" vuoto, che non hai mai toccato, lascia il posto al file.
+- **Chiudere**: la × della scheda, il clic con il tasto centrale o **Ctrl Alt W**. Se la scheda ha modifiche, l'Editor chiede **Salva**, **Non salvare** o **Annulla**.
+- **Riordinare**: trascina una scheda. Se ce ne sono troppe per la larghezza, scorri la barra con la rotellina.
+- **Tasto destro** su una scheda: Chiudi, Chiudi le altre, Chiudi quelle a destra, Chiudi quelle salvate, Copia il percorso, Mostra nel File Manager.
+- **Da tastiera**, con il focus sulla barra delle schede: le frecce sinistra e destra, **Home** e **Fine** passano da una scheda all'altra, **Canc** chiude la scheda, il tasto menu (o **Maiusc F10**) apre il menu.
+
+| Tasti | Cosa fanno |
+| --- | --- |
+| Ctrl Alt W | Chiude la scheda |
+| Ctrl Alt Pag giù / Pag su | Scheda successiva / precedente |
+| Ctrl Alt T | Riapre l'ultima scheda chiusa |
+
+Si cambiano nel Pannello di controllo → Usabilità → Scorciatoie, sezione Editor.
+
+Annulla e Ripeti (Ctrl Z, Ctrl Y) valgono per la scheda in cui sei e restano separati per ogni scheda, finché la finestra è aperta.
+
+### Chiudere l'Editor senza perdere niente
+
+**Chiudere la finestra dell'Editor non chiede di salvare.** Le schede aperte e il testo non salvato vengono messi da parte (il testo si salva da solo circa un secondo dopo l'ultima modifica, senza toccare il file) e tornano alla prossima apertura dell'Editor. Lo stesso vale quando lilOS chiude e riapre la finestra da solo: cambiando workspace, riaprendo una workarea o dopo un aggiornamento dell'app.
+
+- Se chiudi più finestre dell'Editor, le loro schede si sommano e la prossima finestra nuova le riprende tutte, più l'eventuale file che stai aprendo. Le schede di file che il workspace in cui sei non vede restano da parte per un'altra finestra in quel workspace.
+- I file si leggono quando si apre la loro scheda.
+- Se il file è **cambiato** mentre l'Editor era chiuso, sopra il testo compare "«nome» è cambiato dopo le tue ultime modifiche non salvate" con due pulsanti: **Tieni la mia versione** e **Usa quella del file**.
+- Se il file è stato **eliminato**, la scheda resta con il testo e l'avviso "Il file non esiste più: il testo resta qui finché non lo salvi".
+- Se il file non si può leggere (per esempio è cifrato e FileCrypt non c'è), la scheda si apre in sola lettura con l'avviso.
+- **Attenzione, chiede comunque** alla chiusura: i file cifrati con FileCrypt (il loro testo non viene mai salvato fuori dal file) e i testi molto lunghi (oltre circa 2 milioni di caratteri). Solo per questi il browser avvisa anche prima di ricaricare la pagina.
+- Se un file cifrato viene bloccato di nuovo, si chiudono le sue schede (le altre restano).
+- I documenti messi da parte e non riaperti per **90 giorni** vengono cancellati insieme al loro testo.
+
+Per fare come prima, nelle **Impostazioni dell'Editor** → **Generale** → Schede spegni **Riapri schede e modifiche** (è acceso di partenza). Da spento, chiudere chiede per ogni documento con modifiche e non si mette niente da parte.
 
 ### Linguaggi, errori e schemi
 
@@ -527,6 +565,7 @@ Vale anche la chiave `"$schema"` scritta nel file. Con uno schema, i suggeriment
 
 | Sezione | Cosa puoi fare |
 | --- | --- |
+| Schede (scheda **Generale**) | Spegnere **Riapri schede e modifiche**: da spento la chiusura chiede per ogni modifica e non mette niente da parte |
 | Evidenziazione | Scegliere il motore per ogni linguaggio; aggiungere una **grammatica TextMate** (un file `.tmLanguage.json` di lilOS): i file con le estensioni indicate dalla grammatica verranno colorati con essa |
 | Language server | Accendere o spegnere i server nel browser (JSON, CSS, HTML); collegare un **server esterno** via WebSocket (`ws://…`) per un linguaggio, per esempio TypeScript avviato sul tuo computer con un ponte WebSocket |
 | Schemi JSON | Vedere e togliere gli schemi associati ai file |

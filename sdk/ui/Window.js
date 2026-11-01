@@ -25,6 +25,8 @@ export const WINDOW_EDGES = ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'];
  * To be reopened later as it is (workareas save their windows), an app window sets getState():
  * it returns plain JSON data, given back to the app as `args` when the window is recreated.
  *   win.getState = () => ({ file: editor.fileId })
+ * `file` (or `files`, a list, for a window with tabs) says which files it shows: a file locked again
+ * (FileCrypt) closes the window, or calls win.closeFiles(ids) when the window sets it.
  *
  * Events (intents, emitted by the controls):
  *   'minimize' | 'maximize' | 'close'
@@ -32,6 +34,10 @@ export const WINDOW_EDGES = ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'];
  *   'title'     { title, subtitle }
  *   'controls'  { controls, resizable } — a control or the resize edges changed
  *   'launch'    args — the app was launched again while this window was open (see apps/launcher.js)
+ *   'dismiss'   right before 'destroy', when the window closes because it was asked to (the close
+ *               button, a shortcut, lilOS closing an app hidden or a file locked again): it will not
+ *               come back. Not emitted when lilOS closes it to recreate it later from getState()
+ *               (a workarea reduced to an icon, an app update)
  *   'destroy'   the window is gone; listeners registered with `signal` are already removed
  */
 export class Window extends Emitter {
