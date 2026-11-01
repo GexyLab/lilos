@@ -1,4 +1,5 @@
 import { locale } from '@lilos/sdk';
+import { typeKey } from '../../input/sendKey.js';
 
 /**
  * `lilos`: what an installed app has of lilOS, the same object however the app runs
@@ -217,12 +218,14 @@ export const SANDBOX_RUNTIME_SOURCE = `(() => {
 /**
  * The script that runs first in the sandbox of an isolated window: window.lilos, through
  * messages to the parent page. App shortcuts are caught here (the keyboard focus is in the
- * sandbox) and arrive as 'command' events, with the keys the user chose in Settings.
+ * sandbox) and arrive as 'command' events, with the keys the user chose in Settings. Keys of the
+ * on-screen keyboard come as messages and are typed here (see input/sendKey.js).
  */
 export const BRIDGE_SOURCE = `(() => {
   'use strict';
   const lilosApi = ${lilosApi.toString()};
   const i18nApi = ${locale.engine.toString()};
+  const typeKey = ${typeKey.toString()};
   const pending = new Map();
   let next = 1;
   const info = JSON.parse(document.currentScript.dataset.info);
@@ -250,6 +253,7 @@ export const BRIDGE_SOURCE = `(() => {
       }
       return;
     }
+    if (m.key) return typeKey(document, m.key);
     if (m.event === 'keys') { keys = m.data || {}; return; }
     if (m.event === 'theme') applyTheme(m.data);
     if (m.event) return emit(m.event, m.data);

@@ -33,3 +33,4 @@ export { markItem, dropZone, dragItems, movableInto, moveInto } from './items/it
 export { recordCreated, renameNode, moveNode, restoreNodes, removeNodes } from './items/fsHistory.js';
 export { confirmRemove } from './items/confirmRemove.js';
 export { tagDots, tagSubmenu, setTag } from './tags/tagUi.js';
+export { sendKey } from './input/sendKey.js';

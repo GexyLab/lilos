@@ -19,6 +19,10 @@ export const WINDOW_EDGES = ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'];
  *   new Window({ controls: { minimize: false }, resizable: ['e', 's', 'se'] })
  *   win.setControl('close', false); win.setResizable(false)
  *
+ * A window with `focusable: false` never takes the keyboard focus: clicking it brings it forward
+ * but the focus, and the active window, stay where they were (the on-screen keyboard types there).
+ * `onTop: true` keeps it above the windows without it.
+ *
  * Before closing on the user's request, the window manager asks canClose() if the window sets it
  * (e.g. to offer saving changes): return true / false, or a Promise of it.
  *
@@ -52,12 +56,12 @@ export class Window extends Emitter {
   constructor({
     title = '', subtitle = '', icon: glyph = 'help',
     width = 640, height = 440, minWidth = 320, minHeight = 200, maxWidth = Infinity, maxHeight = Infinity,
-    controls = {}, resizable = true,
+    controls = {}, resizable = true, focusable = true, onTop = false,
     // Shorthands, same as controls.minimize / controls.maximize / controls.close
     minimizable, maximizable, closable,
   } = {}) {
     super();
-    Object.assign(this, { glyph, minWidth, minHeight, maxWidth, maxHeight });
+    Object.assign(this, { glyph, minWidth, minHeight, maxWidth, maxHeight, focusable, onTop });
 
     this.titleText = h('span', { class: 'win-title-text' });
     this.subtitleText = h('em');
@@ -68,6 +72,14 @@ export class Window extends Emitter {
     this.body = h('div', { class: 'win-body', dataset: { wheel: 'native' } });
     this.edgeLayer = h('div', { class: 'win-edges', 'aria-hidden': 'true' });
     this.el = h('section', { class: 'window', dataset: { kind: 'window' }, role: 'dialog' }, this.titlebar, this.body, this.edgeLayer);
+
+    if (!focusable) {
+      this.el.classList.add('no-focus');
+      // A press on it would move the focus here (or to the page): only its own fields take it
+      this.el.addEventListener('mousedown', e => {
+        if (!e.target.closest('input, textarea, select, [contenteditable]')) e.preventDefault();
+      });
+    }
 
     this.titlebar.addEventListener('dblclick', e => {
       if (this.#controls.maximize && !e.target.closest('button')) this.emit('maximize');

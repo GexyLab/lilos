@@ -2,6 +2,7 @@ import { Emitter, h, icon, trackDrag, shortcuts } from '@lilos/sdk';
 
 const CASCADE = 24;
 const Z_BASE = 100;
+const Z_TOP = 900;   // windows that stay on top (onTop), still under desk items being dragged
 
 /** World rect from the inline position and size (also right for hidden windows). */
 const styleRect = el => ({
@@ -203,7 +204,12 @@ export class WindowManager extends Emitter {
     if (win && this.#entries.get(win)?.workspace !== this.#workspace) return;   // unknown, or in another workspace
     if (win) {
       this.#order = [...this.#order.filter(w => w !== win), win];
-      this.#order.forEach((w, i) => { w.el.style.zIndex = String(Z_BASE + i); });
+      this.#order.forEach((w, i) => { w.el.style.zIndex = String((w.onTop ? Z_TOP : Z_BASE) + i); });
+    }
+    // A window that never takes the focus (on-screen keyboard) only comes forward
+    if (win?.focusable === false) {
+      win.setActive(false);
+      return;
     }
     for (const [w, e] of this.#entries) {
       w.setActive(w === win);
@@ -274,7 +280,7 @@ export class WindowManager extends Emitter {
   }
 
   #topVisible() {
-    return this.windows.reverse().find(w => !this.#hidden(w)) ?? null;
+    return this.windows.reverse().find(w => !this.#hidden(w) && w.focusable !== false) ?? null;
   }
 
   #bind(win, task) {
