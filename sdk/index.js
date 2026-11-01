@@ -36,5 +36,6 @@ export { toast } from './ui/toast.js';
 export { Window, WINDOW_EDGES } from './ui/Window.js';
 export { SettingsView } from './ui/SettingsView.js';
 export { SettingsWindow } from './ui/SettingsWindow.js';
+export { messageBox } from './ui/messageBox.js';
 
 export { version as SDK_VERSION } from './package.json';

@@ -301,6 +301,8 @@ Un workspace nuovo si crea anche dal menu del pulsante nella barra delle applica
 - **A destra**, due pannelli che si aprono e si chiudono: **Informazioni** e **Anteprima** (vedi [Anteprima e Informazioni](#anteprima-e-informazioni)).
 - **In basso**: quanti elementi ci sono e quanti sono selezionati, il percorso della cartella o un messaggio.
 
+Quando qualcosa non riesce (un nome che non si può dare, una cartella di sistema da eliminare, una cartella da aprire che non esiste più) il File Manager lo dice in un riquadro sopra la finestra: finché non premi **OK** (o **Invio**, o **Esc**) il resto della finestra aspetta. Se il nome non va, **Riprova** ti fa scrivere di nuovo il nome.
+
 Con gli elementi della cartella fai le stesse cose della scrivania: clic, Ctrl + clic, **Shift + clic** per selezionare un intervallo, doppio clic o Invio per aprire, F2 per rinominare, Canc per eliminare (nel cestino: eliminare definitivamente), Ctrl A per selezionare tutto. Dal tasto destro su un punto vuoto puoi creare cartelle e file di testo. **Ctrl Z** annulla quello che hai fatto in questa finestra (vedi [Annullare e ripetere](#annullare-e-ripetere)).
 
 Tasti per muoversi nell'elenco (non modificabili):

@@ -1,0 +1,47 @@
+/* ---------- Message box (messageBox): over a window's content, below its title bar, or over the page ---------- */
+/* In the window frame, not in its body: the body is made inert while the box is open.
+   Below the resize handles (z-index 3) and the title bar (30px), which stay usable. */
+.msgbox-layer {
+  position: absolute; inset: 30px 0 0; z-index: 2; padding: 12px;
+  display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr); place-items: center;
+  background: rgba(0, 0, 0, .22); border-radius: 0 0 var(--radius) var(--radius);
+  animation: msgbox-fade .12s ease-out;
+}
+.msgbox-layer + .msgbox-layer { background: none; }
+/* Dark windows: a darker veil and a lighter box, or the box does not stand out */
+:root[data-theme="dark"] .msgbox-layer { background: rgba(0, 0, 0, .45); }
+:root[data-theme="dark"] .msgbox-layer + .msgbox-layer { background: none; }
+:root[data-theme="dark"] .msgbox { background: var(--chrome); }
+.window.max .msgbox-layer { border-radius: 0; }
+.msgbox-layer.page { position: fixed; inset: 0; z-index: 10000; border-radius: 0; }
+
+.msgbox {
+  width: min(400px, 100%); max-height: 100%; display: flex; flex-direction: column; gap: 16px; padding: 18px 18px 14px;
+  background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius);
+  box-shadow: var(--shadow-pop); outline: 0; user-select: text; animation: msgbox-in .14s ease-out;
+}
+.msgbox.nudge { animation: msgbox-nudge .22s ease-in-out; }
+.msgbox.info { --kind: var(--accent); }
+.msgbox.warning { --kind: var(--warning); }
+.msgbox.error { --kind: var(--danger); }
+
+.msgbox-head { display: flex; align-items: flex-start; gap: 14px; flex: 0 1 auto; min-height: 0; }
+.msgbox-icon {
+  width: 34px; height: 34px; flex: none; display: grid; place-items: center; border-radius: 50%;
+  color: var(--kind); background: color-mix(in srgb, var(--kind) 13%, var(--surface));
+}
+.msgbox-icon .ico { width: 20px; height: 20px; stroke-width: 1.9; }
+/* A long text scrolls here: the box never gets bigger than what the window shows */
+.msgbox-main { flex: 1; min-width: 0; align-self: stretch; overflow: auto; }
+.msgbox-icon + .msgbox-main { padding-top: 7px; }
+.msgbox-title { font-size: 13.5px; font-weight: 600; line-height: 1.35; overflow-wrap: anywhere; }
+.msgbox-text { white-space: pre-line; overflow-wrap: anywhere; }
+.msgbox-title + .msgbox-text { margin-top: 4px; color: var(--dim); }
+
+/* Always on one line: the box, and the window if needed, get wider for them (messageBox.js) */
+.msgbox-buttons { display: flex; justify-content: flex-end; gap: 8px; }
+.msgbox-buttons .ctl-btn { flex: none; min-width: 76px; }
+
+@keyframes msgbox-fade { from { opacity: 0; } }
+@keyframes msgbox-in { from { opacity: 0; transform: translateY(-6px) scale(.98); } }
+@keyframes msgbox-nudge { 50% { transform: scale(1.025); } }

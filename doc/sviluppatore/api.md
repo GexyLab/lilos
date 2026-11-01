@@ -2100,7 +2100,7 @@ Il modulo osserva `userPhoto`: con una foto valida mette `--user-photo: url("…
 - `icon(name, className = 'ico')`: simbolo SVG 24×24 disegnato con `currentColor`. Con un nome sconosciuto mostra `help`.
 - `logo(className = 'logo')`: il logo di lilOS.
 
-Simboli disponibili: `search`, `plus`, `minus`, `x`, `fit`, `zoom`, `grid`, `folder`, `folderPlus`, `file`, `filePlus`, `open`, `pencil`, `trash`, `globe`, `code`, `terminal`, `gear`, `calendar`, `image`, `music`, `mail`, `power`, `help`, `info`, `max`, `palette`, `disk`, `user`, `window`, `keyboard`, `accessibility`, `arrowLeft`, `arrowRight`, `arrowDown`, `arrowUp`, `list`, `home`, `download`, `monitor`, `check`, `save`, `star`, `grip`, `lasso`, `folderOpen`, `sidebar`, `workarea`, `workspace`, `undo`, `redo`, `bell`, `tag`, `eyeOff`, `link`, `logout`, `restart`, `camera`, `calculator`, `archive`.
+Simboli disponibili: `search`, `plus`, `minus`, `x`, `fit`, `zoom`, `grid`, `folder`, `folderPlus`, `file`, `filePlus`, `open`, `pencil`, `trash`, `globe`, `code`, `terminal`, `gear`, `calendar`, `image`, `music`, `mail`, `power`, `help`, `info`, `max`, `palette`, `disk`, `user`, `window`, `keyboard`, `accessibility`, `arrowLeft`, `arrowRight`, `arrowDown`, `arrowUp`, `list`, `home`, `download`, `monitor`, `check`, `save`, `star`, `grip`, `lasso`, `folderOpen`, `sidebar`, `workarea`, `workspace`, `undo`, `redo`, `bell`, `tag`, `eyeOff`, `link`, `logout`, `restart`, `camera`, `calculator`, `archive`, `warning`, `error`.
 
 ### `toast.js`
 
@@ -2250,6 +2250,45 @@ DOM: `section.window[data-kind="window"][role="dialog"]` con `.win-titlebar` (e 
 | `destroy()` | Annulla `signal`, toglie l'elemento ed emette `destroy`. |
 
 Eventi: `minimize`, `maximize` (anche doppio clic sulla barra del titolo, se il controllo è attivo), `close` sono richieste dei pulsanti; `title`, `controls` (`{ controls, resizable }`) e `destroy` sono cambiamenti di stato. `dismiss` precede `destroy` quando la finestra si chiude perché le è stato chiesto (`wm.requestClose`: pulsante, scorciatoia, file bloccato di nuovo, app nascosta) e quindi non tornerà: chi tiene da parte il suo stato per riaprirlo qui lo lascia andare (o, come l’Editor, lo passa alla prossima finestra nuova). Non viene emesso quando lilOS chiude la finestra per ricrearla dallo stato (`wm.close`: workarea ridotta a icona, aggiornamento dell'app). Per convenzione il launcher emette `launch` (con gli argomenti) quando l'app viene avviata di nuovo mentre la finestra è aperta.
+
+---
+
+## sdk/ui/messageBox.js
+
+### `messageBox(win, options?)` → `Promise<string | null>`
+
+Un messaggio per l'utente, o una scelta da fare, sopra il contenuto di una finestra. Finché non risponde, il contenuto della finestra non si usa (il corpo è `inert`); la barra del titolo sì: la finestra si sposta e si chiude. Con `win` a `null` copre tutta la pagina.
+
+```js
+import { messageBox } from '@lilos/sdk';
+
+const answer = await messageBox(win, {
+  icon: 'error',
+  title: 'Percorso non trovato',
+  text: '«/home/eugenio/Fotoo» non esiste.',
+  buttons: ['retry', 'cancel'],
+});
+if (answer === 'retry') riprova();
+```
+
+| Opzione | Predefinito | Significato |
+| --- | --- | --- |
+| `icon` | `null` | `'info'` (colore `--accent`), `'warning'` (`--warning`), `'error'` (`--danger`) o niente. Con `warning` ed `error` il ruolo è `alertdialog`. |
+| `title` | `''` | Facoltativo: in grassetto sopra il testo. |
+| `text` | `''` | Testo semplice (mai HTML); gli a capo restano. Un testo più alto della finestra scorre dentro il riquadro. |
+| `buttons` | `['ok']` | Quali tasti: `'ok'`, `'cancel'`, `'continue'`, `'retry'`, in qualsiasi combinazione; `[]` nessuno. L'ordine sullo schermo è sempre Annulla, Riprova, Continua, OK. Le etichette seguono la lingua del sistema (italiano o inglese). |
+| `default` | il tasto più a destra che non sia Annulla | Il tasto di **Invio**, evidenziato e con il focus all'apertura. Un valore che non è tra i tasti si ignora. |
+
+Restituisce il tasto premuto (`'ok'`, `'cancel'`, `'continue'`, `'retry'`) oppure `null`. **Esc** preme Annulla se c'è, altrimenti chiude con `null`; anche la finestra chiusa dà `null`. La promessa ha `close(value = null)`, per togliere il riquadro dal codice (un messagebox senza tasti si toglie così o con Esc).
+
+- **Tastiera**: Tab e le frecce girano tra i tasti senza uscire dal riquadro. I tasti senza Ctrl, Alt o Meta non arrivano alle scorciatoie di lilOS (Canc, lettere…); le combinazioni sì.
+- **Larghezza**: i tasti stanno sempre su una riga. Il riquadro è largo 400 px, o di più se i tasti lo chiedono; se la finestra è più stretta si allarga (verso destra) e torna com'era alla chiusura, a meno che nel frattempo l'utente l'abbia ridimensionata. Una finestra ingrandita non cambia.
+- **Focus**: alla chiusura torna dove era prima, se quell'elemento c'è ancora.
+- **Più messagebox** sulla stessa finestra si sovrappongono; il contenuto torna usabile quando sono chiusi tutti.
+- **Tema scuro**: velo più scuro e riquadro su `--chrome`, per staccarlo dalla finestra.
+- **DOM**: `.msgbox-layer` (dentro `win.el`, sotto la barra del titolo, `z-index` 2; con `null`: `.msgbox-layer.page` in `body`, `position: fixed`) contiene `.msgbox.info|warning|error` con `.msgbox-head` (`.msgbox-icon`, `.msgbox-main` con `.msgbox-title` e `.msgbox-text`) e `.msgbox-buttons` (pulsanti `.ctl-btn`, `data-value` il tasto, `.primary` quello predefinito). Un clic accanto al riquadro lo fa pulsare (`.nudge`).
+
+Le app isolate non lo hanno ancora (non c'è in `lilos.ui`). Un'app di sistema che deve girare anche su un lilOS più vecchio lo legge dal modulo (`import * as sdk from '@lilos/sdk'`, poi `sdk.messageBox?.(…)`), come fa il File Manager.
 
 ---
 
