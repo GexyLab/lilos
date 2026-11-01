@@ -30,6 +30,7 @@ import { connectAppProperties } from './apps/appProperties.js';
 import { Canvas } from './canvas/Canvas.js';
 import { createHud } from './canvas/Hud.js';
 import { Desktop } from './desktop/Desktop.js';
+import { preloadWallpaper, connectWallpaper } from './desktop/wallpaper.js';
 import { Taskbar } from './taskbar/Taskbar.js';
 import { UserPage } from './user/UserPage.js';
 import { WindowManager } from './windows/WindowManager.js';
@@ -56,13 +57,17 @@ globalThis.__lilosHost = Object.freeze({ sdk, system: systemApi });
 await registerPackages();
 // Their pipes (manifest contributes.pipes), before anything opens or reads a file
 connectPipes();
-// Shared folders first, then the workspaces (each with its own desk): fs then shows only the current one's
-const state = setupWorkspaces(setupFileSystem());
+// Shared folders first, then the workspaces (each with its own desk): fs then shows only the current one's.
+// The wallpaper is read in between, while every desk is still visible: it may be on another workspace's
+const fsState = setupFileSystem();
+preloadWallpaper();
+const state = setupWorkspaces(fsState);
 setupTrash();
 const space = state.list.find(w => w.id === state.current);
 const key = part => workspaceKey(space.id, part);
 
 const canvas = new Canvas(root, { key: key('camera') });
+connectWallpaper(canvas);
 const hud = createHud(canvas);
 root.append(hud);
 registerItemCommands();

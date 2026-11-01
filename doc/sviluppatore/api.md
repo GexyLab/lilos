@@ -989,6 +989,33 @@ DOM: `div.ditem[data-kind="item"][data-id]` con `.ditem-glyph` e `.ditem-label`.
 
 ---
 
+## desktop/wallpaper.js
+
+L'immagine di sfondo della scrivania, impostazione `wallpaper` (id di un file immagine, `''` per nessuna). Ha uno strato suo, `.canvas-wallpaper`, il primo figlio del canvas (dietro il mondo): riempie lo schermo con `background: center / cover` (proporzioni mantenute, il resto è tagliato, mai stirata) e non segue pan e zoom. Il colore `deskColor` si vede sotto le immagini trasparenti. Con un'immagine il canvas ha la classe `has-wallpaper` (`canvas.css`), che mette etichette chiare con ombra forte (`--on-canvas`, `--on-canvas-hover`, `--on-canvas-shadow`).
+
+- `WALLPAPER_EXTS`: `['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'bmp', 'svg']`.
+- `wallpaper`: `Emitter`; evento `'change'` con `{ id, name }` o `null`, quando la nuova immagine è sullo schermo.
+- `isWallpaperImage(node)`: `true` per un file (`type: 'file'`) con una di quelle estensioni (senza distinguere maiuscole).
+- `wallpaperInfo()`: `{ id, name }` dell'immagine sullo schermo, o `null`.
+- `setWallpaper(id)` → `Promise<boolean>`: legge il file (`fs.readBlob`, con `caller: { system: true }`), controlla che si decodifichi come immagine, la mostra e poi salva `wallpaper`. `true` se è sullo schermo. `false`, con una notifica di errore, se il nodo non c'è o non è un'immagine per estensione, o se non si decodifica (in questo ultimo caso lo sfondo mostrato diventa nessuno, ma l'impostazione resta com'era).
+- `clearWallpaper()`: mette `wallpaper` a `''`. Il file non si tocca.
+- `preloadWallpaper()` e `connectWallpaper(canvas)` sono interni (non esportati da `@lilos/system`). `system.js` chiama la prima **prima** di `setupWorkspaces`, quando `fs` mostra ancora tutte le scrivanie: così un'immagine nella Scrivania privata di un workspace è lo sfondo anche negli altri (dopo, `fs` mostra solo quella del workspace attuale). La seconda crea lo strato e lo tiene allineato.
+
+Il file è un riferimento per id, non una copia ([D58](../interna/decisioni.md#d58-lo-sfondo-è-un-riferimento-al-file-non-una-copia)). L'immagine mostrata è un object URL (`blob:`): in CSS non arriva niente che venga dallo storage. Il file si segue così:
+
+| Cosa succede al file | Effetto |
+| --- | --- |
+| Eliminato (anche nel cestino: evento `remove`) | `clearWallpaper()`; ripristinarlo non lo rimette |
+| Rinominato con un'estensione non immagine | `clearWallpaper()` |
+| Rinominato con un'estensione immagine | Cambia il nome in `wallpaperInfo()` ed esce `change` |
+| Contenuto cambiato (`modified` o `size` diversi in un `update`) | Riletto |
+| Mancante o non immagine all'avvio | Dimenticato (`wallpaper` torna `''`) |
+| Non si apre come immagine all'avvio | Nessuno sfondo, avviso in console; l'impostazione resta |
+
+Se `wallpaper` cambia da fuori (un'altra scheda del browser), l'immagine viene mostrata se è un'immagine leggibile da qui. Il menu del tasto destro di `Desktop` ha **Usa come sfondo desktop** per un solo file immagine (non per più elementi).
+
+Pannello di controllo 1.13.0 ha Scrivania → Sfondo (Colore e Immagine; «Scegli…» apre il selettore di file con le sole immagini); la scheda compare solo se `system.setWallpaper` esiste. «Ripristina» in Archiviazione riporta `deskColor` e `wallpaper` ai predefiniti.
+
 ## desktop/fixedItems.js
 
 Gli elementi fissi: su ogni scrivania (di ogni workspace) ci sono quelli accesi (tutti, all'inizio), non sono file, non si rinominano né si eliminano. Si aprono e si spostano come gli altri e la posizione si salva nelle posizioni della scrivania sotto `fixed:<key>`. Li monta `Desktop`.
@@ -1384,9 +1411,10 @@ Permessi dichiarati nei manifesti ufficiali: File Manager `fs.write:~`, `fs.work
 | Export | Da | A cosa serve |
 | --- | --- | --- |
 | `version` | `package.json` | Versione di lilOS |
-| `ACCENTS`, `LASSO_OPTIONS`, `RETENTION_OPTIONS` | `systemSettings.js` | Scelte di colore principale, selezione a mano libera e conservazione del cestino |
+| `ACCENTS`, `DESK_COLORS`, `LASSO_OPTIONS`, `RETENTION_OPTIONS` | `systemSettings.js` | Scelte di colore principale, colore della scrivania, selezione a mano libera e conservazione del cestino |
 | `SYSTEM_FOLDERS`, `DESK_NAME` | `systemFs.js` | Cartelle di sistema e nome della Scrivania |
 | `FOLDER_COLOR`, `itemIcon`, `itemBadges` | `desktop/itemIcons.js` | Icone di cartelle e file; i segni delle app sulle icone |
+| `wallpaper`, `wallpaperInfo`, `setWallpaper`, `clearWallpaper`, `isWallpaperImage`, `WALLPAPER_EXTS` | `desktop/wallpaper.js` | L'immagine di sfondo della scrivania (vedi [desktop/wallpaper.js](#desktopwallpaperjs)) |
 | `DESK_FIXED_ITEMS`, `isFixedShown`, `setFixedShown`, `setFixedShownEverywhere` | `desktop/fixedItems.js` | L'elenco degli elementi fissi della scrivania (alias di `FIXED_ITEMS`) e quali sono accesi, per workspace o in tutti |
 | `USER_PAGE_GROUPS`, `USER_PAGE_ITEMS`, `isUserPageShown`, `setUserPageShown` | `user/items.js` | Cosa può mostrare la pagina utente e quali voci sono accese (vedi [user/](#user-la-pagina-utente)) |
 | `WORKSPACE_LIMITS` | `workspaces/store.js` | Limiti dei workspace (alias di `LIMITS`) |
@@ -1995,13 +2023,15 @@ Dichiara le impostazioni del sistema e le applica. Va importato per primo da `sy
 | `lasso` | `'Alt'` | Modificatori che trasformano il trascinamento sullo sfondo in selezione a mano libera: `'Alt'`, `'Ctrl+Alt'` o `'Alt+Shift'` (`LASSO_OPTIONS`) |
 | `deskHidden` | `[]` | Chiavi degli elementi fissi spenti in tutti i workspace: valgono per quelli che non hanno scelto (`hidden: null`) e per i nuovi (vedi [desktop/fixedItems.js](#desktopfixeditemsjs)) |
 | `deskPreviews` | `false` | Con `true` i file sulla scrivania mostrano la miniatura fatta dalla loro app (56 px, `DesktopItem`) al posto dell'icona, se l'app ne fa una ([apps/thumbnails.js](#miniature-dei-file-thumbnailsjs)). `Desktop` ridisegna i file quando l'impostazione o il registro delle app cambia. |
+| `deskColor` | `''` | Colore della scrivania: `''` per quello del tema, altrimenti `#rrggbb` (un altro valore si ignora e toglie le variabili). Imposta `--canvas` su `<html>` e, in base alla luminosità (luminanza relativa > 0,3: colore chiaro), `--canvas-dot`, `--on-canvas`, `--on-canvas-hover` e `--on-canvas-shadow` scuri o chiari. `DESK_COLORS` ne propone 10 |
+| `wallpaper` | `''` | Id del file immagine dietro la scrivania, `''` per nessuna (vedi [desktop/wallpaper.js](#desktopwallpaperjs)) |
 | `startupApps` | `true` | Con `false` le app scelte nel Pannello di controllo → Avvio non si aprono all'ingresso (vedi [apps/startup.js](#appsstartupjs)) |
 | `userPhoto` | `''` | La foto profilo: un JPEG quadrato di 192 px come URL `data:image/jpeg;base64,…`, `''` per nessuna. Alla lettura (`userPhoto()` in `user/photo.js`) un valore più lungo di 200 000 caratteri o che non è un JPEG in base64 conta come nessuna foto. Se c'è, il sistema mette `--user-photo: url(…)` e `data-user-photo` su `<html>` (vedi [user/](#user-la-pagina-utente)) |
 | `notifyShown` | `5` | Quante notifiche la barra delle notifiche mostra insieme (`NotificationBell`; almeno 1 nel codice). Il Pannello di controllo propone 1-8 e 10 |
 | `notifySeconds` | `5` | Secondi per cui la barra resta dopo l'ultima notifica arrivata (almeno 1 nel codice). Il Pannello di controllo propone 3, 5, 8, 10, 15, 30 e 60 |
 | `userPageHidden` | `[]` | Chiavi delle voci che la pagina utente non mostra (`USER_PAGE_ITEMS[].key`). Le chiavi sconosciute si ignorano e i doppioni si tolgono alla lettura |
 
-Esporta anche `ACCENTS`, i colori proposti dall'app Pannello di controllo, `RETENTION_OPTIONS` (`[{ value, label }]`: 1, 7, 14, 30, 60, 90, 365 giorni e `0` «Per sempre», per `trashRetention`), `LASSO_OPTIONS` e `selectionMode(event)` → `{ mode: 'lasso' | 'rect', additive }`: percorso libero se sono premuti tutti i modificatori di `lasso`; `additive` (si aggiunge alla selezione) con Ctrl/Cmd o Shift, se non fanno parte della combinazione del percorso.
+Esporta anche `ACCENTS`, i colori proposti dall'app Pannello di controllo, `DESK_COLORS` (`[{ value, label }]`: 10 colori per `deskColor`, sei scuri e quattro chiari: Grafite, Notte, Blu profondo, Bosco, Prugna, Terra, Nebbia, Cielo, Salvia, Sabbia), `RETENTION_OPTIONS` (`[{ value, label }]`: 1, 7, 14, 30, 60, 90, 365 giorni e `0` «Per sempre», per `trashRetention`), `LASSO_OPTIONS` e `selectionMode(event)` → `{ mode: 'lasso' | 'rect', additive }`: percorso libero se sono premuti tutti i modificatori di `lasso`; `additive` (si aggiunge alla selezione) con Ctrl/Cmd o Shift, se non fanno parte della combinazione del percorso.
 
 ---
 

@@ -15,6 +15,7 @@ import { FIXED_ITEMS, fixedData, fixedId, fixedOf, fixedRank, openFixed, acceptD
 import { tagSubmenu } from '../tags/tagUi.js';
 import { HEADER as AREA_HEADER } from '../workareas/WorkareaFrame.js';
 import { notify } from '../notifications/notify.js';
+import { isWallpaperImage, setWallpaper } from './wallpaper.js';
 
 const LAYOUT_KEY = 'desktop-layout';
 const SNAP = 8;
@@ -571,6 +572,7 @@ export class Desktop {
     openMenu(e.clientX, e.clientY, [
       { label: many ? `Apri ${selected.length} elementi` : 'Apri', icon: 'open', shortcut: shortcuts.label('items.open'), action: () => selected.forEach(it => this.open(it)) },
       !many && item.data.type === 'file' && { label: 'Apri con…', icon: 'open', action: () => openFile(fs.get(item.id), { choose: true }) },
+      !many && isWallpaperImage(fs.get(item.id)) && { label: 'Usa come sfondo desktop', icon: 'image', action: () => setWallpaper(item.id) },
       { label: 'Rinomina', icon: 'pencil', shortcut: shortcuts.label('items.rename'), disabled: many, action: () => this.rename(item) },
       nodes.length && tagSubmenu(nodes),
       nodes.length && linkEntry(nodes),

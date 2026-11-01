@@ -6,9 +6,10 @@
  * breaks the installed apps that use it.
  */
 export { version } from '../package.json';
-export { ACCENTS, LASSO_OPTIONS, RETENTION_OPTIONS } from './systemSettings.js';
+export { ACCENTS, DESK_COLORS, LASSO_OPTIONS, RETENTION_OPTIONS } from './systemSettings.js';
 export { SYSTEM_FOLDERS, DESK_NAME } from './systemFs.js';
 export { FOLDER_COLOR, itemIcon, itemBadges } from './desktop/itemIcons.js';
+export { wallpaper, wallpaperInfo, setWallpaper, clearWallpaper, isWallpaperImage, WALLPAPER_EXTS } from './desktop/wallpaper.js';
 export { FIXED_ITEMS as DESK_FIXED_ITEMS, isFixedShown, setFixedShown, setFixedShownEverywhere } from './desktop/fixedItems.js';
 export { USER_PAGE_GROUPS, USER_PAGE_ITEMS, isUserPageShown, setUserPageShown } from './user/items.js';
 export { LIMITS as WORKSPACE_LIMITS } from './workspaces/store.js';

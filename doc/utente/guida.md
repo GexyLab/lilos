@@ -79,6 +79,23 @@ Gli elementi della scrivania sono il contenuto della cartella **Scrivania**: li 
 
 All'inizio i file hanno la loro icona. Se vuoi vedere dentro i file, apri il Pannello di controllo → Scrivania → Elementi → **Icone** e accendi **Mostra l'anteprima dei file**. Le immagini (aperte da Photo) e i file di testo (aperti dall'Editor) mostrano una piccola immagine di quello che contengono al posto dell'icona. Gli altri file, le cartelle e i file cifrati con un'app restano con l'icona; vale anche per i file di cui l'app non riesce a fare l'immagine. L'icona resta finché l'anteprima non è pronta, quindi può servire qualche istante. Con l'interruttore spento tutto torna come prima. Nel File Manager c'è la [vista anteprime](#il-file-manager), che è indipendente da questa impostazione.
 
+### Colore e immagine di sfondo
+
+Puoi cambiare lo sfondo della scrivania con un colore o con un'immagine. Vale per tutti i workspace.
+
+**Il colore.** Apri il Pannello di controllo → Scrivania → **Sfondo**. Nella sezione **Colore** scegli uno dei campioni, oppure **Altro colore** per sceglierne uno qualsiasi. I puntini della scrivania e i nomi degli elementi diventano chiari o scuri da soli, in modo che si leggano. **Usa il colore del tema** (compare solo se hai scelto un colore) torna al colore di prima.
+
+**L'immagine.** Il modo più veloce: tasto destro su un file immagine che sta sulla scrivania → **Usa come sfondo desktop**. La voce c'è solo per un file immagine alla volta (jpg, jpeg, png, gif, webp, avif, bmp, svg), non per altri file né per più elementi selezionati. Oppure, nella sezione **Immagine** della scheda Sfondo, **Scegli…** apre la scelta del file: mostra solo le immagini. Il pulsante **Togli** toglie l'immagine; il file resta dov'è.
+
+- L'immagine riempie tutta la scrivania senza deformarsi: se le proporzioni sono diverse, le parti in più sono tagliate.
+- Sta ferma dietro la scrivania: muovendoti o ingrandendo non si sposta e non cambia misura.
+- Sopra un'immagine i nomi degli elementi sono bianchi, con un'ombra, per leggersi su qualsiasi colore.
+- Se l'immagine ha parti trasparenti si vede il colore della scrivania.
+- Lo sfondo è il file stesso, non una copia: se lo modifichi, lo sfondo si aggiorna. Se lo rinomini con un nome che non finisce come un'immagine, o lo elimini (anche solo spostandolo nel Cestino), lo sfondo si toglie; ripristinarlo dal Cestino **non** lo rimette. Se il file non si apre come immagine compare una notifica di errore e lo sfondo resta quello di prima.
+- Se l'immagine sta nella Scrivania di un workspace, resta lo sfondo anche negli altri workspace.
+- **Ripristina** nel Pannello di controllo → Archiviazione riporta anche colore e immagine a quelli iniziali.
+- La scheda **Sfondo** compare solo se la tua versione di lilOS è abbastanza recente.
+
 ### Gli elementi fissi
 
 Su ogni scrivania, in ogni workspace, ci sono sei elementi: **Home**, **Documenti**, **Immagini**, **File Manager**, **Download** e **Cestino**. All'inizio ci sono tutti; puoi togliere quelli che non ti servono (vedi sotto). Non sono file della cartella Scrivania, quindi non li trovi nel File Manager.
@@ -126,7 +143,7 @@ Puoi anche **mettere file e cartelle dentro una cartella**: trascinali sopra una
 
 **Doppio clic** oppure **Invio** sugli elementi selezionati. Le cartelle si aprono nel [File Manager](#il-file-manager), le app si avviano, i file si aprono con l'app associata al loro tipo (i file di testo e di codice nell'[Editor](#leditor)). Se nessuna app è associata compare la finestra [Apri con](#apri-con).
 
-Con il tasto destro su un file, **Apri con…** permette di scegliere l'app anche quando ce n'è già una associata.
+Con il tasto destro su un file, **Apri con…** permette di scegliere l'app anche quando ce n'è già una associata. Su un file immagine c'è anche **Usa come sfondo desktop** (vedi [Colore e immagine di sfondo](#colore-e-immagine-di-sfondo)).
 
 ### Proprietà
 
@@ -1109,6 +1126,7 @@ Le modifiche valgono subito e restano salvate.
 | Pagina utente | — | Cosa mostra la [pagina utente](#la-pagina-utente): un interruttore per ogni voce, in gruppi (vedi [Scegliere cosa mostra](#scegliere-cosa-mostra)) |
 | Lingua | — | La lingua delle app: quella del browser o una a scelta (vedi [La lingua](#la-lingua)) |
 | Scrivania | Elementi | L'allineamento alla griglia degli elementi trascinati; **Mostra l'anteprima dei file** (vedi [Anteprima dei file sulla scrivania](#anteprima-dei-file-sulla-scrivania)); un pulsante che porta agli elementi fissi (in Workspace) |
+| Scrivania | Sfondo | Il colore della scrivania (campioni o un colore a scelta) e l'immagine di sfondo (vedi [Colore e immagine di sfondo](#colore-e-immagine-di-sfondo)) |
 | Scrivania | Panoramica | Mappa in miniatura visibile o nascosta |
 | Workspace | Questo workspace | Nome, colore, app visibili ed elementi fissi del workspace in cui sei (vedi [I workspace](#i-workspace)) |
 | Workspace | *nome di un altro workspace* | Le stesse impostazioni per quel workspace, e Passa a questo |
@@ -1124,7 +1142,7 @@ Le modifiche valgono subito e restano salvate.
 | Avvio | Opzioni | Se le app scelte si aprono da sole quando entri e se partono i servizi (vedi [Aprire le app all'avvio](#aprire-le-app-allavvio)) |
 | Avvio | Servizi | Le parti delle app che lavorano in sottofondo: se sono accese, quando partono, e i pulsanti per accenderle, spegnerle e leggerne il registro (vedi [Servizi in sottofondo](#servizi-in-sottofondo)) |
 | Avvio | App | Quali app si aprono da sole, con quale finestra e con quali scelte (cartella, file…) |
-| Archiviazione | — | Quanto spazio usano le tue impostazioni e il contenuto dei tuoi file; ripristino di impostazioni, scorciatoie e app dei tipi di file; ripristino della scrivania e dei file iniziali (con i workspace) |
+| Archiviazione | — | Quanto spazio usano le tue impostazioni e il contenuto dei tuoi file; ripristino di impostazioni (anche colore e immagine di sfondo), scorciatoie e app dei tipi di file; ripristino della scrivania e dei file iniziali (con i workspace) |
 | Informazioni | — | Versione di lilOS, browser, lingua |
 
 I due pulsanti di ripristino chiedono conferma: al primo clic il pulsante diventa rosso, e solo un secondo clic entro pochi secondi esegue l'operazione. **Ripristinare la scrivania e i file iniziali** elimina tutte le cartelle e i file che hai creato, ovunque si trovino, **tutti i workspace** (si riparte da uno solo, Principale), **tutti i tag**, le workarea, le posizioni e la vista salvate, poi ricarica lilOS. Non si può annullare.

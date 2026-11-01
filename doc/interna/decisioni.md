@@ -1152,3 +1152,22 @@ lilOS legge il file **prima** di avviare l'app e le dà le stringhe già risolte
 - L'aggiornamento non cambia la pagina già aperta: ogni scheda chiede di riavviare lilOS quando il kernel torna con un'altra versione (`checkSystemVersion`).
 
 **Quando ripensarla.** Quando la firma sarà usata per lilOS stesso (oggi si fida del repository), quando le migrazioni dei dati renderanno pericoloso tornare indietro, o se servirà più di un canale (anteprime, versioni stabili).
+## D58. Lo sfondo è un riferimento al file, non una copia
+
+**Decisione.** L'immagine di sfondo della scrivania è l'id di un file (impostazione `wallpaper`), non il suo contenuto. Il file si legge all'avvio e sta in uno strato fisso dietro la scrivania (`src/desktop/wallpaper.js`). Il colore (`deskColor`) è un'impostazione a parte. Deciso il 1° novembre 2026.
+
+**Perché.**
+
+- **Il kernel accetta al massimo 512 KB per valore di storage.** Una copia dell'immagine nelle impostazioni (come data URL, come la foto profilo, che per questo è ridotta a 192 px) non entrerebbe: una foto vera pesa molto di più. Un file può invece arrivare a 10 MB.
+- **Un solo posto.** L'immagine è un file che l'utente ha già e che si modifica e si sposta come gli altri: lo sfondo si aggiorna quando il contenuto cambia, senza duplicati.
+- **Lettura prima del workspace.** Con i workspace `fs` mostra solo la scrivania del workspace attuale. Se il file sta nella Scrivania privata di un altro workspace, dopo `setupWorkspaces` non si vedrebbe più: `preloadWallpaper` lo legge prima, e lo sfondo è lo stesso in tutti i workspace.
+
+**Alternative scartate.** Copiare l'immagine nelle impostazioni (limite di 512 KB); copiarla in una cartella di sistema (duplicati da gestire e da pulire); uno sfondo per workspace (non richiesto).
+
+**Conseguenze.**
+
+- Eliminare il file, anche solo spostandolo nel cestino, toglie lo sfondo; ripristinarlo non lo rimette.
+- L'immagine resta in memoria come object URL finché è lo sfondo; si revoca quando cambia.
+- Il browser decodifica l'immagine a piena misura: una foto molto grande pesa.
+
+**Quando ripensarla.** Se serve uno sfondo diverso per workspace (allora: impostazione per workspace e lettura di tutti all'avvio).

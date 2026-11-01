@@ -13,6 +13,8 @@ settings.define({
   trashRetention: 30,      // days an item stays in the trash before it is deleted for good (0: forever)
   deskHidden: [],          // keys of the fixed desk items turned off in every workspace (desktop/fixedItems.js)
   deskPreviews: false,     // files on the desk show the preview their app makes instead of their icon (apps/thumbnails.js)
+  deskColor: '',           // color of the desk background ('' for the theme's)
+  wallpaper: '',           // id of the image file behind the desk, '' for none (desktop/wallpaper.js)
   startupApps: true,       // open the apps chosen in Control Panel → Avvio when the user comes in (apps/startup.js)
   userPhoto: '',           // profile photo: a small JPEG as a data: URL, '' for none (user/photo.js)
   userPageHidden: [],      // keys of what the user page does not show (user/items.js)
@@ -64,11 +66,42 @@ export const ACCENTS = [
   { value: '#5f6673', label: 'Grafite' },
 ];
 
+/** Colors offered for the desk background (any other hex color works too). */
+export const DESK_COLORS = [
+  { value: '#1f2227', label: 'Grafite' },
+  { value: '#101826', label: 'Notte' },
+  { value: '#1d3352', label: 'Blu profondo' },
+  { value: '#1d3b34', label: 'Bosco' },
+  { value: '#3a2340', label: 'Prugna' },
+  { value: '#43302a', label: 'Terra' },
+  { value: '#e6e8ec', label: 'Nebbia' },
+  { value: '#d9e5f2', label: 'Cielo' },
+  { value: '#dde9dc', label: 'Salvia' },
+  { value: '#efe5d8', label: 'Sabbia' },
+];
+
 const root = document.documentElement;
+
+/** True for a light color (#rrggbb): what is drawn on it must then be dark. */
+function isLight(hex) {
+  const [r, g, b] = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16) / 255)
+    .map(c => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.3;
+}
+
+// What the desk color decides: its dots, and labels and hovers on it, dark on a light color and light on a dark one
+const DESK_VARS = ['--canvas', '--canvas-dot', '--on-canvas', '--on-canvas-hover', '--on-canvas-shadow'];
+const ON_DARK = ['rgba(255, 255, 255, .09)', '#e9ebef', 'rgba(255, 255, 255, .07)', '0 1px 2px rgba(0, 0, 0, .6)'];
+const ON_LIGHT = ['rgba(0, 0, 0, .13)', '#1f2328', 'rgba(0, 0, 0, .06)', '0 1px 2px rgba(255, 255, 255, .8)'];
 
 settings.watch('accent', color => {
   // Stored values are untrusted: only a plain hex color reaches the stylesheet
   if (/^#[0-9a-f]{6}$/i.test(color)) root.style.setProperty('--accent', color);
+});
+settings.watch('deskColor', color => {
+  // Stored values are untrusted: only a plain hex color reaches the stylesheet; otherwise the theme's
+  if (!/^#[0-9a-f]{6}$/i.test(color)) return DESK_VARS.forEach(v => root.style.removeProperty(v));
+  [color, ...(isLight(color) ? ON_LIGHT : ON_DARK)].forEach((value, i) => root.style.setProperty(DESK_VARS[i], value));
 });
 settings.watch('theme', theme => {
   root.dataset.theme = theme === 'light' ? 'light' : 'dark';
