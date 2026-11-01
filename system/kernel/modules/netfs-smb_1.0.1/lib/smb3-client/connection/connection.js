@@ -45,6 +45,7 @@ export class Connection extends EventEmitter {
     }
     async open(opts = {}) {
         const dialects = opts.dialects ?? [
+            Dialect.SMB_2_0_2,
             Dialect.SMB_2_1_0,
             Dialect.SMB_3_0_0,
             Dialect.SMB_3_0_2,
@@ -98,9 +99,12 @@ export class Connection extends EventEmitter {
         const messageId = this.nextMessageId++;
         const flags = opts.flags ?? 0;
         const wantEncrypt = opts.encrypt === true && this.encryptor !== null;
+        // SMB 2.0.2 has no multi-credit requests: CreditCharge is reserved and must be 0
+        // (MS-SMB2 §2.2.1.2); the request still uses its one credit (taken above).
+        const headerCharge = this.negotiated?.dialect === Dialect.SMB_2_0_2 ? 0 : charge;
         let header = encodeHeader({
             command,
-            creditCharge: charge,
+            creditCharge: headerCharge,
             creditRequestResponse: 1,
             flags,
             messageId,
@@ -115,7 +119,7 @@ export class Connection extends EventEmitter {
             const signedFlags = flags | HeaderFlag.SIGNED;
             header = encodeHeader({
                 command,
-                creditCharge: charge,
+                creditCharge: headerCharge,
                 creditRequestResponse: 1,
                 flags: signedFlags,
                 messageId,
@@ -212,7 +216,12 @@ export class Connection extends EventEmitter {
             this.signingRequired &&
             header.command !== SmbCommand.NEGOTIATE &&
             header.command !== SmbCommand.SESSION_SETUP &&
-            (header.flags & HeaderFlag.SIGNED) === 0) {
+            (header.flags & HeaderFlag.SIGNED) === 0 &&
+            // An interim async response (STATUS_PENDING) is not signed by servers and carries
+            // no data: the final response is checked (MS-SMB2 §3.2.5.1.3). Same for the
+            // unsolicited oplock break notification (MessageId 0xFFFFFFFFFFFFFFFF).
+            !(isPending(header.status) && (header.flags & HeaderFlag.ASYNC_COMMAND) !== 0) &&
+            header.messageId !== 0xffffffffffffffffn) {
             this.fail(new SmbProtocolError({
                 status: 0,
                 message: "unsigned response received but signing is required",

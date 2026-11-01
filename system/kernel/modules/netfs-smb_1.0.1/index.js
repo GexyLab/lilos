@@ -3,7 +3,7 @@ import { Client, SmbError } from './lib/smb3-client/index.js';
 
 /**
  * SMB for the Rete folder (service 'netfs.smb', see the kernel's net/drivers.js): the shares of
- * Windows computers and NAS, SMB 2.1 to 3.1.1, signed and encrypted when the server offers it.
+ * Windows computers and NAS, SMB 2.0.2 to 3.1.1, signed and encrypted when the server offers it.
  * SMB1 (CIFS) is not supported: it is not safe, and Windows has it off. Sign-in with NTLMv2 (user,
  * password, domain or workgroup) or as a guest. What is in a folder is watched (CHANGE_NOTIFY)
  * while it is open in lilOS. The protocol is smb3-client (lib/smb3-client, see VENDORED.md).

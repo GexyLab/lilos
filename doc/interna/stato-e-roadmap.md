@@ -178,10 +178,10 @@ Aggiornato al 1° novembre 2026 (la rete: cartella Rete con server FTP, FTPS, SF
 - **Rete: cartelle di FTP, SFTP e WebDAV senza notifiche di modifica.** Si leggono quando si aprono o riaprono; solo SMB le osserva (al massimo 8 cartelle per connessione).
 - **Rete: nessuna miniatura per i file remoti**, e l'anteprima del File Manager non mostra i file oltre 1 MB. Tag, colori, collegamenti alle app e dati delle app non si mettono sui nodi remoti.
 - **Rete: i segreti sono cifrati con una chiave tenuta accanto ai dati** (`net/secret.key`): proteggono da chi legge i file delle connessioni, non da chi legge la cartella del kernel. Perdere la chiave obbliga a riscrivere le password.
-- **Rete: SMB solo 2.1-3.1.1.** Niente SMB1/CIFS, SMB 2.0.2, Kerberos, DFS, lease, durable handle né blocchi di intervallo di byte (vedi roadmap).
+- **Rete: SMB da 2.0.2 a 3.1.1** (2.0.2 da netfs-smb 1.0.1). Niente SMB1/CIFS, Kerberos, DFS, lease, durable handle né blocchi di intervallo di byte (vedi roadmap).
 - **Rete: WebDAV non riprende le scritture** (il protocollo non sa aggiungere a un file): un file interrotto riparte da capo. FTP riprende la lettura solo se il server ha `REST`.
 - **Rete: testi solo in italiano nel sistema.** La finestra «Trasferimento dati», le notifiche e gli errori del kernel non passano ancora da `locales.json` (il File Manager 1.10.0 e le etichette dei campi dei protocolli sì, in inglese e italiano; vedi [D45](decisioni.md#d45-un-file-di-traduzioni-per-app-inglese-predefinito-un-solo-motore)).
-- **Rete: la libreria SMB è una copia** (`netfs-smb/lib/smb3-client`, [VENDORED.md](../../system/kernel/modules/netfs-smb_1.0.0/lib/smb3-client/VENDORED.md)) con cinque correzioni di lilOS non ancora a monte.
+- **Rete: la libreria SMB è una copia** (`netfs-smb/lib/smb3-client`, [VENDORED.md](../../system/kernel/modules/netfs-smb_1.0.1/lib/smb3-client/VENDORED.md)) con sette correzioni di lilOS non ancora a monte.
 - **Rete: un solo trasferimento alla volta per destinazione**, e al massimo 100 000 elementi per utente e 1000 sorgenti per richiesta.
 
 ### Tecnici
@@ -269,7 +269,7 @@ Fatte le basi ([D49](decisioni.md#d49-le-notifiche-un-modulo-opzionale-con-il-mi
 
 Fatta la base ([D59](decisioni.md#d59-la-rete-i-protocolli-sono-moduli-del-kernel-e-i-trasferimenti-li-fa-il-kernel)). Restano:
 
-- **SMB:** accesso con Kerberos, DFS (percorsi che puntano ad altri server), lease e durable handle (più velocità e riconnessioni senza perdere i file aperti), blocchi di intervallo di byte e SMB 2.0.2. Le nostre correzioni a smb3-client vanno proposte all'autore con pull request: finché non sono accettate la libreria resta copiata nel modulo, e se l'autore non risponde resta lì per sempre.
+- **SMB:** accesso con Kerberos, DFS (percorsi che puntano ad altri server), lease e durable handle (più velocità e riconnessioni senza perdere i file aperti), blocchi di intervallo di byte (SMB 2.0.2 è fatto: netfs-smb 1.0.1). Le nostre correzioni a smb3-client vanno proposte all'autore con pull request: finché non sono accettate la libreria resta copiata nel modulo, e se l'autore non risponde resta lì per sempre.
 - **File Manager:** i segni «in arrivo» sui file che un trasferimento sta per portare nella cartella che si guarda.
 - **Scoperta automatica** dei server della rete locale (oggi l'indirizzo lo scrive l'utente).
 - **Rifiniture possibili (idee mie, da confermare, non decisioni):** attivare i moduli `netfs-*` di serie nel `config.json` o come moduli del repository ufficiale; aggiornare da sole le cartelle di FTP, SFTP e WebDAV; spostare (copiare ed eliminare) tra home e server in un gesto solo.
