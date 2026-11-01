@@ -880,7 +880,7 @@ Una versione di lilOS (la pagina, il kernel, ciò che il kernel usa dell'SDK) si
    npm run release -- ../lilos-plugins-official
    ```
 
-   Il comando costruisce la pagina, copia il kernel e i file dell'SDK che importa, calcola gli hash e scrive `system/lilos/` (`web/`, `system/kernel/`, `sdk/…`, `package.json`, `system.json`), aggiunge a `CHANGELOG.md` la sezione della versione e mette `"system": "system/lilos"` in `catalog.json`. `README.md` lo scrive solo se manca.
+   Il comando costruisce la pagina, impacchetta e minifica il kernel con Vite (con quello che usa dell'SDK), calcola gli hash e scrive `system/lilos/` (`web/`, `system/kernel/`, `package.json`, `system.json`), aggiunge a `CHANGELOG.md` la sezione della versione e mette `"system": "system/lilos"` in `catalog.json`. `README.md` lo scrive solo se manca.
 5. Apri `system/lilos/CHANGELOG.md` e riscrivi la sezione nuova: sono messaggi di commit, vanno resi comprensibili a chi amministra lilOS.
 6. Nel repository ufficiale: commit e tag `vX.Y.Z` come per le app. L'AppStore legge sempre l'ultimo tag.
 7. Provala prima su un lilOS installato (vedi [Installare lilOS da una release](#installare-lilos-da-una-release)): AppStore → lilOS → **Aggiorna**, poi **Riavvia il kernel**. Per vedere il ritorno automatico, rendi la versione volutamente non avviabile in una prova e controlla che `current.json` torni alla precedente con `failed`.

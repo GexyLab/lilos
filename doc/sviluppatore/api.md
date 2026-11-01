@@ -2802,7 +2802,7 @@ Il repository ufficiale ha anche `"system": "system/lilos"`: la cartella con la 
 
 ### lilOS come pacchetto (`systemPackage.js`)
 
-Anche lilOS è un pacchetto del repository ufficiale ([D57](../interna/decisioni.md#d57-lilos-si-aggiorna-dal-repository-ufficiale-come-un-pacchetto)): la **build** di una versione (la pagina, il kernel e i file dell'SDK che il kernel importa), mai i sorgenti. `SystemReleases` (`kernel.system`) la installa accanto a quella in uso. Solo amministratori, solo dal repository ufficiale; endpoint in [API HTTP](#api-http), client in [`systemReleases`](#systemreleases).
+Anche lilOS è un pacchetto del repository ufficiale ([D57](../interna/decisioni.md#d57-lilos-si-aggiorna-dal-repository-ufficiale-come-un-pacchetto)): la **build** di una versione (la pagina costruita e il kernel impacchettato e minificato, con quello che usa dell'SDK), mai i sorgenti. `SystemReleases` (`kernel.system`) la installa accanto a quella in uso. Solo amministratori, solo dal repository ufficiale; endpoint in [API HTTP](#api-http), client in [`systemReleases`](#systemreleases).
 
 **Modalità** (`config.js`). Il kernel capisce da dove gira guardando se la sua radice (due cartelle sopra `system/kernel`) è `releases/<versione>/` e ha un `system.json`:
 
@@ -2829,8 +2829,11 @@ Anche lilOS è un pacchetto del repository ufficiale ([D57](../interna/decisioni
     1.8.0/               una cartella per versione
       system.json, README.md, CHANGELOG.md
       web/               la pagina costruita
-      system/kernel/     il kernel
-      sdk/…              i file dell'SDK che il kernel importa
+      system/kernel/     il kernel impacchettato e minificato: src/main.js, src/cli.js, src/setup.js,
+                         src/install.js, src/pack.js e i pezzi che condividono, tutti in src/
+                         (config.js e install.js trovano le cartelle da lì; run.js parte da
+                         src/main.js); cli.js, setup.js, tools/install.js e tools/pack.js li importano
+                         soltanto; run.js, package.json, config.json
 ```
 
 **`system.json`** (nella radice di una release, scritto da `scripts/release.mjs`):

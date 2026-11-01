@@ -4,11 +4,15 @@
  *
  *   npm run release -- <official repository folder> [--allow-dirty]
  *
- * In <folder>/system/lilos it writes only what runs, never the sources of the page:
+ * In <folder>/system/lilos it writes only what runs, never the sources:
  *   web/                the page built by Vite
- *   system/kernel/      the kernel (src, tools, cli.js, setup.js, run.js, package.json) and
+ *   system/kernel/      the kernel bundled and minified (with what it uses of the SDK) by Vite:
+ *                       src/main.js, src/cli.js, src/setup.js, src/install.js, src/pack.js and the
+ *                       chunks they share, all in src/ (config.js and install.js find their folders
+ *                       from there; run.js of an installed lilOS starts src/main.js); cli.js,
+ *                       setup.js, tools/install.js and tools/pack.js that only import them; run.js
+ *                       (minified, on its own: it is copied out of the release); package.json;
  *                       config.json, the configuration of a new installation
- *   sdk/…               the files of the SDK the kernel imports (found from its imports)
  *   package.json        "type": "module" for all of it
  *   system.json         version (package.json's), kernel API, app SDK versions, Node.js, commit
  *                       and every file with its hash
@@ -29,8 +33,13 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const args = process.argv.slice(2);
 const allowDirty = args.includes('--allow-dirty');
 const [repoArg] = args.filter(a => !a.startsWith('--'));
-const KERNEL_FILES = ['cli.js', 'setup.js', 'run.js', 'package.json'];
-const KERNEL_DIRS = ['src', 'tools'];
+/** Entry points of the kernel's bundle: name → source. */
+const KERNEL_ENTRIES = {
+  main: 'system/kernel/src/main.js', cli: 'system/kernel/cli.js', setup: 'system/kernel/setup.js',
+  install: 'system/kernel/tools/install.js', pack: 'system/kernel/tools/pack.js', run: 'system/kernel/run.js',
+};
+/** Files of the release that only start a bundled entry, where the sources had them. */
+const KERNEL_SHIMS = { 'system/kernel/cli.js': './src/cli.js', 'system/kernel/setup.js': './src/setup.js', 'system/kernel/tools/install.js': '../src/install.js', 'system/kernel/tools/pack.js': '../src/pack.js' };
 const KEEP = new Set(['README.md', 'CHANGELOG.md']);
 
 const git = (...a) => execFileSync('git', a, { cwd: root, encoding: 'utf8' }).trim();
@@ -47,24 +56,22 @@ function walk(dir, base = dir, out = []) {
   return out;
 }
 
-/** Files outside system/kernel that the kernel's files import (relative imports, followed). */
-function kernelImports(files) {
-  const found = new Set();
-  const queue = [...files];
-  while (queue.length) {
-    const file = queue.pop();
-    if (!file.endsWith('.js') && !file.endsWith('.mjs')) continue;
-    const text = readFileSync(join(root, file), 'utf8');
-    for (const m of text.matchAll(/(?:\bfrom\s*|\bimport\s*\(\s*|^\s*import\s+)['"](\.{1,2}\/[^'"]+)['"]/gm)) {
-      const target = posix.normalize(posix.join(posix.dirname(file), m[1]));
-      if (target.startsWith('..')) throw new Error(`${file} importa ${m[1]}, fuori dal repository`);
-      if (target.startsWith('system/kernel/') || found.has(target)) continue;
-      if (!existsSync(join(root, target))) throw new Error(`${file} importa ${m[1]}, che non esiste`);
-      found.add(target);
-      queue.push(target);
-    }
-  }
-  return [...found].sort();
+/** The kernel bundled and minified into `dir` (one file per entry, shared chunks next to them). */
+async function bundleKernel(dir) {
+  const { build } = await import('vite');
+  await build({
+    configFile: false, root, logLevel: 'warn', publicDir: false,
+    ssr: { noExternal: true, target: 'node' },
+    build: {
+      ssr: true, target: 'node22', minify: true, outDir: dir, emptyOutDir: true, copyPublicDir: false,
+      rollupOptions: {
+        input: Object.fromEntries(Object.entries(KERNEL_ENTRIES).map(([name, path]) => [name, join(root, path)])),
+        output: { format: 'es', entryFileNames: '[name].js', chunkFileNames: '[name]-[hash].js' },
+      },
+    },
+  });
+  // run.js is copied out of the release (tools/install.js): it must not need the other files
+  if (/\bfrom\s*["']\.\//.test(readFileSync(join(dir, 'run.js'), 'utf8'))) throw new Error('run.js impacchettato importa altri file');
 }
 
 /** The section of the changelog for this version: the commits since the release before (or since the last version tag). */
@@ -117,11 +124,6 @@ try {
   const dirty = git('status', '--porcelain', '--untracked-files=no');
   if (dirty && !allowDirty) throw new Error(`Ci sono modifiche non salvate in un commit:\n${dirty}`);
 
-  const kernelFiles = [
-    ...KERNEL_FILES.map(f => `system/kernel/${f}`),
-    ...git('ls-files', ...KERNEL_DIRS.map(d => `system/kernel/${d}`)).split('\n').filter(Boolean),
-  ];
-  const sdkFiles = kernelImports(kernelFiles);
 
   // The page, built apart (dist/ stays as it is)
   const build = mkdtempSync(join(tmpdir(), 'lilos-release-'));
@@ -141,7 +143,12 @@ try {
       files[path] = sha256(data);
     };
     for (const path of walk(join(build, 'web'))) put(`web/${path}`, readFileSync(join(build, 'web', ...path.split('/'))));
-    for (const path of [...kernelFiles, ...sdkFiles]) put(path, readFileSync(join(root, ...path.split('/'))));
+    await bundleKernel(join(build, 'kernel'));
+    for (const name of readdirSync(join(build, 'kernel'))) {
+      put(name === 'run.js' ? 'system/kernel/run.js' : `system/kernel/src/${name}`, readFileSync(join(build, 'kernel', name)));
+    }
+    for (const [path, target] of Object.entries(KERNEL_SHIMS)) put(path, `import '${target}';\n`);
+    put('system/kernel/package.json', readFileSync(join(root, 'system/kernel/package.json')));
     // The configuration of a new installation: apps only from repositories
     const config = JSON.parse(git('show', 'HEAD:system/kernel/config.json'));
     config.apps = { ...config.apps, allowLocalSources: false };
@@ -178,7 +185,7 @@ try {
 
     const size = Object.keys(files).reduce((n, path) => n + statSync(join(out, ...path.split('/'))).size, 0);
     console.log(`\nlilOS ${version}${previous ? ` (prima ${previous})` : ''}: ${Object.keys(files).length} file, ${(size / 1024).toFixed(0)} KB in ${toPosix(relative(process.cwd(), out)) || out}`);
-    console.log(`SDK per il kernel: ${sdkFiles.join(', ') || 'nessun file'}`);
+    console.log(`Kernel: ${readdirSync(join(build, 'kernel')).join(', ')}`);
     console.log('Controlla CHANGELOG.md, poi commit e tag nel repository ufficiale.');
   } finally {
     rmSync(build, { recursive: true, force: true });

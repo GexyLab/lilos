@@ -236,7 +236,7 @@ Nessun agente fa commit o push: si decide dopo aver letto i report.
 
 ## Rilascio
 
-**Versione di lilOS.** È `version` di `package.json` (`1.8.0` al 1° novembre 2026) e va alzata insieme al tag `v<versione>` di questo repository. Un lilOS installato la prende dal repository ufficiale ([D57](decisioni.md#d57-lilos-si-aggiorna-dal-repository-ufficiale-come-un-pacchetto)). Per pubblicare una versione: [Pubblicare una versione di lilOS](../sviluppatore/ricette.md#pubblicare-una-versione-di-lilos). `npm run release` rifiuta di partire con modifiche non salvate; alla fine controlla `CHANGELOG.md` e fai commit e tag nel repository ufficiale.
+**Versione di lilOS.** È `version` di `package.json` (`1.9.1` al 1° novembre 2026) e va alzata insieme al tag `v<versione>` di questo repository. Un lilOS installato la prende dal repository ufficiale ([D57](decisioni.md#d57-lilos-si-aggiorna-dal-repository-ufficiale-come-un-pacchetto)). Per pubblicare una versione: [Pubblicare una versione di lilOS](../sviluppatore/ricette.md#pubblicare-una-versione-di-lilos). `npm run release` rifiuta di partire con modifiche non salvate; alla fine controlla `CHANGELOG.md` e fai commit e tag nel repository ufficiale.
 
 Non c'è ancora un ambiente pubblicato. `npm run build` produce in `dist/` il frontend, ma da solo non basta: il sistema parla con il kernel su `/api`, della **stessa origine** della pagina (il cookie di sessione ha `Path=/api`). In sviluppo, e con `npm run preview`, lo inoltra Vite a `127.0.0.1:8790`; in produzione serve un server che serva `dist/` e inoltri `/api` al kernel. Questo passaggio non è ancora descritto né deciso.
 
