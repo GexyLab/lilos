@@ -599,7 +599,7 @@ class FileSystem extends Emitter {
    */
   untrash(ids, parentId = null) {
     const into = parentId == null ? null : this.#find(parentId);
-    if (parentId != null && into?.type !== 'folder') return [];
+    if (parentId != null && (into?.type !== 'folder' || into.net)) return [];   // not onto a server
     const restored = [];
     for (const id of ids) {
       const node = this.#nodes.get(id);
