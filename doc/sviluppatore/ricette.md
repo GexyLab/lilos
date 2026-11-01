@@ -639,6 +639,8 @@ Il File Manager sa mostrare testo e SVG; per gli altri tipi di file può farla l
 
 Da ricordare: hai 10 secondi; `text` e `html` al massimo 1 MB, `image` 20 MB; l'`html` viene ripulito (niente script, link, form, risorse esterne: immagini e font solo `data:`) e gira in un iframe senza permessi; non puoi scrivere il file né passarlo ad altre app. Se sbagli, l'utente vede l'anteprima di sempre e tu un avviso in console.
 
+Vuoi invece **mostrare** le anteprime di altre app (per esempio in un tuo file manager)? Chiedi il permesso `fs.preview` e usa `lilos.files.preview(rif, { size })` sui file che puoi già leggere: ricevi la stessa risposta (`text`, `html` o `image`), con l'`html` da mettere in un `<iframe sandbox="" srcdoc>` ([dettagli](api.md#anteprima-dei-file-fatta-dalle-app-filepreviewjs)).
+
 ## Tradurre un'app
 
 Un'app installata o di sistema ha un solo file di traduzioni, con l'inglese come lingua predefinita. Formato completo e regole: [API → Traduzioni delle app](api.md#traduzioni-delle-app-sdkcorelocalejs-e-sdkcorei18njs).

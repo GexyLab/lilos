@@ -16,6 +16,7 @@ export const PERMISSIONS = {
   'fs.read': { level: 'install', label: 'Leggere i file in', param: 'path' },
   'fs.write': { level: 'install', label: 'Leggere e modificare i file in', param: 'path' },
   'fs.workspaces': { level: 'reserved', label: 'Vedere i file privati di tutti i workspace' },
+  'fs.preview': { level: 'install', label: 'Chiedere l’anteprima dei file all’app che li apre' },
   'tags.read': { level: 'install', label: 'Vedere i tag' },
   'tags.write': { level: 'install', label: 'Creare e assegnare tag' },
   'desktop.items': { level: 'install', label: 'Mettere elementi sulla scrivania' },

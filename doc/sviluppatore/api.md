@@ -1614,6 +1614,7 @@ Un permesso è `nome` oppure `nome:parametro`. Un permesso non nell'elenco, o co
 | `fs.open` | implicit | I file che l'app apre | L'app può leggere e scrivere il file con cui è stata aperta |
 | `fs.read:<~/percorso>` | install | Leggere i file in quel percorso | `lilos.files.read` e `list` |
 | `fs.write:<~/percorso>` | install | Leggere e modificare i file in quel percorso | `lilos.files.*` |
+| `fs.preview` | install | Chiedere l'anteprima dei file all'app che li apre | `lilos.files.preview`, solo per i file che l'app può già leggere (vedi [Anteprima dei file fatta dalle app](#anteprima-dei-file-fatta-dalle-app-filepreviewjs)) |
 | `tags.read`, `tags.write` | install | Vedere / creare e assegnare tag | `tags.write` serve all'operazione `tag` |
 | `desktop.items` | install | Mettere elementi sulla scrivania | Serve all'operazione `desktopItem` |
 | `desktop.widget` | install | Mostrare widget | Nessuno (i widget non si mostrano) |
@@ -1693,6 +1694,7 @@ Con `sdk` `"1"` il modulo è l'app: gira per intero all'avvio con `window.lilos`
 | `lilos.files.open(id)` | Apre con la sua app un file che l'app ha ricevuto (passando da `file.open`). Un altro id: errore. |
 | `lilos.files.locked(ids)` → quanti | Dice che l'app ha richiuso questi file (solo quelli ricevuti e con dati dell'app): lilOS chiede di chiudere le finestre che li mostrano (come con il pulsante di chiusura: chi ha modifiche non salvate chiede prima). |
 | `lilos.files.shown(ids)` → `[id]` | Quali di questi file (solo quelli ricevuti) sono mostrati in una finestra ora. Serve a non bloccarli per inattività mentre sono in uso. |
+| `lilos.files.preview(rif, { size? })` → `{ app, text, html o image, note }` o `null` | L'anteprima del file fatta dall'app che lo apre (il suo `filePreview`). Serve `fs.preview` e poter leggere `rif`. Vedi [Anteprima dei file fatta dalle app](#anteprima-dei-file-fatta-dalle-app-filepreviewjs). |
 | `lilos.files.list(percorso)` → `[{ name, type, size, modified }]` | Contenuto di una cartella (`fs.read` o `fs.write`). |
 | `lilos.files.mkdir(percorso)` | Crea una cartella (la cartella che la contiene deve esistere; se c'è già non fa nulla). Serve `fs.write`. |
 | `lilos.pipes.subscribe(evento, { stage = 'after', position = 'middle', where }, fn)` → `Promise<off>` | Iscrive la parte dell'app (finestra o background) a un evento ([pipes](#sdkcorepipesjs-e-sdkcorepipecatalogjs)). `fn(data, ctx)` (anche asincrona) restituisce niente, `{ data }` o `{ stop: { error, silent } }`. Serve `pipe:<evento>` o `pipe.own:<evento>` con `where: { meta: 'own' }`. Dura finché la parte gira. Un file segnato dall'app che arriva nei dati si può leggere e scrivere. |
@@ -1781,11 +1783,11 @@ All'apertura la finestra riceve `args = { file, view }`. Un `file` è l'id del f
 | --- | --- |
 | `PREVIEW_ENTRY` | `'filePreview'`, il nome del punto d'ingresso |
 | `previewAppFor(node)` → `app` o `null` | L'app che fa l'anteprima di quel nodo: `appFor(estensione)` (la scelta dell'utente o l'app predefinita, vedi [apps/open.js e apps/openWith.js](#appsopenjs-e-appsopenwithjs)), se è un pacchetto installato nel workspace e ha un punto d'ingresso `filePreview` di tipo `background`. `null` per cartelle, collegamenti, elementi nel cestino e in ogni altro caso. |
-| `filePreview(node, { size }?)` → `Promise<{ app, text, html o image, note } o null>` | Chiama l'app e controlla la risposta. `size` (opzionale): il lato lungo voluto in pixel, arrotondato; senza, o con un valore non positivo, l'app sceglie. Lo usano le miniature ([Miniature dei file](#miniature-dei-file-thumbnailsjs)). `app` è l'id dell'app. `null` se nessuna app fa l'anteprima o se l'app risponde `null`. Rifiuta se l'app dà un errore, una risposta non valida o non risponde in 10 secondi. |
+| `filePreview(node, { size, from }?)` → `Promise<{ app, text, html o image, note } o null>` | Chiama l'app e controlla la risposta. `from`: l'id dell'app che chiede l'anteprima (`lilos.files.preview`, sotto), passato all'app che la fa; `null` (predefinito) per lilOS e le app di sistema. `size` (opzionale): il lato lungo voluto in pixel, arrotondato; senza, o con un valore non positivo, l'app sceglie. Lo usano le miniature ([Miniature dei file](#miniature-dei-file-thumbnailsjs)). `app` è l'id dell'app. `null` se nessuna app fa l'anteprima o se l'app risponde `null`. Rifiuta se l'app dà un errore, una risposta non valida o non risponde in 10 secondi. |
 
 Nella risposta di `filePreview` c'è uno solo tra `text` (stringa), `image` (`Blob`) e `html` (un documento intero già ripulito); `note` è `null` se manca.
 
-**Cosa riceve l'app.** Il suo `lilos.handle` viene chiamato con `data = { file, size? }` (l'id del file e, solo se richiesto, `size`: il lato lungo voluto in pixel, un intero positivo; per una miniatura è piccolo) e `from` = `null`. `size` è un suggerimento: un'app che fa l'anteprima di un'immagine lo rispetta (non ingrandisce mai) e, senza, sceglie lei. Il file le è passato **solo in lettura**: `lilos.files.read(file)` (anche con `{ bytes: true }`) e `lilos.files.info(file)` funzionano; `write` e `setMeta` falliscono con «Il file è stato passato solo da leggere». Non lo può passare ad altre app né aprire con `files.open`, e lo può leggere solo mentre risponde a quella chiamata. Per le pipe (`caller.opened` è vero) il file conta come consegnato all'app: per esempio FileCrypt lo decifra per lei come farebbe all'apertura.
+**Cosa riceve l'app.** Il suo `lilos.handle` viene chiamato con `data = { file, size? }` (l'id del file e, solo se richiesto, `size`: il lato lungo voluto in pixel, un intero positivo; per una miniatura è piccolo) e `from` = `null` (la chiede lilOS o un'app di sistema) oppure l'id dell'app installata che l'ha chiesta con `lilos.files.preview`. `size` è un suggerimento: un'app che fa l'anteprima di un'immagine lo rispetta (non ingrandisce mai) e, senza, sceglie lei. Il file le è passato **solo in lettura**: `lilos.files.read(file)` (anche con `{ bytes: true }`) e `lilos.files.info(file)` funzionano; `write` e `setMeta` falliscono con «Il file è stato passato solo da leggere». Non lo può passare ad altre app né aprire con `files.open`, e lo può leggere solo mentre risponde a quella chiamata. Per le pipe (`caller.opened` è vero) il file conta come consegnato all'app: per esempio FileCrypt lo decifra per lei come farebbe all'apertura.
 
 **Cosa risponde.** Un oggetto con **uno** di questi campi (se ce n'è più di uno vale il primo in quest'ordine: `text`, `html`, `image`) e una `note` facoltativa, oppure `null` («niente da mostrare»):
 
@@ -1826,6 +1828,14 @@ export function filePreview({ lilos }) {
 ```
 
 Dal sistema: `const p = await system.filePreview(node); if (p?.html) frame.srcdoc = p.html;`.
+
+**Dalle app installate.** Anche un'app installata può chiedere l'anteprima di un file (per esempio un altro file manager): `lilos.files.preview(rif, { size? })`, con il permesso `fs.preview`. `rif` è un file che l'app può già leggere: un `~/percorso` coperto da `fs.read` o `fs.write`, o l'id di un file che ha ricevuto. Risponde come `filePreview` (`{ app, text, html o image, note }` o `null`; l'`image` arriva come `Blob`) e fallisce allo stesso modo; `size` si limita a 4096. L'app che fa l'anteprima riceve come `from` l'id di chi chiede. L'`html` va mostrato anche qui in un `<iframe sandbox="" srcdoc>`. Un'app che fa anteprime non ha bisogno di `fs.preview`, se non chiede a sua volta quelle di altri.
+
+```js
+// Manifesto: "permissions": ["fs.preview", "fs.read:~/Documenti"]
+const p = await lilos.files.preview('~/Documenti/foto.png', { size: 256 });
+if (p?.image) img.src = URL.createObjectURL(p.image);
+```
 
 **Nei pacchetti ufficiali.** Photo (1.2.0) risponde con `image`: l'immagine rimpicciolita al lato lungo `size` (predefinito 1024, limitato tra 16 e 2048, mai ingrandita), in WebP (PNG se il browser non scrive WebP); `null` per file vuoti o immagini che il browser non decodifica. Editor (1.3.0) risponde con `image`: un foglio bianco 4:5 alto `size` (predefinito 1024, tra 16 e 2048) con le prime righe dei primi 64 KB del file, colorate con l'evidenziatore semplice e i colori del tema chiaro; le colonne sono altezza/4 tra 24 e 56 (un foglio piccolo mostra righe più grandi e leggibili) e le righe lunghe sono tagliate; `null` per file vuoti o binari (con il byte `\0`); WebP o PNG. Entrambi hanno `"sdk": "2"` e il punto d'ingresso `filePreview` (`background`).
 

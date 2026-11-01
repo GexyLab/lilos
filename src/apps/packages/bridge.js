@@ -36,6 +36,7 @@ import { typeKey } from '../../input/sendKey.js';
  *   lilos.files.open(id)                 opens a file the app was handed, with its app
  *   lilos.files.locked(ids)              files the app locked again: lilOS closes the windows showing them
  *   lilos.files.shown(ids) → ids         which of these files a window shows now
+ *   lilos.files.preview(ref, { size? }) → { app, text | image | html, note } | null   (fs.preview)
  *   lilos.files.list(path) → [{ name, type, size, modified }]
  *   lilos.files.mkdir(path)
  *   lilos.pipes.subscribe(event, { stage, position, where }, fn) → off   fn(data, ctx) → { data } | { stop } | nothing
@@ -101,6 +102,7 @@ export function lilosApi(call, info, i18nApi) {
       open: ref => call('files.open', ref),
       locked: ids => call('files.locked', ids),
       shown: ids => call('files.shown', ids),
+      preview: (ref, options) => call('files.preview', ref, options ?? null),
       list: path => call('files.list', path),
       mkdir: path => call('files.mkdir', path),
     }),

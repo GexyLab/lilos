@@ -15,7 +15,8 @@ import { theme } from './packages/host.js';
  *   { html }    a page with no scripts; it can't load anything nor take the user elsewhere
  *
  * and an optional `note` (a line under the preview). null: nothing to show, the File Manager
- * shows its own preview.
+ * shows its own preview. Installed apps ask for one with lilos.files.preview (permission
+ * fs.preview, methods.js).
  */
 export const PREVIEW_ENTRY = 'filePreview';
 const TIMEOUT = 10_000;
@@ -38,14 +39,15 @@ export function previewAppFor(node) {
  * previews it, or the app has nothing to show). `html` is a whole document for an
  * <iframe sandbox=""> (srcdoc), with the theme's colors as CSS variables. Rejects if the app
  * fails, answers something else or takes more than 10 seconds. size: see above (none: the app's own).
+ * from: the id of the app that asks (null: lilOS or a system app), given to the previewing app.
  */
-export async function filePreview(node, { size } = {}) {
+export async function filePreview(node, { size, from = null } = {}) {
   const app = previewAppFor(node);
   if (!app) return null;
   let timer;
   const late = new Promise((_, reject) => { timer = setTimeout(() => reject(new Error(`${app.name} non ha risposto in tempo`)), TIMEOUT); });
   try {
-    const answer = await Promise.race([background.call(app, PREVIEW_ENTRY, { file: node.id, ...(size > 0 && { size: Math.round(size) }) }, null, { readOnly: true }), late]);
+    const answer = await Promise.race([background.call(app, PREVIEW_ENTRY, { file: node.id, ...(size > 0 && { size: Math.round(size) }) }, from, { readOnly: true }), late]);
     const preview = checked(answer);
     return preview && { app: app.id, ...preview };
   } finally {

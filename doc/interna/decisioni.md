@@ -1088,6 +1088,8 @@ lilOS legge il file **prima** di avviare l'app e le dà le stringhe già risolte
 
 **Quando ripensarla.** Se le app vogliono anteprime interattive (allora: un iframe con `allow-scripts` e un canale di messaggi, come le finestre isolate), o se servono altre forme di risposta (audio, video, PDF).
 
+**Aggiunta (1° novembre 2026): anche le app installate chiedono anteprime.** Con `lilos.files.preview(rif, { size? })` e il permesso `fs.preview` (livello `install`). Serve un permesso a sé, e non basta `fs.read`, perché la chiamata fa partire il codice di un'altra app e le consegna il file. Chi chiede deve poter già leggere il file, perché l'anteprima ne mostra il contenuto. L'app che la fa vede chi chiede (`from`) e può rifiutare.
+
 ## D56. Le miniature sono le immagini che le app fanno dei file
 
 **Decisione.** Una miniatura è la risposta `image` del `filePreview` dell'app che apre il file ([D55](#d55-lanteprima-dei-file-la-può-fare-lapp-che-li-apre)), chiesta piccola con il nuovo `size` e tenuta in memoria (`src/apps/thumbnails.js`: `fileThumbnail`, `canThumbnail`, `thumbnailIcon`, esportate da `@lilos/system` le prime due). Si vedono in due posti, **entrambi voluti dall'utente il 1° novembre 2026**: sulla scrivania, **solo se acceso** (impostazione `deskPreviews`, predefinita `false`, Pannello di controllo → Scrivania → Elementi → Icone) e nel File Manager in una **terza vista** separata, «Vista anteprime» (1.7.0). Photo 1.2.0 ed Editor 1.3.0 le fanno.

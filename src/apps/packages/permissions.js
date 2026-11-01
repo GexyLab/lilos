@@ -19,6 +19,7 @@ export const hasPermission = (permissions, name) => permissions.includes(name);
 const LABELS = {
   'fs.app': 'I propri dati', 'fs.tmp': 'I propri file temporanei', 'fs.open': 'I file che apri con l’app',
   'fs.read': 'Leggere i file in', 'fs.write': 'Leggere e modificare i file in', 'fs.workspaces': 'Vedere i file privati di tutti i workspace',
+  'fs.preview': 'Chiedere l’anteprima dei file all’app che li apre',
   'tags.read': 'Vedere i tag', 'tags.write': 'Creare e assegnare tag', 'desktop.items': 'Mettere elementi sulla scrivania',
   'desktop.widget': 'Mostrare widget sulla scrivania', 'ui.notify': 'Mostrare avvisi', 'ui.menus': 'Aggiungere voci ai menu',
   'ui.commands': 'Aggiungere comandi', 'ui.shortcuts': 'Aggiungere scorciatoie da tastiera', 'clipboard.write': 'Copiare negli appunti',

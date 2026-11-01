@@ -2,6 +2,7 @@ import { fs, storage, pipes, bus, notifications } from '@lilos/sdk';
 import { coversPath } from './permissions.js';
 import { callEntrypoint, connectEntrypoint } from '../entrypoints.js';
 import { openFile } from '../open.js';
+import { filePreview } from '../filePreview.js';
 import { notify } from '../../notifications/notify.js';
 
 /**
@@ -145,6 +146,12 @@ export function hostMethods({ pkg, win = null, handles, readOnly = new Set(), in
       });
     },
     'pipes.run': (name, data) => pipes.run(ownEvent(name), data && typeof data === 'object' ? data : { value: data ?? null }, { caller: { app: pkg.id } }),
+    // The preview of a file it may read, made by the app that opens it (see filePreview.js)
+    'files.preview': (ref, options) => {
+      if (!perms.includes('fs.preview')) fail('Permesso negato: fs.preview');
+      const size = typeof options?.size === 'number' ? Math.min(options.size, 4096) : undefined;
+      return filePreview(fileOf(ref, false), { size, from: pkg.id });
+    },
     'files.list': path => {
       if (!coversPath(perms, path, { write: false })) fail(`Permesso negato: ${path}`);
       const node = resolveHome(path) ?? fail('La cartella non esiste');
