@@ -85,14 +85,16 @@ Puoi cambiare lo sfondo della scrivania con un colore o con un'immagine. Vale pe
 
 **Il colore.** Apri il Pannello di controllo → Scrivania → **Sfondo**. Nella sezione **Colore** scegli uno dei campioni, oppure **Altro colore** per sceglierne uno qualsiasi. I puntini della scrivania e i nomi degli elementi diventano chiari o scuri da soli, in modo che si leggano. **Usa il colore del tema** (compare solo se hai scelto un colore) torna al colore di prima.
 
-**L'immagine.** Il modo più veloce: tasto destro su un file immagine che sta sulla scrivania → **Usa come sfondo desktop**. La voce c'è solo per un file immagine alla volta (jpg, jpeg, png, gif, webp, avif, bmp, svg), non per altri file né per più elementi selezionati. Oppure, nella sezione **Immagine** della scheda Sfondo, **Scegli…** apre la scelta del file: mostra solo le immagini. Il pulsante **Togli** toglie l'immagine; il file resta dov'è.
+**L'immagine.** Il modo più veloce: tasto destro su un file immagine che sta sulla scrivania → **Usa come sfondo desktop**. La voce c'è solo per un file immagine alla volta (jpg, jpeg, png, gif, webp, avif, bmp, svg), non per altri file né per più elementi selezionati. Oppure, nella sezione **Immagine** della scheda Sfondo, **Scegli…** apre la scelta del file: mostra solo le immagini. Il pulsante **Togli** toglie l'immagine.
 
-- L'immagine riempie tutta la scrivania senza deformarsi e parte sempre dal bordo superiore dello schermo: se le proporzioni sono diverse, le parti in più sono tagliate in basso (o ai lati, per un'immagine più larga dello schermo).
+- L'immagine è alta esattamente quanto la scrivania e non si deforma: in altezza si vede sempre tutta. Se è più larga dello schermo, le parti in più si tagliano ai due lati; se è più stretta, ai lati si vede il colore della scrivania.
 - Sta ferma dietro la scrivania: muovendoti o ingrandendo non si sposta e non cambia misura.
 - Sopra un'immagine i nomi degli elementi sono bianchi, con un'ombra, per leggersi su qualsiasi colore.
 - Se l'immagine ha parti trasparenti si vede il colore della scrivania.
-- Lo sfondo è il file stesso, non una copia: se lo modifichi, lo sfondo si aggiorna. Se lo rinomini con un nome che non finisce come un'immagine, o lo elimini (anche solo spostandolo nel Cestino), lo sfondo si toglie; ripristinarlo dal Cestino **non** lo rimette. Se il file non si apre come immagine compare una notifica di errore e lo sfondo resta quello di prima.
-- Se l'immagine sta nella Scrivania di un workspace, resta lo sfondo anche negli altri workspace.
+- Lo sfondo è una **copia** dell'immagine, che lilOS mette nella cartella **Sistema** della Home. Se elimini o modifichi l'originale, lo sfondo non cambia. Se scegli un file che sta già in Sistema, non viene fatta un'altra copia.
+- In Sistema c'è sempre solo la copia in uso: quando scegli un'altra immagine, o premi **Togli** o **Ripristina**, la copia di prima viene eliminata **per sempre** (non va nel Cestino). Il file originale non si tocca. La copia ha il nome dell'originale.
+- La cartella Sistema è condivisa da tutti i workspace e non si può rinominare né eliminare. Se elimini la copia (anche solo spostandola nel Cestino), non c'è più nessuno sfondo e ripristinarla dal Cestino **non** lo rimette. Se l'immagine non si apre compare una notifica di errore e lo sfondo resta quello di prima.
+- Lo sfondo è lo stesso in tutti i workspace.
 - **Ripristina** nel Pannello di controllo → Archiviazione riporta anche colore e immagine a quelli iniziali.
 - La scheda **Sfondo** compare solo se la tua versione di lilOS è abbastanza recente.
 
@@ -137,7 +139,7 @@ Puoi anche **mettere file e cartelle dentro una cartella**: trascinali sopra una
 - Rilasciando sopra una finestra, il rilascio vale per la finestra: se non c'è una cartella sotto il puntatore, le icone tornano dove erano.
 - Si può trascinare anche nell'altro verso: dalla finestra del File Manager o dall'Editor sulla scrivania. L'elemento si sposta nella cartella Scrivania e compare dove hai rilasciato.
 - **Ctrl Z** rimette tutto dov'era (vedi [Annullare e ripetere](#annullare-e-ripetere)).
-- Gli elementi si **spostano**, non si copiano: non c'è ancora un modo per copiare con il trascinamento. Le cartelle non si aprono da sole passandoci sopra, e le cartelle di sistema (Documenti, Immagini, Download) non si possono spostare.
+- Gli elementi si **spostano**, non si copiano: non c'è ancora un modo per copiare con il trascinamento. Le cartelle non si aprono da sole passandoci sopra, e le cartelle di sistema (Documenti, Immagini, Download, Sistema) non si possono spostare.
 
 ### Aprire
 
@@ -272,7 +274,7 @@ Il workspace che lasci resta **esattamente com'era**. Le sue finestre non si chi
 | Posizione degli elementi, vista, workarea, finestre aperte | Separate |
 | App visibili | Separate (vedi sotto): le app si installano per tutti, ogni workspace sceglie quali mostrare |
 | Preferite e app e file usati di recente nel menu di avvio | Separati |
-| **Documenti**, **Immagini**, **Download** | Condivise: tutti i workspace vedono gli stessi file |
+| **Documenti**, **Immagini**, **Download**, **Sistema** | Condivise: tutti i workspace vedono gli stessi file |
 | Tema, colore principale, scorciatoie, menu del tasto destro, app dei tipi di file | Uguali in tutti i workspace |
 
 Ogni file e cartella ricorda **il workspace che l'ha creato**. Non cambia se lo sposti o lo rinomini. Nel File Manager, in vista elenco, la colonna **Workspace** mostra un pallino con il colore e il nome del workspace; **Condiviso** compare sulle cartelle principali, che non sono di nessuno. In vista a icone, il suggerimento che compare passando sopra un elemento dice «Workspace: …». Fai clic sull'intestazione per ordinare per workspace.
@@ -316,7 +318,7 @@ Un workspace nuovo si crea anche dal menu del pulsante nella barra delle applica
 
 **File Manager** mostra le cartelle e il loro contenuto. Aprilo dal menu di avvio o dall'elemento **File Manager** della scrivania, oppure fai doppio clic su una cartella della scrivania: si apre direttamente lì. Dal tasto destro su un punto vuoto della scrivania, **Apri la Scrivania nel File Manager** mostra gli elementi della scrivania come elenco.
 
-- **A sinistra**, la barra laterale. In cima la sezione **Collegamenti**: Home e le cartelle principali (Scrivania, Documenti, Immagini, Download) e i collegamenti che aggiungi tu (vedi [Collegamenti nella barra laterale](#collegamenti-nella-barra-laterale)), nell'ordine che scegli trascinandoli. Sotto, la voce **Tag** con un elemento per ogni tag che hai creato (vedi [I tag](#i-tag)) e in fondo il **Cestino** (vedi [Il Cestino](#il-cestino)): queste restano sempre al loro posto. Le cartelle principali non si possono rinominare né eliminare. **Scrivania** è quella del workspace in cui sei; Documenti, Immagini e Download sono di tutti.
+- **A sinistra**, la barra laterale. In cima la sezione **Collegamenti**: Home e le cartelle principali (Scrivania, Documenti, Immagini, Download, Sistema) e i collegamenti che aggiungi tu (vedi [Collegamenti nella barra laterale](#collegamenti-nella-barra-laterale)), nell'ordine che scegli trascinandoli. Sotto, la voce **Tag** con un elemento per ogni tag che hai creato (vedi [I tag](#i-tag)) e in fondo il **Cestino** (vedi [Il Cestino](#il-cestino)): queste restano sempre al loro posto. Le cartelle principali non si possono rinominare né eliminare. **Scrivania** è quella del workspace in cui sei; Documenti, Immagini e Download sono di tutti.
 - **In alto**: Indietro, Avanti, Cartella superiore; il percorso (fai clic su una parte per tornarci, o accanto alle cartelle per scriverlo: vedi sotto); **Nuova cartella**; vista **elenco**, **a icone** o **anteprime** (tre pulsanti vicini; l'ultima ha il simbolo di un'immagine); i pulsanti che aprono e chiudono i pannelli Anteprima e Informazioni; la ricerca nella cartella aperta (Esc la svuota).
 - **Al centro**: il contenuto della cartella. In vista elenco ci sono le colonne Nome, Modificato, Dimensione, Tipo e Workspace (il workspace che ha creato l'elemento, vedi [I workspace](#i-workspace)): fai clic su un'intestazione per ordinare, di nuovo per invertire l'ordine. Le cartelle restano sempre in cima.
 - **A destra**, due pannelli che si aprono e si chiudono: **Informazioni** e **Anteprima** (vedi [Anteprima e Informazioni](#anteprima-e-informazioni)).

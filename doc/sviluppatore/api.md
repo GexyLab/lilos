@@ -991,21 +991,21 @@ DOM: `div.ditem[data-kind="item"][data-id]` con `.ditem-glyph` e `.ditem-label`.
 
 ## desktop/wallpaper.js
 
-L'immagine di sfondo della scrivania, impostazione `wallpaper` (id di un file immagine, `''` per nessuna). Ha uno strato suo, `.canvas-wallpaper`, il primo figlio del canvas (dietro il mondo): riempie lo schermo con `background: center top / cover` (proporzioni mantenute, mai stirata; il bordo superiore dell'immagine coincide con quello dello schermo, quindi il resto si taglia in basso o, per un'immagine più larga, ugualmente ai due lati) e non segue pan e zoom. Il colore `deskColor` si vede sotto le immagini trasparenti. Con un'immagine il canvas ha la classe `has-wallpaper` (`canvas.css`), che mette etichette chiare con ombra forte (`--on-canvas`, `--on-canvas-hover`, `--on-canvas-shadow`).
+L'immagine di sfondo della scrivania, impostazione `wallpaper` (id della copia dell'immagine nella cartella Sistema, `''` per nessuna). Ha uno strato suo, `.canvas-wallpaper`, il primo figlio del canvas (dietro il mondo): è alta esattamente quanto la scrivania, con le sue proporzioni (`background: center / auto 100%`: mai stirata, mai tagliata sopra o sotto; più larga dello schermo, si taglia ugualmente ai due lati) e non segue pan e zoom. Il colore `deskColor` si vede ai lati di un'immagine più stretta dello schermo e sotto le immagini trasparenti. Con un'immagine il canvas ha la classe `has-wallpaper` (`canvas.css`), che mette etichette chiare con ombra forte (`--on-canvas`, `--on-canvas-hover`, `--on-canvas-shadow`).
 
 - `WALLPAPER_EXTS`: `['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'bmp', 'svg']`.
 - `wallpaper`: `Emitter`; evento `'change'` con `{ id, name }` o `null`, quando la nuova immagine è sullo schermo.
 - `isWallpaperImage(node)`: `true` per un file (`type: 'file'`) con una di quelle estensioni (senza distinguere maiuscole).
 - `wallpaperInfo()`: `{ id, name }` dell'immagine sullo schermo, o `null`.
-- `setWallpaper(id)` → `Promise<boolean>`: legge il file (`fs.readBlob`, con `caller: { system: true }`), controlla che si decodifichi come immagine, la mostra e poi salva `wallpaper`. `true` se è sullo schermo. `false`, con una notifica di errore, se il nodo non c'è o non è un'immagine per estensione, o se non si decodifica (in questo ultimo caso lo sfondo mostrato diventa nessuno, ma l'impostazione resta com'era).
-- `clearWallpaper()`: mette `wallpaper` a `''`. Il file non si tocca.
-- `preloadWallpaper()` e `connectWallpaper(canvas)` sono interni (non esportati da `@lilos/system`). `system.js` chiama la prima **prima** di `setupWorkspaces`, quando `fs` mostra ancora tutte le scrivanie: così un'immagine nella Scrivania privata di un workspace è lo sfondo anche negli altri (dopo, `fs` mostra solo quella del workspace attuale). La seconda crea lo strato e lo tiene allineato.
+- `setWallpaper(id)` → `Promise<boolean>`: copia il file nella cartella Sistema (`fs.copy`; se è già lì non copia), legge la copia (`fs.readBlob`, con `caller: { system: true }`), controlla che si decodifichi come immagine, la mostra, salva `wallpaper` con l'id della copia ed elimina per sempre (`fs.remove`) la copia di prima. Se `fs` ha numerato il nome perché in Sistema ce n'era uno uguale, la copia riprende il nome dell'originale dopo l'eliminazione della precedente. `true` se è sullo schermo. `false`, con una notifica di errore, se il nodo non c'è o non è un'immagine per estensione, se non si copia, o se non si decodifica (in questo ultimo caso la copia appena fatta viene eliminata e l'impostazione resta com'era).
+- `clearWallpaper()`: mette `wallpaper` a `''` ed elimina per sempre la copia in Sistema (mai un file fuori da Sistema, mai uno `system`). La copia si elimina anche quando `wallpaper` torna `''` per altre vie («Ripristina» in Archiviazione, un'altra scheda).
+- `preloadWallpaper()` e `connectWallpaper(canvas)` sono interni (non esportati da `@lilos/system`). `system.js` chiama la prima **prima** di `setupWorkspaces`, quando `fs` mostra ancora tutte le scrivanie: così un'immagine nella Scrivania privata di un workspace è lo sfondo anche negli altri (dopo, `fs` mostra solo quella del workspace attuale). Se `wallpaper` è l'id di un file che non sta in Sistema (salvato da lilOS 1.9.0–1.9.3), `preloadWallpaper` lo copia in Sistema (l'originale resta dov'è) e, a immagine mostrata, `wallpaper` e `wallpaperInfo()` passano alla copia (esce `change`). La seconda crea lo strato e lo tiene allineato.
 
-Il file è un riferimento per id, non una copia ([D58](../interna/decisioni.md#d58-lo-sfondo-è-un-riferimento-al-file-non-una-copia)). L'immagine mostrata è un object URL (`blob:`): in CSS non arriva niente che venga dallo storage. Il file si segue così:
+Lo sfondo è una copia nel file system, non un riferimento all'originale ([D58](../interna/decisioni.md#d58-lo-sfondo-è-una-copia-nella-cartella-sistema)). L'immagine mostrata è un object URL (`blob:`): in CSS non arriva niente che venga dallo storage. La copia si segue così:
 
 | Cosa succede al file | Effetto |
 | --- | --- |
-| Eliminato (anche nel cestino: evento `remove`) | `clearWallpaper()`; ripristinarlo non lo rimette |
+| Eliminata (anche nel cestino: evento `remove`) | `clearWallpaper()`; ripristinarla non lo rimette. Eliminare o modificare l'originale non cambia niente |
 | Rinominato con un'estensione non immagine | `clearWallpaper()` |
 | Rinominato con un'estensione immagine | Cambia il nome in `wallpaperInfo()` ed esce `change` |
 | Contenuto cambiato (`modified` o `size` diversi in un `update`) | Riletto |
@@ -1014,7 +1014,7 @@ Il file è un riferimento per id, non una copia ([D58](../interna/decisioni.md#d
 
 Se `wallpaper` cambia da fuori (un'altra scheda del browser), l'immagine viene mostrata se è un'immagine leggibile da qui. Il menu del tasto destro di `Desktop` ha **Usa come sfondo desktop** per un solo file immagine (non per più elementi).
 
-Pannello di controllo 1.13.0 ha Scrivania → Sfondo (Colore e Immagine; «Scegli…» apre il selettore di file con le sole immagini); la scheda compare solo se `system.setWallpaper` esiste. «Ripristina» in Archiviazione riporta `deskColor` e `wallpaper` ai predefiniti.
+Pannello di controllo 1.13.1 ha Scrivania → Sfondo (Colore e Immagine; «Scegli…» apre il selettore di file con le sole immagini e passa da `setWallpaper`, quindi copia); la scheda compare solo se `system.setWallpaper` esiste. «Ripristina» in Archiviazione riporta `deskColor` e `wallpaper` ai predefiniti.
 
 ## desktop/fixedItems.js
 
@@ -1113,7 +1113,7 @@ Come si trova il bersaglio: si prende l'elemento sotto il puntatore (`document.e
 
 ### `links.js`
 
-L'ordine della sezione «Collegamenti» nella barra laterale del File Manager: le voci fisse (Home, Scrivania, Documenti, Immagini, Download) e i collegamenti a file e cartelle trascinati lì. Il blocco dei tag e il Cestino stanno fuori dall'ordine.
+L'ordine della sezione «Collegamenti» nella barra laterale del File Manager: le voci fisse (Home, Scrivania, Documenti, Immagini, Download, Sistema) e i collegamenti a file e cartelle trascinati lì. Il blocco dei tag e il Cestino stanno fuori dall'ordine.
 
 L'ordine è una lista di **chiavi**: un id di nodo (una voce fissa, con Home = `'root'`, oppure un collegamento) o `'desk'` (la Scrivania del workspace attuale, che ha un id diverso in ogni workspace). Le chiavi `'tags'` e `'trash'`, presenti nei salvataggi di una versione precedente, vengono tolte alla lettura (e il valore ripulito viene salvato).
 
@@ -1342,8 +1342,10 @@ Il pulsante nella barra a destra del logo (`button.tb-ws`: pallino con il colore
 ## systemFs.js
 
 - `DESK_NAME`: `'Scrivania'`, il nome della cartella di ogni workspace.
-- `SYSTEM_FOLDERS`: le cartelle sotto la radice, con il simbolo per la barra laterale del File Manager: Scrivania, Documenti, Immagini, Download.
-- `setupFileSystem()` → `{ firstStart }` (`true` se non c'era nulla di salvato). Crea le cartelle di sistema **condivise** che mancano (Documenti, Immagini, Download). La Scrivania non la crea: ogni workspace ha la sua (`setupWorkspaces`). Va chiamata prima che un workspace sia impostato.
+- `SYSTEM_NAME`: `'Sistema'`, il nome della cartella condivisa dove lilOS tiene ciò che gli serve (oggi la copia dello sfondo, [D58](../interna/decisioni.md#d58-lo-sfondo-è-una-copia-nella-cartella-sistema)). È visibile: lilOS non ha cartelle nascoste.
+- `SYSTEM_FOLDERS`: le cartelle sotto la radice, con il simbolo per la barra laterale del File Manager: Scrivania, Documenti, Immagini, Download, Sistema (simbolo `gear`, l'ultima).
+- `sharedFolder(name)` → `string | null`: l'id della cartella condivisa (non privata) con quel nome nella radice, o `null` se non c'è. Usata da `setupFileSystem` e dallo sfondo; non è esportata da `@lilos/system`.
+- `setupFileSystem()` → `{ firstStart }` (`true` se non c'era nulla di salvato). Crea le cartelle di sistema **condivise** che mancano (Documenti, Immagini, Download, Sistema). La Scrivania non la crea: ogni workspace ha la sua (`setupWorkspaces`). Va chiamata prima che un workspace sia impostato.
 - `fillDesk(deskId, layoutKey)`: al primo avvio riempie una Scrivania con gli elementi della vecchia scrivania piatta (`lilos:desktop`, che poi viene eliminata) o con `seed.js`, e scrive le posizioni sotto `layoutKey`.
 
 ---
@@ -1412,7 +1414,7 @@ Permessi dichiarati nei manifesti ufficiali: File Manager `fs.write:~`, `fs.work
 | --- | --- | --- |
 | `version` | `package.json` | Versione di lilOS |
 | `ACCENTS`, `DESK_COLORS`, `LASSO_OPTIONS`, `RETENTION_OPTIONS` | `systemSettings.js` | Scelte di colore principale, colore della scrivania, selezione a mano libera e conservazione del cestino |
-| `SYSTEM_FOLDERS`, `DESK_NAME` | `systemFs.js` | Cartelle di sistema e nome della Scrivania |
+| `SYSTEM_FOLDERS`, `DESK_NAME`, `SYSTEM_NAME` | `systemFs.js` | Cartelle di sistema, nome della Scrivania e di Sistema |
 | `FOLDER_COLOR`, `itemIcon`, `itemBadges` | `desktop/itemIcons.js` | Icone di cartelle e file; i segni delle app sulle icone |
 | `wallpaper`, `wallpaperInfo`, `setWallpaper`, `clearWallpaper`, `isWallpaperImage`, `WALLPAPER_EXTS` | `desktop/wallpaper.js` | L'immagine di sfondo della scrivania (vedi [desktop/wallpaper.js](#desktopwallpaperjs)) |
 | `DESK_FIXED_ITEMS`, `isFixedShown`, `setFixedShown`, `setFixedShownEverywhere` | `desktop/fixedItems.js` | L'elenco degli elementi fissi della scrivania (alias di `FIXED_ITEMS`) e quali sono accesi, per workspace o in tutti |
@@ -2024,7 +2026,7 @@ Dichiara le impostazioni del sistema e le applica. Va importato per primo da `sy
 | `deskHidden` | `[]` | Chiavi degli elementi fissi spenti in tutti i workspace: valgono per quelli che non hanno scelto (`hidden: null`) e per i nuovi (vedi [desktop/fixedItems.js](#desktopfixeditemsjs)) |
 | `deskPreviews` | `false` | Con `true` i file sulla scrivania mostrano la miniatura fatta dalla loro app (56 px, `DesktopItem`) al posto dell'icona, se l'app ne fa una ([apps/thumbnails.js](#miniature-dei-file-thumbnailsjs)). `Desktop` ridisegna i file quando l'impostazione o il registro delle app cambia. |
 | `deskColor` | `''` | Colore della scrivania: `''` per quello del tema, altrimenti `#rrggbb` (un altro valore si ignora e toglie le variabili). Imposta `--canvas` su `<html>` e, in base alla luminosità (luminanza relativa > 0,3: colore chiaro), `--canvas-dot`, `--on-canvas`, `--on-canvas-hover` e `--on-canvas-shadow` scuri o chiari. `DESK_COLORS` ne propone 10 |
-| `wallpaper` | `''` | Id del file immagine dietro la scrivania, `''` per nessuna (vedi [desktop/wallpaper.js](#desktopwallpaperjs)) |
+| `wallpaper` | `''` | Id della copia (in Sistema) dell'immagine dietro la scrivania, `''` per nessuna (vedi [desktop/wallpaper.js](#desktopwallpaperjs)) |
 | `startupApps` | `true` | Con `false` le app scelte nel Pannello di controllo → Avvio non si aprono all'ingresso (vedi [apps/startup.js](#appsstartupjs)) |
 | `userPhoto` | `''` | La foto profilo: un JPEG quadrato di 192 px come URL `data:image/jpeg;base64,…`, `''` per nessuna. Alla lettura (`userPhoto()` in `user/photo.js`) un valore più lungo di 200 000 caratteri o che non è un JPEG in base64 conta come nessuna foto. Se c'è, il sistema mette `--user-photo: url(…)` e `data-user-photo` su `<html>` (vedi [user/](#user-la-pagina-utente)) |
 | `notifyShown` | `5` | Quante notifiche la barra delle notifiche mostra insieme (`NotificationBell`; almeno 1 nel codice). Il Pannello di controllo propone 1-8 e 10 |

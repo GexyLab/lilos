@@ -1152,22 +1152,28 @@ lilOS legge il file **prima** di avviare l'app e le dà le stringhe già risolte
 - L'aggiornamento non cambia la pagina già aperta: ogni scheda chiede di riavviare lilOS quando il kernel torna con un'altra versione (`checkSystemVersion`).
 
 **Quando ripensarla.** Quando la firma sarà usata per lilOS stesso (oggi si fida del repository), quando le migrazioni dei dati renderanno pericoloso tornare indietro, o se servirà più di un canale (anteprime, versioni stabili).
-## D58. Lo sfondo è un riferimento al file, non una copia
+## D58. Lo sfondo è una copia nella cartella Sistema
 
-**Decisione.** L'immagine di sfondo della scrivania è l'id di un file (impostazione `wallpaper`), non il suo contenuto. Il file si legge all'avvio e sta in uno strato fisso dietro la scrivania (`src/desktop/wallpaper.js`). Il colore (`deskColor`) è un'impostazione a parte. Deciso il 1° novembre 2026.
+**Decisione.** L'immagine di sfondo della scrivania è una copia del file scelto, in **Sistema**, una cartella condivisa della radice (impostazione `wallpaper` = id della copia). La copia si legge all'avvio e sta in uno strato fisso dietro la scrivania, alto quanto la scrivania con le sue proporzioni (`src/desktop/wallpaper.js`). Il colore (`deskColor`) è un'impostazione a parte. Deciso il 1° novembre 2026; la prima versione (lilOS 1.9.0–1.9.3) teneva l'id dell'originale, la copia è dalla 1.9.4.
 
 **Perché.**
 
-- **Il kernel accetta al massimo 512 KB per valore di storage.** Una copia dell'immagine nelle impostazioni (come data URL, come la foto profilo, che per questo è ridotta a 192 px) non entrerebbe: una foto vera pesa molto di più. Un file può invece arrivare a 10 MB.
-- **Un solo posto.** L'immagine è un file che l'utente ha già e che si modifica e si sposta come gli altri: lo sfondo si aggiorna quando il contenuto cambia, senza duplicati.
-- **Lettura prima del workspace.** Con i workspace `fs` mostra solo la scrivania del workspace attuale. Se il file sta nella Scrivania privata di un altro workspace, dopo `setupWorkspaces` non si vedrebbe più: `preloadWallpaper` lo legge prima, e lo sfondo è lo stesso in tutti i workspace.
+- **L'utente vuole che eliminare l'originale non cambi niente.** Con un riferimento, spostare il file nel cestino toglieva lo sfondo: non è quello che ci si aspetta da un'immagine «messa» come sfondo.
+- **Il kernel accetta al massimo 512 KB per valore di storage.** Tenere l'immagine nelle impostazioni (come data URL, come la foto profilo, che per questo è ridotta a 192 px) non è possibile: una foto vera pesa molto di più. Un file può invece arrivare a 10 MB. La copia va quindi nel file system.
+- **Una cartella di sistema, visibile.** lilOS non ha cartelle nascoste: la copia sta in Sistema (condivisa da tutti i workspace, non si rinomina né si elimina, icona `gear`, ultima in `SYSTEM_FOLDERS`), dove l'utente la vede.
+- **Una sola copia.** Sistema tiene solo quella in uso: un nuovo sfondo, «Togli» e «Ripristina» eliminano la precedente per sempre (non nel cestino), così non si accumulano duplicati. `dropCopy` non tocca mai un file fuori da Sistema.
+- **Lettura prima del workspace.** Con i workspace `fs` mostra solo la scrivania del workspace attuale. Uno sfondo salvato dalla 1.9.0–1.9.3 (id dell'originale, magari nella Scrivania privata di un altro workspace) si copia in Sistema al primo avvio, in `preloadWallpaper`, prima di `setupWorkspaces`. L'originale resta dov'è.
 
-**Alternative scartate.** Copiare l'immagine nelle impostazioni (limite di 512 KB); copiarla in una cartella di sistema (duplicati da gestire e da pulire); uno sfondo per workspace (non richiesto).
+**Alternative scartate.** Un riferimento al file (la prima versione: nessun duplicato, ma eliminare il file toglieva lo sfondo); l'immagine nelle impostazioni (limite di 512 KB); una cartella nascosta (lilOS non ne ha); tutte le copie tenute in Sistema (da pulire a mano); uno sfondo per workspace (non richiesto).
 
 **Conseguenze.**
 
-- Eliminare il file, anche solo spostandolo nel cestino, toglie lo sfondo; ripristinarlo non lo rimette.
+- Eliminare o modificare l'originale non cambia lo sfondo. Eliminare la copia, anche solo spostandola nel cestino, toglie lo sfondo; ripristinarla non lo rimette.
+- Scegliere un file già dentro Sistema non crea un'altra copia.
+- La copia prende il nome dell'originale (dopo l'eliminazione della precedente, se `fs` l'aveva numerata).
+- L'immagine occupa spazio due volte: la copia pesa quanto l'originale.
 - L'immagine resta in memoria come object URL finché è lo sfondo; si revoca quando cambia.
 - Il browser decodifica l'immagine a piena misura: una foto molto grande pesa.
 
-**Quando ripensarla.** Se serve uno sfondo diverso per workspace (allora: impostazione per workspace e lettura di tutti all'avvio).
+**Quando ripensarla.** Se serve uno sfondo diverso per workspace (allora: una copia per workspace e lettura di tutte all'avvio), o se lilOS avrà cartelle nascoste o un'area dati per sé (la copia andrebbe lì).
+

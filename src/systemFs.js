@@ -18,6 +18,8 @@ Pannello di controllo → Usabilità.
 
 /** Name of every workspace's desk folder (private: each workspace sees only its own). */
 export const DESK_NAME = 'Scrivania';
+/** Name of the folder of what lilOS keeps for itself (the copy of the wallpaper: desktop/wallpaper.js). */
+export const SYSTEM_NAME = 'Sistema';
 
 /**
  * System folders under the root, in sidebar order. They cannot be renamed or removed.
@@ -28,7 +30,13 @@ export const SYSTEM_FOLDERS = [
   { name: 'Documenti', icon: 'file' },
   { name: 'Immagini', icon: 'image' },
   { name: 'Download', icon: 'download' },
+  { name: SYSTEM_NAME, icon: 'gear' },
 ];
+
+/** Id of a shared folder in the root (Documenti, Sistema…), null if there is none. */
+export function sharedFolder(name) {
+  return fs.children(fs.root).find(n => n.type === 'folder' && n.name === name && !n.private)?.id ?? null;
+}
 
 /**
  * Makes sure the shared system folders exist. Call before any workspace is set (everything visible).
@@ -38,8 +46,7 @@ export function setupFileSystem() {
   const firstStart = !fs.loaded;
   for (const { name } of SYSTEM_FOLDERS) {
     if (name === DESK_NAME) continue;
-    const found = fs.children(fs.root).find(n => n.name === name && !n.private);
-    if (!found) fs.create(fs.root, { type: 'folder', name, system: true });
+    if (!sharedFolder(name)) fs.create(fs.root, { type: 'folder', name, system: true });
   }
   return { firstStart };
 }

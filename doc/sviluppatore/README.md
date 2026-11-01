@@ -246,7 +246,7 @@ src/
 ```
 globalThis.__lilosHost  l'SDK e @lilos/system, per le app di sistema (/host/sdk.js, /host/system.js)
 registerPackages()    le app installate nel registro (i workspace mostrano ogni app che trovano)
-setupFileSystem()     cartelle di sistema condivise (Documenti, Immagini, Download)
+setupFileSystem()     cartelle di sistema condivise (Documenti, Immagini, Download, Sistema)
 setupWorkspaces(…)    carica i workspace, migra e ripara, imposta quello attuale in fs
 Canvas(root, { key }) la scrivania, a tutto schermo sopra la barra; camera del workspace attuale
 createHud(canvas)     pannello in basso a destra
@@ -326,7 +326,7 @@ I componenti si parlano in due modi:
 
 Cartelle, file e collegamenti alle app sono nodi del file system virtuale `fs` dell'SDK, un albero con radice `root` tenuto in memoria e salvato nella cartella dell'utente del kernel (senza kernel, in `lilos:fs`). Il contenuto dei file passa dal kernel (`fs.read` / `fs.write`, asincroni; IndexedDB ne tiene una copia).
 
-- Le cartelle di sistema condivise (Documenti, Immagini, Download) sono create da `setupFileSystem()` (`src/systemFs.js`); la cartella Scrivania è creata per ogni workspace da `setupWorkspaces()`. Nessuna di queste si può rinominare né eliminare.
+- Le cartelle di sistema condivise (Documenti, Immagini, Download, Sistema) sono create da `setupFileSystem()` (`src/systemFs.js`); la cartella Scrivania è creata per ogni workspace da `setupWorkspaces()`. Nessuna di queste si può rinominare né eliminare.
 - La **scrivania è la vista della cartella `/Scrivania` del workspace attuale**: il `Desktop` crea, rinomina ed elimina tramite `fs` e si aggiorna sugli eventi `change`. Le posizioni sono salvate a parte, in `lilos:ws:<id>:desktop-layout`.
 - L'app **File** è un'altra vista dello stesso albero: quello che cambia da una parte si vede subito nell'altra.
 - I comandi Apri, Rinomina, Elimina, Seleziona tutto e Togli la selezione sono comuni: `src/items/targets.js` li registra una volta e li esegue sulla vista attiva (il desktop se nessuna finestra ha il focus, altrimenti la finestra del File Manager attiva).
