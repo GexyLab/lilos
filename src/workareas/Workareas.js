@@ -1,9 +1,10 @@
-import { Emitter, trackDrag, openMenu, toast } from '@lilos/sdk';
+import { Emitter, trackDrag, openMenu } from '@lilos/sdk';
 import { setLaunchScope } from '../apps/launcher.js';
 import { DesktopItem } from '../desktop/DesktopItem.js';
 import { WorkareaFrame, HEADER } from './WorkareaFrame.js';
 import { openProperties } from './properties.js';
 import { loadWorkareas, saveWorkareas, newWorkarea, cleanTitle, cleanMeta, cleanSavedWindow, MIN_SIZE, LIMITS } from './store.js';
+import { notify } from '../notifications/notify.js';
 
 const DEFAULT_SIZE = { w: 720, h: 460 };
 const PAD = 24;           // around the selection, when a workarea is made from it
@@ -649,7 +650,7 @@ export class Workareas extends Emitter {
   }
 
   #say(text) {
-    toast(text);
+    notify(text, { level: 'warning' });
   }
 }
 

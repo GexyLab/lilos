@@ -1,6 +1,7 @@
-import { fs, splitName, toast } from '@lilos/sdk';
+import { fs, splitName } from '@lilos/sdk';
 import { installedApps, launch } from './registry.js';
 import { callEntrypoint, entrypointsOf } from './entrypoints.js';
+import { notify } from '../notifications/notify.js';
 
 /**
  * What installed apps add to the menu of files and folders (manifest contributes.actions, with the
@@ -33,7 +34,7 @@ async function run(app, action, ids) {
     if (kind === 'window') launch(app.id, { files: ids, action: action.id }, action.entry, { files: ids });
     else await callEntrypoint(app.id, action.entry, { files: ids, action: action.id });
   } catch (err) {
-    toast(`${app.name}: ${err.message}`, { timeout: 6000 });
+    notify(`${app.name}: ${err.message}`, { level: 'error' });
   }
 }
 

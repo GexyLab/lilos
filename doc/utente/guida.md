@@ -381,7 +381,7 @@ Trascina file e cartelle (uno o più selezionati) e rilasciali su una cartella p
 Cosa succede:
 
 - La cartella o la voce di destinazione si evidenzia. Se non si evidenzia, lì non puoi rilasciare (per esempio una cartella dentro se stessa, o la cartella in cui l'elemento già si trova).
-- Un messaggio in basso dice dove è andato.
+- Una notifica dice dove è andato.
 - **Esc** durante il trascinamento annulla.
 - Se un elemento è selezionato insieme ad altri, un clic semplice su di esso lascia selezionato solo lui; il trascinamento invece sposta tutta la selezione.
 - Se nella cartella di destinazione c'è già un elemento con lo stesso nome, lilOS aggiunge un numero.
@@ -670,7 +670,7 @@ I **tag** sono etichette colorate che dai a file e cartelle per ritrovarli tutti
 - Tasto destro su un file o una cartella → **Tag → Nuovo tag…**. Si apre il **Pannello di controllo → Tag**: scrivi il nome e premi **Crea** (o Invio). Il nuovo tag viene messo subito sugli elementi che avevi selezionato.
 - Oppure apri direttamente il **Pannello di controllo → Tag**: scrivi il nome in **Nuovo tag** e premi **Crea**. Poi lo assegni come descritto sotto.
 
-Il nome può avere al massimo 30 caratteri e non può essere uguale a quello di un altro tag (le maiuscole non contano). Puoi avere al massimo 100 tag. Se il nome è vuoto o già usato, lilOS lo dice con un messaggio in basso e non crea nulla. Il nuovo tag prende il primo colore che non stai già usando.
+Il nome può avere al massimo 30 caratteri e non può essere uguale a quello di un altro tag (le maiuscole non contano). Puoi avere al massimo 100 tag. Se il nome è vuoto o già usato, lilOS lo dice con una notifica e non crea nulla. Il nuovo tag prende il primo colore che non stai già usando.
 
 ### Assegnare e togliere un tag
 
@@ -939,9 +939,9 @@ La rotella sopra il contenuto di una finestra lo fa scorrere; Ctrl + rotella fa 
 
 ## Le notifiche
 
-Le notifiche sono i messaggi che lilOS e le app ti mandano quando succede qualcosa che non dipende da un tuo clic: un'app che non è partita, un aggiornamento da finire, un lavoro in sottofondo che ha finito. Restano in un elenco, così non le perdi se in quel momento non guardavi lo schermo.
+Le notifiche sono i messaggi che lilOS e le app ti mandano: ciò che hai appena fatto (per esempio «Spostato «note.txt» in Documenti» o «Annullato: Rinomina»), un'app che non è partita, un aggiornamento da finire, un lavoro in sottofondo che ha finito. Non ci sono altri messaggi sullo schermo: restano tutti in un elenco, così non li perdi se in quel momento non guardavi.
 
-Le risposte immediate a ciò che hai appena fatto (per esempio "Spostato «note.txt» in Documenti") non sono notifiche: compaiono in basso per qualche secondo e spariscono.
+Un messaggio può avere un'etichetta: **Errore**, **Avviso** o **Fatto**. Se lilOS non riesce a conservare una notifica sua (per esempio ne arrivano troppe in un minuto), la tiene comunque nell'elenco fino a quando ricarichi la pagina; poi si perde.
 
 ### Quando arrivano
 

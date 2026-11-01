@@ -1,4 +1,4 @@
-import { h, icon, avatar, session, kernel, settings, fs, openMenu, toast, LANGUAGES } from '@lilos/sdk';
+import { h, icon, avatar, session, kernel, settings, fs, openMenu, LANGUAGES } from '@lilos/sdk';
 import { version } from '../../package.json';
 import { launch } from '../apps/registry.js';
 import { running } from '../apps/packages/background.js';
@@ -8,6 +8,7 @@ import { lockSession } from '../boot/boot.js';
 import { workspaceManager } from '../workspaces/info.js';
 import { isUserPageShown as shown } from './items.js';
 import { choosePhoto, removePhoto, userPhoto } from './photo.js';
+import { notify } from '../notifications/notify.js';
 
 const ROLES = { admin: 'Amministratore' };
 /** Settings shown on the page: when one changes (here or elsewhere) it is drawn again. */
@@ -23,7 +24,7 @@ export async function signOut() {
   try {
     await kernel.logout();
   } catch (err) {
-    toast(`Uscita non riuscita: ${err.message}`);
+    notify(`Uscita non riuscita: ${err.message}`, { level: 'error' });
     return;
   }
   location.reload();
@@ -125,7 +126,7 @@ export class UserPage {
     const tiles = [
       multi && shown('lock') && tile('lock', 'lock', 'Blocca', 'Le app restano aperte; per tornare serve la password', () => {
         this.close();
-        lockSession().catch(err => toast(`lilOS non si blocca: ${err.message}`, { timeout: 7000 }));
+        lockSession().catch(err => notify(`lilOS non si blocca: ${err.message}`, { level: 'error' }));
       }),
       shown('logout') && (multi
         ? tile('logout', 'logout', 'Chiudi sessione', 'Salva, chiude le app e torna all’accesso', () => { this.close(); signOut(); })
@@ -155,7 +156,7 @@ export class UserPage {
           onclick: () => {
             // The windows may ask to save: they must be in view
             this.close();
-            restartKernel().catch(err => toast(`Il sistema non si riavvia: ${err.message}`, { timeout: 8000 }));
+            restartKernel().catch(err => notify(`Il sistema non si riavvia: ${err.message}`, { level: 'error' }));
           },
         }, 'Riavvia ora')),
     );

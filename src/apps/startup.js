@@ -1,4 +1,4 @@
-import { bus, Emitter, fs, kernel, settings, storage, toast } from '@lilos/sdk';
+import { bus, Emitter, fs, kernel, settings, storage } from '@lilos/sdk';
 import { getApp, isInstalled, launch, registry } from './registry.js';
 import { entrypointsOf } from './entrypoints.js';
 import { notify } from '../notifications/notify.js';
@@ -215,7 +215,7 @@ export const startup = new Startup();
 /** Opens the user's apps on 'user:login'; forgets an app when it is removed. */
 export function connectStartup() {
   bus.on('user:login', () => inFirstTab(() => {
-    if (skipped) toast('Avvio senza app: l’indirizzo contiene ?avvio=no', { timeout: 5000 });
+    if (skipped) notify('Avvio senza app: l’indirizzo contiene ?avvio=no');
     else if (settings.get('startupApps')) openApps();
   }));
   registry.on('change', ({ id, app }) => { if (!app) startup.removeApp(id); });

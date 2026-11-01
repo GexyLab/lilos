@@ -419,7 +419,7 @@ export default function MyApp() {
 
 1. Crea una `UndoStack` per ogni posto che ha il suo "Annulla": una finestra, un pannello. Non condividerne una tra posti diversi.
 2. Collegala con `history.attach(el, stack)` all'elemento che contiene quello che l'utente modifica (`win.el` per tutta la finestra, o il pannello). Vince l'elemento più vicino al focus. Conserva la funzione restituita e chiamala alla chiusura (`win.on('destroy', detach)`).
-3. Dopo ogni azione che si può annullare, `stack.push({ label, undo, redo })`. L'`label` finisce nel messaggio in basso ("Annullato: …"), quindi scrivila come un'azione: `Elimina «nota.txt»`. In alternativa `await stack.run({ label, do, undo })` fa l'azione e la registra.
+3. Dopo ogni azione che si può annullare, `stack.push({ label, undo, redo })`. L'`label` finisce nella notifica ("Annullato: …"), quindi scrivila come un'azione: `Elimina «nota.txt»`. In alternativa `await stack.run({ label, do, undo })` fa l'azione e la registra.
 4. `undo` e `redo` possono essere asincrone. Se quello su cui agiscono non c'è più, **lanciano un errore**: la voce viene tolta e l'utente vede "Non si può più fare: …". Non restare in silenzio e non lasciare la voce bloccata.
 5. Per azioni sul file system usa gli aiuti di `src/items/fsHistory.js` (`removeNodes`, `recordCreated`, `renameNode`, `moveNode`) e `confirmRemove(ids, x, y, stack)` (e `restoreNodes` per il cestino): spostano nel cestino, o prendono uno `snapshot` se l'eliminazione è definitiva, e controllano che gli elementi esistano. Chiama `recordCreated` dopo la rinomina iniziale, per fare di creare e dare il nome un solo passo.
 6. Per un editor di testo tuo, collega un gestore con `text: true`: `history.attach(textarea, { text: true, undo, redo })`. Senza `text: true`, nei campi di testo Ctrl Z resta al browser. `undo` e `redo` restituiscono una stringa (anche vuota) se è andata bene, `null` se no.
@@ -554,7 +554,7 @@ Un pacchetto è una cartella con `lilos.json` (il manifesto) e i suoi file. Il c
      const area = document.createElement('textarea');
      area.value = await files.read('~/Documenti/Note/uno.txt');
      root.append(area);
-     ui.toast('Aperta');
+     ui.notify({ text: 'Aperta', level: 'success' });
      return () => { /* facoltativo: chiamata quando la finestra si chiude */ };
    }
    ```
@@ -710,7 +710,7 @@ Un'app installata aggiunge voci al menu del tasto destro di file e cartelle e un
    export function mark({ lilos }) {
      lilos.handle(async ({ files }) => {
        for (const id of files) await lilos.files.setMeta(id, { v: 1 });
-       lilos.ui.toast(`${files.length} file segnati`);
+       lilos.ui.notify({ text: `${files.length} file segnati`, level: 'success' });
      });
    }
    ```
@@ -719,7 +719,7 @@ Un'app installata aggiunge voci al menu del tasto destro di file e cartelle e un
 
 ## Mandare una notifica
 
-Una notifica serve per ciò che l'utente deve sapere ma non ha appena chiesto: un lavoro finito, un errore in sottofondo. Una risposta a un suo gesto («Salvato») resta un `toast`.
+Ogni messaggio all'utente è una notifica: non esiste più un messaggio breve in basso. Vale sia per ciò che l'utente deve sapere ma non ha chiesto (un lavoro finito, un errore in sottofondo) sia per la risposta a un suo gesto («Salvato»: usa `level: 'success'`). Non mandare una notifica per ogni passo: ce ne sono al massimo 10 al minuto per app.
 
 **Da un'app** (finestra o background), con `lilos.ui.notify`. Non serve nessun permesso: `ui.notify` ce l'hanno tutte le app.
 
@@ -742,7 +742,7 @@ export async function main({ lilos }) {
 
 **Da un servizio nel kernel**: la stessa funzione, `await lilos.ui.notify({ text, level, action })`. Arriva all'utente proprietario (gli amministratori, per un servizio di sistema) e resta nell'elenco anche se lilOS è chiuso.
 
-**Dal sistema** (`src/`): `notify(testo, { level })` da `notifications/notify.js` per ciò che non risponde a un gesto (un `toast` se non parte); `notifications.send({ text, level, action, app })` dall'SDK per il caso generale.
+**Dal sistema** (`src/`): `notify(testo, { level })` da `notifications/notify.js` per qualsiasi messaggio di lilOS (se il kernel non la prende resta nella pagina fino al ricaricamento); `notifications.send({ text, level, action, app })` dall'SDK per il caso generale.
 
 **Da un modulo del kernel** a un'app o a una pagina aperta, senza passare dalle notifiche: `ctx.emit(userId, 'miomodulo.novita', { … })`. Arriva sul flusso `/api/services-events` come evento con quel nome; per leggerlo in lilOS aggiungi un `source.addEventListener('miomodulo.novita', …)` in `connectServices()` (`src/apps/services.js`). Per notificare un utente da un modulo usa invece `ctx.service('notifications').send(userId, { from: { system: true }, text })`, dichiarando `notifications` in `requires` (così però il kernel non parte senza un modulo che le fornisce).
 

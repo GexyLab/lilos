@@ -1,8 +1,9 @@
-import { apps as installed, fs, storage, tags, toast, h, locale, kernel } from '@lilos/sdk';
+import { apps as installed, fs, storage, tags, h, locale, kernel } from '@lilos/sdk';
 import { registerApp, unregisterApp, getApp, CATEGORIES } from '../registry.js';
 import { registerAppCommands } from '../commands.js';
 import { packageModule } from './host.js';
 import { appCode } from './code.js';
+import { notify } from '../../notifications/notify.js';
 
 /**
  * Installed apps (the SDK's `apps`, from /system/app) in lilOS's registry, kept in step while
@@ -237,7 +238,7 @@ function undo(record, id) {
   }
   if (trash.length) {
     fs.trash(trash);
-    toast(`Rimossa ${record.name ?? id}: ${trash.length} elementi modificati sono nel Cestino`, { timeout: 6000 });
+    notify(`Rimossa ${record.name ?? id}: ${trash.length} elementi modificati sono nel Cestino`);
   }
   for (const key of storage.keys()) if (key.startsWith(`app:${id}:`)) storage.remove(key);
 }

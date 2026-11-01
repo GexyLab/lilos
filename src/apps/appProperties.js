@@ -1,8 +1,9 @@
-import { SettingsWindow, apps as installed, session, selectField, toast } from '@lilos/sdk';
+import { SettingsWindow, apps as installed, session, selectField } from '@lilos/sdk';
 import { getApp, registry } from './registry.js';
 import { entrypointsOf } from './entrypoints.js';
 import { executionMode, canChangeExecution } from './packages/isolation.js';
 import { describePermission } from './packages/permissions.js';
+import { notify } from '../notifications/notify.js';
 
 /**
  * "Proprietà…" of an app: Generale (version, publisher, where it comes from, its entry points),
@@ -99,9 +100,9 @@ function securitySections(app, rerender) {
       onChange: async v => {
         try {
           await installed.setAppSecurity(app.id, v === 'default' ? null : v === 'isolated');
-          toast(`${app.name}: vale dalla prossima apertura`);
+          notify(`${app.name}: vale dalla prossima apertura`, { level: 'success' });
         } catch (err) {
-          toast(`Non cambiata: ${err.message}`);
+          notify(`Non cambiata: ${err.message}`, { level: 'error' });
         }
         rerender();
       },
@@ -126,7 +127,7 @@ function securitySections(app, rerender) {
 export function showAppProperties(appId) {
   const app = getApp(appId);
   if (!app || !wm) {
-    toast('L’app non è installata');
+    notify('L’app non è installata', { level: 'error' });
     return null;
   }
   const key = `app-props:${appId}`;

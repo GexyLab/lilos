@@ -53,7 +53,7 @@ export async function main({ lilos, root }) {
   async function save() {
     if (!current) return;
     await files.write(`${DIR}/${current}`, text.value);
-    ui.toast(`Salvata: ${current}`);
+    ui.notify({ text: `Salvata: ${current}`, level: 'success' });
   }
 
   const off = lilos.on('command', id => { if (id === 'esempio.note.save') save(); });

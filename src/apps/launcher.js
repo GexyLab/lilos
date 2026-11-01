@@ -1,4 +1,4 @@
-import { bus, menus, toast, pipes, PipeStopped } from '@lilos/sdk';
+import { bus, menus, pipes, PipeStopped } from '@lilos/sdk';
 import { apps, getApp, isInstalled } from './registry.js';
 import { blockedLaunch } from './updates.js';
 import { notify } from '../notifications/notify.js';
@@ -71,7 +71,7 @@ export function connectLauncher(wm) {
   bus.on('app:launch', async ({ id, args, entry = 'main', files = [] }) => {
     const app = getApp(id);
     if (!app?.load) return console.info('[lilos] app non ancora disponibile:', id);
-    if (!isInstalled(id)) return toast(`${app.name} è nascosta in questo workspace. Si mostra dal Pannello di controllo → Workspace.`, { timeout: 5000 });
+    if (!isInstalled(id)) return notify(`${app.name} è nascosta in questo workspace. Si mostra dal Pannello di controllo → Workspace.`, { level: 'warning' });
     // Being updated, or updated and waiting for lilOS to restart: its old code must not start again
     if (blockedLaunch(id)) return;
     // The app.launch pipe: a handler may change the args, or stop it
@@ -88,7 +88,7 @@ export function connectLauncher(wm) {
         }
         args ??= undefined;
       } catch (err) {
-        if (!(err instanceof PipeStopped && err.silent)) toast(err.message, { timeout: 6000 });
+        if (!(err instanceof PipeStopped && err.silent)) notify(err.message, { level: 'error' });
         return;
       }
     }

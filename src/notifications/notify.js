@@ -1,9 +1,11 @@
-import { notifications, toast } from '@lilos/sdk';
+import { notifications } from '@lilos/sdk';
 
 /**
- * A notification from lilOS itself, for what does not answer something the user just did (an app
- * that did not start, an update to finish). If it cannot be sent, a toast says it instead.
+ * A message from lilOS itself: every one is a notification (the notification bar shows it, the
+ * Notifiche window keeps it), both for what answers something the user just did ("Annullato:
+ * Rinomina") and for what does not (an app that did not start). level: 'info' (default) |
+ * 'success' | 'warning' | 'error'. What the kernel does not take stays in the page (notifications.send).
  */
 export function notify(text, { level = 'info' } = {}) {
-  notifications.send({ text, level }).catch(() => toast(text, { timeout: 6000 }));
+  notifications.send({ text, level }).catch(err => console.warn('[lilos] notifica non mostrata:', err.message, text));
 }

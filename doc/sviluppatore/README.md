@@ -98,7 +98,7 @@ sdk/                    @lilos/sdk (vedi sdk/README.md)
   ui/                   componenti riutilizzabili
     icons.js            simboli SVG e logo
     ContextMenu.js      menu a comparsa
-    toast.js            breve messaggio in basso
+    toast.js            vecchio nome di una notifica da lilOS (`notifications.send`)
     avatar.js           iniziali dell'utente
     appIcon.js          riquadro colorato con il simbolo di un'app
     controls.js         controlli dei moduli (interruttore, menu, segmenti, colori…)

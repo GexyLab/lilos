@@ -1,4 +1,4 @@
-import { fs, toast, storage, pipes, bus, notifications } from '@lilos/sdk';
+import { fs, storage, pipes, bus, notifications } from '@lilos/sdk';
 import { coversPath } from './permissions.js';
 import { callEntrypoint, connectEntrypoint } from '../entrypoints.js';
 import { openFile } from '../open.js';
@@ -71,8 +71,9 @@ export function hostMethods({ pkg, win = null, handles, instance = null, pipe = 
     'window.setTitle': text => (win ? win.setTitle(String(text).slice(0, 100)) : fail('Solo una finestra ha un titolo')),
     // As the close button: the window manager closes it
     'window.close': () => (win ? win.emit('close') : fail('Solo una finestra si chiude')),
-    'ui.toast': text => toast(String(text).slice(0, 200)),
-    // A notification (permission ui.notify, which every app has): lilOS signs it with the app, never the app itself
+    // A notification (permission ui.notify, which every app has): lilOS signs it with the app, never the app itself.
+    // ui.toast is its old name: there is no message at the bottom of the screen any more
+    'ui.toast': async text => { await notifications.send({ app: pkg.id, text: String(text) }); },
     'ui.notify': async value => {
       const n = value !== null && typeof value === 'object' ? value : { text: String(value ?? '') };
       await notifications.send({ app: pkg.id, text: n.text, level: n.level, action: n.action ?? null });

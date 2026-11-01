@@ -17,6 +17,8 @@ import { storage, uid } from './storage.js';
  *       level   'info' (default) | 'success' | 'warning' | 'error'
  *       action  { entry?, args? }: a click opens the sending app at that entry point with args
  *       app     the app that sends it: lilOS passes it for its apps; without it, lilOS itself
+ *       lilOS's own are never lost: those the kernel does not take (more than its limit in a
+ *       minute, no answer) stay in this page, among the kernel's, until the page reloads
  *   notifications.markRead(ids?) / remove(ids?) / clear()   without ids: all of them
  *
  *   notification: { id, at, from: { app, name } | { system: true }, level, text, action, read }
@@ -35,6 +37,7 @@ class Notifications extends Emitter {
   available = false;
   keep = DEFAULT_KEEP;
   #items = [];
+  #pageOnly = [];   // lilOS's own the kernel did not take: in this page only
   #announced = new Set();
   #loaded = false;
 
@@ -54,7 +57,9 @@ class Notifications extends Emitter {
     if (!data?.available) return this.#local();
     this.available = true;
     this.keep = data.keep;
-    this.#items = Array.isArray(data.items) ? data.items : [];
+    const items = Array.isArray(data.items) ? data.items : [];
+    this.#items = [...items, ...this.#pageOnly].sort((a, b) => b.at - a.at).slice(0, this.keep);
+    this.#pageOnly = this.#pageOnly.filter(n => this.#items.includes(n));
     // Those there at start-up are not news
     if (!this.#loaded) for (const n of this.#items) this.#announced.add(n.id);
     this.#loaded = true;
@@ -72,25 +77,37 @@ class Notifications extends Emitter {
   async send({ text, level = 'info', action = null, app = null } = {}) {
     // The first reading failed (kernel busy, network): try again before keeping it in the page
     if (kernel.connected && !this.#loaded) await this.load();
-    if (!this.available) {
-      if (typeof text !== 'string' || !text.trim()) throw new Error('La notifica non ha testo');
-      if (!LEVELS.includes(level)) throw new Error('Livello non valido: info, success, warning o error');
-      const n = {
-        id: uid(), at: Date.now(), from: app ? { app, name: app } : { system: true }, level,
-        text: text.replace(/\s+/g, ' ').trim().slice(0, MAX_TEXT),
-        action: action ? { entry: action.entry ?? 'main', args: action.args ?? null } : null, read: false,
-      };
-      this.#items.unshift(n);
-      this.#items.length = Math.min(this.#items.length, this.keep);
-      this.#announce(n);
-      return n;
+    if (!this.available) return this.#here({ text, level, action, app });
+    let n;
+    try {
+      n = await kernel.request('POST', '/notifications', { app, text, level, action });
+    } catch (err) {
+      // An app hears the kernel's no; lilOS's own stay in the page
+      if (app || err.code === 'invalid') throw err;
+      const kept = this.#here({ text, level, action, app });
+      this.#pageOnly.unshift(kept);
+      return kept;
     }
-    const n = await kernel.request('POST', '/notifications', { app, text, level, action });
     // The kernel's event may come first or after: whichever comes first tells
     if (!this.get(n.id)) {
       this.#items.unshift(n);
       this.#items.length = Math.min(this.#items.length, this.keep);
     }
+    this.#announce(n);
+    return n;
+  }
+
+  /** A notification kept in this page, not by the kernel. */
+  #here({ text, level, action, app }) {
+    if (typeof text !== 'string' || !text.trim()) throw new Error('La notifica non ha testo');
+    if (!LEVELS.includes(level)) throw new Error('Livello non valido: info, success, warning o error');
+    const n = {
+      id: uid(), at: Date.now(), from: app ? { app, name: app } : { system: true }, level,
+      text: text.replace(/\s+/g, ' ').trim().slice(0, MAX_TEXT),
+      action: action ? { entry: action.entry ?? 'main', args: action.args ?? null } : null, read: false,
+    };
+    this.#items.unshift(n);
+    this.#items.length = Math.min(this.#items.length, this.keep);
     this.#announce(n);
     return n;
   }
@@ -107,6 +124,7 @@ class Notifications extends Emitter {
   async remove(ids = null) {
     const which = ids && new Set(ids);
     this.#items = which ? this.#items.filter(n => !which.has(n.id)) : [];
+    this.#pageOnly = this.#pageOnly.filter(n => this.#items.includes(n));
     this.emit('change');
     if (this.available) await kernel.request('POST', '/notifications/remove', ids ? { ids } : {});
   }

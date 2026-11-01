@@ -187,7 +187,7 @@ Parti da una scrivania pulita: accedi con un utente nuovo (`npm run kernel:cli -
 - [ ] «Segna tutte come lette», «Cancella tutte» e la × di una notifica funzionano; con due schede aperte l'altra si aggiorna da sola. Dopo la ricarica le notifiche ci sono ancora e non fanno comparire la barra.
 - [ ] «Notifiche conservate» (es. 10): quando ne arriva una in più la più vecchia sparisce; il valore resta dopo la ricarica.
 - [ ] `lilos.ui.notify` da una finestra, da un background e da un servizio; con `level` (Errore, Avviso, Fatto) e `action`: il clic apre l'app al punto d'ingresso con gli `args`, **senza** `file` né `files`. Con più di 10 al minuto da un'app le altre vengono rifiutate (`rate_limited`).
-- [ ] Un'app che non parte (`launcher`, background), un'app aggiornata che chiede di riavviare e un'app dell'avvio che non si apre danno una notifica, non un `toast`.
+- [ ] Un'app che non parte (`launcher`, background), un'app aggiornata che chiede di riavviare e un'app dell'avvio che non si apre danno una notifica.
 - [ ] Senza il modulo `notifications-basic` (tolto da `config.json`) le notifiche compaiono lo stesso ma si perdono ricaricando; la scheda del Pannello di controllo lo dice.
 
 ### Test automatici

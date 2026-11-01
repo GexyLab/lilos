@@ -15,7 +15,7 @@ import './styles/notifications.css';
 
 import './systemSettings.js';
 import * as sdk from '@lilos/sdk';
-import { bus, fs, settings, shortcuts, history, kernel, toast } from '@lilos/sdk';
+import { bus, fs, settings, shortcuts, history, kernel } from '@lilos/sdk';
 import * as systemApi from './systemApi.js';
 import { watchSession } from './boot/boot.js';
 import { setupFileSystem } from './systemFs.js';
@@ -45,6 +45,7 @@ import { setupHistory } from './systemHistory.js';
 import { setupWorkspaces } from './workspaces/setup.js';
 import { workspaceKey } from './workspaces/store.js';
 import { Workspaces } from './workspaces/Workspaces.js';
+import { notify } from './notifications/notify.js';
 
 const root = document.getElementById('app');
 watchSession();
@@ -114,10 +115,10 @@ function watchSaving() {
   let failing = false;
   kernel.on('status', ({ saving, error }) => {
     if (error) {
-      if (!failing) toast(`Modifiche non salvate: ${error}. Riprovo…`, { timeout: 6000 });
+      if (!failing) notify(`Modifiche non salvate: ${error}. Riprovo…`, { level: 'error' });
       failing = true;
     } else if (!saving && failing) {
-      toast('Modifiche salvate');
+      notify('Modifiche salvate', { level: 'success' });
       failing = false;
     }
   });

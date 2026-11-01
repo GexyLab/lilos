@@ -1,4 +1,4 @@
-import { Emitter, Window, h, toast, actionButton, kernel, kernelModules } from '@lilos/sdk';
+import { Emitter, Window, h, actionButton, kernel, kernelModules } from '@lilos/sdk';
 import { progressScreen } from '../boot/screens.js';
 import { getApp, registry } from './registry.js';
 import { entrypointsOf } from './entrypoints.js';
@@ -85,7 +85,7 @@ function markRestart(app, reason) {
 export function blockedLaunch(id) {
   const app = getApp(id);
   if (updating.has(id)) {
-    toast(`${app?.name ?? id} si sta aggiornando: un momento`, { timeout: 4000 });
+    notify(`${app?.name ?? id} si sta aggiornando: un momento`);
     return true;
   }
   if (pending.get(id)?.kind === 'restart') {
@@ -227,7 +227,7 @@ export async function updateApps(items, { from = null, reinstall = false } = {})
 
   const windows = plans.flatMap(p => wm.windowsOfApp(p.id));   // again: some may have opened meanwhile
   if (!(await askWindows(windows))) {
-    toast('Aggiornamento annullato: una finestra non si è chiusa', { timeout: 5000 });
+    notify('Aggiornamento annullato: una finestra non si è chiusa', { level: 'warning' });
     return null;
   }
   const caller = plans.some(p => p.id === from) ? snapshot(from) : [];

@@ -892,6 +892,8 @@ lilOS legge il file **prima** di avviare l'app e le dà le stringhe già risolte
 
 ## D49. Le notifiche: un modulo opzionale, con il mittente messo da lilOS
 
+> In parte superata da [D52](#d52-niente-più-toast-ogni-messaggio-è-una-notifica): non esiste più il `toast`, nemmeno per le risposte a un gesto, e le notifiche di lilOS che il kernel non accetta restano nella pagina. Il resto vale ancora.
+
 **Decisione.** lilOS ha le **notifiche** (1° novembre 2026; Pannello di controllo 1.9.0 e il modulo nel tag v1.13.0 del repository ufficiale): messaggi che restano, a differenza dei `toast`.
 
 - **Un modulo del kernel separato e facoltativo**, `notifications-basic`, fornisce il servizio `notifications` (`send`, `list`, `read`, `remove`, `setOptions`; interfaccia controllata dal kernel come per `auth`, `users`, `fs` e `runtime`). Tiene tutto in `notifications.json` nella sua cartella, per utente. Di serie è acceso in `system/kernel/config.json`. Senza di lui lilOS mostra le notifiche lo stesso, ma solo nella pagina.
@@ -987,3 +989,32 @@ lilOS legge il file **prima** di avviare l'app e le dà le stringhe già risolte
 **Conseguenze.** Le bozze sono testo in chiaro nello `storage` dell'utente, fuori dal file. Un file cambiato nel frattempo si segnala al ritorno (Tieni la mia versione / Usa quella del file). Un `files:locked` chiude solo le schede, non la finestra.
 
 **Quando ripensarla.** Se le bozze dovessero poter essere cifrate, o se altre app con documenti vorranno lo stesso comportamento (allora la logica di sessioni va nell'SDK).
+
+---
+
+## D52. Niente più toast: ogni messaggio è una notifica
+
+**Decisione.** Il breve messaggio in basso sullo schermo (`toast`) non esiste più (1° novembre 2026). Ogni messaggio di lilOS e delle app passa dal servizio notifiche: barra delle notifiche sopra l'area di notifica e finestra Notifiche, conservate dal kernel ([D49](#d49-le-notifiche-un-modulo-opzionale-con-il-mittente-messo-da-lilos)).
+
+- **lilOS** usa `notify(testo, { level })` di `src/notifications/notify.js` al posto di `toast`. Il livello (`info`, `success`, `warning`, `error`) è scelto per ogni messaggio.
+- **SDK**: `toast(testo, { level })` resta esportato solo come vecchio nome: chiama `notifications.send` da lilOS; `timeout` è ignorato. Il CSS `.toast` è stato tolto da `sdk/styles/components.css`.
+- **`notifications.send`**: una notifica di lilOS (senza `app`) che il kernel non accetta (oltre `perMinute`, kernel che non risponde; non gli errori `invalid`) resta nella pagina, mescolata a quelle del kernel, fino al ricaricamento. Un'app riceve invece l'errore del kernel.
+- **App isolate**: `lilos.ui.toast(testo)` è il vecchio nome di `lilos.ui.notify(testo)`: notifica firmata con l'app e soggetta al suo limite al minuto. L'esempio `examples/apps/note` usa `ui.notify({ text, level: 'success' })`.
+
+**Perché.**
+
+- Con due canali («gesto = toast, resto = notifica») bisognava scegliere ogni volta, e il confine era sfocato: «Annullato» o «Spostato» passavano inosservati a chi guardava altrove, mentre un errore in un gesto sparisce in 3 secondi.
+- Un solo posto per i messaggi: stessi lettori di schermo, stessa durata scelta dall'utente (Pannello di controllo → Notifiche), stesso elenco dove rileggerli.
+- Il `toast` aveva uno stile e un elemento suoi, sempre uno alla volta: il nuovo messaggio cancellava il precedente.
+- La notifica di lilOS non deve perdersi se il kernel non la prende: per questo resta nella pagina, invece di ricadere su un messaggio a parte (come faceva `notify` in D49).
+
+**Alternative scartate.** Tenere il `toast` solo per le risposte a un gesto (due canali, confine sfocato); togliere `toast` dall'SDK (romperebbe le app che lo chiamano); far arrivare al kernel anche le notifiche in eccesso (aggirerebbe il limite al minuto).
+
+**Conseguenze.**
+
+- Ogni gesto con conferma (spostare, annullare, ripetere) riempie l'elenco e consuma lo spazio delle notifiche conservate (20 di serie): quelle importanti si perdono prima. Anche lo spazio nel kernel è consumato: ogni messaggio di lilOS va al kernel, ma solo il limite al minuto (10 per mittente) protegge da un ciclo.
+- Le notifiche di lilOS che restano nella pagina non sono salvate: si perdono al ricaricamento.
+- Un'app che usa ancora `toast` (SDK o `lilos.ui.toast`) funziona, ma il messaggio non è più «breve»: resta nell'elenco. Quelle isolate contano per il limite al minuto.
+- Chi aveva copiato lo stile `.toast` dall'SDK deve portarselo.
+
+**Quando ripensarla.** Se l'elenco si riempie di conferme e nasconde le notifiche importanti (allora: messaggi brevi che non si conservano, o un livello che non viene conservato), o se il limite di 20 conservate diventa stretto.

@@ -23,10 +23,10 @@ import { locale } from '@lilos/sdk';
  *                                        'locale' ({ code, lang }: lilos.locale already has the new strings)
  *   lilos.window.setTitle(text)          windows only
  *   lilos.window.close()                 the window closes, as with its close button
- *   lilos.ui.toast(text)                 a short message, gone after a few seconds
  *   lilos.ui.notify(text | { text, level, action })   a notification in the notification area, kept
  *                                        in the Notifiche window. level: 'info' | 'success' | 'warning' |
  *                                        'error'; action { entry?, args? }: a click opens the app there
+ *   lilos.ui.toast(text)                 old name of lilos.ui.notify(text)
  *   lilos.files.read(ref, { bytes? }) → text | Blob   ref: '~/Documenti/a.txt' or the id of a file opened with the app
  *   lilos.files.write(ref, data, { mark? })   text or bytes; creates the file if its folder exists.
  *                                        mark: the app's own data on the file, saved with it (null: none)

@@ -1,6 +1,7 @@
-import { h, fs, toast } from '@lilos/sdk';
+import { h, fs } from '@lilos/sdk';
 import { itemIcon } from '../desktop/itemIcons.js';
 import { moveNodes } from './fsHistory.js';
+import { notify } from '../notifications/notify.js';
 
 /**
  * Dragging files and folders, the same in every view that shows them: the desk, the File
@@ -86,10 +87,10 @@ export function moveInto(stack, ids, folderId) {
     const moved = moveNodes(stack, ids, folderId);
     if (!moved.length) return [];
     const what = moved.length === 1 ? `«${fs.get(moved[0]).name}»` : `${moved.length} elementi`;
-    toast(`Spostat${moved.length === 1 ? 'o' : 'i'} ${what} in ${folderId === fs.root ? 'Home' : fs.path(folderId)}`);
+    notify(`Spostat${moved.length === 1 ? 'o' : 'i'} ${what} in ${folderId === fs.root ? 'Home' : fs.path(folderId)}`, { level: 'success' });
     return moved;
   } catch (err) {
-    toast(`Non si può spostare: ${err.message}`);
+    notify(`Non si può spostare: ${err.message}`, { level: 'error' });
     return [];
   }
 }

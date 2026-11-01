@@ -1,4 +1,4 @@
-import { bus, fs, storage, settings, openMenu, shortcuts, selectionGesture, menus, UndoStack, tags, toast } from '@lilos/sdk';
+import { bus, fs, storage, settings, openMenu, shortcuts, selectionGesture, menus, UndoStack, tags } from '@lilos/sdk';
 import { launch, registry } from '../apps/registry.js';
 import { appActionEntries } from '../apps/appActions.js';
 import { openFile } from '../apps/open.js';
@@ -14,6 +14,7 @@ import { DesktopItem } from './DesktopItem.js';
 import { FIXED_ITEMS, fixedData, fixedId, fixedOf, fixedRank, openFixed, acceptDrops, isFixedShown, setFixedShown } from './fixedItems.js';
 import { tagSubmenu } from '../tags/tagUi.js';
 import { HEADER as AREA_HEADER } from '../workareas/WorkareaFrame.js';
+import { notify } from '../notifications/notify.js';
 
 const LAYOUT_KEY = 'desktop-layout';
 const SNAP = 8;
@@ -216,10 +217,10 @@ export class Desktop {
   remove(selected) {
     const items = selected.filter(it => !it.fixed);
     if (!items.length) {
-      if (selected.length) toast(selected.length === 1 ? `«${selected[0].data.name}» è un elemento fisso della scrivania: non si può eliminare` : 'Gli elementi fissi della scrivania non si possono eliminare');
+      if (selected.length) notify(selected.length === 1 ? `«${selected[0].data.name}» è un elemento fisso della scrivania: non si può eliminare` : 'Gli elementi fissi della scrivania non si possono eliminare', { level: 'warning' });
       return;
     }
-    if (items.length < selected.length) toast('Gli elementi fissi della scrivania restano: si elimina solo il resto');
+    if (items.length < selected.length) notify('Gli elementi fissi della scrivania restano: si elimina solo il resto', { level: 'warning' });
     const r = items[0].el.getBoundingClientRect();
     const x = r.left + r.width / 2, y = r.bottom;
     const areas = items.filter(it => it.workarea).map(it => it.workarea);
@@ -553,7 +554,7 @@ export class Desktop {
         { label: 'Apri', icon: 'open', shortcut: shortcuts.label('items.open'), action: () => this.open(item) },
         { label: 'Togli dalla scrivania', icon: 'eyeOff', action: () => {
           setFixedShown(item.fixed.key, false);
-          toast(`«${item.data.name}» si rimette dal Pannello di controllo → Workspace → Questo workspace`);
+          notify(`«${item.data.name}» si rimette dal Pannello di controllo → Workspace → Questo workspace`);
         } },
         { label: 'Elementi fissi della scrivania…', icon: 'info', action: () => launch('settings', { tab: 'workspaces', subtab: 'current' }) },
       ]);

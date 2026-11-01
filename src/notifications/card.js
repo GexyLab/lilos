@@ -1,5 +1,6 @@
-import { h, icon, logo, appIcon, locale, toast } from '@lilos/sdk';
+import { h, icon, logo, appIcon, locale } from '@lilos/sdk';
 import { getApp, launch } from '../apps/registry.js';
+import { notify } from './notify.js';
 
 const LEVELS = { error: 'Errore', warning: 'Avviso', success: 'Fatto' };
 
@@ -44,7 +45,7 @@ export function notificationCard(n, { className = '', onOpen, onClose, closeLabe
  */
 export function runAction(n) {
   if (!n.action || !n.from?.app) return;
-  if (!getApp(n.from.app)) return toast(`${n.from.name ?? n.from.app} non è più installata`);
+  if (!getApp(n.from.app)) return notify(`${n.from.name ?? n.from.app} non è più installata`, { level: 'warning' });
   let args = n.action.args ?? undefined;
   if (args && typeof args === 'object' && !Array.isArray(args)) {
     const { file, files, ...rest } = args;

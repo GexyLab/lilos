@@ -1,4 +1,4 @@
-import { Emitter, fs, storage, uid, shortcuts, toast, closeMenu } from '@lilos/sdk';
+import { Emitter, fs, storage, uid, shortcuts, closeMenu } from '@lilos/sdk';
 import { setInstalledFilter, getApp, registry } from '../apps/registry.js';
 import { ACCENTS } from '../systemSettings.js';
 import { cleanSavedWindow, LIMITS as AREA_LIMITS } from '../workareas/store.js';
@@ -6,6 +6,7 @@ import { appIds, createDesk } from './setup.js';
 import { connectWorkspaceInfo } from './info.js';
 import { saveWorkspaces, newWorkspace, workspaceKey, forgetWorkspace, cleanName, cleanDescription, cleanColor, LIMITS } from './store.js';
 import { WorkspaceSwitcher } from './WorkspaceSwitcher.js';
+import { notify } from '../notifications/notify.js';
 
 const SAVE_DELAY = 400;
 
@@ -116,7 +117,7 @@ export class Workspaces extends Emitter {
   create({ name, color } = {}) {
     const live = this.list();
     if (live.length >= LIMITS.MAX_WORKSPACES) {
-      toast(`Al massimo ${LIMITS.MAX_WORKSPACES} workspace`);
+      notify(`Al massimo ${LIMITS.MAX_WORKSPACES} workspace`, { level: 'warning' });
       return null;
     }
     const id = uid();
@@ -204,7 +205,7 @@ export class Workspaces extends Emitter {
       this.#state.list.splice(i, 1);
       this.#state.list.push({ id: ws.id, name: ws.name, color: ws.color, created: ws.created, removed: Date.now() });
       this.#save();
-      toast(kept ? `Workspace «${ws.name}» eliminato. La sua scrivania ora è ${kept}` : `Workspace «${ws.name}» eliminato`, { timeout: 6000 });
+      notify(kept ? `Workspace «${ws.name}» eliminato. La sua scrivania ora è ${kept}` : `Workspace «${ws.name}» eliminato`, { level: 'success' });
       return kept;
     });
   }
@@ -251,7 +252,7 @@ export class Workspaces extends Emitter {
     this.#booted.add(id);
     const areas = this.workareas.load(workspaceKey(id, 'workareas'), { reopen });
     this.emit('switch', id);
-    toast(`Workspace «${target.name}»`, { timeout: 1800 });
+    notify(`Workspace «${target.name}»`);
     await areas;
     if (reopen) await this.#restoreWindows(id);
   }

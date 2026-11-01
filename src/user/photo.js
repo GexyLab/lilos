@@ -1,4 +1,5 @@
-import { settings, toast } from '@lilos/sdk';
+import { settings } from '@lilos/sdk';
+import { notify } from '../notifications/notify.js';
 
 /**
  * The user's profile photo, saved in the 'userPhoto' setting as a small square JPEG (data: URL).
@@ -35,11 +36,11 @@ export function choosePhoto() {
   input.addEventListener('change', async () => {
     const file = input.files?.[0];
     if (!file) return;
-    if (file.size > MAX_FILE) return toast('Questa immagine è troppo grande: scegline una sotto i 25 MB');
+    if (file.size > MAX_FILE) return notify('Questa immagine è troppo grande: scegline una sotto i 25 MB', { level: 'warning' });
     try {
       settings.set('userPhoto', await squareJpeg(file));
     } catch {
-      toast(`“${file.name}” non si apre come immagine`);
+      notify(`“${file.name}” non si apre come immagine`, { level: 'error' });
     }
   });
   input.click();

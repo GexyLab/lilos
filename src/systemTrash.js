@@ -1,4 +1,5 @@
-import { fs, settings, toast } from '@lilos/sdk';
+import { fs, settings } from '@lilos/sdk';
+import { notify } from './notifications/notify.js';
 
 const DAY = 86_400_000;
 const HOUR = 3_600_000;
@@ -17,7 +18,7 @@ export function setupTrash() {
   sweep();
   settings.on('change:trashRetention', () => {
     const n = sweep();
-    if (n) toast(n === 1 ? 'Eliminato definitivamente 1 elemento più vecchio del nuovo periodo' : `Eliminati definitivamente ${n} elementi più vecchi del nuovo periodo`);
+    if (n) notify(n === 1 ? 'Eliminato definitivamente 1 elemento più vecchio del nuovo periodo' : `Eliminati definitivamente ${n} elementi più vecchi del nuovo periodo`);
   });
   setInterval(sweep, HOUR);
 }

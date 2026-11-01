@@ -1,5 +1,6 @@
-import { fs, splitName, storage, fileTypeList, pipes, PipeStopped, toast } from '@lilos/sdk';
+import { fs, splitName, storage, fileTypeList, pipes, PipeStopped } from '@lilos/sdk';
 import { apps, launch, isInstalled } from './registry.js';
+import { notify } from '../notifications/notify.js';
 
 /**
  * Which app opens which file, by extension ('' = no extension).
@@ -88,7 +89,7 @@ export async function openFile(node, { choose = false } = {}) {
     try {
       ({ app } = await pipes.around('file.open', { node: fs.get(node.id) ?? node, app }, d => d, { caller: { system: true } }));
     } catch (err) {
-      if (!(err instanceof PipeStopped && err.silent)) toast(err.message, { timeout: 6000 });
+      if (!(err instanceof PipeStopped && err.silent)) notify(err.message, { level: 'error' });
       return;
     }
   }

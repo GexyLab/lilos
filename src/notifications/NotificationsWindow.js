@@ -1,5 +1,6 @@
-import { h, Window, notifications, actionButton, locale, toast } from '@lilos/sdk';
+import { h, Window, notifications, actionButton, locale } from '@lilos/sdk';
 import { notificationCard, runAction } from './card.js';
+import { notify } from './notify.js';
 
 const KEY = 'notifications';
 
@@ -29,7 +30,7 @@ export function showNotifications(wm) {
   const fresh = new Set(notifications.list().filter(n => !n.read).map(n => n.id));
   const count = h('span', { class: 'nt-count' });
   const markAll = actionButton({ label: 'Segna tutte come lette', onClick: () => markRead() });
-  const clear = actionButton({ label: 'Cancella tutte', onClick: () => notifications.clear().catch(err => toast(`Notifiche non cancellate: ${err.message}`)) });
+  const clear = actionButton({ label: 'Cancella tutte', onClick: () => notifications.clear().catch(err => notify(`Notifiche non cancellate: ${err.message}`, { level: 'error' })) });
   const list = h('div', { class: 'nt-list', role: 'list' });
   win.body.append(h('div', { class: 'nt-window' }, h('div', { class: 'nt-toolbar' }, count, markAll, clear), list));
 
@@ -60,7 +61,7 @@ export function showNotifications(wm) {
         className: fresh.has(n.id) ? 'nt-unread' : '',
         closeLabel: 'Cancella',
         onOpen: () => runAction(n),
-        onClose: () => notifications.remove([n.id]).catch(err => toast(`Notifica non cancellata: ${err.message}`)),
+        onClose: () => notifications.remove([n.id]).catch(err => notify(`Notifica non cancellata: ${err.message}`, { level: 'error' })),
       });
       card.setAttribute('role', 'listitem');
       rows.push(card);

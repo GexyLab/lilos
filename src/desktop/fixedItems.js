@@ -1,9 +1,10 @@
-import { fs, settings, toast } from '@lilos/sdk';
+import { fs, settings } from '@lilos/sdk';
 import { launch } from '../apps/registry.js';
 import { removeNodes } from '../items/fsHistory.js';
 import { dropZone, markItem } from '../items/itemDrag.js';
 import { DESK_NAME } from '../systemFs.js';
 import { workspaceManager } from '../workspaces/info.js';
+import { notify } from '../notifications/notify.js';
 
 const PREFIX = 'fixed:';
 
@@ -81,7 +82,7 @@ export function openFixed(item) {
   if (item.kind === 'trash') return launch('files', { trash: true });
   const folder = fixedFolder(item);
   if (folder) launch('files', { folder });
-  else toast(`La cartella ${item.name} non c’è più`);
+  else notify(`La cartella ${item.name} non c’è più`, { level: 'warning' });
 }
 
 /**
@@ -110,7 +111,7 @@ export function acceptDrops(el, item) {
       drop: async (ids, ev, stack) => {
         const n = deletable(ids).length;
         await removeNodes(stack, ids);
-        toast(n === 1 ? 'Spostato nel cestino' : `${n} elementi spostati nel cestino`);
+        notify(n === 1 ? 'Spostato nel cestino' : `${n} elementi spostati nel cestino`, { level: 'success' });
       },
     });
   }

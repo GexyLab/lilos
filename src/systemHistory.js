@@ -1,4 +1,5 @@
-import { history, shortcuts, toast, menus } from '@lilos/sdk';
+import { history, shortcuts, menus } from '@lilos/sdk';
+import { notify } from './notifications/notify.js';
 
 /**
  * Central undo / redo: Ctrl Z, Ctrl Y and Ctrl Shift Z act on the history of whoever has the
@@ -23,9 +24,9 @@ export function setupHistory({ root, activeWindow }) {
     when: () => history.handles('redo'), run: () => history.redo(),
   });
 
-  history.on('undo', ({ label }) => { if (label) toast(`Annullato: ${label}`); });
-  history.on('redo', ({ label }) => { if (label) toast(`Ripetuto: ${label}`); });
-  history.on('error', ({ error }) => toast(`Non si può più fare: ${error?.message ?? 'errore'}`));
+  history.on('undo', ({ label }) => { if (label) notify(`Annullato: ${label}`); });
+  history.on('redo', ({ label }) => { if (label) notify(`Ripetuto: ${label}`); });
+  history.on('error', ({ error }) => notify(`Non si può più fare: ${error?.message ?? 'errore'}`, { level: 'error' }));
 
   // Usable in the menus (Control Panel → Usabilità → Menu contestuale): on the desk's history
   menus.defineAction('edit.undo', {
