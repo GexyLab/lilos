@@ -17,6 +17,8 @@ const APP_ID = /^[a-z0-9][a-z0-9.-]{1,63}$/;
 const MAX_APPS = 8;          // apps with data on one node
 const MAX_APP_META = 1024;   // characters of JSON, per app
 const MAX_APPS_META = 2048;  // all apps together: the kernel takes at most 4 KB of metadata per node
+const NOT_FOR_NET = 'Non disponibile per i file di una connessione di rete';
+const MOUNT_PREFIX = 'net-';
 /** Type of the Blob readBlob() gives, by extension. */
 const MIME = {
   png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp', bmp: 'image/bmp',
@@ -73,6 +75,17 @@ const MIME = {
  * from a private folder are seen in the trash only from that workspace. Event 'trash': what the
  * trash holds changed.
  *   Trashed item: node + trashed: { at, from, scope? }   from: the parent it left; scope: the workspace
+ *
+ * Network (Rete): the folders of a network connection (see net.js) are in the tree too, under
+ * a mount node that setMounts() puts in a folder (the system's Rete). Their nodes have `net` (the
+ * connection's id); the mount node also has `mount: true`, `mountState` and `protocol`. They are
+ * not saved: what a folder holds is read from the server with refresh() (when it is opened), and
+ * children() gives what was read last. Creating, renaming, moving inside the same connection and
+ * removing go to the server at once (a failure reads the folder again and emits 'netError'
+ * { message }); removing is for good (no trash, no undo). Their contents are read and written on
+ * the server. Tags, colors, apps' data and copies between places are not for them: files go to and
+ * from a connection with net.transfer() (done by the kernel). isRemote(), netRef() and netPath() tell them.
+ * external() takes the nodes the kernel made or removed in the home (what a transfer brought).
  */
 class FileSystem extends Emitter {
   #nodes = new Map();
@@ -92,7 +105,7 @@ class FileSystem extends Emitter {
     if (kernel.connected) {
       this.#load(kernel.data.nodes);
       this.loaded = !kernel.data.fresh;
-      const read = () => new Map([...this.#nodes].filter(([id]) => id !== ROOT && id !== TRASH));
+      const read = () => new Map([...this.#nodes].filter(([id, n]) => id !== ROOT && id !== TRASH && !n.net));
       this.#tracker = kernel.track('fs', {
         read,
         send: (set, remove, options) => this.#send(set.map(([, n]) => n), remove, options),
@@ -201,6 +214,7 @@ class FileSystem extends Emitter {
     const parent = this.#find(parentId);
     if (!parent || parent.type !== 'folder') throw new Error('La cartella di destinazione non esiste');
     if (!TYPES.has(type)) throw new Error(`Tipo non valido: ${type}`);
+    if (parent.net) return this.#netCreate(parent, type, name);
     if (id != null && (typeof id !== 'string' || this.#nodes.has(id))) throw new Error('Identificatore non valido');
     const owner = workspace !== undefined ? workspace : system && !own ? null : this.#workspace;
     if (owner != null && !validWorkspace(owner)) throw new Error('Workspace non valido');
@@ -233,8 +247,10 @@ class FileSystem extends Emitter {
     if (unique === node.name) return unique;
     pipes.runSync('file.rename', { node: copy(node), name: unique });
     const from = node.name;
+    const oldPath = node.net ? this.#netPath(node.id) : null;
     node.name = unique;
     node.modified = Date.now();
+    if (node.net) this.#netOp(node.net, { op: 'rename', path: oldPath, to: this.#netPath(node.id) }, [node.parent]);
     this.#save();
     this.emit('change', { type: 'rename', node: copy(node), parent: node.parent });
     pipes.notify('file.rename', { node: copy(node), from });
@@ -245,6 +261,7 @@ class FileSystem extends Emitter {
   update(id, { color } = {}) {
     const node = this.#find(id);
     if (!node) throw new Error('Elemento inesistente');
+    if (node.net) throw new Error(NOT_FOR_NET);
     if (node.type === 'folder' && typeof color === 'string') node.color = color;
     this.#save();
     this.emit('change', { type: 'update', node: copy(node), parent: node.parent });
@@ -264,6 +281,7 @@ class FileSystem extends Emitter {
   setAppMeta(id, appId, value) {
     const node = this.#find(id);
     if (!node || id === ROOT) throw new Error('Elemento inesistente');
+    if (node.net) throw new Error(NOT_FOR_NET);
     this.#setApp(node, appId, value);
     this.#save();
     this.emit('change', { type: 'update', node: copy(node), parent: node.parent });
@@ -272,6 +290,7 @@ class FileSystem extends Emitter {
   /** Text content of a file ('' if it has none yet). */
   async read(id, { caller = null } = {}) {
     const node = this.#file(id);
+    if (node.net) return (await this.#netContent(node)).text();
     await this.#tracker?.flush();   // a file just created must exist in the kernel
     if (!pipes.wants('file.read', { node: copy(node) }, caller)) {
       const text = await contents.get(id);
@@ -286,6 +305,7 @@ class FileSystem extends Emitter {
    */
   async readBlob(id, { type, caller = null } = {}) {
     const node = this.#file(id);
+    if (node.net) return new Blob([await this.#netContent(node)], { type: type ?? MIME[splitName(node.name)[1].toLowerCase()] ?? '' });
     await this.#tracker?.flush();
     const blob = pipes.wants('file.read', { node: copy(node) }, caller)
       ? await this.#readThrough(node, caller)
@@ -303,6 +323,16 @@ class FileSystem extends Emitter {
     let node = this.#file(id);
     if (mark) checkAppMeta(mark.app, mark.value);
     let value = data instanceof Blob ? data : data instanceof ArrayBuffer || ArrayBuffer.isView(data) ? new Blob([data]) : String(data);
+    if (node.net) {
+      if (mark) throw new Error(NOT_FOR_NET);
+      await kernel.request('PUT', this.#netUrl(node.net, 'content', this.#netPath(id)), value);
+      const now = this.#nodes.get(id);
+      if (!now) return;
+      now.size = value instanceof Blob ? value.size : new TextEncoder().encode(value).length;
+      now.modified = Date.now();
+      this.emit('change', { type: 'update', node: copy(now), parent: now.parent });
+      return;
+    }
     await this.#tracker?.flush();
     if (pipes.wants('file.write', { node: copy(node) }, caller)) {
       const out = await pipes.around('file.write', { node: copy(node), content: toBlob(value) }, async d => {
@@ -326,6 +356,7 @@ class FileSystem extends Emitter {
    */
   async copy(id, parentId, { name } = {}) {
     const source = this.#file(id);
+    if (source.net || this.#find(parentId)?.net) throw new Error(NOT_FOR_NET);
     await this.#tracker?.flush();
     const blob = (await contents.getBlob(id)) ?? new Blob([]);
     const created = this.create(parentId, { type: 'file', name: name ?? source.name, size: blob.size });
@@ -343,6 +374,7 @@ class FileSystem extends Emitter {
   async copyContent(fromId, toId) {
     const source = this.#file(fromId);
     const target = this.#file(toId);
+    if (source.net || target.net) throw new Error(NOT_FOR_NET);
     await this.#tracker?.flush();
     await this.#store(toId, (await contents.getBlob(fromId)) ?? new Blob([]));
     if (!this.#nodes.has(toId)) return;
@@ -412,10 +444,14 @@ class FileSystem extends Emitter {
     if (!target || target.type !== 'folder') throw new Error('La cartella di destinazione non esiste');
     if (this.isInside(parentId, id)) throw new Error('Una cartella non può andare dentro se stessa');
     if (node.parent === parentId) return node.name;
+    // Between the home and a connection, or two connections: a transfer (net.transfer), not a move
+    if ((node.net || target.net) && node.net !== target.net) throw new Error('Tra la home e la rete i file si copiano con un trasferimento');
     pipes.runSync('file.move', { node: copy(node), to: parentId });
     const from = node.parent;
+    const oldPath = node.net ? this.#netPath(id) : null;
     node.name = this.#unique(parentId, node.name, id, node);
     node.parent = parentId;
+    if (node.net) this.#netOp(node.net, { op: 'rename', path: oldPath, to: this.#netPath(id) }, [from, parentId]);
     const now = Date.now();
     this.#touch(from, now);
     this.#touch(parentId, now);
@@ -438,7 +474,7 @@ class FileSystem extends Emitter {
     // As bytes: text and images come back exactly as they were
     const data = {};
     for (const n of nodes) {
-      if (n.type !== 'file') continue;
+      if (n.type !== 'file' || n.net) continue;
       const blob = await contents.getBlob(n.id);
       if (blob instanceof Blob) data[n.id] = blob;
     }
@@ -457,7 +493,7 @@ class FileSystem extends Emitter {
     const restored = [];
     for (const n of nodes) {
       const parent = this.#find(n.parent);
-      if (this.#nodes.has(n.id) || !parent || parent.type !== 'folder') continue;
+      if (this.#nodes.has(n.id) || !parent || parent.type !== 'folder' || n.net || parent.net) continue;
       const node = { ...copy(n), name: this.#unique(n.parent, n.name, null, n) };
       this.#nodes.set(node.id, node);
       restored.push(node);
@@ -480,6 +516,7 @@ class FileSystem extends Emitter {
     const ids = [id, ...this.#descendants(id)];
     if (ids.some(i => this.#nodes.get(i).system)) throw new Error('Contiene cartelle di sistema');
     pipes.runSync('file.remove', { node: copy(node), ids });
+    if (node.net) this.#netOp(node.net, { op: 'remove', path: this.#netPath(id) }, [node.parent]);
     ids.forEach(i => this.#nodes.delete(i));
     ids.forEach(i => contents.delete(i));
     this.#touch(node.parent, Date.now());
@@ -514,7 +551,7 @@ class FileSystem extends Emitter {
     const at = Date.now();
     for (const id of ids) {
       const node = this.#find(id);
-      if (!node || node.system || done.includes(id)) continue;
+      if (!node || node.system || node.net || done.includes(id)) continue;   // a connection's: removed for good, not trashed
       const inside = this.#descendants(id);
       if (inside.some(i => this.#nodes.get(i).system)) continue;
       pipes.runSync('trash.put', { ids: [id] });
@@ -627,6 +664,7 @@ class FileSystem extends Emitter {
    */
   setTags(id, tagIds) {
     const node = this.#editable(id);
+    if (node.net) throw new Error(NOT_FOR_NET);
     const clean = cleanTags(tagIds);
     if (clean.join() === (node.tags ?? []).join()) return;
     pipes.runSync('tags.assign', { node: copy(node), tags: clean });
@@ -737,6 +775,198 @@ class FileSystem extends Emitter {
     this.#save();
     this.emit('change', { type: 'move', node: copy(node), parent: parentId, from, ids: [id, ...this.#descendants(id)] });
     return node.name;
+  }
+
+  // ---------- Network (Rete) ----------
+
+  /** True for a node of a network connection (its mount node included). */
+  isRemote(id) {
+    return !!this.#nodes.get(id)?.net;
+  }
+
+  /** The path of a node inside its connection ('/' for the mount node), null for the others. */
+  netPath(id) {
+    const node = this.#find(id);
+    return node?.net ? this.#netPath(id) : null;
+  }
+
+  /** Where a node is, as the kernel's transfers name places: { home: id } or { mount, path }. */
+  netRef(id) {
+    const node = this.#find(id);
+    if (!node) throw new Error('Elemento inesistente');
+    return node.net ? { mount: node.net, path: this.#netPath(id) } : { home: id };
+  }
+
+  /**
+   * Puts the mount nodes of the connections in a folder (the system's Rete): one per connection,
+   * named as it, with its state. Connections gone take what was read of them along; a connection
+   * that is not connected any more forgets what was read (opened again, it is read again).
+   *   mounts: [{ id, name, protocol, state }]
+   */
+  setMounts(parentId, mounts) {
+    const parent = this.#nodes.get(parentId);
+    if (!parent || parent.type !== 'folder' || parent.net) return;
+    const now = Date.now();
+    const wanted = new Map(mounts.map(m => [MOUNT_PREFIX + m.id, m]));
+    for (const node of [...this.#nodes.values()]) {
+      if (!node.mount || (node.parent === parentId && wanted.has(node.id))) continue;
+      const ids = [node.id, ...this.#descendants(node.id)];
+      ids.forEach(i => this.#nodes.delete(i));
+      this.emit('change', { type: 'remove', node: copy(node), parent: node.parent, ids });
+    }
+    for (const [id, m] of wanted) {
+      const old = this.#nodes.get(id);
+      if (!old) {
+        const node = { id, type: 'folder', name: m.name, parent: parentId, created: now, modified: now, system: true, net: m.id, mount: true, mountState: m.state, protocol: m.protocol };
+        this.#nodes.set(id, node);
+        this.emit('change', { type: 'create', node: copy(node), parent: parentId });
+        continue;
+      }
+      const renamed = old.name !== m.name;
+      const changed = renamed || old.mountState !== m.state || old.protocol !== m.protocol;
+      if (m.state !== 'on' && old.mountState === 'on') this.#dropChildren(id);
+      Object.assign(old, { name: m.name, mountState: m.state, protocol: m.protocol });
+      if (changed) this.emit('change', { type: renamed ? 'rename' : 'update', node: copy(old), parent: parentId });
+    }
+  }
+
+  /**
+   * Reads again what is in a folder of a connection (opening it): resolves when the tree has it,
+   * rejects with the kernel's error (a password to type: code 'secret_required'; a server to
+   * confirm: 'untrusted'). Other folders: nothing to do.
+   */
+  async refresh(id) {
+    const node = this.#find(id);
+    if (!node?.net || node.type !== 'folder') return;
+    const path = this.#netPath(id);
+    const { entries } = await kernel.request('GET', this.#netUrl(node.net, 'list', path));
+    if (!this.#nodes.has(id) || this.#netPath(id) !== path) return;   // gone or moved meanwhile
+    const kids = [...this.#nodes.values()].filter(n => n.parent === id);
+    const byName = new Map(kids.map(n => [n.name, n]));
+    const seen = new Set();
+    for (const e of Array.isArray(entries) ? entries : []) {
+      if (typeof e?.name !== 'string' || !e.name || e.name.includes('/') || seen.has(e.name)) continue;
+      seen.add(e.name);
+      const type = e.type === 'folder' ? 'folder' : 'file';
+      const modified = Number.isFinite(e.modified) && e.modified > 0 ? e.modified : Date.now();
+      const old = byName.get(e.name);
+      if (old && old.type === type) {
+        if (type === 'file' && (old.size !== e.size || old.modified !== modified)) {
+          Object.assign(old, { size: Number(e.size) || 0, modified });
+          this.emit('change', { type: 'update', node: copy(old), parent: id });
+        }
+        continue;
+      }
+      if (old) this.#dropNode(old);
+      const fresh = { id: uid(), type, name: e.name, parent: id, created: modified, modified, net: node.net, ...(type === 'file' && { size: Number(e.size) || 0 }) };
+      this.#nodes.set(fresh.id, fresh);
+      this.emit('change', { type: 'create', node: copy(fresh), parent: id });
+    }
+    for (const old of kids) if (!seen.has(old.name) && this.#nodes.has(old.id)) this.#dropNode(old);
+  }
+
+  /** The kernel says what is in a folder of a connection changed: read again if it was read. */
+  netChanged(mountId, path) {
+    const folder = [...this.#nodes.values()].find(n => n.net === mountId && n.type === 'folder' && this.#netPath(n.id) === path);
+    if (folder && (folder.mount || [...this.#nodes.values()].some(n => n.parent === folder.id))) this.refresh(folder.id).catch(() => {});
+  }
+
+  /**
+   * Nodes of the home the kernel made, changed (put) or removed (remove: ids): what a transfer
+   * brought. They are what the kernel has already: nothing is sent back.
+   */
+  external({ put = [], remove = [] } = {}) {
+    const accepted = [];
+    for (const n of Array.isArray(put) ? put : []) {
+      if (!n || typeof n.id !== 'string' || n.id === ROOT || n.id === TRASH || !TYPES.has(n.type) || !validName(n.name)) continue;
+      const parent = this.#nodes.get(n.parent);
+      if (!parent || parent.type !== 'folder' || parent.net) continue;
+      const old = this.#nodes.get(n.id);
+      if (old) {
+        if (old.net || old.parent !== n.parent) continue;
+        Object.assign(old, { name: n.name, modified: Number.isFinite(n.modified) ? n.modified : old.modified, ...(old.type === 'file' && { size: Number(n.size) || 0 }) });
+        accepted.push([old.id, old]);
+        if (this.#visible(old)) this.emit('change', { type: 'update', node: copy(old), parent: old.parent });
+        continue;
+      }
+      const now = Date.now();
+      const node = {
+        id: n.id, type: n.type, name: n.name, parent: n.parent,
+        created: Number.isFinite(n.created) ? n.created : now, modified: Number.isFinite(n.modified) ? n.modified : now,
+        ...(n.type === 'file' && { size: Number(n.size) || 0 }),
+        ...(validWorkspace(n.workspace) && { workspace: n.workspace }),
+      };
+      this.#nodes.set(node.id, node);
+      accepted.push([node.id, node]);
+      if (this.#visible(node)) this.emit('change', { type: 'create', node: copy(node), parent: node.parent });
+    }
+    this.#tracker?.accept(accepted);
+    const gone = [];
+    for (const id of Array.isArray(remove) ? remove : []) {
+      const node = this.#nodes.get(id);
+      if (!node || node.net || node.system || id === ROOT || id === TRASH) continue;
+      const ids = [id, ...this.#descendants(id)];
+      ids.forEach(i => { this.#nodes.delete(i); contents.delete(i); });
+      gone.push(...ids);
+      this.emit('change', { type: 'remove', node: copy(node), parent: node.parent, ids });
+    }
+    this.#tracker?.forget(gone);
+  }
+
+  /** '/docs/a.txt': a node's path in its connection. */
+  #netPath(id) {
+    const parts = [];
+    for (let n = this.#nodes.get(id); n && !n.mount; n = this.#nodes.get(n.parent)) parts.unshift(n.name);
+    return `/${parts.join('/')}`;
+  }
+
+  #netUrl(mountId, what, path) {
+    return `/net/mounts/${encodeURIComponent(mountId)}/${what}?path=${encodeURIComponent(path)}`;
+  }
+
+  async #netContent(node) {
+    return kernel.request('GET', this.#netUrl(node.net, 'content', this.#netPath(node.id)), undefined, { blob: true });
+  }
+
+  /** A node made in a folder of a connection: in the tree now, on the server a moment later. */
+  #netCreate(parent, type, name) {
+    if (type === 'app') throw new Error(NOT_FOR_NET);
+    pipes.runSync('file.create', { parent: parent.id, type, name });
+    const now = Date.now();
+    const node = { id: uid(), type, name: '', parent: parent.id, created: now, modified: now, net: parent.net, ...(type === 'file' && { size: 0 }) };
+    node.name = this.#unique(parent.id, checkName(name), null, node);
+    this.#nodes.set(node.id, node);
+    this.emit('change', { type: 'create', node: copy(node), parent: parent.id });
+    pipes.notify('file.create', { node: copy(node) });
+    const path = this.#netPath(node.id);
+    if (type === 'folder') this.#netOp(parent.net, { op: 'mkdir', path }, [parent.id]);
+    else {
+      kernel.request('PUT', this.#netUrl(parent.net, 'content', path), '')
+        .catch(err => this.#netFailed(err, [parent.id]));
+    }
+    return copy(node);
+  }
+
+  /** Does an operation on the server; if it fails, the folders it touched are read again and 'netError' says why. */
+  #netOp(mountId, body, folders) {
+    kernel.request('POST', `/net/mounts/${encodeURIComponent(mountId)}/ops`, body).catch(err => this.#netFailed(err, folders));
+  }
+
+  #netFailed(err, folders) {
+    for (const id of new Set(folders)) if (this.#nodes.has(id)) this.refresh(id).catch(() => {});
+    this.emit('netError', { message: err?.message ?? String(err), code: err?.code ?? null });
+  }
+
+  /** Forgets what was read inside a folder of a connection. */
+  #dropChildren(id) {
+    for (const child of [...this.#nodes.values()].filter(n => n.parent === id)) this.#dropNode(child);
+  }
+
+  /** Takes a node of a connection, with what was read inside it, out of the tree (not from the server). */
+  #dropNode(node) {
+    const ids = [node.id, ...this.#descendants(node.id)];
+    ids.forEach(i => this.#nodes.delete(i));
+    this.emit('change', { type: 'remove', node: copy(node), parent: node.parent, ids });
   }
 
   // ---------- Internals ----------

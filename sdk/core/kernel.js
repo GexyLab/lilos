@@ -15,10 +15,12 @@ const DELAY = 300;
 const MAX_RETRY = 30_000;
 
 export class KernelError extends Error {
-  constructor(status, code, message) {
+  /** details: what the kernel adds to some errors (the fingerprint of a server to confirm…). */
+  constructor(status, code, message, details) {
     super(message);
     this.status = status;
     this.code = code;
+    if (details !== undefined) this.details = details;
   }
 }
 
@@ -57,7 +59,7 @@ class Kernel extends Emitter {
     if (res.status === 401 && this.connected && this.mode === 'multi') this.emit('signedout');
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new KernelError(res.status, err.error ?? 'internal', err.message ?? `Errore ${res.status}`);
+      throw new KernelError(res.status, err.error ?? 'internal', err.message ?? `Errore ${res.status}`, err.details);
     }
     if (res.status === 204) return undefined;
     return blob ? res.blob() : text ? res.text() : res.json();
@@ -142,6 +144,16 @@ class Tracker {
     this.#read = read;
     this.#send = send;
     this.#sent = new Map([...base].map(([k, v]) => [k, JSON.stringify(v)]));
+  }
+
+  /** These entries ([key, value]) are what the kernel has already (it made them): not to send. */
+  accept(entries) {
+    for (const [k, v] of entries) this.#sent.set(k, JSON.stringify(v));
+  }
+
+  /** These keys the kernel removed itself: nothing to send for them. */
+  forget(keys) {
+    for (const k of keys) this.#sent.delete(k);
   }
 
   /** Sets what the kernel has to the current state (nothing to send). */

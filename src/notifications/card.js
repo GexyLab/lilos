@@ -4,6 +4,12 @@ import { notify } from './notify.js';
 
 const LEVELS = { error: 'Errore', warning: 'Avviso', success: 'Fatto' };
 
+/**
+ * What lilOS's own notifications can do on a click: action.entry → fn(args). The kernel's
+ * transfers send { entry: 'transfers' } (the transfer window opens).
+ */
+export const systemActions = new Map();
+
 /** Who sent it, as lilOS shows them: an installed app with its (translated) name and icon, or lilOS. */
 export function senderOf(n) {
   if (!n.from?.app) return { name: 'lilOS', tile: () => h('span', { class: 'app-icon nt-lilos' }, logo()) };
@@ -30,9 +36,9 @@ export function notificationCard(n, { className = '', onOpen, onClose, closeLabe
     LEVELS[n.level] ? h('span', { class: `nt-level nt-${n.level}` }, LEVELS[n.level]) : null,
     h('time', { class: 'nt-time', datetime: new Date(n.at).toISOString() }, formatTime(n.at)));
   const body = [from.tile(), h('div', { class: 'nt-body' }, head, h('p', { class: 'nt-text' }, n.text))];
-  const actionable = !!(n.action && n.from?.app);
+  const actionable = !!(n.action && (n.from?.app || (n.from?.system && systemActions.has(n.action.entry))));
   const main = actionable
-    ? h('button', { class: 'nt-main', type: 'button', title: `Apri ${from.name}`, onclick: onOpen }, ...body)
+    ? h('button', { class: 'nt-main', type: 'button', title: n.from?.system ? "Apri" : `Apri ${from.name}`, onclick: onOpen }, ...body)
     : h('div', { class: 'nt-main' }, ...body);
   return h('div', { class: `nt-card ${className}`, dataset: { id: n.id, level: n.level } },
     main,
@@ -44,6 +50,7 @@ export function notificationCard(n, { className = '', onOpen, onClose, closeLabe
  * Never with `file` or `files`: a launch with them hands the app those files, and only the user does that.
  */
 export function runAction(n) {
+  if (n.action && n.from?.system) return systemActions.get(n.action.entry)?.(n.action.args ?? null);
   if (!n.action || !n.from?.app) return;
   if (!getApp(n.from.app)) return notify(`${n.from.name ?? n.from.app} non è più installata`, { level: 'warning' });
   let args = n.action.args ?? undefined;

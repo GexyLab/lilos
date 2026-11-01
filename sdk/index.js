@@ -18,6 +18,7 @@ export { shortcuts, comboFromEvent } from './core/shortcuts.js';
 export { menus } from './core/menus.js';
 export { UndoStack, history } from './core/history.js';
 export { fs } from './core/fs.js';
+export { net } from './core/net.js';
 export { pipes, PipeStopped } from './core/pipeCatalog.js';
 export { tags, TAG_COLORS } from './core/tags.js';
 export { splitName, fileType, fileTypeList } from './core/fileTypes.js';

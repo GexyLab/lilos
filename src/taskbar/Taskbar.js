@@ -4,11 +4,12 @@ import { createBackgroundApps } from './BackgroundApps.js';
 import { createPendingUpdates } from './PendingUpdates.js';
 import { StartMenu } from './StartMenu.js';
 import { NotificationBell } from '../notifications/NotificationBell.js';
+import { TransfersButton } from '../net/TransfersButton.js';
 
 /**
  * The taskbar (barra delle applicazioni), at the bottom: start button · a button per window ·
- * notification area (system tray: updates to finish, apps in the background, the notifications'
- * bell) · clock. The user page opens from the start menu.
+ * notification area (system tray: updates to finish, apps in the background, the network transfers,
+ * the notifications' bell) · clock. The user page opens from the start menu.
  */
 export class Taskbar {
   constructor(parent) {
@@ -26,6 +27,8 @@ export class Taskbar {
 
     /** The notifications' bell and bar (connected by notifications/connect.js). */
     this.notificationBell = new NotificationBell();
+    /** The network transfers' button (connected by net/connect.js). */
+    this.transfersButton = new TransfersButton();
 
     this.el = h('nav', { class: 'taskbar', 'aria-label': 'Barra delle applicazioni' },
       this.startButton,
@@ -34,6 +37,7 @@ export class Taskbar {
         h('div', { class: 'tb-notify-area', role: 'group', 'aria-label': 'Area di notifica' },
           createPendingUpdates(),
           createBackgroundApps(),
+          this.transfersButton.button,
           this.notificationBell.button),
         createClock(),
       ),

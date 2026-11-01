@@ -1,4 +1,4 @@
-import { h, fs } from '@lilos/sdk';
+import { h, fs, net } from '@lilos/sdk';
 import { itemIcon } from '../desktop/itemIcons.js';
 import { moveNodes, restoreNodes } from './fsHistory.js';
 import { notify } from '../notifications/notify.js';
@@ -23,6 +23,8 @@ import { notify } from '../notifications/notify.js';
  *                                            (e.g. by where in the zone the pointer is) }
  *
  * The move is recorded once, in the undo history of the view the drag started from (`stack`).
+ * Between the home and a network connection (or two connections) nothing moves: the items are
+ * copied by a transfer of the kernel (net.transfer), and the transfer window follows it.
  * A window hides what is behind it: a drop over a window never reaches the desk below.
  *
  * Items of the trash (the File Manager's trash view) are dragged the same way: dropped into a
@@ -96,9 +98,20 @@ export function moveInto(stack, ids, folderId) {
   const what = done => (done.length === 1 ? `«${fs.get(done[0]).name}»` : `${done.length} elementi`);
   const ending = done => (done.length === 1 ? 'o' : 'i');
   if (ids.some(id => fs.isTrashed(id))) {
+    if (fs.isRemote(folderId)) {
+      notify('Quello che è nel cestino torna in una cartella di lilOS, non su un server', { level: 'error' });
+      return [];
+    }
     const restored = restoreNodes(stack, ids, folderId).map(r => r.id);
     if (restored.length) notify(`Ripristinat${ending(restored)} ${what(restored)} in ${where}`, { level: 'success' });
     return restored;
+  }
+  const place = id => fs.get(id)?.net ?? 'home';
+  const across = ids.filter(id => place(id) !== place(folderId));
+  if (across.length) {
+    net.transfer(across, folderId).catch(err => notify(`Trasferimento non avviato: ${err.message}`, { level: 'error' }));
+    ids = ids.filter(id => !across.includes(id));
+    if (!ids.length) return [];
   }
   try {
     const moved = moveNodes(stack, ids, folderId);

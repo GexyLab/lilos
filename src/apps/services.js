@@ -57,6 +57,17 @@ class Services extends Emitter {
 
 export const services = new Services();
 
+const kernelListeners = [];
+
+/**
+ * Listens to an event of the kernel's stream (/api/services-events) while lilOS runs: fn(data) with
+ * its JSON. The event '' is the stream opening again after the kernel restarted or the network
+ * dropped (fn() with nothing): what was missed meanwhile must be read again. Call before connectServices().
+ */
+export function onKernelEvent(event, fn) {
+  kernelListeners.push({ event, fn });
+}
+
 /**
  * Listens to the kernel while lilOS runs: changes for Control Panel, the notifications (new ones and
  * changes made in other pages), and what services say when the kernel keeps no notifications.
@@ -82,8 +93,20 @@ export function connectServices() {
       } catch { /* not ours */ }
     });
     source.addEventListener('notification.change', () => notifications.changed());
+    for (const { event, fn } of kernelListeners) {
+      if (!event) continue;
+      source.addEventListener(event, e => {
+        let data;
+        try { data = JSON.parse(e.data); } catch { return; }
+        try { fn(data); } catch (err) { console.error(`[lilos] evento del kernel ${event}:`, err); }
+      });
+    }
     // Back after the kernel restarted or the network dropped: what arrived meanwhile
-    source.addEventListener('open', () => { if (opened++) notifications.changed(); });
+    source.addEventListener('open', () => {
+      if (!opened++) return;
+      notifications.changed();
+      for (const { event, fn } of kernelListeners) if (!event) fn();
+    });
   };
   open();
   kernel.onLogout(() => source?.close());

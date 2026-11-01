@@ -21,7 +21,10 @@ const exists = id => {
  * good with `permanent`.
  */
 export async function removeNodes(stack, ids, { permanent = false } = {}) {
-  const nodes = ids.map(id => fs.get(id)).filter(n => n && !n.system);
+  let nodes = ids.map(id => fs.get(id)).filter(n => n && !n.system);
+  // Of a network connection: removed on the server, for good, with no undo
+  for (const n of nodes) if (n.net && fs.exists(n.id)) fs.remove(n.id);
+  nodes = nodes.filter(n => !n.net);
   if (!nodes.length) return;
   if (!permanent) return trashNodes(stack, nodes);
   const targets = nodes.map(n => n.id);
@@ -81,7 +84,7 @@ export function restoreNodes(stack, ids, parentId = null) {
 /** Records a node just created (and maybe already renamed): undo removes it, redo puts it back as it was. */
 export function recordCreated(stack, id) {
   const node = fs.get(id);
-  if (!stack || !node) return;
+  if (!stack || !node || node.net) return;   // on a server: removing it again is for good, it cannot come back
   let snap = null;
   stack.push({
     label: `Crea «${node.name}»`,

@@ -1,4 +1,4 @@
-import { fs, storage } from '@lilos/sdk';
+import { fs, net, storage } from '@lilos/sdk';
 import { seedItems } from './desktop/seed.js';
 
 const WELCOME = `Benvenuto in lilOS!
@@ -33,9 +33,18 @@ export const SYSTEM_FOLDERS = [
   { name: SYSTEM_NAME, icon: 'gear' },
 ];
 
+/** Name of the folder with the network connections (made when the kernel has a protocol: net.available). */
+export const NETWORK_NAME = 'Rete';
+
 /** Id of a shared folder in the root (Documenti, Sistema…), null if there is none. */
 export function sharedFolder(name) {
+  if (name === NETWORK_NAME) return networkFolder();
   return fs.children(fs.root).find(n => n.type === 'folder' && n.name === name && !n.private)?.id ?? null;
+}
+
+/** The system folder Rete ('Rete 2' if the user had a folder of their own called Rete), or null. */
+function networkFolder() {
+  return fs.children(fs.root).find(n => n.type === 'folder' && n.system && /^Rete( \d+)?$/.test(n.name))?.id ?? null;
 }
 
 /**
@@ -48,6 +57,7 @@ export function setupFileSystem() {
     if (name === DESK_NAME) continue;
     if (!sharedFolder(name)) fs.create(fs.root, { type: 'folder', name, system: true });
   }
+  if (net.available && !networkFolder()) fs.create(fs.root, { type: 'folder', name: NETWORK_NAME, system: true });
   return { firstStart };
 }
 

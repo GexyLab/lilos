@@ -12,6 +12,7 @@ import './styles/packages.css';
 import './styles/properties.css';
 import './styles/user-page.css';
 import './styles/notifications.css';
+import './styles/transfers.css';
 
 import './systemSettings.js';
 import * as sdk from '@lilos/sdk';
@@ -39,6 +40,7 @@ import { connectUpdates, systemNotices } from './apps/updates.js';
 import { connectStartup } from './apps/startup.js';
 import { connectServices } from './apps/services.js';
 import { connectNotifications } from './notifications/connect.js';
+import { connectNet } from './net/connect.js';
 import { connectPipes } from './apps/pipes.js';
 import { connectSystemEvents } from './apps/systemEvents.js';
 import { Workareas } from './workareas/Workareas.js';
@@ -92,6 +94,7 @@ setupHistory({ root: desktop.history, activeWindow: () => wm.active });
 // back, so an app that opens by itself finds its window instead of opening a second one.
 connectStartup();
 connectNotifications({ bell: taskbar.notificationBell, wm }).catch(err => console.error('[lilos] notifiche:', err));
+connectNet({ wm, button: taskbar.transfersButton });
 connectServices();
 Promise.all([workspaces.ready, workareas.ready]).then(() => {
   bus.emit('system:ready', { at: Date.now() });
