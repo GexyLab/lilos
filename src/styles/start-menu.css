@@ -3,8 +3,7 @@
   position: fixed; inset: 0 0 var(--taskbar-h); z-index: 8800;
   display: flex; flex-direction: column; gap: 14px; padding: 16px 20px 14px;
   color: var(--bar-text);
-  background: color-mix(in srgb, var(--bar) 88%, transparent);
-  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  background: var(--bar);
   animation: sm-in .14s ease-out;
 }
 .start-menu[hidden] { display: none; }
