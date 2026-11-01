@@ -20,6 +20,7 @@ Gli altri moduli (`src/`) sono il sistema: scrivania, desktop, barra.
 - [sdk/core/settings.js](#sdkcoresettingsjs)
 - [sdk/core/shortcuts.js](#sdkcoreshortcutsjs)
 - [sdk/core/fs.js](#sdkcorefsjs)
+- [sdk/core/net.js](#sdkcorenetjs)
 - [sdk/core/pipes.js e sdk/core/pipeCatalog.js](#sdkcorepipesjs-e-sdkcorepipecatalogjs)
 - [sdk/core/tags.js](#sdkcoretagsjs)
 - [sdk/core/history.js](#sdkcorehistoryjs)
@@ -51,6 +52,7 @@ Gli altri moduli (`src/`) sono il sistema: scrivania, desktop, barra.
 - [taskbar/](#taskbar)
 - [notifications/](#notifications-le-notifiche-nellinterfaccia)
 - [user/ (la pagina utente)](#user-la-pagina-utente)
+- [net/ (la rete nell'interfaccia)](#net-la-rete-nellinterfaccia)
 - [sdk/ui/](#sdkui)
 - [sdk/ui/controls.js](#sdkuicontrolsjs)
 - [sdk/ui/shortcutField.js](#sdkuishortcutfieldjs)
@@ -280,7 +282,7 @@ import { kernel, KernelError } from '@lilos/sdk';
 
 ### `class KernelError extends Error`
 
-`{ status, code, message }`. `status` è lo stato HTTP (`0` se il kernel non risponde); `code` è il codice del kernel (`invalid`, `unauthorized`, `invalid_credentials`, `forbidden`, `not_found`, `conflict`, `too_large`, `rate_limited`, `unavailable`, `internal`) oppure `'offline'` quando manca la risposta. `message` è in italiano e si può mostrare all'utente.
+`{ status, code, message, details? }`. `status` è lo stato HTTP (`0` se il kernel non risponde); `code` è il codice del kernel (`invalid`, `unauthorized`, `invalid_credentials`, `forbidden`, `not_found`, `conflict`, `untrusted`, `secret_required`, `too_large`, `rate_limited`, `unavailable`, `internal`) oppure `'offline'` quando manca la risposta. `message` è in italiano e si può mostrare all'utente. `details` (se c'è) è ciò che il kernel aggiunge ad alcuni errori: l'impronta di un server da confermare (`untrusted`) o il motivo per cui serve la password (`secret_required`).
 
 ### `kernel`
 
@@ -568,6 +570,15 @@ File system virtuale: un albero di cartelle, file e collegamenti alle app, tenut
 | `isHidden(id)` | `true` se il nodo esiste e ha un tag nascosto. |
 | `snapshot(ids)` | `Promise<{ nodes, contents }>`: copia i nodi (e, per le cartelle, tutto quello che contengono) con il contenuto dei file, come byte (testo e immagini tornano identici). Gli id che non esistono o sono ripetuti si saltano. Va preso **prima** di `remove`. |
 | `restore(snapshot)` | `Promise<string[]>`: rimette quello che `snapshot` ha copiato, con gli stessi id, gli stessi metadati e lo stesso contenuto. Il nome diventa unico se nel frattempo è stato preso. Si saltano i nodi la cui cartella non c'è più (o non è visibile) e gli id che esistono di nuovo. Emette un `change` di tipo `create` per ogni nodo rimesso; restituisce gli id rimessi (`[]` se non ha potuto rimettere nulla). |
+| `isRemote(id)` | `true` se il nodo è di una connessione di rete (compreso il nodo della connessione). |
+| `netPath(id)` | Il percorso del nodo dentro la sua connessione (`'/'` per il nodo della connessione), `null` per gli altri nodi. |
+| `netRef(id)` | Dov'è un nodo, come lo chiamano i trasferimenti del kernel: `{ home: id }` o `{ mount, path }`. Lancia un errore se il nodo non esiste. |
+| `setMounts(parentId, mounts)` | Mette in una cartella (la Rete del sistema) un nodo per ogni connessione, `[{ id, name, protocol, state }]`: nodo `net-<id>`, cartella di sistema con `net: <id connessione>`, `mount: true`, `mountState` e `protocol`. Quelle sparite si tolgono con quello che era stato letto; una connessione che non è più `on` dimentica il contenuto letto. Emette `change`. Lo chiama il sistema (`src/net/connect.js`). |
+| `refresh(id)` | `Promise`: rilegge dal server il contenuto di una cartella di rete (si chiama aprendola) e porta l'albero a quello. Rifiuta con l'errore del kernel (`secret_required`, `untrusted`…). Per gli altri nodi non fa niente. |
+| `netChanged(mountId, path)` | Il kernel dice che una cartella è cambiata sul server: la rilegge se era stata letta. |
+| `external({ put, remove })` | Mette nell'albero nodi della home che ha fatto o cambiato il kernel (`put`: nodi come li manda il kernel; `remove`: id), per esempio ciò che un trasferimento ha portato. Sono già nel kernel: non si rimandano. Emette `change`. |
+
+**Rete.** Le cartelle di una connessione ([`net`](#net)) stanno nell'albero sotto un nodo di connessione (`setMounts`). I loro nodi hanno `net` (l'id della connessione) e **non si salvano**: il contenuto di una cartella si legge dal server con `refresh` quando si apre, e `children` restituisce quello letto per ultimo. Creare, rinominare, spostare dentro la stessa connessione ed eliminare vanno al server subito; se il server rifiuta, la cartella si rilegge e `fs` emette `netError` `{ message, code }`. Eliminare è **definitivo** (niente cestino, niente annulla). `read`, `readBlob` e `write` leggono e scrivono sul server (`write` con `mark` no). `move` tra la home e una connessione, o tra due connessioni, lancia un errore: i file vanno e vengono con `net.transfer()`. Sui nodi di rete lanciano un errore anche `copy`, `copyContent`, `setTags`, `update` (colore), `setAppMeta` e la creazione di collegamenti alle app; `trash` salta i nodi di rete (non vanno nel cestino) e `remove` li elimina dal server per sempre; `untrash` verso una cartella di rete non rimette niente (restituisce `[]`). I nodi di rete non si salvano in `lilos:fs` né vanno al kernel come nodi. Le miniature dei file di rete non si chiedono.
 
 `rename`, `move` e `remove` lanciano un errore sui nodi di sistema e sulla radice.
 
@@ -582,6 +593,57 @@ Evento `change`: `{ type: 'create' | 'rename' | 'update' | 'move' | 'remove', no
 Collegati al kernel, i contenuti stanno nel database del kernel (con il nodo, e spariscono con lui); IndexedDB `lilos:<id utente>` (archivio `contents`, chiave l'`id` del file) ne tiene una copia: ciò che si è letto o scritto, usato solo per leggere quando il kernel non risponde (`offline`), e cancellato quando l'utente esce. Non collegati, stanno nel database IndexedDB `lilos`, archivio `contents`; se IndexedDB non è disponibile (alcune modalità private) restano in memoria fino alla ricarica, e qualche secondo dopo l'avvio si eliminano i contenuti dei nodi che non esistono più.
 
 Alla lettura da `lilos:fs` vengono tenuti solo i nodi ben formati raggiungibili dalla radice: tipi sconosciuti, nomi non validi, nodi orfani, cicli e nomi duplicati nella stessa cartella vengono scartati (tranne tra cartelle private di workspace diversi). `workspace` è tenuto solo se è un id valido e `private` solo per cartelle con un proprietario. `tags` è tenuto solo sui nodi che non sono di sistema, ripulito come in `setTags` (id validi, senza doppioni, al massimo 30); `setTags` non controlla che i tag esistano, ma i tag che non esistono più non si vedono da nessuna parte. Si parte da due radici (`root` e `trash`): i figli diretti del cestino senza un `trashed` valido (`at` numero, `from` testo) si scartano, e lì i nomi possono ripetersi. `ownedCount` non conta i nodi nel cestino.
+
+---
+
+## sdk/core/net.js
+
+### `net`
+
+Connessioni di rete (la cartella **Rete**: FTP, SFTP, WebDAV, SMB; ogni protocollo è un modulo del kernel) e trasferimenti da e verso di esse, che fa il kernel. Funziona solo **collegato al kernel**. Il contratto dei protocolli, gli endpoint e i trasferimenti sono in [Rete](#rete-connessioni-e-trasferimenti-net-apinetjs); le cartelle remote dentro `fs` in [`fs`](#fs).
+
+| Membro | Descrizione |
+| --- | --- |
+| `available` | `true` se c'è il kernel e ha almeno un protocollo |
+| `protocols` | `[{ id, label, order, fields, canListShares }]`: i protocolli, già in ordine; `fields` come nel contratto del driver |
+| `mounts()` / `mount(id)` | Le connessioni (copie) / una connessione o `null`: `{ id, name, protocol, address, values, auto, remembered, trusted, state, error }` |
+| `load()` | `Promise`: le rilegge dal kernel (le prime arrivano già con `GET /api/boot`) |
+| `create({ name, protocol, values, auto, remember, trust? }, secret)` | `Promise<mount>`. `secret`: `{ chiave: valore }` dei campi segreti |
+| `update(id, { name?, values?, auto?, remember?, forget? }, secret?)` | `Promise<mount>`. I segreti vuoti restano come sono |
+| `remove(id)` | `Promise`. Toglie la connessione |
+| `connect(id, { secret?, remember?, trust? })` | `Promise<mount>`. Poi rilegge comunque lo stato, anche se è fallita |
+| `disconnect(id)` | `Promise<mount>`. Dimentica la password non ricordata |
+| `test({ protocol, values, trust? }, secret)` | `Promise`. Prova senza salvare |
+| `shares({ protocol, values, trust? }, secret)` | `Promise<string[]>`. Cosa offre il server (protocolli con `canListShares`) |
+| `text(label)` | Un'etichetta di protocollo o di campo (`{ en, it }` o testo) nella lingua del sistema: prima il codice completo, poi la lingua, poi `en`, poi la prima |
+| `mountNode(id)` | `'net-<id>'`: l'id del nodo di `fs` che è la cartella della connessione |
+| `transfers` | L'ultima istantanea dei trasferimenti (vedi [Trasferimenti](#trasferimenti-transfers)) |
+| `transfer(ids, folderId)` | `Promise<{ queue }>`. Copia nodi di `fs` in una cartella; almeno uno dei due lati è una connessione. Prima fa partire il salvataggio dei file in attesa verso il kernel (`kernel.flush('fs')`). Le sorgenti restano dove sono |
+| `loadTransfers()` | `Promise`: legge l'istantanea |
+| `children(itemId)` | `Promise<{ items, more }>`: dentro una cartella di una coda |
+| `cancel({ ids?, queue?, all? })`, `resolve(id, action, all = false)`, `retry({ ids?, queue? })`, `dismiss({ ids?, queue?, all? })`, `pause(queue, paused)` | `Promise`. I comandi dei trasferimenti (come gli endpoint) |
+
+Eventi: `mounts` (una connessione è comparsa, cambiata o sparita), `transfers` (istantanea), `notify` `{ text, level }` (una coda è finita e il kernel non tiene le notifiche). Il sistema passa a `net` ciò che il kernel trasmette con `mountChanged()`, `transfersChanged(istantanea)` e `notified(dati)`; le app non li chiamano.
+
+Gli errori sono `KernelError` con `details` (vedi [`KernelError`](#class-kernelerror-extends-error)): `secret_required` (`details.reason`: `'missing'` o `'auth'`), `untrusted` (`details.trust`: `{ kind, fingerprint, text }`; per proseguire si richiama `connect` con `{ trust: fingerprint }`) e `unavailable`.
+
+```js
+import { net } from '@lilos/sdk';
+
+if (net.available) {
+  const m = await net.create({
+    name: 'NAS', protocol: 'smb', auto: false, remember: true,
+    values: { host: 'nas.local', share: 'Foto', auth: 'password', user: 'ann' },
+  }, { password: 'segreto' });
+  try {
+    await net.connect(m.id);
+  } catch (err) {
+    if (err.code === 'untrusted') await net.connect(m.id, { trust: err.details.trust.fingerprint }); // dopo aver chiesto all'utente
+    else throw err;
+  }
+  await net.transfer([someFileId], net.mountNode(m.id));   // copia un file di lilOS nella radice della condivisione
+}
+```
 
 ---
 
@@ -2247,6 +2309,37 @@ Il modulo osserva `userPhoto`: con una foto valida mette `--user-photo: url("…
 
 ---
 
+## net/ (la rete nell'interfaccia)
+
+La parte di lilOS che mostra la rete: le connessioni come cartelle in **Rete** e la finestra **Trasferimento dati**. Il dato è in [`net`](#net) e nelle cartelle remote di [`fs`](#fs); quello che fa il kernel è in [Rete](#rete-connessioni-e-trasferimenti-net-apinetjs). Il File Manager mostra la sezione Rete, la barra della connessione e la finestra «Connetti a un server» (nell'app, `src/files/network.js` del repository ufficiale).
+
+### `connectNet({ wm, button })` (`net/connect.js`)
+
+Chiamata da `system.js` con il gestore delle finestre e `taskbar.transfersButton`. Senza kernel non fa niente. Poi:
+
+- apre la finestra con il pulsante (`button.onOpen`; ancora un clic la chiude se è quella attiva), con la notifica di fine trasferimento (`systemActions.set('transfers', …)`) e con la scorciatoia `system.transfers` («Apri il trasferimento dati», gruppo `Generale`, nessuna combinazione di serie);
+- tiene le connessioni come nodi sotto la cartella Rete (`fs.setMounts`) a ogni evento `mounts` di `net`;
+- gira al sistema gli eventi del kernel con `onKernelEvent`: `net.mount` → `net.mountChanged()`, `net.change` → `fs.netChanged(mount, path)`, `net.transfers` → `net.transfersChanged(istantanea)`, `fs.external` → `fs.external(dati)`, `net.notify` → `notify(testo, { level })`; e `fs` `netError` → `notify('Rete: …')`. Quando il flusso si riapre (il kernel si è riavviato o la rete è caduta) rilegge connessioni e trasferimenti;
+- apre la finestra da sola in due casi: quando un conflitto aspetta una scelta (una volta per file), e quando una serie di trasferimenti (`transfers.run`) dura più di **5 secondi** (`OPEN_AFTER`); una volta sola per serie: chiusa, resta chiusa fino alla serie seguente.
+
+### `showTransfers(wm)`, `transfersShown(wm)` e `bytes(n)` (`TransfersWindow.js`)
+
+`showTransfers` apre (o porta avanti) la finestra «Trasferimento dati», una per workspace; `transfersShown` dice se è aperta. Chiudere la finestra la nasconde soltanto: i trasferimenti vanno avanti e si fermano solo con `net.cancel`. Mostra, in alto, quanto è stato inviato e ricevuto, poi una sezione per coda con il file in corso, il conflitto da risolvere (Sostituisci, Mantieni entrambi, Salta, con «Per tutti i conflitti di questa coda») e gli elementi (le cartelle si aprono con `net.children`). `bytes(n)` scrive una dimensione («1,5 MB»).
+
+### `class TransfersButton` (`TransfersButton.js`)
+
+Il pulsante dei trasferimenti nell'area di notifica della barra delle applicazioni (`taskbar.transfersButton`): c'è finché il kernel ha trasferimenti (in corso, o falliti da guardare), con un anello che si riempie e il riassunto nel `title`. Un clic chiama `onOpen`.
+
+### Altri punti che toccano la rete
+
+- `systemFs.js`: `NETWORK_NAME` (`'Rete'`, esportato anche da `@lilos/system`); `setupFileSystem` crea la cartella di sistema Rete se `net.available` (`'Rete 2'` se l'utente ne aveva una sua), e `sharedFolder('Rete')` la trova. Non è in `SYSTEM_FOLDERS`.
+- `items/itemDrag.js`: tra la home e una connessione, o tra due connessioni, il rilascio **copia** con `net.transfer` (errore: notifica «Trasferimento non avviato: …»); dentro la stessa connessione sposta come altrove. Dal cestino non si ripristina in una cartella remota.
+- `items/confirmRemove.js` e `items/fsHistory.js`: i nodi di una connessione si eliminano dal server per sempre, con la conferma **sempre** (anche con `deleteConfirm` spento): «Elimina dal server «nome» (definitivo)». Non entrano nella cronologia per annullare.
+- `desktop/itemIcons.js`: la cartella di una connessione (`mount`) ha l'icona `globe`; i file remoti (`net`) non hanno miniature.
+- `notifications/card.js`: `systemActions` (`Map`, entry → `fn(args)`) dà un'azione al clic sulle notifiche che manda lilOS (`from.system`): quelle dei trasferimenti hanno `{ entry: 'transfers' }`.
+- `apps/services.js`: `onKernelEvent(evento, fn)` ascolta un evento del flusso `/api/services-events` (`fn(dati)`); con l'evento `''` la funzione riceve la riapertura del flusso. Da chiamare prima di `connectServices()`.
+
+---
 ## sdk/ui/
 
 ### `icons.js`
@@ -2569,7 +2662,7 @@ Il backend (`system/kernel/`). Panoramica: [README per sviluppatori](README.md#k
 
 ### API HTTP
 
-Tutto sta sotto `/api`. Le risposte sono JSON, con `Cache-Control: no-store`, `X-Content-Type-Options: nosniff` e una CSP che vieta tutto. Gli errori sono `{ error: codice, message }` con questi stati: `invalid` 400, `unauthorized` 401, `invalid_credentials` 401, `forbidden` 403, `not_found` 404, `conflict` 409, `too_large` 413, `rate_limited` 429 (con `Retry-After`), `unavailable` 503; un errore non previsto è `internal` 500 e il messaggio non dice altro. Un metodo non ammesso dà 405 con `Allow`.
+Tutto sta sotto `/api`. Le risposte sono JSON, con `Cache-Control: no-store`, `X-Content-Type-Options: nosniff` e una CSP che vieta tutto. Gli errori sono `{ error: codice, message, details? }` (`details` c'è solo per `untrusted` e `secret_required`, vedi [Rete](#rete-connessioni-e-trasferimenti-net-apinetjs)) con questi stati: `invalid` 400, `unauthorized` 401, `invalid_credentials` 401, `forbidden` 403, `not_found` 404, `conflict` 409, `untrusted` 409, `too_large` 413, `secret_required` 428, `rate_limited` 429 (con `Retry-After`), `unavailable` 503; un errore non previsto è `internal` 500 e il messaggio non dice altro. Un metodo non ammesso dà 405 con `Allow`.
 
 Le richieste che modificano (tutte tranne `GET` e `HEAD`) devono avere l'intestazione `X-Lilos: 1` e, se il browser manda `Origin`, questa deve essere in `origins` della configurazione o, con `loopbackOrigins: true`, un `http://localhost`, `127.0.0.1` o `[::1]`; altrimenti `forbidden`. Senza un modulo di accesso chiunque raggiunga il kernel è l'unico utente: per questo ascolta solo su questo computer.
 
@@ -2578,9 +2671,9 @@ Le richieste che modificano (tutte tranne `GET` e `HEAD`) devono avere l'intesta
 | `GET /api/session` | tutti | → `{ mode: 'multi' \| 'single', user \| null }` |
 | `POST /api/session` | tutti | `{ username, password }` → `{ user }` e il cookie `lilos_session` (`HttpOnly; SameSite=Strict; Path=/api`, `Secure` con `secureCookies`). Con un solo utente: `invalid`. |
 | `DELETE /api/session` | tutti | Chiude la sessione e cancella il cookie |
-| `GET /api/boot` | utenti | → `{ user, home, fresh, nodes, storage, apps, appSecurity }`: tutto ciò che serve per partire. `home`: il percorso della home nel file system (`/home/<utente>`), da cui `fs.path` parte. `fresh`: la cartella dell'utente è vuota. `apps` è l'elenco di `GET /api/apps`, ma senza nascondere l'origine `local` ai non amministratori. `appSecurity`: `{ isolated }`, la regola generale su come girano le app |
+| `GET /api/boot` | utenti | → `{ user, home, fresh, nodes, storage, apps, appSecurity, net }`: tutto ciò che serve per partire. `home`: il percorso della home nel file system (`/home/<utente>`), da cui `fs.path` parte. `fresh`: la cartella dell'utente è vuota. `apps` è l'elenco di `GET /api/apps`, ma senza nascondere l'origine `local` ai non amministratori. `appSecurity`: `{ isolated }`, la regola generale su come girano le app. `net`: `{ protocols, mounts }`, come `GET /api/net` |
 | `POST /api/fs/sync` | utenti | `{ put: [nodo], remove: [id] }`, in una transazione; al massimo 5000 voci e 8 MB. L'SDK ne manda al massimo 2000 per richiesta (prima i nodi, con i genitori prima dei figli, poi le eliminazioni), quindi non c'è un limite al numero di modifiche di una volta sola |
-| `GET /api/fs/content/:id` | utenti | → testo del file |
+| `GET /api/fs/content/:id` | utenti | → testo del file. Con `?raw=1`: i byte (`application/octet-stream`); se il modulo `fs` ha `readStream` li manda in streaming, con `Content-Length`, senza tenerli tutti in memoria |
 | `PUT /api/fs/content/:id` | utenti | testo del file (fino a 10 MB) |
 | `POST /api/storage` | utenti | `{ set: { chiave: valore }, remove: [chiave] }`; al massimo 500 chiavi per volta, 512 KB per valore (JSON). L'SDK ne manda al massimo 200 e circa 4 MB per richiesta |
 | `GET /api/apps` | utenti | → app installate `[{ ...stato, manifest }]`. Agli utenti non amministratori l'origine `local` mostra solo `{ type: 'local' }` |
@@ -2609,12 +2702,13 @@ Le richieste che modificano (tutte tranne `GET` e `HEAD`) devono avere l'intesta
 | `POST /api/services/:app/:entry/start`, `…/stop`, `…/restart` | utenti (servizi di tutti: amministratori) | → `{ status, error }` |
 | `POST /api/services/:app/:entry/call` | utenti | `{ data?, from? }` (fino a 1 MB; `from` un id di app) → `{ result }`: ciò che restituisce `lilos.handle` del servizio. Lo avvia se è spento |
 | `GET /api/services/:app/:entry/log` | utenti (servizi di tutti: amministratori) | → `{ lines: [{ at, level, text }] }` |
-| `GET /api/services-events` | utenti | Flusso `text/event-stream` (un commento ogni 25 s per tenerlo aperto): `change` `{ owner, app, entry }` quando cambia un servizio dell'utente o del sistema, `notify` `{ app, text }` per ciò che un suo servizio manda con `lilos.ui.notify` (e, per gli amministratori, quelli di sistema) **solo se nessun modulo fornisce `notifications`**, e gli eventi che i moduli mandano a quell'utente con `ctx.emit`, con il nome dell'evento e i dati così come sono (`notification.new` `{ id }`, `notification.change` `{}`). Negli altri endpoint `/api/services/:app/:entry/…`: `invalid` se `app` o `entry` hanno una forma non valida, `not_found` se il servizio non esiste |
+| `GET /api/services-events` | utenti | Flusso `text/event-stream` (un commento ogni 25 s per tenerlo aperto): `change` `{ owner, app, entry }` quando cambia un servizio dell'utente o del sistema, `notify` `{ app, text }` per ciò che un suo servizio manda con `lilos.ui.notify` (e, per gli amministratori, quelli di sistema) **solo se nessun modulo fornisce `notifications`**, e gli eventi che i moduli mandano a quell'utente con `ctx.emit`, con il nome dell'evento e i dati così come sono (`notification.new` `{ id }`, `notification.change` `{}`) e quelli della rete (`net.mount`, `net.change`, `net.transfers`, `fs.external`, `net.notify`: vedi [Rete](#rete-connessioni-e-trasferimenti-net-apinetjs)). Negli altri endpoint `/api/services/:app/:entry/…`: `invalid` se `app` o `entry` hanno una forma non valida, `not_found` se il servizio non esiste |
 | `GET /api/notifications` | utenti | → `{ available, keep, items }`: le notifiche dell'utente, dalla più nuova. Senza il servizio `notifications`: `{ available: false, keep: null, items: [] }` |
 | `POST /api/notifications` | utenti | `{ text, level?, action?, app? }` (fino a 16 KB) → la notifica, **per l'utente che chiede**. `text` non vuoto; `level` `info` (predefinito), `success`, `warning`, `error`; `action` `{ entry?, args? }`; `app`: l'id di un'app installata che la manda (`invalid` se non lo è); senza `app`, la manda lilOS. Il nome dell'app lo legge il kernel dal suo `lilos.json`. `rate_limited` (429) oltre 10 al minuto per app. Senza il servizio: `unavailable` |
 | `POST /api/notifications/read` | utenti | `{ ids? }` (fino a 64 KB) → 204. Senza `ids`, tutte |
 | `POST /api/notifications/remove` | utenti | `{ ids? }` → 204. Senza `ids`, tutte |
 | `PUT /api/notifications-options` | utenti | `{ keep }` → `{ keep }`: quante ne conserva l'utente, un intero da 1 a 200 (`invalid` altrimenti) |
+| `GET /api/net` e le altre `/api/net/…` | utenti | Le connessioni di rete dell'utente, i loro file e i trasferimenti: tutti gli endpoint sono in [Rete](#rete-connessioni-e-trasferimenti-net-apinetjs). Errori propri: `secret_required` 428 e `untrusted` 409 (con `details`) |
 | `POST /api/kernel/restart` | amministratori | Il kernel si ferma ed esce con il codice 75: `npm run kernel` lo riavvia. Senza `run.js` (variabile `LILOS_SUPERVISED` assente): `unavailable` |
 | `GET /api/system` | utenti | → `{ version, mode }`; agli amministratori anche `kernel`, `sdk`, `releases`, `next`, `previous`, `updated`, `failed` (vedi [`systemReleases`](#systemreleases)) |
 | `POST /api/system/update` | amministratori | `{ ref? }` → `{ version, previous, restartRequired }` o `{ version, unchanged: true }` |
@@ -2641,7 +2735,7 @@ I percorsi possono finire con `*` (`/api/apps/:id/v/:version/*`): il resto del p
   "origins": [], "loopbackOrigins": true, "secureCookies": false,
   "modules": [
     { "name": "users-basic", "version": "1.0.0", "config": { "sessionDays": 30, "idleDays": 7 } },
-    { "name": "fs-postgres", "version": "1.0.0", "config": { "url": "postgres://lilos:lilos@127.0.0.1:5433/lilos" } },
+    { "name": "fs-postgres", "version": "1.1.0", "config": { "url": "postgres://lilos:lilos@127.0.0.1:5433/lilos" } },
     { "name": "services-isolate", "version": "1.0.0", "config": {} }
   ],
   "apps": { "allowLocalSources": true, "trustedPublishers": {}, "officialKey": null, "bootstrap": ["files", "editor", "settings", "appstore"] }
@@ -2706,12 +2800,154 @@ Il kernel controlla che questi metodi esistano; ogni modulo può fornire anche s
 | --- | --- |
 | `auth` | `login(username, password, { ip })` → `{ token, user, expires }` (lancia `invalid_credentials` o `rate_limited`); `session(token)` → `user \| null`; `logout(token)`; `logoutAll(userId)` |
 | `users` | `get(id)`, `list()`, `create({ username, name, password, role })`, `setPassword(id, password)`, `remove(id)` |
-| `fs` | `home(principal)` → `{ id, path, created }`; `stat(principal, id)`; `list(principal, id)`; `tree(principal, id, { content })`; `lookup(principal, path)`; `apply(principal, { put, remove })` (una transazione); `read(principal, id)` → `Buffer`; `write(principal, id, Buffer)`; `remove(principal, ids)` |
+| `fs` | `home(principal)` → `{ id, path, created }`; `stat(principal, id)`; `list(principal, id)`; `tree(principal, id, { content })`; `lookup(principal, path)`; `apply(principal, { put, remove })` (una transazione); `read(principal, id)` → `Buffer`; `write(principal, id, Buffer)`; `remove(principal, ids)`. Facoltativi, per i contenuti grandi: `readStream(principal, id, { start })` → `Readable`, `writeFrom(principal, id, source, { signal })` → dimensione (vedi [Rete](#contenuti-grandi-nel-servizio-fs)) |
 | `notifications` | Facoltativo: senza, lilOS tiene le notifiche solo nella pagina. `send(userId, { from, level, text, action })` → notifica (`from`: `{ app, name }` o `{ system: true }`, già controllato dal kernel; `level`: `'info'` \| `'success'` \| `'warning'` \| `'error'`; `action`: `{ entry, args }` o `null`; lancia `invalid` o `rate_limited`); `list(principal)` → `{ keep, items }` (dalla più nuova); `read(principal, ids \| null)`; `remove(principal, ids \| null)` (`null`: tutte; gli `ids` al massimo 500); `setOptions(principal, { keep })` → `{ keep }` (1-200). Manda `notification.new` `{ id }` e `notification.change` `{}` con `ctx.emit`. Vedi [`notifications-basic`](#notifications-basic_100) |
 | `runtime` | Facoltativo: senza, lilOS non ha servizi. `start({ key, code, info, limits }, host)` → `Promise<handle>`, che si risolve quando il punto d'ingresso è partito (o rifiuta con il motivo). `code`: il modulo ES del servizio, che esporta una funzione col nome `info.entry` e la riceve con `{ lilos, args }`. `info`: `{ id, version, entry, args, user: { id, username, name } \| null, locale, i18n }`, dove `locale` è `{ code, lang, strings }` (le stringhe già risolte, vedi [`lilos.locale`](#liloslocale)) e `i18n` è il testo del motore (`i18nApi` di `sdk/core/i18n.js`, `toString()`): il runner lo valuta e dà al servizio `lilos.locale`. `limits`: `{ memoryMb, cpuMs }` (memoria del servizio; tempo di una sola esecuzione del suo codice). `host`: `{ call(metodo, parametri)` → `Promise` (l'API `lilos`, controllata dal kernel), `log(livello, testo)` (ciò che scrive con `console.*`), `exit(motivo)` (si è fermato da solo: errore, memoria, crash) `}`. `handle`: `{ request(data, from)` → `Promise<risultato>` (ciò che restituisce il suo `lilos.handle`), `stop()` → `Promise }`. Vedi [Servizi delle app](#servizi-delle-app-appsappservicesjs) |
 
 Un nodo del servizio `fs` è `{ id, parent, name, type: 'folder' \| 'file' \| 'app', meta, size, created, modified, content? }`. Chi chiede è un `principal`: `{ kind: 'user', … }` o `KERNEL` (`{ kind: 'kernel' }`, usato per installare le app). Il modulo `fs` rifiuta ciò che il principal non può fare: `not_found` per ciò che non deve sapere che esiste, `forbidden` per ciò che vede ma non cambia.
 
+### Rete: connessioni e trasferimenti (`net/`, `api/net.js`)
+
+La cartella **Rete** porta in lilOS i file di server remoti. Motivi e alternative scartate: [D59](../interna/decisioni.md#d59-la-rete-i-protocolli-sono-moduli-del-kernel-e-i-trasferimenti-li-fa-il-kernel). Tre parti, tutte nel kernel:
+
+| File | Che cosa fa |
+| --- | --- |
+| `net/drivers.js` | Il contratto dei protocolli (`netfs.<protocollo>`), la validazione dei campi, `cleanPath`, `netFail` |
+| `net/network.js` (`Network`, `kernel.network`) | Le connessioni di ogni utente, le loro sessioni, l'osservazione delle cartelle |
+| `net/transfers.js` (`Transfers`, `kernel.transfers`) | Le copie da e verso le connessioni, in code per destinazione |
+| `net/secrets.js` (`Secrets`) | Cifratura di password e chiavi (AES-256-GCM) |
+| `api/net.js` | Gli endpoint `/api/net/…` (sotto) |
+
+#### Protocolli: il servizio `netfs.<protocollo>`
+
+Un modulo fornisce un protocollo con un servizio che si chiama `netfs.<protocollo>` (`provides: ["netfs.sftp"]`); un modulo può fornirne più d'uno (`netfs-ftp` dà `netfs.ftp` e `netfs.ftps`). All'avvio il kernel cerca tra i servizi quelli con questo prefisso (`findDrivers`) e ignora, con un avviso nel log, quelli malformati. Senza nessun protocollo `net.available` è `false` e Rete non esiste. L'`id` del protocollo è `[a-z][a-z0-9-]{0,30}`.
+
+```js
+// il servizio che un modulo passa a ctx.provide('netfs.esempio', …)
+{
+  label: { en: 'Example', it: 'Esempio' },     // stringa o { lingua: testo }
+  order: 60,                                   // posizione nell'elenco (più basso prima); predefinito 100
+  fields: [ /* campi, sotto */ ],
+  address(values) { return `esempio://${values.host}`; },        // come si mostra la connessione
+  async connect(values, { secret, trust, signal }) { return session; },
+  async shares?(values, { secret, trust }) { return ['nome']; }, // cosa offre il server (SMB)
+}
+```
+
+| Membro | Descrizione |
+| --- | --- |
+| `label`, `order` | Il nome che l'utente sceglie e la sua posizione |
+| `fields` | I campi che la connessione chiede, nell'ordine in cui si mostrano |
+| `address(values)` | `string`: l'indirizzo con cui si mostra la connessione (`sftp://ann@host/www`) |
+| `connect(values, { secret, trust, signal })` | `Promise<session>`. `values`: i valori dei campi (tranne i segreti). `secret`: `{ chiave: valore }` dei campi segreti (`{}` se non ce ne sono). `trust`: l'impronta che l'utente ha confermato per quel server, o `null`. Prima di mandare le credenziali il driver deve verificare il server: se non è fidato lancia `untrusted` |
+| `shares?(values, { secret, trust })` | `Promise<string[]>`: cosa offre il server a cui connettersi. Se c'è, il protocollo ha `canListShares` |
+
+**Campo.** `{ key, type, label, required?, secret?, default?, placeholder?, hint?, when?, options?, min?, max? }`:
+
+| Proprietà | Descrizione |
+| --- | --- |
+| `key` | `[a-z][a-zA-Z0-9]{0,30}` |
+| `type` | `text` (fino a 1024 caratteri, ripulito dagli spazi ai bordi), `textarea` (64 KB), `number` (intero, con `min` e `max`), `password` (4096), `select` (con `options: [{ value, label }]`), `checkbox`, `file` (il testo di un file che l'utente sceglie in lilOS, per esempio una chiave privata; 64 KB) |
+| `label`, `hint` | Stringa o `{ en, it, … }`; `hint` è una riga sotto il campo |
+| `required` | Obbligatorio, ma solo quando il campo è mostrato |
+| `secret` | Si tiene cifrato e non torna mai alla pagina (password, chiavi) |
+| `default` | Valore se l'utente lascia vuoto (non per i segreti) |
+| `when` | `{ chiave: valore \| [valori] }`: il campo vale solo se gli altri hanno quei valori |
+
+**Sessione** (i percorsi sono assoluti dentro la connessione, `/` è la sua radice come l'ha scelta l'utente):
+
+| Metodo | Descrizione |
+| --- | --- |
+| `list(path)` | `[{ name, type: 'file' \| 'folder', size, modified }]` |
+| `stat(path)` | La stessa voce, o `null` |
+| `read(path, { start, signal })` | `Readable` dei byte, da `start` |
+| `write(path, source, { start, signal, size? })` | Scrive un file da uno stream. `start > 0` aggiunge a ciò che c'è (ripresa), solo se `resume.write`. `size`: i byte che lo stream porta, se noti |
+| `mkdir(path)`, `rename(da, a)`, `remove(path, { folder })` | `folder`: una cartella vuota (la ricorsione la fa il kernel) |
+| `watch?(path, onChange)` | `stop()`. Avvisa quando cambia il contenuto della cartella; `stop()` può restituire una Promise, risolta quando la cartella non è più tenuta aperta. Solo SMB |
+| `resume` | `{ read, write }`: se lettura e scrittura possono ripartire da metà |
+| `onLost?(fn)` | `fn()` quando la connessione cade da sola |
+| `close()` | |
+
+**Errori di un driver.** Portano `net`, che dice cosa è andato storto (qualunque altro errore è riportato com'è): `auth` (credenziali sbagliate → `secret_required` con `details.reason: 'auth'`), `untrusted` (con `trust: { kind: 'ssh' \| 'tls', fingerprint, text }` → `untrusted` con `details.trust`), `not_found` (404), `exists` (`conflict`), `denied` (`forbidden`), `unreachable` e `lost` (`unavailable`), `unsupported` e `invalid` (`invalid`). `netFail(err, cosa)` fa questa traduzione. Dopo `lost` e `unreachable` il kernel apre una connessione nuova e ripete una volta le operazioni sicure da ripetere (non quelle che scrivono).
+
+#### Connessioni (`Network`)
+
+Ogni utente ha le sue, salvate in `DATA_DIR/net/<hash dell'utente>.json` (`DATA_DIR`: la cartella del kernel, o quella indicata da `LILOS_DATA_DIR`; la cartella `net/` è ignorata da git). Al massimo 50 per utente; il nome ha fino a 60 caratteri, senza `/`, `\` né caratteri di controllo, ed è unico per utente (senza distinguere maiuscole).
+
+```js
+// salvata
+{ id, name, protocol, values, secret: 'v1:…' | null, trust: impronta | null, auto, created }
+// come la vede la pagina
+{ id, name, protocol, address, values, auto, remembered, trusted, state, error }
+```
+
+- `state`: `'off'`, `'connecting'`, `'on'` o `'error'` (l'ultimo tentativo è fallito: `error` dice perché). Una password da chiedere o un server da confermare **non** sono `error`: lo stato resta `off`.
+- **Segreti.** Con `remember: true` password e chiavi si salvano cifrate (AES-256-GCM) con una chiave di questo lilOS, `secret.key`, creata al primo uso nella stessa cartella `net/` (solo chi esegue il kernel la legge). Protegge dai file delle connessioni e dalle loro copie di sicurezza, non da chi può leggere la cartella del kernel: il kernel deve poterli usare da solo. Senza `remember` restano in memoria, per quell'utente, fino a `disconnect` o all'arresto del kernel. Se `secret.key` si perde, il segreto si chiede di nuovo.
+- **Quando si apre.** Una connessione si apre al primo uso, e di nuovo da sola se cade. Quelle con `auto` si aprono alla prima richiesta dell'utente dopo l'avvio del kernel (`userSeen`).
+- **Impronta.** `trust` si salva alla prima conferma. Cambiare `host`, `port` o `url` con `update` la azzera.
+- **Osservazione.** Se la sessione ha `watch`, ogni cartella letta con `list` è osservata e i cambiamenti diventano l'evento `net.change`. Al massimo 8 cartelle per connessione alla volta: oltre, si smette di osservare la meno recente. Prima di eliminare o rinominare una cartella la si smette di osservare (alcuni server, SMB, la tolgono solo se non è aperta).
+- `update` con un segreto vuoto lo lascia com'è; `forget: true` cancella quelli ricordati. Cambiare i valori chiude la sessione (si riapre con i nuovi).
+
+#### Endpoint `/api/net`
+
+Tutti per utenti con l'accesso fatto: ognuno vede e cambia solo le sue connessioni. `:id` è `[a-f0-9]{16}`. Le richieste che modificano seguono le regole di `X-Lilos` e `Origin` dell'[API HTTP](#api-http).
+
+| Endpoint | Corpo → risposta |
+| --- | --- |
+| `GET /api/net` | → `{ protocols, mounts }`. `protocols`: `[{ id, label, order, canListShares, fields }]` (i campi come li descrive il driver); `mounts`: le connessioni come le vede la pagina. Lo stesso arriva in `GET /api/boot` come `net` |
+| `POST /api/net/mounts` | `{ name, protocol, values, auto?, remember?, trust?, secret }` (fino a 256 KB) → la connessione. `secret`: `{ chiave: valore }` dei campi segreti |
+| `PUT /api/net/mounts/:id` | `{ name?, values?, auto?, remember?, forget?, secret? }` → la connessione |
+| `DELETE /api/net/mounts/:id` | 204. Chiude la sessione e toglie la connessione |
+| `POST /api/net/mounts/:id/connect` | `{ secret?, remember?, trust? }` → la connessione, connessa. Può dare `secret_required`, `untrusted`, `unavailable` |
+| `POST /api/net/mounts/:id/disconnect` | → la connessione. Chiude la sessione e dimentica la password non ricordata |
+| `POST /api/net/test` | `{ protocol, values, trust?, secret }` → `{ ok: true }`. Prova senza salvare |
+| `POST /api/net/shares` | `{ protocol, values, trust?, secret }` → `{ shares }` (protocolli con `canListShares`) |
+| `GET /api/net/mounts/:id/list?path=` | → `{ entries: [{ name, type, size, modified }] }`; `path` predefinito `/` |
+| `GET /api/net/mounts/:id/content?path=` | → i byte del file, in streaming (`application/octet-stream`, con `Content-Length` se la dimensione è nota). Se la richiesta si chiude il trasferimento si interrompe |
+| `PUT /api/net/mounts/:id/content?path=` | Corpo: i byte del file (al massimo 1 GB, altrimenti `too_large`); scritto in streaming. Un file vuoto lo crea |
+| `POST /api/net/mounts/:id/ops` | `{ op: 'mkdir' \| 'rename' \| 'remove', path, to? }` (`remove` elimina anche le cartelle con quello che contengono, per sempre) |
+| `GET /api/net/transfers` | → l'istantanea che mostra la finestra Trasferimento dati (sotto) |
+| `GET /api/net/transfers/items/:id` | → `{ items, more }`: dentro una cartella di una coda. `:id` è `[a-f0-9]{20}` |
+| `POST /api/net/transfers` | `{ sources: [luogo], target: luogo, workspace? }` (fino a 1 MB, al massimo 1000 sorgenti) → `{ queue }` |
+| `POST /api/net/transfers/cancel` | `{ ids?, queue?, all? }` → 204 |
+| `POST /api/net/transfers/resolve` | `{ id, action: 'replace' \| 'keep' \| 'skip', all? }` → 204 |
+| `POST /api/net/transfers/retry` | `{ ids?, queue? }` → 204 |
+| `POST /api/net/transfers/dismiss` | `{ ids?, queue?, all? }` → 204 |
+| `POST /api/net/transfers/pause` | `{ queue, paused }` → 204 |
+
+Un **luogo** è `{ home: '<id di un nodo di lilOS>' }` (`'root'` è la home) oppure `{ mount: '<id connessione>', path }`. I percorsi passano da `cleanPath`: assoluti, senza `.`, `..` né parti vuote o più lunghe di 255 caratteri, né caratteri di controllo; altrimenti `invalid`.
+
+**Errori delle connessioni.** `secret_required` (428): serve la password; `details.reason` è `'missing'` (non c'è; `details.fields` elenca i campi che mancano) o `'auth'` (il server l'ha rifiutata). `untrusted` (409): `details.trust` è `{ kind: 'ssh' \| 'tls', fingerprint, text }`; la pagina mostra `text`, chiede conferma e ripete `connect` con `trust: fingerprint`. `unavailable` (503): il server non si raggiunge o la connessione è caduta.
+
+#### Trasferimenti (`Transfers`)
+
+Copie di file e cartelle tra la home e le connessioni (o tra due connessioni), fatte dal kernel: vanno avanti con lilOS chiuso e dopo un riavvio. Non si sposta mai niente: le sorgenti restano dove sono. Le copie tra due cartelle della home non sono trasferimenti (`invalid`), come copiare una cartella dentro se stessa.
+
+- **Una coda per destinazione** per utente (una connessione, o la home). Una coda copia un file alla volta; le code vanno insieme. Ciò che si aggiunge a una destinazione che ha già una coda va in fondo. Le cartelle si leggono ricorsivamente (`scanning`).
+- **Elemento.** `{ id, parent, kind: 'file' \| 'folder', name, src, dst?, size, done, state, error, from, to, … }`. `state`: `scanning`, `queued`, `running`, `conflict`, `done`, `error`, `canceled`, `skipped`. Al massimo 100 000 elementi per utente.
+- **Conflitti.** Se il file esiste già nella destinazione la coda si ferma finché `resolve` non risponde: `replace`, `keep` (il nuovo prende un numero) o `skip`; `all: true` tiene la scelta per il resto della coda. Le cartelle che esistono si fondono.
+- **Errori.** Se la connessione cade il file si riprova tre volte (dopo 2, 5 e 10 secondi), ripartendo da metà se `resume` lo permette. Quello che non riesce resta in coda in stato `error` finché non si usa `retry` o `dismiss`.
+- **Fermare.** Solo con `cancel` (per elementi, per coda o tutto). `pause` ferma una coda, non annulla.
+- **Istantanea** (`GET /api/net/transfers`, evento `net.transfers`): `{ active, run, since, sent: { done, total, rate }, received: { … }, queues }`. Ogni coda: `{ id, label, key, dir: 'up' \| 'down', paused, policy, state: 'running' \| 'paused' \| 'conflict' \| 'done', total, done, files, filesDone, rate, current, conflict, items, more }`; `items` ha al massimo 200 righe, il resto si legge con `/items/:id`. `run` e `since` identificano la serie di trasferimenti in corso (la finestra si apre da sola una volta per serie).
+- **Nodi della home.** I file e le cartelle che un trasferimento crea nella home sono nodi del file system fatti dal kernel: la pagina li riceve con l'evento `fs.external` (`fs.external()` nell'SDK) e non li rimanda indietro.
+- **Riavvio.** Le code si salvano in `DATA_DIR/net/transfers-<hash dell'utente>.json` (ogni 2 secondi) e ripartono all'avvio del kernel; un file della home rimasto a metà si cancella e riparte da zero.
+- **Fine di una coda.** Se qualcosa è stato trasferito o è fallito, arriva una notifica `Trasferimento completato: …` / `finito con errori: …` / `non riuscito: …` con azione `{ entry: 'transfers', args: null }` (il mittente è lilOS: la pagina apre la finestra). Senza il servizio `notifications` l'evento `net.notify` porta il testo e la pagina lo notifica da sé.
+
+#### Eventi per le pagine
+
+Arrivano sul flusso `/api/services-events` dell'utente (come quelli dei moduli):
+
+| Evento | Dati | Quando |
+| --- | --- | --- |
+| `net.mount` | `{ id }` | Una connessione è stata aggiunta, cambiata, rimossa o ha cambiato stato: la pagina rilegge l'elenco |
+| `net.change` | `{ mount, path }` | Il contenuto di una cartella è cambiato sul server (protocolli con `watch`) |
+| `net.transfers` | l'istantanea | Cambia qualcosa nei trasferimenti: al massimo ogni 400 ms |
+| `fs.external` | `{ put?: [nodo], remove?: [id] }` | Il kernel ha creato, cambiato o tolto nodi nella home (nodi come li vede la pagina) |
+| `net.notify` | `{ text, level }` | Fine di una coda, solo se nessun modulo fornisce `notifications` |
+
+#### Contenuti grandi nel servizio `fs`
+
+Il servizio `fs` può avere, oltre a `read` e `write`, due metodi facoltativi per i contenuti grandi (senza, il kernel ripiega su `read`/`write`, con il file intero in memoria): `readStream(principal, id, { start })` → `Readable` dal byte `start`, e `writeFrom(principal, id, source, { signal })` → dimensione, che scrive da uno stream e rende il contenuto quello del file solo quando è arrivato tutto. `GET /api/fs/content/:id?raw=1` li usa per mandare i byte in streaming, con `Content-Length` (senza `raw` resta il testo, letto per intero). `fs-postgres_1.1.0` li ha. `PUT /api/fs/content/:id` non è cambiato.
 ### `users-basic_1.0.0`
 
 Configurazione: `sessionDays` (30) e `idleDays` (7). Tutto sta in `users.json` nella cartella del modulo:
@@ -2729,9 +2965,9 @@ Configurazione: `sessionDays` (30) e `idleDays` (7). Tutto sta in `users.json` n
 - Il file si rilegge quando cambia e si valida a ogni lettura; si riscrive intero, una modifica alla volta. Cambiare la password chiude tutte le sessioni dell'utente.
 - Comandi: `add <nome> [--name "Nome visibile"] [--admin]`, `passwd <nome>`, `remove <nome>` (la home resta nel file system), `list`.
 
-### `fs-postgres_1.0.0`
+### `fs-postgres_1.1.0`
 
-Configurazione: `url` (la variabile `LILOS_PG_URL` vince) e `poolSize` (10). All'avvio applica `schema.sql` (tabella `lilos_nodes`: `id`, `parent`, `name`, `type`, `area`, `owner`, `meta`, `size`, `created`, `modified`, `content`, `rev`) e crea le cartelle di base.
+Configurazione: `url` (la variabile `LILOS_PG_URL` vince) e `poolSize` (10). All'avvio applica `schema.sql` (tabella `lilos_nodes`: `id`, `parent`, `name`, `type`, `area`, `owner`, `meta`, `size`, `created`, `modified`, `content`, `rev`, `chunks`; tabella `lilos_chunks`: `node`, `gen`, `seq`, `data`) e crea le cartelle di base.
 
 | Area | Percorso | Chi legge | Chi scrive |
 | --- | --- | --- | --- |
@@ -2742,6 +2978,8 @@ Configurazione: `url` (la variabile `LILOS_PG_URL` vince) e `poolSize` (10). All
 | `home` | `/home/<utente>` | quell'utente | quell'utente |
 
 Un nodo prende area e proprietario dal genitore alla creazione e non li cambia: niente si sposta da una home all'altra né fuori dalle home. Le cartelle di base e le home non si rinominano né si rimuovono. Eliminare una cartella elimina ciò che contiene. I nomi in una cartella non sono unici: `lookup` prende il più vecchio e ignora maiuscole e minuscole.
+
+**Contenuti grandi (dalla 1.1.0).** `read` e `write` prendono un file intero in memoria; `read` rifiuta un contenuto di più di 256 MB. `readStream(principal, id, { start })` e `writeFrom(principal, id, source, { signal })` lavorano a pezzi: `writeFrom` salva il contenuto in `lilos_chunks`, in righe da 1 MB, e lo rende quello del file (`chunks` indica la generazione di pezzi in uso) solo quando è arrivato tutto; fino ad allora chi legge vede il vecchio. Se la scrittura si interrompe, i pezzi a metà si cancellano. Un file scritto da `write` resta in `content`. `schema.sql` aggiunge la colonna e la tabella da sé, a ogni avvio. Il database della 1.0.0 si aggiorna senza altro.
 
 ### Origini dei pacchetti (`sources.js`)
 
@@ -3016,6 +3254,19 @@ Modulo del kernel che fornisce `notifications` (`modules/notifications-basic_1.0
 - **Limite.** `perMinute` notifiche al minuto per coppia utente-mittente (in memoria; si azzera al riavvio). Oltre: errore `rate_limited` con `retryAfter` (secondi) e messaggio «Troppe notifiche: al massimo N al minuto».
 - **Eventi** per le pagine dell'utente, con `ctx.emit`: `notification.new` `{ id }` a ogni notifica nuova e `notification.change` `{}` quando se ne leggono o cancellano, o cambia `keep`. Arrivano sul flusso `GET /api/services-events`.
 - **Chi.** Ogni metodo (tranne `send`) vale per un `principal` utente: le notifiche sono di chi le legge, e `KERNEL` riceve `forbidden`.
+
+### Protocolli di rete: `netfs-sftp_1.0.0`, `netfs-ftp_1.0.0`, `netfs-webdav_1.0.0`, `netfs-smb_1.0.0`
+
+Quattro moduli, ciascuno con il suo `module.json` (`provides: ["netfs.<protocollo>"]`, `requires: []`, `defaultConfig: {}`, nessuna configurazione). Seguono il contratto di [Rete](#rete-connessioni-e-trasferimenti-net-apinetjs). **Non sono nel `config.json` del repository**: per averli un amministratore li aggiunge a `modules` (o li installa dall'AppStore, con il riavvio del kernel). Le dipendenze di `netfs-sftp` e `netfs-ftp` si installano con `npm run kernel:setup`.
+
+| Modulo | Servizi | Campi | Note |
+| --- | --- | --- | --- |
+| `netfs-sftp` (ssh2 1.17.0) | `netfs.sftp` (ordine 30) | `host`, `port` (22), `user`, `auth` (`password` o `key`), `password`, `key` (file), `passphrase`, `path` (`/`) | Accesso con password (anche `keyboard-interactive`) o chiave privata. La chiave del server si confronta con l'impronta confermata (`SHA256:…`): la prima volta, o se cambia, `untrusted` con `kind: 'ssh'`. `path` è la radice della connessione. Riprende letture e scritture |
+| `netfs-ftp` (basic-ftp 6.2.3) | `netfs.ftp` (ordine 10), `netfs.ftps` (ordine 20) | `host`, `port` (21), `tls` (solo FTPS: `explicit` o `implicit`), `user` (vuoto: anonimo), `password`, `path` (`/`) | FTPS esplicito (AUTH TLS) o implicito. Il certificato si controlla **prima** del login: valido per il server, oppure quello confermato (`kind: 'tls'`, impronta SHA-256); anche le connessioni dei dati devono mostrare lo stesso certificato. Un client per l'elenco e uno per ogni file, così si può elencare mentre un file passa. Senza utente entra come `anonymous`. La scrittura riprende; la lettura solo se il server lo permette |
+| `netfs-webdav` (solo Node) | `netfs.webdav` (ordine 40) | `url`, `user`, `password` | Nextcloud, ownCloud, mod_dav e NAS, su HTTP o HTTPS. Il percorso dell'indirizzo è la radice. Accesso Basic o Digest (RFC 7616, MD5 o SHA-256). Con HTTPS non si manda nessuna richiesta (e nessuna password) su un certificato né valido né confermato. Niente aggiunta a un file: la scrittura non riprende (`resume.write: false`); la lettura sì (`Range`). Fino a 3 rimandi, 60 s senza dati e 32 MB di risposta `PROPFIND` |
+| `netfs-smb` (smb3-client incluso) | `netfs.smb` (ordine 50) | `host`, `port` (445), `share`, `auth` (`password` o `guest`), `domain` (`WORKGROUP`), `user`, `password`, `path` (`/`) | SMB da 2.1 a 3.1.1, firmato e cifrato se il server lo offre; accesso NTLMv2 o ospite. **SMB1 (CIFS) non c'è**: è insicuro e Windows lo tiene spento. Ha `shares` (elenca le condivisioni con `srvsvc`) e `watch` (`CHANGE_NOTIFY`) |
+
+La libreria di `netfs-smb` sta in `lib/smb3-client/`: è una copia compilata di [smb3-client](https://github.com/euricojardim/smb3-client) 0.2.0 (Eurico Jardim, licenza MIT) con quattro correzioni di lilOS (invio del pattern a ogni `QUERY_DIRECTORY`, conteggio del credito iniziale di `NEGOTIATE`, `createReadStream`/`createWriteStream` con `start` e `size`/`mtime` nell'elenco, letture da 64 KiB con più richieste in volo). L'elenco è in `lib/smb3-client/VENDORED.md`; le correzioni si propongono all'autore con pull request e la cartella sparisce quando saranno in una versione pubblicata. Vedi [D59](../interna/decisioni.md#d59-la-rete-i-protocolli-sono-moduli-del-kernel-e-i-trasferimenti-li-fa-il-kernel).
 
 ---
 

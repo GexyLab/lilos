@@ -318,7 +318,7 @@ Un workspace nuovo si crea anche dal menu del pulsante nella barra delle applica
 
 **File Manager** mostra le cartelle e il loro contenuto. Aprilo dal menu di avvio o dall'elemento **File Manager** della scrivania, oppure fai doppio clic su una cartella della scrivania: si apre direttamente lì. Dal tasto destro su un punto vuoto della scrivania, **Apri la Scrivania nel File Manager** mostra gli elementi della scrivania come elenco.
 
-- **A sinistra**, la barra laterale. In cima la sezione **Collegamenti**: Home e le cartelle principali (Scrivania, Documenti, Immagini, Download, Sistema) e i collegamenti che aggiungi tu (vedi [Collegamenti nella barra laterale](#collegamenti-nella-barra-laterale)), nell'ordine che scegli trascinandoli. Sotto, la voce **Tag** con un elemento per ogni tag che hai creato (vedi [I tag](#i-tag)) e in fondo il **Cestino** (vedi [Il Cestino](#il-cestino)): queste restano sempre al loro posto. Le cartelle principali non si possono rinominare né eliminare. **Scrivania** è quella del workspace in cui sei; Documenti, Immagini e Download sono di tutti.
+- **A sinistra**, la barra laterale. In cima la sezione **Collegamenti**: Home e le cartelle principali (Scrivania, Documenti, Immagini, Download, Sistema) e i collegamenti che aggiungi tu (vedi [Collegamenti nella barra laterale](#collegamenti-nella-barra-laterale)), nell'ordine che scegli trascinandoli. Sotto, la voce **Tag** con un elemento per ogni tag che hai creato (vedi [I tag](#i-tag)), la sezione **Rete** con le connessioni ai server (vedi [Rete](#rete)) e in fondo il **Cestino** (vedi [Il Cestino](#il-cestino)): queste restano sempre al loro posto. Le cartelle principali non si possono rinominare né eliminare. **Scrivania** è quella del workspace in cui sei; Documenti, Immagini e Download sono di tutti.
 - **In alto**: Indietro, Avanti, Cartella superiore; il percorso (fai clic su una parte per tornarci, o accanto alle cartelle per scriverlo: vedi sotto); **Nuova cartella**; vista **elenco**, **a icone** o **anteprime** (tre pulsanti vicini; l'ultima ha il simbolo di un'immagine); i pulsanti che aprono e chiudono i pannelli Anteprima e Informazioni; la ricerca nella cartella aperta (Esc la svuota).
 - **Al centro**: il contenuto della cartella. In vista elenco ci sono le colonne Nome, Modificato, Dimensione, Tipo e Workspace (il workspace che ha creato l'elemento, vedi [I workspace](#i-workspace)): fai clic su un'intestazione per ordinare, di nuovo per invertire l'ordine. Le cartelle restano sempre in cima.
 - **A destra**, due pannelli che si aprono e si chiudono: **Informazioni** e **Anteprima** (vedi [Anteprima e Informazioni](#anteprima-e-informazioni)).
@@ -458,6 +458,94 @@ Cose da sapere:
 - Quello che elimini dalla **Scrivania** di un workspace compare nel cestino solo di quel workspace. Se elimini il workspace, quegli elementi diventano visibili da tutti.
 - Ripristinare la scrivania e i file iniziali (Pannello di controllo → Archiviazione) svuota anche il cestino.
 
+## Rete
+
+**Rete** porta in lilOS i file di un altro computer: un server FTP, un sito con SFTP, un Nextcloud o un altro WebDAV, la condivisione di un NAS o di un PC Windows (SMB). Ogni connessione diventa una cartella dentro la cartella **Rete**, e si usa come le altre: la apri, ci guardi dentro, ci crei cartelle, rinomini, elimini e copi file trascinandoli.
+
+Le connessioni sono tue: gli altri utenti di lilOS non le vedono. Il collegamento al server lo fa lilOS sul computer in cui gira, non il tuo browser: un trasferimento continua anche se chiudi la pagina.
+
+Se la sezione **Rete** non c'è nel File Manager, il tuo lilOS non ha ancora i protocolli di rete: chiedi a chi lo amministra.
+
+### Collegarsi a un server
+
+1. Apri il **File Manager**. Nella barra a sinistra c'è la sezione **Rete**; premi il **+** accanto al titolo (**Connetti a un server…**).
+2. Scegli il **Protocollo** dall'elenco: sotto compaiono i campi che servono a quel protocollo.
+3. Scrivi il **Nome della cartella in Rete**: è il nome che avrà la connessione (al massimo 60 caratteri, diverso da quello delle altre tue connessioni).
+4. Compila i campi (vedi sotto). Quando serve, sotto il campo c'è un suggerimento.
+5. Scegli se **Ricorda la password** e se **Connetti all'accesso** (la connessione si apre da sola quando entri in lilOS).
+6. Premi **Prova** per controllare che il server risponda e che la cartella si legga, senza salvare niente. Poi **Connetti**.
+
+La connessione compare nella barra a sinistra con un pallino che dice com'è: **Connessa**, **Connessione in corso…**, **Non connessa** o **Non si connette** (con il motivo). Puoi avere al massimo 50 connessioni.
+
+| Protocollo | Campi |
+| --- | --- |
+| **FTP** | **Server**, **Porta** (21), **Utente** (vuoto: accesso anonimo), **Password**, **Cartella remota** (`/`; senza `/` all'inizio è dentro la cartella in cui il server ti mette) |
+| **FTPS** (FTP con TLS) | Gli stessi dell'FTP, più **TLS**: **Esplicito (AUTH TLS)** o **Implicito (TLS dall'inizio)**. Con il TLS implicito di solito la porta è la 990 |
+| **SFTP** (SSH) | **Server**, **Porta** (22), **Utente**, **Accesso** (**Password** o **Chiave SSH**), poi la **Password** oppure la **Chiave privata** (un file di lilOS, per esempio `id_ed25519`; **Sfoglia…** lo sceglie) con la **Passphrase della chiave** se ne ha una, e la **Cartella remota** |
+| **WebDAV** | **Indirizzo** della cartella da aprire, con `https://` (Nextcloud: `…/remote.php/dav/files/<utente>/`), **Utente**, **Password** (per Nextcloud conviene una password per le app) |
+| **SMB** (condivisioni Windows e NAS) | **Server**, **Porta** (445), **Condivisione** (**Elenca…** mostra quelle che il server offre), **Accesso** (**Utente e password** oppure **Ospite**), **Dominio o gruppo di lavoro** (`WORKGROUP`), **Utente**, **Password**, **Cartella dentro la condivisione** |
+
+Attenzione alle password: con l'**FTP** semplice e con un indirizzo WebDAV `http://` viaggiano in chiaro sulla rete. Se il server ha FTPS, SFTP o `https://`, usa quelli.
+
+### Confermare il server
+
+Quando ti colleghi a un server di cui lilOS non si fida ancora, si ferma e ti mostra la sua **impronta** in una finestra **Conferma il server di «nome»**:
+
+- con **SFTP** è l'impronta della chiave del server: compare la prima volta e ogni volta che la chiave cambia;
+- con **FTPS** e **WebDAV** `https://` compare solo se il certificato non è valido (fatto da sé, scaduto o per un altro nome).
+
+Premi **Continua** solo se l'impronta corrisponde a quella del tuo server (te la dà chi lo gestisce). Fino ad allora lilOS **non manda al server né utente né password**. Se cambi l'indirizzo o la porta di una connessione, la conferma va rifatta.
+
+### La password
+
+- Con **Ricorda la password**, lilOS la tiene cifrata sul computer in cui gira e non la mostra più.
+- Senza, la tiene a mente finché non premi **Disconnetti** o lilOS non si riavvia; poi la chiede di nuovo in una finestra **Password di «nome»**. La chiede anche quando il server dice che quella in uso non è giusta (**Utente o password non giusti**).
+- Per cambiarla, tasto destro sulla connessione → **Modifica connessione…**: i campi della password restano vuoti, e lasciarli vuoti vuol dire «invariata».
+
+### Lavorare nelle cartelle del server
+
+Apri la connessione dalla barra a sinistra o dalla cartella **Rete**: lilOS legge la cartella dal server (**Lettura della cartella dal server…**). Sopra l'elenco una barra dice a cosa sei connesso e ha il pulsante **Disconnetti**.
+
+- Il contenuto di una cartella si legge dal server **quando la apri**. Se qualcuno cambia i file nel frattempo, **riaprila** (esci e rientra) per vedere le novità. Le connessioni **SMB** si aggiornano da sole.
+- Il tasto destro su una connessione (nella barra a sinistra) ha **Apri**, **Connetti** o **Disconnetti**, **Modifica connessione…** e **Rimuovi connessione**. **Rimuovi** toglie la cartella da Rete e cancella la password salvata; i file sul server restano dov'erano.
+- Le cartelle delle connessioni hanno il simbolo di un globo. I file sul server non hanno miniature (andrebbero scaricati tutti). Nel pannello **Anteprima** si vedono i file fino a 1 MB.
+- Aprire un file del server lo scarica; salvarlo lo rimanda al server.
+- **Eliminare sul server è definitivo.** Non c'è il cestino e non si annulla: lilOS chiede sempre conferma (**Elimina dal server «nome» (definitivo)**), anche se hai tolto la conferma nelle impostazioni.
+- Quello che è nel cestino di lilOS non si può ripristinare dentro una cartella del server.
+- Tag, collegamenti alle app e dati delle app non si possono mettere sui file del server.
+
+### Copiare trascinando
+
+Trascina file e cartelle tra le tue cartelle e una cartella del server (o da un server all'altro): lilOS li **copia**, gli originali restano dove sono. Dentro la stessa connessione, invece, trascinare sposta, come altrove.
+
+La copia la fa lilOS in sottofondo e la mostra nella finestra **Trasferimento dati**. Se una cartella ne contiene altre, vengono copiate tutte; se nella destinazione esiste già una cartella con quel nome, i file ci finiscono dentro.
+
+### La finestra Trasferimento dati
+
+Mostra cosa si sta copiando. Si apre da sola quando una copia da o verso un server dura **più di 5 secondi** (una volta sola per serie di copie: se la chiudi, non si riapre finché non ne parte un'altra serie) e quando devi scegliere cosa fare di un file che esiste già. Altrimenti la apri tu:
+
+- dal pulsante dei trasferimenti nell'area di notifica della barra in basso, che compare finché ci sono trasferimenti da vedere (un anello si riempie man mano e il suo testo riassume lo stato);
+- facendo clic sulla notifica di fine trasferimento;
+- con il comando **Apri il trasferimento dati** (gruppo **Generale**), a cui puoi dare una combinazione di tasti nel Pannello di controllo → Usabilità → Scorciatoie.
+
+Puoi chiudere la finestra: **i trasferimenti continuano**, anche se chiudi il File Manager o la pagina, e ripartono se lilOS si riavvia.
+
+- In alto vedi quanto è stato **Inviato** e **Ricevuto**, con la velocità.
+- C'è una **coda per ogni destinazione** (**Verso «nome»**). Una coda copia un file alla volta; code diverse vanno insieme. Se aggiungi altri file a una destinazione che ha già una coda, vanno in fondo a quella coda.
+- Una cartella si apre con la freccia, per vedere i suoi file.
+- **Pausa** ferma una coda, **Riprendi** la fa ripartire. Un trasferimento si ferma **solo** con **Annulla**: **Annulla tutto**, **Annulla destinazione**, **Annulla la cartella** o **Annulla questo file**. Chiudere la finestra non ferma niente.
+- Se la connessione cade, lilOS riprova per tre volte, aspettando ogni volta un po' di più (e, se il server lo permette, riparte da dove si era fermato). Se non riesce, il file resta nell'elenco con l'errore: **Riprova**, **Riprova tutti** oppure **Togli dall'elenco** / **Chiudi**.
+- Se nella destinazione esiste già un file con quel nome, la coda si ferma e la finestra chiede: **Sostituisci**, **Mantieni entrambi** (il nuovo prende un numero) o **Salta**. Con **Per tutti i conflitti di questa coda** la scelta vale anche per i file successivi.
+
+Quando una coda ha finito arriva una notifica, per esempio **Trasferimento completato: 12 file trasferiti in «NAS» (48 MB).**; se qualcosa è andato storto dice **finito con errori** o **non riuscito**. I file che non sono andati restano nella finestra.
+
+### Cosa non è ancora possibile
+
+- Cercare i server in automatico: l'indirizzo lo scrivi tu.
+- **SMB** solo nelle versioni 2 e 3 (quelle dei Windows e dei NAS recenti): i server che parlano solo SMB1 (CIFS) non funzionano. Non c'è ancora l'accesso con Kerberos.
+- Fermare un trasferimento in un altro modo che con **Annulla**.
+- Le cartelle di FTP, SFTP e WebDAV non si aggiornano da sole (solo SMB): vanno riaperte.
+- Spostare (non copiare) tra le tue cartelle e un server: si copia e poi si elimina a mano.
 ## L'Editor
 
 L'**Editor** apre e modifica i file di testo e di codice (txt, md, js, css, html, json, py e altri). Un amministratore può rimuoverlo dall'[AppStore](#lappstore); chiunque può nasconderlo nel proprio workspace. Si apre facendo doppio clic su un file, dal menu di avvio o con **Ctrl Alt N** per un documento nuovo.
@@ -1316,6 +1404,7 @@ Il salvataggio avviene **nel tuo spazio su lilOS**, non nel browser:
 - con un altro browser o un altro computer, dopo aver fatto l'accesso, trovi la stessa scrivania;
 - cancellare i dati di navigazione del sito non cancella la tua scrivania (vedi [Accedere e uscire](#accedere-e-uscire) per i dati che il browser aveva prima);
 - se lilOS non riesce a salvare, compare un avviso e riprova da solo; non chiudere la pagina finché non compare **Modifiche salvate**;
+- le connessioni della **Rete** (nome, indirizzo, protocollo) sono salvate nel tuo spazio su lilOS; le password solo se scegli **Ricorda la password**, e cifrate. I file che stanno su un server restano sul server: lilOS non ne tiene una copia;
 - un'impostazione o un file cambiato in due schede insieme: vince l'ultima che salva. Usa una scheda sola.
 
 ## Tipi di file

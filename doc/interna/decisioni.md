@@ -476,6 +476,8 @@ Senza un modulo `auth` lilOS ha un solo utente (`local`, amministratore) e il ke
 
 ## D33. Il file system del kernel sta in PostgreSQL
 
+> Aggiornata da [D59](#d59-la-rete-i-protocolli-sono-moduli-del-kernel-e-i-trasferimenti-li-fa-il-kernel): dalla versione 1.1.0 il modulo (ora `fs-postgres_1.1.0`) legge e scrive i contenuti grandi a pezzi (tabella `lilos_chunks`).
+
 **Decisione.** Il modulo `fs-postgres_1.0.0` salva ogni cartella, file e collegamento come riga della tabella `lilos_nodes` (`schema.sql`, applicato a ogni avvio: crea solo ciò che manca). Il contenuto è una colonna `bytea`; eliminare una cartella porta con sé il sottoalbero (`on delete cascade`). Ogni nodo ha un'**area** che prende dal genitore e non cambia: `root`, `system`, `app` (`/system/app`), `commons` (`/system/commons`), `tmp` (`/system/tmp`), `homes` (`/home`) e `home` (`/home/<utente>`). Le regole: ogni utente legge e scrive solo la propria home; `/system/app` e `/system/commons` li leggono tutti ma li scrive solo il kernel; `/system/tmp` e l'elenco delle home sono del kernel; niente si sposta da una home all'altra. Per lo sviluppo c'è un PostgreSQL in Docker (`docker-compose.yml` nel modulo, `npm run db:up` e `npm run db:down`), raggiungibile solo da questo computer, su `127.0.0.1:5433`; in produzione l'indirizzo si dà con la variabile `LILOS_PG_URL`, che vince su `url` della configurazione.
 
 **Perché.** Un database dà transazioni (le modifiche del frontend arrivano in un'unica `apply`, tutte o nessuna) e interrogazioni sull'albero senza costruirle a mano. Le aree rendono esplicite le regole di accesso invece di ricavarle dai nomi.
@@ -1178,3 +1180,41 @@ lilOS legge il file **prima** di avviare l'app e le dà le stringhe già risolte
 
 **Quando ripensarla.** Se serve uno sfondo diverso per workspace (allora: una copia per workspace e lettura di tutte all'avvio), o se lilOS avrà cartelle nascoste o un'area dati per sé (la copia andrebbe lì).
 
+## D59. La rete: i protocolli sono moduli del kernel e i trasferimenti li fa il kernel
+
+**Decisione.** lilOS si collega a server remoti (FTP, FTPS, SFTP, WebDAV, SMB) e li mostra come cartelle dentro **Rete**, una cartella di sistema della radice. Deciso e costruito il 1° novembre 2026, sul ramo `rete`.
+
+- **I protocolli sono moduli del kernel.** Ogni protocollo è un servizio `netfs.<protocollo>` di un modulo (`netfs-sftp`, `netfs-ftp` per FTP e FTPS, `netfs-webdav`, `netfs-smb`) che segue il contratto di `src/net/drivers.js`: i campi che chiede (descritti, così la finestra «Connetti a un server» si disegna da sola), `connect`, e una sessione con elenco, lettura, scrittura, creazione, rinomina, eliminazione e, se può, osservazione e ripresa. Il kernel trova i protocolli all'avvio; senza, Rete non c'è. Un protocollo nuovo è un modulo nuovo, senza toccare il kernel né la pagina.
+- **Connessioni per utente.** Ognuno ha le sue, salvate in `net/` accanto a `config.json`, e vede e cambia solo quelle. Ogni connessione è una cartella in `~/Rete` (nodo `net-<id>` in `fs`).
+- **Segreti cifrati, mai spediti a un server non verificato.** Password e chiavi si salvano solo su richiesta («Ricorda la password»), cifrate con una chiave del kernel (`secret.key`); altrimenti restano in memoria. Prima di mandare le credenziali il driver verifica il server: SFTP confronta la chiave con l'impronta confermata dall'utente, FTPS e WebDAV `https://` accettano un certificato valido o quello confermato. Se non è fidato, la connessione si ferma con `untrusted` e l'impronta da mostrare; solo dopo la conferma si richiama `connect`.
+- **I trasferimenti li fa il kernel.** Copiare tra la home e una connessione, o tra due connessioni, è una richiesta al kernel (`POST /api/net/transfers`), che copia da sé. Continua se si chiude il File Manager o la pagina, e riprende dopo un riavvio del kernel (le code si salvano ogni 2 secondi). Una coda per destinazione, un file alla volta; ciò che si aggiunge a una destinazione che ha già una coda va in fondo. Un file che esiste già ferma la coda finché l'utente sceglie. Si ferma solo con **Annulla** (tutto, destinazione, cartella, file); chiudere la finestra non ferma niente. A coda finita arriva una notifica.
+- **La finestra «Trasferimento dati»** si apre da sola solo per i trasferimenti di rete che durano più di **5 secondi** (una volta per serie di copie) e quando serve una scelta (un file che esiste già); altrimenti la apre l'utente dal pulsante nella barra o dalla notifica.
+- **Cartelle senza notifiche di modifica.** I contenuti si leggono quando si apre (o riapre) la cartella. SMB invece osserva le cartelle (`CHANGE_NOTIFY`) e la pagina si aggiorna da sola.
+- **Eliminare su un server è definitivo** e chiede sempre conferma: non c'è un cestino sul server.
+- **SMB solo 2 e 3**, niente SMB1 (CIFS). La libreria è [smb3-client](https://github.com/euricojardim/smb3-client) (MIT): il lavoro che ci abbiamo fatto (quattro correzioni, vedi `VENDORED.md`) si propone all'autore con pull request, e intanto resta in `netfs-smb/lib/smb3-client/`. Se l'autore non risponde, resta lì per sempre.
+- **Niente scoperta automatica dei server**, per ora: l'indirizzo lo scrive l'utente.
+- **Contenuti grandi nel file system del kernel.** I trasferimenti verso la home scrivono file che possono essere enormi: per questo `fs-postgres` passa alla 1.1.0 e il servizio `fs` ha `readStream` e `writeFrom` facoltativi (contenuti a pezzi da 1 MB nella tabella `lilos_chunks`).
+
+**Perché.**
+
+- **Il browser non apre connessioni FTP, SSH o SMB**, e comunque le password non devono passare dalla pagina più del necessario: il collegamento lo fa il kernel, che in lilOS è già il posto dei dati e dei segreti.
+- **Un modulo per protocollo** tiene fuori dal kernel le librerie pesanti (ssh2, basic-ftp, SMB), le fa installare e togliere come gli altri moduli (AppStore → Kernel) e rende il contratto la sola cosa da imparare per aggiungere un protocollo. Lo stesso modello di `fs`, `auth` e `notifications` ([D31](#d31-un-kernel-modulare-con-il-controllo-degli-accessi-dentro-il-modulo-del-file-system)).
+- **I trasferimenti nel kernel** perché una copia di gigabyte non può dipendere da una scheda del browser: deve sopravvivere a una pagina chiusa, a un riavvio e a una connessione che cade (tre tentativi, con ripresa da metà se il protocollo può). Le code per destinazione evitano che molte copie insieme saturino lo stesso server, e non fanno aspettare destinazioni diverse.
+- **Una cartella per connessione, in Rete,** perché l'utente le usa come tutte le altre cartelle (File Manager, trascinamento, Editor) senza imparare un'altra interfaccia; la differenza (si copia, non si sposta; si elimina per sempre) è dichiarata dove conta.
+- **Confermare prima di mandare la password** perché un server falso, o una chiave che cambia, è il modo più semplice di rubare credenziali.
+
+**Alternative scartate.** Protocolli nella pagina o nell'SDK (il browser non può, e le password passerebbero dalla pagina); tutti i protocolli in un solo modulo (librerie obbligate per chi ne vuole uno); connessioni condivise tra utenti (le credenziali sono personali); trasferimenti guidati dalla pagina (finiscono con la scheda); una sola coda per tutti (una destinazione lenta frena le altre); fermare un trasferimento chiudendo la finestra (un trasferimento lungo non deve sparire per sbaglio); SMB1 (insicuro e spento in Windows); aspettare una nuova versione di smb3-client prima di usarla (le correzioni servivano subito).
+
+**Conseguenze.**
+
+- I moduli `netfs-*` non sono nel `config.json` del repository: vanno attivati (e `npm run kernel:setup` installa ssh2 e basic-ftp). Senza, la sezione Rete non compare.
+- Password e chiavi sono protette da chi legge i file delle connessioni o una loro copia, **non** da chi può leggere la cartella del kernel: il kernel deve poterli usare da solo, e `secret.key` sta accanto ai dati. Perdere `secret.key` vuol dire dover riscrivere le password.
+- Copiare è l'unica operazione tra home e server: **spostare** non esiste (si copia e si elimina a mano); tag, colori, collegamenti alle app e dati delle app non si possono mettere sui file remoti, e non ci sono miniature (andrebbero scaricati).
+- Le cartelle di FTP, SFTP e WebDAV possono essere vecchie finché non si riaprono.
+- Il kernel tiene copia della libreria SMB: le sue correzioni vanno mantenute finché non sono a monte.
+- `fs-postgres_1.0.0` non c'è più nel repository: la 1.1.0 la sostituisce (stesso schema, più la colonna `chunks` e la tabella `lilos_chunks`, applicati da soli). Il testo di [D31](#d31-un-kernel-modulare-con-il-controllo-degli-accessi-dentro-il-modulo-del-file-system) e della decisione sul database parla della 1.0.0.
+- Nuovi codici d'errore del kernel: `untrusted` (409) e `secret_required` (428), con `details`.
+
+**Non ancora fatto.** Kerberos, DFS, lease e durable handle di SMB, i blocchi di intervallo di byte e SMB 2.0.2; i segni «in arrivo» nel File Manager per ciò che sta per essere copiato; la scoperta automatica dei server.
+
+**Quando ripensarla.** Se serve cifrare i segreti con qualcosa che il kernel non tiene accanto a sé (un portachiavi del sistema operativo o una password dell'utente), se gli utenti vogliono connessioni condivise, se arriva un protocollo che non entra nel contratto (per esempio uno con eventi di modifica ma senza elenco), o se le correzioni di smb3-client entrano nella versione ufficiale (allora si toglie la copia).

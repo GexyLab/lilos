@@ -26,6 +26,26 @@
       "config": {}
     },
     {
+      "name": "netfs-sftp",
+      "version": "1.0.0",
+      "config": {}
+    },
+    {
+      "name": "netfs-ftp",
+      "version": "1.0.0",
+      "config": {}
+    },
+    {
+      "name": "netfs-webdav",
+      "version": "1.0.0",
+      "config": {}
+    },
+    {
+      "name": "netfs-smb",
+      "version": "1.0.0",
+      "config": {}
+    },
+    {
       "name": "notifications-basic",
       "version": "1.0.0",
       "config": {

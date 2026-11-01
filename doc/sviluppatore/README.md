@@ -26,7 +26,7 @@ lilOS ha bisogno del suo backend: il sistema non parte senza. Serve Node.js 22 o
 
 ```bash
 npm install
-npm run kernel:setup                                    # una volta: le dipendenze dei moduli del kernel (pg, isolated-vm)
+npm run kernel:setup                                    # una volta: le dipendenze dei moduli del kernel (pg, isolated-vm, ssh2, basic-ftp)
 npm run db:up                                           # PostgreSQL in Docker su 127.0.0.1:5433 (npm run db:down lo spegne)
 npm run kernel:cli -- users-basic add eugenio --admin   # una volta: crea un utente amministratore (chiede la password)
 npm run kernel                                          # il kernel su http://127.0.0.1:8790 (lo riavvia da solo quando serve)
@@ -123,11 +123,16 @@ system/
     run.js              avvia il kernel e lo riavvia quando esce con il codice 75 (npm run kernel); in un lilOS installato avvia la versione di current.json e prova quelle nuove
     cli.js, setup.js    comandi dei moduli (kernel:cli) e installazione delle loro dipendenze (kernel:setup)
     src/                kernel.js, modules.js, services.js, config.js (sviluppo o installato), http.js, errors.js, main.js, web.js (la pagina, in un lilOS installato)
-      api/              session.js (accesso), home.js (file, impostazioni, avvio), apps.js (app installate), store.js (repository, moduli, riavvio), system.js (versioni di lilOS), services.js (servizi delle app, flusso di eventi, anche quelli dei moduli), notifications.js (notifiche)
+      net/              la rete: drivers.js (contratto dei protocolli), network.js (connessioni e sessioni), transfers.js (trasferimenti), secrets.js (password cifrate); dati in net/ accanto a config.json (ignorata da git)
+      api/              session.js (accesso), home.js (file, impostazioni, avvio), net.js (rete: connessioni e trasferimenti), apps.js (app installate), store.js (repository, moduli, riavvio), system.js (versioni di lilOS), services.js (servizi delle app, flusso di eventi, anche quelli dei moduli), notifications.js (notifiche)
       apps/             manifest.js, permissions.js, sources.js (git), repos.js (repository e cataloghi), installer.js (app), modulePackage.js (moduli), systemPackage.js (lilOS stesso: versioni affiancate, aggiornamento, prova), appServices.js (servizi delle app: chi parte, quando, ripartenze, registro), serviceApi.js (l'oggetto lilos dentro un servizio)
     modules/
       users-basic_1.0.0/    utenti e accesso (users.json, ignorato da git)
-      fs-postgres_1.0.0/    file system in PostgreSQL (schema.sql, docker-compose.yml)
+      fs-postgres_1.1.0/    file system in PostgreSQL (schema.sql, docker-compose.yml)
+      netfs-sftp_1.0.0/     protocollo SFTP della cartella Rete (ssh2)
+      netfs-ftp_1.0.0/      protocolli FTP e FTPS (basic-ftp)
+      netfs-webdav_1.0.0/   protocollo WebDAV (solo Node)
+      netfs-smb_1.0.0/      protocollo SMB 2 e 3 (lib/smb3-client: copia della libreria, vedi VENDORED.md)
       services-isolate_1.0.0/  esegue i servizi delle app: un processo per servizio, il codice in un isolato V8 (index.js, runner.js; isolated-vm)
       notifications-basic_1.0.0/  notifiche degli utenti (notifications.json, ignorato da git)
     tools/pack.js      calcola gli hash e firma un pacchetto di app
@@ -210,6 +215,10 @@ src/
     UserPage.js         pagina utente a tutto schermo; `signOut()`
     items.js            voci della pagina (`USER_PAGE_ITEMS`) e quali sono accese
     photo.js            foto profilo: scelta, ritaglio, validazione
+  net/
+    connect.js          collega la rete: connessioni come cartelle in Rete, eventi del kernel, apertura della finestra dei trasferimenti
+    TransfersWindow.js  finestra Trasferimento dati (code, conflitti, annulla)
+    TransfersButton.js  pulsante dei trasferimenti nell'area di notifica
   notifications/
     connect.js          collega campanella, finestra e scorciatoia; legge le notifiche all'avvio
     NotificationBell.js campanella con il numero da leggere e barra delle notifiche
@@ -433,7 +442,9 @@ Il backend sta in `system/kernel/` ed è un processo Node (`npm run kernel`, che
 - **lilOS stesso.** Anche la pagina, il kernel e ciò che usano dell'SDK sono un pacchetto del repository ufficiale ([D57](../interna/decisioni.md#d57-lilos-si-aggiorna-dal-repository-ufficiale-come-un-pacchetto)): `apps/systemPackage.js` affianca la versione nuova (`releases/<versione>`), `run.js` la prova per 5 minuti e torna alla precedente se non parte. Le app possono dire con quali versioni di lilOS funzionano (`lilos` nel manifesto).
 - **Repository.** Il kernel prende app e moduli da repository git, letti con il comando `git` del suo computer ([D39](../interna/decisioni.md#d39-i-pacchetti-si-prendono-con-git)). L'ufficiale c'è sempre; gli altri li aggiunge un amministratore (`system/kernel/repos.json`). Ogni repository ha un `catalog.json`: [Fare un repository non ufficiale](ricette.md#fare-un-repository-non-ufficiale).
 - **`users-basic_1.0.0`**: utenti e accesso, tutto in `users.json` nella cartella del modulo (ignorato da git). Password con scrypt; cookie di sessione `HttpOnly`, `SameSite=Strict`, `Path=/api`, di cui il file tiene solo l'hash; limiti ai tentativi (5 per nome utente, 20 per indirizzo, poi attese crescenti).
-- **`fs-postgres_1.0.0`**: il file system in PostgreSQL (tabella `lilos_nodes`, `schema.sql`), con il **controllo degli accessi dentro il modulo**. Aree: `/system/app` e `/system/commons` leggibili da tutti e scrivibili solo dal kernel; `/system/tmp` e `/home` del kernel; `/home/<utente>` solo del suo utente. Il database di sviluppo parte con `npm run db:up`.
+- **`fs-postgres_1.1.0`**: il file system in PostgreSQL (tabelle `lilos_nodes` e `lilos_chunks`, `schema.sql`), con il **controllo degli accessi dentro il modulo**. Dalla 1.1.0 i contenuti grandi si scrivono e si leggono a pezzi da 1 MB (`readStream`, `writeFrom`). Aree: `/system/app` e `/system/commons` leggibili da tutti e scrivibili solo dal kernel; `/system/tmp` e `/home` del kernel; `/home/<utente>` solo del suo utente. Il database di sviluppo parte con `npm run db:up`.
+- **Rete.** Le connessioni a server remoti (cartella **Rete**) e le copie da e verso di essi stanno nel kernel ([D59](../interna/decisioni.md#d59-la-rete-i-protocolli-sono-moduli-del-kernel-e-i-trasferimenti-li-fa-il-kernel)). `src/net/drivers.js` definisce il contratto di un protocollo (un servizio `netfs.<protocollo>` di un modulo), `network.js` tiene le connessioni di ogni utente (in `net/` accanto a `config.json`, con password e chiavi cifrate da `secrets.js`) e le loro sessioni, `transfers.js` le code di copia (una per destinazione: sopravvivono alla chiusura della pagina e al riavvio del kernel). Gli endpoint sono in `src/api/net.js`; senza moduli `netfs-*` attivi la rete non c'è. Nel repository non sono attivi: si aggiungono a `modules` di `config.json`. Contratto completo: [Rete](api.md#rete-connessioni-e-trasferimenti-net-apinetjs).
+- **`netfs-sftp_1.0.0`, `netfs-ftp_1.0.0`, `netfs-webdav_1.0.0`, `netfs-smb_1.0.0`**: i protocolli SFTP (ssh2), FTP e FTPS (basic-ftp), WebDAV e SMB 2/3. Dettagli e campi: [api.md](api.md#protocolli-di-rete-netfs-sftp_100-netfs-ftp_100-netfs-webdav_100-netfs-smb_100). `netfs-smb` porta con sé `lib/smb3-client/`, una copia della libreria smb3-client con le correzioni di lilOS (`VENDORED.md`).
 - **`notifications-basic_1.0.0`**: fornisce `notifications`, le notifiche degli utenti (quelle che lilOS e le app mandano con `lilos.ui.notify`). Tutto in `notifications.json` nella cartella del modulo; ogni utente ne tiene al massimo `keep` (20 finché non sceglie, da 1 a 200), ogni app può mandarne `perMinute` al minuto (10) e il testo è lungo al massimo 300 caratteri. Avvisa le pagine dell'utente con `ctx.emit` (`notification.new`, `notification.change`). È opzionale: senza, le notifiche restano nella pagina ([D49](../interna/decisioni.md#d49-le-notifiche-un-modulo-opzionale-con-il-mittente-messo-da-lilos)).
 - **`services-isolate_1.0.0`**: fornisce `runtime`, che fa girare i **servizi delle app** (punti d'ingresso `kind: 'service'`, permesso `background`) nel kernel anche a lilOS chiuso. Ogni servizio è un processo Node con il modello di permessi di Node (legge solo la cartella del modulo), e il codice dell'app gira in un isolato V8 (`isolated-vm`, 128 MB, 10 secondi per esecuzione) con solo l'oggetto `lilos`, le cui richieste il kernel controlla con i permessi. Chi li avvia e quando (`system:ready`, `user:login`, a mano), le ripartenze e il registro stanno in `apps/appServices.js`. Richiede Node da 22 a 25 (`isolated-vm` 6.2). Contratti: [API → Servizi delle app](api.md#servizi-delle-app-appsappservicesjs), decisione [D44](../interna/decisioni.md#d44-avvio-automatico-due-eventi-app-solo-nella-prima-scheda-servizi-nel-kernel).
 - **Sicurezza HTTP.** Ogni risposta ha `Cache-Control: no-store`, `nosniff` e una CSP che vieta tutto. Le richieste che modificano (non GET né HEAD) devono avere `X-Lilos: 1` e, se il browser manda `Origin`, un'origine in `origins` (o, con `loopbackOrigins`, di localhost).

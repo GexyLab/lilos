@@ -31,6 +31,7 @@ Procedure passo per passo per le modifiche più comuni. Per i dettagli delle fun
 - [Installare un'app dall'esempio](#installare-unapp-dallesempio)
 - [Usare il kernel dal sistema o dall'SDK](#usare-il-kernel-dal-sistema-o-dallsdk)
 - [Aggiungere un modulo al kernel](#aggiungere-un-modulo-al-kernel)
+- [Aggiungere un protocollo di rete](#aggiungere-un-protocollo-di-rete)
 - [Pubblicare un modulo del kernel come pacchetto](#pubblicare-un-modulo-del-kernel-come-pacchetto)
 - [Pubblicare una versione di lilOS](#pubblicare-una-versione-di-lilos)
 - [Installare lilOS da una release](#installare-lilos-da-una-release)
@@ -784,7 +785,7 @@ export async function main({ lilos }) {
 
 **Dal sistema** (`src/`): `notify(testo, { level })` da `notifications/notify.js` per qualsiasi messaggio di lilOS (se il kernel non la prende resta nella pagina fino al ricaricamento); `notifications.send({ text, level, action, app })` dall'SDK per il caso generale.
 
-**Da un modulo del kernel** a un'app o a una pagina aperta, senza passare dalle notifiche: `ctx.emit(userId, 'miomodulo.novita', { … })`. Arriva sul flusso `/api/services-events` come evento con quel nome; per leggerlo in lilOS aggiungi un `source.addEventListener('miomodulo.novita', …)` in `connectServices()` (`src/apps/services.js`). Per notificare un utente da un modulo usa invece `ctx.service('notifications').send(userId, { from: { system: true }, text })`, dichiarando `notifications` in `requires` (così però il kernel non parte senza un modulo che le fornisce).
+**Da un modulo del kernel** a un'app o a una pagina aperta, senza passare dalle notifiche: `ctx.emit(userId, 'miomodulo.novita', { … })`. Arriva sul flusso `/api/services-events` come evento con quel nome; per leggerlo in lilOS chiama `onKernelEvent('miomodulo.novita', dati => …)` (`src/apps/services.js`) prima di `connectServices()`. Per notificare un utente da un modulo usa invece `ctx.service('notifications').send(userId, { from: { system: true }, text })`, dichiarando `notifications` in `requires` (così però il kernel non parte senza un modulo che le fornisce).
 
 ## Installare un'app dall'esempio
 
@@ -843,6 +844,54 @@ try {
 
 Questa è la strada a mano. Per distribuirlo, vedi la ricetta successiva: un modulo in un repository si installa dall'AppStore.
 
+## Aggiungere un protocollo di rete
+
+Un protocollo è un modulo del kernel che fornisce il servizio `netfs.<protocollo>`: la cartella **Rete**, la finestra «Connetti a un server» e i trasferimenti lo usano senza altre modifiche. Il modello da copiare è `netfs-sftp_1.0.0`. Contratto completo: [API → Rete](api.md#rete-connessioni-e-trasferimenti-net-apinetjs).
+
+1. Crea il modulo come in [Aggiungere un modulo al kernel](#aggiungere-un-modulo-al-kernel), con `"provides": ["netfs.mio"]` e `"requires": []`. Il nome del protocollo (`mio`) è `[a-z][a-z0-9-]{0,30}`.
+2. Nell'`init` fornisci il servizio:
+
+   ```js
+   const label = (en, it) => ({ en, it });
+   const netError = (net, message) => Object.assign(new Error(message), { net });   // net: 'auth', 'not_found', 'unreachable'…
+
+   export default {
+     async init(ctx) {
+       ctx.provide('netfs.mio', {
+         label: label('My protocol', 'Il mio protocollo'),
+         order: 60,
+         fields: [
+           { key: 'host', type: 'text', label: label('Server', 'Server'), required: true },
+           { key: 'user', type: 'text', label: label('User', 'Utente'), required: true },
+           { key: 'password', type: 'password', label: label('Password', 'Password'), secret: true, required: true },
+           { key: 'path', type: 'text', label: label('Remote folder', 'Cartella remota'), default: '/' },
+         ],
+         address: v => `mio://${v.user}@${v.host}${v.path === '/' ? '' : v.path}`,
+         async connect(values, { secret, trust, signal }) {
+           // 1. verifica il server PRIMA di mandare le credenziali; se non è fidato:
+           //    throw Object.assign(netError('untrusted', 'Server da confermare'), { trust: { kind: 'ssh', fingerprint, text } });
+           // 2. entra con values.user e secret.password (credenziali sbagliate: netError('auth', …))
+           return {
+             resume: { read: true, write: true },
+             async list(path) { return [{ name: 'a.txt', type: 'file', size: 12, modified: Date.now() }]; },
+             async stat(path) { return null; },
+             async read(path, { start = 0, signal }) { /* Readable dei byte */ },
+             async write(path, source, { start = 0, signal, size }) { /* scrive lo stream */ },
+             async mkdir(path) {},
+             async rename(from, to) {},
+             async remove(path, { folder }) {},
+             onLost(fn) { /* chiama fn() se la connessione cade da sola */ },
+             async close() {},
+           };
+         },
+       });
+     },
+   };
+   ```
+3. Usa `label` con `{ en, it }` per tutto ciò che l'utente legge (etichette, suggerimenti). I campi con `secret: true` arrivano in `secret`, mai in `values`; `when` mostra un campo solo se altri hanno certi valori.
+4. Lancia solo errori con `net` (`auth`, `untrusted`, `not_found`, `exists`, `denied`, `unreachable`, `lost`, `unsupported`, `invalid`): il kernel li traduce in codici e messaggi. Un errore `lost` o `unreachable` fa riaprire la connessione da sola.
+5. Se il protocollo sa dire quando una cartella cambia, aggiungi `watch(path, onChange)` che restituisce `stop()`: la pagina si aggiorna da sola. Se sa elencare ciò che un server offre, aggiungi `shares(values, { secret, trust })`.
+6. Attiva il modulo in `config.json`, `npm run kernel:setup` se ha dipendenze e riavvia il kernel. La sezione **Rete** del File Manager mostra il nuovo protocollo nell'elenco.
 ## Pubblicare un modulo del kernel come pacchetto
 
 Un modulo in un repository si installa, si aggiorna e si toglie dall'AppStore (Moduli del kernel), con il riavvio del kernel. Decisione: [D40](../interna/decisioni.md#d40-i-moduli-del-kernel-si-installano-come-pacchetti-e-valgono-dopo-il-riavvio). Contratti: [API → Moduli come pacchetti](api.md#moduli-come-pacchetti-modulepackagejs).
