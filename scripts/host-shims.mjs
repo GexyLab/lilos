@@ -4,10 +4,12 @@
  * repository). Each one re-exports, by name, what lilOS put in globalThis.__lilosHost at
  * start-up, so the apps share lilOS's own SDK (one fs, one kernel connection…).
  *
- *   node scripts/host-shims.mjs        (run by predev and prebuild)
+ *   node scripts/host-shims.mjs        (run by predev and prebuild; while `npm run dev` runs,
+ *                                       vite.config.js rewrites them when sdk/index.js or
+ *                                       src/systemApi.js changes)
  */
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -32,7 +34,16 @@ export const { ${names.join(', ')} } = host;
 `;
 }
 
-mkdirSync(join(root, 'public/host'), { recursive: true });
-writeFileSync(join(root, 'public/host/sdk.js'), shim('sdk', exportNames('sdk/index.js')));
-writeFileSync(join(root, 'public/host/system.js'), shim('system', exportNames('src/systemApi.js')));
-console.log('public/host: sdk.js, system.js');
+/** The files whose exports the shims list: vite.config.js rewrites the shims when one changes. */
+export const SOURCES = ['sdk/index.js', 'src/systemApi.js'].map(file => join(root, file));
+
+export function writeHostShims() {
+  mkdirSync(join(root, 'public/host'), { recursive: true });
+  writeFileSync(join(root, 'public/host/sdk.js'), shim('sdk', exportNames('sdk/index.js')));
+  writeFileSync(join(root, 'public/host/system.js'), shim('system', exportNames('src/systemApi.js')));
+}
+
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  writeHostShims();
+  console.log('public/host: sdk.js, system.js');
+}
