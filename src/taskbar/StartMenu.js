@@ -122,6 +122,7 @@ export class StartMenu {
     closeMenu();
     this.onOpen?.();
     this.input.value = '';
+    this.#tab = 'recent';   // or the first tab there is
     this.#render();
     this.el.hidden = false;
     this.anchor.classList.add('active');
@@ -211,13 +212,19 @@ export class StartMenu {
       return;
     }
 
-    const categories = CATEGORIES.filter(c => apps.some(app => app.category === c));
+    // Only the tabs with something in them
+    const used = this.#usedApps();
     const tabs = [
-      ['recent', 'Recenti e frequenti', null],
-      this.#ctx && ['areas', 'Work Area', areas.length],
-      ...categories.map(c => [c, CATEGORY_LABELS[c], apps.filter(app => app.category === c).length]),
+      (used.recent.length > 0 || used.frequent.length > 0) && ['recent', 'Recenti e frequenti', null],
+      areas.length > 0 && ['areas', 'Work Area', areas.length],
+      ...CATEGORIES.map(c => [c, CATEGORY_LABELS[c], apps.filter(app => app.category === c).length]).filter(([, , n]) => n > 0),
     ].filter(Boolean);
-    if (!tabs.some(([id]) => id === this.#tab)) this.#tab = 'recent';
+    if (!tabs.length) {
+      this.tabs.replaceChildren();
+      this.panel.replaceChildren(h('p', { class: 'sm-empty' }, 'Nessuna app in questo workspace.'));
+      return;
+    }
+    if (!tabs.some(([id]) => id === this.#tab)) this.#tab = tabs[0][0];
     this.tabs.replaceChildren(...tabs.map(([id, label, n]) => h('button', {
       class: 'sm-tab', type: 'button', role: 'tab', id: `sm-tab-${id}`, 'aria-selected': String(id === this.#tab), 'aria-controls': 'sm-panel',
       tabindex: id === this.#tab ? '0' : '-1', dataset: { nav: '', key: `tab:${id}`, tab: id },
@@ -225,30 +232,24 @@ export class StartMenu {
     }, label, n != null && h('span', { class: 'sm-count' }, String(n)))));
     this.panel.setAttribute('aria-labelledby', `sm-tab-${this.#tab}`);
 
-    if (this.#tab === 'recent') this.panel.replaceChildren(...this.#recentApps(apps));
-    else if (this.#tab === 'areas') {
-      this.panel.replaceChildren(areas.length
-        ? this.#areaGrid(areas)
-        : h('p', { class: 'sm-empty' }, 'Nessuna workarea in questo workspace. Se ne crea una dal menu della scrivania: Nuovo → Workarea.'));
-    } else {
+    if (this.#tab === 'recent') this.panel.replaceChildren(...this.#recentApps(used));
+    else if (this.#tab === 'areas') this.panel.replaceChildren(this.#areaGrid(areas));
+    else {
       const list = apps.filter(app => app.category === this.#tab).sort((a, b) => a.name.localeCompare(b.name, session.locale));
       this.panel.replaceChildren(this.#grid(list.map(app => this.#tile(app, `cat:${app.id}`))));
     }
   }
 
-  #recentApps(apps) {
+  /** { recent, frequent }: the apps of the workspace used lately, and most (apart from those already recent). */
+  #usedApps() {
     const keep = id => isInstalled(id);
     const recent = usage.recentApps(keep).slice(0, RECENT_APPS);
     const shown = new Set(recent.map(r => r.id));
-    // The ones used most, apart from those already above
     const frequent = usage.frequentApps(id => keep(id) && !shown.has(id)).slice(0, FREQUENT_APPS);
-    if (!recent.length && !frequent.length) {
-      const all = [...apps].sort((a, b) => a.name.localeCompare(b.name, session.locale));
-      return [
-        h('p', { class: 'sm-empty sm-note' }, 'Le app che apri in questo workspace compariranno qui.'),
-        this.#section('Tutte le app', this.#grid(all.map(app => this.#tile(app, `all:${app.id}`)))),
-      ];
-    }
+    return { recent, frequent };
+  }
+
+  #recentApps({ recent, frequent }) {
     return [
       recent.length > 0 && this.#section('Usate di recente', this.#grid(recent.map(r => this.#tile(getApp(r.id), `rec:${r.id}`, ago(r.last))))),
       frequent.length > 0 && this.#section(['Usate più spesso', h('span', {}, ' · ultimi 30 giorni')], this.#grid(frequent.map(f => this.#tile(getApp(f.id), `freq:${f.id}`, times(f.count))))),

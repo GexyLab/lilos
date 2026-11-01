@@ -52,7 +52,6 @@
 .sm-sub { padding: 10px 6px 4px; font-size: 10.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--bar-dim); }
 .sm-sub span { font-weight: 500; letter-spacing: 0; text-transform: none; }
 .sm-empty { padding: 18px 10px; font-size: 12.5px; line-height: 1.5; text-align: center; color: var(--bar-dim); }
-.sm-empty.sm-note { padding-bottom: 4px; }
 .sm-empty.sm-small { padding: 4px 6px 8px; text-align: left; font-size: 12px; }
 .sm-divider { height: 1px; margin: 6px; background: var(--panel-border); }
 

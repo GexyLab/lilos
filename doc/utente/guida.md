@@ -1020,9 +1020,11 @@ I servizi hanno bisogno di un componente del sistema, `services-isolate`. Se man
 
 - **Preferite** (a sinistra): le app che hai fissato. Per fissare un'app premi la **stella** sulla sua icona, oppure trascinala nella colonna. Per cambiare l'ordine trascina una preferita più su o più giù, oppure usa il tasto destro: **Sposta su** e **Sposta giù**. Per toglierla, premi di nuovo la stella o scegli **Togli dalle preferite**.
 - **Le app** (al centro), in schede:
-  - **Recenti e frequenti**: prima le app che hai usato da poco, poi quelle che usi di più negli ultimi 30 giorni (senza ripetere le prime). Finché non hai aperto nessuna app in questo workspace mostra tutte le app;
+  - **Recenti e frequenti**: prima le app che hai usato da poco, poi quelle che usi di più negli ultimi 30 giorni (senza ripetere le prime);
   - **Work Area**: le workarea di questo workspace, con titolo, descrizione, quante finestre e quanti elementi contengono e se sono ridotte a icona o quando le hai modificate per l'ultima volta. Un clic ti porta alla workarea (la riapre se era ridotta a icona). Tasto destro: **Vai alla workarea** o **Proprietà…**;
   - una scheda per ogni categoria che ha almeno un'app: **Sistema**, **Produttività**, **Media**, **Sviluppo**, **Altro**.
+
+  Le schede vuote non compaiono: senza app usate in questo workspace non c'è **Recenti e frequenti**, senza workarea non c'è **Work Area**. Il menu si apre sempre sulla prima scheda che c'è.
 - **File** (a destra): i file che hai aperto da poco e quelli che apri più spesso (almeno 2 volte negli ultimi 30 giorni). Fai clic su un file per aprirlo. Tasto destro: **Apri**, **Apri con…**, **Mostra nella cartella** (apre il File Manager lì) e **Togli dall'elenco**. **Cancella elenco** svuota gli elenchi dei file di questo workspace. I file non vengono cancellati e non si possono ripristinare gli elenchi.
 
 **In basso** c'è un pulsante per ogni workspace, con il nome e la descrizione (se è lunga viene tagliata). Fai clic per passarci: il menu resta aperto e mostra le app, le preferite e i file di quel workspace. Come descrizione di un workspace vedi [Creare, rinominare, eliminare](#creare-rinominare-eliminare).
