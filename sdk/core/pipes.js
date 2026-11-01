@@ -100,10 +100,17 @@ class Pipes extends Emitter {
     this.emit('change');
   }
 
-  /** Takes away the events of an app (it was removed) and every subscription of it. */
+  /** Takes away the events of an app (it was removed), every subscription of it and every one to its events. */
   forgetApp(appId) {
     for (const [name, def] of this.#events) if (def.owner === appId) this.#events.delete(name);
-    for (const [id, sub] of this.#subs) if (sub.app === appId) this.#subs.delete(id);
+    for (const [id, sub] of this.#subs) if (sub.app === appId || !this.#events.has(sub.event)) this.#subs.delete(id);
+    this.emit('change');
+  }
+
+  /** Takes away one event and whoever subscribed to it (an app's new version no longer has it). */
+  undefine(name) {
+    if (!this.#events.delete(name)) return;
+    for (const [id, sub] of this.#subs) if (sub.event === name) this.#subs.delete(id);
     this.emit('change');
   }
 

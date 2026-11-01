@@ -123,7 +123,7 @@ export function resolveLocale(table, code) {
  * for options):
  *   @name   @description   @commands.<id>.label   @widgets.<id>.name   @actions.<id>.label   @badge.label
  *   @menus.<id>.label
- *   @entrypoints.<name>.label
+ *   @entrypoints.<name>.label   @events.<name>.label   @events.<name>.description
  *   @entrypoints.<name>.params.<param>.label   @entrypoints.<name>.params.<param>.description
  *   @entrypoints.<name>.params.<param>.options.<value>.label
  * What has no translation stays as the manifest says (in English).
@@ -142,6 +142,11 @@ export function localizeManifest(manifest, strings) {
   for (const action of Array.isArray(m.contributes?.actions) ? m.contributes.actions : []) if (isPlain(action)) set(action, 'label', `@actions.${action.id}.label`);
   for (const menu of Array.isArray(m.contributes?.menus) ? m.contributes.menus : []) if (isPlain(menu)) set(menu, 'label', `@menus.${menu.id}.label`);
   if (isPlain(m.contributes?.badge)) set(m.contributes.badge, 'label', '@badge.label');
+  for (const event of Array.isArray(m.contributes?.events) ? m.contributes.events : []) {
+    if (!isPlain(event)) continue;
+    set(event, 'label', `@events.${event.name}.label`);
+    set(event, 'description', `@events.${event.name}.description`);
+  }
   for (const [name, ep] of Object.entries(m.entrypoints ?? {})) {
     if (!isPlain(ep)) continue;
     set(ep, 'label', `@entrypoints.${name}.label`);

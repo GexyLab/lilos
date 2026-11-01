@@ -679,7 +679,15 @@ Una pipe fa stare la tua app in mezzo a un'operazione del sistema (aprire, legge
    Si prendono solo i campi che l'evento lascia cambiare in quella fase (per `file.write`/`before` è `content`). Se la funzione lancia un errore o non risponde entro 15 secondi, **il salvataggio fallisce**: non viene mai saltata.
 3. Segna i file su cui la pipe deve agire. `where: { meta: 'own' }` guarda `node.apps['acme.trim']`: lo imposti con `lilos.files.setMeta(id, { v: 1 })` o salvando con `lilos.files.write(rif, dati, { mark: { v: 1 } })` (contenuto e segno insieme). Il segno è un oggetto di al massimo 1 KB (2 KB in tutto per i dati di tutte le app su un file). Aggiungi `content: true` solo se il contenuto è tuo da leggere (per esempio cifrato): senza la tua app, o se le sue pipe `file.read` / `file.write` non sono attive, lilOS non apre né legge quel file, e la cronologia di annulla ne perde il contenuto. Serve il permesso `pipe:` o `pipe.own:` sia per `file.read` sia per `file.write` (negli esempi sopra aggiungi `pipe.own:file.read`). Per un file con `content: true` le pipe delle altre app non girano e ogni gestore vede solo i tuoi dati in `node.apps`. Se il punto d'ingresso in background si ferma, le finestre dei file tuoi si chiudono; `lilos.files.shown(ids)` dice quali sono mostrati (per non bloccarli per inattività) e `lilos.files.locked(ids)` chiede di chiudere le finestre di file che hai richiuso.
 4. I file segnati da te che arrivano in una pipe si possono leggere e scrivere con `lilos.files` (`lilos.files.read(id, { bytes: true })`). Le operazioni che chiedi tu **non passano dai tuoi gestori**, quindi leggere o scrivere lì dentro non ti richiama.
-5. Per gli eventi dell'app: `await lilos.pipes.define('acme.trim.cleaned', { label: 'File pulito', edit: { after: ['text'] } })` e `await lilos.pipes.run('acme.trim.cleaned', { text })` fanno passare i tuoi dati dalle pipe di chi si è iscritto.
+5. Per gli eventi dell'app: dichiarali nel manifesto, così esistono da quando l'app è installata e le altre app si possono iscrivere anche dal loro manifesto (con il permesso `pipe:acme.trim.cleaned`):
+
+   ```json
+   "contributes": {
+     "events": [{ "name": "acme.trim.cleaned", "label": "File cleaned", "edit": { "after": ["text"] } }]
+   }
+   ```
+
+   Poi `await lilos.pipes.run('acme.trim.cleaned', { text })` fa passare i tuoi dati dalle pipe di chi si è iscritto e restituisce quelli che tornano. L'etichetta si traduce in `locales.json` con `@events.acme.trim.cleaned.label`. Un evento che nasce solo mentre l'app gira si può dichiarare anche dal codice, con `await lilos.pipes.define('acme.trim.cleaned', { label: 'File pulito', edit: { after: ['text'] } })`.
 
 Per provarla: installa l'app, segna un file, salvalo e controlla il contenuto. Pannello di controllo → App → Pipe mostra la catena di `file.write` con la tua app.
 

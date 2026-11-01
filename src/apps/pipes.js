@@ -1,4 +1,4 @@
-import { pipes, fs, apps as installed } from '@lilos/sdk';
+import { pipes, fs, locale, apps as installed } from '@lilos/sdk';
 import { apps, getApp, registry } from './registry.js';
 import * as background from './packages/background.js';
 
@@ -17,6 +17,9 @@ import * as background from './packages/background.js';
  * A file the app marked (node.apps[id]) that comes in an event's data is handed to that part of
  * the app (it may read and write it); other files only come as data.
  *
+ * The app's own events (manifest contributes.events) are in the catalog as soon as it is
+ * installed, before the pipes of any app, so others may subscribe to them before it ever runs.
+ *
  * Also here, lilOS's own guard: a file whose content belongs to an app (node.apps[id].content)
  * is not read, written or opened as it is when that app is not installed.
  */
@@ -25,6 +28,7 @@ const WAKE = 15_000;   // how long a woken entry point has to subscribe
 /** Running parts of apps: 'appId#entry' (or a window's key) → target. */
 const targets = new Map();
 const manifestOff = new Map();   // appId → functions taking its manifest subscriptions away
+const manifestEvents = new Map();   // appId → names of the events its manifest declares
 
 /** A function that waits for a target to subscribe `slot`. */
 const waiting = new Map();   // 'key|slot' → [resolve]
@@ -105,6 +109,27 @@ export function pipeTarget({ key, pkg, entry, handles, deliver }) {
 /** The pipes the app's manifest declares, kept to those of background entry points. */
 const manifestPipes = pkg => (Array.isArray(pkg?.manifest?.contributes?.pipes) ? pkg.manifest.contributes.pipes : []);
 
+/** Puts the events of an app's manifest in the catalog (again, for a new version: those it dropped go). */
+function defineEvents(app) {
+  const names = new Set();
+  // The manifest in the system's language, for the labels
+  const events = app?.package && Array.isArray(app.text?.contributes?.events) ? app.text.contributes.events : [];
+  for (const e of events) {
+    try {
+      pipes.define(e.name, {
+        label: e.label, description: e.description ?? '',
+        edit: { before: e.edit?.before ?? [], after: e.edit?.after ?? [] }, stop: e.stop === true, owner: app.id,
+      });
+      names.add(e.name);
+    } catch (err) {
+      console.warn(`[lilos] ${app.id}: evento ${e?.name} non definito:`, err.message);
+    }
+  }
+  for (const name of manifestEvents.get(app?.id) ?? []) if (!names.has(name)) pipes.undefine(name);
+  if (names.size) manifestEvents.set(app.id, names);
+  else manifestEvents.delete(app?.id);
+}
+
 /** Subscribes an installed app's manifest pipes (again, for a new version). */
 function registerManifest(app) {
   manifestOff.get(app.id)?.forEach(off => off());
@@ -175,12 +200,23 @@ function guard() {
 /** At start-up, after the installed apps are in the registry. */
 export function connectPipes() {
   guard();
+  // Every app's events first: an app may subscribe to the events of one registered after it
+  apps.forEach(defineEvents);
   apps.forEach(registerManifest);
+  // Their labels in the new language (defining an event again keeps its subscriptions)
+  locale.on('change', () => apps.filter(a => manifestEvents.has(a.id)).forEach(defineEvents));
   registry.on('change', ({ id, app }) => {
-    if (app) registerManifest(app);
-    else {
+    if (app) {
+      defineEvents(app);
+      registerManifest(app);
+      // The apps whose manifest subscribes to its events (which may only now be there)
+      for (const other of apps) {
+        if (other.id !== id && manifestPipes(other.package).some(p => String(p.event).startsWith(`${id}.`))) registerManifest(other);
+      }
+    } else {
       manifestOff.get(id)?.forEach(off => off());
       manifestOff.delete(id);
+      manifestEvents.delete(id);
       pipes.forgetApp(id);
       changed();
     }

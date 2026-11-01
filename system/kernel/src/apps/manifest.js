@@ -35,7 +35,7 @@ import { parseLocales } from '../../../../sdk/core/i18n.js';
  *     permissions: ['fs.read:~/Documenti', 'net:https://api.example.com', …],
  *     contributes: { window: { width, height }, fileTypes: ['md'], commands: [{ id, label, keys }],
  *                    widgets: [{ id, name, width, height, resizable }], settings: [...],
- *                    pipes: [pipe], actions: [action], menus: [menu], badge: { glyph, label } },
+ *                    pipes: [pipe], events: [event], actions: [action], menus: [menu], badge: { glyph, label } },
  *     install: [op], update: [{ from: '<1.2.0', ops: [op] }], uninstall: [op],
  *     restartOnUpdate?: true | '<2.0.0',      updating to this version needs lilOS to restart (always, or
  *                                             only from the versions in the range, like update's `from`)
@@ -52,6 +52,11 @@ import { parseLocales } from '../../../../sdk/core/i18n.js';
  * entry point subscribed (lilos.pipes.subscribe). Needs 'pipe:<event>', or 'pipe.own:<event>' when
  * `where` is { meta: 'own' } (only the files the app marked). Protected events: system apps only.
  *   { event: 'file.read', stage: 'before' | 'after', entry: 'vault', position?: 'first' | 'middle' | 'last', where? }
+ *
+ * Events: the app's own events ('<app id>.<one word>'), in the catalog from the moment the app is
+ * installed, so other apps may subscribe to them (also in their manifest) before it ever runs.
+ * The app runs them with lilos.pipes.run; its own pipes on them need no permission.
+ *   { name: 'acme.notes.saved', label: 'Note saved', description?, edit?: { before?: [field], after?: [field] }, stop?: true }
  *
  * Actions (needs 'ui.menus'): entries of the menu of files and folders, that start an entry point
  * with { files: [ids] } (the app may read and write them). `when`: which items they are for.
@@ -79,8 +84,10 @@ const KEY = /^[\w.-]{1,64}$/;
 const HOME_PATH = /^~(\/[^/\0]{1,255}){1,16}$/;
 const ENTRY = /^[a-z][a-zA-Z0-9]{0,30}$/;
 const PARAM = /^[a-zA-Z][a-zA-Z0-9_]{0,30}$/;
-const MAX = { files: 1000, ops: 100, text: 64 << 10, commands: 30, widgets: 10, permissions: 50, libraries: 30, entrypoints: 20, params: 10, options: 50, pipes: 30, actions: 20, menus: 10 };
+const MAX = { files: 1000, ops: 100, text: 64 << 10, commands: 30, widgets: 10, permissions: 50, libraries: 30, entrypoints: 20, params: 10, options: 50, pipes: 30, actions: 20, menus: 10, events: 20, fields: 20 };
 const EVENT = /^[a-z0-9][a-z0-9.-]{0,63}\.[a-z][a-zA-Z0-9]{0,40}$/;
+const EVENT_WORD = /^[a-z][a-zA-Z0-9]{0,40}$/;
+const FIELD = /^(?!__proto__$|constructor$|prototype$)\w{1,40}$/;
 /** Events only lilOS and system apps subscribe to (the SDK's pipeCatalog.js). */
 const PROTECTED = ['system.ready', 'session.', 'apps.', 'permissions.', 'settings.system', 'pipes.'];
 export const isProtectedEvent = name => PROTECTED.some(p => (p.endsWith('.') ? name.startsWith(p) : name === p));
@@ -260,6 +267,25 @@ export function checkManifest(raw) {
   }
   if (list(c.widgets, MAX.widgets).length && !permissions.includes('desktop.widget')) bad('i widget richiedono il permesso desktop.widget');
   const eps = m.entrypoints ?? {};
+  const ownEvents = new Set();
+  for (const e of list(c.events, MAX.events)) {
+    const wrong = msg => bad(`evento ${String(e?.name).slice(0, 60)}: ${msg}`);
+    if (!e || typeof e !== 'object' || typeof e.name !== 'string' || !EVENT.test(e.name) || !e.name.startsWith(`${m.id}.`) || !EVENT_WORD.test(e.name.slice(m.id.length + 1))) {
+      wrong('nome non valido (<id dell’app>.<una parola>)');
+    }
+    if (ownEvents.has(e.name)) wrong('dichiarato due volte');
+    ownEvents.add(e.name);
+    if (!str(e.label, 80)) wrong('etichetta mancante o troppo lunga');
+    if (e.description !== undefined && !str(e.description, 300)) wrong('descrizione non valida');
+    if (e.stop !== undefined && e.stop !== true) wrong('stop può essere solo true');
+    if (e.edit !== undefined) {
+      if (!e.edit || typeof e.edit !== 'object' || Array.isArray(e.edit) || Object.keys(e.edit).some(k => k !== 'before' && k !== 'after')) wrong('edit non valido ({ before, after })');
+      for (const stage of ['before', 'after']) {
+        const fields = e.edit[stage];
+        if (fields !== undefined && (!Array.isArray(fields) || fields.length > MAX.fields || fields.some(f => typeof f !== 'string' || !FIELD.test(f)))) wrong(`edit.${stage}: fino a ${MAX.fields} nomi di campo`);
+      }
+    }
+  }
   for (const p of list(c.pipes, MAX.pipes)) {
     const wrong = msg => bad(`pipe ${String(p?.event).slice(0, 60)}: ${msg}`);
     if (!p || typeof p !== 'object' || !EVENT.test(p.event ?? '')) wrong('evento non valido');
@@ -268,7 +294,7 @@ export function checkManifest(raw) {
     if (p.position !== undefined && !['first', 'middle', 'last'].includes(p.position)) wrong('position non valida');
     const own = p.where?.meta === 'own';
     if (p.where !== undefined) checkWhere(p.where, wrong);
-    if (!permissions.includes(`pipe:${p.event}`) && !(own && permissions.includes(`pipe.own:${p.event}`))) wrong(`serve il permesso pipe:${p.event}${own ? ` o pipe.own:${p.event}` : ''}`);
+    if (!ownEvents.has(p.event) && !permissions.includes(`pipe:${p.event}`) && !(own && permissions.includes(`pipe.own:${p.event}`))) wrong(`serve il permesso pipe:${p.event}${own ? ` o pipe.own:${p.event}` : ''}`);
     if (isProtectedEvent(p.event) && !m.system) wrong('evento riservato alle app di sistema');
   }
   const menus = new Set();
