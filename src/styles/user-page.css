@@ -5,8 +5,7 @@
 .user-page {
   position: fixed; inset: 0 0 var(--taskbar-h); z-index: 8800; overflow: auto;
   padding: 24px 16px; color: var(--bar-text);
-  background: color-mix(in srgb, var(--bar) 88%, transparent);
-  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  background: var(--bar);
   animation: up-in .14s ease-out;
 }
 @keyframes up-in { from { opacity: 0; } }
