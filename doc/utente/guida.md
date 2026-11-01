@@ -598,6 +598,43 @@ Vale anche la chiave `"$schema"` scritta nel file. Con uno schema, i suggeriment
 - **Ctrl S** salva sopra il file, nel suo formato. GIF, SVG, BMP, AVIF e ICO non si possono riscrivere: Photo propone di salvare una copia in PNG, JPEG o WebP.
 - Con modifiche non salvate il titolo mostra un pallino (•) e, prima di chiudere o di passare a un'altra immagine, Photo chiede: **Salva**, **Non salvare** o **Annulla**.
 
+## Calcolatrice
+
+La **Calcolatrice** è una semplice calcolatrice da tavolo. Non c'è di serie: un amministratore la installa dall'[AppStore](#lappstore). Si apre dal menu di avvio.
+
+- **Le quattro operazioni** (+, −, ×, ÷). Come su una calcolatrice da tavolo, ogni operazione si esegue appena premi la successiva: 2 + 3 × 4 = dà 20.
+- **%** dopo + o − calcola la percentuale del primo numero (200 + 10 % = dà 220); dopo × o ÷ divide il numero per 100 (50 × 10 % = dà 5).
+- **x²** e **√x** danno il quadrato e la radice quadrata del numero mostrato.
+- **±** cambia il segno, **CE** azzera il numero, **C** azzera tutto e **⌫** cancella l'ultima cifra.
+- Premendo di nuovo **=** si ripete l'ultima operazione: 5 + 3 = = dà 11.
+
+Sopra il risultato una riga piccola mostra il calcolo in corso, per esempio `200 + 20`. Il pulsante in alto a sinistra (o **Ctrl C**) copia il risultato negli appunti.
+
+### Tastiera
+
+| Tasto | Cosa fa |
+| --- | --- |
+| 0-9, `,` o `.` | Cifre e virgola |
+| `+` `-` `*` `/` | Operazioni (anche `x` per moltiplicare) |
+| Invio o `=` | Risultato |
+| `%` | Percentuale |
+| `Q` | Quadrato |
+| `@` | Radice quadrata |
+| F9 | Cambia il segno |
+| Backspace | Cancella l'ultima cifra |
+| Canc | CE |
+| Esc | C |
+| Ctrl C | Copia il risultato |
+
+Questi tasti valgono solo nella finestra della Calcolatrice e non si cambiano dal Pannello di controllo.
+
+### Da sapere
+
+- I numeri hanno al massimo 16 cifre; i risultati tengono 15 cifre significative (0,1 + 0,2 dà 0,3). Per numeri molto grandi o molto piccoli compare l'esponente (`1e+21`).
+- Dividere per zero, la radice di un numero negativo e un risultato troppo grande mostrano un messaggio. Per ripartire premi una cifra, **C**, **CE** o **⌫**.
+- I numeri seguono la lingua del sistema (in italiano 1.234,5).
+- Con una versione di lilOS precedente a questa, l'icona della Calcolatrice è un punto di domanda.
+
 ## Annullare e ripetere
 
 **Ctrl Z** annulla l'ultima azione, **Ctrl Y** (o **Ctrl Shift Z**) la ripete. Agiscono **dove stai lavorando**: ogni posto ha il suo elenco di azioni, e lilOS sceglie quello dove hai fatto clic per ultimo. In basso compare un breve messaggio, per esempio "Annullato: Elimina «Appunti»" o "Ripetuto: Rinomina…".

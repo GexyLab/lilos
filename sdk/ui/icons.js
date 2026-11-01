@@ -64,6 +64,7 @@ const GLYPHS = {
   star: '<path d="M12 3.2l2.7 5.5 6 .9-4.35 4.25 1 6L12 17l-5.35 2.85 1-6L3.3 9.6l6-.9z"/>',
   grip: '<circle cx="9" cy="6" r=".9"/><circle cx="15" cy="6" r=".9"/><circle cx="9" cy="12" r=".9"/><circle cx="15" cy="12" r=".9"/><circle cx="9" cy="18" r=".9"/><circle cx="15" cy="18" r=".9"/>',
   lasso: '<path d="M12 5c4.4 0 8 2 8 5s-3.6 5-8 5c-1.2 0-2.3-.1-3.3-.4"/><path d="M8.7 14.6C6 13.8 4 12.1 4 10c0-1.6 1.1-3 2.9-3.9"/><circle cx="8" cy="17" r="1.6"/><path d="M8 18.6c0 1.4-.6 2.4-2 2.4"/>',
+  calculator: '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8.5 6.5h7v3h-7zM9 13h.01M12 13h.01M15 13h.01M9 17h.01M12 17h.01M15 17h.01"/>',
 };
 
 export function icon(name, className = 'ico') {
