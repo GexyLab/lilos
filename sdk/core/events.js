@@ -19,7 +19,8 @@ export class Emitter {
 
 /**
  * System-wide bus. Current events:
- *   'app:launch'    { id, args, entry?, files? }   an app was requested (start menu, desktop shortcut);
+ *   'app:launch'    { id, args, entry?, files?, auto? }   an app was requested (start menu, desktop shortcut;
+ *                   auto: started by lilOS itself, at login);
  *                                        entry: one of its window entry points ('main' by default);
  *                                        files: ids of files the user handed it (it may read and write them)
  *   'item:open'     item data      a folder/file on the desktop was opened

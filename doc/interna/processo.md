@@ -19,7 +19,7 @@ Parti da una scrivania pulita: accedi con un utente nuovo (`npm run kernel:cli -
 **Accesso e kernel**
 - [ ] Con il kernel spento compare «Il kernel di lilOS non risponde» e **Riprova** funziona quando lo si riavvia.
 - [ ] Con un modulo di accesso attivo, senza sessione compare «Accedi a lilOS»; una password sbagliata mostra l'errore; dopo 5 errori sullo stesso utente i tentativi si rallentano.
-- [ ] **Esci** (menu di avvio) salva, torna alla schermata di accesso e cancella da IndexedDB il database `lilos:<id utente>`.
+- [ ] **Esci** (menu di avvio, in alto a destra) salva, torna alla schermata di accesso e cancella da IndexedDB il database `lilos:<id utente>`.
 - [ ] Lasciando scadere la sessione (o togliendo il cookie) mentre si lavora, compare «Sessione scaduta»; accedendo con lo stesso utente le modifiche in attesa vengono salvate.
 - [ ] Se nel browser ci sono dati di prima del kernel (`localStorage` con chiavi `lilos:`), con la cartella dell'utente vuota compare «Dati in questo browser»; **Porta nel mio account** li trasferisce e li cancella dal browser.
 - [ ] Ricaricando la pagina, e accedendo da un altro browser con lo stesso utente, la scrivania è la stessa.
@@ -172,9 +172,11 @@ Parti da una scrivania pulita: accedi con un utente nuovo (`npm run kernel:cli -
 - [ ] Le personalizzazioni restano dopo la ricarica; `lilos:shortcuts` manomesso viene ignorato.
 
 **Barra e menu**
-- [ ] Il logo e Ctrl K aprono e chiudono il menu di avvio; il focus va nella ricerca.
-- [ ] La ricerca filtra; frecce e Invio avviano l'app; in console compare `[lilos] avvia app: …`.
-- [ ] Clic fuori ed Esc chiudono il menu di avvio e i menu contestuali.
+- [ ] Il logo e Ctrl K aprono e chiudono il menu di avvio (una pagina sopra scrivania e finestre; la barra resta visibile); il focus va nella ricerca.
+- [ ] La ricerca filtra app (nome e descrizione), workarea e file degli elenchi; ↓ entra nella griglia, frecce e Invio avviano l'app, Invio nella ricerca apre il primo risultato. Esc svuota la ricerca e, a ricerca vuota, chiude il menu; un clic su un'altra parte della barra lo chiude.
+- [ ] Preferite: la stella fissa un'app, il trascinamento nella colonna a sinistra la fissa e riordina, «Sposta su/giù» funzionano. Dopo aver aperto app e file compaiono in «Recenti e frequenti» e nell'elenco dei file; l'avvio automatico di un'app (Pannello di controllo → Avvio) non la conta. «Cancella elenco» svuota solo i file.
+- [ ] Il pulsante di un altro workspace in fondo al menu cambia workspace senza chiudere il menu, che mostra le preferite e la storia di quel workspace; eliminando un workspace spariscono le sue (`lilos:ws:<id>:launcher`).
+- [ ] Sotto 860 px le colonne si impilano. La scheda «Work Area» porta in vista la workarea e riapre quelle ridotte a icona.
 - [ ] Mentre un menu è aperto, Canc e Ctrl A non agiscono sulla scrivania.
 - [ ] Data e ora sono corrette; il tooltip mostra la data completa.
 

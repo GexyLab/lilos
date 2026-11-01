@@ -5,20 +5,22 @@ const STORAGE_KEY = 'workspaces';
 const MAX_WORKSPACES = 20;
 const MAX_REMOVED = 100;
 const MAX_NAME = 40;
+const MAX_DESCRIPTION = 200;
 const MAX_HIDDEN = 50;
 const ID = /^[\w-]{1,40}$/;
 const COLOR = /^#[0-9a-f]{6}$/i;
 
 /** What each workspace keeps apart, under 'lilos:ws:<id>:<part>'. */
-export const PARTS = ['camera', 'desktop-layout', 'workareas', 'windows'];
+export const PARTS = ['camera', 'desktop-layout', 'workareas', 'windows', 'launcher'];
 
 /**
  * Saved workspaces ('lilos:workspaces'), validated on load: stored data is untrusted.
  *
  *   { current: id, list: [Workspace] }
- *   Workspace: { id, name, color, created, desk, apps: [app ids], known: [app ids], hidden: [keys] | null }
+ *   Workspace: { id, name, description, color, created, desk, apps: [app ids], known: [app ids], hidden: [keys] | null }
  *   Removed:   { id, name, color, created, removed }   kept so the files they made still say whose they are
  *
+ * `description`: a line about what the workspace is for ('' for none), under its name in the start menu.
  * `desk` is the workspace's private desk folder; `apps` the apps installed in it (system apps are
  * always installed and need not be listed); `known` the apps lilOS had when it was last saved, so
  * an app added to lilOS later arrives installed (one the user removed stays removed); `hidden` the
@@ -29,6 +31,7 @@ export const PARTS = ['camera', 'desktop-layout', 'workareas', 'windows'];
 const finite = v => Number.isFinite(v);
 
 export const cleanName = v => (typeof v === 'string' ? v.replace(/\s+/g, ' ').trim().slice(0, MAX_NAME) : '');
+export const cleanDescription = v => (typeof v === 'string' ? v.replace(/\s+/g, ' ').trim().slice(0, MAX_DESCRIPTION) : '');
 export const cleanColor = v => (typeof v === 'string' && COLOR.test(v) ? v : ACCENTS[0].value);
 
 /** 'ws:<id>:<part>': the storage key of one part of a workspace. */
@@ -44,7 +47,7 @@ function cleanWorkspace(raw, now, appIds) {
   const known = new Set(Array.isArray(raw.known) ? raw.known : Array.isArray(raw.apps) ? [...appIds] : []);
   const added = [...appIds].filter(a => !known.has(a));
   const hidden = Array.isArray(raw.hidden) ? raw.hidden.filter(k => typeof k === 'string' && ID.test(k)).slice(0, MAX_HIDDEN) : null;
-  return { ...base, desk: raw.desk, apps: [...new Set([...installed, ...added])], known: [...appIds], hidden };
+  return { ...base, description: cleanDescription(raw.description), desk: raw.desk, apps: [...new Set([...installed, ...added])], known: [...appIds], hidden };
 }
 
 /** { current, list }: `list` has live and removed workspaces; `current` may be invalid (the caller fixes it). */
@@ -63,8 +66,8 @@ export function saveWorkspaces(state) {
   storage.set(STORAGE_KEY, state);
 }
 
-export function newWorkspace({ name, color, desk, apps, id = uid() }) {
-  return { id, name: cleanName(name) || 'Workspace', color: cleanColor(color), created: Date.now(), desk, apps: [...apps], known: [...apps], hidden: null };
+export function newWorkspace({ name, description, color, desk, apps, id = uid() }) {
+  return { id, name: cleanName(name) || 'Workspace', description: cleanDescription(description), color: cleanColor(color), created: Date.now(), desk, apps: [...apps], known: [...apps], hidden: null };
 }
 
 /** Removes every key of a workspace. */
@@ -72,4 +75,4 @@ export function forgetWorkspace(id) {
   PARTS.forEach(part => storage.remove(workspaceKey(id, part)));
 }
 
-export const LIMITS = { MAX_WORKSPACES, MAX_NAME };
+export const LIMITS = { MAX_WORKSPACES, MAX_NAME, MAX_DESCRIPTION };

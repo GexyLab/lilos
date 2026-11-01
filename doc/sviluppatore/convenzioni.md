@@ -48,7 +48,7 @@
 - I pulsanti con sola icona hanno `aria-label` e `title`.
 - Un pulsante che avvia un'operazione da aspettare (rete, kernel, salvataggio) mostra la rotella accanto all'etichetta finché non finisce: `busyButton`, `actionButton({ spinner: true })` o `aria-busy="true"` a mano. Non quando si aspetta l'utente (una finestra di scelta).
 - Le icone decorative hanno `aria-hidden="true"`, che `svg()` aggiunge da solo.
-- I menu usano `role="menu"` e `role="menuitem"`; il menu di avvio usa `role="dialog"`, con una lista `role="listbox"` e opzioni con `aria-selected`.
+- I menu usano `role="menu"` e `role="menuitem"`; il menu di avvio è una pagina `role="dialog"` con `aria-modal="true"`, con schede `role="tablist"`/`role="tab"` (`aria-selected`) e un pannello `role="tabpanel"`; la tastiera ci si muove con le frecce tra gli elementi `data-nav`.
 - Ogni azione disponibile con il mouse deve avere un'alternativa da tastiera, oppure va segnalata come limite in [Stato e roadmap](../interna/stato-e-roadmap.md).
 - Il focus deve restare visibile: `:focus-visible` mostra un bordo nel colore principale.
 

@@ -118,7 +118,7 @@ function openApps() {
       if (!ep) continue;
       try {
         const { args, files } = argsFor(app, ep.params, params);
-        launch(id, args, entry, { files });
+        launch(id, args, entry, { files, auto: true });
       } catch (err) {
         notify(`${app.name} non si è aperta da sola. ${err.message}`, { level: 'error' });
       }

@@ -44,7 +44,7 @@ Nel registro di lilOS non ci sono app scritte nel codice: ogni app è un **pacch
 - per un'app di lilOS (File Manager, Editor, Pannello di controllo, AppStore e simili): [Aggiungere o aggiornare un'app di sistema](#aggiungere-o-aggiornare-unapp-di-sistema), nel repository ufficiale;
 - per un'app di altri: [Creare un'app installabile](#creare-unapp-installabile-pacchetto).
 
-Il nome (`name`), il simbolo (`icon.glyph`, un nome accettato da `icon()`; se serve uno nuovo, vedi [Aggiungere un simbolo](#aggiungere-un-simbolo)) e il colore (`icon.color`, con un buon contrasto con il simbolo bianco) stanno nel manifesto. L'`id` è stabile: finisce nei collegamenti sul desktop, quindi non va cambiato dopo il rilascio.
+La `category` del manifesto (`system`, `productivity`, `media`, `development`, `other`; `other` se manca) decide in quale scheda del menu di avvio compare l'app. Il nome (`name`), il simbolo (`icon.glyph`, un nome accettato da `icon()`; se serve uno nuovo, vedi [Aggiungere un simbolo](#aggiungere-un-simbolo)) e il colore (`icon.color`, con un buon contrasto con il simbolo bianco) stanno nel manifesto. L'`id` è stabile: finisce nei collegamenti sul desktop, quindi non va cambiato dopo il rilascio.
 
 Un'app con `required: true` (solo di sistema) è sempre visibile in ogni workspace; le altre ogni workspace può nasconderle nel Pannello di controllo → Workspace. Un'app nuova arriva visibile in tutti i workspace, anche in quelli già salvati (ognuno ricorda in `known` le app che lilOS aveva: quelle che non c'erano si aggiungono alla lettura); un'app che l'utente ha nascosto resta nascosta.
 

@@ -213,7 +213,8 @@ src/
     notify.js           notify(): una notifica da lilOS stesso
   taskbar/
     Taskbar.js          barra delle applicazioni: pulsante logo, area finestre, area di notifica, utente (pulsante) e orologio (il pulsante workspace lo aggiunge Workspaces)
-    StartMenu.js        menu di avvio con ricerca; tasto destro su un'app: Apri, Proprietà…; Esci (con più utenti) o Riavvia sessione
+    StartMenu.js        menu di avvio a pagina intera: ricerca, preferite, schede (recenti, workarea, categorie), file recenti, pulsanti dei workspace
+    usage.js            preferite e storia d'uso del menu per workspace (lilos:ws:<id>:launcher)
     BackgroundApps.js   icona con le app in background che sono rimaste attive (keepAlive) e "Ferma" (nell'area di notifica)
     PendingUpdates.js   pulsante delle app aggiornate da riavviare (nell'area di notifica)
     Clock.js            data e ora
@@ -472,6 +473,7 @@ Un'app installata è un pacchetto: `lilos.json` con i suoi file. Decisioni: [D38
 | `lilos:tags` | i tag: `{ id, name, color, visible }` (i tag messi sui nodi sono nel campo `tags` di `lilos:fs`) | `tags`, a ogni modifica |
 | `lilos:ws:<id>:desktop-layout` | posizioni sulla scrivania, `{ id: [x, y] }` | `Desktop`, dopo spostamenti e creazioni |
 | `lilos:ws:<id>:windows` | finestre delle app fuori dalle workarea, da riaprire | `Workspaces`, 400 ms dopo ogni cambiamento |
+| `lilos:ws:<id>:launcher` | app preferite, app avviate e file aperti (conteggi per giorno, 30 giorni) del menu di avvio | `usage` (`taskbar/usage.js`), a ogni modifica |
 | `lilos:ws:<id>:workareas` | workarea: area, titolo, descrizione, metadati, elementi nascosti e finestre da riaprire | `Workareas`, a ogni modifica; le finestre 400 ms dopo ogni cambiamento |
 | `lilos:files-view` | vista del File Manager (`"list"` o `"grid"`) | File Manager |
 | `lilos:files-panels` | pannelli Informazioni e Anteprima del File Manager: `{ info: { open, width }, preview: { open, width } }` | File Manager |

@@ -5,9 +5,10 @@ import { bus, Emitter } from '@lilos/sdk';
  * when installed: see packages/packages.js). File Manager, Editor, Control Panel (settings) and AppStore are packages
  * of the official repository too, installed by the kernel when missing.
  *
- *   { id, name, glyph, color, system?, trusted?, load: () => module, opens?: [ext], commands?: [cmd], package }
+ *   { id, name, glyph, color, category, system?, trusted?, load: () => module, opens?: [ext], commands?: [cmd], package }
  *
- * `glyph` is a name accepted by icon(). `load` imports the app module on first launch (see
+ * `glyph` is a name accepted by icon(). `category`: one of CATEGORIES (the manifest's, 'other'
+ * when missing), the start menu's tab that lists the app. `load` imports the app module on first launch (see
  * launcher.js). `opens`: file extensions the app opens (see open.js). `commands`: keyboard
  * shortcuts of the app, registered with the app so they can be changed in Settings even before
  * it runs (see commands.js). `package`: the installed package (state and manifest).
@@ -18,6 +19,9 @@ import { bus, Emitter } from '@lilos/sdk';
  * `apps` is live: it changes when apps are installed or removed ('change' on `registry`).
  */
 export const apps = [];
+
+/** App categories, as the manifest's `category` and the AppStore have them. */
+export const CATEGORIES = ['system', 'productivity', 'media', 'development', 'other'];
 
 /** Events: 'change' { id, app | null } — an app was added, replaced or removed (null). */
 export const registry = new Emitter();
@@ -55,7 +59,8 @@ export const installedApps = () => apps.filter(app => isInstalled(app.id));
 /**
  * Opens the app; `entry`: one of its window entry points other than main (see entrypoints.js).
  * `files`: ids of files the user hands it (an installed app may then read and write them).
+ * `auto`: lilOS starts it by itself (at login), not the user: it does not count as used.
  */
-export function launch(id, args, entry = 'main', { files = [] } = {}) {
-  bus.emit('app:launch', { id, args, entry, files });
+export function launch(id, args, entry = 'main', { files = [], auto = false } = {}) {
+  bus.emit('app:launch', { id, args, entry, files, ...(auto && { auto: true }) });
 }

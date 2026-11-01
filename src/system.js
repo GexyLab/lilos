@@ -77,6 +77,7 @@ connectProperties(wm);
 connectAppProperties(wm);
 const workareas = new Workareas({ canvas, desktop, wm, launcher, key: key('workareas') });
 const workspaces = new Workspaces({ state, canvas, desktop, wm, launcher, workareas, taskbar });
+taskbar.startMenu.connect({ workspaces, workareas });
 connectSystemEvents({ wm, workspaces });
 connectPackages({ desk: () => workspaces.current?.desk ?? null }).catch(err => console.error('[lilos] app:', err));
 setupHistory({ root: desktop.history, activeWindow: () => wm.active });

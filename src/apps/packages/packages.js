@@ -1,5 +1,5 @@
 import { apps as installed, fs, storage, tags, toast, h, locale, kernel } from '@lilos/sdk';
-import { registerApp, unregisterApp, getApp } from '../registry.js';
+import { registerApp, unregisterApp, getApp, CATEGORIES } from '../registry.js';
 import { registerAppCommands } from '../commands.js';
 import { packageModule } from './host.js';
 import { appCode } from './code.js';
@@ -78,6 +78,7 @@ const entry = pkg => {
     get text() { return localized(); },
     glyph: pkg.manifest.icon?.glyph ?? 'help',
     color: pkg.manifest.icon?.color ?? '#5f6673',
+    category: CATEGORIES.includes(pkg.manifest.category) ? pkg.manifest.category : 'other',
     system: pkg.required === true,   // never hidden
     trusted: pkg.system === true,    // runs without a sandbox
     package: pkg,

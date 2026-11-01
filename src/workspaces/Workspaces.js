@@ -4,7 +4,7 @@ import { ACCENTS } from '../systemSettings.js';
 import { cleanSavedWindow, LIMITS as AREA_LIMITS } from '../workareas/store.js';
 import { appIds, createDesk } from './setup.js';
 import { connectWorkspaceInfo } from './info.js';
-import { saveWorkspaces, newWorkspace, workspaceKey, forgetWorkspace, cleanName, cleanColor, LIMITS } from './store.js';
+import { saveWorkspaces, newWorkspace, workspaceKey, forgetWorkspace, cleanName, cleanDescription, cleanColor, LIMITS } from './store.js';
 import { WorkspaceSwitcher } from './WorkspaceSwitcher.js';
 
 const SAVE_DELAY = 400;
@@ -85,10 +85,10 @@ export class Workspaces extends Emitter {
   get currentId() { return this.#state.current; }
   get current() { return structuredClone(this.get(this.#state.current)); }
 
-  /** { id, name, color, removed, current } for any workspace ever made here, or null if unknown. */
+  /** { id, name, description, color, removed, current } for any workspace ever made here, or null if unknown. */
   describe(id) {
     const w = this.#state.list.find(x => x.id === id);
-    return w ? { id: w.id, name: w.name, color: w.color, removed: !!w.removed, current: w.id === this.#state.current } : null;
+    return w ? { id: w.id, name: w.name, description: w.description ?? '', color: w.color, removed: !!w.removed, current: w.id === this.#state.current } : null;
   }
 
   /** How many files, folders and shortcuts a workspace made, on its desk and elsewhere. */
@@ -134,6 +134,15 @@ export class Workspaces extends Emitter {
     const clean = cleanName(name);
     if (!ws || !clean || clean === ws.name) return;
     ws.name = clean;
+    this.#save();
+  }
+
+  /** A line about what the workspace is for ('' removes it). */
+  setDescription(id, description) {
+    const ws = this.get(id);
+    const clean = cleanDescription(description);
+    if (!ws || clean === ws.description) return;
+    ws.description = clean;
     this.#save();
   }
 
@@ -223,9 +232,9 @@ export class Workspaces extends Emitter {
   async #switch(id) {
     const target = this.get(id);
     if (!target || id === this.#state.current) return;
-    // Leave the current workspace as it is, saved: menus close and inline renames are confirmed
+    // Leave the current workspace as it is, saved: menus close and inline renames are confirmed.
+    // The start menu stays open (it has a button per workspace) and shows the new one's apps
     closeMenu();
-    this.taskbar.startMenu?.close();
     document.activeElement?.blur?.();
     clearTimeout(this.#saveTimer);
     this.#saveWindows();

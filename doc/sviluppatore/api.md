@@ -1133,6 +1133,7 @@ Una workarea è `{ id, title, rect, collapsed, created, modified, description, m
 | Metodo | Descrizione |
 | --- | --- |
 | `collapse(id)` | Chiede `canClose()` a ogni finestra dell'area (anche secondarie); se una risponde `false` si ferma e restituisce `false`. Poi salva le finestre delle app (`getState`, posizione, dimensione, ridotta o no), chiude tutte le finestre dell'area, nasconde gli elementi (ricordandone gli id in `items`), toglie l'area e mette l'icona nell'angolo in alto a sinistra. Restituisce `true`. |
+| `show(id)` | Porta la workarea in vista (la usa il menu di avvio): se è ridotta a icona la riapre (`expand`, che la inquadra); altrimenti la rende attuale e la inquadra (`canvas.frame` con 40 px di margine, zoom al massimo 100%). Non fa nulla per un id sconosciuto. |
 | `expand(id, { frame = true })` | Se riaprendola l'area coprirebbe un'altra workarea aperta, la sposta a destra con il contenuto (40 px di distanza). Toglie l'icona, mostra gli elementi, rimonta l'area, la rende attuale, con `frame` inquadra l'area (zoom al massimo 100%) e riapre le finestre una dopo l'altra con `launcher.restore`. |
 | `remove(id)` | Elimina solo la workarea. Se è ridotta la riapre prima (senza inquadrarla). Elementi e finestre restano. Emette `change`. |
 | `confirmRemove(ids, x, y)` | Apre un piccolo menu in `x`, `y` con **Elimina … (il contenuto resta sulla scrivania)** e **Annulla**. |
@@ -1220,18 +1221,19 @@ Scrivanie separate. Panoramica e motivazioni: [README per sviluppatori](README.m
 - crea il `WorkspaceSwitcher`, il pulsante nella barra;
 - salva le finestre 400 ms dopo ogni `open`/`close` del gestore delle finestre e `change` del canvas, e alla chiusura della pagina.
 
-Un workspace vivo è `{ id, name, color, created, desk, apps, known, hidden }` (vedi [`lilos:workspaces`](#lilosworkspaces)). In sviluppo il gestore è `lilos.workspaces`.
+Un workspace vivo è `{ id, name, description, color, created, desk, apps, known, hidden }` (vedi [`lilos:workspaces`](#lilosworkspaces)). In sviluppo il gestore è `lilos.workspaces`.
 
 | Membro | Descrizione |
 | --- | --- |
 | `list()` | Copie dei workspace vivi, in ordine. |
 | `get(id)` | Il workspace vivo (oggetto interno, da non modificare), o `null`. |
 | `currentId`, `current` | Id del workspace attuale; copia del workspace attuale. |
-| `describe(id)` | `{ id, name, color, removed, current }` per qualunque workspace mai creato, anche eliminato; `null` se sconosciuto. |
+| `describe(id)` | `{ id, name, description, color, removed, current }` (`description` è `''` se non c'è) per qualunque workspace mai creato, anche eliminato; `null` se sconosciuto. |
 | `ownedCount(id)` | Quanti file, cartelle e collegamenti ha creato (`fs.ownedCount`). |
 | `switchTo(id)` | Mostra un altro workspace. Messo in coda con le eliminazioni; `Promise` che risolve quando le sue finestre sono tornate. Non fa nulla per un id sconosciuto o già attuale. Salva il workspace lasciato (chiude i menu, conferma le rinomine in corso, salva finestre, workarea e posizioni), poi cambia `fs`, finestre, camera, scrivania e workarea, emette `switch` e mostra il messaggio «Workspace «nome»». Le finestre del workspace lasciato restano aperte, nascoste. La cronologia della scrivania riparte. |
 | `step(dir)` | Il successivo (`1`) o il precedente (`-1`), tornando al giro. Non fa nulla con un solo workspace. |
 | `create({ name?, color? })` | Nuovo workspace con la Scrivania vuota e tutte le app visibili. Restituisce l'id; `null` (con un messaggio) se ce ne sono già 20. Nome predefinito «Workspace N», colore il primo accento non usato. **Non lo mostra**: chiama `switchTo(id)`. |
+| `setDescription(id, text)` | Cambia la descrizione, una riga su cosa serve il workspace (spazi ripuliti, al massimo 200 caratteri; `''` la toglie; uguale o id sconosciuto si ignora). Salva ed emette `change`. Si vede sotto il nome nel menu di avvio. |
 | `rename(id, name)`, `setColor(id, color)` | Cambiano nome (ripulito, al massimo 40 caratteri; vuoto o uguale si ignora) e colore (esadecimale `#rrggbb`). |
 | `isInstalled(appId, id?)` | `true` se l'app è visibile nel workspace (l'attuale se manca `id`); le app `system` sempre. |
 | `setInstalled(appId, on, id?)` | Mostra o nasconde l'app nel workspace (non le app `system`); l'app resta installata in lilOS. Nascondendola nell'attuale chiude le finestre di quell'app con `requestClose`: ognuna può chiedere conferma se ha modifiche non salvate. |
@@ -1242,7 +1244,7 @@ Un workspace vivo è `{ id, name, color, created, desk, apps, known, hidden }` (
 
 | Evento | Payload | Quando |
 | --- | --- | --- |
-| `change` | — | Cambiati elenco, nomi, colori, app visibili o elementi fissi. |
+| `change` | — | Cambiati elenco, nomi, descrizioni, colori, app visibili o elementi fissi. |
 | `switch` | `id` | Mostrato un altro workspace. |
 
 ### `setup.js`
@@ -1259,12 +1261,12 @@ Lettura, controllo e scrittura di `lilos:workspaces` (formato in [Dati salvati](
 | --- | --- |
 | `loadWorkspaces(appIds)` | `{ current, list }` controllato voce per voce. `current` può non essere valido (lo ripara il chiamante). |
 | `saveWorkspaces(state)` | Scrive lo stato. |
-| `newWorkspace({ name, color, desk, apps, id? })` | Un workspace nuovo (id con `uid()`, data di creazione adesso). |
+| `newWorkspace({ name, description?, color, desk, apps, id? })` | Un workspace nuovo (id con `uid()`, data di creazione adesso). |
 | `workspaceKey(id, part)` | `'ws:<id>:<part>'`: la chiave di una parte del workspace. |
-| `PARTS` | `['camera', 'desktop-layout', 'workareas', 'windows']`. |
+| `PARTS` | `['camera', 'desktop-layout', 'workareas', 'windows', 'launcher']`. |
 | `forgetWorkspace(id)` | Cancella le chiavi di un workspace. |
-| `cleanName(v)`, `cleanColor(v)` | Ripuliscono nome (spazi, 40 caratteri) e colore (esadecimale, altrimenti il primo accento). |
-| `LIMITS` | `{ MAX_WORKSPACES: 20, MAX_NAME: 40 }` |
+| `cleanName(v)`, `cleanDescription(v)`, `cleanColor(v)` | Ripuliscono nome (spazi, 40 caratteri), descrizione (spazi, 200 caratteri) e colore (esadecimale, altrimenti il primo accento). |
+| `LIMITS` | `{ MAX_WORKSPACES: 20, MAX_NAME: 40, MAX_DESCRIPTION: 200 }` (esportato come `WORKSPACE_LIMITS` da `@lilos/system`) |
 
 ### `info.js`
 
@@ -1272,7 +1274,7 @@ Ciò che le app possono sapere dei workspace senza dipendere dal gestore (il Fil
 
 | Export | Descrizione |
 | --- | --- |
-| `describeWorkspace(id)` | `{ id, name, color, removed, current }` del proprietario di un nodo (`node.workspace`); `null` se `id` manca (cartelle di sistema condivise) o non è noto. |
+| `describeWorkspace(id)` | `{ id, name, description, color, removed, current }` del proprietario di un nodo (`node.workspace`); `null` se `id` manca (cartelle di sistema condivise) o non è noto. |
 | `onWorkspacesChange(fn)` | Chiama `fn` quando i workspace cambiano (`change` o `switch`). Restituisce la funzione che smette di ascoltare. |
 | `workspaceManager()` | Il gestore `Workspaces` (lo usa il Pannello di controllo), o `null`. |
 
@@ -1426,13 +1428,15 @@ Ascolta anche l'evento del bus `files:locked` (id di file): chiede di chiudere (
 
 ## apps/registry.js e apps/launcher.js
 
-- `apps`: array **vivo** di `{ id, name, glyph, color, system?, trusted?, load, opens?, commands?, package }`. **Nessuna app è integrata**: il registro contiene solo le app installate dal kernel (`packages.js` le aggiunge e le toglie). `package` è lo stato e il manifesto; `load` ne importa il modulo (vedi [apps/packages](#appspackages)). `system: true` significa che l'app è **necessaria** (`required` nel manifesto): sempre visibile in ogni workspace e non rimovibile. `trusted: true` significa app di sistema (`system` nel manifesto): gira dentro lilOS, senza sandbox. `opens`: estensioni che l'app apre per impostazione predefinita (`''` = senza estensione; da `contributes.fileTypes`); un'app con `opens` riceve `args.file`. `commands`: scorciatoie dell'app `{ id, label, keys, whenEditing? }`, registrate all'avvio (vedi [apps/commands.js](#appscommandsjs)).
+- `apps`: array **vivo** di `{ id, name, glyph, color, category, system?, trusted?, load, opens?, commands?, package }`. **Nessuna app è integrata**: il registro contiene solo le app installate dal kernel (`packages.js` le aggiunge e le toglie). `package` è lo stato e il manifesto; `load` ne importa il modulo (vedi [apps/packages](#appspackages)). `system: true` significa che l'app è **necessaria** (`required` nel manifesto): sempre visibile in ogni workspace e non rimovibile. `trusted: true` significa app di sistema (`system` nel manifesto): gira dentro lilOS, senza sandbox. `opens`: estensioni che l'app apre per impostazione predefinita (`''` = senza estensione; da `contributes.fileTypes`); un'app con `opens` riceve `args.file`. `commands`: scorciatoie dell'app `{ id, label, keys, whenEditing? }`, registrate all'avvio (vedi [apps/commands.js](#appscommandsjs)).
 - `glyph` è un nome accettato da `icon()` (predefinito `help`).
+- `category`: una di `CATEGORIES`, la `category` del manifesto (`'other'` se manca o non è valida). È la scheda del menu di avvio che elenca l'app.
+- `CATEGORIES`: `['system', 'productivity', 'media', 'development', 'other']`, le stesse del manifesto e dell'AppStore. Non è nell'API `@lilos/system`.
 - `registry`: `Emitter`. Evento `change` `{ id, app }` quando un'app viene aggiunta o sostituita (`app` è la nuova voce) o rimossa (`app` è `null`).
 - `registerApp(app)`: aggiunge l'app o sostituisce quella con lo stesso id (una nuova versione). `unregisterApp(id)`: la toglie. Le chiama `packages.js`.
 - `getApp(id)` → l'app o `undefined`.
 - `isInstalled(id)` → `true` se l'app esiste ed è visibile nel workspace attuale (le `system` sempre; il nome viene da quando le app si installavano per workspace). `installedApps()` → quelle visibili, nell'ordine del registro. `setInstalledFilter(fn)`: il sistema (`Workspaces`) imposta `fn(appId) → boolean`; predefinito: tutte visibili. Il menu di avvio mostra solo le visibili.
-- `launch(id, args?, entry = 'main', { files = [] } = {})`: emette `app:launch` con `{ id, args, entry, files }`. `entry` è uno dei punti d'ingresso di tipo finestra dell'app; l'utente apre sempre `main`. `files`: id di file consegnati all'app. Il launcher li passa al modulo (`({ args, openWindow, entry, files })`); in un'app installata diventano handle leggibili e scrivibili (`packageModule` in `host.js`), anche se isolata. Se la finestra è già aperta, il launcher emette `grant` (con gli id) su di essa prima di `launch`, e gli handle crescono.
+- `launch(id, args?, entry = 'main', { files = [], auto = false } = {})`: emette `app:launch` con `{ id, args, entry, files }` e, solo se `auto` è `true`, anche `auto: true`. `auto` dice che l'avvio lo fa lilOS da sola (lo usa `startup.js` per le app dell'avvio) e non l'utente: non conta come uso per le preferite e i recenti del menu di avvio (`taskbar/usage.js`). `entry` è uno dei punti d'ingresso di tipo finestra dell'app; l'utente apre sempre `main`. `files`: id di file consegnati all'app. Il launcher li passa al modulo (`({ args, openWindow, entry, files })`); in un'app installata diventano handle leggibili e scrivibili (`packageModule` in `host.js`), anche se isolata. Se la finestra è già aperta, il launcher emette `grant` (con gli id) su di essa prima di `launch`, e gli handle crescono.
 - `connectLauncher(wm)`: trasforma `app:launch` in finestre. Al primo avvio carica il modulo dell'app e chiama il suo export predefinito `({ args, openWindow, entry }) → Window` (per un'app di sistema e un `entry` diverso da `main`, l'export con quel nome), poi apre la finestra con `wm.open(win, { app: id, center, bounds })`. Se l'app ha già una finestra di **quel punto d'ingresso** **nell'ambito attuale** (e nel workspace attuale) la riporta in primo piano (ed emette `launch`). Una finestra che non è `main` salva `{ __entry, args }` come stato, così le workarea la riaprono dallo stesso punto d'ingresso. Se l'app non parte, un messaggio (`toast`) lo dice. Le app senza `load` (o inesistenti) scrivono un avviso in console. Un'app **nascosta** nel workspace attuale non parte: un messaggio (`toast`) dice di mostrarla dal Pannello di controllo → Workspace. La finestra appartiene al workspace attuale al momento della richiesta, anche se l'utente cambia workspace mentre l'app si carica (in quel caso si apre nascosta nel suo workspace).
 - Il launcher passa a ogni app un `openWindow` che apre le finestre secondarie con `owner` = l'id dell'app, e prima di avviare un'app chiede a `blockedLaunch(id)` (`apps/updates.js`): se l'app si sta aggiornando o aspetta il riavvio di lilOS, non parte e l'utente ne vede il motivo.
 - Prima di aprire una finestra il launcher fa passare l'avvio dall'evento `app.launch` `{ id, entry, args }` ([pipes](#sdkcorepipesjs-e-sdkcorepipecatalogjs)), se qualcuno lo vuole: un gestore può cambiare `args` o fermare l'avvio (l'errore è un avviso, non se `silent`), ma non `file` e `files`: quelli restano come li ha dati chi avvia. Un `args` che resta `null` torna `undefined`.
@@ -1903,19 +1907,49 @@ Stili in `src/styles/tags.css` (`.tag-dots`, `.tag-dot`, `.ditem-tags`, `.fm-tag
 
 `new StartMenu(anchor)`; `anchor` è il pulsante che lo apre, usato per `aria-expanded` e per non chiudere il menu quando lo si clicca.
 
+Non è un menu a tendina: è una pagina (`section.start-menu`, `role="dialog"`, `aria-modal="true"`, `aria-label` «Menu applicazioni») appesa a `document.body`, che copre scrivania e finestre ma lascia libera la barra delle applicazioni. Si chiude anche con un clic su un'altra parte della barra.
+
 | Membro | Descrizione |
 | --- | --- |
-| `open()`, `close()`, `toggle()` | Apre, chiude, alterna. All'apertura chiude un eventuale menu contestuale, svuota la ricerca e dà il focus al campo. |
+| `open()`, `close({ focus = false })`, `toggle()` | Apre, chiude, alterna. All'apertura chiude un eventuale menu contestuale, svuota la ricerca, ridisegna tutto e dà il focus al campo; mentre è aperto si ridisegna quando cambiano `usage`, il `registry`, i workspace (`change`, `switch`) o le workarea (`change`). `close({ focus: true })` (Esc) rida il focus al pulsante del logo. |
 | `isOpen` | Stato. |
-| `onUser`, `onOpen` | Funzioni che collega `UserPage` (predefinite `null`). `onUser()` parte quando si preme il nome in fondo al menu (che prima si chiude); `onOpen()` a ogni apertura del menu. |
+| `connect({ workspaces, workareas })` | Lo chiama `system.js` dopo aver creato `Workspaces` e `Workareas` (che nascono dopo la barra). Senza, il menu non mostra workspace né la scheda Work Area. |
+| `onUser`, `onOpen` | Funzioni che collega `UserPage` (predefinite `null`). `onUser()` parte quando si preme il nome in alto (che prima si chiude); `onOpen()` a ogni apertura del menu. |
 
-Registra la scorciatoia `system.startMenu` (Ctrl K, gruppo Generale, attiva anche mentre si scrive); la stessa combinazione lo chiude quando il focus è dentro il menu. Il tooltip del pulsante del logo segue la scorciatoia. La ricerca filtra per nome (contiene, senza distinguere maiuscole e minuscole) le app **visibili nel workspace attuale** (`installedApps()`). Il pulsante in fondo è **Esci** quando `kernel.mode` è `'multi'`, altrimenti **Riavvia sessione**: in entrambi i casi chiude il menu e chiama `signOut()` (vedi [user/](#user-la-pagina-utente)). Il nome in fondo è un pulsante (`.sm-user`, titolo «Pagina utente»).
+Registra la scorciatoia `system.startMenu` (Ctrl K, gruppo Generale, attiva anche mentre si scrive); la stessa combinazione lo chiude quando il focus è dentro il menu. Il tooltip del pulsante del logo e il suggerimento nel campo di ricerca seguono la scorciatoia.
+
+**Contenuto.** In alto: il workspace attuale, la ricerca, il nome dell'utente (`.sm-user`, titolo «Pagina utente»), il Pannello di controllo (`launch('settings')`), **Esci** quando `kernel.mode` è `'multi'` e altrimenti **Riavvia sessione** (chiudono il menu e chiamano `signOut()`, vedi [user/](#user-la-pagina-utente)) e **Chiudi**. Poi tre colonne:
+
+- **Preferite** (`usage.pinned()`, solo le app visibili nel workspace): si fissano con la stella o trascinandole nella colonna (tipo di trascinamento `application/x-lilos-app`); si riordinano trascinando o con **Sposta su** e **Sposta giù** del menu contestuale.
+- **App**, in schede: **Recenti e frequenti** (`usage.recentApps`, 6 voci, poi `usage.frequentApps`, 12 voci, senza ripetere le prime; senza storia, tutte le app per nome), **Work Area** (`workareas.list()`, la più recente per ultima modifica; `contentOf(id)` per finestre ed elementi; il clic chiama `workareas.show(id)`; tasto destro: **Vai alla workarea**, **Proprietà…**) e una scheda per ogni categoria di `CATEGORIES` che ha almeno un'app visibile (`app.category`; etichette Sistema, Produttività, Media, Sviluppo, Altro). Con un testo nella ricerca le schede lasciano il posto a **Risultati**: app il cui `name` o `text.description` contiene il testo e workarea il cui titolo o descrizione lo contiene (senza maiuscole né accenti).
+- **File**: `usage.recentFiles` (8 voci) e `usage.frequentFiles` (8 voci, solo con almeno 2 aperture), solo file che esistono e non sono nascosti, filtrati dalla ricerca per nome. Il clic apre il file con `openFile`; tasto destro: **Apri**, **Apri con…** (`openFile(node, { choose: true })`), **Mostra nella cartella** (`launch('files', { folder })`), **Togli dall'elenco** (`usage.forgetFile`). **Cancella elenco** chiama `usage.clearFiles()`.
+
+In basso, una barra con un pulsante per workspace (`workspaces.list()`, nome, descrizione, `aria-pressed` per quello attuale). Il clic chiama `workspaces.switchTo(id)` **senza chiudere il menu**, che si ridisegna (con il focus sullo stesso pulsante).
+
+**Tastiera.** Il menu ferma la propagazione dei tasti. Frecce tra gli elementi `[data-nav]` (prima quelli sulla stessa riga o colonna), ↓ dal campo entra nella griglia, Invio nel campo apre il primo risultato, ← → Home Fine sulle schede, Tab e Maiusc+Tab girano dentro il menu, un carattere digitato ovunque porta il focus nel campo. Esc svuota il campo se ha testo, altrimenti chiude. Sotto 860 px di larghezza le colonne si impilano (app per prime).
 
 ### `createClock()` → `HTMLElement`
 
 Data breve e ora secondo `session.locale` (la lingua del sistema), aggiornate allo scoccare di ogni minuto. Il tooltip contiene la data completa.
 
 ---
+
+### `usage` (`taskbar/usage.js`)
+
+La storia d'uso del menu di avvio, per workspace. Istanza unica di una classe che estende `Emitter`; lavora sempre sul workspace attuale (`fs.workspace`) e senza workspace non fa nulla. Si ascolta da sola `app:launch` e conta ogni avvio della finestra `main` (`entry` mancante o `'main'`) **che non ha `auto: true`**, cioè quello che fa l'utente (menu, scrivania, File Manager, «Apri con», notifiche); se `args.file` è un id lo conta anche come file aperto. Le finestre riaperte da sole (ricaricamento, workarea) non passano da `app:launch`; l'avvio automatico sì, ma con `auto: true`.
+
+| Membro | Descrizione |
+| --- | --- |
+| `pinned()` | Id delle app preferite, nell'ordine dell'utente. |
+| `isPinned(id)` | `true` se l'app è tra le preferite. |
+| `setPinned(id, on, index = null)` | Aggiunge (in fondo, o a `index`) o toglie una preferita; se c'era già la sposta. Al massimo 60. Id non validi ignorati. |
+| `recentApps(keep?)`, `recentFiles(keep?)` | `[{ id, last }]`, la più recente per prima. `keep(id)` filtra (app installate, file che esistono). |
+| `frequentApps(keep?)`, `frequentFiles(keep?)` | `[{ id, count }]`: quanto usati negli ultimi 30 giorni, i più usati per primi (a parità, il più recente). Solo con `count > 0`. |
+| `forgetFile(id)` | Toglie un file dagli elenchi (non lo cancella). |
+| `clearFiles()` | Svuota gli elenchi dei file del workspace attuale. |
+| `on('change', fn)` | `fn(workspaceId)` a ogni modifica salvata. |
+
+Formato (`lilos:ws:<id>:launcher`, vedi [Dati salvati](#liloswsid)): `{ pinned: [id], apps: [Entry], files: [Entry] }` con `Entry = { id, last, days: [[giorno, conteggio]] }` (`giorno` = giorni dal 1970; si tengono gli ultimi 30). Ogni elenco ha al massimo 100 voci (le più recenti). I dati salvati non sono affidabili: alla lettura si scartano id non validi (`/^[\w.-]{1,80}$/`), duplicati e conteggi non interi.
 
 ## notifications/ (le notifiche nell'interfaccia)
 
@@ -2037,7 +2071,7 @@ Il modulo osserva `userPhoto`: con una foto valida mette `--user-photo: url("…
 - `icon(name, className = 'ico')`: simbolo SVG 24×24 disegnato con `currentColor`. Con un nome sconosciuto mostra `help`.
 - `logo(className = 'logo')`: il logo di lilOS.
 
-Simboli disponibili: `search`, `plus`, `minus`, `x`, `fit`, `zoom`, `grid`, `folder`, `folderPlus`, `file`, `filePlus`, `open`, `pencil`, `trash`, `globe`, `code`, `terminal`, `gear`, `calendar`, `image`, `music`, `mail`, `power`, `help`, `info`, `max`, `palette`, `disk`, `user`, `window`, `keyboard`, `accessibility`, `arrowLeft`, `arrowRight`, `arrowDown`, `arrowUp`, `list`, `home`, `download`, `monitor`, `check`, `save`, `lasso`, `folderOpen`, `sidebar`, `workarea`, `workspace`, `undo`, `redo`, `bell`, `tag`, `eyeOff`, `link`, `logout`, `restart`, `camera`.
+Simboli disponibili: `search`, `plus`, `minus`, `x`, `fit`, `zoom`, `grid`, `folder`, `folderPlus`, `file`, `filePlus`, `open`, `pencil`, `trash`, `globe`, `code`, `terminal`, `gear`, `calendar`, `image`, `music`, `mail`, `power`, `help`, `info`, `max`, `palette`, `disk`, `user`, `window`, `keyboard`, `accessibility`, `arrowLeft`, `arrowRight`, `arrowDown`, `arrowUp`, `list`, `home`, `download`, `monitor`, `check`, `save`, `star`, `grip`, `lasso`, `folderOpen`, `sidebar`, `workarea`, `workspace`, `undo`, `redo`, `bell`, `tag`, `eyeOff`, `link`, `logout`, `restart`, `camera`.
 
 ### `toast.js`
 
@@ -2662,7 +2696,7 @@ Modulo del kernel che fornisce `notifications` (`modules/notifications-basic_1.0
 
 | Evento | Payload | Emesso da | Gestito da |
 | --- | --- | --- | --- |
-| `app:launch` | `{ id, args, entry?, files? }` | `launch()`: menu di avvio, collegamenti sul desktop, `callEntrypoint`, avvio automatico. `entry`: un punto d'ingresso di tipo finestra (`'main'` se manca). `files`: id di file che l'utente consegna all'app (`[]` se manca); un'app installata può leggerli e scriverli | `connectLauncher` (`apps/launcher.js`) |
+| `app:launch` | `{ id, args, entry?, files?, auto? }` | `launch()`: menu di avvio, collegamenti sul desktop, `callEntrypoint`, avvio automatico. `auto`: `true` solo se l'avvio lo fa lilOS da sola (avvio automatico) e non l'utente; manca altrimenti. `taskbar/usage.js` conta come uso solo gli avvii senza `auto`. `entry`: un punto d'ingresso di tipo finestra (`'main'` se manca). `files`: id di file che l'utente consegna all'app (`[]` se manca); un'app installata può leggerli e scriverli | `connectLauncher` (`apps/launcher.js`) |
 | `item:open` | nodo del file system | `Desktop.open()` per cartelle e file | `system.js`: le cartelle si aprono nel File Manager (`launch('files', { folder })`), i file con `openFile` |
 | `system:ready` | `{ at }` (`Date.now()`) | `system.js`, una volta per pagina, quando le finestre salvate del primo workspace (`workspaces.ready`) e delle workarea aperte (`workareas.ready`) sono tornate | Chi vuole partire con il sistema. I servizi del kernel **non** passano da qui: il kernel ha i suoi momenti `system:ready` e `user:login` (vedi [Servizi delle app](#servizi-delle-app-appsappservicesjs)), che non dipendono da una pagina aperta |
 | `user:login` | `{ user, workspace }` (`kernel.data.user` o `null`; id del workspace attuale o `null`) | `system.js`, subito dopo `system:ready` | `connectStartup` (`apps/startup.js`): apre le app dell'avvio |
@@ -2687,7 +2721,7 @@ I workspace, con quello attuale:
 {
   "current": "m1x2a0k3f",
   "list": [
-    { "id": "m1x2a0k3f", "name": "Principale", "color": "#3b6ef5", "created": 1793180000000,
+    { "id": "m1x2a0k3f", "name": "Principale", "description": "Il lavoro di ogni giorno", "color": "#3b6ef5", "created": 1793180000000,
       "desk": "m1x2a0k3g", "apps": ["editor", "esempio.note"], "known": ["files", "editor", "settings", "esempio.note"], "hidden": ["images"] },
     { "id": "m1x2d9e8c", "name": "Cliente Rossi", "color": "#30a46c", "created": 1793190000000, "removed": 1793200000000 }
   ]
@@ -2697,13 +2731,14 @@ I workspace, con quello attuale:
 | Campo | Significato |
 | --- | --- |
 | `id` | Identificativo; è anche il `workspace` dei nodi che ha creato. |
+| `description` | Una riga su cosa serve il workspace (può essere vuota), sotto il nome nel menu di avvio. Al massimo 200 caratteri. Solo nei workspace vivi; manca nei dati salvati prima. |
 | `desk` | Id della sua cartella Scrivania (privata). Solo nei workspace vivi. |
 | `apps` | Id delle app **visibili** nel workspace (le installate in lilOS e non nascoste). Le app `system` (File Manager, Pannello di controllo) sono sempre visibili e non serve elencarle. Una nuova voce senza `apps` le ha tutte. |
 | `known` | Id delle app che lilOS aveva all'ultimo salvataggio. Alla lettura, le app del registro che non ci sono vengono aggiunte ad `apps`: un'app nuova arriva visibile, una nascosta dall'utente resta nascosta. Senza `known` (dati di prima) si considerano note tutte le app del registro. |
 | `hidden` | Chiavi degli [elementi fissi](#desktopfixeditemsjs) spenti sulla sua scrivania, o `null`: valgono quelli dell'impostazione `deskHidden` (i workspace nuovi, e quelli salvati prima di questo campo). Si riempie alla prima scelta per quel workspace o in Tutti. |
 | `removed` | Data di eliminazione. Una voce "rimossa" non ha `desk` né `apps`: resta solo perché i file creati da quel workspace dicano ancora di chi erano (File Manager mostra «Nome (eliminato)»). |
 
-Controllo alla lettura, perché il dato non è affidabile: `list` deve essere un elenco (si leggono al massimo 120 voci); `id` di 1-40 caratteri tra lettere, cifre, `_` e `-`, senza duplicati; `name` ripulito (spazi, al massimo 40 caratteri), «Workspace» se vuoto; `color` esadecimale `#rrggbb`, altrimenti il primo accento; `created` numero finito, altrimenti l'ora della lettura; una voce viva senza `desk` è scartata; `apps` tiene solo id del registro, più quelli che `known` non conteneva; `known` è riscritto con gli id del registro attuale; `hidden` tiene solo testi come gli `id` (al massimo 50), `null` se non è un elenco; al massimo 20 workspace vivi e 100 rimossi (gli ultimi). Se `current` non è un workspace vivo, `setupWorkspaces` sceglie il primo.
+Controllo alla lettura, perché il dato non è affidabile: `list` deve essere un elenco (si leggono al massimo 120 voci); `id` di 1-40 caratteri tra lettere, cifre, `_` e `-`, senza duplicati; `name` ripulito (spazi, al massimo 40 caratteri), «Workspace» se vuoto; `description` ripulita come il nome ma fino a 200 caratteri, `''` se manca; `color` esadecimale `#rrggbb`, altrimenti il primo accento; `created` numero finito, altrimenti l'ora della lettura; una voce viva senza `desk` è scartata; `apps` tiene solo id del registro, più quelli che `known` non conteneva; `known` è riscritto con gli id del registro attuale; `hidden` tiene solo testi come gli `id` (al massimo 50), `null` se non è un elenco; al massimo 20 workspace vivi e 100 rimossi (gli ultimi). Se `current` non è un workspace vivo, `setupWorkspaces` sceglie il primo.
 
 ### `lilos:ws:<id>:…`
 
@@ -2715,6 +2750,7 @@ Ogni workspace tiene a parte, sotto `lilos:ws:<id>:` seguito da:
 | `desktop-layout` | posizioni sulla sua scrivania | come [`lilos:desktop-layout`](#lilosdesktop-layout) |
 | `workareas` | le sue workarea | come [`lilos:workareas`](#lilosworkareas) |
 | `windows` | le finestre delle app aperte fuori da ogni workarea, da riaprire | elenco di finestre salvate, come `windows` di una workarea; al massimo 30 |
+| `launcher` | preferite e storia d'uso del menu di avvio | `{ pinned, apps, files }`: vedi [`usage`](#usage-taskbarusagejs) |
 
 Le chiavi di un workspace eliminato si cancellano subito. All'avvio si cancellano anche quelle di workspace che non esistono (per esempio scritte dall'ultimo salvataggio di una pagina dopo un ripristino, o lasciate da un'altra scheda). Le finestre di `windows` si riaprono la prima volta che il workspace è mostrato nella sessione.
 

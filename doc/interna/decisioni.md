@@ -933,3 +933,39 @@ lilOS legge il file **prima** di avviare l'app e le dà le stringhe già risolte
 - **La finestra Notifiche e i suoi testi sono ancora in italiano** (come il resto dell'interfaccia di lilOS, [D45](#d45-un-file-di-traduzioni-per-app-inglese-predefinito-un-solo-motore)); i testi delle app che notificano sono quelli delle app.
 
 **Quando ripensarla.** Se serviranno notifiche con pulsanti o risposte; se un archivio più grande o ricercabile (un modulo su PostgreSQL) o una durata più lunga mostreranno che 200 non bastano; se si vorranno suoni, notifiche del browser o «non disturbare» per app; se il limite al minuto dovrà sopravvivere al riavvio; se la falsificazione del mittente da parte di un'app non isolata diventerà un problema (il kernel potrebbe firmare la richiesta, o rifiutare `app` dai client).
+
+## D50. Il menu applicazioni: una pagina, con la storia d'uso salvata per workspace
+
+**Decisione.** Il menu di avvio diventa il **menu applicazioni** (1° novembre 2026, su `development`): non più un elenco a tendina sopra il logo, ma una pagina a schermo intero sopra scrivania e finestre, come la pagina utente ([D48](#d48-la-pagina-utente-e-il-blocco-come-fine-della-sessione)), con la barra delle applicazioni sempre visibile.
+
+- **Contenuto.** In alto ricerca (app, workarea, file degli elenchi), pagina utente, Pannello di controllo ed Esci; a sinistra le **preferite**; al centro schede (Recenti e frequenti, Work Area, una per categoria del manifesto); a destra i **file** aperti di recente e più spesso; in basso un pulsante per **workspace**, che cambia workspace senza chiudere il menu.
+- **La storia d'uso sta in `storage`, per workspace** (`lilos:ws:<id>:launcher`, parte `launcher` di `PARTS`): preferite in ordine, e per ogni app e file l'ultimo uso e i conteggi per giorno degli ultimi 30 giorni, al massimo 100 voci. Si cancella con il workspace come le altre parti di [D27](#d27-workspace-scrivanie-separate-isolate-dal-file-system).
+- **Si conta in un punto solo**: `src/taskbar/usage.js` ascolta `app:launch` sul bus. Conta ogni avvio della finestra `main` e `args.file`, **tranne** quelli con `auto: true`, che mette `launch(..., { auto: true })` e che usa l'avvio automatico (`startup.js`).
+- **Le app hanno una `category`** nel registro (quella del manifesto, `other` se manca; `CATEGORIES` in `registry.js`).
+- **I workspace hanno una `description`** (200 caratteri), mostrata sotto il nome nei pulsanti in basso. Si cambia dal Pannello di controllo (1.10.0).
+- **`Workareas.show(id)`** porta in vista una workarea (la riapre se ridotta a icona): il clic su una workarea del menu.
+
+**Perché.**
+
+- Chi ha molte app e più workspace ritrova prima ciò che usa davvero: le preferite stanno ferme, i recenti e i frequenti cambiano da soli, per ogni scrivania.
+- Una pagina larga ha posto per tre colonne, per le schede e per i workspace, cosa che un menu a tendina di poche decine di righe non ha.
+- Contare dal bus evita di cambiare ogni punto che avvia un'app (menu, scrivania, File Manager, «Apri con», notifiche): tutti passano da `launch`.
+- Per workspace perché i workspace servono a separare lavori diversi: le app del lavoro non devono riempire i recenti di casa.
+
+**Alternative scartate.**
+
+- **Storia globale** (una per utente): mescola i workspace, contro l'idea di D27.
+- **Contare dentro il launcher** (`connectLauncher`): il launcher non conosce il significato «l'utente ha scelto» e riaprirebbe come uso anche le finestre che tornano da sole.
+- **Contare ogni apertura di finestra**: includerebbe le finestre riaperte dopo un ricaricamento e le workarea.
+- **Tenere i recenti in memoria**: si perderebbero a ogni uscita.
+
+**Conseguenze.**
+
+- **Chi emette `app:launch` per conto di lilOS (non dell'utente) deve passare `auto: true`.** Oggi lo fa solo `startup.js`; un nuovo avvio automatico che se ne dimenticasse falserebbe i recenti.
+- **La ricerca dei file guarda solo gli elenchi** (file già aperti da questo workspace), non tutto il file system.
+- **Il Pannello di controllo 1.10.0 va rilasciato dopo lilOS** ([D38](#d38-le-app-di-sistema-vengono-dal-repository-ufficiale-e-girano-dentro-lilos)) per avere il campo Descrizione; senza, la descrizione resta vuota e tutto il resto funziona.
+- **I testi del menu sono ancora in italiano**, come il resto dell'interfaccia di lilOS ([D45](#d45-un-file-di-traduzioni-per-app-inglese-predefinito-un-solo-motore)).
+- **SDK**: cambia solo l'aspetto del simbolo `gear` (ora un ingranaggio) e arrivano `star` e `grip`; vedi `sdk/README.md`.
+- Il cambio di workspace non chiude più il menu: `Workspaces` non lo chiude e il menu si ridisegna da solo (`switch`).
+
+**Quando ripensarla.** Se serviranno raccolte di app a scelta dell'utente (non solo le preferite), una storia condivisa tra workspace, la ricerca di tutti i file o le impostazioni, o se 100 voci per elenco e 30 giorni non bastano.

@@ -89,7 +89,8 @@ src/                    il sistema, costruito sull'SDK
   notifications/        notifiche: campanella e barra delle notifiche nell'area di notifica, finestra Notifiche
   taskbar/
     Taskbar.js          barra delle applicazioni: pulsante logo · pulsante workspace · area finestre · area di notifica · utente (apre la pagina utente) e orologio
-    StartMenu.js        menu di avvio con ricerca app (tasto destro: Apri, Proprietà…)
+    StartMenu.js        menu di avvio a schermo intero: ricerca, preferite, app per schede (recenti e frequenti, workarea, categorie), file recenti e frequenti, un pulsante per workspace
+    usage.js            preferite e cronologia di app e file del menu di avvio, per workspace
     BackgroundApps.js   icona delle app in background rimaste attive, con "Ferma" (area di notifica)
     Clock.js
   styles/               uno stile per area del sistema
@@ -106,7 +107,7 @@ doc/                    documentazione utente, sviluppatore e interna
 | Spostarsi | Spazio + trascina, tasto centrale (un dito sugli schermi touch) |
 | Selezionare | clic, trascina sullo sfondo (rettangolo), Alt + trascina (mano libera, modificabile), Ctrl/Shift per aggiungere |
 | Mostra tutto | Shift 1 |
-| Menu di avvio | pulsante logo, Ctrl K; in fondo il tuo nome (apre la pagina utente), Pannello di controllo ed Esci (con più utenti) |
+| Menu di avvio | pulsante logo, Ctrl K; in alto il tuo nome (apre la pagina utente), Pannello di controllo ed Esci (con più utenti); Esc lo chiude |
 | Pagina utente | clic sul tuo nome nella barra delle applicazioni o nel menu di avvio; Esc la chiude |
 | Notifiche | campanella nell'area di notifica (in basso a destra) apre la finestra Notifiche; la barra delle notifiche si chiude con Esc o la ×; scorciatoia «Apri o chiudi le notifiche» (senza tasto di serie); Pannello di controllo → Notifiche |
 | Elementi | doppio clic apre, F2 rinomina, Canc elimina (nel Cestino), Ctrl A seleziona tutto, Ctrl/Shift + clic selezione multipla |

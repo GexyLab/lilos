@@ -325,6 +325,15 @@ export class Workareas extends Emitter {
     return true;
   }
 
+  /** Brings a workarea into view (the start menu): reopens it if reduced to an icon, frames it, makes it current. */
+  async show(id) {
+    const ws = this.get(id);
+    if (!ws) return;
+    if (ws.collapsed) return this.expand(id);
+    this.setCurrent(id);
+    this.canvas.frame(ws.rect, 40, 1);
+  }
+
   /** Brings the area back with its items and windows and frames it. */
   async expand(id, { frame = true } = {}) {
     const ws = this.get(id);

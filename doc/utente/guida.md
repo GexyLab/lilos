@@ -19,7 +19,7 @@ Se lilOS ha più utenti, all'apertura compare **Accedi a lilOS**: scrivi il **no
 - Se compare **Il kernel di lilOS non risponde**, il programma che conserva i tuoi dati non è acceso. Chi gestisce lilOS deve avviarlo; poi premi **Riprova**.
 - Il tuo spazio è tuo: ogni utente ha le sue cartelle, i suoi file e le sue impostazioni, e gli altri non li vedono.
 
-**Uscire.** Apri il menu di avvio e premi il pulsante di accensione in fondo, **Esci**. Prima le finestre con modifiche non salvate ti chiedono se salvarle; poi lilOS salva quello che stava ancora salvando, cancella dal browser la copia dei tuoi file e torna alla schermata di accesso. Su un computer che non è solo tuo, esci sempre. Se lilOS ha un solo utente il pulsante si chiama **Riavvia sessione**: dopo la stessa domanda delle finestre ricarica la pagina. Puoi uscire anche dalla [pagina utente](#la-pagina-utente).
+**Uscire.** Apri il menu di avvio e premi il pulsante di accensione in alto a destra, **Esci**. Prima le finestre con modifiche non salvate ti chiedono se salvarle; poi lilOS salva quello che stava ancora salvando, cancella dal browser la copia dei tuoi file e torna alla schermata di accesso. Su un computer che non è solo tuo, esci sempre. Se lilOS ha un solo utente il pulsante si chiama **Riavvia sessione**: dopo la stessa domanda delle finestre ricarica la pagina. Puoi uscire anche dalla [pagina utente](#la-pagina-utente).
 
 **La sessione scade.** Per sicurezza, dopo molti giorni (o dopo alcuni giorni senza usare lilOS) devi accedere di nuovo. Se succede mentre lavori compare **Sessione scaduta**: accedi con lo stesso utente e le modifiche che aspettavano vengono salvate. Se provi con un altro utente lilOS non lo accetta.
 
@@ -237,6 +237,7 @@ Al primo avvio c'è un solo workspace, **Principale**. Se usavi lilOS prima dei 
 
 - Fai clic sul **pulsante del workspace** nella barra delle applicazioni, accanto al logo. Il menu mostra l'elenco (con una spunta su quello in cui sei), **Successivo**, **Precedente**, **Nuovo workspace** e **Gestisci i workspace…**.
 - Oppure premi **Ctrl Alt →** per il successivo e **Ctrl Alt ←** per il precedente. Funzionano anche mentre scrivi, e solo se hai almeno due workspace.
+- Oppure apri il [menu di avvio](#il-menu-di-avvio) e premi il pulsante del workspace in basso. Il menu resta aperto e si aggiorna.
 
 In basso compare per un attimo il nome del workspace in cui sei arrivato.
 
@@ -249,6 +250,7 @@ Il workspace che lasci resta **esattamente com'era**. Le sue finestre non si chi
 | Scrivania (la cartella **Scrivania**) | Separata. Gli altri workspace non la vedono affatto: non compare né nel File Manager, né quando scegli un file o una cartella, né nel pannello dell'Editor |
 | Posizione degli elementi, vista, workarea, finestre aperte | Separate |
 | App visibili | Separate (vedi sotto): le app si installano per tutti, ogni workspace sceglie quali mostrare |
+| Preferite e app e file usati di recente nel menu di avvio | Separati |
 | **Documenti**, **Immagini**, **Download** | Condivise: tutti i workspace vedono gli stessi file |
 | Tema, colore principale, scorciatoie, menu del tasto destro, app dei tipi di file | Uguali in tutti i workspace |
 
@@ -266,7 +268,7 @@ Ogni file e cartella ricorda **il workspace che l'ha creato**. Non cambia se lo 
 
 Apri il **Pannello di controllo → Workspace**. Ci sono due schede.
 
-- **Questo workspace**: il **nome** (al massimo 40 caratteri), il **colore** (è il pallino nella barra delle applicazioni e accanto ai suoi file nel File Manager), quanti file, cartelle e collegamenti ha creato, un interruttore per ogni app (acceso: l'app è visibile) e uno per ogni [elemento fisso](#gli-elementi-fissi) della sua scrivania.
+- **Questo workspace**: il **nome** (al massimo 40 caratteri), la **descrizione** (una riga, al massimo 200 caratteri: compare sotto il nome nel [menu di avvio](#il-menu-di-avvio); può restare vuota), il **colore** (è il pallino nella barra delle applicazioni e accanto ai suoi file nel File Manager), quanti file, cartelle e collegamenti ha creato, un interruttore per ogni app (acceso: l'app è visibile) e uno per ogni [elemento fisso](#gli-elementi-fissi) della sua scrivania.
 - **una scheda per ogni altro workspace**, con il suo nome: le stesse impostazioni, per cambiarle senza passarci. **Passa a questo** ti ci porta.
 - **Tutti**: l'elenco dei workspace, con quanti elementi hanno creato e quante app mostrano. **Passa a questo** ti ci porta, **Elimina…** lo elimina, **Crea** ne fa uno nuovo con la scrivania vuota e tutte le app visibili. Puoi averne **al massimo 20**. L'ultimo workspace non si può eliminare. Sotto, gli elementi fissi da accendere o spegnere in tutti i workspace insieme.
 
@@ -1005,17 +1007,44 @@ I servizi hanno bisogno di un componente del sistema, `services-isolate`. Se man
 
 ## Il menu di avvio
 
-Aprilo con il **pulsante del logo** in basso a sinistra oppure con **Ctrl K**.
+È il menu delle applicazioni: una pagina che copre la scrivania e le finestre (la barra delle applicazioni resta visibile). Aprilo con il **pulsante del logo** in basso a sinistra oppure con **Ctrl K**. Per chiuderlo premi **Esc**, il pulsante **Chiudi** in alto a destra, **Ctrl K** di nuovo o il logo.
 
-- Scrivi per cercare un'app per nome. Compaiono le app visibili nel workspace in cui sei.
-- Usa le **frecce** per scegliere e **Invio** per avviare, oppure fai clic sull'app.
-- **Tasto destro** su un'app: **Apri**, oppure **Proprietà…** (vedi [Proprietà di un'app](#proprietà-di-unapp)).
-- **Esc** o di nuovo **Ctrl K** chiudono il menu. Si chiude anche facendo clic fuori.
+**In alto** ci sono il workspace in cui sei, il campo **Cerca app e file** e, a destra:
 
-In fondo al menu trovi il tuo nome (premilo per aprire la [pagina utente](#la-pagina-utente)) e due pulsanti:
+- il tuo nome (premilo per aprire la [pagina utente](#la-pagina-utente));
+- **Pannello di controllo** (ingranaggio): apre le impostazioni di lilOS;
+- **Esci** (simbolo di accensione, se lilOS ha più utenti): chiude la tua sessione e torna alla schermata di accesso (vedi [Accedere e uscire](#accedere-e-uscire)). Se lilOS ha un solo utente il pulsante si chiama **Riavvia sessione** e ricarica lilOS;
+- **Chiudi**.
 
-- **Pannello di controllo** (ingranaggio): apre la finestra del Pannello di controllo, con le impostazioni di lilOS.
-- **Esci** (simbolo di accensione, se lilOS ha più utenti): chiude la tua sessione e torna alla schermata di accesso (vedi [Accedere e uscire](#accedere-e-uscire)). Se lilOS ha un solo utente il pulsante si chiama **Riavvia sessione** e ricarica lilOS.
+**Tre colonne.**
+
+- **Preferite** (a sinistra): le app che hai fissato. Per fissare un'app premi la **stella** sulla sua icona, oppure trascinala nella colonna. Per cambiare l'ordine trascina una preferita più su o più giù, oppure usa il tasto destro: **Sposta su** e **Sposta giù**. Per toglierla, premi di nuovo la stella o scegli **Togli dalle preferite**.
+- **Le app** (al centro), in schede:
+  - **Recenti e frequenti**: prima le app che hai usato da poco, poi quelle che usi di più negli ultimi 30 giorni (senza ripetere le prime). Finché non hai aperto nessuna app in questo workspace mostra tutte le app;
+  - **Work Area**: le workarea di questo workspace, con titolo, descrizione, quante finestre e quanti elementi contengono e se sono ridotte a icona o quando le hai modificate per l'ultima volta. Un clic ti porta alla workarea (la riapre se era ridotta a icona). Tasto destro: **Vai alla workarea** o **Proprietà…**;
+  - una scheda per ogni categoria che ha almeno un'app: **Sistema**, **Produttività**, **Media**, **Sviluppo**, **Altro**.
+- **File** (a destra): i file che hai aperto da poco e quelli che apri più spesso (almeno 2 volte negli ultimi 30 giorni). Fai clic su un file per aprirlo. Tasto destro: **Apri**, **Apri con…**, **Mostra nella cartella** (apre il File Manager lì) e **Togli dall'elenco**. **Cancella elenco** svuota gli elenchi dei file di questo workspace. I file non vengono cancellati e non si possono ripristinare gli elenchi.
+
+**In basso** c'è un pulsante per ogni workspace, con il nome e la descrizione (se è lunga viene tagliata). Fai clic per passarci: il menu resta aperto e mostra le app, le preferite e i file di quel workspace. Come descrizione di un workspace vedi [Creare, rinominare, eliminare](#creare-rinominare-eliminare).
+
+**Cercare.** Scrivi nel campo (o inizia a scrivere ovunque nel menu). Compaiono le app il cui nome o la cui descrizione contiene quello che hai scritto, le workarea il cui titolo o la cui descrizione lo contiene e i file negli elenchi a destra. La ricerca non guarda tutti i tuoi file: solo quelli che hai già aperto con lilOS. Esc svuota il campo; un secondo Esc chiude il menu.
+
+**Tastiera.**
+
+| Tasto | Cosa fa |
+| --- | --- |
+| Frecce | Passano da un elemento all'altro, preferendo la stessa riga o la stessa colonna |
+| ↓ nel campo di ricerca | Entra nell'elenco delle app |
+| Invio nel campo di ricerca | Apre il primo risultato |
+| ← → sulle schede | Cambiano scheda (anche Home e Fine) |
+| Tab | Gira dentro il menu, senza uscirne |
+| Esc | Svuota la ricerca; se è già vuota, chiude il menu |
+
+**Tasto destro su un'app**: **Apri**, **Aggiungi alle preferite** (o **Togli dalle preferite**) e **Proprietà…** (vedi [Proprietà di un'app](#proprietà-di-unapp)).
+
+**Cosa ricorda.** Le preferite e gli elenchi delle app e dei file sono **separati per workspace** e si cancellano quando elimini il workspace. Contano le app che avvii tu (dal menu, dalla scrivania, dal File Manager, da «Apri con» o da una notifica) e i file che apri con un'app. Non contano le app che lilOS apre da sola (per esempio quelle dell'[avvio](#aprire-le-app-allavvio)) né le finestre che tornano al loro posto dopo un riavvio. Si ricordano al massimo 100 app e 100 file per workspace.
+
+Su uno schermo stretto (meno di 860 pixel) le colonne si mettono una sotto l'altra, con le app per prime.
 
 App del menu: File Manager, Editor, Pannello di controllo, AppStore e le [app installate](#app-installate). File Manager, Pannello di controllo e AppStore ci sono in ogni workspace; le altre in quelli dove non le hai nascoste.
 
