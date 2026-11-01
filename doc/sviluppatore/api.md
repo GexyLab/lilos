@@ -946,7 +946,7 @@ DOM: `div.ditem[data-kind="item"][data-id]` con `.ditem-glyph` e `.ditem-label`.
 | `editing` | `true` durante la rinomina. |
 | `moveTo(x, y)` | Sposta e aggiorna `data`. |
 | `setSelected(bool)` | Aspetto selezionato. |
-| `setData({ name, color, tags })` | Aggiorna nome, colore, tag, etichetta e icona (l'estensione può cambiare l'icona; i pallini dei tag si ridisegnano con `tagDots`, classe `ditem-tags`). |
+| `setData({ name, color, tags, apps, modified, size })` | Aggiorna nome, colore, tag, segni delle app, data e dimensione (la miniatura dipende dal contenuto), etichetta e icona (l'estensione può cambiare l'icona; i pallini dei tag si ridisegnano con `tagDots`, classe `ditem-tags`). |
 | `editName()` | Rinomina dentro l'etichetta. La Promise restituisce il nuovo nome (senza spazi in eccesso) o `null` se annullata o invariata. **Non** cambia il nome: lo fa chi chiama (il `Desktop`, con `fs.rename`). |
 
 `DesktopItem` non salva e non conosce il canvas: è il `Desktop` che lo aggiunge, lo collega agli eventi e lo salva.
@@ -961,7 +961,7 @@ DOM: `div.ditem[data-kind="item"][data-id]` con `.ditem-glyph` e `.ditem-label`.
 - `placeIcon(glyph, color?)`: un luogo della scrivania (Home, Documenti…): la cartella con sopra il simbolo SDK `glyph`.
 - `trashIcon(full = false)`: il cestino; con `full` ha della carta che esce.
 - `itemBadges(data)` → `[{ glyph, label, color }]`: i segni che le app installate mettono sull'icona di un nodo, uno per ogni app che ha dati sul nodo (`data.apps`) e dichiara `contributes.badge` (il simbolo, il testo, il colore dell'app). Se l'app non c'è più e i suoi dati hanno `content: true`, un lucchetto grigio con «Serve l'app `<id>`».
-- `itemIcon(data)`: l'icona giusta per qualsiasi nodo del file system, con i segni di `itemBadges` in un angolo (`.icon-badged`; il testo nel `title` e `aria-label`) (usata anche dal File Manager) e, con `data.type === 'workarea'`, per le icone delle workarea. Con `type: 'trash'` dà `trashIcon(data.full)`; una cartella con `data.glyph` dà `placeIcon(data.glyph, data.color)`.
+- `itemIcon(data, { preview = 0 } = {})`: l'icona giusta per qualsiasi nodo del file system, con i segni di `itemBadges` in un angolo (`.icon-badged`; il testo nel `title` e `aria-label`) (usata anche dal File Manager) e, con `data.type === 'workarea'`, per le icone delle workarea. Con `type: 'trash'` dà `trashIcon(data.full)`; una cartella con `data.glyph` dà `placeIcon(data.glyph, data.color)`. Con `preview > 0` e un file (`type` non `folder`, non `fixed`) l'icona di base è `thumbnailIcon(data, { size: preview, fallback: fileIcon(data.name) })` ([apps/thumbnails.js](#miniature-dei-file-thumbnailsjs)): la miniatura dell'app, quando c'è, al posto dell'icona; `preview` è il lato lungo in pixel CSS. I segni delle app restano sopra. Cartelle, app, workarea e cestino ignorano `preview`.
 
 ---
 
@@ -991,7 +991,7 @@ Gli elementi fissi: su ogni scrivania (di ogni workspace) ci sono quelli accesi 
 - `fixedData(item)`: i dati per `DesktopItem` (`{ id, name, fixed, type, … }`): `type: 'app'` con `app`, `type: 'trash'` con `full: fs.trashed().length > 0`, altrimenti `type: 'folder'` con `glyph`. `x` e `y` li dà il `Desktop`.
 - `acceptDrops(el, item)`: rende l'elemento un bersaglio di rilascio. Home e cartelle si marcano con `markItem` (file e cartelle si spostano lì, annullabile). Il cestino è una `dropZone` che accetta i nodi esistenti non di sistema, li manda a `removeNodes(stack, ids)` (annullabile con Ctrl Z) e manda una notifica. L'app File Manager non accetta nulla.
 
-`Desktop` ridisegna il Cestino (`full`) a ogni evento `trash` di `fs`. Il sistema espone `FIXED_ITEMS` come `DESK_FIXED_ITEMS` (vedi [systemApi.js](#systemapijs-lilossystem)), con `isFixedShown`, `setFixedShown` e `setFixedShownEverywhere`. Pannello di controllo (1.5.0) li usa in Workspace: la sezione «Elementi fissi» delle schede di ogni workspace (un interruttore per elemento in quel workspace) e di Tutti (`setFixedShownEverywhere`, con «Acceso in X workspace su N» quando non è uguale ovunque). Con un lilOS senza `setFixedShownEverywhere` la sezione è solo in Tutti, come scelta unica per tutte le scrivanie (o «Fisso», senza `setFixedShown`). Scrivania → Elementi ha solo un pulsante che porta a Workspace.
+`Desktop` ridisegna il Cestino (`full`) a ogni evento `trash` di `fs`. Il sistema espone `FIXED_ITEMS` come `DESK_FIXED_ITEMS` (vedi [systemApi.js](#systemapijs-lilossystem)), con `isFixedShown`, `setFixedShown` e `setFixedShownEverywhere`. Pannello di controllo (1.5.0) li usa in Workspace: la sezione «Elementi fissi» delle schede di ogni workspace (un interruttore per elemento in quel workspace) e di Tutti (`setFixedShownEverywhere`, con «Acceso in X workspace su N» quando non è uguale ovunque). Con un lilOS senza `setFixedShownEverywhere` la sezione è solo in Tutti, come scelta unica per tutte le scrivanie (o «Fisso», senza `setFixedShown`). Scrivania → Elementi (1.12.0) ha il pulsante che porta a Workspace e la sezione «Icone» con l'interruttore «Mostra l'anteprima dei file» (impostazione `deskPreviews`); la sezione c'è solo se `system.fileThumbnail` esiste, e «Ripristina» la riporta al predefinito.
 
 ---
 
@@ -1345,7 +1345,7 @@ Argomenti (`args`) che il sistema usa per avviarle, e stato per le workarea (`wi
 
 Il sistema dipende da questi argomenti (`launch('files', { folder })` in `system.js`, `launch('settings', { tab: 'workspaces' })` nel pulsante del workspace): cambiarli nell'app rompe il sistema. Il sistema non dipende invece dall'esistenza delle app: se una manca, `launch` scrive solo un'informazione in console (`app non ancora disponibile`).
 
-Cosa salvano (chiavi di `storage`, vedi [Dati salvati](#dati-salvati)): File Manager `files-view`, `files-panels`; Editor `editor-lang`, `editor-tree`, `editor-tabs`, `editor-draft:<scheda>`; Pannello di controllo nulla di proprio (usa `settings`, `shortcuts`, `tags`, `menus`…). Le associazioni dei tipi di file e l'ordine della barra laterale del File Manager sono del sistema (`file-apps`, `files-sidebar`).
+Cosa salvano (chiavi di `storage`, vedi [Dati salvati](#dati-salvati)): File Manager `files-view` (`'list'`, `'grid'` o `'thumbs'`), `files-panels`; Editor `editor-lang`, `editor-tree`, `editor-tabs`, `editor-draft:<scheda>`; Pannello di controllo nulla di proprio (usa `settings`, `shortcuts`, `tags`, `menus`…). Le associazioni dei tipi di file e l'ordine della barra laterale del File Manager sono del sistema (`file-apps`, `files-sidebar`).
 
 Permessi dichiarati nei manifesti ufficiali: File Manager `fs.write:~`, `fs.workspaces`, `tags.write`, `desktop.items`, `ui.shortcuts`; Editor `fs.write:~`, `ui.shortcuts`, `net:https://json.schemastore.org`; Photo `fs.write:~`, `ui.shortcuts`; Pannello di controllo `settings.system`, `workspaces.manage`, `tags.write`, `ui.shortcuts`; AppStore `apps.manage`. Per le app di sistema non c'è un controllo a ogni uso (non passano dal ponte): i permessi servono al kernel per accettare il manifesto e a mostrare cosa fa l'app.
 
@@ -1372,6 +1372,7 @@ Permessi dichiarati nei manifesti ufficiali: File Manager `fs.write:~`, `fs.work
 | `handleCommand` | `apps/commands.js` | Un'app gestisce un suo comando |
 | `sendKey` | `input/sendKey.js` | Manda un tasto all'elemento con il focus, come un tasto vero ([input/sendKey.js](#inputsendkeyjs)) |
 | `callEntrypoint`, `connectEntrypoint`, `entrypointsOf` | `apps/entrypoints.js` | Avviare un punto d'ingresso di un'app, collegarsi a uno in background, elencare quelli di un'app (vedi [Punti d'ingresso](#punti-dingresso-entrypointsjs)) |
+| `fileThumbnail`, `canThumbnail` | `apps/thumbnails.js` | La miniatura di un file fatta dalla sua app (object URL o `null`) e se può averne una (vedi [Miniature dei file](#miniature-dei-file-thumbnailsjs)) |
 | `filePreview`, `previewAppFor`, `PREVIEW_ENTRY` | `apps/filePreview.js` | L'anteprima di un file fatta dall'app che lo apre, l'app che la fa e il nome del punto d'ingresso (`'filePreview'`; vedi [Anteprima dei file fatta dalle app](#anteprima-dei-file-fatta-dalle-app-filepreviewjs)) |
 | `appActionEntries` | `apps/appActions.js` | Le voci che le app installate aggiungono al menu di file e cartelle (vedi [apps/pipes.js, apps/appActions.js e apps/systemEvents.js](#appspipesjs-appsappactionsjs-e-appssystemeventsjs)) |
 | `appPipes` | `apps/pipes.js` | Le pipe di un'app: dal manifesto e dal codice |
@@ -1780,11 +1781,11 @@ All'apertura la finestra riceve `args = { file, view }`. Un `file` è l'id del f
 | --- | --- |
 | `PREVIEW_ENTRY` | `'filePreview'`, il nome del punto d'ingresso |
 | `previewAppFor(node)` → `app` o `null` | L'app che fa l'anteprima di quel nodo: `appFor(estensione)` (la scelta dell'utente o l'app predefinita, vedi [apps/open.js e apps/openWith.js](#appsopenjs-e-appsopenwithjs)), se è un pacchetto installato nel workspace e ha un punto d'ingresso `filePreview` di tipo `background`. `null` per cartelle, collegamenti, elementi nel cestino e in ogni altro caso. |
-| `filePreview(node)` → `Promise<{ app, text, html o image, note } o null>` | Chiama l'app e controlla la risposta. `app` è l'id dell'app. `null` se nessuna app fa l'anteprima o se l'app risponde `null`. Rifiuta se l'app dà un errore, una risposta non valida o non risponde in 10 secondi. |
+| `filePreview(node, { size }?)` → `Promise<{ app, text, html o image, note } o null>` | Chiama l'app e controlla la risposta. `size` (opzionale): il lato lungo voluto in pixel, arrotondato; senza, o con un valore non positivo, l'app sceglie. Lo usano le miniature ([Miniature dei file](#miniature-dei-file-thumbnailsjs)). `app` è l'id dell'app. `null` se nessuna app fa l'anteprima o se l'app risponde `null`. Rifiuta se l'app dà un errore, una risposta non valida o non risponde in 10 secondi. |
 
 Nella risposta di `filePreview` c'è uno solo tra `text` (stringa), `image` (`Blob`) e `html` (un documento intero già ripulito); `note` è `null` se manca.
 
-**Cosa riceve l'app.** Il suo `lilos.handle` viene chiamato con `data = { file }` (l'id del file) e `from` = `null`. Il file le è passato **solo in lettura**: `lilos.files.read(file)` (anche con `{ bytes: true }`) e `lilos.files.info(file)` funzionano; `write` e `setMeta` falliscono con «Il file è stato passato solo da leggere». Non lo può passare ad altre app né aprire con `files.open`, e lo può leggere solo mentre risponde a quella chiamata. Per le pipe (`caller.opened` è vero) il file conta come consegnato all'app: per esempio FileCrypt lo decifra per lei come farebbe all'apertura.
+**Cosa riceve l'app.** Il suo `lilos.handle` viene chiamato con `data = { file, size? }` (l'id del file e, solo se richiesto, `size`: il lato lungo voluto in pixel, un intero positivo; per una miniatura è piccolo) e `from` = `null`. `size` è un suggerimento: un'app che fa l'anteprima di un'immagine lo rispetta (non ingrandisce mai) e, senza, sceglie lei. Il file le è passato **solo in lettura**: `lilos.files.read(file)` (anche con `{ bytes: true }`) e `lilos.files.info(file)` funzionano; `write` e `setMeta` falliscono con «Il file è stato passato solo da leggere». Non lo può passare ad altre app né aprire con `files.open`, e lo può leggere solo mentre risponde a quella chiamata. Per le pipe (`caller.opened` è vero) il file conta come consegnato all'app: per esempio FileCrypt lo decifra per lei come farebbe all'apertura.
 
 **Cosa risponde.** Un oggetto con **uno** di questi campi (se ce n'è più di uno vale il primo in quest'ordine: `text`, `html`, `image`) e una `note` facoltativa, oppure `null` («niente da mostrare»):
 
@@ -1825,6 +1826,27 @@ export function filePreview({ lilos }) {
 ```
 
 Dal sistema: `const p = await system.filePreview(node); if (p?.html) frame.srcdoc = p.html;`.
+
+**Nei pacchetti ufficiali.** Photo (1.2.0) risponde con `image`: l'immagine rimpicciolita al lato lungo `size` (predefinito 1024, limitato tra 16 e 2048, mai ingrandita), in WebP (PNG se il browser non scrive WebP); `null` per file vuoti o immagini che il browser non decodifica. Editor (1.3.0) risponde con `image`: un foglio bianco 4:5 alto `size` (predefinito 1024, tra 16 e 2048) con le prime righe dei primi 64 KB del file, colorate con l'evidenziatore semplice e i colori del tema chiaro; le colonne sono altezza/4 tra 24 e 56 (un foglio piccolo mostra righe più grandi e leggibili) e le righe lunghe sono tagliate; `null` per file vuoti o binari (con il byte `\0`); WebP o PNG. Entrambi hanno `"sdk": "2"` e il punto d'ingresso `filePreview` (`background`).
+
+### Miniature dei file (`thumbnails.js`)
+
+`src/apps/thumbnails.js`: la miniatura di un file è l'immagine che la sua app ne fa con `filePreview` (sopra), piccola, per le icone della scrivania e del File Manager. Conta **solo** la risposta `image`: `text`, `html`, `null` ed errori non danno miniatura e l'icona resta (l'errore va in `console.warn`, senza notifiche).
+
+| Export | Descrizione |
+| --- | --- |
+| `canThumbnail(node)` → `boolean` | Vero se un'app può farla: `previewAppFor(node)` esiste e il file non ha contenuto di un'app (nessun `node.apps[x].content === true`, per esempio un file di FileCrypt). Non dice se l'app risponderà con un'immagine. |
+| `fileThumbnail(node, size = 128)` → `Promise<string o null>` | Un object URL con la miniatura (lato lungo `size` o poco più) o `null`. L'URL lo revoca lilOS quando la miniatura esce dalla cache: va messo subito in un `<img>`, non conservato. |
+| `thumbnailIcon(node, { size, fallback })` → `Element` | Un'icona che diventa la miniatura. `size` in pixel CSS (si chiede `size × devicePixelRatio`). Restituisce `fallback` (l'icona solita) se `canThumbnail` è falso; altrimenti un `span.icon-thumb-box` con `fallback` dentro, che chiede la miniatura solo quando è sullo schermo (`IntersectionObserver`, margine 200 px) e poi mette un `img.icon-thumb` e la classe `shown` (dopo `decode()`). Senza miniatura resta il `fallback`. |
+
+Dettagli di `fileThumbnail`:
+
+- **Cache in memoria**, di object URL. Chiave: `id`, `modified` e `size` del file, `id@versione` dell'app e la misura. La misura è arrotondata per eccesso a 64, 128, 256 o 512 (oltre, 512), così icone di taglia simile condividono la miniatura. Cambiare il file, aggiornare l'app o sceglierne un'altra per quel tipo ne fa una nuova.
+- Ne tiene **400**: le più vecchie *pronte* sono revocate per prime; usarne una la rende la più recente. Quando il contenuto di un file cambia, la miniatura precedente (stessa misura) viene revocata.
+- Le app sono chiamate **due alla volta**; le altre richieste aspettano in coda. Vale il limite di 10 secondi di `filePreview`.
+- Non è salvata da nessuna parte: al ricaricamento si rifanno.
+
+L'app non deve fare altro: basta che risponda con `image` e rispetti `size` ([ricette](ricette.md#mostrare-lanteprima-dei-file-della-tua-app)). `fileThumbnail` e `canThumbnail` sono esportate da `@lilos/system`.
 
 ### Background (`background.js`)
 
@@ -1937,6 +1959,7 @@ Dichiara le impostazioni del sistema e le applica. Va importato per primo da `sy
 | `trashRetention` | `30` | Giorni in cui il cestino conserva gli elementi (`0`: per sempre); `systemTrash.js` elimina il resto |
 | `lasso` | `'Alt'` | Modificatori che trasformano il trascinamento sullo sfondo in selezione a mano libera: `'Alt'`, `'Ctrl+Alt'` o `'Alt+Shift'` (`LASSO_OPTIONS`) |
 | `deskHidden` | `[]` | Chiavi degli elementi fissi spenti in tutti i workspace: valgono per quelli che non hanno scelto (`hidden: null`) e per i nuovi (vedi [desktop/fixedItems.js](#desktopfixeditemsjs)) |
+| `deskPreviews` | `false` | Con `true` i file sulla scrivania mostrano la miniatura fatta dalla loro app (56 px, `DesktopItem`) al posto dell'icona, se l'app ne fa una ([apps/thumbnails.js](#miniature-dei-file-thumbnailsjs)). `Desktop` ridisegna i file quando l'impostazione o il registro delle app cambia. |
 | `startupApps` | `true` | Con `false` le app scelte nel Pannello di controllo → Avvio non si aprono all'ingresso (vedi [apps/startup.js](#appsstartupjs)) |
 | `userPhoto` | `''` | La foto profilo: un JPEG quadrato di 192 px come URL `data:image/jpeg;base64,…`, `''` per nessuna. Alla lettura (`userPhoto()` in `user/photo.js`) un valore più lungo di 200 000 caratteri o che non è un JPEG in base64 conta come nessuna foto. Se c'è, il sistema mette `--user-photo: url(…)` e `data-user-photo` su `<html>` (vedi [user/](#user-la-pagina-utente)) |
 | `notifyShown` | `5` | Quante notifiche la barra delle notifiche mostra insieme (`NotificationBell`; almeno 1 nel codice). Il Pannello di controllo propone 1-8 e 10 |
@@ -3004,7 +3027,7 @@ Controllo alla lettura, perché il dato non è affidabile:
 
 ### `lilos:files-view`
 
-Vista del File Manager: `"list"` o `"grid"`.
+Vista del File Manager: `"list"`, `"grid"` (icone) o `"thumbs"` (anteprime; File Manager 1.7.0). Un altro valore vale `"list"`.
 
 ### `lilos:files-panels`
 

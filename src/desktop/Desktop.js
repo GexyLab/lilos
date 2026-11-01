@@ -88,6 +88,10 @@ export class Desktop {
     tags.on('change', () => this.items.forEach(it => { if (!it.workarea && !it.fixed && fs.exists(it.id)) it.setData(fs.get(it.id)); }));
     // An app came or went: the signs it puts on icons too
     registry.on('change', () => this.items.forEach(it => { if (!it.workarea && !it.fixed && fs.get(it.id)?.apps) it.setData(fs.get(it.id)); }));
+    // Thumbnails of files turned on or off; an app installed, updated or removed may make them or not
+    const files = () => this.items.forEach(it => { if (!it.workarea && !it.fixed && fs.get(it.id)?.type === 'file') it.setData(fs.get(it.id)); });
+    settings.on('change:deskPreviews', files);
+    registry.on('change', () => { if (settings.get('deskPreviews') === true) files(); });
     canvas.on('background:press', e => this.#selectByDrag(e));
     canvas.on('background:click', e => { if (!e.ctrlKey && !e.metaKey && !e.shiftKey) this.select([]); });
     canvas.on('background:contextmenu', e => this.#backgroundMenu(e));

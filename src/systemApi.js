@@ -18,6 +18,7 @@ export { fileApps, appFor, defaultAppFor, setAppFor, resetAppsFor, knownExtensio
 export { handleCommand } from './apps/commands.js';
 export { callEntrypoint, connectEntrypoint, entrypointsOf } from './apps/entrypoints.js';
 export { filePreview, previewAppFor, PREVIEW_ENTRY } from './apps/filePreview.js';
+export { fileThumbnail, canThumbnail } from './apps/thumbnails.js';
 export { appActionEntries } from './apps/appActions.js';
 export { appPipes } from './apps/pipes.js';
 export { startup } from './apps/startup.js';

@@ -1087,3 +1087,26 @@ lilOS legge il file **prima** di avviare l'app e le dà le stringhe già risolte
 - Un html con link, form o contenuti esterni si vede senza quelle parti.
 
 **Quando ripensarla.** Se le app vogliono anteprime interattive (allora: un iframe con `allow-scripts` e un canale di messaggi, come le finestre isolate), o se servono altre forme di risposta (audio, video, PDF).
+
+## D56. Le miniature sono le immagini che le app fanno dei file
+
+**Decisione.** Una miniatura è la risposta `image` del `filePreview` dell'app che apre il file ([D55](#d55-lanteprima-dei-file-la-può-fare-lapp-che-li-apre)), chiesta piccola con il nuovo `size` e tenuta in memoria (`src/apps/thumbnails.js`: `fileThumbnail`, `canThumbnail`, `thumbnailIcon`, esportate da `@lilos/system` le prime due). Si vedono in due posti, **entrambi voluti dall'utente il 1° novembre 2026**: sulla scrivania, **solo se acceso** (impostazione `deskPreviews`, predefinita `false`, Pannello di controllo → Scrivania → Elementi → Icone) e nel File Manager in una **terza vista** separata, «Vista anteprime» (1.7.0). Photo 1.2.0 ed Editor 1.3.0 le fanno.
+
+**Perché.**
+
+- **Solo `image`.** Un testo o una pagina HTML non sono una miniatura: disegnarli in 56 pixel sarebbe compito di lilOS, che non sa come. L'Editor risponde quindi con un'immagine (un foglio con le prime righe). Errori e `null` lasciano l'icona e scrivono un avviso in console: una miniatura è un abbellimento, non va notificata.
+- **Cache in memoria.** Una miniatura costa una chiamata all'app, la lettura del file e una codifica. Si tiene come object URL con chiave id + `modified` + `size` + app@versione + misura: un file cambiato o un'app aggiornata la invalidano da soli, senza dover scrivere niente sul disco (né dentro l'utente, né nel file system). Si ricrea a ogni ricarica. Misure arrotondate a 64/128/256/512 perché icone di taglia vicina la condividano; 400 miniature, le più vecchie pronte revocate; la precedente di un file cambiato è revocata subito, per non accumulare memoria.
+- **Sulla scrivania è un'opzione spenta.** Ogni miniatura fa girare un'app e leggere un file; una scrivania con molti file lo farebbe all'ingresso di ogni utente, anche di chi non la vuole. Per questo le chiamate partono solo per le icone sullo schermo (`IntersectionObserver`, 200 px di margine), due app alla volta.
+- **Nel File Manager è una vista a parte.** Chi sceglie «Vista anteprime» ha chiesto le miniature; la vista a icone non cambia, così la lista resta leggera come prima.
+- **File con contenuto di un'app esclusi.** Un file con `apps[x].content === true` (FileCrypt) ha il contenuto che solo la sua app capisce: un'anteprima chiederebbe alle pipe di decifrarlo (D55) solo per disegnare un'icona, a ogni apertura di cartella.
+
+**Alternative scartate.** Miniature sempre accese sulla scrivania (costo per chi non le vuole); una cache su disco (da invalidare, da proteggere come i file, con il rischio di lasciare dati leggibili di file cifrati o cancellati); lilOS che disegna le miniature di testo da sé (duplica l'evidenziatore dell'Editor); miniature anche per `text` e `html`.
+
+**Conseguenze.**
+
+- `fileThumbnail` e `canThumbnail` entrano nel contratto di `@lilos/system`; `filePreview` accetta `{ size }` e l'app lo riceve in `data.size`. `itemIcon` ha l'opzione `preview`.
+- Un lilOS senza `fileThumbnail` non ha l'opzione nel Pannello di controllo; il File Manager 1.7.0 lì mostra solo icone grandi.
+- Un'app che risponde `image` senza rispettare `size` funziona, ma pesa: una foto da 20 MB è decodificata per ogni icona.
+- Aggiornare l'app che apre un tipo rifà tutte le miniature di quel tipo.
+
+**Quando ripensarle.** Se la lentezza si vede (allora: una cache persistente con chiave sul contenuto, o la creazione in anticipo), o se altre app vogliono miniature non immagini.

@@ -1,7 +1,11 @@
-import { h, splitName } from '@lilos/sdk';
+import { h, splitName, settings } from '@lilos/sdk';
 import { itemIcon } from './itemIcons.js';
 import { tagDots } from '../tags/tagUi.js';
 import { markItem } from '../items/itemDrag.js';
+
+/** Longest side of a file's thumbnail on the desk (CSS pixels), with Control Panel → Desk → Previews on. */
+const PREVIEW = 56;
+const icon = data => itemIcon(data, { preview: settings.get('deskPreviews') === true ? PREVIEW : 0 });
 
 /**
  * A folder, file or app shortcut placed on the desk (or a reduced workarea's icon, or a fixed item).
@@ -12,7 +16,7 @@ import { markItem } from '../items/itemDrag.js';
 export class DesktopItem {
   constructor(data) {
     this.data = data;
-    this.glyph = h('div', { class: 'ditem-glyph' }, itemIcon(data), tagDots(data, 'ditem-tags'));
+    this.glyph = h('div', { class: 'ditem-glyph' }, icon(data), tagDots(data, 'ditem-tags'));
     this.label = h('span', { class: 'ditem-label' }, data.name);
     this.el = h('div', { class: 'ditem', dataset: { kind: 'item', id: data.id } }, this.glyph, this.label);
     if (data.type !== 'workarea' && !data.fixed) markItem(this.el, data);
@@ -33,11 +37,14 @@ export class DesktopItem {
     this.el.classList.toggle('selected', selected);
   }
 
-  /** New name or metadata from the file system (the icon can change with the extension, color or tags). */
-  setData({ name, color, tags, apps }) {
-    Object.assign(this.data, { name, color, tags, apps });
+  /**
+   * New name, metadata or content from the file system (the icon can change with the extension,
+   * color or tags, a thumbnail with the content).
+   */
+  setData({ name, color, tags, apps, modified, size }) {
+    Object.assign(this.data, { name, color, tags, apps, modified, size });
     this.label.textContent = name;
-    this.glyph.replaceChildren(itemIcon(this.data), tagDots(this.data, 'ditem-tags') ?? '');
+    this.glyph.replaceChildren(icon(this.data), tagDots(this.data, 'ditem-tags') ?? '');
   }
 
   /** Inline rename. Resolves with the new (trimmed) name, or null if cancelled/unchanged. */

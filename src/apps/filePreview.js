@@ -7,7 +7,8 @@ import { theme } from './packages/host.js';
 /**
  * Previews made by apps. The app that opens a file (the user's choice for its type, see open.js)
  * may show what the file contains with a `filePreview` background entry point: it gets
- * `{ file }`, the file handed to it only to read, and answers with what to show:
+ * `{ file, size? }`, the file handed to it only to read and, for an image, the longest side wanted
+ * in pixels (thumbnails.js asks for small ones), and answers with what to show:
  *
  *   { text }    plain text
  *   { image }   a Blob with an image/* type
@@ -36,15 +37,15 @@ export function previewAppFor(node) {
  * The preview of a file made by its app: { app, text | image | html, note } or null (no app
  * previews it, or the app has nothing to show). `html` is a whole document for an
  * <iframe sandbox=""> (srcdoc), with the theme's colors as CSS variables. Rejects if the app
- * fails, answers something else or takes more than 10 seconds.
+ * fails, answers something else or takes more than 10 seconds. size: see above (none: the app's own).
  */
-export async function filePreview(node) {
+export async function filePreview(node, { size } = {}) {
   const app = previewAppFor(node);
   if (!app) return null;
   let timer;
   const late = new Promise((_, reject) => { timer = setTimeout(() => reject(new Error(`${app.name} non ha risposto in tempo`)), TIMEOUT); });
   try {
-    const answer = await Promise.race([background.call(app, PREVIEW_ENTRY, { file: node.id }, null, { readOnly: true }), late]);
+    const answer = await Promise.race([background.call(app, PREVIEW_ENTRY, { file: node.id, ...(size > 0 && { size: Math.round(size) }) }, null, { readOnly: true }), late]);
     const preview = checked(answer);
     return preview && { app: app.id, ...preview };
   } finally {

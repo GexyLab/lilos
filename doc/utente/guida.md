@@ -75,6 +75,10 @@ Al primo avvio trovi alcuni elementi di esempio: la cartella Progetti, il file b
 
 Gli elementi della scrivania sono il contenuto della cartella **Scrivania**: li ritrovi anche nel [File Manager](#il-file-manager).
 
+### Anteprima dei file sulla scrivania
+
+All'inizio i file hanno la loro icona. Se vuoi vedere dentro i file, apri il Pannello di controllo → Scrivania → Elementi → **Icone** e accendi **Mostra l'anteprima dei file**. Le immagini (aperte da Photo) e i file di testo (aperti dall'Editor) mostrano una piccola immagine di quello che contengono al posto dell'icona. Gli altri file, le cartelle e i file cifrati con un'app restano con l'icona; vale anche per i file di cui l'app non riesce a fare l'immagine. L'icona resta finché l'anteprima non è pronta, quindi può servire qualche istante. Con l'interruttore spento tutto torna come prima. Nel File Manager c'è la [vista anteprime](#il-file-manager), che è indipendente da questa impostazione.
+
 ### Gli elementi fissi
 
 Su ogni scrivania, in ogni workspace, ci sono sei elementi: **Home**, **Documenti**, **Immagini**, **File Manager**, **Download** e **Cestino**. All'inizio ci sono tutti; puoi togliere quelli che non ti servono (vedi sotto). Non sono file della cartella Scrivania, quindi non li trovi nel File Manager.
@@ -296,7 +300,7 @@ Un workspace nuovo si crea anche dal menu del pulsante nella barra delle applica
 **File Manager** mostra le cartelle e il loro contenuto. Aprilo dal menu di avvio o dall'elemento **File Manager** della scrivania, oppure fai doppio clic su una cartella della scrivania: si apre direttamente lì. Dal tasto destro su un punto vuoto della scrivania, **Apri la Scrivania nel File Manager** mostra gli elementi della scrivania come elenco.
 
 - **A sinistra**, la barra laterale. In cima la sezione **Collegamenti**: Home e le cartelle principali (Scrivania, Documenti, Immagini, Download) e i collegamenti che aggiungi tu (vedi [Collegamenti nella barra laterale](#collegamenti-nella-barra-laterale)), nell'ordine che scegli trascinandoli. Sotto, la voce **Tag** con un elemento per ogni tag che hai creato (vedi [I tag](#i-tag)) e in fondo il **Cestino** (vedi [Il Cestino](#il-cestino)): queste restano sempre al loro posto. Le cartelle principali non si possono rinominare né eliminare. **Scrivania** è quella del workspace in cui sei; Documenti, Immagini e Download sono di tutti.
-- **In alto**: Indietro, Avanti, Cartella superiore; il percorso (fai clic su una parte per tornarci); **Nuova cartella**; vista **elenco** o **a icone**; i pulsanti che aprono e chiudono i pannelli Anteprima e Informazioni; la ricerca nella cartella aperta (Esc la svuota).
+- **In alto**: Indietro, Avanti, Cartella superiore; il percorso (fai clic su una parte per tornarci); **Nuova cartella**; vista **elenco**, **a icone** o **anteprime** (tre pulsanti vicini; l'ultima ha il simbolo di un'immagine); i pulsanti che aprono e chiudono i pannelli Anteprima e Informazioni; la ricerca nella cartella aperta (Esc la svuota).
 - **Al centro**: il contenuto della cartella. In vista elenco ci sono le colonne Nome, Modificato, Dimensione, Tipo e Workspace (il workspace che ha creato l'elemento, vedi [I workspace](#i-workspace)): fai clic su un'intestazione per ordinare, di nuovo per invertire l'ordine. Le cartelle restano sempre in cima.
 - **A destra**, due pannelli che si aprono e si chiudono: **Informazioni** e **Anteprima** (vedi [Anteprima e Informazioni](#anteprima-e-informazioni)).
 - **In basso**: quanti elementi ci sono e quanti sono selezionati, il percorso della cartella o un messaggio.
@@ -304,6 +308,8 @@ Un workspace nuovo si crea anche dal menu del pulsante nella barra delle applica
 Quando qualcosa non riesce (un nome che non si può dare, una cartella di sistema da eliminare, una cartella da aprire che non esiste più) il File Manager lo dice in un riquadro sopra la finestra: finché non premi **OK** (o **Invio**, o **Esc**) il resto della finestra aspetta. Se il nome non va, **Riprova** ti fa scrivere di nuovo il nome.
 
 Con gli elementi della cartella fai le stesse cose della scrivania: clic, Ctrl + clic, **Shift + clic** per selezionare un intervallo, doppio clic o Invio per aprire, F2 per rinominare, Canc per eliminare (nel cestino: eliminare definitivamente), Ctrl A per selezionare tutto. Dal tasto destro su un punto vuoto puoi creare cartelle e file di testo. **Ctrl Z** annulla quello che hai fatto in questa finestra (vedi [Annullare e ripetere](#annullare-e-ripetere)).
+
+**Vista anteprime.** Mostra gli elementi in riquadri più larghi, con le icone grandi. I file di cui l'app che li apre sa fare un'immagine (le immagini con Photo, i file di testo con l'Editor) mostrano quell'immagine al posto dell'icona; gli altri restano con l'icona. Le anteprime compaiono man mano, mentre scorri, e qualche istante dopo l'apertura della cartella. I file cifrati con un'app non ne hanno. Per cambiare vista puoi anche usare il tasto destro su un punto vuoto, voce **Vista**: spunta quella in uso. Le frecce spostano il cursore come nella vista a icone. La vista scelta resta per la volta dopo.
 
 Tasti per muoversi nell'elenco (non modificabili):
 
@@ -1073,7 +1079,7 @@ Le modifiche valgono subito e restano salvate.
 | Aspetto | Movimento | Animazioni attive o spente. Se nel sistema operativo hai chiesto di ridurre il movimento, le animazioni restano ridotte comunque. |
 | Pagina utente | — | Cosa mostra la [pagina utente](#la-pagina-utente): un interruttore per ogni voce, in gruppi (vedi [Scegliere cosa mostra](#scegliere-cosa-mostra)) |
 | Lingua | — | La lingua delle app: quella del browser o una a scelta (vedi [La lingua](#la-lingua)) |
-| Scrivania | Elementi | L'allineamento alla griglia degli elementi trascinati, e un pulsante che porta agli elementi fissi (in Workspace) |
+| Scrivania | Elementi | L'allineamento alla griglia degli elementi trascinati; **Mostra l'anteprima dei file** (vedi [Anteprima dei file sulla scrivania](#anteprima-dei-file-sulla-scrivania)); un pulsante che porta agli elementi fissi (in Workspace) |
 | Scrivania | Panoramica | Mappa in miniatura visibile o nascosta |
 | Workspace | Questo workspace | Nome, colore, app visibili ed elementi fissi del workspace in cui sei (vedi [I workspace](#i-workspace)) |
 | Workspace | *nome di un altro workspace* | Le stesse impostazioni per quel workspace, e Passa a questo |

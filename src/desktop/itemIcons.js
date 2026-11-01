@@ -1,5 +1,6 @@
 import { h, svg, icon, appIcon, fileType } from '@lilos/sdk';
 import { getApp } from '../apps/registry.js';
+import { thumbnailIcon } from '../apps/thumbnails.js';
 
 export const FOLDER_COLOR = '#6f9bff';
 
@@ -64,12 +65,16 @@ export function itemBadges(data) {
  * Icon for any desktop item data ({ type: 'folder' | 'file' | 'app' | 'workarea' | 'trash', ... });
  * a folder with a `glyph` is a place (see fixedItems.js), the trash shows if it is `full`. Files and
  * folders carry the signs of the apps that have data on them (itemBadges).
+ * `preview`: for a file node, the thumbnail its app makes (apps/thumbnails.js) about that many
+ * CSS pixels on its longest side, in place of the icon once ready.
  */
-export function itemIcon(data) {
+export function itemIcon(data, { preview = 0 } = {}) {
   if (data.type === 'workarea') return workareaIcon();
   if (data.type === 'trash') return trashIcon(data.full);
   if (data.type === 'app') return appIcon(getApp(data.app));
-  const base = data.type === 'folder' ? (data.glyph ? placeIcon(data.glyph, data.color) : folderIcon(data.color)) : fileIcon(data.name);
+  const base = data.type === 'folder' ? (data.glyph ? placeIcon(data.glyph, data.color) : folderIcon(data.color))
+    : preview > 0 && !data.fixed ? thumbnailIcon(data, { size: preview, fallback: fileIcon(data.name) })
+    : fileIcon(data.name);
   const badges = itemBadges(data);
   if (!badges.length) return base;
   const label = badges.map(b => b.label).join(', ');

@@ -10,6 +10,12 @@
 .ditem-glyph { height: 32px; display: grid; place-items: center; filter: drop-shadow(0 2px 4px rgba(0, 0, 0, .3)); pointer-events: none; }
 .icon-folder { width: 34px; height: 30px; }
 .icon-file { width: 26px; height: 32px; }
+/* A file's thumbnail made by its app (apps/thumbnails.js): the icon until it is ready */
+.icon-thumb-box { display: grid; place-items: center; }
+.icon-thumb { display: block; border-radius: 2px; box-shadow: 0 0 0 1px rgb(0 0 0 / .12); }
+/* On the desk a bit taller than an icon, so that items still fit their grid cell (Desktop.js CELL) */
+.ditem-glyph:has(.icon-thumb-box.shown) { height: 40px; }
+.ditem-glyph .icon-thumb { max-width: 56px; max-height: 40px; }
 /* Fixed items (fixedItems.js): places with their glyph on the folder, the trash */
 .icon-place { position: relative; display: grid; place-items: center; }
 .icon-place .icon-place-glyph { position: absolute; left: 50%; top: 58%; width: 13px; height: 13px; transform: translate(-50%, -50%); color: #fff; stroke-width: 2.1; }

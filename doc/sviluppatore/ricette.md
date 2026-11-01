@@ -635,6 +635,7 @@ Il File Manager sa mostrare testo e SVG; per gli altri tipi di file può farla l
    }
    ```
 4. Rispondi `null` quando non c'è niente da mostrare: il File Manager userà la sua anteprima.
+5. **Miniature (facoltativo).** La stessa risposta serve per le miniature (scrivania con «Mostra l'anteprima dei file», «Vista anteprime» del File Manager): lilOS le prende **solo** se rispondi con `image`; `text`, `html` e `null` lasciano l'icona. In `data.size` (se c'è) arriva il lato lungo voluto in pixel, piccolo per una miniatura: rimpicciolisci l'immagine a quella misura, senza ingrandirla, così la miniatura è leggera. Senza `size` scegli tu. Le miniature le chiede lilOS solo per le icone sullo schermo e le tiene in memoria; i file con contenuto di un'app (FileCrypt) non ne hanno. Dettagli: [Miniature dei file](api.md#miniature-dei-file-thumbnailsjs).
 
 Da ricordare: hai 10 secondi; `text` e `html` al massimo 1 MB, `image` 20 MB; l'`html` viene ripulito (niente script, link, form, risorse esterne: immagini e font solo `data:`) e gira in un iframe senza permessi; non puoi scrivere il file né passarlo ad altre app. Se sbagli, l'utente vede l'anteprima di sempre e tu un avviso in console.
 
