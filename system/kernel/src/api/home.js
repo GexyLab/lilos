@@ -1,5 +1,5 @@
 import { fail } from '../errors.js';
-import { readBody, send } from '../http.js';
+import { readBody, send, sendStream } from '../http.js';
 import { visible } from './apps.js';
 
 /**
@@ -10,7 +10,8 @@ import { visible } from './apps.js';
  *   .trash     the trash root of lilOS
  *   .config    lilOS's settings and preferences: one file per key, JSON
  *
- *   GET  /api/boot                 { user, home, fresh, nodes, storage, apps, appSecurity }   everything lilOS needs to start
+ *   GET  /api/boot                 { user, home, fresh, nodes, storage, apps, appSecurity, net }   everything lilOS needs to start
+ *                                  (net: the network connections, as GET /api/net gives them)
  *                                  (home: the path of the home in the file system, '/home/<user>')
  *   POST /api/fs/sync              { put: [node], remove: [id] }     one transaction
  *   GET  /api/fs/content/:id       text of a file (?raw=1: its bytes, application/octet-stream)
@@ -19,7 +20,7 @@ import { visible } from './apps.js';
  *
  * Access control is the fs module's: these only translate ids and check the shape of the data.
  */
-const FRONT_ID = /^[\w-]{1,64}$/;
+export const FRONT_ID = /^[\w-]{1,64}$/;
 const KEY = /^[\w:.-]{1,120}$/;
 const TYPES = new Set(['folder', 'file', 'app']);
 const META = ['color', 'app', 'system', 'workspace', 'private', 'tags', 'trashed', 'apps'];
@@ -62,7 +63,7 @@ class HomeView {
 
 const ensured = new Set();
 
-async function openHome(kernel, principal) {
+export async function openHome(kernel, principal) {
   if (!principal) fail('unauthorized', 'Accesso richiesto');
   const fs = kernel.service('fs');
   const home = await fs.home(principal);
@@ -113,7 +114,7 @@ function toBackNode(view, n) {
 }
 
 /** A node of the fs service → a node of lilOS, or null for the ones lilOS does not see as nodes. */
-function toFrontNode(view, n) {
+export function toFrontNode(view, n) {
   const id = view.toFront(n.id), parent = view.toFront(n.parent);
   if (!id || id === 'root' || id === 'trash' || !parent) return null;
   return {
@@ -142,6 +143,7 @@ export function homeRoutes(kernel) {
       storage,
       apps: (await kernel.installer.list()).map(a => visible(a, principal)),
       appSecurity: await kernel.installer.security(),
+      net: await kernel.network.list(principal),
     };
   });
 
@@ -154,7 +156,12 @@ export function homeRoutes(kernel) {
 
   router.add('GET', '/api/fs/content/:id', async ({ res, principal, params, query }) => {
     const view = await openHome(kernel, principal);
-    const data = await view.fs.read(principal, view.toBack(params.id));
+    const id = view.toBack(params.id);
+    if (query.get('raw') === '1' && view.fs.readStream) {
+      const node = await view.fs.stat(principal, id);
+      return sendStream(res, await view.fs.readStream(principal, id), node ? { 'Content-Length': String(node.size) } : {});
+    }
+    const data = await view.fs.read(principal, id);
     if (query.get('raw') !== '1') return data.toString('utf8');
     send(res, 200, data, { 'Content-Type': 'application/octet-stream' });
   });

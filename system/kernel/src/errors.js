@@ -1,7 +1,8 @@
 /**
  * Errors that the kernel and its modules throw on purpose: the code says what went wrong and
  * becomes the HTTP status; the message is safe to show to the user (Italian). Any other error
- * is a bug: it is logged and the client only sees 'internal'.
+ * is a bug: it is logged and the client only sees 'internal'. `details` (JSON) goes to the client
+ * too: what it needs to go on, such as the fingerprint of a server to confirm ('untrusted').
  */
 export const STATUS = {
   invalid: 400,
@@ -10,16 +11,19 @@ export const STATUS = {
   forbidden: 403,
   not_found: 404,
   conflict: 409,
+  untrusted: 409,            // a server whose key or certificate the user has not confirmed yet
+  secret_required: 428,      // a network connection needs its password (again)
   too_large: 413,
   rate_limited: 429,
   unavailable: 503,
 };
 
 export class KernelError extends Error {
-  constructor(code, message, { retryAfter } = {}) {
+  constructor(code, message, { retryAfter, details } = {}) {
     super(message);
     this.code = STATUS[code] ? code : 'invalid';
     this.retryAfter = retryAfter;
+    this.details = details;
   }
 
   get status() { return STATUS[this.code]; }

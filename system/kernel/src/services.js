@@ -26,6 +26,10 @@
  *   read(principal, id) → Buffer
  *   write(principal, id, Buffer)
  *   remove(principal, ids)
+ *   Optional, for big contents (the kernel falls back to read/write, whole in memory, without them):
+ *   readStream(principal, id, { start }) → Readable     the content from byte `start`
+ *   writeFrom(principal, id, source, { signal }) → size  the content from a stream of bytes; it becomes
+ *                                                       the file's only once all of it arrived
  *
  *   node: { id, parent, name, type: 'folder' | 'file' | 'app', meta: {}, size, created, modified, content? }
  *

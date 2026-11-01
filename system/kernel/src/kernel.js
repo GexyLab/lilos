@@ -16,6 +16,9 @@ import { storeRoutes } from './api/store.js';
 import { serviceRoutes } from './api/services.js';
 import { notificationRoutes } from './api/notifications.js';
 import { systemRoutes } from './api/system.js';
+import { netRoutes } from './api/net.js';
+import { Network } from './net/network.js';
+import { Transfers } from './net/transfers.js';
 import { SystemReleases } from './apps/systemPackage.js';
 import { webFiles } from './web.js';
 import { AppServices } from './apps/appServices.js';
@@ -78,6 +81,8 @@ export class Kernel {
     this.moduleAdmin = new ModuleAdmin(this, config);
     this.appServices = new AppServices(this);
     this.system = new SystemReleases(this);
+    this.network = new Network(this);
+    this.transfers = new Transfers(this, this.network);
     sessionRoutes(this);
     homeRoutes(this);
     appRoutes(this);
@@ -85,6 +90,7 @@ export class Kernel {
     serviceRoutes(this);
     notificationRoutes(this);
     systemRoutes(this);
+    netRoutes(this);
     await this.#bootstrapApps(config.bootstrapApps);
 
     this.#server = createServer((req, res) => this.#handle(req, res));
@@ -93,6 +99,8 @@ export class Kernel {
       this.#server.listen(config.port, config.host, resolve);
     });
     log.info(`lilOS ${SYSTEM_VERSION}${RELEASE_DIR ? '' : ' (copia di sviluppo)'} in ascolto su http://${config.host}:${config.port} (${this.multiUser ? 'multiutente' : 'utente singolo'})`);
+    // Transfers that were running when the kernel stopped go on
+    this.transfers.start().catch(err => log.error('Trasferimenti all’avvio', err));
     // system:ready — the services an admin chose for everyone
     this.appServices.systemReady().catch(err => log.error('Servizi all’avvio', err));
   }
@@ -136,7 +144,10 @@ export class Kernel {
       const user = token ? await this.service('auth').session(token) : null;
       if (user) principal = { kind: 'user', id: user.id, username: user.username, name: user.name, role: user.role };
     }
-    if (principal) this.appServices?.userSeen(principal);
+    if (principal) {
+      this.appServices?.userSeen(principal);
+      this.network?.userSeen(principal);
+    }
     return principal;
   }
 
@@ -158,7 +169,7 @@ export class Kernel {
     } catch (err) {
       if (res.headersSent) return res.destroy();
       if (err instanceof KernelError) {
-        return send(res, err.status, { error: err.code, message: err.message }, err.retryAfter ? { 'Retry-After': String(err.retryAfter) } : {});
+        return send(res, err.status, { error: err.code, message: err.message, ...(err.details !== undefined && { details: err.details }) }, err.retryAfter ? { 'Retry-After': String(err.retryAfter) } : {});
       }
       log.error(`${req.method} ${req.url}`, err);
       send(res, 500, { error: 'internal', message: 'Errore interno del kernel' });
@@ -167,6 +178,8 @@ export class Kernel {
 
   async stop() {
     await this.appServices?.stopAll();
+    await this.transfers?.stop().catch(err => log.error('Arresto dei trasferimenti', err));
+    await this.network?.stop().catch(err => log.error('Arresto delle connessioni di rete', err));
     // Event streams (/api/services-events) stay open: close them, or close() waits for ever
     await new Promise(resolve => {
       if (!this.#server) return resolve();

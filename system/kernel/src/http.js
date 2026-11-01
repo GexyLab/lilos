@@ -1,3 +1,4 @@
+import { pipeline } from 'node:stream/promises';
 import { KernelError, fail } from './errors.js';
 
 const HEADERS = {
@@ -47,6 +48,12 @@ export function send(res, status, body, headers = {}) {
   const type = isBuffer || typeof body === 'string' ? 'text/plain; charset=utf-8' : 'application/json; charset=utf-8';
   res.writeHead(status, { ...HEADERS, ...(body !== undefined && { 'Content-Type': type }), ...headers });
   res.end(payload);
+}
+
+/** Sends a stream of bytes (a file's content); resolves when sent. */
+export async function sendStream(res, stream, headers = {}) {
+  res.writeHead(200, { ...HEADERS, 'Content-Type': 'application/octet-stream', ...headers });
+  await pipeline(stream, res);
 }
 
 /** The request body, at most `limit` bytes. */

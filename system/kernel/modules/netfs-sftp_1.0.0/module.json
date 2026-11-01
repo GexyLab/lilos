@@ -1,0 +1,12 @@
+{
+  "name": "netfs-sftp",
+  "version": "1.0.0",
+  "description": "Connessioni SFTP (SSH) nella cartella Rete: file e cartelle di un server, con password o chiave",
+  "kernel": "1",
+  "icon": { "glyph": "globe", "color": "#2f7d6d" },
+  "provides": [
+    "netfs.sftp"
+  ],
+  "requires": [],
+  "defaultConfig": {}
+}

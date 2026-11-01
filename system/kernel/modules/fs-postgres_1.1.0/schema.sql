@@ -19,3 +19,16 @@ create table if not exists lilos_nodes (
 
 create index if not exists lilos_nodes_parent on lilos_nodes (parent);
 create index if not exists lilos_nodes_owner on lilos_nodes (owner);
+
+-- Big contents (1.1.0): written as a stream, they are kept in pieces of 1 MB. `chunks` says which
+-- generation of pieces is the content (null: the content is in `content`); a write in progress adds
+-- a new generation and switches to it only at the end.
+alter table lilos_nodes add column if not exists chunks text;
+
+create table if not exists lilos_chunks (
+  node  text not null references lilos_nodes(id) on delete cascade,
+  gen   text not null,
+  seq   integer not null,
+  data  bytea not null,
+  primary key (node, gen, seq)
+);

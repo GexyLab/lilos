@@ -15,7 +15,7 @@
     },
     {
       "name": "fs-postgres",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "config": {
         "url": "postgres://lilos:lilos@127.0.0.1:5433/lilos"
       }

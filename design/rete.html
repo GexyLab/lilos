@@ -1,0 +1,597 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>lilOS — Rete e Trasferimento dati</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --accent: #3b6ef5; --accent-soft: #e8eefe; --danger: #e5484d; --success: #30a46c; --warning: #d9822b;
+    --text: #1f2328; --dim: #6b7280; --faint: #9aa1ad;
+    --surface: #ffffff; --chrome: #f4f5f7; --hover: #eceef1; --border: #e2e4e8; --side: #fafafb; --stripe: #fafbfc;
+    --notice-bg: #fff8e6; --notice-border: #f0dca8; --notice-text: #b7791f;
+    --canvas: #1f2227; --canvas-dot: rgba(255,255,255,.09); --on-canvas: #e9ebef;
+    --bar: #16181d; --bar-border: #2a2d34; --bar-text: #d7dae0; --bar-dim: #8a909b; --bar-hover: rgba(255,255,255,.08);
+    --panel: rgba(24,26,31,.97); --panel-border: #2c3038;
+    --radius-sm: 4px; --radius: 7px; --taskbar-h: 34px;
+    --font: Manrope, system-ui, "Segoe UI", sans-serif; --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font: 12.5px/1.4 var(--font); color: var(--text); background: #0f1114; -webkit-font-smoothing: antialiased; padding: 28px 16px 60px; }
+  button, select, input { font: inherit; color: inherit; }
+  button { background: none; border: 0; cursor: pointer; }
+  svg { display: block; }
+  .ico { width: 15px; height: 15px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* ---------- Page of scenes ---------- */
+  .scene { max-width: 1180px; margin: 0 auto 44px; }
+  .scene > h2 { color: #fff; font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  .scene > p { color: #a3a9b4; font-size: 12.5px; max-width: 900px; margin-bottom: 12px; }
+  .scene > p b { color: #e4e7ec; font-weight: 600; }
+  .screen { position: relative; height: 640px; border-radius: 10px; overflow: hidden; background: var(--canvas); box-shadow: 0 0 0 1px #2a2d34; }
+  .desk { position: absolute; inset: 0 0 var(--taskbar-h) 0; background-image: radial-gradient(circle, var(--canvas-dot) 1px, transparent 1.3px); background-size: 24px 24px; }
+  .callout { position: absolute; z-index: 20; background: #ffd84d; color: #2a2300; font-size: 11.5px; font-weight: 600; padding: 4px 8px; border-radius: 5px; box-shadow: 0 2px 8px rgba(0,0,0,.4); max-width: 230px; }
+  .callout::before { content: attr(data-n); display: inline-grid; place-items: center; width: 16px; height: 16px; border-radius: 50%; background: #2a2300; color: #ffd84d; font-size: 10px; margin-right: 6px; }
+
+  /* ---------- Window ---------- */
+  .window { position: absolute; display: flex; flex-direction: column; background: var(--surface); border-radius: var(--radius); overflow: hidden; box-shadow: 0 0 0 1px rgba(0,0,0,.25), 0 10px 28px -8px rgba(0,0,0,.5); }
+  .window.inactive .titlebar { background: var(--side); }
+  .window.inactive .title { color: var(--faint); }
+  .titlebar { height: 30px; flex: none; display: flex; align-items: center; padding: 0 4px 0 10px; gap: 8px; background: var(--chrome); border-bottom: 1px solid var(--border); }
+  .title { flex: 1; display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; }
+  .title .ico { width: 14px; height: 14px; color: var(--dim); }
+  .title em { font-style: normal; color: var(--faint); font-weight: 400; }
+  .controls { display: flex; }
+  .controls button { width: 28px; height: 24px; border-radius: var(--radius-sm); color: var(--dim); display: grid; place-items: center; }
+  .controls button:hover { background: var(--hover); color: var(--text); }
+  .controls button.close:hover { background: var(--danger); color: #fff; }
+  .controls .ico { width: 12px; height: 12px; }
+
+  /* ---------- Buttons / fields ---------- */
+  .btn { height: 26px; padding: 0 11px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: #fff; display: inline-flex; align-items: center; gap: 6px; font-weight: 500; white-space: nowrap; }
+  .btn:hover { background: var(--hover); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn.danger { color: var(--danger); }
+  .btn.danger:hover { background: #fdecec; }
+  .btn .ico { width: 13px; height: 13px; }
+  .iconbtn { width: 24px; height: 24px; display: grid; place-items: center; border-radius: var(--radius-sm); color: var(--dim); }
+  .iconbtn:hover { background: var(--hover); color: var(--text); }
+  .iconbtn.x:hover { background: #fdecec; color: var(--danger); }
+  .iconbtn .ico { width: 13px; height: 13px; }
+
+  /* ---------- File Manager ---------- */
+  .fm { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+  .fm-tools { height: 38px; flex: none; display: flex; align-items: center; gap: 4px; padding: 0 8px; border-bottom: 1px solid var(--border); }
+  .fm-path { flex: 1; height: 26px; display: flex; align-items: center; gap: 2px; padding: 0 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 12px; color: var(--dim); overflow: hidden; white-space: nowrap; }
+  .fm-path b { color: var(--text); font-weight: 500; }
+  .fm-path .sep { color: var(--faint); padding: 0 2px; }
+  .fm-body { flex: 1; display: flex; min-height: 0; }
+  .fm-side { width: 188px; flex: none; background: var(--side); border-right: 1px solid var(--border); padding: 6px; overflow: auto; }
+  .fm-side h6 { font-size: 10.5px; font-weight: 600; color: var(--faint); text-transform: uppercase; letter-spacing: .05em; padding: 10px 6px 3px; display: flex; align-items: center; }
+  .fm-side h6 span { flex: 1; }
+  .fm-side h6 .iconbtn { width: 18px; height: 18px; }
+  .place { height: 26px; display: flex; align-items: center; gap: 8px; padding: 0 6px; border-radius: var(--radius-sm); white-space: nowrap; overflow: hidden; }
+  .place:hover { background: var(--hover); }
+  .place[aria-current] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+  .place .ico { color: var(--dim); }
+  .place[aria-current] .ico { color: var(--accent); }
+  .place .nm { flex: 1; overflow: hidden; text-overflow: ellipsis; }
+  .proto { font-size: 9.5px; font-weight: 700; letter-spacing: .03em; padding: 1px 4px; border-radius: 3px; background: #e9ecf1; color: #59606c; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+  .dot.on { background: var(--success); }
+  .dot.off { background: var(--toggle-off, #cdd1d8); }
+  .dot.busy { background: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .fm-main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .mount-bar { display: flex; align-items: center; gap: 8px; padding: 6px 12px; background: var(--stripe); border-bottom: 1px solid var(--border); font-size: 11.5px; color: var(--dim); }
+  .mount-bar .ico { width: 13px; height: 13px; color: var(--success); }
+  .mount-bar code { font-family: var(--mono); font-size: 11px; color: var(--text); }
+  .mount-bar .sp { flex: 1; }
+  .list { flex: 1; overflow: auto; }
+  .row { display: grid; grid-template-columns: 1fr 120px 90px 140px; align-items: center; height: 28px; padding: 0 12px; border-bottom: 1px solid #f1f2f4; white-space: nowrap; }
+  .row.head { height: 26px; font-size: 11px; color: var(--faint); font-weight: 600; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: #fff; }
+  .row .n { display: flex; align-items: center; gap: 8px; overflow: hidden; }
+  .row .n .ico { color: var(--dim); }
+  .row .n .ico.folder { color: #e0a63b; }
+  .row.sel { background: var(--accent-soft); }
+  .row.ghost { opacity: .55; }
+  .row .m { color: var(--dim); font-size: 11.5px; }
+  .row .tag-up { font-size: 10.5px; color: var(--accent); font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
+  .row .tag-up .ico { width: 11px; height: 11px; color: var(--accent); }
+  .fm-status { height: 24px; flex: none; display: flex; align-items: center; padding: 0 12px; font-size: 11px; color: var(--faint); border-top: 1px solid var(--border); background: var(--side); gap: 12px; }
+
+  /* ---------- Context menu ---------- */
+  .menu { position: absolute; z-index: 15; min-width: 210px; background: var(--panel); border: 1px solid var(--panel-border); border-radius: var(--radius); padding: 4px; color: var(--bar-text); box-shadow: 0 12px 32px -8px rgba(0,0,0,.55); }
+  .menu div { height: 26px; display: flex; align-items: center; gap: 8px; padding: 0 8px; border-radius: var(--radius-sm); }
+  .menu div.hi { background: var(--bar-hover); color: #fff; }
+  .menu div .k { margin-left: auto; color: var(--bar-dim); font-size: 11px; }
+  .menu hr { border: 0; border-top: 1px solid var(--panel-border); margin: 4px 2px; }
+  .menu .ico { width: 13px; height: 13px; }
+
+  /* ---------- Dialog ---------- */
+  .dlg-body { padding: 14px 16px; display: grid; gap: 11px; }
+  .seg { display: flex; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }
+  .seg button { flex: 1; height: 28px; font-weight: 600; font-size: 12px; color: var(--dim); border-right: 1px solid var(--border); }
+  .seg button:last-child { border-right: 0; }
+  .seg button[aria-pressed=true] { background: var(--accent-soft); color: var(--accent); }
+  .field { display: grid; gap: 4px; }
+  .field label { font-size: 11.5px; color: var(--dim); font-weight: 500; }
+  .input { height: 28px; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0 8px; display: flex; align-items: center; background: #fff; }
+  .input.mono { font-family: var(--mono); font-size: 11.5px; }
+  .input.focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+  .input .ph { color: var(--faint); }
+  .grid2 { display: grid; grid-template-columns: 1fr 86px; gap: 8px; }
+  .grid2b { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .check { display: flex; align-items: center; gap: 8px; }
+  .box { width: 14px; height: 14px; border: 1.5px solid #b9bfc9; border-radius: 3px; display: grid; place-items: center; }
+  .box.on { background: var(--accent); border-color: var(--accent); }
+  .box.on::after { content: ""; width: 7px; height: 4px; border: 2px solid #fff; border-top: 0; border-right: 0; transform: rotate(-45deg) translate(1px, -1px); }
+  .hint { font-size: 11px; color: var(--faint); }
+  .dlg-foot { display: flex; gap: 8px; justify-content: flex-end; padding: 10px 16px; border-top: 1px solid var(--border); background: var(--side); }
+  .dlg-foot .left { margin-right: auto; }
+  .note { border: 1px solid var(--notice-border); background: var(--notice-bg); color: #6b5212; border-radius: var(--radius-sm); padding: 8px 10px; font-size: 11.5px; display: grid; gap: 4px; }
+  .note b { color: var(--notice-text); }
+  .note code { font-family: var(--mono); font-size: 10.5px; word-break: break-all; color: var(--text); }
+
+  /* ---------- Trasferimento dati ---------- */
+  .tx { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+  .tx-sum { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 12px 14px 10px; border-bottom: 1px solid var(--border); }
+  .meter { display: grid; gap: 5px; }
+  .meter .top { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--dim); }
+  .meter .top b { font-size: 15px; color: var(--text); font-weight: 700; font-variant-numeric: tabular-nums; }
+  .meter .top .ico { width: 14px; height: 14px; }
+  .meter .top .r { margin-left: auto; font-variant-numeric: tabular-nums; }
+  .up .top .ico { color: var(--accent); }
+  .down .top .ico { color: var(--success); }
+  .bar { height: 6px; border-radius: 3px; background: #edf0f4; overflow: hidden; }
+  .bar i { display: block; height: 100%; border-radius: 3px; background: var(--accent); }
+  .down .bar i { background: var(--success); }
+  .meter .sub { font-size: 11px; color: var(--faint); font-variant-numeric: tabular-nums; }
+  .tx-list { flex: 1; overflow: auto; }
+  .q-group { border-bottom: 1px solid var(--border); }
+  .q-head { display: flex; align-items: center; gap: 8px; padding: 9px 14px 6px; }
+  .q-head .dir { display: flex; align-items: center; gap: 6px; font-weight: 600; font-size: 12px; min-width: 0; }
+  .q-head .dir span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .q-head .dir .ico { width: 13px; height: 13px; color: var(--dim); }
+  .q-head .cnt { color: var(--faint); font-size: 11px; white-space: nowrap; }
+  .q-head .sp { flex: 1; }
+  .current { margin: 0 14px 8px; padding: 9px 10px; border: 1px solid #d8e2fd; background: #f6f8ff; border-radius: var(--radius); display: grid; gap: 6px; }
+  .current .l1 { display: flex; align-items: center; gap: 8px; }
+  .current .fname { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .current .from { font-size: 11px; color: var(--dim); font-family: var(--mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .current .pct { margin-left: auto; font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .current .l3 { display: flex; font-size: 11px; color: var(--dim); font-variant-numeric: tabular-nums; gap: 12px; }
+  .current .l3 .sp { flex: 1; }
+  .q-item { display: grid; grid-template-columns: 18px 1fr 92px 82px 24px; align-items: center; gap: 6px; height: 28px; padding: 0 10px 0 14px; white-space: nowrap; }
+  .q-item:hover { background: var(--stripe); }
+  .q-item .ico { color: var(--dim); }
+  .q-item .ico.folder { color: #e0a63b; }
+  .q-item .nm { overflow: hidden; text-overflow: ellipsis; }
+  .q-item .nm small { color: var(--faint); font-size: 11px; margin-left: 6px; }
+  .q-item .sz { color: var(--dim); font-size: 11.5px; text-align: right; font-variant-numeric: tabular-nums; }
+  .q-item .st { font-size: 11px; color: var(--faint); text-align: right; }
+  .q-item .st.ok { color: var(--success); }
+  .q-item .st.err { color: var(--danger); }
+  .q-item.child { padding-left: 34px; grid-template-columns: 18px 1fr 92px 82px 24px; }
+  .q-item.fresh { background: #fffbea; }
+  .q-item.fresh .st { color: var(--notice-text); font-weight: 600; }
+  .q-item .chev { width: 11px; height: 11px; color: var(--faint); }
+  .conflict { margin: 4px 14px 10px; padding: 9px 10px; border: 1px solid var(--notice-border); background: var(--notice-bg); border-radius: var(--radius); display: grid; gap: 8px; }
+  .conflict .t { display: flex; gap: 8px; align-items: flex-start; }
+  .conflict .t .ico { color: var(--warning); margin-top: 1px; }
+  .conflict .t b { font-weight: 600; }
+  .conflict .t small { display: block; color: var(--dim); font-size: 11px; margin-top: 2px; }
+  .conflict .a { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .conflict .a .check { margin-left: auto; font-size: 11.5px; color: var(--dim); }
+  .tx-foot { display: flex; align-items: center; gap: 8px; padding: 9px 14px; border-top: 1px solid var(--border); background: var(--side); }
+  .tx-foot .info { font-size: 11px; color: var(--faint); margin-right: auto; display: flex; gap: 6px; align-items: center; }
+  .tx-foot .info .ico { width: 13px; height: 13px; }
+
+  /* ---------- Taskbar ---------- */
+  .taskbar { position: absolute; left: 0; right: 0; bottom: 0; height: var(--taskbar-h); background: var(--bar); border-top: 1px solid var(--bar-border); display: flex; align-items: center; padding: 0 6px; gap: 4px; color: var(--bar-text); }
+  .tb-btn { height: 26px; display: flex; align-items: center; gap: 7px; padding: 0 9px; border-radius: var(--radius-sm); color: var(--bar-text); font-size: 12px; }
+  .tb-btn:hover { background: var(--bar-hover); }
+  .tb-btn.active { background: rgba(255,255,255,.1); }
+  .tb-btn .ico { width: 14px; height: 14px; }
+  .tb-sp { flex: 1; }
+  .tray { display: flex; align-items: center; gap: 2px; }
+  .tray .tb-btn { padding: 0 7px; }
+  .ring { width: 18px; height: 18px; position: relative; }
+  .ring svg { width: 18px; height: 18px; transform: rotate(-90deg); }
+  .ring .ico { position: absolute; inset: 4px; width: 10px; height: 10px; }
+  .clock { font-size: 12px; color: var(--bar-dim); padding: 0 8px; font-variant-numeric: tabular-nums; }
+  .tip { position: absolute; z-index: 12; background: var(--panel); border: 1px solid var(--panel-border); color: var(--bar-text); border-radius: var(--radius); padding: 8px 10px; font-size: 11.5px; width: 230px; box-shadow: 0 12px 32px -8px rgba(0,0,0,.55); display: grid; gap: 5px; }
+  .tip b { color: #fff; font-weight: 600; }
+  .tip .bar { background: #2c3038; height: 4px; }
+  .tip small { color: var(--bar-dim); font-size: 11px; }
+
+  /* ---------- Notification ---------- */
+  .notif { position: absolute; z-index: 12; width: 300px; background: var(--panel); border: 1px solid var(--panel-border); color: var(--bar-text); border-radius: var(--radius); padding: 10px 12px; display: grid; grid-template-columns: 22px 1fr; gap: 4px 10px; box-shadow: 0 12px 32px -8px rgba(0,0,0,.55); }
+  .notif .ico { color: var(--success); width: 18px; height: 18px; }
+  .notif b { color: #fff; font-weight: 600; }
+  .notif small { grid-column: 2; color: var(--bar-dim); font-size: 11.5px; }
+  .notif a { grid-column: 2; color: #8fb0ff; font-size: 11.5px; font-weight: 600; text-decoration: none; }
+
+  @media (max-width: 760px) { .screen { height: auto; min-height: 640px; overflow-x: auto; } }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></symbol>
+    <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="m21 16-5-5-9 9"/></symbol>
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/></symbol>
+    <symbol id="i-desk" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></symbol>
+    <symbol id="i-doc" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M9 13h6M9 17h4"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></symbol>
+    <symbol id="i-server" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="7" rx="1.5"/><rect x="3" y="13" width="18" height="7" rx="1.5"/><path d="M7 7.5h.01M7 16.5h.01"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+    <symbol id="i-min" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+    <symbol id="i-max" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="1"/></symbol>
+    <symbol id="i-up" viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></symbol>
+    <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 5v14M6 13l6 6 6-6"/></symbol>
+    <symbol id="i-swap" viewBox="0 0 24 24"><path d="M7 4v16M3 8l4-4 4 4M17 20V4M13 16l4 4 4-4"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></symbol>
+    <symbol id="i-fwd" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+    <symbol id="i-chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
+    <symbol id="i-chevr" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
+    <symbol id="i-plug" viewBox="0 0 24 24"><path d="M9 3v5M15 3v5M6 8h12v3a6 6 0 0 1-12 0zM12 17v4"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14.9-3M4 13a8 8 0 0 0 14.9 3"/><path d="M4 4v4h4M20 20v-4h-4"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24"><path d="M9 5v14M15 5v14"/></symbol>
+    <symbol id="i-warn" viewBox="0 0 24 24"><path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17h.01"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 21h4"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/><rect x="4" y="13" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/></symbol>
+    <symbol id="i-files" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+    <symbol id="i-unplug" viewBox="0 0 24 24"><path d="M9 3v5M15 3v5M6 8h12v3a6 6 0 0 1-12 0zM12 17v4M3 3l18 18"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
+  </defs>
+</svg>
+
+<!-- =============================== Scena 1 =============================== -->
+<section class="scene">
+  <h2>1 · La connessione è una cartella: Home → Rete</h2>
+  <p>Ogni connessione è montata in <b>~/Rete/&lt;nome&gt;</b> e si apre come qualsiasi cartella: stessi comandi, trascinamento, copia/incolla, apertura con le app. Nella barra laterale c'è la sezione <b>Rete</b> con lo stato di ogni connessione (verde connessa, grigia scollegata, blu con trasferimenti in corso). Trascinando file dalla Home dentro la cartella remota parte un trasferimento nel kernel.</p>
+  <div class="screen">
+    <div class="desk"></div>
+
+    <div class="window" style="left:40px;top:28px;width:860px;height:540px">
+      <div class="titlebar">
+        <div class="title"><svg class="ico"><use href="#i-files"/></svg>File Manager <em>— public_html</em></div>
+        <div class="controls"><button><svg class="ico"><use href="#i-min"/></svg></button><button><svg class="ico"><use href="#i-max"/></svg></button><button class="close"><svg class="ico"><use href="#i-x"/></svg></button></div>
+      </div>
+      <div class="fm">
+        <div class="fm-tools">
+          <button class="iconbtn"><svg class="ico"><use href="#i-back"/></svg></button>
+          <button class="iconbtn"><svg class="ico"><use href="#i-fwd"/></svg></button>
+          <div class="fm-path"><span>eugenio</span><span class="sep">›</span><span>Rete</span><span class="sep">›</span><span>Sito aziendale</span><span class="sep">›</span><b>public_html</b></div>
+          <button class="iconbtn" title="Aggiorna"><svg class="ico"><use href="#i-refresh"/></svg></button>
+        </div>
+        <div class="fm-body">
+          <aside class="fm-side">
+            <h6><span>Collegamenti</span></h6>
+            <div class="place"><svg class="ico"><use href="#i-home"/></svg><span class="nm">Home</span></div>
+            <div class="place"><svg class="ico"><use href="#i-desk"/></svg><span class="nm">Scrivania</span></div>
+            <div class="place"><svg class="ico"><use href="#i-doc"/></svg><span class="nm">Documenti</span></div>
+            <div class="place"><svg class="ico"><use href="#i-image"/></svg><span class="nm">Immagini</span></div>
+            <h6><span>Rete</span><button class="iconbtn" title="Connetti a un server…"><svg class="ico"><use href="#i-plus"/></svg></button></h6>
+            <div class="place" aria-current="true"><span class="dot busy"></span><span class="nm">Sito aziendale</span><span class="proto">SFTP</span></div>
+            <div class="place"><span class="dot busy"></span><span class="nm">NAS di casa</span><span class="proto">SMB</span></div>
+            <div class="place"><span class="dot on"></span><span class="nm">Nextcloud</span><span class="proto">DAV</span></div>
+            <div class="place"><span class="dot off"></span><span class="nm">Hosting vecchio</span><span class="proto">FTPS</span></div>
+            <div class="place"><span class="dot off"></span><span class="nm">Archivio</span><span class="proto">FTP</span></div>
+            <hr style="border:0;border-top:1px solid var(--border);margin:8px 4px">
+            <div class="place"><svg class="ico"><use href="#i-trash"/></svg><span class="nm">Cestino</span></div>
+          </aside>
+          <div class="fm-main">
+            <div class="mount-bar">
+              <svg class="ico"><use href="#i-lock"/></svg>
+              <span>Connesso a <code>sftp://deploy@sito.example.com/var/www/public_html</code></span>
+              <span class="sp"></span>
+              <button class="btn"><svg class="ico"><use href="#i-unplug"/></svg>Disconnetti</button>
+            </div>
+            <div class="list">
+              <div class="row head"><span>Nome</span><span>Modificato</span><span>Dimensione</span><span></span></div>
+              <div class="row"><span class="n"><svg class="ico folder"><use href="#i-folder"/></svg>assets</span><span class="m">oggi 10:12</span><span class="m">—</span><span class="tag-up"><svg class="ico"><use href="#i-up"/></svg>in arrivo · 41 di 124</span></div>
+              <div class="row"><span class="n"><svg class="ico folder"><use href="#i-folder"/></svg>blog</span><span class="m">12 ott</span><span class="m">—</span><span></span></div>
+              <div class="row"><span class="n"><svg class="ico folder"><use href="#i-folder"/></svg>img</span><span class="m">oggi 10:14</span><span class="m">—</span><span class="tag-up"><svg class="ico"><use href="#i-up"/></svg>in arrivo</span></div>
+              <div class="row sel"><span class="n"><svg class="ico"><use href="#i-file"/></svg>index.html</span><span class="m">28 ott</span><span class="m">14 KB</span><span></span></div>
+              <div class="row"><span class="n"><svg class="ico"><use href="#i-file"/></svg>style.css</span><span class="m">28 ott</span><span class="m">38 KB</span><span></span></div>
+              <div class="row"><span class="n"><svg class="ico"><use href="#i-file"/></svg>robots.txt</span><span class="m">3 mar</span><span class="m">1 KB</span><span></span></div>
+              <div class="row ghost"><span class="n"><svg class="ico"><use href="#i-image"/></svg>video-presentazione.mp4</span><span class="m">—</span><span class="m">812 MB</span><span class="tag-up"><svg class="ico"><use href="#i-up"/></svg>in coda</span></div>
+            </div>
+            <div class="fm-status"><span>7 elementi</span><span>·</span><span>trasferimenti in corso: 3 file, 1,2 GB</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="menu" style="left:250px;top:330px">
+      <div class="hi"><svg class="ico"><use href="#i-plus"/></svg>Connetti a un server…</div>
+      <hr>
+      <div><svg class="ico"><use href="#i-plug"/></svg>Connetti</div>
+      <div><svg class="ico"><use href="#i-unplug"/></svg>Disconnetti</div>
+      <div><svg class="ico"><use href="#i-info"/></svg>Modifica connessione…</div>
+      <hr>
+      <div><svg class="ico"><use href="#i-trash"/></svg>Rimuovi connessione</div>
+    </div>
+
+    <div class="callout" data-n="1" style="left:920px;top:250px">Sezione Rete: una riga per connessione, con stato e protocollo</div>
+    <div class="callout" data-n="2" style="left:920px;top:70px">Percorso normale: ~/Rete/Sito aziendale/…</div>
+    <div class="callout" data-n="3" style="left:920px;top:150px">Elementi in arrivo: il trasferimento non è ancora finito</div>
+    <div class="callout" data-n="4" style="left:920px;top:340px">Menu della connessione (tasto destro)</div>
+
+    <div class="taskbar">
+      <button class="tb-btn"><svg class="ico"><use href="#i-grid"/></svg></button>
+      <button class="tb-btn active"><svg class="ico"><use href="#i-files"/></svg>File Manager</button>
+      <span class="tb-sp"></span>
+      <div class="tray">
+        <button class="tb-btn"><span class="ring"><svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="15" fill="none" stroke="#3a3e46" stroke-width="4"/><circle cx="18" cy="18" r="15" fill="none" stroke="#5b8cff" stroke-width="4" stroke-dasharray="32 94"/></svg><svg class="ico"><use href="#i-swap"/></svg></span></button>
+        <button class="tb-btn"><svg class="ico"><use href="#i-bell"/></svg></button>
+      </div>
+      <span class="clock">10:15</span>
+    </div>
+  </div>
+</section>
+
+<!-- =============================== Scena 2 =============================== -->
+<section class="scene">
+  <h2>2 · Connetti a un server (SFTP)</h2>
+  <p>Una sola finestra per tutti i protocolli: il protocollo si sceglie da un elenco a tendina (resta chiaro anche quando i protocolli aumentano) e i campi della finestra cambiano con la scelta (porta di serie, condivisione e dominio per SMB, FTPS esplicito/implicito, chiave SSH per SFTP, URL per WebDAV). <b>La password resta nel kernel</b>, cifrata, e la pagina non la riceve mai indietro. Alla prima connessione SFTP lilOS chiede di confermare l'impronta del server; FTPS e WebDAV con certificato non valido chiedono conferma allo stesso modo.</p>
+  <div class="screen" style="height:700px">
+    <div class="desk"></div>
+    <div class="window inactive" style="left:40px;top:28px;width:620px;height:440px;opacity:.6">
+      <div class="titlebar"><div class="title"><svg class="ico"><use href="#i-files"/></svg>File Manager <em>— Rete</em></div><div class="controls"><button><svg class="ico"><use href="#i-min"/></svg></button><button><svg class="ico"><use href="#i-max"/></svg></button><button class="close"><svg class="ico"><use href="#i-x"/></svg></button></div></div>
+      <div style="flex:1;background:#fff"></div>
+    </div>
+
+    <div class="window" style="left:330px;top:10px;width:460px;height:650px">
+      <div class="titlebar">
+        <div class="title"><svg class="ico"><use href="#i-server"/></svg>Connetti a un server</div>
+        <div class="controls"><button class="close"><svg class="ico"><use href="#i-x"/></svg></button></div>
+      </div>
+      <div class="dlg-body">
+        <div class="field"><label>Protocollo</label><div class="input" style="justify-content:space-between"><span>SFTP (SSH)</span><svg class="ico" style="width:12px;color:var(--faint)"><use href="#i-chev"/></svg></div></div>
+        <div class="grid2">
+          <div class="field"><label>Server</label><div class="input focus mono">sito.example.com</div></div>
+          <div class="field"><label>Porta</label><div class="input mono">22</div></div>
+        </div>
+        <div class="grid2b">
+          <div class="field"><label>Utente</label><div class="input mono">deploy</div></div>
+          <div class="field"><label>Accesso</label><div class="input" style="justify-content:space-between">Chiave SSH<svg class="ico" style="width:12px;color:var(--faint)"><use href="#i-chev"/></svg></div></div>
+        </div>
+        <div class="field"><label>Chiave privata</label><div class="input" style="justify-content:space-between"><span class="mono" style="font-size:11.5px">Documenti/chiavi/deploy_ed25519</span><span class="hint">Sfoglia…</span></div></div>
+        <div class="field"><label>Cartella remota</label><div class="input mono">/var/www/public_html</div></div>
+        <div class="field"><label>Nome della cartella in Rete</label><div class="input">Sito aziendale</div><span class="hint">Sarà ~/Rete/Sito aziendale</span></div>
+        <div class="check"><span class="box on"></span>Ricorda le credenziali (cifrate nel kernel)</div>
+        <div class="check"><span class="box on"></span>Connetti all'accesso</div>
+        <div class="note">
+          <span><b>Prima connessione a questo server.</b> Impronta della chiave (ED25519):</span>
+          <code>SHA256:Qz8f1Yh0r9m2Vb3kTn6pW4xL7cA5sD0eGjH2uKiOpRs</code>
+          <span>Confermala solo se corrisponde a quella del server.</span>
+        </div>
+      </div>
+      <div class="dlg-foot">
+        <button class="btn left">Prova</button>
+        <button class="btn">Annulla</button>
+        <button class="btn primary">Conferma e connetti</button>
+      </div>
+    </div>
+
+        <div class="menu" style="left:346px;top:104px;min-width:428px;background:#fff;color:var(--text);border-color:var(--border)">
+      <div>FTP</div><div>FTPS (FTP con TLS)</div><div class="hi" style="background:var(--accent-soft);color:var(--accent)">SFTP (SSH)</div><div>WebDAV</div><div>SMB (condivisioni Windows e NAS)</div>
+    </div>
+    <div class="callout" data-n="1" style="left:800px;top:80px">Protocollo da un elenco a tendina: i campi sotto cambiano con la scelta</div>
+    <div class="callout" data-n="2" style="left:800px;top:390px">Credenziali tenute dal kernel, mai rimandate alla pagina</div>
+    <div class="callout" data-n="3" style="left:800px;top:470px">Impronta / certificato: si conferma una volta</div>
+
+    <div class="taskbar">
+      <button class="tb-btn"><svg class="ico"><use href="#i-grid"/></svg></button>
+      <button class="tb-btn active"><svg class="ico"><use href="#i-files"/></svg>File Manager</button>
+      <span class="tb-sp"></span>
+      <div class="tray"><button class="tb-btn"><svg class="ico"><use href="#i-bell"/></svg></button></div>
+      <span class="clock">10:02</span>
+    </div>
+  </div>
+</section>
+
+<!-- =============================== Scena 2b =============================== -->
+<section class="scene">
+  <h2>2b · Connetti a un server (SMB)</h2>
+  <p>Per SMB servono anche la <b>condivisione</b> (con «Elenca» per sceglierla tra quelle del server) e il <b>dominio o gruppo di lavoro</b>; si può entrare come ospite. Solo <b>SMB 2 e 3</b>: il vecchio SMB1/CIFS non è supportato, perché non è sicuro e Windows lo tiene spento di serie. Se il server parla solo SMB1 lo dice l'errore.</p>
+  <div class="screen" style="height:700px">
+    <div class="desk"></div>
+    <div class="window" style="left:330px;top:10px;width:460px;height:650px">
+      <div class="titlebar">
+        <div class="title"><svg class="ico"><use href="#i-server"/></svg>Connetti a un server</div>
+        <div class="controls"><button class="close"><svg class="ico"><use href="#i-x"/></svg></button></div>
+      </div>
+      <div class="dlg-body">
+        <div class="field"><label>Protocollo</label><div class="input" style="justify-content:space-between"><span>SMB (condivisioni Windows e NAS)</span><svg class="ico" style="width:12px;color:var(--faint)"><use href="#i-chev"/></svg></div></div>
+        <div class="grid2">
+          <div class="field"><label>Server</label><div class="input mono">nas.local</div></div>
+          <div class="field"><label>Porta</label><div class="input mono">445</div></div>
+        </div>
+        <div class="field"><label>Condivisione</label><div class="input focus" style="justify-content:space-between"><span class="mono" style="font-size:11.5px">Foto</span><span class="hint">Elenca…</span></div></div>
+        <div class="grid2b">
+          <div class="field"><label>Dominio o gruppo di lavoro</label><div class="input mono">WORKGROUP</div></div>
+          <div class="field"><label>Utente</label><div class="input mono">eugenio</div></div>
+        </div>
+        <div class="field"><label>Password</label><div class="input mono">••••••••••</div></div>
+        <div class="check"><span class="box"></span>Accedi come ospite</div>
+        <div class="field"><label>Cartella dentro la condivisione</label><div class="input mono"><span class="ph">/ (tutta la condivisione)</span></div></div>
+        <div class="field"><label>Nome della cartella in Rete</label><div class="input">NAS di casa</div><span class="hint">Sarà ~/Rete/NAS di casa</span></div>
+        <div class="check"><span class="box on"></span>Ricorda le credenziali (cifrate nel kernel)</div>
+      </div>
+      <div class="dlg-foot">
+        <button class="btn left">Prova</button>
+        <button class="btn">Annulla</button>
+        <button class="btn primary">Connetti</button>
+      </div>
+    </div>
+    <div class="callout" data-n="1" style="left:800px;top:120px">«Elenca» mostra le condivisioni del server</div>
+    <div class="callout" data-n="2" style="left:800px;top:200px">Dominio per NTLM; WORKGROUP di serie</div>
+    <div class="callout" data-n="3" style="left:800px;top:290px">Ospite: niente utente e password</div>
+    <div class="callout" data-n="4" style="left:800px;top:340px">Solo SMB 2/3: SMB1 (CIFS) rifiutato con un messaggio chiaro</div>
+    <div class="taskbar">
+      <button class="tb-btn"><svg class="ico"><use href="#i-grid"/></svg></button>
+      <button class="tb-btn active"><svg class="ico"><use href="#i-files"/></svg>File Manager</button>
+      <span class="tb-sp"></span>
+      <div class="tray"><button class="tb-btn"><svg class="ico"><use href="#i-bell"/></svg></button></div>
+      <span class="clock">10:04</span>
+    </div>
+  </div>
+</section>
+
+<!-- =============================== Scena 3 =============================== -->
+<section class="scene">
+  <h2>3 · Trasferimento dati (File Manager già chiuso)</h2>
+  <p>Si apre da sola se un trasferimento dura <b>più di 5 secondi</b>. È una finestra di lilOS, non del File Manager: il lavoro gira nel kernel, quindi continua anche chiudendo il File Manager (e anche chiudendo la pagina o uscendo). Chiudere questa finestra la nasconde e basta; si riapre dall'icona nella barra. <b>Si ferma solo con Annulla</b>: tutto, una destinazione, una cartella o un singolo file. In alto i totali di <b>dati inviati</b> e <b>ricevuti</b>; per ogni destinazione il file in corso e la coda. I file aggiunti alla stessa destinazione finiscono in fondo alla sua coda (evidenziati).</p>
+  <div class="screen" style="height:900px">
+    <div class="desk"></div>
+
+    <div class="window" style="left:150px;top:22px;width:640px;height:836px">
+      <div class="titlebar">
+        <div class="title"><svg class="ico"><use href="#i-swap"/></svg>Trasferimento dati <em>— 3 file in corso, 186 in coda</em></div>
+        <div class="controls"><button><svg class="ico"><use href="#i-min"/></svg></button><button class="close" title="Nascondi (i trasferimenti continuano)"><svg class="ico"><use href="#i-x"/></svg></button></div>
+      </div>
+      <div class="tx">
+        <div class="tx-sum">
+          <div class="meter up">
+            <div class="top"><svg class="ico"><use href="#i-up"/></svg>Inviati <b>34%</b><span class="r">412 MB di 1,21 GB</span></div>
+            <div class="bar"><i style="width:34%"></i></div>
+            <div class="sub">4,1 MB/s · circa 3 min</div>
+          </div>
+          <div class="meter down">
+            <div class="top"><svg class="ico"><use href="#i-down"/></svg>Ricevuti <b>71%</b><span class="r">57 MB di 80 MB</span></div>
+            <div class="bar"><i style="width:71%"></i></div>
+            <div class="sub">2,3 MB/s · circa 10 s</div>
+          </div>
+        </div>
+
+        <div class="tx-list">
+          <!-- Group 1: upload -->
+          <div class="q-group">
+            <div class="q-head">
+              <div class="dir"><svg class="ico"><use href="#i-up"/></svg><span>Home → Sito aziendale/public_html</span><span class="proto">SFTP</span></div>
+              <span class="cnt">2 in corso · 183 in coda</span>
+              <span class="sp"></span>
+              <button class="iconbtn" title="Pausa"><svg class="ico"><use href="#i-pause"/></svg></button>
+              <button class="btn danger" style="height:22px;padding:0 8px;font-size:11.5px">Annulla destinazione</button>
+            </div>
+            <div class="current">
+              <div class="l1"><svg class="ico"><use href="#i-image"/></svg><span class="fname">hero-autunno.jpg</span><span class="pct">62%</span><button class="iconbtn x" title="Annulla questo file"><svg class="ico"><use href="#i-x"/></svg></button></div>
+              <div class="from">Immagini/sito/hero-autunno.jpg → public_html/img/</div>
+              <div class="bar"><i style="width:62%"></i></div>
+              <div class="l3"><span>5,3 MB di 8,6 MB</span><span class="sp"></span><span>1,9 MB/s</span></div>
+            </div>
+            <div class="q-item"><svg class="ico folder"><use href="#i-chev"/></svg><span class="nm"><b style="font-weight:600">assets/</b><small>41 di 124 file</small></span><span class="sz">96 / 340 MB</span><span class="st">in corso</span><button class="iconbtn x" title="Annulla la cartella"><svg class="ico"><use href="#i-x"/></svg></button></div>
+            <div class="q-item child"><svg class="ico"><use href="#i-file"/></svg><span class="nm">fonts/manrope-600.woff2</span><span class="sz">48 KB</span><span class="st">22%</span><button class="iconbtn x"><svg class="ico"><use href="#i-x"/></svg></button></div>
+            <div class="q-item child"><svg class="ico"><use href="#i-file"/></svg><span class="nm">fonts/manrope-700.woff2</span><span class="sz">49 KB</span><span class="st">in coda</span><button class="iconbtn x"><svg class="ico"><use href="#i-x"/></svg></button></div>
+            <div class="q-item child"><svg class="ico"><use href="#i-file"/></svg><span class="nm">js/app.min.js</span><span class="sz">1,2 MB</span><span class="st">in coda</span><button class="iconbtn x"><svg class="ico"><use href="#i-x"/></svg></button></div>
+            <div class="q-item child" style="color:var(--faint)"><span></span><span class="nm">… altri 80 file</span><span></span><span></span><span></span></div>
+            <div class="q-item"><svg class="ico"><use href="#i-file"/></svg><span class="nm">video-presentazione.mp4</span><span class="sz">812 MB</span><span class="st">in coda</span><button class="iconbtn x"><svg class="ico"><use href="#i-x"/></svg></button></div>
+            <div class="conflict">
+              <div class="t"><svg class="ico"><use href="#i-warn"/></svg><div><b>index.html esiste già in public_html</b><small>Sul server: 14 KB, 28 ott · Da inviare: 15 KB, oggi 09:58</small></div></div>
+              <div class="a"><button class="btn primary" style="height:24px">Sostituisci</button><button class="btn" style="height:24px">Mantieni entrambi</button><button class="btn" style="height:24px">Salta</button><span class="check"><span class="box"></span>Per tutti i conflitti</span></div>
+            </div>
+            <div class="q-item fresh"><svg class="ico folder"><use href="#i-chevr"/></svg><span class="nm"><b style="font-weight:600">blog/</b><small>58 file</small></span><span class="sz">44 MB</span><span class="st">aggiunta ora</span><button class="iconbtn x"><svg class="ico"><use href="#i-x"/></svg></button></div>
+          </div>
+
+          <!-- Group 2: download -->
+          <div class="q-group">
+            <div class="q-head">
+              <div class="dir"><svg class="ico"><use href="#i-down"/></svg><span>NAS di casa/Foto/2026 → Immagini</span><span class="proto">SMB</span></div>
+              <span class="cnt">1 in corso · 3 in coda</span>
+              <span class="sp"></span>
+              <button class="iconbtn" title="Pausa"><svg class="ico"><use href="#i-pause"/></svg></button>
+              <button class="btn danger" style="height:22px;padding:0 8px;font-size:11.5px">Annulla destinazione</button>
+            </div>
+            <div class="current" style="border-color:#cfeedd;background:#f4fbf7">
+              <div class="l1"><svg class="ico"><use href="#i-image"/></svg><span class="fname">IMG_2041.HEIC</span><span class="pct" style="color:var(--success)">88%</span><button class="iconbtn x"><svg class="ico"><use href="#i-x"/></svg></button></div>
+              <div class="from">Foto/2026/ottobre/IMG_2041.HEIC → Immagini/</div>
+              <div class="bar" ><i style="width:88%;background:var(--success)"></i></div>
+              <div class="l3"><span>3,1 MB di 3,5 MB</span><span class="sp"></span><span>2,3 MB/s</span></div>
+            </div>
+            <div class="q-item"><svg class="ico"><use href="#i-image"/></svg><span class="nm">IMG_2042.HEIC</span><span class="sz">3,4 MB</span><span class="st">in coda</span><button class="iconbtn x"><svg class="ico"><use href="#i-x"/></svg></button></div>
+            <div class="q-item"><svg class="ico"><use href="#i-image"/></svg><span class="nm">IMG_2040.HEIC</span><span class="sz">3,2 MB</span><span class="st ok">fatto</span><span></span></div>
+            <div class="q-item"><svg class="ico"><use href="#i-image"/></svg><span class="nm">IMG_2039.HEIC</span><span class="sz">3,3 MB</span><span class="st err" title="Il file è aperto da un altro utente sul server">in uso · Riprova</span><button class="iconbtn"><svg class="ico"><use href="#i-refresh"/></svg></button></div>
+          </div>
+        </div>
+
+        <div class="tx-foot">
+          <span class="info"><svg class="ico"><use href="#i-info"/></svg>Puoi chiudere questa finestra: i trasferimenti continuano.</span>
+          <button class="btn danger">Annulla tutto</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout" data-n="1" style="left:800px;top:60px">Totali inviati / ricevuti, velocità e tempo stimato</div>
+    <div class="callout" data-n="2" style="left:800px;top:140px">Una coda per destinazione, una alla volta in sequenza</div>
+    <div class="callout" data-n="3" style="left:800px;top:196px">File in corso, con annulla del singolo file</div>
+    <div class="callout" data-n="4" style="left:800px;top:252px">Cartella annullabile intera o file per file</div>
+    <div class="callout" data-n="5" style="left:800px;top:420px">Conflitto: la coda di quella destinazione aspetta, le altre vanno avanti</div>
+    <div class="callout" data-n="6" style="left:800px;top:500px">Aggiunta alla stessa destinazione: in fondo alla coda</div>
+    <div class="callout" data-n="7" style="left:800px;top:800px">Chiudere = nascondere; si ferma solo con Annulla</div>
+
+    
+    <div class="taskbar">
+      <button class="tb-btn"><svg class="ico"><use href="#i-grid"/></svg></button>
+      <button class="tb-btn active"><svg class="ico"><use href="#i-swap"/></svg>Trasferimento dati</button>
+      <span class="tb-sp"></span>
+      <div class="tray">
+        <button class="tb-btn"><span class="ring"><svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="15" fill="none" stroke="#3a3e46" stroke-width="4"/><circle cx="18" cy="18" r="15" fill="none" stroke="#5b8cff" stroke-width="4" stroke-dasharray="37 94"/></svg><svg class="ico"><use href="#i-swap"/></svg></span></button>
+        <button class="tb-btn"><svg class="ico"><use href="#i-bell"/></svg></button>
+      </div>
+      <span class="clock">10:16</span>
+    </div>
+  </div>
+</section>
+
+<!-- =============================== Scena 4 =============================== -->
+<section class="scene">
+  <h2>4 · Finestra chiusa: icona nella barra, poi la notifica</h2>
+  <p>Mentre ci sono trasferimenti, nella barra c'è un'icona con l'anello di avanzamento; passandoci sopra si vede il riepilogo, un clic riapre la finestra. Alla fine arriva una <b>notifica</b> (niente toast, come da D52) con gli eventuali errori; il clic riapre la finestra con l'elenco di ciò che non è andato.</p>
+  <div class="screen" style="height:360px">
+    <div class="desk"></div>
+
+    <div class="tip" style="right:70px;bottom:44px">
+      <b>Trasferimento dati</b>
+      <span>↑ 412 MB di 1,21 GB · 4,1 MB/s</span>
+      <div class="bar"><i style="width:34%;background:#5b8cff"></i></div>
+      <span>↓ 57 MB di 80 MB · 2,3 MB/s</span>
+      <div class="bar"><i style="width:71%;background:var(--success)"></i></div>
+      <small>Clic per aprire · 189 file restanti</small>
+    </div>
+
+    <div class="notif" style="left:40px;top:40px">
+      <svg class="ico"><use href="#i-check"/></svg>
+      <b>Trasferimento completato</b>
+      <small>186 file inviati a Sito aziendale (1,25 GB). 1 file non trasferito.</small>
+      <a href="#">Mostra i dettagli</a>
+    </div>
+
+    <div class="callout" data-n="1" style="right:320px;bottom:120px">Riepilogo al passaggio del mouse</div>
+    <div class="callout" data-n="2" style="left:360px;top:60px">Notifica a fine lavoro, anche se la pagina era chiusa</div>
+
+    <div class="taskbar">
+      <button class="tb-btn"><svg class="ico"><use href="#i-grid"/></svg></button>
+      <span class="tb-sp"></span>
+      <div class="tray">
+        <button class="tb-btn" style="background:var(--bar-hover)"><span class="ring"><svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="15" fill="none" stroke="#3a3e46" stroke-width="4"/><circle cx="18" cy="18" r="15" fill="none" stroke="#5b8cff" stroke-width="4" stroke-dasharray="37 94"/></svg><svg class="ico"><use href="#i-swap"/></svg></span></button>
+        <button class="tb-btn"><svg class="ico"><use href="#i-bell"/></svg></button>
+      </div>
+      <span class="clock">10:16</span>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>

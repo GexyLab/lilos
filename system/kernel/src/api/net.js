@@ -1,0 +1,129 @@
+import { Transform } from 'node:stream';
+import { KernelError, fail } from '../errors.js';
+import { sendStream } from '../http.js';
+
+/**
+ * The network connections of the signed-in user (net/network.js) and their transfers
+ * (net/transfers.js). Each user sees and changes only theirs.
+ *
+ *   GET    /api/net                              { protocols, mounts }
+ *   POST   /api/net/mounts                       { name, protocol, values, auto, remember, trust?, secret } → mount
+ *   PUT    /api/net/mounts/:id                   { name?, values?, auto?, remember?, forget?, secret? } → mount
+ *   DELETE /api/net/mounts/:id
+ *   POST   /api/net/mounts/:id/connect           { secret?, remember?, trust? } → mount
+ *   POST   /api/net/mounts/:id/disconnect        → mount
+ *   POST   /api/net/test                         { protocol, values, trust?, secret }   tries without saving
+ *   POST   /api/net/shares                       { protocol, values, trust?, secret } → { shares }
+ *   GET    /api/net/mounts/:id/list?path=        { entries: [{ name, type, size, modified }] }
+ *   GET    /api/net/mounts/:id/content?path=     the bytes of a file
+ *   PUT    /api/net/mounts/:id/content?path=     writes a file (body: its bytes, at most 1 GB)
+ *   POST   /api/net/mounts/:id/ops               { op: 'mkdir' | 'rename' | 'remove', path, to? }
+ *   GET    /api/net/transfers                    the snapshot the transfer window shows
+ *   GET    /api/net/transfers/items/:id          { items, more }   inside a folder of a queue
+ *   POST   /api/net/transfers                    { sources: [ref], target: ref, workspace? } → { queue }
+ *   POST   /api/net/transfers/:action            cancel { ids?, queue?, all? } · resolve { id, action, all? }
+ *                                                retry { ids?, queue? } · dismiss { ids?, queue?, all? } · pause { queue, paused }
+ *
+ * Errors of a connection: 'secret_required' (details.reason 'missing' or 'auth': ask the password),
+ * 'untrusted' (details.trust { kind, fingerprint, text }: ask the user to confirm, then connect
+ * again with `trust`), 'unavailable' (the server cannot be reached).
+ */
+const ID = /^[a-f0-9]{16}$/;
+const ITEM = /^[a-f0-9]{20}$/;
+const MAX_UPLOAD = 1 << 30;
+
+const signedIn = principal => principal ?? fail('unauthorized', 'Accesso richiesto');
+const mountId = params => (ID.test(params.id) ? params.id : fail('invalid', 'Connessione non valida'));
+const plain = v => (v && typeof v === 'object' && !Array.isArray(v) ? v : {});
+
+export function netRoutes(kernel) {
+  const { router, network: net, transfers } = kernel;
+
+  router.add('GET', '/api/net', async ({ principal }) => net.list(signedIn(principal)));
+
+  router.add('POST', '/api/net/mounts', async ({ principal, json }) => {
+    const body = await json(256 << 10);
+    return net.create(signedIn(principal), body, plain(body.secret));
+  });
+
+  router.add('PUT', '/api/net/mounts/:id', async ({ principal, params, json }) => {
+    const body = await json(256 << 10);
+    return net.update(signedIn(principal), mountId(params), body, plain(body.secret));
+  });
+
+  router.add('DELETE', '/api/net/mounts/:id', async ({ principal, params }) => {
+    await net.remove(signedIn(principal), mountId(params));
+  });
+
+  router.add('POST', '/api/net/mounts/:id/connect', async ({ principal, params, json }) => {
+    const { secret = null, remember, trust } = await json(256 << 10);
+    return net.connect(signedIn(principal), mountId(params), { secret: secret && plain(secret), remember, trust });
+  });
+
+  router.add('POST', '/api/net/mounts/:id/disconnect', async ({ principal, params }) => net.disconnect(signedIn(principal), mountId(params)));
+
+  router.add('POST', '/api/net/test', async ({ principal, json }) => {
+    const body = await json(256 << 10);
+    await net.test(signedIn(principal), body, plain(body.secret));
+    return { ok: true };
+  });
+
+  router.add('POST', '/api/net/shares', async ({ principal, json }) => {
+    const body = await json(256 << 10);
+    return { shares: await net.shares(signedIn(principal), body, plain(body.secret)) };
+  });
+
+  router.add('GET', '/api/net/mounts/:id/list', async ({ principal, params, query }) => {
+    return { entries: await net.listFolder(signedIn(principal), mountId(params), query.get('path') ?? '/') };
+  });
+
+  router.add('GET', '/api/net/mounts/:id/content', async ({ req, res, principal, params, query }) => {
+    const user = signedIn(principal), id = mountId(params), path = query.get('path') ?? '';
+    const controller = new AbortController();
+    req.on('close', () => controller.abort());
+    const entry = await net.stat(user, id, path) ?? fail('not_found', 'Non esiste sul server');
+    if (entry.type === 'folder') fail('invalid', 'Non è un file');
+    const stream = await net.read(user, id, path, { signal: controller.signal });
+    await sendStream(res, stream, Number.isFinite(entry.size) ? { 'Content-Length': String(entry.size) } : {});
+  });
+
+  router.add('PUT', '/api/net/mounts/:id/content', async ({ req, principal, params, query }) => {
+    if (Number(req.headers['content-length']) > MAX_UPLOAD) fail('too_large', 'File troppo grande');
+    const controller = new AbortController();
+    let size = 0;
+    const body = new Transform({
+      transform(chunk, _enc, done) {
+        size += chunk.length;
+        done(size > MAX_UPLOAD ? new KernelError('too_large', 'File troppo grande') : null, chunk);
+      },
+    });
+    req.on('error', err => body.destroy(err));
+    req.on('close', () => { if (!req.complete) { controller.abort(); body.destroy(new Error('Invio interrotto')); } });
+    req.pipe(body);
+    await net.write(signedIn(principal), mountId(params), query.get('path') ?? '', body, { signal: controller.signal });
+  });
+
+  router.add('POST', '/api/net/mounts/:id/ops', async ({ principal, params, json }) => {
+    const user = signedIn(principal), id = mountId(params);
+    const { op, path, to } = await json(16 << 10);
+    if (op === 'mkdir') return net.mkdir(user, id, path);
+    if (op === 'rename') return net.rename(user, id, path, to);
+    if (op === 'remove') return net.removePath(user, id, path);
+    return fail('invalid', 'Operazione non valida');
+  });
+
+  router.add('GET', '/api/net/transfers', async ({ principal }) => transfers.snapshot(signedIn(principal)));
+
+  router.add('GET', '/api/net/transfers/items/:id', async ({ principal, params }) => {
+    if (!ITEM.test(params.id)) fail('invalid', 'Elemento non valido');
+    return transfers.children(signedIn(principal), params.id);
+  });
+
+  router.add('POST', '/api/net/transfers', async ({ principal, json }) => transfers.enqueue(signedIn(principal), await json(1 << 20)));
+
+  for (const action of ['cancel', 'resolve', 'retry', 'dismiss', 'pause']) {
+    router.add('POST', `/api/net/transfers/${action}`, async ({ principal, json }) => {
+      await transfers[action](signedIn(principal), await json(256 << 10));
+    });
+  }
+}
