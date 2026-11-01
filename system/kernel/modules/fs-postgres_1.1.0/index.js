@@ -184,13 +184,18 @@ async function contentOf(db, r) {
 function streamOf(r, start) {
   if (!r.chunks) return Readable.from([(r.content ?? Buffer.alloc(0)).subarray(start)], { objectMode: false });
   const { id, chunks: gen } = r;
-  let seq = Math.floor(start / CHUNK), skip = start % CHUNK;
+  let seq = Math.floor(start / CHUNK), skip = start % CHUNK, got = start;
   return Readable.from((async function* () {
     for (;;) {
       const { rows } = await pool.query('select data from lilos_chunks where node = $1 and gen = $2 and seq = $3', [id, gen, seq++]);
-      if (!rows.length) return;
+      if (!rows.length) {
+        // Rewritten meanwhile (its pieces went): an error, never a shorter file
+        if (got < Number(r.size)) throw new Error('Il file è cambiato mentre veniva letto');
+        return;
+      }
       const data = skip ? rows[0].data.subarray(skip) : rows[0].data;
       skip = 0;
+      got += data.length;
       if (data.length) yield data;
     }
   })(), { objectMode: false });

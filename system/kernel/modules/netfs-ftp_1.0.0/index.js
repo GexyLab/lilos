@@ -60,7 +60,8 @@ function ftpError(err, { connecting = false, client = null } = {}) {
 function certificateOf(socket, host) {
   const cert = socket.getPeerCertificate?.() ?? {};
   const fingerprint = cert.fingerprint256 ?? '';
-  const name = (Array.isArray(cert.subject?.CN) ? cert.subject.CN[0] : cert.subject?.CN) || host;
+  // The name is the server's: only printable text, short (it is shown next to the fingerprint)
+  const name = String((Array.isArray(cert.subject?.CN) ? cert.subject.CN[0] : cert.subject?.CN) || host).replace(/[^\x20-\x7e]/g, '').slice(0, 80);
   return { fingerprint, text: `${name} · ${fingerprint}` };
 }
 
@@ -132,6 +133,15 @@ async function openClient(values, secret, { secure, trust }) {
       await client.sendIgnoringError('OPTS UTF8 ON');
       await client.login(user, password);
       await client.useDefaultSettings();
+      // useDefaultSettings() ignores a refused PROT P: then the files would travel in clear
+      if (secure) {
+        try {
+          await client.send('PBSZ 0');
+          await client.send('PROT P');
+        } catch {
+          throw netError('unsupported', 'Il server non protegge i canali dei dati (PROT P): connessione rifiutata');
+        }
+      }
     } catch (err) {
       throw ftpError(err, { connecting: true, client });
     }
@@ -286,7 +296,7 @@ function session(main, { values, secret, secure, fingerprint, root, canRestart }
       if (info.type === FileType.SymbolicLink) {
         type = await client.cd(full(path === '/' ? `/${info.name}` : `${path}/${info.name}`)).then(() => 'folder', () => 'file');
       }
-      out.push(entryOf(info, type));
+      out.push({ ...entryOf(info, type), ...(info.type === FileType.SymbolicLink && { link: true }) });
     }
     return out;
   }

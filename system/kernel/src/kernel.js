@@ -99,7 +99,8 @@ export class Kernel {
       this.#server.listen(config.port, config.host, resolve);
     });
     log.info(`lilOS ${SYSTEM_VERSION}${RELEASE_DIR ? '' : ' (copia di sviluppo)'} in ascolto su http://${config.host}:${config.port} (${this.multiUser ? 'multiutente' : 'utente singolo'})`);
-    // Transfers that were running when the kernel stopped go on
+    // Connections of users that are gone, then the transfers that were running when the kernel stopped
+    await this.network.prune().catch(err => log.error('Pulizia delle connessioni di rete', err));
     this.transfers.start().catch(err => log.error('Trasferimenti all’avvio', err));
     // system:ready — the services an admin chose for everyone
     this.appServices.systemReady().catch(err => log.error('Servizi all’avvio', err));

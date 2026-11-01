@@ -14,6 +14,7 @@ import { KernelError, fail } from '../errors.js';
  *       trust    the fingerprint the user confirmed for this server (see 'untrusted' below), or null
  *   shares?(values, { secret, trust }) → [name]    what a server offers to connect to (SMB shares)
  *   address(values) → string                      how the connection is shown ('sftp://ann@host/www')
+ *   check?(values)                                 throws (with `net`) if the values cannot be used as they are
  *
  *   field: { key, type, label, required?, secret?, default?, placeholder?, hint?, when?, options?, min?, max? }
  *     type      'text' | 'textarea' | 'number' | 'password' | 'select' | 'checkbox' | 'file'
@@ -25,7 +26,8 @@ import { KernelError, fail } from '../errors.js';
  *     min, max  for 'number'
  *
  * session (paths are absolute in the connection: '/' is its root, as the user chose it):
- *   list(path) → [{ name, type: 'file' | 'folder', size, modified }]
+ *   list(path) → [{ name, type: 'file' | 'folder', size, modified, link? }]   link: a symbolic link
+ *                                                      (to a folder: never walked into, removed as itself)
  *   stat(path) → entry | null
  *   read(path, { start, signal }) → Readable          bytes from `start`
  *   write(path, source, { start, signal, size? })      a file from a stream; start > 0 adds to what is
@@ -133,12 +135,24 @@ export function cleanPath(path) {
 }
 
 export const joinPath = (dir, name) => (dir === '/' ? `/${name}` : `${dir}/${name}`);
+
+/**
+ * A name that came from a server and may be used: one part, not '.' or '..', no '/', control
+ * characters or text-direction overrides (they would make 'exe.txt' look like 'txt.exe').
+ * Others are left out of listings, transfers and new names.
+ */
+export const isSafeName = name => isUsableName(name) && !/[\u202a-\u202e\u2066-\u2069]/.test(name);
+
+/** A name that is no danger as part of a path: removing it is fine (showing it may not be). */
+export const isUsableName = name => typeof name === 'string' && name.length > 0 && name.length <= 255
+  && name !== '.' && name !== '..' && !/[/\0-\x1f\x7f]/.test(name);
+
 export const parentOf = path => path.slice(0, path.lastIndexOf('/')) || '/';
 export const baseName = path => path.slice(path.lastIndexOf('/') + 1);
 
-/** A name for a file or folder on a server: one part, no '/' or control characters. Throws 'invalid'. */
+/** A name for a file or folder on a server: a safe one (isSafeName). Throws 'invalid'. */
 export function cleanName(name) {
-  if (typeof name !== 'string' || !name || name.length > 255 || name === '.' || name === '..' || /[/\0-\x1f]/.test(name)) fail('invalid', 'Nome non valido');
+  if (!isSafeName(name)) fail('invalid', 'Nome non valido');
   return name;
 }
 

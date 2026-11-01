@@ -36,6 +36,20 @@ const signedIn = principal => principal ?? fail('unauthorized', 'Accesso richies
 const mountId = params => (ID.test(params.id) ? params.id : fail('invalid', 'Connessione non valida'));
 const plain = v => (v && typeof v === 'object' && !Array.isArray(v) ? v : {});
 
+/** Connections tried at once by a user (Prova, Elenca): a few, not a scan of the network. */
+const trying = new Map();
+async function limited(user, fn) {
+  const n = trying.get(user.id) ?? 0;
+  if (n >= 3) fail('rate_limited', 'Troppe prove di connessione in corso');
+  trying.set(user.id, n + 1);
+  try {
+    return await fn();
+  } finally {
+    const left = trying.get(user.id) - 1;
+    if (left > 0) trying.set(user.id, left); else trying.delete(user.id);
+  }
+}
+
 export function netRoutes(kernel) {
   const { router, network: net, transfers } = kernel;
 
@@ -63,14 +77,14 @@ export function netRoutes(kernel) {
   router.add('POST', '/api/net/mounts/:id/disconnect', async ({ principal, params }) => net.disconnect(signedIn(principal), mountId(params)));
 
   router.add('POST', '/api/net/test', async ({ principal, json }) => {
-    const body = await json(256 << 10);
-    await net.test(signedIn(principal), body, plain(body.secret));
+    const user = signedIn(principal), body = await json(256 << 10);
+    await limited(user, () => net.test(user, body, plain(body.secret)));
     return { ok: true };
   });
 
   router.add('POST', '/api/net/shares', async ({ principal, json }) => {
-    const body = await json(256 << 10);
-    return { shares: await net.shares(signedIn(principal), body, plain(body.secret)) };
+    const user = signedIn(principal), body = await json(256 << 10);
+    return { shares: await limited(user, () => net.shares(user, body, plain(body.secret))) };
   });
 
   router.add('GET', '/api/net/mounts/:id/list', async ({ principal, params, query }) => {
@@ -88,6 +102,7 @@ export function netRoutes(kernel) {
   });
 
   router.add('PUT', '/api/net/mounts/:id/content', async ({ req, principal, params, query }) => {
+    const user = signedIn(principal), id = mountId(params), path = query.get('path') ?? '';
     if (Number(req.headers['content-length']) > MAX_UPLOAD) fail('too_large', 'File troppo grande');
     const controller = new AbortController();
     let size = 0;
@@ -102,7 +117,7 @@ export function netRoutes(kernel) {
     body.on('error', () => {});   // the driver gets it through the stream it reads
     req.pipe(body);
     const length = Number(req.headers['content-length']);
-    await net.write(signedIn(principal), mountId(params), query.get('path') ?? '', body, { signal: controller.signal, ...(Number.isSafeInteger(length) && { size: length }) });
+    await net.write(user, id, path, body, { signal: controller.signal, ...(Number.isSafeInteger(length) && { size: length }) });
   });
 
   router.add('POST', '/api/net/mounts/:id/ops', async ({ principal, params, json }) => {

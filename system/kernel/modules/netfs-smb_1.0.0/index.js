@@ -19,6 +19,9 @@ const LOST = new Set([0xc00000c9, 0xc0000203, 0xc000035c, 0xc0000008]);
 const STATUS = { COLLISION: 0xc0000035, NOT_EMPTY: 0xc0000101, DISK_FULL: 0xc000007f, BAD_SHARE: 0xc00000cc };
 
 const netError = (net, message) => Object.assign(new Error(message), { net });
+// Not in a Windows name: '\' would walk up the tree, ':' opens an alternate data stream
+const BAD_PART = /[\\:*?"<>|\0-\x1f]/;
+const badParts = parts => parts.some(p => p === '.' || p === '..' || BAD_PART.test(p));
 
 function smbError(err) {
   if (err?.net || err?.name === 'AbortError') return err;
@@ -43,6 +46,9 @@ function options(values, secret) {
     host: values.host, port: values.port ?? 445, connectTimeout: 15_000,
     username: guest ? 'guest' : values.user ?? '', password: guest ? '' : secret.password ?? '',
     domain: values.domain ?? '',
+    // Unsigned answers are refused (they could be forged on the way); a guest has no key to sign
+    // with, and old NAS that cannot sign need the user's explicit choice
+    signing: guest || values.unsigned === true ? 'if-offered' : 'required',
   };
 }
 
@@ -76,6 +82,10 @@ const driver = {
     { key: 'domain', type: 'text', label: label('Domain or workgroup', 'Dominio o gruppo di lavoro'), default: 'WORKGROUP', when: { auth: 'password' } },
     { key: 'user', type: 'text', label: label('User', 'Utente'), required: true, when: { auth: 'password' } },
     { key: 'password', type: 'password', label: label('Password', 'Password'), secret: true, required: true, when: { auth: 'password' } },
+    {
+      key: 'unsigned', type: 'checkbox', when: { auth: 'password' },
+      label: label('Allow unsigned connections (old NAS only: less safe)', 'Consenti connessioni non firmate (solo vecchi NAS: meno sicuro)'),
+    },
     { key: 'path', type: 'text', label: label('Folder in the share', 'Cartella dentro la condivisione'), default: '/', placeholder: '/' },
   ],
 
@@ -97,7 +107,15 @@ const driver = {
     if (!values.share || /[\\/]/.test(values.share)) throw netError('invalid', 'Condivisione non valida');
     const client = await open(values, secret);
     const root = (values.path ?? '/').split('/').filter(Boolean);
-    const full = path => [values.share, ...root, ...path.split('/').filter(Boolean)].join('/');
+    if (badParts(root)) {
+      await client.close().catch(() => {});
+      throw netError('invalid', 'Cartella dentro la condivisione non valida');
+    }
+    const full = path => {
+      const parts = path.split('/').filter(Boolean);
+      if (badParts(parts)) throw netError('invalid', 'Nome non valido per una condivisione SMB (\\ : * ? " < > |)');
+      return [values.share, ...root, ...parts].join('/');
+    };
     try {
       await client.readdir(full('/'));   // the share and the folder are there, and can be read
     } catch (err) {

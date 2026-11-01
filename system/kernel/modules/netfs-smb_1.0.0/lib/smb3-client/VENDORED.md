@@ -1,7 +1,7 @@
 # smb3-client (vendored)
 
 Build (`tsc`) of [smb3-client](https://github.com/euricojardim/smb3-client) 0.2.0 by
-Eurico Jardim, MIT license (see LICENSE), with four changes of the lilOS project on top
+Eurico Jardim, MIT license (see LICENSE), with five changes of the lilOS project on top
 (branch `lilos-fixes`), proposed upstream:
 
 1. fix(readdir): send the search pattern on every QUERY_DIRECTORY (Samba answered the
@@ -12,6 +12,8 @@ Eurico Jardim, MIT license (see LICENSE), with four changes of the lilOS project
    `size` and `mtime` in `readdir(path, { withFileTypes: true })` entries
 4. perf(readStream): one 64 KiB READ per chunk, more of them in flight (data flows at once,
    about twice as fast against Samba)
+5. fix: backslashes refused in paths (they walked up past the '..' check), a malformed
+   response fails the connection instead of throwing out of the socket handler, TCP keep-alive
 
 When these are in a published release, this folder goes and the module depends on the
 package instead.

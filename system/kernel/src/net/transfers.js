@@ -5,7 +5,7 @@ import { Readable, Transform } from 'node:stream';
 import { fail, KernelError } from '../errors.js';
 import { logger } from '../log.js';
 import { openHome, toFrontNode } from '../api/home.js';
-import { cleanPath, joinPath, cleanName } from './drivers.js';
+import { cleanPath, joinPath, cleanName, isSafeName } from './drivers.js';
 
 const log = logger('trasferimenti');
 const MAX_ITEMS = 100_000;          // files and folders of one user, all queues together
@@ -300,7 +300,9 @@ export class Transfers {
         return { ref: { mount: raw.mount, path }, type: 'folder', name: mountName, size: 0, label: mountName };
       }
       const entry = await this.#net.stat(principal, raw.mount, path) ?? fail('not_found', 'Non esiste sul server');
-      return { ref: { mount: raw.mount, path }, type: entry.type === 'folder' ? 'folder' : 'file', name: path.slice(path.lastIndexOf('/') + 1), size: Number(entry.size) || 0, modified: Number(entry.modified) || 0, label: `${mountName}${path}` };
+      const name = path.slice(path.lastIndexOf('/') + 1);
+      if (!isSafeName(name)) fail('invalid', `Nome non trasferibile: ${JSON.stringify(name)}`);
+      return { ref: { mount: raw.mount, path }, type: entry.type === 'folder' ? 'folder' : 'file', name, size: Number(entry.size) || 0, modified: Number(entry.modified) || 0, label: `${mountName}${path}` };
     }
     return fail('invalid', 'Posizione non valida');
   }
@@ -336,7 +338,7 @@ export class Transfers {
         }
       };
       try {
-        const tree = item.src.home ? await this.#homeTree(u.principal, item.src.home) : await this.#mountTree(u.principal, item.src);
+        const tree = item.src.home ? await this.#homeTree(u.principal, item.src.home) : await this.#mountTree(u, item.src);
         add(item, tree);
         if (item.state === 'scanning') item.state = 'queued';
       } catch (err) {
@@ -371,11 +373,15 @@ export class Transfers {
   }
 
   /** The tree inside a folder of a connection. */
-  async #mountTree({ ...principal }, src) {
+  async #mountTree(u, src) {
+    const principal = { ...u.principal };
+    let budget = MAX_ITEMS - u.index.size;
     const walkDir = async (path, depth) => {
       if (depth > 64) throw new KernelError('invalid', 'Cartelle troppo annidate');
       const out = [];
       for (const e of await this.#net.listFolder(principal, src.mount, path)) {
+        if (e.link && e.type === 'folder') continue;   // links to folders are not followed (loops, other places)
+        if (--budget < 0) throw new KernelError('invalid', 'Troppi file da trasferire');
         const p = joinPath(path, e.name);
         out.push({ name: e.name, type: e.type, size: e.size, modified: e.modified, src: { mount: src.mount, path: p }, children: e.type === 'folder' ? await walkDir(p, depth + 1) : [] });
       }
@@ -506,7 +512,7 @@ export class Transfers {
       let name = cleanName(it.final ?? it.name), replace = null;
       let existing = await this.#existing(p, dst, name);
       if (existing && dst.mount && it.partial === name) existing = null;   // what it left itself, to resume
-      else if (!existing) delete it.partial;
+      else if (!existing && it.partial === name) delete it.partial;
       if (existing && !it.resolution) {
         const policy = q.policy;
         if (!policy) {
@@ -517,34 +523,42 @@ export class Transfers {
         it.resolution = policy;
       }
       if (existing) {
-        if (it.resolution === 'skip') { it.state = 'skipped'; return; }
+        if (it.resolution === 'skip') { it.state = 'skipped'; delete it.resolution; return; }
         if (it.resolution === 'keep') name = uniqueName(name, await this.#names(p, dst));
         else replace = existing;
       }
       it.final = name;
       if (it.state === 'canceled') return;   // while it was being looked at
+      // Replacing on a server: written beside it first, then swapped, so a stop midway keeps the old one
+      const writing = replace && dst.mount ? partName(name) : name;
+      const left = writing === name ? replace : null;   // what #discard must never remove
       for (let attempt = 0; ; attempt++) {
         const controller = new AbortController();
         q.controller = controller;
         try {
-          await this.#copyOnce(u, q, it, dst, name, replace, controller.signal);
+          await this.#copyOnce(u, q, it, dst, writing, replace, controller.signal);
+          if (writing !== name) {
+            await this.#net.removePath(p, dst.mount, joinPath(dst.path, name));
+            await this.#net.rename(p, dst.mount, joinPath(dst.path, writing), joinPath(dst.path, name));
+          }
           it.state = 'done';
           it.done = it.size;
           delete it.partial;
+          delete it.resolution;
           return;
         } catch (err) {
           const reason = controller.signal.reason;
-          if (reason instanceof CancelError) { await this.#discard(u, it, dst, name, replace); it.state = 'canceled'; return; }
-          if (reason instanceof PauseError) { await this.#discard(u, it, dst, name, replace, { keepRemote: true }); it.state = 'queued'; return; }
+          if (reason instanceof CancelError) { await this.#discard(u, it, dst, writing, left); it.state = 'canceled'; return; }
+          if (reason instanceof PauseError) { await this.#discard(u, it, dst, writing, left, { keepRemote: true }); it.state = 'queued'; return; }
           if (reason instanceof StopError) throw reason;
           if (err?.code === 'unavailable' && attempt < RETRIES.length) {
             it.error = `${messageOf(err)} · nuovo tentativo`;
             this.#changed(u, true);
             await delay(RETRIES[attempt]);
-            if (it.state === 'canceled') { await this.#discard(u, it, dst, name, replace); return; }
+            if (it.state === 'canceled') { await this.#discard(u, it, dst, writing, left); return; }
             continue;
           }
-          await this.#discard(u, it, dst, name, replace, { keepRemote: true });
+          await this.#discard(u, it, dst, writing, left, { keepRemote: true });
           throw err;
         } finally {
           q.controller = null;
@@ -552,7 +566,7 @@ export class Transfers {
       }
     } finally {
       q.current = null;
-      delete it.resolution;
+      if (it.state === 'skipped' || it.state === 'canceled') delete it.resolution;
     }
   }
 
@@ -838,6 +852,9 @@ function sizeUp(item) {
   item.size = size;
 }
 
+/** The temporary name a file replacing another on a server is written with ('.name.lilos-part'). */
+const partName = name => `.${name.slice(0, 240)}.lilos-part`;
+
 /** 'name 2.ext' (then 3, 4…) when `name` is taken, case not counting. */
 export function uniqueName(name, taken) {
   const set = new Set(taken.map(n => n.toLowerCase()));
@@ -856,7 +873,7 @@ export function sizeText(bytes) {
 }
 
 const REF = r => (r && typeof r.home === 'string' ? { home: r.home } : r && typeof r.mount === 'string' && typeof r.path === 'string' ? { mount: r.mount, path: r.path } : null);
-const SAVED = ['id', 'parent', 'kind', 'name', 'size', 'done', 'state', 'error', 'from', 'to', 'modified', 'conflict', 'target', 'created', 'final', 'partial'];
+const SAVED = ['id', 'parent', 'kind', 'name', 'size', 'done', 'state', 'error', 'from', 'to', 'modified', 'conflict', 'target', 'created', 'final', 'partial', 'resolution'];
 
 function saveItem(it) {
   const out = {};
@@ -874,9 +891,10 @@ function saveQueue(q) {
 /** A saved queue (untrusted shape) → a queue, or null. */
 function restoreQueue(raw) {
   if (!raw || typeof raw.id !== 'string' || typeof raw.key !== 'string' || !Array.isArray(raw.items)) return null;
+  let restored = 0;
   const item = (r, parent) => {
     const src = REF(r?.src);
-    if (!src || typeof r.id !== 'string' || (r.kind !== 'file' && r.kind !== 'folder') || typeof r.name !== 'string') return null;
+    if (!src || typeof r.id !== 'string' || (r.kind !== 'file' && r.kind !== 'folder') || !isSafeName(r.name) || ++restored > MAX_ITEMS) return null;
     const it = {
       id: r.id, parent, kind: r.kind, name: r.name, src, size: Number(r.size) || 0, done: Number(r.done) || 0,
       state: typeof r.state === 'string' ? r.state : 'queued', error: typeof r.error === 'string' ? r.error : null,
@@ -886,8 +904,9 @@ function restoreQueue(raw) {
     if (r.conflict) it.conflict = r.conflict;
     if (REF(r.target)) it.target = REF(r.target);
     if (typeof r.created === 'string') it.created = r.created;
-    if (typeof r.final === 'string') it.final = r.final;
+    if (isSafeName(r.final)) it.final = r.final;
     if (typeof r.partial === 'string') it.partial = r.partial;
+    if (POLICIES.has(r.resolution)) it.resolution = r.resolution;
     if (r.kind === 'folder') it.children = (Array.isArray(r.children) ? r.children : []).map(c => item(c, it.id)).filter(Boolean);
     return it;
   };

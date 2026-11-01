@@ -40,7 +40,8 @@ const VERSION = /^\d+\.\d+\.\d+$/;
  *   { host, port, origins: [origin], loopbackOrigins, secureCookies,
  *     modules: [{ name, version?, config? }],
  *     apps: { allowLocalSources, trustedPublishers: { id: 'ed25519:<key>' }, officialKey?,
- *             bootstrap: [app ids installed from the official repository when missing] } }
+ *             bootstrap: [app ids installed from the official repository when missing] },
+ *     net: { allowPrivate, allow: ['10.1.0.0/16'] } }   where users may connect, with sign-in (net/guard.js)
  * allowLocalSources lets apps be installed from a folder of this computer (development only).
  * LILOS_KERNEL_HOST and LILOS_KERNEL_PORT override host and port.
  */
@@ -64,5 +65,6 @@ export async function loadConfig() {
     officialKey: typeof raw.apps?.officialKey === 'string' ? raw.apps.officialKey : null,
     bootstrapApps: Array.isArray(raw.apps?.bootstrap) ? raw.apps.bootstrap.filter(id => typeof id === 'string') : ['files', 'editor', 'settings', 'appstore'],
     modules: modules.map(m => ({ name: m.name, version: m.version ?? null, config: m.config && typeof m.config === 'object' ? m.config : {} })),
+    net: raw.net && typeof raw.net === 'object' && !Array.isArray(raw.net) ? raw.net : {},
   };
 }

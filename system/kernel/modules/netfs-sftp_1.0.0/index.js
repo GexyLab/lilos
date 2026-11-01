@@ -80,7 +80,7 @@ const driver = {
         hostVerifier: key => {
           const fingerprint = `SHA256:${createHash('sha256').update(key).digest('base64').replace(/=+$/, '')}`;
           const ok = trust === fingerprint;
-          seen = { ok, trust: { kind: 'ssh', fingerprint, text: `${keyType(key)} ${fingerprint}` } };
+          seen = { ok, trust: { kind: 'ssh', fingerprint, text: `${keyType(key)} ${fingerprint}`.replace(/[^\x20-\x7e]/g, '').slice(0, 120) } };
           return ok;
         },
       };
@@ -106,11 +106,12 @@ function session(client, sftp, root) {
   const call = (method, ...args) => new Promise((resolve, reject) => {
     sftp[method](...args, (err, value) => (err ? reject(sftpError(err)) : resolve(value)));
   });
-  const entryOf = (name, attrs) => ({
+  const entryOf = (name, attrs, link = false) => ({
     name,
     type: (attrs.mode & S_IFMT) === S_IFDIR ? 'folder' : 'file',
     size: Number(attrs.size) || 0,
     modified: (Number(attrs.mtime) || 0) * 1000,
+    ...(link && { link: true }),
   });
   const lost = [];
   client.on('close', () => lost.splice(0).forEach(fn => fn()));
@@ -122,17 +123,22 @@ function session(client, sftp, root) {
       const out = [];
       for (const e of await call('readdir', full(path))) {
         if (e.filename === '.' || e.filename === '..') continue;
-        let attrs = e.attrs;
-        // A link: what it points to (a broken one is shown as a file)
-        if ((attrs.mode & S_IFMT) === S_IFLNK) attrs = await call('stat', posix.join(full(path), e.filename)).catch(() => attrs);
-        out.push(entryOf(e.filename, attrs));
+        let attrs = e.attrs, link = false;
+        // A link: what it points to (a broken one is shown as a file), and it stays marked as a link
+        if ((attrs.mode & S_IFMT) === S_IFLNK) {
+          link = true;
+          attrs = await call('stat', posix.join(full(path), e.filename)).catch(() => attrs);
+        }
+        out.push(entryOf(e.filename, attrs, link));
       }
       return out;
     },
 
     async stat(path) {
       try {
-        return entryOf(posix.basename(path), await call('stat', full(path)));
+        const attrs = await call('stat', full(path));
+        const own = await call('lstat', full(path)).catch(() => null);
+        return entryOf(posix.basename(path), attrs, !!own && (own.mode & S_IFMT) === S_IFLNK);
       } catch (err) {
         if (err.net === 'not_found') return null;
         throw err;

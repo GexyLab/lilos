@@ -1,15 +1,17 @@
 import { createHash, randomUUID } from 'node:crypto';
-import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
+import { mkdir, readdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { DATA_DIR } from '../config.js';
 import { fail } from '../errors.js';
 import { logger } from '../log.js';
 import { Secrets } from './secrets.js';
-import { findDrivers, protocolInfo, checkFields, missingFields, cleanPath, joinPath, netFail, isConnectionError } from './drivers.js';
+import { NetGuard } from './guard.js';
+import { findDrivers, protocolInfo, checkFields, missingFields, cleanPath, joinPath, netFail, isConnectionError, isSafeName, isUsableName } from './drivers.js';
 
 const log = logger('rete');
 const MAX_MOUNTS = 50;
 const MAX_WATCHED = 8;          // folders watched at once per connection (the last ones listed)
+const MAX_LISTED = 50_000;      // entries of one folder
 const ID = /^[a-f0-9]{16}$/;
 
 /**
@@ -36,13 +38,32 @@ export class Network {
     this.dir = join(DATA_DIR, 'net');
     this.secrets = new Secrets(this.dir);
     this.drivers = findDrivers(kernel.services, log);
+    this.guard = new NetGuard(kernel);
     if (this.drivers.size) log.info(`Protocolli di rete: ${[...this.drivers.keys()].join(', ')}`);
   }
 
   // ---------- Saved connections ----------
 
   #file(userId) {
-    return join(this.dir, `${createHash('sha256').update(String(userId)).digest('hex').slice(0, 32)}.json`);
+    return join(this.dir, `${userKey(userId)}.json`);
+  }
+
+  /** The values of a connection, checked by its protocol and by where the kernel may connect. */
+  async #accept(driver, values) {
+    try { driver.check?.(values); } catch (err) { netFail(err); }
+    await this.guard.check(values);
+  }
+
+  /** With users that sign in: the connection and transfer files of users that do not exist any more go. */
+  async prune() {
+    if (!this.#kernel.multiUser) return;
+    const users = await this.#kernel.services.get('users')?.list?.().catch(() => null);
+    if (!Array.isArray(users)) return;
+    const keep = new Set(users.map(u => userKey(u.id)));
+    for (const name of await readdir(this.dir).catch(() => [])) {
+      const m = /^(?:transfers-)?([a-f0-9]{32})\.json$/.exec(name);
+      if (m && !keep.has(m[1])) await rm(join(this.dir, name), { force: true });
+    }
   }
 
   async #user(principal) {
@@ -135,6 +156,7 @@ export class Network {
     if (user.saved.size >= MAX_MOUNTS) fail('invalid', `Al massimo ${MAX_MOUNTS} connessioni`);
     const driver = this.#driver(body?.protocol);
     const { values, secret } = checkFields(driver, body.values, rawSecret);
+    await this.#accept(driver, values);
     const r = {
       id: randomUUID().replaceAll('-', '').slice(0, 16), name: this.#checkName(user, body.name), protocol: body.protocol,
       values, secret: null, trust: typeof body.trust === 'string' ? body.trust.slice(0, 200) : null, auto: body.auto === true, created: Date.now(),
@@ -163,8 +185,14 @@ export class Network {
     let reconnect = false;
     if (body.values !== undefined) {
       const { values, secret } = checkFields(driver, body.values, rawSecret);
+      await this.#accept(driver, values);
       // Another server: what was confirmed of the old one does not count
       if (['host', 'port', 'url'].some(k => values[k] !== r.values[k])) r.trust = null;
+      // The password goes only where it was given for: another server or account, it is typed again
+      if (BOUND.some(k => values[k] !== r.values[k]) && !Object.keys(secret).length) {
+        r.secret = null;
+        live.secret = null;
+      }
       reconnect = JSON.stringify(values) !== JSON.stringify(r.values);
       r.values = values;
       if (Object.keys(secret).length) {
@@ -261,6 +289,7 @@ export class Network {
     if (live.opening) return live.opening;
     const driver = this.#driver(r.protocol);
     live.opening = (async () => {
+      await this.guard.check(r.values);
       const secret = r.secret ? await this.#openSecret(r) : live.secret ?? {};
       const missing = missingFields(driver, r.values, secret);
       if (missing.length) {
@@ -283,6 +312,10 @@ export class Network {
       } catch (err) {
         // To confirm or a password to type: not a failure of the connection, the user is asked
         const asked = err?.net === 'untrusted' || err?.net === 'auth';
+        // A key or certificate other than the one confirmed: the page warns, it is not a first time
+        if (err?.net === 'untrusted' && err.trust && r.trust && r.trust !== err.trust.fingerprint) {
+          err.trust = { ...err.trust, changed: true, previous: r.trust };
+        }
         live.state = asked ? 'off' : 'error';
         live.error = asked ? null : String(err?.message ?? err).slice(0, 300);
         return netFail(err, r.name);
@@ -329,6 +362,7 @@ export class Network {
   async listFolder(principal, id, path) {
     path = cleanPath(path);
     const entries = await this.use(principal, id, s => s.list(path));
+    if (entries.length > MAX_LISTED) fail('too_large', `Cartella troppo grande (più di ${MAX_LISTED} elementi)`);
     const user = await this.#user(principal);
     const live = this.#live(user, id);
     if (live.session?.watch && !live.watched.has(path)) {
@@ -349,8 +383,8 @@ export class Network {
       live.watched.set(path, stop);   // the last listed again
     }
     return entries
-      .filter(e => e && typeof e.name === 'string' && e.name && !/[/\0]/.test(e.name) && e.name !== '.' && e.name !== '..')
-      .map(e => ({ name: e.name, type: e.type === 'folder' ? 'folder' : 'file', size: Number(e.size) || 0, modified: Number(e.modified) || 0 }));
+      .filter(e => e && isSafeName(e.name))
+      .map(e => ({ name: e.name, type: e.type === 'folder' ? 'folder' : 'file', size: Number(e.size) || 0, modified: Number(e.modified) || 0, ...(e.link && { link: true }) }));
   }
 
   async stat(principal, id, path) {
@@ -419,6 +453,7 @@ export class Network {
     const { values, secret } = checkFields(driver, body.values, rawSecret);
     const missing = missingFields(driver, values, secret);
     if (missing.length) fail('invalid', `Mancano: ${missing.join(', ')}`);
+    await this.#accept(driver, values);
     let session;
     try {
       session = await driver.connect(values, { secret, trust: typeof body.trust === 'string' ? body.trust : null });
@@ -436,6 +471,7 @@ export class Network {
     const driver = this.#driver(body?.protocol);
     if (typeof driver.shares !== 'function') fail('invalid', 'Questo protocollo non ha condivisioni');
     const { values, secret } = checkFields(driver, body.values, rawSecret);
+    await this.#accept(driver, values);
     try {
       const list = await driver.shares(values, { secret, trust: typeof body.trust === 'string' ? body.trust : null });
       return list.filter(s => typeof s === 'string').slice(0, 500);
@@ -474,14 +510,25 @@ export class Network {
   }
 }
 
-/** Removes a file, or a folder after what is inside it. */
-export async function removeTree(session, path) {
-  const entry = await session.stat(path);
+/**
+ * Removes a file, a link (the link only, never what it points to), or a folder after what is inside
+ * it. A name the server gives that is not safe stops it before anything goes.
+ */
+export async function removeTree(session, path, entry = undefined, depth = 0) {
+  if (depth > 64) fail('invalid', 'Cartelle troppo annidate');
+  entry ??= await session.stat(path);
   if (!entry) return;
-  if (entry.type === 'folder') {
-    for (const child of await session.list(path)) await removeTree(session, joinPath(path, child.name));
+  if (entry.type === 'folder' && !entry.link) {
+    const children = await session.list(path);
+    if (children.some(c => !isUsableName(c?.name))) fail('invalid', 'La cartella contiene un nome non sicuro: non viene eliminata');
+    for (const child of children) await removeTree(session, joinPath(path, child.name), child, depth + 1);
     await session.remove(path, { folder: true });
   } else {
     await session.remove(path, { folder: false });
   }
 }
+
+/** What a remembered password is tied to: change one of these, and it must be typed again. */
+const BOUND = ['host', 'port', 'url', 'user', 'tls', 'domain', 'share', 'auth'];
+
+const userKey = userId => createHash('sha256').update(String(userId)).digest('hex').slice(0, 32);

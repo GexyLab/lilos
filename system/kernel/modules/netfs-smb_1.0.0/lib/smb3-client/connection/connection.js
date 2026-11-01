@@ -28,7 +28,15 @@ export class Connection extends EventEmitter {
     constructor(transport) {
         super();
         this.transport = transport;
-        transport.on("message", (msg) => this.onMessage(msg));
+        // A malformed response must fail this connection, not throw out of the socket's handler
+        transport.on("message", (msg) => {
+            try {
+                this.onMessage(msg);
+            }
+            catch (err) {
+                this.fail(new SmbProtocolError({ status: 0, message: `bad response: ${err.message}` }));
+            }
+        });
         transport.on("close", () => this.onClose());
         transport.on("error", (err) => this.onError(err));
     }

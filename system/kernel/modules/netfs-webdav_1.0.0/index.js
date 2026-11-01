@@ -18,7 +18,9 @@ import { Readable, Transform } from 'node:stream';
  * a download can (Range), and if the server ignores Range the first bytes are skipped.
  */
 const DAV = 'DAV:';
-const MAX_XML = 32 << 20;              // a PROPFIND answer of a very big folder, at most
+const MAX_XML = 8 << 20;               // a PROPFIND answer of a very big folder, at most
+const MAX_XML_DEPTH = 64;              // nesting of elements (a multistatus needs about 8)
+const MAX_XML_ELEMENTS = 500_000;
 const MAX_REDIRECTS = 3;
 const REQUEST_TIMEOUT = 60_000;        // a request with no data either way for this long fails
 const IDLE_SOCKET = 4_000;             // a kept-alive socket goes after this (before servers close theirs)
@@ -49,7 +51,7 @@ export function parseXml(text) {
   const bad = () => new Error('XML non valido');
   const root = { ns: '', name: '', qname: '', children: [], text: '', scope: { xml: 'http://www.w3.org/XML/1998/namespace', '': '' } };
   const stack = [root];
-  let i = 0;
+  let i = 0, elements = 0;
   while (i < text.length) {
     const top = stack[stack.length - 1];
     const lt = text.indexOf('<', i);
@@ -79,11 +81,13 @@ export function parseXml(text) {
       START_TAG.lastIndex = lt;
       const m = START_TAG.exec(text);
       if (!m) throw bad();
-      const scope = Object.create(top.scope);
+      // Bounded: deep nesting made every lookup walk a long chain of scopes (seconds of CPU for the whole kernel)
+      if (++elements > MAX_XML_ELEMENTS || stack.length > MAX_XML_DEPTH) throw bad();
+      let scope = top.scope;   // a new scope only for an element that declares a namespace
       for (const [, key, v1, v2] of m[2].matchAll(ATTRIBUTE)) {
-        const value = decodeEntities(v1 ?? v2 ?? '');
-        if (key === 'xmlns') scope[''] = value;
-        else if (key.startsWith('xmlns:')) scope[key.slice(6)] = value;
+        if (key !== 'xmlns' && !key.startsWith('xmlns:')) continue;
+        if (scope === top.scope) scope = Object.create(top.scope);
+        scope[key === 'xmlns' ? '' : key.slice(6)] = decodeEntities(v1 ?? v2 ?? '');
       }
       const colon = m[1].indexOf(':');
       const prefix = colon < 0 ? '' : m[1].slice(0, colon);
@@ -234,7 +238,7 @@ class TrustAgent extends https.Agent {
       const fingerprint = cert?.fingerprint256 ?? '';
       if (socket.authorized || (this.#trust && fingerprint && fingerprint === this.#trust && !socket.isSessionReused())) return finish(null, socket);
       socket.destroy();
-      const name = cert?.subject?.CN || options.servername || options.host;
+      const name = String(cert?.subject?.CN || options.servername || options.host).replace(/[^\x20-\x7e]/g, '').slice(0, 80);
       const reason = socket.authorizationError ? ` (${socket.authorizationError})` : '';
       finish(netError('untrusted', `Certificato del server da confermare${reason}`, {
         trust: { kind: 'tls', fingerprint, text: `${name} · ${fingerprint}` },
@@ -316,6 +320,13 @@ const driver = {
     { key: 'user', type: 'text', label: label('User', 'Utente') },
     { key: 'password', type: 'password', label: label('Password', 'Password'), secret: true, hint: label('For Nextcloud, better an app password', 'Per Nextcloud, meglio una password per le app') },
   ],
+
+  /** User and password go in their fields: written in the address they would be kept as text. */
+  check(v) {
+    let url;
+    try { url = new URL(String(v.url ?? '').trim()); } catch { return; }
+    if (url.username || url.password) throw netError('invalid', 'Non scrivere utente e password nell’indirizzo: usa i campi Utente e Password');
+  },
 
   address(v) {
     try {
@@ -502,7 +513,7 @@ class Session {
       if (index === 0 && !selfSeen && r.props.resourcetype && lastPart(where) === lastPart(self) && responses.length > 1
         && responses.slice(1).every(o => { try { return decodePath(new URL(o.href, at).pathname).startsWith(`${where}/`); } catch { return false; } })) return;
       const name = lastPart(where);
-      if (!name || names.has(name)) return;
+      if (!name || name === '.' || name === '..' || /[\0-\x1f\x7f]/.test(name) || names.has(name)) return;
       names.add(name);
       out.push(entryOf(name, r.props));
     });
