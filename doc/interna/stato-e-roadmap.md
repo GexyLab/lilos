@@ -170,7 +170,9 @@ Aggiornato al 1° novembre 2026 (la rete: cartella Rete con server FTP, FTPS, SF
 - **Operazioni di installazione solo all'apertura di lilOS.** Girano per ogni utente la prima volta che incontra l'app (vedi [D36](decisioni.md#d36-le-app-installate-sono-di-tutti-le-operazioni-di-installazione-sono-per-utente)); il ripristino «Scrivania e file iniziali» le fa ripetere al ricaricamento.
 - **Un solo kernel per volta.** `users.json` si riscrive intero senza blocchi tra processi: due kernel accesi sullo stesso file si sovrascriverebbero (vedi [D32](decisioni.md#d32-utenti-in-un-file-il-modulo-users-basic)).
 - **Il sito statico di `npm run build` non basta.** Il frontend parla con `/api` della stessa origine: in sviluppo e con `npm run preview` lo inoltra Vite al kernel su 127.0.0.1:8790; per la produzione serve un server che faccia lo stesso, e non è ancora descritto.
-- **Rete: i moduli dei protocolli non sono attivi di serie.** `config.json` del repository non elenca `netfs-*`: senza, la cartella Rete non compare. Un amministratore li aggiunge a `modules`; le dipendenze (ssh2, basic-ftp) vengono da `npm run kernel:setup`.
+- **Rete: i moduli dei protocolli vanno attivati.** Sono nel `config.json` di sviluppo; in un'altra installazione un amministratore li aggiunge a `modules` (o dall'AppStore). Le dipendenze (ssh2, basic-ftp) vengono da `npm run kernel:setup`. Senza, la cartella Rete non compare.
+- **Rete: con più utenti il kernel non va su questo computer né su indirizzi link-local**, e la rete locale è permessa salvo `net.allowPrivate: false` in `config.json` (`net.allow` per eccezioni). Al massimo 3 prove di connessione alla volta per utente. Un nome di file pericoloso (con `..`, caratteri di controllo o inversioni di testo) è nascosto e non si trasferisce; i collegamenti simbolici a cartelle non si seguono; una cartella ha al massimo 50 000 voci.
+- **Rete: SMB firma sempre**, salvo la casella «Consenti connessioni non firmate (solo vecchi NAS: meno sicuro)» (e l'ospite). FTPS rifiuta i server che non accettano `PROT P`. WebDAV rifiuta utente e password scritti nell'indirizzo e risposte XML troppo grandi (8 MB, 64 livelli, 500 000 elementi).
 - **Rete: nessuna copia tra home e server che sposti.** Si copia; per spostare si copia e si elimina a mano. Dentro la stessa connessione trascinare sposta (rinomina sul server).
 - **Rete: eliminare sul server è definitivo e non si annulla.** Niente cestino; il cestino di lilOS non ripristina dentro una cartella remota.
 - **Rete: cartelle di FTP, SFTP e WebDAV senza notifiche di modifica.** Si leggono quando si aprono o riaprono; solo SMB le osserva (al massimo 8 cartelle per connessione).
@@ -179,7 +181,7 @@ Aggiornato al 1° novembre 2026 (la rete: cartella Rete con server FTP, FTPS, SF
 - **Rete: SMB solo 2.1-3.1.1.** Niente SMB1/CIFS, SMB 2.0.2, Kerberos, DFS, lease, durable handle né blocchi di intervallo di byte (vedi roadmap).
 - **Rete: WebDAV non riprende le scritture** (il protocollo non sa aggiungere a un file): un file interrotto riparte da capo. FTP riprende la lettura solo se il server ha `REST`.
 - **Rete: testi solo in italiano nel sistema.** La finestra «Trasferimento dati», le notifiche e gli errori del kernel non passano ancora da `locales.json` (il File Manager 1.10.0 e le etichette dei campi dei protocolli sì, in inglese e italiano; vedi [D45](decisioni.md#d45-un-file-di-traduzioni-per-app-inglese-predefinito-un-solo-motore)).
-- **Rete: la libreria SMB è una copia** (`netfs-smb/lib/smb3-client`, [VENDORED.md](../../system/kernel/modules/netfs-smb_1.0.0/lib/smb3-client/VENDORED.md)) con quattro correzioni di lilOS non ancora a monte.
+- **Rete: la libreria SMB è una copia** (`netfs-smb/lib/smb3-client`, [VENDORED.md](../../system/kernel/modules/netfs-smb_1.0.0/lib/smb3-client/VENDORED.md)) con cinque correzioni di lilOS non ancora a monte.
 - **Rete: un solo trasferimento alla volta per destinazione**, e al massimo 100 000 elementi per utente e 1000 sorgenti per richiesta.
 
 ### Tecnici
@@ -270,7 +272,7 @@ Fatta la base ([D59](decisioni.md#d59-la-rete-i-protocolli-sono-moduli-del-kerne
 - **SMB:** accesso con Kerberos, DFS (percorsi che puntano ad altri server), lease e durable handle (più velocità e riconnessioni senza perdere i file aperti), blocchi di intervallo di byte e SMB 2.0.2. Le nostre correzioni a smb3-client vanno proposte all'autore con pull request: finché non sono accettate la libreria resta copiata nel modulo, e se l'autore non risponde resta lì per sempre.
 - **File Manager:** i segni «in arrivo» sui file che un trasferimento sta per portare nella cartella che si guarda.
 - **Scoperta automatica** dei server della rete locale (oggi l'indirizzo lo scrive l'utente).
-- **Rifiniture possibili:** attivare i moduli `netfs-*` di serie nel `config.json` o come moduli del repository ufficiale; aggiornare da sole le cartelle di FTP, SFTP e WebDAV; spostare (copiare ed eliminare) tra home e server in un gesto solo.
+- **Rifiniture possibili (idee mie, da confermare, non decisioni):** attivare i moduli `netfs-*` di serie nel `config.json` o come moduli del repository ufficiale; aggiornare da sole le cartelle di FTP, SFTP e WebDAV; spostare (copiare ed eliminare) tra home e server in un gesto solo.
 ### 8. Qualità
 
 Test automatici nel repository (vedi [Processo](processo.md#test-automatici)), validazione dei dati salvati, sincronizzazione delle schede multiple.

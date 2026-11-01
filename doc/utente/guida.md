@@ -483,7 +483,7 @@ La connessione compare nella barra a sinistra con un pallino che dice com'è: **
 | **FTPS** (FTP con TLS) | Gli stessi dell'FTP, più **TLS**: **Esplicito (AUTH TLS)** o **Implicito (TLS dall'inizio)**. Con il TLS implicito di solito la porta è la 990 |
 | **SFTP** (SSH) | **Server**, **Porta** (22), **Utente**, **Accesso** (**Password** o **Chiave SSH**), poi la **Password** oppure la **Chiave privata** (un file di lilOS, per esempio `id_ed25519`; **Sfoglia…** lo sceglie) con la **Passphrase della chiave** se ne ha una, e la **Cartella remota** |
 | **WebDAV** | **Indirizzo** della cartella da aprire, con `https://` (Nextcloud: `…/remote.php/dav/files/<utente>/`), **Utente**, **Password** (per Nextcloud conviene una password per le app) |
-| **SMB** (condivisioni Windows e NAS) | **Server**, **Porta** (445), **Condivisione** (**Elenca…** mostra quelle che il server offre), **Accesso** (**Utente e password** oppure **Ospite**), **Dominio o gruppo di lavoro** (`WORKGROUP`), **Utente**, **Password**, **Cartella dentro la condivisione** |
+| **SMB** (condivisioni Windows e NAS) | **Server**, **Porta** (445), **Condivisione** (**Elenca…** mostra quelle che il server offre), **Accesso** (**Utente e password** oppure **Ospite**), **Dominio o gruppo di lavoro** (`WORKGROUP`), **Utente**, **Password**, **Consenti connessioni non firmate (solo vecchi NAS: meno sicuro)** (lasciala spenta se il tuo server si collega senza), **Cartella dentro la condivisione** |
 
 Attenzione alle password: con l'**FTP** semplice e con un indirizzo WebDAV `http://` viaggiano in chiaro sulla rete. Se il server ha FTPS, SFTP o `https://`, usa quelli.
 
@@ -494,12 +494,15 @@ Quando ti colleghi a un server di cui lilOS non si fida ancora, si ferma e ti mo
 - con **SFTP** è l'impronta della chiave del server: compare la prima volta e ogni volta che la chiave cambia;
 - con **FTPS** e **WebDAV** `https://` compare solo se il certificato non è valido (fatto da sé, scaduto o per un altro nome).
 
+Se un server di cui ti eri già fidato **cambia chiave o certificato**, la finestra è più severa: ha l'icona dell'errore, il titolo **Il server di «nome» ha CAMBIATO chiave** e mostra l'impronta di prima e quella di adesso. Qualcuno potrebbe fingersi il server: continua solo se sai che l'hanno cambiata apposta.
+
 Premi **Continua** solo se l'impronta corrisponde a quella del tuo server (te la dà chi lo gestisce). Fino ad allora lilOS **non manda al server né utente né password**. Se cambi l'indirizzo o la porta di una connessione, la conferma va rifatta.
 
 ### La password
 
 - Con **Ricorda la password**, lilOS la tiene cifrata sul computer in cui gira e non la mostra più.
 - Senza, la tiene a mente finché non premi **Disconnetti** o lilOS non si riavvia; poi la chiede di nuovo in una finestra **Password di «nome»**. La chiede anche quando il server dice che quella in uso non è giusta (**Utente o password non giusti**).
+- La password salvata vale per quel server e quell'account: se cambi server, porta, indirizzo, utente, dominio, condivisione o tipo di accesso, lilOS la dimentica e te la richiede.
 - Per cambiarla, tasto destro sulla connessione → **Modifica connessione…**: i campi della password restano vuoti, e lasciarli vuoti vuol dire «invariata».
 
 ### Lavorare nelle cartelle del server
@@ -512,6 +515,8 @@ Apri la connessione dalla barra a sinistra o dalla cartella **Rete**: lilOS legg
 - Aprire un file del server lo scarica; salvarlo lo rimanda al server.
 - **Eliminare sul server è definitivo.** Non c'è il cestino e non si annulla: lilOS chiede sempre conferma (**Elimina dal server «nome» (definitivo)**), anche se hai tolto la conferma nelle impostazioni.
 - Quello che è nel cestino di lilOS non si può ripristinare dentro una cartella del server.
+- I nomi che il server dà e che lilOS ritiene pericolosi (con `..`, caratteri di controllo o simboli che invertono il verso del testo) non compaiono e non si trasferiscono. I collegamenti a cartelle (scorciatoie del server) si vedono ma lilOS non ci entra quando copia, e se li elimini si toglie solo il collegamento. Una cartella può mostrare al massimo 50 000 elementi.
+- Se più persone usano lilOS con un accesso, lilOS non si collega a questo computer né a indirizzi speciali (non può essere un server «locale»); la rete di casa o dell'ufficio è permessa, salvo che chi amministra lo vieti.
 - Tag, collegamenti alle app e dati delle app non si possono mettere sui file del server.
 
 ### Copiare trascinando
@@ -535,6 +540,7 @@ Puoi chiudere la finestra: **i trasferimenti continuano**, anche se chiudi il Fi
 - Una cartella si apre con la freccia, per vedere i suoi file.
 - **Pausa** ferma una coda, **Riprendi** la fa ripartire. Un trasferimento si ferma **solo** con **Annulla**: **Annulla tutto**, **Annulla destinazione**, **Annulla la cartella** o **Annulla questo file**. Chiudere la finestra non ferma niente.
 - Se la connessione cade, lilOS riprova per tre volte, aspettando ogni volta un po' di più (e, se il server lo permette, riparte da dove si era fermato). Se non riesce, il file resta nell'elenco con l'errore: **Riprova**, **Riprova tutti** oppure **Togli dall'elenco** / **Chiudi**.
+- Quando sostituisci un file su un server, il nuovo viene scritto prima accanto (con il nome `.nome.lilos-part`) e poi scambiato: se fermi tutto a metà, il vecchio resta com'era. La scelta fatta resta valida anche se metti in pausa o lilOS si riavvia.
 - Se nella destinazione esiste già un file con quel nome, la coda si ferma e la finestra chiede: **Sostituisci**, **Mantieni entrambi** (il nuovo prende un numero) o **Salta**. Con **Per tutti i conflitti di questa coda** la scelta vale anche per i file successivi.
 
 Quando una coda ha finito arriva una notifica, per esempio **Trasferimento completato: 12 file trasferiti in «NAS» (48 MB).**; se qualcosa è andato storto dice **finito con errori** o **non riuscito**. I file che non sono andati restano nella finestra.
