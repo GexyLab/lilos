@@ -171,12 +171,14 @@ export class Transfers {
     let q = u.queues.find(x => x.key === key);
     if (!q) {
       q = {
-        id: newId(), key, label: to.ref.mount ? await this.#net.nameOf(principal, to.ref.mount) : 'Home',
+        id: newId(), key, label: to.ref.mount ? await this.#net.nameOf(principal, to.ref.mount) : to.label,
         workspace: typeof workspace === 'string' && /^[\w-]{1,40}$/.test(workspace) ? workspace : null,
         paused: false, policy: null, items: [], created: Date.now(), bytes: 0, sent: 0, received: 0, rate: 0,
       };
       u.queues.push(q);
     }
+    // The home's queue is named after the folder its files go to; files for several folders: Home
+    if (key === 'home' && q.label !== to.label && q.items.length) q.label = 'Home';
     if (!u.run) u.run = { id: newId(), since: Date.now() };
     for (const it of items) {
       q.items.push(it);
@@ -745,7 +747,7 @@ export class Transfers {
         done += it.state === 'done' ? it.size : it.done;
         files++;
         if (it.state === 'done') filesDone++;
-        if (it.state === 'conflict' && !conflict) conflict = { id: it.id, name: it.name, ...it.conflict };
+        if (it.state === 'conflict' && !conflict) conflict = { id: it.id, name: it.name, to: pathOf(u, it, 'dst'), ...it.conflict };
       });
       const cur = q.current && u.index.get(q.current)?.item;
       if (cur) current = { id: cur.id, name: cur.name, size: cur.size, done: cur.done, from: pathOf(u, cur, 'src'), to: pathOf(u, cur, 'dst'), retrying: cur.error ?? null };

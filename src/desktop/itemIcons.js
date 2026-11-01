@@ -82,8 +82,9 @@ export function itemIcon(data, { preview = 0 } = {}) {
   if (data.type === 'workarea') return workareaIcon();
   if (data.type === 'trash') return trashIcon(data.full);
   if (data.type === 'app') return appIcon(getApp(data.app));
-  const base = data.type === 'folder' ? (data.glyph ? placeIcon(data.glyph, data.color) : folderIcon(data.color))
-    : preview > 0 && !data.fixed ? thumbnailIcon(data, { size: preview, fallback: fileIcon(data.name) })
+  // A network connection's folder shows a globe; its files make no thumbnails (they would be downloaded)
+  const base = data.type === 'folder' ? (data.glyph ? placeIcon(data.glyph, data.color) : data.mount ? placeIcon('globe', data.color) : folderIcon(data.color))
+    : preview > 0 && !data.fixed && !data.net ? thumbnailIcon(data, { size: preview, fallback: fileIcon(data.name) })
     : fileIcon(data.name);
   const badges = itemBadges(data);
   if (!badges.length) return base;

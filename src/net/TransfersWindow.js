@@ -123,7 +123,7 @@ export function showTransfers(wm) {
     };
     return h('div', { class: 'tx-conflict', role: 'alert', dataset: { id: `conflict-${c.id}` } },
       h('div', { class: 'tx-ct' }, icon('warning'), h('div', {},
-        h('b', {}, `«${c.name}» esiste già in «${q.label}»`),
+        h('b', {}, `«${c.name}» esiste già in «${c.to || q.label}»`),
         h('small', {}, `Già lì: ${bytes(c.existing?.size)}${c.existing?.modified ? `, ${new Date(c.existing.modified).toLocaleString(locale.code)}` : ''} · In arrivo: ${bytes(c.incoming?.size)}${c.incoming?.modified ? `, ${new Date(c.incoming.modified).toLocaleString(locale.code)}` : ''}`))),
       h('div', { class: 'tx-ca' }, choose('Sostituisci', 'replace', true), choose('Mantieni entrambi', 'keep'), choose('Salta', 'skip'),
         h('label', { class: 'tx-all' }, all, 'Per tutti i conflitti di questa coda')));
