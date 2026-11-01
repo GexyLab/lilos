@@ -87,7 +87,7 @@ Puoi cambiare lo sfondo della scrivania con un colore o con un'immagine. Vale pe
 
 **L'immagine.** Il modo più veloce: tasto destro su un file immagine che sta sulla scrivania → **Usa come sfondo desktop**. La voce c'è solo per un file immagine alla volta (jpg, jpeg, png, gif, webp, avif, bmp, svg), non per altri file né per più elementi selezionati. Oppure, nella sezione **Immagine** della scheda Sfondo, **Scegli…** apre la scelta del file: mostra solo le immagini. Il pulsante **Togli** toglie l'immagine; il file resta dov'è.
 
-- L'immagine riempie tutta la scrivania senza deformarsi: se le proporzioni sono diverse, le parti in più sono tagliate.
+- L'immagine riempie tutta la scrivania senza deformarsi e parte sempre dal bordo superiore dello schermo: se le proporzioni sono diverse, le parti in più sono tagliate in basso (o ai lati, per un'immagine più larga dello schermo).
 - Sta ferma dietro la scrivania: muovendoti o ingrandendo non si sposta e non cambia misura.
 - Sopra un'immagine i nomi degli elementi sono bianchi, con un'ombra, per leggersi su qualsiasi colore.
 - Se l'immagine ha parti trasparenti si vede il colore della scrivania.

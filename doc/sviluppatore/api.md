@@ -991,7 +991,7 @@ DOM: `div.ditem[data-kind="item"][data-id]` con `.ditem-glyph` e `.ditem-label`.
 
 ## desktop/wallpaper.js
 
-L'immagine di sfondo della scrivania, impostazione `wallpaper` (id di un file immagine, `''` per nessuna). Ha uno strato suo, `.canvas-wallpaper`, il primo figlio del canvas (dietro il mondo): riempie lo schermo con `background: center / cover` (proporzioni mantenute, il resto è tagliato, mai stirata) e non segue pan e zoom. Il colore `deskColor` si vede sotto le immagini trasparenti. Con un'immagine il canvas ha la classe `has-wallpaper` (`canvas.css`), che mette etichette chiare con ombra forte (`--on-canvas`, `--on-canvas-hover`, `--on-canvas-shadow`).
+L'immagine di sfondo della scrivania, impostazione `wallpaper` (id di un file immagine, `''` per nessuna). Ha uno strato suo, `.canvas-wallpaper`, il primo figlio del canvas (dietro il mondo): riempie lo schermo con `background: center top / cover` (proporzioni mantenute, mai stirata; il bordo superiore dell'immagine coincide con quello dello schermo, quindi il resto si taglia in basso o, per un'immagine più larga, ugualmente ai due lati) e non segue pan e zoom. Il colore `deskColor` si vede sotto le immagini trasparenti. Con un'immagine il canvas ha la classe `has-wallpaper` (`canvas.css`), che mette etichette chiare con ombra forte (`--on-canvas`, `--on-canvas-hover`, `--on-canvas-shadow`).
 
 - `WALLPAPER_EXTS`: `['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'bmp', 'svg']`.
 - `wallpaper`: `Emitter`; evento `'change'` con `{ id, name }` o `null`, quando la nuova immagine è sullo schermo.

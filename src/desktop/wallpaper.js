@@ -3,8 +3,9 @@ import { notify } from '../notifications/notify.js';
 
 /**
  * The desk's background image (setting 'wallpaper': the id of an image file, '' for none). It has
- * its own layer behind the world: it covers the whole desk keeping its proportions (the parts that
- * do not fit are cut, it is never stretched) and it does not move or zoom with the camera. The desk
+ * its own layer behind the world: it covers the whole desk keeping its proportions, its top edge on
+ * the top of the screen (the parts that do not fit are cut: at the bottom, or equally at the sides;
+ * it is never stretched) and it does not move or zoom with the camera. The desk
  * color (setting deskColor, systemSettings.js) shows through transparent images. Over an image the
  * labels on the desk are light with a strong shadow, to read on any color (canvas.css, .has-wallpaper).
  *
