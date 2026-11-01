@@ -1,7 +1,8 @@
-import { fs, toast, storage, pipes, bus } from '@lilos/sdk';
+import { fs, toast, storage, pipes, bus, notifications } from '@lilos/sdk';
 import { coversPath } from './permissions.js';
 import { callEntrypoint, connectEntrypoint } from '../entrypoints.js';
 import { openFile } from '../open.js';
+import { notify } from '../../notifications/notify.js';
 
 /**
  * What an installed app may ask of lilOS through `lilos` (see bridge.js), each request checked
@@ -71,6 +72,11 @@ export function hostMethods({ pkg, win = null, handles, instance = null, pipe = 
     // As the close button: the window manager closes it
     'window.close': () => (win ? win.emit('close') : fail('Solo una finestra si chiude')),
     'ui.toast': text => toast(String(text).slice(0, 200)),
+    // A notification (permission ui.notify, which every app has): lilOS signs it with the app, never the app itself
+    'ui.notify': async value => {
+      const n = value !== null && typeof value === 'object' ? value : { text: String(value ?? '') };
+      await notifications.send({ app: pkg.id, text: n.text, level: n.level, action: n.action ?? null });
+    },
     'clipboard.write': text => navigator.clipboard.writeText(String(text).slice(0, MAX_TEXT)),
     'files.read': async (ref, options) => {
       const node = fileOf(ref, false);
@@ -157,7 +163,7 @@ export function hostMethods({ pkg, win = null, handles, instance = null, pipe = 
     'app.keepAlive': on => (instance ? instance.setKeepAlive(on === true) : fail('Solo un punto d’ingresso in background resta attivo')),
     'app.failed': message => {
       console.error(`[lilos] ${pkg.id}:`, message);
-      toast(`${pkg.manifest.name} non è partita: ${String(message).slice(0, 200)}`, { timeout: 6000 });
+      notify(`${pkg.manifest.name} non è partita: ${String(message).slice(0, 200)}`, { level: 'error' });
       instance?.stop();
     },
     'apps.call': (app, entry, data) => {

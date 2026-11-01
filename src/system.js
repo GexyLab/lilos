@@ -11,6 +11,7 @@ import './styles/items.css';
 import './styles/packages.css';
 import './styles/properties.css';
 import './styles/user-page.css';
+import './styles/notifications.css';
 
 import './systemSettings.js';
 import * as sdk from '@lilos/sdk';
@@ -36,6 +37,7 @@ import { connectLauncher } from './apps/launcher.js';
 import { connectUpdates } from './apps/updates.js';
 import { connectStartup } from './apps/startup.js';
 import { connectServices } from './apps/services.js';
+import { connectNotifications } from './notifications/connect.js';
 import { connectPipes } from './apps/pipes.js';
 import { connectSystemEvents } from './apps/systemEvents.js';
 import { Workareas } from './workareas/Workareas.js';
@@ -82,6 +84,7 @@ setupHistory({ root: desktop.history, activeWindow: () => wm.active });
 // Up, then the user is in (what starts by itself: apps/startup.js). After the saved windows are
 // back, so an app that opens by itself finds its window instead of opening a second one.
 connectStartup();
+connectNotifications({ bell: taskbar.notificationBell, wm }).catch(err => console.error('[lilos] notifiche:', err));
 connectServices();
 Promise.all([workspaces.ready, workareas.ready]).then(() => {
   bus.emit('system:ready', { at: Date.now() });

@@ -5,6 +5,7 @@ import { logger } from '../log.js';
 import { readUserKey, writeUserKey } from '../api/home.js';
 import { sha256 } from './manifest.js';
 import { serviceApi } from './serviceApi.js';
+import { notificationOf } from '../api/notifications.js';
 import { i18nApi, parseLocales, resolveLocale } from '../../../../sdk/core/i18n.js';
 
 /**
@@ -28,7 +29,7 @@ import { i18nApi, parseLocales, resolveLocale } from '../../../../sdk/core/i18n.
  * the ones running with the new code; a removed app stops them.
  *
  * Events: 'change' { owner, app, entry } (owner: a user id, or '*' for the system),
- *         'notify' { owner, app, text }
+ *         'notify' { owner, app, text }   what a service says, when no module keeps notifications
  */
 const log = logger('services');
 const SYSTEM = '*';
@@ -280,6 +281,19 @@ export class AppServices extends EventEmitter {
     return inst;
   }
 
+  /** What a service says with lilos.ui.notify(): a notification for its user (the system's: for the admins). */
+  async #notify(inst, pkg, value) {
+    const n = notificationOf(value);
+    if (!this.#kernel.services.has('notifications')) {
+      this.emit('notify', { owner: inst.owner, app: pkg.id, text: n.text.slice(0, 200) });
+      return;
+    }
+    const from = { app: pkg.id, name: pkg.manifest.name };
+    for (const id of inst.owner === SYSTEM ? await this.#kernel.adminIds() : [inst.owner]) {
+      await this.#kernel.service('notifications').send(id, { from, ...n });
+    }
+  }
+
   async #run(inst, service) {
     const { pkg } = service;
     const ep = pkg.manifest.entrypoints[inst.entry];
@@ -290,7 +304,7 @@ export class AppServices extends EventEmitter {
     const locale = await this.#locale(pkg, inst.principal);
     const api = serviceApi({
       kernel: this.#kernel, app: pkg, owner: inst.principal,
-      notify: text => this.emit('notify', { owner: inst.owner, app: pkg.id, text }),
+      notify: value => this.#notify(inst, pkg, value),
       readUserKey: (p, k, fallback) => readUserKey(this.#kernel, p, k, fallback),
       writeUserKey: (p, k, v) => writeUserKey(this.#kernel, p, k, v),
     });

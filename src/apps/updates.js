@@ -6,6 +6,7 @@ import { buildOf, matchesFrom, settled, wasLoaded } from './packages/packages.js
 import { stopApp } from './packages/background.js';
 import { appCode } from './packages/code.js';
 import { workspaceManager } from '../workspaces/info.js';
+import { notify } from '../notifications/notify.js';
 
 /**
  * Updating apps while lilOS runs, so that what runs afterwards is the new version.
@@ -64,11 +65,11 @@ registry.on('change', ({ id, app }) => {
   // Updated elsewhere. A restart is needed only if this page ran the old code
   if (wasLoaded(id) && restartWanted(app.package.manifest.restartOnUpdate, before.version)) {
     markRestart(app, `${app.name} ${now.version} chiede di riavviare lilOS dopo l’aggiornamento`);
-    toast(`${app.name} è stata aggiornata alla ${now.version}: riavvia lilOS per usarla (pulsante in basso a destra)`, { timeout: 8000 });
+    notify(`${app.name} è stata aggiornata alla ${now.version}: riavvia lilOS per usarla (pulsante nell’area di notifica, in basso a destra)`, { level: 'warning' });
   } else if (wm?.windowsOfApp(id).length) {
     pending.set(id, { id, name: app.name, version: now.version, kind: 'reopen', reason: `${app.name} è stata aggiornata alla ${now.version}` });
     updates.emit('change');
-    toast(`${app.name} è stata aggiornata alla ${now.version}: salva e riavvia l’app (pulsante in basso a destra)`, { timeout: 8000 });
+    notify(`${app.name} è stata aggiornata alla ${now.version}: salva e riavvia l’app (pulsante nell’area di notifica, in basso a destra)`, { level: 'warning' });
   }
 });
 

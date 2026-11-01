@@ -8,7 +8,8 @@ lilOS è un desktop che si usa dal browser. Al posto di uno schermo fisso c'è u
 
 - **La scrivania** occupa quasi tutto lo schermo. Lo sfondo a puntini ti aiuta a capire quando ti stai spostando o stai cambiando zoom.
 - **Il pannello in basso a destra** mostra una mappa in miniatura della scrivania e i controlli dello zoom.
-- **La barra in basso**: a sinistra il pulsante con il logo di lilOS, che apre il menu di avvio, e subito dopo il pulsante del [workspace](#i-workspace) (un pallino colorato e il nome); al centro un pulsante per ogni finestra aperta; a destra il tuo nome (un pulsante: apre la [pagina utente](#la-pagina-utente)), la data e l'ora. Passando sopra la data vedi la data completa.
+- **La barra delle applicazioni**, in basso: a sinistra il pulsante con il logo di lilOS, che apre il menu di avvio, e subito dopo il pulsante del [workspace](#i-workspace) (un pallino colorato e il nome); al centro un pulsante per ogni finestra aperta; a destra l'**area di notifica**, il tuo nome (un pulsante: apre la [pagina utente](#la-pagina-utente)), la data e l'ora. Passando sopra la data vedi la data completa.
+- **L'area di notifica**, nella parte destra della barra delle applicazioni, raccoglie quello che richiede attenzione: il pulsante con la freccia verso il basso quando ci sono [app aggiornate da riavviare](#quando-unapp-viene-aggiornata-altrove), l'icona con il fulmine quando ci sono [app che restano attive](#le-app-che-restano-attive) e, sempre, la campanella delle [notifiche](#le-notifiche), con il numero di quelle da leggere.
 
 ## Accedere e uscire
 
@@ -234,12 +235,12 @@ Al primo avvio c'è un solo workspace, **Principale**. Se usavi lilOS prima dei 
 
 ### Cambiare workspace
 
-- Fai clic sul **pulsante del workspace** nella barra in basso, accanto al logo. Il menu mostra l'elenco (con una spunta su quello in cui sei), **Successivo**, **Precedente**, **Nuovo workspace** e **Gestisci i workspace…**.
+- Fai clic sul **pulsante del workspace** nella barra delle applicazioni, accanto al logo. Il menu mostra l'elenco (con una spunta su quello in cui sei), **Successivo**, **Precedente**, **Nuovo workspace** e **Gestisci i workspace…**.
 - Oppure premi **Ctrl Alt →** per il successivo e **Ctrl Alt ←** per il precedente. Funzionano anche mentre scrivi, e solo se hai almeno due workspace.
 
 In basso compare per un attimo il nome del workspace in cui sei arrivato.
 
-Il workspace che lasci resta **esattamente com'era**. Le sue finestre non si chiudono: si nascondono (spariscono anche dalla barra) e tornano quando ci ritorni, con il testo non ancora salvato. Quello che fai con Ctrl Z riparte da zero in ogni scrivania.
+Il workspace che lasci resta **esattamente com'era**. Le sue finestre non si chiudono: si nascondono (spariscono anche dalla barra delle applicazioni) e tornano quando ci ritorni, con il testo non ancora salvato. Quello che fai con Ctrl Z riparte da zero in ogni scrivania.
 
 ### Cosa è separato e cosa è di tutti
 
@@ -265,11 +266,11 @@ Ogni file e cartella ricorda **il workspace che l'ha creato**. Non cambia se lo 
 
 Apri il **Pannello di controllo → Workspace**. Ci sono due schede.
 
-- **Questo workspace**: il **nome** (al massimo 40 caratteri), il **colore** (è il pallino nella barra e accanto ai suoi file nel File Manager), quanti file, cartelle e collegamenti ha creato, un interruttore per ogni app (acceso: l'app è visibile) e uno per ogni [elemento fisso](#gli-elementi-fissi) della sua scrivania.
+- **Questo workspace**: il **nome** (al massimo 40 caratteri), il **colore** (è il pallino nella barra delle applicazioni e accanto ai suoi file nel File Manager), quanti file, cartelle e collegamenti ha creato, un interruttore per ogni app (acceso: l'app è visibile) e uno per ogni [elemento fisso](#gli-elementi-fissi) della sua scrivania.
 - **una scheda per ogni altro workspace**, con il suo nome: le stesse impostazioni, per cambiarle senza passarci. **Passa a questo** ti ci porta.
 - **Tutti**: l'elenco dei workspace, con quanti elementi hanno creato e quante app mostrano. **Passa a questo** ti ci porta, **Elimina…** lo elimina, **Crea** ne fa uno nuovo con la scrivania vuota e tutte le app visibili. Puoi averne **al massimo 20**. L'ultimo workspace non si può eliminare. Sotto, gli elementi fissi da accendere o spegnere in tutti i workspace insieme.
 
-Un workspace nuovo si crea anche dal menu del pulsante nella barra (**Nuovo workspace**) e ti ci porta subito.
+Un workspace nuovo si crea anche dal menu del pulsante nella barra delle applicazioni (**Nuovo workspace**) e ti ci porta subito.
 
 **Eliminare un workspace** chiede due clic: al primo il pulsante diventa rosso, il secondo (entro pochi secondi) conferma. Nessun file viene cancellato:
 
@@ -702,13 +703,13 @@ Se aggiorni l'AppStore stesso, si chiude e si riapre da sola, nello stesso punto
 - la versione nuova non riesce a partire senza riavviare;
 - un modulo del kernel appena aggiornato è stato riavviato e lilOS deve ricaricarsi per usarlo.
 
-Con **Più tardi** puoi continuare a lavorare, ma quell'app **non si apre** finché non riavvii: se provi ad aprirla ricompare l'avviso. Con **Riavvia ora** lilOS ti chiede di salvare le finestre che hanno modifiche, poi ricarica la pagina. Le finestre che avevi aperte si riaprono come erano. Se hai scelto «Più tardi», nella barra in basso a destra resta il pulsante di riavvio descritto qui sotto.
+Con **Più tardi** puoi continuare a lavorare, ma quell'app **non si apre** finché non riavvii: se provi ad aprirla ricompare l'avviso. Con **Riavvia ora** lilOS ti chiede di salvare le finestre che hanno modifiche, poi ricarica la pagina. Le finestre che avevi aperte si riaprono come erano. Se hai scelto «Più tardi», nell'area di notifica (in basso a destra) resta il pulsante di riavvio descritto qui sotto.
 
 ### Quando un'app viene aggiornata altrove
 
 Se un amministratore aggiorna, installa o toglie un'app da un'altra scheda o da un altro computer, lilOS se ne accorge da solo, senza ricaricare la pagina: l'elenco delle app si aggiorna, e le app nuove compaiono nel menu di avvio.
 
-Se l'app aggiornata ha **finestre aperte** da te, quelle continuano a usare la versione di prima. Compare un avviso e, nella barra in basso a destra (accanto all'icona delle app che restano attive), un pulsante con una freccia verso il basso. Passandoci sopra si legge «App aggiornate da riavviare». Con un clic si apre un menu con una voce **Riavvia *nome* (*versione*)** per ogni app: lilOS chiude le sue finestre (chiedendo di salvare, se serve) e le riapre con la versione nuova.
+Se l'app aggiornata ha **finestre aperte** da te, quelle continuano a usare la versione di prima. Compare una [notifica](#le-notifiche) e, nell'area di notifica (accanto all'icona delle app che restano attive), un pulsante con una freccia verso il basso. Passandoci sopra si legge «App aggiornate da riavviare». Con un clic si apre un menu con una voce **Riavvia *nome* (*versione*)** per ogni app: lilOS chiude le sue finestre (chiedendo di salvare, se serve) e le riapre con la versione nuova.
 
 Se l'app chiede il riavvio di lilOS, il pulsante è **rosso**, il menu elenca i motivi e offre **Riavvia lilOS**. Finché non riavvii, quell'app non si apre. Il pulsante sparisce quando non c'è più niente da riavviare.
 
@@ -722,7 +723,7 @@ Oltre a File Manager, Editor, Pannello di controllo e AppStore, che vengono dal 
 
 - **Un'app può preparare le sue cose.** La prima volta che incontri un'app nuova, lilOS può creare per te qualche cartella o file di esempio, un collegamento sulla scrivania del workspace in cui sei, un tag. Non sostituisce mai quello che hai già.
 - **Un'app vede solo ciò che le è stato permesso.** Per esempio può leggere e modificare soltanto i file di una cartella precisa. Non può leggere il resto della scrivania né gli altri dati di lilOS. I file che apri con l'app sono sempre accessibili all'app. (File Manager, Editor, Pannello di controllo e AppStore sono parte di lilOS e non hanno questo limite.) Questo vale per le app **isolate**, che è come girano di solito: vedi [Isolate e non isolate](#isolate-e-non-isolate).
-- **Alcune app lavorano anche senza finestra.** Un'app può avere parti che girano in secondo piano (per esempio per contare le parole delle tue note) e che si avviano da sole quando servono. Si fermano dopo circa 5 minuti senza essere usate. Se un'app deve restare attiva (per esempio perché tiene in memoria qualcosa che ti serve), compare nella barra in basso un'icona con un fulmine: vedi [Le app che restano attive](#le-app-che-restano-attive).
+- **Alcune app lavorano anche senza finestra.** Un'app può avere parti che girano in secondo piano (per esempio per contare le parole delle tue note) e che si avviano da sole quando servono. Si fermano dopo circa 5 minuti senza essere usate. Se un'app deve restare attiva (per esempio perché tiene in memoria qualcosa che ti serve), compare nell'area di notifica un'icona con un fulmine: vedi [Le app che restano attive](#le-app-che-restano-attive).
 - **Parla la tua lingua, se può.** Il nome dell'app, i suoi comandi e i suoi testi seguono la lingua scelta in [Pannello di controllo → Lingua](#la-lingua). Se l'app non la conosce, usa l'inglese.
 - **Può aggiungere voci al menu del tasto destro.** Un'app può mettere una sua voce nel menu di file e cartelle (per esempio **Cifra…** di [FileCrypt](#filecrypt)) e un piccolo segno sull'icona degli elementi su cui ha lavorato (per esempio un lucchetto). Se l'app non c'è più e l'elemento era suo, l'icona mostra un lucchetto grigio e passandoci sopra leggi quale app serve.
 - **Può intervenire quando apri o salvi un file.** Un'app può, per esempio, chiederti una password prima di aprire un file. Le app che lo fanno e l'ordine in cui lavorano si vedono nel **Pannello di controllo → App → Pipe** (vedi [Pannello di controllo](#pannello-di-controllo)). Un'app deve avere il permesso per farlo, e lo vedi nelle sue Proprietà → Permessi.
@@ -764,7 +765,7 @@ Alcune app hanno un solo modo, e la scheda Sicurezza lo spiega:
 
 ### Le app che restano attive
 
-Quando un'app in secondo piano deve restare attiva, nella barra in basso compare un'icona con un **fulmine** (con un numero se sono più di una). Ci passi sopra per vedere il nome; con un clic si apre un menu: per ogni app puoi aprire le sue **Proprietà…** oppure **Ferma**. Fermarla interrompe quello che stava facendo e le fa dimenticare quello che teneva in memoria; si riavvia da sola alla prossima richiesta. L'icona sparisce quando non ce ne sono.
+Quando un'app in secondo piano deve restare attiva, nell'area di notifica della barra delle applicazioni compare un'icona con un **fulmine** (con un numero se sono più di una). Ci passi sopra per vedere il nome; con un clic si apre un menu: per ogni app puoi aprire le sue **Proprietà…** oppure **Ferma**. Fermarla interrompe quello che stava facendo e le fa dimenticare quello che teneva in memoria; si riavvia da sola alla prossima richiesta. L'icona sparisce quando non ce ne sono.
 
 Cosa non è ancora possibile: i widget sulla scrivania non si vedono ancora, e se ripristini la scrivania e i file iniziali un'app non rifà le sue cartelle e i suoi file di esempio.
 
@@ -792,7 +793,7 @@ Un file sbloccato resta sbloccato finché non lo blocchi. Si blocca di nuovo:
 - dalla finestra di FileCrypt (aprila dal menu di avvio): ci sono l'elenco dei file sbloccati, **Blocca** per ognuno e **Blocca tutti**;
 - da solo, dopo 15 minuti senza usarlo (non mentre il file è aperto in una finestra). Il tempo si cambia nelle **Impostazioni** della finestra di FileCrypt (**Blocca di nuovo dopo**; **Mai da solo** lo spegne);
 - quando esci dal tuo account;
-- quando fermi FileCrypt dalla barra in basso (l'icona con il fulmine, poi **Ferma**).
+- quando fermi FileCrypt dall'area di notifica (l'icona con il fulmine, poi **Ferma**).
 
 Le finestre che mostrano un file appena bloccato si chiudono; se una ha modifiche non salvate, prima te lo chiede.
 
@@ -808,7 +809,7 @@ Una copia di un file cifrato (per esempio fatta con il comando `cp` del Terminal
 
 - **Si cifra solo il contenuto.** Il nome, la dimensione, le date e i tag restano visibili a chi vede il file.
 - **Se disinstalli FileCrypt**, i file restano cifrati e intatti, ma non si aprono finché non la reinstalli: sulla loro icona compare un lucchetto grigio e, passandoci sopra, leggi quale app serve.
-- **Fermare FileCrypt dalla barra** cancella le chiavi e chiude le finestre dei file cifrati (come un blocco: chi ha modifiche non salvate te lo chiede prima). Per riaprire un file serve di nuovo la password.
+- **Fermare FileCrypt dall'area di notifica** cancella le chiavi e chiude le finestre dei file cifrati (come un blocco: chi ha modifiche non salvate te lo chiede prima). Per riaprire un file serve di nuovo la password.
 - **Un file cifrato si può tornare a una versione precedente.** Chi può scrivere il file può rimetterci una sua versione cifrata più vecchia, e FileCrypt non se ne accorge.
 - **Se il browser si chiude proprio mentre cifri o togli la cifratura**, può restare un file cifrato che lilOS non riconosce come tale, o l'opposto. Controlla il lucchetto e rifai l'operazione.
 - **Il chiaro può restare per un po' in giro.** L'anteprima del File Manager tiene in memoria il contenuto letto finché non cambi selezione. Un modello copiato da un file cifrato con **Nuovo da modello** esce in chiaro. Il comando `cp` del Terminale su un file cifrato bloccato lo sovrascrive. I servizi in sottofondo di lilOS leggono e scrivono il contenuto così com'è, cioè cifrato.
@@ -845,18 +846,73 @@ Le app si aprono in finestre appoggiate sulla scrivania, come gli altri elementi
 - **Spostare**: trascina la barra del titolo.
 - **Ridimensionare**: trascina un bordo o un angolo qualsiasi. Il puntatore cambia forma quando sei sopra; puoi afferrare il bordo anche puntando appena fuori dalla finestra. Ogni finestra ha una dimensione minima, e alcune app possono avere una dimensione fissa o ridimensionarsi solo in alcune direzioni.
 - **Ingrandire**: pulsante con il quadrato, oppure doppio clic sulla barra del titolo. La finestra diventa grande come lo schermo e la vista torna al 100%. Ripeti per tornare com'era.
-- **Ridurre a icona**: pulsante con il trattino. La finestra sparisce dalla scrivania ma il suo pulsante resta nella barra in basso.
+- **Ridurre a icona**: pulsante con il trattino. La finestra sparisce dalla scrivania ma il suo pulsante resta nella barra delle applicazioni.
 - **Chiudere**: pulsante con la ×.
 
-Alcune app possono non avere tutti e tre i pulsanti: per esempio una finestra piccola senza il pulsante per ingrandirla. In quel caso anche il doppio clic sul titolo, il pulsante nella barra o Alt W non fanno quella cosa.
+Alcune app possono non avere tutti e tre i pulsanti: per esempio una finestra piccola senza il pulsante per ingrandirla. In quel caso anche il doppio clic sul titolo, il pulsante nella barra delle applicazioni o Alt W non fanno quella cosa.
 
-Nella barra in basso, il pulsante di una finestra la porta in primo piano e la mostra, anche se era ridotta a icona o fuori dalla vista. Se la finestra è già in primo piano, lo stesso pulsante la riduce a icona.
+Nella barra delle applicazioni, il pulsante di una finestra la porta in primo piano e la mostra, anche se era ridotta a icona o fuori dalla vista. Se la finestra è già in primo piano, lo stesso pulsante la riduce a icona.
 
 Fai clic su una finestra per portarla davanti alle altre. Mentre una finestra è in primo piano, i tasti come Canc o Ctrl A agiscono sulla finestra e non sugli elementi della scrivania. Fai clic su un punto della scrivania per tornare a usarli sugli elementi.
 
 Ogni app ha di solito una sola finestra: avviandola di nuovo torna in primo piano quella già aperta. Un'app installata può avere anche altre finestre (per esempio una per le impostazioni); ognuna è unica allo stesso modo.
 
 La rotella sopra il contenuto di una finestra lo fa scorrere; Ctrl + rotella fa sempre zoom.
+
+## Le notifiche
+
+Le notifiche sono i messaggi che lilOS e le app ti mandano quando succede qualcosa che non dipende da un tuo clic: un'app che non è partita, un aggiornamento da finire, un lavoro in sottofondo che ha finito. Restano in un elenco, così non le perdi se in quel momento non guardavi lo schermo.
+
+Le risposte immediate a ciò che hai appena fatto (per esempio "Spostato «note.txt» in Documenti") non sono notifiche: compaiono in basso per qualche secondo e spariscono.
+
+### Quando arrivano
+
+Sopra l'area di notifica, in basso a destra, compare la **barra delle notifiche**. Per ogni notifica vedi chi l'ha mandata (l'app, con la sua icona, oppure lilOS), la data e l'ora, il testo e, se serve, un'etichetta: **Errore**, **Avviso** o **Fatto**.
+
+- **La più nuova sta in cima.** Se ne arrivano altre, la barra cresce fino a 5 notifiche una sopra l'altra. Le più vecchie non si vedono più lì, ma restano nell'elenco.
+- **Sparisce da sola** 5 secondi dopo l'ultima arrivata; una linea sotto di lei mostra il tempo che resta. Finché il mouse è sopra la barra, o la tastiera è dentro, resta dov'è.
+- **Un clic sulla notifica** apre l'app che l'ha mandata, se la notifica ha qualcosa da aprire (il passaggio del mouse mostra «Apri *nome*»), e la segna come letta. Non consegna mai file all'app: se l'app ne ha bisogno, sceglili tu.
+- **La ×** toglie la notifica dalla barra, ma resta nell'elenco.
+- **Esc** chiude la barra.
+- Se la finestra **Notifiche** è aperta, le nuove vanno direttamente lì e la barra non compare.
+
+I lettori di schermo leggono le notifiche appena arrivano; gli errori interrompono quello che stanno leggendo.
+
+### La campanella e la finestra Notifiche
+
+La **campanella**, nell'area di notifica, mostra quante notifiche non hai ancora letto (9+ se sono più di 9). Un clic apre la finestra **Notifiche**; un altro clic la chiude, se è in primo piano.
+
+- Le notifiche sono dalla più nuova alla più vecchia, **divise per giorno** (Oggi, Ieri, poi la data). In alto vedi quante ne sono conservate e quante sono nuove.
+- **Aprire la finestra** le segna come lette. Quelle nuove restano con un puntino finché non la chiudi, e così quelle che arrivano mentre è aperta.
+- Un clic su una notifica apre l'app che l'ha mandata, come nella barra.
+- La **×** di una notifica la **cancella**.
+- **Segna tutte come lette** toglie il numero dalla campanella.
+- **Cancella tutte** svuota l'elenco. Non chiede conferma e non si può annullare.
+
+La finestra si apre anche con la scorciatoia **Apri o chiudi le notifiche** (gruppo Generale). Di serie non ha nessun tasto: scegline uno nel Pannello di controllo → Usabilità → Scorciatoie (vedi [Cambiare le scorciatoie](#cambiare-le-scorciatoie)).
+
+### Cambiare come funzionano
+
+Apri il **Pannello di controllo → Notifiche**.
+
+| Voce | Cosa fa |
+| --- | --- |
+| **Mostrate insieme** | Quante notifiche stanno una sopra l'altra nella barra: da 1 a 10 (di serie 5) |
+| **Per quanto restano visibili** | Quanto resta la barra dopo l'ultima notifica arrivata: da 3 a 60 secondi (di serie 5) |
+| **Notifiche conservate** | Quante ne tiene l'elenco: 10, 20, 50, 100 o 200 (di serie 20). Quando ne arriva una in più, la più vecchia si cancella. Vale per il tuo utente |
+| **Invia una notifica di prova** | Ti manda una notifica, per vedere com'è fatta |
+
+Le modifiche valgono subito e restano salvate.
+
+### Da sapere
+
+- **Ognuno ha le sue.** Le notifiche sono del tuo utente e le vedi in tutte le schede di lilOS aperte. Le notifiche delle parti di sistema che lavorano in sottofondo arrivano agli amministratori.
+- **Restano dopo la ricarica.** Se arriva qualcosa mentre lilOS è chiuso (da un'app che lavora in sottofondo), la trovi alla prossima apertura con il numero sulla campanella; la barra non compare per ciò che è già arrivato.
+- **Se chi gestisce lilOS non ha acceso la parte che le conserva**, le notifiche compaiono lo stesso ma restano solo nella pagina: ricaricandola si perdono, e le altre schede non le vedono.
+- **Un'app non può riempirti lo schermo**: ne può mandare al massimo 10 al minuto; le altre non arrivano. Il testo è lungo al massimo 300 caratteri.
+- **Il mittente lo mette lilOS**, non l'app: non può fingersi un'altra app.
+
+Cosa non è ancora possibile: silenziare le notifiche di una sola app, un modo "non disturbare", i suoni, e vedere le notifiche quando la scheda del browser non è davanti a te.
 
 ## Pannello di controllo
 
@@ -868,7 +924,7 @@ Le modifiche valgono subito e restano salvate.
 
 | Sezione | Scheda | Cosa puoi cambiare |
 | --- | --- | --- |
-| Aspetto | Colori | Il tema, **Chiaro** o **Scuro** (scrivania, barra, menu e finestre), e il colore principale di lilOS: selezioni, pulsanti, schede attive, logo |
+| Aspetto | Colori | Il tema, **Chiaro** o **Scuro** (scrivania, barra delle applicazioni, menu e finestre), e il colore principale di lilOS: selezioni, pulsanti, schede attive, logo |
 | Aspetto | Movimento | Animazioni attive o spente. Se nel sistema operativo hai chiesto di ridurre il movimento, le animazioni restano ridotte comunque. |
 | Pagina utente | — | Cosa mostra la [pagina utente](#la-pagina-utente): un interruttore per ogni voce, in gruppi (vedi [Scegliere cosa mostra](#scegliere-cosa-mostra)) |
 | Lingua | — | La lingua delle app: quella del browser o una a scelta (vedi [La lingua](#la-lingua)) |
@@ -877,7 +933,8 @@ Le modifiche valgono subito e restano salvate.
 | Workspace | Questo workspace | Nome, colore, app visibili ed elementi fissi del workspace in cui sei (vedi [I workspace](#i-workspace)) |
 | Workspace | *nome di un altro workspace* | Le stesse impostazioni per quel workspace, e Passa a questo |
 | Workspace | Tutti | Passare a un workspace, eliminarlo o crearne uno nuovo; elementi fissi accesi o spenti in tutti i workspace |
-| Tag | — | Creare, rinominare ed eliminare i tag; il colore, se sono visibili o invisibili, quanti elementi hanno; aprirne gli elementi nel File Manager (vedi [I tag](#i-tag)) |
+| Notifiche | — | Quante notifiche stanno insieme nella barra, per quanto restano visibili, quante se ne conservano; una notifica di prova (vedi [Le notifiche](#le-notifiche)) |
+| Lingua | — | La lingua delle app ed eliminare i tag; il colore, se sono visibili o invisibili, quanti elementi hanno; aprirne gli elementi nel File Manager (vedi [I tag](#i-tag)) |
 | Usabilità | Menu contestuale | Le voci del menu del tasto destro sulla scrivania (vedi [Menu contestuale](#menu-contestuale)) |
 | Usabilità | Tipi di file | Per ogni estensione (.txt, .md, .png…, e "Senza estensione"), l'app che apre i file di quel tipo, oppure "Chiedi ogni volta". "Ripristina tutti" torna alle app predefinite |
 | Usabilità | Cestino | Se chiedere conferma prima di eliminare, se eliminare definitivamente senza passare dal cestino, per quanto tempo il cestino conserva gli elementi; aprire e svuotare il cestino (vedi [Il Cestino](#il-cestino)) |
@@ -896,7 +953,7 @@ I due pulsanti di ripristino chiedono conferma: al primo clic il pulsante divent
 
 Nel **Pannello di controllo → Lingua** scegli in che lingua vuoi le app: la lingua del browser (la scelta automatica) oppure una di queste: inglese (Stati Uniti o Regno Unito), italiano, tedesco, spagnolo, francese, portoghese (Brasile).
 
-- **Il cambio vale subito.** Le app aperte si aggiornano da sole, o al più alla prossima volta che le apri; non serve ricaricare la pagina. Cambiano anche i nomi delle app nel menu di avvio e nei titoli delle finestre, la data e l'ora nella barra in basso (al minuto successivo).
+- **Il cambio vale subito.** Le app aperte si aggiornano da sole, o al più alla prossima volta che le apri; non serve ricaricare la pagina. Cambiano anche i nomi delle app nel menu di avvio e nei titoli delle finestre, la data e l'ora nella barra delle applicazioni (al minuto successivo).
 - **Se un'app non ha la tua lingua, usa l'inglese.** Succede anche per i testi che mancano: compare l'inglese, o il nome interno del testo.
 - **Le parti in sottofondo** (i servizi) usano la lingua che avevi quando sono partite. Per cambiarla spegni e riaccendi il servizio nel **Pannello di controllo → Avvio → Servizi**, o aspetta che riparta. I servizi che lavorano per tutti gli utenti sono sempre in inglese.
 - **Solo le app sono tradotte.** Menu, finestre di lilOS e messaggi del sistema restano in italiano, qualunque lingua scegli. Non puoi ancora aggiungere lingue nuove da solo.
@@ -921,7 +978,7 @@ Puoi far aprire da sole alcune app, ogni volta che entri in lilOS. Le trovi nel 
 3. Sotto ogni finestra accesa compaiono le sue **scelte**, per esempio la cartella da mostrare nel File Manager, il file da aprire nell'Editor, l'immagine in Photo o la sezione del Pannello di controllo. Per cartelle e file premi **Scegli…**; la **x** li toglie. Le scelte si salvano da sole, appena le cambi. Un'app che non descrive le sue scelte ha un campo di testo per le impostazioni avanzate: serve solo a chi sa cosa scrivere.
 4. **Rimuovi dall'avvio** toglie l'app dall'elenco. Anche se spegni tutte le sue finestre l'app esce dall'elenco.
 
-Le app si aprono nell'ordine dell'elenco, nel workspace in cui sei quando entri. Se un'app è nascosta in quel workspace, o l'hai tolta da lilOS, viene saltata (se l'hai tolta, esce anche dall'elenco). Se il file o la cartella scelti non ci sono più, quella finestra non si apre e un avviso lo dice.
+Le app si aprono nell'ordine dell'elenco, nel workspace in cui sei quando entri. Se un'app è nascosta in quel workspace, o l'hai tolta da lilOS, viene saltata (se l'hai tolta, esce anche dall'elenco). Se il file o la cartella scelti non ci sono più, quella finestra non si apre e una [notifica](#le-notifiche) lo dice.
 
 Le app si aprono **solo nella prima scheda** di lilOS di questo browser. Se ne apri una seconda, quella resta vuota. Chiudendo la prima, la scheda successiva che apri riparte da capo e riapre le app.
 
@@ -964,11 +1021,11 @@ App del menu: File Manager, Editor, Pannello di controllo, AppStore e le [app in
 
 ## La pagina utente
 
-È la pagina con le cose che riguardano te: la tua foto, uscire o bloccare lilOS, tema e lingua, qualche numero su quello che stai usando. Occupa tutto lo schermo, tranne la barra in basso.
+È la pagina con le cose che riguardano te: la tua foto, uscire o bloccare lilOS, tema e lingua, qualche numero su quello che stai usando. Occupa tutto lo schermo, tranne la barra delle applicazioni.
 
-**Aprirla.** Premi il tuo **nome** nella barra in basso, oppure il tuo nome in fondo al [menu di avvio](#il-menu-di-avvio).
+**Aprirla.** Premi il tuo **nome** nella barra delle applicazioni, oppure il tuo nome in fondo al [menu di avvio](#il-menu-di-avvio).
 
-**Chiuderla.** Premi **Esc** o il pulsante in alto a destra. Si chiude anche da sola se apri una finestra o usi un'altra parte della barra. Le finestre che avevi aperte restano dove sono.
+**Chiuderla.** Premi **Esc** o il pulsante in alto a destra. Si chiude anche da sola se apri una finestra o usi un'altra parte della barra delle applicazioni. Le finestre che avevi aperte restano dove sono.
 
 In alto ci sono sempre il tuo **nome** e la tua **foto**. Sotto il nome trovi il nome con cui accedi e se sei amministratore. Le altre voci le scegli tu (vedi [Scegliere cosa mostra](#scegliere-cosa-mostra)).
 
@@ -995,7 +1052,7 @@ In alto ci sono sempre il tuo **nome** e la tua **foto**. Sotto il nome trovi il
 | **Lingua** | **Automatica** (quella del browser) o una lingua a scelta, come nel Pannello di controllo. |
 | **Tutte le impostazioni** | Apre il [Pannello di controllo](#pannello-di-controllo). |
 
-**La foto profilo.** lilOS ritaglia l'immagine a quadrato dal centro e la riduce: l'originale non viene conservato. Non si accettano immagini sopra i 25 MB; se un file non si apre come immagine compare un avviso. La foto sostituisce le iniziali nella barra, nel menu di avvio e in questa pagina. Togliendola tornano le iniziali.
+**La foto profilo.** lilOS ritaglia l'immagine a quadrato dal centro e la riduce: l'originale non viene conservato. Non si accettano immagini sopra i 25 MB; se un file non si apre come immagine compare un avviso. La foto sostituisce le iniziali nella barra delle applicazioni, nel menu di avvio e in questa pagina. Togliendola tornano le iniziali.
 
 ### Questa sessione
 
@@ -1072,6 +1129,8 @@ Queste sono le combinazioni iniziali. Puoi cambiarle tutte nel **Pannello di con
 | Alt P | Apri o chiudi l'anteprima nel File Manager |
 | Alt I | Apri o chiudi le informazioni nel File Manager |
 
+Un comando non ha nessun tasto di serie: **Apri o chiudi le notifiche** (vedi [Le notifiche](#le-notifiche)). Puoi dargliene uno quando vuoi.
+
 Questi tasti invece non si possono cambiare:
 
 | Tasti | Azione |
@@ -1137,7 +1196,7 @@ Non ancora: il trascinamento sposta soltanto.
 Non si vede se l'elemento è nel Cestino o sulla Scrivania di un altro workspace; ricompare, al suo posto, quando l'elemento torna visibile. Se hai più di 80 voci, le più vecchie vengono tolte. Per rimetterlo: trascina l'elemento tra due voci della barra. Il ripristino "Scrivania e file iniziali" (Pannello di controllo → Archiviazione) azzera anche la barra.
 
 **Non trovo più i miei elementi o una finestra.**
-Controlla di essere nel workspace giusto: il nome è nel pulsante accanto al logo. Poi premi Shift 1 per inquadrare tutto, oppure guarda la mappa in miniatura. Per una finestra, usa il suo pulsante nella barra in basso.
+Controlla di essere nel workspace giusto: il nome è nel pulsante accanto al logo. Poi premi Shift 1 per inquadrare tutto, oppure guarda la mappa in miniatura. Per una finestra, usa il suo pulsante nella barra delle applicazioni.
 
 **Dove sono finiti i miei file?**
 Se mancano dalla scrivania o dal File Manager, forse hanno un **tag invisibile**: un tag invisibile nasconde ovunque gli elementi che lo hanno. Apri il File Manager, fai clic sul tag nella barra a sinistra (quelli invisibili hanno un occhio barrato) e li trovi lì. Per farli tornare, accendi **Visibile** nel Pannello di controllo → Tag, oppure togli il tag agli elementi. Se non è questo, prova anche il [Cestino](#il-cestino) e controlla di essere nel workspace giusto.
@@ -1155,12 +1214,12 @@ L'app non ha la lingua che hai scelto: in quel caso usa l'inglese. Il menu e le 
 Dovrebbe comparire da sola dopo un istante. Se non succede, ricarica la pagina.
 
 **Ho aggiornato un'app ma vedo ancora la versione di prima.**
-Le finestre già aperte restano com'erano finché non le riavvii: usa il pulsante con la freccia verso il basso nella barra in basso a destra, oppure chiudi e riapri la finestra. Se l'app chiede di riavviare lilOS, riavvia da quel pulsante (rosso) o dall'avviso.
+Le finestre già aperte restano com'erano finché non le riavvii: usa il pulsante con la freccia verso il basso nell'area di notifica (in basso a destra), oppure chiudi e riapri la finestra. Se l'app chiede di riavviare lilOS, riavvia da quel pulsante (rosso) o dall'avviso.
 
-**Un'app non parte e compare un messaggio.**
+**Un'app non parte e compare una notifica.**
 L'app è nascosta nel workspace in cui sei. Mostrala nel Pannello di controllo → Workspace → Questo workspace.
 
-Oppure l'app non è riuscita ad avviarsi: il messaggio dice «*nome* non è partita» e il motivo. Se l'amministratore ha appena cambiato come gira l'app, chiudi la finestra e riaprila.
+Oppure l'app non è riuscita ad avviarsi: la notifica dice «*nome* non è partita» e il motivo. Se l'amministratore ha appena cambiato come gira l'app, chiudi la finestra e riaprila.
 
 **Come faccio a sapere se un'app può fare troppo?**
 Tasto destro sull'app nel menu di avvio → **Proprietà…**: la scheda **Permessi** elenca cosa può fare, la scheda **Sicurezza** dice se gira isolata. Un'app non isolata può fare tutto quello che puoi fare tu, quindi lasciala così solo se ti fidi di chi l'ha scritta. Solo un amministratore cambia il modo.

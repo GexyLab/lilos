@@ -40,12 +40,24 @@
  *               exit(reason) }                   it stopped by itself (error, memory, crash)
  *   handle: { request(data, from) → Promise<result>   what its lilos.handle() function returns
  *             stop() → Promise }
+ *
+ * notifications  Messages for a user from lilOS and the apps (notifications-basic). Optional: without
+ *                it lilOS keeps them only in the page. The kernel checks who sends (api/notifications.js).
+ *   send(userId, { from, level, text, action }) → notification   throws 'rate_limited'
+ *     from    { app, name } (the app that sends) | { system: true } (lilOS)
+ *     level   'info' | 'success' | 'warning' | 'error';  action  { entry, args } | null: what a click opens
+ *   list(principal) → { keep, items: [notification] }   newest first
+ *   read(principal, ids | null)     null: all of them;  remove(principal, ids | null)
+ *   setOptions(principal, { keep }) → { keep }           how many it keeps (1-200)
+ *   notification: { id, at, from, level, text, action, read }
+ *   It tells the user's pages with ctx.emit: 'notification.new' { id }, 'notification.change' {}.
  */
 export const INTERFACES = {
   auth: ['login', 'session', 'logout', 'logoutAll'],
   users: ['get', 'list', 'create', 'setPassword', 'remove'],
   fs: ['home', 'stat', 'list', 'tree', 'lookup', 'apply', 'read', 'write', 'remove'],
   runtime: ['start'],
+  notifications: ['send', 'list', 'read', 'remove', 'setOptions'],
 };
 
 export const KERNEL = Object.freeze({ kind: 'kernel' });

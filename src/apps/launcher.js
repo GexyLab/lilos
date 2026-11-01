@@ -1,6 +1,7 @@
 import { bus, menus, toast, pipes, PipeStopped } from '@lilos/sdk';
 import { apps, getApp, isInstalled } from './registry.js';
 import { blockedLaunch } from './updates.js';
+import { notify } from '../notifications/notify.js';
 
 /**
  * Where launching acts: by default one window per app on the whole desk. Workareas narrow it:
@@ -108,7 +109,7 @@ export function connectLauncher(wm) {
       else wm.open(win, { app: id, center: scope.center(win), bounds: scope.bounds() });
     } catch (err) {
       console.error(`[lilos] impossibile avviare ${id}:`, err);
-      toast(`${app.name} non è partita: ${err.message}`, { timeout: 6000 });
+      notify(`${app.name} non è partita: ${err.message}`, { level: 'error' });
     } finally {
       loading.delete(key);
     }

@@ -1,4 +1,5 @@
 import { createServer } from 'node:http';
+import { EventEmitter } from 'node:events';
 import { loadConfig, MODULES_DIR } from './config.js';
 import { resolveModules, startModule } from './modules.js';
 import { Router, send, readJson, cookies, checkOrigin, checkHost } from './http.js';
@@ -12,6 +13,7 @@ import { Repos } from './apps/repos.js';
 import { ModuleAdmin } from './apps/modulePackage.js';
 import { storeRoutes } from './api/store.js';
 import { serviceRoutes } from './api/services.js';
+import { notificationRoutes } from './api/notifications.js';
 import { AppServices } from './apps/appServices.js';
 import { KERNEL } from './services.js';
 
@@ -30,6 +32,8 @@ export class Kernel {
   services = new Map();
   modules = [];
   router = new Router();
+  /** 'user' { owner, event, data }: for that user's open lilOS pages (api/services.js streams them) */
+  events = new EventEmitter().setMaxListeners(0);   // one listener per open page
   #server = null;
 
   static async start() {
@@ -44,12 +48,19 @@ export class Kernel {
     return this.services.get(name) ?? fail('unavailable', `Servizio non disponibile: ${name}`);
   }
 
+  /** Ids of the users who hear what the system says (the notifications of its services): the admins. */
+  async adminIds() {
+    if (!this.multiUser) return [LOCAL_USER.id];
+    return (await this.services.get('users')?.list() ?? []).filter(u => u.role === 'admin').map(u => u.id);
+  }
+
   async #start(config) {
     this.config = config;
     if (!config.modules.some(m => m)) log.warn('Nessun modulo nella configurazione');
     const route = (method, path, handler) => this.router.add(method, path, ctx => handler({ ...ctx, principal: ctx.principal ?? fail('unauthorized', 'Accesso richiesto') }));
+    const emit = (owner, event, data) => this.events.emit('user', { owner, event, data });
     for (const mod of await resolveModules(MODULES_DIR, config.modules)) {
-      this.modules.push(await startModule(mod, this.services, { route }));
+      this.modules.push(await startModule(mod, this.services, { route, emit }));
       log.info(`Modulo avviato: ${mod.name} ${mod.version} (${mod.provides.join(', ') || 'nessun servizio'})`);
     }
     if (!this.services.has('fs')) throw new Error('Nessun modulo fornisce il servizio "fs": lilOS non ha un file system');
@@ -65,6 +76,7 @@ export class Kernel {
     appRoutes(this);
     storeRoutes(this);
     serviceRoutes(this);
+    notificationRoutes(this);
     await this.#bootstrapApps(config.bootstrapApps);
 
     this.#server = createServer((req, res) => this.#handle(req, res));

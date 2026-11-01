@@ -1,10 +1,11 @@
-import { h, Emitter, kernel, toast, locale, bus, fs } from '@lilos/sdk';
+import { h, Emitter, kernel, locale, bus, fs } from '@lilos/sdk';
 import { lilosApi, WORKER_SOURCE, SANDBOX_RUNTIME_SOURCE } from './bridge.js';
 import { appCode, librariesCode, entrypoints, inline, escapeAttr, netOrigins } from './code.js';
 import { isIsolated } from './isolation.js';
 import { hostMethods, invoke, transferOf } from './methods.js';
 import { registry } from '../registry.js';
 import { pipeTarget } from '../pipes.js';
+import { notify } from '../../notifications/notify.js';
 
 /**
  * Background entry points of installed apps: started when someone calls them (the system, the
@@ -69,7 +70,7 @@ class Instance {
     this.ready = this.#start();
     this.ready.catch(err => {
       console.error(`[lilos] ${this.key}:`, err);
-      toast(`${app.name} non è partita: ${err.message}`, { timeout: 6000 });
+      notify(`${app.name} non è partita: ${err.message}`, { level: 'error' });
       this.stop();
     });
   }

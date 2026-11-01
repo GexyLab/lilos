@@ -3,8 +3,13 @@ import { createClock } from './Clock.js';
 import { createBackgroundApps } from './BackgroundApps.js';
 import { createPendingUpdates } from './PendingUpdates.js';
 import { StartMenu } from './StartMenu.js';
+import { NotificationBell } from '../notifications/NotificationBell.js';
 
-/** Bottom bar: start button · task area (window buttons, later) · user and clock. */
+/**
+ * The taskbar (barra delle applicazioni), at the bottom: start button · a button per window ·
+ * notification area (system tray: updates to finish, apps in the background, the notifications'
+ * bell) · user and clock.
+ */
 export class Taskbar {
   constructor(parent) {
     this.startButton = h('button', {
@@ -24,12 +29,17 @@ export class Taskbar {
       class: 'tb-user', type: 'button', title: 'Pagina utente', 'aria-haspopup': 'dialog', 'aria-expanded': 'false',
     }, avatar(session.user, 'avatar user-avatar'), h('span', {}, session.user.name));
 
-    this.el = h('nav', { class: 'taskbar' },
+    /** The notifications' bell and bar (connected by notifications/connect.js). */
+    this.notificationBell = new NotificationBell();
+
+    this.el = h('nav', { class: 'taskbar', 'aria-label': 'Barra delle applicazioni' },
       this.startButton,
       this.tasks,
       h('div', { class: 'tb-tray' },
-        createPendingUpdates(),
-        createBackgroundApps(),
+        h('div', { class: 'tb-notify-area', role: 'group', 'aria-label': 'Area di notifica' },
+          createPendingUpdates(),
+          createBackgroundApps(),
+          this.notificationBell.button),
         this.userButton,
         createClock(),
       ),

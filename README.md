@@ -44,7 +44,7 @@ scripts/
   host-shims.mjs        genera public/host/sdk.js e system.js (predev, prebuild)
 public/host/            i moduli che le app di sistema importano come @lilos/sdk e @lilos/system (generati)
 system/
-  kernel/               il backend: moduli (users-basic, fs-postgres, services-isolate: fa girare i servizi delle app), API, repository, installazione di app e moduli, riga di comando; run.js lo avvia e lo riavvia
+  kernel/               il backend: moduli (users-basic, fs-postgres, services-isolate: fa girare i servizi delle app, notifications-basic: le notifiche), API, repository, installazione di app e moduli, riga di comando; run.js lo avvia e lo riavvia
 examples/apps/note/     app di esempio (lilos.json, index.js)
 src/                    il sistema, costruito sull'SDK
   main.js               avvio: accesso e collegamento al kernel (boot/), poi system.js
@@ -82,14 +82,15 @@ src/                    il sistema, costruito sull'SDK
     openWith.js         finestra "Apri con"
     commands.js         scorciatoie delle app
   workareas/            aree della scrivania con icone e finestre: ridurre a icona, riaprire, proprietà
-  workspaces/           scrivanie separate: elenco salvato, avvio e migrazione, cambio, pulsante nella barra
+  workspaces/           scrivanie separate: elenco salvato, avvio e migrazione, cambio, pulsante nella barra delle applicazioni
   windows/
-    WindowManager.js    finestre sulla scrivania e nella barra
+    WindowManager.js    finestre sulla scrivania e nella barra delle applicazioni
   user/                 pagina utente a tutto schermo (nome, foto, Blocca, Esci, Riavvia il sistema, tema, lingua)
+  notifications/        notifiche: campanella e barra delle notifiche nell'area di notifica, finestra Notifiche
   taskbar/
-    Taskbar.js          pulsante logo · pulsante workspace · area finestre · utente (apre la pagina utente) e orologio
+    Taskbar.js          barra delle applicazioni: pulsante logo · pulsante workspace · area finestre · area di notifica · utente (apre la pagina utente) e orologio
     StartMenu.js        menu di avvio con ricerca app (tasto destro: Apri, Proprietà…)
-    BackgroundApps.js   icona delle app in background rimaste attive, con "Ferma"
+    BackgroundApps.js   icona delle app in background rimaste attive, con "Ferma" (area di notifica)
     Clock.js
   styles/               uno stile per area del sistema
 design/                 render statici di riferimento (finestre, app, finestra impostazioni)
@@ -106,7 +107,8 @@ doc/                    documentazione utente, sviluppatore e interna
 | Selezionare | clic, trascina sullo sfondo (rettangolo), Alt + trascina (mano libera, modificabile), Ctrl/Shift per aggiungere |
 | Mostra tutto | Shift 1 |
 | Menu di avvio | pulsante logo, Ctrl K; in fondo il tuo nome (apre la pagina utente), Pannello di controllo ed Esci (con più utenti) |
-| Pagina utente | clic sul tuo nome nella barra o nel menu di avvio; Esc la chiude |
+| Pagina utente | clic sul tuo nome nella barra delle applicazioni o nel menu di avvio; Esc la chiude |
+| Notifiche | campanella nell'area di notifica (in basso a destra) apre la finestra Notifiche; la barra delle notifiche si chiude con Esc o la ×; scorciatoia «Apri o chiudi le notifiche» (senza tasto di serie); Pannello di controllo → Notifiche |
 | Elementi | doppio clic apre, F2 rinomina, Canc elimina (nel Cestino), Ctrl A seleziona tutto, Ctrl/Shift + clic selezione multipla |
 | Spostare file e cartelle | trascina un elemento (o la selezione) su una cartella: sulla scrivania, nel File Manager (elenco, percorso, barra laterale) o nel pannello dell'Editor, anche da una vista all'altra; Esc annulla; rilasciato sul Cestino lo elimina; tra due voci della sezione Collegamenti del File Manager crea un collegamento, e le voci si riordinano trascinandole (con × o Canc si elimina un collegamento) |
 | Annulla / ripeti | Ctrl Z / Ctrl Y (o Ctrl Shift Z), dove stai lavorando: scrivania, finestra del File Manager, testo e pannello dell'Editor |
@@ -114,7 +116,7 @@ doc/                    documentazione utente, sviluppatore e interna
 | Workarea | tasto destro su un'icona selezionata → Crea una workarea con la selezione; trascina la barra del titolo per spostarla, bordi e angoli per ridimensionarla, doppio clic sul titolo per rinominarla, pulsante con il trattino per ridurla a icona (doppio clic o Invio sull'icona la riapre) |
 | Workspace | pulsante accanto al logo (menu: elenco, Nuovo workspace, Gestisci), Ctrl Alt → / Ctrl Alt ← per passare al successivo o al precedente |
 | Tag | tasto destro su un elemento → Tag (assegna, "Nuovo tag…", "Gestisci i tag…"); nel File Manager, voce del tag nella barra laterale per vedere tutti gli elementi con quel tag; Pannello di controllo → Tag per colori e visibilità (un tag invisibile nasconde i suoi elementi) |
-| Finestre | trascina il titolo, bordi e angoli per ridimensionare, doppio clic sul titolo per ingrandire, pulsante nella barra per riaprire o ridurre, Alt W chiude, Alt N passa alla successiva |
+| Finestre | trascina il titolo, bordi e angoli per ridimensionare, doppio clic sul titolo per ingrandire, pulsante nella barra delle applicazioni per riaprire o ridurre, Alt W chiude, Alt N passa alla successiva |
 | Editor (app opzionale) | Ctrl S salva, Ctrl Alt N nuovo documento, Ctrl O apri un file, Ctrl Alt O apri una cartella (pannello a destra), Ctrl B mostra o nasconde la cartella, Ctrl Spazio suggerimenti (compaiono anche da soli), Tab / Shift Tab rientro |
 
 Tutte le scorciatoie (tranne Spazio + trascina e i tasti di navigazione nei menu) si cambiano nel Pannello di controllo → Usabilità → Scorciatoie.

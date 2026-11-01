@@ -96,8 +96,12 @@ export async function resolveModules(modulesDir, wanted) {
  *   ctx.service(name)                 only services listed in "requires"
  *   ctx.route(method, path, handler)  an HTTP endpoint at /api/modules/<name><path>, for signed-in
  *                                     users only: handler({ principal, params, query, json() }) → JSON
+ *   ctx.emit(userId, event, data)     tells that user's open lilOS pages (the kernel's event stream,
+ *                                     /api/services-events): event '<word>.<word>', data JSON
  */
-export async function startModule(mod, services, { route }) {
+const EVENT = /^[a-z][a-z0-9-]{0,30}\.[a-z][a-zA-Z0-9.-]{0,40}$/;
+
+export async function startModule(mod, services, { route, emit }) {
   const { default: impl } = await import(pathToFileURL(join(mod.dir, 'index.js')).href);
   if (!impl || typeof impl.init !== 'function') throw new Error(`${mod.name}: index.js non esporta { init }`);
   const ctx = {
@@ -120,6 +124,10 @@ export async function startModule(mod, services, { route }) {
       if (!/^(\/[\w:-]+)+$/.test(path)) throw new Error(`${mod.name}: percorso non valido ${path}`);
       if (path === '/update') throw new Error(`${mod.name}: /update è del kernel (aggiornamento dei moduli)`);
       route(method, `/api/modules/${mod.name}${path}`, handler);
+    },
+    emit(userId, event, data = {}) {
+      if (typeof userId !== 'string' || !EVENT.test(event)) throw new Error(`${mod.name}: evento non valido ${event}`);
+      emit(userId, event, JSON.parse(JSON.stringify(data ?? {})));
     },
   };
   await impl.init(ctx);

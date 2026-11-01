@@ -24,6 +24,14 @@
       "name": "services-isolate",
       "version": "1.0.0",
       "config": {}
+    },
+    {
+      "name": "notifications-basic",
+      "version": "1.0.0",
+      "config": {
+        "defaultKeep": 20,
+        "perMinute": 10
+      }
     }
   ],
   "apps": {

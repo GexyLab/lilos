@@ -15,6 +15,8 @@ settings.define({
   startupApps: true,       // open the apps chosen in Control Panel → Avvio when the user comes in (apps/startup.js)
   userPhoto: '',           // profile photo: a small JPEG as a data: URL, '' for none (user/photo.js)
   userPageHidden: [],      // keys of what the user page does not show (user/items.js)
+  notifyShown: 5,          // notifications the notification bar shows together (notifications/NotificationBell.js)
+  notifySeconds: 5,        // seconds the bar stays after the last one arrived
 });
 
 /** How long the trash keeps what it holds (days; 0 never deletes by itself). */

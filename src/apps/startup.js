@@ -1,6 +1,7 @@
 import { bus, Emitter, fs, kernel, settings, storage, toast } from '@lilos/sdk';
 import { getApp, isInstalled, launch, registry } from './registry.js';
 import { entrypointsOf } from './entrypoints.js';
+import { notify } from '../notifications/notify.js';
 
 /**
  * What starts by itself (Control Panel → Avvio). Two events of the bus mark the moments (system.js):
@@ -119,7 +120,7 @@ function openApps() {
         const { args, files } = argsFor(app, ep.params, params);
         launch(id, args, entry, { files });
       } catch (err) {
-        toast(`${app.name} non si è aperta da sola. ${err.message}`, { timeout: 7000 });
+        notify(`${app.name} non si è aperta da sola. ${err.message}`, { level: 'error' });
       }
     }
   }

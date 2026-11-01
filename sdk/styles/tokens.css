@@ -12,6 +12,7 @@
   --accent-tint: color-mix(in srgb, var(--accent) 30%, transparent);
   --danger: #e5484d;
   --warning: #d9822b;
+  --success: #30a46c;
 
   /* Window surfaces */
   --text: #1f2328;

@@ -178,6 +178,16 @@ Parti da una scrivania pulita: accedi con un utente nuovo (`npm run kernel:cli -
 - [ ] Mentre un menu è aperto, Canc e Ctrl A non agiscono sulla scrivania.
 - [ ] Data e ora sono corrette; il tooltip mostra la data completa.
 
+**Notifiche** (barra delle applicazioni → area di notifica)
+- [ ] Pannello di controllo → Notifiche → «Invia una notifica di prova»: compare la barra delle notifiche sopra l'area di notifica, con mittente, ora e testo; la campanella mostra 1.
+- [ ] Più notifiche di seguito: la più nuova è in cima e la barra cresce fino a «Mostrate insieme»; la barra sparisce dopo «Per quanto restano visibili» dall'ultima (la linea sotto si svuota); con il mouse sopra, o il focus dentro, resta; Esc la chiude; la × la toglie solo dalla barra (nell'elenco resta).
+- [ ] La campanella apre la finestra Notifiche (anche la scorciatoia «Apri o chiudi le notifiche» dopo averle dato un tasto); un secondo clic la chiude. Aprirla segna lette tutte (il numero sparisce) ma le nuove tengono il puntino; elenco diviso per giorno; con la finestra aperta la barra non compare.
+- [ ] «Segna tutte come lette», «Cancella tutte» e la × di una notifica funzionano; con due schede aperte l'altra si aggiorna da sola. Dopo la ricarica le notifiche ci sono ancora e non fanno comparire la barra.
+- [ ] «Notifiche conservate» (es. 10): quando ne arriva una in più la più vecchia sparisce; il valore resta dopo la ricarica.
+- [ ] `lilos.ui.notify` da una finestra, da un background e da un servizio; con `level` (Errore, Avviso, Fatto) e `action`: il clic apre l'app al punto d'ingresso con gli `args`, **senza** `file` né `files`. Con più di 10 al minuto da un'app le altre vengono rifiutate (`rate_limited`).
+- [ ] Un'app che non parte (`launcher`, background), un'app aggiornata che chiede di riavviare e un'app dell'avvio che non si apre danno una notifica, non un `toast`.
+- [ ] Senza il modulo `notifications-basic` (tolto da `config.json`) le notifiche compaiono lo stesso ma si perdono ricaricando; la scheda del Pannello di controllo lo dice.
+
 ### Test automatici
 
 Finora le verifiche automatiche sono state fatte con uno script esterno al repository: puppeteer-core che pilota Edge senza interfaccia su `npm run preview` e ripercorre la lista sopra, con screenshot e raccolta degli errori della console.

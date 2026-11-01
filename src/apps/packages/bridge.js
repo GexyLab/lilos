@@ -23,7 +23,10 @@ import { locale } from '@lilos/sdk';
  *                                        'locale' ({ code, lang }: lilos.locale already has the new strings)
  *   lilos.window.setTitle(text)          windows only
  *   lilos.window.close()                 the window closes, as with its close button
- *   lilos.ui.toast(text)
+ *   lilos.ui.toast(text)                 a short message, gone after a few seconds
+ *   lilos.ui.notify(text | { text, level, action })   a notification in the notification area, kept
+ *                                        in the Notifiche window. level: 'info' | 'success' | 'warning' |
+ *                                        'error'; action { entry?, args? }: a click opens the app there
  *   lilos.files.read(ref, { bytes? }) → text | Blob   ref: '~/Documenti/a.txt' or the id of a file opened with the app
  *   lilos.files.write(ref, data, { mark? })   text or bytes; creates the file if its folder exists.
  *                                        mark: the app's own data on the file, saved with it (null: none)
@@ -85,7 +88,10 @@ export function lilosApi(call, info, i18nApi) {
       return () => listeners.set(event, listeners.get(event).filter(f => f !== fn));
     },
     window: Object.freeze({ setTitle: text => call('window.setTitle', String(text)), close: () => call('window.close') }),
-    ui: Object.freeze({ toast: text => call('ui.toast', String(text)) }),
+    ui: Object.freeze({
+      toast: text => call('ui.toast', String(text)),
+      notify: value => call('ui.notify', value !== null && typeof value === 'object' ? value : String(value ?? '')),
+    }),
     files: Object.freeze({
       read: (ref, options) => call('files.read', ref, options ?? null),
       write: (ref, data, options) => call('files.write', ref, data instanceof Blob || data instanceof ArrayBuffer || ArrayBuffer.isView(data) ? data : String(data), options ?? null),

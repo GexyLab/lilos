@@ -85,6 +85,7 @@ sdk/                    @lilos/sdk (vedi sdk/README.md)
     i18n.js             il motore delle traduzioni, senza import: gira nella pagina, nelle sandbox, nei worker e nel kernel
     kernel.js           client del kernel: richieste, accesso, sincronizzazione per differenze
     apps.js             app installate (elenco, installa, aggiorna, rimuovi)
+    notifications.js    notifiche per l'utente: elenco, invio, lette, cancellate, quante conservarne (le tiene il kernel, o la pagina)
     settings.js         preferenze con valori predefiniti e tipi controllati
     shortcuts.js        scorciatoie da tastiera: comandi e combinazioni modificabili
     fs.js               file system virtuale: albero di cartelle, file e collegamenti
@@ -121,12 +122,13 @@ system/
     run.js              avvia il kernel e lo riavvia quando esce con il codice 75 (npm run kernel)
     cli.js, setup.js    comandi dei moduli (kernel:cli) e installazione delle loro dipendenze (kernel:setup)
     src/                kernel.js, modules.js, services.js, config.js, http.js, errors.js, main.js
-      api/              session.js (accesso), home.js (file, impostazioni, avvio), apps.js (app installate), store.js (repository, moduli, riavvio), services.js (servizi delle app, flusso di eventi)
+      api/              session.js (accesso), home.js (file, impostazioni, avvio), apps.js (app installate), store.js (repository, moduli, riavvio), services.js (servizi delle app, flusso di eventi, anche quelli dei moduli), notifications.js (notifiche)
       apps/             manifest.js, permissions.js, sources.js (git), repos.js (repository e cataloghi), installer.js (app), modulePackage.js (moduli), appServices.js (servizi delle app: chi parte, quando, ripartenze, registro), serviceApi.js (l'oggetto lilos dentro un servizio)
     modules/
       users-basic_1.0.0/    utenti e accesso (users.json, ignorato da git)
       fs-postgres_1.0.0/    file system in PostgreSQL (schema.sql, docker-compose.yml)
       services-isolate_1.0.0/  esegue i servizi delle app: un processo per servizio, il codice in un isolato V8 (index.js, runner.js; isolated-vm)
+      notifications-basic_1.0.0/  notifiche degli utenti (notifications.json, ignorato da git)
     tools/pack.js      calcola gli hash e firma un pacchetto di app
 examples/apps/note/     app di esempio (lilos.json, index.js)
 scripts/
@@ -203,10 +205,17 @@ src/
     UserPage.js         pagina utente a tutto schermo; `signOut()`
     items.js            voci della pagina (`USER_PAGE_ITEMS`) e quali sono accese
     photo.js            foto profilo: scelta, ritaglio, validazione
+  notifications/
+    connect.js          collega campanella, finestra e scorciatoia; legge le notifiche all'avvio
+    NotificationBell.js campanella con il numero da leggere e barra delle notifiche
+    NotificationsWindow.js finestra Notifiche: elenco per giorno, segna lette, cancella
+    card.js             una notifica (mittente, ora, livello, testo) e il clic che apre l'app
+    notify.js           notify(): una notifica da lilOS stesso
   taskbar/
-    Taskbar.js          pulsante logo, area finestre, utente (pulsante) e orologio (il pulsante workspace lo aggiunge Workspaces)
+    Taskbar.js          barra delle applicazioni: pulsante logo, area finestre, area di notifica, utente (pulsante) e orologio (il pulsante workspace lo aggiunge Workspaces)
     StartMenu.js        menu di avvio con ricerca; tasto destro su un'app: Apri, Proprietà…; Esci (con più utenti) o Riavvia sessione
-    BackgroundApps.js   icona con le app in background che sono rimaste attive (keepAlive) e "Ferma"
+    BackgroundApps.js   icona con le app in background che sono rimaste attive (keepAlive) e "Ferma" (nell'area di notifica)
+    PendingUpdates.js   pulsante delle app aggiornate da riavviare (nell'area di notifica)
     Clock.js            data e ora
   styles/               stili del sistema, uno per area
     canvas.css          scrivania, HUD, minimappa
@@ -216,7 +225,8 @@ src/
     boot.css            schermate di accesso e di avvio
     packages.css        finestre delle app installate
     tags.css            pallini dei tag sulle icone e nell'elenco del File Manager
-    taskbar.css         barra in basso
+    taskbar.css         barra delle applicazioni
+    notifications.css   area di notifica, campanella, barra delle notifiche e finestra Notifiche
     start-menu.css      menu di avvio
     user-page.css       pagina utente e foto sugli avatar
 ```
@@ -235,7 +245,7 @@ setupWorkspaces(…)    carica i workspace, migra e ripara, imposta quello attua
 Canvas(root, { key }) la scrivania, a tutto schermo sopra la barra; camera del workspace attuale
 createHud(canvas)     pannello in basso a destra
 Desktop(canvas, desk, layoutKey)  gli elementi della scrivania del workspace attuale
-Taskbar(root)         barra in basso, che crea a sua volta lo StartMenu
+Taskbar(root)         barra delle applicazioni, che crea a sua volta lo StartMenu e la campanella delle notifiche
 WindowManager(…)      finestre sulla scrivania e pulsanti nella barra
 connectLauncher(wm)   apre le app quando arriva app:launch (e riapre quelle salvate: restore)
 Workareas(…, { key }) aree della scrivania: usa canvas, desktop, wm e launcher
@@ -417,6 +427,7 @@ Il backend sta in `system/kernel/` ed è un processo Node (`npm run kernel`, che
 - **Repository.** Il kernel prende app e moduli da repository git, letti con il comando `git` del suo computer ([D39](../interna/decisioni.md#d39-i-pacchetti-si-prendono-con-git)). L'ufficiale c'è sempre; gli altri li aggiunge un amministratore (`system/kernel/repos.json`). Ogni repository ha un `catalog.json`: [Fare un repository non ufficiale](ricette.md#fare-un-repository-non-ufficiale).
 - **`users-basic_1.0.0`**: utenti e accesso, tutto in `users.json` nella cartella del modulo (ignorato da git). Password con scrypt; cookie di sessione `HttpOnly`, `SameSite=Strict`, `Path=/api`, di cui il file tiene solo l'hash; limiti ai tentativi (5 per nome utente, 20 per indirizzo, poi attese crescenti).
 - **`fs-postgres_1.0.0`**: il file system in PostgreSQL (tabella `lilos_nodes`, `schema.sql`), con il **controllo degli accessi dentro il modulo**. Aree: `/system/app` e `/system/commons` leggibili da tutti e scrivibili solo dal kernel; `/system/tmp` e `/home` del kernel; `/home/<utente>` solo del suo utente. Il database di sviluppo parte con `npm run db:up`.
+- **`notifications-basic_1.0.0`**: fornisce `notifications`, le notifiche degli utenti (quelle che lilOS e le app mandano con `lilos.ui.notify`). Tutto in `notifications.json` nella cartella del modulo; ogni utente ne tiene al massimo `keep` (20 finché non sceglie, da 1 a 200), ogni app può mandarne `perMinute` al minuto (10) e il testo è lungo al massimo 300 caratteri. Avvisa le pagine dell'utente con `ctx.emit` (`notification.new`, `notification.change`). È opzionale: senza, le notifiche restano nella pagina ([D49](../interna/decisioni.md#d49-le-notifiche-un-modulo-opzionale-con-il-mittente-messo-da-lilos)).
 - **`services-isolate_1.0.0`**: fornisce `runtime`, che fa girare i **servizi delle app** (punti d'ingresso `kind: 'service'`, permesso `background`) nel kernel anche a lilOS chiuso. Ogni servizio è un processo Node con il modello di permessi di Node (legge solo la cartella del modulo), e il codice dell'app gira in un isolato V8 (`isolated-vm`, 128 MB, 10 secondi per esecuzione) con solo l'oggetto `lilos`, le cui richieste il kernel controlla con i permessi. Chi li avvia e quando (`system:ready`, `user:login`, a mano), le ripartenze e il registro stanno in `apps/appServices.js`. Richiede Node da 22 a 25 (`isolated-vm` 6.2). Contratti: [API → Servizi delle app](api.md#servizi-delle-app-appsappservicesjs), decisione [D44](../interna/decisioni.md#d44-avvio-automatico-due-eventi-app-solo-nella-prima-scheda-servizi-nel-kernel).
 - **Sicurezza HTTP.** Ogni risposta ha `Cache-Control: no-store`, `nosniff` e una CSP che vieta tutto. Le richieste che modificano (non GET né HEAD) devono avere `X-Lilos: 1` e, se il browser manda `Origin`, un'origine in `origins` (o, con `loopbackOrigins`, di localhost).
 - **Home dell'utente.** `system/kernel/src/api/home.js` traduce gli id di lilOS in id del file system, separati per utente (`<home>/<id>`). Sotto la home ci sono `.trash` (radice del Cestino) e `.config` (un file JSON per ogni chiave di `storage`).
@@ -472,5 +483,6 @@ Un'app installata è un pacchetto: `lilos.json` con i suoi file. Decisioni: [D38
 | `lilos:app:<id>:<chiave>` | i dati propri di un'app installata (`lilos.storage`) | il ponte, per l'app |
 | `lilos:settings` | oggetto con le impostazioni | `settings`, a ogni cambiamento |
 | `lilos:shortcuts` | combinazioni personalizzate | `shortcuts`, a ogni modifica |
+| `lilos:notifications-keep` | quante notifiche conservare (1-200), **solo** quando il kernel non le tiene (senza il modulo `notifications-basic`) | `notifications.setKeep` |
 
 Dettagli in [Riferimento API → Dati salvati](api.md#dati-salvati).

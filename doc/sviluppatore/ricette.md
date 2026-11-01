@@ -716,6 +716,35 @@ Un'app installata aggiunge voci al menu del tasto destro di file e cartelle e un
 3. Il segno (`badge`) compare da solo sull'icona dei nodi con `apps['acme.trim']`, sulla scrivania e nel File Manager. Le voci compaiono nel menu della scrivania e in quello del File Manager (con `appActionEntries`, se fai una vista tua: vedi [apps/pipes.js, apps/appActions.js e apps/systemEvents.js](api.md#appspipesjs-appsappactionsjs-e-appssystemeventsjs)).
 4. Traduzioni: `@actions.acme.trim.mark.label` e `@badge.label` nel `locales.json` (vedi [Tradurre un'app](#tradurre-unapp)).
 
+## Mandare una notifica
+
+Una notifica serve per ciò che l'utente deve sapere ma non ha appena chiesto: un lavoro finito, un errore in sottofondo. Una risposta a un suo gesto («Salvato») resta un `toast`.
+
+**Da un'app** (finestra o background), con `lilos.ui.notify`. Non serve nessun permesso: `ui.notify` ce l'hanno tutte le app.
+
+```js
+export async function main({ lilos }) {
+  await lilos.ui.notify('Sincronizzazione finita');                  // solo il testo
+
+  await lilos.ui.notify({
+    text: 'Non riesco a leggere il file di backup',
+    level: 'error',                                                  // 'info' (predefinito), 'success', 'warning' o 'error'
+    action: { entry: 'main', args: { vista: 'backup' } },            // un clic apre l'app qui, con questi args
+  });
+}
+```
+
+- Il mittente (nome e icona dell'app) lo mette lilOS. `action` è facoltativa; senza, la notifica si legge e basta.
+- Gli `args` dell'azione arrivano all'app come quelli di una finestra aperta con `lilos.app.call`, ma **`file` e `files` vengono tolti**: un'app riceve file solo se l'utente glieli dà.
+- Al massimo 10 notifiche al minuto per app: le altre rifiutano la promessa con `rate_limited`. Metti `await` dentro un `try` se mandi notifiche in un ciclo.
+- Il testo arriva a 300 caratteri.
+
+**Da un servizio nel kernel**: la stessa funzione, `await lilos.ui.notify({ text, level, action })`. Arriva all'utente proprietario (gli amministratori, per un servizio di sistema) e resta nell'elenco anche se lilOS è chiuso.
+
+**Dal sistema** (`src/`): `notify(testo, { level })` da `notifications/notify.js` per ciò che non risponde a un gesto (un `toast` se non parte); `notifications.send({ text, level, action, app })` dall'SDK per il caso generale.
+
+**Da un modulo del kernel** a un'app o a una pagina aperta, senza passare dalle notifiche: `ctx.emit(userId, 'miomodulo.novita', { … })`. Arriva sul flusso `/api/services-events` come evento con quel nome; per leggerlo in lilOS aggiungi un `source.addEventListener('miomodulo.novita', …)` in `connectServices()` (`src/apps/services.js`). Per notificare un utente da un modulo usa invece `ctx.service('notifications').send(userId, { from: { system: true }, text })`, dichiarando `notifications` in `requires` (così però il kernel non parte senza un modulo che le fornisce).
+
 ## Installare un'app dall'esempio
 
 Serve un utente amministratore (`--admin`) e il kernel con `apps.allowLocalSources` acceso (lo è nella `config.json` del repository). Con lilOS aperto in sviluppo, nella console del browser (`lilos.kernel` esiste solo in sviluppo):

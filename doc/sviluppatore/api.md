@@ -16,6 +16,7 @@ Gli altri moduli (`src/`) sono il sistema: scrivania, desktop, barra.
 - [sdk/core/session.js](#sdkcoresessionjs)
 - [sdk/core/kernel.js](#sdkcorekerneljs)
 - [sdk/core/apps.js](#sdkcoreappsjs)
+- [sdk/core/notifications.js](#sdkcorenotificationsjs)
 - [sdk/core/settings.js](#sdkcoresettingsjs)
 - [sdk/core/shortcuts.js](#sdkcoreshortcutsjs)
 - [sdk/core/fs.js](#sdkcorefsjs)
@@ -47,6 +48,7 @@ Gli altri moduli (`src/`) sono il sistema: scrivania, desktop, barra.
 - [systemHistory.js](#systemhistoryjs)
 - [tags/tagUi.js e scheda Tag](#tagstaguijs-e-scheda-tag)
 - [taskbar/](#taskbar)
+- [notifications/](#notifications-le-notifiche-nellinterfaccia)
 - [user/ (la pagina utente)](#user-la-pagina-utente)
 - [sdk/ui/](#sdkui)
 - [sdk/ui/controls.js](#sdkuicontrolsjs)
@@ -361,6 +363,43 @@ await apps.install({ type: 'local', dir: 'C:/percorso/di/lilos/examples/apps/not
   grant: ['fs.write:~/Documenti/Note', 'ui.shortcuts', 'desktop.items'], allowUnsigned: true,
 });
 ```
+
+---
+
+## sdk/core/notifications.js
+
+### `notifications`
+
+Le notifiche per l'utente: ciò che lilOS e le app gli dicono, mostrato nell'area di notifica della barra delle applicazioni e nella finestra Notifiche (vedi [notifications/](#notifications-le-notifiche-nellinterfaccia)). Un `Emitter`. Le tiene il kernel, con il servizio `notifications` di un modulo (di serie [`notifications-basic`](#notifications-basic_100)): sopravvivono alla ricarica e arrivano a tutte le pagine dell'utente. Senza kernel, o senza il modulo, vivono solo in questa pagina.
+
+| Membro | Descrizione |
+| --- | --- |
+| `available` | `true` se le tiene il kernel. Prima di `load()` è `false`. |
+| `keep` | Quante se ne conservano (predefinito 20, da 1 a 200). |
+| `list()` → `[notifica]` | Una copia dell'elenco, la più nuova per prima. |
+| `get(id)` → `notifica \| null`, `unread` | Una notifica; quante non sono lette. |
+| `load()` → `Promise` | Le legge dal kernel (`GET /api/notifications`); lo fa il sistema all'avvio. Quelle che ci sono già non sono novità: non emettono `new`. Senza kernel o senza servizio passa alla modalità locale (`available` `false`, `keep` dalla chiave `notifications-keep`). Se la richiesta fallisce scrive un avviso in console e non cambia nulla. Emette `change`. |
+| `send({ text, level = 'info', action = null, app = null })` → `Promise<notifica>` | Manda una notifica all'utente. `level`: `'info'`, `'success'`, `'warning'` o `'error'`. `action`: `{ entry?, args? }`, cosa apre il clic (vedi sotto). `app`: l'id dell'app che la manda (lilOS lo passa per le sue app); senza, la manda lilOS stesso. Il testo diventa una riga sola, di al massimo 300 caratteri. Con il kernel lancia `KernelError` (`invalid`, `rate_limited`: al massimo 10 al minuto per app e utente). In modalità locale lancia `Error` per un testo vuoto o un livello sconosciuto e non controlla `action` né il limite al minuto. Emette `new` una volta sola per notifica. |
+| `markRead(ids = null)` | Segna come lette quelle degli `ids`, o tutte. Cambia subito l'elenco locale ed emette `change` solo se qualcosa è cambiato; poi avvisa il kernel. |
+| `remove(ids = null)`, `clear()` | Cancella quelle degli `ids`, o tutte (`clear()` è `remove(null)`). Emette `change`. |
+| `setKeep(n)` | Quante conservarne: un intero da 1 a 200, altrimenti `Error`. Taglia l'elenco subito. Con il kernel: `PUT /api/notifications-options` (vale per l'utente); senza, la chiave `notifications-keep`. |
+| `received(id)`, `changed()` | Per il sistema (`connectServices`): il kernel ha detto `notification.new` / `notification.change` sul suo flusso di eventi; rileggono l'elenco e, per `received`, emettono `new`. |
+
+Una notifica: `{ id, at, from, level, text, action, read }`. `at` è `Date.now()`; `from` è `{ app, name }` o `{ system: true }`; `action` è `{ entry, args } \| null` (`entry` `'main'` se manca, `args` `null` se manca).
+
+Eventi: `new` `(notifica)`, anche se l'ha mandata un'altra pagina dell'utente; `change` `()` quando elenco, stato di lettura o `keep` cambiano.
+
+```js
+import { notifications } from '@lilos/sdk';
+
+notifications.on('new', n => console.log(n.from.name ?? 'lilOS', n.text));
+await notifications.send({
+  app: 'esempio.note', text: 'Sincronizzazione finita', level: 'success',
+  action: { entry: 'main', args: { vista: 'oggi' } },
+});
+```
+
+**Cosa fa un clic.** Il sistema (`runAction`) apre l'app che l'ha mandata al punto d'ingresso `action.entry`, con `action.args`. I campi `file` e `files` degli `args` vengono **tolti**: consegnare file a un'app lo fa solo l'utente. Una notifica senza `action`, o di lilOS, non ha nulla da aprire. Se l'app non è più installata, un `toast` lo dice.
 
 ---
 
@@ -1504,7 +1543,7 @@ Il modulo ascolta `registry` `change` e ricorda `{ version, build }` di ogni app
 - altrimenti, se l'app ha finestre aperte qui (`windowsOfApp`): `kind: 'reopen'` e un avviso; `reopenApp(id)` le chiude (chiedendo prima), le riapre con il codice nuovo e toglie la voce;
 - altrimenti non succede nulla: al prossimo avvio l'app è quella nuova.
 
-Il pulsante nella barra è `createPendingUpdates()` (`taskbar/PendingUpdates.js`, classe `tb-bg tb-updates`, icona `download`, nascosto se non c'è nulla; rosso con `restart` quando ci sono motivi di riavvio). Il menu elenca «Riavvia *nome* (*versione*)» per le app `reopen` e, per i motivi di riavvio, i testi e «Riavvia lilOS».
+Il pulsante nell'area di notifica è `createPendingUpdates()` (`taskbar/PendingUpdates.js`, classe `tb-bg tb-updates`, icona `download`, nascosto se non c'è nulla; rosso con `restart` quando ci sono motivi di riavvio). Il menu elenca «Riavvia *nome* (*versione*)» per le app `reopen` e, per i motivi di riavvio, i testi e «Riavvia lilOS».
 
 ---
 
@@ -1563,7 +1602,7 @@ Un permesso è `nome` oppure `nome:parametro`. Un permesso non nell'elenco, o co
 | `tags.read`, `tags.write` | install | Vedere / creare e assegnare tag | `tags.write` serve all'operazione `tag` |
 | `desktop.items` | install | Mettere elementi sulla scrivania | Serve all'operazione `desktopItem` |
 | `desktop.widget` | install | Mostrare widget | Nessuno (i widget non si mostrano) |
-| `ui.notify` | implicit | Mostrare avvisi | `lilos.ui.toast` |
+| `ui.notify` | implicit | Mostrare avvisi e notifiche | `lilos.ui.toast` e `lilos.ui.notify` |
 | `ui.menus` | install | Aggiungere voci ai menu | Le voci di `contributes.actions` nel menu di file e cartelle (senza il permesso il manifesto è rifiutato) |
 | `ui.commands` | install | Aggiungere comandi | Nessuno (i comandi si registrano comunque da `contributes.commands`) |
 | `pipe:<evento>` | install | Vedere e cambiare ciò che passa da quell'evento | `lilos.pipes.subscribe` e `contributes.pipes` su quell'evento, per ogni elemento. Gli eventi protetti solo per le app di sistema; la fase `before` di un evento immediato per nessuna app |
@@ -1623,14 +1662,15 @@ Con `sdk` `"1"` il modulo è l'app: gira per intero all'avvio con `window.lilos`
 | `lilos.app` | `{ id, version, entry, args, call, connect, keepAlive }`: `entry` è il punto d'ingresso in esecuzione; `args` è ciò con cui è stato avviato (per un file, `{ file: id }`), o `null`. |
 | `lilos.app.call(entry, data)` → risultato | Avvia un punto d'ingresso **della stessa app**. Una finestra si apre (o torna in primo piano) con `data` come `args` e il risultato è `null`; un background risponde con ciò che restituisce la sua funzione di `lilos.handle`. `data` è copiato (clone strutturato); se contiene `file`, quel file (e ogni id di `files`, al massimo 100) deve essere uno che l'app ha ricevuto. |
 | `lilos.app.connect(entry)` → `MessagePort` | Un canale con un punto d'ingresso **in background** della stessa app; l'altro lato lo riceve come evento `connect`. Per trasmettere dati continui o grandi senza passare da una chiamata per volta. |
-| `lilos.app.keepAlive(attivo)` | Solo in un background. Con `true` (predefinito) non si ferma dopo i 5 minuti senza chiamate e compare nella barra in basso (icona delle app in background), da dove l'utente lo può fermare; con `false` torna normale. Fermarlo cancella ciò che teneva in memoria. |
+| `lilos.app.keepAlive(attivo)` | Solo in un background. Con `true` (predefinito) non si ferma dopo i 5 minuti senza chiamate e compare nell'area di notifica della barra delle applicazioni (icona delle app in background), da dove l'utente lo può fermare; con `false` torna normale. Fermarlo cancella ciò che teneva in memoria. |
 | `lilos.apps.call(app, entry, data)` → risultato | Come `lilos.app.call`, per un punto d'ingresso **di un'altra app**. Serve il permesso `apps.call:<id app>`. L'app deve essere installata e visibile nel workspace attuale. Un `file` (o i `files`, al massimo 100) si può passare solo se l'app lo ha ricevuto; ogni altro dato arriva così com'è e **chi lo riceve deve controllarlo** (la forma, i tipi, le dimensioni). |
 | `lilos.handle(fn)` | Solo in un background: `fn(data, { from })` risponde alle chiamate; `from` è l'id dell'app che chiama (`null` se è il sistema). Il valore restituito, o `null`, torna a chi ha chiamato. Senza `handle` le chiamate falliscono. Un `file` ricevuto nei dati si può leggere e scrivere con `lilos.files` come se l'app fosse stata aperta con lui. |
 | `lilos.locale` | `{ code, i18n: { t(chiave, params?), lang, date(valore, opzioni?), number(valore, opzioni?) } }`: la lingua del sistema e le stringhe dell'app per quella lingua, già risolte (a differenza del resto di `lilos`, **sincrono**). Non richiede permessi. Vedi [`lilos.locale`](#liloslocale). |
 | `lilos.on(evento, fn)` → `off` | Eventi: `launch` (nuovi argomenti, a finestra già aperta), `command` (`id` di un comando di `contributes.commands`, quando l'utente preme la sua scorciatoia; solo nelle finestre), `theme` (i token di colore sono cambiati; nella sandbox il bridge li applica da solo a `:root`), `connect` (`MessagePort`, in un background: qualcuno ha chiamato `lilos.app.connect`), `locale` (`{ code, lang }`: la lingua del sistema è cambiata e `lilos.locale` ha già le nuove stringhe; non nei servizi). |
 | `lilos.window.setTitle(testo)` | Titolo della finestra (fino a 100 caratteri). Solo in una finestra: in un background fallisce. |
 | `lilos.window.close()` | La finestra si chiude, come con il suo pulsante. Solo in una finestra. |
-| `lilos.ui.toast(testo)` | Avviso in basso (fino a 200 caratteri). |
+| `lilos.ui.toast(testo)` | Avviso breve in basso (fino a 200 caratteri). Per una risposta immediata a un gesto dell'utente. |
+| `lilos.ui.notify(testo \| { text, level, action })` | Una **notifica** nell'area di notifica, conservata nella finestra Notifiche ([`notifications`](#notifications), [`notifications-basic`](#notifications-basic_100)). `text`: fino a 300 caratteri, non vuoto. `level`: `'info'` (predefinito), `'success'`, `'warning'` o `'error'`. `action`: `{ entry?, args? }` (`entry` `'main'` se manca, nella forma dei nomi del manifesto): un clic apre l'app a quel punto d'ingresso con `args` (JSON, al massimo 4096 caratteri con il kernel); `file` e `files` degli `args` il sistema li **toglie**. Il mittente (id e nome dell'app) lo mette lilOS: l'app non può indicarlo né fingersi un'altra. Vale nelle finestre e nei background; al massimo 10 notifiche al minuto per app, poi la promessa rifiuta con `rate_limited`. Un testo vuoto o un livello sbagliato la fanno rifiutare. Serve il permesso `ui.notify`, che tutte le app hanno. Per i servizi nel kernel c'è la stessa funzione ([Servizi delle app](#servizi-delle-app-appsappservicesjs)). |
 | `lilos.files.read(rif, { bytes? })` → testo \| `Blob` | `rif`: `~/percorso` (coperto da `fs.read` o `fs.write`) oppure l'id di un file con cui l'app è stata aperta. Con `bytes: true` un `Blob`. Passa da `file.read` (i gestori delle altre app possono cambiare il contenuto; i propri no). |
 | `lilos.files.write(rif, dati, { mark? })` | Scrive testo (fino a 10 milioni di caratteri) o byte (`Blob`, `ArrayBuffer`, array tipizzato, fino a 10 MiB); crea il file se la cartella esiste. Serve `fs.write`. Passa da `file.write`. Se `options` ha `mark` (anche `null`) i dati propri dell'app sul file (`setMeta`) si salvano insieme al contenuto: `null` li toglie. Un `mark` con `content: true` è permesso solo a un'app con `pipe:` o `pipe.own:` sia su `file.read` sia su `file.write` («Permesso negato…»). |
 | `lilos.files.info(rif)` → `{ id, name, type, size, modified, path, meta }` | Il nome e i dati propri dell'app su quel file (`meta`, o `null`). Serve poter leggere `rif`. |
@@ -1724,7 +1764,7 @@ Gestisce i punti d'ingresso `background`: si avviano alla prima chiamata, uno pe
 - Non isolato: un `Worker` da un `Blob` (`WORKER_SOURCE`) con l'origine di lilOS.
 - App di sistema: l'export con quel nome, chiamato nella pagina di lilOS.
 
-Il codice (verificato con l'hash) e le librerie del manifesto si mandano all'avvio con un `init`; le richieste dell'app tornano per una `MessagePort` e si controllano con i permessi come per le finestre. Se il codice non parte, un avviso lo dice e l'istanza si ferma. Ogni istanza ha il suo posto nelle pipe (`pipeTarget`): quando arriva un evento, lilOS chiama la funzione data a `lilos.pipes.subscribe` come una chiamata con `pipe`, `data` e `ctx`; alla chiusura dell'istanza le iscrizioni cadono. Export: `call(app, entry, data, from)`, `start(app, entry)` (avvia il punto d'ingresso se serve e si risolve quando il suo codice è partito: lo usa `apps/pipes.js` per le pipe del manifesto), `connect(app, entry)`, `running()` → `[{ key, appId, name, label, glyph, keepAlive }]`, `stop(key)`, `stopApp(id)`, e `backgroundApps` (`Emitter`, evento `change` quando se ne avvia o ferma uno o cambia `keepAlive`). La barra in basso ha un'icona (`src/taskbar/BackgroundApps.js`) con l'elenco di quelli con `keepAlive`: per ognuno aprono le proprietà dell'app e "Ferma".
+Il codice (verificato con l'hash) e le librerie del manifesto si mandano all'avvio con un `init`; le richieste dell'app tornano per una `MessagePort` e si controllano con i permessi come per le finestre. Se il codice non parte, un avviso lo dice e l'istanza si ferma. Ogni istanza ha il suo posto nelle pipe (`pipeTarget`): quando arriva un evento, lilOS chiama la funzione data a `lilos.pipes.subscribe` come una chiamata con `pipe`, `data` e `ctx`; alla chiusura dell'istanza le iscrizioni cadono. Export: `call(app, entry, data, from)`, `start(app, entry)` (avvia il punto d'ingresso se serve e si risolve quando il suo codice è partito: lo usa `apps/pipes.js` per le pipe del manifesto), `connect(app, entry)`, `running()` → `[{ key, appId, name, label, glyph, keepAlive }]`, `stop(key)`, `stopApp(id)`, e `backgroundApps` (`Emitter`, evento `change` quando se ne avvia o ferma uno o cambia `keepAlive`). L'area di notifica della barra delle applicazioni ha un'icona (`src/taskbar/BackgroundApps.js`) con l'elenco di quelli con `keepAlive`: per ognuno aprono le proprietà dell'app e "Ferma".
 
 ### `methods.js`
 
@@ -1802,6 +1842,8 @@ Dichiara le impostazioni del sistema e le applica. Va importato per primo da `sy
 | `deskHidden` | `[]` | Chiavi degli elementi fissi spenti in tutti i workspace: valgono per quelli che non hanno scelto (`hidden: null`) e per i nuovi (vedi [desktop/fixedItems.js](#desktopfixeditemsjs)) |
 | `startupApps` | `true` | Con `false` le app scelte nel Pannello di controllo → Avvio non si aprono all'ingresso (vedi [apps/startup.js](#appsstartupjs)) |
 | `userPhoto` | `''` | La foto profilo: un JPEG quadrato di 192 px come URL `data:image/jpeg;base64,…`, `''` per nessuna. Alla lettura (`userPhoto()` in `user/photo.js`) un valore più lungo di 200 000 caratteri o che non è un JPEG in base64 conta come nessuna foto. Se c'è, il sistema mette `--user-photo: url(…)` e `data-user-photo` su `<html>` (vedi [user/](#user-la-pagina-utente)) |
+| `notifyShown` | `5` | Quante notifiche la barra delle notifiche mostra insieme (`NotificationBell`; almeno 1 nel codice). Il Pannello di controllo propone 1-8 e 10 |
+| `notifySeconds` | `5` | Secondi per cui la barra resta dopo l'ultima notifica arrivata (almeno 1 nel codice). Il Pannello di controllo propone 3, 5, 8, 10, 15, 30 e 60 |
 | `userPageHidden` | `[]` | Chiavi delle voci che la pagina utente non mostra (`USER_PAGE_ITEMS[].key`). Le chiavi sconosciute si ignorano e i doppioni si tolgono alla lettura |
 
 Esporta anche `ACCENTS`, i colori proposti dall'app Pannello di controllo, `RETENTION_OPTIONS` (`[{ value, label }]`: 1, 7, 14, 30, 60, 90, 365 giorni e `0` «Per sempre», per `trashRetention`), `LASSO_OPTIONS` e `selectionMode(event)` → `{ mode: 'lasso' | 'rect', additive }`: percorso libero se sono premuti tutti i modificatori di `lasso`; `additive` (si aggiunge alla selezione) con Ctrl/Cmd o Shift, se non fanno parte della combinazione del percorso.
@@ -1850,9 +1892,10 @@ Stili in `src/styles/tags.css` (`.tag-dots`, `.tag-dot`, `.ditem-tags`, `.fm-tag
 
 | Proprietà | Descrizione |
 | --- | --- |
-| `el` | `nav.taskbar` |
+| `el` | `nav.taskbar`, con `aria-label` «Barra delle applicazioni». |
 | `startButton` | Pulsante con il logo. |
 | `startMenu` | L'istanza di `StartMenu`. |
+| `notificationBell` | La `NotificationBell` ([notifications/](#notifications-le-notifiche-nellinterfaccia)): il suo `button` sta nell'area di notifica, in `.tb-notify-area` (`role="group"`, `aria-label` «Area di notifica»), con gli aggiornamenti da riavviare (`createPendingUpdates()`) e le app in background (`createBackgroundApps()`), in quest'ordine. L'area sta nel `div.tb-tray` prima del pulsante dell'utente e dell'orologio. |
 | `userButton` | `button.tb-user` con avatar (`.avatar.user-avatar`) e nome dell'utente; `aria-haspopup="dialog"`, `aria-expanded`, classe `active` mentre la pagina utente è aperta. Lo collega `UserPage`. |
 | `tasks` | Contenitore `.tb-tasks` dei pulsanti delle finestre (`.tb-task`), gestito dal `WindowManager`. |
 
@@ -1871,6 +1914,44 @@ Registra la scorciatoia `system.startMenu` (Ctrl K, gruppo Generale, attiva anch
 ### `createClock()` → `HTMLElement`
 
 Data breve e ora secondo `session.locale` (la lingua del sistema), aggiornate allo scoccare di ogni minuto. Il tooltip contiene la data completa.
+
+---
+
+## notifications/ (le notifiche nell'interfaccia)
+
+La parte di lilOS che mostra le notifiche (il dato è in [`notifications`](#notifications), nell'SDK). Gli stili sono in `styles/notifications.css`; il verde di «Fatto» è il token `--success`.
+
+### `connectNotifications({ bell, wm })` → `Promise` (`connect.js`)
+
+Chiamata da `system.js` con `taskbar.notificationBell` e il gestore delle finestre. Collega la campanella alla finestra Notifiche (`bell.onOpen`, `bell.onShown`), registra la scorciatoia `system.notifications` (etichetta «Apri o chiudi le notifiche», gruppo Generale, **nessun tasto di serie**) e chiama `notifications.load()`. Il comando e la campanella alternano: se la finestra è aperta, visibile e attiva la chiudono; altrimenti tolgono la barra e la aprono. Quello che arriva dopo viene dal flusso di eventi del kernel (`connectServices`, vedi [Servizi delle app](#servizi-delle-app-appsappservicesjs)).
+
+### `class NotificationBell` (`NotificationBell.js`)
+
+La campanella nell'area di notifica e la **barra delle notifiche** (`section.nt-stack`, `z-index` 9001, sopra la barra delle applicazioni). `new NotificationBell()` crea tutto e aggiunge la barra e due regioni per gli screen reader (`role="status"`, e `role="alert"` per gli errori) al `body`.
+
+| Membro | Descrizione |
+| --- | --- |
+| `button` | `button.tb-bg.tb-bell` con il simbolo `bell` e il numero (`.tb-badge`, «9+» oltre 9) delle notifiche da leggere; titolo e `aria-label` «Notifiche: N da leggere». |
+| `onOpen` | `() => void`: un clic sul pulsante. |
+| `onShown` | `(notifica) => boolean`: `true` se la finestra Notifiche le mostra già; allora la barra non compare. |
+| `hide()` | Toglie subito la barra. |
+
+Comportamento: a ogni `new` la notifica va in cima alla barra, che mostra al massimo `notifyShown` notifiche (almeno 1) e sparisce `notifySeconds` secondi dopo l'ultima arrivata (almeno 1); una linea sotto di lei mostra il tempo che resta. Il puntatore o il focus dentro la barra la tengono aperta. Esc la chiude. Un clic su una notifica con azione la esegue, la segna letta e la toglie dalla barra; la × la toglie solo dalla barra. Quando `change` dice che una notifica non c'è più, la barra la toglie.
+
+### `showNotifications(wm)` e `notificationsShown(wm)` (`NotificationsWindow.js`)
+
+`showNotifications` apre la finestra **Notifiche** (una per workspace, chiave `notifications` del gestore) o la porta in primo piano, e la restituisce. Dalla più nuova, divise per giorno («Oggi», «Ieri», poi la data). In alto «N di M conservate» e, se ce ne sono, «· K nuove»; i pulsanti **Segna tutte come lette** e **Cancella tutte** (senza conferma). Aprirla segna come lette tutte; quelle che erano nuove, e quelle che arrivano a finestra aperta, tengono un puntino fino alla chiusura. Un clic esegue l'azione; la × cancella. `notificationsShown(wm)` è `true` se la finestra esiste e non è ridotta a icona.
+
+### `notificationCard`, `runAction`, `senderOf`, `formatTime` (`card.js`)
+
+- `notificationCard(n, { className, onOpen, onClose, closeLabel })`: una notifica (mittente, data e ora, etichetta **Errore** / **Avviso** / **Fatto** per `error`, `warning` e `success`, testo, ×). È un pulsante solo se ha un'azione e viene da un'app; il titolo è «Apri *nome*».
+- `runAction(n)`: l'azione descritta sopra (`file` e `files` degli `args` tolti).
+- `senderOf(n)` → `{ name, tile() }`: nome e icona del mittente come li mostra lilOS. Per un'app installata usa il nome e l'icona del registro (nome tradotto); se non c'è più, il nome salvato nella notifica. Per lilOS, «lilOS» e il logo.
+- `formatTime(at)`: data e ora brevi nella lingua del sistema.
+
+### `notify(testo, { level = 'info' })` (`notify.js`)
+
+Una notifica da lilOS stesso, per ciò che **non risponde a un'azione appena fatta** dall'utente. Se non si riesce a mandarla, mostra un `toast` di 6 secondi. La usano: l'avvio di un'app non riuscito (`launcher.js`, `app.failed` e `background.js`), gli aggiornamenti di app che chiedono di riavviare o riaprire (`updates.js`, livello `warning`), un'app dell'avvio che non si apre da sola (`startup.js`) e i messaggi dei servizi quando il kernel non conserva le notifiche (`services.js`). Le risposte immediate a un gesto restano `toast`.
 
 ---
 
@@ -1956,7 +2037,7 @@ Il modulo osserva `userPhoto`: con una foto valida mette `--user-photo: url("…
 - `icon(name, className = 'ico')`: simbolo SVG 24×24 disegnato con `currentColor`. Con un nome sconosciuto mostra `help`.
 - `logo(className = 'logo')`: il logo di lilOS.
 
-Simboli disponibili: `search`, `plus`, `minus`, `x`, `fit`, `zoom`, `grid`, `folder`, `folderPlus`, `file`, `filePlus`, `open`, `pencil`, `trash`, `globe`, `code`, `terminal`, `gear`, `calendar`, `image`, `music`, `mail`, `power`, `help`, `info`, `max`, `palette`, `disk`, `user`, `window`, `keyboard`, `accessibility`, `arrowLeft`, `arrowRight`, `arrowDown`, `arrowUp`, `list`, `home`, `download`, `monitor`, `check`, `save`, `lasso`, `folderOpen`, `sidebar`, `workarea`, `workspace`, `undo`, `redo`, `tag`, `eyeOff`, `link`, `logout`, `restart`, `camera`.
+Simboli disponibili: `search`, `plus`, `minus`, `x`, `fit`, `zoom`, `grid`, `folder`, `folderPlus`, `file`, `filePlus`, `open`, `pencil`, `trash`, `globe`, `code`, `terminal`, `gear`, `calendar`, `image`, `music`, `mail`, `power`, `help`, `info`, `max`, `palette`, `disk`, `user`, `window`, `keyboard`, `accessibility`, `arrowLeft`, `arrowRight`, `arrowDown`, `arrowUp`, `list`, `home`, `download`, `monitor`, `check`, `save`, `lasso`, `folderOpen`, `sidebar`, `workarea`, `workspace`, `undo`, `redo`, `bell`, `tag`, `eyeOff`, `link`, `logout`, `restart`, `camera`.
 
 ### `toast.js`
 
@@ -2266,7 +2347,12 @@ Le richieste che modificano (tutte tranne `GET` e `HEAD`) devono avere l'intesta
 | `POST /api/services/:app/:entry/start`, `…/stop`, `…/restart` | utenti (servizi di tutti: amministratori) | → `{ status, error }` |
 | `POST /api/services/:app/:entry/call` | utenti | `{ data?, from? }` (fino a 1 MB; `from` un id di app) → `{ result }`: ciò che restituisce `lilos.handle` del servizio. Lo avvia se è spento |
 | `GET /api/services/:app/:entry/log` | utenti (servizi di tutti: amministratori) | → `{ lines: [{ at, level, text }] }` |
-| `GET /api/services-events` | utenti | Flusso `text/event-stream` (un commento ogni 25 s per tenerlo aperto): `change` `{ owner, app, entry }` quando cambia un servizio dell'utente o del sistema, `notify` `{ app, text }` per ciò che un suo servizio manda con `lilos.ui.notify` (e, per gli amministratori, quelli di sistema). Negli altri endpoint `/api/services/:app/:entry/…`: `invalid` se `app` o `entry` hanno una forma non valida, `not_found` se il servizio non esiste |
+| `GET /api/services-events` | utenti | Flusso `text/event-stream` (un commento ogni 25 s per tenerlo aperto): `change` `{ owner, app, entry }` quando cambia un servizio dell'utente o del sistema, `notify` `{ app, text }` per ciò che un suo servizio manda con `lilos.ui.notify` (e, per gli amministratori, quelli di sistema) **solo se nessun modulo fornisce `notifications`**, e gli eventi che i moduli mandano a quell'utente con `ctx.emit`, con il nome dell'evento e i dati così come sono (`notification.new` `{ id }`, `notification.change` `{}`). Negli altri endpoint `/api/services/:app/:entry/…`: `invalid` se `app` o `entry` hanno una forma non valida, `not_found` se il servizio non esiste |
+| `GET /api/notifications` | utenti | → `{ available, keep, items }`: le notifiche dell'utente, dalla più nuova. Senza il servizio `notifications`: `{ available: false, keep: null, items: [] }` |
+| `POST /api/notifications` | utenti | `{ text, level?, action?, app? }` (fino a 16 KB) → la notifica, **per l'utente che chiede**. `text` non vuoto; `level` `info` (predefinito), `success`, `warning`, `error`; `action` `{ entry?, args? }`; `app`: l'id di un'app installata che la manda (`invalid` se non lo è); senza `app`, la manda lilOS. Il nome dell'app lo legge il kernel dal suo `lilos.json`. `rate_limited` (429) oltre 10 al minuto per app. Senza il servizio: `unavailable` |
+| `POST /api/notifications/read` | utenti | `{ ids? }` (fino a 64 KB) → 204. Senza `ids`, tutte |
+| `POST /api/notifications/remove` | utenti | `{ ids? }` → 204. Senza `ids`, tutte |
+| `PUT /api/notifications-options` | utenti | `{ keep }` → `{ keep }`: quante ne conserva l'utente, un intero da 1 a 200 (`invalid` altrimenti) |
 | `POST /api/kernel/restart` | amministratori | Il kernel si ferma ed esce con il codice 75: `npm run kernel` lo riavvia. Senza `run.js` (variabile `LILOS_SUPERVISED` assente): `unavailable` |
 | `/api/modules/<nome>/…` | utenti | Gli endpoint dei moduli (`ctx.route`) |
 
@@ -2328,8 +2414,9 @@ Cartella `modules/<nome>_<x.y.z>/` con:
 | `name`, `version`, `dir`, `config` | Il modulo, la sua cartella (può tenerci file propri) e la sua parte di configurazione. |
 | `log` | Logger. |
 | `fail(codice, messaggio)` | Lancia un errore voluto (i codici sono quelli della tabella degli errori). |
-| `provide(servizio, impl)` | Fornisce un servizio dichiarato in `provides`; per `auth`, `users`, `fs` e `runtime` il kernel controlla che `impl` abbia tutti i metodi. |
+| `provide(servizio, impl)` | Fornisce un servizio dichiarato in `provides`; per `auth`, `users`, `fs`, `runtime` e `notifications` il kernel controlla che `impl` abbia tutti i metodi. |
 | `service(nome)` | Un servizio dichiarato in `requires`. |
+| `emit(userId, evento, dati = {})` | Dice qualcosa alle pagine lilOS aperte da quell'utente, sul flusso `/api/services-events` (evento `<parola>.<parola>`, per esempio `notification.new`: `[a-z][a-z0-9-]{0,30}\.[a-z][a-zA-Z0-9.-]{0,40}`; `dati` JSON, copiati). Un nome non valido lancia un errore. Arriva solo a chi è collegato in quel momento: chi si collega dopo non lo riceve. |
 | `route(metodo, percorso, handler)` | Endpoint `/api/modules/<nome><percorso>`, solo per utenti con l'accesso fatto. `handler({ principal, params, query, json(limite?), req, res })` restituisce JSON (nulla = 204). Il percorso è `/parola/:param`, con `[\w:-]`. |
 
 `commands` sono i comandi della riga di comando: `npm run kernel:cli -- <modulo> <comando> [argomenti] [--opzione valore] [--interruttore]`; ricevono `{ services, args: { positional, flags }, prompt, ctx }`. `prompt.password(domanda, { confirm })` chiede una password senza mostrarla (o la prende da `LILOS_PASSWORD` se non c'è un terminale).
@@ -2343,6 +2430,7 @@ Il kernel controlla che questi metodi esistano; ogni modulo può fornire anche s
 | `auth` | `login(username, password, { ip })` → `{ token, user, expires }` (lancia `invalid_credentials` o `rate_limited`); `session(token)` → `user \| null`; `logout(token)`; `logoutAll(userId)` |
 | `users` | `get(id)`, `list()`, `create({ username, name, password, role })`, `setPassword(id, password)`, `remove(id)` |
 | `fs` | `home(principal)` → `{ id, path, created }`; `stat(principal, id)`; `list(principal, id)`; `tree(principal, id, { content })`; `lookup(principal, path)`; `apply(principal, { put, remove })` (una transazione); `read(principal, id)` → `Buffer`; `write(principal, id, Buffer)`; `remove(principal, ids)` |
+| `notifications` | Facoltativo: senza, lilOS tiene le notifiche solo nella pagina. `send(userId, { from, level, text, action })` → notifica (`from`: `{ app, name }` o `{ system: true }`, già controllato dal kernel; `level`: `'info'` \| `'success'` \| `'warning'` \| `'error'`; `action`: `{ entry, args }` o `null`; lancia `invalid` o `rate_limited`); `list(principal)` → `{ keep, items }` (dalla più nuova); `read(principal, ids \| null)`; `remove(principal, ids \| null)` (`null`: tutte; gli `ids` al massimo 500); `setOptions(principal, { keep })` → `{ keep }` (1-200). Manda `notification.new` `{ id }` e `notification.change` `{}` con `ctx.emit`. Vedi [`notifications-basic`](#notifications-basic_100) |
 | `runtime` | Facoltativo: senza, lilOS non ha servizi. `start({ key, code, info, limits }, host)` → `Promise<handle>`, che si risolve quando il punto d'ingresso è partito (o rifiuta con il motivo). `code`: il modulo ES del servizio, che esporta una funzione col nome `info.entry` e la riceve con `{ lilos, args }`. `info`: `{ id, version, entry, args, user: { id, username, name } \| null, locale, i18n }`, dove `locale` è `{ code, lang, strings }` (le stringhe già risolte, vedi [`lilos.locale`](#liloslocale)) e `i18n` è il testo del motore (`i18nApi` di `sdk/core/i18n.js`, `toString()`): il runner lo valuta e dà al servizio `lilos.locale`. `limits`: `{ memoryMb, cpuMs }` (memoria del servizio; tempo di una sola esecuzione del suo codice). `host`: `{ call(metodo, parametri)` → `Promise` (l'API `lilos`, controllata dal kernel), `log(livello, testo)` (ciò che scrive con `console.*`), `exit(motivo)` (si è fermato da solo: errore, memoria, crash) `}`. `handle`: `{ request(data, from)` → `Promise<risultato>` (ciò che restituisce il suo `lilos.handle`), `stop()` → `Promise }`. Vedi [Servizi delle app](#servizi-delle-app-appsappservicesjs) |
 
 Un nodo del servizio `fs` è `{ id, parent, name, type: 'folder' \| 'file' \| 'app', meta, size, created, modified, content? }`. Chi chiede è un `principal`: `{ kind: 'user', … }` o `KERNEL` (`{ kind: 'kernel' }`, usato per installare le app). Il modulo `fs` rifiuta ciò che il principal non può fare: `not_found` per ciò che non deve sapere che esiste, `forbidden` per ciò che vede ma non cambia.
@@ -2470,7 +2558,7 @@ Un servizio **scelto per tutti** gira solo come sistema: chiamate e comandi vann
 | Dati di un servizio **di sistema** | File `app:<id>/~data` (nome `.data`) nella cartella dell'app, JSON, fino a 1 MB; si cancella con l'app |
 | Dati di un servizio **di un utente** | Le stesse chiavi di `lilos.storage` nelle finestre: `app:<id>:<chiave>` nella `.config` dell'utente |
 
-**Interfaccia (`AppServices`).** Eventi `change` `{ owner, app, entry }` e `notify` `{ owner, app, text }`.
+**Interfaccia (`AppServices`).** Eventi `change` `{ owner, app, entry }` e `notify` `{ owner, app, text }` (quest'ultimo solo se nessun modulo fornisce `notifications`: altrimenti `ui.notify` diventa una notifica).
 
 | Metodo | Cosa fa |
 | --- | --- |
@@ -2497,7 +2585,7 @@ Un servizio **scelto per tutti** gira solo come sistema: chiamate e comandi vann
 | `lilos.files.read(percorso)` → testo; `write(percorso, testo)`; `list(percorso)` → `[{ name, type, size, modified }]`; `mkdir(percorso)` | Percorsi `~/…`, con `fs.read` o `fs.write` come per le finestre (testo fino a 10 milioni di caratteri; `list` nasconde i nomi che iniziano con un punto). **Solo per un servizio di un utente**: nel sistema falliscono con `forbidden`. I file creati si vedono in lilOS dopo un ricaricamento |
 | `lilos.net.fetch(url, { method, headers, body })` → `{ status, headers, body }` | Solo le origini dei permessi `net:`; metodi GET, HEAD, POST, PUT, PATCH, DELETE; non segue i reindirizzamenti; `cookie` e `host` si scartano; corpo e risposta di testo fino a 5 MB; 30 s |
 | `lilos.apps.updates()` → `[{ id, name, version, latest, repo }]` | Le app installate che hanno una versione più nuova nel repository da cui vengono (`name` e `latest` dal catalogo, `version` è l'installata, `repo` il nome del repository o `''`). Serve il permesso `apps.manage`, altrimenti `forbidden`. Confronta gli indirizzi dei repository normalizzati; un catalogo che non si legge si riprova una volta, poi si salta (con un avviso nel registro del kernel). Può durare a lungo: non aspettarlo all'avvio |
-| `lilos.ui.notify(testo)` | Un avviso (fino a 200 caratteri) nel lilOS del proprietario: l'utente stesso, o gli amministratori per un servizio di sistema. Arriva solo se lilOS è aperto |
+| `lilos.ui.notify(testo \| { text, level, action })` | Una **notifica** per il proprietario: l'utente stesso, o tutti gli amministratori (`kernel.adminIds()`) per un servizio di sistema. Gli stessi campi e limiti di `lilos.ui.notify` delle finestre ([`window.lilos`](#windowlilos-bridgejs)), con il servizio come mittente. La notifica si **conserva** anche se lilOS è chiuso: si vede alla prossima apertura. Senza il servizio `notifications` resta il vecchio avviso (evento `notify`, solo il testo, fino a 200 caratteri), che arriva solo se lilOS è aperto. Una notifica non valida o oltre il limite fa rifiutare la chiamata |
 | `console.log/info/debug/warn/error` | Vanno nel registro del servizio |
 | `setTimeout`, `setInterval` | I timer li dà il processo ospite (fino a 1000; un intervallo non scende sotto 10 ms). Un errore in un timer finisce nel registro |
 
@@ -2539,7 +2627,7 @@ Controlla all'avvio e poi ogni `ore` ore (predefinito 24) con `lilos.apps.update
 | `log(app, entry)` | Le righe del registro |
 | `call(app, entry, data = null, from = null)` | Ciò che restituisce `lilos.handle` del servizio |
 
-`connectServices()` (chiamata da `system.js`, solo con il kernel e se c'è `EventSource`) apre `/api/services-events`: gli eventi `change` diventano eventi di `services`, e ogni `notify` diventa un avviso (`toast`, 6 secondi) del tipo `<nome dell'app>: <testo>` (l'id se l'app non è nel registro). Lo chiude all'uscita dell'utente.
+`connectServices()` (chiamata da `system.js`, solo con il kernel e se c'è `EventSource`) apre `/api/services-events`: gli eventi `change` diventano eventi di `services`, ogni `notify` (solo senza il servizio `notifications`) diventa una notifica di quell'app (`notifications.send({ app, text })`), e `notification.new` e `notification.change` portano `notifications.received(id)` e `notifications.changed()`. Alla riconnessione del flusso (il kernel riavviato, la rete caduta) rilegge le notifiche, perché possono essere arrivate nel frattempo. Lo chiude all'uscita dell'utente.
 
 ### `services-isolate_1.0.0`
 
@@ -2551,6 +2639,22 @@ Modulo del kernel che fornisce `runtime` (`modules/services-isolate_1.0.0/`; att
 - Fermare un servizio manda `stop` al processo e, dopo 2 s, lo termina. `stop()` del modulo termina tutti i processi.
 
 Interfaccia `runtime`: vedi [Servizi (`services.js`)](#servizi-servicesjs).
+
+### `notifications-basic_1.0.0`
+
+Modulo del kernel che fornisce `notifications` (`modules/notifications-basic_1.0.0/`; attivo in `config.json`). Opzionale: senza, lilOS tiene le notifiche solo nella pagina ([D49](../interna/decisioni.md#d49-le-notifiche-un-modulo-opzionale-con-il-mittente-messo-da-lilos)). Interfaccia: vedi [Servizi (`services.js`)](#servizi-servicesjs).
+
+| Configurazione | Predefinito | Significato |
+| --- | --- | --- |
+| `defaultKeep` | `20` | Quante notifiche conserva un utente che non ha scelto (1-200; fuori da questo intervallo vale 20) |
+| `perMinute` | `10` | Quante notifiche può mandare a un utente la stessa app (o lilOS) in un minuto (almeno 1) |
+
+- **Dati.** `notifications.json` nella cartella del modulo (`data` del `module.json`, quindi conservato alla rimozione): `{ version: 1, users: { <id utente>: { keep, items: [notifica] } } }`, `keep` `null` finché l'utente non sceglie, `items` dalla più nuova. Il file si scrive intero, con un file temporaneo e un rinomina, una modifica alla volta; alla lettura ogni notifica e ogni id si ricontrollano (il file si può modificare a mano) e quelle non valide si scartano.
+- **Notifica.** `{ id, at, from, level, text, action, read }`. `id`: 12 caratteri casuali. `from`: `{ app, name }` (`app` `[a-z0-9][a-z0-9.-]{1,63}`, `name` fino a 80 caratteri) o `{ system: true }`. `level`: `info` (predefinito), `success`, `warning`, `error`. `text`: spazi ridotti a uno, al massimo **300** caratteri, non vuoto. `action`: `null` o `{ entry, args }` con `entry` `[a-z][a-zA-Z0-9]{0,30}` (`main` se manca) e `args` un valore JSON di al massimo 4096 caratteri.
+- **Conservazione.** Una nuova va in cima; l'utente ne tiene al più `keep` (la sua scelta, o `defaultKeep`): le più vecchie si cancellano.
+- **Limite.** `perMinute` notifiche al minuto per coppia utente-mittente (in memoria; si azzera al riavvio). Oltre: errore `rate_limited` con `retryAfter` (secondi) e messaggio «Troppe notifiche: al massimo N al minuto».
+- **Eventi** per le pagine dell'utente, con `ctx.emit`: `notification.new` `{ id }` a ogni notifica nuova e `notification.change` `{}` quando se ne leggono o cancellano, o cambia `keep`. Arrivano sul flusso `GET /api/services-events`.
+- **Chi.** Ogni metodo (tranne `send`) vale per un `principal` utente: le notifiche sono di chi le legge, e `KERNEL` riceve `forbidden`.
 
 ---
 
@@ -2567,7 +2671,7 @@ Interfaccia `runtime`: vedi [Servizi (`services.js`)](#servizi-servicesjs).
 
 Quando aggiungi un evento, documentalo qui e nel commento in testa a `sdk/core/events.js`.
 
-Gli eventi di `kernel` (`status`, `signedout`), `apps` (`change`), `registry` (`change`) e `updates` (`change`) non passano dal bus: sono degli `Emitter` di quei moduli.
+Gli eventi di `kernel` (`status`, `signedout`), `apps` (`change`), `registry` (`change`), `updates` (`change`) e `notifications` (`new`, `change`) non passano dal bus: sono degli `Emitter` di quei moduli.
 
 ---
 
@@ -2760,6 +2864,10 @@ Le chiavi non dichiarate e i valori di tipo diverso dal predefinito vengono igno
 ### `locale`
 
 La lingua del sistema scelta dall'utente, già risolta (`'it-IT'`; mai `'auto'`). La scrive l'SDK (`locale`, a ogni avvio e a ogni cambio) e la legge il **kernel**, che con essa decide la lingua dei servizi dell'utente (`apps/appServices.js`, `readUserKey(…, 'locale', 'en')`); un valore che non è un testo vale `'en'`. Come le altre chiavi è `lilos:locale` nel browser, o il file `locale` nella `.config` dell'utente. La scelta dell'utente è l'impostazione `language` (`'auto'` o un tag), dentro [`lilos:settings`](#lilossettings).
+
+### `notifications-keep`
+
+Quante notifiche conservare (un intero da 1 a 200; predefinito 20). La scrive e la legge l'SDK (`notifications.setKeep`, `notifications.load`) **solo quando le notifiche non le tiene il kernel**: con il modulo `notifications-basic` il numero sta nel suo `notifications.json` (vedi [`notifications-basic`](#notifications-basic_100)), per utente, e questa chiave non si usa. Un valore che non è un intero da 1 a 200 conta come 20. Le notifiche stesse, in quel caso, non si salvano: vivono nella pagina.
 
 ### `startup-apps`
 

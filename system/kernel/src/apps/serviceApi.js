@@ -19,7 +19,8 @@ import { logger } from '../log.js';
  *                                                '~/…' paths, with fs.read / fs.write; users only
  *   net.fetch(url, { method, headers, body })    → { status, headers, body }: only the origins of its
  *                                                net: permissions, no redirects followed, text, 5 MB, 30 s
- *   ui.notify(text)                              a message in the owner's lilOS (system: the admins')
+ *   ui.notify(text | { text, level, action })    a notification for the owner (system: for the admins);
+ *                                                see api/notifications.js
  *   apps.updates()                               → [{ id, name, version, latest, repo }]: installed apps with a newer
  *                                                version in the repository they came from (permission apps.manage)
  *
@@ -152,7 +153,7 @@ export function serviceApi({ kernel, app, owner, notify, readUserKey, writeUserK
       return { status: res.status, headers: Object.fromEntries(res.headers), body: Buffer.concat(chunks).toString('utf8') };
     },
 
-    'ui.notify': text => notify(String(text ?? '').slice(0, 200)),
+    'ui.notify': value => notify(value !== null && typeof value === 'object' ? value : String(value ?? '')),
 
     'apps.updates': async () => {
       if (!perms.includes('apps.manage')) fail('forbidden', 'Permesso negato: apps.manage');

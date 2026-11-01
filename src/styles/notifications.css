@@ -1,0 +1,70 @@
+/* Notification area of the taskbar (taskbar/Taskbar.js): updates, background apps, the bell */
+.tb-notify-area { display: flex; align-items: center; height: 100%; gap: 1px; }
+.tb-bell { position: relative; }
+.tb-bell .ico { width: 16px; height: 16px; color: var(--bar-text); }
+.tb-bell:hover .ico { color: var(--bar-strong); }
+.tb-badge {
+  position: absolute; top: 2px; right: 1px; min-width: 15px; height: 15px; padding: 0 4px; border-radius: 8px;
+  background: var(--danger); color: #fff; font-size: 9.5px; font-weight: 700; line-height: 15px; text-align: center;
+  font-variant-numeric: tabular-nums; box-shadow: 0 0 0 2px var(--bar);
+}
+.tb-badge[hidden] { display: none; }
+
+/* One notification (notifications/card.js): in the bar over the taskbar and in the Notifiche window */
+.nt-card { position: relative; border-radius: var(--radius); }
+.nt-main {
+  width: 100%; display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 10px; align-items: start;
+  padding: 10px 34px 11px 11px; text-align: left; color: inherit; border-radius: inherit;
+}
+button.nt-main { cursor: pointer; }
+.nt-main .app-icon { width: 30px; height: 30px; border-radius: 7px; }
+.nt-lilos { background: var(--bar); color: var(--accent); }
+.nt-lilos .logo { width: 15px; height: 15px; }
+.nt-body { min-width: 0; }
+.nt-head { display: flex; align-items: baseline; gap: 7px; min-width: 0; }
+.nt-from { font-weight: 600; font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nt-level { flex: none; padding: 0 6px; border-radius: 3px; font-size: 10.5px; font-weight: 700; line-height: 16px; letter-spacing: .02em; }
+.nt-error { color: var(--danger); background: color-mix(in srgb, var(--danger) 16%, transparent); }
+.nt-warning { color: var(--warning); background: color-mix(in srgb, var(--warning) 16%, transparent); }
+.nt-success { color: var(--success); background: color-mix(in srgb, var(--success) 16%, transparent); }
+.nt-time { margin-left: auto; flex: none; font-size: 11px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.nt-text { margin: 2px 0 0; font-size: 12.5px; line-height: 1.45; overflow-wrap: anywhere; }
+.nt-close { position: absolute; top: 7px; right: 6px; width: 22px; height: 22px; border-radius: var(--radius-sm); display: grid; place-items: center; }
+.nt-close .ico { width: 12px; height: 12px; }
+
+/* The notification bar (notifications/NotificationBell.js): over the notification area, newest on top */
+.nt-stack {
+  position: fixed; right: 8px; bottom: calc(var(--taskbar-h) + 8px); z-index: 9001;
+  width: min(360px, calc(100vw - 16px)); display: flex; flex-direction: column; gap: 6px;
+}
+.nt-stack[hidden] { display: none; }
+.nt-stack-cards { display: flex; flex-direction: column; gap: 6px; }
+.nt-stack .nt-card { background: var(--panel); border: 1px solid var(--panel-border); box-shadow: var(--shadow-pop); color: var(--bar-text); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+.nt-stack .nt-from { color: var(--bar-strong); }
+.nt-stack .nt-time, .nt-stack .nt-close { color: var(--bar-dim); }
+.nt-stack button.nt-main:hover { background: var(--bar-hover); }
+.nt-stack .nt-close:hover { background: var(--bar-hover); color: var(--bar-strong); }
+.nt-stack .nt-enter { animation: nt-rise .22s ease-out; }
+@keyframes nt-rise { from { transform: translateY(10px); opacity: 0; } }
+/* How long the bar stays: a line that empties */
+.nt-stack-timer { height: 2px; margin: 0 4px; border-radius: 2px; background: var(--panel-border); overflow: hidden; }
+.nt-stack-timer i { display: block; height: 100%; background: var(--accent); transform-origin: left; }
+.nt-stack-timer.run i { animation: nt-drain linear forwards; }
+.nt-stack-timer.paused i { animation-play-state: paused; }
+@keyframes nt-drain { to { transform: scaleX(0); } }
+.nt-live { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* The Notifiche window (notifications/NotificationsWindow.js) */
+.nt-window { height: 100%; display: flex; flex-direction: column; font-size: 12.5px; }
+.nt-toolbar { flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+.nt-count { flex: 1; min-width: 120px; color: var(--dim); }
+.nt-list { flex: 1; overflow: auto; padding: 2px 0 8px; }
+.nt-day { margin: 0; padding: 12px 14px 4px; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); }
+.nt-list .nt-card { border-radius: 0; }
+.nt-list .nt-main { padding-left: 16px; }
+.nt-list button.nt-main:hover { background: var(--hover); }
+.nt-list .nt-time, .nt-list .nt-close { color: var(--faint); }
+.nt-list .nt-close:hover { background: var(--hover); color: var(--text); }
+.nt-list .nt-unread { background: var(--accent-soft); }
+.nt-list .nt-unread::before { content: ""; position: absolute; left: 6px; top: 21px; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+.nt-empty { margin: 0; padding: 48px 16px; text-align: center; color: var(--faint); }

@@ -10,7 +10,9 @@ import { fail } from '../errors.js';
  *   GET    /api/services/:app/:entry/log         { lines: [{ at, level, text }] }
  *   GET    /api/services-events                  text/event-stream: 'change' { owner, app, entry } when a
  *                                                service the user sees changes, 'notify' { app, text } from
- *                                                theirs (and, for admins, from the system's)
+ *                                                theirs (and, for admins, from the system's) when there
+ *                                                is no notifications service; and the events modules
+ *                                                send to the user (ctx.emit), such as 'notification.new'
  *
  *   service: { app, entry, label, name, glyph, color, params, startup, values, system, canControl, status, since, error }
  *            status: 'off' | 'starting' | 'on' | 'error'
@@ -57,14 +59,17 @@ export function serviceRoutes(kernel) {
     const mine = owner => owner === user.id || owner === '*';
     const onChange = e => { if (mine(e.owner)) send('change', e); };
     const onNotify = e => { if (e.owner === user.id || (e.owner === '*' && admin)) send('notify', { app: e.app, text: e.text }); };
+    const onUser = e => { if (e.owner === user.id) send(e.event, e.data); };
     appServices.on('change', onChange);
     appServices.on('notify', onNotify);
+    kernel.events.on('user', onUser);
     const beat = setInterval(() => res.write(': ok\n\n'), HEARTBEAT);
     res.write(': ok\n\n');
     req.on('close', () => {
       clearInterval(beat);
       appServices.off('change', onChange);
       appServices.off('notify', onNotify);
+      kernel.events.off('user', onUser);
     });
   });
 }

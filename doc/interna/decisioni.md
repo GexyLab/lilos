@@ -887,3 +887,49 @@ lilOS legge il file **prima** di avviare l'app e le dà le stringhe già risolte
 - **`@lilos/system` cresce** (`USER_PAGE_GROUPS`, `USER_PAGE_ITEMS`, `isUserPageShown`, `setUserPageShown`): Pannello di controllo 1.7.0 li usa, quindi va rilasciato dopo lilOS ([D38](#d38-le-app-di-sistema-vengono-dal-repository-ufficiale-e-girano-dentro-lilos)).
 
 **Quando ripensarla.** Quando il kernel potrà cambiare nome e password e dire chi è collegato (la pagina potrà offrirli); se serviranno blocchi che non perdano la sessione su altre schede; se il riavvio dovrà funzionare anche senza `npm run kernel`.
+
+---
+
+## D49. Le notifiche: un modulo opzionale, con il mittente messo da lilOS
+
+**Decisione.** lilOS ha le **notifiche** (1° novembre 2026; Pannello di controllo 1.9.0 e il modulo nel tag v1.13.0 del repository ufficiale): messaggi che restano, a differenza dei `toast`.
+
+- **Un modulo del kernel separato e facoltativo**, `notifications-basic`, fornisce il servizio `notifications` (`send`, `list`, `read`, `remove`, `setOptions`; interfaccia controllata dal kernel come per `auth`, `users`, `fs` e `runtime`). Tiene tutto in `notifications.json` nella sua cartella, per utente. Di serie è acceso in `system/kernel/config.json`. Senza di lui lilOS mostra le notifiche lo stesso, ma solo nella pagina.
+- **Il kernel sa dire qualcosa alle pagine di un utente**: i moduli hanno `ctx.emit(userId, evento, dati)`, `kernel.events` lo porta, e il flusso `GET /api/services-events` (già usato per i servizi) manda anche questi eventi a chi è collegato. Il modulo manda `notification.new` `{ id }` e `notification.change`.
+- **`lilos.ui.notify(testo | { text, level, action })`** per finestre, background e servizi nel kernel (permesso `ui.notify`, che tutte le app hanno già). `level` è `info`, `success`, `warning` o `error`; `action` `{ entry, args }` dice cosa apre il clic.
+- **Il mittente lo mette lilOS, non l'app.** Il ponte aggiunge l'id dell'app che chiama; l'API HTTP accetta solo l'id di un'app installata e legge il nome dal suo `lilos.json`.
+- **Un'azione non consegna file.** Il clic apre l'app al punto d'ingresso indicato con i suoi `args`, ma `file` e `files` vengono tolti.
+- **Un limite al minuto**: 10 notifiche per coppia utente-mittente (`perMinute`, in memoria). Testo fino a 300 caratteri, `args` fino a 4 KB.
+- **Cosa resta `toast` e cosa diventa notifica.** Il `toast` risponde a un gesto che l'utente sta guardando («Spostato in Documenti», «Annullato», «si sta aggiornando: un momento»). Diventa notifica ciò che arriva senza un gesto o può passare inosservato: un'app che non parte (`launcher.js`, `background.js`, `app.failed`), le app aggiornate da riavviare (`updates.js`), un'app dell'avvio che non si apre da sola (`startup.js`), ciò che dicono i servizi. Se una notifica di lilOS non si riesce a mandare (`notifications/notify.js`), esce come `toast`.
+- **L'interfaccia**: la barra in basso si chiama **barra delle applicazioni**; a destra ha l'**area di notifica** (aggiornamenti da riavviare, app in background, campanella con il numero da leggere). Le notifiche nuove compaiono in una **barra delle notifiche** sopra l'area (la più nuova in cima, fino a `notifyShown`, per `notifySeconds`); la campanella apre la finestra **Notifiche**. Pannello di controllo 1.9.0 ha la scheda Notifiche.
+
+**Perché.**
+
+- Un `toast` dura pochi secondi ed è uno alla volta: chi guardava altrove lo perde. Ciò che non nasce da un gesto (un servizio in sottofondo, un errore in un background) ha bisogno di un posto dove restare.
+- Le notifiche devono arrivare **anche con lilOS chiuso** (un servizio nel kernel che ha finito un lavoro) e a tutte le schede: perciò stanno nel kernel e non nel browser.
+- Un modulo, come `users` e `fs` ([D31](#d31-un-kernel-modulare-con-il-controllo-degli-accessi-dentro-il-modulo-del-file-system)): chi le vuole in un database, o non le vuole, lo sostituisce o lo toglie senza toccare il kernel. È facoltativo come `runtime` ([D44](#d44-avvio-automatico-due-eventi-app-solo-nella-prima-scheda-servizi-nel-kernel)): lilOS deve funzionare senza.
+- Se l'app dichiarasse il proprio nome, potrebbe farsi passare per un'altra app o per lilOS («lilOS: inserisci la password»). Il mittente messo da chi controlla il ponte non si falsifica dall'app.
+- Un'azione che consegna file significherebbe che l'app decide, al momento in cui scrive la notifica, quale file dare a se stessa, o a un'altra app, con un clic che l'utente dà per tutt'altro motivo ([D47](#d47-pipe-sugli-eventi-dati-delle-app-sui-file-e-filecrypt): un'app riceve un file solo dall'utente). L'app può comunque aprirsi con degli `args` e chiedere lei all'utente.
+- Con 20 notifiche conservate, un'app (o un servizio in un ciclo) che ne manda 100 al secondo cancellerebbe quelle di tutte le altre e riempirebbe lo schermo. Il limite al minuto lo impedisce e costa poco.
+- Il flusso `/api/services-events` c'era già e un utente collegato ce l'ha sempre aperto: niente nuova connessione, né polling.
+
+**Alternative scartate.**
+
+- **Notifiche solo nel browser** (`localStorage` o `storage`): non ci sarebbero per un servizio a lilOS chiuso, né l'avviso in diretta alle altre schede.
+- **Notifiche nel kernel, non in un modulo**: legherebbero il kernel a un modo di conservarle.
+- **Un permesso nuovo per mandarle**: `ui.notify` c'era già, implicito per tutte le app, e il limite al minuto protegge meglio di un permesso che tutti darebbero.
+- **Il mittente dichiarato dall'app**: vedi sopra.
+- **Le notifiche del browser (Notification API) e i suoni**: richiedono un permesso del browser e fanno rumore; per ora no.
+
+**Conseguenze.**
+
+- **Il limite al minuto è in memoria**: il riavvio del kernel lo azzera. In modalità locale (senza modulo) l'SDK non lo applica, né controlla `action`.
+- **Chi non è collegato non riceve l'evento.** Una pagina rilegge l'elenco (`GET /api/notifications`) quando si apre e quando il flusso si riconnette. Ciò che era già arrivato non fa comparire la barra, solo il numero sulla campanella.
+- **Un servizio di sistema notifica tutti gli amministratori** (`kernel.adminIds()`), una copia ciascuno; il limite vale per ognuno.
+- **Senza il modulo, `ui.notify` di un servizio torna al vecchio evento `notify`** (solo testo, fino a 200 caratteri, e solo a lilOS aperto), che lilOS trasforma in una notifica della pagina.
+- **L'API HTTP prende `app` dal client.** Un'app **non isolata** gira nella pagina di lilOS e può chiamare `kernel.request` ([D42](#d42-punti-dingresso-e-due-modalità-di-esecuzione-per-le-app)): può quindi mandare una notifica a nome di un'altra app installata. È coerente con il resto (un'app non isolata può fare tutto ciò che può fare l'utente), ma va saputo; le app isolate passano dal ponte, che mette l'id vero.
+- **Il Pannello di controllo 1.9.0 usa `notifications` dall'SDK**: va rilasciato dopo lilOS ([D38](#d38-le-app-di-sistema-vengono-dal-repository-ufficiale-e-girano-dentro-lilos)). Una versione precedente di lilOS non ha `notifications` e la scheda non compare.
+- **SDK 0.3.1** (compatibile): `notifications`, il simbolo `bell`, il token `--success`.
+- **La finestra Notifiche e i suoi testi sono ancora in italiano** (come il resto dell'interfaccia di lilOS, [D45](#d45-un-file-di-traduzioni-per-app-inglese-predefinito-un-solo-motore)); i testi delle app che notificano sono quelli delle app.
+
+**Quando ripensarla.** Se serviranno notifiche con pulsanti o risposte; se un archivio più grande o ricercabile (un modulo su PostgreSQL) o una durata più lunga mostreranno che 200 non bastano; se si vorranno suoni, notifiche del browser o «non disturbare» per app; se il limite al minuto dovrà sopravvivere al riavvio; se la falsificazione del mittente da parte di un'app non isolata diventerà un problema (il kernel potrebbe firmare la richiesta, o rifiutare `app` dai client).

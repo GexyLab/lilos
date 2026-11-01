@@ -1,11 +1,10 @@
-import { Emitter, kernel, toast } from '@lilos/sdk';
-import { getApp } from './registry.js';
+import { Emitter, kernel, notifications } from '@lilos/sdk';
 
 /**
  * The services of installed apps (entry points of kind 'service'): they run in the kernel, also
  * with lilOS closed (see the kernel's apps/appServices.js). Here lilOS asks about them and gets
  * told when they change, through the kernel's event stream (/api/services-events): Control Panel → Avvio
- * shows them, and what a service says with lilos.ui.notify() becomes a message.
+ * shows them, and what a service says with lilos.ui.notify() becomes a notification.
  *
  *   list() → { available, enabled, admin, services: [{ app, entry, label, name, glyph, color, params,
  *              startup: 'none' | 'login' | 'system', values, system, canControl,
@@ -58,10 +57,14 @@ class Services extends Emitter {
 
 export const services = new Services();
 
-/** Listens to the kernel while lilOS runs: changes for Control Panel, messages of the services as toasts. */
+/**
+ * Listens to the kernel while lilOS runs: changes for Control Panel, the notifications (new ones and
+ * changes made in other pages), and what services say when the kernel keeps no notifications.
+ */
 export function connectServices() {
   if (!kernel.connected || typeof EventSource !== 'function') return;
   let source = null;
+  let opened = 0;
   const open = () => {
     source = new EventSource('/api/services-events');
     source.addEventListener('change', e => {
@@ -70,9 +73,17 @@ export function connectServices() {
     source.addEventListener('notify', e => {
       try {
         const { app, text } = JSON.parse(e.data);
-        toast(`${getApp(app)?.name ?? app}: ${String(text).slice(0, 200)}`, { timeout: 6000 });
+        notifications.send({ app, text: String(text) }).catch(() => {});
       } catch { /* not ours */ }
     });
+    source.addEventListener('notification.new', e => {
+      try {
+        notifications.received(JSON.parse(e.data).id);
+      } catch { /* not ours */ }
+    });
+    source.addEventListener('notification.change', () => notifications.changed());
+    // Back after the kernel restarted or the network dropped: what arrived meanwhile
+    source.addEventListener('open', () => { if (opened++) notifications.changed(); });
   };
   open();
   kernel.onLogout(() => source?.close());
