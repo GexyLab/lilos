@@ -10,6 +10,7 @@
     "./styles.css": "./styles/index.css"
   },
   "sideEffects": [
-    "*.css"
+    "*.css",
+    "./core/pipeCatalog.js"
   ]
 }
