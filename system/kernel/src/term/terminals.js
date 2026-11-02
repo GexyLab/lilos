@@ -1,5 +1,6 @@
 import { createHash, randomBytes } from 'node:crypto';
 import { mkdir, readdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
+import { constants } from 'node:os';
 import { join, posix } from 'node:path';
 import { DATA_DIR } from '../config.js';
 import { fail } from '../errors.js';
@@ -346,7 +347,10 @@ export class Terminals {
    * A command on a saved SSH host with nobody at the keyboard (the scheduler's «Comando del
    * Terminale»): no terminal, no questions. The host's password or key must be saved, and its
    * server key confirmed before (connecting once from the Terminal). → { output, code }
-   * (output: what it wrote, stdout and stderr together, the last `maxOutput` characters).
+   * (output: what it wrote, stdout and stderr together, the last `maxOutput` characters; code: the
+   * exit status, 128 + the signal's number when a signal ended it as a shell says, 255 when the
+   * server told nothing). term-ssh 1.0.2 tells code and signal; with an older one a command ended
+   * by a signal looked like a success.
    */
   async exec(principal, hostId, command, { signal, maxOutput = 64 << 10 } = {}) {
     const user = await this.#user(principal);
@@ -372,9 +376,13 @@ export class Terminals {
     return new Promise(resolve => {
       let output = '';
       session.onData(chunk => { output = (output + chunk.toString('utf8')).slice(-maxOutput); });
-      session.onClose(({ reason }) => {
-        const m = /codice (\d+)/.exec(reason ?? '');
-        resolve({ output, code: m ? Number(m[1]) : reason ? 255 : 0, reason: reason ?? '' });
+      session.onClose(({ reason, ...last }) => {
+        let code;
+        if (!('code' in last)) code = Number(/codice (\d+)/.exec(reason ?? '')?.[1] ?? (reason ? 255 : 0));
+        else if (Number.isInteger(last.code)) code = last.code;
+        else if (last.signal) code = 128 + (constants.signals[`SIG${last.signal}`] ?? 0);
+        else code = 255;
+        resolve({ output, code, signal: last.signal ?? null, reason: reason ?? '' });
       });
       signal?.addEventListener('abort', () => session.close(), { once: true });
     });

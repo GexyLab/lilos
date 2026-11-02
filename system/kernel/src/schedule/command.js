@@ -21,9 +21,9 @@ const plainText = text => String(text).replace(/\x1b\[[0-9;?]*[A-Za-z]/g, '').re
 
 export async function runCommand({ kernel, task, run, principal, signal }) {
   const w = task.what;
-  let output, code;
+  let output, code, ended = null;
   if (w.host) {
-    ({ output, code } = await kernel.terminals.exec(principal, w.host, w.lines, { signal, maxOutput: KEPT }));
+    ({ output, code, signal: ended } = await kernel.terminals.exec(principal, w.host, w.lines, { signal, maxOutput: KEPT }));
     output = plainText(output);
   } else {
     const service = (await kernel.appServices.catalog()).find(s => s.app === TERMINAL && s.entry === ENTRY);
@@ -35,6 +35,7 @@ export async function runCommand({ kernel, task, run, principal, signal }) {
   }
   if (w.saveTo) await writeHomeFile(kernel, principal, w.saveTo.folder, w.saveTo.name, Buffer.from(output, 'utf8'), { append: w.saveTo.mode === 'append' });
   const tail = lastLine(output);
+  if (ended) return { state: 'error', text: `Terminato dal segnale SIG${ended} (${code})${tail ? `: ${tail}` : ''}`, log: output };
   if (code !== 0) return { state: 'error', text: `Uscito con ${code}${tail ? `: ${tail}` : ''}`, log: output };
   return { state: 'ok', text: tail ? `Uscito con 0 · ${tail}` : 'Uscito con 0', log: output };
 }

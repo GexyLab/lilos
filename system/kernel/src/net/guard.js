@@ -1,5 +1,6 @@
 import { BlockList, isIP } from 'node:net';
 import { lookup } from 'node:dns/promises';
+import dns from 'node:dns';
 import { fail } from '../errors.js';
 
 const rules = list => {
@@ -55,6 +56,27 @@ export class NetGuard {
     const ips = isIP(host) ? [host] : (await lookup(host, { all: true }).catch(() => [])).map(a => a.address);
     for (const ip of ips) this.checkIp(ip);
   }
+
+  /**
+   * A `lookup` for net/http/tls connect: resolves the name and checks every address it gives, so
+   * the connection goes to an address checked a moment ago. check() alone leaves a gap: between it
+   * and the connection, the name can be made to point elsewhere (DNS rebinding, a short TTL).
+   */
+  lookup = (host, options, callback) => {
+    if (typeof options === 'function') [callback, options] = [options, {}];
+    const opts = typeof options === 'number' ? { family: options } : options ?? {};
+    dns.lookup(host, { ...opts, all: true }, (err, list) => {
+      if (err) return callback(err);
+      if (!list.length) return callback(Object.assign(new Error(`Nessun indirizzo per ${host}`), { code: 'ENOTFOUND' }));
+      try {
+        for (const a of list) this.checkIp(a.address);
+      } catch (refused) {
+        return callback(refused);
+      }
+      if (opts.all) callback(null, list);
+      else callback(null, list[0].address, list[0].family);
+    });
+  };
 
   /** Throws when the kernel may not connect to this address. */
   checkIp(ip) {
