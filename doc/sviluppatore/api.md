@@ -1792,7 +1792,12 @@ Ciò che le app possono sapere dei workspace senza dipendere dal gestore (il Fil
 
 ### `WorkspaceSwitcher.js`
 
-Il pulsante nella barra a destra del logo (`button.tb-ws`: pallino con il colore e nome) e il suo menu: elenco dei workspace (spunta sull'attuale), Successivo, Precedente (con le scorciatoie), Nuovo workspace, Gestisci i workspace… (apre `launch('settings', { tab: 'workspaces' })`). Il tooltip riporta le scorciatoie. Ha `aria-haspopup="menu"` ma non `aria-expanded`.
+I workspace nella barra a destra del logo, dentro `div.tb-ws-area` (`role="group"`), secondo l'impostazione `taskbarWorkspaces`:
+
+- `'current'` (predefinito): un solo pulsante `button.tb-ws` (pallino con il colore, nome, freccia) che apre il menu. Il tooltip riporta le scorciatoie. Ha `aria-haspopup="menu"` ma non `aria-expanded`.
+- `'all'` (`.tb-ws-area.all`): un `button.tb-ws` per workspace, nell'ordine di `list()`, con `data-ws` = id; l'attuale ha `.on` e `aria-current="true"`, gli altri passano a quel workspace al clic. Il tooltip ha nome, descrizione e (sull'attuale) le scorciatoie. In fondo `button.tb-ws-more` (freccia) apre il menu. La fila occupa al massimo metà della barra e i nomi si accorciano con i puntini.
+
+Il menu (anche con il clic destro sull'area): elenco dei workspace (spunta sull'attuale), Successivo, Precedente (con le scorciatoie), Nuovo workspace, Mostra tutti i workspace / Mostra solo il workspace attuale (cambia `taskbarWorkspaces`), Gestisci i workspace… (apre `launch('settings', { tab: 'workspaces' })`). L'area si ridisegna a ogni `change` e `switch` dei workspace, cambio di scorciatoie e di `taskbarWorkspaces`, e rimette il focus sul pulsante che lo aveva (anche dopo un cambio di workspace partito dalla fila, che toglie il focus a tutto: `#refocus`). Il Pannello di controllo 1.17.0 ha la scelta in Workspace → Tutti → Barra delle applicazioni (solo se lilOS ha l'impostazione).
 
 ---
 
@@ -2528,6 +2533,7 @@ Dichiara le impostazioni del sistema e le applica. Va importato per primo da `sy
 | `userPhoto` | `''` | La foto profilo: un JPEG quadrato di 192 px come URL `data:image/jpeg;base64,…`, `''` per nessuna. Alla lettura (`userPhoto()` in `user/photo.js`) un valore più lungo di 200 000 caratteri o che non è un JPEG in base64 conta come nessuna foto. Se c'è, il sistema mette `--user-photo: url(…)` e `data-user-photo` su `<html>` (vedi [user/](#user-la-pagina-utente)) |
 | `notifyShown` | `5` | Quante notifiche la barra delle notifiche mostra insieme (`NotificationBell`; almeno 1 nel codice). Il Pannello di controllo propone 1-8 e 10 |
 | `notifySeconds` | `10` | Secondi per cui la barra resta dopo l'ultima notifica arrivata (almeno 1 nel codice). Il Pannello di controllo propone 3, 5, 8, 10, 15, 30 e 60 |
+| `taskbarWorkspaces` | `'current'` | Workspace nella barra delle applicazioni: `'current'` un pulsante con quello attuale, `'all'` un pulsante per ognuno (vedi [WorkspaceSwitcher.js](#workspaceswitcherjs)); ogni altro valore vale `'current'` |
 | `userPageHidden` | `[]` | Chiavi delle voci che la pagina utente non mostra (`USER_PAGE_ITEMS[].key`). Le chiavi sconosciute si ignorano e i doppioni si tolgono alla lettura |
 
 Esporta anche `ACCENTS`, i colori proposti dall'app Pannello di controllo, `DESK_COLORS` (`[{ value, label }]`: 10 colori per `deskColor`, sei scuri e quattro chiari: Grafite, Notte, Blu profondo, Bosco, Prugna, Terra, Nebbia, Cielo, Salvia, Sabbia), `RETENTION_OPTIONS` (`[{ value, label }]`: 1, 7, 14, 30, 60, 90, 365 giorni e `0` «Per sempre», per `trashRetention`), `LASSO_OPTIONS` e `selectionMode(event)` → `{ mode: 'lasso' | 'rect', additive }`: percorso libero se sono premuti tutti i modificatori di `lasso`; `additive` (si aggiunge alla selezione) con Ctrl/Cmd o Shift, se non fanno parte della combinazione del percorso.

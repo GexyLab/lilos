@@ -8,7 +8,7 @@ lilOS è un desktop che si usa dal browser. Al posto di uno schermo fisso c'è u
 
 - **La scrivania** occupa quasi tutto lo schermo. Lo sfondo a puntini ti aiuta a capire quando ti stai spostando o stai cambiando zoom.
 - **Il pannello in basso a destra** mostra una mappa in miniatura della scrivania e i controlli dello zoom.
-- **La barra delle applicazioni**, in basso: a sinistra il pulsante con il logo di lilOS, che apre il menu di avvio, e subito dopo il pulsante del [workspace](#i-workspace) (un pallino colorato e il nome); al centro un pulsante per ogni finestra aperta; a destra l'**area di notifica**, la data e l'ora. Passando sopra la data vedi la data completa.
+- **La barra delle applicazioni**, in basso: a sinistra il pulsante con il logo di lilOS, che apre il menu di avvio, e subito dopo il pulsante del [workspace](#i-workspace) (un pallino colorato e il nome; oppure un pulsante per ogni workspace, vedi [Tutti i workspace nella barra](#tutti-i-workspace-nella-barra)); al centro un pulsante per ogni finestra aperta; a destra l'**area di notifica**, la data e l'ora. Passando sopra la data vedi la data completa.
 - **L'area di notifica**, nella parte destra della barra delle applicazioni, raccoglie quello che richiede attenzione: il pulsante con la freccia verso il basso quando ci sono [app aggiornate da riavviare](#quando-unapp-viene-aggiornata-altrove), l'icona con il fulmine quando ci sono [app che restano attive](#le-app-che-restano-attive) e, sempre, la campanella delle [notifiche](#le-notifiche), con il numero di quelle da leggere.
 
 ## Accedere e uscire
@@ -311,6 +311,19 @@ Al primo avvio c'è un solo workspace, **Principale**. Se usavi lilOS prima dei 
 
 In basso compare per un attimo il nome del workspace in cui sei arrivato.
 
+### Tutti i workspace nella barra
+
+Di solito la barra delle applicazioni mostra solo il workspace in cui sei. Per vederli **tutti in fila**, un pulsante per ognuno (pallino e nome), apri il **Pannello di controllo → Workspace → Tutti** e in **Barra delle applicazioni** scegli **Tutti**; **Solo l'attuale** torna come prima. Si cambia anche dal menu dei workspace: **Mostra tutti i workspace** / **Mostra solo il workspace attuale**.
+
+Con tutti i workspace in fila:
+
+- quello in cui sei è evidenziato, con una linea del colore principale sotto;
+- un clic su un altro workspace ti ci porta;
+- la freccia dopo l'ultimo, o il clic destro su uno qualsiasi, apre il menu dei workspace;
+- passando sopra un pulsante vedi il nome intero e la descrizione.
+
+Se i nomi sono lunghi o i workspace sono tanti, i nomi si accorciano con i puntini: la fila occupa al massimo metà della barra.
+
 Il workspace che lasci resta **esattamente com'era**. Le sue finestre non si chiudono: si nascondono (spariscono anche dalla barra delle applicazioni) e tornano quando ci ritorni, con il testo non ancora salvato. Quello che fai con Ctrl Z riparte da zero in ogni scrivania.
 
 ### Cosa è separato e cosa è di tutti
@@ -340,7 +353,7 @@ Apri il **Pannello di controllo → Workspace**. Ci sono due schede.
 
 - **Questo workspace**: il **nome** (al massimo 40 caratteri), la **descrizione** (una riga, al massimo 200 caratteri: compare sotto il nome nel [menu di avvio](#il-menu-di-avvio); può restare vuota), il **colore** (è il pallino nella barra delle applicazioni e accanto ai suoi file nel File Manager), quanti file, cartelle e collegamenti ha creato, un interruttore per ogni app (acceso: l'app è visibile) e uno per ogni [elemento fisso](#gli-elementi-fissi) della sua scrivania.
 - **una scheda per ogni altro workspace**, con il suo nome: le stesse impostazioni, per cambiarle senza passarci. **Passa a questo** ti ci porta.
-- **Tutti**: l'elenco dei workspace, con quanti elementi hanno creato e quante app mostrano. **Passa a questo** ti ci porta, **Elimina…** lo elimina, **Crea** ne fa uno nuovo con la scrivania vuota e tutte le app visibili. Puoi averne **al massimo 20**. L'ultimo workspace non si può eliminare. Sotto, gli elementi fissi da accendere o spegnere in tutti i workspace insieme.
+- **Tutti**: come mostrare i workspace nella barra delle applicazioni (**Solo l'attuale** o **Tutti**, vedi [sopra](#tutti-i-workspace-nella-barra)), l'elenco dei workspace, con quanti elementi hanno creato e quante app mostrano. **Passa a questo** ti ci porta, **Elimina…** lo elimina, **Crea** ne fa uno nuovo con la scrivania vuota e tutte le app visibili. Puoi averne **al massimo 20**. L'ultimo workspace non si può eliminare. Sotto, gli elementi fissi da accendere o spegnere in tutti i workspace insieme.
 
 Un workspace nuovo si crea anche dal menu del pulsante nella barra delle applicazioni (**Nuovo workspace**) e ti ci porta subito.
 
