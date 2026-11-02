@@ -87,7 +87,9 @@ function radioGroup(className, { value, options, onChange, label }, renderOption
  * className: added to 'ctl-seg' ('wide' fills the row, each button the same width).
  */
 export function segmented({ className = '', ...opts } = {}) {
-  return radioGroup(['ctl-seg', className].filter(Boolean).join(' '), opts, o => h('button', { class: o.class || null, title: o.title ?? null }, o.icon ?? null, o.label));
+  // The label in a span of its own: in a narrow button it ends with an ellipsis, the icon stays
+  return radioGroup(['ctl-seg', className].filter(Boolean).join(' '), opts, o => h('button', { class: o.class || null, title: o.title ?? null },
+    o.icon ?? null, o.label != null && o.label !== '' ? h('span', { class: 'ctl-seg-label' }, o.label) : null));
 }
 
 /** Radio buttons one under the other, each with its label (native inputs: the browser moves between them with the arrows). */

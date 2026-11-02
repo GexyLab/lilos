@@ -57,6 +57,8 @@ textarea.ctl-text { height: auto; padding: 6px 8px; resize: vertical; line-heigh
 /* wide: across the row, the buttons the same width */
 .ctl-seg.wide { display: flex; }
 .ctl-seg.wide button { flex: 1 1 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+/* The label (a flex item of its own): a long one ends with an ellipsis, the icon stays */
+.ctl-seg-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 
 /* Check box and radio buttons with their label (checkbox, radios) */
 .ctl-check, .ctl-radio { display: inline-flex; align-items: center; gap: 7px; min-height: 22px; cursor: pointer; }
