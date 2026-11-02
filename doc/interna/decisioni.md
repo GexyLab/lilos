@@ -1470,3 +1470,33 @@ Le scelte di struttura:
 - Le app installate da altri repository non sono nell'elenco.
 
 **Quando ripensarla.** Se le app di altri autori devono mostrare i loro riconoscimenti, o se lilOS prende dipendenze a runtime sue: allora un file per pacchetto, letto per ciò che è installato.
+
+---
+
+## D66. Terminale a riquadri: finestre staccate come finestre principali e password dei file `.term` cifrate dal kernel
+
+**Decisione.**
+
+- **Finestre staccate = finestre principali dell'app.** Il launcher dà alle app `openWindow(win, key?, { main?, at? })`. Con `main: true` la finestra è registrata con `app` = l'app (come quella aperta dal launcher), non come finestra secondaria. Le schede staccate di Terminale usano questa via: sono salvate e ripristinate da workspace, workarea e aggiornamenti, e alla riapertura l'export predefinito riceve il loro `getState()` come `args`. `at: { x, y }` (punto dello schermo) le mette dove è stata lasciata la scheda.
+- **La password di un file `.term` è solo cifrata dal kernel.** Nuova rotta `POST /api/term/seal`: cifra i campi segreti con la chiave del kernel (`net/secrets.js`) e li lega all'utente, al protocollo e ai valori BOUND (`host` in minuscolo, `port` o la predefinita, `user`, `auth`, `tls`). `POST /api/term/sessions` accetta `sealed` e lo rifiuta (`forbidden`, 403) se è di un altro utente, di un altro lilOS, di un altro server o account o è rovinato. La pagina e le app non vedono mai la password in chiaro.
+- **Senza password nel file** una connessione rapida usa quella di un host salvato con gli stessi valori BOUND (il più usato di recente).
+- **Un `.term` che esegue un comando** chiede conferma la prima volta se non l'ha salvato Terminale su questo account (lo decide l'app).
+- Nuovi: `cwd` e `name` in `POST /api/term/sessions`, `term.seal` nell'SDK (0.10.0), `lilos.term.seal` e i campi in più di `lilos.term.open` nel bridge, il tipo `term` in `fileTypes`.
+
+**Perché.**
+
+- **Finestre principali** perché una finestra secondaria appartiene a quella che l'ha aperta e non si ripristina da sola: staccare una scheda deve sopravvivere a ricarica e aggiornamenti come ogni altra finestra di Terminale, senza un meccanismo di salvataggio a parte.
+- **Cifrare nel kernel** perché un file `.term` sta nella home, può essere copiato, condiviso o aperto da un altro utente: una password in chiaro (o cifrata con un segreto che la pagina conosce) sarebbe una fuga. Legata a utente, lilOS, server e account, una copia del file non apre niente altrove e non può puntare la password a un altro server.
+
+**Alternative scartate.**
+
+- Password in chiaro nel file; cifrata nella pagina con una chiave dell'app; non salvarla mai (scomodo per i collegamenti che si usano ogni giorno).
+- Un secondo punto d'ingresso nel manifesto per le finestre staccate.
+
+**Conseguenze.**
+
+- Serve lilOS 1.16.0 (SDK 0.10.0) e Terminale 1.4.0.
+- Cambiare host, porta, utente, tipo di accesso o TLS rende il `sealed` inservibile: la password va salvata di nuovo. Cambiare la chiave del kernel (`secret.key`) fa lo stesso per tutti i file.
+- La conferma dei comandi è dell'app, non del kernel: il kernel non sa cosa c'è in un `.term`.
+
+**Quando ripensarla.** Se serve condividere un collegamento con la password tra utenti; se le finestre secondarie imparano a ripristinarsi da sole.

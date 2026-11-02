@@ -1152,7 +1152,7 @@ automata run web ~/Immagini/vacanza.jpg --width=1200 --yes
 
 ## Terminale
 
-**Terminale** è la finestra dei comandi di lilOS. Ogni shell è una **scheda**: il pulsante **+** ne apre un'altra, nella stessa cartella. Con lo stesso Terminale ti colleghi anche al terminale di un altro computer: **SSH** (cifrato, il più usato), **Telnet**, **rlogin** e **SUPDUP** (i protocolli di router, vecchi sistemi Unix e dei calcolatori storici del MIT). Le sessioni remote hanno ciascuna la loro scheda; la shell di lilOS resta com'era.
+**Terminale** è la finestra dei comandi di lilOS. Ogni shell è una **scheda**: il pulsante **+** ne apre un'altra, nella stessa cartella. Le schede si possono anche affiancare in più riquadri e staccare in finestre nuove ([Riquadri e finestre](#riquadri-e-finestre-del-terminale)). Con lo stesso Terminale ti colleghi anche al terminale di un altro computer: **SSH** (cifrato, il più usato), **Telnet**, **rlogin** e **SUPDUP** (i protocolli di router, vecchi sistemi Unix e dei calcolatori storici del MIT). Le sessioni remote hanno ciascuna la loro scheda; la shell di lilOS resta com'era.
 
 Terminale è un'app di sistema, c'è già. Per i collegamenti remoti servono però i moduli dei protocolli che vuoi usare (`term-ssh`, `term-telnet`, `term-rlogin`, `term-supdup`), che un amministratore installa dall'[AppStore](#lappstore), nella scheda **Kernel**. Senza nessun modulo il Terminale lo dice e non può collegarsi a niente. L'app chiede di poter aprire terminali remoti, di leggere e scrivere i file della tua home (per le chiavi private e per le registrazioni) e di aggiungere voci ai menu.
 
@@ -1203,6 +1203,40 @@ Chiudendo la finestra (o ricaricando la pagina) le sessioni remote **non** si ch
 - Una sessione senza finestra si **chiude da sola dopo 10 minuti** (l'elenco dice «si chiude tra … minuti»). Quello che stava girando sul server si ferma con lei.
 - Ogni utente può averne **10 aperte** insieme.
 - Chiudere una scheda con **Chiudi (termina la sessione)** la chiude per davvero.
+
+### Riquadri e finestre del terminale
+
+La finestra del Terminale si può dividere in **riquadri**, uno accanto all'altro o uno sopra l'altro, quanti ne vuoi. Ogni riquadro ha le sue schede.
+
+- **Dividere.** Dal menu della scheda: **Dividi a destra** o **Dividi in basso**. Oppure trascina una scheda sul bordo di un terminale: lì nasce un riquadro nuovo.
+- **Misure.** Trascina il separatore tra due riquadri. Un doppio clic lo rimette a misure uguali. Con il separatore selezionato, le frecce della tastiera lo spostano.
+- **Menu della scheda.** Tasto destro sulla scheda (o **Maiusc F10**, o il tasto Menu): **Rinomina**, **Duplica**, **Dividi a destra**, **Dividi in basso**, **Sposta nel riquadro**, **Stacca in una nuova finestra**, **Sposta nella finestra** (le altre finestre di Terminale di questo workspace) o **Nuova finestra**, **Salva come collegamento (.term)…**, **Aggiungi alla scrivania**, **Chiudi**, **Chiudi le altre**, **Chiudi quelle a destra**. Sulle schede remote ci sono anche **Riconnetti** e **Copia indirizzo**.
+- **Trascinare una scheda.** Su una barra delle schede la sposta lì. Sul bordo di un terminale crea un riquadro nuovo. Fuori dalla finestra apre una finestra nuova (se era l'unica scheda, si sposta la finestra). **Esc** annulla il trascinamento.
+- **Staccare non riavvia niente.** Una shell di lilOS conserva il suo schermo e il comando in corso; una sessione SSH è la stessa, ancora collegata. Le finestre staccate tornano con lilOS, con i loro riquadri, e le sessioni remote ancora vive si riagganciano.
+- **Invia l'input a tutti i riquadri.** Quello che scrivi va alla scheda mostrata in ogni riquadro, anche se una è SSH e un'altra una shell di lilOS. Si attiva dal menu della scheda e si spegne allo stesso modo.
+
+| Scorciatoia | Cosa fa |
+| --- | --- |
+| **Alt Maiusc T** | Nuova shell |
+| **Alt Maiusc D** | Divide a destra |
+| **Alt Maiusc S** | Divide in basso |
+| **Alt Maiusc W** | Stacca la scheda in una finestra |
+| **Alt Maiusc B** | Invia l'input a tutti i riquadri |
+| **Alt Maiusc** + frecce | Passa al riquadro accanto |
+| **Alt Maiusc PagSu / PagGiù** | Scheda precedente / successiva del riquadro |
+| **Ctrl Alt Maiusc** + frecce | Sposta la scheda |
+
+Puoi cambiarle nel Pannello di controllo → **Scorciatoie**. **Ctrl Alt ←/→** non c'è tra queste perché lilOS la usa per cambiare workspace.
+
+### Collegamenti `.term`
+
+Un file `.term` apre una shell o una sessione remota con le tue scelte già fatte: un doppio clic e il Terminale parte. Nel File Manager se ne vede l'anteprima.
+
+- **Crearlo.** Dal menu della scheda, **Salva come collegamento (.term)…**. Scegli il nome, la cartella dove salvarlo (**Cambia…**), la cartella iniziale, il comando da eseguire (per SSH è il **Comando all'avvio**) e **All'apertura**: in una finestra nuova o in una scheda.
+- **Aprirlo.** Di solito si apre in una **finestra nuova**. In **Menu di Terminale → Opzioni…**, **Apri i collegamenti**, puoi scegliere invece una scheda della finestra già aperta. Il file può anche decidere da sé (**All'apertura**).
+- **Password.** La casella **Salva la password nel file** mette nel file la password cifrata. Vale solo per chi l'ha salvata, su questo lilOS, per lo stesso server e lo stesso utente: chiunque altro, o un altro lilOS, deve scriverla come al solito. Se non la salvi, il Terminale usa quella di un host salvato con lo stesso indirizzo; se non c'è, la chiede il server.
+- **Comandi.** Un collegamento che esegue un comando, e che il Terminale non ha salvato proprio per questo account, chiede conferma la prima volta. Se il contenuto non cambia, non lo richiede più. Controlla il comando prima di dire di sì.
+- Serve lilOS dalla 1.16.0 (e Terminale 1.4.0).
 
 ### Da sapere
 
