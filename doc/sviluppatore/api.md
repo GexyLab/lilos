@@ -2608,13 +2608,13 @@ Quello che serve al sistema per le automazioni ([D64](../interna/decisioni.md#d6
 
 ### `index.js`
 
-`connectAutomation({ wm, desktop, workspaces, taskbar })`: chiamata da `system.js` dopo `connectSystemEvents`. Definisce le azioni di lilOS, collega quelle delle app, il registratore e l'elenco, mette il pulsante **REC** nell'area di notifica della barra (`.tb-notify-area`; nascosto se nessuno registra, grigio in pausa, mostra i passi; un clic apre la finestra `recorder` di Automata) e, con passi registrati, chiede conferma se la pagina si ricarica (`beforeunload`).
+`connectAutomation({ wm, desktop, workspaces, taskbar })`: chiamata da `system.js` dopo `connectSystemEvents`. Definisce le azioni di lilOS, collega quelle delle app, il registratore, l'elenco (la cui selezione per le scorciatoie è quella della finestra attiva, se ha `win.selection`, altrimenti nessuna; senza finestra attiva, quella della scrivania) e l'avvio da solo ([triggers.js](#avvio-da-solo-triggersjs)), mette il pulsante **REC** nell'area di notifica della barra (`.tb-notify-area`; nascosto se nessuno registra, grigio in pausa, mostra i passi; un clic apre la finestra `recorder` di Automata) e, con passi registrati, chiede conferma se la pagina si ricarica (`beforeunload`).
 
 **`automations`** (`@lilos/system`, oggetto congelato):
 
 | Membro | Descrizione |
 | --- | --- |
-| `FORMAT`, `INPUTS`, `ON_ERROR`, `MODES`, `EXT`, `FOLDER` | `'lilos.automation'`; `['none', 'files', 'folder']`; `['stop', 'skip', 'ask']`; `['use', 'ask', 'template']`; `'automata'` (estensione dei file); `'~/Automazioni'` |
+| `FORMAT`, `INPUTS`, `ON_ERROR`, `MODES`, `TRIGGERS`, `EXT`, `FOLDER` | `'lilos.automation'`; `['none', 'files', 'folder']`; `['stop', 'skip', 'ask']`; `['use', 'ask', 'template']`; `['time', 'every', 'login', 'folder']` (i tipi di avvio da solo, dalla 1.17.0); `'automata'` (estensione dei file); `'~/Automazioni'` |
 | `startRecording({ items = [] })` | Comincia a registrare. `items`: i nodi da cui parte la registrazione (diventano ciò su cui lavora l'automazione); quelli che non esistono si scartano. |
 | `pauseRecording(on = true)` | Pausa o ripresa. |
 | `stopRecording()` | Finisce: `{ steps, inputs }` (i passi senza quelli ritirati, e gli `items` dati all'inizio). |
@@ -2690,7 +2690,8 @@ Il file `.automata` è JSON:
   "format": "lilos.automation", "version": 1,
   "name": "Prepara foto per il web", "description": "",
   "input": "files",
-  "launch": { "menu": true, "ext": ["jpg", "png"], "shortcut": "Ctrl+Alt+W", "command": "web" },
+  "launch": { "menu": true, "ext": ["jpg", "png"], "shortcut": "Ctrl+Alt+W", "command": "web",
+    "triggers": [{ "type": "time", "at": "08:30", "days": [1, 2, 3, 4, 5], "catchUp": true }] },
   "steps": [
     { "action": "photo.resize", "enabled": true, "confirm": false, "onError": "stop",
       "params": { "width": 1600, "unit": "pixels", "keepRatio": true },
@@ -2708,7 +2709,7 @@ Il file `.automata` è JSON:
 | Campo | Significato |
 | --- | --- |
 | `input` | `none` (niente), `files` (i passi girano una volta per ogni file scelto all'avvio), `folder` (una cartella). |
-| `launch` | `menu` (voce nel menu «Automazioni» di file e cartelle), `ext` (estensioni, minuscole, al massimo 30; vuoto: ogni file), `shortcut` (combinazione, per esempio `Ctrl+Alt+W`), `command` (nome per il Terminale, `/^[a-z][\w.-]{0,39}$/`). |
+| `launch` | `menu` (voce nel menu «Automazioni» di file e cartelle), `ext` (estensioni, minuscole, al massimo 30; vuoto: ogni file), `shortcut` (combinazione, per esempio `Ctrl+Alt+W`), `command` (nome per il Terminale, `/^[a-z][\w.-]{0,39}$/`), `triggers` (quando parte da sola, vedi sotto; al massimo 10, `[]` se mancano). |
 | `steps[].action` | L'id dell'azione. |
 | `steps[].enabled` | `false`: l'esecuzione lo salta. |
 | `steps[].confirm` | Chiede conferma prima. |
@@ -2720,6 +2721,24 @@ Il file `.automata` è JSON:
 | `steps[].note` | Una nota, fino a 500 caratteri. |
 
 **Riferimenti** a un nodo: `{ input: true }` (l'elemento su cui lavora l'automazione adesso; con `parent: true`, la sua cartella), `{ step: n, index? }` (ciò che ha fatto il passo `n`, contando da 0; `index` sceglie fra più elementi), `{ path: '~/Documenti/a.txt', id? }` (un nodo fisso: per `id`, altrimenti per percorso). I posti sulla scrivania sono `[{ ref, x, y }]`.
+
+**Avvio da solo** (`launch.triggers`, al massimo 10; `checkDocument` scarta quelli non validi). `TRIGGERS` (`document.js`, anche in `automations.TRIGGERS`) elenca i tipi:
+
+| Tipo | Campi | Significato |
+| --- | --- | --- |
+| `time` | `at` (`'HH:MM'`, 24 ore), `days` (numeri da 1, lunedì, a 7, domenica, senza doppi e in ordine; `[]`: ogni giorno), `catchUp` (booleano, `false` se manca) | A quell'ora nei giorni indicati. `catchUp`: se era chiuso, parte all'accesso. |
+| `every` | `minutes` (intero da 5 a 1440) | Ogni tanti minuti. |
+| `login` | nessuno | Quando l'utente entra. |
+| `folder` | `folder` (riferimento fisso `{ path, id? }`; non `input` né `step`) | Quando un file viene creato, spostato o copiato in quella cartella. Con `launch.ext` solo le estensioni indicate. I file sono gli elementi dell'esecuzione. |
+
+```json
+{ "type": "time", "at": "08:30", "days": [1, 2, 3, 4, 5], "catchUp": true }
+{ "type": "every", "minutes": 30 }
+{ "type": "login" }
+{ "type": "folder", "folder": { "path": "~/Download" } }
+```
+
+`checkDocument` non controlla che `input` sia `none` con `time`, `every` e `login`: lo chiede l'interfaccia di Automata. Con un altro `input` quelle automazioni, partendo da sole, non hanno elementi e non fanno niente (a meno che chiedano qualcosa: allora si apre la finestra di Automata).
 
 | Export | Descrizione |
 | --- | --- |
@@ -2760,13 +2779,25 @@ Eventi di `progress`: `{ type: 'item', item, index, total }` (comincia un elemen
 | --- | --- |
 | `list()` | `[{ id, path, name, description, input, launch, steps }]` per nome. `id` è l'id del file; `steps` è il numero dei passi. |
 | `get(chiave)` | Per id del file, poi per `launch.command`, poi per nome (senza distinguere maiuscole); `null` se non c'è. |
-| `refresh()`, `ready()` | Rilegge tutto; `Promise` della lettura in corso. |
+| `refresh()`, `ready()` | Rilegge tutto; `Promise` della lettura in corso o, se la prima non è ancora finita, della prima. |
 | `start(id, items = [])` | Apre la finestra `run` di Automata con `{ automation: id, items }`. Senza Automata: una notifica di avviso. |
 | `record(items = [])` | Apre la finestra `recorder` di Automata. Senza Automata: una notifica di avviso. |
 | `menuEntries(ids)` | La voce **Automazioni** per i menu di file e cartelle (la aggiunge `appActionEntries`): le automazioni con `launch.menu` che stanno bene a quei nodi (`input: 'files'`: tutti file, con le estensioni di `launch.ext` se ce ne sono; `input: 'folder'`: una sola cartella; `input: 'none'` mai), poi **Registra partendo da qui**. `[]` senza Automata o se un nodo è nel Cestino. |
 | evento `change` | L'elenco è cambiato |
 
-Le scorciatoie (`launch.shortcut`) si registrano con `shortcuts.register` (id `automation.<id del file>`, gruppo `Automazioni`). Un file può venire da chiunque: si accettano solo combinazioni che iniziano con Ctrl o Alt, valide e libere (`shortcuts.validate`, `shortcuts.owner`). Premuta, parte con la selezione della scrivania (nessuna se c'è una finestra attiva); per `input: 'none'` parte subito.
+Le scorciatoie (`launch.shortcut`) si registrano con `shortcuts.register` (id `automation.<id del file>`, gruppo `Automazioni`). Un file può venire da chiunque: si accettano solo combinazioni che iniziano con Ctrl o Alt, valide e libere (`shortcuts.validate`, `shortcuts.owner`). Premuta, parte con la selezione della finestra attiva (`win.selection`, vedi [Window](#class-window-extends-emitter); nessuna se non la dà) o, senza finestra attiva, con quella della scrivania; per `input: 'none'` parte subito.
+
+### Avvio da solo (`triggers.js`)
+
+`connectTriggers()`, chiamata da `connectAutomation`, fa partire le automazioni con `launch.triggers`. Vive nella pagina: parte solo mentre lilOS è aperto.
+
+- **Una scheda per utente.** Il lavoro lo fa la scheda che ha il Web Lock `lilos:automazioni:<id utente>` (`navigator.locks`; senza, ogni scheda lavora). Chiusa quella, ne prende il posto un'altra. La scheda che subentra dopo i primi 15 secondi dall'apertura della pagina non rifà gli avvii «all'accesso»: controlla solo gli orari.
+- **Controllo ogni 20 secondi** per `time` e `every`; `login` all'evento `user:login` (e `time` con `catchUp`, subito dopo); `folder` ai cambiamenti di `fs` (`create` e `move` di un file nella cartella; si aspettano 1,5 secondi perché i file arrivati insieme facciano una sola esecuzione). Si aspetta che `library.ready()` abbia finito la prima lettura.
+- **Ultima esecuzione.** `storage` `automation-runs`, per utente: `{ '<id del file>#<posizione del motivo>': millisecondi }`. Un motivo mai visto comincia solo a contare (si scrive l'istante, senza eseguire). Un `time` è dovuto se l'ultima occorrenza dell'ora (fino a 7 giorni indietro) è dopo l'ultima esecuzione e, senza `catchUp`, è passata da non più di 2 minuti. Un `every` è dovuto se è passato l'intervallo.
+- **Cartelle.** Gli eventi sono ignorati mentre un'automazione gira (`automation.quietNow`: niente cicli) e per i file dentro `~/Automazioni`. `input: 'files'` riceve i file arrivati; `'folder'`, la cartella osservata; `'none'`, niente.
+- **Chi risponde.** Se un passo abilitato ha `confirm`, `onError: 'ask'`, un campo `ask` o è `missing`, si chiama `library.start(id, elementi)`: si apre la finestra `run` di Automata. Altrimenti `runAutomation` gira in silenzio e una notifica dice com'è andata: errore sempre (`level: 'error'`), riuscita (`level: 'success'`) tranne per `every`. Un'esecuzione per volta per automazione; senza Automata installata non parte niente. Con `input` diverso da `none` e senza elementi non si fa niente.
+
+Esportati: `connectTriggers()`, `lastOccurrence(trigger, adesso?)` (l'ultimo istante di un `time` fino a adesso, o `null`) e `isDue(trigger, ultima, adesso?)`.
 
 ---
 
@@ -2918,6 +2949,7 @@ DOM: `section.window[data-kind="window"][role="dialog"]` con `.win-titlebar` (e 
 | `constrain(w, h)` | `{ w, h }` riportati entro i limiti. |
 | `canClose` | Facoltativo: funzione `() => boolean \| Promise<boolean>` chiesta dal gestore prima di chiudere su richiesta dell'utente (pulsante, Alt W). Per esempio un'app che non tiene da parte il testo la usa per proporre di salvare. |
 | `getState` | Facoltativo: funzione `() => dati JSON` (oggetto semplice) con cui ricreare la finestra. Le workarea la chiamano prima di chiudere le finestre delle app e danno il risultato all'app come `args` quando la riaprono. Vedi la [ricetta](ricette.md#far-riaprire-la-finestra-di-unapp-da-una-workarea). Predefinito `null`: la finestra si riapre senza argomenti. Per dire quali file mostra, restituisce `file` (id) o, con più schede, `files` (lista di id): il sistema li legge per `files:locked` e `files:shown`. |
+| `selection` | Facoltativo: funzione `() => string[]` con gli id dei file e delle cartelle che l'utente ha selezionato nella finestra. La usa ciò che agisce su «la selezione» da fuori (la scorciatoia di un'automazione, `connectAutomation`): con una finestra attiva si chiede a lei; senza `selection` vale come nessuna selezione. Gli id che non esistono più si scartano. Il File Manager risponde con la selezione della vista (vuota nel cestino). |
 | `closeFiles` | Facoltativo: funzione `(ids) => void` che chiude solo ciò che mostra quei file (le sue schede), senza chiudere la finestra. La chiama `files:locked` al posto di `wm.requestClose`. |
 | `active` | `true` se la finestra è nella pagina, visibile e attiva. |
 | `signal` | `AbortSignal` annullato da `destroy()`: passalo ad `addEventListener(…, { signal })` per i listener del contenuto, così spariscono con la finestra. |

@@ -759,7 +759,7 @@ L'**Editor** apre e modifica i file di testo e di codice (txt, md, js, css, html
 
 - **A sinistra**, i numeri di riga; la riga su cui si trova il cursore è evidenziata.
 - **Colori**: parole chiave, testi, numeri e commenti sono colorati secondo il linguaggio, riconosciuto dall'estensione del file. Puoi cambiarlo dal menu in alto a destra (Testo, Markdown, JavaScript, CSS, HTML, JSON, Python).
-- **In alto**: Nuovo documento, Apri un file…, Apri una cartella…, Salva, Mostra nella cartella (apre il File Manager dove si trova il file); all'estrema destra il pulsante che mostra o nasconde la cartella aperta.
+- **In alto**: Nuovo documento, Apri un file…, Apri una cartella…, Salva, Trova e sostituisci, Mostra nella cartella (apre il File Manager dove si trova il file); all'estrema destra il pulsante che mostra o nasconde la cartella aperta.
 - **In basso**: riga e colonna del cursore, numero di righe, stato del documento (Salvato, Modificato, Nuovo documento).
 - **Sopra il testo**: una [scheda](#le-schede-delleditor) per ogni documento aperto.
 
@@ -811,6 +811,9 @@ Mentre scrivi:
 | Tasti | Azione |
 | --- | --- |
 | Ctrl S | Salva |
+| Ctrl Shift S | Salva con nome |
+| Ctrl F | Trova |
+| Ctrl H | Trova e sostituisci |
 | Ctrl Alt N | Nuovo documento |
 | Ctrl O | Apri un file |
 | Ctrl Alt O | Apri una cartella |
@@ -821,13 +824,25 @@ Mentre scrivi:
 | Ctrl Y, Ctrl Shift Z | Ripete quello che hai annullato |
 | Esc | Esce dal testo (poi Tab sposta il focus sui pulsanti) |
 
-Ctrl S, Ctrl Alt N, Ctrl O, Ctrl Alt O, Ctrl B e Ctrl Spazio (come le scorciatoie delle schede, qui sotto) si cambiano nel Pannello di controllo → Usabilità → Scorciatoie, sezione Editor.
+Ctrl S, Ctrl Shift S, Ctrl F, Ctrl H, Ctrl Alt N, Ctrl O, Ctrl Alt O, Ctrl B e Ctrl Spazio (come le scorciatoie delle schede, qui sotto) si cambiano nel Pannello di controllo → Usabilità → Scorciatoie, sezione Editor.
 
-Un documento nuovo, al primo salvataggio, viene creato nella cartella aperta a destra o, se non ce n'è una, in **Documenti**, con il nome "Senza titolo.txt"; poi puoi rinominarlo dal File Manager o dalla scrivania.
+### Salva con nome
+
+**Ctrl Shift S** apre sopra il testo una barra con il nome del file e la cartella; **Scegli cartella…** cambia la cartella. **Invio** o **Salva** salva, **Esc** o **Annulla** lasciano tutto com'è. Dopo, la scheda mostra il nuovo file. Se nella cartella c'è già un file con quel nome, l'Editor chiede prima se sostituirlo: **il suo contenuto va perso**.
+
+Un documento nuovo, al primo salvataggio, apre la stessa barra. Propone la cartella aperta a destra o, se non ce n'è una, **Documenti**, e il nome "Senza titolo.txt".
+
+### Trova e sostituisci
+
+**Ctrl F** apre una barra sopra il testo; **Ctrl H** apre anche la riga **Sostituisci con**. Se hai selezionato una parola, diventa quella da cercare. Mentre scrivi, i risultati si colorano nel testo e la barra dice «3 di 12» (o «Nessun risultato»).
+
+- **Invio** va al risultato successivo, **Maiusc Invio** al precedente, **Esc** chiude la barra.
+- Tre interruttori: **Maiuscole e minuscole**, **Parola intera** ed **Espressione regolare**. Se l'espressione non è valida, la barra lo dice.
+- **Sostituisci** cambia il risultato selezionato e passa al successivo. **Sostituisci tutto** li cambia tutti: un solo **Ctrl Z** annulla l'intera sostituzione.
 
 Il titolo della finestra mostra un pallino (•) quando ci sono modifiche non salvate. Se chiudi una scheda con modifiche, l'Editor chiede: **Salva**, **Non salvare** o **Annulla**. Chiudendo la finestra invece non chiede niente: vedi [Chiudere l'Editor senza perdere niente](#chiudere-leditor-senza-perdere-niente).
 
-Se un file aperto viene rinominato o spostato altrove, titolo e percorso si aggiornano; se viene eliminato, il testo resta nell'Editor finché non lo salvi (viene ricreato in Documenti).
+Se un file aperto viene rinominato o spostato altrove, titolo e percorso si aggiornano; se viene eliminato, il testo resta nell'Editor finché non lo salvi (il salvataggio chiede dove metterlo, come per un documento nuovo).
 
 ### Le schede dell'Editor
 
@@ -1032,7 +1047,7 @@ Con il doppio clic su un file `.zip` si apre la finestra di Zip, con l'elenco di
 
 **Automata** registra quello che fai in lilOS e lo rifà quando vuoi, anche su altri file. Lo fai una volta, poi lo fa lilOS: per esempio ridimensionare una foto, salvarne una copia in JPEG e metterla in una cartella, su dieci foto con un clic.
 
-Non c'è di serie: un amministratore la installa dall'[AppStore](#lappstore). All'installazione chiede di poter leggere e modificare i file della tua home, perché salva le automazioni lì e rifà le operazioni sui tuoi file. Serve lilOS 1.15.0 o successivo: con una versione precedente la finestra lo dice e non fa altro.
+Non c'è di serie: un amministratore la installa dall'[AppStore](#lappstore). All'installazione chiede di poter leggere e modificare i file della tua home, perché salva le automazioni lì e rifà le operazioni sui tuoi file. Serve lilOS 1.17.0 o successivo: con una versione precedente la finestra lo dice e non fa altro.
 
 Ogni operazione registrata è un **passo**. Un'automazione è l'elenco dei suoi passi, che puoi accendere, spegnere, spostare e toglierne.
 
@@ -1055,7 +1070,7 @@ Se ricarichi la pagina mentre registri, il browser chiede di confermare: ricaric
 | lilOS | Crea, Rinomina, Sposta, Copia, Sposta nel Cestino, Ripristina dal Cestino, Elimina definitivamente, Svuota il Cestino, Tag, Apri (un file o una cartella), Apri l'app, Chiudi la finestra, Vai al workspace, Impostazione (un'impostazione cambiata), Sposta sulla scrivania (icone trascinate), Riordina le icone |
 | File Manager | Vai a una cartella, Cerca nella cartella, Ordina, Cambia vista |
 | Photo | Ridimensiona l'immagine, Ritaglia l'immagine, Converti e salva una copia, Salva l'immagine |
-| Editor | Salva il file |
+| Editor | Salva il file, Sostituisci tutto nel testo, Salva con nome |
 | Terminale | Esegui un comando |
 | Zip | Comprimi in un .zip, Estrai un .zip |
 | FileCrypt | Cifra, Togli la cifratura, Blocca |
@@ -1068,7 +1083,7 @@ Cose da sapere sulla registrazione:
 - Nel Terminale si registra la riga che hai eseguito, solo se è andata a buon fine, e con la cartella in cui l'hai eseguita. Quello che la riga fa ai file non si registra a parte. Le righe che iniziano con `automata` e quelle più lunghe di 4000 caratteri non si registrano.
 - Le **password non si registrano mai**: il passo le chiede ogni volta che gira.
 - Non si registrano i clic, i tasti, la posizione delle finestre, i file che stanno nella cartella Automazioni, né quello che Automata stessa apre o chiude.
-- Quello che un'app non sa registrare compare nell'elenco **barrato**, con «… non lo rende registrabile», e non entra nell'automazione. Oggi succede con il **pennello** e il **testo** di Photo e con la **scrittura** nell'Editor (l'Editor non ha ancora «Trova e sostituisci»).
+- Quello che un'app non sa registrare compare nell'elenco **barrato**, con «… non lo rende registrabile», e non entra nell'automazione. Oggi succede con il **pennello** e il **testo** di Photo e con la **scrittura** nell'Editor.
 
 ### Modificare i passi
 
@@ -1105,14 +1120,36 @@ Per esempio `{nome}-web.{est}` trasforma `vacanza.jpg` in `vacanza-web.jpg`. Sot
 Da **Opzioni di avvio…** (o dal pulsante **Avvio…** in fondo ai passi) decidi come far partire l'automazione:
 
 - **Nel menu dei file**: compare sotto **Automazioni** nel tasto destro dei file e delle cartelle, sulla scrivania e nel File Manager. Con un elenco di estensioni (`jpg, png`) compare solo per quei file. Vale per le automazioni che lavorano sui file o su una cartella: con una cartella, compare solo se ne selezioni una.
-- **Scorciatoia**: premi il pulsante, poi i tasti (devono avere Ctrl o Alt); **Canc** la toglie. Se la combinazione è già usata da un altro comando, Automata lo dice. Una scorciatoia agisce sugli elementi selezionati sulla scrivania; se non ce ne sono (o hai una finestra davanti), l'automazione ti chiede su cosa lavorare. La scorciatoia compare anche in **Pannello di controllo → Usabilità → Scorciatoie**, nel gruppo **Automazioni**.
+- **Scorciatoia**: premi il pulsante, poi i tasti (devono avere Ctrl o Alt); **Canc** la toglie. Se la combinazione è già usata da un altro comando, Automata lo dice. Una scorciatoia agisce sugli elementi selezionati dove sei: nel File Manager quelli che hai selezionato lì (non nel cestino), sulla scrivania quelli della scrivania. Se non ce ne sono (o la finestra davanti non ha una selezione), l'automazione ti chiede su cosa lavorare. La scorciatoia compare anche in **Pannello di controllo → Usabilità → Scorciatoie**, nel gruppo **Automazioni**.
 - **Nome per il Terminale**: il nome da scrivere nel comando `automata` (vedi sotto).
 
-L'avvio da solo (quando succede qualcosa, a una certa ora) non c'è ancora.
+- **Quando parte da sola**: vedi [Avvio da sola](#avvio-da-sola).
+
+### Avvio da sola
+
+Un'automazione può partire senza che tu faccia niente. In **Opzioni di avvio…**, nella sezione **Quando parte da sola**, aggiungi uno o più motivi (al massimo 10); li togli col pulsante **Togli**. Sull'automazione compare un'etichetta per ciascuno.
+
+| Motivo | Quando parte |
+| --- | --- |
+| **A un'ora** | All'ora scelta (per esempio 08:30), nei giorni che accendi (nessun giorno: ogni giorno). |
+| **Ogni tot minuti** | Ogni volta che passano i minuti scelti, da 5 a 1440 (un giorno). |
+| **Quando entro** | Quando accedi a lilOS. |
+| **Quando arrivano file in una cartella** | Quando un file viene creato, spostato o copiato in quella cartella (non nelle sue sottocartelle). Se hai indicato delle estensioni, contano solo quelle. I file arrivati insieme fanno una sola esecuzione, e sono i file su cui lavora. |
+
+Da sapere:
+
+- **Parte solo mentre lilOS è aperto** in una scheda del browser. A lilOS chiuso non succede niente. Con più schede aperte con lo stesso utente, se ne occupa una sola; se la chiudi, ne prende il posto un'altra.
+- **A un'ora**: se a quell'ora lilOS era chiuso, di solito quell'esecuzione si perde. Accendi **Se a quell'ora lilOS era chiuso, eseguila quando entro** per farla partire all'accesso successivo. Senza, parte comunque se lilOS si apre entro due minuti dall'ora.
+- **Un motivo appena aggiunto comincia a contare da quando lilOS lo vede**: non parte subito per un'ora o un intervallo già passati.
+- **A un'ora**, **Ogni tot minuti** e **Quando entro** non hanno file con cui lavorare: imposta **Su cosa lavora** su **niente** (Automata lo dice quando salvi). **Quando arrivano file** funziona con niente, con i file o con una cartella (in quel caso lavora sulla cartella osservata).
+- **Se non c'è nessuno a rispondere**: un'automazione che chiede qualcosa (una conferma, un valore, cosa fare se un passo non riesce) si apre nella finestra **In esecuzione** di Automata, e tocca a te rispondere. Le altre girano in silenzio. Una notifica dice com'è andata: sempre se c'è un errore, e anche se è riuscita (tranne per **Ogni tot minuti**, per non riempirti di notifiche).
+- Non parte se Automata non è installata, né se è già in esecuzione.
+- Quello che fa un'automazione non fa partire altre automazioni da una cartella, e nemmeno i file messi nella cartella **Automazioni** (così non si innescano a catena).
+- Un'automazione che cancella o sposta file, partendo da sola, lo fa senza che tu la guardi: provala prima a mano su copie.
 
 ### Eseguire
 
-Premi **Esegui** in cima ai passi, oppure scegli l'automazione dal menu **Automazioni**, con la sua scorciatoia o dal Terminale. Si apre la finestra **In esecuzione**: se l'automazione lavora su file e non gliene hai dato nessuno, te li chiede. Poi elenca i passi e a ognuno mette una spunta quando ha finito; le domande e le conferme compaiono lì dentro.
+Premi **Esegui** in cima ai passi, oppure scegli l'automazione dal menu **Automazioni**, con la sua scorciatoia o dal Terminale. Si apre la finestra **In esecuzione**: se l'automazione lavora su file e non gliene hai dato nessuno, te li chiede. Quando un passo vuole **più file**, la finestra ti mostra l'elenco: **Aggiungi un file** e **Aggiungi una cartella** li aggiungono, **Togli** ne toglie uno. Serve almeno un elemento. Poi elenca i passi e a ognuno mette una spunta quando ha finito; le domande e le conferme compaiono lì dentro.
 
 - **Pausa** aspetta prima del passo successivo; **Ferma** interrompe l'automazione. A lavoro finito il pulsante diventa **Chiudi**.
 - Chiudere la finestra mentre gira la ferma.
@@ -1147,8 +1184,7 @@ automata run web ~/Immagini/vacanza.jpg --width=1200 --yes
 - Le automazioni sono file `.automata` (testo): si copiano, si spostano e si condividono come gli altri file. Automata le trova ovunque nella tua home (non nelle cartelle di rete); l'elenco si aggiorna da solo.
 - Un file indicato con «Sempre …» si ritrova anche se l'hai spostato; se non c'è più, Automata prova con il percorso che aveva.
 - Un'automazione eseguita cambia davvero file e impostazioni: non c'è un «annulla» unico per tutto.
-- Quando un passo ti chiede un gruppo di file, ne puoi scegliere uno solo.
-- Mancano ancora l'avvio automatico (a un'ora, o quando succede qualcosa), la registrazione di quello che si disegna o si scrive in Photo e nell'Editor, e «Trova e sostituisci» nell'Editor. Non ci sono condizioni né cicli: i passi vanno in fila.
+- Mancano ancora la registrazione di quello che si disegna in Photo e di quello che si scrive nell'Editor. Non ci sono condizioni né cicli: i passi vanno in fila.
 
 ## Terminale
 

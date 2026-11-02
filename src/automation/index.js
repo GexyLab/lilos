@@ -3,9 +3,10 @@ import { launch, isInstalled } from '../apps/registry.js';
 import { defineSystemActions } from './actions.js';
 import { connectAppActions } from './apps.js';
 import { connectRecorder, flushRecorder, nodesOf, AUTOMATIONS } from './recorder.js';
-import { checkDocument, fromRecording, FORMAT, INPUTS, ON_ERROR, MODES } from './document.js';
+import { checkDocument, fromRecording, FORMAT, INPUTS, ON_ERROR, MODES, TRIGGERS } from './document.js';
 import { runAutomation, fillTemplate, RunStopped } from './runner.js';
 import { library, AUTOMATA, EXT } from './library.js';
+import { connectTriggers } from './triggers.js';
 
 /**
  * Automations in lilOS: recording what the user does, the .automata files, running them again.
@@ -16,7 +17,7 @@ import { library, AUTOMATA, EXT } from './library.js';
 let inputs = [];
 
 export const automations = Object.freeze({
-  FORMAT, INPUTS, ON_ERROR, MODES, EXT, FOLDER: AUTOMATIONS,
+  FORMAT, INPUTS, ON_ERROR, MODES, TRIGGERS, EXT, FOLDER: AUTOMATIONS,
 
   /** Starts recording; items: what it starts from (they become what the automation works on). */
   startRecording({ items = [] } = {}) {
@@ -81,7 +82,16 @@ export function connectAutomation({ wm, desktop, workspaces, taskbar }) {
   defineSystemActions({ wm, desktop, workspaces });
   connectAppActions();
   connectRecorder({ wm });
-  library.connect({ selection: () => (wm.active ? [] : [...desktop.selection].map(it => it.id).filter(id => fs.exists(id))) });
+  // What a shortcut works on: the selection of the active window (one that tells it, Window.selection),
+  // or of the desk when no window is active
+  library.connect({
+    selection: () => {
+      const win = wm.active;
+      const ids = win ? (typeof win.selection === 'function' ? win.selection() : []) : [...desktop.selection].map(it => it.id);
+      return (Array.isArray(ids) ? ids : []).filter(id => typeof id === 'string' && fs.exists(id));
+    },
+  });
+  connectTriggers();
   taskbar.el.querySelector('.tb-notify-area')?.prepend(recButton());
   // Reloading the page while recording: the recording is lost (it lived in the page)
   addEventListener('beforeunload', e => { if (automation.recording && automation.steps().length) e.preventDefault(); });

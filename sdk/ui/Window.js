@@ -32,6 +32,10 @@ export const WINDOW_EDGES = ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'];
  * `file` (or `files`, a list, for a window with tabs) says which files it shows: a file locked again
  * (FileCrypt) closes the window, or calls win.closeFiles(ids) when the window sets it.
  *
+ * A window where the user selects files and folders tells which ones, for what acts on "the
+ * selection" from outside it (the shortcut of an automation):
+ *   win.selection = () => [...selectedIds]
+ *
  * Events (intents, emitted by the controls):
  *   'minimize' | 'maximize' | 'close'
  * Events (state):

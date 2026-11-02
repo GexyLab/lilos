@@ -9,7 +9,7 @@ import { recordedPath } from './recorder.js';
  *     name: 'Prepara foto per il web', description: '',
  *     input: 'none' | 'files' | 'folder',      what it works on: nothing, the files chosen when it
  *                                              starts (the steps run once per file), or a folder
- *     launch: { menu: true, ext: ['jpg'], shortcut: 'Ctrl+Alt+W', command: 'web' },
+ *     launch: { menu: true, ext: ['jpg'], shortcut: 'Ctrl+Alt+W', command: 'web', triggers: [trigger] },
  *     steps: [{
  *       action: 'photo.resize', enabled: true, confirm: false, onError: 'stop' | 'skip' | 'ask',
  *       params: { width: 1600, … },            file params hold references (below)
@@ -19,6 +19,14 @@ import { recordedPath } from './recorder.js';
  *       note?: ''
  *     }]
  *   }
+ *
+ * Triggers: when it starts by itself, while lilOS is open (triggers.js), at most 10:
+ *   { type: 'time', at: '08:30', days: [1, 2, 3, 4, 5], catchUp: true }   days 1 (Monday) … 7; none: every
+ *                                                         day; catchUp: missed while lilOS was closed → at login
+ *   { type: 'every', minutes: 30 }                        5 … 1440
+ *   { type: 'login' }                                     when the user comes in
+ *   { type: 'folder', folder: ref }                       files arriving in a folder (made, moved or copied
+ *                                                         there; launch.ext filters them): they are the items
  *
  * References to nodes: { input: true } (the item the automation works on now; with parent: true,
  * the folder it is in), { step: 2, index? }
@@ -57,6 +65,23 @@ function cleanSaved(p, v) {
   return cleanValue(p, v);
 }
 
+export const TRIGGERS = ['time', 'every', 'login', 'folder'];
+const TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
+
+/** A trigger, checked; null if not valid. */
+function cleanTrigger(t) {
+  if (!plain(t) || !TRIGGERS.includes(t.type)) return null;
+  if (t.type === 'time') {
+    if (typeof t.at !== 'string' || !TIME.test(t.at)) return null;
+    const days = [...new Set((Array.isArray(t.days) ? t.days : []).filter(d => Number.isInteger(d) && d >= 1 && d <= 7))].sort();
+    return { type: 'time', at: t.at, days, catchUp: t.catchUp === true };
+  }
+  if (t.type === 'every') return Number.isInteger(t.minutes) && t.minutes >= 5 && t.minutes <= 1440 ? { type: 'every', minutes: t.minutes } : null;
+  if (t.type === 'login') return { type: 'login' };
+  const folder = cleanRef(t.folder);
+  return folder && !folder.input && !Number.isInteger(folder.step) ? { type: 'folder', folder } : null;
+}
+
 /** A shortcut combo as the shortcuts keep them ('Ctrl+Alt+W'), or ''. */
 const combo = v => (typeof v === 'string' && /^[\w+]{1,40}$/.test(v) ? v : '');
 
@@ -75,6 +100,7 @@ export function checkDocument(raw) {
       ext: (Array.isArray(launch.ext) ? launch.ext : []).filter(e => typeof e === 'string' && EXT.test(e)).slice(0, 30),
       shortcut: combo(launch.shortcut),
       command: typeof launch.command === 'string' && COMMAND.test(launch.command) ? launch.command : '',
+      triggers: (Array.isArray(launch.triggers) ? launch.triggers : []).slice(0, 10).map(cleanTrigger).filter(Boolean),
     },
     steps: [],
   };
@@ -125,7 +151,7 @@ export function fromRecording(steps, { name = '', inputs = [] } = {}) {
   const made = new Map();   // node id → { step, index? }
   const input = new Set(inputs);
   let guessed = !!input.size;
-  const doc = { format: FORMAT, version: 1, name: name || 'Nuova automazione', description: '', input: 'none', launch: { menu: false, ext: [], shortcut: '', command: '' }, steps: [] };
+  const doc = { format: FORMAT, version: 1, name: name || 'Nuova automazione', description: '', input: 'none', launch: { menu: false, ext: [], shortcut: '', command: '', triggers: [] }, steps: [] };
 
   const ref = id => {
     if (input.has(id)) return { input: true };

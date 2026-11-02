@@ -1439,9 +1439,24 @@ Le scelte di struttura:
 - Nell'area di notifica c'è il pulsante **REC** mentre si registra; ricaricare la pagina perde la registrazione (vive nella pagina).
 - Il file `.automata` è del primo formato (`version: 1`); `checkDocument` scarta i campi che non conosce.
 
-**Non ancora fatto.** L'avvio da solo (a un'ora, a un evento: i pezzi ci sono, le pipe e `desk.place`); «Trova e sostituisci» nell'Editor, che non ha ancora la funzione da registrare; il pennello e il testo di Photo; condizioni e cicli; chiedere più file in un passo che ne vuole un gruppo.
+**Non ancora fatto.** Il pennello e il testo di Photo; condizioni e cicli. L'avvio da solo, «Trova e sostituisci» e «Salva con nome» dell'Editor e la scelta di più file in un passo sono fatti: vedi l'aggiornamento qui sotto.
 
-**Quando ripensarla.** Quando arriveranno gli avvii da eventi e dall'orologio (un'automazione dovrà girare senza finestra di Automata e senza nessuno che risponda alle domande: le domande e le conferme andranno ripensate); se i parametri `value`, `tags` e `places`, per ora solo di lilOS, servono alle app; se i file `.automata` condivisi tra utenti pongono problemi di fiducia (oggi un passo può fare solo ciò che l'utente può fare, ma può farne molti).
+**Aggiornamento (2 novembre 2026): l'avvio da solo.** Deciso con l'utente e fatto nello stesso giorno (lilOS 1.17.0, Automata 1.1.0, Editor 1.5.0, File Manager 1.15.0; SDK invariato a 0.10.0). Le scelte:
+
+- **Solo finché la pagina è aperta.** Gli avvii (`launch.triggers`: `time`, `every`, `login`, `folder`; `src/automation/triggers.js`) girano nella pagina, non in un servizio del kernel. Un'automazione usa le azioni delle app e le finestre, che esistono solo nella pagina; un servizio del kernel dovrebbe rifare tutto da capo e senza l'utente. Il prezzo: a lilOS chiuso non parte niente.
+- **Una scheda per utente, con un Web Lock.** Con due schede aperte la stessa automazione partirebbe due volte. La scheda che prende il lock `lilos:automazioni:<utente>` fa il lavoro; chiusa, un'altra subentra. Il lock lo gestisce il browser, che lo rilascia anche se la scheda sparisce. Senza `navigator.locks` ogni scheda lavora (rischio di doppio avvio). La scheda che subentra dopo i primi 15 secondi non rifà gli avvii «all'accesso».
+- **Quelle che chiedono qualcosa aprono la finestra.** Se un passo ha conferma, un campo da chiedere o «Chiedimi cosa fare», l'automazione si apre nella finestra «In esecuzione» di Automata: le risposte restano a chi è davanti (le conferme non si possono saltare in silenzio). Le altre girano senza finestra.
+- **Notifiche.** Un errore si notifica sempre; una riuscita anche, tranne per `every`, che altrimenti riempirebbe le notifiche. Non c'è un registro delle esecuzioni oltre alle notifiche.
+- **`catchUp` è una scelta dell'utente, spenta di serie.** Rifare all'accesso un'ora mancata può essere sbagliato (un'automazione delle 8 che parte alle 17 e sposta file) o giusto (un resoconto): decide chi la scrive. Senza, un `time` parte solo se lilOS è aperto entro 2 minuti dall'ora. Gli ultimi avvii stanno in `storage` (`automation-runs`); un motivo mai visto comincia solo a contare, così non parte appena aggiunto.
+- **Nessun ciclo.** Gli eventi delle cartelle sono ignorati mentre gira un'automazione (`automation.quietNow`) e dentro `~/Automazioni`: un'automazione che salva nella cartella che osserva non si richiama da sola.
+- **Orario, intervallo e accesso non hanno elementi:** `input: 'none'` (lo chiede l'interfaccia, non il file). `folder` funziona con `none`, `files` (i file arrivati) e `folder` (la cartella osservata).
+- **La scorciatoia usa la selezione di dove sei.** La finestra attiva dice cosa ha selezionato con `win.selection` (convenzione documentata in `sdk/ui/Window.js`, senza API nuova; il File Manager la dà, e niente nel cestino), altrimenti la scrivania. Prima, con una finestra davanti, non c'era selezione.
+- **Più file in un passo:** la finestra di esecuzione mostra l'elenco con «Aggiungi un file», «Aggiungi una cartella» e «Togli».
+- **Editor 1.5.0:** «Trova e sostituisci» e «Salva con nome» (anche per i documenti nuovi). Si registrano `editor.replace` (alla pressione di «Sostituisci tutto») e `editor.saveAs` (con il file creato come risultato). Rifatto, `editor.saveAs` scrive sopra un file con lo stesso nome senza chiedere: un passo che gira non si ferma su una domanda, e il nome l'ha scelto l'utente registrando.
+
+Conseguenze: se tutte le schede si chiudono non parte niente; un'automazione con motivi letta da un lilOS precedente alla 1.17.0 li perde (`checkDocument` scarta i campi che non conosce); Automata 1.1.0 vuole la 1.17.0. Resta aperto il rischio che un'automazione che parte da sola e cancella o sposta file lo faccia senza che nessuno la guardi.
+
+**Quando ripensarla.** Se serviranno avvii a lilOS chiuso (un servizio del kernel che rifà solo i passi senza finestre, con le domande messe da parte); se i parametri `value`, `tags` e `places`, per ora solo di lilOS, servono alle app; se i file `.automata` condivisi tra utenti pongono problemi di fiducia (oggi un passo può fare solo ciò che l'utente può fare, ma può farne molti).
 
 ## D65. I riconoscimenti delle librerie esterne: un elenco generato e controllato dal build
 

@@ -125,7 +125,7 @@ const win = new SettingsWindow({
 | `toggle`, `selectField`, `segmented`, `swatches`, `slider`, `textField`, `actionButton`, `busyButton` | ui/controls.js | Controlli dei moduli; `busyButton` mette un pulsante in attesa (rotella accanto all'etichetta) finché un'operazione non finisce |
 | `shortcutField` | ui/shortcutField.js | Editor delle combinazioni di un comando (per le impostazioni) |
 | `selectionGesture` | ui/selectionGesture.js | Selezione trascinando: rettangolo o percorso libero |
-| `Window`, `WINDOW_EDGES` | ui/Window.js | Cornice di una finestra: barra del titolo, controlli e bordi di ridimensionamento attivabili uno per uno, contenuto; `canClose`, `getState` (anche `files`) e `closeFiles` facoltativi; evento `dismiss` quando la chiusura è stata chiesta; opzioni `focusable` e `onTop` |
+| `Window`, `WINDOW_EDGES` | ui/Window.js | Cornice di una finestra: barra del titolo, controlli e bordi di ridimensionamento attivabili uno per uno, contenuto; `canClose`, `getState` (anche `files`), `closeFiles` e `selection` (gli id selezionati, per le scorciatoie delle automazioni) facoltativi; evento `dismiss` quando la chiusura è stata chiesta; opzioni `focusable` e `onTop` |
 | `SettingsView` | ui/SettingsView.js | Impaginazione a tab delle impostazioni |
 | `SettingsWindow` | ui/SettingsWindow.js | Base di ogni finestra di impostazioni: `Window` + `SettingsView` |
 | `messageBox` | ui/messageBox.js | Messaggio o scelta sopra il contenuto di una finestra: icona `info`, `warning` o `error` e tasti OK, Annulla, Continua, Riprova, tutti facoltativi; restituisce il tasto premuto |

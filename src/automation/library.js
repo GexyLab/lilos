@@ -24,6 +24,8 @@ class Library extends Emitter {
   #offKeys = [];
   #timer = null;
   #scanning = null;
+  #scanned = null;              // resolves after the first scan
+  #firstScan = new Promise(resolve => { this.#scanned = resolve; });
   #selection = () => [];
 
   /** ctx.selection: () → ids of what the user selected where they are (for a shortcut). */
@@ -51,9 +53,9 @@ class Library extends Emitter {
     this.#timer = setTimeout(() => { this.#scanning = this.#scan(); }, RESCAN_MS);
   }
 
-  /** Resolves when the scan in progress (if any) is over. */
+  /** Resolves when the scan in progress is over (the first one, if none ran yet). */
   ready() {
-    return this.#scanning ?? Promise.resolve();
+    return this.#scanning ?? this.#firstScan;
   }
 
   async #scan() {
@@ -75,6 +77,7 @@ class Library extends Emitter {
     }
     this.#entries = next;
     this.#registerShortcuts();
+    this.#scanned();
     this.emit('change');
   }
 
