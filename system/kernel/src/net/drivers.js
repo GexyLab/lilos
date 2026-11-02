@@ -8,17 +8,31 @@ import { KernelError, fail } from '../errors.js';
  *   label        string | { en, it, … }   the name the user picks ('SFTP (SSH)')
  *   order?       number                   its place in the list (lower first)
  *   fields       [field]                  what a connection asks for, in order
- *   connect(values, { secret, trust, signal }) → session
+ *   connect(values, { secret, trust, signal, saveSecret }) → session
  *       values   the fields' values (secret ones excepted)
  *       secret   { key: value } of the secret fields (password, private key…), {} if none
  *       trust    the fingerprint the user confirmed for this server (see 'untrusted' below), or null
+ *       saveSecret(secret)  keeps a new secret instead of the one given (a token the provider renewed)
  *   shares?(values, { secret, trust }) → [name]    what a server offers to connect to (SMB shares)
  *   address(values) → string                      how the connection is shown ('sftp://ann@host/www')
  *   check?(values)                                 throws (with `net`) if the values cannot be used as they are
+ *   ready?() → null | label                        why the protocol cannot be used yet (a module setting
+ *                                                  missing): the page says it instead of the fields
+ *   signIn?                                        for a 'signin' field: the provider's page (OAuth 2.0
+ *                                                  with PKCE, see signin.js)
+ *     start({ values, redirectUri, state, challenge }) → url
+ *     finish({ values, code, redirectUri, verifier }) → { account, secret }   account: what the field
+ *                                                  shows ('ann@example.com'), secret: what connect gets
+ *   links?: { office? }                            sessions have link(path); office: the link of an
+ *                                                  Office document opens it in Office for the web
+ *   recycles?: true                                what is removed goes to the server's own recycle bin
  *
- *   field: { key, type, label, required?, secret?, default?, placeholder?, hint?, when?, options?, min?, max? }
- *     type      'text' | 'textarea' | 'number' | 'password' | 'select' | 'checkbox' | 'file'
- *               ('file': the text of a file the user picks in lilOS, such as a private key)
+ *   field: { key, type, label, required?, secret?, default?, placeholder?, hint?, when?, options?, min?, max?, button? }
+ *     type      'text' | 'textarea' | 'number' | 'password' | 'select' | 'checkbox' | 'file' | 'signin'
+ *               ('file': the text of a file the user picks in lilOS, such as a private key;
+ *               'signin': an account the user signs in to on the provider's page, `button` its
+ *               label: the value is the account, the secret what the sign-in gave, both set only
+ *               by a sign-in)
  *     label     string | { en, it, … }; hint the same, a line under the field
  *     secret    kept encrypted, never sent back to the page (password and the like)
  *     when      { key: value | [values] }: shown only when those fields have those values
@@ -34,6 +48,8 @@ import { KernelError, fail } from '../errors.js';
  *                                                      there (resuming), only when resume.write; size:
  *                                                      the bytes the stream brings, when known
  *   mkdir(path); rename(from, to); remove(path, { folder })   folder: an empty folder
+ *   removeTree?(path)                                  a folder with everything inside it, in one go
+ *   link?(path) → 'https://…'                          the page of a file or folder on the provider's site
  *   watch?(path, onChange) → stop()                    tells when what is in a folder changes; stop()
  *                                                      may return a promise: resolved once the folder is
  *                                                      no longer held open
@@ -47,7 +63,7 @@ import { KernelError, fail } from '../errors.js';
  *   'lost' (the connection dropped) · 'unsupported' · 'invalid'
  */
 export const DRIVER_PREFIX = 'netfs.';
-export const FIELD_TYPES = new Set(['text', 'textarea', 'number', 'password', 'select', 'checkbox', 'file']);
+export const FIELD_TYPES = new Set(['text', 'textarea', 'number', 'password', 'select', 'checkbox', 'file', 'signin']);
 const KEY = /^[a-z][a-zA-Z0-9]{0,30}$/;
 
 /** The protocols the active modules provide: Map id → driver. Drivers with a malformed description are left out. */
@@ -60,6 +76,7 @@ export function findDrivers(services, log) {
       if (!/^[a-z][a-z0-9-]{0,30}$/.test(id)) throw new Error('nome non valido');
       if (typeof impl?.connect !== 'function' || typeof impl.address !== 'function') throw new Error('mancano connect() o address()');
       if (!Array.isArray(impl.fields) || impl.fields.some(f => !KEY.test(f?.key ?? '') || !FIELD_TYPES.has(f.type))) throw new Error('campi non validi');
+      if (impl.fields.some(f => f.type === 'signin') && (typeof impl.signIn?.start !== 'function' || typeof impl.signIn.finish !== 'function')) throw new Error('un campo signin senza signIn.start() e signIn.finish()');
       drivers.set(id, impl);
     } catch (err) {
       log.warn(`Protocollo ${name} ignorato: ${err.message}`);
@@ -68,11 +85,22 @@ export function findDrivers(services, log) {
   return drivers;
 }
 
+/** Why a protocol cannot be used yet (its ready()), or null. */
+export function notReady(d) {
+  try {
+    return d.ready?.() ?? null;
+  } catch {
+    return 'Protocollo non pronto';
+  }
+}
+
 /** How the page sees a protocol (what the dialog needs to draw its fields). */
 export const protocolInfo = (id, d) => ({
   id, label: d.label, order: Number.isFinite(d.order) ? d.order : 100, canListShares: typeof d.shares === 'function',
+  links: !!d.links, office: !!d.links?.office, recycles: d.recycles === true, notReady: notReady(d),
   fields: d.fields.map(f => ({
-    key: f.key, type: f.type, label: f.label, required: !!f.required, secret: !!f.secret,
+    key: f.key, type: f.type, label: f.label, required: !!f.required, secret: !!f.secret || f.type === 'signin',
+    ...(f.button !== undefined && { button: f.button }),
     ...(f.default !== undefined && { default: f.default }),
     ...(f.placeholder !== undefined && { placeholder: f.placeholder }),
     ...(f.hint !== undefined && { hint: f.hint }),
@@ -85,11 +113,15 @@ export const protocolInfo = (id, d) => ({
 
 const TEXT_MAX = { text: 1024, password: 4096, textarea: 64 << 10, file: 64 << 10 };
 
-/** The fields of a connection as the page sent them → { values, secret }, checked against the driver. Throws 'invalid'. */
+/**
+ * The fields of a connection as the page sent them → { values, secret }, checked against the
+ * driver. Throws 'invalid'. 'signin' fields are left out: only a sign-in sets them (network.js).
+ */
 export function checkFields(driver, raw, rawSecret = {}) {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) fail('invalid', 'Valori della connessione non validi');
   const values = {}, secret = {};
   for (const f of driver.fields) {
+    if (f.type === 'signin') continue;
     const v = f.secret ? rawSecret?.[f.key] : raw[f.key];
     if (v === undefined || v === null || v === '') {
       if (f.default !== undefined && !f.secret) values[f.key] = f.default;
@@ -118,10 +150,15 @@ export function fieldShown(f, values) {
   return Object.entries(f.when).every(([k, want]) => (Array.isArray(want) ? want.includes(values[k]) : values[k] === want));
 }
 
-/** The required fields (shown ones) that have no value: their keys. */
+/** The required fields (shown ones) that have no value: their keys. A 'signin' field needs both its account and its secret. */
 export function missingFields(driver, values, secret) {
-  return driver.fields.filter(f => f.required && fieldShown(f, values) && (f.secret ? !secret[f.key] : values[f.key] === undefined || values[f.key] === '')).map(f => f.key);
+  const empty = v => v === undefined || v === '';
+  return driver.fields.filter(f => f.required && fieldShown(f, values) && (
+    f.type === 'signin' ? empty(values[f.key]) || !secret[f.key] : f.secret ? !secret[f.key] : empty(values[f.key]))).map(f => f.key);
 }
+
+/** The 'signin' fields of a driver. */
+export const signInFields = driver => driver.fields.filter(f => f.type === 'signin');
 
 /**
  * A path in a connection, made safe: absolute, '/' between parts, no '.', '..' or empty parts,

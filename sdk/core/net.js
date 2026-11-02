@@ -1,5 +1,5 @@
 import { Emitter } from './events.js';
-import { kernel } from './kernel.js';
+import { kernel, KernelError } from './kernel.js';
 import { locale } from './locale.js';
 import { fs } from './fs.js';
 
@@ -9,19 +9,37 @@ import { fs } from './fs.js';
  * closed, and with lilOS closed. Only connected to the kernel (available false otherwise).
  *
  *   net.available                     the kernel has at least one protocol
- *   net.protocols                     [{ id, label, order, fields, canListShares }]   fields: see the
- *                                     kernel's net/drivers.js ({ key, type, label, required, secret, when, … })
+ *   net.protocols                     [{ id, label, order, fields, canListShares, links, office, recycles,
+ *                                     notReady }]   fields: see the kernel's net/drivers.js ({ key, type,
+ *                                     label, required, secret, when, … }); links: link() works on its
+ *                                     connections (office: an Office document's link opens Office for
+ *                                     the web); recycles: what is removed goes to the server's own
+ *                                     recycle bin; notReady: why it cannot be used yet (a label), or null
  *   net.mounts() → [mount]            mount: { id, name, protocol, address, values, auto, remembered,
  *   net.mount(id) → mount | null        trusted, state: 'off' | 'connecting' | 'on' | 'error', error }
  *   net.load()                        reads them again from the kernel
  *   net.create({ name, protocol, values, auto, remember, trust? }, secret) → mount
  *   net.update(id, { name?, values?, auto?, remember?, forget? }, secret?) → mount
  *   net.remove(id)
- *   net.connect(id, { secret?, remember?, trust? }) → mount      net.disconnect(id) → mount
+ *   net.connect(id, { secret?, remember?, trust?, signin? }) → mount      net.disconnect(id) → mount
  *   net.test({ protocol, values, trust? }, secret)               tries without saving
  *   net.shares({ protocol, values, trust? }, secret) → [name]    (protocols with canListShares)
  *   net.text(label) → string          a label of a protocol or field ({ en, it } or a text) in the system's language
  *   net.mountNode(id) → node id       the folder of a connection in fs
+ *
+ *   Protocols with a 'signin' field (an account on the provider's site, such as OneDrive):
+ *   net.signIn(protocol, values, { signal }) → { signin, account }   opens the provider's page in a
+ *                                     window (call it right from a click: browsers open windows only
+ *                                     then), waits for the sign-in, closes the window. `signin` goes
+ *                                     in create(), update(), test() and connect(): the tokens stay in
+ *                                     the kernel. Rejects with code 'blocked' (the browser did not open
+ *                                     the window) or 'canceled' (signal aborted).
+ *   net.link(id, path) → 'https://…'  a file's or folder's page on the provider's site (protocols with links)
+ *   net.openWeb(getUrl)               opens a new browser tab now and takes it to `await getUrl()`
+ *                                     (closed again if that fails); call it right from a click
+ *   net.putHome(id, fileId, folder, ifExists) → { path, name }   copies a file of the home into a
+ *                                     folder of a connection (made if missing). ifExists 'replace' |
+ *                                     'keep' | 'ask' (fails with code 'conflict', details { name })
  *
  *   Errors of a connection (KernelError): code 'secret_required' (ask the password: details.reason
  *   'missing' or 'auth'), 'untrusted' (details.trust { kind, fingerprint, text }: ask the user to
@@ -96,9 +114,9 @@ class Net extends Emitter {
     this.emit('mounts');
   }
 
-  async connect(id, { secret = null, remember, trust } = {}) {
+  async connect(id, { secret = null, remember, trust, signin } = {}) {
     try {
-      return this.#replace(await kernel.request('POST', `/net/mounts/${id}/connect`, { secret, remember, trust }));
+      return this.#replace(await kernel.request('POST', `/net/mounts/${id}/connect`, { secret, remember, trust, signin }));
     } finally {
       this.load().catch(() => {});   // its state, whatever happened
     }
@@ -114,6 +132,61 @@ class Net extends Emitter {
 
   async shares(config, secret = {}) {
     return (await kernel.request('POST', '/net/shares', { ...config, secret })).shares;
+  }
+
+  signIn(protocol, values = {}, { signal } = {}) {
+    // Opened now, while the click still counts; it goes to the provider's page once the kernel gives it
+    const win = window.open('about:blank', `lilos-signin-${Date.now()}`, 'popup,width=520,height=700');
+    return (async () => {
+      if (!win) throw new KernelError(0, 'blocked', 'Il browser ha bloccato la finestra di accesso');
+      let id = null;
+      const stopped = new Promise((_, reject) => {
+        const stop = () => reject(new KernelError(0, 'canceled', 'Accesso annullato'));
+        if (signal?.aborted) stop();
+        signal?.addEventListener('abort', stop, { once: true });
+      });
+      stopped.catch(() => {});
+      try {
+        const started = await Promise.race([stopped, kernel.request('POST', '/net/signin', { protocol, values, redirectUri: `${location.origin}/api/net/signin/callback` })]);
+        id = started.id;
+        win.location.href = started.url;
+        for (;;) {
+          const s = await Promise.race([stopped, kernel.request('GET', `/net/signin/${id}?wait=1`)]);
+          if (s.status === 'done') return { signin: id, account: s.account };
+          if (s.status === 'error') throw new KernelError(0, 'invalid', s.error ?? 'Accesso non riuscito');
+        }
+      } catch (err) {
+        if (id) kernel.request('DELETE', `/net/signin/${id}`).catch(() => {});
+        throw err;
+      } finally {
+        try { win.close(); } catch { /* closed already */ }
+      }
+    })();
+  }
+
+  async link(id, path) {
+    return (await kernel.request('GET', `/net/mounts/${encodeURIComponent(id)}/link?path=${encodeURIComponent(path)}`)).url;
+  }
+
+  openWeb(getUrl) {
+    const tab = window.open('about:blank', '_blank');
+    return (async () => {
+      try {
+        const url = await getUrl();
+        if (!/^https:\/\//.test(url)) throw new Error('Indirizzo non valido');
+        if (!tab) { window.open(url, '_blank', 'noopener'); return; }
+        tab.opener = null;
+        tab.location.href = url;
+      } catch (err) {
+        try { tab?.close(); } catch { /* closed already */ }
+        throw err;
+      }
+    })();
+  }
+
+  async putHome(id, fileId, folder = '/', ifExists = 'ask') {
+    await kernel.flush('fs');   // the file must be in the kernel with what was just written
+    return kernel.request('POST', `/net/mounts/${encodeURIComponent(id)}/put-home`, { home: fileId, folder, ifExists });
   }
 
   // ---------- Transfers ----------

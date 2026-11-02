@@ -1,4 +1,4 @@
-import { fs, openMenu, settings } from '@lilos/sdk';
+import { fs, net, openMenu, settings } from '@lilos/sdk';
 import { removeNodes } from './fsHistory.js';
 
 /**
@@ -11,11 +11,14 @@ export const deleteNodes = (stack, ids) => removeNodes(stack, ids, { permanent: 
 
 /**
  * "Sposta nel cestino «nome»", "Elimina definitivamente 3 elementi e i 12 elementi dentro"…
- * Items of a network connection go for good, from the server ("Elimina dal server…").
+ * Items of a network connection go for good, from the server ("Elimina dal server…"), or into
+ * the server's own recycle bin when its protocol has one ("Elimina da OneDrive… (nel suo cestino)").
  */
 export function deleteLabel(nodes) {
   if (nodes.some(n => n.net)) {
     const what = nodes.length === 1 ? `«${nodes[0].name}»` : `${nodes.length} elementi`;
+    const protocols = [...new Set(nodes.map(n => net.mount(n.net)?.protocol))].map(id => net.protocols.find(p => p.id === id));
+    if (protocols.length === 1 && protocols[0]?.recycles) return `Elimina da ${net.text(protocols[0].label)} ${what} (va nel suo cestino)`;
     return `Elimina dal server ${what}${nodes.some(n => n.type === 'folder') ? ' con tutto quello che contiene' : ''} (definitivo)`;
   }
   const inside = nodes.reduce((sum, n) => sum + (n.type === 'folder' ? fs.count(n.id) : 0), 0);

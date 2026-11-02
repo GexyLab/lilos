@@ -12,6 +12,8 @@ import { logger } from '../log.js';
  *   POST   /api/modules                  { source, allowUnsigned } → { name, version, restartRequired }
  *   POST   /api/modules/:name/update     { ref?, allowUnsigned }
  *   DELETE /api/modules/:name
+ *   GET    /api/modules/:name/settings   { fields, values, live }   a running module's settings (module.json)
+ *   PUT    /api/modules/:name/settings   { values } → the same, changed
  *   POST   /api/kernel/restart           restarts the kernel (when run by run.js)
  */
 const log = logger('kernel');
@@ -56,6 +58,11 @@ export function storeRoutes(kernel) {
     return moduleAdmin.update(admin(principal), params.name, { ...(typeof body.ref === 'string' && { ref: body.ref }), allowUnsigned: body.allowUnsigned === true });
   });
   router.add('DELETE', '/api/modules/:name', async ({ principal, params }) => moduleAdmin.remove(admin(principal), params.name));
+  router.add('GET', '/api/modules/:name/settings', async ({ principal, params }) => moduleAdmin.settings(admin(principal), params.name));
+  router.add('PUT', '/api/modules/:name/settings', async ({ principal, params, json }) => {
+    const { values } = await json(64 << 10);
+    return moduleAdmin.saveSettings(admin(principal), params.name, values && typeof values === 'object' && !Array.isArray(values) ? values : {});
+  });
 
   router.add('POST', '/api/kernel/restart', async ({ principal }) => {
     admin(principal);

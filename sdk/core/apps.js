@@ -135,6 +135,9 @@ export const repositories = {
  *   kernelModules.update(name, { ref, allowUnsigned })
  *   kernelModules.remove(name)                        → { kept: [folders kept for their data] }
  *   kernelModules.restart()                           the kernel starts again (lilOS reconnects)
+ *   kernelModules.settings(name) → { fields, values, live }   a running module's settings (module.json
+ *                                                     `settings`, fields as a network protocol's)
+ *   kernelModules.saveSettings(name, values) → the same    live: they count at once (no restart)
  */
 export const kernelModules = {
   list: () => kernel.request('GET', '/modules'),
@@ -142,6 +145,8 @@ export const kernelModules = {
   update: (name, { ref, allowUnsigned = false } = {}) => kernel.request('POST', `/modules/${encodeURIComponent(name)}/update`, { ref, allowUnsigned }),
   remove: name => kernel.request('DELETE', `/modules/${encodeURIComponent(name)}`),
   restart: () => kernel.request('POST', '/kernel/restart', {}),
+  settings: name => kernel.request('GET', `/modules/${encodeURIComponent(name)}/settings`),
+  saveSettings: (name, values) => kernel.request('PUT', `/modules/${encodeURIComponent(name)}/settings`, { values }),
 };
 
 /**

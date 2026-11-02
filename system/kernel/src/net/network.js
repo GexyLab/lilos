@@ -6,7 +6,11 @@ import { fail } from '../errors.js';
 import { logger } from '../log.js';
 import { Secrets } from './secrets.js';
 import { NetGuard } from './guard.js';
-import { findDrivers, protocolInfo, checkFields, missingFields, cleanPath, joinPath, netFail, isConnectionError, isSafeName, isUsableName } from './drivers.js';
+import { findDrivers, protocolInfo, checkFields, missingFields, signInFields, cleanPath, joinPath, netFail, isConnectionError, isSafeName, isUsableName } from './drivers.js';
+import { SignIns } from './signin.js';
+import { uniqueName } from './transfers.js';
+import { openHome } from '../api/home.js';
+import { Readable } from 'node:stream';
 
 const log = logger('rete');
 const MAX_MOUNTS = 50;
@@ -39,6 +43,7 @@ export class Network {
     this.secrets = new Secrets(this.dir);
     this.drivers = findDrivers(kernel.services, log);
     this.guard = new NetGuard(kernel);
+    this.signins = new SignIns(this.drivers);
     if (this.drivers.size) log.info(`Protocolli di rete: ${[...this.drivers.keys()].join(', ')}`);
   }
 
@@ -148,7 +153,20 @@ export class Network {
   }
 
   /**
-   * A new connection: { name, protocol, values, auto, remember } and the secret fields apart.
+   * What a finished sign-in (body.signin: its id, signin.js) puts in a connection: the account in
+   * its 'signin' field, what it gave in the secret. Nothing without one.
+   */
+  #signedIn(principal, driver, protocol, body, values, secret, { keep = false } = {}) {
+    if (typeof body?.signin !== 'string') return null;
+    if (!signInFields(driver).length) fail('invalid', 'Questo protocollo non ha un accesso con account');
+    const got = this.signins.take(principal, body.signin, protocol, { keep });
+    values[got.field] = got.account;
+    secret[got.field] = got.secret;
+    return got;
+  }
+
+  /**
+   * A new connection: { name, protocol, values, auto, remember, signin? } and the secret fields apart.
    * Not remembered, the secret stays in memory. Returns it as the page sees it.
    */
   async create(principal, body, rawSecret) {
@@ -157,6 +175,7 @@ export class Network {
     const driver = this.#driver(body?.protocol);
     const { values, secret } = checkFields(driver, body.values, rawSecret);
     await this.#accept(driver, values);
+    this.#signedIn(principal, driver, body.protocol, body, values, secret);
     const r = {
       id: randomUUID().replaceAll('-', '').slice(0, 16), name: this.#checkName(user, body.name), protocol: body.protocol,
       values, secret: null, trust: typeof body.trust === 'string' ? body.trust.slice(0, 200) : null, auto: body.auto === true, created: Date.now(),
@@ -183,9 +202,12 @@ export class Network {
     if (body.name !== undefined) r.name = this.#checkName(user, body.name, id);
     if (body.auto !== undefined) r.auto = body.auto === true;
     let reconnect = false;
-    if (body.values !== undefined) {
-      const { values, secret } = checkFields(driver, body.values, rawSecret);
+    if (body.values !== undefined || typeof body.signin === 'string') {
+      const { values, secret } = checkFields(driver, body.values ?? r.values, rawSecret);
       await this.#accept(driver, values);
+      // The account stays the one signed in to, unless a new sign-in comes with the change
+      for (const f of signInFields(driver)) if (r.values[f.key] !== undefined) values[f.key] = r.values[f.key];
+      this.#signedIn(principal, driver, r.protocol, body, values, secret);
       // Another server: what was confirmed of the old one does not count
       if (['host', 'port', 'url'].some(k => values[k] !== r.values[k])) r.trust = null;
       // The password goes only where it was given for: another server or account, it is typed again
@@ -241,16 +263,29 @@ export class Network {
 
   /**
    * Connects now: with `secret` (the secret fields, remembered if `remember`) and `trust` (the
-   * fingerprint the user confirmed). Returns the connection as the page sees it.
+   * fingerprint the user confirmed), or with `signin` (a finished sign-in to the same account: the
+   * connection signs in again). Returns the connection as the page sees it.
    */
-  async connect(principal, id, { secret: rawSecret = null, remember, trust } = {}) {
+  async connect(principal, id, { secret: rawSecret = null, remember, trust, signin } = {}) {
     const user = await this.#user(principal);
     const r = this.#saved(user, id);
     const live = this.#live(user, id);
     let changed = false;
     if (typeof trust === 'string' && trust && trust.length <= 200) { r.trust = trust; changed = true; }
-    if (rawSecret && typeof rawSecret === 'object') {
-      const { secret } = checkFields(this.#driver(r.protocol), r.values, rawSecret);
+    if ((rawSecret && typeof rawSecret === 'object') || typeof signin === 'string') {
+      const driver = this.#driver(r.protocol);
+      const { secret } = checkFields(driver, r.values, rawSecret ?? {});
+      const values = { ...r.values };
+      const got = this.#signedIn(principal, driver, r.protocol, { signin }, values, secret);
+      if (got && r.values[got.field] && r.values[got.field].toLowerCase() !== got.account.toLowerCase()) {
+        fail('conflict', `Hai fatto l’accesso come ${got.account}, ma «${r.name}» è di ${r.values[got.field]}`);
+      }
+      if (got) {
+        // Signed in again: the other secret fields stay, and it is remembered as it was unless said
+        Object.assign(secret, { ...(r.secret ? await this.#openSecret(r) : live.secret ?? {}), ...secret });
+        remember ??= !!r.secret;
+        if (!r.values[got.field]) { r.values = values; changed = true; }
+      }
       if (Object.keys(secret).length) {
         await this.#close(live);
         if (remember === true) { r.secret = await this.secrets.seal(secret); live.secret = null; changed = true; }
@@ -294,13 +329,17 @@ export class Network {
       const missing = missingFields(driver, r.values, secret);
       if (missing.length) {
         live.state = live.state === 'on' ? 'on' : 'off';
+        if (signInFields(driver).some(f => missing.includes(f.key))) {
+          fail('secret_required', `Serve un nuovo accesso per «${r.name}»`, { details: { reason: 'signin', fields: missing } });
+        }
         fail('secret_required', `Serve la password di «${r.name}»`, { details: { reason: 'missing', fields: missing } });
       }
       live.state = 'connecting';
       live.error = null;
       this.#emit(userId, 'net.mount', { id: r.id });
       try {
-        const session = await driver.connect(r.values, { secret, trust: r.trust });
+        const saveSecret = fresh => this.#renewSecret(userId, user, r, live, fresh).catch(err => log.error(`Segreto rinnovato di «${r.name}» non salvato`, err));
+        const session = await driver.connect(r.values, { secret, trust: r.trust, saveSecret });
         live.session = session;
         live.state = 'on';
         session.onLost?.(() => {
@@ -318,7 +357,7 @@ export class Network {
         }
         live.state = asked ? 'off' : 'error';
         live.error = asked ? null : String(err?.message ?? err).slice(0, 300);
-        return netFail(err, r.name);
+        return this.#fail(driver, err, r.name);
       } finally {
         this.#emit(userId, 'net.mount', { id: r.id });
       }
@@ -343,11 +382,35 @@ export class Network {
       try {
         return await fn(session);
       } catch (err) {
-        if (isConnectionError(err) && live.session === session) await this.#close(live);
+        // Credentials not taken any more (a token revoked): the session is no use, the next use asks
+        if ((isConnectionError(err) || err?.net === 'auth') && live.session === session) {
+          await this.#close(live);
+          if (err?.net === 'auth') { live.state = 'off'; this.#emit(principal.id, 'net.mount', { id }); }
+        }
         if (attempt === 0 && retry && isConnectionError(err)) continue;
-        return netFail(err);
+        return this.#fail(this.drivers.get(r.protocol), err, r.name, '');
       }
     }
+  }
+
+  /** A driver's error as the kernel reports it; wrong credentials of an account ask to sign in again. */
+  #fail(driver, err, name, prefix = name) {
+    if (err?.net === 'auth' && driver && signInFields(driver).length) {
+      fail('secret_required', `Serve un nuovo accesso per «${name}»`, { details: { reason: 'signin' } });
+    }
+    return netFail(err, prefix);
+  }
+
+  /**
+   * A secret the driver renewed while connected (a token the provider replaced): kept like the old
+   * one, remembered (sealed) if that was.
+   */
+  async #renewSecret(userId, user, r, live, fresh) {
+    if (!fresh || typeof fresh !== 'object' || !user.saved.has(r.id)) return;
+    if (r.secret) {
+      r.secret = await this.secrets.seal({ ...await this.#openSecret(r), ...fresh });
+      await this.#save(userId, user);
+    } else live.secret = { ...live.secret ?? {}, ...fresh };
   }
 
   /** The name of a connection (for messages). */
@@ -411,7 +474,15 @@ export class Network {
     path = cleanPath(path);
     if (path === '/') fail('invalid', 'La cartella principale della connessione non si elimina');
     await this.#unwatch(principal, id, path);
-    await this.use(principal, id, s => removeTree(s, path), { retry: false });
+    await this.use(principal, id, s => (s.removeTree ? s.removeTree(path) : removeTree(s, path)), { retry: false });
+  }
+
+  /** The page of a file or folder on the provider's site (protocols with links): 'https://…'. */
+  async link(principal, id, path) {
+    path = cleanPath(path);
+    const url = await this.use(principal, id, s => (typeof s.link === 'function' ? s.link(path) : fail('invalid', 'Questo protocollo non ha indirizzi web')));
+    if (typeof url !== 'string' || url.length > 8192 || !/^https:\/\/[^\s]+$/.test(url)) fail('invalid', 'Indirizzo web non valido');
+    return url;
   }
 
   /**
@@ -441,22 +512,59 @@ export class Network {
     await this.use(principal, id, s => s.write(path, source, { start, signal, ...(Number.isSafeInteger(size) && size >= 0 && { size }) }), { retry: false });
   }
 
+  /**
+   * Copies a file of the user's home into a folder of a connection, making the folders on the way
+   * (Carica su OneDrive e apri): { home: id of the file in lilOS, folder: '/lilOS', ifExists }.
+   * A file with that name there: 'replace', 'keep' (another name: 'Offerta 2.docx'), or 'ask' (the
+   * default: fails with 'conflict', details { name, exists: true }). → { path, name }
+   */
+  async putHome(principal, id, { home, folder = '/', ifExists = 'ask' } = {}) {
+    folder = cleanPath(folder);
+    const view = await openHome(this.#kernel, principal);
+    const back = view.toBack(home);
+    const node = await view.fs.stat(principal, back) ?? fail('not_found', 'File inesistente');
+    if (node.type !== 'file') fail('invalid', 'Si carica solo un file');
+    if (!isSafeName(node.name)) fail('invalid', 'Nome del file non valido');
+    await this.use(principal, id, async s => {
+      let at = '/';
+      for (const part of folder.split('/').filter(Boolean)) {
+        at = joinPath(at, part);
+        const e = await s.stat(at);
+        if (!e) await s.mkdir(at);
+        else if (e.type !== 'folder') throw Object.assign(new Error(`«${part}» non è una cartella`), { net: 'exists' });
+      }
+    }, { retry: false });
+    let name = node.name;
+    const same = await this.stat(principal, id, joinPath(folder, name));
+    if (same) {
+      if (same.type === 'folder' || ifExists === 'keep') name = uniqueName(name, (await this.use(principal, id, s => s.list(folder))).map(e => e.name));
+      else if (ifExists !== 'replace') fail('conflict', `C’è già «${name}» in ${folder}`, { details: { name, exists: true } });
+    }
+    const path = joinPath(folder, name);
+    const source = view.fs.readStream ? await view.fs.readStream(principal, back) : Readable.from([await view.fs.read(principal, back)]);
+    await this.write(principal, id, path, source, { ...(Number.isSafeInteger(node.size) && { size: node.size }) });
+    return { path, name };
+  }
+
   /** What the connection can do midway (resume) and its session, for the transfers. */
   async session(principal, id) {
     return this.use(principal, id, s => s);
   }
 
-  /** Tries a connection that is not saved yet: { values, protocol } and the secret fields. */
+  /** Tries a connection that is not saved yet: { values, protocol, signin? } and the secret fields. */
   async test(principal, body, rawSecret) {
     await this.#user(principal);
     const driver = this.#driver(body?.protocol);
     const { values, secret } = checkFields(driver, body.values, rawSecret);
+    // A sign-in stays usable after a test: the connection is made with it afterwards
+    const got = this.#signedIn(principal, driver, body.protocol, body, values, secret, { keep: true });
     const missing = missingFields(driver, values, secret);
     if (missing.length) fail('invalid', `Mancano: ${missing.join(', ')}`);
     await this.#accept(driver, values);
     let session;
     try {
-      session = await driver.connect(values, { secret, trust: typeof body.trust === 'string' ? body.trust : null });
+      const saveSecret = fresh => { if (got && fresh?.[got.field] !== undefined) this.signins.renew(got.flow, fresh[got.field]); };
+      session = await driver.connect(values, { secret, trust: typeof body.trust === 'string' ? body.trust : null, saveSecret });
       await session.list('/');   // its root folder can be read
     } catch (err) {
       return netFail(err);
@@ -500,10 +608,30 @@ export class Network {
     const user = this.#users.get(userId);
     if (user) for (const live of (await user.ready).live.values()) await this.#close(live);
     this.#users.delete(userId);
+    this.signins.forget(userId);
     await rm(this.#file(userId), { force: true });
   }
 
+  /**
+   * Closes the open sessions of these protocols, for every user (a module's settings changed): the
+   * next use connects again with the new ones.
+   */
+  async reset(protocols) {
+    const set = new Set(protocols);
+    for (const [userId, entry] of this.#users) {
+      const user = await entry.ready;
+      for (const [id, live] of user.live) {
+        if (!set.has(user.saved.get(id)?.protocol) || (!live.session && !live.opening)) continue;
+        await this.#close(live);
+        live.state = 'off';
+        live.error = null;
+        this.#emit(userId, 'net.mount', { id });
+      }
+    }
+  }
+
   async stop() {
+    this.signins.forget();
     for (const user of this.#users.values()) {
       for (const live of (await user.ready).live.values()) await this.#close(live);
     }

@@ -8,6 +8,7 @@ import { KERNEL_API, resolveModules, scanModules } from '../modules.js';
 import { compareVersions, parseVersion } from './manifest.js';
 import { cleanSource, isOfficial, openSource, walk } from './sources.js';
 import { logger } from '../log.js';
+import { checkFields } from '../net/drivers.js';
 
 /**
  * Kernel modules as packages: installed from a repository into modules/<name>_<version>, turned
@@ -112,6 +113,9 @@ export async function adoptModule(opened, manifest, dir) {
   await writeModule(opened, manifest, dir);
   return true;
 }
+
+/** The values of a module's settings in its configuration. */
+const settingValues = mod => Object.fromEntries(mod.settings.filter(f => mod.config[f.key] !== undefined).map(f => [f.key, mod.config[f.key]]));
 
 export class ModuleAdmin {
   #kernel; #allowLocal;
@@ -219,6 +223,46 @@ export class ModuleAdmin {
     }
     log.info(`Aggiornato ${name} ${current.version} → ${placed.manifest.version} (attivo dal prossimo avvio)`);
     return { name, version: placed.manifest.version, previous: current.version, restartRequired: true };
+  }
+
+  /**
+   * The settings of a running module (module.json `settings`): { fields, values, live }. live:
+   * a change counts at once (the module listens), otherwise from the next start.
+   */
+  settings(principal, name) {
+    requireAdmin(principal);
+    const mod = this.#running(name);
+    return { fields: mod.settings, values: settingValues(mod), live: mod.live };
+  }
+
+  /** Changes them: { key: value } of its settings (others in its configuration stay as they are). */
+  async saveSettings(principal, name, raw) {
+    requireAdmin(principal);
+    const mod = this.#running(name);
+    if (!mod.settings.length) fail('invalid', 'Questo modulo non ha impostazioni');
+    const { values } = checkFields({ fields: mod.settings }, raw);
+    const apply = config => {
+      const next = { ...config };
+      for (const f of mod.settings) if (values[f.key] === undefined) delete next[f.key]; else next[f.key] = values[f.key];
+      return next;
+    };
+    await editConfig(list => list.map(m => (m.name === name ? { ...m, config: apply(m.config && typeof m.config === 'object' ? m.config : {}) } : m)));
+    for (const f of mod.settings) if (values[f.key] === undefined) delete mod.config[f.key]; else mod.config[f.key] = values[f.key];
+    try {
+      mod.configured();
+    } catch (err) {
+      log.error(`Impostazioni di ${name} non applicate`, err);
+    }
+    // Its network protocols: the open connections start again with the new settings
+    const protocols = mod.provides.filter(s => s.startsWith('netfs.')).map(s => s.slice(6));
+    if (protocols.length) await this.#kernel.network?.reset(protocols).catch(err => log.error('Connessioni non chiuse', err));
+    log.info(`Impostazioni di ${name} cambiate${mod.live ? '' : ' (valgono dal prossimo avvio)'}`);
+    return { fields: mod.settings, values: settingValues(mod), live: mod.live };
+  }
+
+  #running(name) {
+    if (!NAME.test(name ?? '')) fail('invalid', 'Nome non valido');
+    return this.#kernel.modules.find(m => m.name === name) ?? fail('not_found', 'Modulo non attivo');
   }
 
   /** Turns the module off and deletes its folders, except those that hold its data. */

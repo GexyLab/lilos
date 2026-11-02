@@ -1,6 +1,7 @@
 import { Transform } from 'node:stream';
 import { KernelError, fail } from '../errors.js';
-import { sendStream } from '../http.js';
+import { send, sendStream } from '../http.js';
+import { CALLBACK_PATH, callbackPage } from '../net/signin.js';
 
 /**
  * The network connections of the signed-in user (net/network.js) and their transfers
@@ -18,17 +19,27 @@ import { sendStream } from '../http.js';
  *   GET    /api/net/mounts/:id/content?path=     the bytes of a file
  *   PUT    /api/net/mounts/:id/content?path=     writes a file (body: its bytes, at most 1 GB)
  *   POST   /api/net/mounts/:id/ops               { op: 'mkdir' | 'rename' | 'remove', path, to? }
+ *   GET    /api/net/mounts/:id/link?path=        { url }   the page on the provider's site (protocols with links)
+ *   POST   /api/net/mounts/:id/put-home          { home, folder, ifExists } → { path, name }   a file of the home into the connection
+ *   POST   /api/net/signin                       { protocol, values, redirectUri } → { id, url }   sign-in on the provider's page
+ *   GET    /api/net/signin/:id?wait=1            { status: 'pending' | 'done' | 'error', account?, error? }
+ *   DELETE /api/net/signin/:id
+ *   GET    /api/net/signin/callback              where the provider sends the window back (no session: see net/signin.js)
  *   GET    /api/net/transfers                    the snapshot the transfer window shows
  *   GET    /api/net/transfers/items/:id          { items, more }   inside a folder of a queue
  *   POST   /api/net/transfers                    { sources: [ref], target: ref, workspace? } → { queue }
  *   POST   /api/net/transfers/:action            cancel { ids?, queue?, all? } · resolve { id, action, all? }
  *                                                retry { ids?, queue? } · dismiss { ids?, queue?, all? } · pause { queue, paused }
  *
- * Errors of a connection: 'secret_required' (details.reason 'missing' or 'auth': ask the password),
+ * A finished sign-in is used by its id: `signin` in POST /mounts, PUT /mounts/:id, /connect and /test.
+ *
+ * Errors of a connection: 'secret_required' (details.reason 'missing' or 'auth': ask the password;
+ * 'signin': sign in again),
  * 'untrusted' (details.trust { kind, fingerprint, text }: ask the user to confirm, then connect
  * again with `trust`), 'unavailable' (the server cannot be reached).
  */
 const ID = /^[a-f0-9]{16}$/;
+const SIGNIN = /^[\w-]{24}$/;
 const ITEM = /^[a-f0-9]{20}$/;
 const MAX_UPLOAD = 1 << 30;
 
@@ -70,8 +81,8 @@ export function netRoutes(kernel) {
   });
 
   router.add('POST', '/api/net/mounts/:id/connect', async ({ principal, params, json }) => {
-    const { secret = null, remember, trust } = await json(256 << 10);
-    return net.connect(signedIn(principal), mountId(params), { secret: secret && plain(secret), remember, trust });
+    const { secret = null, remember, trust, signin } = await json(256 << 10);
+    return net.connect(signedIn(principal), mountId(params), { secret: secret && plain(secret), remember, trust, signin });
   });
 
   router.add('POST', '/api/net/mounts/:id/disconnect', async ({ principal, params }) => net.disconnect(signedIn(principal), mountId(params)));
@@ -127,6 +138,35 @@ export function netRoutes(kernel) {
     if (op === 'rename') return net.rename(user, id, path, to);
     if (op === 'remove') return net.removePath(user, id, path);
     return fail('invalid', 'Operazione non valida');
+  });
+
+  router.add('GET', '/api/net/mounts/:id/link', async ({ principal, params, query }) => {
+    return { url: await net.link(signedIn(principal), mountId(params), query.get('path') ?? '/') };
+  });
+
+  router.add('POST', '/api/net/mounts/:id/put-home', async ({ principal, params, json }) => {
+    const { home, folder, ifExists } = await json(16 << 10);
+    return net.putHome(signedIn(principal), mountId(params), { home, folder: typeof folder === 'string' ? folder : '/', ifExists: ['replace', 'keep'].includes(ifExists) ? ifExists : 'ask' });
+  });
+
+  // Before /signin/:id: the provider sends the window back here, without lilOS's session
+  router.add('GET', CALLBACK_PATH, async ({ res, query }) => {
+    const page = callbackPage(await net.signins.callback(query));
+    send(res, 200, page, { 'Content-Type': 'text/html; charset=utf-8', 'Content-Security-Policy': "default-src 'none'; style-src 'unsafe-inline'; frame-ancestors 'none'" });
+  });
+
+  router.add('POST', '/api/net/signin', async ({ req, principal, json }) => {
+    const user = signedIn(principal), body = await json(64 << 10);
+    return net.signins.start(user, { protocol: body.protocol, values: plain(body.values), redirectUri: body.redirectUri }, req.headers.origin ?? null);
+  });
+
+  router.add('GET', '/api/net/signin/:id', async ({ principal, params, query }) => {
+    if (!SIGNIN.test(params.id)) fail('invalid', 'Accesso non valido');
+    return net.signins.status(signedIn(principal), params.id, { wait: query.get('wait') === '1' });
+  });
+
+  router.add('DELETE', '/api/net/signin/:id', async ({ principal, params }) => {
+    if (SIGNIN.test(params.id)) net.signins.cancel(signedIn(principal), params.id);
   });
 
   router.add('GET', '/api/net/transfers', async ({ principal }) => transfers.snapshot(signedIn(principal)));

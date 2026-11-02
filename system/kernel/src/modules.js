@@ -5,6 +5,10 @@ import { checkService } from './services.js';
 import { logger } from './log.js';
 import { fail } from './errors.js';
 
+/** Field types a module's settings may have (the same descriptions as the fields of net/drivers.js). */
+const SETTING_TYPES = new Set(['text', 'textarea', 'number', 'select', 'checkbox']);
+const SETTING_KEY = /^[a-z][a-zA-Z0-9]{0,30}$/;
+
 /** Kernel API version the modules declare in module.json ("kernel": "1"). */
 export const KERNEL_API = 1;
 
@@ -18,7 +22,10 @@ const compare = (a, b) => {
 
 /**
  * Modules installed under modules/, one folder each named '<name>_<version>' with:
- *   module.json  { name, version, description, kernel: "1", provides: [service], requires: [service] }
+ *   module.json  { name, version, description, kernel: "1", provides: [service], requires: [service],
+ *                  settings?: [field] }   what an admin may change of its configuration (Control
+ *                  Panel), described as the fields of a network protocol (net/drivers.js: key, type
+ *                  text | textarea | number | select | checkbox, label, hint, default, options, when…)
  *   index.js     export default { async init(ctx), async stop(), commands? }
  *
  * Returns Map name → [{ name, version, dir }], versions highest first.
@@ -42,7 +49,9 @@ async function readManifest(mod) {
   if (String(raw.kernel) !== String(KERNEL_API)) throw new Error(`${mod.name} richiede il kernel ${raw.kernel}, questo è il ${KERNEL_API}`);
   const services = [...list(raw.provides), ...list(raw.requires)];
   if (services.some(s => typeof s !== 'string' || !SERVICE.test(s))) throw new Error(`${mod.name}: nomi di servizi non validi`);
-  return { ...mod, description: String(raw.description ?? ''), provides: list(raw.provides), requires: list(raw.requires) };
+  const settings = list(raw.settings);
+  if (settings.some(f => !f || typeof f !== 'object' || !SETTING_KEY.test(f.key ?? '') || !SETTING_TYPES.has(f.type))) throw new Error(`${mod.name}: impostazioni non valide`);
+  return { ...mod, description: String(raw.description ?? ''), provides: list(raw.provides), requires: list(raw.requires), settings };
 }
 
 /**
@@ -89,7 +98,10 @@ export async function resolveModules(modulesDir, wanted) {
 /**
  * Starts one module. Its context:
  *   ctx.name, ctx.version, ctx.dir    the module and its folder (it may keep its own files there)
- *   ctx.config                        its part of the kernel configuration
+ *   ctx.config                        its part of the kernel configuration (the same object for
+ *                                     good: an admin's change of its settings is made in it)
+ *   ctx.onConfig(fn)                  fn(config) after an admin changed its settings (module.json
+ *                                     `settings`); without it, they count from the next start
  *   ctx.log                           logger
  *   ctx.fail(code, message)           throws a KernelError (codes in errors.js: 'invalid', 'forbidden'…)
  *   ctx.provide(service, impl)        only services listed in "provides"
@@ -103,6 +115,7 @@ const EVENT = /^[a-z][a-z0-9-]{0,30}\.[a-z][a-zA-Z0-9.-]{0,40}$/;
 
 export async function startModule(mod, services, { route, emit }) {
   const { default: impl } = await import(pathToFileURL(join(mod.dir, 'index.js')).href);
+  const listeners = [];
   if (!impl || typeof impl.init !== 'function') throw new Error(`${mod.name}: index.js non esporta { init }`);
   const ctx = {
     name: mod.name,
@@ -122,8 +135,11 @@ export async function startModule(mod, services, { route, emit }) {
     },
     route(method, path, handler) {
       if (!/^(\/[\w:-]+)+$/.test(path)) throw new Error(`${mod.name}: percorso non valido ${path}`);
-      if (path === '/update') throw new Error(`${mod.name}: /update è del kernel (aggiornamento dei moduli)`);
+      if (path === '/update' || path === '/settings') throw new Error(`${mod.name}: ${path} è del kernel (gestione dei moduli)`);
       route(method, `/api/modules/${mod.name}${path}`, handler);
+    },
+    onConfig(fn) {
+      if (typeof fn === 'function') listeners.push(fn);
     },
     emit(userId, event, data = {}) {
       if (typeof userId !== 'string' || !EVENT.test(event)) throw new Error(`${mod.name}: evento non valido ${event}`);
@@ -133,5 +149,5 @@ export async function startModule(mod, services, { route, emit }) {
   await impl.init(ctx);
   const missing = mod.provides.filter(s => !services.has(s));
   if (missing.length) throw new Error(`${mod.name} non ha fornito: ${missing.join(', ')}`);
-  return { ...mod, impl, ctx };
+  return { ...mod, impl, ctx, live: listeners.length > 0, configured: () => listeners.forEach(fn => fn(ctx.config)) };
 }
