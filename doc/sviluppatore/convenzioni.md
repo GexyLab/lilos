@@ -33,6 +33,7 @@
 - Solo quando servono davvero, con una decisione registrata in [Decisioni](../interna/decisioni.md).
 - **Versioni esatte** in `package.json` (`--save-exact`), pubblicate da almeno due settimane, licenza compatibile, **senza script di installazione**. Pacchetti con script di compilazione nativa (come le grammatiche Tree-sitter dell'Editor) non diventano dipendenze: se ne copiano i file necessari con uno script (l'Editor lo fa nel repository ufficiale, con `npm run vendor:tree-sitter`). Lo stesso vale per i moduli del kernel: il kernel li installa con `--ignore-scripts`. lilOS stesso non ha dipendenze a runtime; quelle delle app di sistema stanno nel repository ufficiale.
 - Caricate al bisogno con `import()` dall'app che le usa, mai dall'avvio del sistema.
+- **Riconoscimenti sempre**: ogni libreria, font o strumento di altri autori che lilOS, le app di sistema o i moduli del kernel usano compare in **Pannello di controllo → Informazioni → Riconoscimenti** (nome, versione, licenza, copyright, chi la usa, sito), nella stessa modifica che la aggiunge. Nel repository ufficiale l'elenco (`src/settings/credits.json`) si rigenera con `npm run credits`; `npm run build` si ferma se manca una libreria dei `package-lock.json`, se c'è codice copiato con una `LICENSE` non registrata (`VENDORED` in `scripts/credits.mjs`) o un font di Google Fonts senza riconoscimento (`FONTS`). Un font o una libreria che entra in lilOS arriva nel repository ufficiale con il rilascio, e il build lì chiede di aggiungerne il riconoscimento.
 
 ## Sicurezza
 

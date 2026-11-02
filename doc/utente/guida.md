@@ -1631,7 +1631,8 @@ Le modifiche valgono subito e restano salvate.
 | Avvio | App | Quali app si aprono da sole, con quale finestra e con quali scelte (cartella, file…) |
 | OneDrive | — | Compare solo se il tuo lilOS ha OneDrive. L'app su Azure e le cartelle condivise (le cambia un amministratore), dove va **Carica su OneDrive e apri**, il doppio clic sui documenti Office (vedi [La scheda OneDrive](#la-scheda-onedrive-del-pannello-di-controllo)) |
 | Archiviazione | — | Quanto spazio usano le tue impostazioni e il contenuto dei tuoi file; ripristino di impostazioni (anche colore e immagine di sfondo), scorciatoie e app dei tipi di file; ripristino della scrivania e dei file iniziali (con i workspace) |
-| Informazioni | — | Versione di lilOS, browser, lingua |
+| Informazioni | lilOS | Versione di lilOS e dell'SDK, lingua, browser |
+| Informazioni | Riconoscimenti | Le librerie, i font e gli strumenti di altri autori che lilOS, le sue app e i moduli del kernel usano: per ognuno versione, licenza, copyright, chi lo usa e il link al sito. Le librerie portate da altre librerie hanno una sezione a parte |
 
 I due pulsanti di ripristino chiedono conferma: al primo clic il pulsante diventa rosso, e solo un secondo clic entro pochi secondi esegue l'operazione. **Ripristinare la scrivania e i file iniziali** elimina tutte le cartelle e i file che hai creato, ovunque si trovino, **tutti i workspace** (si riparte da uno solo, Principale), **tutti i tag**, le workarea, le posizioni e la vista salvate, poi ricarica lilOS. Non si può annullare.
 

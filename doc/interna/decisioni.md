@@ -1442,3 +1442,31 @@ Le scelte di struttura:
 **Non ancora fatto.** L'avvio da solo (a un'ora, a un evento: i pezzi ci sono, le pipe e `desk.place`); «Trova e sostituisci» nell'Editor, che non ha ancora la funzione da registrare; il pennello e il testo di Photo; condizioni e cicli; chiedere più file in un passo che ne vuole un gruppo.
 
 **Quando ripensarla.** Quando arriveranno gli avvii da eventi e dall'orologio (un'automazione dovrà girare senza finestra di Automata e senza nessuno che risponda alle domande: le domande e le conferme andranno ripensate); se i parametri `value`, `tags` e `places`, per ora solo di lilOS, servono alle app; se i file `.automata` condivisi tra utenti pongono problemi di fiducia (oggi un passo può fare solo ciò che l'utente può fare, ma può farne molti).
+
+## D65. I riconoscimenti delle librerie esterne: un elenco generato e controllato dal build
+
+**Decisione.** Ogni libreria, font o strumento di altri autori che lilOS, le app di sistema o i moduli del kernel usano compare nel Pannello di controllo, in **Informazioni → Riconoscimenti**: nome, versione, licenza, riga di copyright, chi la usa (app, modulo del kernel, lilOS) e il link al sito. Regola dell'utente: vale per ogni dipendenza, da ora in poi, e si aggiunge nella stessa modifica che porta la dipendenza.
+
+- **Da dove viene l'elenco.** `src/settings/credits.json` nel repository ufficiale, scritto da `scripts/credits.mjs` (`npm run credits`): le dipendenze delle app (`package.json` della radice) con quelle che si portano dietro, attribuite alle app che le importano; quelle dei moduli del kernel (`modules/*/package-lock.json`); il codice copiato (`VENDORED`: grammatiche Tree-sitter, smb3-client); i font di Google Fonts di lilOS e delle app (`FONTS`); gli strumenti di build (Vite). Licenza, copyright e sito si leggono da `node_modules`. I pacchetti di soli tipi (`@types/*`) restano fuori: nessun loro codice gira.
+- **Il controllo.** `npm run build` (e `npm run check:credits`) confronta l'elenco con i `package-lock.json`, le `LICENSE` fuori da `node_modules` e i link a Google Fonts, senza bisogno di `node_modules`: si ferma se manca qualcosa o se c'è qualcosa che non si usa più.
+- **Nel Pannello di controllo** (1.16.0) la scheda Informazioni ha due sottoschede, lilOS e Riconoscimenti; le librerie portate da altre librerie stanno in una sezione a parte, con quella che le porta.
+
+**Perché.**
+
+- **Generato, non scritto a mano**, perché le dipendenze indirette sono decine (87 librerie oggi) e cambiano a ogni aggiornamento: a mano l'elenco sarebbe sbagliato dopo il primo `npm update`.
+- **Controllato dal build**, perché una regola che dipende dalla memoria di chi aggiunge la dipendenza prima o poi si salta.
+- **Nel repository ufficiale**, perché lì stanno quasi tutte le dipendenze (lilOS non ne ha a runtime, solo i font) e lì c'è anche il rilascio di lilOS (`system/lilos`), da cui si leggono i font.
+
+**Alternative scartate.**
+
+- **Un file di riconoscimenti per ogni app o modulo**, letto dal Pannello di controllo per ciò che è installato. Più preciso, ma chiede un'API nuova per leggere file di altri pacchetti; le app ufficiali sono tutte in un repository e l'elenco unico basta.
+- **Il testo completo di ogni licenza.** Pesante (decine di testi quasi uguali); c'è il link al sito, dove si trova.
+
+**Conseguenze.**
+
+- Prima di `npm run credits` servono `npm ci` nella radice e in ogni modulo con un `package-lock.json`.
+- Codice copiato nuovo (una cartella con la sua `LICENSE`) va aggiunto a `VENDORED`, un font nuovo a `FONTS`: il build lo chiede.
+- Un font o una libreria che entra nel core di lilOS viene vista solo quando il rilascio arriva nel repository ufficiale.
+- Le app installate da altri repository non sono nell'elenco.
+
+**Quando ripensarla.** Se le app di altri autori devono mostrare i loro riconoscimenti, o se lilOS prende dipendenze a runtime sue: allora un file per pacchetto, letto per ciò che è installato.

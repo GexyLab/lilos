@@ -224,6 +224,7 @@ Nessun agente fa commit o push: si decide dopo aver letto i report.
 - `npm install` installa le versioni esatte di `package-lock.json`; nessun pacchetto ha script di installazione.
 - lilOS non ha dipendenze a runtime. Quelle dell'Editor (e le grammatiche Tree-sitter, che si aggiornano con `npm run vendor:tree-sitter`) stanno nel repository ufficiale.
 - Prima di aggiungere una dipendenza: [Convenzioni → Dipendenze](../sviluppatore/convenzioni.md#dipendenze).
+- Ogni libreria esterna ha i suoi riconoscimenti in Pannello di controllo → Informazioni → Riconoscimenti, aggiunti insieme alla dipendenza (`npm run credits` nel repository ufficiale; il build si ferma se mancano).
 
 ## Git
 
