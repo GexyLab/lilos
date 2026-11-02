@@ -243,6 +243,10 @@ export class AppServices extends EventEmitter {
 
   /** A call from lilOS (lilos.apps.call, or the system): what the service's lilos.handle() returns. */
   async call(principal, app, entry, data, from) {
+    // What the scheduler sends (runScheduled) never comes from a page or an app
+    if (from === 'scheduler' || (data && typeof data === 'object' && !Array.isArray(data) && Object.hasOwn(data, 'schedule'))) {
+      fail('forbidden', 'Il campo «schedule» è riservato alla Pianificazione');
+    }
     const t = await this.#target(principal, app, entry);
     let inst = this.#instances.get(this.#key(t.owner, app, entry));
     if (!inst || inst.status === 'off' || inst.status === 'error') inst = await this.#start(t, 'call');
@@ -265,16 +269,24 @@ export class AppServices extends EventEmitter {
     const owner = principal ? principal.id : SYSTEM;
     const key = this.#key(owner, app, entry);
     const current = this.#instances.get(key);
-    const wasOn = current && (current.status === 'on' || current.status === 'starting');
-    const inst = wasOn ? current : await this.#start({ service, owner, principal, binding: { app, entry, params } }, 'schedule');
-    await inst.ready;
-    if (inst.status !== 'on') fail('unavailable', `${service.name} non è partito: ${inst.error ?? 'errore'}`);
+    const on = current && (current.status === 'on' || current.status === 'starting');
+    // Several runs may share an instance: it stops after the last one, and only if they started it
+    const inst = on ? current : await this.#start({ service, owner, principal, binding: { app, entry, params } }, 'schedule');
+    if (!on) inst.scheduledStart = true;
+    inst.scheduledUses = (inst.scheduledUses ?? 0) + 1;
     try {
+      await inst.ready;
+      if (inst.status !== 'on') fail('unavailable', `${service.name} non è partito: ${inst.error ?? 'errore'}`);
       return await inst.handle.request({ schedule: { task: task.id, name: task.name, run: run.id, params } }, 'scheduler');
     } catch (err) {
+      if (err?.code) throw err;
       fail('invalid', `${service.label}: ${err.message}`);
     } finally {
-      if (!wasOn) await this.#stop(inst);
+      inst.scheduledUses -= 1;
+      if (!inst.scheduledUses && inst.scheduledStart && inst.reason === 'schedule') {
+        inst.scheduledStart = false;
+        await this.#stop(inst);
+      }
     }
   }
 

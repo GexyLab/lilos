@@ -55,6 +55,7 @@ export function scheduleRoutes(kernel) {
     const body = await json(256 << 10) ?? {};
     const app = appOf(body.app);
     if (app && body.owner !== undefined && body.owner !== p.id) fail('forbidden', 'Un’app pianifica solo per chi la usa');
+    if (body.owner !== undefined && body.owner !== p.id && p.role !== 'admin') fail('forbidden', 'Solo un amministratore pianifica per altri o per il sistema');
     const { id: _ignored, ...rest } = body;
     const task = await service().save(p, await schedules.prepare(p, { ...rest, app }));
     if (task.owner !== p.id) await schedules.tellOwner(p, task, 'create');

@@ -8,6 +8,7 @@ import * as rules from './scheduleRules.js';
  * closed (its 'scheduler' module, required: every lilOS has it). Needs the kernel.
  *
  *   schedule.list({ owner?, app? }) → [task]           the user's (an admin: everybody's and the system's)
+ *   schedule.overview() → { admin, tasks }               the same and whether the user is an admin, in one request
  *   schedule.tasks()  → [task + recurrence]            the same, with the rule as a calendar shows it
  *   schedule.get(id) / create(task) / update(id, task) / remove(id)
  *   schedule.enable(id, on) / run(id) → run / cancel(runId)

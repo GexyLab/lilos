@@ -107,6 +107,9 @@ export async function writeUserKey(kernel, principal, key, value) {
   await view.fs.write(principal, id, Buffer.from(text, 'utf8'));
 }
 
+/** A node whose content an app keeps as its own (content: true in its data: an encrypted file): its keys are never in the kernel. */
+export const isProtected = node => Object.values(node?.meta?.apps ?? {}).some(v => v?.content === true);
+
 /** The user's home as lilOS's page has it: its nodes (front ids), the .config folder left out. */
 export async function homeNodes(kernel, principal) {
   const view = await openHome(kernel, principal);

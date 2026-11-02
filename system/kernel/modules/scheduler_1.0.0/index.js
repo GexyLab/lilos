@@ -44,6 +44,7 @@ const MAX_IDS = 500;
 const MAX_RANGE = 62 * 86_400_000;
 const MAX_ITEMS = 5000;
 const DENSE = 30 * 60_000;
+const DENSE_COUNT = 2000;
 const SAVE_HISTORY = 2000;
 const OPTION_DEFAULTS = { missed: 'once', overlap: 'skip', timeoutMin: 60, retries: 0, retryMin: 5, notify: 'error', ask: true };
 
@@ -107,6 +108,12 @@ const limits = () => ({
   historyPerTask: num(Number(ctx.config.historyPerTask), 5, 500, 50),
   catchUpHours: num(Number(ctx.config.catchUpHours), 1, 168, 12),
   outputKb: num(Number(ctx.config.outputKb), 1, 256, 16),
+  maxParallelPerUser: num(Number(ctx.config.maxParallelPerUser), 1, 32, 2),
+  maxQueued: 200,
+  historyMb: num(Number(ctx.config.historyMb), 1, 1024, 64),
+  maxTasksPerApp: 20,
+  appMinIntervalMinutes: 15,
+  maxExtra: 50,
 });
 
 // ---------- Who sees what ----------
@@ -207,9 +214,22 @@ function start(task, spec) {
     if (task.options.overlap === 'skip') return record(task, Object.assign(run, { state: 'skipped', at: Date.now(), end: Date.now(), text: 'La volta prima era ancora in corso' }));
     if (task.options.overlap === 'queue') { queued.push(run); history.add(run); host.ran(run); return run; }
   }
-  if (running.size >= limits().maxParallel) { queued.push(run); history.add(run); host.ran(run); return run; }
+  if (!hasSlot(task)) {
+    if (queued.length >= limits().maxQueued) return record(task, Object.assign(run, { state: 'skipped', at: Date.now(), end: Date.now(), text: 'Troppe operazioni in attesa di partire' }));
+    queued.push(run);
+    history.add(run);
+    host.ran(run);
+    return run;
+  }
   launch(task, run);
   return run;
+}
+
+/** A free place: under maxParallel in all, and under maxParallelPerUser for its owner (the system counts as one). */
+function hasSlot(task) {
+  const { maxParallel, maxParallelPerUser } = limits();
+  if (running.size >= maxParallel) return false;
+  return [...running.values()].filter(r => r.run.owner === task.owner).length < maxParallelPerUser;
 }
 
 function launch(task, run) {
@@ -221,8 +241,9 @@ function launch(task, run) {
   host.ran(run);
   task.last = { run: run.id, at: run.at, state: 'running' };
   const { outputKb } = limits();
-  Promise.resolve()
-    .then(() => host.run(JSON.parse(JSON.stringify(task)), runView(run), controller.signal))
+  // A run that never answers still ends at its time limit (or when cancelled): its place is freed
+  const aborted = new Promise((_, reject) => controller.signal.addEventListener('abort', () => reject(controller.signal.reason ?? new Error('timeout')), { once: true }));
+  Promise.race([Promise.resolve().then(() => host.run(JSON.parse(JSON.stringify(task)), runView(run), controller.signal)), aborted])
     .then(result => {
       const r = plain(result) ? result : {};
       const state = ['ok', 'error', 'waiting', 'skipped'].includes(r.state) ? r.state : 'ok';
@@ -274,17 +295,19 @@ async function finished(run) {
 
 /** Starts what was waiting for a free place. */
 function drain() {
-  for (let i = 0; i < queued.length && running.size < limits().maxParallel; i++) {
-    const run = queued[i];
-    tasks.read().then(data => {
-      const task = data.tasks.find(t => t.id === run.task);
-      if (!task) return;
-      const busy = [...running.values()].some(r => r.run.task === task.id);
-      if (busy && task.options.overlap === 'queue') return;
-      const at = queued.indexOf(run);
-      if (at >= 0) queued.splice(at, 1);
-      launch(task, run);
-    }).catch(() => {});
+  const list = tasks.current?.tasks ?? [];
+  for (;;) {
+    if (running.size >= limits().maxParallel) return;
+    const at = queued.findIndex(run => {
+      const task = list.find(t => t.id === run.task);
+      if (!task) return true;   // gone: dropped below
+      if (task.options.overlap === 'queue' && [...running.values()].some(r => r.run.task === task.id)) return false;
+      return hasSlot(task);
+    });
+    if (at < 0) return;
+    const [run] = queued.splice(at, 1);
+    const task = list.find(t => t.id === run.task);
+    if (task) launch(task, run);
   }
 }
 
@@ -301,6 +324,13 @@ function historyStore(file) {
       per.set(r.task, n);
       return n <= historyPerTask || r.state === 'running' || r.state === 'waiting' || r.state === 'queued';
     });
+    // The outputs together stay under historyMb: the oldest lose theirs first (newest come first)
+    let total = 0;
+    const cap = limits().historyMb << 20;
+    for (const r of data.runs) {
+      total += r.log?.length ?? 0;
+      if (total > cap && r.log) r.log = '';
+    }
     index = new Map(data.runs.map(r => [r.id, r]));
   };
   const api = {
@@ -360,8 +390,14 @@ function checkTask(principal, raw, old) {
   } catch (err) {
     ctx.fail('invalid', err instanceof rules.RuleError ? err.message : 'Regola non valida');
   }
-  const { minIntervalMinutes } = limits();
+  const { minIntervalMinutes: least, appMinIntervalMinutes, maxExtra } = limits();
+  // An app's operations: not more often than every 15 minutes
+  const minIntervalMinutes = app ? Math.max(least, appMinIntervalMinutes) : least;
   if (rules.gap(when) < minIntervalMinutes * 60_000) ctx.fail('invalid', `Troppo spesso: al massimo una volta ogni ${minIntervalMinutes === 1 ? 'minuto' : `${minIntervalMinutes} minuti`}`);
+  // Times added by hand (moved occurrences) follow the same rule, and are few
+  const extra = when.extra ?? [];
+  if (extra.length > maxExtra) ctx.fail('invalid', `Troppi orari spostati (al massimo ${maxExtra})`);
+  for (let i = 1; i < extra.length; i++) if (extra[i] - extra[i - 1] < minIntervalMinutes * 60_000) ctx.fail('invalid', 'Orari spostati troppo vicini tra loro');
   if (!plain(raw.what) || !TYPE.test(raw.what.type ?? '')) ctx.fail('invalid', 'Azione non valida');
   const what = JSON.parse(JSON.stringify(raw.what));
   if (JSON.stringify(what).length > MAX_WHAT) ctx.fail('too_large', 'Azione troppo grande');
@@ -406,6 +442,9 @@ const service = {
     const old = raw?.id !== undefined && raw.id !== null ? await find(principal, raw.id) : null;
     const clean = checkTask(principal, raw, old);
     const now = Date.now();
+    if (!old && clean.app && data.tasks.filter(t => t.owner === clean.owner && t.app === clean.app).length >= limits().maxTasksPerApp) {
+      ctx.fail('invalid', `Al massimo ${limits().maxTasksPerApp} operazioni per ogni app`);
+    }
     if (!old && data.tasks.filter(t => t.owner === clean.owner).length >= limits().maxTasksPerUser) {
       ctx.fail('invalid', `Al massimo ${limits().maxTasksPerUser} operazioni per utente`);
     }
@@ -457,6 +496,7 @@ const service = {
   async runNow(principal, id) {
     signedIn(principal);
     const task = await find(principal, id);
+    if (queued.some(r => r.task === task.id && r.reason === 'manual')) ctx.fail('conflict', 'È già in attesa di partire');
     const run = start(task, { due: Date.now(), reason: 'manual', by: who(principal) });
     await tasks.save();
     return runView(run);
@@ -509,6 +549,7 @@ const service = {
     const run = history.get(runId) ?? ctx.fail('not_found', 'Corsa inesistente');
     if (principal.kind !== 'kernel' && run.owner !== principal.id) ctx.fail('not_found', 'Corsa inesistente');
     if (run.state !== 'waiting' && run.state !== 'running') ctx.fail('conflict', 'La corsa è già finita');
+    if (!['open', 'automation'].includes(run.type)) ctx.fail('conflict', 'Solo le operazioni del browser si chiudono dalla pagina');
     const o = plain(outcome) ? outcome : {};
     const state = ['ok', 'error', 'skipped'].includes(o.state) ? o.state : ctx.fail('invalid', 'Esito non valido');
     Object.assign(run, { state, text: clip(o.text, MAX_TEXT), log: clip(o.log, limits().outputKb << 10), end: Date.now(), expires: null });
@@ -542,7 +583,15 @@ const service = {
       const times = [];
       let left = t.when.count ? t.when.count - t.fired : Infinity;
       let cursor = start - 1;
-      while (times.length < (dense ? 100_000 : MAX_ITEMS) && left > 0) {
+      let capped = false;
+      const deadline = Date.now() + 250;
+      while (left > 0) {
+        if (times.length >= (dense ? DENSE_COUNT : MAX_ITEMS)) { capped = true; break; }
+        // Long work in steps: other requests and the clock go on meanwhile
+        if ((times.length & 63) === 63) {
+          if (Date.now() > deadline) { capped = true; break; }
+          await new Promise(resolve => setImmediate(resolve));
+        }
         const next = rules.nextAfter(t.when, cursor);
         if (next === null || next >= to) break;
         times.push(next);
@@ -552,7 +601,11 @@ const service = {
       if (!times.length) continue;
       const took = durations.get(t.id) ?? null;
       if (dense) {
-        series.push({ task: t.id, name: t.name, from: times[0], to: times[times.length - 1], count: times.length, every: rules.gap(t.when), type: t.what.type, owner: t.owner, app: t.app });
+        const every = rules.gap(t.when);
+        // Not all counted: up to the end of the range at the rule's pace (an estimate)
+        const last = capped ? to - 1 : times[times.length - 1];
+        const count = capped ? Math.min(left === Infinity ? Infinity : times.length + left, times.length + Math.floor((to - times[times.length - 1]) / every)) : times.length;
+        series.push({ task: t.id, name: t.name, from: times[0], to: last, count, every, estimated: capped, type: t.what.type, owner: t.owner, app: t.app });
       } else {
         for (const at of times) {
           if (items.length >= MAX_ITEMS) break;

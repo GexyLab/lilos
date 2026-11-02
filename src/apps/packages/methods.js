@@ -52,6 +52,10 @@ export function hostMethods({ pkg, win = null, handles, readOnly = new Set(), in
   const own = () => (perms.includes('schedule') ? schedule.forApp(pkg.id) : fail('Permesso negato: schedule'));
   const reader = () => (perms.includes('schedule.read') || perms.includes('schedule.move') ? schedule : fail('Permesso negato: schedule.read'));
   const SCHEDULER_ENTRIES = new Set(['main', 'edit', 'create', 'history']);
+  // What a calendar needs: when, how it went, what kind of action. Never what it does in detail
+  // (command lines, addresses, bodies) nor what the runs wrote
+  const brief = t => ({ id: t.id, owner: t.owner, app: t.app, name: t.name, enabled: t.enabled, when: t.when, next: t.next, last: t.last, running: t.running, recurrence: t.recurrence, what: { type: t.what?.type } });
+  const briefRun = ({ log, text, ...run }) => run;
   const target = (ref, write) => {
     if (handles.has(ref)) return fs.get(ref) ?? fail('Il file non esiste più');
     if (readOnly.has(ref)) return write ? fail('Il file è stato passato solo da leggere') : fs.get(ref) ?? fail('Il file non esiste più');
@@ -203,14 +207,14 @@ export function hostMethods({ pkg, win = null, handles, readOnly = new Set(), in
     'schedule.remove': id => own().remove(id),
     'schedule.enable': (id, on) => own().enable(id, on),
     'schedule.run': id => own().run(id),
-    'schedule.tasks': () => reader().tasks(),
+    'schedule.tasks': async () => (await reader().tasks()).map(brief),
     'schedule.occurrences': range => {
       const { from, to } = plainObject(range);
       return reader().occurrences({ from: Number(from), to: Number(to) });
     },
-    'schedule.history': query => {
+    'schedule.history': async query => {
       const { task, limit, before } = plainObject(query);
-      return reader().history({ task: typeof task === 'string' ? task : undefined, limit, before });
+      return (await reader().history({ task: typeof task === 'string' ? task : undefined, limit, before })).map(briefRun);
     },
     'schedule.move': (id, change) => {
       if (!perms.includes('schedule.move')) fail('Permesso negato: schedule.move');
@@ -219,7 +223,10 @@ export function hostMethods({ pkg, win = null, handles, readOnly = new Set(), in
     },
     'schedule.open': (entry, args) => {
       if (!SCHEDULER_ENTRIES.has(entry)) fail('Punto d’ingresso della Pianificazione sconosciuto');
-      launch('scheduler', plainObject(args), entry);
+      // An app proposes only when (and, at most, a reminder or opening itself): the user writes the rest
+      const a = { ...plainObject(args), from: pkg.id };
+      if (a.what && !(a.what.type === 'notify' || (a.what.type === 'open' && a.what.app === pkg.id))) delete a.what;
+      launch('scheduler', a, entry);
     },
     'schedule.describe': when => {
       try { return schedule.describe(schedule.rules.checkWhen(when), locale.code); } catch (err) { return fail(err.message); }

@@ -1,6 +1,7 @@
 import { fail } from '../errors.js';
 import { openHome, FRONT_ID } from '../api/home.js';
 import { checkServiceParams } from '../apps/appServices.js';
+import { homeInside } from './copy.js';
 
 /**
  * What an operation does, checked before it is saved (nothing in it is trusted). Places in lilOS
@@ -77,7 +78,7 @@ async function place(kernel, principal, raw, what) {
 const globs = v => {
   if (v === undefined || v === null) return [];
   if (!Array.isArray(v) || v.length > MAX_GLOBS || v.some(g => typeof g !== 'string' || !g || g.length > 100 || g.includes('/'))) fail('invalid', 'Esclusioni non valide');
-  return [...new Set(v)];
+  return [...new Set(v.map(g => g.replace(/\*+/g, '*')))];
 };
 
 async function saveTo(kernel, principal, raw, modes) {
@@ -139,7 +140,7 @@ export async function checkWhat(kernel, { what, old = null, owner, app = null, o
     if (system) fail('invalid', 'Un’operazione del sistema non ha cartelle da copiare');
     const from = await place(kernel, p, what.from, 'Da copiare');
     const to = await place(kernel, p, what.to, 'Dove copiare');
-    if (from.home && to.home && from.home === to.home) fail('invalid', 'Una cartella non si copia in se stessa');
+    if (from.home && to.home && (from.home === to.home || await homeInside(kernel, p, to.home, from.home))) fail('invalid', 'Una cartella non si copia dentro se stessa');
     if (from.mount && from.mount === to.mount && (to.path === from.path || to.path.startsWith(`${from.path.replace(/\/$/, '')}/`))) fail('invalid', 'Una cartella non si copia dentro se stessa');
     const mode = ['versions', 'update', 'mirror'].includes(what.mode) ? what.mode : 'update';
     const keep = Number.isInteger(what.keep) && what.keep >= 1 && what.keep <= 100 ? what.keep : 7;
@@ -162,8 +163,10 @@ export async function checkWhat(kernel, { what, old = null, owner, app = null, o
           if (h.value.length > 4096 || /[\r\n]/.test(h.value)) fail('invalid', `Valore non valido: ${h.name}`);
           sealed = await kernel.settingSecrets.seal(h.value);
         } else {
-          sealed = old?.type === 'web' ? old.headers.find(x => x.secret && x.name.toLowerCase() === h.name.toLowerCase())?.sealed ?? null : null;
-          if (!sealed) fail('invalid', `Manca il valore segreto di ${h.name}`);
+          // Kept only for the same site: a new address could be anybody's (the secret would go there)
+          const sameOrigin = old?.type === 'web' && (() => { try { return new URL(old.url).origin === url.origin; } catch { return false; } })();
+          sealed = sameOrigin ? old.headers.find(x => x.secret && x.name.toLowerCase() === h.name.toLowerCase())?.sealed ?? null : null;
+          if (!sealed) fail('invalid', old?.type === 'web' && !sameOrigin ? `Cambiando indirizzo, il valore segreto di ${h.name} va inserito di nuovo` : `Manca il valore segreto di ${h.name}`);
         }
         headers.push({ name: h.name, secret: true, sealed });
       } else {

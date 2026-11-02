@@ -127,6 +127,7 @@ const dateOfNumber = n => { const t = new Date(n * DAY_MS); return { y: t.getUTC
 /** 'YYYY-MM-DDTHH:mm' of an instant, on the clock of tz. */
 export function localText(ms, tz) {
   const c = clockAt(ms, tz);
+  if (!(c.y >= 1970 && c.y <= 9999)) bad('Data e ora non valide');
   return `${c.y}-${pad(c.m)}-${pad(c.d)}T${pad(c.hh)}:${pad(c.mm)}`;
 }
 
@@ -339,8 +340,15 @@ function baseNext(w, after) {
   const today = dayNumber(c.y, c.m, c.d);
   for (let i = 0; i < SEARCH_DAYS; i++) {
     const { y, m, d } = dateOfNumber(today + i);
-    for (const t of dayTimes(w, y, m, d)) {
-      const at = instantOf(y, m, d, Math.floor(t / 60), t % 60, w.tz);
+    const times = dayTimes(w, y, m, d);
+    if (!times.length) continue;
+    // A day with no clock change around it (almost every day): one offset for all its times, no
+    // time-zone work per time (a cron of every minute is 1440 of them)
+    const noon = Date.UTC(y, m - 1, d, 12);
+    const offset = offsetAt(noon, w.tz);
+    const flat = offsetAt(noon - 36 * 3600_000, w.tz) === offset && offsetAt(noon + 36 * 3600_000, w.tz) === offset;
+    for (const t of times) {
+      const at = flat ? Date.UTC(y, m - 1, d, Math.floor(t / 60), t % 60) - offset : instantOf(y, m, d, Math.floor(t / 60), t % 60, w.tz);
       if (at > from) return at;
     }
   }
@@ -401,17 +409,17 @@ export const firstTime = when => nextAfter(when, when.once ? -Infinity : startMs
  * RuleError when the rule cannot move that way (a cron moves only one time).
  */
 export function moveWhen(when, { at, to, scope }) {
-  if (!Number.isSafeInteger(at) || !Number.isSafeInteger(to)) bad('Orari non validi');
+  if (!Number.isSafeInteger(at) || !Number.isSafeInteger(to) || to < 0 || to > 253402300799000) bad('Orari non validi');
   const w = { ...when };
   if (scope === 'this') {
-    if (w.once) return { ...w, once: localText(to, w.tz) };
+    if (w.once) return checkWhen({ ...w, once: localText(to, w.tz) });
     if (w.extra?.includes(at)) w.extra = w.extra.filter(x => x !== at);
     else w.skip = [...(w.skip ?? []), at].sort((a, b) => a - b);
     if (to !== at) w.extra = [...new Set([...(w.extra ?? []), to])].sort((a, b) => a - b);
     return checkWhen(w);
   }
   if (scope !== 'all') bad('scope deve essere this o all');
-  if (w.once) return { ...w, once: localText(to, w.tz) };
+  if (w.once) return checkWhen({ ...w, once: localText(to, w.tz) });
   if (w.cron) bad('Una regola cron si sposta una volta alla volta');
   const a = clockAt(at, w.tz), b = clockAt(to, w.tz);
   const minutes = (b.hh * 60 + b.mm) - (a.hh * 60 + a.mm);

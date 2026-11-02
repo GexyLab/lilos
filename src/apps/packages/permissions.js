@@ -32,7 +32,7 @@ const LABELS = {
   serial: 'Usare le porte seriali e USB del tuo computer (schede come Arduino)', kernel: 'Usare il modulo del kernel',
   schedule: 'Pianificare operazioni (le sue: promemoria, i suoi servizi, aprirsi)',
   'schedule.read': 'Vedere tutte le operazioni pianificate',
-  'schedule.move': 'Spostare nel tempo le operazioni pianificate',
+  'schedule.move': 'Vedere e spostare nel tempo le operazioni pianificate',
 };
 
 /** 'fs.read:~/Documenti' → 'Leggere i file in Home/Documenti'. */

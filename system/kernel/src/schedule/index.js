@@ -132,7 +132,14 @@ export class Schedules {
   // ---------- Running ----------
 
   async #run(task, run, signal) {
-    const principal = await this.ownerPrincipal(task.owner);
+    let principal;
+    try {
+      principal = await this.ownerPrincipal(task.owner);
+    } catch (err) {
+      // The user was removed: their operations go (not at the next restart)
+      if (err?.code === 'not_found') this.service.dropOwner(task.owner).catch(e => log.warn(`Operazioni di un utente rimosso: ${e.message}`));
+      throw err;
+    }
     const what = task.what;
     const context = { kernel: this.#kernel, task, run, principal, signal, sender: () => this.#sender(task) };
     switch (what.type) {

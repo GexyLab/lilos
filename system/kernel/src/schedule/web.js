@@ -1,6 +1,6 @@
 import { randomBytes } from 'node:crypto';
 import { fail } from '../errors.js';
-import { openHome, toFrontNode } from '../api/home.js';
+import { openHome, toFrontNode, isProtected } from '../api/home.js';
 import { localText } from '../../../../sdk/core/scheduleRules.js';
 
 /**
@@ -32,6 +32,7 @@ export async function writeHomeFile(kernel, principal, folderId, name, data, { a
   if (folder.type !== 'folder') fail('invalid', 'Dove salvare non è una cartella');
   const same = (await view.fs.list(principal, parent)).find(n => n.name.toLowerCase() === name.toLowerCase());
   if (same && same.type !== 'file') fail('conflict', `«${name}» c’è già e non è un file`);
+  if (same && isProtected(same)) fail('conflict', `«${name}» è protetto da un’app (per esempio cifrato): non si sovrascrive`);
   const now = Date.now();
   let node = same;
   if (!node) {
@@ -77,7 +78,7 @@ export async function runWeb({ kernel, task, run, principal, signal }) {
   for (let hop = 0; ; hop++) {
     await guard.check({ url: url.href });
     const sent = { ...headers };
-    if (url.origin !== origin) for (const k of Object.keys(sent)) if (secret.has(k.toLowerCase())) delete sent[k];
+    if (url.origin !== origin) for (const k of Object.keys(sent)) if (secret.has(k.toLowerCase()) || /^(authorization|cookie|proxy-authorization)$/i.test(k)) delete sent[k];
     try {
       res = await fetch(url, { method, headers: sent, body: method === 'GET' || method === 'HEAD' ? undefined : body, redirect: 'manual', signal: both });
     } catch (err) {
@@ -92,6 +93,7 @@ export async function runWeb({ kernel, task, run, principal, signal }) {
     url = new URL(to, url);
     if (url.protocol !== 'https:' && url.protocol !== 'http:') fail('invalid', 'Reindirizzamento a un indirizzo non web');
     if (res.status === 303 || ((res.status === 301 || res.status === 302) && method === 'POST')) { method = 'GET'; body = undefined; }
+    if (url.origin !== origin && body !== undefined) fail('invalid', 'Reindirizzamento a un altro indirizzo con un corpo da mandare: non seguito');
   }
 
   const chunks = [];

@@ -103,7 +103,12 @@ const serialEvents = (pkg, fn) => ((pkg.manifest.permissions ?? []).includes('se
 const scheduleEvents = (pkg, fn) => {
   const perms = pkg.manifest.permissions ?? [];
   if (!perms.includes('schedule') && !perms.includes('schedule.read') && !perms.includes('schedule.move')) return [];
-  return [schedule.on('change', e => fn({ type: 'change', ids: e.ids ?? [] })), schedule.on('run', e => fn({ type: 'run', ...e }))];
+  // With only `schedule` (its own operations) an app hears that something changed, not which ones of the others
+  const all = perms.includes('schedule.read') || perms.includes('schedule.move');
+  return [
+    schedule.on('change', e => fn(all ? { type: 'change', ids: e.ids ?? [] } : { type: 'change' })),
+    schedule.on('run', e => { if (all) fn({ type: 'run', ...e }); }),
+  ];
 };
 
 function connectBridge(win, frame, pkg, handles, entry) {

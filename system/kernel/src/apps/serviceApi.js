@@ -2,7 +2,7 @@ import { randomBytes } from 'node:crypto';
 import { fail } from '../errors.js';
 import { KERNEL } from '../services.js';
 import { coversPath } from './permissions.js';
-import { homeNodes, syncHome, readUserKey as readKey } from '../api/home.js';
+import { homeNodes, syncHome, isProtected, readUserKey as readKey } from '../api/home.js';
 import { compareVersions } from './manifest.js';
 import { normalizeUrl } from './sources.js';
 import { logger } from '../log.js';
@@ -79,7 +79,7 @@ export function serviceApi({ kernel, app, owner, notify, readUserKey, writeUserK
     const home = await fs.home(user());
     const node = await fs.stat(owner, `${home.id}/${id}`) ?? fail('not_found', 'Il file non esiste');
     if (node.type !== 'file') fail('invalid', 'Non è un file');
-    if (Object.values(node.meta?.apps ?? {}).some(v => v?.content === true)) fail('forbidden', `«${node.name}» è protetto da un’app (per esempio cifrato): si apre solo nel browser`);
+    if (isProtected(node)) fail('forbidden', `«${node.name}» è protetto da un’app (per esempio cifrato): si apre solo nel browser`);
     return node;
   };
   const create = async (full, type) => {
@@ -118,6 +118,7 @@ export function serviceApi({ kernel, app, owner, notify, readUserKey, writeUserK
       const { full } = await resolve(path, false);
       const node = await fs.lookup(owner, full) ?? fail('not_found', 'Il file non esiste');
       if (node.type !== 'file') fail('invalid', 'Non è un file');
+      if (isProtected(node)) fail('forbidden', `«${node.name}» è protetto da un’app (per esempio cifrato): si apre solo nel browser`);
       return (await fs.read(owner, node.id)).toString('utf8');
     },
     'files.write': async (path, text) => {
@@ -126,6 +127,7 @@ export function serviceApi({ kernel, app, owner, notify, readUserKey, writeUserK
       if (body.length > MAX_TEXT) fail('too_large', 'Testo troppo lungo');
       const node = await fs.lookup(owner, full) ?? await create(full, 'file');
       if (node.type !== 'file') fail('invalid', 'Non è un file');
+      if (isProtected(node)) fail('forbidden', `«${node.name}» è protetto da un’app (per esempio cifrato): non si sovrascrive`);
       await fs.write(owner, node.id, Buffer.from(body, 'utf8'));
     },
     'files.list': async path => {

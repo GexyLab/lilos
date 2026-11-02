@@ -1,7 +1,7 @@
 import { randomBytes } from 'node:crypto';
 import { Readable } from 'node:stream';
 import { fail } from '../errors.js';
-import { openHome, toFrontNode } from '../api/home.js';
+import { openHome, toFrontNode, isProtected } from '../api/home.js';
 import { joinPath, isSafeName } from '../net/drivers.js';
 import { localText } from '../../../../sdk/core/scheduleRules.js';
 
@@ -26,10 +26,21 @@ const lower = s => s.toLowerCase();
 const newId = () => randomBytes(9).toString('base64url');
 const kb = n => (n < 1 << 20 ? `${(n / 1024).toFixed(0)} KB` : n < 1 << 30 ? `${(n / (1 << 20)).toFixed(1)} MB` : `${(n / (1 << 30)).toFixed(2)} GB`);
 
-/** '*.tmp', '~$*' → a test on a name (case-insensitive). */
+/** '*.tmp', '~$*', 'a?c' → a test on a name (case-insensitive), in linear time (no regular expressions). */
 export function excluder(globs) {
-  const res = globs.map(g => new RegExp(`^${g.replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*').replace(/\?/g, '.')}$`, 'i'));
-  return name => res.some(re => re.test(name));
+  const pats = globs.map(g => g.toLowerCase().replace(/\*+/g, '*'));
+  const match = (p, s) => {
+    let pi = 0, si = 0, star = -1, mark = 0;
+    while (si < s.length) {
+      if (pi < p.length && (p[pi] === '?' || p[pi] === s[si])) { pi++; si++; }
+      else if (pi < p.length && p[pi] === '*') { star = pi++; mark = si; }
+      else if (star >= 0) { pi = star + 1; si = ++mark; }
+      else return false;
+    }
+    while (p[pi] === '*') pi++;
+    return pi === p.length;
+  };
+  return name => { const n = name.toLowerCase(); return pats.some(p => match(p, n)); };
 }
 
 /** A folder of the home, as the copy uses it. Dirs are ids of the fs service. */
@@ -67,6 +78,7 @@ async function homePlace(kernel, principal, ref) {
       return view.fs.read(principal, entry.ref).then(data => Readable.from([data]));
     },
     async write(dir, name, existing, source, { signal, meta }) {
+      if (existing && isProtected(existing.node)) throw new Error('protetto da un’app (per esempio cifrato): non si sovrascrive');
       let id = existing?.ref;
       if (!id) {
         const now = Date.now();
@@ -133,8 +145,22 @@ async function netPlace(kernel, principal, ref) {
 
 const openPlace = (kernel, principal, ref) => (ref.mount ? netPlace(kernel, principal, ref) : homePlace(kernel, principal, ref));
 
+/** True when the folder `id` of the home is `ancestor` or inside it. */
+export async function homeInside(kernel, principal, id, ancestor) {
+  const view = await openHome(kernel, principal);
+  const target = view.toBack(ancestor, { parent: true });
+  let node = await view.fs.stat(principal, view.toBack(id, { parent: true }));
+  for (let i = 0; node && i < 1000; i++) {
+    if (node.id === target) return true;
+    node = node.parent ? await view.fs.stat(principal, node.parent) : null;
+  }
+  return false;
+}
+
 export async function runCopy({ kernel, task, run, principal, signal }) {
   const w = task.what;
+  // A folder moved after the operation was saved could now hold its own copy
+  if (w.from.home && w.to.home && await homeInside(kernel, principal, w.to.home, w.from.home)) fail('invalid', 'La cartella dove copiare è dentro quella da copiare');
   const src = await openPlace(kernel, principal, w.from);
   const dst = await openPlace(kernel, principal, w.to);
   const skip = excluder(w.exclude ?? []);
