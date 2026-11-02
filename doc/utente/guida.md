@@ -1284,6 +1284,53 @@ Un file `.term` apre una shell o una sessione remota con le tue scelte già fatt
 - Le schede remote usano [xterm.js](https://xtermjs.org) (licenza MIT); i riconoscimenti sono nella pagina del Terminale nell'AppStore.
 - Serve una versione di lilOS dalla 1.12.0.
 
+## ArduinoIDE
+
+**ArduinoIDE** serve a scrivere programmi (gli *sketch*) per le schede **Arduino Uno, Nano e Mega**, controllarli e caricarli sulla scheda. Non c'è di serie: un amministratore la installa dall'[AppStore](#lappstore), nella categoria **Sviluppo**. All'installazione chiede di poter modificare i file della cartella **Arduino** della tua home, di usare le porte seriali del tuo computer e di usare il modulo **arduino** di lilOS. Gli sketch stanno in `~/Arduino`: sono file normali di lilOS, un sketch per cartella.
+
+### Cosa serve
+
+- **Il browser.** Per caricare gli sketch e usare il monitor seriale servono **Chrome**, **Edge** o **Firefox 151 o più recente**, e lilOS aperto su un indirizzo `https` (o su `localhost`). **Safari non va.** Senza, puoi comunque scrivere e verificare gli sketch.
+- **Il modulo del kernel.** ArduinoIDE compila con il modulo **arduino** di lilOS. Se manca, l'app lo dice («Manca il modulo Arduino del kernel»): un amministratore lo installa da AppStore → Kernel e riavvia lilOS.
+- **La scheda collegata al computer in cui usi il browser**, anche se lilOS gira su un altro computer o su un server.
+
+### La prima volta
+
+La prima volta che si apre, ArduinoIDE chiede di **preparare Arduino**: lilOS scarica gli strumenti per compilare e il pacchetto delle schede (circa 150 MB). Si fa una volta sola, per tutti gli utenti di questo lilOS, e **solo un amministratore può farlo**: un altro utente vede «Solo un amministratore può preparare Arduino» e deve chiedergli di aprire ArduinoIDE una volta. Premi **Prepara** e aspetta che i passi finiscano.
+
+### Scrivere uno sketch
+
+- La barra laterale ha tre schede: **Sketchbook** (i tuoi sketch, con **Nuovo sketch**), **Esempi** (aprono una copia nel tuo sketchbook) e **Gestore librerie**.
+- Mentre scrivi compaiono i **suggerimenti** del codice, e gli errori si segnano nel testo e nel pannello **Problemi**.
+- Uno sketch può avere più file (`.ino`, `.h`, `.hpp`, `.c`, `.cpp`, `.S`): usa il pulsante per un nuovo file nello sketch.
+- Le modifiche si salvano da sole; **Ctrl S** salva subito.
+
+### Scegliere la scheda e la porta
+
+Apri **Scheda e porta** e scegli la **scheda** (Uno, Nano, Mega) e, dove serve, il **processore** (per i Nano e i cloni con il vecchio bootloader scegli «ATmega328P, vecchio bootloader»). Poi scegli la **porta**: collega la scheda, scegli **Aggiungi una porta…** e indica la scheda nell'elenco che mostra il browser. Il browser lo chiede una volta per porta; poi la porta compare nell'elenco da sola.
+
+### Verificare e caricare
+
+- **Verifica** (**Ctrl R**) compila lo sketch senza caricarlo. Il pannello **Output** dice quanto spazio usa il programma e quanto la memoria per le variabili, in byte e in percentuale.
+- **Carica** (**Ctrl U**) compila e scrive il programma sulla scheda. Mostra l'avanzamento («Scrivo…», «Verifico…») e, a fine lavoro, una notifica. Non scollegare la scheda finché non finisce.
+- Mentre carichi, il monitor seriale si ferma e poi riapre da solo la porta.
+
+### Il monitor seriale
+
+Il pannello **Monitor seriale** mostra ciò che la scheda scrive e le manda ciò che scrivi (premi Invio). **Apri** e **Chiudi** gestiscono la porta; puoi scegliere la velocità in baud (deve essere quella dello sketch), il fine riga mandato, se mostrare l'ora di ogni riga e se scorrere da solo. **Pulisci** svuota il pannello; **Salva in un file** ne tiene una copia.
+
+### Le librerie
+
+Il **Gestore librerie** cerca, installa, aggiorna e rimuove le librerie di Arduino. Se una libreria ne usa altre, lilOS chiede se installare anche quelle: senza, lo sketch non compila. **Includi** aggiunge la riga `#include` allo sketch aperto. Le librerie che installi sono **tue**: gli altri utenti non le vedono. Le librerie fatte da te vanno nella cartella `~/Arduino/libraries`. Se uno sketch usa una libreria che non hai, il pannello **Problemi** propone **Installa e riprova**.
+
+### Da sapere
+
+- Il pacchetto delle schede è uno solo per tutti gli utenti; le librerie e gli sketch sono di ciascuno.
+- Per ora le schede sono solo Arduino Uno, Nano e Mega (famiglia AVR).
+- Il kernel non legge file del suo computer per conto dello sketch: un `#include` con un percorso assoluto, con `..` o costruito da una macro, e la direttiva `.incbin`, vengono rifiutati.
+- Se la porta è già aperta da un altro programma (per esempio il monitor dell'IDE di Arduino) o da un'altra finestra, il browser non può aprirla: chiudi l'altro e riprova.
+- Serve una versione di lilOS dalla 1.18.0.
+
 ## Annullare e ripetere
 
 **Ctrl Z** annulla l'ultima azione, **Ctrl Y** (o **Ctrl Shift Z**) la ripete. Agiscono **dove stai lavorando**: ogni posto ha il suo elenco di azioni, e lilOS sceglie quello dove hai fatto clic per ultimo. In basso compare un breve messaggio, per esempio "Annullato: Elimina «Appunti»" o "Ripetuto: Rinomina…".
@@ -1871,6 +1918,7 @@ Il salvataggio avviene **nel tuo spazio su lilOS**, non nel browser:
 - se lilOS non riesce a salvare, compare un avviso e riprova da solo; non chiudere la pagina finché non compare **Modifiche salvate**;
 - le connessioni della **Rete** (nome, indirizzo, protocollo) sono salvate nel tuo spazio su lilOS; le password (o, per OneDrive, l'accesso) solo se scegli **Ricorda la password** (**Ricorda l'accesso**), e cifrate. I file che stanno su un server restano sul server: lilOS non ne tiene una copia;
 - le **automazioni** (i passi, le domande, le scorciatoie) sono file `.automata` nella cartella **Automazioni** della tua home (o dove li metti): le password non si salvano mai;
+- gli sketch di **ArduinoIDE** sono file normali nella cartella **Arduino** della tua home; le librerie che installi e le tue scelte (scheda, porta) restano tue; le porte che il browser ti ha lasciato usare sono ricordate dal browser, non da lilOS;
 - gli host del **Terminale** (nome, cartella, indirizzo, impostazioni) sono salvati nel tuo spazio su lilOS, come le connessioni della Rete: le password solo se scegli **Ricorda password e passphrase**, e cifrate. Le sessioni aperte non si salvano: durano finché il kernel resta acceso e al più 10 minuti senza finestra;
 - un'impostazione o un file cambiato in due schede insieme: vince l'ultima che salva. Usa una scheda sola.
 

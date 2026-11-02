@@ -49,6 +49,7 @@ sdk/                    @lilos/sdk: basi riutilizzabili da sistema e app
   core/locale.js        lingua del sistema e traduzioni delle app (con core/i18n.js, il motore)
   core/fs.js            file system virtuale (cartelle, file, collegamenti; salvato nel kernel)
   core/net.js           rete: connessioni a server remoti (cartella Rete) e trasferimenti fatti dal kernel
+  core/serial.js        porte seriali del computer dell'utente (Web Serial), con un canale per porta
   core/term.js          terminali remoti: host salvati e sessioni (SSH, Telnet, rlogin, SUPDUP) nel kernel
   core/pipes.js         pipe sugli eventi: le app si mettono in mezzo a ciò che succede (con core/pipeCatalog.js, gli eventi)
   core/automation.js    automazioni: azioni, registrazione di ciò che fa l'utente e gestori per rifarlo (app Automata)

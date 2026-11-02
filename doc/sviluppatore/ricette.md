@@ -1068,6 +1068,67 @@ terminal.onData(text => port.postMessage(new TextEncoder().encode(text)));
 - Per aggiornare l'elenco ascolta `lilos.on('term', what => …)` (`'hosts'` o `'sessions'`).
 - Con `lilos.term.close(id)` la sessione finisce; chiudere la finestra la lascia aperta per 10 minuti, finché l'utente non la riprende.
 
+## Usare una porta seriale dalla tua app
+
+Serve il permesso `serial` nel manifesto (livello `install`: chi installa lo concede). La porta è quella del computer **dell'utente** e la apre la pagina di lilOS con Web Serial (Chrome, Edge, Firefox 151+, solo `https` o `localhost`): l'app riceve un canale.
+
+```js
+// nella finestra dell'app (sdk '2'); lilos.serial.request vale solo subito dopo un clic o un tasto
+if (!(await lilos.serial.supported())) return showMessage('Serve Chrome, Edge o Firefox 151+ su https');
+button.onclick = async () => {
+  const info = await lilos.serial.request({ filters: [{ usbVendorId: 0x2341 }] });   // null: l'utente ha chiuso l'elenco
+  if (!info) return;
+  const port = await lilos.serial.open(info.id, { baudRate: 115200 });
+  port.onmessage = e => {
+    if (typeof e.data !== 'string') return show(new TextDecoder().decode(e.data));   // byte letti
+    const msg = JSON.parse(e.data);                                                  // done, error, gone
+    if (msg.t === 'gone') showClosed();
+  };
+  port.postMessage(new TextEncoder().encode('ciao\n'));                             // byte da scrivere (fino a 64 KiB)
+  port.postMessage(JSON.stringify({ t: 'signals', id: 1, dtr: false }));             // DTR basso; 'done' con id 1
+};
+```
+
+- Le porte già autorizzate si vedono con `lilos.serial.ports()`, senza chiedere di nuovo. Per sapere quando una si collega o si stacca ascolta `lilos.on('serial', () => …)`.
+- Il canale si chiude con la finestra, con `port.postMessage(JSON.stringify({ t: 'close' }))` o quando la scheda sparisce (messaggio `gone`). Se un altro programma ha la porta aperta, `open` lancia un errore.
+- Per una scheda che si resetta con DTR e RTS manda `signals` con un `id` e aspetta `done` prima di continuare: le scritture e i segnali si eseguono nell'ordine in cui li mandi.
+- Fuori da un'app installata (codice di sistema) importa `serial` da `@lilos/sdk`: stessi metodi.
+
+## Dare un WebSocket al tuo modulo del kernel
+
+Nel modulo ([Aggiungere un modulo al kernel](#aggiungere-un-modulo-al-kernel)) registra il socket con `ctx.socket`; dalla pagina o da un'app lo raggiungi con un canale. Il socket è solo per utenti con l'accesso fatto.
+
+```js
+// system/kernel/modules/eco_1.0.0/index.js
+export default {
+  init(ctx) {
+    ctx.socket('/eco', ({ principal, accept }) => {
+      const ws = accept({ maxMessage: 64 * 1024 });      // senza accept la connessione è rifiutata
+      ws.on('message', data => ws.send(data));            // vedi ws.js del kernel per i metodi
+    });
+    ctx.route('GET', '/info', () => ({ dati: ctx.dataDir }));   // la cartella per i dati del modulo (non esiste finché non la crei)
+  },
+};
+```
+
+```js
+// dalla pagina (SDK)
+import { kernel } from '@lilos/sdk';
+const port = kernel.module('eco').channel('/eco');
+port.onmessage = e => console.log(e.data);
+port.postMessage('ciao');
+```
+
+```js
+// da un'app installata, con il permesso "kernel:eco" nel manifesto (solo nelle finestre per channel)
+const info = await lilos.kernel.request('eco', 'GET', '/info');
+const port = await lilos.kernel.channel('eco', '/eco');
+```
+
+- Metti i dati che devono sopravvivere agli aggiornamenti del modulo (strumenti scaricati, cache) in `ctx.dataDir`, non in `ctx.dir`: `dir` è la cartella della versione e cambia a ogni versione.
+- Il limite di un messaggio lo decidi tu con `accept({ maxMessage })` (predefinito 1 MiB); `kernel.module(...).channel` accetta fino a 16 MiB, `kernel.channel` ha di suo 1 MiB (`maxText`, `maxBytes`).
+- Quando il socket si chiude, chi ha il canale riceve `{"t":"gone","code":…}`.
+
 ## Pubblicare un modulo del kernel come pacchetto
 
 Un modulo in un repository si installa, si aggiorna e si toglie dall'AppStore (Moduli del kernel), con il riavvio del kernel. Decisione: [D40](../interna/decisioni.md#d40-i-moduli-del-kernel-si-installano-come-pacchetti-e-valgono-dopo-il-riavvio). Contratti: [API → Moduli come pacchetti](api.md#moduli-come-pacchetti-modulepackagejs).

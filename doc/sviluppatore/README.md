@@ -91,6 +91,7 @@ sdk/                    @lilos/sdk (vedi sdk/README.md)
     shortcuts.js        scorciatoie da tastiera: comandi e combinazioni modificabili
     fs.js               file system virtuale: albero di cartelle, file e collegamenti
     net.js              rete: connessioni a server remoti e trasferimenti
+    serial.js           porte seriali del computer dell'utente (Web Serial), canale per porta
     term.js             terminali remoti: host salvati, sessioni, canale dello schermo (WebSocket dietro una MessagePort)
     pipes.js            pipe sugli eventi: iscriversi a ciò che succede, cambiarlo o fermarlo (before / after, fasce, ordine dell'utente)
     pipeCatalog.js      gli eventi del sistema (file.open, file.read, file.write, app.launch…); da qui l'SDK esporta pipes e PipeStopped

@@ -21,6 +21,7 @@ Gli altri moduli (`src/`) sono il sistema: scrivania, desktop, barra.
 - [sdk/core/shortcuts.js](#sdkcoreshortcutsjs)
 - [sdk/core/fs.js](#sdkcorefsjs)
 - [sdk/core/net.js](#sdkcorenetjs)
+- [sdk/core/serial.js](#sdkcoreserialjs)
 - [sdk/core/pipes.js e sdk/core/pipeCatalog.js](#sdkcorepipesjs-e-sdkcorepipecatalogjs)
 - [sdk/core/automation.js](#sdkcoreautomationjs)
 - [sdk/core/tags.js](#sdkcoretagsjs)
@@ -300,6 +301,8 @@ import { kernel, KernelError } from '@lilos/sdk';
 | `user` | `{ id, username, name, role }` dell'utente collegato, o `null`. |
 | `data` | Ciò che `GET /api/boot` ha restituito: `{ user, home, fresh, nodes, storage, apps, appSecurity }`. Lo leggono `storage`, `fs` e `apps` appena vengono caricati. |
 | `request(method, path, body?, { text = false, blob = false, keepalive = false })` | Una richiesta a `/api<path>`, con il cookie e l'intestazione `X-Lilos: 1`. `body` oggetto = JSON, stringa = testo, `Blob` / `ArrayBuffer` / array tipizzato = byte (`application/octet-stream`). Restituisce il JSON della risposta (il testo con `text: true`, un `Blob` con `blob: true`, `undefined` per 204). Lancia `KernelError`. Una risposta 401 con l'utente connesso, in modalità `multi`, emette anche `signedout`. |
+| `channel(path, { maxText = 1048576, maxBytes = 1048576 } = {})` → `MessagePort` | Un canale vivo con il kernel: un WebSocket verso `/api<path>` (`ws:` o `wss:` come la pagina) dietro una `MessagePort`. Le stringhe (fino a `maxText` caratteri) e i byte (`ArrayBuffer` o array tipizzato, fino a `maxBytes`) passano nei due sensi così come sono; i messaggi più grandi o di altri tipi si scartano senza errore. Quelli mandati prima che il socket si apra aspettano. Quando il socket si chiude la porta riceve la stringa `{"t":"gone","code":…}` e si chiude. `port.detach()` chiude il socket (per lilOS: la finestra che teneva il canale è stata chiusa). |
+| `module(name)` → `{ request(method, path, body?), channel(path) }` | L'API di un modulo del kernel (i suoi `ctx.route` e `ctx.socket`, vedi [Moduli](#moduli)): `request` è `kernel.request` su `/modules/<name><path>` (metodo in maiuscolo); `channel` è `kernel.channel` sullo stesso indirizzo, con messaggi fino a 16 MiB (il modulo mette il suo limite quando accetta il socket). `name` deve essere `[a-z][a-z0-9-]{0,40}` e `path` della forma `/parola/parola` (caratteri `[\w:-]`, come i percorsi che un modulo dichiara), e non `/update` né `/settings`, che sono del kernel (la gestione del modulo da parte di un amministratore): altrimenti lancia un errore. L'oggetto è congelato. |
 | `session()` | `GET /api/session` → `{ mode, user }`; aggiorna `mode` e `user`. |
 | `login(username, password)` | Accede; restituisce l'utente. Lancia `KernelError` (`invalid_credentials`, `rate_limited`). |
 | `logout()` | Manda ciò che è in attesa (gli errori si ignorano), chiude la sessione, esegue le funzioni di `onLogout` (gli errori si ignorano) e azzera `user`. |
@@ -668,6 +671,55 @@ if (net.available) {
     else throw err;
   }
   await net.transfer([someFileId], net.mountNode(m.id));   // copia un file di lilOS nella radice della condivisione
+}
+```
+
+---
+
+## sdk/core/serial.js
+
+### `serial`
+
+Le porte seriali del computer **dell'utente** (schede come Arduino, adattatori USB), con Web Serial del browser. Funziona in Chrome, Edge e Firefox 151 o più recente, solo su `https` o `localhost`; non in Safari. È la **pagina** di lilOS ad aprire le porte e a dare il canale: un'app isolata (la sandbox non ha Web Serial) le usa lo stesso, tramite `lilos.serial` (vedi [`window.lilos`](#windowlilos-bridgejs)). Non serve il kernel. `Emitter`.
+
+| Membro | Descrizione |
+| --- | --- |
+| `supported` | `true` se il browser ha Web Serial e la pagina è in un contesto sicuro. |
+| `ports()` → `Promise<[port]>` | Le porte che l'utente ha già autorizzato e che sono collegate adesso (`[]` se `supported` è `false`). `port`: `{ id, usbVendorId, usbProductId }` (numeri, o `null` se la porta non è USB). Gli `id` (`p1`, `p2`…) durano quanto la pagina. |
+| `request({ filters? } = {})` → `Promise<port \| null>` | Fa scegliere una porta all'utente (il browser mostra il suo elenco). `filters`: `[{ usbVendorId, usbProductId? }]` (numeri interi, al massimo 50; senza filtri valgono tutte le porte). `null` se l'utente chiude l'elenco. **Solo subito dopo un clic o un tasto**: senza, lancia «Il browser vuole un clic prima di scegliere una porta». Il browser chiede una volta per porta e per sito. |
+| `forget(id)` | Il browser dimentica l'autorizzazione di quella porta. |
+| `open(id, options)` → `Promise<MessagePort>` | Apre la porta e dà il canale. `options`: `baudRate` (obbligatorio, intero da 50 a 4000000), `dataBits` 7 o 8 (predefinito 8), `stopBits` 1 o 2 (1), `parity` `'none'` \| `'even'` \| `'odd'` (`'none'`), `flowControl` `'none'` \| `'hardware'` (`'none'`), `bufferSize` da 64 a 1048576 (4096). Un valore fuori dall'elenco diventa quello predefinito. Lancia un errore se la porta non c'è più, se è già aperta (da un'altra finestra o un altro programma) o se non si apre. |
+
+Evento `change` (senza dati): una porta autorizzata si è collegata o scollegata. Il browser si ascolta dal primo `on('change')` o dalla prima chiamata a `ports()`, `request()`, `forget()` o `open()`.
+
+**Il canale** (la `MessagePort` di `open`):
+
+| Direzione | Messaggio | Significato |
+| --- | --- | --- |
+| dalla porta | `ArrayBuffer` | Byte letti (passati senza copiarli) |
+| dalla porta | stringa `{"t":"done","id":N,"error"?}` | Fine del messaggio di controllo con quell'`id`: tutto ciò che era stato mandato prima è stato scritto (`error` se è fallito) |
+| dalla porta | stringa `{"t":"error","message"}` | Il dispositivo è sparito o la lettura è fallita; segue `gone` |
+| dalla porta | stringa `{"t":"gone"}` | La porta è chiusa; la `MessagePort` si chiude |
+| verso la porta | `ArrayBuffer` o array tipizzato, fino a 64 KiB | Byte da scrivere, in ordine (uno più grande si scarta, e anche ciò che supera 1 MiB in attesa di essere scritto). Alla chiusura, una scrittura che non finisce entro 2 secondi viene interrotta |
+| verso la porta | stringa `{"t":"signals","id"?,"dtr"?,"rts"?,"brk"?}` | Cambia i segnali DTR (Data Terminal Ready), RTS (Request To Send) e break (booleani; quelli assenti restano come sono). Con `id` risponde `done` |
+| verso la porta | stringa `{"t":"sync","id":N}` | Risponde `done` quando le scritture precedenti sono finite |
+| verso la porta | stringa `{"t":"close"}` | Chiude la porta |
+
+Le stringhe sono lunghe al massimo 1024 caratteri (le più lunghe si scartano); scritture e segnali vanno in coda e si eseguono uno alla volta, nell'ordine. `port.detach()` chiude la porta (per lilOS: la finestra che la teneva è stata chiusa). Un errore di parità o di formato dei dati non chiude la porta.
+
+```js
+import { serial } from '@lilos/sdk';
+
+// da un gestore di clic
+const info = await serial.request({ filters: [{ usbVendorId: 0x2341 }] });   // schede Arduino
+if (info) {
+  const port = await serial.open(info.id, { baudRate: 115200 });
+  port.onmessage = e => {
+    if (typeof e.data !== 'string') console.log(new TextDecoder().decode(e.data));
+  };
+  // DTR e RTS bassi (su molte schede è un reset); 'done' arriva quando è fatto
+  port.postMessage(JSON.stringify({ t: 'signals', id: 1, dtr: false, rts: false }));
+  port.postMessage(new TextEncoder().encode('ciao\n'));
 }
 ```
 
@@ -1997,6 +2049,8 @@ Un permesso è `nome` oppure `nome:parametro`. Un permesso non nell'elenco, o co
 | `clipboard.read` | use | Leggere gli appunti | Nessuno |
 | `net:<origine>` | install | Collegarsi a un sito (`https://api.esempio.it`, senza percorso) | Apre `connect-src` della CSP |
 | `term` | install | Aprire terminali remoti (SSH, Telnet…) e usare gli host salvati | `lilos.term.*` e l'evento `term`. Le sessioni collegano il computer del kernel a server scelti dall'app, e con un host salvato usano la sua password: da concedere con cautela. Valgono le regole di rete della cartella Rete (`net/guard.js`) |
+| `serial` | install | Usare le porte seriali e USB del computer dell'utente | `lilos.serial.*` e l'evento `serial`. Un'app con il permesso parla con qualunque dispositivo l'utente le fa scegliere (può anche riprogrammare una scheda): da concedere con cautela. Il browser chiede comunque all'utente quale porta, una volta per porta e per sito |
+| `kernel:<modulo>` | install | Usare un modulo del kernel (per esempio `kernel:arduino`) | `lilos.kernel.request` e `lilos.kernel.channel` verso gli endpoint e i WebSocket di quel modulo (`ctx.route`, `ctx.socket`). Il parametro è il nome del modulo, `[a-z][a-z0-9-]{0,40}`. Cosa può fare chi lo chiama lo decide il modulo: da concedere solo per moduli di cui ci si fida |
 | `media.camera`, `media.microphone`, `geo` | use | Fotocamera, microfono, posizione | Nessuno (l'iframe non ha `allow`) |
 | `apps.call:<id app>` | install | Usare le azioni di un'altra app | `lilos.apps.call(<id app>, entry, data)`. Per i propri punti d'ingresso (`lilos.app.call`) non serve. Dentro: **un'app passa a un'altra un `file` solo se l'ha ricevuto lei** (aperto con l'app o passatole); gli altri dati arrivano così come sono e chi li riceve deve controllarli |
 | `ai.use`, `ai.expose` | install | Usare l'intelligenza artificiale / esporre le proprie azioni | Nessuno |
@@ -2052,7 +2106,7 @@ Con `sdk` `"1"` il modulo è l'app: gira per intero all'avvio con `window.lilos`
 | `lilos.apps.call(app, entry, data)` → risultato | Come `lilos.app.call`, per un punto d'ingresso **di un'altra app**. Serve il permesso `apps.call:<id app>`. L'app deve essere installata e visibile nel workspace attuale. Un `file` (o i `files`, al massimo 100) si può passare solo se l'app lo ha ricevuto; ogni altro dato arriva così com'è e **chi lo riceve deve controllarlo** (la forma, i tipi, le dimensioni). |
 | `lilos.handle(fn)` | Solo in un background: `fn(data, { from })` risponde alle chiamate; `from` è l'id dell'app che chiama (`null` se è il sistema). Il valore restituito, o `null`, torna a chi ha chiamato. Senza `handle` le chiamate falliscono. Un `file` ricevuto nei dati si può leggere e scrivere con `lilos.files` come se l'app fosse stata aperta con lui. |
 | `lilos.locale` | `{ code, i18n: { t(chiave, params?), lang, date(valore, opzioni?), number(valore, opzioni?) } }`: la lingua del sistema e le stringhe dell'app per quella lingua, già risolte (a differenza del resto di `lilos`, **sincrono**). Non richiede permessi. Vedi [`lilos.locale`](#liloslocale). |
-| `lilos.on(evento, fn)` → `off` | Eventi: `launch` (nuovi argomenti, a finestra già aperta), `command` (`id` di un comando di `contributes.commands`, quando l'utente preme la sua scorciatoia; solo nelle finestre), `theme` (i token di colore sono cambiati; nella sandbox il bridge li applica da solo a `:root`), `connect` (`MessagePort`, in un background: qualcuno ha chiamato `lilos.app.connect`), `locale` (`{ code, lang }`: la lingua del sistema è cambiata e `lilos.locale` ha già le nuove stringhe; non nei servizi), `term` (`'hosts'` o `'sessions'`: sono cambiati gli host salvati o le sessioni, anche per colpa di un'altra pagina dello stesso utente; solo per le app con il permesso `term`). |
+| `lilos.on(evento, fn)` → `off` | Eventi: `launch` (nuovi argomenti, a finestra già aperta), `command` (`id` di un comando di `contributes.commands`, quando l'utente preme la sua scorciatoia; solo nelle finestre), `theme` (i token di colore sono cambiati; nella sandbox il bridge li applica da solo a `:root`), `connect` (`MessagePort`, in un background: qualcuno ha chiamato `lilos.app.connect`), `locale` (`{ code, lang }`: la lingua del sistema è cambiata e `lilos.locale` ha già le nuove stringhe; non nei servizi), `term` (`'hosts'` o `'sessions'`: sono cambiati gli host salvati o le sessioni, anche per colpa di un'altra pagina dello stesso utente; solo per le app con il permesso `term`), `serial` (`'ports'`: una porta autorizzata si è collegata o scollegata; solo per le app con il permesso `serial`). |
 | `lilos.window.setTitle(testo)` | Titolo della finestra (fino a 100 caratteri). Solo in una finestra: in un background fallisce. |
 | `lilos.window.close()` | La finestra si chiude, come con il suo pulsante. Solo in una finestra. |
 | `lilos.ui.toast(testo)` | Vecchio nome di `lilos.ui.notify(testo)`: una notifica firmata con l'app, con livello `info` e gli stessi limiti (compreso quello al minuto). Non c'è più un avviso breve in basso. |
@@ -2083,6 +2137,13 @@ Con `sdk` `"1"` il modulo è l'app: gira per intero all'avvio con `window.lilos`
 | `lilos.term.openHere(id)` → sessione | SSH sul server della connessione SFTP in cui sta il file o la cartella `id`, nella sua cartella (per la voce con `when.net: ['sftp']`). `id` deve essere un nodo ricevuto dall'app (aperto con l'app o passato da una sua azione); altrimenti errore. Con una connessione di altro tipo: errore. |
 | `lilos.term.close(id)` | Chiude la sessione (la connessione finisce) e la dimentica. |
 | `lilos.term.attach(id, { cols, rows })` → `MessagePort` | Il canale dello schermo e dei tasti di una sessione. **Solo nelle finestre.** È la **pagina** di lilOS ad aprire il WebSocket verso il kernel, l'app isolata non lo vede: riceve una porta già collegata. Il formato dei messaggi è in [`term`](#sdkcoretermjs). I canali si chiudono con la finestra (le sessioni restano). |
+| `lilos.serial.supported()` → `boolean` | Se il browser può usare le porte seriali (vedi [`serial`](#sdkcoreserialjs)). Serve il permesso `serial`. |
+| `lilos.serial.ports()` → `[port]` | Le porte già autorizzate e collegate: `{ id, usbVendorId, usbProductId }`. |
+| `lilos.serial.request({ filters? })` → `port \| null` | Fa scegliere una porta all'utente. **Solo nelle finestre**, e subito dopo un clic o un tasto. Al massimo 50 filtri. |
+| `lilos.serial.forget(id)` | Il browser dimentica la porta. Solo nelle finestre. |
+| `lilos.serial.open(id, options)` → `MessagePort` | Apre la porta (opzioni e formato dei messaggi in [`serial`](#sdkcoreserialjs)). **Solo nelle finestre.** La porta la apre la **pagina** di lilOS e l'app riceve un canale già pronto, come con `lilos.term.attach`. I canali si chiudono con la finestra. |
+| `lilos.kernel.request(modulo, metodo, percorso, corpo?)` → JSON | Una richiesta a `/api/modules/<modulo><percorso>`. `metodo`: `GET`, `POST`, `PUT` o `DELETE` (altrimenti «Metodo non valido»). Serve il permesso `kernel:<modulo>` (altrimenti «Permesso negato: kernel:…»). Lancia gli errori di `kernel.request`. |
+| `lilos.kernel.channel(modulo, percorso)` → `MessagePort` | Un WebSocket di un modulo (`kernel.module(modulo).channel`, messaggi fino a 16 MiB). **Solo nelle finestre.** I canali si chiudono con la finestra. |
 
 I percorsi sono quelli che l'utente vede dal workspace attuale: `~/Scrivania` è la scrivania del workspace in cui l'app gira. Le variabili di tema (`--accent`, `--text`, `--surface`…) sono disponibili nei CSS dell'app. Le scorciatoie arrivano come `command` con i tasti scelti dall'utente nel Pannello di controllo.
 
@@ -2808,7 +2869,7 @@ Esportati: `connectTriggers()`, `lastOccurrence(trigger, adesso?)` (l'ultimo ist
 - `icon(name, className = 'ico')`: simbolo SVG 24×24 disegnato con `currentColor`. Con un nome sconosciuto mostra `help`.
 - `logo(className = 'logo')`: il logo di lilOS.
 
-Simboli disponibili: `search`, `plus`, `minus`, `x`, `fit`, `zoom`, `grid`, `folder`, `folderPlus`, `file`, `filePlus`, `open`, `pencil`, `trash`, `globe`, `code`, `terminal`, `gear`, `calendar`, `image`, `music`, `mail`, `power`, `help`, `info`, `max`, `palette`, `disk`, `user`, `window`, `keyboard`, `accessibility`, `arrowLeft`, `arrowRight`, `arrowDown`, `arrowUp`, `list`, `home`, `download`, `monitor`, `check`, `save`, `star`, `grip`, `lasso`, `folderOpen`, `sidebar`, `workarea`, `workspace`, `undo`, `redo`, `bell`, `tag`, `eyeOff`, `link`, `logout`, `restart`, `camera`, `calculator`, `archive`, `cloud`, `warning`, `error`.
+Simboli disponibili: `search`, `plus`, `minus`, `x`, `fit`, `zoom`, `grid`, `folder`, `folderPlus`, `file`, `filePlus`, `open`, `pencil`, `trash`, `globe`, `code`, `terminal`, `gear`, `calendar`, `image`, `music`, `mail`, `power`, `help`, `info`, `max`, `palette`, `disk`, `user`, `window`, `keyboard`, `accessibility`, `arrowLeft`, `arrowRight`, `arrowDown`, `arrowUp`, `list`, `home`, `download`, `monitor`, `check`, `save`, `star`, `grip`, `lasso`, `folderOpen`, `sidebar`, `workarea`, `workspace`, `undo`, `redo`, `bell`, `tag`, `eyeOff`, `link`, `logout`, `restart`, `camera`, `calculator`, `chip`, `archive`, `cloud`, `warning`, `error`.
 
 ### `toast.js`
 
@@ -3182,7 +3243,7 @@ Le richieste che modificano (tutte tranne `GET` e `HEAD`) devono avere l'intesta
 | `POST /api/system/use` | amministratori | `{ version }` → `{ version, restartRequired }` |
 | `DELETE /api/system/releases/:version` | amministratori | Cancella una versione conservata → `{ removed }` |
 | `POST /api/system/acknowledge` | amministratori | `{ notice: 'updated' \| 'failed' }` → 204 |
-| `/api/modules/<nome>/…` | utenti | Gli endpoint dei moduli (`ctx.route`) |
+| `/api/modules/<nome>/…` | utenti | Gli endpoint dei moduli (`ctx.route`) e i loro WebSocket (`ctx.socket`) |
 
 In un lilOS installato il kernel serve anche la pagina: ogni `GET` e `HEAD` fuori da `/api` che non corrisponde a un endpoint risponde con il file di `web/` della release (`web.js`); un indirizzo senza estensione che non è un file dà `index.html`. I file in `assets/` hanno l'hash nel nome e si tengono per un anno, gli altri si richiedono ogni volta (`no-cache`). In sviluppo la serve Vite.
 
@@ -3258,6 +3319,8 @@ Cartella `modules/<nome>_<x.y.z>/` con:
 | `service(nome)` | Un servizio dichiarato in `requires`. |
 | `emit(userId, evento, dati = {})` | Dice qualcosa alle pagine lilOS aperte da quell'utente, sul flusso `/api/services-events` (evento `<parola>.<parola>`, per esempio `notification.new`: `[a-z][a-z0-9-]{0,30}\.[a-z][a-zA-Z0-9.-]{0,40}`; `dati` JSON, copiati). Un nome non valido lancia un errore. Arriva solo a chi è collegato in quel momento: chi si collega dopo non lo riceve. |
 | `route(metodo, percorso, handler)` | Endpoint `/api/modules/<nome><percorso>`, solo per utenti con l'accesso fatto. `handler({ principal, params, query, json(limite?), req, res })` restituisce JSON (nulla = 204). Il percorso è `/parola/:param`, con `[\w:-]`; `/update` e `/settings` sono del kernel e `ctx.route` lancia un errore se un modulo li usa. |
+| `socket(percorso, handler)` | Un WebSocket a `/api/modules/<nome><percorso>` (richiesta `GET` con `Upgrade`), solo per utenti con l'accesso fatto (senza, il kernel risponde «Accesso richiesto»). `handler({ principal, params, query, accept })` parte prima della risposta: `accept({ maxMessage = 1048576 })` accetta la connessione e restituisce il WebSocket (`ws.js` del kernel; una seconda chiamata restituisce lo stesso). Un handler che lancia, o che non chiama `accept`, rifiuta la connessione («Connessione rifiutata»). Il percorso ha la stessa forma di quello di `route` (`/parola/:param`, con `[\w:-]`). Dalla pagina si raggiunge con `kernel.module(nome).channel(percorso)`. |
+| `dataDir` | Una cartella per i dati del modulo, `<dati>/modules-data/<nome>` (ignorata da git, `/modules-data/`), che sopravvive alle versioni del modulo (diversamente da `dir`, che cambia a ogni versione). Il kernel **non la crea**: la crea il modulo quando serve. Per strumenti scaricati, cache, pacchetti. |
 
 `commands` sono i comandi della riga di comando: `npm run kernel:cli -- <modulo> <comando> [argomenti] [--opzione valore] [--interruttore]`; ricevono `{ services, args: { positional, flags }, prompt, ctx }`. `prompt.password(domanda, { confirm })` chiede una password senza mostrarla (o la prende da `LILOS_PASSWORD` se non c'è un terminale).
 

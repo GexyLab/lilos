@@ -1515,3 +1515,41 @@ Conseguenze: se tutte le schede si chiudono non parte niente; un'automazione con
 - La conferma dei comandi è dell'app, non del kernel: il kernel non sa cosa c'è in un `.term`.
 
 **Quando ripensarla.** Se serve condividere un collegamento con la password tra utenti; se le finestre secondarie imparano a ripristinarsi da sole.
+
+---
+
+## D67. Arduino: la porta seriale la apre il browser, la compilazione la fa il kernel
+
+**Decisione.**
+
+- **La porta seriale la apre la pagina di lilOS**, con Web Serial, e passa all'app un canale `MessagePort` (`serial` nell'SDK 0.11.0, `lilos.serial` con il permesso `serial`). Le app isolate (iframe `sandbox` con origine opaca) non hanno Web Serial: la pagina apre la porta e dà loro il canale, come per `lilos.term.attach` ([D61](#d61-i-terminali-remoti-le-sessioni-vivono-nel-kernel-un-websocket-nostro)). Il canale porta i byte; DTR, RTS e break sono messaggi JSON, con `done` per sapere quando una scrittura è finita (serve al reset della scheda).
+- **La compilazione e i suggerimenti li fa il kernel**, nel modulo `arduino` 1.0.0: scarica `arduino-cli` 1.5.1, `arduino-language-server` 0.7.7 e `clangd` 14.0.0 controllandone l'SHA-256, compila, gestisce i pacchetti delle schede (uno solo per tutti) e le librerie (per utente). La preparazione la fa un amministratore. I suggerimenti passano da un WebSocket del modulo.
+- **Nuovi pezzi generici**, usabili da altri moduli e app: `ctx.socket(path, handler)` e `ctx.dataDir` per i moduli del kernel (`<dati>/modules-data/<nome>`, che sopravvive alle versioni del modulo); `kernel.channel` e `kernel.module(nome)` nell'SDK; `lilos.kernel.request` e `lilos.kernel.channel` nelle app, con il permesso `kernel:<modulo>`. Entrambi i permessi nuovi sono di livello `install`.
+- **Il modulo difende il computer del kernel.** Un filtro, che legge il testo come il preprocessore (fine riga `\r`, `\r\n`, `\n`; continuazioni di riga anche con spazi; commenti, stringhe, raw string, digrafo `%:`), rifiuta `#include`/`#import`/`#embed` (e `__has_include`) con percorso assoluto, con `..` o fatti da una macro, l'assembler inline e `.incbin`/`.include`, i file `.s`/`.S`, i nomi che arduino-cli legge come opzioni (`build_opt.h`, `build_extra_flags.h`, `platform*.txt`…) e `ldflags`/`precompiled` in `library.properties`; il server dei suggerimenti riceve i testi con le stesse parti cancellate, solo i metodi LSP che servono e un `initialize` riscritto sulla cartella dello sketch. I programmi girano con un ambiente ridotto (niente variabili del kernel). Le app non raggiungono `/update` e `/settings` di un modulo (sono la sua gestione da parte di un amministratore). Impostazione `dataPath` per mettere i dati in una cartella corta: su Windows `avr-gcc` non legge percorsi oltre 260 caratteri.
+- **App ArduinoIDE** 1.0.0 (repository ufficiale, categoria Sviluppo): editor CodeMirror 6, Verifica, Carica con il protocollo STK500 v1 (Uno, Nano) e v2 (Mega) scritto in JavaScript, monitor seriale, gestore delle librerie, esempi. Sketch in `~/Arduino`, librerie proprie in `~/Arduino/libraries`.
+
+**Perché.**
+
+- **La scheda sta attaccata al computer dell'utente**, mentre il kernel può essere su un server o nel cloud: solo il browser vede quella porta. Caricare dal kernel avrebbe funzionato solo con kernel e utente sullo stesso computer.
+- **Il compilatore sta nel kernel** perché è pesante (centinaia di MB), non si può eseguire nel browser e serve identico a tutti.
+- **Il canale `MessagePort`** perché è lo stesso contratto del terminale: l'app isolata non ottiene mai l'oggetto `SerialPort`, quindi non può tenerlo dopo la chiusura della finestra (i canali si chiudono con la finestra) né aprire altre porte che l'utente non le ha fatto scegliere.
+- **Permessi nuovi e non un permesso solo**, perché `serial` dà accesso a dispositivi dell'utente e `kernel:<modulo>` a un modulo preciso: chi installa vede quale.
+
+**Alternative scartate.**
+
+- Caricare dal kernel (la scheda dovrebbe stare sul suo computer).
+- Un programma da installare sul computer dell'utente che faccia da ponte.
+- Dare `navigator.serial` alle app non isolate: funzionerebbe solo per quelle, e le isolate (la modalità predefinita) resterebbero fuori.
+- Compilare nel browser (WebAssembly): il compilatore AVR e le librerie non ci sono in una forma utilizzabile.
+- Un permesso `kernel` unico per tutti i moduli: un'app di terze parti potrebbe chiamare moduli di sistema.
+
+**Conseguenze.**
+
+- Per caricare e usare il monitor servono Chrome, Edge o Firefox 151+, e `https` o `localhost`; Safari no. Scrivere e verificare vanno in ogni browser.
+- Il browser chiede all'utente di scegliere la porta, una volta per porta e per sito; `request` vale solo subito dopo un clic o un tasto.
+- Un'app con il permesso `serial` può parlare con qualunque dispositivo seriale che l'utente le fa scegliere; con `kernel:<modulo>` può chiamare tutto ciò che quel modulo espone. Il controllo di chi può cosa è del modulo (`ctx.route` e `ctx.socket` accettano solo utenti con l'accesso fatto, nient'altro).
+- Il modulo scrive in `modules-data/` fuori dalla cartella della versione: un aggiornamento del modulo non butta via i pacchetti scaricati. Rimuovere il modulo non li cancella.
+- Il filtro non è una sandbox: il compilatore gira con i diritti del kernel, e le librerie installate dall'indice di Arduino non passano dal filtro. Su un server con utenti non fidati il kernel va eseguito come un utente che non può leggere niente di segreto.
+- Serve lilOS 1.18.0 (SDK 0.11.0), ArduinoIDE 1.0.0 e il modulo `arduino` 1.0.0.
+
+**Quando ripensarla.** Se arrivano altre schede (ESP32, RP2040: protocolli e strumenti diversi, gli strumenti sono molto più grandi); se Web Serial diventa disponibile nelle sandbox (allora basta passare la porta); se serve compilare senza un kernel; se il modulo va aperto a utenti non fidati (allora il compilatore va chiuso in una sandbox del sistema operativo).
