@@ -163,7 +163,8 @@ src/
   systemFs.js           cartelle di sistema, riempimento al primo avvio, migrazione della vecchia scrivania
   items/
     targets.js          comandi sugli elementi (Apri, Rinomina, Elimina…) comuni a desktop e File Manager
-    confirmRemove.js    eliminare come dicono le impostazioni: cestino o definitivo, con o senza conferma
+    deskLinks.js        collegamenti sulla scrivania a file, cartelle e pagine web: crearli, aprirli, segnare quelli rotti (`addDeskLinks`, `openLink`, `locateLink`)
+    confirmRemove.js    eliminare    confirmRemove.js    eliminare come dicono le impostazioni: cestino o definitivo, con o senza conferma
     fsHistory.js        azioni sul file system che finiscono in una cronologia (elimina, ripristina, crea, rinomina, sposta)
     itemDrag.js         trascinamento di file e cartelle, uguale in ogni vista (`markItem`, `dropZone`, `dragItems`)
     links.js            ordine della barra laterale del File Manager: voci fisse e collegamenti (`links`, `linkEntry`)

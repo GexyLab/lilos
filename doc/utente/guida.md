@@ -145,6 +145,8 @@ Puoi anche **mettere file e cartelle dentro una cartella**: trascinali sopra una
 
 **Doppio clic** oppure **Invio** sugli elementi selezionati. Le cartelle si aprono nel [File Manager](#il-file-manager), le app si avviano, i file si aprono con l'app associata al loro tipo (i file di testo e di codice nell'[Editor](#leditor)). Se nessuna app è associata compare la finestra [Apri con](#apri-con).
 
+Un [collegamento sulla scrivania](#collegamenti-sulla-scrivania) apre ciò a cui punta: la cartella nel File Manager, il file con la sua app, la pagina web in una nuova scheda del browser.
+
 Con il tasto destro su un file, **Apri con…** permette di scegliere l'app anche quando ce n'è già una associata. Su un file immagine c'è anche **Usa come sfondo desktop** (vedi [Colore e immagine di sfondo](#colore-e-immagine-di-sfondo)).
 
 ### Proprietà
@@ -152,7 +154,8 @@ Con il tasto destro su un file, **Apri con…** permette di scegliere l'app anch
 Tasto destro su **un** elemento → **Proprietà…**. Se ne hai selezionati più di uno la voce non compare. Nel File Manager c'è la stessa voce.
 
 - **Per una cartella o un file** si apre una piccola finestra, solo da leggere: il tipo, dove si trova, quanto pesa (per una cartella, quanti file e cartelle contiene e la loro dimensione), quando è stato creato e modificato, il workspace, i tag e, per un file, l'app con cui si apre. Se un'app ha segnato l'elemento (per esempio un file cifrato) c'è anche una riga **App** con il suo segno (per esempio «Cifrato con FileCrypt»); se quell'app non è più installata, una riga **Dati di** *nome dell'app* con il pulsante **Rimuovi**. Se l'elemento cambia mentre la finestra è aperta, si aggiorna; se sparisce, la finestra si chiude. Per ogni elemento c'è una sola finestra.
-- **Per un'app** (un collegamento sulla scrivania) si aprono le proprietà dell'app, che trovi anche con il tasto destro su un'app nel menu di avvio. Vedi [Proprietà di un'app](#proprietà-di-unapp).
+- **Per un collegamento** (vedi [Collegamenti sulla scrivania](#collegamenti-sulla-scrivania)) si apre la stessa finestra, con il **Tipo** (collegamento a un file, a una cartella o a una pagina web), l'**Originale** (dove punta: il percorso, oppure il nome della connessione e il percorso; «Non trovato» se non c'è più) e, se l'ultima volta l'originale non è stato trovato, lo **Stato**: «Rotto: l’originale non è stato trovato l’ultima volta».
+- **Per un'app** (un'icona di app sulla scrivania) si aprono le proprietà dell'app, che trovi anche con il tasto destro su un'app nel menu di avvio. Vedi [Proprietà di un'app](#proprietà-di-unapp).
 
 Una **workarea** ha le sue proprietà, con il titolo e la descrizione (vedi [Le workarea](#le-workarea)).
 
@@ -163,6 +166,50 @@ Fai clic con il **tasto destro** su un punto vuoto e apri **Nuovo**: scegli **Ca
 Le voci del menu, anche quelle di **Nuovo**, si cambiano nel Pannello di controllo → Usabilità → [Menu contestuale](#menu-contestuale).
 
 Un file di testo nuovo è vuoto: aprilo nell'Editor per scriverci.
+
+**Collegamento…** (sempre in **Nuovo**) non crea un file: apre la finestra per fare un collegamento a qualcosa che sta altrove (vedi [Collegamenti sulla scrivania](#collegamenti-sulla-scrivania)).
+
+### Collegamenti sulla scrivania
+
+Un collegamento è un'icona della scrivania che apre un file, una cartella o una pagina web che sta altrove. È solo una scorciatoia: eliminarlo non tocca l'originale. L'icona è quella dell'originale con una piccola catena in basso a sinistra; per una pagina web è un globo.
+
+**Farne uno da un file o una cartella.** Tasto destro su un file o una cartella (sulla scrivania o nel File Manager, anche in una cartella di un server della [Rete](#rete)) → **Aggiungi un collegamento al desktop**. Con più elementi selezionati ne fai uno per ciascuno. Lo stesso comando c'è con il tasto destro su una connessione della Rete. Il collegamento compare sulla scrivania del workspace in cui sei e ha il nome dell'originale; compare "Collegamento aggiunto al desktop" e **Ctrl Z** lo toglie. Il collegamento di un collegamento punta all'originale.
+
+**Farne uno scrivendo dove punta.** Tasto destro su un punto vuoto della scrivania → **Nuovo** → **Collegamento…**. Nel File Manager, tasto destro su un punto vuoto → **Nuovo collegamento…** (non dentro le cartelle di un server): il collegamento nasce nella cartella che stai guardando. Si apre la finestra **Nuovo collegamento**:
+
+- **Percorso o indirizzo**: dove punta. Con **Sfoglia…** scegli **Un file…** o **Una cartella…** tra i tuoi.
+- **Nome**: se non lo scrivi, lo prende dall'ultima parte del percorso.
+- **Crea** (o Invio) fa il collegamento. Prima lilOS controlla che l'originale esista: per un server lo legge dal server (compare "Lo cerco sul server…").
+
+Cosa puoi scrivere:
+
+| Scrivi | Punta a |
+| --- | --- |
+| `~/Documenti/Note.txt`, `/home/ann/Documenti`, `Documenti/Progetti` | Un file o una cartella tuoi |
+| `sftp://ann@server:22/var/www`, `ftp://…`, `ftps://…` | Un file o una cartella di un server |
+| `smb://server/condivisione/cartella` | Una cartella o un file di una condivisione di rete |
+| `webdav://server/cartella`, `webdavs://server/cartella` | Un server WebDAV (`webdav` è su http, `webdavs` su https) |
+| `nfs://…` e altri | Qualunque protocollo che un amministratore ha aggiunto dall'AppStore → Kernel |
+| `https://…` o `http://…` | Una pagina web, che si apre in una nuova scheda del browser |
+
+Regole:
+
+- **Le cartelle si separano sempre con `/`**, anche per SMB e per i percorsi di Windows. Se scrivi `\` compare un messaggio. Un percorso come `C:/…` senza il protocollo davanti non è accettato.
+- **Un indirizzo passa da una connessione della Rete.** Se ne hai una per quel server (stesso protocollo, porta e utente, se lo scrivi) e la cartella dell'indirizzo sta dentro la sua, il collegamento passa da lì. Se non ne hai, si apre **Connetti a un server** già compilato: quando sei connesso, il collegamento viene creato.
+- **Non scrivere la password nell'indirizzo**: la chiede la connessione.
+- Una pagina web con lo stesso indirizzo di una tua connessione WebDAV è considerata quella connessione.
+
+La finestra ti dice quando qualcosa non va: il percorso non esiste, la password è nell'indirizzo, manca il protocollo, nessun modulo di lilOS conosce il protocollo scritto, manca la connessione, il percorso non c'è sul server.
+
+**Aprire.** Doppio clic o Invio. Per un file o una cartella tuoi, il collegamento segue l'originale se lo sposti o lo rinomini. Per un server, lilOS lo cerca cartella per cartella: se la connessione chiede la password o di confermare il server, si apre il File Manager, che te lo chiede e poi apre il collegamento.
+
+**Quando l'originale non c'è più.** Compare un messaggio con il motivo («L’originale è nel cestino: ripristinalo per usare di nuovo il collegamento», «è stato eliminato», «la connessione di rete non c'è più», «il percorso non c'è più sul server»…) e l'icona diventa sbiadita con una croce rossa: il collegamento è **rotto**. Se l'originale torna (lo ripristini dal Cestino, per esempio) e riapri il collegamento, il segno sparisce. Se il server non risponde, compare un messaggio con **Riprova**; in quel caso il collegamento non viene segnato come rotto, perché l'originale potrebbe esserci.
+
+Limiti di oggi:
+
+- L'icona non si accorge da sola che un originale tuo è stato eliminato: resta com'era finché non apri il collegamento.
+- Non si può fare un collegamento dentro le cartelle di un server.
+- I collegamenti si creano solo a file, cartelle e pagine web, non ad app.
 
 ### Rinominare
 
@@ -318,7 +365,7 @@ Un workspace nuovo si crea anche dal menu del pulsante nella barra delle applica
 
 **File Manager** mostra le cartelle e il loro contenuto. Aprilo dal menu di avvio o dall'elemento **File Manager** della scrivania, oppure fai doppio clic su una cartella della scrivania: si apre direttamente lì. Dal tasto destro su un punto vuoto della scrivania, **Apri la Scrivania nel File Manager** mostra gli elementi della scrivania come elenco.
 
-- **A sinistra**, la barra laterale. In cima la sezione **Collegamenti**: Home e le cartelle principali (Scrivania, Documenti, Immagini, Download, Sistema) e i collegamenti che aggiungi tu (vedi [Collegamenti nella barra laterale](#collegamenti-nella-barra-laterale)), nell'ordine che scegli trascinandoli. Sotto, la voce **Tag** con un elemento per ogni tag che hai creato (vedi [I tag](#i-tag)), la sezione **Rete** con le connessioni ai server (vedi [Rete](#rete)) e in fondo il **Cestino** (vedi [Il Cestino](#il-cestino)): queste restano sempre al loro posto. Le cartelle principali non si possono rinominare né eliminare. **Scrivania** è quella del workspace in cui sei; Documenti, Immagini e Download sono di tutti.
+- **A sinistra**, la barra laterale. In cima la sezione **Collegamenti**: Home e le cartelle principali (Scrivania, Documenti, Immagini, Download, Sistema) e i collegamenti che aggiungi tu (vedi [Collegamenti nella barra laterale](#collegamenti-nella-barra-laterale)), nell'ordine che scegli trascinandoli. Sotto, la voce **Tag** con un elemento per ogni tag che hai creato (vedi [I tag](#i-tag)), la sezione **Rete** con le connessioni ai server (vedi [Rete](#rete)) e in fondo il **Cestino** (vedi [Il Cestino](#il-cestino)): queste restano sempre al loro posto. Le sezioni **Collegamenti**, **Tag** e **Rete** si chiudono e si riaprono con il triangolino a sinistra del titolo (per Collegamenti e Tag basta anche un clic sul titolo): le scelte restano anche dopo aver chiuso il File Manager. Le cartelle principali non si possono rinominare né eliminare. **Scrivania** è quella del workspace in cui sei; Documenti, Immagini e Download sono di tutti.
 - **In alto**: Indietro, Avanti, Cartella superiore; il percorso (fai clic su una parte per tornarci, o accanto alle cartelle per scriverlo: vedi sotto); **Nuova cartella**; vista **elenco**, **a icone** o **anteprime** (tre pulsanti vicini; l'ultima ha il simbolo di un'immagine); i pulsanti che aprono e chiudono i pannelli Anteprima e Informazioni; la ricerca nella cartella aperta (Esc la svuota).
 - **Al centro**: il contenuto della cartella. In vista elenco ci sono le colonne Nome, Modificato, Dimensione, Tipo e Workspace (il workspace che ha creato l'elemento, vedi [I workspace](#i-workspace)): fai clic su un'intestazione per ordinare, di nuovo per invertire l'ordine. Le cartelle restano sempre in cima.
 - **A destra**, due pannelli che si aprono e si chiudono: **Informazioni** e **Anteprima** (vedi [Anteprima e Informazioni](#anteprima-e-informazioni)).

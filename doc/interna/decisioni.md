@@ -1308,3 +1308,38 @@ lilOS legge il file **prima** di avviare l'app e le dà le stringhe già risolte
 **Non ancora fatto.** Inoltro delle porte SSH, agente SSH, host di salto; ridimensionare lo schermo con SUPDUP (il protocollo non lo permette); i dati urgenti di rlogin (Node non li vede); la porta privilegiata di rlogin fuori da Windows e dall'utente root.
 
 **Quando ripensarla.** Se servono sessioni che sopravvivono a un riavvio del kernel (allora vanno tenute in un processo a parte, come `tmux`), se un altro canale in due sensi oltre al terminale giustifica una libreria WebSocket vera (compressione, sottoprotocolli), se arrivano protocolli i cui byte non sono xterm e non si possono tradurre dentro il modulo, o se il tempo di 10 minuti si dimostra troppo corto o troppo lungo.
+
+## D62. I collegamenti: un tipo di nodo di lilOS, una scorciatoia per il kernel
+
+**Decisione.** Un collegamento sulla scrivania è un nodo del file system di lilOS di tipo `link`, che punta a un file o una cartella della home (`{ home: id }`) o di una connessione di rete (`{ mount, path }`), oppure a una pagina web (`{ url, kind: 'web' }`). Il kernel lo conserva come una **scorciatoia a un'app** (tipo `app` con `link` nei metadati): database e moduli `fs-*` non cambiano. Deciso con l'utente e costruito il 2 novembre 2026 (lilOS 1.13.0, SDK 0.7.0, File Manager 1.12.0).
+
+- **Come si fa.** «Aggiungi un collegamento al desktop» nel menu di file, cartelle (anche di rete) e connessioni; «Nuovo → Collegamento…» sulla scrivania e «Nuovo collegamento…» nel File Manager (punto d'ingresso `newLink`). Un collegamento di un collegamento punta all'originale.
+- **Dove sta il codice.** `sdk/core/fs.js` (il tipo, `cleanLink`, `update(id, { broken })`), `system/kernel/src/api/home.js` (la traduzione nei due sensi), `src/items/deskLinks.js` (creare, aprire, controllare; esportato da `@lilos/system`).
+- **Si apre cercando l'originale.** Nella home per id, quindi segue spostamenti e rinomine. In rete per percorso, leggendo il server cartella per cartella (nome esatto, poi senza maiuscole e minuscole). Se la connessione chiede la password o la conferma del server, il collegamento passa al File Manager, che la chiede e poi lo apre.
+- **Originale non trovato** (cestino, eliminato, percorso sparito, connessione rimossa): messaggio con il motivo e segno «rotto» (`broken`) sul collegamento; ritrovato, il segno sparisce. **Server irraggiungibile:** messaggio con Riprova, e il collegamento non viene segnato, perché l'originale potrebbe esserci.
+- **Percorsi senza stile Windows.** La finestra «Nuovo collegamento» accetta percorsi di lilOS e indirizzi con il protocollo (`sftp://`, `smb://`, `webdavs://`…), sempre con `/`. Una `\` è rifiutata con un messaggio; se un protocollo la vuole, la converte il suo modulo mentre parla con il server. Niente `C:/…` e niente UNC.
+- **L'originale deve esistere** quando si crea il collegamento (per un server viene letto): il tipo (file o cartella) viene da lì.
+
+**Perché.**
+
+- **Il kernel non ha un nuovo tipo.** I moduli del kernel si aggiornano separatamente dal core: un tipo nuovo nel `CHECK` del database (o nei moduli `fs-*`) avrebbe rotto le installazioni con un `fs-postgres` vecchio. Una scorciatoia sa già viaggiare senza contenuto, e gli utenti del file system del kernel (trasferimenti, servizi delle app) già la lasciano stare.
+- **Per id nella home** perché è ciò che rende il collegamento solido contro rinomine e spostamenti; **per percorso in rete** perché un server non dà id stabili.
+- **Non segnare rotto quando il server non risponde**, perché un errore di rete non dice che l'originale non c'è: segnarlo farebbe perdere all'utente la fiducia nel segno.
+- **Solo `/`** per scelta dell'utente: una regola sola, uguale per tutti i protocolli, senza ambiguità tra `\` e caratteri dei nomi.
+
+**Alternative scartate.**
+
+- **Un tipo `link` anche nel database e nei moduli `fs-*`.** Più pulito ma rompe i moduli già installati; si può rifare quando i moduli e il core si aggiornano insieme.
+- **Un file con un metadato** (un `.txt` o un `.lnk` con dentro la destinazione). Sarebbe un file vero: lo si leggerebbe, copierebbe e cercherebbe come tale, e un collegamento non è contenuto.
+- **Percorsi stile Windows e UNC** (`C:\…`, `\\server\condivisione`). Rifiutati dall'utente.
+- **Cercare l'originale per id anche in rete.** I server non danno id che restino uguali.
+
+**Conseguenze.**
+
+- Il nodo `link` esiste solo lato lilOS: chi legge il file system dal kernel o dai moduli vede una scorciatoia `app` con `link` nei metadati.
+- Un modulo `fs-*` o una funzione del kernel che mostri le scorciatoie `app` come app deve guardare `meta.link`.
+- L'icona non si aggiorna da sola se l'originale sparisce: resta com'era finché non si apre il collegamento.
+- Non c'è un test automatico per i collegamenti (verificati a mano).
+- Chi mostra i nodi per tipo (app di sistema, app installate) deve conoscere `link`.
+
+**Quando ripensarla.** Se il database e i moduli `fs-*` si aggiornano insieme al core (allora un tipo vero è più pulito), se servono collegamenti a cose che non sono file, cartelle o pagine web (app, comandi), o se i server danno identificatori stabili da usare al posto del percorso.

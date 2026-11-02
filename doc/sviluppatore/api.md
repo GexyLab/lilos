@@ -502,13 +502,14 @@ Combinazione canonica di un evento `keydown`, o `null` se è premuto solo un mod
 
 ### `fs`
 
-File system virtuale: un albero di cartelle, file e collegamenti alle app, tenuto per intero in memoria. **Collegato al kernel** (sempre, nel sistema) è la cartella dell'utente: l'albero si carica all'avvio e ogni modifica è mandata al kernel 300 ms dopo l'ultima, solo per i nodi cambiati (`POST /api/fs/sync`, vedi [Il kernel](#il-kernel)); il contenuto dei file (testo) si legge e scrive dal kernel in modo asincrono, e prima di farlo `read` e `write` mandano ciò che è in attesa (un file appena creato deve esistere là). **Non collegato** (l'SDK da solo) l'albero è salvato in `lilos:fs` e il contenuto in IndexedDB.
+File system virtuale: un albero di cartelle, file, collegamenti alle app e collegamenti (`link`) a file, cartelle e pagine web, tenuto per intero in memoria. **Collegato al kernel** (sempre, nel sistema) è la cartella dell'utente: l'albero si carica all'avvio e ogni modifica è mandata al kernel 300 ms dopo l'ultima, solo per i nodi cambiati (`POST /api/fs/sync`, vedi [Il kernel](#il-kernel)); il contenuto dei file (testo) si legge e scrive dal kernel in modo asincrono, e prima di farlo `read` e `write` mandano ciò che è in attesa (un file appena creato deve esistere là). **Non collegato** (l'SDK da solo) l'albero è salvato in `lilos:fs` e il contenuto in IndexedDB.
 
 ```js
-{ id, type: 'folder' | 'file' | 'app', name, parent, created, modified,   // date in ms
+{ id, type: 'folder' | 'file' | 'app' | 'link', name, parent, created, modified,   // date in ms
   size?,      // solo file: byte del contenuto (UTF-8)
   color?,     // solo cartelle
   app?,       // solo collegamenti: id dell'app
+  link?,      // solo type 'link': dove punta (vedi «Collegamenti» sotto)
   system?,    // non si può rinominare né eliminare
   workspace?, // id del workspace che l'ha creato (non cambia se lo si sposta o rinomina)
   private?,   // solo cartelle: visibile solo nel workspace proprietario (la Scrivania di un workspace)
@@ -518,7 +519,16 @@ File system virtuale: un albero di cartelle, file e collegamenti alle app, tenut
 
 - I nomi sono unici dentro una cartella senza distinguere maiuscole e minuscole: `create` e `rename` aggiungono un numero se serve (`nota.txt` → `nota 2.txt`). Non possono essere vuoti né contenere `/` (diventa `-`); al massimo 255 caratteri.
 - Tutti i metodi di lettura restituiscono **copie** che non condividono nemmeno l'array `tags`: l'albero si cambia solo con i metodi.
-- **Cestino.** `trash` sposta i nodi sotto una seconda radice nascosta (`fs.trashRoot`, `'trash'`). Per tutti gli altri metodi (`get`, `exists`, `children`, `resolve`, `read`, `snapshot`…) i nodi cestinati **non esistono**: si vedono solo con `trashed()`. Vedi [D28](../interna/decisioni.md#d28-il-cestino-è-una-seconda-radice-nascosta-del-file-system).
+- **Collegamenti.** Un nodo `type: 'link'` punta a qualcosa che sta altrove; `link` ha una di queste forme (`cleanLink` in `core/fs.js` scarta il resto, e all'avvio i nodi `link` non validi si perdono):
+
+  | `link` | Dove punta |
+  | --- | --- |
+  | `{ home: id, kind: 'file' \| 'folder', broken? }` | Un nodo della home, per id: segue spostamenti e rinomine (`id` come `[\w-]{1,64}`, non la radice né il cestino) |
+  | `{ mount, path, kind: 'file' \| 'folder', broken? }` | Un file o una cartella di una connessione di rete (`mount`: id della connessione; `path`: comincia con `/`, al massimo 4096 caratteri) |
+  | `{ url, kind: 'web' }` | Una pagina web: solo `http://` o `https://`, senza spazi, al massimo 4096 caratteri |
+
+  `broken: true` dice che l'ultima volta l'originale non è stato trovato (lo mette e lo toglie lilOS, vedi [`deskLinks.js`](#desklinksjs)). Il tipo non ha contenuto: non è un file per `read`, `readBlob`, `write` e `copy`. `external()` (le modifiche che arrivano dal kernel) li ignora. Si crea in qualunque cartella della home, non in una di rete. I getter restituiscono una copia anche di `link`. Per il kernel è una scorciatoia (vedi `/api/fs/sync` più avanti).
+- **Cestino.** `trash` sposta i nodi sotto- **Cestino.** `trash` sposta i nodi sotto una seconda radice nascosta (`fs.trashRoot`, `'trash'`). Per tutti gli altri metodi (`get`, `exists`, `children`, `resolve`, `read`, `snapshot`…) i nodi cestinati **non esistono**: si vedono solo con `trashed()`. Vedi [D28](../interna/decisioni.md#d28-il-cestino-è-una-seconda-radice-nascosta-del-file-system).
 - **Workspace.** Con un workspace impostato (`setWorkspace`), le cartelle `private` degli altri workspace e tutto ciò che contengono **non esistono**: `get`, `exists`, `children`, `ancestors`, `resolve`, `path`, `read`, `write`, `rename`, `move`, `remove`, `snapshot` e `restore` le ignorano (come un id sconosciuto). Senza workspace impostato (all'avvio, prima di `setupWorkspaces`) tutto è visibile. Due cartelle private di workspace diversi possono avere lo stesso nome nella stessa cartella (non si vedono mai insieme). Ogni nodo creato con un workspace impostato porta il suo id in `workspace`.
 - **Dati delle app.** `apps` tiene, per ogni id di app (`/^[a-z0-9][a-z0-9.-]{1,63}$/`), un oggetto che solo quell'app scrive (il ponte `lilos.files.setMeta` e `lilos.files.write(…, { mark })` scrivono sempre sotto l'id dell'app che chiama): al massimo **1 KB di JSON** per app, **8 app** per nodo e **2 KB in tutto** per i dati di tutte le app (il kernel accetta 4 KB di metadati per nodo). Con `content: true` l'app dice che il contenuto del file è suo (per esempio cifrato): senza l'app installata lilOS non lo apre, non lo legge e non lo scrive (guardia di `apps/pipes.js`, che scatta anche se l'app c'è ma le sue pipe `file.read` / `after` e `file.write` / `before` non sono attive). Per `file.open`, `file.read` e `file.write` di un tale file girano solo i gestori di lilOS e quelli di quell'app (vedi [pipes](#sdkcorepipesjs-e-sdkcorepipecatalogjs)). Le copie (`copy`, `copyContent`) portano `apps` con sé; rinominare e spostare non lo toccano. Alla lettura da `lilos:fs` si tengono solo le voci valide. Con `content: true`, `setAppMeta` e `write(…, { mark })` chiamano `scrub` sul nodo.
 - **Pipe.** `read`, `readBlob` e `write` passano dagli eventi `file.read` e `file.write` ([pipes](#sdkcorepipesjs-e-sdkcorepipecatalogjs)) solo se qualche gestore li vuole per quel file; `caller` dice chi chiede (`{ app, opened }` per un'app installata, `{ system: true }` per lilOS, `null` se non si sa) e le operazioni chieste da un'app saltano i gestori di quella stessa app. Le operazioni immediate (`create`, `rename`, `move`, `remove`, `trash`, `purge`, `setTags`) chiamano prima `pipes.runSync` (solo i gestori sincroni di lilOS, che possono fermarle) e dopo `pipes.notify` (le app guardano); `untrash`, `copy` e `copyContent` solo `notify`.
@@ -537,9 +547,9 @@ File system virtuale: un albero di cartelle, file e collegamenti alle app, tenut
 | `isInside(id, ancestorId)` | `true` se `id` è `ancestorId` o sta dentro. |
 | `count(id)` | Quanti nodi contiene una cartella, a ogni livello. |
 | `uniqueName(parentId, name, exceptId?)` | Il nome libero più vicino. |
-| `create(parentId, { type, name, color?, app?, size?, system?, id?, workspace?, private? })` | Crea e restituisce il nodo (`id` facoltativo, per le migrazioni). `workspace` è il proprietario: predefinito il workspace attuale (`fs.workspace`); le cartelle di sistema condivise (`system` senza `private`) non hanno proprietario. `private: true` solo per una cartella con un proprietario. Lancia un errore se la cartella non esiste, il tipo non è valido o `workspace` non è un id valido. |
+| `create(parentId, { type, name, color?, app?, link?, size?, system?, id?, workspace?, private? })` | Crea e restituisce il nodo (`id` facoltativo, per le migrazioni). Per `type: 'link'` serve `link` (vedi «Collegamenti» sotto): se non è valido lancia «Collegamento non valido»; in una cartella di rete un collegamento non si crea (come un'`app`). `workspace` è il proprietario: predefinito il workspace attuale (`fs.workspace`); le cartelle di sistema condivise (`system` senza `private`) non hanno proprietario. `private: true` solo per una cartella con un proprietario. Lancia un errore se la cartella non esiste, il tipo non è valido o `workspace` non è un id valido. |
 | `rename(id, name)` | Rinomina e restituisce il nome finale. |
-| `update(id, { color })` | Cambia i metadati che non sono il nome. |
+| `update(id, { color, broken })` | Cambia i metadati che non sono il nome: `color` (cartelle) e `broken` (booleano, solo collegamenti: mette o toglie il segno «rotto»; se non cambia, non emette niente). |
 | `read(id, { caller? })` | `Promise<string>`: il contenuto del file come testo (`''` se non ne ha), passando da `file.read` se qualcuno lo vuole. |
 | `readBlob(id, { type?, caller? })` | `Promise<Blob>`: il contenuto del file come byte (vuoto se non ne ha), per le immagini e gli altri file binari. Il tipo del `Blob` viene dall'estensione (`'image/png'` per un `.png`, `'image/svg+xml'` per un `.svg`…), oppure è `type`. |
 | `write(id, data, { caller?, mark? })` | `Promise`: salva il contenuto, testo (una stringa) o byte (`Blob`, `ArrayBuffer` o array tipizzato), aggiorna `size` (in byte) e `modified` ed emette `change` di tipo `update`. I byte arrivano al kernel così come sono (`PUT /api/fs/content/:id`) e tornano uguali con `readBlob` (`GET /api/fs/content/:id?raw=1`). Passa da `file.write` (un gestore può cambiare `content` o fermare il salvataggio). `mark: { app, value }` imposta anche i dati di quell'app sul nodo (`setAppMeta`) dopo il salvataggio, nello stesso cambiamento: un contenuto e il segno che dice come leggerlo non si separano mai. I dati di `mark` si controllano prima di salvare. |
@@ -1236,6 +1246,35 @@ Trascinamento di file e cartelle, uguale in ogni vista che li mostra (scrivania,
 
 Come si trova il bersaglio: si prende l'elemento sotto il puntatore (`document.elementFromPoint`) e si risale tra gli antenati. Il primo che ha una zona registrata o è un elemento marcato che mostra una cartella è il bersaglio. Un elemento `.window` ferma la ricerca: un rilascio sopra una finestra non arriva mai alla scrivania sotto. Durante il trascinamento il bersaglio ha la classe `drop-target`, `<body>` ha `items-dragging`, **Esc** annulla (il tasto è intercettato in cattura) e al rilascio tutto si ripulisce.
 
+### `deskLinks.js`
+
+`src/items/deskLinks.js`: i collegamenti (nodi `link` di `fs`) sulla scrivania. Tutto è esportato da `@lilos/system`.
+
+| Funzione | Descrizione |
+| --- | --- |
+| `linkTo(id)` | Dove punterebbe un collegamento a quel nodo: `{ home: id, kind }` o `{ mount, path, kind }` (come `fs.netRef` più il tipo, `'file'` o `'folder'`). Per un nodo `link` è il suo, senza `broken`: il collegamento di un collegamento punta all'originale. `null` per la radice, le app e gli id che non esistono. |
+| `canLinkOnDesk(ids)` | `true` se la scrivania del workspace attuale c'è e almeno uno di questi nodi può avere un collegamento. Serve a mostrare la voce di menu. |
+| `addDeskLinks(ids)` | Crea un collegamento sulla scrivania del workspace attuale per ciascuno che può averlo, con il suo nome (reso unico da `fs.create`). Restituisce gli id nuovi. Lancia «La scrivania non c’è» se non c'è. |
+| `openLink(node, options?)` | Apre ciò a cui punta il collegamento: una cartella nel File Manager (`launch('files', { folder })`), un file con la sua app (`openFile`), una pagina web con `openWebLink`. `Promise` del nodo trovato, `null` se non c'è e per le pagine web. È ciò che fa l'evento `item:open` per i nodi `link`. Le `options` sono quelle di `findLinkTarget`. |
+| `openWebLink(url)` | Apre `url` (solo `http` e `https`) in una scheda nuova con `noopener,noreferrer`. |
+| `findLinkTarget(node, { win = null, read = null } = {})` | `Promise<nodo \| null>`: il nodo a cui punta un collegamento a un file o una cartella (sempre `null` per un collegamento web). Se non lo trova mostra un `messageBox` di errore su `win` («Il collegamento «nome» non trova l’originale», con il motivo) e segna il collegamento `broken`; se lo trova e `broken` era `true`, lo toglie. Anche un originale di un altro tipo di quello atteso («ora non è più una cartella») è un originale non trovato. `read(id)` legge una cartella di rete e dà `true` se l'ha letta, `false` se ha rinunciato (dopo averlo detto). Senza `read`, una connessione che chiede la password o la conferma del server passa il collegamento al File Manager (`launch('files', { folder, link })`) e il risultato è `null`; un server che non risponde mostra un `messageBox` con **Riprova** e **Annulla** e, annullando, il collegamento **non** è segnato rotto. |
+| `locateLink(link, { win = null, read = null, linkNode = null } = {})` | Cerca senza dire niente: `{ node }`, `{ missing: motivo }` o `{ stop: true }` (server non raggiunto, l'utente ha rinunciato o è stato avvisato). Serve a controllare un collegamento prima di farlo: «Nuovo collegamento» del File Manager non ne conosce ancora il `kind`. Senza `read` né `linkNode`, una connessione che chiede la password dà `stop`. |
+
+Come si trova l'originale. Nella home, per id (`link.home`); se manca, il motivo è «nel cestino» (`fs.isTrashed`) oppure «eliminato, o in un workspace che da qui non si vede». In rete la connessione (`net.mount`) e il suo nodo (`net.mountNode`) devono esserci; poi, per ogni parte di `link.path`, si legge la cartella dal server (`fs.refresh`) e si cerca il figlio con quel nome esatto e, se non c'è, senza distinguere maiuscole e minuscole (SMB non le distingue). Se `fs.refresh` rifiuta con `secret_required` o `untrusted`, il File Manager chiede e poi riapre il collegamento; con altri errori compare «Impossibile raggiungere «connessione»».
+
+```js
+import { fs } from '@lilos/sdk';
+import { linkTo, addDeskLinks, openLink } from '@lilos/system';
+
+if (linkTo(id)) {
+  const [made] = addDeskLinks([id]);   // un collegamento sulla scrivania
+  await openLink(fs.get(made));        // apre l'originale, o dice perché non c'è
+}
+```
+
+Il segno dell'icona sta in `src/desktop/itemIcons.js` (`linkIcon`): l'icona dell'originale (per un nodo della home che esiste, la sua; altrimenti quella del tipo, o un globo per `kind: 'web'`) con una catena in basso a sinistra; se è `broken`, sbiadita e con una croce rossa. L'icona si aggiorna quando il nodo `link` cambia, non quando cambia l'originale: se un originale della home sparisce, il collegamento sembra a posto finché non lo si apre. «Proprietà…» (`items/properties.js`) mostra Tipo, Originale e Stato. L'azione `desktop.newLink` («Collegamento…», nel sottomenu Nuovo del menu della scrivania) fa `launch('files', { folder: desktop.folder }, 'newLink')`.
+
+### `links.js`
 ### `links.js`
 
 L'ordine della sezione «Collegamenti» nella barra laterale del File Manager: le voci fisse (Home, Scrivania, Documenti, Immagini, Download, Sistema) e i collegamenti a file e cartelle trascinati lì. Il blocco dei tag e il Cestino stanno fuori dall'ordine.
@@ -1516,7 +1555,7 @@ Argomenti (`args`) che il sistema usa per avviarle, e stato per le workarea (`wi
 
 | App (`id`) | `args` | `getState()` |
 | --- | --- | --- |
-| File Manager (`files`) | `folder`: id della cartella da aprire (altrimenti Home); `trash: true` (o `folder === fs.trashRoot`) apre il Cestino; `tag`: id di un tag che esiste, apre la vista di quel tag. Sulla finestra già aperta arriva l'evento `launch` e mostra la nuova cartella. | `{ folder }` (`fs.trashRoot` per il Cestino, `'tag:<id>'` per un tag) |
+| File Manager (`files`) | `folder`: id della cartella da aprire (altrimenti Home); `trash: true` (o `folder === fs.trashRoot`) apre il Cestino; `tag`: id di un tag che esiste, apre la vista di quel tag; `link`: id di un collegamento che il File Manager deve seguire (lo manda lilOS quando una connessione chiede la password o la conferma del server: il File Manager la chiede e poi apre l'originale). Sulla finestra già aperta arriva l'evento `launch` e mostra la nuova cartella. Ha anche il punto d'ingresso `newLink`, la finestra «Nuovo collegamento» (`folder`: dove si fa il collegamento; la radice se manca, non esiste o è di rete). | `{ folder }` (`fs.trashRoot` per il Cestino, `'tag:<id>'` per un tag) |
 | Editor (`editor`) | `file`: id del file da aprire (in una scheda nuova o in quella che lo mostra già); `folder`: cartella del pannello a destra (assente: l'ultima aperta; `null`: nessuna); `sidebar: false`: pannello chiuso; `session`: id della sessione di schede da riprendere (lo mette `getState`). Senza `session`, la finestra riprende le schede messe da parte da finestre chiuse dall'utente. Apre i tipi di file dichiarati in `contributes.fileTypes` del suo manifesto. | `{ session, file, files, folder, sidebar? }` (`files`: i file delle schede, per `files:locked`) |
 | Pannello di controllo (`settings`) | `tab`: id di una scheda (`'workspaces'`, `'tags'`…), anche a finestra già aperta; `tagFor`: id dei nodi su cui metterà il prossimo tag creato (lo manda «Nuovo tag…» del sottomenu Tag). | nessuno (si riapre sulla prima scheda) |
 | AppStore (`appstore`) | `tab`: `installed`, `updates`, l'id di una categoria (`system`, `productivity`, `media`, `development`, `other`), `kernel` o `options` (anche `apps`, `modules`, `repos`, dei vecchi collegamenti); anche a finestra già aperta (evento `launch`). | nessuno |
@@ -1565,6 +1604,7 @@ Permessi dichiarati nei manifesti ufficiali: File Manager `fs.write:~`, `fs.work
 | `pickFile` | `apps/filePicker.js` | Selettore di file e cartelle |
 | `addTarget` | `items/targets.js` | Comandi sugli elementi |
 | `links`, `linkEntry` | `items/links.js` | Collegamenti della barra laterale del File Manager |
+| `linkTo`, `canLinkOnDesk`, `addDeskLinks`, `openLink`, `openWebLink`, `findLinkTarget`, `locateLink` | `items/deskLinks.js` | I collegamenti sulla scrivania: crearli, aprirli, controllarli (vedi [`deskLinks.js`](#desklinksjs)) |
 | `markItem`, `dropZone`, `dragItems`, `movableInto`, `moveInto` | `items/itemDrag.js` | Trascinamento di file e cartelle |
 | `recordCreated`, `renameNode`, `moveNode`, `restoreNodes`, `removeNodes` | `items/fsHistory.js` | Azioni sul file system che entrano nella cronologia |
 | `confirmRemove` | `items/confirmRemove.js` | Eliminare come dicono le impostazioni |
@@ -2796,7 +2836,7 @@ In un lilOS installato il kernel serve anche la pagina: ogni `GET` e `HEAD` fuor
 
 I percorsi possono finire con `*` (`/api/apps/:id/v/:version/*`): il resto del percorso arriva in `params.rest`.
 
-**Nodi di `/api/fs/sync`.** `{ id, parent, name, type: 'folder' \| 'file' \| 'app', created, modified, color?, app?, system?, workspace?, private?, tags?, trashed?, apps? }`: gli id di lilOS (`[\w-]{1,64}`; `root` e `trash` solo come `parent`) diventano `<home>/<id>`, in una cartella per utente. Il contenuto dei file non passa di qui. I metadati extra (i campi dopo `modified`, `apps` compreso) non possono superare 4 KB per nodo in tutto (`too_large`: «Troppi dati in un elemento»): `apps` non supera 2 KB in tutto (lo garantisce `fs`), così sta nel limite.
+**Nodi di `/api/fs/sync`.** `{ id, parent, name, type: 'folder' \| 'file' \| 'app' \| 'link', created, modified, color?, app?, link?, system?, workspace?, private?, tags?, trashed?, apps? }`: gli id di lilOS (`[\w-]{1,64}`; `root` e `trash` solo come `parent`) diventano `<home>/<id>`, in una cartella per utente. Il contenuto dei file non passa di qui. Un `link` (obbligatorio per il tipo `link`, vietato per gli altri, deve essere un oggetto) il servizio `fs` lo salva come una scorciatoia: tipo `app` con `link` nei metadati; lilOS lo rimette `link` quando lo legge (`api/home.js`, `toBackNode` e `toFrontNode`). Il database e i moduli `fs-*` non conoscono il tipo ([D62](../interna/decisioni.md#d62-i-collegamenti-un-tipo-di-nodo-di-lilos-una-scorciatoia-per-il-kernel)). I metadati extra (i campi dopo `modified`, `apps` compreso) non possono superare 4 KB per nodo in tutto (`too_large`: «Troppi dati in un elemento»): `apps` non supera 2 KB in tutto (lo garantisce `fs`), così sta nel limite.
 
 **Dentro la home** di ogni utente: `~trash` (la radice del Cestino, nominata `.trash`) e `~config` (nominata `.config`, un file JSON per ogni chiave di `storage`). Una chiave è `[\w:.-]{1,120}`.
 
