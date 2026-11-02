@@ -151,7 +151,7 @@ Con il tasto destro su un file, **Apri con…** permette di scegliere l'app anch
 
 ### Proprietà
 
-Tasto destro su **un** elemento → **Proprietà…**. Se ne hai selezionati più di uno la voce non compare. Nel File Manager c'è la stessa voce.
+Tasto destro su **un** elemento → **Proprietà…**. Se ne hai selezionati più di uno la voce non compare. Nel File Manager c'è la stessa voce. I nomi delle righe e i valori (tipi, date, «Non trovato»…) seguono la lingua scelta per lilOS.
 
 - **Per una cartella o un file** si apre una piccola finestra, solo da leggere: il tipo, dove si trova, quanto pesa (per una cartella, quanti file e cartelle contiene e la loro dimensione), quando è stato creato e modificato, il workspace, i tag e, per un file, l'app con cui si apre. Se un'app ha segnato l'elemento (per esempio un file cifrato) c'è anche una riga **App** con il suo segno (per esempio «Cifrato con FileCrypt»); se quell'app non è più installata, una riga **Dati di** *nome dell'app* con il pulsante **Rimuovi**. Se l'elemento cambia mentre la finestra è aperta, si aggiorna; se sparisce, la finestra si chiude. Per ogni elemento c'è una sola finestra.
 - **Per un collegamento** (vedi [Collegamenti sulla scrivania](#collegamenti-sulla-scrivania)) si apre la stessa finestra, con il **Tipo** (collegamento a un file, a una cartella o a una pagina web), l'**Originale** (dove punta: il percorso, oppure il nome della connessione e il percorso; «Non trovato» se non c'è più) e, se l'ultima volta l'originale non è stato trovato, lo **Stato**: «Rotto: l’originale non è stato trovato l’ultima volta».
@@ -225,7 +225,7 @@ Cambiando l'estensione di un file cambia anche la sua icona.
 
 Premi **Canc**, oppure tasto destro → **Elimina**.
 
-Di solito lilOS chiede prima conferma con un piccolo menu: scegli "Sposta nel cestino…" oppure "Annulla". Le cartelle si spostano con tutto il loro contenuto.
+Di solito lilOS chiede prima conferma con un piccolo menu: scegli "Sposta nel cestino…" oppure "Annulla" (il testo segue la lingua di lilOS). Le cartelle si spostano con tutto il loro contenuto.
 
 Gli elementi eliminati non spariscono subito: vanno nel **Cestino** (vedi [Il Cestino](#il-cestino)), da dove li puoi ripristinare. Con **Ctrl Z** puoi anche annullare l'eliminazione subito (vedi [Annullare e ripetere](#annullare-e-ripetere)).
 
@@ -560,7 +560,7 @@ Quando ti colleghi a un server di cui lilOS non si fida ancora, si ferma e ti mo
 
 Se un server di cui ti eri già fidato **cambia chiave o certificato**, la finestra è più severa: ha l'icona dell'errore, il titolo **Il server di «nome» ha CAMBIATO chiave** e mostra l'impronta di prima e quella di adesso. Qualcuno potrebbe fingersi il server: continua solo se sai che l'hanno cambiata apposta.
 
-Premi **Continua** solo se l'impronta corrisponde a quella del tuo server (te la dà chi lo gestisce). Fino ad allora lilOS **non manda al server né utente né password**. La conferma vale per quel server e quella porta, per te: anche per il **Terminale** (un server SSH confermato per una connessione SFTP non viene richiesto quando apri un terminale verso di lui, e viceversa). Se cambi l'indirizzo o la porta di una connessione, la conferma va rifatta.
+La finestra parte con **Annulla** come scelta: **Invio** ed **Esc** annullano, per proseguire premi tu **Continua**. Premi **Continua** solo se l'impronta corrisponde a quella del tuo server (te la dà chi lo gestisce). Fino ad allora lilOS **non manda al server né utente né password**. La conferma vale per quel server e quella porta, per te: anche per il **Terminale** (un server SSH confermato per una connessione SFTP non viene richiesto quando apri un terminale verso di lui, e viceversa). Se cambi l'indirizzo o la porta di una connessione, la conferma va rifatta.
 
 ### La password
 
@@ -869,7 +869,7 @@ Ogni documento aperto ha la sua **scheda**, sopra il testo.
 - **Chiudere**: la × della scheda, il clic con il tasto centrale o **Ctrl Alt W**. Se la scheda ha modifiche, l'Editor chiede **Salva**, **Non salvare** o **Annulla**.
 - **Riordinare**: trascina una scheda. Se ce ne sono troppe per la larghezza, scorri la barra con la rotellina.
 - **Tasto destro** su una scheda: Chiudi, Chiudi le altre, Chiudi quelle a destra, Chiudi quelle salvate, Copia il percorso, Mostra nel File Manager.
-- **Da tastiera**, con il focus sulla barra delle schede: le frecce sinistra e destra, **Home** e **Fine** passano da una scheda all'altra, **Canc** chiude la scheda, il tasto menu (o **Maiusc F10**) apre il menu.
+- **Da tastiera**, con il focus sulla barra delle schede (vale uguale per le schede del Terminale): le frecce sinistra e destra, **Home** e **Fine** passano da una scheda all'altra e la aprono subito, **Canc** chiude la scheda, il tasto menu (o **Maiusc F10**) apre il menu.
 
 | Tasti | Cosa fanno |
 | --- | --- |
@@ -1234,12 +1234,12 @@ Nel File Manager, dentro una connessione **SFTP** della cartella [Rete](#rete), 
 
 ### Confermare il server
 
-Alla prima connessione a un server SSH (o a un Telnet su TLS con un certificato che lilOS non riconosce) compare una finestra con l'impronta della sua chiave. Controllala con chi gestisce il server e premi **Continua**: lilOS la ricorda per quel server. **Annulla** non si collega. Puoi prenderti il tempo che serve per controllare. Se più avanti la chiave cambia, la finestra ha l'icona di errore e dice «Continua solo per fidarti della nuova chiave»: può essere un server reinstallato, ma anche qualcuno che si mette in mezzo. Vai avanti solo se sai perché è cambiata.
+Alla prima connessione a un server SSH (o a un Telnet su TLS con un certificato che lilOS non riconosce) compare una finestra con l'impronta della sua chiave. Controllala con chi gestisce il server e premi **Continua**: lilOS la ricorda per quel server. **Annulla** non si collega, ed è anche ciò che fanno **Invio** ed **Esc**: per proseguire devi premere tu **Continua**. Puoi prenderti il tempo che serve per controllare. Se più avanti la chiave cambia, la finestra ha l'icona di errore e dice «Continua solo per fidarti della nuova chiave»: può essere un server reinstallato, ma anche qualcuno che si mette in mezzo. Vai avanti solo se sai perché è cambiata.
 
 ### Lavorare in una scheda remota
 
 - La scheda funziona come i programmi di oggi si aspettano: colori, mouse, schermo intero per `vim` o `htop`, incolla protetto, caratteri larghi.
-- **Copiare**: seleziona con il mouse. **Incollare**: **Ctrl Maiusc V**. Cercare nello storico: **Ctrl Maiusc F**.
+- **Copiare**: seleziona con il mouse. **Incollare**: **Ctrl Maiusc V**. Cercare nello storico: **Ctrl Maiusc F** apre una barra in alto a destra nel terminale. Mentre scrivi, le corrispondenze si evidenziano e la barra dice «3 di 12». **Invio** va alla successiva, **Maiusc Invio** alla precedente, **Esc** chiude la barra. I tre pulsanti a destra del campo (**Aa**, **ab** e `.*`) cercano rispettando maiuscole e minuscole, solo parole intere, oppure con un'espressione regolare (se è scritta male la barra lo dice).
 - Il menu **Tasti** manda al server i tasti che il browser tiene per sé (Ctrl W, Ctrl T, Ctrl N…) e, per Telnet, **Invia Break**, **Interrompi il processo** e **Ci sei? (AYT)**.
 - **Registra la sessione in un file** salva quello che passa sullo schermo in un file di testo della tua home (di solito in `Documenti`, con il nome dell'host e la data). Si ferma da solo a 8 MB.
 - Nella barra in basso vedi se la connessione è **Cifrata** o **Non cifrata**, l'indirizzo, la chiave del server e la dimensione dello schermo.
@@ -1563,6 +1563,7 @@ Solo per gli amministratori: i moduli del kernel. Sono parti di lilOS: dove stan
 
 - Se il riavvio da qui non è possibile (il kernel non è stato avviato nel modo previsto), compare un messaggio: chi gestisce lilOS deve riavviarlo a mano.
 - Un modulo che lascerebbe lilOS senza file system, o senza accesso mentre lilOS è raggiungibile da altri computer, non si installa e non si rimuove: compare il motivo.
+- **Moduli che ne sostituiscono altri.** Alcuni moduli prendono il posto di due vecchi (per esempio `ssh` al posto di `term-ssh` e `netfs-sftp`, `netfs-google` al posto di `netfs-gdrive` e `netfs-gphotos`). Installandoli (o all'avvio, se c'è già) i vecchi escono da soli e il nuovo prende le loro impostazioni, le connessioni salvate e i loro dati; i vecchi non si possono più installare, e nell'elenco compare il nome di chi li sostituisce. Le app che chiedevano i vecchi vanno bene lo stesso.
 - **Rimuovere un modulo non cancella i suoi dati** (per esempio gli utenti): restano sul computer del kernel, e compare «i suoi dati restano».
 - **Attenzione**: togliere il modulo di accesso o il file system da un lilOS in uso è pericoloso. Fallo solo sapendo cosa succede.
 - **Moduli che servono ad altri.** Un modulo di cui ha bisogno un'app (o un altro modulo) installata non si rimuove finché quella c'è, e non si aggiorna a una versione che l'app non accetta. Un modulo si installa anche da solo insieme all'app che lo richiede ([Installare un'app con ciò che le serve](#installare-unapp-con-ciò-che-le-serve)).

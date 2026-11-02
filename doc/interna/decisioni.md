@@ -476,7 +476,7 @@ Senza un modulo `auth` lilOS ha un solo utente (`local`, amministratore) e il ke
 
 ## D33. Il file system del kernel sta in PostgreSQL
 
-> Aggiornata da [D59](#d59-la-rete-i-protocolli-sono-moduli-del-kernel-e-i-trasferimenti-li-fa-il-kernel): dalla versione 1.1.0 il modulo (ora `fs-postgres_1.1.0`) legge e scrive i contenuti grandi a pezzi (tabella `lilos_chunks`).
+> Aggiornata da [D59](#d59-la-rete-i-protocolli-sono-moduli-del-kernel-e-i-trasferimenti-li-fa-il-kernel): dalla versione 1.1.0 il modulo (ora `fs-postgres_1.1.1`) legge e scrive i contenuti grandi a pezzi (tabella `lilos_chunks`).
 
 **Decisione.** Il modulo `fs-postgres_1.0.0` salva ogni cartella, file e collegamento come riga della tabella `lilos_nodes` (`schema.sql`, applicato a ogni avvio: crea solo ciò che manca). Il contenuto è una colonna `bytea`; eliminare una cartella porta con sé il sottoalbero (`on delete cascade`). Ogni nodo ha un'**area** che prende dal genitore e non cambia: `root`, `system`, `app` (`/system/app`), `commons` (`/system/commons`), `tmp` (`/system/tmp`), `homes` (`/home`) e `home` (`/home/<utente>`). Le regole: ogni utente legge e scrive solo la propria home; `/system/app` e `/system/commons` li leggono tutti ma li scrive solo il kernel; `/system/tmp` e l'elenco delle home sono del kernel; niente si sposta da una home all'altra. Per lo sviluppo c'è un PostgreSQL in Docker (`docker-compose.yml` nel modulo, `npm run db:up` e `npm run db:down`), raggiungibile solo da questo computer, su `127.0.0.1:5433`; in produzione l'indirizzo si dà con la variabile `LILOS_PG_URL`, che vince su `url` della configurazione.
 

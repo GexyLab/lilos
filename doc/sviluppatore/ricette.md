@@ -1001,7 +1001,7 @@ Questa è la strada a mano. Per distribuirlo, vedi la ricetta successiva: un mod
 
 ## Aggiungere un protocollo di rete
 
-Un protocollo è un modulo del kernel che fornisce il servizio `netfs.<protocollo>`: la cartella **Rete**, la finestra «Connetti a un server» e i trasferimenti lo usano senza altre modifiche. Il modello da copiare è `netfs-sftp_1.0.0`. Contratto completo: [API → Rete](api.md#rete-connessioni-e-trasferimenti-net-apinetjs).
+Un protocollo è un modulo del kernel che fornisce il servizio `netfs.<protocollo>`: la cartella **Rete**, la finestra «Connetti a un server» e i trasferimenti lo usano senza altre modifiche. Il modello da copiare è `ssh_1.0.0` (`sftp.js`). Contratto completo: [API → Rete](api.md#rete-connessioni-e-trasferimenti-net-apinetjs).
 
 1. Crea il modulo come in [Aggiungere un modulo al kernel](#aggiungere-un-modulo-al-kernel), con `"provides": ["netfs.mio"]` e `"requires": []`. Il nome del protocollo (`mio`) è `[a-z][a-z0-9-]{0,30}`.
 2. Nell'`init` fornisci il servizio:
@@ -1077,7 +1077,7 @@ Quello che un amministratore deve poter cambiare (un ID, una scelta, un interrut
 
 ## Aggiungere un protocollo di terminale
 
-Un protocollo di terminale è un modulo del kernel che fornisce il servizio `term.<protocollo>`: l'app **Terminale** (schede remote, comandi `ssh`/`telnet`/`rlogin`/`supdup`, host salvati, sessioni che restano aperte) lo usa senza altre modifiche. Il modello da copiare è `term-telnet_1.0.0` (senza dipendenze); per l'accesso con password, `term-ssh_1.0.1`. Contratto completo: [API → Terminali remoti](api.md#terminali-remoti-term-apitermjs).
+Un protocollo di terminale è un modulo del kernel che fornisce il servizio `term.<protocollo>`: l'app **Terminale** (schede remote, comandi `ssh`/`telnet`/`rlogin`/`supdup`, host salvati, sessioni che restano aperte) lo usa senza altre modifiche. Il modello da copiare è `term-telnet_1.1.0` (senza dipendenze); per l'accesso con password, `ssh_1.0.0` (`term.js`). Contratto completo: [API → Terminali remoti](api.md#terminali-remoti-term-apitermjs).
 
 1. Crea il modulo come in [Aggiungere un modulo al kernel](#aggiungere-un-modulo-al-kernel), con `"provides": ["term.mio"]` e `"requires": []`.
 2. Nell'`init` fornisci il servizio:

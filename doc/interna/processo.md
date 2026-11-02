@@ -207,7 +207,7 @@ Parti da una scrivania pulita: accedi con un utente nuovo (`npm run kernel:cli -
 - [ ] Un utente non vede le operazioni degli altri. Disinstallando un'app, le sue operazioni se ne vanno; togliendo un utente, anche le sue.
 - [ ] AppStore → Opzioni → «Controlla gli aggiornamenti»: crea un'operazione giornaliera alle 09:00 nella Pianificazione; **Esegui ora** manda la notifica degli aggiornamenti disponibili.
 - [ ] Un'app con `schedule` (per esempio l'AppStore): vede solo le sue operazioni. Un'app con `schedule.read` e `schedule.move` legge `lilos.schedule.tasks()` con `recurrence` e sposta una volta.
-- [ ] Il modulo `scheduler` non ha **Rimuovi** nell'AppStore; spostandolo fuori da `modules/` e dalla configurazione il kernel lo rimette all'avvio. `npm run release` mette `scheduler_1.0.0` in `system/kernel/modules/` della release.
+- [ ] Il modulo `scheduler` non ha **Rimuovi** nell'AppStore; spostandolo fuori da `modules/` e dalla configurazione il kernel lo rimette all'avvio. `npm run release` mette `scheduler_1.1.0` in `system/kernel/modules/` della release.
 
 ### Test automatici
 
@@ -251,7 +251,7 @@ Nessun agente fa commit o push: si decide dopo aver letto i report.
 - Finora si è lavorato direttamente su `development`. Con più persone conviene passare a un ramo per funzionalità e a pull request.
 - Messaggi di commit in italiano (vedi [Convenzioni](../sviluppatore/convenzioni.md#git)).
 - Non riscrivere la storia dei rami già pubblicati (niente `push --force`).
-- **Mai nel repository**: `system/kernel/modules/users-basic_1.0.0/users.json` (utenti e hash delle password; è ignorato da un `.gitignore` del modulo), `system/kernel/repos.json` (i repository aggiunti: ignorato), chiavi private degli editori (`.pem`) e qualunque credenziale di accesso ai repository (stanno nella configurazione di git del computer del kernel, non nel progetto).
+- **Mai nel repository**: `system/kernel/modules/users-basic_1.1.0/users.json` (utenti e hash delle password; è ignorato da un `.gitignore` del modulo), `system/kernel/repos.json` (i repository aggiunti: ignorato), chiavi private degli editori (`.pem`) e qualunque credenziale di accesso ai repository (stanno nella configurazione di git del computer del kernel, non nel progetto).
 - **Repository ufficiale delle app**: [GexyLab/lilos-plugins-official](https://github.com/GexyLab/lilos-plugins-official), privato, tag `v1.0.0`. Contiene le app di sistema e i moduli del kernel (`users-basic`, `fs-postgres`, `services-isolate`, `scheduler`, `notifications-basic` e i protocolli di rete `netfs-sftp`, `netfs-ftp`, `netfs-webdav`, `netfs-smb`). Ha il suo ciclo di versioni: `version` nei suoi manifesti, `npm run build`, commit di sorgenti e `apps/`, tag `vX.Y.Z` ([come](../sviluppatore/ricette.md#aggiungere-o-aggiornare-unapp-di-sistema)).
 
 ## Rilascio
