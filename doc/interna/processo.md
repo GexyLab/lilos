@@ -120,7 +120,7 @@ Parti da una scrivania pulita: accedi con un utente nuovo (`npm run kernel:cli -
 
 **Workspace**
 - [ ] Al primo avvio c'è il workspace «Principale» (pulsante accanto al logo con pallino e nome) con gli elementi di esempio. Con dati di prima dei workspace (`lilos:fs` con `/Scrivania`, `lilos:camera`, `lilos:desktop-layout`, `lilos:workareas`) compare «Principale» con gli stessi elementi, posizioni, vista e workarea; le vecchie chiavi non ci sono più e ci sono quelle `lilos:ws:<id>:…`.
-- [ ] Menu del pulsante: elenco con la spunta sull'attuale, Successivo / Precedente (disattivi con un solo workspace), Nuovo workspace (lo crea e ci passa, con scrivania vuota), Gestisci i workspace… (apre il Pannello di controllo → Workspace). Ctrl Alt → e Ctrl Alt ← cambiano workspace anche mentre si scrive; compare «Workspace «nome»».
+- [ ] Menu del pulsante: elenco con la spunta sull'attuale, Successivo / Precedente (disattivi con un solo workspace), Nuovo workspace (lo crea e ci passa, con scrivania vuota), Gestisci i workspace… (apre il Pannello di controllo → Workspace). Ctrl Alt → e Ctrl Alt ← cambiano workspace anche mentre si scrive; nessuna notifica al cambio.
 - [ ] La scrivania del nuovo workspace è vuota; la sua cartella Scrivania non si vede nell'altro, né nel File Manager (barra laterale, percorso, ricerca), né nei selettori, né nel pannello dell'Editor. Documenti, Immagini e Download si vedono da tutti.
 - [ ] Ogni workspace ricorda vista, posizioni e workarea; ricaricando, il workspace attuale resta quello.
 - [ ] Cambiando workspace le finestre aperte spariscono (anche dalla barra) senza chiudersi: tornando, l'Editor ha ancora il testo non salvato; il focus torna alla finestra che l'aveva. Ctrl Z riparte dalla cronologia della nuova scrivania.
