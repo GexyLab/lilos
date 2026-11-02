@@ -7,7 +7,7 @@
   "modules": [
     {
       "name": "users-basic",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "config": {
         "sessionDays": 30,
         "idleDays": 7
@@ -15,7 +15,7 @@
     },
     {
       "name": "fs-postgres",
-      "version": "1.1.0",
+      "version": "1.1.1",
       "config": {
         "url": "postgres://lilos:lilos@127.0.0.1:5433/lilos"
       }
@@ -26,48 +26,43 @@
       "config": {}
     },
     {
-      "name": "netfs-sftp",
+      "name": "ssh",
       "version": "1.0.0",
       "config": {}
     },
     {
       "name": "netfs-ftp",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "config": {}
     },
     {
       "name": "netfs-webdav",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "config": {}
     },
     {
       "name": "netfs-smb",
-      "version": "1.0.1",
-      "config": {}
-    },
-    {
-      "name": "term-ssh",
-      "version": "1.0.1",
+      "version": "1.1.0",
       "config": {}
     },
     {
       "name": "term-telnet",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "config": {}
     },
     {
       "name": "term-rlogin",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "config": {}
     },
     {
       "name": "term-supdup",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "config": {}
     },
     {
       "name": "notifications-basic",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "config": {
         "defaultKeep": 20,
         "perMinute": 10
@@ -75,7 +70,7 @@
     },
     {
       "name": "scheduler",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "config": {
         "maxTasksPerUser": 100,
         "minIntervalMinutes": 1,

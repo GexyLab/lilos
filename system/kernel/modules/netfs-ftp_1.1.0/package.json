@@ -1,0 +1,9 @@
+{
+  "name": "lilos-module-netfs-ftp",
+  "version": "1.1.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "basic-ftp": "6.2.3"
+  }
+}

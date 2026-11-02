@@ -13,8 +13,8 @@
     "kernel:setup": "node system/kernel/setup.js",
     "kernel:cli": "node system/kernel/cli.js",
     "release": "node scripts/release.mjs",
-    "db:up": "docker compose -f system/kernel/modules/fs-postgres_1.1.0/docker-compose.yml up -d",
-    "db:down": "docker compose -f system/kernel/modules/fs-postgres_1.1.0/docker-compose.yml down"
+    "db:up": "docker compose -f system/kernel/modules/fs-postgres_1.1.1/docker-compose.yml up -d",
+    "db:down": "docker compose -f system/kernel/modules/fs-postgres_1.1.1/docker-compose.yml down"
   },
   "devDependencies": {
     "vite": "^8.3.5"

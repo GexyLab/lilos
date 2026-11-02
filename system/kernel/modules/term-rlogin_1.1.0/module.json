@@ -1,0 +1,12 @@
+{
+  "name": "term-rlogin",
+  "version": "1.1.0",
+  "description": "Terminali remoti rlogin: i vecchi sistemi Unix",
+  "kernel": "1",
+  "icon": { "glyph": "terminal", "color": "#5b3fae" },
+  "provides": [
+    "term.rlogin"
+  ],
+  "requires": [],
+  "defaultConfig": {}
+}
