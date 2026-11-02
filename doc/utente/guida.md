@@ -1285,16 +1285,16 @@ Un file `.term` apre una shell o una sessione remota con le tue scelte già fatt
 - La shell del Terminale può eseguire anche i comandi della [Pianificazione](#pianificazione), a lilOS chiuso: è il servizio «Shell per la Pianificazione» del Terminale 1.5.0, che parte da solo quando serve e non va acceso a mano.
 - Serve una versione di lilOS dalla 1.12.0.
 
-## ArduinoIDE
+## ArduinoIDE4LilOS
 
-**ArduinoIDE** serve a scrivere programmi (gli *sketch*) per le schede **Arduino Uno, Nano e Mega**, controllarli e caricarli sulla scheda collegata al tuo computer. Non è un'app ufficiale di lilOS: sta nel repository community [lilos-plugins-community](https://github.com/GexyLab/lilos-plugins-community), con i sorgenti aperti a tutti.
+**ArduinoIDE4LilOS** serve a scrivere programmi (gli *sketch*) per le schede **Arduino Uno, Nano e Mega**, controllarli e caricarli sulla scheda collegata al tuo computer. Non è un'app ufficiale di lilOS: sta nel repository community [lilos-plugins-community](https://github.com/GexyLab/lilos-plugins-community), con i sorgenti aperti a tutti.
 
 Per averla, un amministratore:
 
 1. aggiunge il repository dall'[AppStore](#lappstore): **Opzioni** → **Aggiungi un repository**, indirizzo `https://github.com/GexyLab/lilos-plugins-community`;
 2. installa il modulo **arduino** dalla scheda **Kernel** e riavvia lilOS;
-3. installa **ArduinoIDE** dalla categoria **Sviluppo**;
-4. apre ArduinoIDE una volta e preme **Prepara** (circa 150 MB da scaricare).
+3. installa **ArduinoIDE4LilOS** dalla categoria **Sviluppo**;
+4. apre ArduinoIDE4LilOS una volta e preme **Prepara** (circa 150 MB da scaricare).
 
 L'AppStore avvisa che i pacchetti di un repository non ufficiale non sono verificati. Come si usa l'app (sketch, scheda e porta, caricamento, monitor seriale, librerie) lo spiega il suo README, che l'AppStore mostra nei dettagli dell'app. Per caricare sulla scheda servono Chrome, Edge o Firefox 151 o più recente, con lilOS su `https` o `localhost`; serve lilOS dalla 1.18.0.
 
@@ -2009,7 +2009,7 @@ Il salvataggio avviene **nel tuo spazio su lilOS**, non nel browser:
 - le connessioni della **Rete** (nome, indirizzo, protocollo) sono salvate nel tuo spazio su lilOS; le password (o, per OneDrive, l'accesso) solo se scegli **Ricorda la password** (**Ricorda l'accesso**), e cifrate. I file che stanno su un server restano sul server: lilOS non ne tiene una copia;
 - le **operazioni della Pianificazione** e il loro storico sono salvati dal computer di lilOS, nel modulo `scheduler`: restano dopo un riavvio e un aggiornamento. Le intestazioni segrete delle richieste web sono cifrate;
 - le **automazioni** (i passi, le domande, le scorciatoie) sono file `.automata` nella cartella **Automazioni** della tua home (o dove li metti): le password non si salvano mai;
-- gli sketch di **ArduinoIDE** sono file normali nella cartella **Arduino** della tua home; le librerie che installi e le tue scelte (scheda, porta) restano tue; le porte che il browser ti ha lasciato usare sono ricordate dal browser, non da lilOS;
+- gli sketch di **ArduinoIDE4LilOS** sono file normali nella cartella **Arduino** della tua home; le librerie che installi e le tue scelte (scheda, porta) restano tue; le porte che il browser ti ha lasciato usare sono ricordate dal browser, non da lilOS;
 - gli host del **Terminale** (nome, cartella, indirizzo, impostazioni) sono salvati nel tuo spazio su lilOS, come le connessioni della Rete: le password solo se scegli **Ricorda password e passphrase**, e cifrate. Le sessioni aperte non si salvano: durano finché il kernel resta acceso e al più 10 minuti senza finestra;
 - un'impostazione o un file cambiato in due schede insieme: vince l'ultima che salva. Usa una scheda sola.
 
