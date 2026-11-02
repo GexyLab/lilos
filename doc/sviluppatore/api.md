@@ -351,7 +351,7 @@ I repository da cui arrivano app e moduli: quello ufficiale (sempre presente) e 
 
 ### `kernelModules`
 
-I moduli del kernel come pacchetti (solo amministratori). Girano nel kernel con accesso completo: ogni modifica vale dal **riavvio**. Vedi [Moduli come pacchetti](#moduli-come-pacchetti-modulepackagejs).
+I moduli del kernel come pacchetti (solo amministratori). Girano nel kernel con accesso completo: ogni modifica vale dal **riavvio** (salvo le impostazioni di un modulo che le applica subito: `settings` e `saveSettings`). Vedi [Moduli come pacchetti](#moduli-come-pacchetti-modulepackagejs).
 
 | Metodo | Descrizione |
 | --- | --- |
@@ -359,6 +359,8 @@ I moduli del kernel come pacchetti (solo amministratori). Girano nel kernel con 
 | `install(source, { allowUnsigned = false })` | Installa e accende il modulo → `{ name, version, restartRequired: true }`. Un modulo non ufficiale richiede `allowUnsigned: true`. |
 | `update(name, { ref, allowUnsigned = false })` | Aggiorna dall'origine registrata → `{ name, version, previous, restartRequired }`, oppure `{ name, version, unchanged: true }`. |
 | `remove(name)` | Spegne il modulo e cancella le sue cartelle, tranne quelle che contengono i suoi dati → `{ name, kept, restartRequired }` (`kept`: cartelle conservate). |
+| `settings(name)` | `{ fields, values, live }`: le impostazioni di un modulo **in esecuzione** (`settings` del suo `module.json`). `fields`: i campi come quelli di un protocollo di rete (`key`, `type`, `label`, `hint`, `default`, `options`, `when`…); `values`: quelli presenti nella sua configurazione (solo le chiavi dei campi); `live`: `true` se il modulo le applica subito (ascolta `ctx.onConfig`), altrimenti valgono dal prossimo avvio. `not_found` se il modulo non è attivo. |
+| `saveSettings(name, values)` | Cambia le impostazioni (`values`: `{ chiave: valore }`) e restituisce lo stesso di `settings`. I valori si controllano con i campi (`invalid`); una chiave assente o vuota prende il `default` del campo, se ce l'ha, altrimenti si toglie. Le altre chiavi della configurazione restano. Se il modulo fornisce protocolli di rete, le connessioni aperte si chiudono (si riaprono al primo uso con le nuove impostazioni). Un modulo senza impostazioni lancia `invalid`. |
 | `restart()` | Chiede al kernel di riavviarsi (`POST /api/kernel/restart`). Funziona solo se il kernel è stato avviato con `npm run kernel`; altrimenti lancia `unavailable`. Durante il riavvio (qualche secondo) le richieste falliscono: i salvataggi in attesa si ripetono da soli. |
 
 ### `systemReleases`
@@ -605,16 +607,20 @@ Connessioni di rete (la cartella **Rete**: FTP, SFTP, WebDAV, SMB; ogni protocol
 | Membro | Descrizione |
 | --- | --- |
 | `available` | `true` se c'è il kernel e ha almeno un protocollo |
-| `protocols` | `[{ id, label, order, fields, canListShares }]`: i protocolli, già in ordine; `fields` come nel contratto del driver |
+| `protocols` | `[{ id, label, order, fields, canListShares, links, office, recycles, notReady }]`: i protocolli, già in ordine; `fields` come nel contratto del driver. `links`: `link()` funziona sulle sue connessioni; `office`: il link di un documento Office lo apre in Office per il web; `recycles`: ciò che si elimina va nel cestino del fornitore; `notReady`: perché non si può ancora usare (etichetta), o `null` |
 | `mounts()` / `mount(id)` | Le connessioni (copie) / una connessione o `null`: `{ id, name, protocol, address, values, auto, remembered, trusted, state, error }` |
 | `load()` | `Promise`: le rilegge dal kernel (le prime arrivano già con `GET /api/boot`) |
-| `create({ name, protocol, values, auto, remember, trust? }, secret)` | `Promise<mount>`. `secret`: `{ chiave: valore }` dei campi segreti |
+| `create({ name, protocol, values, auto, remember, trust?, signin? }, secret)` | `Promise<mount>`. `secret`: `{ chiave: valore }` dei campi segreti. `signin`: l'id di un accesso fatto con `signIn` (protocolli con un campo `signin`) |
 | `update(id, { name?, values?, auto?, remember?, forget? }, secret?)` | `Promise<mount>`. I segreti vuoti restano come sono |
 | `remove(id)` | `Promise`. Toglie la connessione |
-| `connect(id, { secret?, remember?, trust? })` | `Promise<mount>`. Poi rilegge comunque lo stato, anche se è fallita |
+| `connect(id, { secret?, remember?, trust?, signin? })` | `Promise<mount>`. Poi rilegge comunque lo stato, anche se è fallita. `signin`: l'id di un accesso appena fatto (`signIn`), per rifare l'accesso di una connessione |
 | `disconnect(id)` | `Promise<mount>`. Dimentica la password non ricordata |
-| `test({ protocol, values, trust? }, secret)` | `Promise`. Prova senza salvare |
+| `test({ protocol, values, trust?, signin? }, secret)` | `Promise`. Prova senza salvare |
 | `shares({ protocol, values, trust? }, secret)` | `Promise<string[]>`. Cosa offre il server (protocolli con `canListShares`) |
+| `signIn(protocol, values = {}, { signal }?)` | `Promise<{ signin, account }>`. Per i protocolli con un campo `signin`: apre subito una finestra (**va chiamata direttamente da un clic**, altrimenti il browser la blocca), chiede al kernel la pagina del fornitore, la mostra, aspetta la fine dell'accesso e chiude la finestra. `values`: gli altri campi della connessione. `signin` (l'id) va in `create`, `update`, `test` o `connect`; `account` è quello da mostrare. Rifiuta con `KernelError` di codice `blocked` (il browser non ha aperto la finestra), `canceled` (`signal` interrotto) o `invalid` (accesso non riuscito) o con un errore del kernel (`unavailable`, `rate_limited`…). Il ritorno è `<origine>/api/net/signin/callback`: vedi [Accesso con un fornitore](#accesso-con-un-fornitore-netsigninjs) |
+| `link(id, path)` | `Promise<string>`. Un `https://…`: la pagina del file o della cartella sul sito del fornitore (protocolli con `links`); per un documento Office di un protocollo con `office`, Office per il web |
+| `openWeb(getUrl)` | `Promise`. Apre **subito** una scheda vuota (da chiamare da un clic), aspetta `await getUrl()` (deve essere `https://`) e porta la scheda lì, senza `opener`. Se `getUrl` fallisce chiude la scheda e rifiuta; se il browser non ha dato la scheda, apre l'indirizzo con `window.open` quando arriva. Esempio: `net.openWeb(() => net.link(id, path))` |
+| `putHome(id, fileId, folder = '/', ifExists = 'ask')` | `Promise<{ path, name }>`. Copia un file della home (`fileId` di `fs`) in una cartella di una connessione, creandola se manca. `ifExists`: `'replace'`, `'keep'` (la copia prende un altro nome, con un numero) o `'ask'` (`KernelError` `conflict` con `details: { name, exists: true }`). Prima fa partire il salvataggio dei file in attesa verso il kernel (`kernel.flush('fs')`) |
 | `text(label)` | Un'etichetta di protocollo o di campo (`{ en, it }` o testo) nella lingua del sistema: prima il codice completo, poi la lingua, poi `en`, poi la prima |
 | `mountNode(id)` | `'net-<id>'`: l'id del nodo di `fs` che è la cartella della connessione |
 | `transfers` | L'ultima istantanea dei trasferimenti (vedi [Trasferimenti](#trasferimenti-transfers)) |
@@ -625,7 +631,7 @@ Connessioni di rete (la cartella **Rete**: FTP, SFTP, WebDAV, SMB; ogni protocol
 
 Eventi: `mounts` (una connessione è comparsa, cambiata o sparita), `transfers` (istantanea), `notify` `{ text, level }` (una coda è finita e il kernel non tiene le notifiche). Il sistema passa a `net` ciò che il kernel trasmette con `mountChanged()`, `transfersChanged(istantanea)` e `notified(dati)`; le app non li chiamano.
 
-Gli errori sono `KernelError` con `details` (vedi [`KernelError`](#class-kernelerror-extends-error)): `secret_required` (`details.reason`: `'missing'` o `'auth'`), `untrusted` (`details.trust`: `{ kind, fingerprint, text, changed?, previous? }`, con `changed: true` e l'impronta di prima in `previous` se il server ha cambiato chiave o certificato: avvisa più forte; per proseguire si richiama `connect` con `{ trust: fingerprint }`) e `unavailable`.
+Gli errori sono `KernelError` con `details` (vedi [`KernelError`](#class-kernelerror-extends-error)): `secret_required` (`details.reason`: `'missing'`, `'auth'` o `'signin'`: serve un nuovo accesso, `signIn` e poi `connect` con `signin`), `untrusted` (`details.trust`: `{ kind, fingerprint, text, changed?, previous? }`, con `changed: true` e l'impronta di prima in `previous` se il server ha cambiato chiave o certificato: avvisa più forte; per proseguire si richiama `connect` con `{ trust: fingerprint }`) e `unavailable`.
 
 ```js
 import { net } from '@lilos/sdk';
@@ -2334,7 +2340,7 @@ Il pulsante dei trasferimenti nell'area di notifica della barra delle applicazio
 
 - `systemFs.js`: `NETWORK_NAME` (`'Rete'`, esportato anche da `@lilos/system`); `setupFileSystem` crea la cartella di sistema Rete se `net.available` (`'Rete 2'` se l'utente ne aveva una sua), e `sharedFolder('Rete')` la trova. Non è in `SYSTEM_FOLDERS`.
 - `items/itemDrag.js`: tra la home e una connessione, o tra due connessioni, il rilascio **copia** con `net.transfer` (errore: notifica «Trasferimento non avviato: …»); dentro la stessa connessione sposta come altrove. Dal cestino non si ripristina in una cartella remota.
-- `items/confirmRemove.js` e `items/fsHistory.js`: i nodi di una connessione si eliminano dal server per sempre, con la conferma **sempre** (anche con `deleteConfirm` spento): «Elimina dal server «nome» (definitivo)». Non entrano nella cronologia per annullare.
+- `items/confirmRemove.js` e `items/fsHistory.js`: i nodi di una connessione si eliminano dal server per sempre, con la conferma **sempre** (anche con `deleteConfirm` spento): «Elimina dal server «nome» (definitivo)»; se il protocollo ha `recycles` (OneDrive), «Elimina da OneDrive «nome» (va nel suo cestino)». Non entrano nella cronologia per annullare.
 - `desktop/itemIcons.js`: la cartella di una connessione (`mount`) ha l'icona `globe`; i file remoti (`net`) non hanno miniature.
 - `notifications/card.js`: `systemActions` (`Map`, entry → `fn(args)`) dà un'azione al clic sulle notifiche che manda lilOS (`from.system`): quelle dei trasferimenti hanno `{ entry: 'transfers' }`.
 - `apps/services.js`: `onKernelEvent(evento, fn)` ascolta un evento del flusso `/api/services-events` (`fn(dati)`); con l'evento `''` la funzione riceve la riapertura del flusso. Da chiamare prima di `connectServices()`.
@@ -2347,7 +2353,7 @@ Il pulsante dei trasferimenti nell'area di notifica della barra delle applicazio
 - `icon(name, className = 'ico')`: simbolo SVG 24×24 disegnato con `currentColor`. Con un nome sconosciuto mostra `help`.
 - `logo(className = 'logo')`: il logo di lilOS.
 
-Simboli disponibili: `search`, `plus`, `minus`, `x`, `fit`, `zoom`, `grid`, `folder`, `folderPlus`, `file`, `filePlus`, `open`, `pencil`, `trash`, `globe`, `code`, `terminal`, `gear`, `calendar`, `image`, `music`, `mail`, `power`, `help`, `info`, `max`, `palette`, `disk`, `user`, `window`, `keyboard`, `accessibility`, `arrowLeft`, `arrowRight`, `arrowDown`, `arrowUp`, `list`, `home`, `download`, `monitor`, `check`, `save`, `star`, `grip`, `lasso`, `folderOpen`, `sidebar`, `workarea`, `workspace`, `undo`, `redo`, `bell`, `tag`, `eyeOff`, `link`, `logout`, `restart`, `camera`, `calculator`, `archive`, `warning`, `error`.
+Simboli disponibili: `search`, `plus`, `minus`, `x`, `fit`, `zoom`, `grid`, `folder`, `folderPlus`, `file`, `filePlus`, `open`, `pencil`, `trash`, `globe`, `code`, `terminal`, `gear`, `calendar`, `image`, `music`, `mail`, `power`, `help`, `info`, `max`, `palette`, `disk`, `user`, `window`, `keyboard`, `accessibility`, `arrowLeft`, `arrowRight`, `arrowDown`, `arrowUp`, `list`, `home`, `download`, `monitor`, `check`, `save`, `star`, `grip`, `lasso`, `folderOpen`, `sidebar`, `workarea`, `workspace`, `undo`, `redo`, `bell`, `tag`, `eyeOff`, `link`, `logout`, `restart`, `camera`, `calculator`, `archive`, `cloud`, `warning`, `error`.
 
 ### `toast.js`
 
@@ -2696,6 +2702,8 @@ Le richieste che modificano (tutte tranne `GET` e `HEAD`) devono avere l'intesta
 | `POST /api/modules` | amministratori | `{ source, allowUnsigned }` → `{ name, version, restartRequired }` |
 | `POST /api/modules/:name/update` | amministratori | `{ ref?, allowUnsigned }` → `{ name, version, previous, restartRequired }` o `{ …, unchanged: true }` |
 | `DELETE /api/modules/:name` | amministratori | → `{ name, kept, restartRequired }` |
+| `GET /api/modules/:name/settings` | amministratori | → `{ fields, values, live }`: le impostazioni di un modulo in esecuzione (`not_found` se non è attivo) |
+| `PUT /api/modules/:name/settings` | amministratori | `{ values }` (fino a 64 KB) → lo stesso, cambiato (`invalid` se i valori non sono quelli dei campi o il modulo non ha impostazioni) |
 | `GET /api/services` | utenti | → `{ available, enabled, admin, services }`: i servizi delle app (`kind: 'service'`) con quando partono e come sono ora, per questo utente (vedi [Servizi delle app](#servizi-delle-app-appsappservicesjs)) |
 | `PUT /api/services-options` | utenti | `{ enabled: true \| false }` → `{ enabled }`: se i servizi dell'utente partono quando entra. Altro che un booleano: `invalid` |
 | `PUT /api/services/:app/:entry/startup` | utenti (`system`: amministratori) | `{ when: 'none' \| 'login' \| 'system', params? }` → come `GET /api/services`. `forbidden` per `system` (o per cambiare un servizio già di sistema) se non si è amministratori |
@@ -2776,20 +2784,21 @@ All'avvio il kernel carica i moduli, registra le rotte e prima di ascoltare **in
 
 Cartella `modules/<nome>_<x.y.z>/` con:
 
-- `module.json`: `{ name, version, description, kernel: "1", provides: [servizio], requires: [servizio] }`. `name` e `version` devono corrispondere alla cartella e `kernel` a quello del kernel (`1`).
+- `module.json`: `{ name, version, description, kernel: "1", provides: [servizio], requires: [servizio], settings?: [campo] }`. `name` e `version` devono corrispondere alla cartella e `kernel` a quello del kernel (`1`). `settings`: ciò che un amministratore può cambiare della configurazione del modulo (Pannello di controllo), descritto come i campi di un protocollo di rete: `{ key, type, label, hint?, placeholder?, default?, options?, when?, min?, max? }`, con `key` `[a-z][a-zA-Z0-9]{0,30}` e `type` `text`, `textarea`, `number`, `select` o `checkbox`. Un `module.json` con una voce diversa fa fallire il caricamento del modulo («impostazioni non valide»). Non usare `secret`: i campi segreti non sono ammessi.
 - `index.js`: `export default { init(ctx), stop?(), commands? }`.
 
 `ctx` (il contesto di `init`):
 
 | Membro | Descrizione |
 | --- | --- |
-| `name`, `version`, `dir`, `config` | Il modulo, la sua cartella (può tenerci file propri) e la sua parte di configurazione. |
+| `name`, `version`, `dir`, `config` | Il modulo, la sua cartella (può tenerci file propri) e la sua parte di configurazione. `config` è sempre lo stesso oggetto: quando un amministratore cambia le impostazioni (`settings`) i valori cambiano lì dentro. |
+| `onConfig(fn)` | `fn(config)` dopo ogni cambio delle impostazioni fatto da un amministratore (`PUT /api/modules/:nome/settings`). Con almeno un `onConfig` il modulo risulta `live` (le impostazioni valgono subito); senza, dal prossimo avvio. Se `fn` lancia, l'errore finisce nel log e la modifica resta. |
 | `log` | Logger. |
 | `fail(codice, messaggio)` | Lancia un errore voluto (i codici sono quelli della tabella degli errori). |
 | `provide(servizio, impl)` | Fornisce un servizio dichiarato in `provides`; per `auth`, `users`, `fs`, `runtime` e `notifications` il kernel controlla che `impl` abbia tutti i metodi. |
 | `service(nome)` | Un servizio dichiarato in `requires`. |
 | `emit(userId, evento, dati = {})` | Dice qualcosa alle pagine lilOS aperte da quell'utente, sul flusso `/api/services-events` (evento `<parola>.<parola>`, per esempio `notification.new`: `[a-z][a-z0-9-]{0,30}\.[a-z][a-zA-Z0-9.-]{0,40}`; `dati` JSON, copiati). Un nome non valido lancia un errore. Arriva solo a chi è collegato in quel momento: chi si collega dopo non lo riceve. |
-| `route(metodo, percorso, handler)` | Endpoint `/api/modules/<nome><percorso>`, solo per utenti con l'accesso fatto. `handler({ principal, params, query, json(limite?), req, res })` restituisce JSON (nulla = 204). Il percorso è `/parola/:param`, con `[\w:-]`. |
+| `route(metodo, percorso, handler)` | Endpoint `/api/modules/<nome><percorso>`, solo per utenti con l'accesso fatto. `handler({ principal, params, query, json(limite?), req, res })` restituisce JSON (nulla = 204). Il percorso è `/parola/:param`, con `[\w:-]`; `/update` e `/settings` sono del kernel e `ctx.route` lancia un errore se un modulo li usa. |
 
 `commands` sono i comandi della riga di comando: `npm run kernel:cli -- <modulo> <comando> [argomenti] [--opzione valore] [--interruttore]`; ricevono `{ services, args: { positional, flags }, prompt, ctx }`. `prompt.password(domanda, { confirm })` chiede una password senza mostrarla (o la prende da `LILOS_PASSWORD` se non c'è un terminale).
 
@@ -2817,6 +2826,7 @@ La cartella **Rete** porta in lilOS i file di server remoti. Motivi e alternativ
 | `net/network.js` (`Network`, `kernel.network`) | Le connessioni di ogni utente, le loro sessioni, l'osservazione delle cartelle |
 | `net/transfers.js` (`Transfers`, `kernel.transfers`) | Le copie da e verso le connessioni, in code per destinazione |
 | `net/secrets.js` (`Secrets`) | Cifratura di password e chiavi (AES-256-GCM) |
+| `net/signin.js` (`SignIns`, `kernel.network.signins`) | L'accesso al proprio account sul sito del fornitore (OAuth 2.0 con PKCE), sotto |
 | `api/net.js` | Gli endpoint `/api/net/…` (sotto) |
 
 #### Protocolli: il servizio `netfs.<protocollo>`
@@ -2840,16 +2850,20 @@ Un modulo fornisce un protocollo con un servizio che si chiama `netfs.<protocoll
 | `label`, `order` | Il nome che l'utente sceglie e la sua posizione |
 | `fields` | I campi che la connessione chiede, nell'ordine in cui si mostrano |
 | `address(values)` | `string`: l'indirizzo con cui si mostra la connessione (`sftp://ann@host/www`) |
-| `connect(values, { secret, trust, signal })` | `Promise<session>`. `values`: i valori dei campi (tranne i segreti). `secret`: `{ chiave: valore }` dei campi segreti (`{}` se non ce ne sono). `trust`: l'impronta che l'utente ha confermato per quel server, o `null`. Prima di mandare le credenziali il driver deve verificare il server: se non è fidato lancia `untrusted` |
+| `connect(values, { secret, trust, signal, saveSecret })` | `Promise<session>`. `values`: i valori dei campi (tranne i segreti). `secret`: `{ chiave: valore }` dei campi segreti (`{}` se non ce ne sono). `trust`: l'impronta che l'utente ha confermato per quel server, o `null`. `saveSecret(secret)`: tiene un segreto nuovo al posto di quello ricevuto (un token che il fornitore ha rinnovato); `secret` è `{ chiave: valore }` delle sole chiavi cambiate. Prima di mandare le credenziali il driver deve verificare il server: se non è fidato lancia `untrusted` |
 | `check?(values)` | Facoltativo. Lancia un errore con `net` se i valori non si possono usare così come sono (WebDAV: utente e password nell'indirizzo). Il kernel lo chiama prima di salvare, provare e aprire una connessione |
 | `shares?(values, { secret, trust })` | `Promise<string[]>`: cosa offre il server a cui connettersi. Se c'è, il protocollo ha `canListShares` |
+| `ready?()` | `null` o un'etichetta (`string` o `{ en, it }`): perché il protocollo non si può ancora usare (per esempio manca un'impostazione del modulo). La pagina la mostra al posto dei campi (`notReady`); un errore lanciato vale «Protocollo non pronto». Con un'etichetta `POST /api/net/signin` dà `unavailable` |
+| `signIn?` | `{ start, finish }`, obbligatorio se c'è un campo `signin` (senza, il protocollo è ignorato). `start({ values, redirectUri, state, challenge })` → l'indirizzo della pagina del fornitore (con `code_challenge_method=S256`); `finish({ values, code, redirectUri, verifier })` → `{ account, secret }`: `account` è il testo da mostrare (fino a 200 caratteri, per esempio l'indirizzo email), `secret` ciò che `connect` riceverà in `secret[<chiave del campo>]`. Vedi [Accesso con un fornitore](#accesso-con-un-fornitore-netsigninjs) |
+| `links?` | `{ office? }`: le sessioni hanno `link(path)`. `office: true`: il link di un documento Word, Excel o PowerPoint lo apre in Office per il web (`protocols[].office`) |
+| `recycles?` | `true`: ciò che si elimina va nel cestino del fornitore, non per sempre. Il File Manager lo dice nella conferma (`protocols[].recycles`) |
 
-**Campo.** `{ key, type, label, required?, secret?, default?, placeholder?, hint?, when?, options?, min?, max? }`:
+**Campo.** `{ key, type, label, required?, secret?, default?, placeholder?, hint?, when?, options?, min?, max?, button? }`:
 
 | Proprietà | Descrizione |
 | --- | --- |
 | `key` | `[a-z][a-zA-Z0-9]{0,30}` |
-| `type` | `text` (fino a 1024 caratteri, ripulito dagli spazi ai bordi), `textarea` (64 KB), `number` (intero, con `min` e `max`), `password` (4096), `select` (con `options: [{ value, label }]`), `checkbox`, `file` (il testo di un file che l'utente sceglie in lilOS, per esempio una chiave privata; 64 KB) |
+| `type` | `text` (fino a 1024 caratteri, ripulito dagli spazi ai bordi), `textarea` (64 KB), `number` (intero, con `min` e `max`), `password` (4096), `select` (con `options: [{ value, label }]`), `checkbox`, `file` (il testo di un file che l'utente sceglie in lilOS, per esempio una chiave privata; 64 KB), `signin` (un account a cui l'utente accede sulla pagina del fornitore: `button` è il testo del pulsante; il valore è l'account e il segreto ciò che ha dato l'accesso, impostati solo da un accesso; è sempre `secret`; se un protocollo ne ha più d'uno vale il primo) |
 | `label`, `hint` | Stringa o `{ en, it, … }`; `hint` è una riga sotto il campo |
 | `required` | Obbligatorio, ma solo quando il campo è mostrato |
 | `secret` | Si tiene cifrato e non torna mai alla pagina (password, chiavi) |
@@ -2865,12 +2879,34 @@ Un modulo fornisce un protocollo con un servizio che si chiama `netfs.<protocoll
 | `read(path, { start, signal })` | `Readable` dei byte, da `start` |
 | `write(path, source, { start, signal, size? })` | Scrive un file da uno stream. `start > 0` aggiunge a ciò che c'è (ripresa), solo se `resume.write`. `size`: i byte che lo stream porta, se noti |
 | `mkdir(path)`, `rename(da, a)`, `remove(path, { folder })` | `folder`: una cartella vuota (la ricorsione la fa il kernel) |
+| `removeTree?(path)` | Elimina una cartella con tutto quello che contiene, in una sola richiesta (OneDrive la manda intera nel cestino). Se c'è, `ops remove` la usa al posto della ricorsione del kernel |
+| `link?(path)` | `Promise<string>`: la pagina del file o della cartella sul sito del fornitore. Il kernel accetta solo `https://` senza spazi, al massimo 8192 caratteri (`invalid`) |
 | `watch?(path, onChange)` | `stop()`. Avvisa quando cambia il contenuto della cartella; `stop()` può restituire una Promise, risolta quando la cartella non è più tenuta aperta (il kernel la aspetta prima di eliminare o rinominare). Solo SMB |
 | `resume` | `{ read, write }`: se lettura e scrittura possono ripartire da metà |
 | `onLost?(fn)` | `fn()` quando la connessione cade da sola |
 | `close()` | |
 
-**Errori di un driver.** Portano `net`, che dice cosa è andato storto (qualunque altro errore è riportato com'è): `auth` (credenziali sbagliate → `secret_required` con `details.reason: 'auth'`), `untrusted` (con `trust: { kind: 'ssh' \| 'tls', fingerprint, text }` → `untrusted` con `details.trust`), `not_found` (404), `exists` (`conflict`), `denied` (`forbidden`), `unreachable` e `lost` (`unavailable`), `unsupported` e `invalid` (`invalid`). `netFail(err, cosa)` fa questa traduzione. Dopo `lost` e `unreachable` il kernel apre una connessione nuova e ripete una volta le operazioni sicure da ripetere (non quelle che scrivono).
+**Errori di un driver.** Portano `net`, che dice cosa è andato storto (qualunque altro errore è riportato com'è): `auth` (credenziali sbagliate → `secret_required` con `details.reason: 'auth'`; per un protocollo con un campo `signin` → `details.reason: 'signin'`, serve un nuovo accesso), `untrusted` (con `trust: { kind: 'ssh' \| 'tls', fingerprint, text }` → `untrusted` con `details.trust`), `not_found` (404), `exists` (`conflict`), `denied` (`forbidden`), `unreachable` e `lost` (`unavailable`), `unsupported` e `invalid` (`invalid`). `netFail(err, cosa)` fa questa traduzione. Dopo `lost` e `unreachable` il kernel apre una connessione nuova e ripete una volta le operazioni sicure da ripetere (non quelle che scrivono).
+
+Un protocollo con un account del fornitore (OneDrive) ha un campo `signin` e questi membri in più:
+
+```js
+{
+  fields: [{ key: 'account', type: 'signin', required: true, label: 'Account', button: 'Accedi' }],
+  ready() { return clientId ? null : 'Manca l\'ID dell\'app'; },       // perché non si può usare ancora (o null)
+  signIn: {
+    start({ values, redirectUri, state, challenge }) { return 'https://fornitore.example/authorize?…'; },
+    async finish({ values, code, redirectUri, verifier }) { return { account: 'ann@example.com', secret: refreshToken }; },
+  },
+  async connect(values, { secret, saveSecret }) {               // secret.account è quello di finish()
+    const tokens = await renew(secret.account);
+    if (tokens.refresh !== secret.account) saveSecret({ account: tokens.refresh });   // il fornitore l'ha cambiato
+    return session;
+  },
+  links: { office: true },    // le sessioni hanno link(path)
+  recycles: true,             // eliminare manda nel cestino del fornitore
+}
+```
 
 #### Connessioni (`Network`)
 
@@ -2892,6 +2928,8 @@ Ogni utente ha le sue, salvate in `DATA_DIR/net/<hash dell'utente>.json` (`DATA_
 - **Nomi e dimensioni.** Un elenco ha al massimo 50 000 voci (`too_large`); i nomi non sicuri (`isSafeName` in `drivers.js`: una sola parte, non `.` né `..`, senza `/`, caratteri di controllo né inversioni di direzione del testo `U+202A-202E`, `U+2066-2069`, al massimo 255 caratteri) sono tolti dagli elenchi, e `cleanName` li rifiuta (`invalid`). `isUsableName` è più larga (ammette le inversioni di testo): serve a decidere se eliminare è sicuro. Eliminare una cartella si ferma, senza togliere niente, se contiene un nome non utilizzabile; una cartella o un collegamento (`link`) si eliminano come se stessi, e la ricorsione arriva al massimo a 64 livelli.
 - **Pulizia.** All'avvio (`prune()`, solo con più utenti) si cancellano i file di connessioni e trasferimenti di utenti che non esistono più.
 - **Osservazione.** Se la sessione ha `watch`, ogni cartella letta con `list` è osservata e i cambiamenti diventano l'evento `net.change`. Al massimo 8 cartelle per connessione alla volta: oltre, si smette di osservare la meno recente. Prima di eliminare o rinominare una cartella la si smette di osservare (alcuni server, SMB, la tolgono solo se non è aperta).
+- **Impostazioni di un modulo.** Quando un amministratore cambia le impostazioni di un modulo che fornisce protocolli (`kernelModules.saveSettings`), `Network.reset(protocolli)` chiude le sessioni aperte di quei protocolli, per tutti gli utenti: lo stato torna `off` (evento `net.mount`) e il primo uso riapre con le nuove impostazioni.
+- **Copiare dalla home** (`putHome`). Se il nome c'è già e `ifExists` è `'ask'`, `conflict`; con `'keep'` il nome prende un numero.
 - `update` con un segreto vuoto lo lascia com'è; `forget: true` cancella quelli ricordati. Cambiare i valori chiude la sessione (si riapre con i nuovi).
 
 #### Endpoint `/api/net`
@@ -2900,18 +2938,24 @@ Tutti per utenti con l'accesso fatto: ognuno vede e cambia solo le sue connessio
 
 | Endpoint | Corpo → risposta |
 | --- | --- |
-| `GET /api/net` | → `{ protocols, mounts }`. `protocols`: `[{ id, label, order, canListShares, fields }]` (i campi come li descrive il driver); `mounts`: le connessioni come le vede la pagina. Lo stesso arriva in `GET /api/boot` come `net` |
-| `POST /api/net/mounts` | `{ name, protocol, values, auto?, remember?, trust?, secret }` (fino a 256 KB) → la connessione. `secret`: `{ chiave: valore }` dei campi segreti |
-| `PUT /api/net/mounts/:id` | `{ name?, values?, auto?, remember?, forget?, secret? }` → la connessione |
+| `GET /api/net` | → `{ protocols, mounts }`. `protocols`: `[{ id, label, order, canListShares, links, office, recycles, notReady, fields }]` (i campi come li descrive il driver, con `button` per `signin`); `mounts`: le connessioni come le vede la pagina. Lo stesso arriva in `GET /api/boot` come `net` |
+| `POST /api/net/mounts` | `{ name, protocol, values, auto?, remember?, trust?, secret, signin? }` (fino a 256 KB) → la connessione. `secret`: `{ chiave: valore }` dei campi segreti |
+| `PUT /api/net/mounts/:id` | `{ name?, values?, auto?, remember?, forget?, secret?, signin? }` → la connessione |
 | `DELETE /api/net/mounts/:id` | 204. Chiude la sessione e toglie la connessione |
-| `POST /api/net/mounts/:id/connect` | `{ secret?, remember?, trust? }` → la connessione, connessa. Può dare `secret_required`, `untrusted`, `unavailable` |
+| `POST /api/net/mounts/:id/connect` | `{ secret?, remember?, trust?, signin? }` → la connessione, connessa. Può dare `secret_required`, `untrusted`, `unavailable`, `conflict` (accesso fatto con un altro account) |
 | `POST /api/net/mounts/:id/disconnect` | → la connessione. Chiude la sessione e dimentica la password non ricordata |
-| `POST /api/net/test` | `{ protocol, values, trust?, secret }` → `{ ok: true }`. Prova senza salvare. Al massimo 3 prove (questa e `shares`) in corso per utente: oltre, `rate_limited` |
+| `POST /api/net/test` | `{ protocol, values, trust?, secret, signin? }` → `{ ok: true }`. Prova senza salvare. Al massimo 3 prove (questa e `shares`) in corso per utente: oltre, `rate_limited` |
 | `POST /api/net/shares` | `{ protocol, values, trust?, secret }` → `{ shares }` (protocolli con `canListShares`) |
 | `GET /api/net/mounts/:id/list?path=` | → `{ entries: [{ name, type, size, modified }] }`; `path` predefinito `/` |
 | `GET /api/net/mounts/:id/content?path=` | → i byte del file, in streaming (`application/octet-stream`, con `Content-Length` se la dimensione è nota). Se la richiesta si chiude il trasferimento si interrompe |
 | `PUT /api/net/mounts/:id/content?path=` | Corpo: i byte del file (al massimo 1 GB, altrimenti `too_large`); scritto in streaming. Connessione, percorso e dimensione dichiarata si controllano prima di leggere il corpo. Un file vuoto lo crea |
-| `POST /api/net/mounts/:id/ops` | `{ op: 'mkdir' \| 'rename' \| 'remove', path, to? }` (`remove` elimina anche le cartelle con quello che contengono, per sempre) |
+| `POST /api/net/mounts/:id/ops` | `{ op: 'mkdir' \| 'rename' \| 'remove', path, to? }` (`remove` elimina anche le cartelle con quello che contengono: per sempre, o nel cestino del fornitore se il protocollo ha `recycles`) |
+| `GET /api/net/mounts/:id/link?path=` | → `{ url }`: la pagina di quel percorso sul sito del fornitore (`path` predefinito `/`; protocolli con `links`, altrimenti `invalid`) |
+| `POST /api/net/mounts/:id/put-home` | `{ home, folder?, ifExists? }` (fino a 16 KB) → `{ path, name }`. Copia nella connessione il file della home `home` (id come lo vede la pagina), in `folder` (predefinita `/`; si crea anche a più livelli, `conflict` se una parte è un file). `ifExists`: `'replace'`, `'keep'` (altro nome con un numero; lo stesso se il nome è quello di una cartella) o qualsiasi altro valore = `'ask'`: `conflict` con `details: { name, exists: true }`. `invalid` se non è un file o il nome non è sicuro (`isSafeName`); `not_found` se manca |
+| `POST /api/net/signin` | `{ protocol, values, redirectUri }` (fino a 64 KB) → `{ id, url }`. Comincia un accesso (sotto) |
+| `GET /api/net/signin/:id?wait=1` | → `{ status: 'pending' \| 'done' \| 'error', account?, error? }`. Con `wait=1` risponde quando cambia, al massimo dopo 25 secondi. `not_found`: scaduto o già usato |
+| `DELETE /api/net/signin/:id` | 204. Annulla l'accesso |
+| `GET /api/net/signin/callback` | Dove il fornitore rimanda la finestra (`?code&state` o `?error&state`). **Senza sessione**; risponde con una pagina HTML |
 | `GET /api/net/transfers` | → l'istantanea che mostra la finestra Trasferimento dati (sotto) |
 | `GET /api/net/transfers/items/:id` | → `{ items, more }`: dentro una cartella di una coda. `:id` è `[a-f0-9]{20}` |
 | `POST /api/net/transfers` | `{ sources: [luogo], target: luogo, workspace? }` (fino a 1 MB, al massimo 1000 sorgenti) → `{ queue }` |
@@ -2923,7 +2967,26 @@ Tutti per utenti con l'accesso fatto: ognuno vede e cambia solo le sue connessio
 
 Un **luogo** è `{ home: '<id di un nodo di lilOS>' }` (`'root'` è la home) oppure `{ mount: '<id connessione>', path }`. I percorsi passano da `cleanPath`: assoluti, senza `.`, `..` né parti vuote o più lunghe di 255 caratteri, né caratteri di controllo; altrimenti `invalid`.
 
-**Errori delle connessioni.** `secret_required` (428): serve la password; `details.reason` è `'missing'` (non c'è; `details.fields` elenca i campi che mancano) o `'auth'` (il server l'ha rifiutata). `untrusted` (409): `details.trust` è `{ kind: 'ssh' \| 'tls', fingerprint, text }`; la pagina mostra `text`, chiede conferma e ripete `connect` con `trust: fingerprint`. `unavailable` (503): il server non si raggiunge o la connessione è caduta.
+**Errori delle connessioni.** `secret_required` (428): serve la password; `details.reason` è `'missing'` (non c'è; `details.fields` elenca i campi che mancano), `'auth'` (il server l'ha rifiutata) o `'signin'` (protocollo con un campo `signin`: serve un nuovo accesso, vedi [Accesso con un fornitore](#accesso-con-un-fornitore-netsigninjs)). `untrusted` (409): `details.trust` è `{ kind: 'ssh' \| 'tls', fingerprint, text }`; la pagina mostra `text`, chiede conferma e ripete `connect` con `trust: fingerprint`. `unavailable` (503): il server non si raggiunge o la connessione è caduta.
+
+#### Accesso con un fornitore (`net/signin.js`)
+
+Per i protocolli con un campo `signin` (OneDrive): l'utente fa l'accesso al suo account sulla pagina del fornitore, in una finestra. È OAuth 2.0 con codice di autorizzazione e PKCE (`S256`). **I token restano nel kernel**: la pagina non li vede mai. Motivi: [D60](../interna/decisioni.md#d60-onedrive-nella-rete-laccesso-con-la-finestra-del-fornitore-e-le-impostazioni-dei-moduli).
+
+1. **Inizio.** La pagina apre subito una finestra vuota (`window.open` funziona solo da un clic) e chiede `POST /api/net/signin` con `{ protocol, values, redirectUri }`; `values` sono gli altri campi della connessione, che possono cambiare la richiesta al fornitore. Il kernel controlla che il protocollo abbia un campo `signin` (`unavailable` se no), che `ready()` risponda `null` (altrimenti `unavailable` con l'etichetta), che l'utente abbia meno di 5 accessi in corso (`rate_limited`) e `redirectUri` (`cleanRedirect`, sotto). Poi chiama `signIn.start({ values, redirectUri, state, challenge })` e risponde `{ id, url }`. `state` e il `verifier` sono 32 byte casuali (base64url), `challenge` è lo SHA-256 del `verifier`; `url` deve essere `https://` (o `http://` su loopback), altrimenti `invalid`. `id` è di 24 caratteri `[\w-]`.
+2. **Attesa.** La pagina porta la finestra a `url` e ripete `GET /api/net/signin/:id?wait=1`: la richiesta risponde appena lo stato cambia, o dopo 25 secondi con `pending`. Risposta: `{ status: 'pending' \| 'done' \| 'error', account?, error? }`.
+3. **Ritorno.** Il fornitore rimanda la finestra a `GET /api/net/signin/callback?code&state` (o `?error&error_description&state`). La rotta è registrata **prima** delle altre `/api/net/signin/…` e **senza sessione**: quando un altro sito rimanda il browser il cookie `SameSite=Strict` non arriva, quindi l'accesso si riconosce dallo `state`, casuale e usabile una volta sola. La risposta è una pagina HTML minima senza script («Fatto» o «Accesso non riuscito» e il motivo), con CSP `default-src 'none'; style-src 'unsafe-inline'; frame-ancestors 'none'`: la finestra la chiude la pagina di lilOS. Con il `code` il kernel chiama `signIn.finish({ values, code, redirectUri, verifier })` → `{ account, secret }`.
+4. **Uso.** Con `status: 'done'` la pagina passa `signin: id` a `POST /api/net/mounts`, `PUT /api/net/mounts/:id`, `POST /api/net/mounts/:id/connect` e `POST /api/net/test`. Il kernel mette `account` nel campo `signin` (in `values`) e `secret` nei segreti, con la chiave del campo. Un accesso si usa **una volta** (con `/test` resta valido per la connessione che segue; se durante la prova il driver rinnova il segreto, resta quello nuovo); dura 10 minuti; è di chi l'ha cominciato e di un solo protocollo (`not_found` o `invalid` altrimenti). `DELETE /api/net/signin/:id` lo annulla (204); un utente eliminato li perde tutti.
+
+`redirectUri` deve essere l'indirizzo di ritorno di questo lilOS: percorso esatto `/api/net/signin/callback` (`CALLBACK_PATH`), senza query, frammento né credenziali; `https://` oppure `http://` solo su `localhost`, `127.0.0.1` o `[::1]` (i fornitori non accettano altro e l'indirizzo va registrato presso di loro); la sua origine deve essere quella dell'intestazione `Origin` della richiesta, se c'è (`invalid` negli altri casi). L'SDK lo costruisce con `location.origin`.
+
+Come cambia una connessione con un campo `signin`:
+
+- **Il campo non si scrive dalla pagina.** `checkFields` lo salta; nella pagina è sempre `secret: true` (non torna mai). Solo un accesso lo riempie. Se è `required` servono sia l'account sia il segreto (`missingFields`).
+- **`PUT /mounts/:id`** tiene l'account già salvato, salvo un nuovo accesso.
+- **`connect` con `signin`** rifà l'accesso di una connessione: se l'account è diverso da quello della connessione (senza distinguere maiuscole) risponde `conflict` («Hai fatto l’accesso come …, ma «nome» è di …»). Gli altri segreti restano; `remember` resta quello di prima se non lo si indica.
+- **Segreto rinnovato.** Se il fornitore cambia il segreto mentre la sessione è aperta (OneDrive cambia il token di aggiornamento a ogni rinnovo), il driver chiama `saveSecret({ [chiave del campo]: nuovo })`: il kernel lo tiene come il vecchio, cifrato se la connessione è ricordata, in memoria altrimenti.
+- **Credenziali non più valide.** Se `connect` non ha il segreto, o il driver lancia `net: 'auth'` (anche durante l'uso: la sessione si chiude e lo stato torna `off`), l'errore è `secret_required` con `details.reason: 'signin'` (e `details.fields` se mancava). La pagina rifà l'accesso e richiama `connect` con `signin`.
 
 #### Trasferimenti (`Transfers`)
 
@@ -3043,10 +3106,12 @@ Il repository ufficiale ha anche `"system": "system/lilos"`: la cartella con la 
 | `icon?` | `{ glyph, color }` come per le app: `glyph` un nome di simbolo (lettere e cifre, inizia con una lettera minuscola, 2-31 caratteri), `color` `#rrggbb`. Un valore diverso rende il `module.json` non valido. `list()` lo restituisce (o `null`). |
 | `data?` | File in cui il modulo tiene i suoi dati (`["users.json"]`). Si portano alla nuova versione negli aggiornamenti e si conservano, con la loro cartella, alla rimozione. |
 | `defaultConfig?` | Oggetto: la configurazione con cui il modulo viene acceso in `config.json`. |
+| `settings?` | Elenco di campi (vedi [Moduli](#moduli)): le impostazioni che un amministratore può cambiare, con `GET` e `PUT /api/modules/:nome/settings` (`kernelModules.settings` e `saveSettings`). Vale per i moduli in esecuzione: si controllano all'avvio del kernel, non all'installazione. |
 
 - **Installazione.** Copia il pacchetto in `modules/<nome>_<versione>/` (con `source.json`: da dove viene, `{ type, url, ref, commit, path, installed }`), esegue `npm ci` (o `npm install` senza lockfile; `--omit=dev --ignore-scripts`) se c'è un `package.json`, e lo aggiunge a `modules` in `config.json` con `defaultConfig`. Prima **verifica che il kernel si avvierebbe** con quella lista (dipendenze soddisfatte, un modulo che fornisce `fs`, e senza `auth` solo `host` locale): se no, lascia tutto com'era e lancia `conflict`.
 - **Aggiornamento.** Parte dal `source.json` registrato (con `ref` opzionale), copia la nuova versione accanto alla vecchia, ci porta i file di `data`, aggiorna la versione in `config.json` e tiene le due versioni più recenti. Senza versione più alta risponde `unchanged: true`. Un modulo senza `source.json` (messo a mano) non si aggiorna da qui.
 - **Rimozione.** Toglie il modulo da `config.json` (dopo aver verificato che il kernel si avvierebbe senza) e cancella le cartelle delle sue versioni, **tranne quelle che contengono file di `data`**: gli utenti di `users-basic` restano. Reinstallando la stessa versione quella cartella si riusa.
+- **Impostazioni.** `ModuleAdmin.settings(principal, nome)` e `saveSettings(principal, nome, valori)` (solo amministratori; `not_found` se il modulo non è attivo). `saveSettings` controlla i valori con `checkFields`, li scrive nella voce del modulo in `config.json` (le chiavi non dichiarate restano), li mette in `ctx.config`, chiama i suoi `onConfig` e, per i moduli che forniscono `netfs.*`, chiude le connessioni aperte. Un modulo senza `onConfig` non è `live`: le impostazioni valgono dal prossimo avvio (il log lo dice). `required` e `when` dei campi non si applicano al salvataggio (servono alla pagina per disegnarli).
 - `list()`: i moduli trovati in `modules/`, con `enabled` (versione in `config.json`), `running` (in uso adesso) e `source`; anche quelli già tolti ma ancora in esecuzione fino al riavvio.
 
 ### lilOS come pacchetto (`systemPackage.js`)
@@ -3276,6 +3341,22 @@ Quattro moduli, ciascuno con il suo `module.json` (`provides: ["netfs.<protocoll
 
 La libreria di `netfs-smb` sta in `lib/smb3-client/`: è una copia compilata di [smb3-client](https://github.com/euricojardim/smb3-client) 0.2.0 (Eurico Jardim, licenza MIT) con sette correzioni di lilOS (invio del pattern a ogni `QUERY_DIRECTORY`, conteggio del credito iniziale di `NEGOTIATE`, `createReadStream`/`createWriteStream` con `start` e `size`/`mtime` nell'elenco, letture da 64 KiB con più richieste in volo, e il quinto: barre rovesciate rifiutate nei percorsi, una risposta malformata fa fallire la connessione invece di uscire dal gestore del socket, TCP keep-alive). L'elenco è in `lib/smb3-client/VENDORED.md`; le correzioni si propongono all'autore con pull request e la cartella sparisce quando saranno in una versione pubblicata. Vedi [D59](../interna/decisioni.md#d59-la-rete-i-protocolli-sono-moduli-del-kernel-e-i-trasferimenti-li-fa-il-kernel).
 
+### Protocollo OneDrive: `netfs-onedrive_1.0.0`
+
+Il OneDrive dell'utente (personale, o di lavoro o dell'istituto) in Rete, tramite Microsoft Graph. Sta nel repository ufficiale (`modules/netfs-onedrive/`, con il suo README), non nella cartella `modules/` di questo repository: un amministratore lo installa dall'AppStore → Kernel. Fornisce `netfs.onedrive` (ordine 60), non ha dipendenze e richiede lilOS 1.11.0 (accesso con un fornitore, `settings`, `link`, `putHome`). Motivi: [D60](../interna/decisioni.md#d60-onedrive-nella-rete-laccesso-con-la-finestra-del-fornitore-e-le-impostazioni-dei-moduli).
+
+| Cosa | Come |
+| --- | --- |
+| Campi | `account` (`signin`, obbligatorio, pulsante «Accedi con Microsoft») e `root` (cartella di OneDrive da mostrare, facoltativa, `/` di serie) |
+| Impostazioni (`settings`) | `clientId` (ID dell'app su Azure; senza, `ready()` dice di chiederlo a un amministratore), `accounts` (`common` predefinito, `organizations`, `consumers`, `tenant`), `tenant` (ID o dominio, con `accounts: 'tenant'`), `shared` (`false`: le cartelle condivise aperte tramite i loro collegamenti). Il modulo ascolta `ctx.onConfig`: valgono subito, e le connessioni aperte si chiudono |
+| Accesso | Ogni installazione di lilOS ha la **sua app** registrata su Azure: client pubblico, piattaforma «Client pubblico/nativo (dispositivi mobili e desktop)», indirizzo di ritorno `<indirizzo di lilOS>/api/net/signin/callback`, nessun segreto. Autorizzazioni delegate `Files.ReadWrite`, `User.Read`, `offline_access`; con `shared` acceso `Files.ReadWrite.All` al posto di `Files.ReadWrite` (le connessioni già fatte chiedono un nuovo accesso). La richiesta usa `prompt=select_account` |
+| Segreto | Il token di aggiornamento (`secret.account`). Microsoft lo cambia a ogni rinnovo e il driver lo passa al kernel con `saveSecret`. I token di accesso restano in memoria. Se Microsoft lo rifiuta (`invalid_grant`, `consent_required`…) l'errore è `auth` → `secret_required` con `reason: 'signin'` |
+| File | Lettura con ripresa (`Range`, `resume.read`); scrittura sempre da capo (`resume.write: false`): fino a 4 MiB una richiesta sola, oltre una sessione di caricamento a pezzi da 10 MiB. Nomi: non ammette `" * : < > ? \ \|`, i nomi riservati (`con`, `nul`, `desktop.ini`, `_vti_*`…) né quelli che iniziano con `~$`. I blocchi appunti di OneNote non si leggono (`unsupported`) |
+| Eliminare | `recycles: true`: va nel cestino di OneDrive. `removeTree` manda una cartella intera con una richiesta sola |
+| Collegamenti | `links: { office: true }`, `link(path)`: la pagina su onedrive.com; per i documenti Office, Office per il web |
+| Cartelle condivise | L'elenco «Condivisi con me» (`sharedWithMe`) è deprecato e Microsoft lo spegne a novembre 2026, senza sostituto ufficiale: il modulo non lo usa. Con `shared` acceso, i collegamenti che l'utente ha aggiunto a «I miei file» (onedrive.com → Aggiungi collegamento) compaiono come cartelle e se ne legge il contenuto sul drive a cui puntano; con `shared` spento i collegamenti non compaiono |
+| Provarlo | `loginUrl` e `graphUrl` nella configurazione sostituiscono gli indirizzi di Microsoft (solo per i test) |
+
 ---
 
 ## Eventi del bus
@@ -3480,6 +3561,21 @@ Solo i comandi personalizzati, con le loro combinazioni (un array vuoto = nessun
 Alla lettura vengono scartate le voci che non sono array di combinazioni canoniche; alla registrazione del comando, quelle con una combinazione non valida per quel comando.
 
 Un nodo può avere anche `"apps": { "<id app>": { … } }`: i dati delle app su quel nodo (al massimo 8 app, 1 KB di JSON ciascuna e 2 KB in tutto; le voci non valide si scartano alla lettura). Il campo viaggia con il nodo verso il kernel (`/api/fs/sync`).
+
+### `lilos:onedrive`
+
+Le scelte dell'utente per OneDrive (Pannello di controllo 1.14.0 le scrive, File Manager 1.11.0 le legge; vedi [`netfs-onedrive`](#protocollo-onedrive-netfs-onedrive_100)):
+
+```json
+{ "mount": "3f9a1c0b7d2e4a68", "folder": "/lilOS", "ifExists": "ask", "doubleClick": true }
+```
+
+| Campo | Significato |
+| --- | --- |
+| `mount` | Id della connessione OneDrive dove va «Carica su OneDrive e apri», o `null`: la sola connessione OneDrive se ce n'è una, altrimenti si sceglie da un menu. Se non corrisponde a una connessione OneDrive è come `null` |
+| `folder` | Cartella su OneDrive (creata se manca). Predefinito `"/lilOS"`; vuota, torna al predefinito |
+| `ifExists` | Con un file dello stesso nome: `"ask"` (predefinito), `"keep"` o `"replace"` |
+| `doubleClick` | `true` (predefinito): il doppio clic su un documento Office di OneDrive lo apre in Office per il web, a meno che un'app di lilOS sia scelta per quel tipo |
 
 ### `lilos:settings`
 

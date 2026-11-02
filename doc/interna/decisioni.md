@@ -1223,3 +1223,46 @@ lilOS legge il file **prima** di avviare l'app e le dà le stringhe già risolte
 **Non ancora fatto.** Kerberos, DFS, lease e durable handle di SMB, i blocchi di intervallo di byte (SMB 2.0.2 c'è da netfs-smb 1.0.1); i segni «in arrivo» nel File Manager per ciò che sta per essere copiato; la scoperta automatica dei server.
 
 **Quando ripensarla.** Se serve cifrare i segreti con qualcosa che il kernel non tiene accanto a sé (un portachiavi del sistema operativo o una password dell'utente), se gli utenti vogliono connessioni condivise, se arriva un protocollo che non entra nel contratto (per esempio uno con eventi di modifica ma senza elenco), o se le correzioni di smb3-client entrano nella versione ufficiale (allora si toglie la copia).
+
+> Estesa da [D60](#d60-onedrive-nella-rete-laccesso-con-la-finestra-del-fornitore-e-le-impostazioni-dei-moduli): un protocollo può avere un account del fornitore invece di una password, e OneDrive ha un cestino suo ("Eliminare su un server è definitivo" vale per gli altri protocolli).
+
+## D60. OneDrive nella Rete: l'accesso con la finestra del fornitore e le impostazioni dei moduli
+
+**Decisione.** OneDrive entra nella cartella Rete come protocollo (`netfs-onedrive`, un modulo del repository ufficiale), con tre novità nel kernel che servono anche ad altri. Deciso e costruito il 2 novembre 2026, sul ramo `onedrive`.
+
+- **L'app su Azure è di ogni installazione.** Ogni lilOS registra la propria app su Azure: client pubblico, piattaforma «Client pubblico/nativo (dispositivi mobili e desktop)», **nessun segreto**. L'amministratore mette l'ID nel Pannello di controllo → OneDrive (`clientId`; `accounts` e `tenant` scelgono quali account ammettere).
+- **L'accesso si fa nella finestra del fornitore** (OAuth 2.0, codice di autorizzazione con PKCE). La pagina apre una finestra e il kernel le dà l'indirizzo del fornitore; il fornitore la rimanda a `/api/net/signin/callback` del kernel, che scambia il codice. **La pagina non vede mai i token.** È il campo `signin` dei protocolli (`net/signin.js`).
+- **Il token di aggiornamento è il segreto della connessione**, cifrato come le password. Microsoft lo cambia a ogni rinnovo: il driver lo ridà al kernel con `saveSecret`. Se Microsoft non lo accetta più, l'errore è `secret_required` con `reason: 'signin'` e la pagina fa rifare l'accesso (la stessa connessione, lo stesso account).
+- **Le cartelle condivise si aprono dai loro collegamenti.** L'API Graph `sharedWithMe` è deprecata e smette di dare dati a novembre 2026, senza sostituto ufficiale (per gli account personali non c'è alternativa). Si apre la cartella condivisa attraverso il suo collegamento in «I miei file» (su onedrive.com: Aggiungi collegamento). L'impostazione `shared` li mostra e chiede il permesso `Files.ReadWrite.All`; cambiarla chiude le connessioni, che chiedono un nuovo accesso.
+- **Impostazioni dei moduli, un meccanismo generico.** `settings` in `module.json` (gli stessi campi dei protocolli), `GET` e `PUT /api/modules/:nome/settings` per gli amministratori (`kernelModules.settings`, `saveSettings`), `ctx.onConfig` per applicarle senza riavvio. Cambiando le impostazioni di un modulo di rete le connessioni aperte si chiudono.
+- **Eliminare manda nel cestino di OneDrive** (`recycles`), una cartella in una sola richiesta (`removeTree`). Il File Manager lo dice nella conferma.
+- **Aprire in Office per il web.** `link(path)` dà la pagina del file sul sito del fornitore; per un documento Office è Office per il web (`links.office`). **Carica su OneDrive e apri** (`putHome`) copia un documento della Home nella cartella scelta (di serie `/lilOS`), chiede se c'è già un file con quel nome (Sostituisci, Tieni entrambi) e apre Office per il web in una nuova scheda. L'originale resta nella Home: quello che si cambia online sta nella copia.
+
+**Perché** (ricostruzione, da confermare)**.**
+
+- **Un'app per installazione** perché lilOS è software che ognuno ospita: una sola app registrata dal progetto metterebbe il suo ID e le quote di Microsoft in mano a tutti, e il progetto risponderebbe di ogni uso. Un client pubblico non ha un segreto da custodire.
+- **La finestra del fornitore** perché è il modo in cui Microsoft vuole l'accesso: la password dell'utente non passa da lilOS, e l'utente vede dove la scrive. Che il kernel scambi il codice tiene i token fuori dalla pagina, come le password degli altri protocolli. L'indirizzo di ritorno è il kernel e non la pagina perché la pagina non può ricevere una richiesta di un altro sito; la rotta non ha la sessione perché il cookie `SameSite=Strict` non arriva quando un altro sito rimanda il browser, e il `state` casuale fa da prova.
+- **Un meccanismo generico per le impostazioni** perché un modulo di rete ha bisogno di un ID e di scelte, e il modulo non ha una pagina sua: descrivere i campi in `module.json` riusa il disegno dei campi dei protocolli e non fa scrivere a mano `config.json` (che oggi richiede il riavvio, [D40](#d40-i-moduli-del-kernel-si-installano-come-pacchetti-e-valgono-dopo-il-riavvio)).
+- **I collegamenti per le cartelle condivise** perché è quello che resta: chi usa un account personale non ha altro.
+
+**Alternative scartate.**
+
+- **Accesso a codice (device code)**, dove l'utente scrive un codice su una pagina di Microsoft: scartato dall'utente in favore della finestra, più naturale.
+- **Cercare i file condivisi con `sharedWithMe`**: smette di funzionare a novembre 2026, senza sostituto.
+- **Office Online Server**, per modificare i documenti dentro lilOS: escluso dall'utente.
+- (Ricostruzione, da confermare) **Una sola app registrata dal progetto**, per non far fare niente all'amministratore; **impostazioni solo in `config.json`**, che richiedono la mano dell'amministratore e il riavvio.
+
+**Conseguenze.**
+
+- **Serve https, o http da `localhost`.** Microsoft non accetta altri indirizzi di ritorno, e `cleanRedirect` li rifiuta. Con lilOS su un altro `http://` l'accesso non funziona.
+- Prima che un amministratore metta l'ID, il protocollo c'è ma dice che non è pronto (`ready()`); il File Manager rimanda al Pannello di controllo.
+- Il token di aggiornamento può scadere o essere revocato: l'utente rifà l'accesso, con lo stesso account.
+- **Accendere o spegnere `shared` cambia i permessi:** tutti rifanno l'accesso.
+- I caricamenti ripartono da capo (Microsoft non lascia aggiungere a un file); i download riprendono.
+- Il modulo non è in questo repository: si installa dall'AppStore. Servono lilOS 1.11.0 (kernel) e File Manager 1.11.0 e Pannello di controllo 1.14.0 per la parte visibile.
+- Le scelte dell'utente (connessione, cartella, file già presente, doppio clic) sono nella chiave `onedrive`, non nel kernel.
+- Nuovo codice di errore del client: `blocked` e `canceled` (da `net.signIn`, in `KernelError`).
+
+**Non ancora fatto.** Modificare i documenti dentro lilOS: due strade previste. Un modulo `wopi-host` (il kernel fa da host del protocollo WOPI) con **Collabora** o **ONLYOFFICE**, e poi **Microsoft 365** (il programma CSPP di Microsoft, che apre Office per il web su file di lilOS). Fino ad allora i documenti passano da OneDrive.
+
+**Quando ripensarla.** Se Microsoft offre un sostituto di `sharedWithMe` (allora i condivisi tornano un elenco); se serve un'app unica per più installazioni (un servizio del progetto che fa da intermediario, con tutto quello che comporta); se un altro fornitore (Google Drive, Dropbox) vuole lo stesso modello e conviene tirare fuori da `netfs-onedrive` il codice comune di OAuth; o se arriva il modulo WOPI e «Carica su OneDrive e apri» non serve più.

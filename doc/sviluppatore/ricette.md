@@ -891,7 +891,33 @@ Un protocollo è un modulo del kernel che fornisce il servizio `netfs.<protocoll
 3. Usa `label` con `{ en, it }` per tutto ciò che l'utente legge (etichette, suggerimenti). I campi con `secret: true` arrivano in `secret`, mai in `values`; `when` mostra un campo solo se altri hanno certi valori.
 4. Lancia solo errori con `net` (`auth`, `untrusted`, `not_found`, `exists`, `denied`, `unreachable`, `lost`, `unsupported`, `invalid`): il kernel li traduce in codici e messaggi. Un errore `lost` o `unreachable` fa riaprire la connessione da sola.
 5. Se il protocollo sa dire quando una cartella cambia, aggiungi `watch(path, onChange)` che restituisce `stop()`: la pagina si aggiorna da sola. Se sa elencare ciò che un server offre, aggiungi `shares(values, { secret, trust })`.
-6. Attiva il modulo in `config.json`, `npm run kernel:setup` se ha dipendenze e riavvia il kernel. La sezione **Rete** del File Manager mostra il nuovo protocollo nell'elenco.
+6. Se l'utente ha un account sul sito di un fornitore (come OneDrive), niente password: metti un campo `{ key: 'account', type: 'signin', required: true, label, button }` e `signIn: { start, finish }` (OAuth 2.0 con PKCE). `start({ values, redirectUri, state, challenge })` dà l'indirizzo della pagina del fornitore (passa `state` e `challenge`, con `code_challenge_method=S256`); `finish({ values, code, redirectUri, verifier })` scambia il codice e restituisce `{ account, secret }`: `account` è il testo che la pagina mostra, `secret` (per esempio il token di aggiornamento) arriva a `connect` in `secret.account`. Se il fornitore cambia il token a ogni rinnovo, chiama `saveSecret({ account: nuovo })`. Se il fornitore lo rifiuta lancia `netError('auth', …)`: la pagina chiede un nuovo accesso. Dichiara `ready()` (che restituisce un'etichetta finché manca una configurazione, `null` quando è pronto), e se serve `links`, `recycles`, `removeTree` e `link(path)`. Il kernel e il File Manager fanno il resto: finestra, attesa, callback `/api/net/signin/callback` e nuovo accesso. Il contratto: [Accesso con un fornitore](api.md#accesso-con-un-fornitore-netsigninjs).
+7. Attiva il modulo in `config.json`, `npm run kernel:setup` se ha dipendenze e riavvia il kernel. La sezione **Rete** del File Manager mostra il nuovo protocollo nell'elenco.
+
+## Dare impostazioni a un modulo del kernel
+
+Quello che un amministratore deve poter cambiare (un ID, una scelta, un interruttore) si dichiara in `module.json` e il Pannello di controllo lo disegna da sé. Esempio con OneDrive: `modules/netfs-onedrive/` nel repository ufficiale.
+
+1. In `module.json` aggiungi `settings`, campi come quelli di un protocollo (`text`, `textarea`, `number`, `select`, `checkbox`; niente `secret`):
+
+   ```json
+   "settings": [
+     { "key": "clientId", "type": "text", "label": { "en": "Client ID", "it": "ID del client" } },
+     { "key": "mode", "type": "select", "default": "a", "label": "Modo", "options": [{ "value": "a", "label": "A" }, { "value": "b", "label": "B" }] }
+   ],
+   "defaultConfig": { "mode": "a" }
+   ```
+2. Nel modulo leggi `ctx.config` e, se vuoi che i cambi valgano subito, ascolta `ctx.onConfig` (senza, valgono dal prossimo avvio):
+
+   ```js
+   async init(ctx) {
+     let conf = ctx.config;
+     ctx.onConfig(config => { conf = config; });   // dopo ogni cambio fatto da un amministratore
+   }
+   ```
+3. Dalla pagina: `await kernelModules.settings('mio')` → `{ fields, values, live }` e `await kernelModules.saveSettings('mio', { clientId: '…', mode: 'b' })` (solo amministratori, solo per moduli in esecuzione). I valori si controllano con i campi; le chiavi assenti prendono il `default` o si tolgono.
+4. Se il modulo fornisce protocolli di rete, a ogni cambio le connessioni aperte si chiudono e si riaprono al primo uso con le nuove impostazioni.
+
 ## Pubblicare un modulo del kernel come pacchetto
 
 Un modulo in un repository si installa, si aggiorna e si toglie dall'AppStore (Moduli del kernel), con il riavvio del kernel. Decisione: [D40](../interna/decisioni.md#d40-i-moduli-del-kernel-si-installano-come-pacchetti-e-valgono-dopo-il-riavvio). Contratti: [API → Moduli come pacchetti](api.md#moduli-come-pacchetti-modulepackagejs).

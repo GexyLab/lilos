@@ -460,7 +460,7 @@ Cose da sapere:
 
 ## Rete
 
-**Rete** porta in lilOS i file di un altro computer: un server FTP, un sito con SFTP, un Nextcloud o un altro WebDAV, la condivisione di un NAS o di un PC Windows (SMB). Ogni connessione diventa una cartella dentro la cartella **Rete**, e si usa come le altre: la apri, ci guardi dentro, ci crei cartelle, rinomini, elimini e copi file trascinandoli.
+**Rete** porta in lilOS i file di un altro computer: un server FTP, un sito con SFTP, un Nextcloud o un altro WebDAV, la condivisione di un NAS o di un PC Windows (SMB), il tuo OneDrive. Ogni connessione diventa una cartella dentro la cartella **Rete**, e si usa come le altre: la apri, ci guardi dentro, ci crei cartelle, rinomini, elimini e copi file trascinandoli.
 
 Le connessioni sono tue: gli altri utenti di lilOS non le vedono. Il collegamento al server lo fa lilOS sul computer in cui gira, non il tuo browser: un trasferimento continua anche se chiudi la pagina.
 
@@ -484,6 +484,7 @@ La connessione compare nella barra a sinistra con un pallino che dice com'è: **
 | **SFTP** (SSH) | **Server**, **Porta** (22), **Utente**, **Accesso** (**Password** o **Chiave SSH**), poi la **Password** oppure la **Chiave privata** (un file di lilOS, per esempio `id_ed25519`; **Sfoglia…** lo sceglie) con la **Passphrase della chiave** se ne ha una, e la **Cartella remota** |
 | **WebDAV** | **Indirizzo** della cartella da aprire, con `https://` (Nextcloud: `…/remote.php/dav/files/<utente>/`), **Utente**, **Password** (per Nextcloud conviene una password per le app) |
 | **SMB** (condivisioni Windows e NAS) | **Server**, **Porta** (445), **Condivisione** (**Elenca…** mostra quelle che il server offre), **Accesso** (**Utente e password** oppure **Ospite**), **Dominio o gruppo di lavoro** (`WORKGROUP`), **Utente**, **Password**, **Consenti connessioni non firmate (solo vecchi NAS: meno sicuro)** (lasciala spenta se il tuo server si collega senza), **Cartella dentro la condivisione** |
+| **OneDrive** | **Accedi con Microsoft** (l'account, niente password) e, se vuoi, **Cartella di OneDrive**: vedi [OneDrive](#onedrive) |
 
 Attenzione alle password: con l'**FTP** semplice e con un indirizzo WebDAV `http://` viaggiano in chiaro sulla rete. Se il server ha FTPS, SFTP o `https://`, usa quelli.
 
@@ -515,7 +516,7 @@ Apri la connessione dalla barra a sinistra o dalla cartella **Rete**: lilOS legg
 - Il tasto destro su una connessione (nella barra a sinistra) ha **Apri**, **Connetti** o **Disconnetti**, **Modifica connessione…** e **Rimuovi connessione**. **Rimuovi** toglie la cartella da Rete e cancella la password salvata; i file sul server restano dov'erano.
 - Le cartelle delle connessioni hanno il simbolo di un globo. I file sul server non hanno miniature (andrebbero scaricati tutti). Nel pannello **Anteprima** si vedono i file fino a 1 MB.
 - Aprire un file del server lo scarica; salvarlo lo rimanda al server.
-- **Eliminare sul server è definitivo.** Non c'è il cestino e non si annulla: lilOS chiede sempre conferma (**Elimina dal server «nome» (definitivo)**), anche se hai tolto la conferma nelle impostazioni.
+- **Eliminare sul server è definitivo.** Non c'è il cestino e non si annulla: lilOS chiede sempre conferma (**Elimina dal server «nome» (definitivo)**), anche se hai tolto la conferma nelle impostazioni. Fa eccezione OneDrive, che ha un cestino suo (vedi [Eliminare e cartelle condivise su OneDrive](#eliminare-e-cartelle-condivise-su-onedrive)).
 - Quello che è nel cestino di lilOS non si può ripristinare dentro una cartella del server.
 - I nomi che il server dà e che lilOS ritiene pericolosi (con `..`, caratteri di controllo o simboli che invertono il verso del testo) non compaiono e non si trasferiscono. I collegamenti a cartelle (scorciatoie del server) si vedono ma lilOS non ci entra quando copia, e se li elimini si toglie solo il collegamento. Una cartella può mostrare al massimo 50 000 elementi.
 - Se più persone usano lilOS con un accesso, lilOS non si collega a questo computer né a indirizzi speciali (non può essere un server «locale»); la rete di casa o dell'ufficio è permessa, salvo che chi amministra lo vieti.
@@ -547,6 +548,89 @@ Puoi chiudere la finestra: **i trasferimenti continuano**, anche se chiudi il Fi
 
 Quando una coda ha finito arriva una notifica, per esempio **Trasferimento completato: 12 file trasferiti in «NAS» (48 MB).**; se qualcosa è andato storto dice **finito con errori** o **non riuscito**. I file che non sono andati restano nella finestra.
 
+### OneDrive
+
+Con **OneDrive** i file del tuo OneDrive (quello personale, di outlook.com o hotmail.com, oppure quello di lavoro o dell'istituto) diventano una cartella dentro Rete. Non scrivi nessuna password: l'accesso si fa nella finestra di Microsoft, e lilOS non vede mai la tua password di Microsoft.
+
+Se **OneDrive** non è nell'elenco dei protocolli, il tuo lilOS non ce l'ha: chiedi a chi lo amministra. Se c'è ma al posto dei campi compare **OneDrive non è ancora pronto su questo lilOS**, un amministratore deve prima registrare l'app di lilOS su Azure (vedi [La scheda OneDrive](#la-scheda-onedrive-del-pannello-di-controllo)): il pulsante **Apri le impostazioni** porta al Pannello di controllo.
+
+**Collegare il tuo OneDrive.**
+
+1. Nel File Manager premi il **+** accanto a **Rete** e scegli il protocollo **OneDrive**.
+2. Premi **Accedi con Microsoft**. Si apre una finestra di Microsoft: scegli l'account (o accedi) e accetta i permessi che chiede. Se il browser blocca la finestra, consenti le finestre a comparsa per lilOS e riprova.
+3. Finito l'accesso la finestra si chiude da sola e nel campo compare il tuo account. Per cambiarlo premi **Usa un altro account**. Mentre aspetti, **Annulla** ferma l'attesa; l'accesso non finito scade dopo 10 minuti.
+4. Facoltativo: in **Cartella di OneDrive** scrivi una cartella (per esempio `/Lavoro/2026`) per vedere solo quella; vuoto, vedi tutto il tuo OneDrive.
+5. Il nome della cartella in Rete è **OneDrive**, finché non ne scrivi un altro. Scegli se **Ricorda l'accesso** (lilOS lo tiene cifrato) e se **Connetti all'accesso**.
+6. Premi **Prova** e poi **Connetti**.
+
+L'accesso con la finestra di Microsoft funziona solo se apri lilOS con un indirizzo `https://`, oppure con `http://localhost` (da questo stesso computer): Microsoft non accetta altri indirizzi. Altrimenti il pulsante dà un errore e un amministratore deve aprire lilOS da un indirizzo `https://`.
+
+**Accedere di nuovo.** Senza **Ricorda l'accesso**, lilOS lo tiene a mente fino a **Disconnetti** o al riavvio. Anche con l'accesso ricordato, può servire rifarlo: se hai cambiato la password di Microsoft, hai tolto lilOS dalle app autorizzate, o è passato troppo tempo, Microsoft non lo accetta più. Allora compare la finestra **Accedi di nuovo a «nome»**: premi **Accedi con Microsoft** e rifai l'accesso, **Più tardi** per rimandare. Devi usare lo stesso account della connessione; con un altro lilOS dice **Hai fatto l'accesso come …, ma «nome» è di …**.
+
+**Cosa cambia rispetto agli altri server.**
+
+- Non c'è la conferma del server (l'impronta): la sicurezza la dà il collegamento a Microsoft.
+- Aprire un file di OneDrive lo scarica; se il download si ferma riparte da dove era arrivato. Il caricamento di un file, invece, riparte da capo.
+- OneDrive non accetta nei nomi `"` `*` `:` `<` `>` `?` `\` `|` e alcuni nomi riservati (come `con`, `nul`, `desktop.ini`, o nomi che iniziano con `~$`). Un blocco appunti di OneNote si apre solo sul web.
+
+### Aprire i documenti Office di OneDrive
+
+Un documento Word, Excel o PowerPoint di OneDrive (`.doc`, `.docx`, `.odt`, `.xls`, `.xlsx`, `.ods`, `.ppt`, `.pptx`, `.odp` e simili) si apre in **Office per il web**, in una nuova scheda del browser: lilOS non lo scarica.
+
+- Tasto destro sul documento → **Apri in Word online**, **Apri in Excel online** o **Apri in PowerPoint online** (secondo il tipo).
+- Il **doppio clic** fa lo stesso, a meno che tu abbia scelto un'app di lilOS per quel tipo di file (Pannello di controllo → Usabilità → Tipi di file) o l'abbia spento (vedi [La scheda OneDrive](#la-scheda-onedrive-del-pannello-di-controllo)).
+- Per ogni altro elemento di OneDrive (file, cartella) il tasto destro ha **Apri nel browser**: si apre la sua pagina su onedrive.com. Lo stesso fa il pulsante **Apri nel browser** nella barra sopra l'elenco, per la cartella in cui sei.
+
+Quello che cambi in Office si salva su OneDrive da solo. Se la scheda non si apre, controlla che il browser non blocchi le finestre a comparsa.
+
+### Carica su OneDrive e apri
+
+Per modificare in Office per il web un documento Office che sta nella tua Home: tasto destro sul documento → **Carica su OneDrive e apri**. La voce c'è se hai almeno una connessione OneDrive.
+
+1. lilOS **copia** il documento nella cartella di OneDrive scelta nel Pannello di controllo (di serie `/lilOS`; se manca la crea).
+2. Apre la copia in Office per il web, in una nuova scheda.
+3. Arriva una notifica: **«nome» è su …: quello che cambi in Office si salva lì**.
+
+Cose da sapere:
+
+- **L'originale resta nella Home e non cambia.** Quello che modifichi in Office è nella copia su OneDrive: per riportarlo in lilOS trascinalo da OneDrive nella tua cartella (è una copia, e se c'è già un file con quel nome lilOS ti chiede cosa fare).
+- Se hai più connessioni OneDrive e non ne hai scelta una nel Pannello di controllo, compare un menu **Carica su:**. Se non ne hai nessuna: **Prima collega OneDrive (Rete → +)**.
+- Se su OneDrive c'è già un file con lo stesso nome, di serie compare la finestra **File già su OneDrive** con **Annulla**, **Tieni entrambi** (il nuovo prende un numero) e **Sostituisci** (quello che era stato cambiato online si perde). Nel Pannello di controllo puoi decidere una volta per tutte.
+- Se Microsoft chiede di rifare l'accesso, compare la finestra **Accedi di nuovo**; dopo, rifai **Carica su OneDrive e apri**.
+
+### Eliminare e cartelle condivise su OneDrive
+
+- **Eliminare su OneDrive manda nel cestino di OneDrive**, non nel cestino di lilOS e non per sempre: lilOS chiede conferma (**Elimina da OneDrive «nome» (va nel suo cestino)**) e l'elemento si recupera da onedrive.com, nel suo cestino, finché Microsoft lo tiene. Una cartella va nel cestino intera, con tutto quello che contiene. Dentro lilOS non c'è un modo per ripristinarlo.
+- **Cartelle condivise da altri.** L'elenco «Condivisi con me» di Microsoft smette di funzionare a novembre 2026 e non ha sostituti, quindi lilOS non lo usa. Si arriva alle cartelle condivise attraverso i loro collegamenti: su onedrive.com apri **Condivisi**, scegli la cartella e premi **Aggiungi collegamento a I miei file**. Se un amministratore ha acceso **Apri le cartelle condivise con me** (Pannello di controllo → OneDrive), il collegamento compare in OneDrive come una cartella e ci puoi lavorare. Senza quell'impostazione i collegamenti non si vedono.
+- Accendere o spegnere **Apri le cartelle condivise con me** cambia i permessi che lilOS chiede a Microsoft: le connessioni OneDrive di tutti si chiudono e chiedono di rifare l'accesso.
+
+### La scheda OneDrive del Pannello di controllo
+
+Nel Pannello di controllo la sezione **OneDrive** (tra **Avvio** e **Archiviazione**) compare solo se il tuo lilOS ha OneDrive. Ha tre parti.
+
+**L'app su Azure** (per tutti su questo lilOS; le impostazioni le cambia solo un amministratore, gli altri vedono solo se OneDrive è **Pronto** o **Non ancora impostato**, l'indirizzo di ritorno e i passi). Ogni lilOS usa una propria app registrata su Azure, il servizio di Microsoft per le app: serve un account Azure, anche gratuito. Per registrarla:
+
+1. Su [portal.azure.com](https://portal.azure.com) vai in **Registrazioni app** → **Nuova registrazione**.
+2. Scegli i **Tipi di account supportati** (gli stessi di **Account ammessi** nel Pannello di controllo).
+3. In **URI di reindirizzamento** scegli la piattaforma **Client pubblico/nativo (dispositivi mobili e desktop)** e scrivi l'**Indirizzo di ritorno** che il Pannello di controllo mostra (con **Copia**): è l'indirizzo di questo lilOS seguito da `/api/net/signin/callback`, per esempio `http://localhost:8790/api/net/signin/callback`. Non scegliere «Web» né «Applicazione a pagina singola».
+4. In **Autenticazione** metti **Consenti flussi client pubblici** su **Sì**.
+5. In **Autorizzazioni API** → Microsoft Graph, autorizzazioni delegate: `Files.ReadWrite`, `User.Read`, `offline_access` (e `Files.ReadWrite.All` se vuoi le cartelle condivise).
+6. Copia l'**ID dell'applicazione (client)** dalla **Panoramica** nel campo omonimo del Pannello di controllo.
+
+Le impostazioni, che valgono subito (compare **Salvato**) e fanno chiudere le connessioni OneDrive aperte, che si riaprono da sole al primo uso:
+
+| Impostazione | Cosa è |
+| --- | --- |
+| **ID dell'applicazione (client)** | L'ID dell'app su Azure |
+| **Account ammessi** | **Personali, e di lavoro o dell'istituto**, **Solo di lavoro o dell'istituto**, **Solo personali** o **Solo di un'organizzazione** (con **ID della directory (tenant) o dominio**). Deve corrispondere ai tipi di account scelti su Azure |
+| **Apri le cartelle condivise con me** | Mostra i collegamenti alle cartelle condivise (vedi sopra). Chiede un permesso in più: tutti rifanno l'accesso |
+
+Se apri lilOS con un indirizzo che non è `https://` né `localhost`, sotto l'indirizzo di ritorno compare l'avviso che Microsoft non lo accetta: per fare l'accesso apri lilOS in uno dei due modi.
+
+**Carica su OneDrive e apri** (le tue scelte): la **Connessione** (**Chiedi ogni volta** o una delle tue), la **Cartella** su OneDrive (di serie `/lilOS`) e **Un file con lo stesso nome**: **Chiedi**, **Tieni entrambi** o **Sostituiscilo**.
+
+**Documenti Office**: l'interruttore **Il doppio clic apre Office online**.
+
 ### Cosa non è ancora possibile
 
 - Cercare i server in automatico: l'indirizzo lo scrivi tu.
@@ -554,6 +638,7 @@ Quando una coda ha finito arriva una notifica, per esempio **Trasferimento compl
 - Fermare un trasferimento in un altro modo che con **Annulla**.
 - Le cartelle di FTP, SFTP e WebDAV non si aggiornano da sole (solo SMB): vanno riaperte.
 - Spostare (non copiare) tra le tue cartelle e un server: si copia e poi si elimina a mano.
+- **OneDrive**: modificare un documento Office dentro lilOS (si apre in Office per il web, in una scheda del browser); l'elenco «Condivisi con me» di Microsoft (si usano i collegamenti, vedi sopra); un accesso con lilOS aperto da un indirizzo `http://` che non sia `localhost`.
 ## L'Editor
 
 L'**Editor** apre e modifica i file di testo e di codice (txt, md, js, css, html, json, py e altri). Un amministratore può rimuoverlo dall'[AppStore](#lappstore); chiunque può nasconderlo nel proprio workspace. Si apre facendo doppio clic su un file, dal menu di avvio o con **Ctrl Alt N** per un documento nuovo.
@@ -1244,6 +1329,7 @@ Le modifiche valgono subito e restano salvate.
 | Avvio | Opzioni | Se le app scelte si aprono da sole quando entri e se partono i servizi (vedi [Aprire le app all'avvio](#aprire-le-app-allavvio)) |
 | Avvio | Servizi | Le parti delle app che lavorano in sottofondo: se sono accese, quando partono, e i pulsanti per accenderle, spegnerle e leggerne il registro (vedi [Servizi in sottofondo](#servizi-in-sottofondo)) |
 | Avvio | App | Quali app si aprono da sole, con quale finestra e con quali scelte (cartella, file…) |
+| OneDrive | — | Compare solo se il tuo lilOS ha OneDrive. L'app su Azure e le cartelle condivise (le cambia un amministratore), dove va **Carica su OneDrive e apri**, il doppio clic sui documenti Office (vedi [La scheda OneDrive](#la-scheda-onedrive-del-pannello-di-controllo)) |
 | Archiviazione | — | Quanto spazio usano le tue impostazioni e il contenuto dei tuoi file; ripristino di impostazioni (anche colore e immagine di sfondo), scorciatoie e app dei tipi di file; ripristino della scrivania e dei file iniziali (con i workspace) |
 | Informazioni | — | Versione di lilOS, browser, lingua |
 
@@ -1412,7 +1498,7 @@ Il salvataggio avviene **nel tuo spazio su lilOS**, non nel browser:
 - con un altro browser o un altro computer, dopo aver fatto l'accesso, trovi la stessa scrivania;
 - cancellare i dati di navigazione del sito non cancella la tua scrivania (vedi [Accedere e uscire](#accedere-e-uscire) per i dati che il browser aveva prima);
 - se lilOS non riesce a salvare, compare un avviso e riprova da solo; non chiudere la pagina finché non compare **Modifiche salvate**;
-- le connessioni della **Rete** (nome, indirizzo, protocollo) sono salvate nel tuo spazio su lilOS; le password solo se scegli **Ricorda la password**, e cifrate. I file che stanno su un server restano sul server: lilOS non ne tiene una copia;
+- le connessioni della **Rete** (nome, indirizzo, protocollo) sono salvate nel tuo spazio su lilOS; le password (o, per OneDrive, l'accesso) solo se scegli **Ricorda la password** (**Ricorda l'accesso**), e cifrate. I file che stanno su un server restano sul server: lilOS non ne tiene una copia;
 - un'impostazione o un file cambiato in due schede insieme: vince l'ultima che salva. Usa una scheda sola.
 
 ## Tipi di file
