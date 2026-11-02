@@ -18,8 +18,12 @@ import { locale } from './locale.js';
  *                  closesAt, info, signals }   state 'new' | 'connecting' | 'on' | 'closed'
  *   term.saveHost(id | null, { name, folder, protocol, values, settings, remember? , forget? }, secret?) → host
  *   term.removeHost(id)
- *   term.open({ host } | { protocol, values, settings? } | { mount, path? }) → session
+ *   term.open({ host, cwd? } | { protocol, values, secret?, sealed?, settings?, name?, cwd? } | { mount, path? }) → session
  *       mount: SSH to the server of an SFTP connection of the Rete folder (path: a folder in it)
+ *       cwd: a folder of the server to start in (absolute). A quick connection without secret nor
+ *       sealed uses the password of a saved host for the same server and account, if any
+ *   term.seal({ host } | { protocol, values, secret }) → sealed   a password to keep in a file: encrypted
+ *       with this lilOS's key, it opens only for this user, on this lilOS, for the same server and account
  *   term.close(id)                    closes the session
  *   term.attach(id, { cols, rows }) → MessagePort     the session's screen and keys:
  *       from the port   ArrayBuffer: bytes for the screen (UTF-8, xterm) · string: JSON, see below
@@ -52,6 +56,7 @@ class Term extends Emitter {
 
   removeHost(id) { return kernel.request('DELETE', `/term/hosts/${id}`); }
   open(spec) { return kernel.request('POST', '/term/sessions', spec); }
+  async seal(spec) { return (await kernel.request('POST', '/term/seal', spec)).sealed; }
   close(id) { return kernel.request('DELETE', `/term/sessions/${id}`); }
 
   /** The channel of a session (see above): a WebSocket to the kernel behind a MessagePort. */

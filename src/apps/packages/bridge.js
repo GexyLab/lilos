@@ -143,6 +143,7 @@ export function lilosApi(call, info, i18nApi) {
       saveHost: (id, config, secret) => call('term.saveHost', id ?? null, config ?? null, secret ?? null),
       removeHost: id => call('term.removeHost', id),
       open: spec => call('term.open', spec ?? null),
+      seal: spec => call('term.seal', spec ?? null),
       openHere: id => call('term.openHere', id),
       close: id => call('term.close', id),
       attach: (id, size) => call('term.attach', id, size ?? null),

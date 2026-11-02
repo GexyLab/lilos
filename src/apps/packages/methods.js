@@ -193,8 +193,14 @@ export function hostMethods({ pkg, win = null, handles, readOnly = new Set(), in
     'term.saveHost': (id, config, secret) => terminal().saveHost(id === null ? null : String(id), plainObject(config), plainObject(secret)),
     'term.removeHost': id => terminal().removeHost(String(id)),
     'term.open': spec => {
-      const { host, protocol, values, settings } = plainObject(spec);
-      return terminal().open(typeof host === 'string' ? { host } : { protocol, values, settings });
+      const { host, protocol, values, secret, sealed, settings, name, cwd } = plainObject(spec);
+      const at = typeof cwd === 'string' ? { cwd } : {};
+      return terminal().open(typeof host === 'string' ? { host, ...at }
+        : { protocol, values, settings, ...(secret && { secret: plainObject(secret) }), ...(typeof sealed === 'string' && { sealed }), ...(typeof name === 'string' && { name }), ...at });
+    },
+    'term.seal': spec => {
+      const { host, protocol, values, secret } = plainObject(spec);
+      return terminal().seal(typeof host === 'string' ? { host } : { protocol, values, secret: plainObject(secret) });
     },
     // SSH to the server of the SFTP connection a handed file or folder is in, in that folder
     'term.openHere': id => {

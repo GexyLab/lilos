@@ -212,6 +212,47 @@ export class Terminals {
     }
   }
 
+  /** The password of a saved host for the same server and account (BOUND), or {}: the one used last. */
+  async #savedSecret(user, driver, protocol, values) {
+    const want = boundOf(driver, values);
+    const r = [...user.saved.values()]
+      .filter(x => x.protocol === protocol && x.secret && boundOf(driver, x.values) === want)
+      .sort((a, b) => (b.used ?? 0) - (a.used ?? 0))[0];
+    return r ? this.#openSecret(r) : {};
+  }
+
+  /**
+   * A password to keep in a .term file (Terminale): the secret fields of a saved host ({ host }) or
+   * the given ones ({ protocol, values, secret }), encrypted with this lilOS's key and tied to this
+   * user and to the server and account (BOUND). Only this user, on this lilOS, opens it again.
+   */
+  async seal(principal, body) {
+    const user = await this.#user(principal);
+    let protocol, values, secret;
+    if (typeof body?.host === 'string') {
+      const r = this.#saved(user, body.host);
+      ({ protocol, values } = r);
+      secret = r.secret ? await this.#openSecret(r) : {};
+    } else {
+      protocol = body?.protocol;
+      ({ values, secret } = checkFields(this.#driver(protocol), body?.values, body?.secret && typeof body.secret === 'object' ? body.secret : {}));
+    }
+    if (!Object.keys(secret).length) fail('invalid', 'Nessuna password da salvare');
+    const driver = this.#driver(protocol);
+    return { sealed: await this.secrets.seal({ kind: SEALED, user: principal.id, protocol, bound: boundOf(driver, values), secret }) };
+  }
+
+  /** The secret fields of a sealed password (seal), if it is this user's and for this server and account. */
+  async #unseal(principal, driver, protocol, values, sealed) {
+    let data = null;
+    try { data = await this.secrets.open(sealed); } catch { /* another lilOS, or damaged */ }
+    if (data?.kind !== SEALED || data.user !== principal.id || data.protocol !== protocol || data.bound !== boundOf(driver, values)
+      || !data.secret || typeof data.secret !== 'object') {
+      fail('forbidden', 'La password salvata nel collegamento vale solo per chi l’ha salvata, su questo lilOS, per lo stesso server e utente');
+    }
+    return data.secret;
+  }
+
   // ---------- Sessions ----------
 
   #mine(principal) {
@@ -231,10 +272,14 @@ export class Terminals {
 
   /**
    * A new session, not connected yet (it connects when a page attaches):
-   *   { host: id }                                    a saved host
-   *   { protocol, values, secret?, settings? }        a quick connection (nothing saved)
+   *   { host: id, cwd? }                              a saved host
+   *   { protocol, values, secret?, sealed?, settings?, name?, cwd? }
+   *                                                   a quick connection (nothing saved): without secret
+   *                                                   nor sealed (seal()), the password of a saved host
+   *                                                   for the same server and account, if there is one
    *   { mount: id, path? }                            SSH to the server of an SFTP connection of the
    *                                                   Rete folder, in that folder (same credentials and key)
+   * cwd: a folder of the server to start in (an absolute path; protocols that cannot, ignore it).
    */
   async open(principal, body) {
     const user = await this.#user(principal);
@@ -246,7 +291,7 @@ export class Terminals {
       const r = this.#saved(user, body.host);
       spec = {
         host: r.id, name: r.name, protocol: r.protocol, values: r.values,
-        secret: r.secret ? await this.#openSecret(r) : {}, settings: r.settings ?? cleanSettings(),
+        secret: r.secret ? await this.#openSecret(r) : {}, settings: r.settings ?? cleanSettings(), cwd: cleanCwd(body.cwd),
       };
       r.used = Date.now();
       this.#save(principal.id, user).catch(err => log.error('Host dei terminali non salvati', err));
@@ -265,7 +310,13 @@ export class Terminals {
     } else {
       const driver = this.#driver(body?.protocol);
       const { values, secret } = checkFields(driver, body.values, body.secret && typeof body.secret === 'object' ? body.secret : {});
-      spec = { host: null, name: '', protocol: body.protocol, values, secret, settings: cleanSettings(body.settings) };
+      const given = Object.keys(secret).length > 0;
+      const kept = typeof body.sealed === 'string' ? await this.#unseal(principal, driver, body.protocol, values, body.sealed)
+        : given ? {} : await this.#savedSecret(user, driver, body.protocol, values);
+      spec = {
+        host: null, name: cleanName(body.name), protocol: body.protocol, values, secret: { ...kept, ...secret },
+        settings: cleanSettings(body.settings), cwd: cleanCwd(body.cwd),
+      };
     }
     const driver = this.#driver(spec.protocol);
     await this.#accept(driver, spec.values);
@@ -606,3 +657,16 @@ const userKey = userId => createHash('sha256').update(String(userId)).digest('he
 
 /** What a remembered password is tied to: change one of these, and it must be typed again. */
 const BOUND = ['host', 'port', 'user', 'auth', 'tls'];
+/** The BOUND values of a connection as one string (the usual port when none, the server in lower case). */
+const boundOf = (driver, values) => JSON.stringify(BOUND.map(k => {
+  const v = k === 'port' ? values.port ?? driver.port : values[k];
+  return k === 'host' ? String(v ?? '').toLowerCase() : v ?? null;
+}));
+/** What a sealed password of a .term file says it is (seal()). */
+const SEALED = 'term-file';
+
+/** The name a quick connection asks for (a .term file's), or '' for its address. */
+function cleanName(name) {
+  const clean = typeof name === 'string' ? name.replace(/\s+/g, ' ').trim() : '';
+  return clean && clean.length <= 60 && !/[\0-\x1f]/.test(clean) ? clean : '';
+}

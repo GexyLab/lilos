@@ -27,8 +27,11 @@ export function setLaunchScope(value) {
  * opens one window per app and entry point in the current scope (launching it again brings the
  * existing window back and emits 'launch' on it with the new args). App modules export a default
  * function ({ args, openWindow, entry }) → Window (system apps: their other window entry points
- * as exports with that name); openWindow(win, key?) opens a secondary window (settings,
- * pickers): with a key, a window already open with that key is shown instead and returned.
+ * as exports with that name); openWindow(win, key?, { main?, at? }) opens a secondary window
+ * (settings, pickers): with a key, a window already open with that key is shown instead and
+ * returned. `main: true` opens another window of the app itself instead (Terminale's detached
+ * tabs): saved and restored like the one launching opens, from its getState() given back as `args`.
+ * `at: { x, y }` (a point of the screen, clientX/clientY) puts its top-left corner there.
  * The user always opens `main`; the others are started by the system and by apps (entrypoints.js).
  * An app hidden in the current workspace does not start (a message says so).
  * The window belongs to the workspace that was current when the app was asked for, even if the
@@ -47,10 +50,11 @@ export function connectLauncher(wm) {
 
   const loading = new Set();
   // Secondary windows belong to the app that opens them (an update closes them with it)
-  const windowOpener = owner => (win, key = null) => {
+  const windowOpener = owner => (win, key = null, { main = false, at = null } = {}) => {
     const open = key && wm.get(key);
     if (open) { wm.show(open); return open; }
-    return wm.open(win, { key, owner, center: scope.center(win), bounds: scope.bounds() });
+    const where = at && Number.isFinite(at.x) && Number.isFinite(at.y) ? { at: wm.canvas.toWorld(at.x, at.y) } : { center: scope.center(win), bounds: scope.bounds() };
+    return wm.open(win, { key, owner, ...(main && { app: owner }), ...where });
   };
 
   // A window entry point other than main: system apps export it by name, installed apps get it as `entry`.

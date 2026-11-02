@@ -9,6 +9,7 @@ const TYPES = [
   { exts: ['mp4', 'mov', 'webm', 'mkv'], label: 'Video', color: '#c2417a' },
   { exts: ['zip', 'rar', '7z', 'tar', 'gz'], label: 'Archivio', color: '#6b7280' },
   { exts: ['html', 'css', 'js', 'ts', 'json', 'py'], label: 'Codice', color: '#0d9488' },
+  { exts: ['term'], label: 'Collegamento terminale', color: '#2b3038' },
 ];
 
 export function splitName(name) {

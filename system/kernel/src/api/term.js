@@ -9,7 +9,8 @@ import { acceptSocket } from '../ws.js';
  *   PUT    /api/term/hosts/:id                  { name?, folder?, values?, settings?, remember?, forget?, secret? } → host
  *   DELETE /api/term/hosts/:id
  *   GET    /api/term/sessions                   [session]
- *   POST   /api/term/sessions                   { host } | { protocol, values, secret?, settings? } | { mount, path? } → session
+ *   POST   /api/term/sessions                   { host, cwd? } | { protocol, values, secret?, sealed?, settings?, name?, cwd? } | { mount, path? } → session
+ *   POST   /api/term/seal                       { host } | { protocol, values, secret } → { sealed }: a password for a .term file
  *   DELETE /api/term/sessions/:id               closes it
  *   GET    /api/term/sessions/:id/socket?cols=&rows=    WebSocket: the session's screen and keys
  *
@@ -43,6 +44,8 @@ export function termRoutes(kernel) {
   router.add('GET', '/api/term/sessions', async ({ principal }) => terms.sessions(signedIn(principal)));
 
   router.add('POST', '/api/term/sessions', async ({ principal, json }) => terms.open(signedIn(principal), await json(256 << 10)));
+
+  router.add('POST', '/api/term/seal', async ({ principal, json }) => terms.seal(signedIn(principal), await json(256 << 10)));
 
   router.add('DELETE', '/api/term/sessions/:id', async ({ principal, params }) => {
     await terms.close(signedIn(principal), idOf(params, 'Sessione'));
