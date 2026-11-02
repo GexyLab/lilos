@@ -1138,7 +1138,7 @@ Da **Opzioni di avvio…** (o dal pulsante **Avvio…** in fondo ai passi) decid
 - **Scorciatoia**: premi il pulsante, poi i tasti (devono avere Ctrl o Alt); **Canc** la toglie. Se la combinazione è già usata da un altro comando, Automata lo dice. Una scorciatoia agisce sugli elementi selezionati dove sei: nel File Manager quelli che hai selezionato lì (non nel cestino), sulla scrivania quelli della scrivania. Se non ce ne sono (o la finestra davanti non ha una selezione), l'automazione ti chiede su cosa lavorare. La scorciatoia compare anche in **Pannello di controllo → Usabilità → Scorciatoie**, nel gruppo **Automazioni**.
 - **Nome per il Terminale**: il nome da scrivere nel comando `automata` (vedi sotto).
 
-- **Quando parte da sola**: vedi [Avvio da sola](#avvio-da-sola). Per le regole più ricche, anche a lilOS chiuso per le altre azioni, c'è la [Pianificazione](#pianificazione).
+- **Quando parte da sola** e **A un'ora**: vedi [Avvio da sola](#avvio-da-sola).
 
 ### Avvio da sola
 
@@ -1146,18 +1146,16 @@ Un'automazione può partire senza che tu faccia niente. In **Opzioni di avvio…
 
 | Motivo | Quando parte |
 | --- | --- |
-| **A un'ora** | All'ora scelta (per esempio 08:30), nei giorni che accendi (nessun giorno: ogni giorno). |
-| **Ogni tot minuti** | Ogni volta che passano i minuti scelti, da 5 a 1440 (un giorno). |
 | **Quando entro** | Quando accedi a lilOS. |
 | **Quando arrivano file in una cartella** | Quando un file viene creato, spostato o copiato in quella cartella (non nelle sue sottocartelle). Se hai indicato delle estensioni, contano solo quelle. I file arrivati insieme fanno una sola esecuzione, e sono i file su cui lavora. |
 
+**A un'ora** o ogni tanti minuti la fa partire la [Pianificazione](#pianificazione): nella sezione **A un'ora**, **Pianifica…** apre la Pianificazione su una nuova operazione per questa automazione, e sotto compaiono quelle che ha già, con la prossima volta e **Cambia in Pianificazione**. Valgono le regole della Pianificazione (giorni, orari, ogni tot minuti, mesi, fusi orari…) e l'operazione parte anche se lilOS era chiuso, appena lo apri. Le partenze «A un'ora» e «Ogni tot minuti» fatte con Automata fino alla 1.1.0 passano da sole in Pianificazione (con lilOS 1.21.0 e Automata 1.2.0), e una notifica lo dice.
+
 Da sapere:
 
-- **Parte solo mentre lilOS è aperto** in una scheda del browser. A lilOS chiuso non succede niente (la [Pianificazione](#pianificazione) fa partire un'automazione a un'ora, ma anche lei nel browser, quindi con lilOS aperto). Con più schede aperte con lo stesso utente, se ne occupa una sola; se la chiudi, ne prende il posto un'altra.
-- **A un'ora**: se a quell'ora lilOS era chiuso, di solito quell'esecuzione si perde. Accendi **Se a quell'ora lilOS era chiuso, eseguila quando entro** per farla partire all'accesso successivo. Senza, parte comunque se lilOS si apre entro due minuti dall'ora.
-- **Un motivo appena aggiunto comincia a contare da quando lilOS lo vede**: non parte subito per un'ora o un intervallo già passati.
-- **A un'ora**, **Ogni tot minuti** e **Quando entro** non hanno file con cui lavorare: imposta **Su cosa lavora** su **niente** (Automata lo dice quando salvi). **Quando arrivano file** funziona con niente, con i file o con una cartella (in quel caso lavora sulla cartella osservata).
-- **Se non c'è nessuno a rispondere**: un'automazione che chiede qualcosa (una conferma, un valore, cosa fare se un passo non riesce) si apre nella finestra **In esecuzione** di Automata, e tocca a te rispondere. Le altre girano in silenzio. Una notifica dice com'è andata: sempre se c'è un errore, e anche se è riuscita (tranne per **Ogni tot minuti**, per non riempirti di notifiche).
+- **Quando entro** e **Quando arrivano file** partono solo mentre lilOS è aperto in una scheda del browser. Con più schede aperte con lo stesso utente, se ne occupa una sola; se la chiudi, ne prende il posto un'altra.
+- **A un'ora** e **Quando entro** non hanno file con cui lavorare: imposta **Su cosa lavora** su **niente** (Automata lo dice). **Quando arrivano file** funziona con niente, con i file o con una cartella (in quel caso lavora sulla cartella osservata).
+- **Se non c'è nessuno a rispondere**: un'automazione che chiede qualcosa (una conferma, un valore, cosa fare se un passo non riesce) si apre nella finestra **In esecuzione** di Automata, e tocca a te rispondere. Le altre girano in silenzio. Per **Quando entro** e **Quando arrivano file** una notifica dice com'è andata; per quelle della Pianificazione l'esito è nel suo **Storico** (e una notifica se non è riuscita, come scegli nell'operazione).
 - Non parte se Automata non è installata, né se è già in esecuzione.
 - Quello che fa un'automazione non fa partire altre automazioni da una cartella, e nemmeno i file messi nella cartella **Automazioni** (così non si innescano a catena).
 - Un'automazione che cancella o sposta file, partendo da sola, lo fa senza che tu la guardi: provala prima a mano su copie.
@@ -1410,18 +1408,9 @@ Con lilOS dalla 1.19.0 e l'AppStore 1.7.0, in **AppStore → Opzioni** il contro
 
 ### Pianificazione e avvio da sola di Automata
 
-Anche **Automata** può far partire da sola un'automazione (vedi [Avvio da sola](#avvio-da-sola)). Le due cose sono separate e non si conoscono: scegli quella che ti serve.
+Anche **Automata** può far partire da sola un'automazione (vedi [Avvio da sola](#avvio-da-sola)), ma solo **quando entri** o **quando arrivano file in una cartella**. A un'ora o ogni tot minuti la fa partire la Pianificazione: Automata ti porta lì con **Pianifica…**, e le vecchie partenze a un'ora di Automata ci passano da sole.
 
-| | Avvio da sola di Automata | Pianificazione |
-| --- | --- | --- |
-| Dove sta | Nell'automazione stessa (il file `.automata`) | Nell'elenco delle operazioni |
-| Cosa può far partire | Quell'automazione | Un'automazione, ma anche un promemoria, una copia, un comando, una richiesta web, un servizio, un'app o un file |
-| Quando | A un'ora (nei giorni scelti), ogni tot minuti (da 5), quando entri, quando arrivano file in una cartella | A una data e ora o ripetuta (minuti, ore, giorni, settimane, mesi, anni, ultimo giorno, cron, fasce, fine), in un fuso orario. Non quando arrivano file né quando entri |
-| lilOS chiuso | Non parte | Le azioni del kernel (tutte tranne aprire un'app o un file e le automazioni) partono lo stesso |
-| Volta persa | Parte all'accesso successivo se lo chiedi (**Se a quell'ora lilOS era chiuso, eseguila quando entro**) | Una volta sola appena il kernel riparte; per le automazioni, quando apri lilOS (con la domanda **Operazioni in attesa**) |
-| Dopo | Una notifica | Storico, nuovi tentativi, notifica a scelta |
-
-Un'automazione fatta partire dalla Pianificazione gira comunque nel browser, come quelle di Automata: serve lilOS aperto. Se la fai partire con tutte e due, parte due volte: lasciane una sola.
+Un'automazione fatta partire dalla Pianificazione gira nel browser: se lilOS è chiuso aspetta che tu lo apra. Gira come quelle che partono da sole: in silenzio, o nella finestra **In esecuzione** di Automata se chiede qualcosa; se un passo non riesce, nello **Storico** risulta non riuscita.
 
 ### Da sapere
 

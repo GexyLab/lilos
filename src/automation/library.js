@@ -9,7 +9,7 @@ import { checkDocument } from './document.js';
  * Terminal (the Automata app's `automata` command). Starting one opens Automata's `run` window.
  *
  *   library.list() → [{ id, name, path, input, launch, steps }]   id: the file's node id
- *   library.get(idOrName) · library.menuEntries(ids) · library.start(id, items) · library.record(items)
+ *   library.get(idOrName) · library.menuEntries(ids) · library.start(id, items, values?) · library.record(items)
  *
  * Events: 'change' — automations added, changed or removed
  */
@@ -99,10 +99,10 @@ class Library extends Emitter {
     }
   }
 
-  /** Opens Automata to run an automation on these items. */
-  start(id, items = []) {
+  /** Opens Automata to run an automation on these items (values: answers by name, { width: 1200 }). */
+  start(id, items = [], values = null) {
     if (!isInstalled(AUTOMATA)) return notify('Per eseguire un’automazione serve l’app Automata', { level: 'warning' });
-    launch(AUTOMATA, { automation: id, items: items.filter(x => fs.exists(x)) }, 'run');
+    launch(AUTOMATA, { automation: id, items: items.filter(x => fs.exists(x)), ...(values && Object.keys(values).length && { values }) }, 'run');
   }
 
   /** Opens Automata's recorder, starting from these items (they become what it works on). */

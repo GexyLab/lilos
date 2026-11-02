@@ -2910,7 +2910,7 @@ Il file `.automata` è JSON:
   "name": "Prepara foto per il web", "description": "",
   "input": "files",
   "launch": { "menu": true, "ext": ["jpg", "png"], "shortcut": "Ctrl+Alt+W", "command": "web",
-    "triggers": [{ "type": "time", "at": "08:30", "days": [1, 2, 3, 4, 5], "catchUp": true }] },
+    "triggers": [{ "type": "folder", "folder": { "path": "~/Download" } }] },
   "steps": [
     { "action": "photo.resize", "enabled": true, "confirm": false, "onError": "stop",
       "params": { "width": 1600, "unit": "pixels", "keepRatio": true },
@@ -2945,19 +2945,19 @@ Il file `.automata` è JSON:
 
 | Tipo | Campi | Significato |
 | --- | --- | --- |
-| `time` | `at` (`'HH:MM'`, 24 ore), `days` (numeri da 1, lunedì, a 7, domenica, senza doppi e in ordine; `[]`: ogni giorno), `catchUp` (booleano, `false` se manca) | A quell'ora nei giorni indicati. `catchUp`: se era chiuso, parte all'accesso. |
-| `every` | `minutes` (intero da 5 a 1440) | Ogni tanti minuti. |
 | `login` | nessuno | Quando l'utente entra. |
 | `folder` | `folder` (riferimento fisso `{ path, id? }`; non `input` né `step`) | Quando un file viene creato, spostato o copiato in quella cartella. Con `launch.ext` solo le estensioni indicate. I file sono gli elementi dell'esecuzione. |
+| `time` | `at` (`'HH:MM'`, 24 ore), `days` (numeri da 1, lunedì, a 7, domenica, senza doppi e in ordine; `[]`: ogni giorno), `catchUp` (booleano, `false` se manca) | Vecchi (Automata < 1.2.0): letti ma non eseguiti; Automata li sposta in Pianificazione. |
+| `every` | `minutes` (intero da 5 a 1440) | Vecchi (Automata < 1.2.0): letti ma non eseguiti; Automata li sposta in Pianificazione. |
 
 ```json
-{ "type": "time", "at": "08:30", "days": [1, 2, 3, 4, 5], "catchUp": true }
-{ "type": "every", "minutes": 30 }
 { "type": "login" }
 { "type": "folder", "folder": { "path": "~/Download" } }
 ```
 
-`checkDocument` non controlla che `input` sia `none` con `time`, `every` e `login`: lo chiede l'interfaccia di Automata. Con un altro `input` quelle automazioni, partendo da sole, non hanno elementi e non fanno niente (a meno che chiedano qualcosa: allora si apre la finestra di Automata).
+A un'ora o ogni tanti minuti un'automazione parte da **Pianificazione**: un'operazione con `what: { type: 'automation', file, label }` (vedi [`connectSchedule`](#connectschedule-wm--schedulerunnerjs)), con l'orologio del kernel, anche a lilOS chiuso. Da lilOS 1.21.0 la pagina non ha più un orologio suo: Automata 1.2.0 trasforma i vecchi `time` (con dei giorni: ogni settimana in quei giorni; senza: ogni giorno; `catchUp` diventa `options.missed: 'once'`, altrimenti `'skip'`) ed `every` (ogni `minutes` minuti, `missed: 'once'`) in operazioni e li toglie dal file. `checkDocument` li legge ancora, così un'Automata più vecchia che apre il file non li perde prima dello spostamento.
+
+`checkDocument` non controlla che `input` sia `none` con `login`: lo chiede l'interfaccia di Automata. Con un altro `input` quelle automazioni, partendo da sole, non hanno elementi e non fanno niente (a meno che chiedano qualcosa: allora si apre la finestra di Automata).
 
 | Export | Descrizione |
 | --- | --- |
@@ -2999,7 +2999,7 @@ Eventi di `progress`: `{ type: 'item', item, index, total }` (comincia un elemen
 | `list()` | `[{ id, path, name, description, input, launch, steps }]` per nome. `id` è l'id del file; `steps` è il numero dei passi. |
 | `get(chiave)` | Per id del file, poi per `launch.command`, poi per nome (senza distinguere maiuscole); `null` se non c'è. |
 | `refresh()`, `ready()` | Rilegge tutto; `Promise` della lettura in corso o, se la prima non è ancora finita, della prima. |
-| `start(id, items = [])` | Apre la finestra `run` di Automata con `{ automation: id, items }`. Senza Automata: una notifica di avviso. |
+| `start(id, items = [], values?)` | Apre la finestra `run` di Automata con `{ automation: id, items, values? }` (`values`: risposte per nome, `{ width: 1200 }`; solo se ce ne sono). Senza Automata: una notifica di avviso. |
 | `record(items = [])` | Apre la finestra `recorder` di Automata. Senza Automata: una notifica di avviso. |
 | `menuEntries(ids)` | La voce **Automazioni** per i menu di file e cartelle (la aggiunge `appActionEntries`): le automazioni con `launch.menu` che stanno bene a quei nodi (`input: 'files'`: tutti file, con le estensioni di `launch.ext` se ce ne sono; `input: 'folder'`: una sola cartella; `input: 'none'` mai), poi **Registra partendo da qui**. `[]` senza Automata o se un nodo è nel Cestino. |
 | evento `change` | L'elenco è cambiato |
@@ -3008,15 +3008,15 @@ Le scorciatoie (`launch.shortcut`) si registrano con `shortcuts.register` (id `a
 
 ### Avvio da solo (`triggers.js`)
 
-`connectTriggers()`, chiamata da `connectAutomation`, fa partire le automazioni con `launch.triggers`. Vive nella pagina: parte solo mentre lilOS è aperto.
+`connectTriggers()`, chiamata da `connectAutomation`, fa partire le automazioni con `launch.triggers` `login` e `folder`. Vive nella pagina: parte solo mentre lilOS è aperto. A un'ora o ogni tanti minuti le fa partire Pianificazione (vedi [`connectSchedule`](#connectschedule-wm--schedulerunnerjs)).
 
-- **Una scheda per utente.** Il lavoro lo fa la scheda che ha il Web Lock `lilos:automazioni:<id utente>` (`navigator.locks`; senza, ogni scheda lavora). Chiusa quella, ne prende il posto un'altra. La scheda che subentra dopo i primi 15 secondi dall'apertura della pagina non rifà gli avvii «all'accesso»: controlla solo gli orari.
-- **Controllo ogni 20 secondi** per `time` e `every`; `login` all'evento `user:login` (e `time` con `catchUp`, subito dopo); `folder` ai cambiamenti di `fs` (`create` e `move` di un file nella cartella; si aspettano 1,5 secondi perché i file arrivati insieme facciano una sola esecuzione). Si aspetta che `library.ready()` abbia finito la prima lettura.
-- **Ultima esecuzione.** `storage` `automation-runs`, per utente: `{ '<id del file>#<posizione del motivo>': millisecondi }`. Un motivo mai visto comincia solo a contare (si scrive l'istante, senza eseguire). Un `time` è dovuto se l'ultima occorrenza dell'ora (fino a 7 giorni indietro) è dopo l'ultima esecuzione e, senza `catchUp`, è passata da non più di 2 minuti. Un `every` è dovuto se è passato l'intervallo.
+- **Una scheda per utente.** Il lavoro lo fa la scheda che ha il Web Lock `lilos:automazioni:<id utente>` (`navigator.locks`; senza, ogni scheda lavora). Chiusa quella, ne prende il posto un'altra. La scheda che subentra dopo i primi 15 secondi dall'apertura della pagina non rifà gli avvii «all'accesso»: guarda solo le cartelle.
+- **Quando.** `login` all'evento `user:login`; `folder` ai cambiamenti di `fs` (`create` e `move` di un file nella cartella; si aspettano 1,5 secondi perché i file arrivati insieme facciano una sola esecuzione). Si aspetta che `library.ready()` abbia finito la prima lettura.
+- **I vecchi orari.** All'accesso, se Automata è installata e qualche automazione ha ancora un `time` o un `every`, si avvia il punto d'ingresso in background `triggers` di Automata (`background.start(getApp('automata'), 'triggers')`): li sposta in Pianificazione. La chiave `storage` `automation-runs` (gli ultimi avvii dell'orologio della pagina, fino a lilOS 1.20) si cancella a ogni avvio.
 - **Cartelle.** Gli eventi sono ignorati mentre un'automazione gira (`automation.quietNow`: niente cicli) e per i file dentro `~/Automazioni`. `input: 'files'` riceve i file arrivati; `'folder'`, la cartella osservata; `'none'`, niente.
-- **Chi risponde.** Se un passo abilitato ha `confirm`, `onError: 'ask'`, un campo `ask` o è `missing`, si chiama `library.start(id, elementi)`: si apre la finestra `run` di Automata. Altrimenti `runAutomation` gira in silenzio e una notifica dice com'è andata: errore sempre (`level: 'error'`), riuscita (`level: 'success'`) tranne per `every`. Un'esecuzione per volta per automazione; senza Automata installata non parte niente. Con `input` diverso da `none` e senza elementi non si fa niente.
+- **Chi risponde** (`runByItself`). Se un passo abilitato ha `confirm`, `onError: 'ask'`, un campo `ask` a cui `values` non risponde o è `missing`, si chiama `library.start(id, elementi, values)`: si apre la finestra `run` di Automata. Altrimenti `runAutomation` gira in silenzio. Un'esecuzione per volta per automazione; senza Automata installata non parte niente. Con `input` diverso da `none` e senza elementi è un errore. Per `login` e `folder` una notifica dice com'è andata: errore (`level: 'error'`) o riuscita (`level: 'success'`); niente se si è aperta la finestra o se girava già.
 
-Esportati: `connectTriggers()`, `lastOccurrence(trigger, adesso?)` (l'ultimo istante di un `time` fino a adesso, o `null`) e `isDue(trigger, ultima, adesso?)`.
+Esportati: `connectTriggers()` e `runByItself(id, items = [], { values = {} } = {})` → `{ state: 'ok' | 'error' | 'skipped', text, opened? }`: esegue l'automazione del file `id` senza che l'utente l'abbia avviata (la usa anche Pianificazione). `opened`: si è aperta la finestra di Automata (`state` `ok`); `skipped`: stava già girando; `ok` con passi non riusciti (`onError: 'skip'`) lo dice nel testo.
 
 ---
 
@@ -3029,7 +3029,7 @@ Il dato è in [`schedule`](#schedule) (SDK) e nel kernel ([Pianificazione](#pian
 Chiamata da `system.js` prima di `connectServices()` (che aggiunge i suoi ascoltatori al flusso del kernel). Senza kernel non fa niente.
 
 - Gira a `schedule` gli eventi `schedule.change`, `schedule.run` e `schedule.due` del flusso (`onKernelEvent` → `schedule.received`). Alla riconnessione del flusso emette `change`, perché gli elenchi si rileggano.
-- A una corsa `due` fa `schedule.claim(run)`: se un'altra pagina l'ha già presa (`conflict`) non fa niente; altrimenti fa quello che dice `what` e risponde con `schedule.report(run, { state, text })`. `open` con `file` apre il file con `openFile`; con `app` fa `launch(app, args, entry)`; `automation` fa `launch('automata', { automation, items: [], values }, 'run')`. Se l'app, il file o Automata non ci sono, l'esito è `error`.
+- A una corsa `due` fa `schedule.claim(run)`: se un'altra pagina l'ha già presa (`conflict`) non fa niente; altrimenti fa quello che dice `what` e risponde con `schedule.report(run, { state, text })`. `open` con `file` apre il file con `openFile`; con `app` fa `launch(app, args, entry)`; `automation` fa `runByItself(file, [], { values })` ([triggers.js](#avvio-da-solo-triggersjs)): in silenzio, o nella finestra `run` di Automata se chiede qualcosa; l'esito è quello dell'esecuzione (un errore dell'automazione è `error` nella cronologia). Se l'app, il file o Automata non ci sono, l'esito è `error`.
 - Dopo 3 secondi dall'avvio, e a ogni riconnessione, legge `schedule.pending()` (le corse che aspettavano lilOS aperto): quelle di operazioni con `options.ask: false` le fa subito; per le altre apre la finestra **Operazioni in attesa**, con **Esegui ora** e **Salta** per ognuna e «D'ora in poi esegui senza chiedere» (mette `ask: false` nell'operazione). La apre una sola pagina (Web Lock `lilos:schedule-pending:<id utente>`). **Salta** manda `report(run, { state: 'skipped' })`.
 
 ## sdk/ui/
@@ -3093,7 +3093,7 @@ Controlli per impostazioni e finestre di dialogo. Ognuno restituisce il suo elem
 | `toggle({ value, onChange, label, disabled })` | `button[role=switch]` | Interruttore. |
 | `checkbox({ value, onChange, label, disabled })` | `label.ctl-check` con `input[type=checkbox]` | Casella con l'etichetta accanto; `onChange(true \| false)`. Da lilOS 1.21.0. |
 | `selectField({ value, options, onChange, label, disabled })` | `select` | Menu a tendina nativo; un'opzione con `disabled: true` non si sceglie. |
-| `segmented({ value, options, onChange, label, className })` | `div[role=radiogroup].ctl-seg` | Scelta a segmenti; frecce per cambiare (saltano le opzioni spente). Ogni opzione può avere `disabled`, `class` (un colore proprio: `.ctl-seg button.on.<class>` nel CSS dell'app), `icon` (un nodo prima dell'etichetta) e `title`. `className` si aggiunge a `ctl-seg`: `'wide'` occupa la riga con i pulsanti tutti uguali. Le opzioni in più da lilOS 1.21.0. |
+| `segmented({ value, options, onChange, label, className })` | `div[role=radiogroup].ctl-seg` | Scelta a segmenti; frecce per cambiare (saltano le opzioni spente). Ogni opzione può avere `disabled`, `class` (un colore proprio: `.ctl-seg button.on.<class>` nel CSS dell'app), `icon` (un nodo prima dell'etichetta) e `title`. `className` si aggiunge a `ctl-seg`: `'wide'` occupa la riga con i pulsanti tutti uguali. L'etichetta sta in uno `span.ctl-seg-label`: se il pulsante è stretto finisce con i puntini e l'icona resta. Le opzioni in più da lilOS 1.21.0. |
 | `radios({ value, options, onChange, label, disabled })` | `div.ctl-radios` di `label.ctl-radio` | Pulsanti di opzione nativi, uno sotto l'altro con la loro etichetta. Da lilOS 1.21.0. |
 | `swatches({ value, colors, onChange, label })` | `div[role=radiogroup]` | Colori; `colors` come le opzioni (`label` = nome del colore). |
 | `slider({ value, min, max, step, unit, onChange, label })` | `div` con `input[type=range]` | `onChange` al rilascio; il valore mostrato si aggiorna mentre si trascina. |
@@ -4008,7 +4008,7 @@ Quando una pagina si apre, `connectSchedule` (`src/schedule/runner.js`) legge `p
 | `web` | `{ method, url, headers, body, expect, timeoutS, saveTo }` | `method` GET (predefinito), HEAD, POST, PUT, PATCH, DELETE. `url` `http` o `https`, senza credenziali. `headers`: fino a 30, `{ name, value }` o `{ name, secret: true, value }` (cifrata con `kernel.settingSecrets`, mai rimandata: le pagine ricevono `{ name, secret: true, set }`; per tenerla si manda `{ name, secret: true }`). `body`: `{ kind: 'none' }`, `text`, `json` (controllato), `form` (con `text`, fino a 1 MB) o `file` (id di un file della home); non con GET e HEAD. `expect`: `{ status: '2xx' \| 'any' \| 100…599, contains }`. `timeoutS` 1-300 (30). `saveTo`: `{ folder, name, mode: 'replace' \| 'dated' }` (la risposta, fino a 10 MB; un file protetto da un'app con quel nome non si sovrascrive: `conflict`). Rete: la guardia di `net/guard.js` (con più utenti mai questo computer; la rete locale solo se aperta), a ogni reindirizzamento, e un reindirizzamento ad altra origine toglie le intestazioni segrete e `Authorization`, `Cookie`, `Proxy-Authorization`, e non è seguito se c'è un corpo da mandare. Una intestazione segreta si può tenere (senza `value`) solo se l'origine dell'indirizzo non cambia: cambiandola va inserita di nuovo. Il resoconto ha stato, durata, intestazioni e i primi 4 KB |
 | `command` | `{ lines, cwd, host, saveTo }` | `lines` fino a 8 KB. Senza `host`: la shell del Terminale **nel kernel**, come il servizio `shell` dell'app `terminal` (1.5.0 o successivo, con `services-isolate` 1.1.0: `runScheduled` con `{ lines, cwd }`); `cwd` è l'id di una cartella della home (la home se manca). Con `host`: l'id di un host SSH salvato, via `Terminals.exec` (la password o la chiave devono essere salvate e la chiave del server già confermata). Riesce se esce con 0; in lilOS dura al massimo 60 s (il limite di `AppServices.call`/richiesta al servizio); il resoconto è l'output (stdout e stderr insieme, gli ultimi 64 KB, senza sequenze di controllo). `saveTo`: `{ folder, name, mode: 'replace' \| 'append' }`. Non per il sistema |
 | `open` | `{ file }` oppure `{ app, entry?, args? }` | Nel browser. Non per il sistema |
-| `automation` | `{ file, values }` | Nel browser: un file `.automata` della home, avviato con `launch('automata', …, 'run')`. Non per il sistema |
+| `automation` | `{ file, values }` | Nel browser: un file `.automata` della home, eseguito in silenzio (`runByItself`) o, se chiede qualcosa, nella finestra `run` di Automata; se non riesce, la corsa è `error`. Non per il sistema |
 
 Una operazione fatta da un'**app** (`app`) può avere solo `notify`, `service` (dei servizi di quell'app) e `open` (di quell'app); le sue notifiche non aprono file né altre app.
 

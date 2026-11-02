@@ -21,12 +21,12 @@ import { recordedPath } from './recorder.js';
  *   }
  *
  * Triggers: when it starts by itself, while lilOS is open (triggers.js), at most 10:
- *   { type: 'time', at: '08:30', days: [1, 2, 3, 4, 5], catchUp: true }   days 1 (Monday) … 7; none: every
- *                                                         day; catchUp: missed while lilOS was closed → at login
- *   { type: 'every', minutes: 30 }                        5 … 1440
  *   { type: 'login' }                                     when the user comes in
  *   { type: 'folder', folder: ref }                       files arriving in a folder (made, moved or copied
  *                                                         there; launch.ext filters them): they are the items
+ * Legacy (Automata < 1.2.0; still read, never run: Automata ≥ 1.2.0 moves them to Pianificazione):
+ *   { type: 'time', at: '08:30', days: [1, 2, 3, 4, 5], catchUp: true }   days 1 (Monday) … 7; none: every day
+ *   { type: 'every', minutes: 30 }                        5 … 1440
  *
  * References to nodes: { input: true } (the item the automation works on now; with parent: true,
  * the folder it is in), { step: 2, index? }

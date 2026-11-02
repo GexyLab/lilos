@@ -1,5 +1,6 @@
 import { automation, bus, fs, kernel, splitName, storage } from '@lilos/sdk';
-import { isInstalled } from '../apps/registry.js';
+import { getApp, isInstalled } from '../apps/registry.js';
+import { start as startBackground } from '../apps/packages/background.js';
 import { notify } from '../notifications/notify.js';
 import { checkDocument } from './document.js';
 import { runAutomation } from './runner.js';
@@ -7,22 +8,20 @@ import { library, AUTOMATA } from './library.js';
 import { AUTOMATIONS } from './recorder.js';
 
 /**
- * Automations that start by themselves (launch.triggers, see document.js): at a time, every few
- * minutes, at login, when files arrive in a folder. They live in the page, so they start only
- * while lilOS is open, and in one tab of the user only (a Web Lock: when that tab closes, another
- * one takes over). An automation that asks something (a confirmation, a value, what to do if a
- * step fails) opens in Automata's window; the others run quietly and say how it went with a
- * notification (an error always; a success, except for the ones that repeat every few minutes).
+ * Automations that start by themselves: at login and when files arrive in a folder (`login`,
+ * `folder`, see document.js), while lilOS is open, in one tab of the user only (a Web Lock: when
+ * that tab closes, another one takes over). At a time or every few minutes they are
+ * Pianificazione's operations (`what.type 'automation'`, the kernel's clock, also with lilOS
+ * closed): the old `time`/`every` triggers are moved there by Automata (its `triggers` entry
+ * point, started here at sign-in while some are left).
  *
- * When each one last ran is kept per user ('automation-runs', { '<file id>#<trigger>': ms }): a
- * time missed while lilOS was closed runs at the next login if the trigger says catchUp. A trigger
- * seen for the first time only starts counting.
+ * runByItself() runs one without the user: an automation that asks something (a confirmation, a
+ * value, what to do if a step fails) opens in Automata's window; the others run quietly. The
+ * triggers say how it went with a notification; Pianificazione (src/schedule/runner.js) keeps it
+ * in its history.
  */
-const KEY = 'automation-runs';
-const TICK = 20_000;
-const LATE = 2 * 60_000;        // a time without catchUp still runs this long after it
 const GATHER = 1500;            // files arriving together make one run
-const DAY = 24 * 60 * 60_000;
+const LEGACY = ['time', 'every'];   // moved to Pianificazione by Automata ≥ 1.2.0
 
 let active = false;
 let loggedIn = false;
@@ -31,74 +30,53 @@ const FIRST_TAB = 15_000;       // the lock taken this soon after the page opene
 const running = new Set();
 const arriving = new Map();     // file id of the automation → { ids, timer }
 
-const runs = () => {
-  const saved = storage.get(KEY, {});
-  return saved && typeof saved === 'object' && !Array.isArray(saved) ? saved : {};
-};
-const setRun = (key, at) => storage.set(KEY, { ...runs(), [key]: at });
-
-/** The latest moment of a time trigger at or before `now` (null if none in the last week). */
-export function lastOccurrence(t, now = Date.now()) {
-  const [hh, mm] = t.at.split(':').map(Number);
-  for (let back = 0; back <= 7; back++) {
-    const d = new Date(now - back * DAY);
-    d.setHours(hh, mm, 0, 0);
-    const iso = ((d.getDay() + 6) % 7) + 1;   // 1 Monday … 7 Sunday
-    if (d.getTime() <= now && (!t.days.length || t.days.includes(iso))) return d.getTime();
-  }
-  return null;
-}
-
-/** Whether a time or every trigger is due now. */
-export function isDue(t, last, now = Date.now()) {
-  if (t.type === 'every') return now - last >= t.minutes * 60_000;
-  if (t.type !== 'time') return false;
-  const at = lastOccurrence(t, now);
-  return at !== null && last < at && (t.catchUp || now - at <= LATE);
-}
-
-/** Runs an automation that started by itself. */
-async function fire(entry, items, { quietSuccess = false } = {}) {
-  if (running.has(entry.id) || !isInstalled(AUTOMATA)) return;
-  running.add(entry.id);
+/**
+ * Runs the automation in file `id` on these items, nobody having started it: quietly, or in
+ * Automata's `run` window when a step asks (values given by name answer its questions), confirms
+ * or is missing. → { state: 'ok' | 'error' | 'skipped', text, opened? }   opened: in the window
+ */
+export async function runByItself(id, items = [], { values = {} } = {}) {
+  let name = library.get(id)?.name ?? fs.get(id)?.name ?? 'L’automazione';
+  if (!isInstalled(AUTOMATA)) return { state: 'error', text: 'Automata non è installata' };
+  if (running.has(id)) return { state: 'skipped', text: `${name} è già in esecuzione` };
+  running.add(id);
   try {
-    const doc = checkDocument(await fs.read(entry.id));
-    const asks = doc.steps.some(s => s.enabled && (s.confirm || s.onError === 'ask' || Object.values(s.fields ?? {}).some(f => f.mode === 'ask')));
-    if (asks || doc.steps.some(s => s.enabled && s.missing)) return library.start(entry.id, items);
-    // Started by a time, a login or every few minutes there is nothing chosen (a file may say otherwise)
-    if (doc.input !== 'none' && !items.length) return notify(`${doc.name}: parte da sola solo se lavora su niente (Automata → Avvio)`, { level: 'warning' });
-    const result = await runAutomation(doc, { items });
-    if (!quietSuccess) notify(`${doc.name}: eseguita da sola${result.items > 1 ? ` su ${result.items} elementi` : ''}`, { level: 'success' });
+    const doc = checkDocument(await fs.read(id));
+    name = doc.name;
+    const asks = doc.steps.some(s => s.enabled && (s.confirm || s.onError === 'ask'
+      || Object.entries(s.fields ?? {}).some(([field, f]) => f.mode === 'ask' && !Object.hasOwn(values, field))));
+    if (asks || doc.steps.some(s => s.enabled && s.missing)) {
+      library.start(id, items, values);
+      return { state: 'ok', text: `${doc.name}: aperta in Automata`, opened: true };
+    }
+    // Started by a login or by Pianificazione there is nothing chosen (a file may say otherwise)
+    if (doc.input !== 'none' && !items.length) return { state: 'error', text: `${doc.name}: parte da sola solo se lavora su niente (Automata → Avvio)` };
+    const result = await runAutomation(doc, { items, values });
+    const failed = result.failed ? ` (${result.failed} ${result.failed === 1 ? 'passo non riuscito' : 'passi non riusciti'})` : '';
+    return { state: 'ok', text: `${doc.name}: eseguita da sola${result.items > 1 ? ` su ${result.items} elementi` : ''}${failed}` };
   } catch (err) {
-    notify(`${entry.name}: ${err.message}`, { level: 'error' });
+    return { state: 'error', text: `${name}: ${err.message}` };
   } finally {
-    running.delete(entry.id);
+    running.delete(id);
   }
 }
 
-/** The time and every triggers: due ones run, first-seen ones start counting. */
-function tick() {
-  if (!active) return;
-  const now = Date.now();
-  const known = runs();
-  for (const e of library.list()) {
-    e.launch.triggers?.forEach((t, i) => {
-      if (t.type !== 'time' && t.type !== 'every') return;
-      const key = `${e.id}#${i}`;
-      if (!(key in known)) return setRun(key, now);
-      if (!isDue(t, known[key], now)) return;
-      setRun(key, now);
-      fire(e, [], { quietSuccess: t.type === 'every' });
-    });
-  }
+/** Runs an automation that a trigger started, and says how it went. */
+async function fire(entry, items) {
+  if (!isInstalled(AUTOMATA)) return;
+  const { state, text, opened } = await runByItself(entry.id, items);
+  if (state !== 'skipped' && !opened) notify(text, { level: state === 'ok' ? 'success' : 'error' });
 }
 
-/** At login: the login triggers, and the times missed while lilOS was closed (catchUp). */
+/** At login: the login triggers; old automations still holding a time trigger go to Automata. */
 function atLogin() {
   for (const e of library.list()) {
     if (e.launch.triggers?.some(t => t.type === 'login')) fire(e, []);
   }
-  tick();
+  // Automata moves their time and every-few-minutes triggers to Pianificazione
+  if (isInstalled(AUTOMATA) && library.list().some(e => e.launch.triggers?.some(t => LEGACY.includes(t.type)))) {
+    startBackground(getApp(AUTOMATA), 'triggers').catch(err => console.warn('[lilos] automazioni:', err.message));
+  }
 }
 
 const folderOf = ref => (ref?.id && fs.exists(ref.id) ? ref.id : ref?.path ? fs.resolve(ref.path)?.id ?? null : null);
@@ -127,15 +105,16 @@ function arrived(node, parent) {
 }
 
 export function connectTriggers() {
+  // The last runs of the page's old clock (lilOS < 1.21.0)
+  storage.remove('automation-runs');
   bus.on('user:login', () => { loggedIn = true; if (active) library.ready().then(atLogin); });
   fs.on('change', e => {
     if (e.type === 'create' || e.type === 'move') arrived(e.node, e.parent);
   });
-  setInterval(tick, TICK);
   const take = () => {
     active = true;
     // The tab that takes over later does not run the login triggers again
-    if (loggedIn) library.ready().then(Date.now() - startedAt < FIRST_TAB ? atLogin : tick);
+    if (loggedIn && Date.now() - startedAt < FIRST_TAB) library.ready().then(atLogin);
   };
   if (!navigator.locks) return take();
   const user = kernel.data?.user?.id ?? 'local';

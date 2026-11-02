@@ -3,18 +3,21 @@ import { onKernelEvent } from '../apps/services.js';
 import { launch, isInstalled } from '../apps/registry.js';
 import { openFile } from '../apps/open.js';
 import { notify } from '../notifications/notify.js';
+import { runByItself } from '../automation/triggers.js';
+import { AUTOMATA } from '../automation/library.js';
 
 /**
  * The scheduler's operations that run in the browser: opening an app or a file, running an
- * automation (Automata). The kernel tells the user's pages when one is due ('schedule.due'); the
- * first page that claims it does it and says how it went. A run that found no lilOS open waits in
- * the kernel: when lilOS opens it is done at once, or, when its operation asks first (options.ask,
+ * automation (quietly, like the ones that start by themselves, or in Automata's window when it
+ * asks something: runByItself in automation/triggers.js). The kernel tells the user's pages when
+ * one is due ('schedule.due'); the first page that claims it does it and says how it went (an
+ * automation that fails: an error in the history). A run that found no lilOS open waits in the
+ * kernel: when lilOS opens it is done at once, or, when its operation asks first (options.ask,
  * the default), the «Operazioni in attesa» window lets the user run it or skip it, in one page
  * only (Web Lock lilos:schedule-pending:<user>).
  * The SDK's schedule hears here what the kernel streams about the operations.
  */
 const KEY = 'schedule-pending';
-const AUTOMATA = 'automata';
 
 /** Does what a browser operation says. → { state, text } */
 async function perform(task) {
@@ -22,8 +25,9 @@ async function perform(task) {
   if (w.type === 'automation') {
     if (!isInstalled(AUTOMATA)) return { state: 'error', text: 'Automata non è installata' };
     if (!fs.exists(w.file)) return { state: 'error', text: `${w.label || 'L’automazione'} non c’è più` };
-    launch(AUTOMATA, { automation: w.file, items: [], values: w.values ?? {} }, 'run');
-    return { state: 'ok', text: `Avviata ${fs.get(w.file).name}` };
+    // Quietly, or in Automata's window when it asks something
+    const { state, text } = await runByItself(w.file, [], { values: w.values ?? {} });
+    return { state, text };
   }
   if (w.file !== undefined) {
     const node = fs.get(w.file);
