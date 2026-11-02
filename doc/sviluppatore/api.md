@@ -205,6 +205,7 @@ I testi che lilOS mostra senza eseguire l'app (nome, comandi, finestre) stanno *
 | `@actions.<id>.label` | `contributes.actions[].label` |
 | `@menus.<id>.label` | `contributes.menus[].label` |
 | `@badge.label` | `contributes.badge.label` |
+| `@dependencies.<modulo o app>.reason` | `dependencies[].reason` (il nome del modulo o l'id dell'app della voce) |
 | `@events.<nome>.label`, `@events.<nome>.description` | `contributes.events[].label` e `.description` |
 | `@automation.<id>.label`, `@automation.<id>.description` | `contributes.automation[].label` e `.description` |
 | `@automation.<id>.params.<param>.label`, `.description` | `label` e `description` di un parametro di un'azione |
@@ -331,15 +332,15 @@ Le app installate in lilOS (pacchetti in `/system/app`, per tutti gli utenti e i
 
 | Metodo | Descrizione |
 | --- | --- |
-| `list()` | Copie dello stato di ogni app: `{ id, version, previous, kind, system, required, source, signed, publisher, granted, installed, updated, isolated, manifest }`. `source` è `{ type: 'git', url, ref, commit, path? }` (o `{ type: 'local', dir }`). `isolated`: `true` o `false` se un amministratore ha scelto come gira questa app, `null` per la regola generale. |
+| `list()` | Copie dello stato di ogni app: `{ id, version, previous, kind, system, required, source, signed, publisher, granted, installed, updated, isolated, manifest, dependency?, unmet? }`. `source` è `{ type: 'git', url, ref, commit, path? }` (o `{ type: 'local', dir }`). `isolated`: `true` o `false` se un amministratore ha scelto come gira questa app, `null` per la regola generale. `dependency`: `true` se l'app è stata installata solo perché un altro pacchetto la richiedeva ([Dipendenze tra pacchetti](#dipendenze-tra-pacchetti-dependenciesjs)). `unmet`: presente solo se mancano dipendenze obbligatorie, `[{ key, kind: 'module' \| 'app', id, version, why: 'restart' \| 'missing' }]` (`version`: l'intervallo richiesto o `null`; `why: 'restart'`: il modulo è installato e parte al prossimo riavvio del kernel; `'missing'`: non c'è, o c'è fuori dall'intervallo). |
 | `security()` | `{ isolated }`: la regola generale su come girano le app (`true` se un amministratore non ha scelto altro). Una copia; si legge dai dati di avvio (`appSecurity`). |
 | `setSecurity({ isolated })` | Cambia la regola generale (solo amministratori; `isolated` deve essere `true` o `false`). Emette `security`. Lancia `KernelError` (`forbidden`, `invalid`). |
 | `setAppSecurity(id, isolated)` | Sceglie come gira una sola app (solo amministratori): `true`, `false`, oppure `null` per tornare alla regola generale. Lancia `invalid` per le app di sistema e le remote, che hanno una sola modalità. Poi fa `refresh()`. |
 | `get(id)` | Una app o `null`. |
 | `refresh()` | Rilegge l'elenco dal kernel ed emette `change` per ciò che è diverso. |
-| `install(source, { grant = [], allowUnsigned = false })` | Installa (solo amministratori). `source`: `{ type: 'git', url, ref?, path? }` (un repository git; vedi [Origini dei pacchetti](#origini-dei-pacchetti-sourcesjs)), `{ type: 'github', repo: 'proprietario/nome', ref?, path? }` (lo stesso, scritto in breve) o `{ type: 'local', dir }` (cartella assoluta sul computer del kernel, solo con `apps.allowLocalSources`). `grant`: i permessi del manifesto che non sono impliciti. `allowUnsigned`: l'utente ha accettato l'avviso per un'app non verificabile. Restituisce l'app. Lancia `KernelError` (`forbidden` per permessi mancanti o app non verificata, `conflict` se è già installata…). |
+| `install(source, { grant = [], allowUnsigned = false })` | Installa (solo amministratori). **Non porta con sé le dipendenze**: se mancano quelle obbligatorie dell'app, lancia `conflict`; per installarle insieme usa [`packages`](#packages). `source`: `{ type: 'git', url, ref?, path? }` (un repository git; vedi [Origini dei pacchetti](#origini-dei-pacchetti-sourcesjs)), `{ type: 'github', repo: 'proprietario/nome', ref?, path? }` (lo stesso, scritto in breve) o `{ type: 'local', dir }` (cartella assoluta sul computer del kernel, solo con `apps.allowLocalSources`). `grant`: i permessi del manifesto che non sono impliciti. `allowUnsigned`: l'utente ha accettato l'avviso per un'app non verificabile. Restituisce l'app. Lancia `KernelError` (`forbidden` per permessi mancanti o app non verificata, `conflict` se è già installata…). |
 | `update(id, { ref, reinstall = false, grant = [], allowUnsigned = false })` | Aggiorna dall'origine dell'app (all'ultima versione, o a `ref`). Con `reinstall` riscrive la stessa versione senza cancellare nulla. Restituisce l'app con `unchanged: true` se non c'era nulla di nuovo. |
-| `uninstall(id)` | Rimuove l'app (non quelle necessarie, `required`). |
+| `uninstall(id)` | Rimuove l'app (non quelle necessarie, `required`, né quelle che un altro pacchetto installato richiede come dipendenza obbligatoria: `conflict`). Per togliere anche i pacchetti che servivano solo a lei usa [`packages.remove`](#packages). |
 | `file(id, path)` | Il testo di un file della versione in uso (il codice). |
 | `library(name, version)` | Il testo di una libreria con `cache: true`. |
 
@@ -365,13 +366,63 @@ I moduli del kernel come pacchetti (solo amministratori). Girano nel kernel con 
 
 | Metodo | Descrizione |
 | --- | --- |
-| `list()` | `[{ name, version, description, icon, provides, requires, required, enabled, running, versions, source }]`. `required`: `true` per un modulo obbligatorio (non si rimuove). `icon`: `{ glyph, color }` del `module.json`, o `null`. `enabled`: la versione attiva nella configurazione (`null` se spento); `running`: quella in uso adesso; se differiscono serve un riavvio. |
-| `install(source, { allowUnsigned = false })` | Installa e accende il modulo → `{ name, version, restartRequired: true }`. Un modulo non ufficiale richiede `allowUnsigned: true`. |
+| `list()` | `[{ name, version, description, icon, provides, requires, dependencies, dependency, required, enabled, running, versions, source }]`. `dependencies`: quelle del `module.json` (`[]` se non ne ha). `dependency`: `true` se il modulo è stato installato solo perché un altro pacchetto lo richiedeva. `required`: `true` per un modulo obbligatorio (non si rimuove). `icon`: `{ glyph, color }` del `module.json`, o `null`. `enabled`: la versione attiva nella configurazione (`null` se spento); `running`: quella in uso adesso; se differiscono serve un riavvio. |
+| `install(source, { allowUnsigned = false })` | Installa e accende il modulo → `{ name, version, restartRequired: true }`. Un modulo non ufficiale richiede `allowUnsigned: true`. Non porta con sé le dipendenze: se mancano quelle obbligatorie del modulo, `conflict` (con [`packages`](#packages) si installa tutto insieme). |
 | `update(name, { ref, allowUnsigned = false })` | Aggiorna dall'origine registrata → `{ name, version, previous, restartRequired }`, oppure `{ name, version, unchanged: true }`. |
-| `remove(name)` | Spegne il modulo e cancella le sue cartelle, tranne quelle che contengono i suoi dati → `{ name, kept, restartRequired }` (`kept`: cartelle conservate). Un modulo obbligatorio (`scheduler`) lancia `forbidden`. |
+| `remove(name)` | Spegne il modulo e cancella le sue cartelle, tranne quelle che contengono i suoi dati → `{ name, kept, restartRequired }` (`kept`: cartelle conservate). Un modulo obbligatorio (`scheduler`) lancia `forbidden`; un modulo che un'app o un altro modulo installato richiede come dipendenza obbligatoria lancia `conflict`. |
 | `settings(name)` | `{ fields, values, secrets, live }`: le impostazioni di un modulo **in esecuzione** (`settings` del suo `module.json`). `fields`: i campi come quelli di un protocollo di rete (`key`, `type`, `label`, `hint`, `default`, `options`, `when`…); `values`: quelli presenti nella sua configurazione (solo le chiavi dei campi, mai quelli segreti); `secrets`: le chiavi dei campi `password` che hanno un valore; `live`: `true` se il modulo le applica subito (ascolta `ctx.onConfig`), altrimenti valgono dal prossimo avvio. `not_found` se il modulo non è attivo. |
 | `saveSettings(name, values)` | Cambia le impostazioni (`values`: `{ chiave: valore }`) e restituisce lo stesso di `settings`. I valori si controllano con i campi (`invalid`); una chiave assente o vuota prende il `default` del campo, se ce l'ha, altrimenti si toglie. Le altre chiavi della configurazione restano. Un campo `password` assente o vuoto tiene il suo valore, `null` lo toglie. Se il modulo fornisce protocolli di rete, le connessioni aperte si chiudono (si riaprono al primo uso con le nuove impostazioni). Un modulo senza impostazioni lancia `invalid`. |
 | `restart()` | Chiede al kernel di riavviarsi (`POST /api/kernel/restart`). Funziona solo se il kernel è stato avviato con `npm run kernel`; altrimenti lancia `unavailable`. Durante il riavvio (qualche secondo) le richieste falliscono: i salvataggi in attesa si ripetono da soli. |
+
+### `packages`
+
+App e moduli del kernel installati, aggiornati o tolti **insieme a ciò che serve loro** (solo amministratori). Il contratto nel manifesto è in [Dipendenze nel manifesto e in `module.json`](#dipendenze-nel-manifesto-e-in-modulejson), la logica in [Dipendenze tra pacchetti](#dipendenze-tra-pacchetti-dependenciesjs). Prima si chiede il piano, per mostrarlo all'amministratore; poi si installa con le sue risposte. `install` e `remove` fanno poi `apps.refresh()`.
+
+Il `target` è `{ install: { kind: 'app' | 'module', source } }` oppure `{ update: { kind: 'app' | 'module', id, ref?, reinstall? } }` (`reinstall` vale solo per le app; `source` è come in `apps.install`).
+
+| Metodo | Descrizione |
+| --- | --- |
+| `plan(target)` | `{ root, steps, problems, restartRequired }`. `root`: il pacchetto richiesto. `steps`: ciò che si installa o si aggiorna **con** lui, ognuno dopo ciò di cui ha bisogno (il richiesto non c'è). `problems`: dipendenze che non si possono avere. `restartRequired`: `true` se tra i pacchetti c'è un modulo. |
+| `install(target, { root = {}, steps = {} })` | Rifà il piano e lo esegue → `{ result, installed, restartRequired }`. `root` e `steps[chiave]` sono `{ grant, allowUnsigned }` (come in `apps.install`): le risposte dell'amministratore per il pacchetto richiesto e per ogni passo. `result`: il risultato del pacchetto richiesto (quello di `apps.install` o di `kernelModules.install`). `installed`: `[{ key, kind, id, version, action }]` dei pacchetti messi **prima** di quello richiesto. |
+| `removal(kind, id)` | `{ blockedBy, unneeded, restartRequired }`: come si può togliere un pacchetto. |
+| `remove(kind, id, { also = [] })` | Toglie il pacchetto e, tra i suoi `unneeded`, quelli di cui passi la chiave in `also` → `{ removed, restartRequired }` (`removed`: le chiavi tolte, il richiesto per primo). |
+
+Un passo di `steps` è `{ key, kind, id, name, version, action, from, optional, choice, needs, neededBy, repo, verified, permissions, description, icon, manifest?, locales? }`:
+
+| Campo | Significato |
+| --- | --- |
+| `key` | `'app:acme.notes'` o `'module:arduino'`: identifica il pacchetto nelle risposte. |
+| `action`, `from` | `'install'` o `'update'` (per il richiesto anche `'reinstall'`). `from` è la versione installata, `null` per un'installazione. |
+| `optional` | `true` se a questo pacchetto portano solo dipendenze facoltative. |
+| `choice` | `true` se l'amministratore può sceglierlo: è facoltativo e una dipendenza `optional` lo chiede. Un passo non `optional` si installa sempre. |
+| `needs` | Le chiavi dei pacchetti di cui ha bisogno (solo obbligatori). |
+| `neededBy` | `[{ key, name, optional, reason }]`: chi lo chiede e perché (`reason` è il testo del manifesto, in inglese, o `null`). |
+| `repo` | `{ url, official }`: da dove viene. |
+| `verified` | `true` per un'app firmata da un editore fidato o dal repository ufficiale, e per un modulo del repository ufficiale. Se è `false` l'installazione richiede `allowUnsigned: true` nelle risposte di quel passo. |
+| `permissions` | I permessi che l'amministratore deve concedere (da passare in `grant`); sempre `[]` per un modulo. |
+| `description`, `icon`, `manifest?`, `locales?` | Per mostrarlo; `manifest` e `locales` solo per le app. |
+
+Un problema è `{ key, kind, id, optional, message }`: un pacchetto che non c'è nel suo repository, che non ha una versione nell'intervallo chiesto, o un repository che non si legge. `install` lancia `conflict` se una dipendenza obbligatoria di ciò che si installa ha un problema. `blockedBy` è `[{ key, kind, id, name }]`: i pacchetti installati che richiedono questo come dipendenza obbligatoria (finché ci sono, `remove` lancia `conflict`). `unneeded` è `[{ key, kind, id, name, version }]`, nell'ordine in cui si possono togliere.
+
+```js
+import { packages, kernelModules } from '@lilos/sdk';
+
+const target = { install: { kind: 'app', source: { type: 'git', url: 'https://github.com/acme/app', path: 'apps/notes' } } };
+const plan = await packages.plan(target);
+if (plan.problems.some(p => !p.optional)) throw new Error(plan.problems[0].message);
+
+// Si installano i passi obbligatori e quelli facoltativi che l'amministratore ha spuntato
+// (con un facoltativo spuntato vanno anche i passi che gli servono: i suoi `needs`)
+const answers = { root: { grant: plan.root.permissions }, steps: {} };
+for (const s of plan.steps) {
+  if (s.optional && !spuntato(s.key)) continue;
+  answers.steps[s.key] = { grant: s.permissions, allowUnsigned: !s.verified };   // dopo aver mostrato l'avviso
+}
+const { restartRequired } = await packages.install(target, answers);
+if (restartRequired) await kernelModules.restart();   // dopo aver chiesto «Riavvia ora»
+```
+
+`install` rifà il piano: ogni passo che entra (gli obbligatori, i facoltativi scelti e ciò che questi richiedono) deve avere la sua risposta in `steps`, altrimenti lancia `conflict` («Manca il consenso per …», con `details.unanswered`) e non fa niente: succede anche se tra il piano e `install` è cambiato qualcosa (un pacchetto nuovo nel repository, uno installato nel frattempo), e allora va rifatto `plan`. Se un passo fallisce, i pacchetti **installati** da questa chiamata vengono tolti (l'ultimo per primo); gli **aggiornamenti** già fatti restano.
 
 ### `systemReleases`
 
@@ -1964,6 +2015,7 @@ Ascolta anche l'evento del bus `files:locked` (id di file): agisce sulle finestr
 - `launch(id, args?, entry = 'main', { files = [], auto = false } = {})`: emette `app:launch` con `{ id, args, entry, files }` e, solo se `auto` è `true`, anche `auto: true`. `auto` dice che l'avvio lo fa lilOS da sola (lo usa `startup.js` per le app dell'avvio) e non l'utente: non conta come uso per le preferite e i recenti del menu di avvio (`taskbar/usage.js`). `entry` è uno dei punti d'ingresso di tipo finestra dell'app; l'utente apre sempre `main`. `files`: id di file consegnati all'app. Il launcher li passa al modulo (`({ args, openWindow, entry, files })`); in un'app installata diventano handle leggibili e scrivibili (`packageModule` in `host.js`), anche se isolata. Se la finestra è già aperta, il launcher emette `grant` (con gli id) su di essa prima di `launch`, e gli handle crescono.
 - `connectLauncher(wm)`: trasforma `app:launch` in finestre. Al primo avvio carica il modulo dell'app e chiama il suo export predefinito `({ args, openWindow, entry }) → Window` (per un'app di sistema e un `entry` diverso da `main`, l'export con quel nome), poi apre la finestra con `wm.open(win, { app: id, center, bounds })`. Se l'app ha già una finestra di **quel punto d'ingresso** **nell'ambito attuale** (e nel workspace attuale) la riporta in primo piano (ed emette `launch`). Una finestra che non è `main` salva `{ __entry, args }` come stato, così le workarea la riaprono dallo stesso punto d'ingresso. Se l'app non parte, una notifica lo dice. Le app senza `load` (o inesistenti) scrivono un avviso in console. Un'app **nascosta** nel workspace attuale non parte: una notifica dice di mostrarla dal Pannello di controllo → Workspace. La finestra appartiene al workspace attuale al momento della richiesta, anche se l'utente cambia workspace mentre l'app si carica (in quel caso si apre nascosta nel suo workspace).
 - Il launcher passa a ogni app un `openWindow(win, key?, { main = false, at = null })` che apre le finestre secondarie con `owner` = l'id dell'app (con `main: true` anche `app` = l'id, quindi la finestra è una principale che si salva e si ripristina; con `at` = `{ x, y }` finiti, in coordinate dello schermo, la mette lì invece di centrarla), e prima di avviare un'app chiede a `blockedLaunch(id)` (`apps/updates.js`): se l'app si sta aggiornando o aspetta il riavvio di lilOS, non parte e l'utente ne vede il motivo.
+- Prima di avviare un'app il launcher guarda anche `package.unmet` ([Dipendenze tra pacchetti](#dipendenze-tra-pacchetti-dependenciesjs)), dopo `blockedLaunch`: se le mancano dipendenze obbligatorie non parte e un `messageBox` dice quali (e, per un modulo già installato, che entra in funzione al prossimo riavvio del kernel, che fa un amministratore dall'AppStore). `restore` invece riapre comunque le finestre salvate, così non si perdono: l'app stessa dice cosa le manca.
 - Prima di aprire una finestra il launcher fa passare l'avvio dall'evento `app.launch` `{ id, entry, args }` ([pipes](#sdkcorepipesjs-e-sdkcorepipecatalogjs)), se qualcuno lo vuole: un gestore può cambiare `args` o fermare l'avvio (l'errore è un avviso, non se `silent`), ma non `file` e `files`: quelli restano come li ha dati chi avvia. Un `args` che resta `null` torna `undefined`.
 - `connectLauncher(wm)` restituisce `{ restore }`. `restore({ app, state, rect }, { workspace = wm.workspace })` ricrea la finestra di un'app com'era: chiama il suo export con `state` come `args` e la apre con `wm.open(win, { app, at: rect, workspace })`, senza spostare la camera. Restituisce una Promise con la finestra, o `null` se l'app non esiste, è nascosta nel workspace attuale o non parte.
 - `setLaunchScope({ includes, center, bounds })`: stringe l'ambito in cui il launcher lavora (lo imposta `Workareas`). `includes(win)` → `boolean` dice quali finestre aperte contano come "la finestra dell'app" (una per app per ambito); `center(win)` → punto del mondo o `null` dove va una finestra nuova (`null`: il centro della vista); `bounds()` → rettangolo del mondo o `null` in cui deve restare. Predefinito: tutta la scrivania, nessun centro né limite. `openWindow` delle app (finestre secondarie) usa lo stesso centro e gli stessi limiti.
@@ -2109,6 +2161,7 @@ Validato dal kernel (`system/kernel/src/apps/manifest.js`), che scarta i campi c
 | `install?`, `update?`, `uninstall?` | Operazioni, vedi sotto. `update`: `[{ from: '<1.2.0', ops: [...] }]` (`from`: `<x.y.z`, `<=x.y.z` o `x.y.z`). |
 | `lilos?` | Le versioni di lilOS con cui l'app funziona: un limite (`'>=1.8.0'`) o due separati da uno spazio (`'>=1.8.0 <2.0.0'`); operatori `>=`, `>`, `<=`, `<`, `=` (senza operatore vale `=`), versione `x.y.z`. Il kernel non installa né aggiorna l'app su una versione di lilOS fuori intervallo (`conflict`), e non aggiorna lilOS a una versione che lascerebbe fuori un'app installata. Senza il campo conta solo `sdk`. |
 | `restartOnUpdate?` | `true` o un intervallo come `update.from` (`'<2.0.0'`, `'<=1.2.0'`, `'1.2.0'`): aggiornando a questa versione lilOS propone di riavviarsi. Con un intervallo vale solo se si arriva da una versione che lo soddisfa. Conta solo se la pagina ha già eseguito il codice vecchio dell'app. Altro: manifesto non valido. Da usare solo quando il ricaricamento a caldo non basta (stato condiviso nella pagina, moduli tenuti da altri): vedi [apps/updates.js](#appsupdatesjs). |
+| `dependencies?` | I moduli del kernel e le app che servono a questa app: fino a 30 voci `{ module \| app, version?, repo?, optional?, reason? }`. L'AppStore le installa insieme all'app, dopo il consenso dell'amministratore. Vedi [Dipendenze nel manifesto e in `module.json`](#dipendenze-nel-manifesto-e-in-modulejson). Un lilOS più vecchio ignora il campo. |
 | `signature?` | `ed25519:<base64>` sul manifesto senza `signature`, con le chiavi in ordine. |
 
 **`contributes.pipes`** (solo app `local`, `sdk` `"2"`; fino a 30): le pipe a cui l'app è iscritta anche quando non gira. `[{ event, stage, entry, position?, where? }]`: `event` un evento del catalogo ([pipes](#sdkcorepipesjs-e-sdkcorepipecatalogjs)), `stage` `'before'` o `'after'`, `entry` un punto d'ingresso `background` (lilOS lo avvia quando l'evento arriva), `position` `'first'`, `'middle'` (predefinito) o `'last'`, `where` come in `pipes.subscribe`. Serve il permesso `pipe:<evento>` (o `pipe.own:<evento>` se `where` è `{ meta: 'own' }`); gli eventi protetti solo alle app di sistema. Il punto d'ingresso dà la funzione con `lilos.pipes.subscribe(evento, { stage }, fn)` quando parte. Per gli eventi che l'app dichiara in `contributes.events` non serve nessun permesso.
@@ -2132,6 +2185,38 @@ Validato dal kernel (`system/kernel/src/apps/manifest.js`), che scarta i campi c
 Per registrare e rifare vedi la ricetta [Rendere registrabile un'azione della tua app](ricette.md#rendere-registrabile-unazione-della-tua-app).
 
 Un manifesto non può superare 256 KB.
+
+#### Dipendenze nel manifesto e in `module.json`
+
+`dependencies` è un elenco di fino a 30 voci (il controllo è `checkDependencies` di `manifest.js`, lo stesso per `lilos.json` e `module.json`). Ogni voce nomina **un** pacchetto, con `module` oppure con `app`:
+
+| Campo | Significato |
+| --- | --- |
+| `module` | Il nome di un modulo del kernel (`/^[a-z][a-z0-9-]{0,40}$/`, `arduino`, `term-ssh`). |
+| `app` | L'id di un'altra app (come `id` del manifesto). Solo in `lilos.json`: in un `module.json` un modulo dipende solo da moduli. |
+| `version?` | L'intervallo accettato, come `lilos`: un limite (`'>=1.0.0'`) o due separati da uno spazio (`'>=1.0.0 <2.0.0'`). Senza, va bene qualunque versione. |
+| `repo?` | Il repository da cui prenderlo: l'indirizzo `https://…` di un repository con `catalog.json` (fino a 300 caratteri, senza utente né password). Senza, il repository ufficiale. |
+| `optional?` | Solo `true`. Il pacchetto funziona anche senza: l'amministratore sceglie se installarlo. |
+| `reason?` | Fino a 200 caratteri, **in inglese**: perché serve. L'AppStore lo mostra («Serve a *nome*: …»). Si traduce con la chiave `@dependencies.<modulo o app>.reason` di `locales` (solo nelle app). |
+
+Il manifesto è rifiutato (`invalid`) per una voce senza `module` e senza `app` (o con tutti e due), un nome non valido, una versione o un `repo` non validi, un `optional` diverso da `true`, più di 30 voci, una voce ripetuta o un pacchetto che dipende da sé stesso.
+
+```json
+"dependencies": [
+  { "module": "arduino", "version": ">=1.0.0", "reason": "Compiles the sketches" },
+  { "module": "term-ssh", "optional": true, "reason": "Lets the app open SSH sessions" },
+  { "app": "acme.viewer", "repo": "https://github.com/acme/lilos-apps" }
+]
+```
+
+**Cosa significano.**
+
+- **Obbligatoria** (senza `optional`): l'app non parte senza. L'installazione porta con sé il pacchetto (e ciò che serve a lui); se non si può avere, l'installazione non parte.
+- **Facoltativa** (`optional: true`): si propone all'amministratore, che può non installarla. L'app deve funzionare anche senza. Un aggiornamento propone solo le facoltative che la versione già installata **non** dichiarava: sulle altre l'amministratore ha già deciso.
+- **Versione:** un pacchetto già installato fuori dall'intervallo si aggiorna, se il repository ne ha uno dentro; altrimenti c'è un problema e l'installazione non parte. L'intervallo vale anche dopo: né un aggiornamento né una rimozione portano un pacchetto fuori da ciò che un altro pacchetto installato chiede.
+- **Dove si cerca:** nel repository che la voce nomina (`repo`), nel suo `catalog.json`, alla versione più alta; se manca, nel repository ufficiale. Un repository nominato così non entra tra quelli dell'AppStore, e un pacchetto che non viene dal repository ufficiale e non è firmato da un editore fidato è *non verificato* (l'amministratore deve accettare l'avviso).
+- **Un modulo installato parte al riavvio del kernel.** Finché non c'è, l'app che lo richiede non si apre (`unmet` con `why: 'restart'`).
+- **Compatibilità:** un lilOS precedente non conosce il campo e lo scarta (il manifesto resta valido), ma non installa niente da solo. Per questo un'app che *richiede* un modulo deve controllare (e dire) che manca; vedi la ricetta [Far dipendere un'app da un modulo del kernel](ricette.md#far-dipendere-unapp-da-un-modulo-del-kernel).
 
 ### Permessi
 
@@ -3330,14 +3415,18 @@ Le richieste che modificano (tutte tranne `GET` e `HEAD`) devono avere l'intesta
 | `GET /api/fs/content/:id` | utenti | → testo del file. Con `?raw=1`: i byte (`application/octet-stream`); se il modulo `fs` ha `readStream` li manda in streaming, con `Content-Length`, senza tenerli tutti in memoria |
 | `PUT /api/fs/content/:id` | utenti | testo del file (fino a 10 MB) |
 | `POST /api/storage` | utenti | `{ set: { chiave: valore }, remove: [chiave] }`; al massimo 500 chiavi per volta, 512 KB per valore (JSON). L'SDK ne manda al massimo 200 e circa 4 MB per richiesta |
-| `GET /api/apps` | utenti | → app installate `[{ ...stato, manifest }]`. Agli utenti non amministratori l'origine `local` mostra solo `{ type: 'local' }` |
+| `GET /api/apps` | utenti | → app installate `[{ ...stato, manifest, unmet? }]` (`unmet`: le dipendenze obbligatorie che mancano, vedi [`apps`](#apps)). Agli utenti non amministratori l'origine `local` mostra solo `{ type: 'local' }` |
 | `GET /api/apps/:id/file?path=…` | utenti | → un file della versione in uso (il codice) |
 | `GET /api/apps/:id/v/:version/<percorso>` | utenti | → un file di quella versione (la in uso o la precedente), con il percorso nell'URL. `:version` è `x.y.z` oppure `x.y.z+<build>` (`build`: 1-16 caratteri `[a-z0-9]`): il kernel ignora il build, serve solo perché il browser, che tiene per sempre i moduli importati, veda un indirizzo nuovo quando il pacchetto cambia a parità di versione: da qui lilOS importa le app di sistema, e i loro blocchi, worker e file `.wasm` si risolvono accanto al modulo. Risposta con `Cache-Control: private, max-age=31536000, immutable` e una CSP che permette a quel codice di caricare le proprie risorse dalla stessa origine (`default-src 'self' blob: data:; script-src 'self' blob: 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'`). |
 | `GET /api/apps-events` | utenti | Flusso `text/event-stream` (`Cache-Control: no-store`). Evento `change` con dati `{ id }` ogni volta che un'app viene installata, aggiornata o tolta, da chiunque (`id` è `null` per la regola generale su come girano le app). Un commento `: ok` ogni 25 secondi tiene aperta la connessione. Lo ascolta `connectPackages`. |
 | `GET /api/commons/:name/:version` | utenti | → una libreria in cache |
-| `POST /api/apps` | amministratori | `{ source, grant, allowUnsigned }` → stato dell'app |
+| `POST /api/apps` | amministratori | `{ source, grant, allowUnsigned }` → stato dell'app. Non installa le dipendenze: se mancano quelle obbligatorie, `conflict` (`details.missing`); per installarle insieme, `/api/packages/install` |
 | `POST /api/apps/:id/update` | amministratori | `{ ref?, reinstall?, grant, allowUnsigned }` → stato (con `unchanged: true` se non c'è nulla di nuovo) |
-| `DELETE /api/apps/:id` | amministratori | Rimuove (non le app di sistema) |
+| `DELETE /api/apps/:id` | amministratori | Rimuove (non le app di sistema; `conflict` se un pacchetto installato la richiede, `details.dependents`) |
+| `POST /api/packages/plan` | amministratori | `{ install: { kind, source } }` o `{ update: { kind, id, ref?, reinstall? } }` (`kind`: `app` o `module`) → il piano `{ root, steps, problems, restartRequired }` (vedi [`packages`](#packages)). Non cambia niente |
+| `POST /api/packages/install` | amministratori | Il `target` del piano più `root: { grant, allowUnsigned }` e `steps: { [chiave]: { grant, allowUnsigned } }` (fino a 256 KB, 100 passi) → `{ result, installed, restartRequired }`. Rifà il piano; se è cambiato, `conflict` |
+| `GET /api/packages/removal?kind=&id=` | amministratori | → `{ blockedBy, unneeded, restartRequired }` |
+| `POST /api/packages/remove` | amministratori | `{ kind, id, also: [chiavi] }` → `{ removed, restartRequired }`. `conflict` se un pacchetto installato lo richiede |
 | `GET /api/apps-security` | utenti | → `{ isolated }`: la regola generale su come girano le app (`true` se non è stata cambiata) |
 | `PUT /api/apps-security` | amministratori | `{ isolated: true \| false }` → `{ isolated }`. Altro che un booleano: `invalid` |
 | `PUT /api/apps/:id/security` | amministratori | `{ isolated: true \| false \| null }` (`null`, o assente: la regola generale) → stato dell'app. `invalid` per le app di sistema e le remote (una sola modalità), `not_found` se non è installata |
@@ -3937,14 +4026,30 @@ Il repository ufficiale ha anche `"system": "system/lilos"`: la cartella con la 
 
 `Repos`: `list()` (l'ufficiale per primo: `{ id: 'official', name: 'lilOS ufficiale', url: 'https://github.com/GexyLab/lilos-plugins-official', official: true }`), `get(id)`, `add(principal, { url, name? })`, `remove(principal, id)`, `catalog(id)`. `add` e `remove` sono per amministratori; `add` legge il catalogo prima di salvare (un indirizzo sbagliato si scopre subito), rifiuta quelli già presenti e oltre 30. `catalog(id)` risponde alla versione più alta, e il suo `ref` è quello da passare per installare esattamente quella versione.
 
+`packages(url)` legge il catalogo di **qualunque** repository `https` (aggiunto o no) alla sua versione più alta, senza README: `{ url, official, ref, commit, apps: [{ path, manifest, locales }], modules: [{ path, module }] }`. I pacchetti con un manifesto non valido non compaiono. Lo usa il piano delle dipendenze per trovare ciò che una voce `repo` nomina.
+
 ### Installazione delle app (`installer.js`, `manifest.js`)
 
-- `installer.js`: `install` (rifiuta un'app già installata), `update` (nuova versione, `ref` anche più vecchio, o `reinstall`; si tengono la versione in uso e la precedente), `uninstall`. L'hash di ogni file e quello delle librerie (`integrity`) si controllano prima di scrivere. La libreria in `/system/commons` è condivisa tra le app che la usano (`meta.usedBy`) e si elimina quando nessuno la usa più. Lo stato (`id`, `version`, `previous`, `kind`, `system`, `required`, `source`, `signed`, `publisher`, `granted`, `installed`, `updated`, `isolated`) sta nel `meta.state` della cartella `/system/app/<id>`. `isolated` è `true`, `false` (scelta di un amministratore per quell'app) o `null` (la regola generale, il valore con cui nasce); la regola generale è `meta.security.isolated` della cartella `/system/app/.security` (`true` se manca). `security()`, `setSecurity()` e `setAppSecurity()` leggono e scrivono questi valori; le ultime due solo per un amministratore (o il kernel).
+- `installer.js`: `install` (rifiuta un'app già installata), `update` (nuova versione, `ref` anche più vecchio, o `reinstall`; si tengono la versione in uso e la precedente), `uninstall`. L'hash di ogni file e quello delle librerie (`integrity`) si controllano prima di scrivere. La libreria in `/system/commons` è condivisa tra le app che la usano (`meta.usedBy`) e si elimina quando nessuno la usa più. Lo stato (`id`, `version`, `previous`, `kind`, `system`, `required`, `source`, `signed`, `publisher`, `granted`, `installed`, `updated`, `isolated`, e `dependency` se c'è) sta nel `meta.state` della cartella `/system/app/<id>`. `isolated` è `true`, `false` (scelta di un amministratore per quell'app) o `null` (la regola generale, il valore con cui nasce); la regola generale è `meta.security.isolated` della cartella `/system/app/.security` (`true` se manca). `security()`, `setSecurity()` e `setAppSecurity()` leggono e scrivono questi valori; le ultime due solo per un amministratore (o il kernel).
 - `manifest.js` controlla anche il campo `lilos` (`LILOS_RANGE`; `inRange(intervallo, versione)`) ed esporta `SDK_VERSIONS` (`['1', '2']`, i valori ammessi di `sdk`; `system.json` li ripete). `installer.js` rifiuta con `conflict`, in `install` e `update`, un'app il cui `lilos` non comprende la versione in uso (`SYSTEM_VERSION` di `config.js`).
+- **Dipendenze.** `installer.guard` (l'oggetto `Dependencies`, messo dal kernel) è consultato da `install` e `update` (`checkMet`: le dipendenze obbligatorie dell'app devono essere già installate, nell'intervallo chiesto; `conflict` con `details.missing`), da `update` verso una versione diversa (`checkVersion`: non fuori dall'intervallo che un pacchetto installato chiede) e da `uninstall` (`checkRemovable`: `conflict` con `details.dependents` se un pacchetto installato la richiede). Così nessun percorso aggira il piano di [`packages`](#packages). `install(principal, { source, grant, allowUnsigned, dependency = false })`: con `dependency: true` lo stato porta `dependency: true` (installata solo per un altro pacchetto; un aggiornamento lo conserva). `updateSource(state, { ref, reinstall })` è l'origine da cui `update` prende il pacchetto; `verified(manifest, source)` dice se il pacchetto conta come verificato (come in `install`, lancia se la firma è sbagliata).
 - `manifest.js` controlla anche `locales` (un file `.json` tra i `files`, solo per app `local`) e, con `checkFiles` all'installazione e all'aggiornamento, che il file passi `parseLocales` di `sdk/core/i18n.js`: il kernel importa il motore dell'SDK ([D45](../interna/decisioni.md#d45-un-file-di-traduzioni-per-app-inglese-predefinito-un-solo-motore)), così le regole sono le stesse di lilOS. Un file non valido fa fallire l'installazione con `invalid`.
 - `update` con `reinstall` riscrive **lo stesso commit** registrato in `source.commit`: non porta codice nuovo. Per averlo serve una versione più alta (o `ref` di un'altra versione, anche precedente).
 - Fiducia: una firma presente ma sbagliata è sempre rifiutata; un'app è *verificata* se firmata da un editore di `trustedPublishers` con la chiave giusta, o se viene dal repository ufficiale (di sistema o no; con `officialKey` serve anche la firma ufficiale); altrimenti serve `allowUnsigned`. Un'app con `system: true` da un altro repository è rifiutata, e un'app di sistema resta di sistema negli aggiornamenti. `uninstall` rifiuta le app `required`.
 - `tools/pack.js`: `node system/kernel/tools/pack.js <cartella> [--sign chiave.pem]` riempie `files` (esclusi `lilos.json`, i file che iniziano con un punto e `node_modules`) e controlla il manifesto; con `--sign` aggiunge `publisher.key` e `signature`. `--keygen chiave.pem` crea una chiave Ed25519 e stampa la pubblica.
+
+### Dipendenze tra pacchetti (`dependencies.js`)
+
+La classe `Dependencies` (`kernel.dependencies`) pianifica e fa le installazioni con le dipendenze, e controlla che nessun pacchetto rimanga senza ciò che gli serve. Rotte in `api/packages.js`, client in [`packages`](#packages), manifesto in [Dipendenze nel manifesto e in `module.json`](#dipendenze-nel-manifesto-e-in-modulejson); decisione [D69](../interna/decisioni.md#d69-le-dipendenze-tra-pacchetti-le-installa-lappstore-con-il-consenso-dellamministratore).
+
+- **Piano** (`plan(principal, target)`, solo amministratori o kernel). Parte dal pacchetto richiesto e, per ogni dipendenza (anche facoltativa), guarda cosa c'è: un pacchetto installato nell'intervallo chiesto va bene; uno installato fuori intervallo si aggiorna dalla sua origine (`source.json` o stato) se la versione più nuova entra nell'intervallo; uno che manca si cerca nel `catalog.json` del repository che la voce nomina (`repo`) o in quello ufficiale, alla versione più alta (`Repos.packages(url)`). Lo stesso per le dipendenze di quelle trovate. Un'app il cui `lilos` non comprende questa versione di lilOS, se è il pacchetto richiesto, fa fallire il piano (`conflict`); se è una dipendenza, diventa un problema. Lo diventa anche ciò che non si trova o non entra nell'intervallo (`problems`): non è un errore del piano. I passi sono in ordine: ciascuno dopo ciò che richiede (le dipendenze facoltative non contano per l'ordine). Un cerchio di dipendenze obbligatorie (A richiede B e B richiede A, o si torna al pacchetto richiesto) non ha un ordine: diventa un problema («Dipendenza circolare tra …»). `apply` e `remove` girano uno alla volta: due installazioni insieme dello stesso pacchetto non si sovrappongono, la seconda trova la prima già fatta. In un **aggiornamento** le dipendenze facoltative che la versione installata dichiarava già non si riconsiderano: l'amministratore ha già deciso.
+- **Esecuzione** (`apply(principal, target, { root, steps })`). Rifà il piano (se un pacchetto obbligatorio non è in `steps`, `conflict`: «Quello che serve è cambiato»), controlla che le dipendenze obbligatorie di ciò che si installa non abbiano problemi, poi installa nell'ordine del piano ogni passo (con `dependency: true` se è nuovo), per ultimo il pacchetto richiesto. Un passo facoltativo entra solo se ha una voce in `steps`; con lui entrano le sue dipendenze obbligatorie. Se un passo fallisce, i pacchetti **installati** da questa esecuzione sono tolti in ordine inverso; gli aggiornamenti restano. `restartRequired` è `true` se tra i pacchetti c'è un modulo.
+- **Verificato.** Un'app è verificata come in `installer.verified`; un modulo solo se viene dal repository ufficiale. Per ogni passo non verificato servono `allowUnsigned: true` e il consenso dell'amministratore; i permessi di ogni app sono in `permissions`, da passare in `grant`.
+- **Controlli** (`checkMet`, `checkRemovable`, `checkVersion`): usati da `Installer` e `ModuleAdmin` come `guard` (vedi sopra). `dependents(chiave)` elenca i pacchetti installati che dichiarano una dipendenza da `chiave`.
+- **Rimozione** (`removal(principal, kind, id)`, `remove(principal, kind, id, { also })`). `blockedBy`: i pacchetti installati che richiedono questo con una dipendenza *non* facoltativa; finché ci sono, il pacchetto non si toglie. `unneeded`: i pacchetti marcati `dependency: true` (e non `required`) che servivano a ciò che si toglie e che nessun altro pacchetto installato richiede più, anche a catena. `remove` toglie il pacchetto e quelli di `unneeded` indicati in `also`.
+- **`withUnmet(apps)`.** Aggiunge `unmet` a ogni app con dipendenze obbligatorie che non ci sono: `why: 'restart'` per un modulo che è attivo in `config.json` nella versione giusta ma non in esecuzione (parte al riavvio), `'missing'` per le altre. Le facoltative non contano. È usato da `GET /api/apps` e dai dati di avvio (`GET /api/boot`).
+- **`installAuto(target)`.** Il kernel installa così le app di sistema al primo avvio (e quelle `required` dopo): porta anche le dipendenze obbligatorie dal repository ufficiale, mai le facoltative e mai un pacchetto che richiederebbe di accettare un avviso (`allowUnsigned: false`). Se ha installato un modulo, scrive nel registro che parte al prossimo avvio del kernel.
+- **Nella pagina.** Il launcher (`apps/launcher.js`) non apre un'app con `unmet` in `app.package`: mostra un messaggio (`messageBox`) che dice cosa le serve e se basta riavviare il kernel; `restore` non riapre le sue finestre.
 
 ### Moduli come pacchetti (`modulePackage.js`)
 
@@ -3959,13 +4064,15 @@ Il repository ufficiale ha anche `"system": "system/lilos"`: la cartella con la 
 | `data?` | File in cui il modulo tiene i suoi dati (`["users.json"]`). Si portano alla nuova versione negli aggiornamenti e si conservano, con la loro cartella, alla rimozione. |
 | `defaultConfig?` | Oggetto: la configurazione con cui il modulo viene acceso in `config.json`. |
 | `required?` | `true` per un modulo senza cui lilOS non parte (deve essere anche in `REQUIRED_MODULES`): l'AppStore non offre **Rimuovi** e il kernel lo rifiuta. Vedi [Moduli obbligatori](#moduli-obbligatori). `list()` lo restituisce come `required`. |
+| `dependencies?` | Le dipendenze del modulo, **solo moduli**: `[{ module, version?, repo?, optional?, reason? }]` ([Dipendenze nel manifesto e in `module.json`](#dipendenze-nel-manifesto-e-in-modulejson)). `requires` dice quali *servizi* usa; `dependencies` dice dove prendere i *moduli* che li forniscono. `list()` le restituisce. |
 | `settings?` | Elenco di campi (vedi [Moduli](#moduli)): le impostazioni che un amministratore può cambiare, con `GET` e `PUT /api/modules/:nome/settings` (`kernelModules.settings` e `saveSettings`). Vale per i moduli in esecuzione: si controllano all'avvio del kernel, non all'installazione. |
 
-- **Installazione.** Copia il pacchetto in `modules/<nome>_<versione>/` (con `source.json`: da dove viene, `{ type, url, ref, commit, path, installed }`), esegue `npm ci` (o `npm install` senza lockfile; `--omit=dev --ignore-scripts`) se c'è un `package.json`, e lo aggiunge a `modules` in `config.json` con `defaultConfig`. Prima **verifica che il kernel si avvierebbe** con quella lista (dipendenze soddisfatte, un modulo che fornisce `fs`, e senza `auth` solo `host` locale): se no, lascia tutto com'era e lancia `conflict`.
+- **Installazione.** Copia il pacchetto in `modules/<nome>_<versione>/` (con `source.json`: da dove viene, `{ type, url, ref, commit, path, installed }` e `dependency: true` se è stato installato solo perché un altro pacchetto lo richiedeva), esegue `npm ci` (o `npm install` senza lockfile; `--omit=dev --ignore-scripts`) se c'è un `package.json`, e lo aggiunge a `modules` in `config.json` con `defaultConfig`. Prima **verifica che il kernel si avvierebbe** con quella lista (dipendenze soddisfatte, un modulo che fornisce `fs`, e senza `auth` solo `host` locale): se no, lascia tutto com'era e lancia `conflict`.
 - **Aggiornamento.** Parte dal `source.json` registrato (con `ref` opzionale), copia la nuova versione accanto alla vecchia, ci porta i file di `data`, aggiorna la versione in `config.json` e tiene le due versioni più recenti. Senza versione più alta risponde `unchanged: true`. Un modulo senza `source.json` (messo a mano) non si aggiorna da qui.
 - **Rimozione.** Toglie il modulo da `config.json` (dopo aver verificato che il kernel si avvierebbe senza) e cancella le cartelle delle sue versioni, **tranne quelle che contengono file di `data`**: gli utenti di `users-basic` restano. Un modulo obbligatorio (`REQUIRED_MODULES`) non si rimuove (`forbidden`). Reinstallando la stessa versione quella cartella si riusa.
 - **Impostazioni.** `ModuleAdmin.settings(principal, nome)` e `saveSettings(principal, nome, valori)` (solo amministratori; `not_found` se il modulo non è attivo). `saveSettings` controlla i valori con `checkFields`, li scrive nella voce del modulo in `config.json` (le chiavi non dichiarate restano), li mette in `ctx.config`, chiama i suoi `onConfig` e, per i moduli che forniscono `netfs.*`, chiude le connessioni aperte. Un modulo senza `onConfig` non è `live`: le impostazioni valgono dal prossimo avvio (il log lo dice). `required` e `when` dei campi non si applicano al salvataggio (servono alla pagina per disegnarli).
-- `list()`: i moduli trovati in `modules/`, con `enabled` (versione in `config.json`), `running` (in uso adesso) e `source`; anche quelli già tolti ma ancora in esecuzione fino al riavvio.
+- **Dipendenze.** `moduleAdmin.guard` (come per le app) è consultato da `install` e `update` (`checkMet`: le dipendenze obbligatorie del modulo devono essere moduli già attivi nell'intervallo chiesto), da `update` (`checkVersion`) e da `remove` (`checkRemovable`: `conflict` se un'app o un altro modulo installato lo richiede). `install(principal, { source, allowUnsigned, dependency = false })`: con `dependency: true` scrive `dependency: true` in `source.json`; `update` lo conserva.
+- `list()`: i moduli trovati in `modules/`, con `enabled` (versione in `config.json`), `running` (in uso adesso), `source`, `dependencies` e `dependency`; anche quelli già tolti ma ancora in esecuzione fino al riavvio.
 
 ### lilOS come pacchetto (`systemPackage.js`)
 

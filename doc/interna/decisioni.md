@@ -1604,3 +1604,50 @@ Conseguenze: se tutte le schede si chiudono non parte niente; un'automazione con
 - Un'operazione di un'app muore con l'app; quelle di un utente tolto, con lui. Le app hanno limiti più stretti degli utenti (20 operazioni, una volta ogni 15 minuti al più), perché un'app non riempia di corse il kernel.
 
 **Quando ripensarla.** Se Automata e Pianificazione si pestano i piedi (la stessa automazione con due partenze), conviene che l'avvio da sola di Automata passi dalla Pianificazione e usi il suo orologio; se arrivano altre azioni che hanno bisogno della pagina (conviene un modo meno legato a «la prima pagina»); se una libreria senza dipendenze copre l'ora legale e gli spostamenti; se il Pannello di controllo impara a mostrare le impostazioni di un modulo qualsiasi; se serve il consenso del proprietario alle modifiche degli amministratori; se `kfs.js` e l'`fs` dell'SDK si allontanano troppo, e conviene un nucleo comune; se i calendari vogliono creare operazioni di ogni tipo, non solo spostarle.
+
+
+---
+
+## D69. Le dipendenze tra pacchetti: le installa l'AppStore, con il consenso dell'amministratore
+
+**Decisione.**
+
+- **Un campo `dependencies`** nel manifesto delle app (`lilos.json`) e in `module.json`: un elenco di voci `{ module | app, version?, repo?, optional?, reason? }`. I tipi di dipendenza sono quattro: **moduli obbligatori**, **moduli facoltativi**, **versione minima o intervallo** (come il campo `lilos`: uno o due limiti) e **altre app**. Un'app può avere moduli obbligatori e facoltativi o nessuno; un modulo dipende solo da moduli.
+- **Il repository lo dichiara l'app** (`repo`); se manca, si usa il repository ufficiale. Il repository nominato non entra tra quelli dell'AppStore: il kernel ne legge il catalogo solo per quella ricerca (`Repos.packages(url)`).
+- **Un piano, poi l'esecuzione.** Installare o aggiornare un pacchetto parte da un *piano* (`POST /api/packages/plan`): cosa serve e manca, o è installato fuori intervallo, da dove si prende, se è verificato, quali permessi chiede, cosa è facoltativo e cosa non si può avere. L'AppStore lo mostra («Si installa anche», i facoltativi con una casella, i problemi). Il sì dell'amministratore parte con le sue risposte (`POST /api/packages/install`), e il kernel **rifà il piano**: se è cambiato, non fa niente. Poi installa nell'ordine, ognuno dopo ciò che richiede, per ultimo il pacchetto richiesto. Se un passo fallisce, toglie quelli che questa esecuzione ha installato (gli aggiornamenti restano).
+- **Rimozione: «chiedi e blocca».** Un pacchetto richiesto da un altro pacchetto installato con una dipendenza *obbligatoria* non si toglie (le facoltative non bloccano). I pacchetti installati **solo** come dipendenza (`dependency: true` nello stato dell'app o nel `source.json` del modulo) che dopo la rimozione non servono più a nessuno si propongono per la rimozione, già spuntati. Quelli che l'amministratore ha installato di sua mano non si propongono mai.
+- **Un modulo installato parte al riavvio.** Dopo un'installazione che comprende un modulo, l'AppStore chiede «Riavvia ora» o «Più tardi». Finché il kernel non riparte, un'app con una dipendenza obbligatoria in attesa non si apre: il kernel la segna con `unmet` (`why: 'restart'` o `'missing'`) e il launcher mostra un messaggio. Le dipendenze facoltative non bloccano mai.
+- **Le regole stanno nel kernel, non nell'AppStore.** `Installer` e `ModuleAdmin` hanno un `guard` (`Dependencies`) che rifiuta: un pacchetto con dipendenze obbligatorie mancanti (in `install` e `update`), una rimozione di un pacchetto che serve ad altri e una versione fuori dall'intervallo che un pacchetto installato chiede. Chi usa `apps.install` o `kernelModules.install` direttamente non può quindi saltare il piano.
+- **Le app di sistema al primo avvio.** Il kernel installa le app di sistema con `installAuto`: porta anche le dipendenze obbligatorie dal repository ufficiale; non le facoltative, e non un pacchetto che richiederebbe di accettare un avviso. Dal repository ufficiale: Terminale 1.6.0 (moduli `term-*` facoltativi), File Manager 1.16.0 (moduli `netfs-*` facoltativi), Pianificazione 1.0.1 (modulo `scheduler`).
+- **Compatibilità all'indietro.** Un lilOS più vecchio scarta il campo (il manifesto resta valido per il kernel 1.19) e installa le app come prima, senza le dipendenze.
+- Nuovi: `system/kernel/src/apps/dependencies.js` (`Dependencies`), `system/kernel/src/api/packages.js`, `checkDependencies` e `dependencyKey` in `manifest.js`, `Repos.packages`, `Installer.updateSource` e `verified`, l'export `packages` dell'SDK, `unmet` e `dependency` in `apps.list`, la chiave di traduzione `@dependencies.<modulo o app>.reason`; lilOS 1.21.0, SDK 0.13.0, AppStore 1.9.0.
+
+**Perché.**
+
+- **L'AppStore e non l'app.** Le app isolate non possono installare nulla; e l'installazione di un modulo cambia ciò che gira nel kernel con accesso completo: deve passare da un amministratore che vede cosa succede. Un piano mostrato prima dà quel consenso a pacchetti che l'amministratore non ha scelto uno a uno.
+- **Obbligatorie e facoltative separate.** Terminale e File Manager funzionano senza i protocolli remoti: imporli a chi non li vuole sarebbe un costo (i moduli girano nel kernel). Una dipendenza facoltativa dà all'AppStore la voce «ti serve anche questo?» senza che l'app debba spiegarlo.
+- **Il repository nel manifesto.** Così un'app di un repository non ufficiale porta con sé i suoi moduli senza che l'amministratore debba aggiungerli a mano, e l'origine di ogni pacchetto è visibile nel piano. Un modulo non ufficiale è «non verificato»: l'avviso c'è ugualmente.
+- **Rifare il piano all'esecuzione** perché tra la vista e il sì il repository può cambiare, o un altro amministratore può installare qualcosa: l'amministratore consente a ciò che ha visto, non a quello che sarebbe.
+- **«Chiedi e blocca».** Togliere un modulo da sotto un'app la romperebbe in silenzio; bloccare è più prevedibile che chiedere se «rompere comunque». Togliere insieme i pacchetti nati solo per un'app evita di lasciare moduli nel kernel che nessuno usa, e `dependency: true` distingue questi da quelli che l'amministratore ha voluto.
+- **Le regole nel kernel** perché l'AppStore è una delle strade (c'è l'API HTTP, il CLI, un'app di sistema che chiama `apps.install`): un controllo solo nell'interfaccia sarebbe un suggerimento.
+- **Nessun rifiuto all'indietro.** Aggiungere un campo che i kernel vecchi ignorano non rompe nessun manifesto già in giro; le app ufficiali restano installabili da un lilOS 1.19.
+
+**Alternative scartate.**
+
+- Che sia l'app a chiedere i moduli quando serve (`lilos.kernel.install`): un'app isolata installerebbe codice del kernel, senza che l'amministratore veda un piano.
+- Un'app che porta il modulo dentro il proprio pacchetto: i moduli hanno un ciclo di vita proprio (versioni affiancate, riavvio, dati) e li condividono più app.
+- Solo dipendenze obbligatorie: ogni protocollo di rete o di terminale diventerebbe un requisito di File Manager e Terminale.
+- Solo il repository ufficiale per le dipendenze: nessuna app di una comunità porterebbe i suoi moduli.
+- Togliere a cascata le app che dipendono da ciò che si toglie («chiedi e rimuovi tutto»), o togliere comunque con un avviso: più pericoloso (si perdono app e dati di app per un clic) e più difficile da annullare. Si blocca, e si dice cosa togliere prima.
+- Riavviare il kernel da soli dopo un'installazione: chi è collegato aspetta qualche secondo e può avere lavoro in corso; lo decide l'amministratore («Più tardi»).
+
+**Conseguenze.**
+
+- Un'app con una dipendenza obbligatoria non parte finché non c'è: dopo l'installazione di un modulo, fino al riavvio del kernel. Il messaggio lo dice; con «Più tardi» l'amministratore può trovarsela chiusa.
+- Installare un'app con moduli non ufficiali chiede di accettare un avviso per ognuno, perché girano nel kernel con accesso completo. Il kernel non guarda dentro un modulo: l'avviso è l'unica difesa.
+- Un aggiornamento che aggiunge una dipendenza obbligatoria richiede che l'AppStore faccia il piano: `apps.update` da solo, con la dipendenza mancante, è rifiutato (`conflict`). Le facoltative già dichiarate non si riproporranno: chi ha detto no una volta non riceve la stessa domanda.
+- Un pacchetto installato come dipendenza porta `dependency: true` per sempre (anche negli aggiornamenti): l'amministratore che lo vuole tenere dopo aver tolto l'app lo deve deselezionare, ogni volta. Non c'è ancora un modo di dire «questo lo voglio, non è più solo una dipendenza».
+- Un pacchetto già installato che soddisfa una dipendenza non viene toccato; se è installato fuori intervallo, il piano lo aggiorna **dalla sua origine**, anche se è un pacchetto che l'amministratore aveva installato apposta.
+- Le dipendenze fra app (`app: …`) non le usa ancora nessun pacchetto ufficiale: il percorso è meno collaudato di quello dei moduli.
+
+**Quando ripensarla.** Se serve dire «mantieni questo pacchetto» dopo averlo installato come dipendenza; se arrivano dipendenze con una versione che dipende dall'altra (un solo piano per tutto non basta più: oggi non c'è un risolutore, si guarda la versione più alta del repository); se i moduli nel kernel hanno un isolamento vero (allora l'avviso e il consenso possono cambiare); se serve richiedere un modulo per una sola funzione dell'app (oggi l'app lo controlla da sé); se il riavvio dopo un modulo diventa da evitare (moduli caricati a caldo).

@@ -40,7 +40,8 @@ import { parseLocales } from '../../../../sdk/core/i18n.js';
  *     install: [op], update: [{ from: '<1.2.0', ops: [op] }], uninstall: [op],
  *     lilos?: '>=1.8.0' | '>=1.8.0 <2.0.0',   the versions of lilOS the app works with (one or two bounds):
  *                                             not installed elsewhere, and lilOS is not updated past them
- *     restartOnUpdate?: true | '<2.0.0',      updating to this version needs lilOS to restart (always, or
+ *     dependencies?: [dependency],            kernel modules and apps it needs (see checkDependencies)
+ *     restartOnUpdate?: true | '<2.0.0',     updating to this version needs lilOS to restart (always, or
  *                                             only from the versions in the range, like update's `from`)
  *     signature?: 'ed25519:<base64>'         over the manifest without "signature" (keys sorted)
  *   }
@@ -127,6 +128,45 @@ export function inRange(range, version) {
     const c = compareVersions(version, v);
     return { '>=': c >= 0, '>': c > 0, '<=': c <= 0, '<': c < 0, '=': c === 0 }[op];
   });
+}
+
+/**
+ * What a package needs (lilos.json and module.json "dependencies"), installed with it after the admin
+ * says yes (apps/dependencies.js):
+ *   { module: 'arduino', version?: '>=1.0.0', repo?: 'https://github.com/…', optional?: true, reason?: 'Compiles the sketches' }
+ *   { app: 'acme.notes', … the same }           apps only: a module needs modules
+ * version: as `lilos` (one or two bounds); repo: the repository it comes from (its catalog.json lists
+ * it), the official one when missing; optional: the package works without it, the admin chooses.
+ * The reason is in English, '@dependencies.<module or app>.reason' translates it (locales).
+ */
+const MODULE_NAME = /^[a-z][a-z0-9-]{0,40}$/;
+export const dependencyKey = d => (d.module !== undefined ? `module:${d.module}` : `app:${d.app}`);
+
+export function checkDependencies(raw, { self, apps = true, where = 'Manifesto' } = {}) {
+  if (raw === undefined) return [];
+  const bad = msg => fail('invalid', `${where}: dependencies: ${msg}`);
+  if (!Array.isArray(raw) || raw.length > 30) bad('un elenco, al massimo 30');
+  const seen = new Set();
+  for (const d of raw) {
+    if (!d || typeof d !== 'object' || Array.isArray(d)) bad('voce non valida');
+    if ((d.module === undefined) === (d.app === undefined)) bad('ogni voce ha "module" oppure "app"');
+    if (d.app !== undefined && !apps) bad('un modulo dipende solo da moduli');
+    if (d.module !== undefined && !MODULE_NAME.test(d.module)) bad(`modulo non valido: ${String(d.module).slice(0, 40)}`);
+    if (d.app !== undefined && !ID.test(d.app)) bad(`app non valida: ${String(d.app).slice(0, 60)}`);
+    const key = dependencyKey(d);
+    if (key === self) bad('un pacchetto non dipende da sé');
+    if (seen.has(key)) bad(`${key} indicato due volte`);
+    seen.add(key);
+    if (d.version !== undefined && !(typeof d.version === 'string' && LILOS_RANGE.test(d.version))) bad(`${key}: version come ">=1.0.0" o ">=1.0.0 <2.0.0"`);
+    if (d.repo !== undefined) {
+      let url = null;
+      try { url = new URL(d.repo); } catch { /* below */ }
+      if (url?.protocol !== 'https:' || url.username || url.password || d.repo.length > 300) bad(`${key}: repo deve essere l’indirizzo https:// di un repository`);
+    }
+    if (d.optional !== undefined && d.optional !== true) bad(`${key}: optional può essere solo true`);
+    if (d.reason !== undefined && !str(d.reason, 200)) bad(`${key}: reason non valido`);
+  }
+  return raw;
 }
 
 /** '<1.2.0', '<=1.2.0', '1.2.0' (exact): does `version` match? */
@@ -228,6 +268,7 @@ export function checkManifest(raw) {
   if (m.publisher.key !== undefined && !/^ed25519:[A-Za-z0-9+/]{43}=$/.test(m.publisher.key)) bad('chiave dell’editore non valida');
   if (!SDK_VERSIONS.includes(String(m.sdk))) bad('versione dell’SDK non supportata');
   if (m.lilos !== undefined && !(typeof m.lilos === 'string' && LILOS_RANGE.test(m.lilos))) bad('lilos: versioni di lilOS come ">=1.8.0" o ">=1.8.0 <2.0.0"');
+  checkDependencies(m.dependencies, { self: `app:${m.id}` });
   if (m.icon !== undefined && (!GLYPH.test(m.icon?.glyph ?? '') || !HEX.test(m.icon?.color ?? ''))) bad('icona non valida');
   if (m.system !== undefined && m.system !== true) bad('system può essere solo true');
   if (m.required !== undefined && (m.required !== true || !m.system)) bad('required vale solo per le app di sistema');

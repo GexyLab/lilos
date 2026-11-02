@@ -13,7 +13,9 @@ import { appRoutes } from './api/apps.js';
 import { Installer } from './apps/installer.js';
 import { Repos } from './apps/repos.js';
 import { ModuleAdmin, ensureRequiredModules } from './apps/modulePackage.js';
+import { Dependencies } from './apps/dependencies.js';
 import { storeRoutes } from './api/store.js';
+import { packageRoutes } from './api/packages.js';
 import { serviceRoutes } from './api/services.js';
 import { notificationRoutes } from './api/notifications.js';
 import { systemRoutes } from './api/system.js';
@@ -113,6 +115,9 @@ export class Kernel {
     this.installer = new Installer(this.services.get('fs'), config);
     this.repos = new Repos(config);
     this.moduleAdmin = new ModuleAdmin(this, config);
+    this.dependencies = new Dependencies(this);
+    this.installer.guard = this.dependencies;
+    this.moduleAdmin.guard = this.dependencies;
     this.appServices = new AppServices(this);
     this.system = new SystemReleases(this);
     this.network = new Network(this);
@@ -123,6 +128,7 @@ export class Kernel {
     homeRoutes(this);
     appRoutes(this);
     storeRoutes(this);
+    packageRoutes(this);
     serviceRoutes(this);
     notificationRoutes(this);
     systemRoutes(this);
@@ -165,10 +171,9 @@ export class Kernel {
         const entry = catalog.apps.find(a => a.manifest?.id === id);
         if (!entry) { log.warn(`App di sistema ${id} non presente nel repository ufficiale`); continue; }
         if (!firstStart && !entry.manifest.required) continue;
-        await this.installer.install(KERNEL, {
-          source: { type: 'git', url: catalog.repo.url, ref: catalog.ref, path: entry.path },
-          grant: entry.manifest.permissions ?? [],
-        });
+        // With the modules and apps it needs (from the official repository; a module runs after a restart)
+        const { installed } = await this.dependencies.installAuto({ install: { kind: 'app', source: { type: 'git', url: catalog.repo.url, ref: catalog.ref, path: entry.path } } });
+        if (installed.some(s => s.kind === 'module')) log.warn(`${id}: moduli installati, attivi dal prossimo avvio del kernel`);
       }
     } catch (err) {
       log.warn(`App di sistema non installate (${missing.join(', ')}): ${err.message}`);

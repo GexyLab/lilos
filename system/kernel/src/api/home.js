@@ -164,7 +164,7 @@ export function homeRoutes(kernel) {
       fresh: !nodes.length && !Object.keys(storage).length,
       nodes,
       storage,
-      apps: (await kernel.installer.list()).map(a => visible(a, principal)),
+      apps: (await kernel.dependencies.withUnmet(await kernel.installer.list())).map(a => visible(a, principal)),
       appSecurity: await kernel.installer.security(),
       net: await kernel.network.list(principal),
     };

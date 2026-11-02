@@ -35,6 +35,7 @@ Procedure passo per passo per le modifiche più comuni. Per i dettagli delle fun
 - [Aggiungere un modulo al kernel](#aggiungere-un-modulo-al-kernel)
 - [Aggiungere un protocollo di rete](#aggiungere-un-protocollo-di-rete)
 - [Pubblicare un modulo del kernel come pacchetto](#pubblicare-un-modulo-del-kernel-come-pacchetto)
+- [Far dipendere un'app da un modulo del kernel](#far-dipendere-unapp-da-un-modulo-del-kernel)
 - [Pubblicare una versione di lilOS](#pubblicare-una-versione-di-lilos)
 - [Installare lilOS da una release](#installare-lilos-da-una-release)
 - [Fare un repository non ufficiale](#fare-un-repository-non-ufficiale)
@@ -1194,6 +1195,31 @@ const port = await lilos.kernel.channel('eco', '/eco');
 - Metti i dati che devono sopravvivere agli aggiornamenti del modulo (strumenti scaricati, cache) in `ctx.dataDir`, non in `ctx.dir`: `dir` è la cartella della versione e cambia a ogni versione.
 - Il limite di un messaggio lo decidi tu con `accept({ maxMessage })` (predefinito 1 MiB); `kernel.module(...).channel` accetta fino a 16 MiB, `kernel.channel` ha di suo 1 MiB (`maxText`, `maxBytes`).
 - Quando il socket si chiude, chi ha il canale riceve `{"t":"gone","code":…}`.
+
+## Far dipendere un'app da un modulo del kernel
+
+Se la tua app ha bisogno di un modulo del kernel (o di un'altra app), dichiaralo nel manifesto: l'AppStore lo installa insieme all'app, dopo il consenso dell'amministratore. Contratto: [API → Dipendenze nel manifesto e in `module.json`](api.md#dipendenze-nel-manifesto-e-in-modulejson); decisione: [D69](../interna/decisioni.md#d69-le-dipendenze-tra-pacchetti-le-installa-lappstore-con-il-consenso-dellamministratore).
+
+1. Aggiungi `dependencies` a `lilos.json`. Per un modulo che serve sempre:
+
+   ```json
+   "dependencies": [
+     { "module": "arduino", "version": ">=1.0.0", "reason": "Compiles the sketches" }
+   ]
+   ```
+
+   - Senza `repo` il pacchetto si cerca nel repository ufficiale. Se sta in un altro, scrivi `"repo": "https://github.com/acme/lilos-moduli"` (un repository con `catalog.json`, scelto da te: l'amministratore vede che non è verificato).
+   - `version` è un intervallo come `lilos`: `">=1.0.0"` o `">=1.0.0 <2.0.0"`.
+   - `reason` è in inglese; per tradurla aggiungi a `locales.json` la chiave `@dependencies.arduino.reason` (il nome del modulo, o l'id dell'app).
+2. Per un modulo che arricchisce l'app ma non è indispensabile aggiungi `"optional": true`. L'amministratore sceglie se installarlo, e **la tua app deve funzionare anche senza**: controlla la presenza prima di usarlo (per esempio una richiesta con `lilos.kernel.request` che risponde con un errore, da gestire).
+3. Alza `version` e `pack.js` come al solito. Un'app che *richiede* un modulo non parte finché il modulo non è in funzione: lilOS mostra un messaggio (e dice di riavviare il kernel, se il modulo è stato appena installato). Non serve scrivere altro codice per questo.
+4. Un modulo può dipendere da altri moduli (non da app) con le stesse voci nel suo `module.json`: `"dependencies": [{ "module": "mio-base", "version": ">=1.0.0" }]`.
+
+Prova: da amministratore, AppStore → la tua app → **Installa**. La finestra elenca sotto «Si installa anche» i pacchetti obbligatori e, sotto «Facoltativi», quelli con le caselle. Se hai aggiunto un modulo, alla fine l'AppStore chiede «Riavvia ora» o «Più tardi».
+
+Se aggiorni un'app già installata e aggiungi una dipendenza **facoltativa**, l'AppStore la propone solo se la versione installata non la dichiarava. Una **obbligatoria** nuova si installa insieme all'aggiornamento; senza, l'aggiornamento è rifiutato (`conflict`, «ha bisogno di: …»).
+
+Un lilOS vecchio ignora `dependencies` (il manifesto resta valido) ma non installa niente: chi installa l'app a mano ottiene un'app che non parte o non trova il modulo. Se ti serve un lilOS che conosca il campo, scrivi in `lilos` la prima versione che lo conosce.
 
 ## Pubblicare un modulo del kernel come pacchetto
 
