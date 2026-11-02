@@ -26,6 +26,8 @@ const DEFAULTS = [
       { type: 'action', action: 'desktop.create', label: 'Documento di testo', icon: 'filePlus', params: { kind: 'file', name: 'Nuovo documento.txt' } },
       { type: 'action', action: 'desktop.create', label: 'Documento Markdown', icon: 'filePlus', params: { kind: 'file', name: 'Nuovo documento.md' } },
       { type: 'action', action: 'desktop.create', label: 'Pagina HTML', icon: 'filePlus', params: { kind: 'file', name: 'pagina.html', content: HTML_PAGE } },
+      { type: 'separator' },
+      { type: 'action', action: 'desktop.newLink' },
     ],
   },
   { type: 'separator' },
@@ -59,6 +61,8 @@ export function registerDesktopMenu(desktop) {
     label: 'Crea un elemento', icon: 'filePlus', menus: scope, params: createParams,
     run: (ctx, p) => desktop.create(p.kind, ctx.at, { name: p.name, content: p.content, template: p.template }),
   });
+  // The File Manager's window "Nuovo collegamento" (its entry point newLink), making the link on the desk
+  menus.defineAction('desktop.newLink', { label: 'Collegamento…', icon: 'link', menus: scope, run: () => launch('files', { folder: desktop.folder }, 'newLink') });
   menus.defineAction('desktop.openInFiles', { label: 'Apri la Scrivania nel File Manager', icon: 'folder', menus: scope, run: () => launch('files', { folder: desktop.folder }) });
   menus.defineAction('desktop.arrange', { label: 'Riordina icone', icon: 'grid', menus: scope, run: () => desktop.arrange() });
   menus.defineAction('desktop.selectAll', { label: 'Seleziona tutto', icon: 'check', menus: scope, shortcut: 'items.selectAll', run: () => desktop.select(desktop.scopeItems()) });

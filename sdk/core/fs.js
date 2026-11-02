@@ -8,8 +8,10 @@ import { pipes } from './pipeCatalog.js';
 const STORAGE_KEY = 'fs';
 const ROOT = 'root';
 const TRASH = 'trash';
-const TYPES = new Set(['folder', 'file', 'app']);
+const TYPES = new Set(['folder', 'file', 'app', 'link']);
 const MAX_NAME = 255;
+const MAX_LINK_PATH = 4096;
+const LINK_ID = /^[\w-]{1,64}$/;   // what a link keeps of its target: a node's id, a connection's
 const WORKSPACE_ID = /^[\w-]{1,40}$/;
 const TAG_ID = /^[\w-]{1,40}$/;
 const MAX_TAGS = 30;   // per node
@@ -28,15 +30,22 @@ const MIME = {
 };
 
 /**
- * Virtual file system: a tree of folders, files and app shortcuts, kept whole in memory. Connected
+ * Virtual file system: a tree of folders, files, app shortcuts and links, kept whole in memory. Connected
  * to the kernel, the tree is the user's home: loaded at start-up and kept in sync by differences
  * (only the nodes that changed are sent, a moment later); file contents are read and written
  * there with the asynchronous read() / write(). Without the kernel the tree is saved under
  * 'lilos:fs' and the contents in IndexedDB. A content is text or bytes (an image): write() takes
  * either, read() gives text, readBlob() bytes.
  *
- *   Node: { id, type: 'folder' | 'file' | 'app', name, parent, created, modified,
- *           size?, color?, app?, system?, workspace?, private?, tags?, apps? }   size: bytes of the content
+ *   Node: { id, type: 'folder' | 'file' | 'app' | 'link', name, parent, created, modified,
+ *           size?, color?, app?, link?, system?, workspace?, private?, tags?, apps? }   size: bytes of the content
+ *
+ * A link (type 'link') points to a file or a folder somewhere else: `link` says where, as netRef()
+ * gives it, plus what it is and whether it was found the last time it was opened; or to a web page:
+ *   link: { home: id } | { mount, path }  + kind: 'file' | 'folder', broken?: true
+ *   link: { url: 'https://…', kind: 'web' }
+ * Its target may be gone: lilOS finds it when the link is opened (src/items/deskLinks.js), and
+ * update(id, { broken }) marks it. A link has no content and is not a file for read() and copy().
  *
  * Apps' data on a node (setAppMeta): `apps` holds, per app id, a small object only that app writes
  * (lilOS checks it). `content: true` in it says that the content is the app's to read: without the
@@ -208,12 +217,15 @@ class FileSystem extends Emitter {
 
   /**
    * New node. `workspace` is the owner: the current workspace by default (shared system folders
-   * have none). `private: true` makes a folder visible only in its owner workspace.
+   * have none). `private: true` makes a folder visible only in its owner workspace. A link needs
+   * `link` ({ home } or { mount, path }, with kind).
    */
-  create(parentId, { type, name, color, app, size, system = false, id, workspace, private: own = false } = {}) {
+  create(parentId, { type, name, color, app, link, size, system = false, id, workspace, private: own = false } = {}) {
     const parent = this.#find(parentId);
     if (!parent || parent.type !== 'folder') throw new Error('La cartella di destinazione non esiste');
     if (!TYPES.has(type)) throw new Error(`Tipo non valido: ${type}`);
+    const target = type === 'link' ? cleanLink(link) : null;
+    if (type === 'link' && !target) throw new Error('Collegamento non valido');
     if (parent.net) return this.#netCreate(parent, type, name);
     if (id != null && (typeof id !== 'string' || this.#nodes.has(id))) throw new Error('Identificatore non valido');
     const owner = workspace !== undefined ? workspace : system && !own ? null : this.#workspace;
@@ -227,6 +239,7 @@ class FileSystem extends Emitter {
       ...(type === 'file' && { size: Number.isFinite(size) && size >= 0 ? size : 0 }),
       ...(type === 'folder' && typeof color === 'string' && { color }),
       ...(type === 'app' && { app: String(app ?? '') }),
+      ...(target && { link: target }),
       ...(system && { system: true }),
       ...(owner && { workspace: owner }),
       ...(own && { private: true }),
@@ -257,12 +270,18 @@ class FileSystem extends Emitter {
     return unique;
   }
 
-  /** Change metadata that is not the name (e.g. a folder's color). */
-  update(id, { color } = {}) {
+  /** Change metadata that is not the name (e.g. a folder's color, whether a link was found). */
+  update(id, { color, broken } = {}) {
     const node = this.#find(id);
     if (!node) throw new Error('Elemento inesistente');
     if (node.net) throw new Error(NOT_FOR_NET);
     if (node.type === 'folder' && typeof color === 'string') node.color = color;
+    if (node.type === 'link' && typeof broken === 'boolean') {
+      if (broken === (node.link.broken === true)) return;
+      node.link = { ...node.link };
+      if (broken) node.link.broken = true;
+      else delete node.link.broken;
+    }
     this.#save();
     this.emit('change', { type: 'update', node: copy(node), parent: node.parent });
   }
@@ -878,7 +897,7 @@ class FileSystem extends Emitter {
   external({ put = [], remove = [] } = {}) {
     const accepted = [];
     for (const n of Array.isArray(put) ? put : []) {
-      if (!n || typeof n.id !== 'string' || n.id === ROOT || n.id === TRASH || !TYPES.has(n.type) || !validName(n.name)) continue;
+      if (!n || typeof n.id !== 'string' || n.id === ROOT || n.id === TRASH || !TYPES.has(n.type) || n.type === 'link' || !validName(n.name)) continue;
       const parent = this.#nodes.get(n.parent);
       if (!parent || parent.type !== 'folder' || parent.net) continue;
       const old = this.#nodes.get(n.id);
@@ -930,7 +949,7 @@ class FileSystem extends Emitter {
 
   /** A node made in a folder of a connection: in the tree now, on the server a moment later. */
   #netCreate(parent, type, name) {
-    if (type === 'app') throw new Error(NOT_FOR_NET);
+    if (type === 'app' || type === 'link') throw new Error(NOT_FOR_NET);
     pipes.runSync('file.create', { parent: parent.id, type, name });
     const now = Date.now();
     const node = { id: uid(), type, name: '', parent: parent.id, created: now, modified: now, net: parent.net, ...(type === 'file' && { size: 0 }) };
@@ -1086,6 +1105,7 @@ class FileSystem extends Emitter {
     for (const n of data) {
       if (!n || typeof n !== 'object' || typeof n.id !== 'string' || n.id === ROOT || n.id === TRASH || byId.has(n.id)) continue;
       if (!TYPES.has(n.type) || typeof n.parent !== 'string' || !validName(n.name)) continue;
+      if (n.type === 'link' && !cleanLink(n.link)) continue;
       byId.set(n.id, n);
     }
     // Breadth-first from the two roots: orphans and cycles are dropped
@@ -1110,6 +1130,7 @@ class FileSystem extends Emitter {
           ...(n.type === 'file' && { size: Number.isFinite(n.size) && n.size >= 0 ? n.size : 0 }),
           ...(n.type === 'folder' && typeof n.color === 'string' && { color: n.color }),
           ...(n.type === 'app' && { app: String(n.app ?? '') }),
+          ...(n.type === 'link' && { link: cleanLink(n.link) }),
           ...(n.system === true && { system: true }),
           ...(owner && { workspace: owner }),
           ...(own && { private: true }),
@@ -1124,7 +1145,7 @@ class FileSystem extends Emitter {
 }
 
 /** A copy of a node that shares nothing with it (`tags` is an array, `apps` objects). */
-const copy = n => ({ ...n, ...(n.tags && { tags: [...n.tags] }), ...(n.apps && { apps: structuredClone(n.apps) }) });
+const copy = n => ({ ...n, ...(n.tags && { tags: [...n.tags] }), ...(n.apps && { apps: structuredClone(n.apps) }), ...(n.link && { link: { ...n.link } }) });
 
 const toBlob = v => (v instanceof Blob ? v : new Blob([v]));
 
@@ -1148,6 +1169,20 @@ function cleanApps(raw) {
     } catch { /* dropped */ }
   }
   return Object.keys(out).length && JSON.stringify(out).length <= MAX_APPS_META ? out : null;
+}
+
+/**
+ * Where a link points (untrusted): { home: id } or { mount, path: '/…' }, with kind 'file' or
+ * 'folder' and broken when it was not found, or { url, kind: 'web' } (http and https only); null if not valid.
+ */
+function cleanLink(raw) {
+  if (raw?.kind === 'web') return typeof raw.url === 'string' && raw.url.length <= MAX_LINK_PATH && /^https?:\/\/[^\s]+$/i.test(raw.url) ? { url: raw.url, kind: 'web' } : null;
+  if (!raw || typeof raw !== 'object' || (raw.kind !== 'file' && raw.kind !== 'folder')) return null;
+  const extra = { kind: raw.kind, ...(raw.broken === true && { broken: true }) };
+  if (typeof raw.home === 'string' && LINK_ID.test(raw.home) && raw.home !== ROOT && raw.home !== TRASH) return { home: raw.home, ...extra };
+  if (typeof raw.mount === 'string' && LINK_ID.test(raw.mount) && typeof raw.path === 'string'
+    && raw.path.startsWith('/') && raw.path.length <= MAX_LINK_PATH) return { mount: raw.mount, path: raw.path, ...extra };
+  return null;
 }
 
 /** Tag ids: strings of 1-40 letters, digits, _ and -, no duplicates, at most `max`. */

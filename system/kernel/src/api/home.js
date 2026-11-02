@@ -19,11 +19,15 @@ import { visible } from './apps.js';
  *   POST /api/storage              { set: { key: value }, remove: [key] }
  *
  * Access control is the fs module's: these only translate ids and check the shape of the data.
+ *
+ * A link of lilOS (type 'link', to a file or a folder) is kept by the fs service as a shortcut:
+ * type 'app' with `link` in its metadata. Shortcuts have no content, and the kernel's own users of
+ * the tree (transfers, apps' services) already leave them alone; the fs modules need no new type.
  */
 export const FRONT_ID = /^[\w-]{1,64}$/;
 const KEY = /^[\w:.-]{1,120}$/;
-const TYPES = new Set(['folder', 'file', 'app']);
-const META = ['color', 'app', 'system', 'workspace', 'private', 'tags', 'trashed', 'apps'];
+const TYPES = new Set(['folder', 'file', 'app', 'link']);
+const META = ['color', 'app', 'link', 'system', 'workspace', 'private', 'tags', 'trashed', 'apps'];
 const MAX_NODES = 5000;
 const MAX_META = 4 << 10;
 const MAX_VALUE = 512 << 10;
@@ -109,8 +113,10 @@ function toBackNode(view, n) {
   if (!TYPES.has(n.type) || typeof n.name !== 'string' || !finite(n.created) || !finite(n.modified)) fail('invalid', 'Elemento non valido');
   const meta = {};
   for (const k of META) if (n[k] !== undefined) meta[k] = n[k];
+  if (n.type === 'link' ? !meta.link || typeof meta.link !== 'object' || Array.isArray(meta.link) : 'link' in meta) fail('invalid', 'Elemento non valido');
   if (JSON.stringify(meta).length > MAX_META) fail('too_large', 'Troppi dati in un elemento');
-  return { id: view.toBack(n.id), parent: view.toBack(n.parent, { parent: true }), name: n.name, type: n.type, meta, created: n.created, modified: n.modified };
+  const type = n.type === 'link' ? 'app' : n.type;
+  return { id: view.toBack(n.id), parent: view.toBack(n.parent, { parent: true }), name: n.name, type, meta, created: n.created, modified: n.modified };
 }
 
 /** A node of the fs service → a node of lilOS, or null for the ones lilOS does not see as nodes. */
@@ -119,7 +125,7 @@ export function toFrontNode(view, n) {
   if (!id || id === 'root' || id === 'trash' || !parent) return null;
   return {
     ...(n.meta && typeof n.meta === 'object' ? n.meta : {}),
-    id, parent, type: n.type, name: n.name, created: n.created, modified: n.modified,
+    id, parent, type: n.type === 'app' && n.meta?.link ? 'link' : n.type, name: n.name, created: n.created, modified: n.modified,
     ...(n.type === 'file' && { size: n.size }),
   };
 }

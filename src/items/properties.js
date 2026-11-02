@@ -1,4 +1,4 @@
-import { Window, h, fs, tags, session, fileType, actionButton } from '@lilos/sdk';
+import { Window, h, fs, net, tags, session, fileType, actionButton } from '@lilos/sdk';
 import { describeWorkspace } from '../workspaces/info.js';
 import { appFor, extensionOf } from '../apps/open.js';
 import { showAppProperties } from '../apps/appProperties.js';
@@ -8,7 +8,7 @@ import { getApp } from '../apps/registry.js';
 /**
  * "Proprietà…" of a file or folder: what it is, where, how big, when, whose, its tags, (files)
  * the app that opens it, and what installed apps say of it (their signs: "Cifrato con FileCrypt"). Read only; it follows changes while open and closes when the item goes.
- * A desktop shortcut to an app shows the app's properties (appProperties.js).
+ * A desktop shortcut to an app shows the app's properties (appProperties.js); a link, where it points.
  * One window per item (key `props:<id>`).
  */
 let wm = null;
@@ -39,12 +39,23 @@ function contentOf(id) {
   return out;
 }
 
+/** Where a link points, as text: the path in the home, or the connection and the path on it. */
+function linkPlace(link) {
+  if (link.kind === 'web') return link.url;
+  if (link.home) return fs.exists(link.home) ? fs.path(link.home) : 'Non trovato';
+  return `${net.mount?.(link.mount)?.name ?? 'Connessione rimossa'}: ${link.path}`;
+}
+
 function rows(node) {
   const row = (label, value) => [h('dt', {}, label), h('dd', {}, value)];
   const owner = describeWorkspace(node.workspace);
-  const type = node.type === 'folder' ? 'Cartella' : `${fileType(node.name).label}${extensionOf(node) ? ` (.${extensionOf(node)})` : ''}`;
+  const type = node.type === 'link' ? { folder: 'Collegamento a una cartella', web: 'Collegamento a una pagina web' }[node.link.kind] ?? 'Collegamento a un file'
+    : node.type === 'folder' ? 'Cartella' : `${fileType(node.name).label}${extensionOf(node) ? ` (.${extensionOf(node)})` : ''}`;
   const out = [...row('Tipo', node.system ? `${type} di sistema` : type), ...row('Posizione', fs.path(node.parent))];
-  if (node.type === 'folder') {
+  if (node.type === 'link') {
+    out.push(...row('Originale', linkPlace(node.link)));
+    if (node.link.broken) out.push(...row('Stato', 'Rotto: l’originale non è stato trovato l’ultima volta'));
+  } else if (node.type === 'folder') {
     const c = contentOf(node.id);
     out.push(...row('Contenuto', `${count(c.files, 'file', 'file')}, ${count(c.folders, 'cartella', 'cartelle')}`), ...row('Dimensione', formatBytes(c.bytes)));
   } else {
@@ -77,7 +88,7 @@ export function showProperties(id) {
   }
 
   const win = new Window({
-    title: node.name, subtitle: 'Proprietà', icon: node.type === 'folder' ? 'folder' : 'file',
+    title: node.name, subtitle: 'Proprietà', icon: node.type === 'link' ? 'link' : node.type === 'folder' ? 'folder' : 'file',
     width: 420, height: 400, minWidth: 340, minHeight: 240, controls: { minimize: false },
   });
   const list = h('dl', { class: 'props-list' });

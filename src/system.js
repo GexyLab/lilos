@@ -31,6 +31,7 @@ import { connectAppProperties } from './apps/appProperties.js';
 import { Canvas } from './canvas/Canvas.js';
 import { createHud } from './canvas/Hud.js';
 import { Desktop } from './desktop/Desktop.js';
+import { openLink } from './items/deskLinks.js';
 import { preloadWallpaper, connectWallpaper } from './desktop/wallpaper.js';
 import { Taskbar } from './taskbar/Taskbar.js';
 import { UserPage } from './user/UserPage.js';
@@ -112,10 +113,11 @@ settings.watch('minimap', on => {
   canvas.changed();
 });
 
-// Folders open in the File Manager; files with their app (or the "Apri con" window)
+// Folders open in the File Manager; files with their app (or the "Apri con" window); links what they point to
 bus.on('item:open', node => {
   if (node?.type === 'folder') launch('files', { folder: node.id });
   else if (node?.type === 'file') openFile(node);
+  else if (node?.type === 'link') openLink(node);
 });
 
 if (import.meta.env.DEV) window.lilos = { bus, canvas, desktop, taskbar, wm, workareas, workspaces, settings, shortcuts, fs, history, kernel };

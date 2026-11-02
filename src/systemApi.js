@@ -32,6 +32,7 @@ export { showProperties } from './items/properties.js';
 export { pickFile } from './apps/filePicker.js';
 export { addTarget } from './items/targets.js';
 export { links, linkEntry } from './items/links.js';
+export { linkTo, canLinkOnDesk, addDeskLinks, openLink, openWebLink, findLinkTarget, locateLink } from './items/deskLinks.js';
 export { markItem, dropZone, dragItems, movableInto, moveInto } from './items/itemDrag.js';
 export { recordCreated, renameNode, moveNode, restoreNodes, removeNodes } from './items/fsHistory.js';
 export { confirmRemove } from './items/confirmRemove.js';

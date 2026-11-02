@@ -1,4 +1,4 @@
-import { h, svg, icon, appIcon, fileType } from '@lilos/sdk';
+import { h, svg, icon, appIcon, fileType, fs } from '@lilos/sdk';
 import { getApp } from '../apps/registry.js';
 import { thumbnailIcon } from '../apps/thumbnails.js';
 
@@ -72,7 +72,25 @@ export function itemBadges(data) {
 }
 
 /**
- * Icon for any desktop item data ({ type: 'folder' | 'file' | 'app' | 'workarea' | 'trash', ... });
+ * A link (deskLinks.js): the icon of what it points to — its own, when it is in the home and there;
+ * a globe for a web page —
+ * with a chain at the bottom left; a broken one (its target was not found) fades and gets a red cross.
+ */
+function linkIcon(data) {
+  const link = data.link ?? {};
+  const broken = link.broken === true;
+  const target = link.home && !broken ? fs.get(link.home) : null;
+  const base = link.kind === 'web' ? appIcon({ glyph: 'globe', color: '#2f7fc1' })
+    : target?.type === 'file' || target?.type === 'folder' ? itemIcon(target)
+    : link.kind === 'folder' ? (link.mount && link.path === '/' ? placeIcon('globe') : folderIcon())
+    : fileIcon(link.path?.split('/').pop() || data.name);
+  const label = broken ? 'Collegamento rotto' : 'Collegamento';
+  return h('span', { class: broken ? 'icon-link broken' : 'icon-link', title: label, 'aria-label': label },
+    base, h('span', { class: 'icon-link-mark' }, icon(broken ? 'x' : 'link')));
+}
+
+/**
+ * Icon for any desktop item data ({ type: 'folder' | 'file' | 'app' | 'link' | 'workarea' | 'trash', ... });
  * a folder with a `glyph` is a place (see fixedItems.js), the trash shows if it is `full`. Files and
  * folders carry the signs of the apps that have data on them (itemBadges).
  * `preview`: for a file node, the thumbnail its app makes (apps/thumbnails.js) about that many
@@ -82,6 +100,7 @@ export function itemIcon(data, { preview = 0 } = {}) {
   if (data.type === 'workarea') return workareaIcon();
   if (data.type === 'trash') return trashIcon(data.full);
   if (data.type === 'app') return appIcon(getApp(data.app));
+  if (data.type === 'link') return linkIcon(data);
   // A network connection's folder shows a globe; its files make no thumbnails (they would be downloaded)
   const base = data.type === 'folder' ? (data.glyph ? placeIcon(data.glyph, data.color) : data.mount ? placeIcon('globe', data.color) : folderIcon(data.color))
     : preview > 0 && !data.fixed && !data.net ? thumbnailIcon(data, { size: preview, fallback: fileIcon(data.name) })

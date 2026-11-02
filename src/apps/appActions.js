@@ -23,7 +23,7 @@ const listOf = (app, key) => {
 };
 
 function fits(action, appId, node) {
-  if (!node || node.type === 'app') return false;
+  if (!node || node.type === 'app' || node.type === 'link') return false;
   if (action.on !== 'item' && node.type !== action.on) return false;
   const marked = !!node.apps && Object.hasOwn(node.apps, appId);
   if (action.when?.meta === 'own' && !marked) return false;

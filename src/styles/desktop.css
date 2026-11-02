@@ -21,6 +21,12 @@
 .icon-badges { position: absolute; right: -5px; bottom: -3px; display: flex; gap: 1px; }
 .icon-badge { width: 14px; height: 14px; border-radius: 50%; display: grid; place-items: center; color: #fff; box-shadow: 0 0 0 1.5px var(--surface, #fff); }
 .icon-badge .ico { width: 9px; height: 9px; stroke-width: 2.6; }
+/* Links (itemIcons.js linkIcon): a chain at the bottom left; broken, the icon fades and the sign is a red cross */
+.icon-link { position: relative; display: inline-grid; place-items: center; }
+.icon-link-mark { position: absolute; left: -5px; bottom: -3px; width: 14px; height: 14px; border-radius: 50%; display: grid; place-items: center; color: #fff; background: #4b5565; box-shadow: 0 0 0 1.5px var(--surface, #fff); }
+.icon-link-mark .ico { width: 9px; height: 9px; stroke-width: 2.6; }
+.icon-link.broken > :first-child { opacity: .5; }
+.icon-link.broken .icon-link-mark { background: var(--danger, #d64545); }
 /* Fixed items (fixedItems.js): the trash */
 .icon-trash { width: 28px; height: 32px; }
 .trash-i-lid { fill: #7b8494; }
