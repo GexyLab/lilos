@@ -1,4 +1,4 @@
-import { Window, h, shortcuts, settings, locale, term, serial } from '@lilos/sdk';
+import { Window, h, shortcuts, settings, locale, term, serial, schedule } from '@lilos/sdk';
 import { BRIDGE_SOURCE, lilosApi } from './bridge.js';
 import { appCode, libraryCode, entrypoints, escapeAttr, inline, netOrigins } from './code.js';
 import { isIsolated } from './isolation.js';
@@ -99,6 +99,13 @@ const termEvents = (pkg, fn) => ((pkg.manifest.permissions ?? []).includes('term
 /** A serial port was connected or went ('ports'): for an app with the serial permission. Returns the offs. */
 const serialEvents = (pkg, fn) => ((pkg.manifest.permissions ?? []).includes('serial') ? [serial.on('change', () => fn('ports'))] : []);
 
+/** The scheduler's operations changed or ran: for an app that may see them (schedule, schedule.read). Returns the offs. */
+const scheduleEvents = (pkg, fn) => {
+  const perms = pkg.manifest.permissions ?? [];
+  if (!perms.includes('schedule') && !perms.includes('schedule.read') && !perms.includes('schedule.move')) return [];
+  return [schedule.on('change', e => fn({ type: 'change', ids: e.ids ?? [] })), schedule.on('run', e => fn({ type: 'run', ...e }))];
+};
+
 function connectBridge(win, frame, pkg, handles, entry) {
   // A local app's origin is opaque ('*' is the only way to reach it); a remote app gets messages only at its own
   const targetOrigin = pkg.manifest.kind === 'remote' ? new URL(pkg.manifest.url).origin : '*';
@@ -136,7 +143,7 @@ function connectBridge(win, frame, pkg, handles, entry) {
   const offKeys = shortcuts.on('change', () => post({ event: 'keys', data: commandKeys(pkg.manifest) }));
   const offTheme = watchTheme(() => post({ event: 'theme', data: theme() }));
   const offLocale = locale.on('change', () => post({ event: 'locale', data: locale.strings(pkg.id) }));
-  const offTerm = [...termEvents(pkg, what => post({ event: 'term', data: what })), ...serialEvents(pkg, what => post({ event: 'serial', data: what }))];
+  const offTerm = [...termEvents(pkg, what => post({ event: 'term', data: what })), ...serialEvents(pkg, what => post({ event: 'serial', data: what })), ...scheduleEvents(pkg, what => post({ event: 'schedule', data: what }))];
   win.on('grant', ids => ids.forEach(id => handles.add(id)));
   win.on('launch', args => {
     if (args?.file) handles.add(args.file);
@@ -208,6 +215,7 @@ async function mountInPage(win, pkg, entry, args, handles) {
   offs.push(locale.on('change', () => emit('locale', locale.strings(pkg.id))));
   offs.push(...termEvents(pkg, what => emit('term', what)));
   offs.push(...serialEvents(pkg, what => emit('serial', what)));
+  offs.push(...scheduleEvents(pkg, what => emit('schedule', what)));
   win.on('grant', ids => ids.forEach(id => handles.add(id)));
   win.on('launch', a => {
     if (a?.file) handles.add(a.file);

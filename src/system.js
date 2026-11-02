@@ -13,6 +13,7 @@ import './styles/properties.css';
 import './styles/user-page.css';
 import './styles/notifications.css';
 import './styles/transfers.css';
+import './styles/schedule.css';
 
 import './systemSettings.js';
 import * as sdk from '@lilos/sdk';
@@ -51,6 +52,7 @@ import { workspaceKey } from './workspaces/store.js';
 import { Workspaces } from './workspaces/Workspaces.js';
 import { notify } from './notifications/notify.js';
 import { connectAutomation } from './automation/index.js';
+import { connectSchedule } from './schedule/runner.js';
 
 const root = document.getElementById('app');
 watchSession();
@@ -99,6 +101,7 @@ setupHistory({ root: desktop.history, activeWindow: () => wm.active });
 connectStartup();
 connectNotifications({ bell: taskbar.notificationBell, wm }).catch(err => console.error('[lilos] notifiche:', err));
 connectNet({ wm, button: taskbar.transfersButton });
+connectSchedule({ wm });
 connectServices();
 Promise.all([workspaces.ready, workareas.ready]).then(() => {
   bus.emit('system:ready', { at: Date.now() });

@@ -62,6 +62,15 @@ import { typeKey } from '../../input/sendKey.js';
  *   lilos.kernel.request(module, method, path, body) → JSON    the API of a kernel module
  *                                        (permission kernel:<module>; the SDK's kernel.module()),
  *                                        channel(module, path) → MessagePort, a WebSocket of it (windows only)
+ *   lilos.schedule.list() / get(id) / create(task) / update(id, task) / remove(id) / enable(id, on) / run(id)
+ *                                        the operations the app made (permission schedule; see the SDK's
+ *                                        schedule.js): reminders, its own services, opening itself
+ *   lilos.schedule.tasks() / occurrences({ from, to }) / history({ task })   all the user's operations,
+ *                                        to read (permission schedule.read: a calendar)
+ *   lilos.schedule.move(id, { at, to, scope })   when any of the user's operations runs (permission
+ *                                        schedule.move); never what it does
+ *   lilos.schedule.open(entry, args)     opens the Pianificazione app: 'main', 'edit' { id }, 'create' { when }, 'history' { task, run }
+ *   lilos.schedule.describe(when) → text   the rule in words. Event 'schedule' ({ type: 'change', ids } | { type: 'run', task, run, state })
  *
  * Apps with sdk '2' export one function per entry point: main({ lilos, root, args }) for windows
  * (root: where to draw; it may return a function lilOS calls when the window closes),
@@ -145,6 +154,21 @@ export function lilosApi(call, info, i18nApi) {
       set: (key, value) => call('storage.set', key, value),
     }),
     clipboard: Object.freeze({ write: text => call('clipboard.write', String(text)) }),
+    schedule: Object.freeze({
+      list: () => call('schedule.list'),
+      get: id => call('schedule.get', String(id)),
+      create: task => call('schedule.create', task ?? null),
+      update: (id, task) => call('schedule.update', String(id), task ?? null),
+      remove: id => call('schedule.remove', String(id)),
+      enable: (id, on) => call('schedule.enable', String(id), !!on),
+      run: id => call('schedule.run', String(id)),
+      tasks: () => call('schedule.tasks'),
+      occurrences: range => call('schedule.occurrences', range ?? null),
+      history: query => call('schedule.history', query ?? null),
+      move: (id, change) => call('schedule.move', String(id), change ?? null),
+      open: (entry, args) => call('schedule.open', String(entry ?? 'main'), args ?? null),
+      describe: when => call('schedule.describe', when ?? null),
+    }),
     term: Object.freeze({
       load: () => call('term.load'),
       saveHost: (id, config, secret) => call('term.saveHost', id ?? null, config ?? null, secret ?? null),

@@ -1,4 +1,5 @@
-import { fs, storage, pipes, bus, notifications, net, term, serial, kernel, automation } from '@lilos/sdk';
+import { fs, storage, pipes, bus, notifications, net, term, serial, kernel, automation, schedule, locale } from '@lilos/sdk';
+import { launch } from '../registry.js';
 import { coversPath } from './permissions.js';
 import { callEntrypoint, connectEntrypoint } from '../entrypoints.js';
 import { openFile } from '../open.js';
@@ -47,6 +48,10 @@ export function hostMethods({ pkg, win = null, handles, readOnly = new Set(), in
   const terminal = () => (perms.includes('term') ? term : fail('Permesso negato: term'));
   const ports = () => (perms.includes('serial') ? serial : fail('Permesso negato: serial'));
   const moduleApi = name => (typeof name === 'string' && perms.includes(`kernel:${name}`) ? kernel.module(name) : fail(`Permesso negato: kernel:${String(name).slice(0, 40)}`));
+  // The scheduler: an app's own operations (schedule), all of the user's to read (schedule.read) or to move (schedule.move)
+  const own = () => (perms.includes('schedule') ? schedule.forApp(pkg.id) : fail('Permesso negato: schedule'));
+  const reader = () => (perms.includes('schedule.read') || perms.includes('schedule.move') ? schedule : fail('Permesso negato: schedule.read'));
+  const SCHEDULER_ENTRIES = new Set(['main', 'edit', 'create', 'history']);
   const target = (ref, write) => {
     if (handles.has(ref)) return fs.get(ref) ?? fail('Il file non esiste più');
     if (readOnly.has(ref)) return write ? fail('Il file è stato passato solo da leggere') : fs.get(ref) ?? fail('Il file non esiste più');
@@ -190,6 +195,34 @@ export function hostMethods({ pkg, win = null, handles, readOnly = new Set(), in
       if (!STORAGE_KEY.test(key)) fail('Chiave non valida');
       if ((JSON.stringify(value) ?? '').length > 256 << 10) fail('Valore troppo grande');
       storage.set(`app:${pkg.id}:${key}`, value);
+    },
+    'schedule.list': () => own().list(),
+    'schedule.get': id => own().get(id),
+    'schedule.create': task => own().create(plainObject(task)),
+    'schedule.update': (id, task) => own().update(id, plainObject(task)),
+    'schedule.remove': id => own().remove(id),
+    'schedule.enable': (id, on) => own().enable(id, on),
+    'schedule.run': id => own().run(id),
+    'schedule.tasks': () => reader().tasks(),
+    'schedule.occurrences': range => {
+      const { from, to } = plainObject(range);
+      return reader().occurrences({ from: Number(from), to: Number(to) });
+    },
+    'schedule.history': query => {
+      const { task, limit, before } = plainObject(query);
+      return reader().history({ task: typeof task === 'string' ? task : undefined, limit, before });
+    },
+    'schedule.move': (id, change) => {
+      if (!perms.includes('schedule.move')) fail('Permesso negato: schedule.move');
+      const { at, to, scope } = plainObject(change);
+      return schedule.move(id, { at, to, scope });
+    },
+    'schedule.open': (entry, args) => {
+      if (!SCHEDULER_ENTRIES.has(entry)) fail('Punto d’ingresso della Pianificazione sconosciuto');
+      launch('scheduler', plainObject(args), entry);
+    },
+    'schedule.describe': when => {
+      try { return schedule.describe(schedule.rules.checkWhen(when), locale.code); } catch (err) { return fail(err.message); }
     },
     'term.load': () => terminal().load(),
     'term.saveHost': (id, config, secret) => terminal().saveHost(id === null ? null : String(id), plainObject(config), plainObject(secret)),

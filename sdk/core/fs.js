@@ -932,10 +932,11 @@ class FileSystem extends Emitter {
   }
 
   /**
-   * Nodes of the home the kernel made, changed (put) or removed (remove: ids): what a transfer
-   * brought. They are what the kernel has already: nothing is sent back.
+   * Nodes of the home the kernel made, changed (put), removed (remove: ids) or put in the trash
+   * (trash: [{ id, at, from }]): what a transfer or an operation of the scheduler did. They are
+   * what the kernel has already: nothing is sent back.
    */
-  external({ put = [], remove = [] } = {}) {
+  external({ put = [], remove = [], trash = [] } = {}) {
     const accepted = [];
     for (const n of Array.isArray(put) ? put : []) {
       if (!n || typeof n.id !== 'string' || n.id === ROOT || n.id === TRASH || !TYPES.has(n.type) || n.type === 'link' || !validName(n.name)) continue;
@@ -971,6 +972,19 @@ class FileSystem extends Emitter {
       this.emit('change', { type: 'remove', node: copy(node), parent: node.parent, ids });
     }
     this.#tracker?.forget(gone);
+    let trashed = 0;
+    for (const t of Array.isArray(trash) ? trash : []) {
+      const node = this.#nodes.get(t?.id);
+      if (!node || node.net || node.system || node.parent === TRASH || !Number.isFinite(t.at)) continue;
+      const from = node.parent;
+      const inside = this.#descendants(node.id);
+      node.parent = TRASH;
+      node.trashed = { at: t.at, from };
+      this.#tracker?.accept([[node.id, node]]);
+      trashed++;
+      this.emit('change', { type: 'remove', node: { ...copy(node), parent: from }, parent: from, ids: [node.id, ...inside], trashed: true });
+    }
+    if (trashed) this.emit('trash');
   }
 
   /** '/docs/a.txt': a node's path in its connection. */
