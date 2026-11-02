@@ -20,8 +20,12 @@ import { CALLBACK_PATH, callbackPage } from '../net/signin.js';
  *   PUT    /api/net/mounts/:id/content?path=     writes a file (body: its bytes, at most 1 GB)
  *   POST   /api/net/mounts/:id/ops               { op: 'mkdir' | 'rename' | 'remove', path, to? }
  *   GET    /api/net/mounts/:id/link?path=        { url }   the page on the provider's site (protocols with links)
+ *   GET    /api/net/mounts/:id/space             { used, total } | { used: null }   the account's space (protocols with space)
+ *   POST   /api/net/mounts/:id/import            → { id, url }   the provider's page to pick what to copy (protocols with an importer)
+ *   GET    /api/net/mounts/:id/import/:imp?wait=1   { status, count, size, path, error? }   path: copy it with POST /transfers
  *   POST   /api/net/mounts/:id/put-home          { home, folder, ifExists } → { path, name }   a file of the home into the connection
- *   POST   /api/net/signin                       { protocol, values, redirectUri } → { id, url }   sign-in on the provider's page
+ *   POST   /api/net/signin                       { protocol, values, redirectUri, manual? } → { id, url, manual }   sign-in on the provider's page
+ *   POST   /api/net/signin/:id/paste             { url } → status   a sign-in by hand: the address of the page that did not open
  *   GET    /api/net/signin/:id?wait=1            { status: 'pending' | 'done' | 'error', account?, error? }
  *   DELETE /api/net/signin/:id
  *   GET    /api/net/signin/callback              where the provider sends the window back (no session: see net/signin.js)
@@ -108,8 +112,11 @@ export function netRoutes(kernel) {
     req.on('close', () => controller.abort());
     const entry = await net.stat(user, id, path) ?? fail('not_found', 'Non esiste sul server');
     if (entry.type === 'folder') fail('invalid', 'Non è un file');
-    const stream = await net.read(user, id, path, { signal: controller.signal });
-    await sendStream(res, stream, Number.isFinite(entry.size) ? { 'Content-Length': String(entry.size) } : {});
+    // A document with no bytes of its own (Google's): its export, of a size not known before
+    if (entry.web && !entry.export) fail('invalid', 'Si apre solo sul web');
+    const stream = await net.read(user, id, path, { signal: controller.signal, ...(entry.web && { format: entry.export }) });
+    // A size of 0 may be one the server does not say (Google Photos): no length then
+    await sendStream(res, stream, entry.size > 0 && !entry.web ? { 'Content-Length': String(entry.size) } : {});
   });
 
   router.add('PUT', '/api/net/mounts/:id/content', async ({ req, principal, params, query }) => {
@@ -144,6 +151,17 @@ export function netRoutes(kernel) {
     return { url: await net.link(signedIn(principal), mountId(params), query.get('path') ?? '/') };
   });
 
+  router.add('GET', '/api/net/mounts/:id/space', async ({ principal, params }) => {
+    return (await net.space(signedIn(principal), mountId(params))) ?? { used: null };
+  });
+
+  router.add('POST', '/api/net/mounts/:id/import', async ({ principal, params }) => net.importStart(signedIn(principal), mountId(params)));
+
+  router.add('GET', '/api/net/mounts/:id/import/:imp', async ({ principal, params, query }) => {
+    if (!/^[\w.-]{1,200}$/.test(params.imp)) fail('invalid', 'Importazione non valida');
+    return net.importStatus(signedIn(principal), mountId(params), params.imp, { wait: query.get('wait') === '1' });
+  });
+
   router.add('POST', '/api/net/mounts/:id/put-home', async ({ principal, params, json }) => {
     const { home, folder, ifExists } = await json(16 << 10);
     return net.putHome(signedIn(principal), mountId(params), { home, folder: typeof folder === 'string' ? folder : '/', ifExists: ['replace', 'keep'].includes(ifExists) ? ifExists : 'ask' });
@@ -157,7 +175,13 @@ export function netRoutes(kernel) {
 
   router.add('POST', '/api/net/signin', async ({ req, principal, json }) => {
     const user = signedIn(principal), body = await json(64 << 10);
-    return net.signins.start(user, { protocol: body.protocol, values: plain(body.values), redirectUri: body.redirectUri }, req.headers.origin ?? null);
+    return net.signins.start(user, { protocol: body.protocol, values: plain(body.values), redirectUri: body.redirectUri, manual: body.manual === true }, req.headers.origin ?? null);
+  });
+
+  router.add('POST', '/api/net/signin/:id/paste', async ({ principal, params, json }) => {
+    if (!SIGNIN.test(params.id)) fail('invalid', 'Accesso non valido');
+    const { url } = await json(16 << 10);
+    return net.signins.paste(signedIn(principal), params.id, url);
   });
 
   router.add('GET', '/api/net/signin/:id', async ({ principal, params, query }) => {

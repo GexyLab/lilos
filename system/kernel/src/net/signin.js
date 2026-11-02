@@ -1,7 +1,7 @@
 import { createHash, randomBytes } from 'node:crypto';
 import { fail } from '../errors.js';
 import { logger } from '../log.js';
-import { checkFields, signInFields, netFail, notReady } from './drivers.js';
+import { checkFields, signInFields, netFail, notReady, onlyManual } from './drivers.js';
 
 const log = logger('rete');
 const LIFE = 10 * 60_000;     // a sign-in not finished by then is dropped
@@ -11,6 +11,13 @@ const LOOPBACK = new Set(['localhost', '127.0.0.1', '[::1]']);
 
 /** Where the provider sends the sign-in window back. */
 export const CALLBACK_PATH = '/api/net/signin/callback';
+
+/**
+ * Where the provider sends the window back in a sign-in by hand (drivers with signIn.manual): a
+ * page of the user's own computer that does not open; the user copies its address into lilOS
+ * (paste). For lilOS opened at an address the provider does not accept (http on the local network).
+ */
+export const MANUAL_REDIRECT = 'http://127.0.0.1:53682/';
 
 const token = () => randomBytes(32).toString('base64url');
 
@@ -26,9 +33,11 @@ const token = () => randomBytes(32).toString('base64url');
  *
  * The address the provider sends back to must be lilOS's own (the page's origin) on https, or on
  * http only on this computer (localhost): providers accept nothing else, and it is the address
- * registered with them.
+ * registered with them. By hand (`manual`, protocols that allow it): the provider sends the window
+ * to MANUAL_REDIRECT, a page that does not open; the user pastes its address in lilOS (paste),
+ * which carries the code and the state, and the sign-in ends as with the callback.
  *
- *   flow: { id, owner, protocol, values, field, state, verifier, redirectUri, created,
+ *   flow: { id, owner, protocol, values, field, state, verifier, redirectUri, manual, created,
  *           status: 'pending' | 'done' | 'error', error, result: { account, secret }, waiters }
  */
 export class SignIns {
@@ -73,11 +82,13 @@ export class SignIns {
     const why = notReady(driver);
     if (why) fail('unavailable', typeof why === 'string' ? why : why.it ?? why.en ?? 'Protocollo non pronto');
     if ([...this.#flows.values()].filter(f => f.owner === principal.id).length >= PER_USER) fail('rate_limited', 'Troppi accessi in corso');
-    const redirectUri = cleanRedirect(body.redirectUri, origin);
+    const manual = body.manual === true || onlyManual(driver);
+    if (manual && driver.signIn.manual !== true) fail('invalid', 'Questo protocollo non ha l’accesso incollando l’indirizzo');
+    const redirectUri = manual ? MANUAL_REDIRECT : cleanRedirect(body.redirectUri, origin);
     const { values } = checkFields(driver, body.values ?? {});
     const flow = {
       id: token().slice(0, 24), owner: principal.id, protocol: body.protocol, values, field: field.key,
-      state: token(), verifier: token(), redirectUri, created: Date.now(),
+      state: token(), verifier: token(), redirectUri, manual, created: Date.now(),
       status: 'pending', error: null, result: null, waiters: new Set(),
     };
     const challenge = createHash('sha256').update(flow.verifier).digest('base64url');
@@ -90,7 +101,23 @@ export class SignIns {
     if (!isProviderPage(url)) fail('invalid', 'Indirizzo di accesso non valido');
     this.#flows.set(flow.id, flow);
     this.#byState.set(flow.state, flow);
-    return { id: flow.id, url };
+    return { id: flow.id, url, manual };
+  }
+
+  /**
+   * A sign-in by hand: the address of the page the provider sent the window to (MANUAL_REDIRECT
+   * with ?code&state). → its status, as status() gives it.
+   */
+  async paste(principal, id, raw) {
+    const flow = this.#mine(principal, id);
+    if (!flow.manual) fail('invalid', 'Questo accesso non si fa incollando l’indirizzo');
+    let url;
+    try { url = new URL(String(raw ?? '').trim().slice(0, 8192)); } catch { fail('invalid', 'Indirizzo non valido: copia tutto l’indirizzo della pagina che non si apre'); }
+    const expected = new URL(MANUAL_REDIRECT);
+    if (url.origin !== expected.origin || url.pathname !== expected.pathname) fail('invalid', `L’indirizzo deve cominciare con ${MANUAL_REDIRECT}`);
+    if (url.searchParams.get('state') !== flow.state) fail('invalid', 'Questo indirizzo è di un altro accesso: incolla quello dell’ultima pagina aperta');
+    if (flow.status === 'pending') await this.callback(url.searchParams);
+    return { status: flow.status, ...(flow.result && { account: flow.result.account }), ...(flow.error && { error: flow.error }) };
   }
 
   /**

@@ -6,8 +6,34 @@ import { logger } from './log.js';
 import { fail } from './errors.js';
 
 /** Field types a module's settings may have (the same descriptions as the fields of net/drivers.js). */
-const SETTING_TYPES = new Set(['text', 'textarea', 'number', 'select', 'checkbox']);
+const SETTING_TYPES = new Set(['text', 'textarea', 'number', 'select', 'checkbox', 'password']);
 const SETTING_KEY = /^[a-z][a-zA-Z0-9]{0,30}$/;
+
+/**
+ * A setting that is a secret (type 'password', such as a client secret): config.json keeps it
+ * encrypted (net/secrets.js), the module gets it in clear, the page never gets it back.
+ */
+export const isSecretSetting = f => f.type === 'password';
+
+/** The secret settings of a module, opened in its configuration (before it starts); ones that cannot be opened go. */
+export async function openSecretSettings(mod, secrets, log) {
+  for (const f of mod.settings.filter(isSecretSetting)) {
+    const v = mod.config[f.key];
+    if (typeof v !== 'string') { if (v !== undefined) delete mod.config[f.key]; continue; }
+    if (!v.startsWith('v1:')) {
+      // Written by hand in config.json: used as it is (saving it from the Control Panel encrypts it)
+      log.warn(`${mod.name}: impostazione segreta «${f.key}» in chiaro in config.json`);
+      continue;
+    }
+    try {
+      const open = await secrets.open(v);
+      if (typeof open === 'string') mod.config[f.key] = open; else delete mod.config[f.key];
+    } catch {
+      delete mod.config[f.key];
+      log.warn(`${mod.name}: impostazione segreta «${f.key}» non leggibile (va inserita di nuovo)`);
+    }
+  }
+}
 
 /** Kernel API version the modules declare in module.json ("kernel": "1"). */
 export const KERNEL_API = 1;
@@ -25,7 +51,8 @@ const compare = (a, b) => {
  *   module.json  { name, version, description, kernel: "1", provides: [service], requires: [service],
  *                  settings?: [field] }   what an admin may change of its configuration (Control
  *                  Panel), described as the fields of a network protocol (net/drivers.js: key, type
- *                  text | textarea | number | select | checkbox, label, hint, default, options, when…)
+ *                  text | textarea | number | select | checkbox | password, label, hint, default,
+ *                  options, when…); 'password': a secret, kept encrypted (isSecretSetting)
  *   index.js     export default { async init(ctx), async stop(), commands? }
  *
  * Returns Map name → [{ name, version, dir }], versions highest first.

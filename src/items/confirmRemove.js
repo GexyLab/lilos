@@ -18,6 +18,8 @@ export function deleteLabel(nodes) {
   if (nodes.some(n => n.net)) {
     const what = nodes.length === 1 ? `«${nodes[0].name}»` : `${nodes.length} elementi`;
     const protocols = [...new Set(nodes.map(n => net.mount(n.net)?.protocol))].map(id => net.protocols.find(p => p.id === id));
+    // What removing does there, as the protocol says it ("Togli dall’album …: restano in Google Foto")
+    if (protocols.length === 1 && protocols[0]?.removeText) return `${nodes[0].removeLabel ? net.text(nodes[0].removeLabel) : 'Elimina'} ${what}: ${net.text(protocols[0].removeText)}`;
     if (protocols.length === 1 && protocols[0]?.recycles) return `Elimina da ${net.text(protocols[0].label)} ${what} (va nel suo cestino)`;
     return `Elimina dal server ${what}${nodes.some(n => n.type === 'folder') ? ' con tutto quello che contiene' : ''} (definitivo)`;
   }

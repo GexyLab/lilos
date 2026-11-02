@@ -6,7 +6,7 @@ import { fail } from '../errors.js';
 import { logger } from '../log.js';
 import { Secrets } from './secrets.js';
 import { NetGuard } from './guard.js';
-import { findDrivers, protocolInfo, checkFields, missingFields, signInFields, cleanPath, joinPath, netFail, isConnectionError, isSafeName, isUsableName } from './drivers.js';
+import { findDrivers, protocolInfo, checkFields, missingFields, signInFields, cleanPath, joinPath, netFail, isConnectionError, isSafeName, isUsableName, cleanEntry } from './drivers.js';
 import { SignIns } from './signin.js';
 import { uniqueName } from './transfers.js';
 import { openHome } from '../api/home.js';
@@ -16,6 +16,9 @@ const log = logger('rete');
 const MAX_MOUNTS = 50;
 const MAX_WATCHED = 8;          // folders watched at once per connection (the last ones listed)
 const MAX_LISTED = 50_000;      // entries of one folder
+const IMPORT_WAIT = 25_000;     // longest wait of one status request of an import
+const IMPORT_POLL = 3_000;      // how often the provider is asked meanwhile
+const MAX_IMPORTS = 5;          // imports of a user open at once
 const ID = /^[a-f0-9]{16}$/;
 
 /**
@@ -74,8 +77,11 @@ export class Network {
   async #user(principal) {
     if (principal?.kind !== 'user') fail('unauthorized', 'Accesso richiesto');
     let user = this.#users.get(principal.id);
-    if (user) return user.ready;
-    user = { saved: new Map(), live: new Map(), queue: Promise.resolve() };
+    if (user) {
+      user.who = this.#who(principal);
+      return user.ready;
+    }
+    user = { saved: new Map(), live: new Map(), queue: Promise.resolve(), imports: new Map(), who: this.#who(principal) };
     user.ready = (async () => {
       try {
         const list = JSON.parse(await readFile(this.#file(principal.id), 'utf8'));
@@ -87,6 +93,11 @@ export class Network {
     })();
     this.#users.set(principal.id, user);
     return user.ready;
+  }
+
+  /** Who connects, as the drivers get it (connect's `user`). */
+  #who(principal) {
+    return { id: principal.id, username: principal.username ?? null, role: principal.role ?? null, multiUser: !!this.#kernel.multiUser };
   }
 
   /** Saves a user's connections (one write at a time). */
@@ -339,7 +350,7 @@ export class Network {
       this.#emit(userId, 'net.mount', { id: r.id });
       try {
         const saveSecret = fresh => this.#renewSecret(userId, user, r, live, fresh).catch(err => log.error(`Segreto rinnovato di «${r.name}» non salvato`, err));
-        const session = await driver.connect(r.values, { secret, trust: r.trust, saveSecret });
+        const session = await driver.connect(r.values, { secret, trust: r.trust, saveSecret, user: user.who });
         live.session = session;
         live.state = 'on';
         session.onLost?.(() => {
@@ -457,14 +468,13 @@ export class Network {
       live.watched.delete(path);
       live.watched.set(path, stop);   // the last listed again
     }
-    return entries
-      .filter(e => e && isSafeName(e.name))
-      .map(e => ({ name: e.name, type: e.type === 'folder' ? 'folder' : 'file', size: Number(e.size) || 0, modified: Number(e.modified) || 0, ...(e.link && { link: true }) }));
+    return entries.filter(e => e && isSafeName(e.name)).map(cleanEntry);
   }
 
   async stat(principal, id, path) {
     path = cleanPath(path);
-    return this.use(principal, id, s => s.stat(path));
+    const entry = await this.use(principal, id, s => s.stat(path));
+    return entry ? cleanEntry(entry) : null;
   }
 
   async mkdir(principal, id, path) {
@@ -511,10 +521,59 @@ export class Network {
     await Promise.all(stops.map(([, stop]) => Promise.resolve().then(stop).catch(() => {})));
   }
 
-  /** The content of a file as a stream (from `start`). */
-  async read(principal, id, path, { start = 0, signal } = {}) {
+  /** The content of a file as a stream (from `start`); format: the `export` of an entry with no bytes of its own. */
+  async read(principal, id, path, { start = 0, signal, format } = {}) {
     path = cleanPath(path);
-    return this.use(principal, id, s => s.read(path, { start, signal }));
+    const fmt = typeof format === 'string' && /^[a-z0-9]{1,10}$/.test(format) ? format : undefined;
+    return this.use(principal, id, s => s.read(path, { start, signal, ...(fmt && { format: fmt }) }));
+  }
+
+  /** How much space the account has: { used, total } (bytes; total 0: no limit), or null when the protocol does not say. */
+  async space(principal, id) {
+    const got = await this.use(principal, id, s => (typeof s.space === 'function' ? s.space() : null));
+    const n = v => (Number.isSafeInteger(Number(v)) && Number(v) >= 0 ? Number(v) : 0);
+    return got && typeof got === 'object' ? { used: n(got.used), total: n(got.total) } : null;
+  }
+
+  // ---------- Imports (the user picks on the provider's page what to copy) ----------
+
+  /** Starts one on a connection: → { id, url } (the provider's page, for a new tab). */
+  async importStart(principal, id) {
+    const user = await this.#user(principal);
+    this.#saved(user, id);
+    for (const [k, v] of user.imports) if (Date.now() - v.created > 2 * 3600_000) user.imports.delete(k);
+    if (user.imports.size >= MAX_IMPORTS) fail('rate_limited', 'Troppe importazioni aperte: finiscine una');
+    const got = await this.use(principal, id, s => (s.importer ? s.importer.start() : fail('invalid', 'Questo protocollo non importa')), { retry: false });
+    if (typeof got?.id !== 'string' || !/^[\w.-]{1,200}$/.test(got.id) || typeof got.url !== 'string' || got.url.length > 8192 || !/^https:\/\/\S+$/.test(got.url)) {
+      fail('invalid', 'Il fornitore non ha aperto la pagina per scegliere');
+    }
+    user.imports.set(got.id, { mount: id, created: Date.now() });
+    return { id: got.id, url: got.url };
+  }
+
+  /**
+   * How an import is going: { status: 'pending' | 'done' | 'error', count, size, path, error? };
+   * with `wait`, asks the provider again for a while (25 s at most) until the user has picked.
+   * path: the folder of the connection with what was picked (to copy with the transfers).
+   */
+  async importStatus(principal, id, importId, { wait = false } = {}) {
+    const user = await this.#user(principal);
+    const known = user.imports.get(importId);
+    if (!known || known.mount !== id) fail('not_found', 'Importazione scaduta o inesistente');
+    const until = Date.now() + (wait ? IMPORT_WAIT : 0);
+    for (;;) {
+      const got = await this.use(principal, id, s => s.importer.poll(importId));
+      const status = ['pending', 'done', 'error'].includes(got?.status) ? got.status : 'error';
+      if (status !== 'pending' || Date.now() + IMPORT_POLL > until) {
+        if (status !== 'pending') user.imports.delete(importId);
+        return {
+          status, count: Number(got?.count) || 0, size: Number(got?.size) || 0,
+          path: status === 'done' ? cleanPath(String(got.path ?? '')) : null,
+          ...(status === 'error' && { error: String(got?.error ?? 'Importazione non riuscita').slice(0, 300) }),
+        };
+      }
+      await new Promise(resolve => setTimeout(resolve, IMPORT_POLL));
+    }
   }
 
   /** Writes a file from a stream (a new or empty file can be written with an empty one). */
@@ -576,7 +635,7 @@ export class Network {
     let session;
     try {
       const saveSecret = fresh => { if (got && fresh?.[got.field] !== undefined) this.signins.renew(got.flow, fresh[got.field]); };
-      session = await driver.connect(values, { secret, trust: typeof body.trust === 'string' ? body.trust : null, saveSecret });
+      session = await driver.connect(values, { secret, trust: typeof body.trust === 'string' ? body.trust : null, saveSecret, user: this.#who(principal) });
       await session.list('/');   // its root folder can be read
     } catch (err) {
       return netFail(err);
@@ -591,9 +650,12 @@ export class Network {
     const driver = this.#driver(body?.protocol);
     if (typeof driver.shares !== 'function') fail('invalid', 'Questo protocollo non ha condivisioni');
     const { values, secret } = checkFields(driver, body.values, rawSecret);
+    // An account signed in to in the dialog (the drives of a Google account): the sign-in stays usable
+    const got = this.#signedIn(principal, driver, body.protocol, body, values, secret, { keep: true });
     await this.#accept(driver, values);
     try {
-      const list = await driver.shares(values, { secret, trust: typeof body.trust === 'string' ? body.trust : null });
+      const saveSecret = fresh => { if (got && fresh?.[got.field] !== undefined) this.signins.renew(got.flow, fresh[got.field]); };
+      const list = await driver.shares(values, { secret, trust: typeof body.trust === 'string' ? body.trust : null, user: this.#who(principal), saveSecret });
       return list.filter(s => typeof s === 'string').slice(0, 500);
     } catch (err) {
       return netFail(err);

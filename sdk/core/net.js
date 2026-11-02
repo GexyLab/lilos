@@ -9,12 +9,17 @@ import { fs } from './fs.js';
  * closed, and with lilOS closed. Only connected to the kernel (available false otherwise).
  *
  *   net.available                     the kernel has at least one protocol
- *   net.protocols                     [{ id, label, order, fields, canListShares, links, office, recycles,
- *                                     notReady }]   fields: see the kernel's net/drivers.js ({ key, type,
- *                                     label, required, secret, when, … }); links: link() works on its
+ *   net.protocols                     [{ id, label, order, group, fields, canListShares, links, office,
+ *                                     recycles, removeText, space, importer, signIn, notReady }]
+ *                                     fields: see the kernel's net/drivers.js ({ key, type, label,
+ *                                     required, secret, when, options: [{ value, label, disabled }] … });
+ *                                     group: 'server' | 'cloud' | 'local'; links: link() works on its
  *                                     connections (office: an Office document's link opens Office for
  *                                     the web); recycles: what is removed goes to the server's own
- *                                     recycle bin; notReady: why it cannot be used yet (a label), or null
+ *                                     recycle bin; removeText: what removing does there (a label) or
+ *                                     null; space: space() works; importer: { label } (imports);
+ *                                     signIn: { manual, onlyManual } or null; notReady: why it cannot
+ *                                     be used yet (a label), or null
  *   net.mounts() → [mount]            mount: { id, name, protocol, address, values, auto, remembered,
  *   net.mount(id) → mount | null        trusted, state: 'off' | 'connecting' | 'on' | 'error', error }
  *   net.load()                        reads them again from the kernel
@@ -34,6 +39,14 @@ import { fs } from './fs.js';
  *                                     in create(), update(), test() and connect(): the tokens stay in
  *                                     the kernel. Rejects with code 'blocked' (the browser did not open
  *                                     the window) or 'canceled' (signal aborted).
+ *       { manual: true, askAddress(error) → Promise<string | null> }: by hand (net.signInByHand()
+ *                                     says when): the provider's page in a new tab, then the app
+ *                                     asks the user for the address of the page that did not open
+ *   net.signInByHand(protocol) → bool the sign-in must be by hand here (signIn.manual, and only that
+ *                                     way or this page is on http outside this computer)
+ *   net.space(id) → { used, total } | null    the account's space (protocols with space)
+ *   net.imports.start(id) / status(id, importId, { wait }) / copy(id, path, folderId)
+ *                                     picking on the provider's page what to copy (protocols with an importer)
  *   net.link(id, path) → 'https://…'  a file's or folder's page on the provider's site (protocols with links)
  *   net.openWeb(getUrl)               opens a new browser tab now and takes it to `await getUrl()`
  *                                     (closed again if that fails); call it right from a click
@@ -134,7 +147,19 @@ class Net extends Emitter {
     return (await kernel.request('POST', '/net/shares', { ...config, secret })).shares;
   }
 
-  signIn(protocol, values = {}, { signal } = {}) {
+  /**
+   * True if a sign-in to this protocol must be done by hand here: the protocol allows it, and it
+   * has only that way or this page's address is one the provider does not send back to (http
+   * outside this computer).
+   */
+  signInByHand(protocol) {
+    const p = typeof protocol === 'string' ? this.protocols.find(x => x.id === protocol) : protocol;
+    if (!p?.signIn?.manual) return false;
+    return p.signIn.onlyManual || !(location.protocol === 'https:' || ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname));
+  }
+
+  signIn(protocol, values = {}, { signal, manual = false, askAddress = null } = {}) {
+    if (manual) return this.#signInByHand(protocol, values, { signal, askAddress });
     // Opened now, while the click still counts; it goes to the provider's page once the kernel gives it
     const win = window.open('about:blank', `lilos-signin-${Date.now()}`, 'popup,width=520,height=700');
     return (async () => {
@@ -163,6 +188,64 @@ class Net extends Emitter {
       }
     })();
   }
+
+  /**
+   * A sign-in by hand: the provider's page in a new tab; at the end the provider sends it to a page
+   * of this computer that does not open, and askAddress(error) (the app's) asks the user for that
+   * address, again with the error while it is not the right one (null: given up).
+   */
+  #signInByHand(protocol, values, { signal, askAddress }) {
+    const tab = window.open('about:blank', '_blank');
+    return (async () => {
+      if (!tab) throw new KernelError(0, 'blocked', 'Il browser ha bloccato la scheda di accesso');
+      if (typeof askAddress !== 'function') throw new Error('askAddress mancante');
+      let id = null;
+      const stop = () => { throw new KernelError(0, 'canceled', 'Accesso annullato'); };
+      try {
+        const started = await kernel.request('POST', '/net/signin', { protocol, values, manual: true });
+        id = started.id;
+        tab.opener = null;
+        tab.location.href = started.url;
+        for (let error = null; ;) {
+          if (signal?.aborted) stop();
+          const address = await askAddress(error);
+          if (signal?.aborted || !address) stop();
+          try {
+            const s = await kernel.request('POST', `/net/signin/${id}/paste`, { url: address });
+            if (s.status === 'done') return { signin: id, account: s.account };
+            if (s.status === 'error') throw new KernelError(0, 'invalid', s.error ?? 'Accesso non riuscito');
+          } catch (err) {
+            if (err.code !== 'invalid' || /non riuscito/.test(err.message)) throw err;
+            error = err.message;   // not the right address: asked again
+          }
+        }
+      } catch (err) {
+        if (id) kernel.request('DELETE', `/net/signin/${id}`).catch(() => {});
+        throw err;
+      }
+    })();
+  }
+
+  /** The space of a connection's account: { used, total } (bytes; total 0: no limit), or null (protocols with space). */
+  async space(id) {
+    const s = await kernel.request('GET', `/net/mounts/${encodeURIComponent(id)}/space`);
+    return s?.used === null || s?.used === undefined ? null : s;
+  }
+
+  /**
+   * Imports from a connection (protocols with an importer, such as Google Photos): start(id) →
+   * { id, url } (open url in a new tab: the provider's page to pick); status(id, importId, { wait })
+   * → { status: 'pending' | 'done' | 'error', count, size, path, error }; copy(id, path, folderId)
+   * → { queue }: copies what was picked (the folder `path` of the connection) into a folder of fs.
+   */
+  imports = {
+    start: id => kernel.request('POST', `/net/mounts/${encodeURIComponent(id)}/import`, {}),
+    status: (id, importId, { wait = false } = {}) => kernel.request('GET', `/net/mounts/${encodeURIComponent(id)}/import/${encodeURIComponent(importId)}${wait ? '?wait=1' : ''}`),
+    copy: async (id, path, folderId) => {
+      await kernel.flush('fs');
+      return kernel.request('POST', '/net/transfers', { sources: [{ mount: id, path }], target: fs.netRef(folderId), workspace: fs.workspace });
+    },
+  };
 
   async link(id, path) {
     return (await kernel.request('GET', `/net/mounts/${encodeURIComponent(id)}/link?path=${encodeURIComponent(path)}`)).url;

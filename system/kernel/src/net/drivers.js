@@ -7,13 +7,16 @@ import { KernelError, fail } from '../errors.js';
  *
  *   label        string | { en, it, … }   the name the user picks ('SFTP (SSH)')
  *   order?       number                   its place in the list (lower first)
+ *   group?       'server' | 'cloud' | 'local'   the part of the list it is in (servers by default)
  *   fields       [field]                  what a connection asks for, in order
- *   connect(values, { secret, trust, signal, saveSecret }) → session
+ *   connect(values, { secret, trust, signal, saveSecret, user }) → session
  *       values   the fields' values (secret ones excepted)
  *       secret   { key: value } of the secret fields (password, private key…), {} if none
  *       trust    the fingerprint the user confirmed for this server (see 'untrusted' below), or null
  *       saveSecret(secret)  keeps a new secret instead of the one given (a token the provider renewed)
- *   shares?(values, { secret, trust }) → [name]    what a server offers to connect to (SMB shares)
+ *       user     who connects: { id, username, role, multiUser } (multiUser: lilOS has several users)
+ *   shares?(values, { secret, trust, user }) → [name]   what a server offers to connect to (SMB
+ *                                                  shares, S3 buckets, the drives of an account)
  *   address(values) → string                      how the connection is shown ('sftp://ann@host/www')
  *   check?(values)                                 throws (with `net`) if the values cannot be used as they are
  *   ready?() → null | label                        why the protocol cannot be used yet (a module setting
@@ -23,9 +26,24 @@ import { KernelError, fail } from '../errors.js';
  *     start({ values, redirectUri, state, challenge }) → url
  *     finish({ values, code, redirectUri, verifier }) → { account, secret }   account: what the field
  *                                                  shows ('ann@example.com'), secret: what connect gets
+ *     manual?: true                                the sign-in may also end on a page of this computer
+ *                                                  that does not open (signin.js MANUAL_REDIRECT): the
+ *                                                  user pastes its address in lilOS. For providers
+ *                                                  that send back only to https with a domain name
+ *     onlyManual?() → true                         only that way (the provider's app has no other address)
  *   links?: { office? }                            sessions have link(path); office: the link of an
  *                                                  Office document opens it in Office for the web
  *   recycles?: true                                what is removed goes to the server's own recycle bin
+ *   removeText?: label                             what removing does there, for the confirmation
+ *                                                  ('they leave the album and stay in Google Photos')
+ *   space?: true                                   sessions have space() → { used, total } (bytes;
+ *                                                  total 0 when there is no limit)
+ *   importer?: { label }                           sessions have importer: the user picks on the
+ *                                                  provider's page what to copy, then the kernel copies
+ *                                                  it (a folder of the session) where the user says:
+ *     start() → { id, url }                        url: the provider's page (https), in a new tab
+ *     poll(id) → { status: 'pending' | 'done' | 'error', count?, size?, path?, error? }
+ *                                                  path: the folder with what was picked, once done
  *
  *   field: { key, type, label, required?, secret?, default?, placeholder?, hint?, when?, options?, min?, max?, button? }
  *     type      'text' | 'textarea' | 'number' | 'password' | 'select' | 'checkbox' | 'file' | 'signin'
@@ -36,14 +54,21 @@ import { KernelError, fail } from '../errors.js';
  *     label     string | { en, it, … }; hint the same, a line under the field
  *     secret    kept encrypted, never sent back to the page (password and the like)
  *     when      { key: value | [values] }: shown only when those fields have those values
- *     options   for 'select': [{ value, label }]
+ *     options   for 'select': [{ value, label, disabled? }]   disabled: shown, not chosen («coming»)
  *     min, max  for 'number'
  *
  * session (paths are absolute in the connection: '/' is its root, as the user chose it):
  *   list(path) → [{ name, type: 'file' | 'folder', size, modified, link? }]   link: a symbolic link
  *                                                      (to a folder: never walked into, removed as itself)
+ *       an entry may also have (cleanEntry):
+ *       web?: label        no bytes of its own (a Google document): it opens on the provider's site
+ *                          (link); `export` is the extension it is copied as (read with `format`),
+ *                          without it it is not copied
+ *       badge?: label      a short word beside the name ('archived')
+ *       can?: { rename?: false, remove?: false }   what cannot be done to it
+ *       removeLabel?: label   the menu's words for removing it ('Remove from album')
  *   stat(path) → entry | null
- *   read(path, { start, signal }) → Readable          bytes from `start`
+ *   read(path, { start, signal, format }) → Readable  bytes from `start`; format: an entry's `export`
  *   write(path, source, { start, signal, size? })      a file from a stream; start > 0 adds to what is
  *                                                      there (resuming), only when resume.write; size:
  *                                                      the bytes the stream brings, when known
@@ -94,10 +119,25 @@ export function notReady(d) {
   }
 }
 
+/** True if the protocol's sign-in can only end by pasting the address (signIn.onlyManual()). */
+export function onlyManual(d) {
+  try {
+    return !!d.signIn?.manual && d.signIn.onlyManual?.() === true;
+  } catch {
+    return false;
+  }
+}
+
+const GROUPS = new Set(['server', 'cloud', 'local']);
+
 /** How the page sees a protocol (what the dialog needs to draw its fields). */
 export const protocolInfo = (id, d) => ({
   id, label: d.label, order: Number.isFinite(d.order) ? d.order : 100, canListShares: typeof d.shares === 'function',
+  group: GROUPS.has(d.group) ? d.group : 'server',
   links: !!d.links, office: !!d.links?.office, recycles: d.recycles === true, notReady: notReady(d),
+  space: d.space === true, importer: d.importer ? { label: cleanLabel(d.importer.label) } : null,
+  removeText: cleanLabel(d.removeText),
+  signIn: d.signIn ? { manual: d.signIn.manual === true, onlyManual: onlyManual(d) } : null,
   fields: d.fields.map(f => ({
     key: f.key, type: f.type, label: f.label, required: !!f.required, secret: !!f.secret || f.type === 'signin',
     ...(f.button !== undefined && { button: f.button }),
@@ -133,7 +173,7 @@ export function checkFields(driver, raw, rawSecret = {}) {
       value = Number(v);
       if (!Number.isInteger(value) || (f.min !== undefined && value < f.min) || (f.max !== undefined && value > f.max)) fail('invalid', `Valore non valido: ${f.key}`);
     } else if (f.type === 'select') {
-      if (!f.options?.some(o => o.value === v)) fail('invalid', `Valore non valido: ${f.key}`);
+      if (!f.options?.some(o => o.value === v && !o.disabled)) fail('invalid', `Valore non valido: ${f.key}`);
       value = v;
     } else {
       if (typeof v !== 'string' || v.length > TEXT_MAX[f.type]) fail('invalid', `Valore non valido: ${f.key}`);
@@ -183,6 +223,45 @@ export const isSafeName = name => isUsableName(name) && !/[\u202a-\u202e\u2066-\
 /** A name that is no danger as part of a path: removing it is fine (showing it may not be). */
 export const isUsableName = name => typeof name === 'string' && name.length > 0 && name.length <= 255
   && name !== '.' && name !== '..' && !/[/\0-\x1f\x7f]/.test(name);
+
+/**
+ * A label a driver gives (a text, or { en, it, … }), kept short and plain for the page; null if it
+ * is not one.
+ */
+export function cleanLabel(v, max = 120) {
+  const plain = s => typeof s === 'string' && s.length > 0 && s.length <= max && !/[\0-\x1f‪-‮⁦-⁩]/.test(s);
+  if (plain(v)) return v;
+  if (!v || typeof v !== 'object' || Array.isArray(v)) return null;
+  const out = {};
+  for (const [lang, s] of Object.entries(v).slice(0, 12)) if (/^[a-z]{2}(-[A-Z]{2})?$/.test(lang) && plain(s)) out[lang] = s;
+  return Object.keys(out).length ? out : null;
+}
+
+/**
+ * An entry of a driver's list or stat as the kernel passes it on: the known keys only, checked
+ * (the name is checked by whoever uses it).
+ */
+export function cleanEntry(e) {
+  if (!e || typeof e !== 'object') return null;
+  const out = { name: e.name, type: e.type === 'folder' ? 'folder' : 'file', size: Number(e.size) || 0, modified: Number(e.modified) || 0 };
+  if (e.link) out.link = true;
+  const web = cleanLabel(e.web === true ? 'web' : e.web, 60);
+  if (web && out.type === 'file') {
+    out.web = web;
+    if (typeof e.export === 'string' && /^[a-z0-9]{1,10}$/.test(e.export)) out.export = e.export;
+  }
+  const badge = cleanLabel(e.badge, 40);
+  if (badge) out.badge = badge;
+  if (e.can && typeof e.can === 'object') {
+    const can = {};
+    if (e.can.rename === false) can.rename = false;
+    if (e.can.remove === false) can.remove = false;
+    if (Object.keys(can).length) out.can = can;
+  }
+  const removeLabel = cleanLabel(e.removeLabel, 60);
+  if (removeLabel) out.removeLabel = removeLabel;
+  return out;
+}
 
 export const parentOf = path => path.slice(0, path.lastIndexOf('/')) || '/';
 export const baseName = path => path.slice(path.lastIndexOf('/') + 1);

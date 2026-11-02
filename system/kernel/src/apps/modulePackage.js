@@ -4,7 +4,7 @@ import { dirname, join } from 'node:path';
 import { promisify } from 'node:util';
 import { fail } from '../errors.js';
 import { DATA_DIR, MODULES_DIR, loadConfig } from '../config.js';
-import { KERNEL_API, resolveModules, scanModules } from '../modules.js';
+import { KERNEL_API, resolveModules, scanModules, isSecretSetting } from '../modules.js';
 import { compareVersions, parseVersion } from './manifest.js';
 import { cleanSource, isOfficial, openSource, walk } from './sources.js';
 import { logger } from '../log.js';
@@ -114,8 +114,14 @@ export async function adoptModule(opened, manifest, dir) {
   return true;
 }
 
-/** The values of a module's settings in its configuration. */
-const settingValues = mod => Object.fromEntries(mod.settings.filter(f => mod.config[f.key] !== undefined).map(f => [f.key, mod.config[f.key]]));
+/** The values of a module's settings in its configuration (secret ones never: see settingsView). */
+const settingValues = mod => Object.fromEntries(mod.settings.filter(f => !isSecretSetting(f) && mod.config[f.key] !== undefined).map(f => [f.key, mod.config[f.key]]));
+
+/** A module's settings as the page sees them: { fields, values, secrets: [keys of the secret ones set], live }. */
+const settingsView = mod => ({
+  fields: mod.settings, values: settingValues(mod), live: mod.live,
+  secrets: mod.settings.filter(f => isSecretSetting(f) && typeof mod.config[f.key] === 'string' && mod.config[f.key]).map(f => f.key),
+});
 
 export class ModuleAdmin {
   #kernel; #allowLocal;
@@ -231,23 +237,40 @@ export class ModuleAdmin {
    */
   settings(principal, name) {
     requireAdmin(principal);
-    const mod = this.#running(name);
-    return { fields: mod.settings, values: settingValues(mod), live: mod.live };
+    return settingsView(this.#running(name));
   }
 
-  /** Changes them: { key: value } of its settings (others in its configuration stay as they are). */
+  /**
+   * Changes them: { key: value } of its settings (others in its configuration stay as they are).
+   * A secret setting (type 'password') left out or empty keeps its value; null removes it.
+   */
   async saveSettings(principal, name, raw) {
     requireAdmin(principal);
     const mod = this.#running(name);
     if (!mod.settings.length) fail('invalid', 'Questo modulo non ha impostazioni');
-    const { values } = checkFields({ fields: mod.settings }, raw);
+    const plainFields = mod.settings.filter(f => !isSecretSetting(f));
+    const { values } = checkFields({ fields: plainFields }, raw);
+    // Secret ones: sealed for config.json, in clear for the module
+    const secretNew = {}, secretGone = new Set();
+    for (const f of mod.settings.filter(isSecretSetting)) {
+      const v = raw?.[f.key];
+      if (v === null) secretGone.add(f.key);
+      else if (typeof v === 'string' && v !== '') {
+        if (v.length > 4096) fail('invalid', `Valore non valido: ${f.key}`);
+        secretNew[f.key] = { clear: v, sealed: await this.#kernel.settingSecrets.seal(v) };
+      }
+    }
     const apply = config => {
       const next = { ...config };
-      for (const f of mod.settings) if (values[f.key] === undefined) delete next[f.key]; else next[f.key] = values[f.key];
+      for (const f of plainFields) if (values[f.key] === undefined) delete next[f.key]; else next[f.key] = values[f.key];
+      for (const k of secretGone) delete next[k];
+      for (const [k, v] of Object.entries(secretNew)) next[k] = v.sealed;
       return next;
     };
     await editConfig(list => list.map(m => (m.name === name ? { ...m, config: apply(m.config && typeof m.config === 'object' ? m.config : {}) } : m)));
-    for (const f of mod.settings) if (values[f.key] === undefined) delete mod.config[f.key]; else mod.config[f.key] = values[f.key];
+    for (const f of plainFields) if (values[f.key] === undefined) delete mod.config[f.key]; else mod.config[f.key] = values[f.key];
+    for (const k of secretGone) delete mod.config[k];
+    for (const [k, v] of Object.entries(secretNew)) mod.config[k] = v.clear;
     try {
       mod.configured();
     } catch (err) {
@@ -257,7 +280,7 @@ export class ModuleAdmin {
     const protocols = mod.provides.filter(s => s.startsWith('netfs.')).map(s => s.slice(6));
     if (protocols.length) await this.#kernel.network?.reset(protocols).catch(err => log.error('Connessioni non chiuse', err));
     log.info(`Impostazioni di ${name} cambiate${mod.live ? '' : ' (valgono dal prossimo avvio)'}`);
-    return { fields: mod.settings, values: settingValues(mod), live: mod.live };
+    return settingsView(mod);
   }
 
   #running(name) {

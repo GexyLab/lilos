@@ -21,6 +21,24 @@ const MAX_APP_META = 1024;   // characters of JSON, per app
 const MAX_APPS_META = 2048;  // all apps together: the kernel takes at most 4 KB of metadata per node
 const NOT_FOR_NET = 'Non disponibile per i file di una connessione di rete';
 const MOUNT_PREFIX = 'net-';
+
+/**
+ * What the kernel says of an item of a connection beyond name, size and date (net/drivers.js
+ * cleanEntry), as keys of its node: web (a label: no bytes of its own, it opens on the provider's
+ * site), exportAs (the extension it is copied as), badge (a label), noRename, noRemove, removeLabel.
+ */
+const NET_EXTRA = ['web', 'exportAs', 'badge', 'noRename', 'noRemove', 'removeLabel'];
+const isLabel = v => typeof v === 'string' || (!!v && typeof v === 'object' && !Array.isArray(v) && Object.values(v).every(s => typeof s === 'string'));
+function netExtra(e) {
+  const out = {};
+  if (isLabel(e.web)) out.web = e.web;
+  if (out.web && typeof e.export === 'string') out.exportAs = e.export;
+  if (isLabel(e.badge)) out.badge = e.badge;
+  if (e.can?.rename === false) out.noRename = true;
+  if (e.can?.remove === false) out.noRemove = true;
+  if (isLabel(e.removeLabel)) out.removeLabel = e.removeLabel;
+  return out;
+}
 /** Type of the Blob readBlob() gives, by extension. */
 const MIME = {
   png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp', bmp: 'image/bmp',
@@ -95,6 +113,9 @@ const MIME = {
  * { message }); removing is for good (no trash, no undo). Their contents are read and written on
  * the server. Tags, colors, apps' data and copies between places are not for them: files go to and
  * from a connection with net.transfer() (done by the kernel). isRemote(), netRef() and netPath() tell them.
+ * A node of a connection may also have what its protocol says of it (NET_EXTRA): web (a label: a
+ * document with no bytes of its own, opened on the provider's site; exportAs: the extension it is
+ * copied as), badge (a short label), noRename, noRemove, removeLabel (the words for removing it).
  * external() takes the nodes the kernel made or removed in the home (what a transfer brought).
  */
 class FileSystem extends Emitter {
@@ -885,16 +906,19 @@ class FileSystem extends Emitter {
       seen.add(e.name);
       const type = e.type === 'folder' ? 'folder' : 'file';
       const modified = Number.isFinite(e.modified) && e.modified > 0 ? e.modified : Date.now();
+      const extra = netExtra(e);
       const old = byName.get(e.name);
       if (old && old.type === type) {
-        if (type === 'file' && (old.size !== e.size || old.modified !== modified)) {
-          Object.assign(old, { size: Number(e.size) || 0, modified });
+        const same = NET_EXTRA.every(k => JSON.stringify(old[k]) === JSON.stringify(extra[k]));
+        if ((type === 'file' && (old.size !== e.size || old.modified !== modified)) || !same) {
+          for (const k of NET_EXTRA) delete old[k];
+          Object.assign(old, type === 'file' ? { size: Number(e.size) || 0, modified } : {}, extra);
           this.emit('change', { type: 'update', node: copy(old), parent: id });
         }
         continue;
       }
       if (old) this.#dropNode(old);
-      const fresh = { id: uid(), type, name: e.name, parent: id, created: modified, modified, net: node.net, ...(type === 'file' && { size: Number(e.size) || 0 }) };
+      const fresh = { id: uid(), type, name: e.name, parent: id, created: modified, modified, net: node.net, ...(type === 'file' && { size: Number(e.size) || 0 }), ...extra };
       this.#nodes.set(fresh.id, fresh);
       this.emit('change', { type: 'create', node: copy(fresh), parent: id });
     }

@@ -300,9 +300,17 @@ export class Transfers {
         return { ref: { mount: raw.mount, path }, type: 'folder', name: mountName, size: 0, label: mountName };
       }
       const entry = await this.#net.stat(principal, raw.mount, path) ?? fail('not_found', 'Non esiste sul server');
-      const name = path.slice(path.lastIndexOf('/') + 1);
+      let name = path.slice(path.lastIndexOf('/') + 1);
       if (!isSafeName(name)) fail('invalid', `Nome non trasferibile: ${JSON.stringify(name)}`);
-      return { ref: { mount: raw.mount, path }, type: entry.type === 'folder' ? 'folder' : 'file', name, size: Number(entry.size) || 0, modified: Number(entry.modified) || 0, label: `${mountName}${path}` };
+      const ref = { mount: raw.mount, path };
+      // A document with no bytes of its own (Google's): copied as its export ('Verbale' → 'Verbale.docx')
+      if (entry.web) {
+        if (!entry.export) fail('invalid', `«${name}» si apre solo sul web: non si copia`);
+        name = `${name}.${entry.export}`;
+        if (!isSafeName(name)) fail('invalid', `Nome non trasferibile: ${JSON.stringify(name)}`);
+        ref.format = entry.export;
+      }
+      return { ref, type: entry.type === 'folder' ? 'folder' : 'file', name, size: entry.web ? 0 : Number(entry.size) || 0, modified: Number(entry.modified) || 0, label: `${mountName}${path}` };
     }
     return fail('invalid', 'Posizione non valida');
   }
@@ -381,8 +389,13 @@ export class Transfers {
       const out = [];
       for (const e of await this.#net.listFolder(principal, src.mount, path)) {
         if (e.link && e.type === 'folder') continue;   // links to folders are not followed (loops, other places)
+        if (e.web && (!e.export || !isSafeName(`${e.name}.${e.export}`))) continue;   // only on the web: nothing to copy
         if (--budget < 0) throw new KernelError('invalid', 'Troppi file da trasferire');
         const p = joinPath(path, e.name);
+        if (e.web) {
+          out.push({ name: `${e.name}.${e.export}`, type: 'file', size: 0, modified: e.modified, src: { mount: src.mount, path: p, format: e.export }, children: [] });
+          continue;
+        }
         out.push({ name: e.name, type: e.type, size: e.size, modified: e.modified, src: { mount: src.mount, path: p }, children: e.type === 'folder' ? await walkDir(p, depth + 1) : [] });
       }
       return out;
@@ -542,7 +555,8 @@ export class Transfers {
             await this.#net.rename(p, dst.mount, joinPath(dst.path, writing), joinPath(dst.path, name));
           }
           it.state = 'done';
-          it.done = it.size;
+          // A size the server did not say (Google Photos, documents exported): what came
+          if (!it.size && it.done > 0) it.size = it.done; else it.done = it.size;
           delete it.partial;
           delete it.resolution;
           return;
@@ -624,7 +638,7 @@ export class Transfers {
 
   /** The content of a place as a stream, from `start`. */
   async #open(p, src, start, signal) {
-    if (src.mount) return this.#net.read(p, src.mount, src.path, { start, signal });
+    if (src.mount) return this.#net.read(p, src.mount, src.path, { start, signal, ...(src.format && { format: src.format }) });
     const view = await openHome(this.#kernel, p);
     const back = view.toBack(src.home);
     if (view.fs.readStream) return view.fs.readStream(p, back, { start });
@@ -872,7 +886,9 @@ export function sizeText(bytes) {
   return `${u ? v.toLocaleString('it-IT', { maximumFractionDigits: 1 }) : v} ${units[u]}`;
 }
 
-const REF = r => (r && typeof r.home === 'string' ? { home: r.home } : r && typeof r.mount === 'string' && typeof r.path === 'string' ? { mount: r.mount, path: r.path } : null);
+const REF = r => (r && typeof r.home === 'string' ? { home: r.home }
+  : r && typeof r.mount === 'string' && typeof r.path === 'string' ? { mount: r.mount, path: r.path, ...(typeof r.format === 'string' && /^[a-z0-9]{1,10}$/.test(r.format) && { format: r.format }) }
+  : null);
 const SAVED = ['id', 'parent', 'kind', 'name', 'size', 'done', 'state', 'error', 'from', 'to', 'modified', 'conflict', 'target', 'created', 'final', 'partial', 'resolution'];
 
 function saveItem(it) {

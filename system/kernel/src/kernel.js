@@ -1,8 +1,9 @@
 import { createServer } from 'node:http';
 import { EventEmitter } from 'node:events';
 import { join } from 'node:path';
-import { loadConfig, MODULES_DIR, RELEASE_DIR, SYSTEM_VERSION } from './config.js';
-import { resolveModules, startModule } from './modules.js';
+import { loadConfig, DATA_DIR, MODULES_DIR, RELEASE_DIR, SYSTEM_VERSION } from './config.js';
+import { resolveModules, startModule, openSecretSettings } from './modules.js';
+import { Secrets } from './net/secrets.js';
 import { Router, send, readJson, cookies, checkOrigin, checkHost, checkSocketOrigin } from './http.js';
 import { KernelError, fail } from './errors.js';
 import { logger } from './log.js';
@@ -73,7 +74,9 @@ export class Kernel {
     if (!config.modules.some(m => m)) log.warn('Nessun modulo nella configurazione');
     const route = (method, path, handler) => this.router.add(method, path, ctx => handler({ ...ctx, principal: ctx.principal ?? fail('unauthorized', 'Accesso richiesto') }));
     const emit = (owner, event, data) => this.events.emit('user', { owner, event, data });
+    this.settingSecrets = new Secrets(join(DATA_DIR, 'net'));
     for (const mod of await resolveModules(MODULES_DIR, config.modules)) {
+      await openSecretSettings(mod, this.settingSecrets, log);
       this.modules.push(await startModule(mod, this.services, { route, emit }));
       log.info(`Modulo avviato: ${mod.name} ${mod.version} (${mod.provides.join(', ') || 'nessun servizio'})`);
     }
