@@ -1229,7 +1229,7 @@ lilOS legge il file **prima** di avviare l'app e le dà le stringhe già risolte
 
 ## D60. OneDrive nella Rete: l'accesso con la finestra del fornitore e le impostazioni dei moduli
 
-> Aggiornata da [D69](#d69-accesso-ai-fornitori-server-confermati-e-file-json-nel-kernel-i-moduli-si-possono-fondere): da lilOS 1.21.0 i token li chiede e li rinnova il kernel (`oauth` del driver) e l'app Azure è del kernel, impostata una volta per tutti i protocolli, non più nelle impostazioni del modulo.
+> Aggiornata da [D70](#d70-accesso-ai-fornitori-server-confermati-e-file-json-nel-kernel-i-moduli-si-possono-fondere): da lilOS 1.22.0 i token li chiede e li rinnova il kernel (`oauth` del driver) e l'app Azure è del kernel, impostata una volta per tutti i protocolli, non più nelle impostazioni del modulo.
 
 **Decisione.** OneDrive entra nella cartella Rete come protocollo (`netfs-onedrive`, un modulo del repository ufficiale), con tre novità nel kernel che servono anche ad altri. Deciso e costruito il 2 novembre 2026, sul ramo `onedrive`.
 
@@ -1271,7 +1271,7 @@ lilOS legge il file **prima** di avviare l'app e le dà le stringhe già risolte
 **Quando ripensarla.** Se Microsoft offre un sostituto di `sharedWithMe` (allora i condivisi tornano un elenco); se serve un'app unica per più installazioni (un servizio del progetto che fa da intermediario, con tutto quello che comporta); se un altro fornitore (Google Drive, Dropbox) vuole lo stesso modello e conviene tirare fuori da `netfs-onedrive` il codice comune di OAuth; o se arriva il modulo WOPI e «Carica su OneDrive e apri» non serve più.
 ## D61. I terminali remoti: le sessioni vivono nel kernel, un WebSocket nostro
 
-> Aggiornata da [D69](#d69-accesso-ai-fornitori-server-confermati-e-file-json-nel-kernel-i-moduli-si-possono-fondere): da lilOS 1.21.0 le chiavi dei server confermate sono le stesse della Rete (`net/knownHosts.js`), e i driver mandano l'output con `ctx.output` e `ctx.closed`.
+> Aggiornata da [D70](#d70-accesso-ai-fornitori-server-confermati-e-file-json-nel-kernel-i-moduli-si-possono-fondere): da lilOS 1.22.0 le chiavi dei server confermate sono le stesse della Rete (`net/knownHosts.js`), e i driver mandano l'output con `ctx.output` e `ctx.closed`.
 
 **Decisione.** lilOS apre terminali **SSH**, **Telnet**, **rlogin** e **SUPDUP** con l'app **Terminale remoto** (id `remote-terminal`). Deciso con l'utente e costruito il 2 novembre 2026.
 
@@ -1362,7 +1362,7 @@ lilOS legge il file **prima** di avviare l'app e le dà le stringhe già risolte
 
 ## D63. Google Drive, Google Foto, S3, Azure e NFS: moduli da installare, accesso incollando l'indirizzo e un client NFS nostro
 
-> Aggiornata da [D69](#d69-accesso-ai-fornitori-server-confermati-e-file-json-nel-kernel-i-moduli-si-possono-fondere): da lilOS 1.21.0 il progetto Google e l'app Microsoft sono del kernel (uno per fornitore), e Google Drive e Google Foto sono un solo modulo, `netfs-google`.
+> Aggiornata da [D70](#d70-accesso-ai-fornitori-server-confermati-e-file-json-nel-kernel-i-moduli-si-possono-fondere): da lilOS 1.22.0 il progetto Google e l'app Microsoft sono del kernel (uno per fornitore), e Google Drive e Google Foto sono un solo modulo, `netfs-google`.
 
 **Decisione.** Cinque nuovi protocolli della Rete, ognuno un modulo del repository ufficiale (`netfs-gdrive`, `netfs-gphotos`, `netfs-s3`, `netfs-azblob`, `netfs-nfs`), **solo nel catalogo**: un'installazione nuova non li ha, l'amministratore li installa dall'AppStore. Nessuno ha dipendenze. Deciso con l'utente il 2 novembre 2026 (render `design/rete-cloud.html`), costruito lo stesso giorno sul ramo `cloud`.
 
@@ -1460,7 +1460,7 @@ Le scelte di struttura:
 - **Più file in un passo:** la finestra di esecuzione mostra l'elenco con «Aggiungi un file», «Aggiungi una cartella» e «Togli».
 - **Editor 1.5.0:** «Trova e sostituisci» e «Salva con nome» (anche per i documenti nuovi). Si registrano `editor.replace` (alla pressione di «Sostituisci tutto») e `editor.saveAs` (con il file creato come risultato). Rifatto, `editor.saveAs` scrive sopra un file con lo stesso nome senza chiedere: un passo che gira non si ferma su una domanda, e il nome l'ha scelto l'utente registrando.
 
-**Aggiornamento (lilOS 1.21.0, Automata 1.2.0): un solo orologio, quello della Pianificazione.** `time` ed `every` non partono più dalla pagina: a un'ora o ogni tanti minuti un'automazione è un'operazione della Pianificazione ([D68](#d68-la-pianificazione-un-modulo-obbligatorio-del-kernel-con-le-azioni-nel-kernel)), che tiene l'ora nel kernel e parte anche a lilOS chiuso (la corsa aspetta la pagina). `catchUp` è diventato `options.missed` (`'once'` o `'skip'`); la chiave `automation-runs` non serve più e si cancella. Automata 1.2.0 sposta i vecchi motivi in operazioni (quando si apre e dal suo punto d'ingresso `triggers`, che lilOS avvia all'accesso finché ne restano); `checkDocument` continua a leggerli, perché un'Automata più vecchia non li perda prima. Nella pagina restano `login` e `folder`. Un'automazione fatta partire dalla Pianificazione gira come quelle che partono da sole (`runByItself`): in silenzio, o nella finestra se chiede qualcosa; il suo esito, errori compresi, è nella cronologia dell'operazione, e le notifiche le decide `options.notify`.
+**Aggiornamento (lilOS 1.22.0, Automata 1.2.0): un solo orologio, quello della Pianificazione.** `time` ed `every` non partono più dalla pagina: a un'ora o ogni tanti minuti un'automazione è un'operazione della Pianificazione ([D68](#d68-la-pianificazione-un-modulo-obbligatorio-del-kernel-con-le-azioni-nel-kernel)), che tiene l'ora nel kernel e parte anche a lilOS chiuso (la corsa aspetta la pagina). `catchUp` è diventato `options.missed` (`'once'` o `'skip'`); la chiave `automation-runs` non serve più e si cancella. Automata 1.2.0 sposta i vecchi motivi in operazioni (quando si apre e dal suo punto d'ingresso `triggers`, che lilOS avvia all'accesso finché ne restano); `checkDocument` continua a leggerli, perché un'Automata più vecchia non li perda prima. Nella pagina restano `login` e `folder`. Un'automazione fatta partire dalla Pianificazione gira come quelle che partono da sole (`runByItself`): in silenzio, o nella finestra se chiede qualcosa; il suo esito, errori compresi, è nella cronologia dell'operazione, e le notifiche le decide `options.notify`.
 
 Conseguenze: se tutte le schede si chiudono non parte niente; un'automazione con motivi letta da un lilOS precedente alla 1.17.0 li perde (`checkDocument` scarta i campi che non conosce); Automata 1.1.0 vuole la 1.17.0. Resta aperto il rischio che un'automazione che parte da sola e cancella o sposta file lo faccia senza che nessuno la guardi.
 
@@ -1576,7 +1576,7 @@ Conseguenze: se tutte le schede si chiudono non parte niente; un'automazione con
 - **Un aggancio per un calendario separato.** Il calendario non è nel sistema. Le app con `schedule.read` leggono le operazioni (`tasks()` con `recurrence`: la regola come RRULE di RFC 5545, con `exdate` e `rdate`; `occurrences`), con `schedule.move` spostano il *quando* (`move`), e i punti d'ingresso `edit`, `create` e `history` della Pianificazione aprono la finestra di modifica, di creazione già compilata e dello storico. Le app con solo `schedule` pianificano le *proprie* cose: promemoria, i propri servizi, aprirsi.
 - **Il comando del Terminale gira con la shell del Terminale, nel kernel.** L'app Terminale 1.5.0 ha il servizio `shell` (`src/terminal/kernel/`), impacchettato con la shell e i suoi comandi in un modulo senza `import`. Lavora sulla home con un piccolo `fs` suo (`kfs.js`), costruito su `lilos.home` (`load`, `sync`, `read`, `write`) del servizio `services-isolate` 1.1.0, e non con l'`fs` dell'SDK. Su un host SSH salvato il comando passa da `Terminals.exec`.
 - **Rapporto con l'avvio da sola di Automata ([D64](#d64-le-automazioni-operazioni-con-un-senso-dichiarate-dalle-app)).** Le automazioni di Automata partono da sole (a un'ora, ogni tot minuti, all'accesso, all'arrivo di file: `launch.triggers`, `src/automation/triggers.js`), ma **nella pagina**: solo con lilOS aperto, in una scheda per utente (Web Lock), con la volta persa recuperata all'accesso se il motivo lo chiede. La Pianificazione è nel kernel e gira anche con lilOS chiuso; la sua azione `automation` fa partire un'automazione **nel browser** (`launch('automata', …, 'run')`, senza file), con le stesse condizioni di una pagina aperta. I due meccanismi non si conoscono: la stessa automazione fatta partire con tutti e due parte due volte. Le regole di tempo della Pianificazione (mesi, ultimo giorno, cron, fasce, fusi orari, ora legale) non sono quelle semplici di Automata, che resta l'unica a partire all'arrivo di file e all'accesso.
-  *Da lilOS 1.21.0 (Automata 1.2.0) l'orologio è uno solo:* a un'ora o ogni tanti minuti le automazioni partono solo dalla Pianificazione (Automata vi sposta i vecchi `time` ed `every`; `catchUp` è `options.missed`), e la sua azione `automation` le esegue come quelle che partono da sole (`runByItself`: in silenzio, o nella finestra se chiedono qualcosa), con l'esito vero nella cronologia. Nella pagina restano `login` e `folder`. Vedi l'aggiornamento di D64.
+  *Da lilOS 1.22.0 (Automata 1.2.0) l'orologio è uno solo:* a un'ora o ogni tanti minuti le automazioni partono solo dalla Pianificazione (Automata vi sposta i vecchi `time` ed `every`; `catchUp` è `options.missed`), e la sua azione `automation` le esegue come quelle che partono da sole (`runByItself`: in silenzio, o nella finestra se chiedono qualcosa), con l'esito vero nella cronologia. Nella pagina restano `login` e `folder`. Vedi l'aggiornamento di D64.
 - Nuovi: l'export `schedule` dell'SDK (0.12.0), `lilos.schedule` e i permessi `schedule`, `schedule.read`, `schedule.move`, `fs.external` con `trash` e spostamenti, `lilos.home` e la reason `'schedule'` dei servizi, `AppServices.runScheduled`, `Terminals.exec`, le rotte `/api/schedule…`. L'AppStore 1.7.0 usa la Pianificazione per «Controlla gli aggiornamenti».
 
 **Perché.**
@@ -1609,14 +1609,63 @@ Conseguenze: se tutte le schede si chiudono non parte niente; un'automazione con
 - Un comando pianificato fa cose vere sui file dell'utente senza che lui guardi. La shell del kernel non apre app né finestre, non legge i file che un'app protegge (cifrati: le chiavi non sono nel kernel), non vede le cartelle private dei workspace e non legge `~/.bashrc`.
 - Le richieste web passano dalla guardia di rete, ad ogni reindirizzamento; le intestazioni segrete sono cifrate con la chiave del kernel e non tornano più alle pagine. Cambiare quella chiave le rende inservibili.
 - `kfs.js` ripete a mano il comportamento dell'`fs` della pagina che la shell usa: se cambia uno, va controllato l'altro.
-- L'avvio da sola di Automata e la Pianificazione hanno due orologi, due fusi orari e due modi di recuperare una volta persa; chi li usa insieme deve scegliere. *Risolto in lilOS 1.21.0: l'orologio è solo quello della Pianificazione.*
+- L'avvio da sola di Automata e la Pianificazione hanno due orologi, due fusi orari e due modi di recuperare una volta persa; chi li usa insieme deve scegliere. *Risolto in lilOS 1.22.0: l'orologio è solo quello della Pianificazione.*
 - Un'operazione di un'app muore con l'app; quelle di un utente tolto, con lui. Le app hanno limiti più stretti degli utenti (20 operazioni, una volta ogni 15 minuti al più), perché un'app non riempia di corse il kernel.
 
 **Quando ripensarla.** Se Automata e Pianificazione si pestano i piedi (la stessa automazione con due partenze), conviene che l'avvio da sola di Automata passi dalla Pianificazione e usi il suo orologio; se arrivano altre azioni che hanno bisogno della pagina (conviene un modo meno legato a «la prima pagina»); se una libreria senza dipendenze copre l'ora legale e gli spostamenti; se il Pannello di controllo impara a mostrare le impostazioni di un modulo qualsiasi; se serve il consenso del proprietario alle modifiche degli amministratori; se `kfs.js` e l'`fs` dell'SDK si allontanano troppo, e conviene un nucleo comune; se i calendari vogliono creare operazioni di ogni tipo, non solo spostarle.
 
-## D69. Accesso ai fornitori, server confermati e file JSON nel kernel; i moduli si possono fondere
 
-**Decisione.** Parte dell'accorpamento delle funzionalità doppie tra il kernel e i suoi moduli, deciso con l'utente il 2 novembre 2026 (lilOS 1.21.0). Quello che più moduli rifacevano ognuno per conto suo passa al kernel, e i moduli lo ricevono in `ctx`:
+---
+
+## D69. Le dipendenze tra pacchetti: le installa l'AppStore, con il consenso dell'amministratore
+
+**Decisione.**
+
+- **Un campo `dependencies`** nel manifesto delle app (`lilos.json`) e in `module.json`: un elenco di voci `{ module | app, version?, repo?, optional?, reason? }`. I tipi di dipendenza sono quattro: **moduli obbligatori**, **moduli facoltativi**, **versione minima o intervallo** (come il campo `lilos`: uno o due limiti) e **altre app**. Un'app può avere moduli obbligatori e facoltativi o nessuno; un modulo dipende solo da moduli.
+- **Il repository lo dichiara l'app** (`repo`); se manca, si usa il repository ufficiale. Il repository nominato non entra tra quelli dell'AppStore: il kernel ne legge il catalogo solo per quella ricerca (`Repos.packages(url)`).
+- **Un piano, poi l'esecuzione.** Installare o aggiornare un pacchetto parte da un *piano* (`POST /api/packages/plan`): cosa serve e manca, o è installato fuori intervallo, da dove si prende, se è verificato, quali permessi chiede, cosa è facoltativo e cosa non si può avere. L'AppStore lo mostra («Si installa anche», i facoltativi con una casella, i problemi). Il sì dell'amministratore parte con le sue risposte (`POST /api/packages/install`), e il kernel **rifà il piano**: se è cambiato, non fa niente. Poi installa nell'ordine, ognuno dopo ciò che richiede, per ultimo il pacchetto richiesto. Se un passo fallisce, toglie quelli che questa esecuzione ha installato (gli aggiornamenti restano).
+- **Rimozione: «chiedi e blocca».** Un pacchetto richiesto da un altro pacchetto installato con una dipendenza *obbligatoria* non si toglie (le facoltative non bloccano). I pacchetti installati **solo** come dipendenza (`dependency: true` nello stato dell'app o nel `source.json` del modulo) che dopo la rimozione non servono più a nessuno si propongono per la rimozione, già spuntati. Quelli che l'amministratore ha installato di sua mano non si propongono mai.
+- **Un modulo installato parte al riavvio.** Dopo un'installazione che comprende un modulo, l'AppStore chiede «Riavvia ora» o «Più tardi». Finché il kernel non riparte, un'app con una dipendenza obbligatoria in attesa non si apre: il kernel la segna con `unmet` (`why: 'restart'` o `'missing'`) e il launcher mostra un messaggio. Le dipendenze facoltative non bloccano mai.
+- **Le regole stanno nel kernel, non nell'AppStore.** `Installer` e `ModuleAdmin` hanno un `guard` (`Dependencies`) che rifiuta: un pacchetto con dipendenze obbligatorie mancanti (in `install` e `update`), una rimozione di un pacchetto che serve ad altri e una versione fuori dall'intervallo che un pacchetto installato chiede. Chi usa `apps.install` o `kernelModules.install` direttamente non può quindi saltare il piano.
+- **Le app di sistema al primo avvio.** Il kernel installa le app di sistema con `installAuto`: porta anche le dipendenze obbligatorie dal repository ufficiale; non le facoltative, e non un pacchetto che richiederebbe di accettare un avviso. Dal repository ufficiale: Terminale 1.6.0 (moduli `term-*` facoltativi), File Manager 1.16.0 (moduli `netfs-*` facoltativi), Pianificazione 1.0.1 (modulo `scheduler`).
+- **Compatibilità all'indietro.** Un lilOS più vecchio scarta il campo (il manifesto resta valido per il kernel 1.19) e installa le app come prima, senza le dipendenze.
+- Nuovi: `system/kernel/src/apps/dependencies.js` (`Dependencies`), `system/kernel/src/api/packages.js`, `checkDependencies` e `dependencyKey` in `manifest.js`, `Repos.packages`, `Installer.updateSource` e `verified`, l'export `packages` dell'SDK, `unmet` e `dependency` in `apps.list`, la chiave di traduzione `@dependencies.<modulo o app>.reason`; lilOS 1.21.0, SDK 0.13.0, AppStore 1.9.0.
+
+**Perché.**
+
+- **L'AppStore e non l'app.** Le app isolate non possono installare nulla; e l'installazione di un modulo cambia ciò che gira nel kernel con accesso completo: deve passare da un amministratore che vede cosa succede. Un piano mostrato prima dà quel consenso a pacchetti che l'amministratore non ha scelto uno a uno.
+- **Obbligatorie e facoltative separate.** Terminale e File Manager funzionano senza i protocolli remoti: imporli a chi non li vuole sarebbe un costo (i moduli girano nel kernel). Una dipendenza facoltativa dà all'AppStore la voce «ti serve anche questo?» senza che l'app debba spiegarlo.
+- **Il repository nel manifesto.** Così un'app di un repository non ufficiale porta con sé i suoi moduli senza che l'amministratore debba aggiungerli a mano, e l'origine di ogni pacchetto è visibile nel piano. Un modulo non ufficiale è «non verificato»: l'avviso c'è ugualmente.
+- **Rifare il piano all'esecuzione** perché tra la vista e il sì il repository può cambiare, o un altro amministratore può installare qualcosa: l'amministratore consente a ciò che ha visto, non a quello che sarebbe.
+- **«Chiedi e blocca».** Togliere un modulo da sotto un'app la romperebbe in silenzio; bloccare è più prevedibile che chiedere se «rompere comunque». Togliere insieme i pacchetti nati solo per un'app evita di lasciare moduli nel kernel che nessuno usa, e `dependency: true` distingue questi da quelli che l'amministratore ha voluto.
+- **Le regole nel kernel** perché l'AppStore è una delle strade (c'è l'API HTTP, il CLI, un'app di sistema che chiama `apps.install`): un controllo solo nell'interfaccia sarebbe un suggerimento.
+- **Nessun rifiuto all'indietro.** Aggiungere un campo che i kernel vecchi ignorano non rompe nessun manifesto già in giro; le app ufficiali restano installabili da un lilOS 1.19.
+
+**Alternative scartate.**
+
+- Che sia l'app a chiedere i moduli quando serve (`lilos.kernel.install`): un'app isolata installerebbe codice del kernel, senza che l'amministratore veda un piano.
+- Un'app che porta il modulo dentro il proprio pacchetto: i moduli hanno un ciclo di vita proprio (versioni affiancate, riavvio, dati) e li condividono più app.
+- Solo dipendenze obbligatorie: ogni protocollo di rete o di terminale diventerebbe un requisito di File Manager e Terminale.
+- Solo il repository ufficiale per le dipendenze: nessuna app di una comunità porterebbe i suoi moduli.
+- Togliere a cascata le app che dipendono da ciò che si toglie («chiedi e rimuovi tutto»), o togliere comunque con un avviso: più pericoloso (si perdono app e dati di app per un clic) e più difficile da annullare. Si blocca, e si dice cosa togliere prima.
+- Riavviare il kernel da soli dopo un'installazione: chi è collegato aspetta qualche secondo e può avere lavoro in corso; lo decide l'amministratore («Più tardi»).
+
+**Conseguenze.**
+
+- Un'app con una dipendenza obbligatoria non parte finché non c'è: dopo l'installazione di un modulo, fino al riavvio del kernel. Il messaggio lo dice; con «Più tardi» l'amministratore può trovarsela chiusa.
+- Installare un'app con moduli non ufficiali chiede di accettare un avviso per ognuno, perché girano nel kernel con accesso completo. Il kernel non guarda dentro un modulo: l'avviso è l'unica difesa.
+- Un aggiornamento che aggiunge una dipendenza obbligatoria richiede che l'AppStore faccia il piano: `apps.update` da solo, con la dipendenza mancante, è rifiutato (`conflict`). Le facoltative già dichiarate non si riproporranno: chi ha detto no una volta non riceve la stessa domanda.
+- Un pacchetto installato come dipendenza porta `dependency: true` per sempre (anche negli aggiornamenti): l'amministratore che lo vuole tenere dopo aver tolto l'app lo deve deselezionare, ogni volta. Non c'è ancora un modo di dire «questo lo voglio, non è più solo una dipendenza».
+- Un pacchetto già installato che soddisfa una dipendenza non viene toccato; se è installato fuori intervallo, il piano lo aggiorna **dalla sua origine**, anche se è un pacchetto che l'amministratore aveva installato apposta.
+- Le dipendenze fra app (`app: …`) non le usa ancora nessun pacchetto ufficiale: il percorso è meno collaudato di quello dei moduli.
+
+**Quando ripensarla.** Se serve dire «mantieni questo pacchetto» dopo averlo installato come dipendenza; se arrivano dipendenze con una versione che dipende dall'altra (un solo piano per tutto non basta più: oggi non c'è un risolutore, si guarda la versione più alta del repository); se i moduli nel kernel hanno un isolamento vero (allora l'avviso e il consenso possono cambiare); se serve richiedere un modulo per una sola funzione dell'app (oggi l'app lo controlla da sé); se il riavvio dopo un modulo diventa da evitare (moduli caricati a caldo).
+
+---
+
+## D70. Accesso ai fornitori, server confermati e file JSON nel kernel; i moduli si possono fondere
+
+**Decisione.** Parte dell'accorpamento delle funzionalità doppie tra il kernel e i suoi moduli, deciso con l'utente il 2 novembre 2026 (lilOS 1.22.0). Quello che più moduli rifacevano ognuno per conto suo passa al kernel, e i moduli lo ricevono in `ctx`:
 
 - **Accesso ai fornitori (`net/oauth.js`).** I token OAuth li chiede e li rinnova il kernel. Un driver dichiara `oauth: { provider, scopes, … }` e riceve `ctx.tokens` (`get()`, `renew()`); il kernel fa `signIn`, legge l'account dall'id token (o chiede al driver), traduce gli errori del fornitore e tiene il token di aggiornamento nuovo (`saveSecret`). Per Microsoft (Entra, con la directory) e Google ci sono le impostazioni già pronte: il driver dice solo il fornitore e gli ambiti.
 - **Un'app per fornitore, impostata una volta.** L'app registrata su Azure e il progetto su Google Cloud sono del kernel (`oauth` in `config.json`, segreti cifrati come le impostazioni dei moduli), non di ogni modulo: OneDrive e Azure Blob Storage usano la stessa app Microsoft, Google Drive e Google Foto lo stesso progetto. Il Pannello di controllo le mostra in una scheda per app (`GET`/`PUT /api/net/oauth`, la stessa forma delle impostazioni di un modulo). I valori di prima si spostano da soli all'avvio, e lasciano un modulo solo quando la sua versione non li dichiara più.
@@ -1626,7 +1675,7 @@ Conseguenze: se tutte le schede si chiudono non parte niente; un'automazione con
 - **Percorsi.** `ctx.paths` (`cleanPath`, `joinPath`, `parentOf`, `baseName`, `isSafeName`, `cleanName`) ai moduli e ai driver.
 - **Terminali.** `open()` riceve `ctx.output` e `ctx.closed`: il driver manda ciò che arriva appena arriva, anche prima che `open()` finisca, senza tenerlo da parte finché il kernel ascolta. `onData` e `onClose` restano ascoltati se ci sono.
 - **Moduli fusi (`replaces`).** Un modulo può prendere il posto di altri (`netfs-gdrive` + `netfs-gphotos` → `netfs-google`; `term-ssh` + `netfs-sftp` → `ssh`): installato, o trovato all'avvio, prende la loro configurazione (il primo valore di ciascuna chiave, i segreti così come sono), i loro dati e la loro cartella di dati; loro escono dalla configurazione e dal disco. I servizi tengono i nomi, quindi le connessioni salvate restano. Un modulo sostituito non si installa più e il catalogo lo dice (`replacedBy`).
-- **La versione del kernel resta `"1"`.** Sono tutte aggiunte: un modulo che usa un membro nuovo di `ctx` fallisce con «richiede lilOS ≥ 1.21.0» su un kernel più vecchio, invece di portarsi una copia.
+- **La versione del kernel resta `"1"`.** Sono tutte aggiunte: un modulo che usa un membro nuovo di `ctx` fallisce con «richiede lilOS ≥ 1.22.0» su un kernel più vecchio, invece di portarsi una copia.
 
 **Perché.**
 
@@ -1647,10 +1696,11 @@ Conseguenze: se tutte le schede si chiudono non parte niente; un'automazione con
 
 **Conseguenze.**
 
-- I moduli che usano i membri nuovi richiedono lilOS 1.21.0. Il Pannello di controllo deve mostrare le app dei fornitori (`/api/net/oauth`) al posto dei campi `clientId` dei moduli; con i moduli vecchi (che li dichiarano ancora) l'app è in due posti finché non si aggiornano: il modulo vecchio usa la sua, il kernel quella copiata.
+- I moduli che usano i membri nuovi richiedono lilOS 1.22.0. Il Pannello di controllo deve mostrare le app dei fornitori (`/api/net/oauth`) al posto dei campi `clientId` dei moduli; con i moduli vecchi (che li dichiarano ancora) l'app è in due posti finché non si aggiornano: il modulo vecchio usa la sua, il kernel quella copiata.
 - Le connessioni salvate non cambiano: il segreto del campo `signin` è sempre il token di aggiornamento. I dati di prima (`trust`, `known`, le impostazioni dell'app) si spostano una volta, all'avvio; tornando a una versione precedente di lilOS le conferme dei server vanno rifatte e l'app va reimpostata nei moduli.
 - Una conferma vale per tutte le connessioni e i terminali dell'utente verso quel server e porta; cambiarla in un posto la cambia ovunque.
 - Le scritture dei file JSON sono in coda per file solo dentro il processo del kernel: un altro processo (la riga di comando) scrive lo stesso file solo con il proprio `JsonStore`, e chi legge con `watch` se ne accorge dalla data di modifica.
 - Un modulo che sostituisce altri non può sostituire un modulo obbligatorio né sé stesso. Una cartella di un modulo sostituito con dati che il nuovo non prende resta, con un avviso.
+- Con le dipendenze tra pacchetti ([D69](#d69-le-dipendenze-tra-pacchetti-le-installa-lappstore-con-il-consenso-dellamministratore)): una dipendenza da un modulo sostituito (pacchetti pubblicati che chiedono ancora `term-ssh` o `netfs-gdrive`) vale come dipendenza dal modulo che lo sostituisce: lo soddisfa, si installa al suo posto, ed è lui che conta per le rimozioni; chi prende il posto di moduli portati solo come dipendenze lo diventa anche lui.
 
 **Quando ripensarla.** Se servono fornitori con altri flussi (credenziali del client, dispositivo), o app diverse per protocolli dello stesso fornitore (un'organizzazione che vuole due app Azure); se i server confermati devono essere di tutti gli utenti (un amministratore che li conferma per tutti); se un modulo vuole il proprio `lookup` (un proxy); se i file JSON del kernel diventano tanti da volere un database.

@@ -15,6 +15,7 @@ export const KERNEL_DIR = resolve(dirname(fileURLToPath(import.meta.url)), '..')
  *                 web/, system/kernel/…: see apps/systemPackage.js); the kernel serves web/
  * RELEASE_DIR: the release this kernel is part of; INSTALL_DIR: the folder that holds releases/.
  * DATA_DIR: where config.json, repos.json and modules/ are (LILOS_DATA_DIR changes it).
+ * MODULES_DATA_DIR: the modules' data that outlives their versions (ctx.dataDir, see modules.js).
  */
 const releaseRoot = resolve(KERNEL_DIR, '..', '..');
 const inRelease = existsSync(join(releaseRoot, 'system.json')) && basename(dirname(releaseRoot)) === 'releases';
@@ -22,6 +23,7 @@ export const RELEASE_DIR = inRelease ? releaseRoot : null;
 export const INSTALL_DIR = inRelease ? dirname(dirname(releaseRoot)) : null;
 export const DATA_DIR = process.env.LILOS_DATA_DIR ? resolve(process.env.LILOS_DATA_DIR) : INSTALL_DIR ?? KERNEL_DIR;
 export const MODULES_DIR = join(DATA_DIR, 'modules');
+export const MODULES_DATA_DIR = join(DATA_DIR, 'modules-data');
 
 /** The version of lilOS running: its release's system.json, or the repository's package.json. */
 export const SYSTEM_VERSION = (() => {

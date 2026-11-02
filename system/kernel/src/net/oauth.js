@@ -454,7 +454,7 @@ export class OAuthApps {
 }
 
 /**
- * Where the app was before lilOS 1.21.0: in the settings of each module (the same client ID typed
+ * Where the app was before lilOS 1.22.0: in the settings of each module (the same client ID typed
  * in OneDrive and in Azure Blob Storage, in Google Drive and in Google Photos). Modules in order:
  * the first with a client ID gives the app.
  */

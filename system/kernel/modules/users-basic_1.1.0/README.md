@@ -12,4 +12,4 @@ npm run kernel:cli -- users-basic add <nome> [--admin]
 
 Fornisce i servizi `auth` e `users`.
 
-Versione 1.1.0: `users.json` lo legge e lo scrive il kernel (`ctx.jsonStore`, riletto quando qualcuno lo cambia a mano o con `kernel:cli`); niente di diverso per chi lo usa. Richiede lilOS 1.21.0 o successivo.
+Versione 1.1.0: `users.json` lo legge e lo scrive il kernel (`ctx.jsonStore`, riletto quando qualcuno lo cambia a mano o con `kernel:cli`); niente di diverso per chi lo usa. Richiede lilOS 1.22.0 o successivo.

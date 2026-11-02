@@ -7,7 +7,7 @@ import { fail } from '../errors.js';
 import { DATA_DIR, KERNEL_DIR, MODULES_DIR, loadConfig, editConfig } from '../config.js';
 import { readJson as readJsonFile } from '../jsonFile.js';
 import { KERNEL_API, REQUIRED_MODULES, resolveModules, scanModules, isSecretSetting } from '../modules.js';
-import { compareVersions, parseVersion } from './manifest.js';
+import { checkDependencies, compareVersions, parseVersion } from './manifest.js';
 import { cleanSource, isOfficial, openSource, walk } from './sources.js';
 import { logger } from '../log.js';
 import { checkFields } from '../net/drivers.js';
@@ -29,7 +29,15 @@ import { checkFields } from '../net/drivers.js';
  *                                        is installed, or found turned on at start with them still
  *                                        there, it takes their configuration and data and they go
  *                                        (takeOver); a module it replaces cannot be installed again
- * Each module folder gets source.json: where it came from ({ type, url, ref, commit, path }).
+ *   dependencies?: [{ module, version?, repo?, optional?, reason? }]   the modules it needs installed
+ *                                        (manifest.js checkDependencies; `requires` says which services
+ *                                        it uses, these where to get the modules that provide them)
+ * Each module folder gets source.json: where it came from ({ type, url, ref, commit, path }), and
+ * dependency: true when it was installed only because something needed it (dependencies.js).
+ *
+ * `guard` (dependencies.js, set by the kernel) refuses what would leave an installed package without
+ * a module it needs: an install or update whose own needs are missing, a removal, a version outside
+ * a range they ask for.
  */
 const run = promisify(execFile);
 const log = logger('modules');
@@ -53,6 +61,7 @@ export function checkModule(raw) {
   if (m.icon !== undefined && !validIcon(m.icon)) bad('icona non valida');
   if (m.required !== undefined && typeof m.required !== 'boolean') bad('required non valido');
   if (m.replaces !== undefined && (!Array.isArray(m.replaces) || m.replaces.some(n => typeof n !== 'string' || !NAME.test(n) || n === m.name || Object.hasOwn(REQUIRED_MODULES, n)))) bad('replaces non valido');
+  checkDependencies(m.dependencies, { self: `module:${m.name}`, apps: false, where: 'module.json' });
   return m;
 }
 
@@ -94,8 +103,11 @@ async function takeOver(mod, names) {
     return list.filter(m => !names.includes(m.name)).map(m => (m.name === mod.name ? { ...m, config } : m));
   });
   const installed = await scanModules(MODULES_DIR);
+  // Installed only because a package needed them (dependencies.js): so is the module that takes their place
+  const brought = [];
   for (const old of names) {
     const folders = installed.get(old) ?? [];
+    if (folders.length) brought.push((await readJson(join(folders[0].dir, 'source.json')))?.dependency === true);
     for (const file of mod.manifest.data ?? []) {
       if (await exists(join(mod.dir, file))) continue;
       const from = folders.find(v => existsSync(join(v.dir, file)));
@@ -112,6 +124,10 @@ async function takeOver(mod, names) {
       else await rm(v.dir, { recursive: true, force: true });
     }
     log.info(`${old} sostituito da ${mod.name}`);
+  }
+  const source = await readJson(join(mod.dir, 'source.json'));
+  if (brought.length && brought.every(Boolean) && source && source.dependency !== true) {
+    await writeFile(join(mod.dir, 'source.json'), JSON.stringify({ ...source, dependency: true }, null, 2));
   }
   return names;
 }
@@ -140,7 +156,7 @@ async function replacements(config) {
 
 /**
  * Before the modules start: a module turned on that replaces others still in the configuration or
- * in modules/ (installed by hand, or by a kernel before lilOS 1.21.0) takes their place now
+ * in modules/ (installed by hand, or by a kernel before lilOS 1.22.0) takes their place now
  * (takeOver). Returns the names of the modules replaced.
  */
 export async function applyReplacements() {
@@ -222,7 +238,7 @@ export async function installDependencies(dir) {
  * Writes a module opened from its source (openSource) into `dest`: its files, the data files of the
  * version it replaces (`from`), source.json, then its dependencies.
  */
-export async function writeModule(opened, manifest, dest, { from = null } = {}) {
+export async function writeModule(opened, manifest, dest, { from = null, dependency = false } = {}) {
   for (const path of await walk(opened.base)) {
     if (path === 'source.json') continue;
     const target = join(dest, ...path.split('/'));
@@ -232,7 +248,7 @@ export async function writeModule(opened, manifest, dest, { from = null } = {}) 
   for (const file of from ? manifest.data ?? [] : []) {
     if (await exists(join(from, file))) await cp(join(from, file), join(dest, file));
   }
-  await writeFile(join(dest, 'source.json'), JSON.stringify({ ...opened.source, installed: Date.now() }, null, 2));
+  await writeFile(join(dest, 'source.json'), JSON.stringify({ ...opened.source, installed: Date.now(), ...(dependency && { dependency: true }) }, null, 2));
   await installDependencies(dest);
 }
 
@@ -270,6 +286,8 @@ const settingsView = mod => ({
 
 export class ModuleAdmin {
   #kernel; #allowLocal;
+  /** dependencies.js: checks that keep the packages that need a module working (null: none) */
+  guard = null;
 
   constructor(kernel, { allowLocalSources }) {
     this.#kernel = kernel;
@@ -277,8 +295,9 @@ export class ModuleAdmin {
   }
 
   /**
-   * [{ name, version, description, icon, provides, requires, replaces, replacedBy, enabled, running, versions, source }]
-   * replacedBy: the module turned on that replaces it (it runs until the restart, then it goes), or null.
+   * [{ name, version, description, icon, provides, requires, replaces, replacedBy, dependencies, dependency, enabled, running, versions, source }]
+   * replacedBy: the module turned on that replaces it (it runs until the restart, then it goes), or null;
+   * dependency: installed only because a package needed it
    */
   async list() {
     const config = await loadConfig();
@@ -289,19 +308,21 @@ export class ModuleAdmin {
       const enabled = want ? (want.version ?? versions[0].version) : null;
       const shown = versions.find(v => v.version === enabled) ?? versions[0];
       const manifest = await readJson(join(shown.dir, 'module.json')) ?? {};
+      const source = await readJson(join(shown.dir, 'source.json'));
       const running = this.#kernel.modules.find(m => m.name === name);
       out.push({
         name, version: shown.version, description: String(manifest.description ?? ''), icon: validIcon(manifest.icon) ? manifest.icon : null,
         provides: manifest.provides ?? [], requires: manifest.requires ?? [], required: Object.hasOwn(REQUIRED_MODULES, name),
         replaces: Array.isArray(manifest.replaces) ? manifest.replaces : [], replacedBy: by.get(name)?.name ?? null,
+        dependencies: Array.isArray(manifest.dependencies) ? manifest.dependencies : [],
         enabled, running: running?.version ?? null, versions: versions.map(v => v.version),
-        source: await readJson(join(shown.dir, 'source.json')),
+        source, dependency: source?.dependency === true,
       });
     }
     // Removed (folder gone) but still running until the restart
     for (const m of this.#kernel.modules) {
       if (out.some(o => o.name === m.name)) continue;
-      out.push({ name: m.name, version: m.version, description: m.description, icon: null, provides: m.provides, requires: m.requires, replaces: m.replaces ?? [], replacedBy: by.get(m.name)?.name ?? null, enabled: null, running: m.version, versions: [], source: null });
+      out.push({ name: m.name, version: m.version, description: m.description, icon: null, provides: m.provides, requires: m.requires, replaces: m.replaces ?? [], replacedBy: by.get(m.name)?.name ?? null, dependencies: [], dependency: false, enabled: null, running: m.version, versions: [], source: null });
     }
     return out;
   }
@@ -325,7 +346,7 @@ export class ModuleAdmin {
   }
 
   /** Copies a module from its source into modules/<name>_<version>; `from`: the folder of the version it replaces. */
-  async #place(source, { allowUnsigned, newer = null, from = null, enabled = new Set() }) {
+  async #place(source, { allowUnsigned, newer = null, from = null, enabled = new Set(), dependency = false }) {
     const opened = await openSource(source);
     const manifest = checkModule(JSON.parse((await opened.read('module.json')).toString('utf8')));
     if (!isOfficial(opened.source) && !allowUnsigned) fail('forbidden', 'Modulo non ufficiale: il suo codice girerà nel kernel con accesso completo. Si installa solo confermando l’avviso (allowUnsigned)');
@@ -333,12 +354,14 @@ export class ModuleAdmin {
     if (!newer && enabled.has(manifest.name)) fail('conflict', `${manifest.name} è già installato: per una nuova versione usa l'aggiornamento`);
     const by = (await this.replaced()).get(manifest.name);
     if (by) fail('conflict', `${manifest.name} è stato sostituito da ${by}: non si installa più`);
+    await this.guard?.checkMet('module', manifest);
+    if (newer) await this.guard?.checkVersion('module', manifest.name, manifest.version);
     const dest = join(MODULES_DIR, `${manifest.name}_${manifest.version}`);
     // A folder left with its data by a removal is written over; an installed version is not
     const reused = await exists(dest);
     if (reused && (enabled.has(manifest.name) || !(await exists(join(dest, 'source.json'))))) fail('conflict', `${manifest.name} ${manifest.version} è già installato`);
     try {
-      await writeModule(opened, manifest, dest, { from });
+      await writeModule(opened, manifest, dest, { from, dependency });
     } catch (err) {
       if (!reused) await rm(dest, { recursive: true, force: true }).catch(() => {});
       throw err;
@@ -346,11 +369,12 @@ export class ModuleAdmin {
     return { manifest, dest, reused };
   }
 
-  async install(principal, { source: raw, allowUnsigned = false } = {}) {
+  /** dependency: installed only because a package needs it (dependencies.js) */
+  async install(principal, { source: raw, allowUnsigned = false, dependency = false } = {}) {
     requireAdmin(principal);
     const source = cleanSource(raw, { allowLocal: this.#allowLocal });
     const config = await loadConfig();
-    const { manifest, dest, reused } = await this.#place(source, { allowUnsigned, enabled: new Set(config.modules.map(m => m.name)) });
+    const { manifest, dest, reused } = await this.#place(source, { allowUnsigned, dependency, enabled: new Set(config.modules.map(m => m.name)) });
     // The modules it replaces leave the configuration with it: they do not provide the same services twice
     const replaces = manifest.replaces ?? [];
     const next = [...config.modules.filter(m => !replaces.includes(m.name)), { name: manifest.name, version: manifest.version, config: manifest.defaultConfig ?? {} }];
@@ -376,7 +400,7 @@ export class ModuleAdmin {
     const { commit, installed, ...rest } = recorded;
     delete rest.ref;
     const source = cleanSource({ ...rest, ...(ref && { ref }) }, { allowLocal: this.#allowLocal });
-    const placed = await this.#place(source, { allowUnsigned, newer: current.version, from: current.dir, enabled: new Set(config.modules.map(m => m.name)) });
+    const placed = await this.#place(source, { allowUnsigned, newer: current.version, from: current.dir, dependency: recorded.dependency === true, enabled: new Set(config.modules.map(m => m.name)) });
     if (placed.unchanged) return { name, version: current.version, unchanged: true };
     const replaces = placed.manifest.replaces ?? [];
     const next = config.modules.filter(m => !replaces.includes(m.name)).map(m => (m.name === name ? { ...m, version: placed.manifest.version } : m));
@@ -467,6 +491,7 @@ export class ModuleAdmin {
     const config = await loadConfig();
     if (!NAME.test(name)) fail('invalid', 'Nome non valido');
     if (Object.hasOwn(REQUIRED_MODULES, name)) fail('forbidden', `${name} è un modulo obbligatorio di lilOS: non si rimuove`);
+    await this.guard?.checkRemovable('module', name);
     const next = config.modules.filter(m => m.name !== name);
     if (next.length !== config.modules.length) await this.#checkStarts(next.map(m => ({ ...m, version: m.version ?? null })));
     await editModules(list => list.filter(m => m.name !== name));

@@ -1,7 +1,7 @@
 import { createServer } from 'node:http';
 import { EventEmitter } from 'node:events';
 import { join } from 'node:path';
-import { loadConfig, DATA_DIR, MODULES_DIR, RELEASE_DIR, SYSTEM_VERSION } from './config.js';
+import { loadConfig, DATA_DIR, MODULES_DIR, MODULES_DATA_DIR, RELEASE_DIR, SYSTEM_VERSION } from './config.js';
 import { resolveModules, startModule, openSecretSettings, REQUIRED_MODULES } from './modules.js';
 import { Secrets } from './net/secrets.js';
 import { Router, send, readJson, cookies, checkOrigin, checkHost, checkSocketOrigin } from './http.js';
@@ -13,7 +13,9 @@ import { appRoutes } from './api/apps.js';
 import { Installer } from './apps/installer.js';
 import { Repos } from './apps/repos.js';
 import { ModuleAdmin, ensureRequiredModules, applyReplacements } from './apps/modulePackage.js';
+import { Dependencies } from './apps/dependencies.js';
 import { storeRoutes } from './api/store.js';
+import { packageRoutes } from './api/packages.js';
 import { serviceRoutes } from './api/services.js';
 import { notificationRoutes } from './api/notifications.js';
 import { systemRoutes } from './api/system.js';
@@ -112,7 +114,7 @@ export class Kernel {
     await this.oauth.open(log);
     for (const mod of mods) {
       await openSecretSettings(mod, this.settingSecrets, log);
-      this.modules.push(await startModule(mod, this.services, { route, emit, socket, dataDir: join(DATA_DIR, 'modules-data') }));
+      this.modules.push(await startModule(mod, this.services, { route, emit, socket, dataDir: MODULES_DATA_DIR }));
       log.info(`Modulo avviato: ${mod.name} ${mod.version} (${mod.provides.join(', ') || 'nessun servizio'})`);
     }
     if (!this.services.has('fs')) throw new Error('Nessun modulo fornisce il servizio "fs": lilOS non ha un file system');
@@ -125,12 +127,15 @@ export class Kernel {
     this.installer = new Installer(this.services.get('fs'), config);
     this.repos = new Repos(config);
     this.moduleAdmin = new ModuleAdmin(this, config);
+    this.dependencies = new Dependencies(this);
+    this.installer.guard = this.dependencies;
+    this.moduleAdmin.guard = this.dependencies;
     this.appServices = new AppServices(this);
     this.system = new SystemReleases(this);
     this.network = new Network(this);
     this.transfers = new Transfers(this, this.network);
     this.terminals = new Terminals(this);
-    // The server keys the Rete folder and the Terminal kept apart before lilOS 1.21.0, in one place
+    // The server keys the Rete folder and the Terminal kept apart before lilOS 1.22.0, in one place
     const termPorts = new Map([...this.terminals.drivers].map(([id, d]) => [id, d.port]));
     const moved = await KnownHosts.migrate({ netDir: this.network.dir, termDir: this.terminals.dir, termPort: id => termPorts.get(id) ?? TERM_PORTS[id] ?? null });
     if (moved) log.info(`Chiavi dei server confermate riunite per ${moved} utenti`);
@@ -139,6 +144,7 @@ export class Kernel {
     homeRoutes(this);
     appRoutes(this);
     storeRoutes(this);
+    packageRoutes(this);
     serviceRoutes(this);
     notificationRoutes(this);
     systemRoutes(this);
@@ -181,10 +187,9 @@ export class Kernel {
         const entry = catalog.apps.find(a => a.manifest?.id === id);
         if (!entry) { log.warn(`App di sistema ${id} non presente nel repository ufficiale`); continue; }
         if (!firstStart && !entry.manifest.required) continue;
-        await this.installer.install(KERNEL, {
-          source: { type: 'git', url: catalog.repo.url, ref: catalog.ref, path: entry.path },
-          grant: entry.manifest.permissions ?? [],
-        });
+        // With the modules and apps it needs (from the official repository; a module runs after a restart)
+        const { installed } = await this.dependencies.installAuto({ install: { kind: 'app', source: { type: 'git', url: catalog.repo.url, ref: catalog.ref, path: entry.path } } });
+        if (installed.some(s => s.kind === 'module')) log.warn(`${id}: moduli installati, attivi dal prossimo avvio del kernel`);
       }
     } catch (err) {
       log.warn(`App di sistema non installate (${missing.join(', ')}): ${err.message}`);

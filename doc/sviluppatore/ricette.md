@@ -35,6 +35,7 @@ Procedure passo per passo per le modifiche più comuni. Per i dettagli delle fun
 - [Aggiungere un modulo al kernel](#aggiungere-un-modulo-al-kernel)
 - [Aggiungere un protocollo di rete](#aggiungere-un-protocollo-di-rete)
 - [Pubblicare un modulo del kernel come pacchetto](#pubblicare-un-modulo-del-kernel-come-pacchetto)
+- [Far dipendere un'app da un modulo del kernel](#far-dipendere-unapp-da-un-modulo-del-kernel)
 - [Pubblicare una versione di lilOS](#pubblicare-una-versione-di-lilos)
 - [Installare lilOS da una release](#installare-lilos-da-una-release)
 - [Fare un repository non ufficiale](#fare-un-repository-non-ufficiale)
@@ -393,7 +394,7 @@ const off = fs.on('change', e => {
 
 - Mostra le modifiche reagendo agli eventi `change`, non dopo le tue chiamate: così vedi anche quelle fatte da altre parti (desktop, File Manager).
 - In una finestra togli l'iscrizione alla chiusura: `win.on('destroy', off)`.
-- I nodi di sistema (`system: true`) non si rinominano né eliminano: disattiva le relative azioni. Per eliminare dall'interfaccia usa `confirmRemove` (`src/items/confirmRemove.js`), che rispetta le impostazioni `deleteConfirm` e `deletePermanent` (di norma sposta nel cestino) e, con una `UndoStack`, rende l'eliminazione annullabile (vedi [Aggiungere annulla e ripeti a un'app](#aggiungere-annulla-e-ripeti-a-unapp)). Per il cestino ci sono `confirmPurge(ids, x, y)` (eliminare per sempre) e `confirmEmptyTrash(x, y)` (svuotarlo), che chiedono sempre; per altro che non si annulla, `confirmMenu(x, y, etichetta, azione)` (tutti da `@lilos/system`, lilOS 1.21.0). Un pulsante che chiede conferma con due clic è `actionButton({ label, confirm })` dell'SDK.
+- I nodi di sistema (`system: true`) non si rinominano né eliminano: disattiva le relative azioni. Per eliminare dall'interfaccia usa `confirmRemove` (`src/items/confirmRemove.js`), che rispetta le impostazioni `deleteConfirm` e `deletePermanent` (di norma sposta nel cestino) e, con una `UndoStack`, rende l'eliminazione annullabile (vedi [Aggiungere annulla e ripeti a un'app](#aggiungere-annulla-e-ripeti-a-unapp)). Per il cestino ci sono `confirmPurge(ids, x, y)` (eliminare per sempre) e `confirmEmptyTrash(x, y)` (svuotarlo), che chiedono sempre; per altro che non si annulla, `confirmMenu(x, y, etichetta, azione)` (tutti da `@lilos/system`, lilOS 1.22.0). Un pulsante che chiede conferma con due clic è `actionButton({ label, confirm })` dell'SDK.
 - Per selezionare, aprire, rinominare ed eliminare con le scorciatoie comuni, iscrivi la tua vista con `addTarget` (`src/items/targets.js`), come fa il File Manager.
 
 ## Aggiungere annulla e ripeti a un'app
@@ -981,10 +982,10 @@ try {
 3. Attivalo in `system/kernel/config.json`, dentro `modules`: `{ "name": "mio", "version": "1.0.0", "config": { … } }` (`ctx.config` riceve quell'oggetto). Senza `version` si usa la più alta installata. Se ha dipendenze npm, mettile in un `package.json` del modulo (con il suo `package-lock.json`) e lancia `npm run kernel:setup`.
 4. Riavvia il kernel. Un modulo che dichiara un servizio e non lo fornisce, o che non ha i metodi che il kernel chiama, non parte.
 
-**I suoi dati in un file JSON**: `ctx.jsonStore('dati.json', { clean })` (da lilOS 1.21.0) tiene il file in memoria e lo salva intero e sicuro, un cambiamento alla volta; mettilo in `data` del `module.json` perché segua il modulo negli aggiornamenti:
+**I suoi dati in un file JSON**: `ctx.jsonStore('dati.json', { clean })` (da lilOS 1.22.0) tiene il file in memoria e lo salva intero e sicuro, un cambiamento alla volta; mettilo in `data` del `module.json` perché segua il modulo negli aggiornamenti:
 
 ```js
-if (!ctx.jsonStore) throw new Error('mio richiede lilOS ≥ 1.21.0');
+if (!ctx.jsonStore) throw new Error('mio richiede lilOS ≥ 1.22.0');
 const store = ctx.jsonStore('dati.json', { clean: raw => ({ version: 1, items: Array.isArray(raw?.items) ? raw.items : [] }) });
 const items = (await store.read()).items;
 await store.change(data => { data.items.push({ id: 'x' }); });   // salvato dopo fn
@@ -1047,12 +1048,12 @@ Un protocollo è un modulo del kernel che fornisce il servizio `netfs.<protocoll
 4. Lancia solo errori con `net` (`auth`, `untrusted`, `not_found`, `exists`, `denied`, `unreachable`, `lost`, `unsupported`, `invalid`): il kernel li traduce in codici e messaggi. Un errore `lost` o `unreachable` fa riaprire la connessione da sola.
 5. Se il protocollo sa dire quando una cartella cambia, aggiungi `watch(path, onChange)` che restituisce `stop()`: la pagina si aggiorna da sola. Se sa elencare ciò che un server offre, aggiungi `shares(values, { secret, trust })`.
    Facoltativi, se servono: `group` (`'cloud'` o `'local'`: dove sta nell'elenco), `space()` nella sessione con `space: true` (lo spazio dell'account), elementi con `web`/`export` (documenti senza byte propri, che si copiano esportati: `read(path, { format })`), `badge`, `can: { rename: false, remove: false }` e `removeLabel`, `removeText` (cosa fa eliminare lì) e un `importer` (scegliere sulla pagina del fornitore cosa copiare). `connect` riceve anche `user` (chi si collega). Esempi: i moduli `netfs-gdrive`, `netfs-gphotos`, `netfs-s3`, `netfs-azblob`, `netfs-nfs` del repository ufficiale.
-6. Se l'utente ha un account Microsoft o Google, niente password e niente OAuth da scrivere (da lilOS 1.21.0): metti un campo `{ key: 'account', type: 'signin', required: true, label, button }` e `oauth: { provider: 'microsoft' | 'google', scopes: [...] }` (più, se serve, `account({ tokens, claims })` per dire chi ha fatto l'accesso). Il kernel fa l'accesso con l'app che l'amministratore ha impostato una volta nel Pannello di controllo, e `connect` riceve `tokens`: `await tokens.get()` è il token di accesso, `await tokens.renew()` dopo un 401. Contratto: [App dei fornitori](api.md#app-dei-fornitori-netoauthjs). Con un altro fornitore puoi dare in `oauth.provider` i suoi indirizzi e il client, oppure scrivere `signIn: { start, finish }` (OAuth 2.0 con PKCE). `start({ values, redirectUri, state, challenge })` dà l'indirizzo della pagina del fornitore (passa `state` e `challenge`, con `code_challenge_method=S256`); `finish({ values, code, redirectUri, verifier })` scambia il codice e restituisce `{ account, secret }`: `account` è il testo che la pagina mostra, `secret` (per esempio il token di aggiornamento) arriva a `connect` in `secret.account`. Se il fornitore cambia il token a ogni rinnovo, chiama `saveSecret({ account: nuovo })`. Se il fornitore lo rifiuta lancia `netError('auth', …)`: la pagina chiede un nuovo accesso. Dichiara `ready()` (che restituisce un'etichetta finché manca una configurazione, `null` quando è pronto), e se serve `links`, `recycles`, `removeTree` e `link(path)`. Il kernel e il File Manager fanno il resto: finestra, attesa, callback `/api/net/signin/callback` e nuovo accesso. Il contratto: [Accesso con un fornitore](api.md#accesso-con-un-fornitore-netsigninjs). Se il fornitore rimanda la finestra solo a `https://` con un dominio (Google), aggiungi `signIn.manual: true`: dove serve l'accesso si fa incollando l'indirizzo della pagina che non si apre (`http://127.0.0.1:53682/`, da registrare presso il fornitore).
+6. Se l'utente ha un account Microsoft o Google, niente password e niente OAuth da scrivere (da lilOS 1.22.0): metti un campo `{ key: 'account', type: 'signin', required: true, label, button }` e `oauth: { provider: 'microsoft' | 'google', scopes: [...] }` (più, se serve, `account({ tokens, claims })` per dire chi ha fatto l'accesso). Il kernel fa l'accesso con l'app che l'amministratore ha impostato una volta nel Pannello di controllo, e `connect` riceve `tokens`: `await tokens.get()` è il token di accesso, `await tokens.renew()` dopo un 401. Contratto: [App dei fornitori](api.md#app-dei-fornitori-netoauthjs). Con un altro fornitore puoi dare in `oauth.provider` i suoi indirizzi e il client, oppure scrivere `signIn: { start, finish }` (OAuth 2.0 con PKCE). `start({ values, redirectUri, state, challenge })` dà l'indirizzo della pagina del fornitore (passa `state` e `challenge`, con `code_challenge_method=S256`); `finish({ values, code, redirectUri, verifier })` scambia il codice e restituisce `{ account, secret }`: `account` è il testo che la pagina mostra, `secret` (per esempio il token di aggiornamento) arriva a `connect` in `secret.account`. Se il fornitore cambia il token a ogni rinnovo, chiama `saveSecret({ account: nuovo })`. Se il fornitore lo rifiuta lancia `netError('auth', …)`: la pagina chiede un nuovo accesso. Dichiara `ready()` (che restituisce un'etichetta finché manca una configurazione, `null` quando è pronto), e se serve `links`, `recycles`, `removeTree` e `link(path)`. Il kernel e il File Manager fanno il resto: finestra, attesa, callback `/api/net/signin/callback` e nuovo accesso. Il contratto: [Accesso con un fornitore](api.md#accesso-con-un-fornitore-netsigninjs). Se il fornitore rimanda la finestra solo a `https://` con un dominio (Google), aggiungi `signIn.manual: true`: dove serve l'accesso si fa incollando l'indirizzo della pagina che non si apre (`http://127.0.0.1:53682/`, da registrare presso il fornitore).
 7. Attiva il modulo in `config.json`, `npm run kernel:setup` se ha dipendenze e riavvia il kernel. La sezione **Rete** del File Manager mostra il nuovo protocollo nell'elenco.
 
 ## Dare impostazioni a un modulo del kernel
 
-Quello che un amministratore deve poter cambiare (un ID, una scelta, un interruttore) si dichiara in `module.json` e il Pannello di controllo lo disegna da sé. Esempio con OneDrive: `modules/netfs-onedrive/` nel repository ufficiale. L'app registrata presso Microsoft o Google **non** è un'impostazione del modulo: da lilOS 1.21.0 è del kernel, una per tutti i protocolli (`oauth` del driver, [App dei fornitori](api.md#app-dei-fornitori-netoauthjs)).
+Quello che un amministratore deve poter cambiare (un ID, una scelta, un interruttore) si dichiara in `module.json` e il Pannello di controllo lo disegna da sé. Esempio con OneDrive: `modules/netfs-onedrive/` nel repository ufficiale. L'app registrata presso Microsoft o Google **non** è un'impostazione del modulo: da lilOS 1.22.0 è del kernel, una per tutti i protocolli (`oauth` del driver, [App dei fornitori](api.md#app-dei-fornitori-netoauthjs)).
 
 1. In `module.json` aggiungi `settings`, campi come quelli di un protocollo (`text`, `textarea`, `number`, `select`, `checkbox`, `password`). Un campo `password` è un segreto (un segreto client): `config.json` lo tiene cifrato, il modulo lo riceve in chiaro in `ctx.config`, la pagina sa solo se c'è (`secrets`); salvandolo, vuoto lo lascia com'è e `null` lo toglie:
 
@@ -1099,7 +1100,7 @@ Un protocollo di terminale è un modulo del kernel che fornisce il servizio `ter
          ],
          address: v => `mio://${v.host}${v.port ? `:${v.port}` : ''}`,
          async open(values, ctx) {
-           if (!ctx.output) throw new Error('term-mio richiede lilOS ≥ 1.21.0');
+           if (!ctx.output) throw new Error('term-mio richiede lilOS ≥ 1.22.0');
            // lookup: solo indirizzi dove il kernel può collegarsi (il nome non può cambiare indirizzo dopo il controllo)
            const socket = net.connect({ host: values.host, port: values.port || 4000, lookup: ctx.lookup });
            await new Promise((resolve, reject) => { socket.once('connect', resolve); socket.once('error', reject); });
@@ -1207,6 +1208,31 @@ const port = await lilos.kernel.channel('eco', '/eco');
 - Metti i dati che devono sopravvivere agli aggiornamenti del modulo (strumenti scaricati, cache) in `ctx.dataDir`, non in `ctx.dir`: `dir` è la cartella della versione e cambia a ogni versione.
 - Il limite di un messaggio lo decidi tu con `accept({ maxMessage })` (predefinito 1 MiB); `kernel.module(...).channel` accetta fino a 16 MiB, `kernel.channel` ha di suo 1 MiB (`maxText`, `maxBytes`).
 - Quando il socket si chiude, chi ha il canale riceve `{"t":"gone","code":…}`.
+
+## Far dipendere un'app da un modulo del kernel
+
+Se la tua app ha bisogno di un modulo del kernel (o di un'altra app), dichiaralo nel manifesto: l'AppStore lo installa insieme all'app, dopo il consenso dell'amministratore. Contratto: [API → Dipendenze nel manifesto e in `module.json`](api.md#dipendenze-nel-manifesto-e-in-modulejson); decisione: [D69](../interna/decisioni.md#d69-le-dipendenze-tra-pacchetti-le-installa-lappstore-con-il-consenso-dellamministratore).
+
+1. Aggiungi `dependencies` a `lilos.json`. Per un modulo che serve sempre:
+
+   ```json
+   "dependencies": [
+     { "module": "arduino", "version": ">=1.0.0", "reason": "Compiles the sketches" }
+   ]
+   ```
+
+   - Senza `repo` il pacchetto si cerca nel repository ufficiale. Se sta in un altro, scrivi `"repo": "https://github.com/acme/lilos-moduli"` (un repository con `catalog.json`, scelto da te: l'amministratore vede che non è verificato).
+   - `version` è un intervallo come `lilos`: `">=1.0.0"` o `">=1.0.0 <2.0.0"`.
+   - `reason` è in inglese; per tradurla aggiungi a `locales.json` la chiave `@dependencies.arduino.reason` (il nome del modulo, o l'id dell'app).
+2. Per un modulo che arricchisce l'app ma non è indispensabile aggiungi `"optional": true`. L'amministratore sceglie se installarlo, e **la tua app deve funzionare anche senza**: controlla la presenza prima di usarlo (per esempio una richiesta con `lilos.kernel.request` che risponde con un errore, da gestire).
+3. Alza `version` e `pack.js` come al solito. Un'app che *richiede* un modulo non parte finché il modulo non è in funzione: lilOS mostra un messaggio (e dice di riavviare il kernel, se il modulo è stato appena installato). Non serve scrivere altro codice per questo.
+4. Un modulo può dipendere da altri moduli (non da app) con le stesse voci nel suo `module.json`: `"dependencies": [{ "module": "mio-base", "version": ">=1.0.0" }]`.
+
+Prova: da amministratore, AppStore → la tua app → **Installa**. La finestra elenca sotto «Si installa anche» i pacchetti obbligatori e, sotto «Facoltativi», quelli con le caselle. Se hai aggiunto un modulo, alla fine l'AppStore chiede «Riavvia ora» o «Più tardi».
+
+Se aggiorni un'app già installata e aggiungi una dipendenza **facoltativa**, l'AppStore la propone solo se la versione installata non la dichiarava. Una **obbligatoria** nuova si installa insieme all'aggiornamento; senza, l'aggiornamento è rifiutato (`conflict`, «ha bisogno di: …»).
+
+Un lilOS vecchio ignora `dependencies` (il manifesto resta valido) ma non installa niente: chi installa l'app a mano ottiene un'app che non parte o non trova il modulo. Se ti serve un lilOS che conosca il campo, scrivi in `lilos` la prima versione che lo conosce.
 
 ## Pubblicare un modulo del kernel come pacchetto
 

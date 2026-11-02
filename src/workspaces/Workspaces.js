@@ -252,7 +252,6 @@ export class Workspaces extends Emitter {
     this.#booted.add(id);
     const areas = this.workareas.load(workspaceKey(id, 'workareas'), { reopen });
     this.emit('switch', id);
-    notify(`Workspace «${target.name}»`);
     await areas;
     if (reopen) await this.#restoreWindows(id);
   }

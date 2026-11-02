@@ -6,7 +6,10 @@ import { kernel } from './kernel.js';
  * install / update / uninstall need an administrator, and only the system and system apps reach
  * them: apps in a sandbox see only what their bridge gives them.
  *
- *   apps.list() → [{ id, version, kind, system, signed, publisher, granted, source, manifest, … }]
+ *   apps.list() → [{ id, version, kind, system, signed, publisher, granted, source, manifest, unmet?, dependency?, … }]
+ *       unmet: [{ key, kind: 'module' | 'app', id, version, why: 'restart' | 'missing' }], the required
+ *       dependencies (manifest `dependencies`) not there now: 'restart', installed and running after the
+ *       kernel's restart. dependency: installed only because another package needed it (see packages)
  *   apps.get(id)
  *   await apps.install(source, { grant, allowUnsigned })
  *       source: { type: 'git', url, ref?, path? } | { type: 'github', repo: 'owner/name', ref?, path? }
@@ -156,6 +159,42 @@ export const kernelModules = {
   saveSettings: (name, values) => kernel.request('PUT', `/modules/${encodeURIComponent(name)}/settings`, { values }),
   oauthApps: () => kernel.request('GET', '/net/oauth'),
   saveOAuthApp: (id, values) => kernel.request('PUT', `/net/oauth/${encodeURIComponent(id)}`, { values }),
+};
+
+/**
+ * Apps and kernel modules installed together with what they need (manifest and module.json
+ * `dependencies`), admins: first the plan, to show; then the install, with the admin's answers.
+ *   packages.plan(target) → { root, steps, problems, restartRequired }
+ *       target: { install: { kind: 'app' | 'module', source } } | { update: { kind, id, ref?, reinstall? } }
+ *       steps: what gets installed or updated with it, each after what it needs:
+ *         { key: 'module:arduino', kind, id, name, version, action: 'install' | 'update', from, optional, choice,
+ *           needs: [keys], neededBy: [{ key, name, optional, reason }], repo: { url, official }, verified,
+ *           permissions, description, icon, manifest?, locales? }
+ *         optional: only optional dependencies lead to it; choice: the admin may tick it (the others
+ *         go in with what needs them)
+ *       problems: [{ key, kind, id, optional, message }] what cannot be had (a required one stops the install)
+ *   packages.install(target, { root: { grant, allowUnsigned }, steps: { [key]: { grant, allowUnsigned } } })
+ *       → { result, installed: [{ key, kind, id, version, action }], restartRequired }
+ *       every required step must be in `steps`, an optional one goes in when it is; if the plan has
+ *       changed meanwhile nothing is done; if one fails, what this call installed is removed again
+ *   packages.removal(kind, id) → { blockedBy: [{ key, kind, id, name }], unneeded: [{ key, kind, id, name, version }], restartRequired }
+ *       blockedBy: installed packages that need it (it is not removed while they are there);
+ *       unneeded: packages installed only for it that nothing else needs
+ *   packages.remove(kind, id, { also: [keys of unneeded] }) → { removed: [keys], restartRequired }
+ */
+export const packages = {
+  plan: target => kernel.request('POST', '/packages/plan', target),
+  async install(target, { root = {}, steps = {} } = {}) {
+    const out = await kernel.request('POST', '/packages/install', { ...target, root, steps });
+    await apps.refresh();
+    return out;
+  },
+  removal: (kind, id) => kernel.request('GET', `/packages/removal?kind=${encodeURIComponent(kind)}&id=${encodeURIComponent(id)}`),
+  async remove(kind, id, { also = [] } = {}) {
+    const out = await kernel.request('POST', '/packages/remove', { kind, id, also });
+    await apps.refresh();
+    return out;
+  },
 };
 
 /**

@@ -40,7 +40,7 @@ export async function openSecretSettings(mod, secrets, log) {
 /**
  * Kernel API version the modules declare in module.json ("kernel": "1"). It changes only when
  * something a module uses goes or changes meaning; what is added keeps it (the members of ctx
- * since lilOS 1.21.0: a module that needs one fails with a clear message on an older kernel).
+ * since lilOS 1.22.0: a module that needs one fails with a clear message on an older kernel).
  */
 export const KERNEL_API = 1;
 
@@ -169,9 +169,9 @@ export async function resolveModules(modulesDir, wanted) {
  *                                     (<data>/modules-data/<name>): made by the module when it needs it
  *   ctx.emit(userId, event, data)     tells that user's open lilOS pages (the kernel's event stream,
  *                                     /api/services-events): event '<word>.<word>', data JSON
- *   ctx.jsonStore(file, options)      (since lilOS 1.21.0) a JSON file kept in memory and saved whole
+ *   ctx.jsonStore(file, options)      (since lilOS 1.22.0) a JSON file kept in memory and saved whole
  *                                     and safely (jsonFile.js JsonStore); a relative `file` is in ctx.dir
- *   ctx.paths                         (since lilOS 1.21.0) the paths of the network protocols
+ *   ctx.paths                         (since lilOS 1.22.0) the paths of the network protocols
  *                                     (net/drivers.js): cleanPath, joinPath, parentOf, baseName,
  *                                     isSafeName, cleanName
  */

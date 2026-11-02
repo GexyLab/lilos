@@ -370,7 +370,7 @@ export class Terminals {
       if (err?.net === 'auth' || (err?.net === 'cancelled' && !signal?.aborted)) fail('forbidden', `Accesso negato da «${r.name}»: salva la password o la chiave nell’host`);
       netFail(err, r.name);
     }
-    // Drivers before lilOS 1.21.0 hand the output and the end through the session
+    // Drivers before lilOS 1.22.0 hand the output and the end through the session
     session.onData?.(received);
     session.onClose?.(info => ended(info ?? {}));
     signal?.addEventListener('abort', () => session.close(), { once: true });
@@ -634,7 +634,7 @@ class Session {
       if (this.#abort.signal.aborted || this.state === 'closed') { try { conn.close(); } catch { /* gone */ } return; }
       this.#conn = conn;
       s.secret = null;   // not needed any more: it does not stay in memory with the session
-      // Drivers before lilOS 1.21.0 hand the output and the end through the session
+      // Drivers before lilOS 1.22.0 hand the output and the end through the session
       conn.onData?.(data => this.#received(data));
       conn.onClose?.(info => this.#ended(info?.reason ?? ''));
       this.#setState('on', '');

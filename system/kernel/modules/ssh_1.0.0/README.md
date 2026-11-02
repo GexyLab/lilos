@@ -21,4 +21,4 @@ Con questo modulo il protocollo compare in **Connetti a un server** (File Manage
 
 Ogni connessione va solo agli indirizzi che il kernel permette (con più utenti, niente rete locale se l'amministratore non la apre): il nome del server si risolve con il kernel stesso, così non può cambiare indirizzo tra il controllo e la connessione.
 
-Fornisce i servizi `term.ssh` e `netfs.sftp`. Dipendenza: `ssh2` 1.17.0 (licenza MIT, © Brian White). Richiede lilOS 1.21.0 o successivo.
+Fornisce i servizi `term.ssh` e `netfs.sftp`. Dipendenza: `ssh2` 1.17.0 (licenza MIT, © Brian White). Richiede lilOS 1.22.0 o successivo.

@@ -2,10 +2,10 @@
 import { netError } from './errors.js';
 
 /**
- * What the drivers take from the kernel since lilOS 1.21.0: without it they stop with a clear
+ * What the drivers take from the kernel since lilOS 1.22.0: without it they stop with a clear
  * message instead of working around it (an older kernel has the module's update waiting).
  */
-const OLD_KERNEL = 'Questo modulo richiede lilOS ≥ 1.21.0: aggiorna lilOS';
+const OLD_KERNEL = 'Questo modulo richiede lilOS ≥ 1.22.0: aggiorna lilOS';
 
 /**
  * The ctx (of init(), connect(), open()…) if it has every one of `members`, else the clear error:

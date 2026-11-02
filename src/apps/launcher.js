@@ -1,4 +1,4 @@
-import { bus, menus, pipes, PipeStopped } from '@lilos/sdk';
+import { bus, menus, messageBox, pipes, PipeStopped } from '@lilos/sdk';
 import { apps, getApp, isInstalled } from './registry.js';
 import { blockedLaunch } from './updates.js';
 import { notify } from '../notifications/notify.js';
@@ -12,6 +12,23 @@ let scope = { includes: () => true, center: () => null, bounds: () => null };
 
 /** Key of the saved state of a window that is not the app's main one. */
 const ENTRY = '__entry';
+
+/**
+ * Why an app cannot start yet: its required dependencies that are not there (kernel `unmet`), or
+ * null. A module installed with it runs only after the kernel's restart.
+ */
+function unmetText(app) {
+  const unmet = app.package?.unmet;
+  if (!unmet?.length) return null;
+  const name = u => `«${u.id}»${u.version ? ` (${u.version})` : ''}`;
+  const restart = unmet.filter(u => u.why === 'restart'), missing = unmet.filter(u => u.why !== 'restart');
+  // Only modules wait for the restart: an app is there or not
+  const many = restart.length > 1;
+  return [
+    restart.length ? `Ha bisogno ${many ? 'dei moduli del kernel' : 'del modulo del kernel'} ${restart.map(name).join(', ')}, già ${many ? 'installati: entrano' : 'installato: entra'} in funzione al prossimo riavvio del kernel, che fa un amministratore dall’AppStore.` : '',
+    missing.length ? `Non trova: ${missing.map(u => `${u.kind === 'module' ? 'il modulo del kernel' : 'l’app'} ${name(u)}`).join(', ')}. Un amministratore lo installa dall’AppStore.` : '',
+  ].filter(Boolean).join('\n\n');
+}
 
 /**
  * scope: { includes(win) → boolean, center(win) → world point | null, bounds() → world rect | null }.
@@ -78,6 +95,8 @@ export function connectLauncher(wm) {
     if (!isInstalled(id)) return notify(`${app.name} è nascosta in questo workspace. Si mostra dal Pannello di controllo → Workspace.`, { level: 'warning' });
     // Being updated, or updated and waiting for lilOS to restart: its old code must not start again
     if (blockedLaunch(id)) return;
+    const unmet = unmetText(app);
+    if (unmet) return messageBox(null, { icon: 'warning', title: `${app.name} non può ancora partire`, text: unmet });
     // The app.launch pipe: a handler may change the args, or stop it
     if (pipes.wants('app.launch', { id, entry, args }, { system: true })) {
       try {

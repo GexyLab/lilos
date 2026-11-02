@@ -11,4 +11,4 @@ Con questo modulo il protocollo compare in **Connetti a un server** (File Manage
 
 Fornisce i servizi `netfs.ftp` e `netfs.ftps`. Dipendenza: `basic-ftp` 6.2.3.
 
-Versione 1.1.0: il nome del server si risolve con il kernel, che dà solo gli indirizzi permessi (con più utenti, niente rete locale se l'amministratore non la apre): il nome non può cambiare indirizzo tra il controllo del kernel e la connessione. Anche i canali dei dati vanno a quell'indirizzo. Richiede lilOS 1.21.0 o successivo.
+Versione 1.1.0: il nome del server si risolve con il kernel, che dà solo gli indirizzi permessi (con più utenti, niente rete locale se l'amministratore non la apre): il nome non può cambiare indirizzo tra il controllo del kernel e la connessione. Anche i canali dei dati vanno a quell'indirizzo. Richiede lilOS 1.22.0 o successivo.

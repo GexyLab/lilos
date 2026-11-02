@@ -105,7 +105,7 @@ function arrived(node, parent) {
 }
 
 export function connectTriggers() {
-  // The last runs of the page's old clock (lilOS < 1.21.0)
+  // The last runs of the page's old clock (lilOS < 1.22.0)
   storage.remove('automation-runs');
   bus.on('user:login', () => { loggedIn = true; if (active) library.ready().then(atLogin); });
   fs.on('change', e => {

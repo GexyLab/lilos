@@ -25,20 +25,20 @@ import { FIELD_TYPES, protocolInfo } from '../net/drivers.js';
  *                                          connection of the Rete folder: net/knownHosts.js), false to give up
  *       ctx.print(text)                    a line for the user in the terminal (what is going on)
  *       ctx.signal                         AbortSignal: the user closed the session while connecting
- *       ctx.output(Buffer)                 (since lilOS 1.21.0) what the server sends, as soon as it
+ *       ctx.output(Buffer)                 (since lilOS 1.22.0) what the server sends, as soon as it
  *                                          sends it: also before open() is over (a banner), nothing
  *                                          to keep aside
- *       ctx.closed({ reason, code?, signal? })   (since lilOS 1.21.0) the connection is over (reason:
+ *       ctx.closed({ reason, code?, signal? })   (since lilOS 1.22.0) the connection is over (reason:
  *                                          a message for the user, or ''; code and signal: how a
  *                                          command ended, for SSH); once, also before open() is over
- *       ctx.lookup                         (since lilOS 1.21.0) node's dns.lookup(hostname, options,
+ *       ctx.lookup                         (since lilOS 1.22.0) node's dns.lookup(hostname, options,
  *                                          callback), giving only addresses the kernel may connect
  *                                          to (net/guard.js): pass it to net/tls connect
- *       ctx.paths                          (since lilOS 1.21.0) the path helpers of net/drivers.js
+ *       ctx.paths                          (since lilOS 1.22.0) the path helpers of net/drivers.js
  *
  * session (the bytes are what the screen of an xterm shows and sends: a protocol whose server
  * speaks another language, such as SUPDUP, translates both ways):
- *   onData?(fn(Buffer)), onClose?(fn({ reason }))   what drivers before lilOS 1.21.0 used instead
+ *   onData?(fn(Buffer)), onClose?(fn({ reason }))   what drivers before lilOS 1.22.0 used instead
  *                              of ctx.output and ctx.closed: still listened to when there
  *   write(Buffer)              what the user types
  *   resize(cols, rows)

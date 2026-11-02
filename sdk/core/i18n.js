@@ -126,6 +126,7 @@ export function resolveLocale(table, code) {
  *   @entrypoints.<name>.label   @events.<name>.label   @events.<name>.description
  *   @entrypoints.<name>.params.<param>.label   @entrypoints.<name>.params.<param>.description
  *   @entrypoints.<name>.params.<param>.options.<value>.label
+ *   @dependencies.<module or app>.reason
  * What has no translation stays as the manifest says (in English).
  */
 export function localizeManifest(manifest, strings) {
@@ -170,6 +171,7 @@ export function localizeManifest(manifest, strings) {
       for (const option of Array.isArray(def.options) ? def.options : []) set(option, 'label', `${base}.options.${option.value}.label`);
     }
   }
+  for (const d of Array.isArray(m.dependencies) ? m.dependencies : []) if (isPlain(d)) set(d, 'reason', `@dependencies.${d.module ?? d.app}.reason`);
   return m;
 }
 

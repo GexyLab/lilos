@@ -10,4 +10,4 @@ Modulo **obbligatorio** del kernel: la **Pianificazione**, cioè le operazioni c
 
 Impostazioni (la sua parte di `config.json`, o le impostazioni del modulo per un amministratore): operazioni per utente al massimo (`maxTasksPerUser`, 100), tempo minimo tra due volte (`minIntervalMinutes`, 1 minuto; per le operazioni create da un'app almeno 15), operazioni in corso insieme (`maxParallel`, 4) e di un solo utente (`maxParallelPerUser`, 2), corse conservate per operazione (`historyPerTask`, 50), output conservato di ogni corsa (`outputKb`, 16 KB) e di tutte insieme (`historyMb`, 64 MB), ore entro cui si recupera (`catchUpHours`, 12). Un'app crea al massimo 20 operazioni per utente.
 
-Versione 1.1.0: `scheduler.json` e `history.json` li legge e li scrive il kernel (`ctx.jsonStore`: un file illeggibile vale vuoto, come prima); niente di diverso per chi lo usa. Richiede lilOS 1.21.0 o successivo.
+Versione 1.1.0: `scheduler.json` e `history.json` li legge e li scrive il kernel (`ctx.jsonStore`: un file illeggibile vale vuoto, come prima); niente di diverso per chi lo usa. Richiede lilOS 1.22.0 o successivo.

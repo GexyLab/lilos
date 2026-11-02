@@ -696,7 +696,7 @@ Se apri lilOS con un indirizzo che non è `https://` né `localhost`, sotto l'in
 
 ### Google Drive, Google Foto, Amazon S3, Azure Blob Storage, NFS
 
-Questi cinque protocolli sono **moduli del kernel da installare**: un nuovo lilOS non li ha. Google Drive e Google Foto sono un solo modulo (`netfs-google`). Un amministratore li installa dall'**AppStore** (scheda dei moduli del kernel) solo se servono; poi compaiono in **Connetti a un server**, dove l'elenco è diviso in **Server**, **Cloud** e **Rete locale**.
+Questi cinque protocolli sono **moduli del kernel da installare**: un nuovo lilOS non li ha. Google Drive e Google Foto sono un solo modulo (`netfs-google`). Un amministratore li installa dall'**AppStore** (scheda dei moduli del kernel) solo se servono; dal File Manager 1.16.0 l'AppStore li propone anche, come parti facoltative, quando installa o aggiorna il File Manager. Poi compaiono in **Connetti a un server**, dove l'elenco è diviso in **Server**, **Cloud** e **Rete locale**.
 
 | Protocollo | Campi |
 | --- | --- |
@@ -1149,7 +1149,7 @@ Un'automazione può partire senza che tu faccia niente. In **Opzioni di avvio…
 | **Quando entro** | Quando accedi a lilOS. |
 | **Quando arrivano file in una cartella** | Quando un file viene creato, spostato o copiato in quella cartella (non nelle sue sottocartelle). Se hai indicato delle estensioni, contano solo quelle. I file arrivati insieme fanno una sola esecuzione, e sono i file su cui lavora. |
 
-**A un'ora** o ogni tanti minuti la fa partire la [Pianificazione](#pianificazione): nella sezione **A un'ora**, **Pianifica…** apre la Pianificazione su una nuova operazione per questa automazione, e sotto compaiono quelle che ha già, con la prossima volta e **Cambia in Pianificazione**. Valgono le regole della Pianificazione (giorni, orari, ogni tot minuti, mesi, fusi orari…) e l'operazione parte anche se lilOS era chiuso, appena lo apri. Le partenze «A un'ora» e «Ogni tot minuti» fatte con Automata fino alla 1.1.0 passano da sole in Pianificazione (con lilOS 1.21.0 e Automata 1.2.0), e una notifica lo dice.
+**A un'ora** o ogni tanti minuti la fa partire la [Pianificazione](#pianificazione): nella sezione **A un'ora**, **Pianifica…** apre la Pianificazione su una nuova operazione per questa automazione, e sotto compaiono quelle che ha già, con la prossima volta e **Cambia in Pianificazione**. Valgono le regole della Pianificazione (giorni, orari, ogni tot minuti, mesi, fusi orari…) e l'operazione parte anche se lilOS era chiuso, appena lo apri. Le partenze «A un'ora» e «Ogni tot minuti» fatte con Automata fino alla 1.1.0 passano da sole in Pianificazione (con lilOS 1.22.0 e Automata 1.2.0), e una notifica lo dice.
 
 Da sapere:
 
@@ -1203,7 +1203,7 @@ automata run web ~/Immagini/vacanza.jpg --width=1200 --yes
 
 **Terminale** è la finestra dei comandi di lilOS. Ogni shell è una **scheda**: il pulsante **+** ne apre un'altra, nella stessa cartella. Le schede si possono anche affiancare in più riquadri e staccare in finestre nuove ([Riquadri e finestre](#riquadri-e-finestre-del-terminale)). Con lo stesso Terminale ti colleghi anche al terminale di un altro computer: **SSH** (cifrato, il più usato), **Telnet**, **rlogin** e **SUPDUP** (i protocolli di router, vecchi sistemi Unix e dei calcolatori storici del MIT). Le sessioni remote hanno ciascuna la loro scheda; la shell di lilOS resta com'era.
 
-Terminale è un'app di sistema, c'è già. Per i collegamenti remoti servono però i moduli dei protocolli che vuoi usare (`ssh`, lo stesso di SFTP nella Rete, `term-telnet`, `term-rlogin`, `term-supdup`), che un amministratore installa dall'[AppStore](#lappstore), nella scheda **Kernel**. Senza nessun modulo il Terminale lo dice e non può collegarsi a niente. L'app chiede di poter aprire terminali remoti, di leggere e scrivere i file della tua home (per le chiavi private e per le registrazioni), di aggiungere voci ai menu e, dal Terminale 1.5.0, di lavorare in sottofondo (per i comandi della [Pianificazione](#pianificazione)).
+Terminale è un'app di sistema, c'è già. Per i collegamenti remoti servono però i moduli dei protocolli che vuoi usare (`ssh`, lo stesso di SFTP nella Rete, `term-telnet`, `term-rlogin`, `term-supdup`). Dal Terminale 1.6.0 l'AppStore li propone come parti facoltative quando un amministratore installa o aggiorna il Terminale ([Installare un'app con ciò che le serve](#installare-unapp-con-ciò-che-le-serve)); si installano anche in ogni momento dall'[AppStore](#lappstore), nella scheda **Kernel**. Senza nessun modulo il Terminale lo dice e non può collegarsi a niente. L'app chiede di poter aprire terminali remoti, di leggere e scrivere i file della tua home (per le chiavi private e per le registrazioni), di aggiungere voci ai menu e, dal Terminale 1.5.0, di lavorare in sottofondo (per i comandi della [Pianificazione](#pianificazione)).
 
 Il collegamento al server lo fa lilOS sul computer in cui gira, non il tuo browser. Per questo le sessioni remote restano aperte anche se chiudi la finestra o ricarichi la pagina.
 
@@ -1518,6 +1518,10 @@ Sotto la casella ci sono le schede.
 
 Le app e i moduli che ci sono, in due gruppi: **App** e **Moduli del kernel**. Ogni elemento è una scheda con icona, nome, versione e descrizione. Per un amministratore ogni app che non è necessaria a lilOS ha il pulsante **Disinstalla**: chiede conferma, poi toglie l'app per tutti gli utenti, con le sue impostazioni e i suoi dati. I file che l'app aveva creato si eliminano, o finiscono nel Cestino se qualcuno li ha modificati; gli altri file restano dove sono.
 
+**Se serve ad altre app.** Un'app o un modulo di cui un'altra app installata ha bisogno **non si toglie**: l'AppStore lo dice («*nome* non si può rimuovere: serve a *altre app*») e ha solo **Chiudi**. Togli prima quelle che lo usano, poi questo. Le parti **facoltative** non bloccano.
+
+**Ciò che non serve più.** Se togli un'app che aveva portato con sé altre app o moduli, e adesso non li usa più nessuno, la finestra di conferma li elenca sotto **Non servono più**, già spuntati: erano stati installati solo per quell'app. Togli la spunta per tenerli. Quelli che avevi installato tu direttamente non compaiono mai. Se con l'app se ne vanno anche dei moduli, l'AppStore chiede **Riavvia ora** o **Più tardi**: i moduli si fermano solo al riavvio del kernel.
+
 ### Aggiornamenti
 
 Le novità disponibili, con il loro numero accanto al nome della scheda. Se c'è una versione nuova di lilOS, compare anche qui. Un amministratore, quando sono più di una, trova **Aggiorna tutto**.
@@ -1528,11 +1532,30 @@ Poi c'è una scheda per ogni categoria che ha almeno un elemento: **Pannello di 
 
 Ogni scheda mostra icona, nome, versione, a cosa serve, il nome del repository e, se serve, l'etichetta «non ufficiale». Accanto c'è un pulsante o una scritta: **Installa**, **Aggiorna**, «Installata» oppure «Da un altro repository» (c'è già un'app con quel nome, arrivata da un altro posto).
 
-**Un clic su una scheda** apre i dettagli: editore, tipo, categoria, se è «Verificata» o «non ufficiale», versione, da dove viene, i permessi che chiede e le istruzioni scritte da chi l'ha fatta (il file README, se c'è). Se il README è molto lungo se ne vede solo l'inizio: **Scarica il README completo** lo salva nella cartella **Download**, da cui si apre con l'Editor. Da lì un amministratore può **Installare**, **Aggiornare**, **Cercare aggiornamenti**, **Reinstallare** (rifà l'installazione della stessa versione, senza cancellare niente), **Disinstallare** un'app o **Rimuovere** un modulo; tutti possono **Aprire**. Le app che non si possono togliere (File Manager, Pannello di controllo, AppStore, Pianificazione) sono segnate «Necessaria a lilOS».
+**Un clic su una scheda** apre i dettagli: editore, tipo, categoria, se è «Verificata» o «non ufficiale», versione, da dove viene, i permessi che chiede e le istruzioni scritte da chi l'ha fatta (il file README, se c'è). Se il README è molto lungo se ne vede solo l'inizio: **Scarica il README completo** lo salva nella cartella **Download**, da cui si apre con l'Editor. Se l'app (o il modulo) ha bisogno di altre cose per funzionare, c'è anche la sezione **Ha bisogno di**: per ognuna dice se è già installata, se manca o se funzionerà dopo il riavvio del kernel, e se è facoltativa. Da lì un amministratore può **Installare**, **Aggiornare**, **Cercare aggiornamenti**, **Reinstallare** (rifà l'installazione della stessa versione, senza cancellare niente), **Disinstallare** un'app o **Rimuovere** un modulo; tutti possono **Aprire**. Le app che non si possono togliere (File Manager, Pannello di controllo, AppStore, Pianificazione) sono segnate «Necessaria a lilOS».
 
 Il testo delle istruzioni si mostra in forma semplice: niente pagine web incorporate, i collegamenti si aprono in una nuova scheda del browser e solo se sono indirizzi web, e le immagini non si caricano (si vede il loro testo alternativo).
 
 Prima di installare compare una finestra che dice **cosa potrà fare l'app** (per esempio «Leggere e modificare i file in Home/Documenti/Note»). Se l'app non viene dal repository ufficiale e non è firmata da un editore di cui lilOS si fida, c'è anche un avviso: *non si può sapere chi l'ha scritta né che il codice non sia stato modificato*. **Installa comunque** vuol dire accettare questo rischio: fallo solo se ti fidi di chi la distribuisce. Aggiornando, la finestra compare solo se l'app chiede permessi nuovi o non è ufficiale.
+
+### Installare un'app con ciò che le serve
+
+Alcune app hanno bisogno di altre parti per funzionare: un modulo del kernel (per esempio il protocollo per collegarsi a un tipo di server) o un'altra app. L'AppStore le installa **insieme all'app**, ma prima te lo mostra e aspetta il tuo sì. Vale anche per i moduli del kernel e per gli aggiornamenti.
+
+Premendo **Installa** (o **Aggiorna**), la finestra elenca:
+
+- **Si installa anche**: ciò che serve davvero all'app. Per ogni voce vedi se è un'app o un modulo del kernel, la versione, da quale repository viene e a chi serve. Si installa sempre, insieme all'app.
+- **Facoltativi: installare anche questi?**: parti che l'app può usare ma di cui può fare a meno. Ognuna ha una casella: spuntata, si installa; altrimenti no. Se cambi idea, si installa dopo come un'app qualsiasi.
+- Un avviso per ciò che **non è verificato**, cioè viene da un repository non ufficiale. Un modulo non verificato girerà nel kernel con accesso completo: installalo solo se ti fidi di chi lo distribuisce. Per installare serve accettare l'avviso.
+- I **permessi** che chiedono le app che si installano, come per ogni app.
+
+Se qualcosa che serve davvero **non si può avere** (non c'è nel suo repository, il repository non si apre, nessuna versione va bene), la finestra lo dice e ha solo **Chiudi**: non si installa niente. Una parte facoltativa che non si può avere si segnala soltanto («Ora non disponibili»).
+
+Se un passo non riesce a metà, i pacchetti installati da quell'operazione vengono tolti di nuovo: non resta niente a metà. Gli aggiornamenti già fatti restano.
+
+Un aggiornamento propone solo le parti facoltative **nuove**: su quelle che già conoscevi hai già deciso.
+
+**Il riavvio.** Un modulo del kernel entra in funzione solo dopo il riavvio del kernel. Se tra ciò che hai installato c'è un modulo, alla fine l'AppStore chiede **Riavvia ora** o **Più tardi**. Con **Più tardi** puoi continuare a lavorare, ma l'app che ne ha bisogno **non si apre**: se provi ad aprirla compare un messaggio che dice cosa manca, e lo stesso se manca un'app o un modulo di cui ha bisogno (lo installa un amministratore dall'AppStore). Il riavvio si fa anche più tardi da **Riavvia il kernel**, nella scheda Kernel. Nei dettagli dell'app un avviso dice se aspetta il riavvio («funziona dopo il riavvio del kernel», con il pulsante **Riavvia il kernel** per un amministratore) o se le manca qualcosa («non parte finché non è installato»).
 
 ### Kernel
 
@@ -1542,6 +1565,7 @@ Solo per gli amministratori: i moduli del kernel. Sono parti di lilOS: dove stan
 - Un modulo che lascerebbe lilOS senza file system, o senza accesso mentre lilOS è raggiungibile da altri computer, non si installa e non si rimuove: compare il motivo.
 - **Rimuovere un modulo non cancella i suoi dati** (per esempio gli utenti): restano sul computer del kernel, e compare «i suoi dati restano».
 - **Attenzione**: togliere il modulo di accesso o il file system da un lilOS in uso è pericoloso. Fallo solo sapendo cosa succede.
+- **Moduli che servono ad altri.** Un modulo di cui ha bisogno un'app (o un altro modulo) installata non si rimuove finché quella c'è, e non si aggiorna a una versione che l'app non accetta. Un modulo si installa anche da solo insieme all'app che lo richiede ([Installare un'app con ciò che le serve](#installare-unapp-con-ciò-che-le-serve)).
 - **Moduli obbligatori.** Il modulo `scheduler` (la [Pianificazione](#pianificazione)) viene con lilOS, è segnato «Necessaria a lilOS» e non si rimuove: **Rimuovi** non c'è, e il kernel lo rifiuta. Si aggiorna come gli altri. Se manca dalla cartella dei moduli, o dalla configurazione, il kernel lo rimette da solo all'avvio.
 
 ### Aggiornare lilOS

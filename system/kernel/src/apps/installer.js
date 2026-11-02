@@ -16,7 +16,8 @@ import { cleanSource, fetchPackage, isOfficial } from './sources.js';
  *   /system/tmp/<id>                 the app's temporary files, removed with it
  *
  *   State: { id, version, previous, kind, system, required, source, signed, publisher, granted, installed, updated,
- *            isolated }   isolated: true | false (how the app runs, chosen by an admin) or null (the general rule)
+ *            isolated, dependency? }   isolated: true | false (how the app runs, chosen by an admin) or null (the
+ *            general rule); dependency: true when it was installed only because a package needed it
  *
  *   /system/app/.security            folder 'app-security', meta.security: the general rule, { isolated }
  *                                    (true when missing; not in /system/app's own meta: /system is fixed)
@@ -25,6 +26,9 @@ import { cleanSource, fetchPackage, isOfficial } from './sources.js';
  *
  * Only admins install: an app is for every user and every workspace. What an app does in each
  * user's home (its install operations) runs in lilOS, for each user, the first time they meet it.
+ *
+ * `guard` (dependencies.js, set by the kernel): an app whose dependencies are missing is not
+ * installed, and an app another one needs is not removed (nor taken outside the versions it asks for).
  */
 const log = logger('apps');
 const MAX_LIBRARY = 20 << 20;
@@ -46,6 +50,8 @@ function checkLilos(manifest) {
 
 export class Installer {
   #fs; #config; #listeners = new Set();
+  /** dependencies.js: checks that keep the packages that need an app working (null: none) */
+  guard = null;
 
   constructor(fs, config) {
     this.#fs = fs;
@@ -145,6 +151,11 @@ export class Installer {
     return signed || official;
   }
 
+  /** Whether a package from `source` counts as verified (throws as an install would for a wrong signature). */
+  verified(manifest, source) {
+    return this.#trust(manifest, source);
+  }
+
   #checkGrant(manifest, grant, already = []) {
     const missing = needsGrant(manifest.permissions ?? []).filter(p => !already.includes(p) && !grant.includes(p));
     if (missing.length) fail('forbidden', `Permessi da concedere: ${missing.join(', ')}`);
@@ -215,7 +226,8 @@ export class Installer {
     await this.#put({ ...folder, meta: { ...folder.meta, state } });
   }
 
-  async install(principal, { source: rawSource, grant = [], allowUnsigned = false } = {}) {
+  /** dependency: installed only because a package needs it (dependencies.js) */
+  async install(principal, { source: rawSource, grant = [], allowUnsigned = false, dependency = false } = {}) {
     requireAdmin(principal);
     const source = cleanSource(rawSource, { allowLocal: this.#config.allowLocalSources });
     const pkg = await fetchPackage(source);
@@ -226,18 +238,31 @@ export class Installer {
     const signed = this.#trust(manifest, pkg.source);
     if (!signed && !allowUnsigned) fail('forbidden', 'App non verificata: si installa solo confermando l’avviso (allowUnsigned)');
     this.#checkGrant(manifest, grant);
+    await this.guard?.checkMet('app', manifest);
     await this.#store(pkg);
     await this.#cacheLibraries(manifest);
     const now = Date.now();
     const state = {
       id: manifest.id, version: manifest.version, previous: null, kind: manifest.kind, system: manifest.system === true, required: manifest.required === true,
       source: pkg.source, signed, publisher: { id: manifest.publisher.id, name: manifest.publisher.name },
-      granted: needsGrant(manifest.permissions ?? []), installed: now, updated: now, isolated: null,
+      granted: needsGrant(manifest.permissions ?? []), installed: now, updated: now, isolated: null, ...(dependency && { dependency: true }),
     };
     await this.#saveState(state);
     log.info(`Installata ${manifest.id} ${manifest.version} (${signed ? 'verificata' : 'non verificata'}) da ${principal.username ?? 'kernel'}`);
     this.#changed(manifest.id);
     return state;
+  }
+
+  /** Where update() takes the package from: the app's source at its newest version, at `ref`, or (reinstall) at its commit. */
+  updateSource(state, { ref, reinstall = false } = {}) {
+    const source = { ...state.source };
+    delete source.commit;
+    if (source.type === 'git' || source.type === 'github') {
+      if (reinstall) source.ref = state.source.commit;
+      else if (ref !== undefined) source.ref = ref;
+      else delete source.ref;
+    }
+    return cleanSource(source, { allowLocal: this.#config.allowLocalSources });
   }
 
   /**
@@ -247,14 +272,7 @@ export class Installer {
   async update(principal, id, { ref, reinstall = false, grant = [], allowUnsigned = false } = {}) {
     requireAdmin(principal);
     const state = await this.state(id) ?? fail('not_found', 'App non installata');
-    const source = { ...state.source };
-    delete source.commit;
-    if (source.type === 'git' || source.type === 'github') {
-      if (reinstall) source.ref = state.source.commit;
-      else if (ref !== undefined) source.ref = ref;
-      else delete source.ref;
-    }
-    const pkg = await fetchPackage(cleanSource(source, { allowLocal: this.#config.allowLocalSources }));
+    const pkg = await fetchPackage(this.updateSource(state, { ref, reinstall }));
     const { manifest } = pkg;
     if (manifest.id !== id) fail('invalid', `Il pacchetto è dell'app ${manifest.id}, non di ${id}`);
     checkFiles(manifest, pkg.files);
@@ -266,6 +284,8 @@ export class Installer {
     const signed = this.#trust(manifest, pkg.source);
     if (!signed && !allowUnsigned) fail('forbidden', 'Versione non verificata: si installa solo confermando l’avviso (allowUnsigned)');
     this.#checkGrant(manifest, grant, state.granted);
+    await this.guard?.checkMet('app', manifest);
+    if (order !== 0) await this.guard?.checkVersion('app', id, manifest.version);
     await this.#store(pkg);
     await this.#cacheLibraries(manifest);
     await this.#releaseLibraries(id, (manifest.libraries ?? []).filter(l => l.cache).map(l => libId(l.name, l.version)));
@@ -288,6 +308,7 @@ export class Installer {
     requireAdmin(principal);
     const state = await this.state(id) ?? fail('not_found', 'App non installata');
     if (state.required) fail('forbidden', `${state.id} è un'app di sistema necessaria: non si rimuove`);
+    await this.guard?.checkRemovable('app', id);
     await this.#fs.remove(KERNEL, [appId(id)]);
     await this.#releaseLibraries(id);
     if (await this.#fs.stat(KERNEL, `tmp:${id}`)) await this.#fs.remove(KERNEL, [`tmp:${id}`]);

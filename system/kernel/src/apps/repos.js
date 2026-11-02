@@ -7,7 +7,7 @@ import { checkManifest } from './manifest.js';
 import { parseLocales } from '../../../../sdk/core/i18n.js';
 import { checkModule } from './modulePackage.js';
 import { checkSystem } from './systemPackage.js';
-import { OFFICIAL_URL, cleanSource, normalizeUrl, openSource } from './sources.js';
+import { OFFICIAL_URL, cleanSource, isOfficial, normalizeUrl, openSource } from './sources.js';
 
 /**
  * Repositories lilOS takes apps and kernel modules from. The official one is always there; the
@@ -38,6 +38,18 @@ async function readRepos() {
 }
 
 const writeRepos = list => writeJson(FILE, list, { pretty: true });
+
+/** An app's translations file with only the texts of its manifest ('@' keys), or null. */
+async function manifestLocales(read, path, manifest) {
+  if (!manifest.locales) return null;
+  try {
+    const table = parseLocales((await read(`${path}/${manifest.locales}`)).toString('utf8'));
+    for (const lang of Object.values(table)) lang.strings = Object.fromEntries(Object.entries(lang.strings).filter(([k]) => k.startsWith('@')));
+    return table;
+  } catch {
+    return null;
+  }
+}
 
 const requireAdmin = p => (p?.kind === 'kernel' || p?.role === 'admin' ? p : fail('forbidden', 'Solo un amministratore gestisce i repository'));
 
@@ -119,20 +131,10 @@ export class Repos {
       return { [key]: cut.includes('\n') ? cut.slice(0, cut.lastIndexOf('\n') + 1) : cut, [`${key}Truncated`]: true };
     };
     const readme = path => doc(path);
-    const locales = async (path, manifest) => {
-      if (!manifest.locales) return null;
-      try {
-        const table = parseLocales((await read(`${path}/${manifest.locales}`)).toString('utf8'));
-        for (const lang of Object.values(table)) lang.strings = Object.fromEntries(Object.entries(lang.strings).filter(([k]) => k.startsWith('@')));
-        return table;
-      } catch {
-        return null;
-      }
-    };
     const entry = async (path, file, check, key) => {
       try {
         const value = check(JSON.parse((await read(`${path}/${file}`)).toString('utf8')));
-        return { path, [key]: value, ...(key === 'manifest' && { locales: await locales(path, value) }), ...await readme(path) };
+        return { path, [key]: value, ...(key === 'manifest' && { locales: await manifestLocales(read, path, value) }), ...await readme(path) };
       } catch (err) {
         return { path, error: err.message };
       }
@@ -145,6 +147,29 @@ export class Repos {
         const { files, ...rest } = checkSystem(raw);
         return { ...rest, files: Object.keys(files).length };
       }, 'system').then(async e => (e.error ? e : { ...e, ...await doc(system, 'CHANGELOG.md', 'changelog') })) : null,
+    };
+  }
+
+  /**
+   * The packages of the repository at `url` (one an admin added or not: a package names where its
+   * dependencies come from), at its latest version tag, without READMEs:
+   *   { url, official, ref, commit, apps: [{ path, manifest, locales }], modules: [{ path, module }] }
+   * Packages whose manifest is not valid are left out.
+   */
+  async packages(url) {
+    const { apps, modules, read, source } = await this.#readCatalog(url);
+    const entry = async (path, file, check, key) => {
+      try {
+        const value = check(JSON.parse((await read(`${path}/${file}`)).toString('utf8')));
+        return { path, [key]: value, ...(key === 'manifest' && { locales: await manifestLocales(read, path, value) }) };
+      } catch {
+        return null;
+      }
+    };
+    return {
+      url: source.url, official: isOfficial(source), ref: source.ref, commit: source.commit,
+      apps: (await Promise.all(apps.map(p => entry(p, 'lilos.json', checkManifest, 'manifest')))).filter(Boolean),
+      modules: (await Promise.all(modules.map(p => entry(p, 'module.json', checkModule, 'module')))).filter(Boolean),
     };
   }
 

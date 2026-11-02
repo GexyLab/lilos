@@ -11,7 +11,7 @@ import { JsonStore, readJson, removeJson, userFile, writeJson } from '../jsonFil
  *     kind   'ssh' (the server's host key) | 'tls' (its certificate)
  *     host   in lower case; port: the one connected to (the protocol's usual one when not given)
  *
- * Before lilOS 1.21.0 each connection of the Rete folder kept its own (`trust`) and the Terminal
+ * Before lilOS 1.22.0 each connection of the Rete folder kept its own (`trust`) and the Terminal
  * its own (`known`, by protocol): migrate() brings both here, once.
  */
 export const TRUST_KINDS = ['ssh', 'tls'];

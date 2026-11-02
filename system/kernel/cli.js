@@ -1,6 +1,5 @@
 import { createInterface } from 'node:readline';
-import { join } from 'node:path';
-import { loadConfig, DATA_DIR, MODULES_DIR } from './src/config.js';
+import { loadConfig, MODULES_DIR, MODULES_DATA_DIR } from './src/config.js';
 import { resolveModules, startModule } from './src/modules.js';
 
 /**
@@ -56,7 +55,7 @@ try {
   const services = new Map();
   const started = [];
   // No HTTP here: routes, sockets and events of the modules go nowhere
-  const host = { route() {}, socket() {}, emit() {}, dataDir: join(DATA_DIR, 'modules-data') };
+  const host = { route() {}, socket() {}, emit() {}, dataDir: MODULES_DATA_DIR };
   for (const mod of all.filter(m => needed.has(m.name))) started.push(await startModule(mod, services, host));
   const target = started.find(m => m.name === name);
   const run = target.impl.commands?.[command];

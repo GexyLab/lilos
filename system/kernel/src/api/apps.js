@@ -2,7 +2,8 @@ import { fail } from '../errors.js';
 import { send } from '../http.js';
 
 /**
- *   GET    /api/apps                     installed apps: [{ ...state, manifest }]
+ *   GET    /api/apps                     installed apps: [{ ...state, manifest, unmet? }]   unmet: required
+ *                                        dependencies missing now (apps/dependencies.js withUnmet)
  *   GET    /api/apps/:id/file?path=…     a file of the app (its code, for lilOS to run it)
  *   GET    /api/apps/:id/v/:version/<path>   the same, path-like: system apps are imported from here
  *                                        (:version may end in '+<build>': only for the browser's cache)
@@ -39,7 +40,7 @@ export function visible(app, principal) {
 export function appRoutes(kernel) {
   const { router, installer } = kernel;
 
-  router.add('GET', '/api/apps', async ({ principal }) => (await installer.list()).map(a => visible(a, signedIn(principal))));
+  router.add('GET', '/api/apps', async ({ principal }) => (await kernel.dependencies.withUnmet(await installer.list())).map(a => visible(a, signedIn(principal))));
 
   router.add('GET', '/api/apps/:id/file', async ({ principal, params, query, res }) => {
     const path = query.get('path') ?? '';

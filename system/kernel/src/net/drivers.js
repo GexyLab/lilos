@@ -16,19 +16,19 @@ import { KernelError, fail } from '../errors.js';
  *                      null: the same for the Terminal (knownHosts.js, by kind, host and port)
  *       ctx.saveSecret(secret)  keeps a new secret instead of the one given (a token the provider renewed)
  *       ctx.user       who connects: { id, username, role, multiUser } (multiUser: lilOS has several users)
- *       ctx.lookup     (since lilOS 1.21.0) node's dns.lookup(hostname, options, callback), giving only
+ *       ctx.lookup     (since lilOS 1.22.0) node's dns.lookup(hostname, options, callback), giving only
  *                      addresses the kernel may connect to (guard.js): pass it to net/tls/http(s)
  *                      connect, so the name cannot point elsewhere after the kernel checked it
- *       ctx.paths      (since lilOS 1.21.0) cleanPath, joinPath, parentOf, baseName, isSafeName,
+ *       ctx.paths      (since lilOS 1.22.0) cleanPath, joinPath, parentOf, baseName, isSafeName,
  *                      cleanName (below)
- *       ctx.tokens     (since lilOS 1.21.0) with `oauth`: the account's tokens (oauth.js), or null
+ *       ctx.tokens     (since lilOS 1.22.0) with `oauth`: the account's tokens (oauth.js), or null
  *   shares?(values, ctx) → [name]                  what a server offers to connect to (SMB shares,
  *                                                  S3 buckets, the drives of an account); ctx as connect's
  *   address(values) → string                      how the connection is shown ('sftp://ann@host/www')
  *   check?(values)                                 throws (with `net`) if the values cannot be used as they are
  *   ready?() → null | label                        why the protocol cannot be used yet (a module setting
  *                                                  missing): the page says it instead of the fields
- *   oauth?                                         (since lilOS 1.21.0) for a 'signin' field: the provider
+ *   oauth?                                         (since lilOS 1.22.0) for a 'signin' field: the provider
  *                                                  and what to ask it; the kernel signs in and renews
  *                                                  the tokens (oauth.js), and makes signIn
  *   signIn?                                        for a 'signin' field without `oauth`: the provider's page
