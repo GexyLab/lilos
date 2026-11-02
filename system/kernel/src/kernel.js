@@ -1,7 +1,7 @@
 import { createServer } from 'node:http';
 import { EventEmitter } from 'node:events';
 import { join } from 'node:path';
-import { loadConfig, DATA_DIR, MODULES_DIR, RELEASE_DIR, SYSTEM_VERSION } from './config.js';
+import { loadConfig, DATA_DIR, MODULES_DIR, MODULES_DATA_DIR, RELEASE_DIR, SYSTEM_VERSION } from './config.js';
 import { resolveModules, startModule, openSecretSettings, REQUIRED_MODULES } from './modules.js';
 import { Secrets } from './net/secrets.js';
 import { Router, send, readJson, cookies, checkOrigin, checkHost, checkSocketOrigin } from './http.js';
@@ -100,7 +100,7 @@ export class Kernel {
     this.settingSecrets = new Secrets(join(DATA_DIR, 'net'));
     for (const mod of await resolveModules(MODULES_DIR, config.modules)) {
       await openSecretSettings(mod, this.settingSecrets, log);
-      this.modules.push(await startModule(mod, this.services, { route, emit, socket, dataDir: join(DATA_DIR, 'modules-data') }));
+      this.modules.push(await startModule(mod, this.services, { route, emit, socket, dataDir: MODULES_DATA_DIR }));
       log.info(`Modulo avviato: ${mod.name} ${mod.version} (${mod.provides.join(', ') || 'nessun servizio'})`);
     }
     if (!this.services.has('fs')) throw new Error('Nessun modulo fornisce il servizio "fs": lilOS non ha un file system');

@@ -1,5 +1,5 @@
 import { createInterface } from 'node:readline';
-import { loadConfig, MODULES_DIR } from './src/config.js';
+import { loadConfig, MODULES_DIR, MODULES_DATA_DIR } from './src/config.js';
 import { resolveModules, startModule } from './src/modules.js';
 
 /**
@@ -54,7 +54,7 @@ try {
   }
   const services = new Map();
   const started = [];
-  for (const mod of all.filter(m => needed.has(m.name))) started.push(await startModule(mod, services, { route() {} }));
+  for (const mod of all.filter(m => needed.has(m.name))) started.push(await startModule(mod, services, { route() {}, dataDir: MODULES_DATA_DIR }));
   const target = started.find(m => m.name === name);
   const run = target.impl.commands?.[command];
   if (typeof run !== 'function') throw new Error(`${name} non ha il comando "${command}" (comandi: ${Object.keys(target.impl.commands ?? {}).join(', ') || 'nessuno'})`);
