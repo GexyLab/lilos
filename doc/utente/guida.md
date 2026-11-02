@@ -1573,7 +1573,8 @@ Il link **Opzioni**, in basso a destra, apre:
 
 - **Mostra i repository non ufficiali.** Acceso (come di solito), le schede elencano anche ciò che offrono i repository aggiunti. Spento, solo il repository ufficiale. È una preferenza tua.
 - **I repository.** L'elenco degli indirizzi da cui lilOS prende app e moduli, con quante app e moduli offre ciascuno, i pacchetti che non sono validi e gli eventuali errori. Quello ufficiale è «Sempre presente». Un amministratore può **rimuovere** un repository (le app già installate restano) e **aggiungerne** uno con **Aggiungi un repository**: l'indirizzo, che deve contenere l'elenco di ciò che offre, e un nome facoltativo. Se un repository non si apre compare «Non raggiungibile» con il motivo (rete, accesso negato…): per un repository privato il computer su cui gira il kernel deve avere l'accesso.
-- **Ricarica.** Rilegge i repository.
+- **Attivare e disattivare un repository.** Ogni repository, anche quello ufficiale, ha un interruttore (dall'AppStore 1.8.0). Spento, l'AppStore non lo legge più: le schede elencano solo quello che offrono i repository attivi, e non propone gli aggiornamenti di ciò che hai installato da lì, nemmeno nel controllo automatico degli aggiornamenti. Spegnere quello ufficiale toglie anche gli aggiornamenti di lilOS. Le app già installate restano e le trovi in **Installati**; nelle altre schede una barra ricorda quali repository sono spenti. È una preferenza tua: gli altri utenti non cambiano, e anche chi non è amministratore la può usare.
+- **Ricarica.** Rilegge i repository attivi.
 
 ### Aggiornare un'app
 
