@@ -4,6 +4,7 @@ Modulo **obbligatorio** del kernel: la **Pianificazione**, cioè le operazioni c
 
 - Fornisce il servizio `scheduler`. Tiene le operazioni in `scheduler.json` e le loro corse in `history.json`, nella cartella del modulo: restano dopo un riavvio e dopo un aggiornamento.
 - Un solo timer per la prossima corsa, e ogni 30 secondi un controllo sull'ora vera (il computer sospeso, l'ora cambiata).
+- Una corsa annullata o arrivata al tempo massimo ha 10 secondi per fermarsi: quello che aveva scritto resta nello storico (dalla 1.0.1).
 - Una volta persa a kernel spento si recupera **una sola volta** quando riparte, entro `catchUpHours` ore (12), a meno che l'operazione dica di saltarla.
 - Un utente vede e cambia solo le sue operazioni; un amministratore quelle di tutti e quelle del sistema.
 - Cosa fa un'operazione (un promemoria, la copia di una cartella, una richiesta web, un comando, il servizio di un'app, aprire un'app o un file, un'automazione) lo decide e lo fa il kernel: il modulo conserva, tiene l'orologio, gestisce sovrapposizioni, tentativi e storico.

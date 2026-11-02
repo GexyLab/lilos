@@ -154,9 +154,9 @@ export class Schedules {
     }
   }
 
-  async #runService({ task, run, principal }) {
+  async #runService({ task, run, principal, signal }) {
     const { app, entry, params } = task.what;
-    const result = await this.#kernel.appServices.runScheduled(principal, app, entry, params ?? {}, { task, run });
+    const result = await this.#kernel.appServices.runScheduled(principal, app, entry, params ?? {}, { task, run, signal });
     if (typeof result === 'string') return { state: 'ok', text: result };
     if (result && typeof result === 'object') {
       const failed = result.ok === false || result.error;

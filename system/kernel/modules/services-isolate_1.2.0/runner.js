@@ -8,7 +8,7 @@ import ivm from 'isolated-vm';
  *
  * Messages with index.js (IPC):
  *   in    { type: 'start', code, info, limits }   { type: 'request', id, data, from }
- *         { type: 'reply', id, result | error }   { type: 'stop' }
+ *         { type: 'cancel', id }   { type: 'reply', id, result | error }   { type: 'stop' }
  *   out   { type: 'ready' }   { type: 'failed', error }   { type: 'answer', id, result | error }
  *         { type: 'call', id, method, params }    { type: 'log', level, text }   { type: 'exit', reason }
  */
@@ -88,9 +88,36 @@ const lilos = Object.freeze({
   }),
 });
 globalThis.__start = fn => fn({ lilos, args: info.args });
-globalThis.__request = async (data, from) => {
+// The requests being answered: id → { cancelled, listeners }. The handler's third argument tells it
+// when its caller gave up (the scheduler's «Annulla», the operation's time limit)
+const live = new Map();
+globalThis.__request = async (data, from, id) => {
   if (!handler) throw new Error('Il servizio non risponde: non ha chiamato lilos.handle()');
-  return JSON.stringify((await handler(JSON.parse(data), JSON.parse(from))) ?? null);
+  const state = { cancelled: false, listeners: new Set() };
+  live.set(id, state);
+  const request = Object.freeze({
+    get cancelled() { return state.cancelled; },
+    onCancel(fn) {
+      if (typeof fn !== 'function') throw new TypeError('onCancel vuole una funzione');
+      if (state.cancelled) { fn(); return () => {}; }
+      state.listeners.add(fn);
+      return () => state.listeners.delete(fn);
+    },
+  });
+  try {
+    return JSON.stringify((await handler(JSON.parse(data), JSON.parse(from), request)) ?? null);
+  } finally {
+    live.delete(id);
+  }
+};
+globalThis.__cancel = id => {
+  const state = live.get(id);
+  if (!state || state.cancelled) return;
+  state.cancelled = true;
+  for (const fn of state.listeners) {
+    try { fn(); } catch (err) { console.error('Errore in onCancel:', err); }
+  }
+  state.listeners.clear();
 };
 `;
 
@@ -102,6 +129,7 @@ const timers = new Map();
 let nextCall = 1;
 let fire = null;
 let request = null;
+let cancel = null;
 
 /** A failure of the isolate: out of memory ends the service. */
 const check = err => {
@@ -142,6 +170,7 @@ async function start({ code, info, limits }) {
   await context.eval(BOOT, { timeout: cpuMs });
   fire = await jail.get('__fire', { reference: true });
   request = await jail.get('__request', { reference: true });
+  cancel = await jail.get('__cancel', { reference: true });
 
   const mod = await isolate.compileModule(code, { filename: `${info.id}/${info.entry}.js` });
   await mod.instantiate(context, spec => { throw new Error(`import non permesso: ${spec}`); });
@@ -165,12 +194,17 @@ process.on('message', async m => {
     }
   } else if (m.type === 'request') {
     try {
-      const out = await request.apply(undefined, [JSON.stringify(m.data ?? null), JSON.stringify(m.from ?? null)], { result: { promise: true }, timeout: cpuMs });
+      const out = await request.apply(undefined, [JSON.stringify(m.data ?? null), JSON.stringify(m.from ?? null), m.id], { result: { promise: true }, timeout: cpuMs });
       send({ type: 'answer', id: m.id, result: JSON.parse(out) });
     } catch (err) {
       check(err);
       send({ type: 'answer', id: m.id, error: err.message });
     }
+  } else if (m.type === 'cancel') {
+    cancel?.apply(undefined, [m.id], { timeout: cpuMs }).catch(err => {
+      check(err);
+      send({ type: 'log', level: 'error', text: `Annullamento: ${err.message}` });
+    });
   } else if (m.type === 'reply') {
     const c = calls.get(m.id);
     if (!c) return;
