@@ -920,7 +920,7 @@ Quello che un amministratore deve poter cambiare (un ID, una scelta, un interrut
 6. Attiva il modulo in `config.json`, `npm run kernel:setup` se ha dipendenze e riavvia il kernel. La sezione **Rete** del File Manager mostra il nuovo protocollo nell'elenco.
 ## Aggiungere un protocollo di terminale
 
-Un protocollo di terminale è un modulo del kernel che fornisce il servizio `term.<protocollo>`: l'app **Terminale remoto** (finestra «Nuova connessione», connessione rapida, host salvati, sessioni che restano aperte) lo usa senza altre modifiche. Il modello da copiare è `term-telnet_1.0.0` (senza dipendenze); per l'accesso con password, `term-ssh_1.0.0`. Contratto completo: [API → Terminali remoti](api.md#terminali-remoti-term-apitermjs).
+Un protocollo di terminale è un modulo del kernel che fornisce il servizio `term.<protocollo>`: l'app **Terminale** (schede remote, comandi `ssh`/`telnet`/`rlogin`/`supdup`, host salvati, sessioni che restano aperte) lo usa senza altre modifiche. Il modello da copiare è `term-telnet_1.0.0` (senza dipendenze); per l'accesso con password, `term-ssh_1.0.1`. Contratto completo: [API → Terminali remoti](api.md#terminali-remoti-term-apitermjs).
 
 1. Crea il modulo come in [Aggiungere un modulo al kernel](#aggiungere-un-modulo-al-kernel), con `"provides": ["term.mio"]` e `"requires": []`.
 2. Nell'`init` fornisci il servizio:
@@ -968,7 +968,7 @@ Un protocollo di terminale è un modulo del kernel che fornisce il servizio `ter
 4. Quello che serve all'utente e non è salvato si chiede con `ctx.ask(prompt, { echo })` (la password, senza eco, con Invio) e il server o il certificato si fanno confermare con `ctx.confirm({ kind, fingerprint, text })`: il kernel ricorda la risposta per protocollo, host e porta. Non chiedere mai le credenziali in altri modi: non passano dalla pagina.
 5. Lancia solo errori con `net` (`auth`, `untrusted`, `unreachable`, `lost`, `invalid`…) e controlla `ctx.signal` nelle attese lunghe: se l'utente chiude la scheda mentre ci si collega, il collegamento deve finire.
 6. Dichiara `signals: ['break', …]` nella sessione se il protocollo ha comandi speciali che il menu **Tasti** deve offrire, e `info: { … }` per ciò che la barra di stato mostra. `secure` dice se ciò che passa è cifrato: l'app avverte l'utente quando non lo è.
-7. Attiva il modulo in `config.json`, `npm run kernel:setup` se ha dipendenze e riavvia il kernel. Il protocollo compare nell'elenco di **Terminale remoto** (le righe `ssh …` della connessione rapida e i comandi del Terminale sono dell'app, non del modulo: un protocollo nuovo si sceglie dall'elenco).
+7. Attiva il modulo in `config.json`, `npm run kernel:setup` se ha dipendenze e riavvia il kernel. Il protocollo compare nell'elenco dei protocolli del **Terminale** (i comandi `ssh`, `telnet`, `rlogin` e `supdup` della sua shell sono dell'app, non del modulo: un protocollo nuovo si sceglie dall'elenco della finestra del nuovo host).
 
 ## Aprire terminali remoti da un'app installata
 
@@ -988,7 +988,7 @@ terminal.onData(text => port.postMessage(new TextEncoder().encode(text)));
 ```
 
 - Una password non salvata non si passa dall'app: la chiede il terminale e la scrive l'utente (i suoi tasti vanno alla domanda).
-- Per la voce «Apri terminale SSH qui» nel menu dei file delle connessioni SFTP: azione con `when: { net: ['sftp'] }` e `lilos.term.openHere(id)` (l'`id` è il nodo passato all'azione).
+- Per una voce come «Apri terminale SSH qui» (oggi del Terminale, azione `terminal.sshHere`) nel menu dei file delle connessioni SFTP: azione con `when: { net: ['sftp'] }` e `lilos.term.openHere(id)` (l'`id` è il nodo passato all'azione).
 - Per aggiornare l'elenco ascolta `lilos.on('term', what => …)` (`'hosts'` o `'sessions'`).
 - Con `lilos.term.close(id)` la sessione finisce; chiudere la finestra la lascia aperta per 10 minuti, finché l'utente non la riprende.
 

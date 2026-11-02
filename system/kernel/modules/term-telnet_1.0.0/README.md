@@ -1,6 +1,6 @@
 # term-telnet
 
-Modulo del kernel per i terminali remoti **Telnet** (app Terminale remoto): router, switch e sistemi senza SSH.
+Modulo del kernel per i terminali remoti **Telnet** (sessioni remote del Terminale): router, switch e sistemi senza SSH.
 
 - Opzioni del terminale: binario (UTF-8), eco del server, tipo di terminale (RFC 1091), dimensione della finestra (NAWS, RFC 1073), nome dell'utente (NEW-ENVIRON, RFC 1572: molti server chiedono poi solo la password).
 - Se il server non fa l'eco, quello che scrivi si vede lo stesso.

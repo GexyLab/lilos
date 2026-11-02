@@ -59,7 +59,7 @@ scripts/
   release.mjs           la build di lilOS per il repository ufficiale (npm run release)
 public/host/            i moduli che le app di sistema importano come @lilos/sdk e @lilos/system (generati)
 system/
-  kernel/               il backend: moduli (users-basic, fs-postgres, services-isolate: fa girare i servizi delle app, notifications-basic: le notifiche, netfs-sftp, netfs-ftp, netfs-webdav, netfs-smb: i protocolli di rete della cartella Rete; OneDrive è un modulo del repository ufficiale; term-ssh, term-telnet, term-rlogin, term-supdup: i protocolli dei terminali remoti), API, repository, installazione di app e moduli, aggiornamenti di lilOS (releases/ e current.json in un lilOS installato), riga di comando; run.js lo avvia, lo riavvia e prova le versioni nuove
+  kernel/               il backend: moduli (users-basic, fs-postgres, services-isolate: fa girare i servizi delle app, notifications-basic: le notifiche, netfs-sftp, netfs-ftp, netfs-webdav, netfs-smb: i protocolli di rete della cartella Rete; OneDrive è un modulo del repository ufficiale; term-ssh, term-telnet, term-rlogin, term-supdup: i protocolli dei terminali remoti, usati dall'app Terminale), API, repository, installazione di app e moduli, aggiornamenti di lilOS (releases/ e current.json in un lilOS installato), riga di comando; run.js lo avvia, lo riavvia e prova le versioni nuove
 examples/apps/note/     app di esempio (lilos.json, index.js)
 src/                    il sistema, costruito sull'SDK
   main.js               avvio: accesso e collegamento al kernel (boot/), poi system.js

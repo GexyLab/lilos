@@ -669,7 +669,7 @@ if (net.available) {
 
 ### `term`
 
-Terminali remoti (app **Terminale remoto**: SSH, Telnet, rlogin, SUPDUP; ogni protocollo è un modulo del kernel): gli host che l'utente ha salvato e le sessioni aperte nel kernel. Funziona solo **collegato al kernel**. Le sessioni vivono nel kernel: una sessione continua senza finestra e si chiude dopo 10 minuti senza; una pagina che si ricollega riceve lo schermo com'era. Il contratto dei moduli, gli endpoint e le scelte sono in [Terminali remoti](#terminali-remoti-term-apitermjs) e in [D61](../interna/decisioni.md#d61-i-terminali-remoti-le-sessioni-vivono-nel-kernel-un-websocket-nostro). Un'app installata non usa questo oggetto: passa da [`lilos.term`](#windowlilos-bridgejs).
+Terminali remoti (usati dall'app di sistema **Terminale**: SSH, Telnet, rlogin, SUPDUP; ogni protocollo è un modulo del kernel): gli host che l'utente ha salvato e le sessioni aperte nel kernel. Funziona solo **collegato al kernel**. Le sessioni vivono nel kernel: una sessione continua senza finestra e si chiude dopo 10 minuti senza; una pagina che si ricollega riceve lo schermo com'era. Il contratto dei moduli, gli endpoint e le scelte sono in [Terminali remoti](#terminali-remoti-term-apitermjs) e in [D61](../interna/decisioni.md#d61-i-terminali-remoti-le-sessioni-vivono-nel-kernel-un-websocket-nostro). Un'app installata non usa questo oggetto: passa da [`lilos.term`](#windowlilos-bridgejs).
 
 | Membro | Descrizione |
 | --- | --- |
@@ -3130,7 +3130,7 @@ Arrivano sul flusso `/api/services-events` dell'utente (come quelli dei moduli):
 Il servizio `fs` può avere, oltre a `read` e `write`, due metodi facoltativi per i contenuti grandi (senza, il kernel ripiega su `read`/`write`, con il file intero in memoria): `readStream(principal, id, { start })` → `Readable` dal byte `start`, e `writeFrom(principal, id, source, { signal })` → dimensione, che scrive da uno stream e rende il contenuto quello del file solo quando è arrivato tutto. `GET /api/fs/content/:id?raw=1` li usa per mandare i byte in streaming, con `Content-Length` (senza `raw` resta il testo, letto per intero). `fs-postgres_1.1.0` li ha: se un file viene riscritto mentre si legge (i suoi pezzi spariscono), `readStream` lancia «Il file è cambiato mentre veniva letto» invece di restituire un file più corto. `PUT /api/fs/content/:id` non è cambiato.
 ### Terminali remoti (`term/`, `api/term.js`)
 
-I terminali SSH, Telnet, rlogin e SUPDUP dell'app **Terminale remoto** stanno nel kernel. Motivi e alternative scartate: [D61](../interna/decisioni.md#d61-i-terminali-remoti-le-sessioni-vivono-nel-kernel-un-websocket-nostro). Come per la Rete, i protocolli sono moduli e il kernel ne trova i servizi all'avvio (senza nessuno, `GET /api/term` risponde con elenchi vuoti).
+I terminali SSH, Telnet, rlogin e SUPDUP stanno nel kernel e li usa l'app di sistema **Terminale** (dalla 1.2.0; prima era l'app a parte «Terminale remoto», tolta dal catalogo). Un'app di terze parti li usa con il permesso `term` e [`lilos.term`](#windowlilos-bridgejs). Motivi e alternative scartate: [D61](../interna/decisioni.md#d61-i-terminali-remoti-le-sessioni-vivono-nel-kernel-un-websocket-nostro). Come per la Rete, i protocolli sono moduli e il kernel ne trova i servizi all'avvio (senza nessuno, `GET /api/term` risponde con elenchi vuoti).
 
 | File | Che cosa fa |
 | --- | --- |
@@ -3174,7 +3174,7 @@ Un modulo fornisce un protocollo con un servizio che si chiama `term.<protocollo
 | `secret` | `{ chiave: valore }` dei campi segreti, `{}` se non ce ne sono. Il kernel la scorda appena la sessione è collegata |
 | `cols`, `rows` | La dimensione dello schermo |
 | `term` | Il tipo di terminale da annunciare (`'xterm-256color'`) |
-| `cwd` | Una cartella in cui partire, o `null` (lo usa solo SSH, dalla voce «Apri terminale SSH qui») |
+| `cwd` | Una cartella in cui partire, o `null` (lo usa solo SSH, dalla voce «Apri terminale SSH qui» del Terminale) |
 | `ask(prompt, { echo = false })` | `Promise<string>`. Chiede una riga all'utente **nel terminale stesso** (una password che il server vuole): scrive `prompt` sullo schermo e legge quello che l'utente digita fino a Invio. Si rifiuta se l'utente rinuncia con Ctrl+C o Ctrl+D (errore con `net: 'cancelled'`). Una domanda alla volta |
 | `confirm(trust)` | `Promise<boolean>`. La chiave o il certificato che il server ha mostrato, `{ kind: 'ssh' \| 'tls', fingerprint, text }`. Vale `true` se è quella già confermata per questo protocollo, host e porta, o se l'utente la conferma ora (la pagina riceve `{ t: 'trust' }`, la risposta arriva col socket); `false` se rifiuta o chiude. Il kernel la ricorda |
 | `print(text)` | Una riga per l'utente nel terminale (che cosa sta succedendo) |
@@ -3573,9 +3573,9 @@ Il OneDrive dell'utente (personale, o di lavoro o dell'istituto) in Rete, tramit
 | Cartelle condivise | L'elenco «Condivisi con me» (`sharedWithMe`) è deprecato e Microsoft lo spegne a novembre 2026, senza sostituto ufficiale: il modulo non lo usa. Con `shared` acceso, i collegamenti che l'utente ha aggiunto a «I miei file» (onedrive.com → Aggiungi collegamento) compaiono come cartelle e se ne legge il contenuto sul drive a cui puntano; con `shared` spento i collegamenti non compaiono |
 | Provarlo | `loginUrl` e `graphUrl` nella configurazione sostituiscono gli indirizzi di Microsoft (solo per i test) |
 
-### Protocolli di terminale: `term-ssh_1.0.0`, `term-telnet_1.0.0`, `term-rlogin_1.0.0`, `term-supdup_1.0.0`
+### Protocolli di terminale: `term-ssh_1.0.1`, `term-telnet_1.0.0`, `term-rlogin_1.0.0`, `term-supdup_1.0.0`
 
-Quattro moduli (`provides: ["term.<protocollo>"]`, `requires: []`, nessuna configurazione), ciascuno col suo `README.md`. Seguono il contratto di [Terminali remoti](#protocolli-il-servizio-termprotocollo). Sono attivi nel `config.json` di sviluppo; altrove un amministratore li installa dall'AppStore (scheda Kernel) o li aggiunge a `modules`. Solo `term-ssh` ha una dipendenza (`ssh2` 1.17.0): `npm run kernel:setup`.
+Quattro moduli (`provides: ["term.<protocollo>"]`, `requires: []`, nessuna configurazione), ciascuno col suo `README.md`. Seguono il contratto di [Terminali remoti](#protocolli-il-servizio-termprotocollo). Sono attivi nel `config.json` di sviluppo; altrove un amministratore li installa dall'AppStore (scheda Kernel) o li aggiunge a `modules`. Solo `term-ssh` ha una dipendenza (`ssh2` 1.17.0): `npm run kernel:setup`. `term-ssh` 1.0.1 corregge un errore: se l'utente impiegava più di 20 secondi a confermare la chiave del server, il timer della connessione la chiudeva e la risposta in ritardo faceva lanciare un errore a ssh2 fuori dal processo del kernel, che si fermava. Ora il timer si ferma quando il server risponde e una risposta in ritardo è ignorata.
 
 | Modulo | Servizio | Campi | Note |
 | --- | --- | --- | --- |

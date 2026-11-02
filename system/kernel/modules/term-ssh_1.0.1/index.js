@@ -166,9 +166,18 @@ const driver = {
           });
         },
         hostVerifier: (raw, verify) => {
+          // The server answered: the user may take their time to read and confirm its key
+          clearTimeout(timer);
           const fingerprint = `SHA256:${createHash('sha256').update(raw).digest('base64').replace(/=+$/, '')}`;
           shown = { kind: 'ssh', fingerprint, text: `${keyType(raw)} ${fingerprint}`.replace(/[^\x20-\x7e]/g, '').slice(0, 120) };
-          ctx.confirm(shown).then(ok => { refused = !ok; verify(ok); }, () => { refused = true; verify(false); });
+          // An answer that comes after the connection ended (closed by the server, the user gave up)
+          // must not reach ssh2: its handshake is gone, and verify() would throw out of the kernel
+          const answer = ok => {
+            refused = !ok;
+            if (settled) return;
+            try { verify(ok); } catch (err) { fail(connectionError(err)); }
+          };
+          ctx.confirm(shown).then(answer, () => answer(false));
         },
       };
       try {

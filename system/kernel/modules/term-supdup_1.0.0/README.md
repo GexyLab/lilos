@@ -1,6 +1,6 @@
 # term-supdup
 
-Modulo del kernel che aggiunge il protocollo **SUPDUP** al Terminale remoto: lo schermo dei sistemi
+Modulo del kernel che aggiunge il protocollo **SUPDUP** alle sessioni remote del Terminale: lo schermo dei sistemi
 **ITS** del MIT (e di chi parla lo stesso protocollo), sulla porta TCP 95.
 
 - Il server parla SUPDUP, la pagina parla xterm: il modulo traduce nei due sensi. I codici di

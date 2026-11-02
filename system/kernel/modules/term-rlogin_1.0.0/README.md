@@ -1,6 +1,6 @@
 # term-rlogin
 
-Modulo del kernel per i terminali remoti **rlogin** (RFC 1282, app Terminale remoto): i vecchi sistemi Unix.
+Modulo del kernel per i terminali remoti **rlogin** (RFC 1282, sessioni remote del Terminale): i vecchi sistemi Unix.
 
 - Il server chiede la password nel terminale, a meno che non si fidi del client (`.rhosts`).
 - La dimensione della finestra va al server dopo l'accesso e a ogni cambio (Node non vede i dati urgenti con cui il server la chiede).

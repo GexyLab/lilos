@@ -568,7 +568,7 @@ Apri la connessione dalla barra a sinistra o dalla cartella **Rete**: lilOS legg
 - I nomi che il server dà e che lilOS ritiene pericolosi (con `..`, caratteri di controllo o simboli che invertono il verso del testo) non compaiono e non si trasferiscono. I collegamenti a cartelle (scorciatoie del server) si vedono ma lilOS non ci entra quando copia, e se li elimini si toglie solo il collegamento. Una cartella può mostrare al massimo 50 000 elementi.
 - Se più persone usano lilOS con un accesso, lilOS non si collega a questo computer né a indirizzi speciali (non può essere un server «locale»); la rete di casa o dell'ufficio è permessa, salvo che chi amministra lo vieti.
 - Tag, collegamenti alle app e dati delle app non si possono mettere sui file del server.
-- Su una connessione SFTP, con [Terminale remoto](#terminale-remoto) installato, il tasto destro ha **Apri terminale SSH qui**.
+- Su una connessione SFTP, con i moduli dei terminali remoti attivi, il tasto destro ha **Apri terminale SSH qui**.
 
 ### Copiare trascinando
 
@@ -962,35 +962,55 @@ Con il doppio clic su un file `.zip` si apre la finestra di Zip, con l'elenco di
 - Con una selezione che mescola archivi `.zip` e altri elementi la voce **Comprimi** non compare.
 - Serve una versione di lilOS con i sottomenu per le voci delle app.
 
-## Terminale remoto
+## Terminale
 
-**Terminale remoto** apre il terminale di un altro computer dentro lilOS, in una finestra con le schede: **SSH** (cifrato, il più usato), **Telnet**, **rlogin** e **SUPDUP** (i protocolli di router, vecchi sistemi Unix e dei calcolatori storici del MIT). Non c'è di serie: un amministratore lo installa dall'[AppStore](#lappstore). Per funzionare servono anche i moduli dei protocolli che vuoi usare (`term-ssh`, `term-telnet`, `term-rlogin`, `term-supdup`), che un amministratore installa dall'AppStore, nella scheda **Kernel**. Senza nessun modulo l'app lo dice e non può collegarsi a niente. All'installazione chiede di poter aprire terminali remoti, di leggere e scrivere i file della tua home (per le chiavi private e per le registrazioni) e di aggiungere voci ai menu.
+**Terminale** è la finestra dei comandi di lilOS. Ogni shell è una **scheda**: il pulsante **+** ne apre un'altra, nella stessa cartella. Con lo stesso Terminale ti colleghi anche al terminale di un altro computer: **SSH** (cifrato, il più usato), **Telnet**, **rlogin** e **SUPDUP** (i protocolli di router, vecchi sistemi Unix e dei calcolatori storici del MIT). Le sessioni remote hanno ciascuna la loro scheda; la shell di lilOS resta com'era.
 
-Il collegamento al server lo fa lilOS sul computer in cui gira, non il tuo browser. Per questo le sessioni restano aperte anche se chiudi la finestra o ricarichi la pagina.
+Terminale è un'app di sistema, c'è già. Per i collegamenti remoti servono però i moduli dei protocolli che vuoi usare (`term-ssh`, `term-telnet`, `term-rlogin`, `term-supdup`), che un amministratore installa dall'[AppStore](#lappstore), nella scheda **Kernel**. Senza nessun modulo il Terminale lo dice e non può collegarsi a niente. L'app chiede di poter aprire terminali remoti, di leggere e scrivere i file della tua home (per le chiavi private e per le registrazioni) e di aggiungere voci ai menu.
 
-### Collegarsi
+Il collegamento al server lo fa lilOS sul computer in cui gira, non il tuo browser. Per questo le sessioni remote restano aperte anche se chiudi la finestra o ricarichi la pagina.
 
-- **Connessione rapida.** Nella scheda **Inizio** scrivi la riga come in un terminale, per esempio `ssh utente@server -p 2222`, `telnet 192.168.1.1 23`, `rlogin -l utente server` o `supdup its.example`, oppure un indirizzo come `ssh://utente@server`, e premi **Connetti**. Con **Salva come host** la connessione resta per un'altra volta.
-- **Host salvati.** Nella barra a sinistra (**Host salvati**) tieni le connessioni che usi di più, anche in cartelle. Un clic su un host lo apre in una nuova scheda; da **Modifica** cambi nome, cartella, indirizzo e, in **Avanzate**, il tipo di terminale, la codifica dei caratteri (UTF-8, ISO-8859-1, ISO-8859-15, CP437) e il tasto Backspace. Gli host sono tuoi: gli altri utenti non li vedono.
-- **La password.** Con **Ricorda password e passphrase** la password si salva cifrata e la pagina non la rivede più. Se non la salvi, la chiede il server nel terminale stesso, come fa `ssh`: la scrivi lì (non si vede mentre digiti) e premi Invio. **Ctrl C** rinuncia. Per SSH puoi anche entrare con una chiave privata: è un file di lilOS, per esempio `id_ed25519`.
-- **Aprire da altre parti.** Nel File Manager, dentro una connessione **SFTP** della cartella [Rete](#rete), il tasto destro su un file o una cartella ha **Apri terminale SSH qui**: apre una sessione sullo stesso server, nella stessa cartella, con le stesse credenziali. Nel Terminale di lilOS i comandi `ssh`, `telnet`, `rlogin` e `supdup` aprono una scheda di Terminale remoto.
+Prima c'era un'app a parte, **Terminale remoto**: ora è dentro il Terminale e non è più nell'AppStore. Se l'avevi installata puoi disinstallarla. I tuoi host e le sessioni ancora aperte non si perdono: li trovi qui.
+
+### Sessioni remote nel Terminale
+
+Scrivi il comando nella shell. La sessione si apre in una **scheda nuova** e la shell scrive «Aperta in una scheda nuova: …».
+
+- `ssh utente@server -p 2222`, `telnet 192.168.1.1 23`, `rlogin -l utente server`, `supdup its.example`. Va bene anche un indirizzo come `ssh://utente@server`.
+- Al posto dell'indirizzo puoi scrivere il nome di un host salvato: `ssh web-01`.
+- `sessions` elenca le sessioni remote ancora aperte su lilOS. `sessions 2` mostra la numero 2 in una scheda.
+
+### Host salvati
+
+Il pulsante a sinistra delle schede apre la barra laterale.
+
+- **Host.** Le connessioni che usi di più, anche in cartelle. Un clic su un host lo apre in una nuova scheda. Il tasto destro dà **Connetti** e **Modifica l'host**. Il **+** apre la finestra del nuovo host, con i campi del protocollo scelto, **Ricorda password e passphrase** e, in **Avanzate**, il tipo di terminale, la codifica dei caratteri (UTF-8, ISO-8859-1, ISO-8859-15, CP437) e il tasto Backspace. Gli host sono tuoi: gli altri utenti non li vedono.
+- **Ancora attive.** Le sessioni che girano ma non sono in questa finestra, ognuna con **Riprendi**.
+
+### La password
+
+Con **Ricorda password e passphrase** la password si salva cifrata e la pagina non la rivede più. Se non la salvi, la chiede il server nel terminale stesso, come fa `ssh`: la scrivi lì (non si vede mentre digiti) e premi Invio. **Ctrl C** rinuncia. Per SSH puoi anche entrare con una chiave privata: è un file di lilOS, per esempio `id_ed25519`.
+
+### Aprire da altre parti
+
+Nel File Manager, dentro una connessione **SFTP** della cartella [Rete](#rete), il tasto destro su un file o una cartella ha **Apri terminale SSH qui**: apre una scheda del Terminale sullo stesso server, nella stessa cartella, con le stesse credenziali.
 
 ### Confermare il server
 
-Alla prima connessione a un server SSH (o a un Telnet su TLS con un certificato che lilOS non riconosce) compare **Conferma il server**, con l'impronta della sua chiave. Controllala con chi gestisce il server e premi **È il mio server, connetti**: lilOS la ricorda per quel server. Se più avanti la chiave cambia compare **La chiave di … è cambiata**, in rosso: può essere un server reinstallato, ma anche qualcuno che si mette in mezzo. Vai avanti solo se sai perché è cambiata.
+Alla prima connessione a un server SSH (o a un Telnet su TLS con un certificato che lilOS non riconosce) compare una finestra con l'impronta della sua chiave. Controllala con chi gestisce il server e premi **Continua**: lilOS la ricorda per quel server. **Annulla** non si collega. Puoi prenderti il tempo che serve per controllare. Se più avanti la chiave cambia, la finestra ha l'icona di errore e dice «Continua solo per fidarti della nuova chiave»: può essere un server reinstallato, ma anche qualcuno che si mette in mezzo. Vai avanti solo se sai perché è cambiata.
 
-### Lavorare nel terminale
+### Lavorare in una scheda remota
 
-- Il terminale funziona come i programmi di oggi si aspettano: colori, mouse, schermo intero per `vim` o `htop`, incolla protetto, caratteri larghi.
+- La scheda funziona come i programmi di oggi si aspettano: colori, mouse, schermo intero per `vim` o `htop`, incolla protetto, caratteri larghi.
 - **Copiare**: seleziona con il mouse. **Incollare**: **Ctrl Maiusc V**. Cercare nello storico: **Ctrl Maiusc F**.
 - Il menu **Tasti** manda al server i tasti che il browser tiene per sé (Ctrl W, Ctrl T, Ctrl N…) e, per Telnet, **Invia Break**, **Interrompi il processo** e **Ci sei? (AYT)**.
-- **Registra la sessione in un file** salva quello che passa sullo schermo in un file di testo della tua home. Si ferma da solo a 8 MB.
-- Nella barra in basso vedi se la connessione è **Cifrata** o **Non cifrata**.
+- **Registra la sessione in un file** salva quello che passa sullo schermo in un file di testo della tua home (di solito in `Documenti`, con il nome dell'host e la data). Si ferma da solo a 8 MB.
+- Nella barra in basso vedi se la connessione è **Cifrata** o **Non cifrata**, l'indirizzo, la chiave del server e la dimensione dello schermo.
 - Se la connessione cade o il server la chiude, la scheda dice **Connessione chiusa** e ha **Riconnetti**.
 
 ### Sessioni che restano aperte
 
-Chiudendo la finestra (o ricaricando la pagina) le sessioni **non** si chiudono: continuano a girare sul computer di lilOS. Riaprendo l'app le trovi in **Sessioni ancora attive**, con **Riprendi**: lo schermo torna com'era, anche con `vim` o `htop` aperti. Se la sessione è aperta in un'altra finestra, qui la prendi tu e l'altra mostra **La sessione è stata aperta in un'altra finestra**.
+Chiudendo la finestra (o ricaricando la pagina) le sessioni remote **non** si chiudono: continuano a girare sul computer di lilOS. Le shell di lilOS invece finiscono. Riaprendo il Terminale trovi le sessioni in **Ancora attive**, con **Riprendi**: lo schermo torna com'era, anche con `vim` o `htop` aperti. Se la sessione è aperta in un'altra finestra, qui la prendi tu e l'altra mostra **La sessione è stata aperta in un'altra finestra**.
 
 - Una sessione senza finestra si **chiude da sola dopo 10 minuti** (l'elenco dice «si chiude tra … minuti»). Quello che stava girando sul server si ferma con lei.
 - Ogni utente può averne **10 aperte** insieme.
@@ -998,12 +1018,13 @@ Chiudendo la finestra (o ricaricando la pagina) le sessioni **non** si chiudono:
 
 ### Da sapere
 
-- **Telnet, rlogin e SUPDUP non cifrano**: password comprese, tutto passa in chiaro sulla rete. L'app lo scrive (**Connessione non cifrata**) quando li configuri e nella barra in basso. Usali solo su reti di cui ti fidi, o con apparecchi che non hanno SSH.
+- **Telnet, rlogin e SUPDUP non cifrano**: password comprese, tutto passa in chiaro sulla rete. Il Terminale lo scrive (**Connessione non cifrata**) quando li configuri e nella barra in basso. Usali solo su reti di cui ti fidi, o con apparecchi che non hanno SSH.
 - **rlogin**: molti server accettano solo client che si collegano da una porta riservata. lilOS lo fa solo se il computer del kernel lo permette (Windows, o il kernel avviato come amministratore del sistema); altrimenti il server chiude subito e il terminale lo spiega.
 - **SUPDUP**: la dimensione dello schermo si comunica solo all'inizio; ridimensionando la finestra il server continua con quella di partenza.
-- L'app non può leggere gli appunti da sola: per incollare serve **Ctrl Maiusc V**.
+- Il Terminale non può leggere gli appunti da solo: per incollare serve **Ctrl Maiusc V**.
 - Non ci sono ancora l'inoltro di porte, l'agente SSH e la connessione attraverso un altro server (host di salto).
-- Il terminale usa [xterm.js](https://xtermjs.org) (licenza MIT); i riconoscimenti sono in **Informazioni**.
+- Le schede remote usano [xterm.js](https://xtermjs.org) (licenza MIT); i riconoscimenti sono nella pagina del Terminale nell'AppStore.
+- Serve una versione di lilOS dalla 1.12.0.
 
 ## Annullare e ripetere
 
@@ -1590,7 +1611,7 @@ Il salvataggio avviene **nel tuo spazio su lilOS**, non nel browser:
 - cancellare i dati di navigazione del sito non cancella la tua scrivania (vedi [Accedere e uscire](#accedere-e-uscire) per i dati che il browser aveva prima);
 - se lilOS non riesce a salvare, compare un avviso e riprova da solo; non chiudere la pagina finché non compare **Modifiche salvate**;
 - le connessioni della **Rete** (nome, indirizzo, protocollo) sono salvate nel tuo spazio su lilOS; le password (o, per OneDrive, l'accesso) solo se scegli **Ricorda la password** (**Ricorda l'accesso**), e cifrate. I file che stanno su un server restano sul server: lilOS non ne tiene una copia;
-- gli host di **Terminale remoto** (nome, cartella, indirizzo, impostazioni) sono salvati nel tuo spazio su lilOS, come le connessioni della Rete: le password solo se scegli **Ricorda password e passphrase**, e cifrate. Le sessioni aperte non si salvano: durano finché il kernel resta acceso e al più 10 minuti senza finestra;
+- gli host del **Terminale** (nome, cartella, indirizzo, impostazioni) sono salvati nel tuo spazio su lilOS, come le connessioni della Rete: le password solo se scegli **Ricorda password e passphrase**, e cifrate. Le sessioni aperte non si salvano: durano finché il kernel resta acceso e al più 10 minuti senza finestra;
 - un'impostazione o un file cambiato in due schede insieme: vince l'ultima che salva. Usa una scheda sola.
 
 ## Tipi di file
