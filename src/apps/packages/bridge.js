@@ -55,6 +55,13 @@ import { typeKey } from '../../input/sendKey.js';
  *                                        openHere(fileId) → session (SSH where a handed file of an SFTP
  *                                        connection is), close(id), attach(id, { cols, rows }) → MessagePort
  *                                        (windows only). Event 'term' ('hosts' | 'sessions'): they changed
+ *   lilos.serial.supported() → boolean   serial ports of the user's computer (permission serial; the
+ *                                        SDK's serial.js): ports() → [port], request({ filters }) → port | null
+ *                                        (after a click), forget(id), open(id, options) → MessagePort
+ *                                        (windows only). Event 'serial' ('ports'): one was connected or went
+ *   lilos.kernel.request(module, method, path, body) → JSON    the API of a kernel module
+ *                                        (permission kernel:<module>; the SDK's kernel.module()),
+ *                                        channel(module, path) → MessagePort, a WebSocket of it (windows only)
  *
  * Apps with sdk '2' export one function per entry point: main({ lilos, root, args }) for windows
  * (root: where to draw; it may return a function lilOS calls when the window closes),
@@ -147,6 +154,17 @@ export function lilosApi(call, info, i18nApi) {
       openHere: id => call('term.openHere', id),
       close: id => call('term.close', id),
       attach: (id, size) => call('term.attach', id, size ?? null),
+    }),
+    serial: Object.freeze({
+      supported: () => call('serial.supported'),
+      ports: () => call('serial.ports'),
+      request: options => call('serial.request', options ?? null),
+      forget: id => call('serial.forget', id),
+      open: (id, options) => call('serial.open', id, options ?? null),
+    }),
+    kernel: Object.freeze({
+      request: (module, method, path, body) => call('kernel.request', module, method, path, body === undefined ? null : body),
+      channel: (module, path) => call('kernel.channel', module, path),
     }),
   });
   const answer = async (data, from) => {

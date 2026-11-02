@@ -22,7 +22,7 @@ import { termRoutes } from './api/term.js';
 import { Network } from './net/network.js';
 import { Transfers } from './net/transfers.js';
 import { Terminals } from './term/terminals.js';
-import { refuseUpgrade } from './ws.js';
+import { acceptSocket, refuseUpgrade } from './ws.js';
 import { SystemReleases } from './apps/systemPackage.js';
 import { webFiles } from './web.js';
 import { AppServices } from './apps/appServices.js';
@@ -74,10 +74,22 @@ export class Kernel {
     if (!config.modules.some(m => m)) log.warn('Nessun modulo nella configurazione');
     const route = (method, path, handler) => this.router.add(method, path, ctx => handler({ ...ctx, principal: ctx.principal ?? fail('unauthorized', 'Accesso richiesto') }));
     const emit = (owner, event, data) => this.events.emit('user', { owner, event, data });
+    // A module's WebSocket: signed-in users only; the module takes the connection with accept()
+    const socket = (path, handler) => this.sockets.add('GET', path, async ({ req, socket: raw, head, params, query, principal }) => {
+      if (!principal) fail('unauthorized', 'Accesso richiesto');
+      let ws = null;
+      const accept = ({ maxMessage = 1 << 20 } = {}) => {
+        if (ws) return ws;
+        ws = acceptSocket(req, raw, head, { maxMessage }) ?? fail('invalid', 'Serve un WebSocket');
+        return ws;
+      };
+      await handler({ principal, params, query, accept });
+      if (!ws) fail('forbidden', 'Connessione rifiutata');
+    });
     this.settingSecrets = new Secrets(join(DATA_DIR, 'net'));
     for (const mod of await resolveModules(MODULES_DIR, config.modules)) {
       await openSecretSettings(mod, this.settingSecrets, log);
-      this.modules.push(await startModule(mod, this.services, { route, emit }));
+      this.modules.push(await startModule(mod, this.services, { route, emit, socket, dataDir: join(DATA_DIR, 'modules-data') }));
       log.info(`Modulo avviato: ${mod.name} ${mod.version} (${mod.provides.join(', ') || 'nessun servizio'})`);
     }
     if (!this.services.has('fs')) throw new Error('Nessun modulo fornisce il servizio "fs": lilOS non ha un file system');

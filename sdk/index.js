@@ -20,6 +20,7 @@ export { UndoStack, history } from './core/history.js';
 export { fs } from './core/fs.js';
 export { net } from './core/net.js';
 export { term } from './core/term.js';
+export { serial } from './core/serial.js';
 export { pipes, PipeStopped } from './core/pipeCatalog.js';
 export { automation } from './core/automation.js';
 export { tags, TAG_COLORS } from './core/tags.js';

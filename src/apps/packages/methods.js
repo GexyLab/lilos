@@ -1,4 +1,4 @@
-import { fs, storage, pipes, bus, notifications, net, term, automation } from '@lilos/sdk';
+import { fs, storage, pipes, bus, notifications, net, term, serial, kernel, automation } from '@lilos/sdk';
 import { coversPath } from './permissions.js';
 import { callEntrypoint, connectEntrypoint } from '../entrypoints.js';
 import { openFile } from '../open.js';
@@ -41,10 +41,12 @@ function content(data) {
  */
 export function hostMethods({ pkg, win = null, handles, readOnly = new Set(), instance = null, pipe = null }) {
   const perms = pkg.manifest.permissions ?? [];
-  // The channels of remote terminals this window holds: they close with it (the sessions go on)
+  // The channels this window holds (remote terminals, serial ports, kernel modules): they close with it
   const channels = new Set();
   win?.on('destroy', () => channels.forEach(port => port.detach()));
   const terminal = () => (perms.includes('term') ? term : fail('Permesso negato: term'));
+  const ports = () => (perms.includes('serial') ? serial : fail('Permesso negato: serial'));
+  const moduleApi = name => (typeof name === 'string' && perms.includes(`kernel:${name}`) ? kernel.module(name) : fail(`Permesso negato: kernel:${String(name).slice(0, 40)}`));
   const target = (ref, write) => {
     if (handles.has(ref)) return fs.get(ref) ?? fail('Il file non esiste più');
     if (readOnly.has(ref)) return write ? fail('Il file è stato passato solo da leggere') : fs.get(ref) ?? fail('Il file non esiste più');
@@ -217,6 +219,30 @@ export function hostMethods({ pkg, win = null, handles, readOnly = new Set(), in
       terminal();
       if (!win) fail('Solo una finestra mostra un terminale');
       const port = term.attach(String(id), plainObject(size));
+      channels.add(port);
+      return port;
+    },
+    'serial.supported': () => ports().supported,
+    'serial.ports': () => ports().ports(),
+    'serial.request': options => {
+      if (!win) fail('Solo una finestra sceglie una porta');
+      const filters = plainObject(options).filters;
+      return ports().request({ filters: Array.isArray(filters) ? filters.slice(0, 50).map(plainObject) : [] });
+    },
+    'serial.forget': id => (win ? ports().forget(String(id)) : fail('Solo una finestra dimentica una porta')),
+    'serial.open': async (id, options) => {
+      if (!win) fail('Solo una finestra apre una porta');
+      const port = await ports().open(String(id), plainObject(options));
+      channels.add(port);
+      return port;
+    },
+    'kernel.request': (name, method, path, body) => {
+      if (!['GET', 'POST', 'PUT', 'DELETE'].includes(String(method).toUpperCase())) fail('Metodo non valido');
+      return moduleApi(name).request(method, String(path), body === null ? undefined : body);
+    },
+    'kernel.channel': (name, path) => {
+      if (!win) fail('Solo una finestra apre un canale');
+      const port = moduleApi(name).channel(String(path));
       channels.add(port);
       return port;
     },

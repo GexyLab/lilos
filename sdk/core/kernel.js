@@ -65,6 +65,58 @@ class Kernel extends Emitter {
     return blob ? res.blob() : text ? res.text() : res.json();
   }
 
+  /**
+   * A live channel with the kernel: a WebSocket to /api<path> behind a MessagePort. Strings
+   * (up to `maxText` characters) and bytes (ArrayBuffer or typed array, up to `maxBytes`) go both
+   * ways as they are; when the socket closes the port gets the string '{"t":"gone","code":…}' and
+   * closes. port.detach() closes the socket (for lilOS: the window that held it closed).
+   */
+  channel(path, { maxText = 1 << 20, maxBytes = 1 << 20 } = {}) {
+    const url = new URL(API + path, location.href);
+    url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
+    const socket = new WebSocket(url);
+    socket.binaryType = 'arraybuffer';
+    const { port1, port2 } = new MessageChannel();
+    const waiting = [];
+    socket.onopen = () => waiting.splice(0).forEach(m => socket.send(m));
+    socket.onmessage = e => port1.postMessage(e.data);
+    socket.onclose = e => {
+      port1.postMessage(JSON.stringify({ t: 'gone', code: e.code }));
+      port1.close();
+    };
+    port1.onmessage = e => {
+      const data = e.data;
+      if (typeof data === 'string') { if (data.length > maxText) return; }
+      else if (data instanceof ArrayBuffer || ArrayBuffer.isView(data)) { if (data.byteLength > maxBytes) return; }
+      else return;
+      if (socket.readyState === WebSocket.OPEN) socket.send(data);
+      else if (socket.readyState === WebSocket.CONNECTING) waiting.push(data);
+    };
+    port2.detach = () => socket.close(1000);
+    return port2;
+  }
+
+  /**
+   * The API of a kernel module (its ctx.route and ctx.socket): request(method, path, body) is
+   * request() on /modules/<name><path>, channel(path) a channel() there, with messages up to
+   * 16 MiB (the module sets its own limit when it accepts the socket).
+   */
+  module(name) {
+    if (!/^[a-z][a-z0-9-]{0,40}$/.test(String(name))) throw new Error('Modulo non valido');
+    const base = `/modules/${name}`;
+    // The same paths a module may declare (modules.js): no dots, so no '..' either; /update and
+    // /settings are the kernel's (an admin's management of the module), never the module's
+    const checked = path => {
+      const p = String(path);
+      if (!/^(\/[\w:-]+)+$/.test(p) || /^\/(update|settings)(\/|$)/i.test(p)) throw new Error('Percorso non valido');
+      return base + p;
+    };
+    return Object.freeze({
+      request: (method, path, body) => this.request(String(method).toUpperCase(), checked(path), body),
+      channel: path => this.channel(checked(path), { maxText: 16 << 20, maxBytes: 16 << 20 }),
+    });
+  }
+
   /** { mode, user }: who is signed in (user null if nobody). */
   async session() {
     const s = await this.request('GET', '/session');

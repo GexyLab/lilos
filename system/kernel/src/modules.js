@@ -135,12 +135,19 @@ export async function resolveModules(modulesDir, wanted) {
  *   ctx.service(name)                 only services listed in "requires"
  *   ctx.route(method, path, handler)  an HTTP endpoint at /api/modules/<name><path>, for signed-in
  *                                     users only: handler({ principal, params, query, json() }) → JSON
+ *   ctx.socket(path, handler)         a WebSocket at /api/modules/<name><path> (GET), for signed-in
+ *                                     users only: handler({ principal, params, query, accept }) where
+ *                                     accept({ maxMessage }) → ws (ws.js) takes the connection; a
+ *                                     handler that throws or does not accept refuses it
+ *   ctx.dataDir                       a folder for the module's data that outlives its versions
+ *                                     (<data>/modules-data/<name>): made by the module when it needs it
  *   ctx.emit(userId, event, data)     tells that user's open lilOS pages (the kernel's event stream,
  *                                     /api/services-events): event '<word>.<word>', data JSON
  */
 const EVENT = /^[a-z][a-z0-9-]{0,30}\.[a-z][a-zA-Z0-9.-]{0,40}$/;
+const PATH = /^(\/[\w:-]+)+$/;
 
-export async function startModule(mod, services, { route, emit }) {
+export async function startModule(mod, services, { route, emit, socket, dataDir }) {
   const { default: impl } = await import(pathToFileURL(join(mod.dir, 'index.js')).href);
   const listeners = [];
   if (!impl || typeof impl.init !== 'function') throw new Error(`${mod.name}: index.js non esporta { init }`);
@@ -148,6 +155,7 @@ export async function startModule(mod, services, { route, emit }) {
     name: mod.name,
     version: mod.version,
     dir: mod.dir,
+    dataDir: join(dataDir, mod.name),
     config: mod.config,
     log: logger(mod.name),
     fail,
@@ -161,9 +169,13 @@ export async function startModule(mod, services, { route, emit }) {
       return services.get(name);
     },
     route(method, path, handler) {
-      if (!/^(\/[\w:-]+)+$/.test(path)) throw new Error(`${mod.name}: percorso non valido ${path}`);
+      if (!PATH.test(path)) throw new Error(`${mod.name}: percorso non valido ${path}`);
       if (path === '/update' || path === '/settings') throw new Error(`${mod.name}: ${path} è del kernel (gestione dei moduli)`);
       route(method, `/api/modules/${mod.name}${path}`, handler);
+    },
+    socket(path, handler) {
+      if (!PATH.test(path)) throw new Error(`${mod.name}: percorso non valido ${path}`);
+      socket(`/api/modules/${mod.name}${path}`, handler);
     },
     onConfig(fn) {
       if (typeof fn === 'function') listeners.push(fn);

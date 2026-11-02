@@ -7,3 +7,5 @@ config.json.tmp
 /net/
 # Saved hosts of the remote terminals (term/terminals.js)
 /term/
+# Data of the kernel modules (ctx.dataDir: tools, caches)
+/modules-data/

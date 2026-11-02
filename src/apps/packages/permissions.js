@@ -29,6 +29,7 @@ const LABELS = {
   'auth.remote': 'Accedere al proprio servizio', 'apps.manage': 'Installare e rimuovere app', 'workspaces.manage': 'Gestire i workspace',
   'settings.system': 'Cambiare le impostazioni di sistema', pipe: 'Vedere e cambiare ciò che passa dall’evento',
   'pipe.own': 'Gestire i propri file nell’evento',
+  serial: 'Usare le porte seriali e USB del tuo computer (schede come Arduino)', kernel: 'Usare il modulo del kernel',
 };
 
 /** 'fs.read:~/Documenti' → 'Leggere i file in Home/Documenti'. */

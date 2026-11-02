@@ -29,6 +29,8 @@ export const PERMISSIONS = {
   'clipboard.read': { level: 'use', label: 'Leggere gli appunti' },
   net: { level: 'install', label: 'Collegarsi a', param: 'origin' },
   term: { level: 'install', label: 'Aprire terminali remoti (SSH, Telnet…) e usare gli host salvati' },
+  serial: { level: 'install', label: 'Usare le porte seriali e USB del tuo computer (schede come Arduino)' },
+  kernel: { level: 'install', label: 'Usare il modulo del kernel', param: 'module' },
   'media.camera': { level: 'use', label: 'Usare la fotocamera' },
   'media.microphone': { level: 'use', label: 'Usare il microfono' },
   geo: { level: 'use', label: 'Conoscere la posizione' },
@@ -55,6 +57,7 @@ const PARAM = {
     }
   },
   app: v => /^[a-z0-9][a-z0-9.-]{1,63}$/.test(v),
+  module: v => /^[a-z][a-z0-9-]{0,40}$/.test(v),
   event: v => /^[a-z0-9][a-z0-9.-]{0,63}\.[a-z][a-zA-Z0-9]{0,40}$/.test(v),
 };
 
