@@ -2,7 +2,7 @@ import { createServer } from 'node:http';
 import { EventEmitter } from 'node:events';
 import { join } from 'node:path';
 import { loadConfig, DATA_DIR, MODULES_DIR, RELEASE_DIR, SYSTEM_VERSION } from './config.js';
-import { resolveModules, startModule, openSecretSettings } from './modules.js';
+import { resolveModules, startModule, openSecretSettings, REQUIRED_MODULES } from './modules.js';
 import { Secrets } from './net/secrets.js';
 import { Router, send, readJson, cookies, checkOrigin, checkHost, checkSocketOrigin } from './http.js';
 import { KernelError, fail } from './errors.js';
@@ -12,13 +12,15 @@ import { homeRoutes } from './api/home.js';
 import { appRoutes } from './api/apps.js';
 import { Installer } from './apps/installer.js';
 import { Repos } from './apps/repos.js';
-import { ModuleAdmin } from './apps/modulePackage.js';
+import { ModuleAdmin, ensureRequiredModules } from './apps/modulePackage.js';
 import { storeRoutes } from './api/store.js';
 import { serviceRoutes } from './api/services.js';
 import { notificationRoutes } from './api/notifications.js';
 import { systemRoutes } from './api/system.js';
 import { netRoutes } from './api/net.js';
 import { termRoutes } from './api/term.js';
+import { scheduleRoutes } from './api/schedule.js';
+import { Schedules } from './schedule/index.js';
 import { Network } from './net/network.js';
 import { Transfers } from './net/transfers.js';
 import { Terminals } from './term/terminals.js';
@@ -63,13 +65,22 @@ export class Kernel {
     return this.services.get(name) ?? fail('unavailable', `Servizio non disponibile: ${name}`);
   }
 
+  /** The principal of a user by id ({ kind: 'user', id, username, name, role }), or null when there is none. */
+  async userPrincipal(id) {
+    if (!this.multiUser) return id === LOCAL_USER.id ? { kind: 'user', ...LOCAL_USER } : null;
+    const user = await this.services.get('users')?.get(id).catch(() => null);
+    return user ? { kind: 'user', id: user.id, username: user.username, name: user.name, role: user.role } : null;
+  }
+
   /** Ids of the users who hear what the system says (the notifications of its services): the admins. */
   async adminIds() {
     if (!this.multiUser) return [LOCAL_USER.id];
     return (await this.services.get('users')?.list() ?? []).filter(u => u.role === 'admin').map(u => u.id);
   }
 
-  async #start(config) {
+  async #start(loaded) {
+    // The modules lilOS cannot do without, put back before anything starts
+    const config = (await ensureRequiredModules()).length ? await loadConfig() : loaded;
     this.config = config;
     if (!config.modules.some(m => m)) log.warn('Nessun modulo nella configurazione');
     const route = (method, path, handler) => this.router.add(method, path, ctx => handler({ ...ctx, principal: ctx.principal ?? fail('unauthorized', 'Accesso richiesto') }));
@@ -93,6 +104,9 @@ export class Kernel {
       log.info(`Modulo avviato: ${mod.name} ${mod.version} (${mod.provides.join(', ') || 'nessun servizio'})`);
     }
     if (!this.services.has('fs')) throw new Error('Nessun modulo fornisce il servizio "fs": lilOS non ha un file system');
+    for (const [name, service] of Object.entries(REQUIRED_MODULES)) {
+      if (!this.services.has(service)) throw new Error(`Il modulo obbligatorio ${name} non fornisce il servizio "${service}"`);
+    }
     if (!this.multiUser && !LOOPBACK_HOSTS.has(config.host)) {
       throw new Error('Senza un modulo di autenticazione il kernel ascolta solo su questo computer (host 127.0.0.1)');
     }
@@ -104,6 +118,7 @@ export class Kernel {
     this.network = new Network(this);
     this.transfers = new Transfers(this, this.network);
     this.terminals = new Terminals(this);
+    this.schedules = new Schedules(this);
     sessionRoutes(this);
     homeRoutes(this);
     appRoutes(this);
@@ -113,6 +128,7 @@ export class Kernel {
     systemRoutes(this);
     netRoutes(this);
     termRoutes(this);
+    scheduleRoutes(this);
     await this.#bootstrapApps(config.bootstrapApps);
 
     this.#server = createServer((req, res) => this.#handle(req, res));
@@ -128,6 +144,8 @@ export class Kernel {
     this.transfers.start().catch(err => log.error('Trasferimenti all’avvio', err));
     // system:ready — the services an admin chose for everyone
     this.appServices.systemReady().catch(err => log.error('Servizi all’avvio', err));
+    // The scheduler's clock: what was missed while the kernel was off runs now (once)
+    this.schedules.start().catch(err => log.error('Pianificazione all’avvio', err));
   }
 
   /**

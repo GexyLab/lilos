@@ -55,6 +55,30 @@
  *   setOptions(principal, { keep }) → { keep }           how many it keeps (1-200)
  *   notification: { id, at, from, level, text, action, read }
  *   It tells the user's pages with ctx.emit: 'notification.new' { id }, 'notification.change' {}.
+ *
+ * scheduler  Operations at a date and time or repeated, also with lilOS closed (module scheduler).
+ *            REQUIRED: the kernel does not start without it, and puts the module back when it is
+ *            missing (modules.js REQUIRED_MODULES). It keeps the operations, their clock and history;
+ *            what they do is the kernel's (schedule/), which checks it before save() and does it in
+ *            host.run(). Who sees what is the module's: a user their own, an admin everybody's.
+ *   start(host)    the kernel is ready: the clock starts. host:
+ *     rules                          the SDK's scheduleRules.js (checkWhen, nextAfter, gap, moveWhen, RuleError)
+ *     run(task, run, signal) → Promise<{ state?: 'ok' | 'error' | 'waiting' | 'skipped', text, log }>
+ *                                    does it ('waiting': a browser operation and no lilOS open: the run
+ *                                    stays until resolve() or it expires); a throw is an error
+ *     notify(task, run)              tell the owner how it went (the task's options.notify)
+ *     changed(owner, ids)            operations of `owner` changed; ran(run): a run started or ended
+ *   list(principal, { owner, app }) → [task]          get(principal, id) → task | null
+ *   save(principal, task) → task                       without id: a new one (owner: admins may give another)
+ *   remove(principal, ids) → ids                       setEnabled(principal, id, on) → task
+ *   runNow(principal, id) → run                        cancel(principal, runId) → run
+ *   history(principal, { task, owner, limit, before, state }) → [run]   newest first
+ *   pending(principal) → [run]                         its browser runs waiting for lilOS
+ *   resolve(principal, runId, { state, text, log }) → run              a browser run done or skipped
+ *   occurrences(principal, { from, to, owner, task }) → { items, series }   planned and done, ≤ 62 days
+ *   move(principal, id, { at, to, scope: 'this' | 'all' }) → task      only when, never what
+ *   dropApp(appId), dropOwner(userId)                  an app uninstalled, a user removed: theirs go
+ *   task, run, occurrence: see the module (modules/scheduler_*). Events go through host, not ctx.emit.
  */
 export const INTERFACES = {
   auth: ['login', 'session', 'logout', 'logoutAll'],
@@ -62,6 +86,7 @@ export const INTERFACES = {
   fs: ['home', 'stat', 'list', 'tree', 'lookup', 'apply', 'read', 'write', 'remove'],
   runtime: ['start'],
   notifications: ['send', 'list', 'read', 'remove', 'setOptions'],
+  scheduler: ['start', 'list', 'get', 'save', 'remove', 'setEnabled', 'runNow', 'cancel', 'history', 'pending', 'resolve', 'occurrences', 'move', 'dropApp', 'dropOwner'],
 };
 
 export const KERNEL = Object.freeze({ kind: 'kernel' });

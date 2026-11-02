@@ -63,6 +63,7 @@ export function serviceRoutes(kernel) {
     appServices.on('change', onChange);
     appServices.on('notify', onNotify);
     kernel.events.on('user', onUser);
+    kernel.schedules?.pageOpened(user.id);
     const beat = setInterval(() => res.write(': ok\n\n'), HEARTBEAT);
     res.write(': ok\n\n');
     req.on('close', () => {
@@ -70,6 +71,7 @@ export function serviceRoutes(kernel) {
       appServices.off('change', onChange);
       appServices.off('notify', onNotify);
       kernel.events.off('user', onUser);
+      kernel.schedules?.pageClosed(user.id);
     });
   });
 }

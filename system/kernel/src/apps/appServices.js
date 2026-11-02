@@ -23,7 +23,10 @@ import { i18nApi, parseLocales, resolveLocale } from '../../../../sdk/core/i18n.
  * or until its owner signs out. A service chosen for everyone runs only as the system: calls and
  * commands go there, and only admins start or stop it.
  *
- * The service gets args: { reason: 'system:ready' | 'user:login' | 'manual' | 'call', ...params }.
+ * The service gets args: { reason: 'system:ready' | 'user:login' | 'manual' | 'call' | 'schedule', ...params }.
+ * An operation of the scheduler that runs a service (runScheduled) calls it with
+ * { schedule: { task, name, run, params } } (lilos.handle() gets it, from 'scheduler'); when the
+ * service was off it starts for that (reason 'schedule', with the operation's params) and stops after.
  * One that stops by itself starts again after 1 s, 5 s, 30 s; after 3 times within 5 minutes it
  * stays off with its error. Each keeps its last 200 log lines. A new version of the app restarts
  * the ones running with the new code; a removed app stops them.
@@ -249,6 +252,29 @@ export class AppServices extends EventEmitter {
       return await inst.handle.request(data ?? null, from ?? null);
     } catch (err) {
       fail('invalid', `${t.service.label}: ${err.message}`);
+    }
+  }
+
+  /**
+   * An operation of the scheduler (schedule/index.js): the service of its owner (`principal`, null
+   * for the system) gets { schedule: { task, name, run, params } }; what it answers is the result.
+   * One that was off starts for it and stops afterwards.
+   */
+  async runScheduled(principal, app, entry, params, { task, run }) {
+    const service = await this.#service(app, entry);
+    const owner = principal ? principal.id : SYSTEM;
+    const key = this.#key(owner, app, entry);
+    const current = this.#instances.get(key);
+    const wasOn = current && (current.status === 'on' || current.status === 'starting');
+    const inst = wasOn ? current : await this.#start({ service, owner, principal, binding: { app, entry, params } }, 'schedule');
+    await inst.ready;
+    if (inst.status !== 'on') fail('unavailable', `${service.name} non è partito: ${inst.error ?? 'errore'}`);
+    try {
+      return await inst.handle.request({ schedule: { task: task.id, name: task.name, run: run.id, params } }, 'scheduler');
+    } catch (err) {
+      fail('invalid', `${service.label}: ${err.message}`);
+    } finally {
+      if (!wasOn) await this.#stop(inst);
     }
   }
 

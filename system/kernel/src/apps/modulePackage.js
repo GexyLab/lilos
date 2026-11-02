@@ -3,8 +3,8 @@ import { cp, mkdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promis
 import { dirname, join } from 'node:path';
 import { promisify } from 'node:util';
 import { fail } from '../errors.js';
-import { DATA_DIR, MODULES_DIR, loadConfig } from '../config.js';
-import { KERNEL_API, resolveModules, scanModules, isSecretSetting } from '../modules.js';
+import { DATA_DIR, KERNEL_DIR, MODULES_DIR, loadConfig } from '../config.js';
+import { KERNEL_API, REQUIRED_MODULES, resolveModules, scanModules, isSecretSetting } from '../modules.js';
 import { compareVersions, parseVersion } from './manifest.js';
 import { cleanSource, isOfficial, openSource, walk } from './sources.js';
 import { logger } from '../log.js';
@@ -21,6 +21,8 @@ import { checkFields } from '../net/drivers.js';
  *   description, data?: ['users.json']  files the module keeps its data in: carried to the new
  *                                        version on update, and kept (with its folder) on removal
  *   defaultConfig?: {}                   its configuration when it is turned on
+ *   required?: true                      one lilOS cannot do without (modules.js REQUIRED_MODULES):
+ *                                        the AppStore offers no removal, the kernel refuses it
  * Each module folder gets source.json: where it came from ({ type, url, ref, commit, path }).
  */
 const run = promisify(execFile);
@@ -43,6 +45,7 @@ export function checkModule(raw) {
   if (m.defaultConfig !== undefined && (typeof m.defaultConfig !== 'object' || Array.isArray(m.defaultConfig))) bad('defaultConfig non valido');
   if (m.description !== undefined && (typeof m.description !== 'string' || m.description.length > 300)) bad('descrizione non valida');
   if (m.icon !== undefined && !validIcon(m.icon)) bad('icona non valida');
+  if (m.required !== undefined && typeof m.required !== 'boolean') bad('required non valido');
   return m;
 }
 
@@ -59,6 +62,51 @@ async function editConfig(fn) {
 
 async function readJson(path) {
   try { return JSON.parse(await readFile(path, 'utf8')); } catch { return null; }
+}
+
+/**
+ * Before the modules start: the required ones (modules.js REQUIRED_MODULES) installed and in the
+ * configuration. The copy of lilOS (KERNEL_DIR/modules: the repository, or the running release)
+ * is put into modules/ when modules/ has none or an older one (its data files carried over, the
+ * old folder kept as after an update); then the configuration gets it, turned on with its
+ * defaultConfig, or at the version installed. Returns the names it changed.
+ */
+export async function ensureRequiredModules() {
+  const bundledDir = join(KERNEL_DIR, 'modules');
+  const changed = [];
+  for (const name of Object.keys(REQUIRED_MODULES)) {
+    const bundled = (await scanModules(bundledDir)).get(name)?.[0] ?? null;
+    let installed = (await scanModules(MODULES_DIR)).get(name) ?? [];
+    const same = bundled && installed.some(v => v.dir === bundled.dir);
+    if (bundled && !same && (!installed.length || compareVersions(bundled.version, installed[0].version) > 0)) {
+      const dest = join(MODULES_DIR, `${name}_${bundled.version}`);
+      const manifest = await readJson(join(bundled.dir, 'module.json')) ?? {};
+      const data = new Set(manifest.data ?? []);
+      const from = installed[0]?.dir ?? null;
+      await cp(bundled.dir, dest, { recursive: true, filter: path => !/[\/]node_modules([\/]|$)/.test(path) && !data.has(path.split(/[\/]/).pop()) });
+      for (const file of from ? data : []) {
+        if (await exists(join(from, file))) await cp(join(from, file), join(dest, file));
+      }
+      await installDependencies(dest);
+      log.info(`Modulo obbligatorio ${name} ${bundled.version} messo da lilOS${from ? ` (prima ${installed[0].version})` : ''}`);
+      installed = (await scanModules(MODULES_DIR)).get(name) ?? [];
+      changed.push(name);
+    }
+    if (!installed.length) throw new Error(`Il modulo obbligatorio ${name} non c'è: lilOS non parte senza`);
+    const config = await loadConfig();
+    const want = config.modules.find(m => m.name === name);
+    const top = installed[0];
+    if (!want) {
+      const manifest = await readJson(join(top.dir, 'module.json')) ?? {};
+      await editConfig(list => [...list, { name, version: top.version, config: manifest.defaultConfig ?? {} }]);
+      log.info(`Modulo obbligatorio ${name} ${top.version} acceso`);
+      if (!changed.includes(name)) changed.push(name);
+    } else if (want.version && (!installed.some(v => v.version === want.version) || changed.includes(name))) {
+      await editConfig(list => list.map(m => (m.name === name ? { ...m, version: top.version } : m)));
+      if (!changed.includes(name)) changed.push(name);
+    }
+  }
+  return changed;
 }
 
 const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
@@ -143,7 +191,7 @@ export class ModuleAdmin {
       const running = this.#kernel.modules.find(m => m.name === name);
       out.push({
         name, version: shown.version, description: String(manifest.description ?? ''), icon: validIcon(manifest.icon) ? manifest.icon : null,
-        provides: manifest.provides ?? [], requires: manifest.requires ?? [],
+        provides: manifest.provides ?? [], requires: manifest.requires ?? [], required: Object.hasOwn(REQUIRED_MODULES, name),
         enabled, running: running?.version ?? null, versions: versions.map(v => v.version),
         source: await readJson(join(shown.dir, 'source.json')),
       });
@@ -163,6 +211,9 @@ export class ModuleAdmin {
       .catch(err => fail('conflict', err.message));
     const providers = new Set(ordered.flatMap(m => m.provides));
     if (!providers.has('fs')) fail('conflict', 'Senza un modulo che fornisce "fs" lilOS non avrebbe un file system');
+    for (const [name, service] of Object.entries(REQUIRED_MODULES)) {
+      if (!providers.has(service)) fail('conflict', `${name} è un modulo obbligatorio: lilOS non parte senza`);
+    }
     if (!providers.has('auth') && !['127.0.0.1', '::1', 'localhost'].includes(config.host)) fail('conflict', 'Senza un modulo "auth" il kernel deve ascoltare solo su questo computer (host 127.0.0.1)');
   }
 
@@ -293,6 +344,7 @@ export class ModuleAdmin {
     requireAdmin(principal);
     const config = await loadConfig();
     if (!NAME.test(name)) fail('invalid', 'Nome non valido');
+    if (Object.hasOwn(REQUIRED_MODULES, name)) fail('forbidden', `${name} è un modulo obbligatorio di lilOS: non si rimuove`);
     const next = config.modules.filter(m => m.name !== name);
     if (next.length !== config.modules.length) await this.#checkStarts(next.map(m => ({ ...m, version: m.version ?? null })));
     await editConfig(list => list.filter(m => m.name !== name));

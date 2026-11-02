@@ -38,6 +38,15 @@ export async function openSecretSettings(mod, secrets, log) {
 /** Kernel API version the modules declare in module.json ("kernel": "1"). */
 export const KERNEL_API = 1;
 
+/**
+ * Modules lilOS cannot do without (name → the service it provides). Each comes with lilOS itself:
+ * in system/kernel/modules of the repository and of every release (scripts/release.mjs). When the
+ * kernel starts it puts back the ones missing from modules/ or from the configuration, and a newer
+ * one of the release replaces the one installed (modulePackage.js ensureRequiredModules); they are
+ * updated, never removed. module.json says "required": true.
+ */
+export const REQUIRED_MODULES = Object.freeze({ scheduler: 'scheduler' });
+
 const DIR = /^([a-z][a-z0-9-]{0,40})_(\d+\.\d+\.\d+)$/;
 const SERVICE = /^[a-z][a-z0-9.-]{0,40}$/;
 
