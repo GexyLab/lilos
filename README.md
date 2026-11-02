@@ -2,7 +2,7 @@
 LilOS è un sistema operativo web basato su un backend in nodejs che fà da kernel e un frontend che fà  da ambiente desktop in cui possono essere installate app o usate web app ospitate in altri ambienti. Il backend è fatto a moduli per astrarre filesystem, autenticazione, e tutti gli altri aspetti, in modo da poter utilizzare altri prodotti cloud(come OpenBack, Google, AWS, etc) ed esporli all'utente come classici componenti di un sistema operativo(file, directory, finestre, widget, etc). L'idea alla base di LilOS è avere il proprio ambiente di lavoro ovunque che possa integrare e raggruppare tutti i prodotti propri e di terze parti in un unico ambiente.
 
 L'ambiente desktop è pensato come un canvas infinito, elementi del desktop (cartelle, file, app), workarea (aree della scrivania che tengono insieme icone e finestre), workspace (scrivanie separate, ognuna con i suoi elementi, finestre e app), barra delle applicazioni e menu di avvio.
-Desktop web su una scrivania infinita: canvas con zoom e spostamento. I dati stanno in un backend, il **kernel** (`system/kernel/`), con un account per ogni utente. Le app (File Manager, Editor, Pannello di controllo e AppStore comprese) e i moduli del kernel sono pacchetti che si installano dai repository: quello ufficiale è [GexyLab/lilos-plugins-official](https://github.com/GexyLab/lilos-plugins-official).
+Desktop web su una scrivania infinita: canvas con zoom e spostamento. I dati stanno in un backend, il **kernel** (`system/kernel/`), con un account per ogni utente. Le app (File Manager, Editor, Pannello di controllo, AppStore e Pianificazione comprese) e i moduli del kernel sono pacchetti che si installano dai repository: quello ufficiale è [GexyLab/lilos-plugins-official](https://github.com/GexyLab/lilos-plugins-official).
 
 Documentazione completa in [doc/](doc/README.md): [guida utente](doc/utente/guida.md), [sviluppatore](doc/sviluppatore/README.md), [interna](doc/interna/README.md). SDK: [sdk/README.md](sdk/README.md).
 
@@ -11,7 +11,7 @@ Può essere self-hosted in docker oppure in versione cloud gestita in OpenBack
 
 ## Avvio
 
-lilOS non ha dipendenze a runtime (solo Vite per lo sviluppo). File Manager, Editor, Pannello di controllo e AppStore **non sono in questo repository**: stanno nel repository ufficiale e il kernel installa da solo, all'avvio, quelle che mancano. Per questo al primo avvio servono il comando `git` e l'accesso a quel repository (che è privato: si usano le credenziali git del computer). Dettagli in [doc/sviluppatore](doc/sviluppatore/README.md#il-kernel-il-backend).
+lilOS non ha dipendenze a runtime (solo Vite per lo sviluppo). File Manager, Editor, Pannello di controllo, AppStore e Pianificazione **non sono in questo repository**: stanno nel repository ufficiale e il kernel installa da solo, all'avvio, quelle che mancano. Per questo al primo avvio servono il comando `git` e l'accesso a quel repository (che è privato: si usano le credenziali git del computer). Dettagli in [doc/sviluppatore](doc/sviluppatore/README.md#il-kernel-il-backend).
 
 ```bash
 npm install
@@ -53,6 +53,7 @@ sdk/                    @lilos/sdk: basi riutilizzabili da sistema e app
   core/term.js          terminali remoti: host salvati e sessioni (SSH, Telnet, rlogin, SUPDUP) nel kernel
   core/pipes.js         pipe sugli eventi: le app si mettono in mezzo a ciò che succede (con core/pipeCatalog.js, gli eventi)
   core/automation.js    automazioni: azioni, registrazione di ciò che fa l'utente e gestori per rifarlo (app Automata)
+  core/schedule.js      pianificazione: operazioni a una data e ora o ripetute, fatte dal kernel (con core/scheduleRules.js, le regole)
   core/tags.js          tag colorati per ritrovare file e cartelle, anche nascondendoli
   ui/                   icone, menu, controlli, Window, SettingsView, SettingsWindow
   styles/               token, base, componenti, finestre (@lilos/sdk/styles.css)
@@ -61,7 +62,7 @@ scripts/
   release.mjs           la build di lilOS per il repository ufficiale (npm run release)
 public/host/            i moduli che le app di sistema importano come @lilos/sdk e @lilos/system (generati)
 system/
-  kernel/               il backend: moduli (users-basic, fs-postgres, services-isolate: fa girare i servizi delle app, notifications-basic: le notifiche, netfs-sftp, netfs-ftp, netfs-webdav, netfs-smb: i protocolli di rete della cartella Rete; OneDrive, Google Drive, Google Foto, S3, Azure Blob Storage e NFS sono moduli del repository ufficiale; term-ssh, term-telnet, term-rlogin, term-supdup: i protocolli dei terminali remoti, usati dall'app Terminale), API, repository, installazione di app e moduli, aggiornamenti di lilOS (releases/ e current.json in un lilOS installato), riga di comando; run.js lo avvia, lo riavvia e prova le versioni nuove
+  kernel/               il backend: moduli (users-basic, fs-postgres, services-isolate: fa girare i servizi delle app, scheduler: la Pianificazione, un modulo obbligatorio, notifications-basic: le notifiche, netfs-sftp, netfs-ftp, netfs-webdav, netfs-smb: i protocolli di rete della cartella Rete; OneDrive, Google Drive, Google Foto, S3, Azure Blob Storage e NFS sono moduli del repository ufficiale; term-ssh, term-telnet, term-rlogin, term-supdup: i protocolli dei terminali remoti, usati dall'app Terminale), API, repository, installazione di app e moduli, aggiornamenti di lilOS (releases/ e current.json in un lilOS installato), riga di comando; run.js lo avvia, lo riavvia e prova le versioni nuove
 examples/apps/note/     app di esempio (lilos.json, index.js)
 src/                    il sistema, costruito sull'SDK
   main.js               avvio: accesso e collegamento al kernel (boot/), poi system.js
@@ -108,6 +109,7 @@ src/                    il sistema, costruito sull'SDK
   net/                  rete: connessioni come cartelle in Rete, finestra Trasferimento dati e suo pulsante nella barra
   notifications/        notifiche: campanella e barra delle notifiche nell'area di notifica, finestra Notifiche
   automation/           automazioni: azioni di lilOS, registratore, file .automata, esecuzione ed elenco (REC nell'area di notifica)
+  schedule/             pianificazione: le operazioni che girano nel browser (aprire app e file, automazioni) e la finestra Operazioni in attesa
   taskbar/
     Taskbar.js          barra delle applicazioni: pulsante logo · pulsante workspace · area finestre · area di notifica · utente (apre la pagina utente) e orologio
     StartMenu.js        menu di avvio a schermo intero: ricerca, preferite, app per schede (recenti e frequenti, workarea, categorie), file recenti e frequenti, un pulsante per workspace
@@ -132,6 +134,7 @@ doc/                    documentazione utente, sviluppatore e interna
 | Pagina utente | clic sul tuo nome nella barra delle applicazioni o nel menu di avvio; Esc la chiude |
 | Notifiche | campanella nell'area di notifica (in basso a destra) apre la finestra Notifiche; la barra delle notifiche si chiude con Esc o la ×; scorciatoia «Apri o chiudi le notifiche» (senza tasto di serie); Pannello di controllo → Notifiche |
 | Automazioni (app Automata) | pulsante REC nell'area di notifica mentre si registra (riapre il Registratore); tasto destro su file o cartelle → Automazioni (esegue o «Registra partendo da qui»); Ctrl Z / Ctrl Y mentre si registra tolgono e rimettono l'ultimo passo; scorciatoia scelta in Automata; nel Terminale `automata list` e `automata run <nome> [file…]` |
+| Pianificazione (app di sistema) | menu di avvio → Pianificazione: Elenco e Storico delle operazioni, Nuova operazione (Cosa, Quando, Opzioni); tasto destro su file o cartelle → Pianifica (copia, comando, apri, automazione, promemoria) |
 | Elementi | doppio clic apre, F2 rinomina, Canc elimina (nel Cestino), Ctrl A seleziona tutto, Ctrl/Shift + clic selezione multipla |
 | Spostare file e cartelle | trascina un elemento (o la selezione) su una cartella: sulla scrivania, nel File Manager (elenco, percorso, barra laterale) o nel pannello dell'Editor, anche da una vista all'altra; Esc annulla; rilasciato sul Cestino lo elimina; tra due voci della sezione Collegamenti del File Manager crea un collegamento, e le voci si riordinano trascinandole (con × o Canc si elimina un collegamento) |
 | Annulla / ripeti | Ctrl Z / Ctrl Y (o Ctrl Shift Z), dove stai lavorando: scrivania, finestra del File Manager, testo e pannello dell'Editor |
@@ -149,7 +152,7 @@ Tutte le scorciatoie (tranne Spazio + trascina e i tasti di navigazione nei menu
 - Le basi riutilizzabili nascono nell'SDK e si importano da `@lilos/sdk`. L'SDK non importa mai da `src/`.
 - Tutto ciò che sta sulla scrivania si aggiunge con `canvas.add(el)` e ha `data-kind` (usato dalla minimappa).
 - Gli elementi con `data-wheel="native"` (es. contenuto delle finestre) scorrono con la rotella invece di zoomare.
-- Le app comunicano col sistema tramite `bus` dell'SDK. Ogni app è un pacchetto (`lilos.json`) installato dal kernel: un'app di sistema (File Manager, Editor, Pannello di controllo, AppStore: dal repository ufficiale) gira dentro lilOS e usa `@lilos/sdk` e `@lilos/system`; un'altra app gira, per impostazione predefinita, in un iframe isolato e parla con lilOS solo con l'oggetto `lilos` (un amministratore può farla girare non isolata: allora può fare tutto ciò che fa l'utente) e può avere punti d'ingresso in background (nel browser) o servizi (nel kernel, anche a lilOS chiuso); le cartelle si aprono nel File Manager, i file con l'app associata al tipo (Pannello di controllo → Usabilità → Tipi di file) o con la finestra "Apri con".
+- Le app comunicano col sistema tramite `bus` dell'SDK. Ogni app è un pacchetto (`lilos.json`) installato dal kernel: un'app di sistema (File Manager, Editor, Pannello di controllo, AppStore, Pianificazione: dal repository ufficiale) gira dentro lilOS e usa `@lilos/sdk` e `@lilos/system`; un'altra app gira, per impostazione predefinita, in un iframe isolato e parla con lilOS solo con l'oggetto `lilos` (un amministratore può farla girare non isolata: allora può fare tutto ciò che fa l'utente) e può avere punti d'ingresso in background (nel browser) o servizi (nel kernel, anche a lilOS chiuso); le cartelle si aprono nel File Manager, i file con l'app associata al tipo (Pannello di controllo → Usabilità → Tipi di file) o con la finestra "Apri con".
 - Ogni finestra che modifica impostazioni usa `SettingsWindow` dell'SDK.
 - Cartelle e file passano dal file system dell'SDK (`fs`); la scrivania è la vista della cartella `/Scrivania` del workspace attuale (privata: gli altri workspace non la vedono). Ogni nodo creato ricorda il workspace che l'ha fatto.
 - Ogni scorciatoia è un comando registrato con `shortcuts.register` dell'SDK, così l'utente può cambiarla.

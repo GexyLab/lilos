@@ -24,6 +24,7 @@ Gli altri moduli (`src/`) sono il sistema: scrivania, desktop, barra.
 - [sdk/core/serial.js](#sdkcoreserialjs)
 - [sdk/core/pipes.js e sdk/core/pipeCatalog.js](#sdkcorepipesjs-e-sdkcorepipecatalogjs)
 - [sdk/core/automation.js](#sdkcoreautomationjs)
+- [sdk/core/schedule.js e sdk/core/scheduleRules.js](#sdkcoreschedulejs-e-sdkcoreschedulerulesjs)
 - [sdk/core/tags.js](#sdkcoretagsjs)
 - [sdk/core/history.js](#sdkcorehistoryjs)
 - [sdk/core/fileTypes.js](#sdkcorefiletypesjs)
@@ -56,6 +57,7 @@ Gli altri moduli (`src/`) sono il sistema: scrivania, desktop, barra.
 - [user/ (la pagina utente)](#user-la-pagina-utente)
 - [net/ (la rete nell'interfaccia)](#net-la-rete-nellinterfaccia)
 - [automation/ (le automazioni nel sistema)](#automation-le-automazioni-nel-sistema)
+- [schedule/ (la pianificazione nell'interfaccia)](#schedule-la-pianificazione-nellinterfaccia)
 - [sdk/ui/](#sdkui)
 - [sdk/ui/controls.js](#sdkuicontrolsjs)
 - [sdk/ui/shortcutField.js](#sdkuishortcutfieldjs)
@@ -325,7 +327,7 @@ kernel.on('status', ({ error }) => { if (error) console.warn('non salvato:', err
 
 ### `apps`
 
-Le app installate in lilOS (pacchetti in `/system/app`, per tutti gli utenti e i workspace; File Manager, Editor, Pannello di controllo e AppStore comprese). Non va confuso con `apps` di `src/apps/registry.js` (le app che lilOS sa avviare, che sono le stesse con il loro stato di avvio). L'elenco arriva con `kernel.connect()`.
+Le app installate in lilOS (pacchetti in `/system/app`, per tutti gli utenti e i workspace; File Manager, Editor, Pannello di controllo, AppStore e Pianificazione comprese). Non va confuso con `apps` di `src/apps/registry.js` (le app che lilOS sa avviare, che sono le stesse con il loro stato di avvio). L'elenco arriva con `kernel.connect()`.
 
 | Metodo | Descrizione |
 | --- | --- |
@@ -363,10 +365,10 @@ I moduli del kernel come pacchetti (solo amministratori). Girano nel kernel con 
 
 | Metodo | Descrizione |
 | --- | --- |
-| `list()` | `[{ name, version, description, icon, provides, requires, enabled, running, versions, source }]`. `icon`: `{ glyph, color }` del `module.json`, o `null`. `enabled`: la versione attiva nella configurazione (`null` se spento); `running`: quella in uso adesso; se differiscono serve un riavvio. |
+| `list()` | `[{ name, version, description, icon, provides, requires, required, enabled, running, versions, source }]`. `required`: `true` per un modulo obbligatorio (non si rimuove). `icon`: `{ glyph, color }` del `module.json`, o `null`. `enabled`: la versione attiva nella configurazione (`null` se spento); `running`: quella in uso adesso; se differiscono serve un riavvio. |
 | `install(source, { allowUnsigned = false })` | Installa e accende il modulo → `{ name, version, restartRequired: true }`. Un modulo non ufficiale richiede `allowUnsigned: true`. |
 | `update(name, { ref, allowUnsigned = false })` | Aggiorna dall'origine registrata → `{ name, version, previous, restartRequired }`, oppure `{ name, version, unchanged: true }`. |
-| `remove(name)` | Spegne il modulo e cancella le sue cartelle, tranne quelle che contengono i suoi dati → `{ name, kept, restartRequired }` (`kept`: cartelle conservate). |
+| `remove(name)` | Spegne il modulo e cancella le sue cartelle, tranne quelle che contengono i suoi dati → `{ name, kept, restartRequired }` (`kept`: cartelle conservate). Un modulo obbligatorio (`scheduler`) lancia `forbidden`. |
 | `settings(name)` | `{ fields, values, secrets, live }`: le impostazioni di un modulo **in esecuzione** (`settings` del suo `module.json`). `fields`: i campi come quelli di un protocollo di rete (`key`, `type`, `label`, `hint`, `default`, `options`, `when`…); `values`: quelli presenti nella sua configurazione (solo le chiavi dei campi, mai quelli segreti); `secrets`: le chiavi dei campi `password` che hanno un valore; `live`: `true` se il modulo le applica subito (ascolta `ctx.onConfig`), altrimenti valgono dal prossimo avvio. `not_found` se il modulo non è attivo. |
 | `saveSettings(name, values)` | Cambia le impostazioni (`values`: `{ chiave: valore }`) e restituisce lo stesso di `settings`. I valori si controllano con i campi (`invalid`); una chiave assente o vuota prende il `default` del campo, se ce l'ha, altrimenti si toglie. Le altre chiavi della configurazione restano. Un campo `password` assente o vuoto tiene il suo valore, `null` lo toglie. Se il modulo fornisce protocolli di rete, le connessioni aperte si chiudono (si riaprono al primo uso con le nuove impostazioni). Un modulo senza impostazioni lancia `invalid`. |
 | `restart()` | Chiede al kernel di riavviarsi (`POST /api/kernel/restart`). Funziona solo se il kernel è stato avviato con `npm run kernel`; altrimenti lancia `unavailable`. Durante il riavvio (qualche secondo) le richieste falliscono: i salvataggi in attesa si ripetono da soli. |
@@ -598,7 +600,7 @@ File system virtuale: un albero di cartelle, file, collegamenti alle app e colle
 | `setMounts(parentId, mounts)` | Mette in una cartella (la Rete del sistema) un nodo per ogni connessione, `[{ id, name, protocol, state }]`: nodo `net-<id>`, cartella di sistema con `net: <id connessione>`, `mount: true`, `mountState` e `protocol`. Quelle sparite si tolgono con quello che era stato letto; una connessione che non è più `on` dimentica il contenuto letto. Emette `change`. Lo chiama il sistema (`src/net/connect.js`). |
 | `refresh(id)` | `Promise`: rilegge dal server il contenuto di una cartella di rete (si chiama aprendola) e porta l'albero a quello. Rifiuta con l'errore del kernel (`secret_required`, `untrusted`…). Per gli altri nodi non fa niente. I nodi prendono anche ciò che il protocollo dice dell'elemento: `web` (etichetta: un documento senza byte propri, da aprire sul sito del fornitore) con `exportAs` (l'estensione con cui si copia), `badge`, `noRename`, `noRemove`, `removeLabel`. |
 | `netChanged(mountId, path)` | Il kernel dice che una cartella è cambiata sul server: la rilegge se era stata letta. |
-| `external({ put, remove })` | Mette nell'albero nodi della home che ha fatto o cambiato il kernel (`put`: nodi come li manda il kernel; `remove`: id), per esempio ciò che un trasferimento ha portato. Sono già nel kernel: non si rimandano. Emette `change`. |
+| `external({ put, remove, trash })` | Mette nell'albero nodi della home che ha fatto o cambiato il kernel (`put`: nodi come li manda il kernel; `remove`: id; `trash`: `[{ id, at, from }]`, nodi che il kernel ha messo nel Cestino), per esempio ciò che un trasferimento ha portato o ciò che una copia, un comando o un'operazione della Pianificazione ha fatto. Un nodo di `put` già presente può anche essere stato **spostato** dal kernel (cambia `parent`, se la nuova cartella c'è e non è dentro di lui: emette `change` di tipo `move`) e riceve i `tags` nuovi se `tags` è un elenco. Nodi di rete e di sistema non si toccano. Sono già nel kernel: non si rimandano. Emette `change` (e `trash` se ne ha messi nel Cestino). |
 
 **Rete.** Le cartelle di una connessione ([`net`](#net)) stanno nell'albero sotto un nodo di connessione (`setMounts`). I loro nodi hanno `net` (l'id della connessione) e **non si salvano**: il contenuto di una cartella si legge dal server con `refresh` quando si apre, e `children` restituisce quello letto per ultimo. Creare, rinominare, spostare dentro la stessa connessione ed eliminare vanno al server subito; se il server rifiuta, la cartella si rilegge e `fs` emette `netError` `{ message, code }`. Eliminare è **definitivo** (niente cestino, niente annulla). `read`, `readBlob` e `write` leggono e scrivono sul server (`write` con `mark` no). `move` tra la home e una connessione, o tra due connessioni, lancia un errore: i file vanno e vengono con `net.transfer()`. Sui nodi di rete lanciano un errore anche `copy`, `copyContent`, `setTags`, `update` (colore), `setAppMeta` e la creazione di collegamenti alle app; `trash` salta i nodi di rete (non vanno nel cestino) e `remove` li elimina dal server per sempre; `untrash` verso una cartella di rete non rimette niente (restituisce `[]`). I nodi di rete non si salvano in `lilos:fs` né vanno al kernel come nodi. Le miniature dei file di rete non si chiedono.
 
@@ -779,6 +781,107 @@ port.onmessage = e => {
 port.postMessage(new TextEncoder().encode('ls\r'));                 // i tasti
 port.postMessage(JSON.stringify({ t: 'resize', cols: 120, rows: 40 }));
 ```
+
+---
+
+## sdk/core/schedule.js e sdk/core/scheduleRules.js
+
+### `schedule`
+
+La pianificazione: operazioni a una data e ora o ripetute, che il **kernel** esegue anche a lilOS chiuso (modulo obbligatorio `scheduler`, vedi [Pianificazione](#pianificazione-schedule-apischedulejs)). Un `Emitter`. Funziona solo **collegato al kernel**: `available` è `kernel.connected`. Le rotte sono quelle di `/api/schedule…`.
+
+| Membro | Descrizione |
+| --- | --- |
+| `available` | `true` se c'è il kernel. |
+| `list({ owner?, app? })` → `[task]` | Le operazioni dell'utente. Un amministratore vede quelle di tutti e quelle del sistema (`owner: '*'`); `owner` e `app` filtrano. |
+| `overview()` → `{ admin, tasks }` | Come `list`, in una richiesta sola, con `admin` (l'utente è amministratore). |
+| `tasks(options?)` → `[task + recurrence]` | Come `list`, ognuna con `recurrence` (sotto): la regola come la vuole un calendario. |
+| `get(id)` → task | `not_found` se non c'è o non è di chi chiede. |
+| `create(task)` → task | `task`: `{ name, when, what, enabled?, options?, owner? }`. `owner`: solo gli amministratori, un id utente o `'*'` (il sistema); senza, l'utente che chiede. Emette `change`. |
+| `update(id, task)` → task | Sostituisce nome, regola, azione, opzioni e `enabled`; il proprietario non cambia. Se cambia `when` il conto delle volte riparte. Per una richiesta web, un'intestazione segreta senza `value` mantiene quella salvata. Emette `change`. |
+| `remove(id)` | Toglie l'operazione e il suo storico. Emette `change`. |
+| `enable(id, on)` → task | Accende o mette in pausa. Riaccesa, riparte da adesso: le volte perse in pausa non si recuperano. Emette `change`. |
+| `run(id)` → run | La fa partire subito (`reason: 'manual'`), senza toccare le volte pianificate. Non aspetta la fine. |
+| `cancel(runId)` → run | Ferma una corsa in corso, in coda o in attesa (`cancelled`). |
+| `move(id, { at, to, scope = 'this' })` → task | Sposta **quando**, mai cosa. `at`: una volta della regola (ms); `to`: il nuovo momento (ms, tra il 1970 e l'anno 9999, altrimenti «Orari non validi»). `scope`: `'this'` toglie quella volta e ne mette una a `to` (il conto delle volte resta), `'all'` sposta tutta la regola della differenza. Una regola `cron` si sposta solo con `'this'`. Al massimo 50 orari spostati per regola. Emette `change`. |
+| `history({ task?, owner?, state?, limit = 100, before? })` → `[run]` | Le corse, la più nuova per prima. `state`: uno degli stati di una corsa. `before`: ms, solo le precedenti. `limit` da 1 a 500. |
+| `occurrences({ from, to, owner?, task? })` → `{ items, series }` | Le volte tra `from` e `to` (ms, al massimo 62 giorni, altrimenti `invalid`): le corse già fatte e quelle ancora da fare (al massimo 5000 voci). Vedi sotto. |
+| `catalog()` → `{ services, hosts, users, runtime }` | Ciò che offre l'editor: `services` i servizi delle app installate (`{ app, entry, label, name, glyph, color, params }`), `hosts` gli host SSH salvati nel Terminale (`{ id, name, address }`), `users` gli utenti (`{ id, name, username, role }`, solo per un amministratore), `runtime` se c'è il modulo che fa girare i servizi. |
+| `pending()` → `[run]`, `claim(runId)` → `{ task, run }`, `report(runId, outcome)` | Le corse **nel browser**, che il sistema fa per l'utente (vedi sotto). Non servono alle app. |
+| `describe(when, lang?)` → testo | La regola in parole («Ogni giorno alle 02:00»), nella lingua del sistema o in `lang`. |
+| `recurrence(task, lang?)` → `{ text, rrule, exdate, rdate, tz, start, end, count }` | Per i calendari: `rrule` è una riga RFC 5545 (`FREQ=DAILY;BYHOUR=2;BYMINUTE=0`) o `null` se la regola non ha un RRULE esatto; `exdate` e `rdate` sono le volte (ms) tolte e aggiunte; `tz` il fuso (IANA); `start` la prima volta (`'YYYY-MM-DDTHH:mm'` sull'orologio di `tz`); `end` l'ultimo giorno o `null`; `count` il numero di volte o `null`. |
+| `rules` | Il modulo delle regole, sotto. |
+| `received(event, data)` | Per il sistema: il flusso del kernel ha detto `schedule.change`, `schedule.run` o `schedule.due`. |
+| `forApp(id)` | La copia per un'app: vede e cambia solo le operazioni che ha fatto. Vedi sotto. |
+
+Eventi: `change` `{ ids }` (operazioni create, cambiate, tolte, spostate, accese o spente, anche da un'altra pagina o da un amministratore), `run` `{ task, run, state }` (una corsa è partita, aspetta o è finita), `due` `{ task, run }` (una corsa nel browser da fare adesso: la prende il sistema).
+
+**Forme.**
+
+| Oggetto | Campi |
+| --- | --- |
+| task | `{ id, owner, app, name, enabled, when, what, options, created, modified, by, fired, next, last, retry, running }`. `owner`: id utente o `'*'`. `app`: l'app che l'ha fatta o `null`. `by`: `{ id, name }` di chi l'ha salvata per ultimo. `fired`: quante volte è partita a orario. `next`: la prossima volta (ms) o `null`. `last`: `{ run, at, state }`. `retry`: `{ at, attempt, due }` se un nuovo tentativo è in attesa. `running`: quante corse sono in corso. In `what` di una richiesta web le intestazioni segrete sono `{ name, secret: true, set }`, mai il valore. |
+| `options` | `{ missed: 'once' \| 'skip', overlap: 'skip' \| 'queue' \| 'parallel', timeoutMin, retries, retryMin, notify: 'error' \| 'always' \| 'never', ask }`. Predefiniti: `once`, `skip`, `60` (1-1440), `0` (0-5), `5` (1-1440), `error`, `true`. `ask` vale per le corse nel browser: chiedere prima di farle quando lilOS si apre. |
+| run | `{ id, task, owner, app, name, type, due, at, end, reason, attempt, by, state, text, log, expires }`. `reason`: `'time'`, `'catchup'` (una volta persa, recuperata), `'manual'`, `'retry'`. `state`: `'queued'`, `'running'`, `'waiting'` (nel browser, aspetta lilOS aperto), `'ok'`, `'error'`, `'skipped'`, `'cancelled'`. `text`: una riga (500 caratteri); `log`: il resoconto (fino a `outputKb`). |
+| item (di `occurrences`) | `{ task, name, at, end, state, run, type, owner, app }`. `state` `'planned'` per una volta ancora da fare (`run` `null`), altrimenti quello della corsa. Le corse a mano non ci sono. |
+| series (di `occurrences`) | `{ task, name, from, to, count, every, estimated, type, owner, app }`: una regola più fitta di una volta ogni 30 minuti non dà una voce per volta, ma una serie con la prima e l'ultima volta, il numero e l'intervallo (`every`, ms). Il kernel ne calcola al massimo 2000 per regola e per al massimo circa 250 ms: se non basta, `estimated` è `true`, `to` è la fine dell'intervallo e `count` una stima. |
+
+**Le azioni (`what`)** sono controllate dal kernel prima di salvare: forme e regole in [Pianificazione](#pianificazione-schedule-apischedulejs). Un'app può fare solo `notify`, `service` (dei propri servizi) e `open` (di sé stessa), al massimo 20 e non più spesso di una volta ogni 15 minuti.
+
+**`forApp(id)`.** lilOS la dà alle app con il permesso `schedule`: ogni richiesta porta `app: id`, il kernel mostra e cambia solo le operazioni con quell'`app`, e quelle nuove ne sono marcate. Una per app (`lilos.schedule`, vedi [`window.lilos`](#windowlilos-bridgejs)); riceve `change` e `run` come la copia principale.
+
+```js
+import { schedule } from '@lilos/sdk';
+
+const task = await schedule.create({
+  name: 'Backup dei documenti',
+  when: { every: { n: 1, unit: 'day' }, times: ['02:00'], start: '2026-11-03T02:00', tz: 'Europe/Rome' },
+  what: { type: 'command', lines: 'cp -r Documenti Backup', cwd: null, host: null, saveTo: null },
+  options: { retries: 2, retryMin: 10 },
+});
+console.log(schedule.describe(task.when));           // «Ogni giorno alle 02:00»
+const { items } = await schedule.occurrences({ from: Date.now(), to: Date.now() + 7 * 86_400_000 });
+```
+
+### `schedule.rules` (`scheduleRules.js`)
+
+Le regole che dicono **quando**: controllate, calcolate in un fuso orario, dette in parole e come RRULE di iCalendar. Non importa niente: lo stesso codice gira nella pagina, nel kernel (il modulo `scheduler` lo riceve da `host.rules`) e nelle sandbox delle app. Gli orari sono scritti come su un orologio del fuso della regola (`'YYYY-MM-DDTHH:mm'`); i momenti assoluti sono millisecondi.
+
+Una regola (`when`), sempre con `tz` (nome IANA, `'UTC'` se manca):
+
+| Forma | Significato |
+| --- | --- |
+| `{ once: '2026-12-15T10:00', tz }` | Una volta. |
+| `{ every: { n, unit }, start, tz, … }` | Ripetuta. `unit`: `'minute'` (`n` 1-1440), `'hour'` (1-168), `'day'`, `'week'` (1-366), `'month'` (1-366), `'year'` (1-10). `start`: la prima volta. |
+| `{ cron: '55 8 * * 1-5', start, tz }` | Cinque campi: minuto, ora, giorno del mese, mese, giorno della settimana. Nomi (`jan`, `mon`), liste, intervalli, passi, `L` (ultimo giorno), `1#2` (il secondo lunedì), `5L` (l'ultimo venerdì); 0 e 7 sono la domenica. |
+
+Per `every`:
+
+| Campo | Vale per | Significato |
+| --- | --- | --- |
+| `days` | minuti, ore, settimane | Giorni ISO (1 lunedì … 7 domenica). Per le settimane, di serie il giorno di `start`. |
+| `between` | minuti, ore | `['09:00', '18:00']`: conta le volte in ogni giorno dalla prima all'ultima ora, invece che di continuo. |
+| `times` | giorni, settimane, mesi, anni | Gli orari (`['08:00', '18:30']`, fino a 48); di serie l'ora di `start`. |
+| `monthly` | mesi, anni | `{ day: 1…31 \| -1 }` (-1: l'ultimo giorno) oppure `{ nth: 1…5 \| -1, weekday: 1…7 }`; di serie il giorno di `start`. |
+| `month` | anni | 1-12; di serie il mese di `start`. |
+
+Per tutte, in più: `end` (`'YYYY-MM-DD'`, l'ultimo giorno, incluso), `count` (quante volte in tutto, 1-100000), `skip` (momenti tolti, ms) ed `extra` (momenti aggiunti, ms): spostare una volta toglie quella e ne aggiunge un'altra.
+
+**Ora legale.** Un orario che non esiste (le 02:30 quando gli orologi vanno avanti) scatta quando sono andati avanti (le 03:00); uno che c'è due volte (quando tornano indietro) scatta la prima. Gli intervalli di minuti e ore senza `between` contano il tempo vero.
+
+| Funzione | Descrizione |
+| --- | --- |
+| `checkWhen(raw)` → `when` | La regola come si salva (solo i campi ammessi, controllati). Lancia `RuleError`, con un messaggio per le persone. |
+| `nextAfter(when, ms)` → ms \| `null` | La prima volta dopo `ms`. Non considera `count`: lo conta chi chiama. |
+| `between(when, from, to, limit = 1000)` → `[ms]` | Le volte in `[from, to)`. |
+| `gap(when)` → ms | Il tempo minimo tra due volte (`Infinity` per `once`). Il kernel rifiuta le regole più fitte di `minIntervalMinutes`. |
+| `firstTime(when)` → ms \| `null` | La prima volta. |
+| `moveWhen(when, { at, to, scope })` → `when` | La regola con una volta spostata (`'this'`) o tutta spostata (`'all'`). Lancia `RuleError` se non si può (una `cron` con `'all'`, un orario che uscirebbe dal giorno o dalla fascia). |
+| `toRrule(when)` → `{ rrule, exdate, rdate }` | La regola come parti di iCalendar, da usare con `DTSTART` (la prima volta, `TZID: tz`). `rrule` è `null` per una volta sola e per le regole che un RRULE non dice esattamente: allora le volte vengono una per una. |
+| `toCron(when)` → testo \| `null`, `fromCron(testo, base)` → `when` \| `null` | Da e verso la riga cron, per l'editor. |
+| `describe(when, lang = 'en')` → testo | La regola in parole, in `'it'` o `'en'`. |
+| `validZone(tz)`, `clockAt(ms, tz)`, `instantOf(y, m, d, hh, mm, tz)`, `localText(ms, tz)`, `parseCron(testo)` | Aiuti: fuso valido, l'orologio di un fuso a un istante (`{ y, m, d, hh, mm, ss, wd }`), l'istante di un orario, il testo `'YYYY-MM-DDTHH:mm'` di un istante (`RuleError` se l'anno è fuori da 1970-9999), la riga cron controllata. |
+| `RuleError` | L'errore delle regole. |
 
 ---
 
@@ -1737,7 +1840,7 @@ Scorciatoie delle app, dichiarate nel registro (`commands`) e registrate all'avv
 
 ## App di sistema
 
-File Manager, Editor, Pannello di controllo e AppStore **non stanno in questo repository**: sono pacchetti di [GexyLab/lilos-plugins-official](https://github.com/GexyLab/lilos-plugins-official) (sorgenti in `src/<app>/`, pacchetto pronto in `apps/<id>/`) che il kernel installa all'avvio se mancano ([D41](../interna/decisioni.md#d41-le-app-di-sistema-mancanti-si-installano-allavvio-del-kernel)). Come si lavora su di loro: [README per sviluppatori](README.md#le-app-di-sistema-e-il-repository-ufficiale). Qui c'è quello che lilOS si aspetta da loro e che gli dà.
+File Manager, Editor, Pannello di controllo, AppStore e Pianificazione **non stanno in questo repository**: sono pacchetti di [GexyLab/lilos-plugins-official](https://github.com/GexyLab/lilos-plugins-official) (sorgenti in `src/<app>/`, pacchetto pronto in `apps/<id>/`) che il kernel installa all'avvio se mancano ([D41](../interna/decisioni.md#d41-le-app-di-sistema-mancanti-si-installano-allavvio-del-kernel)). Come si lavora su di loro: [README per sviluppatori](README.md#le-app-di-sistema-e-il-repository-ufficiale). Qui c'è quello che lilOS si aspetta da loro e che gli dà.
 
 Un'app di sistema è un modulo ES come le altre: l'export predefinito riceve `{ args, openWindow }` e restituisce una `Window` (vedi [apps/registry.js e apps/launcher.js](#appsregistryjs-e-appslauncherjs)). Importa `@lilos/sdk` e [`@lilos/system`](#systemapijs-lilossystem); non ha sandbox. Se dichiara `entrypoints` (manifesto con `sdk` `"2"`), ogni punto d'ingresso è un export **con quel nome** dello stesso modulo (o del suo `file`): una finestra è una funzione `({ args, openWindow, entry }) → Window`, un background è una funzione `({ lilos, args })` che chiama `lilos.handle` (stesso oggetto `lilos` delle app installate, sempre nella pagina di lilOS; vedi [Background](#background-backgroundjs)).
 
@@ -2862,6 +2965,18 @@ Esportati: `connectTriggers()`, `lastOccurrence(trigger, adesso?)` (l'ultimo ist
 
 ---
 
+## schedule/ (la pianificazione nell'interfaccia)
+
+Il dato è in [`schedule`](#schedule) (SDK) e nel kernel ([Pianificazione](#pianificazione-schedule-apischedulejs)); l'app **Pianificazione** (repository ufficiale) è la sua finestra. Nella pagina c'è solo ciò che il kernel non può fare: le operazioni nel browser.
+
+### `connectSchedule({ wm })` (`schedule/runner.js`)
+
+Chiamata da `system.js` prima di `connectServices()` (che aggiunge i suoi ascoltatori al flusso del kernel). Senza kernel non fa niente.
+
+- Gira a `schedule` gli eventi `schedule.change`, `schedule.run` e `schedule.due` del flusso (`onKernelEvent` → `schedule.received`). Alla riconnessione del flusso emette `change`, perché gli elenchi si rileggano.
+- A una corsa `due` fa `schedule.claim(run)`: se un'altra pagina l'ha già presa (`conflict`) non fa niente; altrimenti fa quello che dice `what` e risponde con `schedule.report(run, { state, text })`. `open` con `file` apre il file con `openFile`; con `app` fa `launch(app, args, entry)`; `automation` fa `launch('automata', { automation, items: [], values }, 'run')`. Se l'app, il file o Automata non ci sono, l'esito è `error`.
+- Dopo 3 secondi dall'avvio, e a ogni riconnessione, legge `schedule.pending()` (le corse che aspettavano lilOS aperto): quelle di operazioni con `options.ask: false` le fa subito; per le altre apre la finestra **Operazioni in attesa**, con **Esegui ora** e **Salta** per ognuna e «D'ora in poi esegui senza chiedere» (mette `ask: false` nell'operazione). La apre una sola pagina (Web Lock `lilos:schedule-pending:<id utente>`). **Salta** manda `report(run, { state: 'skipped' })`.
+
 ## sdk/ui/
 
 ### `icons.js`
@@ -3229,7 +3344,8 @@ Le richieste che modificano (tutte tranne `GET` e `HEAD`) devono avere l'intesta
 | `POST /api/services/:app/:entry/start`, `…/stop`, `…/restart` | utenti (servizi di tutti: amministratori) | → `{ status, error }` |
 | `POST /api/services/:app/:entry/call` | utenti | `{ data?, from? }` (fino a 1 MB; `from` un id di app) → `{ result }`: ciò che restituisce `lilos.handle` del servizio. Lo avvia se è spento |
 | `GET /api/services/:app/:entry/log` | utenti (servizi di tutti: amministratori) | → `{ lines: [{ at, level, text }] }` |
-| `GET /api/services-events` | utenti | Flusso `text/event-stream` (un commento ogni 25 s per tenerlo aperto): `change` `{ owner, app, entry }` quando cambia un servizio dell'utente o del sistema, `notify` `{ app, text }` per ciò che un suo servizio manda con `lilos.ui.notify` (e, per gli amministratori, quelli di sistema) **solo se nessun modulo fornisce `notifications`**, e gli eventi che i moduli mandano a quell'utente con `ctx.emit`, con il nome dell'evento e i dati così come sono (`notification.new` `{ id }`, `notification.change` `{}`) e quelli della rete (`net.mount`, `net.change`, `net.transfers`, `fs.external`, `net.notify`: vedi [Rete](#rete-connessioni-e-trasferimenti-net-apinetjs)). Negli altri endpoint `/api/services/:app/:entry/…`: `invalid` se `app` o `entry` hanno una forma non valida, `not_found` se il servizio non esiste |
+| `GET /api/services-events` | utenti | Flusso `text/event-stream` (un commento ogni 25 s per tenerlo aperto): `change` `{ owner, app, entry }` quando cambia un servizio dell'utente o del sistema, `notify` `{ app, text }` per ciò che un suo servizio manda con `lilos.ui.notify` (e, per gli amministratori, quelli di sistema) **solo se nessun modulo fornisce `notifications`**, e gli eventi che i moduli mandano a quell'utente con `ctx.emit`, con il nome dell'evento e i dati così come sono (`notification.new` `{ id }`, `notification.change` `{}`) e quelli della Pianificazione (`schedule.change`, `schedule.run`, `schedule.due`: vedi [Pianificazione](#pianificazione-schedule-apischedulejs)) e della rete (`net.mount`, `net.change`, `net.transfers`, `fs.external`, `net.notify`: vedi [Rete](#rete-connessioni-e-trasferimenti-net-apinetjs)). Negli altri endpoint `/api/services/:app/:entry/…`: `invalid` se `app` o `entry` hanno una forma non valida, `not_found` se il servizio non esiste |
+| `GET /api/schedule` e le altre `/api/schedule…` | utenti | Le operazioni pianificate, le corse, le volte e le corse nel browser: tutte le rotte sono in [Pianificazione](#pianificazione-schedule-apischedulejs) |
 | `GET /api/notifications` | utenti | → `{ available, keep, items }`: le notifiche dell'utente, dalla più nuova. Senza il servizio `notifications`: `{ available: false, keep: null, items: [] }` |
 | `POST /api/notifications` | utenti | `{ text, level?, action?, app? }` (fino a 16 KB) → la notifica, **per l'utente che chiede**. `text` non vuoto; `level` `info` (predefinito), `success`, `warning`, `error`; `action` `{ entry?, args? }`; `app`: l'id di un'app installata che la manda (`invalid` se non lo è); senza `app`, la manda lilOS. Il nome dell'app lo legge il kernel dal suo `lilos.json`. `rate_limited` (429) oltre 10 al minuto per app. Senza il servizio: `unavailable` |
 | `POST /api/notifications/read` | utenti | `{ ids? }` (fino a 64 KB) → 204. Senza `ids`, tutte |
@@ -3264,9 +3380,10 @@ I percorsi possono finire con `*` (`/api/apps/:id/v/:version/*`): il resto del p
   "modules": [
     { "name": "users-basic", "version": "1.0.0", "config": { "sessionDays": 30, "idleDays": 7 } },
     { "name": "fs-postgres", "version": "1.1.0", "config": { "url": "postgres://lilos:lilos@127.0.0.1:5433/lilos" } },
-    { "name": "services-isolate", "version": "1.0.0", "config": {} }
+    { "name": "services-isolate", "version": "1.1.0", "config": {} },
+    { "name": "scheduler", "version": "1.0.0", "config": { "maxTasksPerUser": 100, "minIntervalMinutes": 1, "maxParallel": 4, "historyPerTask": 50, "catchUpHours": 12, "outputKb": 16, "maxParallelPerUser": 2, "historyMb": 64 } }
   ],
-  "apps": { "allowLocalSources": true, "trustedPublishers": {}, "officialKey": null, "bootstrap": ["files", "editor", "settings", "appstore"] }
+  "apps": { "allowLocalSources": true, "trustedPublishers": {}, "officialKey": null, "bootstrap": ["files", "editor", "settings", "appstore", "scheduler"] }
 }
 ```
 
@@ -3280,9 +3397,9 @@ I percorsi possono finire con `*` (`/api/apps/:id/v/:version/*`): il resto del p
 | `apps.allowLocalSources` | Permette di installare app da una cartella del computer del kernel (solo sviluppo). |
 | `apps.trustedPublishers` | `{ idEditore: 'ed25519:<chiave>' }`: gli editori di cui ci si fida. |
 | `apps.officialKey` | Se c'è, le app di sistema devono essere firmate con questa chiave, e le altre app del repository ufficiale sono verificate solo con questa firma. |
-| `apps.bootstrap` | Gli `id` delle app che il kernel installa dal repository ufficiale, all'avvio, se mancano (predefinito: `files`, `editor`, `settings`, `appstore`). Vedi [D41](../interna/decisioni.md#d41-le-app-di-sistema-mancanti-si-installano-allavvio-del-kernel). |
+| `apps.bootstrap` | Gli `id` delle app che il kernel installa dal repository ufficiale, all'avvio, se mancano (predefinito: `files`, `editor`, `settings`, `appstore`, `scheduler`). Vedi [D41](../interna/decisioni.md#d41-le-app-di-sistema-mancanti-si-installano-allavvio-del-kernel). |
 
-Il file si può cambiare con la variabile `LILOS_KERNEL_CONFIG`. Il kernel richiede un modulo che fornisce `fs`. Installare, aggiornare o togliere un modulo con l'AppStore riscrive la lista `modules` di questo file (passando da `config.json.tmp`, ignorato da git).
+Il file si può cambiare con la variabile `LILOS_KERNEL_CONFIG`. Il kernel richiede un modulo che fornisce `fs` e i [moduli obbligatori](#moduli-obbligatori) (oggi `scheduler`), che rimette da solo se mancano. Installare, aggiornare o togliere un modulo con l'AppStore riscrive la lista `modules` di questo file (passando da `config.json.tmp`, ignorato da git).
 
 `repos.json`, nella cartella del kernel (`system/kernel/`, ignorato da git), contiene i repository aggiunti da un amministratore: `[{ id, name, url }]`, al massimo 30. L'ufficiale non è nel file: c'è sempre.
 
@@ -3315,7 +3432,7 @@ Cartella `modules/<nome>_<x.y.z>/` con:
 | `onConfig(fn)` | `fn(config)` dopo ogni cambio delle impostazioni fatto da un amministratore (`PUT /api/modules/:nome/settings`). Con almeno un `onConfig` il modulo risulta `live` (le impostazioni valgono subito); senza, dal prossimo avvio. Se `fn` lancia, l'errore finisce nel log e la modifica resta. |
 | `log` | Logger. |
 | `fail(codice, messaggio)` | Lancia un errore voluto (i codici sono quelli della tabella degli errori). |
-| `provide(servizio, impl)` | Fornisce un servizio dichiarato in `provides`; per `auth`, `users`, `fs`, `runtime` e `notifications` il kernel controlla che `impl` abbia tutti i metodi. |
+| `provide(servizio, impl)` | Fornisce un servizio dichiarato in `provides`; per `auth`, `users`, `fs`, `runtime`, `notifications` e `scheduler` il kernel controlla che `impl` abbia tutti i metodi. |
 | `service(nome)` | Un servizio dichiarato in `requires`. |
 | `emit(userId, evento, dati = {})` | Dice qualcosa alle pagine lilOS aperte da quell'utente, sul flusso `/api/services-events` (evento `<parola>.<parola>`, per esempio `notification.new`: `[a-z][a-z0-9-]{0,30}\.[a-z][a-zA-Z0-9.-]{0,40}`; `dati` JSON, copiati). Un nome non valido lancia un errore. Arriva solo a chi è collegato in quel momento: chi si collega dopo non lo riceve. |
 | `route(metodo, percorso, handler)` | Endpoint `/api/modules/<nome><percorso>`, solo per utenti con l'accesso fatto. `handler({ principal, params, query, json(limite?), req, res })` restituisce JSON (nulla = 204). Il percorso è `/parola/:param`, con `[\w:-]`; `/update` e `/settings` sono del kernel e `ctx.route` lancia un errore se un modulo li usa. |
@@ -3335,6 +3452,7 @@ Il kernel controlla che questi metodi esistano; ogni modulo può fornire anche s
 | `fs` | `home(principal)` → `{ id, path, created }`; `stat(principal, id)`; `list(principal, id)`; `tree(principal, id, { content })`; `lookup(principal, path)`; `apply(principal, { put, remove })` (una transazione); `read(principal, id)` → `Buffer`; `write(principal, id, Buffer)`; `remove(principal, ids)`. Facoltativi, per i contenuti grandi: `readStream(principal, id, { start })` → `Readable`, `writeFrom(principal, id, source, { signal })` → dimensione (vedi [Rete](#contenuti-grandi-nel-servizio-fs)) |
 | `notifications` | Facoltativo: senza, lilOS tiene le notifiche solo nella pagina. `send(userId, { from, level, text, action })` → notifica (`from`: `{ app, name }` o `{ system: true }`, già controllato dal kernel; `level`: `'info'` \| `'success'` \| `'warning'` \| `'error'`; `action`: `{ entry, args }` o `null`; lancia `invalid` o `rate_limited`); `list(principal)` → `{ keep, items }` (dalla più nuova); `read(principal, ids \| null)`; `remove(principal, ids \| null)` (`null`: tutte; gli `ids` al massimo 500); `setOptions(principal, { keep })` → `{ keep }` (1-200). Manda `notification.new` `{ id }` e `notification.change` `{}` con `ctx.emit`. Vedi [`notifications-basic`](#notifications-basic_100) |
 | `runtime` | Facoltativo: senza, lilOS non ha servizi. `start({ key, code, info, limits }, host)` → `Promise<handle>`, che si risolve quando il punto d'ingresso è partito (o rifiuta con il motivo). `code`: il modulo ES del servizio, che esporta una funzione col nome `info.entry` e la riceve con `{ lilos, args }`. `info`: `{ id, version, entry, args, user: { id, username, name } \| null, locale, i18n }`, dove `locale` è `{ code, lang, strings }` (le stringhe già risolte, vedi [`lilos.locale`](#liloslocale)) e `i18n` è il testo del motore (`i18nApi` di `sdk/core/i18n.js`, `toString()`): il runner lo valuta e dà al servizio `lilos.locale`. `limits`: `{ memoryMb, cpuMs }` (memoria del servizio; tempo di una sola esecuzione del suo codice). `host`: `{ call(metodo, parametri)` → `Promise` (l'API `lilos`, controllata dal kernel), `log(livello, testo)` (ciò che scrive con `console.*`), `exit(motivo)` (si è fermato da solo: errore, memoria, crash) `}`. `handle`: `{ request(data, from)` → `Promise<risultato>` (ciò che restituisce il suo `lilos.handle`), `stop()` → `Promise }`. Vedi [Servizi delle app](#servizi-delle-app-appsappservicesjs) |
+| `scheduler` | **Obbligatorio** (`REQUIRED_MODULES`): il kernel non parte senza. Le operazioni a una data e ora o ripetute, il loro orologio e lo storico. `start(host)`: il kernel è pronto, l'orologio parte; `host` ha `rules` (le regole dell'SDK), `run(task, run, signal)` → `{ state?, text, log }` (fa l'azione; `state` `'waiting'` per una corsa nel browser senza lilOS aperto; un errore lanciato è un esito `error`), `notify(task, run)`, `changed(owner, ids)`, `ran(run)`. Poi `list(principal, { owner, app })`, `get(principal, id)`, `save(principal, task)` (senza `id`: nuova), `remove(principal, ids)`, `setEnabled(principal, id, on)`, `runNow(principal, id)`, `cancel(principal, runId)`, `history(principal, { task, owner, limit, before, state })`, `pending(principal)`, `resolve(principal, runId, { state, text, log })`, `occurrences(principal, { from, to, owner, task })`, `move(principal, id, { at, to, scope })`, `dropApp(appId)`, `dropOwner(userId)`. Cosa fa un'operazione (`what`) lo controlla e lo esegue il kernel; il modulo la tiene com'è. Vedi [`scheduler`](#scheduler_100) e [Pianificazione](#pianificazione-schedule-apischedulejs) |
 
 Un nodo del servizio `fs` è `{ id, parent, name, type: 'folder' \| 'file' \| 'app', meta, size, created, modified, content? }`. Chi chiede è un `principal`: `{ kind: 'user', … }` o `KERNEL` (`{ kind: 'kernel' }`, usato per installare le app). Il modulo `fs` rifiuta ciò che il principal non può fare: `not_found` per ciò che non deve sapere che esiste, `forbidden` per ciò che vede ma non cambia.
 
@@ -3455,7 +3573,7 @@ Ogni utente ha le sue, salvate in `DATA_DIR/net/<hash dell'utente>.json` (`DATA_
 - **Quando si apre.** Una connessione si apre al primo uso, e di nuovo da sola se cade. Quelle con `auto` si aprono alla prima richiesta dell'utente dopo l'avvio del kernel (`userSeen`).
 - **Impronta.** `trust` si salva alla prima conferma. Cambiare `host`, `port` o `url` con `update` la azzera. Se il server mostra una chiave o un certificato diversi da quello confermato, `untrusted` ha `details.trust` con `changed: true` e `previous` (l'impronta di prima): la pagina deve avvisare più forte.
 - **Password legata al server.** Una password ricordata (o tenuta in memoria) si scorda se con `update` cambia uno tra `host`, `port`, `url`, `user`, `tls`, `domain`, `share`, `auth` e non se ne dà una nuova: va riscritta.
-- **Dove ci si può collegare** (`net/guard.js`, `NetGuard`). Solo con più utenti (accesso richiesto): il kernel non si collega a loopback (`127.0.0.0/8`, `::1`), link-local (`169.254.0.0/16`, `fe80::/10`), multicast né `0.0.0.0`/`::`; la rete locale (`10/8`, `172.16/12`, `192.168/16`, `100.64/10`, `fc00::/7`) solo con `net: { allowPrivate: true }` in `config.json`; `net: { allow: ['192.168.1.50/32', …] }` lascia passare certi indirizzi o intervalli anche se è chiusa. Se il nome si risolve in più indirizzi, vale il controllo su tutti. Si fa a ogni creazione, modifica, prova, elenco delle condivisioni e apertura (`forbidden`: «Indirizzo non permesso per le connessioni di rete»). Con un solo utente non c'è nessun limite.
+- **Dove ci si può collegare** (`net/guard.js`, `NetGuard`). Solo con più utenti (accesso richiesto): il kernel non si collega a loopback (`127.0.0.0/8`, `::1`), link-local (`169.254.0.0/16`, `fe80::/10`), multicast, `0.0.0.0`/`::`, riservati (`192.0.0.0/24`, `198.18.0.0/15`, `240.0.0.0/4`) né gli intervalli IPv6 che portano dentro un indirizzo IPv4 (NAT64 `64:ff9b::/96` e `64:ff9b:1::/48`, 6to4 `2002::/16`, Teredo `2001::/32`; un IPv4 scritto in IPv6, `::ffff:127.0.0.1`, vale come l'IPv4); la rete locale (`10/8`, `172.16/12`, `192.168/16`, `100.64/10`, `fc00::/7`) solo con `net: { allowPrivate: true }` in `config.json`; `net: { allow: ['192.168.1.50/32', …] }` lascia passare certi indirizzi o intervalli anche se è chiusa. Se il nome si risolve in più indirizzi, vale il controllo su tutti. Si fa a ogni creazione, modifica, prova, elenco delle condivisioni e apertura (`forbidden`: «Indirizzo non permesso per le connessioni di rete»). Lo stesso controllo (`checkIp(ip)`) vale per le richieste web della Pianificazione. Con un solo utente non c'è nessun limite.
 - **Nomi e dimensioni.** Un elenco ha al massimo 50 000 voci (`too_large`); i nomi non sicuri (`isSafeName` in `drivers.js`: una sola parte, non `.` né `..`, senza `/`, caratteri di controllo né inversioni di direzione del testo `U+202A-202E`, `U+2066-2069`, al massimo 255 caratteri) sono tolti dagli elenchi, e `cleanName` li rifiuta (`invalid`). `isUsableName` è più larga (ammette le inversioni di testo): serve a decidere se eliminare è sicuro. Eliminare una cartella si ferma, senza togliere niente, se contiene un nome non utilizzabile; una cartella o un collegamento (`link`) si eliminano come se stessi, e la ricorsione arriva al massimo a 64 livelli.
 - **Pulizia.** All'avvio (`prune()`, solo con più utenti) si cancellano i file di connessioni e trasferimenti di utenti che non esistono più.
 - **Osservazione.** Se la sessione ha `watch`, ogni cartella letta con `list` è osservata e i cambiamenti diventano l'evento `net.change`. Al massimo 8 cartelle per connessione alla volta: oltre, si smette di osservare la meno recente. Prima di eliminare o rinominare una cartella la si smette di osservare (alcuni server, SMB, la tolgono solo se non è aperta).
@@ -3632,6 +3750,7 @@ Un modulo fornisce un protocollo con un servizio che si chiama `term.<protocollo
 - **Codifica.** `settings.encoding` (`utf-8`, `iso-8859-1`, `iso-8859-15`, `cp437`): `Charset` converte in UTF-8 ciò che arriva e, nell'altro senso, ciò che l'utente scrive. `settings.backspace: 'bs'` manda `^H` al posto di `DEL`.
 - **Chiavi dei server.** `ctx.confirm` chiede alla pagina solo se la chiave non è già in `known`; se è diversa da quella ricordata, la richiesta ha `changed: true` e `previous`. Una conferma si salva (`known`).
 - **Password.** Quelle non salvate non passano mai dalla pagina come dati: le scrive l'utente nel terminale e vanno alla domanda `ctx.ask`.
+- **Comando senza nessuno alla tastiera.** `Terminals.exec(principal, hostId, command, { signal, maxOutput = 64 KB })` → `{ output, code, reason }` esegue un comando su un host SSH **salvato**, senza sessione né domande (lo usa l'azione `command` della [Pianificazione](#pianificazione-schedule-apischedulejs)): serve la password o la chiave salvata nell'host e la chiave del server già confermata, altrimenti `untrusted` o `forbidden`. L'output è stdout e stderr insieme (gli ultimi `maxOutput` caratteri); `code` viene dal motivo di chiusura («codice N»), 255 se la chiusura ha un altro motivo, 0 senza motivo. Solo SSH.
 - **Pressione.** Se la pagina ha più di 1 MB in coda il kernel chiama `pause()` e riprende col `drain`. Un messaggio dalla pagina è al massimo 256 KB.
 
 #### Endpoint `/api/term`
@@ -3664,6 +3783,79 @@ Errori: `invalid` (400), `unauthorized`, `not_found` (404: host o sessione), `co
 | `term.sessions` | `{}` | Una sessione è nata, ha cambiato stato, si è collegata o scollegata, o è sparita |
 
 Arrivano sullo stesso flusso `/api/services-events` degli eventi di Rete; la pagina rilegge con `GET /api/term`.
+
+### Pianificazione (`schedule/`, `api/schedule.js`)
+
+Le operazioni a una data e ora o ripetute (la **Pianificazione**) le tiene il modulo **obbligatorio** [`scheduler`](#scheduler_100) (servizio `scheduler`: le operazioni, il loro orologio, lo storico) e le **fa il kernel**. Motivi e alternative scartate: [D67](../interna/decisioni.md#d67-la-pianificazione-un-modulo-obbligatorio-del-kernel-con-le-azioni-nel-kernel). Il client è [`schedule`](#schedule) nell'SDK.
+
+| File | Che cosa fa |
+| --- | --- |
+| `schedule/index.js` (`Schedules`, `kernel.schedules`) | Controlla le operazioni prima di salvarle (`prepare`), le fa quando l'orologio del modulo lo dice (`host.run`), tiene le corse nel browser (`claim`, `report`), avvisa il proprietario (`tellOwner`, notifica del risultato) e le pagine (`schedule.*`). Toglie le operazioni di un'app disinstallata e quelle degli utenti che non ci sono più (all'avvio, e subito quando una corsa scopre che il proprietario non esiste più) |
+| `schedule/what.js` (`checkWhat`, `publicWhat`) | Controlla l'azione (`what`) e ne toglie i segreti per le pagine |
+| `schedule/notify.js`, `copy.js`, `web.js`, `command.js` | Le azioni `notify`, `copy`, `web`, `command` |
+| `api/schedule.js` (`scheduleRoutes`) | Le rotte `/api/schedule…` |
+| `Kernel.userPrincipal(id)` | Il `principal` di un utente per id (o `null`): serve a far girare un'operazione come il suo proprietario |
+
+**Dove gira ogni azione.**
+
+| Azione | Dove | Note |
+| --- | --- | --- |
+| `notify`, `service`, `copy`, `web`, `command` | Nel kernel, anche a lilOS chiuso | Come il proprietario (`principal`); per il sistema (`owner: '*'`) senza home |
+| `open`, `automation` | Nel browser | Il kernel manda `schedule.due` `{ task, run }` alle pagine del proprietario; la **prima** che la prende con `claim` la fa e dice com'è andata con `report`. Senza nessuna pagina aperta (le tiene il conto `pageOpened`/`pageClosed` del flusso `/api/services-events`) la corsa resta `waiting` fino a `due + catchUpHours` ore, poi è `skipped` («lilOS non era aperto»). Se nessuna pagina risponde entro 90 secondi, torna `waiting` («Nessuna pagina di lilOS ha risposto») |
+
+Quando una pagina si apre, `connectSchedule` (`src/schedule/runner.js`) legge `pending()`: le corse che aspettavano le fa subito (`options.ask: false`) o chiede nella finestra **Operazioni in attesa**, in una sola pagina (un Web Lock `lilos:schedule-pending:<utente>`).
+
+**`what`**, controllato prima di salvare (`checkWhat`: niente di ciò che arriva è fidato). I posti di lilOS sono id di nodi (`root` è la home), così una cartella rinominata si ritrova; `label` serve solo a mostrarli.
+
+| `type` | Campi | Note |
+| --- | --- | --- |
+| `notify` | `{ text, level, open }` | `text` fino a 300 caratteri. `level` `info` (predefinito), `success`, `warning`, `error`. `open`: `null`, `{ file }` (id di un nodo) o `{ app, entry?, args? }` (`entry` di tipo finestra, `main` se manca). Il clic apre l'app dell'operazione al suo punto d'ingresso; altrimenti passa dal punto d'ingresso `open` della Pianificazione. Mittente: l'app dell'operazione, la Pianificazione o lilOS. Per il sistema: a ogni amministratore |
+| `service` | `{ app, entry, params }` | Un punto d'ingresso `service` di un'app installata; `params` controllati contro quelli dichiarati. Serve il modulo `runtime` (`unavailable` senza). Vedi [Servizi delle app](#servizi-delle-app-appsappservicesjs) |
+| `copy` | `{ from, to, mode, keep, exclude }` | `from` e `to`: `{ home: id, label }` o `{ mount: id connessione, path: '/Backup', label }`. `mode`: `'versions'` (una cartella nuova «Nome AAAA-MM-GG HH.mm» a ogni corsa, si tengono le ultime `keep`, 1-100, di serie 7), `'update'` (predefinito: solo i file nuovi o cambiati, per dimensione o data), `'mirror'` (come `update`, e ciò che non c'è più nella sorgente va via dalla copia: nel Cestino della home, per sempre su una connessione). `exclude`: fino a 50 nomi con `*` e `?`, senza `/` (confronto senza maiuscole, in tempo lineare: niente espressioni regolari). La copia va in una cartella col nome della sorgente dentro la destinazione. Collegamenti, scorciatoie alle app e voci di una connessione senza byte propri (un documento di Google) restano fuori; i dati delle app sui file (un file cifrato resta tale) si conservano. Un file che fallisce finisce nel resoconto (300 righe) e la copia va avanti; la corsa, alla fine, è `error`. Un file protetto da un'app nella destinazione non si sovrascrive (è un file che fallisce). Salvando e a ogni corsa si controlla che la destinazione non sia la sorgente né dentro la sorgente (`Una cartella non si copia dentro se stessa`), anche se una cartella è stata spostata dopo. Le pagine vedono i nodi nuovi con `fs.external`. Non per il sistema |
+| `web` | `{ method, url, headers, body, expect, timeoutS, saveTo }` | `method` GET (predefinito), HEAD, POST, PUT, PATCH, DELETE. `url` `http` o `https`, senza credenziali. `headers`: fino a 30, `{ name, value }` o `{ name, secret: true, value }` (cifrata con `kernel.settingSecrets`, mai rimandata: le pagine ricevono `{ name, secret: true, set }`; per tenerla si manda `{ name, secret: true }`). `body`: `{ kind: 'none' }`, `text`, `json` (controllato), `form` (con `text`, fino a 1 MB) o `file` (id di un file della home); non con GET e HEAD. `expect`: `{ status: '2xx' \| 'any' \| 100…599, contains }`. `timeoutS` 1-300 (30). `saveTo`: `{ folder, name, mode: 'replace' \| 'dated' }` (la risposta, fino a 10 MB; un file protetto da un'app con quel nome non si sovrascrive: `conflict`). Rete: la guardia di `net/guard.js` (con più utenti mai questo computer; la rete locale solo se aperta), a ogni reindirizzamento, e un reindirizzamento ad altra origine toglie le intestazioni segrete e `Authorization`, `Cookie`, `Proxy-Authorization`, e non è seguito se c'è un corpo da mandare. Una intestazione segreta si può tenere (senza `value`) solo se l'origine dell'indirizzo non cambia: cambiandola va inserita di nuovo. Il resoconto ha stato, durata, intestazioni e i primi 4 KB |
+| `command` | `{ lines, cwd, host, saveTo }` | `lines` fino a 8 KB. Senza `host`: la shell del Terminale **nel kernel**, come il servizio `shell` dell'app `terminal` (1.5.0 o successivo, con `services-isolate` 1.1.0: `runScheduled` con `{ lines, cwd }`); `cwd` è l'id di una cartella della home (la home se manca). Con `host`: l'id di un host SSH salvato, via `Terminals.exec` (la password o la chiave devono essere salvate e la chiave del server già confermata). Riesce se esce con 0; in lilOS dura al massimo 60 s (il limite di `AppServices.call`/richiesta al servizio); il resoconto è l'output (stdout e stderr insieme, gli ultimi 64 KB, senza sequenze di controllo). `saveTo`: `{ folder, name, mode: 'replace' \| 'append' }`. Non per il sistema |
+| `open` | `{ file }` oppure `{ app, entry?, args? }` | Nel browser. Non per il sistema |
+| `automation` | `{ file, values }` | Nel browser: un file `.automata` della home, avviato con `launch('automata', …, 'run')`. Non per il sistema |
+
+Una operazione fatta da un'**app** (`app`) può avere solo `notify`, `service` (dei servizi di quell'app) e `open` (di quell'app); le sue notifiche non aprono file né altre app.
+
+**Chi può fare cosa.** Un utente vede e cambia le sue operazioni. Un **amministratore** quelle di tutti e quelle del sistema (`owner: '*'`); quando agisce su un'operazione altrui (creare per un altro, salvare, eliminare, accendere o spegnere, eseguire, spostare) il **proprietario riceve una notifica** (`tellOwner`, nella sua lingua: la chiave `locale`, italiano se manca) che porta alla Pianificazione. Il proprietario di un'operazione non cambia. Il sistema non ha una home: niente file, connessioni, comandi, aperture di app e automazioni.
+
+**Il risultato.** Ogni corsa ha un esito (`ok`, `error`, `skipped`, `waiting`, `cancelled`). Con `options.notify` `'error'` (predefinito) o `'always'` il proprietario riceve una notifica («“Nome” è riuscita» / «“Nome” non è riuscita: motivo»), nella sua lingua, con un'azione che apre la Pianificazione alla corsa (`args: { task, run }`). Un promemoria riuscito non ne manda un'altra: è lui la notifica. Un errore che ha ancora un nuovo tentativo non avvisa: lo fa l'ultimo.
+
+**Eventi per le pagine** (sul flusso `/api/services-events`, al proprietario e a ogni amministratore; `schedule.due` solo al proprietario):
+
+| Evento | Dati | Quando |
+| --- | --- | --- |
+| `schedule.change` | `{ ids }` | Operazioni salvate, tolte, accese, spente, spostate |
+| `schedule.run` | `{ task, run, state }` | Una corsa è partita, aspetta o è finita |
+| `schedule.due` | `{ task, run }` | Una corsa nel browser da fare adesso |
+
+**Rotte** (`api/schedule.js`, solo utenti con l'accesso fatto). `app` (nella query o nel corpo) dice che la richiesta è di un'app (lilOS lo manda per le sue app, `forApp`): le operazioni sono solo quelle con quell'`app`, e una nuova la porta. Un'app non può indicare un altro `owner`.
+
+| Rotta | Corpo e risposta |
+| --- | --- |
+| `GET /api/schedule` | `?owner&app` → `{ admin, tasks }` |
+| `POST /api/schedule` | `{ name, when, what, enabled?, options?, owner?, app? }` (fino a 256 KB) → task. Solo un amministratore può dare un `owner` diverso da sé (id utente o `'*'`), altrimenti `forbidden` |
+| `GET /api/schedule/:id` | → task (`not_found` se non è dell'utente) |
+| `PUT /api/schedule/:id` | Come `POST`; il proprietario e l'`app` restano quelli dell'operazione → task |
+| `DELETE /api/schedule/:id` | 204 |
+| `POST /api/schedule/:id/enable` | `{ on }` → task |
+| `POST /api/schedule/:id/run` | → run (parte subito, non aspetta la fine) |
+| `POST /api/schedule/:id/move` | `{ at, to, scope }` → task. Solo il quando |
+| `GET /api/schedule-history` | `?task&owner&state&limit&before&app` → `[run]` |
+| `GET /api/schedule-occurrences` | `?from&to&owner&task&app` (ms) → `{ items, series }` |
+| `GET /api/schedule-pending` | → `[run]`: le corse nel browser dell'utente che aspettano lilOS |
+| `POST /api/schedule-runs/:id/claim` | → `{ task, run }`; `conflict` se un'altra pagina l'ha già presa o la corsa è già fatta o scaduta |
+| `POST /api/schedule-runs/:id/result` | `{ state: 'ok' \| 'error' \| 'skipped', text, log }` (fino a 320 KB) |
+| `POST /api/schedule-runs/:id/cancel` | → run |
+| `GET /api/schedule-catalog` | → `{ services, hosts, users, runtime }` |
+
+Errori: `invalid` (regola o azione non valida; «Troppo spesso» sotto `minIntervalMinutes`; oltre `maxTasksPerUser`), `forbidden` (un utente che pianifica per altri), `not_found`, `conflict`, `unavailable` (senza il modulo `runtime` per un `service`, senza `notifications` per un `notify`; senza il Terminale 1.5.0 per un `command` in lilOS), `too_large`.
+
+**Servizi delle app chiamati dalla Pianificazione.** Un `service` parte con `AppServices.runScheduled(principal, app, entry, params, { task, run })`: il servizio del proprietario (o del sistema) riceve `lilos.handle` con `{ schedule: { task, name, run, params } }`, da `from: 'scheduler'`. Se era spento parte per l'occasione (`args.reason: 'schedule'`, con i `params` dell'operazione) e si ferma dopo l'ultima corsa che lo usa; se era già acceso, resta acceso. Ciò che risponde è l'esito: una stringa (`ok`, è il testo), oppure `{ ok?, text?, error?, log? }` (con `ok: false` o `error`, `error` è l'esito; `log` è il resoconto). Un errore del servizio è un esito `error`.
+
+---
 
 ### `users-basic_1.0.0`
 
@@ -3752,11 +3944,12 @@ Il repository ufficiale ha anche `"system": "system/lilos"`: la cartella con la 
 | `icon?` | `{ glyph, color }` come per le app: `glyph` un nome di simbolo (lettere e cifre, inizia con una lettera minuscola, 2-31 caratteri), `color` `#rrggbb`. Un valore diverso rende il `module.json` non valido. `list()` lo restituisce (o `null`). |
 | `data?` | File in cui il modulo tiene i suoi dati (`["users.json"]`). Si portano alla nuova versione negli aggiornamenti e si conservano, con la loro cartella, alla rimozione. |
 | `defaultConfig?` | Oggetto: la configurazione con cui il modulo viene acceso in `config.json`. |
+| `required?` | `true` per un modulo senza cui lilOS non parte (deve essere anche in `REQUIRED_MODULES`): l'AppStore non offre **Rimuovi** e il kernel lo rifiuta. Vedi [Moduli obbligatori](#moduli-obbligatori). `list()` lo restituisce come `required`. |
 | `settings?` | Elenco di campi (vedi [Moduli](#moduli)): le impostazioni che un amministratore può cambiare, con `GET` e `PUT /api/modules/:nome/settings` (`kernelModules.settings` e `saveSettings`). Vale per i moduli in esecuzione: si controllano all'avvio del kernel, non all'installazione. |
 
 - **Installazione.** Copia il pacchetto in `modules/<nome>_<versione>/` (con `source.json`: da dove viene, `{ type, url, ref, commit, path, installed }`), esegue `npm ci` (o `npm install` senza lockfile; `--omit=dev --ignore-scripts`) se c'è un `package.json`, e lo aggiunge a `modules` in `config.json` con `defaultConfig`. Prima **verifica che il kernel si avvierebbe** con quella lista (dipendenze soddisfatte, un modulo che fornisce `fs`, e senza `auth` solo `host` locale): se no, lascia tutto com'era e lancia `conflict`.
 - **Aggiornamento.** Parte dal `source.json` registrato (con `ref` opzionale), copia la nuova versione accanto alla vecchia, ci porta i file di `data`, aggiorna la versione in `config.json` e tiene le due versioni più recenti. Senza versione più alta risponde `unchanged: true`. Un modulo senza `source.json` (messo a mano) non si aggiorna da qui.
-- **Rimozione.** Toglie il modulo da `config.json` (dopo aver verificato che il kernel si avvierebbe senza) e cancella le cartelle delle sue versioni, **tranne quelle che contengono file di `data`**: gli utenti di `users-basic` restano. Reinstallando la stessa versione quella cartella si riusa.
+- **Rimozione.** Toglie il modulo da `config.json` (dopo aver verificato che il kernel si avvierebbe senza) e cancella le cartelle delle sue versioni, **tranne quelle che contengono file di `data`**: gli utenti di `users-basic` restano. Un modulo obbligatorio (`REQUIRED_MODULES`) non si rimuove (`forbidden`). Reinstallando la stessa versione quella cartella si riusa.
 - **Impostazioni.** `ModuleAdmin.settings(principal, nome)` e `saveSettings(principal, nome, valori)` (solo amministratori; `not_found` se il modulo non è attivo). `saveSettings` controlla i valori con `checkFields`, li scrive nella voce del modulo in `config.json` (le chiavi non dichiarate restano), li mette in `ctx.config`, chiama i suoi `onConfig` e, per i moduli che forniscono `netfs.*`, chiude le connessioni aperte. Un modulo senza `onConfig` non è `live`: le impostazioni valgono dal prossimo avvio (il log lo dice). `required` e `when` dei campi non si applicano al salvataggio (servono alla pagina per disegnarli).
 - `list()`: i moduli trovati in `modules/`, con `enabled` (versione in `config.json`), `running` (in uso adesso) e `source`; anche quelli già tolti ma ancora in esecuzione fino al riavvio.
 
@@ -3794,7 +3987,10 @@ Anche lilOS è un pacchetto del repository ufficiale ([D57](../interna/decisioni
                          (config.js e install.js trovano le cartelle da lì; run.js parte da
                          src/main.js); cli.js, setup.js, tools/install.js e tools/pack.js li importano
                          soltanto; run.js, package.json, config.json
+      modules/           i moduli obbligatori (solo la versione più alta di ciascuno, come nel commit)
 ```
+
+**Moduli obbligatori.** La release porta con sé `system/kernel/modules/<nome>_<versione>/` dei moduli di `REQUIRED_MODULES` (oggi `scheduler`): il kernel li mette in `DATA_DIR/modules/` se mancano o sono più vecchi ([Moduli obbligatori](#moduli-obbligatori)). `scripts/release.mjs` li prende da git (`HEAD`), non dalla cartella di lavoro.
 
 **`system.json`** (nella radice di una release, scritto da `scripts/release.mjs`):
 
@@ -3843,7 +4039,7 @@ Rifiuta di partire se ci sono modifiche non salvate (`--allow-dirty` solo per pr
 
 ### Servizi delle app (`apps/appServices.js`)
 
-I punti d'ingresso `kind: 'service'` (vedi [Manifesto](#manifesto-lilosjson)) girano **nel kernel**, anche a lilOS chiuso. Li esegue il servizio `runtime` di un modulo ([`services-isolate`](#services-isolate_100)); `AppServices` (`kernel.appServices`) decide chi li avvia e quando. Senza un modulo `runtime` lilOS funziona, ma senza servizi (`GET /api/services` dà `available: false`).
+I punti d'ingresso `kind: 'service'` (vedi [Manifesto](#manifesto-lilosjson)) girano **nel kernel**, anche a lilOS chiuso. Li esegue il servizio `runtime` di un modulo ([`services-isolate`](#services-isolate_110)); `AppServices` (`kernel.appServices`) decide chi li avvia e quando. Senza un modulo `runtime` lilOS funziona, ma senza servizi (`GET /api/services` dà `available: false`).
 
 **Proprietario.** Ogni istanza ha un proprietario: un **utente** (il servizio gira per lui, con la sua home) oppure il **sistema** (`'*'` negli eventi e nelle chiavi interne: nessun utente, una sola istanza per tutti). Un servizio di sistema non ha home: ha solo i propri dati e la rete.
 
@@ -3857,7 +4053,7 @@ I punti d'ingresso `kind: 'service'` (vedi [Manifesto](#manifesto-lilosjson)) gi
 
 Un servizio **scelto per tutti** gira solo come sistema: chiamate e comandi vanno a quell'istanza, e solo gli amministratori lo avviano, fermano o ne leggono il registro. Sceglierlo (o toglierlo dalla scelta di tutti) lo fanno solo gli amministratori.
 
-**Cosa riceve.** La funzione esportata col nome del punto d'ingresso, come per un background: `export function sync({ lilos, args })`. `args` è `{ reason, ...params }`: `reason` è `'system:ready'`, `'user:login'`, `'manual'` o `'call'`; `params` sono i parametri scelti (controllati contro quelli dichiarati nel manifesto, con i predefiniti riempiti; stessi tipi di [Parametri dei punti d'ingresso](#parametri-dei-punti-dingresso); `file` e `folder` sono percorsi `~/…`). Senza `params` dichiarati: un oggetto JSON fino a 4 KB.
+**Cosa riceve.** La funzione esportata col nome del punto d'ingresso, come per un background: `export function sync({ lilos, args })`. `args` è `{ reason, ...params }`: `reason` è `'system:ready'`, `'user:login'`, `'manual'`, `'call'` o `'schedule'` (lo ha avviato la [Pianificazione](#pianificazione-schedule-apischedulejs), con i `params` dell'operazione); `params` sono i parametri scelti (controllati contro quelli dichiarati nel manifesto, con i predefiniti riempiti; stessi tipi di [Parametri dei punti d'ingresso](#parametri-dei-punti-dingresso); `file` e `folder` sono percorsi `~/…`). Senza `params` dichiarati: un oggetto JSON fino a 4 KB.
 
 **Ripartenze e registro.**
 
@@ -3886,8 +4082,9 @@ Un servizio **scelto per tutti** gira solo come sistema: chiamate e comandi vann
 | `setStartup(principal, app, entry, { when, params? })` | `when`: `'none'`, `'login'` (per l'utente) o `'system'` (per tutti: amministratori). Senza `params` tiene quelli già scelti. Passando da utente a sistema (o viceversa) ferma l'istanza che non vale più e, se era accesa (non `off` né `error`), la fa ripartire subito nell'altra forma (motivo `manual`) |
 | `setOptions(principal, { enabled })` | Interruttore dei servizi dell'utente |
 | `control(principal, app, entry, action)` | `'start'`, `'stop'` o `'restart'` → `{ status, error }`. `start` su un servizio in `error` lo riavvia da capo |
-| `call(principal, app, entry, data, from)` | Avvia se serve e dà ciò che restituisce il suo `lilos.handle` (un errore del servizio è `invalid`, un servizio che non parte `unavailable`; massimo 60 s) |
+| `call(principal, app, entry, data, from)` | Avvia se serve e dà ciò che restituisce il suo `lilos.handle` (un errore del servizio è `invalid`, un servizio che non parte `unavailable`; massimo 60 s). Il campo `schedule` dei dati e `from: 'scheduler'` sono **riservati** alla Pianificazione (`runScheduled`): una chiamata di una pagina o di un'app che li usa è `forbidden`, così un servizio che risponde a `{ schedule }` sa che la richiesta viene dal kernel |
 | `log(principal, app, entry)` | `{ lines: [{ at, level, text }] }` |
+| `runScheduled(principal, app, entry, params, { task, run })` | Una corsa della Pianificazione: il servizio del proprietario (`principal`, `null` per il sistema) riceve in `lilos.handle` `{ schedule: { task, name, run, params } }` con `from` `'scheduler'`, e ciò che risponde è l'esito. Se era spento parte per la corsa (`reason: 'schedule'`); più corse possono usare la stessa istanza, che si ferma dopo l'ultima, e solo se l'ha fatta partire la Pianificazione. Un errore del servizio è `invalid`, uno che non parte `unavailable` |
 | `userSeen(principal)`, `userLeft(userId)`, `systemReady()`, `stopAll()` | I momenti descritti sopra, e l'arresto del kernel |
 
 `kernel.stop()` ferma tutti i servizi e chiude anche le connessioni aperte (i flussi di `/api/services-events` altrimenti terrebbero il server acceso).
@@ -3900,7 +4097,10 @@ Un servizio **scelto per tutti** gira solo come sistema: chiamate e comandi vann
 | `lilos.locale` | `{ code, i18n }` come nelle finestre ([`lilos.locale`](#liloslocale)), con le stringhe dell'app nella lingua dell'utente a cui appartiene il servizio (la chiave `locale`; `'en'` se non c'è) o in inglese per un servizio di sistema. **Fissate all'avvio**: non cambiano finché il servizio non riparte, e non c'è l'evento `locale`. Il file di traduzioni si rilegge dal pacchetto a ogni avvio, con l'hash del manifesto; se non si legge o non è valido, il servizio è in inglese e il kernel scrive un avviso nel proprio log |
 | `lilos.handle(fn)` | `fn(data, from)` risponde alle chiamate: `from` è l'id dell'app che chiama o `null` (a differenza dei background, **`from` è direttamente l'id**, non un oggetto `{ from }`). Il valore restituito (JSON) torna a chi chiama. Senza `handle` le chiamate falliscono |
 | `lilos.storage.get(chiave)` → valore o `null`; `lilos.storage.set(chiave, valore)` | Dati propri. Chiavi `[\w.-]{1,64}`, fino a 256 KB per valore. Per un utente: gli stessi dati delle finestre (lilOS li rilegge **solo al ricaricamento**). Per il sistema: un solo file di 1 MB |
-| `lilos.files.read(percorso)` → testo; `write(percorso, testo)`; `list(percorso)` → `[{ name, type, size, modified }]`; `mkdir(percorso)` | Percorsi `~/…`, con `fs.read` o `fs.write` come per le finestre (testo fino a 10 milioni di caratteri; `list` nasconde i nomi che iniziano con un punto). **Solo per un servizio di un utente**: nel sistema falliscono con `forbidden`. I file creati si vedono in lilOS dopo un ricaricamento |
+| `lilos.files.read(percorso)` → testo; `write(percorso, testo)`; `list(percorso)` → `[{ name, type, size, modified }]`; `mkdir(percorso)` | Percorsi `~/…`, con `fs.read` o `fs.write` come per le finestre (testo fino a 10 milioni di caratteri; `list` nasconde i nomi che iniziano con un punto). **Solo per un servizio di un utente**: nel sistema falliscono con `forbidden`. Un file che un'app protegge (`content: true` nei suoi dati: un file cifrato) non si legge né si sovrascrive (`forbidden`). I file creati si vedono in lilOS dopo un ricaricamento |
+| `lilos.home.load()` → `{ home, nodes, tags }` | (`services-isolate` 1.1.0) La home intera **come la vede la pagina di lilOS**: `nodes` con gli id di lilOS (non quelli del file system), senza la cartella `.config`; `tags` le definizioni dei tag; `home` il percorso. Per un servizio che lavora sull'albero come la pagina (la shell del Terminale quando la Pianificazione esegue un comando). Serve `fs.read:~` o `fs.write:~`. Solo per un servizio di un utente. |
+| `lilos.home.sync({ put, remove })` | Cambiamenti dell'albero come li manda la pagina (`POST /api/fs/sync`: `put` nodi, `remove` id), in una transazione. Serve `fs.write:~`. Le pagine aperte dell'utente li vedono con `fs.external` (anche i nodi messi nel Cestino). |
+| `lilos.home.read(id)` → `{ base64 }`, `lilos.home.write(id, { base64 } \| { text })` | Il contenuto di un file della home per id di lilOS (fino a 10 milioni di byte). `fs.read:~` / `fs.write:~`. Un file che un'app protegge (`content: true` nei suoi dati: un file cifrato) non si legge né si scrive: `forbidden`, perché le chiavi non sono mai nel kernel. |
 | `lilos.net.fetch(url, { method, headers, body })` → `{ status, headers, body }` | Solo le origini dei permessi `net:`; metodi GET, HEAD, POST, PUT, PATCH, DELETE; non segue i reindirizzamenti; `cookie` e `host` si scartano; corpo e risposta di testo fino a 5 MB; 30 s |
 | `lilos.apps.updates()` → `[{ id, name, version, latest, repo }]` | Le app installate che hanno una versione più nuova nel repository da cui vengono (`name` e `latest` dal catalogo, `version` è l'installata, `repo` il nome del repository o `''`). Serve il permesso `apps.manage`, altrimenti `forbidden`. Confronta gli indirizzi dei repository normalizzati; un catalogo che non si legge si riprova una volta, poi si salta (con un avviso nel registro del kernel). Può durare a lungo: non aspettarlo all'avvio |
 | `lilos.ui.notify(testo \| { text, level, action })` | Una **notifica** per il proprietario: l'utente stesso, o tutti gli amministratori (`kernel.adminIds()`) per un servizio di sistema. Gli stessi campi e limiti di `lilos.ui.notify` delle finestre ([`window.lilos`](#windowlilos-bridgejs)), con il servizio come mittente. La notifica si **conserva** anche se lilOS è chiuso: si vede alla prossima apertura. Senza il servizio `notifications` resta il vecchio avviso (evento `notify`, solo il testo, fino a 200 caratteri), che arriva solo se lilOS è aperto. Una notifica non valida o oltre il limite fa rifiutare la chiamata |
@@ -3923,7 +4123,9 @@ export async function sync({ lilos, args }) {
 }
 ```
 
-**Un servizio in un'app di sistema.** Nel repository dei plugin ufficiali un servizio sta in `src/<app>/services/<nome>.js`, un modulo **senza `import`** (gira nell'isolato del kernel, che non ne ha). `scripts/build.mjs` copia ogni `.js` di quella cartella in `apps/<id>/dist/`, così com'è e senza passare da Vite, e lo mette tra i `files` del manifesto. In `app.json` si dichiara con `"file": "dist/<nome>.js"`: l'app può avere `sdk` `"1"`. Esempio reale, il servizio `updates` dell'AppStore (`src/appstore/services/updates.js`, permessi `apps.manage` e `background`):
+**Un servizio in un'app di sistema.** Nel repository dei plugin ufficiali un servizio sta in `src/<app>/services/<nome>.js`, un modulo **senza `import`** (gira nell'isolato del kernel, che non ne ha). `scripts/build.mjs` copia ogni `.js` di quella cartella in `apps/<id>/dist/`, così com'è e senza passare da Vite, e lo mette tra i `files` del manifesto. In `app.json` si dichiara con `"file": "dist/<nome>.js"`: l'app può avere `sdk` `"1"`.
+
+**Un servizio con `import`.** Se il servizio ha bisogno di codice condiviso con le finestre dell'app, sta in `src/<app>/kernel/<nome>.js` (non in `services/`): `scripts/build.mjs` lo impacchetta con Vite, con ciò che importa, in un solo modulo senza `import` in `apps/<id>/dist/<nome>.js`. In quel modulo `@lilos/sdk` e `@lilos/system` sono sostituiti da `src/<app>/kernel/sdk.js` e `system.js` (ciò che l'app dà al codice condiviso quando gira nel kernel; `kfs.js` e questi due non diventano servizi). Esempio: il servizio `shell` del Terminale 1.5.0 (`src/terminal/kernel/shell.js`), che porta la shell e i suoi comandi nel kernel e lavora sulla home con `lilos.home` (`kfs.js`: un `fs` come quello dell'SDK, su `home.load/sync/read/write`; niente `Blob`, pipe, app o file protetti). Esempio reale, il servizio `updates` dell'AppStore (`src/appstore/services/updates.js`, permessi `apps.manage` e `background`):
 
 ```json
 "entrypoints": { "updates": { "kind": "service", "file": "dist/updates.js", "label": "Aggiornamenti",
@@ -3947,9 +4149,9 @@ Controlla all'avvio e poi ogni `ore` ore (predefinito 24) con `lilos.apps.update
 
 `connectServices()` (chiamata da `system.js`, solo con il kernel e se c'è `EventSource`) apre `/api/services-events`: gli eventi `change` diventano eventi di `services`, ogni `notify` (solo senza il servizio `notifications`) diventa una notifica di quell'app (`notifications.send({ app, text })`), e `notification.new` e `notification.change` portano `notifications.received(id)` e `notifications.changed()`. Alla riconnessione del flusso (il kernel riavviato, la rete caduta) rilegge le notifiche, perché possono essere arrivate nel frattempo. Lo chiude all'uscita dell'utente.
 
-### `services-isolate_1.0.0`
+### `services-isolate_1.1.0`
 
-Modulo del kernel che fornisce `runtime` (`modules/services-isolate_1.0.0/`; attivo in `config.json`). Configurazione: nessuna. Richiede Node da 22 a 25 (`isolated-vm` 6.2.0, con i binari già compilati); le sue dipendenze si installano con `npm run kernel:setup`.
+Modulo del kernel che fornisce `runtime` (`modules/services-isolate_1.1.0/`; attivo in `config.json`). Dalla 1.1.0 ha `lilos.home` (vedi [`lilos` dentro un servizio](#servizi-delle-app-appsappservicesjs)); la 1.0.0 è la precedente. Configurazione: nessuna. Richiede Node da 22 a 25 (`isolated-vm` 6.2.0, con i binari già compilati); le sue dipendenze si installano con `npm run kernel:setup`.
 
 - **Un processo Node per servizio** (`runner.js`), avviato con `--permission`: legge solo la cartella del modulo (`--allow-fs-read`), non può avviare programmi né worker; `--allow-addons` serve a `isolated-vm`. L'ambiente del processo è vuoto (solo `SystemRoot`).
 - **Il codice dell'app** gira in un isolato V8 dentro quel processo, con **128 MB** di memoria e **10 secondi** per ogni esecuzione (avvio, ogni chiamata, ogni timer). Non ha `import` (un `import` fa fallire l'avvio), `require`, `process`, rete né file.
@@ -3973,6 +4175,45 @@ Modulo del kernel che fornisce `notifications` (`modules/notifications-basic_1.0
 - **Limite.** `perMinute` notifiche al minuto per coppia utente-mittente (in memoria; si azzera al riavvio). Oltre: errore `rate_limited` con `retryAfter` (secondi) e messaggio «Troppe notifiche: al massimo N al minuto».
 - **Eventi** per le pagine dell'utente, con `ctx.emit`: `notification.new` `{ id }` a ogni notifica nuova e `notification.change` `{}` quando se ne leggono o cancellano, o cambia `keep`. Arrivano sul flusso `GET /api/services-events`.
 - **Chi.** Ogni metodo (tranne `send`) vale per un `principal` utente: le notifiche sono di chi le legge, e `KERNEL` riceve `forbidden`.
+
+### `scheduler_1.0.0`
+
+Modulo del kernel **obbligatorio** che fornisce `scheduler` (`modules/scheduler_1.0.0/`; `required: true` nel `module.json`, vedi [Moduli obbligatori](#moduli-obbligatori)). Tiene le operazioni, il loro orologio e lo storico; **non sa cosa fanno**: lo controlla il kernel prima di salvarle e lo fa quando il modulo chiama `host.run`. Interfaccia: vedi [Servizi (`services.js`)](#servizi-servicesjs). Funzioni del kernel e rotte: [Pianificazione](#pianificazione-schedule-apischedulejs).
+
+| Configurazione | Predefinito | Intervallo | Significato |
+| --- | --- | --- | --- |
+| `maxTasksPerUser` | `100` | 1-1000 | Operazioni per utente |
+| `minIntervalMinutes` | `1` | 1-1440 | Tempo minimo tra due volte; una regola più fitta è `invalid` |
+| `maxParallel` | `4` | 1-32 | Corse insieme; le altre aspettano in coda |
+| `historyPerTask` | `50` | 5-500 | Corse conservate per operazione (le in corso e in attesa non si tagliano) |
+| `catchUpHours` | `12` | 1-168 | Entro quante ore una volta persa si recupera e una corsa nel browser aspetta |
+| `outputKb` | `16` | 1-256 | Resoconto conservato per corsa |
+| `maxParallelPerUser` | `2` | 1-32 | Corse insieme dello stesso proprietario (il sistema conta come uno); le altre aspettano. |
+| `historyMb` | `64` | 1-1024 | Resoconti di tutto lo storico insieme: oltre, i più vecchi perdono il resoconto (la riga resta). |
+
+Il `module.json` dichiara `settings` e `defaultConfig` per tutti gli otto campi, così `kernelModules.settings` / `saveSettings` li leggono e li cambiano; il Pannello di controllo non ha ancora una scheda per loro. Un valore fuori intervallo vale il predefinito. Altri limiti sono costanti del modulo: al massimo **200** corse in coda (oltre, la nuova è `skipped`, «Troppe operazioni in attesa di partire»); per le operazioni **fatte da un'app**, al massimo **20** per app e utente e una volta ogni **15 minuti** al più (o `minIntervalMinutes`, se è più alto); al massimo **50** orari spostati a mano (`extra`) per regola, a distanza di almeno `minIntervalMinutes` l'uno dall'altro.
+
+- **Dati.** `scheduler.json` (`{ version: 1, tasks }`) e `history.json` (`{ version: 1, runs }`, la più nuova per prima) nella cartella del modulo (`data` del `module.json`: restano agli aggiornamenti e alla rimozione). Si scrivono interi, con un file temporaneo e un rinomina, una modifica alla volta; alla lettura tutto si ricontrolla. Lo storico si salva 2 secondi dopo l'ultima modifica.
+- **L'orologio.** Un solo timer per la prossima volta (al massimo 30 secondi) e un controllo ogni 30 secondi sull'ora vera (il computer in sospensione, l'ora cambiata). Una volta che arriva con più di **2 minuti** di ritardo è *persa*: si recupera una sola volta (`reason: 'catchup'`) se `options.missed` è `'once'` e sono passate meno di `catchUpHours` ore, altrimenti si salta e basta. Più volte perse valgono una.
+- **Cambiare le regole.** Se `when` cambia, il conto delle volte (`fired`) riparte; `move` con `'this'` lo mantiene. Una operazione riaccesa riparte da adesso.
+- **Posti.** Una corsa parte se ci sono meno di `maxParallel` corse in tutto e meno di `maxParallelPerUser` dello stesso proprietario; altrimenti aspetta in coda. Una corsa che non risponde mai finisce comunque al limite di tempo o se annullata, e libera il posto.
+- **Sovrapposizioni.** Se la corsa di prima è ancora in corso: `skip` registra una corsa `skipped` («La volta prima era ancora in corso»), `queue` la mette in coda finché l'altra finisce, `parallel` la fa partire. Le corse a mano non seguono questa scelta. Oltre `maxParallel` aspettano.
+- **Tempo e tentativi.** Una corsa si ferma dopo `timeoutMin` minuti (`error`, «Tempo scaduto»). Se finisce in `error` e `attempt <= retries`, un nuovo tentativo (`reason: 'retry'`) parte dopo `retryMin` minuti, con lo stesso `due`.
+- **Corse a mano.** `runNow` risponde `conflict` («È già in attesa di partire») se ne ha già una in coda.
+- **Corse nel browser.** `resolve` vale solo per le corse di tipo `open` e `automation` (`conflict` per le altre).
+- **All'avvio.** Le corse `running` o `queued` rimaste da un arresto diventano `error` («Il kernel si è fermato durante la corsa»). Quelle `waiting` scadono dopo `catchUpHours` ore dalla volta prevista (`skipped`, «lilOS non era aperto»).
+- **Chi.** Un utente vede e cambia le sue operazioni; un amministratore quelle di tutti e del sistema; `KERNEL` tutto. `dropApp(id)` e `dropOwner(id)` tolgono le operazioni di un'app disinstallata e di un utente tolto.
+
+### Moduli obbligatori
+
+Alcuni moduli non si possono togliere: lilOS non parte senza. L'elenco è `REQUIRED_MODULES` in `modules.js` (nome → servizio che fornisce; oggi `{ scheduler: 'scheduler' }`).
+
+- **Vengono con lilOS.** Sono in `system/kernel/modules/` del repository e di ogni release: `scripts/release.mjs` mette nella release la cartella con la versione più alta di ogni modulo obbligatorio, così com'è nel commit (solo ciò che git tiene, mai i dati); se manca, la release non si fa.
+- **Il kernel li rimette.** Prima di avviare i moduli `ensureRequiredModules()` (`modulePackage.js`) confronta la copia di lilOS (`KERNEL_DIR/modules`: il repository, o la release in esecuzione) con `modules/`: se `modules/` non ha il modulo, o ne ha uno più vecchio, copia la versione di lilOS (senza `node_modules`, portando i file di `data` della versione precedente, che resta), esegue `npm ci` se c'è un `package.json` e ricarica la configurazione. Se la configurazione non lo elenca lo aggiunge acceso, con `defaultConfig`; se elenca una versione non installata, la porta all'ultima. Senza il modulo in nessuna delle due cartelle il kernel non parte.
+- **Non si rimuovono.** `ModuleAdmin.remove` risponde `forbidden`; `list()` ha `required: true` e l'AppStore non offre **Rimuovi**. Un elenco di moduli che lascerebbe lilOS senza il servizio obbligatorio non supera il controllo di avvio (`conflict`), e all'avvio il kernel lancia un errore se nessun modulo lo fornisce. Si aggiornano come gli altri.
+- **`module.json`.** `required?: boolean`. Un nuovo modulo obbligatorio si dichiara in `REQUIRED_MODULES`, si mette in `system/kernel/modules/` e ha `"required": true`.
+
+---
 
 ### Protocolli di rete: `netfs-sftp_1.0.0`, `netfs-ftp_1.0.0`, `netfs-webdav_1.0.0`, `netfs-smb_1.0.1`
 

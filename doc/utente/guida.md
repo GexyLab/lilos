@@ -2,7 +2,7 @@
 
 lilOS è un desktop che si usa dal browser. Al posto di uno schermo fisso c'è una **scrivania infinita**: puoi spostarti in qualsiasi direzione, ingrandire e rimpicciolire, e sistemare cartelle, file e app dove preferisci.
 
-> lilOS è in sviluppo. Le app che ci sono sempre sono **File Manager**, **Pannello di controllo** e **AppStore**; c'è anche l'**Editor**, che si può togliere. Altre app le può installare un amministratore dall'AppStore (vedi [L'AppStore](#lappstore)).
+> lilOS è in sviluppo. Le app che ci sono sempre sono **File Manager**, **Pannello di controllo**, **AppStore** e **Pianificazione**; c'è anche l'**Editor**, che si può togliere. Altre app le può installare un amministratore dall'AppStore (vedi [L'AppStore](#lappstore)).
 
 ## Lo schermo
 
@@ -328,7 +328,7 @@ Ogni file e cartella ricorda **il workspace che l'ha creato**. Non cambia se lo 
 
 ### Le app di ogni workspace
 
-**File Manager**, **Pannello di controllo** e **AppStore** ci sono sempre. Le altre app (anche l'Editor e quelle [installate](#app-installate)) valgono per tutti i workspace, ma ognuno può **nasconderne** alcune, dal Pannello di controllo → Workspace → Questo workspace. Il menu di avvio mostra solo le app visibili nel workspace in cui sei.
+**File Manager**, **Pannello di controllo**, **AppStore** e **Pianificazione** ci sono sempre. Le altre app (anche l'Editor e quelle [installate](#app-installate)) valgono per tutti i workspace, ma ognuno può **nasconderne** alcune, dal Pannello di controllo → Workspace → Questo workspace. Il menu di avvio mostra solo le app visibili nel workspace in cui sei.
 
 - Se avvii un'app che qui è nascosta (per esempio da un collegamento sulla scrivania), compare un messaggio che ti dice dove mostrarla.
 - Se apri un file e la sua app è nascosta, compare **Apri con**, che propone solo le app visibili. La scelta dell'app per ogni tipo di file è la stessa in tutti i workspace.
@@ -1190,7 +1190,7 @@ automata run web ~/Immagini/vacanza.jpg --width=1200 --yes
 
 **Terminale** è la finestra dei comandi di lilOS. Ogni shell è una **scheda**: il pulsante **+** ne apre un'altra, nella stessa cartella. Le schede si possono anche affiancare in più riquadri e staccare in finestre nuove ([Riquadri e finestre](#riquadri-e-finestre-del-terminale)). Con lo stesso Terminale ti colleghi anche al terminale di un altro computer: **SSH** (cifrato, il più usato), **Telnet**, **rlogin** e **SUPDUP** (i protocolli di router, vecchi sistemi Unix e dei calcolatori storici del MIT). Le sessioni remote hanno ciascuna la loro scheda; la shell di lilOS resta com'era.
 
-Terminale è un'app di sistema, c'è già. Per i collegamenti remoti servono però i moduli dei protocolli che vuoi usare (`term-ssh`, `term-telnet`, `term-rlogin`, `term-supdup`), che un amministratore installa dall'[AppStore](#lappstore), nella scheda **Kernel**. Senza nessun modulo il Terminale lo dice e non può collegarsi a niente. L'app chiede di poter aprire terminali remoti, di leggere e scrivere i file della tua home (per le chiavi private e per le registrazioni) e di aggiungere voci ai menu.
+Terminale è un'app di sistema, c'è già. Per i collegamenti remoti servono però i moduli dei protocolli che vuoi usare (`term-ssh`, `term-telnet`, `term-rlogin`, `term-supdup`), che un amministratore installa dall'[AppStore](#lappstore), nella scheda **Kernel**. Senza nessun modulo il Terminale lo dice e non può collegarsi a niente. L'app chiede di poter aprire terminali remoti, di leggere e scrivere i file della tua home (per le chiavi private e per le registrazioni), di aggiungere voci ai menu e, dal Terminale 1.5.0, di lavorare in sottofondo (per i comandi della [Pianificazione](#pianificazione)).
 
 Il collegamento al server lo fa lilOS sul computer in cui gira, non il tuo browser. Per questo le sessioni remote restano aperte anche se chiudi la finestra o ricarichi la pagina.
 
@@ -1282,6 +1282,7 @@ Un file `.term` apre una shell o una sessione remota con le tue scelte già fatt
 - Il Terminale non può leggere gli appunti da solo: per incollare serve **Ctrl Maiusc V**.
 - Non ci sono ancora l'inoltro di porte, l'agente SSH e la connessione attraverso un altro server (host di salto).
 - Le schede remote usano [xterm.js](https://xtermjs.org) (licenza MIT); i riconoscimenti sono nella pagina del Terminale nell'AppStore.
+- La shell del Terminale può eseguire anche i comandi della [Pianificazione](#pianificazione), a lilOS chiuso: è il servizio «Shell per la Pianificazione» del Terminale 1.5.0, che parte da solo quando serve e non va acceso a mano.
 - Serve una versione di lilOS dalla 1.12.0.
 
 ## ArduinoIDE
@@ -1435,7 +1436,7 @@ Poi c'è una scheda per ogni categoria che ha almeno un elemento: **Pannello di 
 
 Ogni scheda mostra icona, nome, versione, a cosa serve, il nome del repository e, se serve, l'etichetta «non ufficiale». Accanto c'è un pulsante o una scritta: **Installa**, **Aggiorna**, «Installata» oppure «Da un altro repository» (c'è già un'app con quel nome, arrivata da un altro posto).
 
-**Un clic su una scheda** apre i dettagli: editore, tipo, categoria, se è «Verificata» o «non ufficiale», versione, da dove viene, i permessi che chiede e le istruzioni scritte da chi l'ha fatta (il file README, se c'è). Se il README è molto lungo se ne vede solo l'inizio: **Scarica il README completo** lo salva nella cartella **Download**, da cui si apre con l'Editor. Da lì un amministratore può **Installare**, **Aggiornare**, **Cercare aggiornamenti**, **Reinstallare** (rifà l'installazione della stessa versione, senza cancellare niente), **Disinstallare** un'app o **Rimuovere** un modulo; tutti possono **Aprire**. Le app che non si possono togliere (File Manager, Pannello di controllo, AppStore) sono segnate «Necessaria a lilOS».
+**Un clic su una scheda** apre i dettagli: editore, tipo, categoria, se è «Verificata» o «non ufficiale», versione, da dove viene, i permessi che chiede e le istruzioni scritte da chi l'ha fatta (il file README, se c'è). Se il README è molto lungo se ne vede solo l'inizio: **Scarica il README completo** lo salva nella cartella **Download**, da cui si apre con l'Editor. Da lì un amministratore può **Installare**, **Aggiornare**, **Cercare aggiornamenti**, **Reinstallare** (rifà l'installazione della stessa versione, senza cancellare niente), **Disinstallare** un'app o **Rimuovere** un modulo; tutti possono **Aprire**. Le app che non si possono togliere (File Manager, Pannello di controllo, AppStore, Pianificazione) sono segnate «Necessaria a lilOS».
 
 Il testo delle istruzioni si mostra in forma semplice: niente pagine web incorporate, i collegamenti si aprono in una nuova scheda del browser e solo se sono indirizzi web, e le immagini non si caricano (si vede il loro testo alternativo).
 
@@ -1449,6 +1450,7 @@ Solo per gli amministratori: i moduli del kernel. Sono parti di lilOS: dove stan
 - Un modulo che lascerebbe lilOS senza file system, o senza accesso mentre lilOS è raggiungibile da altri computer, non si installa e non si rimuove: compare il motivo.
 - **Rimuovere un modulo non cancella i suoi dati** (per esempio gli utenti): restano sul computer del kernel, e compare «i suoi dati restano».
 - **Attenzione**: togliere il modulo di accesso o il file system da un lilOS in uso è pericoloso. Fallo solo sapendo cosa succede.
+- **Moduli obbligatori.** Il modulo `scheduler` (la [Pianificazione](#pianificazione)) viene con lilOS, è segnato «Necessaria a lilOS» e non si rimuove: **Rimuovi** non c'è, e il kernel lo rifiuta. Si aggiorna come gli altri. Se manca dalla cartella dei moduli, o dalla configurazione, il kernel lo rimette da solo all'avvio.
 
 ### Aggiornare lilOS
 
@@ -1520,7 +1522,7 @@ L'app compare subito nel menu di avvio per chi l'ha installata, e dopo un istant
 
 ## App installate
 
-Oltre a File Manager, Editor, Pannello di controllo e AppStore, che vengono dal repository ufficiale e fanno parte di lilOS, un amministratore può **installare altre app** dall'[AppStore](#lappstore). Un'app installata c'è per tutti gli utenti e per tutti i workspace: compare nel menu di avvio e si apre in una finestra come le altre.
+Oltre a File Manager, Editor, Pannello di controllo, AppStore e Pianificazione, che vengono dal repository ufficiale e fanno parte di lilOS, un amministratore può **installare altre app** dall'[AppStore](#lappstore). Un'app installata c'è per tutti gli utenti e per tutti i workspace: compare nel menu di avvio e si apre in una finestra come le altre.
 
 - **Un'app può preparare le sue cose.** La prima volta che incontri un'app nuova, lilOS può creare per te qualche cartella o file di esempio, un collegamento sulla scrivania del workspace in cui sei, un tag. Non sostituisce mai quello che hai già.
 - **Un'app vede solo ciò che le è stato permesso.** Per esempio può leggere e modificare soltanto i file di una cartella precisa. Non può leggere il resto della scrivania né gli altri dati di lilOS. I file che apri con l'app sono sempre accessibili all'app. (File Manager, Editor, Pannello di controllo e AppStore sono parte di lilOS e non hanno questo limite.) Questo vale per le app **isolate**, che è come girano di solito: vedi [Isolate e non isolate](#isolate-e-non-isolate).
@@ -1560,7 +1562,7 @@ Il cambio vale **dalla prossima volta che apri l'app**: le finestre già aperte 
 
 Alcune app hanno un solo modo, e la scheda Sicurezza lo spiega:
 
-- **File Manager, Editor, Pannello di controllo e AppStore** fanno parte di lilOS e girano sempre dentro lilOS.
+- **File Manager, Editor, Pannello di controllo, AppStore e Pianificazione** fanno parte di lilOS e girano sempre dentro lilOS.
 - Le **app che sono un sito** (app remote) girano sempre isolate, nel loro sito.
 - Le **app scritte per una versione più vecchia** di lilOS girano solo isolate.
 
@@ -1613,7 +1615,7 @@ Una copia di un file cifrato (per esempio fatta con il comando `cp` del Terminal
 - **Fermare FileCrypt dall'area di notifica** cancella le chiavi e chiude le finestre dei file cifrati (come un blocco: chi ha modifiche non salvate te lo chiede prima). Per riaprire un file serve di nuovo la password.
 - **Un file cifrato si può tornare a una versione precedente.** Chi può scrivere il file può rimetterci una sua versione cifrata più vecchia, e FileCrypt non se ne accorge.
 - **Se il browser si chiude proprio mentre cifri o togli la cifratura**, può restare un file cifrato che lilOS non riconosce come tale, o l'opposto. Controlla il lucchetto e rifai l'operazione.
-- **Il chiaro può restare per un po' in giro.** L'anteprima del File Manager tiene in memoria il contenuto letto finché non cambi selezione. Un modello copiato da un file cifrato con **Nuovo da modello** esce in chiaro. Il comando `cp` del Terminale su un file cifrato bloccato lo sovrascrive. I servizi in sottofondo di lilOS leggono e scrivono il contenuto così com'è, cioè cifrato.
+- **Il chiaro può restare per un po' in giro.** L'anteprima del File Manager tiene in memoria il contenuto letto finché non cambi selezione. Un modello copiato da un file cifrato con **Nuovo da modello** esce in chiaro. Il comando `cp` del Terminale su un file cifrato bloccato lo sovrascrive. I servizi in sottofondo di lilOS e i comandi pianificati non aprono né sovrascrivono un file cifrato; una copia pianificata di una cartella lo copia così com'è, cioè cifrato.
 - **Mentre un file è sbloccato**, un'app che non gira isolata (vedi [Isolate e non isolate](#isolate-e-non-isolate)) lo può leggere. Blocca il file appena hai finito.
 - **Le versioni vecchie.** Se il file è stato salvato in chiaro prima di cifrarlo, chi gestisce lilOS può avere copie di sicurezza con quelle versioni. La cronologia dell'Annulla (Ctrl Z) non le rimette.
 
@@ -1805,7 +1807,7 @@ Se sposti un servizio acceso da «All'accesso» a «All'avvio del sistema», o a
 
 I servizi hanno bisogno di un componente del sistema, `services-isolate`. Se manca, la scheda lo dice: si aggiunge dall'AppStore (scheda **Kernel**), e un amministratore deve riavviare il sistema.
 
-**Aggiornamenti dell'AppStore.** In **AppStore → Opzioni** l'interruttore **Controlla gli aggiornamenti all'avvio** accende il servizio dell'AppStore: quando entri, e poi ogni giorno anche a lilOS chiuso, controlla se le app installate hanno una versione nuova. Se ne trova, compare un avviso con il nome dell'app e la versione; per ogni versione ti avvisa una volta sola. L'avviso si vede solo se lilOS è aperto. Se un amministratore ha scelto quel servizio per tutti, l'interruttore è bloccato e si cambia dal **Pannello di controllo → Avvio → Servizi**.
+**Aggiornamenti dell'AppStore.** In **AppStore → Opzioni** l'interruttore **Controlla gli aggiornamenti** accende un'operazione della [Pianificazione](#pianificazione): ogni giorno alle 09:00 (o ogni lunedì, a scelta), anche a lilOS chiuso, controlla se le app installate hanno una versione nuova. Se ne trova, compare una notifica con il nome dell'app e la versione; per ogni versione ti avvisa una volta sola, e la trovi alla prossima apertura di lilOS. Quando e quanto spesso si cambia dalla Pianificazione. Se un amministratore ha scelto il servizio dell'AppStore per tutti, si cambia dal **Pannello di controllo → Avvio → Servizi**.
 
 ## Il menu di avvio
 
@@ -1850,7 +1852,7 @@ I servizi hanno bisogno di un componente del sistema, `services-isolate`. Se man
 
 Su uno schermo stretto (meno di 860 pixel) le colonne si mettono una sotto l'altra, con le app per prime.
 
-App del menu: File Manager, Editor, Pannello di controllo, AppStore e le [app installate](#app-installate). File Manager, Pannello di controllo e AppStore ci sono in ogni workspace; le altre in quelli dove non le hai nascoste.
+App del menu: File Manager, Editor, Pannello di controllo, AppStore, Pianificazione e le [app installate](#app-installate). File Manager, Pannello di controllo, AppStore e Pianificazione ci sono in ogni workspace; le altre in quelli dove non le hai nascoste.
 
 ## La pagina utente
 
@@ -1917,6 +1919,7 @@ Il salvataggio avviene **nel tuo spazio su lilOS**, non nel browser:
 - cancellare i dati di navigazione del sito non cancella la tua scrivania (vedi [Accedere e uscire](#accedere-e-uscire) per i dati che il browser aveva prima);
 - se lilOS non riesce a salvare, compare un avviso e riprova da solo; non chiudere la pagina finché non compare **Modifiche salvate**;
 - le connessioni della **Rete** (nome, indirizzo, protocollo) sono salvate nel tuo spazio su lilOS; le password (o, per OneDrive, l'accesso) solo se scegli **Ricorda la password** (**Ricorda l'accesso**), e cifrate. I file che stanno su un server restano sul server: lilOS non ne tiene una copia;
+- le **operazioni della Pianificazione** e il loro storico sono salvati dal computer di lilOS, nel modulo `scheduler`: restano dopo un riavvio e un aggiornamento. Le intestazioni segrete delle richieste web sono cifrate;
 - le **automazioni** (i passi, le domande, le scorciatoie) sono file `.automata` nella cartella **Automazioni** della tua home (o dove li metti): le password non si salvano mai;
 - gli sketch di **ArduinoIDE** sono file normali nella cartella **Arduino** della tua home; le librerie che installi e le tue scelte (scheda, porta) restano tue; le porte che il browser ti ha lasciato usare sono ricordate dal browser, non da lilOS;
 - gli host del **Terminale** (nome, cartella, indirizzo, impostazioni) sono salvati nel tuo spazio su lilOS, come le connessioni della Rete: le password solo se scegli **Ricorda password e passphrase**, e cifrate. Le sessioni aperte non si salvano: durano finché il kernel resta acceso e al più 10 minuti senza finestra;
@@ -2078,6 +2081,9 @@ Non si può recuperare: il file è perso. Nemmeno un amministratore può aprirlo
 
 **Un file ha un lucchetto grigio e non si apre.**
 È stato cifrato da un'app che ora non è installata. Chiedi all'amministratore di installarla di nuovo dall'AppStore: il file è ancora intatto. Se l'app non tornerà, tasto destro sul file → **Proprietà…**: la riga **Dati di** *nome dell'app* ha il pulsante **Rimuovi**. Il file resta com'è (cifrato, quindi illeggibile) ma lilOS smette di rifiutarsi di aprirlo.
+
+**Un'operazione della Pianificazione non è partita.**
+Apri lo [Storico](#pianificazione): se c'è una riga «in attesa di lilOS», era un'operazione che gira nel browser e lilOS non era aperto. Se c'è «saltata», la volta prima era ancora in corso o il kernel era spento e hai scelto di non recuperarla. Se manca del tutto, controlla che l'operazione non sia in pausa e che l'ora e il fuso orario siano quelli giusti.
 
 **Ho dimenticato la password.**
 Non si può recuperare da lilOS: chiedi a chi lo gestisce di cambiartela. Dopo il cambio devi accedere di nuovo ovunque.

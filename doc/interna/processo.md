@@ -10,7 +10,7 @@ Il repository non ha ancora una suite di test. Prima di ogni commit:
 
 Le modifiche al kernel (`system/kernel/`) si provano con il kernel acceso e un utente di prova: non c'è ancora una suite di test.
 
-**Le app di sistema non sono in questo repository.** Una modifica a File Manager, Editor, Pannello di controllo o AppStore si fa e si verifica nel repository ufficiale ([come](../sviluppatore/README.md#le-app-di-sistema-e-il-repository-ufficiale)); una modifica a lilOS che tocca `src/systemApi.js`, gli argomenti con cui il sistema avvia quelle app o la forma dei dati che condividono va provata con le app installate, e con `npm run build` anche del repository ufficiale se cambia un export.
+**Le app di sistema non sono in questo repository.** Una modifica a File Manager, Editor, Pannello di controllo, AppStore o Pianificazione si fa e si verifica nel repository ufficiale ([come](../sviluppatore/README.md#le-app-di-sistema-e-il-repository-ufficiale)); una modifica a lilOS che tocca `src/systemApi.js`, gli argomenti con cui il sistema avvia quelle app o la forma dei dati che condividono va provata con le app installate, e con `npm run build` anche del repository ufficiale se cambia un export.
 
 ### Lista di controllo manuale
 
@@ -30,9 +30,9 @@ Parti da una scrivania pulita: accedi con un utente nuovo (`npm run kernel:cli -
 - [ ] Rimuoverla toglie ciò che aveva creato; un file modificato finisce nel Cestino.
 
 **App di sistema, AppStore e repository** (serve un amministratore)
-- [ ] Con un database e un kernel nuovi (nessuna app installata), il kernel installa File Manager, Editor, Pannello di controllo e AppStore prima di mettersi in ascolto; nel log compaiono le installazioni. Riavviandolo non reinstalla nulla.
+- [ ] Con un database e un kernel nuovi (nessuna app installata), il kernel installa File Manager, Editor, Pannello di controllo, AppStore e Pianificazione prima di mettersi in ascolto; nel log compaiono le installazioni. Riavviandolo non reinstalla nulla.
 - [ ] Con `git` senza accesso al repository ufficiale (per esempio senza credenziali) il kernel parte lo stesso e scrive «App di sistema non installate (…)»; lilOS si apre senza quelle app.
-- [ ] Menu di avvio: File Manager, Editor, Pannello di controllo, AppStore. Nel Pannello di controllo → Workspace → Questo workspace l'Editor si può nascondere; File Manager, Pannello di controllo e AppStore no.
+- [ ] Menu di avvio: File Manager, Editor, Pannello di controllo, AppStore, Pianificazione. Nel Pannello di controllo → Workspace → Questo workspace l'Editor si può nascondere; File Manager, Pannello di controllo, AppStore e Pianificazione no.
 - [ ] AppStore: le schede delle categorie elencano le card (icona, nome, versione, descrizione, repository) con Installa / Installata; la ricerca filtra solo la scheda aperta e Esc la cancella. Un clic su una card apre i dettagli con il README renderizzato (niente HTML, immagini non caricate). Installati: «Necessaria a lilOS» sulle tre necessarie, nessun pulsante Disinstalla su di loro (né sulla card né nei dettagli); sulle altre app «Disinstalla» chiede conferma e Annulla non tocca niente; «Cerca aggiornamenti» dice «è già aggiornata» se non c'è nulla; Reinstalla funziona.
 - [ ] Rimuovere l'Editor lo toglie dal menu e da «Apri con»; riavviando il kernel torna (è in `apps.bootstrap`).
 - [ ] AppStore → Opzioni: con «Mostra i repository non ufficiali» spento le schede mostrano solo l'ufficiale. Aggiungere un repository con un `catalog.json` (anche un clone locale se `apps.allowLocalSources` è acceso) mostra le sue app e i suoi moduli; un indirizzo sbagliato dà un errore e non si salva; l'ufficiale è «Sempre presente» e non si rimuove.
@@ -190,6 +190,23 @@ Parti da una scrivania pulita: accedi con un utente nuovo (`npm run kernel:cli -
 - [ ] Un'app che non parte (`launcher`, background), un'app aggiornata che chiede di riavviare e un'app dell'avvio che non si apre danno una notifica.
 - [ ] Senza il modulo `notifications-basic` (tolto da `config.json`) le notifiche compaiono lo stesso ma si perdono ricaricando; la scheda del Pannello di controllo lo dice.
 
+**Pianificazione** (menu di avvio → Pianificazione; serve il Terminale 1.5.0 per i comandi in lilOS)
+- [ ] Una **Nuova operazione** «Promemoria» tra 2 minuti: nell'Elenco ha la prossima volta giusta; all'ora arriva la notifica e lo Storico ha una riga «riuscita». Chiudendo il browser prima dell'ora e riaprendolo dopo, la notifica c'è.
+- [ ] Ripetuta ogni minuto, con «Fine» dopo 3 volte: parte 3 volte e poi non ha più prossime volte («Finita»). Con **Pausa** non parte; con **Riattiva** riparte da adesso senza recuperare le volte perse in pausa.
+- [ ] Una `cron` (`*/2 * * * *`), una settimanale con più giorni e una mensile «l'ultimo giorno» mostrano le prossime volte attese; la regola in parole è giusta in italiano e, cambiando lingua, in inglese.
+- [ ] Fermando il kernel un po' prima dell'ora e riavviandolo entro `catchUpHours`: la volta persa parte una sola volta (riga «Era prevista…: il kernel era spento»); con «Saltala» non parte.
+- [ ] **Copia una cartella** in tre modi: «Versioni datate» crea «Nome AAAA-MM-GG HH.mm» e tiene le ultime N; «Aggiorna» ricopia solo i file cambiati; «Specchio» manda nel Cestino ciò che non c'è più. Con una destinazione in Rete (SFTP) lo stesso.
+- [ ] **Richiesta web** con un'intestazione segreta: dopo aver salvato non si rivede il valore; salvando di nuovo senza toccarla, la richiesta la manda ancora. Salva la risposta in un file («sostituisci» e «uno nuovo con la data»). Con più utenti un indirizzo del computer di lilOS è rifiutato.
+- [ ] **Comando del Terminale** in lilOS (`ls`, `echo ciao > prova.txt`): il file compare nella home senza ricaricare; un comando che esce con un codice diverso da 0 dà «non riuscita». Su un host SSH salvato con la chiave del server già confermata funziona; senza la conferma dice di collegarsi una volta dal Terminale.
+- [ ] **Apri un'app o un file** e **Automazione**: con lilOS aperto partono all'ora; con lilOS chiuso restano in attesa e, riaperto, compare «Operazioni in attesa» con **Esegui ora** e **Salta**; con due schede aperte lo chiede una sola.
+- [ ] Opzioni: «Aspetta che finisca» / «Salta questa» con una corsa lunga, «Fermala dopo» 1 minuto, «Se non riesce, riprova» 2 volte (lo Storico mostra «tentativo 2»), «Avvisami» Mai / Ogni volta.
+- [ ] Tasto destro su una cartella e su un file → **Pianifica**: le voci aprono l'editor già compilato.
+- [ ] Come amministratore: gruppi **Sistema** e **Utenti**, **Esegui come** un altro utente e il Sistema (il Sistema non offre copie né comandi); l'utente riceve una notifica quando l'amministratore cambia, mette in pausa, esegue o elimina la sua operazione.
+- [ ] Un utente non vede le operazioni degli altri. Disinstallando un'app, le sue operazioni se ne vanno; togliendo un utente, anche le sue.
+- [ ] AppStore → Opzioni → «Controlla gli aggiornamenti»: crea un'operazione giornaliera alle 09:00 nella Pianificazione; **Esegui ora** manda la notifica degli aggiornamenti disponibili.
+- [ ] Un'app con `schedule` (per esempio l'AppStore): vede solo le sue operazioni. Un'app con `schedule.read` e `schedule.move` legge `lilos.schedule.tasks()` con `recurrence` e sposta una volta.
+- [ ] Il modulo `scheduler` non ha **Rimuovi** nell'AppStore; spostandolo fuori da `modules/` e dalla configurazione il kernel lo rimette all'avvio. `npm run release` mette `scheduler_1.0.0` in `system/kernel/modules/` della release.
+
 ### Test automatici
 
 Finora le verifiche automatiche sono state fatte con uno script esterno al repository: puppeteer-core che pilota Edge senza interfaccia su `npm run preview` e ripercorre la lista sopra, con screenshot e raccolta degli errori della console.
@@ -233,7 +250,7 @@ Nessun agente fa commit o push: si decide dopo aver letto i report.
 - Messaggi di commit in italiano (vedi [Convenzioni](../sviluppatore/convenzioni.md#git)).
 - Non riscrivere la storia dei rami già pubblicati (niente `push --force`).
 - **Mai nel repository**: `system/kernel/modules/users-basic_1.0.0/users.json` (utenti e hash delle password; è ignorato da un `.gitignore` del modulo), `system/kernel/repos.json` (i repository aggiunti: ignorato), chiavi private degli editori (`.pem`) e qualunque credenziale di accesso ai repository (stanno nella configurazione di git del computer del kernel, non nel progetto).
-- **Repository ufficiale delle app**: [GexyLab/lilos-plugins-official](https://github.com/GexyLab/lilos-plugins-official), privato, tag `v1.0.0`. Contiene le app di sistema e i moduli del kernel (`users-basic`, `fs-postgres`, `services-isolate`, `notifications-basic` e i protocolli di rete `netfs-sftp`, `netfs-ftp`, `netfs-webdav`, `netfs-smb`). Ha il suo ciclo di versioni: `version` nei suoi manifesti, `npm run build`, commit di sorgenti e `apps/`, tag `vX.Y.Z` ([come](../sviluppatore/ricette.md#aggiungere-o-aggiornare-unapp-di-sistema)).
+- **Repository ufficiale delle app**: [GexyLab/lilos-plugins-official](https://github.com/GexyLab/lilos-plugins-official), privato, tag `v1.0.0`. Contiene le app di sistema e i moduli del kernel (`users-basic`, `fs-postgres`, `services-isolate`, `scheduler`, `notifications-basic` e i protocolli di rete `netfs-sftp`, `netfs-ftp`, `netfs-webdav`, `netfs-smb`). Ha il suo ciclo di versioni: `version` nei suoi manifesti, `npm run build`, commit di sorgenti e `apps/`, tag `vX.Y.Z` ([come](../sviluppatore/ricette.md#aggiungere-o-aggiornare-unapp-di-sistema)).
 
 ## Rilascio
 

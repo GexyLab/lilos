@@ -29,6 +29,7 @@ Procedure passo per passo per le modifiche più comuni. Per i dettagli delle fun
 - [Intervenire su un evento con una pipe](#intervenire-su-un-evento-con-una-pipe)
 - [Aggiungere voci di menu e un segno sull'icona a un'app](#aggiungere-voci-di-menu-e-un-segno-sullicona-a-unapp)
 - [Rendere registrabile un'azione della tua app](#rendere-registrabile-unazione-della-tua-app)
+- [Pianificare operazioni da un'app](#pianificare-operazioni-da-unapp)
 - [Installare un'app dall'esempio](#installare-unapp-dallesempio)
 - [Usare il kernel dal sistema o dall'SDK](#usare-il-kernel-dal-sistema-o-dallsdk)
 - [Aggiungere un modulo al kernel](#aggiungere-un-modulo-al-kernel)
@@ -95,7 +96,7 @@ Le app di sistema stanno nel repository ufficiale ([GexyLab/lilos-plugins-offici
 4. Se serve una funzione del sistema che `@lilos/system` non offre, aggiungi l'export a `src/systemApi.js` in lilOS (una riga `export { … } from '…'`) e rilascia **prima** lilOS: le app che lo usano non partono su un lilOS più vecchio.
 5. Build, commit, tag come sopra. Per farla installare da sola all'avvio del kernel aggiungi l'`id` a `apps.bootstrap` (predefinito: `files`, `editor`, `settings`, `appstore`); altrimenti si installa dall'AppStore.
 
-**Aggiungere un servizio a un'app di sistema.** Scrivi `src/<app>/services/<nome>.js` con un export `async function <nome>({ lilos, args })` e **nessun `import`**; dichiaralo in `app.json` (`entrypoints.<nome>` con `kind: "service"` e `file: "dist/<nome>.js"`, più il permesso `background`). Il build lo copia in `dist/` così com'è. Dettagli e un esempio in [Servizi delle app](api.md#servizi-delle-app-appsappservicesjs).
+**Aggiungere un servizio a un'app di sistema.** Scrivi `src/<app>/services/<nome>.js` con un export `async function <nome>({ lilos, args })` e **nessun `import`**; dichiaralo in `app.json` (`entrypoints.<nome>` con `kind: "service"` e `file: "dist/<nome>.js"`, più il permesso `background`). Il build lo copia in `dist/` così com'è. Se il servizio ha bisogno di codice condiviso con le finestre (la shell del Terminale), mettilo invece in `src/<app>/kernel/<nome>.js`: il build lo impacchetta con ciò che importa, con `kernel/sdk.js` e `kernel/system.js` al posto di `@lilos/sdk` e `@lilos/system`. Per farne un servizio che la Pianificazione può chiamare: [Pianificare operazioni da un'app](#pianificare-operazioni-da-unapp). Dettagli e un esempio in [Servizi delle app](api.md#servizi-delle-app-appsappservicesjs).
 
 ## Far aprire dei file alla tua app
 
@@ -862,6 +863,69 @@ export async function main({ lilos }) {
 
 **Da un modulo del kernel** a un'app o a una pagina aperta, senza passare dalle notifiche: `ctx.emit(userId, 'miomodulo.novita', { … })`. Arriva sul flusso `/api/services-events` come evento con quel nome; per leggerlo in lilOS chiama `onKernelEvent('miomodulo.novita', dati => …)` (`src/apps/services.js`) prima di `connectServices()`. Per notificare un utente da un modulo usa invece `ctx.service('notifications').send(userId, { from: { system: true }, text })`, dichiarando `notifications` in `requires` (così però il kernel non parte senza un modulo che le fornisce).
 
+## Pianificare operazioni da un'app
+
+Una app installata (`sdk` `"2"`) può far fare al kernel qualcosa a una data e ora, anche a lilOS chiuso, o leggere ciò che l'utente ha pianificato (per esempio per un calendario). Serve uno o più permessi nel manifesto; i contratti sono in [`schedule`](api.md#schedule) e in [`window.lilos`](api.md#windowlilos-bridgejs).
+
+| Permesso | Cosa permette |
+| --- | --- |
+| `schedule` | Creare, cambiare, accendere, eseguire ed eliminare **le proprie** operazioni: promemoria (`notify`), i propri servizi (`service`) e la propria apertura (`open`) |
+| `schedule.read` | Leggere **tutte** le operazioni dell'utente (`tasks`, `occurrences`, `history`) |
+| `schedule.move` | Spostare nel tempo qualunque operazione (`move`); vale anche come lettura |
+
+**Un promemoria** (permesso `schedule`):
+
+```js
+export async function main({ lilos }) {
+  const task = await lilos.schedule.create({
+    name: 'Scadenza fattura',
+    when: { once: '2026-12-15T09:00', tz: 'Europe/Rome' },
+    what: { type: 'notify', text: 'La fattura scade oggi', level: 'warning', open: { app: lilos.app.id, entry: 'main', args: { vista: 'fatture' } } },
+    options: { missed: 'once' },                       // se il kernel è spento a quell'ora, lo manda appena riparte
+  });
+  lilos.on('schedule', e => { if (e.type === 'run') console.log(e.state); });
+}
+```
+
+- `when` e `what` sono controllati dal kernel (regole: [`schedule.rules`](api.md#schedulerules-schedulerulesjs), azioni: [Pianificazione](api.md#pianificazione-schedule-apischedulejs)). `lilos.schedule.describe(when)` dice la regola in parole. Un'app non può dare `owner`: le operazioni sono dell'utente che la usa.
+- Il clic su un promemoria che apre l'app stessa porta al punto d'ingresso indicato, con quegli `args`. Un'app non può far aprire file o altre app.
+- Le operazioni di un'app vanno via con lei quando viene disinstallata.
+
+**Un servizio che la Pianificazione chiama.** Dichiara un punto d'ingresso `kind: 'service'` (permesso `background`) e rispondi a `{ schedule }`:
+
+```js
+export async function sync({ lilos, args }) {
+  lilos.handle(async (data, from) => {
+    if (data?.schedule) {                               // { task, name, run, params }, from === 'scheduler'
+      const novita = await controlla(data.schedule.params);
+      return { text: `${novita} novità` };              // l'esito; { ok: false, error } per un errore; { log } per il resoconto
+    }
+    return { ok: true };
+  });
+  if (args.reason === 'schedule') return;               // avviato solo per questa corsa: non fare altro, si ferma da solo
+  // …lavoro normale quando il servizio parte per altri motivi
+}
+```
+
+Poi un'operazione `{ type: 'service', app: '<id app>', entry: 'sync', params: {} }` lo fa partire: se era spento parte per la corsa e si ferma alla fine. L'esempio reale è il servizio `updates` dell'AppStore (`src/appstore/services/updates.js`), con la sua operazione «Controlla gli aggiornamenti» (`src/appstore/AppStoreApp.js`).
+
+**Un calendario** (permessi `schedule.read` e `schedule.move`):
+
+```js
+const { items, series } = await lilos.schedule.occurrences({ from: inizio, to: fine });   // ms, al massimo 62 giorni
+// items: le volte (pianificate e fatte), series: le regole più fitte di una volta ogni 30 minuti
+const tasks = await lilos.schedule.tasks();            // ognuna con recurrence: { text, rrule, exdate, rdate, tz, start, end, count }
+await lilos.schedule.move(id, { at: voltaVecchia, to: voltaNuova, scope: 'this' });   // 'all' sposta tutta la regola
+lilos.schedule.open('create', { when: { once: '2026-12-15T10:00', tz: 'Europe/Rome' } });   // la Pianificazione, con una nuova operazione già compilata
+lilos.schedule.open('edit', { id });                    // o 'history' ({ task, run }), o 'main'
+```
+
+- `recurrence.rrule` è `null` quando la regola non ha un RRULE esatto (una `cron` strana, per esempio): in quel caso le volte si leggono con `occurrences`. Con `DTSTART` metti `recurrence.start` nel fuso `recurrence.tz`.
+- `move` cambia solo il quando, mai cosa fa l'operazione; una `cron` si sposta una volta alla volta (`scope: 'this'`).
+- `tasks()` dà a ogni operazione solo `what.type` (mai comandi, indirizzi o intestazioni), e `history()` toglie `text` e `log`: un calendario sa quando e com'è andata, non cosa c'era dentro.
+- L'evento `schedule` (`{ type: 'change', ids }` e `{ type: 'run', task, run, state }`) dice quando rileggere. Con il solo permesso `schedule` si riceve `{ type: 'change' }` senza `ids` e nessun `run`.
+- Per **creare** operazioni di altro tipo (copie, comandi, richieste web) serve la finestra della Pianificazione: `lilos.schedule.open('create', …)` propone il *quando* e, al massimo, un promemoria o l'apertura della tua app; il resto lo scrive l'utente.
+
 ## Installare un'app dall'esempio
 
 Serve un utente amministratore (`--admin`) e il kernel con `apps.allowLocalSources` acceso (lo è nella `config.json` del repository). Con lilOS aperto in sviluppo, nella console del browser (`lilos.kernel` esiste solo in sviluppo):
@@ -916,6 +980,8 @@ try {
    ```
 3. Attivalo in `system/kernel/config.json`, dentro `modules`: `{ "name": "mio", "version": "1.0.0", "config": { … } }` (`ctx.config` riceve quell'oggetto). Senza `version` si usa la più alta installata. Se ha dipendenze npm, mettile in un `package.json` del modulo (con il suo `package-lock.json`) e lancia `npm run kernel:setup`.
 4. Riavvia il kernel. Un modulo che dichiara un servizio e non lo fornisce, o che non ha i metodi che il kernel chiama, non parte.
+
+**Un modulo obbligatorio** (senza cui lilOS non parte, come `scheduler`): aggiungi `"required": true` al `module.json`, il nome e il servizio che fornisce a `REQUIRED_MODULES` in `system/kernel/src/modules.js`, e tieni la cartella in `system/kernel/modules/` **nel repository** (non basta il repository ufficiale): `scripts/release.mjs` la mette in ogni release e `ensureRequiredModules()` la porta in `modules/` e in `config.json` all'avvio. Meglio senza dipendenze npm: la release non porta `node_modules` e, se c'è un `package.json`, il kernel dovrebbe installarle (`npm`) a ogni primo avvio della versione. Dichiara l'interfaccia in `INTERFACES` (`services.js`) perché il kernel ne controlli i metodi. Nel repository ufficiale delle app va comunque nel catalogo, con lo stesso `required`, perché l'AppStore lo mostri come necessario.
 
 Questa è la strada a mano. Per distribuirlo, vedi la ricetta successiva: un modulo in un repository si installa dall'AppStore.
 
