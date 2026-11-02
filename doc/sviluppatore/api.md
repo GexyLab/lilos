@@ -653,6 +653,62 @@ if (net.available) {
 
 ---
 
+## sdk/core/term.js
+
+### `term`
+
+Terminali remoti (app **Terminale remoto**: SSH, Telnet, rlogin, SUPDUP; ogni protocollo è un modulo del kernel): gli host che l'utente ha salvato e le sessioni aperte nel kernel. Funziona solo **collegato al kernel**. Le sessioni vivono nel kernel: una sessione continua senza finestra e si chiude dopo 10 minuti senza; una pagina che si ricollega riceve lo schermo com'era. Il contratto dei moduli, gli endpoint e le scelte sono in [Terminali remoti](#terminali-remoti-term-apitermjs) e in [D61](../interna/decisioni.md#d61-i-terminali-remoti-le-sessioni-vivono-nel-kernel-un-websocket-nostro). Un'app installata non usa questo oggetto: passa da [`lilos.term`](#windowlilos-bridgejs).
+
+| Membro | Descrizione |
+| --- | --- |
+| `available` | `true` se c'è il kernel e ha almeno un protocollo (vale dopo `load()`) |
+| `protocols` | `[{ id, label, order, port, secure, fields }]` dall'ultimo `load()`. `secure`: `true`, `false` o `null` (dipende dai valori: Telnet con o senza TLS); `fields` come per i protocolli di [`net`](#sdkcorenetjs) |
+| `load()` | `Promise<{ protocols, encodings, hosts, sessions }>`. `encodings`: `['utf-8', 'iso-8859-1', 'iso-8859-15', 'cp437']`. Fuori dal kernel restituisce quattro liste vuote |
+| `saveHost(id \| null, config, secret = {})` | `Promise<host>`. `config`: `{ name, folder, protocol, values, settings, remember?, forget? }`. `id` `null` crea (`POST /api/term/hosts`), altrimenti cambia (`PUT`). Su un host esistente i segreti lasciati vuoti restano com'erano; `forget: true` (o `remember: false`) li toglie. Cambiando `host`, `port`, `user`, `auth` o `tls` la password salvata si scorda |
+| `removeHost(id)` | `Promise` |
+| `open(spec)` | `Promise<sessione>`. `spec`: `{ host: id }` (un host salvato), `{ protocol, values, settings? }` (connessione rapida, senza salvare) o `{ mount: id, path? }` (SSH sul server di una connessione SFTP di Rete, nella cartella `path` della connessione, con le sue credenziali e la sua chiave del server). La sessione nasce `new` e si collega quando una pagina fa `attach`. Al massimo 10 aperte per utente (`rate_limited`) |
+| `close(id)` | `Promise`. Chiude la connessione e dimentica la sessione |
+| `attach(id, { cols, rows })` | `MessagePort` (sincrono). Apre il WebSocket `/api/term/sessions/:id/socket` e lo mette dietro la porta; `cols` e `rows` sono la dimensione dello schermo. Un `id` che non è `[a-f0-9]{16}` lancia un errore. Protocollo della porta, sotto |
+| `text(label)` | Un'etichetta di protocollo o di campo (`{ en, it }` o testo) nella lingua del sistema, come `net.text()` |
+| `changed(what)` | Per il sistema: il kernel ha detto che `'hosts'` o `'sessions'` sono cambiati (`src/net/connect.js`) |
+
+**Forme.**
+
+| Oggetto | Campi |
+| --- | --- |
+| host | `{ id, name, folder, protocol, address, values, settings, remembered, secure, available, used }`. `remembered`: c'è una password salvata; `available`: il modulo del protocollo è attivo; `used`: l'ultima apertura (ms) o `null`. I segreti non tornano mai |
+| `settings` | `{ term: 'xterm-256color', encoding: 'utf-8' \| 'iso-8859-1' \| 'iso-8859-15' \| 'cp437', backspace: 'del' \| 'bs' }` (i valori predefiniti sono i primi) |
+| sessione | `{ id, host, name, protocol, address, secure, state, reason, title, created, attached, closesAt, info, signals }`. `state`: `'new'` (nessuna pagina l'ha ancora collegata) \| `'connecting'` \| `'on'` \| `'closed'`; `reason`: perché è chiusa; `title`: il titolo che il programma ha impostato; `attached`: una pagina la sta mostrando; `closesAt`: quando si chiude da sola (ms) se nessuna pagina la mostra, altrimenti `null`; `info`: dati del driver (impronta, cifratura); `signals`: i segnali che il protocollo sa mandare (`'break'`, `'interrupt'`, `'ayt'`) |
+
+**La porta di `attach`.** I byte dello schermo e dei tasti sono binari; le cose di controllo sono stringhe JSON.
+
+| Direzione | Messaggio |
+| --- | --- |
+| dalla porta, `ArrayBuffer` | I byte per lo schermo (UTF-8, per un xterm), già convertiti dalla codifica scelta. All'inizio arriva lo schermo com'era (gli ultimi 1 MB, con i modi del terminale ripristinati: schermo alternativo, mouse, cursore) |
+| dalla porta, stringa | `{ t: 'state', session }` lo stato è cambiato · `{ t: 'trust', trust: { kind: 'ssh' \| 'tls', fingerprint, text, host, changed?, previous? } }` una chiave del server da confermare (`changed` e `previous` se prima ce n'era un'altra) · `{ t: 'taken' }` un'altra pagina ha preso la sessione (poi arriva `gone` e la porta si chiude) · `{ t: 'gone', code }` il canale si è chiuso (lo aggiunge lilOS) |
+| alla porta, `ArrayBuffer` o array tipizzato | Ciò che l'utente ha scritto (fino a 64 KB per messaggio, il resto si scarta). Mentre il terminale chiede una riga (la password), i byte vanno alla domanda e non al server |
+| alla porta, stringa | `{ t: 'resize', cols, rows }` · `{ t: 'trust', ok: true \| false }` la risposta alla chiave · `{ t: 'signal', name }` uno dei `signals` della sessione · `{ t: 'detach' }` chiude il canale (la sessione resta). Fino a 4096 caratteri |
+
+Un solo canale per sessione: un secondo `attach` chiude il primo con `taken`. Chiudendo il canale (o la pagina) la sessione resta aperta e riparte il conto dei 10 minuti. Se la sessione è già chiusa e nessuna pagina la mostra, sparisce subito.
+
+Eventi: `hosts` (gli host salvati sono cambiati) e `sessions` (una sessione è comparsa, è cambiata o è sparita), anche per colpa di un'altra pagina dello stesso utente. Il sistema li gira da `term.hosts` e `term.sessions` del kernel (`src/net/connect.js`); alla riconnessione al kernel emette `sessions`.
+
+```js
+import { term } from '@lilos/sdk';
+
+await term.load();
+const s = await term.open({ protocol: 'ssh', values: { host: 'example.com', user: 'ann' } });
+const port = term.attach(s.id, { cols: 80, rows: 24 });
+port.onmessage = e => {
+  if (typeof e.data === 'string') console.log(JSON.parse(e.data));   // state, trust, taken, gone
+  else screen.write(new Uint8Array(e.data));                        // per esempio un xterm.js
+};
+port.postMessage(new TextEncoder().encode('ls\r'));                 // i tasti
+port.postMessage(JSON.stringify({ t: 'resize', cols: 120, rows: 40 }));
+```
+
+---
+
 ## sdk/core/pipes.js e sdk/core/pipeCatalog.js
 
 Pipe sugli eventi: le operazioni del sistema che altri possono guardare, cambiare o fermare. Decisione: [D47](../interna/decisioni.md#d47-pipe-sugli-eventi-dati-delle-app-sui-file-e-filecrypt). `pipes.js` è il motore; `pipeCatalog.js` dichiara gli eventi del sistema e riesporta `pipes` e `PipeStopped`, che l'SDK esporta da lì (`import { pipes, PipeStopped } from '@lilos/sdk'`), così ogni evento ha il suo catalogo comunque si arrivi.
@@ -1720,7 +1776,7 @@ Validato dal kernel (`system/kernel/src/apps/manifest.js`), che scarta i campi c
 
 **`contributes.events`** (fino a 20): gli eventi dell'app, nel catalogo delle pipe da quando l'app è installata, così le altre app possono iscriversi (anche dal manifesto) prima che giri. `[{ name, label, description?, edit?, stop? }]`: `name` è `<id app>.<una parola>` (`acme.notes.saved`; la parola `/^[a-z][a-zA-Z0-9]{0,40}$/`), senza doppioni; `label` fino a 80 caratteri e `description` fino a 300, tradotte con `@events.<nome>.label` e `@events.<nome>.description` di `locales`; `edit` `{ before?: [campo], after?: [campo] }`, fino a 20 nomi `\w{1,40}` per fase (non `__proto__`, `constructor`, `prototype`); `stop: true` se i gestori lo possono fermare. L'app li fa partire con `lilos.pipes.run`; chi si iscrive da un'altra app chiede `pipe:<nome>`. Una nuova versione che toglie un evento lo toglie dal catalogo con le iscrizioni a esso; rimuovere l'app toglie tutti i suoi eventi. `lilos.pipes.define` resta per gli eventi che nascono mentre l'app gira e conta nello stesso limite di 20.
 
-**`contributes.actions`** (richiede `ui.menus`; fino a 20): voci nel menu di file e cartelle. `[{ id, label, entry, on, glyph?, when?, many?, menu? }]`: `id` inizia con l'id dell'app e un punto; `label` fino a 60 caratteri; `entry` `'main'` o un punto d'ingresso dell'app che non sia un `service`; `on` `'file'`, `'folder'` o `'item'` (entrambi); `glyph` un simbolo; `when` `{ meta?: 'own' \| 'none', ext?: [estensione], notExt?: [estensione] }` (`'own'` solo per i nodi con dati dell'app, `'none'` solo per gli altri; `ext` solo i file con quelle estensioni, `notExt` tutto tranne loro); `many: true` la voce compare anche con più elementi selezionati; `menu` l'id di uno dei suoi `contributes.menus`: la voce sta in quel sottomenu. Il punto d'ingresso riceve `{ files: [id], action: id }` e può leggere e scrivere quei file.
+**`contributes.actions`** (richiede `ui.menus`; fino a 20): voci nel menu di file e cartelle. `[{ id, label, entry, on, glyph?, when?, many?, menu? }]`: `id` inizia con l'id dell'app e un punto; `label` fino a 60 caratteri; `entry` `'main'` o un punto d'ingresso dell'app che non sia un `service`; `on` `'file'`, `'folder'` o `'item'` (entrambi); `glyph` un simbolo; `when` `{ meta?: 'own' \| 'none', ext?: [estensione], notExt?: [estensione], net?: [protocollo] }` (`'own'` solo per i nodi con dati dell'app, `'none'` solo per gli altri; `ext` solo i file con quelle estensioni, `notExt` tutto tranne loro; `net` solo i nodi dentro una connessione di Rete di quei protocolli, fino a 20 nomi `[a-z][a-z0-9-]{0,30}`, per esempio `['sftp']`: fuori dalla Rete la voce non compare); `many: true` la voce compare anche con più elementi selezionati; `menu` l'id di uno dei suoi `contributes.menus`: la voce sta in quel sottomenu. Il punto d'ingresso riceve `{ files: [id], action: id }` e può leggere e scrivere quei file.
 
 **`contributes.menus`** (fino a 10): sottomenu che raccolgono le azioni dell'app. `[{ id, label, glyph? }]`: `id` inizia con l'id dell'app e un punto, uno per menu; `label` fino a 60 caratteri; `glyph` un simbolo (quello dell'app se manca). Un sottomenu compare solo se almeno una delle sue azioni vale per gli elementi scelti. Un lilOS precedente ignora `menu` e mostra le azioni una per una, ma rifiuta un manifesto con `when.notExt`. Esempio (l'app Zip): `"menus": [{ "id": "zip.compress", "label": "Compress", "glyph": "archive" }]` con le azioni `zip.zip` (`on: 'item'`, `when: { notExt: ['zip'] }`) e `zip.unzip` (`on: 'file'`, `when: { ext: ['zip'] }`), entrambe con `menu: 'zip.compress'`.
 
@@ -1751,6 +1807,7 @@ Un permesso è `nome` oppure `nome:parametro`. Un permesso non nell'elenco, o co
 | `clipboard.write` | implicit | Copiare negli appunti | `lilos.clipboard.write` |
 | `clipboard.read` | use | Leggere gli appunti | Nessuno |
 | `net:<origine>` | install | Collegarsi a un sito (`https://api.esempio.it`, senza percorso) | Apre `connect-src` della CSP |
+| `term` | install | Aprire terminali remoti (SSH, Telnet…) e usare gli host salvati | `lilos.term.*` e l'evento `term`. Le sessioni collegano il computer del kernel a server scelti dall'app, e con un host salvato usano la sua password: da concedere con cautela. Valgono le regole di rete della cartella Rete (`net/guard.js`) |
 | `media.camera`, `media.microphone`, `geo` | use | Fotocamera, microfono, posizione | Nessuno (l'iframe non ha `allow`) |
 | `apps.call:<id app>` | install | Usare le azioni di un'altra app | `lilos.apps.call(<id app>, entry, data)`. Per i propri punti d'ingresso (`lilos.app.call`) non serve. Dentro: **un'app passa a un'altra un `file` solo se l'ha ricevuto lei** (aperto con l'app o passatole); gli altri dati arrivano così come sono e chi li riceve deve controllarli |
 | `ai.use`, `ai.expose` | install | Usare l'intelligenza artificiale / esporre le proprie azioni | Nessuno |
@@ -1806,7 +1863,7 @@ Con `sdk` `"1"` il modulo è l'app: gira per intero all'avvio con `window.lilos`
 | `lilos.apps.call(app, entry, data)` → risultato | Come `lilos.app.call`, per un punto d'ingresso **di un'altra app**. Serve il permesso `apps.call:<id app>`. L'app deve essere installata e visibile nel workspace attuale. Un `file` (o i `files`, al massimo 100) si può passare solo se l'app lo ha ricevuto; ogni altro dato arriva così com'è e **chi lo riceve deve controllarlo** (la forma, i tipi, le dimensioni). |
 | `lilos.handle(fn)` | Solo in un background: `fn(data, { from })` risponde alle chiamate; `from` è l'id dell'app che chiama (`null` se è il sistema). Il valore restituito, o `null`, torna a chi ha chiamato. Senza `handle` le chiamate falliscono. Un `file` ricevuto nei dati si può leggere e scrivere con `lilos.files` come se l'app fosse stata aperta con lui. |
 | `lilos.locale` | `{ code, i18n: { t(chiave, params?), lang, date(valore, opzioni?), number(valore, opzioni?) } }`: la lingua del sistema e le stringhe dell'app per quella lingua, già risolte (a differenza del resto di `lilos`, **sincrono**). Non richiede permessi. Vedi [`lilos.locale`](#liloslocale). |
-| `lilos.on(evento, fn)` → `off` | Eventi: `launch` (nuovi argomenti, a finestra già aperta), `command` (`id` di un comando di `contributes.commands`, quando l'utente preme la sua scorciatoia; solo nelle finestre), `theme` (i token di colore sono cambiati; nella sandbox il bridge li applica da solo a `:root`), `connect` (`MessagePort`, in un background: qualcuno ha chiamato `lilos.app.connect`), `locale` (`{ code, lang }`: la lingua del sistema è cambiata e `lilos.locale` ha già le nuove stringhe; non nei servizi). |
+| `lilos.on(evento, fn)` → `off` | Eventi: `launch` (nuovi argomenti, a finestra già aperta), `command` (`id` di un comando di `contributes.commands`, quando l'utente preme la sua scorciatoia; solo nelle finestre), `theme` (i token di colore sono cambiati; nella sandbox il bridge li applica da solo a `:root`), `connect` (`MessagePort`, in un background: qualcuno ha chiamato `lilos.app.connect`), `locale` (`{ code, lang }`: la lingua del sistema è cambiata e `lilos.locale` ha già le nuove stringhe; non nei servizi), `term` (`'hosts'` o `'sessions'`: sono cambiati gli host salvati o le sessioni, anche per colpa di un'altra pagina dello stesso utente; solo per le app con il permesso `term`). |
 | `lilos.window.setTitle(testo)` | Titolo della finestra (fino a 100 caratteri). Solo in una finestra: in un background fallisce. |
 | `lilos.window.close()` | La finestra si chiude, come con il suo pulsante. Solo in una finestra. |
 | `lilos.ui.toast(testo)` | Vecchio nome di `lilos.ui.notify(testo)`: una notifica firmata con l'app, con livello `info` e gli stessi limiti (compreso quello al minuto). Non c'è più un avviso breve in basso. |
@@ -1827,6 +1884,13 @@ Con `sdk` `"1"` il modulo è l'app: gira per intero all'avvio con `window.lilos`
 | `lilos.storage.get(chiave)` → valore o `null` | Dati propri dell'app per l'utente. Chiavi `[\w.-]{1,64}`; salvati come `app:<id>:<chiave>`. |
 | `lilos.storage.set(chiave, valore)` | Fino a 256 KB di JSON per valore. |
 | `lilos.clipboard.write(testo)` | Copia negli appunti. |
+| `lilos.term.load()` → `{ protocols, encodings, hosts, sessions }` | I terminali remoti dell'utente: i protocolli dei moduli del kernel, le codifiche, gli host salvati e le sessioni aperte. Serve il permesso `term` (vale per tutti i metodi `lilos.term.*`). Le forme sono quelle di [`term`](#sdkcoretermjs). |
+| `lilos.term.saveHost(id \| null, config, secret?)` → host | Crea (`id` `null`) o cambia un host salvato. `config`: `{ name, folder, protocol, values, settings, remember?, forget? }`; `secret`: `{ chiave: valore }` dei campi segreti (la password). |
+| `lilos.term.removeHost(id)` | Toglie un host salvato. |
+| `lilos.term.open({ host } \| { protocol, values, settings? })` → sessione | Apre una sessione (non ancora collegata: si collega quando una finestra la mostra con `attach`). `{ host }` è l'id di un host salvato; con `{ protocol, values }` è una connessione rapida. Non passa segreti: una password non salvata la chiede il terminale. |
+| `lilos.term.openHere(id)` → sessione | SSH sul server della connessione SFTP in cui sta il file o la cartella `id`, nella sua cartella (per la voce con `when.net: ['sftp']`). `id` deve essere un nodo ricevuto dall'app (aperto con l'app o passato da una sua azione); altrimenti errore. Con una connessione di altro tipo: errore. |
+| `lilos.term.close(id)` | Chiude la sessione (la connessione finisce) e la dimentica. |
+| `lilos.term.attach(id, { cols, rows })` → `MessagePort` | Il canale dello schermo e dei tasti di una sessione. **Solo nelle finestre.** È la **pagina** di lilOS ad aprire il WebSocket verso il kernel, l'app isolata non lo vede: riceve una porta già collegata. Il formato dei messaggi è in [`term`](#sdkcoretermjs). I canali si chiudono con la finestra (le sessioni restano). |
 
 I percorsi sono quelli che l'utente vede dal workspace attuale: `~/Scrivania` è la scrivania del workspace in cui l'app gira. Le variabili di tema (`--accent`, `--text`, `--surface`…) sono disponibili nei CSS dell'app. Le scorciatoie arrivano come `command` con i tasti scelti dall'utente nel Pannello di controllo.
 
@@ -2672,6 +2736,8 @@ Tutto sta sotto `/api`. Le risposte sono JSON, con `Cache-Control: no-store`, `X
 
 Le richieste che modificano (tutte tranne `GET` e `HEAD`) devono avere l'intestazione `X-Lilos: 1` e, se il browser manda `Origin`, questa deve essere in `origins` della configurazione o, con `loopbackOrigins: true`, un `http://localhost`, `127.0.0.1` o `[::1]`; altrimenti `forbidden`. Senza un modulo di accesso chiunque raggiunga il kernel è l'unico utente: per questo ascolta solo su questo computer.
 
+**WebSocket.** Il kernel gestisce anche richieste `upgrade` (`kernel.sockets`, un `Router` come `kernel.router`: i gestori ricevono `{ req, socket, head, params, query, principal }`; `ws.js` fa il handshake di RFC 6455 senza librerie). Il browser non può aggiungere `X-Lilos` a un WebSocket e lo apre verso qualunque sito con i cookie dell'utente (CSWSH): per questo `checkSocketOrigin` (`http.js`) vuole sempre un `Origin`, e deve essere uno di quelli permessi (come sopra) oppure lo stesso indirizzo (`host`) a cui risponde il kernel, cioè la pagina servita da un lilOS installato. Senza `Origin` o con un'altra: `403`. Vale anche `checkHost`. Una rotta senza accesso risponde `401`, una sconosciuta `404`, un handshake sbagliato `400`, sempre prima di cambiare protocollo. Con Vite i WebSocket di `/api` passano dal proxy (`ws: true` in `vite.config.js`).
+
 | Metodo e percorso | Chi | Corpo → risposta |
 | --- | --- | --- |
 | `GET /api/session` | tutti | → `{ mode: 'multi' \| 'single', user \| null }` |
@@ -2716,6 +2782,7 @@ Le richieste che modificano (tutte tranne `GET` e `HEAD`) devono avere l'intesta
 | `POST /api/notifications/read` | utenti | `{ ids? }` (fino a 64 KB) → 204. Senza `ids`, tutte |
 | `POST /api/notifications/remove` | utenti | `{ ids? }` → 204. Senza `ids`, tutte |
 | `PUT /api/notifications-options` | utenti | `{ keep }` → `{ keep }`: quante ne conserva l'utente, un intero da 1 a 200 (`invalid` altrimenti) |
+| `GET /api/term` e le altre `/api/term/…` | utenti | Gli host salvati e le sessioni dei terminali remoti dell'utente, e il WebSocket di una sessione: vedi [Terminali remoti](#terminali-remoti-term-apitermjs) |
 | `GET /api/net` e le altre `/api/net/…` | utenti | Le connessioni di rete dell'utente, i loro file e i trasferimenti: tutti gli endpoint sono in [Rete](#rete-connessioni-e-trasferimenti-net-apinetjs). Errori propri: `secret_required` 428 e `untrusted` 409 (con `details`) |
 | `POST /api/kernel/restart` | amministratori | Il kernel si ferma ed esce con il codice 75: `npm run kernel` lo riavvia. Senza `run.js` (variabile `LILOS_SUPERVISED` assente): `unavailable` |
 | `GET /api/system` | utenti | → `{ version, mode }`; agli amministratori anche `kernel`, `sdk`, `releases`, `next`, `previous`, `updated`, `failed` (vedi [`systemReleases`](#systemreleases)) |
@@ -3019,6 +3086,113 @@ Arrivano sul flusso `/api/services-events` dell'utente (come quelli dei moduli):
 #### Contenuti grandi nel servizio `fs`
 
 Il servizio `fs` può avere, oltre a `read` e `write`, due metodi facoltativi per i contenuti grandi (senza, il kernel ripiega su `read`/`write`, con il file intero in memoria): `readStream(principal, id, { start })` → `Readable` dal byte `start`, e `writeFrom(principal, id, source, { signal })` → dimensione, che scrive da uno stream e rende il contenuto quello del file solo quando è arrivato tutto. `GET /api/fs/content/:id?raw=1` li usa per mandare i byte in streaming, con `Content-Length` (senza `raw` resta il testo, letto per intero). `fs-postgres_1.1.0` li ha: se un file viene riscritto mentre si legge (i suoi pezzi spariscono), `readStream` lancia «Il file è cambiato mentre veniva letto» invece di restituire un file più corto. `PUT /api/fs/content/:id` non è cambiato.
+### Terminali remoti (`term/`, `api/term.js`)
+
+I terminali SSH, Telnet, rlogin e SUPDUP dell'app **Terminale remoto** stanno nel kernel. Motivi e alternative scartate: [D61](../interna/decisioni.md#d61-i-terminali-remoti-le-sessioni-vivono-nel-kernel-un-websocket-nostro). Come per la Rete, i protocolli sono moduli e il kernel ne trova i servizi all'avvio (senza nessuno, `GET /api/term` risponde con elenchi vuoti).
+
+| File | Che cosa fa |
+| --- | --- |
+| `ws.js` (`acceptSocket`, `refuseUpgrade`) | Un WebSocket (RFC 6455) senza librerie, sopra una richiesta `upgrade` |
+| `term/drivers.js` | Il contratto dei protocolli (`term.<protocollo>`), `findDrivers`, `isSecure` |
+| `term/terminals.js` (`Terminals`, `kernel.terminals`) | Gli host salvati di ogni utente e le sessioni aperte |
+| `term/screen.js` (`History`, `Charset`, `ENCODINGS`) | Lo schermo tenuto per chi si ricollega e le codifiche |
+| `api/term.js` | Gli endpoint e la rotta del WebSocket (sotto) |
+
+#### Protocolli: il servizio `term.<protocollo>`
+
+Un modulo fornisce un protocollo con un servizio che si chiama `term.<protocollo>` (`provides: ["term.ssh"]`); il nome è `[a-z][a-z0-9-]{0,30}`. Un servizio senza `open()` e `address()`, con `fields` non validi o con una porta fuori da 1-65535 è scartato con un avviso nel log del kernel.
+
+```js
+// il servizio che un modulo passa a ctx.provide('term.esempio', …)
+{
+  label: { en: 'Example', it: 'Esempio' },   // stringa o { lingua: testo }
+  order: 50,                                 // posizione nell'elenco (più basso prima)
+  port: 4000,                                // la porta solita
+  secure: false,                             // o (values) => boolean
+  fields: [ /* come per la Rete: host, port, user… */ ],
+  address(values) { return `esempio://${values.host}`; },
+  async open(values, ctx) { return session; },
+}
+```
+
+| Membro | Descrizione |
+| --- | --- |
+| `label`, `order` | Il nome che l'utente sceglie e la sua posizione |
+| `port` | Intero 1-65535: la porta solita (la pagina la mostra, il driver la usa se il campo è vuoto) |
+| `fields` | Come per i protocolli di Rete ([Campo](#protocolli-il-servizio-netfsprotocollo)): `host` è il server, `port` la sua porta. I campi `secret` arrivano in `ctx.secret` |
+| `secure` | `true`, `false` o `(values) => boolean`: se ciò che passa è cifrato. Il kernel lo copia in host e sessione; la pagina avverte per i non cifrati. Con una funzione, `termProtocolInfo` dà `null` alla pagina |
+| `address(values)` | `string`: come si mostra la connessione (`ssh://ann@host:2222`) |
+| `check?(values)` | Lancia un errore con `net` se i valori non si possono usare così come sono |
+| `open(values, ctx)` | `Promise<session>`: collega e, se il protocollo lo fa, entra |
+
+`ctx`:
+
+| Campo | Descrizione |
+| --- | --- |
+| `secret` | `{ chiave: valore }` dei campi segreti, `{}` se non ce ne sono. Il kernel la scorda appena la sessione è collegata |
+| `cols`, `rows` | La dimensione dello schermo |
+| `term` | Il tipo di terminale da annunciare (`'xterm-256color'`) |
+| `cwd` | Una cartella in cui partire, o `null` (lo usa solo SSH, dalla voce «Apri terminale SSH qui») |
+| `ask(prompt, { echo = false })` | `Promise<string>`. Chiede una riga all'utente **nel terminale stesso** (una password che il server vuole): scrive `prompt` sullo schermo e legge quello che l'utente digita fino a Invio. Si rifiuta se l'utente rinuncia con Ctrl+C o Ctrl+D (errore con `net: 'cancelled'`). Una domanda alla volta |
+| `confirm(trust)` | `Promise<boolean>`. La chiave o il certificato che il server ha mostrato, `{ kind: 'ssh' \| 'tls', fingerprint, text }`. Vale `true` se è quella già confermata per questo protocollo, host e porta, o se l'utente la conferma ora (la pagina riceve `{ t: 'trust' }`, la risposta arriva col socket); `false` se rifiuta o chiude. Il kernel la ricorda |
+| `print(text)` | Una riga per l'utente nel terminale (che cosa sta succedendo) |
+| `signal` | `AbortSignal`: l'utente ha chiuso la sessione mentre si collegava |
+
+**Sessione** (i byte sono quelli che uno xterm mostra e manda: un protocollo il cui server parla un'altra lingua, come SUPDUP, traduce nei due sensi):
+
+| Membro | Descrizione |
+| --- | --- |
+| `onData(fn(Buffer))` | Ciò che manda il server |
+| `onClose(fn({ reason }))` | La connessione è finita (`reason`: un messaggio per l'utente, o vuoto) |
+| `write(Buffer)` | Ciò che scrive l'utente |
+| `resize(cols, rows)` | |
+| `signal?(name)`, `signals?` | `signals`: i nomi che conosce (`'break'`, `'interrupt'`, `'ayt'`), per il menu Tasti; il kernel inoltra `{ t: 'signal', name }` solo per questi |
+| `pause?()`, `resume?()` | Smettere e riprendere di leggere dal server quando la pagina è indietro (oltre 1 MB in coda) |
+| `info?` | Dati per la barra di stato (`{ key, cipher }` per SSH); torna in `session.info` |
+| `close()` | |
+
+**Errori.** Come per i driver di Rete portano `net` (`auth`, `untrusted`, `unreachable`, `lost`, `invalid`…): il kernel scrive il messaggio in rosso nel terminale e la sessione passa a `closed`. Prima di ogni apertura il kernel controlla dove può collegarsi (`net/guard.js`, come per la Rete).
+
+#### Host e sessioni (`Terminals`)
+
+- **Host salvati.** Ogni utente ha `DATA_DIR/term/<hash dell'utente>.json` (ignorata da git, `/term/`; permessi `0600`): `{ hosts: [{ id, name, folder, protocol, values, secret, settings, created, used }], known }`. Al massimo 200 host; nome fino a 60 caratteri e unico (maiuscole a parte); cartella fino a 60. I segreti sono cifrati con `net/secrets.js` (la stessa chiave `secret.key` della Rete) e non lasciano mai il kernel. `known` ricorda le chiavi dei server confermate, per `<protocollo>:<host>:<porta>`. Un host il cui modulo non è attivo resta nell'elenco con `available: false`. Con più utenti, `prune()` toglie i file degli utenti spariti all'avvio.
+- **Sessioni.** Stanno solo in memoria, per utente: non sopravvivono a un riavvio del kernel, che le chiude (`stop()`). Al massimo **10** aperte (le chiuse non contano). Una sessione nasce `new`, si collega quando una pagina fa `attach` (`connecting`, poi `on` o `closed`). **Senza pagina si chiude dopo 10 minuti**; una già finita sparisce appena nessuna pagina la mostra. Un nuovo `attach` stacca il precedente (`{ t: 'taken' }`, chiusura 4000).
+- **Lo schermo.** `History` tiene gli ultimi 1 MB mandati alla pagina, con i modi del terminale prima del primo pezzo (schermo alternativo, mouse, tasti del cursore, incolla protetto); chi si ricollega riceve i modi e poi i byte, e `vim` o `htop` tornano com'erano.
+- **Codifica.** `settings.encoding` (`utf-8`, `iso-8859-1`, `iso-8859-15`, `cp437`): `Charset` converte in UTF-8 ciò che arriva e, nell'altro senso, ciò che l'utente scrive. `settings.backspace: 'bs'` manda `^H` al posto di `DEL`.
+- **Chiavi dei server.** `ctx.confirm` chiede alla pagina solo se la chiave non è già in `known`; se è diversa da quella ricordata, la richiesta ha `changed: true` e `previous`. Una conferma si salva (`known`).
+- **Password.** Quelle non salvate non passano mai dalla pagina come dati: le scrive l'utente nel terminale e vanno alla domanda `ctx.ask`.
+- **Pressione.** Se la pagina ha più di 1 MB in coda il kernel chiama `pause()` e riprende col `drain`. Un messaggio dalla pagina è al massimo 256 KB.
+
+#### Endpoint `/api/term`
+
+Tutti per gli utenti (un utente vede solo i suoi). Gli `id` sono `[a-f0-9]{16}`.
+
+| Metodo e percorso | Corpo → risposta |
+| --- | --- |
+| `GET /api/term` | → `{ protocols, encodings, hosts, sessions }` |
+| `POST /api/term/hosts` | `{ name, folder?, protocol, values, settings?, remember?, secret? }` (fino a 256 KB) → host. `remember: false` non salva i segreti |
+| `PUT /api/term/hosts/:id` | `{ name?, folder?, values?, settings?, remember?, forget?, secret? }` → host |
+| `DELETE /api/term/hosts/:id` | → 204 |
+| `GET /api/term/sessions` | → `[sessione]` |
+| `POST /api/term/sessions` | `{ host }` \| `{ protocol, values, secret?, settings? }` \| `{ mount, path? }` → sessione. `mount` solo per una connessione SFTP (`Network.credentials`, mai verso la pagina) |
+| `DELETE /api/term/sessions/:id` | Chiude e dimentica la sessione → 204 |
+| `GET /api/term/sessions/:id/socket?cols=&rows=` | **WebSocket** (richiesta `upgrade`, non `fetch`). Vale il controllo dell'`Origin` ([API HTTP](#api-http)). Senza sessione `404` |
+
+Sul socket (messaggi fino a 256 KB): **binari** sono i byte dello schermo (dal kernel) e dei tasti (dalla pagina); **testo** sono JSON. Dal kernel: `{ t: 'state', session }`, `{ t: 'trust', trust }`, `{ t: 'taken' }`. Dalla pagina: `{ t: 'resize', cols, rows }` (2-1000 colonne, 1-500 righe), `{ t: 'trust', ok }`, `{ t: 'signal', name }`. Gli stessi messaggi che [`term.attach`](#sdkcoretermjs) porta alle app.
+
+Il socket è pingato ogni 30 secondi; senza risposta per 75 la connessione cade (codice 1006) e la sessione resta, senza pagina.
+
+Errori: `invalid` (400), `unauthorized`, `not_found` (404: host o sessione), `conflict` (409: un host con quel nome), `unavailable` (503: manca il modulo del protocollo), `rate_limited` (429: già 10 sessioni).
+
+#### Eventi dei terminali
+
+| Evento | Dati | Quando |
+| --- | --- | --- |
+| `term.hosts` | `{}` | Gli host salvati sono cambiati |
+| `term.sessions` | `{}` | Una sessione è nata, ha cambiato stato, si è collegata o scollegata, o è sparita |
+
+Arrivano sullo stesso flusso `/api/services-events` degli eventi di Rete; la pagina rilegge con `GET /api/term`.
+
 ### `users-basic_1.0.0`
 
 Configurazione: `sessionDays` (30) e `idleDays` (7). Tutto sta in `users.json` nella cartella del modulo:
@@ -3356,6 +3530,17 @@ Il OneDrive dell'utente (personale, o di lavoro o dell'istituto) in Rete, tramit
 | Collegamenti | `links: { office: true }`, `link(path)`: la pagina su onedrive.com; per i documenti Office, Office per il web |
 | Cartelle condivise | L'elenco «Condivisi con me» (`sharedWithMe`) è deprecato e Microsoft lo spegne a novembre 2026, senza sostituto ufficiale: il modulo non lo usa. Con `shared` acceso, i collegamenti che l'utente ha aggiunto a «I miei file» (onedrive.com → Aggiungi collegamento) compaiono come cartelle e se ne legge il contenuto sul drive a cui puntano; con `shared` spento i collegamenti non compaiono |
 | Provarlo | `loginUrl` e `graphUrl` nella configurazione sostituiscono gli indirizzi di Microsoft (solo per i test) |
+
+### Protocolli di terminale: `term-ssh_1.0.0`, `term-telnet_1.0.0`, `term-rlogin_1.0.0`, `term-supdup_1.0.0`
+
+Quattro moduli (`provides: ["term.<protocollo>"]`, `requires: []`, nessuna configurazione), ciascuno col suo `README.md`. Seguono il contratto di [Terminali remoti](#protocolli-il-servizio-termprotocollo). Sono attivi nel `config.json` di sviluppo; altrove un amministratore li installa dall'AppStore (scheda Kernel) o li aggiunge a `modules`. Solo `term-ssh` ha una dipendenza (`ssh2` 1.17.0): `npm run kernel:setup`.
+
+| Modulo | Servizio | Campi | Note |
+| --- | --- | --- | --- |
+| `term-ssh` (ssh2 1.17.0) | `term.ssh` (ordine 10, porta 22, `secure: true`) | `host`, `port`, `user`, `auth` (`password` o `key`), `password`, `key` (file), `passphrase`, `command` | Password (anche `keyboard-interactive`, per esempio un codice monouso) o chiave privata. Password e passphrase non salvate le chiede `ctx.ask` (tre tentativi). La chiave del server passa da `ctx.confirm`. `command` parte al posto della shell; `ctx.cwd` fa partire la shell in una cartella |
+| `term-telnet` | `term.telnet` (ordine 20, porta 23, `secure` se `tls`) | `host`, `port`, `user`, `tls` | Opzioni RFC 854, 856, 858, 1073 (dimensione), 1091 (tipo di terminale) e 1572 (nome dell'utente). Segnali `break`, `interrupt`, `ayt`. Con `tls` (porta 992 di solito) il certificato non valido passa da `ctx.confirm` (`kind: 'tls'`) |
+| `term-rlogin` | `term.rlogin` (ordine 30, porta 513, `secure: false`) | `host`, `port`, `user`, `localUser` | RFC 1282. La dimensione va al server dopo l'accesso e a ogni cambio (Node non vede i dati urgenti con cui il server la chiede). Cerca una porta locale privilegiata (512-1023): ci riesce su Windows o con il kernel eseguito come root |
+| `term-supdup` | `term.supdup` (ordine 40, porta 95, `secure: false`) | `host`, `port` | Traduce i codici dello schermo di ITS (%TD) in sequenze xterm e i tasti in caratteri SUPDUP (RFC 734). La dimensione dello schermo si comunica solo all'inizio (il protocollo non ha un messaggio per cambiarla; al massimo 128 × 127). Niente grafica SUPDUP |
 
 ---
 

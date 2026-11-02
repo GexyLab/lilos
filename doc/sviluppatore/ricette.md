@@ -917,6 +917,80 @@ Quello che un amministratore deve poter cambiare (un ID, una scelta, un interrut
    ```
 3. Dalla pagina: `await kernelModules.settings('mio')` → `{ fields, values, live }` e `await kernelModules.saveSettings('mio', { clientId: '…', mode: 'b' })` (solo amministratori, solo per moduli in esecuzione). I valori si controllano con i campi; le chiavi assenti prendono il `default` o si tolgono.
 4. Se il modulo fornisce protocolli di rete, a ogni cambio le connessioni aperte si chiudono e si riaprono al primo uso con le nuove impostazioni.
+6. Attiva il modulo in `config.json`, `npm run kernel:setup` se ha dipendenze e riavvia il kernel. La sezione **Rete** del File Manager mostra il nuovo protocollo nell'elenco.
+## Aggiungere un protocollo di terminale
+
+Un protocollo di terminale è un modulo del kernel che fornisce il servizio `term.<protocollo>`: l'app **Terminale remoto** (finestra «Nuova connessione», connessione rapida, host salvati, sessioni che restano aperte) lo usa senza altre modifiche. Il modello da copiare è `term-telnet_1.0.0` (senza dipendenze); per l'accesso con password, `term-ssh_1.0.0`. Contratto completo: [API → Terminali remoti](api.md#terminali-remoti-term-apitermjs).
+
+1. Crea il modulo come in [Aggiungere un modulo al kernel](#aggiungere-un-modulo-al-kernel), con `"provides": ["term.mio"]` e `"requires": []`.
+2. Nell'`init` fornisci il servizio:
+
+   ```js
+   import net from 'node:net';
+
+   const label = (en, it) => ({ en, it });
+
+   export default {
+     async init(ctx) {
+       ctx.provide('term.mio', {
+         label: label('My protocol', 'Il mio protocollo'),
+         order: 50,
+         port: 4000,
+         secure: false,   // oppure values => values.tls === true
+         fields: [
+           { key: 'host', type: 'text', label: label('Server', 'Server'), required: true },
+           { key: 'port', type: 'number', label: label('Port', 'Porta'), min: 1, max: 65535, placeholder: '4000' },
+         ],
+         address: v => `mio://${v.host}${v.port ? `:${v.port}` : ''}`,
+         async open(values, ctx) {
+           const socket = net.connect({ host: values.host, port: values.port || 4000 });
+           await new Promise((resolve, reject) => { socket.once('connect', resolve); socket.once('error', reject); });
+           ctx.signal.addEventListener('abort', () => socket.destroy(), { once: true });
+           // Se il server vuole una password: const password = await ctx.ask('Password: ');
+           const dataFns = [], closeFns = [];
+           socket.on('data', d => dataFns.forEach(fn => fn(d)));
+           socket.on('close', () => closeFns.forEach(fn => fn({ reason: '' })));
+           return {
+             onData: fn => dataFns.push(fn),
+             onClose: fn => closeFns.push(fn),
+             write: data => socket.write(data),
+             resize(cols, rows) { /* se il protocollo lo sa dire al server */ },
+             pause: () => socket.pause(),
+             resume: () => socket.resume(),
+             close: () => socket.destroy(),
+           };
+         },
+       });
+     },
+   };
+   ```
+3. I byte della sessione sono quelli di uno xterm (UTF-8 e sequenze ANSI) in entrambe le direzioni: se il server parla un'altra lingua (come SUPDUP), traducila dentro il modulo (`term-supdup` è l'esempio). Il kernel converte la codifica scelta dall'utente (`iso-8859-1`, `cp437`…) da solo.
+4. Quello che serve all'utente e non è salvato si chiede con `ctx.ask(prompt, { echo })` (la password, senza eco, con Invio) e il server o il certificato si fanno confermare con `ctx.confirm({ kind, fingerprint, text })`: il kernel ricorda la risposta per protocollo, host e porta. Non chiedere mai le credenziali in altri modi: non passano dalla pagina.
+5. Lancia solo errori con `net` (`auth`, `untrusted`, `unreachable`, `lost`, `invalid`…) e controlla `ctx.signal` nelle attese lunghe: se l'utente chiude la scheda mentre ci si collega, il collegamento deve finire.
+6. Dichiara `signals: ['break', …]` nella sessione se il protocollo ha comandi speciali che il menu **Tasti** deve offrire, e `info: { … }` per ciò che la barra di stato mostra. `secure` dice se ciò che passa è cifrato: l'app avverte l'utente quando non lo è.
+7. Attiva il modulo in `config.json`, `npm run kernel:setup` se ha dipendenze e riavvia il kernel. Il protocollo compare nell'elenco di **Terminale remoto** (le righe `ssh …` della connessione rapida e i comandi del Terminale sono dell'app, non del modulo: un protocollo nuovo si sceglie dall'elenco).
+
+## Aprire terminali remoti da un'app installata
+
+Serve il permesso `term` nel manifesto. Il terminale vero e proprio lo disegna l'app (nell'app ufficiale è xterm.js); lilOS e il kernel portano i byte.
+
+```js
+// nella finestra dell'app (sdk '2'): i byte del server arrivano alla porta, i tasti ci vanno dentro
+const { sessions } = await lilos.term.load();                // gli host e le sessioni dell'utente
+const session = await lilos.term.open({ protocol: 'ssh', values: { host: 'example.com', user: 'ann' } });
+const port = await lilos.term.attach(session.id, { cols: 80, rows: 24 });
+port.onmessage = e => {
+  if (typeof e.data !== 'string') return terminal.write(new Uint8Array(e.data));
+  const msg = JSON.parse(e.data);                            // state, trust, taken, gone
+  if (msg.t === 'trust') port.postMessage(JSON.stringify({ t: 'trust', ok: askUser(msg.trust) }));
+};
+terminal.onData(text => port.postMessage(new TextEncoder().encode(text)));
+```
+
+- Una password non salvata non si passa dall'app: la chiede il terminale e la scrive l'utente (i suoi tasti vanno alla domanda).
+- Per la voce «Apri terminale SSH qui» nel menu dei file delle connessioni SFTP: azione con `when: { net: ['sftp'] }` e `lilos.term.openHere(id)` (l'`id` è il nodo passato all'azione).
+- Per aggiornare l'elenco ascolta `lilos.on('term', what => …)` (`'hosts'` o `'sessions'`).
+- Con `lilos.term.close(id)` la sessione finisce; chiudere la finestra la lascia aperta per 10 minuti, finché l'utente non la riprende.
 
 ## Pubblicare un modulo del kernel come pacchetto
 

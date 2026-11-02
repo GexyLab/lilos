@@ -1266,3 +1266,45 @@ lilOS legge il file **prima** di avviare l'app e le dà le stringhe già risolte
 **Non ancora fatto.** Modificare i documenti dentro lilOS: due strade previste. Un modulo `wopi-host` (il kernel fa da host del protocollo WOPI) con **Collabora** o **ONLYOFFICE**, e poi **Microsoft 365** (il programma CSPP di Microsoft, che apre Office per il web su file di lilOS). Fino ad allora i documenti passano da OneDrive.
 
 **Quando ripensarla.** Se Microsoft offre un sostituto di `sharedWithMe` (allora i condivisi tornano un elenco); se serve un'app unica per più installazioni (un servizio del progetto che fa da intermediario, con tutto quello che comporta); se un altro fornitore (Google Drive, Dropbox) vuole lo stesso modello e conviene tirare fuori da `netfs-onedrive` il codice comune di OAuth; o se arriva il modulo WOPI e «Carica su OneDrive e apri» non serve più.
+## D61. I terminali remoti: le sessioni vivono nel kernel, un WebSocket nostro
+
+**Decisione.** lilOS apre terminali **SSH**, **Telnet**, **rlogin** e **SUPDUP** con l'app **Terminale remoto** (id `remote-terminal`). Deciso con l'utente e costruito il 2 novembre 2026.
+
+- **L'app è dell'AppStore, non di sistema.** Sta nel repository ufficiale (`apps/remote-terminal`), si installa quando serve e chiede il permesso `term`. Il terminale sullo schermo è **xterm.js** 6.0.0 (licenza MIT), dentro l'app; i riconoscimenti sono nella finestra Informazioni e nel README dell'app.
+- **I protocolli sono moduli del kernel**, come per la Rete ([D59](#d59-la-rete-i-protocolli-sono-moduli-del-kernel-e-i-trasferimenti-li-fa-il-kernel)): un servizio `term.<protocollo>` (`term-ssh`, `term-telnet`, `term-rlogin`, `term-supdup`) con `fields`, `open(values, ctx)` e una sessione di byte. Il contratto è in `system/kernel/src/term/drivers.js`. Un protocollo nuovo è un modulo nuovo.
+- **Le sessioni vivono nel kernel.** La connessione al server la fa il kernel e resta aperta anche senza pagina. Una sessione senza finestra si chiude dopo **10 minuti**; ogni utente ne ha al massimo **10** aperte. Il kernel tiene gli ultimi **1 MB** di schermo e, a chi si ricollega, ridà i modi del terminale (schermo alternativo, mouse, tasti del cursore) e poi i byte: `vim` e `htop` tornano com'erano. Le sessioni non sopravvivono a un riavvio del kernel.
+- **Un WebSocket scritto da noi, senza librerie.** Lo schermo e i tasti passano da un WebSocket (`system/kernel/src/ws.js`, RFC 6455: messaggi di testo e binari, anche frammentati, ping e pong, chiusura; niente estensioni né sottoprotocolli). Il kernel ha un `Router` per le richieste `upgrade` accanto a quello normale.
+- **Chi apre il WebSocket è la pagina, non l'app.** Le app isolate non hanno rete: la pagina di lilOS apre il WebSocket e lo dà all'app come `MessagePort` (`lilos.term.attach`), con byte binari per lo schermo e i tasti e JSON per il resto. I canali si chiudono con la finestra; le sessioni restano.
+- **Un WebSocket vuole un `Origin` permesso.** Il browser lo apre verso qualunque sito con i cookie dell'utente e non può aggiungere `X-Lilos`: `checkSocketOrigin` (`http.js`) rifiuta una richiesta senza `Origin`, o con uno che non sia tra quelli permessi o l'indirizzo stesso del kernel (CSWSH).
+- **Le password non salvate le chiede il terminale.** Se l'utente non ha scelto di ricordarla, la password (o la passphrase della chiave) la chiede il server nel terminale stesso, come fa `ssh` (`ctx.ask`): non passa da un modulo della pagina. Quelle salvate sono cifrate nel kernel (`net/secrets.js`) e non tornano mai alla pagina.
+- **Le chiavi dei server si confermano sulla pagina** e si ricordano per utente, per protocollo, host e porta (`known` nel file dell'utente); se cambiano, l'avviso è più forte (`changed`, con l'impronta di prima). Come per la Rete, prima di mandare le credenziali.
+- **Host salvati per utente** in `DATA_DIR/term/<utente>.json`, in cartelle scelte dall'utente. Al massimo 200.
+- **SUPDUP si traduce dentro il suo modulo.** Il server parla il suo schermo (ITS, codici %TD); il modulo lo converte in sequenze xterm e i tasti in caratteri SUPDUP, così la pagina e l'app non conoscono SUPDUP. Provato con KA ITS 1652 (progetto PDP-10/its).
+- **Apri terminale SSH qui.** Nel File Manager, dentro una connessione SFTP, una voce dell'app (`when.net: ['sftp']`) apre una sessione sullo stesso server, in quella cartella, con le credenziali della connessione e la chiave del server già confermata (`Network.credentials`, che la pagina non vede).
+- **Fuori dalla prima versione:** inoltro delle porte SSH, agente SSH, host di salto.
+
+**Perché** (ricostruzione, da confermare)**.**
+
+- **Il browser non apre connessioni SSH né Telnet**, e una sessione deve poter durare più di una pagina: il kernel è già il posto delle connessioni lunghe e dei segreti (come per la Rete).
+- **Sessioni nel kernel** perché un terminale è un lavoro in corso: un `make` o un `vim` non possono morire con una scheda del browser. Il tempo limite (10 minuti) e il tetto (10 sessioni) evitano che connessioni dimenticate restino aperte per sempre.
+- **xterm.js e non un terminale nostro** perché emulare bene xterm (colori, mouse, schermo alternativo, Unicode largo, incolla protetto) è un lavoro enorme, e xterm.js è lo standard con licenza MIT. Dentro l'app e non nell'SDK perché pesa e serve a una sola app.
+- **WebSocket e non SSE più POST** perché lo schermo e i tasti sono un flusso in due sensi con pochissima latenza e byte binari: SSE è solo testo e in un solo senso, e ogni tasto sarebbe una richiesta HTTP. Scritto a mano perché il protocollo che servono i browser è piccolo e il kernel finora non ha dipendenze (il suo `package.json` non ha librerie; i moduli sì).
+- **Il WebSocket lo apre la pagina** perché è lei che ha il cookie dell'utente e la rete; l'app isolata non deve avere né l'uno né l'altra, e così il permesso `term` basta.
+- **Chiedere la password nel terminale** perché un server può chiederla in ogni momento e in più modi (password, codice monouso, passphrase): un modulo della pagina dovrebbe conoscerli tutti. Così il flusso è quello di `ssh` e il segreto resta fuori dalla pagina.
+- **SUPDUP tradotto nel modulo** per tenere un solo emulatore, quello di xterm.js: l'app non sa quale protocollo c'è dall'altra parte.
+
+**Alternative scartate** (ricostruzione, da confermare)**.** Un emulatore scritto da noi (troppo lavoro, e peggiore); xterm.js nell'SDK (peso per chi non lo usa); SSE per lo schermo e POST per i tasti (lenti, solo testo, una richiesta per tasto); una libreria WebSocket (una dipendenza nuova per un protocollo piccolo); sessioni solo nella pagina (muoiono con la scheda); sessioni che restano per sempre (connessioni dimenticate, risorse del server); un'app di sistema invece che dell'AppStore (non serve a tutti, e ha moduli da installare); aprire il WebSocket dentro l'app isolata (le servirebbero rete e cookie); chiedere la password in un modulo della pagina (passerebbe dalla pagina); collegarsi con un client `ssh` del sistema (dipende da quello che c'è sul computer e non da noi).
+
+**Conseguenze.**
+
+- I moduli `term-*` sono attivi nel `config.json` di sviluppo; altrove vanno aggiunti a `modules` o installati dall'AppStore (scheda Kernel). Senza, l'app dice che non ci sono protocolli. `npm run kernel:setup` installa ssh2 per `term-ssh`.
+- Nuova rotta `GET /api/term/sessions/:id/socket` e un controllo dell'`Origin` che gli altri endpoint non hanno; in sviluppo il proxy di Vite deve inoltrare i WebSocket (`ws: true`).
+- Un nuovo permesso `term` per le app (`install`), un nuovo `when.net` nelle voci di menu delle app, e `lilos.term.*` nel ponte.
+- Un'app con `term` può aprire sessioni verso qualunque server che il kernel raggiunge (valgono le regole di `net/guard.js`) e usare gli host salvati dell'utente con le loro password: è un permesso da concedere con cautela.
+- Le sessioni non si salvano: un riavvio del kernel (anche per un aggiornamento) le chiude.
+- Telnet, rlogin e SUPDUP non cifrano; l'app lo dice nel dialogo dell'host e nella barra di stato.
+- Il tasto Incolla non può leggere gli appunti dentro un'app isolata ([la stessa ragione di Ctrl V](../utente/guida.md#isolate-e-non-isolate)): si incolla con Ctrl+Maiusc+V, che dà al browser il gesto dell'utente.
+
+**Non ancora fatto.** Inoltro delle porte SSH, agente SSH, host di salto; ridimensionare lo schermo con SUPDUP (il protocollo non lo permette); i dati urgenti di rlogin (Node non li vede); la porta privilegiata di rlogin fuori da Windows e dall'utente root.
+
+**Quando ripensarla.** Se servono sessioni che sopravvivono a un riavvio del kernel (allora vanno tenute in un processo a parte, come `tmux`), se un altro canale in due sensi oltre al terminale giustifica una libreria WebSocket vera (compressione, sottoprotocolli), se arrivano protocolli i cui byte non sono xterm e non si possono tradurre dentro il modulo, o se il tempo di 10 minuti si dimostra troppo corto o troppo lungo.

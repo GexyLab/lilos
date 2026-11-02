@@ -49,6 +49,7 @@ sdk/                    @lilos/sdk: basi riutilizzabili da sistema e app
   core/locale.js        lingua del sistema e traduzioni delle app (con core/i18n.js, il motore)
   core/fs.js            file system virtuale (cartelle, file, collegamenti; salvato nel kernel)
   core/net.js           rete: connessioni a server remoti (cartella Rete) e trasferimenti fatti dal kernel
+  core/term.js          terminali remoti: host salvati e sessioni (SSH, Telnet, rlogin, SUPDUP) nel kernel
   core/pipes.js         pipe sugli eventi: le app si mettono in mezzo a ciò che succede (con core/pipeCatalog.js, gli eventi)
   core/tags.js          tag colorati per ritrovare file e cartelle, anche nascondendoli
   ui/                   icone, menu, controlli, Window, SettingsView, SettingsWindow
@@ -58,7 +59,7 @@ scripts/
   release.mjs           la build di lilOS per il repository ufficiale (npm run release)
 public/host/            i moduli che le app di sistema importano come @lilos/sdk e @lilos/system (generati)
 system/
-  kernel/               il backend: moduli (users-basic, fs-postgres, services-isolate: fa girare i servizi delle app, notifications-basic: le notifiche, netfs-sftp, netfs-ftp, netfs-webdav, netfs-smb: i protocolli di rete della cartella Rete; OneDrive è un modulo del repository ufficiale), API, repository, installazione di app e moduli, aggiornamenti di lilOS (releases/ e current.json in un lilOS installato), riga di comando; run.js lo avvia, lo riavvia e prova le versioni nuove
+  kernel/               il backend: moduli (users-basic, fs-postgres, services-isolate: fa girare i servizi delle app, notifications-basic: le notifiche, netfs-sftp, netfs-ftp, netfs-webdav, netfs-smb: i protocolli di rete della cartella Rete; OneDrive è un modulo del repository ufficiale; term-ssh, term-telnet, term-rlogin, term-supdup: i protocolli dei terminali remoti), API, repository, installazione di app e moduli, aggiornamenti di lilOS (releases/ e current.json in un lilOS installato), riga di comando; run.js lo avvia, lo riavvia e prova le versioni nuove
 examples/apps/note/     app di esempio (lilos.json, index.js)
 src/                    il sistema, costruito sull'SDK
   main.js               avvio: accesso e collegamento al kernel (boot/), poi system.js
