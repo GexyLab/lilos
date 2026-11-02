@@ -393,7 +393,7 @@ const off = fs.on('change', e => {
 
 - Mostra le modifiche reagendo agli eventi `change`, non dopo le tue chiamate: così vedi anche quelle fatte da altre parti (desktop, File Manager).
 - In una finestra togli l'iscrizione alla chiusura: `win.on('destroy', off)`.
-- I nodi di sistema (`system: true`) non si rinominano né eliminano: disattiva le relative azioni. Per eliminare dall'interfaccia usa `confirmRemove` (`src/items/confirmRemove.js`), che rispetta le impostazioni `deleteConfirm` e `deletePermanent` (di norma sposta nel cestino) e, con una `UndoStack`, rende l'eliminazione annullabile (vedi [Aggiungere annulla e ripeti a un'app](#aggiungere-annulla-e-ripeti-a-unapp)).
+- I nodi di sistema (`system: true`) non si rinominano né eliminano: disattiva le relative azioni. Per eliminare dall'interfaccia usa `confirmRemove` (`src/items/confirmRemove.js`), che rispetta le impostazioni `deleteConfirm` e `deletePermanent` (di norma sposta nel cestino) e, con una `UndoStack`, rende l'eliminazione annullabile (vedi [Aggiungere annulla e ripeti a un'app](#aggiungere-annulla-e-ripeti-a-unapp)). Per il cestino ci sono `confirmPurge(ids, x, y)` (eliminare per sempre) e `confirmEmptyTrash(x, y)` (svuotarlo), che chiedono sempre; per altro che non si annulla, `confirmMenu(x, y, etichetta, azione)` (tutti da `@lilos/system`, lilOS 1.21.0). Un pulsante che chiede conferma con due clic è `actionButton({ label, confirm })` dell'SDK.
 - Per selezionare, aprire, rinominare ed eliminare con le scorciatoie comuni, iscrivi la tua vista con `addTarget` (`src/items/targets.js`), come fa il File Manager.
 
 ## Aggiungere annulla e ripeti a un'app

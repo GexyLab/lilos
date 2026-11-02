@@ -25,6 +25,11 @@ function systemCode() {
  *   locale.parse(text) → table  /  locale.resolve(table, code?) → { code, lang, strings }
  *   locale.load(id, table)  /  locale.unload(id)   the system, when it reads an app's file
  *   locale.engine               i18nApi, the engine that sandboxes and workers get as text
+ *   locale.formatBytes(n)       '1,5 KB' in the system's locale (also exported as formatBytes)
+ *   locale.define(id, table) → i18n   the strings of a part of lilOS itself (core and SDK), in the
+ *                               format of an app's locales.json ({ en: { strings }, it: { strings } }):
+ *                               `const { t } = locale.define('lilos:properties', { â€¦ })`; t() follows the
+ *                               system's language. id: 'lilos:<part>' (never an app's id)
  *
  * Events: 'change' { code } — the system's locale changed; every forApp() object already has the
  * new strings, and installed apps get 'locale' on `lilos`.
@@ -88,6 +93,16 @@ class Locale extends Emitter {
     return this.#apps.get(id).locale;
   }
 
+  define(id, table) {
+    if (!/^lilos:/.test(id)) throw new Error(`Testi di lilOS: id non valido (${id})`);
+    this.load(id, table);
+    return this.forApp(id).i18n;
+  }
+
+  formatBytes(n) {
+    return this.forApp('lilos:').formatBytes(n);
+  }
+
   manifest(manifest, table = this.#tables.get(manifest?.id)) {
     return localizeManifest(manifest, table ? this.resolve(table).strings : null);
   }
@@ -98,3 +113,6 @@ class Locale extends Emitter {
 }
 
 export const locale = new Locale();
+
+/** 12345 → '12,1 KB', in the system's language (see i18nApi). */
+export const formatBytes = n => locale.formatBytes(n);

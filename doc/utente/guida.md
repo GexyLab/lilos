@@ -668,9 +668,9 @@ Cose da sapere:
 
 ### La scheda OneDrive del Pannello di controllo
 
-Nel Pannello di controllo la sezione **OneDrive** (tra **Avvio** e **Archiviazione**) compare solo se il tuo lilOS ha OneDrive. Ha tre parti.
+Nel Pannello di controllo la sezione **OneDrive** (tra **Avvio** e **Archiviazione**) compare solo se il tuo lilOS ha OneDrive. Ha tre parti: l'interruttore **Apri le cartelle condivise con me** (solo un amministratore lo cambia), **Carica su OneDrive e apri** e **Documenti Office**.
 
-**L'app su Azure** (per tutti su questo lilOS; le impostazioni le cambia solo un amministratore, gli altri vedono solo se OneDrive è **Pronto** o **Non ancora impostato**, l'indirizzo di ritorno e i passi). Ogni lilOS usa una propria app registrata su Azure, il servizio di Microsoft per le app: serve un account Azure, anche gratuito. Per registrarla:
+**L'app Microsoft** si imposta una volta sola, nella scheda **App Microsoft** del Pannello di controllo, e vale per OneDrive e per Azure Blob Storage (accesso con Microsoft Entra). Le impostazioni le cambia solo un amministratore; gli altri vedono solo se è **Pronta** o **Non ancora impostata**, l'indirizzo di ritorno e i passi. Ogni lilOS usa una propria app registrata su Azure, il servizio di Microsoft per le app: serve un account Azure, anche gratuito. Per registrarla:
 
 1. Su [portal.azure.com](https://portal.azure.com) vai in **Registrazioni app** → **Nuova registrazione**.
 2. Scegli i **Tipi di account supportati** (gli stessi di **Account ammessi** nel Pannello di controllo).
@@ -679,15 +679,16 @@ Nel Pannello di controllo la sezione **OneDrive** (tra **Avvio** e **Archiviazio
 5. In **Autorizzazioni API** → Microsoft Graph, autorizzazioni delegate: `Files.ReadWrite`, `User.Read`, `offline_access` (e `Files.ReadWrite.All` se vuoi le cartelle condivise).
 6. Copia l'**ID dell'applicazione (client)** dalla **Panoramica** nel campo omonimo del Pannello di controllo.
 
-Le impostazioni, che valgono subito (compare **Salvato**) e fanno chiudere le connessioni OneDrive aperte, che si riaprono da sole al primo uso:
+Le impostazioni della scheda **App Microsoft**, che valgono subito (compare **Salvato**) e fanno chiudere le connessioni aperte che la usano, che si riaprono da sole al primo uso:
 
 | Impostazione | Cosa è |
 | --- | --- |
 | **ID dell'applicazione (client)** | L'ID dell'app su Azure |
 | **Account ammessi** | **Personali, e di lavoro o dell'istituto**, **Solo di lavoro o dell'istituto**, **Solo personali** o **Solo di un'organizzazione** (con **ID della directory (tenant) o dominio**). Deve corrispondere ai tipi di account scelti su Azure |
-| **Apri le cartelle condivise con me** | Mostra i collegamenti alle cartelle condivise (vedi sopra). Chiede un permesso in più: tutti rifanno l'accesso |
 
 Se apri lilOS con un indirizzo che non è `https://` né `localhost`, sotto l'indirizzo di ritorno compare l'avviso che Microsoft non lo accetta: per fare l'accesso apri lilOS in uno dei due modi.
+
+**Apri le cartelle condivise con me** (nella scheda OneDrive) mostra i collegamenti alle cartelle condivise (vedi sopra); chiede un permesso in più: tutti rifanno l'accesso.
 
 **Carica su OneDrive e apri** (le tue scelte): la **Connessione** (**Chiedi ogni volta** o una delle tue), la **Cartella** su OneDrive (di serie `/lilOS`) e **Un file con lo stesso nome**: **Chiedi**, **Tieni entrambi** o **Sostituiscilo**.
 
@@ -695,7 +696,7 @@ Se apri lilOS con un indirizzo che non è `https://` né `localhost`, sotto l'in
 
 ### Google Drive, Google Foto, Amazon S3, Azure Blob Storage, NFS
 
-Questi cinque protocolli sono **moduli del kernel da installare**: un nuovo lilOS non li ha. Un amministratore li installa dall'**AppStore** (scheda dei moduli del kernel) solo se servono; poi compaiono in **Connetti a un server**, dove l'elenco è diviso in **Server**, **Cloud** e **Rete locale**.
+Questi cinque protocolli sono **moduli del kernel da installare**: un nuovo lilOS non li ha. Google Drive e Google Foto sono un solo modulo (`netfs-google`). Un amministratore li installa dall'**AppStore** (scheda dei moduli del kernel) solo se servono; poi compaiono in **Connetti a un server**, dove l'elenco è diviso in **Server**, **Cloud** e **Rete locale**.
 
 | Protocollo | Campi |
 | --- | --- |
@@ -746,12 +747,13 @@ Dal 2025 Google non lascia più vedere tutta la libreria alle app. Con Google Fo
 - Se il server rifiuta il collegamento, sul server va permessa la connessione da porte non privilegiate (**insecure** in `/etc/exports`, **Consenti connessioni da porte non privilegiate** su Synology): chiedi a chi lo gestisce.
 - Lettura e scrittura riprendono da dove si erano fermate. In alto c'è lo spazio del disco del server. **Eliminare è definitivo.**
 
-### Le schede Google Drive, Google Foto, Azure Blob Storage e NFS del Pannello di controllo
+### Le schede Progetto Google, Google Drive, Azure Blob Storage e NFS del Pannello di controllo
 
-Ognuna compare solo se il suo modulo è installato. Le impostazioni le cambia solo un amministratore e valgono per tutti; gli altri vedono se il protocollo è **Pronto** o **Non ancora impostato**.
+Ognuna compare solo se il suo modulo è installato (**Progetto Google** se c'è Google Drive o Google Foto). Le impostazioni le cambia solo un amministratore e valgono per tutti; gli altri vedono se il protocollo è **Pronto** o **Non ancora impostato**.
 
-- **Google Drive** e **Google Foto**: il progetto Google Cloud di questo lilOS (**ID client**, **Segreto client**: si scrive una volta, poi compare solo **Impostato** e si può sostituire o togliere; **Tipo di client**: **Applicazione web** o **App desktop**, con cui l'accesso è sempre incollando l'indirizzo). Per Google Drive anche **Mostra «Condivisi con me»** e **Documenti Google copiati fuori da Drive** (Office, OpenDocument o PDF). Sotto, gli **Indirizzi da registrare** nel progetto Google (con **Copia**) e i passi per creare il progetto. Si può usare lo stesso progetto per Drive e per Foto.
-- **Azure Blob Storage**: l'app su Azure per l'accesso con **Microsoft Entra** (ID dell'applicazione e directory), gli indirizzi da registrare e i passi. Con la chiave dell'account o un token SAS non serve niente.
+- **Progetto Google**: il progetto Google Cloud di questo lilOS, uno solo per Google Drive e Google Foto (**ID client**, **Segreto client**: si scrive una volta, poi compare solo **Impostato** e si può sostituire o togliere; **Tipo di client**: **Applicazione web** o **App desktop**, con cui l'accesso è sempre incollando l'indirizzo). Sotto, gli **Indirizzi da registrare** nel progetto Google (con **Copia**) e i passi per creare il progetto.
+- **Google Drive**: **Mostra «Condivisi con me»** e **Documenti Google copiati fuori da Drive** (Office, OpenDocument o PDF).
+- **Azure Blob Storage**: l'accesso con **Microsoft Entra** usa l'app della scheda **App Microsoft** (la stessa di OneDrive). Con la chiave dell'account o un token SAS non serve niente.
 - **NFS**: **UID e GID di ogni utente**, una riga per utente (`mario = 1026:100`, altri gruppi dopo una virgola: `anna = 1027:100,101`), e il tuo nome utente da scrivere nella riga.
 
 ### Cosa non è ancora possibile
@@ -1203,7 +1205,7 @@ automata run web ~/Immagini/vacanza.jpg --width=1200 --yes
 
 **Terminale** è la finestra dei comandi di lilOS. Ogni shell è una **scheda**: il pulsante **+** ne apre un'altra, nella stessa cartella. Le schede si possono anche affiancare in più riquadri e staccare in finestre nuove ([Riquadri e finestre](#riquadri-e-finestre-del-terminale)). Con lo stesso Terminale ti colleghi anche al terminale di un altro computer: **SSH** (cifrato, il più usato), **Telnet**, **rlogin** e **SUPDUP** (i protocolli di router, vecchi sistemi Unix e dei calcolatori storici del MIT). Le sessioni remote hanno ciascuna la loro scheda; la shell di lilOS resta com'era.
 
-Terminale è un'app di sistema, c'è già. Per i collegamenti remoti servono però i moduli dei protocolli che vuoi usare (`term-ssh`, `term-telnet`, `term-rlogin`, `term-supdup`), che un amministratore installa dall'[AppStore](#lappstore), nella scheda **Kernel**. Senza nessun modulo il Terminale lo dice e non può collegarsi a niente. L'app chiede di poter aprire terminali remoti, di leggere e scrivere i file della tua home (per le chiavi private e per le registrazioni), di aggiungere voci ai menu e, dal Terminale 1.5.0, di lavorare in sottofondo (per i comandi della [Pianificazione](#pianificazione)).
+Terminale è un'app di sistema, c'è già. Per i collegamenti remoti servono però i moduli dei protocolli che vuoi usare (`ssh`, lo stesso di SFTP nella Rete, `term-telnet`, `term-rlogin`, `term-supdup`), che un amministratore installa dall'[AppStore](#lappstore), nella scheda **Kernel**. Senza nessun modulo il Terminale lo dice e non può collegarsi a niente. L'app chiede di poter aprire terminali remoti, di leggere e scrivere i file della tua home (per le chiavi private e per le registrazioni), di aggiungere voci ai menu e, dal Terminale 1.5.0, di lavorare in sottofondo (per i comandi della [Pianificazione](#pianificazione)).
 
 Il collegamento al server lo fa lilOS sul computer in cui gira, non il tuo browser. Per questo le sessioni remote restano aperte anche se chiudi la finestra o ricarichi la pagina.
 

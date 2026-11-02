@@ -138,6 +138,13 @@ export const repositories = {
  *   kernelModules.settings(name) → { fields, values, live }   a running module's settings (module.json
  *                                                     `settings`, fields as a network protocol's)
  *   kernelModules.saveSettings(name, values) → the same    live: they count at once (no restart)
+ *   kernelModules.oauthApps() → [{ id, label, description, fields, values, secrets, live, protocols, ready }]
+ *                                                     the provider apps the network modules sign in with
+ *                                                     ('microsoft', 'google'), set once for all of them;
+ *                                                     the shape of settings(); protocols: who uses it;
+ *                                                     ready: null, or why it cannot be used yet ({ en, it })
+ *   kernelModules.saveOAuthApp(id, values) → the same app    as saveSettings: a secret field left out or ''
+ *                                                     is kept, null removes it; open connections start again
  */
 export const kernelModules = {
   list: () => kernel.request('GET', '/modules'),
@@ -147,6 +154,8 @@ export const kernelModules = {
   restart: () => kernel.request('POST', '/kernel/restart', {}),
   settings: name => kernel.request('GET', `/modules/${encodeURIComponent(name)}/settings`),
   saveSettings: (name, values) => kernel.request('PUT', `/modules/${encodeURIComponent(name)}/settings`, { values }),
+  oauthApps: () => kernel.request('GET', '/net/oauth'),
+  saveOAuthApp: (id, values) => kernel.request('PUT', `/net/oauth/${encodeURIComponent(id)}`, { values }),
 };
 
 /**

@@ -278,11 +278,23 @@ function setupUser() {
   return running;
 }
 
+/**
+ * Two versions 'major.minor.patch' compared: -1 when a is older than b, 0 the same, 1 newer.
+ * A part that is missing or not a number counts as 0 ('1.2' is '1.2.0').
+ */
+export function compareVersions(a, b) {
+  const pa = String(a ?? '').split('.'), pb = String(b ?? '').split('.');
+  for (let i = 0; i < 3; i++) {
+    const d = (parseInt(pa[i], 10) || 0) - (parseInt(pb[i], 10) || 0);
+    if (d) return Math.sign(d);
+  }
+  return 0;
+}
+
 /** '<1.2.0', '<=1.2.0', '1.2.0' (exact): does `version` match? */
 export function matchesFrom(range, version) {
-  const m = /^(<=?|=)?(\d+)\.(\d+)\.(\d+)$/.exec(range);
-  const v = /^(\d+)\.(\d+)\.(\d+)$/.exec(version ?? '');
-  if (!m || !v) return false;
-  const c = (+v[1] - +m[2]) || (+v[2] - +m[3]) || (+v[3] - +m[4]);
+  const m = /^(<=?|=)?(\d+\.\d+\.\d+)$/.exec(range);
+  if (!m || !/^\d+\.\d+\.\d+$/.test(version ?? '')) return false;
+  const c = compareVersions(version, m[2]);
   return m[1] === '<' ? c < 0 : m[1] === '<=' ? c <= 0 : c === 0;
 }

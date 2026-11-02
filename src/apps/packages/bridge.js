@@ -13,8 +13,8 @@ import { typeKey } from '../../input/sendKey.js';
  * Every call is a request that lilOS checks against the app's permissions. Everything is asynchronous.
  *
  *   lilos.app                            { id, version, entry, args }
- *   lilos.locale                         { code, i18n: { t(key, params), lang, date(), number() } }: the system's
- *                                        locale and the app's strings for it (see the SDK's i18n.js); synchronous
+ *   lilos.locale                         { code, i18n: { t(key, params), lang, date(), number() }, formatBytes(n) }:
+ *                                        the system's locale and the app's strings for it (see the SDK's i18n.js); synchronous
  *   lilos.app.call(entry, data) → result       starts one of the app's own entry points
  *   lilos.app.connect(entry) → MessagePort     a channel with one of its background entry points
  *   lilos.app.keepAlive(on)                    background: stay running (lilOS shows it in the taskbar)
@@ -28,17 +28,24 @@ import { typeKey } from '../../input/sendKey.js';
  *                                        in the Notifiche window. level: 'info' | 'success' | 'warning' |
  *                                        'error'; action { entry?, args? }: a click opens the app there
  *   lilos.ui.toast(text)                 old name of lilos.ui.notify(text)
+ *   lilos.ui.messageBox({ icon, title, message, fields, buttons, default, width, validate }) → { button, values }
+ *                                        windows only: the SDK's messageBox over the window, with plain data
+ *                                        (no content Node, no pattern). validate(values, button) is the app's
+ *                                        function, called here for every button but Cancel: a text it returns is
+ *                                        shown and the box stays open, false keeps it open, anything else closes it
  *   lilos.files.read(ref, { bytes? }) → text | Blob   ref: '~/Documenti/a.txt' or the id of a file opened with the app
- *   lilos.files.write(ref, data, { mark? })   text or bytes; creates the file if its folder exists.
- *                                        mark: the app's own data on the file, saved with it (null: none)
- *   lilos.files.info(ref) → { id, name, type, size, modified, path, meta }   meta: the app's data on it
+ *   lilos.files.write(ref, data, { mark?, unique? }) → { id, name, ref }   text or bytes; creates the file if its
+ *                                        folder exists. mark: the app's own data on the file, saved with it (null:
+ *                                        none); unique: always a new file ('a 2.txt' when 'a.txt' is taken)
+ *   lilos.files.info(ref) → { id, name, type, size, modified, path, ref, meta }   ref: its '~/…' path; meta: the app's data on it
  *   lilos.files.setMeta(ref, value)      the app's own data on the file (null takes it away)
  *   lilos.files.open(id)                 opens a file the app was handed, with its app
  *   lilos.files.locked(ids)              files the app locked again: lilOS closes the windows showing them
  *   lilos.files.shown(ids) → ids         which of these files a window shows now
  *   lilos.files.preview(ref, { size? }) → { app, text | image | html, note } | null   (fs.preview)
  *   lilos.files.list(path) → [{ name, type, size, modified }]
- *   lilos.files.mkdir(path)
+ *   lilos.files.mkdir(path, { unique? }) → { id, name, ref }   the folder (already there: that one); unique:
+ *                                        always a new one ('Archivio 2' when 'Archivio' is taken)
  *   lilos.pipes.subscribe(event, { stage, position, where }, fn) → off   fn(data, ctx) → { data } | { stop } | nothing
  *                                        (the SDK's pipes.js; permission pipe:<event> or pipe.own:<event>)
  *   lilos.pipes.define(name, { label, edit, stop })   an event of the app's own: '<app id>.<name>'
@@ -119,6 +126,18 @@ export function lilosApi(call, info, i18nApi) {
     ui: Object.freeze({
       toast: text => call('ui.toast', String(text)),
       notify: value => call('ui.notify', value !== null && typeof value === 'object' ? value : String(value ?? '')),
+      async messageBox(spec) {
+        const { validate, content, ...plain } = spec !== null && typeof spec === 'object' ? spec : { message: String(spec ?? '') };
+        const check = typeof validate === 'function' ? validate : null;
+        let answer = await call('ui.messageBox', { ...plain, validate: !!check });
+        // Each answer the app checks; the box waits (its button turning) until it says
+        while (check && answer && answer.box) {
+          let problem;
+          try { problem = await check(answer.values, answer.button); } catch (err) { problem = String(err && err.message || err); }
+          answer = await call('ui.messageBox.check', answer.box, problem === undefined ? null : problem);
+        }
+        return answer;
+      },
     }),
     files: Object.freeze({
       read: (ref, options) => call('files.read', ref, options ?? null),
@@ -130,7 +149,7 @@ export function lilosApi(call, info, i18nApi) {
       shown: ids => call('files.shown', ids),
       preview: (ref, options) => call('files.preview', ref, options ?? null),
       list: path => call('files.list', path),
-      mkdir: path => call('files.mkdir', path),
+      mkdir: (path, options) => call('files.mkdir', path, options ?? null),
     }),
     pipes: Object.freeze({
       async subscribe(event, options, fn) {
