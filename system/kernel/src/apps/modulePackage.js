@@ -1,9 +1,11 @@
 import { execFile } from 'node:child_process';
+import { existsSync } from 'node:fs';
 import { cp, mkdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { promisify } from 'node:util';
 import { fail } from '../errors.js';
-import { DATA_DIR, KERNEL_DIR, MODULES_DIR, loadConfig } from '../config.js';
+import { DATA_DIR, KERNEL_DIR, MODULES_DIR, loadConfig, editConfig } from '../config.js';
+import { readJson as readJsonFile } from '../jsonFile.js';
 import { KERNEL_API, REQUIRED_MODULES, resolveModules, scanModules, isSecretSetting } from '../modules.js';
 import { compareVersions, parseVersion } from './manifest.js';
 import { cleanSource, isOfficial, openSource, walk } from './sources.js';
@@ -23,6 +25,10 @@ import { checkFields } from '../net/drivers.js';
  *   defaultConfig?: {}                   its configuration when it is turned on
  *   required?: true                      one lilOS cannot do without (modules.js REQUIRED_MODULES):
  *                                        the AppStore offers no removal, the kernel refuses it
+ *   replaces?: ['netfs-gdrive', …]       modules it takes the place of (two merged into one): when it
+ *                                        is installed, or found turned on at start with them still
+ *                                        there, it takes their configuration and data and they go
+ *                                        (takeOver); a module it replaces cannot be installed again
  * Each module folder gets source.json: where it came from ({ type, url, ref, commit, path }).
  */
 const run = promisify(execFile);
@@ -46,22 +52,113 @@ export function checkModule(raw) {
   if (m.description !== undefined && (typeof m.description !== 'string' || m.description.length > 300)) bad('descrizione non valida');
   if (m.icon !== undefined && !validIcon(m.icon)) bad('icona non valida');
   if (m.required !== undefined && typeof m.required !== 'boolean') bad('required non valido');
+  if (m.replaces !== undefined && (!Array.isArray(m.replaces) || m.replaces.some(n => typeof n !== 'string' || !NAME.test(n) || n === m.name || Object.hasOwn(REQUIRED_MODULES, n)))) bad('replaces non valido');
   return m;
 }
 
 const requireAdmin = p => (p?.kind === 'kernel' || p?.role === 'admin' ? p : fail('forbidden', 'Solo un amministratore gestisce i moduli del kernel'));
 const exists = path => stat(path).then(() => true, () => false);
-const configFile = () => process.env.LILOS_KERNEL_CONFIG ?? join(DATA_DIR, 'config.json');
 
-async function editConfig(fn) {
-  const raw = JSON.parse(await readFile(configFile(), 'utf8'));
-  raw.modules = fn(Array.isArray(raw.modules) ? raw.modules : []);
-  await writeFile(`${configFile()}.tmp`, `${JSON.stringify(raw, null, 2)}\n`);
-  await rename(`${configFile()}.tmp`, configFile());
+/** Changes the list `modules` of config.json: fn(list) → the new list. */
+const editModules = fn => editConfig(raw => { raw.modules = fn(Array.isArray(raw.modules) ? raw.modules : []); });
+
+/** A JSON file, or null when it is missing or not JSON. */
+const readJson = path => readJsonFile(path).catch(() => null);
+
+const empty = v => v === undefined || v === null || v === '';
+
+/**
+ * A module that replaces others (module.json `replaces`) takes their place: in its configuration,
+ * the value each of them had for a key (the first that has one, in the order of `replaces`) where
+ * it still has its default (an admin's own choice stays); secret settings come sealed as they are
+ * (one key for all). Then its data files missing from its folder and its ctx.dataDir, from them;
+ * then they leave config.json and the disk (a folder with data files that did not come along
+ * stays). Services keep their names, so the saved connections keep working. `mod`: { name, dir,
+ * manifest }, `names`: the ones to replace now. Returns them.
+ */
+async function takeOver(mod, names) {
+  if (!names.length) return names;
+  const defaults = mod.manifest.defaultConfig ?? {};
+  await editModules(list => {
+    const mine = list.find(m => m.name === mod.name);
+    const config = { ...(mine?.config ?? defaults) };
+    const took = new Set();   // keys a replaced module gave already: the first one wins
+    for (const old of names) {
+      const theirs = list.find(m => m.name === old)?.config ?? {};
+      for (const [k, v] of Object.entries(theirs)) {
+        if (empty(v) || took.has(k)) continue;
+        if (empty(config[k]) || JSON.stringify(config[k]) === JSON.stringify(defaults[k])) config[k] = v;
+        took.add(k);
+      }
+    }
+    return list.filter(m => !names.includes(m.name)).map(m => (m.name === mod.name ? { ...m, config } : m));
+  });
+  const installed = await scanModules(MODULES_DIR);
+  for (const old of names) {
+    const folders = installed.get(old) ?? [];
+    for (const file of mod.manifest.data ?? []) {
+      if (await exists(join(mod.dir, file))) continue;
+      const from = folders.find(v => existsSync(join(v.dir, file)));
+      if (from) await cp(join(from.dir, file), join(mod.dir, file));
+    }
+    const data = join(DATA_DIR, 'modules-data', old), mine = join(DATA_DIR, 'modules-data', mod.name);
+    if (await exists(data)) {
+      if (!await exists(mine)) await rename(data, mine);
+      else log.warn(`Dati di ${old} lasciati in ${data}: ${mod.name} ha già i suoi`);
+    }
+    for (const v of folders) {
+      const left = await dataLeft(v, mod.manifest);
+      if (left.length) log.warn(`${old}_${v.version} conservato per i suoi dati (${left.join(', ')})`);
+      else await rm(v.dir, { recursive: true, force: true });
+    }
+    log.info(`${old} sostituito da ${mod.name}`);
+  }
+  return names;
 }
 
-async function readJson(path) {
-  try { return JSON.parse(await readFile(path, 'utf8')); } catch { return null; }
+/** The data files of a replaced module's folder `v` that the module replacing it does not take (its folder stays for them). */
+async function dataLeft(v, manifest) {
+  const left = [];
+  for (const f of (await readJson(join(v.dir, 'module.json')))?.data ?? []) if (!(manifest.data ?? []).includes(f) && await exists(join(v.dir, f))) left.push(f);
+  return left;
+}
+
+/** The modules turned on and what they replace: Map name of a replaced module → the one that replaces it. */
+async function replacements(config) {
+  const installed = await scanModules(MODULES_DIR);
+  const by = new Map();
+  for (const want of config.modules) {
+    const versions = installed.get(want.name) ?? [];
+    const v = want.version ? versions.find(x => x.version === want.version) : versions[0];
+    const manifest = v && await readJson(join(v.dir, 'module.json'));
+    for (const n of Array.isArray(manifest?.replaces) ? manifest.replaces : []) {
+      if (typeof n === 'string' && NAME.test(n) && n !== want.name && !Object.hasOwn(REQUIRED_MODULES, n)) by.set(n, { name: want.name, dir: v.dir, manifest });
+    }
+  }
+  return by;
+}
+
+/**
+ * Before the modules start: a module turned on that replaces others still in the configuration or
+ * in modules/ (installed by hand, or by a kernel before lilOS 1.21.0) takes their place now
+ * (takeOver). Returns the names of the modules replaced.
+ */
+export async function applyReplacements() {
+  const config = await loadConfig();
+  const by = await replacements(config);
+  const installed = await scanModules(MODULES_DIR);
+  const plan = new Map();   // replacing module → its module and the names it replaces now
+  for (const [old, mod] of by) {
+    // Turned on, or a folder to remove (not one kept for its data: that stays as it is)
+    let todo = config.modules.some(m => m.name === old);
+    for (const v of installed.get(old) ?? []) if (!todo && !(await dataLeft(v, mod.manifest)).length) todo = true;
+    if (!todo) continue;
+    if (!plan.has(mod.name)) plan.set(mod.name, { mod, names: [] });
+    plan.get(mod.name).names.push(old);
+  }
+  const gone = [];
+  for (const { mod, names } of plan.values()) gone.push(...await takeOver(mod, mod.manifest.replaces.filter(n => names.includes(n))));
+  return gone;
 }
 
 /**
@@ -98,11 +195,11 @@ export async function ensureRequiredModules() {
     const top = installed[0];
     if (!want) {
       const manifest = await readJson(join(top.dir, 'module.json')) ?? {};
-      await editConfig(list => [...list, { name, version: top.version, config: manifest.defaultConfig ?? {} }]);
+      await editModules(list => [...list, { name, version: top.version, config: manifest.defaultConfig ?? {} }]);
       log.info(`Modulo obbligatorio ${name} ${top.version} acceso`);
       if (!changed.includes(name)) changed.push(name);
     } else if (want.version && (!installed.some(v => v.version === want.version) || changed.includes(name))) {
-      await editConfig(list => list.map(m => (m.name === name ? { ...m, version: top.version } : m)));
+      await editModules(list => list.map(m => (m.name === name ? { ...m, version: top.version } : m)));
       if (!changed.includes(name)) changed.push(name);
     }
   }
@@ -179,9 +276,13 @@ export class ModuleAdmin {
     this.#allowLocal = allowLocalSources;
   }
 
-  /** [{ name, version, description, icon, provides, requires, enabled, running, versions, source }] */
+  /**
+   * [{ name, version, description, icon, provides, requires, replaces, replacedBy, enabled, running, versions, source }]
+   * replacedBy: the module turned on that replaces it (it runs until the restart, then it goes), or null.
+   */
   async list() {
     const config = await loadConfig();
+    const by = await replacements(config);
     const out = [];
     for (const [name, versions] of await scanModules(MODULES_DIR)) {
       const want = config.modules.find(m => m.name === name);
@@ -192,6 +293,7 @@ export class ModuleAdmin {
       out.push({
         name, version: shown.version, description: String(manifest.description ?? ''), icon: validIcon(manifest.icon) ? manifest.icon : null,
         provides: manifest.provides ?? [], requires: manifest.requires ?? [], required: Object.hasOwn(REQUIRED_MODULES, name),
+        replaces: Array.isArray(manifest.replaces) ? manifest.replaces : [], replacedBy: by.get(name)?.name ?? null,
         enabled, running: running?.version ?? null, versions: versions.map(v => v.version),
         source: await readJson(join(shown.dir, 'source.json')),
       });
@@ -199,9 +301,14 @@ export class ModuleAdmin {
     // Removed (folder gone) but still running until the restart
     for (const m of this.#kernel.modules) {
       if (out.some(o => o.name === m.name)) continue;
-      out.push({ name: m.name, version: m.version, description: m.description, icon: null, provides: m.provides, requires: m.requires, enabled: null, running: m.version, versions: [], source: null });
+      out.push({ name: m.name, version: m.version, description: m.description, icon: null, provides: m.provides, requires: m.requires, replaces: m.replaces ?? [], replacedBy: by.get(m.name)?.name ?? null, enabled: null, running: m.version, versions: [], source: null });
     }
     return out;
+  }
+
+  /** Map name of a module → the module turned on that replaces it (for the catalogs: api/store.js). */
+  async replaced() {
+    return new Map([...await replacements(await loadConfig())].map(([old, mod]) => [old, mod.name]));
   }
 
   /** Checks that the kernel would start with these modules; throws why not. */
@@ -224,6 +331,8 @@ export class ModuleAdmin {
     if (!isOfficial(opened.source) && !allowUnsigned) fail('forbidden', 'Modulo non ufficiale: il suo codice girerà nel kernel con accesso completo. Si installa solo confermando l’avviso (allowUnsigned)');
     if (newer && compareVersions(manifest.version, newer) <= 0 && !source.ref) return { manifest, unchanged: true };
     if (!newer && enabled.has(manifest.name)) fail('conflict', `${manifest.name} è già installato: per una nuova versione usa l'aggiornamento`);
+    const by = (await this.replaced()).get(manifest.name);
+    if (by) fail('conflict', `${manifest.name} è stato sostituito da ${by}: non si installa più`);
     const dest = join(MODULES_DIR, `${manifest.name}_${manifest.version}`);
     // A folder left with its data by a removal is written over; an installed version is not
     const reused = await exists(dest);
@@ -242,16 +351,19 @@ export class ModuleAdmin {
     const source = cleanSource(raw, { allowLocal: this.#allowLocal });
     const config = await loadConfig();
     const { manifest, dest, reused } = await this.#place(source, { allowUnsigned, enabled: new Set(config.modules.map(m => m.name)) });
-    const next = [...config.modules, { name: manifest.name, version: manifest.version, config: manifest.defaultConfig ?? {} }];
+    // The modules it replaces leave the configuration with it: they do not provide the same services twice
+    const replaces = manifest.replaces ?? [];
+    const next = [...config.modules.filter(m => !replaces.includes(m.name)), { name: manifest.name, version: manifest.version, config: manifest.defaultConfig ?? {} }];
     try {
       await this.#checkStarts(next);
     } catch (err) {
       if (!reused) await rm(dest, { recursive: true, force: true });
       throw err;
     }
-    await editConfig(list => [...list, { name: manifest.name, version: manifest.version, config: manifest.defaultConfig ?? {} }]);
+    await editModules(list => [...list, { name: manifest.name, version: manifest.version, config: manifest.defaultConfig ?? {} }]);
+    const replaced = await this.#takeOver(manifest, dest);
     log.info(`Installato ${manifest.name} ${manifest.version} (attivo dal prossimo avvio)`);
-    return { name: manifest.name, version: manifest.version, restartRequired: true };
+    return { name: manifest.name, version: manifest.version, restartRequired: true, ...(replaced.length && { replaced }) };
   }
 
   async update(principal, name, { ref, allowUnsigned = false } = {}) {
@@ -266,20 +378,30 @@ export class ModuleAdmin {
     const source = cleanSource({ ...rest, ...(ref && { ref }) }, { allowLocal: this.#allowLocal });
     const placed = await this.#place(source, { allowUnsigned, newer: current.version, from: current.dir, enabled: new Set(config.modules.map(m => m.name)) });
     if (placed.unchanged) return { name, version: current.version, unchanged: true };
-    const next = config.modules.map(m => (m.name === name ? { ...m, version: placed.manifest.version } : m));
+    const replaces = placed.manifest.replaces ?? [];
+    const next = config.modules.filter(m => !replaces.includes(m.name)).map(m => (m.name === name ? { ...m, version: placed.manifest.version } : m));
     try {
       await this.#checkStarts(next);
     } catch (err) {
       await rm(placed.dest, { recursive: true, force: true });
       throw err;
     }
-    await editConfig(list => list.map(m => (m.name === name ? { ...m, version: placed.manifest.version } : m)));
+    await editModules(list => list.map(m => (m.name === name ? { ...m, version: placed.manifest.version } : m)));
     // Kept: the new version and the one it replaces
     for (const v of (await scanModules(MODULES_DIR)).get(name) ?? []) {
       if (v.version !== placed.manifest.version && v.version !== current.version) await rm(v.dir, { recursive: true, force: true });
     }
+    const replaced = await this.#takeOver(placed.manifest, placed.dest);
     log.info(`Aggiornato ${name} ${current.version} → ${placed.manifest.version} (attivo dal prossimo avvio)`);
-    return { name, version: placed.manifest.version, previous: current.version, restartRequired: true };
+    return { name, version: placed.manifest.version, previous: current.version, restartRequired: true, ...(replaced.length && { replaced }) };
+  }
+
+  /** The modules a module just placed replaces, in the configuration or installed: it takes their place (takeOver). */
+  async #takeOver(manifest, dir) {
+    const config = await loadConfig();
+    const installed = await scanModules(MODULES_DIR);
+    const names = (manifest.replaces ?? []).filter(n => config.modules.some(m => m.name === n) || installed.has(n));
+    return takeOver({ name: manifest.name, dir, manifest }, names);
   }
 
   /**
@@ -318,7 +440,7 @@ export class ModuleAdmin {
       for (const [k, v] of Object.entries(secretNew)) next[k] = v.sealed;
       return next;
     };
-    await editConfig(list => list.map(m => (m.name === name ? { ...m, config: apply(m.config && typeof m.config === 'object' ? m.config : {}) } : m)));
+    await editModules(list => list.map(m => (m.name === name ? { ...m, config: apply(m.config && typeof m.config === 'object' ? m.config : {}) } : m)));
     for (const f of plainFields) if (values[f.key] === undefined) delete mod.config[f.key]; else mod.config[f.key] = values[f.key];
     for (const k of secretGone) delete mod.config[k];
     for (const [k, v] of Object.entries(secretNew)) mod.config[k] = v.clear;
@@ -347,7 +469,7 @@ export class ModuleAdmin {
     if (Object.hasOwn(REQUIRED_MODULES, name)) fail('forbidden', `${name} è un modulo obbligatorio di lilOS: non si rimuove`);
     const next = config.modules.filter(m => m.name !== name);
     if (next.length !== config.modules.length) await this.#checkStarts(next.map(m => ({ ...m, version: m.version ?? null })));
-    await editConfig(list => list.filter(m => m.name !== name));
+    await editModules(list => list.filter(m => m.name !== name));
     const kept = [];
     for (const v of (await scanModules(MODULES_DIR)).get(name) ?? []) {
       const manifest = await readJson(join(v.dir, 'module.json'));

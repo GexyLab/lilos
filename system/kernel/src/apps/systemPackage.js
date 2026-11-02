@@ -7,6 +7,7 @@ import { KERNEL_API, scanModules } from '../modules.js';
 import { SDK_VERSIONS, compareVersions, inRange, parseVersion, sha256 } from './manifest.js';
 import { openSource } from './sources.js';
 import { logger } from '../log.js';
+import { writeJson } from '../jsonFile.js';
 
 /**
  * lilOS itself as a package: the build of one version (the page, the kernel, the files of the SDK
@@ -59,10 +60,7 @@ async function readCurrent() {
   try { return JSON.parse(await readFile(CURRENT, 'utf8')); } catch { return { version: SYSTEM_VERSION, previous: null }; }
 }
 
-async function writeCurrent(value) {
-  await writeFile(`${CURRENT}.tmp`, JSON.stringify(value, null, 2));
-  await rename(`${CURRENT}.tmp`, CURRENT);
-}
+const writeCurrent = value => writeJson(CURRENT, value, { pretty: true });
 
 /** The versions in releases/, newest first. */
 async function releases() {

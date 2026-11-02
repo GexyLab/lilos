@@ -1,9 +1,10 @@
-import { createHash, randomUUID } from 'node:crypto';
-import { mkdir, readFile, readdir, rename, rm, writeFile } from 'node:fs/promises';
+import { randomUUID } from 'node:crypto';
+import { readFile, readdir, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { Readable, Transform } from 'node:stream';
 import { fail, KernelError } from '../errors.js';
 import { logger } from '../log.js';
+import { removeJson, userFile, writeJson } from '../jsonFile.js';
 import { openHome, toFrontNode } from '../api/home.js';
 import { cleanPath, joinPath, cleanName, isSafeName } from './drivers.js';
 
@@ -56,13 +57,13 @@ export class Transfers {
   // ---------- Saved queues ----------
 
   #file(userId) {
-    return join(this.#net.dir, `transfers-${createHash('sha256').update(String(userId)).digest('hex').slice(0, 32)}.json`);
+    return userFile(this.#net.dir, userId, 'transfers-');
   }
 
   #state(principal) {
     let u = this.#users.get(principal.id);
     if (!u) {
-      u = { principal: pick(principal), queues: [], index: new Map(), run: null, emitTimer: null, saveTimer: null, lastEmit: 0, saving: Promise.resolve() };
+      u = { principal: pick(principal), queues: [], index: new Map(), run: null, emitTimer: null, saveTimer: null, lastEmit: 0 };
       this.#users.set(principal.id, u);
     }
     return u;
@@ -116,17 +117,10 @@ export class Transfers {
     u.saveTimer = setTimeout(() => { u.saveTimer = null; this.#save(u).catch(err => log.error('Trasferimenti non salvati', err)); }, SAVE_EVERY);
   }
 
+  /** Saves a user's queues (writes to one file go one at a time: jsonFile.js). */
   async #save(u) {
-    const run = u.saving.then(async () => {
-      const file = this.#file(u.principal.id);
-      if (!u.queues.length) return rm(file, { force: true });
-      await mkdir(this.#net.dir, { recursive: true });
-      const data = { user: u.principal, queues: u.queues.map(saveQueue) };
-      await writeFile(`${file}.tmp`, JSON.stringify(data), { mode: 0o600 });
-      await rename(`${file}.tmp`, file);
-    });
-    u.saving = run.catch(() => {});
-    return run;
+    const file = this.#file(u.principal.id);
+    return u.queues.length ? writeJson(file, { user: u.principal, queues: u.queues.map(saveQueue) }) : removeJson(file);
   }
 
   async stop() {

@@ -1,11 +1,15 @@
-import { createHash, randomUUID } from 'node:crypto';
-import { mkdir, readdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
+import { randomUUID } from 'node:crypto';
+import { readdir, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { DATA_DIR } from '../config.js';
 import { fail } from '../errors.js';
 import { logger } from '../log.js';
+import { readJson, userFile, writeJson } from '../jsonFile.js';
+import { PATHS } from '../modules.js';
 import { Secrets } from './secrets.js';
 import { NetGuard } from './guard.js';
+import { KnownHosts, kindOfFingerprint, serverOf } from './knownHosts.js';
+import { tokensFor } from './oauth.js';
 import { findDrivers, protocolInfo, checkFields, missingFields, signInFields, cleanPath, joinPath, netFail, isConnectionError, isSafeName, isUsableName, cleanEntry } from './drivers.js';
 import { SignIns } from './signin.js';
 import { uniqueName } from './transfers.js';
@@ -27,7 +31,8 @@ const ID = /^[a-f0-9]{16}$/;
  * A connection opens when it is first used (or at the user's first request, with `auto`) and
  * opens again by itself when it drops; the protocols are kernel modules (drivers.js).
  *
- *   saved:           { id, name, protocol, values, secret: sealed | null, trust: fingerprint | null, auto, created }
+ *   saved:           { id, name, protocol, values, secret: sealed | null, auto, created }
+ *                    (the server keys the user confirmed are in knownHosts.js, shared with the Terminal)
  *   as the page sees it: { id, name, protocol, address, values, auto, remembered, trusted, state, error }
  *     state  'off' (not connected) | 'connecting' | 'on' | 'error' (the last attempt failed: `error` says why)
  *
@@ -37,23 +42,24 @@ const ID = /^[a-f0-9]{16}$/;
  */
 export class Network {
   #kernel;
-  #users = new Map();     // user id → { saved: Map, live: Map, queue: Promise }
+  #users = new Map();     // user id → { id, saved: Map, live: Map, imports: Map, who, ready }
   #seen = new Set();      // users whose `auto` connections were opened in this run
 
   constructor(kernel) {
     this.#kernel = kernel;
     this.dir = join(DATA_DIR, 'net');
     this.secrets = new Secrets(this.dir);
-    this.drivers = findDrivers(kernel.services, log);
+    this.drivers = findDrivers(kernel.services, log, kernel.oauth);
     this.guard = new NetGuard(kernel);
-    this.signins = new SignIns(this.drivers);
+    this.knownHosts = new KnownHosts(this.dir);
+    this.signins = new SignIns(this.drivers, this.guard.lookup);
     if (this.drivers.size) log.info(`Protocolli di rete: ${[...this.drivers.keys()].join(', ')}`);
   }
 
   // ---------- Saved connections ----------
 
   #file(userId) {
-    return join(this.dir, `${userKey(userId)}.json`);
+    return userFile(this.dir, userId);
   }
 
   /** The values of a connection, checked by its protocol and by where the kernel may connect. */
@@ -67,9 +73,9 @@ export class Network {
     if (!this.#kernel.multiUser) return;
     const users = await this.#kernel.services.get('users')?.list?.().catch(() => null);
     if (!Array.isArray(users)) return;
-    const keep = new Set(users.map(u => userKey(u.id)));
+    const keep = new Set(users.map(u => userFile('', u.id).slice(0, 32)));
     for (const name of await readdir(this.dir).catch(() => [])) {
-      const m = /^(?:transfers-)?([a-f0-9]{32})\.json$/.exec(name);
+      const m = /^(?:transfers-|known-)?([a-f0-9]{32})\.json$/.exec(name);
       if (m && !keep.has(m[1])) await rm(join(this.dir, name), { force: true });
     }
   }
@@ -81,14 +87,15 @@ export class Network {
       user.who = this.#who(principal);
       return user.ready;
     }
-    user = { saved: new Map(), live: new Map(), queue: Promise.resolve(), imports: new Map(), who: this.#who(principal) };
+    user = { id: principal.id, saved: new Map(), live: new Map(), imports: new Map(), who: this.#who(principal) };
     user.ready = (async () => {
       try {
-        const list = JSON.parse(await readFile(this.#file(principal.id), 'utf8'));
+        const list = await readJson(this.#file(principal.id), []);
         for (const r of Array.isArray(list) ? list : []) if (ID.test(r?.id ?? '') && typeof r.name === 'string') user.saved.set(r.id, r);
       } catch (err) {
-        if (err.code !== 'ENOENT') log.error(`Connessioni di rete di ${principal.id} non lette`, err);
+        log.error(`Connessioni di rete di ${principal.id} non lette`, err);
       }
+      await this.knownHosts.load(principal.id).catch(err => log.error(`Server confermati da ${principal.id} non letti`, err));
       return user;
     })();
     this.#users.set(principal.id, user);
@@ -100,29 +107,48 @@ export class Network {
     return { id: principal.id, username: principal.username ?? null, role: principal.role ?? null, multiUser: !!this.#kernel.multiUser };
   }
 
-  /** Saves a user's connections (one write at a time). */
-  async #save(userId, user) {
-    const run = user.queue.then(async () => {
-      await mkdir(this.dir, { recursive: true });
-      const file = this.#file(userId);
-      await writeFile(`${file}.tmp`, JSON.stringify([...user.saved.values()], null, 2), { mode: 0o600 });
-      await rename(`${file}.tmp`, file);
-    });
-    user.queue = run.catch(() => {});
-    return run;
+  /** Saves a user's connections (writes to one file go one at a time: jsonFile.js). */
+  #save(userId, user) {
+    return writeJson(this.#file(userId), [...user.saved.values()], { pretty: true });
+  }
+
+  /** The server of a connection, for the keys the user confirmed (knownHosts.js). */
+  #server(r) {
+    return serverOf(r.values, this.drivers.get(r.protocol)?.fields.find(f => f.key === 'port')?.default ?? null);
+  }
+
+  /** The fingerprint the user confirmed for the server of a connection (of any kind), or null. */
+  #trustOf(user, r) {
+    return this.knownHosts.peek(user.id, null, this.#server(r));
+  }
+
+  /** The user confirmed this fingerprint for the server of a connection. */
+  async #confirm(user, r, fingerprint) {
+    if (typeof fingerprint === 'string' && fingerprint && fingerprint.length <= 200) {
+      await this.knownHosts.set(user.id, kindOfFingerprint(fingerprint), this.#server(r), fingerprint);
+    }
+  }
+
+  /**
+   * What a driver's connect() and shares() get besides the values (drivers.js): the guard's lookup,
+   * the path helpers and, for a protocol that signs in through the kernel, the account's tokens.
+   */
+  #ctx(driver, values, { secret, trust, saveSecret, user }) {
+    return { secret, trust: trust ?? null, saveSecret, user, lookup: this.guard.lookup, paths: PATHS, tokens: tokensFor(driver, secret, saveSecret, values) };
   }
 
   #driver(protocol) {
     return this.drivers.get(protocol) ?? fail('unavailable', `Protocollo non disponibile: ${protocol} (manca il suo modulo del kernel)`);
   }
 
-  #view(r, live) {
+  #view(user, r) {
+    const live = user.live.get(r.id);
     const driver = this.drivers.get(r.protocol);
     let address = r.protocol;
     try { if (driver) address = driver.address(r.values); } catch { /* the protocol's name, then */ }
     return {
       id: r.id, name: r.name, protocol: r.protocol, address, values: r.values, auto: !!r.auto,
-      remembered: !!r.secret, trusted: !!r.trust,
+      remembered: !!r.secret, trusted: !!this.#trustOf(user, r),
       state: !driver ? 'error' : live?.state ?? 'off',
       error: !driver ? 'Il modulo di questo protocollo non è attivo' : live?.error ?? null,
     };
@@ -154,13 +180,13 @@ export class Network {
     const user = await this.#user(principal);
     return {
       protocols: [...this.drivers].map(([id, d]) => protocolInfo(id, d)).sort((a, b) => a.order - b.order || a.id.localeCompare(b.id)),
-      mounts: [...user.saved.values()].map(r => this.#view(r, user.live.get(r.id))),
+      mounts: [...user.saved.values()].map(r => this.#view(user, r)),
     };
   }
 
   async get(principal, id) {
     const user = await this.#user(principal);
-    return this.#view(this.#saved(user, id), user.live.get(id));
+    return this.#view(user, this.#saved(user, id));
   }
 
   /**
@@ -189,8 +215,9 @@ export class Network {
     this.#signedIn(principal, driver, body.protocol, body, values, secret);
     const r = {
       id: randomUUID().replaceAll('-', '').slice(0, 16), name: this.#checkName(user, body.name), protocol: body.protocol,
-      values, secret: null, trust: typeof body.trust === 'string' ? body.trust.slice(0, 200) : null, auto: body.auto === true, created: Date.now(),
+      values, secret: null, auto: body.auto === true, created: Date.now(),
     };
+    await this.#confirm(user, r, body.trust);
     if (Object.keys(secret).length) {
       if (body.remember === true) r.secret = await this.secrets.seal(secret);
       else this.#live(user, r.id).secret = secret;
@@ -198,7 +225,7 @@ export class Network {
     user.saved.set(r.id, r);
     await this.#save(principal.id, user);
     this.#emit(principal.id, 'net.mount', { id: r.id });
-    return this.#view(r, user.live.get(r.id));
+    return this.#view(user, r);
   }
 
   /**
@@ -219,8 +246,6 @@ export class Network {
       // The account stays the one signed in to, unless a new sign-in comes with the change
       for (const f of signInFields(driver)) if (r.values[f.key] !== undefined) values[f.key] = r.values[f.key];
       this.#signedIn(principal, driver, r.protocol, body, values, secret);
-      // Another server: what was confirmed of the old one does not count
-      if (['host', 'port', 'url'].some(k => values[k] !== r.values[k])) r.trust = null;
       // The password goes only where it was given for: another server or account, it is typed again
       if (BOUND.some(k => values[k] !== r.values[k]) && !Object.keys(secret).length) {
         r.secret = null;
@@ -248,7 +273,7 @@ export class Network {
     await this.#save(principal.id, user);
     if (reconnect) await this.#close(live);
     this.#emit(principal.id, 'net.mount', { id });
-    return this.#view(r, live);
+    return this.#view(user, r);
   }
 
   async remove(principal, id) {
@@ -282,7 +307,7 @@ export class Network {
     const r = this.#saved(user, id);
     const live = this.#live(user, id);
     let changed = false;
-    if (typeof trust === 'string' && trust && trust.length <= 200) { r.trust = trust; changed = true; }
+    await this.#confirm(user, r, trust);
     if ((rawSecret && typeof rawSecret === 'object') || typeof signin === 'string') {
       const driver = this.#driver(r.protocol);
       const { secret } = checkFields(driver, r.values, rawSecret ?? {});
@@ -305,7 +330,7 @@ export class Network {
     }
     if (changed) await this.#save(principal.id, user);
     await this.#open(principal.id, user, r, live);
-    return this.#view(r, live);
+    return this.#view(user, r);
   }
 
   /** Closes the session and forgets a password not remembered. */
@@ -318,7 +343,7 @@ export class Network {
     live.state = 'off';
     live.error = null;
     this.#emit(principal.id, 'net.mount', { id });
-    return this.#view(r, live);
+    return this.#view(user, r);
   }
 
   async #close(live) {
@@ -350,7 +375,7 @@ export class Network {
       this.#emit(userId, 'net.mount', { id: r.id });
       try {
         const saveSecret = fresh => this.#renewSecret(userId, user, r, live, fresh).catch(err => log.error(`Segreto rinnovato di «${r.name}» non salvato`, err));
-        const session = await driver.connect(r.values, { secret, trust: r.trust, saveSecret, user: user.who });
+        const session = await driver.connect(r.values, this.#ctx(driver, r.values, { secret, trust: this.#trustOf(user, r), saveSecret, user: user.who }));
         live.session = session;
         live.state = 'on';
         session.onLost?.(() => {
@@ -363,9 +388,8 @@ export class Network {
         // To confirm or a password to type: not a failure of the connection, the user is asked
         const asked = err?.net === 'untrusted' || err?.net === 'auth';
         // A key or certificate other than the one confirmed: the page warns, it is not a first time
-        if (err?.net === 'untrusted' && err.trust && r.trust && r.trust !== err.trust.fingerprint) {
-          err.trust = { ...err.trust, changed: true, previous: r.trust };
-        }
+        const previous = err?.net === 'untrusted' && err.trust ? this.knownHosts.peek(user.id, err.trust.kind === 'ssh' ? 'ssh' : 'tls', this.#server(r)) : null;
+        if (previous && previous !== err.trust.fingerprint) err.trust = { ...err.trust, changed: true, previous };
         live.state = asked ? 'off' : 'error';
         live.error = asked ? null : String(err?.message ?? err).slice(0, 300);
         return this.#fail(driver, err, r.name);
@@ -439,7 +463,7 @@ export class Network {
     const r = this.#saved(user, id);
     const live = this.#live(user, id);
     const secret = r.secret ? await this.#openSecret(r) : live.secret ?? {};
-    return { name: r.name, protocol: r.protocol, values: { ...r.values }, secret: { ...secret }, trust: r.trust ?? null };
+    return { name: r.name, protocol: r.protocol, values: { ...r.values }, secret: { ...secret }, trust: this.#trustOf(user, r) };
   }
 
   // ---------- Operations ----------
@@ -635,7 +659,7 @@ export class Network {
     let session;
     try {
       const saveSecret = fresh => { if (got && fresh?.[got.field] !== undefined) this.signins.renew(got.flow, fresh[got.field]); };
-      session = await driver.connect(values, { secret, trust: typeof body.trust === 'string' ? body.trust : null, saveSecret, user: this.#who(principal) });
+      session = await driver.connect(values, this.#ctx(driver, values, { secret, trust: typeof body.trust === 'string' ? body.trust : null, saveSecret, user: this.#who(principal) }));
       await session.list('/');   // its root folder can be read
     } catch (err) {
       return netFail(err);
@@ -655,7 +679,7 @@ export class Network {
     await this.#accept(driver, values);
     try {
       const saveSecret = fresh => { if (got && fresh?.[got.field] !== undefined) this.signins.renew(got.flow, fresh[got.field]); };
-      const list = await driver.shares(values, { secret, trust: typeof body.trust === 'string' ? body.trust : null, user: this.#who(principal), saveSecret });
+      const list = await driver.shares(values, this.#ctx(driver, values, { secret, trust: typeof body.trust === 'string' ? body.trust : null, saveSecret, user: this.#who(principal) }));
       return list.filter(s => typeof s === 'string').slice(0, 500);
     } catch (err) {
       return netFail(err);
@@ -684,6 +708,7 @@ export class Network {
     this.#users.delete(userId);
     this.signins.forget(userId);
     await rm(this.#file(userId), { force: true });
+    await this.knownHosts.forget(userId);
   }
 
   /**
@@ -733,4 +758,3 @@ export async function removeTree(session, path, entry = undefined, depth = 0) {
 /** What a remembered password is tied to: change one of these, and it must be typed again. */
 const BOUND = ['host', 'port', 'url', 'user', 'tls', 'domain', 'share', 'auth'];
 
-const userKey = userId => createHash('sha256').update(String(userId)).digest('hex').slice(0, 32);

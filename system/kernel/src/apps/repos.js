@@ -1,8 +1,8 @@
-import { readFile, writeFile, rename } from 'node:fs/promises';
 import { join } from 'node:path';
 import { randomBytes } from 'node:crypto';
 import { fail } from '../errors.js';
 import { DATA_DIR } from '../config.js';
+import { readJson, writeJson } from '../jsonFile.js';
 import { checkManifest } from './manifest.js';
 import { parseLocales } from '../../../../sdk/core/i18n.js';
 import { checkModule } from './modulePackage.js';
@@ -30,17 +30,14 @@ const MAX_README = 64 << 10;
 
 async function readRepos() {
   try {
-    const raw = JSON.parse(await readFile(FILE, 'utf8'));
+    const raw = await readJson(FILE, []);
     return (Array.isArray(raw) ? raw : []).filter(r => r && /^[\w-]{4,40}$/.test(r.id) && typeof r.url === 'string' && typeof r.name === 'string').slice(0, MAX_REPOS);
   } catch {
     return [];
   }
 }
 
-async function writeRepos(list) {
-  await writeFile(`${FILE}.tmp`, JSON.stringify(list, null, 2));
-  await rename(`${FILE}.tmp`, FILE);
-}
+const writeRepos = list => writeJson(FILE, list, { pretty: true });
 
 const requireAdmin = p => (p?.kind === 'kernel' || p?.role === 'admin' ? p : fail('forbidden', 'Solo un amministratore gestisce i repository'));
 

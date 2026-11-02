@@ -12,7 +12,7 @@ import { homeRoutes } from './api/home.js';
 import { appRoutes } from './api/apps.js';
 import { Installer } from './apps/installer.js';
 import { Repos } from './apps/repos.js';
-import { ModuleAdmin, ensureRequiredModules } from './apps/modulePackage.js';
+import { ModuleAdmin, ensureRequiredModules, applyReplacements } from './apps/modulePackage.js';
 import { storeRoutes } from './api/store.js';
 import { serviceRoutes } from './api/services.js';
 import { notificationRoutes } from './api/notifications.js';
@@ -22,6 +22,8 @@ import { termRoutes } from './api/term.js';
 import { scheduleRoutes } from './api/schedule.js';
 import { Schedules } from './schedule/index.js';
 import { Network } from './net/network.js';
+import { OAuthApps, migrateOAuthSettings } from './net/oauth.js';
+import { KnownHosts } from './net/knownHosts.js';
 import { Transfers } from './net/transfers.js';
 import { Terminals } from './term/terminals.js';
 import { acceptSocket, refuseUpgrade } from './ws.js';
@@ -32,6 +34,8 @@ import { KERNEL } from './services.js';
 
 const log = logger('kernel');
 const LOOPBACK_HOSTS = new Set(['127.0.0.1', '::1', 'localhost']);
+/** The usual ports of the terminal protocols, for the server keys saved without one when the module is not there. */
+const TERM_PORTS = { ssh: 22, telnet: 23, rlogin: 513, supdup: 95 };
 
 /** Without an 'auth' module lilOS has one user, and the kernel only listens on this machine. */
 const LOCAL_USER = Object.freeze({ id: 'local', username: 'utente', name: 'Utente', role: 'admin' });
@@ -79,8 +83,11 @@ export class Kernel {
   }
 
   async #start(loaded) {
-    // The modules lilOS cannot do without, put back before anything starts
-    const config = (await ensureRequiredModules()).length ? await loadConfig() : loaded;
+    // The modules lilOS cannot do without, put back before anything starts; modules merged into
+    // another one turned on give it their place (module.json `replaces`)
+    const required = await ensureRequiredModules();
+    const replaced = await applyReplacements();
+    const config = required.length || replaced.length ? await loadConfig() : loaded;
     this.config = config;
     if (!config.modules.some(m => m)) log.warn('Nessun modulo nella configurazione');
     const route = (method, path, handler) => this.router.add(method, path, ctx => handler({ ...ctx, principal: ctx.principal ?? fail('unauthorized', 'Accesso richiesto') }));
@@ -98,7 +105,12 @@ export class Kernel {
       if (!ws) fail('forbidden', 'Connessione rifiutata');
     });
     this.settingSecrets = new Secrets(join(DATA_DIR, 'net'));
-    for (const mod of await resolveModules(MODULES_DIR, config.modules)) {
+    const mods = await resolveModules(MODULES_DIR, config.modules);
+    // The apps registered with the providers, once in the settings of each module (net/oauth.js)
+    await migrateOAuthSettings(config, mods, log);
+    this.oauth = new OAuthApps(config.oauth, { secrets: this.settingSecrets });
+    await this.oauth.open(log);
+    for (const mod of mods) {
       await openSecretSettings(mod, this.settingSecrets, log);
       this.modules.push(await startModule(mod, this.services, { route, emit, socket, dataDir: join(DATA_DIR, 'modules-data') }));
       log.info(`Modulo avviato: ${mod.name} ${mod.version} (${mod.provides.join(', ') || 'nessun servizio'})`);
@@ -118,6 +130,10 @@ export class Kernel {
     this.network = new Network(this);
     this.transfers = new Transfers(this, this.network);
     this.terminals = new Terminals(this);
+    // The server keys the Rete folder and the Terminal kept apart before lilOS 1.21.0, in one place
+    const termPorts = new Map([...this.terminals.drivers].map(([id, d]) => [id, d.port]));
+    const moved = await KnownHosts.migrate({ netDir: this.network.dir, termDir: this.terminals.dir, termPort: id => termPorts.get(id) ?? TERM_PORTS[id] ?? null });
+    if (moved) log.info(`Chiavi dei server confermate riunite per ${moved} utenti`);
     this.schedules = new Schedules(this);
     sessionRoutes(this);
     homeRoutes(this);

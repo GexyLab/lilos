@@ -1,9 +1,11 @@
 import { readdir, readFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { isAbsolute, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { checkService } from './services.js';
 import { logger } from './log.js';
 import { fail } from './errors.js';
+import { JsonStore } from './jsonFile.js';
+import { cleanPath, joinPath, parentOf, baseName, isSafeName, cleanName } from './net/drivers.js';
 
 /** Field types a module's settings may have (the same descriptions as the fields of net/drivers.js). */
 const SETTING_TYPES = new Set(['text', 'textarea', 'number', 'select', 'checkbox', 'password']);
@@ -35,7 +37,11 @@ export async function openSecretSettings(mod, secrets, log) {
   }
 }
 
-/** Kernel API version the modules declare in module.json ("kernel": "1"). */
+/**
+ * Kernel API version the modules declare in module.json ("kernel": "1"). It changes only when
+ * something a module uses goes or changes meaning; what is added keeps it (the members of ctx
+ * since lilOS 1.21.0: a module that needs one fails with a clear message on an older kernel).
+ */
 export const KERNEL_API = 1;
 
 /**
@@ -48,6 +54,7 @@ export const KERNEL_API = 1;
 export const REQUIRED_MODULES = Object.freeze({ scheduler: 'scheduler' });
 
 const DIR = /^([a-z][a-z0-9-]{0,40})_(\d+\.\d+\.\d+)$/;
+const NAME = /^[a-z][a-z0-9-]{0,40}$/;
 const SERVICE = /^[a-z][a-z0-9.-]{0,40}$/;
 
 const compare = (a, b) => {
@@ -58,6 +65,8 @@ const compare = (a, b) => {
 /**
  * Modules installed under modules/, one folder each named '<name>_<version>' with:
  *   module.json  { name, version, description, kernel: "1", provides: [service], requires: [service],
+ *                  replaces?: [name],     modules it takes the place of (a merge of modules: their
+ *                                         configuration comes to it and they go, modulePackage.js)
  *                  settings?: [field] }   what an admin may change of its configuration (Control
  *                  Panel), described as the fields of a network protocol (net/drivers.js: key, type
  *                  text | textarea | number | select | checkbox | password, label, hint, default,
@@ -87,7 +96,9 @@ async function readManifest(mod) {
   if (services.some(s => typeof s !== 'string' || !SERVICE.test(s))) throw new Error(`${mod.name}: nomi di servizi non validi`);
   const settings = list(raw.settings);
   if (settings.some(f => !f || typeof f !== 'object' || !SETTING_KEY.test(f.key ?? '') || !SETTING_TYPES.has(f.type))) throw new Error(`${mod.name}: impostazioni non valide`);
-  return { ...mod, description: String(raw.description ?? ''), provides: list(raw.provides), requires: list(raw.requires), settings };
+  const replaces = list(raw.replaces);
+  if (replaces.some(n => typeof n !== 'string' || !NAME.test(n) || n === mod.name)) throw new Error(`${mod.name}: replaces non valido`);
+  return { ...mod, description: String(raw.description ?? ''), provides: list(raw.provides), requires: list(raw.requires), replaces, settings };
 }
 
 /**
@@ -106,6 +117,12 @@ export async function resolveModules(modulesDir, wanted) {
     if (chosen.some(c => c.name === mod.name)) throw new Error(`Modulo indicato due volte: ${mod.name}`);
     chosen.push({ ...(await readManifest(mod)), config: want.config ?? {} });
   }
+  // A module another one replaces does not start with it (modulePackage.js takes it away for good)
+  const replaced = new Set(chosen.flatMap(m => m.replaces));
+  for (const mod of chosen.filter(m => replaced.has(m.name))) {
+    logger('modules').warn(`${mod.name} non parte: lo sostituisce ${chosen.find(m => m.replaces.includes(mod.name)).name}`);
+  }
+  chosen.splice(0, chosen.length, ...chosen.filter(m => !replaced.has(m.name)));
 
   const providers = new Map();
   for (const mod of chosen) {
@@ -152,7 +169,13 @@ export async function resolveModules(modulesDir, wanted) {
  *                                     (<data>/modules-data/<name>): made by the module when it needs it
  *   ctx.emit(userId, event, data)     tells that user's open lilOS pages (the kernel's event stream,
  *                                     /api/services-events): event '<word>.<word>', data JSON
+ *   ctx.jsonStore(file, options)      (since lilOS 1.21.0) a JSON file kept in memory and saved whole
+ *                                     and safely (jsonFile.js JsonStore); a relative `file` is in ctx.dir
+ *   ctx.paths                         (since lilOS 1.21.0) the paths of the network protocols
+ *                                     (net/drivers.js): cleanPath, joinPath, parentOf, baseName,
+ *                                     isSafeName, cleanName
  */
+export const PATHS = Object.freeze({ cleanPath, joinPath, parentOf, baseName, isSafeName, cleanName });
 const EVENT = /^[a-z][a-z0-9-]{0,30}\.[a-z][a-zA-Z0-9.-]{0,40}$/;
 const PATH = /^(\/[\w:-]+)+$/;
 
@@ -193,6 +216,11 @@ export async function startModule(mod, services, { route, emit, socket, dataDir 
       if (typeof userId !== 'string' || !EVENT.test(event)) throw new Error(`${mod.name}: evento non valido ${event}`);
       emit(userId, event, JSON.parse(JSON.stringify(data ?? {})));
     },
+    jsonStore(file, options) {
+      if (typeof file !== 'string' || !file) throw new Error(`${mod.name}: jsonStore senza file`);
+      return new JsonStore(isAbsolute(file) ? file : join(mod.dir, file), options);
+    },
+    paths: PATHS,
   };
   await impl.init(ctx);
   const missing = mod.provides.filter(s => !services.has(s));

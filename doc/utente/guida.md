@@ -560,7 +560,7 @@ Quando ti colleghi a un server di cui lilOS non si fida ancora, si ferma e ti mo
 
 Se un server di cui ti eri già fidato **cambia chiave o certificato**, la finestra è più severa: ha l'icona dell'errore, il titolo **Il server di «nome» ha CAMBIATO chiave** e mostra l'impronta di prima e quella di adesso. Qualcuno potrebbe fingersi il server: continua solo se sai che l'hanno cambiata apposta.
 
-Premi **Continua** solo se l'impronta corrisponde a quella del tuo server (te la dà chi lo gestisce). Fino ad allora lilOS **non manda al server né utente né password**. Se cambi l'indirizzo o la porta di una connessione, la conferma va rifatta.
+Premi **Continua** solo se l'impronta corrisponde a quella del tuo server (te la dà chi lo gestisce). Fino ad allora lilOS **non manda al server né utente né password**. La conferma vale per quel server e quella porta, per te: anche per il **Terminale** (un server SSH confermato per una connessione SFTP non viene richiesto quando apri un terminale verso di lui, e viceversa). Se cambi l'indirizzo o la porta di una connessione, la conferma va rifatta.
 
 ### La password
 
@@ -1425,7 +1425,7 @@ Un'automazione fatta partire dalla Pianificazione gira comunque nel browser, com
 
 - Le operazioni restano dopo il riavvio di lilOS e dopo gli aggiornamenti. Si salvano sul computer di lilOS, non nel browser.
 - Un comando o una copia **fanno davvero** quello che dicono, anche quando non guardi: provali prima a mano con **Esegui ora**, specie **Specchio**, che toglie file, e i comandi che cancellano.
-- Il comando **in lilOS** usa la shell del Terminale (serve il Terminale 1.5.0 o successivo): non apre app né finestre, non legge i file protetti da un'app (per esempio cifrati con FileCrypt) e non legge `~/.bashrc`. Dura al massimo **60 secondi**: se ci mette di più l'operazione risulta non riuscita. Su un host SSH servono la password o la chiave salvata nell'host e la chiave del server già confermata: collegati una volta dal Terminale. Un comando fermato da un segnale (per esempio `kill -9`) risulta non riuscito, con il nome del segnale: serve il modulo **term-ssh 1.0.2** (AppStore → Kernel).
+- Il comando **in lilOS** usa la shell del Terminale (serve il Terminale 1.5.0 o successivo): non apre app né finestre, non legge i file protetti da un'app (per esempio cifrati con FileCrypt) e non legge `~/.bashrc`. Dura al massimo **60 secondi**: se ci mette di più l'operazione risulta non riuscita. Su un host SSH servono la password o la chiave salvata nell'host e la chiave del server già confermata: collegati una volta dal Terminale (o dalla Rete, con una connessione SFTP allo stesso server e porta). Un comando fermato da un segnale (per esempio `kill -9`) risulta non riuscito, con il nome del segnale: serve il modulo **term-ssh 1.0.2** (AppStore → Kernel).
 - Le operazioni **nel browser** non partono se non c'è lilOS aperto.
 - I file cifrati da un'app (per esempio FileCrypt) non si aprono né si sovrascrivono da un comando, da una copia o da una richiesta web che salva la risposta: l'operazione risulta non riuscita.
 - Una richiesta web che viene mandata a un altro sito (un reindirizzamento) lascia a casa le chiavi segrete, i cookie e `Authorization`, e se ha un corpo da mandare non viene seguita. Se cambi l'indirizzo di una richiesta con una chiave segreta salvata, devi scrivere la chiave di nuovo.

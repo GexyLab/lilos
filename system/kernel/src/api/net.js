@@ -29,6 +29,8 @@ import { CALLBACK_PATH, callbackPage } from '../net/signin.js';
  *   GET    /api/net/signin/:id?wait=1            { status: 'pending' | 'done' | 'error', account?, error? }
  *   DELETE /api/net/signin/:id
  *   GET    /api/net/signin/callback              where the provider sends the window back (no session: see net/signin.js)
+ *   GET    /api/net/oauth                        [app]   admins: the apps registered with the providers (net/oauth.js)
+ *   PUT    /api/net/oauth/:id                    { values } → app   admins: changes one (Microsoft, Google)
  *   GET    /api/net/transfers                    the snapshot the transfer window shows
  *   GET    /api/net/transfers/items/:id          { items, more }   inside a folder of a queue
  *   POST   /api/net/transfers                    { sources: [ref], target: ref, workspace? } → { queue }
@@ -48,6 +50,7 @@ const ITEM = /^[a-f0-9]{20}$/;
 const MAX_UPLOAD = 1 << 30;
 
 const signedIn = principal => principal ?? fail('unauthorized', 'Accesso richiesto');
+const admin = principal => (signedIn(principal).role === 'admin' ? principal : fail('forbidden', 'Solo un amministratore'));
 const mountId = params => (ID.test(params.id) ? params.id : fail('invalid', 'Connessione non valida'));
 const plain = v => (v && typeof v === 'object' && !Array.isArray(v) ? v : {});
 
@@ -191,6 +194,21 @@ export function netRoutes(kernel) {
 
   router.add('DELETE', '/api/net/signin/:id', async ({ principal, params }) => {
     if (SIGNIN.test(params.id)) net.signins.cancel(signedIn(principal), params.id);
+  });
+
+  // The apps registered with the providers (one Microsoft app, one Google project for every protocol)
+  router.add('GET', '/api/net/oauth', async ({ principal }) => {
+    admin(principal);
+    return kernel.oauth.list();
+  });
+
+  router.add('PUT', '/api/net/oauth/:id', async ({ principal, params, json }) => {
+    admin(principal);
+    const { values } = await json(64 << 10);
+    const app = await kernel.oauth.save(params.id, plain(values));
+    // The open connections that sign in with it start again with the new app
+    await net.reset(app.protocols).catch(() => {});
+    return app;
   });
 
   router.add('GET', '/api/net/transfers', async ({ principal }) => transfers.snapshot(signedIn(principal)));

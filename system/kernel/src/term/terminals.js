@@ -1,11 +1,14 @@
-import { createHash, randomBytes } from 'node:crypto';
-import { mkdir, readdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
+import { randomBytes } from 'node:crypto';
+import { readdir, rm } from 'node:fs/promises';
 import { constants } from 'node:os';
 import { join, posix } from 'node:path';
 import { DATA_DIR } from '../config.js';
 import { fail } from '../errors.js';
 import { logger } from '../log.js';
+import { readJson, userFile, writeJson } from '../jsonFile.js';
+import { PATHS } from '../modules.js';
 import { Secrets } from '../net/secrets.js';
+import { serverOf } from '../net/knownHosts.js';
 import { checkFields, fieldShown, netFail } from '../net/drivers.js';
 import { findDrivers, termProtocolInfo, isSecure } from './drivers.js';
 import { History, Charset, ENCODINGS } from './screen.js';
@@ -21,9 +24,9 @@ const FOLDER_MAX = 60;
 
 /**
  * Remote terminals (the Terminale remoto app): each user's saved hosts and their open sessions.
- * Hosts are saved in DATA_DIR/term/<user>.json (passwords encrypted, see net/secrets.js) with the
- * server keys the user confirmed (`known`, by protocol, host and port). The protocols are kernel
- * modules (drivers.js).
+ * Hosts are saved in DATA_DIR/term/<user>.json (passwords encrypted, see net/secrets.js); the
+ * server keys the user confirmed are the Rete folder's (net/knownHosts.js: by kind, host and
+ * port), so a server confirmed there is known here too. The protocols are kernel modules (drivers.js).
  *
  * A session lives in the kernel: the page attaches to it with a WebSocket (api/term.js) and gets
  * the screen again when it comes back (History). Without a page it closes after 10 minutes; a
@@ -44,7 +47,7 @@ const FOLDER_MAX = 60;
  */
 export class Terminals {
   #kernel;
-  #users = new Map();       // user id → { saved: Map, known: Map, queue, ready }
+  #users = new Map();       // user id → { saved: Map, ready }
   #sessions = new Map();    // session id → Session
 
   constructor(kernel) {
@@ -53,27 +56,27 @@ export class Terminals {
     this.secrets = new Secrets(this.dir);
     this.drivers = findDrivers(kernel.services, log);
     this.guard = kernel.network.guard;
+    this.knownHosts = kernel.network.knownHosts;
     if (this.drivers.size) log.info(`Protocolli di terminale: ${[...this.drivers.keys()].join(', ')}`);
   }
 
   // ---------- Saved hosts ----------
 
   #file(userId) {
-    return join(this.dir, `${userKey(userId)}.json`);
+    return userFile(this.dir, userId);
   }
 
   async #user(principal) {
     if (principal?.kind !== 'user') fail('unauthorized', 'Accesso richiesto');
     let user = this.#users.get(principal.id);
     if (user) return user.ready;
-    user = { saved: new Map(), known: new Map(), queue: Promise.resolve() };
+    user = { saved: new Map() };
     user.ready = (async () => {
       try {
-        const data = JSON.parse(await readFile(this.#file(principal.id), 'utf8'));
+        const data = await readJson(this.#file(principal.id), {});
         for (const r of Array.isArray(data?.hosts) ? data.hosts : []) if (ID.test(r?.id ?? '') && typeof r.name === 'string') user.saved.set(r.id, r);
-        for (const [k, v] of Object.entries(data?.known ?? {})) if (typeof v === 'string') user.known.set(k, v);
       } catch (err) {
-        if (err.code !== 'ENOENT') log.error(`Host dei terminali di ${principal.id} non letti`, err);
+        log.error(`Host dei terminali di ${principal.id} non letti`, err);
       }
       return user;
     })();
@@ -81,16 +84,9 @@ export class Terminals {
     return user.ready;
   }
 
-  async #save(userId, user) {
-    const run = user.queue.then(async () => {
-      await mkdir(this.dir, { recursive: true });
-      const file = this.#file(userId);
-      const data = { hosts: [...user.saved.values()], known: Object.fromEntries(user.known) };
-      await writeFile(`${file}.tmp`, JSON.stringify(data, null, 2), { mode: 0o600 });
-      await rename(`${file}.tmp`, file);
-    });
-    user.queue = run.catch(() => {});
-    return run;
+  /** Saves a user's hosts (writes to one file go one at a time: jsonFile.js). */
+  #save(userId, user) {
+    return writeJson(this.#file(userId), { hosts: [...user.saved.values()] }, { pretty: true });
   }
 
   /** With users that sign in: the files of users that do not exist any more go. */
@@ -98,7 +94,7 @@ export class Terminals {
     if (!this.#kernel.multiUser) return;
     const users = await this.#kernel.services.get('users')?.list?.().catch(() => null);
     if (!Array.isArray(users)) return;
-    const keep = new Set(users.map(u => userKey(u.id)));
+    const keep = new Set(users.map(u => userFile('', u.id).slice(0, 32)));
     for (const name of await readdir(this.dir).catch(() => [])) {
       const m = /^([a-f0-9]{32})\.json$/.exec(name);
       if (m && !keep.has(m[1])) await rm(join(this.dir, name), { force: true });
@@ -297,14 +293,11 @@ export class Terminals {
       r.used = Date.now();
       this.#save(principal.id, user).catch(err => log.error('Host dei terminali non salvati', err));
     } else if (typeof body?.mount === 'string') {
-      const { values, secret, trust, name, protocol } = await this.#kernel.network.credentials(principal, body.mount);
+      const { values, secret, name, protocol } = await this.#kernel.network.credentials(principal, body.mount);
       if (protocol !== 'sftp') fail('invalid', 'Il terminale si apre solo sulle connessioni SFTP');
       const driver = this.#driver('ssh');
+      // The server key confirmed for the SFTP connection counts here too: the same store (knownHosts.js)
       const ssh = checkFields(driver, { host: values.host, port: values.port, user: values.user, auth: values.auth }, secret);
-      if (trust) {
-        const key = knownKey('ssh', ssh.values.host, ssh.values.port);
-        if (!user.known.has(key)) { user.known.set(key, trust); await this.#save(principal.id, user); }
-      }
       // path is inside the connection, whose root is a folder of the server (values.path)
       const inside = cleanCwd(typeof body.path === 'string' && body.path ? body.path : '/') ?? '/';
       spec = { host: null, name, protocol: 'ssh', values: ssh.values, secret: ssh.secret, settings: cleanSettings(), cwd: cleanCwd(posix.join(values.path || '/', inside)) };
@@ -361,11 +354,15 @@ export class Terminals {
     await this.#accept(driver, values);
     const secret = r.secret ? await this.#openSecret(r) : {};
     const nobody = () => Promise.reject(Object.assign(new Error('Nessuno risponde: la password o la chiave vanno salvate nell’host'), { net: 'auth' }));
+    let output = '', ended;
+    const over = new Promise(resolve => { ended = resolve; });
+    const received = chunk => { output = (output + chunk.toString('utf8')).slice(-maxOutput); };
     let session;
     try {
       session = await driver.open(values, {
         secret, cols: 200, rows: 50, term: 'dumb', cwd: null, signal, print: () => {}, ask: nobody,
-        confirm: async trust => (await this.knownTrust(principal.id, 'ssh', r.values)) === String(trust?.fingerprint ?? ''),
+        confirm: async trust => (await this.knownTrust(principal.id, driver, trust, r.values)) === String(trust?.fingerprint ?? ''),
+        lookup: this.guard.lookup, paths: PATHS, output: received, closed: info => ended(info ?? {}),
       });
     } catch (err) {
       if (err?.net === 'untrusted') fail('untrusted', `La chiave del server di «${r.name}» non è confermata: collegati una volta dal Terminale`);
@@ -373,32 +370,27 @@ export class Terminals {
       if (err?.net === 'auth' || (err?.net === 'cancelled' && !signal?.aborted)) fail('forbidden', `Accesso negato da «${r.name}»: salva la password o la chiave nell’host`);
       netFail(err, r.name);
     }
-    return new Promise(resolve => {
-      let output = '';
-      session.onData(chunk => { output = (output + chunk.toString('utf8')).slice(-maxOutput); });
-      session.onClose(({ reason, ...last }) => {
-        let code;
-        if (!('code' in last)) code = Number(/codice (\d+)/.exec(reason ?? '')?.[1] ?? (reason ? 255 : 0));
-        else if (Number.isInteger(last.code)) code = last.code;
-        else if (last.signal) code = 128 + (constants.signals[`SIG${last.signal}`] ?? 0);
-        else code = 255;
-        resolve({ output, code, signal: last.signal ?? null, reason: reason ?? '' });
-      });
-      signal?.addEventListener('abort', () => session.close(), { once: true });
-    });
+    // Drivers before lilOS 1.21.0 hand the output and the end through the session
+    session.onData?.(received);
+    session.onClose?.(info => ended(info ?? {}));
+    signal?.addEventListener('abort', () => session.close(), { once: true });
+    const { reason, ...last } = await over;
+    let code;
+    if (!('code' in last)) code = Number(/codice (\d+)/.exec(reason ?? '')?.[1] ?? (reason ? 255 : 0));
+    else if (Number.isInteger(last.code)) code = last.code;
+    else if (last.signal) code = 128 + (constants.signals[`SIG${last.signal}`] ?? 0);
+    else code = 255;
+    return { output, code, signal: last.signal ?? null, reason: reason ?? '' };
   }
 
-  /** Was the server key shown already confirmed? (by protocol, host and port) */
-  async knownTrust(userId, protocol, values) {
-    const user = this.#users.get(userId);
-    return user ? (await user.ready).known.get(knownKey(protocol, values.host, values.port)) ?? null : null;
+  /** The fingerprint the user confirmed for this server, of the kind of the one shown (trust: { kind }), or null. */
+  knownTrust(userId, driver, trust, values) {
+    return this.knownHosts.get(userId, trust?.kind === 'tls' ? 'tls' : 'ssh', serverOf(values, driver.port));
   }
 
-  async rememberTrust(userId, protocol, values, fingerprint) {
-    const user = await this.#users.get(userId)?.ready;
-    if (!user) return;
-    user.known.set(knownKey(protocol, values.host, values.port), fingerprint);
-    await this.#save(userId, user);
+  /** The user confirmed the server key shown. */
+  rememberTrust(userId, driver, trust, values) {
+    return this.knownHosts.set(userId, trust?.kind === 'tls' ? 'tls' : 'ssh', serverOf(values, driver.port), trust.fingerprint);
   }
 
   forgetSession(s) {
@@ -525,6 +517,11 @@ class Session {
     }
   }
 
+  /** What the server sent, in the session's encoding. */
+  #received(data) {
+    this.#output(this.#charset.decode(data));
+  }
+
   /** What went to the screen: kept, and sent to the page if there is one. */
   #output(data) {
     if (!data.length) return;
@@ -600,7 +597,7 @@ class Session {
     const fingerprint = String(trust?.fingerprint ?? '');
     if (!fingerprint) return false;
     const s = this.#spec;
-    const known = await this.#terms.knownTrust(this.owner, s.protocol, s.values);
+    const known = await this.#terms.knownTrust(this.owner, this.#driver, trust, s.values);
     if (known === fingerprint) return true;
     const shown = {
       kind: trust.kind === 'tls' ? 'tls' : 'ssh', fingerprint: fingerprint.slice(0, 200),
@@ -613,7 +610,7 @@ class Session {
       this.#abort.signal.addEventListener('abort', () => resolve(false), { once: true });
     });
     this.#trusting = null;
-    if (ok) await this.#terms.rememberTrust(this.owner, s.protocol, s.values, shown.fingerprint);
+    if (ok) await this.#terms.rememberTrust(this.owner, this.#driver, shown, s.values);
     return ok;
   }
 
@@ -628,12 +625,18 @@ class Session {
         confirm: trust => this.#confirm(trust),
         print: text => this.#print(text),
         signal: this.#abort.signal,
+        lookup: this.#terms.guard.lookup,
+        paths: PATHS,
+        output: data => this.#received(data),
+        closed: info => this.#ended(info?.reason ?? ''),
       });
-      if (this.#abort.signal.aborted) { try { conn.close(); } catch { /* gone */ } return; }
+      // Closed meanwhile: by the user, or the connection ended (closed) before open() was over
+      if (this.#abort.signal.aborted || this.state === 'closed') { try { conn.close(); } catch { /* gone */ } return; }
       this.#conn = conn;
       s.secret = null;   // not needed any more: it does not stay in memory with the session
-      conn.onData(data => this.#output(this.#charset.decode(data)));
-      conn.onClose(info => this.#ended(info?.reason ?? ''));
+      // Drivers before lilOS 1.21.0 hand the output and the end through the session
+      conn.onData?.(data => this.#received(data));
+      conn.onClose?.(info => this.#ended(info?.reason ?? ''));
       this.#setState('on', '');
     } catch (err) {
       if (this.state === 'closed') return;
@@ -697,9 +700,7 @@ function cleanCwd(path) {
 }
 
 const clamp = (v, min, max, fallback) => (Number.isInteger(v) ? Math.min(max, Math.max(min, v)) : fallback);
-const knownKey = (protocol, host, port) => `${protocol}:${String(host ?? '').toLowerCase()}:${port ?? ''}`;
 const newId = () => randomBytes(8).toString('hex');
-const userKey = userId => createHash('sha256').update(String(userId)).digest('hex').slice(0, 32);
 
 /** What a remembered password is tied to: change one of these, and it must be typed again. */
 const BOUND = ['host', 'port', 'user', 'auth', 'tls'];

@@ -981,6 +981,19 @@ try {
 3. Attivalo in `system/kernel/config.json`, dentro `modules`: `{ "name": "mio", "version": "1.0.0", "config": { … } }` (`ctx.config` riceve quell'oggetto). Senza `version` si usa la più alta installata. Se ha dipendenze npm, mettile in un `package.json` del modulo (con il suo `package-lock.json`) e lancia `npm run kernel:setup`.
 4. Riavvia il kernel. Un modulo che dichiara un servizio e non lo fornisce, o che non ha i metodi che il kernel chiama, non parte.
 
+**I suoi dati in un file JSON**: `ctx.jsonStore('dati.json', { clean })` (da lilOS 1.21.0) tiene il file in memoria e lo salva intero e sicuro, un cambiamento alla volta; mettilo in `data` del `module.json` perché segua il modulo negli aggiornamenti:
+
+```js
+if (!ctx.jsonStore) throw new Error('mio richiede lilOS ≥ 1.21.0');
+const store = ctx.jsonStore('dati.json', { clean: raw => ({ version: 1, items: Array.isArray(raw?.items) ? raw.items : [] }) });
+const items = (await store.read()).items;
+await store.change(data => { data.items.push({ id: 'x' }); });   // salvato dopo fn
+```
+
+Con `watch: true` lo rilegge quando un altro programma lo cambia (i comandi di `kernel:cli`).
+
+**Due moduli fusi in uno**: il nuovo dichiara `"replaces": ["vecchio-a", "vecchio-b"]` e fornisce gli stessi servizi; installandolo prende la loro configurazione (i segreti compresi) e i loro dati, e loro spariscono ([API → Moduli come pacchetti](api.md#moduli-come-pacchetti-modulepackagejs)).
+
 **Un modulo obbligatorio** (senza cui lilOS non parte, come `scheduler`): aggiungi `"required": true` al `module.json`, il nome e il servizio che fornisce a `REQUIRED_MODULES` in `system/kernel/src/modules.js`, e tieni la cartella in `system/kernel/modules/` **nel repository** (non basta il repository ufficiale): `scripts/release.mjs` la mette in ogni release e `ensureRequiredModules()` la porta in `modules/` e in `config.json` all'avvio. Meglio senza dipendenze npm: la release non porta `node_modules` e, se c'è un `package.json`, il kernel dovrebbe installarle (`npm`) a ogni primo avvio della versione. Dichiara l'interfaccia in `INTERFACES` (`services.js`) perché il kernel ne controlli i metodi. Nel repository ufficiale delle app va comunque nel catalogo, con lo stesso `required`, perché l'AppStore lo mostri come necessario.
 
 Questa è la strada a mano. Per distribuirlo, vedi la ricetta successiva: un modulo in un repository si installa dall'AppStore.
@@ -1008,7 +1021,8 @@ Un protocollo è un modulo del kernel che fornisce il servizio `netfs.<protocoll
            { key: 'path', type: 'text', label: label('Remote folder', 'Cartella remota'), default: '/' },
          ],
          address: v => `mio://${v.user}@${v.host}${v.path === '/' ? '' : v.path}`,
-         async connect(values, { secret, trust, signal }) {
+         async connect(values, { secret, trust, lookup, paths }) {
+           // 0. collegati con lookup (net.connect({ host, port, lookup }), anche per tls e http): dà solo indirizzi permessi
            // 1. verifica il server PRIMA di mandare le credenziali; se non è fidato:
            //    throw Object.assign(netError('untrusted', 'Server da confermare'), { trust: { kind: 'ssh', fingerprint, text } });
            // 2. entra con values.user e secret.password (credenziali sbagliate: netError('auth', …))
@@ -1029,16 +1043,16 @@ Un protocollo è un modulo del kernel che fornisce il servizio `netfs.<protocoll
      },
    };
    ```
-3. Usa `label` con `{ en, it }` per tutto ciò che l'utente legge (etichette, suggerimenti). I campi con `secret: true` arrivano in `secret`, mai in `values`; `when` mostra un campo solo se altri hanno certi valori.
+3. Usa `label` con `{ en, it }` per tutto ciò che l'utente legge (etichette, suggerimenti). I campi con `secret: true` arrivano in `secret`, mai in `values`; `when` mostra un campo solo se altri hanno certi valori. Per i percorsi usa `paths` (`cleanPath`, `joinPath`, `parentOf`, `baseName`, `isSafeName`, `cleanName`) invece di riscriverli; `trust` è l'impronta che l'utente ha confermato per quel server (anche dal Terminale).
 4. Lancia solo errori con `net` (`auth`, `untrusted`, `not_found`, `exists`, `denied`, `unreachable`, `lost`, `unsupported`, `invalid`): il kernel li traduce in codici e messaggi. Un errore `lost` o `unreachable` fa riaprire la connessione da sola.
 5. Se il protocollo sa dire quando una cartella cambia, aggiungi `watch(path, onChange)` che restituisce `stop()`: la pagina si aggiorna da sola. Se sa elencare ciò che un server offre, aggiungi `shares(values, { secret, trust })`.
    Facoltativi, se servono: `group` (`'cloud'` o `'local'`: dove sta nell'elenco), `space()` nella sessione con `space: true` (lo spazio dell'account), elementi con `web`/`export` (documenti senza byte propri, che si copiano esportati: `read(path, { format })`), `badge`, `can: { rename: false, remove: false }` e `removeLabel`, `removeText` (cosa fa eliminare lì) e un `importer` (scegliere sulla pagina del fornitore cosa copiare). `connect` riceve anche `user` (chi si collega). Esempi: i moduli `netfs-gdrive`, `netfs-gphotos`, `netfs-s3`, `netfs-azblob`, `netfs-nfs` del repository ufficiale.
-6. Se l'utente ha un account sul sito di un fornitore (come OneDrive), niente password: metti un campo `{ key: 'account', type: 'signin', required: true, label, button }` e `signIn: { start, finish }` (OAuth 2.0 con PKCE). `start({ values, redirectUri, state, challenge })` dà l'indirizzo della pagina del fornitore (passa `state` e `challenge`, con `code_challenge_method=S256`); `finish({ values, code, redirectUri, verifier })` scambia il codice e restituisce `{ account, secret }`: `account` è il testo che la pagina mostra, `secret` (per esempio il token di aggiornamento) arriva a `connect` in `secret.account`. Se il fornitore cambia il token a ogni rinnovo, chiama `saveSecret({ account: nuovo })`. Se il fornitore lo rifiuta lancia `netError('auth', …)`: la pagina chiede un nuovo accesso. Dichiara `ready()` (che restituisce un'etichetta finché manca una configurazione, `null` quando è pronto), e se serve `links`, `recycles`, `removeTree` e `link(path)`. Il kernel e il File Manager fanno il resto: finestra, attesa, callback `/api/net/signin/callback` e nuovo accesso. Il contratto: [Accesso con un fornitore](api.md#accesso-con-un-fornitore-netsigninjs). Se il fornitore rimanda la finestra solo a `https://` con un dominio (Google), aggiungi `signIn.manual: true`: dove serve l'accesso si fa incollando l'indirizzo della pagina che non si apre (`http://127.0.0.1:53682/`, da registrare presso il fornitore).
+6. Se l'utente ha un account Microsoft o Google, niente password e niente OAuth da scrivere (da lilOS 1.21.0): metti un campo `{ key: 'account', type: 'signin', required: true, label, button }` e `oauth: { provider: 'microsoft' | 'google', scopes: [...] }` (più, se serve, `account({ tokens, claims })` per dire chi ha fatto l'accesso). Il kernel fa l'accesso con l'app che l'amministratore ha impostato una volta nel Pannello di controllo, e `connect` riceve `tokens`: `await tokens.get()` è il token di accesso, `await tokens.renew()` dopo un 401. Contratto: [App dei fornitori](api.md#app-dei-fornitori-netoauthjs). Con un altro fornitore puoi dare in `oauth.provider` i suoi indirizzi e il client, oppure scrivere `signIn: { start, finish }` (OAuth 2.0 con PKCE). `start({ values, redirectUri, state, challenge })` dà l'indirizzo della pagina del fornitore (passa `state` e `challenge`, con `code_challenge_method=S256`); `finish({ values, code, redirectUri, verifier })` scambia il codice e restituisce `{ account, secret }`: `account` è il testo che la pagina mostra, `secret` (per esempio il token di aggiornamento) arriva a `connect` in `secret.account`. Se il fornitore cambia il token a ogni rinnovo, chiama `saveSecret({ account: nuovo })`. Se il fornitore lo rifiuta lancia `netError('auth', …)`: la pagina chiede un nuovo accesso. Dichiara `ready()` (che restituisce un'etichetta finché manca una configurazione, `null` quando è pronto), e se serve `links`, `recycles`, `removeTree` e `link(path)`. Il kernel e il File Manager fanno il resto: finestra, attesa, callback `/api/net/signin/callback` e nuovo accesso. Il contratto: [Accesso con un fornitore](api.md#accesso-con-un-fornitore-netsigninjs). Se il fornitore rimanda la finestra solo a `https://` con un dominio (Google), aggiungi `signIn.manual: true`: dove serve l'accesso si fa incollando l'indirizzo della pagina che non si apre (`http://127.0.0.1:53682/`, da registrare presso il fornitore).
 7. Attiva il modulo in `config.json`, `npm run kernel:setup` se ha dipendenze e riavvia il kernel. La sezione **Rete** del File Manager mostra il nuovo protocollo nell'elenco.
 
 ## Dare impostazioni a un modulo del kernel
 
-Quello che un amministratore deve poter cambiare (un ID, una scelta, un interruttore) si dichiara in `module.json` e il Pannello di controllo lo disegna da sé. Esempio con OneDrive: `modules/netfs-onedrive/` nel repository ufficiale.
+Quello che un amministratore deve poter cambiare (un ID, una scelta, un interruttore) si dichiara in `module.json` e il Pannello di controllo lo disegna da sé. Esempio con OneDrive: `modules/netfs-onedrive/` nel repository ufficiale. L'app registrata presso Microsoft o Google **non** è un'impostazione del modulo: da lilOS 1.21.0 è del kernel, una per tutti i protocolli (`oauth` del driver, [App dei fornitori](api.md#app-dei-fornitori-netoauthjs)).
 
 1. In `module.json` aggiungi `settings`, campi come quelli di un protocollo (`text`, `textarea`, `number`, `select`, `checkbox`, `password`). Un campo `password` è un segreto (un segreto client): `config.json` lo tiene cifrato, il modulo lo riceve in chiaro in `ctx.config`, la pagina sa solo se c'è (`secrets`); salvandolo, vuoto lo lascia com'è e `null` lo toglie:
 
@@ -1059,7 +1073,7 @@ Quello che un amministratore deve poter cambiare (un ID, una scelta, un interrut
    ```
 3. Dalla pagina: `await kernelModules.settings('mio')` → `{ fields, values, live }` e `await kernelModules.saveSettings('mio', { clientId: '…', mode: 'b' })` (solo amministratori, solo per moduli in esecuzione). I valori si controllano con i campi; le chiavi assenti prendono il `default` o si tolgono.
 4. Se il modulo fornisce protocolli di rete, a ogni cambio le connessioni aperte si chiudono e si riaprono al primo uso con le nuove impostazioni.
-6. Attiva il modulo in `config.json`, `npm run kernel:setup` se ha dipendenze e riavvia il kernel. La sezione **Rete** del File Manager mostra il nuovo protocollo nell'elenco.
+
 ## Aggiungere un protocollo di terminale
 
 Un protocollo di terminale è un modulo del kernel che fornisce il servizio `term.<protocollo>`: l'app **Terminale** (schede remote, comandi `ssh`/`telnet`/`rlogin`/`supdup`, host salvati, sessioni che restano aperte) lo usa senza altre modifiche. Il modello da copiare è `term-telnet_1.0.0` (senza dipendenze); per l'accesso con password, `term-ssh_1.0.1`. Contratto completo: [API → Terminali remoti](api.md#terminali-remoti-term-apitermjs).
@@ -1085,16 +1099,15 @@ Un protocollo di terminale è un modulo del kernel che fornisce il servizio `ter
          ],
          address: v => `mio://${v.host}${v.port ? `:${v.port}` : ''}`,
          async open(values, ctx) {
-           const socket = net.connect({ host: values.host, port: values.port || 4000 });
+           if (!ctx.output) throw new Error('term-mio richiede lilOS ≥ 1.21.0');
+           // lookup: solo indirizzi dove il kernel può collegarsi (il nome non può cambiare indirizzo dopo il controllo)
+           const socket = net.connect({ host: values.host, port: values.port || 4000, lookup: ctx.lookup });
            await new Promise((resolve, reject) => { socket.once('connect', resolve); socket.once('error', reject); });
            ctx.signal.addEventListener('abort', () => socket.destroy(), { once: true });
            // Se il server vuole una password: const password = await ctx.ask('Password: ');
-           const dataFns = [], closeFns = [];
-           socket.on('data', d => dataFns.forEach(fn => fn(d)));
-           socket.on('close', () => closeFns.forEach(fn => fn({ reason: '' })));
+           socket.on('data', d => ctx.output(d));                  // subito, anche prima che open() finisca
+           socket.on('close', () => ctx.closed({ reason: '' }));   // una volta
            return {
-             onData: fn => dataFns.push(fn),
-             onClose: fn => closeFns.push(fn),
              write: data => socket.write(data),
              resize(cols, rows) { /* se il protocollo lo sa dire al server */ },
              pause: () => socket.pause(),
@@ -1107,7 +1120,7 @@ Un protocollo di terminale è un modulo del kernel che fornisce il servizio `ter
    };
    ```
 3. I byte della sessione sono quelli di uno xterm (UTF-8 e sequenze ANSI) in entrambe le direzioni: se il server parla un'altra lingua (come SUPDUP), traducila dentro il modulo (`term-supdup` è l'esempio). Il kernel converte la codifica scelta dall'utente (`iso-8859-1`, `cp437`…) da solo.
-4. Quello che serve all'utente e non è salvato si chiede con `ctx.ask(prompt, { echo })` (la password, senza eco, con Invio) e il server o il certificato si fanno confermare con `ctx.confirm({ kind, fingerprint, text })`: il kernel ricorda la risposta per protocollo, host e porta. Non chiedere mai le credenziali in altri modi: non passano dalla pagina.
+4. Quello che serve all'utente e non è salvato si chiede con `ctx.ask(prompt, { echo })` (la password, senza eco, con Invio) e il server o il certificato si fanno confermare con `ctx.confirm({ kind, fingerprint, text })`: il kernel ricorda la risposta per tipo, host e porta, insieme a quelle della Rete. Non chiedere mai le credenziali in altri modi: non passano dalla pagina.
 5. Lancia solo errori con `net` (`auth`, `untrusted`, `unreachable`, `lost`, `invalid`…) e controlla `ctx.signal` nelle attese lunghe: se l'utente chiude la scheda mentre ci si collega, il collegamento deve finire.
 6. Dichiara `signals: ['break', …]` nella sessione se il protocollo ha comandi speciali che il menu **Tasti** deve offrire, e `info: { … }` per ciò che la barra di stato mostra. `secure` dice se ciò che passa è cifrato: l'app avverte l'utente quando non lo è.
 7. Attiva il modulo in `config.json`, `npm run kernel:setup` se ha dipendenze e riavvia il kernel. Il protocollo compare nell'elenco dei protocolli del **Terminale** (i comandi `ssh`, `telnet`, `rlogin` e `supdup` della sua shell sono dell'app, non del modulo: un protocollo nuovo si sceglie dall'elenco della finestra del nuovo host).

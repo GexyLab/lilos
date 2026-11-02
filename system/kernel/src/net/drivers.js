@@ -9,22 +9,32 @@ import { KernelError, fail } from '../errors.js';
  *   order?       number                   its place in the list (lower first)
  *   group?       'server' | 'cloud' | 'local'   the part of the list it is in (servers by default)
  *   fields       [field]                  what a connection asks for, in order
- *   connect(values, { secret, trust, signal, saveSecret, user }) → session
+ *   connect(values, ctx) → session
  *       values   the fields' values (secret ones excepted)
- *       secret   { key: value } of the secret fields (password, private key…), {} if none
- *       trust    the fingerprint the user confirmed for this server (see 'untrusted' below), or null
- *       saveSecret(secret)  keeps a new secret instead of the one given (a token the provider renewed)
- *       user     who connects: { id, username, role, multiUser } (multiUser: lilOS has several users)
- *   shares?(values, { secret, trust, user }) → [name]   what a server offers to connect to (SMB
- *                                                  shares, S3 buckets, the drives of an account)
+ *       ctx.secret     { key: value } of the secret fields (password, private key…), {} if none
+ *       ctx.trust      the fingerprint the user confirmed for this server (see 'untrusted' below), or
+ *                      null: the same for the Terminal (knownHosts.js, by kind, host and port)
+ *       ctx.saveSecret(secret)  keeps a new secret instead of the one given (a token the provider renewed)
+ *       ctx.user       who connects: { id, username, role, multiUser } (multiUser: lilOS has several users)
+ *       ctx.lookup     (since lilOS 1.21.0) node's dns.lookup(hostname, options, callback), giving only
+ *                      addresses the kernel may connect to (guard.js): pass it to net/tls/http(s)
+ *                      connect, so the name cannot point elsewhere after the kernel checked it
+ *       ctx.paths      (since lilOS 1.21.0) cleanPath, joinPath, parentOf, baseName, isSafeName,
+ *                      cleanName (below)
+ *       ctx.tokens     (since lilOS 1.21.0) with `oauth`: the account's tokens (oauth.js), or null
+ *   shares?(values, ctx) → [name]                  what a server offers to connect to (SMB shares,
+ *                                                  S3 buckets, the drives of an account); ctx as connect's
  *   address(values) → string                      how the connection is shown ('sftp://ann@host/www')
  *   check?(values)                                 throws (with `net`) if the values cannot be used as they are
  *   ready?() → null | label                        why the protocol cannot be used yet (a module setting
  *                                                  missing): the page says it instead of the fields
- *   signIn?                                        for a 'signin' field: the provider's page (OAuth 2.0
- *                                                  with PKCE, see signin.js)
- *     start({ values, redirectUri, state, challenge }) → url
- *     finish({ values, code, redirectUri, verifier }) → { account, secret }   account: what the field
+ *   oauth?                                         (since lilOS 1.21.0) for a 'signin' field: the provider
+ *                                                  and what to ask it; the kernel signs in and renews
+ *                                                  the tokens (oauth.js), and makes signIn
+ *   signIn?                                        for a 'signin' field without `oauth`: the provider's page
+ *                                                  (OAuth 2.0 with PKCE, see signin.js)
+ *     start({ values, redirectUri, state, challenge, lookup }) → url
+ *     finish({ values, code, redirectUri, verifier, lookup }) → { account, secret }   account: what the field
  *                                                  shows ('ann@example.com'), secret: what connect gets
  *     manual?: true                                the sign-in may also end on a page of this computer
  *                                                  that does not open (signin.js MANUAL_REDIRECT): the
@@ -91,8 +101,11 @@ export const DRIVER_PREFIX = 'netfs.';
 export const FIELD_TYPES = new Set(['text', 'textarea', 'number', 'password', 'select', 'checkbox', 'file', 'signin']);
 const KEY = /^[a-z][a-zA-Z0-9]{0,30}$/;
 
-/** The protocols the active modules provide: Map id → driver. Drivers with a malformed description are left out. */
-export function findDrivers(services, log) {
+/**
+ * The protocols the active modules provide: Map id → driver. Drivers with a malformed description
+ * are left out. One with `oauth` is bound to its provider's app (oauth.js OAuthApps.bind).
+ */
+export function findDrivers(services, log, oauth = null) {
   const drivers = new Map();
   for (const [name, impl] of services) {
     if (!name.startsWith(DRIVER_PREFIX)) continue;
@@ -101,6 +114,11 @@ export function findDrivers(services, log) {
       if (!/^[a-z][a-z0-9-]{0,30}$/.test(id)) throw new Error('nome non valido');
       if (typeof impl?.connect !== 'function' || typeof impl.address !== 'function') throw new Error('mancano connect() o address()');
       if (!Array.isArray(impl.fields) || impl.fields.some(f => !KEY.test(f?.key ?? '') || !FIELD_TYPES.has(f.type))) throw new Error('campi non validi');
+      if (impl.oauth) {
+        if (!oauth) throw new Error('oauth senza il kernel che lo gestisce');
+        drivers.set(id, oauth.bind(id, impl));
+        continue;
+      }
       if (impl.fields.some(f => f.type === 'signin') && (typeof impl.signIn?.start !== 'function' || typeof impl.signIn.finish !== 'function')) throw new Error('un campo signin senza signIn.start() e signIn.finish()');
       drivers.set(id, impl);
     } catch (err) {

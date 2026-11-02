@@ -6,7 +6,8 @@ import { logger } from '../log.js';
  *   GET    /api/repos                    [repo]
  *   POST   /api/repos                    { url, name? } → repo
  *   DELETE /api/repos/:id
- *   GET    /api/repos/:id/catalog        apps and modules the repository offers (see repos.js)
+ *   GET    /api/repos/:id/catalog        apps and modules the repository offers (see repos.js); a module
+ *                                        that a module turned on replaces has `replacedBy` (its name)
  *   GET    /api/repos/:id/readme?path=&file=   the whole README.md of one of its packages (text); file=CHANGELOG.md for lilOS
  *   GET    /api/modules                  installed kernel modules (see modulePackage.js)
  *   POST   /api/modules                  { source, allowUnsigned } → { name, version, restartRequired }
@@ -37,7 +38,10 @@ export function storeRoutes(kernel) {
   });
   router.add('GET', '/api/repos/:id/catalog', async ({ principal, params }) => {
     signedIn(principal);
-    return repos.catalog(params.id);
+    const catalog = await repos.catalog(params.id);
+    // A module merged into another one turned on is not offered for installing (modulePackage.js takeOver)
+    const replaced = await moduleAdmin.replaced();
+    return { ...catalog, modules: catalog.modules.map(e => (replaced.has(e.module?.name) ? { ...e, replacedBy: replaced.get(e.module.name) } : e)) };
   });
   router.add('GET', '/api/repos/:id/readme', async ({ principal, params, query }) => {
     signedIn(principal);

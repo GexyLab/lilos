@@ -42,11 +42,14 @@ const token = () => randomBytes(32).toString('base64url');
  */
 export class SignIns {
   #drivers;
+  #lookup;
   #flows = new Map();     // id → flow
   #byState = new Map();   // state → flow (until the provider sent the window back)
 
-  constructor(drivers) {
+  /** lookup: the guard's (guard.js), for the drivers that talk to the provider themselves. */
+  constructor(drivers, lookup = undefined) {
     this.#drivers = drivers;
+    this.#lookup = lookup;
   }
 
   #prune() {
@@ -94,7 +97,7 @@ export class SignIns {
     const challenge = createHash('sha256').update(flow.verifier).digest('base64url');
     let url;
     try {
-      url = String(await driver.signIn.start({ values, redirectUri, state: flow.state, challenge }));
+      url = String(await driver.signIn.start({ values, redirectUri, state: flow.state, challenge, lookup: this.#lookup }));
     } catch (err) {
       return netFail(err);
     }
@@ -139,7 +142,7 @@ export class SignIns {
     }
     try {
       const driver = this.#drivers.get(flow.protocol) ?? fail('unavailable', 'Protocollo non più disponibile');
-      const result = await driver.signIn.finish({ values: flow.values, code: code.slice(0, 4096), redirectUri: flow.redirectUri, verifier: flow.verifier });
+      const result = await driver.signIn.finish({ values: flow.values, code: code.slice(0, 4096), redirectUri: flow.redirectUri, verifier: flow.verifier, lookup: this.#lookup });
       const account = typeof result?.account === 'string' ? result.account.trim().slice(0, 200) : '';
       if (!account || result.secret === undefined) throw new Error('Il fornitore non ha dato un account');
       flow.result = { account, secret: result.secret };

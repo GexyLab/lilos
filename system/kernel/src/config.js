@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
-import { readFile } from 'node:fs/promises';
 import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { readJson, updateJson } from './jsonFile.js';
 
 /** system/kernel: the kernel's own folder (its code). */
 export const KERNEL_DIR = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -32,6 +32,16 @@ export const SYSTEM_VERSION = (() => {
   }
 })();
 
+/** The configuration file: config.json in DATA_DIR, or the one in LILOS_KERNEL_CONFIG. */
+export const configFile = () => process.env.LILOS_KERNEL_CONFIG ?? join(DATA_DIR, 'config.json');
+
+/**
+ * Changes config.json: fn(raw) changes the file's JSON in place (or returns a new one); the
+ * changes of the kernel never interleave (jsonFile.js). The running kernel keeps what it loaded:
+ * who changes something that counts at once also changes it in memory.
+ */
+export const editConfig = fn => updateJson(configFile(), fn, { pretty: true });
+
 const NAME = /^[a-z][a-z0-9-]{0,40}$/;
 const VERSION = /^\d+\.\d+\.\d+$/;
 
@@ -41,14 +51,16 @@ const VERSION = /^\d+\.\d+\.\d+$/;
  *     modules: [{ name, version?, config? }],
  *     apps: { allowLocalSources, trustedPublishers: { id: 'ed25519:<key>' }, officialKey?,
  *             bootstrap: [app ids installed from the official repository when missing] },
- *     net: { allowPrivate, allow: ['192.168.1.50/32'] } }   where users may connect, with sign-in (net/guard.js):
+ *     net: { allowPrivate, allow: ['192.168.1.50/32'] },   where users may connect, with sign-in (net/guard.js):
  *                                                          the local network is closed unless opened here
+ *     oauth: { microsoft: {…}, google: {…} } }             the apps registered with the providers, for the
+ *                                                          sign-ins of the network protocols (net/oauth.js)
  * allowLocalSources lets apps be installed from a folder of this computer (development only).
  * LILOS_KERNEL_HOST and LILOS_KERNEL_PORT override host and port.
  */
 export async function loadConfig() {
-  const file = process.env.LILOS_KERNEL_CONFIG ?? join(DATA_DIR, 'config.json');
-  const raw = JSON.parse(await readFile(file, 'utf8'));
+  const raw = await readJson(configFile());
+  if (!raw || typeof raw !== 'object') throw new Error(`Configurazione mancante: ${configFile()}`);
   const port = Number(process.env.LILOS_KERNEL_PORT ?? raw.port ?? 8790);
   if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('Porta non valida');
   const modules = Array.isArray(raw.modules) ? raw.modules : [];
@@ -67,5 +79,6 @@ export async function loadConfig() {
     bootstrapApps: Array.isArray(raw.apps?.bootstrap) ? raw.apps.bootstrap.filter(id => typeof id === 'string') : ['files', 'editor', 'settings', 'appstore', 'scheduler'],
     modules: modules.map(m => ({ name: m.name, version: m.version ?? null, config: m.config && typeof m.config === 'object' ? m.config : {} })),
     net: raw.net && typeof raw.net === 'object' && !Array.isArray(raw.net) ? raw.net : {},
+    oauth: raw.oauth && typeof raw.oauth === 'object' && !Array.isArray(raw.oauth) ? raw.oauth : {},
   };
 }

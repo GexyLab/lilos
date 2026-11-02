@@ -1229,6 +1229,8 @@ lilOS legge il file **prima** di avviare l'app e le dà le stringhe già risolte
 
 ## D60. OneDrive nella Rete: l'accesso con la finestra del fornitore e le impostazioni dei moduli
 
+> Aggiornata da [D69](#d69-accesso-ai-fornitori-server-confermati-e-file-json-nel-kernel-i-moduli-si-possono-fondere): da lilOS 1.21.0 i token li chiede e li rinnova il kernel (`oauth` del driver) e l'app Azure è del kernel, impostata una volta per tutti i protocolli, non più nelle impostazioni del modulo.
+
 **Decisione.** OneDrive entra nella cartella Rete come protocollo (`netfs-onedrive`, un modulo del repository ufficiale), con tre novità nel kernel che servono anche ad altri. Deciso e costruito il 2 novembre 2026, sul ramo `onedrive`.
 
 - **L'app su Azure è di ogni installazione.** Ogni lilOS registra la propria app su Azure: client pubblico, piattaforma «Client pubblico/nativo (dispositivi mobili e desktop)», **nessun segreto**. L'amministratore mette l'ID nel Pannello di controllo → OneDrive (`clientId`; `accounts` e `tenant` scelgono quali account ammettere).
@@ -1268,6 +1270,8 @@ lilOS legge il file **prima** di avviare l'app e le dà le stringhe già risolte
 
 **Quando ripensarla.** Se Microsoft offre un sostituto di `sharedWithMe` (allora i condivisi tornano un elenco); se serve un'app unica per più installazioni (un servizio del progetto che fa da intermediario, con tutto quello che comporta); se un altro fornitore (Google Drive, Dropbox) vuole lo stesso modello e conviene tirare fuori da `netfs-onedrive` il codice comune di OAuth; o se arriva il modulo WOPI e «Carica su OneDrive e apri» non serve più.
 ## D61. I terminali remoti: le sessioni vivono nel kernel, un WebSocket nostro
+
+> Aggiornata da [D69](#d69-accesso-ai-fornitori-server-confermati-e-file-json-nel-kernel-i-moduli-si-possono-fondere): da lilOS 1.21.0 le chiavi dei server confermate sono le stesse della Rete (`net/knownHosts.js`), e i driver mandano l'output con `ctx.output` e `ctx.closed`.
 
 **Decisione.** lilOS apre terminali **SSH**, **Telnet**, **rlogin** e **SUPDUP** con l'app **Terminale remoto** (id `remote-terminal`). Deciso con l'utente e costruito il 2 novembre 2026.
 
@@ -1357,6 +1361,8 @@ lilOS legge il file **prima** di avviare l'app e le dà le stringhe già risolte
 **Quando ripensarla.** Se il database e i moduli `fs-*` si aggiornano insieme al core (allora un tipo vero è più pulito), se servono collegamenti a cose che non sono file, cartelle o pagine web (app, comandi), o se i server danno identificatori stabili da usare al posto del percorso.
 
 ## D63. Google Drive, Google Foto, S3, Azure e NFS: moduli da installare, accesso incollando l'indirizzo e un client NFS nostro
+
+> Aggiornata da [D69](#d69-accesso-ai-fornitori-server-confermati-e-file-json-nel-kernel-i-moduli-si-possono-fondere): da lilOS 1.21.0 il progetto Google e l'app Microsoft sono del kernel (uno per fornitore), e Google Drive e Google Foto sono un solo modulo, `netfs-google`.
 
 **Decisione.** Cinque nuovi protocolli della Rete, ognuno un modulo del repository ufficiale (`netfs-gdrive`, `netfs-gphotos`, `netfs-s3`, `netfs-azblob`, `netfs-nfs`), **solo nel catalogo**: un'installazione nuova non li ha, l'amministratore li installa dall'AppStore. Nessuno ha dipendenze. Deciso con l'utente il 2 novembre 2026 (render `design/rete-cloud.html`), costruito lo stesso giorno sul ramo `cloud`.
 
@@ -1604,3 +1610,44 @@ Conseguenze: se tutte le schede si chiudono non parte niente; un'automazione con
 - Un'operazione di un'app muore con l'app; quelle di un utente tolto, con lui. Le app hanno limiti più stretti degli utenti (20 operazioni, una volta ogni 15 minuti al più), perché un'app non riempia di corse il kernel.
 
 **Quando ripensarla.** Se Automata e Pianificazione si pestano i piedi (la stessa automazione con due partenze), conviene che l'avvio da sola di Automata passi dalla Pianificazione e usi il suo orologio; se arrivano altre azioni che hanno bisogno della pagina (conviene un modo meno legato a «la prima pagina»); se una libreria senza dipendenze copre l'ora legale e gli spostamenti; se il Pannello di controllo impara a mostrare le impostazioni di un modulo qualsiasi; se serve il consenso del proprietario alle modifiche degli amministratori; se `kfs.js` e l'`fs` dell'SDK si allontanano troppo, e conviene un nucleo comune; se i calendari vogliono creare operazioni di ogni tipo, non solo spostarle.
+
+## D69. Accesso ai fornitori, server confermati e file JSON nel kernel; i moduli si possono fondere
+
+**Decisione.** Parte dell'accorpamento delle funzionalità doppie tra il kernel e i suoi moduli, deciso con l'utente il 2 novembre 2026 (lilOS 1.21.0). Quello che più moduli rifacevano ognuno per conto suo passa al kernel, e i moduli lo ricevono in `ctx`:
+
+- **Accesso ai fornitori (`net/oauth.js`).** I token OAuth li chiede e li rinnova il kernel. Un driver dichiara `oauth: { provider, scopes, … }` e riceve `ctx.tokens` (`get()`, `renew()`); il kernel fa `signIn`, legge l'account dall'id token (o chiede al driver), traduce gli errori del fornitore e tiene il token di aggiornamento nuovo (`saveSecret`). Per Microsoft (Entra, con la directory) e Google ci sono le impostazioni già pronte: il driver dice solo il fornitore e gli ambiti.
+- **Un'app per fornitore, impostata una volta.** L'app registrata su Azure e il progetto su Google Cloud sono del kernel (`oauth` in `config.json`, segreti cifrati come le impostazioni dei moduli), non di ogni modulo: OneDrive e Azure Blob Storage usano la stessa app Microsoft, Google Drive e Google Foto lo stesso progetto. Il Pannello di controllo le mostra in una scheda per app (`GET`/`PUT /api/net/oauth`, la stessa forma delle impostazioni di un modulo). I valori di prima si spostano da soli all'avvio, e lasciano un modulo solo quando la sua versione non li dichiara più.
+- **Un solo elenco di server confermati (`net/knownHosts.js`).** Le chiavi SSH e i certificati TLS confermati sono per utente e per tipo, host e porta, per la Rete e per il Terminale insieme: lo stesso server non si conferma due volte. I `trust` delle connessioni e i `known` dei terminali si spostano lì all'avvio.
+- **La guardia fino alla connessione.** I driver ricevono `ctx.lookup`, il `dns.lookup` della guardia (`NetGuard.lookup`), da passare alle loro connessioni: il nome si risolve e si controlla un attimo prima di collegarsi, non solo quando il kernel controlla i valori (DNS rebinding).
+- **File JSON (`jsonFile.js`).** Scrittura intera e sicura (file temporaneo e rinomina, permessi `0600`, una scrittura alla volta per file) per tutti i file del kernel, e `ctx.jsonStore` per i moduli al posto delle loro classi `Store`.
+- **Percorsi.** `ctx.paths` (`cleanPath`, `joinPath`, `parentOf`, `baseName`, `isSafeName`, `cleanName`) ai moduli e ai driver.
+- **Terminali.** `open()` riceve `ctx.output` e `ctx.closed`: il driver manda ciò che arriva appena arriva, anche prima che `open()` finisca, senza tenerlo da parte finché il kernel ascolta. `onData` e `onClose` restano ascoltati se ci sono.
+- **Moduli fusi (`replaces`).** Un modulo può prendere il posto di altri (`netfs-gdrive` + `netfs-gphotos` → `netfs-google`; `term-ssh` + `netfs-sftp` → `ssh`): installato, o trovato all'avvio, prende la loro configurazione (il primo valore di ciascuna chiave, i segreti così come sono), i loro dati e la loro cartella di dati; loro escono dalla configurazione e dal disco. I servizi tengono i nomi, quindi le connessioni salvate restano. Un modulo sostituito non si installa più e il catalogo lo dice (`replacedBy`).
+- **La versione del kernel resta `"1"`.** Sono tutte aggiunte: un modulo che usa un membro nuovo di `ctx` fallisce con «richiede lilOS ≥ 1.21.0» su un kernel più vecchio, invece di portarsi una copia.
+
+**Perché.**
+
+- **OAuth nel kernel** perché quattro moduli avevano la stessa classe `Tokens` (tre copie identiche), la stessa richiesta di token e la stessa pagina di Microsoft o di Google, e il kernel aveva già la metà del lavoro (PKCE, `state`, ritorno, incolla, segreti cifrati). Una correzione (il rinnovo, un codice d'errore di Microsoft) ora vale per tutti.
+- **Un'app per fornitore** perché è così che funziona dall'altra parte: l'amministratore registra un'app e le dà più permessi; scriverne l'ID in due schede (e il suggerimento «usa quella di OneDrive») era un passo in più e un errore possibile.
+- **Un solo elenco di server** perché la chiave di un server è del server, non della connessione o dell'app con cui ci si arriva: due conferme dello stesso server insegnano a premere Continua senza guardare. Tipo, host e porta perché è ciò che identifica la chiave (una porta, un servizio).
+- **`ctx.lookup`** perché la guardia controllava il nome e poi il driver lo risolveva di nuovo: tra le due risoluzioni il nome poteva puntare altrove. Ora è la stessa risoluzione.
+- **`replaces`** perché fondere due moduli senza perdere la configurazione, i segreti e le connessioni salvate richiede il kernel: è lui che possiede `config.json` e le cartelle dei moduli.
+
+**Alternative scartate.**
+
+- Una libreria OAuth (dipendenza da portare nella release; il kernel ne usa una piccola parte, già scritta).
+- Impostazioni «condivise» tra moduli con una chiave di gruppo nel `module.json` (gli stessi campi ripetuti in ogni modulo, da tenere uguali a mano; e l'app non è di nessun modulo).
+- Tenere i token nel modulo e dare solo una classe di aiuto (ogni modulo rifarebbe comunque la richiesta, gli errori e il salvataggio).
+- Elenchi di server per connessione con una copia verso il Terminale (com'era per «Apri terminale SSH qui»): non copriva l'altra direzione né i server raggiunti in due modi.
+- Fondere i moduli lasciando i vecchi installati e spenti (due cartelle per lo stesso servizio, l'AppStore li mostrerebbe «installati a mano»).
+- Alzare la versione del kernel a `"2"` (i moduli di oggi smetterebbero di caricarsi tutti insieme, per delle aggiunte).
+
+**Conseguenze.**
+
+- I moduli che usano i membri nuovi richiedono lilOS 1.21.0. Il Pannello di controllo deve mostrare le app dei fornitori (`/api/net/oauth`) al posto dei campi `clientId` dei moduli; con i moduli vecchi (che li dichiarano ancora) l'app è in due posti finché non si aggiornano: il modulo vecchio usa la sua, il kernel quella copiata.
+- Le connessioni salvate non cambiano: il segreto del campo `signin` è sempre il token di aggiornamento. I dati di prima (`trust`, `known`, le impostazioni dell'app) si spostano una volta, all'avvio; tornando a una versione precedente di lilOS le conferme dei server vanno rifatte e l'app va reimpostata nei moduli.
+- Una conferma vale per tutte le connessioni e i terminali dell'utente verso quel server e porta; cambiarla in un posto la cambia ovunque.
+- Le scritture dei file JSON sono in coda per file solo dentro il processo del kernel: un altro processo (la riga di comando) scrive lo stesso file solo con il proprio `JsonStore`, e chi legge con `watch` se ne accorge dalla data di modifica.
+- Un modulo che sostituisce altri non può sostituire un modulo obbligatorio né sé stesso. Una cartella di un modulo sostituito con dati che il nuovo non prende resta, con un avviso.
+
+**Quando ripensarla.** Se servono fornitori con altri flussi (credenziali del client, dispositivo), o app diverse per protocolli dello stesso fornitore (un'organizzazione che vuole due app Azure); se i server confermati devono essere di tutti gli utenti (un amministratore che li conferma per tutti); se un modulo vuole il proprio `lookup` (un proxy); se i file JSON del kernel diventano tanti da volere un database.

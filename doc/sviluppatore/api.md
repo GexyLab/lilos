@@ -3344,11 +3344,11 @@ Le richieste che modificano (tutte tranne `GET` e `HEAD`) devono avere l'intesta
 | `GET /api/repos` | utenti | → `[{ id, name, url, official }]`: l'ufficiale e quelli aggiunti |
 | `POST /api/repos` | amministratori | `{ url, name? }` → il repository. Legge `catalog.json` prima di salvare |
 | `DELETE /api/repos/:id` | amministratori | Toglie un repository (non l'ufficiale) |
-| `GET /api/repos/:id/catalog` | utenti | → cosa offre il repository: app e moduli (vedi [Repository](#repository-reposjs)) |
+| `GET /api/repos/:id/catalog` | utenti | → cosa offre il repository: app e moduli (vedi [Repository](#repository-reposjs)). Un modulo che un modulo acceso sostituisce (`replaces`) ha `replacedBy: '<nome>'`: l'AppStore non lo offre (vedi [Sostituzione](#moduli-come-pacchetti-modulepackagejs)) |
 | `GET /api/repos/:id/readme?path=&file=` | utenti | → il `README.md` completo di un pacchetto del catalogo, come testo. `file` è `README.md` (predefinito) o, per lilOS nel repository ufficiale, `CHANGELOG.md` |
 | `GET /api/modules` | amministratori | → moduli del kernel installati (vedi [Moduli come pacchetti](#moduli-come-pacchetti-modulepackagejs)) |
-| `POST /api/modules` | amministratori | `{ source, allowUnsigned }` → `{ name, version, restartRequired }` |
-| `POST /api/modules/:name/update` | amministratori | `{ ref?, allowUnsigned }` → `{ name, version, previous, restartRequired }` o `{ …, unchanged: true }` |
+| `POST /api/modules` | amministratori | `{ source, allowUnsigned }` → `{ name, version, restartRequired, replaced? }` (`replaced`: i moduli di cui ha preso il posto). `conflict` per un modulo che un modulo acceso sostituisce |
+| `POST /api/modules/:name/update` | amministratori | `{ ref?, allowUnsigned }` → `{ name, version, previous, restartRequired, replaced? }` o `{ …, unchanged: true }` |
 | `DELETE /api/modules/:name` | amministratori | → `{ name, kept, restartRequired }` |
 | `GET /api/modules/:name/settings` | amministratori | → `{ fields, values, secrets, live }`: le impostazioni di un modulo in esecuzione (`not_found` se non è attivo) |
 | `PUT /api/modules/:name/settings` | amministratori | `{ values }` (fino a 64 KB) → lo stesso, cambiato (`invalid` se i valori non sono quelli dei campi o il modulo non ha impostazioni) |
@@ -3367,6 +3367,7 @@ Le richieste che modificano (tutte tranne `GET` e `HEAD`) devono avere l'intesta
 | `PUT /api/notifications-options` | utenti | `{ keep }` → `{ keep }`: quante ne conserva l'utente, un intero da 1 a 200 (`invalid` altrimenti) |
 | `GET /api/term` e le altre `/api/term/…` | utenti | Gli host salvati e le sessioni dei terminali remoti dell'utente, e il WebSocket di una sessione: vedi [Terminali remoti](#terminali-remoti-term-apitermjs) |
 | `GET /api/net` e le altre `/api/net/…` | utenti | Le connessioni di rete dell'utente, i loro file e i trasferimenti: tutti gli endpoint sono in [Rete](#rete-connessioni-e-trasferimenti-net-apinetjs). Errori propri: `secret_required` 428 e `untrusted` 409 (con `details`) |
+| `GET /api/net/oauth`, `PUT /api/net/oauth/:id` | amministratori | Le app registrate presso i fornitori (Microsoft, Google), una per tutti i protocolli: vedi [App dei fornitori](#app-dei-fornitori-netoauthjs) |
 | `POST /api/kernel/restart` | amministratori | Il kernel si ferma ed esce con il codice 75: `npm run kernel` lo riavvia. Senza `run.js` (variabile `LILOS_SUPERVISED` assente): `unavailable` |
 | `GET /api/system` | utenti | → `{ version, mode }`; agli amministratori anche `kernel`, `sdk`, `releases`, `next`, `previous`, `updated`, `failed` (vedi [`systemReleases`](#systemreleases)) |
 | `POST /api/system/update` | amministratori | `{ ref? }` → `{ version, previous, restartRequired }` o `{ version, unchanged: true }` |
@@ -3408,12 +3409,15 @@ I percorsi possono finire con `*` (`/api/apps/:id/v/:version/*`): il resto del p
 | `secureCookies` | Aggiunge `Secure` al cookie (con HTTPS). |
 | `modules` | Moduli da avviare, `{ name, version?, config? }`. Senza `version`: la più alta installata. Un modulo indicato due volte, non installato, o che richiede un servizio che nessun modulo attivo fornisce, ferma il kernel. |
 | `net` | Facoltativo, con più utenti: dove il kernel può collegarsi per le connessioni di rete. `{ allowPrivate?: boolean, allow?: string[] }`: la rete locale è chiusa di serie, `allowPrivate: true` la apre; `allow`: intervalli CIDR (`'192.168.1.50/32'`) ammessi comunque. Vedi [Rete](#rete-connessioni-e-trasferimenti-net-apinetjs). |
+| `oauth` | Facoltativo: le app registrate presso i fornitori, per l'accesso dei protocolli di rete. `{ microsoft?: { clientId, accounts, tenant? }, google?: { clientId, clientSecret: 'v1:…', clientType } }`; i campi segreti cifrati come le impostazioni segrete dei moduli. Lo scrive il Pannello di controllo (`PUT /api/net/oauth/:id`); prima di lilOS 1.21.0 stava nelle impostazioni dei moduli e il kernel lo sposta qui da solo. Vedi [App dei fornitori](#app-dei-fornitori-netoauthjs). |
 | `apps.allowLocalSources` | Permette di installare app da una cartella del computer del kernel (solo sviluppo). |
 | `apps.trustedPublishers` | `{ idEditore: 'ed25519:<chiave>' }`: gli editori di cui ci si fida. |
 | `apps.officialKey` | Se c'è, le app di sistema devono essere firmate con questa chiave, e le altre app del repository ufficiale sono verificate solo con questa firma. |
 | `apps.bootstrap` | Gli `id` delle app che il kernel installa dal repository ufficiale, all'avvio, se mancano (predefinito: `files`, `editor`, `settings`, `appstore`, `scheduler`). Vedi [D41](../interna/decisioni.md#d41-le-app-di-sistema-mancanti-si-installano-allavvio-del-kernel). |
 
-Il file si può cambiare con la variabile `LILOS_KERNEL_CONFIG`. Il kernel richiede un modulo che fornisce `fs` e i [moduli obbligatori](#moduli-obbligatori) (oggi `scheduler`), che rimette da solo se mancano. Installare, aggiornare o togliere un modulo con l'AppStore riscrive la lista `modules` di questo file (passando da `config.json.tmp`, ignorato da git).
+Il file si può cambiare con la variabile `LILOS_KERNEL_CONFIG`. Il kernel richiede un modulo che fornisce `fs` e i [moduli obbligatori](#moduli-obbligatori) (oggi `scheduler`), che rimette da solo se mancano. Installare, aggiornare o togliere un modulo con l'AppStore riscrive la lista `modules` di questo file, e il Pannello di controllo `oauth` (sempre con `editConfig` di `config.js`: si legge, si cambia e si riscrive passando da `config.json.tmp`, ignorato da git, senza che due modifiche del kernel si mescolino).
+
+**File JSON del kernel** (`jsonFile.js`). Tutti i file di dati del kernel (configurazione, repository, connessioni, trasferimenti, host dei terminali, server confermati, `current.json`) si scrivono interi con `writeJson(file, valore, { pretty, mode })`: prima `<file>.tmp`, poi rinominato sopra il file, così chi legge (o un arresto a metà) trova il file vecchio o quello nuovo, mai metà. Permessi `0600` di serie; le scritture sullo stesso file, in questo processo, vanno una alla volta nell'ordine in cui sono chieste. `readJson(file, ripiego)` (file mancante → `ripiego`; JSON non valido → errore), `updateJson(file, fn, { fallback })` (legge, cambia e scrive senza altre scritture in mezzo), `removeJson(file)`, `userFile(cartella, idUtente, prefisso)` (il file di un utente: `<prefisso><32 cifre esadecimali>.json`, hash dell'id) e `JsonStore` (sotto, `ctx.jsonStore`).
 
 `repos.json`, nella cartella del kernel (`system/kernel/`, ignorato da git), contiene i repository aggiunti da un amministratore: `[{ id, name, url }]`, al massimo 30. L'ufficiale non è nel file: c'è sempre.
 
@@ -3435,7 +3439,7 @@ All'avvio il kernel carica i moduli, registra le rotte e prima di ascoltare **in
 
 Cartella `modules/<nome>_<x.y.z>/` con:
 
-- `module.json`: `{ name, version, description, kernel: "1", provides: [servizio], requires: [servizio], settings?: [campo] }`. `name` e `version` devono corrispondere alla cartella e `kernel` a quello del kernel (`1`). `settings`: ciò che un amministratore può cambiare della configurazione del modulo (Pannello di controllo), descritto come i campi di un protocollo di rete: `{ key, type, label, hint?, placeholder?, default?, options?, when?, min?, max? }`, con `key` `[a-z][a-zA-Z0-9]{0,30}` e `type` `text`, `textarea`, `number`, `select`, `checkbox` o `password`. Un `module.json` con una voce diversa fa fallire il caricamento del modulo («impostazioni non valide»). Un campo `password` è **segreto** (`isSecretSetting`, per esempio il segreto client di Google): `config.json` lo tiene cifrato (`v1:…`, con la chiave `net/secret.key`, come le password delle connessioni), il kernel lo apre prima di avviare il modulo (`openSecretSettings`; uno che non si apre si toglie, con un avviso) e il modulo lo riceve in chiaro in `ctx.config`; la pagina non lo riceve mai.
+- `module.json`: `{ name, version, description, kernel: "1", provides: [servizio], requires: [servizio], replaces?: [nome], settings?: [campo] }`. `name` e `version` devono corrispondere alla cartella e `kernel` a quello del kernel (`1`). `replaces` (da lilOS 1.21.0): i moduli di cui prende il posto (due moduli fusi in uno): se nella lista dei moduli c'è anche uno di questi, quello non parte (nessun conflitto sui servizi) e il kernel lo toglie (vedi [Sostituzione](#moduli-come-pacchetti-modulepackagejs)). `settings`: ciò che un amministratore può cambiare della configurazione del modulo (Pannello di controllo), descritto come i campi di un protocollo di rete: `{ key, type, label, hint?, placeholder?, default?, options?, when?, min?, max? }`, con `key` `[a-z][a-zA-Z0-9]{0,30}` e `type` `text`, `textarea`, `number`, `select`, `checkbox` o `password`. Un `module.json` con una voce diversa fa fallire il caricamento del modulo («impostazioni non valide»). Un campo `password` è **segreto** (`isSecretSetting`, per esempio il segreto client di Google): `config.json` lo tiene cifrato (`v1:…`, con la chiave `net/secret.key`, come le password delle connessioni), il kernel lo apre prima di avviare il modulo (`openSecretSettings`; uno che non si apre si toglie, con un avviso) e il modulo lo riceve in chiaro in `ctx.config`; la pagina non lo riceve mai.
 - `index.js`: `export default { init(ctx), stop?(), commands? }`.
 
 `ctx` (il contesto di `init`):
@@ -3452,6 +3456,31 @@ Cartella `modules/<nome>_<x.y.z>/` con:
 | `route(metodo, percorso, handler)` | Endpoint `/api/modules/<nome><percorso>`, solo per utenti con l'accesso fatto. `handler({ principal, params, query, json(limite?), req, res })` restituisce JSON (nulla = 204). Il percorso è `/parola/:param`, con `[\w:-]`; `/update` e `/settings` sono del kernel e `ctx.route` lancia un errore se un modulo li usa. |
 | `socket(percorso, handler)` | Un WebSocket a `/api/modules/<nome><percorso>` (richiesta `GET` con `Upgrade`), solo per utenti con l'accesso fatto (senza, il kernel risponde «Accesso richiesto»). `handler({ principal, params, query, accept })` parte prima della risposta: `accept({ maxMessage = 1048576 })` accetta la connessione e restituisce il WebSocket (`ws.js` del kernel; una seconda chiamata restituisce lo stesso). Un handler che lancia, o che non chiama `accept`, rifiuta la connessione («Connessione rifiutata»). Il percorso ha la stessa forma di quello di `route` (`/parola/:param`, con `[\w:-]`). Dalla pagina si raggiunge con `kernel.module(nome).channel(percorso)`. |
 | `dataDir` | Una cartella per i dati del modulo, `<dati>/modules-data/<nome>` (ignorata da git, `/modules-data/`), che sopravvive alle versioni del modulo (diversamente da `dir`, che cambia a ogni versione). Il kernel **non la crea**: la crea il modulo quando serve. Per strumenti scaricati, cache, pacchetti. |
+| `jsonStore(file, opzioni?)` | Da lilOS 1.21.0. Un file JSON tenuto in memoria e salvato intero e sicuro (`JsonStore` di `jsonFile.js`, sotto). Un `file` relativo sta in `dir` (i file di `data`, che seguono il modulo negli aggiornamenti). |
+| `paths` | Da lilOS 1.21.0. Le funzioni dei percorsi dei protocolli di rete (`net/drivers.js`): `cleanPath(path)` (assoluto e pulito; lancia `invalid`), `joinPath(cartella, nome)`, `parentOf(path)`, `baseName(path)`, `isSafeName(nome)`, `cleanName(nome)` (lancia `invalid` se non è sicuro). Le stesse in `ctx.paths` di `connect()` e `open()` dei driver. |
+
+**`ctx.jsonStore(file, { clean, watch, pretty, mode, invalid })`** → uno store:
+
+| Opzione | Descrizione |
+| --- | --- |
+| `clean(raw)` | → i dati, da ciò che c'è nel file: `raw` è il suo JSON, o `null` se il file non c'è. Si chiama a ogni lettura del file. Predefinita `raw => raw ?? {}` |
+| `watch` | `true`: il file lo cambia anche qualcun altro (la riga di comando del kernel): `read()` lo rilegge quando cambia la sua data di modifica, anche dentro `change()`. Predefinito `false`: si legge una volta |
+| `pretty` | `true`: indentato, con un a capo finale |
+| `mode` | I permessi del file: `0o600` di serie |
+| `invalid` | Un file che non è JSON: `'throw'` (predefinito: `read()` lancia, niente si perde) o `'empty'` (come se non ci fosse: il salvataggio dopo lo sostituisce) |
+
+| Membro | Descrizione |
+| --- | --- |
+| `read()` | `Promise<dati>`: letti dal file la prima volta (con `watch`, quando è cambiato) |
+| `current` | I dati letti, senza aspettare: `null` prima del primo `read()` |
+| `change(fn)` | `Promise<risultato di fn>`: `fn(dati)` (può cambiarli sul posto ed essere asincrona), poi il file si salva. Un cambiamento alla volta; con `watch` i dati si rileggono prima |
+| `save()` | Salva i dati come sono ora (cambiati sul posto da chi chiama) |
+| `replace(dati)` | I dati diventano `dati`, e si salvano |
+| `file` | Il percorso del file |
+
+È quello che `users-basic` (con `watch`, perché `kernel:cli` crea utenti mentre il kernel gira), `notifications-basic` e `scheduler` facevano ognuno con una sua classe `Store`.
+
+**Membri nuovi e versione del kernel.** `kernel: "1"` (`KERNEL_API`) cambia solo se qualcosa che i moduli usano sparisce o cambia significato: le aggiunte non lo cambiano. I membri di `ctx` dei moduli e dei driver aggiunti in lilOS 1.21.0 (`jsonStore`, `paths`; `lookup`, `paths`, `tokens` e `oauth` dei protocolli di rete; `lookup`, `paths`, `output`, `closed` dei terminali) mancano in un kernel più vecchio: un modulo che li usa controlla che ci siano e, se no, fallisce con un messaggio chiaro («richiede lilOS ≥ 1.21.0») invece di tenere una copia sua.
 
 `commands` sono i comandi della riga di comando: `npm run kernel:cli -- <modulo> <comando> [argomenti] [--opzione valore] [--interruttore]`; ricevono `{ services, args: { positional, flags }, prompt, ctx }`. `prompt.password(domanda, { confirm })` chiede una password senza mostrarla (o la prende da `LILOS_PASSWORD` se non c'è un terminale).
 
@@ -3481,6 +3510,8 @@ La cartella **Rete** porta in lilOS i file di server remoti. Motivi e alternativ
 | `net/transfers.js` (`Transfers`, `kernel.transfers`) | Le copie da e verso le connessioni, in code per destinazione |
 | `net/secrets.js` (`Secrets`) | Cifratura di password e chiavi (AES-256-GCM) |
 | `net/signin.js` (`SignIns`, `kernel.network.signins`) | L'accesso al proprio account sul sito del fornitore (OAuth 2.0 con PKCE), sotto |
+| `net/oauth.js` (`OAuthApps`, `kernel.oauth`) | Da lilOS 1.21.0: le app registrate presso i fornitori (Microsoft, Google), i token chiesti e rinnovati dal kernel per i protocolli che dichiarano `oauth` ([App dei fornitori](#app-dei-fornitori-netoauthjs)) |
+| `net/knownHosts.js` (`KnownHosts`, `kernel.network.knownHosts`) | Da lilOS 1.21.0: le chiavi e i certificati dei server che ogni utente ha confermato, per la Rete e per il Terminale insieme ([Server confermati](#server-confermati-netknownhostsjs)) |
 | `api/net.js` | Gli endpoint `/api/net/…` (sotto) |
 
 #### Protocolli: il servizio `netfs.<protocollo>`
@@ -3495,8 +3526,8 @@ Un modulo fornisce un protocollo con un servizio che si chiama `netfs.<protocoll
   fields: [ /* campi, sotto */ ],
   group: 'server',                             // 'server' | 'cloud' | 'local': la parte dell'elenco
   address(values) { return `esempio://${values.host}`; },        // come si mostra la connessione
-  async connect(values, { secret, trust, signal, saveSecret, user }) { return session; },
-  async shares?(values, { secret, trust }) { return ['nome']; }, // cosa offre il server (SMB)
+  async connect(values, ctx) { return session; },                // ctx: { secret, trust, saveSecret, user, lookup, paths, tokens }
+  async shares?(values, ctx) { return ['nome']; },               // cosa offre il server (SMB); ctx come per connect
 }
 ```
 
@@ -3506,11 +3537,12 @@ Un modulo fornisce un protocollo con un servizio che si chiama `netfs.<protocoll
 | `fields` | I campi che la connessione chiede, nell'ordine in cui si mostrano |
 | `group?` | `'server'` (predefinito), `'cloud'` o `'local'`: la parte dell'elenco di Connetti a un server (`protocols[].group`) |
 | `address(values)` | `string`: l'indirizzo con cui si mostra la connessione (`sftp://ann@host/www`) |
-| `connect(values, { secret, trust, signal, saveSecret })` | `Promise<session>`. `values`: i valori dei campi (tranne i segreti). `secret`: `{ chiave: valore }` dei campi segreti (`{}` se non ce ne sono). `trust`: l'impronta che l'utente ha confermato per quel server, o `null`. `saveSecret(secret)`: tiene un segreto nuovo al posto di quello ricevuto (un token che il fornitore ha rinnovato); `secret` è `{ chiave: valore }` delle sole chiavi cambiate. `user`: chi si collega, `{ id, username, role, multiUser }` (NFS sceglie con questo l'identità assegnata dall'amministratore). Prima di mandare le credenziali il driver deve verificare il server: se non è fidato lancia `untrusted` |
+| `connect(values, ctx)` | `Promise<session>`. `values`: i valori dei campi (tranne i segreti). `ctx.secret`: `{ chiave: valore }` dei campi segreti (`{}` se non ce ne sono). `ctx.trust`: l'impronta che l'utente ha confermato per quel server (host e porta, o quelli di `url`), qui o nel Terminale ([Server confermati](#server-confermati-netknownhostsjs)), o `null`. `ctx.saveSecret(secret)`: tiene un segreto nuovo al posto di quello ricevuto (un token che il fornitore ha rinnovato); `secret` è `{ chiave: valore }` delle sole chiavi cambiate. `ctx.user`: chi si collega, `{ id, username, role, multiUser }` (NFS sceglie con questo l'identità assegnata dall'amministratore). Da lilOS 1.21.0: `ctx.lookup`, la funzione `dns.lookup(nome, opzioni, callback)` di Node che dà solo indirizzi dove il kernel può collegarsi (`NetGuard.lookup`): il driver la passa a `net.connect`, `tls.connect` e `http(s).request` (opzione `lookup`, anche agli `Agent`), così il nome non può puntare altrove tra il controllo del kernel e la connessione; `ctx.paths`, le funzioni dei percorsi (`cleanPath`, `joinPath`, `parentOf`, `baseName`, `isSafeName`, `cleanName`); `ctx.tokens`, per un protocollo con `oauth`, i token dell'account (sotto), o `null`. Prima di mandare le credenziali il driver deve verificare il server: se non è fidato lancia `untrusted` |
 | `check?(values)` | Facoltativo. Lancia un errore con `net` se i valori non si possono usare così come sono (WebDAV: utente e password nell'indirizzo). Il kernel lo chiama prima di salvare, provare e aprire una connessione |
-| `shares?(values, { secret, trust, user, saveSecret })` | `Promise<string[]>`: cosa offre il server a cui connettersi (condivisioni SMB, bucket S3, Drive di un account). Se c'è, il protocollo ha `canListShares`. Con un campo `signin` riceve il segreto dell'accesso fatto nella finestra (`signin` in `POST /api/net/shares`, che resta usabile per la connessione) |
+| `shares?(values, ctx)` | `Promise<string[]>` (`ctx` come per `connect`): cosa offre il server a cui connettersi (condivisioni SMB, bucket S3, Drive di un account). Se c'è, il protocollo ha `canListShares`. Con un campo `signin` riceve il segreto dell'accesso fatto nella finestra (`signin` in `POST /api/net/shares`, che resta usabile per la connessione) |
 | `ready?()` | `null` o un'etichetta (`string` o `{ en, it }`): perché il protocollo non si può ancora usare (per esempio manca un'impostazione del modulo). La pagina la mostra al posto dei campi (`notReady`); un errore lanciato vale «Protocollo non pronto». Con un'etichetta `POST /api/net/signin` dà `unavailable` |
-| `signIn?` | `{ start, finish }`, obbligatorio se c'è un campo `signin` (senza, il protocollo è ignorato). `start({ values, redirectUri, state, challenge })` → l'indirizzo della pagina del fornitore (con `code_challenge_method=S256`); `finish({ values, code, redirectUri, verifier })` → `{ account, secret }`: `account` è il testo da mostrare (fino a 200 caratteri, per esempio l'indirizzo email), `secret` ciò che `connect` riceverà in `secret[<chiave del campo>]`. Vedi [Accesso con un fornitore](#accesso-con-un-fornitore-netsigninjs) |
+| `oauth?` | Da lilOS 1.21.0, per un campo `signin`: il fornitore e cosa chiedergli. Il kernel fa `signIn`, chiede i token e li rinnova, e dà a `connect` e `shares` `ctx.tokens`: vedi [App dei fornitori](#app-dei-fornitori-netoauthjs) |
+| `signIn?` | `{ start, finish }`, obbligatorio se c'è un campo `signin` e il protocollo non ha `oauth` (senza nessuno dei due, il protocollo è ignorato). `start({ values, redirectUri, state, challenge, lookup })` → l'indirizzo della pagina del fornitore (con `code_challenge_method=S256`); `finish({ values, code, redirectUri, verifier, lookup })` → `{ account, secret }` (`lookup`: quello della guardia, come in `connect`): `account` è il testo da mostrare (fino a 200 caratteri, per esempio l'indirizzo email), `secret` ciò che `connect` riceverà in `secret[<chiave del campo>]`. Vedi [Accesso con un fornitore](#accesso-con-un-fornitore-netsigninjs) |
 | `links?` | `{ office? }`: le sessioni hanno `link(path)`. `office: true`: il link di un documento Word, Excel o PowerPoint lo apre in Office per il web (`protocols[].office`) |
 | `recycles?` | `true`: ciò che si elimina va nel cestino del fornitore, non per sempre. Il File Manager lo dice nella conferma (`protocols[].recycles`) |
 | `removeText?` | Un'etichetta: cosa fa eliminare lì, per la conferma («escono dall'album e restano nella tua libreria di Google Foto») |
@@ -3551,33 +3583,34 @@ Un modulo fornisce un protocollo con un servizio che si chiama `netfs.<protocoll
 
 **Errori di un driver.** Portano `net`, che dice cosa è andato storto (qualunque altro errore è riportato com'è): `auth` (credenziali sbagliate → `secret_required` con `details.reason: 'auth'`; per un protocollo con un campo `signin` → `details.reason: 'signin'`, serve un nuovo accesso), `untrusted` (con `trust: { kind: 'ssh' \| 'tls', fingerprint, text }` → `untrusted` con `details.trust`), `not_found` (404), `exists` (`conflict`), `denied` (`forbidden`), `unreachable` e `lost` (`unavailable`), `unsupported` e `invalid` (`invalid`). `netFail(err, cosa)` fa questa traduzione. Dopo `lost` e `unreachable` il kernel apre una connessione nuova e ripete una volta le operazioni sicure da ripetere (non quelle che scrivono).
 
-Un protocollo con un account del fornitore (OneDrive) ha un campo `signin` e questi membri in più:
+Un protocollo con un account del fornitore (OneDrive) ha un campo `signin` e, da lilOS 1.21.0, dichiara `oauth`: l'accesso, i token e il loro rinnovo li fa il kernel ([App dei fornitori](#app-dei-fornitori-netoauthjs)):
 
 ```js
 {
   fields: [{ key: 'account', type: 'signin', required: true, label: 'Account', button: 'Accedi' }],
-  ready() { return clientId ? null : 'Manca l\'ID dell\'app'; },       // perché non si può usare ancora (o null)
-  signIn: {
-    start({ values, redirectUri, state, challenge }) { return 'https://fornitore.example/authorize?…'; },
-    async finish({ values, code, redirectUri, verifier }) { return { account: 'ann@example.com', secret: refreshToken }; },
+  oauth: {
+    provider: 'microsoft',                                        // l'app Microsoft di questo lilOS
+    scopes: () => ['User.Read', 'Files.ReadWrite'],
+    async account({ tokens }) { return (await graph(tokens, '/me')).userPrincipalName; },   // chi ha fatto l'accesso
   },
-  async connect(values, { secret, saveSecret }) {               // secret.account è quello di finish()
-    const tokens = await renew(secret.account);
-    if (tokens.refresh !== secret.account) saveSecret({ account: tokens.refresh });   // il fornitore l'ha cambiato
-    return session;
+  async connect(values, { tokens }) {                           // tokens.get(): il token di accesso, sempre valido
+    if (!tokens) throw Object.assign(new Error('Serve un nuovo accesso'), { net: 'auth' });
+    return session(tokens);                                      // dopo un 401: await tokens.renew()
   },
   links: { office: true },    // le sessioni hanno link(path)
   recycles: true,             // eliminare manda nel cestino del fornitore
 }
 ```
 
+Un protocollo che parla con un fornitore che lilOS non conosce può ancora scrivere `signIn` da sé (`start`, `finish`, e in `connect` il rinnovo con `saveSecret`), oppure dare in `oauth.provider` gli indirizzi e il client.
+
 #### Connessioni (`Network`)
 
 Ogni utente ha le sue, salvate in `DATA_DIR/net/<hash dell'utente>.json` (`DATA_DIR`: la cartella del kernel, o quella indicata da `LILOS_DATA_DIR`; la cartella `net/` è ignorata da git). Al massimo 50 per utente; il nome ha fino a 60 caratteri, senza `/`, `\` né caratteri di controllo, ed è unico per utente (senza distinguere maiuscole).
 
 ```js
-// salvata
-{ id, name, protocol, values, secret: 'v1:…' | null, trust: impronta | null, auto, created }
+// salvata (prima di lilOS 1.21.0 aveva anche trust: l'impronta confermata, ora in known-<hash>.json)
+{ id, name, protocol, values, secret: 'v1:…' | null, auto, created }
 // come la vede la pagina
 { id, name, protocol, address, values, auto, remembered, trusted, state, error }
 ```
@@ -3585,11 +3618,11 @@ Ogni utente ha le sue, salvate in `DATA_DIR/net/<hash dell'utente>.json` (`DATA_
 - `state`: `'off'`, `'connecting'`, `'on'` o `'error'` (l'ultimo tentativo è fallito: `error` dice perché). Una password da chiedere o un server da confermare **non** sono `error`: lo stato resta `off`.
 - **Segreti.** Con `remember: true` password e chiavi si salvano cifrate (AES-256-GCM) con una chiave di questo lilOS, `secret.key`, creata al primo uso nella stessa cartella `net/` (solo chi esegue il kernel la legge). Protegge dai file delle connessioni e dalle loro copie di sicurezza, non da chi può leggere la cartella del kernel: il kernel deve poterli usare da solo. Senza `remember` restano in memoria, per quell'utente, fino a `disconnect` o all'arresto del kernel. Se `secret.key` si perde, il segreto si chiede di nuovo.
 - **Quando si apre.** Una connessione si apre al primo uso, e di nuovo da sola se cade. Quelle con `auto` si aprono alla prima richiesta dell'utente dopo l'avvio del kernel (`userSeen`).
-- **Impronta.** `trust` si salva alla prima conferma. Cambiare `host`, `port` o `url` con `update` la azzera. Se il server mostra una chiave o un certificato diversi da quello confermato, `untrusted` ha `details.trust` con `changed: true` e `previous` (l'impronta di prima): la pagina deve avvisare più forte.
+- **Impronta.** Quella che l'utente conferma (`trust` in `connect` o `create`) si salva per il server della connessione, non per la connessione: tipo (`ssh` se comincia con `SHA256:`, altrimenti `tls`), host e porta ([Server confermati](#server-confermati-netknownhostsjs)). Vale per tutte le connessioni dell'utente a quel server e per il Terminale; cambiare `host`, `port` o `url` porta a un altro server, che va confermato. `trusted` nella vista dice se il server della connessione ha un'impronta confermata. Se il server mostra una chiave o un certificato diversi da quello confermato, `untrusted` ha `details.trust` con `changed: true` e `previous` (l'impronta di prima): la pagina deve avvisare più forte.
 - **Password legata al server.** Una password ricordata (o tenuta in memoria) si scorda se con `update` cambia uno tra `host`, `port`, `url`, `user`, `tls`, `domain`, `share`, `auth` e non se ne dà una nuova: va riscritta.
-- **Dove ci si può collegare** (`net/guard.js`, `NetGuard`). Solo con più utenti (accesso richiesto): il kernel non si collega a loopback (`127.0.0.0/8`, `::1`), link-local (`169.254.0.0/16`, `fe80::/10`), multicast, `0.0.0.0`/`::`, riservati (`192.0.0.0/24`, `198.18.0.0/15`, `240.0.0.0/4`) né gli intervalli IPv6 che portano dentro un indirizzo IPv4 (NAT64 `64:ff9b::/96` e `64:ff9b:1::/48`, 6to4 `2002::/16`, Teredo `2001::/32`; un IPv4 scritto in IPv6, `::ffff:127.0.0.1`, vale come l'IPv4); la rete locale (`10/8`, `172.16/12`, `192.168/16`, `100.64/10`, `fc00::/7`) solo con `net: { allowPrivate: true }` in `config.json`; `net: { allow: ['192.168.1.50/32', …] }` lascia passare certi indirizzi o intervalli anche se è chiusa. Se il nome si risolve in più indirizzi, vale il controllo su tutti. Si fa a ogni creazione, modifica, prova, elenco delle condivisioni e apertura (`forbidden`: «Indirizzo non permesso per le connessioni di rete»). Le richieste web della Pianificazione lo rifanno sull'indirizzo a cui si collegano davvero: passano a `node:http`/`node:https` il `lookup` della guardia (`guard.lookup`), che risolve il nome e controlla ogni indirizzo un attimo prima della connessione, così un nome che cambia indirizzo tra il controllo e la connessione (DNS rebinding, TTL brevi) non porta altrove. Con un solo utente non c'è nessun limite.
+- **Dove ci si può collegare** (`net/guard.js`, `NetGuard`). Solo con più utenti (accesso richiesto): il kernel non si collega a loopback (`127.0.0.0/8`, `::1`), link-local (`169.254.0.0/16`, `fe80::/10`), multicast, `0.0.0.0`/`::`, riservati (`192.0.0.0/24`, `198.18.0.0/15`, `240.0.0.0/4`) né gli intervalli IPv6 che portano dentro un indirizzo IPv4 (NAT64 `64:ff9b::/96` e `64:ff9b:1::/48`, 6to4 `2002::/16`, Teredo `2001::/32`; un IPv4 scritto in IPv6, `::ffff:127.0.0.1`, vale come l'IPv4); la rete locale (`10/8`, `172.16/12`, `192.168/16`, `100.64/10`, `fc00::/7`) solo con `net: { allowPrivate: true }` in `config.json`; `net: { allow: ['192.168.1.50/32', …] }` lascia passare certi indirizzi o intervalli anche se è chiusa. Se il nome si risolve in più indirizzi, vale il controllo su tutti. Si fa a ogni creazione, modifica, prova, elenco delle condivisioni e apertura (`forbidden`: «Indirizzo non permesso per le connessioni di rete»). Le richieste web della Pianificazione e, da lilOS 1.21.0, i driver dei protocolli (`ctx.lookup` in `connect`, `shares`, `signIn` e in `open` dei terminali) lo rifanno sull'indirizzo a cui si collegano davvero: passano a `node:net`, `node:tls`, `node:http`/`node:https` il `lookup` della guardia (`guard.lookup`), che risolve il nome e controlla ogni indirizzo un attimo prima della connessione, così un nome che cambia indirizzo tra il controllo e la connessione (DNS rebinding, TTL brevi) non porta altrove. Un indirizzo IP scritto come tale non passa dal `lookup`: lo controlla già `check()`. Con un solo utente non c'è nessun limite (il `lookup` risolve e basta).
 - **Nomi e dimensioni.** Un elenco ha al massimo 50 000 voci (`too_large`); i nomi non sicuri (`isSafeName` in `drivers.js`: una sola parte, non `.` né `..`, senza `/`, caratteri di controllo né inversioni di direzione del testo `U+202A-202E`, `U+2066-2069`, al massimo 255 caratteri) sono tolti dagli elenchi, e `cleanName` li rifiuta (`invalid`). `isUsableName` è più larga (ammette le inversioni di testo): serve a decidere se eliminare è sicuro. Eliminare una cartella si ferma, senza togliere niente, se contiene un nome non utilizzabile; una cartella o un collegamento (`link`) si eliminano come se stessi, e la ricorsione arriva al massimo a 64 livelli.
-- **Pulizia.** All'avvio (`prune()`, solo con più utenti) si cancellano i file di connessioni e trasferimenti di utenti che non esistono più.
+- **Pulizia.** All'avvio (`prune()`, solo con più utenti) si cancellano i file di connessioni, trasferimenti e server confermati di utenti che non esistono più.
 - **Osservazione.** Se la sessione ha `watch`, ogni cartella letta con `list` è osservata e i cambiamenti diventano l'evento `net.change`. Al massimo 8 cartelle per connessione alla volta: oltre, si smette di osservare la meno recente. Prima di eliminare o rinominare una cartella la si smette di osservare (alcuni server, SMB, la tolgono solo se non è aperta).
 - **Impostazioni di un modulo.** Quando un amministratore cambia le impostazioni di un modulo che fornisce protocolli (`kernelModules.saveSettings`), `Network.reset(protocolli)` chiude le sessioni aperte di quei protocolli, per tutti gli utenti: lo stato torna `off` (evento `net.mount`) e il primo uso riapre con le nuove impostazioni.
 - **Copiare dalla home** (`putHome`). Se il nome c'è già e `ifExists` è `'ask'`, `conflict`; con `'keep'` il nome prende un numero.
@@ -3623,6 +3656,8 @@ Tutti per utenti con l'accesso fatto: ognuno vede e cambia solo le sue connessio
 | `GET /api/net/signin/:id?wait=1` | → `{ status: 'pending' \| 'done' \| 'error', account?, error? }`. Con `wait=1` risponde quando cambia, al massimo dopo 25 secondi. `not_found`: scaduto o già usato |
 | `DELETE /api/net/signin/:id` | 204. Annulla l'accesso |
 | `GET /api/net/signin/callback` | Dove il fornitore rimanda la finestra (`?code&state` o `?error&state`). **Senza sessione**; risponde con una pagina HTML |
+| `GET /api/net/oauth` | Amministratori. → `[app]`: le app registrate presso i fornitori ([App dei fornitori](#app-dei-fornitori-netoauthjs)) |
+| `PUT /api/net/oauth/:id` | Amministratori. `{ values }` (fino a 64 KB) → l'app, cambiata. `:id` è `microsoft` o `google` (`not_found` altrimenti); `invalid` se i valori non sono quelli dei campi. Le connessioni aperte che la usano si chiudono (si riaprono con la nuova) |
 | `GET /api/net/transfers` | → l'istantanea che mostra la finestra Trasferimento dati (sotto) |
 | `GET /api/net/transfers/items/:id` | → `{ items, more }`: dentro una cartella di una coda. `:id` è `[a-f0-9]{20}` |
 | `POST /api/net/transfers` | `{ sources: [luogo], target: luogo, workspace? }` (fino a 1 MB, al massimo 1000 sorgenti) → `{ queue }` |
@@ -3656,6 +3691,53 @@ Come cambia una connessione con un campo `signin`:
 - **`connect` con `signin`** rifà l'accesso di una connessione: se l'account è diverso da quello della connessione (senza distinguere maiuscole) risponde `conflict` («Hai fatto l’accesso come …, ma «nome» è di …»). Gli altri segreti restano; `remember` resta quello di prima se non lo si indica.
 - **Segreto rinnovato.** Se il fornitore cambia il segreto mentre la sessione è aperta (OneDrive cambia il token di aggiornamento a ogni rinnovo), il driver chiama `saveSecret({ [chiave del campo]: nuovo })`: il kernel lo tiene come il vecchio, cifrato se la connessione è ricordata, in memoria altrimenti.
 - **Credenziali non più valide.** Se `connect` non ha il segreto, o il driver lancia `net: 'auth'` (anche durante l'uso: la sessione si chiude e lo stato torna `off`), l'errore è `secret_required` con `details.reason: 'signin'` (e `details.fields` se mancava). La pagina rifà l'accesso e richiama `connect` con `signin`.
+
+#### App dei fornitori (`net/oauth.js`)
+
+Da lilOS 1.21.0 l'accesso a un account di Microsoft o di Google lo fa il kernel per tutti i protocolli ([D69](../interna/decisioni.md#d69-accesso-ai-fornitori-server-confermati-e-file-json-nel-kernel-i-moduli-si-possono-fondere)). Un amministratore registra **una** app presso il fornitore (su Azure, su Google Cloud) e la scrive **una volta** nel Pannello di controllo; OneDrive e Azure Blob Storage usano la stessa app Microsoft, Google Drive e Google Foto lo stesso progetto Google. I token restano nel kernel come prima; il driver dice solo cosa gli serve.
+
+**Dichiarazione** (`oauth` del driver):
+
+| Campo | Descrizione |
+| --- | --- |
+| `provider` | `'microsoft'` o `'google'`: l'app di questo lilOS presso quel fornitore. Oppure `{ label?, authorizeUrl, tokenUrl, clientId() → string, clientSecret?() → string, params?, scopeOnToken? }` per un altro fornitore (il client lo dà il modulo, per esempio dalle sue impostazioni) |
+| `scopes` | `[ambito]` o `(values) → [ambito]`: cosa chiede. Il kernel aggiunge quelli del fornitore: Microsoft `offline_access openid profile`, Google `openid email` |
+| `params?` | `{ nome: valore }` o `(values) → { … }`: altri parametri per la pagina del fornitore (oltre a quelli del fornitore: Microsoft `response_mode=query`, `prompt=select_account`; Google `access_type=offline`, `prompt=consent select_account`, `include_granted_scopes=true`) |
+| `accounts?` | `'work'` (Microsoft): solo account di lavoro o dell'istituto: la directory dell'app se è una sola, altrimenti `organizations`. Con un'app solo per account personali il protocollo non è pronto (Azure Blob Storage) |
+| `manual?` | L'accesso può finire incollando l'indirizzo ([sopra](#accesso-con-un-fornitore-netsigninjs)). Predefinito: Microsoft no, Google sì (e con un client «App desktop» solo così: `onlyManual`) |
+| `optional?` | `true`: il protocollo funziona anche senza l'app (un altro modo di entrare, come la chiave dell'account): l'app che manca ferma solo l'accesso, non tutto il protocollo (`ready`) |
+| `field?` | Il campo `signin` (predefinito: il primo) |
+| `account?` | `async ({ tokens, claims, granted, values }) → string`: chi ha fatto l'accesso (ciò che mostra il campo). Può controllare l'account e lanciare un errore con `net` (un account senza OneDrive). Predefinito: `preferred_username`, `email`, `upn` o `name` dell'id token. `claims`: quelli dell'id token (o `{}`); `granted`: gli ambiti che il fornitore ha dato (o `null`) |
+| `errors?` | `(body, status) → Error \| null`: l'errore del fornitore a una richiesta di token come errore con `net`; `null` lascia la lettura del kernel (Microsoft: indirizzo di ritorno non registrato, app non trovata, flussi pubblici spenti; Google: progetto non valido, `redirect_uri_mismatch`; tutti: `invalid_grant` e simili → `auth`, serve un nuovo accesso) |
+
+Il kernel fa `signIn` (`start` con PKCE, `finish` che chiede i token, controlla che ci sia il token di aggiornamento e chiama `account`), `ready()` (ciò che manca all'app, poi quello del driver) e dà a `connect` e `shares`:
+
+| `ctx.tokens` | Descrizione |
+| --- | --- |
+| `get()` | `Promise<string>`: il token di accesso, valido per almeno altri 2 minuti (rinnovato prima) |
+| `renew()` | `Promise<string>`: uno nuovo adesso (il fornitore ha risposto 401). Un solo rinnovo alla volta |
+
+`null` se la connessione non ha un token di aggiornamento (un altro modo di entrare). Il token di aggiornamento è il segreto del campo `signin`, come quando lo teneva il driver: quando il fornitore ne dà uno nuovo il kernel lo tiene (`saveSecret`). Le connessioni salvate prima restano valide.
+
+**Le app.** In `config.json`, `oauth: { microsoft, google }`; i campi segreti cifrati (`v1:…`, la chiave `net/secret.key` delle impostazioni dei moduli), in chiaro nel kernel. `GET /api/net/oauth` → `[{ id, label, description, fields, values, secrets, live: true, protocols, ready }]`: la stessa forma delle impostazioni di un modulo (`fields` si disegnano come quelle; `secrets`: le chiavi dei campi segreti impostati; `protocols`: gli id dei protocolli che la usano; `ready`: `null` o perché non si può usare). `PUT /api/net/oauth/:id` con `{ values }` come `PUT /api/modules/:nome/settings` (un campo segreto assente o vuoto resta, `null` lo toglie); vale subito.
+
+| App | Campi |
+| --- | --- |
+| `microsoft` («App Microsoft») | `clientId` (ID dell'applicazione), `accounts` (`common` predefinito, `organizations`, `consumers`, `tenant`), `tenant` (con `accounts: 'tenant'`; `[\w.-]{1,100}`). Client pubblico, senza segreto. Per i test `loginUrl` (scritto a mano) sostituisce `https://login.microsoftonline.com` |
+| `google` («Progetto Google») | `clientId`, `clientSecret` (segreto), `clientType` (`web` predefinito, `desktop`: l'accesso solo incollando l'indirizzo). Per i test `authUrl` e `tokenUrl` |
+
+Il Pannello di controllo le mostra in una scheda per app (con gli indirizzi da registrare presso il fornitore, come per i moduli), non più nelle schede dei singoli moduli.
+
+**Da prima di lilOS 1.21.0.** L'app stava nelle impostazioni di ogni modulo (`clientId` uguale in OneDrive e in Azure Blob Storage, in Google Drive e in Google Foto). All'avvio `migrateOAuthSettings` prende un'app non ancora impostata dal primo modulo che ce l'ha (Microsoft: `netfs-onedrive`, poi `netfs-azblob`, il cui `tenant` diventa `accounts`; Google: `netfs-google`, `netfs-gdrive`, `netfs-gphotos`, con il segreto di un altro modulo con lo stesso ID se il primo non l'ha), con i segreti cifrati come sono; quelle impostazioni lasciano la configurazione di un modulo quando il suo `module.json` non le ha più (una versione che usa `oauth`), così una versione vecchia continua a funzionare finché non si aggiorna.
+
+#### Server confermati (`net/knownHosts.js`)
+
+Le chiavi SSH e i certificati TLS che ogni utente ha confermato, in `DATA_DIR/net/known-<hash dell'utente>.json`: `{ version: 1, hosts: { '<tipo>:<host>:<porta>': { fingerprint, at } } }`, tipo `ssh` o `tls`, host in minuscolo, porta quella a cui ci si collega (quella solita del protocollo se il campo è vuoto: il `default` del campo `port` per la Rete, `port` del driver per i terminali; per `url` quella dell'indirizzo, o 443/80). **Uno solo per la Rete e il Terminale**: un server SSH confermato per una connessione SFTP non si chiede di nuovo aprendo un terminale verso di lui, e viceversa.
+
+- La Rete passa a `connect` in `ctx.trust` l'impronta di quel server (del tipo confermato più di recente); una conferma (`trust` in `create` o `connect`) si salva con il tipo dell'impronta (`SHA256:…` → `ssh`, altrimenti `tls`).
+- Il Terminale cerca, a ogni `ctx.confirm(trust)`, l'impronta del tipo mostrato (`trust.kind`) e salva quella che l'utente conferma.
+- `KnownHosts`: `get(utente, tipo \| null, server)`, `peek(…)` (senza aspettare, dopo `load(utente)`), `set(utente, tipo, server, impronta)`, `forget(utente)`; `serverOf(values, porta)` → `{ host, port }`.
+- **Da prima di lilOS 1.21.0.** All'avvio `KnownHosts.migrate` porta qui `trust` di ogni connessione (`net/<hash>.json`) e `known` degli host dei terminali (`term/<hash>.json`, `<protocollo>:<host>:<porta>`, porta vuota = quella solita), e li toglie da quei file. Se lo stesso server ha due impronte diverse, resta quella del Terminale.
 
 #### Trasferimenti (`Transfers`)
 
@@ -3737,16 +3819,19 @@ Un modulo fornisce un protocollo con un servizio che si chiama `term.<protocollo
 | `term` | Il tipo di terminale da annunciare (`'xterm-256color'`) |
 | `cwd` | Una cartella in cui partire, o `null` (lo usa solo SSH, dalla voce «Apri terminale SSH qui» del Terminale) |
 | `ask(prompt, { echo = false })` | `Promise<string>`. Chiede una riga all'utente **nel terminale stesso** (una password che il server vuole): scrive `prompt` sullo schermo e legge quello che l'utente digita fino a Invio. Si rifiuta se l'utente rinuncia con Ctrl+C o Ctrl+D (errore con `net: 'cancelled'`). Una domanda alla volta |
-| `confirm(trust)` | `Promise<boolean>`. La chiave o il certificato che il server ha mostrato, `{ kind: 'ssh' \| 'tls', fingerprint, text }`. Vale `true` se è quella già confermata per questo protocollo, host e porta, o se l'utente la conferma ora (la pagina riceve `{ t: 'trust' }`, la risposta arriva col socket); `false` se rifiuta o chiude. Il kernel la ricorda |
+| `confirm(trust)` | `Promise<boolean>`. La chiave o il certificato che il server ha mostrato, `{ kind: 'ssh' \| 'tls', fingerprint, text }`. Vale `true` se è quella già confermata per questo tipo, host e porta (qui o per una connessione della Rete: [Server confermati](#server-confermati-netknownhostsjs)), o se l'utente la conferma ora (la pagina riceve `{ t: 'trust' }`, la risposta arriva col socket); `false` se rifiuta o chiude. Il kernel la ricorda |
 | `print(text)` | Una riga per l'utente nel terminale (che cosa sta succedendo) |
 | `signal` | `AbortSignal`: l'utente ha chiuso la sessione mentre si collegava |
+| `output(Buffer)` | Da lilOS 1.21.0. Ciò che manda il server, appena lo manda: anche prima che `open()` finisca (un messaggio di benvenuto). Il driver non deve tenere niente da parte |
+| `closed({ reason, code?, signal? })` | Da lilOS 1.21.0. La connessione è finita, una volta sola, anche prima che `open()` finisca (allora il kernel chiude la sessione che `open()` restituisce). `reason`: un messaggio per l'utente, o vuoto; `code` e `signal` come in `onClose` (sotto) |
+| `lookup` | Da lilOS 1.21.0. Il `dns.lookup` della guardia, come `ctx.lookup` della Rete: da passare a `net.connect`/`tls.connect` |
+| `paths` | Da lilOS 1.21.0. Le funzioni dei percorsi, come `ctx.paths` della Rete |
 
 **Sessione** (i byte sono quelli che uno xterm mostra e manda: un protocollo il cui server parla un'altra lingua, come SUPDUP, traduce nei due sensi):
 
 | Membro | Descrizione |
 | --- | --- |
-| `onData(fn(Buffer))` | Ciò che manda il server |
-| `onClose(fn({ reason, code, signal }))` | La connessione è finita (`reason`: un messaggio per l'utente, o vuoto). Facoltativi, per chi vuole lo stato di uscita: `code` (il numero che ha dato il server) e `signal` (il nome del segnale che ha fermato il comando, senza `SIG`: `'KILL'`), `null` se il server non li ha detti. Se la connessione è già finita quando arriva `onClose`, `fn` va chiamata comunque (un comando veloce finisce nello stesso pacchetto che lo apre) |
+| `onData?(fn(Buffer))`, `onClose?(fn({ reason, code, signal }))` | Il modo di prima di lilOS 1.21.0 per l'output e la fine (un driver nuovo usa `ctx.output` e `ctx.closed`, e non ha bisogno di tenere da parte ciò che arriva prima che il kernel ascolti): il kernel li ascolta se ci sono. La fine: `reason` è un messaggio per l'utente, o vuoto. Facoltativi, per chi vuole lo stato di uscita: `code` (il numero che ha dato il server) e `signal` (il nome del segnale che ha fermato il comando, senza `SIG`: `'KILL'`), `null` se il server non li ha detti. Con `onClose`, se la connessione è già finita quando arriva, `fn` va chiamata comunque (un comando veloce finisce nello stesso pacchetto che lo apre) |
 | `write(Buffer)` | Ciò che scrive l'utente |
 | `resize(cols, rows)` | |
 | `signal?(name)`, `signals?` | `signals`: i nomi che conosce (`'break'`, `'interrupt'`, `'ayt'`), per il menu Tasti; il kernel inoltra `{ t: 'signal', name }` solo per questi |
@@ -3754,15 +3839,15 @@ Un modulo fornisce un protocollo con un servizio che si chiama `term.<protocollo
 | `info?` | Dati per la barra di stato (`{ key, cipher }` per SSH); torna in `session.info` |
 | `close()` | |
 
-**Errori.** Come per i driver di Rete portano `net` (`auth`, `untrusted`, `unreachable`, `lost`, `invalid`…): il kernel scrive il messaggio in rosso nel terminale e la sessione passa a `closed`. Prima di ogni apertura il kernel controlla dove può collegarsi (`net/guard.js`, come per la Rete).
+**Errori.** Come per i driver di Rete portano `net` (`auth`, `untrusted`, `unreachable`, `lost`, `invalid`…): il kernel scrive il messaggio in rosso nel terminale e la sessione passa a `closed`. Prima di ogni apertura il kernel controlla dove può collegarsi (`net/guard.js`, come per la Rete), e il driver si collega con `ctx.lookup`.
 
 #### Host e sessioni (`Terminals`)
 
-- **Host salvati.** Ogni utente ha `DATA_DIR/term/<hash dell'utente>.json` (ignorata da git, `/term/`; permessi `0600`): `{ hosts: [{ id, name, folder, protocol, values, secret, settings, created, used }], known }`. Al massimo 200 host; nome fino a 60 caratteri e unico (maiuscole a parte); cartella fino a 60. I segreti sono cifrati con `net/secrets.js` (la stessa chiave `secret.key` della Rete) e non lasciano mai il kernel. `known` ricorda le chiavi dei server confermate, per `<protocollo>:<host>:<porta>`. Un host il cui modulo non è attivo resta nell'elenco con `available: false`. Con più utenti, `prune()` toglie i file degli utenti spariti all'avvio.
+- **Host salvati.** Ogni utente ha `DATA_DIR/term/<hash dell'utente>.json` (ignorata da git, `/term/`; permessi `0600`): `{ hosts: [{ id, name, folder, protocol, values, secret, settings, created, used }] }`. Al massimo 200 host; nome fino a 60 caratteri e unico (maiuscole a parte); cartella fino a 60. I segreti sono cifrati con `net/secrets.js` (la stessa chiave `secret.key` della Rete) e non lasciano mai il kernel. Le chiavi dei server confermate stanno con quelle della Rete ([Server confermati](#server-confermati-netknownhostsjs)); prima di lilOS 1.21.0 erano qui, in `known`. Un host il cui modulo non è attivo resta nell'elenco con `available: false`. Con più utenti, `prune()` toglie i file degli utenti spariti all'avvio.
 - **Sessioni.** Stanno solo in memoria, per utente: non sopravvivono a un riavvio del kernel, che le chiude (`stop()`). Al massimo **10** aperte (le chiuse non contano). Una sessione nasce `new`, si collega quando una pagina fa `attach` (`connecting`, poi `on` o `closed`). **Senza pagina si chiude dopo 10 minuti**; una già finita sparisce appena nessuna pagina la mostra. Un nuovo `attach` stacca il precedente (`{ t: 'taken' }`, chiusura 4000).
 - **Lo schermo.** `History` tiene gli ultimi 1 MB mandati alla pagina, con i modi del terminale prima del primo pezzo (schermo alternativo, mouse, tasti del cursore, incolla protetto); chi si ricollega riceve i modi e poi i byte, e `vim` o `htop` tornano com'erano.
 - **Codifica.** `settings.encoding` (`utf-8`, `iso-8859-1`, `iso-8859-15`, `cp437`): `Charset` converte in UTF-8 ciò che arriva e, nell'altro senso, ciò che l'utente scrive. `settings.backspace: 'bs'` manda `^H` al posto di `DEL`.
-- **Chiavi dei server.** `ctx.confirm` chiede alla pagina solo se la chiave non è già in `known`; se è diversa da quella ricordata, la richiesta ha `changed: true` e `previous`. Una conferma si salva (`known`).
+- **Chiavi dei server.** `ctx.confirm` chiede alla pagina solo se la chiave non è già confermata per quel tipo, host e porta (anche dalla Rete: un terminale SSH «Apri terminale SSH qui» su una connessione SFTP non la chiede più); se è diversa da quella ricordata, la richiesta ha `changed: true` e `previous`. Una conferma si salva (`net/knownHosts.js`).
 - **Password.** Quelle non salvate non passano mai dalla pagina come dati: le scrive l'utente nel terminale e vanno alla domanda `ctx.ask`.
 - **Comando senza nessuno alla tastiera.** `Terminals.exec(principal, hostId, command, { signal, maxOutput = 64 KB })` → `{ output, code, reason }` esegue un comando su un host SSH **salvato**, senza sessione né domande (lo usa l'azione `command` della [Pianificazione](#pianificazione-schedule-apischedulejs)): serve la password o la chiave salvata nell'host e la chiave del server già confermata, altrimenti `untrusted` o `forbidden`. L'output è stdout e stderr insieme (gli ultimi `maxOutput` caratteri); `code` è lo stato di uscita che dice il driver (`onClose` con `code`/`signal`, term-ssh 1.0.2): fermato da un segnale vale 128 + il numero del segnale, come in una shell (`kill -9` → 137), e `signal` ne dice il nome; 255 se il server non ha detto niente. Con un driver più vecchio `code` viene dal motivo di chiusura («codice N»), 255 se la chiusura ha un altro motivo, 0 senza motivo (un comando fermato da un segnale sembrava riuscito). Solo SSH.
 - **Pressione.** Se la pagina ha più di 1 MB in coda il kernel chiama `pause()` e riprende col `drain`. Un messaggio dalla pagina è al massimo 256 KB.
@@ -3960,12 +4045,14 @@ Il repository ufficiale ha anche `"system": "system/lilos"`: la cartella con la 
 | `defaultConfig?` | Oggetto: la configurazione con cui il modulo viene acceso in `config.json`. |
 | `required?` | `true` per un modulo senza cui lilOS non parte (deve essere anche in `REQUIRED_MODULES`): l'AppStore non offre **Rimuovi** e il kernel lo rifiuta. Vedi [Moduli obbligatori](#moduli-obbligatori). `list()` lo restituisce come `required`. |
 | `settings?` | Elenco di campi (vedi [Moduli](#moduli)): le impostazioni che un amministratore può cambiare, con `GET` e `PUT /api/modules/:nome/settings` (`kernelModules.settings` e `saveSettings`). Vale per i moduli in esecuzione: si controllano all'avvio del kernel, non all'installazione. |
+| `replaces?` | Da lilOS 1.21.0. I nomi dei moduli di cui prende il posto, quando due moduli si fondono in uno (`netfs-google` sostituisce `netfs-gdrive` e `netfs-gphotos`; `ssh` sostituisce `term-ssh` e `netfs-sftp`). Non sé stesso né un modulo obbligatorio. Vedi **Sostituzione** sotto. `list()` lo restituisce come `replaces`. |
 
 - **Installazione.** Copia il pacchetto in `modules/<nome>_<versione>/` (con `source.json`: da dove viene, `{ type, url, ref, commit, path, installed }`), esegue `npm ci` (o `npm install` senza lockfile; `--omit=dev --ignore-scripts`) se c'è un `package.json`, e lo aggiunge a `modules` in `config.json` con `defaultConfig`. Prima **verifica che il kernel si avvierebbe** con quella lista (dipendenze soddisfatte, un modulo che fornisce `fs`, e senza `auth` solo `host` locale): se no, lascia tutto com'era e lancia `conflict`.
 - **Aggiornamento.** Parte dal `source.json` registrato (con `ref` opzionale), copia la nuova versione accanto alla vecchia, ci porta i file di `data`, aggiorna la versione in `config.json` e tiene le due versioni più recenti. Senza versione più alta risponde `unchanged: true`. Un modulo senza `source.json` (messo a mano) non si aggiorna da qui.
 - **Rimozione.** Toglie il modulo da `config.json` (dopo aver verificato che il kernel si avvierebbe senza) e cancella le cartelle delle sue versioni, **tranne quelle che contengono file di `data`**: gli utenti di `users-basic` restano. Un modulo obbligatorio (`REQUIRED_MODULES`) non si rimuove (`forbidden`). Reinstallando la stessa versione quella cartella si riusa.
 - **Impostazioni.** `ModuleAdmin.settings(principal, nome)` e `saveSettings(principal, nome, valori)` (solo amministratori; `not_found` se il modulo non è attivo). `saveSettings` controlla i valori con `checkFields`, li scrive nella voce del modulo in `config.json` (le chiavi non dichiarate restano), li mette in `ctx.config`, chiama i suoi `onConfig` e, per i moduli che forniscono `netfs.*`, chiude le connessioni aperte. Un modulo senza `onConfig` non è `live`: le impostazioni valgono dal prossimo avvio (il log lo dice). `required` e `when` dei campi non si applicano al salvataggio (servono alla pagina per disegnarli).
-- `list()`: i moduli trovati in `modules/`, con `enabled` (versione in `config.json`), `running` (in uso adesso) e `source`; anche quelli già tolti ma ancora in esecuzione fino al riavvio.
+- **Sostituzione** (`replaces`). Quando si installa (o si aggiorna a una versione che lo dichiara) un modulo che ne sostituisce altri, oppure all'avvio se un modulo acceso ne sostituisce altri ancora nella configurazione o in `modules/` (`applyReplacements`, prima di avviare i moduli), il modulo nuovo prende il loro posto (`takeOver`): nella sua configurazione, per ogni chiave che ha ancora il valore di `defaultConfig` (o nessuno), il valore del primo modulo sostituito che ne ha uno (nell'ordine di `replaces`; una scelta già fatta per il modulo nuovo resta), con i segreti cifrati così come sono (una sola chiave per tutti); i file di `data` del modulo nuovo che mancano nella sua cartella, presi da quella dei sostituiti; `modules-data/<vecchio>` diventa `modules-data/<nuovo>` se questa non c'è. Poi i sostituiti escono da `config.json` e le loro cartelle si cancellano, tranne quelle con file di `data` che il nuovo non ha preso (restano, con un avviso nel log). I servizi hanno gli stessi nomi, quindi le connessioni salvate funzionano come prima. Il controllo di avvio si fa senza i sostituiti (nessun conflitto su `provides`), e `resolveModules` non avvia un modulo che un altro della lista sostituisce. Un modulo sostituito da uno acceso non si installa più (`conflict`) e nel catalogo ha `replacedBy`; in `list()` quelli ancora in esecuzione fino al riavvio hanno `replacedBy`.
+- `list()`: i moduli trovati in `modules/`, con `enabled` (versione in `config.json`), `running` (in uso adesso), `source`, `replaces` e `replacedBy` (il modulo acceso che lo sostituisce, o `null`); anche quelli già tolti ma ancora in esecuzione fino al riavvio.
 
 ### lilOS come pacchetto (`systemPackage.js`)
 
@@ -4258,7 +4345,11 @@ Il OneDrive dell'utente (personale, o di lavoro o dell'istituto) in Rete, tramit
 | Cartelle condivise | L'elenco «Condivisi con me» (`sharedWithMe`) è deprecato e Microsoft lo spegne a novembre 2026, senza sostituto ufficiale: il modulo non lo usa. Con `shared` acceso, i collegamenti che l'utente ha aggiunto a «I miei file» (onedrive.com → Aggiungi collegamento) compaiono come cartelle e se ne legge il contenuto sul drive a cui puntano; con `shared` spento i collegamenti non compaiono |
 | Provarlo | `loginUrl` e `graphUrl` nella configurazione sostituiscono gli indirizzi di Microsoft (solo per i test) |
 
+> Da lilOS 1.21.0 l'app Azure e il progetto Google si impostano una volta per tutti nel kernel ([App dei fornitori](#app-dei-fornitori-netoauthjs)): le versioni dei moduli che dichiarano `oauth` non hanno più `clientId`, `accounts`, `tenant`, `clientSecret`, `clientType` tra le impostazioni, e il kernel sposta i valori di prima.
+
 ### Protocolli cloud e NFS: `netfs-gdrive`, `netfs-gphotos`, `netfs-s3`, `netfs-azblob`, `netfs-nfs` (1.0.0)
+
+> Da lilOS 1.21.0 `netfs-gdrive` e `netfs-gphotos` si fondono in `netfs-google` (stessi servizi, `replaces`), e l'app Microsoft di `netfs-azblob` e il progetto Google sono quelli del kernel ([App dei fornitori](#app-dei-fornitori-netoauthjs)).
 
 Cinque moduli del repository ufficiale (`modules/netfs-*/`, ognuno con il suo README), **solo nel catalogo**: non stanno nella cartella `modules/` di questo repository né nel `config.json` di un'installazione nuova; un amministratore li installa dall'AppStore → Kernel. Nessuna dipendenza (HTTP con `fetch` o `http`/`https` di Node; NFS su TCP con una libreria propria in `lib/`). Richiedono lilOS 1.14.0 (`group`, `space`, `importer`, elementi `web`/`badge`/`can`, accesso incollando l'indirizzo, impostazioni segrete, `user` in `connect`). Motivi: [D63](../interna/decisioni.md#d63-google-drive-google-foto-s3-azure-e-nfs-moduli-da-installare-accesso-incollando-lindirizzo-e-un-client-nfs-nostro).
 
@@ -4271,6 +4362,8 @@ Cinque moduli del repository ufficiale (`modules/netfs-*/`, ognuno con il suo RE
 | `netfs-nfs` | `netfs.nfs` (ordine 80, `local`, `space`) | `host`, `version` (`3`; `4.1` con `disabled`), `share` (cartella esportata, `shares()` = MOUNT EXPORT), `auth` (`sys`; `krb5` con `disabled`), `port` | NFSv3 su TCP scritto nel modulo (`lib/xdr.js`, `lib/rpc.js` con record marking e AUTH_SYS, `lib/nfs3.js`: portmapper, MOUNT v3, NFS v3). Ogni lunghezza che arriva dal server è limitata (handle 64 byte, nomi 1024, record 8 MB, 100 000 voci, cookie che si ripetono fermano la lettura). Impostazione `identities` (`textarea`, una riga `utente = UID:GID[,gruppi]`): `connect` usa `user.username` per sceglierla; senza riga `denied`. `ready()` non è pronto finché non c'è nessuna riga. Prima una porta locale sotto 1024 (fino a 12 tentativi), poi una qualsiasi. `READDIRPLUS`, `READ`/`WRITE` per offset (`resume: { read: true, write: true }`: con `start > 0` il file si tronca a `start` e si continua), `WRITE UNSTABLE` + `COMMIT` con controllo del verificatore (riavvio del server → `lost`), `RENAME` rifiutato se la destinazione c'è, `space` da `FSSTAT`, collegamenti simbolici letti se puntano dentro l'esportazione. Per i test `portmapPort` |
 
 ### Protocolli di terminale: `term-ssh_1.0.1`, `term-telnet_1.0.0`, `term-rlogin_1.0.0`, `term-supdup_1.0.0`
+
+> Da lilOS 1.21.0 `term-ssh` e `netfs-sftp` si fondono nel modulo `ssh` (servizi `term.ssh` e `netfs.sftp`, `replaces`), e i driver usano `ctx.output`, `ctx.closed` e `ctx.lookup`.
 
 Quattro moduli (`provides: ["term.<protocollo>"]`, `requires: []`, nessuna configurazione), ciascuno col suo `README.md`. Seguono il contratto di [Terminali remoti](#protocolli-il-servizio-termprotocollo). Sono attivi nel `config.json` di sviluppo; altrove un amministratore li installa dall'AppStore (scheda Kernel) o li aggiunge a `modules`. Solo `term-ssh` ha una dipendenza (`ssh2` 1.17.0): `npm run kernel:setup`. `term-ssh` 1.0.1 corregge un errore: se l'utente impiegava più di 20 secondi a confermare la chiave del server, il timer della connessione la chiudeva e la risposta in ritardo faceva lanciare un errore a ssh2 fuori dal processo del kernel, che si fermava. Ora il timer si ferma quando il server risponde e una risposta in ritardo è ignorata.
 
