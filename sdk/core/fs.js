@@ -73,6 +73,7 @@ const MIME = {
  *
  * Tags: `tags` holds ids of tags defined with the SDK's `tags` (setTags, tagged, dropTag). Nodes
  * with a hidden tag (setHiddenTags) are left out of children() but still exist: tagged() finds them.
+ * The system hides some nodes of its own the same way (setHiddenNodes: the folder Sistema).
  *
  * snapshot() + restore() put removed nodes back as they were (same ids, contents included):
  * that is how deleting is undone.
@@ -100,6 +101,7 @@ class FileSystem extends Emitter {
   #nodes = new Map();
   #workspace = null;
   #hiddenTags = new Set();
+  #hiddenNodes = new Set();
   /** Snapshots still held (by the undo history): scrub() takes contents out of them. */
   #snapshots = new Set();   // WeakRefs
 
@@ -729,7 +731,22 @@ class FileSystem extends Emitter {
     this.emit('scope', this.#workspace);
   }
 
-  /** True if the node exists and one of its tags is hidden. */
+  /** Nodes the system hides (setHiddenNodes). */
+  get hiddenNodes() { return [...this.#hiddenNodes]; }
+
+  /**
+   * Nodes the system keeps for itself (the folder Sistema): left out of children() like the ones
+   * with a hidden tag, found by get(), exists() and resolve(). Not saved: set again at every
+   * start-up. Emits 'scope'.
+   */
+  setHiddenNodes(ids) {
+    const next = new Set([...(ids ?? [])].filter(id => typeof id === 'string' && id !== ROOT));
+    if (next.size === this.#hiddenNodes.size && [...next].every(id => this.#hiddenNodes.has(id))) return;
+    this.#hiddenNodes = next;
+    this.emit('scope', this.#workspace);
+  }
+
+  /** True if the node exists and is hidden: by one of its tags or by the system. */
   isHidden(id) {
     const node = this.#find(id);
     return !!node && this.#concealed(node);
@@ -1005,8 +1022,9 @@ class FileSystem extends Emitter {
     return true;
   }
 
-  /** True if one of the node's tags is hidden. */
+  /** True if the system hides the node or one of its tags is hidden. */
   #concealed(node) {
+    if (this.#hiddenNodes.has(node.id)) return true;
     return !!node.tags && this.#hiddenTags.size > 0 && node.tags.some(t => this.#hiddenTags.has(t));
   }
 

@@ -7,6 +7,8 @@ const SPECIAL = new Set(['desk']);
 const DROPPED = new Set(['tags', 'trash']);   // keys of an earlier version: removed when read
 
 const differ = (a, b) => a.length !== b.length || a.some((k, i) => k !== b[i]);
+/** A link that can be shown now: its node exists and is not one the system keeps for itself (Sistema). */
+const shown = k => !SPECIAL.has(k) && fs.exists(k) && !(fs.hiddenNodes ?? []).includes(k);
 
 /**
  * "Collegamenti", the first section of the File Manager's sidebar, in the order the user chose:
@@ -18,7 +20,8 @@ const differ = (a, b) => a.length !== b.length || a.some((k, i) => k !== b[i]);
  *   'desk'       the current workspace's Scrivania (every workspace has its own)
  * ('tags' and 'trash' were keys too in an earlier version: they are removed when the order is read.)
  * A link follows its node when it is renamed or moved, and is not shown while the node cannot be
- * seen (in the trash, on another workspace's desk); it stays in the list for when it comes back.
+ * seen (in the trash, on another workspace's desk, hidden by the system like Sistema); it stays in
+ * the list for when it comes back.
  *
  * Events: 'change' — the order changed.
  */
@@ -41,7 +44,7 @@ class Links extends Emitter {
    * what can be seen now, with each place not placed yet after the place that comes before it.
    */
   arrange(defaults) {
-    const out = this.#order.filter(k => defaults.includes(k) || (!SPECIAL.has(k) && fs.exists(k)));
+    const out = this.#order.filter(k => defaults.includes(k) || shown(k));
     defaults.forEach((k, i) => {
       if (out.includes(k)) return;
       const prev = defaults.slice(0, i).reverse().find(p => out.includes(p));
@@ -74,7 +77,7 @@ class Links extends Emitter {
   /** The visible order now (list) and after placing `keys` at `index` (next; null if none can go). */
   #placed(keys, index, defaults) {
     const list = this.arrange(defaults);
-    const moving = [...new Set(keys)].filter(k => defaults.includes(k) || (!SPECIAL.has(k) && fs.exists(k)));
+    const moving = [...new Set(keys)].filter(k => defaults.includes(k) || shown(k));
     if (!moving.length) return { list, next: null, added: 0 };
     const added = moving.filter(k => !list.includes(k)).length;
     const at = index - list.slice(0, index).filter(k => moving.includes(k)).length;

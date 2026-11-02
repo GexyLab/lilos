@@ -18,7 +18,10 @@ Pannello di controllo → Usabilità.
 
 /** Name of every workspace's desk folder (private: each workspace sees only its own). */
 export const DESK_NAME = 'Scrivania';
-/** Name of the folder of what lilOS keeps for itself (the copy of the wallpaper: desktop/wallpaper.js). */
+/**
+ * Name of the folder of what lilOS keeps for itself (the copy of the wallpaper: desktop/wallpaper.js).
+ * Hidden (fs.setHiddenNodes): not in the root's lists nor in the sidebar, found only by its path.
+ */
 export const SYSTEM_NAME = 'Sistema';
 
 /**
@@ -30,16 +33,16 @@ export const SYSTEM_FOLDERS = [
   { name: 'Documenti', icon: 'file' },
   { name: 'Immagini', icon: 'image' },
   { name: 'Download', icon: 'download' },
-  { name: SYSTEM_NAME, icon: 'gear' },
 ];
 
 /** Name of the folder with the network connections (made when the kernel has a protocol: net.available). */
 export const NETWORK_NAME = 'Rete';
 
-/** Id of a shared folder in the root (Documenti, Sistema…), null if there is none. */
+/** Id of a shared folder in the root (Documenti, Sistema…, hidden included), null if there is none. */
 export function sharedFolder(name) {
   if (name === NETWORK_NAME) return networkFolder();
-  return fs.children(fs.root).find(n => n.type === 'folder' && n.name === name && !n.private)?.id ?? null;
+  const node = fs.resolve(`/${name}`);
+  return node?.type === 'folder' && node.parent === fs.root && !node.private ? node.id : null;
 }
 
 /** The system folder Rete ('Rete 2' if the user had a folder of their own called Rete), or null. */
@@ -48,16 +51,17 @@ function networkFolder() {
 }
 
 /**
- * Makes sure the shared system folders exist. Call before any workspace is set (everything visible).
- * Returns { firstStart }: true when nothing was stored yet.
+ * Makes sure the shared system folders exist, Sistema included, and hides Sistema. Call before any
+ * workspace is set (everything visible). Returns { firstStart }: true when nothing was stored yet.
  */
 export function setupFileSystem() {
   const firstStart = !fs.loaded;
-  for (const { name } of SYSTEM_FOLDERS) {
+  for (const name of [...SYSTEM_FOLDERS.map(f => f.name), SYSTEM_NAME]) {
     if (name === DESK_NAME) continue;
     if (!sharedFolder(name)) fs.create(fs.root, { type: 'folder', name, system: true });
   }
   if (net.available && !networkFolder()) fs.create(fs.root, { type: 'folder', name: NETWORK_NAME, system: true });
+  fs.setHiddenNodes([sharedFolder(SYSTEM_NAME)]);
   return { firstStart };
 }
 

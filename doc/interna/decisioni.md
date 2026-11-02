@@ -1157,22 +1157,23 @@ lilOS legge il file **prima** di avviare l'app e le dà le stringhe già risolte
 **Quando ripensarla.** Quando la firma sarà usata per lilOS stesso (oggi si fida del repository), quando le migrazioni dei dati renderanno pericoloso tornare indietro, o se servirà più di un canale (anteprime, versioni stabili).
 ## D58. Lo sfondo è una copia nella cartella Sistema
 
-**Decisione.** L'immagine di sfondo della scrivania è una copia del file scelto, in **Sistema**, una cartella condivisa della radice (impostazione `wallpaper` = id della copia). La copia si legge all'avvio e sta in uno strato fisso dietro la scrivania, alto quanto la scrivania con le sue proporzioni (`src/desktop/wallpaper.js`). Il colore (`deskColor`) è un'impostazione a parte. Deciso il 1° novembre 2026; la prima versione (lilOS 1.9.0–1.9.3) teneva l'id dell'originale, la copia è dalla 1.9.4.
+**Decisione.** L'immagine di sfondo della scrivania è una copia del file scelto, in **Sistema**, una cartella condivisa e nascosta della radice (impostazione `wallpaper` = id della copia). La copia si legge all'avvio e sta in uno strato fisso dietro la scrivania, alto quanto la scrivania con le sue proporzioni (`src/desktop/wallpaper.js`). Il colore (`deskColor`) è un'impostazione a parte. Deciso il 1° novembre 2026; la prima versione (lilOS 1.9.0–1.9.3) teneva l'id dell'originale, la copia è dalla 1.9.4, Sistema è nascosta dalla 1.13.1.
 
 **Perché.**
 
 - **L'utente vuole che eliminare l'originale non cambi niente.** Con un riferimento, spostare il file nel cestino toglieva lo sfondo: non è quello che ci si aspetta da un'immagine «messa» come sfondo.
 - **Il kernel accetta al massimo 512 KB per valore di storage.** Tenere l'immagine nelle impostazioni (come data URL, come la foto profilo, che per questo è ridotta a 192 px) non è possibile: una foto vera pesa molto di più. Un file può invece arrivare a 10 MB. La copia va quindi nel file system.
-- **Una cartella di sistema, visibile.** lilOS non ha cartelle nascoste: la copia sta in Sistema (condivisa da tutti i workspace, non si rinomina né si elimina, icona `gear`, ultima in `SYSTEM_FOLDERS`), dove l'utente la vede.
+- **Una cartella di sistema, nascosta.** La copia sta in Sistema (condivisa da tutti i workspace, non si rinomina né si elimina). È roba di lilOS, non dell'utente: dalla 1.13.1 non è più in `SYSTEM_FOLDERS` (niente voce nella barra laterale del File Manager) e `setupFileSystem` la nasconde con `fs.setHiddenNodes`, come un elemento con un tag invisibile: `children()` la esclude (File Manager, selettore, Editor, Terminale, conteggi), `get`, `exists` e `resolve` la trovano. Nella 1.9.4–1.13.0 era visibile, con il simbolo `gear`.
 - **Una sola copia.** Sistema tiene solo quella in uso: un nuovo sfondo, «Togli» e «Ripristina» eliminano la precedente per sempre (non nel cestino), così non si accumulano duplicati. `dropCopy` non tocca mai un file fuori da Sistema.
 - **Lettura prima del workspace.** Con i workspace `fs` mostra solo la scrivania del workspace attuale. Uno sfondo salvato dalla 1.9.0–1.9.3 (id dell'originale, magari nella Scrivania privata di un altro workspace) si copia in Sistema al primo avvio, in `preloadWallpaper`, prima di `setupWorkspaces`. L'originale resta dov'è.
 
-**Alternative scartate.** Un riferimento al file (la prima versione: nessun duplicato, ma eliminare il file toglieva lo sfondo); l'immagine nelle impostazioni (limite di 512 KB); una cartella nascosta (lilOS non ne ha); tutte le copie tenute in Sistema (da pulire a mano); uno sfondo per workspace (non richiesto).
+**Alternative scartate.** Un riferimento al file (la prima versione: nessun duplicato, ma eliminare il file toglieva lo sfondo); l'immagine nelle impostazioni (limite di 512 KB); Sistema visibile nel File Manager (1.9.4–1.13.0: l'utente vedeva e poteva eliminare un file che non è suo); un campo `hidden` salvato sul nodo (serviva anche il kernel, che conserva solo i campi che conosce); tutte le copie tenute in Sistema (da pulire a mano); uno sfondo per workspace (non richiesto).
 
 **Conseguenze.**
 
 - Eliminare o modificare l'originale non cambia lo sfondo. Eliminare la copia, anche solo spostandola nel cestino, toglie lo sfondo; ripristinarla non lo rimette.
-- Scegliere un file già dentro Sistema non crea un'altra copia.
+- Scegliere un file già dentro Sistema non crea un'altra copia (si arriva a Sistema solo scrivendone il percorso, `~/Sistema`).
+- Il nome Sistema resta occupato nella radice: una cartella nuova con quel nome diventa «Sistema 2».
 - La copia prende il nome dell'originale (dopo l'eliminazione della precedente, se `fs` l'aveva numerata).
 - L'immagine occupa spazio due volte: la copia pesa quanto l'originale.
 - L'immagine resta in memoria come object URL finché è lo sfondo; si revoca quando cambia.

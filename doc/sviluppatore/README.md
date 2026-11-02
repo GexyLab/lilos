@@ -343,7 +343,7 @@ I componenti si parlano in due modi:
 
 Cartelle, file e collegamenti alle app sono nodi del file system virtuale `fs` dell'SDK, un albero con radice `root` tenuto in memoria e salvato nella cartella dell'utente del kernel (senza kernel, in `lilos:fs`). Il contenuto dei file passa dal kernel (`fs.read` / `fs.write`, asincroni; IndexedDB ne tiene una copia).
 
-- Le cartelle di sistema condivise (Documenti, Immagini, Download, Sistema) sono create da `setupFileSystem()` (`src/systemFs.js`); la cartella Scrivania è creata per ogni workspace da `setupWorkspaces()`. Nessuna di queste si può rinominare né eliminare.
+- Le cartelle di sistema condivise (Documenti, Immagini, Download, Sistema) sono create da `setupFileSystem()` (`src/systemFs.js`); la cartella Scrivania è creata per ogni workspace da `setupWorkspaces()`. Nessuna di queste si può rinominare né eliminare. Sistema è nascosta: `setupFileSystem()` la passa a `fs.setHiddenNodes`, quindi `fs.children()` non la mostra.
 - La **scrivania è la vista della cartella `/Scrivania` del workspace attuale**: il `Desktop` crea, rinomina ed elimina tramite `fs` e si aggiorna sugli eventi `change`. Le posizioni sono salvate a parte, in `lilos:ws:<id>:desktop-layout`.
 - L'app **File** è un'altra vista dello stesso albero: quello che cambia da una parte si vede subito nell'altra.
 - I comandi Apri, Rinomina, Elimina, Seleziona tutto e Togli la selezione sono comuni: `src/items/targets.js` li registra una volta e li esegue sulla vista attiva (il desktop se nessuna finestra ha il focus, altrimenti la finestra del File Manager attiva).
@@ -423,7 +423,7 @@ I tag (`tags` dell'SDK, `sdk/core/tags.js`) sono etichette colorate con un nome,
 
 - **Le definizioni stanno nell'SDK, l'assegnazione sui nodi.** Un nodo ha `tags` (id dei tag); si cambia con `fs.setTags`. `fs.tagged(id)` dà tutti gli elementi con un tag, ovunque il workspace attuale veda.
 - **Invisibile significa nascosto.** `tags` comunica a `fs` i tag invisibili (`fs.setHiddenTags`, all'avvio e a ogni cambio). `fs.children()` esclude i nodi che ne hanno uno: è l'unico punto, quindi scrivania, File Manager, selettore, pannello dell'Editor e conteggi lo rispettano senza saperlo. `get`, `exists`, `resolve` e `tagged` li trovano ancora, così le finestre aperte e la vista del tag continuano a funzionare.
-- **Chi mostra elenchi** deve ascoltare `fs` `scope` (cambia ciò che è visibile: un altro workspace o i tag nascosti) oltre a `change`, e `tags` `change` per nomi e colori. La scrivania si riallinea da sola (`#reconcile`).
+- **Chi mostra elenchi** deve ascoltare `fs` `scope` (cambia ciò che è visibile: un altro workspace o i tag nascosti) oltre a `change`, e `tags` `change` per nomi e colori. Il sistema nasconde allo stesso modo i nodi che tiene per sé (`fs.setHiddenNodes`: la cartella Sistema). La scrivania si riallinea da sola (`#reconcile`).
 - **L'interfaccia** sta in `src/tags/tagUi.js` (pallini, `setTag`, sottomenu Tag); la gestione nel Pannello di controllo → Tag, la ricerca nella vista del tag del File Manager (`launch('files', { tag })`).
 
 ### Menu configurabili

@@ -579,7 +579,9 @@ File system virtuale: un albero di cartelle, file, collegamenti alle app e colle
 | `dropTag(tagId)` | Toglie il tag da tutti i nodi, cestino compreso. Restituisce quanti nodi sono cambiati. Emette `change` di tipo `update` per quelli visibili. Lo usa `tags.remove`. |
 | `hiddenTags` | Id dei tag i cui elementi sono nascosti (copia). |
 | `setHiddenTags(tagIds)` | Imposta i tag nascosti (lo fa `tags` dai tag invisibili, all'avvio e a ogni cambio). Emette `scope` se l'insieme cambia. |
-| `isHidden(id)` | `true` se il nodo esiste e ha un tag nascosto. |
+| `hiddenNodes` | Id dei nodi che il sistema nasconde (copia). |
+| `setHiddenNodes(ids)` | Imposta i nodi che il sistema tiene per sé (oggi la cartella Sistema, da `setupFileSystem`): esclusi da `children()` come quelli con un tag nascosto, trovati da `get`, `exists` e `resolve`. Non si salva: il sistema lo imposta a ogni avvio. Emette `scope` se l'insieme cambia. |
+| `isHidden(id)` | `true` se il nodo esiste ed è nascosto: da un suo tag o dal sistema (`setHiddenNodes`). |
 | `snapshot(ids)` | `Promise<{ nodes, contents }>`: copia i nodi (e, per le cartelle, tutto quello che contengono) con il contenuto dei file, come byte (testo e immagini tornano identici). Gli id che non esistono o sono ripetuti si saltano. Va preso **prima** di `remove`. |
 | `restore(snapshot)` | `Promise<string[]>`: rimette quello che `snapshot` ha copiato, con gli stessi id, gli stessi metadati e lo stesso contenuto. Il nome diventa unico se nel frattempo è stato preso. Si saltano i nodi la cui cartella non c'è più (o non è visibile) e gli id che esistono di nuovo. Emette un `change` di tipo `create` per ogni nodo rimesso; restituisce gli id rimessi (`[]` se non ha potuto rimettere nulla). |
 | `isRemote(id)` | `true` se il nodo è di una connessione di rete (compreso il nodo della connessione). |
@@ -598,7 +600,7 @@ File system virtuale: un albero di cartelle, file, collegamenti alle app e colle
 
 Evento `trash` (senza dati): è cambiato ciò che il cestino contiene (`trash`, `untrash`, `purge`, `purgeTrash`, `unscopeTrash`). Chi mostra il cestino rilegge `trashed()`.
 
-Evento `scope`: `id` del workspace attuale (o `null`). Significa "cambia ciò che è visibile": un altro workspace (`setWorkspace`) o i tag nascosti (`setHiddenTags`, stesso id di prima). Le viste leggono di nuovo l'albero.
+Evento `scope`: `id` del workspace attuale (o `null`). Significa "cambia ciò che è visibile": un altro workspace (`setWorkspace`), i tag nascosti (`setHiddenTags`) o i nodi nascosti dal sistema (`setHiddenNodes`), questi ultimi con lo stesso id di prima. Le viste leggono di nuovo l'albero.
 
 Evento `change`: `{ type: 'create' | 'rename' | 'update' | 'move' | 'remove', node, parent, from?, ids? }`. Per `remove`, `ids` sono tutti i nodi eliminati, contenuto compreso (con `trashed: true` sono finiti nel cestino, non eliminati); per `move`, `from` è la cartella di prima e `ids` il sottoalbero spostato (chi tiene aperto un file controlla `e.ids.includes(id)`: il suo percorso è cambiato).
 
@@ -1277,7 +1279,7 @@ Il segno dell'icona sta in `src/desktop/itemIcons.js` (`linkIcon`): l'icona dell
 ### `links.js`
 ### `links.js`
 
-L'ordine della sezione «Collegamenti» nella barra laterale del File Manager: le voci fisse (Home, Scrivania, Documenti, Immagini, Download, Sistema) e i collegamenti a file e cartelle trascinati lì. Il blocco dei tag e il Cestino stanno fuori dall'ordine.
+L'ordine della sezione «Collegamenti» nella barra laterale del File Manager: le voci fisse (Home, Scrivania, Documenti, Immagini, Download) e i collegamenti a file e cartelle trascinati lì. Il blocco dei tag e il Cestino stanno fuori dall'ordine.
 
 L'ordine è una lista di **chiavi**: un id di nodo (una voce fissa, con Home = `'root'`, oppure un collegamento) o `'desk'` (la Scrivania del workspace attuale, che ha un id diverso in ogni workspace). Le chiavi `'tags'` e `'trash'`, presenti nei salvataggi di una versione precedente, vengono tolte alla lettura (e il valore ripulito viene salvato).
 
@@ -1506,10 +1508,10 @@ Il pulsante nella barra a destra del logo (`button.tb-ws`: pallino con il colore
 ## systemFs.js
 
 - `DESK_NAME`: `'Scrivania'`, il nome della cartella di ogni workspace.
-- `SYSTEM_NAME`: `'Sistema'`, il nome della cartella condivisa dove lilOS tiene ciò che gli serve (oggi la copia dello sfondo, [D58](../interna/decisioni.md#d58-lo-sfondo-è-una-copia-nella-cartella-sistema)). È visibile: lilOS non ha cartelle nascoste.
-- `SYSTEM_FOLDERS`: le cartelle sotto la radice, con il simbolo per la barra laterale del File Manager: Scrivania, Documenti, Immagini, Download, Sistema (simbolo `gear`, l'ultima).
-- `sharedFolder(name)` → `string | null`: l'id della cartella condivisa (non privata) con quel nome nella radice, o `null` se non c'è. Usata da `setupFileSystem` e dallo sfondo; non è esportata da `@lilos/system`.
-- `setupFileSystem()` → `{ firstStart }` (`true` se non c'era nulla di salvato). Crea le cartelle di sistema **condivise** che mancano (Documenti, Immagini, Download, Sistema). La Scrivania non la crea: ogni workspace ha la sua (`setupWorkspaces`). Va chiamata prima che un workspace sia impostato.
+- `SYSTEM_NAME`: `'Sistema'`, il nome della cartella condivisa dove lilOS tiene ciò che gli serve (oggi la copia dello sfondo, [D58](../interna/decisioni.md#d58-lo-sfondo-è-una-copia-nella-cartella-sistema)). È nascosta (`fs.setHiddenNodes`): non è negli elenchi della radice né nella barra laterale; si raggiunge solo con il percorso (`fs.resolve('/Sistema')`).
+- `SYSTEM_FOLDERS`: le cartelle sotto la radice, con il simbolo per la barra laterale del File Manager: Scrivania, Documenti, Immagini, Download. Sistema non c'è: è nascosta (fino alla 1.13.0 era l'ultima, simbolo `gear`).
+- `sharedFolder(name)` → `string | null`: l'id della cartella condivisa (non privata) con quel nome nella radice, anche se nascosta (la cerca con `fs.resolve`), o `null` se non c'è. Usata da `setupFileSystem` e dallo sfondo; non è esportata da `@lilos/system`.
+- `setupFileSystem()` → `{ firstStart }` (`true` se non c'era nulla di salvato). Crea le cartelle di sistema **condivise** che mancano (Documenti, Immagini, Download, Sistema) e nasconde Sistema (`fs.setHiddenNodes`). La Scrivania non la crea: ogni workspace ha la sua (`setupWorkspaces`). Va chiamata prima che un workspace sia impostato.
 - `fillDesk(deskId, layoutKey)`: al primo avvio riempie una Scrivania con gli elementi della vecchia scrivania piatta (`lilos:desktop`, che poi viene eliminata) o con `seed.js`, e scrive le posizioni sotto `layoutKey`.
 
 ---
