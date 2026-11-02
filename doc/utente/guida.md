@@ -507,7 +507,7 @@ Cose da sapere:
 
 ## Rete
 
-**Rete** porta in lilOS i file di un altro computer: un server FTP, un sito con SFTP, un Nextcloud o un altro WebDAV, la condivisione di un NAS o di un PC Windows (SMB), il tuo OneDrive. Ogni connessione diventa una cartella dentro la cartella **Rete**, e si usa come le altre: la apri, ci guardi dentro, ci crei cartelle, rinomini, elimini e copi file trascinandoli.
+**Rete** porta in lilOS i file di un altro computer: un server FTP, un sito con SFTP, un Nextcloud o un altro WebDAV, la condivisione di un NAS o di un PC Windows (SMB), il tuo OneDrive o Google Drive, le foto che scegli da Google Foto, un bucket di Amazon S3 o un contenitore di Azure, una cartella NFS. Ogni connessione diventa una cartella dentro la cartella **Rete**, e si usa come le altre: la apri, ci guardi dentro, ci crei cartelle, rinomini, elimini e copi file trascinandoli.
 
 Le connessioni sono tue: gli altri utenti di lilOS non le vedono. Il collegamento al server lo fa lilOS sul computer in cui gira, non il tuo browser: un trasferimento continua anche se chiudi la pagina.
 
@@ -532,6 +532,7 @@ La connessione compare nella barra a sinistra con un pallino che dice com'è: **
 | **WebDAV** | **Indirizzo** della cartella da aprire, con `https://` (Nextcloud: `…/remote.php/dav/files/<utente>/`), **Utente**, **Password** (per Nextcloud conviene una password per le app) |
 | **SMB** (condivisioni Windows e NAS) | **Server**, **Porta** (445), **Condivisione** (**Elenca…** mostra quelle che il server offre), **Accesso** (**Utente e password** oppure **Ospite**), **Dominio o gruppo di lavoro** (`WORKGROUP`), **Utente**, **Password**, **Consenti connessioni non firmate (solo vecchi NAS: meno sicuro)** (lasciala spenta se il tuo server si collega senza), **Cartella dentro la condivisione** |
 | **OneDrive** | **Accedi con Microsoft** (l'account, niente password) e, se vuoi, **Cartella di OneDrive**: vedi [OneDrive](#onedrive) |
+| **Google Drive**, **Google Foto**, **Amazon S3 e compatibili**, **Azure Blob Storage**, **NFS** | Moduli da installare: vedi [Google Drive, Google Foto, Amazon S3, Azure Blob Storage, NFS](#google-drive-google-foto-amazon-s3-azure-blob-storage-nfs) |
 
 Attenzione alle password: con l'**FTP** semplice e con un indirizzo WebDAV `http://` viaggiano in chiaro sulla rete. Se il server ha FTPS, SFTP o `https://`, usa quelli.
 
@@ -679,14 +680,79 @@ Se apri lilOS con un indirizzo che non è `https://` né `localhost`, sotto l'in
 
 **Documenti Office**: l'interruttore **Il doppio clic apre Office online**.
 
+### Google Drive, Google Foto, Amazon S3, Azure Blob Storage, NFS
+
+Questi cinque protocolli sono **moduli del kernel da installare**: un nuovo lilOS non li ha. Un amministratore li installa dall'**AppStore** (scheda dei moduli del kernel) solo se servono; poi compaiono in **Connetti a un server**, dove l'elenco è diviso in **Server**, **Cloud** e **Rete locale**.
+
+| Protocollo | Campi |
+| --- | --- |
+| **Google Drive** | **Accedi con Google**, **Drive** (vuoto: Il mio Drive; **Elenca…** mostra anche i Drive condivisi della tua organizzazione), **Cartella** (facoltativa) |
+| **Google Foto** | **Accedi con Google**: lilOS vede solo le foto che scegli e gli album che crea (vedi sotto) |
+| **Amazon S3 e compatibili** | **Fornitore** (AWS, Cloudflare R2, Backblaze B2, Wasabi, MinIO o **Altro servizio compatibile con S3** con il suo **Indirizzo del server**), **Regione** (su AWS la trova da sola; per Backblaze B2 è obbligatoria), **ID della chiave di accesso**, **Chiave di accesso segreta**, **Token di sessione** (solo per credenziali temporanee), **Bucket** (**Elenca…**), **Cartella nel bucket** |
+| **Azure Blob Storage** | **Account di archiviazione**, **Accesso**: **Chiave dell'account**, **Token SAS** o **Microsoft Entra (accesso con account)**; **Contenitore** (**Elenca…**), **Cartella nel contenitore**, **Indirizzo personalizzato** (facoltativo: Azurite, cloud nazionali) |
+| **NFS (Linux, NAS)** | **Server**, **Versione** (NFSv3; NFSv4.1 si vede ma non si sceglie ancora), **Cartella esportata** (**Elenca…** mostra quelle che il server esporta), **Autenticazione** (**UID e GID dell'amministratore**; **Kerberos** si vede ma non si sceglie ancora), **Porta NFS** (facoltativa) |
+
+Se al posto dei campi compare **… non è ancora pronto su questo lilOS**, un amministratore deve prima impostare il modulo nel Pannello di controllo (il pulsante porta alla scheda giusta).
+
+**Accedere incollando l'indirizzo.** Google (e Microsoft) rimandano la finestra di accesso solo a lilOS aperto con `https://` o da `http://localhost`. Se apri lilOS in un altro modo (per esempio `http://192.168.1.10:8790`), **Accedi con Google** apre la pagina di Google in una **nuova scheda** e sotto il pulsante compare un campo:
+
+1. Nella nuova scheda accedi con il tuo account e accetta i permessi. La prima volta Google può dire che **l'app non è verificata**: è il progetto di chi amministra il tuo lilOS; se ti fidi, prosegui.
+2. Alla fine la scheda mostra una pagina che **non si apre** (l'indirizzo comincia con `http://127.0.0.1:53682/`). È normale.
+3. Copia **tutto l'indirizzo** di quella pagina dalla barra del browser, incollalo nel campo di lilOS e premi **Continua**. Se incolli l'indirizzo sbagliato, lilOS lo dice e lo richiede.
+
+### Google Drive
+
+- Il Drive diventa una cartella di Rete come le altre; in alto, nella barra, c'è lo spazio usato (**8,2 GB di 15 GB usati**).
+- I **documenti Google** (Documenti, Fogli, Presentazioni, Disegni) hanno un'etichetta accanto al nome (**Documento Google**, **Foglio Google**…). Il **doppio clic** li apre su Google in una nuova scheda. Se li **copi fuori da Drive** (in lilOS o su un altro server) diventano file `.docx`, `.xlsx`, `.pptx` (oppure OpenDocument o PDF, come ha scelto l'amministratore); Google li esporta fino a 10 MB. Moduli, Siti e Mappe si aprono solo sul web e non si copiano.
+- In una cartella di Drive ci possono essere **due file con lo stesso nome**: in lilOS il secondo si vede come **Preventivo (2).pdf**, con l'etichetta **stesso nome su Drive**. Rinominandolo, il nuovo nome vale anche su Drive. Una `/` nei nomi si vede come `／`.
+- **Condivisi con me**, in cima alla connessione (se l'amministratore la lascia attiva), contiene ciò che altri hanno condiviso con te. Lì dentro non si crea, non si rinomina e non si elimina ciò che non è tuo.
+- Le **scorciatoie** di Drive si aprono come cartelle.
+- **Eliminare** manda nel **cestino di Google Drive** (si recupera da drive.google.com).
+- **Apri nel browser** (tasto destro, o nella barra) apre la pagina dell'elemento su Google.
+
+### Google Foto
+
+Dal 2025 Google non lascia più vedere tutta la libreria alle app. Con Google Foto in lilOS si fanno due cose:
+
+- **Importa da Google Foto…** (nella barra della connessione): scegli **Dove copiarle** (di serie `~/Immagini/Google Foto`; **Cambia…** sceglie un'altra cartella), premi **Scegli in una nuova scheda**, seleziona fino a 2000 foto e video nella pagina di Google e premi **Fine**. lilOS dice **N elementi scelti**: premi **Importa** e le copia, originali e con i loro dati, in una cartella con la data e l'ora. La copia va avviata entro un'ora; la segui nella finestra **Trasferimento dati**.
+- Gli **album creati da lilOS** sono le cartelle della connessione. Copiando foto e video in un album li carichi nella tua libreria di Google Foto e nell'album. Una nuova cartella è un nuovo album; un album si rinomina.
+- Google non permette alle app di eliminare o rinominare le foto, né di eliminare gli album: dal menu una foto si **toglie dall'album** (resta nella tua libreria); un album si elimina da photos.google.com.
+
+### Amazon S3 e Azure Blob Storage
+
+- Il bucket (o il contenitore) è una cartella di Rete. Le cartelle lì non esistono davvero (sono parti dei nomi): una cartella vuota la crea lilOS come un oggetto vuoto.
+- **Rinominare** una cartella copia sul server ogni file che contiene e poi elimina l'originale: con molti file ci vuole tempo. Sugli account Azure con spazio dei nomi gerarchico (Data Lake Gen2) è immediato.
+- I file grandi vanno a parti; se il trasferimento si interrompe, il download riparte da dove era arrivato, il caricamento da capo.
+- I file **archiviati** (Glacier, Deep Archive; livello Archivio di Azure) hanno l'etichetta **archiviato** e si leggono solo dopo averli ripristinati dalla console del fornitore.
+- **Eliminare è definitivo** (salvo il versioning del bucket o l'eliminazione temporanea dell'account).
+- Con **Microsoft Entra** il tuo account deve avere un ruolo sui dati dell'account di archiviazione (**Collaboratore ai dati dei BLOB di archiviazione**): altrimenti lilOS lo dice.
+
+### NFS
+
+- Con NFS (versione 3) il server non chiede una password: si fida dei numeri **UID** e **GID** che lilOS gli manda. Per questo non li scrivi tu: li assegna un **amministratore** a ogni utente di lilOS (Pannello di controllo → NFS). Se non te li ha ancora assegnati, collegandoti compare **Un amministratore non ti ha ancora assegnato UID e GID per NFS: chiediglielo**.
+- Se il server rifiuta il collegamento, sul server va permessa la connessione da porte non privilegiate (**insecure** in `/etc/exports`, **Consenti connessioni da porte non privilegiate** su Synology): chiedi a chi lo gestisce.
+- Lettura e scrittura riprendono da dove si erano fermate. In alto c'è lo spazio del disco del server. **Eliminare è definitivo.**
+
+### Le schede Google Drive, Google Foto, Azure Blob Storage e NFS del Pannello di controllo
+
+Ognuna compare solo se il suo modulo è installato. Le impostazioni le cambia solo un amministratore e valgono per tutti; gli altri vedono se il protocollo è **Pronto** o **Non ancora impostato**.
+
+- **Google Drive** e **Google Foto**: il progetto Google Cloud di questo lilOS (**ID client**, **Segreto client**: si scrive una volta, poi compare solo **Impostato** e si può sostituire o togliere; **Tipo di client**: **Applicazione web** o **App desktop**, con cui l'accesso è sempre incollando l'indirizzo). Per Google Drive anche **Mostra «Condivisi con me»** e **Documenti Google copiati fuori da Drive** (Office, OpenDocument o PDF). Sotto, gli **Indirizzi da registrare** nel progetto Google (con **Copia**) e i passi per creare il progetto. Si può usare lo stesso progetto per Drive e per Foto.
+- **Azure Blob Storage**: l'app su Azure per l'accesso con **Microsoft Entra** (ID dell'applicazione e directory), gli indirizzi da registrare e i passi. Con la chiave dell'account o un token SAS non serve niente.
+- **NFS**: **UID e GID di ogni utente**, una riga per utente (`mario = 1026:100`, altri gruppi dopo una virgola: `anna = 1027:100,101`), e il tuo nome utente da scrivere nella riga.
+
 ### Cosa non è ancora possibile
 
 - Cercare i server in automatico: l'indirizzo lo scrivi tu.
 - **SMB** solo nelle versioni 2 e 3 (quelle dei Windows e dei NAS recenti): i server che parlano solo SMB1 (CIFS) non funzionano. Non c'è ancora l'accesso con Kerberos.
 - Fermare un trasferimento in un altro modo che con **Annulla**.
-- Le cartelle di FTP, SFTP e WebDAV non si aggiornano da sole (solo SMB): vanno riaperte.
+- Le cartelle di FTP, SFTP, WebDAV, OneDrive, Google Drive, S3, Azure e NFS non si aggiornano da sole (solo SMB): vanno riaperte.
 - Spostare (non copiare) tra le tue cartelle e un server: si copia e poi si elimina a mano.
 - **OneDrive**: modificare un documento Office dentro lilOS (si apre in Office per il web, in una scheda del browser); l'elenco «Condivisi con me» di Microsoft (si usano i collegamenti, vedi sopra); un accesso con lilOS aperto da un indirizzo `http://` che non sia `localhost`.
+- **Google Drive**: modificare i documenti Google dentro lilOS (si aprono su Google); un caricamento interrotto riparte da capo.
+- **Google Foto**: vedere tutta la libreria (Google non lo permette più alle app), eliminare foto o album.
+- **Amazon S3** e **Azure**: un link temporaneo per condividere un file; ripristinare dall'archivio i file archiviati.
+- **NFS**: la versione 4.1 e l'accesso con Kerberos (arriveranno), i blocchi sui file.
 ## L'Editor
 
 L'**Editor** apre e modifica i file di testo e di codice (txt, md, js, css, html, json, py e altri). Un amministratore può rimuoverlo dall'[AppStore](#lappstore); chiunque può nasconderlo nel proprio workspace. Si apre facendo doppio clic su un file, dal menu di avvio o con **Ctrl Alt N** per un documento nuovo.

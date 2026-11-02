@@ -1355,3 +1355,42 @@ lilOS legge il file **prima** di avviare l'app e le dà le stringhe già risolte
 - Chi mostra i nodi per tipo (app di sistema, app installate) deve conoscere `link`.
 
 **Quando ripensarla.** Se il database e i moduli `fs-*` si aggiornano insieme al core (allora un tipo vero è più pulito), se servono collegamenti a cose che non sono file, cartelle o pagine web (app, comandi), o se i server danno identificatori stabili da usare al posto del percorso.
+
+## D63. Google Drive, Google Foto, S3, Azure e NFS: moduli da installare, accesso incollando l'indirizzo e un client NFS nostro
+
+**Decisione.** Cinque nuovi protocolli della Rete, ognuno un modulo del repository ufficiale (`netfs-gdrive`, `netfs-gphotos`, `netfs-s3`, `netfs-azblob`, `netfs-nfs`), **solo nel catalogo**: un'installazione nuova non li ha, l'amministratore li installa dall'AppStore. Nessuno ha dipendenze. Deciso con l'utente il 2 novembre 2026 (render `design/rete-cloud.html`), costruito lo stesso giorno sul ramo `cloud`.
+
+- **Google: il progetto è di ogni installazione**, come l'app Azure di OneDrive ([D60](#d60-onedrive-nella-rete-laccesso-con-la-finestra-del-fornitore-e-le-impostazioni-dei-moduli)). Google vuole anche un **segreto client**: le impostazioni dei moduli hanno ora i campi `password`, tenuti cifrati in `config.json` e mai rimandati alla pagina.
+- **L'accesso si fa nella finestra, oppure incollando l'indirizzo.** Google rimanda la finestra solo a `https://` con un nome di dominio o a `localhost`. Altrove la pagina del fornitore si apre in una scheda, finisce su `http://127.0.0.1:53682/` (una pagina che non si apre) e l'utente ne incolla l'indirizzo in lilOS (`signIn.manual`, `POST /api/net/signin/:id/paste`). Con un client Google di tipo «App desktop» è sempre così (`signIn.onlyManual`). Vale anche per Azure con Microsoft Entra.
+- **Due moduli Google separati**, Drive e Foto, ognuno con le sue impostazioni (possono usare lo stesso progetto).
+- **Documenti Google copiati in formato Office** (`.docx`, `.xlsx`, `.pptx`); l'amministratore può scegliere OpenDocument o PDF. Nel contratto dei protocolli sono elementi `web` con `export`; il doppio clic li apre su Google.
+- **Google Foto: importare in una cartella di lilOS.** Dal 31 marzo 2025 Google non fa leggere la libreria alle app: si scelgono le foto nel Picker di Google (`importer` del protocollo) e il kernel le copia nella cartella scelta (di serie `~/Immagini/Google Foto/<data ora>`). Gli album creati da lilOS sono le cartelle della connessione; le foto non si eliminano né si rinominano (Google non lo permette): si tolgono dall'album.
+- **Niente link temporanei** per S3 e Azure.
+- **NFS: UID e GID li assegna sempre l'amministratore**, per ogni utente di lilOS (impostazione `identities` del modulo), anche con un solo utente: gli utenti non li scrivono. Senza assegnazione la connessione non si apre. **Kerberos** e **NFSv4.1** si vedono nella finestra ma non si scelgono (`options[].disabled`).
+- **La libreria NFSv3 è nostra e sta solo nel modulo** (`lib/`): XDR, ONC RPC su TCP, portmapper, MOUNT v3, NFS v3.
+- Aggiunte generiche al contratto: `group` (Server, Cloud, Rete locale nell'elenco), elementi con `web`/`export`, `badge`, `can`, `removeLabel`, `removeText`; sessioni con `space()` e `importer`; `user` in `connect`.
+
+**Perché.**
+
+- **Solo nel catalogo** perché sono servizi che la maggior parte delle installazioni non usa, e Google e Azure chiedono un progetto o un'app registrati dall'amministratore: un modulo attivo ma «non pronto» in ogni lilOS sarebbe rumore. Chi li vuole li installa.
+- **Incollare l'indirizzo** perché molti lilOS sono aperti dalla rete locale su `http://`, e Google non accetta quell'indirizzo di ritorno: senza questa via Google Drive funzionerebbe solo con un dominio e un certificato. Il codice che l'utente incolla non basta da solo a nessuno: il `verifier` PKCE e il segreto stanno nel kernel.
+- **Il segreto client cifrato** perché Google lo chiede anche con PKCE, e in `config.json` in chiaro finirebbe nelle copie di sicurezza.
+- **UID e GID dall'amministratore** perché con AUTH_SYS il server crede ai numeri che riceve: chi può sceglierli può leggere i file di chiunque su quel server. Deciderli è un atto di chi amministra, non di chi si collega.
+- **Una libreria NFS nostra** perché su npm non c'è un client NFS in JavaScript (`node-nfsc` è nativo e solo per Linux, `node-nfs` di Joyent fa il server) e montare dal sistema operativo vuole privilegi e non c'è su Windows Home.
+- **Firme fatte da noi** (SigV4 per S3, Shared Key per Azure) perché gli SDK ufficiali pesano decine di MB per poche richieste.
+
+**Alternative scartate.**
+
+- Moduli attivi di serie in ogni nuova installazione; un solo modulo `netfs-google` con i due protocolli; il formato dei documenti Google scelto da ogni utente; link temporanei (URL prefirmati e SAS); UID e GID scritti da ogni utente; pubblicare la libreria NFS come pacchetto a parte; una cartella temporanea «Scelte» in Google Foto da cui trascinare (decisioni dell'utente).
+- L'accesso a codice di Google (dispositivi con input limitato): non dà l'ambito `drive` completo.
+
+**Conseguenze.**
+
+- Servono lilOS 1.14.0 (kernel e SDK 0.8.0), File Manager 1.13.0 e Pannello di controllo 1.15.0 (schede Google Drive, Google Foto, Azure Blob Storage, NFS). netfs-onedrive 1.1.0 dà anche lo spazio usato.
+- Google: un'app non verificata con l'ambito `drive` ha al massimo 100 utenti e in «Test» l'accesso scade dopo 7 giorni (va pubblicata, o «Interno» con Workspace). La prima volta Google avvisa che l'app non è verificata.
+- In S3 e Azure senza spazio dei nomi gerarchico rinominare una cartella copia ogni file sul server; NFS sostituisce il file di destinazione in `RENAME`, quindi il driver controlla prima.
+- NFS: molti server vogliono una porta sotto 1024; il kernel la ottiene su Windows o con privilegi, altrimenti il server va configurato `insecure`.
+- Le dimensioni che il fornitore non dice (foto di Google Foto, documenti esportati) sono 0 finché la copia non finisce.
+- Provati con server finti o in Docker (Google finto, RustFS per S3, Azurite, NFS-Ganesha): mai contro i servizi veri.
+
+**Quando ripensarla.** Se Google riapre la lettura della libreria di Foto; se serve Kerberos (con quello di SMB) o NFSv4.1 (AWS EFS, Azure Files NFS); se un fornitore offre notifiche dei cambiamenti senza un indirizzo pubblico; se il codice comune dei moduli (OAuth, firme, XML) conviene metterlo in un pacchetto condiviso.

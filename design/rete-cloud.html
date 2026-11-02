@@ -1,0 +1,766 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>lilOS — Cloud e NFS in Rete</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --accent: #3b6ef5; --accent-soft: #e8eefe; --danger: #e5484d; --success: #30a46c; --warning: #d9822b;
+    --text: #1f2328; --dim: #6b7280; --faint: #9aa1ad;
+    --surface: #ffffff; --chrome: #f4f5f7; --hover: #eceef1; --border: #e2e4e8; --side: #fafafb; --stripe: #fafbfc;
+    --notice-bg: #fff8e6; --notice-border: #f0dca8; --notice-text: #b7791f;
+    --canvas: #1f2227; --canvas-dot: rgba(255,255,255,.09); --on-canvas: #e9ebef;
+    --bar: #16181d; --bar-border: #2a2d34; --bar-text: #d7dae0; --bar-dim: #8a909b; --bar-hover: rgba(255,255,255,.08);
+    --panel: rgba(24,26,31,.97); --panel-border: #2c3038;
+    --radius-sm: 4px; --radius: 7px; --taskbar-h: 34px;
+    --font: Manrope, system-ui, "Segoe UI", sans-serif; --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font: 12.5px/1.4 var(--font); color: var(--text); background: #0f1114; -webkit-font-smoothing: antialiased; padding: 28px 16px 60px; }
+  button, select, input { font: inherit; color: inherit; }
+  button { background: none; border: 0; cursor: pointer; }
+  svg { display: block; }
+  .ico { width: 15px; height: 15px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* ---------- Page of scenes ---------- */
+  .scene { max-width: 1180px; margin: 0 auto 44px; }
+  .scene > h2 { color: #fff; font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  .scene > p { color: #a3a9b4; font-size: 12.5px; max-width: 900px; margin-bottom: 12px; }
+  .scene > p b { color: #e4e7ec; font-weight: 600; }
+  .screen { position: relative; height: 640px; border-radius: 10px; overflow: hidden; background: var(--canvas); box-shadow: 0 0 0 1px #2a2d34; }
+  .desk { position: absolute; inset: 0 0 var(--taskbar-h) 0; background-image: radial-gradient(circle, var(--canvas-dot) 1px, transparent 1.3px); background-size: 24px 24px; }
+  .callout { position: absolute; z-index: 20; background: #ffd84d; color: #2a2300; font-size: 11.5px; font-weight: 600; padding: 4px 8px; border-radius: 5px; box-shadow: 0 2px 8px rgba(0,0,0,.4); max-width: 230px; }
+  .callout::before { content: attr(data-n); display: inline-grid; place-items: center; width: 16px; height: 16px; border-radius: 50%; background: #2a2300; color: #ffd84d; font-size: 10px; margin-right: 6px; }
+
+  /* ---------- Window ---------- */
+  .window { position: absolute; display: flex; flex-direction: column; background: var(--surface); border-radius: var(--radius); overflow: hidden; box-shadow: 0 0 0 1px rgba(0,0,0,.25), 0 10px 28px -8px rgba(0,0,0,.5); }
+  .window.inactive .titlebar { background: var(--side); }
+  .window.inactive .title { color: var(--faint); }
+  .titlebar { height: 30px; flex: none; display: flex; align-items: center; padding: 0 4px 0 10px; gap: 8px; background: var(--chrome); border-bottom: 1px solid var(--border); }
+  .title { flex: 1; display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; }
+  .title .ico { width: 14px; height: 14px; color: var(--dim); }
+  .title em { font-style: normal; color: var(--faint); font-weight: 400; }
+  .controls { display: flex; }
+  .controls button { width: 28px; height: 24px; border-radius: var(--radius-sm); color: var(--dim); display: grid; place-items: center; }
+  .controls button:hover { background: var(--hover); color: var(--text); }
+  .controls button.close:hover { background: var(--danger); color: #fff; }
+  .controls .ico { width: 12px; height: 12px; }
+
+  /* ---------- Buttons / fields ---------- */
+  .btn { height: 26px; padding: 0 11px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: #fff; display: inline-flex; align-items: center; gap: 6px; font-weight: 500; white-space: nowrap; }
+  .btn:hover { background: var(--hover); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn.danger { color: var(--danger); }
+  .btn.danger:hover { background: #fdecec; }
+  .btn .ico { width: 13px; height: 13px; }
+  .iconbtn { width: 24px; height: 24px; display: grid; place-items: center; border-radius: var(--radius-sm); color: var(--dim); }
+  .iconbtn:hover { background: var(--hover); color: var(--text); }
+  .iconbtn.x:hover { background: #fdecec; color: var(--danger); }
+  .iconbtn .ico { width: 13px; height: 13px; }
+
+  /* ---------- File Manager ---------- */
+  .fm { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+  .fm-tools { height: 38px; flex: none; display: flex; align-items: center; gap: 4px; padding: 0 8px; border-bottom: 1px solid var(--border); }
+  .fm-path { flex: 1; height: 26px; display: flex; align-items: center; gap: 2px; padding: 0 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 12px; color: var(--dim); overflow: hidden; white-space: nowrap; }
+  .fm-path b { color: var(--text); font-weight: 500; }
+  .fm-path .sep { color: var(--faint); padding: 0 2px; }
+  .fm-body { flex: 1; display: flex; min-height: 0; }
+  .fm-side { width: 188px; flex: none; background: var(--side); border-right: 1px solid var(--border); padding: 6px; overflow: auto; }
+  .fm-side h6 { font-size: 10.5px; font-weight: 600; color: var(--faint); text-transform: uppercase; letter-spacing: .05em; padding: 10px 6px 3px; display: flex; align-items: center; }
+  .fm-side h6 span { flex: 1; }
+  .fm-side h6 .iconbtn { width: 18px; height: 18px; }
+  .place { height: 26px; display: flex; align-items: center; gap: 8px; padding: 0 6px; border-radius: var(--radius-sm); white-space: nowrap; overflow: hidden; }
+  .place:hover { background: var(--hover); }
+  .place[aria-current] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+  .place .ico { color: var(--dim); }
+  .place[aria-current] .ico { color: var(--accent); }
+  .place .nm { flex: 1; overflow: hidden; text-overflow: ellipsis; }
+  .proto { font-size: 9.5px; font-weight: 700; letter-spacing: .03em; padding: 1px 4px; border-radius: 3px; background: #e9ecf1; color: #59606c; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+  .dot.on { background: var(--success); }
+  .dot.off { background: var(--toggle-off, #cdd1d8); }
+  .dot.busy { background: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .fm-main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .mount-bar { display: flex; align-items: center; gap: 8px; padding: 6px 12px; background: var(--stripe); border-bottom: 1px solid var(--border); font-size: 11.5px; color: var(--dim); }
+  .mount-bar .ico { width: 13px; height: 13px; color: var(--success); }
+  .mount-bar code { font-family: var(--mono); font-size: 11px; color: var(--text); }
+  .mount-bar .sp { flex: 1; }
+  .list { flex: 1; overflow: auto; }
+  .row { display: grid; grid-template-columns: 1fr 120px 90px 140px; align-items: center; height: 28px; padding: 0 12px; border-bottom: 1px solid #f1f2f4; white-space: nowrap; }
+  .row.head { height: 26px; font-size: 11px; color: var(--faint); font-weight: 600; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: #fff; }
+  .row .n { display: flex; align-items: center; gap: 8px; overflow: hidden; }
+  .row .n .ico { color: var(--dim); }
+  .row .n .ico.folder { color: #e0a63b; }
+  .row.sel { background: var(--accent-soft); }
+  .row.ghost { opacity: .55; }
+  .row .m { color: var(--dim); font-size: 11.5px; }
+  .row .tag-up { font-size: 10.5px; color: var(--accent); font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
+  .row .tag-up .ico { width: 11px; height: 11px; color: var(--accent); }
+  .fm-status { height: 24px; flex: none; display: flex; align-items: center; padding: 0 12px; font-size: 11px; color: var(--faint); border-top: 1px solid var(--border); background: var(--side); gap: 12px; }
+
+  /* ---------- Context menu ---------- */
+  .menu { position: absolute; z-index: 15; min-width: 210px; background: var(--panel); border: 1px solid var(--panel-border); border-radius: var(--radius); padding: 4px; color: var(--bar-text); box-shadow: 0 12px 32px -8px rgba(0,0,0,.55); }
+  .menu div { height: 26px; display: flex; align-items: center; gap: 8px; padding: 0 8px; border-radius: var(--radius-sm); }
+  .menu div.hi { background: var(--bar-hover); color: #fff; }
+  .menu div .k { margin-left: auto; color: var(--bar-dim); font-size: 11px; }
+  .menu hr { border: 0; border-top: 1px solid var(--panel-border); margin: 4px 2px; }
+  .menu .ico { width: 13px; height: 13px; }
+
+  /* ---------- Dialog ---------- */
+  .dlg-body { padding: 14px 16px; display: grid; gap: 11px; }
+  .seg { display: flex; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }
+  .seg button { flex: 1; height: 28px; font-weight: 600; font-size: 12px; color: var(--dim); border-right: 1px solid var(--border); }
+  .seg button:last-child { border-right: 0; }
+  .seg button[aria-pressed=true] { background: var(--accent-soft); color: var(--accent); }
+  .field { display: grid; gap: 4px; }
+  .field label { font-size: 11.5px; color: var(--dim); font-weight: 500; }
+  .input { height: 28px; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0 8px; display: flex; align-items: center; background: #fff; }
+  .input.mono { font-family: var(--mono); font-size: 11.5px; }
+  .input.focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+  .input .ph { color: var(--faint); }
+  .grid2 { display: grid; grid-template-columns: 1fr 86px; gap: 8px; }
+  .grid2b { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .check { display: flex; align-items: center; gap: 8px; }
+  .box { width: 14px; height: 14px; border: 1.5px solid #b9bfc9; border-radius: 3px; display: grid; place-items: center; }
+  .box.on { background: var(--accent); border-color: var(--accent); }
+  .box.on::after { content: ""; width: 7px; height: 4px; border: 2px solid #fff; border-top: 0; border-right: 0; transform: rotate(-45deg) translate(1px, -1px); }
+  .hint { font-size: 11px; color: var(--faint); }
+  .dlg-foot { display: flex; gap: 8px; justify-content: flex-end; padding: 10px 16px; border-top: 1px solid var(--border); background: var(--side); }
+  .dlg-foot .left { margin-right: auto; }
+  .note { border: 1px solid var(--notice-border); background: var(--notice-bg); color: #6b5212; border-radius: var(--radius-sm); padding: 8px 10px; font-size: 11.5px; display: grid; gap: 4px; }
+  .note b { color: var(--notice-text); }
+  .note code { font-family: var(--mono); font-size: 10.5px; word-break: break-all; color: var(--text); }
+
+  /* ---------- Trasferimento dati ---------- */
+  .tx { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+  .tx-sum { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 12px 14px 10px; border-bottom: 1px solid var(--border); }
+  .meter { display: grid; gap: 5px; }
+  .meter .top { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--dim); }
+  .meter .top b { font-size: 15px; color: var(--text); font-weight: 700; font-variant-numeric: tabular-nums; }
+  .meter .top .ico { width: 14px; height: 14px; }
+  .meter .top .r { margin-left: auto; font-variant-numeric: tabular-nums; }
+  .up .top .ico { color: var(--accent); }
+  .down .top .ico { color: var(--success); }
+  .bar { height: 6px; border-radius: 3px; background: #edf0f4; overflow: hidden; }
+  .bar i { display: block; height: 100%; border-radius: 3px; background: var(--accent); }
+  .down .bar i { background: var(--success); }
+  .meter .sub { font-size: 11px; color: var(--faint); font-variant-numeric: tabular-nums; }
+  .tx-list { flex: 1; overflow: auto; }
+  .q-group { border-bottom: 1px solid var(--border); }
+  .q-head { display: flex; align-items: center; gap: 8px; padding: 9px 14px 6px; }
+  .q-head .dir { display: flex; align-items: center; gap: 6px; font-weight: 600; font-size: 12px; min-width: 0; }
+  .q-head .dir span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .q-head .dir .ico { width: 13px; height: 13px; color: var(--dim); }
+  .q-head .cnt { color: var(--faint); font-size: 11px; white-space: nowrap; }
+  .q-head .sp { flex: 1; }
+  .current { margin: 0 14px 8px; padding: 9px 10px; border: 1px solid #d8e2fd; background: #f6f8ff; border-radius: var(--radius); display: grid; gap: 6px; }
+  .current .l1 { display: flex; align-items: center; gap: 8px; }
+  .current .fname { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .current .from { font-size: 11px; color: var(--dim); font-family: var(--mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .current .pct { margin-left: auto; font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .current .l3 { display: flex; font-size: 11px; color: var(--dim); font-variant-numeric: tabular-nums; gap: 12px; }
+  .current .l3 .sp { flex: 1; }
+  .q-item { display: grid; grid-template-columns: 18px 1fr 92px 82px 24px; align-items: center; gap: 6px; height: 28px; padding: 0 10px 0 14px; white-space: nowrap; }
+  .q-item:hover { background: var(--stripe); }
+  .q-item .ico { color: var(--dim); }
+  .q-item .ico.folder { color: #e0a63b; }
+  .q-item .nm { overflow: hidden; text-overflow: ellipsis; }
+  .q-item .nm small { color: var(--faint); font-size: 11px; margin-left: 6px; }
+  .q-item .sz { color: var(--dim); font-size: 11.5px; text-align: right; font-variant-numeric: tabular-nums; }
+  .q-item .st { font-size: 11px; color: var(--faint); text-align: right; }
+  .q-item .st.ok { color: var(--success); }
+  .q-item .st.err { color: var(--danger); }
+  .q-item.child { padding-left: 34px; grid-template-columns: 18px 1fr 92px 82px 24px; }
+  .q-item.fresh { background: #fffbea; }
+  .q-item.fresh .st { color: var(--notice-text); font-weight: 600; }
+  .q-item .chev { width: 11px; height: 11px; color: var(--faint); }
+  .conflict { margin: 4px 14px 10px; padding: 9px 10px; border: 1px solid var(--notice-border); background: var(--notice-bg); border-radius: var(--radius); display: grid; gap: 8px; }
+  .conflict .t { display: flex; gap: 8px; align-items: flex-start; }
+  .conflict .t .ico { color: var(--warning); margin-top: 1px; }
+  .conflict .t b { font-weight: 600; }
+  .conflict .t small { display: block; color: var(--dim); font-size: 11px; margin-top: 2px; }
+  .conflict .a { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .conflict .a .check { margin-left: auto; font-size: 11.5px; color: var(--dim); }
+  .tx-foot { display: flex; align-items: center; gap: 8px; padding: 9px 14px; border-top: 1px solid var(--border); background: var(--side); }
+  .tx-foot .info { font-size: 11px; color: var(--faint); margin-right: auto; display: flex; gap: 6px; align-items: center; }
+  .tx-foot .info .ico { width: 13px; height: 13px; }
+
+  /* ---------- Taskbar ---------- */
+  .taskbar { position: absolute; left: 0; right: 0; bottom: 0; height: var(--taskbar-h); background: var(--bar); border-top: 1px solid var(--bar-border); display: flex; align-items: center; padding: 0 6px; gap: 4px; color: var(--bar-text); }
+  .tb-btn { height: 26px; display: flex; align-items: center; gap: 7px; padding: 0 9px; border-radius: var(--radius-sm); color: var(--bar-text); font-size: 12px; }
+  .tb-btn:hover { background: var(--bar-hover); }
+  .tb-btn.active { background: rgba(255,255,255,.1); }
+  .tb-btn .ico { width: 14px; height: 14px; }
+  .tb-sp { flex: 1; }
+  .tray { display: flex; align-items: center; gap: 2px; }
+  .tray .tb-btn { padding: 0 7px; }
+  .ring { width: 18px; height: 18px; position: relative; }
+  .ring svg { width: 18px; height: 18px; transform: rotate(-90deg); }
+  .ring .ico { position: absolute; inset: 4px; width: 10px; height: 10px; }
+  .clock { font-size: 12px; color: var(--bar-dim); padding: 0 8px; font-variant-numeric: tabular-nums; }
+  .tip { position: absolute; z-index: 12; background: var(--panel); border: 1px solid var(--panel-border); color: var(--bar-text); border-radius: var(--radius); padding: 8px 10px; font-size: 11.5px; width: 230px; box-shadow: 0 12px 32px -8px rgba(0,0,0,.55); display: grid; gap: 5px; }
+  .tip b { color: #fff; font-weight: 600; }
+  .tip .bar { background: #2c3038; height: 4px; }
+  .tip small { color: var(--bar-dim); font-size: 11px; }
+
+  /* ---------- Notification ---------- */
+  .notif { position: absolute; z-index: 12; width: 300px; background: var(--panel); border: 1px solid var(--panel-border); color: var(--bar-text); border-radius: var(--radius); padding: 10px 12px; display: grid; grid-template-columns: 22px 1fr; gap: 4px 10px; box-shadow: 0 12px 32px -8px rgba(0,0,0,.55); }
+  .notif .ico { color: var(--success); width: 18px; height: 18px; }
+  .notif b { color: #fff; font-weight: 600; }
+  .notif small { grid-column: 2; color: var(--bar-dim); font-size: 11.5px; }
+  .notif a { grid-column: 2; color: #8fb0ff; font-size: 11.5px; font-weight: 600; text-decoration: none; }
+
+  @media (max-width: 760px) { .screen { height: auto; min-height: 640px; overflow-x: auto; } }
+
+  /* ---------- OneDrive ---------- */
+  .proto.od { background: #e3efff; color: #0f5bb5; }
+  .ms-btn { height: 32px; padding: 0 12px; border-radius: var(--radius-sm); border: 1px solid #8c8c8c; background: #fff; display: inline-flex; align-items: center; gap: 10px; font-weight: 600; }
+  .ms-logo { width: 14px; height: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 1px; }
+  .ms-logo i { display: block; }
+  .ms-logo i:nth-child(1) { background: #f25022; } .ms-logo i:nth-child(2) { background: #7fba00; }
+  .ms-logo i:nth-child(3) { background: #00a4ef; } .ms-logo i:nth-child(4) { background: #ffb900; }
+  .codebox { border: 1px solid #d8e2fd; background: #f6f8ff; border-radius: var(--radius); padding: 14px; display: grid; gap: 10px; justify-items: start; }
+  .codebox .step { display: flex; gap: 8px; align-items: baseline; }
+  .codebox .step b { display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: var(--accent); color: #fff; font-size: 10.5px; flex: none; }
+  .codebox .code { font-family: var(--mono); font-size: 24px; font-weight: 500; letter-spacing: .12em; padding: 6px 14px; background: #fff; border: 1px solid var(--border); border-radius: var(--radius-sm); }
+  .codebox a { color: var(--accent); font-weight: 600; text-decoration: none; }
+  .wait { display: flex; align-items: center; gap: 8px; color: var(--dim); font-size: 11.5px; }
+  .spin { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--accent-soft); border-top-color: var(--accent); }
+  .account { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); }
+  .account .av { width: 28px; height: 28px; border-radius: 50%; background: #0f5bb5; color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 11px; }
+  .account .who { flex: 1; display: grid; }
+  .account .who small { color: var(--faint); font-size: 11px; }
+  .account .ok { color: var(--success); width: 16px; height: 16px; }
+  .steps { margin: 0 0 0 18px; display: grid; gap: 3px; color: var(--dim); font-size: 11.5px; }
+  .steps b { color: var(--text); font-weight: 600; }
+  .steps code, .spec code { font-family: var(--mono); font-size: 10.5px; color: var(--text); background: #f1f3f6; padding: 0 3px; border-radius: 3px; }
+  .ext { display: inline-grid; place-items: center; width: 15px; height: 15px; border-radius: 3px; color: #fff; font-size: 9px; font-weight: 800; flex: none; }
+  .ext.w { background: #185abd; } .ext.x { background: #107c41; } .ext.p { background: #c43e1c; } .ext.n { background: #7719aa; }
+  .menu .sub { color: var(--bar-dim); font-size: 11px; margin-left: auto; }
+  .ask { position: absolute; z-index: 14; width: 400px; background: var(--surface); border-radius: var(--radius); box-shadow: 0 0 0 1px rgba(0,0,0,.25), 0 16px 40px -8px rgba(0,0,0,.6); overflow: hidden; }
+  .ask .body { padding: 16px; display: grid; grid-template-columns: 26px 1fr; gap: 6px 12px; }
+  .ask .body .ico { width: 22px; height: 22px; color: var(--warning); }
+  .ask .body b { font-weight: 600; font-size: 13px; }
+  .ask .body p { grid-column: 2; color: var(--dim); }
+  .settings { flex: 1; display: flex; min-height: 0; }
+  .st-side { width: 170px; background: var(--side); border-right: 1px solid var(--border); padding: 8px 6px; }
+  .st-main { flex: 1; padding: 14px 18px; overflow: auto; display: grid; gap: 12px; align-content: start; }
+  .card { border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; display: grid; grid-template-columns: 34px 1fr auto; gap: 4px 12px; align-items: start; }
+  .card .ic { width: 34px; height: 34px; border-radius: 7px; background: #0f5bb5; display: grid; place-items: center; color: #fff; }
+  .card .ic .ico { width: 18px; height: 18px; }
+  .card h4 { font-size: 13px; font-weight: 600; }
+  .card small { color: var(--dim); grid-column: 2 / 4; }
+  .card .acts { grid-row: span 2; display: flex; gap: 6px; }
+  .badge { font-size: 10px; font-weight: 700; padding: 1px 5px; border-radius: 3px; background: #e6f4ea; color: #1e7a46; margin-left: 6px; }
+  .spec { max-width: 1180px; margin: 0 auto 44px; display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 14px; }
+  .spec > div { background: #181b20; border: 1px solid #2a2d34; border-radius: 10px; padding: 14px 16px; color: #c9ced6; }
+  .spec h3 { color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 8px; display: flex; gap: 8px; align-items: center; }
+  .spec h3 .proto { font-size: 9.5px; }
+  .spec ul { margin-left: 16px; display: grid; gap: 4px; font-size: 12px; }
+  .spec code { background: #262a31; color: #e4e7ec; }
+  .spec b { color: #fff; font-weight: 600; }
+  .spec.q > div { border-color: #5a4a1a; background: #1d1a12; }
+  .spec.q h3 { color: #ffd84d; }
+
+  /* ---------- Cloud e NFS ---------- */
+  .proto.gd { background: #e6f4ea; color: #137333; }
+  .proto.gp { background: #fdeee0; color: #b0510c; }
+  .proto.s3 { background: #fff1d6; color: #9a5b00; }
+  .proto.az { background: #e3f1fb; color: #0b5a91; }
+  .proto.nfs { background: #efe8fb; color: #5b3aa8; }
+  .proto.od { background: #e3efff; color: #0f5bb5; }
+  .g-btn { height: 32px; padding: 0 12px; border-radius: var(--radius-sm); border: 1px solid #dadce0; background: #fff; display: inline-flex; align-items: center; gap: 10px; font-weight: 600; }
+  .g-logo { width: 16px; height: 16px; border-radius: 50%; background: conic-gradient(#ea4335 0 25%, #fbbc05 0 50%, #34a853 0 75%, #4285f4 0); position: relative; }
+  .g-logo::after { content: ""; position: absolute; inset: 4px; border-radius: 50%; background: #fff; }
+  .dd { position: absolute; z-index: 16; background: #fff; border: 1px solid var(--border); border-radius: var(--radius); box-shadow: 0 12px 32px -8px rgba(0,0,0,.45); padding: 4px; width: 280px; }
+  .dd h6 { font-size: 10px; font-weight: 700; color: var(--faint); text-transform: uppercase; letter-spacing: .05em; padding: 7px 8px 3px; }
+  .dd div { height: 26px; display: flex; align-items: center; gap: 8px; padding: 0 8px; border-radius: var(--radius-sm); }
+  .dd div.hi { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+  .dd div .new { margin-left: auto; font-size: 9.5px; font-weight: 700; color: #1e7a46; background: #e6f4ea; padding: 1px 5px; border-radius: 3px; }
+  .dd div .proto { width: 34px; text-align: center; }
+  .gdoc { display: inline-grid; place-items: center; width: 15px; height: 15px; border-radius: 3px; color: #fff; font-size: 9px; font-weight: 800; flex: none; }
+  .gdoc.d { background: #4285f4; } .gdoc.s { background: #0f9d58; } .gdoc.p { background: #f4b400; }
+  .chip { font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 9px; background: #eef0f3; color: var(--dim); margin-left: 6px; }
+  .chip.warn { background: var(--notice-bg); color: var(--notice-text); }
+  .chip.web { background: #e8f0fe; color: #1a5ad7; }
+  .chip.cold { background: #e9f3fb; color: #2a6a9e; }
+  .row.c5 { grid-template-columns: 1fr 110px 90px 130px; }
+  .popup { position: absolute; z-index: 13; background: #fff; border-radius: var(--radius); overflow: hidden; box-shadow: 0 0 0 1px rgba(0,0,0,.25), 0 16px 40px -8px rgba(0,0,0,.6); display: flex; flex-direction: column; }
+  .popup .url { height: 26px; display: flex; align-items: center; gap: 6px; padding: 0 10px; background: #f1f3f4; border-bottom: 1px solid #dadce0; font-size: 11px; color: #5f6368; font-family: var(--mono); }
+  .popup .url .ico { width: 11px; height: 11px; color: #188038; }
+  .popup .gbody { padding: 18px 22px; display: grid; gap: 10px; }
+  .popup .gbody h5 { font-size: 16px; font-weight: 500; }
+  .popup .gbody p { color: #5f6368; font-size: 11.5px; }
+  .popup .gbody .warnbox { border: 1px solid #f6c7a4; background: #fef3ea; color: #8a4a12; padding: 8px 10px; border-radius: 6px; font-size: 11.5px; }
+  .popup .gbody .gacts { display: flex; justify-content: flex-end; gap: 8px; }
+  .popup .gbody .gacts span { padding: 6px 14px; border-radius: 16px; font-weight: 600; font-size: 12px; }
+  .popup .gbody .gacts .p { background: #1a73e8; color: #fff; }
+  .popup .gbody .gacts .s { color: #1a73e8; }
+  .photos { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; }
+  .photos i { aspect-ratio: 1; border-radius: 3px; display: block; position: relative; }
+  .photos i.on::after { content: ""; position: absolute; top: 4px; left: 4px; width: 12px; height: 12px; border-radius: 50%; background: #1a73e8; box-shadow: 0 0 0 2px #fff; }
+  .stepper { display: grid; gap: 10px; }
+  .stp { display: grid; grid-template-columns: 22px 1fr; gap: 4px 10px; align-items: start; }
+  .stp > b { display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--accent); color: #fff; font-size: 10.5px; }
+  .stp.done > b { background: var(--success); }
+  .stp.todo > b { background: #cdd1d8; }
+  .stp .t { font-weight: 600; }
+  .stp .d { grid-column: 2; display: grid; gap: 6px; }
+  .matrix { max-width: 1180px; margin: 0 auto 44px; overflow-x: auto; }
+  .matrix table { width: 100%; border-collapse: collapse; background: #181b20; border: 1px solid #2a2d34; border-radius: 10px; overflow: hidden; color: #c9ced6; font-size: 12px; }
+  .matrix th, .matrix td { padding: 7px 10px; border-bottom: 1px solid #262a31; text-align: left; vertical-align: top; }
+  .matrix th { color: #fff; font-weight: 600; font-size: 11.5px; background: #1d2026; }
+  .matrix td.y { color: #6fd39b; } .matrix td.n { color: #ff8a8e; } .matrix td.p { color: #ffd84d; }
+  .matrix tr:last-child td { border-bottom: 0; }
+  .seg.sm button { height: 24px; font-size: 11.5px; }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></symbol>
+    <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="m21 16-5-5-9 9"/></symbol>
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/></symbol>
+    <symbol id="i-desk" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></symbol>
+    <symbol id="i-doc" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M9 13h6M9 17h4"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></symbol>
+    <symbol id="i-server" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="7" rx="1.5"/><rect x="3" y="13" width="18" height="7" rx="1.5"/><path d="M7 7.5h.01M7 16.5h.01"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+    <symbol id="i-min" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+    <symbol id="i-max" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="1"/></symbol>
+    <symbol id="i-up" viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></symbol>
+    <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 5v14M6 13l6 6 6-6"/></symbol>
+    <symbol id="i-swap" viewBox="0 0 24 24"><path d="M7 4v16M3 8l4-4 4 4M17 20V4M13 16l4 4 4-4"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></symbol>
+    <symbol id="i-fwd" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+    <symbol id="i-chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
+    <symbol id="i-chevr" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
+    <symbol id="i-plug" viewBox="0 0 24 24"><path d="M9 3v5M15 3v5M6 8h12v3a6 6 0 0 1-12 0zM12 17v4"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14.9-3M4 13a8 8 0 0 0 14.9 3"/><path d="M4 4v4h4M20 20v-4h-4"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24"><path d="M9 5v14M15 5v14"/></symbol>
+    <symbol id="i-warn" viewBox="0 0 24 24"><path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17h.01"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 21h4"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/><rect x="4" y="13" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/></symbol>
+    <symbol id="i-files" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+    <symbol id="i-unplug" viewBox="0 0 24 24"><path d="M9 3v5M15 3v5M6 8h12v3a6 6 0 0 1-12 0zM12 17v4M3 3l18 18"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
+    <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M7 18a4.5 4.5 0 0 1-.6-8.96A6 6 0 0 1 18 9.5a4.25 4.25 0 0 1-.5 8.5z"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></symbol>
+    <symbol id="i-ext" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></symbol>
+    <symbol id="i-cube" viewBox="0 0 24 24"><path d="M12 3 4 7v10l8 4 8-4V7z"/><path d="M4 7l8 4 8-4M12 11v10"/></symbol>
+    <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/></symbol>
+    <symbol id="i-store" viewBox="0 0 24 24"><path d="M4 9h16l-1 11H5z"/><path d="M8 9V7a4 4 0 0 1 8 0v2"/></symbol>
+  </defs>
+</svg>
+
+<section class="scene">
+  <h2>Google Drive, Google Foto, Amazon S3, Azure Blob Storage e NFS nella cartella Rete — design</h2>
+  <p><b>Aggiornato alle decisioni del 2 novembre 2026 e costruito</b> (ramo <code style="color:#fff">cloud</code>): i cinque moduli sono <b>solo nel catalogo</b> (un amministratore li installa dall\'AppStore), niente link temporanei, UID e GID di NFS sempre dall\'amministratore. Cinque nuovi moduli del kernel aggiungono cinque protocolli a <b>Connetti a un server</b>, accanto a FTP, FTPS, SFTP, WebDAV, SMB e OneDrive: <b>netfs-gdrive</b>, <b>netfs-gphotos</b>, <b>netfs-s3</b>, <b>netfs-azblob</b> e <b>netfs-nfs</b>. Ognuno si installa da solo dall'AppStore e nessuno ha dipendenze npm: parlano HTTP con <code style="color:#fff">fetch</code>, oppure, per NFS, TCP con una libreria nostra dentro il modulo. Ogni connessione diventa <b>~/Rete/&lt;nome&gt;</b>, con i trasferimenti nel kernel, le code per destinazione e la finestra Trasferimento dati che esistono già. I tre protocolli che non hanno bisogno dell'accesso con account (S3, Azure con chiave o SAS, NFS) si possono costruire subito. Google Drive, Google Foto e Azure con Microsoft Entra usano invece l'accesso con popup e le impostazioni dei moduli del ramo OneDrive, che non è ancora pubblicato.</p>
+</section>
+
+<div class="matrix">
+  <table>
+    <tr><th></th><th>Google Drive</th><th>Google Foto</th><th>Amazon S3 e compatibili</th><th>Azure Blob Storage</th><th>NFS</th></tr>
+    <tr><td>Accesso</td><td>Accedi con Google</td><td>Accedi con Google</td><td>Chiave di accesso + segreto</td><td>Chiave dell'account, SAS o Microsoft Entra</td><td>UID e GID (AUTH_SYS)</td></tr>
+    <tr><td>Sfogliare, copiare dentro e fuori</td><td class="y">sì</td><td class="p">solo gli album di lilOS, più «Importa»</td><td class="y">sì</td><td class="y">sì</td><td class="y">sì</td></tr>
+    <tr><td>Download interrotto: riprende</td><td class="y">sì</td><td class="y">sì</td><td class="y">sì</td><td class="y">sì</td><td class="y">sì</td></tr>
+    <tr><td>Upload interrotto: riprende</td><td class="p">ricomincia (pezzi ritentati uno per uno)</td><td class="n">ricomincia</td><td class="p">ricomincia (parti ritentate una per una)</td><td class="p">ricomincia (blocchi ritentati uno per uno)</td><td class="y">sì</td></tr>
+    <tr><td>Rinominare e spostare</td><td class="y">sì, istantaneo</td><td class="p">solo gli album</td><td class="p">copia sul server + elimina</td><td class="p">istantaneo con lo spazio dei nomi gerarchico, altrimenti copia + elimina</td><td class="y">sì, istantaneo</td></tr>
+    <tr><td>Eliminare</td><td class="y">nel cestino di Google Drive</td><td class="n">Google lo vieta: «Togli dall'album»</td><td class="p">definitivo (o versione precedente, se il bucket ha il versioning)</td><td class="p">definitivo (o recuperabile, se l'account ha l'eliminazione temporanea)</td><td class="p">definitivo</td></tr>
+    <tr><td>Link</td><td class="y">Apri nel browser</td><td class="y">Apri nel browser</td><td>—</td><td>—</td><td>—</td></tr>
+    <tr><td>Cambiamenti</td><td colspan="4">la cartella si aggiorna quando la apri o la riapri (come FTP e WebDAV: le notifiche di Google e Azure vogliono un indirizzo pubblico, S3 non le ha)</td><td>come gli altri</td></tr>
+    <tr><td>Per provarlo</td><td>server finto + un tuo account</td><td>server finto + un tuo account</td><td>RustFS in Docker (compatibile S3)</td><td>Azurite in Docker (+ un tuo account)</td><td>NFS-Ganesha in Docker</td></tr>
+  </table>
+</div>
+
+<!-- =============================== Scena 1 =============================== -->
+<section class="scene">
+  <h2>1 · Connetti a un server: i nuovi protocolli, e S3</h2>
+  <p>La lista dei protocolli diventa lunga, quindi si divide in tre gruppi: <b>Server</b>, <b>Cloud</b> e <b>Rete locale</b>. Il gruppo è una nuova proprietà facoltativa del driver, <code style="color:#fff">group</code>. Per S3 si sceglie prima il <b>fornitore</b>, perché AWS, Cloudflare R2, Backblaze B2, Wasabi e MinIO differiscono solo per l'indirizzo e per qualche dettaglio. Con <b>Altro</b> si scrive l'indirizzo a mano (Ceph, Garage, SeaweedFS…). Il bucket si sceglie con <b>Elenca</b>, come le condivisioni SMB, e la regione AWS il modulo la trova da solo.</p>
+  <div class="screen" style="height:600px">
+    <div class="desk"></div>
+    <div class="window" style="left:40px;top:20px;width:400px;height:200px">
+      <div class="titlebar"><div class="title"><svg class="ico"><use href="#i-server"/></svg>Connetti a un server</div><div class="controls"><button class="close"><svg class="ico"><use href="#i-x"/></svg></button></div></div>
+      <div class="dlg-body">
+        <div class="field"><label>Protocollo</label><div class="input focus" style="justify-content:space-between"><span>Amazon S3 e compatibili</span><svg class="ico" style="width:12px;color:var(--faint)"><use href="#i-chev"/></svg></div></div>
+      </div>
+    </div>
+    <div class="dd" style="left:56px;top:104px">
+      <h6>Server</h6>
+      <div><span class="proto">FTP</span>FTP e FTPS</div>
+      <div><span class="proto">SFTP</span>SFTP (SSH)</div>
+      <div><span class="proto">DAV</span>WebDAV</div>
+      <div><span class="proto">SMB</span>SMB (Windows, NAS)</div>
+      <h6>Cloud</h6>
+      <div><span class="proto od">OD</span>OneDrive</div>
+      <div><span class="proto gd">GD</span>Google Drive<span class="new">nuovo</span></div>
+      <div><span class="proto gp">GF</span>Google Foto<span class="new">nuovo</span></div>
+      <div class="hi"><span class="proto s3">S3</span>Amazon S3 e compatibili<span class="new">nuovo</span></div>
+      <div><span class="proto az">AZ</span>Azure Blob Storage<span class="new">nuovo</span></div>
+      <h6>Rete locale</h6>
+      <div><span class="proto nfs">NFS</span>NFS (Linux, NAS)<span class="new">nuovo</span></div>
+    </div>
+
+    <div class="window" style="left:520px;top:20px;width:450px;height:520px">
+      <div class="titlebar"><div class="title"><svg class="ico"><use href="#i-server"/></svg>Connetti a un server</div><div class="controls"><button class="close"><svg class="ico"><use href="#i-x"/></svg></button></div></div>
+      <div class="dlg-body">
+        <div class="field"><label>Protocollo</label><div class="input" style="justify-content:space-between"><span>Amazon S3 e compatibili</span><svg class="ico" style="width:12px;color:var(--faint)"><use href="#i-chev"/></svg></div></div>
+        <div class="field"><label>Fornitore</label><div class="input" style="justify-content:space-between"><span>Amazon Web Services (AWS)</span><svg class="ico" style="width:12px;color:var(--faint)"><use href="#i-chev"/></svg></div><span class="hint">Anche Cloudflare R2, Backblaze B2, Wasabi, MinIO, o Altro con l'indirizzo</span></div>
+        <div class="field"><label>ID della chiave di accesso</label><div class="input mono">AKIA4XQ7EXAMPLE2NV6P</div></div>
+        <div class="field"><label>Chiave di accesso segreta</label><div class="input mono">••••••••••••••••••••••••••••••••••••••••</div><span class="hint">Da AWS IAM → Utenti → Credenziali di sicurezza. Meglio un utente con accesso a quel solo bucket</span></div>
+        <div class="field"><label>Bucket</label><div class="grid2" style="grid-template-columns:1fr auto"><div class="input mono">lilos-backup</div><button class="btn">Elenca</button></div><span class="hint">Regione trovata: eu-south-1 (Milano)</span></div>
+        <div class="field"><label>Cartella nel bucket</label><div class="input mono"><span class="ph">/ (tutto il bucket)</span></div></div>
+        <div class="field"><label>Nome della cartella in Rete</label><div class="input">backup-s3</div></div>
+        <div class="check"><span class="box on"></span>Ricorda l'accesso (cifrato nel kernel)</div>
+      </div>
+      <div class="dlg-foot"><button class="btn">Annulla</button><button class="btn primary">Connetti</button></div>
+    </div>
+    <div class="callout" data-n="1" style="left:56px;top:480px">Gruppi nella lista: nuova proprietà «group» del driver</div>
+    <div class="callout" data-n="2" style="left:990px;top:110px">Un fornitore = l'indirizzo giusto e le sue regole (R2: regione «auto», B2: niente classi)</div>
+    <div class="callout" data-n="3" style="left:990px;top:300px">Elenca usa ListBuckets: se la chiave non può elencare, si scrive il nome a mano</div>
+    <div class="taskbar"><button class="tb-btn"><svg class="ico"><use href="#i-grid"/></svg></button><button class="tb-btn active"><svg class="ico"><use href="#i-files"/></svg>File Manager</button><span class="tb-sp"></span><div class="tray"><button class="tb-btn"><svg class="ico"><use href="#i-bell"/></svg></button></div><span class="clock">09:12</span></div>
+  </div>
+</section>
+
+<!-- =============================== Scena 2 =============================== -->
+<section class="scene">
+  <h2>2 · Google: il progetto dell'amministratore, poi «Accedi con Google»</h2>
+  <p>Come per OneDrive, <b>ogni installazione usa il proprio progetto su Google Cloud</b>: l'amministratore inserisce una volta l'ID client e il segreto client (AppStore → Kernel → Google Drive → Impostazioni). A differenza di Microsoft, Google vuole il segreto anche con PKCE, quindi le impostazioni dei moduli devono poter tenere un <b>campo segreto</b>, cifrato e mai rimandato alla pagina. Il vincolo più forte riguarda l'indirizzo: Google rimanda il popup solo a un indirizzo <b>https con un nome di dominio vero</b>, oppure a http://localhost. Un lilOS aperto come http://192.168.1.10:8790 non va bene così com'è (vedi «Da decidere», punto 1). L'utente poi accede nel popup di Google, che la prima volta avvisa che l'app non è verificata da Google: è il progetto dell'amministratore, ed è normale.</p>
+  <div class="screen" style="height:660px">
+    <div class="desk"></div>
+    <div class="window" style="left:24px;top:20px;width:470px;height:580px">
+      <div class="titlebar"><div class="title"><svg class="ico"><use href="#i-gear"/></svg>Impostazioni di Google Drive</div><div class="controls"><button class="close"><svg class="ico"><use href="#i-x"/></svg></button></div></div>
+      <div class="dlg-body">
+        <div class="field"><label>ID client</label><div class="input mono focus">482915730264-k3v9q….apps.googleusercontent.com</div></div>
+        <div class="field"><label>Segreto client</label><div class="input mono">••••••••••••••••••••••••</div><span class="hint">Cifrato nel kernel; nessuno lo rivede, si può solo sostituire</span></div>
+        <div class="field"><label>Condivisi con me</label><div class="check"><span class="box on"></span>Mostra la cartella «Condivisi con me» in ogni connessione</div></div>
+        <div class="field"><label>Documenti Google copiati fuori da Drive</label><div class="input" style="justify-content:space-between">Formato Office (.docx, .xlsx, .pptx)<svg class="ico" style="width:12px;color:var(--faint)"><use href="#i-chev"/></svg></div></div>
+        <div class="note" style="background:#f6f8ff;border-color:#d8e2fd;color:var(--text)">
+          <b style="color:var(--accent)">Come creare il progetto su Google Cloud</b>
+          <ol class="steps">
+            <li>console.cloud.google.com → <b>Nuovo progetto</b> «lilOS»</li>
+            <li><b>API e servizi</b> → abilita <b>Google Drive API</b> (per Google Foto anche <b>Photos Picker API</b> e <b>Photos Library API</b>)</li>
+            <li><b>Schermata di consenso OAuth</b>: <b>Interno</b> con Google Workspace, altrimenti <b>Esterno</b> e poi <b>Pubblica l'app</b> (in «Test» l'accesso scade ogni 7 giorni)</li>
+            <li><b>Credenziali</b> → ID client OAuth, tipo <b>Applicazione web</b>, URI di reindirizzamento: <code>https://lilos.example.it/api/net/signin/callback</code></li>
+            <li>Copia l'ID e il segreto qui sopra</li>
+          </ol>
+        </div>
+        <div class="note"><b>Questo lilOS è aperto come http://192.168.1.10:8790</b><span>Google non accetta questo indirizzo per il ritorno dall'accesso. Serve un nome con https (per esempio un proxy con certificato, o Tailscale), oppure l'accesso «incollando l'indirizzo» (punto 1 di «Da decidere»).</span></div>
+      </div>
+      <div class="dlg-foot"><button class="btn">Annulla</button><button class="btn primary">Salva</button></div>
+    </div>
+
+    <div class="window inactive" style="left:530px;top:20px;width:420px;height:400px">
+      <div class="titlebar"><div class="title"><svg class="ico"><use href="#i-server"/></svg>Connetti a un server</div><div class="controls"><button class="close"><svg class="ico"><use href="#i-x"/></svg></button></div></div>
+      <div class="dlg-body">
+        <div class="field"><label>Protocollo</label><div class="input" style="justify-content:space-between"><span>Google Drive</span><svg class="ico" style="width:12px;color:var(--faint)"><use href="#i-chev"/></svg></div></div>
+        <div class="field"><label>Account Google</label><div><button class="g-btn"><span class="g-logo"></span>Accedi con Google</button></div></div>
+        <div class="field"><label>Drive</label><div class="grid2" style="grid-template-columns:1fr auto"><div class="input" style="justify-content:space-between">Il mio Drive<svg class="ico" style="width:12px;color:var(--faint)"><use href="#i-chev"/></svg></div><button class="btn">Elenca</button></div><span class="hint">Oppure un Drive condiviso dell'organizzazione</span></div>
+        <div class="field"><label>Cartella</label><div class="input mono"><span class="ph">/ (tutto il Drive)</span></div></div>
+        <div class="field"><label>Nome della cartella in Rete</label><div class="input">Google Drive</div></div>
+      </div>
+      <div class="dlg-foot"><button class="btn">Annulla</button><button class="btn primary" style="opacity:.5">Connetti</button></div>
+    </div>
+
+    <div class="popup" style="left:700px;top:150px;width:390px;height:262px">
+      <div class="url"><svg class="ico"><use href="#i-lock"/></svg>accounts.google.com/o/oauth2/v2/auth…</div>
+      <div class="gbody">
+        <span class="g-logo" style="width:22px;height:22px"></span>
+        <h5>lilOS vuole accedere al tuo Account Google</h5>
+        <div class="warnbox"><b>Google non ha verificato questa app.</b> È il progetto del tuo amministratore di lilOS: continua solo se ti fidi di lui.</div>
+        <p>mario.rossi@gmail.com potrà: <b>vedere, modificare, creare ed eliminare tutti i file di Google Drive</b></p>
+        <div class="gacts"><span class="s">Annulla</span><span class="p">Continua</span></div>
+      </div>
+    </div>
+    <div class="callout" data-n="1" style="left:540px;top:440px">Campo «secret» nelle impostazioni dei moduli: nuovo</div>
+    <div class="callout" data-n="2" style="left:960px;top:30px">Stesso campo «signin» di OneDrive: il token resta nel kernel</div>
+    <div class="callout" data-n="3" style="left:880px;top:500px">Il popup torna a /api/net/signin/callback, come per OneDrive</div>
+    <div class="taskbar"><button class="tb-btn"><svg class="ico"><use href="#i-grid"/></svg></button><button class="tb-btn active"><svg class="ico"><use href="#i-store"/></svg>AppStore</button><span class="tb-sp"></span><div class="tray"><button class="tb-btn"><svg class="ico"><use href="#i-bell"/></svg></button></div><span class="clock">09:20</span></div>
+  </div>
+</section>
+
+<!-- =============================== Scena 3 =============================== -->
+<section class="scene">
+  <h2>3 · ~/Rete/Google Drive: i documenti Google, i nomi doppi, i condivisi</h2>
+  <p>Drive si sfoglia come le altre cartelle di Rete. Restano tre particolarità. I <b>documenti Google</b> (Documenti, Fogli, Presentazioni) non sono file con dei byte: il doppio clic li apre su Google in una nuova scheda, e quando li copi fuori da Drive arrivano nel formato scelto dall'amministratore (Office, OpenDocument o PDF; Google ne esporta al massimo 10 MB). In una cartella di Drive possono esserci <b>due file con lo stesso nome</b>: il secondo si vede come «Preventivo (2).pdf», con un'etichetta, finché non lo rinomini. <b>Condivisi con me</b> è una cartella in più, in sola lettura per ciò che non ti è permesso modificare. Eliminare porta nel <b>cestino di Google Drive</b>, come per OneDrive. In alto c'è lo spazio usato.</p>
+  <div class="screen">
+    <div class="desk"></div>
+    <div class="window" style="left:24px;top:18px;width:900px;height:560px">
+      <div class="titlebar"><div class="title"><svg class="ico"><use href="#i-files"/></svg>File Manager <em>— Google Drive</em></div><div class="controls"><button><svg class="ico"><use href="#i-min"/></svg></button><button><svg class="ico"><use href="#i-max"/></svg></button><button class="close"><svg class="ico"><use href="#i-x"/></svg></button></div></div>
+      <div class="fm">
+        <div class="fm-tools"><button class="iconbtn"><svg class="ico"><use href="#i-back"/></svg></button><button class="iconbtn"><svg class="ico"><use href="#i-fwd"/></svg></button><button class="iconbtn"><svg class="ico"><use href="#i-up"/></svg></button><div class="fm-path">Home<span class="sep">›</span>Rete<span class="sep">›</span><b>Google Drive</b><span class="sep">›</span><b>Studio</b></div><button class="iconbtn"><svg class="ico"><use href="#i-refresh"/></svg></button></div>
+        <div class="fm-body">
+          <aside class="fm-side">
+            <div class="place"><svg class="ico"><use href="#i-home"/></svg><span class="nm">Home</span></div>
+            <div class="place"><svg class="ico"><use href="#i-desk"/></svg><span class="nm">Scrivania</span></div>
+            <h6><span>Rete</span><button class="iconbtn"><svg class="ico"><use href="#i-plus"/></svg></button></h6>
+            <div class="place"><span class="dot on"></span><span class="nm">OneDrive</span><span class="proto od">OD</span></div>
+            <div class="place" aria-current="true"><span class="dot on"></span><span class="nm">Google Drive</span><span class="proto gd">GD</span></div>
+            <div class="place"><span class="dot on"></span><span class="nm">Google Foto</span><span class="proto gp">GF</span></div>
+            <div class="place"><span class="dot on"></span><span class="nm">backup-s3</span><span class="proto s3">S3</span></div>
+            <div class="place"><span class="dot off"></span><span class="nm">archivio</span><span class="proto az">AZ</span></div>
+            <div class="place"><span class="dot on"></span><span class="nm">nas</span><span class="proto nfs">NFS</span></div>
+          </aside>
+          <div class="fm-main">
+            <div class="mount-bar"><svg class="ico"><use href="#i-cloud"/></svg><span>Google Drive · <code>mario.rossi@gmail.com</code> · Il mio Drive</span><span class="sp"></span><span>8,2 GB di 15 GB usati</span></div>
+            <div class="list">
+              <div class="row head"><span>Nome</span><span>Tipo</span><span>Dimensione</span><span>Modificato</span></div>
+              <div class="row"><span class="n"><svg class="ico folder"><use href="#i-folder"/></svg>Condivisi con me<span class="chip">da altri</span></span><span class="m">Cartella</span><span class="m">—</span><span class="m">—</span></div>
+              <div class="row"><span class="n"><svg class="ico folder"><use href="#i-folder"/></svg>Tesi</span><span class="m">Cartella</span><span class="m">—</span><span class="m">28/10/2026 18:04</span></div>
+              <div class="row sel"><span class="n"><span class="gdoc d">D</span>Verbale riunione<span class="chip web">Documento Google</span></span><span class="m">Documenti Google</span><span class="m">—</span><span class="m">Oggi 08:51</span></div>
+              <div class="row"><span class="n"><span class="gdoc s">F</span>Bilancio 2026<span class="chip web">Foglio Google</span></span><span class="m">Fogli Google</span><span class="m">—</span><span class="m">Ieri 21:30</span></div>
+              <div class="row"><span class="n"><span class="gdoc p">P</span>Presentazione esame<span class="chip web">Presentazione Google</span></span><span class="m">Presentazioni</span><span class="m">—</span><span class="m">30/10/2026 10:12</span></div>
+              <div class="row"><span class="n"><span class="ext w">W</span>Relazione.docx</span><span class="m">Word</span><span class="m">482 KB</span><span class="m">29/10/2026 16:40</span></div>
+              <div class="row"><span class="n"><svg class="ico"><use href="#i-file"/></svg>Preventivo.pdf</span><span class="m">PDF</span><span class="m">1,2 MB</span><span class="m">20/10/2026 09:02</span></div>
+              <div class="row"><span class="n"><svg class="ico"><use href="#i-file"/></svg>Preventivo (2).pdf<span class="chip warn">stesso nome su Drive</span></span><span class="m">PDF</span><span class="m">1,3 MB</span><span class="m">21/10/2026 11:47</span></div>
+              <div class="row"><span class="n"><svg class="ico"><use href="#i-image"/></svg>schema.png</span><span class="m">Immagine PNG</span><span class="m">96 KB</span><span class="m">18/10/2026 14:22</span></div>
+            </div>
+            <div class="fm-status"><span>9 elementi</span><span>1 selezionato</span><span>Aggiornata all'apertura, 09:31</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="menu" style="left:470px;top:170px;width:300px">
+      <div class="hi"><svg class="ico"><use href="#i-ext"/></svg>Apri in Documenti Google<span class="sub">nuova scheda</span></div>
+      <div><svg class="ico"><use href="#i-down"/></svg>Scarica come<span class="k">›</span></div>
+      <div><svg class="ico"><use href="#i-globe"/></svg>Apri nel browser</div>
+      <hr>
+      <div>Rinomina<span class="k">F2</span></div>
+      <div>Copia</div>
+      <hr>
+      <div style="color:#ff9a9d"><svg class="ico"><use href="#i-trash"/></svg>Sposta nel cestino di Google Drive</div>
+    </div>
+    <div class="menu" style="left:774px;top:198px;width:170px">
+      <div>Word (.docx)</div>
+      <div>OpenDocument (.odt)</div>
+      <div>PDF (.pdf)</div>
+      <div>Testo (.txt)</div>
+    </div>
+    <div class="callout" data-n="1" style="left:950px;top:120px">Elementi «solo web» con formati di esportazione: nuovo nel contratto</div>
+    <div class="callout" data-n="2" style="left:950px;top:330px">Nomi doppi: un suffisso solo in lilOS, su Drive il nome non cambia</div>
+    <div class="callout" data-n="3" style="left:950px;top:70px">Spazio usato: space() facoltativo, anche per OneDrive</div>
+    <div class="taskbar"><button class="tb-btn"><svg class="ico"><use href="#i-grid"/></svg></button><button class="tb-btn active"><svg class="ico"><use href="#i-files"/></svg>File Manager</button><span class="tb-sp"></span><div class="tray"><button class="tb-btn"><svg class="ico"><use href="#i-bell"/></svg></button></div><span class="clock">09:31</span></div>
+  </div>
+</section>
+
+<!-- =============================== Scena 4 =============================== -->
+<section class="scene">
+  <h2>4 · Google Foto: «Importa da Google Foto» e gli album di lilOS</h2>
+  <p>Un limite da sapere subito: dal <b>31 marzo 2025 Google non lascia più leggere tutta la libreria</b> alle app esterne. Restano due strade, e il modulo le usa entrambe. (1) Con <b>Importa da Google Foto</b> (Photos Picker API) l'utente sceglie le foto nella pagina di Google, in una nuova scheda, fino a 2000 per volta, e lilOS le copia in una sua cartella. Le copie devono partire subito, perché i link di Google scadono dopo 60 minuti. (2) Gli <b>album creati da lilOS</b> (Photos Library API) si vedono in ~/Rete/Google Foto come cartelle: ci si trascinano dentro foto e video, che finiscono nella libreria dell'utente. Google non permette alle app di <b>eliminare</b> né di <b>rinominare</b> le foto, quindi nel menu c'è «Togli dall'album» e non c'è Rinomina. Gli album invece si rinominano.</p>
+  <div class="screen" style="height:620px">
+    <div class="desk"></div>
+    <div class="window inactive" style="left:24px;top:18px;width:560px;height:430px">
+      <div class="titlebar"><div class="title"><svg class="ico"><use href="#i-files"/></svg>File Manager <em>— Google Foto</em></div><div class="controls"><button><svg class="ico"><use href="#i-min"/></svg></button><button><svg class="ico"><use href="#i-max"/></svg></button><button class="close"><svg class="ico"><use href="#i-x"/></svg></button></div></div>
+      <div class="fm">
+        <div class="fm-tools"><button class="iconbtn"><svg class="ico"><use href="#i-back"/></svg></button><button class="iconbtn"><svg class="ico"><use href="#i-up"/></svg></button><div class="fm-path">Rete<span class="sep">›</span><b>Google Foto</b></div></div>
+        <div class="fm-main">
+          <div class="mount-bar"><svg class="ico"><use href="#i-image"/></svg><span>Album creati da lilOS · <code>mario.rossi@gmail.com</code></span><span class="sp"></span><button class="btn" style="height:22px"><svg class="ico"><use href="#i-down"/></svg>Importa da Google Foto…</button></div>
+          <div class="list">
+            <div class="row head"><span>Nome</span><span>Tipo</span><span>Elementi</span><span>Modificato</span></div>
+            <div class="row"><span class="n"><svg class="ico folder"><use href="#i-folder"/></svg>Vacanze Sardegna 2026</span><span class="m">Album</span><span class="m">214</span><span class="m">Ieri 19:02</span></div>
+            <div class="row sel"><span class="n"><svg class="ico folder"><use href="#i-folder"/></svg>Scansioni documenti</span><span class="m">Album</span><span class="m">37</span><span class="m">Oggi 08:15</span></div>
+            <div class="row"><span class="n"><svg class="ico folder"><use href="#i-folder"/></svg>Da lilOS</span><span class="m">Album</span><span class="m">9</span><span class="m">29/10/2026 12:30</span></div>
+          </div>
+          <div class="fm-status"><span>3 album</span><span>Gli altri album di Google Foto non sono visibili alle app</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="window" style="left:600px;top:18px;width:430px;height:425px">
+      <div class="titlebar"><div class="title"><svg class="ico"><use href="#i-down"/></svg>Importa da Google Foto</div><div class="controls"><button class="close"><svg class="ico"><use href="#i-x"/></svg></button></div></div>
+      <div class="dlg-body">
+        <div class="stepper">
+          <div class="stp done"><b>1</b><span class="t">Dove copiarle</span><div class="d"><div class="input mono" style="justify-content:space-between">~/Immagini/Google Foto/2026-11-02<button class="btn" style="height:20px">Cambia…</button></div></div></div>
+          <div class="stp done"><b>2</b><span class="t">Scegli in Google Foto</span><div class="d"><span class="hint">Si è aperta una scheda di Google Foto: seleziona e premi «Fine». Al massimo 2000 per volta.</span>
+            <div class="photos"><i class="on" style="background:#8fb3d9"></i><i class="on" style="background:#d9b38f"></i><i style="background:#9fc29a"></i><i class="on" style="background:#c9a3c7"></i><i class="on" style="background:#e3c56f"></i><i style="background:#7fa7a3"></i></div>
+          </div></div>
+          <div class="stp"><b>3</b><span class="t">Copia</span><div class="d">
+            <div class="account" style="background:#f6f8ff;border-color:#d8e2fd"><svg class="ico ok"><use href="#i-check"/></svg><span class="who">86 foto e 4 video scelti<small>1,3 GB · la copia va avviata entro 60 minuti</small></span></div>
+            <div class="check"><span class="box on"></span>Tieni le date e i dati delle foto (EXIF)</div>
+            <div class="check"><span class="box"></span>Video nella qualità originale</div>
+          </div></div>
+        </div>
+      </div>
+      <div class="dlg-foot"><button class="btn left">Scegli ancora</button><button class="btn">Annulla</button><button class="btn primary"><svg class="ico"><use href="#i-down"/></svg>Importa</button></div>
+    </div>
+    <div class="menu" style="left:250px;top:470px;width:230px">
+      <div><svg class="ico"><use href="#i-globe"/></svg>Apri nel browser</div>
+      <div>Copia</div>
+      <hr>
+      <div style="color:var(--bar-dim)">Rinomina<span class="sub">Google non lo permette</span></div>
+      <div class="hi"><svg class="ico"><use href="#i-x"/></svg>Togli dall'album</div>
+    </div>
+    <div class="callout" data-n="1" style="left:30px;top:470px">Menu di una foto in un album</div>
+    <div class="callout" data-n="2" style="left:620px;top:458px">Le copie passano dalla coda del kernel: Trasferimento dati come sempre</div>
+    <div class="callout" data-n="3" style="left:870px;top:458px">Nuovo nel contratto: un «importatore» (scegli fuori, copia qui)</div>
+    <div class="taskbar"><button class="tb-btn"><svg class="ico"><use href="#i-grid"/></svg></button><button class="tb-btn active"><svg class="ico"><use href="#i-files"/></svg>File Manager</button><span class="tb-sp"></span><div class="tray"><button class="tb-btn"><svg class="ico"><use href="#i-bell"/></svg></button></div><span class="clock">10:05</span></div>
+  </div>
+</section>
+
+<!-- =============================== Scena 5 =============================== -->
+<section class="scene">
+  <h2>5 · ~/Rete/backup-s3: classi di archiviazione</h2>
+  <p>In S3 e in Azure le cartelle non esistono davvero: sono parti del nome degli oggetti («Foto/2026/a.jpg»). Il modulo le mostra come cartelle. Una cartella vuota viene salvata come un oggetto vuoto «Foto/», che è la convenzione della console AWS. Rinominare una cartella vuol dire copiarne ogni oggetto sul server, senza passare da lilOS, e poi eliminare l'originale: con molti file ci vuole tempo, e l'operazione si vede in Trasferimento dati. Gli oggetti nelle classi d'archivio (Glacier, Deep Archive in S3; Archive in Azure) non si possono leggere finché non vengono ripristinati: hanno un'etichetta, e copiarli dà un errore chiaro. Niente link temporanei (deciso): un file si condivide dalla console del fornitore.</p>
+  <div class="screen" style="height:600px">
+    <div class="desk"></div>
+    <div class="window" style="left:24px;top:18px;width:760px;height:500px">
+      <div class="titlebar"><div class="title"><svg class="ico"><use href="#i-files"/></svg>File Manager <em>— backup-s3</em></div><div class="controls"><button><svg class="ico"><use href="#i-min"/></svg></button><button><svg class="ico"><use href="#i-max"/></svg></button><button class="close"><svg class="ico"><use href="#i-x"/></svg></button></div></div>
+      <div class="fm">
+        <div class="fm-tools"><button class="iconbtn"><svg class="ico"><use href="#i-back"/></svg></button><button class="iconbtn"><svg class="ico"><use href="#i-up"/></svg></button><div class="fm-path">Rete<span class="sep">›</span><b>backup-s3</b><span class="sep">›</span><b>progetti</b></div><button class="iconbtn"><svg class="ico"><use href="#i-refresh"/></svg></button></div>
+        <div class="fm-main">
+          <div class="mount-bar"><svg class="ico"><use href="#i-server"/></svg><span>Amazon S3 · <code>s3://lilos-backup</code> · eu-south-1</span><span class="sp"></span><span>Eliminare è definitivo</span></div>
+          <div class="list">
+            <div class="row head c5"><span>Nome</span><span>Classe</span><span>Dimensione</span><span>Modificato</span></div>
+            <div class="row c5"><span class="n"><svg class="ico folder"><use href="#i-folder"/></svg>2025</span><span class="m">—</span><span class="m">—</span><span class="m">—</span></div>
+            <div class="row c5"><span class="n"><svg class="ico folder"><use href="#i-folder"/></svg>2026</span><span class="m">—</span><span class="m">—</span><span class="m">—</span></div>
+            <div class="row c5 sel"><span class="n"><svg class="ico"><use href="#i-file"/></svg>cantiere-palombi.zip</span><span class="m">Standard</span><span class="m">2,4 GB</span><span class="m">Oggi 07:58</span></div>
+            <div class="row c5"><span class="n"><svg class="ico"><use href="#i-file"/></svg>rilievi.dwg</span><span class="m">Standard-IA</span><span class="m">38 MB</span><span class="m">12/10/2026 15:11</span></div>
+            <div class="row c5 ghost"><span class="n"><svg class="ico"><use href="#i-file"/></svg>archivio-2019.tar<span class="chip cold">archiviato</span></span><span class="m">Glacier Deep Archive</span><span class="m">61 GB</span><span class="m">03/01/2020 02:00</span></div>
+          </div>
+          <div class="fm-status"><span>5 elementi</span><span>Aggiornata all'apertura</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="menu" style="left:330px;top:170px;width:240px">
+      <div class="hi">Copia</div>
+      <div>Rinomina<span class="k">F2</span></div>
+      <hr>
+      <div style="color:#ff9a9d"><svg class="ico"><use href="#i-trash"/></svg>Elimina definitivamente</div>
+    </div>
+    <div class="callout" data-n="1" style="left:800px;top:60px">Rinominare una cartella copia sul server ogni oggetto</div>
+    <div class="callout" data-n="2" style="left:800px;top:120px">Classe ed etichetta «archiviato»: «badge» dell'elemento</div>
+    <div class="callout" data-n="3" style="left:640px;top:510px">Firma SigV4 fatta dal modulo (~200 righe): niente SDK AWS da 30 MB</div>
+    <div class="taskbar"><button class="tb-btn"><svg class="ico"><use href="#i-grid"/></svg></button><button class="tb-btn active"><svg class="ico"><use href="#i-files"/></svg>File Manager</button><span class="tb-sp"></span><div class="tray"><button class="tb-btn"><svg class="ico"><use href="#i-bell"/></svg></button></div><span class="clock">10:22</span></div>
+  </div>
+</section>
+
+<!-- =============================== Scena 6 =============================== -->
+<section class="scene">
+  <h2>6 · Azure Blob Storage e NFS</h2>
+  <p><b>Azure</b>: si entra in tre modi. Con la <b>chiave dell'account</b>, che apre tutto l'account. Con un <b>token SAS</b>, che apre quello che dice il token e niente di più. Oppure con <b>Microsoft Entra</b>, cioè l'accesso con popup: può usare la stessa app di Azure di OneDrive, aggiungendo il permesso «Azure Storage», e l'utente deve avere il ruolo «Collaboratore ai dati dei BLOB di archiviazione»; se manca, l'errore lo dice con queste parole. Sugli account con <b>spazio dei nomi gerarchico</b> (Data Lake Gen2) le cartelle sono vere e rinominare è istantaneo. <b>NFS</b>: il modulo parla NFSv3 da solo, senza montare nulla nel sistema operativo, quindi funziona anche su Windows Home, che non ha il client NFS. Il server si fida dell'<b>UID e del GID</b> dichiarati: per questo li assegna <b>sempre l'amministratore</b>, a ogni utente di lilOS (anche con un solo utente); chi non li ha non si connette. E come per tutta la rete locale, con più utenti NFS funziona solo se l'amministratore ha aperto la rete locale (net.allowPrivate).</p>
+  <div class="screen" style="height:700px">
+    <div class="desk"></div>
+    <div class="window" style="left:24px;top:18px;width:460px;height:540px">
+      <div class="titlebar"><div class="title"><svg class="ico"><use href="#i-server"/></svg>Connetti a un server</div><div class="controls"><button class="close"><svg class="ico"><use href="#i-x"/></svg></button></div></div>
+      <div class="dlg-body">
+        <div class="field"><label>Protocollo</label><div class="input" style="justify-content:space-between"><span>Azure Blob Storage</span><svg class="ico" style="width:12px;color:var(--faint)"><use href="#i-chev"/></svg></div></div>
+        <div class="field"><label>Account di archiviazione</label><div class="input mono">studioarchivio<span class="ph">.blob.core.windows.net</span></div></div>
+        <div class="field"><label>Accesso</label><div class="seg"><button aria-pressed="true">Chiave dell'account</button><button>Token SAS</button><button>Microsoft Entra</button></div></div>
+        <div class="field"><label>Chiave dell'account</label><div class="input mono">••••••••••••••••••••••••••••••••••••••</div><span class="hint">Portale di Azure → l'account → Chiavi di accesso</span></div>
+        <div class="field"><label>Contenitore</label><div class="grid2" style="grid-template-columns:1fr auto"><div class="input mono">fatture</div><button class="btn">Elenca</button></div></div>
+        <div class="field"><label>Cartella nel contenitore</label><div class="input mono"><span class="ph">/ (tutto il contenitore)</span></div></div>
+        <div class="field"><label>Indirizzo personalizzato</label><div class="input mono"><span class="ph">facoltativo: Azurite, cloud nazionali, dominio proprio</span></div></div>
+        <div class="field"><label>Nome della cartella in Rete</label><div class="input">archivio</div></div>
+      </div>
+      <div class="dlg-foot"><button class="btn">Annulla</button><button class="btn primary">Connetti</button></div>
+    </div>
+
+    <div class="window" style="left:520px;top:18px;width:450px;height:640px">
+      <div class="titlebar"><div class="title"><svg class="ico"><use href="#i-server"/></svg>Connetti a un server</div><div class="controls"><button class="close"><svg class="ico"><use href="#i-x"/></svg></button></div></div>
+      <div class="dlg-body">
+        <div class="field"><label>Protocollo</label><div class="input" style="justify-content:space-between"><span>NFS (Linux, NAS)</span><svg class="ico" style="width:12px;color:var(--faint)"><use href="#i-chev"/></svg></div></div>
+        <div class="field"><label>Server</label><div class="input mono">nas.casa</div></div>
+        <div class="field"><label>Versione</label><div class="input" style="justify-content:space-between">NFSv3<svg class="ico" style="width:12px;color:var(--faint)"><use href="#i-chev"/></svg></div><span class="hint">NFSv4.1 (necessaria per AWS EFS e Azure Files) in una versione successiva</span></div>
+        <div class="field"><label>Cartella esportata</label><div class="grid2" style="grid-template-columns:1fr auto"><div class="input mono focus">/volume1/foto</div><button class="btn">Elenca</button></div></div>
+        <div class="field"><label>Autenticazione</label><div class="input" style="justify-content:space-between">UID e GID dell’amministratore<svg class="ico" style="width:12px;color:var(--faint)"><use href="#i-chev"/></svg></div><span class="hint">Kerberos (in arrivo) si vede nell’elenco ma non si sceglie</span></div>
+        <div class="field"><label>Identità sul server</label><div class="grid2b"><div class="input mono">UID 1026</div><div class="input mono">GID 100</div></div><span class="hint">Assegnati dall'amministratore a mario (Impostazioni di NFS): non modificabili</span></div>
+        <div class="note"><b>Se il server rifiuta la connessione</b><span>Molti server accettano solo connessioni da porte sotto la 1024. Il modulo prova prima una di quelle; se il sistema non lo permette (Linux senza privilegi), sul server va attivata l'opzione «insecure» o «Consenti porte non privilegiate» (Synology, QNAP, TrueNAS).</span></div>
+        <div class="field"><label>Nome della cartella in Rete</label><div class="input">nas</div></div>
+      </div>
+      <div class="dlg-foot"><button class="btn">Annulla</button><button class="btn primary">Connetti</button></div>
+    </div>
+    <div class="dd" style="left:700px;top:274px;width:230px">
+      <h6>Esportate da nas.casa</h6>
+      <div class="hi">/volume1/foto</div>
+      <div>/volume1/backup</div>
+      <div>/volume1/progetti</div>
+    </div>
+    <div class="callout" data-n="1" style="left:990px;top:110px">Elenca chiede l'elenco al server (MOUNT EXPORT), come le condivisioni SMB</div>
+    <div class="callout" data-n="2" style="left:990px;top:330px">AUTH_SYS: chi sceglie l'UID è quell'utente, quindi lo sceglie l'amministratore. Kerberos in seguito</div>
+    <div class="callout" data-n="3" style="left:990px;top:440px">Data Lake Gen2 trovato da solo: cartelle vere, rinomina istantanea</div>
+    <div class="taskbar"><button class="tb-btn"><svg class="ico"><use href="#i-grid"/></svg></button><button class="tb-btn active"><svg class="ico"><use href="#i-files"/></svg>File Manager</button><span class="tb-sp"></span><div class="tray"><button class="tb-btn"><svg class="ico"><use href="#i-bell"/></svg></button></div><span class="clock">11:40</span></div>
+  </div>
+</section>
+
+<!-- =============================== Cosa si costruisce =============================== -->
+<section class="scene"><h2>Cosa si costruisce</h2><p>Cinque moduli nuovi, tutti 1.0.0, nel repository dei plugin, più alcune aggiunte generiche al contratto dei driver, al kernel e al File Manager. Le aggiunte servono a più protocolli e sono tutte facoltative: i moduli che già ci sono restano come sono.</p></section>
+<div class="spec">
+  <div><h3><span class="proto gd">GD</span>netfs-gdrive</h3><ul>
+    <li>Google Drive API v3 con <code>fetch</code>; dai percorsi agli ID con una cache per connessione</li>
+    <li>Lettura con <code>Range</code> (riprende); scrittura con il <b>caricamento a riprese</b> di Google, in pezzi da 8 MB (riprende anche l'upload)</li>
+    <li>Rinomina e sposta con <code>files.update</code>; elimina = cestino (<code>recycles</code>); <code>removeTree</code> in una chiamata</li>
+    <li>Documenti Google: elementi «solo web», con esportazione (massimo 10 MB); collegamenti (shortcut) seguiti</li>
+    <li>Drive condivisi con <code>shares()</code>; «Condivisi con me» (<code>sharedWithMe</code>); <code>space()</code> da <code>about.storageQuota</code>; <code>link()</code> = <code>webViewLink</code></li>
+    <li>Ambito <code>drive</code> (tutto il Drive): per Google è «ristretto», quindi l'app non verificata ha al massimo 100 utenti, a meno di Workspace con «Interno»</li>
+  </ul></div>
+  <div><h3><span class="proto gp">GF</span>netfs-gphotos</h3><ul>
+    <li><b>Photos Picker API</b>: sessione → <code>pickerUri</code> in una nuova scheda → attesa secondo <code>pollingConfig</code> → elenco degli elementi → copie con <code>baseUrl=d</code> / <code>=dv</code> → la sessione si chiude</li>
+    <li><b>Photos Library API</b> con gli ambiti <code>appendonly</code> e <code>*.appcreateddata</code>: album = cartelle (solo quelli creati da lilOS); mkdir = nuovo album; scrittura = upload + <code>batchCreate</code></li>
+    <li>Niente eliminazione né rinomina delle foto: «Togli dall'album» (<code>batchRemoveMediaItems</code>); gli upload ricominciano da capo se interrotti</li>
+    <li>Stesse impostazioni Google di Drive (ID e segreto), con ambiti suoi</li>
+  </ul></div>
+  <div><h3><span class="proto s3">S3</span>netfs-s3</h3><ul>
+    <li>Firma <b>SigV4</b> nostra; fornitori: AWS, Cloudflare R2, Backblaze B2, Wasabi, MinIO, Altro (indirizzo, stile «percorso» o «host virtuale»)</li>
+    <li><code>ListObjectsV2</code> con <code>/</code>: cartelle = prefissi, cartella vuota = oggetto «nome/»; regione trovata da <code>x-amz-bucket-region</code></li>
+    <li>Scrittura: fino a 16 MB un solo PUT, oltre in <b>multipart</b> da 16 MB; Annulla → <code>AbortMultipartUpload</code>; all'avvio il kernel chiude i multipart lasciati a metà da lilOS (costano)</li>
+    <li>Rinomina = <code>CopyObject</code> (oltre 5 GB <code>UploadPartCopy</code>) + elimina; <code>removeTree</code> con <code>DeleteObjects</code> a gruppi di 1000</li>
+    <li>Credenziali temporanee (token di sessione STS) facoltative</li>
+  </ul></div>
+  <div><h3><span class="proto az">AZ</span>netfs-azblob</h3><ul>
+    <li>Firma <b>Shared Key</b> nostra, SAS così com'è, oppure Entra con il campo <code>signin</code> (ambito <code>https://storage.azure.com/user_impersonation</code>)</li>
+    <li>Contenitori con <code>shares()</code>; con lo spazio dei nomi gerarchico usa l'endpoint <code>dfs</code>: cartelle vere, rinomina ed eliminazione di una cartella in una chiamata</li>
+    <li>Senza: cartelle virtuali; cartella vuota = blob vuoto con <code>hdi_isfolder=true</code> (la convenzione di Azure Storage Explorer)</li>
+    <li>Scrittura a blocchi da 8 MB (<code>Put Block</code> + <code>Put Block List</code>): riprende dai blocchi già inviati; Annulla → i blocchi non confermati spariscono da soli dopo 7 giorni</li>
+    <li>Impostazioni del modulo: l'ID client e la directory, solo per Entra</li>
+  </ul></div>
+  <div><h3><span class="proto nfs">NFS</span>netfs-nfs</h3><ul>
+    <li><b>NFSv3 su TCP scritto da noi</b> in <code>lib/</code> (nessuna libreria npm adatta: <code>node-nfsc</code> è nativa e solo Linux, <code>node-nfs</code> di Joyent fa server)</li>
+    <li>XDR, ONC RPC con «record marking», portmapper (GETPORT), MOUNT v3 (MNT, EXPORT per <code>shares()</code>, UMNT), NFS v3: LOOKUP, GETATTR, READDIRPLUS, READ, WRITE + COMMIT, CREATE, MKDIR, REMOVE, RMDIR, RENAME, READLINK</li>
+    <li>Lettura e scrittura con l'offset: riprendono entrambe; link simbolici come <code>link</code></li>
+    <li>AUTH_SYS con UID e GID; prova prima una porta sotto 1024; impostazione del modulo: UID e GID per utente di lilOS</li>
+    <li>In seguito: NFSv4.1, Kerberos (krb5, krb5i, krb5p), lock (NLM)</li>
+  </ul></div>
+  <div><h3><svg class="ico" style="color:#fff"><use href="#i-cube"/></svg>Aggiunte generiche</h3><ul>
+    <li>Driver: <code>group</code> ('server' | 'cloud' | 'local') per la lista di Connetti a un server</li>
+    <li>Elemento: <code>web</code> + <code>exports: [{ ext, label }]</code> (doppio clic = link; copia = esportazione, <code>read(path, { format })</code>); <code>badge</code> (classe d'archivio, «stesso nome»); <code>can: { rename, remove }</code> e <code>removeLabel</code> («Togli dall'album»)</li>
+    <li>Sessione: <code>space?()</code> → { used, total }; <code>importer?</code> { start(), poll(id) } per «Importa da …»</li>
+    <li>Impostazioni dei moduli: campi <code>secret</code> (il segreto client di Google)</li>
+    <li>SDK 0.8.0 <code>net</code>: <code>space</code>, <code>imports</code>, <code>signInByHand</code>; File Manager: menu e barra della connessione; tutti i testi in inglese e italiano</li>
+  </ul></div>
+  <div><h3><svg class="ico" style="color:#fff"><use href="#i-check"/></svg>Prove</h3><ul>
+    <li>Server Google finto (Drive v3, Picker, Library), come quello di Graph per OneDrive</li>
+    <li><b>RustFS</b> in Docker per S3 (le immagini di MinIO non si scaricano più); <b>Azurite</b> in Docker per Azure (chiave e SAS); <b>NFS-Ganesha</b> in Docker per NFS (gira in spazio utente: non servono moduli del kernel di Linux)</li>
+    <li>api-test, resume-test e ui-test come per gli altri protocolli; infine una prova sui tuoi account veri (Google, AWS, Azure), solo se vuoi</li>
+    <li>Tutto quello che si crea per le prove viene eliminato alla fine, sia che passino sia che falliscano</li>
+  </ul></div>
+  <div><h3><svg class="ico" style="color:#fff"><use href="#i-info"/></svg>Versioni</h3><ul>
+    <li>Cinque moduli nuovi 1.0.0, solo nel catalogo (<code>catalog.json</code>): non nel <code>config.json</code> delle nuove installazioni</li>
+    <li>lilOS 1.14.0 (1.13 è dei collegamenti), SDK 0.8.0, File Manager 1.13.0, Pannello di controllo 1.15.0, netfs-onedrive 1.1.0 (spazio usato)</li>
+    <li>Documentazione: guida (come creare il progetto Google, la chiave IAM, l'account Azure, l'esportazione NFS), API, una nuova decisione D</li>
+  </ul></div>
+</div>
+
+<section class="scene"><h2>Deciso (2 novembre 2026)</h2></section>
+<div class="spec">
+  <div><h3>1 · Accesso Google</h3><ul><li>Finestra del fornitore dove si può; altrimenti <b>incollando l'indirizzo</b> della pagina che non si apre (<code>http://127.0.0.1:53682/</code>). Con un client «App desktop» sempre così.</li></ul></div>
+  <div><h3>2 · Foto importate</h3><ul><li>In una <b>cartella di lilOS scelta nel dialogo</b> (di serie <code>~/Immagini/Google Foto/&lt;data ora&gt;</code>).</li></ul></div>
+  <div><h3>3 · Moduli Google</h3><ul><li><b>Due</b>, netfs-gdrive e netfs-gphotos, ognuno con le sue impostazioni (lo stesso progetto va bene).</li></ul></div>
+  <div><h3>4 · Documenti Google</h3><ul><li>Copiati come <b>.docx, .xlsx, .pptx</b>; il formato lo sceglie l'<b>amministratore</b> (anche OpenDocument o PDF).</li></ul></div>
+  <div><h3>5 · Link temporanei</h3><ul><li><b>No</b>, né per S3 né per Azure.</li></ul></div>
+  <div><h3>6 · NFS</h3><ul><li>UID e GID li assegna <b>sempre l'amministratore</b> per ogni utente di lilOS, anche con un solo utente; senza, niente connessione. Nella finestra <b>Autenticazione</b>: «UID e GID dell'amministratore» e «Kerberos» (in arrivo, non selezionabile). Libreria NFSv3 <b>solo nel modulo</b>.</li></ul></div>
+  <div><h3>7 · Attivi di serie</h3><ul><li><b>Solo nel catalogo</b>: le nuove installazioni non li hanno, gli amministratori li installano dall'AppStore. Costruiti tutti e cinque.</li></ul></div>
+  <div><h3>8 · Fornitori S3</h3><ul><li>AWS, Cloudflare R2, Backblaze B2, Wasabi, MinIO, Altro.</li></ul></div>
+</div>
+
+</body>
+</html>

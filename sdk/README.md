@@ -161,12 +161,13 @@ Firme, parametri ed esempi: [riferimento API](../doc/sviluppatore/api.md).
 
 ## Versione
 
-`0.7.1`. Finché la versione è `0.x` l'API può cambiare: ogni modifica incompatibile alza la versione minore e va annotata qui sotto.
+`0.8.0`. Finché la versione è `0.x` l'API può cambiare: ogni modifica incompatibile alza la versione minore e va annotata qui sotto.
 
 ### Modifiche
 
 ### Modifiche
 
+- **0.8.0** (2 novembre 2026, lilOS 1.14.0, compatibile): Google Drive, Google Foto, S3, Azure e NFS nella Rete. `net` ha `signInByHand(protocollo)` e `signIn(…, { manual: true, askAddress })` (l'accesso incollando l'indirizzo della pagina che non si apre), `space(id)` (lo spazio dell'account) e `imports` (`start`, `status`, `copy`: scegliere sulla pagina del fornitore cosa copiare); `net.protocols` ha anche `group`, `space`, `importer`, `removeText` e `signIn`; le opzioni dei campi possono avere `disabled`. I nodi di rete di `fs` possono avere `web`, `exportAs`, `badge`, `noRename`, `noRemove`, `removeLabel`. `kernelModules.settings` dà anche `secrets` (i campi `password` impostati), e `saveSettings` accetta `null` per toglierne uno. I metodi nuovi parlano con rotte del kernel di lilOS 1.14.0. [Riferimento API](../doc/sviluppatore/api.md#sdkcorenetjs)
 - **0.7.1** (2 novembre 2026, lilOS 1.13.1, compatibile): `fs.setHiddenNodes(ids)` e `fs.hiddenNodes`, i nodi che il sistema tiene per sé (la cartella Sistema): esclusi da `children()` come quelli con un tag nascosto, trovati da `get`, `exists` e `resolve`.
 - **0.7.0** (2 novembre 2026, lilOS 1.13.0, compatibile): i collegamenti. `fs` ha un nuovo tipo di nodo, `link`, che punta a un file o a una cartella della home (`{ home: id }`) o di una connessione di rete (`{ mount, path }`), con `kind: 'file' | 'folder'` e `broken?: true`, oppure a una pagina web (`{ url, kind: 'web' }`, solo `http` e `https`). `fs.create(parent, { type: 'link', name, link })` accetta `link` (lancia «Collegamento non valido» se non lo è, e non si crea in una cartella di rete) e `fs.update(id, { broken })` segna o toglie il segno «rotto». Un collegamento non ha contenuto: non è un file per `read`, `readBlob`, `write` e `copy`. Chi mostra i nodi per tipo deve conoscere `'link'` ([riferimento API](../doc/sviluppatore/api.md#sdkcorefsjs)). Per le app di sistema, `@lilos/system` esporta `linkTo`, `canLinkOnDesk`, `addDeskLinks`, `openLink`, `openWebLink`, `findLinkTarget` e `locateLink` ([riferimento](../doc/sviluppatore/api.md#desklinksjs)); l'SDK non cambia altro. `sdk/package.json` va portato a `0.7.0`.
 - **0.6.0** (2 novembre 2026, lilOS 1.12.0, compatibile): i terminali remoti. Nuovo export `term` (`core/term.js`): host salvati e sessioni nel kernel, e il canale di una sessione come `MessagePort` ([riferimento API](../doc/sviluppatore/api.md#sdkcoretermjs)). Solo con il kernel; non cambia niente per chi non lo usa.
