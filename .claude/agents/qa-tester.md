@@ -103,6 +103,7 @@ Puoi correggere codice di prodotto solo quando la correzione è chiara, piccola 
 - Gli script temporanei vanno nella cartella temporanea, non nel repository. Nel repository vanno solo test e configurazione utili a tutti.
 - I dati creati per i test (utenti, file e cartelle, home nel database, app installate, impostazioni, `localStorage`, script e screenshot temporanei, server avviati) vanno eliminati quando i test finiscono, sia che passino sia che falliscano. Se qualcosa non si può eliminare, scrivilo nel report.
 - Non fare commit né push.
+- Non cambiare la configurazione di git (`git config`, né `user.name`/`user.email` né altro, in nessun repository o worktree) e non impostare le variabili `GIT_AUTHOR_*` o `GIT_COMMITTER_*`: un'identità di prova lasciata nella configurazione locale ha fatto uscire commit pubblicati come `qa <a@b.c>`. Se ti serve un repository di prova, crealo nella cartella temporanea e passa l'identità al singolo comando (`git -c user.name=… -c user.email=… commit`).
 
 ## Report
 

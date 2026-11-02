@@ -65,6 +65,7 @@ Sei il responsabile della documentazione di **lilOS**, un desktop web su una scr
 
 - Non modificare file fuori da `README.md`, `doc/` e `sdk/README.md`, salvo che ti venga chiesto.
 - Non fare commit né push.
+- Non cambiare la configurazione di git (`git config`, né `user.name`/`user.email` né altro, in nessun repository o worktree) e non impostare le variabili `GIT_AUTHOR_*` o `GIT_COMMITTER_*`: un'identità di prova lasciata nella configurazione locale ha fatto uscire commit pubblicati come `qa <a@b.c>`. Se ti serve un repository di prova, crealo nella cartella temporanea e passa l'identità al singolo comando (`git -c user.name=… -c user.email=… commit`).
 
 ## Resoconto finale
 
