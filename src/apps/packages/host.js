@@ -1,4 +1,4 @@
-import { Window, h, shortcuts, settings, locale } from '@lilos/sdk';
+import { Window, h, shortcuts, settings, locale, term } from '@lilos/sdk';
 import { BRIDGE_SOURCE, lilosApi } from './bridge.js';
 import { appCode, libraryCode, entrypoints, escapeAttr, inline, netOrigins } from './code.js';
 import { isIsolated } from './isolation.js';
@@ -92,6 +92,11 @@ ${run}
 }
 
 /** Answers the messages of one sandboxed window. Returns the function that stops it. */
+/** The remote terminals changed ('hosts' | 'sessions'): for an app with the term permission. Returns the offs. */
+const termEvents = (pkg, fn) => ((pkg.manifest.permissions ?? []).includes('term')
+  ? [term.on('hosts', () => fn('hosts')), term.on('sessions', () => fn('sessions'))]
+  : []);
+
 function connectBridge(win, frame, pkg, handles, entry) {
   // A local app's origin is opaque ('*' is the only way to reach it); a remote app gets messages only at its own
   const targetOrigin = pkg.manifest.kind === 'remote' ? new URL(pkg.manifest.url).origin : '*';
@@ -129,6 +134,7 @@ function connectBridge(win, frame, pkg, handles, entry) {
   const offKeys = shortcuts.on('change', () => post({ event: 'keys', data: commandKeys(pkg.manifest) }));
   const offTheme = watchTheme(() => post({ event: 'theme', data: theme() }));
   const offLocale = locale.on('change', () => post({ event: 'locale', data: locale.strings(pkg.id) }));
+  const offTerm = termEvents(pkg, what => post({ event: 'term', data: what }));
   win.on('grant', ids => ids.forEach(id => handles.add(id)));
   win.on('launch', args => {
     if (args?.file) handles.add(args.file);
@@ -140,6 +146,7 @@ function connectBridge(win, frame, pkg, handles, entry) {
     for (const r of replies.values()) r.reject(new Error(`${pkg.manifest.name}: la finestra si è chiusa`));
     offKeys?.();
     offLocale();
+    offTerm.forEach(off => off());
     offTheme.forEach(off => off?.());
   };
 }
@@ -197,6 +204,7 @@ async function mountInPage(win, pkg, entry, args, handles) {
   const offs = (manifest.contributes?.commands ?? []).map(cmd => handleCommand(cmd.id, { isActive: () => win.active, run: () => emit('command', cmd.id) }));
   offs.push(...watchTheme(() => emit('theme', theme())));
   offs.push(locale.on('change', () => emit('locale', locale.strings(pkg.id))));
+  offs.push(...termEvents(pkg, what => emit('term', what)));
   win.on('grant', ids => ids.forEach(id => handles.add(id)));
   win.on('launch', a => {
     if (a?.file) handles.add(a.file);

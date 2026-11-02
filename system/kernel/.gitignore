@@ -5,3 +5,5 @@ config.json.tmp
 
 # Network connections and transfers of the users (net/network.js, net/transfers.js)
 /net/
+# Saved hosts of the remote terminals (term/terminals.js)
+/term/

@@ -45,6 +45,12 @@ import { typeKey } from '../../input/sendKey.js';
  *   lilos.pipes.run(name, data) → data   runs it through its handlers
  *   lilos.storage.get(key) / set(key, value)    the app's own data, for the signed-in user
  *   lilos.clipboard.write(text)
+ *   lilos.term.load() → { protocols, encodings, hosts, sessions }    remote terminals (permission term;
+ *                                        see the SDK's term.js): saveHost(id | null, config, secret) → host,
+ *                                        removeHost(id), open({ host } | { protocol, values, settings }) → session,
+ *                                        openHere(fileId) → session (SSH where a handed file of an SFTP
+ *                                        connection is), close(id), attach(id, { cols, rows }) → MessagePort
+ *                                        (windows only). Event 'term' ('hosts' | 'sessions'): they changed
  *
  * Apps with sdk '2' export one function per entry point: main({ lilos, root, args }) for windows
  * (root: where to draw; it may return a function lilOS calls when the window closes),
@@ -124,6 +130,15 @@ export function lilosApi(call, info, i18nApi) {
       set: (key, value) => call('storage.set', key, value),
     }),
     clipboard: Object.freeze({ write: text => call('clipboard.write', String(text)) }),
+    term: Object.freeze({
+      load: () => call('term.load'),
+      saveHost: (id, config, secret) => call('term.saveHost', id ?? null, config ?? null, secret ?? null),
+      removeHost: id => call('term.removeHost', id),
+      open: spec => call('term.open', spec ?? null),
+      openHere: id => call('term.openHere', id),
+      close: id => call('term.close', id),
+      attach: (id, size) => call('term.attach', id, size ?? null),
+    }),
   });
   const answer = async (data, from) => {
     if (!handler) throw new Error(`${info.id}: ${info.entry} non risponde alle chiamate (manca lilos.handle)`);

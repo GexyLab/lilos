@@ -3,7 +3,7 @@ import { EventEmitter } from 'node:events';
 import { join } from 'node:path';
 import { loadConfig, MODULES_DIR, RELEASE_DIR, SYSTEM_VERSION } from './config.js';
 import { resolveModules, startModule } from './modules.js';
-import { Router, send, readJson, cookies, checkOrigin, checkHost } from './http.js';
+import { Router, send, readJson, cookies, checkOrigin, checkHost, checkSocketOrigin } from './http.js';
 import { KernelError, fail } from './errors.js';
 import { logger } from './log.js';
 import { sessionRoutes, SESSION_COOKIE } from './api/session.js';
@@ -17,8 +17,11 @@ import { serviceRoutes } from './api/services.js';
 import { notificationRoutes } from './api/notifications.js';
 import { systemRoutes } from './api/system.js';
 import { netRoutes } from './api/net.js';
+import { termRoutes } from './api/term.js';
 import { Network } from './net/network.js';
 import { Transfers } from './net/transfers.js';
+import { Terminals } from './term/terminals.js';
+import { refuseUpgrade } from './ws.js';
 import { SystemReleases } from './apps/systemPackage.js';
 import { webFiles } from './web.js';
 import { AppServices } from './apps/appServices.js';
@@ -40,6 +43,8 @@ export class Kernel {
   services = new Map();
   modules = [];
   router = new Router();
+  /** Routes of the WebSockets (an 'upgrade' request): handlers get { req, socket, head, params, query, principal } */
+  sockets = new Router();
   /** 'user' { owner, event, data }: for that user's open lilOS pages (api/services.js streams them) */
   events = new EventEmitter().setMaxListeners(0);   // one listener per open page
   #server = null;
@@ -83,6 +88,7 @@ export class Kernel {
     this.system = new SystemReleases(this);
     this.network = new Network(this);
     this.transfers = new Transfers(this, this.network);
+    this.terminals = new Terminals(this);
     sessionRoutes(this);
     homeRoutes(this);
     appRoutes(this);
@@ -91,9 +97,11 @@ export class Kernel {
     notificationRoutes(this);
     systemRoutes(this);
     netRoutes(this);
+    termRoutes(this);
     await this.#bootstrapApps(config.bootstrapApps);
 
     this.#server = createServer((req, res) => this.#handle(req, res));
+    this.#server.on('upgrade', (req, socket, head) => this.#upgrade(req, socket, head));
     await new Promise((resolve, reject) => {
       this.#server.once('error', reject);
       this.#server.listen(config.port, config.host, resolve);
@@ -101,6 +109,7 @@ export class Kernel {
     log.info(`lilOS ${SYSTEM_VERSION}${RELEASE_DIR ? '' : ' (copia di sviluppo)'} in ascolto su http://${config.host}:${config.port} (${this.multiUser ? 'multiutente' : 'utente singolo'})`);
     // Connections of users that are gone, then the transfers that were running when the kernel stopped
     await this.network.prune().catch(err => log.error('Pulizia delle connessioni di rete', err));
+    await this.terminals.prune().catch(err => log.error('Pulizia degli host dei terminali', err));
     this.transfers.start().catch(err => log.error('Trasferimenti all’avvio', err));
     // system:ready — the services an admin chose for everyone
     this.appServices.systemReady().catch(err => log.error('Servizi all’avvio', err));
@@ -177,7 +186,25 @@ export class Kernel {
     }
   }
 
+  /** A WebSocket: same checks as a request, then the route takes the socket. */
+  async #upgrade(req, socket, head) {
+    socket.on('error', () => {});
+    try {
+      checkHost(req, this.config);
+      checkSocketOrigin(req, this.config);
+      const url = new URL(req.url, 'http://kernel');
+      const found = this.sockets.match(req.method, url.pathname);
+      if (!found?.handler) return refuseUpgrade(socket, 404, 'Not Found');
+      await found.handler({ req, socket, head, params: found.params, query: url.searchParams, principal: await this.principalOf(req) });
+    } catch (err) {
+      if (err instanceof KernelError) return refuseUpgrade(socket, err.status, err.code);
+      log.error(`Upgrade ${req.url}`, err);
+      refuseUpgrade(socket, 500, 'internal');
+    }
+  }
+
   async stop() {
+    await this.terminals?.stop().catch(err => log.error('Arresto dei terminali', err));
     await this.appServices?.stopAll();
     await this.transfers?.stop().catch(err => log.error('Arresto dei trasferimenti', err));
     await this.network?.stop().catch(err => log.error('Arresto delle connessioni di rete', err));

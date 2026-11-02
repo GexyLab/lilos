@@ -36,10 +36,11 @@ export default defineConfig({
     ],
   },
   // The kernel (npm run kernel) answers on /api: same origin for the browser, so its cookie works
+  // (ws: the WebSockets of the remote terminals go through too)
   server: {
-    proxy: { '/api': { target: 'http://127.0.0.1:8790', changeOrigin: false } },
+    proxy: { '/api': { target: 'http://127.0.0.1:8790', changeOrigin: false, ws: true } },
   },
   preview: {
-    proxy: { '/api': { target: 'http://127.0.0.1:8790', changeOrigin: false } },
+    proxy: { '/api': { target: 'http://127.0.0.1:8790', changeOrigin: false, ws: true } },
   },
 });

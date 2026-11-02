@@ -23,7 +23,7 @@ const LABELS = {
   'tags.read': 'Vedere i tag', 'tags.write': 'Creare e assegnare tag', 'desktop.items': 'Mettere elementi sulla scrivania',
   'desktop.widget': 'Mostrare widget sulla scrivania', 'ui.notify': 'Mostrare avvisi', 'ui.menus': 'Aggiungere voci ai menu',
   'ui.commands': 'Aggiungere comandi', 'ui.shortcuts': 'Aggiungere scorciatoie da tastiera', 'clipboard.write': 'Copiare negli appunti',
-  'clipboard.read': 'Leggere gli appunti', net: 'Collegarsi a', 'media.camera': 'Usare la fotocamera', 'media.microphone': 'Usare il microfono',
+  'clipboard.read': 'Leggere gli appunti', net: 'Collegarsi a', term: 'Aprire terminali remoti (SSH, Telnet…) e usare gli host salvati', 'media.camera': 'Usare la fotocamera', 'media.microphone': 'Usare il microfono',
   geo: 'Conoscere la posizione', 'apps.call': 'Avviare parti dell’app', 'ai.use': 'Usare l’intelligenza artificiale',
   'ai.expose': 'Rendere le proprie azioni disponibili all’assistente', background: 'Lavorare anche quando lilOS è chiuso',
   'auth.remote': 'Accedere al proprio servizio', 'apps.manage': 'Installare e rimuovere app', 'workspaces.manage': 'Gestire i workspace',

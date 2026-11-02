@@ -1,0 +1,9 @@
+{
+  "name": "lilos-module-term-ssh",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "ssh2": "1.17.0"
+  }
+}

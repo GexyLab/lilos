@@ -1,4 +1,4 @@
-import { fs, net, kernel, shortcuts } from '@lilos/sdk';
+import { fs, net, term, kernel, shortcuts } from '@lilos/sdk';
 import { onKernelEvent } from '../apps/services.js';
 import { sharedFolder, NETWORK_NAME } from '../systemFs.js';
 import { systemActions } from '../notifications/card.js';
@@ -36,7 +36,11 @@ export function connectNet({ wm, button }) {
   onKernelEvent('net.transfers', s => net.transfersChanged(s));
   onKernelEvent('fs.external', d => fs.external(d));
   onKernelEvent('net.notify', d => notify(String(d?.text ?? ''), { level: d?.level ?? 'info' }));
+  // Remote terminals: their apps hear it through the SDK's term
+  onKernelEvent('term.hosts', () => term.changed('hosts'));
+  onKernelEvent('term.sessions', () => term.changed('sessions'));
   onKernelEvent('', () => {
+    term.changed('sessions');
     net.load().catch(() => {});
     net.loadTransfers().catch(() => {});
   });

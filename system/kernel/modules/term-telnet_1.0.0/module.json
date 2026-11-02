@@ -1,0 +1,12 @@
+{
+  "name": "term-telnet",
+  "version": "1.0.0",
+  "description": "Terminali remoti Telnet (anche su TLS): router, switch e sistemi senza SSH",
+  "kernel": "1",
+  "icon": { "glyph": "terminal", "color": "#8a5a0f" },
+  "provides": [
+    "term.telnet"
+  ],
+  "requires": [],
+  "defaultConfig": {}
+}

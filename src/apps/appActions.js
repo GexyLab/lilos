@@ -1,4 +1,4 @@
-import { fs, splitName } from '@lilos/sdk';
+import { fs, net, splitName } from '@lilos/sdk';
 import { installedApps, launch } from './registry.js';
 import { callEntrypoint, entrypointsOf } from './entrypoints.js';
 import { notify } from '../notifications/notify.js';
@@ -31,6 +31,8 @@ function fits(action, appId, node) {
   const ext = node.type === 'file' ? splitName(node.name)[1].toLowerCase() : null;
   if (action.when?.ext && !(ext !== null && action.when.ext.includes(ext))) return false;
   if (action.when?.notExt && ext !== null && action.when.notExt.includes(ext)) return false;
+  // Only inside a network connection (the Rete folder) of these protocols
+  if (action.when?.net && !action.when.net.includes(node.net ? net.mount(node.net)?.protocol : null)) return false;
   return true;
 }
 

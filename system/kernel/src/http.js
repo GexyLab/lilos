@@ -99,11 +99,28 @@ export function cookies(req) {
  * header (another site cannot add it without a CORS preflight, which the kernel never allows)
  * and, when the browser sends an Origin, it must be one of the allowed ones.
  */
-export function checkOrigin(req, { origins, loopbackOrigins }) {
+export function checkOrigin(req, config) {
   if (SAFE.has(req.method)) return;
   if (req.headers['x-lilos'] !== '1') fail('forbidden', 'Richiesta non permessa');
+  if (req.headers.origin) allowedOrigin(req.headers.origin, config);
+}
+
+/**
+ * A WebSocket cannot carry the X-Lilos header and the browser opens one to any site with the
+ * user's cookies: it must come with an Origin, one of the allowed ones or the kernel's own
+ * address (the page an installed lilOS serves).
+ */
+export function checkSocketOrigin(req, config) {
   const origin = req.headers.origin;
-  if (!origin) return;
+  if (!origin) fail('forbidden', 'Origine mancante');
+  try {
+    const url = new URL(origin);
+    if (url.host === req.headers.host && (url.protocol === 'http:' || url.protocol === 'https:')) return;
+  } catch { /* checked below */ }
+  allowedOrigin(origin, config);
+}
+
+function allowedOrigin(origin, { origins, loopbackOrigins }) {
   let url;
   try { url = new URL(origin); } catch { fail('forbidden', 'Origine non permessa'); }
   if (origins.includes(url.origin)) return;

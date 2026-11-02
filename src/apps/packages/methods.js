@@ -1,4 +1,4 @@
-import { fs, storage, pipes, bus, notifications } from '@lilos/sdk';
+import { fs, storage, pipes, bus, notifications, net, term } from '@lilos/sdk';
 import { coversPath } from './permissions.js';
 import { callEntrypoint, connectEntrypoint } from '../entrypoints.js';
 import { openFile } from '../open.js';
@@ -41,6 +41,10 @@ function content(data) {
  */
 export function hostMethods({ pkg, win = null, handles, readOnly = new Set(), instance = null, pipe = null }) {
   const perms = pkg.manifest.permissions ?? [];
+  // The channels of remote terminals this window holds: they close with it (the sessions go on)
+  const channels = new Set();
+  win?.on('destroy', () => channels.forEach(port => port.detach()));
+  const terminal = () => (perms.includes('term') ? term : fail('Permesso negato: term'));
   const target = (ref, write) => {
     if (handles.has(ref)) return fs.get(ref) ?? fail('Il file non esiste più');
     if (readOnly.has(ref)) return write ? fail('Il file è stato passato solo da leggere') : fs.get(ref) ?? fail('Il file non esiste più');
@@ -169,6 +173,31 @@ export function hostMethods({ pkg, win = null, handles, readOnly = new Set(), in
       if ((JSON.stringify(value) ?? '').length > 256 << 10) fail('Valore troppo grande');
       storage.set(`app:${pkg.id}:${key}`, value);
     },
+    'term.load': () => terminal().load(),
+    'term.saveHost': (id, config, secret) => terminal().saveHost(id === null ? null : String(id), plainObject(config), plainObject(secret)),
+    'term.removeHost': id => terminal().removeHost(String(id)),
+    'term.open': spec => {
+      const { host, protocol, values, settings } = plainObject(spec);
+      return terminal().open(typeof host === 'string' ? { host } : { protocol, values, settings });
+    },
+    // SSH to the server of the SFTP connection a handed file or folder is in, in that folder
+    'term.openHere': id => {
+      terminal();
+      if (!handles.has(id)) fail('Si possono usare solo file aperti con l’app');
+      const node = fs.get(id) ?? fail('Il file non esiste più');
+      const folder = node.type === 'folder' ? node.id : node.parent;
+      const ref = fs.isRemote(folder) ? fs.netRef(folder) : fail('Non è in una connessione di rete');
+      if (net.mount(ref.mount)?.protocol !== 'sftp') fail('Il terminale si apre solo sulle connessioni SFTP');
+      return term.open({ mount: ref.mount, path: ref.path });
+    },
+    'term.close': id => terminal().close(String(id)),
+    'term.attach': (id, size) => {
+      terminal();
+      if (!win) fail('Solo una finestra mostra un terminale');
+      const port = term.attach(String(id), plainObject(size));
+      channels.add(port);
+      return port;
+    },
     'app.call': (entry, data) => callEntrypoint(pkg.id, entry, handed(data), { from: pkg.id }),
     'app.connect': entry => connectEntrypoint(pkg.id, entry),
     'app.keepAlive': on => (instance ? instance.setKeepAlive(on === true) : fail('Solo un punto d’ingresso in background resta attivo')),
@@ -183,6 +212,8 @@ export function hostMethods({ pkg, win = null, handles, readOnly = new Set(), in
     },
   };
 }
+
+const plainObject = v => (v && typeof v === 'object' && !Array.isArray(v) ? v : {});
 
 /** Runs one request of the app. */
 export function invoke(methods, method, params) {

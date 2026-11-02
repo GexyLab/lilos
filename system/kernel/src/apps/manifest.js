@@ -332,10 +332,11 @@ export function checkManifest(raw) {
     if (a.many !== undefined && a.many !== true) wrong('many può essere solo true');
     if (a.menu !== undefined && !menus.has(a.menu)) wrong('menu non è uno dei menu dell’app (contributes.menus)');
     if (a.when !== undefined) {
-      if (!a.when || typeof a.when !== 'object' || Array.isArray(a.when) || Object.keys(a.when).some(k => !['meta', 'ext', 'notExt'].includes(k))) wrong('when non valido');
+      if (!a.when || typeof a.when !== 'object' || Array.isArray(a.when) || Object.keys(a.when).some(k => !['meta', 'ext', 'notExt', 'net'].includes(k))) wrong('when non valido');
       if (a.when.meta !== undefined && a.when.meta !== 'own' && a.when.meta !== 'none') wrong('when.meta: "own" o "none"');
       if (a.when.ext !== undefined && !extList(a.when.ext)) wrong('when.ext non valido');
       if (a.when.notExt !== undefined && !extList(a.when.notExt)) wrong('when.notExt non valido');
+      if (a.when.net !== undefined && !(Array.isArray(a.when.net) && a.when.net.length <= 20 && a.when.net.every(p => typeof p === 'string' && /^[a-z][a-z0-9-]{0,30}$/.test(p)))) wrong('when.net: i protocolli delle connessioni di rete, per esempio ["sftp"]');
     }
   }
   if (list(c.actions, MAX.actions).length && !permissions.includes('ui.menus')) bad('le azioni richiedono il permesso ui.menus');

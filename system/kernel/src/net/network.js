@@ -419,6 +419,18 @@ export class Network {
     return user.saved.get(id)?.name ?? id;
   }
 
+  /**
+   * What the kernel needs to open another kind of session on the same server (a remote terminal
+   * on the server of an SFTP connection): { name, protocol, values, secret, trust }. Never for the page.
+   */
+  async credentials(principal, id) {
+    const user = await this.#user(principal);
+    const r = this.#saved(user, id);
+    const live = this.#live(user, id);
+    const secret = r.secret ? await this.#openSecret(r) : live.secret ?? {};
+    return { name: r.name, protocol: r.protocol, values: { ...r.values }, secret: { ...secret }, trust: r.trust ?? null };
+  }
+
   // ---------- Operations ----------
 
   /** What is in a folder; with a protocol that can, watches it for changes (net.change) while it is among the last listed. */

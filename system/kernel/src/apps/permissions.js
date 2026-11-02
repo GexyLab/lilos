@@ -28,6 +28,7 @@ export const PERMISSIONS = {
   'clipboard.write': { level: 'implicit', label: 'Copiare negli appunti' },
   'clipboard.read': { level: 'use', label: 'Leggere gli appunti' },
   net: { level: 'install', label: 'Collegarsi a', param: 'origin' },
+  term: { level: 'install', label: 'Aprire terminali remoti (SSH, Telnet…) e usare gli host salvati' },
   'media.camera': { level: 'use', label: 'Usare la fotocamera' },
   'media.microphone': { level: 'use', label: 'Usare il microfono' },
   geo: { level: 'use', label: 'Conoscere la posizione' },
