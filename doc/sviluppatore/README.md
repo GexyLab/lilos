@@ -393,13 +393,13 @@ Con l'app Automata ([D64](../interna/decisioni.md#d64-le-automazioni-operazioni-
 
 ### Pianificazione
 
-Le operazioni a una data e ora o ripetute ([D67](../interna/decisioni.md#d67-la-pianificazione-un-modulo-obbligatorio-del-kernel-con-le-azioni-nel-kernel)) le **fa il kernel**, anche a lilOS chiuso. Tre pezzi:
+Le operazioni a una data e ora o ripetute ([D68](../interna/decisioni.md#d68-la-pianificazione-un-modulo-obbligatorio-del-kernel-con-le-azioni-nel-kernel)) le **fa il kernel**, anche a lilOS chiuso. Tre pezzi:
 
 - **Il modulo `scheduler`** (`system/kernel/modules/scheduler_1.0.0/`, servizio `scheduler`) tiene le operazioni, l'orologio e lo storico. È **obbligatorio** (`REQUIRED_MODULES` in `modules.js`): viene con lilOS, il kernel lo rimette se manca e non si rimuove. Non sa cosa fa un'operazione.
 - **`system/kernel/src/schedule/`** controlla l'azione prima di salvarla (`what.js`) e la esegue quando il modulo lo chiede: promemoria, servizio di un'app, copia di una cartella, richiesta web, comando del Terminale. Apre le app e le automazioni **nel browser** mandando `schedule.due` alle pagine dell'utente (`src/schedule/runner.js`); la prima che la prende la fa.
 - **Le regole** (`sdk/core/scheduleRules.js`, senza import) sono lo stesso codice nella pagina (editor, anteprima delle volte), nel kernel (l'orologio) e nelle app (calendari). Niente libreria esterna: il modulo deve stare dentro lilOS senza dipendenze.
 
-L'app **Pianificazione** (repository ufficiale, `src/scheduler`) è la finestra; l'SDK ha `schedule`; le app installate hanno `lilos.schedule` con i permessi `schedule`, `schedule.read` e `schedule.move`. Un calendario separato si appoggia a `schedule.tasks()` (con la regola come RRULE di iCalendar), `occurrences`, `move` e ai punti d'ingresso `edit`, `create` e `history` della Pianificazione. Contratti: [API → Pianificazione](api.md#pianificazione-schedule-apischedulejs), [SDK](api.md#sdkcoreschedulejs-e-sdkcoreschedulerulesjs) e [`scheduler_1.0.0`](api.md#scheduler_100). Ricetta: [Pianificare operazioni da un'app](ricette.md#pianificare-operazioni-da-unapp).
+L'app **Pianificazione** (repository ufficiale, `src/scheduler`) è la finestra; l'SDK ha `schedule`; le app installate hanno `lilos.schedule` con i permessi `schedule`, `schedule.read` e `schedule.move`. Le automazioni di Automata hanno un avvio da sole proprio (`launch.triggers`, `src/automation/triggers.js`), che vive nella pagina e vale solo con lilOS aperto; la Pianificazione non lo usa né lo sostituisce, e la sua azione `automation` lancia l'automazione nel browser (`launch('automata', …, 'run')`). Un calendario separato si appoggia a `schedule.tasks()` (con la regola come RRULE di iCalendar), `occurrences`, `move` e ai punti d'ingresso `edit`, `create` e `history` della Pianificazione. Contratti: [API → Pianificazione](api.md#pianificazione-schedule-apischedulejs), [SDK](api.md#sdkcoreschedulejs-e-sdkcoreschedulerulesjs) e [`scheduler_1.0.0`](api.md#scheduler_100). Ricetta: [Pianificare operazioni da un'app](ricette.md#pianificare-operazioni-da-unapp).
 
 ### Le app di sistema e il repository ufficiale
 

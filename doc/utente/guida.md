@@ -1123,7 +1123,7 @@ Da **Opzioni di avvio…** (o dal pulsante **Avvio…** in fondo ai passi) decid
 - **Scorciatoia**: premi il pulsante, poi i tasti (devono avere Ctrl o Alt); **Canc** la toglie. Se la combinazione è già usata da un altro comando, Automata lo dice. Una scorciatoia agisce sugli elementi selezionati dove sei: nel File Manager quelli che hai selezionato lì (non nel cestino), sulla scrivania quelli della scrivania. Se non ce ne sono (o la finestra davanti non ha una selezione), l'automazione ti chiede su cosa lavorare. La scorciatoia compare anche in **Pannello di controllo → Usabilità → Scorciatoie**, nel gruppo **Automazioni**.
 - **Nome per il Terminale**: il nome da scrivere nel comando `automata` (vedi sotto).
 
-- **Quando parte da sola**: vedi [Avvio da sola](#avvio-da-sola).
+- **Quando parte da sola**: vedi [Avvio da sola](#avvio-da-sola). Per le regole più ricche, anche a lilOS chiuso per le altre azioni, c'è la [Pianificazione](#pianificazione).
 
 ### Avvio da sola
 
@@ -1138,7 +1138,7 @@ Un'automazione può partire senza che tu faccia niente. In **Opzioni di avvio…
 
 Da sapere:
 
-- **Parte solo mentre lilOS è aperto** in una scheda del browser. A lilOS chiuso non succede niente. Con più schede aperte con lo stesso utente, se ne occupa una sola; se la chiudi, ne prende il posto un'altra.
+- **Parte solo mentre lilOS è aperto** in una scheda del browser. A lilOS chiuso non succede niente (la [Pianificazione](#pianificazione) fa partire un'automazione a un'ora, ma anche lei nel browser, quindi con lilOS aperto). Con più schede aperte con lo stesso utente, se ne occupa una sola; se la chiudi, ne prende il posto un'altra.
 - **A un'ora**: se a quell'ora lilOS era chiuso, di solito quell'esecuzione si perde. Accendi **Se a quell'ora lilOS era chiuso, eseguila quando entro** per farla partire all'accesso successivo. Senza, parte comunque se lilOS si apre entro due minuti dall'ora.
 - **Un motivo appena aggiunto comincia a contare da quando lilOS lo vede**: non parte subito per un'ora o un intervallo già passati.
 - **A un'ora**, **Ogni tot minuti** e **Quando entro** non hanno file con cui lavorare: imposta **Su cosa lavora** su **niente** (Automata lo dice quando salvi). **Quando arrivano file** funziona con niente, con i file o con una cartella (in quel caso lavora sulla cartella osservata).
@@ -1331,6 +1331,128 @@ Il **Gestore librerie** cerca, installa, aggiorna e rimuove le librerie di Ardui
 - Il kernel non legge file del suo computer per conto dello sketch: un `#include` con un percorso assoluto, con `..` o costruito da una macro, e la direttiva `.incbin`, vengono rifiutati.
 - Se la porta è già aperta da un altro programma (per esempio il monitor dell'IDE di Arduino) o da un'altra finestra, il browser non può aprirla: chiudi l'altro e riprova.
 - Serve una versione di lilOS dalla 1.18.0.
+
+## Pianificazione
+
+**Pianificazione** fa le cose al posto tuo, a una data e a un'ora, oppure ogni tanto: un promemoria, la copia di una cartella, un comando, una richiesta a un sito. Ogni cosa da fare si chiama **operazione**. Quasi tutte partono anche quando lilOS è chiuso nel browser, perché le fa il computer su cui gira lilOS.
+
+Pianificazione c'è già, è un'app di sistema e non si può togliere. Serve lilOS dalla 1.19.0. La trovi nel menu di avvio.
+
+### La finestra
+
+In alto ci sono **Nuova operazione**, **Esegui ora**, **Pausa** (o **Riattiva**) e la ricerca. Le due schede sono:
+
+- **Elenco**: le operazioni, con quando sono fatte, la prossima volta e com'è andata l'ultima. A sinistra i filtri: **Tutte**, **Attive**, **In pausa**, **Non riuscite**, e **Dove gira** (kernel o browser, vedi sotto). Chi non è amministratore può anche scegliere tra le operazioni create da lui (**Me**) e quelle create dalle sue app (**Le mie app**).
+- **Storico**: ogni volta che un'operazione è partita, con il momento, l'esito, quanto è durata e perché è partita (a orario, a mano, per recuperare una volta persa, per un nuovo tentativo). Un clic su una riga mostra il resoconto: per esempio le righe scritte da un comando o la risposta di un sito. Due menu in alto filtrano per operazione e per esito.
+
+Con un clic su un'operazione, a destra compare il suo riquadro: la regola scritta in parole, cosa fa, dove gira, cosa succede se la volta viene persa, le **prossime volte** e le **ultime corse** (un pallino per ognuna: passandoci sopra vedi quando e com'è andata). Da lì puoi **Esegui ora**, **Modifica**, **Pausa**, **Duplica**, **Elimina** e aprire lo **Storico** di quella sola operazione. **Elimina** chiede conferma: l'operazione non parte più e se ne va anche il suo storico.
+
+**Esegui ora** fa partire l'operazione subito, senza toccare le volte già pianificate.
+
+### Creare un'operazione
+
+**Nuova operazione** apre una finestra in tre passi: **Cosa**, **Quando**, **Opzioni**. Con **Avanti** e **Indietro** ti muovi tra i passi, **Crea** (o **Salva**, se stai modificando) conclude. Se qualcosa non va (una data sbagliata, un file che non c'è più) lilOS lo dice e non salva.
+
+**Cosa** si può fare:
+
+| Operazione | Cosa fa |
+| --- | --- |
+| **Promemoria** | Ti manda una notifica con il testo che scrivi e un tipo (informazione, riuscita, avviso, errore). Un clic sulla notifica può aprire un file o un'app. |
+| **Servizio di un'app** | Avvia una parte in sottofondo di un'app installata (per esempio il controllo degli aggiornamenti dell'AppStore), con i valori che scegli. Se il servizio era spento, parte per quella volta e poi si spegne. |
+| **Copia una cartella** | Copia una cartella tua, o di una connessione della [Rete](#rete), in un'altra. La copia va in una cartella con lo stesso nome di quella copiata. Tre modi: **Versioni datate** (ogni volta una cartella nuova con la data, tenendo le ultime da 1 a 100, di serie 7), **Aggiorna** (copia solo i file nuovi o cambiati, di serie) e **Specchio** (come Aggiorna, e ciò che non c'è più nell'originale va via anche dalla copia: nel Cestino se la copia è in lilOS, **per sempre** se è su un server). Puoi escludere dei nomi (con `*` e `?`, per esempio `*.tmp`). I collegamenti e i file che esistono solo sul sito del fornitore (per esempio un documento di Google) non si copiano. Se un file non si riesce a copiare, il resoconto lo dice e la copia va avanti, ma l'operazione risulta non riuscita. |
+| **Comando del Terminale** | Esegue righe di comandi, una per riga, come nel [Terminale](#terminale). **In lilOS**: la shell del Terminale lavora sui tuoi file (parte dalla cartella che scegli, di serie la tua home). **Su un host SSH**: usa uno degli host che hai salvato nel Terminale. Riesce se l'ultimo comando esce con 0. Quello che i comandi scrivono finisce nello storico e, se vuoi, in un file (sostituito a ogni volta, oppure con le righe nuove aggiunte in fondo). |
+| **Richiesta web** | Chiama un indirizzo `http` o `https` (metodo, intestazioni e corpo a scelta) e controlla la risposta: di serie riesce se lo stato è 2xx, ma puoi chiedere uno stato preciso o che la risposta contenga un testo. Le intestazioni segnate come **segreto** (per esempio una chiave di accesso) restano cifrate e, dopo averle salvate, non si rivedono più; per tenerne una basta non toccarla. Puoi salvare la risposta in un file (sostituito, oppure uno nuovo ogni volta con la data nel nome). Valgono le regole della Rete: con più utenti non si raggiunge il computer di lilOS, e la rete locale solo se un amministratore l'ha aperta. |
+| **Apri un'app o un file** | Apre quell'app o quel file nel browser. |
+| **Automazione** | Fa partire nel browser un'automazione di [Automata](#automata): si apre la finestra **In esecuzione** di Automata. Si pianificano solo le automazioni che lavorano su **niente** (in **Opzioni di avvio…**), perché a quell'ora nessuno sceglie i file. Serve Automata installata. |
+
+**Quando** si fa:
+
+- **Una volta**: data e ora.
+- **Ripeti**: **Ogni** *n* minuti, ore, giorni, settimane, mesi o anni. Con minuti e ore puoi limitare ai giorni della settimana e a una fascia (**Solo tra** due orari). Con i giorni scegli uno o più orari. Con le settimane scegli i giorni (lunedì, giovedì…). Con i mesi scegli il giorno del mese, anche l'ultimo, oppure «il secondo martedì»; con gli anni anche il mese. Poi **Dal**, il **Fuso orario** (di serie quello di questo browser) e la **Fine**: mai, in una data, o dopo un numero di volte.
+- **Avanzato (cron)**: una riga come quelle di cron: minuto, ora, giorno del mese, mese, giorno della settimana. Per esempio `0 2 * * 0` è ogni domenica alle 02:00.
+
+A destra la finestra mostra sempre la regola in parole e le prossime volte. Il tempo minimo tra due volte è un minuto (chi gestisce lilOS può alzarlo). Ogni utente può avere fino a 100 operazioni (anche questo limite lo decide chi gestisce lilOS).
+
+**Ora legale.** Le ore sono quelle dell'orologio del fuso scelto. Se un'ora non esiste (le 02:30 del giorno in cui gli orologi vanno avanti) l'operazione parte quando gli orologi sono andati avanti (le 03:00). Se un'ora c'è due volte (quando tornano indietro) parte la prima volta. Gli intervalli di minuti e ore senza fascia contano il tempo vero: 60 minuti sono sempre 60 minuti.
+
+**Opzioni**:
+
+| Opzione | Cosa decide |
+| --- | --- |
+| **Nome** | Come si chiama nell'elenco. |
+| **Se a quell'ora il kernel era spento** | **Eseguila una volta appena riparte** (di serie) oppure **Saltala**. Vedi sotto. |
+| **Chiedi prima di eseguirla quando apri lilOS** | Solo per le operazioni che girano nel browser (di serie sì). |
+| **Se la volta prima è ancora in corso** | **Salta questa** (di serie), **Aspetta che finisca** o **Falle andare insieme**. |
+| **Fermala dopo** | Dopo quanti minuti si interrompe (di serie 60). |
+| **Se non riesce, riprova** | Quante volte (da 0 a 5, di serie 0) e dopo quanti minuti. |
+| **Avvisami con una notifica** | **Solo se non riesce** (di serie), **Ogni volta** o **Mai**. |
+| **Attiva subito** | Se lo spegni, l'operazione resta in pausa finché non la riattivi. |
+
+### Dove gira un'operazione
+
+- **Nel kernel** (promemoria, servizio, copia, comando, richiesta web): la fa il computer su cui gira lilOS, anche con il browser chiuso, **come l'utente a cui appartiene** e con i suoi file e le sue connessioni.
+- **Nel browser** (aprire un'app o un file, automazione): serve lilOS aperto in una scheda. Se a quell'ora una scheda c'è, l'operazione parte; se non c'è, **aspetta**. Alla prossima apertura di lilOS parte subito, oppure compare la finestra **Operazioni in attesa**, che per ognuna dice cosa era prevista e quando, e offre **Esegui ora** e **Salta** (con la casella «D'ora in poi esegui senza chiedere», che toglie la domanda per quell'operazione). Quelle a cui non rispondi restano in attesa fino alla prossima apertura, poi scadono. Una che aspetta più di 12 ore dall'ora prevista (un amministratore può cambiare il limite) viene saltata.
+
+### Se il kernel era spento
+
+Se il computer di lilOS era spento o in sospensione quando era l'ora, la volta persa si **recupera una sola volta**, appena lilOS riparte, purché siano passate meno di 12 ore (un amministratore può cambiare il limite). Anche se si sono perse dieci volte, parte una volta sola. Con l'opzione **Saltala** non si recupera niente. Nello storico la riga dice «Era prevista…: il kernel era spento».
+
+### Notifiche
+
+- Un'operazione che **non riesce** manda una notifica con il motivo (di serie; si cambia nelle Opzioni di ogni operazione). Un clic sulla notifica apre lo Storico a quella corsa.
+- Un promemoria è la notifica stessa: non ne arriva un'altra che dice «riuscita».
+- Se un amministratore crea, cambia, mette in pausa, sposta, esegue o elimina una tua operazione, ricevi una notifica che lo dice.
+
+### Dal File Manager e dalla scrivania
+
+Il tasto destro su un file o una cartella ha il sottomenu **Pianifica**, che apre la finestra di una nuova operazione già compilata:
+
+- su una cartella: **Copia questa cartella…**, **Comando in questa cartella…**, **Aprila…**;
+- su un file: **Apri questo file…**, oppure, se è un'automazione, **Esegui questa automazione…**;
+- su qualunque elemento: **Promemoria su questo…**.
+
+### Amministratori
+
+Un amministratore vede e può fare tutto: le operazioni di tutti gli utenti e quelle del **Sistema**. Nei filtri compaiono i gruppi **Sistema** e **Utenti**. Quando crea un'operazione sceglie **Esegui come**: sé stesso, un altro utente o il Sistema.
+
+- Un'operazione di un utente gira con i file e le connessioni di quella persona: **chi la cambia agisce al suo posto**. Per questo il proprietario riceve una notifica ogni volta (vedi sopra), e il riquadro dell'operazione lo ricorda.
+- Un'operazione del **Sistema** non ha una home: può solo mandare promemoria a tutti gli amministratori, avviare servizi e fare richieste web senza file. Niente copie, comandi, app o automazioni.
+- Le operazioni di un utente tolto da lilOS vengono eliminate; quelle di un'app tolta, con lei.
+
+### Altre app
+
+Le app possono creare le proprie operazioni (promemoria, i propri servizi, aprire sé stesse) e, se chi le installa concede il permesso, vedere o spostare quelle di tutti: per esempio un calendario. Nell'elenco un'operazione fatta da un'app è segnata «creata da…».
+
+### AppStore: Controlla gli aggiornamenti
+
+Con lilOS dalla 1.19.0 e l'AppStore 1.7.0, in **AppStore → Opzioni** il controllo degli aggiornamenti è un'operazione di Pianificazione: l'interruttore **Controlla gli aggiornamenti** la accende e il menu **Ogni quanto** la imposta su **Ogni giorno alle 09:00** o **Ogni lunedì alle 09:00**; **Cambiala nella Pianificazione** apre la finestra per scegliere altro. Se prima avevi scelto di controllare «all'avvio», la scelta passa in un'operazione giornaliera la prima volta che apri l'AppStore.
+
+### Pianificazione e avvio da sola di Automata
+
+Anche **Automata** può far partire da sola un'automazione (vedi [Avvio da sola](#avvio-da-sola)). Le due cose sono separate e non si conoscono: scegli quella che ti serve.
+
+| | Avvio da sola di Automata | Pianificazione |
+| --- | --- | --- |
+| Dove sta | Nell'automazione stessa (il file `.automata`) | Nell'elenco delle operazioni |
+| Cosa può far partire | Quell'automazione | Un'automazione, ma anche un promemoria, una copia, un comando, una richiesta web, un servizio, un'app o un file |
+| Quando | A un'ora (nei giorni scelti), ogni tot minuti (da 5), quando entri, quando arrivano file in una cartella | A una data e ora o ripetuta (minuti, ore, giorni, settimane, mesi, anni, ultimo giorno, cron, fasce, fine), in un fuso orario. Non quando arrivano file né quando entri |
+| lilOS chiuso | Non parte | Le azioni del kernel (tutte tranne aprire un'app o un file e le automazioni) partono lo stesso |
+| Volta persa | Parte all'accesso successivo se lo chiedi (**Se a quell'ora lilOS era chiuso, eseguila quando entro**) | Una volta sola appena il kernel riparte; per le automazioni, quando apri lilOS (con la domanda **Operazioni in attesa**) |
+| Dopo | Una notifica | Storico, nuovi tentativi, notifica a scelta |
+
+Un'automazione fatta partire dalla Pianificazione gira comunque nel browser, come quelle di Automata: serve lilOS aperto. Se la fai partire con tutte e due, parte due volte: lasciane una sola.
+
+### Da sapere
+
+- Le operazioni restano dopo il riavvio di lilOS e dopo gli aggiornamenti. Si salvano sul computer di lilOS, non nel browser.
+- Un comando o una copia **fanno davvero** quello che dicono, anche quando non guardi: provali prima a mano con **Esegui ora**, specie **Specchio**, che toglie file, e i comandi che cancellano.
+- Il comando **in lilOS** usa la shell del Terminale (serve il Terminale 1.5.0 o successivo): non apre app né finestre, non legge i file protetti da un'app (per esempio cifrati con FileCrypt) e non legge `~/.bashrc`. Dura al massimo **60 secondi**: se ci mette di più l'operazione risulta non riuscita. Su un host SSH servono la password o la chiave salvata nell'host e la chiave del server già confermata: collegati una volta dal Terminale.
+- Le operazioni **nel browser** non partono se non c'è lilOS aperto.
+- I file cifrati da un'app (per esempio FileCrypt) non si aprono né si sovrascrivono da un comando, da una copia o da una richiesta web che salva la risposta: l'operazione risulta non riuscita.
+- Una richiesta web che viene mandata a un altro sito (un reindirizzamento) lascia a casa le chiavi segrete, i cookie e `Authorization`, e se ha un corpo da mandare non viene seguita. Se cambi l'indirizzo di una richiesta con una chiave segreta salvata, devi scrivere la chiave di nuovo.
+- Le operazioni fatte da un'**app** hanno limiti più stretti: al massimo 20 per app e mai più spesso di ogni 15 minuti. Se un'app ti propone un'operazione, la finestra dice «Proposta da» e il nome dell'app: controllala prima di crearla.
+- Per ogni utente girano insieme al massimo 2 operazioni (di serie): le altre aspettano il loro turno. Gli altri limiti (corse conservate nello storico di ogni operazione, dimensione dei resoconti) li decide chi gestisce lilOS.
+- Le operazioni partono a un'ora, non quando succede qualcosa: per l'arrivo di file in una cartella o per l'accesso usa l'avvio da sola di Automata (vedi sotto). Un calendario non c'è ancora.
 
 ## Annullare e ripetere
 

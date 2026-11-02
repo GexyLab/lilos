@@ -231,6 +231,10 @@ export async function checkWhat(kernel, { what, old = null, owner, app = null, o
   // automation
   const node = await homeNode(kernel, p, what.file, 'file');
   if (!/\.automata$/i.test(node.name)) fail('invalid', 'Serve un file .automata');
+  // Nobody chooses files at that time: only automations that work on nothing (as Automata's own start at a time)
+  let doc = null;
+  try { doc = JSON.parse((await kernel.service('fs').read(p, node.id)).toString('utf8')); } catch { fail('invalid', 'Il file non è un’automazione leggibile'); }
+  if ((doc?.input ?? 'none') !== 'none') fail('invalid', 'Si pianificano solo le automazioni che non lavorano su file scelti');
   return { type: t, file: what.file, label: label(what.label), values: smallJson(what.values ?? {}, 'Valori') };
 }
 
