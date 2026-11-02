@@ -233,6 +233,58 @@ class FileSystem extends Emitter {
     return total;
   }
 
+  /**
+   * What a node takes, at any depth: { items, files, folders, bytes }. items counts every node
+   * inside (as count()), files and folders those kinds, bytes the size of the files. A folder
+   * counts what the current workspace sees in it (as children()); a file is 1 file and its size;
+   * an item in the trash (isTrashed) counts everything it took with it. null if the node is unknown.
+   */
+  usage(id) {
+    const node = this.#find(id) ?? (this.isTrashed(id) ? this.#nodes.get(id) : null);
+    if (!node) return null;
+    const out = { items: 0, files: 0, folders: 0, bytes: node.type === 'file' ? node.size ?? 0 : 0 };
+    if (node.type === 'file') return { ...out, files: 1 };
+    if (node.type !== 'folder') return out;
+    // Children by parent, once: a walk with children() reads every node at every level
+    const trashed = node.parent === TRASH;
+    const kids = new Map();
+    for (const n of this.#nodes.values()) {
+      if (!trashed && !(this.#visible(n) && !this.#concealed(n))) continue;
+      if (!kids.has(n.parent)) kids.set(n.parent, []);
+      kids.get(n.parent).push(n);
+    }
+    const walk = parent => {
+      for (const n of kids.get(parent) ?? []) {
+        out.items++;
+        if (n.type === 'folder') { out.folders++; walk(n.id); } else if (n.type === 'file') { out.files++; out.bytes += n.size ?? 0; }
+      }
+    };
+    walk(node.id);
+    return out;
+  }
+
+  /** The path of a node from the home, as apps and the terminal write it: '~', '~/Documenti/Note'. null if unknown. */
+  tildePath(id) {
+    if (!this.#find(id)) return null;
+    const names = this.ancestors(id).slice(1).map(n => n.name);
+    return names.length ? `~/${names.join('/')}` : '~';
+  }
+
+  /** True if lilOS keeps `name` as it is: not empty, no spaces around it, no '/', at most 255 characters. */
+  validName(name) {
+    return validName(name);
+  }
+
+  /**
+   * `name` as lilOS keeps it ('' when nothing is left): spaces in one, trimmed, no control characters,
+   * '/' as '-', at most 255 characters. portable: also \ : * ? " < > | as '-' (names Windows and SMB
+   * servers refuse), for a file that may leave lilOS. create() and rename() clean names this way
+   * (not portable) and refuse an empty one.
+   */
+  cleanName(name, { portable = false } = {}) {
+    return cleanName(name, portable);
+  }
+
   /** `name`, or `name 2`, `name 3`… (before the extension) if taken in the folder. */
   uniqueName(parentId, name, exceptId = null) {
     return this.#unique(parentId, name, exceptId, null);
@@ -1266,8 +1318,13 @@ function validName(name) {
   return typeof name === 'string' && name.trim() === name && name.length > 0 && name.length <= MAX_NAME && !name.includes('/');
 }
 
+function cleanName(name, portable = false) {
+  const text = String(name ?? '').replace(/[\u0000-\u001f\u007f]/g, '').replace(/\s+/g, ' ').trim();
+  return text.replace(portable ? /[/\\:*?"<>|]/g : /\//g, '-').slice(0, MAX_NAME).trim();
+}
+
 function checkName(name) {
-  const clean = String(name ?? '').replace(/\s+/g, ' ').trim().replaceAll('/', '-').slice(0, MAX_NAME);
+  const clean = cleanName(name);
   if (!clean) throw new Error('Il nome non può essere vuoto');
   return clean;
 }

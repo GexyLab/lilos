@@ -1,13 +1,19 @@
 /* ---------- Form controls (light surfaces) ---------- */
 .ctl-btn {
   height: 26px; padding: 0 12px; border-radius: var(--radius-sm); border: 1px solid var(--border);
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px; vertical-align: middle;
   background: var(--field-bg); color: var(--text); font-size: 12px; font-weight: 400; white-space: nowrap;
 }
-.ctl-btn:hover { background: var(--chrome); }
+.ctl-btn:hover:not(:disabled) { background: var(--chrome); }
+.ctl-btn:disabled:not([aria-busy="true"]) { opacity: .5; cursor: default; }
+.ctl-btn .ico { width: 13px; height: 13px; }
 .ctl-btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
-.ctl-btn.primary:hover { background: var(--accent-strong); }
+.ctl-btn.primary:hover:not(:disabled) { background: var(--accent-strong); }
 .ctl-btn.danger { color: var(--danger); }
-.ctl-btn.danger.primary { background: var(--danger); border-color: var(--danger); color: #fff; }
+.ctl-btn.danger.primary, .ctl-btn.confirming { background: var(--danger); border-color: var(--danger); color: #fff; }
+.ctl-btn.danger.primary:hover:not(:disabled), .ctl-btn.confirming:hover:not(:disabled) { background: color-mix(in srgb, var(--danger) 85%, #000); }
+/* In a flex button the spinner is one more item: the gap is its margin */
+.ctl-btn[aria-busy="true"]::before { margin-right: 0; }
 /* A button waiting for its operation (busyButton): spinner beside the label */
 button[aria-busy="true"] { cursor: progress; }
 button[aria-busy="true"]::before {
@@ -25,6 +31,7 @@ button[aria-busy="true"]::before {
 .ctl-toggle.on { background: var(--accent); }
 .ctl-toggle.on::after { transform: translateX(13px); }
 
+.ctl-select:disabled, .ctl-text:disabled, .ctl-toggle:disabled { opacity: .5; cursor: default; }
 .ctl-select, .ctl-text {
   height: 26px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--field-bg);
   color: var(--text); font-size: 12px; outline: 0;
@@ -34,12 +41,28 @@ button[aria-busy="true"]::before {
   background: var(--field-bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M7 10l5 5 5-5'/%3E%3C/svg%3E") no-repeat right 6px center / 14px;
 }
 .ctl-text { width: 200px; padding: 0 8px; user-select: text; }
+.ctl-text.mono { font-family: var(--mono); font-size: 11.5px; }
+textarea.ctl-text { height: auto; padding: 6px 8px; resize: vertical; line-height: 1.4; }
+.ctl-text[aria-invalid="true"] { border-color: var(--danger); }
 .ctl-select:focus, .ctl-text:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
 
 .ctl-seg { display: inline-flex; flex: none; padding: 2px; border-radius: 5px; background: var(--chrome); border: 1px solid var(--border); }
 .ctl-seg button { height: 22px; padding: 0 10px; border-radius: 3px; color: var(--dim); font-size: 12px; font-weight: 400; }
 .ctl-seg button:hover { color: var(--text); }
 .ctl-seg button.on { background: var(--field-bg); color: var(--text); box-shadow: 0 1px 2px rgba(0, 0, 0, .12); }
+.ctl-seg button { display: inline-flex; align-items: center; justify-content: center; gap: 5px; white-space: nowrap; }
+.ctl-seg button .ico { width: 13px; height: 13px; }
+.ctl-seg button:disabled { opacity: .45; cursor: default; }
+.ctl-seg button:disabled:hover { color: var(--dim); }
+/* wide: across the row, the buttons the same width */
+.ctl-seg.wide { display: flex; }
+.ctl-seg.wide button { flex: 1 1 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+
+/* Check box and radio buttons with their label (checkbox, radios) */
+.ctl-check, .ctl-radio { display: inline-flex; align-items: center; gap: 7px; min-height: 22px; cursor: pointer; }
+.ctl-check input, .ctl-radio input { width: 14px; height: 14px; flex: none; margin: 0; accent-color: var(--accent); cursor: inherit; }
+.ctl-check:has(input:disabled), .ctl-radio:has(input:disabled) { opacity: .5; cursor: default; }
+.ctl-radios { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
 
 .ctl-slider { display: flex; align-items: center; gap: 8px; }
 .ctl-slider input { width: 140px; accent-color: var(--accent); }
@@ -48,6 +71,26 @@ button[aria-busy="true"]::before {
 .ctl-swatches { display: flex; flex: none; gap: 8px; }
 .ctl-swatch { width: 18px; height: 18px; border-radius: 50%; }
 .ctl-swatch.on { box-shadow: 0 0 0 2px var(--surface), 0 0 0 3.5px currentColor; }
+
+/* Resize bar (resizeHandle): 7px to grab, a 1px line that lights up; in a flex row or column it takes no room */
+.ctl-resize { position: relative; flex: none; z-index: 2; outline: 0; touch-action: none; }
+.ctl-resize.vertical { width: 7px; margin: 0 -3px; cursor: col-resize; }
+.ctl-resize.horizontal { height: 7px; margin: -3px 0; cursor: row-resize; }
+.ctl-resize::after { content: ""; position: absolute; transition: background .12s; }
+.ctl-resize.vertical::after { left: 3px; top: 0; bottom: 0; width: 1px; }
+.ctl-resize.horizontal::after { top: 3px; left: 0; right: 0; height: 1px; }
+.ctl-resize:hover::after, .ctl-resize:focus-visible::after, .ctl-resize.on::after { background: var(--accent); }
+.ctl-resize.vertical:hover::after, .ctl-resize.vertical:focus-visible::after, .ctl-resize.vertical.on::after { width: 2px; }
+.ctl-resize.horizontal:hover::after, .ctl-resize.horizontal:focus-visible::after, .ctl-resize.horizontal.on::after { height: 2px; }
+/* On an edge of its (positioned) panel */
+.ctl-resize.at-start, .ctl-resize.at-end { position: absolute; margin: 0; }
+.ctl-resize.vertical.at-start { left: -4px; top: 0; bottom: 0; }
+.ctl-resize.vertical.at-end { right: -4px; top: 0; bottom: 0; }
+.ctl-resize.horizontal.at-start { top: -4px; left: 0; right: 0; }
+.ctl-resize.horizontal.at-end { bottom: -4px; left: 0; right: 0; }
+:root.ctl-resizing.cols, :root.ctl-resizing.cols * { cursor: col-resize !important; user-select: none; }
+:root.ctl-resizing.rows, :root.ctl-resizing.rows * { cursor: row-resize !important; user-select: none; }
+:root.ctl-resizing iframe { pointer-events: none; }
 
 /* Shortcut editor (shortcutField) */
 .ctl-keys { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; min-width: 0; }

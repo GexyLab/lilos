@@ -1,4 +1,4 @@
-import { fs, storage, pipes, bus, notifications, net, term, serial, kernel, automation, schedule, locale } from '@lilos/sdk';
+import { fs, storage, pipes, bus, notifications, net, term, serial, kernel, automation, schedule, locale, messageBox } from '@lilos/sdk';
 import { launch } from '../registry.js';
 import { coversPath } from './permissions.js';
 import { callEntrypoint, connectEntrypoint } from '../entrypoints.js';
@@ -66,6 +66,16 @@ export function hostMethods({ pkg, win = null, handles, readOnly = new Set(), in
     const node = target(ref, write) ?? fail('Il file non esiste');
     return node.type === 'file' ? node : fail('Non è un file');
   };
+  // A new item at `ref` (a path the app may write): its folder, and its name (made unique when asked;
+  // the unique name must be covered by the permissions too)
+  const newParent = ref => (resolveHome(splitPath(ref)[0]) ?? fail('La cartella non esiste')).id;
+  const newName = (ref, unique) => {
+    const [dir, name] = splitPath(ref);
+    if (!unique) return name;
+    const free = fs.uniqueName(newParent(ref), fs.cleanName(name) || fail('Il nome non può essere vuoto'));
+    return coversPath(perms, `${dir}/${free}`, { write: true }) ? free : fail(`Permesso negato: ${dir}/${free}`);
+  };
+  const made = node => ({ id: node.id, name: node.name, ref: fs.tildePath(node.id) });
   // Who asks, for the handlers of the pipes: its own handlers are skipped
   const caller = node => ({ app: pkg.id, opened: handles.has(node.id) || readOnly.has(node.id), ...(pkg.system && { system: true }) });
   const ownEvent = name => {
@@ -82,6 +92,9 @@ export function hostMethods({ pkg, win = null, handles, readOnly = new Set(), in
   // content: true says lilOS must not read the file without the app: only for an app that reads
   // and writes its contents through the pipes (it would lock the user out of their files otherwise)
   const ownsContent = ['file.read', 'file.write'].every(e => perms.includes(`pipe:${e}`) || perms.includes(`pipe.own:${e}`));
+  // Message boxes waiting for the app to check what the user filled in (lilos.ui.messageBox with validate)
+  const boxes = new Map();
+  let boxSeq = 0;
   const claim = value => {
     if (value && typeof value === 'object' && value.content === true && !ownsContent) fail('Permesso negato: solo un’app con le pipe file.read e file.write segna un contenuto come suo');
     return value;
@@ -97,28 +110,61 @@ export function hostMethods({ pkg, win = null, handles, readOnly = new Set(), in
       const n = value !== null && typeof value === 'object' ? value : { text: String(value ?? '') };
       await notifications.send({ app: pkg.id, text: n.text, level: n.level, action: n.action ?? null });
     },
+    // A message box over the window (the SDK's messageBox, plain data only): { button, values }. With
+    // validate, every answer but Cancel comes back with `box`, and the app replies with
+    // ui.messageBox.check(box, problem): null closes it (that call resolves the final answer), a
+    // text is shown and that call resolves the next answer
+    'ui.messageBox': async spec => {
+      if (!win) fail('Solo una finestra mostra un messaggio');
+      const options = boxOptions(spec);
+      const wrap = r => (r && typeof r === 'object' ? r : { button: r ?? null, values: {} });
+      if (plainObject(spec).validate !== true) return wrap(await messageBox(win, options));
+      const id = `box${++boxSeq}`;
+      let reply;
+      let checking = false;   // the app has an answer to check: the next call it makes is a check
+      const next = () => new Promise(r => { reply = r; });
+      const first = next();
+      messageBox(win, {
+        ...options,
+        validate: (values, button) => new Promise(checked => {
+          boxes.set(id, problem => { checking = false; const answer = next(); checked(problem); return answer; });
+          checking = true;
+          reply({ button, values, box: id });
+        }),
+      }).then(r => {
+        // Closed (Cancel, Esc, the window) while the app was checking: its check gets the answer
+        if (checking) boxes.set(id, () => wrap(r));
+        else { boxes.delete(id); reply(wrap(r)); }
+      });
+      return first;
+    },
+    'ui.messageBox.check': (id, problem) => {
+      const check = boxes.get(String(id));
+      if (!check) return { button: null, values: {} };   // gone meanwhile (the window closed)
+      boxes.delete(String(id));
+      return check(problem === false ? false : problem == null || problem === true ? true : String(problem).slice(0, 1000));
+    },
     'clipboard.write': text => navigator.clipboard.writeText(String(text).slice(0, MAX_TEXT)),
     'files.read': async (ref, options) => {
       const node = fileOf(ref, false);
       return options?.bytes === true ? fs.readBlob(node.id, { caller: caller(node) }) : fs.read(node.id, { caller: caller(node) });
     },
-    // options.mark: the app's own data on the file, saved with the content (null takes it away)
+    // options.mark: the app's own data on the file, saved with the content (null takes it away);
+    // options.unique: always a new file, named 'a 2.txt' when 'a.txt' is taken. → { id, name, ref }
     'files.write': async (ref, data, options) => {
       const value = content(data);
-      let node = target(ref, true);
-      if (!node) {
-        const [dir, name] = splitPath(ref);
-        const parent = resolveHome(dir) ?? fail('La cartella non esiste');
-        node = fs.create(parent.id, { type: 'file', name });
-      }
+      const unique = options?.unique === true;
+      let node = unique ? null : target(ref, true);
+      if (!node) node = fs.create(newParent(ref, unique), { type: 'file', name: newName(ref, unique) });
       if (node.type !== 'file') fail('Non è un file');
       const mark = options && typeof options === 'object' && 'mark' in options ? { app: pkg.id, value: claim(options.mark ?? null) } : null;
       await fs.write(node.id, value, { caller: caller(node), mark });
+      return made(node);
     },
     // A file the app may use: its name and the app's own data on it
     'files.info': ref => {
       const node = target(ref, false) ?? fail('Il file non esiste');
-      return { id: node.id, name: node.name, type: node.type, size: node.size ?? 0, modified: node.modified, path: fs.path(node.id), meta: fs.appMeta(node.id, pkg.id) };
+      return { id: node.id, name: node.name, type: node.type, size: node.size ?? 0, modified: node.modified, path: fs.path(node.id), ref: fs.tildePath(node.id), meta: fs.appMeta(node.id, pkg.id) };
     },
     'files.setMeta': (ref, value) => {
       const node = target(ref, true) ?? fail('Il file non esiste');
@@ -174,7 +220,7 @@ export function hostMethods({ pkg, win = null, handles, readOnly = new Set(), in
         if ([params[name]].flat().some(ref => typeof ref !== 'string' || !handles.has(ref))) fail('Si possono nominare solo file aperti con l’app');
       }
       if (d.file != null && !handles.has(d.file)) fail('Si possono nominare solo file aperti con l’app');
-      const made = [d.result ?? []].flat().filter(ref => typeof ref === 'string' && (handles.has(ref) || coversPath(perms, homeRef(ref), { write: true })));
+      const made = [d.result ?? []].flat().filter(ref => typeof ref === 'string' && (handles.has(ref) || coversPath(perms, fs.tildePath(ref), { write: true })));
       return automation.record(id, { params, defaults: d.defaults ?? null, file: d.file ?? null, result: made.length ? made : null }) !== null;
     },
     // The preview of a file it may read, made by the app that opens it (see filePreview.js)
@@ -188,11 +234,13 @@ export function hostMethods({ pkg, win = null, handles, readOnly = new Set(), in
       const node = resolveHome(path) ?? fail('La cartella non esiste');
       return fs.children(node.id).map(n => ({ name: n.name, type: n.type, size: n.size ?? 0, modified: n.modified }));
     },
-    'files.mkdir': path => {
+    // options.unique: always a new folder, 'Archivio 2' when 'Archivio' is taken. → { id, name, ref }
+    'files.mkdir': (path, options) => {
+      const unique = options?.unique === true;
       if (!coversPath(perms, path, { write: true })) fail(`Permesso negato: ${path}`);
-      if (resolveHome(path)) return;
-      const [dir, name] = splitPath(path);
-      fs.create((resolveHome(dir) ?? fail('La cartella non esiste')).id, { type: 'folder', name });
+      const found = unique ? null : resolveHome(path);
+      if (found) return made(found);
+      return made(fs.create(newParent(path, unique), { type: 'folder', name: newName(path, unique) }));
     },
     'storage.get': key => (STORAGE_KEY.test(key) ? storage.get(`app:${pkg.id}:${key}`, null) : fail('Chiave non valida')),
     'storage.set': (key, value) => {
@@ -303,12 +351,31 @@ export function hostMethods({ pkg, win = null, handles, readOnly = new Set(), in
 
 const plainObject = v => (v && typeof v === 'object' && !Array.isArray(v) ? v : {});
 
-/** '~/Documenti/a.zip' for a node of the user's home ('' if it is not there). */
-function homeRef(id) {
-  if (!fs.exists(id)) return '';
-  const path = fs.path(id);
-  const home = fs.path(fs.root);
-  return path === home ? '~' : path.startsWith(`${home}/`) ? `~${path.slice(home.length)}` : '';
+/**
+ * What an app may put in a message box (lilos.ui.messageBox): texts, fields and buttons, within
+ * limits. Never Nodes, functions or patterns (a RegExp of the app would run in lilOS's page).
+ */
+function boxOptions(spec) {
+  const s = plainObject(spec);
+  const text = (v, max) => (v == null ? '' : String(v).slice(0, max));
+  const num = v => (Number.isFinite(v) ? v : undefined);
+  const primitive = v => (typeof v === 'string' ? v.slice(0, 10000) : typeof v === 'number' || typeof v === 'boolean' ? v : null);
+  const option = o => (o && typeof o === 'object' ? { value: text(o.value, 200), label: text(o.label ?? o.value, 200), disabled: o.disabled === true } : text(o, 200));
+  const fields = Array.isArray(s.fields) ? s.fields.slice(0, 20).map(plainObject).filter(f => typeof f.name === 'string' && /^[\w.-]{1,40}$/.test(f.name)).map(f => ({
+    name: f.name, type: text(f.type || 'text', 20), label: text(f.label ?? f.name, 200), value: primitive(f.value),
+    placeholder: f.placeholder == null ? undefined : text(f.placeholder, 200), hint: f.hint == null ? undefined : text(f.hint, 500),
+    required: f.required === true, disabled: f.disabled === true, min: num(f.min), max: num(f.max), step: num(f.step),
+    maxLength: num(f.maxLength), rows: num(f.rows) && Math.min(20, Math.max(2, f.rows)),
+    options: Array.isArray(f.options) ? f.options.slice(0, 200).map(option) : undefined,
+  })) : null;
+  const buttons = Array.isArray(s.buttons) ? s.buttons.slice(0, 6).map(b => (b && typeof b === 'object'
+    ? { value: text(b.value, 40), label: text(b.label ?? b.value, 80), primary: b.primary === true, danger: b.danger === true, icon: typeof b.icon === 'string' ? b.icon.slice(0, 40) : undefined }
+    : text(b, 40))) : undefined;
+  return {
+    icon: typeof s.icon === 'string' ? s.icon : null, title: text(s.title, 200), text: text(s.text ?? s.message, 4000),
+    fields, ...(buttons && { buttons }), default: typeof s.default === 'string' ? s.default : null,
+    width: num(s.width) && Math.min(900, Math.max(240, s.width)),
+  };
 }
 
 /** Runs one request of the app. */

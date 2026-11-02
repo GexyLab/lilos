@@ -1,4 +1,4 @@
-import { h, icon, avatar, session, kernel, settings, fs, openMenu, LANGUAGES } from '@lilos/sdk';
+import { h, icon, avatar, session, kernel, settings, fs, openMenu, LANGUAGES, formatBytes } from '@lilos/sdk';
 import { version } from '../../package.json';
 import { launch } from '../apps/registry.js';
 import { running } from '../apps/packages/background.js';
@@ -175,7 +175,7 @@ export class UserPage {
       shown('workspace') && this.#workspaceRow(),
       shown('windows') && controlRow('windows', 'window', 'Finestre aperte', h('span', { class: 'up-value' }, this.#windowsText())),
       shown('startup') && row('startup', 'power', 'All’avvio', startupText(), () => this.#openSettings({ tab: 'startup', subtab: 'apps' })),
-      shown('storage') && row('storage', 'disk', 'Spazio usato', formatBytes(contentsSize(fs.root)), () => this.#openSettings({ tab: 'storage' })),
+      shown('storage') && row('storage', 'disk', 'Spazio usato', formatBytes(fs.usage(fs.root)?.bytes ?? 0), () => this.#openSettings({ tab: 'storage' })),
     ].filter(Boolean);
     const cards = [
       account.length && card('Account', account),
@@ -296,14 +296,4 @@ function startupText() {
   if (!settings.get('startupApps')) return 'Spento';
   const n = startup.apps().length;
   return n ? `${n} app` : 'Nessuna app';
-}
-
-/** Bytes of the files in a folder and in those inside it. */
-const contentsSize = id => fs.children(id).reduce((sum, n) => sum + (n.type === 'folder' ? contentsSize(n.id) : n.size ?? 0), 0);
-
-function formatBytes(bytes) {
-  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
-  let i = 0;
-  while (bytes >= 1024 && i < units.length - 1) { bytes /= 1024; i++; }
-  return `${bytes.toLocaleString('it-IT', { maximumFractionDigits: i ? 1 : 0 })} ${units[i]}`;
 }

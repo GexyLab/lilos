@@ -87,8 +87,6 @@ function checkParams(schema, values) {
   return out;
 }
 
-const homePath = id => `~${fs.path(id).slice(fs.home.length)}`;
-
 /** The args and the handed files of one entry point, from its saved params. Throws when a file or folder is gone. */
 function argsFor(app, schema, params) {
   if (!schema) return { args: Object.keys(params).length ? params : undefined, files: [] };
@@ -100,7 +98,7 @@ function argsFor(app, schema, params) {
       const node = fs.get(v);
       if (node?.type !== p.type) throw new Error(`${p.label}: ${p.type === 'file' ? 'il file non c’è più' : 'la cartella non c’è più'}`);
       if (p.type === 'file') files.push(node.id);
-      args[name] = p.type === 'folder' && !app.trusted ? homePath(node.id) : node.id;
+      args[name] = p.type === 'folder' && !app.trusted ? fs.tildePath(node.id) : node.id;
     } else {
       args[name] = v;
     }

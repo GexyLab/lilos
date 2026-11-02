@@ -16,6 +16,12 @@ export function coversPath(permissions, path, { write = true } = {}) {
 
 export const hasPermission = (permissions, name) => permissions.includes(name);
 
+/** The permissions every app has without asking (the kernel's level 'implicit'). */
+export const IMPLICIT_PERMISSIONS = Object.freeze(['fs.app', 'fs.tmp', 'fs.open', 'ui.notify', 'clipboard.write', 'auth.remote']);
+
+/** The permissions of a list that need the user's consent ('fs.read:~/Documenti' yes, 'ui.notify' no), as the kernel's needsGrant. */
+export const needsGrant = permissions => (Array.isArray(permissions) ? permissions : []).filter(p => typeof p === 'string' && !IMPLICIT_PERMISSIONS.includes(p.split(':')[0]));
+
 const LABELS = {
   'fs.app': 'I propri dati', 'fs.tmp': 'I propri file temporanei', 'fs.open': 'I file che apri con l’app',
   'fs.read': 'Leggere i file in', 'fs.write': 'Leggere e modificare i file in', 'fs.workspaces': 'Vedere i file privati di tutti i workspace',

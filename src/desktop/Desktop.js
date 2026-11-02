@@ -3,7 +3,7 @@ import { launch, registry } from '../apps/registry.js';
 import { appActionEntries } from '../apps/appActions.js';
 import { openFile } from '../apps/open.js';
 import { addTarget } from '../items/targets.js';
-import { confirmRemove, deleteNodes, deleteLabel } from '../items/confirmRemove.js';
+import { confirmRemove, confirmMenu, deleteNodes, deleteLabel } from '../items/confirmRemove.js';
 import { recordCreated, renameNode } from '../items/fsHistory.js';
 import { dragItems, dropZone, moveInto } from '../items/itemDrag.js';
 import { linkEntry } from '../items/links.js';
@@ -239,13 +239,10 @@ export class Desktop {
     if (!nodes.length) return this.workareas?.confirmRemove(areas, x, y);
     const count = (n, one, many) => (n === 1 ? `1 ${one}` : `${n} ${many}`);
     const files = nodes.map(id => fs.get(id)).filter(n => n && !n.system);
-    openMenu(x, y, [
-      { label: `${deleteLabel(files)} ed elimina ${count(areas.length, 'workarea', 'workarea')}`, icon: 'trash', danger: true, action: () => {
-        deleteNodes(this.history, nodes);
-        areas.forEach(id => this.workareas?.remove(id));
-      } },
-      { label: 'Annulla', icon: 'x', action: () => {} },
-    ]);
+    confirmMenu(x, y, `${deleteLabel(files)} ed elimina ${count(areas.length, 'workarea', 'workarea')}`, () => {
+      deleteNodes(this.history, nodes);
+      areas.forEach(id => this.workareas?.remove(id));
+    });
   }
 
   /**

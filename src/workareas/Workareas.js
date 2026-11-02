@@ -5,6 +5,7 @@ import { WorkareaFrame, HEADER } from './WorkareaFrame.js';
 import { openProperties } from './properties.js';
 import { loadWorkareas, saveWorkareas, newWorkarea, cleanTitle, cleanMeta, cleanSavedWindow, MIN_SIZE, LIMITS } from './store.js';
 import { notify } from '../notifications/notify.js';
+import { confirmMenu } from '../items/confirmRemove.js';
 
 const DEFAULT_SIZE = { w: 720, h: 460 };
 const PAD = 24;           // around the selection, when a workarea is made from it
@@ -384,10 +385,7 @@ export class Workareas extends Emitter {
     const list = ids.map(id => this.get(id)).filter(Boolean);
     if (!list.length) return;
     const what = list.length === 1 ? `la workarea «${list[0].title}»` : `${list.length} workarea`;
-    openMenu(x, y, [
-      { label: `Elimina ${what} (il contenuto resta sulla scrivania)`, icon: 'trash', danger: true, action: () => list.forEach(w => this.remove(w.id)) },
-      { label: 'Annulla', icon: 'x', action: () => {} },
-    ]);
+    confirmMenu(x, y, `Elimina ${what} (il contenuto resta sulla scrivania)`, () => list.forEach(w => this.remove(w.id)));
   }
 
   setCurrent(id) {

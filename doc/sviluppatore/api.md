@@ -218,7 +218,7 @@ Ciò che non ha la chiave resta come dice il manifesto. Le chiavi `@` sono strin
 
 ### `locale` (SDK)
 
-Esportato da `@lilos/sdk` insieme a `LANGUAGES`. È un `Emitter`.
+Esportato da `@lilos/sdk` insieme a `LANGUAGES` e `formatBytes`. È un `Emitter`.
 
 | Membro | Descrizione |
 | --- | --- |
@@ -232,6 +232,8 @@ Esportato da `@lilos/sdk` insieme a `LANGUAGES`. È un `Emitter`.
 | `locale.strings(id)` | Le stringhe già risolte dell'app (`resolve` sulla sua tabella). |
 | `locale.table(id)` | La tabella dell'app, o `null`. |
 | `locale.engine` | Il motore (`i18nApi` di `i18n.js`). Il sistema lo mette (come testo, con `toString()`) nelle sandbox e nei worker delle app. |
+| `locale.formatBytes(n)`, `formatBytes(n)` | Una dimensione nella lingua del sistema: `'512 B'`, `'1,5 KB'`, `'12,3 MB'` (unità da 1024, da B a PB; al massimo un decimale, nessuno per i byte; `''` per ciò che non è un numero). Da lilOS 1.21.0 (SDK 0.13.0): usala invece di una funzione propria. |
+| `locale.define(id, tabella)` → `i18n` | I testi di una parte di lilOS stessa (sistema e SDK), nel formato di `locales.json` (`{ en: { strings }, it: { strings } }`): restituisce l'`i18n` di `forApp(id)` (`t`, `date`, `number`, `lang`), che segue la lingua. `id` comincia con `'lilos:'` (mai l'id di un'app), per esempio `const { t } = locale.define('lilos:properties', { … })`. Da lilOS 1.21.0. |
 
 Evento `change` `{ code }`: la lingua del sistema è cambiata. Gli oggetti di `forApp()` hanno già le nuove stringhe; alle app installate arriva l'evento `locale`. La lingua risolta è salvata anche nella chiave [`locale`](#locale), perché il kernel la conosca per i servizi dell'utente.
 
@@ -250,6 +252,7 @@ Ciò che un'app (di sistema o installata) ha della lingua. Sincrono, uguale in o
 | `lilos.locale.i18n.lang` | La lingua del file dell'app in uso (`'it'`; `'en'` se l'app non ha la lingua del sistema né una che la completi, o non ha traduzioni). Può essere diversa da `code`. |
 | `lilos.locale.i18n.date(valore, opzioni?)` | `Intl.DateTimeFormat(code, opzioni)`; `valore` è una `Date` o un tempo in millisecondi. |
 | `lilos.locale.i18n.number(valore, opzioni?)` | `Intl.NumberFormat(code, opzioni)`. |
+| `lilos.locale.formatBytes(n)` | Una dimensione nella lingua del sistema (`'1,5 KB'`), come `formatBytes` dell'SDK. Da lilOS 1.21.0. |
 
 Date e numeri seguono `code` (la lingua del sistema); il plurale segue `lang` (la lingua dei testi). Gli oggetti sono congelati.
 
@@ -556,7 +559,11 @@ File system virtuale: un albero di cartelle, file, collegamenti alle app e colle
 | `resolve(path)` | Il nodo a quel percorso, o `null`. Accetta il percorso di `path` (`'/home/eugenio/Documenti'`), quello con `~` (`'~/Documenti'`) e, senza nessuno dei due, un percorso dentro la home (`'/Documenti'`). Le app passano sempre `~/…`: così una cartella chiamata `home` nella home non si confonde con il prefisso. |
 | `isInside(id, ancestorId)` | `true` se `id` è `ancestorId` o sta dentro. |
 | `count(id)` | Quanti nodi contiene una cartella, a ogni livello. |
+| `usage(id)` → `{ items, files, folders, bytes }` \| `null` | Quanto occupa un nodo, a ogni livello: `items` come `count`, `files` e `folders` quanti file e cartelle, `bytes` la dimensione dei file. Una cartella conta ciò che il workspace attuale ci vede (come `children`), un file è 1 file con la sua dimensione, un elemento del cestino (`isTrashed`) conta tutto ciò che ha portato con sé. `null` per un id sconosciuto. Da lilOS 1.21.0: usalo invece di sommare `children()` a mano. |
+| `tildePath(id)` → `string` \| `null` | Il percorso dalla home come lo scrivono le app e il terminale: `'~'`, `'~/Documenti/Note'` (il contrario di `resolve('~/…')`). `null` per un id sconosciuto. Da lilOS 1.21.0. |
 | `uniqueName(parentId, name, exceptId?)` | Il nome libero più vicino. |
+| `validName(name)` → `boolean` | Vero se lilOS tiene il nome così com'è: non vuoto, senza spazi ai lati, senza `/`, al massimo 255 caratteri. Da lilOS 1.21.0. |
+| `cleanName(name, { portable = false })` → `string` | Il nome come lo tiene lilOS (`''` se non resta niente): spazi in uno, niente spazi ai lati né caratteri di controllo, `/` diventa `-`, al massimo 255 caratteri. Con `portable` diventano `-` anche `\ : * ? " < > \|` (i nomi che Windows e i server SMB rifiutano), per un file che può uscire da lilOS. `create` e `rename` puliscono i nomi così (non `portable`) e rifiutano quello vuoto. Da lilOS 1.21.0 (prima toglievano solo `/` e gli spazi in più). |
 | `create(parentId, { type, name, color?, app?, link?, size?, system?, id?, workspace?, private? })` | Crea e restituisce il nodo (`id` facoltativo, per le migrazioni). Per `type: 'link'` serve `link` (vedi «Collegamenti» sotto): se non è valido lancia «Collegamento non valido»; in una cartella di rete un collegamento non si crea (come un'`app`). `workspace` è il proprietario: predefinito il workspace attuale (`fs.workspace`); le cartelle di sistema condivise (`system` senza `private`) non hanno proprietario. `private: true` solo per una cartella con un proprietario. Lancia un errore se la cartella non esiste, il tipo non è valido o `workspace` non è un id valido. |
 | `rename(id, name)` | Rinomina e restituisce il nome finale. |
 | `update(id, { color, broken })` | Cambia i metadati che non sono il nome: `color` (cartelle) e `broken` (booleano, solo collegamenti: mette o toglie il segno «rotto»; se non cambia, non emette niente). |
@@ -1219,6 +1226,8 @@ Eventi: `undo` | `redo` `{ label, handler }`, dopo un passo riuscito · `error` 
 - `fileType(name)` → `{ ext, badge, label, color }`. `badge` è l'estensione in maiuscolo, ripulita a `[A-Z0-9]` e lunga al massimo 4 caratteri.
 - `fileTypeList()` → `[{ label, color, exts }]`: tutti i gruppi di tipi conosciuti (copie). Tra questi `term` (`Collegamento terminale`, `#2b3038`), i collegamenti di Terminale.
 
+Da lilOS 1.21.0 (SDK 0.13.0) le etichette (`label`) sono nella lingua del sistema (inglese e italiano, testi `lilos:fileTypes` di `locale.define`): non usarle come chiavi, e chiedile quando disegni.
+
 ---
 
 ## canvas/Canvas.js
@@ -1490,6 +1499,11 @@ Eliminare file e cartelle come dicono le impostazioni `deleteConfirm` e `deleteP
 - `confirmRemove(ids, x, y, stack = null)`: toglie i nodi di sistema. Con `deleteConfirm` apre nel punto `(x, y)` un menu "Sposta nel cestino … / Annulla" (o "Elimina definitivamente …" con `deletePermanent`), per **ogni** eliminazione; senza, elimina subito. Con `stack` (una `UndoStack`) l'eliminazione viene registrata e Ctrl Z rimette tutto; senza, non si può annullare.
 - `deleteNodes(stack, ids)`: `removeNodes` con `permanent` preso da `deletePermanent`, senza chiedere.
 - `deleteLabel(nodes)`: il testo della voce di conferma, per esempio `Sposta nel cestino «Appunti» e i 12 elementi dentro`.
+- `confirmMenu(x, y, label, action, { then, icon = 'trash' })`: il piccolo menu che chiede prima di ciò che non si annulla: `label` (rossa) esegue `action`, **Annulla** niente; `then` gira dopo la risposta, in ogni caso. Lo usano tutte le conferme qui sotto, la scrivania (file e workarea insieme) e le workarea. Da lilOS 1.21.0.
+- `confirmPurge(ids, x, y, { then })`: elimina per sempre elementi del cestino (id di `fs.trashed()`), chiedendo **sempre** con il menu: «Elimina definitivamente «nome»» / «… N elementi». Da lilOS 1.21.0.
+- `confirmEmptyTrash(x, y, { then })`: svuota il cestino (ciò che ne vede il workspace attuale, `fs.purgeTrash()`), chiedendo sempre: «Elimina definitivamente tutti i N elementi nel cestino». Da lilOS 1.21.0.
+
+Da lilOS 1.21.0 i testi sono nella lingua del sistema (inglese e italiano, `locale.define('lilos:confirmRemove', …)`). Le app di sistema li hanno da `@lilos/system` e non si fanno il menu da sole.
 
 ### `fsHistory.js`
 
@@ -1567,7 +1581,28 @@ if (linkTo(id)) {
 
 Il segno dell'icona sta in `src/desktop/itemIcons.js` (`linkIcon`): l'icona dell'originale (per un nodo della home che esiste, la sua; altrimenti quella del tipo, o un globo per `kind: 'web'`) con una catena in basso a sinistra; se è `broken`, sbiadita e con una croce rossa. L'icona si aggiorna quando il nodo `link` cambia, non quando cambia l'originale: se un originale della home sparisce, il collegamento sembra a posto finché non lo si apre. «Proprietà…» (`items/properties.js`) mostra Tipo, Originale e Stato. L'azione `desktop.newLink` («Collegamento…», nel sottomenu Nuovo del menu della scrivania) fa `launch('files', { folder: desktop.folder }, 'newLink')`.
 
-### `links.js`
+### `properties.js` (proprietà di file e cartelle)
+
+`showProperties(id)` apre «Proprietà…» di un nodo (una finestra per nodo, chiave `props:<id>`; un'icona di app apre le proprietà dell'app). Segue i cambiamenti, i tag e la lingua mentre è aperta e si chiude quando il nodo sparisce.
+
+`nodeFacts(node)` → `[{ key, label, value, …altro }]`: i dati del nodo, nell'ordine in cui mostrarli, con `label` e `value` già testi nella lingua del sistema (testi `lilos:properties`). La finestra li mostra così come sono (tranne i tag, con il loro colore, e **Rimuovi** per i dati di un'app non installata); il pannello Informazioni del File Manager li disegna a modo suo. Da lilOS 1.21.0.
+
+| `key` | Quando | `value` e il resto |
+| --- | --- | --- |
+| `type` | sempre | `'Testo (.txt)'`, `'Cartella'`, `'Collegamento a una cartella'`…; `'… di sistema'` per un nodo `system` |
+| `app` | icona di un'app | il nome dell'app (o `'<id> (non installata)'`); `app`: l'id |
+| `linkTarget`, `linkState` | collegamento | dove punta (`mono: true`); `'Rotto…'` se è `broken` |
+| `contents` | cartella | `'3 file, 2 cartelle'`; `files`, `folders`, `items` (`fs.usage`) |
+| `size` | file e cartella | `'1,2 KB'` (`formatBytes`); `bytes` (di una cartella: i suoi file, a ogni livello) |
+| `opensWith` | file | l'app che lo apre o `'Chiedi ogni volta'`; `app`: l'id o `null` |
+| `deleted`, `origin` | elemento di `fs.trashed()` | quando e da dove (`mono: true`) |
+| `location` | gli altri | la cartella in cui sta (`mono: true`); `path`: il percorso del nodo stesso |
+| `created`, `modified` | sempre | data e ora; `time`: i millisecondi |
+| `workspace` | sempre | il nome del workspace o `'Condiviso da tutti i workspace'`; `workspace`: `describeWorkspace()` o `null` |
+| `tags` | sempre | i nomi o `'Nessuno'`; `tags`: `[{ id, name, color, visible }]` |
+| `apps` | se ci sono segni | i segni delle app (`itemBadges`); `badges` |
+| `appData` | uno per app non installata con dati sul nodo | `'L’app non è installata'`; `label` `'Dati di <id>'`; `app`: l'id |
+
 ### `links.js`
 
 L'ordine della sezione «Collegamenti» nella barra laterale del File Manager: le voci fisse (Home, Scrivania, Documenti, Immagini, Download) e i collegamenti a file e cartelle trascinati lì. Il blocco dei tag e il Cestino stanno fuori dall'ordine.
@@ -1898,15 +1933,18 @@ Permessi dichiarati nei manifesti ufficiali: File Manager `fs.write:~`, `fs.work
 | `services` | `apps/services.js` | I servizi delle app nel kernel: elenco, scelte, avvio e arresto, chiamate, registro (vedi [Servizi delle app](#servizi-delle-app-appsappservicesjs)) |
 | `executionMode`, `canChangeExecution` | `apps/packages/isolation.js` | Come gira un'app installata; se l'utente può cambiarlo (è amministratore) |
 | `describePermission` | `apps/packages/permissions.js` | Un permesso in italiano (`'fs.read:~/Documenti'` → «Leggere i file in Home/Documenti») |
+| `needsGrant(permessi)`, `IMPLICIT_PERMISSIONS` | `apps/packages/permissions.js` | Da lilOS 1.21.0. I permessi di un elenco che chiedono il consenso (come `needsGrant` del kernel: `['fs.app', 'fs.read:~/Documenti']` → `['fs.read:~/Documenti']`) e quelli che ogni app ha senza chiedere (`fs.app`, `fs.tmp`, `fs.open`, `ui.notify`, `clipboard.write`, `auth.remote`) |
+| `compareVersions(a, b)` | `apps/packages/packages.js` | Da lilOS 1.21.0. Due versioni `'x.y.z'` a confronto: `-1` se `a` è più vecchia, `0` uguali, `1` più nuova (una parte che manca o non è un numero vale 0). È quella di `matchesFrom` (i passi `update` del manifesto) |
 | `showAppProperties`, `showAppSecurity` | `apps/appProperties.js` | Aprono "Proprietà…" di un'app (la seconda sulla scheda Sicurezza) |
-| `showProperties` | `items/properties.js` | Apre "Proprietà…" di un file o una cartella (di un collegamento a un'app apre quelle dell'app); se un'app ha dati sul nodo, una riga «App» con i suoi segni (`itemBadges`); per i dati di un'app non installata, una riga «Dati di `<id>`» con **Rimuovi** (`fs.setAppMeta(id, app, null)`) |
+| `showProperties` | `items/properties.js` | Apre "Proprietà…" di un file o una cartella (di un collegamento a un'app apre quelle dell'app), con le righe di `nodeFacts`; per i dati di un'app non installata, la riga «Dati di `<id>`» ha **Rimuovi** (`fs.setAppMeta(id, app, null)`). Da lilOS 1.21.0 nella lingua del sistema |
+| `nodeFacts(node)` | `items/properties.js` | Da lilOS 1.21.0. I dati di un file, una cartella, un collegamento o un'icona di app, nella lingua del sistema, per una finestra di proprietà o un pannello di informazioni (vedi [`properties.js`](#propertiesjs-proprietà-di-file-e-cartelle)) |
 | `pickFile` | `apps/filePicker.js` | Selettore di file e cartelle |
 | `addTarget` | `items/targets.js` | Comandi sugli elementi |
 | `links`, `linkEntry` | `items/links.js` | Collegamenti della barra laterale del File Manager |
 | `linkTo`, `canLinkOnDesk`, `addDeskLinks`, `openLink`, `openWebLink`, `findLinkTarget`, `locateLink` | `items/deskLinks.js` | I collegamenti sulla scrivania: crearli, aprirli, controllarli (vedi [`deskLinks.js`](#desklinksjs)) |
 | `markItem`, `dropZone`, `dragItems`, `movableInto`, `moveInto` | `items/itemDrag.js` | Trascinamento di file e cartelle |
 | `recordCreated`, `renameNode`, `moveNode`, `restoreNodes`, `removeNodes` | `items/fsHistory.js` | Azioni sul file system che entrano nella cronologia |
-| `confirmRemove` | `items/confirmRemove.js` | Eliminare come dicono le impostazioni |
+| `confirmRemove`, `confirmMenu`, `confirmPurge`, `confirmEmptyTrash`, `deleteLabel` | `items/confirmRemove.js` | Eliminare come dicono le impostazioni; il menu di conferma, eliminare dal cestino e svuotarlo chiedendo prima (gli ultimi quattro da lilOS 1.21.0; vedi [`confirmRemove.js`](#confirmremovejs)) |
 | `tagDots`, `tagSubmenu`, `setTag` | `tags/tagUi.js` | Interfaccia dei tag |
 
 Per le firme vedi le sezioni dei moduli di origine in questa pagina.
@@ -2222,16 +2260,17 @@ Con `sdk` `"1"` il modulo è l'app: gira per intero all'avvio con `window.lilos`
 | `lilos.window.close()` | La finestra si chiude, come con il suo pulsante. Solo in una finestra. |
 | `lilos.ui.toast(testo)` | Vecchio nome di `lilos.ui.notify(testo)`: una notifica firmata con l'app, con livello `info` e gli stessi limiti (compreso quello al minuto). Non c'è più un avviso breve in basso. |
 | `lilos.ui.notify(testo \| { text, level, action })` | Una **notifica** nell'area di notifica, conservata nella finestra Notifiche ([`notifications`](#notifications), [`notifications-basic`](#notifications-basic_100)). `text`: fino a 300 caratteri, non vuoto. `level`: `'info'` (predefinito), `'success'`, `'warning'` o `'error'`. `action`: `{ entry?, args? }` (`entry` `'main'` se manca, nella forma dei nomi del manifesto): un clic apre l'app a quel punto d'ingresso con `args` (JSON, al massimo 4096 caratteri con il kernel); `file` e `files` degli `args` il sistema li **toglie**. Il mittente (id e nome dell'app) lo mette lilOS: l'app non può indicarlo né fingersi un'altra. Vale nelle finestre e nei background; al massimo 10 notifiche al minuto per app, poi la promessa rifiuta con `rate_limited`. Un testo vuoto o un livello sbagliato la fanno rifiutare. Serve il permesso `ui.notify`, che tutte le app hanno. Per i servizi nel kernel c'è la stessa funzione ([Servizi delle app](#servizi-delle-app-appsappservicesjs)). |
+| `lilos.ui.messageBox({ icon, title, message, fields, buttons, default, width, validate })` → `{ button, values }` | Da lilOS 1.21.0, solo nelle finestre. Il [`messageBox`](#sdkuimessageboxjs) dell'SDK sopra la finestra dell'app, anche isolata, con dati semplici: niente `content` (nodi) né `pattern` (una `RegExp` dell'app girerebbe nella pagina di lilOS); testi, campi (al massimo 20, nomi `[\w.-]{1,40}`) e tasti (al massimo 6) hanno dei limiti. Risolve sempre `{ button, values }` (`values` vuoto senza campi). `validate(values, button)` è una funzione dell'app, chiamata nell'app per ogni tasto tranne Annulla mentre il riquadro aspetta: un testo che restituisce si mostra e il riquadro resta aperto, `false` lo tiene aperto, altro lo chiude. Sotto ci sono due chiamate (`ui.messageBox` con `validate: true`, poi `ui.messageBox.check(box, problema)` per ogni risposta da controllare): `lilos.ui.messageBox` le fa da sé. |
 | `lilos.files.read(rif, { bytes? })` → testo \| `Blob` | `rif`: `~/percorso` (coperto da `fs.read` o `fs.write`) oppure l'id di un file con cui l'app è stata aperta. Con `bytes: true` un `Blob`. Passa da `file.read` (i gestori delle altre app possono cambiare il contenuto; i propri no). |
-| `lilos.files.write(rif, dati, { mark? })` | Scrive testo (fino a 10 milioni di caratteri) o byte (`Blob`, `ArrayBuffer`, array tipizzato, fino a 10 MiB); crea il file se la cartella esiste. Serve `fs.write`. Passa da `file.write`. Se `options` ha `mark` (anche `null`) i dati propri dell'app sul file (`setMeta`) si salvano insieme al contenuto: `null` li toglie. Un `mark` con `content: true` è permesso solo a un'app con `pipe:` o `pipe.own:` sia su `file.read` sia su `file.write` («Permesso negato…»). |
-| `lilos.files.info(rif)` → `{ id, name, type, size, modified, path, meta }` | Il nome e i dati propri dell'app su quel file (`meta`, o `null`). Serve poter leggere `rif`. |
+| `lilos.files.write(rif, dati, { mark?, unique? })` → `{ id, name, ref }` | Scrive testo (fino a 10 milioni di caratteri) o byte (`Blob`, `ArrayBuffer`, array tipizzato, fino a 10 MiB); crea il file se la cartella esiste. Serve `fs.write`. Passa da `file.write`. Se `options` ha `mark` (anche `null`) i dati propri dell'app sul file (`setMeta`) si salvano insieme al contenuto: `null` li toglie. Un `mark` con `content: true` è permesso solo a un'app con `pipe:` o `pipe.own:` sia su `file.read` sia su `file.write` («Permesso negato…»). Da lilOS 1.21.0 restituisce il file scritto (`ref`: il suo percorso `~/…`) e con `unique: true` crea sempre un file nuovo, con il nome libero più vicino (`'a 2.txt'` se `'a.txt'` c'è già, come `fs.uniqueName`; anche quel nome dev'essere coperto dai permessi). |
+| `lilos.files.info(rif)` → `{ id, name, type, size, modified, path, ref, meta }` | Il nome e i dati propri dell'app su quel file (`meta`, o `null`). `ref` (da lilOS 1.21.0) è il percorso dalla home (`'~/Documenti/a.txt'`, `fs.tildePath`), quello che prendono le altre chiamate `files.*`. Serve poter leggere `rif`. |
 | `lilos.files.setMeta(rif, valore)` | I dati propri dell'app sul file (un oggetto di al massimo 1 KB di JSON; `null` li toglie). Serve poter scrivere `rif`. Con `content: true` (stesso permesso di `mark`, vedi sopra) la cronologia di annulla perde il contenuto del file. |
 | `lilos.files.open(id)` | Apre con la sua app un file che l'app ha ricevuto (passando da `file.open`). Un altro id: errore. |
 | `lilos.files.locked(ids)` → quanti | Dice che l'app ha richiuso questi file (solo quelli ricevuti e con dati dell'app): lilOS chiede di chiudere le finestre che li mostrano (come con il pulsante di chiusura: chi ha modifiche non salvate chiede prima). |
 | `lilos.files.shown(ids)` → `[id]` | Quali di questi file (solo quelli ricevuti) sono mostrati in una finestra ora. Serve a non bloccarli per inattività mentre sono in uso. |
 | `lilos.files.preview(rif, { size? })` → `{ app, text, html o image, note }` o `null` | L'anteprima del file fatta dall'app che lo apre (il suo `filePreview`). Serve `fs.preview` e poter leggere `rif`. Vedi [Anteprima dei file fatta dalle app](#anteprima-dei-file-fatta-dalle-app-filepreviewjs). |
 | `lilos.files.list(percorso)` → `[{ name, type, size, modified }]` | Contenuto di una cartella (`fs.read` o `fs.write`). |
-| `lilos.files.mkdir(percorso)` | Crea una cartella (la cartella che la contiene deve esistere; se c'è già non fa nulla). Serve `fs.write`. |
+| `lilos.files.mkdir(percorso, { unique? })` → `{ id, name, ref }` | Crea una cartella (la cartella che la contiene deve esistere; se c'è già non fa nulla). Serve `fs.write`. Da lilOS 1.21.0 restituisce la cartella (quella che c'era, o la nuova) e con `unique: true` ne crea sempre una nuova con il nome libero più vicino (`'Archivio 2'`). |
 | `lilos.pipes.subscribe(evento, { stage = 'after', position = 'middle', where }, fn)` → `Promise<off>` | Iscrive la parte dell'app (finestra o background) a un evento ([pipes](#sdkcorepipesjs-e-sdkcorepipecatalogjs)). `fn(data, ctx)` (anche asincrona) restituisce niente, `{ data }` o `{ stop: { error, silent } }`. Serve `pipe:<evento>` o `pipe.own:<evento>` con `where: { meta: 'own' }`. Dura finché la parte gira. Un file segnato dall'app che arriva nei dati si può leggere e scrivere. |
 | `lilos.pipes.define(nome, { label, description, edit, stop })` | Dichiara un evento dell'app, `<id app>.<una parola>` (al massimo 20 per app, contando quelli di `contributes.events`). `edit` `{ before: [campo], after: [campo] }`: i nomi `__proto__`, `constructor` e `prototype` si scartano. Esiste solo da quando l'app lo chiama: per un evento a cui altre app si iscrivono dal manifesto, meglio `contributes.events`. |
 | `lilos.pipes.run(nome, dati)` → dati | Fa passare un evento dell'app dalle pipe e restituisce i dati dopo i gestori. Solo i propri eventi; un valore che non è un oggetto diventa `{ value }`. |
@@ -3049,14 +3088,40 @@ Controlli per impostazioni e finestre di dialogo. Ognuno restituisce il suo elem
 
 | Funzione | Elemento | Note |
 | --- | --- | --- |
-| `toggle({ value, onChange, label })` | `button[role=switch]` | Interruttore. |
-| `selectField({ value, options, onChange, label })` | `select` | Menu a tendina nativo. |
-| `segmented({ value, options, onChange, label })` | `div[role=radiogroup]` | Scelta a segmenti; frecce per cambiare. |
+| `toggle({ value, onChange, label, disabled })` | `button[role=switch]` | Interruttore. |
+| `checkbox({ value, onChange, label, disabled })` | `label.ctl-check` con `input[type=checkbox]` | Casella con l'etichetta accanto; `onChange(true \| false)`. Da lilOS 1.21.0. |
+| `selectField({ value, options, onChange, label, disabled })` | `select` | Menu a tendina nativo; un'opzione con `disabled: true` non si sceglie. |
+| `segmented({ value, options, onChange, label, className })` | `div[role=radiogroup].ctl-seg` | Scelta a segmenti; frecce per cambiare (saltano le opzioni spente). Ogni opzione può avere `disabled`, `class` (un colore proprio: `.ctl-seg button.on.<class>` nel CSS dell'app), `icon` (un nodo prima dell'etichetta) e `title`. `className` si aggiunge a `ctl-seg`: `'wide'` occupa la riga con i pulsanti tutti uguali. Le opzioni in più da lilOS 1.21.0. |
+| `radios({ value, options, onChange, label, disabled })` | `div.ctl-radios` di `label.ctl-radio` | Pulsanti di opzione nativi, uno sotto l'altro con la loro etichetta. Da lilOS 1.21.0. |
 | `swatches({ value, colors, onChange, label })` | `div[role=radiogroup]` | Colori; `colors` come le opzioni (`label` = nome del colore). |
 | `slider({ value, min, max, step, unit, onChange, label })` | `div` con `input[type=range]` | `onChange` al rilascio; il valore mostrato si aggiorna mentre si trascina. |
-| `textField({ value, placeholder, onChange, onInput, label })` | `input` | `onChange` alla conferma (Invio o uscita dal campo), `onInput` a ogni tasto. |
-| `actionButton({ label, primary, danger, spinner, onClick })` | `button` | Pulsante. Con `spinner: true`, se `onClick` restituisce una Promise il pulsante aspetta come con `busyButton`. Non va messo quando la Promise aspetta l'utente (una finestra di scelta). |
-| `busyButton(button, work)` | Promise | Mette un pulsante in attesa finché `work` (una Promise o una funzione che la restituisce) non finisce: rotella accanto all'etichetta, `disabled` e `aria-busy="true"`. Risolve o fallisce come `work`. La rotella viene da `button[aria-busy="true"]` in `controls.css`: vale per ogni `button`, anche impostando l'attributo a mano. |
+| `textField({ value, placeholder, onChange, onInput, label, type, min, max, step, maxLength, disabled, mono, className })` | `input.ctl-text` | `onChange` alla conferma (Invio o uscita dal campo), `onInput` a ogni tasto. `type` (predefinito `'text'`: anche `'password'`, `'number'`, `'search'`, `'date'`, `'time'`…), `min`, `max`, `step`, `maxLength` come quelli dell'`input`; `mono` usa il carattere a larghezza fissa. Le opzioni in più da lilOS 1.21.0. |
+| `actionButton({ label, primary, danger, spinner, confirm, icon, onClick })` | `button.ctl-btn` | Pulsante. Con `spinner: true`, se `onClick` restituisce una Promise il pulsante aspetta come con `busyButton`. Non va messo quando la Promise aspetta l'utente (una finestra di scelta). `icon`: un nodo prima dell'etichetta (`icon('trash')`). `confirm`: una seconda etichetta per un'azione distruttiva in due clic: il primo la mostra in rosso (classe `confirming`) per 4 secondi, il secondo esegue `onClick` (una Promise fa aspettare il pulsante; i suoi errori li mostra l'app); uscire dal pulsante lo rimette com'era. `icon` e `confirm` da lilOS 1.21.0. |
+| `busyButton(button, work)` | Promise | Mette un pulsante in attesa finché `work` (una Promise o una funzione che la restituisce) non finisce: rotella accanto all'etichetta, `disabled` e `aria-busy="true"`. Risolve o fallisce come `work`. La rotella viene da `button[aria-busy="true"]` in `controls.css`: vale per ogni `button` (anche uno disegnato come un collegamento), anche impostando l'attributo a mano. È il modo di mettere in attesa un pulsante: non serve rifarlo con `disabled` e `aria-busy` a mano. |
+
+Lo stile comune dei pulsanti è `.ctl-btn` (con `.primary`, `.danger`, `.danger.primary`): da lilOS 1.21.0 è un `inline-flex` che allinea un'icona (`.ico` a 13px) e l'etichetta, e un pulsante spento (non in attesa) è sbiadito. Le app usano questo invece di una classe propria. `.ctl-text.mono`, `textarea.ctl-text` e `.ctl-text[aria-invalid="true"]` (bordo rosso) completano i campi.
+
+### `resizeHandle(options)` → `HTMLElement` (`ui/resizeHandle.js`)
+
+La barra che ridimensiona un pannello (un pannello laterale, un albero, un riquadro di una divisione), uguale ovunque: si trascina con il mouse, il doppio clic torna alla misura predefinita, e dalla tastiera (è un `role="separator"` che prende il focus) le frecce cambiano di `step`, con Maiusc tre volte tanto, Home dà la misura più piccola, Fine la più grande. La misura la tiene chi la usa: la barra la chiede e la comunica. Da lilOS 1.21.0.
+
+```js
+panel.append(resizeHandle({
+  orientation: 'vertical',        // della barra: 'vertical' cambia una larghezza, 'horizontal' un'altezza
+  get: () => panel.offsetWidth,   // la misura adesso, in pixel
+  set: (px, final) => { … },      // la misura voluta, già tra min e max; final: false mentre si trascina,
+                                  // true alla fine, con i tasti e con il doppio clic (è il momento di salvare)
+  min: 160, max: () => room(),    // numeri o funzioni
+  reset: 260,                     // doppio clic: questa misura (o una funzione che lo fa da sé)
+  invert: true,                   // il pannello è dopo la barra (a destra o sotto): trascinare a sinistra
+                                  // o in su, e ← ↑, lo allargano
+  step: 16, label: 'Ridimensiona il pannello',
+  host: panel,                    // ha la classe 'resizing' mentre si trascina
+  className: 'at-start',
+}));
+```
+
+Aggiorna da sé `aria-valuenow`, `aria-valuemin` e `aria-valuemax` (anche quando prende il focus o il mouse ci passa sopra). CSS in `controls.css`: `.ctl-resize` (con `.vertical` o `.horizontal`) è largo 7px da afferrare e mostra una linea di 1px che si accende con il mouse, il focus e il trascinamento (`.on`); tra due elementi di una riga o colonna flex non prende spazio. `.at-start` e `.at-end` la mettono invece, in posizione assoluta, sul bordo sinistro / destro (in alto / in basso) di un genitore posizionato. Mentre si trascina tutta la pagina ha il cursore di ridimensionamento (`:root.ctl-resizing`) e gli iframe non prendono il mouse.
 
 ---
 
@@ -3154,9 +3219,9 @@ Eventi: `minimize`, `maximize` (anche doppio clic sulla barra del titolo, se il 
 
 ## sdk/ui/messageBox.js
 
-### `messageBox(win, options?)` → `Promise<string | null>`
+### `messageBox(win, options?)` → `Promise<string | null>` (con `fields`: `Promise<{ button, values }>`)
 
-Un messaggio per l'utente, o una scelta da fare, sopra il contenuto di una finestra. Finché non risponde, il contenuto della finestra non si usa (il corpo è `inert`); la barra del titolo sì: la finestra si sposta e si chiude. Con `win` a `null` copre tutta la pagina.
+Un messaggio per l'utente, una scelta da fare o pochi valori da compilare, sopra il contenuto di una finestra. Finché non risponde, il contenuto della finestra non si usa (il corpo è `inert`); la barra del titolo sì: la finestra si sposta e si chiude. Con `win` a `null` copre tutta la pagina.
 
 ```js
 import { messageBox } from '@lilos/sdk';
@@ -3174,20 +3239,47 @@ if (answer === 'retry') riprova();
 | --- | --- | --- |
 | `icon` | `null` | `'info'` (colore `--accent`), `'warning'` (`--warning`), `'error'` (`--danger`) o niente. Con `warning` ed `error` il ruolo è `alertdialog`. |
 | `title` | `''` | Facoltativo: in grassetto sopra il testo. |
-| `text` | `''` | Testo semplice (mai HTML); gli a capo restano. Un testo più alto della finestra scorre dentro il riquadro. |
-| `buttons` | `['ok']` | Quali tasti: `'ok'`, `'cancel'`, `'continue'`, `'retry'`, in qualsiasi combinazione; `[]` nessuno. L'ordine sullo schermo è sempre Annulla, Riprova, Continua, OK. Le etichette seguono la lingua del sistema (italiano o inglese). |
-| `default` | il tasto più a destra che non sia Annulla | Il tasto di **Invio**, evidenziato e con il focus all'apertura. Un valore che non è tra i tasti si ignora. |
+| `text` (o `message`) | `''` | Testo semplice (mai HTML); gli a capo restano. Un testo più alto della finestra scorre dentro il riquadro. |
+| `buttons` | `['ok']` | Quali tasti: `'ok'`, `'cancel'`, `'continue'`, `'retry'`, in qualsiasi combinazione; `[]` nessuno. L'ordine sullo schermo è sempre Annulla, Riprova, Continua, OK. Le etichette seguono la lingua del sistema (italiano o inglese). Oppure tasti dell'app (da lilOS 1.21.0): oggetti `{ value, label, primary?, danger?, icon? }`, mostrati **nell'ordine dato** (le stringhe in mezzo sono i tasti standard con la loro etichetta). `primary` ne fa il tasto di Invio (come `default`), `danger` lo fa rosso, `icon` è il nome di un simbolo. |
+| `default` | il tasto con `primary`, altrimenti il più a destra che non sia Annulla | Il tasto di **Invio**, evidenziato e con il focus all'apertura (se non ci sono campi). Un valore che non è tra i tasti si ignora. |
+| `content` | `null` | Da lilOS 1.21.0. Un nodo dell'app (un'anteprima, un elenco, controlli suoi), sotto il testo e prima dei campi. Invio in un suo `input` preme il tasto di Invio, a meno che il suo gestore chiami `preventDefault()`. |
+| `fields` | `null` | Da lilOS 1.21.0. Valori da compilare (vedi sotto). Con `fields` la promessa risolve `{ button, values }`. |
+| `validate(values, button)` | `null` | Da lilOS 1.21.0. Chiamata dopo i controlli dei campi per ogni tasto tranne Annulla; può essere asincrona: intanto il tasto aspetta (`busyButton`) e Annulla ed Esc funzionano ancora. Restituisce un testo (mostrato in rosso, il riquadro resta aperto), `false` (resta aperto: il perché lo mostra l'app) o altro (si chiude con quel tasto). Un errore lanciato si mostra come testo. |
+| `width` | `400` | Da lilOS 1.21.0. La larghezza in pixel (mai più larga della finestra). |
 
-Restituisce il tasto premuto (`'ok'`, `'cancel'`, `'continue'`, `'retry'`) oppure `null`. **Esc** preme Annulla se c'è, altrimenti chiude con `null`; anche la finestra chiusa dà `null`. La promessa ha `close(value = null)`, per togliere il riquadro dal codice (un messagebox senza tasti si toglie così o con Esc).
+Ogni campo di `fields`: `{ name, type?, label, value?, placeholder?, hint?, required?, pattern?, invalid?, min?, max?, step?, maxLength?, options?, rows?, disabled? }`.
 
-- **Tastiera**: Tab e le frecce girano tra i tasti senza uscire dal riquadro. I tasti senza Ctrl, Alt o Meta non arrivano alle scorciatoie di lilOS (Canc, lettere…); le combinazioni sì.
+| `type` | Controllo | Valore in `values[name]` |
+| --- | --- | --- |
+| `'text'` (predefinito), `'password'` | `input.ctl-text` | il testo |
+| `'number'` | `input[type=number]` | un numero, `null` se vuoto |
+| `'textarea'` | `textarea.ctl-text` (`rows`, predefinito 4) | il testo (Invio va a capo) |
+| `'select'` | `select.ctl-select`; `options` come `['a', 'b']` o `[{ value, label, disabled? }]` | il `value` scelto |
+| `'checkbox'` | `checkbox` con l'etichetta accanto | `true` / `false` |
+
+Quando si preme un tasto che non è Annulla, lilOS controlla `required` (non vuoto), `min` e `max` (numeri), `maxLength` e `pattern` (una `RegExp` che deve combaciare con **tutto** il testo, come l'attributo `pattern`; `invalid` è il messaggio): il primo campo che non va mostra il perché (nella lingua del sistema), prende il focus (`aria-invalid`) e il riquadro resta aperto. `hint` è una riga grigia sotto il campo. Il focus all'apertura va al primo campo (con il testo selezionato). `values` c'è anche con Annulla ed Esc.
+
+```js
+const { button, values } = await messageBox(win, {
+  title: 'Nuovo sketch', buttons: ['cancel', { value: 'create', label: 'Crea', primary: true }],
+  fields: [{ name: 'name', label: 'Nome', value: 'Sketch', required: true, pattern: /[A-Za-z_]\w*/, invalid: 'Solo lettere, cifre e _' }],
+  validate: async ({ name }) => (await exists(name) ? 'Esiste già uno sketch con questo nome' : null),
+});
+if (button === 'create') crea(values.name);
+```
+
+Restituisce il tasto premuto (`'ok'`, `'cancel'`, `'continue'`, `'retry'` o il `value` di un tasto dell'app) oppure `null`; con `fields` `{ button, values }`. **Esc** preme Annulla se c'è, altrimenti chiude con `null`; anche la finestra chiusa dà `null`. La promessa ha `close(value = null)`, per togliere il riquadro dal codice (un messagebox senza tasti si toglie così o con Esc).
+
+Sostituisce le finestre di dialogo fatte a mano dalle app (una `Window` a parte per chiedere, uno strato con il focus intrappolato, Invio che conferma…): da lilOS 1.21.0 usa questo.
+
+- **Tastiera**: Tab gira tra tutto ciò che il riquadro contiene (campi, contenuto, tasti) senza uscirne; le frecce ← → girano tra i tasti quando il focus è su un tasto (in un campo muovono il cursore). I tasti senza Ctrl, Alt o Meta non arrivano alle scorciatoie di lilOS (Canc, lettere…); le combinazioni sì.
 - **Larghezza**: i tasti stanno sempre su una riga. Il riquadro è largo 400 px, o di più se i tasti lo chiedono; se la finestra è più stretta si allarga (verso destra) e torna com'era alla chiusura, a meno che nel frattempo l'utente l'abbia ridimensionata. Una finestra ingrandita non cambia.
 - **Focus**: alla chiusura torna dove era prima, se quell'elemento c'è ancora.
 - **Più messagebox** sulla stessa finestra si sovrappongono; il contenuto torna usabile quando sono chiusi tutti.
 - **Tema scuro**: velo più scuro e riquadro su `--chrome`, per staccarlo dalla finestra.
-- **DOM**: `.msgbox-layer` (dentro `win.el`, sotto la barra del titolo, `z-index` 2; con `null`: `.msgbox-layer.page` in `body`, `position: fixed`) contiene `.msgbox.info|warning|error` con `.msgbox-head` (`.msgbox-icon`, `.msgbox-main` con `.msgbox-title` e `.msgbox-text`) e `.msgbox-buttons` (pulsanti `.ctl-btn`, `data-value` il tasto, `.primary` quello predefinito). Un clic accanto al riquadro lo fa pulsare (`.nudge`).
+- **DOM**: `.msgbox-layer` (dentro `win.el`, sotto la barra del titolo, `z-index` 2; con `null`: `.msgbox-layer.page` in `body`, `position: fixed`) contiene `.msgbox.info|warning|error` con `.msgbox-head` (`.msgbox-icon`, `.msgbox-main` con `.msgbox-title`, `.msgbox-text`, `.msgbox-content`, `.msgbox-fields` di `.msgbox-field` con `.msgbox-label` e `.msgbox-hint`, e `.msgbox-error`) e `.msgbox-buttons` (pulsanti `.ctl-btn`, `data-value` il tasto, `.primary` quello predefinito, `.danger`). Un clic accanto al riquadro lo fa pulsare (`.nudge`); mentre `validate` lavora il riquadro ha `aria-busy`.
 
-Le app isolate non lo hanno ancora (non c'è in `lilos.ui`). Un'app di sistema che deve girare anche su un lilOS più vecchio lo legge dal modulo (`import * as sdk from '@lilos/sdk'`, poi `sdk.messageBox?.(…)`), come fa il File Manager.
+Le app installate (anche isolate) lo hanno come [`lilos.ui.messageBox`](#windowlilos-bridgejs) da lilOS 1.21.0. Un'app di sistema che deve girare anche su un lilOS più vecchio lo legge dal modulo (`import * as sdk from '@lilos/sdk'`, poi `sdk.messageBox?.(…)`), come fa il File Manager; per `fields`, `content` e i tasti propri chiede `lilos: ">=1.21.0"` nel manifesto.
 
 ---
 

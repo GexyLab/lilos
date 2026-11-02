@@ -1,4 +1,4 @@
-import { h, icon, Window, net, locale } from '@lilos/sdk';
+import { h, icon, Window, net, locale, formatBytes } from '@lilos/sdk';
 import { notify } from '../notifications/notify.js';
 
 const KEY = 'transfers';
@@ -8,13 +8,8 @@ const STATES = {
 };
 const TERMINAL = new Set(['done', 'error', 'canceled', 'skipped']);
 
-/** '1,2 GB', in the system's language. */
-export function bytes(n) {
-  const units = ['byte', 'KB', 'MB', 'GB', 'TB'];
-  let v = Math.max(0, Number(n) || 0), u = 0;
-  while (v >= 1024 && u < units.length - 1) { v /= 1024; u++; }
-  return `${new Intl.NumberFormat(locale.code, { maximumFractionDigits: u ? 1 : 0 }).format(v)} ${units[u]}`;
-}
+/** '1,2 GB', in the system's language (0 for a size not known). */
+export const bytes = n => formatBytes(Number(n) || 0);
 
 const pct = (done, total) => (total > 0 ? Math.min(100, Math.floor((done / total) * 100)) : 0);
 

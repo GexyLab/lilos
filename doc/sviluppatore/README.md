@@ -108,12 +108,14 @@ sdk/                    @lilos/sdk (vedi sdk/README.md)
     toast.js            vecchio nome di una notifica da lilOS (`notifications.send`)
     avatar.js           iniziali dell'utente
     appIcon.js          icona di un'app: quadrato colorato col simbolo ritagliato
-    controls.js         controlli dei moduli (interruttore, menu, segmenti, colori…)
+    controls.js         controlli dei moduli (interruttore, casella, menu, segmenti, opzioni, colori…)
+    resizeHandle.js     barra che ridimensiona un pannello (mouse, doppio clic, tastiera)
     shortcutField.js    editor delle combinazioni di un comando
     selectionGesture.js selezione trascinando: rettangolo o percorso libero
     Window.js           cornice di una finestra
     SettingsView.js     impaginazione a tab delle impostazioni
     SettingsWindow.js   base di ogni finestra di impostazioni
+    messageBox.js       messaggi, scelte e valori da compilare sopra una finestra
   styles/
     index.css           importa i file seguenti: è @lilos/sdk/styles.css
     tokens.css          colori, raggi, ombre, font, altezza della barra

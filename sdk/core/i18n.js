@@ -179,6 +179,8 @@ export function localizeManifest(manifest, strings) {
  *   locale.i18n.t(key, params)    the text for the key; params fill {name} and choose plural forms (n)
  *   locale.i18n.lang          the language of the app's file in use ('it')
  *   locale.i18n.date(value, options) / number(value, options)   Intl formats in the system's locale
+ *   locale.formatBytes(n)     a size in the system's locale: '512 B', '1,5 KB', '12 MB' (units of
+ *                             1024, B to PB; '' for what is not a number)
  * Returns { locale, set(resolved) }: set() changes the strings (the system's language changed).
  * Put in sandboxes and workers as text (toString): it must not use anything from outside itself.
  */
@@ -210,8 +212,15 @@ export function i18nApi(initial) {
   };
   const date = (value, options) => new Intl.DateTimeFormat(state.code, options).format(value instanceof Date ? value : new Date(value));
   const number = (value, options) => new Intl.NumberFormat(state.code, options).format(value);
+  const formatBytes = n => {
+    if (n === null || n === '' || !Number.isFinite(Number(n))) return '';
+    const units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
+    let v = Math.max(0, Number(n)), u = 0;
+    while (v >= 1024 && u < units.length - 1) { v /= 1024; u++; }
+    return `${number(v, { maximumFractionDigits: u ? 1 : 0 })} ${units[u]}`;
+  };
   const i18n = Object.freeze({ t, date, number, get lang() { return state.lang; } });
-  const locale = Object.freeze({ get code() { return state.code; }, i18n });
+  const locale = Object.freeze({ get code() { return state.code; }, i18n, formatBytes });
   return {
     locale,
     set(next) {
