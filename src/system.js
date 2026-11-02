@@ -50,6 +50,7 @@ import { setupWorkspaces } from './workspaces/setup.js';
 import { workspaceKey } from './workspaces/store.js';
 import { Workspaces } from './workspaces/Workspaces.js';
 import { notify } from './notifications/notify.js';
+import { connectAutomation } from './automation/index.js';
 
 const root = document.getElementById('app');
 watchSession();
@@ -88,6 +89,8 @@ const workareas = new Workareas({ canvas, desktop, wm, launcher, key: key('worka
 const workspaces = new Workspaces({ state, canvas, desktop, wm, launcher, workareas, taskbar });
 taskbar.startMenu.connect({ workspaces, workareas });
 connectSystemEvents({ wm, workspaces });
+// Automations: lilOS's actions, the apps' ones, the recorder, the user's .automata files
+connectAutomation({ wm, desktop, workspaces, taskbar });
 connectPackages({ desk: () => workspaces.current?.desk ?? null }).catch(err => console.error('[lilos] app:', err));
 setupHistory({ root: desktop.history, activeWindow: () => wm.active });
 

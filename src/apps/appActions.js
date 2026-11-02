@@ -2,6 +2,7 @@ import { fs, net, splitName } from '@lilos/sdk';
 import { installedApps, launch } from './registry.js';
 import { callEntrypoint, entrypointsOf } from './entrypoints.js';
 import { notify } from '../notifications/notify.js';
+import { library } from '../automation/library.js';
 
 /**
  * What installed apps add to the menu of files and folders (manifest contributes.actions, with the
@@ -49,6 +50,7 @@ async function run(app, action, ids) {
 
 /**
  * Menu entries (openMenu items) the installed apps offer for these node ids; [] when none.
+ * Then the «Automazioni» submenu (the user's automations that fit, automation/library.js).
  * separator: a '-' before them, when there are some.
  */
 export function appActionEntries(ids, { separator = false } = {}) {
@@ -71,5 +73,6 @@ export function appActionEntries(ids, { separator = false } = {}) {
       submenus.get(menu.id).items.push(entry);
     }
   }
+  out.push(...library.menuEntries(nodes.map(n => n.id)));
   return separator && out.length ? ['-', ...out] : out;
 }

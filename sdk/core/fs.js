@@ -1070,7 +1070,7 @@ class FileSystem extends Emitter {
     all.forEach(i => contents.delete(i));
     this.#save();
     this.emit('trash');
-    pipes.notify('trash.purge', { count: ids.length });
+    pipes.notify('trash.purge', { count: ids.length, ids: [...ids] });
     return ids.length;
   }
 

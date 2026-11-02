@@ -1394,3 +1394,51 @@ lilOS legge il file **prima** di avviare l'app e le dà le stringhe già risolte
 - Provati con server finti o in Docker (Google finto, RustFS per S3, Azurite, NFS-Ganesha): mai contro i servizi veri.
 
 **Quando ripensarla.** Se Google riapre la lettura della libreria di Foto; se serve Kerberos (con quello di SMB) o NFSv4.1 (AWS EFS, Azure Files NFS); se un fornitore offre notifiche dei cambiamenti senza un indirizzo pubblico; se il codice comune dei moduli (OAuth, firme, XML) conviene metterlo in un pacchetto condiviso.
+
+## D64. Le automazioni: operazioni con un senso, dichiarate dalle app
+
+**Decisione.** lilOS registra quello che l'utente fa e lo rifà, con l'app **Automata** (id `automata`). Deciso con l'utente e costruito il 2 novembre 2026; rilasciato con lilOS 1.15.0 (SDK 0.9.0).
+
+Le scelte prese con l'utente:
+
+- **È un'app di sistema** (repository ufficiale, `system: true`), non un modulo del kernel né una funzione della pagina: l'interfaccia (editor, registratore, esecuzione) è l'app; il resto sta in lilOS perché ha bisogno del sistema.
+- **Le domande stanno nel passo.** Un passo può chiedere conferma prima di girare e chiedere i suoi valori; la risposta arriva quando il passo gira, non all'avvio dell'automazione. Anche i campi che l'utente non ha cambiato possono essere chiesti (di serie si chiedono per primi quelli cambiati).
+- **L'avvio da solo (a un'ora, quando succede un evento) è rimandato.** Per ora si avvia a mano, dal menu dei file, da una scorciatoia o dal Terminale.
+- **Un evento nuovo, `desk.place`**, per sapere dove l'utente mette le icone sulla scrivania; senza, lo spostamento delle icone non si poteva registrare.
+
+Le scelte di struttura:
+
+- **Si registrano operazioni con un senso, non clic e tasti.** Un passo è un'*azione* (`lilos.move`, `photo.resize`…) con parametri tipizzati. Le azioni di lilOS le definisce il sistema (`src/automation/actions.js`) e le trasforma in passi guardando gli eventi delle pipe ([D47](#d47-pipe-sugli-eventi-dati-delle-app-sui-file-e-filecrypt)) e le finestre che si chiudono; quelle di un'app le dichiara l'app nel manifesto (`contributes.automation`) e **racconta lei** cosa ha fatto l'utente, dopo averlo fatto (`automation.record`, `lilos.automation.record`). L'app non registra nulla da sola.
+- **I parametri «cambiati» sono quelli diversi da quanto la finestra proponeva.** L'app dà i `defaults` e il passo ricorda quali valori l'utente ha cambiato: Automata li mostra e li chiede per primi. Senza `defaults` sono cambiati tutti i parametri tranne l'oggetto del passo (`subject`) e i segreti.
+- **Le password non si registrano mai.** Un parametro `secret` si scarta quando si registra e il passo lo chiede ogni volta.
+- **Il file creato da un'app è un passo solo.** Se un'app dice di aver fatto un file (`result`), il passo «Crea» che lilOS ha registrato per lo stesso file nei 5 secondi prima viene ritirato (`retracted: 'merged'`).
+- **Annullare mentre si registra toglie il passo.** `UndoStack` ritira i passi registrati durante la voce che annulla e li rimette con «Ripeti» (`stepsBetween`, `retract`, `restore`). Quello che si registra è il risultato, non i tentativi.
+- **Mentre lilOS rifà, non registra** (`automation.quiet`). Anche il Terminale esegue la riga dentro `quiet`: quello che la riga fa ai file è nel suo passo `terminal.run`, non registrato due volte.
+- **Rifare vuol dire chiamare l'app, in due modi.** Le azioni con `target: 'window'` le fa la finestra dell'app che mostra il file del passo (`automation.handle`, solo app di sistema); se non c'è, lilOS apre il file con l'app e aspetta la finestra. Le azioni con `entry` le fa un punto d'ingresso dell'app, chiamato con `{ automation: { action, params }, files }` (Zip, FileCrypt: è l'unico modo per le app isolate). Le azioni di lilOS hanno una `run`.
+- **L'automazione è un file `.automata`** (JSON, `src/automation/document.js`) nella home, di serie in `~/Automazioni`: si copia e si condivide come ogni file. Un file viene da chiunque, quindi si controlla sempre (`checkDocument`) prima di usarlo.
+- **I nodi sono riferimenti, non id fissi.** Un passo dice `{ input }` (l'elemento su cui lavora l'automazione adesso), `{ step, index }` (ciò che ha fatto un passo prima) o `{ path, id }` (un nodo fisso). Con `input: 'files'` i passi si ripetono per ogni file scelto all'avvio: una stessa automazione serve per un file o per cento.
+- **L'elenco** (`library.js`) rilegge i file `.automata` della home e dà la voce **Automazioni** al menu di file e cartelle, le scorciatoie (solo Ctrl o Alt, e libere: il file può venire da chiunque) e il comando `automata` del Terminale.
+- **Il ponte per le app isolate è stretto.** `lilos.automation.record` accetta solo azioni dell'app, file che l'app ha ricevuto e, per `result`, file che può scrivere. Non serve un permesso: dire cosa si è fatto non dà accesso a niente.
+
+**Perché** (ricostruzione, da confermare)**.**
+
+- **Operazioni e non clic.** Registrare clic e tasti non funziona su una pagina fatta di finestre di app isolate (iframe), non si può rifare su altri file, e non permette all'utente di cambiare un valore: un passo con un nome e dei parametri sì.
+- **L'app racconta.** Solo l'app sa cosa ha fatto davvero (il file creato, la dimensione scelta); lilOS vede gli eventi del file system, non le decisioni dentro una finestra. Le app isolate non si possono osservare dall'esterno.
+- **Le domande nel passo** perché cosa chiedere dipende dal momento (il nome di ogni file, una conferma prima di eliminare), e un'unica schermata all'inizio non lo sa.
+- **File e non una voce nelle impostazioni** perché le automazioni si condividono, si copiano e si tengono in cartelle come tutto il resto, e perché il formato (JSON) si legge e si ripara a mano.
+- **Riferimenti** perché un'automazione registrata su `vacanza.jpg` deve funzionare su `compleanno.jpg`, e perché un file fatto da un passo non ha un percorso noto in anticipo.
+
+**Alternative scartate** (ricostruzione, da confermare)**.** Registrare clic e tasti (fragile, non vale per le app isolate, senza significato per l'utente); un linguaggio di script (non per chi non programma); osservare le app da fuori (impossibile con l'isolamento); chiedere tutto all'avvio (non sa cosa chiedere); un modulo del kernel (la registrazione e le finestre sono della pagina); un permesso per registrare (non dà accesso a niente); un evento per ogni app invece di `contributes.automation` (il catalogo non sarebbe noto prima che l'app giri).
+
+**Conseguenze.**
+
+- Nuovo export dell'SDK, `automation` (0.9.0), e `automations` in `@lilos/system`. Nuovo evento `desk.place`; `trash.purge` ha anche `ids`; `UndoStack.push` ha un secondo argomento (`since`).
+- Il manifesto ha `contributes.automation`; il kernel lo controlla (`manifest.js`) e `localizeManifest` traduce `@automation.…`.
+- Le app ufficiali diventano registrabili un'azione per volta: Photo 1.3.0, Editor 1.4.0, File Manager 1.14.0, Terminale 1.3.0, Zip 1.1.0, FileCrypt 1.1.0. Automata 1.0.0 vuole lilOS 1.15.0.
+- Un'automazione eseguita cambia davvero file e impostazioni: i passi che eliminano per sempre chiedono conferma di serie, ma non c'è un «annulla» unico.
+- Nell'area di notifica c'è il pulsante **REC** mentre si registra; ricaricare la pagina perde la registrazione (vive nella pagina).
+- Il file `.automata` è del primo formato (`version: 1`); `checkDocument` scarta i campi che non conosce.
+
+**Non ancora fatto.** L'avvio da solo (a un'ora, a un evento: i pezzi ci sono, le pipe e `desk.place`); «Trova e sostituisci» nell'Editor, che non ha ancora la funzione da registrare; il pennello e il testo di Photo; condizioni e cicli; chiedere più file in un passo che ne vuole un gruppo.
+
+**Quando ripensarla.** Quando arriveranno gli avvii da eventi e dall'orologio (un'automazione dovrà girare senza finestra di Automata e senza nessuno che risponda alle domande: le domande e le conferme andranno ripensate); se i parametri `value`, `tags` e `places`, per ora solo di lilOS, servono alle app; se i file `.automata` condivisi tra utenti pongono problemi di fiducia (oggi un passo può fare solo ciò che l'utente può fare, ma può farne molti).

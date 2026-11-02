@@ -28,6 +28,7 @@ Procedure passo per passo per le modifiche più comuni. Per i dettagli delle fun
 - [Aggiungere un punto d'ingresso a un'app](#aggiungere-un-punto-dingresso-a-unapp)
 - [Intervenire su un evento con una pipe](#intervenire-su-un-evento-con-una-pipe)
 - [Aggiungere voci di menu e un segno sull'icona a un'app](#aggiungere-voci-di-menu-e-un-segno-sullicona-a-unapp)
+- [Rendere registrabile un'azione della tua app](#rendere-registrabile-unazione-della-tua-app)
 - [Installare un'app dall'esempio](#installare-unapp-dallesempio)
 - [Usare il kernel dal sistema o dall'SDK](#usare-il-kernel-dal-sistema-o-dallsdk)
 - [Aggiungere un modulo al kernel](#aggiungere-un-modulo-al-kernel)
@@ -757,6 +758,80 @@ Un'app installata aggiunge voci al menu del tasto destro di file e cartelle e un
    ```
 3. Il segno (`badge`) compare da solo sull'icona dei nodi con `apps['acme.trim']`, sulla scrivania e nel File Manager. Le voci compaiono nel menu della scrivania e in quello del File Manager (con `appActionEntries`, se fai una vista tua: vedi [apps/pipes.js, apps/appActions.js e apps/systemEvents.js](api.md#appspipesjs-appsappactionsjs-e-appssystemeventsjs)).
 4. Traduzioni: `@actions.acme.trim.mark.label` e `@badge.label` nel `locales.json` (vedi [Tradurre un'app](#tradurre-unapp)).
+
+## Rendere registrabile un'azione della tua app
+
+Con Automata (lilOS 1.15.0 o successivo) l'utente registra quello che fa e lo rifà, anche su altri file. Un'app entra in gioco con le sue azioni: dice **cosa sa registrare** nel manifesto, **racconta cosa ha fatto l'utente** quando lo fa, e **sa rifarlo** quando Automata glielo chiede. Esempio: un'app `acme.pics` che ridimensiona le immagini. Riferimento: [automation](api.md#sdkcoreautomationjs) e [`contributes.automation`](api.md#manifesto-lilosjson).
+
+1. **Dichiara l'azione** nel manifesto. `id` inizia con l'id dell'app; `params` descrive ciò che l'utente può scegliere; `subject: true` segna ciò su cui lavora il passo. Scegli come si rifà: `target: 'window'` (la rifà una finestra dell'app: solo per le app di sistema) oppure `entry` (la rifà un punto d'ingresso, per ogni app):
+
+   ```json
+   "lilos": ">=1.15.0",
+   "contributes": {
+     "automation": [
+       { "id": "acme.pics.resize", "label": "Resize the image", "target": "window",
+         "params": { "width": { "type": "number", "label": "Width", "min": 1 } } },
+       { "id": "acme.pics.compress", "label": "Compress", "entry": "work", "result": "file",
+         "params": { "items": { "type": "files", "label": "Items", "subject": true } } }
+     ]
+   }
+   ```
+
+   `result: "file"` dice che l'azione crea un file. `confirm: true` fa chiedere conferma di serie (per le azioni che eliminano o sovrascrivono). Una password è un parametro `secret`: non viene mai registrato e il passo la chiede ogni volta.
+
+2. **Racconta cosa ha fatto l'utente**, dopo averlo fatto, con i valori scelti e quelli che la finestra proponeva (`defaults`): Automata chiederà per primi i campi che l'utente ha cambiato. Non succede niente se nessuno registra, quindi si chiama sempre.
+
+   - **App di sistema** (usa l'SDK; `automation` manca in un lilOS più vecchio, quindi non si importa per nome):
+
+     ```js
+     import * as sdk from '@lilos/sdk';
+     const automation = () => sdk.automation ?? null;
+
+     // dopo il ridimensionamento fatto con la finestra di dialogo
+     automation()?.record('acme.pics.resize', {
+       params: { width: 800 }, defaults: { width: 1600 }, file: this.fileId,
+     });
+     ```
+
+   - **App installata** (`lilos.automation` manca in un lilOS più vecchio; un errore vuol dire solo che il passo non si registra):
+
+     ```js
+     try {
+       await lilos.automation?.record('acme.pics.compress', { params: { items: ids }, result: madeId });
+     } catch { /* non registrato */ }
+     ```
+
+     I file nominati (`file`, `files`, `folder`) devono essere quelli che l'app ha ricevuto; `result` un file che può scrivere.
+
+   Se l'azione crea un file e `result` è il suo id, il passo «Crea» che lilOS ha registrato per quel file un attimo prima sparisce: resta quello dell'app. Per ciò che l'app non sa registrare (un tratto a mano libera) dillo con `automation.missed('acme.pics', 'Pennello')`: il registratore lo mostra barrato.
+
+3. **Insegna all'app a rifarlo**, senza finestre di dialogo:
+
+   - **Con `target: 'window'`** la finestra che mostra il file si registra come gestore. `file` dice quale file mostra (anche una funzione, se cambia); lilOS sceglie la finestra giusta, o apre il file con l'app e la aspetta. Il gestore può restituire l'id di un file creato:
+
+     ```js
+     automation()?.handle('acme.pics.resize', ({ width }) => resizeTo(width), { window: win, file: () => this.fileId });
+     ```
+
+     Se `resizeTo` non può riuscire, lancia un errore con un messaggio chiaro: Automata lo mostra e il passo fallisce.
+   - **Con `entry`** lilOS chiama il punto d'ingresso con `{ automation: { action, params }, files }`; `files` sono i file che il passo nomina, che l'app può leggere e scrivere. Rispondi con l'id del file creato:
+
+     ```js
+     export function work({ lilos }) {
+       lilos.handle(async data => {
+         if (data?.automation) {
+           const { params } = data.automation;
+           return await compress(lilos, params.items);   // l'id del file creato
+         }
+         // …il caso normale (menu dei file)
+       });
+     }
+     ```
+
+   Mentre Automata rifà i passi lilOS non registra niente (è tutto dentro `automation.quiet`): chiamare `record` dal gestore non ha effetto.
+
+4. **Traduzioni**: `@automation.acme.pics.resize.label`, `@automation.acme.pics.resize.params.width.label`, e così via, nel `locales.json` ([Tradurre un'app](#tradurre-unapp)). Le opzioni di un parametro `choice` sono `….params.<param>.options.<valore>.label`.
+5. **Prova**: installa Automata, registra un'automazione che usa la tua azione, aprila (il passo mostra la tua etichetta e i valori) e eseguila su un altro file. Controlla che i campi cambiati siano quelli che l'utente ha cambiato davvero e, se l'app ha l'annulla (`UndoStack`), che Ctrl Z mentre registri tolga il passo.
 
 ## Mandare una notifica
 

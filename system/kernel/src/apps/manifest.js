@@ -35,7 +35,8 @@ import { parseLocales } from '../../../../sdk/core/i18n.js';
  *     permissions: ['fs.read:~/Documenti', 'net:https://api.example.com', …],
  *     contributes: { window: { width, height }, fileTypes: ['md'], commands: [{ id, label, keys }],
  *                    widgets: [{ id, name, width, height, resizable }], settings: [...],
- *                    pipes: [pipe], events: [event], actions: [action], menus: [menu], badge: { glyph, label } },
+ *                    pipes: [pipe], events: [event], actions: [action], menus: [menu], badge: { glyph, label },
+ *                    automation: [automation] },
  *     install: [op], update: [{ from: '<1.2.0', ops: [op] }], uninstall: [op],
  *     lilos?: '>=1.8.0' | '>=1.8.0 <2.0.0',   the versions of lilOS the app works with (one or two bounds):
  *                                             not installed elsewhere, and lilOS is not updated past them
@@ -69,6 +70,14 @@ import { parseLocales } from '../../../../sdk/core/i18n.js';
  *
  * Badge: a sign on the icon of the items the app has data on (node.apps[id]): { glyph: 'lock', label }.
  *
+ * Automation: what the app lets the user record and do again (the Automata app, the SDK's
+ * automation.js). The app tells what the user did with lilos automation.record(id, …); doing it
+ * again is a window of the app (target 'window', automation.handle) or one of its entry points
+ * (entry), called with { automation: { action, params }, files }.
+ *   { id: '<app id>.resize', label: 'Resize', target?: 'window', entry?: 'work', result?: 'file',
+ *     confirm?: true, description?, params?: { name: { type, label, description?, subject?, …by type } } }
+ *   types: those of entry points' params, plus 'files' (several) and 'secret' (never saved: always asked)
+ *
  * Params of an entry point: what it accepts as args, so lilOS can ask for it (Control Panel → Avvio).
  *   { name: { type, label, description?, default?, …by type } }, at most 10
  *   'text' { maxLength? }   'number' { min?, max? }   'boolean'   'choice' { options: [{ value, label }] }
@@ -86,7 +95,7 @@ const KEY = /^[\w.-]{1,64}$/;
 const HOME_PATH = /^~(\/[^/\0]{1,255}){1,16}$/;
 const ENTRY = /^[a-z][a-zA-Z0-9]{0,30}$/;
 const PARAM = /^[a-zA-Z][a-zA-Z0-9_]{0,30}$/;
-const MAX = { files: 1000, ops: 100, text: 64 << 10, commands: 30, widgets: 10, permissions: 50, libraries: 30, entrypoints: 20, params: 10, options: 50, pipes: 30, actions: 20, menus: 10, events: 20, fields: 20 };
+const MAX = { files: 1000, ops: 100, text: 64 << 10, commands: 30, widgets: 10, permissions: 50, libraries: 30, entrypoints: 20, params: 10, options: 50, pipes: 30, actions: 20, menus: 10, events: 20, fields: 20, automation: 30 };
 const EVENT = /^[a-z0-9][a-z0-9.-]{0,63}\.[a-z][a-zA-Z0-9]{0,40}$/;
 const EVENT_WORD = /^[a-z][a-zA-Z0-9]{0,40}$/;
 const FIELD = /^(?!__proto__$|constructor$|prototype$)\w{1,40}$/;
@@ -94,6 +103,7 @@ const FIELD = /^(?!__proto__$|constructor$|prototype$)\w{1,40}$/;
 const PROTECTED = ['system.ready', 'session.', 'apps.', 'permissions.', 'settings.system', 'pipes.'];
 export const isProtectedEvent = name => PROTECTED.some(p => (p.endsWith('.') ? name.startsWith(p) : name === p));
 const PARAM_TYPES = ['text', 'number', 'boolean', 'choice', 'file', 'folder'];
+const AUTOMATION_TYPES = [...PARAM_TYPES, 'files', 'secret'];
 export const CATEGORIES = ['system', 'productivity', 'media', 'development', 'other'];
 const windowSize = w => w?.width >= 200 && w.width <= 4000 && w.height >= 150 && w.height <= 4000;
 
@@ -175,13 +185,14 @@ function checkWhere(w, wrong) {
   }
 }
 
-/** Checks the params of an entry point (see above); `wrong(msg)` throws. */
-function checkParams(params, wrong) {
+/** Checks the params of an entry point (see above); `wrong(msg)` throws. types: the ones allowed. */
+function checkParams(params, wrong, types = PARAM_TYPES) {
   if (!params || typeof params !== 'object' || Array.isArray(params) || Object.keys(params).length > MAX.params) wrong('params non validi (al massimo 10)');
   for (const [name, p] of Object.entries(params)) {
     const off = msg => wrong(`parametro ${name.slice(0, 40)}: ${msg}`);
     if (!PARAM.test(name) || !p || typeof p !== 'object' || Array.isArray(p)) off('nome o forma non validi');
-    if (!PARAM_TYPES.includes(p.type)) off(`type deve essere uno di ${PARAM_TYPES.join(', ')}`);
+    if (!types.includes(p.type)) off(`type deve essere uno di ${types.join(', ')}`);
+    if (p.subject !== undefined && p.subject !== true) off('subject può essere solo true');
     if (!str(p.label, 60)) off('etichetta mancante o troppo lunga');
     if (p.description !== undefined && !str(p.description, 200)) off('descrizione non valida');
     const num = v => v === undefined || (typeof v === 'number' && Number.isFinite(v));
@@ -200,7 +211,7 @@ function checkParams(params, wrong) {
         boolean: v => typeof v === 'boolean',
         choice: v => p.options.some(o => o.value === v),
       }[p.type];
-      if (!ok?.(p.default)) off('valore predefinito non valido (file e cartelle non ne hanno)');
+      if (!ok?.(p.default)) off('valore predefinito non valido (file, cartelle e segreti non ne hanno)');
     }
   }
 }
@@ -340,6 +351,21 @@ export function checkManifest(raw) {
     }
   }
   if (list(c.actions, MAX.actions).length && !permissions.includes('ui.menus')) bad('le azioni richiedono il permesso ui.menus');
+  const automationIds = new Set();
+  for (const a of list(c.automation, MAX.automation)) {
+    const wrong = msg => bad(`automazione ${String(a?.id).slice(0, 60)}: ${msg}`);
+    if (!a || typeof a !== 'object' || !KEY.test(a.id ?? '') || !a.id.startsWith(`${m.id}.`) || !EVENT_WORD.test(a.id.slice(m.id.length + 1))) wrong('id non valido (<id dell’app>.<una parola>)');
+    if (automationIds.has(a.id)) wrong('dichiarata due volte');
+    automationIds.add(a.id);
+    if (!str(a.label, 60)) wrong('etichetta mancante o troppo lunga');
+    if (a.description !== undefined && !str(a.description, 300)) wrong('descrizione non valida');
+    if (a.target !== undefined && a.target !== 'window') wrong('target può essere solo "window"');
+    if (a.entry !== undefined && (a.target === 'window' || !(a.entry === 'main' || Object.hasOwn(eps, a.entry)) || eps[a.entry]?.kind === 'service')) wrong('entry: un punto d’ingresso window o background dell’app, senza target');
+    if (a.target === undefined && a.entry === undefined) wrong('serve target "window" o entry');
+    if (a.result !== undefined && a.result !== 'file') wrong('result può essere solo "file"');
+    if (a.confirm !== undefined && a.confirm !== true) wrong('confirm può essere solo true');
+    if (a.params !== undefined) checkParams(a.params, wrong, AUTOMATION_TYPES);
+  }
   if (c.badge !== undefined && (!c.badge || !GLYPH.test(c.badge.glyph ?? '') || !str(c.badge.label, 40))) bad('badge non valido ({ glyph, label })');
 
   checkOps(m.install, permissions, 'install', files);

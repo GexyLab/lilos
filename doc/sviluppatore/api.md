@@ -22,6 +22,7 @@ Gli altri moduli (`src/`) sono il sistema: scrivania, desktop, barra.
 - [sdk/core/fs.js](#sdkcorefsjs)
 - [sdk/core/net.js](#sdkcorenetjs)
 - [sdk/core/pipes.js e sdk/core/pipeCatalog.js](#sdkcorepipesjs-e-sdkcorepipecatalogjs)
+- [sdk/core/automation.js](#sdkcoreautomationjs)
 - [sdk/core/tags.js](#sdkcoretagsjs)
 - [sdk/core/history.js](#sdkcorehistoryjs)
 - [sdk/core/fileTypes.js](#sdkcorefiletypesjs)
@@ -53,6 +54,7 @@ Gli altri moduli (`src/`) sono il sistema: scrivania, desktop, barra.
 - [notifications/](#notifications-le-notifiche-nellinterfaccia)
 - [user/ (la pagina utente)](#user-la-pagina-utente)
 - [net/ (la rete nell'interfaccia)](#net-la-rete-nellinterfaccia)
+- [automation/ (le automazioni nel sistema)](#automation-le-automazioni-nel-sistema)
 - [sdk/ui/](#sdkui)
 - [sdk/ui/controls.js](#sdkuicontrolsjs)
 - [sdk/ui/shortcutField.js](#sdkuishortcutfieldjs)
@@ -201,6 +203,9 @@ I testi che lilOS mostra senza eseguire l'app (nome, comandi, finestre) stanno *
 | `@menus.<id>.label` | `contributes.menus[].label` |
 | `@badge.label` | `contributes.badge.label` |
 | `@events.<nome>.label`, `@events.<nome>.description` | `contributes.events[].label` e `.description` |
+| `@automation.<id>.label`, `@automation.<id>.description` | `contributes.automation[].label` e `.description` |
+| `@automation.<id>.params.<param>.label`, `.description` | `label` e `description` di un parametro di un'azione |
+| `@automation.<id>.params.<param>.options.<valore>.label` | `label` di un'opzione di un parametro `choice` di un'azione |
 | `@entrypoints.<nome>.label` | `entrypoints.<nome>.label` |
 | `@entrypoints.<nome>.params.<param>.label` | `label` di un parametro |
 | `@entrypoints.<nome>.params.<param>.description` | `description` di un parametro |
@@ -801,7 +806,9 @@ Evento `change` (senza dati): è cambiato il catalogo, un'iscrizione o l'ordine.
 
 **Aperti alle app solo per guardare** (`after`; la fase `before` è dei gestori sincroni di lilOS, che possono fermarli):
 
-`file.create` `{ node }` · `file.rename` `{ node, from }` · `file.move` `{ node, from }` · `file.copy` `{ node, source }` · `file.remove` `{ node, ids }` · `trash.put` `{ ids }` · `trash.restore` `{ ids }` · `trash.purge` `{ count }` · `tags.assign` `{ node, tags }` · `window.open` / `window.close` `{ app, entry, title }` · `workspace.switch` `{ from, to }` · `settings.change` `{ key, value }`.
+`file.create` `{ node }` · `file.rename` `{ node, from }` · `file.move` `{ node, from }` · `file.copy` `{ node, source }` · `file.remove` `{ node, ids }` · `trash.put` `{ ids }` · `trash.restore` `{ ids }` · `trash.purge` `{ count, ids }` · `tags.assign` `{ node, tags }` · `window.open` / `window.close` `{ app, entry, title }` · `workspace.switch` `{ from, to }` · `settings.change` `{ key, value }` · `desk.place` `{ workspace, reason, items }`.
+
+`desk.place` dice che delle icone della scrivania hanno cambiato posto: `reason` è `'drag'` (l'utente le ha trascinate), `'arrange'` (Riordina icone) o `'place'` (le ha messe `Desktop.place`, per esempio un'automazione); `items` è `[{ node, x, y, from: { x, y } }]`, solo per i nodi del file system che si sono mossi davvero (non gli elementi fissi né le icone delle workarea); `workspace` è il workspace della scrivania. Lo manda `Desktop` con `pipes.notify`. `trash.purge` ha `ids` (gli id eliminati dal Cestino) oltre a `count`.
 
 **Protetti** (solo lilOS e le app di sistema; solo per guardare): `system.ready` `{ at }` · `session.login` `{ user, workspace }` · `session.logout` `{}` · `apps.install` `{ id, version }` · `apps.update` `{ id, version, from }` · `apps.remove` `{ id }` · `permissions.change` `{ id, granted }` · `settings.system` `{ isolated }` (solo il modo in cui girano le app) · `pipes.change` `{}`.
 
@@ -821,6 +828,128 @@ const off = pipes.subscribe('file.open', { stage: 'before', position: 'first' },
 pipes.subscribe('file.write', { stage: 'before', where: { ext: ['txt'] } },
   async ({ content }) => ({ data: { content: new Blob([(await content.text()).trim()]) } }),
   { key: 'acme:trim', name: 'Acme' });
+```
+
+---
+
+## sdk/core/automation.js
+
+Le automazioni: ciò che l'utente fa, registrato come passi che si possono rifare (app **Automata**, [D64](../interna/decisioni.md#d64-le-automazioni-operazioni-con-un-senso-dichiarate-dalle-app)). Non sono clic e tasti ma operazioni con un senso: ogni passo è un'*azione* con i suoi parametri. Per un'app vedi la ricetta [Rendere registrabile un'azione della tua app](ricette.md#rendere-registrabile-unazione-della-tua-app); la parte di sistema (registratore, esecuzione, file `.automata`) è in [automation/](#automation-le-automazioni-nel-sistema).
+
+### `automation`
+
+Istanza di una classe che estende `Emitter`. Non fa niente finché nessuno registra.
+
+**Il catalogo delle azioni**
+
+| Membro | Descrizione |
+| --- | --- |
+| `define(id, def)` | Dichiara un'azione. `id`: `<prefisso>.<parola>` (`/^[a-z0-9][a-z0-9.-]{0,63}\.[a-zA-Z][a-zA-Z0-9]{0,40}$/`, per esempio `photo.resize`); altrimenti lancia `Azione non valida`. Emette `actions`. Vedi sotto per `def`. |
+| `undefine(id)` | Toglie un'azione. |
+| `forgetApp(appId)` | Toglie tutte le azioni di quell'app (rimossa, o aggiornata e dichiarata di nuovo). |
+| `describe(id)` | Copia della definizione (senza `run`), o `null`. |
+| `actions()` | `describe` di ogni azione. |
+| `runner(id)` | La funzione `run` di un'azione di lilOS, o `null`. La usa l'esecuzione. |
+| `askable` | I tipi di parametro che si possono chiedere quando il passo gira: `text`, `number`, `boolean`, `choice`, `file`, `files`, `folder`, `secret`. |
+| `cleanValue(param, valore)` | Il valore se è adatto al tipo del parametro, altrimenti `undefined`. |
+
+`def`:
+
+| Campo | Significato |
+| --- | --- |
+| `label` | Fino a 80 caratteri. Predefinito `id`. |
+| `description?` | Fino a 300 caratteri. |
+| `app?` | L'id dell'app che ha l'azione; `null` per quelle di lilOS. |
+| `entry?` | Il punto d'ingresso dell'app che rifà l'azione. |
+| `target?` | `'window'`: la rifà una finestra dell'app (`handle`). Altrimenti `'none'`. |
+| `result?` | `'file'`: l'azione crea un file (il suo id va in `result` di `record`). |
+| `confirm?` | `true`: di serie il passo chiede conferma prima di girare. |
+| `params?` | `{ nome: parametro }`, al massimo 20. Un nome non valido (`/^[a-zA-Z][a-zA-Z0-9_]{0,30}$/`, ma non `__proto__`, `constructor`, `prototype`) o un parametro non valido si scarta senza avviso. |
+| `run?(params, ctx)` | Solo per le azioni di lilOS: rifà l'azione e restituisce l'id (o gli id) di ciò che ha fatto. |
+
+Un parametro: `{ type, label, description?, subject?, min?, max?, maxLength?, options? }`. `label` fino a 60 caratteri, `description` fino a 200. `subject: true` segna il parametro con ciò su cui lavora il passo. `min` e `max` solo per `number`, `maxLength` solo per `text`, `options` (`[{ value, label }]`, fino a 50, `value` testo o numero) per `choice`.
+
+| Tipo | Valore | Note |
+| --- | --- | --- |
+| `text` | stringa, fino a `maxLength` (4000) | |
+| `number` | numero finito | |
+| `boolean` | `true` o `false` | |
+| `choice` | uno dei `value` di `options` | |
+| `file`, `folder` | id di un nodo | |
+| `files` | lista di id (fino a 200); una stringa diventa una lista | |
+| `secret` | mai conservato | `record` lo scarta: si chiede sempre quando il passo gira |
+| `value`, `tags`, `places` | JSON qualsiasi (fino a 64 KB) | Solo per le azioni di lilOS: un manifesto non li accetta |
+
+**Registrare**
+
+| Membro | Descrizione |
+| --- | --- |
+| `recording`, `paused` | Se si registra; se è in pausa. |
+| `quietNow` | `true` mentre non si deve registrare (si rifanno passi, si annulla). |
+| `start()` | Comincia (cancella i passi di prima). Emette `change`. |
+| `pause(on = true)` | Mette in pausa o riprende (`false`). Non fa niente se non si registra. |
+| `stop()` | Finisce e restituisce i passi (senza quelli ritirati o mancati). Emette `change`. |
+| `steps()` | Copia di tutti i passi finora, anche quelli ritirati. |
+| `record(id, { params = {}, defaults = null, file = null, result = null })` | Dice che l'utente ha fatto l'azione. Restituisce il `token` del passo, o `null` se non si registra (nessuno registra, pausa, `quiet`), l'azione non è nota (c'è un avviso in console) o i passi sono già 500. |
+| `missed(app, label)` | Dice che l'utente ha fatto qualcosa che l'app non sa registrare: il registratore lo mostra barrato e non entra nell'automazione. La stessa cosa di seguito si dice una volta sola. `label` fino a 80 caratteri. |
+| `retract(tokens, reason = 'undo')` | Ritira dei passi (restano in `steps()` con `retracted`). Restituisce i token ritirati. Emette `retract`. |
+| `restore(tokens)` | Rimette i passi ritirati per `'undo'` (non quelli ritirati perché fusi). Emette `restore`. |
+| `stepsBetween(da, a)` | I token dei passi non ritirati registrati tra due istanti (`Date.now()`). Lo usa `UndoStack`. |
+| `quiet(fn)` | `Promise`: esegue `fn()` senza registrare quello che succede. Il silenzio dura fino a un attimo dopo la fine di `fn` (un timer da 0 ms), perché gli eventi di ciò che `fn` ha avviato arrivano subito dopo, nello stesso giro. |
+
+Un passo registrato:
+
+```js
+{ token, at, action, app, params, defaults?, changed, file, result }
+// token: numero progressivo · at: Date.now() · params: solo i valori validi per i tipi
+// defaults: i valori proposti (presente solo se `record` li ha ricevuti)
+// changed: i nomi dei parametri che l'utente ha cambiato
+// file: il file su cui lavora la finestra (azioni con target 'window'), o null
+// result: l'id (o la lista) di ciò che l'azione ha fatto, o null
+// ritirato: aggiunge retracted: 'undo' | 'merged'
+// mancato (missed): { token, at, action: null, app, missed: 'etichetta', params: {}, changed: [] }
+```
+
+- **Cosa è «cambiato»** (`changed`): con `defaults`, i parametri il cui valore è diverso da quello proposto (e per cui c'era un valore proposto). Senza `defaults`, tutti i parametri tranne quelli `subject` e i `secret`. Un `secret` non è mai cambiato. Automata mostra per primi i campi cambiati e li chiede per primi.
+- **Fusione.** Se `result` ha degli id e nei 5 secondi prima c'è un passo `lilos.create` o `lilos.copy` che ha fatto lo stesso nodo (il file che l'app ha appena salvato), quel passo viene ritirato (`retracted: 'merged'`): resta quello dell'app.
+- **Annulla.** Mentre si registra, `UndoStack.undo()` ritira i passi registrati nel momento della sua voce (tra l'inizio dell'azione e 250 ms dopo la sua registrazione) e fa girare l'annullamento in `quiet`; `redo()` li rimette. Vedi [history.js](#sdkcorehistoryjs).
+
+**Rifare**
+
+| Membro | Descrizione |
+| --- | --- |
+| `handle(id, fn, { window = null, file = null, app = null })` | Una finestra dice che sa fare l'azione. `fn(params, { file })` (anche asincrona) restituisce l'id (o gli id) di ciò che ha fatto, o niente. `file`: l'id del file che la finestra mostra, o una funzione che lo restituisce (cambia). `window`: quando si chiude (`destroy`), il gestore si toglie un attimo dopo. `app` predefinito: quello dell'azione, o la parte dell'id prima dell'ultimo punto. Restituisce `off()`. Emette `handlers`. |
+| `handlerFor(id, file = null)` | Con `file`, il gestore della finestra che lo mostra; senza, l'ultimo registrato; `null` se non c'è. |
+| `windowFor(app, file)` | La finestra dell'app che mostra quel file (dai gestori registrati), o `null`. |
+| `fileOfWindow(finestra)` | Il file che una finestra ha detto di mostrare, o `null`. |
+| `waitForHandler(id, file = null, timeout = 90000)` | `Promise` del gestore, appena una finestra può fare l'azione (controlla ogni 200 ms e a ogni `handlers`). Rifiuta con `L’app non ha aperto il file in tempo`. |
+
+Come si rifà un passo ([automation/ → Esecuzione](#esecuzione-runnerjs)): le azioni di lilOS con la loro `run`; le azioni con `target: 'window'` con il gestore della finestra che mostra il file del passo (se non c'è, l'app viene aperta con quel file e si aspetta il gestore); le azioni con `entry` chiamando il punto d'ingresso dell'app.
+
+**Eventi**
+
+| Evento | Dati | Quando |
+| --- | --- | --- |
+| `change` | `{ recording, paused }` | Comincia, pausa o fine della registrazione |
+| `step` | il passo | Un passo registrato (anche uno mancato) |
+| `retract` | `{ tokens, reason }` | Passi ritirati |
+| `restore` | `{ tokens }` | Passi rimessi |
+| `actions` | — | Il catalogo è cambiato |
+| `handlers` | `{ id, app }` | Una finestra può fare un'azione |
+
+```js
+import { automation } from '@lilos/sdk';
+
+automation.define('acme.resize', {
+  label: 'Resize', app: 'acme', target: 'window',
+  params: { width: { type: 'number', label: 'Width', min: 1 } },
+});
+
+// Dopo che l'utente ha ridimensionato: dire cosa ha fatto
+automation.record('acme.resize', { params: { width: 800 }, defaults: { width: 1600 }, file: imageId });
+
+// La finestra che mostra l'immagine sa rifarlo
+const off = automation.handle('acme.resize', ({ width }) => resizeTo(width), { window: win, file: () => imageId });
 ```
 
 ---
@@ -878,7 +1007,7 @@ La cronologia di un posto (la scrivania, una finestra, un pannello). Una voce de
 
 | Membro | Descrizione |
 | --- | --- |
-| `push({ label = '', undo, redo })` | Registra un'azione già fatta. `undo` e `redo` sono funzioni, anche asincrone; se manca una delle due lancia un errore. Svuota ciò che si poteva ripetere. Emette `change`. |
+| `push({ label = '', undo, redo }, since = null)` | Registra un'azione già fatta. `since`: l'istante in cui è cominciata (`Date.now()`); senza, la voce vale dal momento appena prima di `push` (50 ms) e `run` lo dà da sé. Serve alle [automazioni](#sdkcoreautomationjs): vedi sotto. `undo` e `redo` sono funzioni, anche asincrone; se manca una delle due lancia un errore. Svuota ciò che si poteva ripetere. Emette `change`. |
 | `run({ label, do, undo })` | `Promise`: esegue `do()`, poi registra la voce (`redo` è `do`) e restituisce ciò che `do()` ha restituito. Se `do()` lancia, non registra nulla. |
 | `undo()`, `redo()` | `Promise<string \| null>`: disfa / rifà l'ultima voce e restituisce la sua etichetta; `null` se non c'era nulla, se un altro passo è in corso o se la voce ha lanciato un errore. |
 | `canUndo`, `canRedo` | `true` se c'è qualcosa da fare e nessun passo è in corso. |
@@ -889,6 +1018,8 @@ La cronologia di un posto (la scrivania, una finestra, un pannello). Una voce de
 Se `undo` o `redo` lancia un errore (per esempio l'elemento non esiste più), la voce viene **tolta** dalla cronologia (non resta bloccata) ed emette `error`. Un solo passo alla volta: finché uno è in corso, `undo()` e `redo()` rispondono `null`.
 
 Eventi: `change` (dopo ogni `push`, `undo`, `redo`, `clear`) · `error` `{ entry, error }`.
+
+**Con una registrazione in corso** ([automation](#sdkcoreautomationjs)) `undo()` ritira i passi registrati mentre quella voce veniva fatta (da `since` fino a 250 ms dopo il `push`) e fa girare l'annullamento senza registrarlo; `redo()` li rimette. Senza registrazione non cambia niente.
 
 ```js
 const stack = new UndoStack();
@@ -1048,7 +1179,8 @@ Il pannello completo: minimappa, pulsanti −/+, percentuale (clic = 100%), "Mos
 | `create(type, at)` | Crea (tramite `fs`) una cartella (`'folder'`) o un file di testo (`'file'`) centrato sul punto del mondo `at`, lo seleziona e avvia la rinomina. |
 | `rename(item)` | Rinomina dentro l'etichetta, poi `fs.rename` (che rende il nome unico); per un'icona di workarea, `workareas.rename`; un elemento fisso non si rinomina (ritorna subito). Restituisce una Promise. |
 | `remove(items)` | Elimina con `confirmRemove` (nel cestino, annullabile con `history`): chiede conferma se `deleteConfirm` è attivo. Le icone di workarea passano da `workareas.confirmRemove` (chiede sempre; il contenuto resta sulla scrivania). Con file e workarea insieme un solo menu chiede per tutto. Gli elementi fissi vengono scartati: se resta solo quelli, manda una notifica («… è un elemento fisso della scrivania: non si può eliminare») e non fa altro. |
-| `arrange()` | Ordina (elementi fissi nell'ordine di `FIXED_ITEMS`, poi cartelle, file, app, poi per nome) e dispone in colonne. Con una workarea attuale, solo i suoi elementi e dentro la sua area (sotto la barra del titolo). Altrimenti gli elementi fuori da ogni workarea, nella parte visibile, saltando i posti coperti dalle aree. |
+| `arrange()` | Ordina (elementi fissi nell'ordine di `FIXED_ITEMS`, poi cartelle, file, app, poi per nome) e dispone in colonne. Con una workarea attuale, solo i suoi elementi e dentro la sua area (sotto la barra del titolo). Altrimenti gli elementi fuori da ogni workarea, nella parte visibile, saltando i posti coperti dalle aree. Manda `desk.place` con `reason: 'arrange'`. |
+| `place(lista)` | Mette delle icone dove si dice: `[{ id, x, y }]`; gli id che non sono sulla scrivania e le coordinate non numeriche si saltano. Salva, aggiorna le workarea se serve, registra un passo della cronologia («Sposta «nome»» o «Sposta N elementi») e manda `desk.place` con `reason: 'place'`. Restituisce quante ne ha messe. Lo usa l'azione `lilos.place`. |
 | `visibleItems()` | Elementi in vista: quelli non nascosti (cioè non chiusi dentro una workarea ridotta a icona). |
 | `scopeItems()` | Su cosa agiscono le richieste della scrivania: gli elementi della workarea attuale (`workareas.itemsIn`), altrimenti `visibleItems()`. Lo usano Seleziona tutto e `selectAll`. |
 | `addItem(item)` | Mette sulla scrivania un `DesktopItem` che non è un nodo del file system (le icone delle workarea): lo registra in `items`, lo lega a selezione e trascinamento e lo aggiunge al canvas. Non viene salvato nelle posizioni della scrivania. |
@@ -1598,6 +1730,7 @@ Permessi dichiarati nei manifesti ufficiali: File Manager `fs.write:~`, `fs.work
 | `fileThumbnail`, `canThumbnail` | `apps/thumbnails.js` | La miniatura di un file fatta dalla sua app (object URL o `null`) e se può averne una (vedi [Miniature dei file](#miniature-dei-file-thumbnailsjs)) |
 | `filePreview`, `previewAppFor`, `PREVIEW_ENTRY` | `apps/filePreview.js` | L'anteprima di un file fatta dall'app che lo apre, l'app che la fa e il nome del punto d'ingresso (`'filePreview'`; vedi [Anteprima dei file fatta dalle app](#anteprima-dei-file-fatta-dalle-app-filepreviewjs)) |
 | `appActionEntries` | `apps/appActions.js` | Le voci che le app installate aggiungono al menu di file e cartelle (vedi [apps/pipes.js, apps/appActions.js e apps/systemEvents.js](#appspipesjs-appsappactionsjs-e-appssystemeventsjs)) |
+| `automations` | `automation/index.js` | Le automazioni: registrazione, file `.automata`, esecuzione e elenco (vedi [automation/](#automation-le-automazioni-nel-sistema)) |
 | `appPipes` | `apps/pipes.js` | Le pipe di un'app: dal manifesto e dal codice |
 | `startup` | `apps/startup.js` | Le app che si aprono da sole (vedi [apps/startup.js](#appsstartupjs)) |
 | `updateApps`, `requestRestart`, `restartSystem`, `updates` | `apps/updates.js` | Aggiornare app senza lasciare codice vecchio, chiedere il riavvio di lilOS (vedi [apps/updates.js](#appsupdatesjs)) |
@@ -1811,7 +1944,7 @@ Validato dal kernel (`system/kernel/src/apps/manifest.js`), che scarta i campi c
 | `url` | Solo `remote`: `https://…` (o `http://localhost`). Non può avere l'origine di lilOS. |
 | `libraries?` | `[{ name, version, url, integrity: 'sha384-…', cache? }]`, fino a 30, solo `https`. Con `cache: true` il kernel la scarica una volta in `/system/commons` e la dà inline; senza, il browser la carica dall'`url` (che entra nella CSP). |
 | `permissions?` | Elenco di permessi (fino a 50), vedi sotto. |
-| `contributes?` | `window: { width, height }` (200-4000 × 150-4000); `fileTypes: [estensione]` (fino a 50); `commands: [{ id, label, keys? }]` (fino a 30, l'`id` inizia con l'id dell'app + `.`, `keys` fino a 3 e richiede `ui.shortcuts`); `widgets: [{ id, name, width, height }]` (fino a 10, richiede `desktop.widget`; **validati ma non mostrati**); `pipes`, `actions`, `menus`, `badge` (vedi sotto). |
+| `contributes?` | `window: { width, height }` (200-4000 × 150-4000); `fileTypes: [estensione]` (fino a 50); `commands: [{ id, label, keys? }]` (fino a 30, l'`id` inizia con l'id dell'app + `.`, `keys` fino a 3 e richiede `ui.shortcuts`); `widgets: [{ id, name, width, height }]` (fino a 10, richiede `desktop.widget`; **validati ma non mostrati**); `pipes`, `events`, `actions`, `menus`, `badge`, `automation` (vedi sotto). |
 | `install?`, `update?`, `uninstall?` | Operazioni, vedi sotto. `update`: `[{ from: '<1.2.0', ops: [...] }]` (`from`: `<x.y.z`, `<=x.y.z` o `x.y.z`). |
 | `lilos?` | Le versioni di lilOS con cui l'app funziona: un limite (`'>=1.8.0'`) o due separati da uno spazio (`'>=1.8.0 <2.0.0'`); operatori `>=`, `>`, `<=`, `<`, `=` (senza operatore vale `=`), versione `x.y.z`. Il kernel non installa né aggiorna l'app su una versione di lilOS fuori intervallo (`conflict`), e non aggiorna lilOS a una versione che lascerebbe fuori un'app installata. Senza il campo conta solo `sdk`. |
 | `restartOnUpdate?` | `true` o un intervallo come `update.from` (`'<2.0.0'`, `'<=1.2.0'`, `'1.2.0'`): aggiornando a questa versione lilOS propone di riavviarsi. Con un intervallo vale solo se si arriva da una versione che lo soddisfa. Conta solo se la pagina ha già eseguito il codice vecchio dell'app. Altro: manifesto non valido. Da usare solo quando il ricaricamento a caldo non basta (stato condiviso nella pagina, moduli tenuti da altri): vedi [apps/updates.js](#appsupdatesjs). |
@@ -1826,6 +1959,16 @@ Validato dal kernel (`system/kernel/src/apps/manifest.js`), che scarta i campi c
 **`contributes.menus`** (fino a 10): sottomenu che raccolgono le azioni dell'app. `[{ id, label, glyph? }]`: `id` inizia con l'id dell'app e un punto, uno per menu; `label` fino a 60 caratteri; `glyph` un simbolo (quello dell'app se manca). Un sottomenu compare solo se almeno una delle sue azioni vale per gli elementi scelti. Un lilOS precedente ignora `menu` e mostra le azioni una per una, ma rifiuta un manifesto con `when.notExt`. Esempio (l'app Zip): `"menus": [{ "id": "zip.compress", "label": "Compress", "glyph": "archive" }]` con le azioni `zip.zip` (`on: 'item'`, `when: { notExt: ['zip'] }`) e `zip.unzip` (`on: 'file'`, `when: { ext: ['zip'] }`), entrambe con `menu: 'zip.compress'`.
 
 **`contributes.badge`**: `{ glyph, label }` (`label` fino a 40 caratteri), il segno che lilOS mette sull'icona dei nodi su cui l'app ha dati (`node.apps[id]`).
+
+**`contributes.automation`** (solo `local`; fino a 30): le azioni dell'app che l'utente può registrare e rifare con Automata ([automation](#sdkcoreautomationjs)). Non serve un permesso. `[{ id, label, target?, entry?, result?, confirm?, description?, params? }]`:
+
+- `id`: `<id app>.<una parola>` (`photo.resize`); `label` fino a 60 caratteri; `description` fino a 300.
+- Come si rifà: **`target: 'window'`** (solo questo valore; la rifà una finestra dell'app con `automation.handle`, quindi solo un'app di sistema, che usa l'SDK) oppure **`entry`** (`'main'` o un punto d'ingresso `window` o `background` dell'app, mai un `service`), chiamato con `{ automation: { action, params }, files }`. Ci vuole l'uno o l'altro, non tutti e due.
+- `result: 'file'`: l'azione crea un file. `confirm: true`: di serie il passo chiede conferma.
+- `params`: come i parametri dei punti d'ingresso (fino a 10; vedi [Parametri dei punti d'ingresso](#parametri-dei-punti-dingresso)), ma con in più i tipi `files` e `secret` (mai salvato: si chiede ogni volta; non ha valore predefinito) e il campo `subject: true`, che segna ciò su cui lavora il passo. Un parametro `file`, `files` o `folder` riceve l'id di un nodo.
+- Traduzioni: `@automation.<id>.label`, `.description`, `@automation.<id>.params.<param>.label`, `.description` e `.options.<valore>.label`.
+
+Per registrare e rifare vedi la ricetta [Rendere registrabile un'azione della tua app](ricette.md#rendere-registrabile-unazione-della-tua-app).
 
 Un manifesto non può superare 256 KB.
 
@@ -1926,6 +2069,8 @@ Con `sdk` `"1"` il modulo è l'app: gira per intero all'avvio con `window.lilos`
 | `lilos.pipes.subscribe(evento, { stage = 'after', position = 'middle', where }, fn)` → `Promise<off>` | Iscrive la parte dell'app (finestra o background) a un evento ([pipes](#sdkcorepipesjs-e-sdkcorepipecatalogjs)). `fn(data, ctx)` (anche asincrona) restituisce niente, `{ data }` o `{ stop: { error, silent } }`. Serve `pipe:<evento>` o `pipe.own:<evento>` con `where: { meta: 'own' }`. Dura finché la parte gira. Un file segnato dall'app che arriva nei dati si può leggere e scrivere. |
 | `lilos.pipes.define(nome, { label, description, edit, stop })` | Dichiara un evento dell'app, `<id app>.<una parola>` (al massimo 20 per app, contando quelli di `contributes.events`). `edit` `{ before: [campo], after: [campo] }`: i nomi `__proto__`, `constructor` e `prototype` si scartano. Esiste solo da quando l'app lo chiama: per un evento a cui altre app si iscrivono dal manifesto, meglio `contributes.events`. |
 | `lilos.pipes.run(nome, dati)` → dati | Fa passare un evento dell'app dalle pipe e restituisce i dati dopo i gestori. Solo i propri eventi; un valore che non è un oggetto diventa `{ value }`. |
+| `lilos.automation.record(id, { params, defaults?, file?, result? })` → `Promise<boolean>` | Dice che l'utente ha fatto un'azione di `contributes.automation`, perché Automata la registri (`true` se è stata registrata; non succede niente se nessuno registra). Non serve un permesso. `id` deve essere un'azione dell'app (`<id app>.…`), altrimenti errore. `params` ha i valori scelti (quelli non validi per il tipo si scartano; un `secret` non si tiene mai); `defaults` i valori che la finestra proponeva (quelli diversi sono i «cambiati»); `file` il file su cui ha lavorato; `result` l'id (o gli id) di ciò che ha fatto. **I file nominati** (`file` e i parametri `file`, `files`, `folder`) devono essere file che l'app ha ricevuto: altrimenti errore `Si possono nominare solo file aperti con l’app`. Di `result` si tengono solo gli id ricevuti o dentro un percorso che l'app può scrivere. |
+| `lilos.automation.recording()` → `Promise<boolean>` | `true` mentre l'utente registra (e non è in pausa). Per evitare lavoro inutile. |
 | `lilos.storage.get(chiave)` → valore o `null` | Dati propri dell'app per l'utente. Chiavi `[\w.-]{1,64}`; salvati come `app:<id>:<chiave>`. |
 | `lilos.storage.set(chiave, valore)` | Fino a 256 KB di JSON per valore. |
 | `lilos.clipboard.write(testo)` | Copia negli appunti. |
@@ -2455,6 +2600,174 @@ Il pulsante dei trasferimenti nell'area di notifica della barra delle applicazio
 - `apps/services.js`: `onKernelEvent(evento, fn)` ascolta un evento del flusso `/api/services-events` (`fn(dati)`); con l'evento `''` la funzione riceve la riapertura del flusso. Da chiamare prima di `connectServices()`.
 
 ---
+## automation/ (le automazioni nel sistema)
+
+Quello che serve al sistema per le automazioni ([D64](../interna/decisioni.md#d64-le-automazioni-operazioni-con-un-senso-dichiarate-dalle-app)): le azioni di lilOS, il registratore dei suoi eventi, i file `.automata`, l'esecuzione e l'elenco delle automazioni dell'utente. Il catalogo e i passi stanno nell'SDK ([automation](#sdkcoreautomationjs)); l'interfaccia è dell'app Automata, che usa `automations` di `@lilos/system`.
+
+### `index.js`
+
+`connectAutomation({ wm, desktop, workspaces, taskbar })`: chiamata da `system.js` dopo `connectSystemEvents`. Definisce le azioni di lilOS, collega quelle delle app, il registratore e l'elenco, mette il pulsante **REC** nell'area di notifica della barra (`.tb-notify-area`; nascosto se nessuno registra, grigio in pausa, mostra i passi; un clic apre la finestra `recorder` di Automata) e, con passi registrati, chiede conferma se la pagina si ricarica (`beforeunload`).
+
+**`automations`** (`@lilos/system`, oggetto congelato):
+
+| Membro | Descrizione |
+| --- | --- |
+| `FORMAT`, `INPUTS`, `ON_ERROR`, `MODES`, `EXT`, `FOLDER` | `'lilos.automation'`; `['none', 'files', 'folder']`; `['stop', 'skip', 'ask']`; `['use', 'ask', 'template']`; `'automata'` (estensione dei file); `'~/Automazioni'` |
+| `startRecording({ items = [] })` | Comincia a registrare. `items`: i nodi da cui parte la registrazione (diventano ciò su cui lavora l'automazione); quelli che non esistono si scartano. |
+| `pauseRecording(on = true)` | Pausa o ripresa. |
+| `stopRecording()` | Finisce: `{ steps, inputs }` (i passi senza quelli ritirati, e gli `items` dati all'inizio). |
+| `discardRecording()` | Finisce e dimentica. |
+| `recordingInputs()` | Gli `items` della registrazione in corso. |
+| `fromRecording(steps, { name, inputs })` | Un'automazione (documento) dai passi registrati. |
+| `check(testo \| oggetto)` | Controlla un'automazione letta da un file e la restituisce pulita; lancia se non lo è. |
+| `nodesOf(passo)` | Gli id dei nodi che un passo registrato nomina. |
+| `fillTemplate(modello, { node, n, now })` | Riempie un modello (`{nome}`…). |
+| `run(documento, opzioni)` | Esegue (vedi sotto). |
+| `RunStopped` | L'errore con cui un'esecuzione si ferma per volere dell'utente (`control.stopped`). |
+| `folder()` | La cartella `~/Automazioni` come nodo; la crea se manca. |
+| `library` | L'elenco delle automazioni dell'utente (vedi sotto). |
+
+### Le azioni di lilOS (`actions.js`)
+
+Id `lilos.<parola>`, definite da `defineSystemActions({ wm, desktop, workspaces })`. `item` e `items` sono `subject`.
+
+| Azione | Parametri | Note |
+| --- | --- | --- |
+| `lilos.create` | `folder`, `name`, `kind` (`file` o `folder`) | `result: 'file'`. Il nome è reso unico. |
+| `lilos.rename` | `item`, `name` | |
+| `lilos.move` | `items`, `to` | |
+| `lilos.copy` | `items`, `to` | `result: 'file'`. Le cartelle si copiano con tutto il contenuto (le app dentro no). |
+| `lilos.trash` | `items` | Quelli che non esistono più si saltano. |
+| `lilos.restore` | `items` | |
+| `lilos.delete` | `items` | `confirm`. Dal Cestino svuota quegli elementi, altrimenti li elimina per sempre. |
+| `lilos.emptyTrash` | — | `confirm`. |
+| `lilos.tags` | `item`, `tags` | |
+| `lilos.open` | `item`, `app` | Una cartella si apre nel File Manager; un file con `app` se è installata e apre quel tipo, altrimenti con l'app solita. |
+| `lilos.launch` | `app`, `entry` | |
+| `lilos.close` | `app`, `file` | Chiude la finestra dell'app che mostra `file` (altrimenti l'ultima dell'app). |
+| `lilos.workspace` | `to` | Lancia se il workspace non c'è più. |
+| `lilos.setting` | `key`, `value` | `settings.set`. |
+| `lilos.place` | `places`: `[{ id, x, y }]` | `Desktop.place`. |
+| `lilos.arrange` | — | `Desktop.arrange`. |
+
+Le azioni che nominano un nodo che non esiste più lanciano `L’elemento non esiste più` (tranne `lilos.trash` e `lilos.restore`, che lo saltano).
+
+### Il registratore (`recorder.js`)
+
+Mentre si registra, `connectRecorder({ wm })` si iscrive (fase `after`, a fine catena, con il proprietario `Automata`) agli eventi delle pipe e trasforma ciascuno in un passo; quando la registrazione finisce si disiscrive. Non guarda niente se nessuno registra, e niente in pausa o mentre l'esecuzione è in `quiet`.
+
+| Evento | Passo |
+| --- | --- |
+| `file.create` | `lilos.create` (con `result`) |
+| `file.rename` | `lilos.rename`, con `defaults.name` il nome di prima |
+| `file.move` | `lilos.move`, un passo solo per le cose spostate insieme nella stessa cartella |
+| `file.copy` | `lilos.copy`, raggruppato per cartella di destinazione, con `result` le copie |
+| `trash.put`, `trash.restore` | `lilos.trash`, `lilos.restore` |
+| `file.remove` | `lilos.delete` |
+| `trash.purge` | `lilos.emptyTrash` se dopo non resta niente nel Cestino, altrimenti `lilos.delete` con gli `ids` |
+| `tags.assign` | `lilos.tags` |
+| `file.open` | `lilos.open` |
+| `app.launch` | `lilos.launch` (non se ha `args.file` o `args.files`: ci pensa `file.open`); `lilos.open` della cartella per il File Manager aperto su una cartella |
+| `workspace.switch` | `lilos.workspace`, con `defaults.to` il workspace di prima |
+| `settings.change` | `lilos.setting`, un passo solo per le modifiche della stessa chiave entro 500 ms |
+| `desk.place` | `reason: 'drag'`: `lilos.place`; `'arrange'`: `lilos.arrange`; `'place'`: niente (lo fa l'esecuzione) |
+| chiusura di una finestra (`wm`, `close`) | `lilos.close` con il file che la finestra aveva detto di mostrare (`fileOfWindow`) |
+
+Cose che lascia fuori: tutto ciò che sta nella cartella `~/Automazioni` e le finestre e gli avvii di Automata. Le cose dello stesso istante (40 ms) con la stessa chiave sono un passo solo. Registra anche, per ogni passo, dove stavano i nodi (`recordedPath(id)`), da usare come riferimento di riserva. `nodesOf(passo)` e `flushRecorder()` (finisce di raccogliere quello che aspetta) sono usati da `index.js`.
+
+### Le azioni delle app (`apps.js`)
+
+`connectAppActions()`: per ogni app installata con `contributes.automation` mette le azioni nel catalogo (`automation.define`, con `app` e le etichette già tradotte da `localizeManifest`), le toglie e le rimette quando l'app cambia o viene tolta (`registry` `change`) e quando cambia la lingua (`locale` `change`). Scarta le azioni il cui id non inizia con `<id app>.` e non considera più di 30 azioni per app. Solo per i pacchetti installati (`app.package`).
+
+### Il documento (`document.js`)
+
+Il file `.automata` è JSON:
+
+```json
+{
+  "format": "lilos.automation", "version": 1,
+  "name": "Prepara foto per il web", "description": "",
+  "input": "files",
+  "launch": { "menu": true, "ext": ["jpg", "png"], "shortcut": "Ctrl+Alt+W", "command": "web" },
+  "steps": [
+    { "action": "photo.resize", "enabled": true, "confirm": false, "onError": "stop",
+      "params": { "width": 1600, "unit": "pixels", "keepRatio": true },
+      "file": { "input": true },
+      "defaults": { "width": 4000 }, "changed": ["width"],
+      "fields": { "width": { "mode": "ask", "question": "Larghezza?" } } },
+    { "action": "photo.saveAs", "enabled": true, "confirm": false, "onError": "stop",
+      "params": { "format": "jpeg", "name": "x", "folder": { "path": "~/Immagini/web" } },
+      "file": { "input": true }, "changed": ["format"],
+      "fields": { "name": { "mode": "template", "template": "{nome}-web.{est}" } } }
+  ]
+}
+```
+
+| Campo | Significato |
+| --- | --- |
+| `input` | `none` (niente), `files` (i passi girano una volta per ogni file scelto all'avvio), `folder` (una cartella). |
+| `launch` | `menu` (voce nel menu «Automazioni» di file e cartelle), `ext` (estensioni, minuscole, al massimo 30; vuoto: ogni file), `shortcut` (combinazione, per esempio `Ctrl+Alt+W`), `command` (nome per il Terminale, `/^[a-z][\w.-]{0,39}$/`). |
+| `steps[].action` | L'id dell'azione. |
+| `steps[].enabled` | `false`: l'esecuzione lo salta. |
+| `steps[].confirm` | Chiede conferma prima. |
+| `steps[].onError` | `stop` (predefinito), `skip` o `ask`. |
+| `steps[].params` | I valori; i parametri di tipo `file`, `files`, `folder` e `places` contengono riferimenti. |
+| `steps[].file` | Il file su cui lavora la finestra (azioni con `target: 'window'`): un riferimento. |
+| `steps[].defaults`, `changed` | Cosa proponeva la finestra e i parametri cambiati (i `defaults` dei tipi di nodo si scartano). |
+| `steps[].fields` | Per ogni parametro: `mode` (`use`, `ask`, `template`; `template` solo per i `text`, `ask` solo per i tipi che si possono chiedere, un `secret` è sempre `ask`), `question?`, `template?`. |
+| `steps[].note` | Una nota, fino a 500 caratteri. |
+
+**Riferimenti** a un nodo: `{ input: true }` (l'elemento su cui lavora l'automazione adesso; con `parent: true`, la sua cartella), `{ step: n, index? }` (ciò che ha fatto il passo `n`, contando da 0; `index` sceglie fra più elementi), `{ path: '~/Documenti/a.txt', id? }` (un nodo fisso: per `id`, altrimenti per percorso). I posti sulla scrivania sono `[{ ref, x, y }]`.
+
+| Export | Descrizione |
+| --- | --- |
+| `checkDocument(testo \| oggetto)` | Controlla (il file può venire da chiunque) e restituisce un documento pulito: nome fino a 80 caratteri («Automazione» se manca), descrizione fino a 500, fino a 500 passi. Lancia `Non è un’automazione di lilOS` se non lo è. Un passo di un'azione sconosciuta (app non installata) resta com'è, con `missing: true`, e non si può eseguire. |
+| `fromRecording(passi, { name = '', inputs = [] })` | Un documento dai passi registrati: i nodi che erano `inputs` (o, se mancano, i primi su cui lavora un passo) diventano `{ input: true }`, quelli fatti da un passo precedente `{ step }`, gli altri `{ path, id }`. `input` è `folder` con una sola cartella, `files` con altro, `none` senza. |
+
+### Esecuzione (`runner.js`)
+
+`runAutomation(documento, { items = [], values = {}, ui = {}, control = { stopped: false, paused: null }, from = 0, only = false })` → `Promise<{ items, done, skipped, failed, stopped }>`.
+
+- **Una passata per elemento.** Con `input: 'files'` i passi girano una volta per ogni id di `items`; con `folder`, una volta sul primo; con `none`, una volta. Con `input` diverso da `none` e senza `items` lancia `Scegli su cosa lavorare`.
+- **`from` e `only`** partono dal passo `from` (quelli prima non girano: quello che avrebbero fatto manca) o eseguono solo quello.
+- **Tutto in `automation.quiet`**: durante l'esecuzione niente viene registrato.
+- **Per ogni passo**, nell'ordine: i riferimenti diventano id; i campi `template` si riempiono; i `values` dati per nome (`{ width: 1200 }`, anche come testo: `'1200'`) prendono il posto del valore registrato e non vengono chiesti (il nome vale per ogni passo che ha un parametro con quel nome); i campi `ask` si chiedono con `ui.ask`; se `confirm`, `ui.confirm`; poi l'azione.
+- **Fare l'azione** (`perform`): la `run` di lilOS; per `target: 'window'`, il gestore della finestra che mostra il file del passo (se non c'è, `launch(app, { file })` e `waitForHandler`); per `entry`, il punto d'ingresso con `{ automation: { action, params }, files }`, dove `files` sono i file che il passo nomina (se l'entry è una finestra, `launch(app, dati, entry, { files })`, senza risultato). Un'app non installata: `L’app di questo passo non è installata`.
+- **Il risultato** del passo (`id` o lista) serve ai passi seguenti (`{ step }`); se l'azione non lo dà vale il suo parametro `subject`.
+- **Errori**: con `onError: 'skip'` il passo si conta fra i `failed` e si va avanti; con `'ask'` e `ui.failed` si chiede (`retry`, `skip`, `stop`); altrimenti l'errore, `Passo n (etichetta): messaggio`, ferma l'esecuzione e la `Promise` rifiuta.
+- **`control`**: `stopped: true` ferma al prossimo punto di controllo (prima di ogni passo e dopo le domande); `paused` è una `Promise` che si attende lì.
+
+`ui` (tutte le funzioni sono facoltative):
+
+| Funzione | Quando | Risposta |
+| --- | --- | --- |
+| `ask({ step, index, item, label, fields: [{ name, param, value, question }] })` | Passo con campi `ask` | `{ values, remember? }`, `'skip'` o `'stop'`. `remember`: la stessa risposta per i prossimi elementi. Senza `ask` valgono i valori registrati (un `secret` senza valore fa fallire il passo con `Questo passo chiede una password`). |
+| `confirm({ step, index, item, label, params, file })` | Passo con `confirm` | `'run'`, `'skip'` o `'stop'`. Senza `confirm` il passo si fa. |
+| `failed({ step, index, item, error })` | Passo con `onError: 'ask'` che non riesce | `'retry'`, `'skip'` o `'stop'` |
+| `progress(evento)` | Sempre | Vedi sotto |
+
+Eventi di `progress`: `{ type: 'item', item, index, total }` (comincia un elemento), `'step'` (`index`, `item`, `label`), `'done'` (`index`, `item`), `'skipped'` (`index`, `item`, `reason`: `'off'` o `'user'`), `'failed'` (`index`, `item`, `error`) e `'end'` (i conteggi, come il valore restituito).
+
+`fillTemplate(modello, { node = null, n = 1, now = new Date() })`: sostituisce `{nome}` (`{name}`), `{est}` (`{ext}`), `{data}` (`{date}`, `2026-11-02`), `{ora}` (`{time}`, `15.30`), `{n}`, `{cartella}` (`{folder}`, il nome della cartella del nodo). Quello che non conosce lo lascia com'è; un punto finale si toglie.
+
+### L'elenco (`library.js`)
+
+`library` tiene l'indice dei file `.automata` della home (tutta la home, tranne le cartelle di rete; al massimo 500). Lo rilegge un attimo (300 ms) dopo ogni cambiamento di file o del Cestino.
+
+| Membro | Descrizione |
+| --- | --- |
+| `list()` | `[{ id, path, name, description, input, launch, steps }]` per nome. `id` è l'id del file; `steps` è il numero dei passi. |
+| `get(chiave)` | Per id del file, poi per `launch.command`, poi per nome (senza distinguere maiuscole); `null` se non c'è. |
+| `refresh()`, `ready()` | Rilegge tutto; `Promise` della lettura in corso. |
+| `start(id, items = [])` | Apre la finestra `run` di Automata con `{ automation: id, items }`. Senza Automata: una notifica di avviso. |
+| `record(items = [])` | Apre la finestra `recorder` di Automata. Senza Automata: una notifica di avviso. |
+| `menuEntries(ids)` | La voce **Automazioni** per i menu di file e cartelle (la aggiunge `appActionEntries`): le automazioni con `launch.menu` che stanno bene a quei nodi (`input: 'files'`: tutti file, con le estensioni di `launch.ext` se ce ne sono; `input: 'folder'`: una sola cartella; `input: 'none'` mai), poi **Registra partendo da qui**. `[]` senza Automata o se un nodo è nel Cestino. |
+| evento `change` | L'elenco è cambiato |
+
+Le scorciatoie (`launch.shortcut`) si registrano con `shortcuts.register` (id `automation.<id del file>`, gruppo `Automazioni`). Un file può venire da chiunque: si accettano solo combinazioni che iniziano con Ctrl o Alt, valide e libere (`shortcuts.validate`, `shortcuts.owner`). Premuta, parte con la selezione della scrivania (nessuna se c'è una finestra attiva); per `input: 'none'` parte subito.
+
+---
+
 ## sdk/ui/
 
 ### `icons.js`

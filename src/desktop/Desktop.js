@@ -1,4 +1,4 @@
-import { bus, fs, storage, settings, openMenu, shortcuts, selectionGesture, menus, UndoStack, tags } from '@lilos/sdk';
+import { bus, fs, storage, settings, openMenu, shortcuts, selectionGesture, menus, UndoStack, tags, pipes } from '@lilos/sdk';
 import { launch, registry } from '../apps/registry.js';
 import { appActionEntries } from '../apps/appActions.js';
 import { openFile } from '../apps/open.js';
@@ -44,6 +44,11 @@ const snap = v => Math.round(v / SNAP) * SNAP;
  *
  * `history` is the desk's undo history (Ctrl Z while no window is active): creating, renaming,
  * deleting, moving and arranging items, and what is done to workareas.
+ *
+ * Items moved by the user, or arranged, go through the desk.place event (after: to look at it):
+ *   { workspace, reason: 'drag' | 'arrange' | 'place', items: [{ node, x, y, from: { x, y } }] }
+ * only the items of the file system (not fixed items or workarea icons). place() puts items
+ * where they are told (an automation doing it again).
  */
 export class Desktop {
   /** False while something else (a window) has the keyboard. */
@@ -268,7 +273,23 @@ export class Desktop {
     });
     this.canvas.changed();
     this.save();
-    this.#recordMoves('Riordina icone', before);
+    this.#recordMoves('Riordina icone', before, 'arrange');
+  }
+
+  /** Puts items of the desk where they are told: [{ id, x, y }] (the ones not on it are skipped). Returns how many. */
+  place(list) {
+    const present = (Array.isArray(list) ? list : []).filter(p => this.items.has(p?.id) && Number.isFinite(p.x) && Number.isFinite(p.y));
+    if (!present.length) return 0;
+    const before = this.#positions(present.map(p => this.items.get(p.id)));
+    for (const { id, x, y } of present) {
+      const item = this.items.get(id);
+      item.moveTo(x, y);
+      if (item.workarea) this.workareas?.iconMoved(item);
+    }
+    this.canvas.changed();
+    this.save();
+    this.#recordMoves(present.length === 1 ? `Sposta «${this.items.get(present[0].id).data.name}»` : `Sposta ${present.length} elementi`, before, 'place');
+    return present.length;
   }
 
   /** { id: [x, y] } of some items. */
@@ -277,9 +298,12 @@ export class Desktop {
   }
 
   /** Records that items moved from `before` to where they are now (undo puts them back). */
-  #recordMoves(label, before) {
+  #recordMoves(label, before, reason = 'drag') {
     const after = this.#positions([...before.keys()].map(id => this.items.get(id)).filter(Boolean));
     if ([...after].every(([id, [x, y]]) => before.get(id)[0] === x && before.get(id)[1] === y)) return;
+    const moved = [...after].filter(([id, [x, y]]) => !(before.get(id)[0] === x && before.get(id)[1] === y) && fs.exists(id))
+      .map(([id, [x, y]]) => ({ node: fs.get(id), x, y, from: { x: before.get(id)[0], y: before.get(id)[1] } }));
+    if (moved.length) pipes.notify('desk.place', { workspace: fs.workspace ?? null, reason, items: moved }, { caller: { system: true } });
     const apply = positions => {
       const present = [...positions].filter(([id]) => this.items.has(id));
       if (!present.length) throw new Error('Gli elementi non ci sono più');

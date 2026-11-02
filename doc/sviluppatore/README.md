@@ -96,6 +96,7 @@ sdk/                    @lilos/sdk (vedi sdk/README.md)
     pipeCatalog.js      gli eventi del sistema (file.open, file.read, file.write, app.launch…); da qui l'SDK esporta pipes e PipeStopped
     tags.js             tag colorati da mettere su file e cartelle; i tag invisibili nascondono i loro elementi
     history.js          UndoStack e history: annulla e ripeti, per chi ha il focus
+    automation.js       automazioni: catalogo delle azioni, registrazione dei passi e gestori per rifarli
     db.js               contenuto dei file: dal kernel, con una copia in IndexedDB (interno)
     fileTypes.js        nome ed estensione; tipo, colore ed etichetta dall'estensione
   ui/                   componenti riutilizzabili
@@ -233,6 +234,14 @@ src/
     NotificationsWindow.js finestra Notifiche: elenco per giorno, segna lette, cancella
     card.js             una notifica (mittente, ora, livello, testo) e il clic che apre l'app
     notify.js           notify(): una notifica da lilOS stesso
+  automation/           le automazioni nel sistema
+    index.js            connectAutomation(): collega azioni, registratore ed elenco; pulsante REC; `automations` (@lilos/system)
+    actions.js          le azioni di lilOS (lilos.create, lilos.move, lilos.setting…) e come si rifanno
+    recorder.js         dagli eventi delle pipe e dalle finestre che si chiudono ai passi registrati
+    document.js         il file .automata: controllo, riferimenti ai nodi, automazione da una registrazione
+    runner.js           esecuzione: una passata per elemento, modelli, domande, conferme, errori
+    library.js          l'elenco dei file .automata: voce Automazioni nel menu dei file, scorciatoie, avvio
+    apps.js             le azioni dichiarate dalle app (contributes.automation) nel catalogo
   taskbar/
     Taskbar.js          barra delle applicazioni: pulsante logo, area finestre, area di notifica, utente (pulsante) e orologio (il pulsante workspace lo aggiunge Workspaces)
     StartMenu.js        menu di avvio a pagina intera: ricerca, preferite, schede (recenti, workarea, categorie), file recenti, pulsanti dei workspace
@@ -369,6 +378,10 @@ Ogni operazione che le app possono guardare o cambiare (aprire, leggere e salvar
 I nodi del file system possono portare `apps`: un piccolo oggetto per app (1 KB, al massimo 8 app e 2 KB in tutto) che solo quell'app scrive (`fs.setAppMeta`, `lilos.files.setMeta`, `fs.write(…, { mark })`). Con `content: true` il contenuto è dell'app: senza di lei lilOS non lo apre. Il campo viaggia verso il kernel con il nodo (`/api/fs/sync`).
 
 Con `ui.menus` un'app aggiunge voci al menu di file e cartelle (`contributes.actions`, `src/apps/appActions.js`) e un segno sull'icona di ciò su cui ha dati (`contributes.badge`, `itemBadges` in `src/desktop/itemIcons.js`). FileCrypt, nel repository ufficiale, è la prima app che usa tutto questo.
+
+### Automazioni
+
+Con l'app Automata ([D64](../interna/decisioni.md#d64-le-automazioni-operazioni-con-un-senso-dichiarate-dalle-app)) l'utente registra quello che fa e lo rifà. Un passo è un'*azione* con parametri, non un clic. Il catalogo e la registrazione stanno nell'SDK (`sdk/core/automation.js`); le azioni di lilOS sono in `src/automation/actions.js` e il registratore le ricava dagli eventi delle pipe e dalle finestre che si chiudono; le azioni di un'app le dichiara il manifesto (`contributes.automation`) e l'app dice cosa ha fatto l'utente con `automation.record` (app di sistema) o `lilos.automation.record` (app installate). Rifare un passo vuol dire chiamare una finestra dell'app che mostra il file (`automation.handle`, app di sistema) o un suo punto d'ingresso (`entry`). Mentre lilOS rifà un passo non registra (`automation.quiet`). L'automazione è un file `.automata` (`src/automation/document.js`), di serie in `~/Automazioni`; `src/automation/library.js` li elenca e dà la voce «Automazioni» al menu di file e cartelle. Ricetta: [Rendere registrabile un'azione della tua app](ricette.md#rendere-registrabile-unazione-della-tua-app).
 
 ### Le app di sistema e il repository ufficiale
 

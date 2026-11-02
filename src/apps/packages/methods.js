@@ -1,4 +1,4 @@
-import { fs, storage, pipes, bus, notifications, net, term } from '@lilos/sdk';
+import { fs, storage, pipes, bus, notifications, net, term, automation } from '@lilos/sdk';
 import { coversPath } from './permissions.js';
 import { callEntrypoint, connectEntrypoint } from '../entrypoints.js';
 import { openFile } from '../open.js';
@@ -150,6 +150,22 @@ export function hostMethods({ pkg, win = null, handles, readOnly = new Set(), in
       });
     },
     'pipes.run': (name, data) => pipes.run(ownEvent(name), data && typeof data === 'object' ? data : { value: data ?? null }, { caller: { app: pkg.id } }),
+    // What the user did, for an automation being recorded (an action of its manifest); the files it
+    // names must be ones it was given, and what it made one it may write
+    'automation.recording': () => automation.recording && !automation.paused,
+    'automation.record': (id, data) => {
+      const def = typeof id === 'string' && id.startsWith(`${pkg.id}.`) ? automation.describe(id) : null;
+      if (!def || def.app !== pkg.id) fail(`L’azione ${String(id).slice(0, 60)} non è di ${pkg.manifest.name}`);
+      const d = plainObject(data);
+      const params = plainObject(d.params);
+      for (const [name, p] of Object.entries(def.params)) {
+        if (!['file', 'files', 'folder'].includes(p.type) || !(name in params)) continue;
+        if ([params[name]].flat().some(ref => typeof ref !== 'string' || !handles.has(ref))) fail('Si possono nominare solo file aperti con l’app');
+      }
+      if (d.file != null && !handles.has(d.file)) fail('Si possono nominare solo file aperti con l’app');
+      const made = [d.result ?? []].flat().filter(ref => typeof ref === 'string' && (handles.has(ref) || coversPath(perms, homeRef(ref), { write: true })));
+      return automation.record(id, { params, defaults: d.defaults ?? null, file: d.file ?? null, result: made.length ? made : null }) !== null;
+    },
     // The preview of a file it may read, made by the app that opens it (see filePreview.js)
     'files.preview': (ref, options) => {
       if (!perms.includes('fs.preview')) fail('Permesso negato: fs.preview');
@@ -214,6 +230,14 @@ export function hostMethods({ pkg, win = null, handles, readOnly = new Set(), in
 }
 
 const plainObject = v => (v && typeof v === 'object' && !Array.isArray(v) ? v : {});
+
+/** '~/Documenti/a.zip' for a node of the user's home ('' if it is not there). */
+function homeRef(id) {
+  if (!fs.exists(id)) return '';
+  const path = fs.path(id);
+  const home = fs.path(fs.root);
+  return path === home ? '~' : path.startsWith(`${home}/`) ? `~${path.slice(home.length)}` : '';
+}
 
 /** Runs one request of the app. */
 export function invoke(methods, method, params) {

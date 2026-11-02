@@ -1,5 +1,6 @@
 import { Emitter } from './events.js';
 import { isEditing } from './dom.js';
+import { automation } from './automation.js';
 
 const LIMIT = 100;
 
@@ -16,6 +17,9 @@ const LIMIT = 100;
  *
  * If an undo or a redo throws (what it acted on is gone), the entry is dropped and 'error' is
  * emitted: the history never gets stuck. A new push clears what could be redone.
+ *
+ * While the user records an automation (automation.js), undoing an entry takes back the steps
+ * recorded while it was done, and redoing it brings them back: what is recorded is the result.
  *
  * Events: 'change' (after every push, undo, redo, clear) · 'error' { entry, error }
  */
@@ -36,9 +40,13 @@ export class UndoStack extends Emitter {
   get redoLabel() { return this.#undone.at(-1)?.label ?? ''; }
 
   /** Records an action already done: { label, undo(), redo() }. */
-  push({ label = '', undo, redo }) {
+  push({ label = '', undo, redo }, since = null) {
     if (typeof undo !== 'function' || typeof redo !== 'function') throw new Error('Una voce della cronologia vuole undo e redo');
-    this.#done.push({ label: String(label), undo, redo });
+    // When the action was done (just before it is pushed): the steps of a recording it made
+    // arrive in that moment (an app tells it right before or after pushing; lilOS right after)
+    const at = Date.now();
+    const last = this.#done.at(-1)?.at ?? 0;
+    this.#done.push({ label: String(label), undo, redo, from: since ?? Math.max(last + 1, at - 50), at });
     if (this.#done.length > this.limit) this.#done.shift();
     this.#undone = [];
     this.emit('change');
@@ -46,8 +54,9 @@ export class UndoStack extends Emitter {
 
   /** Does the action ({ label, do, undo }) and records it; resolves with what do() returned. */
   async run({ label, do: act, undo }) {
+    const since = Date.now();
     const result = await act();
-    this.push({ label, undo, redo: act });
+    this.push({ label, undo, redo: act }, since);
     return result;
   }
 
@@ -71,7 +80,15 @@ export class UndoStack extends Emitter {
     const entry = from.pop();
     this.#busy = true;
     try {
-      await entry[what]();
+      if (automation.recording) {
+        // The steps of an action arrive right after it: up to a moment later
+        const tokens = what === 'undo' ? automation.stepsBetween(entry.from, entry.at + 250) : [];
+        await automation.quiet(() => entry[what]());
+        if (what === 'undo') entry.retracted = automation.retract(tokens);
+        else if (entry.retracted) automation.restore(entry.retracted);
+      } else {
+        await entry[what]();
+      }
       to.push(entry);
       return entry.label;
     } catch (error) {

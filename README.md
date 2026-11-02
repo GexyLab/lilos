@@ -51,6 +51,7 @@ sdk/                    @lilos/sdk: basi riutilizzabili da sistema e app
   core/net.js           rete: connessioni a server remoti (cartella Rete) e trasferimenti fatti dal kernel
   core/term.js          terminali remoti: host salvati e sessioni (SSH, Telnet, rlogin, SUPDUP) nel kernel
   core/pipes.js         pipe sugli eventi: le app si mettono in mezzo a ciò che succede (con core/pipeCatalog.js, gli eventi)
+  core/automation.js    automazioni: azioni, registrazione di ciò che fa l'utente e gestori per rifarlo (app Automata)
   core/tags.js          tag colorati per ritrovare file e cartelle, anche nascondendoli
   ui/                   icone, menu, controlli, Window, SettingsView, SettingsWindow
   styles/               token, base, componenti, finestre (@lilos/sdk/styles.css)
@@ -105,6 +106,7 @@ src/                    il sistema, costruito sull'SDK
   user/                 pagina utente a tutto schermo (nome, foto, Blocca, Esci, Riavvia il sistema, tema, lingua)
   net/                  rete: connessioni come cartelle in Rete, finestra Trasferimento dati e suo pulsante nella barra
   notifications/        notifiche: campanella e barra delle notifiche nell'area di notifica, finestra Notifiche
+  automation/           automazioni: azioni di lilOS, registratore, file .automata, esecuzione ed elenco (REC nell'area di notifica)
   taskbar/
     Taskbar.js          barra delle applicazioni: pulsante logo · pulsante workspace · area finestre · area di notifica · utente (apre la pagina utente) e orologio
     StartMenu.js        menu di avvio a schermo intero: ricerca, preferite, app per schede (recenti e frequenti, workarea, categorie), file recenti e frequenti, un pulsante per workspace
@@ -128,6 +130,7 @@ doc/                    documentazione utente, sviluppatore e interna
 | Menu di avvio | pulsante logo, Ctrl K; in alto il tuo nome (apre la pagina utente), Pannello di controllo ed Esci (con più utenti); Esc lo chiude |
 | Pagina utente | clic sul tuo nome nella barra delle applicazioni o nel menu di avvio; Esc la chiude |
 | Notifiche | campanella nell'area di notifica (in basso a destra) apre la finestra Notifiche; la barra delle notifiche si chiude con Esc o la ×; scorciatoia «Apri o chiudi le notifiche» (senza tasto di serie); Pannello di controllo → Notifiche |
+| Automazioni (app Automata) | pulsante REC nell'area di notifica mentre si registra (riapre il Registratore); tasto destro su file o cartelle → Automazioni (esegue o «Registra partendo da qui»); Ctrl Z / Ctrl Y mentre si registra tolgono e rimettono l'ultimo passo; scorciatoia scelta in Automata; nel Terminale `automata list` e `automata run <nome> [file…]` |
 | Elementi | doppio clic apre, F2 rinomina, Canc elimina (nel Cestino), Ctrl A seleziona tutto, Ctrl/Shift + clic selezione multipla |
 | Spostare file e cartelle | trascina un elemento (o la selezione) su una cartella: sulla scrivania, nel File Manager (elenco, percorso, barra laterale) o nel pannello dell'Editor, anche da una vista all'altra; Esc annulla; rilasciato sul Cestino lo elimina; tra due voci della sezione Collegamenti del File Manager crea un collegamento, e le voci si riordinano trascinandole (con × o Canc si elimina un collegamento) |
 | Annulla / ripeti | Ctrl Z / Ctrl Y (o Ctrl Shift Z), dove stai lavorando: scrivania, finestra del File Manager, testo e pannello dell'Editor |

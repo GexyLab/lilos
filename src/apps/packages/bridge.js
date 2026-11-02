@@ -43,6 +43,10 @@ import { typeKey } from '../../input/sendKey.js';
  *                                        (the SDK's pipes.js; permission pipe:<event> or pipe.own:<event>)
  *   lilos.pipes.define(name, { label, edit, stop })   an event of the app's own: '<app id>.<name>'
  *   lilos.pipes.run(name, data) → data   runs it through its handlers
+ *   lilos.automation.record(id, { params, defaults?, file?, result? }) → recorded?   what the user did, an
+ *                                        action of the manifest (contributes.automation): nothing happens
+ *                                        while nobody records (see the SDK's automation.js)
+ *   lilos.automation.recording() → true while the user records an automation
  *   lilos.storage.get(key) / set(key, value)    the app's own data, for the signed-in user
  *   lilos.clipboard.write(text)
  *   lilos.term.load() → { protocols, encodings, hosts, sessions }    remote terminals (permission term;
@@ -124,6 +128,10 @@ export function lilosApi(call, info, i18nApi) {
       },
       define: (name, def) => call('pipes.define', String(name), def ?? null),
       run: (name, data) => call('pipes.run', String(name), data ?? null),
+    }),
+    automation: Object.freeze({
+      record: (id, data) => call('automation.record', String(id), data ?? null),
+      recording: () => call('automation.recording'),
     }),
     storage: Object.freeze({
       get: key => call('storage.get', key),

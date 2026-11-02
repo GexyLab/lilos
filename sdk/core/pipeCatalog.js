@@ -12,9 +12,10 @@ import { pipes, PipeStopped } from './pipes.js';
  *
  * Open to apps, only to look at (after); before is for lilOS's own synchronous handlers:
  *   file.create { node }   file.rename { node, from }   file.move { node, from }   file.copy { node, source }
- *   file.remove { node, ids }   trash.put { ids }   trash.restore { ids }   trash.purge { count }
+ *   file.remove { node, ids }   trash.put { ids }   trash.restore { ids }   trash.purge { count, ids }
  *   tags.assign { node, tags }   window.open { app, entry, title }   window.close { app, entry, title }
  *   workspace.switch { from, to }   settings.change { key, value }
+ *   desk.place { workspace, reason: 'drag' | 'arrange' | 'place', items: [{ node, x, y, from: { x, y } }] }
  *
  * Protected (only lilOS and system apps), to look at:
  *   system.ready { at }   session.login { user, workspace }   session.logout {}
@@ -53,6 +54,7 @@ observe('window.open', 'Apertura di una finestra');
 observe('window.close', 'Chiusura di una finestra');
 observe('workspace.switch', 'Cambio di workspace');
 observe('settings.change', 'Cambio di un’impostazione');
+observe('desk.place', 'Icone spostate sulla scrivania');
 
 reserved('system.ready', 'Sistema pronto');
 reserved('session.login', 'Utente entrato');

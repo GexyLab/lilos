@@ -1028,6 +1028,128 @@ Con il doppio clic su un file `.zip` si apre la finestra di Zip, con l'elenco di
 - Con una selezione che mescola archivi `.zip` e altri elementi la voce **Comprimi** non compare.
 - Serve una versione di lilOS con i sottomenu per le voci delle app.
 
+## Automata
+
+**Automata** registra quello che fai in lilOS e lo rifà quando vuoi, anche su altri file. Lo fai una volta, poi lo fa lilOS: per esempio ridimensionare una foto, salvarne una copia in JPEG e metterla in una cartella, su dieci foto con un clic.
+
+Non c'è di serie: un amministratore la installa dall'[AppStore](#lappstore). All'installazione chiede di poter leggere e modificare i file della tua home, perché salva le automazioni lì e rifà le operazioni sui tuoi file. Serve lilOS 1.15.0 o successivo: con una versione precedente la finestra lo dice e non fa altro.
+
+Ogni operazione registrata è un **passo**. Un'automazione è l'elenco dei suoi passi, che puoi accendere, spegnere, spostare e toglierne.
+
+### Registrare
+
+1. Apri **Automata** dal menu di avvio e premi **Registra nuova**. Oppure, dal tasto destro su uno o più file o su una cartella, scegli **Automazioni → Registra partendo da qui**: quei file diventano ciò su cui l'automazione lavorerà.
+2. Compare il **Registratore**, una finestra piccola che sta sempre sopra le altre e non ruba mai la tastiera: continui a lavorare dove sei. Nella barra delle applicazioni, nell'area di notifica, c'è anche **REC**, con un pallino rosso che lampeggia e il numero dei passi; un clic sul pulsante riporta davanti il Registratore.
+3. Lavora come sempre. Ogni operazione compare nell'elenco del Registratore. **Pausa** lascia fuori quello che fai finché non premi **Riprendi**.
+4. **Ctrl Z** annulla l'ultima azione, come sempre, e toglie anche il suo passo: nell'elenco resta barrato con «annullato con Ctrl Z: tolto». **Ctrl Y** rifà l'azione e rimette il passo.
+5. **Fine** crea l'automazione e la apre in Automata; **Scarta** dimentica tutto (chiede conferma). Chiudere il Registratore con dei passi registrati chiede di confermare: la registrazione finisce e i passi si perdono.
+
+L'automazione si chiama «Automazione del» e la data di oggi; rinominala quando vuoi. Si salva nella cartella **Automazioni** della tua home, come file `.automata`. Per aggiungere passi a un'automazione già fatta, aprila e premi **Registra altri passi**: i nuovi passi vanno in fondo.
+
+Se ricarichi la pagina mentre registri, il browser chiede di confermare: ricaricandola la registrazione si perde.
+
+**Cosa registra**
+
+| Dove | Passi che puoi registrare |
+| --- | --- |
+| lilOS | Crea, Rinomina, Sposta, Copia, Sposta nel Cestino, Ripristina dal Cestino, Elimina definitivamente, Svuota il Cestino, Tag, Apri (un file o una cartella), Apri l'app, Chiudi la finestra, Vai al workspace, Impostazione (un'impostazione cambiata), Sposta sulla scrivania (icone trascinate), Riordina le icone |
+| File Manager | Vai a una cartella, Cerca nella cartella, Ordina, Cambia vista |
+| Photo | Ridimensiona l'immagine, Ritaglia l'immagine, Converti e salva una copia, Salva l'immagine |
+| Editor | Salva il file |
+| Terminale | Esegui un comando |
+| Zip | Comprimi in un .zip, Estrai un .zip |
+| FileCrypt | Cifra, Togli la cifratura, Blocca |
+
+Cose da sapere sulla registrazione:
+
+- Più file spostati insieme sono un passo solo («Sposta» di tre elementi). Un'impostazione mossa con un cursore è un passo solo, con l'ultimo valore.
+- Quando un'app salva un file nuovo (per esempio Photo con **Converti e salva una copia**), c'è un passo solo: quello dell'app, non anche la creazione del file.
+- In File Manager una ricerca si registra quando smetti di scrivere per un secondo, o premi Invio.
+- Nel Terminale si registra la riga che hai eseguito, solo se è andata a buon fine, e con la cartella in cui l'hai eseguita. Quello che la riga fa ai file non si registra a parte. Le righe che iniziano con `automata` e quelle più lunghe di 4000 caratteri non si registrano.
+- Le **password non si registrano mai**: il passo le chiede ogni volta che gira.
+- Non si registrano i clic, i tasti, la posizione delle finestre, i file che stanno nella cartella Automazioni, né quello che Automata stessa apre o chiude.
+- Quello che un'app non sa registrare compare nell'elenco **barrato**, con «… non lo rende registrabile», e non entra nell'automazione. Oggi succede con il **pennello** e il **testo** di Photo e con la **scrittura** nell'Editor (l'Editor non ha ancora «Trova e sostituisci»).
+
+### Modificare i passi
+
+Aprendo un'automazione vedi a sinistra l'elenco delle tue automazioni, al centro i suoi passi, a destra le opzioni del passo selezionato. Ogni modifica si salva da sola, un istante dopo.
+
+- In cima puoi cambiare il **nome** e aggiungere una **descrizione**. Il pulsante con le tre righe ha **Opzioni di avvio…**, **Mostra nel File Manager** e **Sposta nel Cestino** (chiede conferma).
+- Davanti a ogni passo ci sono tre comandi: la spunta (**Esegui questo passo**: spenta, l'automazione lo salta), il punto interrogativo (**Chiedi conferma prima**) e la matita (**Chiedi i valori**).
+- Con le frecce **su** e **giù** scegli un passo; **Alt** con le frecce lo sposta; **Spazio** lo accende o lo spegne; **Canc** lo toglie, dopo una conferma. Un passo può usare quello che ne ha fatto un altro (per esempio la copia creata prima): se sposti il passo da cui dipende, il collegamento lo segue; se lo togli, o lo metti dopo, compare l'avviso «usa un passo che non viene più prima».
+- Un passo di un'app che non è più installata compare con «(app non installata)»: resta nel file, ma non si può eseguire.
+
+**Chiedere conferma.** Prima di eseguire il passo compare cosa sta per fare: **Esegui**, **Salta** o **Ferma tutto**. Alcuni passi la chiedono già da soli: **Elimina definitivamente**, **Svuota il Cestino** e **Togli la cifratura**. Un'eliminazione definitiva non si annulla: lasciala sempre con la conferma.
+
+**Chiedere i valori.** Quando il passo gira, ti domanda i suoi valori e ti mostra quello registrato come proposta. Premendo la matita di un passo, ne fai chiedere i campi che hai **cambiato durante la registrazione** (per esempio la larghezza scelta nella finestra di Photo, non il resto); se non ne hai cambiato nessuno, tutti. Premendola di nuovo torni ai valori registrati. Nelle opzioni del passo puoi decidere campo per campo, e scrivere la tua **Domanda**. Se l'automazione lavora su più file, **Usa per tutti gli elementi rimanenti** risponde una volta per tutti. Le password si chiedono sempre.
+
+**Usare un modello.** Un campo di testo, per esempio il nome di un file, può essere un **Modello** invece di un valore fisso. Dentro puoi mettere:
+
+| Segno | Cosa diventa |
+| --- | --- |
+| `{nome}` | Il nome del file, senza estensione |
+| `{est}` | L'estensione |
+| `{data}` | La data di oggi (`2026-11-02`) |
+| `{ora}` | L'ora (`15.30`) |
+| `{n}` | Il numero dell'elemento: 1, 2, 3… |
+| `{cartella}` | Il nome della cartella del file |
+
+Per esempio `{nome}-web.{est}` trasforma `vacanza.jpg` in `vacanza-web.jpg`. Sotto il modello Automata mostra un esempio con un file vero. Se manca l'estensione, il punto finale sparisce. Vanno bene anche i nomi inglesi: `{name}`, `{ext}`, `{date}`, `{time}`, `{folder}`.
+
+**Su quali file lavora.** Un campo che nomina un file o una cartella ti fa scegliere: **Sempre** quel percorso, **L'elemento scelto all'avvio**, la sua cartella, o **Quello che fa** un passo precedente (per esempio la copia appena creata). In **Opzioni di avvio…** scegli su cosa lavora l'automazione: **niente**, **i file scelti all'avvio** (i passi si ripetono per ciascuno) o **una cartella scelta all'avvio**. Se registri senza dirlo, lavora sui primi file che usi in un passo.
+
+**Se il passo non riesce** scegli: **Ferma l'automazione e avvisa**, **Saltalo e continua** o **Chiedimi cosa fare** (Riprova, Salta, Ferma).
+
+### Opzioni di avvio
+
+Da **Opzioni di avvio…** (o dal pulsante **Avvio…** in fondo ai passi) decidi come far partire l'automazione:
+
+- **Nel menu dei file**: compare sotto **Automazioni** nel tasto destro dei file e delle cartelle, sulla scrivania e nel File Manager. Con un elenco di estensioni (`jpg, png`) compare solo per quei file. Vale per le automazioni che lavorano sui file o su una cartella: con una cartella, compare solo se ne selezioni una.
+- **Scorciatoia**: premi il pulsante, poi i tasti (devono avere Ctrl o Alt); **Canc** la toglie. Se la combinazione è già usata da un altro comando, Automata lo dice. Una scorciatoia agisce sugli elementi selezionati sulla scrivania; se non ce ne sono (o hai una finestra davanti), l'automazione ti chiede su cosa lavorare. La scorciatoia compare anche in **Pannello di controllo → Usabilità → Scorciatoie**, nel gruppo **Automazioni**.
+- **Nome per il Terminale**: il nome da scrivere nel comando `automata` (vedi sotto).
+
+L'avvio da solo (quando succede qualcosa, a una certa ora) non c'è ancora.
+
+### Eseguire
+
+Premi **Esegui** in cima ai passi, oppure scegli l'automazione dal menu **Automazioni**, con la sua scorciatoia o dal Terminale. Si apre la finestra **In esecuzione**: se l'automazione lavora su file e non gliene hai dato nessuno, te li chiede. Poi elenca i passi e a ognuno mette una spunta quando ha finito; le domande e le conferme compaiono lì dentro.
+
+- **Pausa** aspetta prima del passo successivo; **Ferma** interrompe l'automazione. A lavoro finito il pulsante diventa **Chiudi**.
+- Chiudere la finestra mentre gira la ferma.
+- Alla fine una notifica dice com'è andata, o perché si è fermata.
+- In Automata, **Esegui da qui** parte dal passo selezionato e **Solo questo passo** esegue quello e basta. Occhio: quello che i passi saltati avrebbero fatto (per esempio una copia che un passo successivo usa) non c'è.
+- Mentre un'automazione gira, quello che fa non viene registrato.
+
+Prima di lanciare un'automazione che sposta, rinomina o elimina, provala su copie dei tuoi file.
+
+### Dal Terminale
+
+Nell'app Terminale (se è installata) c'è il comando `automata`:
+
+```
+automata list
+automata run <nome> [file…] [--campo=valore…] [--yes]
+```
+
+- `automata list` elenca le automazioni: il nome per il Terminale (`-` se non ne hanno), il nome e, per quelle che lavorano su file, una nota tra parentesi.
+- `<nome>` è il nome per il Terminale, il nome dell'automazione o il percorso del suo file `.automata`. I file si scrivono dopo il nome, partendo dalla cartella in cui sei.
+- Se l'automazione chiede conferme o valori, senza `--yes` si apre in Automata e il Terminale lo dice. Con `--yes` gira nel Terminale: le conferme sono date e quello che il passo chiederebbe prende il valore registrato.
+- `--campo=valore` risponde in anticipo a un valore, per esempio `--width=1200`. Il nome del campo è quello interno del passo (`width` per la larghezza in Photo, `name` per un nome, `query` per una ricerca…).
+- Un passo che chiede una password non può girare senza che tu la dia: con `--yes` fallisce, a meno che tu non la scriva nella riga (`--password=…`). Attenzione: la riga resta nella cronologia del Terminale, tranne se inizia con uno spazio.
+- Se l'automazione lavora su file o su una cartella, vanno scritti dopo il nome: altrimenti il comando lo dice.
+
+```
+automata run web ~/Immagini/vacanza.jpg --width=1200 --yes
+```
+
+### Da sapere
+
+- Le automazioni sono file `.automata` (testo): si copiano, si spostano e si condividono come gli altri file. Automata le trova ovunque nella tua home (non nelle cartelle di rete); l'elenco si aggiorna da solo.
+- Un file indicato con «Sempre …» si ritrova anche se l'hai spostato; se non c'è più, Automata prova con il percorso che aveva.
+- Un'automazione eseguita cambia davvero file e impostazioni: non c'è un «annulla» unico per tutto.
+- Quando un passo ti chiede un gruppo di file, ne puoi scegliere uno solo.
+- Mancano ancora l'avvio automatico (a un'ora, o quando succede qualcosa), la registrazione di quello che si disegna o si scrive in Photo e nell'Editor, e «Trova e sostituisci» nell'Editor. Non ci sono condizioni né cicli: i passi vanno in fila.
+
 ## Terminale
 
 **Terminale** è la finestra dei comandi di lilOS. Ogni shell è una **scheda**: il pulsante **+** ne apre un'altra, nella stessa cartella. Con lo stesso Terminale ti colleghi anche al terminale di un altro computer: **SSH** (cifrato, il più usato), **Telnet**, **rlogin** e **SUPDUP** (i protocolli di router, vecchi sistemi Unix e dei calcolatori storici del MIT). Le sessioni remote hanno ciascuna la loro scheda; la shell di lilOS resta com'era.
@@ -1677,6 +1799,7 @@ Il salvataggio avviene **nel tuo spazio su lilOS**, non nel browser:
 - cancellare i dati di navigazione del sito non cancella la tua scrivania (vedi [Accedere e uscire](#accedere-e-uscire) per i dati che il browser aveva prima);
 - se lilOS non riesce a salvare, compare un avviso e riprova da solo; non chiudere la pagina finché non compare **Modifiche salvate**;
 - le connessioni della **Rete** (nome, indirizzo, protocollo) sono salvate nel tuo spazio su lilOS; le password (o, per OneDrive, l'accesso) solo se scegli **Ricorda la password** (**Ricorda l'accesso**), e cifrate. I file che stanno su un server restano sul server: lilOS non ne tiene una copia;
+- le **automazioni** (i passi, le domande, le scorciatoie) sono file `.automata` nella cartella **Automazioni** della tua home (o dove li metti): le password non si salvano mai;
 - gli host del **Terminale** (nome, cartella, indirizzo, impostazioni) sono salvati nel tuo spazio su lilOS, come le connessioni della Rete: le password solo se scegli **Ricorda password e passphrase**, e cifrate. Le sessioni aperte non si salvano: durano finché il kernel resta acceso e al più 10 minuti senza finestra;
 - un'impostazione o un file cambiato in due schede insieme: vince l'ultima che salva. Usa una scheda sola.
 
@@ -1765,6 +1888,9 @@ Le modifiche valgono subito e restano salvate.
 
 **Ho fatto doppio clic su un'app e non succede niente.**
 Probabilmente è un collegamento a un'app che non c'è più (per esempio i collegamenti a Terminale, Browser, Calendario, Immagini, Musica o Posta delle versioni precedenti, o un'app rimossa dall'amministratore): cancellalo. Le app che ci sono sempre sono File Manager, Pannello di controllo e AppStore; le altre le installa un amministratore (vedi [L'AppStore](#lappstore)).
+
+**Nel Registratore un passo è barrato. Perché?**
+Perché l'app non sa ancora registrare quella operazione (per esempio il pennello di Photo): non entra nell'automazione. Un passo barrato con «annullato con Ctrl Z: tolto» è invece uno che hai annullato.
 
 **Un file si apre con l'app sbagliata, o mi chiede ogni volta.**
 Cambia l'app nel Pannello di controllo → Usabilità → Tipi di file, oppure spunta "Usa sempre quest'app" nella finestra Apri con.

@@ -142,6 +142,18 @@ export function localizeManifest(manifest, strings) {
   for (const action of Array.isArray(m.contributes?.actions) ? m.contributes.actions : []) if (isPlain(action)) set(action, 'label', `@actions.${action.id}.label`);
   for (const menu of Array.isArray(m.contributes?.menus) ? m.contributes.menus : []) if (isPlain(menu)) set(menu, 'label', `@menus.${menu.id}.label`);
   if (isPlain(m.contributes?.badge)) set(m.contributes.badge, 'label', '@badge.label');
+  for (const a of Array.isArray(m.contributes?.automation) ? m.contributes.automation : []) {
+    if (!isPlain(a)) continue;
+    const base = `@automation.${a.id}`;
+    set(a, 'label', `${base}.label`);
+    set(a, 'description', `${base}.description`);
+    for (const [param, def] of Object.entries(isPlain(a.params) ? a.params : {})) {
+      if (!isPlain(def)) continue;
+      set(def, 'label', `${base}.params.${param}.label`);
+      set(def, 'description', `${base}.params.${param}.description`);
+      for (const option of Array.isArray(def.options) ? def.options : []) set(option, 'label', `${base}.params.${param}.options.${option.value}.label`);
+    }
+  }
   for (const event of Array.isArray(m.contributes?.events) ? m.contributes.events : []) {
     if (!isPlain(event)) continue;
     set(event, 'label', `@events.${event.name}.label`);
