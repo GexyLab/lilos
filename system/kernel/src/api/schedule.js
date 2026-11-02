@@ -143,7 +143,7 @@ export function scheduleRoutes(kernel) {
   router.add('GET', '/api/schedule-catalog', async ({ principal }) => {
     const p = signedIn(principal);
     const services = (await kernel.appServices.catalog()).map(s => ({ app: s.app, entry: s.entry, label: s.label, name: s.name, glyph: s.glyph, color: s.color, params: s.params }));
-    const hosts = (await kernel.terminals.list(p).catch(() => [])).filter(h => h.protocol === 'ssh').map(h => ({ id: h.id, name: h.name, address: h.address }));
+    const hosts = ((await kernel.terminals.list(p).catch(() => null))?.hosts ?? []).filter(h => h.protocol === 'ssh').map(h => ({ id: h.id, name: h.name, address: h.address }));
     let users = [];
     if (p.role === 'admin') {
       users = kernel.multiUser

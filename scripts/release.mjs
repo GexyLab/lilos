@@ -12,7 +12,8 @@
  *                       from there; run.js of an installed lilOS starts src/main.js); cli.js,
  *                       setup.js, tools/install.js and tools/pack.js that only import them; run.js
  *                       (minified, on its own: it is copied out of the release); package.json;
- *                       config.json, the configuration of a new installation
+ *                       config.json, the configuration of a new installation; modules/ with the
+ *                       required modules (REQUIRED_MODULES), as committed
  *   package.json        "type": "module" for all of it
  *   system.json         version (package.json's), kernel API, app SDK versions, Node.js, commit
  *                       and every file with its hash
@@ -154,6 +155,17 @@ try {
     config.apps = { ...config.apps, allowLocalSources: false };
     put('system/kernel/config.json', `${JSON.stringify(config, null, 2)}\n`);
     put('package.json', `${JSON.stringify({ name: 'lilos-release', private: true, type: 'module' }, null, 2)}\n`);
+    // The modules lilOS cannot do without come inside it (modules.js REQUIRED_MODULES): the kernel
+    // puts them back from here. Their highest version as committed: only what git keeps, never data
+    const { REQUIRED_MODULES } = await import(pathToFileURL(join(root, 'system/kernel/src/modules.js')));
+    const tracked = git('ls-files', 'system/kernel/modules').split('\n');
+    for (const name of Object.keys(REQUIRED_MODULES)) {
+      const folders = [...new Set(tracked.filter(p => p.startsWith(`system/kernel/modules/${name}_`)).map(p => p.split('/')[3]))];
+      if (!folders.length) throw new Error(`Manca il modulo obbligatorio ${name} in system/kernel/modules`);
+      const ver = f => f.slice(name.length + 1).split('.').map(Number);
+      const top = folders.sort((a, b) => { const [x, y] = [ver(a), ver(b)]; return y[0] - x[0] || y[1] - x[1] || y[2] - x[2]; })[0];
+      for (const path of tracked.filter(p => p.split('/')[3] === top)) put(path, execFileSync('git', ['show', `HEAD:${path}`], { cwd: root }));
+    }
 
     const { KERNEL_API } = await import(pathToFileURL(join(root, 'system/kernel/src/modules.js')));
     const { SDK_VERSIONS } = await import(pathToFileURL(join(root, 'system/kernel/src/apps/manifest.js')));

@@ -64,7 +64,7 @@ export async function loadConfig() {
     allowLocalSources: raw.apps?.allowLocalSources === true,
     trustedPublishers: raw.apps?.trustedPublishers && typeof raw.apps.trustedPublishers === 'object' ? raw.apps.trustedPublishers : {},
     officialKey: typeof raw.apps?.officialKey === 'string' ? raw.apps.officialKey : null,
-    bootstrapApps: Array.isArray(raw.apps?.bootstrap) ? raw.apps.bootstrap.filter(id => typeof id === 'string') : ['files', 'editor', 'settings', 'appstore'],
+    bootstrapApps: Array.isArray(raw.apps?.bootstrap) ? raw.apps.bootstrap.filter(id => typeof id === 'string') : ['files', 'editor', 'settings', 'appstore', 'scheduler'],
     modules: modules.map(m => ({ name: m.name, version: m.version ?? null, config: m.config && typeof m.config === 'object' ? m.config : {} })),
     net: raw.net && typeof raw.net === 'object' && !Array.isArray(raw.net) ? raw.net : {},
   };

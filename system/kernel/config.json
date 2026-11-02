@@ -72,6 +72,18 @@
         "defaultKeep": 20,
         "perMinute": 10
       }
+    },
+    {
+      "name": "scheduler",
+      "version": "1.0.0",
+      "config": {
+        "maxTasksPerUser": 100,
+        "minIntervalMinutes": 1,
+        "maxParallel": 4,
+        "historyPerTask": 50,
+        "catchUpHours": 12,
+        "outputKb": 16
+      }
     }
   ],
   "apps": {

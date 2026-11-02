@@ -198,7 +198,7 @@ export async function checkWhat(kernel, { what, old = null, owner, app = null, o
     let host = null;
     if (what.host !== undefined && what.host !== null) {
       if (!p) fail('invalid', 'Gli host salvati sono di un utente');
-      const hosts = await kernel.terminals.list(p);
+      const { hosts } = await kernel.terminals.list(p);
       const found = hosts.find(h => h.id === what.host) ?? fail('not_found', 'L’host salvato non c’è più');
       if (found.protocol !== 'ssh') fail('invalid', 'I comandi pianificati vanno solo su host SSH');
       host = what.host;
