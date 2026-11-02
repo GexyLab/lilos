@@ -107,6 +107,21 @@ export async function writeUserKey(kernel, principal, key, value) {
   await view.fs.write(principal, id, Buffer.from(text, 'utf8'));
 }
 
+/** The user's home as lilOS's page has it: its nodes (front ids), the .config folder left out. */
+export async function homeNodes(kernel, principal) {
+  const view = await openHome(kernel, principal);
+  const nodes = (await view.fs.tree(principal, view.homeId)).filter(n => n.id !== view.configId && n.parent !== view.configId).map(n => toFrontNode(view, n)).filter(Boolean);
+  return { view, nodes };
+}
+
+/** Changes of the tree as lilOS's page sends them ({ put: [node], remove: [id] }), in one transaction. */
+export async function syncHome(kernel, principal, { put = [], remove = [] } = {}) {
+  const view = await openHome(kernel, principal);
+  if (!Array.isArray(put) || !Array.isArray(remove) || put.length + remove.length > MAX_NODES) fail('invalid', 'Modifiche non valide');
+  await view.fs.apply(principal, { put: put.map(n => toBackNode(view, n)), remove: remove.map(id => view.toBack(id)) });
+  return view;
+}
+
 /** A node from lilOS → a node for the fs service. */
 function toBackNode(view, n) {
   if (!n || typeof n !== 'object') fail('invalid', 'Elemento non valido');
@@ -134,8 +149,7 @@ export function homeRoutes(kernel) {
   const { router } = kernel;
 
   router.add('GET', '/api/boot', async ({ principal }) => {
-    const view = await openHome(kernel, principal);
-    const nodes = (await view.fs.tree(principal, view.homeId)).filter(n => n.id !== view.configId && n.parent !== view.configId).map(n => toFrontNode(view, n)).filter(Boolean);
+    const { view, nodes } = await homeNodes(kernel, principal);
     const storage = {};
     for (const n of await view.fs.tree(principal, view.configId, { content: true })) {
       if (n.parent !== view.configId || n.type !== 'file') continue;
@@ -154,10 +168,7 @@ export function homeRoutes(kernel) {
   });
 
   router.add('POST', '/api/fs/sync', async ({ principal, json }) => {
-    const view = await openHome(kernel, principal);
-    const { put = [], remove = [] } = await json(8 << 20);
-    if (!Array.isArray(put) || !Array.isArray(remove) || put.length + remove.length > MAX_NODES) fail('invalid', 'Modifiche non valide');
-    await view.fs.apply(principal, { put: put.map(n => toBackNode(view, n)), remove: remove.map(id => view.toBack(id)) });
+    await syncHome(kernel, principal, await json(8 << 20) ?? {});
   });
 
   router.add('GET', '/api/fs/content/:id', async ({ res, principal, params, query }) => {

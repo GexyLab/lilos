@@ -944,10 +944,16 @@ class FileSystem extends Emitter {
       if (!parent || parent.type !== 'folder' || parent.net) continue;
       const old = this.#nodes.get(n.id);
       if (old) {
-        if (old.net || old.parent !== n.parent) continue;
+        if (old.net || old.system) continue;
+        const from = old.parent;
+        // Moved by the kernel (a command of the Terminal's shell run by the scheduler)
+        if (from !== n.parent && (n.parent === ROOT || this.#nodes.get(n.parent)) && !this.isInside(n.parent, old.id)) old.parent = n.parent;
+        else if (from !== n.parent) continue;
         Object.assign(old, { name: n.name, modified: Number.isFinite(n.modified) ? n.modified : old.modified, ...(old.type === 'file' && { size: Number(n.size) || 0 }) });
+        if (Array.isArray(n.tags)) { if (n.tags.length) old.tags = cleanTags(n.tags); else delete old.tags; }
         accepted.push([old.id, old]);
-        if (this.#visible(old)) this.emit('change', { type: 'update', node: copy(old), parent: old.parent });
+        if (from !== old.parent) this.emit('change', { type: 'move', node: copy(old), parent: old.parent, from, ids: [old.id, ...this.#descendants(old.id)] });
+        else if (this.#visible(old)) this.emit('change', { type: 'update', node: copy(old), parent: old.parent });
         continue;
       }
       const now = Date.now();

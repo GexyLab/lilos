@@ -80,6 +80,12 @@ const lilos = Object.freeze({
   net: Object.freeze({ fetch: (url, options) => call('net.fetch', [url, options ?? {}]) }),
   ui: Object.freeze({ notify: text => call('ui.notify', [text]) }),
   apps: Object.freeze({ updates: () => call('apps.updates', []) }),
+  home: Object.freeze({
+    load: () => call('home.load', []),
+    sync: changes => call('home.sync', [changes]),
+    read: id => call('home.read', [id]),
+    write: (id, data) => call('home.write', [id, data]),
+  }),
 });
 globalThis.__start = fn => fn({ lilos, args: info.args });
 globalThis.__request = async (data, from) => {

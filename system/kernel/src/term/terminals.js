@@ -342,6 +342,44 @@ export class Terminals {
     this.#session(principal, id).attach(ws, size);
   }
 
+  /**
+   * A command on a saved SSH host with nobody at the keyboard (the scheduler's «Comando del
+   * Terminale»): no terminal, no questions. The host's password or key must be saved, and its
+   * server key confirmed before (connecting once from the Terminal). → { output, code }
+   * (output: what it wrote, stdout and stderr together, the last `maxOutput` characters).
+   */
+  async exec(principal, hostId, command, { signal, maxOutput = 64 << 10 } = {}) {
+    const user = await this.#user(principal);
+    const r = this.#saved(user, hostId);
+    if (r.protocol !== 'ssh') fail('invalid', 'I comandi pianificati vanno solo su host SSH');
+    const driver = this.#driver('ssh');
+    const values = { ...r.values, command };
+    await this.#accept(driver, values);
+    const secret = r.secret ? await this.#openSecret(r) : {};
+    const nobody = () => Promise.reject(Object.assign(new Error('Nessuno risponde: la password o la chiave vanno salvate nell’host'), { net: 'auth' }));
+    let session;
+    try {
+      session = await driver.open(values, {
+        secret, cols: 200, rows: 50, term: 'dumb', cwd: null, signal, print: () => {}, ask: nobody,
+        confirm: async trust => (await this.knownTrust(principal.id, 'ssh', r.values)) === String(trust?.fingerprint ?? ''),
+      });
+    } catch (err) {
+      if (err?.net === 'untrusted') fail('untrusted', `La chiave del server di «${r.name}» non è confermata: collegati una volta dal Terminale`);
+      // 'cancelled': the server asked again (a password that is wrong or not saved) and nobody is there to answer
+      if (err?.net === 'auth' || (err?.net === 'cancelled' && !signal?.aborted)) fail('forbidden', `Accesso negato da «${r.name}»: salva la password o la chiave nell’host`);
+      netFail(err, r.name);
+    }
+    return new Promise(resolve => {
+      let output = '';
+      session.onData(chunk => { output = (output + chunk.toString('utf8')).slice(-maxOutput); });
+      session.onClose(({ reason }) => {
+        const m = /codice (\d+)/.exec(reason ?? '');
+        resolve({ output, code: m ? Number(m[1]) : reason ? 255 : 0, reason: reason ?? '' });
+      });
+      signal?.addEventListener('abort', () => session.close(), { once: true });
+    });
+  }
+
   /** Was the server key shown already confirmed? (by protocol, host and port) */
   async knownTrust(userId, protocol, values) {
     const user = this.#users.get(userId);

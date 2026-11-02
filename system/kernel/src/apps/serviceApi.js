@@ -2,6 +2,7 @@ import { randomBytes } from 'node:crypto';
 import { fail } from '../errors.js';
 import { KERNEL } from '../services.js';
 import { coversPath } from './permissions.js';
+import { homeNodes, syncHome, readUserKey as readKey } from '../api/home.js';
 import { compareVersions } from './manifest.js';
 import { normalizeUrl } from './sources.js';
 import { logger } from '../log.js';
@@ -23,6 +24,14 @@ import { logger } from '../log.js';
  *                                                see api/notifications.js
  *   apps.updates()                               → [{ id, name, version, latest, repo }]: installed apps with a newer
  *                                                version in the repository they came from (permission apps.manage)
+ *   home.load() → { home, nodes, tags }          the whole home as lilOS's page has it (nodes with front ids, the
+ *                                                tag definitions), for a service that works on it as the page does
+ *                                                (the Terminal's shell): permission fs.read:~ or fs.write:~
+ *   home.sync({ put, remove })                   changes of the tree, as the page sends them (fs.write:~); the
+ *                                                user's open pages see them ('fs.external')
+ *   home.read(id) → { base64 } / home.write(id, { base64 } | { text })   a file's content by its id (front id).
+ *                                                Not a file an app protects (content: true in its data: an
+ *                                                encrypted one): its keys are never in the kernel
  *
  * Besides the requests, the service has lilos.locale ({ code, i18n }, as in lilOS: the SDK's
  * i18n.js): its strings in its user's language (English for the system), as they were when it started.
@@ -64,6 +73,15 @@ export function serviceApi({ kernel, app, owner, notify, readUserKey, writeUserK
     return { full: home.path + path.slice(1), home };
   };
   const split = full => [full.slice(0, full.lastIndexOf('/')), full.slice(full.lastIndexOf('/') + 1)];
+  /** A file of the owner's home by its front id, unless an app protects its content. */
+  const ownNode = async id => {
+    if (typeof id !== 'string' || !/^[\w-]{1,64}$/.test(id)) fail('invalid', 'Identificatore non valido');
+    const home = await fs.home(user());
+    const node = await fs.stat(owner, `${home.id}/${id}`) ?? fail('not_found', 'Il file non esiste');
+    if (node.type !== 'file') fail('invalid', 'Non è un file');
+    if (Object.values(node.meta?.apps ?? {}).some(v => v?.content === true)) fail('forbidden', `«${node.name}» è protetto da un’app (per esempio cifrato): si apre solo nel browser`);
+    return node;
+  };
   const create = async (full, type) => {
     const [dir, name] = split(full);
     const parent = await fs.lookup(owner, dir) ?? fail('not_found', 'La cartella non esiste');
@@ -151,6 +169,35 @@ export function serviceApi({ kernel, app, owner, notify, readUserKey, writeUserK
         chunks.push(chunk);
       }
       return { status: res.status, headers: Object.fromEntries(res.headers), body: Buffer.concat(chunks).toString('utf8') };
+    },
+
+    'home.load': async () => {
+      if (!coversPath(perms, '~', { write: false })) fail('forbidden', 'Permesso negato: fs.read:~');
+      const { view, nodes } = await homeNodes(kernel, user());
+      const tags = await readKey(kernel, owner, 'tags', []);
+      return { home: view.homePath, nodes, tags: Array.isArray(tags) ? tags : [] };
+    },
+    'home.sync': async (body = {}) => {
+      if (!coversPath(perms, '~', { write: true })) fail('forbidden', 'Permesso negato: fs.write:~');
+      const changes = body && typeof body === 'object' ? body : {};
+      const put = Array.isArray(changes.put) ? changes.put : [];
+      const remove = Array.isArray(changes.remove) ? changes.remove : [];
+      await syncHome(kernel, user(), { put, remove });
+      // The user's open pages: new and changed nodes, the ones gone and the ones put in the trash
+      const trash = put.filter(n => n?.parent === 'trash' && n.trashed).map(n => ({ id: n.id, at: n.trashed.at, from: n.trashed.from }));
+      kernel.events.emit('user', { owner: owner.id, event: 'fs.external', data: { put: put.filter(n => n?.parent !== 'trash'), remove, trash } });
+    },
+    'home.read': async id => {
+      if (!coversPath(perms, '~', { write: false })) fail('forbidden', 'Permesso negato: fs.read:~');
+      const node = await ownNode(id);
+      return { base64: (await fs.read(owner, node.id)).toString('base64') };
+    },
+    'home.write': async (id, data = {}) => {
+      if (!coversPath(perms, '~', { write: true })) fail('forbidden', 'Permesso negato: fs.write:~');
+      const node = await ownNode(id);
+      const body = typeof data?.base64 === 'string' ? Buffer.from(data.base64, 'base64') : Buffer.from(String(data?.text ?? ''), 'utf8');
+      if (body.length > MAX_TEXT) fail('too_large', 'File troppo grande');
+      await fs.write(owner, node.id, body);
     },
 
     'ui.notify': value => notify(value !== null && typeof value === 'object' ? value : String(value ?? '')),

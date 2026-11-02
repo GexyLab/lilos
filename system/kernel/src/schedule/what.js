@@ -18,8 +18,8 @@ import { checkServiceParams } from '../apps/appServices.js';
  *   { type: 'open', app?, entry?, args?, file? }                  in the browser: an app, or a file with its app
  *   { type: 'automation', file, values? }                         in the browser: a .automata file
  *
- * An operation of the system (owner '*') has no home: only notify (to the admins), service, web
- * without files, command on an SSH host. One made by an app (`app`) may only remind (as that app),
+ * An operation of the system (owner '*') has no home: only notify (to the admins), service and web
+ * without files. One made by an app (`app`) may only remind (as that app),
  * run that app's services and open that app.
  * Secret headers (secret: true) are sealed here (net/secrets.js) and never shown again: to keep one
  * when saving again, send { name, secret: true } without value.
@@ -195,14 +195,14 @@ export async function checkWhat(kernel, { what, old = null, owner, app = null, o
     const lines = typeof what.lines === 'string' ? what.lines.replace(/\r\n?/g, '\n') : '';
     if (!lines.trim()) fail('invalid', 'Nessun comando');
     if (lines.length > MAX_LINES) fail('too_large', 'Comandi troppo lunghi (al massimo 8 KB)');
+    if (system) fail('invalid', 'Un’operazione del sistema non esegue comandi: i comandi girano come un utente');
     let host = null;
     if (what.host !== undefined && what.host !== null) {
-      if (!p) fail('invalid', 'Gli host salvati sono di un utente');
       const { hosts } = await kernel.terminals.list(p);
       const found = hosts.find(h => h.id === what.host) ?? fail('not_found', 'L’host salvato non c’è più');
       if (found.protocol !== 'ssh') fail('invalid', 'I comandi pianificati vanno solo su host SSH');
       host = what.host;
-    } else if (system) fail('invalid', 'Un’operazione del sistema esegue comandi solo su un host SSH');
+    }
     let cwd = null;
     if (!host && what.cwd !== undefined && what.cwd !== null) {
       await homeNode(kernel, p, what.cwd, 'folder');
