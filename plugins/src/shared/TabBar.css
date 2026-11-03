@@ -1,0 +1,39 @@
+/* The tab bar (src/shared/TabBar.js). Every app that uses it loads these same rules: change them
+   only in ways that suit the older copies too (apps update one by one). An app restyles its own
+   bar through its className (e.g. Terminal's dark tabs). */
+.sh-tabbar { height: 30px; flex: none; display: flex; align-items: stretch; border-bottom: 1px solid var(--border); background: var(--side); user-select: none; -webkit-user-select: none; }
+.sh-tabbar-slot { flex: none; display: flex; align-items: center; gap: 2px; padding: 0 4px; }
+.sh-tabbar-slot[hidden] { display: none; }
+.sh-tabbar-slot.end { margin-left: auto; }
+.sh-tabs { position: relative; flex: 0 1 auto; min-width: 0; display: flex; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
+.sh-tabs::-webkit-scrollbar { display: none; }
+.sh-tab {
+  flex: none; max-width: 220px; display: flex; align-items: center; gap: 6px; padding: 0 4px 0 12px;
+  border-right: 1px solid var(--border); font-size: 12px; color: var(--dim); cursor: default; white-space: nowrap; touch-action: none;
+}
+.sh-tab:hover:not(.on) { background: var(--hover); color: var(--text); }
+.sh-tab.on { background: var(--surface); color: var(--text); box-shadow: inset 0 2px 0 var(--accent); }
+.sh-tab:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.sh-tab.dragging { opacity: .75; }
+.sh-tab-icon { flex: none; display: flex; align-items: center; }
+.sh-tab-icon[hidden] { display: none; }
+.sh-tab-icon > .ico { width: 13px; height: 13px; }
+.sh-tab-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.sh-tab-detail { max-width: 90px; overflow: hidden; text-overflow: ellipsis; color: var(--faint); font-size: 11px; }
+.sh-tab-detail[hidden], .sh-tab-act[hidden] { display: none; }
+/* Something happened in a tab not shown */
+.sh-tab-act { width: 7px; height: 7px; flex: none; border-radius: 50%; background: var(--accent); }
+.sh-tab-close { width: 18px; height: 18px; flex: none; display: grid; place-items: center; border-radius: var(--radius-sm); color: var(--dim); visibility: hidden; }
+.sh-tab-close .ico { width: 12px; height: 12px; }
+.sh-tab:hover .sh-tab-close, .sh-tab.on .sh-tab-close, .sh-tab.dirty .sh-tab-close { visibility: visible; }
+.sh-tab-close:hover { background: var(--hover); color: var(--text); }
+/* Unsaved changes: a dot in place of the ×, which comes back under the pointer */
+.sh-tab.dirty .sh-tab-close::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.sh-tab.dirty .sh-tab-close .ico { display: none; }
+.sh-tab.dirty .sh-tab-close:hover::before { display: none; }
+.sh-tab.dirty .sh-tab-close:hover .ico { display: block; }
+.sh-tabbar-btn { width: 26px; height: 24px; flex: none; display: grid; place-items: center; border-radius: var(--radius-sm); color: var(--dim); }
+.sh-tabbar-btn .ico { width: 14px; height: 14px; }
+.sh-tabbar-btn:hover { background: var(--hover); color: var(--text); }
+.sh-tabbar-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: -1px; }
+.sh-tab-new { align-self: center; margin: 0 4px; }

@@ -1,0 +1,63 @@
+{
+  "id": "files",
+  "version": "1.17.0",
+  "kind": "local",
+  "name": "File Manager",
+  "description": "Browse, search and organize files and folders: tags, links, desktop links, trash, info and preview.",
+  "category": "system",
+  "icon": { "glyph": "folder", "color": "#3b6ef5" },
+  "publisher": { "id": "lilos", "name": "lilOS" },
+  "sdk": "2",
+  "system": true,
+  "lilos": ">=1.22.0",
+  "required": true,
+  "entrypoints": { "main": { "kind": "window", "params": {
+    "folder": {"type": "folder", "label": "Folder", "description": "The folder it shows when it opens"}
+  } },
+  "newLink": { "kind": "window", "label": "New link", "window": { "width": 520, "height": 290 }, "params": {
+    "folder": {"type": "folder", "label": "Folder", "description": "Where the link is made"}
+  } } },
+  "dependencies": [
+    { "module": "ssh", "optional": true, "reason": "SFTP connections in Network (and SSH sessions in Terminal)" },
+    { "module": "netfs-ftp", "optional": true, "reason": "FTP and FTPS connections in Network" },
+    { "module": "netfs-webdav", "optional": true, "reason": "WebDAV connections in Network" },
+    { "module": "netfs-smb", "optional": true, "reason": "Windows shares (SMB) in Network" },
+    { "module": "netfs-nfs", "optional": true, "reason": "NFS shares in Network" },
+    { "module": "netfs-onedrive", "optional": true, "reason": "OneDrive in Network" },
+    { "module": "netfs-google", "optional": true, "reason": "Google Drive and Google Photos in Network" },
+    { "module": "netfs-s3", "optional": true, "reason": "Amazon S3 and compatible storage in Network" },
+    { "module": "netfs-azblob", "optional": true, "reason": "Azure Blob Storage in Network" }
+  ],
+  "permissions": ["fs.write:~", "fs.workspaces", "tags.write", "desktop.items", "ui.shortcuts"],
+  "contributes": {
+    "window": { "width": 1000, "height": 520 },
+    "commands": [
+      { "id": "files.info", "label": "Show or hide the info panel", "keys": ["Alt+I"] },
+      { "id": "files.preview", "label": "Show or hide the preview", "keys": ["Alt+P"] },
+      { "id": "files.address", "label": "Type a path", "keys": ["Ctrl+L"] }
+    ],
+    "automation": [
+      { "id": "files.go", "label": "Go to a folder", "target": "window", "params": {
+        "folder": {"type": "folder", "label": "Folder", "subject": true}
+      } },
+      { "id": "files.search", "label": "Search the folder", "target": "window", "params": {
+        "query": {"type": "text", "label": "Search for", "maxLength": 200}
+      } },
+      { "id": "files.sort", "label": "Sort", "target": "window", "params": {
+        "by": {"type": "choice", "label": "Sort by", "options": [
+          {"value": "name", "label": "Name"}, {"value": "modified", "label": "Modified"}, {"value": "size", "label": "Size"},
+          {"value": "type", "label": "Type"}, {"value": "workspace", "label": "Workspace"}, {"value": "location", "label": "Location"},
+          {"value": "deleted", "label": "Deleted"}, {"value": "origin", "label": "Original location"}
+        ]},
+        "direction": {"type": "choice", "label": "Order", "options": [
+          {"value": "asc", "label": "Ascending"}, {"value": "desc", "label": "Descending"}
+        ]}
+      } },
+      { "id": "files.view", "label": "Change the view", "target": "window", "params": {
+        "mode": {"type": "choice", "label": "View", "options": [
+          {"value": "list", "label": "List"}, {"value": "grid", "label": "Icons"}, {"value": "thumbs", "label": "Previews"}
+        ]}
+      } }
+    ]
+  }
+}

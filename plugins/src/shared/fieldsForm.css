@@ -1,0 +1,23 @@
+/* Forms drawn from field descriptions (src/shared/fieldsForm.js). Every app that uses them loads
+   these same rules: change them only in ways that suit the older copies too. */
+.sh-fields { display: grid; gap: 11px; min-width: 0; }
+.sh-field { display: grid; gap: 4px; min-width: 0; }
+.sh-field > label:not(.sh-field-check) { font-size: 11.5px; color: var(--dim); font-weight: 500; }
+.sh-field .ctl-text, .sh-field .ctl-select { width: 100%; min-width: 0; }
+.sh-field textarea.ctl-text { height: auto; padding: 6px 8px; resize: vertical; font-family: var(--mono); font-size: 11.5px; }
+.sh-field-hint { font-size: 11px; color: var(--faint); }
+.sh-field-req { color: var(--danger); }
+.sh-field-pick { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.sh-field-pick .ctl-text { flex: 1; }
+.sh-field-pick > .ctl-btn { flex: none; }
+.sh-field-check { display: flex; align-items: center; gap: 8px; }
+/* Two fields on one line (server and port): the second one narrow */
+.sh-field-pair { display: grid; grid-template-columns: minmax(0, 1fr) minmax(70px, 30%); gap: 10px; }
+.sh-fields-after { display: grid; gap: 11px; }
+.sh-fields-after[hidden] { display: none; }
+
+/* Rows of a SettingsView (settingRows) */
+.sh-setting-text { min-width: 260px; }
+.sh-setting-number { width: 120px; }
+.sh-setting-area { min-width: 300px; font-family: var(--mono); font-size: 12px; resize: vertical; }
+.sh-setting-secret { display: flex; align-items: center; gap: 8px; }

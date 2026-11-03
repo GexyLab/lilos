@@ -1,0 +1,59 @@
+{
+  "id": "terminal",
+  "version": "1.8.0",
+  "kind": "local",
+  "name": "Terminal",
+  "description": "A bash-like shell over the files of lilOS, in tabs and panes side by side, and remote sessions: SSH, Telnet, rlogin and SUPDUP, with saved hosts, .term links and sessions that keep running when the window is closed.",
+  "category": "development",
+  "icon": { "glyph": "terminal", "color": "#2b3038" },
+  "publisher": { "id": "lilos", "name": "lilOS" },
+  "sdk": "2",
+  "lilos": ">=1.22.0",
+  "system": true,
+  "entrypoints": {
+    "main": { "kind": "window", "params": {
+      "cwd": {"type": "folder", "label": "Folder", "description": "The folder to open the terminal in"},
+      "file": {"type": "file", "label": "Link", "description": "A terminal link (.term) to open"}
+    } },
+    "filePreview": { "kind": "background", "label": "Previews of .term links" },
+    "shell": { "kind": "service", "file": "dist/shell.js", "label": "Shell for the Scheduler" }
+  },
+  "dependencies": [
+    { "module": "ssh", "optional": true, "reason": "Remote sessions over SSH, and Terminal commands on saved SSH hosts" },
+    { "module": "term-telnet", "optional": true, "reason": "Remote sessions over Telnet" },
+    { "module": "term-rlogin", "optional": true, "reason": "Remote sessions over rlogin" },
+    { "module": "term-supdup", "optional": true, "reason": "Remote sessions over SUPDUP" },
+    { "module": "services-isolate", "version": ">=1.2.0", "optional": true, "reason": "Scheduled Terminal commands in the kernel, with the operation's time limit and Cancel" }
+  ],
+  "permissions": ["fs.write:~", "tags.write", "term", "ui.menus", "ui.shortcuts", "background"],
+  "contributes": {
+    "window": { "width": 760, "height": 460 },
+    "fileTypes": ["term"],
+    "commands": [
+      { "id": "terminal.newShell", "label": "New shell", "keys": ["Alt+Shift+T"] },
+      { "id": "terminal.splitRight", "label": "Split right", "keys": ["Alt+Shift+D"] },
+      { "id": "terminal.splitDown", "label": "Split down", "keys": ["Alt+Shift+S"] },
+      { "id": "terminal.detach", "label": "Detach tab into a new window", "keys": ["Alt+Shift+W"] },
+      { "id": "terminal.broadcast", "label": "Send input to all panes", "keys": ["Alt+Shift+B"] },
+      { "id": "terminal.focusLeft", "label": "Pane on the left", "keys": ["Alt+Shift+ArrowLeft"] },
+      { "id": "terminal.focusRight", "label": "Pane on the right", "keys": ["Alt+Shift+ArrowRight"] },
+      { "id": "terminal.focusUp", "label": "Pane above", "keys": ["Alt+Shift+ArrowUp"] },
+      { "id": "terminal.focusDown", "label": "Pane below", "keys": ["Alt+Shift+ArrowDown"] },
+      { "id": "terminal.previousTab", "label": "Previous tab of the pane", "keys": ["Alt+Shift+PageUp"] },
+      { "id": "terminal.nextTab", "label": "Next tab of the pane", "keys": ["Alt+Shift+PageDown"] },
+      { "id": "terminal.moveLeft", "label": "Move tab to the left", "keys": ["Ctrl+Alt+Shift+ArrowLeft"] },
+      { "id": "terminal.moveRight", "label": "Move tab to the right", "keys": ["Ctrl+Alt+Shift+ArrowRight"] },
+      { "id": "terminal.moveUp", "label": "Move tab up", "keys": ["Ctrl+Alt+Shift+ArrowUp"] },
+      { "id": "terminal.moveDown", "label": "Move tab down", "keys": ["Ctrl+Alt+Shift+ArrowDown"] }
+    ],
+    "actions": [
+      { "id": "terminal.sshHere", "label": "Open SSH terminal here", "entry": "main", "on": "item", "glyph": "terminal", "when": { "net": ["sftp"] } }
+    ],
+    "automation": [
+      { "id": "terminal.run", "label": "Run a command", "target": "window", "params": {
+        "command": {"type": "text", "label": "Command"},
+        "folder": {"type": "folder", "label": "Folder", "description": "The working folder the command runs in"}
+      } }
+    ]
+  }
+}

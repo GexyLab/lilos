@@ -1,0 +1,41 @@
+/* Tastiera a schermo: a grid of 15 × 5 units (60 × 10 tracks: keys are 1, 1.25, 1.5… units wide, ↑ ↓ half a row high) */
+.osk {
+  box-sizing: border-box; height: 100%; padding: 6px; background: var(--side);
+  container-type: size; user-select: none; -webkit-user-select: none; touch-action: none;
+}
+.osk-keys { height: 100%; display: grid; grid-template-columns: repeat(60, 1fr); grid-template-rows: repeat(10, 1fr); gap: 4px; }
+
+.osk-key {
+  position: relative; min-width: 0; min-height: 0; margin: 0; padding: 0; display: grid; place-items: center;
+  border: 1px solid var(--border); border-bottom-width: 2px; border-radius: var(--radius-sm, 6px);
+  background: var(--surface); color: var(--text); font: inherit; cursor: pointer;
+  font-size: clamp(10px, min(7.4cqh, 2.9cqw), 24px); line-height: 1;
+  transition: background .06s, transform .06s;
+}
+.osk-key:hover { background: var(--hover); }
+.osk-key.down, .osk-key.hit { background: var(--accent-soft); border-color: var(--accent); transform: translateY(1px); }
+.osk-key .main { pointer-events: none; }
+
+/* Characters with Shift (top left) and AltGr (bottom right), small, as printed on a real key */
+.osk-key .sub { position: absolute; font-size: .58em; pointer-events: none; }
+.osk-key .sub.shift { top: 12%; left: 12%; color: var(--faint); }
+.osk-key .sub.altgr { right: 12%; bottom: 12%; color: var(--accent); }
+.osk-key.char .main { font-size: 1.05em; }
+.osk-key.dead .main { color: var(--faint); }
+
+.osk-key.fn { background: var(--chrome); color: var(--dim); font-size: clamp(10px, min(6cqh, 2.3cqw), 18px); }
+.osk-key.fn:hover { background: var(--hover); color: var(--text); }
+.osk-key.fn-Space .main { font-size: .8em; color: var(--faint); }
+.osk-key.fn-ArrowUp, .osk-key.fn-ArrowDown { font-size: clamp(9px, min(4.6cqh, 2cqw), 15px); }
+.osk-key.fn-Backspace, .osk-key.fn-Enter, .osk-key.fn-Tab, .osk-key.fn-CapsLock,
+.osk-key.fn-ShiftLeft, .osk-key.fn-ShiftRight { font-size: clamp(12px, min(8.5cqh, 3.2cqw), 26px); }
+.osk-key.fn-Layout { color: var(--accent); font-weight: 600; letter-spacing: .04em; }
+
+/* Modifiers: on for the next key, locked until pressed again */
+.osk-key.fn.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-strong, var(--accent)); }
+.osk-key.fn.locked { background: var(--accent); border-color: var(--accent); color: #fff; }
+.osk-key.fn.locked::after {
+  content: ''; position: absolute; top: 14%; right: 12%; width: 5px; height: 5px; border-radius: 50%; background: currentColor;
+}
+
+.osk-old { margin: 0; padding: 16px; color: var(--dim); font-size: 13px; }

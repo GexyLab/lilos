@@ -1,0 +1,68 @@
+{
+  "id": "filecrypt",
+  "version": "1.2.0",
+  "kind": "local",
+  "name": "FileCrypt",
+  "description": "Encrypt single files with a password. Encrypted files keep their name, open in their own app once unlocked and save encrypted again.",
+  "category": "productivity",
+  "icon": { "glyph": "lock", "color": "#3f7d5c" },
+  "publisher": { "id": "lilos", "name": "lilOS" },
+  "sdk": "2",
+  "lilos": ">=1.22.0",
+  "entrypoints": {
+    "main": { "kind": "window" },
+    "unlock": { "kind": "window", "label": "Unlock", "window": { "width": 400, "height": 290 } },
+    "encrypt": { "kind": "window", "label": "Encrypt", "window": { "width": 440, "height": 560 } },
+    "vault": { "kind": "background", "label": "Keys of the unlocked files" }
+  },
+  "permissions": ["ui.menus", "pipe.own:file.open", "pipe.own:file.read", "pipe.own:file.write"],
+  "libraries": [
+    {
+      "name": "hash-wasm-argon2",
+      "version": "4.12.0",
+      "url": "https://cdn.jsdelivr.net/npm/hash-wasm@4.12.0/dist/argon2.umd.min.js",
+      "integrity": "sha384-tP0Wy54CKmng7i9EoTlPySD0hBx6Octj0VS6MfwlnUu111MPa+JLm0CCbep6XJ1W",
+      "cache": true
+    }
+  ],
+  "contributes": {
+    "window": { "width": 520, "height": 520 },
+    "pipes": [
+      { "event": "file.open", "stage": "before", "entry": "vault", "position": "first", "where": { "meta": "own" } },
+      { "event": "file.read", "stage": "after", "entry": "vault", "position": "last", "where": { "meta": "own" } },
+      { "event": "file.write", "stage": "before", "entry": "vault", "position": "last", "where": { "meta": "own" } }
+    ],
+    "actions": [
+      { "id": "filecrypt.encrypt", "label": "Encrypt…", "entry": "encrypt", "on": "file", "glyph": "lock", "when": { "meta": "none" } },
+      { "id": "filecrypt.lock", "label": "Lock", "entry": "vault", "on": "file", "glyph": "lock", "when": { "meta": "own" }, "many": true },
+      { "id": "filecrypt.decrypt", "label": "Remove encryption…", "entry": "unlock", "on": "file", "glyph": "lockOpen", "when": { "meta": "own" } }
+    ],
+    "automation": [
+      { "id": "filecrypt.encrypt", "label": "Encrypt", "entry": "vault",
+        "description": "Encrypts the file with a password; it stays unlocked until it locks again",
+        "params": {
+          "file": { "type": "file", "label": "File", "subject": true },
+          "password": { "type": "secret", "label": "Password", "description": "At least 8 characters. If you forget it the file is lost" },
+          "alg": { "type": "choice", "label": "Algorithm", "options": [
+            { "value": "AES-256-GCM", "label": "AES-256-GCM" },
+            { "value": "AES-128-GCM", "label": "AES-128-GCM" },
+            { "value": "ChaCha20-Poly1305", "label": "ChaCha20-Poly1305" }
+          ] },
+          "kdf": { "type": "choice", "label": "Key from the password", "options": [
+            { "value": "argon2id", "label": "Argon2id (recommended)" },
+            { "value": "pbkdf2", "label": "PBKDF2-SHA256" }
+          ] }
+        } },
+      { "id": "filecrypt.decrypt", "label": "Remove encryption", "entry": "vault", "confirm": true,
+        "description": "Saves the file in clear again",
+        "params": {
+          "file": { "type": "file", "label": "File", "subject": true },
+          "password": { "type": "secret", "label": "Password" }
+        } },
+      { "id": "filecrypt.lock", "label": "Lock", "entry": "vault",
+        "description": "Locks unlocked files again: opening them asks for their password",
+        "params": { "files": { "type": "files", "label": "Files", "subject": true } } }
+    ],
+    "badge": { "glyph": "lock", "label": "Encrypted with FileCrypt" }
+  }
+}

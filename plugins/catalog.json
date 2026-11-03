@@ -1,0 +1,37 @@
+{
+  "name": "lilOS ufficiale",
+  "apps": [
+    "apps/files",
+    "apps/editor",
+    "apps/settings",
+    "apps/appstore",
+    "apps/photo",
+    "apps/terminal",
+    "apps/filecrypt",
+    "apps/calculator",
+    "apps/keyboard",
+    "apps/zip",
+    "apps/automata",
+    "apps/scheduler"
+  ],
+  "modules": [
+    "modules/users-basic",
+    "modules/fs-postgres",
+    "modules/services-isolate",
+    "modules/notifications-basic",
+    "modules/scheduler",
+    "modules/ssh",
+    "modules/netfs-ftp",
+    "modules/netfs-webdav",
+    "modules/netfs-smb",
+    "modules/netfs-onedrive",
+    "modules/netfs-google",
+    "modules/netfs-s3",
+    "modules/netfs-azblob",
+    "modules/netfs-nfs",
+    "modules/term-telnet",
+    "modules/term-rlogin",
+    "modules/term-supdup"
+  ],
+  "system": "system/lilos"
+}

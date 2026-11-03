@@ -1,0 +1,56 @@
+{
+  "id": "editor",
+  "version": "1.6.0",
+  "kind": "local",
+  "name": "Editor",
+  "description": "Text and code editor with tabs, syntax highlighting, suggestions and checking of JSON, CSS and HTML.",
+  "category": "development",
+  "icon": { "glyph": "code", "color": "#7c5cdb" },
+  "publisher": { "id": "lilos", "name": "lilOS" },
+  "sdk": "2",
+  "lilos": ">=1.22.0",
+  "system": true,
+  "entrypoints": {
+    "main": { "kind": "window", "params": {
+      "file": {"type": "file", "label": "File", "description": "The file to open"},
+      "folder": {"type": "folder", "label": "Folder", "description": "The folder in the panel on the right"}
+    } },
+    "filePreview": { "kind": "background", "label": "Text file previews" }
+  },
+  "permissions": ["fs.write:~", "ui.shortcuts", "net:https://json.schemastore.org"],
+  "contributes": {
+    "window": { "width": 900, "height": 600 },
+    "fileTypes": ["", "txt", "md", "markdown", "log", "csv", "json", "js", "mjs", "cjs", "ts", "css", "html", "htm", "xml", "svg", "py", "sh", "yml", "yaml", "ini", "toml", "env"],
+    "commands": [
+      { "id": "editor.save", "label": "Save", "keys": ["Ctrl+S"] },
+      { "id": "editor.saveAs", "label": "Save as", "keys": ["Ctrl+Shift+S"] },
+      { "id": "editor.find", "label": "Find", "keys": ["Ctrl+F"] },
+      { "id": "editor.replace", "label": "Find and replace", "keys": ["Ctrl+H"] },
+      { "id": "editor.new", "label": "New document", "keys": ["Ctrl+Alt+N"] },
+      { "id": "editor.openFile", "label": "Open file", "keys": ["Ctrl+O"] },
+      { "id": "editor.openFolder", "label": "Open folder", "keys": ["Ctrl+Alt+O"] },
+      { "id": "editor.sidebar", "label": "Show or hide folder", "keys": ["Ctrl+B"] },
+      { "id": "editor.complete", "label": "Show suggestions", "keys": ["Ctrl+Space"] },
+      { "id": "editor.closeTab", "label": "Close tab", "keys": ["Ctrl+Alt+W"] },
+      { "id": "editor.nextTab", "label": "Next tab", "keys": ["Ctrl+Alt+PageDown"] },
+      { "id": "editor.previousTab", "label": "Previous tab", "keys": ["Ctrl+Alt+PageUp"] },
+      { "id": "editor.reopenTab", "label": "Reopen closed tab", "keys": ["Ctrl+Alt+T"] }
+    ],
+    "automation": [
+      { "id": "editor.save", "label": "Save the file", "target": "window" },
+      { "id": "editor.replace", "label": "Replace all in the text", "target": "window",
+        "params": {
+          "find": { "type": "text", "label": "Find" },
+          "replace": { "type": "text", "label": "Replace with" },
+          "matchCase": { "type": "boolean", "label": "Match case" },
+          "wholeWord": { "type": "boolean", "label": "Whole word" },
+          "regex": { "type": "boolean", "label": "Regular expression" }
+        } },
+      { "id": "editor.saveAs", "label": "Save as", "target": "window", "result": "file",
+        "params": {
+          "folder": { "type": "folder", "label": "Folder" },
+          "name": { "type": "text", "label": "Name", "maxLength": 255 }
+        } }
+    ]
+  }
+}

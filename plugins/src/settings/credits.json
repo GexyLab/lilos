@@ -1,0 +1,1209 @@
+{
+  "libraries": [
+    {
+      "kind": "library",
+      "name": "@noble/ciphers",
+      "version": "1.3.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2022 Paul Miller (https://paulmillr.com)",
+      "url": "https://paulmillr.com/noble/",
+      "usedBy": [
+        "filecrypt"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "@shikijs/core",
+      "version": "4.5.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2021 Pine Wu",
+      "url": "https://github.com/shikijs/shiki",
+      "usedBy": [
+        "editor"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "@shikijs/engine-javascript",
+      "version": "4.5.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2021 Pine Wu",
+      "url": "https://github.com/shikijs/shiki",
+      "usedBy": [
+        "editor"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "@shikijs/langs",
+      "version": "4.5.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2021 Pine Wu",
+      "url": "https://github.com/shikijs/shiki",
+      "usedBy": [
+        "editor"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "@shikijs/primitive",
+      "version": "4.5.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2021 Pine Wu",
+      "url": "https://github.com/shikijs/shiki",
+      "usedBy": [
+        "editor"
+      ],
+      "via": [
+        "@shikijs/core"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "@shikijs/themes",
+      "version": "4.5.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2021 Pine Wu",
+      "url": "https://github.com/shikijs/shiki",
+      "usedBy": [
+        "editor"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "@shikijs/types",
+      "version": "4.5.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2021 Pine Wu",
+      "url": "https://github.com/shikijs/shiki",
+      "usedBy": [
+        "editor"
+      ],
+      "via": [
+        "@shikijs/core",
+        "@shikijs/engine-javascript",
+        "@shikijs/langs",
+        "@shikijs/themes"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "@shikijs/vscode-textmate",
+      "version": "10.1.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) Microsoft Corporation",
+      "url": "https://github.com/shikijs/vscode-textmate",
+      "usedBy": [
+        "editor"
+      ],
+      "via": [
+        "@shikijs/core",
+        "@shikijs/engine-javascript",
+        "@shikijs/langs",
+        "@shikijs/themes"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "@ungap/structured-clone",
+      "version": "1.4.0",
+      "license": "ISC",
+      "copyright": "Copyright (c) 2021, Andrea Giammarchi, @WebReflection",
+      "url": "https://github.com/ungap/structured-clone",
+      "usedBy": [
+        "editor"
+      ],
+      "via": [
+        "@shikijs/core"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "@vscode/l10n",
+      "version": "0.0.18",
+      "license": "MIT",
+      "copyright": "© Microsoft Corporation",
+      "url": "https://github.com/Microsoft/vscode-l10n",
+      "usedBy": [
+        "editor"
+      ],
+      "via": [
+        "vscode-css-languageservice",
+        "vscode-html-languageservice",
+        "vscode-json-languageservice"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "@xterm/addon-fit",
+      "version": "0.11.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2019, The xterm.js authors (https://github.com/xtermjs/xterm.js)",
+      "url": "https://github.com/xtermjs/xterm.js/tree/master/addons/addon-fit",
+      "usedBy": [
+        "terminal"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "@xterm/addon-search",
+      "version": "0.16.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2017, The xterm.js authors (https://github.com/xtermjs/xterm.js)",
+      "url": "https://github.com/xtermjs/xterm.js/tree/master/addons/addon-search",
+      "usedBy": [
+        "terminal"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "@xterm/addon-unicode11",
+      "version": "0.9.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2019, The xterm.js authors (https://github.com/xtermjs/xterm.js)",
+      "url": "https://github.com/xtermjs/xterm.js/tree/master/addons/addon-unicode11",
+      "usedBy": [
+        "terminal"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "@xterm/xterm",
+      "version": "6.0.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2017-2019, The xterm.js authors (https://github.com/xtermjs/xterm.js)",
+      "url": "https://github.com/xtermjs/xterm.js",
+      "usedBy": [
+        "terminal"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "asn1",
+      "version": "0.2.6",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2011 Mark Cavage, All rights reserved.",
+      "url": "https://github.com/joyent/node-asn1",
+      "usedBy": [
+        "module:ssh"
+      ],
+      "via": [
+        "ssh2"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "basic-ftp",
+      "version": "6.2.3",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2019 Patrick Juchli",
+      "url": "https://github.com/patrickjuchli/basic-ftp",
+      "usedBy": [
+        "module:netfs-ftp"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "bcrypt-pbkdf",
+      "version": "1.0.2",
+      "license": "BSD-3-Clause",
+      "copyright": "Copyright 1997 Niels Provos <provos@physnet.uni-hamburg.de>",
+      "url": "https://github.com/joyent/node-bcrypt-pbkdf",
+      "usedBy": [
+        "module:ssh"
+      ],
+      "via": [
+        "ssh2"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "buildcheck",
+      "version": "0.0.7",
+      "license": "MIT",
+      "copyright": "Copyright Brian White. All rights reserved.",
+      "url": "https://github.com/mscdex/buildcheck",
+      "usedBy": [
+        "module:ssh"
+      ],
+      "via": [
+        "ssh2"
+      ],
+      "optional": true
+    },
+    {
+      "kind": "library",
+      "name": "ccount",
+      "version": "2.0.1",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2015 Titus Wormer <tituswormer@gmail.com>",
+      "url": "https://github.com/wooorm/ccount",
+      "usedBy": [
+        "editor"
+      ],
+      "via": [
+        "@shikijs/core"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "character-entities-html4",
+      "version": "2.1.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2015 Titus Wormer <tituswormer@gmail.com>",
+      "url": "https://github.com/wooorm/character-entities-html4",
+      "usedBy": [
+        "editor"
+      ],
+      "via": [
+        "@shikijs/core"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "character-entities-legacy",
+      "version": "3.0.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2015 Titus Wormer <tituswormer@gmail.com>",
+      "url": "https://github.com/wooorm/character-entities-legacy",
+      "usedBy": [
+        "editor"
+      ],
+      "via": [
+        "@shikijs/core"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "comma-separated-tokens",
+      "version": "2.0.3",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2016 Titus Wormer <tituswormer@gmail.com>",
+      "url": "https://github.com/wooorm/comma-separated-tokens",
+      "usedBy": [
+        "editor"
+      ],
+      "via": [
+        "@shikijs/core"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "cpu-features",
+      "version": "0.0.10",
+      "license": "MIT",
+      "copyright": "Copyright Brian White. All rights reserved.",
+      "url": "https://github.com/mscdex/cpu-features",
+      "usedBy": [
+        "module:ssh"
+      ],
+      "via": [
+        "ssh2"
+      ],
+      "optional": true
+    },
+    {
+      "kind": "library",
+      "name": "dequal",
+      "version": "2.0.3",
+      "license": "MIT",
+      "copyright": "Copyright (c) Luke Edwards <luke.edwards05@gmail.com> (lukeed.com)",
+      "url": "https://github.com/lukeed/dequal",
+      "usedBy": [
+        "editor"
+      ],
+      "via": [
+        "@shikijs/core"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "devlop",
+      "version": "1.1.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2023 Titus Wormer <tituswormer@gmail.com>",
+      "url": "https://github.com/wooorm/devlop",
+      "usedBy": [
+        "editor"
+      ],
+      "via": [
+        "@shikijs/core"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "fflate",
+      "version": "0.8.2",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2023 Arjun Barrett",
+      "url": "https://101arrowz.github.io/fflate",
+      "usedBy": [
+        "zip"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "hast-util-to-html",
+      "version": "9.0.6",
+      "license": "MIT",
+      "copyright": "Copyright (c) Titus Wormer <tituswormer@gmail.com>",
+      "url": "https://github.com/syntax-tree/hast-util-to-html",
+      "usedBy": [
+        "editor"
+      ],
+      "via": [
+        "@shikijs/core"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "hast-util-whitespace",
+      "version": "3.0.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2016 Titus Wormer <tituswormer@gmail.com>",
+      "url": "https://github.com/syntax-tree/hast-util-whitespace",
+      "usedBy": [
+        "editor"
+      ],
+      "via": [
+        "@shikijs/core"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "html-void-elements",
+      "version": "3.0.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2016 Titus Wormer <tituswormer@gmail.com>",
+      "url": "https://github.com/wooorm/html-void-elements",
+      "usedBy": [
+        "editor"
+      ],
+      "via": [
+        "@shikijs/core"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "isolated-vm",
+      "version": "6.2.0",
+      "license": "ISC",
+      "copyright": "Copyright 2017 Marcel Laverdet",
+      "url": "https://github.com/laverdet/isolated-vm",
+      "usedBy": [
+        "module:services-isolate"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "jsonc-parser",
+      "version": "3.3.1",
+      "license": "MIT",
+      "copyright": "Copyright (c) Microsoft",
+      "url": "https://github.com/microsoft/node-jsonc-parser",
+      "usedBy": [
+        "editor"
+      ],
+      "via": [
+        "vscode-json-languageservice"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "mdast-util-to-hast",
+      "version": "13.2.1",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2016 Titus Wormer <tituswormer@gmail.com>",
+      "url": "https://github.com/syntax-tree/mdast-util-to-hast",
+      "usedBy": [
+        "editor"
+      ],
+      "via": [
+        "@shikijs/core"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "micromark-util-character",
+      "version": "2.1.1",
+      "license": "MIT",
+      "copyright": "Copyright (c) Titus Wormer <tituswormer@gmail.com>",
+      "url": "https://github.com/micromark/micromark/tree/main/packages/micromark-util-character",
+      "usedBy": [
+        "editor"
+      ],
+      "via": [
+        "@shikijs/core"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "micromark-util-encode",
+      "version": "2.0.1",
+      "license": "MIT",
+      "copyright": "Copyright (c) Titus Wormer <tituswormer@gmail.com>",
+      "url": "https://github.com/micromark/micromark/tree/main/packages/micromark-util-encode",
+      "usedBy": [
+        "editor"
+      ],
+      "via": [
+        "@shikijs/core"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "micromark-util-sanitize-uri",
+      "version": "2.0.1",
+      "license": "MIT",
+      "copyright": "Copyright (c) Titus Wormer <tituswormer@gmail.com>",
+      "url": "https://github.com/micromark/micromark/tree/main/packages/micromark-util-sanitize-uri",
+      "usedBy": [
+        "editor"
+      ],
+      "via": [
+        "@shikijs/core"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "micromark-util-symbol",
+      "version": "2.0.1",
+      "license": "MIT",
+      "copyright": "Copyright (c) Titus Wormer <tituswormer@gmail.com>",
+      "url": "https://github.com/micromark/micromark/tree/main/packages/micromark-util-symbol",
+      "usedBy": [
+        "editor"
+      ],
+      "via": [
+        "@shikijs/core"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "micromark-util-types",
+      "version": "2.0.3",
+      "license": "MIT",
+      "copyright": "Copyright (c) Titus Wormer <tituswormer@gmail.com>",
+      "url": "https://github.com/micromark/micromark/tree/main/packages/micromark-util-types",
+      "usedBy": [
+        "editor"
+      ],
+      "via": [
+        "@shikijs/core"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "nan",
+      "version": "2.30.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2018 [NAN contributors](<https://github.com/nodejs/nan#wg-members--collaborators>)",
+      "url": "https://github.com/nodejs/nan",
+      "usedBy": [
+        "module:ssh"
+      ],
+      "via": [
+        "ssh2"
+      ],
+      "optional": true
+    },
+    {
+      "kind": "library",
+      "name": "node-gyp-build",
+      "version": "4.8.4",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2017 Mathias Buus",
+      "url": "https://github.com/prebuild/node-gyp-build",
+      "usedBy": [
+        "module:services-isolate"
+      ],
+      "via": [
+        "isolated-vm"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "oniguruma-parser",
+      "version": "0.12.2",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2025-2026 Steven Levithan",
+      "url": "https://github.com/slevithan/oniguruma-parser",
+      "usedBy": [
+        "editor"
+      ],
+      "via": [
+        "@shikijs/engine-javascript"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "oniguruma-to-es",
+      "version": "4.3.6",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2024-2026 Steven Levithan",
+      "url": "https://github.com/slevithan/oniguruma-to-es",
+      "usedBy": [
+        "editor"
+      ],
+      "via": [
+        "@shikijs/engine-javascript"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "pg",
+      "version": "8.23.1",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2010 - 2021 Brian Carlson",
+      "url": "https://github.com/brianc/node-postgres",
+      "usedBy": [
+        "module:fs-postgres"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "pg-cloudflare",
+      "version": "1.4.1",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2010 - 2021 Brian Carlson",
+      "url": "https://github.com/brianc/node-postgres",
+      "usedBy": [
+        "module:fs-postgres"
+      ],
+      "via": [
+        "pg"
+      ],
+      "optional": true
+    },
+    {
+      "kind": "library",
+      "name": "pg-connection-string",
+      "version": "2.14.1",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2014 Iced Development",
+      "url": "https://github.com/brianc/node-postgres/tree/master/packages/pg-connection-string",
+      "usedBy": [
+        "module:fs-postgres"
+      ],
+      "via": [
+        "pg"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "pg-int8",
+      "version": "1.0.1",
+      "license": "ISC",
+      "copyright": "Copyright © 2017, Charmander <~@charmander.me>",
+      "url": "https://github.com/charmander/pg-int8",
+      "usedBy": [
+        "module:fs-postgres"
+      ],
+      "via": [
+        "pg"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "pg-pool",
+      "version": "3.14.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2017 Brian M. Carlson",
+      "url": "https://github.com/brianc/node-postgres/tree/master/packages/pg-pool",
+      "usedBy": [
+        "module:fs-postgres"
+      ],
+      "via": [
+        "pg"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "pg-protocol",
+      "version": "1.16.1",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2010 - 2021 Brian Carlson",
+      "url": "https://github.com/brianc/node-postgres",
+      "usedBy": [
+        "module:fs-postgres"
+      ],
+      "via": [
+        "pg"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "pg-types",
+      "version": "2.2.0",
+      "license": "MIT",
+      "copyright": "© Brian M. Carlson",
+      "url": "https://github.com/brianc/node-pg-types",
+      "usedBy": [
+        "module:fs-postgres"
+      ],
+      "via": [
+        "pg"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "pgpass",
+      "version": "1.0.5",
+      "license": "MIT",
+      "copyright": "© Hannes Hörl",
+      "url": "https://github.com/hoegaarden/pgpass",
+      "usedBy": [
+        "module:fs-postgres"
+      ],
+      "via": [
+        "pg"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "postgres-array",
+      "version": "2.0.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) Ben Drucker <bvdrucker@gmail.com> (bendrucker.me)",
+      "url": "https://github.com/bendrucker/postgres-array",
+      "usedBy": [
+        "module:fs-postgres"
+      ],
+      "via": [
+        "pg"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "postgres-bytea",
+      "version": "1.0.1",
+      "license": "MIT",
+      "copyright": "Copyright (c) Ben Drucker <bvdrucker@gmail.com> (bendrucker.me)",
+      "url": "https://github.com/bendrucker/postgres-bytea",
+      "usedBy": [
+        "module:fs-postgres"
+      ],
+      "via": [
+        "pg"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "postgres-date",
+      "version": "1.0.7",
+      "license": "MIT",
+      "copyright": "Copyright (c) Ben Drucker <bvdrucker@gmail.com> (bendrucker.me)",
+      "url": "https://github.com/bendrucker/postgres-date",
+      "usedBy": [
+        "module:fs-postgres"
+      ],
+      "via": [
+        "pg"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "postgres-interval",
+      "version": "1.2.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) Ben Drucker <bvdrucker@gmail.com> (bendrucker.me)",
+      "url": "https://github.com/bendrucker/postgres-interval",
+      "usedBy": [
+        "module:fs-postgres"
+      ],
+      "via": [
+        "pg"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "property-information",
+      "version": "7.2.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) Titus Wormer <mailto:tituswormer@gmail.com>",
+      "url": "https://github.com/wooorm/property-information",
+      "usedBy": [
+        "editor"
+      ],
+      "via": [
+        "@shikijs/core"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "regex",
+      "version": "6.1.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2025 Steven Levithan",
+      "url": "https://github.com/slevithan/regex",
+      "usedBy": [
+        "editor"
+      ],
+      "via": [
+        "@shikijs/engine-javascript"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "regex-recursion",
+      "version": "6.0.2",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2025 Steven Levithan",
+      "url": "https://github.com/slevithan/regex-recursion",
+      "usedBy": [
+        "editor"
+      ],
+      "via": [
+        "@shikijs/engine-javascript"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "regex-utilities",
+      "version": "2.3.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2024 Steven Levithan",
+      "url": "https://github.com/slevithan/regex-utilities",
+      "usedBy": [
+        "editor"
+      ],
+      "via": [
+        "@shikijs/engine-javascript"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "safer-buffer",
+      "version": "2.1.2",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2018 Nikita Skovoroda <chalkerx@gmail.com>",
+      "url": "https://github.com/ChALkeR/safer-buffer",
+      "usedBy": [
+        "module:ssh"
+      ],
+      "via": [
+        "ssh2"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "smb3-client",
+      "version": "0.2.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2026 Eurico Jardim",
+      "url": "https://github.com/euricojardim/smb3-client",
+      "usedBy": [
+        "module:netfs-smb"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "space-separated-tokens",
+      "version": "2.0.2",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2016 Titus Wormer <tituswormer@gmail.com>",
+      "url": "https://github.com/wooorm/space-separated-tokens",
+      "usedBy": [
+        "editor"
+      ],
+      "via": [
+        "@shikijs/core"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "split2",
+      "version": "4.2.0",
+      "license": "ISC",
+      "copyright": "Copyright (c) 2014-2018, Matteo Collina <hello@matteocollina.com>",
+      "url": "https://github.com/mcollina/split2",
+      "usedBy": [
+        "module:fs-postgres"
+      ],
+      "via": [
+        "pg"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "ssh2",
+      "version": "1.17.0",
+      "license": "MIT",
+      "copyright": "Copyright Brian White. All rights reserved.",
+      "url": "https://github.com/mscdex/ssh2",
+      "usedBy": [
+        "module:ssh"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "stringify-entities",
+      "version": "4.0.4",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2015 Titus Wormer <mailto:tituswormer@gmail.com>",
+      "url": "https://github.com/wooorm/stringify-entities",
+      "usedBy": [
+        "editor"
+      ],
+      "via": [
+        "@shikijs/core"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "tree-sitter-bash",
+      "version": "0.25.1",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2017 Max Brunsfeld",
+      "url": "https://github.com/tree-sitter/tree-sitter-bash",
+      "usedBy": [
+        "editor"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "tree-sitter-css",
+      "version": "0.25.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2018 Max Brunsfeld",
+      "url": "https://github.com/tree-sitter/tree-sitter-css",
+      "usedBy": [
+        "editor"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "tree-sitter-html",
+      "version": "0.23.2",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2014 Max Brunsfeld",
+      "url": "https://github.com/tree-sitter/tree-sitter-html",
+      "usedBy": [
+        "editor"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "tree-sitter-javascript",
+      "version": "0.25.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2014 Max Brunsfeld",
+      "url": "https://github.com/tree-sitter/tree-sitter-javascript",
+      "usedBy": [
+        "editor"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "tree-sitter-json",
+      "version": "0.24.8",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2014 Max Brunsfeld",
+      "url": "https://github.com/tree-sitter/tree-sitter-json",
+      "usedBy": [
+        "editor"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "tree-sitter-python",
+      "version": "0.25.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2016 Max Brunsfeld",
+      "url": "https://github.com/tree-sitter/tree-sitter-python",
+      "usedBy": [
+        "editor"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "trim-lines",
+      "version": "3.0.1",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2015 Titus Wormer <mailto:tituswormer@gmail.com>",
+      "url": "https://github.com/wooorm/trim-lines",
+      "usedBy": [
+        "editor"
+      ],
+      "via": [
+        "@shikijs/core"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "tweetnacl",
+      "version": "0.14.5",
+      "license": "Unlicense",
+      "copyright": "© TweetNaCl-js contributors",
+      "url": "https://tweetnacl.js.org",
+      "usedBy": [
+        "module:ssh"
+      ],
+      "via": [
+        "ssh2"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "unist-util-is",
+      "version": "6.0.1",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2015 Titus Wormer <tituswormer@gmail.com>",
+      "url": "https://github.com/syntax-tree/unist-util-is",
+      "usedBy": [
+        "editor"
+      ],
+      "via": [
+        "@shikijs/core"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "unist-util-position",
+      "version": "5.0.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2015 Titus Wormer <tituswormer@gmail.com>",
+      "url": "https://github.com/syntax-tree/unist-util-position",
+      "usedBy": [
+        "editor"
+      ],
+      "via": [
+        "@shikijs/core"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "unist-util-stringify-position",
+      "version": "4.0.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2016 Titus Wormer <tituswormer@gmail.com>",
+      "url": "https://github.com/syntax-tree/unist-util-stringify-position",
+      "usedBy": [
+        "editor"
+      ],
+      "via": [
+        "@shikijs/core"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "unist-util-visit",
+      "version": "5.2.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) Titus Wormer <tituswormer@gmail.com>",
+      "url": "https://github.com/syntax-tree/unist-util-visit",
+      "usedBy": [
+        "editor"
+      ],
+      "via": [
+        "@shikijs/core"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "unist-util-visit-parents",
+      "version": "6.1.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) Titus Wormer <tituswormer@gmail.com>",
+      "url": "https://github.com/syntax-tree/unist-util-visit-parents",
+      "usedBy": [
+        "editor"
+      ],
+      "via": [
+        "@shikijs/core"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "vfile",
+      "version": "6.0.3",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2015 Titus Wormer <tituswormer@gmail.com>",
+      "url": "https://github.com/vfile/vfile",
+      "usedBy": [
+        "editor"
+      ],
+      "via": [
+        "@shikijs/core"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "vfile-message",
+      "version": "4.0.3",
+      "license": "MIT",
+      "copyright": "Copyright (c) Titus Wormer <tituswormer@gmail.com>",
+      "url": "https://github.com/vfile/vfile-message",
+      "usedBy": [
+        "editor"
+      ],
+      "via": [
+        "@shikijs/core"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "vscode-css-languageservice",
+      "version": "6.3.10",
+      "license": "MIT",
+      "copyright": "Copyright (c) Microsoft",
+      "url": "https://github.com/Microsoft/vscode-css-languageservice",
+      "usedBy": [
+        "editor"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "vscode-html-languageservice",
+      "version": "5.6.2",
+      "license": "MIT",
+      "copyright": "Copyright (c) Microsoft",
+      "url": "https://github.com/Microsoft/vscode-html-languageservice",
+      "usedBy": [
+        "editor"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "vscode-json-languageservice",
+      "version": "5.7.2",
+      "license": "MIT",
+      "copyright": "Copyright (c) Microsoft",
+      "url": "https://github.com/Microsoft/vscode-json-languageservice",
+      "usedBy": [
+        "editor"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "vscode-languageserver-textdocument",
+      "version": "1.0.15",
+      "license": "MIT",
+      "copyright": "Copyright (c) Microsoft Corporation",
+      "url": "https://github.com/Microsoft/vscode-languageserver-node",
+      "usedBy": [
+        "editor"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "vscode-languageserver-types",
+      "version": "3.17.5",
+      "license": "MIT",
+      "copyright": "Copyright (c) Microsoft Corporation",
+      "url": "https://github.com/Microsoft/vscode-languageserver-node",
+      "usedBy": [
+        "editor"
+      ],
+      "via": [
+        "vscode-css-languageservice",
+        "vscode-html-languageservice",
+        "vscode-json-languageservice"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "vscode-uri",
+      "version": "3.2.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) Microsoft",
+      "url": "https://github.com/microsoft/vscode-uri",
+      "usedBy": [
+        "editor"
+      ],
+      "via": [
+        "vscode-css-languageservice",
+        "vscode-html-languageservice",
+        "vscode-json-languageservice"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "web-tree-sitter",
+      "version": "0.27.1",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2018 Max Brunsfeld",
+      "url": "https://github.com/tree-sitter/tree-sitter",
+      "usedBy": [
+        "editor"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "xtend",
+      "version": "4.0.2",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2012-2014 Raynos.",
+      "url": "https://github.com/Raynos/xtend",
+      "usedBy": [
+        "module:fs-postgres"
+      ],
+      "via": [
+        "pg"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "zwitch",
+      "version": "2.0.4",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2016 Titus Wormer <tituswormer@gmail.com>",
+      "url": "https://github.com/wooorm/zwitch",
+      "usedBy": [
+        "editor"
+      ],
+      "via": [
+        "@shikijs/core"
+      ]
+    },
+    {
+      "kind": "font",
+      "name": "JetBrains Mono",
+      "version": "",
+      "license": "OFL-1.1",
+      "copyright": "Copyright 2020 The JetBrains Mono Project Authors",
+      "url": "https://github.com/JetBrains/JetBrainsMono",
+      "usedBy": [
+        "lilos"
+      ]
+    },
+    {
+      "kind": "font",
+      "name": "Manrope",
+      "version": "",
+      "license": "OFL-1.1",
+      "copyright": "Copyright 2018 The Manrope Project Authors",
+      "url": "https://github.com/sharanda/manrope",
+      "usedBy": [
+        "lilos"
+      ]
+    },
+    {
+      "kind": "tool",
+      "name": "vite",
+      "version": "8.3.5",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2019-present, VoidZero Inc. and Vite contributors",
+      "url": "https://vite.dev",
+      "usedBy": []
+    }
+  ],
+  "names": {
+    "filecrypt": {
+      "en": "FileCrypt",
+      "it": "FileCrypt"
+    },
+    "editor": {
+      "en": "Editor",
+      "it": "Editor"
+    },
+    "terminal": {
+      "en": "Terminal",
+      "it": "Terminale"
+    },
+    "zip": {
+      "en": "Zip",
+      "it": "Zip"
+    }
+  }
+}

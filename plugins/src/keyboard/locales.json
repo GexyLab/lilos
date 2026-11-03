@@ -1,0 +1,60 @@
+{
+  "en": {
+    "strings": {
+      "@name": "On-Screen Keyboard",
+      "@description": "A keyboard to type with the mouse or a finger, in the window where you are writing. Italian and US layouts.",
+      "title": "On-Screen Keyboard",
+      "needsNewer": "This keyboard needs a newer lilOS: update lilOS to type with it.",
+      "layout.it": "Italiano",
+      "layout.us": "English (US)",
+      "key.layout": "Layout: {name}. Press to change it",
+      "key.ctrl": "Ctrl",
+      "key.delete": "Del",
+      "key.Backspace": "Backspace",
+      "key.Tab": "Tab",
+      "key.CapsLock": "Caps Lock",
+      "key.Enter": "Enter",
+      "key.ShiftLeft": "Shift (twice: stays on)",
+      "key.ShiftRight": "Shift (twice: stays on)",
+      "key.ControlLeft": "Ctrl (twice: stays on)",
+      "key.AltLeft": "Alt (twice: stays on)",
+      "key.AltRight": "AltGr (twice: stays on)",
+      "key.Escape": "Esc",
+      "key.Delete": "Delete",
+      "key.Space": "Space",
+      "key.ArrowLeft": "Left",
+      "key.ArrowRight": "Right",
+      "key.ArrowUp": "Up",
+      "key.ArrowDown": "Down"
+    }
+  },
+  "it": {
+    "strings": {
+      "@name": "Tastiera a schermo",
+      "@description": "Una tastiera per scrivere con il mouse o con un dito, nella finestra in cui stai scrivendo. Layout italiano e americano.",
+      "title": "Tastiera a schermo",
+      "needsNewer": "Questa tastiera ha bisogno di un lilOS più recente: aggiorna lilOS per scrivere con lei.",
+      "layout.it": "Italiano",
+      "layout.us": "English (US)",
+      "key.layout": "Layout: {name}. Premi per cambiarlo",
+      "key.ctrl": "Ctrl",
+      "key.delete": "Canc",
+      "key.Backspace": "Cancella a sinistra",
+      "key.Tab": "Tab",
+      "key.CapsLock": "Bloc Maiusc",
+      "key.Enter": "Invio",
+      "key.ShiftLeft": "Maiusc (due volte: resta attivo)",
+      "key.ShiftRight": "Maiusc (due volte: resta attivo)",
+      "key.ControlLeft": "Ctrl (due volte: resta attivo)",
+      "key.AltLeft": "Alt (due volte: resta attivo)",
+      "key.AltRight": "AltGr (due volte: resta attivo)",
+      "key.Escape": "Esc",
+      "key.Delete": "Canc",
+      "key.Space": "Spazio",
+      "key.ArrowLeft": "Sinistra",
+      "key.ArrowRight": "Destra",
+      "key.ArrowUp": "Su",
+      "key.ArrowDown": "Giù"
+    }
+  }
+}

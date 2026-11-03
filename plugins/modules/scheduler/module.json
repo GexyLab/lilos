@@ -1,0 +1,36 @@
+{
+  "name": "scheduler",
+  "version": "1.1.0",
+  "description": "Pianificazione: le operazioni a una data e ora o ripetute, anche a lilOS chiuso. Modulo obbligatorio del kernel",
+  "icon": { "glyph": "clock", "color": "#6e56cf" },
+  "kernel": "1",
+  "required": true,
+  "provides": [
+    "scheduler"
+  ],
+  "requires": [],
+  "data": [
+    "scheduler.json",
+    "history.json"
+  ],
+  "defaultConfig": {
+    "maxTasksPerUser": 100,
+    "minIntervalMinutes": 1,
+    "maxParallel": 4,
+    "historyPerTask": 50,
+    "catchUpHours": 12,
+    "outputKb": 16,
+    "maxParallelPerUser": 2,
+    "historyMb": 64
+  },
+  "settings": [
+    { "key": "maxTasksPerUser", "type": "number", "min": 1, "max": 1000, "default": 100, "label": { "en": "Operations per user, at most", "it": "Operazioni per utente, al massimo" } },
+    { "key": "minIntervalMinutes", "type": "number", "min": 1, "max": 1440, "default": 1, "label": { "en": "Shortest time between two runs (minutes)", "it": "Tempo minimo tra due volte (minuti)" } },
+    { "key": "maxParallel", "type": "number", "min": 1, "max": 32, "default": 4, "label": { "en": "Operations running together, at most", "it": "Operazioni in corso insieme, al massimo" } },
+    { "key": "maxParallelPerUser", "type": "number", "min": 1, "max": 32, "default": 2, "label": { "en": "Operations of one user running together, at most", "it": "Operazioni di un utente in corso insieme, al massimo" } },
+    { "key": "historyPerTask", "type": "number", "min": 5, "max": 500, "default": 50, "label": { "en": "Runs kept in the history of each operation", "it": "Corse conservate nello storico di ogni operazione" } },
+    { "key": "catchUpHours", "type": "number", "min": 1, "max": 168, "default": 12, "label": { "en": "Missed runs are made up within (hours)", "it": "Le volte perse si recuperano entro (ore)" } },
+    { "key": "outputKb", "type": "number", "min": 1, "max": 256, "default": 16, "label": { "en": "Output kept of each run (KB)", "it": "Output conservato di ogni corsa (KB)" } },
+    { "key": "historyMb", "type": "number", "min": 1, "max": 1024, "default": 64, "label": { "en": "Output of all the runs kept, at most (MB)", "it": "Output di tutte le corse conservato, al massimo (MB)" } }
+  ]
+}

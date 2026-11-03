@@ -1,0 +1,12 @@
+{
+  "name": "netfs-smb",
+  "version": "1.1.0",
+  "description": "Connessioni SMB 2 e 3 nella cartella Rete: condivisioni di Windows e dei NAS, con utente e password o come ospite",
+  "kernel": "1",
+  "icon": { "glyph": "globe", "color": "#6b5bd2" },
+  "provides": [
+    "netfs.smb"
+  ],
+  "requires": [],
+  "defaultConfig": {}
+}

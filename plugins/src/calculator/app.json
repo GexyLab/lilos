@@ -1,0 +1,16 @@
+{
+  "id": "calculator",
+  "version": "1.1.0",
+  "kind": "local",
+  "name": "Calculator",
+  "description": "A simple desk calculator: addition, subtraction, multiplication, division, percentage, square and square root.",
+  "category": "productivity",
+  "icon": { "glyph": "calculator", "color": "#4a6fd1" },
+  "publisher": { "id": "lilos", "name": "lilOS" },
+  "sdk": "2",
+  "lilos": ">=1.22.0",
+  "entrypoints": { "main": { "kind": "window" } },
+  "contributes": {
+    "window": { "width": 320, "height": 480 }
+  }
+}

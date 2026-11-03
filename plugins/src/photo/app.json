@@ -1,0 +1,54 @@
+{
+  "id": "photo",
+  "version": "1.4.0",
+  "kind": "local",
+  "name": "Photo",
+  "description": "View and touch up images: drawing, text, cropping, resizing and conversion to PNG, JPEG or WebP.",
+  "category": "media",
+  "icon": { "glyph": "image", "color": "#e5734d" },
+  "publisher": { "id": "lilos", "name": "lilOS" },
+  "sdk": "2",
+  "system": true,
+  "lilos": ">=1.22.0",
+  "entrypoints": {
+    "main": { "kind": "window", "params": {
+      "file": {"type": "file", "label": "Image", "description": "The image to open"}
+    } },
+    "filePreview": { "kind": "background", "label": "Image previews" }
+  },
+  "permissions": ["fs.write:~", "ui.shortcuts"],
+  "contributes": {
+    "window": { "width": 900, "height": 620 },
+    "fileTypes": ["png", "jpg", "jpeg", "gif", "webp", "bmp", "avif", "ico", "svg"],
+    "commands": [
+      { "id": "photo.save", "label": "Save", "keys": ["Ctrl+S"] },
+      { "id": "photo.open", "label": "Open an image", "keys": ["Ctrl+O"] }
+    ],
+    "automation": [
+      { "id": "photo.resize", "label": "Resize the image", "target": "window",
+        "params": {
+          "width": { "type": "number", "label": "Width", "min": 1 },
+          "height": { "type": "number", "label": "Height", "min": 1 },
+          "unit": { "type": "choice", "label": "Unit", "options": [{ "value": "pixels", "label": "Pixels" }, { "value": "percent", "label": "Percent" }] },
+          "keepRatio": { "type": "boolean", "label": "Keep proportions", "description": "The height follows the width and the proportions of each image" },
+          "quality": { "type": "choice", "label": "Quality", "options": [{ "value": "high", "label": "High" }, { "value": "medium", "label": "Medium, faster" }, { "value": "pixel", "label": "Crisp pixels" }] }
+        } },
+      { "id": "photo.crop", "label": "Crop the image", "target": "window",
+        "params": {
+          "x": { "type": "number", "label": "Left", "description": "Pixels from the left edge", "min": 0 },
+          "y": { "type": "number", "label": "Top", "description": "Pixels from the top edge", "min": 0 },
+          "width": { "type": "number", "label": "Width", "min": 1 },
+          "height": { "type": "number", "label": "Height", "min": 1 }
+        } },
+      { "id": "photo.saveAs", "label": "Convert and save a copy", "target": "window", "result": "file",
+        "params": {
+          "format": { "type": "choice", "label": "Format", "options": [{ "value": "png", "label": "PNG" }, { "value": "jpeg", "label": "JPEG" }, { "value": "webp", "label": "WebP" }] },
+          "quality": { "type": "number", "label": "Quality", "description": "From 10 to 100, for JPEG and WebP", "min": 10, "max": 100 },
+          "name": { "type": "text", "label": "Name", "maxLength": 255 },
+          "folder": { "type": "folder", "label": "Folder" },
+          "open": { "type": "boolean", "label": "Open the copy after saving" }
+        } },
+      { "id": "photo.save", "label": "Save the image", "target": "window" }
+    ]
+  }
+}

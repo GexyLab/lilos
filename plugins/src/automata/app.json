@@ -1,0 +1,30 @@
+{
+  "id": "automata",
+  "version": "1.2.0",
+  "kind": "local",
+  "name": "Automata",
+  "description": "Record what you do in lilOS and do it again with a click: each step can ask for confirmation, or for its values, before it runs.",
+  "category": "productivity",
+  "icon": { "glyph": "automation", "color": "#7a4fd6" },
+  "publisher": { "id": "lilos", "name": "lilOS" },
+  "sdk": "2",
+  "system": true,
+  "lilos": ">=1.22.0",
+  "entrypoints": {
+    "main": { "kind": "window", "params": {
+      "file": { "type": "file", "label": "Automation", "description": "The automation to open" }
+    } },
+    "recorder": { "kind": "window", "label": "Recorder" },
+    "run": { "kind": "window", "label": "Run an automation" },
+    "cli": { "kind": "background", "label": "Terminal command" },
+    "triggers": { "kind": "background", "label": "Starts at a time moved to Scheduler" }
+  },
+  "permissions": ["fs.write:~"],
+  "contributes": {
+    "window": { "width": 1060, "height": 620 },
+    "fileTypes": ["automata"],
+    "shell": [
+      { "name": "automata", "entry": "cli", "help": true, "summary": "Lists and runs your automations", "usage": "automata list | automata run <name> [file…] [--field=value…] [--yes]" }
+    ]
+  }
+}

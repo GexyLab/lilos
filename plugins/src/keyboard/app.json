@@ -1,0 +1,16 @@
+{
+  "id": "keyboard",
+  "version": "1.0.0",
+  "kind": "local",
+  "name": "On-Screen Keyboard",
+  "description": "A keyboard to type with the mouse or a finger, in the window where you are writing. Italian and US layouts.",
+  "category": "system",
+  "icon": { "glyph": "keyboard", "color": "#5b6b82" },
+  "publisher": { "id": "lilos", "name": "lilOS" },
+  "sdk": "1",
+  "system": true,
+  "entrypoints": { "main": { "kind": "window" } },
+  "contributes": {
+    "window": { "width": 780, "height": 290 }
+  }
+}

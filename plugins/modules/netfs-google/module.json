@@ -1,0 +1,42 @@
+{
+  "name": "netfs-google",
+  "version": "1.0.0",
+  "description": "Google Drive e Google Foto nella cartella Rete: Il mio Drive o un Drive condiviso, con i documenti Google copiati in formato Office; «Importa da Google Foto» e gli album creati da lilOS",
+  "kernel": "1",
+  "icon": { "glyph": "cloud", "color": "#137333" },
+  "provides": [
+    "netfs.gdrive",
+    "netfs.gphotos"
+  ],
+  "requires": [],
+  "replaces": [
+    "netfs-gdrive",
+    "netfs-gphotos"
+  ],
+  "settings": [
+    {
+      "key": "shared", "type": "checkbox", "default": true,
+      "label": { "en": "Google Drive: show «Shared with me»", "it": "Google Drive: mostra «Condivisi con me»" },
+      "hint": { "en": "A folder at the top of each My Drive connection with what others shared", "it": "Una cartella in cima a ogni connessione a Il mio Drive con ciò che altri hanno condiviso" }
+    },
+    {
+      "key": "exportFormat", "type": "select", "default": "office",
+      "label": { "en": "Google documents copied out of Drive", "it": "Documenti Google copiati fuori da Drive" },
+      "options": [
+        { "value": "office", "label": { "en": "Office format (.docx, .xlsx, .pptx)", "it": "Formato Office (.docx, .xlsx, .pptx)" } },
+        { "value": "odf", "label": { "en": "OpenDocument (.odt, .ods, .odp)", "it": "OpenDocument (.odt, .ods, .odp)" } },
+        { "value": "pdf", "label": { "en": "PDF", "it": "PDF" } }
+      ]
+    },
+    {
+      "key": "photos", "type": "checkbox", "default": true,
+      "label": { "en": "Google Photos", "it": "Google Foto" },
+      "hint": { "en": "Off: only Google Drive (the project then needs no Photos APIs)", "it": "Spento: solo Google Drive (il progetto allora non ha bisogno delle API di Google Foto)" }
+    }
+  ],
+  "defaultConfig": {
+    "shared": true,
+    "exportFormat": "office",
+    "photos": true
+  }
+}

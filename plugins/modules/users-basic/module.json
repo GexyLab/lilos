@@ -1,0 +1,19 @@
+{
+  "name": "users-basic",
+  "version": "1.1.0",
+  "description": "Utenti e accesso con password, salvati in users.json nella cartella del modulo",
+  "icon": { "glyph": "user", "color": "#5f6673" },
+  "kernel": "1",
+  "provides": [
+    "auth",
+    "users"
+  ],
+  "requires": [],
+  "data": [
+    "users.json"
+  ],
+  "defaultConfig": {
+    "sessionDays": 30,
+    "idleDays": 7
+  }
+}

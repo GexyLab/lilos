@@ -1,0 +1,7 @@
+{
+  "name": "lilos-module-netfs-s3",
+  "version": "1.1.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {}
+}

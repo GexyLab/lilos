@@ -1,0 +1,30 @@
+/* The find bar (src/shared/FindBar.js). Every app that uses it loads these same rules: change them
+   only in ways that suit the older copies too (apps update one by one). */
+.sh-find { flex: none; display: flex; flex-direction: column; gap: 4px; padding: 5px 8px; border-bottom: 1px solid var(--border); background: var(--side); color: var(--text); font-size: 12px; }
+.sh-find[hidden], .sh-find-row[hidden] { display: none; }
+/* Over the content, at its top right (Terminal) */
+.sh-find.floating {
+  position: absolute; top: 6px; right: 14px; z-index: 5; max-width: calc(100% - 28px);
+  border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-pop);
+}
+.sh-find.floating .sh-find-input.ctl-text { width: 170px; flex: 0 1 auto; }
+.sh-find-row { display: flex; align-items: center; gap: 4px; min-width: 0; }
+.sh-find-input.ctl-text { flex: 1; min-width: 100px; width: auto; height: 24px; }
+.sh-find-input[aria-invalid="true"] { border-color: var(--danger); }
+.sh-find-indent { width: 26px; flex: none; }
+.sh-find-btn {
+  width: 26px; height: 24px; flex: none; display: grid; place-items: center; border-radius: var(--radius-sm);
+  color: var(--dim);
+}
+.sh-find-btn .ico { width: 14px; height: 14px; }
+.sh-find-btn:hover { background: var(--hover); color: var(--text); }
+.sh-find-btn:focus-visible, .sh-find-opt:focus-visible { outline: 2px solid var(--accent); outline-offset: -1px; }
+.sh-find-opt {
+  min-width: 26px; height: 24px; flex: none; padding: 0 5px; border: 1px solid transparent; border-radius: var(--radius-sm);
+  font: 600 11px/1 var(--mono); color: var(--dim);
+}
+.sh-find-opt:hover { background: var(--hover); color: var(--text); }
+.sh-find-opt[aria-pressed="true"] { color: var(--accent); background: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
+.sh-find-status { flex: none; min-width: 72px; max-width: 40%; padding: 0 4px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
+.sh-find-status.error { color: var(--danger); white-space: normal; }
+.sh-find .ctl-btn { height: 24px; padding: 0 10px; flex: none; }

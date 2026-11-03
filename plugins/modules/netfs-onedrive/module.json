@@ -1,0 +1,21 @@
+{
+  "name": "netfs-onedrive",
+  "version": "1.2.0",
+  "description": "Il tuo OneDrive (personale o di lavoro) nella cartella Rete, con «Apri in Office online» sui documenti Office e «Carica su OneDrive e apri» per quelli della Home",
+  "kernel": "1",
+  "icon": { "glyph": "cloud", "color": "#0f5bb5" },
+  "provides": [
+    "netfs.onedrive"
+  ],
+  "requires": [],
+  "settings": [
+    {
+      "key": "shared", "type": "checkbox", "default": false,
+      "label": { "en": "Open the folders shared with me", "it": "Apri le cartelle condivise con me" },
+      "hint": { "en": "Shared folders added to «My files» on onedrive.com (Add shortcut) open inside the connection. It asks for the Files.ReadWrite.All permission: everyone signs in again", "it": "Le cartelle condivise aggiunte a «I miei file» su onedrive.com (Aggiungi collegamento) si aprono dentro la connessione. Chiede il permesso Files.ReadWrite.All: tutti rifanno l'accesso" }
+    }
+  ],
+  "defaultConfig": {
+    "shared": false
+  }
+}

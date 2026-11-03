@@ -1,0 +1,12 @@
+{
+  "name": "netfs-s3",
+  "version": "1.1.0",
+  "description": "Bucket di Amazon S3 e dei servizi compatibili (Cloudflare R2, Backblaze B2, Wasabi, MinIO…) nella cartella Rete",
+  "kernel": "1",
+  "icon": { "glyph": "cloud", "color": "#c7781a" },
+  "provides": [
+    "netfs.s3"
+  ],
+  "requires": [],
+  "defaultConfig": {}
+}

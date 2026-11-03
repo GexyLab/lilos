@@ -1,0 +1,52 @@
+import { encodeReadRequest, decodeReadResponse } from "../wire/structs/read.js";
+import { SmbCommand, NTStatus, isSuccess, statusName } from "../wire/commands.js";
+import { SmbError } from "../errors.js";
+const DEFAULT_CHUNK = 1 << 16; // 64 KiB
+export async function readAll(open, length) {
+    const max = open.tree.conn.state?.maxReadSize ?? DEFAULT_CHUNK;
+    // Cap at 65536 so that creditCharge is always 1, keeping the credit window
+    // from stalling (the client starts with only a handful of credits).
+    const chunkSize = Math.min(max, DEFAULT_CHUNK);
+    const out = [];
+    let offset = 0n;
+    let remaining = length;
+    while (remaining > 0n) {
+        const want = Number(remaining > BigInt(chunkSize) ? BigInt(chunkSize) : remaining);
+        const chunk = await readAt(open, offset, want);
+        if (chunk.length === 0)
+            break;
+        out.push(chunk);
+        offset += BigInt(chunk.length);
+        remaining -= BigInt(chunk.length);
+    }
+    return Buffer.concat(out);
+}
+export async function readAt(open, offset, length) {
+    // Issue one SMB2 READ of at most DEFAULT_CHUNK bytes (creditCharge = 1)
+    // so the credit window never stalls.  If the caller requests more than
+    // DEFAULT_CHUNK bytes, loop in sub-chunks and concatenate the result.
+    const safeLength = Math.min(length, DEFAULT_CHUNK);
+    const charge = 1; // safeLength <= 65536, so creditCharge is always 1
+    const body = encodeReadRequest({ fileId: open.fileId, offset, length: safeLength });
+    const signing = open.tree.session.makeSigning();
+    const resp = await open.tree.conn.send(SmbCommand.READ, body, {
+        sessionId: open.tree.session.sessionId,
+        treeId: open.tree.treeId,
+        ...(signing !== undefined ? { signing } : {}),
+        encrypt: open.tree.encryptRequired,
+        creditCharge: charge,
+    });
+    if (resp.header.status === NTStatus.STATUS_END_OF_FILE)
+        return Buffer.alloc(0);
+    if (!isSuccess(resp.header.status)) {
+        throw new SmbError({ status: resp.header.status, message: `READ failed: ${statusName(resp.header.status)}` });
+    }
+    const first = decodeReadResponse(resp.body, 64);
+    if (first.length === 0 || safeLength >= length)
+        return first;
+    // Caller asked for more than one sub-chunk — read the remainder recursively.
+    const rest = await readAt(open, offset + BigInt(first.length), length - first.length);
+    if (rest.length === 0)
+        return first;
+    return Buffer.concat([first, rest]);
+}

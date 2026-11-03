@@ -1,0 +1,36 @@
+{
+  "id": "zip",
+  "version": "1.2.0",
+  "kind": "local",
+  "name": "Zip",
+  "description": "Compress files and folders into .zip archives and extract them, from the menu of files and folders (Compress → Zip or Unzip).",
+  "category": "productivity",
+  "icon": { "glyph": "archive", "color": "#b07a2a" },
+  "publisher": { "id": "lilos", "name": "lilOS" },
+  "sdk": "2",
+  "lilos": ">=1.22.0",
+  "entrypoints": {
+    "main": { "kind": "window" },
+    "work": { "kind": "background", "label": "Compress and extract" }
+  },
+  "permissions": ["fs.write:~", "ui.menus"],
+  "contributes": {
+    "window": { "width": 520, "height": 480 },
+    "fileTypes": ["zip"],
+    "menus": [
+      { "id": "zip.compress", "label": "Compress", "glyph": "archive" }
+    ],
+    "actions": [
+      { "id": "zip.zip", "label": "Zip", "entry": "work", "on": "item", "glyph": "archive", "menu": "zip.compress", "when": { "notExt": ["zip"] }, "many": true },
+      { "id": "zip.unzip", "label": "Unzip", "entry": "work", "on": "file", "glyph": "folderOpen", "menu": "zip.compress", "when": { "ext": ["zip"] }, "many": true }
+    ],
+    "automation": [
+      { "id": "zip.zip", "label": "Compress into a .zip", "entry": "work", "result": "file",
+        "description": "Makes a .zip archive of the items, next to them",
+        "params": { "items": { "type": "files", "label": "Items to compress", "subject": true } } },
+      { "id": "zip.unzip", "label": "Extract a .zip", "entry": "work", "result": "file",
+        "description": "Extracts the archive into a new folder next to it",
+        "params": { "file": { "type": "file", "label": "Archive", "subject": true } } }
+    ]
+  }
+}

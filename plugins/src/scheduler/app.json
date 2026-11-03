@@ -1,0 +1,39 @@
+{
+  "id": "scheduler",
+  "version": "1.1.0",
+  "kind": "local",
+  "name": "Scheduler",
+  "description": "Operations at a date and time or repeated, also with lilOS closed: reminders, backups of folders, web requests, Terminal commands, apps' services, opening apps and files, automations.",
+  "category": "system",
+  "icon": { "glyph": "clock", "color": "#6e56cf" },
+  "publisher": { "id": "lilos", "name": "lilOS" },
+  "sdk": "2",
+  "system": true,
+  "required": true,
+  "lilos": ">=1.22.0",
+  "entrypoints": {
+    "main": { "kind": "window" },
+    "edit": { "kind": "window", "label": "Edit an operation" },
+    "create": { "kind": "window", "label": "New operation" },
+    "history": { "kind": "window", "label": "History" },
+    "open": { "kind": "window", "label": "Open what a reminder says" }
+  },
+  "dependencies": [
+    { "module": "scheduler", "reason": "Runs the operations in the kernel, also with lilOS closed" }
+  ],
+  "permissions": ["fs.write:~", "ui.menus"],
+  "contributes": {
+    "window": { "width": 1120, "height": 620 },
+    "menus": [
+      { "id": "scheduler.plan", "label": "Schedule", "glyph": "clock" }
+    ],
+    "actions": [
+      { "id": "scheduler.copyFolder", "label": "Copy this folder…", "entry": "create", "on": "folder", "glyph": "transfer", "menu": "scheduler.plan" },
+      { "id": "scheduler.commandHere", "label": "Command in this folder…", "entry": "create", "on": "folder", "glyph": "terminal", "menu": "scheduler.plan" },
+      { "id": "scheduler.openFolder", "label": "Open it…", "entry": "create", "on": "folder", "glyph": "folderOpen", "menu": "scheduler.plan" },
+      { "id": "scheduler.runAutomation", "label": "Run this automation…", "entry": "create", "on": "file", "glyph": "automation", "menu": "scheduler.plan", "when": { "ext": ["automata"] } },
+      { "id": "scheduler.openFile", "label": "Open this file…", "entry": "create", "on": "file", "glyph": "open", "menu": "scheduler.plan", "when": { "notExt": ["automata"] } },
+      { "id": "scheduler.remind", "label": "Reminder about it…", "entry": "create", "on": "item", "glyph": "bell", "menu": "scheduler.plan" }
+    ]
+  }
+}

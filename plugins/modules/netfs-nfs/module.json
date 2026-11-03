@@ -1,0 +1,20 @@
+{
+  "name": "netfs-nfs",
+  "version": "1.1.0",
+  "description": "Cartelle NFS (versione 3) di server Linux e NAS nella cartella Rete, con UID e GID assegnati dall'amministratore a ogni utente",
+  "kernel": "1",
+  "icon": { "glyph": "disk", "color": "#5b3aa8" },
+  "provides": [
+    "netfs.nfs"
+  ],
+  "requires": [],
+  "settings": [
+    {
+      "key": "identities", "type": "textarea",
+      "label": { "en": "UID and GID of each user", "it": "UID e GID di ogni utente" },
+      "placeholder": "mario = 1026:100\nanna = 1027:100,101",
+      "hint": { "en": "One line per lilOS user: name = UID:GID (more groups after a comma). The NFS server believes these numbers: a user without a line cannot connect", "it": "Una riga per utente di lilOS: nome = UID:GID (altri gruppi dopo una virgola). Il server NFS si fida di questi numeri: un utente senza riga non si connette" }
+    }
+  ],
+  "defaultConfig": {}
+}

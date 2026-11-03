@@ -1,0 +1,17 @@
+{
+  "name": "ssh",
+  "version": "1.0.0",
+  "description": "SSH: terminali remoti (con password, chiave o codice monouso) e connessioni SFTP nella cartella Rete, con la stessa connessione e lo stesso accesso",
+  "kernel": "1",
+  "icon": { "glyph": "terminal", "color": "#1d6f57" },
+  "provides": [
+    "term.ssh",
+    "netfs.sftp"
+  ],
+  "requires": [],
+  "replaces": [
+    "term-ssh",
+    "netfs-sftp"
+  ],
+  "defaultConfig": {}
+}
