@@ -5,6 +5,7 @@ import { callEntrypoint, connectEntrypoint } from '../entrypoints.js';
 import { openFile } from '../open.js';
 import { filePreview } from '../filePreview.js';
 import { notify } from '../../notifications/notify.js';
+import { hardwareRule } from '../../host/desktop.js';
 
 /**
  * What an installed app may ask of lilOS through `lilos` (see bridge.js), each request checked
@@ -46,7 +47,8 @@ export function hostMethods({ pkg, win = null, handles, readOnly = new Set(), in
   const channels = new Set();
   win?.on('destroy', () => channels.forEach(port => port.detach()));
   const terminal = () => (perms.includes('term') ? term : fail('Permesso negato: term'));
-  const ports = () => (perms.includes('serial') ? serial : fail('Permesso negato: serial'));
+  // Serial ports: with the permission, or for every app when the program lilOS lets all of them (hardwareRule)
+  const ports = () => (perms.includes('serial') || hardwareRule() === 'all' ? serial : fail('Permesso negato: serial'));
   const moduleApi = name => (typeof name === 'string' && perms.includes(`kernel:${name}`) ? kernel.module(name) : fail(`Permesso negato: kernel:${String(name).slice(0, 40)}`));
   // The scheduler: an app's own operations (schedule), all of the user's to read (schedule.read) or to move (schedule.move)
   const own = () => (perms.includes('schedule') ? schedule.forApp(pkg.id) : fail('Permesso negato: schedule'));

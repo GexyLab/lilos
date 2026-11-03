@@ -1,6 +1,6 @@
 {
   "id": "files",
-  "version": "1.17.0",
+  "version": "1.18.0",
   "kind": "local",
   "name": "File Manager",
   "description": "Browse, search and organize files and folders: tags, links, desktop links, trash, info and preview.",
@@ -26,7 +26,8 @@
     { "module": "netfs-onedrive", "optional": true, "reason": "OneDrive in Network" },
     { "module": "netfs-google", "optional": true, "reason": "Google Drive and Google Photos in Network" },
     { "module": "netfs-s3", "optional": true, "reason": "Amazon S3 and compatible storage in Network" },
-    { "module": "netfs-azblob", "optional": true, "reason": "Azure Blob Storage in Network" }
+    { "module": "netfs-azblob", "optional": true, "reason": "Azure Blob Storage in Network" },
+    { "module": "netfs-local", "optional": true, "reason": "Folders of this computer in Network (with the program lilOS)" }
   ],
   "permissions": ["fs.write:~", "fs.workspaces", "tags.write", "desktop.items", "ui.shortcuts"],
   "contributes": {

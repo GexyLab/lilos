@@ -53,6 +53,8 @@ import { Workspaces } from './workspaces/Workspaces.js';
 import { notify } from './notifications/notify.js';
 import { connectAutomation } from './automation/index.js';
 import { connectSchedule } from './schedule/runner.js';
+import { connectDesktop } from './host/desktop.js';
+import { connectFileDrops } from './items/itemDrag.js';
 
 const root = document.getElementById('app');
 watchSession();
@@ -103,6 +105,10 @@ connectNotifications({ bell: taskbar.notificationBell, wm }).catch(err => consol
 connectNet({ wm, button: taskbar.transfersButton });
 connectSchedule({ wm });
 connectServices();
+// Inside the program lilOS (not a browser): the icon's number, system notifications, devices
+connectDesktop({ wm });
+// Files and folders dragged in from the computer
+connectFileDrops();
 Promise.all([workspaces.ready, workareas.ready]).then(() => {
   bus.emit('system:ready', { at: Date.now() });
   bus.emit('user:login', { user: kernel.data?.user ?? null, workspace: workspaces.currentId ?? null });

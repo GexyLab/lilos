@@ -23,6 +23,7 @@ const TABS = {
   gphotos: { module: 'netfs-google', icon: 'image', uses: 'google', hide: ['shared', 'exportFormat'] },
   azblob: { module: 'netfs-azblob', icon: 'cloud', uses: 'microsoft', steps: 3 },
   nfs: { module: 'netfs-nfs', icon: 'disk', steps: 4 },
+  localfolders: { module: 'netfs-local', icon: 'monitor', protocols: ['local'], steps: 2 },
   microsoft: { app: 'microsoft', icon: 'lock', protocols: ['onedrive', 'azblob'], steps: 5 },
   google: { app: 'google', icon: 'lock', protocols: ['gdrive', 'gphotos'], steps: 7 },
 };

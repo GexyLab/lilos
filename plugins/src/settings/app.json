@@ -1,6 +1,6 @@
 {
   "id": "settings",
-  "version": "1.18.1",
+  "version": "1.19.0",
   "kind": "local",
   "name": "Control Panel",
   "description": "Appearance, language, desk, user page, workspaces, notifications, tags, shortcuts, file types, startup services and apps, storage.",

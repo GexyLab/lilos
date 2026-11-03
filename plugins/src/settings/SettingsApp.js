@@ -15,6 +15,7 @@ import { servicesSections, watchServices } from './services.js';
 import { pipeSections, watchPipes } from './pipes.js';
 import { cloudTabs, isCloudTab, reloadCloud } from './cloud.js';
 import { creditsSections } from './credits.js';
+import { computerTab } from './computer.js';
 import { t, i18n } from './i18n.js';
 import './settings-app.css';
 
@@ -832,6 +833,8 @@ export default function createSettings({ openWindow, args } = {}) {
           { id: 'apps', get label() { return t('startup.apps.label'); }, sections: () => startupAppsSections({ openWindow, rerender: () => view?.render() }) },
         ],
       },
+      // The program lilOS (lilos-desktop): only inside it, not in a browser
+      computerTab({ rerender: () => view?.render() }),
       // OneDrive, Google Drive, Google Foto, Azure Blob Storage, NFS and the provider apps they
       // sign in with: only while their modules run
       ...cloudTabs({ rerender: () => view?.render(), select: id => view?.select(id) }),

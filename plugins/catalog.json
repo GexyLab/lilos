@@ -29,6 +29,7 @@
     "modules/netfs-s3",
     "modules/netfs-azblob",
     "modules/netfs-nfs",
+    "modules/netfs-local",
     "modules/term-telnet",
     "modules/term-rlogin",
     "modules/term-supdup"

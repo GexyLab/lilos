@@ -5,7 +5,7 @@ import { openFile } from '../apps/open.js';
 import { addTarget } from '../items/targets.js';
 import { confirmRemove, confirmMenu, deleteNodes, deleteLabel } from '../items/confirmRemove.js';
 import { recordCreated, renameNode } from '../items/fsHistory.js';
-import { dragItems, dropZone, moveInto } from '../items/itemDrag.js';
+import { dragItems, dropZone, moveInto, importFiles, newIds, topCount } from '../items/itemDrag.js';
 import { linkEntry } from '../items/links.js';
 import { showProperties } from '../items/properties.js';
 import { selectionMode } from '../systemSettings.js';
@@ -79,7 +79,12 @@ export class Desktop {
 
     fs.on('change', e => this.#sync(e));
     // Files and folders dragged here from a window (File Manager, Editor…): onto the desk, where dropped
-    dropZone(canvas.el, { folder: () => this.folder, highlight: () => null, drop: (ids, ev, stack) => this.#dropHere(ids, ev, stack) });
+    // and files of the computer, copied where dropped
+    dropZone(canvas.el, {
+      folder: () => this.folder, highlight: () => null,
+      drop: (ids, ev, stack) => this.#dropHere(ids, ev, stack),
+      importFiles: (entries, ev) => this.#importHere(entries, ev),
+    });
     // A tag made invisible or visible again: items leave or come back. Tag colors: redraw the dots
     fs.on('scope', () => this.#reconcile());
     // The trash on the desk looks full or empty
@@ -552,6 +557,15 @@ export class Desktop {
     } finally {
       this.#dropAt.clear();
     }
+  }
+
+  /** Files of the computer dropped on the desk: copied into its folder, lined up from the drop point. */
+  #importHere(entries, ev) {
+    const ids = newIds(topCount(entries));
+    const at = this.canvas.toWorld(ev.clientX, ev.clientY);
+    const slots = this.#slots(ids.length, { x: snap(at.x - CELL.w / 2), y: snap(at.y - 24), rows: ROWS }, false);
+    ids.forEach((id, i) => this.#dropAt.set(id, slots[i]));
+    return importFiles(entries, this.folder, { ids }).finally(() => ids.forEach(id => this.#dropAt.delete(id)));
   }
 
   #backgroundMenu(e) {

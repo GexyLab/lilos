@@ -1,0 +1,20 @@
+{
+  "name": "netfs-local",
+  "version": "1.0.0",
+  "description": "Cartelle del computer su cui gira il kernel nella cartella Rete: con il programma lilOS, Documenti, Download e le chiavette USB del proprio computer",
+  "kernel": "1",
+  "icon": { "glyph": "monitor", "color": "#3b6ef5" },
+  "provides": [
+    "netfs.local"
+  ],
+  "requires": [],
+  "settings": [
+    {
+      "key": "roots", "type": "textarea",
+      "label": { "en": "Folders other users may connect", "it": "Cartelle che gli altri utenti possono collegare" },
+      "placeholder": "C:\\Condivisa\n/srv/lilos",
+      "hint": { "en": "One full path per line: users who are not administrators connect only these folders (or folders inside them). Administrators connect any folder of the computer", "it": "Un percorso completo per riga: gli utenti che non sono amministratori collegano solo queste cartelle (o cartelle dentro di esse). Gli amministratori collegano qualsiasi cartella del computer" }
+    }
+  ],
+  "defaultConfig": {}
+}

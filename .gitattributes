@@ -2,3 +2,6 @@
 examples/apps/** -text
 # Sources of the official apps and modules: built byte for byte into the packages, keep their line endings
 plugins/** -text
+# Scripts of the program lilOS that run on Linux and macOS
+lilos-desktop/**/*.sh text eol=lf
+lilos-desktop/**/lilos-session text eol=lf

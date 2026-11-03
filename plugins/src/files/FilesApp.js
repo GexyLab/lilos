@@ -21,6 +21,7 @@ import { Columns, MIN_COL } from './columns.js';
 import { t } from './i18n.js';
 import { network, mountOf, sideSection, mountMenu, mountBar, readRemote, netChips, openInBrowser } from './network.js';
 import { officeEntries, openOffice } from './office.js';
+import { computerEntries } from './computer.js';
 import { newLinkWindow } from './newLink.js';
 import { inlineRename } from '../shared/inlineRename.js';
 import './files.css';
@@ -231,7 +232,7 @@ class FileBrowser {
     this.#bindList();
     // Files and folders dropped on the list (not on one of its folders) go into the folder shown,
     // or into the trash when it is shown (see #listTarget)
-    dropZone(this.list, { target: (hit, x, y, ids) => this.#listTarget(ids) });
+    dropZone(this.list, { target: (hit, x, y, ids) => this.#listTarget(ids), files: () => (this.inTrash || this.inTag ? null : this.folder) });
     // On the sidebar: into a folder or the trash, or a link where dropped (see #sideTarget)
     this.gap = h('div', { class: 'fm-gap', 'aria-hidden': 'true' });
     dropZone(this.side, { target: (hit, x, y, ids) => this.#sideTarget(hit, x, y, ids) });
@@ -1300,6 +1301,7 @@ class FileBrowser {
       folder && { label: t('tree.expandAll'), icon: 'plus', action: () => this.setOpen(folder.id, true, true) },
       !many && nodes[0].type === 'file' && { label: t('menu.openWith'), icon: 'open', action: () => openFile(nodes[0], { choose: true }) },
       ...officeEntries(this, nodes),
+      ...computerEntries(nodes),
       !many && nodes[0].type === 'folder' && { label: t('menu.openInEditor'), icon: 'code', action: () => launch('editor', { folder: nodes[0].id }) },
       // In a tag's view items come from everywhere: show one where it is
       tag && !many && { label: t('menu.reveal'), icon: 'folderOpen', action: () => this.reveal(nodes[0].id) },

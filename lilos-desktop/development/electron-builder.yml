@@ -1,0 +1,96 @@
+# Packages of the program lilOS (npm run dist / GitHub Actions at the tag desktop-v*).
+# runtime/ comes from scripts/fetch-runtime.mjs: Node, git and PostgreSQL for each system and
+# architecture, and the release of lilOS (the same for all).
+appId: it.gexylab.lilos
+productName: lilOS
+copyright: Copyright © 2026 GexyLab
+directories:
+  output: dist
+  buildResources: build
+files:
+  - package.json
+  - src/**/*
+extraResources:
+  - from: runtime/${platform}-${arch}
+    to: runtime
+  - from: runtime/lilos
+    to: lilos
+asar: true
+protocols:
+  - name: lilOS
+    schemes: [lilos]
+electronFuses:
+  runAsNode: false
+  enableCookieEncryption: true
+  enableNodeOptionsEnvironmentVariable: false
+  enableNodeCliInspectArguments: false
+  enableEmbeddedAsarIntegrityValidation: true
+  onlyLoadAppFromAsar: true
+# Where the program finds its updates (latest.yml…): the latest release of the repository
+publish:
+  provider: generic
+  url: https://github.com/GexyLab/lilos/releases/latest/download
+
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+    - target: msi
+      arch: [x64]
+  icon: build/icon.png
+  executableName: lilOS
+nsis:
+  oneClick: false
+  perMachine: false
+  allowElevation: true
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  shortcutName: lilOS
+  deleteAppDataOnUninstall: false
+  artifactName: lilOS-Setup-${version}.${ext}
+msi:
+  perMachine: false
+  artifactName: lilOS-${version}.${ext}
+
+mac:
+  target:
+    - target: dmg
+      arch: [arm64, x64]
+    - target: zip
+      arch: [arm64, x64]
+  icon: build/icon.png
+  category: public.app-category.productivity
+  # No Developer ID certificate yet: signed ad hoc (Apple Silicon runs only signed code)
+  identity: "-"
+  hardenedRuntime: false
+  gatekeeperAssess: false
+  extendInfo:
+    NSCameraUsageDescription: lilOS lets its apps use the camera when you allow them.
+    NSMicrophoneUsageDescription: lilOS lets its apps use the microphone when you allow them.
+    NSBluetoothAlwaysUsageDescription: lilOS lets its apps use Bluetooth devices you choose.
+dmg:
+  artifactName: lilOS-${version}-${arch}.${ext}
+
+linux:
+  target: [AppImage, deb, rpm]
+  # The session «lilOS» for the login screen (lilOS as the whole desktop, with cage)
+  extraResources:
+    - from: build/linux
+      to: session
+      filter: ["lilos-session", "install-session.sh"]
+  icon: build/icon.png
+  category: System
+  executableName: lilos
+  maintainer: GexyLab <gexylab@users.noreply.github.com>
+  synopsis: lilOS in its own program
+  description: lilOS in its own window, with its kernel and database on this computer or a server.
+  desktop:
+    entry:
+      StartupWMClass: lilOS
+appImage:
+  artifactName: lilOS-${version}-${arch}.${ext}
+deb:
+  artifactName: lilos_${version}_${arch}.${ext}
+  recommends: [cage]
+rpm:
+  artifactName: lilos-${version}.${arch}.${ext}

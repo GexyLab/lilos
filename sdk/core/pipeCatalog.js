@@ -16,6 +16,8 @@ import { pipes, PipeStopped } from './pipes.js';
  *   tags.assign { node, tags }   window.open { app, entry, title }   window.close { app, entry, title }
  *   workspace.switch { from, to }   settings.change { key, value }
  *   desk.place { workspace, reason: 'drag' | 'arrange' | 'place', items: [{ node, x, y, from: { x, y } }] }
+ *   device.attach { kind: 'drive' | 'serial', id, name, path? }   device.detach { kind, id, name }
+ *                  (only inside the program lilOS: a USB stick or memory card, a serial port)
  *
  * Protected (only lilOS and system apps), to look at:
  *   system.ready { at }   session.login { user, workspace }   session.logout {}
@@ -55,6 +57,8 @@ observe('window.close', 'Chiusura di una finestra');
 observe('workspace.switch', 'Cambio di workspace');
 observe('settings.change', 'Cambio di un’impostazione');
 observe('desk.place', 'Icone spostate sulla scrivania');
+observe('device.attach', 'Collegamento di un dispositivo');
+observe('device.detach', 'Scollegamento di un dispositivo');
 
 reserved('system.ready', 'Sistema pronto');
 reserved('session.login', 'Utente entrato');

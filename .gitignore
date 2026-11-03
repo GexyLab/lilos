@@ -5,3 +5,5 @@ dist
 public/host/
 # Packages of the official apps and modules (plugins/scripts/build.mjs), published to the official repository
 plugins/build/
+# The program lilOS: what scripts/fetch-runtime.mjs downloads (Node, git, PostgreSQL, the release of lilOS)
+lilos-desktop/*/runtime/
