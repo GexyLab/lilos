@@ -3,6 +3,8 @@ import { installedApps, isInstalled, getApp, launch, registry, CATEGORIES } from
 import { showAppProperties } from '../apps/appProperties.js';
 import { openFile } from '../apps/open.js';
 import { fileIcon } from '../desktop/itemIcons.js';
+import { isAppOnDesk, showAppOnDesk } from '../desktop/fixedItems.js';
+import { notify } from '../notifications/notify.js';
 import { signOut } from '../user/UserPage.js';
 import { usage } from './usage.js';
 
@@ -396,6 +398,7 @@ export class StartMenu {
       { label: pinned ? 'Togli dalle preferite' : 'Aggiungi alle preferite', icon: 'star', action: () => usage.setPinned(app.id, !pinned) },
       favourite && { label: 'Sposta su', icon: 'arrowUp', disabled: at <= 0, action: () => this.#movePinned(app.id, at - 1) },
       favourite && { label: 'Sposta giù', icon: 'arrowDown', disabled: at >= order.length - 1, action: () => this.#movePinned(app.id, at + 1) },
+      { label: isAppOnDesk(app.id) ? 'Già sul desktop' : 'Mostra sul desktop', icon: 'monitor', disabled: isAppOnDesk(app.id), action: () => this.#showOnDesk(app) },
       '-',
       { label: 'Proprietà…', icon: 'info', action: () => { this.close(); showAppProperties(app.id); } },
     ].filter(Boolean));
@@ -414,6 +417,15 @@ export class StartMenu {
   #movePinned(id, index) {
     this.#focusKey = `fav:${id}`;
     usage.setPinned(id, true, index);
+  }
+
+  #showOnDesk(app) {
+    try {
+      showAppOnDesk(app);
+      notify(`«${app.name}» è di nuovo sul desktop`, { level: 'success' });
+    } catch (err) {
+      notify(err.message, { level: 'error' });
+    }
   }
 
   #switchTo(id) {

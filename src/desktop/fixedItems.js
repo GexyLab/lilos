@@ -63,6 +63,31 @@ export function setFixedShownEverywhere(key, shown) {
   settings.set('deskHidden', withKey(cleanKeys(settings.get('deskHidden')), key, shown));
 }
 
+/** The desk folder of the current workspace, or null. */
+const deskFolder = () => fs.children(fs.root).find(n => n.system && n.type === 'folder' && n.name === DESK_NAME)?.id ?? null;
+const fixedApp = appId => FIXED_ITEMS.find(f => f.kind === 'app' && f.app === appId);
+
+/** True if an app has an icon on the desk of the current workspace: its own, or the fixed item that opens it. */
+export function isAppOnDesk(appId) {
+  const fixed = fixedApp(appId);
+  if (fixed && isFixedShown(fixed.key)) return true;
+  const desk = deskFolder();
+  return !!desk && fs.children(desk).some(n => n.type === 'app' && n.app === appId);
+}
+
+/**
+ * Puts an app's icon back on the desk of the current workspace ("Mostra sul desktop" in the start
+ * menu): the fixed item that opens it turned on again, or a new desk item.
+ */
+export function showAppOnDesk(app) {
+  if (isAppOnDesk(app.id)) return;
+  const fixed = fixedApp(app.id);
+  if (fixed) return setFixedShown(fixed.key, true);
+  const desk = deskFolder();
+  if (!desk) throw new Error('La scrivania non c’è');
+  fs.create(desk, { type: 'app', name: app.name, app: app.id });
+}
+
 /** Desk item id of a fixed item, and back (null for any other id). */
 export const fixedId = key => PREFIX + key;
 export const fixedOf = id => (typeof id === 'string' && id.startsWith(PREFIX) ? FIXED_ITEMS.find(f => PREFIX + f.key === id) ?? null : null);

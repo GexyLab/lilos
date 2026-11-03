@@ -2101,7 +2101,7 @@ I servizi hanno bisogno di un componente del sistema, `services-isolate`. Se man
 | Tab | Gira dentro il menu, senza uscirne |
 | Esc | Svuota la ricerca; se è già vuota, chiude il menu |
 
-**Tasto destro su un'app**: **Apri**, **Aggiungi alle preferite** (o **Togli dalle preferite**) e **Proprietà…** (vedi [Proprietà di un'app](#proprietà-di-unapp)).
+**Tasto destro su un'app**: **Apri**, **Aggiungi alle preferite** (o **Togli dalle preferite**), **Mostra sul desktop** e **Proprietà…** (vedi [Proprietà di un'app](#proprietà-di-unapp)). **Mostra sul desktop** rimette l'icona dell'app sul desktop del workspace in cui sei, se l'avevi tolta; quando l'icona c'è già, la voce diventa **Già sul desktop** e non si può scegliere.
 
 **Cosa ricorda.** Le preferite e gli elenchi delle app e dei file sono **separati per workspace** e si cancellano quando elimini il workspace. Contano le app che avvii tu (dal menu, dalla scrivania, dal File Manager, da «Apri con» o da una notifica) e i file che apri con un'app. Non contano le app che lilOS apre da sola (per esempio quelle dell'[avvio](#aprire-le-app-allavvio)) né le finestre che tornano al loro posto dopo un riavvio. Si ricordano al massimo 100 app e 100 file per workspace.
 
