@@ -2035,3 +2035,23 @@ Conseguenze: se tutte le schede si chiudono non parte niente; un'automazione con
 **Conseguenze.** Il primo `dev:update` costruisce tutto e richiede qualche minuto; i successivi solo ciò che ha cambiato versione (una modifica senza alzare la versione non arriva). Il kernel tiene due minuti la copia di un repository letto: dopo un `dev:update` a kernel acceso le versioni nuove compaiono entro quel tempo. Il programma lilOS cerca altri lilOS sulle porte 8790-8795, quindi può vedere quello di sviluppo acceso.
 
 **Quando ripensarla.** Se servono prove su più rami insieme, o un lilOS di sviluppo condiviso da più persone.
+
+## D82. La schermata di accesso a due metà, con i colori propri, e «Resta connesso» col cookie del browser
+
+**Contesto.** Le schermate prima di lilOS (accesso, licenza, messaggi, avvio) erano una scheda piccola al centro, coi colori dell'SDK e senza tema: prima dell'accesso il tema dell'utente non si conosce. L'utente ha chiesto una schermata sul modello di una pagina di accesso divisa in due (pannello sfumato a sinistra, modulo a destra) con i colori di lilOS, scura di default (render `design/accesso.html`). Ogni accesso teneva la sessione per tutta la sua durata (30 giorni), anche su un computer condiviso; dopo troppi tentativi sbagliati il kernel mandava già `Retry-After`, ma la pagina diceva solo «riprova tra poco».
+
+**Decisione.** Decisa il 4 novembre 2026, lilOS 1.30.0, SDK 0.18.0.
+
+- `boot/screens.js` disegna tutte le schermate in una cornice sola: a sinistra il pannello di lilOS (logo, titolo, o l'ora quando la schermata chiede la password dello stesso utente; stato della connessione; versione), a destra il contenuto. `boot.css` ha **colori propri** (`--b-*`), con la sfumatura dall'accento Blu (#3b6ef5) al Viola (#7c5cdb) della tavolozza; scura di default, chiara col pulsante in alto a destra, ricordata in `localStorage` (con `try`: senza, resta scura).
+- **Resta connesso** si fa col cookie: `POST /api/session` con `remember: false` manda `lilos_session` **senza `Max-Age`**, un cookie della sessione del browser. Il modulo di accesso non cambia (la sessione sul kernel scade come prima). Acceso di default, come era prima; la scelta resta nel browser e vale anche quando si sblocca o si accede di nuovo dopo la scadenza.
+- Il conto alla rovescia usa `Retry-After`, che l'SDK porta in `KernelError.retryAfter`.
+- Il kernel che non risponde si riprova da solo (5, 10, poi 30 secondi); i passi dell'avvio restano fino a quando `system.js` è caricato.
+- Fuori, per ora: testi e logo dell'organizzazione scelti dall'amministratore, lingua e tastiera a schermo prima dell'accesso (la tastiera è un'app, che prima dell'accesso non c'è), MFA.
+
+**Perché.** Un solo modello per tutte le schermate di avvio le tiene coerenti, e i colori propri evitano di dipendere da un tema che non c'è ancora. Il cookie della sessione del browser è il modo standard di «non ricordarmi» e non tocca il modulo `users-basic`, quindi funziona con i moduli di accesso che ci sono.
+
+**Alternative scartate.** Una durata breve della sessione sul kernel quando la casella è spenta: serve un cambiamento al servizio `auth` di ogni modulo di accesso. Un endpoint pubblico per testi e logo personalizzati: utile, ma non chiesto ora.
+
+**Conseguenze.** Con «Resta connesso» spento la sessione resta valida sul kernel fino alla sua scadenza anche se il browser l'ha dimenticata (nessuno ha più il token). Alcuni browser che riaprono le schede alla riapertura tengono anche i cookie di sessione: lì la casella spenta vale meno.
+
+**Quando ripensarla.** Se servono la personalizzazione per l'organizzazione, l'accesso a più fattori o sessioni brevi imposte dall'amministratore.

@@ -297,7 +297,7 @@ import { kernel, KernelError } from '@lilos/sdk';
 
 ### `class KernelError extends Error`
 
-`{ status, code, message, details? }`. `status` è lo stato HTTP (`0` se il kernel non risponde); `code` è il codice del kernel (`invalid`, `unauthorized`, `invalid_credentials`, `forbidden`, `not_found`, `conflict`, `untrusted`, `secret_required`, `too_large`, `rate_limited`, `unavailable`, `internal`) oppure `'offline'` quando manca la risposta. `message` è in italiano e si può mostrare all'utente. `details` (se c'è) è ciò che il kernel aggiunge ad alcuni errori: l'impronta di un server da confermare (`untrusted`) o il motivo per cui serve la password (`secret_required`).
+`{ status, code, message, details?, retryAfter? }`. `status` è lo stato HTTP (`0` se il kernel non risponde); `code` è il codice del kernel (`invalid`, `unauthorized`, `invalid_credentials`, `forbidden`, `not_found`, `conflict`, `untrusted`, `secret_required`, `too_large`, `rate_limited`, `unavailable`, `internal`) oppure `'offline'` quando manca la risposta. `message` è in italiano e si può mostrare all'utente. `details` (se c'è) è ciò che il kernel aggiunge ad alcuni errori: l'impronta di un server da confermare (`untrusted`) o il motivo per cui serve la password (`secret_required`). `retryAfter` (dall'SDK 0.18.0) sono i secondi da aspettare prima di riprovare, quando il kernel li manda (intestazione `Retry-After`, per esempio con `rate_limited` dopo troppi accessi sbagliati).
 
 ### `kernel`
 
@@ -313,7 +313,7 @@ import { kernel, KernelError } from '@lilos/sdk';
 | `channel(path, { maxText = 1048576, maxBytes = 1048576 } = {})` → `MessagePort` | Un canale vivo con il kernel: un WebSocket verso `/api<path>` (`ws:` o `wss:` come la pagina) dietro una `MessagePort`. Le stringhe (fino a `maxText` caratteri) e i byte (`ArrayBuffer` o array tipizzato, fino a `maxBytes`) passano nei due sensi così come sono; i messaggi più grandi o di altri tipi si scartano senza errore. Quelli mandati prima che il socket si apra aspettano. Quando il socket si chiude la porta riceve la stringa `{"t":"gone","code":…}` e si chiude. `port.detach()` chiude il socket (per lilOS: la finestra che teneva il canale è stata chiusa). |
 | `module(name)` → `{ request(method, path, body?), channel(path) }` | L'API di un modulo del kernel (i suoi `ctx.route` e `ctx.socket`, vedi [Moduli](#moduli)): `request` è `kernel.request` su `/modules/<name><path>` (metodo in maiuscolo); `channel` è `kernel.channel` sullo stesso indirizzo, con messaggi fino a 16 MiB (il modulo mette il suo limite quando accetta il socket). `name` deve essere `[a-z][a-z0-9-]{0,40}` e `path` della forma `/parola/parola` (caratteri `[\w:-]`, come i percorsi che un modulo dichiara), e non `/update` né `/settings`, che sono del kernel (la gestione del modulo da parte di un amministratore): altrimenti lancia un errore. L'oggetto è congelato. |
 | `session()` | `GET /api/session` → `{ mode, user }`; aggiorna `mode` e `user`. |
-| `login(username, password)` | Accede; restituisce l'utente. Lancia `KernelError` (`invalid_credentials`, `rate_limited`). |
+| `login(username, password, { remember = true })` | Accede; restituisce l'utente. Con `remember: false` (dall'SDK 0.18.0) la sessione finisce quando il browser si chiude (il cookie non ha `Max-Age`). Lancia `KernelError` (`invalid_credentials`, `rate_limited` con `retryAfter`). |
 | `logout()` | Manda ciò che è in attesa (gli errori si ignorano), chiude la sessione, esegue le funzioni di `onLogout` (gli errori si ignorano) e azzera `user`. |
 | `onLogout(fn)` | `fn()` (anche asincrona) parte all'uscita: serve a cancellare le copie locali. Lo usa `contents` per IndexedDB. |
 | `connect()` | Carica i dati dell'utente (`GET /api/boot`), imposta `connected` e fa partire l'invio quando la pagina si nasconde o si chiude (`keepalive`). Una volta sola, dopo l'accesso. |
@@ -2958,12 +2958,25 @@ La pagina a tutto schermo che si apre dal nome dell'utente nel menu di avvio. De
 
 1. `kernel.flush()` e `DELETE /api/session`: **la sessione finisce sul kernel** (D48). Se uno dei due fallisce lancia, e lo stato non cambia. Non esegue `onLogout`: le copie locali dei contenuti restano.
 2. Mette `inert` su ogni figlio di `document.body` che non lo era.
-3. `signInAgain(…)` mostra `loginScreen` con `username` dell'utente, `opaque: true` e il pulsante «Accedi con un altro utente» (`location.reload()`, che porta alla schermata di accesso, perché la sessione è già chiusa).
+3. `signInAgain(…)` mostra `loginScreen` con `username` e `name` dell'utente, il pulsante «Sblocca» e «Non sei …? Accedi con un altro utente» (`location.reload()`, che porta alla schermata di accesso, perché la sessione è già chiusa).
 4. A password corretta toglie `inert` e `kernel.resume()` rimanda ciò che aspettava.
 
 I servizi dell'utente si fermano alla fine della sessione e ripartono al nuovo accesso (evento `user:login`, vedi [startup-services](#startup-services)).
 
-`loginScreen(root, login, { title, text, onto, username, other, opaque })` (`boot/screens.js`) ha tre opzioni nuove, usate con `onto`: `username` (chiede solo la password di quell'utente), `other` (`{ label, onClick }`, un secondo pulsante) e `opaque` (aggiunge la classe `opaque` alla schermata: niente trasparenza sopra lilOS).
+### Le schermate prima di lilOS (`boot/screens.js`)
+
+DOM semplice, senza l'SDK (solo il suo client `kernel` e `version` da `package.json`). Ogni schermata (`div.boot`, fissa sopra tutto) ha due metà: a sinistra il pannello di lilOS (`aside.boot-hero`: logo, titolo o l'ora, stato della connessione, versione), a destra il contenuto (`main.boot-side`). I colori sono propri di `boot.css` (`--b-*`), perché il tema dell'utente non si conosce ancora: `data-theme="dark"` di default, `light` col pulsante in alto a destra, ricordato in `localStorage['lilos.boot.theme']`. Lo stato della connessione chiede `GET /api/session` ogni 15 secondi finché la schermata c'è. Sotto i 760 px il pannello diventa una fascia in alto (da lilOS 1.30.0).
+
+| Funzione | Descrizione |
+| --- | --- |
+| `loginScreen(root, login, { title, text, onto, username, name, other, submit })` | Si risolve quando `login(username, password, { remember })` riesce; ne mostra gli errori, e con `rate_limited` e `retryAfter` il pulsante conta i secondi. Senza `username`: nome utente e password, «Resta connesso» (`remember`, ricordato in `localStorage['lilos.boot.remember']`, acceso se non c'è) e «Password dimenticata?». Con `username`: solo la password, l'avatar (le iniziali di `name`, o la foto dell'utente se `:root` ha `data-user-photo`) e l'ora a sinistra; `remember` è la scelta salvata. `onto`: un elemento da coprire (accesso di nuovo sopra lilOS) invece di sostituire `root`. `other`: `{ label, onClick, lead? }`, un secondo pulsante. `submit`: il testo del pulsante (`'Accedi'`). L'opzione `opaque` di prima non serve più: ogni schermata copre ciò che sta sotto. |
+| `rememberSignIn()` | La scelta di «Resta connesso» salvata (`true` se non c'è). |
+| `messageScreen(root, { title, text, buttons, tone, auto })` | Un messaggio con pulsanti: si risolve col `value` del pulsante premuto (`primary`: quello sfumato). `tone: 'danger'`: il segnale di avviso. `auto: { seconds, value }`: si risolve da sola con `value` alla fine del conto alla rovescia, mostrato sotto il testo. |
+| `licenseScreen(root, { text, source, url }, accept)` | La licenza da accettare: `'accepted'`, `'exit'` o `'changed'`. |
+| `progressScreen(root, title)` | Un messaggio mentre qualcosa avanza. |
+| `startScreen(root, { name, steps })` | I passi dell'avvio uno sotto l'altro, con la barra; restituisce `{ step(i), done() }`: `step(i)` segna come fatti i passi prima di `i` (col tempo che hanno preso) e fa girare `i`. |
+
+`boot(root)` (`boot/boot.js`) si risolve con una funzione che toglie la schermata dei passi: `main.js` la chiama dopo aver caricato `system.js`, così i passi restano fino al desktop. Se il kernel non risponde, riprova da solo dopo 5, 10 e poi 30 secondi (`messageScreen` con `auto`).
 
 ### `items.js`
 
@@ -3729,7 +3742,7 @@ Le richieste che modificano (tutte tranne `GET` e `HEAD`) devono avere l'intesta
 | Metodo e percorso | Chi | Corpo → risposta |
 | --- | --- | --- |
 | `GET /api/session` | tutti | → `{ mode: 'multi' \| 'single', user \| null }` |
-| `POST /api/session` | tutti | `{ username, password }` → `{ user }` e il cookie `lilos_session` (`HttpOnly; SameSite=Strict; Path=/api`, `Secure` con `secureCookies`). Con un solo utente: `invalid`. |
+| `POST /api/session` | tutti | `{ username, password, remember = true }` → `{ user }` e il cookie `lilos_session` (`HttpOnly; SameSite=Strict; Path=/api`, `Secure` con `secureCookies`). Il cookie dura quanto la sessione (`Max-Age`); con `remember: false` (da lilOS 1.30.0) è un cookie della sessione del browser, senza `Max-Age`, che il browser cancella alla chiusura (la sessione sul kernel resta valida fino alla sua scadenza, ma nessuno ha più il token). Con un solo utente: `invalid`; troppi tentativi: `rate_limited` con `Retry-After`. |
 | `DELETE /api/session` | tutti | Chiude la sessione e cancella il cookie |
 | `POST /api/session/verify` | utenti | `{ username, password }` (fino a 16 KB) → `{ ok: true, role }`. Controlla una password **senza aprire una sessione**: fa un accesso (`auth.login`, con le sue regole contro i tentativi ripetuti, `invalid_credentials` e `rate_limited`) e lo chiude subito. Serve al programma lilOS: un amministratore dà nome e password per far uscire dal kiosk la finestra di un altro utente. Con un solo utente: `invalid`; senza sessione: `unauthorized`. |
 | `GET /api/boot` | utenti | → `{ user, home, fresh, nodes, storage, apps, appSecurity, net }`: tutto ciò che serve per partire. `home`: il percorso della home nel file system (`/home/<utente>`), da cui `fs.path` parte. `fresh`: la cartella dell'utente è vuota. `apps` è l'elenco di `GET /api/apps`, ma senza nascondere l'origine `local` ai non amministratori. `appSecurity`: `{ isolated }`, la regola generale su come girano le app. `net`: `{ protocols, mounts }`, come `GET /api/net` |

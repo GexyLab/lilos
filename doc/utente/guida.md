@@ -13,10 +13,16 @@ lilOS è un desktop che si usa dal browser o, se preferisci, dal [programma lilO
 
 ## Accedere e uscire
 
-Se lilOS ha più utenti, all'apertura compare **Accedi a lilOS**: scrivi il **nome utente** e la **password** e premi **Accedi**. Gli account li crea chi gestisce lilOS: da qui non si può crearne uno. Se lilOS ha un solo utente non c'è nulla da scrivere e si entra direttamente.
+Se lilOS ha più utenti, all'apertura compare **Accedi a lilOS**: scrivi il **nome utente**, premi **Invio** per passare alla **password** e premi **Accedi** (o di nuovo **Invio**). Gli account li crea chi gestisce lilOS: da qui non si può crearne uno. Se lilOS ha un solo utente non c'è nulla da scrivere e si entra direttamente.
 
-- Se sbagli la password compare un messaggio. Dopo alcuni tentativi sbagliati (5 con lo stesso nome utente) lilOS ti fa aspettare, e l'attesa si allunga a ogni errore: riprova tra poco.
-- Se compare **Il kernel di lilOS non risponde**, il programma che conserva i tuoi dati non è acceso. Chi gestisce lilOS deve avviarlo; poi premi **Riprova**.
+La schermata ha due metà: a sinistra il pannello di lilOS, con in basso lo **stato della connessione** (pallino verde: il kernel risponde, con il tempo di risposta; rosso: non risponde) e la versione; a destra quello che devi fare. È scura; il pulsante con il sole in alto a destra la fa chiara (e quello con la luna la rifà scura): il browser se lo ricorda per le prossime volte.
+
+- Il pulsante con l'occhio nel campo della password la **mostra** (e la nasconde di nuovo). Se il **Bloc Maiusc** è attivo, sotto la password compare **Bloc Maiusc è attivo**.
+- **Resta connesso** (acceso all'inizio): lilOS ti tiene dentro anche dopo aver chiuso il browser, finché la sessione non scade. Spento, la sessione finisce quando chiudi il browser: usalo su un computer che non è solo tuo. Il browser si ricorda la tua scelta.
+- **Password dimenticata?** spiega che la password la cambia un amministratore di lilOS: da qui non si può reimpostare.
+- Se sbagli la password compare un messaggio sopra i campi. Dopo alcuni tentativi sbagliati (5 con lo stesso nome utente) lilOS ti fa aspettare, e l'attesa si allunga a ogni errore: il pulsante dice **Riprova tra … s** e torna **Accedi** quando puoi riprovare.
+- Se compare **Il kernel di lilOS non risponde**, il programma che conserva i tuoi dati non è acceso o non si raggiunge. lilOS riprova da solo (dopo 5, 10, poi ogni 30 secondi) e torna all'accesso appena il kernel risponde; **Riprova ora** non aspetta. Se non riparte, chi gestisce lilOS deve avviarlo.
+- Dopo l'accesso la schermata mostra i passi dell'avvio (accesso, licenza, lettura dei tuoi dati, apertura del desktop), spuntati man mano, fino al desktop.
 - Il tuo spazio è tuo: ogni utente ha le sue cartelle, i suoi file e le sue impostazioni, e gli altri non li vedono.
 
 **Uscire.** Apri il menu di avvio e premi il pulsante di accensione in alto a destra, **Esci**. Prima le finestre con modifiche non salvate ti chiedono se salvarle; poi lilOS salva quello che stava ancora salvando, cancella dal browser la copia dei tuoi file e torna alla schermata di accesso. Su un computer che non è solo tuo, esci sempre. Se lilOS ha un solo utente il pulsante si chiama **Riavvia sessione**: dopo la stessa domanda delle finestre ricarica la pagina. Puoi uscire anche dalla [pagina utente](#la-pagina-utente).

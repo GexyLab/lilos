@@ -1,85 +1,354 @@
 /**
- * Screens shown before lilOS starts (sign-in, messages). Plain DOM: the SDK cannot be imported
- * yet (it reads the user's data as soon as it loads), only its kernel client and styles.
+ * Screens shown before lilOS starts (sign-in, license, start-up, messages), and the sign-in over a
+ * running lilOS (locked, session expired). Plain DOM: the SDK cannot be imported yet (it reads the
+ * user's data as soon as it loads), only its kernel client and styles.
+ *
+ * Every screen has two halves: on the left the lilOS panel (logo, headline or the time, connection
+ * to the kernel, version), on the right what to do. Dark unless the user chose light with the
+ * button at the top right (remembered in this browser).
  */
+import { kernel } from '@lilos/sdk/kernel';
+import { version } from '../../package.json';
 import { markdown } from './markdown.js';
+
+const THEME_KEY = 'lilos.boot.theme';
+const REMEMBER_KEY = 'lilos.boot.remember';
+const PING_EVERY = 15_000;
 
 function el(tag, attrs = {}, ...children) {
   const node = document.createElement(tag);
   for (const [k, v] of Object.entries(attrs)) {
+    if (v == null || v === false) continue;
     if (k === 'class') node.className = v;
     else if (k.startsWith('on')) node.addEventListener(k.slice(2), v);
-    else node.setAttribute(k, v);
+    else node.setAttribute(k, v === true ? '' : v);
   }
-  node.append(...children.filter(c => c != null));
+  node.append(...children.filter(c => c != null && c !== false));
   return node;
 }
 
-function card(root, ...children) {
-  const box = el('div', { class: 'boot-card' }, el('img', { class: 'boot-logo', src: '/favicon.svg', alt: '' }), ...children);
-  const screen = el('div', { class: 'boot' }, box);
-  root.replaceChildren(screen);
-  return { screen, box };
+const SVG = 'http://www.w3.org/2000/svg';
+const ICONS = {
+  arrow: 'M5 12h14M13 6l6 6-6 6',
+  eye: 'M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12zM12 9.2a2.8 2.8 0 1 0 0 5.6 2.8 2.8 0 0 0 0-5.6z',
+  eyeOff: 'M3 3l18 18M10.6 5.6A10 10 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a17 17 0 0 1-3 3.8M6.6 6.6A16.5 16.5 0 0 0 2.5 12S6 18.5 12 18.5a9.6 9.6 0 0 0 4.4-1.1M9.9 9.9a2.8 2.8 0 0 0 4.2 4.2',
+  alert: 'M12 3.5 2.5 20h19L12 3.5zM12 10v4.5M12 17.2h.01',
+  check: 'm5 12.5 4.5 4.5L19 7.5',
+  lock: 'M7 10.5h10a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM8 10.5V7.5a4 4 0 0 1 8 0v3',
+  key: 'M8 11a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM11 12l8.5-8.5M16 7l2.5 2.5M14 9l2 2',
+  sun: 'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM12 2.5v2M12 19.5v2M4.6 4.6l1.4 1.4M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4',
+  moon: 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z',
+  power: 'M12 3v8M7 6.3a7.5 7.5 0 1 0 10 0',
+};
+
+function svgIcon(name) {
+  const svg = document.createElementNS(SVG, 'svg');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('class', 'boot-ico');
+  svg.setAttribute('aria-hidden', 'true');
+  const path = document.createElementNS(SVG, 'path');
+  path.setAttribute('d', ICONS[name]);
+  svg.append(path);
+  return svg;
 }
 
-/**
- * Sign-in form: resolves once `login(username, password)` succeeds; its errors are shown.
- * `onto`: an element to cover (signing in again over a running lilOS) instead of replacing root.
- * `username`: asks only the password of this user. `other`: { label, onClick } of a second button.
- * `opaque`: what is under it does not show through.
- */
-export function loginScreen(root, login, { title = 'Accedi a lilOS', text, onto = null, username = null, other = null, opaque = false } = {}) {
-  return new Promise(resolve => {
-    const user = el('input', { class: 'ctl-text', type: 'text', name: 'username', autocomplete: 'username', autocapitalize: 'none', spellcheck: 'false', required: '' });
-    const pass = el('input', { class: 'ctl-text', type: 'password', name: 'password', autocomplete: 'current-password', required: '' });
-    const error = el('p', { class: 'boot-error', role: 'alert' });
-    const submit = el('button', { class: 'ctl-btn primary', type: 'submit' }, 'Accedi');
-    const form = el('form', { class: 'boot-form' },
-      el('label', {}, el('span', {}, 'Nome utente'), user),
-      el('label', {}, el('span', {}, 'Password'), pass),
-      error, submit,
-      other ? el('button', { class: 'ctl-btn', type: 'button', onclick: other.onClick }, other.label) : null);
-    const host = onto ? el('div') : root;
-    const { screen } = card(host, el('h1', {}, title), text ? el('p', { class: 'boot-text' }, text) : null, form);
-    if (onto) {
-      screen.classList.add('overlay');
-      screen.classList.toggle('opaque', opaque);
-      onto.append(screen);
+// lilOS's logo (public/favicon.svg), white on the panel
+function logo() {
+  const svg = document.createElementNS(SVG, 'svg');
+  svg.setAttribute('viewBox', '0 0 16 16');
+  svg.setAttribute('aria-hidden', 'true');
+  const path = document.createElementNS(SVG, 'path');
+  path.setAttribute('fill', 'currentColor');
+  path.setAttribute('fill-rule', 'evenodd');
+  path.setAttribute('d', 'M4 0h8a4 4 0 0 1 4 4v8a4 4 0 0 1-4 4H4a4 4 0 0 1-4-4V4a4 4 0 0 1 4-4zm2 5a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1z');
+  svg.append(path);
+  return el('span', { class: 'boot-logo' }, svg);
+}
+
+// Browser storage may be blocked or empty: the screens work the same without it
+function load(key) {
+  try { return localStorage.getItem(key); } catch { return null; }
+}
+function save(key, value) {
+  try { localStorage.setItem(key, value); } catch { /* not remembered */ }
+}
+
+const savedTheme = () => (load(THEME_KEY) === 'light' ? 'light' : 'dark');
+
+/** Whether the last sign-in asked to stay signed in (the default). */
+export const rememberSignIn = () => load(REMEMBER_KEY) !== '0';
+
+// ---------- The left panel ----------
+
+const POINTS = ['I tuoi file nella tua home', 'Un workspace per ogni progetto', 'Le app sempre aggiornate'];
+
+function heroText({ title = ['Il tuo desktop.', 'Ovunque tu sia.'], lead = 'Finestre, file e app di lilOS da qualsiasi computer, come li hai lasciati.', points = POINTS } = {}) {
+  return [
+    el('h2', { class: 'boot-headline' }, ...title.flatMap((line, i) => (i ? [el('br'), line] : [line]))),
+    el('p', { class: 'boot-lead' }, lead),
+    points.length ? el('ul', { class: 'boot-points' }, ...points.map(p => el('li', {}, p))) : null,
+  ];
+}
+
+/** The time and date, kept current while the screen is shown. */
+function heroClock(points = []) {
+  const time = el('div', { class: 'boot-clock' });
+  const date = el('div', { class: 'boot-date' });
+  const tick = () => {
+    const now = new Date();
+    time.textContent = now.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+    date.textContent = now.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' });
+  };
+  tick();
+  const timer = setInterval(() => (time.isConnected ? tick() : clearInterval(timer)), 10_000);
+  return [time, date, points.length ? el('ul', { class: 'boot-points' }, ...points.map(p => el('li', {}, p))) : null];
+}
+
+/** Whether the kernel answers, and how fast; asked again every few seconds while it is shown. */
+function connection() {
+  const label = el('span', {}, 'Connessione…');
+  const pill = el('span', { class: 'boot-pill', role: 'status' }, el('i', { 'aria-hidden': 'true' }), label);
+  const ping = async () => {
+    if (!pill.isConnected && pill.dataset.state) return;
+    const start = performance.now();
+    try {
+      await kernel.request('GET', '/session');
+      pill.dataset.state = 'on';
+      label.textContent = `Connesso a ${location.host} · ${Math.max(1, Math.round(performance.now() - start))} ms`;
+    } catch (err) {
+      pill.dataset.state = err.code === 'offline' ? 'off' : 'on';
+      label.textContent = err.code === 'offline' ? 'Kernel non raggiungibile' : `Connesso a ${location.host}`;
     }
+    setTimeout(ping, PING_EVERY);
+  };
+  ping();
+  return pill;
+}
+
+// ---------- The frame ----------
+
+/**
+ * Both halves into `root` (replaced) or, with `onto`, over it. `hero`: what the left panel shows
+ * (elements); `side`: the right half's content. Returns { screen, side }.
+ */
+function frame(root, { hero, side, onto = null }) {
+  const themeButton = el('button', { class: 'boot-tool', type: 'button' });
+  const screen = el('div', { class: 'boot', 'data-theme': savedTheme() },
+    el('aside', { class: 'boot-hero' },
+      el('div', { class: 'boot-brand' }, logo(), 'lilOS'),
+      el('div', { class: 'boot-hero-body' }, ...hero),
+      el('div', { class: 'boot-hero-foot' }, connection(), el('span', { class: 'boot-sp' }), `lilOS ${version}`)),
+    el('main', { class: 'boot-side' },
+      el('div', { class: 'boot-tools' }, themeButton),
+      el('div', { class: 'boot-form' }, ...side)));
+  const showTheme = () => {
+    const dark = screen.dataset.theme === 'dark';
+    themeButton.replaceChildren(svgIcon(dark ? 'sun' : 'moon'));
+    themeButton.title = dark ? 'Tema chiaro' : 'Tema scuro';
+    themeButton.setAttribute('aria-label', themeButton.title);
+  };
+  themeButton.addEventListener('click', () => {
+    screen.dataset.theme = screen.dataset.theme === 'dark' ? 'light' : 'dark';
+    save(THEME_KEY, screen.dataset.theme);
+    showTheme();
+  });
+  showTheme();
+  if (onto) {
+    screen.classList.add('overlay');
+    onto.append(screen);
+  } else {
+    root.replaceChildren(screen);
+  }
+  return { screen, side: screen.querySelector('.boot-form') };
+}
+
+const heading = (title, text) => [el('h1', {}, title), text ? el('p', { class: 'boot-text' }, text) : null];
+
+function errorBox() {
+  const text = el('span');
+  const box = el('div', { class: 'boot-error', role: 'alert', hidden: true }, svgIcon('alert'), text);
+  return {
+    box,
+    show(message) {
+      text.textContent = message;
+      box.hidden = !message;
+    },
+  };
+}
+
+/** A password field with the button that shows it and the Caps Lock warning. */
+function passwordField(attrs) {
+  const input = el('input', { class: 'boot-input', type: 'password', ...attrs });
+  const eye = el('button', { class: 'boot-eye', type: 'button', 'aria-pressed': 'false', title: 'Mostra la password', 'aria-label': 'Mostra la password' }, svgIcon('eye'));
+  const caps = el('span', { class: 'boot-caps', hidden: true }, svgIcon('alert'), 'Bloc Maiusc è attivo');
+  eye.addEventListener('click', () => {
+    const show = input.type === 'password';
+    input.type = show ? 'text' : 'password';
+    eye.setAttribute('aria-pressed', String(show));
+    eye.title = show ? 'Nascondi la password' : 'Mostra la password';
+    eye.setAttribute('aria-label', eye.title);
+    eye.replaceChildren(svgIcon(show ? 'eyeOff' : 'eye'));
+    input.focus();
+  });
+  const checkCaps = e => { if (e.getModifierState) caps.hidden = !e.getModifierState('CapsLock'); };
+  input.addEventListener('keydown', checkCaps);
+  input.addEventListener('keyup', checkCaps);
+  input.addEventListener('blur', () => { caps.hidden = true; });
+  return { input, caps, wrap: el('div', { class: 'boot-field-box' }, input, eye) };
+}
+
+function primaryButton(label, { type = 'button', arrow = true, glyph = null } = {}) {
+  const text = el('span', {}, label);
+  const button = el('button', { class: 'boot-go', type }, glyph ? svgIcon(glyph) : null, text, arrow ? svgIcon('arrow') : null);
+  button.label = value => { text.textContent = value; };
+  return button;
+}
+
+/** The two initials of a name, for the avatar (a photo instead when lilOS has one: --user-photo). */
+const initials = name => String(name).split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('') || '?';
+
+// ---------- Screens ----------
+
+/**
+ * Sign-in form: resolves once `login(username, password, { remember })` succeeds; its errors are
+ * shown, and after too many tries (error 'rate_limited' with retryAfter) the button counts down.
+ * `onto`: an element to cover (signing in again over a running lilOS) instead of replacing root.
+ * `username`: asks only the password of this user (`name`: shown with the avatar; the time on the
+ * left). `other`: { label, onClick, lead } of a second action. `submit`: the button's label.
+ * `opaque` is kept for the callers: every screen covers what is under it.
+ */
+export function loginScreen(root, login, {
+  title = 'Accedi a lilOS', text = 'Bentornato. Inserisci i tuoi dati per continuare.',
+  onto = null, username = null, name = null, other = null, submit: submitLabel = 'Accedi',
+} = {}) {
+  return new Promise(resolve => {
+    const user = el('input', { class: 'boot-input', type: 'text', name: 'username', autocomplete: 'username', autocapitalize: 'none', spellcheck: 'false', required: true });
+    const pass = passwordField({ name: 'password', autocomplete: 'current-password', required: true });
+    const remember = el('input', { type: 'checkbox' });
+    remember.checked = rememberSignIn();
+    const error = errorBox();
+    const submit = primaryButton(submitLabel, { type: 'submit', arrow: !username, glyph: username ? 'lock' : null });
+    let waitTimer = null;
+
+    const fields = username
+      ? [el('input', { type: 'text', name: 'username', autocomplete: 'username', value: username, hidden: true, readonly: true }),
+        el('label', { class: 'boot-field' }, el('span', {}, 'Password'), pass.wrap, pass.caps)]
+      : [el('label', { class: 'boot-field' }, el('span', {}, 'Nome utente'), user),
+        el('label', { class: 'boot-field' }, el('span', {}, 'Password'), pass.wrap, pass.caps),
+        el('div', { class: 'boot-row' },
+          el('label', { class: 'boot-check' }, remember, el('span', {}, 'Resta connesso')),
+          el('button', { class: 'boot-link', type: 'button', onclick: () => forgot() }, 'Password dimenticata?'))];
+    const form = el('form', { class: 'boot-fields', novalidate: true }, ...fields, submit);
+    const sideContent = [
+      username ? el('div', { class: 'boot-avatar', 'aria-hidden': 'true' }, initials(name ?? username)) : null,
+      ...heading(title, text), error.box, form,
+      other
+        ? el('p', { class: 'boot-alt' }, other.lead ? `${other.lead} ` : null, el('button', { class: 'boot-link', type: 'button', onclick: other.onClick }, other.label))
+        : username ? null : el('p', { class: 'boot-alt' }, 'Non hai un account? Lo crea un amministratore di lilOS.'),
+    ];
+    const hero = username ? heroClock(['Le finestre restano aperte', 'Le modifiche in attesa vengono salvate']) : heroText();
+    const { screen, side } = frame(root, { hero, side: sideContent, onto });
+
+    const forgot = () => {
+      const back = primaryButton("Torna all'accesso", { arrow: false });
+      side.replaceChildren(
+        el('div', { class: 'boot-avatar icon' }, svgIcon('key')),
+        ...heading('Password dimenticata', "La password la cambia un amministratore di lilOS: chiedigli di sceglierne una nuova per il tuo nome utente. Da qui non si può reimpostare."),
+        back);
+      back.addEventListener('click', () => {
+        side.replaceChildren(...sideContent);
+        user.focus();
+      });
+      back.focus();
+    };
+
+    const countdown = seconds => {
+      clearInterval(waitTimer);
+      const end = Date.now() + seconds * 1000;
+      submit.disabled = true;
+      const tick = () => {
+        const left = Math.ceil((end - Date.now()) / 1000);
+        if (left > 0 && screen.isConnected) return submit.label(`Riprova tra ${left} s`);
+        clearInterval(waitTimer);
+        submit.disabled = false;
+        submit.label(submitLabel);
+      };
+      tick();
+      waitTimer = setInterval(tick, 500);
+    };
+
     form.addEventListener('submit', async e => {
       e.preventDefault();
+      if (submit.disabled) return;
+      const name = username ?? user.value.trim();
+      if (!name) return user.focus();
+      if (!pass.input.value) return pass.input.focus();
       submit.disabled = true;
       submit.setAttribute('aria-busy', 'true');
-      error.textContent = '';
+      error.show('');
+      let wait = 0;
       try {
-        await login(user.value.trim(), pass.value);
+        if (!username) save(REMEMBER_KEY, remember.checked ? '1' : '0');
+        await login(name, pass.input.value, { remember: username ? rememberSignIn() : remember.checked });
+        clearInterval(waitTimer);
         if (onto) screen.remove();
         resolve();
+        return;
       } catch (err) {
-        error.textContent = err.message;
-        pass.select();
+        error.show(err.message);
+        if (err.code === 'rate_limited' && err.retryAfter) wait = err.retryAfter;
+        pass.input.select();
       } finally {
-        submit.disabled = false;
         submit.removeAttribute('aria-busy');
       }
+      if (wait) countdown(wait);
+      else submit.disabled = false;
     });
-    if (username) {
-      user.value = username;
-      user.readOnly = true;
-      pass.focus();
-    } else {
-      user.focus();
-    }
+    // Enter in the user name goes on to the password
+    user.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && user.value.trim() && !pass.input.value) {
+        e.preventDefault();
+        pass.input.focus();
+      }
+    });
+    (username ? pass.input : user).focus();
   });
 }
 
-/** A message with buttons: resolves with the value of the button pressed. */
-export function messageScreen(root, { title, text, buttons }) {
+/**
+ * A message with buttons: resolves with the value of the button pressed. `tone: 'danger'` shows
+ * the warning sign. `auto: { seconds, value }` resolves by itself with `value` when the seconds
+ * are over, counting down under the text.
+ */
+export function messageScreen(root, { title, text, buttons, tone = null, auto = null }) {
   return new Promise(resolve => {
-    const row = el('div', { class: 'boot-buttons' }, ...buttons.map(b =>
-      el('button', { class: `ctl-btn${b.primary ? ' primary' : ''}`, type: 'button', onclick: () => resolve(b.value) }, b.label)));
-    card(root, el('h1', {}, title), text ? el('p', { class: 'boot-text' }, text) : null, row);
-    row.querySelector('.primary')?.focus();
+    let timer = null;
+    const done = value => {
+      clearInterval(timer);
+      resolve(value);
+    };
+    const row = el('div', { class: 'boot-buttons' }, ...buttons.map(b => {
+      const button = b.primary ? primaryButton(b.label) : el('button', { class: 'boot-second', type: 'button' }, b.label);
+      button.addEventListener('click', () => done(b.value));
+      return button;
+    }));
+    const left = el('b');
+    const wait = auto ? el('div', { class: 'boot-note-box' }, el('span', { class: 'boot-spin', 'aria-hidden': 'true' }), el('span', {}, 'Nuovo tentativo tra ', left)) : null;
+    frame(root, {
+      hero: heroText(),
+      side: [tone === 'danger' ? el('div', { class: 'boot-avatar icon danger' }, svgIcon('alert')) : null, ...heading(title, text), wait, row],
+    });
+    if (auto) {
+      const end = Date.now() + auto.seconds * 1000;
+      const tick = () => {
+        const s = Math.ceil((end - Date.now()) / 1000);
+        if (s <= 0) return done(auto.value);
+        left.textContent = `${s} s`;
+      };
+      tick();
+      timer = setInterval(tick, 250);
+    }
+    row.querySelector('.boot-go')?.focus();
   });
 }
 
@@ -96,39 +365,79 @@ export function licenseScreen(root, { text, source, url }, accept) {
       ? ['Testo letto da ', from, '.']
       : [from, ' non risponde: questa è la copia inclusa in lilOS. Quando torna raggiungibile, se il testo è cambiato, lilOS lo chiederà di nuovo.']));
     const check = el('input', { type: 'checkbox' });
-    const ok = el('button', { class: 'ctl-btn primary', type: 'button', disabled: '' }, 'Accetta');
-    const error = el('p', { class: 'boot-error', role: 'alert' });
+    const ok = primaryButton('Accetta e continua');
+    ok.disabled = true;
+    const error = errorBox();
     check.addEventListener('change', () => { ok.disabled = !check.checked; });
     ok.addEventListener('click', async () => {
       ok.disabled = true;
       ok.setAttribute('aria-busy', 'true');
-      error.textContent = '';
+      error.show('');
       try {
         await accept();
         resolve('accepted');
       } catch (err) {
         if (err.code === 'conflict') return resolve('changed');
-        error.textContent = err.message;
+        error.show(err.message);
         ok.disabled = !check.checked;
       } finally {
         ok.removeAttribute('aria-busy');
       }
     });
-    const { box } = card(root,
-      el('h1', {}, 'Licenza di lilOS'),
-      el('p', { class: 'boot-text' }, "Prima di usare lilOS, leggi la sua licenza d'uso: vale per tutta questa installazione."),
-      doc, note,
-      el('label', { class: 'boot-check' }, check, el('span', {}, 'Ho letto la licenza e la accetto')),
-      error,
-      el('div', { class: 'boot-buttons' },
-        el('button', { class: 'ctl-btn', type: 'button', onclick: () => resolve('exit') }, 'Esci'),
-        ok));
-    box.classList.add('wide');
+    const { screen } = frame(root, {
+      hero: heroText({
+        title: ['Benvenuto', 'in lilOS.'],
+        lead: "Un'ultima cosa prima di iniziare: la licenza d'uso vale per tutta questa installazione.",
+        points: ['La accetta un amministratore, una volta', 'Il testo viene dal repository ufficiale'],
+      }),
+      side: [
+        ...heading('Licenza di lilOS', "Prima di usare lilOS, leggi la sua licenza d'uso."),
+        doc, note,
+        el('label', { class: 'boot-check' }, check, el('span', {}, 'Ho letto la licenza e la accetto')),
+        error.box, ok,
+        el('p', { class: 'boot-alt' }, el('button', { class: 'boot-link', type: 'button', onclick: () => resolve('exit') }, 'Esci')),
+      ],
+    });
+    screen.classList.add('wide');
     doc.focus();
   });
 }
 
 /** A message while something runs. */
 export function progressScreen(root, title) {
-  card(root, el('h1', {}, title), el('div', { class: 'boot-spinner', 'aria-hidden': 'true' }));
+  frame(root, { hero: heroText(), side: [el('h1', {}, title), el('div', { class: 'boot-spin big', 'aria-hidden': 'true' })] });
+}
+
+/**
+ * The start-up after signing in: `steps` (labels) one under the other, ticked as they end.
+ * Returns { step(i): the step i runs (those before it are done), done(): all done }.
+ */
+export function startScreen(root, { name, steps }) {
+  const started = steps.map(() => 0);
+  const rows = steps.map(label => el('li', { class: 'boot-step' }, el('span', { class: 'boot-step-mark', 'aria-hidden': 'true' }), el('span', {}, label), el('span', { class: 'boot-step-time' })));
+  const bar = el('i');
+  frame(root, {
+    hero: heroText(),
+    side: [
+      el('div', { class: 'boot-avatar', 'aria-hidden': 'true' }, initials(name)),
+      ...heading(`Ciao, ${String(name).split(/\s+/)[0]}`, 'Preparo il tuo lilOS…'),
+      el('div', { class: 'boot-bar', 'aria-hidden': 'true' }, bar),
+      el('ol', { class: 'boot-steps', 'aria-live': 'polite' }, ...rows),
+    ],
+  });
+  const show = current => {
+    rows.forEach((row, i) => {
+      const state = i < current ? 'done' : i === current ? 'now' : 'todo';
+      if (row.dataset.state === 'now' && state === 'done') {
+        const ms = performance.now() - started[i];
+        row.lastChild.textContent = `${(ms / 1000).toLocaleString('it-IT', { maximumFractionDigits: 1 })} s`;
+      }
+      if (state === 'now' && row.dataset.state !== 'now') started[i] = performance.now();
+      row.dataset.state = state;
+      row.firstChild.replaceChildren(state === 'done' ? svgIcon('check') : '');
+    });
+    bar.style.width = `${Math.round((Math.min(current, rows.length) + 0.5) / (rows.length + 0.5) * 100)}%`;
+  };
+  show(0);
+  return { step: show, done: () => show(rows.length) };
 }

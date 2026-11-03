@@ -15,12 +15,16 @@ const DELAY = 300;
 const MAX_RETRY = 30_000;
 
 export class KernelError extends Error {
-  /** details: what the kernel adds to some errors (the fingerprint of a server to confirm…). */
-  constructor(status, code, message, details) {
+  /**
+   * details: what the kernel adds to some errors (the fingerprint of a server to confirm…).
+   * retryAfter: seconds to wait before trying again ('rate_limited'), when the kernel says.
+   */
+  constructor(status, code, message, details, retryAfter) {
     super(message);
     this.status = status;
     this.code = code;
     if (details !== undefined) this.details = details;
+    if (retryAfter > 0) this.retryAfter = retryAfter;
   }
 }
 
@@ -62,7 +66,7 @@ class Kernel extends Emitter {
     if (res.status === 401 && this.connected && this.mode === 'multi') this.emit('signedout');
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new KernelError(res.status, err.error ?? 'internal', err.message ?? `Errore ${res.status}`, err.details);
+      throw new KernelError(res.status, err.error ?? 'internal', err.message ?? `Errore ${res.status}`, err.details, Number(res.headers.get('Retry-After')) || undefined);
     }
     if (res.status === 204) return undefined;
     return blob ? res.blob() : text ? res.text() : res.json();
@@ -128,8 +132,9 @@ class Kernel extends Emitter {
     return s;
   }
 
-  async login(username, password) {
-    const { user } = await this.request('POST', '/session', { username, password });
+  /** Signs in; with `remember` false the session ends when the browser closes. */
+  async login(username, password, { remember = true } = {}) {
+    const { user } = await this.request('POST', '/session', { username, password, remember });
     this.user = user;
     return user;
   }

@@ -3,8 +3,9 @@ import { cookies, clientIp } from '../http.js';
 
 export const SESSION_COOKIE = 'lilos_session';
 
+// maxAge null: a cookie of this browser session, gone when the browser closes
 const cookie = (kernel, value, maxAge) => [
-  `${SESSION_COOKIE}=${value}`, 'Path=/api', 'HttpOnly', 'SameSite=Strict', `Max-Age=${maxAge}`,
+  `${SESSION_COOKIE}=${value}`, 'Path=/api', 'HttpOnly', 'SameSite=Strict', ...(maxAge === null ? [] : [`Max-Age=${maxAge}`]),
   ...(kernel.config.secureCookies ? ['Secure'] : []),
 ].join('; ');
 
@@ -12,7 +13,8 @@ const publicUser = p => (p ? { id: p.id, username: p.username, name: p.name, rol
 
 /**
  *   GET    /api/session   { mode: 'multi' | 'single', user | null }
- *   POST   /api/session   { username, password } → { user }   signs in (session cookie)
+ *   POST   /api/session   { username, password, remember } → { user }   signs in (session cookie; with
+ *                         remember false it ends when the browser closes, else when the session does)
  *   POST   /api/session/verify  { username, password } → { ok, role }   checks a password, no session
  *   DELETE /api/session   signs out
  */
@@ -26,10 +28,10 @@ export function sessionRoutes(kernel) {
 
   router.add('POST', '/api/session', async ({ req, res, json }) => {
     if (!kernel.multiUser) fail('invalid', 'lilOS ha un solo utente: non serve accedere');
-    const { username, password } = await json(16 << 10);
+    const { username, password, remember = true } = await json(16 << 10);
     if (typeof username !== 'string' || typeof password !== 'string' || !username || !password) fail('invalid', 'Nome utente e password sono obbligatori');
     const { token, user, expires } = await kernel.service('auth').login(username, password, { ip: clientIp(req) });
-    res.setHeader('Set-Cookie', cookie(kernel, token, Math.max(0, Math.floor((expires - Date.now()) / 1000))));
+    res.setHeader('Set-Cookie', cookie(kernel, token, remember === false ? null : Math.max(0, Math.floor((expires - Date.now()) / 1000))));
     kernel.appServices.userSeen({ kind: 'user', id: user.id, username: user.username, name: user.name, role: user.role });
     return { user: publicUser(user) };
   });
