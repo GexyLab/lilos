@@ -381,6 +381,7 @@ I moduli del kernel come pacchetti (solo amministratori). Girano nel kernel con 
 | `oauthApps()` → `[{ id, label, description, fields, values, secrets, live, protocols, ready }]` | Da lilOS 1.22.0 (`GET /api/net/oauth`). Le app dei fornitori con cui i moduli di rete fanno accedere gli utenti, configurate **una volta per tutti i moduli**: `'microsoft'` (OneDrive, Azure: `clientId`, `accounts`, `tenant`) e `'google'` (Drive, Foto: `clientId`, `clientSecret`, `clientType`). Hanno la stessa forma di `settings` (si disegnano con gli stessi campi), più `id`, `label` e `description` (`{ en, it }`), `secrets` (le chiavi dei campi segreti impostati), `protocols` (gli id dei protocolli attivi che la usano) e `ready` (`null`, o perché non si può ancora usare, `{ en, it }`). |
 | `saveOAuthApp(id, values)` → app | Da lilOS 1.22.0 (`PUT /api/net/oauth/:id`). Come `saveSettings`: valori controllati con i campi (`invalid`), un campo segreto assente o vuoto tiene il suo valore, `null` lo toglie; le connessioni aperte dei protocolli che la usano ripartono. `not_found` per un id sconosciuto, `forbidden` per chi non è amministratore. |
 | `restart()` | Chiede al kernel di riavviarsi (`POST /api/kernel/restart`). Funziona solo se il kernel è stato avviato con `npm run kernel`; altrimenti lancia `unavailable`. Durante il riavvio (qualche secondo) le richieste falliscono: i salvataggi in attesa si ripetono da soli. |
+| `shutdown()` | Da lilOS 1.26.0 (SDK 0.17.0). Chiede al kernel di fermarsi **e di non ripartire** (`POST /api/kernel/shutdown` → `{ stopping: true }`): lilOS resta spento per tutti gli utenti finché qualcuno non lo riavvia a mano (o il servizio che lo aveva avviato). Solo amministratori (`forbidden` per gli altri). Dopo la risposta le richieste falliscono. Prima di chiamarla salva ciò che è in attesa (`kernel.flush()`) e chiedi alle finestre: lo fa `shutdownSystem()` ([Riavvio](#riavvio)). |
 
 ### `packages`
 
@@ -820,6 +821,7 @@ Le chiamate segnate **(T)** funzionano solo se il programma si fida di questo li
 | `servers.list()` **(T)** | I lilOS che il programma apre: `[{ id, name, kind, url, trusted, current, status?, version? }]` (`status`: `'stopped'` \| `'starting'` \| `'running'` \| `'failed'`, solo per `kind: 'local'`). |
 | `servers.add({ name, url, trusted })` **(T)** | Aggiunge un server remoto. `url`: `https://…`, oppure `http://` solo per `localhost`, `127.0.0.1` e `[::1]`; si salva l'origine (senza percorso). Lancia «Indirizzo non valido» o «Serve un indirizzo https://…». Restituisce `{ id, name, url, trusted }`. |
 | `servers.remove(id)` **(T)**, `servers.open(id)` **(T)** | Toglie un server (non quello di questo computer né quello della finestra da cui si chiama) / apre la sua finestra. |
+| `quit()` **(T)** → `Promise` | Da SDK 0.17.0. Il programma si chiude (`app.quit()` dopo 100 ms, così la risposta parte prima): il lilOS che fa girare, kernel e database, si ferma con lui. Con un server remoto di fiducia chiude solo il programma. Fuori dal programma lancia «Serve il programma lilOS…»; con un programma più vecchio, senza `quit`, lancia subito un `TypeError` (il ponte non ha la funzione). Chi la usa deve prevedere l'errore, come fa `shutdownSystem()`. |
 | `local.status()` **(T)** → `{ status, error, version, url, installed }`, `local.restart()` **(T)**, `local.stop()` **(T)**, `local.openInBrowser()` **(T)** | Il lilOS che il programma fa girare qui (kernel e database). `restart()` riavvia il kernel, non il database. |
 | `updates.check()` → `{ status, version, error }` | Controlla gli aggiornamenti **del programma** (non di lilOS). `status`: `'current'` \| `'available'` \| `'downloaded'` \| `'error'` \| `'dev'` (copia di sviluppo: niente aggiornamenti). Funziona anche con un server non di fiducia. |
 | `updates.install()` **(T)** | Con una versione scaricata riavvia e aggiorna; altrimenti apre in pagina la release. |
@@ -2270,6 +2272,7 @@ else for (const r of out) console.log(r.id, r.error ?? r.result.version);
 | `updates` | `Emitter`. Evento `change`: cosa è in attesa è cambiato. `updates.pending()` → `[{ id, name, version, kind: 'reopen' \| 'restart', reason }]` (copie); `updates.restartReasons()` → `string[]` (i motivi di `requestRestart` e quelli delle app in attesa di riavvio). |
 | `windowsMayClose()` | Chiede alle finestre con `canClose` (tutte, `wm.all()`) se possono chiudersi, come `restartSystem()` ma senza ricaricare. `Promise<boolean>`; `true` se il gestore delle finestre non c'è ancora. Non è in `@lilos/system`. |
 | `restartKernel()` | Riavvia il kernel (solo amministratori). Chiede alle finestre come `restartSystem()` (`false` se una rifiuta), poi `kernel.flush()` e `kernelModules.restart()` (`POST /api/kernel/restart`), mostra la schermata opaca «Riavvio del sistema…», aspetta che il kernel smetta di rispondere e torni a rispondere (al massimo un minuto per fase) e ricarica la pagina. Lancia se il kernel rifiuta (per esempio non è stato avviato con `npm run kernel`). Non è in `@lilos/system`. |
+| `shutdownSystem()` | Da lilOS 1.26.0. Arresta lilOS (solo amministratori). Chiede alle finestre come `restartKernel()` (`false` se una rifiuta) e fa `kernel.flush()`. Poi: se `host.native` e `host.info().profile.kind === 'local'` (il lilOS che il programma fa girare) chiama `host.quit()`: il programma si chiude e con lui kernel e database; se `host.quit()` lancia (un programma vecchio, senza `quit`) o altrove, chiama `kernelModules.shutdown()` e mostra la schermata opaca «lilOS è spento» con il pulsante «Ricarica» (`location.reload()`). Risolve `true` (anche se la schermata resta); lancia se il kernel non si ferma. Non è in `@lilos/system`. |
 
 Le funzioni `reopenApp(id)`, `askRestart()`, `blockedLaunch(id)` e `restartWanted(range, from)` sono esportate dal modulo ma **non** da `@lilos/system`.
 
@@ -2938,11 +2941,11 @@ La pagina a tutto schermo che si apre dal nome dell'utente nel menu di avvio. De
 | `isOpen` | Stato. |
 
 - **Chi apre.** `taskbar.startMenu.onUser` (il nome in alto nel menu di avvio). `taskbar.startMenu.onOpen` la chiude.
-- **Chi chiude.** Esc (se sta chiedendo di riavviare, Esc torna solo alle azioni), `wm` `open` (si apre una finestra), un `pointerdown` sulla barra.
+- **Chi chiude.** Esc (se sta chiedendo conferma per riavviare o arrestare, Esc torna solo alle azioni, con il focus sulla tessera che aveva chiesto), `wm` `open` (si apre una finestra), un `pointerdown` sulla barra.
 - **Tastiera.** La pagina ferma la propagazione di `keydown`: le scorciatoie della scrivania non scattano sotto. Tab resta dentro la pagina.
 - **Si ridisegna** quando cambiano `theme`, `language`, `userPhoto`, `userPageHidden` o `startupApps` (`settings` `change:<chiave>`), rimettendo il focus sul controllo che l'aveva (`data-key`).
 - **Contenuto.** Intestazione (avatar, nome sempre; `details`: nome utente e ruolo, «Amministratore» o «Utente»), azioni, due schede («Account» e «Questa sessione») e il piè di pagina (`about`: `lilOS <version> · <host>`). Una voce spenta (`isUserPageShown`) non si disegna; una scheda senza voci sparisce. Le righe che portano al Pannello di controllo usano `launch('settings', args)` con `{ tab: 'startup', subtab: 'apps' }`, `{ tab: 'storage' }` o `{ tab: 'workspaces' }`.
-- **Azioni.** «Blocca» solo con `kernel.mode === 'multi'`. «Chiudi sessione» (`multi`) o «Riavvia sessione» (`single`) chiamano `signOut()`. «Riavvia il sistema» solo con `kernel.data.user.role === 'admin'`: chiede conferma nella pagina («Riavvia ora» / «Annulla») e poi chiama `restartKernel()` ([apps/updates.js](#riavvio)); un errore diventa una notifica.
+- **Azioni.** «Blocca» solo con `kernel.mode === 'multi'`. «Chiudi sessione» (`multi`) o «Riavvia sessione» (`single`) chiamano `signOut()`. «Riavvia il sistema» solo con `kernel.data.user.role === 'admin'`: chiede conferma nella pagina («Riavvia ora» / «Annulla») e poi chiama `restartKernel()` ([apps/updates.js](#riavvio)); un errore diventa una notifica («Il sistema non si riavvia: …»). «Arresta» (icona `power`, classe `danger`, stessa condizione, accanto a «Riavvia il sistema»; da lilOS 1.26.0) chiede «Arrestare lilOS?» («Arresta ora» / «Annulla») e poi chiama `shutdownSystem()`; un errore diventa la notifica «lilOS non si arresta: …». La domanda è una sola, generica (`#confirm`), guidata dalla tabella `CONFIRM` (`restart`, `shutdown`: titolo, testo, pulsante, funzione, messaggio d'errore); i pulsanti hanno `data-key` `confirm-cancel` e `confirm-now` (prima `restart-cancel` e `restart-now`). Il focus parte su «Annulla».
 - **Cosa legge.** Il numero di finestre da `wm.all()`, le app in sottofondo da `running()` (`apps/packages/background.js`), le app all'avvio da `startup.apps()`, lo spazio da `fs` (somma di `size` sotto `fs.root`), il workspace da `workspaceManager()`.
 
 ### `signOut()` (`user/UserPage.js`)
@@ -2972,6 +2975,7 @@ I servizi dell'utente si fermano alla fine della sessione e ripartono al nuovo a
 | `lock` | `actions` | `lock` | Blocca (solo `multi`) |
 | `logout` | `actions` | `logout` | Chiudi sessione / Riavvia sessione |
 | `restart` | `actions` | `restart` | Riavvia il sistema (solo amministratori) |
+| `shutdown` | `actions` | `power` | Arresta lilOS (solo amministratori; da lilOS 1.26.0) |
 | `photo` | `account` | `camera` | Foto profilo: la riga e il pulsante sulla foto |
 | `theme` | `account` | `palette` | Tema |
 | `language` | `account` | `globe` | Lingua |
@@ -3628,6 +3632,7 @@ Un guscio Electron (`lilos-desktop/development/`, vedi il suo [README](../../lil
 | `devices.list`, `devices.choose`, `devices.eject` | Cosa ha il computer; la risposta a `choose`; espellere un'unità |
 | `servers.list`, `servers.add`, `servers.remove`, `servers.open` | I server (profili) |
 | `local.status`, `local.restart`, `local.stop`, `local.openInBrowser` | Il lilOS del programma |
+| `quit` | Chiude il programma (dopo 100 ms); `before-quit` ferma il lilOS locale. Solo profili di fiducia (non è in `OPEN` di `bridge.js`) |
 | `updates.check`, `updates.install` | Gli aggiornamenti del programma |
 
 `on(nome, fn)` → `off`: ascolta gli eventi del programma (`choose`, `drives`, `file-changed`, `settings`, `display`, `open`, `open-settings`). Il programma sa quali eventi la pagina ascolta (`lilos-host:listen`): senza `choose` mostra un suo riquadro per scegliere il dispositivo, e osserva le unità solo se c'è chi ascolta `drives`.
@@ -3692,9 +3697,20 @@ Del file il programma legge solo `installer.dir`, `installer.mode`, `installer.s
 
 **Installazione a metà.** Se `current.json` manca, `local/kernel.js` ricomincia ma cancella **solo** quello che scrive `install.js` (`releases`, `modules`, `modules-data`, `.image`, `run.js`, `package.json`, `config.json`, `repos.json`, `current.json`, `lilos-install.json`): la cartella potrebbe essere dell'utente (`installer.dir`).
 
+### La domanda sull'installazione precedente (Windows)
+
+Da programma 0.3.0. Disinstallare il programma non cancella `%APPDATA%\lilOS`: reinstallandolo, `settings.json` può avere ancora dei server. Per distinguere una nuova installazione dall'avvio di sempre:
+
+- `electron-builder.yml` (`win.extraResources`) mette `build/first-run` in `resources/first-run` (`.exe` e `.msi`). Su macOS e Linux il file non c'è e la domanda non compare.
+- `installFile.js`: `justInstalled()` è vero se il file esiste (percorso: `LILOS_FIRST_RUN`, oppure `resources/first-run` nel programma impacchettato; in sviluppo `null`, quindi falso). `forgetInstalled()` lo cancella.
+- Gli aggiornamenti automatici reinstallano il file. `updates.js` all'evento `update-downloaded` scrive `settings.updating = <versione scaricata>`; `justInstalled()` azzera `updating` e, se era uguale a `app.getVersion()`, cancella il segno e torna `false`: nessuna domanda.
+- `main.js`: senza server salvati cancella il segno e fa `firstStart()`; altrimenti, se `justInstalled()`, apre `openWelcome({ previous: true })` (anche con `--hidden`) invece di `resume()`. `resume({ hidden })` avvia il lilOS locale e apre l'ultimo server; `setupPages({ firstStart, resume })` lo passa a `pages.js`.
+- La pagina `welcome.html?previous=1` ha i gestori di `pages.js` `welcome.previous` (`{ profiles: [{ name, kind, url }], local: { version, dir } | null }`), `welcome.keep` (cancella il segno, `resume()`, chiude la pagina) e `welcome.fresh` (`{ erase }`): `local.discard({ erase })` ferma kernel e database e **rinomina** `LILOS_DIR` e `PG_DIR` in `<cartella>.old-AAAAMMGGhhmm` (ora del computer), oppure con `erase: true` li **cancella**; se `PG_DIR` è dentro `LILOS_DIR` (`installer.dir`) segue la cartella. Poi `useLilosDir()` senza argomento (cartelle predefinite), `setAutostart(false)` se `startAtLogin`, `store.reset()` (impostazioni predefinite, salvate) e `firstStart()`. La pagina chiede conferma in più prima di `erase`.
+- Testi: `welcome.previous*` in `locales.json` (inglese e italiano).
+
 ### Dati del programma
 
-Le impostazioni sono in `settings.json` nella cartella dei dati del programma (permessi `0600`: ci sono la password del database e le porte): `profiles` (`[{ id, name, kind: 'local' \| 'remote', url, trusted }]`), `last`, `local` (`{ installed, port, pgPort, pgPassword }`), le otto impostazioni sopra, `devices` (i dispositivi scelti con la regola `ask`) e `bounds`. Accanto: `lilos/` (il lilOS installato), `postgres/` (il database) e `logs/`.
+Le impostazioni sono in `settings.json` nella cartella dei dati del programma (permessi `0600`: ci sono la password del database e le porte): `profiles` (`[{ id, name, kind: 'local' \| 'remote', url, trusted }]`), `last`, `local` (`{ installed, port, pgPort, pgPassword }`), le otto impostazioni sopra, `updating` (la versione del programma scaricata dall'aggiornamento automatico, `null` altrimenti: vedi sotto), `devices` (i dispositivi scelti con la regola `ask`) e `bounds`. Accanto: `lilos/` (il lilOS installato), `postgres/` (il database) e `logs/`.
 
 ---
 
@@ -3766,6 +3782,7 @@ Le richieste che modificano (tutte tranne `GET` e `HEAD`) devono avere l'intesta
 | `GET /api/net/rules`, `PUT /api/net/rules` | amministratori | Le eccezioni alle regole di rete (`allowLocal`, `allowPrivate`, `allow`): vedi [Dove ci si può collegare](#rete-connessioni-e-trasferimenti-net-apinetjs) e [Configurazione](#configurazione-configjson) |
 | `GET /api/net/oauth`, `PUT /api/net/oauth/:id` | amministratori | Le app registrate presso i fornitori (Microsoft, Google), una per tutti i protocolli: vedi [App dei fornitori](#app-dei-fornitori-netoauthjs) |
 | `POST /api/kernel/restart` | amministratori | Il kernel si ferma ed esce con il codice 75: `npm run kernel` lo riavvia. Senza `run.js` (variabile `LILOS_SUPERVISED` assente): `unavailable` |
+| `POST /api/kernel/shutdown` | amministratori | Da lilOS 1.26.0. Risponde `{ stopping: true }`; dopo 200 ms `kernel.stop()` e `process.exit(0)`. `run.js` con un codice diverso da 75 termina anche lui, quindi lilOS resta spento finché qualcuno non lo riavvia a mano (o il servizio che lo aveva avviato). Scrive nel log «Arresto chiesto da <utente>». Funziona anche senza `run.js` |
 | `GET /api/system` | utenti | → `{ version, mode }`; agli amministratori anche `kernel`, `sdk`, `releases`, `next`, `previous`, `updated`, `failed` (vedi [`systemReleases`](#systemreleases)) |
 | `POST /api/system/update` | amministratori | `{ ref? }` → `{ version, previous, restartRequired }` o `{ version, unchanged: true }` |
 | `POST /api/system/use` | amministratori | `{ version }` → `{ version, restartRequired }` |
@@ -3820,7 +3837,7 @@ Il file si può cambiare con la variabile `LILOS_KERNEL_CONFIG`. Il kernel richi
 
 ### Avvio e riavvio (`run.js`)
 
-`npm run kernel` esegue `system/kernel/run.js`, che avvia `src/main.js` come processo figlio con `LILOS_SUPERVISED=1` e lo riavvia quando esce con il codice **75** (lo fa `POST /api/kernel/restart`, dopo aver installato, aggiornato o tolto un modulo). Con qualunque altro codice, `run.js` termina con quello. Avviare `src/main.js` direttamente funziona, ma senza riavvio automatico.
+`npm run kernel` esegue `system/kernel/run.js`, che avvia `src/main.js` come processo figlio con `LILOS_SUPERVISED=1` e lo riavvia quando esce con il codice **75** (lo fa `POST /api/kernel/restart`, dopo aver installato, aggiornato o tolto un modulo). Con qualunque altro codice, `run.js` termina con quello (lo fa anche `POST /api/kernel/shutdown`, che esce con 0: lilOS resta spento). Avviare `src/main.js` direttamente funziona, ma senza riavvio automatico.
 
 In un lilOS installato (c'è `current.json` accanto a `run.js`) `run.js` avvia `releases/<versione di current.json>/system/kernel/src/main.js`. Una versione appena installata (`trial: true`) è **in prova**: `run.js` ne legge l'output (lo mostra come sempre e tiene le ultime 40 righe) e aspetta che il kernel mandi il messaggio `{ lilos: 'ready' }` (`process.send` in `main.js`, quando ascolta) entro **5 minuti**.
 

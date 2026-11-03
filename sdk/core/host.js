@@ -32,6 +32,7 @@ import { fs } from './fs.js';
  *   host.servers.list() / add({ name, url, trusted }) / remove(id) / open(id) (T)
  *   host.local.status() / restart() / stop() / openInBrowser() (T)   the lilOS run by the program
  *   host.updates.check() → { status, version, error } / install()   updates of the program
+ *   host.quit() (T)               the program quits: the lilOS it runs (kernel and database) stops with it
  *   host.badge(count)             the number on the program's icon (lilOS sets it)
  *   host.focus()                  brings the window in front
  *
@@ -76,6 +77,7 @@ class Host extends Emitter {
   info() { return this.#need().info(); }
   badge(count) { return bridge?.badge(Math.max(0, Number(count) || 0)); }
   focus() { return bridge?.focus(); }
+  quit() { return this.#need().quit(); }
 
   async openOnComputer(id) {
     const node = fs.get(id);

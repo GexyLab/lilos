@@ -1,6 +1,8 @@
 import { EventEmitter } from 'node:events';
+import { existsSync, renameSync, rmSync } from 'node:fs';
+import { sep } from 'node:path';
 import { forgetPasswords, installSettings } from '../installFile.js';
-import { useLilosDir } from '../runtime.js';
+import { LILOS_DIR, PG_DIR, useLilosDir } from '../runtime.js';
 import { settings, update } from '../store.js';
 import * as pg from './postgres.js';
 import { Kernel, addAdmin, configure, createDatabase, currentVersion, install, installed, waitReady } from './kernel.js';
@@ -136,6 +138,25 @@ class LocalLilos extends EventEmitter {
     await this.#kernel.stop();
     await pg.stop().catch(() => {});
     this.#set('stopped');
+  }
+
+  /**
+   * Starting from zero: lilOS and its database stop, then their folders are put aside
+   * (<folder>.old-<date and time>, next to them) or, with `erase`, deleted. The next lilOS goes
+   * where a new installation puts it.
+   */
+  async discard({ erase = false } = {}) {
+    await this.stop().catch(() => {});
+    // AAAAMMGGhhmm in the computer's time
+    const now = new Date();
+    const stamp = [now.getFullYear(), now.getMonth() + 1, now.getDate(), now.getHours(), now.getMinutes()].map(n => String(n).padStart(2, '0')).join('');
+    for (const dir of [LILOS_DIR, PG_DIR]) {
+      // The database inside lilOS's folder (installer.dir) goes with it
+      if (!existsSync(dir) || (dir !== LILOS_DIR && dir.startsWith(LILOS_DIR + sep))) continue;
+      if (erase) rmSync(dir, { recursive: true, force: true, maxRetries: 3 });
+      else renameSync(dir, `${dir}.old-${stamp}`);
+    }
+    useLilosDir();
   }
 
   /** Restarts the kernel (not the database): the button after a failure. */

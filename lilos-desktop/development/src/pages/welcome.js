@@ -1,10 +1,12 @@
 /**
  * The first start (and "add a server"): where lilOS runs, then for this computer the first
- * administrator, then the progress while the program installs and starts it.
+ * administrator, then the progress while the program installs and starts it. After a new
+ * installation of the program over an earlier one (previous=1), first: use it or start from zero.
  */
 const shell = window.lilosShell;
 const params = new URLSearchParams(location.search);
 const adding = params.get('add') === '1';
+const previous = params.get('previous') === '1';
 const $ = id => document.getElementById(id);
 document.documentElement.lang = params.get('lang') || 'it';
 
@@ -16,13 +18,18 @@ if (adding) {
   $('where').closest('main').querySelector('h1').textContent = tr('addTitle');
   $('where').closest('main').querySelector('.head p').textContent = tr('addSubtitle');
 }
+if (previous) {
+  document.querySelector('h1').textContent = tr('previousTitle');
+  document.querySelector('.head p').textContent = tr('previousSubtitle');
+}
 
 let step = 'where';
 let busy = false;
 
 function show(name) {
   step = name;
-  for (const id of ['where', 'user', 'ready']) $(id).hidden = id !== name;
+  for (const id of ['previous', 'where', 'user', 'ready']) $(id).hidden = id !== name;
+  document.querySelector('.steps').hidden = name === 'previous';
   const order = ['where', 'user', 'ready'];
   for (const li of document.querySelectorAll('.steps li')) {
     const i = order.indexOf(li.dataset.step);
@@ -32,7 +39,7 @@ function show(name) {
   }
   $('back').hidden = name !== 'user';
   $('next').hidden = name === 'ready';
-  $('next').textContent = name === 'user' ? tr('install') : tr('next');
+  $('next').textContent = name === 'user' ? tr('install') : name === 'previous' ? tr('continue') : tr('next');
   error(null);
 }
 
@@ -77,6 +84,7 @@ for (const found of info.installed) {
 document.querySelector('input[name=where]:not(:disabled)')?.click();
 
 document.addEventListener('change', e => {
+  if (e.target.name === 'previous') $('fresh-more').hidden = e.target.value !== 'fresh';
   if (e.target.name === 'where') {
     $('remote-more').hidden = choice() !== 'remote';
     if (choice() === 'remote') $('remote-url').focus();
@@ -97,7 +105,7 @@ async function go(fn, title) {
     await fn();
   } catch (err) {
     error(String(err.message ?? err).replace(/^Error invoking remote method '[^']+': (Error: )?/, ''));
-    if (step === 'ready') show(choice() === 'local' ? 'user' : 'where');
+    if (step === 'ready') show(previous ? 'previous' : choice() === 'local' ? 'user' : 'where');
   } finally {
     busy = false;
     $('next').disabled = false;
@@ -105,6 +113,12 @@ async function go(fn, title) {
 }
 
 $('next').addEventListener('click', () => {
+  if (step === 'previous') {
+    if (document.querySelector('input[name=previous]:checked').value === 'keep') return go(() => shell.call('welcome.keep'), tr('work.keep'));
+    const erase = $('fresh-erase').checked;
+    if (erase && !confirm(tr('previous.fresh.confirm', { dir: before.local.dir }))) return;
+    return go(() => shell.call('welcome.fresh', { erase }), tr('work.fresh'));
+  }
   if (step === 'where') {
     const where = choice();
     if (where === 'local') return show('user'), $('username').focus();
@@ -133,4 +147,12 @@ $('back').addEventListener('click', () => show('where'));
 document.addEventListener('keydown', e => {
   if (e.key === 'Enter' && !e.isComposing && e.target.tagName === 'INPUT') $('next').click();
 });
-show('where');
+// The earlier installation: its servers, and where the lilOS of this computer is
+const before = previous ? await shell.call('welcome.previous') : null;
+if (before) {
+  const names = before.profiles.map(p => (p.kind === 'local' && before.local ? tr('previous.local', { name: p.name, version: before.local.version ?? '?', dir: before.local.dir }) : p.url ? `${p.name} (${p.url})` : p.name));
+  $('previous-keep').textContent = tr('previous.keep.text', { servers: names.join(', ') });
+  $('previous-fresh').textContent = before.local ? `${tr('previous.fresh.text')} ${tr('previous.fresh.local')}` : tr('previous.fresh.text');
+  $('fresh-erase').closest('.check').hidden = !before.local;
+}
+show(previous ? 'previous' : 'where');

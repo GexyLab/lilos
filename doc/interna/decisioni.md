@@ -1950,3 +1950,45 @@ Conseguenze: se tutte le schede si chiudono non parte niente; un'automazione con
 - Limiti: 8 richieste, 5 esecuzioni (1000 risultati ciascuna) e 10 sessioni insieme per utente, 5 accessi OAuth aperti, risposte fino a 20 MB (al massimo 50), file `.nettest` fino a 32 MB.
 
 **Quando ripensarla.** Se serve un proxy per uscire dalla rete dell'azienda o regole per utente (chi può andare dove); se gli script devono fare chiamate a lilOS o alla rete; se MQTT su WebSocket, i `.proto` con import o altri protocolli (GraphQL su WebSocket, SOAP) lo richiedono; se i segreti devono viaggiare tra utenti o installazioni (un portachiavi condiviso); se la collezione deve vivere nel kernel anziché in un file.
+
+## D78. «Arresta» ferma lilOS per tutti e non lo riavvia
+
+**Decisione.** Deciso il 3 novembre 2026, in lilOS 1.26.0 (SDK 0.17.0). La pagina utente ha, per gli amministratori, la tessera «Arresta» accanto a «Riavvia il sistema».
+
+- **Una sola domanda** per riavviare e arrestare (`#confirm` con la tabella `CONFIRM` in `UserPage.js`), invece di una per ciascuno.
+- **Il kernel esce senza codice 75.** `POST /api/kernel/shutdown` risponde `{ stopping: true }` e, dopo 200 ms, ferma il kernel ed esce con 0. `run.js` termina con qualunque codice diverso da 75, quindi lilOS resta spento finché qualcuno non lo riavvia a mano (o il servizio che lo aveva avviato).
+- **`shutdownSystem()`** (`apps/updates.js`) chiede alle finestre e salva come `restartKernel()`. Nel programma lilOS, con il lilOS che il programma stesso fa girare (`profile.kind === 'local'`), chiama `host.quit()` e il programma si chiude, fermando kernel e database. Altrove (browser, server remoto) ferma il kernel e mostra la schermata «lilOS è spento» con «Ricarica».
+- **`host.quit()`** è una chiamata da profili di fiducia: non è tra quelle aperte a ogni server (`OPEN` in `bridge.js`).
+
+**Perché.** Chi gestisce un lilOS sul proprio computer vuole spegnerlo senza cercare il processo. Chiudere solo la finestra lascia kernel e database accesi nell'area di notifica. Il kernel non può chiudere un programma che non è suo: perciò la pagina chiede al programma di chiudersi.
+
+**Alternative scartate** (ricostruzione dal codice, da confermare). Un codice di uscita proprio per `run.js`: basta già «diverso da 75». Mettere il tasto nel Pannello di controllo: la pagina utente ha già Riavvia, e le due azioni stanno bene insieme.
+
+**Conseguenze.**
+
+- Chi è collegato perde subito la connessione. Alle finestre degli altri utenti non viene chiesto niente (solo a quelle di chi preme il tasto): il testo non salvato si perde.
+- Con un programma vecchio senza `quit`, anche nel programma lilOS il tasto ferma solo il kernel e la pagina mostra «lilOS è spento»: il programma resta aperto con il kernel fermo.
+- Arresta non dipende da `npm run kernel`: funziona anche senza `LILOS_SUPERVISED`.
+
+**Quando ripensarla.** Se altri utenti devono essere avvisati prima, o se serve poter riaccendere lilOS dalla pagina (per esempio con un servizio di sistema).
+
+## D79. Reinstallare il programma su Windows: usare l'installazione precedente o ripartire da zero
+
+**Decisione.** Deciso il 3 novembre 2026, nel programma lilOS 0.3.0. Disinstallare il programma su Windows non cancella `%APPDATA%\lilOS`, quindi chi reinstalla ritrova server e impostazioni di prima. Il primo avvio dopo un'installazione, se ci sono server salvati, mostra la pagina di benvenuto in modalità `previous` con due scelte: **Usa l'installazione precedente** o **Riparti da zero**.
+
+- **Il segno di una nuova installazione** è il file `resources/first-run`, che gli installer (`.exe` e `.msi`, `win.extraResources`) mettono e il programma cancella dopo la scelta. Solo Windows: macOS e Linux non hanno il file e non chiedono niente.
+- **Gli aggiornamenti automatici** reinstallano il segno ma non devono chiedere: all'evento `update-downloaded` `updates.js` scrive `settings.updating` con la versione scaricata, e `justInstalled()` non chiede se il programma in esecuzione è quella versione.
+- **Ripartire da zero** ferma il lilOS locale e rinomina le sue cartelle (lilOS e database) in `<cartella>.old-AAAAMMGGhhmm` (ora del computer); con la casella «Elimina invece…» e una conferma le cancella. Poi `store.reset()`, avvio con il computer spento e `firstStart()` (pagina di benvenuto o `lilos-install.json`).
+- **Senza server salvati** il segno si cancella e la domanda non compare.
+
+**Perché.** Chi reinstalla perché qualcosa non funziona non ha modo di ripartire da zero senza cancellare a mano `%APPDATA%\lilOS`. Chi aggiorna a mano o ripara l'installazione vuole invece ritrovare i suoi dati. Il programma non può sapere quale dei due sia, quindi lo chiede.
+
+**Alternative scartate** (ricostruzione dal codice, da confermare). Cancellare i dati alla disinstallazione: perde utenti e file di chi disinstalla per un errore o per spostare il programma. Non chiedere mai: chi vuole ripartire deve cancellare a mano cartelle che non conosce. Cancellare sempre al posto di rinominare: irreversibile; per questo cancellare è una scelta a parte, con una seconda conferma.
+
+**Conseguenze.**
+
+- Rinominare lascia le vecchie cartelle sul disco (database compreso) finché l'utente non le cancella: occupano spazio.
+- Il segno viaggia con gli installer: uno che non lo include (macOS, Linux, o uno costruito senza `win.extraResources`) non fa la domanda.
+- Non provata con un vero `.msi` o `.exe` reinstallato né con un aggiornamento automatico.
+
+**Quando ripensarla.** Se il disinstallatore deve chiedere cosa fare dei dati, o se macOS e Linux hanno bisogno della stessa domanda.

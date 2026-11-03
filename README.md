@@ -109,7 +109,7 @@ src/                    il sistema, costruito sull'SDK
     sendKey.js          tasti mandati senza tastiera (tastiere a schermo)
   windows/
     WindowManager.js    finestre sulla scrivania e nella barra delle applicazioni
-  user/                 pagina utente a tutto schermo (nome, foto, Blocca, Esci, Riavvia il sistema, tema, lingua)
+  user/                 pagina utente a tutto schermo (nome, foto, Blocca, Esci, Riavvia il sistema, Arresta, tema, lingua)
   net/                  rete: connessioni come cartelle in Rete, finestra Trasferimento dati e suo pulsante nella barra
   notifications/        notifiche: campanella e barra delle notifiche nell'area di notifica, finestra Notifiche
   automation/           automazioni: azioni di lilOS, registratore, file .automata, esecuzione ed elenco (REC nell'area di notifica)

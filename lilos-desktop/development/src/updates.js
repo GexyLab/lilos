@@ -1,7 +1,7 @@
 import { Notification, app, shell } from 'electron';
 import updater from 'electron-updater';
 import { t } from './i18n.js';
-import { settings } from './store.js';
+import { settings, update } from './store.js';
 
 /**
  * Updates of the program (not of lilOS: lilOS updates itself from the AppStore). From the latest
@@ -41,6 +41,8 @@ export function setupUpdates() {
   autoUpdater.on('update-not-available', () => { state = { status: 'current', version: app.getVersion(), error: null }; });
   autoUpdater.on('update-downloaded', info => {
     state = { status: 'downloaded', version: info.version, error: null };
+    // Its installer lays down the mark of a new installation too: this one is not (justInstalled)
+    update(d => { d.updating = info.version; });
     notify(t('updates.ready.title', { version: info.version }), t('updates.ready.body'));
   });
   autoUpdater.on('error', err => { state = { status: 'error', version: null, error: err.message }; });

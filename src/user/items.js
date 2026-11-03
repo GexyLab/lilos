@@ -24,6 +24,7 @@ export const USER_PAGE_ITEMS = Object.freeze([
   { key: 'lock', group: 'actions', glyph: 'lock', name: 'Blocca', description: 'Copre lo schermo finché non inserisci di nuovo la password; le app restano aperte' },
   { key: 'logout', group: 'actions', glyph: 'logout', name: 'Chiudi sessione', description: 'Salva, chiude le app e torna alla schermata di accesso' },
   { key: 'restart', group: 'actions', glyph: 'restart', name: 'Riavvia il sistema', description: 'Riavvia il kernel di lilOS per tutti gli utenti; solo per gli amministratori' },
+  { key: 'shutdown', group: 'actions', glyph: 'power', name: 'Arresta', description: 'Ferma lilOS per tutti gli utenti (nel programma lilOS chiude anche il programma); solo per gli amministratori' },
   { key: 'photo', group: 'account', glyph: 'camera', name: 'Foto profilo', description: 'Scegliere, cambiare o togliere la foto' },
   { key: 'theme', group: 'account', glyph: 'palette', name: 'Tema', description: 'Chiaro o scuro' },
   { key: 'language', group: 'account', glyph: 'globe', name: 'Lingua', description: 'La lingua delle app' },

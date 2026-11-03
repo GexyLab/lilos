@@ -26,10 +26,10 @@ export let LILOS_DIR = join(DATA_DIR, 'lilos');
 export let PG_DIR = join(DATA_DIR, 'postgres');
 export const LOG_DIR = join(DATA_DIR, 'logs');
 
-/** lilOS in `dir`, its database in <dir>/postgres. */
-export function useLilosDir(dir) {
-  LILOS_DIR = dir;
-  PG_DIR = join(dir, 'postgres');
+/** lilOS in `dir`, its database in <dir>/postgres; without `dir`, both back in the program's data. */
+export function useLilosDir(dir = null) {
+  LILOS_DIR = dir ?? join(DATA_DIR, 'lilos');
+  PG_DIR = join(dir ?? DATA_DIR, 'postgres');
 }
 
 export const NODE = join(RUNTIME_DIR, 'node', WIN ? 'node.exe' : join('bin', 'node'));

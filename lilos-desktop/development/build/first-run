@@ -1,0 +1,2 @@
+The program lilOS was just installed: at its first start it asks what to do with an earlier
+installation (src/installFile.js, justInstalled), then deletes this file.

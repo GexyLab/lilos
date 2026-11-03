@@ -1,6 +1,6 @@
-import { Emitter, Window, h, actionButton, kernel, kernelModules, systemReleases } from '@lilos/sdk';
+import { Emitter, Window, h, actionButton, host, kernel, kernelModules, systemReleases } from '@lilos/sdk';
 import { version as pageVersion } from '../../package.json';
-import { progressScreen } from '../boot/screens.js';
+import { messageScreen, progressScreen } from '../boot/screens.js';
 import { getApp, registry } from './registry.js';
 import { entrypointsOf } from './entrypoints.js';
 import { buildOf, kernelEvents, matchesFrom, settled, wasLoaded } from './packages/packages.js';
@@ -318,6 +318,33 @@ export async function restartKernel() {
   host.firstChild.classList.add('overlay', 'opaque');
   await kernelRestarted();
   location.reload();
+  return true;
+}
+
+/**
+ * Stops lilOS (admins): the windows are asked first and what is pending is saved, as by
+ * restartKernel(). In the program lilOS, with the lilOS it runs itself, the program quits and the
+ * kernel and database stop with it; elsewhere the kernel stops for everyone and this page says
+ * lilOS is off (it starts again only by hand, or by whatever started it). Resolves false if a
+ * window said no; throws if the kernel does not stop.
+ */
+export async function shutdownSystem() {
+  if (wm && !(await askWindows(wm.all()))) return false;
+  await kernel.flush();
+  if (host.native && (await host.info().catch(() => null))?.profile?.kind === 'local') {
+    try {
+      await host.quit();
+      return true;
+    } catch { /* a program without quit(): the kernel stops by itself */ }
+  }
+  await kernelModules.shutdown();
+  const screen = document.body.appendChild(h('div'));
+  messageScreen(screen, {
+    title: 'lilOS è spento',
+    text: 'Il kernel si è fermato per tutti gli utenti. Per riaccenderlo avvialo di nuovo dove gira (npm run kernel, il servizio o il programma lilOS), poi ricarica questa pagina.',
+    buttons: [{ label: 'Ricarica', value: true, primary: true }],
+  }).then(() => location.reload());
+  screen.firstChild.classList.add('overlay', 'opaque');
   return true;
 }
 

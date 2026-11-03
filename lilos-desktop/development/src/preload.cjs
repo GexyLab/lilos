@@ -77,6 +77,7 @@ if (location.protocol === 'file:') {
   info: () => call('info'),
   badge: count => call('badge', count, overlay(Number(count) || 0)),
   focus: () => call('focus'),
+  quit: () => call('quit'),
   settings: Object.freeze({
     get: () => call('settings.get'),
     set: (key, value) => call('settings.set', key, value),

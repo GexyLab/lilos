@@ -4,7 +4,7 @@ import { broadcast, setupBridge } from './bridge.js';
 import { forget, setupBluetooth, setupSession } from './devices.js';
 import { cleanOpened } from './files.js';
 import { t } from './i18n.js';
-import { automaticSetup } from './installFile.js';
+import { automaticSetup, forgetInstalled, justInstalled } from './installFile.js';
 import { local } from './local/index.js';
 import { openWelcome, setupPages } from './pages.js';
 import { addProfile, override, settings } from './store.js';
@@ -16,7 +16,9 @@ import { hasRuntime } from './runtime.js';
 /**
  * lilOS, the program: lilOS in its own window instead of a browser, on Windows, macOS and Linux.
  * At the first start it asks where lilOS runs (pages/welcome.html), unless the installation
- * settings say it (lilos-install.json, installFile.js); then it opens the last server used. The lilOS of this computer (if chosen) starts with the program and stops when the
+ * settings say it (lilos-install.json, installFile.js); then it opens the last server used.
+ * Installed again over an earlier installation, it first asks whether to use it or start from
+ * zero. The lilOS of this computer (if chosen) starts with the program and stops when the
  * program quits; closing the window leaves the program in the tray.
  *   --hidden   start without showing the window (start with the computer)
  *   --session  lilOS is the whole desktop (the Linux session «lilOS»): kiosk, no tray, quitting ends it
@@ -80,7 +82,15 @@ function quit() {
 
 function showMain() {
   if (!settings().profiles.length) return firstStart();
+  if (justInstalled()) return openWelcome({ previous: true });
   return openLast();
+}
+
+/** The servers already chosen: the local lilOS starts (even hidden, started with the computer), the last one opens. */
+function resume({ hidden = false } = {}) {
+  const s = settings();
+  if (s.profiles.some(p => p.kind === 'local') && local.installed) local.start().catch(() => {});
+  if (!hidden || s.display === 'kiosk') openLast();
 }
 
 /** No profile yet: what the installation settings say (a server, or lilOS here installed by itself), or the welcome page. */
@@ -115,7 +125,7 @@ async function ready() {
   appMenu();
   cleanOpened();
   setupBridge();
-  setupPages();
+  setupPages({ firstStart, resume });
   setupSession(session.defaultSession);
   if (SESSION) {
     // For this run only: the saved settings stay as they are for the normal desktop
@@ -128,14 +138,18 @@ async function ready() {
   if (settings().startAtLogin) setAutostart(true);
 
   const link = process.argv.find(a => a.startsWith(`${PROTOCOL}://`));
-  const s = settings();
-  if (!s.profiles.length) {
+  if (!settings().profiles.length) {
+    // Nothing earlier to keep: the mark of a new installation is not needed
+    forgetInstalled();
     firstStart();
     return;
   }
-  // The local lilOS starts with the program, even hidden (started with the computer)
-  if (s.profiles.some(p => p.kind === 'local') && local.installed) local.start().catch(() => {});
-  if (!process.argv.includes('--hidden') || s.display === 'kiosk') openLast();
+  // Installed again: the earlier installation is used or put aside first (pages/welcome.html)
+  if (justInstalled()) {
+    openWelcome({ previous: true });
+    return;
+  }
+  resume({ hidden: process.argv.includes('--hidden') });
   if (link) deepLink(link);
 }
 

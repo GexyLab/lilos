@@ -1,8 +1,9 @@
 import { app } from 'electron';
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, isAbsolute, join, resolve } from 'node:path';
 import { DATA_DIR } from './runtime.js';
+import { settings, update } from './store.js';
 
 /**
  * The installation settings of lilOS (lilos-install.json, read in full by the release's
@@ -83,6 +84,30 @@ export function automaticSetup() {
   if (s?.mode === 'server') return { kind: 'remote', server: s.server };
   if (s?.mode === 'local' && (s.admin || s.image)) return { kind: 'local', admin: s.admin };
   return null;
+}
+
+/**
+ * The mark of a new installation: the Windows installers (.exe and .msi) lay down
+ * resources/first-run (build/first-run), the program deletes it once the person chose what to do
+ * with the installation found (the welcome page, previous). An update lays it down too: the
+ * program noted the version it downloaded (settings.updating), so it is not asked then.
+ * LILOS_FIRST_RUN: another path (tests).
+ */
+const FIRST_RUN = process.env.LILOS_FIRST_RUN || (app.isPackaged ? join(process.resourcesPath, 'first-run') : null);
+
+/** The program was installed (not updated) since its last start. */
+export function justInstalled() {
+  if (!FIRST_RUN || !existsSync(FIRST_RUN)) return false;
+  const updating = settings().updating;
+  if (updating) update(d => { d.updating = null; });
+  if (updating !== app.getVersion()) return true;
+  forgetInstalled();
+  return false;
+}
+
+export function forgetInstalled() {
+  if (!FIRST_RUN) return;
+  try { rmSync(FIRST_RUN, { force: true }); } catch { /* asked again at the next start */ }
 }
 
 /** After the first start: a file in the program's own folder keeps no passwords (lilOS has them now). */

@@ -123,6 +123,8 @@ const HANDLERS = {
     win.show();
     win.focus();
   },
+  // The answer leaves first; quitting stops the local kernel and its database (main.js)
+  quit: () => { setTimeout(() => app.quit(), 100); },
   'settings.get': () => publicSettings(),
   'settings.set': (_c, _p, key, value) => setSetting(String(key), value),
   'window.setDisplay': (_c, _p, mode) => setSetting('display', mode),

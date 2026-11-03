@@ -36,6 +36,7 @@ scripts/
   check.mjs             controlli prima di un commit o di un pacchetto
 build/
   icon.png              l'icona
+  first-run             il segno di una nuova installazione: su Windows va in resources/first-run (win.extraResources)
   linux/                la sessione «lilOS» per la schermata di accesso (lilos-session, install-session.sh)
 src/
   main.js               avvio: istanza unica, protocollo lilos://, menu di macOS, avvio del kernel, uscita
@@ -48,9 +49,10 @@ src/
   tray.js               icona nell'area di notifica e numero di notifiche non lette
   updates.js            aggiornamenti del programma (electron-updater)
   autostart.js          avvio con il computer
+  installFile.js        lilos-install.json e il segno di una nuova installazione (justInstalled, forgetInstalled)
   store.js              settings.json: impostazioni, server, finestra, porte
   runtime.js            percorsi di ciò che il programma porta (Node, git, PostgreSQL, release) e dei suoi dati
-  pages.js, pages/      primo avvio (welcome) e pagina di stato (stato, errori)
+  pages.js, pages/      primo avvio (welcome, anche per la domanda sull'installazione precedente) e pagina di stato (stato, errori)
   local/                il lilOS di questo computer: PostgreSQL (postgres.js), kernel (kernel.js), processi (proc.js),
                         un lilOS già installato (detect.js), l'insieme (index.js)
   i18n.js, locales.json testi del programma, in inglese e in italiano
@@ -73,6 +75,21 @@ I moduli del kernel e le app di sistema **non** sono inclusi: il kernel li scari
 
 I dati del programma stanno nella cartella dati di Electron (o in `LILOS_DESKTOP_DATA`): `settings.json`, `lilos/` (il lilOS installato, con `config.json` e `current.json`), `postgres/` e `logs/`. Il kernel parte su una porta libera da 8790, PostgreSQL da 5433.
 
+## Installare di nuovo il programma (solo Windows)
+
+Disinstallare il programma non cancella `%APPDATA%\lilOS` (impostazioni, lilOS installato, database). Perciò, se si reinstalla e `settings.json` ha dei server, il primo avvio non apre il solito server ma la pagina di benvenuto in modalità `previous` («lilOS era già installato qui»), con due scelte:
+
+- **Usa l'installazione precedente** (`welcome.keep`): cancella il segno e continua come sempre (`resume()` in `main.js`). La pagina elenca i server e, se c'è, il lilOS locale con versione e cartella (`welcome.previous`).
+- **Riparti da zero** (`welcome.fresh`): `local.discard()` ferma il kernel e il database e **rinomina** le cartelle in `<cartella>.old-AAAAMMGGhhmm` (data e ora del computer; il database dentro la cartella di lilOS, con `installer.dir`, segue la cartella); con la casella «Elimina invece…» e una conferma (`erase: true`) le **cancella**. Poi `store.reset()` riporta le impostazioni a quelle di una nuova installazione, `startAtLogin` si spegne (`setAutostart(false)`) e riparte `firstStart()` (pagina di benvenuto o `lilos-install.json`). `useLilosDir()` senza argomento rimette le cartelle predefinite.
+
+**Come il programma riconosce una nuova installazione.** `electron-builder.yml` (`win.extraResources`) mette `build/first-run` in `resources/first-run`, per `.exe` e `.msi`. `justInstalled()` (`installFile.js`) è vero se il file c'è; `forgetInstalled()` lo cancella dopo la scelta (o subito, se non ci sono server salvati). `LILOS_FIRST_RUN=<percorso>` indica un altro file (prove): si prova con `LILOS_DESKTOP_DATA` e `LILOS_FIRST_RUN`.
+
+**Gli aggiornamenti automatici** reinstallano il segno. Per questo `updates.js`, all'evento `update-downloaded`, scrive `settings.updating = <versione scaricata>`; al primo avvio, se `updating` è uguale alla versione in esecuzione, `justInstalled()` cancella il segno e non chiede niente. Su macOS e Linux il segno non c'è e la domanda non compare.
+
+## Chiudere il programma dalla pagina
+
+`window.lilosHost.quit` (`host.quit()` dell'SDK, solo per profili di fiducia: non è in `OPEN` di `bridge.js`) risponde e dopo 100 ms chiama `app.quit()`. L'evento `before-quit` ferma già il lilOS locale (kernel e database). Lo usa il tasto **Arresta** della pagina utente (lilOS 1.26.0).
+
 ## Pubblicare
 
 1. Si lavora in questa cartella. Si alza `version` in `package.json` (la versione del programma) e, se cambia la release di lilOS o una versione portata, `versions.json`. `npm run check` deve passare.
@@ -89,6 +106,7 @@ Nessun certificato per ora: su Windows compare SmartScreen, su macOS i pacchetti
 ## Limiti noti
 
 - **Mac con processore Intel.** `services-isolate` non ha binari `isolated-vm` per `darwin-x64`: i servizi in background delle app isolate non partono.
+- **La domanda sull'installazione precedente c'è solo su Windows** (il segno di una nuova installazione è nel `win.extraResources`) e non è stata provata con un vero `.msi` o `.exe` reinstallato, né con un aggiornamento automatico.
 - **Il primo avvio ha bisogno di internet.** Moduli del kernel e app di sistema si scaricano dal repository ufficiale; senza rete il primo avvio non si completa (non provato).
 - **I pacchetti di macOS e Linux non sono stati provati su quei sistemi.** Sono costruiti dal workflow ma non sono mai stati aperti su un Mac o su un Linux vero: gli aggiornamenti, il kiosk, la sessione «lilOS» con `cage`, l'avvio con il computer (`~/.config/autostart/lilos.desktop`) e le icone dell'area di notifica vanno controllati.
 - **Fotocamera e microfono.** Il programma concede alla pagina i permessi `media`, ma le app isolate non hanno ancora API per usarli in lilOS.

@@ -3,7 +3,7 @@ import { version } from '../../package.json';
 import { launch } from '../apps/registry.js';
 import { running } from '../apps/packages/background.js';
 import { startup } from '../apps/startup.js';
-import { restartKernel, restartSystem, windowsMayClose } from '../apps/updates.js';
+import { restartKernel, restartSystem, shutdownSystem, windowsMayClose } from '../apps/updates.js';
 import { lockSession } from '../boot/boot.js';
 import { workspaceManager } from '../workspaces/info.js';
 import { isUserPageShown as shown } from './items.js';
@@ -39,7 +39,7 @@ export async function signOut() {
 export class UserPage {
   #taskbar;
   #wm;
-  #confirming = false;   // asking whether to restart the system
+  #confirming = null;    // asking whether to 'restart' or 'shutdown' the system (a key of CONFIRM)
   #offs = [];
 
   constructor({ taskbar, wm }) {
@@ -62,7 +62,7 @@ export class UserPage {
 
   open() {
     if (this.isOpen) return;
-    this.#confirming = false;
+    this.#confirming = null;
     this.#render();
     this.el.hidden = false;
     this.#offs = WATCHED.map(key => settings.on(`change:${key}`, () => this.#render()));
@@ -93,7 +93,7 @@ export class UserPage {
         h('kbd', {}, 'Esc'), icon('x')),
       h('div', { class: 'up-col' },
         this.#header(user),
-        this.#confirming ? this.#confirmRestart() : this.#actions(user),
+        this.#confirming ? this.#confirm(CONFIRM[this.#confirming]) : this.#actions(user),
         this.#cards(),
         shown('about') && h('footer', { class: 'up-foot' }, `lilOS ${version} · ${location.host}`),
       ),
@@ -131,34 +131,41 @@ export class UserPage {
       shown('logout') && (multi
         ? tile('logout', 'logout', 'Chiudi sessione', 'Salva, chiude le app e torna all’accesso', () => { this.close(); signOut(); })
         : tile('logout', 'power', 'Riavvia sessione', 'Ricarica lilOS: le finestre tornano come sono', () => { this.close(); signOut(); })),
-      user.role === 'admin' && shown('restart') && tile('restart', 'restart', 'Riavvia il sistema', 'Riavvia il kernel: chi è collegato aspetta qualche secondo', () => {
-        this.#confirming = true;
-        this.#render();
-        this.el.querySelector('[data-key="restart-cancel"]').focus();
-      }, 'danger'),
+      user.role === 'admin' && shown('restart') && tile('restart', 'restart', 'Riavvia il sistema', 'Riavvia il kernel: chi è collegato aspetta qualche secondo', () => this.#ask('restart'), 'danger'),
+      user.role === 'admin' && shown('shutdown') && tile('shutdown', 'power', 'Arresta', 'Ferma lilOS per tutti: si riaccende solo a mano', () => this.#ask('shutdown'), 'danger'),
     ].filter(Boolean);
     return tiles.length ? h('div', { class: 'up-actions' }, ...tiles) : null;
   }
 
-  #confirmRestart() {
-    const cancel = () => {
-      this.#confirming = false;
-      this.#render();
-      this.el.querySelector('[data-key="restart"]')?.focus();
-    };
+  /** Asks whether to restart or stop the system (`what`: a key of CONFIRM), in place of the actions. */
+  #ask(what) {
+    this.#confirming = what;
+    this.#render();
+    this.el.querySelector('[data-key="confirm-cancel"]').focus();
+  }
+
+  /** Back to the actions, the keyboard on the tile that asked. */
+  #cancelConfirm() {
+    const tileKey = this.#confirming;
+    this.#confirming = null;
+    this.#render();
+    this.el.querySelector(`[data-key="${tileKey}"]`)?.focus();
+  }
+
+  #confirm({ title, text, button, run, failed }) {
     return h('div', { class: 'up-confirm', role: 'group', 'aria-labelledby': 'up-confirm-title' },
-      h('h2', { id: 'up-confirm-title' }, 'Riavviare il sistema?'),
-      h('p', {}, 'Il kernel di lilOS si ferma e riparte. Prima le finestre aperte possono salvare, poi lilOS si ricarica. Chi è collegato perde la connessione per qualche secondo.'),
+      h('h2', { id: 'up-confirm-title' }, title),
+      h('p', {}, text),
       h('div', { class: 'up-confirm-buttons' },
-        h('button', { class: 'up-btn', dataset: { key: 'restart-cancel' }, onclick: cancel }, 'Annulla'),
+        h('button', { class: 'up-btn', dataset: { key: 'confirm-cancel' }, onclick: () => this.#cancelConfirm() }, 'Annulla'),
         h('button', {
-          class: 'up-btn danger', dataset: { key: 'restart-now' },
+          class: 'up-btn danger', dataset: { key: 'confirm-now' },
           onclick: () => {
             // The windows may ask to save: they must be in view
             this.close();
-            restartKernel().catch(err => notify(`Il sistema non si riavvia: ${err.message}`, { level: 'error' }));
+            run().catch(err => notify(`${failed}: ${err.message}`, { level: 'error' }));
           },
-        }, 'Riavvia ora')),
+        }, button)),
     );
   }
 
@@ -221,9 +228,7 @@ export class UserPage {
     if (e.key === 'Escape') {
       e.preventDefault();
       if (this.#confirming) {
-        this.#confirming = false;
-        this.#render();
-        this.el.querySelector('[data-key="restart"]')?.focus();
+        this.#cancelConfirm();
       } else {
         this.close();
       }
@@ -238,6 +243,24 @@ export class UserPage {
 }
 
 // ---------- Parts ----------
+
+/** The questions before restarting or stopping the system. */
+const CONFIRM = {
+  restart: {
+    title: 'Riavviare il sistema?',
+    text: 'Il kernel di lilOS si ferma e riparte. Prima le finestre aperte possono salvare, poi lilOS si ricarica. Chi è collegato perde la connessione per qualche secondo.',
+    button: 'Riavvia ora',
+    run: restartKernel,
+    failed: 'Il sistema non si riavvia',
+  },
+  shutdown: {
+    title: 'Arrestare lilOS?',
+    text: 'Prima le finestre aperte possono salvare, poi il kernel di lilOS si ferma per tutti gli utenti e non riparte da solo. Nel programma lilOS si chiude anche il programma, con il suo database.',
+    button: 'Arresta ora',
+    run: shutdownSystem,
+    failed: 'lilOS non si arresta',
+  },
+};
 
 function tile(key, glyph, title, text, onclick, kind = '') {
   return h('button', { class: `up-tile${kind ? ` ${kind}` : ''}`, dataset: { key }, onclick },

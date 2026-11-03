@@ -2117,12 +2117,20 @@ In alto ci sono sempre il tuo **nome** e la tua **foto**. Sotto il nome trovi il
 | **Blocca** | Copre lo schermo e chiede di nuovo la tua password. Le finestre restano aperte sotto. Compare solo se lilOS ha più utenti. |
 | **Chiudi sessione** | Come **Esci** nel menu di avvio: salva, chiude e torna alla schermata di accesso (vedi [Accedere e uscire](#accedere-e-uscire)). Se lilOS ha un solo utente si chiama **Riavvia sessione** e ricarica lilOS. |
 | **Riavvia il sistema** | Solo per gli amministratori. Chiede conferma nella pagina stessa. |
+| **Arresta** | Solo per gli amministratori. Spegne lilOS per tutti gli utenti. Chiede conferma nella pagina stessa. |
 
 **Blocca.** Usalo quando ti allontani. Scrivi la tua password per tornare e ritrovi le finestre com'erano. Se preferisci, **Accedi con un altro utente** ti porta alla schermata di accesso. Bloccare è più che coprire lo schermo: lilOS chiude la tua sessione, quindi se ricarichi la pagina ti viene chiesto di accedere di nuovo. Intanto i servizi in sottofondo delle tue app si fermano, come quando esci, e ripartono quando accedi.
 
 **Chiudi sessione.** Prima di uscire, lilOS chiede alle finestre che hanno testo non salvato se possono chiudersi. Se una dice di no, non esci. Anche il pulsante **Esci** del menu di avvio fa così.
 
 **Riavvia il sistema.** Riavvia il programma che conserva i dati di tutti gli utenti. Premendolo compare una domanda: **Riavvia ora** o **Annulla**. Se confermi, le finestre con testo non salvato ti chiedono cosa fare; poi compare **Riavvio del sistema…** e, quando il sistema è tornato, lilOS si ricarica da solo. Chi è collegato in quel momento perde la connessione per qualche secondo. **Funziona solo se chi gestisce lilOS lo ha avviato con `npm run kernel`**: altrimenti compare un avviso e il sistema non si riavvia.
+
+**Arresta.** Spegne lilOS per tutti gli utenti, finché qualcuno non lo riaccende. Premendolo compare la domanda «Arrestare lilOS?» con **Arresta ora** e **Annulla**; **Esc** annulla. Se confermi, le finestre con testo non salvato ti chiedono cosa fare; poi lilOS si ferma.
+
+- **Nel [programma lilOS](#il-programma-lilos)**, con il lilOS di quel computer: si chiude anche il programma, insieme ai suoi servizi e al database. Per riaccenderlo apri di nuovo il programma.
+- **Altrove** (per esempio in un browser collegato a un server): compare la schermata **lilOS è spento** con il pulsante **Ricarica**. Il server non riparte da solo: deve riaccenderlo chi lo gestisce (con `npm run kernel`, il servizio o il programma lilOS), e poi premi **Ricarica**.
+
+**Chi è collegato perde subito la connessione**, e le app che lavorano in sottofondo si fermano. Le finestre degli altri utenti non vengono avvisate: chi ha scritto qualcosa senza salvarlo può perderlo. Per questo il tasto serve a chi gestisce lilOS: se vuoi solo ripartire, usa **Riavvia il sistema**.
 
 ### Le impostazioni dell'account
 
@@ -2190,6 +2198,15 @@ Alla prima apertura il programma chiede dove deve girare lilOS. Hai tre scelte:
 I dati del lilOS «su questo computer» (utenti, file, database) stanno nella cartella dei dati del programma, sul tuo computer. Disinstallare il programma **non li cancella**.
 
 Se qualcosa non parte, il programma mostra una pagina con **Riprova**, **Server** (per sceglierne un altro) e **Apri i log**.
+
+### Installare di nuovo il programma
+
+Su **Windows**, se installi di nuovo il programma (con `.exe` o `.msi`) e sul computer ci sono ancora le impostazioni di un'installazione precedente, al primo avvio compare la pagina **lilOS era già installato qui** (dalla versione 0.3.0 del programma). Succede perché disinstallare non cancella i dati. Hai due scelte:
+
+- **Usa l'installazione precedente.** Il programma si apre come prima. La pagina elenca i server che userà e, se c'è, il lilOS di questo computer con la sua versione e la sua cartella.
+- **Riparti da zero.** Il programma dimentica server e impostazioni, spegne l'avvio con il computer e ti chiede di nuovo dove far girare lilOS, come al [primo avvio](#il-primo-avvio) (o segue il file `lilos-install.json`, se c'è). Il lilOS di questo computer viene **messo da parte, non cancellato**: la cartella con i suoi utenti e file e quella del database vengono rinominate aggiungendo `.old-` e la data e l'ora (per esempio `lilos.old-202611031530`). Per tornare indietro basta ridare loro il nome di prima. Se invece spunti **Elimina invece il lilOS di questo computer**, compare un'ultima domanda e poi utenti, file e database vengono **cancellati, e non si può annullare**.
+
+Gli aggiornamenti automatici del programma non fanno questa domanda. Su macOS e Linux non c'è nessuna domanda. Se non c'è nessun server salvato, il programma parte dal primo avvio e basta.
 
 ### Area di notifica, avvio con il computer e notifiche
 

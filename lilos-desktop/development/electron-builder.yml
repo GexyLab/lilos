@@ -39,6 +39,10 @@ win:
       arch: [x64]
   icon: build/icon.png
   executableName: lilOS
+  # The mark of a new installation (.exe and .msi): the program deletes it at its first start
+  extraResources:
+    - from: build/first-run
+      to: first-run
 nsis:
   oneClick: false
   perMachine: false

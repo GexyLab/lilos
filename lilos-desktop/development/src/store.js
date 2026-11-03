@@ -20,6 +20,8 @@ import { DATA_DIR } from './runtime.js';
  *   updates       'auto' | 'notify' | 'off': updates of the program (not of lilOS)
  *   hardware      'ask' | 'declared' | 'all': which apps use devices without being asked
  *   bounds        the window's last position and size
+ *   updating      the version of the program downloaded by the updater, installed when it quits:
+ *                 its first start is not a new installation (installFile.js, justInstalled)
  */
 const FILE = join(DATA_DIR, 'settings.json');
 const MODES = ['window', 'fullscreen', 'kiosk'];
@@ -34,6 +36,7 @@ const DEFAULTS = () => ({
   updates: process.platform === 'darwin' ? 'notify' : 'auto',
   hardware: 'declared',
   bounds: null,
+  updating: null,
 });
 
 let data = null;
@@ -60,6 +63,12 @@ function save() {
   // The local database's password is here: readable only by this account (no effect on Windows)
   writeFileSync(`${FILE}.tmp`, `${JSON.stringify(data, null, 2)}\n`, { mode: 0o600 });
   renameSync(`${FILE}.tmp`, FILE);
+}
+
+/** Back to the settings of a new installation (start from zero). */
+export function reset() {
+  data = DEFAULTS();
+  save();
 }
 
 /** Values for this run only, never saved (the Linux session forces kiosk). */

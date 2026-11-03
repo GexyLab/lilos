@@ -19,7 +19,24 @@
     <li data-step="ready"><i>3</i><span data-t="step.ready"></span></li>
   </ol>
 
-  <section id="where" class="page" role="radiogroup">
+  <section id="previous" class="page" role="radiogroup" hidden>
+    <label class="choice">
+      <input type="radio" name="previous" value="keep" checked>
+      <span class="ci found"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></svg></span>
+      <span class="body"><b data-t="previous.keep.title"></b><span class="text" id="previous-keep"></span></span>
+    </label>
+    <label class="choice">
+      <input type="radio" name="previous" value="fresh">
+      <span class="ci"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v4h4"/></svg></span>
+      <span class="body"><b data-t="previous.fresh.title"></b><span class="text" id="previous-fresh"></span>
+        <span class="more" id="fresh-more" hidden>
+          <label class="check"><input type="checkbox" id="fresh-erase"><span data-t="previous.fresh.erase"></span></label>
+        </span>
+      </span>
+    </label>
+  </section>
+
+  <section id="where" class="page" role="radiogroup" hidden>
     <label class="choice" id="choice-local">
       <input type="radio" name="where" value="local">
       <span class="ci"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg></span>

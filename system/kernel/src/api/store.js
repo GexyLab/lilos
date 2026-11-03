@@ -16,6 +16,8 @@ import { logger } from '../log.js';
  *   GET    /api/modules/:name/settings   { fields, values, live }   a running module's settings (module.json)
  *   PUT    /api/modules/:name/settings   { values } → the same, changed
  *   POST   /api/kernel/restart           restarts the kernel (when run by run.js)
+ *   POST   /api/kernel/shutdown          stops lilOS: the kernel ends, and run.js with it (it starts
+ *                                        again only by hand, or by whatever started it)
  */
 const log = logger('kernel');
 const signedIn = principal => principal ?? fail('unauthorized', 'Accesso richiesto');
@@ -74,5 +76,12 @@ export function storeRoutes(kernel) {
     log.info(`Riavvio chiesto da ${principal.username}`);
     setTimeout(() => kernel.stop().finally(() => process.exit(75)), 200);
     return { restarting: true };
+  });
+  router.add('POST', '/api/kernel/shutdown', async ({ principal }) => {
+    admin(principal);
+    log.info(`Arresto chiesto da ${principal.username}`);
+    // Any code but 75 ends run.js too; the answer leaves first
+    setTimeout(() => kernel.stop().finally(() => process.exit(0)), 200);
+    return { stopping: true };
   });
 }
