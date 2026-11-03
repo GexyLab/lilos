@@ -2016,3 +2016,22 @@ Conseguenze: se tutte le schede si chiudono non parte niente; un'automazione con
 - Il controllo è nella pagina: il kernel non rifiuta le altre API a chi non l'ha accettata.
 
 **Quando ripensarla.** Se serve l'accettazione di ogni utente, una licenza per lingua, o che il kernel blocchi le API finché non è accettata.
+
+## D81. Il lilOS di sviluppo legge le app da un repository locale costruito da `development`
+
+**Contesto.** Il kernel di una copia del repository installava le app di sistema e i moduli dal repository ufficiale su GitHub, e le app di sistema si accettano solo da lì. Una modifica a un'app di `plugins/` non si poteva provare senza pubblicarla (o senza un ramo del repository ufficiale). E il kernel di sviluppo usava la porta 8790, la stessa del lilOS installato.
+
+**Decisione.** Deciso il 3 novembre 2026, lilOS 1.29.0.
+
+- `apps.devRepository` in `config.json` (solo in una copia di sviluppo; ignorato da un lilOS installato e tolto dalla release) indica un repository git su questo computer che il kernel legge **al posto dell'ufficiale**. L'indirizzo resta quello ufficiale ovunque: cambia solo da dove si legge (`useDevRepository` in `sources.js`). Nel repository vale `dev-repo`, cioè `system/kernel/dev-repo`, ignorato da git.
+- `npm run dev:update` lo riempie: `git pull --ff-only` della copia su `development`, poi build delle app e dei moduli di `plugins/` con una versione diversa e `publish:repo --no-lilos`, con un commit. lilOS stesso non c'è: la copia di sviluppo si aggiorna con git.
+- Le app si aggiornano **a mano** dall'AppStore del lilOS di sviluppo, come su un lilOS installato.
+- `npm run dev:start` aggiorna e avvia insieme kernel e pagina. Il kernel di sviluppo ascolta sulla **8791**; Vite prende la porta da `config.json`. La release scrive 8790 nella configurazione delle installazioni.
+
+**Perché.** Il flusso voluto è: modifica su `development`, prova nel lilOS di sviluppo, poi «pubblica». Leggere un repository al posto dell'ufficiale, mantenendone l'indirizzo, riusa tutto il percorso reale (catalogo, dipendenze, fiducia, aggiornamenti dell'AppStore) e non tocca le app già installate, che continuano a vedere i loro aggiornamenti.
+
+**Alternative scartate.** Un secondo repository «ufficiale» con un altro indirizzo: le app già installate puntano a GitHub e non vedrebbero gli aggiornamenti. Installare da `{ type: 'local' }`: le app di sistema non si accettano da una cartella, e non c'è un catalogo da cui l'AppStore offra aggiornamenti. Un ramo del repository ufficiale per le prove: richiede push sul repository pubblicato per ogni prova.
+
+**Conseguenze.** Il primo `dev:update` costruisce tutto e richiede qualche minuto; i successivi solo ciò che ha cambiato versione (una modifica senza alzare la versione non arriva). Il kernel tiene due minuti la copia di un repository letto: dopo un `dev:update` a kernel acceso le versioni nuove compaiono entro quel tempo. Il programma lilOS cerca altri lilOS sulle porte 8790-8795, quindi può vedere quello di sviluppo acceso.
+
+**Quando ripensarla.** Se servono prove su più rami insieme, o un lilOS di sviluppo condiviso da più persone.

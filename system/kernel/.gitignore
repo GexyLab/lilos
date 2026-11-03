@@ -9,3 +9,6 @@ config.json.tmp
 /term/
 # Data of the kernel modules (ctx.dataDir: tools, caches)
 /modules-data/
+
+# The official repository of the development copy, filled by npm run dev:update (config apps.devRepository)
+/dev-repo/

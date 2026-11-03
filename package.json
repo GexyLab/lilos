@@ -1,12 +1,14 @@
 {
   "name": "lilos",
   "private": true,
-  "version": "1.28.0",
+  "version": "1.29.0",
   "license": "SEE LICENSE IN LICENSE.md",
   "type": "module",
   "scripts": {
     "predev": "node scripts/host-shims.mjs",
     "dev": "vite",
+    "dev:start": "node scripts/dev-start.mjs",
+    "dev:update": "node scripts/dev-update.mjs",
     "prebuild": "node scripts/host-shims.mjs",
     "build": "vite build",
     "preview": "vite preview",

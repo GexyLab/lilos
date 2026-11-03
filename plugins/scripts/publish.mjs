@@ -2,11 +2,12 @@
  * Puts the built packages into a copy of a repository that lilOS installs from (the official one,
  * the community one or another), ready to commit and tag there:
  *
- *   npm run publish:repo -- <repository folder> [<app | module | lilos>…] [--sources] [--no-minify] [--no-merge]
+ *   npm run publish:repo -- <repository folder> [<app | module | lilos>…] [--sources] [--no-minify] [--no-merge] [--no-lilos]
  *
  * Names as for build.mjs (app/scheduler, module/scheduler). With no names it publishes what changed: every app and module whose version differs from the
  * repository's (or that it lacks), and lilOS itself when the root package.json has a version the
- * repository's system/lilos does not.
+ * repository's system/lilos does not (--no-lilos leaves lilOS out: the repository of the development
+ * copy, see the root scripts/dev-update.mjs).
  *   apps/<id>/        build/apps/<id> (lilos.json, dist/, locales.json, README.md), see build.mjs
  *   modules/<name>/   build/modules/<name>, code merged and minified
  *   system/lilos/     lilOS itself, by the root scripts/release.mjs
@@ -43,7 +44,7 @@ const versions = {
 const all = [{ kind: 'lilos', name: 'lilos' }, ...APPS.map(a => ({ kind: 'app', name: a.id })), ...MODULES.map(name => ({ kind: 'module', name }))];
 const chosen = names.length
   ? [...(names.includes('lilos') ? [all[0]] : []), ...packagesOf(names.filter(n => n !== 'lilos'))]
-  : all.filter(({ kind, name }) => { const [before, now] = versions[kind](name); return before !== now; });
+  : all.filter(({ kind, name }) => { const [before, now] = versions[kind](name); return before !== now && !(kind === 'lilos' && flags.has('--no-lilos')); });
 if (!chosen.length) { console.log('Niente da pubblicare: il repository ha già queste versioni'); process.exit(0); }
 
 const packages = chosen.filter(p => p.kind !== 'lilos');

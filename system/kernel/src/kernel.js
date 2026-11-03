@@ -12,6 +12,7 @@ import { homeRoutes } from './api/home.js';
 import { appRoutes } from './api/apps.js';
 import { Installer } from './apps/installer.js';
 import { Repos } from './apps/repos.js';
+import { useDevRepository } from './apps/sources.js';
 import { ModuleAdmin, ensureRequiredModules, applyReplacements } from './apps/modulePackage.js';
 import { Dependencies } from './apps/dependencies.js';
 import { storeRoutes } from './api/store.js';
@@ -98,6 +99,9 @@ export class Kernel {
     const config = required.length || replaced.length ? await loadConfig() : loaded;
     this.config = config;
     if (!config.modules.some(m => m)) log.warn('Nessun modulo nella configurazione');
+    // Development: the official repository read from the one npm run dev:update fills
+    useDevRepository(config.devRepository);
+    if (config.devRepository) log.info(`Repository ufficiale letto da ${config.devRepository} (sviluppo, npm run dev:update)`);
     const route = (method, path, handler) => this.router.add(method, path, ctx => handler({ ...ctx, principal: ctx.principal ?? fail('unauthorized', 'Accesso richiesto') }));
     const emit = (owner, event, data) => this.events.emit('user', { owner, event, data });
     // A module's WebSocket: signed-in users only; the module takes the connection with accept()

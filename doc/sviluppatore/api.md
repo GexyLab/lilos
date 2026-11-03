@@ -3830,6 +3830,7 @@ I percorsi possono finire con `*` (`/api/apps/:id/v/:version/*`): il resto del p
 | `apps.trustedPublishers` | `{ idEditore: 'ed25519:<chiave>' }`: gli editori di cui ci si fida. |
 | `apps.officialKey` | Se c'è, le app di sistema devono essere firmate con questa chiave, e le altre app del repository ufficiale sono verificate solo con questa firma. |
 | `apps.bootstrap` | Gli `id` delle app che il kernel installa dal repository ufficiale, all'avvio, se mancano (predefinito: `files`, `editor`, `settings`, `appstore`, `scheduler`). Vedi [D41](../interna/decisioni.md#d41-le-app-di-sistema-mancanti-si-installano-allavvio-del-kernel). |
+| `apps.devRepository` | Solo in una copia di sviluppo (ignorato in un lilOS installato, e tolto dalla release): un repository git su questo computer, relativo a `system/kernel` o assoluto, che il kernel legge **al posto del repository ufficiale** (`useDevRepository` di `sources.js`; l'indirizzo resta quello ufficiale). Nella `config.json` del repository vale `dev-repo`; lo riempie `npm run dev:update` con le app e i moduli di `plugins/`. Vedi [Il lilOS di sviluppo](README.md#il-kernel-il-backend). |
 
 Il file si può cambiare con la variabile `LILOS_KERNEL_CONFIG`. Il kernel richiede un modulo che fornisce `fs` e i [moduli obbligatori](#moduli-obbligatori) (oggi `scheduler`), che rimette da solo se mancano. Installare, aggiornare o togliere un modulo con l'AppStore riscrive la lista `modules` di questo file, e il Pannello di controllo `oauth` (sempre con `editConfig` di `config.js`: si legge, si cambia e si riscrive passando da `config.json.tmp`, ignorato da git, senza che due modifiche del kernel si mescolino).
 
@@ -4517,6 +4518,7 @@ Un pacchetto (app o modulo) è una cartella di un repository **git**, letta con 
 - Lo stato dell'app o del modulo registra la fonte risolta: `{ type: 'git', url, ref, commit, path? }`. Gli aggiornamenti ripartono dall'`url` e dal `path`.
 - Limiti: 20 MB per file, 80 MB e 2000 file per pacchetto; 180 s per ogni comando git. Copiando un modulo si ignorano i file che iniziano con un punto e `node_modules`.
 - Un messaggio di errore di git viene riportato (ridotto alla prima riga, senza le credenziali nell'indirizzo) come `unavailable`.
+- **Repository di sviluppo.** `useDevRepository(dir)` (il kernel la chiama all'avvio con `apps.devRepository`, solo in una copia di sviluppo) fa leggere il repository ufficiale da quella cartella: `openSource` risolve il `ref` e scarica da lì quando l'`url` è quello ufficiale, ma la fonte restituita e registrata tiene l'indirizzo ufficiale, quindi `isOfficial`, i cataloghi e le app già installate non cambiano. Senza tag nel repository di sviluppo vale `HEAD`; reinstallare chiede il commit registrato (il repository ha `uploadpack.allowAnySHA1InWant`).
 - È "ufficiale" l'origine `git` con l'`url` del repository ufficiale (confronto senza maiuscole, senza `.git` né `/` finali).
 
 `fetchPackage(source)` legge `lilos.json`, lo valida e scarica i file elencati.

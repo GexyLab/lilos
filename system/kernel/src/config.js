@@ -52,12 +52,16 @@ const VERSION = /^\d+\.\d+\.\d+$/;
  *   { host, port, origins: [origin], loopbackOrigins, secureCookies,
  *     modules: [{ name, version?, config? }],
  *     apps: { allowLocalSources, trustedPublishers: { id: 'ed25519:<key>' }, officialKey?,
- *             bootstrap: [app ids installed from the official repository when missing] },
+ *             bootstrap: [app ids installed from the official repository when missing],
+ *             devRepository?: 'dev-repo' },
  *     net: { allowPrivate, allow: ['192.168.1.50/32'] },   where users may connect, with sign-in (net/guard.js):
  *                                                          the local network is closed unless opened here
  *     oauth: { microsoft: {…}, google: {…} } }             the apps registered with the providers, for the
  *                                                          sign-ins of the network protocols (net/oauth.js)
  * allowLocalSources lets apps be installed from a folder of this computer (development only).
+ * devRepository (development only, ignored in an installed lilOS): a git repository on this computer,
+ * relative to system/kernel or absolute, read in place of the official one; `npm run dev:update`
+ * fills it with the apps and modules of plugins/ (see scripts/dev-update.mjs).
  * LILOS_KERNEL_HOST and LILOS_KERNEL_PORT override host and port.
  */
 export async function loadConfig() {
@@ -79,6 +83,7 @@ export async function loadConfig() {
     trustedPublishers: raw.apps?.trustedPublishers && typeof raw.apps.trustedPublishers === 'object' ? raw.apps.trustedPublishers : {},
     officialKey: typeof raw.apps?.officialKey === 'string' ? raw.apps.officialKey : null,
     bootstrapApps: Array.isArray(raw.apps?.bootstrap) ? raw.apps.bootstrap.filter(id => typeof id === 'string') : ['files', 'editor', 'settings', 'appstore', 'scheduler'],
+    devRepository: !RELEASE_DIR && typeof raw.apps?.devRepository === 'string' && raw.apps.devRepository.trim() ? resolve(KERNEL_DIR, raw.apps.devRepository.trim()) : null,
     modules: modules.map(m => ({ name: m.name, version: m.version ?? null, config: m.config && typeof m.config === 'object' ? m.config : {} })),
     net: raw.net && typeof raw.net === 'object' && !Array.isArray(raw.net) ? raw.net : {},
     oauth: raw.oauth && typeof raw.oauth === 'object' && !Array.isArray(raw.oauth) ? raw.oauth : {},

@@ -18,8 +18,22 @@ import { checkManifest, parseVersion, compareVersions } from './manifest.js';
  *   { type: 'local', dir: 'C:/…/notes' }          a plain folder, for developing (allowLocalSources)
  *
  * With allowLocalSources a git url may also be the absolute path of a repository on this computer.
+ *
+ * In development the official repository can be read from a git repository on this computer
+ * (useDevRepository, config apps.devRepository): its url stays the official one everywhere
+ * (installed apps, catalogs, AppStore), only the reading goes there.
  */
 export const OFFICIAL_URL = 'https://github.com/gexylab/lilos-plugins-official';
+
+let devRepository = null;
+
+/** Reads the official repository from this folder (a git repository) from now on; null goes back to GitHub. */
+export function useDevRepository(dir) {
+  devRepository = dir ? dir.split(sep).join('/') : null;
+}
+
+/** Where a git url is read from: the development repository for the official one, when there is one. */
+const readFrom = url => (devRepository && normalizeUrl(url) === OFFICIAL_URL ? devRepository : url);
 
 const run = promisify(execFile);
 const REPO = /^[\w.-]{1,100}\/[\w.-]{1,100}$/;
@@ -147,8 +161,9 @@ export async function walk(base, dir = base, out = []) {
  */
 export async function openSource(source) {
   if (source.type === 'local') return { base: source.dir, read: reader(source.dir), source };
-  const ref = await resolveRef(source.url, source.ref);
-  const { dir, commit } = await checkout(source.url, ref);
+  const url = readFrom(source.url);
+  const ref = await resolveRef(url, source.ref);
+  const { dir, commit } = await checkout(url, ref);
   const base = source.path ? join(dir, ...source.path.split('/')) : dir;
   if (!(await stat(base).catch(() => null))?.isDirectory()) fail('not_found', `Nel repository non c'è ${source.path}`);
   return { base, read: reader(base), source: { ...source, ref, commit } };

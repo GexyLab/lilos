@@ -11,15 +11,15 @@ Può essere self-hosted in docker oppure in versione cloud gestita in OpenBack. 
 
 ## Avvio
 
-lilOS non ha dipendenze a runtime (solo Vite per lo sviluppo). File Manager, Editor, Pannello di controllo, AppStore e Pianificazione **non sono in questo repository**: stanno nel repository ufficiale e il kernel installa da solo, all'avvio, quelle che mancano. Per questo al primo avvio servono il comando `git` e l'accesso a quel repository (che è privato: si usano le credenziali git del computer). Dettagli in [doc/sviluppatore](doc/sviluppatore/README.md#il-kernel-il-backend).
+lilOS non ha dipendenze a runtime (solo Vite per lo sviluppo). File Manager, Editor, Pannello di controllo, AppStore e Pianificazione si installano come pacchetti: il kernel installa da solo, all'avvio, quelle che mancano. Un lilOS installato le prende dal repository ufficiale (privato: servono `git` e le credenziali git del computer); questa copia di sviluppo dal suo repository di sviluppo, costruito da `plugins/` con `npm run dev:update`. Dettagli in [doc/sviluppatore](doc/sviluppatore/README.md#il-kernel-il-backend).
 
 ```bash
 npm install
 npm run kernel:setup                                    # una volta: dipendenze dei moduli del kernel (anche isolated-vm, per i servizi)
 npm run db:up                                           # PostgreSQL in Docker (127.0.0.1:5433)
 npm run kernel:cli -- users-basic add <nome> --admin    # una volta: crea un utente
-npm run kernel                                          # il kernel su http://127.0.0.1:8790 (al primo avvio installa le app di sistema)
-npm run dev                                             # lilOS su http://localhost:5173 (/api va al kernel)
+npm run dev:start                                       # aggiorna da development (app e moduli di plugins/ compresi), avvia kernel (8791) e pagina
+                                                        # lilOS su http://localhost:5173 (/api va al kernel)
 npm run build                                           # build in dist/
 ```
 

@@ -158,7 +158,10 @@ try {
     put('system/kernel/package.json', readFileSync(join(root, 'system/kernel/package.json')));
     // The configuration of a new installation: apps only from repositories
     const config = JSON.parse(git('show', 'HEAD:system/kernel/config.json'));
-    config.apps = { ...config.apps, allowLocalSources: false };
+    // The development copy's own settings stay out: its port (next to an installed lilOS) and its repository
+    const { devRepository, ...apps } = config.apps ?? {};
+    config.port = 8790;
+    config.apps = { ...apps, allowLocalSources: false };
     put('system/kernel/config.json', `${JSON.stringify(config, null, 2)}\n`);
     put('system/kernel/tools/lilos-install.json', git('show', 'HEAD:system/kernel/tools/lilos-install.json') + '\n');
     put('package.json', `${JSON.stringify({ name: 'lilos-release', private: true, type: 'module' }, null, 2)}\n`);
