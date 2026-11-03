@@ -253,7 +253,7 @@ export class StartMenu {
     return [
       recent.length > 0 && this.#section('Usate di recente', this.#grid(recent.map(r => this.#tile(getApp(r.id), `rec:${r.id}`, ago(r.last))))),
       frequent.length > 0 && this.#section(['Usate più spesso', h('span', {}, ' · ultimi 30 giorni')], this.#grid(frequent.map(f => this.#tile(getApp(f.id), `freq:${f.id}`, times(f.count))))),
-    ];
+    ].filter(Boolean);
   }
 
   #renderFiles() {

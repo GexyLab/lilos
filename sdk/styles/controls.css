@@ -5,6 +5,7 @@
   background: var(--field-bg); color: var(--text); font-size: 12px; font-weight: 400; white-space: nowrap;
 }
 .ctl-btn:hover:not(:disabled) { background: var(--chrome); }
+.ctl-btn[hidden] { display: none; }
 .ctl-btn:disabled:not([aria-busy="true"]) { opacity: .5; cursor: default; }
 .ctl-btn .ico { width: 13px; height: 13px; }
 .ctl-btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
