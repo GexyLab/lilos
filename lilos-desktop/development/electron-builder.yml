@@ -26,10 +26,11 @@ electronFuses:
   enableNodeCliInspectArguments: false
   enableEmbeddedAsarIntegrityValidation: true
   onlyLoadAppFromAsar: true
-# Where the program finds its updates (latest.yml…): the latest release of the repository
+# Where the program finds its updates (latest.yml…): the latest release of the official repository
+# (public; GexyLab/lilos is private)
 publish:
   provider: generic
-  url: https://github.com/GexyLab/lilos/releases/latest/download
+  url: https://github.com/GexyLab/lilos-plugins-official/releases/latest/download
 
 win:
   target:

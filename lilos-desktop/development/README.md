@@ -81,10 +81,10 @@ I dati del programma stanno nella cartella dati di Electron (o in `LILOS_DESKTOP
    - **Windows** (x64): `lilOS-Setup-<versione>.exe` (NSIS) e `lilOS-<versione>.msi`;
    - **macOS**: `lilOS-<versione>-arm64.dmg` e `-x64.dmg`, più gli zip;
    - **Linux**: `lilOS-<versione>-x64.AppImage` e `-arm64.AppImage`, `lilos_<versione>_<arch>.deb` e `lilos-<versione>.<arch>.rpm`;
-   - e crea la release GitHub «lilOS X.Y.Z» (`changelog/release-vX.Y.Z.md` come note, se c'è), con i file `latest*.yml` da cui il programma si aggiorna. Le release `desktop-v*` di prima restano.
+   - e crea la release GitHub «lilOS X.Y.Z» (`changelog/release-vX.Y.Z.md` come note, se c'è) nel **repository ufficiale** `GexyLab/lilos-plugins-official`, che è pubblico (questo repository è privato), con i file `latest*.yml` da cui il programma si aggiorna. Per scrivere lì il workflow usa il secret `RELEASES_TOKEN` di questo repository: un token *fine-grained* con **Contents: read and write** solo su `lilos-plugins-official`. Le release `desktop-v*` e `release-v1.24.0` di prima restano qui, visibili solo a chi ha accesso.
 4. Con `workflow_dispatch` si possono provare i pacchetti senza creare la release.
 
-Nessun certificato per ora: su Windows compare SmartScreen, su macOS i pacchetti sono firmati solo *ad hoc* (`identity: "-"`) e si apre con «Apri comunque». Su macOS gli aggiornamenti non si installano da soli: il programma avvisa e basta. L'aggiornamento automatico usa `releases/latest/download` del repository: la release «latest» deve essere quella del programma.
+Nessun certificato per ora: su Windows compare SmartScreen, su macOS i pacchetti sono firmati solo *ad hoc* (`identity: "-"`) e si apre con «Apri comunque». Su macOS gli aggiornamenti non si installano da soli: il programma avvisa e basta. L'aggiornamento automatico usa `releases/latest/download` del repository ufficiale: la release «latest» deve essere quella del programma (il repository ufficiale non ha altre release: i suoi tag `vX.Y.Z` sono solo tag). I programmi fino alla 0.2.1 (lilOS 1.24.0) leggono ancora le release di `GexyLab/lilos`, ora private: non si aggiornano più e vanno reinstallati a mano una volta.
 
 ## Limiti noti
 
