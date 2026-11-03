@@ -70,7 +70,7 @@ for (const { kind, name } of packages) {
 }
 writeFileSync(join(repo, 'catalog.json'), `${JSON.stringify(listed, null, 2)}\n`);
 
-if (chosen.some(p => p.kind === 'lilos')) execFileSync(process.execPath, [join('..', 'scripts', 'release.mjs'), repo], { cwd: '..', stdio: 'inherit' });
+if (chosen.some(p => p.kind === 'lilos')) execFileSync(process.execPath, [join('scripts', 'release.mjs'), repo], { cwd: '..', stdio: 'inherit' });
 
 console.log(`\nPubblicati in ${repo}:`);
 for (const { name, kind, from } of report) console.log(`  ${kind} ${name}: ${from ?? '(nuovo)'} → ${versions[kind](name)[1]}`);
