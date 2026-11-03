@@ -233,17 +233,6 @@
     },
     {
       "kind": "library",
-      "name": "bzip2",
-      "version": "1.0.8",
-      "license": "bzip2-1.0.6",
-      "copyright": "Copyright (C) 1996-2019 Julian R Seward",
-      "url": "https://sourceware.org/bzip2/",
-      "usedBy": [
-        "compress-archive"
-      ]
-    },
-    {
-      "kind": "library",
       "name": "ccount",
       "version": "2.0.1",
       "license": "MIT",
@@ -343,17 +332,6 @@
     },
     {
       "kind": "library",
-      "name": "emscripten",
-      "version": "6.0.12",
-      "license": "MIT",
-      "copyright": "Copyright (c) 2010-2014 Emscripten authors",
-      "url": "https://emscripten.org",
-      "usedBy": [
-        "compress-archive"
-      ]
-    },
-    {
-      "kind": "library",
       "name": "hast-util-to-html",
       "version": "9.0.6",
       "license": "MIT",
@@ -417,28 +395,6 @@
       ],
       "via": [
         "vscode-json-languageservice"
-      ]
-    },
-    {
-      "kind": "library",
-      "name": "libarchive",
-      "version": "3.8.10",
-      "license": "BSD-2-Clause",
-      "copyright": "Copyright Tim Kientzle and the libarchive contributors",
-      "url": "https://www.libarchive.org",
-      "usedBy": [
-        "compress-archive"
-      ]
-    },
-    {
-      "kind": "library",
-      "name": "mbedtls",
-      "version": "3.6.7",
-      "license": "Apache-2.0",
-      "copyright": "Copyright The Mbed TLS Contributors",
-      "url": "https://www.trustedfirmware.org/projects/mbed-tls/",
-      "usedBy": [
-        "compress-archive"
       ]
     },
     {
@@ -523,17 +479,6 @@
       ],
       "via": [
         "@shikijs/core"
-      ]
-    },
-    {
-      "kind": "library",
-      "name": "musl",
-      "version": "1.2.6",
-      "license": "MIT",
-      "copyright": "Copyright © 2005-2020 Rich Felker, et al.",
-      "url": "https://musl.libc.org",
-      "usedBy": [
-        "compress-archive"
       ]
     },
     {
@@ -1188,28 +1133,6 @@
     },
     {
       "kind": "library",
-      "name": "xz",
-      "version": "5.8.4",
-      "license": "0BSD",
-      "copyright": "Lasse Collin, Igor Pavlov and the XZ Utils contributors",
-      "url": "https://tukaani.org/xz/",
-      "usedBy": [
-        "compress-archive"
-      ]
-    },
-    {
-      "kind": "library",
-      "name": "zlib",
-      "version": "1.3.2",
-      "license": "Zlib",
-      "copyright": "Copyright (C) 1995-2026 Jean-loup Gailly and Mark Adler",
-      "url": "https://zlib.net",
-      "usedBy": [
-        "compress-archive"
-      ]
-    },
-    {
-      "kind": "library",
       "name": "zwitch",
       "version": "2.0.4",
       "license": "MIT",
@@ -1266,10 +1189,6 @@
     "terminal": {
       "en": "Terminal",
       "it": "Terminale"
-    },
-    "compress-archive": {
-      "en": "Compress Archive",
-      "it": "Compress Archive"
     }
   }
 }

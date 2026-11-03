@@ -12,8 +12,6 @@
     "sync:modules": "node scripts/module-libs.mjs",
     "check:modules": "node scripts/module-libs.mjs --check",
     "vendor:tree-sitter": "node scripts/vendor-tree-sitter.mjs",
-    "build:libarchive": "node scripts/build-libarchive.mjs",
-    "test:compress-archive": "node --test src/compress-archive/test/archive.test.mjs",
     "publish:repo": "node scripts/publish.mjs"
   },
   "devDependencies": {

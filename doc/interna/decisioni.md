@@ -1771,10 +1771,12 @@ Conseguenze: se tutte le schede si chiudono non parte niente; un'automazione con
 
 **Conseguenze.**
 
-- La build richiede Docker e circa mezz'ora (la configurazione di libarchive sotto Emscripten è lenta); va rifatta a ogni versione nuova di libarchive o delle librerie, e con i test (`node --test src/compress-archive/test/archive.test.mjs` in `plugins/`, che usano una variante per Node della stessa build).
+- La build richiede Docker e circa mezz'ora (la configurazione di libarchive sotto Emscripten è lenta); va rifatta a ogni versione nuova di libarchive o delle librerie, e con i test (`npm run test:compress-archive`, che usano una variante per Node della stessa build).
 - I limiti dei file di lilOS restano: 10 MB per file, quindi archivi e immagini ISO piccoli; tutto in memoria, al massimo 256 MB per volta.
 - libarchive decifra solo gli zip: i file cifrati di rar e 7z restano fuori, con il motivo nella notifica.
 - Chi aveva Zip deve installare Compress Archive e togliere Zip a mano: un'app non ne sostituisce un'altra da sola, e le automazioni registrate con Zip vanno rifatte.
+
+**Aggiornamento (3 novembre 2026).** Compress Archive è passata al repository community [lilos-plugins-community](https://github.com/GexyLab/lilos-plugins-community) (tag v1.2.0; tolta dall'ufficiale nella v1.54.0, dove era entrata nella v1.53.0), con il motore, lo script di build, i test e `doc/compress-archive.md`: i percorsi `plugins/…` qui sopra ora sono alla radice di quel repository. Non è un'app di sistema, come ArduinoIDE4LilOS. La decisione resta valida: il build con `alone` resta anche in `plugins/scripts/build.mjs`, per le app ufficiali che ne avranno bisogno.
 
 **Quando ripensarla.** Se lilOS alza il limite di 10 MB per file (allora servono letture e scritture a pezzi, non tutto in memoria); se un'altra app vuole libarchive (allora conviene una libreria condivisa del manifesto, `libraries`); se WebAssembly con i thread diventa possibile nelle app (xz e 7z più veloci); se serve zstd.
 

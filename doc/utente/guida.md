@@ -1039,7 +1039,7 @@ Si cambia con il tasto **IT** / **EN**. La scelta resta salvata. Al primo avvio 
 
 ## Compress Archive
 
-**Compress Archive** crea ed estrae archivi: **zip, 7z, tar, tar.gz, tar.bz2, tar.xz, iso**, i file compressi singoli **gz, bz2 e xz**, e apre i **rar**. Ha preso il posto dell'app Zip. Non c'è di serie: un amministratore la installa dall'[AppStore](#lappstore). All'installazione chiede di poter leggere e modificare i file della tua home, perché deve leggere il contenuto delle cartelle e scrivere l'archivio accanto.
+**Compress Archive** crea ed estrae archivi: **zip, 7z, tar, tar.gz, tar.bz2, tar.xz, iso**, i file compressi singoli **gz, bz2 e xz**, e apre i **rar**. Ha preso il posto dell'app Zip. Non è un'app ufficiale di lilOS: sta nel repository community [lilos-plugins-community](https://github.com/GexyLab/lilos-plugins-community), con i sorgenti aperti a tutti. Per averla, un amministratore aggiunge il repository dall'[AppStore](#lappstore) (**Opzioni** → **Aggiungi un repository**, indirizzo `https://github.com/GexyLab/lilos-plugins-community`) e la installa dalla categoria **Produttività**. All'installazione chiede di poter leggere e modificare i file della tua home, perché deve leggere il contenuto delle cartelle e scrivere l'archivio accanto.
 
 Si usa dal menu del tasto destro, sulla scrivania e nel File Manager, con la voce **Comprimi**:
 
@@ -1068,6 +1068,7 @@ Con il doppio clic su un archivio si apre la finestra di Compress Archive: in al
 - Con una selezione che mescola archivi e altri elementi compare solo **Comprimi come…**.
 - Il lavoro si fa nel processo in background dell'app: puoi continuare a usare lilOS mentre comprime o estrae.
 - **Chi aveva Zip**: Zip non è più nell'AppStore. Installa Compress Archive, poi disinstalla Zip; le automazioni registrate con Zip vanno registrate di nuovo.
+- **Chi l'aveva installata dal repository ufficiale** (dove è stata per poco): continua a funzionare, ma gli aggiornamenti arrivano solo dal repository community. Disinstallala e installala di nuovo da lì.
 
 ## Automata
 

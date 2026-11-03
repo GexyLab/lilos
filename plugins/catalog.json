@@ -10,7 +10,6 @@
     "apps/filecrypt",
     "apps/calculator",
     "apps/keyboard",
-    "apps/compress-archive",
     "apps/automata",
     "apps/scheduler"
   ],

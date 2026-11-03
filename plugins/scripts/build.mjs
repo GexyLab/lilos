@@ -49,7 +49,6 @@ export const APPS = [
   { id: 'filecrypt', entry: 'FileCryptApp.js' },
   { id: 'calculator', entry: 'CalculatorApp.js' },
   { id: 'keyboard', entry: 'KeyboardApp.js' },
-  { id: 'compress-archive', entry: 'CompressApp.js', alone: ['work.js'] },
   { id: 'automata', entry: 'AutomataApp.js' },
   { id: 'scheduler', entry: 'SchedulerApp.js' },
 ];
