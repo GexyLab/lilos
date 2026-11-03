@@ -10,7 +10,9 @@ import { writeHomeFile } from './web.js';
  *   on an SSH host  the lines through a saved host of the Terminal (term/terminals.js exec): its
  *                   password or key saved, its server key confirmed before.
  * Done when the exit status is 0. The output (stdout and stderr together) goes to the history and,
- * with saveTo, into a file of the home (replaced, or added at the end).
+ * with saveTo, into a file of the home (replaced, or added at the end). It may last the operation's
+ * time limit; «Annulla» or the limit stop it as Ctrl+C would (Terminal 1.7.0 with services-isolate
+ * 1.2.0: before, 60 s at most and no stop) and what it wrote so far stays in the history.
  */
 const TERMINAL = 'terminal';
 const ENTRY = 'shell';
@@ -28,7 +30,7 @@ export async function runCommand({ kernel, task, run, principal, signal }) {
   } else {
     const service = (await kernel.appServices.catalog()).find(s => s.app === TERMINAL && s.entry === ENTRY);
     if (!service) fail('unavailable', 'Serve il Terminale 1.5.0 o più recente: aggiornalo dall’AppStore');
-    const result = await kernel.appServices.runScheduled(principal, TERMINAL, ENTRY, { lines: w.lines, cwd: w.cwd }, { task, run });
+    const result = await kernel.appServices.runScheduled(principal, TERMINAL, ENTRY, { lines: w.lines, cwd: w.cwd }, { task, run, signal });
     if (result?.error && !Number.isInteger(result.code)) fail('unavailable', String(result.error).slice(0, 300));
     output = plainText(result?.log ?? '');
     code = Number.isInteger(result?.code) ? result.code : result?.ok === false ? 1 : 0;

@@ -45,6 +45,7 @@ const MAX_ITEMS = 5000;
 const DENSE = 30 * 60_000;
 const DENSE_COUNT = 2000;
 const SAVE_HISTORY = 2000;
+const GRACE = 10_000;
 const OPTION_DEFAULTS = { missed: 'once', overlap: 'skip', timeoutMin: 60, retries: 0, retryMin: 5, notify: 'error', ask: true };
 
 const plain = v => !!v && typeof v === 'object' && !Array.isArray(v);
@@ -211,18 +212,22 @@ function launch(task, run) {
   host.ran(run);
   task.last = { run: run.id, at: run.at, state: 'running' };
   const { outputKb } = limits();
-  // A run that never answers still ends at its time limit (or when cancelled): its place is freed
-  const aborted = new Promise((_, reject) => controller.signal.addEventListener('abort', () => reject(controller.signal.reason ?? new Error('timeout')), { once: true }));
+  // Stopped (cancelled, or at its time limit): the run hears it through the signal and has GRACE to
+  // end and say what it did so far; one that never answers ends anyway and its place is freed
+  const aborted = new Promise((_, reject) => controller.signal.addEventListener('abort', () => {
+    setTimeout(() => reject(controller.signal.reason ?? new Error('timeout')), stopped ? 0 : GRACE);
+  }, { once: true }));
+  const stoppedAs = log => (controller.signal.reason?.message === 'cancelled'
+    ? { state: 'cancelled', text: 'Annullata', log }
+    : { state: 'error', text: `Tempo scaduto: più di ${task.options.timeoutMin} minuti`, log });
   Promise.race([Promise.resolve().then(() => host.run(JSON.parse(JSON.stringify(task)), runView(run), controller.signal)), aborted])
     .then(result => {
       const r = plain(result) ? result : {};
+      if (controller.signal.aborted) return stoppedAs(clip(r.log, outputKb << 10));
       const state = ['ok', 'error', 'waiting', 'skipped'].includes(r.state) ? r.state : 'ok';
       return { state, text: clip(r.text, MAX_TEXT), log: clip(r.log, outputKb << 10) };
     }, err => {
-      const aborted = controller.signal.aborted;
-      const why = aborted ? controller.signal.reason : err;
-      if (aborted && why?.message === 'cancelled') return { state: 'cancelled', text: 'Annullata', log: '' };
-      if (aborted) return { state: 'error', text: `Tempo scaduto: più di ${task.options.timeoutMin} minuti`, log: '' };
+      if (controller.signal.aborted) return stoppedAs(clip(err?.log, outputKb << 10));
       return { state: 'error', text: clip(String(err?.message ?? err), MAX_TEXT), log: clip(err?.log, outputKb << 10) };
     })
     .then(async outcome => {

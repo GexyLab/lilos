@@ -42,6 +42,8 @@ const MAX_BINDINGS = 100;
 const LOG_LINES = 200;
 const BACKOFF = [1000, 5000, 30_000];
 const CRASH_WINDOW = 5 * 60_000;
+/** A scheduled run waits for its service a little past the operation's limit: the scheduler stops it first. */
+const SCHEDULE_MARGIN = 30_000;
 const LIMITS = { memoryMb: 128, cpuMs: 10_000 };
 const ENTRY = /^[a-z][a-zA-Z0-9]{0,30}$/;
 const APP = /^[a-z0-9][a-z0-9.-]{1,63}$/;
@@ -262,9 +264,12 @@ export class AppServices extends EventEmitter {
   /**
    * An operation of the scheduler (schedule/index.js): the service of its owner (`principal`, null
    * for the system) gets { schedule: { task, name, run, params } }; what it answers is the result.
-   * One that was off starts for it and stops afterwards.
+   * One that was off starts for it and stops afterwards. It may take the operation's time limit
+   * (options.timeoutMin, the scheduler's signal ends it first); when `signal` aborts the service
+   * hears it (onCancel) and has a few seconds to answer. Needs services-isolate 1.2.0 (`cancellable`):
+   * with an older runtime every request has 60 s and is not stopped.
    */
-  async runScheduled(principal, app, entry, params, { task, run }) {
+  async runScheduled(principal, app, entry, params, { task, run, signal }) {
     const service = await this.#service(app, entry);
     const owner = principal ? principal.id : SYSTEM;
     const key = this.#key(owner, app, entry);
@@ -277,10 +282,12 @@ export class AppServices extends EventEmitter {
     try {
       await inst.ready;
       if (inst.status !== 'on') fail('unavailable', `${service.name} non è partito: ${inst.error ?? 'errore'}`);
-      return await inst.handle.request({ schedule: { task: task.id, name: task.name, run: run.id, params } }, 'scheduler');
+      const limit = (task.options?.timeoutMin ?? 60) * 60_000 + SCHEDULE_MARGIN;
+      return await inst.handle.request({ schedule: { task: task.id, name: task.name, run: run.id, params } }, 'scheduler', { timeoutMs: limit, signal });
     } catch (err) {
       if (err?.code) throw err;
-      fail('invalid', `${service.label}: ${err.message}`);
+      const old = !inst.handle?.cancellable && !signal?.aborted && /in 60 secondi/.test(err.message ?? '') && (task.options?.timeoutMin ?? 60) > 1;
+      fail('invalid', `${service.label}: ${err.message}${old ? ': aggiorna il modulo services-isolate alla 1.2.0 (AppStore → Kernel) per usare il tempo massimo dell’operazione' : ''}`);
     } finally {
       inst.scheduledUses -= 1;
       if (!inst.scheduledUses && inst.scheduledStart && inst.reason === 'schedule') {

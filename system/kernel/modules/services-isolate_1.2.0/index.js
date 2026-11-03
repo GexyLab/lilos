@@ -13,8 +13,17 @@ import { join } from 'node:path';
  *
  * Needs isolated-vm 6.2 (Node 22 to 25); `npm install` in this folder (the kernel does it when it
  * installs the module).
+ *
+ * A request waits 60 s for the answer, unless its caller asks for another time (timeoutMs: the
+ * scheduler's runs, up to the operation's own limit) or gives a signal: when it aborts, the service
+ * hears it (the third argument of its handler, onCancel) and has GRACE to answer; then the request
+ * fails and the caller decides whether to stop the service. `cancellable` on the handle says so
+ * (1.2.0; before, 60 s for every request and no stop).
  */
 const REQUEST_TIMEOUT = 60_000;
+const MAX_TIMEOUT = 25 * 3600_000;
+const GRACE = 5000;
+const span = ms => (ms < 120_000 ? `${Math.round(ms / 1000)} secondi` : `${Math.round(ms / 60_000)} minuti`);
 const children = new Set();
 
 function start(ctx, { key, code, info, limits }, host) {
@@ -47,7 +56,7 @@ function start(ctx, { key, code, info, limits }, host) {
         const p = pending.get(m.id);
         if (!p) return;
         pending.delete(m.id);
-        clearTimeout(p.timer);
+        p.done();
         if (m.error) p.reject(new Error(m.error));
         else p.resolve(m.result);
       } else if (m.type === 'call') {
@@ -67,7 +76,7 @@ function start(ctx, { key, code, info, limits }, host) {
     child.on('exit', (code, signal) => {
       children.delete(child);
       for (const p of pending.values()) {
-        clearTimeout(p.timer);
+        p.done();
         p.reject(new Error('Il servizio si è fermato'));
       }
       pending.clear();
@@ -81,15 +90,31 @@ function start(ctx, { key, code, info, limits }, host) {
     });
 
     const handle = {
-      request(data, from) {
+      cancellable: true,
+      request(data, from, { timeoutMs = REQUEST_TIMEOUT, signal } = {}) {
         if (!child.connected) return Promise.reject(new Error('Il servizio si è fermato'));
+        if (signal?.aborted) return Promise.reject(new Error('Richiesta annullata'));
+        const wait = Number.isFinite(timeoutMs) && timeoutMs > 0 ? Math.min(timeoutMs, MAX_TIMEOUT) : REQUEST_TIMEOUT;
         return new Promise((ok, ko) => {
           const id = next++;
-          const timer = setTimeout(() => {
-            pending.delete(id);
-            ko(new Error('Il servizio non ha risposto in 60 secondi'));
-          }, REQUEST_TIMEOUT);
-          pending.set(id, { resolve: ok, reject: ko, timer });
+          let grace = null;
+          const give = error => {
+            if (!pending.delete(id)) return;
+            p.done();
+            ko(error);
+          };
+          const timer = setTimeout(() => give(new Error(`Il servizio non ha risposto in ${span(wait)}`)), wait);
+          // Stopped: the service is told, and has a few seconds to answer (what it did so far)
+          const cancel = () => {
+            if (child.connected) child.send({ type: 'cancel', id });
+            grace = setTimeout(() => give(new Error(`Il servizio non si è fermato in ${GRACE / 1000} secondi`)), GRACE);
+          };
+          signal?.addEventListener('abort', cancel, { once: true });
+          const p = {
+            resolve: ok, reject: ko,
+            done: () => { clearTimeout(timer); clearTimeout(grace); signal?.removeEventListener('abort', cancel); },
+          };
+          pending.set(id, p);
           child.send({ type: 'request', id, data, from });
         });
       },
