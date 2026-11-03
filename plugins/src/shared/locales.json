@@ -7,7 +7,6 @@
       "shared.fields.secretSet": "Set (type to replace it)",
       "shared.fields.secretEmpty": "Not set",
       "shared.fields.secretRemove": "Remove",
-
       "shared.params.required": "This value is needed.",
       "shared.params.badNumber": "Write a number.",
       "shared.params.tooSmall": "At least {min}.",
@@ -25,7 +24,6 @@
       "shared.params.noneChosen": "Choose at least one item.",
       "shared.params.addFile": "Add a file",
       "shared.params.addFolder": "Add a folder",
-
       "shared.trust.title": "Confirm the server «{name}»",
       "shared.trust.changedTitle": "The server «{name}» CHANGED its key",
       "shared.trust.first": "This is the first time lilOS connects to this server, or its key changed. Check that the key fingerprint is the server's (whoever runs it can tell you).",
@@ -37,7 +35,6 @@
       "shared.trust.previous": "Confirmed before",
       "shared.trust.ask": "Continue only if it is your server.",
       "shared.trust.askChanged": "Continue only to trust the new key.",
-
       "shared.find.label": "Find",
       "shared.find.labelReplace": "Find and replace",
       "shared.find.find": "Find",
@@ -55,12 +52,20 @@
       "shared.find.replace": "Replace",
       "shared.find.replaceAll": "Replace all",
       "shared.find.count": "{index} of {total}",
-      "shared.find.total": { "one": "{total} result", "other": "{total} results" },
+      "shared.find.total": {
+        "one": "{total} result",
+        "other": "{total} results"
+      },
       "shared.find.none": "No results",
       "shared.find.badRegex": "Invalid regular expression: {error}",
-
       "shared.tabs.new": "New tab",
-      "shared.tabs.close": "Close “{name}”"
+      "shared.tabs.close": "Close “{name}”",
+      "shared.kv.enabled": "On",
+      "shared.kv.key": "Name",
+      "shared.kv.value": "Value",
+      "shared.kv.seal": "Make it secret",
+      "shared.kv.unseal": "Secret: click to make it plain",
+      "shared.kv.remove": "Remove"
     }
   },
   "it": {
@@ -71,7 +76,6 @@
       "shared.fields.secretSet": "Impostato (scrivi per sostituirlo)",
       "shared.fields.secretEmpty": "Non impostato",
       "shared.fields.secretRemove": "Togli",
-
       "shared.params.required": "Questo valore serve.",
       "shared.params.badNumber": "Scrivi un numero.",
       "shared.params.tooSmall": "Almeno {min}.",
@@ -89,7 +93,6 @@
       "shared.params.noneChosen": "Scegli almeno un elemento.",
       "shared.params.addFile": "Aggiungi un file",
       "shared.params.addFolder": "Aggiungi una cartella",
-
       "shared.trust.title": "Conferma il server «{name}»",
       "shared.trust.changedTitle": "Il server «{name}» ha CAMBIATO chiave",
       "shared.trust.first": "È la prima volta che lilOS si collega a questo server, oppure la sua chiave è cambiata. Controlla che l’impronta della chiave sia quella del server (te la dà chi lo gestisce).",
@@ -101,7 +104,6 @@
       "shared.trust.previous": "Confermata prima",
       "shared.trust.ask": "Continua solo se è il tuo server.",
       "shared.trust.askChanged": "Continua solo per fidarti della nuova chiave.",
-
       "shared.find.label": "Trova",
       "shared.find.labelReplace": "Trova e sostituisci",
       "shared.find.find": "Trova",
@@ -119,12 +121,20 @@
       "shared.find.replace": "Sostituisci",
       "shared.find.replaceAll": "Sostituisci tutto",
       "shared.find.count": "{index} di {total}",
-      "shared.find.total": { "one": "{total} risultato", "other": "{total} risultati" },
+      "shared.find.total": {
+        "one": "{total} risultato",
+        "other": "{total} risultati"
+      },
       "shared.find.none": "Nessun risultato",
       "shared.find.badRegex": "Espressione regolare non valida: {error}",
-
       "shared.tabs.new": "Nuova scheda",
-      "shared.tabs.close": "Chiudi «{name}»"
+      "shared.tabs.close": "Chiudi «{name}»",
+      "shared.kv.enabled": "Attiva",
+      "shared.kv.key": "Nome",
+      "shared.kv.value": "Valore",
+      "shared.kv.seal": "Rendila segreta",
+      "shared.kv.unseal": "Segreta: clicca per renderla normale",
+      "shared.kv.remove": "Togli"
     }
   }
 }

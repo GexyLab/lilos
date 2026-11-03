@@ -19,7 +19,7 @@ Una shell come **bash** che lavora sui file di lilOS. Si scrivono i comandi come
 |---|---|
 | File e cartelle | `ls` `cd` `pwd` `cat` `mkdir` `touch` `cp` `mv` `rm` `rmdir` `stat` `find` `tree` `basename` `dirname` `realpath` |
 | Testo | `echo` `printf` `head` `tail` `wc` `grep` `sort` `uniq` `tee` `cut` `tr` `sed` `diff` `rev` `nl` `seq` `yes` `xargs` |
-| lilOS | `open` (apre con l’app giusta), `trash` (il cestino), `tag`, `apps`, `date`, `whoami` |
+| lilOS | `open` (apre con l’app giusta), `trash` (il cestino), `tag`, `apps`, `nettest`, `date`, `whoami` |
 | Shell | `read` `test`/`[` `let` `eval` `source` `type` `command` `which` `env` `set` `shift` `sleep` `exit` e gli altri di `help` |
 
 **`rm` sposta nel cestino**: ciò che si elimina per sbaglio torna con `trash restore nome`. Per eliminare davvero: `rm --purge` o `trash empty`.
@@ -86,6 +86,16 @@ Non ci sono processi né programmi esterni: i comandi sono quelli del Terminale 
 Con **Automata** (lilOS 1.15.0 o successivo) il Terminale rende registrabile **Esegui un comando**: la riga eseguita e la cartella in cui l'hai eseguita. Si registrano solo le righe finite con successo, non quelle che iniziano con `automata` né quelle più lunghe di 4000 caratteri. La riga gira senza registrare quello che fa ai file, che è già dentro la riga. Rifatto, il comando si scrive nel Terminale (nella cartella registrata) e il passo riesce solo se l'uscita è 0, altrimenti mostra l'ultima riga d'errore.
 
 Il Terminale ha anche il comando di Automata: `automata list` e `automata run <nome> [file…] [--campo=valore…] [--yes]` (vedi Automata).
+
+## NetTest
+
+Con **NetTest** (lilOS 1.25.0 o successivo) il Terminale ha il comando `nettest`, che manda le richieste di una collezione `.nettest` con lo stesso motore del pulsante **Esegui** di NetTest (le fa il kernel):
+
+- `nettest run FILE [-e AMBIENTE] [-f CARTELLA] [-n GIRI] [-d DATI.csv|json] [--bail] [-v]`: tutte le richieste (o quelle di una cartella), una riga ciascuna con ✓, ✗ o ·, stato, tempo e cosa non è andato. Esce con 0 se tutte sono riuscite, con 1 altrimenti.
+- `nettest send FILE RICHIESTA [-e AMBIENTE] [-i]`: una richiesta, per nome; il corpo della risposta va sull'uscita (con `-i` prima ci sono stato e intestazioni).
+- `nettest list FILE`: cartelle e richieste, con il loro protocollo.
+
+L'ambiente è uno di quelli del file, per nome; i suoi valori segreti sono quelli del file (sigillati per te, su questo lilOS).
 
 ## Riconoscimenti
 

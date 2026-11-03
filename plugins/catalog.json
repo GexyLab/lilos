@@ -11,7 +11,8 @@
     "apps/calculator",
     "apps/keyboard",
     "apps/automata",
-    "apps/scheduler"
+    "apps/scheduler",
+    "apps/nettest"
   ],
   "modules": [
     "modules/users-basic",
@@ -31,7 +32,9 @@
     "modules/netfs-local",
     "modules/term-telnet",
     "modules/term-rlogin",
-    "modules/term-supdup"
+    "modules/term-supdup",
+    "modules/call-grpc",
+    "modules/call-mqtt"
   ],
   "system": "system/lilos"
 }

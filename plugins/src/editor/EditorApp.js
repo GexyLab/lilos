@@ -3,7 +3,8 @@ import * as sdk from '@lilos/sdk';   // `automation`, `messageBox`: missing in o
 import { launch } from '@lilos/system';
 import { handleCommand } from '@lilos/system';
 import { pickFile } from '@lilos/system';
-import { tokenize } from './highlight.js';
+import { tokenize } from '../shared/highlight.js';
+import '../shared/highlight.css';
 import { complete } from './complete.js';
 import { languages, getLanguage, languageForName, engineFor, ENGINE_LABELS, loadCustomGrammars, languageEvents } from './lang/languages.js';
 import { highlighter, FONT_STYLE } from './lang/engines.js';

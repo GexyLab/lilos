@@ -45,6 +45,10 @@ import { fs } from './fs.js';
  *   net.signInByHand(protocol) → bool the sign-in must be by hand here (signIn.manual, and only that
  *                                     way or this page is on http outside this computer)
  *   net.space(id) → { used, total } | null    the account's space (protocols with space)
+ *   net.rules() → { multiUser, allowLocal, allowPrivate, allow }   admins (since lilOS 1.25.0): where users may
+ *                                     make the kernel connect (Rete, Terminale, NetTest); with sign-in, never
+ *                                     this machine nor the local network unless an admin opens them
+ *   net.setRules({ allowLocal?, allowPrivate?, allow? }) → rules   admins: allow: ['192.168.1.50/32', …]
  *   net.imports.start(id) / status(id, importId, { wait }) / copy(id, path, folderId)
  *                                     picking on the provider's page what to copy (protocols with an importer)
  *   net.link(id, path) → 'https://…'  a file's or folder's page on the provider's site (protocols with links)
@@ -225,6 +229,10 @@ class Net extends Emitter {
       }
     })();
   }
+
+  /** Where users may make the kernel connect, and the admin's exceptions (admins). */
+  rules() { return kernel.request('GET', '/net/rules'); }
+  setRules(rules) { return kernel.request('PUT', '/net/rules', rules); }
 
   /** The space of a connection's account: { used, total } (bytes; total 0: no limit), or null (protocols with space). */
   async space(id) {

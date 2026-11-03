@@ -62,6 +62,15 @@ import { typeKey } from '../../input/sendKey.js';
  *                                        openHere(fileId) → session (SSH where a handed file of an SFTP
  *                                        connection is), close(id), attach(id, { cols, rows }) → MessagePort
  *                                        (windows only). Event 'term' ('hosts' | 'sessions'): they changed
+ *   lilos.calls.info() → { protocols, scripts, sessions }    network requests made by the kernel (permission
+ *                                        calls; see the SDK's calls.js): send(body) → { result, vars… },
+ *                                        run(body) → { id }, progress(id, { after, wait }), cancelRun(id),
+ *                                        seal(value) → sealed, trust({ host, port, fingerprint }), describe(body),
+ *                                        token(settings), signIn(settings) → tokens (windows only: the provider's
+ *                                        page in a window), signInByHand(settings) → { id, redirectUri }
+ *                                        then signInPaste(id, address) → status, signInCancel(id),
+ *                                        sessions(), openSession(body), closeSession(id), attach(id) → MessagePort
+ *                                        (windows only). Event 'calls' ('sessions' | 'runs'): they changed
  *   lilos.serial.supported() → boolean   serial ports of the user's computer (permission serial; the
  *                                        SDK's serial.js): ports() → [port], request({ filters }) → port | null
  *                                        (after a click), forget(id), open(id, options) → MessagePort
@@ -197,6 +206,25 @@ export function lilosApi(call, info, i18nApi) {
       openHere: id => call('term.openHere', id),
       close: id => call('term.close', id),
       attach: (id, size) => call('term.attach', id, size ?? null),
+    }),
+    calls: Object.freeze({
+      info: () => call('calls.info'),
+      send: body => call('calls.send', body ?? null),
+      run: body => call('calls.run', body ?? null),
+      progress: (id, opts) => call('calls.progress', id, opts ?? null),
+      cancelRun: id => call('calls.cancelRun', id),
+      seal: value => call('calls.seal', value),
+      trust: trust => call('calls.trust', trust ?? null),
+      describe: body => call('calls.describe', body ?? null),
+      token: settings => call('calls.token', settings ?? null),
+      signIn: settings => call('calls.signIn', settings ?? null),
+      signInByHand: settings => call('calls.signInByHand', settings ?? null),
+      signInPaste: (id, address) => call('calls.signInPaste', id, address),
+      signInCancel: id => call('calls.signInCancel', id),
+      sessions: () => call('calls.sessions'),
+      openSession: body => call('calls.openSession', body ?? null),
+      closeSession: id => call('calls.closeSession', id),
+      attach: id => call('calls.attach', id),
     }),
     serial: Object.freeze({
       supported: () => call('serial.supported'),

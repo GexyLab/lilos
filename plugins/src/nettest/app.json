@@ -1,0 +1,29 @@
+{
+  "id": "nettest",
+  "version": "1.0.0",
+  "kind": "local",
+  "name": "NetTest",
+  "description": "Requests to APIs and network services, made by the lilOS kernel: HTTP/REST and GraphQL with environments, secret variables, authentication, scripts and checks; WebSocket, SSE, gRPC, MQTT, TCP, TLS and UDP sessions; collections run in order or by the Scheduler.",
+  "category": "development",
+  "icon": { "glyph": "globe", "color": "#c2410c" },
+  "publisher": { "id": "lilos", "name": "lilOS" },
+  "sdk": "2",
+  "lilos": ">=1.25.0",
+  "system": true,
+  "entrypoints": {
+    "main": { "kind": "window", "params": {
+      "file": {"type": "file", "label": "Collection", "description": "A NetTest collection (.nettest) to open"}
+    } },
+    "filePreview": { "kind": "background", "label": "Previews of .nettest collections" }
+  },
+  "dependencies": [
+    { "module": "services-isolate", "version": ">=1.2.0", "optional": true, "reason": "JavaScript scripts before and after the requests, in an isolated sandbox" },
+    { "module": "call-grpc", "optional": true, "reason": "gRPC calls and streams" },
+    { "module": "call-mqtt", "optional": true, "reason": "MQTT sessions" }
+  ],
+  "permissions": ["fs.write:~", "calls"],
+  "contributes": {
+    "window": { "width": 1180, "height": 720 },
+    "fileTypes": ["nettest"]
+  }
+}

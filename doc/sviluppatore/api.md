@@ -23,6 +23,7 @@ Gli altri moduli (`src/`) sono il sistema: scrivania, desktop, barra.
 - [sdk/core/net.js](#sdkcorenetjs)
 - [sdk/core/serial.js](#sdkcoreserialjs)
 - [sdk/core/host.js](#sdkcorehostjs)
+- [sdk/core/calls.js](#sdkcorecallsjs)
 - [sdk/core/pipes.js e sdk/core/pipeCatalog.js](#sdkcorepipesjs-e-sdkcorepipecatalogjs)
 - [sdk/core/automation.js](#sdkcoreautomationjs)
 - [sdk/core/schedule.js e sdk/core/scheduleRules.js](#sdkcoreschedulejs-e-sdkcoreschedulerulesjs)
@@ -308,7 +309,7 @@ import { kernel, KernelError } from '@lilos/sdk';
 | `mode` | `'multi'` (gli utenti accedono) o `'single'` (un utente, senza accesso); `null` prima di `session()`. |
 | `user` | `{ id, username, name, role }` dell'utente collegato, o `null`. |
 | `data` | Ciò che `GET /api/boot` ha restituito: `{ user, home, fresh, nodes, storage, apps, appSecurity }`. Lo leggono `storage`, `fs` e `apps` appena vengono caricati. |
-| `request(method, path, body?, { text = false, blob = false, keepalive = false })` | Una richiesta a `/api<path>`, con il cookie e l'intestazione `X-Lilos: 1`. `body` oggetto = JSON, stringa = testo, `Blob` / `ArrayBuffer` / array tipizzato = byte (`application/octet-stream`). Restituisce il JSON della risposta (il testo con `text: true`, un `Blob` con `blob: true`, `undefined` per 204). Lancia `KernelError`. Una risposta 401 con l'utente connesso, in modalità `multi`, emette anche `signedout`. |
+| `request(method, path, body?, { text = false, blob = false, keepalive = false, signal })` | Una richiesta a `/api<path>`, con il cookie e l'intestazione `X-Lilos: 1`. `body` oggetto = JSON, stringa = testo, `Blob` / `ArrayBuffer` / array tipizzato = byte (`application/octet-stream`). Restituisce il JSON della risposta (il testo con `text: true`, un `Blob` con `blob: true`, `undefined` per 204). Con `signal` (un `AbortSignal`, da lilOS 1.25.0) la richiesta si può interrompere: lancia `KernelError` con codice `canceled`. Lancia `KernelError`. Una risposta 401 con l'utente connesso, in modalità `multi`, emette anche `signedout`. |
 | `channel(path, { maxText = 1048576, maxBytes = 1048576 } = {})` → `MessagePort` | Un canale vivo con il kernel: un WebSocket verso `/api<path>` (`ws:` o `wss:` come la pagina) dietro una `MessagePort`. Le stringhe (fino a `maxText` caratteri) e i byte (`ArrayBuffer` o array tipizzato, fino a `maxBytes`) passano nei due sensi così come sono; i messaggi più grandi o di altri tipi si scartano senza errore. Quelli mandati prima che il socket si apra aspettano. Quando il socket si chiude la porta riceve la stringa `{"t":"gone","code":…}` e si chiude. `port.detach()` chiude il socket (per lilOS: la finestra che teneva il canale è stata chiusa). |
 | `module(name)` → `{ request(method, path, body?), channel(path) }` | L'API di un modulo del kernel (i suoi `ctx.route` e `ctx.socket`, vedi [Moduli](#moduli)): `request` è `kernel.request` su `/modules/<name><path>` (metodo in maiuscolo); `channel` è `kernel.channel` sullo stesso indirizzo, con messaggi fino a 16 MiB (il modulo mette il suo limite quando accetta il socket). `name` deve essere `[a-z][a-z0-9-]{0,40}` e `path` della forma `/parola/parola` (caratteri `[\w:-]`, come i percorsi che un modulo dichiara), e non `/update` né `/settings`, che sono del kernel (la gestione del modulo da parte di un amministratore): altrimenti lancia un errore. L'oggetto è congelato. |
 | `session()` | `GET /api/session` → `{ mode, user }`; aggiorna `mode` e `user`. |
@@ -703,6 +704,8 @@ Connessioni di rete (la cartella **Rete**: FTP, SFTP, WebDAV, SMB; ogni protocol
 | `shares({ protocol, values, trust? }, secret)` | `Promise<string[]>`. Cosa offre il server (protocolli con `canListShares`) |
 | `signInByHand(protocol)` | `true` se l'accesso a quel protocollo qui va fatto incollando l'indirizzo: il protocollo lo permette (`signIn.manual`) e o ha solo quel modo, o la pagina è su `http://` fuori da questo computer |
 | `space(id)` | `Promise<{ used, total } \| null>`: lo spazio dell'account (protocolli con `space`) |
+| `rules()` | `Promise<{ multiUser, allowLocal, allowPrivate, allow }>`. Solo amministratori, da lilOS 1.25.0 (SDK 0.16.0): dove gli utenti possono far collegare il kernel (cartella Rete, Terminale, NetTest). Con l'accesso (`multiUser`) il kernel non va mai a questo computer né alla rete locale, se un amministratore non li apre. `GET /api/net/rules` |
+| `setRules({ allowLocal?, allowPrivate?, allow? })` | `Promise<rules>`. Solo amministratori. `allowLocal`: questo computer (`127.0.0.0/8`, `::1`); `allowPrivate`: la rete locale; `allow`: fino a 100 indirizzi o intervalli, per esempio `['192.168.1.50/32']` (un indirizzo senza `/` vale `/32`, o `/128` per IPv6). Le regole valgono subito e sono salvate in `config.json`. Un intervallo non valido → `invalid`. `PUT /api/net/rules` |
 | `imports.start(id)`, `imports.status(id, importId, { wait })`, `imports.copy(id, path, folderId)` | Importare da un protocollo con `importer`: `start` → `{ id, url }` (apri `url` in una nuova scheda con `openWeb`), `status` → `{ status, count, size, path, error }`, `copy` copia la cartella `path` della connessione in una cartella di `fs` → `{ queue }` |
 | `signIn(protocol, values = {}, { signal, manual?, askAddress? }?)` | `Promise<{ signin, account }>`. Con `manual: true` (vedi `signInByHand`) apre la pagina del fornitore in una nuova scheda e chiama `askAddress(errore)` (dell'app: chiede all'utente l'indirizzo della pagina che non si è aperta; `null` rinuncia) finché l'indirizzo non è quello giusto. Per i protocolli con un campo `signin`: apre subito una finestra (**va chiamata direttamente da un clic**, altrimenti il browser la blocca), chiede al kernel la pagina del fornitore, la mostra, aspetta la fine dell'accesso e chiude la finestra. `values`: gli altri campi della connessione. `signin` (l'id) va in `create`, `update`, `test` o `connect`; `account` è quello da mostrare. Rifiuta con `KernelError` di codice `blocked` (il browser non ha aperto la finestra), `canceled` (`signal` interrotto) o `invalid` (accesso non riuscito) o con un errore del kernel (`unavailable`, `rate_limited`…). Il ritorno è `<origine>/api/net/signin/callback`: vedi [Accesso con un fornitore](#accesso-con-un-fornitore-netsigninjs) |
 | `link(id, path)` | `Promise<string>`. Un `https://…`: la pagina del file o della cartella sul sito del fornitore (protocolli con `links`); per un documento Office di un protocollo con `office`, Office per il web |
@@ -898,6 +901,56 @@ port.onmessage = e => {
 };
 port.postMessage(new TextEncoder().encode('ls\r'));                 // i tasti
 port.postMessage(JSON.stringify({ t: 'resize', cols: 120, rows: 40 }));
+```
+
+---
+
+## sdk/core/calls.js
+
+### `calls`
+
+Le richieste di rete che il kernel fa per l'utente (usate dall'app di sistema **NetTest**, dalla Pianificazione e dal comando `nettest` del Terminale; da lilOS 1.25.0, SDK 0.16.0): HTTP e GraphQL con variabili, segreti, autorizzazione, script e verifiche; esecuzioni di collezioni; sessioni vive (WebSocket, SSE, TCP, TLS, UDP e i protocolli dei moduli del kernel: gRPC, MQTT). Il browser non c'entra: niente CORS, il kernel si collega dove le sue regole di rete lo lasciano ([Rete](#rete-connessioni-e-trasferimenti-net-apinetjs), `net.rules`). Funziona solo **collegato al kernel**. Il motore, gli endpoint e le scelte sono in [Richieste di NetTest](#richieste-di-nettest-calls-apicallsjs).
+
+| Membro | Descrizione |
+| --- | --- |
+| `available` | `true` se c'è il kernel |
+| `info()` | `Promise<{ protocols, scripts, sessions, multiUser }>`. `protocols`: `[{ id, label, live, invoke, describe }]` (`live`: apre sessioni; `invoke`: una chiamata sola, anche nelle esecuzioni; `describe`: dice cosa offre il server); `scripts`: se gli script si possono eseguire (c'è il servizio `runtime`) |
+| `send({ request, chain?, environment?, collection?, globals? }, { signal }?)` | `Promise<{ result, vars, secret, renewed }>`. Manda una richiesta (`POST /api/calls/send`). `environment`, `collection` e `globals` sono `{ values, secrets? }`: i valori delle variabili; `secrets` è `{ nome: sigillato }` (da `seal`), che il kernel apre solo per metterli nella richiesta e che nella risposta compaiono come `••••`. `chain`: le cartelle sopra la richiesta (autorizzazione e script ereditati). `result`: la richiesta com'è partita, la risposta (stato, intestazioni, corpo in base64, tempi, certificato), i reindirizzamenti, le verifiche e i test, la console degli script, e `error` se la rete o il server hanno fallito (un errore di rete sta nel risultato, non è un errore HTTP di lilOS). `error.code === 'untrusted'` con `error.trust` è un certificato da far confermare (`trust`). `vars`: le variabili cambiate dagli script e da «Salva in variabile»; `renewed`: `{ sigillatoVecchio: token }` per i token OAuth che il kernel ha rinnovato (da tenere al posto dei vecchi). Con `signal` interrotto la richiesta si ferma anche nel kernel. Al massimo 8 richieste alla volta per utente (`rate_limited`) |
+| `run({ collection, only?, environment?, globals?, data?, iterations?, delayMs?, stopOnError? })` | `Promise<{ id, total }>`. Fa partire una collezione (o le richieste `only`, un elenco di id) nel kernel, una dopo l'altra; `data`: le righe di un file di dati (un giro per riga). Al massimo 5 esecuzioni insieme per utente |
+| `progress(id, { after = 0, wait = false })` | `Promise<{ results, next, done, summary, total }>`. I risultati dal numero `after`; con `wait` aspetta fino a 25 secondi che ne arrivino. Il kernel conserva al massimo 1000 risultati, ognuno con il corpo tagliato a 64 KB; quelli di un'esecuzione finita restano 10 minuti |
+| `cancelRun(id)` | `Promise`. Ferma l'esecuzione |
+| `seal(value)` | `Promise<string>`. Un valore segreto cifrato dal kernel (AES-GCM) per un file `.nettest`: lo apre solo lo stesso utente, sullo stesso lilOS. Fino a 64 KB |
+| `trust({ host, port, fingerprint })` | `Promise`. L'utente ha confermato il certificato di un server (l'impronta di `error.trust`). Vale anche per la cartella Rete e per il Terminale (`net/knownHosts.js`) |
+| `describe({ request, … })` | `Promise<qualcosa>`. Cosa offre il server (la reflection di gRPC) |
+| `token(settings)` | `Promise<tokens>`. OAuth 2.0 «credenziali del client» o «utente e password»: `{ sealed, expires, scope, preview, refresh }` |
+| `signIn(settings, { signal, askAddress }?)` | `Promise<tokens>`. OAuth 2.0 «codice di autorizzazione» con PKCE: apre **subito** una finestra (da chiamare da un clic) sulla pagina del fornitore, che torna a lilOS (`/api/calls/oauth/callback`). Con `settings.redirectUri` la finestra è una scheda che va all'indirizzo registrato dall'utente, e `askAddress(errore)` (obbligatoria) chiede dove è finita (`null` rinuncia) finché l'indirizzo è quello giusto. Un accesso dura 10 minuti e si usa una volta |
+| `sessions()` | `Promise<[sessione]>`. Le sessioni vive dell'utente |
+| `openSession({ request, environment?, collection?, globals? })` | `Promise<sessione>`. Apre una sessione (si collega alla prima `attach`). Al massimo 10 aperte per utente |
+| `closeSession(id)` | `Promise` |
+| `attach(id)` | `MessagePort` (sincrono). Apre il WebSocket `/api/calls/sessions/:id/socket` dietro la porta; i messaggi sono stringhe JSON in tutti e due i versi. Alla chiusura del canale arriva `{"t":"gone","code":…}`; `port.detach()` lo chiude (la sessione resta). Un `id` che non è `[a-f0-9]{16}` lancia un errore |
+| `changed(what, data)` | Per il sistema: il kernel ha detto che `'sessions'` o `'runs'` sono cambiati (`src/net/connect.js`) |
+
+**Forme.**
+
+| Oggetto | Campi |
+| --- | --- |
+| sessione | `{ id, name, protocol, address, state, reason, created, attached, closesAt, info, count }`. `state`: `'new'` \| `'connecting'` \| `'on'` \| `'closed'`; `closesAt`: quando si chiude da sola (ms) se nessuna pagina la mostra, altrimenti `null` |
+| messaggio | `{ n, at, dir: 'in' \| 'out' \| 'sys', type, data, meta? }`. `type`: `'text'`, `'binary'` (`data` in base64), `'json'`, `'event'`, `'info'` o `'error'` |
+
+**I messaggi di `attach`** (stringhe JSON). Dal kernel: `{ t: 'state', session }` · `{ t: 'history', items }` (all'inizio: gli ultimi messaggi, fino a 2000 e 8 MB) · `{ t: 'msg', item }` · `{ t: 'result', id, result | error }` (la risposta a un `command`) · `{ t: 'taken' }` (un'altra pagina ha preso la sessione). Alla sessione: `{ t: 'send', msg: { type, data, meta? } }` · `{ t: 'command', id, name, args }` (quello che il protocollo sa fare in più: iscriversi a un topic MQTT, chiudere l'invio di un flusso gRPC…).
+
+Eventi: `sessions` (una sessione è comparsa, è cambiata o è sparita) e `runs` (`{ id }`: un'esecuzione è finita), anche per colpa di un'altra pagina dello stesso utente.
+
+```js
+import { calls } from '@lilos/sdk';
+
+const { result } = await calls.send({ request: { id: 'a', type: 'request', protocol: 'http', method: 'GET', url: 'https://example.com/api', headers: [], body: { kind: 'none' }, auth: { type: 'none' }, settings: {} } });
+console.log(result.response?.status ?? result.error?.message);
+
+const s = await calls.openSession({ request: { id: 'b', type: 'request', protocol: 'ws', url: 'wss://echo.example.com', headers: [], values: {} } });
+const port = calls.attach(s.id);
+port.onmessage = e => console.log(JSON.parse(e.data));
+port.postMessage(JSON.stringify({ t: 'send', msg: { type: 'text', data: 'ciao' } }));
 ```
 
 ---
@@ -1335,7 +1388,7 @@ Eventi: `undo` | `redo` `{ label, handler }`, dopo un passo riuscito · `error` 
 
 - `splitName(name)` → `[base, ext]`. Un punto iniziale non è un'estensione: `.env` → `['.env', '']`.
 - `fileType(name)` → `{ ext, badge, label, color }`. `badge` è l'estensione in maiuscolo, ripulita a `[A-Z0-9]` e lunga al massimo 4 caratteri.
-- `fileTypeList()` → `[{ label, color, exts }]`: tutti i gruppi di tipi conosciuti (copie). Tra questi `term` (`Collegamento terminale`, `#2b3038`), i collegamenti di Terminale.
+- `fileTypeList()` → `[{ label, color, exts }]`: tutti i gruppi di tipi conosciuti (copie). Tra questi `term` (`Collegamento terminale`, `#2b3038`), i collegamenti di Terminale, e `nettest` (`Collezione di NetTest`, `#c2410c`, estensione `nettest`, da SDK 0.16.0), le collezioni di NetTest.
 
 Da lilOS 1.22.0 (SDK 0.14.0) le etichette (`label`) sono nella lingua del sistema (inglese e italiano, testi `lilos:fileTypes` di `locale.define`): non usarle come chiavi, e chiedile quando disegni.
 
@@ -2007,13 +2060,14 @@ Argomenti (`args`) che il sistema usa per avviarle, e stato per le workarea (`wi
 | File Manager (`files`) | `folder`: id della cartella da aprire (altrimenti Home); `trash: true` (o `folder === fs.trashRoot`) apre il Cestino; `tag`: id di un tag che esiste, apre la vista di quel tag; `link`: id di un collegamento che il File Manager deve seguire (lo manda lilOS quando una connessione chiede la password o la conferma del server: il File Manager la chiede e poi apre l'originale). Sulla finestra già aperta arriva l'evento `launch` e mostra la nuova cartella. Ha anche il punto d'ingresso `newLink`, la finestra «Nuovo collegamento» (`folder`: dove si fa il collegamento; la radice se manca, non esiste o è di rete). | `{ folder }` (`fs.trashRoot` per il Cestino, `'tag:<id>'` per un tag) |
 | Editor (`editor`) | `file`: id del file da aprire (in una scheda nuova o in quella che lo mostra già); `folder`: cartella del pannello a destra (assente: l'ultima aperta; `null`: nessuna); `sidebar: false`: pannello chiuso; `session`: id della sessione di schede da riprendere (lo mette `getState`). Senza `session`, la finestra riprende le schede messe da parte da finestre chiuse dall'utente. Apre i tipi di file dichiarati in `contributes.fileTypes` del suo manifesto. | `{ session, file, files, folder, sidebar? }` (`files`: i file delle schede, per `files:locked`) |
 | Pannello di controllo (`settings`) | `tab`: id di una scheda (`'workspaces'`, `'tags'`…), anche a finestra già aperta; `tagFor`: id dei nodi su cui metterà il prossimo tag creato (lo manda «Nuovo tag…» del sottomenu Tag). | nessuno (si riapre sulla prima scheda) |
+| NetTest (`nettest`) | `file`: id di un file `.nettest` da aprire (anche a finestra già aperta, evento `launch`); `tabs` e `active`: le schede da riaprire e quella attiva (le mette `getState`). Apre i file `.nettest` (`contributes.fileTypes`) e ha il punto d'ingresso `filePreview` | `{ tabs: [chiave], active }` (`chiave`: `<chiave della collezione>/<id della richiesta>`) |
 | AppStore (`appstore`) | `tab`: `installed`, `updates`, l'id di una categoria (`system`, `productivity`, `media`, `development`, `other`), `kernel` o `options` (anche `apps`, `modules`, `repos`, dei vecchi collegamenti); anche a finestra già aperta (evento `launch`). | nessuno |
 
 Il sistema dipende da questi argomenti (`launch('files', { folder })` in `system.js`, `launch('settings', { tab: 'workspaces' })` nel pulsante del workspace): cambiarli nell'app rompe il sistema. Il sistema non dipende invece dall'esistenza delle app: se una manca, `launch` scrive solo un'informazione in console (`app non ancora disponibile`).
 
-Cosa salvano (chiavi di `storage`, vedi [Dati salvati](#dati-salvati)): File Manager `files-view` (`'list'`, `'grid'` o `'thumbs'`), `files-panels`; Editor `editor-lang`, `editor-tree`, `editor-tabs`, `editor-draft:<scheda>`; Pannello di controllo nulla di proprio (usa `settings`, `shortcuts`, `tags`, `menus`…). Le associazioni dei tipi di file e l'ordine della barra laterale del File Manager sono del sistema (`file-apps`, `files-sidebar`).
+Cosa salvano (chiavi di `storage`, vedi [Dati salvati](#dati-salvati)): NetTest `nettest.mine`, `nettest.open`, `nettest.history`, `nettest.globals`, `nettest.env`, `nettest.cookies`; File Manager `files-view` (`'list'`, `'grid'` o `'thumbs'`), `files-panels`; Editor `editor-lang`, `editor-tree`, `editor-tabs`, `editor-draft:<scheda>`; Pannello di controllo nulla di proprio (usa `settings`, `shortcuts`, `tags`, `menus`…). Le associazioni dei tipi di file e l'ordine della barra laterale del File Manager sono del sistema (`file-apps`, `files-sidebar`).
 
-Permessi dichiarati nei manifesti ufficiali: File Manager `fs.write:~`, `fs.workspaces`, `tags.write`, `desktop.items`, `ui.shortcuts`; Editor `fs.write:~`, `ui.shortcuts`, `net:https://json.schemastore.org`; Photo `fs.write:~`, `ui.shortcuts`; Pannello di controllo `settings.system`, `workspaces.manage`, `tags.write`, `ui.shortcuts`; AppStore `apps.manage`. Per le app di sistema non c'è un controllo a ogni uso (non passano dal ponte): i permessi servono al kernel per accettare il manifesto e a mostrare cosa fa l'app.
+Permessi dichiarati nei manifesti ufficiali: File Manager `fs.write:~`, `fs.workspaces`, `tags.write`, `desktop.items`, `ui.shortcuts`; Editor `fs.write:~`, `ui.shortcuts`, `net:https://json.schemastore.org`; Photo `fs.write:~`, `ui.shortcuts`; Pannello di controllo `settings.system`, `workspaces.manage`, `tags.write`, `ui.shortcuts`; AppStore `apps.manage`; NetTest `fs.write:~`, `calls`. Per le app di sistema non c'è un controllo a ogni uso (non passano dal ponte): i permessi servono al kernel per accettare il manifesto e a mostrare cosa fa l'app.
 
 ---
 
@@ -2345,6 +2399,7 @@ Un permesso è `nome` oppure `nome:parametro`. Un permesso non nell'elenco, o co
 | `clipboard.read` | use | Leggere gli appunti | Nessuno |
 | `net:<origine>` | install | Collegarsi a un sito (`https://api.esempio.it`, senza percorso) | Apre `connect-src` della CSP |
 | `term` | install | Aprire terminali remoti (SSH, Telnet…) e usare gli host salvati | `lilos.term.*` e l'evento `term`. Le sessioni collegano il computer del kernel a server scelti dall'app, e con un host salvato usano la sua password: da concedere con cautela. Valgono le regole di rete della cartella Rete (`net/guard.js`) |
+| `calls` | install | Fare richieste di rete dal kernel (HTTP, WebSocket, TCP, gRPC, MQTT…) verso qualunque server | `lilos.calls.*` e l'evento `calls`. Le richieste partono dal computer del kernel verso server scelti dall'app, e possono usare le credenziali dell'utente (variabili segrete, accessi OAuth): da concedere con cautela. Valgono le regole di rete della cartella Rete (`net/guard.js`) e i certificati che l'utente ha confermato |
 | `serial` | install | Usare le porte seriali e USB del computer dell'utente | `lilos.serial.*` e l'evento `serial`. Un'app con il permesso parla con qualunque dispositivo l'utente le fa scegliere (può anche riprogrammare una scheda): da concedere con cautela. Il browser chiede comunque all'utente quale porta, una volta per porta e per sito |
 | `kernel:<modulo>` | install | Usare un modulo del kernel (per esempio `kernel:arduino`) | `lilos.kernel.request` e `lilos.kernel.channel` verso gli endpoint e i WebSocket di quel modulo (`ctx.route`, `ctx.socket`). Il parametro è il nome del modulo, `[a-z][a-z0-9-]{0,40}`. Cosa può fare chi lo chiama lo decide il modulo: da concedere solo per moduli di cui ci si fida |
 | `schedule` | install | Pianificare operazioni (le sue: promemoria, i suoi servizi, aprirsi) | `lilos.schedule.list/get/create/update/remove/enable/run` sulle operazioni dell'app, e l'evento `schedule` (senza `ids` e senza `run`) |
@@ -2405,7 +2460,7 @@ Con `sdk` `"1"` il modulo è l'app: gira per intero all'avvio con `window.lilos`
 | `lilos.apps.call(app, entry, data)` → risultato | Come `lilos.app.call`, per un punto d'ingresso **di un'altra app**. Serve il permesso `apps.call:<id app>`. L'app deve essere installata e visibile nel workspace attuale. Un `file` (o i `files`, al massimo 100) si può passare solo se l'app lo ha ricevuto; ogni altro dato arriva così com'è e **chi lo riceve deve controllarlo** (la forma, i tipi, le dimensioni). |
 | `lilos.handle(fn)` | Solo in un background: `fn(data, { from })` risponde alle chiamate; `from` è l'id dell'app che chiama (`null` se è il sistema). Il valore restituito, o `null`, torna a chi ha chiamato. Senza `handle` le chiamate falliscono. Un `file` ricevuto nei dati si può leggere e scrivere con `lilos.files` come se l'app fosse stata aperta con lui. |
 | `lilos.locale` | `{ code, i18n: { t(chiave, params?), lang, date(valore, opzioni?), number(valore, opzioni?) } }`: la lingua del sistema e le stringhe dell'app per quella lingua, già risolte (a differenza del resto di `lilos`, **sincrono**). Non richiede permessi. Vedi [`lilos.locale`](#liloslocale). |
-| `lilos.on(evento, fn)` → `off` | Eventi: `launch` (nuovi argomenti, a finestra già aperta), `command` (`id` di un comando di `contributes.commands`, quando l'utente preme la sua scorciatoia; solo nelle finestre), `theme` (i token di colore sono cambiati; nella sandbox il bridge li applica da solo a `:root`), `connect` (`MessagePort`, in un background: qualcuno ha chiamato `lilos.app.connect`), `locale` (`{ code, lang }`: la lingua del sistema è cambiata e `lilos.locale` ha già le nuove stringhe; non nei servizi), `term` (`'hosts'` o `'sessions'`: sono cambiati gli host salvati o le sessioni, anche per colpa di un'altra pagina dello stesso utente; solo per le app con il permesso `term`), `serial` (`'ports'`: una porta autorizzata si è collegata o scollegata; solo per le app con il permesso `serial`)., `schedule` (le operazioni sono cambiate o una corsa è partita o finita: `{ type: 'change', ids }` o `{ type: 'run', task, run, state }`; con `schedule.read` o `schedule.move`; un'app con il solo `schedule` riceve `{ type: 'change' }` senza `ids` e nessun evento `run`, perché non deve sapere quali sono le operazioni degli altri: rilegge con `lilos.schedule.list()`). |
+| `lilos.on(evento, fn)` → `off` | Eventi: `launch` (nuovi argomenti, a finestra già aperta), `command` (`id` di un comando di `contributes.commands`, quando l'utente preme la sua scorciatoia; solo nelle finestre), `theme` (i token di colore sono cambiati; nella sandbox il bridge li applica da solo a `:root`), `connect` (`MessagePort`, in un background: qualcuno ha chiamato `lilos.app.connect`), `locale` (`{ code, lang }`: la lingua del sistema è cambiata e `lilos.locale` ha già le nuove stringhe; non nei servizi), `term` (`'hosts'` o `'sessions'`: sono cambiati gli host salvati o le sessioni, anche per colpa di un'altra pagina dello stesso utente; solo per le app con il permesso `term`), `calls` (`'sessions'` o `'runs'`: sono cambiate le sessioni vive o è finita un'esecuzione, anche per colpa di un'altra pagina dello stesso utente; solo per le app con il permesso `calls`), `serial` (`'ports'`: una porta autorizzata si è collegata o scollegata; solo per le app con il permesso `serial`)., `schedule` (le operazioni sono cambiate o una corsa è partita o finita: `{ type: 'change', ids }` o `{ type: 'run', task, run, state }`; con `schedule.read` o `schedule.move`; un'app con il solo `schedule` riceve `{ type: 'change' }` senza `ids` e nessun evento `run`, perché non deve sapere quali sono le operazioni degli altri: rilegge con `lilos.schedule.list()`). |
 | `lilos.window.setTitle(testo)` | Titolo della finestra (fino a 100 caratteri). Solo in una finestra: in un background fallisce. |
 | `lilos.window.close()` | La finestra si chiude, come con il suo pulsante. Solo in una finestra. |
 | `lilos.ui.toast(testo)` | Vecchio nome di `lilos.ui.notify(testo)`: una notifica firmata con l'app, con livello `info` e gli stessi limiti (compreso quello al minuto). Non c'è più un avviso breve in basso. |
@@ -2437,6 +2492,12 @@ Con `sdk` `"1"` il modulo è l'app: gira per intero all'avvio con `window.lilos`
 | `lilos.term.openHere(id)` → sessione | SSH sul server della connessione SFTP in cui sta il file o la cartella `id`, nella sua cartella (per la voce con `when.net: ['sftp']`). `id` deve essere un nodo ricevuto dall'app (aperto con l'app o passato da una sua azione); altrimenti errore. Con una connessione di altro tipo: errore. |
 | `lilos.term.close(id)` | Chiude la sessione (la connessione finisce) e la dimentica. |
 | `lilos.term.attach(id, { cols, rows })` → `MessagePort` | Il canale dello schermo e dei tasti di una sessione. **Solo nelle finestre.** È la **pagina** di lilOS ad aprire il WebSocket verso il kernel, l'app isolata non lo vede: riceve una porta già collegata. Il formato dei messaggi è in [`term`](#sdkcoretermjs). I canali si chiudono con la finestra (le sessioni restano). |
+| `lilos.calls.info()` → `{ protocols, scripts, sessions }` | Le richieste di rete fatte dal kernel, come [`calls`](#sdkcorecallsjs). Serve il permesso `calls` (vale per tutti i metodi `lilos.calls.*`). |
+| `lilos.calls.send(body)`, `run(body)`, `progress(id, opts)`, `cancelRun(id)`, `seal(valore)`, `trust(trust)`, `describe(body)`, `token(settings)` | Come i metodi di `calls`, con gli stessi parametri e valori restituiti (`body`, `opts`, `trust` e `settings` devono essere oggetti). `send` non ha il `signal`: una richiesta lunga si aspetta. |
+| `lilos.calls.signIn(settings)` → tokens | L'accesso OAuth 2.0 con codice e PKCE nella finestra del fornitore, che torna alla pagina di callback di lilOS (`settings.redirectUri` viene ignorato). **Solo nelle finestre**, e subito dopo un clic. |
+| `lilos.calls.signInByHand(settings)` → `{ id, redirectUri }`, poi `signInPaste(id, indirizzo)` → stato e `signInCancel(id)` | L'accesso con un indirizzo di ritorno proprio dell'app (`settings.redirectUri`): apre una scheda del fornitore, l'app chiede all'utente dove è finita e passa l'indirizzo a `signInPaste` (`{ status: 'pending' \| 'done' \| 'error', tokens?, error? }`). Si possono incollare solo gli accessi che questa finestra ha iniziato. **Solo nelle finestre.** |
+| `lilos.calls.sessions()`, `openSession(body)`, `closeSession(id)` | Le sessioni vive, come `calls`. |
+| `lilos.calls.attach(id)` → `MessagePort` | I messaggi di una sessione (formato in [`calls`](#sdkcorecallsjs)). **Solo nelle finestre**: la porta è già collegata, come con `lilos.term.attach`; i canali si chiudono con la finestra (le sessioni restano). |
 | `lilos.serial.supported()` → `boolean` | Se il browser può usare le porte seriali (vedi [`serial`](#sdkcoreserialjs)). Serve il permesso `serial`. |
 | `lilos.serial.ports()` → `[port]` | Le porte già autorizzate e collegate: `{ id, usbVendorId, usbProductId }`. |
 | `lilos.serial.request({ filters? })` → `port \| null` | Fa scegliere una porta all'utente. **Solo nelle finestre**, e subito dopo un clic o un tasto. Al massimo 50 filtri. |
@@ -2948,7 +3009,7 @@ Chiamata da `system.js` con il gestore delle finestre e `taskbar.transfersButton
 
 - apre la finestra con il pulsante (`button.onOpen`; ancora un clic la chiude se è quella attiva), con la notifica di fine trasferimento (`systemActions.set('transfers', …)`) e con la scorciatoia `system.transfers` («Apri il trasferimento dati», gruppo `Generale`, nessuna combinazione di serie);
 - tiene le connessioni come nodi sotto la cartella Rete (`fs.setMounts`) a ogni evento `mounts` di `net`;
-- gira al sistema gli eventi del kernel con `onKernelEvent`: `net.mount` → `net.mountChanged()`, `net.change` → `fs.netChanged(mount, path)`, `net.transfers` → `net.transfersChanged(istantanea)`, `fs.external` → `fs.external(dati)`, `net.notify` → `notify(testo, { level })`; e `fs` `netError` → `notify('Rete: …')`. Quando il flusso si riapre (il kernel si è riavviato o la rete è caduta) rilegge connessioni e trasferimenti;
+- gira al sistema gli eventi del kernel con `onKernelEvent`: `net.mount` → `net.mountChanged()`, `net.change` → `fs.netChanged(mount, path)`, `net.transfers` → `net.transfersChanged(istantanea)`, `fs.external` → `fs.external(dati)`, `net.notify` → `notify(testo, { level })`, e (da lilOS 1.25.0) `calls.sessions` → `calls.changed('sessions')` e `calls.runs` → `calls.changed('runs', dati)` (le sessioni e le esecuzioni di NetTest); e `fs` `netError` → `notify('Rete: …')`. Quando il flusso si riapre (il kernel si è riavviato o la rete è caduta) rilegge connessioni e trasferimenti;
 - apre la finestra da sola in due casi: quando un conflitto aspetta una scelta (una volta per file), e quando una serie di trasferimenti (`transfers.run`) dura più di **5 secondi** (`OPEN_AFTER`); una volta sola per serie: chiusa, resta chiusa fino alla serie seguente.
 
 ### `showTransfers(wm)`, `transfersShown(wm)` e `bytes(n)` (`TransfersWindow.js`)
@@ -3701,6 +3762,8 @@ Le richieste che modificano (tutte tranne `GET` e `HEAD`) devono avere l'intesta
 | `PUT /api/notifications-options` | utenti | `{ keep }` → `{ keep }`: quante ne conserva l'utente, un intero da 1 a 200 (`invalid` altrimenti) |
 | `GET /api/term` e le altre `/api/term/…` | utenti | Gli host salvati e le sessioni dei terminali remoti dell'utente, e il WebSocket di una sessione: vedi [Terminali remoti](#terminali-remoti-term-apitermjs) |
 | `GET /api/net` e le altre `/api/net/…` | utenti | Le connessioni di rete dell'utente, i loro file e i trasferimenti: tutti gli endpoint sono in [Rete](#rete-connessioni-e-trasferimenti-net-apinetjs). Errori propri: `secret_required` 428 e `untrusted` 409 (con `details`) |
+| `GET /api/calls` e le altre `/api/calls/…` | utenti | Le richieste di NetTest: invio, esecuzioni di collezioni, accessi OAuth e sessioni vive (con il WebSocket di una sessione): vedi [Richieste di NetTest](#richieste-di-nettest-calls-apicallsjs) |
+| `GET /api/net/rules`, `PUT /api/net/rules` | amministratori | Le eccezioni alle regole di rete (`allowLocal`, `allowPrivate`, `allow`): vedi [Dove ci si può collegare](#rete-connessioni-e-trasferimenti-net-apinetjs) e [Configurazione](#configurazione-configjson) |
 | `GET /api/net/oauth`, `PUT /api/net/oauth/:id` | amministratori | Le app registrate presso i fornitori (Microsoft, Google), una per tutti i protocolli: vedi [App dei fornitori](#app-dei-fornitori-netoauthjs) |
 | `POST /api/kernel/restart` | amministratori | Il kernel si ferma ed esce con il codice 75: `npm run kernel` lo riavvia. Senza `run.js` (variabile `LILOS_SUPERVISED` assente): `unavailable` |
 | `GET /api/system` | utenti | → `{ version, mode }`; agli amministratori anche `kernel`, `sdk`, `releases`, `next`, `previous`, `updated`, `failed` (vedi [`systemReleases`](#systemreleases)) |
@@ -3742,7 +3805,7 @@ I percorsi possono finire con `*` (`/api/apps/:id/v/:version/*`): il resto del p
 | `origins`, `loopbackOrigins` | Origini ammesse per le richieste che modificano. |
 | `secureCookies` | Aggiunge `Secure` al cookie (con HTTPS). |
 | `modules` | Moduli da avviare, `{ name, version?, config? }`. Senza `version`: la più alta installata. Un modulo indicato due volte, non installato, o che richiede un servizio che nessun modulo attivo fornisce, ferma il kernel. |
-| `net` | Facoltativo, con più utenti: dove il kernel può collegarsi per le connessioni di rete. `{ allowPrivate?: boolean, allow?: string[] }`: la rete locale è chiusa di serie, `allowPrivate: true` la apre; `allow`: intervalli CIDR (`'192.168.1.50/32'`) ammessi comunque. Vedi [Rete](#rete-connessioni-e-trasferimenti-net-apinetjs). |
+| `net` | Facoltativo, con più utenti: dove il kernel può collegarsi per le connessioni di rete (Rete, Terminale, NetTest, richieste web della Pianificazione). `{ allowLocal?: boolean, allowPrivate?: boolean, allow?: string[] }`: questo computer (`127.0.0.1`, `::1`) e la rete locale sono chiusi di serie; `allowLocal: true` apre il primo, `allowPrivate: true` la seconda; `allow`: intervalli CIDR (`'192.168.1.50/32'`) ammessi comunque. Da lilOS 1.25.0 li cambia anche un amministratore dal Pannello di controllo → Rete (`PUT /api/net/rules`): valgono subito e si salvano qui. Vedi [Rete](#rete-connessioni-e-trasferimenti-net-apinetjs). |
 | `oauth` | Facoltativo: le app registrate presso i fornitori, per l'accesso dei protocolli di rete. `{ microsoft?: { clientId, accounts, tenant? }, google?: { clientId, clientSecret: 'v1:…', clientType } }`; i campi segreti cifrati come le impostazioni segrete dei moduli. Lo scrive il Pannello di controllo (`PUT /api/net/oauth/:id`); prima di lilOS 1.22.0 stava nelle impostazioni dei moduli e il kernel lo sposta qui da solo. Vedi [App dei fornitori](#app-dei-fornitori-netoauthjs). |
 | `apps.allowLocalSources` | Permette di installare app da una cartella del computer del kernel (solo sviluppo). |
 | `apps.trustedPublishers` | `{ idEditore: 'ed25519:<chiave>' }`: gli editori di cui ci si fida. |
@@ -3846,6 +3909,8 @@ La cartella **Rete** porta in lilOS i file di server remoti. Motivi e alternativ
 | `net/signin.js` (`SignIns`, `kernel.network.signins`) | L'accesso al proprio account sul sito del fornitore (OAuth 2.0 con PKCE), sotto |
 | `net/oauth.js` (`OAuthApps`, `kernel.oauth`) | Da lilOS 1.22.0: le app registrate presso i fornitori (Microsoft, Google), i token chiesti e rinnovati dal kernel per i protocolli che dichiarano `oauth` ([App dei fornitori](#app-dei-fornitori-netoauthjs)) |
 | `net/knownHosts.js` (`KnownHosts`, `kernel.network.knownHosts`) | Da lilOS 1.22.0: le chiavi e i certificati dei server che ogni utente ha confermato, per la Rete e per il Terminale insieme ([Server confermati](#server-confermati-netknownhostsjs)) |
+| `net/connect.js` (`connectTo`) | Da lilOS 1.25.0: una connessione TCP, o TLS sopra, fatta per una richiesta dell'utente (client HTTP, WebSocket e sessioni di NetTest): all'indirizzo che la guardia permette (`lookup`), con i tempi di ogni passo e il certificato del server; un certificato non valido che l'utente non ha confermato chiude con `untrusted` (`details.trust`, `kind: 'tls'`). `tls` accetta `ca`, `cert`, `key`, `pfx`, `passphrase`, `servername`, `verify`, `pinned` (l'impronta confermata) |
+| `net/http.js` (`httpRequest`, `readBody`) | Da lilOS 1.25.0: il client HTTP del kernel per le richieste degli utenti, HTTP/1.1 o HTTP/2 (ALPN, o scelto), una connessione per richiesta, senza seguire i reindirizzamenti. Lo usano NetTest e le richieste web della Pianificazione (che quindi accettano i certificati confermati dall'utente) |
 | `api/net.js` | Gli endpoint `/api/net/…` (sotto) |
 
 #### Protocolli: il servizio `netfs.<protocollo>`
@@ -3954,7 +4019,7 @@ Ogni utente ha le sue, salvate in `DATA_DIR/net/<hash dell'utente>.json` (`DATA_
 - **Quando si apre.** Una connessione si apre al primo uso, e di nuovo da sola se cade. Quelle con `auto` si aprono alla prima richiesta dell'utente dopo l'avvio del kernel (`userSeen`).
 - **Impronta.** Quella che l'utente conferma (`trust` in `connect` o `create`) si salva per il server della connessione, non per la connessione: tipo (`ssh` se comincia con `SHA256:`, altrimenti `tls`), host e porta ([Server confermati](#server-confermati-netknownhostsjs)). Vale per tutte le connessioni dell'utente a quel server e per il Terminale; cambiare `host`, `port` o `url` porta a un altro server, che va confermato. `trusted` nella vista dice se il server della connessione ha un'impronta confermata. Se il server mostra una chiave o un certificato diversi da quello confermato, `untrusted` ha `details.trust` con `changed: true` e `previous` (l'impronta di prima): la pagina deve avvisare più forte.
 - **Password legata al server.** Una password ricordata (o tenuta in memoria) si scorda se con `update` cambia uno tra `host`, `port`, `url`, `user`, `tls`, `domain`, `share`, `auth` e non se ne dà una nuova: va riscritta.
-- **Dove ci si può collegare** (`net/guard.js`, `NetGuard`). Solo con più utenti (accesso richiesto): il kernel non si collega a loopback (`127.0.0.0/8`, `::1`), link-local (`169.254.0.0/16`, `fe80::/10`), multicast, `0.0.0.0`/`::`, riservati (`192.0.0.0/24`, `198.18.0.0/15`, `240.0.0.0/4`) né gli intervalli IPv6 che portano dentro un indirizzo IPv4 (NAT64 `64:ff9b::/96` e `64:ff9b:1::/48`, 6to4 `2002::/16`, Teredo `2001::/32`; un IPv4 scritto in IPv6, `::ffff:127.0.0.1`, vale come l'IPv4); la rete locale (`10/8`, `172.16/12`, `192.168/16`, `100.64/10`, `fc00::/7`) solo con `net: { allowPrivate: true }` in `config.json`; `net: { allow: ['192.168.1.50/32', …] }` lascia passare certi indirizzi o intervalli anche se è chiusa. Se il nome si risolve in più indirizzi, vale il controllo su tutti. Si fa a ogni creazione, modifica, prova, elenco delle condivisioni e apertura (`forbidden`: «Indirizzo non permesso per le connessioni di rete»). Le richieste web della Pianificazione e, da lilOS 1.22.0, i driver dei protocolli (`ctx.lookup` in `connect`, `shares`, `signIn` e in `open` dei terminali) lo rifanno sull'indirizzo a cui si collegano davvero: passano a `node:net`, `node:tls`, `node:http`/`node:https` il `lookup` della guardia (`guard.lookup`), che risolve il nome e controlla ogni indirizzo un attimo prima della connessione, così un nome che cambia indirizzo tra il controllo e la connessione (DNS rebinding, TTL brevi) non porta altrove. Un indirizzo IP scritto come tale non passa dal `lookup`: lo controlla già `check()`. Con un solo utente non c'è nessun limite (il `lookup` risolve e basta).
+- **Dove ci si può collegare** (`net/guard.js`, `NetGuard`). Solo con più utenti (accesso richiesto): il kernel non si collega a loopback (`127.0.0.0/8`, `::1`; da lilOS 1.25.0 `net: { allowLocal: true }` lo apre, e solo lui: gli altri indirizzi sempre chiusi restano chiusi), link-local (`169.254.0.0/16`, `fe80::/10`), multicast, `0.0.0.0`/`::`, riservati (`192.0.0.0/24`, `198.18.0.0/15`, `240.0.0.0/4`) né gli intervalli IPv6 che portano dentro un indirizzo IPv4 (NAT64 `64:ff9b::/96` e `64:ff9b:1::/48`, 6to4 `2002::/16`, Teredo `2001::/32`, `::/96`; anche `fec0::/10` e `192.88.99.0/24`; un IPv4 scritto in IPv6, `::ffff:127.0.0.1`, vale come l'IPv4); la rete locale (`10/8`, `172.16/12`, `192.168/16`, `100.64/10`, `fc00::/7`) solo con `net: { allowPrivate: true }` in `config.json`; `net: { allow: ['192.168.1.50/32', …] }` lascia passare certi indirizzi o intervalli anche se è chiusa (anche quelli di loopback, o la rete locale, se sono nell'elenco; **mai** link-local `169.254.0.0/16` e `fe80::/10` (i metadati dei servizi cloud), multicast e `0.0.0.0/8`: nemmeno `allow` li apre). Le regole si leggono a ogni controllo: `enabled` segue `kernel.multiUser`, anche se gli utenti arrivano dopo l'avvio. Da lilOS 1.25.0 le tre eccezioni le cambia un amministratore: `NetGuard.rules()` → `{ multiUser, allowLocal, allowPrivate, allow }` e `setRules({ allowLocal?, allowPrivate?, allow? })` (fino a 100 intervalli; un indirizzo senza `/` vale `/32` o `/128`; uno non valido → `invalid`) salvano in `config.json` (`editConfig`) e valgono subito, per le connessioni nuove (`GET` e `PUT /api/net/rules`, solo amministratori; `net.rules()` e `net.setRules()` nell'SDK). Se il nome si risolve in più indirizzi, vale il controllo su tutti. Si fa a ogni creazione, modifica, prova, elenco delle condivisioni e apertura (`forbidden`: «Indirizzo non permesso per le connessioni di rete»). Le richieste web della Pianificazione, le richieste di NetTest (da lilOS 1.25.0) e, da lilOS 1.22.0, i driver dei protocolli (`ctx.lookup` in `connect`, `shares`, `signIn` e in `open` dei terminali) lo rifanno sull'indirizzo a cui si collegano davvero: passano a `node:net`, `node:tls`, `node:http`/`node:https` il `lookup` della guardia (`guard.lookup`), che risolve il nome e controlla ogni indirizzo un attimo prima della connessione, così un nome che cambia indirizzo tra il controllo e la connessione (DNS rebinding, TTL brevi) non porta altrove. Un indirizzo IP scritto come tale non passa dal `lookup`: lo controlla già `check()`. Con un solo utente non c'è nessun limite (il `lookup` risolve e basta).
 - **Nomi e dimensioni.** Un elenco ha al massimo 50 000 voci (`too_large`); i nomi non sicuri (`isSafeName` in `drivers.js`: una sola parte, non `.` né `..`, senza `/`, caratteri di controllo né inversioni di direzione del testo `U+202A-202E`, `U+2066-2069`, al massimo 255 caratteri) sono tolti dagli elenchi, e `cleanName` li rifiuta (`invalid`). `isUsableName` è più larga (ammette le inversioni di testo): serve a decidere se eliminare è sicuro. Eliminare una cartella si ferma, senza togliere niente, se contiene un nome non utilizzabile; una cartella o un collegamento (`link`) si eliminano come se stessi, e la ricorsione arriva al massimo a 64 livelli.
 - **Pulizia.** All'avvio (`prune()`, solo con più utenti) si cancellano i file di connessioni, trasferimenti e server confermati di utenti che non esistono più.
 - **Osservazione.** Se la sessione ha `watch`, ogni cartella letta con `list` è osservata e i cambiamenti diventano l'evento `net.change`. Al massimo 8 cartelle per connessione alla volta: oltre, si smette di osservare la meno recente. Prima di eliminare o rinominare una cartella la si smette di osservare (alcuni server, SMB, la tolgono solo se non è aperta).
@@ -4111,7 +4176,7 @@ I terminali SSH, Telnet, rlogin e SUPDUP stanno nel kernel e li usa l'app di sis
 
 | File | Che cosa fa |
 | --- | --- |
-| `ws.js` (`acceptSocket`, `refuseUpgrade`) | Un WebSocket (RFC 6455) senza librerie, sopra una richiesta `upgrade` |
+| `ws.js` (`acceptSocket`, `refuseUpgrade`, `connectSocket`) | Un WebSocket (RFC 6455) senza librerie, sopra una richiesta `upgrade`; da lilOS 1.25.0 anche **client**: `connectSocket(url, { headers, protocols, lookup, signal, timeoutMs, tls, maxMessage, timings })` → `{ ws, response, tls }` per le sessioni WebSocket di NetTest (frame mascherati, `ws.ping()`, eventi `ping` e `pong`; un'apertura rifiutata lancia con `response`) |
 | `term/drivers.js` | Il contratto dei protocolli (`term.<protocollo>`), `findDrivers`, `isSecure` |
 | `term/terminals.js` (`Terminals`, `kernel.terminals`) | Gli host salvati di ogni utente e le sessioni aperte |
 | `term/screen.js` (`History`, `Charset`, `ENCODINGS`) | Lo schermo tenuto per chi si ricollega e le codifiche |
@@ -4217,6 +4282,100 @@ Errori: `invalid` (400), `unauthorized`, `not_found` (404: host o sessione), `co
 
 Arrivano sullo stesso flusso `/api/services-events` degli eventi di Rete; la pagina rilegge con `GET /api/term`.
 
+### Richieste di NetTest (`calls/`, `api/calls.js`)
+
+Le richieste dell'app di sistema **NetTest** le fa il kernel, per l'utente che ha fatto l'accesso (da lilOS 1.25.0): HTTP e GraphQL, esecuzioni di collezioni, accessi OAuth 2.0 e sessioni vive. Motivi e alternative scartate: [D77](../interna/decisioni.md#d77-nettest-le-richieste-le-fa-il-kernel-con-i-segreti-sigillati-i-protocolli-in-più-sono-moduli). Il client è [`calls`](#calls) nell'SDK; il motore lo usano anche la Pianificazione (azione `collection`) e il comando `nettest` del Terminale. Ogni utente vede e cambia solo le sue cose.
+
+| File | Che cosa fa |
+| --- | --- |
+| `calls/index.js` (`Calls`, `kernel.calls`) | Il punto d'ingresso: `info`, `send`, `run`/`progress`/`cancelRun`, `runFile` (un file `.nettest` della home eseguito senza nessuno che guarda: Pianificazione e Terminale), `seal`, `trust`, `describe`, `openSession`; sigilla e apre i segreti. `stop()` ferma esecuzioni, sessioni e script all'arresto del kernel |
+| `calls/request.js` | Una richiesta HTTP: mette i valori segreti al loro posto all'ultimo momento (indirizzo, intestazioni, corpo, autorizzazione), segue i reindirizzamenti (10 di serie, al massimo 20; la guardia di rete controlla ogni indirizzo), legge il corpo (20 MB di serie, al massimo 50 MB) e scrive `••••` al posto di ogni segreto in ciò che torna. Tempo massimo 30 secondi di serie (da 1 a 600). Un'intestazione che prova chi è l'utente (`Authorization`, `Proxy-Authorization`, la chiave di un'autorizzazione API) non torna mai alla pagina né va a un altro indirizzo: il valore, e ciò che ne deriva (il token dopo `Bearer`, la password dentro un `Basic`), si scrive `••••` anche nel corpo, byte per byte. Un reindirizzamento a un'altra origine toglie queste intestazioni e, se c'è un corpo da rimandare (307, 308), non si segue; Digest risponde solo alla stessa origine |
+| `calls/auth.js` | L'autorizzazione: `basic`, `bearer`, `apikey`, `digest` (rifatta dopo un 401), `aws4` (firma AWS v4) e `oauth2` |
+| `calls/oauth.js` (`CallsOAuth`) | OAuth 2.0 con il fornitore che l'utente indica (diverso da `net/oauth.js`, dove i fornitori sono di lilOS): `client_credentials` e `password` (il token si chiede quando serve e si tiene in memoria fino a 1 minuto prima della scadenza), `authorization_code` con PKCE sempre (finestra del fornitore e ritorno a `/api/calls/oauth/callback`, oppure un indirizzo scelto dall'utente che si incolla). Fino a 5 accessi aperti per utente, 10 minuti ciascuno. I token tornano alla pagina **sigillati** e il kernel li rinnova col token di aggiornamento |
+| `calls/vars.js` | Le variabili `{{nome}}` (prima la richiesta stessa, poi la riga del file di dati, l'ambiente, la collezione, le globali), quelle dinamiche (`{{$guid}}`, `{{$timestamp}}`, `{{$randomInt}}`…), le verifiche senza codice e «Salva in variabile». Un'espressione regolare dell'utente ha 250 ms di tempo; le variabili che ne contengono altre non possono crescere oltre 4 MB per passata |
+| `calls/runner.js` | Una richiesta e una collezione, con gli stessi passi: script prima (della collezione, delle cartelle, della richiesta), variabili e autorizzazione (la più vicina che non sia `inherit`), richiesta, verifiche, script dopo. Uno script che cambia il server di una richiesta con valori segreti la fa fallire (`forbidden`): i segreti non vanno a un altro indirizzo. Un'esecuzione tiene al massimo 1000 risultati, ognuno col corpo della risposta tagliato a 64 KB (`size` dice la dimensione vera) |
+| `calls/scripts.js`, `calls/sandbox.js` | Gli script: girano nel servizio `runtime` del kernel (il modulo `services-isolate`, da 1.2.0), un processo a parte con un isolate V8 senza rete né file, un solo ambiente per utente (si spegne dopo 2 minuti senza script), 96 MB di memoria, 5 secondi di calcolo per script. `lilos` dentro è vuoto: ogni chiamata è rifiutata. Gli oggetti di base (`Object.prototype`, `Array`, `JSON`, `Math`…) sono congelati, perché lo stesso isolate serve tutte le collezioni dell'utente, e i timer di uno script finiscono con lui. Senza il modulo, una richiesta con script fallisce e dice cosa manca; quelle senza script non lo usano |
+| `calls/sessions.js` (`CallSessions`) | Le sessioni vive, nate come quelle del Terminale: restano nel kernel, **10 minuti** senza nessuna pagina che le mostra, al massimo **10** aperte per utente; una pagina che si ricollega riceve gli ultimi messaggi (fino a 2000 e 8 MB) |
+| `calls/drivers.js` | Il contratto dei protocolli (sotto) e i cinque del kernel: `ws`, `sse`, `tcp`, `tls`, `udp` |
+| `calls/home.js` | I file della home che una richiesta manda (corpo, campo di un form, certificato del client) e i file `.nettest` eseguiti dal kernel, per **percorso** (`~/Documenti/foto.png`, non per id: un percorso ha ancora senso in un file passato a un altro). Un percorso con una parte nascosta (che comincia con `.`: `.config`, `.trash`) è rifiutato, perché una collezione ricevuta da altri potrebbe nominarla. Li legge il servizio `fs`, che controlla cosa può leggere l'utente |
+| `api/calls.js` | Gli endpoint (sotto) |
+
+Il permesso `calls` (livello `install`) decide quali app possono usarlo dal ponte; le app di sistema chiamano l'SDK.
+
+#### Segreti sigillati
+
+Una variabile **segreta** di un ambiente non si scrive mai in chiaro in un file `.nettest`. La pagina la manda a `POST /api/calls/seal` e tiene solo il risultato (`sealed`): `Secrets` cifra con AES-GCM, con la chiave di questo lilOS, un oggetto `{ kind: 'nettest-var', user, value }`, quindi la apre **solo lo stesso utente, su questo lilOS**. Il kernel apre i valori sigillati solo dentro la richiesta, li mette nella richiesta all'ultimo momento e scrive `••••` al loro posto in ciò che restituisce, anche se il server li rimanda indietro. Per uno script una variabile segreta si legge come `{{nome}}`: il valore non arriva nell'isolate. Un valore sigillato da un altro utente o da un altro lilOS non si apre: `{{nome}}` resta com'è, la risposta lo dice in `unopened` (e nella console) e la pagina chiede di nuovo il valore.
+
+#### Endpoint `/api/calls`
+
+Solo utenti con l'accesso fatto. Gli errori di una richiesta (la rete, il server) stanno nel risultato, non sono errori HTTP: `result.error` è `{ code, message, trust? }`; `untrusted` è un certificato da confermare (`trust` come in [Server confermati](#server-confermati-netknownhostsjs), `kind: 'tls'`). La richiesta del corpo ha un limite di 64 MB (4 MB per sessioni e `describe`).
+
+| Rotta | Corpo e risposta |
+| --- | --- |
+| `GET /api/calls` | → `{ protocols, scripts, sessions, multiUser }` |
+| `POST /api/calls/send` | `{ request, chain, environment, collection, globals }` → `{ result, vars, secret, renewed }`. Al massimo 8 richieste alla volta per utente (`rate_limited`). Se la pagina chiude la connessione prima della risposta, la richiesta si ferma |
+| `POST /api/calls/runs` | `{ collection, only?, environment, globals, data?, iterations?, delayMs?, stopOnError? }` → `{ id, total }`. Fino a 5 insieme per utente (`rate_limited`); `data` fino a 10000 righe |
+| `GET /api/calls/runs/:id` | `?after=&wait=1` → `{ results, next, done, summary, total }` (`wait`: fino a 25 secondi). Si conservano al massimo 1000 risultati; quelli di un'esecuzione finita restano 10 minuti |
+| `DELETE /api/calls/runs/:id` | Ferma l'esecuzione |
+| `POST /api/calls/seal` | `{ value }` → `{ sealed }` (fino a 64 KB) |
+| `POST /api/calls/trust` | `{ host, port, fingerprint }`: l'utente ha confermato un certificato (si salva in `net/knownHosts.js`, tipo `tls`: vale anche per Rete e Terminale) |
+| `POST /api/calls/describe` | `{ request, environment, … }` → ciò che il server offre (la reflection di gRPC) |
+| `POST /api/calls/oauth/token` | `{ settings }` → tokens sigillati (credenziali del client, utente e password) |
+| `POST /api/calls/oauth/signin` | `{ settings }` → `{ id, url, redirectUri, manual }`: l'accesso nella pagina del fornitore |
+| `GET /api/calls/oauth/signin/:id` | `?wait=1` → `{ status, error?, tokens? }` |
+| `POST /api/calls/oauth/signin/:id/paste` | `{ url }` → stato: l'indirizzo dove è finita la finestra (accesso con un indirizzo scelto) |
+| `DELETE /api/calls/oauth/signin/:id` | Annulla l'accesso |
+| `GET /api/calls/oauth/callback` | Dove il fornitore rimanda la finestra: **senza** la sessione di lilOS (come `net/signin/callback`); risponde con una pagina fissa, con CSP `default-src 'none'` |
+| `GET /api/calls/sessions` | → `[sessione]` |
+| `POST /api/calls/sessions` | `{ request, environment, collection, globals }` → sessione (si collega alla prima pagina che si attacca) |
+| `DELETE /api/calls/sessions/:id` | Chiude la sessione |
+| `GET /api/calls/sessions/:id/socket` | Il WebSocket della sessione: messaggi di testo JSON (formato in [`calls`](#sdkcorecallsjs)); fino a 16 MB per messaggio. Un solo canale per sessione: un secondo prende il posto del primo (`{ t: 'taken' }`) |
+
+#### Collezioni
+
+Una collezione è il contenuto di un file `.nettest`: l'app lo scrive, il kernel lo legge (forma completa nell'intestazione di `calls/runner.js` e in `plugins/src/nettest/model.js`).
+
+```json
+{ "format": "nettest", "version": 1, "name": "Mio servizio",
+  "variables": [{ "key": "base", "value": "https://api.example.com" }],
+  "auth": { "type": "none" }, "scripts": { "pre": "", "test": "" },
+  "environments": [{ "id": "dev", "name": "Sviluppo", "variables": [
+    { "key": "base", "value": "http://localhost:3000" },
+    { "key": "token", "secret": true, "sealed": "…" } ] }],
+  "items": [{ "id": "a1", "type": "request", "name": "Elenco", "protocol": "http", "method": "GET",
+              "url": "{{base}}/items", "headers": [], "body": { "kind": "none" },
+              "auth": { "type": "bearer", "token": "{{token}}" }, "settings": {},
+              "checks": [{ "source": "status", "op": "eq", "value": "200" }], "extract": [], "scripts": { "pre": "", "test": "" } }] }
+```
+
+Un elemento è una cartella (`type: 'folder'`, con `items`, `auth` e `scripts` che valgono per quello che contiene) o una richiesta (`protocol`: `http`, `graphql`, `ws`, `sse`, `tcp`, `tls`, `udp` o quello di un modulo; gli altri protocolli tengono i loro campi in `values`). Il risultato di ogni richiesta: `{ id, name, protocol, request, response, redirects, error, checks, tests, logs, skipped?, ms, ok }`. Nelle esecuzioni le sessioni (WebSocket, SSE, TCP, TLS, UDP, MQTT) sono saltate (`skipped`); un protocollo di un modulo che non c'è, o che non ha `invoke`, fa fallire la richiesta (`unavailable`).
+
+#### Protocolli: il servizio `call.<protocollo>`
+
+Una sessione viva o una chiamata particolare (gRPC) è di un **protocollo**. Cinque sono del kernel (`ws`, `sse`, `tcp`, `tls`, `udp`); altri li dà un modulo con un servizio che si chiama `call.<protocollo>` (`provides: ["call.grpc"]`); il nome è `[a-z][a-z0-9-]{0,30}` e non può essere uno dei cinque. Un servizio senza `open()` né `invoke()` è ignorato, con un avviso nel registro. Il contratto è nell'intestazione di `calls/drivers.js`:
+
+| Membro | Descrizione |
+| --- | --- |
+| `label` | `string` o `{ en, it }` |
+| `open(values, ctx)` → `conn` | Si collega. `values`: i campi della richiesta con variabili e segreti già messi. `conn`: `send(msg)` (`{ type: 'text' \| 'binary' \| 'json', data, meta? }`), `command?(name, args)` per ciò che il protocollo sa fare in più (iscriversi, chiudere l'invio), `info?` (mostrato nella barra della sessione), `close()` |
+| `invoke?(values, input, ctx)` → `{ messages, status, meta }` | Una chiamata sola che non è una sessione (gRPC unaria): anche nelle esecuzioni di una collezione |
+| `describe?(values, ctx)` | Cosa dice di offrire il server (la reflection) |
+
+`ctx` di `open`: `output(msg)` (un messaggio per l'utente: `{ type: 'text' \| 'binary' \| 'json' \| 'event' \| 'info' \| 'error', data, meta? }`, `data` in base64 per `binary`), `closed({ reason })` (la connessione è finita, una volta sola, anche prima che `open` torni), `lookup` (il `dns.lookup` della guardia, da passare a `net` e `tls`), `check(values)` (lancia se il kernel non può collegarsi lì: per un nome che il modulo risolve da sé), `tls(host, port)` → `{ verify, pinned, ca?, cert?, key? }` (quel che `connectTo` vuole: l'impronta confermata dall'utente per quel server e i file delle impostazioni della richiesta), `signal` (interrotto se l'utente chiude la sessione mentre si collega) e `connectTo`. Gli errori con un campo `net` o i `KernelError` dicono perché in parole; `untrusted` porta `details.trust`.
+
+Con più utenti ogni connessione passa dalla guardia di rete (`check` e `lookup`): un modulo che si collega senza usarli aggira le regole dell'amministratore.
+
+#### Eventi per le pagine
+
+Sul flusso `/api/services-events`, al proprietario:
+
+| Evento | Dati | Quando |
+| --- | --- | --- |
+| `calls.sessions` | `{}` | Una sessione è nata, ha cambiato stato, si è collegata o scollegata, o è sparita |
+| `calls.runs` | `{ id }` | Un'esecuzione è finita |
+
+La pagina rilegge con `GET /api/calls` (sessioni) o `GET /api/calls/runs/:id`.
+
 ### Pianificazione (`schedule/`, `api/schedule.js`)
 
 Le operazioni a una data e ora o ripetute (la **Pianificazione**) le tiene il modulo **obbligatorio** [`scheduler`](#scheduler_110) (servizio `scheduler`: le operazioni, il loro orologio, lo storico) e le **fa il kernel**. Motivi e alternative scartate: [D68](../interna/decisioni.md#d68-la-pianificazione-un-modulo-obbligatorio-del-kernel-con-le-azioni-nel-kernel). Il client è [`schedule`](#schedule) nell'SDK.
@@ -4225,7 +4384,7 @@ Le operazioni a una data e ora o ripetute (la **Pianificazione**) le tiene il mo
 | --- | --- |
 | `schedule/index.js` (`Schedules`, `kernel.schedules`) | Controlla le operazioni prima di salvarle (`prepare`), le fa quando l'orologio del modulo lo dice (`host.run`), tiene le corse nel browser (`claim`, `report`), avvisa il proprietario (`tellOwner`, notifica del risultato) e le pagine (`schedule.*`). Toglie le operazioni di un'app disinstallata e quelle degli utenti che non ci sono più (all'avvio, e subito quando una corsa scopre che il proprietario non esiste più) |
 | `schedule/what.js` (`checkWhat`, `publicWhat`) | Controlla l'azione (`what`) e ne toglie i segreti per le pagine |
-| `schedule/notify.js`, `copy.js`, `web.js`, `command.js` | Le azioni `notify`, `copy`, `web`, `command` |
+| `schedule/notify.js`, `copy.js`, `web.js`, `command.js`, `collection.js` | Le azioni `notify`, `copy`, `web`, `command` e (da lilOS 1.25.0) `collection` |
 | `api/schedule.js` (`scheduleRoutes`) | Le rotte `/api/schedule…` |
 | `Kernel.userPrincipal(id)` | Il `principal` di un utente per id (o `null`): serve a far girare un'operazione come il suo proprietario |
 
@@ -4233,7 +4392,7 @@ Le operazioni a una data e ora o ripetute (la **Pianificazione**) le tiene il mo
 
 | Azione | Dove | Note |
 | --- | --- | --- |
-| `notify`, `service`, `copy`, `web`, `command` | Nel kernel, anche a lilOS chiuso | Come il proprietario (`principal`); per il sistema (`owner: '*'`) senza home |
+| `notify`, `service`, `copy`, `web`, `command`, `collection` | Nel kernel, anche a lilOS chiuso | Come il proprietario (`principal`); per il sistema (`owner: '*'`) senza home |
 | `open`, `automation` | Nel browser | Il kernel manda `schedule.due` `{ task, run }` alle pagine del proprietario; la **prima** che la prende con `claim` la fa e dice com'è andata con `report`. Senza nessuna pagina aperta (le tiene il conto `pageOpened`/`pageClosed` del flusso `/api/services-events`) la corsa resta `waiting` fino a `due + catchUpHours` ore, poi è `skipped` («lilOS non era aperto»). Se nessuna pagina risponde entro 90 secondi, torna `waiting` («Nessuna pagina di lilOS ha risposto») |
 
 Quando una pagina si apre, `connectSchedule` (`src/schedule/runner.js`) legge `pending()`: le corse che aspettavano le fa subito (`options.ask: false`) o chiede nella finestra **Operazioni in attesa**, in una sola pagina (un Web Lock `lilos:schedule-pending:<utente>`).
@@ -4245,8 +4404,9 @@ Quando una pagina si apre, `connectSchedule` (`src/schedule/runner.js`) legge `p
 | `notify` | `{ text, level, open }` | `text` fino a 300 caratteri. `level` `info` (predefinito), `success`, `warning`, `error`. `open`: `null`, `{ file }` (id di un nodo) o `{ app, entry?, args? }` (`entry` di tipo finestra, `main` se manca). Il clic apre l'app dell'operazione al suo punto d'ingresso; altrimenti passa dal punto d'ingresso `open` della Pianificazione. Mittente: l'app dell'operazione, la Pianificazione o lilOS. Per il sistema: a ogni amministratore |
 | `service` | `{ app, entry, params }` | Un punto d'ingresso `service` di un'app installata; `params` controllati contro quelli dichiarati. Serve il modulo `runtime` (`unavailable` senza). Vedi [Servizi delle app](#servizi-delle-app-appsappservicesjs) |
 | `copy` | `{ from, to, mode, keep, exclude }` | `from` e `to`: `{ home: id, label }` o `{ mount: id connessione, path: '/Backup', label }`. `mode`: `'versions'` (una cartella nuova «Nome AAAA-MM-GG HH.mm» a ogni corsa, si tengono le ultime `keep`, 1-100, di serie 7), `'update'` (predefinito: solo i file nuovi o cambiati, per dimensione o data), `'mirror'` (come `update`, e ciò che non c'è più nella sorgente va via dalla copia: nel Cestino della home, per sempre su una connessione). `exclude`: fino a 50 nomi con `*` e `?`, senza `/` (confronto senza maiuscole, in tempo lineare: niente espressioni regolari). La copia va in una cartella col nome della sorgente dentro la destinazione. Collegamenti, scorciatoie alle app e voci di una connessione senza byte propri (un documento di Google) restano fuori; i dati delle app sui file (un file cifrato resta tale) si conservano. Un file che fallisce finisce nel resoconto (300 righe) e la copia va avanti; la corsa, alla fine, è `error`. Un file protetto da un'app nella destinazione non si sovrascrive (è un file che fallisce). Salvando e a ogni corsa si controlla che la destinazione non sia la sorgente né dentro la sorgente (`Una cartella non si copia dentro se stessa`), anche se una cartella è stata spostata dopo. Le pagine vedono i nodi nuovi con `fs.external`. Non per il sistema |
-| `web` | `{ method, url, headers, body, expect, timeoutS, saveTo }` | `method` GET (predefinito), HEAD, POST, PUT, PATCH, DELETE. `url` `http` o `https`, senza credenziali. `headers`: fino a 30, `{ name, value }` o `{ name, secret: true, value }` (cifrata con `kernel.settingSecrets`, mai rimandata: le pagine ricevono `{ name, secret: true, set }`; per tenerla si manda `{ name, secret: true }`). `body`: `{ kind: 'none' }`, `text`, `json` (controllato), `form` (con `text`, fino a 1 MB) o `file` (id di un file della home); non con GET e HEAD. `expect`: `{ status: '2xx' \| 'any' \| 100…599, contains }`. `timeoutS` 1-300 (30). `saveTo`: `{ folder, name, mode: 'replace' \| 'dated' }` (la risposta, fino a 10 MB; un file protetto da un'app con quel nome non si sovrascrive: `conflict`). Rete: la guardia di `net/guard.js` (con più utenti mai questo computer; la rete locale solo se aperta), a ogni reindirizzamento, e un reindirizzamento ad altra origine toglie le intestazioni segrete e `Authorization`, `Cookie`, `Proxy-Authorization`, e non è seguito se c'è un corpo da mandare. Una intestazione segreta si può tenere (senza `value`) solo se l'origine dell'indirizzo non cambia: cambiandola va inserita di nuovo. Il resoconto ha stato, durata, intestazioni e i primi 4 KB |
+| `web` | `{ method, url, headers, body, expect, timeoutS, saveTo }` | `method` GET (predefinito), HEAD, POST, PUT, PATCH, DELETE. `url` `http` o `https`, senza credenziali. `headers`: fino a 30, `{ name, value }` o `{ name, secret: true, value }` (cifrata con `kernel.settingSecrets`, mai rimandata: le pagine ricevono `{ name, secret: true, set }`; per tenerla si manda `{ name, secret: true }`). `body`: `{ kind: 'none' }`, `text`, `json` (controllato), `form` (con `text`, fino a 1 MB) o `file` (id di un file della home); non con GET e HEAD. `expect`: `{ status: '2xx' \| 'any' \| 100…599, contains }`. `timeoutS` 1-300 (30). `saveTo`: `{ folder, name, mode: 'replace' \| 'dated' }` (la risposta, fino a 10 MB; un file protetto da un'app con quel nome non si sovrascrive: `conflict`). Rete: la guardia di `net/guard.js` (con più utenti mai questo computer; la rete locale solo se aperta), a ogni reindirizzamento; il client è `net/http.js` (da lilOS 1.25.0, HTTP/1.1; un certificato che non si convalida passa solo se l'utente lo ha già confermato in NetTest, nella Rete o nel Terminale: altrimenti «confermalo una volta da NetTest»), e un reindirizzamento ad altra origine toglie le intestazioni segrete e `Authorization`, `Cookie`, `Proxy-Authorization`, e non è seguito se c'è un corpo da mandare. Una intestazione segreta si può tenere (senza `value`) solo se l'origine dell'indirizzo non cambia: cambiandola va inserita di nuovo. Il resoconto ha stato, durata, intestazioni e i primi 4 KB |
 | `command` | `{ lines, cwd, host, saveTo }` | `lines` fino a 8 KB. Senza `host`: la shell del Terminale **nel kernel**, come il servizio `shell` dell'app `terminal` (1.5.0 o successivo, con `services-isolate` 1.1.0: `runScheduled` con `{ lines, cwd }`); `cwd` è l'id di una cartella della home (la home se manca). Con `host`: l'id di un host SSH salvato, via `Terminals.exec` (la password o la chiave devono essere salvate e la chiave del server già confermata). Riesce se esce con 0; in lilOS dura fino a `timeoutMin`, e «Annulla» o il tempo scaduto lo fermano come Ctrl+C (codice 130) tenendo l'output (Terminale 1.7.0 con `services-isolate` 1.2.0; prima al massimo 60 s, il limite delle richieste ai servizi, e niente stop); il resoconto è l'output (stdout e stderr insieme, gli ultimi 64 KB, senza sequenze di controllo). `saveTo`: `{ folder, name, mode: 'replace' \| 'append' }`. Non per il sistema |
+| `collection` | `{ file, environment, only, label, environmentLabel }` | Da lilOS 1.25.0 (SDK 0.16.0): un file `.nettest` della home (`file`: id di un nodo; il nome deve finire in `.nettest`), eseguito dal kernel come il proprietario (`Calls.runFile`: lo stesso motore di NetTest, vedi [Richieste di NetTest](#richieste-di-nettest-calls-apicallsjs)). `environment`: l'id di un ambiente del file (o `null`: nessuno); `only`: fino a 200 id di richieste o cartelle (o `null`: tutto). Riesce se ogni richiesta ha passato verifiche e test; lo storico ha una riga per richiesta (✓, ✗ o · se saltata, stato e tempo) e il motivo di ogni fallimento. I valori segreti sono quelli del file, sigillati dal proprietario: un file sigillato da altri gira senza. Non per il sistema (`invalid`) |
 | `open` | `{ file }` oppure `{ app, entry?, args? }` | Nel browser. Non per il sistema |
 | `automation` | `{ file, values }` | Nel browser: un file `.automata` della home, eseguito in silenzio (`runByItself`) o, se chiede qualcosa, nella finestra `run` di Automata; se non riesce, la corsa è `error`. Non per il sistema |
 
@@ -4849,6 +5009,15 @@ Le cartelle del **computer su cui gira il kernel** in Rete. Con il programma lil
 - **Cosa fa il driver**: `list`, `stat`, `read` (con `start`), `write` (`resume: { read: true, write: true }`; con `start > 0` apre in `r+` e rifiuta di andare oltre la fine), `mkdir`, `rename` (`exists` se la destinazione c'è, salvo una differenza di sole maiuscole), `remove`, `removeTree` (la radice non si elimina), `watch` (`fs.watch`) e `space` (`statfs`).
 - **Eliminare è definitivo**: nessun cestino del computer. I permessi sono quelli dell'utente del sistema operativo che fa girare il kernel. Gli errori di sistema diventano `not_found`, `exists`, `denied` o `lost` (disco che non risponde).
 
+### Protocolli di NetTest: `call-grpc` e `call-mqtt`
+
+Due moduli del kernel (sorgenti in `plugins/modules/`, pacchetti nel repository ufficiale, `provides: ["call.grpc"]` e `["call.mqtt"]`, `requires: []`, nessuna configurazione), ciascuno col suo `README.md`. Seguono il contratto di [Richieste di NetTest](#protocolli-il-servizio-callprotocollo). Non sono in `system/kernel/modules/`: un amministratore li installa dall'AppStore (scheda Kernel) o NetTest li propone come parti facoltative. Senza di loro NetTest funziona, ma senza quel protocollo.
+
+| Modulo | Servizio | Cosa fa |
+| --- | --- | --- |
+| `call-grpc` 1.0.0 (`protobufjs` 8.8.1 con `long` 5.3.2) | `call.grpc` | `invoke` per le chiamate unarie (anche nelle esecuzioni), `open` per i flussi del client, del server e bidirezionali, `describe` per i servizi e i metodi dalla reflection del server (`grpc.reflection.v1`, poi `v1alpha`) o dal `.proto` incollato (`values.proto`; gli import dei tipi standard di Google vanno, gli altri file no). Messaggi in ProtoJSON. Indirizzi `grpc://` (HTTP/2 senza TLS) e `grpcs://`. Uno stato gRPC che non è OK è una risposta, non un errore. `settings.timeoutMs` è la scadenza della chiamata (`grpc-timeout`) |
+| `call-mqtt` 1.0.0 (nessuna dipendenza) | `call.mqtt` | `open` con un client MQTT 3.1.1 o 5 scritto nel modulo, su TCP (`mqtt://`, 1883) o TLS (`mqtts://`, 8883); `send` pubblica (QoS 0, 1 e 2, retain); `command` iscrive e disiscrive. Non supporta MQTT su WebSocket né l'autenticazione estesa (AUTH) |
+
 ### Protocolli di terminale: `ssh_1.0.0`, `term-telnet_1.1.0`, `term-rlogin_1.1.0`, `term-supdup_1.1.0`
 
 > Da lilOS 1.22.0 `term-ssh` e `netfs-sftp` si fondono nel modulo `ssh` (servizi `term.ssh` e `netfs.sftp`, `replaces`), e i driver usano `ctx.output`, `ctx.closed` e `ctx.lookup`.
@@ -4994,6 +5163,21 @@ Schede dell'Editor (scritte da `sessions.js` nell'app Editor): `{ "sessions": { 
 ### `lilos:editor-draft:<chiave scheda>`
 
 Testo non salvato di una scheda: `{ "text", "base", "time" }` (`base` è il contenuto del file da cui si è partiti, per accorgersi che è cambiato). Scritta circa 1 s dopo l'ultima modifica. Non c'è per i file il cui contenuto è di un'app (FileCrypt) né oltre circa 2 milioni di caratteri.
+
+### `lilos:nettest.mine`, `nettest.open`, `nettest.history`, `nettest.globals`, `nettest.env`, `nettest.cookies`
+
+Cosa tiene l'app NetTest (`store.js`), una chiave ciascuna (collegato al kernel, un file nella cartella `.config`):
+
+| Chiave | Contenuto |
+| --- | --- |
+| `nettest.mine` | «Le mie richieste»: una collezione nel formato `.nettest` (vedi [Collezioni](#collezioni)), salvata da sola 400 ms dopo ogni modifica |
+| `nettest.open` | `[id di file]`: le collezioni `.nettest` aperte nel pannello laterale, riaperte con la finestra |
+| `nettest.history` | `[voce]`: la cronologia delle richieste mandate, le ultime 200 |
+| `nettest.globals` | `[{ key, value, enabled }]`: le variabili globali (per tutte le collezioni, non finiscono nei file) |
+| `nettest.env` | `{ chiave della collezione: id ambiente }`: l'ambiente scelto per ogni collezione |
+| `nettest.cookies` | `{ host: { nome: { value, path, expires } } }`: i cookie impostati dai server (il kernel non ne tiene) |
+
+Le variabili segrete **non** stanno qui: nei file `.nettest` restano sigillate dal kernel ([Segreti sigillati](#segreti-sigillati)); le variabili globali non hanno il lucchetto, quindi sono in chiaro.
 
 ### `lilos:editor-tree`
 

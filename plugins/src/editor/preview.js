@@ -6,7 +6,7 @@
  * side lilOS wants, in pixels.
  */
 import { previewHandler, canvasToImage } from '../shared/preview.js';
-import { tokenize } from './highlight.js';
+import { tokenize } from '../shared/highlight.js';
 import { getLanguage, languageForName } from './lang/languages.js';
 
 /** Bytes read from the start of the file: more than any sheet shows. */

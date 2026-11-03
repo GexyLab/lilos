@@ -1,4 +1,4 @@
-import { fs, net, term, kernel, shortcuts } from '@lilos/sdk';
+import { fs, net, term, calls, kernel, shortcuts } from '@lilos/sdk';
 import { onKernelEvent } from '../apps/services.js';
 import { sharedFolder, NETWORK_NAME } from '../systemFs.js';
 import { systemActions } from '../notifications/card.js';
@@ -39,8 +39,12 @@ export function connectNet({ wm, button }) {
   // Remote terminals: their apps hear it through the SDK's term
   onKernelEvent('term.hosts', () => term.changed('hosts'));
   onKernelEvent('term.sessions', () => term.changed('sessions'));
+  // NetTest's sessions and runs: through the SDK's calls
+  onKernelEvent('calls.sessions', () => calls.changed('sessions'));
+  onKernelEvent('calls.runs', d => calls.changed('runs', d));
   onKernelEvent('', () => {
     term.changed('sessions');
+    calls.changed('sessions');
     net.load().catch(() => {});
     net.loadTransfers().catch(() => {});
   });

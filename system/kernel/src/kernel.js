@@ -28,6 +28,8 @@ import { OAuthApps, migrateOAuthSettings } from './net/oauth.js';
 import { KnownHosts } from './net/knownHosts.js';
 import { Transfers } from './net/transfers.js';
 import { Terminals } from './term/terminals.js';
+import { Calls } from './calls/index.js';
+import { callsRoutes } from './api/calls.js';
 import { acceptSocket, refuseUpgrade } from './ws.js';
 import { SystemReleases } from './apps/systemPackage.js';
 import { webFiles } from './web.js';
@@ -137,6 +139,7 @@ export class Kernel {
     this.network = new Network(this);
     this.transfers = new Transfers(this, this.network);
     this.terminals = new Terminals(this);
+    this.calls = new Calls(this);
     // The server keys the Rete folder and the Terminal kept apart before lilOS 1.22.0, in one place
     const termPorts = new Map([...this.terminals.drivers].map(([id, d]) => [id, d.port]));
     const moved = await KnownHosts.migrate({ netDir: this.network.dir, termDir: this.terminals.dir, termPort: id => termPorts.get(id) ?? TERM_PORTS[id] ?? null });
@@ -152,6 +155,7 @@ export class Kernel {
     systemRoutes(this);
     netRoutes(this);
     termRoutes(this);
+    callsRoutes(this);
     scheduleRoutes(this);
     // An installation from lilos-install.json: a system image first (its apps are not installed again), then what it asks for
     this.install = await loadInstallSettings();
@@ -272,6 +276,7 @@ export class Kernel {
 
   async stop() {
     await this.terminals?.stop().catch(err => log.error('Arresto dei terminali', err));
+    await this.calls?.stop().catch(err => log.error('Arresto di NetTest', err));
     await this.appServices?.stopAll();
     await this.transfers?.stop().catch(err => log.error('Arresto dei trasferimenti', err));
     await this.network?.stop().catch(err => log.error('Arresto delle connessioni di rete', err));

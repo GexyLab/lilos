@@ -1,6 +1,6 @@
 {
   "id": "terminal",
-  "version": "1.8.0",
+  "version": "1.9.0",
   "kind": "local",
   "name": "Terminal",
   "description": "A bash-like shell over the files of lilOS, in tabs and panes side by side, and remote sessions: SSH, Telnet, rlogin and SUPDUP, with saved hosts, .term links and sessions that keep running when the window is closed.",

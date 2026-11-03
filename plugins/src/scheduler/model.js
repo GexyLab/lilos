@@ -14,6 +14,7 @@ export const KINDS = [
   { type: 'web', glyph: 'globe', where: 'kernel' },
   { type: 'open', glyph: 'window', where: 'browser' },
   { type: 'automation', glyph: 'automation', where: 'browser' },
+  { type: 'collection', glyph: 'bolt', where: 'kernel' },
 ];
 export const kindOf = type => KINDS.find(k => k.type === type) ?? KINDS[0];
 export const STATES = ['ok', 'error', 'skipped', 'waiting', 'running', 'queued', 'cancelled'];
@@ -52,6 +53,7 @@ export function whatText(what, catalog = null) {
     case 'web': return `${what.method} ${what.url}`;
     case 'open': return what.file !== undefined ? t('what.openFile', { file: what.label || nodeLabel(what.file) }) : t('what.openApp', { app: what.label || appName(what.app) });
     case 'automation': return t('what.automation', { file: what.label || nodeLabel(what.file) });
+    case 'collection': return what.environmentLabel ? t('what.collectionEnv', { file: what.label || nodeLabel(what.file), env: what.environmentLabel }) : t('what.collection', { file: what.label || nodeLabel(what.file) });
     default: return '';
   }
 }

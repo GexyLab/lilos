@@ -1,5 +1,5 @@
 import treeSitterWasm from 'web-tree-sitter/web-tree-sitter.wasm?url';
-import { tokenize as simpleTokenize } from '../highlight.js';
+import { tokenize as simpleTokenize } from '../../shared/highlight.js';
 import { t } from '../i18n.js';
 
 /**

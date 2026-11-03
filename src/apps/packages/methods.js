@@ -1,4 +1,4 @@
-import { fs, storage, pipes, bus, notifications, net, term, serial, kernel, automation, schedule, locale, messageBox } from '@lilos/sdk';
+import { fs, storage, pipes, bus, notifications, net, term, calls, serial, kernel, automation, schedule, locale, messageBox } from '@lilos/sdk';
 import { launch } from '../registry.js';
 import { coversPath } from './permissions.js';
 import { callEntrypoint, connectEntrypoint } from '../entrypoints.js';
@@ -47,6 +47,9 @@ export function hostMethods({ pkg, win = null, handles, readOnly = new Set(), in
   const channels = new Set();
   win?.on('destroy', () => channels.forEach(port => port.detach()));
   const terminal = () => (perms.includes('term') ? term : fail('Permesso negato: term'));
+  const requests = () => (perms.includes('calls') ? calls : fail('Permesso negato: calls'));
+  // The OAuth sign-ins by hand this window started (calls.signInByHand)
+  const byHand = new Set();
   // Serial ports: with the permission, or for every app when the program lilOS lets all of them (hardwareRule)
   const ports = () => (perms.includes('serial') || hardwareRule() === 'all' ? serial : fail('Permesso negato: serial'));
   const moduleApi = name => (typeof name === 'string' && perms.includes(`kernel:${name}`) ? kernel.module(name) : fail(`Permesso negato: kernel:${String(name).slice(0, 40)}`));
@@ -309,6 +312,58 @@ export function hostMethods({ pkg, win = null, handles, readOnly = new Set(), in
       terminal();
       if (!win) fail('Solo una finestra mostra un terminale');
       const port = term.attach(String(id), plainObject(size));
+      channels.add(port);
+      return port;
+    },
+    'calls.info': () => requests().info(),
+    'calls.send': body => requests().send(plainObject(body)),
+    'calls.run': body => requests().run(plainObject(body)),
+    'calls.progress': (id, opts) => requests().progress(String(id), plainObject(opts)),
+    'calls.cancelRun': id => requests().cancelRun(String(id)),
+    'calls.seal': value => requests().seal(String(value ?? '')),
+    'calls.trust': trust => requests().trust(plainObject(trust)),
+    'calls.describe': body => requests().describe(plainObject(body)),
+    'calls.token': settings => requests().token(plainObject(settings)),
+    // The provider's page in a window lilOS opens (the app's click counts for it), back to lilOS's callback
+    'calls.signIn': settings => {
+      if (!win) fail('Solo una finestra fa un accesso');
+      return requests().signIn({ ...plainObject(settings), redirectUri: '' });
+    },
+    // To an address of the provider's own (settings.redirectUri): a tab, then the app asks the user where it ended
+    'calls.signInByHand': async settings => {
+      if (!win) fail('Solo una finestra fa un accesso');
+      requests();
+      const tab = window.open('about:blank', '_blank');
+      if (!tab) fail('Il browser ha bloccato la scheda di accesso');
+      try {
+        const started = await kernel.request('POST', '/calls/oauth/signin', { settings: plainObject(settings) });
+        tab.opener = null;
+        tab.location.href = started.url;
+        byHand.add(started.id);
+        return { id: started.id, redirectUri: started.redirectUri };
+      } catch (err) {
+        tab.close();
+        throw err;
+      }
+    },
+    'calls.signInPaste': async (id, address) => {
+      requests();
+      if (!byHand.has(id)) fail('Accesso inesistente');
+      const s = await kernel.request('POST', `/calls/oauth/signin/${encodeURIComponent(id)}/paste`, { url: String(address ?? '') });
+      if (s.status !== 'pending') byHand.delete(id);
+      return s;
+    },
+    'calls.signInCancel': id => {
+      if (!byHand.delete(id)) return;
+      kernel.request('DELETE', `/calls/oauth/signin/${encodeURIComponent(id)}`).catch(() => {});
+    },
+    'calls.sessions': () => requests().sessions(),
+    'calls.openSession': body => requests().openSession(plainObject(body)),
+    'calls.closeSession': id => requests().closeSession(String(id)),
+    'calls.attach': id => {
+      requests();
+      if (!win) fail('Solo una finestra mostra una sessione');
+      const port = calls.attach(String(id));
       channels.add(port);
       return port;
     },

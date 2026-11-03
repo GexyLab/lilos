@@ -52,6 +52,7 @@ sdk/                    @lilos/sdk: basi riutilizzabili da sistema e app
   core/net.js           rete: connessioni a server remoti (cartella Rete) e trasferimenti fatti dal kernel
   core/serial.js        porte seriali del computer dell'utente (Web Serial), con un canale per porta
   core/term.js          terminali remoti: host salvati e sessioni (SSH, Telnet, rlogin, SUPDUP) nel kernel
+  core/calls.js         richieste di rete fatte dal kernel (NetTest): HTTP, GraphQL, collezioni, OAuth 2.0, sessioni vive
   core/pipes.js         pipe sugli eventi: le app si mettono in mezzo a ciò che succede (con core/pipeCatalog.js, gli eventi)
   core/automation.js    automazioni: azioni, registrazione di ciò che fa l'utente e gestori per rifarlo (app Automata)
   core/schedule.js      pianificazione: operazioni a una data e ora o ripetute, fatte dal kernel (con core/scheduleRules.js, le regole)
@@ -64,7 +65,7 @@ scripts/
 plugins/                sorgenti delle app e dei moduli ufficiali (src/<app>, src/shared, modules/<nome>, scripts/, catalog.json); npm install e npm run build si fanno qui
 public/host/            i moduli che le app di sistema importano come @lilos/sdk e @lilos/system (generati)
 system/
-  kernel/               il backend: moduli (users-basic, fs-postgres, services-isolate: fa girare i servizi delle app, scheduler: la Pianificazione, un modulo obbligatorio, notifications-basic: le notifiche, ssh (anche SFTP), netfs-ftp, netfs-webdav, netfs-smb: i protocolli di rete della cartella Rete; OneDrive, Google (Drive e Foto), S3, Azure Blob Storage e NFS sono moduli del repository ufficiale; ssh, term-telnet, term-rlogin, term-supdup: i protocolli dei terminali remoti, usati dall'app Terminale), API, repository, installazione di app e moduli, aggiornamenti di lilOS (releases/ e current.json in un lilOS installato), riga di comando; run.js lo avvia, lo riavvia e prova le versioni nuove
+  kernel/               il backend: moduli (users-basic, fs-postgres, services-isolate: fa girare i servizi delle app, scheduler: la Pianificazione, un modulo obbligatorio, notifications-basic: le notifiche, ssh (anche SFTP), netfs-ftp, netfs-webdav, netfs-smb: i protocolli di rete della cartella Rete; OneDrive, Google (Drive e Foto), S3, Azure Blob Storage e NFS sono moduli del repository ufficiale; ssh, term-telnet, term-rlogin, term-supdup: i protocolli dei terminali remoti, usati dall'app Terminale; call-grpc e call-mqtt: i protocolli in più di NetTest), API, repository, installazione di app e moduli, aggiornamenti di lilOS (releases/ e current.json in un lilOS installato), riga di comando; run.js lo avvia, lo riavvia e prova le versioni nuove
 examples/apps/note/     app di esempio (lilos.json, index.js)
 lilos-desktop/          il programma lilOS (Electron, per Windows, macOS e Linux): development/ per lavorare, production/ da cui si pubblica (la rifà npm run release:desktop; vedi lilos-desktop/development/README.md)
 src/                    il sistema, costruito sull'SDK
@@ -137,6 +138,7 @@ doc/                    documentazione utente, sviluppatore e interna
 | Pagina utente | clic sul tuo nome nella barra delle applicazioni o nel menu di avvio; Esc la chiude |
 | Notifiche | campanella nell'area di notifica (in basso a destra) apre la finestra Notifiche; la barra delle notifiche si chiude con Esc o la ×; scorciatoia «Apri o chiudi le notifiche» (senza tasto di serie); Pannello di controllo → Notifiche |
 | Automazioni (app Automata) | pulsante REC nell'area di notifica mentre si registra (riapre il Registratore); tasto destro su file o cartelle → Automazioni (esegue o «Registra partendo da qui»); Ctrl Z / Ctrl Y mentre si registra tolgono e rimettono l'ultimo passo; scorciatoia scelta in Automata; nel Terminale `automata list` e `automata run <nome> [file…]` |
+| NetTest (app di sistema, da installare) | menu di avvio → NetTest; Ctrl Invio invia la richiesta (o collega la sessione), Ctrl S salva la collezione, Ctrl Alt N nuova richiesta HTTP, Ctrl Alt W chiude la scheda; nel Terminale `nettest run`, `nettest send`, `nettest list`; Pannello di controllo → Rete (amministratori) per le regole di rete |
 | Pianificazione (app di sistema) | menu di avvio → Pianificazione: Elenco e Storico delle operazioni, Nuova operazione (Cosa, Quando, Opzioni); tasto destro su file o cartelle → Pianifica (copia, comando, apri, automazione, promemoria) |
 | Elementi | doppio clic apre, F2 rinomina, Canc elimina (nel Cestino), Ctrl A seleziona tutto, Ctrl/Shift + clic selezione multipla |
 | Spostare file e cartelle | trascina un elemento (o la selezione) su una cartella: sulla scrivania, nel File Manager (elenco, percorso, barra laterale) o nel pannello dell'Editor, anche da una vista all'altra; Esc annulla; rilasciato sul Cestino lo elimina; tra due voci della sezione Collegamenti del File Manager crea un collegamento, e le voci si riordinano trascinandole (con × o Canc si elimina un collegamento) |

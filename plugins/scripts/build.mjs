@@ -51,6 +51,7 @@ export const APPS = [
   { id: 'keyboard', entry: 'KeyboardApp.js' },
   { id: 'automata', entry: 'AutomataApp.js' },
   { id: 'scheduler', entry: 'SchedulerApp.js' },
+  { id: 'nettest', entry: 'NetTestApp.js' },
 ];
 
 /** The kernel modules of the catalog, by name. */

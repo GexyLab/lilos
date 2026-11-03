@@ -549,7 +549,7 @@ La connessione compare nella barra a sinistra con un pallino che dice com'è: **
 
 Attenzione alle password: con l'**FTP** semplice e con un indirizzo WebDAV `http://` viaggiano in chiaro sulla rete. Se il server ha FTPS, SFTP o `https://`, usa quelli.
 
-Se lilOS ha più utenti, a collegarsi ai server è il computer su cui gira lilOS, non il tuo: per questo non ci si può collegare a quel computer stesso, e di serie neanche agli indirizzi della sua rete locale (per esempio `192.168.…`, dove di solito sta un NAS). Se provi, compare **Indirizzo non permesso per le connessioni di rete**: chi gestisce lilOS può aprire la rete locale, o solo l'indirizzo del vostro NAS, nella configurazione.
+Se lilOS ha più utenti, a collegarsi ai server è il computer su cui gira lilOS, non il tuo: per questo non ci si può collegare a quel computer stesso, e di serie neanche agli indirizzi della sua rete locale (per esempio `192.168.…`, dove di solito sta un NAS). Se provi, compare **Indirizzo non permesso per le connessioni di rete**: un amministratore può aprire questo computer, tutta la rete locale o solo l'indirizzo del vostro NAS dal **Pannello di controllo → Rete** (dalla 1.25.0; prima si faceva nella configurazione). Le stesse regole valgono per il [Terminale](#terminale) e per [NetTest](#nettest).
 
 ### Confermare il server
 
@@ -1310,6 +1310,119 @@ Un file `.term` apre una shell o una sessione remota con le tue scelte già fatt
 - La shell del Terminale può eseguire anche i comandi della [Pianificazione](#pianificazione), a lilOS chiuso: è il servizio «Shell per la Pianificazione» del Terminale 1.5.0, che parte da solo quando serve e non va acceso a mano.
 - Serve una versione di lilOS dalla 1.12.0.
 
+### Il comando `nettest`
+
+Con [NetTest](#nettest) installato (Terminale dalla 1.9.0, lilOS dalla 1.25.0) il Terminale ha il comando `nettest`, che manda le richieste di una collezione `.nettest` senza aprire finestre:
+
+- `nettest run FILE` manda tutte le richieste (o quelle di una cartella con `-f CARTELLA`), una riga ciascuna: ✓ riuscita, ✗ fallita, · saltata, con stato, tempo e cosa non è andato. Con `-e AMBIENTE` scegli l'ambiente, con `-n GIRI` i giri, con `-d DATI.csv` (o `.json`) un file di dati, con `--bail` ci si ferma al primo errore, con `-v` si vede di più. Esce con 0 se tutte sono riuscite, con 1 altrimenti: va bene negli script.
+- `nettest send FILE RICHIESTA` manda una richiesta, per nome, e scrive il corpo della risposta (con `-i` prima ci sono stato e header; `-e` sceglie l'ambiente).
+- `nettest list FILE` elenca le cartelle e le richieste con il loro protocollo.
+
+I valori segreti sono quelli che hai sigillato tu nel file.
+
+## NetTest
+
+**NetTest** serve a provare le API e i servizi di rete, come fa Postman: scrivi una richiesta, la mandi, guardi la risposta. Le richieste non partono dal browser ma dal computer su cui gira lilOS, quindi non ci sono i limiti del browser (quelli che bloccano le richieste verso altri siti) e arrivano ai server che quel computer raggiunge.
+
+Sa fare:
+
+- **HTTP e REST**, e **GraphQL** (con lo schema letto dal server);
+- **sessioni** che restano aperte: **WebSocket**, **SSE**, **TCP**, **TLS**, **UDP**, **MQTT** e **gRPC**;
+- **ambienti** (Sviluppo, Produzione…) con **variabili segrete**, e le diverse **autorizzazioni** (Basic, Bearer, chiave API, Digest, firma AWS, OAuth 2.0);
+- **script**, **verifiche** e **collezioni** di richieste da eseguire in ordine, anche da sole con la [Pianificazione](#pianificazione).
+
+NetTest non c'è di serie: un amministratore lo installa dall'[AppStore](#lappstore), categoria **Sviluppo**, e poi lo trovi nel menu di avvio. Serve lilOS dalla 1.25.0. L'app chiede di fare richieste di rete dal computer di lilOS e di scrivere i file della tua home (per le collezioni). Alcune parti sono facoltative e l'AppStore te le propone quando installi NetTest ([Installare un'app con ciò che le serve](#installare-unapp-con-ciò-che-le-serve)): gli **script** vogliono il modulo `services-isolate`, **gRPC** il modulo `call-grpc`, **MQTT** il modulo `call-mqtt`.
+
+### La finestra
+
+A sinistra c'è l'elenco delle **Collezioni** (con la ricerca) e la **Cronologia** delle richieste che hai mandato. **Le mie richieste** c'è sempre: la tiene NetTest, si salva da sola. Le altre collezioni sono file **`.nettest`** della tua home. In alto: **Nuova**, **Importa**, **Apri collezione**, **Cookie**, **Esegui**, **Pianifica** e **Salva**. A destra ci sono le richieste aperte, ognuna in una scheda: chiudendo la finestra le schede tornano alla prossima apertura.
+
+Il tasto destro su una collezione offre **Nuova richiesta** (si sceglie il protocollo), **Nuova cartella**, **Impostazioni**, **Ambienti**, **Esegui**, **Pianifica…**, **Salva**, **Salva con nome…**, **Esporta per Postman…** e, per i file, **Chiudi**. Una cartella ha **Nuova richiesta**, **Nuova cartella**, **Impostazioni**, **Esegui** (solo le sue richieste), **Rinomina**, **Duplica** ed **Elimina**; una richiesta ha **Apri**, **Copia come codice…** (per HTTP e GraphQL), **Rinomina**, **Duplica** ed **Elimina**.
+
+### Mandare una richiesta
+
+1. **Nuova richiesta** e scegli il protocollo; scrivi il metodo (GET, POST…) e l'indirizzo.
+2. Nelle schede scrivi i **Parametri** (la parte dell'indirizzo dopo il `?`, riga per riga), le **Header**, il **Corpo** (JSON, testo, XML, HTML, form, multipart o un file della tua home) e, se serve, l'**Autorizzazione**.
+3. **Invia** (o Ctrl Invio). **Ferma** annulla la richiesta mentre aspetta.
+
+La risposta mostra stato, tempo e dimensione, e le schede **Corpo** (**Formattato**, **Com'è arrivato** o **Anteprima**, con **Copia** e **Scarica**), **Header**, **Cookie**, **Risultati**, **Console**, **Tempi** (DNS, connessione, TLS, attesa, scaricamento) e **Richiesta inviata**. **Anteprima** mostra la pagina senza eseguire script e senza caricare niente dalla rete (immagini e stili esterni non compaiono). Per un sito sicuro vedi anche chi ha rilasciato il certificato.
+
+In **Impostazioni** di ogni richiesta: il tempo massimo (30 secondi di serie), i reindirizzamenti, la versione HTTP (HTTP/2 se il server la offre), se controllare il certificato del server, se decomprimere la risposta, se mandare e tenere i cookie, il certificato del cliente (per i server che chiedono chi sei), altri certificati di autorità fidate e la dimensione massima della risposta (20 MB di serie, il resto si taglia).
+
+**GraphQL**: la scheda **Query** ha la query e le variabili (in JSON) e **Schema** mostra i tipi che il server dichiara, con un filtro. Se il server non dà il suo schema (l'introspezione è spenta) NetTest lo dice.
+
+**Certificato da confermare.** Se il certificato di un server non è valido (per esempio è fatto da chi gestisce il server), la risposta dice **Certificato da confermare** e **Conferma il certificato…** mostra l'impronta. Controllala con chi gestisce il server, poi conferma: da lì la richiesta riparte. La conferma vale per quel server e quella porta, per te, anche nella cartella [Rete](#rete) e nel [Terminale](#terminale), e viceversa.
+
+### Variabili e ambienti
+
+Dove vuoi (indirizzi, header, corpi, autorizzazione) puoi scrivere `{{nome}}`: al suo posto va il valore della variabile. Le variabili stanno in tre posti, in quest'ordine di precedenza: l'**ambiente** scelto (il menu **Ambiente** sopra la richiesta; **Ambienti e variabili** li gestisce), la **collezione** (le stesse in ogni ambiente) e le **globali** (per tutte le collezioni, tenute da NetTest e non nei file). Ci sono anche valori che cambiano a ogni richiesta, come `{{$guid}}`, `{{$timestamp}}` e `{{$randomInt}}`. Se una variabile non ha un valore, NetTest te lo dice prima di inviare.
+
+**Variabili segrete.** Una password, un token o una chiave non vanno scritti in chiaro. Nell'ambiente, il **lucchetto** di una variabile la rende segreta: lilOS **sigilla** il valore subito. Nel file resta cifrato e lo apri solo tu, su questo lilOS; lo mette nella richiesta il computer di lilOS, e richieste, risposte, script e cronologia lo mostrano come `••••`, anche se il server lo rimanda indietro. Nessuno lo rivede più (nemmeno tu): puoi solo darne uno nuovo. Un file `.nettest` passato a un'altra persona, o aperto su un altro lilOS, non porta con sé i valori segreti: chi lo apre deve rimetterli. Se togli il lucchetto, il valore sigillato se ne va e ne scrivi uno nuovo, che resta visibile nel file.
+
+Attenzione: le variabili senza lucchetto, quelle globali e quelle della collezione, e ciò che scrivi direttamente nei campi dell'autorizzazione restano **in chiaro** nel file.
+
+### Autorizzazione
+
+Nella scheda **Autorizzazione**: **Dalla cartella** (di serie: usa quello che dicono la cartella o la collezione), **Nessuna**, **Basic**, **Token Bearer**, **Chiave API** (in un header o nell'indirizzo), **Digest** (la risposta al 401 la fa NetTest), **Firma AWS v4** e **OAuth 2.0**. Con OAuth 2.0 scegli:
+
+- **Un token che ho**: lo scrivi tu (meglio con una variabile segreta);
+- **Accesso (codice + PKCE)**: **Accedi** apre la pagina del fornitore in una finestra; finito l'accesso torna a lilOS. L'indirizzo di ritorno da registrare presso il fornitore è quello mostrato nella scheda (`…/api/calls/oauth/callback`, di questo lilOS). Se il fornitore vuole un indirizzo suo, lo scrivi in **Indirizzo di ritorno**: finito l'accesso la pagina potrebbe non aprirsi, e NetTest ti chiede di incollare l'indirizzo dove è finita;
+- **Credenziali del client** e **Utente e password**: il computer di lilOS chiede il token quando serve alla richiesta e lo tiene finché vale.
+
+I token ottenuti si rinnovano da soli. **Dimentica l'accesso** li toglie. L'autorizzazione di una cartella o della collezione (**Impostazioni**) vale per tutte le richieste dentro che scelgono **Dalla cartella**.
+
+### Script e verifiche
+
+Nella scheda **Script**, **Prima della richiesta** e **Dopo la risposta**: codice JavaScript eseguito dal computer di lilOS in un ambiente isolato, senza rete né file, per **5 secondi** al massimo. Sa leggere e cambiare variabili e richiesta, guardare la risposta e scrivere test; l'oggetto si chiama `nt` (e `pm`, con gli stessi comandi, così gli script scritti per Postman di solito funzionano). **Aggiungi** inserisce degli esempi. Le variabili segrete negli script si leggono come `{{nome}}`: il valore non arriva mai allo script. Gli script chiedono il modulo `services-isolate`: senza, una richiesta con script non parte e NetTest dice cosa manca.
+
+Senza scrivere codice, **Verifiche** controlla la risposta (stato, tempo, dimensione, un header, un campo JSON, il corpo: è, contiene, corrisponde a…) e **Salva in variabile** tiene un valore della risposta (un percorso JSON come `$.data.id`, un header o un pezzo del corpo) per le richieste dopo, per esempio un token. I risultati stanno in **Risultati**, ciò che gli script scrivono in **Console**.
+
+### Cookie
+
+NetTest tiene i cookie dei server come farebbe un browser: li rimanda alle richieste dopo allo stesso server, se la richiesta non ha già un header Cookie o non lo vieta nelle sue impostazioni. **Cookie** (in alto) li elenca e li toglie.
+
+### Sessioni: WebSocket, SSE, TCP, TLS, UDP, MQTT, gRPC
+
+Questi protocolli tengono un collegamento aperto. **Collega** lo apre, **Scollega** lo chiude; i messaggi inviati e ricevuti compaiono in **Messaggi** (con un filtro, **Svuota**, e formato testo, JSON, byte in esadecimale o Base64). **Tieni questo messaggio** lo conserva nella richiesta per rimandarlo. Dettagli di ognuno:
+
+- **WebSocket**: header e sottoprotocolli; **Ping**. **SSE**: gli eventi del server compaiono con nome e id.
+- **TCP**, **TLS** (con il nome del server per il certificato) e **UDP**: scrivi server e porta, poi invii testo o byte. TCP e UDP non sono cifrati.
+- **MQTT** (3.1.1 e 5): broker, identificativo, keep alive, sessione pulita; **Iscrizioni** (con `+` e `#`); per pubblicare scrivi il topic, scegli QoS e se conservare il messaggio. Senza TLS password e messaggi passano in chiaro.
+- **gRPC**: i servizi e i metodi si leggono dal server (reflection) o dal file `.proto` che incolli. Un metodo con una sola risposta si chiama con **Invoca** e ha anche verifiche e script come HTTP; i flussi si aprono con **Apri il flusso**, e **Chiudi l'invio** o **Chiudi il flusso** li finiscono.
+
+Il collegamento lo tiene il computer di lilOS: **chiudendo la finestra la sessione resta aperta per 10 minuti**, e riaprendo la richiesta la ritrovi con i suoi messaggi. Dopo 10 minuti senza finestra si chiude da sola (la scheda dice a che ora). Puoi avere **10 sessioni** aperte insieme. Una sessione aperta in un'altra finestra passa a quella che la riprende.
+
+### Collezioni
+
+Una collezione è un insieme di richieste, in cartelle, con i suoi ambienti, variabili, autorizzazione e script. **Nuova collezione…** ne crea una, **Apri collezione** apre un file `.nettest`, **Salva** (Ctrl S) la scrive nella tua home: una collezione modificata e non salvata è segnata **Non salvata**, e chiudendola NetTest chiede se salvare. **Le mie richieste** invece si salva da sola. Un file `.nettest` si apre anche con un doppio clic dalla scrivania o dal File Manager, dove ha la sua anteprima.
+
+**Esegui** manda in ordine le richieste di una cartella o di tutta la collezione. Scegli: l'**ambiente**, i **giri** (quante volte), un **file di dati** (CSV con la prima riga di intestazioni, o JSON con un elenco di oggetti: un giro per riga, e le colonne diventano variabili), la **pausa** tra le richieste, se **fermarsi al primo errore** e se **tenere le variabili** che l'esecuzione ha cambiato. Ogni richiesta ha il suo esito (riuscita, fallita, saltata): una fallisce se la rete o il server non rispondono, o se una verifica o un test non passano. **Ferma** interrompe, **Esporta i risultati** li salva. Le sessioni (WebSocket, TCP…) nelle esecuzioni si saltano. Puoi avere 5 esecuzioni insieme, e NetTest ne mostra al massimo 1000 risultati (ognuno con la risposta tagliata a 64 KB).
+
+### Importare, esportare, copiare come codice
+
+- **Importa** legge una collezione di **Postman** (v2, e i suoi ambienti), **Insomnia** (v4 e v5), **OpenAPI 3** e **Swagger 2** (JSON o YAML), un file **HAR** o dei comandi **cURL**, scelti da un file o incollati: il formato si riconosce da solo. Il risultato è una nuova collezione (un file `.nettest`) o una cartella di **Le mie richieste**. I valori segreti non passano con i file: dopo l'importazione NetTest ti dice quali rimettere, in **Ambienti**.
+- **Esporta per Postman…** scrive la collezione (e gli ambienti, con i valori segreti vuoti) in un file per Postman.
+- **Copia come codice…** (nel menu **Altro** di una richiesta) scrive la richiesta per cURL (anche per il cmd di Windows), HTTPie, PowerShell, JavaScript (fetch), Node.js, Python, Go, Java, C#, PHP o come HTTP grezzo. Le variabili segrete restano `{{nome}}`: non escono mai da lilOS.
+
+### Pianificare e usare dal Terminale
+
+**Pianifica** (nel menu di una collezione o di una richiesta) apre la [Pianificazione](#pianificazione) con una nuova operazione **Collezione di NetTest** già compilata. La collezione deve essere un file salvato nella tua home: «Le mie richieste» va prima salvata come collezione. Nel [Terminale](#terminale) il comando `nettest` fa lo stesso senza finestra: `nettest run`, `nettest send` e `nettest list`.
+
+### Dove si può andare
+
+I server li raggiunge il computer di lilOS, con le stesse regole della cartella [Rete](#rete): con un solo utente senza accesso va dove vai tu; con più utenti non si arriva a quel computer stesso né, di serie, alla rete locale. Un amministratore può aprirle dal **Pannello di controllo → Rete** (vedi [Il Pannello di controllo](#pannello-di-controllo)). Se provi, compare **Indirizzo non permesso per le connessioni di rete**.
+
+### Da sapere
+
+- Le richieste di NetTest **fanno davvero** quello che dicono: una DELETE cancella. Provale prima su un servizio di prova.
+- Puoi avere 8 richieste in corso insieme.
+- Una password o un token scritti direttamente nei campi dell'autorizzazione, o in una variabile senza lucchetto, restano in chiaro nel file e nella cronologia. Usa le variabili segrete.
+- Le sessioni TCP, UDP e MQTT senza TLS non sono cifrate.
+- Un file `.nettest` è JSON leggibile; si apre anche con l'Editor. Fino a 32 MB.
+- La cronologia tiene le ultime 200 richieste. Le variabili globali e i cookie sono salvati nel tuo spazio su lilOS, non nei file delle collezioni.
+- Non ci sono ancora: i file `.proto` che includono altri file (gli import non si seguono: incolla un file solo) e MQTT su WebSocket.
+- Per le librerie usate (protobufjs per gRPC), i riconoscimenti sono nella pagina di NetTest nell'AppStore e in Pannello di controllo → Informazioni → Riconoscimenti.
+
 ## ArduinoIDE4LilOS
 
 **ArduinoIDE4LilOS** serve a scrivere programmi (gli *sketch*) per le schede **Arduino Uno, Nano e Mega**, controllarli e caricarli sulla scheda collegata al tuo computer. Non è un'app ufficiale di lilOS: sta nel repository community [lilos-plugins-community](https://github.com/GexyLab/lilos-plugins-community), con i sorgenti aperti a tutti.
@@ -1352,7 +1465,8 @@ Con un clic su un'operazione, a destra compare il suo riquadro: la regola scritt
 | **Servizio di un'app** | Avvia una parte in sottofondo di un'app installata (per esempio il controllo degli aggiornamenti dell'AppStore), con i valori che scegli. Se il servizio era spento, parte per quella volta e poi si spegne. |
 | **Copia una cartella** | Copia una cartella tua, o di una connessione della [Rete](#rete), in un'altra. La copia va in una cartella con lo stesso nome di quella copiata. Tre modi: **Versioni datate** (ogni volta una cartella nuova con la data, tenendo le ultime da 1 a 100, di serie 7), **Aggiorna** (copia solo i file nuovi o cambiati, di serie) e **Specchio** (come Aggiorna, e ciò che non c'è più nell'originale va via anche dalla copia: nel Cestino se la copia è in lilOS, **per sempre** se è su un server). Puoi escludere dei nomi (con `*` e `?`, per esempio `*.tmp`). I collegamenti e i file che esistono solo sul sito del fornitore (per esempio un documento di Google) non si copiano. Se un file non si riesce a copiare, il resoconto lo dice e la copia va avanti, ma l'operazione risulta non riuscita. |
 | **Comando del Terminale** | Esegue righe di comandi, una per riga, come nel [Terminale](#terminale). **In lilOS**: la shell del Terminale lavora sui tuoi file (parte dalla cartella che scegli, di serie la tua home). **Su un host SSH**: usa uno degli host che hai salvato nel Terminale. Riesce se l'ultimo comando esce con 0. Quello che i comandi scrivono finisce nello storico e, se vuoi, in un file (sostituito a ogni volta, oppure con le righe nuove aggiunte in fondo). |
-| **Richiesta web** | Chiama un indirizzo `http` o `https` (metodo, intestazioni e corpo a scelta) e controlla la risposta: di serie riesce se lo stato è 2xx, ma puoi chiedere uno stato preciso o che la risposta contenga un testo. Le intestazioni segnate come **segreto** (per esempio una chiave di accesso) restano cifrate e, dopo averle salvate, non si rivedono più; per tenerne una basta non toccarla. Puoi salvare la risposta in un file (sostituito, oppure uno nuovo ogni volta con la data nel nome). Valgono le regole della Rete: con più utenti non si raggiunge il computer di lilOS, e la rete locale solo se un amministratore l'ha aperta. |
+| **Richiesta web** | Chiama un indirizzo `http` o `https` (metodo, intestazioni e corpo a scelta) e controlla la risposta: di serie riesce se lo stato è 2xx, ma puoi chiedere uno stato preciso o che la risposta contenga un testo. Le intestazioni segnate come **segreto** (per esempio una chiave di accesso) restano cifrate e, dopo averle salvate, non si rivedono più; per tenerne una basta non toccarla. Puoi salvare la risposta in un file (sostituito, oppure uno nuovo ogni volta con la data nel nome). Valgono le regole della Rete: con più utenti non si raggiunge il computer di lilOS, e la rete locale solo se un amministratore l'ha aperta. Se il certificato del sito non è valido, la richiesta riesce solo se l'hai già confermato in [NetTest](#nettest), nella [Rete](#rete) o nel [Terminale](#terminale) (dalla 1.25.0); altrimenti l'operazione dice «confermalo una volta da NetTest». |
+| **Collezione di NetTest** | Manda le richieste di un file `.nettest` della tua home, una dopo l'altra, come il pulsante **Esegui** di [NetTest](#nettest), con l'ambiente che scegli (o nessuno). Riesce se ogni richiesta risponde e passa le sue verifiche e i suoi test; lo Storico ha una riga per richiesta (✓ riuscita, ✗ fallita, · saltata, con stato e tempo) e il motivo di ogni errore. I valori segreti sono quelli che hai sigillato tu nel file: se non ci sono, la richiesta parte senza. Serve NetTest installato e lilOS dalla 1.25.0. |
 | **Apri un'app o un file** | Apre quell'app o quel file nel browser. |
 | **Automazione** | Fa partire nel browser un'automazione di [Automata](#automata): si apre la finestra **In esecuzione** di Automata. Si pianificano solo le automazioni che lavorano su **niente** (in **Opzioni di avvio…**), perché a quell'ora nessuno sceglie i file. Serve Automata installata. |
 
@@ -1381,7 +1495,7 @@ A destra la finestra mostra sempre la regola in parole e le prossime volte. Il t
 
 ### Dove gira un'operazione
 
-- **Nel kernel** (promemoria, servizio, copia, comando, richiesta web): la fa il computer su cui gira lilOS, anche con il browser chiuso, **come l'utente a cui appartiene** e con i suoi file e le sue connessioni.
+- **Nel kernel** (promemoria, servizio, copia, comando, richiesta web, collezione di NetTest): la fa il computer su cui gira lilOS, anche con il browser chiuso, **come l'utente a cui appartiene** e con i suoi file e le sue connessioni.
 - **Nel browser** (aprire un'app o un file, automazione): serve lilOS aperto in una scheda. Se a quell'ora una scheda c'è, l'operazione parte; se non c'è, **aspetta**. Alla prossima apertura di lilOS parte subito, oppure compare la finestra **Operazioni in attesa**, che per ognuna dice cosa era prevista e quando, e offre **Esegui ora** e **Salta** (con la casella «D'ora in poi esegui senza chiedere», che toglie la domanda per quell'operazione). Quelle a cui non rispondi restano in attesa fino alla prossima apertura, poi scadono. Una che aspetta più di 12 ore dall'ora prevista (un amministratore può cambiare il limite) viene saltata.
 
 ### Se il kernel era spento
@@ -1407,7 +1521,7 @@ Il tasto destro su un file o una cartella ha il sottomenu **Pianifica**, che apr
 Un amministratore vede e può fare tutto: le operazioni di tutti gli utenti e quelle del **Sistema**. Nei filtri compaiono i gruppi **Sistema** e **Utenti**. Quando crea un'operazione sceglie **Esegui come**: sé stesso, un altro utente o il Sistema.
 
 - Un'operazione di un utente gira con i file e le connessioni di quella persona: **chi la cambia agisce al suo posto**. Per questo il proprietario riceve una notifica ogni volta (vedi sopra), e il riquadro dell'operazione lo ricorda.
-- Un'operazione del **Sistema** non ha una home: può solo mandare promemoria a tutti gli amministratori, avviare servizi e fare richieste web senza file. Niente copie, comandi, app o automazioni.
+- Un'operazione del **Sistema** non ha una home: può solo mandare promemoria a tutti gli amministratori, avviare servizi e fare richieste web senza file. Niente copie, comandi, collezioni di NetTest, app o automazioni.
 - Le operazioni di un utente tolto da lilOS vengono eliminate; quelle di un'app tolta, con lei.
 
 ### Altre app
@@ -1432,6 +1546,7 @@ Un'automazione fatta partire dalla Pianificazione gira nel browser: se lilOS è 
 - Le operazioni **nel browser** non partono se non c'è lilOS aperto.
 - I file cifrati da un'app (per esempio FileCrypt) non si aprono né si sovrascrivono da un comando, da una copia o da una richiesta web che salva la risposta: l'operazione risulta non riuscita.
 - Una richiesta web che viene mandata a un altro sito (un reindirizzamento) lascia a casa le chiavi segrete, i cookie e `Authorization`, e se ha un corpo da mandare non viene seguita. Se cambi l'indirizzo di una richiesta con una chiave segreta salvata, devi scrivere la chiave di nuovo.
+- Una **collezione di NetTest** cerca il file per il suo posto nella tua home: se lo cancelli, l'operazione non riesce. Per la rete e i certificati vale quello che si dice di NetTest, e gli script delle richieste girano solo se c'è il modulo `services-isolate`.
 - Le operazioni fatte da un'**app** hanno limiti più stretti: al massimo 20 per app e mai più spesso di ogni 15 minuti. Se un'app ti propone un'operazione, la finestra dice «Proposta da» e il nome dell'app: controllala prima di crearla.
 - Per ogni utente girano insieme al massimo 2 operazioni (di serie): le altre aspettano il loro turno. Gli altri limiti (corse conservate nello storico di ogni operazione, dimensione dei resoconti) li decide chi gestisce lilOS.
 - Le operazioni partono a un'ora, non quando succede qualcosa: per l'arrivo di file in una cartella o per l'accesso usa l'avvio da sola di Automata (vedi sotto). Un calendario non c'è ancora.
@@ -1878,6 +1993,7 @@ Le modifiche valgono subito e restano salvate.
 | Avvio | Opzioni | Se le app scelte si aprono da sole quando entri e se partono i servizi (vedi [Aprire le app all'avvio](#aprire-le-app-allavvio)) |
 | Avvio | Servizi | Le parti delle app che lavorano in sottofondo: se sono accese, quando partono, e i pulsanti per accenderle, spegnerle e leggerne il registro (vedi [Servizi in sottofondo](#servizi-in-sottofondo)) |
 | Avvio | App | Quali app si aprono da sole, con quale finestra e con quali scelte (cartella, file…) |
+| Rete | — | Solo amministratori, dalla 1.25.0: dove il computer di lilOS può collegarsi per gli utenti (cartella Rete, Terminale, NetTest). Con più utenti, **Questo computer (localhost)** e **Tutta la rete locale** (due interruttori) e **Solo questi indirizzi** (un elenco separato da virgole, per esempio `192.168.1.50/32`) sono le eccezioni; valgono subito. Gli indirizzi link-local (come i metadati dei servizi cloud), multicast e riservati restano sempre chiusi, anche con **Solo questi indirizzi**. Con un solo utente, senza accesso, tutto è già aperto e la scheda lo dice |
 | OneDrive | — | Compare solo se il tuo lilOS ha OneDrive. L'app su Azure e le cartelle condivise (le cambia un amministratore), dove va **Carica su OneDrive e apri**, il doppio clic sui documenti Office (vedi [La scheda OneDrive](#la-scheda-onedrive-del-pannello-di-controllo)) |
 | Archiviazione | — | Quanto spazio usano le tue impostazioni e il contenuto dei tuoi file; ripristino di impostazioni (anche colore e immagine di sfondo), scorciatoie e app dei tipi di file; ripristino della scrivania e dei file iniziali (con i workspace) |
 | Informazioni | lilOS | Versione di lilOS e dell'SDK, lingua, browser |
@@ -2239,6 +2355,7 @@ Il salvataggio avviene **nel tuo spazio su lilOS**, non nel browser:
 - le **operazioni della Pianificazione** e il loro storico sono salvati dal computer di lilOS, nel modulo `scheduler`: restano dopo un riavvio e un aggiornamento. Le intestazioni segrete delle richieste web sono cifrate;
 - le **automazioni** (i passi, le domande, le scorciatoie) sono file `.automata` nella cartella **Automazioni** della tua home (o dove li metti): le password non si salvano mai;
 - gli sketch di **ArduinoIDE4LilOS** sono file normali nella cartella **Arduino** della tua home; le librerie che installi e le tue scelte (scheda, porta) restano tue; le porte che il browser ti ha lasciato usare sono ricordate dal browser, non da lilOS;
+- le **richieste di NetTest**: «Le mie richieste», la cronologia (le ultime 200), le variabili globali, l'ambiente scelto per ogni collezione e i cookie sono salvati nel tuo spazio su lilOS, come le impostazioni; le altre collezioni sono file `.nettest` della tua home. I valori segreti degli ambienti sono sigillati nel file: li apri solo tu, su questo lilOS;
 - gli host del **Terminale** (nome, cartella, indirizzo, impostazioni) sono salvati nel tuo spazio su lilOS, come le connessioni della Rete: le password solo se scegli **Ricorda password e passphrase**, e cifrate. Le sessioni aperte non si salvano: durano finché il kernel resta acceso e al più 10 minuti senza finestra;
 - un'impostazione o un file cambiato in due schede insieme: vince l'ultima che salva. Usa una scheda sola.
 
@@ -2255,6 +2372,7 @@ Il salvataggio avviene **nel tuo spazio su lilOS**, non nel browser:
 | Viola | Audio | mp3, wav, ogg, flac |
 | Rosa | Video | mp4, mov, webm, mkv |
 | Grigio verde | Codice | html, css, js, ts, json, py |
+| Arancione scuro | Collezione di NetTest | nettest |
 | Grigio | Archivio e altri | zip, rar, 7z, tar, gz e ogni estensione non elencata |
 
 ## Scorciatoie da tastiera
@@ -2285,6 +2403,9 @@ Queste sono le combinazioni iniziali. Puoi cambiarle tutte nel **Pannello di con
 | Ctrl Spazio | Suggerimenti nell'Editor |
 | Alt P | Apri o chiudi l'anteprima nel File Manager |
 | Alt I | Apri o chiudi le informazioni nel File Manager |
+| Ctrl Invio | Invia la richiesta (o collega la sessione) in NetTest |
+| Ctrl Alt N | Nuova richiesta HTTP in NetTest (con la sua finestra in primo piano) |
+| Ctrl Alt W | Chiudi la scheda in NetTest |
 
 Un comando non ha nessun tasto di serie: **Apri o chiudi le notifiche** (vedi [Le notifiche](#le-notifiche)). Puoi dargliene uno quando vuoi.
 

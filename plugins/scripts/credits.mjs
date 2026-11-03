@@ -72,7 +72,8 @@ function licenseName(text) {
   if (/SIL OPEN FONT LICENSE/i.test(text)) return 'OFL-1.1';
   return '';
 }
-const copyrightLine = text => text.split(/\r?\n/).map(l => l.trim()).find(l => /^(copyright|\(c\)|©)/i.test(l)) ?? '';
+// The line that says who: not a license's own words about copyright (Apache's «copyright notice that is…», «(c) You must…», the template «Copyright [yyyy] [name of copyright owner]»)
+const copyrightLine = text => text.split(/\r?\n/).map(l => l.trim()).find(l => /^(copyright(?!\s+(notice|owner|license|and license|holders? and))|\(c\)(?!\s+you\b)|©)/i.test(l) && !/\[yyyy\]|\[name of/i.test(l)) ?? '';
 
 /** The package a module specifier names: 'a/b' → 'a', '@s/a/b' → '@s/a'. */
 const packageOf = spec => spec.split('/').slice(0, spec.startsWith('@') ? 2 : 1).join('/').replace(/\?.*$/, '');

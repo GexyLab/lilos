@@ -1,5 +1,7 @@
-import { createHash } from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
 import { EventEmitter } from 'node:events';
+import { performance } from 'node:perf_hooks';
+import { connectTo } from './net/connect.js';
 
 /**
  * A WebSocket (RFC 6455) on a request the HTTP server handed over with 'upgrade': the live
@@ -14,6 +16,15 @@ import { EventEmitter } from 'node:events';
  *   events  'message' (data: Buffer, binary: boolean) · 'drain' · 'close' ({ code, reason })
  *
  * The other side is pinged every 30 s; with no answer for 75 s the socket is dropped (code 1006).
+ *
+ * The kernel is also a client (since lilOS 1.25.0: NetTest's WebSocket sessions), to a server a user
+ * names, through connectTo() (the guard's lookup, the certificate checked or confirmed):
+ *
+ *   connectSocket(url, { headers, protocols, lookup, signal, timeoutMs, tls, maxMessage, timings })
+ *     → { ws, response: { status, headers: [[name, value]], protocol }, tls }
+ *   url: ws: or wss:. The frames it sends are masked; the server's must not be. ws.ping(data?) sends a
+ *   ping, 'pong' (data) and 'ping' (data) tell what came. A refused handshake throws with
+ *   `response` { status, headers } (what the server answered instead).
  */
 const GUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11';
 const OP = { cont: 0, text: 1, binary: 2, close: 8, ping: 9, pong: 10 };
@@ -48,11 +59,13 @@ class Socket extends EventEmitter {
   #closed = false;
   #lastSeen = Date.now();
   #timer;
+  #client;
 
-  constructor(socket, head, maxMessage) {
+  constructor(socket, head, maxMessage, { client = false } = {}) {
     super();
     this.#socket = socket;
     this.#maxMessage = maxMessage;
+    this.#client = client;
     socket.setNoDelay(true);
     socket.setTimeout(0);
     socket.on('data', chunk => this.#receive(chunk));
@@ -74,6 +87,11 @@ class Socket extends EventEmitter {
     if (!this.open) return false;
     if (typeof data === 'string') return this.#frame(OP.text, Buffer.from(data, 'utf8'));
     return this.#frame(OP.binary, Buffer.isBuffer(data) ? data : Buffer.from(data.buffer, data.byteOffset, data.byteLength));
+  }
+
+  /** A ping with up to 125 bytes of data (the client's 'Ping' button). */
+  ping(data = Buffer.alloc(0)) {
+    return this.open ? this.#frame(OP.ping, Buffer.from(data).subarray(0, 125)) : false;
   }
 
   close(code = 1000, reason = '') {
@@ -98,6 +116,16 @@ class Socket extends EventEmitter {
     if (len < 126) head[1] = len;
     else if (len < 65536) { head[1] = 126; head.writeUInt16BE(len, 2); }
     else { head[1] = 127; head.writeBigUInt64BE(BigInt(len), 2); }
+    if (this.#client) {
+      // A client masks what it sends (RFC 6455 5.3)
+      head[1] |= 0x80;
+      const mask = randomBytes(4);
+      const masked = Buffer.from(payload);
+      for (let i = 0; i < masked.length; i++) masked[i] ^= mask[i & 3];
+      this.#socket.write(head);
+      this.#socket.write(mask);
+      return this.#socket.write(masked);
+    }
     this.#socket.write(head);
     return this.#socket.write(payload);
   }
@@ -115,7 +143,8 @@ class Socket extends EventEmitter {
       if (b.length < 2) return;
       const fin = (b[0] & 0x80) !== 0, op = b[0] & 0x0f, masked = (b[1] & 0x80) !== 0;
       if (b[0] & 0x70) return this.#fail(1002, 'extensions not supported');
-      if (!masked) return this.#fail(1002, 'frames must be masked');
+      if (masked === this.#client) return this.#fail(1002, this.#client ? 'frames must not be masked' : 'frames must be masked');
+      const maskLen = masked ? 4 : 0;
       let len = b[1] & 0x7f, at = 2;
       if (len === 126) {
         if (b.length < 4) return;
@@ -128,18 +157,23 @@ class Socket extends EventEmitter {
       }
       if (op >= 8 && (len > 125 || !fin)) return this.#fail(1002, 'bad control frame');
       if (len > this.#maxMessage) return this.#fail(1009, 'message too big');
-      if (b.length < at + 4 + len) return;
-      const mask = b.subarray(at, at + 4);
-      const payload = Buffer.from(b.subarray(at + 4, at + 4 + len));
-      for (let i = 0; i < payload.length; i++) payload[i] ^= mask[i & 3];
-      this.#input = b.subarray(at + 4 + len);
+      if (b.length < at + maskLen + len) return;
+      const payload = Buffer.from(b.subarray(at + maskLen, at + maskLen + len));
+      if (masked) {
+        const mask = b.subarray(at, at + 4);
+        for (let i = 0; i < payload.length; i++) payload[i] ^= mask[i & 3];
+      }
+      this.#input = b.subarray(at + maskLen + len);
       this.#onFrame(fin, op, payload);
     }
   }
 
   #onFrame(fin, op, payload) {
-    if (op === OP.ping) return this.#frame(OP.pong, payload);
-    if (op === OP.pong) return;
+    if (op === OP.ping) {
+      this.emit('ping', payload);
+      return this.#frame(OP.pong, payload);
+    }
+    if (op === OP.pong) return this.emit('pong', payload);
     if (op === OP.close) {
       const code = payload.length >= 2 ? payload.readUInt16BE(0) : 1005;
       const reason = payload.length > 2 ? payload.subarray(2).toString('utf8') : '';
@@ -174,4 +208,67 @@ class Socket extends EventEmitter {
     clearInterval(this.#timer);
     this.emit('close', { code, reason });
   }
+}
+
+const TOKEN = /^[!#$%&'*+.^_`|~0-9A-Za-z-]+$/;
+const MAX_HEAD = 64 << 10;
+const ms = timings => Math.round((performance.now() - timings.start) * 10) / 10;
+
+/** A WebSocket to a server (see above). */
+export async function connectSocket(url, { headers = [], protocols = [], lookup, signal, timeoutMs = 30_000, tls = {}, maxMessage = 16 << 20, timings = {} } = {}) {
+  if (url.protocol !== 'ws:' && url.protocol !== 'wss:') throw Object.assign(new Error('Serve un indirizzo ws:// o wss://'), { code: 'EINVAL' });
+  const secure = url.protocol === 'wss:';
+  const host = url.hostname.replace(/^\[|\]$/g, '');
+  const port = Number(url.port) || (secure ? 443 : 80);
+  const { socket, tls: info } = await connectTo({ host, port, secure, lookup, signal, timeoutMs, alpn: secure ? ['http/1.1'] : undefined, tls, timings });
+  const key = randomBytes(16).toString('base64');
+  const wanted = protocols.filter(p => TOKEN.test(p));
+  const lines = [`GET ${url.pathname || '/'}${url.search} HTTP/1.1`, `Host: ${url.host}`, 'Upgrade: websocket', 'Connection: Upgrade', `Sec-WebSocket-Key: ${key}`, 'Sec-WebSocket-Version: 13'];
+  if (wanted.length) lines.push(`Sec-WebSocket-Protocol: ${wanted.join(', ')}`);
+  const reserved = /^(host|upgrade|connection|sec-websocket-(key|version|extensions|protocol))$/i;
+  for (const [k, v] of headers) if (TOKEN.test(k) && !reserved.test(k) && !/[\r\n]/.test(v)) lines.push(`${k}: ${v}`);
+  socket.write(`${lines.join('\r\n')}\r\n\r\n`);
+  timings.sent = ms(timings);
+  const { status, pairs, rest } = await new Promise((resolve, reject) => {
+    let got = Buffer.alloc(0);
+    const timer = setTimeout(() => stop(Object.assign(new Error('Il server non ha risposto all’apertura'), { code: 'ETIMEDOUT' })), timeoutMs);
+    const onAbort = () => stop(Object.assign(new Error('Annullato'), { code: 'ABORT_ERR' }));
+    signal?.addEventListener('abort', onAbort, { once: true });
+    const onData = chunk => {
+      got = Buffer.concat([got, chunk]);
+      const end = got.indexOf('\r\n\r\n');
+      if (end < 0) return got.length > MAX_HEAD && stop(new Error('Risposta del server troppo lunga'));
+      const [first, ...rows] = got.subarray(0, end).toString('latin1').split('\r\n');
+      const m = /^HTTP\/1\.[01] (\d{3})/.exec(first);
+      if (!m) return stop(new Error('Il server non ha risposto in HTTP'));
+      const list = rows.map(r => [r.slice(0, r.indexOf(':')).trim(), r.slice(r.indexOf(':') + 1).trim()]).filter(([k]) => k);
+      stop(null, { status: Number(m[1]), pairs: list, rest: got.subarray(end + 4) });
+    };
+    const closed = () => stop(new Error('Il server ha chiuso la connessione'));
+    function stop(err, value) {
+      clearTimeout(timer);
+      signal?.removeEventListener('abort', onAbort);
+      socket.off('data', onData);
+      socket.off('error', stop);
+      socket.off('close', closed);
+      if (err) { socket.destroy(); reject(err); } else resolve(value);
+    }
+    socket.on('data', onData);
+    socket.once('error', stop);
+    socket.once('close', closed);
+  });
+  timings.firstByte = ms(timings);
+  const get = name => pairs.find(([k]) => k.toLowerCase() === name)?.[1] ?? '';
+  const response = { status, headers: pairs, protocol: get('sec-websocket-protocol') || null };
+  const refuse = text => {
+    socket.destroy();
+    throw Object.assign(new Error(text), { code: 'EWSREFUSED', response });
+  };
+  if (status !== 101) refuse(`Il server ha risposto ${status} invece di aprire il WebSocket`);
+  if (get('upgrade').toLowerCase() !== 'websocket') refuse('Il server non ha aperto un WebSocket');
+  if (get('sec-websocket-accept') !== createHash('sha1').update(key + GUID).digest('base64')) refuse('Risposta del server non valida (Sec-WebSocket-Accept)');
+  if (get('sec-websocket-extensions')) refuse('Il server ha chiesto estensioni non offerte');
+  if (response.protocol && !wanted.includes(response.protocol)) refuse('Il server ha scelto un sottoprotocollo non offerto');
+  const ws = new Socket(socket, rest, maxMessage, { client: true });
+  return { ws, response, tls: info };
 }

@@ -1,0 +1,20 @@
+/* kvTable.js: rows of name and value */
+.kv { display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; background: var(--field-bg); }
+.kv-row { display: flex; align-items: stretch; min-height: 28px; border-top: 1px solid var(--border); }
+.kv-row:first-child { border-top: 0; }
+.kv-row.off .kv-in { color: var(--faint); text-decoration: line-through; }
+.kv-row.draft .kv-c.on, .kv-row.draft .kv-c.tools { visibility: hidden; }
+.kv-c { flex: 1 1 0; min-width: 0; display: flex; align-items: center; border-left: 1px solid var(--border); }
+.kv-c:first-child { border-left: 0; }
+.kv-c.on { flex: 0 0 28px; justify-content: center; }
+.kv-c.tools { flex: 0 0 auto; gap: 1px; padding: 0 3px; border-left: 0; }
+.kv-in { width: 100%; height: 100%; min-height: 26px; border: 0; background: transparent; color: var(--text); font: inherit; padding: 0 8px; outline: 0; }
+.kv-in:focus { background: color-mix(in srgb, var(--accent) 7%, transparent); }
+select.kv-in { padding: 0 4px; }
+.kv.mono .kv-in { font-family: var(--mono, ui-monospace, monospace); font-size: 11.5px; }
+.kv-sealed { display: flex; align-items: center; gap: 6px; padding: 0 8px; color: var(--dim); font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kv-sealed .ico { width: 11px; height: 11px; flex: none; color: var(--accent); }
+.kv-btn { width: 22px; height: 22px; display: inline-grid; place-items: center; border: 0; background: none; border-radius: var(--radius-sm); color: var(--faint); cursor: pointer; }
+.kv-btn:hover { background: var(--hover); color: var(--text); }
+.kv-btn.on { color: var(--accent); }
+.kv-btn .ico { width: 11px; height: 11px; }

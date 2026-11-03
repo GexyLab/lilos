@@ -21,6 +21,7 @@ export { UndoStack, history } from './core/history.js';
 export { fs } from './core/fs.js';
 export { net } from './core/net.js';
 export { term } from './core/term.js';
+export { calls } from './core/calls.js';
 export { serial } from './core/serial.js';
 export { host } from './core/host.js';
 export { pipes, PipeStopped } from './core/pipeCatalog.js';

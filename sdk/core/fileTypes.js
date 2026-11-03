@@ -12,16 +12,17 @@ const TYPES = [
   { key: 'archive', exts: ['zip', 'rar', '7z', 'tar', 'gz'], color: '#6b7280' },
   { key: 'code', exts: ['html', 'css', 'js', 'ts', 'json', 'py'], color: '#0d9488' },
   { key: 'term', exts: ['term'], color: '#2b3038' },
+  { key: 'nettest', exts: ['nettest'], color: '#c2410c' },
 ];
 
 const { t } = locale.define('lilos:fileTypes', {
   en: { strings: {
     text: 'Text', pdf: 'PDF', document: 'Document', spreadsheet: 'Spreadsheet', presentation: 'Presentation', image: 'Image',
-    audio: 'Audio', video: 'Video', archive: 'Archive', code: 'Code', term: 'Terminal connection', file: 'File',
+    audio: 'Audio', video: 'Video', archive: 'Archive', code: 'Code', term: 'Terminal connection', nettest: 'NetTest collection', file: 'File',
   } },
   it: { strings: {
     text: 'Testo', pdf: 'PDF', document: 'Documento', spreadsheet: 'Foglio di calcolo', presentation: 'Presentazione', image: 'Immagine',
-    audio: 'Audio', video: 'Video', archive: 'Archivio', code: 'Codice', term: 'Collegamento terminale', file: 'File',
+    audio: 'Audio', video: 'Video', archive: 'Archivio', code: 'Codice', term: 'Collegamento terminale', nettest: 'Collezione di NetTest', file: 'File',
   } },
 });
 

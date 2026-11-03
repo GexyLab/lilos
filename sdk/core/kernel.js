@@ -37,9 +37,10 @@ class Kernel extends Emitter {
 
   /**
    * One request; JSON in and out (`text` for raw text, `blob` for bytes). A string body goes as
-   * text, a Blob, ArrayBuffer or typed array as bytes, anything else as JSON. Throws KernelError.
+   * text, a Blob, ArrayBuffer or typed array as bytes, anything else as JSON. Throws KernelError
+   * ('canceled' when `signal` aborts it).
    */
-  async request(method, path, body, { text = false, blob = false, keepalive = false } = {}) {
+  async request(method, path, body, { text = false, blob = false, keepalive = false, signal } = {}) {
     const bytes = body instanceof Blob || body instanceof ArrayBuffer || ArrayBuffer.isView(body);
     let res;
     try {
@@ -47,6 +48,7 @@ class Kernel extends Emitter {
         method,
         credentials: 'same-origin',
         keepalive,
+        signal,
         headers: {
           'X-Lilos': '1',
           ...(body !== undefined && { 'Content-Type': bytes ? 'application/octet-stream' : typeof body === 'string' ? 'text/plain; charset=utf-8' : 'application/json' }),
@@ -54,6 +56,7 @@ class Kernel extends Emitter {
         body: body === undefined ? undefined : bytes || typeof body === 'string' ? body : JSON.stringify(body),
       });
     } catch {
+      if (signal?.aborted) throw new KernelError(0, 'canceled', 'Annullata');
       throw new KernelError(0, 'offline', 'Il kernel di lilOS non risponde');
     }
     if (res.status === 401 && this.connected && this.mode === 'multi') this.emit('signedout');

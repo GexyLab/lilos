@@ -29,6 +29,7 @@ export const PERMISSIONS = {
   'clipboard.read': { level: 'use', label: 'Leggere gli appunti' },
   net: { level: 'install', label: 'Collegarsi a', param: 'origin' },
   term: { level: 'install', label: 'Aprire terminali remoti (SSH, Telnet…) e usare gli host salvati' },
+  calls: { level: 'install', label: 'Fare richieste di rete dal kernel (HTTP, WebSocket, TCP, gRPC, MQTT…) verso qualunque server' },
   serial: { level: 'install', label: 'Usare le porte seriali e USB del tuo computer (schede come Arduino)' },
   kernel: { level: 'install', label: 'Usare il modulo del kernel', param: 'module' },
   'media.camera': { level: 'use', label: 'Usare la fotocamera' },

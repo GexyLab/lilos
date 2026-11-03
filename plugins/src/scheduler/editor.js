@@ -18,7 +18,8 @@ const fill = (el, ...kids) => el.replaceChildren(...kids.flat(Infinity).filter(k
  *     args { id }                                           an operation to change
  *     args { files: [id], action }                          from the menu of a file or folder (Pianifica…)
  *     args { when: { once } | rule, what?, name? }          from another app (a calendar's free slot;
- *                                                           Automata: what { type: 'automation', file })
+ *                                                           Automata: what { type: 'automation', file }; NetTest: what
+ *                                                           { type: 'collection', file, environment, only? })
  */
 const UNITS = ['minute', 'hour', 'day', 'week', 'month', 'year'];
 const DAYS = [1, 2, 3, 4, 5, 6, 7];
@@ -51,7 +52,7 @@ function prefillFrom(a) {
   // Another app's proposal (Automata: { type: 'automation', file, label }); the kernel checks it again
   if (plain(a.what) && KINDS.some(k => k.type === a.what.type)) {
     out.what = a.what;
-    if (a.what.type === 'automation' && typeof a.what.file === 'string' && !a.what.label) out.what = { ...a.what, label: nodeLabel(a.what.file) };
+    if ((a.what.type === 'automation' || a.what.type === 'collection') && typeof a.what.file === 'string' && !a.what.label) out.what = { ...a.what, label: nodeLabel(a.what.file) };
   }
   if (typeof a.name === 'string') out.name = a.name;
   if (typeof a.from === 'string') out.from = a.from;
@@ -67,6 +68,7 @@ const defaultWhat = type => ({
   web: { type, method: 'GET', url: 'https://', headers: [], body: { kind: 'none' }, expect: { status: '2xx', contains: null }, timeoutS: 30, saveTo: null },
   open: { type, app: '', entry: 'main', args: null },
   automation: { type, file: null, label: '' },
+  collection: { type, file: null, label: '', environment: null, environmentLabel: '', only: null },
 }[type]);
 
 /** The «Quando» form from a rule (and back: ruleOf). */
@@ -218,15 +220,16 @@ function editorWindow({ id = null, copy = null, prefill = {} }, openWindow) {
 
   function stepWhat() {
     const automataThere = system.isInstalled('automata');
+    const nettestThere = system.isInstalled('nettest');
     const types = h('div', { class: 'ed-types', role: 'radiogroup', 'aria-label': t('step.what') }, KINDS.map(k => {
-      const off = (k.type === 'automation' && !automataThere) || (k.type === 'service' && (!catalog.runtime || !catalog.services.length)) || (draft.app && !['notify', 'service', 'open'].includes(k.type));
+      const off = (k.type === 'automation' && !automataThere) || (k.type === 'collection' && !nettestThere) || (k.type === 'service' && (!catalog.runtime || !catalog.services.length)) || (draft.app && !['notify', 'service', 'open'].includes(k.type));
       return h('button', {
         type: 'button', role: 'radio', class: `ed-type${draft.what.type === k.type ? ' on' : ''}`, 'aria-checked': String(draft.what.type === k.type), disabled: off || (editing && draft.what.type !== k.type && !!draft.app),
         onclick: () => { if (draft.what.type !== k.type) { draft.what = defaultWhat(k.type); redraw(); } },
       }, h('span', { class: `sc-kico k-${k.type}` }, icon(k.glyph)),
       h('b', {}, t(`kind.${k.type}.name`)),
       h('span', { class: `sc-where${k.where === 'browser' ? ' br' : ''}` }, t(`where.${k.where}`)),
-      h('small', {}, off && k.type === 'automation' ? t('kind.automation.missing') : t(`kind.${k.type}.hint`)));
+      h('small', {}, off && (k.type === 'automation' || k.type === 'collection') ? t(`kind.${k.type}.missing`) : t(`kind.${k.type}.hint`)));
     }));
     return [h('div', { class: 'ed-what' }, types, h('div', { class: 'ed-form' }, ...formFor(draft.what)))];
   }
@@ -339,12 +342,34 @@ function editorWindow({ id = null, copy = null, prefill = {} }, openWindow) {
         h('p', { class: 'ed-warn' }, icon('window'), t('open.browserHint')),
       ];
     }
+    if (w.type === 'collection') return collectionForm(w);
     // automation
     return [
       field(t('automation.file'), h('div', { class: 'ed-place' },
         h('span', { class: 'ctl-text ed-path' }, icon('automation'), w.label || h('span', { class: 'ed-ph' }, t('editor.choose'))),
         h('button', { class: 'ctl-btn', type: 'button', onclick: async () => { const node = await pick('file', t('automation.file'), ['automata']); if (node) { w.file = node.id; w.label = nodeLabel(node.id); redraw(); } } }, t('editor.choose')))),
       h('p', { class: 'ed-warn' }, icon('window'), t('automation.hint')),
+    ];
+  }
+
+  /** A NetTest collection (.nettest) and the environment it runs with: the environments are the file's own. */
+  function collectionForm(w) {
+    const envs = h('select', { class: 'ctl-select', disabled: !w.file, onchange: e => { w.environment = e.target.value || null; w.environmentLabel = e.target.selectedOptions[0]?.dataset.name ?? ''; } },
+      h('option', { value: '' }, t('collection.envNone')));
+    if (w.file) {
+      fs.read(w.file).then(text => {
+        const list = JSON.parse(text)?.environments;
+        for (const e of Array.isArray(list) ? list : []) {
+          if (typeof e?.id === 'string') envs.append(h('option', { value: e.id, selected: e.id === w.environment, dataset: { name: String(e.name ?? '') } }, String(e.name ?? e.id)));
+        }
+      }).catch(() => {});
+    }
+    return [
+      field(t('collection.file'), h('div', { class: 'ed-place' },
+        h('span', { class: 'ctl-text ed-path' }, icon('bolt'), w.label || h('span', { class: 'ed-ph' }, t('editor.choose'))),
+        h('button', { class: 'ctl-btn', type: 'button', onclick: async () => { const node = await pick('file', t('collection.file'), ['nettest']); if (node) { w.file = node.id; w.label = nodeLabel(node.id); w.environment = null; w.environmentLabel = ''; redraw(); } } }, t('editor.choose')))),
+      field(t('collection.env'), envs),
+      h('p', { class: 'ed-warn' }, icon('monitor'), t('collection.hint')),
     ];
   }
 

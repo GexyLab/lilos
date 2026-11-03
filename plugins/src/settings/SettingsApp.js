@@ -16,6 +16,7 @@ import { pipeSections, watchPipes } from './pipes.js';
 import { cloudTabs, isCloudTab, reloadCloud } from './cloud.js';
 import { creditsSections } from './credits.js';
 import { computerTab } from './computer.js';
+import { networkTab } from './network.js';
 import { t, i18n } from './i18n.js';
 import './settings-app.css';
 
@@ -833,6 +834,8 @@ export default function createSettings({ openWindow, args } = {}) {
           { id: 'apps', get label() { return t('startup.apps.label'); }, sections: () => startupAppsSections({ openWindow, rerender: () => view?.render() }) },
         ],
       },
+      // Where users may make the kernel connect, and the admin's exceptions (lilOS 1.25.0)
+      networkTab({ rerender: () => view?.render() }),
       // The program lilOS (lilos-desktop): only inside it, not in a browser
       computerTab({ rerender: () => view?.render() }),
       // OneDrive, Google Drive, Google Foto, Azure Blob Storage, NFS and the provider apps they

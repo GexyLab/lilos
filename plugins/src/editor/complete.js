@@ -1,4 +1,4 @@
-import { JS_KEYWORDS, PY_KEYWORDS, tokenize } from './highlight.js';
+import { JS_KEYWORDS, PY_KEYWORDS, tokenize } from '../shared/highlight.js';
 import { t } from './i18n.js';
 
 /**

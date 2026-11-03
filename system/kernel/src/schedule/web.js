@@ -1,7 +1,7 @@
 import { randomBytes } from 'node:crypto';
-import http from 'node:http';
-import https from 'node:https';
 import { fail } from '../errors.js';
+import { httpRequest, readBody } from '../net/http.js';
+import { serverOf } from '../net/knownHosts.js';
 import { openHome, toFrontNode, isProtected } from '../api/home.js';
 import { localText } from '../../../../sdk/core/scheduleRules.js';
 
@@ -14,35 +14,12 @@ import { localText } from '../../../../sdk/core/scheduleRules.js';
  * The secret headers are opened only here. The answer (10 MB at most) may be saved in a file of
  * the owner's home: replaced, or a new one each time with the date in its name.
  * Done when the status is the one expected (and, if asked, the answer contains a text).
+ * The request is net/http.js's, as NetTest's: a certificate that does not validate goes only if the
+ * owner confirmed it before (in NetTest, the Rete folder or the Terminal: net/knownHosts.js).
  */
 const MAX_ANSWER = 10 << 20;
 const SHOWN = 4 << 10;
 const REDIRECTS = 5;
-
-/**
- * One HTTP request with node:http(s) and the guard's lookup (fetch can't take one). → { status,
- * statusText, headers (Headers), body (readable; destroy() to drop it) }. No redirects followed,
- * no compression asked.
- */
-function send(url, { method, headers, body, signal, lookup }) {
-  return new Promise((resolve, reject) => {
-    const sent = { ...headers };
-    const has = name => Object.keys(sent).some(k => k.toLowerCase() === name);
-    if (!has('user-agent')) sent['User-Agent'] = 'lilOS';
-    if (!has('accept')) sent.Accept = '*/*';
-    if (body !== undefined) sent['Content-Length'] = Buffer.byteLength(body);
-    const req = (url.protocol === 'https:' ? https : http).request({
-      protocol: url.protocol, hostname: url.hostname.replace(/^\[|\]$/g, ''), port: url.port || undefined,
-      path: `${url.pathname}${url.search}`, method, headers: sent, signal, lookup, agent: false,
-    }, res => {
-      const h = new Headers();
-      for (const [k, v] of Object.entries(res.headers)) for (const one of [].concat(v ?? [])) h.append(k, one);
-      resolve({ status: res.statusCode, statusText: res.statusMessage ?? '', headers: h, body: res });
-    });
-    req.on('error', reject);
-    req.end(body);
-  });
-}
 
 const kb = n => (n < 1024 ? `${n} byte` : n < 1 << 20 ? `${(n / 1024).toFixed(1)} KB` : `${(n / (1 << 20)).toFixed(1)} MB`);
 
@@ -108,15 +85,22 @@ export async function runWeb({ kernel, task, run, principal, signal }) {
     await guard.check({ url: url.href });
     const sent = { ...headers };
     if (url.origin !== origin) for (const k of Object.keys(sent)) if (secret.has(k.toLowerCase()) || /^(authorization|cookie|proxy-authorization)$/i.test(k)) delete sent[k];
+    const pinned = principal ? await kernel.network.knownHosts.get(principal.id, 'tls', serverOf({ url: url.href })) : null;
+    if (!sent['User-Agent'] && !Object.keys(sent).some(k => k.toLowerCase() === 'user-agent')) sent['User-Agent'] = 'lilOS';
+    if (!Object.keys(sent).some(k => k.toLowerCase() === 'accept')) sent.Accept = '*/*';
     try {
-      res = await send(url, { method, headers: sent, body: method === 'GET' || method === 'HEAD' ? undefined : body, signal: both, lookup: guard.lookup });
+      res = await httpRequest(url, {
+        method, headers: sent, body: method === 'GET' || method === 'HEAD' ? undefined : body, signal: both, lookup: guard.lookup,
+        timeoutMs: w.timeoutS * 1000, tls: { pinned }, version: '1.1',
+      });
     } catch (err) {
       if (timeout.aborted) fail('unavailable', `Nessuna risposta in ${w.timeoutS} secondi`);
       if (signal.aborted) throw err;
       if (err?.code === 'forbidden') throw err;
-      fail('unavailable', `Rete: ${err.cause?.code ?? err.message}`);
+      if (err?.code === 'untrusted') fail('unavailable', `${err.message}: confermalo una volta da NetTest`);
+      fail('unavailable', `Rete: ${err.cause?.code ?? err.code ?? err.message}`);
     }
-    const to = res.headers.get('location');
+    const to = res.headers.find(([k]) => k.toLowerCase() === 'location')?.[1];
     if (![301, 302, 303, 307, 308].includes(res.status) || !to) break;
     if (hop >= REDIRECTS) fail('unavailable', 'Troppi reindirizzamenti');
     res.body.destroy();
@@ -126,20 +110,16 @@ export async function runWeb({ kernel, task, run, principal, signal }) {
     if (url.origin !== origin && body !== undefined) fail('invalid', 'Reindirizzamento a un altro indirizzo con un corpo da mandare: non seguito');
   }
 
-  const chunks = [];
-  let size = 0;
+  let data, size;
   try {
-    for await (const chunk of res.body) {
-      size += chunk.length;
-      if (size > MAX_ANSWER) fail('too_large', 'Risposta troppo grande (al massimo 10 MB)');
-      chunks.push(chunk);
-    }
+    const read = await readBody(res, { max: MAX_ANSWER, decode: false });
+    if (read.truncated) fail('too_large', 'Risposta troppo grande (al massimo 10 MB)');
+    ({ data, size } = read);
   } catch (err) {
     if (err?.code === 'too_large') throw err;
     if (timeout.aborted) fail('unavailable', `La risposta non è finita in ${w.timeoutS} secondi`);
     throw err;
   }
-  const data = Buffer.concat(chunks);
   const ms = Date.now() - started;
   const text = data.toString('utf8');
   const statusOk = w.expect.status === 'any' || (w.expect.status === '2xx' ? res.status >= 200 && res.status < 300 : res.status === w.expect.status);
@@ -147,7 +127,7 @@ export async function runWeb({ kernel, task, run, principal, signal }) {
   const lines = [
     `${method} ${url.href}`,
     `${res.status} ${res.statusText} · ${ms} ms · ${kb(size)}`,
-    ...[...res.headers].slice(0, 40).map(([k, v]) => `${k}: ${v}`),
+    ...res.headers.slice(0, 40).map(([k, v]) => `${k}: ${v}`),
     '',
     text.slice(0, SHOWN) + (text.length > SHOWN ? '\n…' : ''),
   ];

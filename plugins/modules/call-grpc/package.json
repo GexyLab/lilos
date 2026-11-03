@@ -1,0 +1,9 @@
+{
+  "name": "lilos-module-call-grpc",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "protobufjs": "8.8.1"
+  }
+}

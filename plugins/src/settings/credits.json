@@ -399,6 +399,20 @@
     },
     {
       "kind": "library",
+      "name": "long",
+      "version": "5.3.2",
+      "license": "Apache-2.0",
+      "copyright": "© Daniel Wirtz",
+      "url": "https://github.com/dcodeIO/long.js",
+      "usedBy": [
+        "module:call-grpc"
+      ],
+      "via": [
+        "protobufjs"
+      ]
+    },
+    {
+      "kind": "library",
       "name": "mdast-util-to-hast",
       "version": "13.2.1",
       "license": "MIT",
@@ -716,6 +730,17 @@
       ],
       "via": [
         "@shikijs/core"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "protobufjs",
+      "version": "8.8.1",
+      "license": "BSD-3-Clause",
+      "copyright": "Copyright (c) 2016, Daniel Wirtz  All rights reserved.",
+      "url": "https://github.com/protobufjs/protobuf.js",
+      "usedBy": [
+        "module:call-grpc"
       ]
     },
     {

@@ -7,6 +7,7 @@ import { sedCommands } from './sed.js';
 import { diffCommands } from './diff.js';
 import { lilosCommands } from './lilos.js';
 import { remoteCommands } from './remote.js';
+import { nettestCommands } from './nettest.js';
 import { ShellError } from '../shell/signals.js';
 import { t } from '../i18n.js';
 
@@ -24,7 +25,7 @@ const NAME = /^[a-z][\w.-]{0,39}$/;
 const own = new Map();
 // Marked in place: a copy would read the texts (getters, in the language of the moment) only once
 for (const cmd of builtins) own.set(cmd.name, Object.assign(cmd, { builtin: true }));
-for (const cmd of [...fileCommands, ...textCommands, ...sedCommands, ...diffCommands, ...lilosCommands, ...remoteCommands]) own.set(cmd.name, cmd);
+for (const cmd of [...fileCommands, ...textCommands, ...sedCommands, ...diffCommands, ...lilosCommands, ...remoteCommands, ...nettestCommands]) own.set(cmd.name, cmd);
 
 function appCommands() {
   const found = new Map();

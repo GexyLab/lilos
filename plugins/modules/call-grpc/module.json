@@ -1,0 +1,12 @@
+{
+  "name": "call-grpc",
+  "version": "1.0.0",
+  "description": "gRPC per NetTest: chiamate unarie e flussi (client, server, bidirezionali), servizi dalla reflection del server o da un file .proto",
+  "kernel": "1",
+  "icon": { "glyph": "transfer", "color": "#2a6f97" },
+  "provides": [
+    "call.grpc"
+  ],
+  "requires": [],
+  "defaultConfig": {}
+}

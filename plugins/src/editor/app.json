@@ -1,6 +1,6 @@
 {
   "id": "editor",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "kind": "local",
   "name": "Editor",
   "description": "Text and code editor with tabs, syntax highlighting, suggestions and checking of JSON, CSS and HTML.",

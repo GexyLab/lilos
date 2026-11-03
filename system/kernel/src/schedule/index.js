@@ -6,6 +6,7 @@ import { checkWhat, publicWhat } from './what.js';
 import { runNotify } from './notify.js';
 import { runCopy } from './copy.js';
 import { runWeb } from './web.js';
+import { runCollectionTask } from './collection.js';
 import { runCommand } from './command.js';
 
 /**
@@ -148,6 +149,7 @@ export class Schedules {
       case 'copy': return runCopy(context);
       case 'web': return runWeb(context);
       case 'command': return runCommand(context);
+      case 'collection': return runCollectionTask(context);
       case 'open':
       case 'automation': return this.#dispatch(task, run, signal);
       default: fail('invalid', `Azione sconosciuta: ${what.type}`);

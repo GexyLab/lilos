@@ -572,7 +572,10 @@
       "@dependencies.term-rlogin.reason": "Remote sessions over rlogin",
       "@dependencies.term-supdup.reason": "Remote sessions over SUPDUP",
       "@dependencies.services-isolate.reason": "Scheduled Terminal commands in the kernel, with the operation's time limit and Cancel",
-      "tabs.count": {"one": "{n} tab", "other": "{n} tabs"},
+      "tabs.count": {
+        "one": "{n} tab",
+        "other": "{n} tabs"
+      },
       "tabs.pane": "Pane {n} — {name}",
       "tabs.rename": "Rename…",
       "tabs.renameLabel": "Tab name",
@@ -638,7 +641,19 @@
       "options.openTerm": "Open the links",
       "options.openTermDescription": "Where a .term file opens with a double click, when the file does not say it itself",
       "options.openTerm.window": "In a new window",
-      "options.openTerm.tab": "In a tab of the open window"
+      "options.openTerm.tab": "In a tab of the open window",
+      "help.nettest.usage": "nettest run FILE [-e ENV] [-f FOLDER] [-n N] [-d DATA] [--bail] [-v] | nettest send FILE REQUEST [-e ENV] [-v] | nettest list FILE",
+      "help.nettest.summary": "runs the requests of a NetTest collection (.nettest) through the kernel; exit status 1 when one fails",
+      "nettest.unavailable": "NetTest requests need lilOS’s kernel (1.25.0 or newer)",
+      "nettest.notCollection": "not a NetTest collection",
+      "nettest.noFile": "{path}: no such file",
+      "nettest.noEnv": "no environment «{name}» (there are: {list})",
+      "nettest.noRequest": "no request «{name}» (nettest list FILE shows them)",
+      "nettest.noFolder": "no folder «{name}»",
+      "nettest.badData": "the data file is not a CSV with a header row nor a JSON array",
+      "nettest.check": "check",
+      "nettest.test": "test",
+      "nettest.summary": "{passed} passed, {failed} failed, {skipped} skipped in {time}"
     }
   },
   "it": {
@@ -1214,7 +1229,10 @@
       "@dependencies.term-rlogin.reason": "Sessioni remote via rlogin",
       "@dependencies.term-supdup.reason": "Sessioni remote via SUPDUP",
       "@dependencies.services-isolate.reason": "Comandi del Terminale pianificati nel kernel, con il tempo massimo dell’operazione e Annulla",
-      "tabs.count": {"one": "{n} scheda", "other": "{n} schede"},
+      "tabs.count": {
+        "one": "{n} scheda",
+        "other": "{n} schede"
+      },
       "tabs.pane": "Riquadro {n} — {name}",
       "tabs.rename": "Rinomina…",
       "tabs.renameLabel": "Nome della scheda",
@@ -1280,7 +1298,19 @@
       "options.openTerm": "Apri i collegamenti",
       "options.openTermDescription": "Dove si apre un file .term con il doppio clic, quando il file non lo dice da sé",
       "options.openTerm.window": "In una finestra nuova",
-      "options.openTerm.tab": "In una scheda della finestra aperta"
+      "options.openTerm.tab": "In una scheda della finestra aperta",
+      "help.nettest.usage": "nettest run FILE [-e AMBIENTE] [-f CARTELLA] [-n N] [-d DATI] [--bail] [-v] | nettest send FILE RICHIESTA [-e AMBIENTE] [-v] | nettest list FILE",
+      "help.nettest.summary": "esegue le richieste di una collezione di NetTest (.nettest) con il kernel; stato di uscita 1 se una fallisce",
+      "nettest.unavailable": "Le richieste di NetTest hanno bisogno del kernel di lilOS (1.25.0 o più recente)",
+      "nettest.notCollection": "non è una collezione di NetTest",
+      "nettest.noFile": "{path}: file inesistente",
+      "nettest.noEnv": "nessun ambiente «{name}» (ci sono: {list})",
+      "nettest.noRequest": "nessuna richiesta «{name}» (nettest list FILE le mostra)",
+      "nettest.noFolder": "nessuna cartella «{name}»",
+      "nettest.badData": "il file di dati non è un CSV con la riga di intestazione né un array JSON",
+      "nettest.check": "verifica",
+      "nettest.test": "test",
+      "nettest.summary": "{passed} riuscite, {failed} fallite, {skipped} saltate in {time}"
     }
   }
 }

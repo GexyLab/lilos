@@ -34,6 +34,8 @@ Procedure passo per passo per le modifiche più comuni. Per i dettagli delle fun
 - [Usare il kernel dal sistema o dall'SDK](#usare-il-kernel-dal-sistema-o-dallsdk)
 - [Aggiungere un modulo al kernel](#aggiungere-un-modulo-al-kernel)
 - [Aggiungere un protocollo di rete](#aggiungere-un-protocollo-di-rete)
+- [Aggiungere un protocollo di NetTest](#aggiungere-un-protocollo-di-nettest)
+- [Fare richieste di rete dalla tua app](#fare-richieste-di-rete-dalla-tua-app)
 - [Pubblicare un modulo del kernel come pacchetto](#pubblicare-un-modulo-del-kernel-come-pacchetto)
 - [Far dipendere un'app da un modulo del kernel](#far-dipendere-unapp-da-un-modulo-del-kernel)
 - [Pubblicare una versione di lilOS](#pubblicare-una-versione-di-lilos)
@@ -1127,6 +1129,44 @@ Un protocollo di terminale è un modulo del kernel che fornisce il servizio `ter
 6. Dichiara `signals: ['break', …]` nella sessione se il protocollo ha comandi speciali che il menu **Tasti** deve offrire, e `info: { … }` per ciò che la barra di stato mostra. `secure` dice se ciò che passa è cifrato: l'app avverte l'utente quando non lo è.
 7. Attiva il modulo in `config.json`, `npm run kernel:setup` se ha dipendenze e riavvia il kernel. Il protocollo compare nell'elenco dei protocolli del **Terminale** (i comandi `ssh`, `telnet`, `rlogin` e `supdup` della sua shell sono dell'app, non del modulo: un protocollo nuovo si sceglie dall'elenco della finestra del nuovo host).
 
+## Aggiungere un protocollo di NetTest
+
+Un protocollo in più per **NetTest** (oltre a HTTP, GraphQL, WebSocket, SSE, TCP, TLS e UDP del kernel) è un modulo del kernel che fornisce il servizio `call.<protocollo>`. Il kernel lo prende da solo: compare in `calls.info().protocols`, una richiesta con `protocol: 'mio'` apre una sessione (`openSession`) o fa la sua chiamata (`invoke`, anche nelle collezioni, nel comando `nettest` e nella Pianificazione). La finestra di NetTest invece ha un elenco fisso di protocolli (`PROTOCOLS` in `plugins/src/nettest/model.js`) con i loro campi (`live.js`): per vederlo anche lì va aggiunto all'app. I modelli sono `call-mqtt` (una sessione, senza dipendenze) e `call-grpc` (anche una chiamata sola, `invoke`), in `plugins/modules/`. Il contratto è in [Protocolli: il servizio `call.<protocollo>`](api.md#protocolli-il-servizio-callprotocollo). Serve lilOS 1.25.0.
+
+1. Crea il modulo come in [Aggiungere un modulo al kernel](#aggiungere-un-modulo-al-kernel), con `"provides": ["call.mio"]` e `"requires": []`. Il nome è `[a-z][a-z0-9-]{0,30}` e non può essere `ws`, `sse`, `tcp`, `tls` o `udp`.
+2. Nell'`init` fornisci il servizio. Con `open` il protocollo apre una **sessione** (un collegamento che resta aperto); con `invoke` fa una **chiamata sola**, anche dentro le esecuzioni di una collezione; ne basta uno dei due.
+
+   ```js
+   import net from 'node:net';
+
+   const label = (en, it) => ({ en, it });
+
+   export default {
+     async init(ctx) {
+       ctx.provide('call.mio', {
+         label: label('My protocol', 'Il mio protocollo'),
+         async open(values, c) {
+           await c.check({ url: `http://${values.host}` });   // lancia se il kernel non può andare lì (guardia di rete)
+           const socket = net.connect({ host: values.host, port: Number(values.port) || 4000, lookup: c.lookup, signal: c.signal });
+           await new Promise((resolve, reject) => { socket.once('connect', resolve); socket.once('error', reject); });
+           socket.on('data', d => c.output({ type: 'text', data: d.toString('utf8') }));
+           socket.on('close', () => c.closed({ reason: '' }));   // una volta
+           return {
+             info: { remote: `${values.host}:${values.port}` },
+             send: msg => { socket.write(msg.data); },          // msg: { type, data, meta? }
+             close: () => socket.destroy(),
+           };
+         },
+       });
+     },
+   };
+   ```
+3. `values` sono i campi della richiesta con variabili e segreti già messi (`url`, `headers`, `settings` e i `values` dell'elemento): leggi quelli che ti servono. I campi su misura (come le iscrizioni MQTT o servizio e metodo gRPC) li disegna l'app, non il modulo.
+4. Ogni connessione deve passare dalla guardia di rete: dai `lookup` di `ctx` a `net`, `tls` o `http`, oppure chiama `ctx.check(values)` prima di collegarti (per un nome che risolvi da solo). Un modulo che non lo fa aggira le regole che l'amministratore ha dato agli utenti. Per i certificati usa `ctx.tls(host, port)`: restituisce cosa passare a `connectTo` (`verify`, `pinned` con l'impronta che l'utente ha già confermato, `ca`, `cert`, `key`), e un certificato non valido lancia `untrusted` con `details.trust`.
+5. Quello che il protocollo sa fare in più (iscriversi, chiudere l'invio, un ping) è un `command(name, args)` della connessione: NetTest lo chiama con `{ t: 'command', id, name, args }` sul canale della sessione e il risultato torna come `{ t: 'result' }`. Lancia errori con un campo `net` o `KernelError`: dicono il perché in parole.
+6. I valori segreti che il kernel conosce (quelli delle variabili segrete della richiesta) sono scritti `••••` nei messaggi di testo e negli errori che passano da `ctx.output`; non nei messaggi `binary`, e non quelli che il server inventa. Non scrivere nei messaggi password o token che non vengono dalle variabili.
+7. Attiva il modulo in `config.json` (o come pacchetto, vedi [Pubblicare un modulo del kernel come pacchetto](#pubblicare-un-modulo-del-kernel-come-pacchetto)), `npm run kernel:setup` se ha dipendenze e riavvia il kernel. Un'app che usa il protocollo lo dichiara tra le dipendenze facoltative, come fa NetTest per `call-grpc` e `call-mqtt` (vedi [Far dipendere un'app da un modulo del kernel](#far-dipendere-unapp-da-un-modulo-del-kernel)).
+
 ## Aprire terminali remoti da un'app installata
 
 Serve il permesso `term` nel manifesto. Il terminale vero e proprio lo disegna l'app (nell'app ufficiale è xterm.js); lilOS e il kernel portano i byte.
@@ -1148,6 +1188,30 @@ terminal.onData(text => port.postMessage(new TextEncoder().encode(text)));
 - Per una voce come «Apri terminale SSH qui» (oggi del Terminale, azione `terminal.sshHere`) nel menu dei file delle connessioni SFTP: azione con `when: { net: ['sftp'] }` e `lilos.term.openHere(id)` (l'`id` è il nodo passato all'azione).
 - Per aggiornare l'elenco ascolta `lilos.on('term', what => …)` (`'hosts'` o `'sessions'`).
 - Con `lilos.term.close(id)` la sessione finisce; chiudere la finestra la lascia aperta per 10 minuti, finché l'utente non la riprende.
+
+## Fare richieste di rete dalla tua app
+
+Serve il permesso `calls` nel manifesto (livello `install`: chi installa l'app lo concede). Le richieste partono dal computer del kernel, senza CORS, dove le regole di rete lo permettono (con più utenti, mai questo computer né la rete locale senza l'eccezione dell'amministratore). Un'app di sistema usa `calls` dell'SDK; un'app isolata usa `lilos.calls` con gli stessi metodi.
+
+```js
+// una richiesta HTTP (sdk '2', nella finestra o nel background)
+const { result } = await lilos.calls.send({
+  request: { id: 'a', type: 'request', protocol: 'http', method: 'GET', url: '{{base}}/items',
+             headers: [], body: { kind: 'none' }, auth: { type: 'bearer', token: '{{token}}' }, settings: {} },
+  environment: { values: { base: 'https://api.example.com' }, secrets: { token: sealedToken } },
+});
+if (result.error?.code === 'untrusted') {                       // un certificato da far confermare all'utente
+  if (await askUser(result.error.trust)) await lilos.calls.trust({ host: result.error.trust.host, port: result.error.trust.port, fingerprint: result.error.trust.fingerprint });
+} else {
+  console.log(result.response.status, atob(result.response.body));
+}
+```
+
+- **Un segreto si sigilla**, non si passa in chiaro: `sealedToken = await lilos.calls.seal('il valore')`, da tenere nei dati dell'app. Il kernel lo apre solo dentro la richiesta e lo scrive `••••` in tutto ciò che torna. Vale solo per lo stesso utente, sullo stesso lilOS.
+- **Una collezione** (cartelle e richieste, nel formato `.nettest` di [Collezioni](api.md#collezioni)) si esegue con `lilos.calls.run({ collection, environment })`; poi `progress(id, { after, wait: true })` in ciclo fino a `done`, e `cancelRun(id)` per fermarla.
+- **Una sessione viva** (WebSocket e gli altri) si apre con `openSession({ request })`; `attach(id)` dà una `MessagePort` (**solo nelle finestre**) con i messaggi in JSON, come `lilos.term.attach`. Chiudere la finestra lascia la sessione aperta per 10 minuti; l'evento `lilos.on('calls', what => …)` (`'sessions'` o `'runs'`) dice quando cambia qualcosa.
+- **OAuth 2.0**: `signIn(settings)` per il codice con PKCE (da un clic: apre subito la finestra del fornitore), `token(settings)` per le credenziali del client o utente e password. I token tornano sigillati e il kernel li rinnova (`renewed` nella risposta di `send`: tieni i nuovi al posto dei vecchi).
+- Il resto del contratto, con i limiti (8 richieste, 5 esecuzioni, 10 sessioni insieme): [`calls`](api.md#calls).
 
 ## Usare una porta seriale dalla tua app
 

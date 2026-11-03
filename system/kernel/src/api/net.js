@@ -31,6 +31,9 @@ import { CALLBACK_PATH, callbackPage } from '../net/signin.js';
  *   GET    /api/net/signin/callback              where the provider sends the window back (no session: see net/signin.js)
  *   GET    /api/net/oauth                        [app]   admins: the apps registered with the providers (net/oauth.js)
  *   PUT    /api/net/oauth/:id                    { values } → app   admins: changes one (Microsoft, Google)
+ *   GET    /api/net/rules                        admins: where users may make the kernel connect (net/guard.js):
+ *                                                { multiUser, allowLocal, allowPrivate, allow }
+ *   PUT    /api/net/rules                        { allowLocal?, allowPrivate?, allow? } → rules   admins: the exceptions
  *   GET    /api/net/transfers                    the snapshot the transfer window shows
  *   GET    /api/net/transfers/items/:id          { items, more }   inside a folder of a queue
  *   POST   /api/net/transfers                    { sources: [ref], target: ref, workspace? } → { queue }
@@ -197,6 +200,16 @@ export function netRoutes(kernel) {
   });
 
   // The apps registered with the providers (one Microsoft app, one Google project for every protocol)
+  router.add('GET', '/api/net/rules', async ({ principal }) => {
+    admin(principal);
+    return net.guard.rules();
+  });
+
+  router.add('PUT', '/api/net/rules', async ({ principal, json }) => {
+    admin(principal);
+    return net.guard.setRules(plain(await json(16 << 10)));
+  });
+
   router.add('GET', '/api/net/oauth', async ({ principal }) => {
     admin(principal);
     return kernel.oauth.list();

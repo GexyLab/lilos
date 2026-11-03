@@ -18,6 +18,8 @@ import { homeInside } from './copy.js';
  *   { type: 'command', lines, cwd: id | null, host: null | <saved terminal host id>, saveTo: null | { folder, name, mode: 'replace' | 'append' } }
  *   { type: 'open', app?, entry?, args?, file? }                  in the browser: an app, or a file with its app
  *   { type: 'automation', file, values? }                         in the browser: a .automata file
+ *   { type: 'collection', file, environment: id | null, only: [id] | null, label, environmentLabel }
+ *                                                                 NetTest: a .nettest file run by the kernel (calls/), since lilOS 1.25.0
  *
  * An operation of the system (owner '*') has no home: only notify (to the admins), service and web
  * without files. One made by an app (`app`) may only remind (as that app),
@@ -37,7 +39,7 @@ const MAX_ARGS = 4096;
 const MAX_BODY = 1 << 20;
 const MAX_LINES = 8 << 10;
 const MAX_GLOBS = 50;
-const KINDS = ['notify', 'service', 'copy', 'web', 'command', 'open', 'automation'];
+const KINDS = ['notify', 'service', 'copy', 'web', 'command', 'open', 'automation', 'collection'];
 
 const plain = v => !!v && typeof v === 'object' && !Array.isArray(v);
 const label = v => (typeof v === 'string' ? v.slice(0, MAX_LABEL) : '');
@@ -212,6 +214,15 @@ export async function checkWhat(kernel, { what, old = null, owner, app = null, o
       cwd = what.cwd;
     }
     return { type: t, lines, cwd, cwdLabel: label(what.cwdLabel), host, hostLabel: label(what.hostLabel), saveTo: await saveTo(kernel, p, what.saveTo, ['replace', 'append']) };
+  }
+
+  if (t === 'collection') {
+    if (system) fail('invalid', 'Un’operazione del sistema non ha collezioni: le richieste partono come un utente');
+    const node = await homeNode(kernel, p, what.file, 'file');
+    if (!/\.nettest$/i.test(node.name)) fail('invalid', 'Serve un file .nettest');
+    const id = v => (typeof v === 'string' && /^[\w-]{1,64}$/.test(v) ? v : null);
+    const only = Array.isArray(what.only) ? what.only.slice(0, 200).map(id).filter(Boolean) : null;
+    return { type: t, file: what.file, label: label(what.label), environment: id(what.environment), environmentLabel: label(what.environmentLabel), only: only?.length ? only : null };
   }
 
   if (system) fail('invalid', 'Il sistema non apre app: serve un utente');

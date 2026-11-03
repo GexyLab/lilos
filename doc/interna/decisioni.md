@@ -1907,3 +1907,46 @@ Conseguenze: se tutte le schede si chiudono non parte niente; un'automazione con
 - I testi vanno fatti rivedere da un legale prima di farli valere.
 
 **Quando ripensarla.** Se si vende una licenza commerciale, se arrivano contributori esterni, o se l'SDK deve restare chiuso.
+
+## D77. NetTest: le richieste le fa il kernel, con i segreti sigillati; i protocolli in più sono moduli
+
+**Decisione.** Deciso il 3 novembre 2026, in lilOS 1.25.0 (SDK 0.16.0), con l'app NetTest 1.0.0, i moduli `call-grpc` e `call-mqtt`, Terminale 1.9.0, Pianificazione 1.2.0 e Pannello di controllo 1.20.0. NetTest è un'app di sistema **non obbligatoria** (si installa dall'AppStore): un client in stile Postman per HTTP, GraphQL e le sessioni WebSocket, SSE, TCP, TLS, UDP, MQTT e gRPC.
+
+- **Le richieste le fa il kernel**, non la pagina (`system/kernel/src/calls/`, rotte `/api/calls`, SDK `calls`, `lilos.calls` per le app isolate, permesso `calls` di livello `install`). Niente CORS, e il kernel raggiunge ciò che raggiunge il suo computer, dentro la guardia di rete (`net/guard.js`).
+- **Un solo client HTTP** (`net/http.js` con `net/connect.js`: HTTP/1.1 e HTTP/2, i tempi di ogni passo, il certificato del server). Lo usano NetTest e, al posto del suo vecchio client, l'operazione `web` della Pianificazione, che per questo ora accetta i certificati che l'utente ha confermato. `ws.js` impara a essere **client** WebSocket (`connectSocket`).
+- **I segreti sono sigillati dal kernel.** Una variabile segreta di un ambiente si manda a `POST /api/calls/seal` (AES-GCM con la chiave di questo lilOS, legata all'utente) e il file `.nettest` ne tiene solo il sigillo. Il kernel lo apre soltanto dentro la richiesta e scrive `••••` al posto del valore in ogni risposta, anche se il server lo rimanda indietro. Ai token OAuth succede lo stesso: tornano alla pagina sigillati e il kernel li rinnova.
+- **Gli script girano nel servizio `runtime`** (il modulo `services-isolate` 1.2.0 o successivo): un isolate V8 senza rete, file né `lilos`, 96 MB e 5 secondi di calcolo per script, un ambiente per utente. L'oggetto si chiama `nt`, con l'alias `pm` per gli script di Postman. Un valore segreto negli script si legge come `{{nome}}`.
+- **Le sessioni vive stanno nel kernel**, come quelle del Terminale ([D61](#d61-i-terminali-remoti-le-sessioni-vivono-nel-kernel-un-websocket-nostro)): 10 minuti senza finestra, al massimo 10 per utente, un canale WebSocket per sessione.
+- **Un protocollo in più è un modulo** che fornisce `call.<protocollo>` (`calls/drivers.js`: `open`, `invoke`, `describe`), come per `netfs.*` e `term.*`. gRPC (`protobufjs`) e MQTT (client scritto nel modulo) sono moduli facoltativi: chi non li vuole non porta le librerie.
+- **Le collezioni sono file `.nettest`** (JSON, formato 1) nella home; «Le mie richieste» sta nei dati dell'app. Il kernel legge i file per percorso (`~/…`), non per id, e li esegue anche senza pagina: nuova operazione `collection` della Pianificazione e comando `nettest` del Terminale usano lo stesso motore (`Calls.runFile`).
+- **I certificati confermati sono quelli della Rete e del Terminale** (`net/knownHosts.js`, tipo `tls`): confermato in un posto, vale negli altri.
+- **L'eccezione dell'amministratore alle regole di rete.** Con più utenti il kernel non va a questo computer né alla rete locale (e mai a link-local, multicast e `0.0.0.0/8`, nemmeno con `net.allow`). Prima l'amministratore poteva aprire la rete locale (`net.allowPrivate`) e certi intervalli (`net.allow`) solo a mano in `config.json`; ora c'è anche `net.allowLocal` (127.0.0.1 e `::1`, **solo questo**: link-local, multicast e riservati restano chiusi) e `GET`/`PUT /api/net/rules` (solo amministratori), con una scheda **Rete** nel Pannello di controllo. Le regole valgono subito e si salvano in `config.json`. SDK: `net.rules()` e `net.setRules()`.
+- Cose piccole: `kernel.request(…, { signal })` (SDK), il tipo di file `nettest`, il componente condiviso `kvTable` per le tabelle di righe nome e valore, e l'evidenziatore di sintassi dell'Editor (`highlight.js`) spostato in `plugins/src/shared/` perché lo usa anche NetTest.
+
+**Perché.**
+
+- **Il kernel** perché una pagina non può fare richieste a un altro sito (CORS), né aprire socket TCP o UDP, né parlare gRPC o MQTT con un broker; e perché è il solo posto dove si può tenere un segreto che la pagina non rivede. Lo stesso motore serve a chi non ha una finestra aperta (Pianificazione, Terminale).
+- **Sigillare** perché una collezione si copia, si condivide e si committa: una password in chiaro (o cifrata con un segreto che la pagina conosce) uscirebbe con lei. Un valore legato a utente e lilOS non serve a chi riceve il file, ed è voluto.
+- **Un solo client HTTP** perché la Pianificazione ne aveva uno suo che non conosceva i certificati confermati, né HTTP/2, né i tempi: due client da tenere uguali per la stessa guardia.
+- **Moduli per gRPC e MQTT** perché `protobufjs` (e il suo codice) non deve stare in ogni lilOS, e perché il contratto `call.<protocollo>` è lo stesso già collaudato di `netfs.*` e `term.*`.
+- **`allowLocal` separato da `allowPrivate`** perché aprire il proprio computer è più pericoloso che aprire la rete locale: dietro 127.0.0.1 ci sono i servizi del kernel stesso, un database, strumenti di sviluppo. Va concesso da solo, e il Pannello di controllo lo dice.
+- **Le regole nel Pannello di controllo** perché chi amministra lilOS con più utenti, per provare un servizio sul computer o sulla rete dell'ufficio, doveva modificare `config.json` e riavviare.
+
+**Alternative scartate** (ricostruzione dal codice, da confermare).
+
+- Richieste dal browser con un proxy CORS: non reggono socket, gRPC, MQTT né i segreti.
+- Segreti nelle impostazioni dell'app, o in chiaro nei file `.nettest`: non viaggiano con la collezione, o escono con lei.
+- Script eseguiti nella pagina (`eval`, un Worker): niente limiti di tempo e memoria affidabili, e vedrebbero i segreti. Un motore JS nostro per il kernel: già c'è `services-isolate`.
+- Tutti i protocolli nel kernel (gRPC e MQTT in ogni installazione).
+- Un solo interruttore «apri la rete locale» che comprenda anche questo computer.
+
+**Conseguenze.**
+
+- Il permesso `calls` è potente: un'app che lo ha manda richieste dal computer del kernel a qualunque server che la guardia permetta, con le variabili segrete che l'utente le passa. Va concesso con la stessa cautela di `term`. Chi ha `allowLocal` acceso lascia agli utenti anche i servizi che stanno su questo computer.
+- Gli script chiedono `services-isolate` 1.2.0: l'app lo dichiara come dipendenza facoltativa. Senza, le richieste con script falliscono e dicono cosa manca.
+- Un valore sigillato non si apre su un altro lilOS né da un altro utente: spostando una collezione, i segreti vanno rimessi; cambiare la chiave del kernel (`secret.key`) li rende inservibili tutti. Le variabili senza lucchetto, quelle globali e quelle della collezione restano in chiaro nei file.
+- La Pianificazione (1.2.0, lilOS 1.25.0) richiede lilOS 1.25.0; le sue richieste web ora usano HTTP/1.1 con `net/http.js` e accettano un certificato non valido solo se già confermato.
+- Un'esecuzione manda solo richieste che si chiamano una volta: le sessioni (WebSocket, SSE, TCP, TLS, UDP, MQTT) si saltano; gRPC unario no (`invoke`).
+- Limiti: 8 richieste, 5 esecuzioni (1000 risultati ciascuna) e 10 sessioni insieme per utente, 5 accessi OAuth aperti, risposte fino a 20 MB (al massimo 50), file `.nettest` fino a 32 MB.
+
+**Quando ripensarla.** Se serve un proxy per uscire dalla rete dell'azienda o regole per utente (chi può andare dove); se gli script devono fare chiamate a lilOS o alla rete; se MQTT su WebSocket, i `.proto` con import o altri protocolli (GraphQL su WebSocket, SOAP) lo richiedono; se i segreti devono viaggiare tra utenti o installazioni (un portachiavi condiviso); se la collezione deve vivere nel kernel anziché in un file.

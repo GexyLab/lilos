@@ -1,0 +1,11 @@
+/* The classes of the tokens of highlight.js (the Editor, NetTest): colours from the SDK's tokens (--syn-*) */
+.tk-kw { color: var(--syn-kw); }
+.tk-st { color: var(--syn-st); }
+.tk-nu { color: var(--syn-nu); }
+.tk-cm { color: var(--syn-cm); font-style: italic; }
+.tk-fn { color: var(--syn-fn); }
+.tk-pr { color: var(--syn-pr); }
+.tk-pu { color: var(--syn-pu); }
+.tk-hd { color: var(--syn-hd); font-weight: 700; }
+.tk-bd { font-weight: 700; }
+.tk-it { font-style: italic; }

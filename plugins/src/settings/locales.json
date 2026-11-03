@@ -772,7 +772,22 @@
       "pipes.event.apps.remove": "Removing an app",
       "pipes.event.permissions.change": "Permissions of an app",
       "pipes.event.settings.system": "System settings",
-      "pipes.event.pipes.change": "Subscriptions to pipes"
+      "pipes.event.pipes.change": "Subscriptions to pipes",
+      "network.label": "Network",
+      "network.description": "Where the kernel may connect for users: Rete folder, Terminal, NetTest",
+      "network.loading": "Reading the rules…",
+      "network.error": "The rules could not be read",
+      "network.saved": "Network rules saved",
+      "network.single": "One user, no sign-in",
+      "network.singleText": "Now the kernel connects anywhere, as you could yourself. These rules apply when users sign in to lilOS.",
+      "network.exception": "Exceptions for the users",
+      "network.local.label": "This computer (localhost)",
+      "network.local.description": "127.0.0.1 and ::1: test servers, databases and services on the computer of the kernel. Users could reach the kernel’s own services too: open it only if you trust them.",
+      "network.private.label": "The whole local network",
+      "network.private.description": "10.x, 172.16–31.x, 192.168.x, 100.64.x and the private IPv6 addresses: printers, NAS, routers, the office’s servers.",
+      "network.ranges.label": "Only these addresses",
+      "network.ranges.description": "Addresses or ranges allowed even when the rest stays closed, separated by commas: 192.168.1.50/32 (one NAS), 10.0.5.0/24.",
+      "network.always": "Always closed, whatever the exceptions: link-local addresses (cloud metadata, 169.254.x), multicast and reserved addresses. A name is checked again at every connection, on the address it really points to."
     }
   },
   "it": {
@@ -1548,7 +1563,22 @@
       "pipes.event.apps.remove": "Rimozione di un’app",
       "pipes.event.permissions.change": "Permessi di un’app",
       "pipes.event.settings.system": "Impostazioni di sistema",
-      "pipes.event.pipes.change": "Iscrizioni alle pipe"
+      "pipes.event.pipes.change": "Iscrizioni alle pipe",
+      "network.label": "Rete",
+      "network.description": "Dove il kernel può collegarsi per gli utenti: cartella Rete, Terminale, NetTest",
+      "network.loading": "Lettura delle regole…",
+      "network.error": "Non è stato possibile leggere le regole",
+      "network.saved": "Regole di rete salvate",
+      "network.single": "Un solo utente, senza accesso",
+      "network.singleText": "Adesso il kernel si collega ovunque, come potresti fare tu. Queste regole valgono quando gli utenti accedono a lilOS.",
+      "network.exception": "Eccezioni per gli utenti",
+      "network.local.label": "Questo computer (localhost)",
+      "network.local.description": "127.0.0.1 e ::1: server di prova, database e servizi sul computer del kernel. Gli utenti raggiungerebbero anche i servizi del kernel stesso: aprilo solo se ti fidi di loro.",
+      "network.private.label": "Tutta la rete locale",
+      "network.private.description": "10.x, 172.16–31.x, 192.168.x, 100.64.x e gli indirizzi IPv6 privati: stampanti, NAS, router, i server dell’ufficio.",
+      "network.ranges.label": "Solo questi indirizzi",
+      "network.ranges.description": "Indirizzi o intervalli permessi anche quando il resto resta chiuso, separati da virgole: 192.168.1.50/32 (un NAS), 10.0.5.0/24.",
+      "network.always": "Sempre chiusi, qualunque eccezione: indirizzi link-local (metadati del cloud, 169.254.x), multicast e indirizzi riservati. Un nome si controlla di nuovo a ogni connessione, sull’indirizzo a cui punta davvero."
     }
   }
 }

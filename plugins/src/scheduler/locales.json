@@ -2,7 +2,7 @@
   "en": {
     "strings": {
       "@name": "Scheduler",
-      "@description": "Operations at a date and time or repeated, also with lilOS closed: reminders, backups of folders, web requests, Terminal commands, apps' services, opening apps and files, automations.",
+      "@description": "Operations at a date and time or repeated, also with lilOS closed: reminders, backups of folders, web requests, NetTest collections, Terminal commands, apps' services, opening apps and files, automations.",
       "@menus.scheduler.plan.label": "Schedule",
       "@actions.scheduler.copyFolder.label": "Copy this folder…",
       "@actions.scheduler.commandHere.label": "Command in this folder…",
@@ -332,13 +332,22 @@
       "opt.me": "Me ({name})",
       "opt.systemHint": "The system has no home: only reminders to the admins, services chosen for everyone and web requests without files.",
       "opt.otherHint": "It runs as that person, with their files and connections; they get a notification.",
-      "opt.enabled": "Turn it on now"
+      "opt.enabled": "Turn it on now",
+      "what.collection": "NetTest collection {file}",
+      "what.collectionEnv": "NetTest collection {file} ({env})",
+      "kind.collection.name": "NetTest collection",
+      "kind.collection.hint": "The requests of a .nettest file, with their checks",
+      "kind.collection.missing": "Install NetTest first",
+      "collection.file": "Collection",
+      "collection.env": "Environment",
+      "collection.envNone": "No environment",
+      "collection.hint": "The kernel sends the requests, also with lilOS closed. The operation fails when a request does not answer or a check or a test fails."
     }
   },
   "it": {
     "strings": {
       "@name": "Pianificazione",
-      "@description": "Operazioni a una data e ora o ripetute, anche a lilOS chiuso: promemoria, copie di cartelle, richieste web, comandi del Terminale, servizi delle app, aprire app e file, automazioni.",
+      "@description": "Operazioni a una data e ora o ripetute, anche a lilOS chiuso: promemoria, copie di cartelle, richieste web, collezioni di NetTest, comandi del Terminale, servizi delle app, aprire app e file, automazioni.",
       "@menus.scheduler.plan.label": "Pianifica",
       "@actions.scheduler.copyFolder.label": "Copia questa cartella…",
       "@actions.scheduler.commandHere.label": "Comando in questa cartella…",
@@ -668,7 +677,16 @@
       "opt.me": "Me ({name})",
       "opt.systemHint": "Il sistema non ha una home: solo promemoria agli amministratori, servizi scelti per tutti e richieste web senza file.",
       "opt.otherHint": "Gira come quella persona, con i suoi file e le sue connessioni; riceve una notifica.",
-      "opt.enabled": "Attiva subito"
+      "opt.enabled": "Attiva subito",
+      "what.collection": "Collezione di NetTest {file}",
+      "what.collectionEnv": "Collezione di NetTest {file} ({env})",
+      "kind.collection.name": "Collezione di NetTest",
+      "kind.collection.hint": "Le richieste di un file .nettest, con le loro verifiche",
+      "kind.collection.missing": "Installa prima NetTest",
+      "collection.file": "Collezione",
+      "collection.env": "Ambiente",
+      "collection.envNone": "Nessun ambiente",
+      "collection.hint": "Le richieste le manda il kernel, anche a lilOS chiuso. L’operazione fallisce quando una richiesta non risponde o una verifica o un test non passano."
     }
   }
 }
