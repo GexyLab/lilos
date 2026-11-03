@@ -247,7 +247,7 @@ Nessun agente fa commit o push: si decide dopo aver letto i report.
 
 ## Git
 
-- Repository: https://github.com/GexyLab/lilos, **privato** dal 3 novembre 2026 (le Actions consumano i minuti del piano). Il ramo predefinito è `development`; c'è anche `production`.
+- Repository: https://github.com/GexyLab/lilos. Il ramo predefinito è `development`; c'è anche `production`.
 - Finora si è lavorato direttamente su `development`. Con più persone conviene passare a un ramo per funzionalità e a pull request.
 - Messaggi di commit in italiano (vedi [Convenzioni](../sviluppatore/convenzioni.md#git)).
 - Non riscrivere la storia dei rami già pubblicati (niente `push --force`).
@@ -271,7 +271,7 @@ Nessun agente fa commit o push: si decide dopo aver letto i report.
 
 1. `npm run release:desktop` (dalla radice del repository): rifà `lilos-desktop/production/` da `development/`, usando solo ciò che è **committato** (rifiuta di partire con modifiche non salvate in `development/`). JavaScript e CSS sono minificati, i JSON compatti, gli script di sviluppo restano fuori. In `production/package.json`, `version` è la versione di lilOS portata (da `versions.json`, cioè dal `system.json` del repository ufficiale) e `programVersion` quella del programma (`development/package.json`). `npm run release:desktop -- --check` dice cosa scriverebbe senza scrivere. Rifiuta un `release-v` che esiste già: se cambia solo il programma, prima serve una nuova versione di lilOS (anche solo patch).
 2. Scrivi `changelog/release-vX.Y.Z.md` (le note della release GitHub).
-3. Commit, push e tag `release-vX.Y.Z`. `.github/workflows/lilos-desktop.yml` costruisce gli installer di Windows, macOS e Linux (`lilOS-Setup-X.Y.Z.exe`, …) e crea la release GitHub «lilOS X.Y.Z» nel repository ufficiale (pubblico), da cui il programma si aggiorna ([D76](decisioni.md#d76-gli-installer-del-programma-stanno-nelle-release-del-repository-ufficiale)). Serve il secret `RELEASES_TOKEN` in questo repository: un token *fine-grained* con **Contents: read and write** su `GexyLab/lilos-plugins-official`; senza, il job `release` si ferma.
+3. Commit, push e tag `release-vX.Y.Z`. `.github/workflows/lilos-desktop.yml` costruisce gli installer di Windows, macOS e Linux (`lilOS-Setup-X.Y.Z.exe`, …) e crea la release GitHub «lilOS X.Y.Z», da cui il programma si aggiorna.
 
 Prima: `npm run check` in `lilos-desktop/development/`. Dettagli e limiti: [README del programma](../../lilos-desktop/development/README.md#pubblicare). La prima release fatta così sarà lilOS 1.24.0 con programma 0.2.0.
 

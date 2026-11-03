@@ -2047,7 +2047,7 @@ lilOS si può usare anche solo dal browser: le funzioni di questa sezione, dove 
 
 ### Installare il programma
 
-Scarica l'installatore dalla pagina delle versioni di lilOS su GitHub ([GexyLab/lilos-plugins-official](https://github.com/GexyLab/lilos-plugins-official/releases)):
+Scarica l'installatore dalla pagina delle versioni di lilOS su GitHub ([GexyLab/lilos](https://github.com/GexyLab/lilos/releases)):
 
 | Sistema | File |
 | --- | --- |
@@ -2217,8 +2217,6 @@ Il programma si aggiorna dalle versioni su GitHub; **lilOS** invece continua ad 
 - **Mai**.
 
 **Controlla ora** cerca subito. Su **macOS** il programma non è firmato e non può sostituirsi da solo: ti avvisa, e l'aggiornamento lo installi tu dal nuovo `.dmg`.
-
-Il programma fino alla versione di lilOS 1.24.0 cercava gli aggiornamenti in un posto che non è più pubblico: **non si aggiorna da solo** e «Controlla ora» dà errore. Scarica una volta il nuovo installatore dalla [pagina delle versioni](https://github.com/GexyLab/lilos-plugins-official/releases) e installalo sopra quello che hai: lilOS, i dati e le impostazioni restano. Dopo, gli aggiornamenti tornano automatici.
 
 ### Cosa non è ancora possibile
 

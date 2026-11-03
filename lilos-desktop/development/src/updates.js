@@ -5,16 +5,15 @@ import { settings } from './store.js';
 
 /**
  * Updates of the program (not of lilOS: lilOS updates itself from the AppStore). From the latest
- * release of GitHub of the official repository (GexyLab/lilos-plugins-official, public: the
- * installers built at «pubblica release»; GexyLab/lilos is private), where latest.yml says the
- * version.
+ * release of GitHub (GexyLab/lilos, the installers built at «pubblica»), where latest.yml says
+ * the version.
  *   auto    downloaded in the background, installed when the program quits (Windows, Linux)
  *   notify  a notification with the new version: the page of the release opens in the browser
  *   off     nothing
  * On macOS the program is not signed: the system does not let it replace itself, so always notify.
  */
-const FEED = 'https://github.com/GexyLab/lilos-plugins-official/releases/latest/download';
-const RELEASES = 'https://github.com/GexyLab/lilos-plugins-official/releases/latest';
+const FEED = 'https://github.com/GexyLab/lilos/releases/latest/download';
+const RELEASES = 'https://github.com/GexyLab/lilos/releases/latest';
 const EVERY_MS = 6 * 3600_000;
 const { autoUpdater } = updater;
 

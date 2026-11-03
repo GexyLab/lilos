@@ -1885,20 +1885,3 @@ Conseguenze: se tutte le schede si chiudono non parte niente; un'automazione con
 **Conseguenze.** La prima release fatta così è lilOS 1.24.0 con programma 0.2.0. Le release `desktop-v*` già pubblicate restano com'erano. L'aggiornamento del programma legge sempre `releases/latest/download`.
 
 **Quando ripensarla.** Se il programma deve uscire più spesso di lilOS senza toccarlo.
-
-## D76. Gli installer del programma stanno nelle release del repository ufficiale
-
-**Decisione.** Deciso il 3 novembre 2026, quando `GexyLab/lilos` è diventato privato. Il workflow `.github/workflows/lilos-desktop.yml` crea la release «lilOS X.Y.Z» (tag `release-vX.Y.Z`) in **`GexyLab/lilos-plugins-official`**, pubblico, con il secret `RELEASES_TOKEN` (token *fine-grained*, Contents: read and write solo su quel repository; `github.token` scrive solo nel repository del workflow). Il programma cerca gli aggiornamenti in `https://github.com/GexyLab/lilos-plugins-official/releases/latest/download` (`src/updates.js`, `electron-builder.yml`), dalla versione 0.2.2.
-
-**Perché.** Le release di un repository privato non si scaricano senza accesso: `latest.yml` risponde 404, quindi né il download degli installer né l'aggiornamento automatico funzionano. Il repository ufficiale è già pubblico e contiene solo cose costruite, come gli installer.
-
-**Alternative scartate.** Un repository nuovo solo per le release: un posto in più da creare e tenere. Rendere pubblico `lilos` per una sola release, così i programmi installati ricevono il nuovo indirizzo: scartato, chi li ha li reinstalla a mano una volta.
-
-**Conseguenze.**
-
-- I programmi fino alla 0.2.1 (release `desktop-v0.1.1` e `release-v1.24.0`, rimaste nelle release private di `lilos`) non si aggiornano più: vanno reinstallati a mano dal repository ufficiale.
-- Il tag `release-vX.Y.Z` c'è in tutti e due i repository: in `lilos` sul commit del build, nel repository ufficiale sul ramo predefinito (lo crea la release). Il kernel e `fetch-runtime.mjs` leggono solo i tag `vX.Y.Z`, quindi lo ignorano.
-- La release «latest» del repository ufficiale deve restare quella del programma: là non si creano altre release.
-- Le Actions di `lilos`, privato, consumano i minuti del piano GitHub (macOS e Windows più di Linux).
-
-**Quando ripensarla.** Se il repository ufficiale torna privato, o se servono release separate per altri pacchetti.

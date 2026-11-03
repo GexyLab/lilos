@@ -2,10 +2,7 @@
 # Runs at the tag release-vX.Y.Z (made at «pubblica release», after npm run release:desktop made
 # production/ from development/); X.Y.Z is the version of lilOS the packages carry (production/
 # package.json "version"; the program's own is "programVersion")
-# and creates the GitHub release with the packages in the official repository
-# (GexyLab/lilos-plugins-official, public; this one is private): the program updates itself from
-# there. Writing there needs the secret RELEASES_TOKEN, a fine-grained token with Contents:
-# read and write on lilos-plugins-official (github.token only writes to this repository).
+# and creates the GitHub release with the packages: the program updates itself from there.
 name: lilOS desktop
 
 on:
@@ -114,14 +111,13 @@ jobs:
         with:
           path: packages
           merge-multiple: true
-      - name: GitHub release in the official repository
+      - name: GitHub release
         env:
-          GH_TOKEN: ${{ secrets.RELEASES_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
         run: |
-          [ -n "$GH_TOKEN" ] || { echo "Manca il secret RELEASES_TOKEN (token con Contents: read and write su GexyLab/lilos-plugins-official)"; exit 1; }
           notes="changelog/${GITHUB_REF_NAME}.md"
           [ -f "$notes" ] || { echo "lilOS ${GITHUB_REF_NAME#release-v}" > /tmp/notes.md; notes=/tmp/notes.md; }
           rm -f packages/builder-debug.yml
-          gh release create "$GITHUB_REF_NAME" packages/* -R GexyLab/lilos-plugins-official \
+          gh release create "$GITHUB_REF_NAME" packages/* \
             --title "lilOS ${GITHUB_REF_NAME#release-v}" \
             --notes-file "$notes" --latest
