@@ -1,0 +1,33 @@
+.welcome { height: 100%; padding: 24px 28px 18px; display: flex; flex-direction: column; gap: 16px; }
+.steps { display: flex; gap: 18px; list-style: none; font-size: 12px; color: var(--faint); font-weight: 600; }
+.steps li { display: flex; align-items: center; gap: 6px; }
+.steps i { font-style: normal; width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; background: var(--hover); font-size: 10.5px; }
+.steps li[aria-current="step"] { color: var(--accent); }
+.steps li[aria-current="step"] i { background: var(--accent); color: #fff; }
+.steps li.done i { background: #e3f5ea; color: #157a42; }
+
+.page { display: flex; flex-direction: column; gap: 10px; flex: 1; min-height: 0; overflow: auto; padding: 2px; }
+#user { max-width: 420px; gap: 12px; }
+#user > p { color: var(--dim); }
+
+.choice { border: 1px solid var(--border); border-radius: 9px; padding: 12px 14px; display: flex; gap: 12px; align-items: flex-start; cursor: pointer; }
+.choice:hover { background: #fbfbfc; }
+.choice:has(input[type=radio]:checked) { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.choice.off { opacity: .55; cursor: default; }
+.choice input[type=radio] { margin-top: 3px; accent-color: var(--accent); }
+.ci { width: 34px; height: 34px; border-radius: 8px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); flex: none; }
+.ci svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.ci.found { background: #e3f5ea; color: #157a42; }
+.body { display: grid; gap: 2px; flex: 1; min-width: 0; }
+.body b { font-size: 13.5px; display: flex; gap: 8px; align-items: center; }
+.body .text { color: var(--dim); font-size: 12px; }
+.body .text code { font: 11px var(--mono); }
+.more { display: grid; gap: 8px; margin-top: 8px; max-width: 420px; }
+.pill { font-style: normal; font-size: 10.5px; font-weight: 600; padding: 1px 6px; border-radius: 9px; background: var(--accent-soft); color: var(--accent); }
+.pill.grey { background: var(--hover); color: var(--dim); }
+
+.working { display: flex; align-items: center; gap: 10px; }
+#ready .log { flex: 1; height: auto; min-height: 140px; }
+
+footer { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.actions { display: flex; gap: 8px; }

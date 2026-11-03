@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:">
+<title>lilOS</title>
+<link rel="stylesheet" href="pages.css">
+<link rel="stylesheet" href="welcome.css">
+</head>
+<body>
+<main class="welcome">
+  <div class="head">
+    <img class="logo" src="../assets/logo.svg" alt="">
+    <div><h1 data-t="title"></h1><p data-t="subtitle"></p></div>
+  </div>
+  <ol class="steps" aria-label="">
+    <li data-step="where"><i>1</i><span data-t="step.where"></span></li>
+    <li data-step="user"><i>2</i><span data-t="step.user"></span></li>
+    <li data-step="ready"><i>3</i><span data-t="step.ready"></span></li>
+  </ol>
+
+  <section id="where" class="page" role="radiogroup">
+    <label class="choice" id="choice-local">
+      <input type="radio" name="where" value="local">
+      <span class="ci"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg></span>
+      <span class="body"><b><span data-t="local.title"></span> <em class="pill" data-t="recommended"></em></b><span class="text" id="local-text"></span></span>
+    </label>
+    <label class="choice" id="choice-remote">
+      <input type="radio" name="where" value="remote">
+      <span class="ci"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="6" rx="1.5"/><rect x="4" y="14" width="16" height="6" rx="1.5"/></svg></span>
+      <span class="body"><b data-t="remote.title"></b><span class="text" data-t="remote.text"></span>
+        <span class="more" id="remote-more" hidden>
+          <input class="input mono" id="remote-url" type="url" placeholder="https://lilos.azienda.it" autocomplete="url" spellcheck="false">
+          <label class="check"><input type="checkbox" id="remote-trusted"><span data-t="remote.trusted"></span></label>
+        </span>
+      </span>
+    </label>
+    <div id="installed"></div>
+  </section>
+
+  <section id="user" class="page" hidden>
+    <p data-t="user.text"></p>
+    <div class="field"><label for="username" data-t="user.name"></label><input class="input" id="username" autocomplete="username" spellcheck="false" maxlength="32"><span class="hint" data-t="user.nameHint"></span></div>
+    <div class="field"><label for="password" data-t="user.password"></label><input class="input" id="password" type="password" autocomplete="new-password" maxlength="256"></div>
+    <div class="field"><label for="password2" data-t="user.repeat"></label><input class="input" id="password2" type="password" autocomplete="new-password" maxlength="256"><span class="hint" data-t="user.passwordHint"></span></div>
+  </section>
+
+  <section id="ready" class="page" hidden>
+    <div class="working"><span class="spinner"></span><b id="work-title"></b></div>
+    <div class="log" id="log" role="log" aria-live="polite"></div>
+  </section>
+
+  <div class="error" id="error" role="alert" hidden></div>
+
+  <footer>
+    <span class="hint" id="version"></span>
+    <span class="actions">
+      <button class="btn" id="back" type="button" data-t="back" hidden></button>
+      <button class="btn primary" id="next" type="button" data-t="next"></button>
+    </span>
+  </footer>
+</main>
+<script type="module" src="welcome.js"></script>
+</body>
+</html>

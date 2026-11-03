@@ -1,0 +1,5 @@
+#!/bin/sh
+# lilOS as the whole desktop: the session «lilOS» of the login screen starts this.
+# cage (a Wayland compositor for one program) shows lilOS full screen; quitting lilOS ends the session.
+DIR="$(cd "$(dirname "$0")/../.." && pwd)"
+exec cage -s -- "$DIR/lilos" --session "$@"

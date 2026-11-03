@@ -1,0 +1,28 @@
+{
+  "name": "lilos-desktop",
+  "productName": "lilOS",
+  "version": "0.1.1",
+  "description": "lilOS nel suo programma per Windows, macOS e Linux, senza browser",
+  "author": "GexyLab",
+  "homepage": "https://github.com/GexyLab/lilos",
+  "license": "UNLICENSED",
+  "private": true,
+  "type": "module",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "runtime": "node scripts/fetch-runtime.mjs",
+    "check": "node --check src/main.js && node scripts/check.mjs",
+    "dist": "electron-builder --publish never",
+    "dist:win": "electron-builder --win --publish never",
+    "dist:mac": "electron-builder --mac --publish never",
+    "dist:linux": "electron-builder --linux --publish never"
+  },
+  "dependencies": {
+    "electron-updater": "6.8.11"
+  },
+  "devDependencies": {
+    "electron": "45.2.1",
+    "electron-builder": "26.18.0"
+  }
+}
