@@ -22,6 +22,7 @@ Gli altri moduli (`src/`) sono il sistema: scrivania, desktop, barra.
 - [sdk/core/fs.js](#sdkcorefsjs)
 - [sdk/core/net.js](#sdkcorenetjs)
 - [sdk/core/serial.js](#sdkcoreserialjs)
+- [sdk/core/host.js](#sdkcorehostjs)
 - [sdk/core/pipes.js e sdk/core/pipeCatalog.js](#sdkcorepipesjs-e-sdkcorepipecatalogjs)
 - [sdk/core/automation.js](#sdkcoreautomationjs)
 - [sdk/core/schedule.js e sdk/core/scheduleRules.js](#sdkcoreschedulejs-e-sdkcoreschedulerulesjs)
@@ -64,6 +65,7 @@ Gli altri moduli (`src/`) sono il sistema: scrivania, desktop, barra.
 - [sdk/ui/selectionGesture.js](#sdkuiselectiongesturejs)
 - [sdk/ui/Window.js](#sdkuiwindowjs)
 - [sdk/ui/SettingsView.js e sdk/ui/SettingsWindow.js](#sdkuisettingsviewjs-e-sdkuisettingswindowjs)
+- [Il programma lilOS (`lilos-desktop`)](#il-programma-lilos-lilos-desktop)
 - [Il kernel](#il-kernel)
 - [Eventi del bus](#eventi-del-bus)
 - [Dati salvati](#dati-salvati)
@@ -787,6 +789,62 @@ if (info) {
 
 ---
 
+## sdk/core/host.js
+
+### `host`
+
+Il **programma lilOS** (`lilos-desktop/`, vedi [Il programma lilOS](#il-programma-lilos-lilos-desktop)) vista dalla pagina: lilOS nella sua finestra su Windows, macOS e Linux, con il computer a portata di mano. `host` avvolge `window.lilosHost`, che il programma mette nella pagina. **In un browser `host.native` è `false`: `badge`, `focus` e `on` non fanno niente e le altre chiamate lanciano «Serve il programma lilOS (non funziona nel browser)»**: mostra i comandi che lo usano solo se `host.native` è vero. Da SDK 0.15.0. È un export dell'SDK ma **non dei servizi e delle app isolate**: la sandbox non riceve `window.lilosHost` (i precaricamenti non girano negli iframe), e un'app installata non ha `lilos.host`. Le app di sistema lo importano con `import * as sdk from '@lilos/sdk'` e leggono `sdk.host`, così girano anche con un lilOS più vecchio dove non c'è.
+
+Le chiamate segnate **(T)** funzionano solo se il programma si fida di questo lilOS: il suo (`kind: 'local'`) o un server segnato **di fiducia** dall'utente. Per gli altri il programma risponde «Non permesso per questo server: aggiungilo come server di fiducia». Vedi [il ponte](#il-ponte-windowliloshost).
+
+| Membro | Descrizione |
+| --- | --- |
+| `native` | `true` dentro il programma. |
+| `trusted` | `true` se il programma si fida di questo lilOS. Vale `false` finché la prima risposta di `info()` non è arrivata (all'avvio della pagina): leggilo dopo `await host.info()`. |
+| `info()` → `Promise` | `{ program, os, osVersion, arch, electron, chrome, node, runtime, lilos, profile, gpu, credits }`. `os`: `'win32'` \| `'darwin'` \| `'linux'`. `program`: la versione del programma. `runtime`: le versioni incluse (`{ node, git, postgres, lilos }`) o `null`. `lilos`: la versione del lilOS fatto girare dal programma (solo `profile.kind === 'local'`). `profile`: `{ id, name, kind: 'local' \| 'remote', trusted, thisComputer }`; `thisComputer` è vero se il kernel gira su questo computer (il programma lo gestisce, o un lilOS di fiducia su `localhost`), così i percorsi del kernel sono quelli del computer. `gpu`: `[{ vendorId, deviceId, active, name }]`. `credits`: i riconoscimenti del programma. |
+| `badge(count)` | Il numero sull'icona del programma (barra delle applicazioni, Dock): `0` lo toglie, al massimo 9999. Lo imposta lilOS dalle notifiche non lette. |
+| `focus()` | Porta la finestra in primo piano (la ripristina se ridotta a icona). |
+| `openOnComputer(id)` **(T)** → `{ token }` | Apre il file `id` con il programma del computer per il suo tipo: ne scrive una copia in una cartella temporanea e la apre. Quando quel programma **salva**, il contenuto torna in lilOS (`fs.write`) e `host` emette `saved` `{ id, name }` (o `save-failed` `{ id, name, error }`). Lancia per un nodo che non è un file, oltre 512 MB, o per i file che il computer eseguirebbe: `.exe`, `.bat`, `.msi`, `.ps1`, `.js`, `.sh`, `.py`, `.app`, `.dmg`, `.deb`, `.lnk`, `.url` e simili (`runnable`, in `files.js`). Le copie temporanee si cancellano all'avvio e all'uscita del programma. |
+| `exportToComputer(ids)` → `{ saved: [percorso] } \| null` | Salva i file (nodi `file`; massimo 500) sul computer: con uno solo la finestra «Salva» (cartella Download come predefinita), con più la finestra per scegliere una cartella (nomi già presenti: `nome (2).ext`). `null` se l'utente annulla. Funziona anche con un server non di fiducia. |
+| `openPath(percorso)` **(T)**, `reveal(percorso)` **(T)** | Un file o una cartella **del computer**, solo se `info().profile.thisComputer`: aprirlo con il suo programma (stesso rifiuto dei file eseguibili) o mostrarlo nel gestore file. `percorso` assoluto e esistente. |
+| `pickFolder()` **(T)** → `percorso \| null` | La finestra del computer per scegliere una cartella. `null` se annulla o se il kernel non è su questo computer. |
+| `devices.list()` **(T)** → `Promise` | `{ serial, usb, hid, cameras, microphones, speakers, gpu, gpuFeatures, printers, displays, drives }`. Il programma dà `gpu`, `gpuFeatures`, `printers`, `displays` e `drives` (`[{ id, name, path, size, free }]`); la pagina aggiunge quello che il browser sa: porte seriali, USB e HID già autorizzate, e fotocamere, microfoni e altoparlanti (`enumerateDevices`). I dispositivi che la pagina vede sono tutti, tranne con la regola `ask`. |
+| `devices.eject(id)` **(T)** | Espelle un'unità rimovibile (`id` da `drives`). Lancia «Espulsione non riuscita: …». |
+| `devices.choose(idRichiesta, idDispositivo \| null)` | La risposta di lilOS all'evento `choose`; `null`: nessuno. |
+| `settings.get()` → `Promise` | Le impostazioni del programma, che sono **del computer, non dell'utente**: `display` (`'window'` \| `'fullscreen'` \| `'kiosk'`), `monitor` (id di un monitor o `null`), `kioskKeys`, `startAtLogin`, `stayInTray`, `notifications` (booleani), `updates` (`'auto'` \| `'notify'` \| `'off'`), `hardware` (`'ask'` \| `'declared'` \| `'all'`). Predefiniti: finestra, `kioskKeys` e `stayInTray` e `notifications` accesi, `startAtLogin` spento, `updates` `'auto'` (`'notify'` su macOS), `hardware` `'declared'`. Si legge anche da un server non di fiducia. |
+| `settings.set(chiave, valore)` **(T)** → `Promise` | Cambia una impostazione e restituisce tutte. Lancia «Valore non valido per …» o «Impostazione sconosciuta: …». L'evento `settings` arriva a tutte le finestre. |
+| `displays()` → `Promise<[{ id, label, primary, width, height, scale }]>` | I monitor. |
+| `servers.list()` **(T)** | I lilOS che il programma apre: `[{ id, name, kind, url, trusted, current, status?, version? }]` (`status`: `'stopped'` \| `'starting'` \| `'running'` \| `'failed'`, solo per `kind: 'local'`). |
+| `servers.add({ name, url, trusted })` **(T)** | Aggiunge un server remoto. `url`: `https://…`, oppure `http://` solo per `localhost`, `127.0.0.1` e `[::1]`; si salva l'origine (senza percorso). Lancia «Indirizzo non valido» o «Serve un indirizzo https://…». Restituisce `{ id, name, url, trusted }`. |
+| `servers.remove(id)` **(T)**, `servers.open(id)` **(T)** | Toglie un server (non quello di questo computer né quello della finestra da cui si chiama) / apre la sua finestra. |
+| `local.status()` **(T)** → `{ status, error, version, url, installed }`, `local.restart()` **(T)**, `local.stop()` **(T)**, `local.openInBrowser()` **(T)** | Il lilOS che il programma fa girare qui (kernel e database). `restart()` riavvia il kernel, non il database. |
+| `updates.check()` → `{ status, version, error }` | Controlla gli aggiornamenti **del programma** (non di lilOS). `status`: `'current'` \| `'available'` \| `'downloaded'` \| `'error'` \| `'dev'` (copia di sviluppo: niente aggiornamenti). Funziona anche con un server non di fiducia. |
+| `updates.install()` **(T)** | Con una versione scaricata riavvia e aggiorna; altrimenti apre in pagina la release. |
+
+**Eventi** (`on(tipo, fn)` → `off`): il programma li manda dal primo `on` di quel tipo.
+
+| Evento | Dati | Quando |
+| --- | --- | --- |
+| `drives` | `[unità]` | Le unità rimovibili (chiavette, schede) sono cambiate. Il programma le osserva solo mentre c'è chi ascolta. |
+| `settings` | impostazioni | Una impostazione è cambiata (anche in un'altra finestra). |
+| `display` | `'window'` \| `'fullscreen'` \| `'kiosk'` | La finestra ha cambiato modo. |
+| `open` | `{ path }` | Un collegamento `lilos://open?path=/Documenti/x.txt` è stato aperto. |
+| `open-settings` | `'computer'` | Il menu del programma (macOS: **Impostazioni…**, ⌘,) chiede le impostazioni. |
+| `choose` | `{ id, kind, devices: [{ id, name, detail, thumbnail? }], update? }` | Una pagina vuole un dispositivo o una sorgente da condividere. `kind`: `'serial'`, `'usb'`, `'hid'`, `'bluetooth'`, `'screen'`. Chi ascolta **deve** rispondere con `devices.choose(id, deviceId \| null)`; se nessuno ascolta, il programma apre un suo riquadro. Per Bluetooth l'elenco cresce: lo stesso `id` con `update: true` e l'elenco nuovo. |
+| `saved`, `save-failed` | `{ id, name }`, `{ id, name, error }` | Solo in questa pagina: un file aperto con `openOnComputer` è stato salvato dal programma del computer (o no). |
+
+```js
+import * as sdk from '@lilos/sdk';
+
+if (sdk.host?.native) {
+  const { os, profile } = await sdk.host.info();
+  if (profile.thisComputer && sdk.host.trusted) {
+    const folder = await sdk.host.pickFolder();   // finestra del computer
+    if (folder) console.log(os, folder);
+  }
+}
+```
+
 ## sdk/core/term.js
 
 ### `term`
@@ -1022,9 +1080,9 @@ Evento `change` (senza dati): è cambiato il catalogo, un'iscrizione o l'ordine.
 
 **Aperti alle app solo per guardare** (`after`; la fase `before` è dei gestori sincroni di lilOS, che possono fermarli):
 
-`file.create` `{ node }` · `file.rename` `{ node, from }` · `file.move` `{ node, from }` · `file.copy` `{ node, source }` · `file.remove` `{ node, ids }` · `trash.put` `{ ids }` · `trash.restore` `{ ids }` · `trash.purge` `{ count, ids }` · `tags.assign` `{ node, tags }` · `window.open` / `window.close` `{ app, entry, title }` · `workspace.switch` `{ from, to }` · `settings.change` `{ key, value }` · `desk.place` `{ workspace, reason, items }`.
+`file.create` `{ node }` · `file.rename` `{ node, from }` · `file.move` `{ node, from }` · `file.copy` `{ node, source }` · `file.remove` `{ node, ids }` · `trash.put` `{ ids }` · `trash.restore` `{ ids }` · `trash.purge` `{ count, ids }` · `tags.assign` `{ node, tags }` · `window.open` / `window.close` `{ app, entry, title }` · `workspace.switch` `{ from, to }` · `settings.change` `{ key, value }` · `desk.place` `{ workspace, reason, items }` · `device.attach` `{ kind, id, name, path? }` · `device.detach` `{ kind, id, name }`.
 
-`desk.place` dice che delle icone della scrivania hanno cambiato posto: `reason` è `'drag'` (l'utente le ha trascinate), `'arrange'` (Riordina icone) o `'place'` (le ha messe `Desktop.place`, per esempio un'automazione); `items` è `[{ node, x, y, from: { x, y } }]`, solo per i nodi del file system che si sono mossi davvero (non gli elementi fissi né le icone delle workarea); `workspace` è il workspace della scrivania. Lo manda `Desktop` con `pipes.notify`. `trash.purge` ha `ids` (gli id eliminati dal Cestino) oltre a `count`.
+`desk.place` dice che delle icone della scrivania hanno cambiato posto: `reason` è `'drag'` (l'utente le ha trascinate), `'arrange'` (Riordina icone) o `'place'` (le ha messe `Desktop.place`, per esempio un'automazione); `items` è `[{ node, x, y, from: { x, y } }]`, solo per i nodi del file system che si sono mossi davvero (non gli elementi fissi né le icone delle workarea); `workspace` è il workspace della scrivania. Lo manda `Desktop` con `pipes.notify`. `device.attach` e `device.detach` ci sono **solo dentro il programma lilOS** ([`src/host/desktop.js`](#srchostdesktopjs)): `kind` è `'drive'` (una chiavetta USB o scheda di memoria; `id` e `name` come in `host.devices.list().drives`, e `path` è la sua cartella sul computer, solo in `device.attach`) o `'serial'` (una porta seriale che la pagina vede; `id` è quello di `serial.ports()`). Non partono per i dispositivi già collegati all'avvio. `trash.purge` ha `ids` (gli id eliminati dal Cestino) oltre a `count`.
 
 **Protetti** (solo lilOS e le app di sistema; solo per guardare): `system.ready` `{ at }` · `session.login` `{ user, workspace }` · `session.logout` `{}` · `apps.install` `{ id, version }` · `apps.update` `{ id, version, from }` · `apps.remove` `{ id }` · `permissions.change` `{ id, granted }` · `settings.system` `{ isolated }` (solo il modo in cui girano le app) · `pipes.change` `{}`.
 
@@ -1581,6 +1639,9 @@ Trascinamento di file e cartelle, uguale in ogni vista che li mostra (scrivania,
 | `dropZone(el, zone)` → `() => void` | Rende `el` un'area che accetta rilasci. Restituisce la funzione che la toglie. Vedi `zone` sotto. |
 | `dragItems(e, options)` | Avvia il trascinamento da un `pointerdown` (`e`). Vedi le opzioni sotto. Non restituisce nulla: i listener si tolgono da soli al rilascio. |
 | `movableInto(ids, folderId)` → `string[] \| null` | Gli id tra `ids` che possono andare in `folderId`; `null` se il rilascio non è possibile: `folderId` non è una cartella, un nodo trascinato è la cartella stessa o ne contiene una, oppure non cambierebbe nulla. I nodi di sistema sono sempre esclusi. Se tra gli `ids` ci sono elementi del cestino (`fs.isTrashed`), restituisce quelli: possono andare in qualsiasi cartella. |
+| `importFiles(entries, folderId, { ids = [] } = {})` → `Promise<string[]>` | File e cartelle **del computer** (trascinati da Esplora file, Finder…) copiati in `folderId`, con le sottocartelle. `entries` è `[{ file: File \| null, path: [cartelle] }]` (`file: null` è una cartella vuota). Crea i nodi e scrive i contenuti con `fs.write`; una cartella con lo stesso nome (senza distinguere maiuscole) si unisce. `ids`: id per gli elementi di primo livello, in ordine, perché la scrivania li metta dove sono stati lasciati prima che esistano. Restituisce gli id degli elementi di primo livello. Dice con una notifica quanti file ha copiato (`Copiati 3 file dal computer in Home`) e quanti no; **in una cartella di Rete non copia** («I file del computer si copiano in una cartella di lilOS: da lì, trascinali sul server»). Al massimo **2000** file per rilascio (`Copiati solo i primi 2000 file`). Funziona anche nel browser. |
+| `connectFileDrops()` | Comincia ad accettare i file del computer rilasciati sulla pagina (una volta; lo chiama `system.js`). Un rilascio con file è sempre preso (così il browser non apre il file), e la cartella sotto il puntatore si cerca come per i nodi: la `zone` o l'elemento marcato con `markItem` di una cartella. Il bersaglio prende `drop-target` e il puntatore mostra «copia»; fuori da una cartella valida non si copia niente. Una finestra (`.window`) ferma la ricerca. |
+| `newIds(n)` → `string[]`, `topCount(entries)` → `number` | `n` identificatori (`uid`); quanti elementi di primo livello fanno `entries` (uno per file sciolto, uno per cartella di primo livello). |
 | `moveInto(stack, ids, folderId)` → `string[]` | Sposta con `moveNodes` e manda una notifica (`Spostato «nome» in Documenti`, `Spostati 3 elementi in Home`; il percorso è `fs.path`). Un errore diventa una notifica `Non si può spostare: …` e restituisce `[]`. Restituisce gli id spostati. Con elementi del cestino li **ripristina** in `folderId` con `restoreNodes(stack, ids, folderId)` (notifica `Ripristinato «nome» in …`) e restituisce gli id ripristinati: così una vista del cestino che li trascina con `dragItems` li rimette dove vengono lasciati, scrivania compresa (nel punto del rilascio). |
 
 **`zone`** (tutte le proprietà sono facoltative):
@@ -1591,6 +1652,8 @@ Trascinamento di file e cartelle, uguale in ogni vista che li mostra (scrivania,
 | `drop(ids, ev, stack)` | Fa lei il rilascio. Con `folder` sostituisce il `moveInto` (i `ids` sono già filtrati); senza `folder` è l'unica azione. |
 | `accepts(ids)` | Per le zone senza `folder`: `false` per rifiutare. Senza `drop` una zona senza `folder` non accetta nulla. |
 | `target(hit, x, y, ids)` | Per le zone che decidono tutto da sole: restituisce `{ el, run(ev, stack) }` (`el` prende `drop-target`) o `null`. `x` e `y` sono le coordinate del puntatore. Ha la precedenza su `folder`, `drop` e `accepts`. Serve quando bisogna distinguere punti diversi della stessa area, come il centro e i bordi di una voce della barra laterale del File Manager. |
+| `files(hit)` | Per i file **del computer** (vedi `importFiles`): l'id della cartella in cui vanno, o `null` per non accettarli. Se manca si usa `folder(hit)`. Serve alle zone che decidono con `target` e quindi non hanno `folder` (la lista del File Manager lo dà così, con `null` nel Cestino e nelle viste dei tag). |
+| `importFiles(entries, ev)` | Prende lei i file del computer (la cartella resta quella di `files` o `folder`): la scrivania li allinea dal punto di rilascio e chiama `importFiles(entries, cartella, { ids })`. Senza, si usa `importFiles(entries, cartella)`. |
 | `highlight(folder)` | L'elemento che riceve la classe `drop-target`, o `null` per non evidenziare nulla. Predefinito: la zona stessa. Con `folder` riceve l'id calcolato; senza, `null`. |
 
 **Opzioni di `dragItems`**
@@ -3487,6 +3550,72 @@ Predefinito: **Nuovo** (Cartella, Workarea, separatore, Documento di testo, Docu
 
 ---
 
+## Il programma lilOS (`lilos-desktop`)
+
+Un guscio Electron (`lilos-desktop/development/`, vedi il suo [README](../../lilos-desktop/development/README.md)) che apre lilOS in una finestra e, se l'utente lo sceglie, fa girare sul computer anche il kernel e PostgreSQL. **La pagina è quella di sempre**, caricata dall'indirizzo del kernel (`http://127.0.0.1:<porta>` per il lilOS del programma, l'indirizzo del server negli altri casi): il programma non ha una sua copia dell'interfaccia. Motivi: [D73](../interna/decisioni.md#d73-il-programma-lilos-un-guscio-electron-con-il-kernel-e-postgresql-inclusi). Per la pagina, il programma è `host` dell'SDK ([`sdk/core/host.js`](#sdkcorehostjs)); qui sotto il lato del programma e di lilOS.
+
+### Il ponte `window.lilosHost`
+
+`src/preload.cjs` espone nella pagina `window.lilosHost` (oggetto congelato, `version: 1`). Ogni chiamata è `ipcRenderer.invoke('lilos-host', nome, ...argomenti)` e restituisce una promessa. `bridge.js` risponde.
+
+| Nome | Funzione |
+| --- | --- |
+| `info`, `badge`, `focus` | `host.info()`, `host.badge(n)` (su Windows la pagina disegna l'icona con il numero: `badge(n, 'data:image/png;base64,…')`), `host.focus()` |
+| `settings.get`, `settings.set` | Le impostazioni del programma (`settings.json`). Chiavi: `display`, `monitor`, `kioskKeys`, `startAtLogin`, `stayInTray`, `notifications`, `updates`, `hardware` (`PUBLIC_KEYS` di `store.js`; il resto, come la password del database, non esce) |
+| `window.setDisplay`, `window.displays` | Il modo della finestra (equivale a `settings.set('display', …)`); i monitor |
+| `files.openOnComputer`, `files.exportToComputer`, `files.openPath`, `files.reveal`, `files.pickFolder` | I file e il computer (`files.js`) |
+| `devices.list`, `devices.choose`, `devices.eject` | Cosa ha il computer; la risposta a `choose`; espellere un'unità |
+| `servers.list`, `servers.add`, `servers.remove`, `servers.open` | I server (profili) |
+| `local.status`, `local.restart`, `local.stop`, `local.openInBrowser` | Il lilOS del programma |
+| `updates.check`, `updates.install` | Gli aggiornamenti del programma |
+
+`on(nome, fn)` → `off`: ascolta gli eventi del programma (`choose`, `drives`, `file-changed`, `settings`, `display`, `open`, `open-settings`). Il programma sa quali eventi la pagina ascolta (`lilos-host:listen`): senza `choose` mostra un suo riquadro per scegliere il dispositivo, e osserva le unità solo se c'è chi ascolta `drives`.
+
+**Regole di fiducia** (in `bridge.js` e `windows.js`; sono la parte che non va indebolita):
+
+1. **Solo una finestra di lilOS**. La richiesta deve venire dal `webContents` di una finestra aperta per un profilo; le pagine del programma (`file:`, primo avvio e stato) non hanno `lilosHost`, ma un `window.lilosShell` più piccolo, che risponde solo a loro.
+2. **Solo la cornice principale**. I precaricamenti non girano negli `iframe` (dove vivono le app isolate), e `bridge.js` rifiuta comunque ciò che non viene da `contents.mainFrame`. Un'app isolata non può quindi chiamare il programma: lo fa la pagina, con `lilos.*`.
+3. **Solo l'origine del profilo**. L'indirizzo della cornice deve avere la stessa origine di quello del server aperto in quella finestra. Altrimenti «Richiesta non permessa».
+4. **Una finestra non esce dal suo server**. `will-navigate` e `will-redirect` verso un'altra origine sono bloccati e l'indirizzo si apre nel browser di sistema (solo `http:`, `https:`, `mailto:`). Nuove finestre: solo quelle di accesso dei fornitori (nome `lilos-signin-…`, stessa sessione, senza ponte) e le schede vuote che lilOS riempie subito dopo (poi vanno nel browser).
+5. **Un server non di fiducia ha un ponte ridotto**. Il lilOS del programma (`kind: 'local'`) è sempre di fiducia; un server remoto lo è solo se l'utente ha segnato `trusted`. Gli altri possono chiamare solo: `info`, `badge`, `focus`, `settings.get`, `window.displays`, `files.exportToComputer`, `devices.choose` e `updates.check`. Il resto dà «Non permesso per questo server: aggiungilo come server di fiducia». Un server non di fiducia non conosce nessun percorso del computer (se non quello dove l'utente ha scelto di salvare con `files.exportToComputer`), e `files.openPath`, `files.reveal` e `files.pickFolder` valgono anche per un server di fiducia solo se il kernel è su questo computer (`onThisComputer`: il lilOS del programma, o un server di fiducia su un indirizzo di loopback).
+6. **Ogni finestra ha la sua sessione** (`persist:p-<id del profilo>`): cookie e dati di un server non sono quelli di un altro.
+
+I permessi di Chromium li decide `devices.js`, uguale per tutte le sessioni: a una finestra di lilOS di fiducia sono concessi `notifications`, `clipboard-read`, `clipboard-sanitized-write`, `fullscreen`, `pointerLock`, `keyboardLock`, `media`, `midi`, `midiSysex`, `window-management`, `display-capture`, `speaker-selection` e `geolocation`; il resto è negato. Seriale, USB, HID e Bluetooth dipendono dall'impostazione `hardware`: con `ask` solo i dispositivi già scelti (ricordati per tipo, produttore, prodotto e numero di serie), con `declared` e `all` tutti quelli collegati. Quale **app** li usa lo decide lilOS con i suoi permessi (vedi `hardwareRule()`). Scegliere una porta, un dispositivo o lo schermo da condividere vuol dire che il programma manda l'evento `choose` e `src/host/desktop.js` apre un riquadro (`messageBox`) di lilOS; la risposta è `host.devices.choose`. Un server **non di fiducia** ha solo `notifications`, `clipboard-sanitized-write`, `fullscreen` e `pointerLock`: niente dispositivi (seriale, USB, HID, Bluetooth), fotocamera, microfono, condivisione dello schermo, MIDI né posizione.
+
+### `src/host/desktop.js`
+
+Collega la pagina al programma. `connectDesktop({ wm })`, chiamata da `src/system.js` dopo `connectServices()`, **non fa niente in un browser** (`host.native` falso); altrimenti:
+
+- mette la classe `in-program` su `<html>`;
+- il numero di notifiche non lette su `host.badge` (`notifications` `change` e `new`);
+- le notifiche nuove diventano `Notification` del sistema quando `document.hasFocus()` è falso e l'impostazione `notifications` è accesa (un clic: `host.focus()`, segna come letta ed esegue l'azione con `runAction`);
+- `host.on('choose')` apre il riquadro con un campo `select` (per Bluetooth, dopo 2,5 s se l'elenco è vuoto) e risponde con `host.devices.choose`;
+- `host.on('open', { path })`: `lilos://open?path=…` apre il file (`openFile`) o la cartella (`item:open`); un percorso che non c'è manda una notifica `warning`;
+- `host.on('open-settings')` apre il Pannello di controllo sulla scheda Computer;
+- `saved` e `save-failed` diventano notifiche;
+- **chiavette USB**: con il kernel su questo computer (`info().profile.thisComputer`), per un amministratore o con un solo utente, e se `net.protocols` ha `local`, ogni unità di `drives` diventa una connessione `netfs-local` (`net.create({ protocol: 'local', values: { folder, readOnly: false }, auto: true, remember: true })` e `net.connect`), con la notifica «… è in Rete › Questo computer». Quando l'unità sparisce la connessione si toglie (`net.remove`). L'associazione unità → connessione sta in `storage` sotto la chiave `desktop-drives` (`{ <id unità>: <id connessione> }`).
+- **eventi dei dispositivi** per le pipe: `device.attach` `{ kind: 'drive' \| 'serial', id, name, path? }` e `device.detach` `{ kind, id, name }`, non per i dispositivi già presenti all'avvio. Le unità vengono dal programma (evento `drives`: il primo che arriva fa da punto di partenza), le porte seriali dall'evento `change` di [`serial`](#sdkcoreserialjs), quindi solo quelle che la pagina vede.
+
+Esporta due funzioni:
+
+| Esportazione | Descrizione |
+| --- | --- |
+| `hardwareRule()` → `'ask' \| 'declared' \| 'all'` | L'impostazione `hardware` del programma; `'declared'` fuori dal programma. In `src/apps/packages/methods.js`, `lilos.serial` è concesso all'app con il permesso `serial`, **oppure a ogni app con `'all'`**. |
+
+`scripts/host-shims.mjs` dà al modulo che genera una variabile propria, `__lilosApi` (prima `host`): ora che l'SDK esporta `host`, una `const host` locale entrerebbe in conflitto con l'esportazione.
+
+### Le app del Pannello di controllo e del File Manager
+
+- **Pannello di controllo → Computer** (`plugins/src/settings/computer.js`): la scheda c'è solo se `sdk.host?.native`; ha le sottoschede **Programma** (versioni, aggiornamenti, avvio, area di notifica, notifiche, riconoscimenti), **Schermo** (finestra, schermo intero, kiosk, monitor, tasti di sistema, limiti per sistema), **Hardware** (la regola `hardware`, ciò che ha il computer, unità rimovibili) e **Server** (profili e, se il kernel è sul computer, le cartelle di `netfs-local`). Le impostazioni sono del computer: leggono e scrivono `host.settings`. Il kiosk si sceglie solo da amministratore; per uscire, un non amministratore apre un riquadro con `validate` che chiama `POST /api/session/verify` e vuole `role === 'admin'`. Il Pannello legge `host` con `import * as sdk` (un lilOS più vecchio non lo ha).
+- **Pannello di controllo → Cartelle del computer** (`cloud.js`, scheda `localfolders`, modulo `netfs-local`): le impostazioni del modulo (`roots`).
+- **File Manager** (`plugins/src/files/computer.js`, `computerEntries(nodes)` → voci di menu, con `'-'` davanti): **Apri sul computer** (`host.openOnComputer`, o `host.openPath` per un file di una connessione `local`), **Mostra nella cartella del computer** (`host.reveal`), **Esporta sul computer…** (`host.exportToComputer`, solo file). Le prime due solo con `host.trusted`. Il percorso del computer si ricava dalla cartella della connessione (`mount.values.folder`) più il percorso nella connessione, con `\` o `/` secondo il sistema. `netfs-local` è tra le dipendenze opzionali dell'app.
+
+### Dati del programma
+
+Le impostazioni sono in `settings.json` nella cartella dei dati del programma (permessi `0600`: ci sono la password del database e le porte): `profiles` (`[{ id, name, kind: 'local' \| 'remote', url, trusted }]`), `last`, `local` (`{ installed, port, pgPort, pgPassword }`), le otto impostazioni sopra, `devices` (i dispositivi scelti con la regola `ask`) e `bounds`. Accanto: `lilos/` (il lilOS installato), `postgres/` (il database) e `logs/`.
+
+---
+
 ## Il kernel
 
 Il backend (`system/kernel/`). Panoramica: [README per sviluppatori](README.md#kernel); decisioni D31-D33 e D37-D41. Il frontend lo usa con [`kernel`](#sdkcorekerneljs).
@@ -3504,6 +3633,7 @@ Le richieste che modificano (tutte tranne `GET` e `HEAD`) devono avere l'intesta
 | `GET /api/session` | tutti | → `{ mode: 'multi' \| 'single', user \| null }` |
 | `POST /api/session` | tutti | `{ username, password }` → `{ user }` e il cookie `lilos_session` (`HttpOnly; SameSite=Strict; Path=/api`, `Secure` con `secureCookies`). Con un solo utente: `invalid`. |
 | `DELETE /api/session` | tutti | Chiude la sessione e cancella il cookie |
+| `POST /api/session/verify` | utenti | `{ username, password }` (fino a 16 KB) → `{ ok: true, role }`. Controlla una password **senza aprire una sessione**: fa un accesso (`auth.login`, con le sue regole contro i tentativi ripetuti, `invalid_credentials` e `rate_limited`) e lo chiude subito. Serve al programma lilOS: un amministratore dà nome e password per far uscire dal kiosk la finestra di un altro utente. Con un solo utente: `invalid`; senza sessione: `unauthorized`. |
 | `GET /api/boot` | utenti | → `{ user, home, fresh, nodes, storage, apps, appSecurity, net }`: tutto ciò che serve per partire. `home`: il percorso della home nel file system (`/home/<utente>`), da cui `fs.path` parte. `fresh`: la cartella dell'utente è vuota. `apps` è l'elenco di `GET /api/apps`, ma senza nascondere l'origine `local` ai non amministratori. `appSecurity`: `{ isolated }`, la regola generale su come girano le app. `net`: `{ protocols, mounts }`, come `GET /api/net` |
 | `POST /api/fs/sync` | utenti | `{ put: [nodo], remove: [id] }`, in una transazione; al massimo 5000 voci e 8 MB. L'SDK ne manda al massimo 2000 per richiesta (prima i nodi, con i genitori prima dei figli, poi le eliminazioni), quindi non c'è un limite al numero di modifiche di una volta sola |
 | `GET /api/fs/content/:id` | utenti | → testo del file. Con `?raw=1`: i byte (`application/octet-stream`); se il modulo `fs` ha `readStream` li manda in streaming, con `Content-Length`, senza tenerli tutti in memoria |
@@ -4563,6 +4693,20 @@ Quattro moduli del repository ufficiale (`modules/netfs-*/`, ognuno con il suo R
 | `netfs-azblob` | `netfs.azblob` (ordine 75, `cloud`) | `account`, `auth` (`key`, `sas`, `entra`), `key` (segreto), `sas` (segreto), `entra` (`signin`), `share` (contenitore, `shares()`), `root`, `url` (indirizzo personalizzato: Azurite `http://host:porta/<account>`, cloud nazionali) | Shared Key firmata dal modulo; SAS aggiunto a ogni indirizzo; Entra: client pubblico (impostazioni `clientId`, `tenant`, predefinito `organizations`; per i test `loginUrl`), ambito `https://storage.azure.com/user_impersonation`, `signIn.manual`. `AuthorizationPermissionMismatch` con Entra → `denied` che nomina il ruolo «Collaboratore ai dati dei BLOB di archiviazione». Con `x-ms-is-hns-enabled` (Data Lake Gen2) `mkdir`, `rename`, `remove` e `removeTree` vanno all'endpoint `dfs`; senza, cartella vuota = blob vuoto con `hdi_isfolder=true`, `rename` = Copy Blob (atteso finché è `pending`) + elimina. Scrittura fino a 32 MB un `Put Blob`, oltre blocchi da 8 MB e `Put Block List`. Livello `Archive`: `badge` «archiviato» |
 | `netfs-nfs` | `netfs.nfs` (ordine 80, `local`, `space`) | `host`, `version` (`3`; `4.1` con `disabled`), `share` (cartella esportata, `shares()` = MOUNT EXPORT), `auth` (`sys`; `krb5` con `disabled`), `port` | NFSv3 su TCP scritto nel modulo (`lib/xdr.js`, `lib/rpc.js` con record marking e AUTH_SYS, `lib/nfs3.js`: portmapper, MOUNT v3, NFS v3). Ogni lunghezza che arriva dal server è limitata (handle 64 byte, nomi 1024, record 8 MB, 100 000 voci, cookie che si ripetono fermano la lettura). Impostazione `identities` (`textarea`, una riga `utente = UID:GID[,gruppi]`): `connect` usa `user.username` per sceglierla; senza riga `denied`. `ready()` non è pronto finché non c'è nessuna riga. Prima una porta locale sotto 1024 (fino a 12 tentativi), poi una qualsiasi. `READDIRPLUS`, `READ`/`WRITE` per offset (`resume: { read: true, write: true }`: con `start > 0` il file si tronca a `start` e si continua), `WRITE UNSTABLE` + `COMMIT` con controllo del verificatore (riavvio del server → `lost`), `RENAME` rifiutato se la destinazione c'è, `space` da `FSSTAT`, collegamenti simbolici letti se puntano dentro l'esportazione. Per i test `portmapPort` |
 
+### Protocollo del computer: `netfs-local_1.0.0`
+
+Le cartelle del **computer su cui gira il kernel** in Rete. Con il programma lilOS è il computer dell'utente: Documenti, Download, le chiavette USB. Il sorgente sta in `plugins/modules/netfs-local/` (con il suo README) e c'è una copia di sviluppo in `system/kernel/modules/netfs-local_1.0.0/` (acceso nel `config.json` del repository). Fornisce `netfs.local` (ordine 0, gruppo `local`, `space`), non ha dipendenze e richiede lilOS 1.22.0. Motivi: [D73](../interna/decisioni.md#d73-il-programma-lilos-un-guscio-electron-con-il-kernel-e-postgresql-inclusi).
+
+| Campo | Descrizione |
+| --- | --- |
+| `folder` (testo, obbligatorio) | Il percorso **assoluto** di una cartella del computer (`C:\Users\Mario\Documents`, `/home/mario/Documenti`), fino a 1024 caratteri, senza caratteri di controllo. `check` lo rifiuta altrimenti (`invalid`). `connect` lo risolve con `realpath` e vuole che sia una cartella leggibile. |
+| `readOnly` (casella, predefinita falsa) | Il collegamento è di sola lettura: scrivere, creare, rinominare ed eliminare danno `denied` («Collegamento di sola lettura»). |
+
+- **Chi può collegare cosa** (in `connect`, che riceve `ctx.user = { role, multiUser, … }`): con un solo utente (`multiUser` falso) e per gli **amministratori**, qualsiasi cartella. Gli altri utenti solo cartelle dentro quelle elencate dall'impostazione `roots` (area di testo, un percorso assoluto per riga; righe vuote o non assolute ignorate; si confronta il `realpath` di entrambe), altrimenti `denied`. Un amministratore la imposta nel Pannello di controllo → Cartelle del computer; `ctx.onConfig` la rilegge senza riavviare.
+- **Il percorso non esce dalla cartella.** Ogni percorso della connessione rifiuta `.`, `..`, il carattere nullo, `\` e (su Windows) `:` (`invalid`); il percorso finale e quello del suo genitore, dopo `realpath`, devono restare dentro la radice (`denied`). I collegamenti simbolici che puntano fuori **non compaiono** negli elenchi né si seguono; quelli dentro hanno `link: true`. Eliminare un collegamento elimina il collegamento, mai il suo bersaglio.
+- **Cosa fa il driver**: `list`, `stat`, `read` (con `start`), `write` (`resume: { read: true, write: true }`; con `start > 0` apre in `r+` e rifiuta di andare oltre la fine), `mkdir`, `rename` (`exists` se la destinazione c'è, salvo una differenza di sole maiuscole), `remove`, `removeTree` (la radice non si elimina), `watch` (`fs.watch`) e `space` (`statfs`).
+- **Eliminare è definitivo**: nessun cestino del computer. I permessi sono quelli dell'utente del sistema operativo che fa girare il kernel. Gli errori di sistema diventano `not_found`, `exists`, `denied` o `lost` (disco che non risponde).
+
 ### Protocolli di terminale: `ssh_1.0.0`, `term-telnet_1.1.0`, `term-rlogin_1.1.0`, `term-supdup_1.1.0`
 
 > Da lilOS 1.22.0 `term-ssh` e `netfs-sftp` si fondono nel modulo `ssh` (servizi `term.ssh` e `netfs.sftp`, `replaces`), e i driver usano `ctx.output`, `ctx.closed` e `ctx.lookup`.
@@ -4641,6 +4785,10 @@ Ogni workspace tiene a parte, sotto `lilos:ws:<id>:` seguito da:
 Le chiavi di un workspace eliminato si cancellano subito. All'avvio si cancellano anche quelle di workspace che non esistono (per esempio scritte dall'ultimo salvataggio di una pagina dopo un ripristino, o lasciate da un'altra scheda). Le finestre di `windows` si riaprono la prima volta che il workspace è mostrato nella sessione.
 
 Le chiavi `lilos:camera`, `lilos:desktop-layout` e `lilos:workareas` descritte qui sotto sono il formato di prima dei workspace: oggi si leggono solo per la migrazione (diventano le chiavi di «Principale» e vengono eliminate). Il formato dei valori è lo stesso.
+
+### `lilos:desktop-drives`
+
+Solo nel programma lilOS ([`src/host/desktop.js`](#srchostdesktopjs)). Le connessioni `netfs-local` fatte per le unità rimovibili: `{ "<id unità>": "<id connessione>" }` (l'id dell'unità è la lettera del volume su Windows, il percorso su macOS e Linux).
 
 ### `lilos:camera`
 

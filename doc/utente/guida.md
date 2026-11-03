@@ -1,6 +1,6 @@
 # Guida utente
 
-lilOS è un desktop che si usa dal browser. Al posto di uno schermo fisso c'è una **scrivania infinita**: puoi spostarti in qualsiasi direzione, ingrandire e rimpicciolire, e sistemare cartelle, file e app dove preferisci.
+lilOS è un desktop che si usa dal browser o, se preferisci, dal [programma lilOS](#il-programma-lilos), una finestra tutta sua per Windows, macOS e Linux. Al posto di uno schermo fisso c'è una **scrivania infinita**: puoi spostarti in qualsiasi direzione, ingrandire e rimpicciolire, e sistemare cartelle, file e app dove preferisci.
 
 > lilOS è in sviluppo. Le app che ci sono sempre sono **File Manager**, **Pannello di controllo**, **AppStore** e **Pianificazione**; c'è anche l'**Editor**, che si può togliere. Altre app le può installare un amministratore dall'AppStore (vedi [L'AppStore](#lappstore)).
 
@@ -520,7 +520,7 @@ Cose da sapere:
 
 ## Rete
 
-**Rete** porta in lilOS i file di un altro computer: un server FTP, un sito con SFTP, un Nextcloud o un altro WebDAV, la condivisione di un NAS o di un PC Windows (SMB), il tuo OneDrive o Google Drive, le foto che scegli da Google Foto, un bucket di Amazon S3 o un contenitore di Azure, una cartella NFS. Ogni connessione diventa una cartella dentro la cartella **Rete**, e si usa come le altre: la apri, ci guardi dentro, ci crei cartelle, rinomini, elimini e copi file trascinandoli.
+**Rete** porta in lilOS i file di un altro computer: un server FTP, un sito con SFTP, un Nextcloud o un altro WebDAV, la condivisione di un NAS o di un PC Windows (SMB), il tuo OneDrive o Google Drive, le foto che scegli da Google Foto, un bucket di Amazon S3 o un contenitore di Azure, una cartella NFS e, con il [programma lilOS](#le-cartelle-e-le-chiavette-del-computer-in-rete), le cartelle e le chiavette del tuo computer. Ogni connessione diventa una cartella dentro la cartella **Rete**, e si usa come le altre: la apri, ci guardi dentro, ci crei cartelle, rinomini, elimini e copi file trascinandoli.
 
 Le connessioni sono tue: gli altri utenti di lilOS non le vedono. Il collegamento al server lo fa lilOS sul computer in cui gira, non il tuo browser: un trasferimento continua anche se chiudi la pagina.
 
@@ -2037,6 +2037,139 @@ Apri il **Pannello di controllo → Pagina utente**. Trovi un interruttore per o
 
 - Cambiare il nome visualizzato o la password: lilOS non lo permette ancora.
 - Vedere chi altro è collegato.
+
+## Il programma lilOS
+
+Il **programma lilOS** apre lilOS in una finestra tutta sua, senza browser, su Windows, macOS e Linux. Fa anche cose che un browser non può fare: tiene lilOS nell'area di notifica, parte con il computer, mostra il numero di notifiche sull'icona, apre i file con i programmi del computer e vede le chiavette USB. Tutto il resto di questa guida vale uguale.
+
+lilOS si può usare anche solo dal browser: le funzioni di questa sezione, dove non è detto altro, ci sono solo nel programma.
+
+### Installare il programma
+
+Scarica l'installatore dalla pagina delle versioni di lilOS su GitHub ([GexyLab/lilos](https://github.com/GexyLab/lilos/releases)):
+
+| Sistema | File |
+| --- | --- |
+| Windows | `lilOS-Setup-….exe` (oppure `lilOS-….msi`) |
+| macOS | `lilOS-…-arm64.dmg` (Mac con chip Apple) o `lilOS-…-x64.dmg` (Mac con processore Intel) |
+| Linux | `lilOS-….AppImage`, oppure il pacchetto `.deb` o `.rpm` (processori x64 e arm64) |
+
+Per ora il programma **non è firmato**, quindi il sistema ti avvisa la prima volta:
+
+- **Windows**: compare «Windows ha protetto il PC» (SmartScreen). Scegli **Ulteriori informazioni**, poi **Esegui comunque**.
+- **macOS**: il sistema dice che non può verificare lo sviluppatore. Apri **Impostazioni di Sistema → Privacy e sicurezza** e scegli **Apri comunque**.
+- **Linux**: nessun avviso. Un file `.AppImage` va prima reso eseguibile.
+
+### Il primo avvio
+
+Alla prima apertura il programma chiede dove deve girare lilOS. Hai tre scelte:
+
+1. **Su questo computer** (consigliata). Il programma installa e avvia da solo tutto quello che serve: non devi installare altro. Scegli il nome e la password (almeno 8 caratteri) del primo utente, che sarà un **amministratore**, e premi **Installa**. La prima volta lilOS scarica dal repository ufficiale i moduli e le app di sistema: serve internet e ci vogliono alcuni minuti. Al termine lilOS si apre già con il tuo utente.
+2. **Collegati a un server**. Scrivi l'indirizzo di un lilOS che gira su un altro computer o in azienda (`https://…`; `http://` solo per questo computer) e accedi con il tuo utente di quel server. Se segni **Mi fido di questo server** gli permetti di aprire file su questo computer e di cambiare le impostazioni del programma: fallo solo per server che controlli tu (vedi [Server e server di fiducia](#server-e-server-di-fiducia)).
+3. **Usa il lilOS già installato**. Compare solo se sul computer c'è già un lilOS installato a mano e acceso: il programma lo apre come un server.
+
+I dati del lilOS «su questo computer» (utenti, file, database) stanno nella cartella dei dati del programma, sul tuo computer. Disinstallare il programma **non li cancella**.
+
+Se qualcosa non parte, il programma mostra una pagina con **Riprova**, **Server** (per sceglierne un altro) e **Apri i log**.
+
+### Area di notifica, avvio con il computer e notifiche
+
+Per impostazione predefinita, chiudendo la finestra lilOS **resta attivo** nell'area di notifica (la barra di Windows, la barra dei menu di macOS, il vassoio di Linux), così il kernel continua a girare. Un clic sull'icona riapre la finestra. Il menu dell'icona ha:
+
+- **Apri lilOS**, il numero di notifiche non lette e, se hai più server, **Apri un altro server**;
+- lo stato del kernel e **Apri nel browser**, per usare lo stesso lilOS dal browser;
+- **Avvia con il computer**;
+- **Esci da lilOS**, che chiude il programma e **ferma il kernel** di questo computer.
+
+Se preferisci che chiudere la finestra chiuda il programma, spegni l'interruttore nel **Pannello di controllo → Computer → Programma**.
+
+- **Avvia con il computer**: il programma parte quando accedi al computer, ma la finestra resta chiusa (si apre dall'icona). Solo in [kiosk](#schermo-intero-e-kiosk) la finestra si apre subito.
+- **Il numero sull'icona**: le notifiche di lilOS non lette compaiono come numero sull'icona del programma nella barra delle applicazioni (Windows), nel Dock (macOS) o sull'icona (Linux, se il desktop lo mostra).
+- **Notifiche del sistema**: quando la finestra di lilOS non è quella in primo piano, le nuove notifiche compaiono anche nel centro notifiche del computer. Un clic porta lilOS in primo piano ed esegue l'azione della notifica. Si spegne nel Pannello di controllo.
+
+Puoi anche aprire un file di lilOS da fuori con un collegamento come `lilos://open?path=/Documenti/note.txt`: il programma mostra la finestra e apre quel file o quella cartella (se non c'è, lilOS lo dice con una notifica).
+
+### Schermo intero e kiosk
+
+Nel **Pannello di controllo → Computer → Schermo** scegli come si vede lilOS:
+
+| Modo | Cosa fa |
+| --- | --- |
+| **Finestra** | Una finestra del computer, con la sua cornice. Il programma ricorda posizione e dimensione. |
+| **Schermo intero** | lilOS copre tutto lo schermo, anche la barra o il Dock. **F11** entra ed esce. |
+| **Kiosk** | Schermo intero che **non si chiude**: la finestra non si può chiudere, F11 non fa niente e il menu dell'icona ha solo **Apri lilOS**. Serve per un computer dedicato a lilOS. |
+
+Se hai più monitor, **Monitor** decide su quale va lilOS a schermo intero e in kiosk. Con l'interruttore **Tasti di sistema a lilOS a schermo intero** il tasto Windows, Alt+Tab ed Esc arrivano a lilOS invece che al sistema. Questa funzione dipende dal sistema e non è garantita ovunque.
+
+**Uscire dal kiosk.** Solo gli amministratori scelgono il kiosk e, quando lilOS è in kiosk, solo loro scelgono un altro modo nel Pannello di controllo. Un utente che non è amministratore, in un lilOS in kiosk, trova **Esci dal kiosk**: un amministratore scrive il suo nome e la sua password (lilOS la controlla, ma non entra con quell'utente) e lilOS torna in una finestra.
+
+Cosa permette ogni sistema:
+
+- **Windows**: **Ctrl+Alt+Canc** resta sempre di Windows. Sostituire il desktop di Windows con lilOS (Shell Launcher) si può fare solo in Windows Enterprise ed Education. Su Home e Pro usa il kiosk con **Avvia con il computer**.
+- **macOS**: in kiosk spariscono il Dock e la barra dei menu e sono bloccati ⌘Tab e l'uscita forzata. Il Finder non si può sostituire: per un Mac dedicato crea un account apposta, con lilOS in kiosk che parte all'avvio.
+- **Linux**: con il pacchetto `.deb` o `.rpm` puoi fare di lilOS **il desktop intero**. Installa `cage`, poi esegui una volta `sudo sh /opt/lilOS/resources/session/install-session.sh`: nella schermata di accesso compare la sessione **lilOS**. In quella sessione lilOS è sempre in kiosk e senza icona nell'area di notifica; uscire dal kiosk chiude la sessione e torna alla schermata di accesso.
+
+### Portare file dal computer a lilOS e viceversa
+
+- **Trascinare**. Trascina file e cartelle da Esplora file, Finder o dal gestore file di Linux dentro lilOS. Lasciali sulla scrivania (restano dove li lasci), su una cartella, o su una cartella aperta nel File Manager: vengono **copiati** lì, con le sottocartelle. Fino a 2000 file per volta. Una notifica dice quanti sono stati copiati. Funziona anche dal browser. Dentro una cartella di un server di Rete non si copia: copia prima in una cartella di lilOS, poi trascina sul server.
+- **Apri sul computer**. Nel menu di un file apre una copia con il programma che il computer usa per quel tipo di file. Se lo modifichi e lo **salvi** lì, il file in lilOS cambia da solo e una notifica lo conferma. Due limiti: i file che il computer eseguirebbe (programmi, installatori, script come `.exe`, `.bat`, `.sh`, `.py`) **non si aprono**, e nemmeno i file sopra 512 MB. Un file di **Rete › Questo computer** (vedi sotto) si apre dov'è, senza copia.
+- **Mostra nella cartella del computer**. Per file e cartelle di Rete › Questo computer: apre la loro cartella nel gestore file del computer.
+- **Esporta sul computer…**. Per uno o più file: con uno solo si apre la finestra «Salva» del computer; con più file si sceglie la cartella dove metterli. I file restano anche in lilOS. Le cartelle non si esportano: seleziona i file.
+
+**Apri sul computer** e **Mostra nella cartella del computer** funzionano solo con un server di fiducia (il lilOS di questo computer lo è); **Esporta** funziona con ogni server.
+
+### Le cartelle e le chiavette del computer in Rete
+
+Con il lilOS «su questo computer» (o uno installato a mano sul tuo computer e segnato di fiducia), la cartella **Rete** può mostrare le cartelle del tuo computer: Documenti, Download, un disco. Compaiono in **Rete › Questo computer** e si leggono e si scrivono **dove sono**, senza copie.
+
+- **Aggiungere una cartella**: **Pannello di controllo → Computer → Server**, sezione **Cartelle del computer in Rete**, **Scegli…** e scegli la cartella con la finestra del computer. In alternativa, in Rete: **Connetti a un server → Questo computer (cartella)** e scrivi il percorso (`C:\Users\Mario\Documents`, `/home/mario/Documenti`); **Sola lettura** la rende non modificabile.
+- **Eliminare è definitivo**: i file eliminati da qui non vanno in nessun Cestino, né di lilOS né del computer.
+- **Chi può cosa**: gli **amministratori** (e chi usa lilOS da solo) collegano qualsiasi cartella del computer. Gli altri utenti collegano solo le cartelle che un amministratore elenca nel **Pannello di controllo → Cartelle del computer** (un percorso per riga) o cartelle dentro di esse. Una cartella non esce mai dal suo percorso: i collegamenti simbolici che portano fuori non si vedono.
+- **Chiavette USB e schede di memoria**: quando le inserisci compaiono da sole in Rete › Questo computer, con una notifica, e spariscono quando le togli. Succede per gli amministratori (e per chi usa lilOS da solo). Per toglierle senza rischi usa **Espelli** nel **Pannello di controllo → Computer → Hardware**.
+
+Se **Questo computer** non compare in Rete, il modulo che lo fa (`netfs-local`) non è installato: un amministratore lo trova nell'AppStore → Kernel.
+
+### Hardware
+
+Nel **Pannello di controllo → Computer → Hardware** vedi cosa ha il computer (fotocamere, microfoni, porte seriali, dispositivi USB e di input, schede grafiche, stampanti, monitor, unità rimovibili) e decidi come le app usano i dispositivi. Il campo **Le app usano i dispositivi** lo cambia solo un amministratore:
+
+| Regola | Cosa succede |
+| --- | --- |
+| **Chiedendo ogni volta** | Ogni porta o dispositivo lo scegli tu, in una finestra di lilOS, una volta per dispositivo: poi lilOS se lo ricorda. |
+| **App che lo dichiarano** (predefinita) | Le app che hanno tra i permessi (quelli che hai visto all'installazione) un dispositivo, come la porta seriale, lo usano senza chiedere. |
+| **Tutte le app** | Ogni app vede e usa ogni dispositivo senza chiedere. Solo per computer dedicati (kiosk, laboratori). |
+
+Quando un'app vuole usare una porta seriale, un dispositivo USB, un dispositivo di input (HID) o uno Bluetooth, o condividere lo schermo, lilOS apre una finestra per **scegliere quale** dispositivo (o quale schermo o finestra) usare. Con **Chiedendo ogni volta** e **App che lo dichiarano** l'app deve comunque avere il permesso per quel tipo di dispositivo.
+
+### Server e server di fiducia
+
+Il programma può aprire più lilOS: quello di questo computer e quelli di altri computer, ognuno **nella sua finestra e con il suo accesso**. Li gestisci in **Pannello di controllo → Computer → Server**: **Apri**, **Apri nel browser** e **Riavvia il kernel** (per quello di questo computer), **Togli** (con conferma; il lilOS di questo computer e quello della finestra attuale non si tolgono). Per aggiungerne uno scrivi l'**Indirizzo** (`https://…`) e, se vuoi, attiva **Server di fiducia**.
+
+Un server è **di fiducia** se lo segni tu. Il lilOS di questo computer lo è sempre. Un server di fiducia può:
+
+- aprire file su questo computer e mostrarli nella loro cartella;
+- cambiare le impostazioni del programma (schermo, avvio, aggiornamenti, hardware);
+- aggiungere e togliere server.
+
+Un server **non di fiducia** può solo mostrare il numero di notifiche sull'icona, portare la finestra in primo piano, farti scegliere un dispositivo, controllare gli aggiornamenti del programma e salvare un file sul computer con la finestra «Salva» (**Esporta**). Non può cambiare le impostazioni del programma, aprire file, vedere i percorsi del computer né vedere o aggiungere altri server. Segna di fiducia solo server tuoi: **un server di fiducia può cambiare cosa fa il tuo computer**.
+
+### Aggiornare il programma
+
+Il programma si aggiorna dalle versioni su GitHub; **lilOS** invece continua ad aggiornarsi dall'[AppStore](#lappstore), come sempre. Nel **Pannello di controllo → Computer → Programma** scegli come:
+
+- **Automatici** (Windows e Linux): il programma controlla ogni 6 ore, scarica la nuova versione e la installa quando esci.
+- **Avvisami**: una notifica dice che c'è una nuova versione e un clic apre la pagina da cui scaricarla.
+- **Mai**.
+
+**Controlla ora** cerca subito. Su **macOS** il programma non è firmato e non può sostituirsi da solo: ti avvisa, e l'aggiornamento lo installi tu dal nuovo `.dmg`.
+
+### Cosa non è ancora possibile
+
+- Il programma non è firmato: Windows e macOS mostrano un avviso la prima volta, e su macOS non si aggiorna da solo.
+- Sui Mac con processore Intel il lilOS «su questo computer» non ha ancora tutto: manca il motore dei servizi in background delle app isolate.
+- Il primo avvio ha bisogno di internet (scarica le app di sistema).
+- Le app isolate non possono ancora usare fotocamera e microfono.
+- I pacchetti per macOS e Linux, il kiosk su questi sistemi e i tasti di sistema a schermo intero non sono ancora stati provati su computer veri.
 
 ## I tuoi dati
 

@@ -59,6 +59,28 @@ lilos.fs.children(lilos.fs.resolve('/Scrivania').id)
 
 Per ripartire dalla scrivania iniziale: Pannello di controllo → Archiviazione → «Scrivania e file iniziali», oppure accedi con un utente nuovo. I dati dell'utente stanno nel database del kernel: `localStorage.clear()` non basta.
 
+### Il programma lilOS (`lilos-desktop/`)
+
+`lilos-desktop/` contiene il **programma lilOS**: un guscio Electron che apre lilOS in una finestra, su Windows, macOS e Linux, e fa girare sul computer anche il kernel e PostgreSQL. È un progetto a parte, con il suo `package.json` e le sue dipendenze (non usa quelle di questa cartella). Due cartelle:
+
+- **`lilos-desktop/development/`**: dove si lavora. Ha il suo [README](../../lilos-desktop/development/README.md) con struttura, runtime incluso, pubblicazione e limiti.
+- **`lilos-desktop/production/`**: la copia che costruisce la pubblicazione. La crea «pubblica» copiandoci `development/`; con il tag `desktop-vX.Y.Z` il workflow `.github/workflows/lilos-desktop.yml` ne ricava gli installer.
+
+Per provarlo in sviluppo:
+
+```bash
+cd lilos-desktop/development
+npm install
+npm run runtime    # una volta: scarica Node 22, git, PostgreSQL e la release di lilOS in runtime/ (qualche centinaio di MB)
+npm start          # apre il programma
+```
+
+- Il primo avvio mostra la scelta «Su questo computer», «Collegati a un server» o «Usa il lilOS già installato». Per la prima servono internet (il kernel scarica le app di sistema dal repository ufficiale) e `npm run runtime`.
+- `LILOS_DESKTOP_DATA=<cartella>` sposta la cartella dei dati del programma (impostazioni, lilOS installato, database, log): serve per provare da zero senza toccare la propria copia.
+- **Dentro VS Code** la variabile `ELECTRON_RUN_AS_NODE=1` può essere impostata dal terminale integrato e fa partire Electron come semplice Node: il programma non si apre. Toglila (`unset ELECTRON_RUN_AS_NODE` in bash, `Remove-Item Env:ELECTRON_RUN_AS_NODE` in PowerShell) o usa un terminale esterno.
+- `npm run check` controlla che ogni file si legga, che ogni testo sia in inglese e in italiano e che `versions.json` sia completo.
+- La pagina che il programma apre viene dal kernel che ha scelto, non da `npm run dev`. Per provare modifiche a lilOS dentro il programma, aggiungi `http://localhost:5173` (con `npm run dev` acceso) come server nel Pannello di controllo → Computer → Server: `http://` è ammesso solo per `localhost`, `127.0.0.1` e `[::1]`. Questo percorso non è stato provato.
+
 ## Struttura
 
 Il codice è diviso in due parti:
@@ -147,11 +169,15 @@ system/
       term-rlogin_1.1.0/    terminali remoti: rlogin
       term-supdup_1.1.0/    terminali remoti: SUPDUP (tradotto per xterm)
       services-isolate_1.1.0/  esegue i servizi delle app: un processo per servizio, il codice in un isolato V8 (index.js, runner.js; isolated-vm); lilos.home dalla 1.1.0
+      netfs-local_1.0.0/    cartelle del computer del kernel in Rete (copia di sviluppo di plugins/modules/netfs-local)
       scheduler_1.1.0/      la Pianificazione (obbligatorio): operazioni, orologio, storico (scheduler.json e history.json, ignorati da git)
       notifications-basic_1.1.0/  notifiche degli utenti (notifications.json, ignorato da git)
     tools/pack.js      calcola gli hash e firma un pacchetto di app
     tools/install.js   prima installazione di lilOS da una release (cartella con run.js, current.json, releases/)
 examples/apps/note/     app di esempio (lilos.json, index.js)
+lilos-desktop/          il programma lilOS (Electron): development/ (si lavora qui) e production/ (la copia da cui si pubblica; la crea «pubblica»)
+  development/          src/ (main.js, windows.js, bridge.js, preload.cjs, devices.js, files.js, drives.js, tray.js, updates.js, autostart.js, store.js, local/, pages/), scripts/ (fetch-runtime.mjs, check.mjs), build/linux/ (la sessione «lilOS»), electron-builder.yml, versions.json (vedi il suo README)
+.github/workflows/      lilos-desktop.yml: al tag desktop-vX.Y.Z costruisce gli installer da lilos-desktop/production/ e crea la release GitHub
 plugins/                sorgenti delle app e dei moduli ufficiali: src/<app>/, src/shared/, modules/<nome>/, scripts/ (build.mjs, publish.mjs, credits.mjs, check-locales.mjs, vendor-tree-sitter.mjs), catalog.json, package.json; build/ (ignorato da git) è il risultato del build
 scripts/
   host-shims.mjs        genera public/host/sdk.js e system.js (predev e prebuild)
@@ -251,6 +277,7 @@ src/
     apps.js             le azioni dichiarate dalle app (contributes.automation) nel catalogo
   schedule/
     runner.js           connectSchedule(): le corse della Pianificazione che girano nel browser (aprire app e file, automazioni) e la finestra Operazioni in attesa
+  host/                 desktop.js: lilOS dentro il programma lilOS (numero sull'icona, notifiche del sistema, scelta dei dispositivi, link lilos://, chiavette USB in Rete); non fa niente in un browser
   taskbar/
     Taskbar.js          barra delle applicazioni: pulsante logo, area finestre, area di notifica, utente (pulsante) e orologio (il pulsante workspace lo aggiunge Workspaces)
     StartMenu.js        menu di avvio a pagina intera: ricerca, preferite, schede (recenti, workarea, categorie), file recenti, pulsanti dei workspace

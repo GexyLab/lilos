@@ -7,7 +7,7 @@ Desktop web su una scrivania infinita: canvas con zoom e spostamento. I dati sta
 Documentazione completa in [doc/](doc/README.md): [guida utente](doc/utente/guida.md), [sviluppatore](doc/sviluppatore/README.md), [interna](doc/interna/README.md). SDK: [sdk/README.md](sdk/README.md).
 
 ## Dove gira
-Può essere self-hosted in docker oppure in versione cloud gestita in OpenBack
+Può essere self-hosted in docker oppure in versione cloud gestita in OpenBack. Sul proprio computer si usa anche con il **programma lilOS** (`lilos-desktop/`): lilOS in una finestra, senza browser, con kernel e database inclusi; vedi la [guida utente](doc/utente/guida.md#il-programma-lilos) e il [README del programma](lilos-desktop/development/README.md).
 
 ## Avvio
 
@@ -65,6 +65,7 @@ public/host/            i moduli che le app di sistema importano come @lilos/sdk
 system/
   kernel/               il backend: moduli (users-basic, fs-postgres, services-isolate: fa girare i servizi delle app, scheduler: la Pianificazione, un modulo obbligatorio, notifications-basic: le notifiche, ssh (anche SFTP), netfs-ftp, netfs-webdav, netfs-smb: i protocolli di rete della cartella Rete; OneDrive, Google (Drive e Foto), S3, Azure Blob Storage e NFS sono moduli del repository ufficiale; ssh, term-telnet, term-rlogin, term-supdup: i protocolli dei terminali remoti, usati dall'app Terminale), API, repository, installazione di app e moduli, aggiornamenti di lilOS (releases/ e current.json in un lilOS installato), riga di comando; run.js lo avvia, lo riavvia e prova le versioni nuove
 examples/apps/note/     app di esempio (lilos.json, index.js)
+lilos-desktop/          il programma lilOS (Electron, per Windows, macOS e Linux): development/ per lavorare, production/ da cui si pubblica (vedi lilos-desktop/development/README.md)
 src/                    il sistema, costruito sull'SDK
   main.js               avvio: accesso e collegamento al kernel (boot/), poi system.js
   system.js             bootstrap: monta canvas, HUD, desktop, taskbar
