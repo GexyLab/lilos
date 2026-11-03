@@ -6,7 +6,8 @@
  * - the dependencies of the apps (root package.json) with the ones they bring, each with the apps
  *   that import it (found in src/<app>/);
  * - the dependencies of the kernel modules (modules/<name>/package-lock.json);
- * - the code copied into the repository (VENDORED below: Tree-sitter grammars, smb3-client);
+ * - the code copied into the repository (VENDORED below: Tree-sitter grammars, smb3-client, the
+ *   native libraries of Compress Archive);
  * - the web fonts of lilOS (its index.html, one folder up) and of the apps (FONTS below);
  * - the tools that build lilOS and the apps (root devDependencies).
  * Licenses, copyright and sites come from node_modules: run `npm ci` in the root and in every
@@ -20,6 +21,7 @@
 import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { SOURCES as LIBARCHIVE, TOOLCHAIN as EMSCRIPTEN } from './build-libarchive.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = join(root, 'src', 'settings', 'credits.json');
@@ -51,6 +53,19 @@ const VENDORED = [
       return { name: 'smb3-client', version, license: licenseName(text), copyright: copyrightLine(text), url };
     },
   },
+  // Compress Archive's engine: libarchive and the libraries it uses, compiled to WebAssembly by
+  // scripts/build-libarchive.mjs (versions and licenses there)
+  ...LIBARCHIVE.map(s => ({
+    license: `src/compress-archive/engine/licenses/${s.name}/LICENSE`, usedBy: ['compress-archive'],
+    read: () => ({ name: s.name, version: s.version, license: s.license, copyright: s.copyright, url: s.site }),
+  })),
+  ...EMSCRIPTEN.map(s => ({
+    license: `src/compress-archive/engine/licenses/${s.name}/LICENSE`, usedBy: ['compress-archive'],
+    read: () => ({
+      name: s.name, license: s.license, copyright: s.copyright, url: s.site,
+      version: s.version ?? readFileSync(join(root, `src/compress-archive/engine/licenses/${s.name}/VERSION`), 'utf8').trim(),
+    }),
+  })),
 ];
 
 /**

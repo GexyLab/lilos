@@ -1743,3 +1743,37 @@ Conseguenze: se tutte le schede si chiudono non parte niente; un'automazione con
 - Due livelli di versione da non confondere: i tag nel repository lilos dicono da quale sorgente viene un componente; i tag del repository ufficiale dicono cosa c'è nel catalogo (l'AppStore legge l'ultimo).
 
 **Quando ripensarla.** Se il repository lilos diventa troppo pesante da clonare; se le app ufficiali devono avere collaboratori che non vedono il resto del codice; se l'unione dei moduli rende più difficile leggere un errore del kernel (`--no-merge` e `--no-minify` servono a questo).
+
+## D72. Le librerie native nelle app: compilate da noi in WebAssembly, solo nel punto d'ingresso che le usa
+
+**Contesto.** L'app Zip (fflate, solo `.zip`) doveva diventare un archiviatore per zip, 7z, tar, tar.gz, tar.bz2, tar.xz, iso, gz, bz2, xz e rar (3 novembre 2026). Non esiste una libreria JavaScript che li copra; scriverli a mano (encoder bzip2 e LZMA2, decoder RAR5) vorrebbe dire settimane e molti errori. La libreria che li copre tutti è libarchive (quella di bsdtar), in C. Un'app isolata non può leggere file propri né fare richieste (`connect-src 'none'`): riceve solo il codice dei suoi `files`, verificato con l'hash.
+
+**Decisione.**
+
+- **libarchive in WebAssembly, compilata da noi.** L'app **Compress Archive** (`compress-archive` 2.0.0, che sostituisce Zip nel catalogo) porta libarchive 3.8.10 con zlib, bzip2, xz (liblzma) e Mbed TLS (solo la crittografia, per gli zip AES), compilati con Emscripten in Docker da `plugins/scripts/build-libarchive.mjs`: versioni fissate, sorgenti ufficiali controllati con SHA-256, immagine Docker fissata per digest, compilazione senza rete. Il risultato si mette nel repository (`plugins/src/compress-archive/engine/libarchive.js`, il WebAssembly dentro il modulo come base64), con le licenze accanto e i riconoscimenti (anche Emscripten e musl, che finiscono nel file).
+- **Solo i formati che servono**: in lettura zip, tar, rar, rar5, iso9660, 7zip e i filtri gzip, bzip2, xz, lzma; zstd, lz4 e gli altri si riconoscono dai primi byte e si dichiarano non supportati. Un piccolo strato C (`native/glue.c`) legge e scrive archivi solo in memoria.
+- **Il motore sta in un punto d'ingresso a sé.** Il `work` (background) ha il suo `file` (`dist/work.js`, ~1 MB); le finestre (`main`, `compressAs`, ~20 KB) gli chiedono il lavoro con `lilos.app.call` e ricevono risultati ed errori come dati. Il build dei pacchetti ha `alone` per gli entry point da compilare in un file solo.
+- **Nessuna modifica a lilOS.** Bastano `wasm-unsafe-eval` (già nella CSP delle app), `entrypoints[].file` e `lilos.app.call`.
+
+**Perché.**
+
+- **libarchive e non una libreria JavaScript per formato**: un solo codice, usato da anni da Windows, macOS e FreeBSD, invece di cinque librerie di qualità diversa (e per bzip2 in scrittura e RAR5 in lettura non ce ne sono di buone).
+- **Compilata da noi e non libarchive.js così com'è**: libarchive.js 2.0.2 (gennaio 2024) porta libarchive 3.7.2, con le vulnerabilità corrette poi nei lettori RAR e tar (3.7.4–3.8.x), proprio i formati che si aprono da file non fidati; porta OpenSSL intero e un worker suo con comlink. La nostra build si aggiorna cambiando una versione e rilanciando lo script.
+- **Il WebAssembly dentro il JavaScript** perché un'app isolata non può scaricare un `.wasm`: il codice le arriva come testo verificato.
+- **Un file per il background**: le finestre si aprono senza caricare e verificare 1 MB; il lavoro pesante sta in un processo a parte (l'iframe in background ha un processo suo in Chrome, o un Web Worker se l'app non è isolata), e lilOS non rallenta.
+
+**Alternative scartate.**
+
+- Scrivere i formati in JavaScript: tar e ISO sono semplici, ma bzip2, LZMA2 e RAR5 no.
+- libarchive.js 2.0.2 così com'è: più veloce da adottare, ma con vulnerabilità note e più pesante.
+- Fare il lavoro nel kernel (un modulo con bsdtar): l'app dipenderebbe da un modulo e da programmi installati sul computer del kernel, e i file passerebbero comunque da lì.
+- Creare archivi RAR: il formato è proprietario e la licenza di unRAR vieta di usarne il codice per un compressore.
+
+**Conseguenze.**
+
+- La build richiede Docker e circa mezz'ora (la configurazione di libarchive sotto Emscripten è lenta); va rifatta a ogni versione nuova di libarchive o delle librerie, e con i test (`node --test src/compress-archive/test/archive.test.mjs` in `plugins/`, che usano una variante per Node della stessa build).
+- I limiti dei file di lilOS restano: 10 MB per file, quindi archivi e immagini ISO piccoli; tutto in memoria, al massimo 256 MB per volta.
+- libarchive decifra solo gli zip: i file cifrati di rar e 7z restano fuori, con il motivo nella notifica.
+- Chi aveva Zip deve installare Compress Archive e togliere Zip a mano: un'app non ne sostituisce un'altra da sola, e le automazioni registrate con Zip vanno rifatte.
+
+**Quando ripensarla.** Se lilOS alza il limite di 10 MB per file (allora servono letture e scritture a pezzi, non tutto in memoria); se un'altra app vuole libarchive (allora conviene una libreria condivisa del manifesto, `libraries`); se WebAssembly con i thread diventa possibile nelle app (xz e 7z più veloci); se serve zstd.

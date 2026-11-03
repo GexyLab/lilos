@@ -12,6 +12,8 @@
     "sync:modules": "node scripts/module-libs.mjs",
     "check:modules": "node scripts/module-libs.mjs --check",
     "vendor:tree-sitter": "node scripts/vendor-tree-sitter.mjs",
+    "build:libarchive": "node scripts/build-libarchive.mjs",
+    "test:compress-archive": "node --test src/compress-archive/test/archive.test.mjs",
     "publish:repo": "node scripts/publish.mjs"
   },
   "devDependencies": {
@@ -27,7 +29,6 @@
     "@xterm/addon-search": "0.16.0",
     "@xterm/addon-unicode11": "0.9.0",
     "@xterm/xterm": "6.0.0",
-    "fflate": "0.8.2",
     "vscode-css-languageservice": "6.3.10",
     "vscode-html-languageservice": "5.6.2",
     "vscode-json-languageservice": "5.7.2",

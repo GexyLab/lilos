@@ -16,6 +16,8 @@
  * imported: src/<id>/services/*.js are copied as they are; src/<id>/kernel/<name>.js are bundled
  * with what they import into dist/<name>.js, with '@lilos/sdk' and '@lilos/system' taken from
  * src/<id>/kernel/sdk.js and system.js (what the app gives the code it shares with its windows).
+ * `alone` (in APPS): entry points in a file of their own (`file` in the manifest), each one module
+ * with all it imports in dist/<name>.js, so the other files do not carry what only they need.
  *
  * Kernel modules: build/modules/<name>/, see buildModule.
  *
@@ -47,7 +49,7 @@ export const APPS = [
   { id: 'filecrypt', entry: 'FileCryptApp.js' },
   { id: 'calculator', entry: 'CalculatorApp.js' },
   { id: 'keyboard', entry: 'KeyboardApp.js' },
-  { id: 'zip', entry: 'ZipApp.js' },
+  { id: 'compress-archive', entry: 'CompressApp.js', alone: ['work.js'] },
   { id: 'automata', entry: 'AutomataApp.js' },
   { id: 'scheduler', entry: 'SchedulerApp.js' },
 ];
@@ -71,9 +73,20 @@ const walk = dir => readdirSync(dir, { withFileTypes: true }).flatMap(e => (e.na
 const sha256 = data => `sha256-${createHash('sha256').update(data).digest('base64')}`;
 
 export async function buildApp(id, { minify = true, shared = sharedTable() } = {}) {
-  const { entry } = APPS.find(a => a.id === id);
+  const { entry, alone = [] } = APPS.find(a => a.id === id);
   await build({ configFile: false, ...appConfig(id, entry, { minify }) });
   const pkg = join('build', 'apps', id);
+  for (const f of alone) {
+    const config = appConfig(id, f, { minify });
+    await build({
+      configFile: false, ...config,
+      build: {
+        ...config.build, emptyOutDir: false, copyPublicDir: false,
+        lib: { ...config.build.lib, fileName: () => f },
+        rollupOptions: { output: { inlineDynamicImports: true } },
+      },
+    });
+  }
   // Services (entry points of kind 'service') run in the kernel's isolate: modules without imports, copied as they are
   const services = join('src', id, 'services');
   if (existsSync(services)) for (const f of readdirSync(services).filter(f => f.endsWith('.js'))) copyFileSync(join(services, f), join(pkg, 'dist', f));

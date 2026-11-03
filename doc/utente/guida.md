@@ -1037,26 +1037,37 @@ Si cambia con il tasto **IT** / **EN**. La scelta resta salvata. Al primo avvio 
 - Nelle app isolate (vedi [Isolate e non isolate](#isolate-e-non-isolate)) **Ctrl C**, **Ctrl X** e **Ctrl V** possono non funzionare: il browser le permette solo a un gesto fatto proprio lì.
 - **Su** e **Giù** nei campi di testo su più righe si muovono per righe del testo, non per righe come appaiono sullo schermo: se una riga va a capo, il cursore salta alla riga logica precedente o successiva.
 
-## Zip
+## Compress Archive
 
-**Zip** comprime file e cartelle in archivi `.zip` e li estrae. Non c'è di serie: un amministratore la installa dall'[AppStore](#lappstore). All'installazione chiede di poter leggere e modificare i file della tua home, perché deve leggere il contenuto delle cartelle e scrivere l'archivio accanto.
+**Compress Archive** crea ed estrae archivi: **zip, 7z, tar, tar.gz, tar.bz2, tar.xz, iso**, i file compressi singoli **gz, bz2 e xz**, e apre i **rar**. Ha preso il posto dell'app Zip. Non c'è di serie: un amministratore la installa dall'[AppStore](#lappstore). All'installazione chiede di poter leggere e modificare i file della tua home, perché deve leggere il contenuto delle cartelle e scrivere l'archivio accanto.
 
 Si usa dal menu del tasto destro, sulla scrivania e nel File Manager, con la voce **Comprimi**:
 
-- **Comprimi → Zip** su file e cartelle che non sono archivi: crea l'archivio nella stessa cartella. Con un solo elemento l'archivio prende il suo nome (`Foto` → `Foto.zip`, `nota.txt` → `nota.zip`); con più elementi selezionati si chiama `Archivio.zip`. Le cartelle entrano con tutto ciò che contengono, anche le cartelle vuote.
-- **Comprimi → Unzip** su un file `.zip` (anche più di uno): lo estrae nella stessa cartella. Se l'archivio contiene una sola cartella, ottieni quella cartella; altrimenti una cartella nuova con il nome dell'archivio raccoglie tutto.
+- **Comprimi → Zip** e **Comprimi → Tar.gz** su file e cartelle che non sono archivi: creano subito l'archivio nella stessa cartella. Con un solo elemento l'archivio prende il suo nome (`Foto` → `Foto.zip`, `nota.txt` → `nota.zip`); con più elementi selezionati si chiama `Archivio.zip` (o `Archivio.tar.gz`). Le cartelle entrano con tutto ciò che contengono, anche le cartelle vuote.
+- **Comprimi → Comprimi come…**: una finestra in cui scegli il **formato**, il **nome**, la **compressione** (veloce, normale o massima) e, per lo zip, una **password**. **Gz**, **bz2** e **xz** comprimono un solo file così com'è (`nota.txt` → `nota.txt.gz`): con una cartella o più elementi si spengono, e al loro posto ci sono Tar.gz, Tar.bz2 e Tar.xz. Le scelte vengono ricordate per la volta dopo.
+- **Comprimi → Estrai qui** su un archivio (anche più di uno): lo estrae nella stessa cartella. Se l'archivio contiene una sola cartella, ottieni quella cartella; altrimenti una cartella nuova con il nome dell'archivio raccoglie tutto. Un file compresso singolo torna il file che era (`nota.txt.gz` → `nota.txt`). Il formato si riconosce dal contenuto, non dall'estensione.
 
-Un nome già usato prende un numero (`Foto 2.zip`, `Foto 2`): Zip non sovrascrive mai niente. A lavoro finito compare una notifica, per esempio "Creato «Foto.zip» (12 file, 3,4 MB)".
+Un nome già usato prende un numero (`Foto 2.zip`, `Foto 2`): Compress Archive non sovrascrive mai niente. A lavoro finito compare una notifica, per esempio "Creato «Foto.zip» (12 file, 3,4 MB)".
 
-Con il doppio clic su un file `.zip` si apre la finestra di Zip, con l'elenco di ciò che contiene (cartelle, file e dimensioni) e il pulsante **Estrai qui**.
+Con il doppio clic su un archivio si apre la finestra di Compress Archive: in alto il nome e il formato (per esempio `RAR 5` o `tar.xz`), sotto il contenuto ad albero con dimensioni e date. Le cartelle si aprono e chiudono con la freccia accanto al nome, la casella **Cerca nell'archivio** mostra solo gli elementi che corrispondono. Puoi **estrarre tutto** con **Estrai qui**, oppure spuntare file e cartelle e scegliere **Estrai gli elementi selezionati**.
+
+### Archivi con password
+
+- Per creare uno zip con password usa **Comprimi come…**, scegli **Zip** e scrivi la password due volte. Lo zip viene cifrato con AES-256: senza la password nessuno può aprirlo, e se la dimentichi non si può recuperare.
+- Quando estrai uno zip cifrato, la finestra dell'archivio chiede la password (con **Estrai qui** dal menu si apre da sola). Se è sbagliata te lo dice e puoi riprovare.
+- La password serve solo per quell'operazione: non viene mai salvata.
+- I file cifrati di un rar o di un 7z non si possono estrarre: restano fuori e la notifica lo dice; gli altri file dell'archivio si estraggono.
 
 ### Da sapere
 
-- Archivi e file estratti arrivano a 10 MB ciascuno, come ogni file di lilOS; in tutto Zip lavora su al massimo 256 MB e 10.000 file per volta.
-- Le immagini, i video, la musica e gli altri archivi entrano nello `.zip` così come sono, senza comprimerli di nuovo: lo sono già.
-- Dall'archivio restano fuori, e la notifica lo dice, gli elementi protetti da password, quelli con percorsi pericolosi (`..`), quelli compressi con metodi diversi da Deflate e i file più grandi di 10 MB. Le cartelle `__MACOSX` e i file `.DS_Store`, `Thumbs.db` e `desktop.ini` si saltano senza avviso.
-- Con una selezione che mescola archivi `.zip` e altri elementi la voce **Comprimi** non compare.
-- Serve una versione di lilOS con i sottomenu per le voci delle app.
+- Archivi e file estratti arrivano a 10 MB ciascuno, come ogni file di lilOS; in tutto Compress Archive lavora su al massimo 256 MB e 10.000 file per volta. Per questo le immagini ISO utili sono solo quelle piccole.
+- Gli archivi **rar** si aprono ma non si creano: il formato è proprietario.
+- Le compressioni **zstd**, **lz4**, **lzip** e **.Z** vengono riconosciute e la notifica dice che non sono supportate.
+- Nello zip le immagini, i video, la musica e gli altri archivi entrano così come sono, senza comprimerli di nuovo: lo sono già.
+- Dall'archivio restano fuori, e la notifica lo dice, i collegamenti, i dispositivi, i percorsi pericolosi (`..`) e i file più grandi di 10 MB. Le cartelle `__MACOSX` e i file `.DS_Store`, `Thumbs.db` e `desktop.ini` si saltano senza avviso.
+- Con una selezione che mescola archivi e altri elementi compare solo **Comprimi come…**.
+- Il lavoro si fa nel processo in background dell'app: puoi continuare a usare lilOS mentre comprime o estrae.
+- **Chi aveva Zip**: Zip non è più nell'AppStore. Installa Compress Archive, poi disinstalla Zip; le automazioni registrate con Zip vanno registrate di nuovo.
 
 ## Automata
 
@@ -1087,7 +1098,7 @@ Se ricarichi la pagina mentre registri, il browser chiede di confermare: ricaric
 | Photo | Ridimensiona l'immagine, Ritaglia l'immagine, Converti e salva una copia, Salva l'immagine |
 | Editor | Salva il file, Sostituisci tutto nel testo, Salva con nome |
 | Terminale | Esegui un comando |
-| Zip | Comprimi in un .zip, Estrai un .zip |
+| Compress Archive | Comprimi in un archivio (con formato e compressione), Estrai un archivio |
 | FileCrypt | Cifra, Togli la cifratura, Blocca |
 
 Cose da sapere sulla registrazione:

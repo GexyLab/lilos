@@ -70,6 +70,8 @@ Nel repository di lilOS ogni modifica ha il suo tag:
 
 Le grammatiche di Tree-sitter dell'Editor si aggiornano con `npm run vendor:tree-sitter`.
 
+Il motore di Compress Archive (libarchive con zlib, bzip2, xz e Mbed TLS, compilati in WebAssembly) si ricostruisce con `npm run build:libarchive`: serve Docker, ci vuole circa mezz'ora, e il risultato (`src/compress-archive/engine/`) si mette nel repository. Le versioni e i checksum dei sorgenti sono in `scripts/build-libarchive.mjs`. Poi `npm run test:compress-archive` prova il motore e i formati in Node.
+
 ## Riconoscimenti
 
 Ogni libreria, font o strumento di altri autori compare nel Pannello di controllo, in Informazioni → Riconoscimenti. L'elenco si legge da `src/settings/credits.json`.
