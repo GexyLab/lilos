@@ -248,6 +248,7 @@ Nessun agente fa commit o push: si decide dopo aver letto i report.
 ## Git
 
 - Repository: https://github.com/GexyLab/lilos. Il ramo predefinito è `development`; c'è anche `production`.
+- Licenze ([D76](decisioni.md#d76-le-licenze-sorgenti-polyform-strict-sdk-mit-lilos-costruito-con-una-licenza-duso)): sorgenti PolyForm Strict 1.0.0 (`LICENSE.md`), SDK MIT (`sdk/LICENSE`), lilOS costruito con la licenza d'uso `EULA.md`, copiata come `LICENSE.md` nel repository ufficiale: se cambia qui, si ricopia là.
 - Finora si è lavorato direttamente su `development`. Con più persone conviene passare a un ramo per funzionalità e a pull request.
 - Messaggi di commit in italiano (vedi [Convenzioni](../sviluppatore/convenzioni.md#git)).
 - Non riscrivere la storia dei rami già pubblicati (niente `push --force`).

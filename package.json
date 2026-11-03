@@ -2,6 +2,7 @@
   "name": "lilos",
   "private": true,
   "version": "1.24.0",
+  "license": "SEE LICENSE IN LICENSE.md",
   "type": "module",
   "scripts": {
     "predev": "node scripts/host-shims.mjs",

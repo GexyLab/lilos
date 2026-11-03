@@ -4,6 +4,8 @@ I mattoni di base di lilOS: utilità, eventi, salvataggio, preferenze, component
 
 L'SDK cresce man mano: ogni struttura di base nuova nasce qui, non in `src/`.
 
+Licenza: [MIT](LICENSE), © 2026 Eugenio Liguori, diversa da quella del resto di lilOS (PolyForm Strict). Chiunque può usarlo per scrivere e distribuire app per lilOS, anche commerciali.
+
 ## Uso
 
 ```js

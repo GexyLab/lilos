@@ -1885,3 +1885,25 @@ Conseguenze: se tutte le schede si chiudono non parte niente; un'automazione con
 **Conseguenze.** La prima release fatta così è lilOS 1.24.0 con programma 0.2.0. Le release `desktop-v*` già pubblicate restano com'erano. L'aggiornamento del programma legge sempre `releases/latest/download`.
 
 **Quando ripensarla.** Se il programma deve uscire più spesso di lilOS senza toccarlo.
+
+## D76. Le licenze: sorgenti PolyForm Strict, SDK MIT, lilOS costruito con una licenza d'uso
+
+**Decisione.** Deciso il 3 novembre 2026, prima di rendere di nuovo pubblico il repository. Titolare del copyright: Eugenio Liguori.
+
+- **Sorgenti** (questo repository): [PolyForm Strict 1.0.0](../../LICENSE.md), testo ufficiale invariato con la riga «Required Notice». Permette solo l'uso non commerciale; niente ridistribuzione, modifiche né opere derivate.
+- **SDK** (`sdk/`): MIT (`sdk/LICENSE`), così chiunque scrive e distribuisce app per lilOS, comprese quelle del repository community (MIT).
+- **lilOS costruito** (programma, installer, pacchetti del repository ufficiale): la [licenza d'uso](../../EULA.md), in italiano (prevale) e in inglese. Uso gratuito per tutti, aziende comprese, anche installato per un cliente; vietati ridistribuzione, modifiche, opere derivate, lilOS come servizio per terzi e decompilazione (salvo l'art. 64-quater della legge 633/1941). Nel repository ufficiale è il suo `LICENSE.md`.
+- **Componenti di terzi**: con le loro licenze (Riconoscimenti del Pannello di controllo). Sono tutte permissive; git (GPL-2.0) è un programma a parte incluso nel programma lilOS, con il link ai suoi sorgenti.
+
+**Perché.** Il repository torna pubblico, ma i sorgenti non devono diventare prodotti di altri, soprattutto aziendali. Chi usa lilOS, anche in un'azienda, deve però poterlo fare liberamente, e chi scrive app deve poter usare l'SDK.
+
+**Alternative scartate.** Licenza proprietaria «tutti i diritti riservati» sui sorgenti: più chiusa, ma senza un testo standard. PolyForm Noncommercial: permette di ridistribuire e modificare per scopi non commerciali. Business Source License ed Elastic License 2.0: permettono la ridistribuzione. Una sola licenza per sorgenti e versioni costruite: PolyForm Strict vieterebbe l'uso nelle aziende.
+
+**Conseguenze.**
+
+- Prima del 3 novembre 2026 il repository era pubblico senza licenza: nessuno aveva comunque il diritto di copiarlo o ridistribuirlo.
+- Un contributo di altri, in futuro, deve concedere al titolare i diritti per distribuirlo con queste licenze (per esempio con un accordo per i contributori).
+- La licenza d'uso non è ancora dentro gli installer (pagina del setup) né in `system/lilos`: oggi sta nel repository ufficiale e qui.
+- I testi vanno fatti rivedere da un legale prima di farli valere.
+
+**Quando ripensarla.** Se si vende una licenza commerciale, se arrivano contributori esterni, o se l'SDK deve restare chiuso.

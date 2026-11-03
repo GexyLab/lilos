@@ -159,3 +159,14 @@ Tutte le scorciatoie (tranne Spazio + trascina e i tasti di navigazione nei menu
 - Ogni finestra che modifica impostazioni usa `SettingsWindow` dell'SDK.
 - Cartelle e file passano dal file system dell'SDK (`fs`); la scrivania è la vista della cartella `/Scrivania` del workspace attuale (privata: gli altri workspace non la vedono). Ogni nodo creato ricorda il workspace che l'ha fatto.
 - Ogni scorciatoia è un comando registrato con `shortcuts.register` dell'SDK, così l'utente può cambiarla.
+
+## Licenza
+
+- **Sorgenti** (questo repository): [PolyForm Strict 1.0.0](LICENSE.md), © 2026 Eugenio Liguori. Si possono leggere e usare solo per scopi non commerciali (studio, prove, progetti personali, scuole, enti senza scopo di lucro). **Non si possono ridistribuire, modificare né usare per farne altri prodotti**, nemmeno non commerciali.
+- **SDK** (`sdk/`): [MIT](sdk/LICENSE). Serve a chiunque scriva app per lilOS.
+- **lilOS già costruito** (il programma e gli installer delle release, i pacchetti del repository ufficiale): [licenza d'uso](EULA.md). Tutti, aziende comprese, possono installarlo e usarlo gratis; non si può ridistribuire, modificare, offrire come servizio a terzi né usare per farne prodotti.
+- **Componenti di terzi**: restano con le loro licenze, per esempio `plugins/modules/netfs-smb/lib/smb3-client/` (MIT), le grammatiche tree-sitter in `plugins/src/editor/public/tree-sitter/` e le dipendenze npm. L'elenco è in lilOS, in Pannello di controllo → Informazioni → Riconoscimenti.
+
+Per altri usi (prodotti, servizi, ridistribuzione, una licenza commerciale): e.liguori@gexy.it.
+
+*License: sources under PolyForm Strict 1.0.0 (noncommercial use only, no distribution, no changes or derivative works); SDK under MIT; the built program and packages under the [lilOS License Agreement](EULA.md) (free use for everyone, companies included; no redistribution, changes, hosting for others or derivative products).*
