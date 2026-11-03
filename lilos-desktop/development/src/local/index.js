@@ -1,4 +1,6 @@
 import { EventEmitter } from 'node:events';
+import { forgetPasswords, installSettings } from '../installFile.js';
+import { useLilosDir } from '../runtime.js';
 import { settings, update } from '../store.js';
 import * as pg from './postgres.js';
 import { Kernel, addAdmin, configure, createDatabase, currentVersion, install, installed, waitReady } from './kernel.js';
@@ -6,6 +8,9 @@ import { freePort, portFree } from './proc.js';
 
 const KERNEL_PORT = 8790;
 const PG_PORT = 5433;
+
+// Where the installation settings put lilOS, once it was chosen (installer.dir)
+if (settings().local.dir) useLilosDir(settings().local.dir);
 
 /**
  * The lilOS the program runs on this computer: PostgreSQL, then the kernel. Status: 'stopped',
@@ -52,25 +57,36 @@ class LocalLilos extends EventEmitter {
     return { pgPort, port };
   }
 
-  /** First start: database, lilOS from the carried release, the first administrator, then on. */
-  setup({ username, password }) {
+  /**
+   * First start: database, lilOS from the carried release (or as the installation settings say),
+   * the first administrator (none with an image that has its users), then on.
+   */
+  setup({ username = null, password = null } = {}) {
     return this.#run(async () => {
+      const file = installSettings();
+      if (!installed() && !settings().local.dir && file?.dir) {
+        update(d => { d.local.dir = file.dir; });
+        useLilosDir(file.dir);
+      }
       if (!settings().local.pgPassword) update(d => { d.local.pgPassword = pg.newPassword(); });
       this.#say('Preparo il database…');
       await pg.init(settings().local.pgPassword);
       const { pgPort, port } = await this.#ports();
       await pg.start(pgPort);
       if (!installed()) {
-        this.#say('Installo lilOS e i moduli del kernel…');
-        await install(line => this.#say(line));
+        this.#say(file?.image ? 'Installo l’immagine del sistema…' : 'Installo lilOS e i moduli del kernel…');
+        await install(line => this.#say(line), file?.file ?? null);
       }
       const local = settings().local;
       await createDatabase(pg.url({ ...local, pgPort }).replace(/\/lilos$/, '/postgres'), pg.DATABASE);
       configure({ port, databaseUrl: pg.url({ ...local, pgPort }) });
-      this.#say('Creo il primo utente…');
-      await addAdmin(username, password);
+      if (username) {
+        this.#say('Creo il primo utente…');
+        await addAdmin(username, password);
+      }
       update(d => { d.local.installed = true; });
       await this.#startKernel(port, true);
+      forgetPasswords();
     });
   }
 

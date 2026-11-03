@@ -1,0 +1,23 @@
+{
+  "$comment": "Impostazioni di installazione di lilOS: cosa installare al primo avvio e dove. Ogni campo è spiegato in system/kernel/src/installSettings.js e nella guida (Impostazioni di installazione)",
+  "format": 1,
+  "installer": {
+    "dir": null,
+    "mode": null,
+    "server": null
+  },
+  "image": null,
+  "lilos": {
+    "source": "local"
+  },
+  "kernel": {},
+  "modules": {
+    "source": "server",
+    "list": null,
+    "config": {}
+  },
+  "repos": [],
+  "apps": null,
+  "users": [],
+  "settings": {}
+}

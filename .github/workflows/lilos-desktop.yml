@@ -1,15 +1,17 @@
 # The program lilOS (lilos-desktop/production): installers for Windows, macOS and Linux.
-# Runs at the tag desktop-vX.Y.Z (made at «pubblica», when development/ is copied to production/)
+# Runs at the tag release-vX.Y.Z (made at «pubblica release», after npm run release:desktop made
+# production/ from development/); X.Y.Z is the version of lilOS the packages carry (production/
+# package.json "version"; the program's own is "programVersion")
 # and creates the GitHub release with the packages: the program updates itself from there.
 name: lilOS desktop
 
 on:
   push:
-    tags: ['desktop-v*']
+    tags: ['release-v*']
   workflow_dispatch:
     inputs:
       release:
-        description: Create the GitHub release (only from a desktop-v* tag)
+        description: Create the GitHub release (only from a release-v* tag)
         type: boolean
         default: false
 
@@ -53,11 +55,11 @@ jobs:
           cache: npm
           cache-dependency-path: lilos-desktop/production/package-lock.json
 
-      - name: Version of the tag = version of the program
-        if: startsWith(github.ref, 'refs/tags/desktop-v')
+      - name: Version of the tag = version of lilOS in production/package.json
+        if: startsWith(github.ref, 'refs/tags/release-v')
         shell: bash
         run: |
-          want="${GITHUB_REF_NAME#desktop-v}"
+          want="${GITHUB_REF_NAME#release-v}"
           have="$(node -p "require('./package.json').version")"
           if [ "$want" != "$have" ]; then echo "Il tag dice $want, package.json dice $have"; exit 1; fi
 
@@ -98,7 +100,7 @@ jobs:
 
   release:
     needs: build
-    if: startsWith(github.ref, 'refs/tags/desktop-v') && (github.event_name == 'push' || inputs.release)
+    if: startsWith(github.ref, 'refs/tags/release-v') && (github.event_name == 'push' || inputs.release)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -114,8 +116,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           notes="changelog/${GITHUB_REF_NAME}.md"
-          [ -f "$notes" ] || { echo "Programma lilOS ${GITHUB_REF_NAME#desktop-v}" > /tmp/notes.md; notes=/tmp/notes.md; }
+          [ -f "$notes" ] || { echo "lilOS ${GITHUB_REF_NAME#release-v}" > /tmp/notes.md; notes=/tmp/notes.md; }
           rm -f packages/builder-debug.yml
           gh release create "$GITHUB_REF_NAME" packages/* \
-            --title "lilOS (programma) ${GITHUB_REF_NAME#desktop-v}" \
+            --title "lilOS ${GITHUB_REF_NAME#release-v}" \
             --notes-file "$notes" --latest

@@ -24,13 +24,20 @@ export function currentVersion() {
 
 const configPath = () => join(LILOS_DIR, 'config.json');
 
-/** Installs the carried release (and the modules of its configuration, from the official repository). */
-export async function install(onLine) {
+/** What tools/install.js writes in the folder: a half-done installation loses only these (the folder may be the user's). */
+const INSTALLED = ['releases', 'modules', 'modules-data', '.image', 'run.js', 'package.json', 'config.json', 'repos.json', 'current.json', 'lilos-install.json'];
+
+/**
+ * Installs the carried release (and the modules of its configuration, from the official repository),
+ * or what the installation settings say (`settingsFile`: another lilOS, an image, other modules…).
+ */
+export async function install(onLine, settingsFile = null) {
   const log = openLog('install');
   try {
     // A half-done installation (no current.json) starts again from nothing
-    if (existsSync(LILOS_DIR) && !installed()) rmSync(LILOS_DIR, { recursive: true, force: true });
-    const { code, output } = await run(NODE, [join(RELEASE_DIR, 'system', 'kernel', 'tools', 'install.js'), LILOS_DIR], { env: toolEnv(), log, onLine });
+    if (existsSync(LILOS_DIR) && !installed()) for (const name of INSTALLED) rmSync(join(LILOS_DIR, name), { recursive: true, force: true });
+    const settings = settingsFile ? ['--settings', settingsFile] : [];
+    const { code, output } = await run(NODE, [join(RELEASE_DIR, 'system', 'kernel', 'tools', 'install.js'), LILOS_DIR, ...settings], { env: toolEnv(), log, onLine });
     if (code !== 0) throw new Error(output.trim().split('\n').at(-1) || `install.js: codice ${code}`);
   } finally {
     log.end();

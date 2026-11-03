@@ -1,7 +1,7 @@
 {
   "name": "lilos",
   "private": true,
-  "version": "1.23.0",
+  "version": "1.24.0",
   "type": "module",
   "scripts": {
     "predev": "node scripts/host-shims.mjs",
@@ -14,7 +14,8 @@
     "kernel:cli": "node system/kernel/cli.js",
     "release": "node scripts/release.mjs",
     "db:up": "docker compose -f system/kernel/modules/fs-postgres_1.1.1/docker-compose.yml up -d",
-    "db:down": "docker compose -f system/kernel/modules/fs-postgres_1.1.1/docker-compose.yml down"
+    "db:down": "docker compose -f system/kernel/modules/fs-postgres_1.1.1/docker-compose.yml down",
+    "release:desktop": "node scripts/desktop-release.mjs"
   },
   "devDependencies": {
     "vite": "^8.3.5"

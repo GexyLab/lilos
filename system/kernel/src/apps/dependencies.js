@@ -384,13 +384,14 @@ export class Dependencies {
 
   /**
    * The kernel installing a system app by itself (first start): with the required dependencies
-   * from the official repository, never one that would need a warning accepted.
+   * from the official repository, never one that would need a warning accepted. allowUnsigned: the
+   * installation settings accepted that warning for the app (lilos-install.json, firstStart.js).
    */
-  async installAuto(target) {
+  async installAuto(target, { allowUnsigned = false } = {}) {
     const plan = await this.#plan(target);
     const steps = {};
-    for (const s of plan.steps) if (!s.optional) steps[s.key] = { grant: s.permissions, allowUnsigned: false };
-    return this.apply(KERNEL, target, { root: { grant: plan.root.permissions }, steps });
+    for (const s of plan.steps) if (!s.optional) steps[s.key] = { grant: s.permissions, allowUnsigned };
+    return this.apply(KERNEL, target, { root: { grant: plan.root.permissions, allowUnsigned }, steps });
   }
 
   // ---------- Guards (installer and ModuleAdmin) ----------

@@ -1,4 +1,4 @@
-import { BrowserWindow, ipcMain, session, shell } from 'electron';
+import { BrowserWindow, ipcMain, shell } from 'electron';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { checkServerUrl } from './bridge.js';
@@ -7,7 +7,7 @@ import { findInstalled } from './local/detect.js';
 import { local } from './local/index.js';
 import { LOG_DIR, bundledRelease, hasRuntime } from './runtime.js';
 import { addProfile, localProfile, profile as findProfile, settings } from './store.js';
-import { PRELOAD, load, openProfile, windowOf } from './windows.js';
+import { PRELOAD, load, openProfile, signIn, windowOf } from './windows.js';
 
 /**
  * The program's own pages, local files with window.lilosShell (preload.cjs):
@@ -78,11 +78,8 @@ const HANDLERS = {
     if (localProfile()) return done(localProfile());
     await local.setup({ username, password });
     const profile = addProfile({ name: t('profile.local'), kind: 'local', url: null, trusted: true });
-    // Signed in already with the user just made (its session cookie in the profile's session)
-    await session.fromPartition(`persist:p-${profile.id}`).fetch(`${local.url}/api/session`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Lilos': '1' },
-      body: JSON.stringify({ username, password }), credentials: 'include',
-    }).catch(() => null);
+    // Signed in already with the user just made
+    await signIn(profile, { username, password });
     done(profile);
   },
 

@@ -47,6 +47,8 @@ nsis:
   createDesktopShortcut: true
   shortcutName: lilOS
   deleteAppDataOnUninstall: false
+  # lilos-install.json next to the setup is copied next to the program (build/installer.nsh)
+  include: build/installer.nsh
   artifactName: lilOS-Setup-${version}.${ext}
 msi:
   perMachine: false

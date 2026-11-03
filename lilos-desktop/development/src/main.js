@@ -4,17 +4,19 @@ import { broadcast, setupBridge } from './bridge.js';
 import { forget, setupBluetooth, setupSession } from './devices.js';
 import { cleanOpened } from './files.js';
 import { t } from './i18n.js';
+import { automaticSetup } from './installFile.js';
 import { local } from './local/index.js';
 import { openWelcome, setupPages } from './pages.js';
-import { override, settings } from './store.js';
+import { addProfile, override, settings } from './store.js';
 import { createTray } from './tray.js';
 import { setupUpdates } from './updates.js';
-import { lilosWindows, openLast, profileOf, setQuitting } from './windows.js';
+import { lilosWindows, openLast, openProfile, profileOf, setQuitting } from './windows.js';
+import { hasRuntime } from './runtime.js';
 
 /**
  * lilOS, the program: lilOS in its own window instead of a browser, on Windows, macOS and Linux.
- * At the first start it asks where lilOS runs (pages/welcome.html); then it opens the last
- * server used. The lilOS of this computer (if chosen) starts with the program and stops when the
+ * At the first start it asks where lilOS runs (pages/welcome.html), unless the installation
+ * settings say it (lilos-install.json, installFile.js); then it opens the last server used. The lilOS of this computer (if chosen) starts with the program and stops when the
  * program quits; closing the window leaves the program in the tray.
  *   --hidden   start without showing the window (start with the computer)
  *   --session  lilOS is the whole desktop (the Linux session «lilOS»): kiosk, no tray, quitting ends it
@@ -77,8 +79,16 @@ function quit() {
 }
 
 function showMain() {
-  if (!settings().profiles.length) return openWelcome();
+  if (!settings().profiles.length) return firstStart();
   return openLast();
+}
+
+/** No profile yet: what the installation settings say (a server, or lilOS here installed by itself), or the welcome page. */
+function firstStart() {
+  const auto = automaticSetup();
+  if (auto?.kind === 'remote') return openProfile(addProfile({ name: auto.server.name, kind: 'remote', url: auto.server.url, trusted: auto.server.trusted }));
+  if (auto?.kind === 'local' && hasRuntime()) return openProfile(addProfile({ name: t('profile.local'), kind: 'local', url: null, trusted: true }));
+  return openWelcome();
 }
 
 function deepLink(url) {
@@ -120,7 +130,7 @@ async function ready() {
   const link = process.argv.find(a => a.startsWith(`${PROTOCOL}://`));
   const s = settings();
   if (!s.profiles.length) {
-    openWelcome();
+    firstStart();
     return;
   }
   // The local lilOS starts with the program, even hidden (started with the computer)

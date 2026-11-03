@@ -33,6 +33,8 @@ import { SystemReleases } from './apps/systemPackage.js';
 import { webFiles } from './web.js';
 import { AppServices } from './apps/appServices.js';
 import { KERNEL } from './services.js';
+import { applyInstallSettings, loadInstallSettings } from './firstStart.js';
+import { importImage } from './image.js';
 
 const log = logger('kernel');
 const LOOPBACK_HOSTS = new Set(['127.0.0.1', '::1', 'localhost']);
@@ -151,7 +153,18 @@ export class Kernel {
     netRoutes(this);
     termRoutes(this);
     scheduleRoutes(this);
+    // An installation from lilos-install.json: a system image first (its apps are not installed again), then what it asks for
+    this.install = await loadInstallSettings();
+    try {
+      await importImage(this.services.get('fs'), this.multiUser ? await this.service('users').list() : [LOCAL_USER], DATA_DIR, log);
+    } catch (err) {
+      log.error('Immagine del sistema non caricata (si riprova al prossimo avvio)', err);
+    }
     await this.#bootstrapApps(config.bootstrapApps);
+    this.install = await applyInstallSettings(this, this.install).catch(err => {
+      log.error('Impostazioni di installazione', err);
+      return this.install;
+    });
 
     this.#server = createServer((req, res) => this.#handle(req, res));
     this.#server.on('upgrade', (req, socket, head) => this.#upgrade(req, socket, head));

@@ -7,12 +7,14 @@
  * In <folder>/system/lilos it writes only what runs, never the sources:
  *   web/                the page built by Vite
  *   system/kernel/      the kernel bundled and minified (with what it uses of the SDK) by Vite:
- *                       src/main.js, src/cli.js, src/setup.js, src/install.js, src/pack.js and the
- *                       chunks they share, all in src/ (config.js and install.js find their folders
- *                       from there; run.js of an installed lilOS starts src/main.js); cli.js,
- *                       setup.js, tools/install.js and tools/pack.js that only import them; run.js
- *                       (minified, on its own: it is copied out of the release); package.json;
- *                       config.json, the configuration of a new installation; modules/ with the
+ *                       src/main.js, src/cli.js, src/setup.js, src/install.js, src/pack.js,
+ *                       src/makeImage.js and the chunks they share, all in src/ (config.js and
+ *                       install.js find their folders from there; run.js of an installed lilOS starts
+ *                       src/main.js); cli.js, setup.js, tools/install.js, tools/pack.js and
+ *                       tools/image.js that only import them; run.js (minified, on its own: it is
+ *                       copied out of the release); package.json; config.json, the configuration of
+ *                       a new installation; tools/lilos-install.json, the installation settings
+ *                       install.js uses when given none (src/installSettings.js); modules/ with the
  *                       required modules (REQUIRED_MODULES), as committed
  *   package.json        "type": "module" for all of it
  *   system.json         version (package.json's), kernel API, app SDK versions, Node.js, commit
@@ -37,10 +39,14 @@ const [repoArg] = args.filter(a => !a.startsWith('--'));
 /** Entry points of the kernel's bundle: name → source. */
 const KERNEL_ENTRIES = {
   main: 'system/kernel/src/main.js', cli: 'system/kernel/cli.js', setup: 'system/kernel/setup.js',
-  install: 'system/kernel/tools/install.js', pack: 'system/kernel/tools/pack.js', run: 'system/kernel/run.js',
+  install: 'system/kernel/tools/install.js', pack: 'system/kernel/tools/pack.js', makeImage: 'system/kernel/tools/image.js',
+  run: 'system/kernel/run.js',
 };
 /** Files of the release that only start a bundled entry, where the sources had them. */
-const KERNEL_SHIMS = { 'system/kernel/cli.js': './src/cli.js', 'system/kernel/setup.js': './src/setup.js', 'system/kernel/tools/install.js': '../src/install.js', 'system/kernel/tools/pack.js': '../src/pack.js' };
+const KERNEL_SHIMS = {
+  'system/kernel/cli.js': './src/cli.js', 'system/kernel/setup.js': './src/setup.js', 'system/kernel/tools/install.js': '../src/install.js',
+  'system/kernel/tools/pack.js': '../src/pack.js', 'system/kernel/tools/image.js': '../src/makeImage.js',
+};
 const KEEP = new Set(['README.md', 'CHANGELOG.md']);
 
 const git = (...a) => execFileSync('git', a, { cwd: root, encoding: 'utf8' }).trim();
@@ -154,6 +160,7 @@ try {
     const config = JSON.parse(git('show', 'HEAD:system/kernel/config.json'));
     config.apps = { ...config.apps, allowLocalSources: false };
     put('system/kernel/config.json', `${JSON.stringify(config, null, 2)}\n`);
+    put('system/kernel/tools/lilos-install.json', git('show', 'HEAD:system/kernel/tools/lilos-install.json') + '\n');
     put('package.json', `${JSON.stringify({ name: 'lilos-release', private: true, type: 'module' }, null, 2)}\n`);
     // The modules lilOS cannot do without come inside it (modules.js REQUIRED_MODULES): the kernel
     // puts them back from here. Their highest version as committed: only what git keeps, never data

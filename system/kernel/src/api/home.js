@@ -80,6 +80,11 @@ export async function openHome(kernel, principal) {
     if (!(await fs.stat(principal, view.configId))) missing.push(folder(view.configId, '.config'));
     if (missing.length) await fs.apply(principal, { put: missing });
     ensured.add(home.id);
+    // A new user starts with the settings of the installation (lilos-install.json, firstStart.js)
+    const start = kernel.install?.settings;
+    if (home.created && start && Object.keys(start).length && !(await fs.stat(principal, view.keyId('settings')))) {
+      await writeKey(view, principal, 'settings', start);
+    }
   }
   return view;
 }
@@ -96,7 +101,10 @@ export async function readUserKey(kernel, principal, key, fallback = null) {
 
 /** Writes a key of the user's .config (JSON, at most 512 KB). lilOS sees it after it reloads. */
 export async function writeUserKey(kernel, principal, key, value) {
-  const view = await openHome(kernel, principal);
+  await writeKey(await openHome(kernel, principal), principal, key, value);
+}
+
+async function writeKey(view, principal, key, value) {
   const text = JSON.stringify(value) ?? 'null';
   if (text.length > MAX_VALUE) fail('too_large', `Valore troppo grande: ${key}`);
   const id = view.keyId(key);

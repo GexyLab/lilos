@@ -10,7 +10,8 @@ import { DATA_DIR } from './runtime.js';
  *                 local: the lilOS the program runs here; remote: a lilOS elsewhere (or one
  *                 installed by hand on this computer), opened at its address
  *   last          the id of the profile opened last
- *   local         { installed, port, pgPort, pgPassword }   the lilOS run here
+ *   local         { installed, port, pgPort, pgPassword, dir }   the lilOS run here; dir: its folder
+ *                 when the installation settings chose one (else <data>/lilos)
  *   display       'window' | 'fullscreen' | 'kiosk'; monitor: id of the display, or null
  *   kioskKeys     the Windows key and Alt+Tab go to lilOS in full screen (Keyboard Lock)
  *   startAtLogin  the program starts with the computer (the kernel, without the window)
@@ -27,7 +28,7 @@ const HARDWARE = ['ask', 'declared', 'all'];
 
 const DEFAULTS = () => ({
   profiles: [], last: null,
-  local: { installed: false, port: null, pgPort: null, pgPassword: null },
+  local: { installed: false, port: null, pgPort: null, pgPassword: null, dir: null },
   display: 'window', monitor: null, kioskKeys: true,
   startAtLogin: false, stayInTray: true, notifications: true,
   updates: process.platform === 'darwin' ? 'notify' : 'auto',

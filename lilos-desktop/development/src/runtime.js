@@ -17,13 +17,20 @@ export const RELEASE_DIR = app.isPackaged ? join(process.resourcesPath, 'lilos')
 
 /**
  * Where the program keeps its data: settings, the installed lilOS, the database, the logs.
- * LILOS_DESKTOP_DATA puts them elsewhere (tests, a second copy).
+ * LILOS_DESKTOP_DATA puts them elsewhere (tests, a second copy). The installation settings can
+ * put lilOS and its database in another folder (installer.dir, installFile.js): useLilosDir.
  */
 if (process.env.LILOS_DESKTOP_DATA) app.setPath('userData', process.env.LILOS_DESKTOP_DATA);
 export const DATA_DIR = app.getPath('userData');
-export const LILOS_DIR = join(DATA_DIR, 'lilos');
-export const PG_DIR = join(DATA_DIR, 'postgres');
+export let LILOS_DIR = join(DATA_DIR, 'lilos');
+export let PG_DIR = join(DATA_DIR, 'postgres');
 export const LOG_DIR = join(DATA_DIR, 'logs');
+
+/** lilOS in `dir`, its database in <dir>/postgres. */
+export function useLilosDir(dir) {
+  LILOS_DIR = dir;
+  PG_DIR = join(dir, 'postgres');
+}
 
 export const NODE = join(RUNTIME_DIR, 'node', WIN ? 'node.exe' : join('bin', 'node'));
 const NODE_BIN = join(RUNTIME_DIR, 'node', WIN ? '' : 'bin');

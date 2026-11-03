@@ -1,7 +1,8 @@
-import { BrowserWindow, app, dialog, screen, shell } from 'electron';
+import { BrowserWindow, app, dialog, screen, session, shell } from 'electron';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { language, t } from './i18n.js';
+import { automaticSetup } from './installFile.js';
 import { local } from './local/index.js';
 import { profile as findProfile, settings, update } from './store.js';
 
@@ -91,12 +92,21 @@ function showStatus(win, profile, state) {
   return win.loadFile(STATUS_PAGE, { query }).catch(() => {});
 }
 
-/** Loads lilOS in the window (the local one is started first). */
+/**
+ * Loads lilOS in the window (the local one is started first; installed first when the
+ * installation settings let the program do it by itself, and the window signed in already).
+ */
 export async function load(win, profile) {
   if (profile.kind === 'local' && local.status !== 'running') {
     await showStatus(win, profile, 'starting');
     try {
-      await local.start();
+      const auto = !local.installed && automaticSetup();
+      if (auto?.kind === 'local') {
+        await local.setup(auto.admin ?? {});
+        if (auto.admin) await signIn(profile, auto.admin);
+      } else {
+        await local.start();
+      }
     } catch {
       return showStatus(win, profile, 'failed');
     }
@@ -104,6 +114,14 @@ export async function load(win, profile) {
   const url = profileUrl(profile);
   if (!url) return showStatus(win, profile, 'failed');
   return win.loadURL(url).catch(() => {});
+}
+
+/** The window of the profile signed in as `username` (its session cookie in the profile's session). */
+export async function signIn(profile, { username, password }) {
+  await session.fromPartition(`persist:p-${profile.id}`).fetch(`${local.url}/api/session`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Lilos': '1' },
+    body: JSON.stringify({ username, password }), credentials: 'include',
+  }).catch(() => null);
 }
 
 /** Opens (or brings forward) the window of a profile. */
