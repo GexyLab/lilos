@@ -33,10 +33,21 @@ const target = join(out, `${platform}-${arch}`);
 const exists = path => stat(path).then(() => true, () => false);
 const sha256 = data => createHash('sha256').update(data).digest('hex');
 
-async function download(url) {
-  const res = await fetch(url, { redirect: 'follow' });
-  if (!res.ok) throw new Error(`${url}: ${res.status} ${res.statusText}`);
-  return Buffer.from(await res.arrayBuffer());
+/** Downloads `url`; a server error or a broken connection is tried again (a few times, waiting longer each time). */
+async function download(url, tries = 4) {
+  for (let i = 1; ; i++) {
+    try {
+      const res = await fetch(url, { redirect: 'follow' });
+      if (res.ok) return Buffer.from(await res.arrayBuffer());
+      const err = new Error(`${url}: ${res.status} ${res.statusText}`);
+      if (res.status < 500 && res.status !== 429) throw Object.assign(err, { final: true });
+      throw err;
+    } catch (err) {
+      if (err.final || i >= tries) throw err;
+      console.log(`  ${err.message}: riprovo (${i}/${tries - 1})`);
+      await new Promise(r => setTimeout(r, 5000 * i));
+    }
+  }
 }
 
 /** Extracts an archive (zip, tar.gz, tar.xz, tgz) with the system's tar: bsdtar on Windows reads zip too. */
