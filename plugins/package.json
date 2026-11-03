@@ -1,8 +1,8 @@
 {
-  "name": "lilos-plugins-official",
+  "name": "lilos-plugins",
   "private": true,
   "version": "1.0.0",
-  "description": "App e moduli ufficiali di lilOS",
+  "description": "Sorgenti delle app e dei moduli ufficiali di lilOS (pubblicati in lilos-plugins-official)",
   "type": "module",
   "scripts": {
     "build": "node scripts/build.mjs",
@@ -11,7 +11,8 @@
     "check:credits": "node scripts/credits.mjs --check",
     "sync:modules": "node scripts/module-libs.mjs",
     "check:modules": "node scripts/module-libs.mjs --check",
-    "vendor:tree-sitter": "node scripts/vendor-tree-sitter.mjs"
+    "vendor:tree-sitter": "node scripts/vendor-tree-sitter.mjs",
+    "publish:repo": "node scripts/publish.mjs"
   },
   "devDependencies": {
     "vite": "8.3.5"

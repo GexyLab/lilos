@@ -7,7 +7,7 @@
  *   that import it (found in src/<app>/);
  * - the dependencies of the kernel modules (modules/<name>/package-lock.json);
  * - the code copied into the repository (VENDORED below: Tree-sitter grammars, smb3-client);
- * - the web fonts of lilOS (system/lilos/web/index.html) and of the apps (FONTS below);
+ * - the web fonts of lilOS (its index.html, one folder up) and of the apps (FONTS below);
  * - the tools that build lilOS and the apps (root devDependencies).
  * Licenses, copyright and sites come from node_modules: run `npm ci` in the root and in every
  * module with a package-lock.json first.
@@ -148,7 +148,7 @@ function userNames(ids) {
 
 /** Web font families named in Google Fonts links of lilOS and of the apps. */
 function fontFamilies() {
-  const files = [join(root, 'system', 'lilos', 'web', 'index.html'), ...walk(join(root, 'src')).filter(f => /\.(html|css|js)$/.test(f))];
+  const files = [join(root, '..', 'index.html'), ...walk(join(root, 'src')).filter(f => /\.(html|css|js)$/.test(f))];
   const families = new Set();
   for (const file of files.filter(existsSync)) {
     for (const [url] of readFileSync(file, 'utf8').matchAll(/https:\/\/fonts\.googleapis\.com\/css2?\?[^"'\s)]+/g)) {

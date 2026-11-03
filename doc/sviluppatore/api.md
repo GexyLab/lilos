@@ -1933,7 +1933,7 @@ Scorciatoie delle app, dichiarate nel registro (`commands`) e registrate all'avv
 
 ## App di sistema
 
-File Manager, Editor, Pannello di controllo, AppStore e Pianificazione **non stanno in questo repository**: sono pacchetti di [GexyLab/lilos-plugins-official](https://github.com/GexyLab/lilos-plugins-official) (sorgenti in `src/<app>/`, pacchetto pronto in `apps/<id>/`) che il kernel installa all'avvio se mancano ([D41](../interna/decisioni.md#d41-le-app-di-sistema-mancanti-si-installano-allavvio-del-kernel)). Come si lavora su di loro: [README per sviluppatori](README.md#le-app-di-sistema-e-il-repository-ufficiale). Qui c'è quello che lilOS si aspetta da loro e che gli dà.
+File Manager, Editor, Pannello di controllo, AppStore e Pianificazione sono **pacchetti**: i sorgenti stanno in questo repository, in `plugins/src/<app>/`, e il pacchetto pronto in `apps/<id>/` di [GexyLab/lilos-plugins-official](https://github.com/GexyLab/lilos-plugins-official), da cui il kernel li installa all'avvio se mancano ([D41](../interna/decisioni.md#d41-le-app-di-sistema-mancanti-si-installano-allavvio-del-kernel)). Come si lavora su di loro: [README per sviluppatori](README.md#le-app-di-sistema-e-il-repository-ufficiale). Qui c'è quello che lilOS si aspetta da loro e che gli dà.
 
 Un'app di sistema è un modulo ES come le altre: l'export predefinito riceve `{ args, openWindow }` e restituisce una `Window` (vedi [apps/registry.js e apps/launcher.js](#appsregistryjs-e-appslauncherjs)). Importa `@lilos/sdk` e [`@lilos/system`](#systemapijs-lilossystem); non ha sandbox. Se dichiara `entrypoints` (manifesto con `sdk` `"2"`), ogni punto d'ingresso è un export **con quel nome** dello stesso modulo (o del suo `file`): una finestra è una funzione `({ args, openWindow, entry }) → Window`, un background è una funzione `({ lilos, args })` che chiama `lilos.handle` (stesso oggetto `lilos` delle app installate, sempre nella pagina di lilOS; vedi [Background](#background-backgroundjs)).
 
@@ -2063,7 +2063,7 @@ Ascolta anche l'evento del bus `files:locked` (id di file): agisce sulle finestr
 ### Modulo di un'app
 
 ```js
-// src/notes/NotesApp.js (nel repository ufficiale, per un'app di sistema)
+// plugins/src/notes/NotesApp.js (per un'app di sistema)
 import { Window, h } from '@lilos/sdk';
 
 export default function createNotes({ args }) {
@@ -2696,7 +2696,7 @@ Esporta anche `ACCENTS`, i colori proposti dall'app Pannello di controllo, `DESK
 
 Stili in `src/styles/tags.css` (`.tag-dots`, `.tag-dot`, `.ditem-tags`, `.fm-tag`…).
 
-**Scheda Tag del Pannello di controllo** (`tagSections` in `SettingsApp.js`, nel repository ufficiale, dopo la scheda Workspace). Una sezione «Nuovo tag» (nome e **Crea**, anche con Invio; un errore, come un nome già preso, esce in una notifica) e una sezione per tag con Nome, Colore (`swatches` con `TAG_COLORS`), Visibile (interruttore, con la spiegazione di cosa succede) ed Elementi (quanti ne vede il workspace attuale, **Mostra nel File Manager** e **Elimina…** in due clic, che chiama `tags.remove`). Si ridisegna sull'evento `change` di `tags`. Argomenti di `launch('settings', …)`: `tab: 'tags'` apre la scheda e dà il focus al campo del nuovo tag; `tagFor: string[]` sono gli id degli elementi che prenderanno il prossimo tag creato lì (i nodi che non esistono si ignorano; l'elenco si svuota dopo la creazione).
+**Scheda Tag del Pannello di controllo** (`tagSections` in `plugins/src/settings/SettingsApp.js`, dopo la scheda Workspace). Una sezione «Nuovo tag» (nome e **Crea**, anche con Invio; un errore, come un nome già preso, esce in una notifica) e una sezione per tag con Nome, Colore (`swatches` con `TAG_COLORS`), Visibile (interruttore, con la spiegazione di cosa succede) ed Elementi (quanti ne vede il workspace attuale, **Mostra nel File Manager** e **Elimina…** in due clic, che chiama `tags.remove`). Si ridisegna sull'evento `change` di `tags`. Argomenti di `launch('settings', …)`: `tab: 'tags'` apre la scheda e dà il focus al campo del nuovo tag; `tagFor: string[]` sono gli id degli elementi che prenderanno il prossimo tag creato lì (i nodi che non esistono si ignorano; l'elenco si svuota dopo la creazione).
 
 ---
 
@@ -4533,7 +4533,7 @@ La libreria di `netfs-smb` sta in `lib/smb3-client/`: è una copia compilata di 
 
 ### Protocollo OneDrive: `netfs-onedrive_1.0.0`
 
-Il OneDrive dell'utente (personale, o di lavoro o dell'istituto) in Rete, tramite Microsoft Graph. Sta nel repository ufficiale (`modules/netfs-onedrive/`, con il suo README), non nella cartella `modules/` di questo repository: un amministratore lo installa dall'AppStore → Kernel. Fornisce `netfs.onedrive` (ordine 60), non ha dipendenze e richiede lilOS 1.11.0 (accesso con un fornitore, `settings`, `link`, `putHome`). Motivi: [D60](../interna/decisioni.md#d60-onedrive-nella-rete-laccesso-con-la-finestra-del-fornitore-e-le-impostazioni-dei-moduli).
+Il OneDrive dell'utente (personale, o di lavoro o dell'istituto) in Rete, tramite Microsoft Graph. Il sorgente sta in `plugins/modules/netfs-onedrive/` (con il suo README), non nella cartella `system/kernel/modules/` di questo repository, e si installa dal repository ufficiale: un amministratore lo installa dall'AppStore → Kernel. Fornisce `netfs.onedrive` (ordine 60), non ha dipendenze e richiede lilOS 1.11.0 (accesso con un fornitore, `settings`, `link`, `putHome`). Motivi: [D60](../interna/decisioni.md#d60-onedrive-nella-rete-laccesso-con-la-finestra-del-fornitore-e-le-impostazioni-dei-moduli).
 
 | Cosa | Come |
 | --- | --- |
@@ -4695,7 +4695,7 @@ Disposizioni dei menu scelte dall'utente: `{ "desktop.background": [ …voci… 
 
 ### `lilos:editor-lang`
 
-Impostazioni dell'Editor (motori di evidenziazione, grammatiche aggiunte, language server esterni, schemi JSON): le scrive e le valida l'app Editor (`lang/config.js`, nel repository ufficiale). Contengono anche la sezione `tabs: { reopen }` (`true` di partenza: l'Editor tiene da parte schede e bozze alla chiusura). Il sistema non le legge.
+Impostazioni dell'Editor (motori di evidenziazione, grammatiche aggiunte, language server esterni, schemi JSON): le scrive e le valida l'app Editor (`plugins/src/editor/lang/config.js`). Contengono anche la sezione `tabs: { reopen }` (`true` di partenza: l'Editor tiene da parte schede e bozze alla chiusura). Il sistema non le legge.
 
 ### `lilos:editor-tabs`
 
@@ -4757,7 +4757,7 @@ Vista del File Manager: `"list"`, `"grid"` (icone) o `"thumbs"` (anteprime; File
 
 ### `lilos:files-panels`
 
-Pannelli a destra del File Manager (`src/files/SidePanel.js` nel repository ufficiale): `{ info: { open, width }, preview: { open, width } }`. `width` è in pixel, tra 180 e 720; i valori predefiniti sono Informazioni aperto a 260 px e Anteprima chiusa a 300 px. Scritta a ogni apertura, chiusura o cambio di larghezza.
+Pannelli a destra del File Manager (`plugins/src/files/SidePanel.js`): `{ info: { open, width }, preview: { open, width } }`. `width` è in pixel, tra 180 e 720; i valori predefiniti sono Informazioni aperto a 260 px e Anteprima chiusa a 300 px. Scritta a ogni apertura, chiusura o cambio di larghezza.
 
 ### `lilos:files-sidebar`
 

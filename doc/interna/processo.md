@@ -10,7 +10,7 @@ Il repository non ha ancora una suite di test. Prima di ogni commit:
 
 Le modifiche al kernel (`system/kernel/`) si provano con il kernel acceso e un utente di prova: non c'è ancora una suite di test.
 
-**Le app di sistema non sono in questo repository.** Una modifica a File Manager, Editor, Pannello di controllo, AppStore o Pianificazione si fa e si verifica nel repository ufficiale ([come](../sviluppatore/README.md#le-app-di-sistema-e-il-repository-ufficiale)); una modifica a lilOS che tocca `src/systemApi.js`, gli argomenti con cui il sistema avvia quelle app o la forma dei dati che condividono va provata con le app installate, e con `npm run build` anche del repository ufficiale se cambia un export.
+**I sorgenti delle app di sistema stanno in `plugins/`.** Una modifica a File Manager, Editor, Pannello di controllo, AppStore o Pianificazione si fa in `plugins/src/<app>/` e si verifica con `npm run build` in `plugins/` e provando il pacchetto dentro lilOS ([come](../sviluppatore/README.md#le-app-di-sistema-e-il-repository-ufficiale)). Una modifica a lilOS che tocca `src/systemApi.js`, gli argomenti con cui il sistema avvia quelle app o la forma dei dati che condividono va provata con le app installate, e con `npm run build` in `plugins/` se cambia un export.
 
 ### Lista di controllo manuale
 
@@ -241,9 +241,9 @@ Nessun agente fa commit o push: si decide dopo aver letto i report.
 ## Dipendenze
 
 - `npm install` installa le versioni esatte di `package-lock.json`; nessun pacchetto ha script di installazione.
-- lilOS non ha dipendenze a runtime. Quelle dell'Editor (e le grammatiche Tree-sitter, che si aggiornano con `npm run vendor:tree-sitter`) stanno nel repository ufficiale.
+- lilOS non ha dipendenze a runtime. Quelle dell'Editor (e le grammatiche Tree-sitter, che si aggiornano con `npm run vendor:tree-sitter`) stanno in `plugins/` (`plugins/package.json`).
 - Prima di aggiungere una dipendenza: [Convenzioni → Dipendenze](../sviluppatore/convenzioni.md#dipendenze).
-- Ogni libreria esterna ha i suoi riconoscimenti in Pannello di controllo → Informazioni → Riconoscimenti, aggiunti insieme alla dipendenza (`npm run credits` nel repository ufficiale; il build si ferma se mancano).
+- Ogni libreria esterna ha i suoi riconoscimenti in Pannello di controllo → Informazioni → Riconoscimenti, aggiunti insieme alla dipendenza (`npm run credits` in `plugins/`; il build si ferma se mancano).
 
 ## Git
 
@@ -252,9 +252,20 @@ Nessun agente fa commit o push: si decide dopo aver letto i report.
 - Messaggi di commit in italiano (vedi [Convenzioni](../sviluppatore/convenzioni.md#git)).
 - Non riscrivere la storia dei rami già pubblicati (niente `push --force`).
 - **Mai nel repository**: `system/kernel/modules/users-basic_1.1.0/users.json` (utenti e hash delle password; è ignorato da un `.gitignore` del modulo), `system/kernel/repos.json` (i repository aggiunti: ignorato), chiavi private degli editori (`.pem`) e qualunque credenziale di accesso ai repository (stanno nella configurazione di git del computer del kernel, non nel progetto).
-- **Repository ufficiale delle app**: [GexyLab/lilos-plugins-official](https://github.com/GexyLab/lilos-plugins-official), privato, tag `v1.0.0`. Contiene le app di sistema e i moduli del kernel (`users-basic`, `fs-postgres`, `services-isolate`, `scheduler`, `notifications-basic` e i protocolli di rete `netfs-sftp`, `netfs-ftp`, `netfs-webdav`, `netfs-smb`). Ha il suo ciclo di versioni: `version` nei suoi manifesti, `npm run build`, commit di sorgenti e `apps/`, tag `vX.Y.Z` ([come](../sviluppatore/ricette.md#aggiungere-o-aggiornare-unapp-di-sistema)).
+- **Repository ufficiale dei pacchetti**: [GexyLab/lilos-plugins-official](https://github.com/GexyLab/lilos-plugins-official), privato. Contiene **solo i pacchetti installabili**: `apps/<id>/`, `modules/<nome>/` (minificati), `system/lilos/`, `catalog.json`, `changelog/<tag>.md`, `README.md`, `.gitattributes`. Niente sorgenti ([D71](decisioni.md#d71-i-sorgenti-delle-app-ufficiali-e-dei-moduli-stanno-nel-repository-di-lilos-sotto-plugins)): quelli stanno in `plugins/` di questo repository. I moduli del kernel sono `users-basic`, `fs-postgres`, `services-isolate`, `scheduler`, `notifications-basic` e i protocolli di rete `netfs-*`. I tag `vX.Y.Z` del repository ufficiale dicono cosa c'è nel catalogo (la storia delle app prima di `v1.51.0` è solo lì).
+- **Sorgenti delle app e dei moduli ufficiali**: in questo repository, sotto `plugins/` (importati dal repository ufficiale con un solo commit; la storia precedente resta lì fino al tag `v1.51.0`). Ogni componente ha la sua versione e il suo tag annotato: `vX.Y.Z` per lilOS (= `version` del `package.json` alla radice), `app/<id>/vX.Y.Z` per le app, `module/<nome>/vX.Y.Z` per i moduli.
+- **Repository community** ([lilos-plugins-community](https://github.com/GexyLab/lilos-plugins-community)): ci si pubblicano pacchetti **e** sorgenti (`--sources`). Per ogni altro repository si chiede se unire, minificare e caricare i sorgenti.
 
 ## Rilascio
+
+**Flusso per ogni modifica.** Alla fine di una modifica (app, modulo, kernel, core, SDK): alza la versione del componente, commit e push su `development`, tag annotato con un messaggio breve (`vX.Y.Z`, `app/<id>/vX.Y.Z`, `module/<nome>/vX.Y.Z`). Le note di rilascio complete (`changelog/<tag>.md`) si scrivono solo alla pubblicazione, nel repository di destinazione; `system/lilos/CHANGELOG.md` lo scrive `release.mjs`.
+
+**Pubblicare** (in `plugins/`, [D71](decisioni.md#d71-i-sorgenti-delle-app-ufficiali-e-dei-moduli-stanno-nel-repository-di-lilos-sotto-plugins)):
+
+1. `npm run publish:repo -- <copia del repository ufficiale> [nomi…]` costruisce, unisce e minifica e scrive i pacchetti nel repository di destinazione (senza nomi: quelli con versione diversa o mancanti, e lilOS se la versione alla radice non è quella di `system/lilos`). `--sources` copia anche i sorgenti: vietato per l'ufficiale. Stampa «vecchia → nuova» versione.
+2. Controlla i manifesti: `checkManifest` del kernel su tutti i pacchetti e un'installazione da un repository finto prima del tag.
+3. Scrivi `changelog/<tag>.md` nel repository di destinazione (componenti, vecchia → nuova versione, tipo di modifica e perché).
+4. Commit, push e tag nel repository di destinazione, a mano.
 
 **Versione di lilOS.** È `version` di `package.json` (`1.9.6` al 1° novembre 2026) e va alzata insieme al tag `v<versione>` di questo repository. Un lilOS installato la prende dal repository ufficiale ([D57](decisioni.md#d57-lilos-si-aggiorna-dal-repository-ufficiale-come-un-pacchetto)). Per pubblicare una versione: [Pubblicare una versione di lilOS](../sviluppatore/ricette.md#pubblicare-una-versione-di-lilos). `npm run release` rifiuta di partire con modifiche non salvate; alla fine controlla `CHANGELOG.md` e fai commit e tag nel repository ufficiale.
 

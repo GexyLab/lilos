@@ -1,7 +1,7 @@
 import { resolve } from 'node:path';
 
 /**
- * Build of one app (scripts/build.mjs builds them all): an ES module in apps/<id>/dist with its
+ * Build of one app (scripts/build.mjs builds them all): an ES module in build/apps/<id>/dist with its
  * chunks, workers, styles and public files next to it. '@lilos/sdk' and '@lilos/system' are not
  * bundled: the app imports lilOS's own, which lilOS serves as /host/sdk.js and /host/system.js.
  */
@@ -12,7 +12,7 @@ const host = () => ({
   resolveId: id => (HOST[id] ? { id: HOST[id], external: true } : null),
 });
 
-export function appConfig(app, entry) {
+export function appConfig(app, entry, { minify = true } = {}) {
   const root = resolve('src', app);
   return {
     root,
@@ -21,10 +21,10 @@ export function appConfig(app, entry) {
     logLevel: 'warn',
     plugins: [host()],
     build: {
-      outDir: resolve('apps', app, 'dist'),
+      outDir: resolve('build', 'apps', app, 'dist'),
       emptyOutDir: true,
       target: 'es2022',
-      minify: true,
+      minify,
       copyPublicDir: true,
       lib: { entry: resolve(root, entry), formats: ['es'], fileName: () => 'index.js', cssFileName: 'index' },
       rollupOptions: {

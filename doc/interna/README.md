@@ -19,5 +19,5 @@ Obiettivi:
 Riferimenti:
 
 - Repository: https://github.com/GexyLab/lilos
-- Repository ufficiale delle app e dei moduli (privato; File Manager, Editor, Pannello di controllo, AppStore, Pianificazione): https://github.com/GexyLab/lilos-plugins-official
+- Repository ufficiale dei pacchetti, app e moduli già costruiti (privato; File Manager, Editor, Pannello di controllo, AppStore, Pianificazione): https://github.com/GexyLab/lilos-plugins-official. I sorgenti stanno nel repository lilOS, sotto `plugins/` ([D71](decisioni.md#d71-i-sorgenti-delle-app-ufficiali-e-dei-moduli-stanno-nel-repository-di-lilos-sotto-plugins)).
 - Mockup visivo delle finestre e delle app: `design/mockup.html` (da aprire direttamente nel browser).

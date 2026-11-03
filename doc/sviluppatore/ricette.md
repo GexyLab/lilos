@@ -47,7 +47,7 @@ Procedure passo per passo per le modifiche più comuni. Per i dettagli delle fun
 
 Nel registro di lilOS non ci sono app scritte nel codice: ogni app è un **pacchetto installato** dal kernel, e compare nel menu di avvio (e nella ricerca) **dei workspace in cui è visibile** quando viene installata. Quindi:
 
-- per un'app di lilOS (File Manager, Editor, Pannello di controllo, AppStore e simili): [Aggiungere o aggiornare un'app di sistema](#aggiungere-o-aggiornare-unapp-di-sistema), nel repository ufficiale;
+- per un'app di lilOS (File Manager, Editor, Pannello di controllo, AppStore e simili): [Aggiungere o aggiornare un'app di sistema](#aggiungere-o-aggiornare-unapp-di-sistema), i sorgenti sono in `plugins/` di questo repository;
 - per un'app di altri: [Creare un'app installabile](#creare-unapp-installabile-pacchetto).
 
 La `category` del manifesto (`system`, `productivity`, `media`, `development`, `other`; `other` se manca) decide in quale scheda del menu di avvio compare l'app. Il nome (`name`), il simbolo (`icon.glyph`, un nome accettato da `icon()`; se serve uno nuovo, vedi [Aggiungere un simbolo](#aggiungere-un-simbolo)) e il colore (`icon.color`, con un buon contrasto con il simbolo bianco) stanno nel manifesto. L'`id` è stabile: finisce nei collegamenti sul desktop, quindi non va cambiato dopo il rilascio.
@@ -58,7 +58,7 @@ Per metterne un collegamento sul desktop, aggiungi un elemento `{ type: 'app', n
 
 ## Creare l'app vera e propria (una finestra)
 
-1. Crea il modulo, per esempio `src/notes/NotesApp.js` nel repository ufficiale (se è un'app di sistema, vedi la ricetta successiva). L'export predefinito riceve `{ args, openWindow }` e restituisce una `Window`:
+1. Crea il modulo, per esempio `plugins/src/notes/NotesApp.js` (se è un'app di sistema, vedi la ricetta successiva). L'export predefinito riceve `{ args, openWindow }` e restituisce una `Window`:
 
    ```js
    import { Window, h } from '@lilos/sdk';
@@ -80,22 +80,23 @@ Per metterne un collegamento sul desktop, aggiungi un elemento `{ type: 'app', n
 
 ## Aggiungere o aggiornare un'app di sistema
 
-Le app di sistema stanno nel repository ufficiale ([GexyLab/lilos-plugins-official](https://github.com/GexyLab/lilos-plugins-official)), non in questo. Clonalo accanto a lilOS e lancia `npm install` una volta. Panoramica: [README per sviluppatori](README.md#le-app-di-sistema-e-il-repository-ufficiale).
+I sorgenti delle app di sistema stanno in questo repository, nella cartella `plugins/` (il repository ufficiale, [GexyLab/lilos-plugins-official](https://github.com/GexyLab/lilos-plugins-official), ha solo i pacchetti costruiti): non serve clonarlo per lavorarci. Lancia `npm install` una volta, in `plugins/`; da lì partono anche `npm run build` e `npm run publish:repo`. Panoramica: [README per sviluppatori](README.md#le-app-di-sistema-e-il-repository-ufficiale).
 
 **Aggiornare un'app esistente**
 
-1. Modifica `src/<app>/` (sorgenti) e, per una versione nuova, alza `version` in `src/<app>/app.json`.
-2. `npm run build` (o `npm run build -- editor`). Scrive `apps/<id>/dist/` e `apps/<id>/lilos.json` con gli hash.
-3. Committa **sorgenti e `apps/`** (il kernel installa i file così come sono) e crea il tag: `git tag v1.1.0 && git push --follow-tags`. Il kernel prende il tag `vX.Y.Z` più alto del repository.
-4. Un amministratore la aggiorna dall'AppStore (Installate → Aggiorna a…). Per provarla prima di pubblicare il tag, vedi [Provare una modifica](README.md#le-app-di-sistema-e-il-repository-ufficiale).
+1. Modifica `plugins/src/<app>/` (sorgenti) e, per una versione nuova, alza `version` in `plugins/src/<app>/app.json`.
+2. Da `plugins/`: `npm run build` (o `npm run build -- editor`). Scrive `plugins/build/apps/<id>/` (`dist/`, `lilos.json` con gli hash, `locales.json`, `README.md`): è ignorato da git.
+3. Commit su `development` e tag annotato nel repository lilOS: `git tag -a app/editor/v1.6.0 -m "Editor 1.6.0"` (per un modulo `module/<nome>/vX.Y.Z`, per lilOS `vX.Y.Z`), poi `git push --follow-tags`.
+4. Per pubblicare: `npm run publish:repo -- <copia del repository ufficiale> editor`, poi `changelog/<tag>.md` lì, commit, push e tag lì. Il kernel prende il tag `vX.Y.Z` più alto del repository ufficiale.
+5. Un amministratore la aggiorna dall'AppStore (Installate → Aggiorna a…). Per provarla prima di pubblicare il tag, vedi [Provare una modifica](README.md#le-app-di-sistema-e-il-repository-ufficiale).
 
 **Aggiungere un'app nuova**
 
-1. Crea `src/<id>/` con `app.json` (il modello del manifesto: `id`, `version`, `kind: "local"`, `name`, `description`, `icon`, `publisher`, `sdk: "1"`, `system: true`, `required` se serve a lilOS, `permissions`, `contributes`) e il modulo, per esempio `NotesApp.js`, con un export predefinito `({ args, openWindow }) → Window`.
+1. Crea `plugins/src/<id>/` con `app.json` (il modello del manifesto: `id`, `version`, `kind: "local"`, `name`, `description`, `icon`, `publisher`, `sdk: "1"`, `system: true`, `required` se serve a lilOS, `permissions`, `contributes`) e il modulo, per esempio `NotesApp.js`, con un export predefinito `({ args, openWindow }) → Window`.
 2. Importa da `@lilos/sdk` e `@lilos/system` come nel resto del sistema: nel build restano esterni. I fogli di stile si importano dal modulo (`import './notes.css'`): il build li mette in `dist/` e `build.mjs` li scrive in `styles` del manifesto. Colori e raggi solo con i token dell'SDK.
-3. Aggiungi `{ id: 'notes', entry: 'NotesApp.js' }` a `APPS` in `scripts/build.mjs` e `"apps/notes"` a `catalog.json`.
+3. Aggiungi `{ id: 'notes', entry: 'NotesApp.js' }` a `APPS` in `plugins/scripts/build.mjs` e `"apps/notes"` a `plugins/catalog.json`.
 4. Se serve una funzione del sistema che `@lilos/system` non offre, aggiungi l'export a `src/systemApi.js` in lilOS (una riga `export { … } from '…'`) e rilascia **prima** lilOS: le app che lo usano non partono su un lilOS più vecchio.
-5. Build, commit, tag come sopra. Per farla installare da sola all'avvio del kernel aggiungi l'`id` a `apps.bootstrap` (predefinito: `files`, `editor`, `settings`, `appstore`); altrimenti si installa dall'AppStore.
+5. Build, commit, tag e pubblicazione come sopra. Per farla installare da sola all'avvio del kernel aggiungi l'`id` a `apps.bootstrap` (predefinito: `files`, `editor`, `settings`, `appstore`); altrimenti si installa dall'AppStore.
 
 **Aggiungere un servizio a un'app di sistema.** Scrivi `src/<app>/services/<nome>.js` con un export `async function <nome>({ lilos, args })` e **nessun `import`**; dichiaralo in `app.json` (`entrypoints.<nome>` con `kind: "service"` e `file: "dist/<nome>.js"`, più il permesso `background`). Il build lo copia in `dist/` così com'è. Se il servizio ha bisogno di codice condiviso con le finestre (la shell del Terminale), mettilo invece in `src/<app>/kernel/<nome>.js`: il build lo impacchetta con ciò che importa, con `kernel/sdk.js` e `kernel/system.js` al posto di `@lilos/sdk` e `@lilos/system`. Per farne un servizio che la Pianificazione può chiamare: [Pianificare operazioni da un'app](#pianificare-operazioni-da-unapp). Dettagli e un esempio in [Servizi delle app](api.md#servizi-delle-app-appsappservicesjs).
 
@@ -162,7 +163,7 @@ const win = new SettingsWindow({
 
 1. Dichiarala in `src/systemSettings.js` dentro `settings.define({...})`, con il valore predefinito (che ne fissa il tipo).
 2. Applicala: se è globale (stile, `<html>`), con `settings.watch` nello stesso file; se riguarda un componente, in `system.js` (`settings.watch('snap', on => { desktop.snapToGrid = on; })`). Valida i valori che finiscono in CSS o nel DOM.
-3. Aggiungi la riga nell'app Pannello di controllo (`src/settings/SettingsApp.js` nel repository ufficiale) e, se serve, al pulsante "Impostazioni predefinite".
+3. Aggiungi la riga nell'app Pannello di controllo (`plugins/src/settings/SettingsApp.js`) e, se serve, al pulsante "Impostazioni predefinite".
 4. Documentala nella tabella di [systemSettings.js](api.md#systemsettingsjs) e nella [guida utente](../utente/guida.md#pannello-di-controllo).
 
 ## Aggiungere un simbolo
@@ -677,7 +678,7 @@ Un'app installata o di sistema ha un solo file di traduzioni, con l'inglese come
 4. Se `locales.json` è tra i file del pacchetto, `pack.js` lo mette in `files` con il suo hash. Il kernel lo controlla all'installazione: un file non valido (manca `en`, forma plurale senza `other`, tag di lingua sbagliato…) fa fallire l'installazione.
 5. Per provare: Pannello di controllo → Lingua, scegli la lingua. Una lingua che l'app non ha ricade su `en`; una chiave mancante mostra la chiave e scrive un avviso in console.
 
-Le app ufficiali usano `appI18n(id, tabella)` di `src/shared/i18n.js` nel repository [lilos-plugins-official](https://github.com/GexyLab/lilos-plugins-official), che dà `locale.forApp(id).i18n` e ha un ripiego per i lilOS più vecchi, e controllano i file con `scripts/check-locales.mjs`.
+Le app ufficiali usano `appI18n(id, tabella)` di `plugins/src/shared/i18n.js`, che dà `locale.forApp(id).i18n` e ha un ripiego per i lilOS più vecchi, e controllano i file con `plugins/scripts/check-locales.mjs` (`npm run check:locales` in `plugins/`).
 
 ## Intervenire su un evento con una pipe
 
@@ -1053,7 +1054,7 @@ Un protocollo è un modulo del kernel che fornisce il servizio `netfs.<protocoll
 
 ## Dare impostazioni a un modulo del kernel
 
-Quello che un amministratore deve poter cambiare (un ID, una scelta, un interruttore) si dichiara in `module.json` e il Pannello di controllo lo disegna da sé. Esempio con OneDrive: `modules/netfs-onedrive/` nel repository ufficiale. L'app registrata presso Microsoft o Google **non** è un'impostazione del modulo: da lilOS 1.22.0 è del kernel, una per tutti i protocolli (`oauth` del driver, [App dei fornitori](api.md#app-dei-fornitori-netoauthjs)).
+Quello che un amministratore deve poter cambiare (un ID, una scelta, un interruttore) si dichiara in `module.json` e il Pannello di controllo lo disegna da sé. Esempio con OneDrive: `plugins/modules/netfs-onedrive/`. L'app registrata presso Microsoft o Google **non** è un'impostazione del modulo: da lilOS 1.22.0 è del kernel, una per tutti i protocolli (`oauth` del driver, [App dei fornitori](api.md#app-dei-fornitori-netoauthjs)).
 
 1. In `module.json` aggiungi `settings`, campi come quelli di un protocollo (`text`, `textarea`, `number`, `select`, `checkbox`, `password`). Un campo `password` è un segreto (un segreto client): `config.json` lo tiene cifrato, il modulo lo riceve in chiaro in `ctx.config`, la pagina sa solo se c'è (`secrets`); salvandolo, vuoto lo lascia com'è e `null` lo toglie:
 
@@ -1260,20 +1261,20 @@ Un modulo in un repository si installa, si aggiorna e si toglie dall'AppStore (M
 
 ## Pubblicare una versione di lilOS
 
-Una versione di lilOS (la pagina, il kernel, ciò che il kernel usa dell'SDK) si pubblica nel repository ufficiale come build, mai come sorgenti, e un amministratore la installa dall'AppStore. Decisione: [D57](../interna/decisioni.md#d57-lilos-si-aggiorna-dal-repository-ufficiale-come-un-pacchetto). Contratti: [API → lilOS come pacchetto](api.md#lilos-come-pacchetto-systempackagejs).
+Una versione di lilOS (la pagina, il kernel, ciò che il kernel usa dell'SDK) si pubblica nel repository ufficiale come build, mai come sorgenti (i sorgenti restano in questo repository), e un amministratore la installa dall'AppStore. Decisione: [D57](../interna/decisioni.md#d57-lilos-si-aggiorna-dal-repository-ufficiale-come-un-pacchetto). Contratti: [API → lilOS come pacchetto](api.md#lilos-come-pacchetto-systempackagejs).
 
 1. Alza `version` in `package.json` (la versione di lilOS è quella: `system.json` la copia). Se la versione nuova cambia l'API dei moduli o le versioni di `sdk` delle app (`KERNEL_API` in `modules.js`, `SDK_VERSIONS` in `manifest.js`), ricordati che gli utenti con moduli o app vecchi non potranno aggiornare finché non li aggiornano.
 2. Salva tutto in un commit: `npm run release` rifiuta di partire con modifiche non salvate (`--allow-dirty` solo per provare; i file si prendono dalla cartella di lavoro).
 3. Metti il tag `v<versione>` su quel commit: il changelog nasce dai messaggi dei commit dal tag della versione prima.
-4. Con una copia del repository ufficiale accanto:
+4. Con una copia del repository ufficiale accanto, da `plugins/`:
 
    ```bash
-   npm run release -- ../lilos-plugins-official
+   npm run publish:repo -- ../../lilos-plugins-official lilos
    ```
 
-   Il comando costruisce la pagina, impacchetta e minifica il kernel con Vite (con quello che usa dell'SDK), calcola gli hash e scrive `system/lilos/` (`web/`, `system/kernel/`, `package.json`, `system.json`), aggiunge a `CHANGELOG.md` la sezione della versione e mette `"system": "system/lilos"` in `catalog.json`. `README.md` lo scrive solo se manca.
+   (`lilos` come nome pubblica solo lilOS; senza nomi pubblica anche le app e i moduli con versione diversa.) Il comando chiama `scripts/release.mjs` della radice. Si può ancora lanciare direttamente, dalla radice, `npm run release -- ../lilos-plugins-official`. Il comando costruisce la pagina, impacchetta e minifica il kernel con Vite (con quello che usa dell'SDK), calcola gli hash e scrive `system/lilos/` (`web/`, `system/kernel/`, `package.json`, `system.json`), aggiunge a `CHANGELOG.md` la sezione della versione e mette `"system": "system/lilos"` in `catalog.json`. `README.md` lo scrive solo se manca.
 5. Apri `system/lilos/CHANGELOG.md` e riscrivi la sezione nuova: sono messaggi di commit, vanno resi comprensibili a chi amministra lilOS.
-6. Nel repository ufficiale: commit e tag `vX.Y.Z` come per le app. L'AppStore legge sempre l'ultimo tag.
+6. Nel repository ufficiale: scrivi `changelog/vX.Y.Z.md`, poi commit, push e tag `vX.Y.Z` (nel repository lilos il tag `vX.Y.Z` c'è già dal passo 3). L'AppStore legge sempre l'ultimo tag.
 7. Provala prima su un lilOS installato (vedi [Installare lilOS da una release](#installare-lilos-da-una-release)): AppStore → lilOS → **Aggiorna**, poi **Riavvia il kernel**. Per vedere il ritorno automatico, rendi la versione volutamente non avviabile in una prova e controlla che `current.json` torni alla precedente con `failed`.
 
 Un'app che funziona solo da una certa versione di lilOS lo dice nel manifesto con `lilos` (per esempio `"lilos": ">=1.8.0"`): il kernel non la installa su una versione fuori intervallo, e non aggiorna lilOS a una versione che la lascerebbe fuori.
