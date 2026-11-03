@@ -39,8 +39,15 @@ function database() {
   const pg = config.modules?.find(m => m.name === 'fs-postgres');
   const compose = pg && join(kernelDir, 'modules', `fs-postgres_${pg.version}`, 'docker-compose.yml');
   if (!compose || !existsSync(compose)) return;
+  // The container keeps its name across versions of the module (made by another folder's compose file): started as it is
+  let running = null;
   try {
-    execFileSync('docker', ['compose', '-f', compose, 'up', '-d'], { stdio: 'inherit' });
+    running = execFileSync('docker', ['inspect', '-f', '{{.State.Running}}', 'lilos-postgres'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+  } catch { /* no such container, or no Docker */ }
+  try {
+    if (running === 'true') return;
+    if (running === 'false') execFileSync('docker', ['start', 'lilos-postgres'], { stdio: 'inherit' });
+    else execFileSync('docker', ['compose', '-f', compose, 'up', '-d'], { stdio: 'inherit' });
   } catch {
     console.warn('Database di sviluppo non avviato (Docker è acceso?): il kernel non partirà senza');
   }
