@@ -36,6 +36,9 @@ import { dirname, isAbsolute, resolve } from 'node:path';
  *                                         first administrator)
  *     settings:  { theme, accent, … }     the starting settings of lilOS of every new user (the keys
  *                                         of src/systemSettings.js), also of users made later
+ *     acceptLicense: true | false         who prepares the installation accepts the license of lilOS
+ *                                         (src/license.js) for it: no administrator is asked at the
+ *                                         first start (they are asked again when its text changes)
  *     applied:   date                     written by the kernel when it has created users and apps,
  *                                         together with removing the passwords from the file }
  *
@@ -150,6 +153,7 @@ export function checkInstallSettings(raw, { base = process.cwd() } = {}) {
   if (!isObject(settings)) bad('settings', 'deve essere un oggetto');
   if (raw.image != null && (typeof raw.image !== 'string' || !raw.image.trim())) bad('image', 'deve essere una cartella, un archivio o un indirizzo');
   const image = raw.image == null ? null : /^https?:\/\//i.test(raw.image) ? raw.image.trim() : expandPath(raw.image, base);
+  if (raw.acceptLicense != null && typeof raw.acceptLicense !== 'boolean') bad('acceptLicense', 'deve essere true o false');
 
   return {
     format: 1,
@@ -166,6 +170,7 @@ export function checkInstallSettings(raw, { base = process.cwd() } = {}) {
     apps,
     users: users.map(userOf),
     settings,
+    acceptLicense: raw.acceptLicense === true,
     applied: typeof raw.applied === 'string' ? raw.applied : null,
   };
 }

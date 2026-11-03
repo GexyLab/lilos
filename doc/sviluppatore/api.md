@@ -3788,6 +3788,8 @@ Le richieste che modificano (tutte tranne `GET` e `HEAD`) devono avere l'intesta
 | `POST /api/system/use` | amministratori | `{ version }` → `{ version, restartRequired }` |
 | `DELETE /api/system/releases/:version` | amministratori | Cancella una versione conservata → `{ removed }` |
 | `POST /api/system/acknowledge` | amministratori | `{ notice: 'updated' \| 'failed' }` → 204 |
+| `GET /api/license` | utenti | La licenza di lilOS → `{ accepted, text, sha256, source, url, acceptedAt, canAccept }`. `source`: `'remote'` (letta da `LICENSE_URL`, il `LICENSE.md` del repository ufficiale; `LILOS_LICENSE_URL` la cambia) o `'bundled'` (la copia `EULA.md` della release, quando il repository non risponde). `url` è la pagina da leggere. `canAccept`: amministratori |
+| `POST /api/license/accept` | amministratori | `{ sha256 }` del testo letto → come `GET`. `conflict` se nel frattempo il testo è cambiato |
 | `/api/modules/<nome>/…` | utenti | Gli endpoint dei moduli (`ctx.route`) e i loro WebSocket (`ctx.socket`) |
 
 In un lilOS installato il kernel serve anche la pagina: ogni `GET` e `HEAD` fuori da `/api` che non corrisponde a un endpoint risponde con il file di `web/` della release (`web.js`); un indirizzo senza estensione che non è un file dà `index.html`. I file in `assets/` hanno l'hash nel nome e si tengono per un anno, gli altri si richiedono ogni volta (`no-cache`). In sviluppo la serve Vite.
@@ -4690,6 +4692,7 @@ Ogni campo si può omettere. Un valore sbagliato ferma l'installazione con un me
 | `apps` | App da installare al primo avvio: `[id \| { id, repo?, allowUnsigned? }]`. Con `null` le app di sistema di sempre. `repo` è l'indirizzo di un repository (di solito uno di `repos`); senza, quello ufficiale. `allowUnsigned: true` accetta un'app non verificata al posto dell'avviso dell'AppStore. | `null` |
 | `users` | Utenti da creare al primo avvio: `[{ username, name?, role?, password?, settings? }]`. `username`: 2-32 caratteri tra minuscole, cifre, `.`, `-`, `_`. `role`: `"user"` (predefinito) o `"admin"`. `password`: da 8 a 256 caratteri; **senza password l'utente non viene creato**. Al massimo 200. | `[]` |
 | `settings` | Le impostazioni iniziali (le chiavi di `src/systemSettings.js`, per esempio `theme`, `accent`) di **ogni nuovo utente**, anche creato dopo. | `{}` |
+| `acceptLicense` | `true`: chi prepara l'installazione accetta la licenza di lilOS (`src/license.js`) per lei, e al primo avvio non si chiede a un amministratore. Si chiede di nuovo se il testo cambia. | `false` |
 | `applied` | Data scritta dal kernel quando ha creato utenti e app. Non scriverla. | `null` |
 
 **Cosa fa `install.js`.** `node system/kernel/tools/install.js [<cartella>] [--settings <file>] [--from <cartella del kernel>]`:

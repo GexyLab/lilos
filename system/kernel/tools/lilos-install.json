@@ -19,5 +19,6 @@
   "repos": [],
   "apps": null,
   "users": [],
-  "settings": {}
+  "settings": {},
+  "acceptLicense": false
 }

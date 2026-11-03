@@ -2,6 +2,8 @@
  * Screens shown before lilOS starts (sign-in, messages). Plain DOM: the SDK cannot be imported
  * yet (it reads the user's data as soon as it loads), only its kernel client and styles.
  */
+import { markdown } from './markdown.js';
+
 function el(tag, attrs = {}, ...children) {
   const node = document.createElement(tag);
   for (const [k, v] of Object.entries(attrs)) {
@@ -78,6 +80,51 @@ export function messageScreen(root, { title, text, buttons }) {
       el('button', { class: `ctl-btn${b.primary ? ' primary' : ''}`, type: 'button', onclick: () => resolve(b.value) }, b.label)));
     card(root, el('h1', {}, title), text ? el('p', { class: 'boot-text' }, text) : null, row);
     row.querySelector('.primary')?.focus();
+  });
+}
+
+/**
+ * The license of lilOS to accept (GET /api/license: { text, source, url }). `accept()` sends the
+ * acceptance; its errors are shown. Resolves 'accepted', 'exit', or 'changed' (the text changed
+ * meanwhile: read it again).
+ */
+export function licenseScreen(root, { text, source, url }, accept) {
+  return new Promise(resolve => {
+    const doc = el('div', { class: 'boot-license', tabindex: '0', role: 'document', 'aria-label': 'Testo della licenza' }, ...markdown(text));
+    const from = el('a', { href: url, target: '_blank', rel: 'noopener noreferrer' }, url.replace(/^https?:\/\//, '').split('/').slice(0, 3).join('/'));
+    const note = el('p', { class: 'boot-note' }, ...(source === 'remote'
+      ? ['Testo letto da ', from, '.']
+      : [from, ' non risponde: questa è la copia inclusa in lilOS. Quando torna raggiungibile, se il testo è cambiato, lilOS lo chiederà di nuovo.']));
+    const check = el('input', { type: 'checkbox' });
+    const ok = el('button', { class: 'ctl-btn primary', type: 'button', disabled: '' }, 'Accetta');
+    const error = el('p', { class: 'boot-error', role: 'alert' });
+    check.addEventListener('change', () => { ok.disabled = !check.checked; });
+    ok.addEventListener('click', async () => {
+      ok.disabled = true;
+      ok.setAttribute('aria-busy', 'true');
+      error.textContent = '';
+      try {
+        await accept();
+        resolve('accepted');
+      } catch (err) {
+        if (err.code === 'conflict') return resolve('changed');
+        error.textContent = err.message;
+        ok.disabled = !check.checked;
+      } finally {
+        ok.removeAttribute('aria-busy');
+      }
+    });
+    const { box } = card(root,
+      el('h1', {}, 'Licenza di lilOS'),
+      el('p', { class: 'boot-text' }, "Prima di usare lilOS, leggi la sua licenza d'uso: vale per tutta questa installazione."),
+      doc, note,
+      el('label', { class: 'boot-check' }, check, el('span', {}, 'Ho letto la licenza e la accetto')),
+      error,
+      el('div', { class: 'boot-buttons' },
+        el('button', { class: 'ctl-btn', type: 'button', onclick: () => resolve('exit') }, 'Esci'),
+        ok));
+    box.classList.add('wide');
+    doc.focus();
   });
 }
 

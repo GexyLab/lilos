@@ -25,6 +25,15 @@ Se lilOS ha più utenti, all'apertura compare **Accedi a lilOS**: scrivi il **no
 
 **Salvare.** lilOS salva da solo, un attimo dopo ogni modifica. Se non riesce (per esempio il computer ha perso la connessione) compare **Modifiche non salvate** e lilOS riprova da solo; quando ci riesce compare **Modifiche salvate**. Finché è così non chiudere la pagina: il browser ti avvisa se ci sono modifiche che non sono ancora arrivate.
 
+### La licenza di lilOS
+
+La prima volta che si entra in un lilOS appena installato compare **Licenza di lilOS**: la licenza d'uso, letta dal [repository ufficiale](https://github.com/GexyLab/lilos-plugins-official/blob/main/LICENSE.md). Si accetta **una volta per tutta l'installazione**, e lo fa un amministratore: leggila, spunta **Ho letto la licenza e la accetto** e premi **Accetta**. Con **Esci** torni alla schermata di accesso.
+
+- Un utente che non è amministratore, finché nessun amministratore l'ha accettata, vede **Licenza di lilOS da accettare** e non entra: chiedi a chi gestisce lilOS, poi premi **Riprova**.
+- Se il repository ufficiale non risponde (per esempio senza internet) compare la copia che lilOS porta con sé, e lo dice sotto il testo. Quando il repository torna raggiungibile, se il testo è diverso, la licenza va accettata di nuovo.
+- Se la licenza cambia, un amministratore la rivede e la accetta di nuovo al suo prossimo accesso.
+- Chi prepara un'installazione con `lilos-install.json` può accettarla nel file (`"acceptLicense": true`, vedi [Installare lilOS già pronto](#installare-lilos-già-pronto-per-chi-amministra)): allora al primo avvio non si chiede.
+
 ### I dati che il browser aveva prima
 
 Se usavi lilOS prima degli account, il tuo browser può ancora avere cartelle, file e impostazioni di allora. Al primo accesso, se il tuo spazio è ancora vuoto, compare **Dati in questo browser**:
@@ -2298,7 +2307,8 @@ Se devi installare lilOS su molti computer, o su un server, puoi preparare in an
 - gli utenti da creare, con nome, ruolo (amministratore o utente) e password;
 - le app da installare, anche da repository che non sono quello ufficiale;
 - le impostazioni con cui parte ogni nuovo utente (per esempio tema chiaro e colore);
-- un'**immagine del sistema**: un lilOS già installato e pronto (app, utenti, file) da usare al posto di quello nuovo.
+- un'**immagine del sistema**: un lilOS già installato e pronto (app, utenti, file) da usare al posto di quello nuovo;
+- `"acceptLicense": true`, se accetti tu la [licenza di lilOS](#la-licenza-di-lilos) per l'installazione che prepari: al primo avvio non viene chiesta a nessuno.
 
 **Dove mettere il file.** Il programma lo cerca, in quest'ordine:
 

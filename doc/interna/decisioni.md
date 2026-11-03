@@ -1903,7 +1903,7 @@ Conseguenze: se tutte le schede si chiudono non parte niente; un'automazione con
 
 - Prima del 3 novembre 2026 il repository era pubblico senza licenza: nessuno aveva comunque il diritto di copiarlo o ridistribuirlo.
 - Un contributo di altri, in futuro, deve concedere al titolare i diritti per distribuirlo con queste licenze (per esempio con un accordo per i contributori).
-- La licenza d'uso non è ancora dentro gli installer (pagina del setup) né in `system/lilos`: oggi sta nel repository ufficiale e qui.
+- La licenza d'uso si accetta al primo avvio di lilOS ([D80](#d80-la-licenza-si-accetta-al-primo-avvio-letta-dal-repository-ufficiale)) e la release ne porta una copia (`EULA.md`); non c'è una pagina nel setup del programma.
 - I testi vanno fatti rivedere da un legale prima di farli valere.
 
 **Quando ripensarla.** Se si vende una licenza commerciale, se arrivano contributori esterni, o se l'SDK deve restare chiuso.
@@ -1992,3 +1992,27 @@ Conseguenze: se tutte le schede si chiudono non parte niente; un'automazione con
 - Non provata con un vero `.msi` o `.exe` reinstallato né con un aggiornamento automatico.
 
 **Quando ripensarla.** Se il disinstallatore deve chiedere cosa fare dei dati, o se macOS e Linux hanno bisogno della stessa domanda.
+
+## D80. La licenza si accetta al primo avvio, letta dal repository ufficiale
+
+**Decisione.** Deciso il 3 novembre 2026, lilOS 1.27.0.
+
+- **Dopo l'accesso e prima della scrivania** (`src/boot/boot.js`), lilOS chiede `GET /api/license`. Se la licenza non è accettata, un amministratore vede `licenseScreen` (`src/boot/screens.js`: testo in un riquadro che scorre, casella «Ho letto la licenza e la accetto», **Accetta** ed **Esci**); gli altri utenti vedono «Licenza di lilOS da accettare» e non entrano. Con un solo utente quell'utente è amministratore; **Esci** non fa uscire, rimostra la licenza.
+- **Una volta per installazione**: il kernel (`src/license.js`) scrive `license.json` nella cartella dei dati: `{ sha256, acceptedAt, by, source }`.
+- **Il testo si legge da remoto**: `https://raw.githubusercontent.com/GexyLab/lilos-plugins-official/main/LICENSE.md` (`LILOS_LICENSE_URL` lo cambia, per le prove), con 8 secondi di attesa, al massimo 256 KB, tenuto 10 minuti. L'impronta è SHA-256 del testo con i fine riga normalizzati.
+- **Testo cambiato**: un'impronta diversa da quella accettata va riaccettata. `POST /api/license/accept` riceve l'impronta del testo letto: se nel frattempo è cambiato, `conflict` e la pagina lo rimostra.
+- **Repository irraggiungibile**: si usa la copia `EULA.md` della release (`scripts/release.mjs` la mette in `system/lilos`; in sviluppo quella del repository). Se una licenza è già stata accettata vale quella; altrimenti si accetta la copia, e quando il repository torna si confrontano le impronte.
+- **`acceptLicense: true`** in `lilos-install.json`: chi prepara l'installazione la accetta per lei (`by: 'install'`), al primo avvio.
+- I testi della schermata sono in italiano, come le altre schermate prima dell'avvio, che non possono usare le traduzioni dell'SDK.
+
+**Perché.** La licenza d'uso ([D76](#d76-le-licenze-sorgenti-polyform-strict-sdk-mit-lilos-costruito-con-una-licenza-duso)) deve essere letta e accettata da chi installa lilOS, e deve poter cambiare senza una nuova release: per questo si legge dal repository ufficiale. Il kernel la scarica e ne conserva l'impronta, così la pagina non dipende da CORS né da regole di rete, e l'accettazione vale per tutti gli utenti.
+
+**Alternative scartate.** Accettazione di ogni utente: la licenza è di chi installa, non di chi usa. Bloccare senza rete: un lilOS in una rete chiusa non partirebbe più. Una pagina nel setup del programma: non copre chi installa con `install.js` o si collega a un server. Mostrare la licenza dalla pagina con un `fetch` diretto: dipende da CORS e il kernel non saprebbe cosa è stato accettato.
+
+**Conseguenze.**
+
+- Un lilOS già installato che si aggiorna alla 1.27.0 chiede la licenza al primo accesso di un amministratore; fino ad allora gli altri utenti non entrano.
+- Se il repository ufficiale cambia `LICENSE.md`, entro 10 minuti ogni lilOS raggiungibile la richiede agli amministratori.
+- Il controllo è nella pagina: il kernel non rifiuta le altre API a chi non l'ha accettata.
+
+**Quando ripensarla.** Se serve l'accettazione di ogni utente, una licenza per lingua, o che il kernel blocchi le API finché non è accettata.

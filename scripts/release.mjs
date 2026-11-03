@@ -162,6 +162,8 @@ try {
     put('system/kernel/config.json', `${JSON.stringify(config, null, 2)}\n`);
     put('system/kernel/tools/lilos-install.json', git('show', 'HEAD:system/kernel/tools/lilos-install.json') + '\n');
     put('package.json', `${JSON.stringify({ name: 'lilos-release', private: true, type: 'module' }, null, 2)}\n`);
+    // The license to accept when the official repository does not answer (system/kernel/src/license.js)
+    put('EULA.md', git('show', 'HEAD:EULA.md') + '\n');
     // The modules lilOS cannot do without come inside it (modules.js REQUIRED_MODULES): the kernel
     // puts them back from here. Their highest version as committed: only what git keeps, never data
     const { REQUIRED_MODULES } = await import(pathToFileURL(join(root, 'system/kernel/src/modules.js')));

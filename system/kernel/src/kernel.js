@@ -19,6 +19,8 @@ import { packageRoutes } from './api/packages.js';
 import { serviceRoutes } from './api/services.js';
 import { notificationRoutes } from './api/notifications.js';
 import { systemRoutes } from './api/system.js';
+import { licenseRoutes } from './api/license.js';
+import { License } from './license.js';
 import { netRoutes } from './api/net.js';
 import { termRoutes } from './api/term.js';
 import { scheduleRoutes } from './api/schedule.js';
@@ -136,6 +138,7 @@ export class Kernel {
     this.moduleAdmin.guard = this.dependencies;
     this.appServices = new AppServices(this);
     this.system = new SystemReleases(this);
+    this.license = new License();
     this.network = new Network(this);
     this.transfers = new Transfers(this, this.network);
     this.terminals = new Terminals(this);
@@ -153,6 +156,7 @@ export class Kernel {
     serviceRoutes(this);
     notificationRoutes(this);
     systemRoutes(this);
+    licenseRoutes(this);
     netRoutes(this);
     termRoutes(this);
     callsRoutes(this);
@@ -169,6 +173,7 @@ export class Kernel {
       log.error('Impostazioni di installazione', err);
       return this.install;
     });
+    if (this.install?.acceptLicense) await this.license.acceptFromInstall().catch(err => log.error('Licenza dalle impostazioni di installazione', err));
 
     this.#server = createServer((req, res) => this.#handle(req, res));
     this.#server.on('upgrade', (req, socket, head) => this.#upgrade(req, socket, head));

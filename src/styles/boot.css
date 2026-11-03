@@ -20,6 +20,28 @@
 .boot-error { min-height: 16px; font-size: 12px; color: var(--danger); }
 .boot-error:empty { min-height: 0; }
 .boot-buttons { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 8px; }
+/* The license (licenseScreen): a wider card, the text scrolls inside it */
+.boot-card.wide { width: min(680px, 100%); max-height: calc(100dvh - 32px); }
+.boot-license {
+  align-self: stretch; flex: 1 1 auto; min-height: 120px; max-height: 52dvh; overflow: auto; padding: 12px 16px;
+  border: 1px solid var(--border); border-radius: 8px; background: var(--field-bg); color: var(--text);
+  font-size: 12.5px; line-height: 1.55; text-align: left; overscroll-behavior: contain;
+}
+.boot-license:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.boot-license h2 { font-size: 15px; font-weight: 600; margin: 14px 0 6px; }
+.boot-license h3 { font-size: 13.5px; font-weight: 600; margin: 12px 0 4px; }
+.boot-license h4, .boot-license h5 { font-size: 12.5px; font-weight: 600; margin: 10px 0 4px; }
+.boot-license > :first-child { margin-top: 0; }
+.boot-license p, .boot-license ul, .boot-license ol { margin: 0 0 8px; }
+.boot-license ul, .boot-license ol { padding-left: 20px; }
+.boot-license li { margin: 2px 0; }
+.boot-license hr { border: 0; border-top: 1px solid var(--border); margin: 14px 0; }
+.boot-license code { font-family: var(--mono, ui-monospace, monospace); font-size: 11.5px; }
+.boot-license a { color: var(--accent); }
+.boot-note { align-self: stretch; font-size: 11.5px; color: var(--dim); }
+.boot-note a { color: var(--accent); }
+.boot-check { align-self: stretch; display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; }
+.boot-check input { width: 16px; height: 16px; margin: 0; accent-color: var(--accent); }
 .boot-spinner {
   width: 22px; height: 22px; margin: 6px 0 2px; border-radius: 50%;
   border: 2px solid var(--border); border-top-color: var(--accent); animation: boot-spin .8s linear infinite;

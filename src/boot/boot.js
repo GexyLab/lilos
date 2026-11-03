@@ -1,10 +1,11 @@
 import { kernel } from '@lilos/sdk/kernel';
-import { loginScreen, messageScreen, progressScreen } from './screens.js';
+import { licenseScreen, loginScreen, messageScreen, progressScreen } from './screens.js';
 import { hasLocalData, importLocalData } from './migrate.js';
 
 /**
- * Before lilOS starts: reaches the kernel, signs the user in (when lilOS has more users), offers
- * to bring in the data this browser kept before the kernel, then loads the user's data.
+ * Before lilOS starts: reaches the kernel, signs the user in (when lilOS has more users), has the
+ * license of lilOS accepted (once per installation), offers to bring in the data this browser kept
+ * before the kernel, then loads the user's data.
  * Resolves when the SDK can be imported.
  */
 export async function boot(root) {
@@ -12,6 +13,7 @@ export async function boot(root) {
     try {
       const { mode, user } = await kernel.session();
       if (mode === 'multi' && !user) await loginScreen(root, (name, password) => kernel.login(name, password));
+      if (!(await licenseAccepted(root, mode))) continue;
       if (hasLocalData()) await offerImport(root);
       progressScreen(root, 'Avvio di lilOS…');
       await kernel.connect();
@@ -24,6 +26,35 @@ export async function boot(root) {
         buttons: [{ label: 'Riprova', value: true, primary: true }],
       });
     }
+  }
+}
+
+/**
+ * The license of lilOS (kernel: src/license.js), until it is accepted: an administrator reads and
+ * accepts it, the others wait for one. False when the user went out (signed out: sign in again).
+ */
+async function licenseAccepted(root, mode) {
+  for (;;) {
+    const license = await kernel.request('GET', '/license');
+    if (license.accepted) return true;
+    const choice = license.canAccept
+      ? await licenseScreen(root, license, () => kernel.request('POST', '/license/accept', { sha256: license.sha256 }))
+      : await messageScreen(root, {
+        title: 'Licenza di lilOS da accettare',
+        text: "Prima che lilOS si possa usare, un amministratore deve leggere e accettare la sua licenza d'uso. Riprova quando l'ha fatto.",
+        buttons: [{ label: 'Esci', value: 'exit' }, { label: 'Riprova', value: 'retry', primary: true }],
+      });
+    if (choice === 'accepted') return true;
+    if (choice !== 'exit') continue;
+    if (mode === 'multi') {
+      await kernel.request('DELETE', '/session');
+      return false;
+    }
+    await messageScreen(root, {
+      title: 'Senza la licenza lilOS non parte',
+      text: "lilOS si può usare solo dopo averne accettato la licenza d'uso.",
+      buttons: [{ label: 'Leggi la licenza', value: true, primary: true }],
+    });
   }
 }
 
