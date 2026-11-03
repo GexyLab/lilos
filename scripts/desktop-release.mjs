@@ -1,7 +1,7 @@
 /**
  * «Pubblica release» of the program lilOS: makes lilos-desktop/production from
  * lilos-desktop/development, lighter and clean, ready for the GitHub Actions workflow
- * (.github/workflows/lilos-desktop.yml, at the tag desktop-vX.Y.Z) that builds the installers:
+ * (.github/workflows/lilos-desktop.yml, at the tag release-vX.Y.Z) that builds the installers:
  *
  *   npm run release:desktop [-- --check]
  *

@@ -1296,6 +1296,60 @@ node run.js
 - Rifiuta una cartella dove lilOS è già installato (`current.json`): da lì le versioni nuove arrivano dall'AppStore.
 - Il kernel serve anche la pagina, su `http://127.0.0.1:8790` (porta di `config.json`): non servono Vite né `npm run dev`.
 - Per passare a un'altra cartella dati, `LILOS_DATA_DIR` cambia dove stanno `config.json`, `repos.json` e `modules/`.
+- Con `--settings <file>` (o con `tools/lilos-install.json` della release, se non lo dai) si installa come dice un `lilos-install.json`: vedi la prossima ricetta.
+
+## Installare lilOS con un file di impostazioni
+
+Per installare lilOS già configurato (utenti, app, moduli, impostazioni) senza passare dalla procedura guidata. Tutti i campi: [Impostazioni di installazione](api.md#impostazioni-di-installazione-lilos-installjson-e-immagini-del-sistema).
+
+1. Scrivi un `lilos-install.json`. Un esempio minimo, con un amministratore e un tema:
+
+   ```json
+   {
+     "format": 1,
+     "users": [{ "username": "admin", "role": "admin", "password": "una-password-lunga" }],
+     "settings": { "theme": "light" }
+   }
+   ```
+
+2. Installa dalla release, passando il file (la cartella si può anche scrivere in `installer.dir`):
+
+   ```bash
+   node system/kernel/tools/install.js ../lilos-installato --settings ./lilos-install.json
+   cd ../lilos-installato && node run.js
+   ```
+
+3. Al primo avvio il kernel crea gli utenti e installa le app mancanti, poi riscrive la sua copia del file con `applied` e senza le password. Controlla il log: un utente senza password o un'app che non si trova sono avvisi, non fermano l'avvio.
+4. Cancella il file originale se ci hai scritto delle password.
+
+Per un server aziendale (utenti, `kernel.origins`, `secureCookies`, il tuo database in `modules.config["fs-postgres"].url`, un repository di app) c'è un esempio completo nel riferimento. Il programma lilOS usa lo stesso file (accanto al programma o nella sua cartella dei dati) per aprire un server o installarsi da solo: vedi [Il file di installazione](api.md#il-file-di-installazione-srcinstallfilejs).
+
+## Fare un'immagine del sistema e installarla
+
+Un'immagine è un lilOS già pronto (moduli, app, utenti, file) da installare altrove.
+
+1. Ferma il lilOS **installato** da cui parti (non una copia del repository) e lancia, con la sua versione:
+
+   ```bash
+   node releases/1.24.0/system/kernel/tools/image.js ../immagine --name "lilOS Azienda" --description "Con il gestionale"
+   ```
+
+   La cartella deve essere vuota. Il database non si copia: i file si esportano attraverso il servizio `fs`. Le sessioni degli utenti sono tolte.
+2. Se vuoi distribuirla, comprimila (`.zip` o `.tar.gz`) e mettila dove si può scaricare, oppure tienila in una cartella.
+3. Dove installi, dillo in `lilos-install.json` e dai il **tuo** database (quello scritto nell'immagine è dell'altro):
+
+   ```json
+   {
+     "format": 1,
+     "installer": { "dir": "~/lilos", "mode": "local" },
+     "image": "https://esempio.it/immagini/lilos-azienda.tar.gz",
+     "modules": { "config": { "fs-postgres": { "url": "postgres://lilos:UNA-PASSWORD@127.0.0.1:5432/lilos" } } }
+   }
+   ```
+
+4. Installa con `node system/kernel/tools/install.js --settings ./lilos-install.json` (la cartella viene da `installer.dir`). Al primo avvio il kernel carica i file e le home dall'immagine e cancella `.image`.
+
+Gli utenti dell'immagine accedono con le password di prima; `users` del file aggiunge altri utenti.
 
 ## Fare un repository non ufficiale
 

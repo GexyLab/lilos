@@ -28,7 +28,7 @@ npm run dist       # gli installer del sistema su cui sei, in dist/ (dist:win, d
 ## Struttura
 
 ```
-package.json            versione del programma (= quella del tag desktop-vX.Y.Z), script, dipendenze
+package.json            versione del programma (in production/ diventa programVersion: version è quella di lilOS, del tag release-vX.Y.Z), script, dipendenze
 versions.json           cosa porta il programma: node, git, postgres e il tag della release di lilOS
 electron-builder.yml    pacchetti: appId, bersagli per sistema, icone, fuses, feed degli aggiornamenti
 scripts/
@@ -75,13 +75,13 @@ I dati del programma stanno nella cartella dati di Electron (o in `LILOS_DESKTOP
 
 ## Pubblicare
 
-1. Si lavora in questa cartella. Si alza `version` in `package.json` e, se cambia la release di lilOS o una versione portata, `versions.json`. `npm run check` deve passare.
-2. A «pubblica» si **copia** `lilos-desktop/development/` in `lilos-desktop/production/` e si fa il commit. `node_modules`, `dist` e `runtime` non servono (il workflow esegue `npm ci` e `fetch-runtime.mjs`), ma serve `package-lock.json`.
-3. Si mette il tag `desktop-vX.Y.Z` con la stessa versione di `package.json` e si fa il push del tag. Il workflow `.github/workflows/lilos-desktop.yml` controlla che tag e versione siano uguali, poi costruisce da `production/`:
+1. Si lavora in questa cartella. Si alza `version` in `package.json` (la versione del programma) e, se cambia la release di lilOS o una versione portata, `versions.json`. `npm run check` deve passare.
+2. A «pubblica release», dopo aver pubblicato lilOS nel repository ufficiale e messo il suo tag in `versions.json`, dalla radice del repository si esegue `npm run release:desktop`: rifà `lilos-desktop/production/` da quello che è committato qui, minificato e senza quello che serve solo a sviluppare. Lì `package.json` ha `version` = **la versione di lilOS portata** e `programVersion` = la versione del programma: la release, gli installer e gli aggiornamenti dicono la versione di lilOS. Se il tag `release-v` di quella versione c'è già, lo script si ferma: serve prima una nuova versione di lilOS, anche quando cambia solo il programma.
+3. Si scrive `changelog/release-vX.Y.Z.md`, si fa il commit, il push e il tag `release-vX.Y.Z` (X.Y.Z = lilOS). Il workflow `.github/workflows/lilos-desktop.yml` controlla che tag e versione siano uguali, poi costruisce da `production/`:
    - **Windows** (x64): `lilOS-Setup-<versione>.exe` (NSIS) e `lilOS-<versione>.msi`;
    - **macOS**: `lilOS-<versione>-arm64.dmg` e `-x64.dmg`, più gli zip;
    - **Linux**: `lilOS-<versione>-x64.AppImage` e `-arm64.AppImage`, `lilos_<versione>_<arch>.deb` e `lilos-<versione>.<arch>.rpm`;
-   - e crea la release GitHub (`changelog/desktop-vX.Y.Z.md` come note, se c'è), con i file `latest*.yml` da cui il programma si aggiorna.
+   - e crea la release GitHub «lilOS X.Y.Z» (`changelog/release-vX.Y.Z.md` come note, se c'è), con i file `latest*.yml` da cui il programma si aggiorna. Le release `desktop-v*` di prima restano.
 4. Con `workflow_dispatch` si possono provare i pacchetti senza creare la release.
 
 Nessun certificato per ora: su Windows compare SmartScreen, su macOS i pacchetti sono firmati solo *ad hoc* (`identity: "-"`) e si apre con «Apri comunque». Su macOS gli aggiornamenti non si installano da soli: il programma avvisa e basta. L'aggiornamento automatico usa `releases/latest/download` del repository: la release «latest» deve essere quella del programma.

@@ -2055,6 +2055,8 @@ Scarica l'installatore dalla pagina delle versioni di lilOS su GitHub ([GexyLab/
 | macOS | `lilOS-…-arm64.dmg` (Mac con chip Apple) o `lilOS-…-x64.dmg` (Mac con processore Intel) |
 | Linux | `lilOS-….AppImage`, oppure il pacchetto `.deb` o `.rpm` (processori x64 e arm64) |
 
+Il numero nel nome del file è la versione di lilOS che il programma porta (per esempio `lilOS-Setup-1.24.0.exe`).
+
 Per ora il programma **non è firmato**, quindi il sistema ti avvisa la prima volta:
 
 - **Windows**: compare «Windows ha protetto il PC» (SmartScreen). Scegli **Ulteriori informazioni**, poi **Esegui comunque**.
@@ -2153,6 +2155,58 @@ Un server è **di fiducia** se lo segni tu. Il lilOS di questo computer lo è se
 - aggiungere e togliere server.
 
 Un server **non di fiducia** può solo mostrare il numero di notifiche sull'icona, portare la finestra in primo piano, farti scegliere un dispositivo, controllare gli aggiornamenti del programma e salvare un file sul computer con la finestra «Salva» (**Esporta**). Non può cambiare le impostazioni del programma, aprire file, vedere i percorsi del computer né vedere o aggiungere altri server. Segna di fiducia solo server tuoi: **un server di fiducia può cambiare cosa fa il tuo computer**.
+
+### Installare lilOS già pronto (per chi amministra)
+
+Se devi installare lilOS su molti computer, o su un server, puoi preparare in anticipo come deve essere. Si fa con un file di testo chiamato `lilos-install.json` (disponibile da lilOS 1.24.0 e dal programma 0.2.0). Nel file puoi scrivere:
+
+- la cartella dove installare lilOS;
+- se il programma deve far girare lilOS su questo computer oppure aprire direttamente un server;
+- gli utenti da creare, con nome, ruolo (amministratore o utente) e password;
+- le app da installare, anche da repository che non sono quello ufficiale;
+- le impostazioni con cui parte ogni nuovo utente (per esempio tema chiaro e colore);
+- un'**immagine del sistema**: un lilOS già installato e pronto (app, utenti, file) da usare al posto di quello nuovo.
+
+**Dove mettere il file.** Il programma lo cerca, in quest'ordine:
+
+1. nella cartella dei dati del programma, prima del primo avvio;
+2. accanto al programma: su Windows **accanto al file di installazione** (`lilOS-Setup-….exe`; l'installazione lo copia nella cartella del programma), su Linux accanto al file `.AppImage`, su macOS accanto a `lilOS.app`.
+
+**Cosa succede al primo avvio.**
+
+- Con `"mode": "server"` e l'indirizzo del server, il programma apre subito quel server, senza chiederti niente.
+- Con `"mode": "local"` e un amministratore con password (o con un'immagine), il programma installa lilOS da solo, senza la pagina di benvenuto. Se c'è un amministratore, la finestra si apre già con il suo accesso.
+- Senza `mode`, compare la pagina di benvenuto come sempre.
+- Gli utenti e le app del file vengono creati e installati la prima volta che lilOS parte. Un utente senza password non viene creato.
+
+**Attenzione alle password.** Nel file le password sono scritte in chiaro. Il programma le toglie dal file che sta nella sua cartella dei dati, e lilOS le toglie dalla sua copia, ma **il file messo accanto al programma resta com'è**. Cancellalo dopo l'installazione, o non metterci password e crea gli utenti dal programma.
+
+Un esempio per i computer dei dipendenti, che aprono il server dell'azienda:
+
+```json
+{
+  "format": 1,
+  "installer": {
+    "mode": "server",
+    "server": { "url": "https://lilos.azienda.it", "name": "lilOS Azienda" }
+  }
+}
+```
+
+E uno che installa lilOS sul computer, in una cartella scelta, a partire da un'immagine:
+
+```json
+{
+  "format": 1,
+  "installer": { "dir": "C:\\lilOS", "mode": "local" },
+  "image": "C:\\Immagini\\lilos-azienda.zip",
+  "modules": {
+    "config": { "fs-postgres": { "url": "postgres://lilos:UNA-PASSWORD@127.0.0.1:5432/lilos" } }
+  }
+}
+```
+
+Con un'immagine, dai il **tuo** database (la riga `fs-postgres`): quello scritto nell'immagine è di chi l'ha fatta. Un file scritto male fa fermare l'installazione con un messaggio che dice quale campo è sbagliato. L'elenco completo dei campi, un esempio per un server aziendale e il modo di fare un'immagine sono nella [documentazione per sviluppatori](../sviluppatore/api.md#impostazioni-di-installazione-lilos-installjson-e-immagini-del-sistema).
 
 ### Aggiornare il programma
 

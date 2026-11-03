@@ -3610,6 +3610,27 @@ Esporta due funzioni:
 - **Pannello di controllo → Cartelle del computer** (`cloud.js`, scheda `localfolders`, modulo `netfs-local`): le impostazioni del modulo (`roots`).
 - **File Manager** (`plugins/src/files/computer.js`, `computerEntries(nodes)` → voci di menu, con `'-'` davanti): **Apri sul computer** (`host.openOnComputer`, o `host.openPath` per un file di una connessione `local`), **Mostra nella cartella del computer** (`host.reveal`), **Esporta sul computer…** (`host.exportToComputer`, solo file). Le prime due solo con `host.trusted`. Il percorso del computer si ricava dalla cartella della connessione (`mount.values.folder`) più il percorso nella connessione, con `\` o `/` secondo il sistema. `netfs-local` è tra le dipendenze opzionali dell'app.
 
+### Il file di installazione (`src/installFile.js`)
+
+Il programma legge `lilos-install.json` ([formato](#impostazioni-di-installazione-lilos-installjson-e-immagini-del-sistema)) per quello che fa da sé. Cerca il file in questo ordine e usa il primo che trova:
+
+1. il percorso in `LILOS_INSTALL_FILE` (prove, script);
+2. `lilos-install.json` nella cartella dei dati del programma (messo lì prima del primo avvio);
+3. accanto al programma: la cartella dell'eseguibile (Windows, Linux `.deb`/`.rpm`), la cartella dell'AppImage (`APPIMAGE`), la cartella che contiene `lilOS.app` (macOS). Solo nel programma installato, non in sviluppo. L'installatore di Windows (NSIS, `build/installer.nsh`) copia nella cartella di installazione il file messo **accanto al setup**.
+
+Del file il programma legge solo `installer.dir`, `installer.mode`, `installer.server`, il primo `users[]` con `role: "admin"` e una password, e se c'è `image`. Il resto passa a `install.js` (`--settings <file>`) e al kernel. Un file che non è JSON valido è ignorato dal programma; `install.js` poi dice perché.
+
+| Impostazione | Effetto nel programma |
+| --- | --- |
+| `installer.dir` | Al primo avvio lilOS va in quella cartella e il database in `<dir>/postgres` (invece della cartella dei dati del programma). La scelta è ricordata nelle impostazioni (`local.dir`). |
+| `installer.mode: "server"` | Senza altri server, il programma apre direttamente `installer.server` (con il suo `trusted`) e non mostra la pagina di benvenuto. |
+| `installer.mode: "local"` con un amministratore con password, o con `image` | Installa lilOS su questo computer da solo, senza la pagina di benvenuto, e apre la finestra. Con l'amministratore del file la finestra è già con l'accesso fatto (il programma accede con quel nome e quella password). Con un'immagine senza amministratore nel file, si accede con gli utenti dell'immagine. Serve il runtime incluso (`hasRuntime()`). |
+| `installer.mode: null` | La pagina di benvenuto, come sempre; se poi si sceglie «Su questo computer», il file vale lo stesso (`installer.dir`, immagine, moduli…). |
+
+**Le password.** Il kernel toglie le password dalla sua copia dopo il primo avvio. Il programma toglie le password anche dal file della **sua cartella dei dati** (`forgetPasswords()`, dopo che il kernel è partito). Il file **accanto al programma resta com'è**: si consiglia di non lasciarci password (o di cancellarlo dopo l'installazione).
+
+**Installazione a metà.** Se `current.json` manca, `local/kernel.js` ricomincia ma cancella **solo** quello che scrive `install.js` (`releases`, `modules`, `modules-data`, `.image`, `run.js`, `package.json`, `config.json`, `repos.json`, `current.json`, `lilos-install.json`): la cartella potrebbe essere dell'utente (`installer.dir`).
+
 ### Dati del programma
 
 Le impostazioni sono in `settings.json` nella cartella dei dati del programma (permessi `0600`: ci sono la password del database e le porte): `profiles` (`[{ id, name, kind: 'local' \| 'remote', url, trusted }]`), `last`, `local` (`{ installed, port, pgPort, pgPassword }`), le otto impostazioni sopra, `devices` (i dispositivi scelti con la regola `ask`) e `bounds`. Accanto: `lilos/` (il lilOS installato), `postgres/` (il database) e `logs/`.
@@ -4416,10 +4437,10 @@ Anche lilOS è un pacchetto del repository ufficiale ([D57](../interna/decisioni
       system.json, README.md, CHANGELOG.md
       web/               la pagina costruita
       system/kernel/     il kernel impacchettato e minificato: src/main.js, src/cli.js, src/setup.js,
-                         src/install.js, src/pack.js e i pezzi che condividono, tutti in src/
+                         src/install.js, src/pack.js, src/makeImage.js e i pezzi che condividono, tutti in src/
                          (config.js e install.js trovano le cartelle da lì; run.js parte da
-                         src/main.js); cli.js, setup.js, tools/install.js e tools/pack.js li importano
-                         soltanto; run.js, package.json, config.json
+                         src/main.js); cli.js, setup.js, tools/install.js, tools/pack.js e tools/image.js li
+                         importano soltanto; run.js, package.json, config.json, tools/lilos-install.json
       modules/           i moduli obbligatori (solo la versione più alta di ciascuno, come nel commit)
 ```
 
@@ -4468,7 +4489,128 @@ Anche lilOS è un pacchetto del repository ufficiale ([D57](../interna/decisioni
 
 Rifiuta di partire se ci sono modifiche non salvate (`--allow-dirty` solo per provare: i file si prendono dalla cartella di lavoro). Nel repository ufficiale vanno solo la build, `README.md` e `CHANGELOG.md`. Dopo: controllare il changelog, commit e tag nel repository ufficiale. Passi in [Pubblicare una versione di lilOS](ricette.md#pubblicare-una-versione-di-lilos).
 
-**Prima installazione** (`system/kernel/tools/install.js`, lanciato dalla release scaricata): `node system/kernel/tools/install.js <cartella> [--from <cartella del kernel>]`. Verifica Node.js e gli hash, scrive `releases/<versione>`, `run.js`, `package.json` e `current.json` (`{ version, previous: null }`). Senza `--from` copia la configurazione della release e installa i suoi moduli dal repository ufficiale; con `--from` copia `config.json`, `repos.json` e `modules/` (senza `node_modules`, reinstallati dai lockfile) di una copia del repository o di un altro lilOS installato, così utenti e file sono gli stessi. Un modulo copiato senza `source.json` che il catalogo ufficiale offre con lo stesso nome, la stessa versione e lo stesso codice (`adoptModule` di `modulePackage.js`) viene riscritto da lì con `source.json`, tenendo i file di `data`. Rifiuta una cartella dove lilOS è già installato.
+**Prima installazione** (`system/kernel/tools/install.js`, lanciato dalla release scaricata): `node system/kernel/tools/install.js [<cartella>] [--settings <file>] [--from <cartella del kernel>]` (con `--settings` o `installer.dir`: vedi [Impostazioni di installazione](#impostazioni-di-installazione-lilos-installjson-e-immagini-del-sistema)). Verifica Node.js e gli hash, scrive `releases/<versione>`, `run.js`, `package.json` e `current.json` (`{ version, previous: null }`). Senza `--from` copia la configurazione della release e installa i suoi moduli dal repository ufficiale; con `--from` copia `config.json`, `repos.json` e `modules/` (senza `node_modules`, reinstallati dai lockfile) di una copia del repository o di un altro lilOS installato, così utenti e file sono gli stessi. Un modulo copiato senza `source.json` che il catalogo ufficiale offre con lo stesso nome, la stessa versione e lo stesso codice (`adoptModule` di `modulePackage.js`) viene riscritto da lì con `source.json`, tenendo i file di `data`. Rifiuta una cartella dove lilOS è già installato.
+
+### Impostazioni di installazione (`lilos-install.json`) e immagini del sistema
+
+Chi installa lilOS può dire in anticipo come deve essere: quali moduli e app, quali utenti, quali impostazioni. Lo fa con un file `lilos-install.json` (**formato 1**, da lilOS 1.24.0). Lo leggono `tools/install.js`, il [programma lilOS](#il-file-di-installazione-srcinstallfilejs) e, al primo avvio, il kernel. Decisione e motivi: [D74](../interna/decisioni.md#d74-lilos-si-installa-da-un-file-di-impostazioni-e-da-immagini-del-sistema). Codice: `src/installSettings.js` (lettura e controllo), `src/firstStart.js` (primo avvio), `src/image.js` e `tools/image.js` (immagini).
+
+Ogni campo si può omettere. Un valore sbagliato ferma l'installazione con un messaggio che inizia con `lilos-install.json: <campo> …`. La release porta un file predefinito, `system/kernel/tools/lilos-install.json` (tutto vuoto o predefinito), che `install.js` usa se non gli dai `--settings`.
+
+| Campo | Significato | Predefinito |
+| --- | --- | --- |
+| `format` | Versione del formato: solo `1`. | `1` |
+| `installer.dir` | Cartella dove si installa lilOS. Accetta `~`, `%VAR%`, `$VAR`, `${VAR}`; un percorso relativo parte dalla cartella del file. | `null` (serve il parametro `<cartella>` di `install.js`) |
+| `installer.mode` | Solo per il programma lilOS: `"local"` (gira su questo computer), `"server"` (apre `installer.server`) o `null` (chiede). | `null` |
+| `installer.server` | `{ url, name?, trusted? }` oppure solo l'indirizzo. `url` è `http://` o `https://`; `name` è per default il nome host; `trusted` è `false`. Con `mode: "server"` è obbligatorio. | `null` |
+| `image` | Un'immagine del sistema (sotto): cartella, `.zip` o `.tar.gz`, oppure indirizzo `http(s)://` di uno di questi. Al posto della release ufficiale. | `null` |
+| `lilos.source` | `"local"`: la release che porta l'installatore. `"server"`: la più recente del repository ufficiale (quella portata resta come versione a cui tornare). Con `image` non conta. | `"local"` |
+| `kernel` | Chiavi scritte in `config.json`: `host`, `port`, `origins`, `loopbackOrigins`, `secureCookies`, `net`, `oauth`. Altre chiavi sono un errore. | `{}` |
+| `modules.source` | Da dove vengono i moduli: `"server"` (la versione più recente del repository ufficiale) o `"local"` (la copia che la release porta, se c'è; altrimenti il repository ufficiale). | `"server"` |
+| `modules.list` | I moduli del kernel: `[{ name, source?, config? }]`. Con `null` valgono quelli del `config.json` della release (o dell'immagine). | `null` |
+| `modules.config` | `{ "<modulo>": { … } }`: la configurazione di un modulo, qualunque sia la lista. Si fonde con quella che il modulo ha già. | `{}` |
+| `repos` | Repository aggiunti per app e moduli: `[{ url, name? }]` (o solo indirizzi). Quelli già noti si saltano. | `[]` |
+| `apps` | App da installare al primo avvio: `[id \| { id, repo?, allowUnsigned? }]`. Con `null` le app di sistema di sempre. `repo` è l'indirizzo di un repository (di solito uno di `repos`); senza, quello ufficiale. `allowUnsigned: true` accetta un'app non verificata al posto dell'avviso dell'AppStore. | `null` |
+| `users` | Utenti da creare al primo avvio: `[{ username, name?, role?, password?, settings? }]`. `username`: 2-32 caratteri tra minuscole, cifre, `.`, `-`, `_`. `role`: `"user"` (predefinito) o `"admin"`. `password`: da 8 a 256 caratteri; **senza password l'utente non viene creato**. Al massimo 200. | `[]` |
+| `settings` | Le impostazioni iniziali (le chiavi di `src/systemSettings.js`, per esempio `theme`, `accent`) di **ogni nuovo utente**, anche creato dopo. | `{}` |
+| `applied` | Data scritta dal kernel quando ha creato utenti e app. Non scriverla. | `null` |
+
+**Cosa fa `install.js`.** `node system/kernel/tools/install.js [<cartella>] [--settings <file>] [--from <cartella del kernel>]`:
+
+- La cartella è `<cartella>` oppure `installer.dir`; senza nessuna delle due si ferma. Rifiuta una cartella dove lilOS è già installato.
+- Scrive `releases/<versione>`, `run.js`, `config.json` (con `kernel` e i moduli scelti), `repos.json` (con `repos`) e `current.json`. Con `lilos.source: "server"` mette la versione più recente accanto a quella portata e `current.json` ha `previous` = la portata.
+- Le `apps` senza `repo` vanno in `apps.bootstrap` di `config.json`: le installa il kernel come app di sistema. Le altre le installa il kernel al primo avvio.
+- Scrive nella cartella dei dati una copia del file (`lilos-install.json`, permessi `0600`) per il kernel.
+- Con `--from` configurazione, moduli e repository sono quelli copiati: delle impostazioni valgono solo `apps`, `users` e `settings`. `--from` e `image` insieme sono un errore.
+
+**Cosa fa il kernel al primo avvio** (`firstStart.js`, dopo aver caricato l'eventuale immagine e le app di sistema):
+
+1. Per ogni utente di `users` che non esiste: lo crea con la sua password e il suo ruolo. Senza password, o con lilOS a utente singolo (nessun modulo di accesso), lo salta con un avviso nel log. Se esiste già, non lo ricrea. In tutti i casi le sue `settings` si fondono con quelle già salvate.
+2. Per ogni app di `apps` non ancora installata: la cerca nel repository indicato (che aggiunge se manca), la installa con le dipendenze (`kernel.dependencies.installAuto(target, { allowUnsigned })`) e avvisa se ha installato moduli (attivi dal prossimo avvio). Un errore su un'app o un utente è un avviso nel log: gli altri proseguono.
+3. Riscrive il file con `applied` = data e **senza le password**. Da quel momento il file non si applica più.
+
+Le `settings` agiscono a parte: `openHome` (`api/home.js`) le scrive come chiave `settings` nella `.config` di una home appena creata che non la ha ancora.
+
+```jsonc
+// lilos-install.json di un server aziendale: due utenti, impostazioni comuni, un'app da un repository dell'azienda
+{
+  "format": 1,
+  "installer": { "dir": "/opt/lilos" },
+  "lilos": { "source": "server" },
+  "kernel": {
+    "host": "0.0.0.0",
+    "port": 8790,
+    "origins": ["https://lilos.azienda.it"],
+    "loopbackOrigins": false,
+    "secureCookies": true
+  },
+  "modules": {
+    "source": "server",
+    "config": {
+      "fs-postgres": { "url": "postgres://lilos:UNA-PASSWORD@db.azienda.it:5432/lilos" }
+    }
+  },
+  "repos": [{ "url": "https://github.com/azienda/lilos-app", "name": "App aziendali" }],
+  "apps": [
+    "files", "editor", "settings", "appstore", "scheduler",
+    { "id": "gestionale", "repo": "https://github.com/azienda/lilos-app", "allowUnsigned": true }
+  ],
+  "users": [
+    { "username": "admin", "name": "Amministratore", "role": "admin", "password": "cambiami-subito" },
+    { "username": "mario", "name": "Mario Rossi", "password": "password-iniziale", "settings": { "accent": "#0a7d4b" } }
+  ],
+  "settings": { "theme": "light", "accent": "#3b6ef5" }
+}
+```
+
+Lo stesso server, visto dai computer dei dipendenti: il file che si mette accanto al programma lilOS ([come lo trova](#il-file-di-installazione-srcinstallfilejs)).
+
+```json
+{
+  "format": 1,
+  "installer": {
+    "mode": "server",
+    "server": { "url": "https://lilos.azienda.it", "name": "lilOS Azienda", "trusted": false }
+  }
+}
+```
+
+**Immagini del sistema** (`src/image.js`, `tools/image.js`). Un'immagine è un lilOS già installato e configurato (versioni, configurazione, moduli con i loro dati, app, librerie, utenti, file), da installare al posto della release ufficiale. Si fa da un lilOS **installato** (non da una copia del repository) e **fermo**:
+
+```bash
+node releases/<versione>/system/kernel/tools/image.js <cartella vuota> --name "lilOS Azienda" --description "Con le app del gestionale"
+```
+
+| Parte dell'immagine | Contenuto |
+| --- | --- |
+| `image.json` | `{ format: 1, name, description, lilos, created, users, nodes, files, bytes, settings }`; `settings` sono le impostazioni iniziali dei nuovi utenti di quell'installazione (da `lilos-install.json` di chi l'ha fatta). |
+| `lilos/` | La cartella installata: `releases/`, `current.json`, `config.json`, `repos.json`, `modules/` con i dati. Senza `node_modules`, `.image`, `postgres/`, `logs/`, `lilos-install.json` e i file `.tmp`. |
+| `fs/nodes.jsonl` | Il file system, un nodo per riga, i genitori prima: `{ home: <idUtente>, id }` per l'inizio di una home, `{ id, parent, name, type, meta, created, modified, content? }` per un nodo (`content` è il nome del file in `fs/content/`). |
+| `fs/content/<n>` | Il contenuto dei file. |
+
+- **Il database non si copia**: il file system viene esportato attraverso il servizio `fs`. Dentro ci sono le app (`/system/app`), le librerie (`/system/commons`) e la home di ogni utente (file, cestino, impostazioni). `/system/tmp` resta fuori.
+- **Le sessioni sono tolte** (`sessions: []` in `users.json` di `users-basic`): chi installa l'immagine accede di nuovo.
+- Si rifiuta se lilOS risponde sulla sua porta o se la cartella di destinazione non è vuota.
+
+Si installa con `"image"` in `lilos-install.json`:
+
+```json
+{
+  "format": 1,
+  "installer": { "dir": "~/lilos", "mode": "local" },
+  "image": "https://esempio.it/immagini/lilos-azienda.tar.gz",
+  "modules": {
+    "config": { "fs-postgres": { "url": "postgres://lilos:UNA-PASSWORD@127.0.0.1:5432/lilos" } }
+  },
+  "users": [{ "username": "capo", "role": "admin", "password": "una-password-lunga" }],
+  "settings": { "theme": "dark" }
+}
+```
+
+- `install.js` scarica o estrae l'immagine (con `tar`; un archivio può contenere la cartella o il suo contenuto), controlla `image.json` (formato 1, `lilos/current.json`) e la versione di Node.js richiesta, copia `lilos/` nella cartella di installazione (senza `node_modules`, che si rifanno dai lockfile) e adotta i moduli ufficiali come con `--from`. Il `run.js` è quello della versione che parte.
+- `fs/` va in `<cartella>/.image/fs`. Al primo avvio il kernel lo carica (`importImage`, prima delle app di sistema: quelle dell'immagine non si installano di nuovo) e cancella `.image`. Le home sono rifatte per gli utenti che esistono ora (se l'id della home è diverso, i nodi seguono); la home di un utente che non c'è resta fuori, con un avviso. I nodi già presenti sono sovrascritti. Se il caricamento fallisce, l'errore è nel log e si riprova al prossimo avvio.
+- Con un'immagine, `kernel`, `repos`, `apps`, `users` e `settings` si **aggiungono** a quanto c'è nell'immagine; `modules.list` aggiunge i moduli che mancano (dal repository ufficiale) e cambia la configurazione degli altri; `modules.config` si fonde. `settings` si fonde sopra quelle dell'immagine.
+- **`fs-postgres` e il database.** L'immagine porta la configurazione del database di chi l'ha fatta. `install.js` avvisa se non dai il tuo con `modules.config["fs-postgres"].url`: senza, il kernel cercherebbe il database dell'altro installatore.
 
 ### Servizi delle app (`apps/appServices.js`)
 

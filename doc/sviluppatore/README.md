@@ -64,7 +64,7 @@ Per ripartire dalla scrivania iniziale: Pannello di controllo → Archiviazione 
 `lilos-desktop/` contiene il **programma lilOS**: un guscio Electron che apre lilOS in una finestra, su Windows, macOS e Linux, e fa girare sul computer anche il kernel e PostgreSQL. È un progetto a parte, con il suo `package.json` e le sue dipendenze (non usa quelle di questa cartella). Due cartelle:
 
 - **`lilos-desktop/development/`**: dove si lavora. Ha il suo [README](../../lilos-desktop/development/README.md) con struttura, runtime incluso, pubblicazione e limiti.
-- **`lilos-desktop/production/`**: la copia che costruisce la pubblicazione. La crea «pubblica» copiandoci `development/`; con il tag `desktop-vX.Y.Z` il workflow `.github/workflows/lilos-desktop.yml` ne ricava gli installer.
+- **`lilos-desktop/production/`**: la copia che costruisce la pubblicazione. La rifà `npm run release:desktop` da `development/` (solo il committato, minificato); con il tag `release-vX.Y.Z` (X.Y.Z = versione di lilOS) il workflow `.github/workflows/lilos-desktop.yml` ne ricava gli installer. Vedi [Processo](../interna/processo.md#rilascio).
 
 Per provarlo in sviluppo:
 
@@ -173,11 +173,13 @@ system/
       scheduler_1.1.0/      la Pianificazione (obbligatorio): operazioni, orologio, storico (scheduler.json e history.json, ignorati da git)
       notifications-basic_1.1.0/  notifiche degli utenti (notifications.json, ignorato da git)
     tools/pack.js      calcola gli hash e firma un pacchetto di app
-    tools/install.js   prima installazione di lilOS da una release (cartella con run.js, current.json, releases/)
+    tools/install.js   prima installazione di lilOS da una release (cartella con run.js, current.json, releases/); --settings <file> per lilos-install.json
+    tools/image.js     fa l'immagine di un lilOS installato e fermo (src/image.js)
+    tools/lilos-install.json  le impostazioni di installazione predefinite, portate dalla release (src/installSettings.js; src/firstStart.js le applica al primo avvio)
 examples/apps/note/     app di esempio (lilos.json, index.js)
 lilos-desktop/          il programma lilOS (Electron): development/ (si lavora qui) e production/ (la copia da cui si pubblica; la crea «pubblica»)
   development/          src/ (main.js, windows.js, bridge.js, preload.cjs, devices.js, files.js, drives.js, tray.js, updates.js, autostart.js, store.js, local/, pages/), scripts/ (fetch-runtime.mjs, check.mjs), build/linux/ (la sessione «lilOS»), electron-builder.yml, versions.json (vedi il suo README)
-.github/workflows/      lilos-desktop.yml: al tag desktop-vX.Y.Z costruisce gli installer da lilos-desktop/production/ e crea la release GitHub
+.github/workflows/      lilos-desktop.yml: al tag release-vX.Y.Z costruisce gli installer da lilos-desktop/production/ e crea la release GitHub
 plugins/                sorgenti delle app e dei moduli ufficiali: src/<app>/, src/shared/, modules/<nome>/, scripts/ (build.mjs, publish.mjs, credits.mjs, check-locales.mjs, vendor-tree-sitter.mjs), catalog.json, package.json; build/ (ignorato da git) è il risultato del build
 scripts/
   host-shims.mjs        genera public/host/sdk.js e system.js (predev e prebuild)

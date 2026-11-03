@@ -32,10 +32,11 @@ Un lilOS installato non usa Vite né i sorgenti: il kernel serve anche la pagina
 ```bash
 node system/kernel/tools/install.js <cartella>                  # una nuova installazione (moduli dal repository ufficiale)
 node system/kernel/tools/install.js <cartella> --from <system/kernel di questa copia>   # con configurazione, moduli e utenti
+node system/kernel/tools/install.js --settings lilos-install.json     # utenti, app, moduli e impostazioni scritti in un file (anche da un'immagine del sistema)
 cd <cartella> && node run.js
 ```
 
-Per fare la release di questa versione (la versione di lilOS è `version` di `package.json`): `npm run release -- <cartella del repository ufficiale>`. Nel repository ufficiale vanno solo la build, `README.md` e `CHANGELOG.md`. Dettagli: [ricette](doc/sviluppatore/ricette.md#pubblicare-una-versione-di-lilos). Dettagli in [doc/sviluppatore](doc/sviluppatore/README.md#il-kernel-il-backend).
+Per fare la release di questa versione (la versione di lilOS è `version` di `package.json`): `npm run release -- <cartella del repository ufficiale>`. Nel repository ufficiale vanno solo la build, `README.md` e `CHANGELOG.md`. Il file `lilos-install.json` e le immagini del sistema: [ricette](doc/sviluppatore/ricette.md#installare-lilos-con-un-file-di-impostazioni) e [riferimento](doc/sviluppatore/api.md#impostazioni-di-installazione-lilos-installjson-e-immagini-del-sistema). La release del programma lilOS (tag `release-vX.Y.Z`): `npm run release:desktop` ([processo](doc/interna/processo.md#rilascio)). Dettagli: [ricette](doc/sviluppatore/ricette.md#pubblicare-una-versione-di-lilos). Dettagli in [doc/sviluppatore](doc/sviluppatore/README.md#il-kernel-il-backend).
 
 ## Struttura
 
@@ -65,7 +66,7 @@ public/host/            i moduli che le app di sistema importano come @lilos/sdk
 system/
   kernel/               il backend: moduli (users-basic, fs-postgres, services-isolate: fa girare i servizi delle app, scheduler: la Pianificazione, un modulo obbligatorio, notifications-basic: le notifiche, ssh (anche SFTP), netfs-ftp, netfs-webdav, netfs-smb: i protocolli di rete della cartella Rete; OneDrive, Google (Drive e Foto), S3, Azure Blob Storage e NFS sono moduli del repository ufficiale; ssh, term-telnet, term-rlogin, term-supdup: i protocolli dei terminali remoti, usati dall'app Terminale), API, repository, installazione di app e moduli, aggiornamenti di lilOS (releases/ e current.json in un lilOS installato), riga di comando; run.js lo avvia, lo riavvia e prova le versioni nuove
 examples/apps/note/     app di esempio (lilos.json, index.js)
-lilos-desktop/          il programma lilOS (Electron, per Windows, macOS e Linux): development/ per lavorare, production/ da cui si pubblica (vedi lilos-desktop/development/README.md)
+lilos-desktop/          il programma lilOS (Electron, per Windows, macOS e Linux): development/ per lavorare, production/ da cui si pubblica (la rifà npm run release:desktop; vedi lilos-desktop/development/README.md)
 src/                    il sistema, costruito sull'SDK
   main.js               avvio: accesso e collegamento al kernel (boot/), poi system.js
   system.js             bootstrap: monta canvas, HUD, desktop, taskbar

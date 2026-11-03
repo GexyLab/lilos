@@ -1791,7 +1791,7 @@ Conseguenze: se tutte le schede si chiudono non parte niente; un'automazione con
 - **Node.js 22 separato.** Il kernel gira con un `node` scaricato (22), non con quello di Electron: il modulo `services-isolate` usa `isolated-vm`, che ha binari precompilati per Node ma non per l'ABI di Electron. Per usare quello di Electron servirebbe compilare il modulo per ogni versione di Electron e attivare `ELECTRON_RUN_AS_NODE`, che il programma tiene spento (`runAsNode: false` nei fuses).
 - **Git portatile.** Il kernel installa app e moduli da repository git; un computer non ha per forza `git`. Il programma porta `dugite-native` (la build di git di GitHub Desktop) e lo mette nel `PATH` del kernel.
 - **La release di lilOS è inclusa** (`system/lilos` del repository ufficiale, al tag di `versions.json`) e si installa con `tools/install.js`, come un lilOS installato a mano; da lì il kernel si aggiorna dall'AppStore. Il programma cambia solo porta e indirizzo del database in `config.json`. **Le app di sistema e i moduli non sono inclusi:** il kernel li scarica dal repository ufficiale al primo avvio.
-- **Due cartelle e un tag per pubblicare.** Si lavora in `lilos-desktop/development/`. A «pubblica» si copia in `lilos-desktop/production/` e si mette il tag `desktop-vX.Y.Z` (uguale alla `version` del suo `package.json`: il workflow lo controlla). `.github/workflows/lilos-desktop.yml` costruisce gli installer — Windows (exe NSIS e msi, x64), macOS (dmg e zip, arm64 e x64), Linux (AppImage, deb e rpm, x64 e arm64) — e crea la release GitHub (con `changelog/desktop-vX.Y.Z.md` come note, se c'è). Il programma si aggiorna da `releases/latest/download` con `electron-updater` (Windows e Linux; su macOS avvisa soltanto).
+- **Due cartelle e un tag per pubblicare.** Si lavora in `lilos-desktop/development/`. A «pubblica» si copia in `lilos-desktop/production/` e si mette il tag `desktop-vX.Y.Z` (uguale alla `version` del suo `package.json`: il workflow lo controlla). `.github/workflows/lilos-desktop.yml` costruisce gli installer — Windows (exe NSIS e msi, x64), macOS (dmg e zip, arm64 e x64), Linux (AppImage, deb e rpm, x64 e arm64) — e crea la release GitHub (con `changelog/desktop-vX.Y.Z.md` come note, se c'è). **Tag, nomi e note sono cambiati: vedi [D75](#d75-la-release-del-programma-porta-la-versione-di-lilos).** Il programma si aggiorna da `releases/latest/download` con `electron-updater` (Windows e Linux; su macOS avvisa soltanto).
 - **Niente firma per ora.** Nessun certificato: su Windows compare SmartScreen, su macOS «Apri comunque» (i pacchetti sono firmati solo *ad hoc*, perché Apple Silicon non esegue codice non firmato), e su macOS il programma non può sostituirsi da solo.
 - **`netfs-local`, riservato agli amministratori o alle `roots`.** Un modulo del kernel (`netfs.local`) porta le cartelle del computer del kernel in Rete. Con un solo utente e per gli amministratori vale qualsiasi cartella; per gli altri utenti solo le cartelle elencate in `roots` dall'amministratore (o dentro di esse). Niente `..`, e i collegamenti simbolici che portano fuori dalla cartella collegata non si vedono. Le chiavette USB si collegano da sole in Rete per gli amministratori.
 - **Il kiosk e i suoi limiti.** Tre modi della finestra: finestra, schermo intero, kiosk. In kiosk la finestra non si chiude, F11 non fa niente e il menu dell'icona ha solo «Apri lilOS». Si sceglie da amministratore; per uscire un non amministratore dà nome e password di un amministratore, che il kernel controlla con `POST /api/session/verify` (un accesso che si chiude subito, nessuna sessione nuova). Cosa permette ogni sistema: **Windows** tiene sempre Ctrl+Alt+Canc, e sostituire il desktop (Shell Launcher) c'è solo in Enterprise ed Education, quindi su Home e Pro si usa il kiosk con «Avvia con il computer»; **macOS** in kiosk nasconde Dock e barra dei menu e blocca ⌘Tab e l'uscita forzata, ma non lascia sostituire il Finder (serve un account dedicato); **Linux** ha la sessione «lilOS» per la schermata di accesso, che avvia il programma dentro `cage` (un compositor Wayland per una sola applicazione) con `--session`, installata una volta con `install-session.sh`. I tasti di sistema (tasto Windows, Alt+Tab) passano a lilOS con Keyboard Lock di Chromium, che vale solo a schermo intero della pagina.
@@ -1824,6 +1824,64 @@ Conseguenze: se tutte le schede si chiudono non parte niente; un'automazione con
 - Le impostazioni del programma (kiosk, avvio, hardware, server di fiducia) sono **del computer**, non dell'utente di lilOS: le cambia chi usa il programma su quel computer, e quelle che toccano l'hardware solo un amministratore dalla pagina.
 - Le API per fotocamera e microfono delle app isolate non esistono ancora in lilOS: il programma concede i permessi `media` alla pagina, ma le app isolate non possono usarli.
 - I pacchetti di macOS e Linux non sono ancora stati provati su quei sistemi; Keyboard Lock per il tasto Windows e Alt+Tab è da verificare.
-- Il tag `desktop-v*` crea una release marcata «latest»: l'aggiornamento del programma legge `releases/latest/download`, quindi un'altra release del repository creata dopo una `desktop-v*` farebbe cercare gli aggiornamenti nel posto sbagliato.
+- Il tag `release-v*` (prima `desktop-v*`, [D75](#d75-la-release-del-programma-porta-la-versione-di-lilos)) crea una release marcata «latest»: l'aggiornamento del programma legge `releases/latest/download`, quindi un'altra release del repository creata dopo una `desktop-v*` farebbe cercare gli aggiornamenti nel posto sbagliato.
 
 **Quando ripensarla.** Se i certificati diventano possibili (firma e notarizzazione: allora macOS potrà aggiornarsi da solo e gli avvisi spariscono); se WebKitGTK e WKWebView arrivano a Web Serial, WebUSB, WebHID e Keyboard Lock (allora Tauri tornerebbe a convenire per il peso); se `isolated-vm` offre binari per `darwin-x64` o si cambia il motore dei servizi; se un server vuole `netfs-local` spento per impostazione predefinita; se le release di lilOS e del programma devono avere feed separati.
+
+---
+
+## D74. lilOS si installa da un file di impostazioni e da immagini del sistema
+
+**Decisione.** Deciso il 3 novembre 2026, in lilOS 1.24.0 e programma 0.2.0.
+
+- **Un file, `lilos-install.json` (formato 1),** dice come installare lilOS: dove (`installer.dir`), come lo usa il programma (`installer.mode`: su questo computer o su un server), quale lilOS (`lilos.source` o `image`), la configurazione del kernel, i moduli, i repository, le app, gli utenti con le password e le impostazioni iniziali dei nuovi utenti. Tutti i campi sono facoltativi. Riferimento: [api.md](../sviluppatore/api.md#impostazioni-di-installazione-lilos-installjson-e-immagini-del-sistema).
+- **Tre lettori.** `tools/install.js` (`--settings <file>`, la cartella può mancare se c'è `installer.dir`) fa la parte che si fa prima dell'avvio; il kernel, **al primo avvio**, crea gli utenti e installa le app, poi segna `applied` e toglie le password dalla sua copia; il programma lilOS legge solo `installer.*`, il primo amministratore e `image`. Il file predefinito sta nella release (`tools/lilos-install.json`).
+- **Le `settings` valgono per ogni nuova home**, anche per gli utenti creati dopo il primo avvio: sono le impostazioni iniziali di lilOS, non solo del primo giorno.
+- **Le app da repository non ufficiali** si installano al primo avvio con `allowUnsigned` deciso nel file: chi scrive il file accetta l'avviso dell'AppStore al posto dell'utente.
+- **Immagini del sistema.** `tools/image.js` fotografa un lilOS installato e fermo: la cartella installata (versioni, configurazione, moduli e dati, senza sessioni) e il file system esportato attraverso il servizio `fs` (app, librerie, home). `image` in `lilos-install.json` (cartella, `.zip`, `.tar.gz` o indirizzo `http(s)`) la installa al posto della release ufficiale; il kernel carica i file al primo avvio da `.image` e la cancella.
+- **Il programma lilOS** cerca il file in `LILOS_INSTALL_FILE`, nella cartella dei dati del programma e accanto al programma (l'installatore di Windows copia quello messo accanto al setup). Con `mode: "server"` apre il server; con `mode: "local"` e un amministratore con password, o un'immagine, installa da solo e apre la finestra già con l'accesso.
+
+**Perché.**
+
+- **Installare lilOS in azienda** (molti computer, un server) a mano vuol dire ripetere gli stessi passi: la procedura guidata, il primo utente, le app, il tema. Un file si scrive una volta e si mette in un sistema di distribuzione.
+- **Al primo avvio nel kernel e non in `install.js`** perché utenti e app si creano con i servizi del kernel (`users`, `fs`, installazione con dipendenze), che in `install.js` non girano: il database può non essere nemmeno acceso.
+- **Un'immagine e non un dump del database.** Il dump legherebbe l'immagine a un database, a una versione di schema e a un modulo `fs`. Esportare i nodi attraverso il servizio `fs` funziona con qualsiasi modulo e lascia fuori ciò che non va portato (sessioni, `/system/tmp`).
+- **`installer.mode` nel file** così il programma può essere distribuito già indirizzato a un server, senza che l'utente scelga.
+
+**Alternative scartate.**
+
+- **Variabili d'ambiente o parametri di riga di comando:** niente per gli utenti, le app e le impostazioni, e non si distribuiscono con un installatore.
+- **Un file sempre dentro il programma:** va ricostruito l'installer per ogni azienda. Per questo il file sta accanto al programma.
+- **Copiare il database nell'immagine:** vedi sopra.
+- **Togliere le password dal file accanto al programma:** il programma non modifica il file messo accanto a sé: è di chi lo distribuisce. Resta un rischio, e si consiglia di non lasciarci password.
+
+**Conseguenze.**
+
+- Le password stanno in chiaro nel file finché qualcuno non lo cancella o non parte il primo avvio. La copia del kernel ha permessi `0600`; quella accanto al programma dipende da chi l'ha messa.
+- Un errore su un utente o un'app al primo avvio è un avviso nel log, non ferma lilOS; `applied` viene scritto lo stesso, quindi quel che è fallito **non si riprova**: va fatto a mano.
+- Un'immagine porta la configurazione del database di chi l'ha fatta (`fs-postgres.url`): chi la installa deve dare il proprio, altrimenti il kernel punta al database sbagliato. `install.js` lo avvisa.
+- Con un lilOS a utente singolo gli `users` del file sono ignorati.
+- Un'installazione a metà nella cartella scelta dall'utente cancella solo i file che `install.js` scrive.
+- Le immagini hanno `format: 1` e un lilOS più vecchio non le legge.
+
+**Quando ripensarla.** Se serve rifare le operazioni fallite al primo avvio (un registro delle cose da fare invece di `applied`); se le immagini devono includere il database; se le password devono stare in un deposito di segreti invece che nel file; se più aziende vogliono un file firmato.
+
+---
+
+## D75. La release del programma porta la versione di lilOS
+
+**Decisione.** Deciso il 3 novembre 2026. Sostituisce in parte [D73](#d73-il-programma-lilos-un-guscio-electron-con-il-kernel-e-postgresql-inclusi) (tag `desktop-v*` e versione del programma nel nome dei file).
+
+- **`npm run release:desktop`** («pubblica release») rifà `lilos-desktop/production/` da `development/`: solo ciò che è committato, JavaScript e CSS minificati, JSON compatti, niente script di sviluppo. Con `-- --check` dice cosa scriverebbe, senza scrivere.
+- **La versione della release è quella di lilOS**, non del programma. In `production/package.json`, `version` è la versione di lilOS portata (da `versions.json`, cioè il `system.json` del repository ufficiale) e `programVersion` è quella del programma (`development/package.json`).
+- **Il tag è `release-vX.Y.Z`**, con X.Y.Z = lilOS. Il workflow `.github/workflows/lilos-desktop.yml` parte ai tag `release-v*`, costruisce gli installer (`lilOS-Setup-X.Y.Z.exe`, …) e crea la release GitHub «lilOS X.Y.Z», con `changelog/release-vX.Y.Z.md` come note.
+- **Dopo lo script** restano a mano: la nota in `changelog/release-vX.Y.Z.md`, commit, push e tag.
+- **Una release per versione di lilOS.** Lo script rifiuta un `release-v` già esistente: se cambia solo il programma serve prima una nuova versione di lilOS (anche solo patch).
+
+**Perché.** Chi scarica l'installatore vuole sapere quale lilOS sta ricevendo, non leggere una seconda numerazione. Gli aggiornamenti automatici funzionano lo stesso: 1.24.0 è più alta di 0.1.1, l'ultimo `desktop-v`.
+
+**Alternative scartate.** Tenere due numerazioni nello stesso nome (`lilOS-1.24.0-p0.2.0`): illeggibile.
+
+**Conseguenze.** La prima release fatta così è lilOS 1.24.0 con programma 0.2.0. Le release `desktop-v*` già pubblicate restano com'erano. L'aggiornamento del programma legge sempre `releases/latest/download`.
+
+**Quando ripensarla.** Se il programma deve uscire più spesso di lilOS senza toccarlo.
