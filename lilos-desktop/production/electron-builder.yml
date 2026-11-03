@@ -1,4 +1,4 @@
-# Packages of the program lilOS (npm run dist / GitHub Actions at the tag desktop-v*).
+# Packages of the program lilOS (npm run dist / GitHub Actions at the tag release-v*, from production/).
 # runtime/ comes from scripts/fetch-runtime.mjs: Node, git and PostgreSQL for each system and
 # architecture, and the release of lilOS (the same for all).
 appId: it.gexylab.lilos
@@ -47,6 +47,8 @@ nsis:
   createDesktopShortcut: true
   shortcutName: lilOS
   deleteAppDataOnUninstall: false
+  # lilos-install.json next to the setup is copied next to the program (build/installer.nsh)
+  include: build/installer.nsh
   artifactName: lilOS-Setup-${version}.${ext}
 msi:
   perMachine: false

@@ -1,26 +1,2 @@
-import { app } from 'electron';
-import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
-import { homedir } from 'node:os';
-import { join } from 'node:path';
-
-/**
- * The program starts with the computer (when the user signs in), with --hidden: the kernel runs,
- * the window stays closed (the tray icon opens it). Windows and macOS: the system's login items;
- * Linux: ~/.config/autostart/lilos.desktop (XDG), with the AppImage's path when it is one.
- */
-const LINUX_FILE = join(process.env.XDG_CONFIG_HOME || join(homedir(), '.config'), 'autostart', 'lilos.desktop');
-
-export function setAutostart(on) {
-  if (!app.isPackaged) return;
-  if (process.platform === 'linux') {
-    if (!on) return rmSync(LINUX_FILE, { force: true });
-    const exec = process.env.APPIMAGE || process.execPath;
-    mkdirSync(join(LINUX_FILE, '..'), { recursive: true });
-    writeFileSync(LINUX_FILE, [
-      '[Desktop Entry]', 'Type=Application', 'Name=lilOS', `Exec="${exec}" --hidden`, 'Icon=lilos',
-      'X-GNOME-Autostart-enabled=true', 'NoDisplay=true', '',
-    ].join('\n'));
-    return;
-  }
-  app.setLoginItemSettings({ openAtLogin: on, openAsHidden: on, args: on ? ['--hidden'] : [] });
-}
+import{app as e}from"electron";import{mkdirSync as t,rmSync as n,writeFileSync as r}from"node:fs";import{homedir as i}from"node:os";import{join as a}from"node:path";const o=a(process.env.XDG_CONFIG_HOME||a(i(),`.config`),`autostart`,`lilos.desktop`);export function setAutostart(i){if(e.isPackaged){if(process.platform===`linux`){if(!i)return n(o,{force:!0});let e=process.env.APPIMAGE||process.execPath;t(a(o,`..`),{recursive:!0}),r(o,[`[Desktop Entry]`,`Type=Application`,`Name=lilOS`,`Exec="${e}" --hidden`,`Icon=lilos`,`X-GNOME-Autostart-enabled=true`,`NoDisplay=true`,``].join(`
+`))}else e.setLoginItemSettings({openAtLogin:i,openAsHidden:i,args:i?[`--hidden`]:[]})}}

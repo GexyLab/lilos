@@ -18,7 +18,6 @@
     <li data-step="user"><i>2</i><span data-t="step.user"></span></li>
     <li data-step="ready"><i>3</i><span data-t="step.ready"></span></li>
   </ol>
-
   <section id="where" class="page" role="radiogroup">
     <label class="choice" id="choice-local">
       <input type="radio" name="where" value="local">
@@ -37,21 +36,17 @@
     </label>
     <div id="installed"></div>
   </section>
-
   <section id="user" class="page" hidden>
     <p data-t="user.text"></p>
     <div class="field"><label for="username" data-t="user.name"></label><input class="input" id="username" autocomplete="username" spellcheck="false" maxlength="32"><span class="hint" data-t="user.nameHint"></span></div>
     <div class="field"><label for="password" data-t="user.password"></label><input class="input" id="password" type="password" autocomplete="new-password" maxlength="256"></div>
     <div class="field"><label for="password2" data-t="user.repeat"></label><input class="input" id="password2" type="password" autocomplete="new-password" maxlength="256"><span class="hint" data-t="user.passwordHint"></span></div>
   </section>
-
   <section id="ready" class="page" hidden>
     <div class="working"><span class="spinner"></span><b id="work-title"></b></div>
     <div class="log" id="log" role="log" aria-live="polite"></div>
   </section>
-
   <div class="error" id="error" role="alert" hidden></div>
-
   <footer>
     <span class="hint" id="version"></span>
     <span class="actions">
