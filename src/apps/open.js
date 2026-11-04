@@ -1,4 +1,4 @@
-import { fs, splitName, storage, fileTypeList, pipes, PipeStopped } from '@lilos/sdk';
+import { bus, fs, splitName, storage, fileTypeList, pipes, PipeStopped } from '@lilos/sdk';
 import { apps, launch, isInstalled } from './registry.js';
 import { notify } from '../notifications/notify.js';
 
@@ -6,7 +6,8 @@ import { notify } from '../notifications/notify.js';
  * Which app opens which file, by extension ('' = no extension).
  * Defaults come from the registry (`opens`); the user overrides them in Settings → Usabilità →
  * Tipi di file ('lilos:file-apps': { ext: appId | 'ask' }). With no app, or 'ask', opening a
- * file shows the "Apri con" window (openWith.js).
+ * file shows the "Apri con" window (openWith.js). A choice changed emits 'file-apps:change' on the bus
+ * (the desk shows the files of a type with another app's widget, or as icons).
  */
 const KEY = 'file-apps';
 const ASK = 'ask';
@@ -55,9 +56,13 @@ export function setAppFor(ext, value) {
   if (value == null || value === fallback) delete all[ext];
   else all[ext] = value;
   storage.set(KEY, all);
+  bus.emit('file-apps:change');
 }
 
-export const resetAppsFor = () => storage.remove(KEY);
+export const resetAppsFor = () => {
+  storage.remove(KEY);
+  bus.emit('file-apps:change');
+};
 
 /** Extensions worth listing: known types, the ones apps open, the ones chosen, the ones in use. */
 export function knownExtensions() {

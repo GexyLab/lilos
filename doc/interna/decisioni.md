@@ -530,7 +530,7 @@ Senza un modulo `auth` lilOS ha un solo utente (`local`, amministratore) e il ke
 - Tutta l'interazione è asincrona.
 - Le librerie senza `cache` si caricano dall'indirizzo del manifesto con `integrity` (e quell'indirizzo entra nella CSP).
 - Le app remote non hanno ancora un modo per sapere chi è l'utente (`auth.remote` è nell'elenco dei permessi, ma il token non c'è).
-- I widget sono validati nel manifesto ma lilOS non li mostra.
+- I widget sono validati nel manifesto. Dal 4 novembre 2026 (lilOS 1.31.0) quelli con `fileType` si mostrano sulla scrivania, ma solo per le app di sistema ([D83](#d83-i-widget-della-scrivania-legati-a-un-tipo-di-file-le-note-adesive-sono-file)).
 
 **Quando ripensarla.** Quando servirà far girare codice senza interfaccia (permesso `background`) o quando le app remote avranno un accesso al proprio servizio.
 
@@ -562,7 +562,7 @@ Senza un modulo `auth` lilOS ha un solo utente (`local`, amministratore) e il ke
 
 - La chiave di un editore si dà fuori banda (`pack.js --keygen` la stampa; chi si fida la mette in `config.json`).
 - ~~Il repository ufficiale non è ancora raggiungibile pubblicamente: oggi non si può installare un'app di sistema.~~ Ora il repository ufficiale esiste (privato) e il kernel ne installa le app all'avvio ([D41](#d41-le-app-di-sistema-mancanti-si-installano-allavvio-del-kernel)).
-- Alcuni permessi sono accettati dal manifesto ma il ponte non ha ancora le funzioni che li userebbero: `clipboard.read`, `media.*`, `geo`, `ai.*`, `desktop.widget` (`apps.call` ora ha `lilos.apps.call`, [D42](#d42-punti-dingresso-e-due-modalità-di-esecuzione-per-le-app); `ui.menus` ha effetto dal 31 ottobre 2026, [D47](#d47-pipe-sugli-eventi-dati-delle-app-sui-file-e-filecrypt)). Vedi [Stato e roadmap](stato-e-roadmap.md).
+- Alcuni permessi sono accettati dal manifesto ma il ponte non ha ancora le funzioni che li userebbero: `clipboard.read`, `media.*`, `geo`, `ai.*` (`desktop.widget` ha effetto dal 4 novembre 2026 per le app di sistema, [D83](#d83-i-widget-della-scrivania-legati-a-un-tipo-di-file-le-note-adesive-sono-file); `apps.call` ora ha `lilos.apps.call`, [D42](#d42-punti-dingresso-e-due-modalità-di-esecuzione-per-le-app); `ui.menus` ha effetto dal 31 ottobre 2026, [D47](#d47-pipe-sugli-eventi-dati-delle-app-sui-file-e-filecrypt)). Vedi [Stato e roadmap](stato-e-roadmap.md).
 
 **Quando ripensarla.** Quando ci sarà un catalogo pubblico di app (l'interfaccia per installarle c'è: l'AppStore).
 
@@ -2055,3 +2055,36 @@ Conseguenze: se tutte le schede si chiudono non parte niente; un'automazione con
 **Conseguenze.** Con «Resta connesso» spento la sessione resta valida sul kernel fino alla sua scadenza anche se il browser l'ha dimenticata (nessuno ha più il token). Alcuni browser che riaprono le schede alla riapertura tengono anche i cookie di sessione: lì la casella spenta vale meno.
 
 **Quando ripensarla.** Se servono la personalizzazione per l'organizzazione, l'accesso a più fattori o sessioni brevi imposte dall'amministratore.
+
+## D83. I widget della scrivania legati a un tipo di file; le note adesive sono file
+
+**Contesto.** Il manifesto accettava i widget (`contributes.widgets`, permesso `desktop.widget`) ma lilOS non li mostrava ([D35](#d35-le-app-locali-girano-in-un-iframe-sandbox-senza-allow-same-origin)). L'utente ha chiesto le note adesive: foglietti colorati da scrivere direttamente sulla scrivania, con liste, caselle da spuntare e promemoria (render `design/note-adesive.html`). Serviva un modo, per un'app, di disegnare qualcosa sulla scrivania.
+
+**Decisione.** Decisa il 4 novembre 2026, lilOS 1.31.0, SDK 0.19.0.
+
+- Un widget può avere `fileType`, uno dei `fileTypes` dell'app, diverso per ogni widget (lo controlla `checkManifest`). I file di quel tipo sulla scrivania sono disegnati dal widget dell'app che apre quel tipo (la scelta dell'utente in Tipi di file) al posto dell'icona. Il contratto (export `widgets` del modulo, `host`, controller) è in testa a `src/desktop/widgets.js`; l'elemento è `DeskWidget`, un `DesktopItem`.
+- Un widget è un file: si seleziona, si sposta, entra nelle workarea, va nel Cestino, entra nella cronologia e si copia come ogni altro. Aprirlo vuol dire modificarlo sul posto; **Riordina icone** lo lascia dove sta.
+- **Solo app di sistema** (repository ufficiale, girano nella pagina) con il permesso `desktop.widget`. Per le altre il permesso non ha effetto.
+- Le note adesive sono file `.sticky` di testo; colore, misura e promemoria stanno nei dati dell'app sul file (`fs.setAppMeta`, al massimo 1 KB).
+- Nuovo → **Nota adesiva** è un'azione `desktop.newWidget` (`params: { app, widget }`) che il menu mostra solo se l'app c'è e quei file si mostrerebbero come widget (`visible` nelle azioni di `menus`).
+- Per elencare e raggiungere le note di tutte le scrivanie: `fs.everywhere(test)` (tutti i nodi di tutti i workspace, con `scope`, **in sola lettura**) e `fs.bring(id, parentId)` (porta nel workspace attuale un nodo che vede solo un altro; per gli altri è `move`). In `@lilos/system`: `revealOnDesk`, `bringToDesk`, `newWidgetOnDesk`, `widgetFor`.
+- I promemoria usano la Pianificazione ([D68](#d68-la-pianificazione-un-modulo-obbligatorio-del-kernel-con-le-azioni-nel-kernel)): una notifica a un'ora, che con un clic apre il punto d'ingresso `reveal` dell'app.
+
+**Perché.**
+
+- *Un file e non dati interni dell'app*: la nota si vede nel File Manager (con l'anteprima), si apre con l'Editor, si copia, si cerca, si tagga, va nel Cestino e nella cronologia, e passa dai permessi sui file e dall'isolamento tra workspace senza regole nuove. Un contenitore a parte avrebbe dovuto rifare tutto questo.
+- *Legato a un tipo di file e non libero*: il posto sulla scrivania, la selezione e il salvataggio delle posizioni sono già dei file; un widget senza file avrebbe avuto bisogno di un secondo modo di salvare posizione e vita.
+- *Solo app di sistema*: un'app isolata (iframe) ha bisogno di un iframe sandbox per ogni widget, con il costo e i rischi (tastiera, zoom, trascinamento) che questo porta. Le app di sistema girano nella pagina e disegnano nell'elemento dato.
+- *`everywhere` e `bring` come eccezione*: lo stato di un workspace è separato dagli altri ([D27](#d27-workspace-scrivanie-separate-isolate-dal-file-system)). L'elenco di tutte le note chiede di vedere le scrivanie degli altri: lo si concede in **sola lettura** (`everywhere`), mentre lo spostamento è sempre un'azione esplicita dell'utente («Porta qui») e passa da `bring`, non da `move`, che continua a rifiutare ciò che il workspace non vede.
+
+**Alternative scartate.** Mostrare i widget senza file (stato nell'app): doppio salvataggio, niente File Manager. Widget per le app isolate subito: serve un sandbox per ogni widget. Far vedere a `fs.get` i nodi degli altri workspace: rompe l'isolamento per tutti, non solo per chi ne ha bisogno. Una finestra con l'elenco che legge i file delle altre scrivanie: il testo non serve, bastano il titolo e l'inizio che l'app tiene nei dati sul file.
+
+**Conseguenze.**
+
+- Chi ha già personalizzato il menu della scrivania non vede **Nota adesiva** finché non lo ripristina o non la aggiunge.
+- La notifica di un promemoria ha un solo clic (mostra la nota): niente «Rimanda» né «Fatto».
+- Se l'utente sceglie un'altra app per `.sticky` o toglie Note adesive, i file tornano icone (nulla si perde).
+- `everywhere` legge tutti i nodi in memoria: è lineare nel numero dei nodi; va chiamata con un `test` che scarta presto.
+- Un widget di un'app aggiornata si rimonta quando cambia l'app che apre il tipo.
+
+**Quando ripensarla.** Quando si vorranno widget di app non di sistema (servirà un sandbox per widget o un protocollo di disegno), widget senza file (un orologio, un meteo), o un'altra eccezione all'isolamento tra workspace oltre alla sola lettura di `everywhere`. Se i promemoria devono avere azioni (Rimanda, Fatto), servono azioni nelle notifiche della Pianificazione.

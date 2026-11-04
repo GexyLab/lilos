@@ -1566,6 +1566,54 @@ Un'automazione fatta partire dalla Pianificazione gira nel browser: se lilOS è 
 - Per ogni utente girano insieme al massimo 2 operazioni (di serie): le altre aspettano il loro turno. Gli altri limiti (corse conservate nello storico di ogni operazione, dimensione dei resoconti) li decide chi gestisce lilOS.
 - Le operazioni partono a un'ora, non quando succede qualcosa: per l'arrivo di file in una cartella o per l'accesso usa l'avvio da sola di Automata (vedi sotto). Un calendario non c'è ancora.
 
+## Note adesive
+
+**Note adesive** sono foglietti colorati che attacchi sulla scrivania e su cui scrivi direttamente lì. Servono per un promemoria, una lista della spesa, un numero di telefono. Non ci sono di serie: un amministratore le installa dall'[AppStore](#lappstore), categoria **Produttività**. Serve lilOS dalla 1.31.0. Per i promemoria serve anche la [Pianificazione](#pianificazione), che c'è già.
+
+### Creare e scrivere una nota
+
+- Tasto destro su un punto vuoto → **Nuovo** → **Nota adesiva**. La nota compare dove hai fatto clic, pronta da scrivere. Se Note adesive non è installata, la voce non c'è.
+- **Doppio clic** sulla nota (oppure **Invio** se è selezionata) per scrivere. Per smettere premi **Esc**, il pulsante **Fine** o fai clic fuori: la nota si salva da sola. Una nota nuova lasciata vuota sparisce.
+- La **prima riga** è il titolo.
+- Mentre scrivi vedi il testo com'è davvero, con i segni come `- [ ]`. Quando smetti, la nota li mostra in forma pulita.
+
+### Elenchi e caselle da spuntare
+
+- `- ` all'inizio di una riga fa un elenco puntato.
+- `- [ ] ` fa una casella da spuntare. Puoi usare anche i pulsanti nella barra sopra la nota.
+- Le caselle si spuntano con un clic anche senza scrivere.
+- `**parola**` è in grassetto (o **Ctrl B**).
+
+### Colore e misura
+
+La barra sopra la nota e il suo menu (tasto destro) hanno sei colori: giallo, rosa, verde, azzurro, viola, arancione. Per cambiare la misura trascina l'angolo in basso a destra, oppure scegli **Misura** nel menu: Piccola, Media, Grande. Il menu ha anche **Copia il testo**.
+
+### Promemoria
+
+La campanella (o **Promemoria…** nel menu della nota) propone **Tra un'ora**, **Stasera**, **Domani mattina**, **Lunedì prossimo**, oppure una data e un'ora a scelta. A quell'ora arriva una [notifica](#le-notifiche); con un clic sulla notifica lilOS ti porta alla nota. Il promemoria parte anche quando lilOS è chiuso nel browser, ma la notifica la vedi quando lo riapri. Con **Togli** lo cancelli. Se la Pianificazione non c'è, la campanella non compare.
+
+### Sulla scrivania
+
+Le note si selezionano, si spostano, entrano nelle [workarea](#le-workarea) e vanno nel [Cestino](#il-cestino) come le icone. **Riordina icone** non le muove: restano dove le hai messe. Da lontano si legge solo il titolo, più grande; ancora più lontano resta il foglietto colorato (anche nella mappa in miniatura).
+
+### La finestra Note adesive
+
+Dal menu di avvio si apre una finestra con **tutte** le note, di ogni workspace. Cerchi nel testo e filtri per workspace, colore o promemoria. Su ogni nota:
+
+- **Mostra** ti porta alla nota, cambiando workspace se serve;
+- **Porta qui** la sposta sulla scrivania che stai guardando, al centro della vista (**attenzione**: la nota lascia l'altro workspace);
+- **Nuova nota** ne crea una al centro della vista e riduce a icona la finestra, così vedi la nota mentre scrivi.
+
+### Le note sono file
+
+Ogni nota è un file di testo con estensione `.sticky` nella cartella Scrivania. Lo vedi nel [File Manager](#il-file-manager) (anche con l'anteprima), lo apri con l'[Editor](#leditor) e lo copi o lo cerchi come gli altri. Il colore, la misura e il promemoria non stanno nel testo: sono dati che l'app tiene sul file.
+
+### Da sapere
+
+- Le note si mostrano così solo se **Note adesive è l'app che apre i file `.sticky`** (Pannello di controllo → Usabilità → Tipi di file). Se la togli o ne scegli un'altra, le note tornano a essere icone di file; il testo non si perde.
+- Se hai già personalizzato il menu **Nuovo** (Pannello di controllo → Usabilità → [Menu contestuale](#menu-contestuale)), la voce **Nota adesiva** non compare da sola: ripristina il menu o aggiungila a mano.
+- La notifica di un promemoria ha un solo clic, che mostra la nota: non ci sono «Rimanda» né «Fatto».
+
 ## Annullare e ripetere
 
 **Ctrl Z** annulla l'ultima azione, **Ctrl Y** (o **Ctrl Shift Z**) la ripete. Agiscono **dove stai lavorando**: ogni posto ha il suo elenco di azioni, e lilOS sceglie quello dove hai fatto clic per ultimo. In basso compare un breve messaggio, per esempio "Annullato: Elimina «Appunti»" o "Ripetuto: Rinomina…".
@@ -1830,7 +1878,7 @@ Alcune app hanno un solo modo, e la scheda Sicurezza lo spiega:
 
 Quando un'app in secondo piano deve restare attiva, nell'area di notifica della barra delle applicazioni compare un'icona con un **fulmine** (con un numero se sono più di una). Ci passi sopra per vedere il nome; con un clic si apre un menu: per ogni app puoi aprire le sue **Proprietà…** oppure **Ferma**. Fermarla interrompe quello che stava facendo e le fa dimenticare quello che teneva in memoria; si riavvia da sola alla prossima richiesta. L'icona sparisce quando non ce ne sono.
 
-Cosa non è ancora possibile: i widget sulla scrivania non si vedono ancora, e se ripristini la scrivania e i file iniziali un'app non rifà le sue cartelle e i suoi file di esempio.
+Cosa non è ancora possibile: se ripristini la scrivania e i file iniziali un'app non rifà le sue cartelle e i suoi file di esempio.
 
 ## FileCrypt
 

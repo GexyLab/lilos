@@ -34,7 +34,8 @@ import { parseLocales } from '../../../../sdk/core/i18n.js';
  *     libraries: [{ name, version, url, integrity: 'sha384-…', cache?: true }],
  *     permissions: ['fs.read:~/Documenti', 'net:https://api.example.com', …],
  *     contributes: { window: { width, height }, fileTypes: ['md'], commands: [{ id, label, keys }],
- *                    widgets: [{ id, name, width, height, resizable }], settings: [...],
+ *                    widgets: [{ id, name, width, height, resizable, fileType? }], settings: [...],
+ *                    (fileType: files of that type, one of fileTypes, show on the desk as the widget)
  *                    pipes: [pipe], events: [event], actions: [action], menus: [menu], badge: { glyph, label },
  *                    automation: [automation] },
  *     install: [op], update: [{ from: '<1.2.0', ops: [op] }], uninstall: [op],
@@ -332,7 +333,10 @@ export function checkManifest(raw) {
   if (list(c.commands, MAX.commands).some(cmd => cmd.keys?.length) && !permissions.includes('ui.shortcuts')) bad('le scorciatoie richiedono il permesso ui.shortcuts');
   for (const w of list(c.widgets, MAX.widgets)) {
     if (!KEY.test(w?.id ?? '') || !str(w.name, 40) || !(w.width >= 80 && w.width <= 1200 && w.height >= 60 && w.height <= 1200)) bad('widget non valido');
+    if (w.fileType !== undefined && (typeof w.fileType !== 'string' || !w.fileType || !EXT.test(w.fileType) || !list(c.fileTypes, 50).includes(w.fileType))) bad(`widget ${w.id}: fileType deve essere uno dei fileTypes dell’app`);
   }
+  const widgetTypes = list(c.widgets, MAX.widgets).map(w => w.fileType).filter(Boolean);
+  if (new Set(widgetTypes).size < widgetTypes.length) bad('due widget con lo stesso fileType');
   if (list(c.widgets, MAX.widgets).length && !permissions.includes('desktop.widget')) bad('i widget richiedono il permesso desktop.widget');
   const eps = m.entrypoints ?? {};
   const ownEvents = new Set();

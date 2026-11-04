@@ -17,9 +17,10 @@ import { shortcuts } from './shortcuts.js';
  *   { type: 'submenu', label, icon?, items: [...] }       one level deep
  *
  * Action definition:
- *   { label, icon?, shortcut?, run(ctx, params), enabled?(ctx, params), params?(raw) → clean | null, menus? }
+ *   { label, icon?, shortcut?, run(ctx, params), enabled?(ctx, params), visible?(ctx, params), params?(raw) → clean | null, menus? }
  *   `shortcut` is a shortcuts command id (its keys are shown next to the item); `params` validates the
- *   parameters of saved entries; `menus` limits the action to some menus (all if omitted).
+ *   parameters of saved entries; `menus` limits the action to some menus (all if omitted); `visible`
+ *   false leaves the entry out of the menu for now (what it makes needs an app that is not installed).
  *
  * Events: 'change' (menuId)
  */
@@ -98,7 +99,7 @@ class Menus extends Emitter {
           out.push({ label: e.label, icon: e.icon, items: convert(e.items) });
         } else {
           const a = this.#actions.get(e.action);
-          if (!a) continue;
+          if (!a || (a.visible && !a.visible(ctx, e.params))) continue;
           out.push({
             label: e.label ?? a.label, icon: e.icon ?? a.icon,
             shortcut: a.shortcut ? shortcuts.label(a.shortcut) : undefined,

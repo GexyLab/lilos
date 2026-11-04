@@ -28,6 +28,7 @@ Procedure passo per passo per le modifiche più comuni. Per i dettagli delle fun
 - [Aggiungere un punto d'ingresso a un'app](#aggiungere-un-punto-dingresso-a-unapp)
 - [Intervenire su un evento con una pipe](#intervenire-su-un-evento-con-una-pipe)
 - [Aggiungere voci di menu e un segno sull'icona a un'app](#aggiungere-voci-di-menu-e-un-segno-sullicona-a-unapp)
+- [Mostrare i tuoi file con un widget sulla scrivania](#mostrare-i-tuoi-file-con-un-widget-sulla-scrivania)
 - [Rendere registrabile un'azione della tua app](#rendere-registrabile-unazione-della-tua-app)
 - [Pianificare operazioni da un'app](#pianificare-operazioni-da-unapp)
 - [Installare un'app dall'esempio](#installare-unapp-dallesempio)
@@ -763,6 +764,46 @@ Un'app installata aggiunge voci al menu del tasto destro di file e cartelle e un
    ```
 3. Il segno (`badge`) compare da solo sull'icona dei nodi con `apps['acme.trim']`, sulla scrivania e nel File Manager. Le voci compaiono nel menu della scrivania e in quello del File Manager (con `appActionEntries`, se fai una vista tua: vedi [apps/pipes.js, apps/appActions.js e apps/systemEvents.js](api.md#appspipesjs-appsappactionsjs-e-appssystemeventsjs)).
 4. Traduzioni: `@actions.acme.trim.mark.label` e `@badge.label` nel `locales.json` (vedi [Tradurre un'app](#tradurre-unapp)).
+
+## Mostrare i tuoi file con un widget sulla scrivania
+
+Un'app di sistema (repository ufficiale, gira nella pagina) disegna lei i file di un tipo sulla scrivania, al posto dell'icona. Esempio: Note adesive, dove ogni nota è un file `.sticky` (`plugins/src/stickynotes/`). Per un'app non di sistema non funziona ancora. Contratto: [desktop/widgets.js](api.md#desktopwidgetsjs-e-desktoprevealjs).
+
+1. Nel manifesto (`app.json`) il tipo di file, il permesso e il widget con `fileType`:
+
+   ```json
+   "system": true,
+   "lilos": ">=1.31.0",
+   "permissions": ["desktop.widget"],
+   "contributes": {
+     "fileTypes": ["sticky"],
+     "widgets": [{ "id": "note", "name": "Sticky note", "width": 200, "height": 180, "resizable": true, "fileType": "sticky" }]
+   }
+   ```
+
+   `fileType` deve essere uno dei `fileTypes` e diverso per ogni widget; il nome del widget (`@widgets.note.name`) si traduce nel `locales.json`.
+2. Nel modulo dell'app esporta `widgets` con una funzione per ogni `id`:
+
+   ```js
+   import { fs } from '@lilos/sdk';
+
+   export const widgets = {
+     note: ({ el, node, host }) => {
+       el.textContent = node.name;
+       return {
+         update(node) { el.textContent = node.name; },
+         open() { host.setEditing(true); /* scrivere sul posto */ },
+         destroy() {},
+       };
+     },
+   };
+   ```
+
+   `host.setSize(w, h)` cambia la misura, `host.setColor(css)` il colore nella minimappa, `host.setEditing(on)` toglie alla scrivania puntatore e tastiera mentre l'utente scrive. Salva lo stato del widget (colore, misura) con `fs.setAppMeta(id, appId, { … })`, al massimo 1 KB: così segue il file quando si sposta o si copia.
+3. Perché i file compaiano come widget l'app deve essere quella che apre il tipo (Pannello di controllo → Usabilità → Tipi di file). Per farne di nuovi dal menu della scrivania, aggiungi una voce **Nuovo** con l'azione `desktop.newWidget` (`params: { app, widget }`); si vede solo quando l'app mostra davvero quei file. Dalla finestra dell'app basta `system.newWidgetOnDesk(appId, widgetId)` (`import * as system from '@lilos/system'`).
+4. Se l'app elenca i file di tutti i workspace (la finestra delle note), usa `fs.everywhere(test)` (ogni copia ha `scope`) e, per mostrarli o portarli, `system.revealOnDesk(id)` e `system.bringToDesk(id, { w, h })`.
+5. Una voce che dipende da un'app che può non esserci usa `visible(ctx, params)` nell'azione di `menus.defineAction`.
+6. Documenta e alza le versioni: `version` in `app.json` e, se hai cambiato l'SDK, `sdk/package.json`.
 
 ## Rendere registrabile un'azione della tua app
 

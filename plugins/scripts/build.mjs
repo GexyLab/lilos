@@ -52,6 +52,7 @@ export const APPS = [
   { id: 'automata', entry: 'AutomataApp.js' },
   { id: 'scheduler', entry: 'SchedulerApp.js' },
   { id: 'nettest', entry: 'NetTestApp.js' },
+  { id: 'stickynotes', entry: 'StickyNotesApp.js' },
 ];
 
 /** The kernel modules of the catalog, by name. */

@@ -3,7 +3,10 @@ import { union } from './Canvas.js';
 
 const PAD = 8;
 
-/** Overview of the desk: one block per object (styled by its data-kind) plus the visible area. */
+/**
+ * Overview of the desk: one block per object (styled by its data-kind, colored by its
+ * data-mm-color when it has one: a desk widget's) plus the visible area.
+ */
 export class Minimap {
   #map = null;
   #dragging = false;
@@ -36,11 +39,11 @@ export class Minimap {
     }
 
     const { k, ox, oy } = this.#map;
-    const block = (r, kind) => h('i', {
+    const block = (r, kind, color) => h('i', {
       class: `mm-${kind}`,
-      style: { left: `${ox + r.x * k}px`, top: `${oy + r.y * k}px`, width: `${r.w * k}px`, height: `${r.h * k}px` },
+      style: { left: `${ox + r.x * k}px`, top: `${oy + r.y * k}px`, width: `${r.w * k}px`, height: `${r.h * k}px`, ...(color && { background: color }) },
     });
-    this.el.replaceChildren(...objects.map((el, i) => block(rects[i], el.dataset.kind || 'obj')), block(view, 'view'));
+    this.el.replaceChildren(...objects.map((el, i) => block(rects[i], el.dataset.kind || 'obj', el.dataset.mmColor)), block(view, 'view'));
   }
 
   #startNavigate(e) {

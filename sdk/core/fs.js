@@ -886,6 +886,51 @@ class FileSystem extends Emitter {
     return node.name;
   }
 
+  /**
+   * Every node (not in the trash, not of a network connection) for which test(node) is true, in
+   * every workspace: also those that only another workspace sees, inside its private folders (its
+   * desk). Each is a copy with `scope`: the workspace of the private folder it is in, or null when
+   * every workspace sees it. Only to read: the methods still act only on what the current
+   * workspace sees (bring() moves a node over). For the system and its apps (Note adesive lists
+   * the notes of every desk).
+   */
+  everywhere(test = () => true) {
+    const out = [];
+    for (const node of this.#nodes.values()) {
+      if (node.id === ROOT || node.id === TRASH || node.net || this.#inTrash(node)) continue;
+      const found = copy(node);
+      if (!test(found)) continue;
+      let scope = null;
+      for (let n = node; n; n = this.#nodes.get(n.parent)) if (n.private) { scope = n.workspace ?? null; break; }
+      out.push({ ...found, scope });
+    }
+    return out;
+  }
+
+  /**
+   * Moves a node that only another workspace sees (inside its private folders, see everywhere())
+   * into a folder of the current workspace; the name is made unique there. Returns the final name.
+   * For a node the current workspace sees, it is move(). Views get a 'move' change, as if it came
+   * from a folder they never saw.
+   */
+  bring(id, parentId) {
+    const node = this.#nodes.get(id);
+    if (!node || node.id === ROOT || node.id === TRASH || this.#inTrash(node) || node.net) throw new Error('Elemento inesistente');
+    if (this.#visible(node)) return this.move(id, parentId);
+    if (node.system || node.private) throw new Error('Gli elementi di sistema non si possono modificare');
+    const target = this.#find(parentId);
+    if (!target || target.type !== 'folder' || target.net) throw new Error('La cartella di destinazione non esiste');
+    const from = node.parent;
+    node.name = this.#unique(parentId, node.name, id, node);
+    node.parent = parentId;
+    const now = Date.now();
+    this.#touch(from, now);
+    this.#touch(parentId, now);
+    this.#save();
+    this.emit('change', { type: 'move', node: copy(node), parent: parentId, from, ids: [id, ...this.#descendants(id)] });
+    return node.name;
+  }
+
   // ---------- Network (Rete) ----------
 
   /** True for a node of a network connection (its mount node included). */

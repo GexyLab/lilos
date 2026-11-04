@@ -55,6 +55,7 @@ import { connectAutomation } from './automation/index.js';
 import { connectSchedule } from './schedule/runner.js';
 import { connectDesktop } from './host/desktop.js';
 import { connectFileDrops } from './items/itemDrag.js';
+import { connectReveal } from './desktop/reveal.js';
 
 const root = document.getElementById('app');
 watchSession();
@@ -92,6 +93,7 @@ connectAppProperties(wm);
 const workareas = new Workareas({ canvas, desktop, wm, launcher, key: key('workareas') });
 const workspaces = new Workspaces({ state, canvas, desktop, wm, launcher, workareas, taskbar });
 taskbar.startMenu.connect({ workspaces, workareas });
+connectReveal({ desktop, workspaces, workareas, canvas });
 connectSystemEvents({ wm, workspaces });
 // Automations: lilOS's actions, the apps' ones, the recorder, the user's .automata files
 connectAutomation({ wm, desktop, workspaces, taskbar });

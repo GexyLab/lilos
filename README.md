@@ -79,6 +79,9 @@ src/                    il sistema, costruito sull'SDK
     Hud.js              pannello minimappa + controlli zoom
   desktop/
     Desktop.js          selezione, trascinamento, rinomina, elimina, menu contestuali, salvataggio
+    DeskWidget.js       un file disegnato dal widget della sua app (Note adesive)
+    widgets.js          quale widget mostra un file (widgetFor) e come si carica
+    reveal.js           mostrare o portare un elemento da un'altra scrivania (revealOnDesk, bringToDesk)
     DesktopItem.js      componente singolo (cartella / file / app)
     itemIcons.js        icone grandi di cartelle, file e workarea, con i segni delle app
     fixedItems.js       elementi fissi: Home, Documenti, Immagini, File Manager, Download, Cestino
@@ -140,6 +143,7 @@ doc/                    documentazione utente, sviluppatore e interna
 | Automazioni (app Automata) | pulsante REC nell'area di notifica mentre si registra (riapre il Registratore); tasto destro su file o cartelle → Automazioni (esegue o «Registra partendo da qui»); Ctrl Z / Ctrl Y mentre si registra tolgono e rimettono l'ultimo passo; scorciatoia scelta in Automata; nel Terminale `automata list` e `automata run <nome> [file…]` |
 | NetTest (app di sistema, da installare) | menu di avvio → NetTest; Ctrl Invio invia la richiesta (o collega la sessione), Ctrl S salva la collezione, Ctrl Alt N nuova richiesta HTTP, Ctrl Alt W chiude la scheda; nel Terminale `nettest run`, `nettest send`, `nettest list`; Pannello di controllo → Rete (amministratori) per le regole di rete |
 | Pianificazione (app di sistema) | menu di avvio → Pianificazione: Elenco e Storico delle operazioni, Nuova operazione (Cosa, Quando, Opzioni); tasto destro su file o cartelle → Pianifica (copia, comando, apri, automazione, promemoria) |
+| Note adesive (app di sistema, dall'AppStore) | tasto destro sulla scrivania → Nuovo → Nota adesiva; doppio clic o Invio per scrivere, Esc per finire; campanella per il promemoria; menu di avvio → Note adesive: le note di ogni workspace (Mostra, Porta qui) |
 | Elementi | doppio clic apre, F2 rinomina, Canc elimina (nel Cestino), Ctrl A seleziona tutto, Ctrl/Shift + clic selezione multipla |
 | Spostare file e cartelle | trascina un elemento (o la selezione) su una cartella: sulla scrivania, nel File Manager (elenco, percorso, barra laterale) o nel pannello dell'Editor, anche da una vista all'altra; Esc annulla; rilasciato sul Cestino lo elimina; tra due voci della sezione Collegamenti del File Manager crea un collegamento, e le voci si riordinano trascinandole (con × o Canc si elimina un collegamento) |
 | Annulla / ripeti | Ctrl Z / Ctrl Y (o Ctrl Shift Z), dove stai lavorando: scrivania, finestra del File Manager, testo e pannello dell'Editor |

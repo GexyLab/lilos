@@ -36,6 +36,7 @@ Gli altri moduli (`src/`) sono il sistema: scrivania, desktop, barra.
 - [desktop/DesktopItem.js](#desktopdesktopitemjs)
 - [desktop/itemIcons.js](#desktopitemiconsjs)
 - [desktop/fixedItems.js](#desktopfixeditemsjs)
+- [desktop/widgets.js e desktop/reveal.js](#desktopwidgetsjs-e-desktoprevealjs)
 - [items/](#items)
 - [workareas/](#workareas)
 - [workspaces/](#workspaces)
@@ -633,6 +634,8 @@ File system virtuale: un albero di cartelle, file, collegamenti alle app e colle
 | `setAppMeta(id, appId, value)` | Imposta i dati di un'app su un nodo (anche una cartella), o li toglie con `null`. `value` è un oggetto semplice di al massimo 1 KB di JSON. Lancia un errore per un id di app non valido, per un `value` che non è un oggetto o è troppo grande (1 KB per app), per più di 8 app sul nodo o più di 2 KB di dati di tutte le app insieme («Troppi dati delle app su questo elemento») e per l'elemento inesistente o la radice. Con `content: true` ripulisce la cronologia di annulla di quel contenuto (`scrub`). Emette `change` di tipo `update`. Solo il sistema e le app di sistema lo chiamano direttamente: un'app installata passa da `lilos.files.setMeta`. |
 | `scrub(...ids)` | Toglie il contenuto di questi nodi da ogni `snapshot` ancora tenuto (la cronologia di annulla): rimetterli darebbe un file vuoto. Serve a un contenuto che non deve restare da nessuna parte in chiaro. |
 | `move(id, parentId)` | Sposta il nodo (con il contenuto) in un'altra cartella e restituisce il nome finale, reso unico lì. Lancia un errore se la destinazione non è una cartella o sta dentro il nodo stesso. |
+| `everywhere(test = () => true)` | Da SDK 0.19.0. Le copie di tutti i nodi per cui `test(node)` è vero, **in ogni workspace**: anche quelli che vede solo un altro workspace, dentro le sue cartelle private (la sua Scrivania). Salta il cestino, la radice e i nodi di una connessione di rete. Ogni copia ha `scope`: l'id del workspace della cartella privata in cui sta, o `null` se la vedono tutti. **Solo lettura**: gli altri metodi continuano a agire solo su ciò che vede il workspace attuale. Per il sistema e le sue app (Note adesive elenca le note di ogni scrivania). |
+| `bring(id, parentId)` | Da SDK 0.19.0. Sposta in una cartella del workspace attuale un nodo che vede solo un altro workspace (vedi `everywhere`) e restituisce il nome finale, reso unico lì. Per un nodo che il workspace attuale vede fa `move`. Lancia un errore se il nodo non c'è, è nel cestino o di rete, è di sistema o privato, o se la destinazione non è una cartella. Chi ascolta `change` riceve un `move` con `from`, come per una cartella mai vista. È l'unico modo di portare un nodo da un altro workspace: lo spostamento è sempre una scelta esplicita ([D83](../interna/decisioni.md#d83-i-widget-della-scrivania-legati-a-un-tipo-di-file-le-note-adesive-sono-file)). |
 | `remove(id)` | Elimina il nodo e, per le cartelle, tutto il contenuto (anche quello dei file). Il contenuto si perde: per poterlo riavere prendi prima uno `snapshot`, oppure usa `trash`. Non vale per i nodi nel cestino (`purge`). |
 | `trashRoot` | Id della radice nascosta del cestino (`'trash'`); non è un nodo: `get` non la vede. |
 | `trash(ids)` | Sposta nel cestino i nodi con tutto ciò che contengono. Salta i nodi di sistema, le cartelle che ne contengono, gli id sconosciuti, ripetuti o già nel cestino. Restituisce gli id cestinati. Il nodo prende `trashed: { at, from, scope? }`: `at` è l'ora (ms), `from` la cartella d'origine, `scope` il workspace proprietario se veniva da una cartella privata. Per ogni nodo emette `change` di tipo `remove` con `trashed: true` (`node.parent` è la cartella d'origine); poi `trash`. |
@@ -1514,6 +1517,8 @@ Il pannello completo: minimappa, pulsanti −/+, percentuale (clic = 100%), "Mos
 | `place(lista)` | Mette delle icone dove si dice: `[{ id, x, y }]`; gli id che non sono sulla scrivania e le coordinate non numeriche si saltano. Salva, aggiorna le workarea se serve, registra un passo della cronologia («Sposta «nome»» o «Sposta N elementi») e manda `desk.place` con `reason: 'place'`. Restituisce quante ne ha messe. Lo usa l'azione `lilos.place`. |
 | `visibleItems()` | Elementi in vista: quelli non nascosti (cioè non chiusi dentro una workarea ridotta a icona). |
 | `scopeItems()` | Su cosa agiscono le richieste della scrivania: gli elementi della workarea attuale (`workareas.itemsIn`), altrimenti `visibleItems()`. Lo usano Seleziona tutto e `selectAll`. |
+| `createWidget(appId, widgetId, at = null)` | Da lilOS 1.31.0. Crea un file mostrato dal widget di un'app ([desktop/widgets.js](#desktopwidgetsjs-e-desktoprevealjs)), centrato sul punto del mondo `at` (il centro della vista se manca), lo seleziona e lo apre. Il nome è quello del widget (tradotto) con l'estensione del tipo. Restituisce l'elemento, o `null` se `fileWidget` dice che non si mostrerebbe come quel widget. Registra la creazione nella cronologia. |
+| `placeNext(point)` | Da lilOS 1.31.0. Il prossimo nodo che la scrivania monta (creato, portato o spostato qui) va in quel punto del mondo (il suo angolo in alto a sinistra, agganciato alla griglia); `placeNext(null)` lo toglie. Lo usa `bringToDesk`. |
 | `addItem(item)` | Mette sulla scrivania un `DesktopItem` che non è un nodo del file system (le icone delle workarea): lo registra in `items`, lo lega a selezione e trascinamento e lo aggiunge al canvas. Non viene salvato nelle posizioni della scrivania. |
 | `removeItem(id)` | Toglie dalla scrivania un elemento messo con `addItem`. |
 
@@ -1646,6 +1651,98 @@ Gli elementi fissi: su ogni scrivania (di ogni workspace) ci sono quelli accesi 
 - `acceptDrops(el, item)`: rende l'elemento un bersaglio di rilascio. Home e cartelle si marcano con `markItem` (file e cartelle si spostano lì, annullabile). Il cestino è una `dropZone` che accetta i nodi esistenti non di sistema, li manda a `removeNodes(stack, ids)` (annullabile con Ctrl Z) e manda una notifica. L'app File Manager non accetta nulla.
 
 `Desktop` ridisegna il Cestino (`full`) a ogni evento `trash` di `fs`. Il sistema espone `FIXED_ITEMS` come `DESK_FIXED_ITEMS` (vedi [systemApi.js](#systemapijs-lilossystem)), con `isFixedShown`, `setFixedShown` e `setFixedShownEverywhere`. Pannello di controllo (1.5.0) li usa in Workspace: la sezione «Elementi fissi» delle schede di ogni workspace (un interruttore per elemento in quel workspace) e di Tutti (`setFixedShownEverywhere`, con «Acceso in X workspace su N» quando non è uguale ovunque). Con un lilOS senza `setFixedShownEverywhere` la sezione è solo in Tutti, come scelta unica per tutte le scrivanie (o «Fisso», senza `setFixedShown`). Scrivania → Elementi (1.12.0) ha il pulsante che porta a Workspace e la sezione «Icone» con l'interruttore «Mostra l'anteprima dei file» (impostazione `deskPreviews`); la sezione c'è solo se `system.fileThumbnail` esiste, e «Ripristina» la riporta al predefinito.
+
+---
+
+## desktop/widgets.js e desktop/reveal.js
+
+### Widget della scrivania (`widgets.js`)
+
+Da lilOS 1.31.0 un'app di sistema può disegnare lei i file di un tipo sulla scrivania, al posto dell'icona (Note adesive: ogni nota è un file `.sticky`). Il contratto sta in testa a `src/desktop/widgets.js`.
+
+**Manifesto.** Un widget in `contributes.widgets` con `fileType`:
+
+```json
+"permissions": ["desktop.widget"],
+"contributes": {
+  "fileTypes": ["sticky"],
+  "widgets": [{ "id": "note", "name": "Sticky note", "width": 200, "height": 180, "resizable": true, "fileType": "sticky" }]
+}
+```
+
+Il kernel (`checkManifest`) rifiuta un `fileType` che non sia tra i `fileTypes` dell'app e due widget con lo stesso `fileType`. `width` e `height` sono la misura iniziale in pixel della scrivania.
+
+**Quando un file si mostra come widget** (`widgetFor(node)`): è un file (non nel cestino) e l'app che lo apre, cioè quella scelta dall'utente in Tipi di file (`appFor`), è installata, è un'app di sistema (`trusted`, gira nella pagina), ha il permesso `desktop.widget` e un widget con quel `fileType`. Altrimenti il file resta un'icona. Se l'app arriva, va via o viene aggiornata, i file passano da icona a widget (o il contrario) senza cambiare posto. Le app non di sistema non hanno widget sulla scrivania: ne servirebbe uno sandbox per ognuno.
+
+**Codice.** Il modulo dell'app (quello dell'export predefinito) esporta `widgets`, un oggetto con una funzione per ogni `id`:
+
+```js
+export const widgets = {
+  note: ({ el, node, host }) => {
+    el.textContent = node.name;
+    return {
+      update(node) { el.textContent = node.name; },
+      destroy() {},
+    };
+  },
+};
+```
+
+La funzione riceve:
+
+| Campo | Contenuto |
+| --- | --- |
+| `el` | L'elemento in cui disegnare (il corpo del widget, dentro l'elemento della scrivania). |
+| `node` | Una copia del nodo del file. |
+| `host.setSize(w, h)` | La misura sulla scrivania, in pixel della scrivania (all'inizio quella del manifesto; da 40 a 1200). |
+| `host.setEditing(on)` | Finché è acceso, la scrivania lascia al widget puntatore e tastiera: niente trascinamento né scorciatoie. |
+| `host.setColor(css)` | Il colore del widget nella minimappa (`#rgb`…`#rrggbbaa` o `rgb(r, g, b)`; altro lo toglie). |
+| `host.select()` | Lo seleziona da solo. |
+| `host.scale` | Lo zoom attuale della scrivania. |
+
+Restituisce un controller; ogni parte è facoltativa:
+
+| Parte | Quando |
+| --- | --- |
+| `update(node)` | Il file è cambiato (nome, dimensione e data del contenuto, dati delle app). |
+| `zoom(scale)` | Lo zoom della scrivania è cambiato. |
+| `open()` | L'utente l'ha aperto (doppio clic, Invio, Apri): modificare sul posto. |
+| `selected(on)` | È stato selezionato o no. |
+| `menu()` → `[voce]` | Voci di `openMenu` messe in cima al menu dell'elemento. |
+| `destroy()` | Esce dalla scrivania (eliminato, spostato, altro workspace). |
+
+Finché il codice dell'app non è caricato (o se fallisce) al posto del widget c'è l'icona del file.
+
+**Sulla scrivania** un widget si seleziona, si sposta, entra nelle workarea e va nel Cestino come un'icona. **Riordina icone** lo lascia dov'è; il nome si vede solo durante la rinomina. Aprirlo (doppio clic, Invio) chiama `open()` del controller. Nella minimappa ha il colore di `setColor`.
+
+**Funzioni esportate da `widgets.js`** (per il sistema):
+
+| Funzione | Descrizione |
+| --- | --- |
+| `widgetFor(node)` | `{ app, widget }` o `null` (vedi sopra). Anche da `@lilos/system`. |
+| `loadWidget(app, widget)` | La funzione `widgets[widget.id]` del modulo dell'app; lancia un errore se non c'è. |
+| `fileWidget(appId, widgetId)` | `{ app, widget, ext }` se un file di quel tipo, adesso, si mostrerebbe proprio come quel widget (app installata e visibile, scelta per il tipo), altrimenti `null`. Lo usano `desktop.newWidget` e `Desktop.createWidget`. |
+
+### Trovare un elemento da fuori (`reveal.js`)
+
+Per le app di sistema, da `@lilos/system`. Il sistema li collega all'avvio (`connectReveal`). Si appoggiano a `fs.everywhere` e `fs.bring`.
+
+| Funzione | Descrizione |
+| --- | --- |
+| `revealOnDesk(id)` | `Promise<boolean>`. Mostra un elemento della scrivania: se sta in un altro workspace lo rende l'attuale, apre la workarea ridotta che lo nasconde, porta la vista su di lui (zoom al massimo 100%) e lo seleziona da solo. `false` se non è su una scrivania (sta in un'altra cartella, o non c'è più). |
+| `bringToDesk(id, { w = 86, h = 64 } = {})` | `Promise<boolean>`. Porta l'elemento al centro della vista della scrivania attuale: se è già qui lo sposta, se è in un'altra cartella o in un altro workspace lo sposta con `fs.bring` (**lascia il posto d'origine**). `w` e `h` sono la sua misura, per centrarlo prima che sia sulla scrivania. Lo seleziona. `false` se non c'è più. |
+| `newWidgetOnDesk(appId, widgetId)` | `boolean`. Crea un file con quel widget al centro della vista della scrivania attuale e lo apre (`Desktop.createWidget`). `false` se l'app non lo mostrerebbe. |
+
+Esempio (la notifica di un promemoria apre il punto d'ingresso `reveal`):
+
+```js
+import * as system from '@lilos/system';
+export async function reveal({ args }) {
+  if (!(await system.revealOnDesk(args.note))) { /* la nota non c'è più */ }
+}
+```
+
+Esempio: [`plugins/src/stickynotes/`](../../plugins/src/stickynotes/README.md). Ricetta: [Mostrare i tuoi file con un widget sulla scrivania](ricette.md#mostrare-i-tuoi-file-con-un-widget-sulla-scrivania).
 
 ---
 
@@ -2091,6 +2188,8 @@ Permessi dichiarati nei manifesti ufficiali: File Manager `fs.write:~`, `fs.work
 | `WORKSPACE_LIMITS` | `workspaces/store.js` | Limiti dei workspace (alias di `LIMITS`) |
 | `describeWorkspace`, `onWorkspacesChange`, `workspaceManager` | `workspaces/info.js` | Nome e colore di un workspace; il gestore dei workspace |
 | `apps`, `registry`, `getApp`, `isInstalled`, `installedApps`, `launch` | `apps/registry.js` | Il registro delle app (non l'`apps` dell'SDK) |
+| `revealOnDesk`, `bringToDesk`, `newWidgetOnDesk` | `desktop/reveal.js` | Da lilOS 1.31.0. Trovare un elemento di una scrivania da fuori: mostrarlo (anche in un altro workspace), portarlo qui, fare un file con un widget (vedi [desktop/widgets.js e desktop/reveal.js](#desktopwidgetsjs-e-desktoprevealjs)) |
+| `widgetFor` | `desktop/widgets.js` | Da lilOS 1.31.0. Il widget che mostra un file sulla scrivania: `{ app, widget }` o `null` |
 | `fileApps`, `appFor`, `defaultAppFor`, `setAppFor`, `resetAppsFor`, `knownExtensions`, `openFile` | `apps/open.js` | Quale app apre quale file |
 | `handleCommand` | `apps/commands.js` | Un'app gestisce un suo comando |
 | `sendKey` | `input/sendKey.js` | Manda un tasto all'elemento con il focus, come un tasto vero ([input/sendKey.js](#inputsendkeyjs)) |
@@ -2317,7 +2416,7 @@ Validato dal kernel (`system/kernel/src/apps/manifest.js`), che scarta i campi c
 | `url` | Solo `remote`: `https://…` (o `http://localhost`). Non può avere l'origine di lilOS. |
 | `libraries?` | `[{ name, version, url, integrity: 'sha384-…', cache? }]`, fino a 30, solo `https`. Con `cache: true` il kernel la scarica una volta in `/system/commons` e la dà inline; senza, il browser la carica dall'`url` (che entra nella CSP). |
 | `permissions?` | Elenco di permessi (fino a 50), vedi sotto. |
-| `contributes?` | `window: { width, height }` (200-4000 × 150-4000); `fileTypes: [estensione]` (fino a 50); `commands: [{ id, label, keys? }]` (fino a 30, l'`id` inizia con l'id dell'app + `.`, `keys` fino a 3 e richiede `ui.shortcuts`); `widgets: [{ id, name, width, height }]` (fino a 10, richiede `desktop.widget`; **validati ma non mostrati**); `pipes`, `events`, `actions`, `menus`, `badge`, `automation` (vedi sotto). |
+| `contributes?` | `window: { width, height }` (200-4000 × 150-4000); `fileTypes: [estensione]` (fino a 50); `commands: [{ id, label, keys? }]` (fino a 30, l'`id` inizia con l'id dell'app + `.`, `keys` fino a 3 e richiede `ui.shortcuts`); `widgets: [{ id, name, width, height, resizable?, fileType? }]` (fino a 10, richiede `desktop.widget`; `width` 80-1200, `height` 60-1200; `fileType`, da lilOS 1.31.0, deve essere uno dei `fileTypes` dell'app e diverso per ogni widget: un widget senza `fileType` è validato ma non viene mostrato; vedi [desktop/widgets.js](#desktopwidgetsjs-e-desktoprevealjs)); `pipes`, `events`, `actions`, `menus`, `badge`, `automation` (vedi sotto). |
 | `install?`, `update?`, `uninstall?` | Operazioni, vedi sotto. `update`: `[{ from: '<1.2.0', ops: [...] }]` (`from`: `<x.y.z`, `<=x.y.z` o `x.y.z`). |
 | `lilos?` | Le versioni di lilOS con cui l'app funziona: un limite (`'>=1.8.0'`) o due separati da uno spazio (`'>=1.8.0 <2.0.0'`); operatori `>=`, `>`, `<=`, `<`, `=` (senza operatore vale `=`), versione `x.y.z`. Il kernel non installa né aggiorna l'app su una versione di lilOS fuori intervallo (`conflict`), e non aggiorna lilOS a una versione che lascerebbe fuori un'app installata. Senza il campo conta solo `sdk`. |
 | `restartOnUpdate?` | `true` o un intervallo come `update.from` (`'<2.0.0'`, `'<=1.2.0'`, `'1.2.0'`): aggiornando a questa versione lilOS propone di riavviarsi. Con un intervallo vale solo se si arriva da una versione che lo soddisfa. Conta solo se la pagina ha già eseguito il codice vecchio dell'app. Altro: manifesto non valido. Da usare solo quando il ricaricamento a caldo non basta (stato condiviso nella pagina, moduli tenuti da altri): vedi [apps/updates.js](#appsupdatesjs). |
@@ -2391,7 +2490,7 @@ Un permesso è `nome` oppure `nome:parametro`. Un permesso non nell'elenco, o co
 | `fs.preview` | install | Chiedere l'anteprima dei file all'app che li apre | `lilos.files.preview`, solo per i file che l'app può già leggere (vedi [Anteprima dei file fatta dalle app](#anteprima-dei-file-fatta-dalle-app-filepreviewjs)) |
 | `tags.read`, `tags.write` | install | Vedere / creare e assegnare tag | `tags.write` serve all'operazione `tag` |
 | `desktop.items` | install | Mettere elementi sulla scrivania | Serve all'operazione `desktopItem` |
-| `desktop.widget` | install | Mostrare widget | Nessuno (i widget non si mostrano) |
+| `desktop.widget` | install | Mostrare widget | Da lilOS 1.31.0: i file del `fileType` di un widget dell'app si mostrano sulla scrivania come quel widget, **solo per le app di sistema** (repository ufficiale, che girano nella pagina); per le altre app il permesso non ha effetto. Vedi [desktop/widgets.js](#desktopwidgetsjs-e-desktoprevealjs) |
 | `ui.notify` | implicit | Mostrare avvisi e notifiche | `lilos.ui.notify` (e il vecchio nome `lilos.ui.toast`) |
 | `ui.menus` | install | Aggiungere voci ai menu | Le voci di `contributes.actions` nel menu di file e cartelle (senza il permesso il manifesto è rifiutato) |
 | `ui.commands` | install | Aggiungere comandi | Nessuno (i comandi si registrano comunque da `contributes.commands`) |
@@ -3265,7 +3364,7 @@ Chiamata da `system.js` prima di `connectServices()` (che aggiunge i suoi ascolt
 - `icon(name, className = 'ico')`: simbolo SVG 24×24 disegnato con `currentColor`. Con un nome sconosciuto mostra `help`.
 - `logo(className = 'logo')`: il logo di lilOS.
 
-Simboli disponibili: `search`, `plus`, `minus`, `x`, `fit`, `zoom`, `grid`, `folder`, `folderPlus`, `file`, `filePlus`, `open`, `pencil`, `trash`, `globe`, `code`, `terminal`, `gear`, `calendar`, `clock`, `image`, `music`, `mail`, `power`, `help`, `info`, `max`, `palette`, `disk`, `user`, `window`, `keyboard`, `accessibility`, `arrowLeft`, `arrowRight`, `arrowDown`, `arrowUp`, `list`, `home`, `download`, `monitor`, `check`, `save`, `star`, `grip`, `lasso`, `folderOpen`, `sidebar`, `workarea`, `workspace`, `undo`, `redo`, `bell`, `tag`, `eyeOff`, `link`, `logout`, `restart`, `camera`, `calculator`, `chip`, `archive`, `cloud`, `warning`, `error`.
+Simboli disponibili: `search`, `plus`, `minus`, `x`, `fit`, `zoom`, `grid`, `folder`, `folderPlus`, `file`, `filePlus`, `open`, `pencil`, `trash`, `globe`, `code`, `terminal`, `gear`, `calendar`, `clock`, `image`, `music`, `mail`, `power`, `help`, `info`, `max`, `palette`, `disk`, `user`, `window`, `keyboard`, `accessibility`, `arrowLeft`, `arrowRight`, `arrowDown`, `arrowUp`, `list`, `home`, `download`, `monitor`, `check`, `save`, `star`, `grip`, `lasso`, `folderOpen`, `sidebar`, `workarea`, `workspace`, `undo`, `redo`, `bell`, `tag`, `eyeOff`, `link`, `logout`, `restart`, `camera`, `calculator`, `chip`, `note` (da SDK 0.19.0), `archive`, `cloud`, `warning`, `error`.
 
 ### `toast.js`
 
@@ -3570,7 +3669,7 @@ Menu configurabili dall'utente. Le parti del sistema dichiarano le **azioni** e 
 
 | Metodo | Descrizione |
 | --- | --- |
-| `defineAction(id, { label, icon?, shortcut?, run(ctx, params), enabled?(ctx, params), params?(raw), menus? })` | Dichiara un'azione. `shortcut`: id di un comando di `shortcuts` (i tasti compaiono accanto alla voce). `params(raw)` valida i parametri salvati (restituisce quelli puliti o `null` per scartare la voce). `menus`: i menu in cui è disponibile (tutti se manca). |
+| `defineAction(id, { label, icon?, shortcut?, run(ctx, params), enabled?(ctx, params), visible?(ctx, params), params?(raw), menus? })` | Dichiara un'azione. `shortcut`: id di un comando di `shortcuts` (i tasti compaiono accanto alla voce). `params(raw)` valida i parametri salvati (restituisce quelli puliti o `null` per scartare la voce). `visible(ctx, params)` (da SDK 0.19.0): se restituisce un valore falso `build` lascia la voce fuori dal menu (per ora, a ogni apertura: serve a ciò che dipende da un'app che potrebbe non esserci); `params` è `undefined` se la voce non ne ha. `menus`: i menu in cui è disponibile (tutti se manca). |
 | `register(menuId, { label, defaults })` | Registra un menu con la disposizione predefinita. |
 | `list()` | Menu registrati `[{ id, label }]`. |
 | `actions(menuId)` | Azioni disponibili in un menu `[{ id, label, icon }]`. |
@@ -3578,7 +3677,7 @@ Menu configurabili dall'utente. Le parti del sistema dichiarano le **azioni** e 
 | `layout(menuId)` | Disposizione attuale (copia): quella dell'utente se valida, altrimenti la predefinita. |
 | `isCustom(menuId)` | `true` se l'utente l'ha cambiata. |
 | `setLayout(menuId, layout)`, `reset(menuId)` | Salva / torna alla predefinita. Evento `change` (menuId). |
-| `build(menuId, ctx)` | Le voci per `openMenu`: risolve le azioni, toglie separatori doppi o agli estremi. |
+| `build(menuId, ctx)` | Le voci per `openMenu`: risolve le azioni, salta quelle con `visible` falso, toglie separatori doppi o agli estremi. |
 
 Voci della disposizione:
 
@@ -3610,11 +3709,14 @@ Il menu dello sfondo della scrivania (`desktop.background`): `registerDesktopMen
 | `workarea.create` | Nuova workarea (`desktop.workareas.createAt(ctx.at)`). Attiva solo se `desktop.workareas` esiste e `ctx.workarea` è `null`: le aree non si sovrappongono. |
 | `desktop.openInFiles`, `desktop.arrange`, `desktop.selectAll` | Apri la Scrivania in File, Riordina icone, Seleziona tutto (nella workarea attuale: solo i suoi elementi, via `desktop.scopeItems()`) |
 | `desk.fit`, `desk.zoomReset` | Mostra tutto, Zoom al 100% |
+| `desktop.newWidget` | Da lilOS 1.31.0. Crea un file mostrato dal widget di un'app (Nuovo → Nota adesiva) con `desktop.createWidget(app, widget, ctx.at)`. `params: { app, widget }` (id dell'app e del widget; si controllano alla lettura). `visible` solo se `fileWidget(app, widget)` dice che quei file si mostrerebbero ora come quel widget (app installata, visibile nel workspace e scelta per il tipo). |
 | `app.launch` | Apre un'app (`params: { app }`, solo app realizzate). Dichiarata da `apps/launcher.js`, vale in tutti i menu. |
 
-Predefinito: **Nuovo** (Cartella, Workarea, separatore, Documento di testo, Documento Markdown, Pagina HTML), separatore, Apri la Scrivania in File, Riordina icone, separatore, Mostra tutto, Zoom al 100%.
+Predefinito: **Nuovo** (Cartella, Workarea, separatore, Documento di testo, Documento Markdown, Pagina HTML, separatore, Nota adesiva, separatore, Collegamento…), separatore, Apri la Scrivania in File, Riordina icone, separatore, Mostra tutto, Zoom al 100%.
 
 `Desktop.create(type, at, { name, content, template })` crea l'elemento, scrive il contenuto iniziale e avvia la rinomina.
+
+**Chi ha già personalizzato il menu** (`menus.isCustom('desktop.background')`) tiene la sua disposizione: la voce **Nota adesiva** non gli compare da sola, finché non ripristina il menu o non la aggiunge (azione `desktop.newWidget` con `params: { app: 'stickynotes', widget: 'note' }`).
 
 ---
 
@@ -5074,6 +5176,7 @@ Quattro protocolli (`provides: ["term.<protocollo>"]`, `requires: []`, nessuna c
 | --- | --- | --- | --- |
 | `app:launch` | `{ id, args, entry?, files?, auto? }` | `launch()`: menu di avvio, collegamenti sul desktop, `callEntrypoint`, avvio automatico. `auto`: `true` solo se l'avvio lo fa lilOS da sola (avvio automatico) e non l'utente; manca altrimenti. `taskbar/usage.js` conta come uso solo gli avvii senza `auto`. `entry`: un punto d'ingresso di tipo finestra (`'main'` se manca). `files`: id di file che l'utente consegna all'app (`[]` se manca); un'app installata può leggerli e scriverli | `connectLauncher` (`apps/launcher.js`) |
 | `item:open` | nodo del file system | `Desktop.open()` per cartelle e file | `system.js`: le cartelle si aprono nel File Manager (`launch('files', { folder })`), i file con `openFile` |
+| `file-apps:change` | — | `setAppFor`, `resetAppsFor` (`apps/open.js`): l'app scelta per un tipo di file è cambiata | `Desktop`: i file di quel tipo diventano widget dell'app nuova, o tornano icone, senza ricaricare |
 | `system:ready` | `{ at }` (`Date.now()`) | `system.js`, una volta per pagina, quando le finestre salvate del primo workspace (`workspaces.ready`) e delle workarea aperte (`workareas.ready`) sono tornate | Chi vuole partire con il sistema. I servizi del kernel **non** passano da qui: il kernel ha i suoi momenti `system:ready` e `user:login` (vedi [Servizi delle app](#servizi-delle-app-appsappservicesjs)), che non dipendono da una pagina aperta |
 | `user:login` | `{ user, workspace }` (`kernel.data.user` o `null`; id del workspace attuale o `null`) | `system.js`, subito dopo `system:ready` | `connectStartup` (`apps/startup.js`): apre le app dell'avvio |
 | `files:locked` | `[id]` (id di file) | `lilos.files.locked` (il ponte `methods.js`); `background.js` quando si ferma un punto d'ingresso in background con file suoi | `connectSystemEvents` (`apps/systemEvents.js`): per le finestre che mostrano quei file (`getState().file` o `.files`) chiama `win.closeFiles(ids)` se c'è, altrimenti chiede di chiuderle |

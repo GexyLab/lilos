@@ -11,6 +11,8 @@ import { showProperties } from '../items/properties.js';
 import { selectionMode } from '../systemSettings.js';
 import { BACKGROUND_MENU, registerDesktopMenu, initialContent } from './menu.js';
 import { DesktopItem } from './DesktopItem.js';
+import { DeskWidget } from './DeskWidget.js';
+import { widgetFor, fileWidget } from './widgets.js';
 import { FIXED_ITEMS, fixedData, fixedId, fixedOf, fixedRank, openFixed, acceptDrops, isFixedShown, setFixedShown } from './fixedItems.js';
 import { tagSubmenu } from '../tags/tagUi.js';
 import { HEADER as AREA_HEADER } from '../workareas/WorkareaFrame.js';
@@ -44,6 +46,9 @@ const snap = v => Math.round(v / SNAP) * SNAP;
  *
  * `history` is the desk's undo history (Ctrl Z while no window is active): creating, renaming,
  * deleting, moving and arranging items, and what is done to workareas.
+ *
+ * A file that an app's widget shows (widgets.js: Note adesive's notes) is a DeskWidget: the app
+ * draws it, opening it edits it in place, arranging leaves it where it is.
  *
  * Items moved by the user, or arranged, go through the desk.place event (after: to look at it):
  *   { workspace, reason: 'drag' | 'arrange' | 'place', items: [{ node, x, y, from: { x, y } }] }
@@ -99,6 +104,9 @@ export class Desktop {
     tags.on('change', () => this.items.forEach(it => { if (!it.workarea && !it.fixed && fs.exists(it.id)) it.setData(fs.get(it.id)); }));
     // An app came or went: the signs it puts on icons too
     registry.on('change', () => this.items.forEach(it => { if (!it.workarea && !it.fixed && fs.get(it.id)?.apps) it.setData(fs.get(it.id)); }));
+    // …and the widgets it shows files with: those files become widgets, or icons again
+    registry.on('change', () => this.#rekind());
+    bus.on('file-apps:change', () => this.#rekind());
     // Thumbnails of files turned on or off; an app installed, updated or removed may make them or not
     const files = () => this.items.forEach(it => { if (!it.workarea && !it.fixed && fs.get(it.id)?.type === 'file') it.setData(fs.get(it.id)); });
     settings.on('change:deskPreviews', files);
@@ -195,6 +203,7 @@ export class Desktop {
   open(item) {
     if (item.workarea) this.workareas?.expand(item.workarea);
     else if (item.fixed) openFixed(item.fixed);
+    else if (item.widget) item.open();
     else if (item.data.type === 'app') launch(item.data.app);
     else bus.emit('item:open', fs.get(item.id));
   }
@@ -212,6 +221,34 @@ export class Desktop {
     const named = this.rename(item, false).then(() => recordCreated(this.history, node.id));
     if (type === 'file' && (content || template)) await fs.write(node.id, await initialContent({ content, template }));
     return named;
+  }
+
+  /**
+   * A new file shown by an app's widget (Nuovo → Nota adesiva), centered on a world point (null:
+   * the middle of the view), opened at once (a note to write). Its name is the widget's, with
+   * the type's extension; the app may rename it. Resolves with the item, or null.
+   */
+  createWidget(appId, widgetId, at = null) {
+    const found = fileWidget(appId, widgetId);
+    if (!found) return null;
+    const v = this.canvas.viewRect();
+    const point = at ?? { x: v.x + v.w / 2, y: v.y + v.h / 2 };
+    this.#placeNext = { x: snap(point.x - found.widget.width / 2), y: snap(point.y - found.widget.height / 2) };
+    const node = fs.create(this.folder, { type: 'file', name: `${found.app.text?.contributes?.widgets?.find(w => w.id === widgetId)?.name ?? found.widget.name}.${found.ext}` });
+    const item = this.items.get(node.id);
+    if (!item) return null;
+    recordCreated(this.history, node.id);
+    this.select([item]);
+    item.open?.();
+    return item;
+  }
+
+  /**
+   * Puts the next node this desk mounts (created, brought or moved here) at a world point, its
+   * top-left corner (Note adesive's «Porta qui»).
+   */
+  placeNext(point) {
+    this.#placeNext = point && Number.isFinite(point.x) && Number.isFinite(point.y) ? { x: snap(point.x), y: snap(point.y) } : null;
   }
 
   async rename(item, record = true) {
@@ -259,7 +296,9 @@ export class Desktop {
   arrange() {
     const current = this.workareas?.current;
     const rect = current && this.workareas.get(current).rect;
-    const items = current ? this.workareas.itemsIn(current) : this.visibleItems().filter(it => !this.workareas?.itemWorkarea(it));
+    const all = current ? this.workareas.itemsIn(current) : this.visibleItems().filter(it => !this.workareas?.itemWorkarea(it));
+    // Widgets are not icons in a grid: they stay where the user put them
+    const items = all.filter(it => !it.widget);
     const rank = it => (it.fixed ? fixedRank(it.id) - FIXED_ITEMS.length : TYPE_ORDER[it.data.type] ?? 3);
     const sorted = items.sort((a, b) => rank(a) - rank(b) || a.data.name.localeCompare(b.data.name, 'it', { numeric: true }));
     const v = this.canvas.viewRect();
@@ -380,6 +419,7 @@ export class Desktop {
       if (!item) continue;
       // Remembered for this session: an item put back (undo) returns to its place
       if (!item.workarea) this.#layout[id] = [item.data.x, item.data.y];
+      item.destroy?.();
       item.el.remove();
       this.items.delete(id);
       this.selection.delete(item);
@@ -419,11 +459,28 @@ export class Desktop {
   #mount(node) {
     const pos = this.#placeNext ?? this.#dropAt.get(node.id) ?? this.#savedPosition(node.id) ?? this.#freeSlot();
     this.#placeNext = null;
-    const item = new DesktopItem({ ...node, x: pos.x, y: pos.y });
+    const found = widgetFor(node);
+    const item = found
+      ? new DeskWidget({ ...node, x: pos.x, y: pos.y }, found, { canvas: this.canvas, onSelect: it => this.select([it]) })
+      : new DesktopItem({ ...node, x: pos.x, y: pos.y });
     this.items.set(item.id, item);
     this.#bind(item);
     this.canvas.add(item.el);
     return item;
+  }
+
+  /** Files whose app's widget came or went (installed, removed, updated): shown the other way, in the same place. */
+  #rekind() {
+    const changed = [...this.items.values()].filter(it => !it.workarea && !it.fixed && fs.exists(it.id) && !!widgetFor(fs.get(it.id)) !== !!it.widget);
+    for (const old of changed) {
+      const selected = this.selection.has(old), hidden = old.el.hidden;
+      this.#unmount([old.id]);
+      this.#placeNext = { x: old.data.x, y: old.data.y };
+      const item = this.#mount(fs.get(old.id));
+      item.el.hidden = hidden;
+      if (selected) this.toggle(item);
+    }
+    if (changed.length) this.canvas.changed();
   }
 
   #savedPosition(id) {
@@ -604,7 +661,10 @@ export class Desktop {
     const deletable = selected.filter(it => !it.fixed);
     // Items outside every workarea can become a new one
     const free = this.workareas && selected.every(it => !it.workarea && !this.workareas.itemWorkarea(it));
+    // A widget's own entries first (a note: its color, its reminder…)
+    const own = !many && item.widget ? item.menuEntries() : [];
     openMenu(e.clientX, e.clientY, [
+      ...own, own.length && '-',
       { label: many ? `Apri ${selected.length} elementi` : 'Apri', icon: 'open', shortcut: shortcuts.label('items.open'), action: () => selected.forEach(it => this.open(it)) },
       !many && item.data.type === 'file' && { label: 'Apri con…', icon: 'open', action: () => openFile(fs.get(item.id), { choose: true }) },
       !many && isWallpaperImage(fs.get(item.id)) && { label: 'Usa come sfondo desktop', icon: 'image', action: () => setWallpaper(item.id) },

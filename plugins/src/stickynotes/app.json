@@ -1,0 +1,70 @@
+{
+  "id": "stickynotes",
+  "version": "1.0.0",
+  "kind": "local",
+  "name": "Sticky Notes",
+  "description": "Colored notes on the desk: written in place, with lists, boxes to tick and reminders. Each note is a .sticky text file.",
+  "category": "productivity",
+  "icon": {
+    "glyph": "note",
+    "color": "#d39a00"
+  },
+  "publisher": {
+    "id": "lilos",
+    "name": "lilOS"
+  },
+  "sdk": "2",
+  "system": true,
+  "lilos": ">=1.31.0",
+  "entrypoints": {
+    "main": {
+      "kind": "window",
+      "params": {
+        "file": {
+          "type": "file",
+          "label": "Note",
+          "description": "A note to write in a window"
+        }
+      }
+    },
+    "reveal": {
+      "kind": "window",
+      "label": "Show a note on its desk"
+    },
+    "filePreview": {
+      "kind": "background",
+      "label": "Note previews"
+    }
+  },
+  "dependencies": [
+    {
+      "module": "scheduler",
+      "reason": "Reminders of the notes",
+      "optional": true
+    }
+  ],
+  "permissions": [
+    "fs.write:~",
+    "desktop.widget",
+    "schedule"
+  ],
+  "contributes": {
+    "window": {
+      "width": 900,
+      "height": 560
+    },
+    "fileTypes": [
+      "sticky"
+    ],
+    "widgets": [
+      {
+        "id": "note",
+        "name": "Sticky note",
+        "width": 200,
+        "height": 180,
+        "resizable": true,
+        "fileType": "sticky"
+      }
+    ]
+  }
+}

@@ -12,7 +12,8 @@
     "apps/keyboard",
     "apps/automata",
     "apps/scheduler",
-    "apps/nettest"
+    "apps/nettest",
+    "apps/stickynotes"
   ],
   "modules": [
     "modules/users-basic",

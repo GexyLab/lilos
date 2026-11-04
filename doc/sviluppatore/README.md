@@ -225,6 +225,9 @@ src/
     Hud.js              pannello con minimappa e controlli dello zoom
   desktop/              elementi sulla scrivania
     Desktop.js          selezione, trascinamento, rinomina, elimina, menu, salvataggio
+    DeskWidget.js       un file disegnato dal widget della sua app (Note adesive)
+    widgets.js          quale widget mostra un file (widgetFor) e come si carica
+    reveal.js           mostrare o portare un elemento da un'altra scrivania (revealOnDesk, bringToDesk)
     DesktopItem.js      un singolo elemento (cartella, file, app)
     itemIcons.js        icone grandi di cartelle, file e workarea, con i segni (badge) delle app
     fixedItems.js       elementi fissi: Home, Documenti, Immagini, File Manager, Download, Cestino

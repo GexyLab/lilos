@@ -1,5 +1,6 @@
 import { menus, fs } from '@lilos/sdk';
 import { launch } from '../apps/registry.js';
+import { fileWidget } from './widgets.js';
 
 export const BACKGROUND_MENU = 'desktop.background';
 const MAX_CONTENT = 20_000;
@@ -27,6 +28,8 @@ const DEFAULTS = [
       { type: 'action', action: 'desktop.create', label: 'Documento Markdown', icon: 'filePlus', params: { kind: 'file', name: 'Nuovo documento.md' } },
       { type: 'action', action: 'desktop.create', label: 'Pagina HTML', icon: 'filePlus', params: { kind: 'file', name: 'pagina.html', content: HTML_PAGE } },
       { type: 'separator' },
+      { type: 'action', action: 'desktop.newWidget', label: 'Nota adesiva', icon: 'note', params: { app: 'stickynotes', widget: 'note' } },
+      { type: 'separator' },
       { type: 'action', action: 'desktop.newLink' },
     ],
   },
@@ -37,6 +40,13 @@ const DEFAULTS = [
   { type: 'action', action: 'desk.fit' },
   { type: 'action', action: 'desk.zoomReset' },
 ];
+
+/** Parameters of "new widget" entries (saved, so untrusted): an app id and one of its widgets. */
+function widgetParams(raw) {
+  const app = typeof raw?.app === 'string' && /^[a-z0-9][a-z0-9.-]{1,63}$/.test(raw.app) ? raw.app : null;
+  const widget = typeof raw?.widget === 'string' && /^[a-zA-Z][\w.-]{0,63}$/.test(raw.widget) ? raw.widget : null;
+  return app && widget ? { app, widget } : null;
+}
 
 /** Parameters of "create" entries (saved, so untrusted): kind, a valid name, optional content or template file. */
 function createParams(raw) {
@@ -60,6 +70,12 @@ export function registerDesktopMenu(desktop) {
   menus.defineAction('desktop.create', {
     label: 'Crea un elemento', icon: 'filePlus', menus: scope, params: createParams,
     run: (ctx, p) => desktop.create(p.kind, ctx.at, { name: p.name, content: p.content, template: p.template }),
+  });
+  // A file shown by an app's widget (Note adesive: a note), only while that app shows its type
+  menus.defineAction('desktop.newWidget', {
+    label: 'Nuovo widget', icon: 'note', menus: scope, params: widgetParams,
+    visible: (ctx, p) => !!p && !!fileWidget(p.app, p.widget),
+    run: (ctx, p) => desktop.createWidget(p.app, p.widget, ctx.at),
   });
   // The File Manager's window "Nuovo collegamento" (its entry point newLink), making the link on the desk
   menus.defineAction('desktop.newLink', { label: 'Collegamento…', icon: 'link', menus: scope, run: () => launch('files', { folder: desktop.folder }, 'newLink') });

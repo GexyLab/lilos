@@ -10,6 +10,8 @@ export { ACCENTS, DESK_COLORS, LASSO_OPTIONS, RETENTION_OPTIONS } from './system
 export { SYSTEM_FOLDERS, DESK_NAME, SYSTEM_NAME, NETWORK_NAME } from './systemFs.js';
 export { FOLDER_COLOR, itemIcon, itemBadges } from './desktop/itemIcons.js';
 export { wallpaper, wallpaperInfo, setWallpaper, clearWallpaper, isWallpaperImage, WALLPAPER_EXTS } from './desktop/wallpaper.js';
+export { revealOnDesk, bringToDesk, newWidgetOnDesk } from './desktop/reveal.js';
+export { widgetFor } from './desktop/widgets.js';
 export { FIXED_ITEMS as DESK_FIXED_ITEMS, isFixedShown, setFixedShown, setFixedShownEverywhere } from './desktop/fixedItems.js';
 export { USER_PAGE_GROUPS, USER_PAGE_ITEMS, isUserPageShown, setUserPageShown } from './user/items.js';
 export { LIMITS as WORKSPACE_LIMITS } from './workspaces/store.js';
