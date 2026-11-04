@@ -1,0 +1,7 @@
+{
+  "restart": "업데이트를 마치려면 lilOS를 다시 시작하세요",
+  "reopen": "다시 시작할 업데이트된 앱",
+  "heading": "업데이트됨, 이전 버전으로 열려 있음",
+  "reopenApp": "{name} 다시 시작({version})",
+  "restartSystem": "lilOS 다시 시작"
+}

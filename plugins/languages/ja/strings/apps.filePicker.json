@@ -1,0 +1,14 @@
+{
+  "title": "ファイルを選択",
+  "search": "名前またはパスで検索",
+  "searchLabel": "検索",
+  "folders": "フォルダー",
+  "files": "ファイル",
+  "choose": "選択",
+  "cancel": "キャンセル",
+  "home": "ホーム",
+  "noMatch": "検索に一致するものはありません",
+  "noFolders": "フォルダーはありません",
+  "noFiles": "lilOS にファイルはありません",
+  "noFilesOf": "lilOS に {exts} ファイルはありません"
+}

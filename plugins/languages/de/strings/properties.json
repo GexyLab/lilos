@@ -1,0 +1,43 @@
+{
+  "title": "Eigenschaften",
+  "type": "Typ",
+  "app": "App",
+  "linkTarget": "Original",
+  "linkState": "Status",
+  "contents": "Inhalt",
+  "size": "Größe",
+  "opensWith": "Öffnet mit",
+  "deleted": "Gelöscht",
+  "origin": "Ursprünglicher Ort",
+  "location": "Ort",
+  "created": "Erstellt",
+  "modified": "Geändert",
+  "workspace": "Workspace",
+  "tags": "Tags",
+  "apps": "Apps",
+  "appData": "Daten von {id}",
+  "folder": "Ordner",
+  "linkFolder": "Verknüpfung zu einem Ordner",
+  "linkWeb": "Verknüpfung zu einer Webseite",
+  "linkFile": "Verknüpfung zu einer Datei",
+  "appLink": "Verknüpfung zu einer App",
+  "typeExt": "{type} (.{ext})",
+  "system": "System-{type}",
+  "appMissing": "{id} (nicht installiert)",
+  "broken": "Defekt: Das Original wurde beim letzten Mal nicht gefunden",
+  "notFound": "Nicht gefunden",
+  "mountGone": "Verbindung entfernt",
+  "ask": "Jedes Mal fragen",
+  "files": {
+    "one": "{count} Datei",
+    "other": "{count} Dateien"
+  },
+  "folders": {
+    "one": "{count} Ordner",
+    "other": "{count} Ordner"
+  },
+  "shared": "Gemeinsam für alle Workspaces",
+  "none": "Keine",
+  "orphan": "Die App ist nicht installiert",
+  "remove": "Entfernen"
+}

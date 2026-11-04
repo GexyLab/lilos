@@ -1,0 +1,9 @@
+{
+  "oldTerminal": "需要终端 1.5.0 或更高版本：请从 AppStore 更新",
+  "signal": "被信号 SIG{signal} 终止（{code}）",
+  "signalTail": "被信号 SIG{signal} 终止（{code}）：{tail}",
+  "exit": "以 {code} 退出",
+  "exitTail": "以 {code} 退出：{tail}",
+  "ok": "以 0 退出",
+  "okTail": "以 0 退出 · {tail}"
+}

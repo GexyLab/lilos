@@ -1,0 +1,22 @@
+{
+  "choose.serial": "Choisir un port série",
+  "choose.usb": "Choisir un périphérique USB",
+  "choose.hid": "Choisir un périphérique",
+  "choose.bluetooth": "Choisir un périphérique Bluetooth",
+  "choose.screen": "Choisir ce que vous partagez",
+  "choose.text.serial": "Une app veut utiliser un port série de l’ordinateur.",
+  "choose.text.usb": "Une app veut utiliser un périphérique USB de l’ordinateur.",
+  "choose.text.hid": "Une app veut utiliser un périphérique de l’ordinateur (pavés numériques, lecteurs, manettes…).",
+  "choose.text.bluetooth": "Une app veut utiliser un périphérique Bluetooth à proximité de l’ordinateur.",
+  "choose.text.screen": "Une app veut voir un écran ou une fenêtre de l’ordinateur.",
+  "choose.field": "Périphérique",
+  "choose.none": "Aucun périphérique trouvé : branchez-le et réessayez.",
+  "connect": "Connecter",
+  "share": "Partager",
+  "saved": "« {name} » enregistré depuis le programme de l’ordinateur",
+  "saveFailed": "« {name} » non réenregistré dans lilOS : {error}",
+  "missing": "« {path} » n’est pas dans lilOS",
+  "driveIn": "« {name} » est dans Réseau › Cet ordinateur",
+  "driveFailed": "« {name} » non connecté : {error}",
+  "serialPort": "Port série"
+}

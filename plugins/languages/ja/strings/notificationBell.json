@@ -1,0 +1,9 @@
+{
+  "title": "通知",
+  "unread": {
+    "other": "通知：未読 {n} 件"
+  },
+  "stack": "新しい通知",
+  "sender": "{name}：{text}",
+  "dismiss": "バーから削除"
+}

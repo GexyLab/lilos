@@ -1,4 +1,4 @@
-import { Emitter, fs, settings, splitName, h } from '@lilos/sdk';
+import { Emitter, fs, settings, splitName, h, locale } from '@lilos/sdk';
 import { notify } from '../notifications/notify.js';
 import { SYSTEM_NAME, sharedFolder } from '../systemFs.js';
 
@@ -19,6 +19,15 @@ import { SYSTEM_NAME, sharedFolder } from '../systemFs.js';
  *
  * Events of `wallpaper`: 'change' { id, name } | null, once the new image is shown.
  */
+const { t } = locale.define('lilos:wallpaper', {
+  en: { strings: {
+    notImage: '«{name}» is not an image', gone: 'This image is no longer there',
+    copyFailed: '«{name}» cannot be copied into the {folder} folder: {error}',
+    noFolder: 'the {folder} folder is missing',
+    openFailed: '«{name}» does not open as an image',
+  } },
+});
+
 export const WALLPAPER_EXTS = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'bmp', 'svg'];
 
 export const wallpaper = new Emitter();
@@ -77,7 +86,7 @@ const isCopy = node => !!node && node.parent === sharedFolder(SYSTEM_NAME);
 function copyOf(node) {
   if (isCopy(node)) return Promise.resolve(node);
   const folder = sharedFolder(SYSTEM_NAME);
-  return folder ? fs.copy(node.id, folder) : Promise.reject(new Error(`manca la cartella ${SYSTEM_NAME}`));
+  return folder ? fs.copy(node.id, folder) : Promise.reject(new Error(t('noFolder', { folder: SYSTEM_NAME })));
 }
 
 /** Deletes for good a copy made for the wallpaper (never a file elsewhere). */
@@ -110,21 +119,21 @@ async function load(node, reading = read(node.id)) {
 export async function setWallpaper(id) {
   const node = fs.get(id);
   if (!isWallpaperImage(node)) {
-    notify(node ? `«${node.name}» non è un'immagine` : 'Questa immagine non c\'è più', { level: 'error' });
+    notify(node ? t('notImage', { name: node.name }) : t('gone'), { level: 'error' });
     return false;
   }
   let copy;
   try {
     copy = await copyOf(node);
   } catch (err) {
-    notify(`«${node.name}» non si copia nella cartella ${SYSTEM_NAME}: ${err.message}`, { level: 'error' });
+    notify(t('copyFailed', { name: node.name, folder: SYSTEM_NAME, error: err.message }), { level: 'error' });
     return false;
   }
   try {
     await load(copy);
   } catch {
     if (copy.id !== node.id) dropCopy(copy.id);
-    notify(`«${node.name}» non si apre come immagine`, { level: 'error' });
+    notify(t('openFailed', { name: node.name }), { level: 'error' });
     return false;
   }
   const before = settings.get('wallpaper');

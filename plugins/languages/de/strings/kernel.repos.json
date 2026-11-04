@@ -1,0 +1,11 @@
+{
+  "official": "lilOS offiziell",
+  "adminOnly": "Nur ein Administrator verwaltet die Repositorys",
+  "missing": "Repository nicht gefunden",
+  "present": "Repository bereits hinzugefügt",
+  "tooMany": "Höchstens {max} Repositorys",
+  "notOfficial": "Das offizielle Repository kann nicht entfernt werden",
+  "catalog": "catalog.json fehlt oder ist kein gültiges JSON",
+  "notInCatalog": "Paket nicht im Katalog",
+  "file": "Ungültige Datei"
+}

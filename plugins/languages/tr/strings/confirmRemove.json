@@ -1,0 +1,22 @@
+{
+  "cancel": "İptal",
+  "one": "“{name}”",
+  "many": "{count} öğe",
+  "trash": "Çöp Kutusu’na taşı: {what}",
+  "permanent": "Kalıcı olarak sil: {what}",
+  "inside": {
+    "one": "{what} ve içindeki öğe",
+    "other": "{what} ve içindeki {count} öğe"
+  },
+  "netRemoveText": "{verb}: {what} — {text}",
+  "netRemove": "Sil",
+  "netRecycles": "{service} hizmetinden sil: {what} (kendi geri dönüşüm kutusuna gider)",
+  "netServer": "Sunucudan sil: {what} (kalıcı)",
+  "netServerFolders": "İçindeki her şeyle birlikte sunucudan sil: {what} (kalıcı)",
+  "purge": "“{name}” öğesini kalıcı olarak sil",
+  "purgeMany": "{count} öğeyi kalıcı olarak sil",
+  "emptyTrash": {
+    "one": "Çöp Kutusu’ndaki öğeyi kalıcı olarak sil",
+    "other": "Çöp Kutusu’ndaki {count} öğenin tümünü kalıcı olarak sil"
+  }
+}

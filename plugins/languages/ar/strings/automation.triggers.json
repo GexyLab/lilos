@@ -1,0 +1,18 @@
+{
+  "theAutomation": "الأتمتة",
+  "noAutomata": "Automata غير مثبّت",
+  "running": "{name} قيد التشغيل بالفعل",
+  "opened": "{name}: فُتحت في Automata",
+  "needsNothing": "{name}: تبدأ تلقائيًا فقط إذا لم تعمل على أي عنصر (Automata ← التشغيل)",
+  "ran": "{name}: تم تشغيلها تلقائيًا",
+  "ranOn": "{name}: تم تشغيلها تلقائيًا على {items} عناصر",
+  "failedSteps": {
+    "zero": "لم تفشل أي خطوة",
+    "one": "فشلت خطوة واحدة",
+    "two": "فشلت خطوتان",
+    "few": "فشلت {n} خطوات",
+    "many": "فشلت {n} خطوة",
+    "other": "فشلت {n} خطوة"
+  },
+  "withFailed": "{text} ({failed})"
+}

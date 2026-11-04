@@ -1,0 +1,5 @@
+{
+  "badAction": "Ungültige Aktion: {id}",
+  "noFunction": "Die Funktion der Aktion fehlt",
+  "timeout": "Die App hat die Datei nicht rechtzeitig geöffnet"
+}

@@ -1,0 +1,14 @@
+{
+  "mainWindow": "مرکزی ونڈو",
+  "paramsObject": "پیرامیٹرز کو { } کے درمیان ایک JSON آبجیکٹ ہونا چاہیے",
+  "paramsTooLong": "پیرامیٹرز بہت طویل ہیں (زیادہ سے زیادہ 4 KB)",
+  "invalid": "{param}: غلط قدر",
+  "fileGone": "{param}: فائل موجود نہیں رہی",
+  "folderGone": "{param}: فولڈر موجود نہیں رہا",
+  "notOpened": "{app} خود سے نہیں کھلی۔ {message}",
+  "notInstalled": "ایپ انسٹال نہیں ہے",
+  "maxApps": "آغاز پر زیادہ سے زیادہ {max} ایپس",
+  "unknownEntry": "نامعلوم انٹری پوائنٹ",
+  "entryNotAtStartup": "یہ انٹری پوائنٹ آغاز میں شامل نہیں ہے",
+  "skipped": "ایپس کے بغیر شروع ہوا: پتے میں ?avvio=no شامل ہے"
+}

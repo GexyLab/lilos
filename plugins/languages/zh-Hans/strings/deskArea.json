@@ -1,0 +1,34 @@
+{
+  "newFolder": "新建文件夹",
+  "newDocument": "新建文档.txt",
+  "fixedOne": "“{name}”是桌面的固定项目：无法删除",
+  "fixedMany": "桌面的固定项目无法删除",
+  "fixedStay": "桌面的固定项目会保留：只删除其余项目",
+  "removeWithAreas": {
+    "other": "{what}并删除 {n} 个区域"
+  },
+  "arrange": "排列图标",
+  "moveOne": "移动“{name}”",
+  "moveMany": {
+    "other": "移动 {n} 个项目"
+  },
+  "gone": "这些项目已不存在",
+  "area.open": "打开区域",
+  "rename": "重命名",
+  "properties": "属性…",
+  "area.remove": "删除区域…",
+  "open": "打开",
+  "openMany": {
+    "other": "打开 {n} 个项目"
+  },
+  "fixed.hide": "从桌面移除",
+  "fixed.hidden": "可以在“控制面板 → 工作区 → 此工作区”中放回“{name}”",
+  "fixed.settings": "桌面的固定项目…",
+  "openWith": "打开方式…",
+  "wallpaper": "设为桌面背景",
+  "area.fromSelection": "用所选内容创建区域",
+  "remove": "删除",
+  "removeMany": {
+    "other": "删除 {n} 个项目"
+  }
+}

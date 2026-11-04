@@ -1,0 +1,10 @@
+{
+  "group": "Obszar roboczy",
+  "next": "Przełącz na następny obszar roboczy",
+  "previous": "Przełącz na poprzedni obszar roboczy",
+  "limit": "Najwyżej {max} obszarów roboczych",
+  "deskOf": "Pulpit: {name}",
+  "removed": "Usunięto obszar roboczy „{name}”",
+  "removedKept": "Usunięto obszar roboczy „{name}”. Jego pulpit to teraz {path}",
+  "newName": "Obszar roboczy {n}"
+}

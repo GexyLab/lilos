@@ -1,0 +1,20 @@
+{
+  "cancel": "取消",
+  "one": "“{name}”",
+  "many": "{count} 个项目",
+  "trash": "将{what}移到回收站",
+  "permanent": "永久删除{what}",
+  "inside": {
+    "other": "{what}及其中的 {count} 个项目"
+  },
+  "netRemoveText": "{verb}{what}：{text}",
+  "netRemove": "删除",
+  "netRecycles": "从 {service} 删除{what}（会进入其回收站）",
+  "netServer": "从服务器删除{what}（永久）",
+  "netServerFolders": "从服务器删除{what}及其中的所有内容（永久）",
+  "purge": "永久删除“{name}”",
+  "purgeMany": "永久删除 {count} 个项目",
+  "emptyTrash": {
+    "other": "永久删除回收站中的全部 {count} 个项目"
+  }
+}

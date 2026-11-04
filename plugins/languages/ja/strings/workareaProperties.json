@@ -1,0 +1,31 @@
+{
+  "subtitle": "ワークエリアのプロパティ",
+  "title": "タイトル",
+  "description": "説明",
+  "placeholder": "このワークエリアの用途",
+  "addMeta": "メタデータ項目を追加",
+  "created": "作成日時",
+  "modified": "更新日時",
+  "state": "状態",
+  "collapsed": "アイコンに最小化",
+  "open": "デスクトップ上で展開",
+  "contents": "内容",
+  "items": {
+    "other": "{n} 個の項目"
+  },
+  "windows": {
+    "other": "{n} 個のウィンドウ"
+  },
+  "contentsValue": "{items}、{windows}",
+  "size": "サイズ",
+  "metaName": "名前",
+  "metaNameLabel": "メタデータ項目 {n} の名前",
+  "metaValue": "値",
+  "metaValueLabel": "メタデータ項目 {n} の値",
+  "removeMeta": "メタデータ項目を削除",
+  "removeMetaLabel": "メタデータ項目 {name} を削除",
+  "noMeta": "メタデータはありません。顧客、期限、状況などを記録するために追加できます。",
+  "maxMeta": "メタデータ項目は最大 {max} 個です。",
+  "info": "情報",
+  "customMeta": "カスタムメタデータ"
+}

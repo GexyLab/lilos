@@ -1,0 +1,20 @@
+{
+  "repo": "無効なリポジトリ（owner/name）",
+  "urlLocal": "無効なリポジトリのアドレス（https:// またはフォルダー）",
+  "url": "無効なリポジトリのアドレス（https://）",
+  "ref": "無効な参照",
+  "path": "リポジトリ内のパスが無効です",
+  "local": "ローカルフォルダーをソースとして使えるのは開発時のみです（allowLocalSources）",
+  "dir": "無効なフォルダー（絶対パス）",
+  "type": "不明なソース：\"git\"、\"github\"、\"local\" のいずれか",
+  "noGit": "カーネルが動作するコンピューターに git コマンドがインストールされていません",
+  "git": "git：{message}",
+  "gitError": "git：エラー",
+  "outside": "パッケージ外のパス：{path}",
+  "missing": "{path} がありません",
+  "notFile": "{path} はファイルではないか、大きすぎます",
+  "tooMany": "パッケージ内のファイルが多すぎます",
+  "notInRepo": "リポジトリに {path} はありません",
+  "json": "lilos.json が有効な JSON ではありません",
+  "tooLarge": "パッケージが大きすぎます"
+}

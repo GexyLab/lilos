@@ -1,0 +1,7 @@
+{
+  "canceled": "تم الإلغاء",
+  "offline": "kernel الخاص بـ lilOS لا يستجيب",
+  "status": "خطأ {status}",
+  "badModule": "وحدة غير صالحة",
+  "badPath": "مسار غير صالح"
+}

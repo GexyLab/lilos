@@ -1,0 +1,9 @@
+{
+  "signIn": "Masuk terlebih dahulu",
+  "app": "Aplikasi tidak valid",
+  "id": "Pengenal tidak valid",
+  "number": "Angka tidak valid",
+  "missing": "Operasi tidak ditemukan",
+  "appOwner": "Aplikasi hanya menjadwalkan untuk pengguna yang menggunakannya",
+  "adminOwner": "Hanya administrator yang menjadwalkan untuk orang lain atau untuk sistem"
+}

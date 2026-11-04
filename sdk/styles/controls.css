@@ -14,11 +14,11 @@
 .ctl-btn.danger.primary, .ctl-btn.confirming { background: var(--danger); border-color: var(--danger); color: #fff; }
 .ctl-btn.danger.primary:hover:not(:disabled), .ctl-btn.confirming:hover:not(:disabled) { background: color-mix(in srgb, var(--danger) 85%, #000); }
 /* In a flex button the spinner is one more item: the gap is its margin */
-.ctl-btn[aria-busy="true"]::before { margin-right: 0; }
+.ctl-btn[aria-busy="true"]::before { margin-inline-end: 0; }
 /* A button waiting for its operation (busyButton): spinner beside the label */
 button[aria-busy="true"] { cursor: progress; }
 button[aria-busy="true"]::before {
-  content: ""; display: inline-block; width: .9em; height: .9em; margin-right: .5em; vertical-align: -.15em; box-sizing: border-box;
+  content: ""; display: inline-block; width: .9em; height: .9em; margin-inline-end: .5em; vertical-align: -.15em; box-sizing: border-box;
   border-radius: 50%; border: 1.5px solid currentColor; border-right-color: transparent; animation: ctl-spin .7s linear infinite;
 }
 @keyframes ctl-spin { to { transform: rotate(360deg); } }
@@ -26,11 +26,12 @@ button[aria-busy="true"]::before {
 
 .ctl-toggle { width: 30px; height: 17px; flex: none; border-radius: 9px; background: var(--toggle-off); position: relative; transition: background .15s; }
 .ctl-toggle::after {
-  content: ""; position: absolute; top: 2px; left: 2px; width: 13px; height: 13px; border-radius: 50%;
+  content: ""; position: absolute; top: 2px; inset-inline-start: 2px; width: 13px; height: 13px; border-radius: 50%;
   background: #fff; box-shadow: 0 1px 2px rgba(0, 0, 0, .25); transition: transform .15s;
 }
 .ctl-toggle.on { background: var(--accent); }
 .ctl-toggle.on::after { transform: translateX(13px); }
+[dir="rtl"] .ctl-toggle.on::after { transform: translateX(-13px); }   /* the knob goes towards the start: left */
 
 .ctl-select:disabled, .ctl-text:disabled, .ctl-toggle:disabled { opacity: .5; cursor: default; }
 .ctl-select, .ctl-text {
@@ -38,9 +39,10 @@ button[aria-busy="true"]::before {
   color: var(--text); font-size: 12px; outline: 0;
 }
 .ctl-select {
-  min-width: 150px; padding: 0 26px 0 8px; appearance: none;
+  min-width: 150px; padding-block: 0; padding-inline: 8px 26px; appearance: none;
   background: var(--field-bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M7 10l5 5 5-5'/%3E%3C/svg%3E") no-repeat right 6px center / 14px;
 }
+[dir="rtl"] .ctl-select { background-position: left 6px center; }
 .ctl-text { width: 200px; padding: 0 8px; user-select: text; }
 .ctl-text.mono { font-family: var(--mono); font-size: 11.5px; }
 textarea.ctl-text { height: auto; padding: 6px 8px; resize: vertical; line-height: 1.4; }
@@ -69,7 +71,7 @@ textarea.ctl-text { height: auto; padding: 6px 8px; resize: vertical; line-heigh
 
 .ctl-slider { display: flex; align-items: center; gap: 8px; }
 .ctl-slider input { width: 140px; accent-color: var(--accent); }
-.ctl-value { min-width: 34px; text-align: right; color: var(--dim); font-variant-numeric: tabular-nums; }
+.ctl-value { min-width: 34px; text-align: end; color: var(--dim); font-variant-numeric: tabular-nums; }
 
 .ctl-swatches { display: flex; flex: none; gap: 8px; }
 .ctl-swatch { width: 18px; height: 18px; border-radius: 50%; }
@@ -85,7 +87,8 @@ textarea.ctl-text { height: auto; padding: 6px 8px; resize: vertical; line-heigh
 .ctl-resize:hover::after, .ctl-resize:focus-visible::after, .ctl-resize.on::after { background: var(--accent); }
 .ctl-resize.vertical:hover::after, .ctl-resize.vertical:focus-visible::after, .ctl-resize.vertical.on::after { width: 2px; }
 .ctl-resize.horizontal:hover::after, .ctl-resize.horizontal:focus-visible::after, .ctl-resize.horizontal.on::after { height: 2px; }
-/* On an edge of its (positioned) panel */
+/* On an edge of its (positioned) panel. Left / right on purpose, also right to left: the drag
+   (resizeHandle.js, invert) counts pixels to the right, and the apps' panels are still physical */
 .ctl-resize.at-start, .ctl-resize.at-end { position: absolute; margin: 0; }
 .ctl-resize.vertical.at-start { left: -4px; top: 0; bottom: 0; }
 .ctl-resize.vertical.at-end { right: -4px; top: 0; bottom: 0; }
@@ -99,7 +102,7 @@ textarea.ctl-text { height: auto; padding: 6px 8px; resize: vertical; line-heigh
 .ctl-keys { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; min-width: 0; }
 .ctl-keys-row { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 4px; }
 .ctl-key {
-  height: 24px; display: inline-flex; align-items: center; gap: 2px; padding: 0 2px 0 4px;
+  height: 24px; display: inline-flex; align-items: center; gap: 2px; padding-block: 0; padding-inline: 4px 2px;
   border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--field-bg); white-space: nowrap;
 }
 .ctl-key kbd {
@@ -116,6 +119,6 @@ textarea.ctl-text { height: auto; padding: 6px 8px; resize: vertical; line-heigh
 .ctl-key-reset { padding: 0 6px; font-size: 11.5px; }
 .ctl-key-add:hover, .ctl-key-reset:hover { background: var(--hover); color: var(--text); }
 .ctl-keys-none { color: var(--faint); font-size: 11.5px; padding: 0 4px; }
-.ctl-keys-msg { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 6px; max-width: 340px; font-size: 11.5px; color: var(--dim); text-align: right; }
+.ctl-keys-msg { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 6px; max-width: 340px; font-size: 11.5px; color: var(--dim); text-align: end; }
 .ctl-keys-msg:empty { display: none; }
 .ctl-keys-msg .ctl-btn { height: 22px; padding: 0 8px; font-size: 11.5px; }

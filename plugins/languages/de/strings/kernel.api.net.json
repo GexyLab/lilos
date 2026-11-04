@@ -1,0 +1,14 @@
+{
+  "signIn": "Melden Sie sich zuerst an",
+  "adminOnly": "Nur für Administratoren",
+  "mount": "Ungültige Verbindung",
+  "tooManyTries": "Zu viele laufende Verbindungsversuche",
+  "notOnServer": "Es existiert nicht auf dem Server",
+  "notFile": "Es ist keine Datei",
+  "webOnly": "Es lässt sich nur im Web öffnen",
+  "tooLarge": "Datei zu groß",
+  "op": "Ungültiger Vorgang",
+  "import": "Ungültiger Import",
+  "signin": "Ungültige Anmeldung",
+  "item": "Ungültiges Element"
+}

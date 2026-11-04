@@ -1,0 +1,15 @@
+{
+  "graphqlVars": "GraphQL: variabilele nu sunt un JSON valid",
+  "method": "Metodă nevalidă",
+  "url": "Adresă nevalidă: {url}",
+  "needHttp": "Este necesară o adresă http:// sau https://",
+  "headerName": "Nume de antet nevalid: {name}",
+  "headerValue": "Valoare nevalidă în antetul {name}",
+  "bodyTooBig": "Corp prea mare (cel mult 50 MB)",
+  "noAnswer": {
+    "one": "Niciun răspuns într-o secundă",
+    "few": "Niciun răspuns în {n} secunde",
+    "other": "Niciun răspuns în {n} de secunde"
+  },
+  "cancelled": "Anulată"
+}

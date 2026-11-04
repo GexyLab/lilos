@@ -6,6 +6,7 @@ import { dependencyKey, inRange } from './manifest.js';
 import { checkModule } from './modulePackage.js';
 import { needsGrant } from './permissions.js';
 import { cleanSource, fetchPackage, isOfficial, openSource } from './sources.js';
+import { defineStrings } from '../strings.js';
 
 /**
  * Dependencies between packages: an app needs kernel modules and other apps, a module needs
@@ -42,10 +43,31 @@ import { cleanSource, fetchPackage, isOfficial, openSource } from './sources.js'
  */
 const log = logger('packages');
 
-const requireAdmin = p => (p?.kind === 'kernel' || p?.role === 'admin' ? p : fail('forbidden', 'Solo un amministratore installa o rimuove pacchetti'));
+const { t } = defineStrings('lilos:kernel.dependencies', { en: { strings: {
+  adminOnly: 'Only an administrator installs or removes packages', needsLilos: '{name} {version} needs lilOS {range} (this is {system})',
+  moduleJson: 'module.json is not valid JSON', byHand: '{id} was put in by hand: it is updated by hand',
+  appInstalled: '{name} is already installed: for a new version use the update',
+  moduleInstalled: '{name} is already installed: for a new version use the update',
+  replaced: '{name} has been replaced by {by}: it is no longer installed', appMissing: 'App not installed', moduleOff: 'Module not active',
+  otherApp: 'The package is of the app {found}, not of {id}', otherModule: 'The package is of the module {found}, not of {id}',
+  moduleNewer: 'The module {id} {range} is needed: {have} is installed and the newest is {newer}',
+  appNewer: 'The app {id} {range} is needed: {have} is installed and the newest is {newer}',
+  unreadable: 'The repository {url} cannot be read: {message}',
+  moduleNotInRepo: 'The repository {url} has no module {id}', appNotInRepo: 'The repository {url} has no app {id}',
+  moduleRepoVersion: 'The module {id} {range} is needed: the repository has {version}',
+  appRepoVersion: 'The app {id} {range} is needed: the repository has {version}',
+  modulePlanned: '{name} needs the module {id} {range}, but {version} is being installed',
+  appPlanned: '{name} needs the app {id} {range}, but {version} is being installed',
+  circular: 'Circular dependency between {a} and {b}: neither can be installed before the other',
+  consent: 'Consent missing for {keys}: look again at what gets installed', haveVersion: '{id} {range} ({have} is there)',
+  missing: '{name} needs: {missing}. Install it from the AppStore, which also installs what it needs.',
+  appNeeded: { one: 'The app {id} is needed by {names}: remove that first', other: 'The app {id} is needed by {names}: remove those first' },
+  moduleNeeded: { one: 'The module {id} is needed by {names}: remove that first', other: 'The module {id} is needed by {names}: remove those first' },
+  wantsOne: '{name} wants {id} {range}: {version} will not do', wants: '{name} wants {id} {range}', wantsMany: '{list}: {version} will not do',
+} } });
+const requireAdmin = p => (p?.kind === 'kernel' || p?.role === 'admin' ? p : fail('forbidden', t('adminOnly')));
 const kindOf = d => (d.module !== undefined ? 'module' : 'app');
 const idOf = d => d.module ?? d.app;
-const label = (kind, id) => (kind === 'module' ? `il modulo ${id}` : `l’app ${id}`);
 
 /** The key a dependency counts as: the module turned on that replaces it (installed.aliases), or its own. */
 const canon = (installed, key) => installed.aliases?.get(key) ?? key;
@@ -104,7 +126,7 @@ export class Dependencies {
   // ---------- Steps ----------
 
   #appStep(manifest, source, locales, { action, from = null, granted = [] }) {
-    if (manifest.lilos && !inRange(manifest.lilos, SYSTEM_VERSION)) fail('conflict', `${manifest.name} ${manifest.version} richiede lilOS ${manifest.lilos} (questo è il ${SYSTEM_VERSION})`);
+    if (manifest.lilos && !inRange(manifest.lilos, SYSTEM_VERSION)) fail('conflict', t('needsLilos', { name: manifest.name, version: manifest.version, range: manifest.lilos, system: SYSTEM_VERSION }));
     return {
       key: `app:${manifest.id}`, kind: 'app', id: manifest.id, name: manifest.name, version: manifest.version, action, from,
       repo: { url: source.url ?? null, official: isOfficial(source) }, verified: this.#kernel.installer.verified(manifest, source),
@@ -129,14 +151,14 @@ export class Dependencies {
       raw = JSON.parse((await opened.read('module.json')).toString('utf8'));
     } catch (err) {
       if (err.code) throw err;
-      fail('invalid', 'module.json non è JSON valido');
+      fail('invalid', t('moduleJson'));
     }
     return { module: checkModule(raw), source: opened.source };
   }
 
   /** Where a module installed from a repository updates from (its source.json, at the newest version or `ref`). */
   #moduleUpdateSource(have, ref) {
-    if (!have.source) fail('conflict', `${have.id} è stato messo a mano: si aggiorna a mano`);
+    if (!have.source) fail('conflict', t('byHand', { id: have.id }));
     const { commit, installed, dependency, ref: old, ...rest } = have.source;
     return cleanSource({ ...rest, ...(ref && { ref }) }, { allowLocal: this.#allowLocal });
   }
@@ -148,23 +170,23 @@ export class Dependencies {
       const source = cleanSource(raw, { allowLocal: this.#allowLocal });
       if (kind === 'app') {
         const pkg = await fetchPackage(source);
-        if (installed.has(`app:${pkg.manifest.id}`)) fail('conflict', `${pkg.manifest.name} è già installata: per una nuova versione usa l'aggiornamento`);
+        if (installed.has(`app:${pkg.manifest.id}`)) fail('conflict', t('appInstalled', { name: pkg.manifest.name }));
         return this.#appStep(pkg.manifest, pkg.source, null, { action: 'install' });
       }
       const { module, source: resolved } = await this.#openModule(source);
-      if (installed.has(`module:${module.name}`)) fail('conflict', `${module.name} è già installato: per una nuova versione usa l'aggiornamento`);
-      if (installed.aliases.has(`module:${module.name}`)) fail('conflict', `${module.name} è stato sostituito da ${installed.aliases.get(`module:${module.name}`).slice(7)}: non si installa più`);
+      if (installed.has(`module:${module.name}`)) fail('conflict', t('moduleInstalled', { name: module.name }));
+      if (installed.aliases.has(`module:${module.name}`)) fail('conflict', t('replaced', { name: module.name, by: installed.aliases.get(`module:${module.name}`).slice(7) }));
       return this.#moduleStep(module, resolved, { action: 'install' });
     }
     const { kind, id, ref, reinstall = false } = target.update;
-    const have = installed.get(`${kind}:${id}`) ?? fail('not_found', kind === 'app' ? 'App non installata' : 'Modulo non attivo');
+    const have = installed.get(`${kind}:${id}`) ?? fail('not_found', t(kind === 'app' ? 'appMissing' : 'moduleOff'));
     if (kind === 'app') {
       const pkg = await fetchPackage(this.#kernel.installer.updateSource(have.state, { ref, reinstall }));
-      if (pkg.manifest.id !== id) fail('invalid', `Il pacchetto è dell'app ${pkg.manifest.id}, non di ${id}`);
+      if (pkg.manifest.id !== id) fail('invalid', t('otherApp', { found: pkg.manifest.id, id }));
       return this.#appStep(pkg.manifest, pkg.source, null, { action: reinstall ? 'reinstall' : 'update', from: have.version, granted: have.state.granted });
     }
     const { module, source } = await this.#openModule(this.#moduleUpdateSource(have, ref));
-    if (module.name !== id) fail('invalid', `Il pacchetto è del modulo ${module.name}, non di ${id}`);
+    if (module.name !== id) fail('invalid', t('otherModule', { found: module.name, id }));
     return this.#moduleStep(module, source, { action: 'update', from: have.version });
   }
 
@@ -177,19 +199,19 @@ export class Dependencies {
       const newer = kind === 'app'
         ? await fetchPackage(this.#kernel.installer.updateSource(have.state)).then(pkg => this.#appStep(pkg.manifest, pkg.source, null, { action: 'update', from: have.version, granted: have.state.granted }))
         : await this.#openModule(this.#moduleUpdateSource(have)).then(m => this.#moduleStep(m.module, m.source, { action: 'update', from: have.version }));
-      if (!inRange(dep.version, newer.version)) fail('conflict', `Serve ${label(kind, id)} ${dep.version}: è installata la ${have.version} e la più nuova è la ${newer.version}`);
+      if (!inRange(dep.version, newer.version)) fail('conflict', t(`${kind}Newer`, { id, range: dep.version, have: have.version, newer: newer.version }));
       return newer;
     }
     const url = dep.repo ?? await this.#officialUrl();
     if (!catalogs.has(url)) catalogs.set(url, this.#kernel.repos.packages(url));
-    const repo = await catalogs.get(url).catch(err => fail('unavailable', `Il repository ${url} non si legge: ${err.message}`));
+    const repo = await catalogs.get(url).catch(err => fail('unavailable', t('unreadable', { url, message: err.text ?? err.message })));
     // A module the repository has merged into another one comes as that one (never the old one, even if still listed)
     const merged = kind === 'module' ? repo.modules.find(m => m.module.name !== id && (m.module.replaces ?? []).includes(id)) : null;
     const entry = merged ?? (kind === 'app' ? repo.apps.find(a => a.manifest.id === id) : repo.modules.find(m => m.module.name === id));
-    if (!entry) fail('not_found', `Nel repository ${url} non c'è ${label(kind, id)}`);
+    if (!entry) fail('not_found', t(`${kind}NotInRepo`, { url, id }));
     if (merged && installed.has(`module:${merged.module.name}`)) return null;   // turned on already (an older version that did not replace it yet)
     const version = kind === 'app' ? entry.manifest.version : entry.module.version;
-    if (!merged && dep.version && !inRange(dep.version, version)) fail('conflict', `Serve ${label(kind, id)} ${dep.version}: il repository ha la ${version}`);
+    if (!merged && dep.version && !inRange(dep.version, version)) fail('conflict', t(`${kind}RepoVersion`, { id, range: dep.version, version }));
     const source = { type: 'git', url, ref: repo.ref, path: entry.path };
     return kind === 'app'
       ? this.#appStep(entry.manifest, source, entry.locales, { action: 'install' })
@@ -226,7 +248,7 @@ export class Dependencies {
         if (planned) {
           out.push({ to: key, optional: dep.optional === true, reason: dep.reason ?? null });
           if (!alias && dep.version && !inRange(dep.version, planned.version)) {
-            problems.set(key, { key, kind: kindOf(dep), id: idOf(dep), message: `${node.name} ha bisogno di ${label(kindOf(dep), idOf(dep))} ${dep.version}, ma si installa la ${planned.version}` });
+            problems.set(key, { key, kind: kindOf(dep), id: idOf(dep), message: t(`${kindOf(dep)}Planned`, { name: node.name, id: idOf(dep), range: dep.version, version: planned.version }) });
           }
           continue;
         }
@@ -240,7 +262,7 @@ export class Dependencies {
           out.push({ to: step?.key ?? key, optional: dep.optional === true, reason: dep.reason ?? null });
         } catch (err) {
           if (!err.code) throw err;
-          problems.set(key, { key, kind: kindOf(dep), id: idOf(dep), message: err.message });
+          problems.set(key, { key, kind: kindOf(dep), id: idOf(dep), message: err.text ?? err.message });
           out.push({ to: key, optional: dep.optional === true, reason: dep.reason ?? null });
         }
       }
@@ -263,7 +285,7 @@ export class Dependencies {
     const name = k => (k === root.key ? root.name : steps.get(k)?.name ?? k);
     const visit = (key, from) => {
       if (state.get(key) === 'visiting') {
-        if (!problems.has(key)) problems.set(key, { key, kind: key.slice(0, key.indexOf(':')), id: key.slice(key.indexOf(':') + 1), message: `Dipendenza circolare tra ${name(from)} e ${name(key)}: nessuno dei due si installa prima dell’altro` });
+        if (!problems.has(key)) problems.set(key, { key, kind: key.slice(0, key.indexOf(':')), id: key.slice(key.indexOf(':') + 1), message: t('circular', { a: name(from), b: name(key) }) });
         return;
       }
       if (state.has(key)) return;
@@ -332,7 +354,7 @@ export class Dependencies {
     }
     // Each one the admin saw and said yes to (an optional choice brings what it needs: those too)
     const unanswered = [...chosen].filter(key => !answers[key]);
-    if (unanswered.length) fail('conflict', `Manca il consenso per ${unanswered.join(', ')}: guarda di nuovo cosa si installa`, { details: { unanswered } });
+    if (unanswered.length) fail('conflict', t('consent', { keys: unanswered.join(', ') }), { details: { unanswered } });
 
     const { installer, moduleAdmin } = this.#kernel;
     const done = [];
@@ -406,9 +428,9 @@ export class Dependencies {
       if (d.optional || key === self) continue;
       const { have, alias } = found(installed, key);
       if (!have) missing.push(d.version ? `${idOf(d)} ${d.version}` : idOf(d));
-      else if (!alias && d.version && !inRange(d.version, have.version)) missing.push(`${idOf(d)} ${d.version} (c'è la ${have.version})`);
+      else if (!alias && d.version && !inRange(d.version, have.version)) missing.push(t('haveVersion', { id: idOf(d), range: d.version, have: have.version }));
     }
-    if (missing.length) fail('conflict', `${manifest.name} ha bisogno di: ${missing.join(', ')}. Installalo dall’AppStore, che installa anche quello che serve.`, { details: { missing } });
+    if (missing.length) fail('conflict', t('missing', { name: manifest.name, missing: missing.join(', ') }), { details: { missing } });
   }
 
   /**
@@ -431,7 +453,7 @@ export class Dependencies {
     const needed = (await this.dependents(`${kind}:${id}`)).filter(d => !d.optional);
     if (needed.length) {
       const names = needed.map(d => d.name).join(', ');
-      fail('conflict', `${kind === 'app' ? 'L’app' : 'Il modulo'} ${id} serve a ${names}: rimuovi prima ${needed.length > 1 ? 'quelle' : 'quella'}`, { details: { dependents: needed } });
+      fail('conflict', t(kind === 'app' ? 'appNeeded' : 'moduleNeeded', { id, names, n: needed.length }), { details: { dependents: needed } });
     }
   }
 
@@ -439,7 +461,10 @@ export class Dependencies {
   async checkVersion(kind, id, version) {
     const against = (await this.dependents(`${kind}:${id}`)).filter(d => d.version && !inRange(d.version, version));
     if (against.length) {
-      fail('conflict', `${against.map(d => `${d.name} vuole ${id} ${d.version}`).join('; ')}: la ${version} non va bene`, { details: { dependents: against } });
+      const text = against.length === 1
+        ? t('wantsOne', { name: against[0].name, id, range: against[0].version, version })
+        : t('wantsMany', { list: against.map(d => t('wants', { name: d.name, id, range: d.version })).join('; '), version });
+      fail('conflict', text, { details: { dependents: against } });
     }
   }
 
@@ -455,7 +480,7 @@ export class Dependencies {
     requireAdmin(principal);
     const installed = await this.#installed();
     const key = `${kind}:${id}`;
-    if (!installed.has(key)) fail('not_found', kind === 'app' ? 'App non installata' : 'Modulo non attivo');
+    if (!installed.has(key)) fail('not_found', t(kind === 'app' ? 'appMissing' : 'moduleOff'));
     const blockedBy = (await this.dependents(key, installed)).filter(d => !d.optional).map(({ key: k, kind: t, id: i, name }) => ({ key: k, kind: t, id: i, name }));
     const removed = new Set([key]), unneeded = [];
     const needs = (p, k) => p.deps.some(d => canon(installed, dependencyKey(d)) === k);

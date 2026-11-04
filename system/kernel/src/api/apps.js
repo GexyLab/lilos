@@ -1,5 +1,6 @@
 import { fail } from '../errors.js';
 import { send } from '../http.js';
+import { defineStrings } from '../strings.js';
 
 /**
  *   GET    /api/apps                     installed apps: [{ ...state, manifest, unmet? }]   unmet: required
@@ -27,9 +28,12 @@ const CODE_CSP = "default-src 'self' blob: data:; script-src 'self' blob: 'wasm-
 // new address (the files are cached for good, and the browser keeps the modules it imported)
 const CODE_VERSION = /^(\d+\.\d+\.\d+)(\+[a-z0-9]{1,16})?$/;
 const HEARTBEAT = 25_000;
+const { t } = defineStrings('lilos:kernel.api.apps', { en: { strings: {
+  signIn: 'Sign in first', app: 'App not valid', path: 'Path not valid', library: 'Library not valid',
+} } });
 
-const signedIn = principal => principal ?? fail('unauthorized', 'Accesso richiesto');
-const appParam = id => (ID.test(id) ? id : fail('invalid', 'App non valida'));
+const signedIn = principal => principal ?? fail('unauthorized', t('signIn'));
+const appParam = id => (ID.test(id) ? id : fail('invalid', t('app')));
 
 /** What a user sees of an app's state: where it came from on the kernel's disk is the admins'. */
 export function visible(app, principal) {
@@ -44,7 +48,7 @@ export function appRoutes(kernel) {
 
   router.add('GET', '/api/apps/:id/file', async ({ principal, params, query, res }) => {
     const path = query.get('path') ?? '';
-    if (!/^(?!.*\.\.)[\w.-]+(\/[\w.-]+){0,15}$/.test(path)) fail('invalid', 'Percorso non valido');
+    if (!/^(?!.*\.\.)[\w.-]+(\/[\w.-]+){0,15}$/.test(path)) fail('invalid', t('path'));
     const data = await installer.file(signedIn(principal), appParam(params.id), path);
     send(res, 200, data, { 'Content-Type': `${TYPES[path.split('.').pop()] ?? 'application/octet-stream'}; charset=utf-8` });
   });
@@ -52,7 +56,7 @@ export function appRoutes(kernel) {
   // Path-like, so that a module's relative imports (chunks, workers) resolve next to it
   router.add('GET', '/api/apps/:id/v/:version/*', async ({ principal, params, res }) => {
     const version = CODE_VERSION.exec(params.version)?.[1];
-    if (!FILE_PATH.test(params.rest) || !version) fail('invalid', 'Percorso non valido');
+    if (!FILE_PATH.test(params.rest) || !version) fail('invalid', t('path'));
     const data = await installer.file(signedIn(principal), appParam(params.id), params.rest, version);
     const type = TYPES[params.rest.split('.').pop()] ?? 'application/octet-stream';
     send(res, 200, data, { 'Content-Type': type.startsWith('text/') || type.endsWith('json') ? `${type}; charset=utf-8` : type, 'Content-Security-Policy': CODE_CSP, 'Cache-Control': 'private, max-age=31536000, immutable' });
@@ -73,7 +77,7 @@ export function appRoutes(kernel) {
   });
 
   router.add('GET', '/api/commons/:name/:version', async ({ principal, params, res }) => {
-    if (!/^[\w.-]{1,64}$/.test(params.name) || !/^\d+\.\d+\.\d+$/.test(params.version)) fail('invalid', 'Libreria non valida');
+    if (!/^[\w.-]{1,64}$/.test(params.name) || !/^\d+\.\d+\.\d+$/.test(params.version)) fail('invalid', t('library'));
     send(res, 200, await installer.library(signedIn(principal), params.name, params.version), { 'Content-Type': 'text/javascript; charset=utf-8' });
   });
 

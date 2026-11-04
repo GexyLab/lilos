@@ -1,0 +1,16 @@
+{
+  "red": "Kırmızı",
+  "orange": "Turuncu",
+  "yellow": "Sarı",
+  "green": "Yeşil",
+  "teal": "Deniz mavisi",
+  "blue": "Mavi",
+  "purple": "Mor",
+  "gray": "Gri",
+  "emptyName": "Etiket adı boş olamaz",
+  "exists": "“{name}” adlı bir etiket zaten var",
+  "tooMany": {
+    "other": "En fazla {n} etiket"
+  },
+  "notFound": "Etiket yok"
+}

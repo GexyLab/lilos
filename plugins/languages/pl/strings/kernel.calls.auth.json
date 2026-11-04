@@ -1,0 +1,5 @@
+{
+  "invalid": "Nieprawidłowe uwierzytelnianie",
+  "noToken": "OAuth 2.0: brak tokenu: zaloguj się lub wpisz token",
+  "aws": "Podpis AWS: brak klucza dostępu lub klucza tajnego"
+}

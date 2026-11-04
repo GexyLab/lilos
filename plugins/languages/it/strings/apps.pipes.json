@@ -1,0 +1,10 @@
+{
+  "unknownEvent": "Evento sconosciuto: {event}",
+  "denied": "Permesso negato: pipe:{event}",
+  "deniedOwn": "Permesso negato: pipe:{event} (o pipe.own:{event})",
+  "reserved": "L’evento {event} è riservato al sistema",
+  "sync": "{event} è un’operazione immediata: si può solo osservare (stage \"after\")",
+  "gone": "L’app non è più installata",
+  "unhandled": "{app} non gestisce {what} (manca lilos.pipes.subscribe)",
+  "needApp": "Per aprire «{file}» serve l’app {app}: installala dall’AppStore"
+}

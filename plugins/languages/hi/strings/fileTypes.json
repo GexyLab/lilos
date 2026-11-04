@@ -1,0 +1,15 @@
+{
+  "text": "टेक्स्ट",
+  "pdf": "PDF",
+  "document": "दस्तावेज़",
+  "spreadsheet": "स्प्रेडशीट",
+  "presentation": "प्रस्तुति",
+  "image": "छवि",
+  "audio": "ऑडियो",
+  "video": "वीडियो",
+  "archive": "आर्काइव",
+  "code": "कोड",
+  "term": "टर्मिनल कनेक्शन",
+  "nettest": "NetTest संग्रह",
+  "file": "फ़ाइल"
+}

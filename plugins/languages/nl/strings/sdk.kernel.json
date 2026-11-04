@@ -1,0 +1,7 @@
+{
+  "canceled": "Geannuleerd",
+  "offline": "De lilOS-kernel reageert niet",
+  "status": "Fout {status}",
+  "badModule": "Ongeldige module",
+  "badPath": "Ongeldig pad"
+}

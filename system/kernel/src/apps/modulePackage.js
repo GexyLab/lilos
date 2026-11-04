@@ -11,6 +11,7 @@ import { checkDependencies, compareVersions, parseVersion } from './manifest.js'
 import { cleanSource, isOfficial, openSource, walk } from './sources.js';
 import { logger } from '../log.js';
 import { checkFields } from '../net/drivers.js';
+import { defineStrings } from '../strings.js';
 
 /**
  * Kernel modules as packages: installed from a repository into modules/<name>_<version>, turned
@@ -44,28 +45,44 @@ const log = logger('modules');
 const NAME = /^[a-z][a-z0-9-]{0,40}$/;
 const SERVICE = /^[a-z][a-z0-9.-]{0,40}$/;
 const DATA = /^[\w.-]{1,100}$/;
+const { t } = defineStrings('lilos:kernel.modulePackage', { en: { strings: {
+  badJson: 'module.json not valid', badName: 'module.json: name not valid', badVersion: 'module.json: version not valid',
+  needsKernel: 'module.json: it needs kernel {kernel}', badField: 'module.json: {field} not valid',
+  badDescription: 'module.json: description not valid', badIcon: 'module.json: icon not valid',
+  adminOnly: 'Only an administrator manages the kernel modules', npm: 'Dependencies of the module not installed: {message}',
+  noFs: 'Without a module that provides "fs" lilOS would have no file system',
+  required: '{name} is a required module: lilOS does not start without it',
+  noAuth: 'Without an "auth" module the kernel must listen only on this computer (host 127.0.0.1)',
+  unsigned: 'Unofficial module: its code will run in the kernel with full access. It is installed only by confirming the warning (allowUnsigned)',
+  installed: '{name} is already installed: for a new version use the update',
+  replaced: '{name} has been replaced by {by}: it is no longer installed',
+  versionInstalled: '{name} {version} is already installed', notRunning: 'Module not active', notInstalled: 'Module not installed',
+  noRepo: '{name} does not come from a repository: it is updated by hand', noSettings: 'This module has no settings',
+  badValue: 'Value not valid: {key}', badModuleName: 'Name not valid',
+  notRemovable: '{name} is a required module of lilOS: it cannot be removed',
+} } });
 const validIcon = i => /^[a-z][a-zA-Z0-9]{1,30}$/.test(i?.glyph ?? '') && /^#[0-9a-fA-F]{6}$/.test(i?.color ?? '');
 
 export function checkModule(raw) {
-  const m = raw && typeof raw === 'object' && !Array.isArray(raw) ? raw : fail('invalid', 'module.json non valido');
-  const bad = msg => fail('invalid', `module.json: ${msg}`);
-  if (!NAME.test(m.name ?? '')) bad('nome non valido');
-  if (!parseVersion(m.version)) bad('versione non valida');
-  if (String(m.kernel) !== String(KERNEL_API)) bad(`richiede il kernel ${m.kernel}`);
+  const m = raw && typeof raw === 'object' && !Array.isArray(raw) ? raw : fail('invalid', t('badJson'));
+  const bad = field => fail('invalid', t('badField', { field }));
+  if (!NAME.test(m.name ?? '')) fail('invalid', t('badName'));
+  if (!parseVersion(m.version)) fail('invalid', t('badVersion'));
+  if (String(m.kernel) !== String(KERNEL_API)) fail('invalid', t('needsKernel', { kernel: String(m.kernel) }));
   for (const k of ['provides', 'requires']) {
-    if (m[k] !== undefined && (!Array.isArray(m[k]) || m[k].some(s => typeof s !== 'string' || !SERVICE.test(s)))) bad(`${k} non valido`);
+    if (m[k] !== undefined && (!Array.isArray(m[k]) || m[k].some(s => typeof s !== 'string' || !SERVICE.test(s)))) bad(k);
   }
-  if (m.data !== undefined && (!Array.isArray(m.data) || m.data.some(f => typeof f !== 'string' || !DATA.test(f)))) bad('data non valido');
-  if (m.defaultConfig !== undefined && (typeof m.defaultConfig !== 'object' || Array.isArray(m.defaultConfig))) bad('defaultConfig non valido');
-  if (m.description !== undefined && (typeof m.description !== 'string' || m.description.length > 300)) bad('descrizione non valida');
-  if (m.icon !== undefined && !validIcon(m.icon)) bad('icona non valida');
-  if (m.required !== undefined && typeof m.required !== 'boolean') bad('required non valido');
-  if (m.replaces !== undefined && (!Array.isArray(m.replaces) || m.replaces.some(n => typeof n !== 'string' || !NAME.test(n) || n === m.name || Object.hasOwn(REQUIRED_MODULES, n)))) bad('replaces non valido');
-  checkDependencies(m.dependencies, { self: `module:${m.name}`, apps: false, where: 'module.json' });
+  if (m.data !== undefined && (!Array.isArray(m.data) || m.data.some(f => typeof f !== 'string' || !DATA.test(f)))) bad('data');
+  if (m.defaultConfig !== undefined && (typeof m.defaultConfig !== 'object' || Array.isArray(m.defaultConfig))) bad('defaultConfig');
+  if (m.description !== undefined && (typeof m.description !== 'string' || m.description.length > 300)) fail('invalid', t('badDescription'));
+  if (m.icon !== undefined && !validIcon(m.icon)) fail('invalid', t('badIcon'));
+  if (m.required !== undefined && typeof m.required !== 'boolean') bad('required');
+  if (m.replaces !== undefined && (!Array.isArray(m.replaces) || m.replaces.some(n => typeof n !== 'string' || !NAME.test(n) || n === m.name || Object.hasOwn(REQUIRED_MODULES, n)))) bad('replaces');
+  checkDependencies(m.dependencies, { self: `module:${m.name}`, apps: false });
   return m;
 }
 
-const requireAdmin = p => (p?.kind === 'kernel' || p?.role === 'admin' ? p : fail('forbidden', 'Solo un amministratore gestisce i moduli del kernel'));
+const requireAdmin = p => (p?.kind === 'kernel' || p?.role === 'admin' ? p : fail('forbidden', t('adminOnly')));
 const exists = path => stat(path).then(() => true, () => false);
 
 /** Changes the list `modules` of config.json: fn(list) → the new list. */
@@ -230,7 +247,7 @@ export async function installDependencies(dir) {
   try {
     await run(npm, [command, '--omit=dev', '--no-audit', '--no-fund', '--ignore-scripts'], { cwd: dir, timeout: 300_000, shell: process.platform === 'win32', windowsHide: true });
   } catch (err) {
-    fail('unavailable', `Dipendenze del modulo non installate: ${String(err.stderr || err.message).split('\n')[0]}`.slice(0, 300));
+    fail('unavailable', t('npm', { message: String(err.stderr || err.message).split('\n')[0].slice(0, 260) }));
   }
 }
 
@@ -336,30 +353,30 @@ export class ModuleAdmin {
   async #checkStarts(modules) {
     const config = await loadConfig();
     const ordered = await resolveModules(MODULES_DIR, modules.map(m => ({ name: m.name, version: m.version ?? null, config: m.config ?? {} })))
-      .catch(err => fail('conflict', err.message));
+      .catch(err => fail('conflict', err.text ?? err.message));
     const providers = new Set(ordered.flatMap(m => m.provides));
-    if (!providers.has('fs')) fail('conflict', 'Senza un modulo che fornisce "fs" lilOS non avrebbe un file system');
+    if (!providers.has('fs')) fail('conflict', t('noFs'));
     for (const [name, service] of Object.entries(REQUIRED_MODULES)) {
-      if (!providers.has(service)) fail('conflict', `${name} è un modulo obbligatorio: lilOS non parte senza`);
+      if (!providers.has(service)) fail('conflict', t('required', { name }));
     }
-    if (!providers.has('auth') && !['127.0.0.1', '::1', 'localhost'].includes(config.host)) fail('conflict', 'Senza un modulo "auth" il kernel deve ascoltare solo su questo computer (host 127.0.0.1)');
+    if (!providers.has('auth') && !['127.0.0.1', '::1', 'localhost'].includes(config.host)) fail('conflict', t('noAuth'));
   }
 
   /** Copies a module from its source into modules/<name>_<version>; `from`: the folder of the version it replaces. */
   async #place(source, { allowUnsigned, newer = null, from = null, enabled = new Set(), dependency = false }) {
     const opened = await openSource(source);
     const manifest = checkModule(JSON.parse((await opened.read('module.json')).toString('utf8')));
-    if (!isOfficial(opened.source) && !allowUnsigned) fail('forbidden', 'Modulo non ufficiale: il suo codice girerà nel kernel con accesso completo. Si installa solo confermando l’avviso (allowUnsigned)');
+    if (!isOfficial(opened.source) && !allowUnsigned) fail('forbidden', t('unsigned'));
     if (newer && compareVersions(manifest.version, newer) <= 0 && !source.ref) return { manifest, unchanged: true };
-    if (!newer && enabled.has(manifest.name)) fail('conflict', `${manifest.name} è già installato: per una nuova versione usa l'aggiornamento`);
+    if (!newer && enabled.has(manifest.name)) fail('conflict', t('installed', { name: manifest.name }));
     const by = (await this.replaced()).get(manifest.name);
-    if (by) fail('conflict', `${manifest.name} è stato sostituito da ${by}: non si installa più`);
+    if (by) fail('conflict', t('replaced', { name: manifest.name, by }));
     await this.guard?.checkMet('module', manifest);
     if (newer) await this.guard?.checkVersion('module', manifest.name, manifest.version);
     const dest = join(MODULES_DIR, `${manifest.name}_${manifest.version}`);
     // A folder left with its data by a removal is written over; an installed version is not
     const reused = await exists(dest);
-    if (reused && (enabled.has(manifest.name) || !(await exists(join(dest, 'source.json'))))) fail('conflict', `${manifest.name} ${manifest.version} è già installato`);
+    if (reused && (enabled.has(manifest.name) || !(await exists(join(dest, 'source.json'))))) fail('conflict', t('versionInstalled', { name: manifest.name, version: manifest.version }));
     try {
       await writeModule(opened, manifest, dest, { from, dependency });
     } catch (err) {
@@ -393,10 +410,10 @@ export class ModuleAdmin {
   async update(principal, name, { ref, allowUnsigned = false } = {}) {
     requireAdmin(principal);
     const config = await loadConfig();
-    const want = config.modules.find(m => m.name === name) ?? fail('not_found', 'Modulo non attivo');
-    const current = (await scanModules(MODULES_DIR)).get(name)?.find(v => !want.version || v.version === want.version) ?? fail('not_found', 'Modulo non installato');
+    const want = config.modules.find(m => m.name === name) ?? fail('not_found', t('notRunning'));
+    const current = (await scanModules(MODULES_DIR)).get(name)?.find(v => !want.version || v.version === want.version) ?? fail('not_found', t('notInstalled'));
     const recorded = await readJson(join(current.dir, 'source.json'));
-    if (!recorded) fail('invalid', `${name} non viene da un repository: si aggiorna a mano`);
+    if (!recorded) fail('invalid', t('noRepo', { name }));
     const { commit, installed, ...rest } = recorded;
     delete rest.ref;
     const source = cleanSource({ ...rest, ...(ref && { ref }) }, { allowLocal: this.#allowLocal });
@@ -444,7 +461,7 @@ export class ModuleAdmin {
   async saveSettings(principal, name, raw) {
     requireAdmin(principal);
     const mod = this.#running(name);
-    if (!mod.settings.length) fail('invalid', 'Questo modulo non ha impostazioni');
+    if (!mod.settings.length) fail('invalid', t('noSettings'));
     const plainFields = mod.settings.filter(f => !isSecretSetting(f));
     const { values } = checkFields({ fields: plainFields }, raw);
     // Secret ones: sealed for config.json, in clear for the module
@@ -453,7 +470,7 @@ export class ModuleAdmin {
       const v = raw?.[f.key];
       if (v === null) secretGone.add(f.key);
       else if (typeof v === 'string' && v !== '') {
-        if (v.length > 4096) fail('invalid', `Valore non valido: ${f.key}`);
+        if (v.length > 4096) fail('invalid', t('badValue', { key: f.key }));
         secretNew[f.key] = { clear: v, sealed: await this.#kernel.settingSecrets.seal(v) };
       }
     }
@@ -481,16 +498,16 @@ export class ModuleAdmin {
   }
 
   #running(name) {
-    if (!NAME.test(name ?? '')) fail('invalid', 'Nome non valido');
-    return this.#kernel.modules.find(m => m.name === name) ?? fail('not_found', 'Modulo non attivo');
+    if (!NAME.test(name ?? '')) fail('invalid', t('badModuleName'));
+    return this.#kernel.modules.find(m => m.name === name) ?? fail('not_found', t('notRunning'));
   }
 
   /** Turns the module off and deletes its folders, except those that hold its data. */
   async remove(principal, name) {
     requireAdmin(principal);
     const config = await loadConfig();
-    if (!NAME.test(name)) fail('invalid', 'Nome non valido');
-    if (Object.hasOwn(REQUIRED_MODULES, name)) fail('forbidden', `${name} è un modulo obbligatorio di lilOS: non si rimuove`);
+    if (!NAME.test(name)) fail('invalid', t('badModuleName'));
+    if (Object.hasOwn(REQUIRED_MODULES, name)) fail('forbidden', t('notRemovable', { name }));
     await this.guard?.checkRemovable('module', name);
     const next = config.modules.filter(m => m.name !== name);
     if (next.length !== config.modules.length) await this.#checkStarts(next.map(m => ({ ...m, version: m.version ?? null })));

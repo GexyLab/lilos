@@ -1,0 +1,16 @@
+{
+  "secret": "Valor secreto inválido",
+  "fingerprint": "Impressão digital inválida",
+  "server": "Servidor inválido",
+  "sendsTooMany": "No máximo {max} solicitações por vez",
+  "unopened": "Valores secretos não abertos (salvos por outro usuário ou em outro lilOS): {names}",
+  "runsTooMany": "No máximo {max} execuções por vez",
+  "collection": "Coleção inválida",
+  "runNotFound": "Execução não encontrada",
+  "needFile": "É necessário um arquivo .nettest",
+  "notCollection": "O arquivo não é uma coleção do NetTest",
+  "noEnvironment": "Ambiente não encontrado: {name}",
+  "untitled": "Coleção",
+  "noProtocol": "Protocolo não disponível: {protocol} (falta o módulo do kernel dele)",
+  "noDescribe": "Este protocolo não descreve o servidor"
+}

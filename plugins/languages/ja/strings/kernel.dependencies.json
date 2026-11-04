@@ -1,0 +1,35 @@
+{
+  "adminOnly": "パッケージをインストールまたは削除できるのは管理者だけです",
+  "needsLilos": "{name} {version} には lilOS {range} が必要です（現在は {system}）",
+  "moduleJson": "module.json が有効な JSON ではありません",
+  "byHand": "{id} は手動で配置されたため、手動で更新します",
+  "appInstalled": "{name} はすでにインストールされています。新しいバージョンには更新を使用してください",
+  "moduleInstalled": "{name} はすでにインストールされています。新しいバージョンには更新を使用してください",
+  "replaced": "{name} は {by} に置き換えられたため、もうインストールされていません",
+  "appMissing": "アプリがインストールされていません",
+  "moduleOff": "モジュールが有効ではありません",
+  "otherApp": "このパッケージは {id} ではなくアプリ {found} のものです",
+  "otherModule": "このパッケージは {id} ではなくモジュール {found} のものです",
+  "moduleNewer": "モジュール {id} {range} が必要です。インストール済みは {have}、最新は {newer} です",
+  "appNewer": "アプリ {id} {range} が必要です。インストール済みは {have}、最新は {newer} です",
+  "unreadable": "リポジトリ {url} を読み込めません：{message}",
+  "moduleNotInRepo": "リポジトリ {url} にモジュール {id} はありません",
+  "appNotInRepo": "リポジトリ {url} にアプリ {id} はありません",
+  "moduleRepoVersion": "モジュール {id} {range} が必要です。リポジトリにあるのは {version} です",
+  "appRepoVersion": "アプリ {id} {range} が必要です。リポジトリにあるのは {version} です",
+  "modulePlanned": "{name} にはモジュール {id} {range} が必要ですが、インストールされるのは {version} です",
+  "appPlanned": "{name} にはアプリ {id} {range} が必要ですが、インストールされるのは {version} です",
+  "circular": "{a} と {b} の間に循環依存関係があります。どちらも先にインストールできません",
+  "consent": "{keys} への同意がありません。インストールされる内容を再確認してください",
+  "haveVersion": "{id} {range}（{have} があります）",
+  "missing": "{name} には次が必要です：{missing}。AppStore からインストールすると、必要なものも一緒にインストールされます。",
+  "appNeeded": {
+    "other": "アプリ {id} は {names} に必要です。先にそれらを削除してください"
+  },
+  "moduleNeeded": {
+    "other": "モジュール {id} は {names} に必要です。先にそれらを削除してください"
+  },
+  "wantsOne": "{name} には {id} {range} が必要です。{version} では要件を満たしません",
+  "wants": "{name} には {id} {range} が必要です",
+  "wantsMany": "{list}：{version} では要件を満たしません"
+}

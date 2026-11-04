@@ -1,4 +1,4 @@
-import { automation, fs } from '@lilos/sdk';
+import { automation, fs, locale } from '@lilos/sdk';
 import { recordedPath } from './recorder.js';
 
 /**
@@ -33,6 +33,10 @@ import { recordedPath } from './recorder.js';
  * (what step 2 made), { path: '~/Documenti/a.txt', id } (a fixed node: by id, else by path).
  * Places on the desk: [{ ref, x, y }].
  */
+const { t } = locale.define('lilos:automation.document', {
+  en: { strings: { notAutomation: 'It is not a lilOS automation', defaultName: 'Automation', newName: 'New automation' } },
+});
+
 export const FORMAT = 'lilos.automation';
 export const INPUTS = ['none', 'files', 'folder'];
 export const ON_ERROR = ['stop', 'skip', 'ask'];
@@ -88,11 +92,11 @@ const combo = v => (typeof v === 'string' && /^[\w+]{1,40}$/.test(v) ? v : '');
 /** Checks an automation read from a file (untrusted). Throws if it is not one. */
 export function checkDocument(raw) {
   const d = typeof raw === 'string' ? JSON.parse(raw) : raw;
-  if (!plain(d) || d.format !== FORMAT) throw new Error('Non è un’automazione di lilOS');
+  if (!plain(d) || d.format !== FORMAT) throw new Error(t('notAutomation'));
   const launch = plain(d.launch) ? d.launch : {};
   const doc = {
     format: FORMAT, version: 1,
-    name: text(d.name, 80) || 'Automazione',
+    name: text(d.name, 80) || t('defaultName'),
     description: text(d.description, 500),
     input: INPUTS.includes(d.input) ? d.input : 'none',
     launch: {
@@ -151,7 +155,7 @@ export function fromRecording(steps, { name = '', inputs = [] } = {}) {
   const made = new Map();   // node id → { step, index? }
   const input = new Set(inputs);
   let guessed = !!input.size;
-  const doc = { format: FORMAT, version: 1, name: name || 'Nuova automazione', description: '', input: 'none', launch: { menu: false, ext: [], shortcut: '', command: '', triggers: [] }, steps: [] };
+  const doc = { format: FORMAT, version: 1, name: name || t('newName'), description: '', input: 'none', launch: { menu: false, ext: [], shortcut: '', command: '', triggers: [] }, steps: [] };
 
   const ref = id => {
     if (input.has(id)) return { input: true };

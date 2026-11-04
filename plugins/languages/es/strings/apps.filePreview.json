@@ -1,0 +1,6 @@
+{
+  "late": "{app} no ha respondido a tiempo",
+  "invalid": "Vista previa no válida",
+  "tooBig": "Vista previa demasiado grande",
+  "imageType": "La imagen de la vista previa no tiene un tipo image/*"
+}

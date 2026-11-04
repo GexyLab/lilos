@@ -1,0 +1,87 @@
+{
+  "error.dateTime": "Ongeldige datum en tijd",
+  "error.cron": "Ongeldige cron-expressie",
+  "error.cronFields": "Een cron-expressie heeft 5 velden: minuut uur dag maand dag-van-de-week",
+  "error.cronField": "Veld {field} is ongeldig",
+  "error.cronStep": "Ongeldige stap in veld {field}",
+  "error.cronValue": "Ongeldige waarde ‘{value}’ in veld {field}",
+  "error.cronRange": "Omgekeerd bereik in veld {field}",
+  "error.times": "Ongeldige tijden",
+  "error.exceptions": "Ongeldige uitzonderingen",
+  "error.rule": "Ongeldige regel",
+  "error.zone": "Onbekende tijdzone",
+  "error.kind": "Een regel is ‘eenmalig’, ‘herhalen’ of ‘cron’",
+  "error.start": "Ongeldige begindatum en -tijd",
+  "error.every": "Hoe vaak: ongeldig getal of ongeldige eenheid",
+  "error.days": "Ongeldige dagen van de week",
+  "error.daysUnit": "Dagen van de week gelden voor minuten, uren en weken",
+  "error.between": "Ongeldig tijdvak",
+  "error.monthDay": "Ongeldige dag van de maand",
+  "error.month": "Ongeldige maand",
+  "error.end": "Ongeldige einddatum",
+  "error.endBeforeStart": "Het einde valt vóór het begin",
+  "error.count": "Ongeldig aantal keren",
+  "error.scope": "scope moet this of all zijn",
+  "error.cronMove": "Een cron-regel wordt telkens één keer tegelijk verplaatst",
+  "error.betweenMidnight": "Het tijdvak zou voorbij middernacht lopen",
+  "error.monthDayOut": "De dag van de maand zou buiten de maand vallen",
+  "once": "Eenmalig: {date} om {time}",
+  "timed": "{what} om {times}",
+  "at": "om {times}",
+  "join": "{a}, {b}",
+  "every.minute": {
+    "one": "Elke minuut",
+    "other": "Elke {n} minuten"
+  },
+  "every.hour": {
+    "one": "Elk uur",
+    "other": "Elke {n} uur"
+  },
+  "every.day": {
+    "one": "Elke dag",
+    "other": "Elke {n} dagen"
+  },
+  "every.week": {
+    "one": "Elke week",
+    "other": "Elke {n} weken"
+  },
+  "every.month": {
+    "one": "elke maand",
+    "other": "elke {n} maanden"
+  },
+  "every.year": {
+    "one": "Elk jaar",
+    "other": "Elke {n} jaar"
+  },
+  "between": "van {from} tot {to}",
+  "weekday.1": "maandag",
+  "weekday.2": "dinsdag",
+  "weekday.3": "woensdag",
+  "weekday.4": "donderdag",
+  "weekday.5": "vrijdag",
+  "weekday.6": "zaterdag",
+  "weekday.7": "zondag",
+  "days.list": "op {days}",
+  "days.weekdays": "maandag tot en met vrijdag",
+  "days.weekend": "op zaterdag en zondag",
+  "days.all": "elke dag",
+  "eachWeekday": "Elke {day}",
+  "workweek": "Maandag tot en met vrijdag",
+  "monthDay": "Op dag {day} van {period}",
+  "monthLast": "Op de laatste dag van {period}",
+  "nth.1": "Op de eerste {weekday} van {period}",
+  "nth.2": "Op de tweede {weekday} van {period}",
+  "nth.3": "Op de derde {weekday} van {period}",
+  "nth.4": "Op de vierde {weekday} van {period}",
+  "nth.5": "Op de vijfde {weekday} van {period}",
+  "nth.last": "Op de laatste {weekday} van {period}",
+  "yearDay": "{every} op {date}",
+  "yearLast": "{every} op de laatste dag van {month}",
+  "yearNth": "{every}: {what}",
+  "until": "tot {date}",
+  "count": {
+    "one": "één keer",
+    "other": "{n} keer"
+  },
+  "cron": "Cron: {cron}"
+}

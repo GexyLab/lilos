@@ -1,0 +1,8 @@
+{
+  "title": "Transferência de dados",
+  "sent": "↑ {done} de {total}",
+  "received": "↓ {done} de {total}",
+  "rate": "{line} · {bytes}/s",
+  "conflict": "Um arquivo já existe: escolha o que fazer",
+  "failed": "Alguns arquivos não foram transferidos"
+}

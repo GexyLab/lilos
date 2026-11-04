@@ -28,8 +28,8 @@
 /* Updates not finished yet (PendingUpdates.js): lilOS waiting to restart stands out */
 .tb-updates.restart .ico { color: var(--danger); }
 .clock {
-  display: flex; align-items: baseline; gap: 8px; height: 18px; padding: 0 8px 0 10px;
-  border-left: 1px solid var(--bar-border); font-size: 12px; white-space: nowrap; font-variant-numeric: tabular-nums;
+  display: flex; align-items: baseline; gap: 8px; height: 18px; padding-block: 0; padding-inline: 10px 8px;
+  border-inline-start: 1px solid var(--bar-border); font-size: 12px; white-space: nowrap; font-variant-numeric: tabular-nums;
 }
 .clock-date { color: var(--bar-dim); }
 .clock-time { font-weight: 400; }
@@ -43,3 +43,6 @@
 .tb-task .ico { width: 14px; height: 14px; flex: none; }
 .tb-task:hover { background: var(--bar-hover); color: var(--bar-text); }
 .tb-task.on { background: var(--bar-hover); color: var(--bar-strong); box-shadow: inset 0 -2px 0 var(--accent); }
+
+/* No letter-spacing where it breaks the letters (Arabic joining, Devanagari headline) */
+:root:is(:lang(ar), :lang(ur), :lang(hi)) .tb-rec { letter-spacing: 0; }

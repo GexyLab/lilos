@@ -1,0 +1,20 @@
+{
+  "repo": "Nieprawidłowe repozytorium (właściciel/nazwa)",
+  "urlLocal": "Nieprawidłowy adres repozytorium (https:// lub folder)",
+  "url": "Nieprawidłowy adres repozytorium (https://)",
+  "ref": "Nieprawidłowe odwołanie",
+  "path": "Nieprawidłowa ścieżka w repozytorium",
+  "local": "Lokalne foldery jako źródło są dozwolone tylko podczas programowania (allowLocalSources)",
+  "dir": "Nieprawidłowy folder (ścieżka bezwzględna)",
+  "type": "Nieznane źródło: \"git\", \"github\" lub \"local\"",
+  "noGit": "Polecenie git nie jest zainstalowane na komputerze kernela",
+  "git": "git: {message}",
+  "gitError": "git: błąd",
+  "outside": "Ścieżka poza pakietem: {path}",
+  "missing": "Brak {path}",
+  "notFile": "{path} nie jest plikiem lub jest za duży",
+  "tooMany": "Zbyt wiele plików w pakiecie",
+  "notInRepo": "Repozytorium nie ma {path}",
+  "json": "lilos.json nie jest prawidłowym JSON",
+  "tooLarge": "Pakiet jest za duży"
+}

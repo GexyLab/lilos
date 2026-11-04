@@ -1,0 +1,80 @@
+{
+  "error.dateTime": "Tanggal dan waktu tidak valid",
+  "error.cron": "Ekspresi cron tidak valid",
+  "error.cronFields": "Ekspresi cron memiliki 5 bidang: menit jam hari bulan hari-dalam-minggu",
+  "error.cronField": "Bidang {field} tidak valid",
+  "error.cronStep": "Langkah tidak valid di bidang {field}",
+  "error.cronValue": "Nilai “{value}” tidak valid di bidang {field}",
+  "error.cronRange": "Rentang terbalik di bidang {field}",
+  "error.times": "Waktu tidak valid",
+  "error.exceptions": "Pengecualian tidak valid",
+  "error.rule": "Aturan tidak valid",
+  "error.zone": "Zona waktu tidak dikenal",
+  "error.kind": "Aturan adalah “once”, “repeat”, atau “cron”",
+  "error.start": "Tanggal dan waktu mulai tidak valid",
+  "error.every": "Seberapa sering: angka atau satuan tidak valid",
+  "error.days": "Hari dalam minggu tidak valid",
+  "error.daysUnit": "Hari dalam minggu berlaku untuk menit, jam, dan minggu",
+  "error.between": "Rentang waktu tidak valid",
+  "error.monthDay": "Tanggal dalam bulan tidak valid",
+  "error.month": "Bulan tidak valid",
+  "error.end": "Tanggal akhir tidak valid",
+  "error.endBeforeStart": "Akhir terjadi sebelum awal",
+  "error.count": "Jumlah kali tidak valid",
+  "error.scope": "scope harus this atau all",
+  "error.cronMove": "Aturan cron memindahkan satu waktu setiap kali",
+  "error.betweenMidnight": "Rentang waktu akan melewati tengah malam",
+  "error.monthDayOut": "Tanggal akan jatuh di luar bulan",
+  "once": "Sekali: {date} pukul {time}",
+  "timed": "{what} pukul {times}",
+  "at": "pukul {times}",
+  "join": "{a}, {b}",
+  "every.minute": {
+    "other": "Setiap {n} menit"
+  },
+  "every.hour": {
+    "other": "Setiap {n} jam"
+  },
+  "every.day": {
+    "other": "Setiap {n} hari"
+  },
+  "every.week": {
+    "other": "Setiap {n} minggu"
+  },
+  "every.month": {
+    "other": "setiap {n} bulan"
+  },
+  "every.year": {
+    "other": "Setiap {n} tahun"
+  },
+  "between": "dari {from} sampai {to}",
+  "weekday.1": "Senin",
+  "weekday.2": "Selasa",
+  "weekday.3": "Rabu",
+  "weekday.4": "Kamis",
+  "weekday.5": "Jumat",
+  "weekday.6": "Sabtu",
+  "weekday.7": "Minggu",
+  "days.list": "pada {days}",
+  "days.weekdays": "Senin sampai Jumat",
+  "days.weekend": "pada Sabtu dan Minggu",
+  "days.all": "setiap hari",
+  "eachWeekday": "Setiap {day}",
+  "workweek": "Senin sampai Jumat",
+  "monthDay": "Pada tanggal {day} {period}",
+  "monthLast": "Pada hari terakhir {period}",
+  "nth.1": "Pada {weekday} pertama {period}",
+  "nth.2": "Pada {weekday} kedua {period}",
+  "nth.3": "Pada {weekday} ketiga {period}",
+  "nth.4": "Pada {weekday} keempat {period}",
+  "nth.5": "Pada {weekday} kelima {period}",
+  "nth.last": "Pada {weekday} terakhir {period}",
+  "yearDay": "{every} pada {date}",
+  "yearLast": "{every} pada hari terakhir {month}",
+  "yearNth": "{every}: {what}",
+  "until": "sampai {date}",
+  "count": {
+    "other": "{n} kali"
+  },
+  "cron": "Cron: {cron}"
+}

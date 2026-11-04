@@ -14,7 +14,7 @@
 .ditem-tags .tag-more { color: var(--on-canvas); }
 
 /* File: after the name in the list, on the icon in the grid */
-.fm-name .tag-dots { margin-left: -2px; }
+.fm-name .tag-dots { margin-inline-start: -2px; }
 .fm-row.selected .tag-more { color: #fff; }
 .fm-tile-icon { position: relative; }
 .fm-tile-tags { position: absolute; left: calc(50% + 10px); bottom: -2px; display: flex; gap: 2px; }

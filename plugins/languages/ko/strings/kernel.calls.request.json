@@ -1,0 +1,13 @@
+{
+  "graphqlVars": "GraphQL: 변수가 올바른 JSON이 아닙니다",
+  "method": "잘못된 메서드",
+  "url": "잘못된 주소: {url}",
+  "needHttp": "http:// 또는 https:// 주소가 필요합니다",
+  "headerName": "잘못된 헤더 이름: {name}",
+  "headerValue": "헤더 {name}의 값이 잘못되었습니다",
+  "bodyTooBig": "본문이 너무 큽니다(최대 50MB)",
+  "noAnswer": {
+    "other": "{n}초 동안 응답 없음"
+  },
+  "cancelled": "취소됨"
+}

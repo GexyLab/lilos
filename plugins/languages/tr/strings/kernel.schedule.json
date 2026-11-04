@@ -1,0 +1,22 @@
+{
+  "ok": "“{name}” başarılı oldu",
+  "error": "“{name}” başarısız oldu: {why}",
+  "admin.save": "Yönetici {who}, “{name}” işleminizi değiştirdi",
+  "admin.create": "Yönetici {who}, sizin için “{name}” işlemini oluşturdu",
+  "admin.remove": "Yönetici {who}, “{name}” işleminizi sildi",
+  "admin.on": "Yönetici {who}, “{name}” işleminizi yeniden etkinleştirdi",
+  "admin.off": "Yönetici {who}, “{name}” işleminizi duraklattı",
+  "admin.run": "Yönetici {who}, “{name}” işleminizi çalıştırdı",
+  "admin.move": "Yönetici {who}, “{name}” işleminizi taşıdı",
+  "userGone": "Bu işlemin kullanıcısı artık yok",
+  "invalid": "İşlem geçerli değil",
+  "unknownAction": "Bilinmeyen eylem: {type}",
+  "systemNoApps": "Sistem uygulama açmaz: bir kullanıcı gerekir",
+  "waiting": "lilOS’un açılması bekleniyor",
+  "noPage": "Hiçbir lilOS sayfası yanıt vermedi",
+  "cancelled": "İptal edildi veya zaman aşımına uğradı",
+  "runNotFound": "Çalıştırma bulunamadı",
+  "runTaken": "Bunu başka bir sayfa yapıyor",
+  "runGone": "Çalıştırma zaten yapıldı veya süresi doldu",
+  "taskNotFound": "İşlem bulunamadı"
+}

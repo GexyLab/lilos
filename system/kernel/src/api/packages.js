@@ -1,4 +1,5 @@
 import { fail } from '../errors.js';
+import { defineStrings } from '../strings.js';
 
 /**
  * Installing apps and kernel modules with what they need (apps/dependencies.js), admins only:
@@ -14,17 +15,21 @@ import { fail } from '../errors.js';
 // App ids and module names (a module may have a one-letter name)
 const ID = /^[a-z0-9][a-z0-9.-]{0,63}$/;
 const KINDS = ['app', 'module'];
+const { t } = defineStrings('lilos:kernel.api.packages', { en: { strings: {
+  signIn: 'Sign in first', kind: 'kind must be "app" or "module"', id: 'id not valid', target: 'install or update is needed',
+  package: 'Package not valid',
+} } });
 
-const signedIn = principal => principal ?? fail('unauthorized', 'Accesso richiesto');
+const signedIn = principal => principal ?? fail('unauthorized', t('signIn'));
 
 function target(body) {
-  const kind = k => (KINDS.includes(k) ? k : fail('invalid', 'kind deve essere "app" o "module"'));
+  const kind = k => (KINDS.includes(k) ? k : fail('invalid', t('kind')));
   if (body?.install && typeof body.install === 'object') {
     return { install: { kind: kind(body.install.kind), source: body.install.source } };
   }
   if (body?.update && typeof body.update === 'object') {
     const u = body.update;
-    if (!ID.test(u.id ?? '')) fail('invalid', 'id non valido');
+    if (!ID.test(u.id ?? '')) fail('invalid', t('id'));
     return {
       update: {
         kind: kind(u.kind), id: u.id,
@@ -33,7 +38,7 @@ function target(body) {
       },
     };
   }
-  return fail('invalid', 'Serve install o update');
+  return fail('invalid', t('target'));
 }
 
 const answer = a => ({ grant: Array.isArray(a?.grant) ? a.grant.filter(s => typeof s === 'string').slice(0, 100) : [], allowUnsigned: a?.allowUnsigned === true });
@@ -54,13 +59,13 @@ export function packageRoutes(kernel) {
 
   router.add('GET', '/api/packages/removal', async ({ principal, query }) => {
     const kind = query.get('kind'), id = query.get('id') ?? '';
-    if (!KINDS.includes(kind) || !ID.test(id)) fail('invalid', 'Pacchetto non valido');
+    if (!KINDS.includes(kind) || !ID.test(id)) fail('invalid', t('package'));
     return dependencies.removal(signedIn(principal), kind, id);
   });
 
   router.add('POST', '/api/packages/remove', async ({ principal, json }) => {
     const { kind, id, also } = await json(16 << 10);
-    if (!KINDS.includes(kind) || !ID.test(id ?? '')) fail('invalid', 'Pacchetto non valido');
+    if (!KINDS.includes(kind) || !ID.test(id ?? '')) fail('invalid', t('package'));
     return dependencies.remove(signedIn(principal), kind, id, { also: Array.isArray(also) ? also.filter(k => typeof k === 'string').slice(0, 100) : [] });
   });
 }

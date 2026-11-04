@@ -1,0 +1,9 @@
+{
+  "one": "{name} berjalan di latar belakang",
+  "many": {
+    "other": "{n} aplikasi berjalan di latar belakang"
+  },
+  "heading": "Berjalan di latar belakang",
+  "item": "{name}: {label}",
+  "stop": "Hentikan"
+}

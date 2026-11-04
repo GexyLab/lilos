@@ -1,0 +1,7 @@
+{
+  "signIn": "Συνδεθείτε πρώτα",
+  "kind": "το kind πρέπει να είναι \"app\" ή \"module\"",
+  "id": "Μη έγκυρο id",
+  "target": "Χρειάζεται install ή update",
+  "package": "Μη έγκυρο πακέτο"
+}

@@ -1,0 +1,10 @@
+{
+  "unknownEvent": "Bilinmeyen olay: {event}",
+  "denied": "İzin reddedildi: pipe:{event}",
+  "deniedOwn": "İzin reddedildi: pipe:{event} (veya pipe.own:{event})",
+  "reserved": "{event} olayı sisteme ayrılmıştır",
+  "sync": "{event} anlık bir işlemdir: yalnızca izlenebilir (stage \"after\")",
+  "gone": "Uygulama artık yüklü değil",
+  "unhandled": "{app}, {what} işlemini ele almıyor (lilos.pipes.subscribe eksik)",
+  "needApp": "“{file}” dosyasını açmak için {app} uygulaması gerekiyor: AppStore’dan yükleyin"
+}

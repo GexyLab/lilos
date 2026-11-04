@@ -1,5 +1,9 @@
-import { notifications, shortcuts } from '@lilos/sdk';
+import { notifications, shortcuts, locale } from '@lilos/sdk';
 import { notificationsShown, showNotifications } from './NotificationsWindow.js';
+
+const { t } = locale.define('lilos:notificationsConnect', {
+  en: { strings: { shortcut: 'Open or close the notifications', group: 'General' } },
+});
 
 /**
  * Notifications in lilOS: the bell of the taskbar opens the Notifiche window (also a shortcut,
@@ -15,6 +19,6 @@ export function connectNotifications({ bell, wm }) {
   };
   bell.onOpen = toggle;
   bell.onShown = () => notificationsShown(wm);
-  shortcuts.register({ id: 'system.notifications', label: 'Apri o chiudi le notifiche', group: 'Generale', keys: [], run: toggle });
+  shortcuts.register({ id: 'system.notifications', label: t('shortcut'), group: t('group'), keys: [], run: toggle });
   return notifications.load();
 }

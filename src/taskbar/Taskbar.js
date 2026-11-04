@@ -1,10 +1,14 @@
-import { h, logo, shortcuts } from '@lilos/sdk';
+import { h, logo, shortcuts, locale } from '@lilos/sdk';
 import { createClock } from './Clock.js';
 import { createBackgroundApps } from './BackgroundApps.js';
 import { createPendingUpdates } from './PendingUpdates.js';
 import { StartMenu } from './StartMenu.js';
 import { NotificationBell } from '../notifications/NotificationBell.js';
 import { TransfersButton } from '../net/TransfersButton.js';
+
+const { t } = locale.define('lilos:taskbar', {
+  en: { strings: { start: 'lilOS menu', menu: 'Menu', menuKeys: 'Menu ({keys})', taskbar: 'Taskbar', tray: 'Notification area' } },
+});
 
 /**
  * The taskbar (barra delle applicazioni), at the bottom: start button · a button per window ·
@@ -14,11 +18,11 @@ import { TransfersButton } from '../net/TransfersButton.js';
 export class Taskbar {
   constructor(parent) {
     this.startButton = h('button', {
-      class: 'tb-start', 'aria-label': 'Menu lilOS', 'aria-haspopup': 'dialog', 'aria-expanded': 'false',
+      class: 'tb-start', 'aria-label': t('start'), 'aria-haspopup': 'dialog', 'aria-expanded': 'false',
     }, logo());
     this.startMenu = new StartMenu(this.startButton);
     this.startButton.addEventListener('click', () => this.startMenu.toggle());
-    const title = () => { const k = shortcuts.label('system.startMenu'); this.startButton.title = k ? `Menu (${k})` : 'Menu'; };
+    const title = () => { const k = shortcuts.label('system.startMenu'); this.startButton.title = k ? t('menuKeys', { keys: k }) : t('menu'); };
     shortcuts.on('change', title);
     title();
 
@@ -30,11 +34,11 @@ export class Taskbar {
     /** The network transfers' button (connected by net/connect.js). */
     this.transfersButton = new TransfersButton();
 
-    this.el = h('nav', { class: 'taskbar', 'aria-label': 'Barra delle applicazioni' },
+    this.el = h('nav', { class: 'taskbar', 'aria-label': t('taskbar') },
       this.startButton,
       this.tasks,
       h('div', { class: 'tb-tray' },
-        h('div', { class: 'tb-notify-area', role: 'group', 'aria-label': 'Area di notifica' },
+        h('div', { class: 'tb-notify-area', role: 'group', 'aria-label': t('tray') },
           createPendingUpdates(),
           createBackgroundApps(),
           this.transfersButton.button,

@@ -1,4 +1,16 @@
 import { Emitter } from './events.js';
+import { locale } from './locale.js';
+
+const { t } = locale.define('lilos:sdk.serial', {
+  en: { strings: {
+    notFound: 'Serial port not found (unplugged?)',
+    unsupported: 'This browser cannot use serial ports (it takes Chrome, Edge or Firefox 151+, on https or localhost)',
+    click: 'The browser wants a click before choosing a port',
+    baud: 'Invalid speed (baud)',
+    busy: 'The port is already open (by another window or another program)',
+    failed: 'The port does not open: {message}',
+  } },
+});
 
 /**
  * Serial ports of the computer the user is at (Arduino boards, USB adapters…), with the browser's
@@ -70,12 +82,12 @@ class Serial extends Emitter {
 
   #port(id) {
     const port = this.#byId.get(String(id));
-    if (!port) throw new Error('Porta seriale non trovata (scollegata?)');
+    if (!port) throw new Error(t('notFound'));
     return port;
   }
 
   #check() {
-    if (!this.supported) throw new Error('Questo browser non può usare le porte seriali (servono Chrome, Edge o Firefox 151+, su https o localhost)');
+    if (!this.supported) throw new Error(t('unsupported'));
     this.#listen();
   }
 
@@ -95,7 +107,7 @@ class Serial extends Emitter {
       return this.#info(await navigator.serial.requestPort(list.length ? { filters: list } : {}));
     } catch (err) {
       if (err?.name === 'NotFoundError') return null;   // the user closed the chooser
-      if (err?.name === 'SecurityError') throw new Error('Il browser vuole un clic prima di scegliere una porta');
+      if (err?.name === 'SecurityError') throw new Error(t('click'));
       throw err;
     }
   }
@@ -111,7 +123,7 @@ class Serial extends Emitter {
     this.#check();
     const port = this.#port(id);
     const baudRate = Number(options.baudRate);
-    if (!Number.isInteger(baudRate) || baudRate < BAUD.min || baudRate > BAUD.max) throw new Error('Velocità (baud) non valida');
+    if (!Number.isInteger(baudRate) || baudRate < BAUD.min || baudRate > BAUD.max) throw new Error(t('baud'));
     const pick = (v, allowed, fallback) => (allowed.includes(v) ? v : fallback);
     try {
       await port.open({
@@ -123,8 +135,8 @@ class Serial extends Emitter {
         bufferSize: Number.isInteger(options.bufferSize) && options.bufferSize >= 64 && options.bufferSize <= 1 << 20 ? options.bufferSize : 4096,
       });
     } catch (err) {
-      if (err?.name === 'InvalidStateError') throw new Error('La porta è già aperta (da un’altra finestra o un altro programma)');
-      throw new Error(`La porta non si apre: ${err?.message ?? err}`);
+      if (err?.name === 'InvalidStateError') throw new Error(t('busy'));
+      throw new Error(t('failed', { message: err?.message ?? err }));
     }
     return channel(port);
   }

@@ -1,0 +1,59 @@
+{
+  "asksRestart": "{app} {version} は更新後に lilOS の再起動を求めています",
+  "updatedRestart": "{app} を {version} に更新しました。使用するには lilOS を再起動してください（右下の通知領域にあるボタン）",
+  "updated": "{app} を {version} に更新しました",
+  "updatedReopen": "{app} を {version} に更新しました。保存してアプリを再起動してください（右下の通知領域にあるボタン）",
+  "updating": "{app} を更新しています。しばらくお待ちください",
+  "waitsTitle": "{app} は再起動を待っています",
+  "waitsLead": "{app} は更新されました。lilOS の再起動後に再び開きます。",
+  "windows": {
+    "other": "開いているウィンドウ {n} 個"
+  },
+  "windowsIn": {
+    "other": "{spaces} 個のワークスペースで開いているウィンドウ {n} 個"
+  },
+  "background": "バックグラウンドサービス",
+  "both": "{windows}と{background}",
+  "leadUpdate": "{app} を更新すると、開いているものがすべて閉じます：{closing}。",
+  "leadReinstall": "{app} を再インストールすると、開いているものがすべて閉じます：{closing}。",
+  "leadMany": "これらのアプリで開いているものはすべて閉じます：",
+  "item": "{app}：{closing}",
+  "save": "続ける前に作業内容を保存してください。未保存の変更があるアプリは確認を求めます。",
+  "restartAfter": "更新後に lilOS の再起動が必要です（{apps} による要求）。",
+  "titleUpdate": "{app} を更新しますか？",
+  "titleReinstall": "{app} を再インストールしますか？",
+  "titleUpdateMany": {
+    "other": "{n} 個のアプリを更新しますか？"
+  },
+  "titleReinstallMany": {
+    "other": "{n} 個のアプリを再インストールしますか？"
+  },
+  "cancel": "キャンセル",
+  "update": "更新",
+  "reinstall": "再インストール",
+  "closeAndUpdate": "閉じて更新",
+  "closeAndReinstall": "閉じて再インストール",
+  "notReady": "lilOS の準備がまだできていません",
+  "cancelled": "更新をキャンセルしました：閉じなかったウィンドウがあります",
+  "notLoaded": "{app}：lilOS を再起動しないと新しいバージョンを読み込めませんでした",
+  "restarting": "システムを再起動しています…",
+  "offTitle": "lilOS は停止しています",
+  "offText": "カーネルはすべてのユーザーに対して停止しました。再び起動するには、実行していた場所で起動し直し（npm run kernel、サービス、または lilOS プログラム）、このページを再読み込みしてください。",
+  "reload": "再読み込み",
+  "restartTitle": "lilOS を再起動しますか？",
+  "restartLead": "更新を完了するには lilOS を再起動する必要があります。",
+  "restartHint": "すべてのウィンドウが閉じてから再び開きます。他のアプリで作業内容を保存してください。",
+  "later": "後で",
+  "restartNow": "今すぐ再起動",
+  "systemUpdated": "lilOS をバージョン {version} に更新しました",
+  "failedTitle": "lilOS の更新に失敗しました",
+  "failedLead": "lilOS {version} {reason}：lilOS は自動的にバージョン {current} に戻りました。",
+  "failedHint": "失われたものはありません。AppStore から再試行できます。何が失敗したかはカーネルのログに記録されています。",
+  "ok": "OK",
+  "updatedTitle": "lilOS を {version} に更新しました",
+  "updatedLead": "更新に成功しました。lilOS {version} を使用しています。",
+  "updatedAsk": "以前のバージョン（{from}）はまだインストールされており、AppStore からそのバージョンに戻す場合にのみ必要です。削除しますか？",
+  "keep": "保持",
+  "deleteVersion": "{from} を削除",
+  "deleted": "lilOS {from} を削除しました"
+}

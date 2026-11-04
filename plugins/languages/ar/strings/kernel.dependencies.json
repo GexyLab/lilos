@@ -1,0 +1,37 @@
+{
+  "adminOnly": "يمكن للمسؤول فقط تثبيت الحزم أو إزالتها",
+  "needsLilos": "يتطلب {name} {version} الإصدار lilOS {range} (هذا هو {system})",
+  "moduleJson": "module.json ليس JSON صالحًا",
+  "byHand": "تمت إضافة {id} يدويًا: ويُحدَّث يدويًا",
+  "appInstalled": "{name} مثبّت بالفعل: لإصدار جديد استخدم التحديث",
+  "moduleInstalled": "{name} مثبّتة بالفعل: لإصدار جديد استخدم التحديث",
+  "replaced": "تم استبدال {name} بـ {by}: لم يعد يُثبَّت",
+  "appMissing": "التطبيق غير مثبّت",
+  "moduleOff": "الوحدة غير نشطة",
+  "otherApp": "الحزمة خاصة بالتطبيق {found}، وليس بـ {id}",
+  "otherModule": "الحزمة خاصة بالوحدة {found}، وليس بـ {id}",
+  "moduleNewer": "يلزم الوحدة {id} {range}: المثبّت هو {have} والأحدث هو {newer}",
+  "appNewer": "يلزم التطبيق {id} {range}: المثبّت هو {have} والأحدث هو {newer}",
+  "unreadable": "تعذّرت قراءة المستودع {url}: {message}",
+  "moduleNotInRepo": "لا يحتوي المستودع {url} على الوحدة {id}",
+  "appNotInRepo": "لا يحتوي المستودع {url} على التطبيق {id}",
+  "moduleRepoVersion": "يلزم الوحدة {id} {range}: يحتوي المستودع على {version}",
+  "appRepoVersion": "يلزم التطبيق {id} {range}: يحتوي المستودع على {version}",
+  "modulePlanned": "يحتاج {name} إلى الوحدة {id} {range}، لكن يجري تثبيت {version}",
+  "appPlanned": "يحتاج {name} إلى التطبيق {id} {range}، لكن يجري تثبيت {version}",
+  "circular": "تبعية دائرية بين {a} و{b}: لا يمكن تثبيت أي منهما قبل الآخر",
+  "consent": "الموافقة مفقودة لـ {keys}: راجع مجددًا ما سيتم تثبيته",
+  "haveVersion": "{id} {range} (الموجود {have})",
+  "missing": "يحتاج {name} إلى: {missing}. ثبّته من AppStore، الذي يثبّت أيضًا ما يحتاج إليه.",
+  "appNeeded": {
+    "one": "التطبيق {id} يحتاج إليه {names}: أزله أولًا",
+    "other": "التطبيق {id} تحتاج إليه {names}: أزلها أولًا"
+  },
+  "moduleNeeded": {
+    "one": "الوحدة {id} يحتاج إليها {names}: أزله أولًا",
+    "other": "الوحدة {id} تحتاج إليها {names}: أزلها أولًا"
+  },
+  "wantsOne": "يريد {name} {id} {range}: الإصدار {version} لا يصلح",
+  "wants": "يريد {name} {id} {range}",
+  "wantsMany": "{list}: الإصدار {version} لا يصلح"
+}

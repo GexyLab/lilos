@@ -1,0 +1,19 @@
+{
+  "key.Enter": "Enter",
+  "key.Escape": "Esc",
+  "key.Delete": "Del",
+  "key.Space": "Espaço",
+  "key.Insert": "Ins",
+  "key.End": "End",
+  "key.PageUp": "PgUp",
+  "key.PageDown": "PgDn",
+  "general": "Geral",
+  "exists": "Atalho já registrado: {id}",
+  "unknown": "Atalho não registrado: {id}",
+  "invalid": "Combinação inválida",
+  "noKey": "Pressione também uma tecla além de Ctrl, Alt ou Shift",
+  "reserved": "Combinação reservada pelo navegador",
+  "tabSpace": "Tab e Espaço sozinhos servem para navegar e para mover a área de trabalho",
+  "typingKey": "Uma tecla que digita deve ser usada com Ctrl, Alt ou Shift",
+  "whenEditing": "Este atalho também funciona enquanto você digita: precisa de Ctrl ou Alt"
+}

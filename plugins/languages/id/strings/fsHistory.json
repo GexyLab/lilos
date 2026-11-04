@@ -1,0 +1,18 @@
+{
+  "one": "“{name}”",
+  "many": "{n} item",
+  "home": "Beranda",
+  "gone": "Item sudah tidak ada",
+  "folderGone": "Folder tempat item berada sudah tidak ada",
+  "itemsGone": "Item-item sudah tidak ada",
+  "notTrashed": "Item sudah tidak ada di tempat sampah",
+  "createdGone": "Folder sudah tidak ada",
+  "foldersGone": "Item atau folder sudah tidak ada",
+  "delete": "Hapus {what}",
+  "trash": "Pindahkan {what} ke tempat sampah",
+  "restore": "Pulihkan {what}",
+  "create": "Buat “{name}”",
+  "rename": "Ganti nama “{from}” menjadi “{to}”",
+  "move": "Pindahkan “{name}” ke “{folder}”",
+  "moveMany": "Pindahkan {what} ke “{folder}”"
+}

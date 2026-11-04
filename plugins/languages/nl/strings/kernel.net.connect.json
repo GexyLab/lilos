@@ -1,0 +1,19 @@
+{
+  "noConnection": {
+    "one": "Geen verbinding binnen {n} seconde",
+    "other": "Geen verbinding binnen {n} seconden"
+  },
+  "untrusted": "Certificaat van {host} niet bevestigd ({reason})",
+  "cancelled": "Geannuleerd",
+  "refused": "Verbinding geweigerd ({code})",
+  "reset": "Verbinding verbroken door de server ({code})",
+  "notFound": "Onbekende servernaam ({code})",
+  "dns": "Servernaam niet omgezet (DNS) ({code})",
+  "timeout": "Time-out ({code})",
+  "hostUnreachable": "Server onbereikbaar ({code})",
+  "netUnreachable": "Netwerk onbereikbaar ({code})",
+  "closed": "Verbinding gesloten ({code})",
+  "aborted": "Geannuleerd ({code})",
+  "otherName": "Certificaat voor een andere naam ({code})",
+  "network": "Netwerkfout"
+}

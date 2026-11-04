@@ -1,0 +1,19 @@
+{
+  "key.Enter": "Enter",
+  "key.Escape": "Esc",
+  "key.Delete": "Del",
+  "key.Space": "Space",
+  "key.Insert": "Ins",
+  "key.End": "End",
+  "key.PageUp": "PgUp",
+  "key.PageDown": "PgDn",
+  "general": "全般",
+  "exists": "ショートカットはすでに登録されています：{id}",
+  "unknown": "ショートカットが登録されていません：{id}",
+  "invalid": "無効な組み合わせ",
+  "noKey": "Ctrl、Alt、Shift 以外のキーも押してください",
+  "reserved": "この組み合わせはブラウザーが予約しています",
+  "tabSpace": "Tab と Space の単独押しは、移動とデスクトップの移動に使われます",
+  "typingKey": "文字を入力するキーは Ctrl、Alt、Shift と組み合わせる必要があります",
+  "whenEditing": "このショートカットは入力中も機能するため、Ctrl または Alt が必要です"
+}

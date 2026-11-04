@@ -3,6 +3,14 @@ import { lookup } from 'node:dns/promises';
 import dns from 'node:dns';
 import { fail } from '../errors.js';
 import { editConfig } from '../config.js';
+import { defineStrings } from '../strings.js';
+
+const { t } = defineStrings('lilos:kernel.net.guard', { en: { strings: {
+  ranges: 'Ranges not valid (100 at most)',
+  range: 'Range not valid: {range} (write for example 192.168.1.50/32)',
+  noAddress: 'No address for {host}',
+  forbidden: 'Address not allowed for network connections',
+} } });
 
 const rules = list => {
   const b = new BlockList();
@@ -79,8 +87,8 @@ export class NetGuard {
     if (raw.allowLocal !== undefined) next.allowLocal = raw.allowLocal === true;
     if (raw.allowPrivate !== undefined) next.allowPrivate = raw.allowPrivate === true;
     if (raw.allow !== undefined) {
-      if (!Array.isArray(raw.allow) || raw.allow.length > 100) fail('invalid', 'Intervalli non validi (al massimo 100)');
-      next.allow = [...new Set(raw.allow.map(r => cleanRange(r) ?? fail('invalid', `Intervallo non valido: ${String(r).slice(0, 60)} (scrivi per esempio 192.168.1.50/32)`)))];
+      if (!Array.isArray(raw.allow) || raw.allow.length > 100) fail('invalid', t('ranges'));
+      next.allow = [...new Set(raw.allow.map(r => cleanRange(r) ?? fail('invalid', t('range', { range: String(r).slice(0, 60) }))))];
     }
     await editConfig(cfg => {
       cfg.net = { ...(cfg.net ?? {}), ...next };
@@ -113,7 +121,7 @@ export class NetGuard {
     const opts = typeof options === 'number' ? { family: options } : options ?? {};
     dns.lookup(host, { ...opts, all: true }, (err, list) => {
       if (err) return callback(err);
-      if (!list.length) return callback(Object.assign(new Error(`Nessun indirizzo per ${host}`), { code: 'ENOTFOUND' }));
+      if (!list.length) return callback(Object.assign(new Error(String(t('noAddress', { host }))), { code: 'ENOTFOUND', text: t('noAddress', { host }) }));
       try {
         for (const a of list) this.checkIp(a.address);
       } catch (refused) {
@@ -131,7 +139,7 @@ export class NetGuard {
     if (this.allow.check(ip, family) && !NEVER.check(ip, family)) return;
     if (this.allowLocal && LOCAL.check(ip, family)) return;
     if (ALWAYS.check(ip, family) || (!this.allowPrivate && PRIVATE.check(ip, family))) {
-      fail('forbidden', 'Indirizzo non permesso per le connessioni di rete');
+      fail('forbidden', t('forbidden'));
     }
   }
 }

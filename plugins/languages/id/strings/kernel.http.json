@@ -1,0 +1,9 @@
+{
+  "badPath": "Alamat tidak valid",
+  "tooLarge": "Permintaan terlalu besar",
+  "notJson": "Isi permintaan bukan JSON yang valid",
+  "notAllowed": "Permintaan tidak diizinkan",
+  "noOrigin": "Origin tidak ada",
+  "badOrigin": "Origin tidak diizinkan",
+  "badHost": "Host tidak diizinkan"
+}

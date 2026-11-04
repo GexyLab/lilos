@@ -1,0 +1,14 @@
+{
+  "home.description": "La carpeta principal, con todas las demás",
+  "folder.description": "La carpeta {name}, compartida por todos los espacios de trabajo",
+  "files.description": "Abre el File Manager",
+  "trash": "Papelera",
+  "trash.description": "Abre la papelera; puedes arrastrar archivos y carpetas sobre ella",
+  "noDesk": "El escritorio no está",
+  "folderGone": "La carpeta {name} ya no está",
+  "trashedOne": "Movido a la papelera",
+  "trashedMany": {
+    "one": "{n} elemento movido a la papelera",
+    "other": "{n} elementos movidos a la papelera"
+  }
+}

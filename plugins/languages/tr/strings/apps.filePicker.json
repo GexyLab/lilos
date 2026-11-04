@@ -1,0 +1,14 @@
+{
+  "title": "Bir dosya seçin",
+  "search": "Ada veya yola göre ara",
+  "searchLabel": "Ara",
+  "folders": "Klasörler",
+  "files": "Dosyalar",
+  "choose": "Seç",
+  "cancel": "İptal",
+  "home": "Home",
+  "noMatch": "Aramayla eşleşen bir şey yok",
+  "noFolders": "Klasör yok",
+  "noFiles": "lilOS’ta dosya yok",
+  "noFilesOf": "lilOS’ta {exts} dosyası yok"
+}

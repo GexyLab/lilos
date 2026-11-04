@@ -1,0 +1,7 @@
+{
+  "start": "lilOS-Menü",
+  "menu": "Menü",
+  "menuKeys": "Menü ({keys})",
+  "taskbar": "Taskleiste",
+  "tray": "Infobereich"
+}

@@ -1,0 +1,12 @@
+{
+  "folder": "module.json이 {folder} 폴더와 일치하지 않습니다",
+  "kernel": "{name}에는 커널 {kernel}이(가) 필요하지만 현재 {api}입니다",
+  "services": "{name}: 잘못된 서비스 이름",
+  "settings": "{name}: 잘못된 설정",
+  "replaces": "{name}: 잘못된 replaces",
+  "notInstalled": "설치되지 않은 모듈: {name}",
+  "twice": "두 번 지정된 모듈: {name}",
+  "provider": "서비스 \"{service}\"을(를) {first}와(과) {second}이(가) 모두 제공합니다",
+  "cycle": "모듈 간 순환 종속성({name})",
+  "missing": "{name}에는 서비스 \"{service}\"이(가) 필요하지만 이를 제공하는 활성 모듈이 없습니다"
+}

@@ -1,0 +1,11 @@
+{
+  "official": "lilOS resmi",
+  "adminOnly": "Depoları yalnızca bir yönetici yönetebilir",
+  "missing": "Depo bulunamadı",
+  "present": "Depo zaten eklenmiş",
+  "tooMany": "En fazla {max} depo",
+  "notOfficial": "Resmi depo kaldırılamaz",
+  "catalog": "catalog.json eksik veya geçerli bir JSON değil",
+  "notInCatalog": "Paket katalogda yok",
+  "file": "Dosya geçersiz"
+}

@@ -1,0 +1,19 @@
+{
+  "noAutomata": "Automata nie jest zainstalowana",
+  "theAutomation": "Automatyzacja",
+  "theFile": "Plik",
+  "gone": "{name} już nie istnieje",
+  "openedFile": "Otwarto {name}",
+  "appMissing": "Aplikacja {app} nie jest zainstalowana",
+  "openedApp": "Otwarto {app}",
+  "title": "Oczekujące operacje",
+  "skippedByUser": "Pominięte przez użytkownika lilOS",
+  "automation": "Automatyzacja",
+  "due": "termin: {time}",
+  "dueWith": "{label} · termin: {time}",
+  "always": "Od teraz uruchamiaj bez pytania",
+  "runNow": "Uruchom teraz",
+  "skip": "Pomiń",
+  "lead": "Gdy lilOS był zamknięty, nadszedł czas na:",
+  "hint": "Te, na które nie odpowiesz, będą czekać do następnego otwarcia lilOS, a potem wygasną."
+}

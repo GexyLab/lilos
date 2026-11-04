@@ -1,0 +1,7 @@
+{
+  "canceled": "キャンセルされました",
+  "offline": "lilOS カーネルが応答していません",
+  "status": "エラー {status}",
+  "badModule": "無効なモジュール",
+  "badPath": "無効なパス"
+}

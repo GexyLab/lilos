@@ -1,0 +1,38 @@
+{
+  "newFolder": "Nova pasta",
+  "newDocument": "Novo documento.txt",
+  "fixedOne": "“{name}” é um item fixo da área de trabalho: não pode ser excluído",
+  "fixedMany": "Os itens fixos da área de trabalho não podem ser excluídos",
+  "fixedStay": "Os itens fixos da área de trabalho ficam: só o resto é excluído",
+  "removeWithAreas": {
+    "one": "{what} e excluir 1 zona de trabalho",
+    "other": "{what} e excluir {n} zonas de trabalho"
+  },
+  "arrange": "Organizar ícones",
+  "moveOne": "Mover “{name}”",
+  "moveMany": {
+    "one": "Mover {n} item",
+    "other": "Mover {n} itens"
+  },
+  "gone": "Os itens não estão mais lá",
+  "area.open": "Abrir a zona de trabalho",
+  "rename": "Renomear",
+  "properties": "Propriedades…",
+  "area.remove": "Excluir a zona de trabalho…",
+  "open": "Abrir",
+  "openMany": {
+    "one": "Abrir {n} item",
+    "other": "Abrir {n} itens"
+  },
+  "fixed.hide": "Remover da área de trabalho",
+  "fixed.hidden": "“{name}” pode ser recolocado em Painel de controle → Espaço de trabalho → Este espaço de trabalho",
+  "fixed.settings": "Itens fixos da área de trabalho…",
+  "openWith": "Abrir com…",
+  "wallpaper": "Usar como plano de fundo da área de trabalho",
+  "area.fromSelection": "Criar uma zona de trabalho com a seleção",
+  "remove": "Excluir",
+  "removeMany": {
+    "one": "Excluir {n} item",
+    "other": "Excluir {n} itens"
+  }
+}

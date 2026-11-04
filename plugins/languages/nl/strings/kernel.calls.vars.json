@@ -1,0 +1,7 @@
+{
+  "tooBig": "De variabelen worden te groot (maximaal 4 MB)",
+  "notJson": "Het antwoord is geen JSON",
+  "source": "Ongeldige bron",
+  "regex": "Reguliere expressie ongeldig of te traag",
+  "condition": "Ongeldige voorwaarde"
+}

@@ -1,0 +1,18 @@
+{
+  "one": "“{name}”",
+  "many": "{n} öğe",
+  "home": "Home",
+  "gone": "Öğe artık yok",
+  "folderGone": "Öğelerin bulunduğu klasör artık yok",
+  "itemsGone": "Öğeler artık yok",
+  "notTrashed": "Öğeler artık Çöp Kutusu’nda değil",
+  "createdGone": "Klasör artık yok",
+  "foldersGone": "Öğeler veya klasörler artık yok",
+  "delete": "Sil: {what}",
+  "trash": "Çöp Kutusu’na taşı: {what}",
+  "restore": "Geri yükle: {what}",
+  "create": "Oluştur: “{name}”",
+  "rename": "“{from}” öğesini “{to}” olarak yeniden adlandır",
+  "move": "“{name}” öğesini “{folder}” klasörüne taşı",
+  "moveMany": "“{folder}” klasörüne taşı: {what}"
+}

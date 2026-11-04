@@ -1,0 +1,14 @@
+{
+  "mainWindow": "Jendela utama",
+  "paramsObject": "Parameter harus berupa objek JSON, di antara { }",
+  "paramsTooLong": "Parameter terlalu panjang (paling banyak 4 KB)",
+  "invalid": "{param}: nilai tidak valid",
+  "fileGone": "{param}: file sudah tidak ada",
+  "folderGone": "{param}: folder sudah tidak ada",
+  "notOpened": "{app} tidak terbuka dengan sendirinya. {message}",
+  "notInstalled": "Aplikasi tidak terinstal",
+  "maxApps": "Paling banyak {max} aplikasi saat memulai",
+  "unknownEntry": "Titik masuk tidak dikenal",
+  "entryNotAtStartup": "Titik masuk tidak ada di startup",
+  "skipped": "Dimulai tanpa aplikasi: alamat berisi ?avvio=no"
+}

@@ -1,0 +1,23 @@
+{
+  "tooMany": "Como máximo {max} áreas de trabajo",
+  "overlap": "Ya hay otra área de trabajo ahí: las áreas no pueden superponerse",
+  "undo.create": "Crear el área de trabajo «{title}»",
+  "undo.rename": "Cambiar el nombre del área de trabajo «{before}» a «{after}»",
+  "undo.remove": "Eliminar el área de trabajo «{title}»",
+  "undo.move": "Mover el área de trabajo «{title}»",
+  "undo.resize": "Cambiar el tamaño del área de trabajo «{title}»",
+  "gone": "El área de trabajo ya no existe",
+  "already": "El área de trabajo ya está ahí",
+  "occupied": "Ahora hay otra área de trabajo ahí",
+  "notOpen": "El área de trabajo no está abierta",
+  "removeOne": "Eliminar el área de trabajo «{title}» (su contenido se queda en el escritorio)",
+  "removeMany": {
+    "one": "Eliminar {n} área de trabajo (su contenido se queda en el escritorio)",
+    "other": "Eliminar {n} áreas de trabajo (su contenido se queda en el escritorio)"
+  },
+  "menu.title": "Área de trabajo «{title}»",
+  "menu.rename": "Cambiar el nombre del área de trabajo",
+  "menu.properties": "Propiedades…",
+  "menu.collapse": "Minimizar a un icono",
+  "menu.remove": "Eliminar el área de trabajo…"
+}

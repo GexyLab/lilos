@@ -15,8 +15,12 @@ export function closeMenu() {
  *   placement: 'below' opens from the point downwards, 'above' puts the menu's bottom edge on the point
  *
  * Keyboard: ↑ ↓ move, → or Enter opens a submenu, ← or Esc closes it (Esc on the first level closes all).
+ * Right to left (<html dir="rtl">): x is where the menu's right edge goes, submenus open on the left
+ * and ← / → swap.
  */
 export function openMenu(x, y, items, { placement = 'below' } = {}) {
+  const rtl = document.documentElement.dir === 'rtl';
+  const [back, forward] = rtl ? ['ArrowRight', 'ArrowLeft'] : ['ArrowLeft', 'ArrowRight'];
   closeMenu();
   const levels = [];   // open panels, first = root
 
@@ -57,11 +61,13 @@ export function openMenu(x, y, items, { placement = 'below' } = {}) {
 
   function place(el, px, py, opts = {}) {
     const r = el.getBoundingClientRect();
-    let left = px, top = opts.above ? py - r.height : py;
+    let left = rtl ? px - r.width : px, top = opts.above ? py - r.height : py;
     if (opts.besideOf) {
-      // Submenu: right of the parent item, or left of the parent menu if there is no room
+      // Submenu: after the parent item in the reading direction, or on the other side if there is no room
       const p = opts.besideOf;
-      left = p.right + r.width + 4 <= innerWidth ? p.right - 2 : Math.max(4, p.left - r.width + 2);
+      const after = p.right + r.width + 4 <= innerWidth ? p.right - 2 : null;
+      const before = p.left - r.width + 2 >= 4 ? p.left - r.width + 2 : null;
+      left = (rtl ? before ?? after : after ?? before) ?? Math.max(4, p.left - r.width + 2);
       top = p.top - 5;
     }
     el.style.left = Math.max(4, Math.min(left, innerWidth - r.width - 4)) + 'px';
@@ -100,7 +106,7 @@ export function openMenu(x, y, items, { placement = 'below' } = {}) {
     const depth = levels.findIndex(l => l.el.contains(document.activeElement));
     const level = levels[depth] ?? levels[levels.length - 1];
     const d = depth === -1 ? levels.length - 1 : depth;
-    if (e.key === 'Escape' || (e.key === 'ArrowLeft' && d > 0)) {
+    if (e.key === 'Escape' || (e.key === back && d > 0)) {
       e.preventDefault();
       if (d === 0) return close();
       const owner = levels[d].owner;
@@ -108,7 +114,7 @@ export function openMenu(x, y, items, { placement = 'below' } = {}) {
       owner?.focus();
       return;
     }
-    if (e.key === 'ArrowRight' || (e.key === 'Enter' && document.activeElement?.classList.contains('has-sub'))) {
+    if (e.key === forward || (e.key === 'Enter' && document.activeElement?.classList.contains('has-sub'))) {
       const b = document.activeElement;
       if (b?.classList.contains('has-sub') && level.buttons.includes(b)) {
         e.preventDefault();

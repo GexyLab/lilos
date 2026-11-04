@@ -1,0 +1,7 @@
+{
+  "restart": "Uruchom ponownie lilOS, aby dokończyć aktualizacje",
+  "reopen": "Zaktualizowane aplikacje do ponownego uruchomienia",
+  "heading": "Zaktualizowane, otwarte w poprzedniej wersji",
+  "reopenApp": "Uruchom ponownie {name} ({version})",
+  "restartSystem": "Uruchom ponownie lilOS"
+}

@@ -1,0 +1,22 @@
+{
+  "choose.serial": "직렬 포트 선택",
+  "choose.usb": "USB 장치 선택",
+  "choose.hid": "장치 선택",
+  "choose.bluetooth": "Bluetooth 장치 선택",
+  "choose.screen": "공유할 항목 선택",
+  "choose.text.serial": "앱에서 컴퓨터의 직렬 포트를 사용하려고 합니다.",
+  "choose.text.usb": "앱에서 컴퓨터의 USB 장치를 사용하려고 합니다.",
+  "choose.text.hid": "앱에서 컴퓨터의 장치(키패드, 리더기, 컨트롤러…)를 사용하려고 합니다.",
+  "choose.text.bluetooth": "앱에서 컴퓨터 근처의 Bluetooth 장치를 사용하려고 합니다.",
+  "choose.text.screen": "앱에서 컴퓨터의 화면이나 창을 보려고 합니다.",
+  "choose.field": "장치",
+  "choose.none": "장치를 찾을 수 없습니다. 장치를 연결하고 다시 시도하세요.",
+  "connect": "연결",
+  "share": "공유",
+  "saved": "컴퓨터의 프로그램에서 “{name}”을(를) 저장했습니다",
+  "saveFailed": "“{name}”을(를) lilOS에 다시 저장하지 못했습니다: {error}",
+  "missing": "“{path}”이(가) lilOS에 없습니다",
+  "driveIn": "“{name}”은(는) 네트워크 › 이 컴퓨터에 있습니다",
+  "driveFailed": "“{name}”이(가) 연결되지 않았습니다: {error}",
+  "serialPort": "직렬 포트"
+}

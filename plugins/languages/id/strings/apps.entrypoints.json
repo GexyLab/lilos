@@ -1,0 +1,6 @@
+{
+  "notInstalled": "Aplikasi tidak terinstal: {id}",
+  "hidden": "{app} disembunyikan di ruang kerja ini",
+  "noEntry": "{app} tidak memiliki titik masuk {entry}",
+  "backgroundOnly": "Anda hanya dapat terhubung ke titik masuk latar belakang"
+}

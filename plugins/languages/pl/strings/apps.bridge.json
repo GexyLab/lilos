@@ -1,0 +1,7 @@
+{
+  "noPipeFn": "Brak funkcji potoku",
+  "noHandler": "{id}: {entry} nie odpowiada na wywołania (brak lilos.handle)",
+  "noPipe": "{id}: brak funkcji dla tego potoku",
+  "libraryFailed": "Biblioteka nie została załadowana",
+  "noExport": "Kod nie eksportuje {entry}"
+}

@@ -1,0 +1,6 @@
+{
+  "needHttp": "Bir http veya https adresi gerekiyor",
+  "noAnswer": {
+    "other": "{n} saniye içinde yanıt yok"
+  }
+}

@@ -1,4 +1,4 @@
-import { automation, fs, h } from '@lilos/sdk';
+import { automation, fs, h, locale } from '@lilos/sdk';
 import { launch, isInstalled } from '../apps/registry.js';
 import { defineSystemActions } from './actions.js';
 import { connectAppActions } from './apps.js';
@@ -15,6 +15,13 @@ import { connectTriggers } from './triggers.js';
  * button in the taskbar). The Automata app shows it all, through `automations` (@lilos/system).
  */
 let inputs = [];
+
+const { t } = locale.define('lilos:automation.index', {
+  en: { strings: {
+    recording: { one: 'Recording ({n} step)', other: 'Recording ({n} steps)' },
+    paused: { one: 'Recording paused ({n} step)', other: 'Recording paused ({n} steps)' },
+  } },
+});
 
 export const automations = Object.freeze({
   FORMAT, INPUTS, ON_ERROR, MODES, TRIGGERS, EXT, FOLDER: AUTOMATIONS,
@@ -67,7 +74,7 @@ function recButton() {
     button.classList.toggle('paused', automation.paused);
     const n = automation.steps().filter(s => !s.retracted && !s.missed).length;
     count.textContent = n ? ` · ${n}` : '';
-    const label = automation.paused ? `Registrazione in pausa (${n} passi)` : `Registrazione in corso (${n} passi)`;
+    const label = t(automation.paused ? 'paused' : 'recording', { n });
     button.title = label;
     button.setAttribute('aria-label', label);
   };

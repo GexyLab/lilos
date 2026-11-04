@@ -1,0 +1,19 @@
+{
+  "noAutomata": "Automata がインストールされていません",
+  "theAutomation": "このオートメーション",
+  "theFile": "このファイル",
+  "gone": "{name} はもうありません",
+  "openedFile": "{name} を開きました",
+  "appMissing": "アプリ {app} がインストールされていません",
+  "openedApp": "{app} を開きました",
+  "title": "保留中の操作",
+  "skippedByUser": "lilOS のユーザーがスキップしました",
+  "automation": "オートメーション",
+  "due": "予定 {time}",
+  "dueWith": "{label} · 予定 {time}",
+  "always": "今後は確認せずに実行する",
+  "runNow": "今すぐ実行",
+  "skip": "スキップ",
+  "lead": "lilOS が閉じている間に、次の操作の時刻になりました：",
+  "hint": "応答しなかった操作は、次に lilOS を開くまで待機し、その後期限切れになります。"
+}

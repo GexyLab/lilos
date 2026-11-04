@@ -1,0 +1,6 @@
+{
+  "notStarted": "{app} nu a pornit: {message}",
+  "noExport": "Codul nu exportă {entry}",
+  "codeError": "eroare în cod",
+  "stopped": "{app} s-a oprit"
+}

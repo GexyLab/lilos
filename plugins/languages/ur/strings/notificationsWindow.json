@@ -1,0 +1,16 @@
+{
+  "title": "اطلاعات",
+  "today": "آج",
+  "yesterday": "کل",
+  "markAll": "سب کو پڑھا ہوا نشان زد کریں",
+  "clearAll": "سب حذف کریں",
+  "clearFailed": "اطلاعات حذف نہیں ہوئیں: {message}",
+  "removeFailed": "اطلاع حذف نہیں ہوئی: {message}",
+  "kept": "{keep} میں سے {count} محفوظ",
+  "fresh": {
+    "one": "{kept} · {n} نئی",
+    "other": "{kept} · {n} نئی"
+  },
+  "empty": "کوئی اطلاع نہیں",
+  "remove": "حذف کریں"
+}

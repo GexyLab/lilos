@@ -1,0 +1,37 @@
+{
+  "subtitle": "Właściwości strefy roboczej",
+  "title": "Tytuł",
+  "description": "Opis",
+  "placeholder": "Do czego służy ta strefa robocza",
+  "addMeta": "Dodaj pole metadanych",
+  "created": "Utworzono",
+  "modified": "Zmodyfikowano",
+  "state": "Stan",
+  "collapsed": "Zminimalizowana do ikony",
+  "open": "Otwarta na pulpicie",
+  "contents": "Zawartość",
+  "items": {
+    "one": "{n} element",
+    "few": "{n} elementy",
+    "many": "{n} elementów",
+    "other": "{n} elementu"
+  },
+  "windows": {
+    "one": "{n} okno",
+    "few": "{n} okna",
+    "many": "{n} okien",
+    "other": "{n} okna"
+  },
+  "contentsValue": "{items}, {windows}",
+  "size": "Rozmiar",
+  "metaName": "Nazwa",
+  "metaNameLabel": "Nazwa pola metadanych {n}",
+  "metaValue": "Wartość",
+  "metaValueLabel": "Wartość pola metadanych {n}",
+  "removeMeta": "Usuń pole metadanych",
+  "removeMetaLabel": "Usuń pole metadanych {name}",
+  "noMeta": "Brak metadanych. Dodaj je, aby zanotować na przykład klienta, termin lub stan.",
+  "maxMeta": "Najwyżej {max} pól metadanych.",
+  "info": "Informacje",
+  "customMeta": "Własne metadane"
+}

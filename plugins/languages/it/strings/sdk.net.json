@@ -1,0 +1,8 @@
+{
+  "blockedWindow": "Il browser ha bloccato la finestra di accesso",
+  "blockedTab": "Il browser ha bloccato la scheda di accesso",
+  "canceled": "Accesso annullato",
+  "failed": "Accesso non riuscito",
+  "noAskAddress": "askAddress mancante",
+  "badAddress": "Indirizzo non valido"
+}

@@ -1,6 +1,7 @@
 import { randomBytes } from 'node:crypto';
 import { fail } from '../errors.js';
 import { errorOf } from './request.js';
+import { Text, defineStrings, localize, localizedJson } from '../strings.js';
 
 /**
  * NetTest's live sessions (WebSocket, SSE, TCP, TLS, UDP, and the modules' protocols: gRPC streams,
@@ -26,6 +27,17 @@ const MAX_SEND = 16 << 20;
 
 const newId = () => randomBytes(8).toString('hex');
 
+const { t } = defineStrings('lilos:kernel.calls.sessions', { en: { strings: {
+  notFound: 'Session not found',
+  tooMany: 'At most {max} sessions open',
+  stopping: 'The kernel is stopping',
+  detached: 'Closed after 10 minutes without a window',
+  notConnected: 'The session is not connected',
+  tooBig: 'Message too large',
+  noCommand: 'Command not available',
+  connected: 'Connected',
+} } });
+
 export class CallSessions {
   #calls;
   #sessions = new Map();
@@ -44,13 +56,13 @@ export class CallSessions {
 
   get(principal, id) {
     const s = typeof id === 'string' && this.#sessions.get(id);
-    if (!s || s.owner !== principal?.id) fail('not_found', 'Sessione inesistente');
+    if (!s || s.owner !== principal?.id) fail('not_found', t('notFound'));
     return s;
   }
 
   /** spec: { protocol, values (variables and secrets put in), name, address, tls(host, port) }. */
   open(principal, spec) {
-    if (this.#mine(principal).filter(s => s.state !== 'closed').length >= MAX_SESSIONS) fail('rate_limited', `Al massimo ${MAX_SESSIONS} sessioni aperte`);
+    if (this.#mine(principal).filter(s => s.state !== 'closed').length >= MAX_SESSIONS) fail('rate_limited', t('tooMany', { max: MAX_SESSIONS }));
     const s = new Session(this, principal, spec);
     this.#sessions.set(s.id, s);
     s.armDetached();
@@ -77,7 +89,7 @@ export class CallSessions {
   get calls() { return this.#calls; }
 
   async stop() {
-    await Promise.all([...this.#sessions.values()].map(s => s.end('Il kernel si sta fermando').catch(() => {})));
+    await Promise.all([...this.#sessions.values()].map(s => s.end(t('stopping')).catch(() => {})));
     this.#sessions.clear();
   }
 }
@@ -92,10 +104,12 @@ class Session {
   #n = 0;
   #timer = null;
   #abort = new AbortController();
+  #locale;      // the language of the kernel's own messages (the user's, or the page's)
 
   constructor(owner, principal, spec) {
     this.#owner = owner;
     this.#spec = spec;
+    this.#locale = spec.locale ?? 'en';
     this.principal = principal;
     this.id = newId();
     this.owner = principal.id;
@@ -114,7 +128,7 @@ class Session {
   }
 
   #control(msg) {
-    this.#socket?.send(JSON.stringify(msg));
+    this.#socket?.send(localizedJson(msg, this.#locale));
   }
 
   #setState(state, reason = this.reason) {
@@ -129,7 +143,7 @@ class Session {
     if (this.state === 'closed') return this.#owner.forget(this);
     this.closesAt = Date.now() + DETACHED_FOR;
     this.#timer = setTimeout(() => {
-      this.end('Chiusa dopo 10 minuti senza finestra').catch(() => {});
+      this.end(t('detached')).catch(() => {});
       this.#owner.forget(this);
     }, DETACHED_FOR);
     this.#timer.unref?.();
@@ -137,7 +151,8 @@ class Session {
 
   /** A message to keep and show: in, out, or the session's own ('sys'). A secret value in it is written •••• (the page never sees one). */
   #keep(dir, msg) {
-    const raw = typeof msg.data === 'string' ? msg.data : msg.data === undefined ? '' : JSON.stringify(msg.data);
+    // The kernel's own words (a Text) in the language of the session: they are kept, and sent again later, as text
+    const raw = msg.data instanceof Text ? localize(msg.data, this.#locale) : typeof msg.data === 'string' ? msg.data : msg.data === undefined ? '' : JSON.stringify(msg.data);
     const mask = this.#spec.mask ?? (x => x);
     const data = msg.type === 'binary' ? raw : mask(raw);
     if (msg.meta && typeof msg.meta === 'object') msg = { ...msg, meta: JSON.parse(mask(JSON.stringify(msg.meta))) };
@@ -148,7 +163,9 @@ class Session {
     this.#control({ t: 'msg', item });
   }
 
-  attach(ws) {
+  /** locale: the page's language (strings.js localeOf), if known. */
+  attach(ws, locale = null) {
+    if (locale) this.#locale = locale;
     const old = this.#socket;
     if (old) {
       old.send(JSON.stringify({ t: 'taken' }));
@@ -157,7 +174,7 @@ class Session {
     clearTimeout(this.#timer);
     this.closesAt = null;
     this.#socket = ws;
-    ws.send(JSON.stringify({ t: 'state', session: this.view() }));
+    ws.send(localizedJson({ t: 'state', session: this.view() }, this.#locale));
     ws.send(JSON.stringify({ t: 'history', items: this.#kept }));
     ws.on('message', (data, binary) => { if (!binary) this.#command(data); });
     ws.on('close', () => {
@@ -175,9 +192,9 @@ class Session {
     try { msg = JSON.parse(data.toString('utf8')); } catch { return; }
     if (msg?.t === 'send' && msg.msg && typeof msg.msg === 'object') {
       try {
-        if (this.state !== 'on' || !this.#conn) fail('invalid', 'La sessione non è collegata');
+        if (this.state !== 'on' || !this.#conn) fail('invalid', t('notConnected'));
         const out = { type: ['text', 'binary', 'json'].includes(msg.msg.type) ? msg.msg.type : 'text', data: String(msg.msg.data ?? ''), ...(msg.msg.meta && typeof msg.msg.meta === 'object' && { meta: msg.msg.meta }) };
-        if (out.data.length > MAX_SEND) fail('too_large', 'Messaggio troppo grande');
+        if (out.data.length > MAX_SEND) fail('too_large', t('tooBig'));
         await this.#conn.send(out);
         this.#keep('out', out);
       } catch (err) {
@@ -186,7 +203,7 @@ class Session {
     } else if (msg?.t === 'command' && typeof msg.name === 'string') {
       const reply = r => this.#control({ t: 'result', id: msg.id ?? null, ...r });
       try {
-        if (this.state !== 'on' || typeof this.#conn?.command !== 'function') fail('invalid', 'Comando non disponibile');
+        if (this.state !== 'on' || typeof this.#conn?.command !== 'function') fail('invalid', t('noCommand'));
         const result = await this.#conn.command(msg.name.slice(0, 40), msg.args ?? null);
         if (msg.name !== 'ping') this.#keep('sys', { type: 'info', data: `${msg.name}${msg.args ? ` ${JSON.stringify(msg.args).slice(0, 300)}` : ''}` });
         reply({ result: result ?? null });
@@ -213,7 +230,7 @@ class Session {
       if (this.#abort.signal.aborted || this.state === 'closed') { try { conn.close(); } catch { /* gone */ } return; }
       this.#conn = conn;
       s.values = null;   // gone with the secrets in them; only the mask stays, to write them •••• in what comes
-      this.#keep('sys', { type: 'info', data: 'Collegato' });
+      this.#keep('sys', { type: 'info', data: t('connected') });
       this.#setState('on', '');
     } catch (err) {
       if (this.state === 'closed') return;

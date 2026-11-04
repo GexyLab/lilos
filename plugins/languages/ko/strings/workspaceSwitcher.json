@@ -1,0 +1,16 @@
+{
+  "area": "작업 공간",
+  "toChange": "{keys}(으)로 변경",
+  "menu": "작업 공간…",
+  "menuLabel": "작업 공간 메뉴",
+  "button": "작업 공간: {name}",
+  "buttonKeys": "작업 공간: {name}({keys}(으)로 변경)",
+  "buttonLabel": "작업 공간 {name}: 작업 공간 변경",
+  "heading": "작업 공간",
+  "next": "다음",
+  "previous": "이전",
+  "create": "새 작업 공간",
+  "showCurrent": "현재 작업 공간만 표시",
+  "showAll": "모든 작업 공간 표시",
+  "manage": "작업 공간 관리…"
+}

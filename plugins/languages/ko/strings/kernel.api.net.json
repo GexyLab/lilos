@@ -1,0 +1,14 @@
+{
+  "signIn": "먼저 로그인하세요",
+  "adminOnly": "관리자 전용",
+  "mount": "잘못된 연결",
+  "tooManyTries": "진행 중인 연결 시도가 너무 많습니다",
+  "notOnServer": "서버에 존재하지 않습니다",
+  "notFile": "파일이 아닙니다",
+  "webOnly": "웹에서만 열립니다",
+  "tooLarge": "파일이 너무 큽니다",
+  "op": "잘못된 작업",
+  "import": "잘못된 가져오기",
+  "signin": "잘못된 로그인",
+  "item": "잘못된 항목"
+}

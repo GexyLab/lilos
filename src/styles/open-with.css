@@ -2,7 +2,7 @@
 .ow { flex: 1; display: flex; flex-direction: column; gap: 10px; padding: 14px 16px 12px; user-select: none; }
 .ow-text { color: var(--text); line-height: 1.45; overflow-wrap: anywhere; }
 .ow-list { display: flex; flex-direction: column; gap: 2px; border: 1px solid var(--border); border-radius: 6px; padding: 4px; }
-.ow-app { height: 36px; display: flex; align-items: center; gap: 10px; padding: 0 8px; border-radius: var(--radius-sm); text-align: left; }
+.ow-app { height: 36px; display: flex; align-items: center; gap: 10px; padding: 0 8px; border-radius: var(--radius-sm); text-align: start; }
 .ow-app:hover { background: var(--hover); }
 .ow-app.on { background: var(--accent-soft); color: var(--accent); font-weight: 400; }
 .ow-app .app-icon { width: 24px; height: 24px; }
@@ -27,6 +27,8 @@
 .fp-badge { flex: none; min-width: 32px; padding: 0 4px; border-radius: 3px; color: #fff; font: 600 9px/16px var(--font); text-align: center; }
 .fp-name { color: var(--text); overflow: hidden; text-overflow: ellipsis; }
 .fp-path { flex: 1; min-width: 0; color: var(--faint); font: 11px var(--mono); overflow: hidden; text-overflow: ellipsis; text-align: right; }
+/* A path reads left to right in any language (/Documenti/Lavoro); at the end of the row: left */
+[dir="rtl"] .fp-path { direction: ltr; text-align: left; }
 .fp-empty { padding: 30px 8px; text-align: center; color: var(--faint); }
 .fp-buttons { display: flex; justify-content: flex-end; gap: 6px; }
 .fp-badge.folder { background: none; color: #6f9bff; min-width: 20px; display: grid; place-items: center; }

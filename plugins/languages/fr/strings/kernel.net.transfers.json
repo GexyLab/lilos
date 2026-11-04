@@ -1,0 +1,43 @@
+{
+  "sources": "Éléments à transférer non valides",
+  "notFolder": "La destination n’est pas un dossier",
+  "homeToHome": "Copie entre dossiers de lilOS : ce n’est pas un transfert réseau",
+  "intoItself": "Un dossier ne peut pas être copié dans lui-même",
+  "nothing": "Rien à transférer",
+  "tooMany": "Trop de transferts dans la file d’attente",
+  "itemNotFound": "Élément introuvable",
+  "noConflict": "Aucun conflit à résoudre",
+  "choice": "Choix non valide",
+  "queueNotFound": "File d’attente introuvable",
+  "serverNotFound": "N’existe pas sur le serveur",
+  "badName": "Nom qui ne peut pas être transféré : {name}",
+  "webOnly": "« {name} » ne s’ouvre que sur le web : il n’est pas copié",
+  "place": "Emplacement non valide",
+  "tooManyFiles": "Trop de fichiers à transférer",
+  "tooDeep": "Dossiers trop imbriqués",
+  "someFailed": "Certains fichiers n’ont pas été transférés",
+  "dstLost": "Dossier de destination perdu",
+  "fileThere": "Il existe déjà un fichier « {name} » là où va le dossier",
+  "retrying": "{message} · nouvelle tentative",
+  "folderThere": "Il existe déjà un dossier « {name} » là où va le fichier",
+  "notFileThere": "Il existe déjà un élément « {name} » qui n’est pas un fichier",
+  "done": {
+    "one": "{n} fichier transféré vers « {queue} » ({size})",
+    "other": "{n} fichiers transférés vers « {queue} » ({size})"
+  },
+  "failed": {
+    "one": "{n} fichier non transféré",
+    "other": "{n} fichiers non transférés"
+  },
+  "failedIn": {
+    "one": "{n} fichier non transféré vers « {queue} »",
+    "other": "{n} fichiers non transférés vers « {queue} »"
+  },
+  "complete": "Transfert terminé : {files}.",
+  "allFailed": "Échec du transfert : {files}.",
+  "partial": "Transfert terminé avec des erreurs : {done}. {failed}.",
+  "bytes": {
+    "one": "{n} octet",
+    "other": "{n} octets"
+  }
+}

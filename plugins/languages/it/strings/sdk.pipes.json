@@ -1,0 +1,28 @@
+{
+  "stopped": "Operazione fermata",
+  "badName": "Nome di evento non valido: {name}",
+  "appEvent": "Un evento di un’app è <id dell’app>.<nome>",
+  "exists": "L’evento {name} esiste già",
+  "unknown": "Evento sconosciuto: {name}",
+  "stage": "stage deve essere \"before\" o \"after\"",
+  "position": "position deve essere \"first\", \"middle\" o \"last\"",
+  "noHandler": "Manca la funzione della pipe",
+  "reserved": "L’evento {name} è riservato al sistema",
+  "syncOnly": "{name} è un’operazione immediata: le app la possono solo osservare (stage \"after\")",
+  "maxSubs": {
+    "one": "Al massimo {n} iscrizione per app",
+    "other": "Al massimo {n} iscrizioni per app"
+  },
+  "busy": "Troppe operazioni in corso",
+  "busyApp": "Troppe operazioni in corso per questa app",
+  "syncAnswer": "{name}: un’operazione immediata vuole una risposta immediata",
+  "handlerFailed": "{name}: {message}",
+  "cannotStop": "{name}: l’evento {event} non si può fermare",
+  "whereObject": "where: solo un oggetto",
+  "whereInvalid": "where non valido",
+  "whereKey": "where: {key} non si usa",
+  "whereMeta": "where.meta: solo \"own\"",
+  "whereType": "where.type non valido",
+  "whereList": "where.{key}: un elenco di testi",
+  "timeout": "{name} non ha risposto in tempo"
+}

@@ -1,0 +1,9 @@
+{
+  "oldTerminal": "Terminal 1.5.0 veya daha yenisi gerekiyor: AppStore’dan güncelleyin",
+  "signal": "SIG{signal} sinyaliyle sonlandı ({code})",
+  "signalTail": "SIG{signal} sinyaliyle sonlandı ({code}): {tail}",
+  "exit": "Çıkış kodu: {code}",
+  "exitTail": "Çıkış kodu: {code}: {tail}",
+  "ok": "Çıkış kodu: 0",
+  "okTail": "Çıkış kodu: 0 · {tail}"
+}

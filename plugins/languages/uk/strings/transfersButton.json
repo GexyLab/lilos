@@ -1,0 +1,8 @@
+{
+  "title": "Передача даних",
+  "sent": "↑ {done} з {total}",
+  "received": "↓ {done} з {total}",
+  "rate": "{line} · {bytes}/с",
+  "conflict": "Файл уже існує: виберіть, що зробити",
+  "failed": "Деякі файли не передано"
+}

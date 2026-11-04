@@ -1,0 +1,9 @@
+{
+  "group": "编辑",
+  "undo": "撤销",
+  "redo": "重做",
+  "undone": "已撤销：{label}",
+  "redone": "已重做：{label}",
+  "failed": "此操作已无法执行：{message}",
+  "error": "错误"
+}

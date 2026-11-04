@@ -14,11 +14,6 @@ const { t } = locale.define('lilos:messageBox', {
     required: 'Fill in “{label}”', invalid: '“{label}” is not valid', number: '“{label}” must be a number',
     min: '“{label}” must be at least {min}', max: '“{label}” must be at most {max}', long: '“{label}” is too long (at most {max} characters)',
   } },
-  it: { strings: {
-    ok: 'OK', cancel: 'Annulla', continue: 'Continua', retry: 'Riprova',
-    required: 'Compila «{label}»', invalid: '«{label}» non è valido', number: '«{label}» deve essere un numero',
-    min: '«{label}» deve essere almeno {min}', max: '«{label}» deve essere al massimo {max}', long: '«{label}» è troppo lungo (al massimo {max} caratteri)',
-  } },
 });
 
 /** Window element → { count, inert }: how many boxes cover it, and what its body was before. */
@@ -142,7 +137,7 @@ export function messageBox(win, {
     } else if ((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && (at >= 0 || e.target === box) && all.length) {
       // Arrows go round the buttons (in a field they move the caret)
       e.preventDefault();
-      const back = e.key === 'ArrowLeft';
+      const back = e.key === (getComputedStyle(box).direction === 'rtl' ? 'ArrowRight' : 'ArrowLeft');
       all[at < 0 ? (back ? all.length - 1 : 0) : (at + (back ? -1 : 1) + all.length) % all.length].focus();
     }
     // Plain keys stay here (Delete, letters…: lilOS's shortcuts must not get them); combos go on

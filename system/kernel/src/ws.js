@@ -2,6 +2,7 @@ import { createHash, randomBytes } from 'node:crypto';
 import { EventEmitter } from 'node:events';
 import { performance } from 'node:perf_hooks';
 import { connectTo } from './net/connect.js';
+import { defineStrings } from './strings.js';
 
 /**
  * A WebSocket (RFC 6455) on a request the HTTP server handed over with 'upgrade': the live
@@ -27,6 +28,15 @@ import { connectTo } from './net/connect.js';
  *   `response` { status, headers } (what the server answered instead).
  */
 const GUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11';
+const { t } = defineStrings('lilos:kernel.ws', { en: { strings: {
+  needWs: 'A ws:// or wss:// address is needed', noAnswer: 'The server did not answer the opening',
+  cancelled: 'Cancelled', tooLong: 'Server response too long', notHttp: 'The server did not answer in HTTP',
+  closed: 'The server closed the connection', status: 'The server answered {status} instead of opening the WebSocket',
+  notOpened: 'The server did not open a WebSocket', badAccept: 'Server response not valid (Sec-WebSocket-Accept)',
+  extensions: 'The server asked for extensions that were not offered', protocol: 'The server chose a subprotocol that was not offered',
+} } });
+/** An error whose message reaches the user: `text` is the Text (net/connect.js networkMessage), `message` the English one. */
+const error = (text, extra) => Object.assign(new Error(String(text)), { text }, extra);
 const OP = { cont: 0, text: 1, binary: 2, close: 8, ping: 9, pong: 10 };
 const PING_EVERY = 30_000;
 const DEAD_AFTER = 75_000;
@@ -216,7 +226,7 @@ const ms = timings => Math.round((performance.now() - timings.start) * 10) / 10;
 
 /** A WebSocket to a server (see above). */
 export async function connectSocket(url, { headers = [], protocols = [], lookup, signal, timeoutMs = 30_000, tls = {}, maxMessage = 16 << 20, timings = {} } = {}) {
-  if (url.protocol !== 'ws:' && url.protocol !== 'wss:') throw Object.assign(new Error('Serve un indirizzo ws:// o wss://'), { code: 'EINVAL' });
+  if (url.protocol !== 'ws:' && url.protocol !== 'wss:') throw error(t('needWs'), { code: 'EINVAL' });
   const secure = url.protocol === 'wss:';
   const host = url.hostname.replace(/^\[|\]$/g, '');
   const port = Number(url.port) || (secure ? 443 : 80);
@@ -231,20 +241,20 @@ export async function connectSocket(url, { headers = [], protocols = [], lookup,
   timings.sent = ms(timings);
   const { status, pairs, rest } = await new Promise((resolve, reject) => {
     let got = Buffer.alloc(0);
-    const timer = setTimeout(() => stop(Object.assign(new Error('Il server non ha risposto all’apertura'), { code: 'ETIMEDOUT' })), timeoutMs);
-    const onAbort = () => stop(Object.assign(new Error('Annullato'), { code: 'ABORT_ERR' }));
+    const timer = setTimeout(() => stop(error(t('noAnswer'), { code: 'ETIMEDOUT' })), timeoutMs);
+    const onAbort = () => stop(error(t('cancelled'), { code: 'ABORT_ERR' }));
     signal?.addEventListener('abort', onAbort, { once: true });
     const onData = chunk => {
       got = Buffer.concat([got, chunk]);
       const end = got.indexOf('\r\n\r\n');
-      if (end < 0) return got.length > MAX_HEAD && stop(new Error('Risposta del server troppo lunga'));
+      if (end < 0) return got.length > MAX_HEAD && stop(error(t('tooLong')));
       const [first, ...rows] = got.subarray(0, end).toString('latin1').split('\r\n');
       const m = /^HTTP\/1\.[01] (\d{3})/.exec(first);
-      if (!m) return stop(new Error('Il server non ha risposto in HTTP'));
+      if (!m) return stop(error(t('notHttp')));
       const list = rows.map(r => [r.slice(0, r.indexOf(':')).trim(), r.slice(r.indexOf(':') + 1).trim()]).filter(([k]) => k);
       stop(null, { status: Number(m[1]), pairs: list, rest: got.subarray(end + 4) });
     };
-    const closed = () => stop(new Error('Il server ha chiuso la connessione'));
+    const closed = () => stop(error(t('closed')));
     function stop(err, value) {
       clearTimeout(timer);
       signal?.removeEventListener('abort', onAbort);
@@ -262,13 +272,13 @@ export async function connectSocket(url, { headers = [], protocols = [], lookup,
   const response = { status, headers: pairs, protocol: get('sec-websocket-protocol') || null };
   const refuse = text => {
     socket.destroy();
-    throw Object.assign(new Error(text), { code: 'EWSREFUSED', response });
+    throw error(text, { code: 'EWSREFUSED', response });
   };
-  if (status !== 101) refuse(`Il server ha risposto ${status} invece di aprire il WebSocket`);
-  if (get('upgrade').toLowerCase() !== 'websocket') refuse('Il server non ha aperto un WebSocket');
-  if (get('sec-websocket-accept') !== createHash('sha1').update(key + GUID).digest('base64')) refuse('Risposta del server non valida (Sec-WebSocket-Accept)');
-  if (get('sec-websocket-extensions')) refuse('Il server ha chiesto estensioni non offerte');
-  if (response.protocol && !wanted.includes(response.protocol)) refuse('Il server ha scelto un sottoprotocollo non offerto');
+  if (status !== 101) refuse(t('status', { status }));
+  if (get('upgrade').toLowerCase() !== 'websocket') refuse(t('notOpened'));
+  if (get('sec-websocket-accept') !== createHash('sha1').update(key + GUID).digest('base64')) refuse(t('badAccept'));
+  if (get('sec-websocket-extensions')) refuse(t('extensions'));
+  if (response.protocol && !wanted.includes(response.protocol)) refuse(t('protocol'));
   const ws = new Socket(socket, rest, maxMessage, { client: true });
   return { ws, response, tls: info };
 }

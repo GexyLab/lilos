@@ -1,0 +1,5 @@
+{
+  "mismatch": "El código de {app} no coincide con su manifiesto",
+  "download": "No se puede descargar la biblioteca {name} ({status})",
+  "hash": "La biblioteca {name} no coincide con su hash"
+}

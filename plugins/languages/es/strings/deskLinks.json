@@ -1,0 +1,11 @@
+{
+  "noDesk": "El escritorio no está",
+  "notFolder": "«{name}» ya no es una carpeta.",
+  "notFile": "«{name}» ya no es un archivo.",
+  "broken": "El acceso directo «{name}» no encuentra el original",
+  "trashed": "El original está en la papelera: restáuralo para volver a usar el acceso directo.",
+  "deleted": "El original se ha eliminado o está en un espacio de trabajo que no se ve desde aquí.",
+  "mountGone": "La conexión de red donde estaba el original ya no existe.",
+  "pathGone": "«{path}» ya no está en «{mount}».",
+  "unreachable": "No se puede acceder a «{name}»"
+}

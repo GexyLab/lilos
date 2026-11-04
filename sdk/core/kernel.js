@@ -1,4 +1,5 @@
 import { Emitter } from './events.js';
+import { defineLater } from './strings.js';
 
 /**
  * Client of lilOS's kernel (the backend, system/kernel): the system connects it before anything
@@ -13,6 +14,14 @@ import { Emitter } from './events.js';
 const API = '/api';
 const DELAY = 300;
 const MAX_RETRY = 30_000;
+
+// defineLater, not locale.define: locale.js imports this file (see strings.js)
+const { t } = defineLater('lilos:sdk.kernel', {
+  en: { strings: {
+    canceled: 'Canceled', offline: 'The lilOS kernel is not responding', status: 'Error {status}',
+    badModule: 'Invalid module', badPath: 'Invalid path',
+  } },
+});
 
 export class KernelError extends Error {
   /**
@@ -36,6 +45,8 @@ class Kernel extends Emitter {
   user = null;
   /** What /api/boot returned: { user, fresh, nodes, storage }. Read by storage and fs at start-up. */
   data = null;
+  /** The language lilOS is in ('it-IT'), sent with each request: the kernel answers in it (locale.js sets it). */
+  locale = null;
   #trackers = new Map();
   #onLogout = [];
 
@@ -55,18 +66,19 @@ class Kernel extends Emitter {
         signal,
         headers: {
           'X-Lilos': '1',
+          ...(this.locale && { 'X-Lilos-Locale': this.locale }),
           ...(body !== undefined && { 'Content-Type': bytes ? 'application/octet-stream' : typeof body === 'string' ? 'text/plain; charset=utf-8' : 'application/json' }),
         },
         body: body === undefined ? undefined : bytes || typeof body === 'string' ? body : JSON.stringify(body),
       });
     } catch {
-      if (signal?.aborted) throw new KernelError(0, 'canceled', 'Annullata');
-      throw new KernelError(0, 'offline', 'Il kernel di lilOS non risponde');
+      if (signal?.aborted) throw new KernelError(0, 'canceled', t('canceled'));
+      throw new KernelError(0, 'offline', t('offline'));
     }
     if (res.status === 401 && this.connected && this.mode === 'multi') this.emit('signedout');
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new KernelError(res.status, err.error ?? 'internal', err.message ?? `Errore ${res.status}`, err.details, Number(res.headers.get('Retry-After')) || undefined);
+      throw new KernelError(res.status, err.error ?? 'internal', err.message ?? t('status', { status: res.status }), err.details, Number(res.headers.get('Retry-After')) || undefined);
     }
     if (res.status === 204) return undefined;
     return blob ? res.blob() : text ? res.text() : res.json();
@@ -109,13 +121,13 @@ class Kernel extends Emitter {
    * 16 MiB (the module sets its own limit when it accepts the socket).
    */
   module(name) {
-    if (!/^[a-z][a-z0-9-]{0,40}$/.test(String(name))) throw new Error('Modulo non valido');
+    if (!/^[a-z][a-z0-9-]{0,40}$/.test(String(name))) throw new Error(t('badModule'));
     const base = `/modules/${name}`;
     // The same paths a module may declare (modules.js): no dots, so no '..' either; /update and
     // /settings are the kernel's (an admin's management of the module), never the module's
     const checked = path => {
       const p = String(path);
-      if (!/^(\/[\w:-]+)+$/.test(p) || /^\/(update|settings)(\/|$)/i.test(p)) throw new Error('Percorso non valido');
+      if (!/^(\/[\w:-]+)+$/.test(p) || /^\/(update|settings)(\/|$)/i.test(p)) throw new Error(t('badPath'));
       return base + p;
     };
     return Object.freeze({

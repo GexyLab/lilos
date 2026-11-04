@@ -1,0 +1,8 @@
+{
+  "group": "Item",
+  "open": "Buka item yang dipilih",
+  "rename": "Ganti nama",
+  "delete": "Hapus item yang dipilih",
+  "selectAll": "Pilih semua",
+  "deselect": "Hapus pilihan"
+}

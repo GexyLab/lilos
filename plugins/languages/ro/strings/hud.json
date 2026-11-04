@@ -1,0 +1,12 @@
+{
+  "zoomOut": "Micșorare",
+  "zoomIn": "Mărire",
+  "fit": "Afișați tot",
+  "zoomReset": "Zoom la 100%",
+  "help": "Comenzi",
+  "withKey": "{text} ({keys})",
+  "help.wheel": "Rotiță: zoom",
+  "help.move": "Spațiu + glisare sau butonul din mijloc: deplasare",
+  "help.select": "Glisare pe fundal: selectare",
+  "help.fit": "{keys}: afișați tot"
+}

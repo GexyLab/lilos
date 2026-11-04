@@ -1,0 +1,17 @@
+{
+  "port": "无效的端口",
+  "url": "无效的地址",
+  "closedBy": "已被服务器关闭（{code}）",
+  "closedByReason": "已被服务器关闭（{code}：{reason}）",
+  "closed": "连接已关闭",
+  "unknownCommand": "未知命令",
+  "notStream": "服务器返回了 {status}，而不是事件流",
+  "notStreamType": "服务器返回了 {status}（{type}），而不是事件流",
+  "lineTooLong": "行过长：已丢弃",
+  "eventTooLong": "事件过长：已丢弃",
+  "streamEnded": "服务器关闭了流",
+  "receiveOnly": "Server-Sent Events：仅接收",
+  "noHost": "缺少服务器",
+  "ended": "服务器关闭了连接",
+  "tooBig": "数据报过大（最多 65507 字节）"
+}

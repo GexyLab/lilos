@@ -5,6 +5,7 @@ import { isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { promisify } from 'node:util';
 import { fail } from '../errors.js';
 import { checkManifest, parseVersion, compareVersions } from './manifest.js';
+import { defineStrings } from '../strings.js';
 
 /**
  * Where packages (apps and kernel modules) come from: a folder in a git repository.
@@ -23,6 +24,15 @@ import { checkManifest, parseVersion, compareVersions } from './manifest.js';
  * (useDevRepository, config apps.devRepository): its url stays the official one everywhere
  * (installed apps, catalogs, AppStore), only the reading goes there.
  */
+const { t } = defineStrings('lilos:kernel.sources', { en: { strings: {
+  repo: 'Repository not valid (owner/name)', urlLocal: 'Address of the repository not valid (https:// or a folder)',
+  url: 'Address of the repository not valid (https://)', ref: 'Reference not valid', path: 'Path in the repository not valid',
+  local: 'Local folders as a source are allowed only in development (allowLocalSources)', dir: 'Folder not valid (absolute path)',
+  type: 'Unknown source: "git", "github" or "local"', noGit: 'The git command is not installed on the computer of the kernel',
+  git: 'git: {message}', gitError: 'git: error', outside: 'Path outside the package: {path}', missing: '{path} is missing',
+  notFile: '{path} is not a file or is too large', tooMany: 'Too many files in the package', notInRepo: 'The repository has no {path}',
+  json: 'lilos.json is not valid JSON', tooLarge: 'Package too large',
+} } });
 export const OFFICIAL_URL = 'https://github.com/gexylab/lilos-plugins-official';
 
 let devRepository = null;
@@ -48,7 +58,7 @@ export const normalizeUrl = url => String(url).trim().replace(/\.git$/i, '').rep
 
 export function cleanSource(raw, { allowLocal }) {
   if (raw?.type === 'github') {
-    if (!REPO.test(raw.repo ?? '')) fail('invalid', 'Repository non valido (proprietario/nome)');
+    if (!REPO.test(raw.repo ?? '')) fail('invalid', t('repo'));
     return cleanSource({ ...raw, type: 'git', url: `https://github.com/${raw.repo}` }, { allowLocal });
   }
   if (raw?.type === 'git') {
@@ -56,17 +66,17 @@ export function cleanSource(raw, { allowLocal }) {
     // A folder first: 'C:\…' would also read as a URL (protocol 'c:')
     let ok = allowLocal && isAbsolute(url);
     if (!ok) try { ok = new URL(url).protocol === 'https:'; } catch { ok = false; }
-    if (!ok) fail('invalid', allowLocal ? 'Indirizzo del repository non valido (https:// o una cartella)' : 'Indirizzo del repository non valido (https://)');
-    if (raw.ref !== undefined && !REF.test(raw.ref)) fail('invalid', 'Riferimento non valido');
-    if (raw.path !== undefined && raw.path !== '' && !SUBPATH.test(raw.path)) fail('invalid', 'Percorso nel repository non valido');
+    if (!ok) fail('invalid', t(allowLocal ? 'urlLocal' : 'url'));
+    if (raw.ref !== undefined && !REF.test(raw.ref)) fail('invalid', t('ref'));
+    if (raw.path !== undefined && raw.path !== '' && !SUBPATH.test(raw.path)) fail('invalid', t('path'));
     return { type: 'git', url, ...(raw.ref && { ref: raw.ref }), ...(raw.path && { path: raw.path }) };
   }
   if (raw?.type === 'local') {
-    if (!allowLocal) fail('forbidden', 'Le cartelle locali come origine sono permesse solo in sviluppo (allowLocalSources)');
-    if (typeof raw.dir !== 'string' || !isAbsolute(raw.dir)) fail('invalid', 'Cartella non valida (percorso assoluto)');
+    if (!allowLocal) fail('forbidden', t('local'));
+    if (typeof raw.dir !== 'string' || !isAbsolute(raw.dir)) fail('invalid', t('dir'));
     return { type: 'local', dir: resolve(raw.dir) };
   }
-  return fail('invalid', 'Origine sconosciuta: "git", "github" o "local"');
+  return fail('invalid', t('type'));
 }
 
 export const isOfficial = source => source.type === 'git' && normalizeUrl(source.url) === OFFICIAL_URL;
@@ -79,9 +89,9 @@ async function git(args, cwd) {
     });
     return stdout;
   } catch (err) {
-    if (err.code === 'ENOENT') fail('unavailable', 'Il comando git non è installato sul computer del kernel');
-    const msg = String(err.stderr || err.message).split('\n').find(l => l.trim()) ?? 'errore';
-    fail('unavailable', `git: ${msg.replace(/https:\/\/[^@\s]+@/g, 'https://')}`.slice(0, 300));
+    if (err.code === 'ENOENT') fail('unavailable', t('noGit'));
+    const msg = String(err.stderr || err.message).split('\n').find(l => l.trim());
+    fail('unavailable', msg ? t('git', { message: msg.replace(/https:\/\/[^@\s]+@/g, 'https://').slice(0, 295) }) : t('gitError'));
   }
 }
 
@@ -136,9 +146,9 @@ function reader(base) {
   return async path => {
     const full = resolve(base, path);
     const rel = relative(base, full);
-    if (!rel || rel.startsWith('..') || isAbsolute(rel) || rel.split(sep).includes('..')) fail('invalid', `Percorso fuori dal pacchetto: ${path}`);
-    const s = await stat(full).catch(() => fail('not_found', `Manca ${path}`));
-    if (!s.isFile() || s.size > MAX_FILE) fail('invalid', `${path} non è un file o è troppo grande`);
+    if (!rel || rel.startsWith('..') || isAbsolute(rel) || rel.split(sep).includes('..')) fail('invalid', t('outside', { path }));
+    const s = await stat(full).catch(() => fail('not_found', t('missing', { path })));
+    if (!s.isFile() || s.size > MAX_FILE) fail('invalid', t('notFile', { path }));
     return readFile(full);
   };
 }
@@ -150,7 +160,7 @@ export async function walk(base, dir = base, out = []) {
     const full = join(dir, e.name);
     if (e.isDirectory()) await walk(base, full, out);
     else if (e.isFile()) out.push(relative(base, full).split(sep).join('/'));
-    if (out.length > MAX_FILES) fail('too_large', 'Troppi file nel pacchetto');
+    if (out.length > MAX_FILES) fail('too_large', t('tooMany'));
   }
   return out;
 }
@@ -165,7 +175,7 @@ export async function openSource(source) {
   const ref = await resolveRef(url, source.ref);
   const { dir, commit } = await checkout(url, ref);
   const base = source.path ? join(dir, ...source.path.split('/')) : dir;
-  if (!(await stat(base).catch(() => null))?.isDirectory()) fail('not_found', `Nel repository non c'è ${source.path}`);
+  if (!(await stat(base).catch(() => null))?.isDirectory()) fail('not_found', t('notInRepo', { path: source.path }));
   return { base, read: reader(base), source: { ...source, ref, commit } };
 }
 
@@ -177,7 +187,7 @@ export async function fetchPackage(source) {
     raw = JSON.parse((await read('lilos.json')).toString('utf8'));
   } catch (err) {
     if (err.code) throw err;
-    fail('invalid', 'lilos.json non è JSON valido');
+    fail('invalid', t('json'));
   }
   const manifest = checkManifest(raw);
   const files = new Map();
@@ -185,7 +195,7 @@ export async function fetchPackage(source) {
   for (const path of Object.keys(manifest.files ?? {})) {
     const data = await read(path);
     total += data.length;
-    if (total > MAX_PACKAGE) fail('too_large', 'Pacchetto troppo grande');
+    if (total > MAX_PACKAGE) fail('too_large', t('tooLarge'));
     files.set(path, data);
   }
   return { manifest, files, source: resolved };

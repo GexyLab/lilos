@@ -1,0 +1,35 @@
+{
+  "adminOnly": "Hanya administrator yang menginstal atau menghapus paket",
+  "needsLilos": "{name} {version} memerlukan lilOS {range} (ini adalah {system})",
+  "moduleJson": "module.json bukan JSON yang valid",
+  "byHand": "{id} dimasukkan secara manual: diperbarui secara manual",
+  "appInstalled": "{name} sudah terinstal: untuk versi baru gunakan pembaruan",
+  "moduleInstalled": "{name} sudah terinstal: untuk versi baru gunakan pembaruan",
+  "replaced": "{name} telah digantikan oleh {by}: sudah tidak terinstal",
+  "appMissing": "Aplikasi tidak terinstal",
+  "moduleOff": "Modul tidak aktif",
+  "otherApp": "Paket ini milik aplikasi {found}, bukan {id}",
+  "otherModule": "Paket ini milik modul {found}, bukan {id}",
+  "moduleNewer": "Diperlukan modul {id} {range}: {have} terinstal dan yang terbaru adalah {newer}",
+  "appNewer": "Diperlukan aplikasi {id} {range}: {have} terinstal dan yang terbaru adalah {newer}",
+  "unreadable": "Repositori {url} tidak dapat dibaca: {message}",
+  "moduleNotInRepo": "Repositori {url} tidak memiliki modul {id}",
+  "appNotInRepo": "Repositori {url} tidak memiliki aplikasi {id}",
+  "moduleRepoVersion": "Diperlukan modul {id} {range}: repositori memiliki {version}",
+  "appRepoVersion": "Diperlukan aplikasi {id} {range}: repositori memiliki {version}",
+  "modulePlanned": "{name} memerlukan modul {id} {range}, tetapi {version} sedang diinstal",
+  "appPlanned": "{name} memerlukan aplikasi {id} {range}, tetapi {version} sedang diinstal",
+  "circular": "Dependensi melingkar antara {a} dan {b}: tidak ada yang dapat diinstal lebih dulu",
+  "consent": "Persetujuan untuk {keys} tidak ada: periksa lagi apa yang akan diinstal",
+  "haveVersion": "{id} {range} (ada {have})",
+  "missing": "{name} memerlukan: {missing}. Instal dari AppStore, yang juga menginstal apa yang diperlukannya.",
+  "appNeeded": {
+    "other": "Aplikasi {id} diperlukan oleh {names}: hapus itu terlebih dahulu"
+  },
+  "moduleNeeded": {
+    "other": "Modul {id} diperlukan oleh {names}: hapus itu terlebih dahulu"
+  },
+  "wantsOne": "{name} menginginkan {id} {range}: {version} tidak memenuhi",
+  "wants": "{name} menginginkan {id} {range}",
+  "wantsMany": "{list}: {version} tidak memenuhi"
+}

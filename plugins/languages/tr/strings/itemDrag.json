@@ -1,0 +1,22 @@
+{
+  "home": "Home",
+  "one": "“{name}”",
+  "many": "{n} öğe",
+  "trashToServer": "Çöp Kutusu’ndakiler bir sunucuya değil, lilOS’taki bir klasöre geri döner",
+  "restored": {
+    "other": "{what}, {where} konumuna geri yüklendi"
+  },
+  "moved": {
+    "other": "{what}, {where} konumuna taşındı"
+  },
+  "transferFailed": "Aktarım başlamadı: {message}",
+  "moveFailed": "Taşınamıyor: {message}",
+  "importToServer": "Bilgisayardaki dosyalar lilOS’taki bir klasöre kopyalanır: oradan sunucuya sürükleyin",
+  "copied": {
+    "other": "Bilgisayardan {n} dosya {where} konumuna kopyalandı"
+  },
+  "failed": {
+    "other": "{n} dosya kopyalanmadı"
+  },
+  "limit": "Yalnızca ilk {max} dosya kopyalandı"
+}

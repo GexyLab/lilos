@@ -1,0 +1,40 @@
+{
+  "sources": "Elementi da trasferire non validi",
+  "notFolder": "La destinazione non è una cartella",
+  "homeToHome": "Copia tra cartelle di lilOS: non è un trasferimento di rete",
+  "intoItself": "Una cartella non si copia dentro se stessa",
+  "nothing": "Niente da trasferire",
+  "tooMany": "Troppi trasferimenti in coda",
+  "itemNotFound": "Elemento inesistente",
+  "noConflict": "Nessun conflitto da risolvere",
+  "choice": "Scelta non valida",
+  "queueNotFound": "Coda inesistente",
+  "serverNotFound": "Non esiste sul server",
+  "badName": "Nome non trasferibile: {name}",
+  "webOnly": "«{name}» si apre solo sul web: non si copia",
+  "place": "Posizione non valida",
+  "tooManyFiles": "Troppi file da trasferire",
+  "tooDeep": "Cartelle troppo annidate",
+  "someFailed": "Alcuni file non sono stati trasferiti",
+  "dstLost": "Cartella di destinazione persa",
+  "fileThere": "C’è già un file «{name}» dove va la cartella",
+  "retrying": "{message} · nuovo tentativo",
+  "folderThere": "C’è già una cartella «{name}» dove va il file",
+  "notFileThere": "C’è già un elemento «{name}» che non è un file",
+  "done": {
+    "one": "{n} file trasferito in «{queue}» ({size})",
+    "other": "{n} file trasferiti in «{queue}» ({size})"
+  },
+  "failed": {
+    "one": "{n} file non trasferito",
+    "other": "{n} file non trasferiti"
+  },
+  "failedIn": {
+    "one": "{n} file non trasferito in «{queue}»",
+    "other": "{n} file non trasferiti in «{queue}»"
+  },
+  "complete": "Trasferimento completato: {files}.",
+  "allFailed": "Trasferimento non riuscito: {files}.",
+  "partial": "Trasferimento finito con errori: {done}. {failed}.",
+  "bytes": "{n} byte"
+}

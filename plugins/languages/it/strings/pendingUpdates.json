@@ -1,0 +1,7 @@
+{
+  "restart": "Riavvia lilOS per completare gli aggiornamenti",
+  "reopen": "App aggiornate da riavviare",
+  "heading": "Aggiornate, aperte con la versione di prima",
+  "reopenApp": "Riavvia {name} ({version})",
+  "restartSystem": "Riavvia lilOS"
+}

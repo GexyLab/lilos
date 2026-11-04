@@ -1,0 +1,17 @@
+{
+  "title": "Notificări",
+  "today": "Astăzi",
+  "yesterday": "Ieri",
+  "markAll": "Marcați toate ca citite",
+  "clearAll": "Ștergeți toate",
+  "clearFailed": "Notificările nu au fost șterse: {message}",
+  "removeFailed": "Notificarea nu a fost ștearsă: {message}",
+  "kept": "{count} din {keep} păstrate",
+  "fresh": {
+    "one": "{kept} · una nouă",
+    "few": "{kept} · {n} noi",
+    "other": "{kept} · {n} noi"
+  },
+  "empty": "Nicio notificare",
+  "remove": "Ștergeți"
+}

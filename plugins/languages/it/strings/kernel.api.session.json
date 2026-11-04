@@ -1,0 +1,6 @@
+{
+  "single": "lilOS ha un solo utente: non serve accedere",
+  "singleVerify": "lilOS ha un solo utente: non serve",
+  "required": "Nome utente e password sono obbligatori",
+  "signInFirst": "Accedi prima"
+}

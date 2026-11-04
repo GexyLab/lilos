@@ -1,0 +1,9 @@
+{
+  "oldTerminal": "Diperlukan Terminal 1.5.0 atau lebih baru: perbarui dari AppStore",
+  "signal": "Diakhiri oleh sinyal SIG{signal} ({code})",
+  "signalTail": "Diakhiri oleh sinyal SIG{signal} ({code}): {tail}",
+  "exit": "Keluar dengan {code}",
+  "exitTail": "Keluar dengan {code}: {tail}",
+  "ok": "Keluar dengan 0",
+  "okTail": "Keluar dengan 0 · {tail}"
+}

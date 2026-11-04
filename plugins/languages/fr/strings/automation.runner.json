@@ -1,0 +1,9 @@
+{
+  "stopped": "Automatisation arrêtée",
+  "chooseItems": "Choisissez les éléments à traiter",
+  "appMissing": "L’app de cette étape n’est pas installée",
+  "password": "Cette étape demande un mot de passe",
+  "stepFailedLabel": "Étape {n} ({label}) : {message}",
+  "stepFailed": "Étape {n} : {message}",
+  "cannotRedo": "Cette action ne peut pas être refaite"
+}

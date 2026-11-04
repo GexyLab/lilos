@@ -1,5 +1,14 @@
-import { h, icon, net } from '@lilos/sdk';
+import { h, icon, net, locale } from '@lilos/sdk';
 import { bytes } from './TransfersWindow.js';
+
+const { t } = locale.define('lilos:transfersButton', {
+  en: { strings: {
+    title: 'Data transfer',
+    sent: '↑ {done} of {total}', received: '↓ {done} of {total}', rate: '{line} · {bytes}/s',
+    conflict: 'A file already exists: choose what to do',
+    failed: 'Some files were not transferred',
+  } },
+});
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 const R = 15, LENGTH = 2 * Math.PI * R;
@@ -44,11 +53,15 @@ export class TransfersButton {
     this.fill.setAttribute('stroke-dasharray', `${share * LENGTH} ${LENGTH}`);
     const conflict = s.queues.some(q => q.conflict), failed = !s.active && s.queues.length > 0;
     this.button.classList.toggle('attention', conflict || failed);
-    const lines = ['Trasferimento dati'];
-    if (s.sent.total) lines.push(`↑ ${bytes(s.sent.done)} di ${bytes(s.sent.total)}${s.sent.rate ? ` · ${bytes(s.sent.rate)}/s` : ''}`);
-    if (s.received.total) lines.push(`↓ ${bytes(s.received.done)} di ${bytes(s.received.total)}${s.received.rate ? ` · ${bytes(s.received.rate)}/s` : ''}`);
-    if (conflict) lines.push('Un file esiste già: scegli cosa fare');
-    else if (failed) lines.push('Alcuni file non sono stati trasferiti');
+    const lines = [t('title')];
+    const line = (key, m) => {
+      const text = t(key, { done: bytes(m.done), total: bytes(m.total) });
+      return m.rate ? t('rate', { line: text, bytes: bytes(m.rate) }) : text;
+    };
+    if (s.sent.total) lines.push(line('sent', s.sent));
+    if (s.received.total) lines.push(line('received', s.received));
+    if (conflict) lines.push(t('conflict'));
+    else if (failed) lines.push(t('failed'));
     this.button.title = lines.join('\n');
     this.button.setAttribute('aria-label', lines.join('. '));
   }

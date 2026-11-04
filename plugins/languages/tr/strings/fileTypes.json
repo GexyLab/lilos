@@ -1,0 +1,15 @@
+{
+  "text": "Metin",
+  "pdf": "PDF",
+  "document": "Belge",
+  "spreadsheet": "Elektronik tablo",
+  "presentation": "Sunu",
+  "image": "Görüntü",
+  "audio": "Ses",
+  "video": "Video",
+  "archive": "Arşiv",
+  "code": "Kod",
+  "term": "Terminal bağlantısı",
+  "nettest": "NetTest koleksiyonu",
+  "file": "Dosya"
+}

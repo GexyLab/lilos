@@ -1,0 +1,15 @@
+{
+  "text": "Teks",
+  "pdf": "PDF",
+  "document": "Dokumen",
+  "spreadsheet": "Lembar kerja",
+  "presentation": "Presentasi",
+  "image": "Gambar",
+  "audio": "Audio",
+  "video": "Video",
+  "archive": "Arsip",
+  "code": "Kode",
+  "term": "Koneksi terminal",
+  "nettest": "Koleksi NetTest",
+  "file": "File"
+}

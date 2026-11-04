@@ -1,0 +1,43 @@
+{
+  "title": "Eigenschappen",
+  "type": "Type",
+  "app": "App",
+  "linkTarget": "Origineel",
+  "linkState": "Status",
+  "contents": "Inhoud",
+  "size": "Grootte",
+  "opensWith": "Opent met",
+  "deleted": "Verwijderd",
+  "origin": "Oorspronkelijke locatie",
+  "location": "Locatie",
+  "created": "Gemaakt",
+  "modified": "Gewijzigd",
+  "workspace": "Workspace",
+  "tags": "Tags",
+  "apps": "Apps",
+  "appData": "Gegevens van {id}",
+  "folder": "Map",
+  "linkFolder": "Snelkoppeling naar een map",
+  "linkWeb": "Snelkoppeling naar een webpagina",
+  "linkFile": "Snelkoppeling naar een bestand",
+  "appLink": "Snelkoppeling naar een app",
+  "typeExt": "{type} (.{ext})",
+  "system": "Systeem-{type}",
+  "appMissing": "{id} (niet geïnstalleerd)",
+  "broken": "Verbroken: het origineel is de laatste keer niet gevonden",
+  "notFound": "Niet gevonden",
+  "mountGone": "Verbinding verwijderd",
+  "ask": "Elke keer vragen",
+  "files": {
+    "one": "{count} bestand",
+    "other": "{count} bestanden"
+  },
+  "folders": {
+    "one": "{count} map",
+    "other": "{count} mappen"
+  },
+  "shared": "Gedeeld door alle workspaces",
+  "none": "Geen",
+  "orphan": "De app is niet geïnstalleerd",
+  "remove": "Verwijderen"
+}

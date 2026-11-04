@@ -1,0 +1,7 @@
+{
+  "notImage": "“{name}” bir görüntü değil",
+  "gone": "Bu görüntü artık yok",
+  "copyFailed": "“{name}”, {folder} klasörüne kopyalanamıyor: {error}",
+  "noFolder": "{folder} klasörü eksik",
+  "openFailed": "“{name}” görüntü olarak açılmıyor"
+}

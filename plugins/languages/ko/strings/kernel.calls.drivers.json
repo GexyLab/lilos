@@ -1,0 +1,17 @@
+{
+  "port": "잘못된 포트",
+  "url": "잘못된 주소",
+  "closedBy": "서버에서 닫음({code})",
+  "closedByReason": "서버에서 닫음({code}: {reason})",
+  "closed": "연결이 닫혔습니다",
+  "unknownCommand": "알 수 없는 명령",
+  "notStream": "서버가 이벤트 스트림 대신 {status}(으)로 응답했습니다",
+  "notStreamType": "서버가 이벤트 스트림 대신 {status}({type})(으)로 응답했습니다",
+  "lineTooLong": "줄이 너무 깁니다: 삭제됨",
+  "eventTooLong": "이벤트가 너무 깁니다: 삭제됨",
+  "streamEnded": "서버가 스트림을 닫았습니다",
+  "receiveOnly": "Server-Sent Events: 수신 전용",
+  "noHost": "서버가 없습니다",
+  "ended": "서버가 연결을 닫았습니다",
+  "tooBig": "데이터그램이 너무 큽니다(최대 65507바이트)"
+}

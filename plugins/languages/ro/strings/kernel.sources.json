@@ -1,0 +1,20 @@
+{
+  "repo": "Depozit nevalid (proprietar/nume)",
+  "urlLocal": "Adresa depozitului nevalidă (https:// sau un dosar)",
+  "url": "Adresa depozitului nevalidă (https://)",
+  "ref": "Referință nevalidă",
+  "path": "Cale nevalidă în depozit",
+  "local": "Dosarele locale ca sursă sunt permise doar în dezvoltare (allowLocalSources)",
+  "dir": "Dosar nevalid (cale absolută)",
+  "type": "Sursă necunoscută: \"git\", \"github\" sau \"local\"",
+  "noGit": "Comanda git nu este instalată pe computerul kernelului",
+  "git": "git: {message}",
+  "gitError": "git: eroare",
+  "outside": "Cale în afara pachetului: {path}",
+  "missing": "Lipsește {path}",
+  "notFile": "{path} nu este un fișier sau este prea mare",
+  "tooMany": "Prea multe fișiere în pachet",
+  "notInRepo": "Depozitul nu conține {path}",
+  "json": "lilos.json nu este un JSON valid",
+  "tooLarge": "Pachet prea mare"
+}

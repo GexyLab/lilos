@@ -1,0 +1,10 @@
+{
+  "unknownEvent": "Eveniment necunoscut: {event}",
+  "denied": "Permisiune refuzată: pipe:{event}",
+  "deniedOwn": "Permisiune refuzată: pipe:{event} (sau pipe.own:{event})",
+  "reserved": "Evenimentul {event} este rezervat sistemului",
+  "sync": "{event} este o operațiune imediată: poate fi doar observată (stage \"after\")",
+  "gone": "Aplicația nu mai este instalată",
+  "unhandled": "{app} nu gestionează {what} (lipsește lilos.pipes.subscribe)",
+  "needApp": "Pentru a deschide „{file}” aveți nevoie de aplicația {app}: instalați-o din AppStore"
+}

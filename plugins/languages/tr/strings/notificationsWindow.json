@@ -1,0 +1,15 @@
+{
+  "title": "Bildirimler",
+  "today": "Bugün",
+  "yesterday": "Dün",
+  "markAll": "Tümünü okundu olarak işaretle",
+  "clearAll": "Tümünü sil",
+  "clearFailed": "Bildirimler silinmedi: {message}",
+  "removeFailed": "Bildirim silinmedi: {message}",
+  "kept": "{count} / {keep} saklanıyor",
+  "fresh": {
+    "other": "{kept} · {n} yeni"
+  },
+  "empty": "Bildirim yok",
+  "remove": "Sil"
+}

@@ -1,6 +1,7 @@
 import { randomBytes } from 'node:crypto';
 import { Readable } from 'node:stream';
-import { fail } from '../errors.js';
+import { KernelError, fail } from '../errors.js';
+import { Text, defineStrings } from '../strings.js';
 import { openHome, toFrontNode, isProtected } from '../api/home.js';
 import { joinPath, isSafeName } from '../net/drivers.js';
 import { localText } from '../../../../sdk/core/scheduleRules.js';
@@ -21,6 +22,31 @@ import { localText } from '../../../../sdk/core/scheduleRules.js';
 const MAX_ITEMS = 100_000;
 const MAX_LOG_LINES = 300;
 const SAME_TIME = 2000;
+
+const { t } = defineStrings('lilos:kernel.schedule.copy', { en: { strings: {
+  folderGone: 'The folder is no longer there',
+  namedGone: '{name} is no longer there',
+  notFolder: 'The folder is not a folder',
+  namedNotFolder: '{name} is not a folder',
+  protected: 'protected by an app (for example encrypted): it is not overwritten',
+  mountGone: '{name} is no longer on «{mount}»',
+  inside: 'The folder to copy into is inside the one to copy',
+  newVersion: 'New version: {name}',
+  fileThere: 'Where to copy there is already a file «{name}»',
+  copied: 'copied {path}',
+  tooMany: 'More than {max} items: copy a smaller folder',
+  sameNameFile: 'there is a file with the same name',
+  removedFile: 'removed the file {path} (now it is a folder)',
+  sameNameFolder: 'there is a folder with the same name',
+  error: 'ERROR {path}: {message}',
+  removed: 'deleted {path}',
+  oldVersion: 'old version deleted: {name}',
+  summary: { one: '{n} file copied ({size})', other: '{n} files copied ({size})' },
+  summarySame: { one: '{n} file copied ({size}), {same} unchanged', other: '{n} files copied ({size}), {same} unchanged' },
+  summaryRemoved: { one: '{n} file copied ({size}), {removed} deleted', other: '{n} files copied ({size}), {removed} deleted' },
+  summarySameRemoved: { one: '{n} file copied ({size}), {same} unchanged, {removed} deleted', other: '{n} files copied ({size}), {same} unchanged, {removed} deleted' },
+  notCopied: '{n} not copied: {first}',
+} } });
 
 const lower = s => s.toLowerCase();
 const newId = () => randomBytes(9).toString('base64url');
@@ -47,8 +73,8 @@ export function excluder(globs) {
 async function homePlace(kernel, principal, ref) {
   const view = await openHome(kernel, principal);
   const root = view.toBack(ref.home, { parent: true });
-  const node = await view.fs.stat(principal, root) ?? fail('not_found', `${ref.label || 'La cartella'} non c’è più`);
-  if (node.type !== 'folder') fail('invalid', `${ref.label || 'La cartella'} non è una cartella`);
+  const node = await view.fs.stat(principal, root) ?? fail('not_found', ref.label ? t('namedGone', { name: ref.label }) : t('folderGone'));
+  if (node.type !== 'folder') fail('invalid', ref.label ? t('namedNotFolder', { name: ref.label }) : t('notFolder'));
   const emit = data => kernel.events.emit('user', { owner: principal.id, event: 'fs.external', data });
   const hidden = new Set([view.trashId, view.configId]);
   const put = async n => {
@@ -78,7 +104,7 @@ async function homePlace(kernel, principal, ref) {
       return view.fs.read(principal, entry.ref).then(data => Readable.from([data]));
     },
     async write(dir, name, existing, source, { signal, meta }) {
-      if (existing && isProtected(existing.node)) throw new Error('protetto da un’app (per esempio cifrato): non si sovrascrive');
+      if (existing && isProtected(existing.node)) throw new KernelError('conflict', t('protected'));
       let id = existing?.ref;
       if (!id) {
         const now = Date.now();
@@ -118,8 +144,8 @@ async function netPlace(kernel, principal, ref) {
   const name = await net.nameOf(principal, ref.mount);
   const root = ref.path || '/';
   const stat = root === '/' ? { type: 'folder' } : await net.stat(principal, ref.mount, root);
-  if (!stat) fail('not_found', `${ref.label || root} non c’è più su «${name}»`);
-  if (stat.type !== 'folder') fail('invalid', `${ref.label || root} non è una cartella`);
+  if (!stat) fail('not_found', t('mountGone', { name: ref.label || root, mount: name }));
+  if (stat.type !== 'folder') fail('invalid', t('namedNotFolder', { name: ref.label || root }));
   return {
     root,
     name: root === '/' ? name : root.split('/').filter(Boolean).pop(),
@@ -157,17 +183,18 @@ export async function homeInside(kernel, principal, id, ancestor) {
   return false;
 }
 
-export async function runCopy({ kernel, task, run, principal, signal }) {
+export async function runCopy({ kernel, task, run, principal, signal, say }) {
   const w = task.what;
   // A folder moved after the operation was saved could now hold its own copy
-  if (w.from.home && w.to.home && await homeInside(kernel, principal, w.to.home, w.from.home)) fail('invalid', 'La cartella dove copiare è dentro quella da copiare');
+  if (w.from.home && w.to.home && await homeInside(kernel, principal, w.to.home, w.from.home)) fail('invalid', t('inside'));
   const src = await openPlace(kernel, principal, w.from);
   const dst = await openPlace(kernel, principal, w.to);
   const skip = excluder(w.exclude ?? []);
   const lines = [];
   const errors = [];
   const counts = { copied: 0, bytes: 0, same: 0, removed: 0, folders: 0, seen: 0 };
-  const line = text => { if (lines.length < MAX_LOG_LINES) lines.push(text); };
+  const line = text => { if (lines.length < MAX_LOG_LINES) lines.push(say(text)); };
+  const messageOf = err => (err?.text instanceof Text ? say(err.text) : err?.message);
   const stop = () => { if (signal.aborted) throw signal.reason ?? new Error('cancelled'); };
   const home = !w.from.mount && !w.to.mount;
 
@@ -179,10 +206,10 @@ export async function runCopy({ kernel, task, run, principal, signal }) {
     let name = `${src.name} ${stamp}`;
     for (let i = 2; top.has(lower(name)); i++) name = `${src.name} ${stamp} (${i})`;
     target = await dst.mkdir(dst.root, name);
-    line(`Nuova versione: ${name}`);
+    line(t('newVersion', { name }));
   } else {
     const there = top.get(lower(src.name));
-    if (there && there.type !== 'folder') fail('conflict', `Dove copiare c’è già un file «${src.name}»`);
+    if (there && there.type !== 'folder') fail('conflict', t('fileThere', { name: src.name }));
     target = there?.ref ?? await dst.mkdir(dst.root, src.name);
   }
 
@@ -193,7 +220,7 @@ export async function runCopy({ kernel, task, run, principal, signal }) {
     await dst.write(dir, entry.name, existing, source, { signal, size: entry.size, meta });
     counts.copied++;
     counts.bytes += entry.size;
-    line(`copiato ${path}`);
+    line(t('copied', { path }));
   };
 
   const walk = async (from, to, path) => {
@@ -202,29 +229,29 @@ export async function runCopy({ kernel, task, run, principal, signal }) {
     for (const entry of s.values()) {
       stop();
       if (skip(entry.name)) continue;
-      if (++counts.seen > MAX_ITEMS) fail('too_large', `Più di ${MAX_ITEMS} elementi: copia una cartella più piccola`);
+      if (++counts.seen > MAX_ITEMS) fail('too_large', t('tooMany', { max: MAX_ITEMS }));
       const here = path ? `${path}/${entry.name}` : entry.name;
       const existing = d.get(lower(entry.name)) ?? null;
       try {
         if (entry.type === 'folder') {
           if (existing && existing.type !== 'folder') {
-            if (w.mode === 'versions') throw new Error('c’è un file con lo stesso nome');
+            if (w.mode === 'versions') throw new KernelError('conflict', t('sameNameFile'));
             await dst.remove(existing);
-            line(`rimosso il file ${here} (ora è una cartella)`);
+            line(t('removedFile', { path: here }));
           }
           const sub = existing?.type === 'folder' ? existing.ref : await dst.mkdir(to, entry.name);
           if (!existing || existing.type !== 'folder') counts.folders++;
           await walk(entry.ref, sub, here);
         } else {
-          if (existing?.type === 'folder') throw new Error('c’è una cartella con lo stesso nome');
+          if (existing?.type === 'folder') throw new KernelError('conflict', t('sameNameFolder'));
           const same = existing && existing.size === entry.size && existing.modified >= entry.modified - SAME_TIME;
           if (same && w.mode !== 'versions') { counts.same++; continue; }
           await copyFile(entry, to, existing, here);
         }
       } catch (err) {
         if (signal.aborted) throw err;
-        errors.push(`${here}: ${err.message}`);
-        line(`ERRORE ${here}: ${err.message}`);
+        errors.push(`${here}: ${messageOf(err)}`);
+        line(t('error', { path: here, message: messageOf(err) }));
       }
     }
     if (w.mode !== 'mirror') return;
@@ -235,9 +262,9 @@ export async function runCopy({ kernel, task, run, principal, signal }) {
       try {
         await dst.remove(entry);
         counts.removed++;
-        line(`eliminato ${here}`);
+        line(t('removed', { path: here }));
       } catch (err) {
-        errors.push(`${here}: ${err.message}`);
+        errors.push(`${here}: ${messageOf(err)}`);
       }
     }
   };
@@ -252,18 +279,16 @@ export async function runCopy({ kernel, task, run, principal, signal }) {
     for (const old of versions.slice(w.keep)) {
       try {
         await dst.remove(old);
-        line(`versione vecchia eliminata: ${old.name}`);
+        line(t('oldVersion', { name: old.name }));
       } catch (err) {
-        errors.push(`${old.name}: ${err.message}`);
+        errors.push(`${old.name}: ${messageOf(err)}`);
       }
     }
   }
 
-  const parts = [`${counts.copied} file copiati (${kb(counts.bytes)})`];
-  if (counts.same) parts.push(`${counts.same} invariati`);
-  if (counts.removed) parts.push(`${counts.removed} eliminati`);
-  const summary = parts.join(', ');
+  const key = `summary${counts.same ? 'Same' : ''}${counts.removed ? 'Removed' : ''}`;
+  const summary = say(t(key, { n: counts.copied, size: kb(counts.bytes), same: counts.same, removed: counts.removed }));
   const log = [summary, ...lines, ...(lines.length >= MAX_LOG_LINES ? ['…'] : [])].join('\n');
-  if (errors.length) return { state: 'error', text: `${errors.length} non copiati: ${errors[0]}`.slice(0, 300), log };
+  if (errors.length) return { state: 'error', text: say(t('notCopied', { n: errors.length, first: errors[0] })).slice(0, 300), log };
   return { state: 'ok', text: summary, log };
 }

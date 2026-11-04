@@ -1,0 +1,9 @@
+{
+  "offline": "As solicitações de rede são feitas pelo kernel do lilOS, que não está conectado",
+  "badRun": "Execução inválida",
+  "badSession": "Sessão inválida",
+  "blocked": "O navegador bloqueou a janela de login",
+  "canceled": "Login cancelado",
+  "failed": "Falha no login",
+  "noAskAddress": "Falta askAddress"
+}

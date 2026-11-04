@@ -1,0 +1,18 @@
+{
+  "noConnection": {
+    "other": "Tidak ada koneksi dalam {n} detik"
+  },
+  "untrusted": "Sertifikat {host} tidak dikonfirmasi ({reason})",
+  "cancelled": "Dibatalkan",
+  "refused": "Koneksi ditolak ({code})",
+  "reset": "Koneksi diputus oleh server ({code})",
+  "notFound": "Nama server tidak dikenal ({code})",
+  "dns": "Nama server tidak dapat diresolusi (DNS) ({code})",
+  "timeout": "Waktu habis ({code})",
+  "hostUnreachable": "Server tidak dapat dijangkau ({code})",
+  "netUnreachable": "Jaringan tidak dapat dijangkau ({code})",
+  "closed": "Koneksi ditutup ({code})",
+  "aborted": "Dibatalkan ({code})",
+  "otherName": "Sertifikat untuk nama lain ({code})",
+  "network": "Kesalahan jaringan"
+}

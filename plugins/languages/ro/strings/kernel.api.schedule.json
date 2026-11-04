@@ -1,0 +1,9 @@
+{
+  "signIn": "Conectați-vă mai întâi",
+  "app": "Aplicație nevalidă",
+  "id": "Identificator nevalid",
+  "number": "Număr nevalid",
+  "missing": "Operațiunea nu a fost găsită",
+  "appOwner": "O aplicație planifică doar pentru utilizatorul care o folosește",
+  "adminOwner": "Doar un administrator planifică pentru alții sau pentru sistem"
+}

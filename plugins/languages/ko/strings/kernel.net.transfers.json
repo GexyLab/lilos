@@ -1,0 +1,39 @@
+{
+  "sources": "전송할 항목이 올바르지 않습니다",
+  "notFolder": "대상이 폴더가 아닙니다",
+  "homeToHome": "lilOS 폴더 간 복사는 네트워크 전송이 아닙니다",
+  "intoItself": "폴더를 자기 자신 안으로 복사할 수 없습니다",
+  "nothing": "전송할 항목이 없습니다",
+  "tooMany": "대기열에 전송이 너무 많습니다",
+  "itemNotFound": "항목을 찾을 수 없습니다",
+  "noConflict": "해결할 충돌이 없습니다",
+  "choice": "잘못된 선택",
+  "queueNotFound": "대기열을 찾을 수 없습니다",
+  "serverNotFound": "서버에 존재하지 않습니다",
+  "badName": "전송할 수 없는 이름: {name}",
+  "webOnly": "“{name}”은(는) 웹에서만 열리므로 복사되지 않습니다",
+  "place": "잘못된 위치",
+  "tooManyFiles": "전송할 파일이 너무 많습니다",
+  "tooDeep": "폴더가 너무 깊이 중첩되어 있습니다",
+  "someFailed": "일부 파일이 전송되지 않았습니다",
+  "dstLost": "대상 폴더를 잃었습니다",
+  "fileThere": "폴더가 들어갈 위치에 이미 “{name}” 파일이 있습니다",
+  "retrying": "{message} · 다시 시도하는 중",
+  "folderThere": "파일이 들어갈 위치에 이미 “{name}” 폴더가 있습니다",
+  "notFileThere": "파일이 아닌 “{name}” 항목이 이미 있습니다",
+  "done": {
+    "other": "파일 {n}개를 “{queue}”(으)로 전송함({size})"
+  },
+  "failed": {
+    "other": "파일 {n}개가 전송되지 않음"
+  },
+  "failedIn": {
+    "other": "파일 {n}개가 “{queue}”(으)로 전송되지 않음"
+  },
+  "complete": "전송 완료: {files}.",
+  "allFailed": "전송 실패: {files}.",
+  "partial": "전송이 오류와 함께 완료됨: {done}. {failed}.",
+  "bytes": {
+    "other": "{n}바이트"
+  }
+}

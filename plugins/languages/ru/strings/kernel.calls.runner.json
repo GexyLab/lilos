@@ -1,0 +1,10 @@
+{
+  "scriptErrorBefore": "Ошибка скрипта (before): {message}",
+  "scriptErrorAfter": "Ошибка скрипта (after): {message}",
+  "scriptTimeoutBefore": "Ошибка скрипта (before): время выполнения скрипта истекло (5 секунд)",
+  "scriptTimeoutAfter": "Ошибка скрипта (after): время выполнения скрипта истекло (5 секунд)",
+  "skipped": "Сеансы (WebSocket, SSE, TCP, UDP, MQTT) открываются из окна: запуски их пропускают",
+  "otherServer": "Скрипт изменил сервер запроса: секретные значения не отправляются на другой адрес",
+  "noProtocol": "Протокол недоступен в запусках: {protocol} (отсутствует его модуль ядра)",
+  "nothingToSave": "«{name}»: нечего сохранять ({source} {path})"
+}

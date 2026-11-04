@@ -1,0 +1,9 @@
+{
+  "stopped": "Automatisering gestopt",
+  "chooseItems": "Kies waarmee je wilt werken",
+  "appMissing": "De app van deze stap is niet geïnstalleerd",
+  "password": "Deze stap vraagt om een wachtwoord",
+  "stepFailedLabel": "Stap {n} ({label}): {message}",
+  "stepFailed": "Stap {n}: {message}",
+  "cannotRedo": "Deze actie kan niet opnieuw worden uitgevoerd"
+}

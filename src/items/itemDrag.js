@@ -1,7 +1,21 @@
-import { h, fs, net, uid } from '@lilos/sdk';
+import { h, fs, net, uid, locale } from '@lilos/sdk';
 import { itemIcon } from '../desktop/itemIcons.js';
 import { moveNodes, restoreNodes } from './fsHistory.js';
 import { notify } from '../notifications/notify.js';
+
+const { t } = locale.define('lilos:itemDrag', {
+  en: { strings: {
+    home: 'Home', one: '«{name}»', many: '{n} items',
+    trashToServer: 'What is in the trash goes back to a folder of lilOS, not to a server',
+    restored: { one: 'Restored {what} to {where}', other: 'Restored {what} to {where}' },
+    moved: { one: 'Moved {what} to {where}', other: 'Moved {what} to {where}' },
+    transferFailed: 'Transfer not started: {message}', moveFailed: 'Cannot move: {message}',
+    importToServer: 'Files of the computer are copied into a folder of lilOS: from there, drag them to the server',
+    copied: { one: 'Copied {n} file from the computer to {where}', other: 'Copied {n} files from the computer to {where}' },
+    failed: { one: '{n} file was not copied', other: '{n} files were not copied' },
+    limit: 'Only the first {max} files were copied',
+  } },
+});
 
 /**
  * Dragging files and folders, the same in every view that shows them: the desk, the File
@@ -99,32 +113,31 @@ function zoneTarget(el, zone, ids, x, y) {
  * trash are put back into it instead. Returns the ids moved or put back.
  */
 export function moveInto(stack, ids, folderId) {
-  const where = folderId === fs.root ? 'Home' : fs.path(folderId);
-  const what = done => (done.length === 1 ? `«${fs.get(done[0]).name}»` : `${done.length} elementi`);
-  const ending = done => (done.length === 1 ? 'o' : 'i');
+  const where = folderId === fs.root ? t('home') : fs.path(folderId);
+  const what = done => (done.length === 1 ? t('one', { name: fs.get(done[0]).name }) : t('many', { n: done.length }));
   if (ids.some(id => fs.isTrashed(id))) {
     if (fs.isRemote(folderId)) {
-      notify('Quello che è nel cestino torna in una cartella di lilOS, non su un server', { level: 'error' });
+      notify(t('trashToServer'), { level: 'error' });
       return [];
     }
     const restored = restoreNodes(stack, ids, folderId).map(r => r.id);
-    if (restored.length) notify(`Ripristinat${ending(restored)} ${what(restored)} in ${where}`, { level: 'success' });
+    if (restored.length) notify(t('restored', { n: restored.length, what: what(restored), where }), { level: 'success' });
     return restored;
   }
   const place = id => fs.get(id)?.net ?? 'home';
   const across = ids.filter(id => place(id) !== place(folderId));
   if (across.length) {
-    net.transfer(across, folderId).catch(err => notify(`Trasferimento non avviato: ${err.message}`, { level: 'error' }));
+    net.transfer(across, folderId).catch(err => notify(t('transferFailed', { message: err.message }), { level: 'error' }));
     ids = ids.filter(id => !across.includes(id));
     if (!ids.length) return [];
   }
   try {
     const moved = moveNodes(stack, ids, folderId);
     if (!moved.length) return [];
-    notify(`Spostat${ending(moved)} ${what(moved)} in ${where}`, { level: 'success' });
+    notify(t('moved', { n: moved.length, what: what(moved), where }), { level: 'success' });
     return moved;
   } catch (err) {
-    notify(`Non si può spostare: ${err.message}`, { level: 'error' });
+    notify(t('moveFailed', { message: err.message }), { level: 'error' });
     return [];
   }
 }
@@ -133,7 +146,7 @@ function ghostFor(ids) {
   const node = ids.length === 1 && (fs.get(ids[0]) ?? fs.trashed().find(n => n.id === ids[0]));
   return h('div', { class: 'item-ghost', 'aria-hidden': 'true' },
     node ? h('span', { class: 'item-ghost-icon' }, itemIcon(node)) : null,
-    h('span', {}, node ? node.name : `${ids.length} elementi`));
+    h('span', {}, node ? node.name : t('many', { n: ids.length })));
 }
 
 /**
@@ -255,7 +268,7 @@ function folderIn(parentId, name) {
  */
 export async function importFiles(entries, folderId, { ids = [] } = {}) {
   if (fs.isRemote(folderId)) {
-    notify('I file del computer si copiano in una cartella di lilOS: da lì, trascinali sul server', { level: 'warning' });
+    notify(t('importToServer'), { level: 'warning' });
     return [];
   }
   const top = new Map();   // top-level item ('d:' folder name, 'f:' entry number) → id made
@@ -283,10 +296,10 @@ export async function importFiles(entries, folderId, { ids = [] } = {}) {
       console.warn('[lilos] file non copiato:', file?.name, err.message);
     }
   }
-  const where = folderId === fs.root ? 'Home' : fs.path(folderId);
-  if (copied) notify(copied === 1 ? `Copiato 1 file dal computer in ${where}` : `Copiati ${copied} file dal computer in ${where}`, { level: 'success' });
-  if (failed) notify(failed === 1 ? '1 file non è stato copiato' : `${failed} file non sono stati copiati`, { level: 'error' });
-  if (entries.length >= MAX_IMPORT) notify(`Copiati solo i primi ${MAX_IMPORT} file`, { level: 'warning' });
+  const where = folderId === fs.root ? t('home') : fs.path(folderId);
+  if (copied) notify(t('copied', { n: copied, where }), { level: 'success' });
+  if (failed) notify(t('failed', { n: failed }), { level: 'error' });
+  if (entries.length >= MAX_IMPORT) notify(t('limit', { max: MAX_IMPORT }), { level: 'warning' });
   return [...top.values()];
 }
 

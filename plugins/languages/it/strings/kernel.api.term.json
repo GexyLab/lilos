@@ -1,0 +1,7 @@
+{
+  "signIn": "Accesso richiesto",
+  "host": "Host non valido",
+  "session": "Sessione non valida",
+  "noSession": "Sessione inesistente",
+  "needSocket": "Serve un WebSocket"
+}

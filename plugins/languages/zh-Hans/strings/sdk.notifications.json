@@ -1,0 +1,5 @@
+{
+  "noText": "通知没有文本",
+  "badLevel": "无效的级别：info、success、warning 或 error",
+  "keep": "要保留的通知数量：1 到 200"
+}

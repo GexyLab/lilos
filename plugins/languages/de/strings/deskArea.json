@@ -1,0 +1,38 @@
+{
+  "newFolder": "Neuer Ordner",
+  "newDocument": "Neues Dokument.txt",
+  "fixedOne": "„{name}“ ist ein festes Element des Schreibtischs: Es kann nicht gelöscht werden",
+  "fixedMany": "Die festen Elemente des Schreibtischs können nicht gelöscht werden",
+  "fixedStay": "Die festen Elemente des Schreibtischs bleiben: Nur der Rest wird gelöscht",
+  "removeWithAreas": {
+    "one": "{what} und 1 Arbeitsbereich löschen",
+    "other": "{what} und {n} Arbeitsbereiche löschen"
+  },
+  "arrange": "Symbole anordnen",
+  "moveOne": "„{name}“ verschieben",
+  "moveMany": {
+    "one": "{n} Element verschieben",
+    "other": "{n} Elemente verschieben"
+  },
+  "gone": "Die Elemente sind nicht mehr vorhanden",
+  "area.open": "Arbeitsbereich öffnen",
+  "rename": "Umbenennen",
+  "properties": "Eigenschaften…",
+  "area.remove": "Arbeitsbereich löschen…",
+  "open": "Öffnen",
+  "openMany": {
+    "one": "{n} Element öffnen",
+    "other": "{n} Elemente öffnen"
+  },
+  "fixed.hide": "Vom Schreibtisch entfernen",
+  "fixed.hidden": "„{name}“ kann unter Systemsteuerung → Workspace → Dieser Workspace wieder hinzugefügt werden",
+  "fixed.settings": "Feste Elemente des Schreibtischs…",
+  "openWith": "Öffnen mit…",
+  "wallpaper": "Als Schreibtischhintergrund verwenden",
+  "area.fromSelection": "Arbeitsbereich aus der Auswahl erstellen",
+  "remove": "Löschen",
+  "removeMany": {
+    "one": "{n} Element löschen",
+    "other": "{n} Elemente löschen"
+  }
+}

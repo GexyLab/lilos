@@ -1,0 +1,7 @@
+{
+  "signIn": "Conectați-vă mai întâi",
+  "run": "Execuție nevalidă",
+  "session": "Sesiune nevalidă",
+  "signin": "Conectare nevalidă",
+  "needSocket": "Este necesar un WebSocket"
+}

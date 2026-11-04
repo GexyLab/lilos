@@ -1,0 +1,34 @@
+{
+  "newFolder": "新しいフォルダー",
+  "newDocument": "新しいドキュメント.txt",
+  "fixedOne": "「{name}」はデスクトップの固定項目のため削除できません",
+  "fixedMany": "デスクトップの固定項目は削除できません",
+  "fixedStay": "デスクトップの固定項目は残り、それ以外だけが削除されます",
+  "removeWithAreas": {
+    "other": "{what}、さらにワークエリア {n} 個を削除"
+  },
+  "arrange": "アイコンを整列",
+  "moveOne": "「{name}」を移動",
+  "moveMany": {
+    "other": "{n} 個の項目を移動"
+  },
+  "gone": "項目はもうありません",
+  "area.open": "ワークエリアを開く",
+  "rename": "名前の変更",
+  "properties": "プロパティ…",
+  "area.remove": "ワークエリアを削除…",
+  "open": "開く",
+  "openMany": {
+    "other": "{n} 個の項目を開く"
+  },
+  "fixed.hide": "デスクトップから外す",
+  "fixed.hidden": "「{name}」は「コントロールパネル → ワークスペース → このワークスペース」で元に戻せます",
+  "fixed.settings": "デスクトップの固定項目…",
+  "openWith": "プログラムから開く…",
+  "wallpaper": "デスクトップの背景に設定",
+  "area.fromSelection": "選択した項目でワークエリアを作成",
+  "remove": "削除",
+  "removeMany": {
+    "other": "{n} 個の項目を削除"
+  }
+}

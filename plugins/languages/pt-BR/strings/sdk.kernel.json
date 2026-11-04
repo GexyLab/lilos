@@ -1,0 +1,7 @@
+{
+  "canceled": "Cancelada",
+  "offline": "O kernel do lilOS não está respondendo",
+  "status": "Erro {status}",
+  "badModule": "Módulo inválido",
+  "badPath": "Caminho inválido"
+}

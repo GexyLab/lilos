@@ -1,0 +1,7 @@
+{
+  "signIn": "पहले साइन इन करें",
+  "kind": "kind \"app\" या \"module\" होना चाहिए",
+  "id": "id मान्य नहीं है",
+  "target": "install या update आवश्यक है",
+  "package": "पैकेज मान्य नहीं है"
+}

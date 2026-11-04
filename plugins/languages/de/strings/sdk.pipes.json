@@ -1,0 +1,28 @@
+{
+  "stopped": "Vorgang angehalten",
+  "badName": "Ungültiger Ereignisname: {name}",
+  "appEvent": "Ein Ereignis einer App heißt <App-ID>.<Name>",
+  "exists": "Das Ereignis {name} existiert bereits",
+  "unknown": "Unbekanntes Ereignis: {name}",
+  "stage": "stage muss \"before\" oder \"after\" sein",
+  "position": "position muss \"first\", \"middle\" oder \"last\" sein",
+  "noHandler": "Die Funktion der Pipe fehlt",
+  "reserved": "Das Ereignis {name} ist dem System vorbehalten",
+  "syncOnly": "{name} ist ein sofortiger Vorgang: Apps können ihn nur beobachten (stage \"after\")",
+  "maxSubs": {
+    "one": "Höchstens {n} Abonnement pro App",
+    "other": "Höchstens {n} Abonnements pro App"
+  },
+  "busy": "Zu viele laufende Vorgänge",
+  "busyApp": "Zu viele laufende Vorgänge für diese App",
+  "syncAnswer": "{name}: Ein sofortiger Vorgang erfordert eine sofortige Antwort",
+  "handlerFailed": "{name}: {message}",
+  "cannotStop": "{name}: Das Ereignis {event} kann nicht angehalten werden",
+  "whereObject": "where: nur ein Objekt",
+  "whereInvalid": "Ungültiges where",
+  "whereKey": "where: {key} wird nicht verwendet",
+  "whereMeta": "where.meta: nur \"own\"",
+  "whereType": "Ungültiges where.type",
+  "whereList": "where.{key}: eine Liste von Texten",
+  "timeout": "{name} hat nicht rechtzeitig geantwortet"
+}

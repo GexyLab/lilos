@@ -1,0 +1,10 @@
+{
+  "notFound": "未找到会话",
+  "tooMany": "最多打开 {max} 个会话",
+  "stopping": "内核正在停止",
+  "detached": "没有窗口 10 分钟后已关闭",
+  "notConnected": "会话未连接",
+  "tooBig": "消息过大",
+  "noCommand": "命令不可用",
+  "connected": "已连接"
+}

@@ -1,0 +1,8 @@
+{
+  "blockedWindow": "ブラウザーがサインイン用のウィンドウをブロックしました",
+  "blockedTab": "ブラウザーがサインイン用のタブをブロックしました",
+  "canceled": "サインインがキャンセルされました",
+  "failed": "サインインに失敗しました",
+  "noAskAddress": "askAddress がありません",
+  "badAddress": "無効なアドレス"
+}

@@ -1,0 +1,12 @@
+{
+  "folder": "module.json stimmt nicht mit dem Ordner {folder} überein",
+  "kernel": "{name} benötigt Kernel {kernel}, dies ist {api}",
+  "services": "{name}: ungültige Dienstnamen",
+  "settings": "{name}: ungültige Einstellungen",
+  "replaces": "{name}: ungültiges replaces",
+  "notInstalled": "Modul nicht installiert: {name}",
+  "twice": "Modul zweimal angegeben: {name}",
+  "provider": "Der Dienst \"{service}\" wird sowohl von {first} als auch von {second} bereitgestellt",
+  "cycle": "Zirkuläre Abhängigkeiten zwischen den Modulen ({name})",
+  "missing": "{name} benötigt den Dienst \"{service}\", den kein aktives Modul bereitstellt"
+}

@@ -1,0 +1,12 @@
+{
+  "ok": "확인",
+  "cancel": "취소",
+  "continue": "계속",
+  "retry": "다시 시도",
+  "required": "“{label}”을(를) 입력하세요",
+  "invalid": "“{label}”이(가) 올바르지 않습니다",
+  "number": "“{label}”은(는) 숫자여야 합니다",
+  "min": "“{label}”은(는) {min} 이상이어야 합니다",
+  "max": "“{label}”은(는) {max} 이하여야 합니다",
+  "long": "“{label}”이(가) 너무 깁니다(최대 {max}자)"
+}

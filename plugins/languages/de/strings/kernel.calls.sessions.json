@@ -1,0 +1,10 @@
+{
+  "notFound": "Sitzung nicht gefunden",
+  "tooMany": "Höchstens {max} offene Sitzungen",
+  "stopping": "Der Kernel wird beendet",
+  "detached": "Nach 10 Minuten ohne Fenster geschlossen",
+  "notConnected": "Die Sitzung ist nicht verbunden",
+  "tooBig": "Nachricht zu groß",
+  "noCommand": "Befehl nicht verfügbar",
+  "connected": "Verbunden"
+}

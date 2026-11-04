@@ -1,0 +1,7 @@
+{
+  "notImage": "‘{name}’ is geen afbeelding",
+  "gone": "Deze afbeelding is er niet meer",
+  "copyFailed": "‘{name}’ kan niet naar de map {folder} worden gekopieerd: {error}",
+  "noFolder": "de map {folder} ontbreekt",
+  "openFailed": "‘{name}’ kan niet als afbeelding worden geopend"
+}

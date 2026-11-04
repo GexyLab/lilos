@@ -1,0 +1,14 @@
+{
+  "name": "“{id}”",
+  "nameVersion": "“{id}”({version})",
+  "restart": {
+    "other": "이미 설치된 커널 모듈 {modules}이(가) 필요합니다. 다음에 커널을 다시 시작하면 작동하며, 커널은 관리자가 AppStore에서 다시 시작합니다."
+  },
+  "missing": "찾을 수 없음: {list}. 관리자가 AppStore에서 설치합니다.",
+  "missingModule": "커널 모듈 {name}",
+  "missingApp": "앱 {name}",
+  "openApp": "앱 열기",
+  "hidden": "{app}은(는) 이 작업 공간에서 숨겨져 있습니다. 제어판 → 작업 공간에서 표시할 수 있습니다.",
+  "cannotStart": "{app}을(를) 아직 시작할 수 없습니다",
+  "notStarted": "{app}이(가) 시작되지 않았습니다: {message}"
+}

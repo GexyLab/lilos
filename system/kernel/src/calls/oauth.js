@@ -2,6 +2,7 @@ import { createHash, randomBytes } from 'node:crypto';
 import { fail } from '../errors.js';
 import { httpRequest, readBody } from '../net/http.js';
 import { networkMessage } from '../net/connect.js';
+import { Text, defineStrings } from '../strings.js';
 
 /**
  * OAuth 2.0 for NetTest's requests, with the provider the user names (any one: the addresses and
@@ -33,12 +34,42 @@ const SEALED = 'nettest-oauth';
 const LOOPBACK = new Set(['localhost', '127.0.0.1', '[::1]']);
 const str = v => (typeof v === 'string' ? v.trim() : '');
 const token = () => randomBytes(32).toString('base64url');
-const said = (body, status) => String(body?.error_description ?? body?.error ?? `errore ${status}`).split(/\r?\n/)[0].slice(0, 240);
+const said = body => String(body?.error_description ?? body?.error ?? '').split(/\r?\n/)[0].slice(0, 240);
 
+const { t } = defineStrings('lilos:kernel.calls.oauth', { en: { strings: {
+  'tokenUrl.invalid': 'Token address: address not valid',
+  'tokenUrl.https': 'Token address: an https address is needed',
+  'authorizeUrl.invalid': 'Authorization address: address not valid',
+  'authorizeUrl.https': 'Authorization address: an https address is needed',
+  'redirectUrl.invalid': 'Return address: address not valid',
+  'redirectUrl.https': 'Return address: an https address is needed',
+  'lilos.invalid': 'lilOS: address not valid',
+  'lilos.https': 'lilOS: an https address is needed',
+  network: 'OAuth 2.0: {message}',
+  answered: 'OAuth 2.0: the provider answered {status}: {message}',
+  answeredStatus: 'OAuth 2.0: the provider answered {status}: error {status}',
+  grant: 'OAuth 2.0: grant type not valid',
+  notSignedIn: 'OAuth 2.0: not signed in: press «Sign in»',
+  sealedOther: 'OAuth 2.0: the saved sign-in works only for whoever made it, on this lilOS: sign in again',
+  expired: 'OAuth 2.0: the token has expired: sign in again',
+  flowExpired: 'Sign-in expired or already used: try again',
+  tooMany: 'Too many sign-ins in progress',
+  clientId: 'OAuth 2.0: the client ID is missing',
+  windowExpired: 'Sign-in expired or already used: close this window and try again.',
+  failedLower: 'sign-in failed',
+  done: 'Signed in: go back to NetTest. You can close this window.',
+  failed: 'Sign-in failed: {message}',
+  failedUnknown: 'Sign-in failed: the provider did not say why',
+  pasteInvalid: 'Address not valid: copy the whole address of the page',
+  pasteStart: 'The address must start with {url}',
+  pasteOther: 'This address belongs to another sign-in',
+} } });
+
+/** An address of the sign-in: what is 'tokenUrl', 'authorizeUrl', 'redirectUrl' or 'lilos' (the keys of its messages). */
 function webUrl(raw, what, { loopbackHttp = true } = {}) {
   let url;
-  try { url = new URL(str(raw)); } catch { fail('invalid', `${what}: indirizzo non valido`); }
-  if (url.protocol !== 'https:' && !(url.protocol === 'http:' && (loopbackHttp || LOOPBACK.has(url.hostname)))) fail('invalid', `${what}: serve un indirizzo https`);
+  try { url = new URL(str(raw)); } catch { fail('invalid', t(`${what}.invalid`)); }
+  if (url.protocol !== 'https:' && !(url.protocol === 'http:' && (loopbackHttp || LOOPBACK.has(url.hostname)))) fail('invalid', t(`${what}.https`));
   return url;
 }
 
@@ -54,7 +85,7 @@ export class CallsOAuth {
 
   /** A token request to the provider: form → its answer (JSON with access_token). */
   async #request(principal, s, form) {
-    const url = webUrl(s.tokenUrl, 'Indirizzo del token');
+    const url = webUrl(s.tokenUrl, 'tokenUrl');
     const body = new URLSearchParams(form);
     const headers = [['Content-Type', 'application/x-www-form-urlencoded'], ['Accept', 'application/json'], ['User-Agent', 'lilOS NetTest']];
     if (str(s.clientId)) {
@@ -74,21 +105,24 @@ export class CallsOAuth {
       ({ data } = await readBody(res, { max: 1 << 20 }));
     } catch (err) {
       if (err?.code === 'untrusted' || err?.code === 'forbidden') throw err;
-      fail('unavailable', `OAuth 2.0: ${networkMessage(err)}`);
+      fail('unavailable', t('network', { message: networkMessage(err) }));
     }
     let answer = null;
     try { answer = JSON.parse(data.toString('utf8')); } catch {
       // A few providers answer as a form (GitHub without Accept)
       answer = Object.fromEntries(new URLSearchParams(data.toString('utf8')));
     }
-    if (res.status >= 400 || typeof answer?.access_token !== 'string') fail('invalid', `OAuth 2.0: il fornitore ha risposto ${res.status}: ${said(answer, res.status)}`);
+    if (res.status >= 400 || typeof answer?.access_token !== 'string') {
+      const message = said(answer);
+      fail('invalid', message ? t('answered', { status: res.status, message }) : t('answeredStatus', { status: res.status }));
+    }
     return answer;
   }
 
   /** The access token for a request's auth (applyAuth's `tokens`). Renewed tokens go to `renewed`. */
   async token(principal, auth, renewed) {
     if (auth.grant === 'authorization_code') return this.#signedIn(principal, auth, renewed);
-    if (auth.grant !== 'client_credentials' && auth.grant !== 'password') fail('invalid', 'OAuth 2.0: tipo di concessione non valido');
+    if (auth.grant !== 'client_credentials' && auth.grant !== 'password') fail('invalid', t('grant'));
     const key = createHash('sha256').update(JSON.stringify([principal.id, auth.grant, str(auth.tokenUrl), str(auth.clientId), str(auth.clientSecret), str(auth.scope), str(auth.audience), str(auth.username), str(auth.password)])).digest('hex');
     const kept = this.#cache.get(key);
     if (kept && kept.expires - EARLY > Date.now()) return kept.token;
@@ -104,16 +138,16 @@ export class CallsOAuth {
   }
 
   async #signedIn(principal, auth, renewed) {
-    if (typeof auth.tokens !== 'string') fail('invalid', 'OAuth 2.0: nessun accesso fatto: premi «Accedi»');
+    if (typeof auth.tokens !== 'string') fail('invalid', t('notSignedIn'));
     // Per user: the same sealed tokens in a file passed to someone else are not theirs to use
     const cacheKey = `${principal.id}|${auth.tokens}`;
     const fresh = this.#cache.get(cacheKey);
     if (fresh && fresh.expires - EARLY > Date.now()) return fresh.token;
     let data;
     try { data = await this.#calls.secrets.open(auth.tokens); } catch { /* another lilOS */ }
-    if (data?.kind !== SEALED || data.user !== principal.id) fail('forbidden', 'OAuth 2.0: l’accesso salvato vale solo per chi l’ha fatto, su questo lilOS: accedi di nuovo');
+    if (data?.kind !== SEALED || data.user !== principal.id) fail('forbidden', t('sealedOther'));
     if (data.expires - EARLY > Date.now() || !data.refresh) {
-      if (data.expires < Date.now() && !data.refresh) fail('invalid', 'OAuth 2.0: il token è scaduto: accedi di nuovo');
+      if (data.expires < Date.now() && !data.refresh) fail('invalid', t('expired'));
       return data.access;
     }
     const answer = await this.#request(principal, data.settings, { grant_type: 'refresh_token', refresh_token: data.refresh, ...(data.settings.scope && { scope: data.settings.scope }) });
@@ -128,13 +162,13 @@ export class CallsOAuth {
     const expires = Date.now() + (Number(answer.expires_in) > 0 ? Number(answer.expires_in) * 1000 : 3600_000);
     const keep = { tokenUrl: str(settings.tokenUrl), clientId: str(settings.clientId), clientSecret: str(settings.clientSecret), scope: str(settings.scope), send: settings.send === 'basic' ? 'basic' : 'body' };
     const sealed = await this.#calls.secrets.seal({ kind: SEALED, user: principal.id, access: answer.access_token, refresh: answer.refresh_token ?? oldRefresh, expires, settings: keep });
-    const t = answer.access_token;
-    return { sealed, expires, scope: typeof answer.scope === 'string' ? answer.scope.slice(0, 500) : str(settings.scope), tokenType: str(answer.token_type) || 'Bearer', preview: t.length >= 40 ? `${t.slice(0, 4)}…` : '…', refresh: !!(answer.refresh_token ?? oldRefresh) };
+    const access = answer.access_token;
+    return { sealed, expires, scope: typeof answer.scope === 'string' ? answer.scope.slice(0, 500) : str(settings.scope), tokenType: str(answer.token_type) || 'Bearer', preview: access.length >= 40 ? `${access.slice(0, 4)}…` : '…', refresh: !!(answer.refresh_token ?? oldRefresh) };
   }
 
   /** Asks a token now (client_credentials, password) and gives it sealed, as a sign-in would: the «Ottieni token» button. */
   async fetch(principal, settings) {
-    if (settings.grant !== 'client_credentials' && settings.grant !== 'password') fail('invalid', 'OAuth 2.0: tipo di concessione non valido');
+    if (settings.grant !== 'client_credentials' && settings.grant !== 'password') fail('invalid', t('grant'));
     const form = { grant_type: settings.grant };
     if (str(settings.scope)) form.scope = str(settings.scope);
     if (str(settings.audience)) form.audience = str(settings.audience);
@@ -159,22 +193,22 @@ export class CallsOAuth {
   #mine(principal, id) {
     this.#prune();
     const flow = typeof id === 'string' ? this.#flows.get(id) : null;
-    return flow && flow.owner === principal.id ? flow : fail('not_found', 'Accesso scaduto o già usato: riprova');
+    return flow && flow.owner === principal.id ? flow : fail('not_found', t('flowExpired'));
   }
 
   /** → { id, url, redirectUri, manual }: the page opens url in a window. */
   start(principal, settings, origin) {
     this.#prune();
-    if ([...this.#flows.values()].filter(f => f.owner === principal.id).length >= PER_USER) fail('rate_limited', 'Troppi accessi in corso');
-    const authorize = webUrl(settings.authorizeUrl, 'Indirizzo di autorizzazione');
-    webUrl(settings.tokenUrl, 'Indirizzo del token');
-    if (!str(settings.clientId)) fail('invalid', 'OAuth 2.0: manca l’ID del client');
+    if ([...this.#flows.values()].filter(f => f.owner === principal.id).length >= PER_USER) fail('rate_limited', t('tooMany'));
+    const authorize = webUrl(settings.authorizeUrl, 'authorizeUrl');
+    webUrl(settings.tokenUrl, 'tokenUrl');
+    if (!str(settings.clientId)) fail('invalid', t('clientId'));
     let redirectUri, manual = false;
     if (str(settings.redirectUri)) {
-      redirectUri = webUrl(settings.redirectUri, 'Indirizzo di ritorno', { loopbackHttp: false }).href;
+      redirectUri = webUrl(settings.redirectUri, 'redirectUrl', { loopbackHttp: false }).href;
       manual = true;
     } else {
-      const base = webUrl(origin ?? '', 'lilOS', { loopbackHttp: false });
+      const base = webUrl(origin ?? '', 'lilos', { loopbackHttp: false });
       redirectUri = new URL(CALLBACK, base.origin).href;
     }
     const flow = {
@@ -200,19 +234,22 @@ export class CallsOAuth {
   async callback(query) {
     this.#prune();
     const flow = this.#byState.get(query.get('state') ?? '');
-    if (!flow) return { ok: false, text: 'Accesso scaduto o già usato: chiudi questa finestra e riprova.' };
+    if (!flow) return { ok: false, text: t('windowExpired') };
     this.#byState.delete(flow.state);
     const code = query.get('code');
     try {
-      if (!code) fail('invalid', String(query.get('error_description') || query.get('error') || 'accesso non riuscito').split(/\r?\n/)[0].slice(0, 300));
+      if (!code) {
+        const said = query.get('error_description') || query.get('error');
+        fail('invalid', said ? String(said).split(/\r?\n/)[0].slice(0, 300) : t('failedLower'));
+      }
       const answer = await this.#request({ id: flow.owner }, flow.settings, { grant_type: 'authorization_code', code: code.slice(0, 4096), redirect_uri: flow.redirectUri, code_verifier: flow.verifier });
       flow.result = await this.#seal({ id: flow.owner }, flow.settings, answer);
       flow.status = 'done';
-      return { ok: true, text: 'Accesso eseguito: torna a NetTest. Puoi chiudere questa finestra.' };
+      return { ok: true, text: t('done') };
     } catch (err) {
       flow.status = 'error';
-      flow.error = String(err?.message ?? err).slice(0, 300);
-      return { ok: false, text: `Accesso non riuscito: ${flow.error}` };
+      flow.error = err?.text instanceof Text ? err.text : String(err?.message ?? err).slice(0, 300);
+      return { ok: false, text: flow.error instanceof Text && flow.error.key === 'failedLower' ? t('failedUnknown') : t('failed', { message: flow.error }) };
     } finally {
       for (const wake of flow.waiters) wake();
       flow.waiters.clear();
@@ -223,10 +260,10 @@ export class CallsOAuth {
   async paste(principal, id, raw) {
     const flow = this.#mine(principal, id);
     let url;
-    try { url = new URL(String(raw ?? '').trim().slice(0, 8192)); } catch { fail('invalid', 'Indirizzo non valido: copia tutto l’indirizzo della pagina'); }
+    try { url = new URL(String(raw ?? '').trim().slice(0, 8192)); } catch { fail('invalid', t('pasteInvalid')); }
     const expected = new URL(flow.redirectUri);
-    if (url.origin !== expected.origin || url.pathname !== expected.pathname) fail('invalid', `L’indirizzo deve cominciare con ${flow.redirectUri}`);
-    if (url.searchParams.get('state') !== flow.state) fail('invalid', 'Questo indirizzo è di un altro accesso');
+    if (url.origin !== expected.origin || url.pathname !== expected.pathname) fail('invalid', t('pasteStart', { url: flow.redirectUri }));
+    if (url.searchParams.get('state') !== flow.state) fail('invalid', t('pasteOther'));
     if (flow.status === 'pending') await this.callback(url.searchParams);
     return this.#view(flow);
   }

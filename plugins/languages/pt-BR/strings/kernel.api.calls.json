@@ -1,0 +1,7 @@
+{
+  "signIn": "Faça login primeiro",
+  "run": "Execução inválida",
+  "session": "Sessão inválida",
+  "signin": "Login inválido",
+  "needSocket": "É necessário um WebSocket"
+}

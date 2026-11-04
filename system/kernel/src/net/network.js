@@ -15,6 +15,7 @@ import { SignIns } from './signin.js';
 import { uniqueName } from './transfers.js';
 import { openHome } from '../api/home.js';
 import { Readable } from 'node:stream';
+import { defineStrings } from '../strings.js';
 
 const log = logger('rete');
 const MAX_MOUNTS = 50;
@@ -24,6 +25,38 @@ const IMPORT_WAIT = 25_000;     // longest wait of one status request of an impo
 const IMPORT_POLL = 3_000;      // how often the provider is asked meanwhile
 const MAX_IMPORTS = 5;          // imports of a user open at once
 const ID = /^[a-f0-9]{16}$/;
+
+const { t } = defineStrings('lilos:kernel.net.network', { en: { strings: {
+  signIn: 'Sign-in required',
+  noProtocol: 'Protocol not available: {protocol} (its kernel module is missing)',
+  moduleOff: 'The module of this protocol is not active',
+  notFound: 'Connection not found',
+  nameInvalid: 'Connection name not valid',
+  nameTaken: 'There is already a connection «{name}»',
+  noAccounts: 'This protocol has no sign-in with an account',
+  tooMany: 'At most {max} connections',
+  otherAccount: 'You signed in as {account}, but «{name}» belongs to {owner}',
+  signInAgain: '«{name}» needs a new sign-in',
+  password: '«{name}» needs its password',
+  folderTooBig: 'Folder too large (more than {max} items)',
+  path: 'Path not valid',
+  rootRemove: 'The main folder of the connection cannot be deleted',
+  noLinks: 'This protocol has no web addresses',
+  link: 'Web address not valid',
+  importsTooMany: 'Too many imports open: finish one',
+  importsNone: 'This protocol does not import',
+  importsNoPage: 'The provider did not open the page to choose from',
+  importGone: 'Import expired or not found',
+  importFailed: 'Import failed',
+  fileNotFound: 'File not found',
+  fileOnly: 'Only a file can be uploaded',
+  fileName: 'File name not valid',
+  alreadyThere: 'There is already «{name}» in {folder}',
+  missing: 'Missing: {fields}',
+  noShares: 'This protocol has no shares',
+  tooDeep: 'Folders nested too deeply',
+  unsafeName: 'The folder holds a name that is not safe: it is not deleted',
+} } });
 
 /**
  * The network connections of each user (the Rete folder) and their sessions. Every user has their
@@ -81,7 +114,7 @@ export class Network {
   }
 
   async #user(principal) {
-    if (principal?.kind !== 'user') fail('unauthorized', 'Accesso richiesto');
+    if (principal?.kind !== 'user') fail('unauthorized', t('signIn'));
     let user = this.#users.get(principal.id);
     if (user) {
       user.who = this.#who(principal);
@@ -138,7 +171,7 @@ export class Network {
   }
 
   #driver(protocol) {
-    return this.drivers.get(protocol) ?? fail('unavailable', `Protocollo non disponibile: ${protocol} (manca il suo modulo del kernel)`);
+    return this.drivers.get(protocol) ?? fail('unavailable', t('noProtocol', { protocol }));
   }
 
   #view(user, r) {
@@ -150,7 +183,7 @@ export class Network {
       id: r.id, name: r.name, protocol: r.protocol, address, values: r.values, auto: !!r.auto,
       remembered: !!r.secret, trusted: !!this.#trustOf(user, r),
       state: !driver ? 'error' : live?.state ?? 'off',
-      error: !driver ? 'Il modulo di questo protocollo non è attivo' : live?.error ?? null,
+      error: !driver ? t('moduleOff') : live?.error ?? null,
     };
   }
 
@@ -165,13 +198,13 @@ export class Network {
   }
 
   #saved(user, id) {
-    return (typeof id === 'string' && user.saved.get(id)) || fail('not_found', 'Connessione inesistente');
+    return (typeof id === 'string' && user.saved.get(id)) || fail('not_found', t('notFound'));
   }
 
   #checkName(user, name, exceptId = null) {
     const clean = typeof name === 'string' ? name.replace(/\s+/g, ' ').trim() : '';
-    if (!clean || clean.length > 60 || /[/\\\0-\x1f]/.test(clean)) fail('invalid', 'Nome della connessione non valido');
-    if ([...user.saved.values()].some(r => r.id !== exceptId && r.name.toLowerCase() === clean.toLowerCase())) fail('conflict', `C’è già una connessione «${clean}»`);
+    if (!clean || clean.length > 60 || /[/\\\0-\x1f]/.test(clean)) fail('invalid', t('nameInvalid'));
+    if ([...user.saved.values()].some(r => r.id !== exceptId && r.name.toLowerCase() === clean.toLowerCase())) fail('conflict', t('nameTaken', { name: clean }));
     return clean;
   }
 
@@ -195,7 +228,7 @@ export class Network {
    */
   #signedIn(principal, driver, protocol, body, values, secret, { keep = false } = {}) {
     if (typeof body?.signin !== 'string') return null;
-    if (!signInFields(driver).length) fail('invalid', 'Questo protocollo non ha un accesso con account');
+    if (!signInFields(driver).length) fail('invalid', t('noAccounts'));
     const got = this.signins.take(principal, body.signin, protocol, { keep });
     values[got.field] = got.account;
     secret[got.field] = got.secret;
@@ -208,7 +241,7 @@ export class Network {
    */
   async create(principal, body, rawSecret) {
     const user = await this.#user(principal);
-    if (user.saved.size >= MAX_MOUNTS) fail('invalid', `Al massimo ${MAX_MOUNTS} connessioni`);
+    if (user.saved.size >= MAX_MOUNTS) fail('invalid', t('tooMany', { max: MAX_MOUNTS }));
     const driver = this.#driver(body?.protocol);
     const { values, secret } = checkFields(driver, body.values, rawSecret);
     await this.#accept(driver, values);
@@ -314,7 +347,7 @@ export class Network {
       const values = { ...r.values };
       const got = this.#signedIn(principal, driver, r.protocol, { signin }, values, secret);
       if (got && r.values[got.field] && r.values[got.field].toLowerCase() !== got.account.toLowerCase()) {
-        fail('conflict', `Hai fatto l’accesso come ${got.account}, ma «${r.name}» è di ${r.values[got.field]}`);
+        fail('conflict', t('otherAccount', { account: got.account, name: r.name, owner: r.values[got.field] }));
       }
       if (got) {
         // Signed in again: the other secret fields stay, and it is remembered as it was unless said
@@ -366,9 +399,9 @@ export class Network {
       if (missing.length) {
         live.state = live.state === 'on' ? 'on' : 'off';
         if (signInFields(driver).some(f => missing.includes(f.key))) {
-          fail('secret_required', `Serve un nuovo accesso per «${r.name}»`, { details: { reason: 'signin', fields: missing } });
+          fail('secret_required', t('signInAgain', { name: r.name }), { details: { reason: 'signin', fields: missing } });
         }
-        fail('secret_required', `Serve la password di «${r.name}»`, { details: { reason: 'missing', fields: missing } });
+        fail('secret_required', t('password', { name: r.name }), { details: { reason: 'missing', fields: missing } });
       }
       live.state = 'connecting';
       live.error = null;
@@ -391,7 +424,7 @@ export class Network {
         const previous = err?.net === 'untrusted' && err.trust ? this.knownHosts.peek(user.id, err.trust.kind === 'ssh' ? 'ssh' : 'tls', this.#server(r)) : null;
         if (previous && previous !== err.trust.fingerprint) err.trust = { ...err.trust, changed: true, previous };
         live.state = asked ? 'off' : 'error';
-        live.error = asked ? null : String(err?.message ?? err).slice(0, 300);
+        live.error = asked ? null : err?.text ?? String(err?.message ?? err).slice(0, 300);
         return this.#fail(driver, err, r.name);
       } finally {
         this.#emit(userId, 'net.mount', { id: r.id });
@@ -431,7 +464,7 @@ export class Network {
   /** A driver's error as the kernel reports it; wrong credentials of an account ask to sign in again. */
   #fail(driver, err, name, prefix = name) {
     if (err?.net === 'auth' && driver && signInFields(driver).length) {
-      fail('secret_required', `Serve un nuovo accesso per «${name}»`, { details: { reason: 'signin' } });
+      fail('secret_required', t('signInAgain', { name }), { details: { reason: 'signin' } });
     }
     return netFail(err, prefix);
   }
@@ -472,7 +505,7 @@ export class Network {
   async listFolder(principal, id, path) {
     path = cleanPath(path);
     const entries = await this.use(principal, id, s => s.list(path));
-    if (entries.length > MAX_LISTED) fail('too_large', `Cartella troppo grande (più di ${MAX_LISTED} elementi)`);
+    if (entries.length > MAX_LISTED) fail('too_large', t('folderTooBig', { max: MAX_LISTED }));
     const user = await this.#user(principal);
     const live = this.#live(user, id);
     if (live.session?.watch && !live.watched.has(path)) {
@@ -503,14 +536,14 @@ export class Network {
 
   async mkdir(principal, id, path) {
     path = cleanPath(path);
-    if (path === '/') fail('invalid', 'Percorso non valido');
+    if (path === '/') fail('invalid', t('path'));
     await this.use(principal, id, s => s.mkdir(path), { retry: false });
   }
 
   async rename(principal, id, from, to) {
     from = cleanPath(from);
     to = cleanPath(to);
-    if (from === '/' || to === '/') fail('invalid', 'Percorso non valido');
+    if (from === '/' || to === '/') fail('invalid', t('path'));
     await this.#unwatch(principal, id, from);
     await this.use(principal, id, s => s.rename(from, to), { retry: false });
   }
@@ -518,7 +551,7 @@ export class Network {
   /** Removes a file, or a folder with everything inside it. */
   async removePath(principal, id, path) {
     path = cleanPath(path);
-    if (path === '/') fail('invalid', 'La cartella principale della connessione non si elimina');
+    if (path === '/') fail('invalid', t('rootRemove'));
     await this.#unwatch(principal, id, path);
     await this.use(principal, id, s => (s.removeTree ? s.removeTree(path) : removeTree(s, path)), { retry: false });
   }
@@ -526,8 +559,8 @@ export class Network {
   /** The page of a file or folder on the provider's site (protocols with links): 'https://…'. */
   async link(principal, id, path) {
     path = cleanPath(path);
-    const url = await this.use(principal, id, s => (typeof s.link === 'function' ? s.link(path) : fail('invalid', 'Questo protocollo non ha indirizzi web')));
-    if (typeof url !== 'string' || url.length > 8192 || !/^https:\/\/[^\s]+$/.test(url)) fail('invalid', 'Indirizzo web non valido');
+    const url = await this.use(principal, id, s => (typeof s.link === 'function' ? s.link(path) : fail('invalid', t('noLinks'))));
+    if (typeof url !== 'string' || url.length > 8192 || !/^https:\/\/[^\s]+$/.test(url)) fail('invalid', t('link'));
     return url;
   }
 
@@ -566,10 +599,10 @@ export class Network {
     const user = await this.#user(principal);
     this.#saved(user, id);
     for (const [k, v] of user.imports) if (Date.now() - v.created > 2 * 3600_000) user.imports.delete(k);
-    if (user.imports.size >= MAX_IMPORTS) fail('rate_limited', 'Troppe importazioni aperte: finiscine una');
-    const got = await this.use(principal, id, s => (s.importer ? s.importer.start() : fail('invalid', 'Questo protocollo non importa')), { retry: false });
+    if (user.imports.size >= MAX_IMPORTS) fail('rate_limited', t('importsTooMany'));
+    const got = await this.use(principal, id, s => (s.importer ? s.importer.start() : fail('invalid', t('importsNone'))), { retry: false });
     if (typeof got?.id !== 'string' || !/^[\w.-]{1,200}$/.test(got.id) || typeof got.url !== 'string' || got.url.length > 8192 || !/^https:\/\/\S+$/.test(got.url)) {
-      fail('invalid', 'Il fornitore non ha aperto la pagina per scegliere');
+      fail('invalid', t('importsNoPage'));
     }
     user.imports.set(got.id, { mount: id, created: Date.now() });
     return { id: got.id, url: got.url };
@@ -583,7 +616,7 @@ export class Network {
   async importStatus(principal, id, importId, { wait = false } = {}) {
     const user = await this.#user(principal);
     const known = user.imports.get(importId);
-    if (!known || known.mount !== id) fail('not_found', 'Importazione scaduta o inesistente');
+    if (!known || known.mount !== id) fail('not_found', t('importGone'));
     const until = Date.now() + (wait ? IMPORT_WAIT : 0);
     for (;;) {
       const got = await this.use(principal, id, s => s.importer.poll(importId));
@@ -593,7 +626,7 @@ export class Network {
         return {
           status, count: Number(got?.count) || 0, size: Number(got?.size) || 0,
           path: status === 'done' ? cleanPath(String(got.path ?? '')) : null,
-          ...(status === 'error' && { error: String(got?.error ?? 'Importazione non riuscita').slice(0, 300) }),
+          ...(status === 'error' && { error: got?.error == null ? t('importFailed') : String(got.error).slice(0, 300) }),
         };
       }
       await new Promise(resolve => setTimeout(resolve, IMPORT_POLL));
@@ -603,7 +636,7 @@ export class Network {
   /** Writes a file from a stream (a new or empty file can be written with an empty one). */
   async write(principal, id, path, source, { start = 0, signal, size } = {}) {
     path = cleanPath(path);
-    if (path === '/') fail('invalid', 'Percorso non valido');
+    if (path === '/') fail('invalid', t('path'));
     await this.use(principal, id, s => s.write(path, source, { start, signal, ...(Number.isSafeInteger(size) && size >= 0 && { size }) }), { retry: false });
   }
 
@@ -617,9 +650,9 @@ export class Network {
     folder = cleanPath(folder);
     const view = await openHome(this.#kernel, principal);
     const back = view.toBack(home);
-    const node = await view.fs.stat(principal, back) ?? fail('not_found', 'File inesistente');
-    if (node.type !== 'file') fail('invalid', 'Si carica solo un file');
-    if (!isSafeName(node.name)) fail('invalid', 'Nome del file non valido');
+    const node = await view.fs.stat(principal, back) ?? fail('not_found', t('fileNotFound'));
+    if (node.type !== 'file') fail('invalid', t('fileOnly'));
+    if (!isSafeName(node.name)) fail('invalid', t('fileName'));
     await this.use(principal, id, async s => {
       let at = '/';
       for (const part of folder.split('/').filter(Boolean)) {
@@ -633,7 +666,7 @@ export class Network {
     const same = await this.stat(principal, id, joinPath(folder, name));
     if (same) {
       if (same.type === 'folder' || ifExists === 'keep') name = uniqueName(name, (await this.use(principal, id, s => s.list(folder))).map(e => e.name));
-      else if (ifExists !== 'replace') fail('conflict', `C’è già «${name}» in ${folder}`, { details: { name, exists: true } });
+      else if (ifExists !== 'replace') fail('conflict', t('alreadyThere', { name, folder }), { details: { name, exists: true } });
     }
     const path = joinPath(folder, name);
     const source = view.fs.readStream ? await view.fs.readStream(principal, back) : Readable.from([await view.fs.read(principal, back)]);
@@ -654,7 +687,7 @@ export class Network {
     // A sign-in stays usable after a test: the connection is made with it afterwards
     const got = this.#signedIn(principal, driver, body.protocol, body, values, secret, { keep: true });
     const missing = missingFields(driver, values, secret);
-    if (missing.length) fail('invalid', `Mancano: ${missing.join(', ')}`);
+    if (missing.length) fail('invalid', t('missing', { fields: missing.join(', ') }));
     await this.#accept(driver, values);
     let session;
     try {
@@ -672,7 +705,7 @@ export class Network {
   async shares(principal, body, rawSecret) {
     await this.#user(principal);
     const driver = this.#driver(body?.protocol);
-    if (typeof driver.shares !== 'function') fail('invalid', 'Questo protocollo non ha condivisioni');
+    if (typeof driver.shares !== 'function') fail('invalid', t('noShares'));
     const { values, secret } = checkFields(driver, body.values, rawSecret);
     // An account signed in to in the dialog (the drives of a Google account): the sign-in stays usable
     const got = this.#signedIn(principal, driver, body.protocol, body, values, secret, { keep: true });
@@ -742,12 +775,12 @@ export class Network {
  * it. A name the server gives that is not safe stops it before anything goes.
  */
 export async function removeTree(session, path, entry = undefined, depth = 0) {
-  if (depth > 64) fail('invalid', 'Cartelle troppo annidate');
+  if (depth > 64) fail('invalid', t('tooDeep'));
   entry ??= await session.stat(path);
   if (!entry) return;
   if (entry.type === 'folder' && !entry.link) {
     const children = await session.list(path);
-    if (children.some(c => !isUsableName(c?.name))) fail('invalid', 'La cartella contiene un nome non sicuro: non viene eliminata');
+    if (children.some(c => !isUsableName(c?.name))) fail('invalid', t('unsafeName'));
     for (const child of children) await removeTree(session, joinPath(path, child.name), child, depth + 1);
     await session.remove(path, { folder: true });
   } else {

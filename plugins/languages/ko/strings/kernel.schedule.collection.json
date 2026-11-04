@@ -1,0 +1,9 @@
+{
+  "skipped": "건너뜀",
+  "check": "검사 {name}({actual})",
+  "test": "테스트 “{name}”: {error}",
+  "counts": "{seconds}초 동안 {passed}개 통과, {failed}개 실패",
+  "countsSkipped": "{seconds}초 동안 {passed}개 통과, {failed}개 실패, {skipped}개 건너뜀",
+  "cancelled": "취소됨: {counts}",
+  "failedFirst": "{name}: {counts}(첫 번째: {first})"
+}

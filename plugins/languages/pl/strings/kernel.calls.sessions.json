@@ -1,0 +1,10 @@
+{
+  "notFound": "Nie znaleziono sesji",
+  "tooMany": "Najwyżej {max} otwartych sesji",
+  "stopping": "Kernel się zatrzymuje",
+  "detached": "Zamknięto po 10 minutach bez okna",
+  "notConnected": "Sesja nie jest połączona",
+  "tooBig": "Wiadomość jest za duża",
+  "noCommand": "Polecenie niedostępne",
+  "connected": "Połączono"
+}

@@ -1,0 +1,12 @@
+{
+  "folder": "module.json, {folder} klasörüyle eşleşmiyor",
+  "kernel": "{name}, çekirdek {kernel} gerektiriyor; bu çekirdek {api}",
+  "services": "{name}: hizmet adları geçerli değil",
+  "settings": "{name}: ayarlar geçerli değil",
+  "replaces": "{name}: replaces geçerli değil",
+  "notInstalled": "Modül yüklü değil: {name}",
+  "twice": "Modül iki kez belirtilmiş: {name}",
+  "provider": "\"{service}\" hizmetini hem {first} hem de {second} sağlıyor",
+  "cycle": "Modüller arasında döngüsel bağımlılık ({name})",
+  "missing": "{name}, etkin hiçbir modülün sağlamadığı \"{service}\" hizmetini gerektiriyor"
+}

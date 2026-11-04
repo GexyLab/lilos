@@ -1,0 +1,7 @@
+{
+  "path": "Ungültiger Pfad: {path}",
+  "notFound": "Nicht gefunden: {path}",
+  "gone": "Die Datei ist nicht mehr vorhanden",
+  "notFile": "Keine Datei: {path}",
+  "tooBig": "Datei zu groß (höchstens 50 MB): {path}"
+}

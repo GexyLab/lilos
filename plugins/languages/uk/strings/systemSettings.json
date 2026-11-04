@@ -1,0 +1,28 @@
+{
+  "retention.days": {
+    "one": "{n} день",
+    "few": "{n} дні",
+    "many": "{n} днів",
+    "other": "{n} дня"
+  },
+  "retention.year": "1 рік",
+  "retention.forever": "Завжди",
+  "lasso": "{keys} + перетягування",
+  "color.blue": "Синій",
+  "color.violet": "Фіолетовий",
+  "color.magenta": "Пурпуровий",
+  "color.red": "Червоний",
+  "color.orange": "Помаранчевий",
+  "color.green": "Зелений",
+  "color.teal": "Бірюзовий",
+  "color.graphite": "Графіт",
+  "color.night": "Ніч",
+  "color.deepBlue": "Темно-синій",
+  "color.forest": "Ліс",
+  "color.plum": "Слива",
+  "color.earth": "Земля",
+  "color.mist": "Туман",
+  "color.sky": "Небо",
+  "color.sage": "Шавлія",
+  "color.sand": "Пісок"
+}

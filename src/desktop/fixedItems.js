@@ -1,4 +1,4 @@
-import { fs, settings } from '@lilos/sdk';
+import { fs, settings, locale } from '@lilos/sdk';
 import { launch } from '../apps/registry.js';
 import { removeNodes } from '../items/fsHistory.js';
 import { dropZone, markItem } from '../items/itemDrag.js';
@@ -7,6 +7,18 @@ import { workspaceManager } from '../workspaces/info.js';
 import { notify } from '../notifications/notify.js';
 
 const PREFIX = 'fixed:';
+
+const { t } = locale.define('lilos:deskFixed', {
+  en: { strings: {
+    'home.description': 'The main folder, with all the others',
+    'folder.description': 'The {name} folder, shared by all workspaces',
+    'files.description': 'Opens the File Manager',
+    trash: 'Trash', 'trash.description': 'Opens the trash; files and folders can be dragged onto it',
+    noDesk: 'The desktop is not there',
+    folderGone: 'The {name} folder is no longer there',
+    trashedOne: 'Moved to the trash', trashedMany: { one: '{n} item moved to the trash', other: '{n} items moved to the trash' },
+  } },
+});
 
 /**
  * Items on the desks, in this order (listed in Control Panel → Workspace, where each one is turned on
@@ -17,18 +29,19 @@ const PREFIX = 'fixed:';
  * position in the desk's layout like any other item (under 'fixed:<key>'), also while turned
  * off. Some fields are for Control Panel, which reads this list.
  *   key          stable id
- *   name         label on the desk
+ *   name         label on the desk (a system folder's: its name on disk)
  *   kind         'home' | 'folder' (a system folder, by name) | 'app' | 'trash'
  *   glyph        SDK icon for the list in Control Panel (and the badge on folders)
  *   description  what it opens
+ * name (the trash) and description are in the system's language: getters, read them when drawing.
  */
 export const FIXED_ITEMS = Object.freeze([
-  { key: 'home', name: 'Home', kind: 'home', glyph: 'home', description: 'La cartella principale, con tutte le altre' },
-  { key: 'documents', name: 'Documenti', kind: 'folder', glyph: 'file', description: 'La cartella Documenti, condivisa da tutti i workspace' },
-  { key: 'images', name: 'Immagini', kind: 'folder', glyph: 'image', description: 'La cartella Immagini, condivisa da tutti i workspace' },
-  { key: 'files', name: 'File Manager', kind: 'app', app: 'files', glyph: 'folder', description: 'Apre il File Manager' },
-  { key: 'downloads', name: 'Download', kind: 'folder', glyph: 'download', description: 'La cartella Download, condivisa da tutti i workspace' },
-  { key: 'trash', name: 'Cestino', kind: 'trash', glyph: 'trash', description: 'Apre il cestino; ci si possono trascinare file e cartelle' },
+  { key: 'home', name: 'Home', kind: 'home', glyph: 'home', get description() { return t('home.description'); } },
+  { key: 'documents', name: 'Documenti', kind: 'folder', glyph: 'file', get description() { return t('folder.description', { name: this.name }); } },
+  { key: 'images', name: 'Immagini', kind: 'folder', glyph: 'image', get description() { return t('folder.description', { name: this.name }); } },
+  { key: 'files', name: 'File Manager', kind: 'app', app: 'files', glyph: 'folder', get description() { return t('files.description'); } },
+  { key: 'downloads', name: 'Download', kind: 'folder', glyph: 'download', get description() { return t('folder.description', { name: this.name }); } },
+  { key: 'trash', get name() { return t('trash'); }, kind: 'trash', glyph: 'trash', get description() { return t('trash.description'); } },
 ].map(Object.freeze));
 
 const known = key => FIXED_ITEMS.some(f => f.key === key);
@@ -84,7 +97,7 @@ export function showAppOnDesk(app) {
   const fixed = fixedApp(app.id);
   if (fixed) return setFixedShown(fixed.key, true);
   const desk = deskFolder();
-  if (!desk) throw new Error('La scrivania non c’è');
+  if (!desk) throw new Error(t('noDesk'));
   fs.create(desk, { type: 'app', name: app.name, app: app.id });
 }
 
@@ -107,7 +120,7 @@ export function openFixed(item) {
   if (item.kind === 'trash') return launch('files', { trash: true });
   const folder = fixedFolder(item);
   if (folder) launch('files', { folder });
-  else notify(`La cartella ${item.name} non c’è più`, { level: 'warning' });
+  else notify(t('folderGone', { name: item.name }), { level: 'warning' });
 }
 
 /**
@@ -136,7 +149,7 @@ export function acceptDrops(el, item) {
       drop: async (ids, ev, stack) => {
         const n = deletable(ids).length;
         await removeNodes(stack, ids);
-        notify(n === 1 ? 'Spostato nel cestino' : `${n} elementi spostati nel cestino`, { level: 'success' });
+        notify(n === 1 ? t('trashedOne') : t('trashedMany', { n }), { level: 'success' });
       },
     });
   }

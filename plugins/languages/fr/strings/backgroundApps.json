@@ -1,0 +1,10 @@
+{
+  "one": "{name} s’exécute en arrière-plan",
+  "many": {
+    "one": "{n} app s’exécute en arrière-plan",
+    "other": "{n} apps s’exécutent en arrière-plan"
+  },
+  "heading": "En arrière-plan",
+  "item": "{name} : {label}",
+  "stop": "Arrêter"
+}

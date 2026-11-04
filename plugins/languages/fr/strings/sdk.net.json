@@ -1,0 +1,8 @@
+{
+  "blockedWindow": "Le navigateur a bloqué la fenêtre de connexion",
+  "blockedTab": "Le navigateur a bloqué l’onglet de connexion",
+  "canceled": "Connexion annulée",
+  "failed": "Échec de la connexion",
+  "noAskAddress": "askAddress est manquant",
+  "badAddress": "Adresse non valide"
+}

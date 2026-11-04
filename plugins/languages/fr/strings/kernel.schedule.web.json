@@ -1,0 +1,30 @@
+{
+  "folderGone": "Le dossier d’enregistrement n’existe plus",
+  "notFolder": "L’emplacement d’enregistrement n’est pas un dossier",
+  "notFile": "« {name} » existe déjà et n’est pas un fichier",
+  "protected": "« {name} » est protégé par une app (chiffré, par exemple) : il n’est pas écrasé",
+  "secretGone": "La valeur secrète de {name} ne peut plus être lue : elle doit être saisie à nouveau",
+  "fileGone": "Le fichier à envoyer n’existe plus",
+  "noAnswer": {
+    "one": "Aucune réponse en {n} seconde",
+    "other": "Aucune réponse en {n} secondes"
+  },
+  "untrusted": "{message} : confirmez-le une fois depuis NetTest",
+  "network": "Réseau : {code}",
+  "redirects": "Trop de redirections",
+  "notWeb": "Redirection vers une adresse qui n’est pas web",
+  "otherOrigin": "Redirection vers une autre adresse avec un corps à envoyer : non suivie",
+  "tooBig": "Réponse trop volumineuse (10 Mo au maximum)",
+  "unfinished": {
+    "one": "La réponse ne s’est pas terminée en {n} seconde",
+    "other": "La réponse ne s’est pas terminée en {n} secondes"
+  },
+  "bytes": {
+    "one": "{n} octet",
+    "other": "{n} octets"
+  },
+  "saved": "{status} en {ms} ms · {size} · enregistrée dans {name}",
+  "summary": "{status} en {ms} ms · {size}",
+  "status": "Statut {status}, {expected} attendu",
+  "contains": "La réponse ne contient pas « {text} »"
+}

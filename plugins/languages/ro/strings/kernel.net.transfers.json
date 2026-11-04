@@ -1,0 +1,47 @@
+{
+  "sources": "Elemente de transferat nevalide",
+  "notFolder": "Destinația nu este un dosar",
+  "homeToHome": "Copiere între dosare lilOS: nu este un transfer de rețea",
+  "intoItself": "Un dosar nu poate fi copiat în el însuși",
+  "nothing": "Nimic de transferat",
+  "tooMany": "Prea multe transferuri în coadă",
+  "itemNotFound": "Elementul nu a fost găsit",
+  "noConflict": "Niciun conflict de rezolvat",
+  "choice": "Alegere nevalidă",
+  "queueNotFound": "Coada nu a fost găsită",
+  "serverNotFound": "Nu există pe server",
+  "badName": "Nume care nu poate fi transferat: {name}",
+  "webOnly": "„{name}” se deschide doar pe web: nu este copiat",
+  "place": "Locație nevalidă",
+  "tooManyFiles": "Prea multe fișiere de transferat",
+  "tooDeep": "Dosare imbricate prea adânc",
+  "someFailed": "Unele fișiere nu au fost transferate",
+  "dstLost": "Dosarul de destinație a fost pierdut",
+  "fileThere": "Există deja un fișier „{name}” acolo unde ajunge dosarul",
+  "retrying": "{message} · nouă încercare",
+  "folderThere": "Există deja un dosar „{name}” acolo unde ajunge fișierul",
+  "notFileThere": "Există deja un element „{name}” care nu este un fișier",
+  "done": {
+    "one": "Un fișier transferat în „{queue}” ({size})",
+    "few": "{n} fișiere transferate în „{queue}” ({size})",
+    "other": "{n} de fișiere transferate în „{queue}” ({size})"
+  },
+  "failed": {
+    "one": "Un fișier netransferat",
+    "few": "{n} fișiere netransferate",
+    "other": "{n} de fișiere netransferate"
+  },
+  "failedIn": {
+    "one": "Un fișier netransferat în „{queue}”",
+    "few": "{n} fișiere netransferate în „{queue}”",
+    "other": "{n} de fișiere netransferate în „{queue}”"
+  },
+  "complete": "Transfer finalizat: {files}.",
+  "allFailed": "Transferul a eșuat: {files}.",
+  "partial": "Transfer finalizat cu erori: {done}. {failed}.",
+  "bytes": {
+    "one": "{n} octet",
+    "few": "{n} octeți",
+    "other": "{n} de octeți"
+  }
+}

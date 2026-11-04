@@ -1,0 +1,23 @@
+{
+  "tooMany": "Maximaal {max} werkgebieden",
+  "overlap": "Daar staat al een ander werkgebied: gebieden mogen elkaar niet overlappen",
+  "undo.create": "Het werkgebied ‘{title}’ maken",
+  "undo.rename": "Het werkgebied ‘{before}’ hernoemen naar ‘{after}’",
+  "undo.remove": "Het werkgebied ‘{title}’ verwijderen",
+  "undo.move": "Het werkgebied ‘{title}’ verplaatsen",
+  "undo.resize": "Het formaat van het werkgebied ‘{title}’ wijzigen",
+  "gone": "Het werkgebied bestaat niet meer",
+  "already": "Het werkgebied staat er al",
+  "occupied": "Daar staat nu een ander werkgebied",
+  "notOpen": "Het werkgebied is niet open",
+  "removeOne": "Het werkgebied ‘{title}’ verwijderen (de inhoud blijft op het bureaublad)",
+  "removeMany": {
+    "one": "{n} werkgebied verwijderen (de inhoud blijft op het bureaublad)",
+    "other": "{n} werkgebieden verwijderen (de inhoud blijft op het bureaublad)"
+  },
+  "menu.title": "Werkgebied ‘{title}’",
+  "menu.rename": "Naam van het werkgebied wijzigen",
+  "menu.properties": "Eigenschappen…",
+  "menu.collapse": "Minimaliseren tot een pictogram",
+  "menu.remove": "Het werkgebied verwijderen…"
+}

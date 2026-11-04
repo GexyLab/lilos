@@ -1,0 +1,27 @@
+{
+  "stopped": "操作が停止されました",
+  "badName": "無効なイベント名：{name}",
+  "appEvent": "アプリのイベント名は <app id>.<name> の形式です",
+  "exists": "イベント {name} はすでに存在します",
+  "unknown": "不明なイベント：{name}",
+  "stage": "stage は \"before\" または \"after\" である必要があります",
+  "position": "position は \"first\"、\"middle\"、\"last\" のいずれかである必要があります",
+  "noHandler": "パイプの関数がありません",
+  "reserved": "イベント {name} はシステム用に予約されています",
+  "syncOnly": "{name} は即時の操作です。アプリは監視のみ可能です（stage \"after\"）",
+  "maxSubs": {
+    "other": "1 つのアプリにつき購読は最大 {n} 個です"
+  },
+  "busy": "実行中の操作が多すぎます",
+  "busyApp": "このアプリで実行中の操作が多すぎます",
+  "syncAnswer": "{name}：即時の操作には即時の応答が必要です",
+  "handlerFailed": "{name}：{message}",
+  "cannotStop": "{name}：イベント {event} は停止できません",
+  "whereObject": "where：オブジェクトのみ",
+  "whereInvalid": "無効な where",
+  "whereKey": "where：{key} は使用されていません",
+  "whereMeta": "where.meta：\"own\" のみ",
+  "whereType": "無効な where.type",
+  "whereList": "where.{key}：テキストのリスト",
+  "timeout": "{name} が時間内に応答しませんでした"
+}

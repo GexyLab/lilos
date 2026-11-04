@@ -1,0 +1,63 @@
+{
+  "asksRestart": "{app} {version} vraagt om lilOS na de update opnieuw te starten",
+  "updatedRestart": "{app} is bijgewerkt naar {version}: start lilOS opnieuw om haar te gebruiken (knop in het systeemvak, rechtsonder)",
+  "updated": "{app} is bijgewerkt naar {version}",
+  "updatedReopen": "{app} is bijgewerkt naar {version}: sla op en start de app opnieuw (knop in het systeemvak, rechtsonder)",
+  "updating": "{app} wordt bijgewerkt: een ogenblik",
+  "waitsTitle": "{app} wacht op de herstart",
+  "waitsLead": "{app} is bijgewerkt en wordt opnieuw geopend nadat lilOS opnieuw is gestart.",
+  "windows": {
+    "one": "{n} geopend venster",
+    "other": "{n} geopende vensters"
+  },
+  "windowsIn": {
+    "one": "{n} geopend venster in {spaces} workspaces",
+    "other": "{n} geopende vensters in {spaces} workspaces"
+  },
+  "background": "de achtergronddiensten",
+  "both": "{windows} en {background}",
+  "leadUpdate": "Door {app} bij te werken wordt alles gesloten wat ze open heeft: {closing}.",
+  "leadReinstall": "Door {app} opnieuw te installeren wordt alles gesloten wat ze open heeft: {closing}.",
+  "leadMany": "Alles wat deze apps open hebben, wordt gesloten:",
+  "item": "{app}: {closing}",
+  "save": "Sla je werk op voordat je doorgaat: apps met niet-opgeslagen wijzigingen vragen het je.",
+  "restartAfter": "Na de update moet lilOS opnieuw worden gestart (gevraagd door {apps}).",
+  "titleUpdate": "{app} bijwerken?",
+  "titleReinstall": "{app} opnieuw installeren?",
+  "titleUpdateMany": {
+    "one": "{n} app bijwerken?",
+    "other": "{n} apps bijwerken?"
+  },
+  "titleReinstallMany": {
+    "one": "{n} app opnieuw installeren?",
+    "other": "{n} apps opnieuw installeren?"
+  },
+  "cancel": "Annuleren",
+  "update": "Bijwerken",
+  "reinstall": "Opnieuw installeren",
+  "closeAndUpdate": "Sluiten en bijwerken",
+  "closeAndReinstall": "Sluiten en opnieuw installeren",
+  "notReady": "lilOS is nog niet klaar",
+  "cancelled": "Update geannuleerd: een venster is niet gesloten",
+  "notLoaded": "{app}: de nieuwe versie is niet geladen zonder lilOS opnieuw te starten",
+  "restarting": "Systeem wordt opnieuw gestart…",
+  "offTitle": "lilOS is uitgeschakeld",
+  "offText": "De kernel is voor alle gebruikers gestopt. Om hem weer in te schakelen, start je hem opnieuw waar hij draait (npm run kernel, de dienst of het programma lilOS) en laad je daarna deze pagina opnieuw.",
+  "reload": "Opnieuw laden",
+  "restartTitle": "lilOS opnieuw starten?",
+  "restartLead": "Om de update te voltooien, moet lilOS opnieuw worden gestart.",
+  "restartHint": "Alle vensters worden gesloten en weer geopend: sla je werk op in de andere apps.",
+  "later": "Later",
+  "restartNow": "Nu opnieuw starten",
+  "systemUpdated": "lilOS is bijgewerkt naar versie {version}",
+  "failedTitle": "Update van lilOS mislukt",
+  "failedLead": "lilOS {version} {reason}: lilOS is vanzelf teruggegaan naar versie {current}.",
+  "failedHint": "Er is niets verloren gegaan. Je kunt het opnieuw proberen vanuit de AppStore; het kernellogboek vertelt wat niet werkte.",
+  "ok": "OK",
+  "updatedTitle": "lilOS bijgewerkt naar {version}",
+  "updatedLead": "De update is gelukt: lilOS {version} is in gebruik.",
+  "updatedAsk": "De vorige versie ({from}) is nog geïnstalleerd en is alleen nodig om er vanuit de AppStore naar terug te gaan. Wil je haar verwijderen?",
+  "keep": "Behouden",
+  "deleteVersion": "{from} verwijderen",
+  "deleted": "lilOS {from} verwijderd"
+}

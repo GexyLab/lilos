@@ -1,4 +1,8 @@
-import { Emitter, h, icon, trackDrag, shortcuts } from '@lilos/sdk';
+import { Emitter, h, icon, trackDrag, shortcuts, locale } from '@lilos/sdk';
+
+const { t } = locale.define('lilos:windows', {
+  en: { strings: { group: 'Windows', close: 'Close the active window', next: 'Switch to the next window', title: '{title} — {subtitle}' } },
+});
 
 const CASCADE = 24;
 const Z_BASE = 100;
@@ -37,9 +41,9 @@ export class WindowManager extends Emitter {
     // Pointer down anywhere on the desk outside a window: the desk takes the focus
     canvas.el.addEventListener('pointerdown', e => { if (!e.target.closest('.window')) this.focus(null); }, true);
 
-    const group = 'Finestre';
-    shortcuts.register({ id: 'windows.close', label: 'Chiudi la finestra attiva', group, keys: ['Alt+W'], whenEditing: true, when: () => !!this.active?.controls.close, run: () => this.requestClose(this.active) });
-    shortcuts.register({ id: 'windows.next', label: 'Passa alla finestra successiva', group, keys: ['Alt+N'], whenEditing: true, when: () => this.windows.length > 0, run: () => this.cycle() });
+    const group = t('group');
+    shortcuts.register({ id: 'windows.close', label: t('close'), group, keys: ['Alt+W'], whenEditing: true, when: () => !!this.active?.controls.close, run: () => this.requestClose(this.active) });
+    shortcuts.register({ id: 'windows.next', label: t('next'), group, keys: ['Alt+N'], whenEditing: true, when: () => this.windows.length > 0, run: () => this.cycle() });
   }
 
   /**
@@ -294,9 +298,9 @@ export class WindowManager extends Emitter {
     win.on('close', () => this.requestClose(win));
     win.on('title', ({ title, subtitle }) => {
       task.lastChild.textContent = title;
-      task.title = subtitle ? `${title} — ${subtitle}` : title;
+      task.title = subtitle ? t('title', { title, subtitle }) : title;
     });
-    task.title = win.subtitle ? `${win.title} — ${win.subtitle}` : win.title;
+    task.title = win.subtitle ? t('title', { title: win.title, subtitle: win.subtitle }) : win.title;
 
     win.el.addEventListener('pointerdown', () => this.focus(win), { capture: true, signal });
     win.el.addEventListener('focusin', () => this.focus(win), { signal });

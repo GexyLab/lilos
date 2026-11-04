@@ -1,0 +1,8 @@
+{
+  "noExport": "कोड {entry} को निर्यात नहीं करता",
+  "windowClosed": "{app}: विंडो बंद हो गई",
+  "libraryFailed": "लाइब्रेरी {name} लोड नहीं हुई",
+  "noExportOf": "{app} का कोड {entry} को निर्यात नहीं करता",
+  "noWindow": "{app} में विंडो {entry} नहीं है",
+  "remoteOrigin": "रिमोट ऐप का पता lilOS वाला नहीं हो सकता"
+}

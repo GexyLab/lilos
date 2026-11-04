@@ -1,5 +1,14 @@
-import { h, icon, openMenu, settings, shortcuts } from '@lilos/sdk';
+import { h, icon, openMenu, settings, shortcuts, locale } from '@lilos/sdk';
 import { launch } from '../apps/registry.js';
+
+const { t } = locale.define('lilos:workspaceSwitcher', {
+  en: { strings: {
+    area: 'Workspace', toChange: '{keys} to change', menu: 'Workspace…', menuLabel: 'Workspaces menu',
+    button: 'Workspace: {name}', buttonKeys: 'Workspace: {name} ({keys} to change)', buttonLabel: 'Workspace {name}: change workspace',
+    heading: 'Workspace', next: 'Next', previous: 'Previous', create: 'New workspace',
+    showCurrent: 'Show only the current workspace', showAll: 'Show all workspaces', manage: 'Manage workspaces…',
+  } },
+});
 
 /**
  * Taskbar workspaces, right of the logo. With the setting taskbarWorkspaces 'current' (default)
@@ -14,7 +23,7 @@ export class WorkspaceSwitcher {
 
   constructor(taskbar, workspaces) {
     this.workspaces = workspaces;
-    this.el = h('div', { class: 'tb-ws-area', role: 'group', 'aria-label': 'Workspace' });
+    this.el = h('div', { class: 'tb-ws-area', role: 'group', 'aria-label': t('area') });
     this.el.addEventListener('contextmenu', e => { e.preventDefault(); this.open(); });
     taskbar.startButton.after(this.el);
 
@@ -40,7 +49,7 @@ export class WorkspaceSwitcher {
     if (this.all) {
       const buttons = this.workspaces.list().map(w => {
         const current = w.id === ws.id;
-        const tip = [w.name, w.description, current && keys ? `${keys} per cambiare` : ''].filter(Boolean).join('\n');
+        const tip = [w.name, w.description, current && keys ? t('toChange', { keys }) : ''].filter(Boolean).join('\n');
         return h('button', {
           class: current ? 'tb-ws on' : 'tb-ws', type: 'button', title: tip, 'data-ws': w.id,
           'aria-current': current ? 'true' : null,
@@ -52,15 +61,15 @@ export class WorkspaceSwitcher {
         }, dot(w.color), h('span', { class: 'tb-ws-name' }, w.name));
       });
       const more = h('button', {
-        class: 'tb-ws-more', type: 'button', title: 'Workspace…', 'aria-label': 'Menu dei workspace', 'aria-haspopup': 'menu', 'data-ws': 'menu',
+        class: 'tb-ws-more', type: 'button', title: t('menu'), 'aria-label': t('menuLabel'), 'aria-haspopup': 'menu', 'data-ws': 'menu',
         onclick: () => this.open(more),
       }, icon('arrowUp'));
       this.el.replaceChildren(...buttons, more);
     } else {
       const button = h('button', {
         class: 'tb-ws', type: 'button', 'aria-haspopup': 'menu', 'data-ws': 'menu',
-        title: keys ? `Workspace: ${ws.name} (${keys} per cambiare)` : `Workspace: ${ws.name}`,
-        'aria-label': `Workspace ${ws.name}: cambia workspace`,
+        title: keys ? t('buttonKeys', { name: ws.name, keys }) : t('button', { name: ws.name }),
+        'aria-label': t('buttonLabel', { name: ws.name }),
         onclick: () => this.open(button),
       }, dot(ws.color), h('span', { class: 'tb-ws-name' }, ws.name), icon('arrowUp'));
       this.el.replaceChildren(button);
@@ -73,22 +82,22 @@ export class WorkspaceSwitcher {
     const current = workspaces.currentId;
     const list = workspaces.list();
     const r = anchor.getBoundingClientRect();
-    openMenu(r.left, r.top - 4, [
-      { label: 'Workspace', icon: 'workspace', disabled: true },
+    openMenu((document.documentElement.dir === 'rtl' ? r.right : r.left), r.top - 4, [
+      { label: t('heading'), icon: 'workspace', disabled: true },
       ...list.map(w => ({
         label: w.name, icon: w.id === current ? 'check' : null,
         action: () => workspaces.switchTo(w.id),
       })),
       '-',
-      { label: 'Successivo', icon: 'arrowRight', shortcut: shortcuts.label('workspaces.next'), disabled: list.length < 2, action: () => workspaces.step(1) },
-      { label: 'Precedente', icon: 'arrowLeft', shortcut: shortcuts.label('workspaces.previous'), disabled: list.length < 2, action: () => workspaces.step(-1) },
+      { label: t('next'), icon: 'arrowRight', shortcut: shortcuts.label('workspaces.next'), disabled: list.length < 2, action: () => workspaces.step(1) },
+      { label: t('previous'), icon: 'arrowLeft', shortcut: shortcuts.label('workspaces.previous'), disabled: list.length < 2, action: () => workspaces.step(-1) },
       '-',
-      { label: 'Nuovo workspace', icon: 'plus', action: () => { const id = workspaces.create(); if (id) workspaces.switchTo(id); } },
+      { label: t('create'), icon: 'plus', action: () => { const id = workspaces.create(); if (id) workspaces.switchTo(id); } },
       {
-        label: this.all ? 'Mostra solo il workspace attuale' : 'Mostra tutti i workspace', icon: 'workspace',
+        label: this.all ? t('showCurrent') : t('showAll'), icon: 'workspace',
         action: () => settings.set('taskbarWorkspaces', this.all ? 'current' : 'all'),
       },
-      { label: 'Gestisci i workspace…', icon: 'gear', action: () => launch('settings', { tab: 'workspaces' }) },
+      { label: t('manage'), icon: 'gear', action: () => launch('settings', { tab: 'workspaces' }) },
     ], { placement: 'above' });
   }
 }

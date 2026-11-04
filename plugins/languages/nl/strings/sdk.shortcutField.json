@@ -1,0 +1,16 @@
+{
+  "remove": "Verwijderen",
+  "removeCombo": "{combo} verwijderen",
+  "none": "Geen",
+  "pressKeys": "Druk op de toetsen…",
+  "add": "Een combinatie toevoegen",
+  "addFor": "Een combinatie toevoegen voor {command}",
+  "resetTitle": "De oorspronkelijke combinatie herstellen",
+  "reset": "Herstellen",
+  "record": "Druk op de combinatie. Esc om te annuleren.",
+  "invalid": "{combo}: {error}",
+  "already": "{combo} is al aan deze opdracht toegewezen",
+  "usedBy": "{combo} wordt al gebruikt door ‘{command}’.",
+  "replace": "Vervangen",
+  "cancel": "Annuleren"
+}

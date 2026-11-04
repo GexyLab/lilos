@@ -1,6 +1,11 @@
 import { Emitter } from './events.js';
 import { isEditing } from './dom.js';
 import { automation } from './automation.js';
+import { locale } from './locale.js';
+
+const { t } = locale.define('lilos:sdk.history', {
+  en: { strings: { undoRedo: 'A history entry needs undo and redo' } },
+});
 
 const LIMIT = 100;
 
@@ -41,7 +46,7 @@ export class UndoStack extends Emitter {
 
   /** Records an action already done: { label, undo(), redo() }. */
   push({ label = '', undo, redo }, since = null) {
-    if (typeof undo !== 'function' || typeof redo !== 'function') throw new Error('Una voce della cronologia vuole undo e redo');
+    if (typeof undo !== 'function' || typeof redo !== 'function') throw new Error(t('undoRedo'));
     // When the action was done (just before it is pushed): the steps of a recording it made
     // arrive in that moment (an app tells it right before or after pushing; lilOS right after)
     const at = Date.now();

@@ -1,0 +1,10 @@
+{
+  "notFound": "Sesiunea nu a fost găsită",
+  "tooMany": "Cel mult {max} sesiuni deschise",
+  "stopping": "Kernelul se oprește",
+  "detached": "Închisă după 10 minute fără fereastră",
+  "notConnected": "Sesiunea nu este conectată",
+  "tooBig": "Mesaj prea mare",
+  "noCommand": "Comandă indisponibilă",
+  "connected": "Conectat"
+}

@@ -1,0 +1,9 @@
+{
+  "group": "Bearbeiten",
+  "undo": "Rückgängig",
+  "redo": "Wiederholen",
+  "undone": "Rückgängig gemacht: {label}",
+  "redone": "Wiederholt: {label}",
+  "failed": "Dies ist nicht mehr möglich: {message}",
+  "error": "Fehler"
+}

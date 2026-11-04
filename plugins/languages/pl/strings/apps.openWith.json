@@ -1,0 +1,11 @@
+{
+  "title": "Otwórz za pomocą",
+  "apps": "Aplikacja",
+  "choose": "Wybierz aplikację, aby otworzyć „{name}” ({type}).",
+  "alwaysExt": "Zawsze używaj tej aplikacji do plików .{ext}",
+  "alwaysNoExt": "Zawsze używaj tej aplikacji do plików bez rozszerzenia",
+  "cancel": "Anuluj",
+  "open": "Otwórz",
+  "none": "Żadna zainstalowana aplikacja nie może otworzyć „{name}”.",
+  "close": "Zamknij"
+}

@@ -1,0 +1,9 @@
+{
+  "offline": "Permintaan jaringan dibuat oleh kernel lilOS, yang tidak terhubung",
+  "badRun": "Eksekusi tidak valid",
+  "badSession": "Sesi tidak valid",
+  "blocked": "Browser memblokir jendela masuk",
+  "canceled": "Proses masuk dibatalkan",
+  "failed": "Gagal masuk",
+  "noAskAddress": "askAddress tidak ada"
+}

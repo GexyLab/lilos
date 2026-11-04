@@ -1,0 +1,12 @@
+{
+  "folder": "module.json nu corespunde dosarului {folder}",
+  "kernel": "{name} necesită kernelul {kernel}, acesta este {api}",
+  "services": "{name}: nume de servicii nevalide",
+  "settings": "{name}: setări nevalide",
+  "replaces": "{name}: replaces nevalid",
+  "notInstalled": "Modul neinstalat: {name}",
+  "twice": "Modul indicat de două ori: {name}",
+  "provider": "Serviciul \"{service}\" este oferit atât de {first}, cât și de {second}",
+  "cycle": "Dependențe circulare între module ({name})",
+  "missing": "{name} necesită serviciul \"{service}\", pe care nu îl oferă niciun modul activ"
+}

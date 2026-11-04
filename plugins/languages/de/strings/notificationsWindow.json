@@ -1,0 +1,16 @@
+{
+  "title": "Benachrichtigungen",
+  "today": "Heute",
+  "yesterday": "Gestern",
+  "markAll": "Alle als gelesen markieren",
+  "clearAll": "Alle löschen",
+  "clearFailed": "Benachrichtigungen nicht gelöscht: {message}",
+  "removeFailed": "Benachrichtigung nicht gelöscht: {message}",
+  "kept": "{count} von {keep} aufbewahrt",
+  "fresh": {
+    "one": "{kept} · {n} neu",
+    "other": "{kept} · {n} neu"
+  },
+  "empty": "Keine Benachrichtigungen",
+  "remove": "Löschen"
+}

@@ -1,0 +1,11 @@
+{
+  "invalid": "Ongeldig taalpakket: {message}",
+  "official": "Taalpakketten komen alleen uit de officiële repository",
+  "notOffered": "De officiële repository heeft geen taalpakket voor {language}",
+  "noRepo": "De officiële repository heeft geen taalpakketten",
+  "needs": "{name} vereist lilOS {range} (dit is {version})",
+  "changed": "{file}: de inhoud komt niet overeen met language.json",
+  "notInstalled": "De taal {language} is niet geïnstalleerd",
+  "removeForbidden": "Alleen wie {name} heeft geïnstalleerd of een beheerder kan het verwijderen",
+  "removed": "De taal {name} is verwijderd: lilOS is in het Engels tot je een andere kiest"
+}

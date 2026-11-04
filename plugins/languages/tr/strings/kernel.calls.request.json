@@ -1,0 +1,13 @@
+{
+  "graphqlVars": "GraphQL: değişkenler geçerli bir JSON değil",
+  "method": "Yöntem geçerli değil",
+  "url": "Adres geçerli değil: {url}",
+  "needHttp": "Bir http:// veya https:// adresi gerekiyor",
+  "headerName": "Üst bilgi adı geçerli değil: {name}",
+  "headerValue": "{name} üst bilgisinde değer geçerli değil",
+  "bodyTooBig": "Gövde çok büyük (en fazla 50 MB)",
+  "noAnswer": {
+    "other": "{n} saniye içinde yanıt yok"
+  },
+  "cancelled": "İptal edildi"
+}

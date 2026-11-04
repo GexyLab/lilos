@@ -1,0 +1,7 @@
+{
+  "tooBig": "Le variabili si espandono troppo (al massimo 4 MB)",
+  "notJson": "La risposta non è JSON",
+  "source": "Origine non valida",
+  "regex": "Espressione regolare non valida o troppo lenta",
+  "condition": "Condizione non valida"
+}

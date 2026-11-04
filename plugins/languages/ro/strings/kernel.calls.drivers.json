@@ -1,0 +1,17 @@
+{
+  "port": "Port nevalid",
+  "url": "Adresă nevalidă",
+  "closedBy": "Închisă de server ({code})",
+  "closedByReason": "Închisă de server ({code}: {reason})",
+  "closed": "Conexiunea este închisă",
+  "unknownCommand": "Comandă necunoscută",
+  "notStream": "Serverul a răspuns {status} în loc de un flux de evenimente",
+  "notStreamType": "Serverul a răspuns {status} ({type}) în loc de un flux de evenimente",
+  "lineTooLong": "Linie prea lungă: ignorată",
+  "eventTooLong": "Eveniment prea lung: ignorat",
+  "streamEnded": "Serverul a închis fluxul",
+  "receiveOnly": "Server-Sent Events: doar recepție",
+  "noHost": "Lipsește serverul",
+  "ended": "Serverul a închis conexiunea",
+  "tooBig": "Datagramă prea mare (cel mult 65507 octeți)"
+}

@@ -1,0 +1,18 @@
+{
+  "noConnection": {
+    "other": "{n} 秒以内に接続できませんでした"
+  },
+  "untrusted": "{host} の証明書が確認されていません（{reason}）",
+  "cancelled": "キャンセルされました",
+  "refused": "接続が拒否されました（{code}）",
+  "reset": "サーバーによって接続が切断されました（{code}）",
+  "notFound": "不明なサーバー名（{code}）",
+  "dns": "サーバー名を解決できません（DNS）（{code}）",
+  "timeout": "タイムアウトしました（{code}）",
+  "hostUnreachable": "サーバーに到達できません（{code}）",
+  "netUnreachable": "ネットワークに到達できません（{code}）",
+  "closed": "接続が閉じられました（{code}）",
+  "aborted": "キャンセルされました（{code}）",
+  "otherName": "別の名前の証明書です（{code}）",
+  "network": "ネットワークエラー"
+}

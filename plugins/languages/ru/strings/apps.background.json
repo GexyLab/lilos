@@ -1,0 +1,6 @@
+{
+  "notStarted": "Не удалось запустить {app}: {message}",
+  "noExport": "Код не экспортирует {entry}",
+  "codeError": "ошибка в коде",
+  "stopped": "{app}: работа остановлена"
+}

@@ -1,0 +1,9 @@
+{
+  "stopped": "オートメーションを停止しました",
+  "chooseItems": "処理する対象を選択してください",
+  "appMissing": "このステップのアプリがインストールされていません",
+  "password": "このステップではパスワードが必要です",
+  "stepFailedLabel": "ステップ {n}（{label}）：{message}",
+  "stepFailed": "ステップ {n}：{message}",
+  "cannotRedo": "この操作はもう一度実行できません"
+}

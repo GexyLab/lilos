@@ -1,0 +1,16 @@
+{
+  "remove": "ہٹائیں",
+  "removeCombo": "{combo} ہٹائیں",
+  "none": "کوئی نہیں",
+  "pressKeys": "کلیدیں دبائیں…",
+  "add": "مجموعہ شامل کریں",
+  "addFor": "{command} کے لیے مجموعہ شامل کریں",
+  "resetTitle": "اصل مجموعہ بحال کریں",
+  "reset": "بحال کریں",
+  "record": "مجموعہ دبائیں۔ منسوخ کرنے کے لیے Esc۔",
+  "invalid": "{combo}: {error}",
+  "already": "{combo} پہلے سے اس کمانڈ کو تفویض ہے",
+  "usedBy": "{combo} پہلے سے «{command}» استعمال کر رہی ہے۔",
+  "replace": "تبدیل کریں",
+  "cancel": "منسوخ کریں"
+}

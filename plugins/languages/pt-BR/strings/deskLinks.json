@@ -1,0 +1,11 @@
+{
+  "noDesk": "A área de trabalho não existe",
+  "notFolder": "“{name}” não é mais uma pasta.",
+  "notFile": "“{name}” não é mais um arquivo.",
+  "broken": "O atalho “{name}” não encontra o original",
+  "trashed": "O original está na lixeira: restaure-o para usar o atalho de novo.",
+  "deleted": "O original foi excluído ou está em um espaço de trabalho que não pode ser visto daqui.",
+  "mountGone": "A conexão de rede onde estava o original não existe mais.",
+  "pathGone": "“{path}” não está mais em “{mount}”.",
+  "unreachable": "Não é possível acessar “{name}”"
+}

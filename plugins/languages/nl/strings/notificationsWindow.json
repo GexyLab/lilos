@@ -1,0 +1,16 @@
+{
+  "title": "Meldingen",
+  "today": "Vandaag",
+  "yesterday": "Gisteren",
+  "markAll": "Alles als gelezen markeren",
+  "clearAll": "Alles verwijderen",
+  "clearFailed": "Meldingen niet verwijderd: {message}",
+  "removeFailed": "Melding niet verwijderd: {message}",
+  "kept": "{count} van {keep} bewaard",
+  "fresh": {
+    "one": "{kept} · {n} nieuw",
+    "other": "{kept} · {n} nieuw"
+  },
+  "empty": "Geen meldingen",
+  "remove": "Verwijderen"
+}

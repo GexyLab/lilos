@@ -1,0 +1,30 @@
+{
+  "stopped": "Operacja zatrzymana",
+  "badName": "Nieprawidłowa nazwa zdarzenia: {name}",
+  "appEvent": "Zdarzenie aplikacji ma nazwę <id aplikacji>.<nazwa>",
+  "exists": "Zdarzenie {name} już istnieje",
+  "unknown": "Nieznane zdarzenie: {name}",
+  "stage": "stage musi mieć wartość \"before\" lub \"after\"",
+  "position": "position musi mieć wartość \"first\", \"middle\" lub \"last\"",
+  "noHandler": "Brak funkcji potoku",
+  "reserved": "Zdarzenie {name} jest zarezerwowane dla systemu",
+  "syncOnly": "{name} to operacja natychmiastowa: aplikacje mogą ją tylko obserwować (stage \"after\")",
+  "maxSubs": {
+    "one": "Najwyżej {n} subskrypcja na aplikację",
+    "few": "Najwyżej {n} subskrypcje na aplikację",
+    "many": "Najwyżej {n} subskrypcji na aplikację",
+    "other": "Najwyżej {n} subskrypcji na aplikację"
+  },
+  "busy": "Zbyt wiele operacji w toku",
+  "busyApp": "Zbyt wiele operacji w toku dla tej aplikacji",
+  "syncAnswer": "{name}: operacja natychmiastowa wymaga natychmiastowej odpowiedzi",
+  "handlerFailed": "{name}: {message}",
+  "cannotStop": "{name}: zdarzenia {event} nie można zatrzymać",
+  "whereObject": "where: tylko obiekt",
+  "whereInvalid": "Nieprawidłowe where",
+  "whereKey": "where: {key} nie jest używane",
+  "whereMeta": "where.meta: tylko \"own\"",
+  "whereType": "Nieprawidłowe where.type",
+  "whereList": "where.{key}: lista tekstów",
+  "timeout": "{name} nie odpowiedział na czas"
+}

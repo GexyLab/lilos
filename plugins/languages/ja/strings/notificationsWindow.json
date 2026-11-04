@@ -1,0 +1,15 @@
+{
+  "title": "通知",
+  "today": "今日",
+  "yesterday": "昨日",
+  "markAll": "すべて既読にする",
+  "clearAll": "すべて削除",
+  "clearFailed": "通知を削除できませんでした：{message}",
+  "removeFailed": "通知を削除できませんでした：{message}",
+  "kept": "{count} / {keep} 件を保持",
+  "fresh": {
+    "other": "{kept} · 新着 {n} 件"
+  },
+  "empty": "通知はありません",
+  "remove": "削除"
+}

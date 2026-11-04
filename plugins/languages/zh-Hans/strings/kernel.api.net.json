@@ -1,0 +1,14 @@
+{
+  "signIn": "请先登录",
+  "adminOnly": "仅限管理员",
+  "mount": "无效的连接",
+  "tooManyTries": "正在进行的连接尝试过多",
+  "notOnServer": "服务器上不存在",
+  "notFile": "这不是文件",
+  "webOnly": "只能在网页上打开",
+  "tooLarge": "文件过大",
+  "op": "无效的操作",
+  "import": "无效的导入",
+  "signin": "无效的登录",
+  "item": "无效的项目"
+}

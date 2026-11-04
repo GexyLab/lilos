@@ -1,0 +1,10 @@
+{
+  "group": "Çalışma alanı",
+  "next": "Sonraki çalışma alanına geç",
+  "previous": "Önceki çalışma alanına geç",
+  "limit": "En fazla {max} çalışma alanı",
+  "deskOf": "{name} masaüstü",
+  "removed": "“{name}” çalışma alanı silindi",
+  "removedKept": "“{name}” çalışma alanı silindi. Masaüstü artık şurada: {path}",
+  "newName": "Çalışma alanı {n}"
+}

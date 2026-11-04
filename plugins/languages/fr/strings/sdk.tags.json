@@ -1,0 +1,17 @@
+{
+  "red": "Rouge",
+  "orange": "Orange",
+  "yellow": "Jaune",
+  "green": "Vert",
+  "teal": "Bleu canard",
+  "blue": "Bleu",
+  "purple": "Violet",
+  "gray": "Gris",
+  "emptyName": "Le nom de l’étiquette ne peut pas être vide",
+  "exists": "Une étiquette « {name} » existe déjà",
+  "tooMany": {
+    "one": "Au maximum {n} étiquette",
+    "other": "Au maximum {n} étiquettes"
+  },
+  "notFound": "L’étiquette n’existe pas"
+}

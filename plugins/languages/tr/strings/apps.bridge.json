@@ -1,0 +1,7 @@
+{
+  "noPipeFn": "Pipe işlevi eksik",
+  "noHandler": "{id}: {entry} çağrılara yanıt vermiyor (lilos.handle eksik)",
+  "noPipe": "{id}: bu pipe için işlev yok",
+  "libraryFailed": "Kitaplık yüklenmedi",
+  "noExport": "Kod, {entry} öğesini dışa aktarmıyor"
+}

@@ -1,0 +1,8 @@
+{
+  "noExport": "کوڈ {entry} برآمد نہیں کرتا",
+  "windowClosed": "{app}: ونڈو بند ہو گئی",
+  "libraryFailed": "لائبریری {name} لوڈ نہیں ہوئی",
+  "noExportOf": "{app} کا کوڈ {entry} برآمد نہیں کرتا",
+  "noWindow": "{app} میں ونڈو {entry} نہیں ہے",
+  "remoteOrigin": "ریموٹ ایپ کا پتا lilOS والا نہیں ہو سکتا"
+}

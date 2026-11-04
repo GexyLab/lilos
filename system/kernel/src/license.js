@@ -5,6 +5,7 @@ import { DATA_DIR, KERNEL_DIR, RELEASE_DIR } from './config.js';
 import { fail } from './errors.js';
 import { readJson, writeJson } from './jsonFile.js';
 import { logger } from './log.js';
+import { defineStrings } from './strings.js';
 
 /**
  * The license of lilOS (EULA.md of the lilOS repository, D76), accepted once per installation by an
@@ -25,6 +26,11 @@ const TIMEOUT_MS = 8_000;
 const MAX_BYTES = 256 << 10;
 
 const log = logger('license');
+const { t } = defineStrings('lilos:kernel.license', { en: { strings: {
+  unreadable: 'The license of lilOS cannot be read: the official repository does not answer and the included copy is missing',
+  adminOnly: 'Only an administrator can accept the license of lilOS',
+  changed: 'The license of lilOS has changed: read the new text',
+} } });
 // The same text whatever the line endings of who saved it
 const normalize = text => text.replace(/\r\n?/g, '\n');
 const hash = text => createHash('sha256').update(text).digest('hex');
@@ -50,7 +56,7 @@ export class License {
     }
     if (this.#remote) return { text: this.#remote.text, sha256: hash(this.#remote.text), source: 'remote', url: PAGE };
     const text = await readFile(BUNDLED, 'utf8').then(normalize, () => null);
-    if (text == null) fail('unavailable', 'La licenza di lilOS non si legge: il repository ufficiale non risponde e la copia inclusa manca');
+    if (text == null) fail('unavailable', t('unreadable'));
     return { text, sha256: hash(text), source: 'bundled', url: PAGE };
   }
 
@@ -85,9 +91,9 @@ export class License {
    * meanwhile, a conflict, so that they read the new one.
    */
   async accept(principal, sha256) {
-    if (principal?.role !== 'admin') fail('forbidden', 'Solo un amministratore può accettare la licenza di lilOS');
+    if (principal?.role !== 'admin') fail('forbidden', t('adminOnly'));
     const now = await this.current();
-    if (sha256 !== now.sha256) fail('conflict', 'La licenza di lilOS è cambiata: leggi il testo nuovo');
+    if (sha256 !== now.sha256) fail('conflict', t('changed'));
     await writeJson(FILE, { sha256, acceptedAt: new Date().toISOString(), by: { id: principal.id, username: principal.username }, source: now.source }, { pretty: true });
     log.info(`Licenza di lilOS accettata da ${principal.username}`);
     return this.status();

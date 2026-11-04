@@ -1,0 +1,9 @@
+{
+  "notFound": "Nie znaleziono zasobu",
+  "method": "Niedozwolona metoda",
+  "internal": "Błąd wewnętrzny kernela",
+  "unavailable": "Usługa niedostępna: {name}",
+  "signIn": "Najpierw się zaloguj",
+  "needSocket": "Wymagany jest WebSocket",
+  "refused": "Połączenie odrzucone"
+}

@@ -1,0 +1,19 @@
+{
+  "key.Enter": "Enter",
+  "key.Escape": "Esc",
+  "key.Delete": "Del",
+  "key.Space": "Boşluk",
+  "key.Insert": "Ins",
+  "key.End": "End",
+  "key.PageUp": "PgUp",
+  "key.PageDown": "PgDn",
+  "general": "Genel",
+  "exists": "Kısayol zaten kayıtlı: {id}",
+  "unknown": "Kısayol kayıtlı değil: {id}",
+  "invalid": "Geçersiz bileşim",
+  "noKey": "Ctrl, Alt veya Shift dışında bir tuşa da basın",
+  "reserved": "Bileşim tarayıcıya ayrılmış",
+  "tabSpace": "Tek başına Sekme ve Boşluk, gezinmek ve masaüstünü kaydırmak içindir",
+  "typingKey": "Yazı yazan bir tuş Ctrl, Alt veya Shift ile birlikte kullanılmalıdır",
+  "whenEditing": "Bu kısayol siz yazarken de çalışır: Ctrl veya Alt gerektirir"
+}

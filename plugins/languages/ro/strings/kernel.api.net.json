@@ -1,0 +1,14 @@
+{
+  "signIn": "Conectați-vă mai întâi",
+  "adminOnly": "Doar pentru administratori",
+  "mount": "Conexiune nevalidă",
+  "tooManyTries": "Prea multe încercări de conectare în curs",
+  "notOnServer": "Nu există pe server",
+  "notFile": "Nu este un fișier",
+  "webOnly": "Se deschide doar pe web",
+  "tooLarge": "Fișier prea mare",
+  "op": "Operațiune nevalidă",
+  "import": "Import nevalid",
+  "signin": "Conectare nevalidă",
+  "item": "Element nevalid"
+}

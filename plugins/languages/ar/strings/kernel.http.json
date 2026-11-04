@@ -1,0 +1,9 @@
+{
+  "badPath": "عنوان غير صالح",
+  "tooLarge": "الطلب كبير جدًا",
+  "notJson": "نص الطلب ليس JSON صالحًا",
+  "notAllowed": "الطلب غير مسموح به",
+  "noOrigin": "الأصل (Origin) مفقود",
+  "badOrigin": "الأصل (Origin) غير مسموح به",
+  "badHost": "المضيف غير مسموح به"
+}

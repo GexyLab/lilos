@@ -1,0 +1,6 @@
+{
+  "signIn": "Önce oturum açın",
+  "adminOnly": "Yalnızca yöneticiler",
+  "name": "Ad geçerli değil",
+  "notSupervised": "Çekirdek \"npm run kernel\" ile başlatılmadı: elle yeniden başlatın"
+}

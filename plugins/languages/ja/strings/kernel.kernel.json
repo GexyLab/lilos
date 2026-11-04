@@ -1,0 +1,9 @@
+{
+  "notFound": "リソースが見つかりません",
+  "method": "許可されていないメソッドです",
+  "internal": "カーネルの内部エラー",
+  "unavailable": "サービスを利用できません：{name}",
+  "signIn": "先にサインインしてください",
+  "needSocket": "WebSocket が必要です",
+  "refused": "接続が拒否されました"
+}

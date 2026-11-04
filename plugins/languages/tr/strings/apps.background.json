@@ -1,0 +1,6 @@
+{
+  "notStarted": "{app} başlatılamadı: {message}",
+  "noExport": "Kod, {entry} öğesini dışa aktarmıyor",
+  "codeError": "kodda hata",
+  "stopped": "{app} durdu"
+}

@@ -46,7 +46,7 @@
 .msgbox-field .ctl-text, .msgbox-field .ctl-select { width: 100%; min-width: 0; }
 .msgbox-label { font-size: 11.5px; color: var(--dim); }
 .msgbox-hint { font-size: 11px; color: var(--faint); }
-.msgbox-field.check .msgbox-hint { padding-left: 21px; }
+.msgbox-field.check .msgbox-hint { padding-inline-start: 21px; }
 .msgbox-error { margin-top: 10px; color: var(--danger); font-size: 12px; white-space: pre-line; overflow-wrap: anywhere; }
 .msgbox-error[hidden] { display: none; }
 

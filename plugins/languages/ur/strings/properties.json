@@ -1,0 +1,43 @@
+{
+  "title": "خصوصیات",
+  "type": "قسم",
+  "app": "ایپ",
+  "linkTarget": "اصل",
+  "linkState": "حالت",
+  "contents": "مشمولات",
+  "size": "سائز",
+  "opensWith": "اس کے ساتھ کھلتی ہے",
+  "deleted": "حذف کیا گیا",
+  "origin": "اصل مقام",
+  "location": "مقام",
+  "created": "بنایا گیا",
+  "modified": "ترمیم کی گئی",
+  "workspace": "ورک اسپیس",
+  "tags": "ٹیگز",
+  "apps": "ایپس",
+  "appData": "{id} کا ڈیٹا",
+  "folder": "فولڈر",
+  "linkFolder": "فولڈر کا لنک",
+  "linkWeb": "ویب صفحے کا لنک",
+  "linkFile": "فائل کا لنک",
+  "appLink": "ایپ کا لنک",
+  "typeExt": "{type} (.{ext})",
+  "system": "سسٹم {type}",
+  "appMissing": "{id} (انسٹال نہیں)",
+  "broken": "ٹوٹا ہوا: پچھلی بار اصل نہیں ملا",
+  "notFound": "نہیں ملا",
+  "mountGone": "کنکشن ہٹا دیا گیا",
+  "ask": "ہر بار پوچھیں",
+  "files": {
+    "one": "{count} فائل",
+    "other": "{count} فائلیں"
+  },
+  "folders": {
+    "one": "{count} فولڈر",
+    "other": "{count} فولڈرز"
+  },
+  "shared": "تمام ورک اسپیسز میں مشترک",
+  "none": "کوئی نہیں",
+  "orphan": "ایپ انسٹال نہیں ہے",
+  "remove": "ہٹائیں"
+}

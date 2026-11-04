@@ -1,0 +1,7 @@
+{
+  "signIn": "Masuk terlebih dahulu",
+  "kind": "kind harus \"app\" atau \"module\"",
+  "id": "id tidak valid",
+  "target": "Diperlukan install atau update",
+  "package": "Paket tidak valid"
+}

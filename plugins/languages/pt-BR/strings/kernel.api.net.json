@@ -1,0 +1,14 @@
+{
+  "signIn": "Faça login primeiro",
+  "adminOnly": "Somente administradores",
+  "mount": "Conexão inválida",
+  "tooManyTries": "Tentativas de conexão demais em andamento",
+  "notOnServer": "Não existe no servidor",
+  "notFile": "Não é um arquivo",
+  "webOnly": "Só abre na web",
+  "tooLarge": "Arquivo grande demais",
+  "op": "Operação inválida",
+  "import": "Importação inválida",
+  "signin": "Login inválido",
+  "item": "Item inválido"
+}

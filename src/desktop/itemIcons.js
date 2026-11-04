@@ -1,8 +1,12 @@
-import { h, svg, icon, appIcon, fileType, fs } from '@lilos/sdk';
+import { h, svg, icon, appIcon, fileType, fs, locale } from '@lilos/sdk';
 import { getApp } from '../apps/registry.js';
 import { thumbnailIcon } from '../apps/thumbnails.js';
 
 export const FOLDER_COLOR = '#6f9bff';
+
+const { t } = locale.define('lilos:deskIcons', {
+  en: { strings: { needsApp: 'Needs the {id} app', link: 'Link', brokenLink: 'Broken link' } },
+});
 
 // Same language as the app tiles (appIcon): flat shapes, square corners, details cut out so the
 // background shows through. Masks need ids unique in the page.
@@ -66,7 +70,7 @@ export function itemBadges(data) {
     const app = getApp(id);
     const badge = app?.text?.contributes?.badge;
     if (badge?.glyph) out.push({ glyph: badge.glyph, label: badge.label ?? app.name, color: app.color });
-    else if (!app && value?.content === true) out.push({ glyph: 'lock', label: `Serve l’app ${id}`, color: '#5f6673' });
+    else if (!app && value?.content === true) out.push({ glyph: 'lock', label: t('needsApp', { id }), color: '#5f6673' });
   }
   return out;
 }
@@ -84,7 +88,7 @@ function linkIcon(data) {
     : target?.type === 'file' || target?.type === 'folder' ? itemIcon(target)
     : link.kind === 'folder' ? (link.mount && link.path === '/' ? placeIcon('globe') : folderIcon())
     : fileIcon(link.path?.split('/').pop() || data.name);
-  const label = broken ? 'Collegamento rotto' : 'Collegamento';
+  const label = broken ? t('brokenLink') : t('link');
   return h('span', { class: broken ? 'icon-link broken' : 'icon-link', title: label, 'aria-label': label },
     base, h('span', { class: 'icon-link-mark' }, icon(broken ? 'x' : 'link')));
 }

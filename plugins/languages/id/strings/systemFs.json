@@ -1,0 +1,3 @@
+{
+  "welcome": "Selamat datang di lilOS!\n\nIni adalah desktop tanpa batas: tahan Spasi dan seret untuk berpindah,\ngunakan roda untuk zoom, seret di latar belakang untuk memilih.\n\n- Klik dua kali folder: folder terbuka di File Manager.\n- Klik dua kali file teks: file terbuka di Editor (seperti yang ini).\n- Ctrl K membuka menu mulai, Ctrl S menyimpan di Editor.\n- Tombol di sebelah logo mengganti ruang kerja: masing-masing punya desktop,\n  jendela, dan aplikasinya sendiri. Documenti, Immagini, dan Download milik semua orang.\n\nPintasan dan aplikasi yang membuka file dapat diubah di\nPanel Kontrol → Kegunaan.\n"
+}

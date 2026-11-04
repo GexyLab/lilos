@@ -1,0 +1,15 @@
+{
+  "title": "Notifikasi",
+  "today": "Hari ini",
+  "yesterday": "Kemarin",
+  "markAll": "Tandai semua sudah dibaca",
+  "clearAll": "Hapus semua",
+  "clearFailed": "Notifikasi tidak dihapus: {message}",
+  "removeFailed": "Notifikasi tidak dihapus: {message}",
+  "kept": "{count} dari {keep} disimpan",
+  "fresh": {
+    "other": "{kept} · {n} baru"
+  },
+  "empty": "Tidak ada notifikasi",
+  "remove": "Hapus"
+}

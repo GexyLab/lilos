@@ -1,0 +1,11 @@
+{
+  "official": "Oficjalne lilOS",
+  "adminOnly": "Tylko administrator zarządza repozytoriami",
+  "missing": "Nie znaleziono repozytorium",
+  "present": "Repozytorium zostało już dodane",
+  "tooMany": "Najwyżej {max} repozytoriów",
+  "notOfficial": "Nie można usunąć oficjalnego repozytorium",
+  "catalog": "Brak catalog.json lub nie jest to prawidłowy JSON",
+  "notInCatalog": "Pakietu nie ma w katalogu",
+  "file": "Nieprawidłowy plik"
+}

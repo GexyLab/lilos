@@ -1,0 +1,38 @@
+{
+  "newFolder": "Nieuwe map",
+  "newDocument": "Nieuw document.txt",
+  "fixedOne": "‘{name}’ is een vast item van het bureaublad: het kan niet worden verwijderd",
+  "fixedMany": "De vaste items van het bureaublad kunnen niet worden verwijderd",
+  "fixedStay": "De vaste items van het bureaublad blijven: alleen de rest wordt verwijderd",
+  "removeWithAreas": {
+    "one": "{what} en 1 werkgebied verwijderen",
+    "other": "{what} en {n} werkgebieden verwijderen"
+  },
+  "arrange": "Pictogrammen schikken",
+  "moveOne": "‘{name}’ verplaatsen",
+  "moveMany": {
+    "one": "{n} item verplaatsen",
+    "other": "{n} items verplaatsen"
+  },
+  "gone": "De items zijn er niet meer",
+  "area.open": "Werkgebied openen",
+  "rename": "Naam wijzigen",
+  "properties": "Eigenschappen…",
+  "area.remove": "Werkgebied verwijderen…",
+  "open": "Openen",
+  "openMany": {
+    "one": "{n} item openen",
+    "other": "{n} items openen"
+  },
+  "fixed.hide": "Van het bureaublad halen",
+  "fixed.hidden": "‘{name}’ kan worden teruggezet via Configuratiescherm → Workspace → Deze workspace",
+  "fixed.settings": "Vaste items van het bureaublad…",
+  "openWith": "Openen met…",
+  "wallpaper": "Gebruiken als bureaubladachtergrond",
+  "area.fromSelection": "Werkgebied maken met de selectie",
+  "remove": "Verwijderen",
+  "removeMany": {
+    "one": "{n} item verwijderen",
+    "other": "{n} items verwijderen"
+  }
+}

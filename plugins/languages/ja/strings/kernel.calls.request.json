@@ -1,0 +1,13 @@
+{
+  "graphqlVars": "GraphQL：変数が有効な JSON ではありません",
+  "method": "無効なメソッド",
+  "url": "無効なアドレス：{url}",
+  "needHttp": "http:// または https:// のアドレスが必要です",
+  "headerName": "無効なヘッダー名：{name}",
+  "headerValue": "ヘッダー {name} の値が無効です",
+  "bodyTooBig": "本文が大きすぎます（最大 50 MB）",
+  "noAnswer": {
+    "other": "{n} 秒以内に応答がありません"
+  },
+  "cancelled": "キャンセルされました"
+}

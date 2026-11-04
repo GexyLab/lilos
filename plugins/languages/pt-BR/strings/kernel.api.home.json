@@ -1,0 +1,10 @@
+{
+  "signIn": "Faça login primeiro",
+  "id": "Identificador inválido",
+  "key": "Chave inválida: {key}",
+  "tooLarge": "Valor grande demais: {key}",
+  "changes": "Alterações inválidas",
+  "item": "Item inválido",
+  "itemData": "Dados demais em um item",
+  "tooMany": "Chaves demais de uma vez"
+}

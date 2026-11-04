@@ -1,0 +1,33 @@
+{
+  "subtitle": "Propriedades da zona de trabalho",
+  "title": "Título",
+  "description": "Descrição",
+  "placeholder": "Para que serve esta zona de trabalho",
+  "addMeta": "Adicionar um campo de metadados",
+  "created": "Criada",
+  "modified": "Modificada",
+  "state": "Estado",
+  "collapsed": "Minimizada em um ícone",
+  "open": "Aberta na área de trabalho",
+  "contents": "Conteúdo",
+  "items": {
+    "one": "{n} item",
+    "other": "{n} itens"
+  },
+  "windows": {
+    "one": "{n} janela",
+    "other": "{n} janelas"
+  },
+  "contentsValue": "{items}, {windows}",
+  "size": "Tamanho",
+  "metaName": "Nome",
+  "metaNameLabel": "Nome do campo de metadados {n}",
+  "metaValue": "Valor",
+  "metaValueLabel": "Valor do campo de metadados {n}",
+  "removeMeta": "Remover o campo de metadados",
+  "removeMetaLabel": "Remover o campo de metadados {name}",
+  "noMeta": "Nenhum metadado. Adicione alguns para anotar, por exemplo, cliente, prazo ou status.",
+  "maxMeta": "No máximo {max} campos de metadados.",
+  "info": "Informações",
+  "customMeta": "Metadados personalizados"
+}

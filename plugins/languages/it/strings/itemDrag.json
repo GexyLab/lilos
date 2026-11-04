@@ -1,0 +1,26 @@
+{
+  "home": "Home",
+  "one": "«{name}»",
+  "many": "{n} elementi",
+  "trashToServer": "Quello che è nel cestino torna in una cartella di lilOS, non su un server",
+  "restored": {
+    "one": "Ripristinato {what} in {where}",
+    "other": "Ripristinati {what} in {where}"
+  },
+  "moved": {
+    "one": "Spostato {what} in {where}",
+    "other": "Spostati {what} in {where}"
+  },
+  "transferFailed": "Trasferimento non avviato: {message}",
+  "moveFailed": "Non si può spostare: {message}",
+  "importToServer": "I file del computer si copiano in una cartella di lilOS: da lì, trascinali sul server",
+  "copied": {
+    "one": "Copiato {n} file dal computer in {where}",
+    "other": "Copiati {n} file dal computer in {where}"
+  },
+  "failed": {
+    "one": "{n} file non è stato copiato",
+    "other": "{n} file non sono stati copiati"
+  },
+  "limit": "Copiati solo i primi {max} file"
+}

@@ -1,0 +1,9 @@
+{
+  "skipped": "已跳过",
+  "check": "检查 {name}（{actual}）",
+  "test": "测试“{name}”：{error}",
+  "counts": "{passed} 个通过，{failed} 个失败，用时 {seconds} 秒",
+  "countsSkipped": "{passed} 个通过，{failed} 个失败，{skipped} 个跳过，用时 {seconds} 秒",
+  "cancelled": "已取消：{counts}",
+  "failedFirst": "{name}：{counts}（第一个：{first}）"
+}

@@ -1,4 +1,4 @@
-import { Emitter, fs, shortcuts, splitName } from '@lilos/sdk';
+import { Emitter, fs, shortcuts, splitName, locale } from '@lilos/sdk';
 import { launch, isInstalled } from '../apps/registry.js';
 import { notify } from '../notifications/notify.js';
 import { checkDocument } from './document.js';
@@ -16,6 +16,13 @@ import { checkDocument } from './document.js';
 export const AUTOMATA = 'automata';
 export const EXT = 'automata';
 const RESCAN_MS = 300;
+
+const { t } = locale.define('lilos:automation.library', {
+  en: { strings: {
+    group: 'Automations', needRun: 'To run an automation you need the Automata app',
+    needRecord: 'To record an automation you need the Automata app', recordHere: 'Record starting from here',
+  } },
+});
 
 const isAutomation = node => node?.type === 'file' && splitName(node.name)[1].toLowerCase() === EXT;
 
@@ -90,7 +97,7 @@ class Library extends Emitter {
       if (!combo || !/^(Ctrl|Alt)\+/.test(combo) || shortcuts.validate(combo) || shortcuts.owner(combo, `automation.${e.id}`)) continue;
       try {
         this.#offKeys.push(shortcuts.register({
-          id: `automation.${e.id}`, label: e.name, group: 'Automazioni', keys: [e.launch.shortcut],
+          id: `automation.${e.id}`, label: e.name, group: t('group'), keys: [e.launch.shortcut],
           run: () => this.start(e.id, e.input === 'none' ? [] : this.#selection()),
         }));
       } catch (err) {
@@ -101,13 +108,13 @@ class Library extends Emitter {
 
   /** Opens Automata to run an automation on these items (values: answers by name, { width: 1200 }). */
   start(id, items = [], values = null) {
-    if (!isInstalled(AUTOMATA)) return notify('Per eseguire un’automazione serve l’app Automata', { level: 'warning' });
+    if (!isInstalled(AUTOMATA)) return notify(t('needRun'), { level: 'warning' });
     launch(AUTOMATA, { automation: id, items: items.filter(x => fs.exists(x)), ...(values && Object.keys(values).length && { values }) }, 'run');
   }
 
   /** Opens Automata's recorder, starting from these items (they become what it works on). */
   record(items = []) {
-    if (!isInstalled(AUTOMATA)) return notify('Per registrare un’automazione serve l’app Automata', { level: 'warning' });
+    if (!isInstalled(AUTOMATA)) return notify(t('needRecord'), { level: 'warning' });
     launch(AUTOMATA, { items: items.filter(x => fs.exists(x)) }, 'recorder');
   }
 
@@ -129,8 +136,8 @@ class Library extends Emitter {
       action: () => this.start(e.id, nodes.map(n => n.id)),
     }));
     return [{
-      label: 'Automazioni', icon: 'automation',
-      items: [...items, ...(items.length ? ['-'] : []), { label: 'Registra partendo da qui', icon: 'record', action: () => this.record(nodes.map(n => n.id)) }],
+      label: t('group'), icon: 'automation',
+      items: [...items, ...(items.length ? ['-'] : []), { label: t('recordHere'), icon: 'record', action: () => this.record(nodes.map(n => n.id)) }],
     }];
   }
 }

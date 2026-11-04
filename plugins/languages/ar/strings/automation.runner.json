@@ -1,0 +1,9 @@
+{
+  "stopped": "توقفت الأتمتة",
+  "chooseItems": "اختر ما تريد العمل عليه",
+  "appMissing": "تطبيق هذه الخطوة غير مثبّت",
+  "password": "هذه الخطوة تطلب كلمة مرور",
+  "stepFailedLabel": "الخطوة {n} ({label}): {message}",
+  "stepFailed": "الخطوة {n}: {message}",
+  "cannotRedo": "لا يمكن تنفيذ هذا الإجراء مرة أخرى"
+}

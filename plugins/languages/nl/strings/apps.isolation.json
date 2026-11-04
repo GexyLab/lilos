@@ -1,0 +1,6 @@
+{
+  "notInstalled": "App niet geïnstalleerd",
+  "system": "Systeem-apps maken deel uit van lilOS en draaien binnen lilOS",
+  "remote": "Een externe app is een eigen site: ze draait altijd geïsoleerd, op haar eigen oorsprong",
+  "sdk1": "De app gebruikt SDK 1, dat alleen geïsoleerd werkt"
+}

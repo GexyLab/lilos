@@ -1,0 +1,9 @@
+{
+  "signIn": "Accesso richiesto",
+  "app": "App non valida",
+  "id": "Identificatore non valido",
+  "number": "Numero non valido",
+  "missing": "Operazione inesistente",
+  "appOwner": "Un’app pianifica solo per chi la usa",
+  "adminOwner": "Solo un amministratore pianifica per altri o per il sistema"
+}

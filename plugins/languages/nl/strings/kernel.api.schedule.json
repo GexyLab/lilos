@@ -1,0 +1,9 @@
+{
+  "signIn": "Meld je eerst aan",
+  "app": "Ongeldige app",
+  "id": "Ongeldige id",
+  "number": "Ongeldig getal",
+  "missing": "Bewerking niet gevonden",
+  "appOwner": "Een app plant alleen voor de gebruiker die haar gebruikt",
+  "adminOwner": "Alleen een beheerder plant voor anderen of voor het systeem"
+}

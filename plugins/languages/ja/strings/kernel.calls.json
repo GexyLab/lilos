@@ -1,0 +1,16 @@
+{
+  "secret": "無効なシークレット値",
+  "fingerprint": "無効なフィンガープリント",
+  "server": "無効なサーバー",
+  "sendsTooMany": "一度に実行できる要求は最大 {max} 個です",
+  "unopened": "シークレット値を開けませんでした（別のユーザーまたは別の lilOS で保存されたもの）：{names}",
+  "runsTooMany": "一度に実行できる実行は最大 {max} 個です",
+  "collection": "無効なコレクション",
+  "runNotFound": "実行が見つかりません",
+  "needFile": ".nettest ファイルが必要です",
+  "notCollection": "このファイルは NetTest コレクションではありません",
+  "noEnvironment": "環境が見つかりません：{name}",
+  "untitled": "コレクション",
+  "noProtocol": "プロトコルを利用できません：{protocol}（カーネルモジュールがありません）",
+  "noDescribe": "このプロトコルはサーバーの説明を提供しません"
+}

@@ -1,0 +1,19 @@
+{
+  "key.Enter": "Enter",
+  "key.Escape": "Esc",
+  "key.Delete": "Del",
+  "key.Space": "Spasi",
+  "key.Insert": "Ins",
+  "key.End": "End",
+  "key.PageUp": "PgUp",
+  "key.PageDown": "PgDn",
+  "general": "Umum",
+  "exists": "Pintasan sudah terdaftar: {id}",
+  "unknown": "Pintasan tidak terdaftar: {id}",
+  "invalid": "Kombinasi tidak valid",
+  "noKey": "Tekan juga tombol selain Ctrl, Alt, atau Shift",
+  "reserved": "Kombinasi dicadangkan oleh browser",
+  "tabSpace": "Tab dan Spasi saja digunakan untuk berpindah dan untuk menggeser desktop",
+  "typingKey": "Tombol pengetikan harus digunakan dengan Ctrl, Alt, atau Shift",
+  "whenEditing": "Pintasan ini juga berfungsi saat Anda mengetik: memerlukan Ctrl atau Alt"
+}

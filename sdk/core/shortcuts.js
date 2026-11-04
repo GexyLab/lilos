@@ -1,6 +1,7 @@
 import { isEditing } from './dom.js';
 import { Emitter } from './events.js';
 import { storage } from './storage.js';
+import { locale } from './locale.js';
 
 /**
  * Keyboard shortcuts. Components register commands with default key combinations; the user can
@@ -28,12 +29,28 @@ const MODIFIER_KEYS = new Set(['Control', 'Shift', 'Alt', 'Meta', 'AltGraph', 'C
 /** Taken by the browser before the page sees them: cannot be assigned. */
 const RESERVED = new Set(['Ctrl+W', 'Ctrl+T', 'Ctrl+N', 'Ctrl+Shift+N', 'Ctrl+Shift+T', 'Ctrl+Shift+W', 'Ctrl+Tab', 'Ctrl+Shift+Tab', 'Alt+F4']);
 
+const { t } = locale.define('lilos:sdk.shortcuts', {
+  en: { strings: {
+    'key.Enter': 'Enter', 'key.Escape': 'Esc', 'key.Delete': 'Del', 'key.Space': 'Space', 'key.Insert': 'Ins', 'key.End': 'End',
+    'key.PageUp': 'PgUp', 'key.PageDown': 'PgDn',
+    general: 'General',
+    exists: 'Shortcut already registered: {id}', unknown: 'Shortcut not registered: {id}', invalid: 'Invalid combination',
+    noKey: 'Also press a key besides Ctrl, Alt or Shift', reserved: 'Combination reserved by the browser',
+    tabSpace: 'Tab and Space alone are for moving around and for moving the desktop',
+    typingKey: 'A key that types must be used with Ctrl, Alt or Shift',
+    whenEditing: 'This shortcut also works while you type: it needs Ctrl or Alt',
+  } },
+});
+
 const LABELS = {
   Plus: '+', Minus: '−', Equal: '=', Comma: ',', Period: '.', Slash: '/', Backslash: '\\', Semicolon: ';',
   Quote: "'", Backquote: '`', BracketLeft: '[', BracketRight: ']',
-  Enter: 'Invio', Escape: 'Esc', Delete: 'Canc', Space: 'Spazio', Insert: 'Ins', End: 'Fine',
-  PageUp: 'Pag ↑', PageDown: 'Pag ↓', ArrowUp: '↑', ArrowDown: '↓', ArrowLeft: '←', ArrowRight: '→',
+  ArrowUp: '↑', ArrowDown: '↓', ArrowLeft: '←', ArrowRight: '→',
 };
+/** Keys whose cap has a name in the system's language. */
+const WORDS = new Set(['Enter', 'Escape', 'Delete', 'Space', 'Insert', 'End', 'PageUp', 'PageDown']);
+/** A label or group: a text, or a function that gives it in the system's language. */
+const textOf = v => (typeof v === 'function' ? v() : v);
 
 /** Elements that own plain (unmodified) keys while focused. */
 const INTERACTIVE = 'button, a[href], select, input, textarea, [contenteditable], [role="tab"], [role="radio"], [role="switch"], [role="option"]';
@@ -98,16 +115,16 @@ class Shortcuts extends Emitter {
   /**
    * Register a command. Returns a function that unregisters it.
    *   id           stable, e.g. 'desk.fit'
-   *   label        shown in Settings, e.g. 'Mostra tutto'
-   *   group        heading in Settings, e.g. 'Scrivania'
+   *   label        shown in Settings, e.g. 'Show all' (a text, or a function that gives it)
+   *   group        heading in Settings, e.g. 'Desktop' (the same; default: General)
    *   keys         default combos
    *   run(event)   the action
    *   when()       optional: the command is active only while it returns true
    *   whenEditing  also runs while typing in a field (needs Ctrl or Alt)
    *   repeat       runs again while the key is held down
    */
-  register({ id, label, group = 'Generale', keys = [], run, when = null, whenEditing = false, repeat = false }) {
-    if (this.#commands.has(id)) throw new Error(`Scorciatoia già registrata: ${id}`);
+  register({ id, label, group = null, keys = [], run, when = null, whenEditing = false, repeat = false }) {
+    if (this.#commands.has(id)) throw new Error(t('exists', { id }));
     this.#commands.set(id, { id, label, group, defaults: [...keys], run, when, whenEditing, repeat });
     // Stored combos are untrusted: drop them if any is not valid for this command
     if (Object.hasOwn(this.#custom, id) && this.#custom[id].some(k => this.validate(k, id))) delete this.#custom[id];
@@ -121,7 +138,7 @@ class Shortcuts extends Emitter {
   /** Registered commands, in registration order, with their current keys. */
   list() {
     return [...this.#commands.values()].map(c => ({
-      id: c.id, label: c.label, group: c.group, whenEditing: c.whenEditing,
+      id: c.id, label: textOf(c.label), group: textOf(c.group) ?? t('general'), whenEditing: c.whenEditing,
       keys: this.get(c.id), defaults: [...c.defaults], custom: Object.hasOwn(this.#custom, c.id),
     }));
   }
@@ -135,10 +152,10 @@ class Shortcuts extends Emitter {
   /** Replace the combos of a command. Throws if one is invalid (see validate()). */
   set(id, keys) {
     const cmd = this.#commands.get(id);
-    if (!cmd) throw new Error(`Scorciatoia non registrata: ${id}`);
+    if (!cmd) throw new Error(t('unknown', { id }));
     const unique = [...new Set(keys)];
     for (const k of unique) {
-      const error = isCombo(k) ? this.validate(k, id) : 'Combinazione non valida';
+      const error = isCombo(k) ? this.validate(k, id) : t('invalid');
       if (error) throw new Error(error);
     }
     const same = unique.length === cmd.defaults.length && unique.every((k, i) => k === cmd.defaults[i]);
@@ -162,7 +179,7 @@ class Shortcuts extends Emitter {
   /** The command (other than `exceptId`) that uses this combo, if any. */
   owner(combo, exceptId = null) {
     for (const c of this.#commands.values()) {
-      if (c.id !== exceptId && this.get(c.id).includes(combo)) return { id: c.id, label: c.label };
+      if (c.id !== exceptId && this.get(c.id).includes(combo)) return { id: c.id, label: textOf(c.label) };
     }
     return null;
   }
@@ -170,12 +187,12 @@ class Shortcuts extends Emitter {
   /** Why a combo cannot be assigned to the command, or null if it can. */
   validate(combo, id = null) {
     const { ctrl, alt, shift, key } = parse(combo);
-    if (!key) return 'Premi anche un tasto oltre a Ctrl, Alt o Shift';
-    if (RESERVED.has(combo)) return 'Combinazione riservata dal browser';
+    if (!key) return t('noKey');
+    if (RESERVED.has(combo)) return t('reserved');
     const strong = ctrl || alt;
-    if (!strong && (key === 'Tab' || key === 'Space')) return 'Tab e Spazio da soli servono per muoversi e per spostare la scrivania';
-    if (!strong && !shift && !NAMED.has(key)) return 'Un tasto che scrive va usato con Ctrl, Alt o Shift';
-    if (!strong && this.#commands.get(id)?.whenEditing) return 'Questa scorciatoia funziona anche mentre scrivi: serve Ctrl o Alt';
+    if (!strong && (key === 'Tab' || key === 'Space')) return t('tabSpace');
+    if (!strong && !shift && !NAMED.has(key)) return t('typingKey');
+    if (!strong && this.#commands.get(id)?.whenEditing) return t('whenEditing');
     return null;
   }
 
@@ -199,7 +216,7 @@ class Shortcuts extends Emitter {
   /** 'Ctrl+Plus' → ['Ctrl', '+'], one entry per key cap. */
   parts(combo) {
     const { parts, key } = parse(combo);
-    return [...parts, key].map(p => LABELS[p] ?? p);
+    return [...parts, key].map(p => (WORDS.has(p) ? t(`key.${p}`) : LABELS[p] ?? p));
   }
 
   /**

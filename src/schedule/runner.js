@@ -1,4 +1,4 @@
-import { Window, h, fs, kernel, schedule, session } from '@lilos/sdk';
+import { Window, h, fs, kernel, schedule, session, locale } from '@lilos/sdk';
 import { onKernelEvent } from '../apps/services.js';
 import { launch, isInstalled } from '../apps/registry.js';
 import { openFile } from '../apps/open.js';
@@ -19,25 +19,36 @@ import { AUTOMATA } from '../automation/library.js';
  */
 const KEY = 'schedule-pending';
 
+const { t } = locale.define('lilos:schedule.runner', {
+  en: { strings: {
+    noAutomata: 'Automata is not installed', theAutomation: 'The automation', theFile: 'The file', gone: '{name} is gone',
+    openedFile: 'Opened {name}', appMissing: 'The app {app} is not installed', openedApp: 'Opened {app}',
+    title: 'Pending operations', skippedByUser: 'Skipped by the lilOS user', automation: 'Automation',
+    due: 'due {time}', dueWith: '{label} · due {time}', always: 'From now on run without asking',
+    runNow: 'Run now', skip: 'Skip', lead: 'While lilOS was closed, it was time for:',
+    hint: 'The ones you do not answer keep waiting until the next time lilOS opens, then they expire.',
+  } },
+});
+
 /** Does what a browser operation says. → { state, text } */
 async function perform(task) {
   const w = task.what;
   if (w.type === 'automation') {
-    if (!isInstalled(AUTOMATA)) return { state: 'error', text: 'Automata non è installata' };
-    if (!fs.exists(w.file)) return { state: 'error', text: `${w.label || 'L’automazione'} non c’è più` };
+    if (!isInstalled(AUTOMATA)) return { state: 'error', text: t('noAutomata') };
+    if (!fs.exists(w.file)) return { state: 'error', text: t('gone', { name: w.label || t('theAutomation') }) };
     // Quietly, or in Automata's window when it asks something
     const { state, text } = await runByItself(w.file, [], { values: w.values ?? {} });
     return { state, text };
   }
   if (w.file !== undefined) {
     const node = fs.get(w.file);
-    if (!node) return { state: 'error', text: `${w.label || 'Il file'} non c’è più` };
+    if (!node) return { state: 'error', text: t('gone', { name: w.label || t('theFile') }) };
     await openFile(node);
-    return { state: 'ok', text: `Aperto ${node.name}` };
+    return { state: 'ok', text: t('openedFile', { name: node.name }) };
   }
-  if (!isInstalled(w.app)) return { state: 'error', text: `L’app ${w.label || w.app} non è installata` };
+  if (!isInstalled(w.app)) return { state: 'error', text: t('appMissing', { app: w.label || w.app }) };
   launch(w.app, w.args ?? undefined, w.entry ?? 'main');
-  return { state: 'ok', text: `Aperta ${w.label || w.app}` };
+  return { state: 'ok', text: t('openedApp', { app: w.label || w.app }) };
 }
 
 /** Claims a run and does it; another page that has it already is fine. */
@@ -58,13 +69,13 @@ async function take(runId) {
   await schedule.report(runId, outcome).catch(err => console.warn('[lilos] pianificazione:', err.message));
 }
 
-const timeOf = ms => new Date(ms).toLocaleString(undefined, { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+const timeOf = ms => new Date(ms).toLocaleString(locale.code, { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 
 /** The window that asks about the runs that waited for lilOS. */
 function askWindow(wm, rows) {
   const open = wm.get(KEY);
   if (open) wm.close(open);
-  const win = new Window({ title: 'Operazioni in attesa', icon: 'clock', width: 460, height: Math.min(520, 170 + rows.length * 74), minWidth: 360, minHeight: 200 });
+  const win = new Window({ title: t('title'), icon: 'clock', width: 460, height: Math.min(520, 170 + rows.length * 74), minWidth: 360, minHeight: 200 });
   const list = h('div', { class: 'sched-pending-list' });
   const left = new Set(rows.map(r => r.run.id));
   const done = id => {
@@ -80,22 +91,22 @@ function askWindow(wm, rows) {
       }
       done(run.id);
       if (state === 'run') await take(run.id);
-      else await schedule.report(run.id, { state: 'skipped', text: 'Saltata da chi usa lilOS' }).catch(err => notify(err.message, { level: 'error' }));
+      else await schedule.report(run.id, { state: 'skipped', text: t('skippedByUser') }).catch(err => notify(err.message, { level: 'error' }));
     };
-    const label = task.what.label || (task.what.type === 'automation' ? 'Automazione' : task.what.app ?? '');
+    const label = task.what.label || (task.what.type === 'automation' ? t('automation') : task.what.app ?? '');
     list.append(h('div', { class: 'sched-pending-row', 'data-run': run.id },
       h('div', { class: 'sched-pending-text' },
         h('b', {}, task.name),
-        h('small', {}, `${label ? `${label} · ` : ''}prevista ${timeOf(run.due)}`),
-        h('label', { class: 'sched-pending-always' }, always, 'D’ora in poi esegui senza chiedere')),
+        h('small', {}, label ? t('dueWith', { label, time: timeOf(run.due) }) : t('due', { time: timeOf(run.due) })),
+        h('label', { class: 'sched-pending-always' }, always, t('always'))),
       h('div', { class: 'sched-pending-acts' },
-        h('button', { class: 'ctl-btn primary', type: 'button', onclick: () => act('run') }, 'Esegui ora'),
-        h('button', { class: 'ctl-btn', type: 'button', onclick: () => act('skip') }, 'Salta'))));
+        h('button', { class: 'ctl-btn primary', type: 'button', onclick: () => act('run') }, t('runNow')),
+        h('button', { class: 'ctl-btn', type: 'button', onclick: () => act('skip') }, t('skip')))));
   }
   win.body.append(h('div', { class: 'sched-pending' },
-    h('p', {}, 'Mentre lilOS era chiuso è arrivata l’ora di:'),
+    h('p', {}, t('lead')),
     list,
-    h('p', { class: 'sched-pending-hint' }, 'Quelle a cui non rispondi restano in attesa fino alla prossima apertura, poi scadono.')));
+    h('p', { class: 'sched-pending-hint' }, t('hint'))));
   return wm.open(win, { key: KEY });
 }
 

@@ -1,0 +1,32 @@
+{
+  "stopped": "توقفت العملية",
+  "badName": "اسم حدث غير صالح: {name}",
+  "appEvent": "اسم حدث التطبيق بالشكل <معرّف التطبيق>.<الاسم>",
+  "exists": "الحدث {name} موجود بالفعل",
+  "unknown": "حدث غير معروف: {name}",
+  "stage": "يجب أن تكون قيمة stage \"before\" أو \"after\"",
+  "position": "يجب أن تكون قيمة position \"first\" أو \"middle\" أو \"last\"",
+  "noHandler": "دالة الأنبوب مفقودة",
+  "reserved": "الحدث {name} محجوز للنظام",
+  "syncOnly": "{name} عملية فورية: يمكن للتطبيقات مراقبتها فقط (stage \"after\")",
+  "maxSubs": {
+    "zero": "{n} اشتراك كحد أقصى لكل تطبيق",
+    "one": "اشتراك واحد كحد أقصى لكل تطبيق",
+    "two": "اشتراكان كحد أقصى لكل تطبيق",
+    "few": "{n} اشتراكات كحد أقصى لكل تطبيق",
+    "many": "{n} اشتراكًا كحد أقصى لكل تطبيق",
+    "other": "{n} اشتراك كحد أقصى لكل تطبيق"
+  },
+  "busy": "عمليات كثيرة جدًا قيد التنفيذ",
+  "busyApp": "عمليات كثيرة جدًا قيد التنفيذ لهذا التطبيق",
+  "syncAnswer": "{name}: العملية الفورية تحتاج إلى إجابة فورية",
+  "handlerFailed": "{name}: {message}",
+  "cannotStop": "{name}: لا يمكن إيقاف الحدث {event}",
+  "whereObject": "where: كائن فقط",
+  "whereInvalid": "where غير صالحة",
+  "whereKey": "where: لا تُستخدم {key}",
+  "whereMeta": "where.meta: \"own\" فقط",
+  "whereType": "where.type غير صالحة",
+  "whereList": "where.{key}: قائمة نصوص",
+  "timeout": "لم يستجب {name} في الوقت المحدد"
+}

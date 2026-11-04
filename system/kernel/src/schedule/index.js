@@ -1,6 +1,6 @@
 import { fail } from '../errors.js';
 import { logger } from '../log.js';
-import { readUserKey } from '../api/home.js';
+import { Text, defineStrings, localize } from '../strings.js';
 import * as rules from '../../../../sdk/core/scheduleRules.js';
 import { checkWhat, publicWhat } from './what.js';
 import { runNotify } from './notify.js';
@@ -34,20 +34,30 @@ const SCHEDULER_APP = 'scheduler';
 const CLAIM_WAIT = 90_000;
 const BROWSER = new Set(['open', 'automation']);
 
-const TEXTS = {
-  it: {
-    ok: name => `«${name}» è riuscita`,
-    error: (name, why) => `«${name}» non è riuscita: ${why}`,
-    admin: (who, name, what) => `${who}, amministratore, ${what} la tua operazione «${name}»`,
-    did: { save: 'ha modificato', create: 'ha creato per te', remove: 'ha eliminato', on: 'ha riattivato', off: 'ha messo in pausa', run: 'ha eseguito', move: 'ha spostato' },
-  },
-  en: {
-    ok: name => `«${name}» succeeded`,
-    error: (name, why) => `«${name}» failed: ${why}`,
-    admin: (who, name, what) => `${who}, an administrator, ${what} your operation «${name}»`,
-    did: { save: 'changed', create: 'created for you', remove: 'deleted', on: 'turned on again', off: 'paused', run: 'ran', move: 'moved' },
-  },
-};
+const ACTIONS = new Set(['save', 'create', 'remove', 'on', 'off', 'run', 'move']);
+
+const { t } = defineStrings('lilos:kernel.schedule', { en: { strings: {
+  ok: '«{name}» succeeded',
+  error: '«{name}» failed: {why}',
+  'admin.save': '{who}, an administrator, changed your operation «{name}»',
+  'admin.create': '{who}, an administrator, created the operation «{name}» for you',
+  'admin.remove': '{who}, an administrator, deleted your operation «{name}»',
+  'admin.on': '{who}, an administrator, turned your operation «{name}» on again',
+  'admin.off': '{who}, an administrator, paused your operation «{name}»',
+  'admin.run': '{who}, an administrator, ran your operation «{name}»',
+  'admin.move': '{who}, an administrator, moved your operation «{name}»',
+  userGone: 'The user of this operation no longer exists',
+  invalid: 'Operation not valid',
+  unknownAction: 'Unknown action: {type}',
+  systemNoApps: 'The system does not open apps: a user is needed',
+  waiting: 'Waiting for lilOS to be opened',
+  noPage: 'No page of lilOS answered',
+  cancelled: 'Cancelled or timed out',
+  runNotFound: 'Run not found',
+  runTaken: 'Another page is doing it',
+  runGone: 'Run already done or expired',
+  taskNotFound: 'Operation not found',
+} } });
 
 export class Schedules {
   #kernel;
@@ -100,12 +110,12 @@ export class Schedules {
   /** The principal an operation runs as: its user, null for the system; throws when the user is gone. */
   async ownerPrincipal(owner) {
     if (owner === '*') return null;
-    return await this.#kernel.userPrincipal(owner) ?? fail('not_found', 'L’utente di questa operazione non esiste più');
+    return await this.#kernel.userPrincipal(owner) ?? fail('not_found', t('userGone'));
   }
 
   /** A task as it is saved, with `what` checked (secrets sealed); `old`: the task it replaces. */
   async prepare(principal, raw, old = null) {
-    if (!raw || typeof raw !== 'object') fail('invalid', 'Operazione non valida');
+    if (!raw || typeof raw !== 'object') fail('invalid', t('invalid'));
     const owner = old?.owner ?? raw.owner ?? principal.id;
     const app = old ? old.app : raw.app ?? null;
     const what = await checkWhat(this.#kernel, {
@@ -124,15 +134,28 @@ export class Schedules {
   async tellOwner(principal, task, action) {
     if (principal?.kind !== 'user' || !task || task.owner === '*' || task.owner === principal.id) return;
     const target = await this.#kernel.userPrincipal(task.owner);
-    if (!target) return;
-    const t = await this.#texts(target);
-    await this.#send(task.owner, { level: 'info', text: t.admin(principal.name || principal.username, task.name, t.did[action]), action: { entry: 'main', args: { task: task.id } } })
+    if (!target || !ACTIONS.has(action)) return;
+    await this.#send(task.owner, { level: 'info', text: t(`admin.${action}`, { who: principal.name || principal.username, name: task.name }), action: { entry: 'main', args: { task: task.id } } })
       .catch(err => log.warn(`Avviso al proprietario non mandato: ${err.message}`));
   }
 
   // ---------- Running ----------
 
+  /**
+   * Runs an operation. What it says (its outcome, its log, why it failed) is kept in the history as
+   * text: in the language of its owner (of the first admin, for the system's).
+   */
   async #run(task, run, signal) {
+    const locale = await this.#locale(task.owner);
+    try {
+      return await this.#runAs(task, run, signal, text => localize(text, locale));
+    } catch (err) {
+      if (err?.text instanceof Text) err.message = localize(err.text, locale);
+      throw err;
+    }
+  }
+
+  async #runAs(task, run, signal, say) {
     let principal;
     try {
       principal = await this.ownerPrincipal(task.owner);
@@ -142,7 +165,7 @@ export class Schedules {
       throw err;
     }
     const what = task.what;
-    const context = { kernel: this.#kernel, task, run, principal, signal, sender: () => this.#sender(task) };
+    const context = { kernel: this.#kernel, task, run, principal, signal, say, sender: () => this.#sender(task) };
     switch (what.type) {
       case 'notify': return runNotify(context);
       case 'service': return this.#runService(context);
@@ -151,8 +174,8 @@ export class Schedules {
       case 'command': return runCommand(context);
       case 'collection': return runCollectionTask(context);
       case 'open':
-      case 'automation': return this.#dispatch(task, run, signal);
-      default: fail('invalid', `Azione sconosciuta: ${what.type}`);
+      case 'automation': return this.#dispatch(task, run, signal, say);
+      default: fail('invalid', t('unknownAction', { type: what.type }));
     }
   }
 
@@ -168,18 +191,18 @@ export class Schedules {
   }
 
   /** A browser run: to the owner's pages, or waiting when none is open (or none takes it in time). */
-  #dispatch(task, run, signal) {
-    if (task.owner === '*') fail('invalid', 'Il sistema non apre app: serve un utente');
-    if (!this.#online.get(task.owner)) return { state: 'waiting', text: 'Aspetta che si apra lilOS' };
+  #dispatch(task, run, signal, say) {
+    if (task.owner === '*') fail('invalid', t('systemNoApps'));
+    if (!this.#online.get(task.owner)) return { state: 'waiting', text: say(t('waiting')) };
     return new Promise(resolve => {
       const claim = { owner: task.owner, claimed: false, resolve };
       const timer = setTimeout(() => {
         if (claim.claimed) return;
         this.#claims.delete(run.id);
-        resolve({ state: 'waiting', text: 'Nessuna pagina di lilOS ha risposto' });
+        resolve({ state: 'waiting', text: say(t('noPage')) });
       }, CLAIM_WAIT);
       claim.done = outcome => { clearTimeout(timer); this.#claims.delete(run.id); resolve(outcome); };
-      signal.addEventListener('abort', () => claim.done({ state: 'error', text: 'Annullata o tempo scaduto' }), { once: true });
+      signal.addEventListener('abort', () => claim.done({ state: 'error', text: say(t('cancelled')) }), { once: true });
       this.#claims.set(run.id, claim);
       this.#kernel.events.emit('user', { owner: task.owner, event: 'schedule.due', data: { task: task.id, run: run.id } });
     });
@@ -192,19 +215,19 @@ export class Schedules {
   async claim(principal, runId) {
     const live = this.#claims.get(runId);
     if (live) {
-      if (live.owner !== principal.id) fail('not_found', 'Corsa inesistente');
-      if (live.claimed) fail('conflict', 'Un’altra pagina la sta facendo');
+      if (live.owner !== principal.id) fail('not_found', t('runNotFound'));
+      if (live.claimed) fail('conflict', t('runTaken'));
       live.claimed = true;
     } else {
       const waiting = (await this.service.pending(principal)).find(r => r.id === runId);
-      if (!waiting) fail('conflict', 'Corsa già fatta o scaduta');
-      if (this.#claims.has(`w:${runId}`)) fail('conflict', 'Un’altra pagina la sta facendo');
+      if (!waiting) fail('conflict', t('runGone'));
+      if (this.#claims.has(`w:${runId}`)) fail('conflict', t('runTaken'));
       this.#claims.set(`w:${runId}`, { owner: principal.id, at: Date.now() });
       setTimeout(() => this.#claims.delete(`w:${runId}`), 10 * 60_000).unref?.();
     }
     const runs = await this.service.history(principal, { limit: 500 });
-    const run = runs.find(r => r.id === runId) ?? fail('not_found', 'Corsa inesistente');
-    const task = await this.service.get(principal, run.task) ?? fail('not_found', 'Operazione inesistente');
+    const run = runs.find(r => r.id === runId) ?? fail('not_found', t('runNotFound'));
+    const task = await this.service.get(principal, run.task) ?? fail('not_found', t('taskNotFound'));
     return { task: this.view(task), run };
   }
 
@@ -212,7 +235,7 @@ export class Schedules {
   async report(principal, runId, outcome) {
     const live = this.#claims.get(runId);
     if (live) {
-      if (live.owner !== principal.id) fail('not_found', 'Corsa inesistente');
+      if (live.owner !== principal.id) fail('not_found', t('runNotFound'));
       live.done?.(outcome);
       return { ok: true };
     }
@@ -222,9 +245,10 @@ export class Schedules {
 
   // ---------- Telling the owner ----------
 
-  async #texts(principal) {
-    const code = principal ? await readUserKey(this.#kernel, principal, 'locale', 'it').catch(() => 'it') : 'it';
-    return TEXTS[String(code).toLowerCase().startsWith('it') ? 'it' : 'en'];
+  /** The language of an operation's owner; for the system's, the first admin's. */
+  async #locale(owner) {
+    const id = owner === '*' ? (await this.#kernel.adminIds().catch(() => []))[0] : owner;
+    return id ? this.#kernel.userLocale(id).catch(() => 'en') : 'en';
   }
 
   /** Who a notification about an operation comes from: its app, the Pianificazione app, or lilOS. */
@@ -243,17 +267,19 @@ export class Schedules {
     const to = owner === '*' ? await this.#kernel.adminIds() : [owner];
     // The click opens the Pianificazione app; from lilOS itself (no app) there is nothing to open
     const n = sender.system ? { ...notification, action: null } : notification;
-    for (const id of to) await this.#kernel.service('notifications').send(id, { from: sender, ...n });
+    for (const id of to) {
+      // The kernel's words in the language of each one who gets them
+      const text = n.text instanceof Text ? localize(n.text, await this.#kernel.userLocale(id).catch(() => 'en')).slice(0, 300) : n.text;
+      await this.#kernel.service('notifications').send(id, { from: sender, ...n, text });
+    }
   }
 
   async #notifyResult(task, run) {
     if (!['ok', 'error'].includes(run.state)) return;
-    const owner = task.owner === '*' ? null : await this.#kernel.userPrincipal(task.owner);
-    const t = await this.#texts(owner);
-    const text = run.state === 'ok' ? t.ok(task.name) : t.error(task.name, run.text || '—');
+    const text = run.state === 'ok' ? t('ok', { name: task.name }) : t('error', { name: task.name, why: run.text || '—' });
     // A reminder is the notification itself: «it succeeded» would only repeat it
     if (task.what.type === 'notify' && run.state === 'ok') return;
-    await this.#send(task.owner, { level: run.state === 'ok' ? 'success' : 'error', text: text.slice(0, 300), action: { entry: 'main', args: { task: task.id, run: run.id } } }, await this.#sender({ app: null }));
+    await this.#send(task.owner, { level: run.state === 'ok' ? 'success' : 'error', text, action: { entry: 'main', args: { task: task.id, run: run.id } } }, await this.#sender({ app: null }));
   }
 
   // ---------- Apps ----------

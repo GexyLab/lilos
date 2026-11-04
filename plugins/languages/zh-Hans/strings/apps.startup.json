@@ -1,0 +1,14 @@
+{
+  "mainWindow": "主窗口",
+  "paramsObject": "参数必须是一个 JSON 对象，位于 { } 之间",
+  "paramsTooLong": "参数过长（最多 4 KB）",
+  "invalid": "{param}：值无效",
+  "fileGone": "{param}：文件已不存在",
+  "folderGone": "{param}：文件夹已不存在",
+  "notOpened": "{app} 没有自行打开。{message}",
+  "notInstalled": "应用未安装",
+  "maxApps": "启动时最多 {max} 个应用",
+  "unknownEntry": "未知入口点",
+  "entryNotAtStartup": "该入口点不在启动项中",
+  "skipped": "已在不启动应用的情况下启动：地址中包含 ?avvio=no"
+}

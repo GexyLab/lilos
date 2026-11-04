@@ -1,0 +1,19 @@
+{
+  "noAutomata": "Automata nu este instalată",
+  "theAutomation": "Automatizarea",
+  "theFile": "Fișierul",
+  "gone": "{name} nu mai există",
+  "openedFile": "S-a deschis {name}",
+  "appMissing": "Aplicația {app} nu este instalată",
+  "openedApp": "S-a deschis {app}",
+  "title": "Operațiuni în așteptare",
+  "skippedByUser": "Omisă de utilizatorul lilOS",
+  "automation": "Automatizare",
+  "due": "programată {time}",
+  "dueWith": "{label} · programată {time}",
+  "always": "De acum înainte, rulați fără să întrebați",
+  "runNow": "Rulați acum",
+  "skip": "Omiteți",
+  "lead": "În timp ce lilOS era închis, a sosit momentul pentru:",
+  "hint": "Cele la care nu răspundeți rămân în așteptare până la următoarea deschidere a lilOS, apoi expiră."
+}

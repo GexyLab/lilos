@@ -1,11 +1,16 @@
 import { h } from '../core/dom.js';
 import { Emitter } from '../core/events.js';
 import { icon } from './icons.js';
+import { locale } from '../core/locale.js';
+
+const { t } = locale.define('lilos:sdk.window', {
+  en: { strings: { minimize: 'Minimize', maximize: 'Maximize', restore: 'Restore', close: 'Close' } },
+});
 
 const CONTROLS = [
-  { name: 'minimize', glyph: 'minus', label: 'Riduci a icona' },
-  { name: 'maximize', glyph: 'max', label: 'Ingrandisci' },
-  { name: 'close', glyph: 'x', label: 'Chiudi' },
+  { name: 'minimize', glyph: 'minus' },
+  { name: 'maximize', glyph: 'max' },
+  { name: 'close', glyph: 'x' },
 ];
 /** Resize handles: four sides and four corners. */
 export const WINDOW_EDGES = ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'];
@@ -166,7 +171,7 @@ export class Window extends Emitter {
     this.el.classList.toggle('max', maximized);
     const btn = this.controlBar.querySelector('.win-maximize');
     if (btn) {
-      const label = maximized ? 'Ripristina' : 'Ingrandisci';
+      const label = t(maximized ? 'restore' : 'maximize');
       btn.title = label;
       btn.setAttribute('aria-label', label);
     }
@@ -187,7 +192,7 @@ export class Window extends Emitter {
     }
     const maximized = this.el.classList.contains('max');
     this.controlBar.replaceChildren(...CONTROLS.filter(c => this.#controls[c.name]).map(c => {
-      const label = c.name === 'maximize' && maximized ? 'Ripristina' : c.label;
+      const label = t(c.name === 'maximize' && maximized ? 'restore' : c.name);
       return h('button', { class: `win-${c.name}`, type: 'button', title: label, 'aria-label': label, onclick: () => this.emit(c.name) }, icon(c.glyph));
     }));
   }

@@ -1,0 +1,22 @@
+{
+  "home": "Beranda",
+  "one": "“{name}”",
+  "many": "{n} item",
+  "trashToServer": "Isi tempat sampah kembali ke folder lilOS, bukan ke server",
+  "restored": {
+    "other": "{what} dipulihkan ke {where}"
+  },
+  "moved": {
+    "other": "{what} dipindahkan ke {where}"
+  },
+  "transferFailed": "Transfer tidak dimulai: {message}",
+  "moveFailed": "Tidak dapat memindahkan: {message}",
+  "importToServer": "File komputer disalin ke folder lilOS: dari sana, seret ke server",
+  "copied": {
+    "other": "{n} file disalin dari komputer ke {where}"
+  },
+  "failed": {
+    "other": "{n} file tidak disalin"
+  },
+  "limit": "Hanya {max} file pertama yang disalin"
+}

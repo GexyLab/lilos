@@ -1,0 +1,7 @@
+{
+  "signIn": "Inicia sesión primero",
+  "kind": "kind debe ser \"app\" o \"module\"",
+  "id": "id no válido",
+  "target": "Se necesita install o update",
+  "package": "Paquete no válido"
+}

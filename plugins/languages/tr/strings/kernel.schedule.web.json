@@ -1,0 +1,27 @@
+{
+  "folderGone": "Kaydedilecek klasör artık yok",
+  "notFolder": "Kaydedilecek yer bir klasör değil",
+  "notFile": "“{name}” zaten var ve bir dosya değil",
+  "protected": "“{name}” bir uygulama tarafından korunuyor (örneğin şifrelenmiş): üzerine yazılmaz",
+  "secretGone": "{name} gizli değeri artık okunamıyor: yeniden girilmesi gerekiyor",
+  "fileGone": "Gönderilecek dosya artık yok",
+  "noAnswer": {
+    "other": "{n} saniye içinde yanıt yok"
+  },
+  "untrusted": "{message}: NetTest’ten bir kez onaylayın",
+  "network": "Ağ: {code}",
+  "redirects": "Çok fazla yeniden yönlendirme",
+  "notWeb": "Web olmayan bir adrese yeniden yönlendirme",
+  "otherOrigin": "Gönderilecek gövdeyle başka bir adrese yeniden yönlendirme: izlenmedi",
+  "tooBig": "Yanıt çok büyük (en fazla 10 MB)",
+  "unfinished": {
+    "other": "Yanıt {n} saniye içinde bitmedi"
+  },
+  "bytes": {
+    "other": "{n} bayt"
+  },
+  "saved": "{ms} ms içinde {status} · {size} · şuraya kaydedildi: {name}",
+  "summary": "{ms} ms içinde {status} · {size}",
+  "status": "Durum {status}, beklenen {expected}",
+  "contains": "Yanıt “{text}” içermiyor"
+}

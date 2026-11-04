@@ -1,0 +1,10 @@
+{
+  "recording": {
+    "one": "Registrazione in corso ({n} passo)",
+    "other": "Registrazione in corso ({n} passi)"
+  },
+  "paused": {
+    "one": "Registrazione in pausa ({n} passo)",
+    "other": "Registrazione in pausa ({n} passi)"
+  }
+}

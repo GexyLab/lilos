@@ -1,0 +1,8 @@
+{
+  "signIn": "先にサインインしてください",
+  "shape": "通知はテキストまたは { text, level, action } です",
+  "noText": "通知にテキストがありません",
+  "level": "無効なレベル：info、success、warning、error のいずれか",
+  "action": "無効なアクション：{ entry, args }",
+  "sender": "無効な送信元：アプリがインストールされていません"
+}

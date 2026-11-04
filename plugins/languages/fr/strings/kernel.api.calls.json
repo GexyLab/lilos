@@ -1,0 +1,7 @@
+{
+  "signIn": "Connectez-vous d’abord",
+  "run": "Exécution non valide",
+  "session": "Session non valide",
+  "signin": "Connexion non valide",
+  "needSocket": "Un WebSocket est nécessaire"
+}

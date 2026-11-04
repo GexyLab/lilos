@@ -1,0 +1,27 @@
+{
+  "folderGone": "保存先のフォルダーはもうありません",
+  "notFolder": "保存先がフォルダーではありません",
+  "notFile": "「{name}」はすでにあり、ファイルではありません",
+  "protected": "「{name}」はアプリによって保護されています（暗号化など）。上書きされません",
+  "secretGone": "{name} のシークレット値を読み取れなくなりました。もう一度入力する必要があります",
+  "fileGone": "送信するファイルはもうありません",
+  "noAnswer": {
+    "other": "{n} 秒以内に応答がありません"
+  },
+  "untrusted": "{message}：NetTest で一度確認してください",
+  "network": "ネットワーク：{code}",
+  "redirects": "リダイレクトが多すぎます",
+  "notWeb": "Web ではないアドレスへのリダイレクト",
+  "otherOrigin": "送信する本文がある状態での別のアドレスへのリダイレクト：追従しません",
+  "tooBig": "応答が大きすぎます（最大 10 MB）",
+  "unfinished": {
+    "other": "応答が {n} 秒以内に終わりませんでした"
+  },
+  "bytes": {
+    "other": "{n} バイト"
+  },
+  "saved": "{status}（{ms} ms） · {size} · {name} に保存しました",
+  "summary": "{status}（{ms} ms） · {size}",
+  "status": "ステータス {status}（期待値 {expected}）",
+  "contains": "応答に「{text}」が含まれていません"
+}

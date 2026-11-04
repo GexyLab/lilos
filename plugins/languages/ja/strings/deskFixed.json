@@ -1,0 +1,13 @@
+{
+  "home.description": "メインのフォルダー。他のすべてのフォルダーを含みます",
+  "folder.description": "{name} フォルダー。すべてのワークスペースで共有されます",
+  "files.description": "File Manager を開きます",
+  "trash": "ごみ箱",
+  "trash.description": "ごみ箱を開きます。ファイルやフォルダーをドラッグできます",
+  "noDesk": "デスクトップがありません",
+  "folderGone": "{name} フォルダーはもうありません",
+  "trashedOne": "ごみ箱に移動しました",
+  "trashedMany": {
+    "other": "{n} 個の項目をごみ箱に移動しました"
+  }
+}

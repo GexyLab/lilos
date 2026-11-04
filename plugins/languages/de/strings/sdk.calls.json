@@ -1,0 +1,9 @@
+{
+  "offline": "Netzwerkanfragen sendet der lilOS-Kernel, der nicht verbunden ist",
+  "badRun": "Ungültige Ausführung",
+  "badSession": "Ungültige Sitzung",
+  "blocked": "Der Browser hat das Anmeldefenster blockiert",
+  "canceled": "Anmeldung abgebrochen",
+  "failed": "Anmeldung fehlgeschlagen",
+  "noAskAddress": "askAddress fehlt"
+}

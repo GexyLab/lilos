@@ -1,0 +1,32 @@
+{
+  "folderGone": "Klasör artık yok",
+  "namedGone": "{name} artık yok",
+  "notFolder": "Klasör bir klasör değil",
+  "namedNotFolder": "{name} bir klasör değil",
+  "protected": "bir uygulama tarafından korunuyor (örneğin şifrelenmiş): üzerine yazılmaz",
+  "mountGone": "{name} artık “{mount}” üzerinde değil",
+  "inside": "İçine kopyalanacak klasör, kopyalanacak klasörün içinde",
+  "newVersion": "Yeni sürüm: {name}",
+  "fileThere": "Kopyalanacak yerde zaten “{name}” adlı bir dosya var",
+  "copied": "kopyalandı: {path}",
+  "tooMany": "{max} öğeden fazla: daha küçük bir klasör kopyalayın",
+  "sameNameFile": "aynı adda bir dosya var",
+  "removedFile": "{path} dosyası kaldırıldı (artık bir klasör)",
+  "sameNameFolder": "aynı adda bir klasör var",
+  "error": "HATA {path}: {message}",
+  "removed": "silindi: {path}",
+  "oldVersion": "eski sürüm silindi: {name}",
+  "summary": {
+    "other": "{n} dosya kopyalandı ({size})"
+  },
+  "summarySame": {
+    "other": "{n} dosya kopyalandı ({size}), {same} değişmedi"
+  },
+  "summaryRemoved": {
+    "other": "{n} dosya kopyalandı ({size}), {removed} silindi"
+  },
+  "summarySameRemoved": {
+    "other": "{n} dosya kopyalandı ({size}), {same} değişmedi, {removed} silindi"
+  },
+  "notCopied": "{n} kopyalanmadı: {first}"
+}

@@ -1,6 +1,21 @@
 import { locale } from '@lilos/sdk';
 import { typeKey } from '../../input/sendKey.js';
 
+const { t } = locale.define('lilos:apps.bridge', {
+  en: { strings: {
+    noPipeFn: 'The pipe function is missing', noHandler: '{id}: {entry} does not answer calls (lilos.handle is missing)',
+    noPipe: '{id}: no function for this pipe', libraryFailed: 'Library not loaded', noExport: 'The code does not export {entry}',
+  } },
+});
+
+/**
+ * The texts lilosApi() and the runtimes below may show, in the system's language, for `info.texts`:
+ * that code runs where t() is not (a sandbox, a worker), so it gets them with the rest of `info`.
+ */
+export const bridgeTexts = () => ({
+  noPipeFn: t('noPipeFn'), noHandler: t('noHandler'), noPipe: t('noPipe'), libraryFailed: t('libraryFailed'), noExport: t('noExport'),
+});
+
 /**
  * `lilos`: what an installed app has of lilOS, the same object however the app runs
  * (see host.js and background.js):
@@ -107,6 +122,8 @@ export function lilosApi(call, info, i18nApi) {
   const subs = new Map();
   let handler = null;
   const locale = i18nApi(info.locale);
+  // One of info.texts (bridgeTexts), with its {names} filled in
+  const say = (key, vars) => String((info.texts || {})[key] || key).replace(/\{(\w+)\}/g, (all, name) => (vars && Object.prototype.hasOwnProperty.call(vars, name) ? String(vars[name]) : all));
   const emit = (event, data) => {
     if (event === 'locale') {
       locale.set(data);
@@ -162,7 +179,7 @@ export function lilosApi(call, info, i18nApi) {
     }),
     pipes: Object.freeze({
       async subscribe(event, options, fn) {
-        if (typeof fn !== 'function') throw new Error('Manca la funzione della pipe');
+        if (typeof fn !== 'function') throw new Error(say('noPipeFn'));
         const sub = await call('pipes.subscribe', String(event), options ?? null);
         subs.set(sub, fn);
         return () => {
@@ -239,12 +256,12 @@ export function lilosApi(call, info, i18nApi) {
     }),
   });
   const answer = async (data, from) => {
-    if (!handler) throw new Error(`${info.id}: ${info.entry} non risponde alle chiamate (manca lilos.handle)`);
+    if (!handler) throw new Error(say('noHandler', { id: info.id, entry: info.entry }));
     return handler(data, { from });
   };
   const pipe = async (sub, data, ctx) => {
     const fn = subs.get(sub);
-    if (!fn) throw new Error(`${info.id}: nessuna funzione per questa pipe`);
+    if (!fn) throw new Error(say('noPipe', { id: info.id }));
     return (await fn(data, ctx)) ?? null;
   };
   return { api, emit, answer, pipe };
@@ -297,14 +314,14 @@ const RUNTIME = `function runtime(lilosApi, i18nApi, init) {
       const s = document.createElement('script');
       s.src = blob(text);
       s.onload = resolve;
-      s.onerror = () => reject(new Error('Libreria non caricata'));
+      s.onerror = () => reject(new Error(String(info.texts.libraryFailed)));
       document.head.append(s);
     });
   started = (async () => {
     for (const text of libs) await load(text);
     const mod = await import(blob(code));
     const run = mod[info.entry];
-    if (typeof run !== 'function') throw new Error('Il codice non esporta ' + info.entry);
+    if (typeof run !== 'function') throw new Error(String(info.texts.noExport).replace('{entry}', () => info.entry));
     await run({ lilos: api, args: info.args });
   })();
   started.catch(err => call('app.failed', String(err?.message ?? err)));

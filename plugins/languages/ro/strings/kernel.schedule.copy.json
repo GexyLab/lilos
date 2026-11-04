@@ -1,0 +1,40 @@
+{
+  "folderGone": "Dosarul nu mai există",
+  "namedGone": "{name} nu mai există",
+  "notFolder": "Dosarul nu este un dosar",
+  "namedNotFolder": "{name} nu este un dosar",
+  "protected": "protejat de o aplicație (criptat, de exemplu): nu este suprascris",
+  "mountGone": "{name} nu mai este pe „{mount}”",
+  "inside": "Dosarul de destinație se află în cel de copiat",
+  "newVersion": "Versiune nouă: {name}",
+  "fileThere": "La destinație există deja un fișier „{name}”",
+  "copied": "copiat {path}",
+  "tooMany": "Peste {max} elemente: copiați un dosar mai mic",
+  "sameNameFile": "există un fișier cu același nume",
+  "removedFile": "fișierul {path} a fost eliminat (acum este un dosar)",
+  "sameNameFolder": "există un dosar cu același nume",
+  "error": "EROARE {path}: {message}",
+  "removed": "șters {path}",
+  "oldVersion": "versiune veche ștearsă: {name}",
+  "summary": {
+    "one": "Un fișier copiat ({size})",
+    "few": "{n} fișiere copiate ({size})",
+    "other": "{n} de fișiere copiate ({size})"
+  },
+  "summarySame": {
+    "one": "Un fișier copiat ({size}), {same} neschimbate",
+    "few": "{n} fișiere copiate ({size}), {same} neschimbate",
+    "other": "{n} de fișiere copiate ({size}), {same} neschimbate"
+  },
+  "summaryRemoved": {
+    "one": "Un fișier copiat ({size}), {removed} șterse",
+    "few": "{n} fișiere copiate ({size}), {removed} șterse",
+    "other": "{n} de fișiere copiate ({size}), {removed} șterse"
+  },
+  "summarySameRemoved": {
+    "one": "Un fișier copiat ({size}), {same} neschimbate, {removed} șterse",
+    "few": "{n} fișiere copiate ({size}), {same} neschimbate, {removed} șterse",
+    "other": "{n} de fișiere copiate ({size}), {same} neschimbate, {removed} șterse"
+  },
+  "notCopied": "{n} necopiate: {first}"
+}

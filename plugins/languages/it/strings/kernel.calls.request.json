@@ -1,0 +1,14 @@
+{
+  "graphqlVars": "GraphQL: le variabili non sono JSON valido",
+  "method": "Metodo non valido",
+  "url": "Indirizzo non valido: {url}",
+  "needHttp": "Serve un indirizzo http:// o https://",
+  "headerName": "Nome di header non valido: {name}",
+  "headerValue": "Valore non valido nell’header {name}",
+  "bodyTooBig": "Corpo troppo grande (al massimo 50 MB)",
+  "noAnswer": {
+    "one": "Nessuna risposta in {n} secondo",
+    "other": "Nessuna risposta in {n} secondi"
+  },
+  "cancelled": "Annullata"
+}

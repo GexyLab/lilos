@@ -1,0 +1,10 @@
+{
+  "group": "Workspace",
+  "next": "Naar de volgende workspace gaan",
+  "previous": "Naar de vorige workspace gaan",
+  "limit": "Maximaal {max} workspaces",
+  "deskOf": "Bureaublad van {name}",
+  "removed": "Workspace ‘{name}’ verwijderd",
+  "removedKept": "Workspace ‘{name}’ verwijderd. Het bureaublad ervan is nu {path}",
+  "newName": "Workspace {n}"
+}

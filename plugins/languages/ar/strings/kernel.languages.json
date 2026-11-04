@@ -1,0 +1,11 @@
+{
+  "invalid": "حزمة لغة غير صالحة: {message}",
+  "official": "حزم اللغات تأتي من المستودع الرسمي فقط",
+  "notOffered": "لا يحتوي المستودع الرسمي على حزمة لغة لـ {language}",
+  "noRepo": "لا يحتوي المستودع الرسمي على حزم لغات",
+  "needs": "يتطلب {name} الإصدار lilOS {range} (هذا هو {version})",
+  "changed": "{file}: محتواه لا يطابق language.json",
+  "notInstalled": "اللغة {language} غير مثبّتة",
+  "removeForbidden": "لا يمكن إزالة {name} إلا لمن ثبّتها أو للمسؤول",
+  "removed": "تمت إزالة اللغة {name}: سيكون lilOS بالإنجليزية حتى تختار لغة أخرى"
+}

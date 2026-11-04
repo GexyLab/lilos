@@ -1,0 +1,12 @@
+{
+  "zoomOut": "Reduzir",
+  "zoomIn": "Ampliar",
+  "fit": "Mostrar tudo",
+  "zoomReset": "Zoom em 100%",
+  "help": "Controles",
+  "withKey": "{text} ({keys})",
+  "help.wheel": "Roda: zoom",
+  "help.move": "Espaço + arrastar ou botão do meio: mover",
+  "help.select": "Arrastar o fundo: selecionar",
+  "help.fit": "{keys}: mostrar tudo"
+}

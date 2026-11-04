@@ -1,0 +1,18 @@
+{
+  "one": "“{name}”",
+  "many": "{n} itens",
+  "home": "Home",
+  "gone": "O item não existe mais",
+  "folderGone": "A pasta em que eles estavam não existe mais",
+  "itemsGone": "Os itens não existem mais",
+  "notTrashed": "Os itens não estão mais na lixeira",
+  "createdGone": "A pasta não existe mais",
+  "foldersGone": "Os itens ou as pastas não existem mais",
+  "delete": "Excluir {what}",
+  "trash": "Mover {what} para a lixeira",
+  "restore": "Restaurar {what}",
+  "create": "Criar “{name}”",
+  "rename": "Renomear “{from}” para “{to}”",
+  "move": "Mover “{name}” para “{folder}”",
+  "moveMany": "Mover {what} para “{folder}”"
+}

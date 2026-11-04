@@ -2,6 +2,16 @@ import { h, Window, notifications, actionButton, locale } from '@lilos/sdk';
 import { notificationCard, runAction } from './card.js';
 import { notify } from './notify.js';
 
+const { t } = locale.define('lilos:notificationsWindow', {
+  en: { strings: {
+    title: 'Notifications', today: 'Today', yesterday: 'Yesterday',
+    markAll: 'Mark all as read', clearAll: 'Delete all',
+    clearFailed: 'Notifications not deleted: {message}', removeFailed: 'Notification not deleted: {message}',
+    kept: '{count} of {keep} kept', fresh: { one: '{kept} · {n} new', other: '{kept} · {n} new' },
+    empty: 'No notifications', remove: 'Delete',
+  } },
+});
+
 const KEY = 'notifications';
 
 const dayOf = at => { const d = new Date(at); d.setHours(0, 0, 0, 0); return d.getTime(); };
@@ -9,8 +19,8 @@ const dayOf = at => { const d = new Date(at); d.setHours(0, 0, 0, 0); return d.g
 /** 'Oggi', 'Ieri' or the date ('venerdì 30 ottobre'; with the year when it is another one). */
 function dayLabel(at) {
   const days = Math.round((dayOf(Date.now()) - dayOf(at)) / 86_400_000);
-  if (days === 0) return 'Oggi';
-  if (days === 1) return 'Ieri';
+  if (days === 0) return t('today');
+  if (days === 1) return t('yesterday');
   const sameYear = new Date(at).getFullYear() === new Date().getFullYear();
   return new Intl.DateTimeFormat(locale.code, { weekday: 'long', day: 'numeric', month: 'long', ...(!sameYear && { year: 'numeric' }) }).format(at);
 }
@@ -26,11 +36,11 @@ export function showNotifications(wm) {
     wm.show(open);
     return open;
   }
-  const win = new Window({ title: 'Notifiche', icon: 'bell', width: 480, height: 480, minWidth: 320, minHeight: 240 });
+  const win = new Window({ title: t('title'), icon: 'bell', width: 480, height: 480, minWidth: 320, minHeight: 240 });
   const fresh = new Set(notifications.list().filter(n => !n.read).map(n => n.id));
   const count = h('span', { class: 'nt-count' });
-  const markAll = actionButton({ label: 'Segna tutte come lette', onClick: () => markRead() });
-  const clear = actionButton({ label: 'Cancella tutte', onClick: () => notifications.clear().catch(err => notify(`Notifiche non cancellate: ${err.message}`, { level: 'error' })) });
+  const markAll = actionButton({ label: t('markAll'), onClick: () => markRead() });
+  const clear = actionButton({ label: t('clearAll'), onClick: () => notifications.clear().catch(err => notify(t('clearFailed', { message: err.message }), { level: 'error' })) });
   const list = h('div', { class: 'nt-list', role: 'list' });
   win.body.append(h('div', { class: 'nt-window' }, h('div', { class: 'nt-toolbar' }, count, markAll, clear), list));
 
@@ -42,12 +52,12 @@ export function showNotifications(wm) {
 
   const render = () => {
     const items = notifications.list();
-    const kept = `${items.length} di ${notifications.keep} conservate`;
-    count.textContent = fresh.size ? `${kept} · ${fresh.size} nuove` : kept;
+    const kept = t('kept', { count: items.length, keep: notifications.keep });
+    count.textContent = fresh.size ? t('fresh', { kept, n: fresh.size }) : kept;
     markAll.disabled = !fresh.size && !notifications.unread;
     clear.disabled = !items.length;
     if (!items.length) {
-      list.replaceChildren(h('p', { class: 'nt-empty' }, 'Nessuna notifica'));
+      list.replaceChildren(h('p', { class: 'nt-empty' }, t('empty')));
       return;
     }
     const rows = [];
@@ -59,9 +69,9 @@ export function showNotifications(wm) {
       }
       const card = notificationCard(n, {
         className: fresh.has(n.id) ? 'nt-unread' : '',
-        closeLabel: 'Cancella',
+        closeLabel: t('remove'),
         onOpen: () => runAction(n),
-        onClose: () => notifications.remove([n.id]).catch(err => notify(`Notifica non cancellata: ${err.message}`, { level: 'error' })),
+        onClose: () => notifications.remove([n.id]).catch(err => notify(t('removeFailed', { message: err.message }), { level: 'error' })),
       });
       card.setAttribute('role', 'listitem');
       rows.push(card);

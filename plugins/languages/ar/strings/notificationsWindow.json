@@ -1,0 +1,20 @@
+{
+  "title": "الإشعارات",
+  "today": "اليوم",
+  "yesterday": "أمس",
+  "markAll": "تعليم الكل كمقروء",
+  "clearAll": "حذف الكل",
+  "clearFailed": "لم يتم حذف الإشعارات: {message}",
+  "removeFailed": "لم يتم حذف الإشعار: {message}",
+  "kept": "{count} من {keep} محفوظة",
+  "fresh": {
+    "zero": "{kept} · لا جديد",
+    "one": "{kept} · إشعار جديد واحد",
+    "two": "{kept} · إشعاران جديدان",
+    "few": "{kept} · {n} جديدة",
+    "many": "{kept} · {n} جديدًا",
+    "other": "{kept} · {n} جديد"
+  },
+  "empty": "لا توجد إشعارات",
+  "remove": "حذف"
+}

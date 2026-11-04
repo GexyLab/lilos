@@ -1,0 +1,18 @@
+{
+  "title": "Уведомления",
+  "today": "Сегодня",
+  "yesterday": "Вчера",
+  "markAll": "Отметить все как прочитанные",
+  "clearAll": "Удалить все",
+  "clearFailed": "Уведомления не удалены: {message}",
+  "removeFailed": "Уведомление не удалено: {message}",
+  "kept": "Хранится {count} из {keep}",
+  "fresh": {
+    "one": "{kept} · {n} новое",
+    "few": "{kept} · {n} новых",
+    "many": "{kept} · {n} новых",
+    "other": "{kept} · {n} нового"
+  },
+  "empty": "Нет уведомлений",
+  "remove": "Удалить"
+}

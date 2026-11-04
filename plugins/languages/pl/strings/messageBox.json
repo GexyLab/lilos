@@ -1,0 +1,12 @@
+{
+  "ok": "OK",
+  "cancel": "Anuluj",
+  "continue": "Kontynuuj",
+  "retry": "Ponów",
+  "required": "Wypełnij pole „{label}”",
+  "invalid": "Pole „{label}” jest nieprawidłowe",
+  "number": "Pole „{label}” musi być liczbą",
+  "min": "Pole „{label}” musi mieć wartość co najmniej {min}",
+  "max": "Pole „{label}” musi mieć wartość najwyżej {max}",
+  "long": "Pole „{label}” jest za długie (najwyżej {max} znaków)"
+}

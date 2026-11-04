@@ -1,0 +1,7 @@
+{
+  "notImage": "“{name}”은(는) 이미지가 아닙니다",
+  "gone": "이 이미지가 더 이상 없습니다",
+  "copyFailed": "“{name}”을(를) {folder} 폴더에 복사할 수 없습니다: {error}",
+  "noFolder": "{folder} 폴더가 없습니다",
+  "openFailed": "“{name}”을(를) 이미지로 열 수 없습니다"
+}

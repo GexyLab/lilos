@@ -1,0 +1,12 @@
+{
+  "zoomOut": "縮小",
+  "zoomIn": "拡大",
+  "fit": "すべて表示",
+  "zoomReset": "100% に戻す",
+  "help": "操作方法",
+  "withKey": "{text}（{keys}）",
+  "help.wheel": "ホイール：ズーム",
+  "help.move": "Space + ドラッグまたは中ボタン：移動",
+  "help.select": "背景をドラッグ：選択",
+  "help.fit": "{keys}：すべて表示"
+}

@@ -1,0 +1,10 @@
+{
+  "scriptErrorBefore": "スクリプトエラー（前）：{message}",
+  "scriptErrorAfter": "スクリプトエラー（後）：{message}",
+  "scriptTimeoutBefore": "スクリプトエラー（前）：スクリプトがタイムアウトしました（5 秒）",
+  "scriptTimeoutAfter": "スクリプトエラー（後）：スクリプトがタイムアウトしました（5 秒）",
+  "skipped": "ウィンドウから開くセッション（WebSocket、SSE、TCP、UDP、MQTT）は実行時にスキップされます",
+  "otherServer": "スクリプトが要求のサーバーを変更しました。シークレット値は別のアドレスには送信されません",
+  "noProtocol": "実行では利用できないプロトコル：{protocol}（カーネルモジュールがありません）",
+  "nothingToSave": "「{name}」：保存するものがありません（{source} {path}）"
+}

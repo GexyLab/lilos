@@ -1,0 +1,11 @@
+{
+  "official": "lilOS 官方",
+  "adminOnly": "只有管理员才能管理仓库",
+  "missing": "未找到仓库",
+  "present": "仓库已添加",
+  "tooMany": "最多 {max} 个仓库",
+  "notOfficial": "官方仓库无法移除",
+  "catalog": "catalog.json 缺失或不是有效的 JSON",
+  "notInCatalog": "软件包不在目录中",
+  "file": "无效的文件"
+}

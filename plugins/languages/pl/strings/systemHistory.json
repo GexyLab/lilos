@@ -1,0 +1,9 @@
+{
+  "group": "Edycja",
+  "undo": "Cofnij",
+  "redo": "Ponów",
+  "undone": "Cofnięto: {label}",
+  "redone": "Ponowiono: {label}",
+  "failed": "Tego nie można już zrobić: {message}",
+  "error": "błąd"
+}

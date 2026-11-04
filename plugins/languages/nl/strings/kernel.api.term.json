@@ -1,0 +1,7 @@
+{
+  "signIn": "Meld je eerst aan",
+  "host": "Ongeldige host",
+  "session": "Ongeldige sessie",
+  "noSession": "Sessie niet gevonden",
+  "needSocket": "Er is een WebSocket nodig"
+}

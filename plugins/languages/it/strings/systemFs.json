@@ -1,0 +1,3 @@
+{
+  "welcome": "Benvenuto in lilOS!\n\nQuesta è una scrivania infinita: tieni premuto Spazio e trascina per spostarti,\nusa la rotella per lo zoom, trascina sullo sfondo per selezionare.\n\n- Doppio clic su una cartella: si apre nel File Manager.\n- Doppio clic su un file di testo: si apre nell'Editor (come questo).\n- Ctrl K apre il menu di avvio, Ctrl S salva nell'Editor.\n- Il pulsante accanto al logo cambia workspace: ognuno ha la sua scrivania,\n  le sue finestre e le sue app. Documenti, Immagini e Download sono di tutti.\n\nLe scorciatoie e le app che aprono i file si cambiano nel\nPannello di controllo → Usabilità.\n"
+}

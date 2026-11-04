@@ -1,0 +1,17 @@
+{
+  "port": "Porta non valida",
+  "url": "Indirizzo non valido",
+  "closedBy": "Chiuso dal server ({code})",
+  "closedByReason": "Chiuso dal server ({code}: {reason})",
+  "closed": "La connessione è chiusa",
+  "unknownCommand": "Comando sconosciuto",
+  "notStream": "Il server ha risposto {status} invece di un flusso di eventi",
+  "notStreamType": "Il server ha risposto {status} ({type}) invece di un flusso di eventi",
+  "lineTooLong": "Riga troppo lunga: scartata",
+  "eventTooLong": "Evento troppo lungo: scartato",
+  "streamEnded": "Il server ha chiuso il flusso",
+  "receiveOnly": "Server-Sent Events: si riceve soltanto",
+  "noHost": "Manca il server",
+  "ended": "Il server ha chiuso la connessione",
+  "tooBig": "Datagramma troppo grande (al massimo 65507 byte)"
+}

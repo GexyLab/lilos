@@ -1,0 +1,10 @@
+{
+  "scriptErrorBefore": "Помилка скрипту (before): {message}",
+  "scriptErrorAfter": "Помилка скрипту (after): {message}",
+  "scriptTimeoutBefore": "Помилка скрипту (before): час виконання скрипту вичерпано (5 секунд)",
+  "scriptTimeoutAfter": "Помилка скрипту (after): час виконання скрипту вичерпано (5 секунд)",
+  "skipped": "Сеанси (WebSocket, SSE, TCP, UDP, MQTT) відкриваються з вікна: запуски їх пропускають",
+  "otherServer": "Скрипт змінив сервер запиту: секретні значення не надсилаються на іншу адресу",
+  "noProtocol": "Протокол недоступний у запусках: {protocol} (відсутній його модуль ядра)",
+  "nothingToSave": "«{name}»: нічого зберігати ({source} {path})"
+}

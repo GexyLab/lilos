@@ -1,0 +1,7 @@
+{
+  "signIn": "Conectați-vă mai întâi",
+  "kind": "kind trebuie să fie \"app\" sau \"module\"",
+  "id": "id nevalid",
+  "target": "Este necesar install sau update",
+  "package": "Pachet nevalid"
+}

@@ -1,0 +1,6 @@
+{
+  "reload.title": "{name}版 lilOS",
+  "reload.text": "已打开的内容会保持绘制时的语言。重新加载 lilOS 即可以新语言显示所有内容。",
+  "reload.now": "立即重新加载",
+  "reload.later": "稍后"
+}

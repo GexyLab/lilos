@@ -1,4 +1,4 @@
-import { Emitter, Window, h, actionButton, host, kernel, kernelModules, systemReleases } from '@lilos/sdk';
+import { Emitter, Window, h, actionButton, host, kernel, kernelModules, systemReleases, locale } from '@lilos/sdk';
 import { version as pageVersion } from '../../package.json';
 import { messageScreen, progressScreen } from '../boot/screens.js';
 import { getApp, registry } from './registry.js';
@@ -35,6 +35,44 @@ import { notify } from '../notifications/notify.js';
  */
 export const updates = new Emitter();
 
+const { t } = locale.define('lilos:apps.updates', {
+  en: { strings: {
+    asksRestart: '{app} {version} asks to restart lilOS after the update',
+    updatedRestart: '{app} was updated to {version}: restart lilOS to use it (button in the notification area, bottom right)',
+    updated: '{app} was updated to {version}',
+    updatedReopen: '{app} was updated to {version}: save and restart the app (button in the notification area, bottom right)',
+    updating: '{app} is being updated: one moment',
+    waitsTitle: '{app} is waiting for the restart', waitsLead: '{app} was updated and opens again after lilOS restarts.',
+    windows: { one: '{n} open window', other: '{n} open windows' },
+    windowsIn: { one: '{n} open window in {spaces} workspaces', other: '{n} open windows in {spaces} workspaces' },
+    background: 'the background services', both: '{windows} and {background}',
+    leadUpdate: 'Updating {app} closes everything it has open: {closing}.',
+    leadReinstall: 'Reinstalling {app} closes everything it has open: {closing}.',
+    leadMany: 'Everything these apps have open will close:', item: '{app}: {closing}',
+    save: 'Save your work before going on: apps with unsaved changes will ask you.',
+    restartAfter: 'After the update lilOS will need to restart (requested by {apps}).',
+    titleUpdate: 'Update {app}?', titleReinstall: 'Reinstall {app}?',
+    titleUpdateMany: { one: 'Update {n} app?', other: 'Update {n} apps?' },
+    titleReinstallMany: { one: 'Reinstall {n} app?', other: 'Reinstall {n} apps?' },
+    cancel: 'Cancel', update: 'Update', reinstall: 'Reinstall', closeAndUpdate: 'Close and update', closeAndReinstall: 'Close and reinstall',
+    notReady: 'lilOS is not ready yet', cancelled: 'Update cancelled: a window did not close',
+    notLoaded: '{app}: the new version did not load without restarting lilOS',
+    restarting: 'Restarting the system…',
+    offTitle: 'lilOS is off',
+    offText: 'The kernel stopped for every user. To turn it on again, start it again where it runs (npm run kernel, the service or the lilOS program), then reload this page.',
+    reload: 'Reload',
+    restartTitle: 'Restart lilOS?', restartLead: 'To complete the update, lilOS must restart.',
+    restartHint: 'Every window will close and open again: save your work in the other apps.',
+    later: 'Later', restartNow: 'Restart now',
+    systemUpdated: 'lilOS was updated to version {version}',
+    failedTitle: 'lilOS update failed', failedLead: 'lilOS {version} {reason}: lilOS went back by itself to version {current}.',
+    failedHint: 'Nothing was lost. You can try again from the AppStore; the kernel log says what did not work.',
+    ok: 'OK', updatedTitle: 'lilOS updated to {version}', updatedLead: 'The update succeeded: lilOS {version} is in use.',
+    updatedAsk: 'The previous version ({from}) is still installed and is needed only to go back to it from the AppStore. Do you want to delete it?',
+    keep: 'Keep', deleteVersion: 'Delete {from}', deleted: 'lilOS {from} deleted',
+  } },
+});
+
 let wm = null;
 let launcher = null;
 const known = new Map();      // id → { version, build } of what the registry has
@@ -69,12 +107,12 @@ registry.on('change', ({ id, app }) => {
   if (!before || updating.has(id) || (before.version === now.version && before.build === now.build)) return;
   // Updated elsewhere. A restart is needed only if this page ran the old code
   if (wasLoaded(id) && restartWanted(app.package.manifest.restartOnUpdate, before.version)) {
-    markRestart(app, `${app.name} ${now.version} chiede di riavviare lilOS dopo l’aggiornamento`);
-    notify(`${app.name} è stata aggiornata alla ${now.version}: riavvia lilOS per usarla (pulsante nell’area di notifica, in basso a destra)`, { level: 'warning' });
+    markRestart(app, t('asksRestart', { app: app.name, version: now.version }));
+    notify(t('updatedRestart', { app: app.name, version: now.version }), { level: 'warning' });
   } else if (wm?.windowsOfApp(id).length) {
-    pending.set(id, { id, name: app.name, version: now.version, kind: 'reopen', reason: `${app.name} è stata aggiornata alla ${now.version}` });
+    pending.set(id, { id, name: app.name, version: now.version, kind: 'reopen', reason: t('updated', { app: app.name, version: now.version }) });
     updates.emit('change');
-    notify(`${app.name} è stata aggiornata alla ${now.version}: salva e riavvia l’app (pulsante nell’area di notifica, in basso a destra)`, { level: 'warning' });
+    notify(t('updatedReopen', { app: app.name, version: now.version }), { level: 'warning' });
   }
 });
 
@@ -90,11 +128,11 @@ function markRestart(app, reason) {
 export function blockedLaunch(id) {
   const app = getApp(id);
   if (updating.has(id)) {
-    notify(`${app?.name ?? id} si sta aggiornando: un momento`);
+    notify(t('updating', { app: app?.name ?? id }));
     return true;
   }
   if (pending.get(id)?.kind === 'restart') {
-    askRestart({ title: `${app?.name ?? id} aspetta il riavvio`, lead: `${app?.name ?? id} è stata aggiornata e si apre di nuovo dopo il riavvio di lilOS.` });
+    askRestart({ title: t('waitsTitle', { app: app?.name ?? id }), lead: t('waitsLead', { app: app?.name ?? id }) });
     return true;
   }
   return false;
@@ -158,38 +196,37 @@ function dialog({ title, glyph, body, buttons }) {
   return asked;
 }
 
-const count = (n, one, many) => (n === 1 ? `1 ${one}` : `${n} ${many}`);
-
-/** "3 finestre aperte in 2 workspace e i servizi in background" */
+/** "3 open windows in 2 workspaces and the background services" */
 function closingText(plan) {
-  const parts = [];
+  let windows = '';
   if (plan.windows.length) {
     const spaces = new Set(plan.windows.map(w => wm.workspaceOf(w))).size;
-    parts.push(`${count(plan.windows.length, 'finestra aperta', 'finestre aperte')}${spaces > 1 ? ` in ${spaces} workspace` : ''}`);
+    windows = spaces > 1 ? t('windowsIn', { n: plan.windows.length, spaces }) : t('windows', { n: plan.windows.length });
   }
-  if (plan.background) parts.push('i servizi in background');
-  return parts.join(' e ');
+  const background = plan.background ? t('background') : '';
+  return windows && background ? t('both', { windows, background }) : windows || background;
 }
 
 function confirmUpdate(plans, { reinstall }) {
-  const [verb, act, acting] = reinstall ? ['Reinstallare', 'Reinstalla', 'Reinstallando'] : ['Aggiornare', 'Aggiorna', 'Aggiornando'];
   const closing = plans.filter(p => p.windows.length || p.background);
   const restart = plans.filter(p => p.restart);
   const body = [];
   if (plans.length === 1 && closing.length) {
-    body.push(h('p', { class: 'upd-lead' }, `${acting} ${plans[0].name} si chiude tutto quello che ha aperto: ${closingText(plans[0])}.`));
+    body.push(h('p', { class: 'upd-lead' }, t(reinstall ? 'leadReinstall' : 'leadUpdate', { app: plans[0].name, closing: closingText(plans[0]) })));
   } else if (closing.length) {
-    body.push(h('p', { class: 'upd-lead' }, 'Si chiude tutto quello che hanno aperto queste app:'),
-      h('ul', {}, ...closing.map(p => h('li', {}, `${p.name}: ${closingText(p)}`))));
+    body.push(h('p', { class: 'upd-lead' }, t('leadMany')),
+      h('ul', {}, ...closing.map(p => h('li', {}, t('item', { app: p.name, closing: closingText(p) })))));
   }
-  if (closing.length) body.push(h('p', {}, 'Salva il lavoro prima di continuare: le app con modifiche non salvate te lo chiederanno.'));
+  if (closing.length) body.push(h('p', {}, t('save')));
   if (restart.length) {
-    body.push(h('p', { class: 'upd-restart' }, `Dopo l’aggiornamento sarà necessario riavviare lilOS (lo chiede ${restart.map(p => p.name).join(', ')}).`));
+    body.push(h('p', { class: 'upd-restart' }, t('restartAfter', { apps: restart.map(p => p.name).join(', ') })));
   }
-  const title = plans.length === 1 ? `${verb} ${plans[0].name}?` : `${verb} ${plans.length} app?`;
+  const title = plans.length === 1
+    ? t(reinstall ? 'titleReinstall' : 'titleUpdate', { app: plans[0].name })
+    : t(reinstall ? 'titleReinstallMany' : 'titleUpdateMany', { n: plans.length });
   return dialog({
     title, glyph: 'download', body,
-    buttons: [{ label: 'Annulla', value: false }, { label: closing.length ? `Chiudi e ${act.toLowerCase()}` : act, primary: true, value: true }],
+    buttons: [{ label: t('cancel'), value: false }, { label: t(closing.length ? (reinstall ? 'closeAndReinstall' : 'closeAndUpdate') : reinstall ? 'reinstall' : 'update'), primary: true, value: true }],
   });
 }
 
@@ -222,7 +259,7 @@ async function loads(id, version) {
  * Resolves with [{ id, result } | { id, error }], or null when the user did not go on (nothing changed).
  */
 export async function updateApps(items, { from = null, reinstall = false } = {}) {
-  if (!wm) throw new Error('lilOS non è ancora pronto');
+  if (!wm) throw new Error(t('notReady'));
   const plans = items.map(item => {
     const app = getApp(item.id);
     return {
@@ -236,7 +273,7 @@ export async function updateApps(items, { from = null, reinstall = false } = {})
 
   const windows = plans.flatMap(p => wm.windowsOfApp(p.id));   // again: some may have opened meanwhile
   if (!(await askWindows(windows))) {
-    notify('Aggiornamento annullato: una finestra non si è chiusa', { level: 'warning' });
+    notify(t('cancelled'), { level: 'warning' });
     return null;
   }
   const caller = plans.some(p => p.id === from) ? snapshot(from) : [];
@@ -253,9 +290,9 @@ export async function updateApps(items, { from = null, reinstall = false } = {})
         if (!result?.unchanged) {
           const app = getApp(p.id);
           if (!(await loads(p.id, result?.version ?? app?.package?.version))) {
-            markRestart(app ?? { id: p.id, name: p.name }, `${p.name}: la nuova versione non si è caricata senza riavviare lilOS`);
+            markRestart(app ?? { id: p.id, name: p.name }, t('notLoaded', { app: p.name }));
           } else if (p.loaded && restartWanted(app.package.manifest.restartOnUpdate, p.version)) {
-            markRestart(app, `${p.name} ${app.package.version} chiede di riavviare lilOS dopo l’aggiornamento`);
+            markRestart(app, t('asksRestart', { app: p.name, version: app.package.version }));
           } else if (pending.delete(p.id)) {
             updates.emit('change');
           }
@@ -314,7 +351,7 @@ export async function restartKernel() {
   await kernel.flush();
   await kernelModules.restart();
   const host = document.body.appendChild(h('div'));
-  progressScreen(host, 'Riavvio del sistema…');
+  progressScreen(host, t('restarting'));
   host.firstChild.classList.add('overlay', 'opaque');
   await kernelRestarted();
   location.reload();
@@ -340,9 +377,9 @@ export async function shutdownSystem() {
   await kernelModules.shutdown();
   const screen = document.body.appendChild(h('div'));
   messageScreen(screen, {
-    title: 'lilOS è spento',
-    text: 'Il kernel si è fermato per tutti gli utenti. Per riaccenderlo avvialo di nuovo dove gira (npm run kernel, il servizio o il programma lilOS), poi ricarica questa pagina.',
-    buttons: [{ label: 'Ricarica', value: true, primary: true }],
+    title: t('offTitle'),
+    text: t('offText'),
+    buttons: [{ label: t('reload'), value: true, primary: true }],
   }).then(() => location.reload());
   screen.firstChild.classList.add('overlay', 'opaque');
   return true;
@@ -359,15 +396,15 @@ async function kernelRestarted() {
 /** Asks to restart now or later (later: the taskbar keeps a button for it). */
 let restartAsked = null;   // the question open now: one at a time, asked again when a reason comes
 
-export async function askRestart({ title = 'Riavviare lilOS?', lead = null } = {}) {
+export async function askRestart({ title = t('restartTitle'), lead = null } = {}) {
   restartAsked?.close();
   const reasons = updates.restartReasons();
   const body = [
-    lead ? h('p', { class: 'upd-lead' }, lead) : h('p', { class: 'upd-lead' }, 'Per completare l’aggiornamento bisogna riavviare lilOS.'),
+    h('p', { class: 'upd-lead' }, lead || t('restartLead')),
     reasons.length ? h('ul', {}, ...reasons.map(r => h('li', {}, r))) : null,
-    h('p', {}, 'Tutte le finestre verranno chiuse e riaperte: salva il lavoro nelle altre app.'),
+    h('p', {}, t('restartHint')),
   ].filter(Boolean);
-  const asked = dialog({ title, glyph: 'power', body, buttons: [{ label: 'Più tardi', value: false }, { label: 'Riavvia ora', primary: true, value: true }] });
+  const asked = dialog({ title, glyph: 'power', body, buttons: [{ label: t('later'), value: false }, { label: t('restartNow'), primary: true, value: true }] });
   restartAsked = asked;
   const now = await asked;
   if (restartAsked === asked) restartAsked = null;
@@ -397,7 +434,7 @@ export async function checkSystemVersion() {
   const info = await systemReleases.info().catch(() => null);
   if (!info || info.mode !== 'installed') return;
   if (info.version === pageVersion) return info.failed ? systemNotices() : undefined;
-  await requestRestart(`lilOS è stato aggiornato alla versione ${info.version}`, 'lilos-version');
+  await requestRestart(t('systemUpdated', { version: info.version }), 'lilos-version');
 }
 
 /**
@@ -421,30 +458,30 @@ async function showNotices(info) {
   if (info?.failed) {
     const { failed } = info;
     await dialog({
-      title: 'Aggiornamento di lilOS non riuscito', glyph: 'warning',
+      title: t('failedTitle'), glyph: 'warning',
       body: [
-        h('p', { class: 'upd-lead' }, `lilOS ${failed.version} ${failed.reason}: lilOS è tornato da solo alla versione ${info.version}.`),
-        h('p', {}, 'Non si è perso nulla. Puoi riprovare dall’AppStore; il registro del kernel dice cosa non ha funzionato.'),
+        h('p', { class: 'upd-lead' }, t('failedLead', { version: failed.version, reason: failed.reason, current: info.version })),
+        h('p', {}, t('failedHint')),
         failed.log?.length ? h('pre', { class: 'upd-log' }, failed.log.slice(-8).join('\n')) : null,
       ].filter(Boolean),
-      buttons: [{ label: 'OK', primary: true, value: true }],
+      buttons: [{ label: t('ok'), primary: true, value: true }],
     });
     await systemReleases.acknowledge('failed').catch(err => console.warn('[lilos] aggiornamento:', err.message));
   }
   if (info?.updated) {
     const { from } = info.updated;
     const answer = await dialog({
-      title: `lilOS aggiornato alla ${info.version}`, glyph: 'download',
+      title: t('updatedTitle', { version: info.version }), glyph: 'download',
       body: [
-        h('p', { class: 'upd-lead' }, `L’aggiornamento è andato a buon fine: è in uso lilOS ${info.version}.`),
-        h('p', {}, `La versione di prima (${from}) è ancora installata e serve solo per tornarci dall’AppStore. Vuoi eliminarla?`),
+        h('p', { class: 'upd-lead' }, t('updatedLead', { version: info.version })),
+        h('p', {}, t('updatedAsk', { from })),
       ],
-      buttons: [{ label: 'Mantieni', value: 'keep' }, { label: `Elimina la ${from}`, primary: true, value: 'delete' }],
+      buttons: [{ label: t('keep'), value: 'keep' }, { label: t('deleteVersion', { from }), primary: true, value: 'delete' }],
     });
     try {
       if (answer === 'delete') {
         await systemReleases.remove(from);
-        notify(`lilOS ${from} eliminato`);
+        notify(t('deleted', { from }));
       } else if (answer === 'keep') {
         await systemReleases.acknowledge('updated');
       }

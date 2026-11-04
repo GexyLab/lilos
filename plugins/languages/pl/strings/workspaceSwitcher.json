@@ -1,0 +1,16 @@
+{
+  "area": "Obszar roboczy",
+  "toChange": "{keys}, aby zmienić",
+  "menu": "Obszar roboczy…",
+  "menuLabel": "Menu obszarów roboczych",
+  "button": "Obszar roboczy: {name}",
+  "buttonKeys": "Obszar roboczy: {name} ({keys}, aby zmienić)",
+  "buttonLabel": "Obszar roboczy {name}: zmień obszar roboczy",
+  "heading": "Obszar roboczy",
+  "next": "Następny",
+  "previous": "Poprzedni",
+  "create": "Nowy obszar roboczy",
+  "showCurrent": "Pokaż tylko bieżący obszar roboczy",
+  "showAll": "Pokaż wszystkie obszary robocze",
+  "manage": "Zarządzaj obszarami roboczymi…"
+}

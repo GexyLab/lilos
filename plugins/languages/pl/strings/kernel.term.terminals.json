@@ -1,0 +1,23 @@
+{
+  "signIn": "Wymagane zalogowanie",
+  "noProtocol": "Protokół niedostępny: {protocol} (brak jego modułu kernela)",
+  "hostName": "Nieprawidłowa nazwa hosta",
+  "hostTaken": "Istnieje już host „{name}”",
+  "missing": "Brakuje: {fields}",
+  "tooMany": "Najwyżej {max} hostów",
+  "hostNotFound": "Nie znaleziono hosta",
+  "noPassword": "Brak hasła do zapisania",
+  "sealedOther": "Hasło zapisane w skrócie działa tylko dla osoby, która je zapisała, w tym lilOS, dla tego samego serwera i użytkownika",
+  "sessionNotFound": "Nie znaleziono sesji",
+  "sessionsTooMany": "Najwyżej {max} otwartych sesji",
+  "sftpOnly": "Terminal otwiera się tylko w połączeniach SFTP",
+  "sshOnly": "Zaplanowane polecenia trafiają tylko do hostów SSH",
+  "untrusted": "Klucz serwera „{name}” nie jest potwierdzony: połącz się raz z Terminala",
+  "denied": "Dostęp odrzucony przez „{name}”: zapisz hasło lub klucz w hoście",
+  "stopping": "Kernel się zatrzymuje",
+  "detached": "Zamknięto po 10 minutach bez okna",
+  "cancelled": "Połączenie anulowane",
+  "failed": "Połączenie nie powiodło się",
+  "folder": "Nieprawidłowa nazwa folderu",
+  "cwd": "Nieprawidłowy folder"
+}

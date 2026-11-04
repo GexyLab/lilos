@@ -1,0 +1,20 @@
+{
+  "cancel": "취소",
+  "one": "“{name}”",
+  "many": "항목 {count}개",
+  "trash": "{what}을(를) 휴지통으로 이동",
+  "permanent": "{what}을(를) 영구적으로 삭제",
+  "inside": {
+    "other": "{what} 및 그 안의 항목 {count}개"
+  },
+  "netRemoveText": "{verb} {what}: {text}",
+  "netRemove": "삭제",
+  "netRecycles": "{service}에서 {what} 삭제(해당 서비스의 휴지통으로 이동)",
+  "netServer": "서버에서 {what} 삭제(영구)",
+  "netServerFolders": "서버에서 {what}을(를) 안의 모든 내용과 함께 삭제(영구)",
+  "purge": "“{name}”을(를) 영구적으로 삭제",
+  "purgeMany": "항목 {count}개를 영구적으로 삭제",
+  "emptyTrash": {
+    "other": "휴지통에 있는 항목 {count}개를 모두 영구적으로 삭제"
+  }
+}

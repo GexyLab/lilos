@@ -1,0 +1,16 @@
+{
+  "area": "Spațiu de lucru",
+  "toChange": "{keys} pentru a schimba",
+  "menu": "Spațiu de lucru…",
+  "menuLabel": "Meniul spațiilor de lucru",
+  "button": "Spațiu de lucru: {name}",
+  "buttonKeys": "Spațiu de lucru: {name} ({keys} pentru a schimba)",
+  "buttonLabel": "Spațiul de lucru {name}: schimbați spațiul de lucru",
+  "heading": "Spațiu de lucru",
+  "next": "Următorul",
+  "previous": "Anteriorul",
+  "create": "Spațiu de lucru nou",
+  "showCurrent": "Afișați doar spațiul de lucru curent",
+  "showAll": "Afișați toate spațiile de lucru",
+  "manage": "Gestionați spațiile de lucru…"
+}

@@ -1,0 +1,6 @@
+{
+  "notStarted": "Не вдалося запустити {app}: {message}",
+  "noExport": "Код не експортує {entry}",
+  "codeError": "помилка в коді",
+  "stopped": "{app}: роботу зупинено"
+}

@@ -1,0 +1,6 @@
+{
+  "ranges": "Plages non valides (100 au maximum)",
+  "range": "Plage non valide : {range} (écrivez par exemple 192.168.1.50/32)",
+  "noAddress": "Aucune adresse pour {host}",
+  "forbidden": "Adresse non autorisée pour les connexions réseau"
+}

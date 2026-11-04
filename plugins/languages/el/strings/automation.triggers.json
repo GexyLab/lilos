@@ -1,0 +1,14 @@
+{
+  "theAutomation": "Ο αυτοματισμός",
+  "noAutomata": "Το Automata δεν είναι εγκατεστημένο",
+  "running": "Το {name} εκτελείται ήδη",
+  "opened": "{name}: άνοιξε στο Automata",
+  "needsNothing": "{name}: ξεκινά μόνος του μόνο αν δεν εφαρμόζεται σε τίποτα (Automata → Εκκίνηση)",
+  "ran": "{name}: εκτελέστηκε αυτόματα",
+  "ranOn": "{name}: εκτελέστηκε αυτόματα σε {items} στοιχεία",
+  "failedSteps": {
+    "one": "{n} βήμα απέτυχε",
+    "other": "{n} βήματα απέτυχαν"
+  },
+  "withFailed": "{text} ({failed})"
+}

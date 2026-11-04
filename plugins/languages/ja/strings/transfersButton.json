@@ -1,0 +1,8 @@
+{
+  "title": "データ転送",
+  "sent": "↑ {done} / {total}",
+  "received": "↓ {done} / {total}",
+  "rate": "{line} · {bytes}/秒",
+  "conflict": "ファイルがすでに存在します。処理方法を選択してください",
+  "failed": "一部のファイルを転送できませんでした"
+}

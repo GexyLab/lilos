@@ -1,0 +1,27 @@
+{
+  "folderGone": "저장할 폴더가 더 이상 없습니다",
+  "notFolder": "저장할 위치가 폴더가 아닙니다",
+  "notFile": "“{name}”이(가) 이미 있으며 파일이 아닙니다",
+  "protected": "“{name}”은(는) 앱에 의해 보호되어 있으므로(예: 암호화) 덮어쓰지 않습니다",
+  "secretGone": "{name}의 비밀 값을 더 이상 읽을 수 없습니다. 다시 입력해야 합니다",
+  "fileGone": "보낼 파일이 더 이상 없습니다",
+  "noAnswer": {
+    "other": "{n}초 동안 응답 없음"
+  },
+  "untrusted": "{message}: NetTest에서 한 번 확인하세요",
+  "network": "네트워크: {code}",
+  "redirects": "리디렉션이 너무 많습니다",
+  "notWeb": "웹 주소가 아닌 주소로 리디렉션",
+  "otherOrigin": "보낼 본문이 있는 상태에서 다른 주소로 리디렉션: 따르지 않음",
+  "tooBig": "응답이 너무 큽니다(최대 10MB)",
+  "unfinished": {
+    "other": "응답이 {n}초 안에 끝나지 않았습니다"
+  },
+  "bytes": {
+    "other": "{n}바이트"
+  },
+  "saved": "{status}, {ms}ms · {size} · {name}에 저장됨",
+  "summary": "{status}, {ms}ms · {size}",
+  "status": "상태 {status}, 예상 {expected}",
+  "contains": "응답에 “{text}”이(가) 포함되어 있지 않습니다"
+}

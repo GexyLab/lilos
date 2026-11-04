@@ -1,0 +1,20 @@
+{
+  "repo": "Repository non valido (proprietario/nome)",
+  "urlLocal": "Indirizzo del repository non valido (https:// o una cartella)",
+  "url": "Indirizzo del repository non valido (https://)",
+  "ref": "Riferimento non valido",
+  "path": "Percorso nel repository non valido",
+  "local": "Le cartelle locali come origine sono permesse solo in sviluppo (allowLocalSources)",
+  "dir": "Cartella non valida (percorso assoluto)",
+  "type": "Origine sconosciuta: \"git\", \"github\" o \"local\"",
+  "noGit": "Il comando git non è installato sul computer del kernel",
+  "git": "git: {message}",
+  "gitError": "git: errore",
+  "outside": "Percorso fuori dal pacchetto: {path}",
+  "missing": "Manca {path}",
+  "notFile": "{path} non è un file o è troppo grande",
+  "tooMany": "Troppi file nel pacchetto",
+  "notInRepo": "Nel repository non c'è {path}",
+  "json": "lilos.json non è JSON valido",
+  "tooLarge": "Pacchetto troppo grande"
+}

@@ -1,0 +1,11 @@
+{
+  "title": "Openen met",
+  "apps": "App",
+  "choose": "Kies de app om ‘{name}’ ({type}) te openen.",
+  "alwaysExt": "Deze app altijd gebruiken voor .{ext}-bestanden",
+  "alwaysNoExt": "Deze app altijd gebruiken voor bestanden zonder extensie",
+  "cancel": "Annuleren",
+  "open": "Openen",
+  "none": "Geen geïnstalleerde app kan ‘{name}’ openen.",
+  "close": "Sluiten"
+}

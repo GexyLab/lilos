@@ -1,0 +1,23 @@
+{
+  "tooMany": "Al massimo {max} workarea",
+  "overlap": "Lì c’è già un’altra workarea: le aree non possono sovrapporsi",
+  "undo.create": "Crea la workarea «{title}»",
+  "undo.rename": "Rinomina la workarea «{before}» in «{after}»",
+  "undo.remove": "Elimina la workarea «{title}»",
+  "undo.move": "Sposta la workarea «{title}»",
+  "undo.resize": "Ridimensiona la workarea «{title}»",
+  "gone": "La workarea non esiste più",
+  "already": "La workarea c’è già",
+  "occupied": "Lì ora c’è un’altra workarea",
+  "notOpen": "La workarea non è aperta",
+  "removeOne": "Elimina la workarea «{title}» (il contenuto resta sulla scrivania)",
+  "removeMany": {
+    "one": "Elimina {n} workarea (il contenuto resta sulla scrivania)",
+    "other": "Elimina {n} workarea (il contenuto resta sulla scrivania)"
+  },
+  "menu.title": "Workarea «{title}»",
+  "menu.rename": "Rinomina la workarea",
+  "menu.properties": "Proprietà…",
+  "menu.collapse": "Riduci a icona",
+  "menu.remove": "Elimina la workarea…"
+}

@@ -1,0 +1,9 @@
+{
+  "stopped": "Otomasyon durduruldu",
+  "chooseItems": "Üzerinde çalışılacak öğeleri seçin",
+  "appMissing": "Bu adımın uygulaması yüklü değil",
+  "password": "Bu adım bir parola istiyor",
+  "stepFailedLabel": "Adım {n} ({label}): {message}",
+  "stepFailed": "Adım {n}: {message}",
+  "cannotRedo": "Bu eylem yeniden yapılamaz"
+}

@@ -1,0 +1,59 @@
+{
+  "asksRestart": "{app} {version}, güncellemeden sonra lilOS’un yeniden başlatılmasını istiyor",
+  "updatedRestart": "{app}, {version} sürümüne güncellendi: kullanmak için lilOS’u yeniden başlatın (sağ alttaki bildirim alanında bir düğme var)",
+  "updated": "{app}, {version} sürümüne güncellendi",
+  "updatedReopen": "{app}, {version} sürümüne güncellendi: çalışmanızı kaydedip uygulamayı yeniden başlatın (sağ alttaki bildirim alanında bir düğme var)",
+  "updating": "{app} güncelleniyor: lütfen bekleyin",
+  "waitsTitle": "{app} yeniden başlatmayı bekliyor",
+  "waitsLead": "{app} güncellendi; lilOS yeniden başlatıldıktan sonra tekrar açılacak.",
+  "windows": {
+    "other": "{n} açık pencere"
+  },
+  "windowsIn": {
+    "other": "{spaces} çalışma alanında {n} açık pencere"
+  },
+  "background": "arka plan hizmetleri",
+  "both": "{windows} ve {background}",
+  "leadUpdate": "{app} güncellenirken açtığı her şey kapatılır: {closing}.",
+  "leadReinstall": "{app} yeniden yüklenirken açtığı her şey kapatılır: {closing}.",
+  "leadMany": "Bu uygulamaların açtığı her şey kapatılacak:",
+  "item": "{app}: {closing}",
+  "save": "Devam etmeden önce çalışmanızı kaydedin: kaydedilmemiş değişiklikleri olan uygulamalar size soracaktır.",
+  "restartAfter": "Güncellemeden sonra lilOS’un yeniden başlatılması gerekecek (isteyen: {apps}).",
+  "titleUpdate": "{app} güncellensin mi?",
+  "titleReinstall": "{app} yeniden yüklensin mi?",
+  "titleUpdateMany": {
+    "other": "{n} uygulama güncellensin mi?"
+  },
+  "titleReinstallMany": {
+    "other": "{n} uygulama yeniden yüklensin mi?"
+  },
+  "cancel": "İptal",
+  "update": "Güncelle",
+  "reinstall": "Yeniden yükle",
+  "closeAndUpdate": "Kapat ve güncelle",
+  "closeAndReinstall": "Kapat ve yeniden yükle",
+  "notReady": "lilOS henüz hazır değil",
+  "cancelled": "Güncelleme iptal edildi: bir pencere kapanmadı",
+  "notLoaded": "{app}: yeni sürüm, lilOS yeniden başlatılmadan yüklenemedi",
+  "restarting": "Sistem yeniden başlatılıyor…",
+  "offTitle": "lilOS kapalı",
+  "offText": "Çekirdek tüm kullanıcılar için durdu. Yeniden açmak için onu çalıştığı yerde yeniden başlatın (npm run kernel, hizmet veya lilOS programı), ardından bu sayfayı yeniden yükleyin.",
+  "reload": "Yeniden yükle",
+  "restartTitle": "lilOS yeniden başlatılsın mı?",
+  "restartLead": "Güncellemeyi tamamlamak için lilOS’un yeniden başlatılması gerekiyor.",
+  "restartHint": "Tüm pencereler kapanıp yeniden açılacak: diğer uygulamalardaki çalışmanızı kaydedin.",
+  "later": "Daha sonra",
+  "restartNow": "Şimdi yeniden başlat",
+  "systemUpdated": "lilOS, {version} sürümüne güncellendi",
+  "failedTitle": "lilOS güncellemesi başarısız oldu",
+  "failedLead": "lilOS {version} {reason}: lilOS kendiliğinden {current} sürümüne geri döndü.",
+  "failedHint": "Hiçbir şey kaybolmadı. AppStore’dan yeniden deneyebilirsiniz; neyin çalışmadığı çekirdek günlüğünde yazıyor.",
+  "ok": "Tamam",
+  "updatedTitle": "lilOS, {version} sürümüne güncellendi",
+  "updatedLead": "Güncelleme başarılı oldu: lilOS {version} kullanılıyor.",
+  "updatedAsk": "Önceki sürüm ({from}) hâlâ yüklü ve yalnızca AppStore’dan ona geri dönmek için gerekli. Silmek istiyor musunuz?",
+  "keep": "Sakla",
+  "deleteVersion": "{from} sürümünü sil",
+  "deleted": "lilOS {from} silindi"
+}

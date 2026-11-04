@@ -1,0 +1,12 @@
+{
+  "ok": "OK",
+  "cancel": "Annuleren",
+  "continue": "Doorgaan",
+  "retry": "Opnieuw proberen",
+  "required": "Vul ‘{label}’ in",
+  "invalid": "‘{label}’ is ongeldig",
+  "number": "‘{label}’ moet een getal zijn",
+  "min": "‘{label}’ moet minstens {min} zijn",
+  "max": "‘{label}’ mag maximaal {max} zijn",
+  "long": "‘{label}’ is te lang (maximaal {max} tekens)"
+}

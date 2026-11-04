@@ -1,0 +1,87 @@
+{
+  "error.dateTime": "Geçersiz tarih ve saat",
+  "error.cron": "Geçersiz cron ifadesi",
+  "error.cronFields": "Bir cron ifadesinin 5 alanı vardır: dakika saat gün ay haftanın-günü",
+  "error.cronField": "{field}. alan geçerli değil",
+  "error.cronStep": "{field}. alanda geçersiz adım",
+  "error.cronValue": "{field}. alanda geçersiz değer: “{value}”",
+  "error.cronRange": "{field}. alanda ters aralık",
+  "error.times": "Geçersiz saatler",
+  "error.exceptions": "Geçersiz istisnalar",
+  "error.rule": "Geçersiz kural",
+  "error.zone": "Bilinmeyen saat dilimi",
+  "error.kind": "Bir kural “once”, “repeat” veya “cron” olmalıdır",
+  "error.start": "Geçersiz başlangıç tarihi ve saati",
+  "error.every": "Sıklık: geçersiz sayı veya birim",
+  "error.days": "Geçersiz haftanın günleri",
+  "error.daysUnit": "Haftanın günleri dakika, saat ve haftalar için geçerlidir",
+  "error.between": "Geçersiz saat aralığı",
+  "error.monthDay": "Geçersiz ayın günü",
+  "error.month": "Geçersiz ay",
+  "error.end": "Geçersiz bitiş tarihi",
+  "error.endBeforeStart": "Bitiş, başlangıçtan önce geliyor",
+  "error.count": "Geçersiz tekrar sayısı",
+  "error.scope": "scope this veya all olmalıdır",
+  "error.cronMove": "Bir cron kuralı tek seferde bir kez taşınır",
+  "error.betweenMidnight": "Saat aralığı gece yarısını geçerdi",
+  "error.monthDayOut": "Ayın günü ayın dışına düşerdi",
+  "once": "Bir kez: {date}, saat {time}",
+  "timed": "{what}, saat {times}",
+  "at": "saat {times}",
+  "join": "{a}, {b}",
+  "every.minute": {
+    "one": "Her dakika",
+    "other": "{n} dakikada bir"
+  },
+  "every.hour": {
+    "one": "Her saat",
+    "other": "{n} saatte bir"
+  },
+  "every.day": {
+    "one": "Her gün",
+    "other": "{n} günde bir"
+  },
+  "every.week": {
+    "one": "Her hafta",
+    "other": "{n} haftada bir"
+  },
+  "every.month": {
+    "one": "Her ay",
+    "other": "{n} ayda bir"
+  },
+  "every.year": {
+    "one": "Her yıl",
+    "other": "{n} yılda bir"
+  },
+  "between": "{from} ile {to} arasında",
+  "weekday.1": "Pazartesi",
+  "weekday.2": "Salı",
+  "weekday.3": "Çarşamba",
+  "weekday.4": "Perşembe",
+  "weekday.5": "Cuma",
+  "weekday.6": "Cumartesi",
+  "weekday.7": "Pazar",
+  "days.list": "{days} günleri",
+  "days.weekdays": "Pazartesi’den Cuma’ya",
+  "days.weekend": "Cumartesi ve Pazar günleri",
+  "days.all": "her gün",
+  "eachWeekday": "Her {day}",
+  "workweek": "Pazartesi’den Cuma’ya",
+  "monthDay": "{period}, ayın {day}. günü",
+  "monthLast": "{period}, ayın son günü",
+  "nth.1": "{period}, ayın ilk {weekday} günü",
+  "nth.2": "{period}, ayın ikinci {weekday} günü",
+  "nth.3": "{period}, ayın üçüncü {weekday} günü",
+  "nth.4": "{period}, ayın dördüncü {weekday} günü",
+  "nth.5": "{period}, ayın beşinci {weekday} günü",
+  "nth.last": "{period}, ayın son {weekday} günü",
+  "yearDay": "{every}, {date}",
+  "yearLast": "{every}, {month} ayının son günü",
+  "yearNth": "{every}: {what}",
+  "until": "{date} tarihine kadar",
+  "count": {
+    "one": "bir kez",
+    "other": "{n} kez"
+  },
+  "cron": "Cron: {cron}"
+}

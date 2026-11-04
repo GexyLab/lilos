@@ -1,0 +1,5 @@
+{
+  "badAction": "Geçersiz eylem: {id}",
+  "noFunction": "Eylemin işlevi eksik",
+  "timeout": "Uygulama dosyayı zamanında açmadı"
+}

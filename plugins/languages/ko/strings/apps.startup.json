@@ -1,0 +1,14 @@
+{
+  "mainWindow": "기본 창",
+  "paramsObject": "매개변수는 { } 사이의 JSON 개체여야 합니다",
+  "paramsTooLong": "매개변수가 너무 깁니다(최대 4KB)",
+  "invalid": "{param}: 잘못된 값",
+  "fileGone": "{param}: 파일이 없습니다",
+  "folderGone": "{param}: 폴더가 없습니다",
+  "notOpened": "{app}이(가) 자동으로 열리지 않았습니다. {message}",
+  "notInstalled": "앱이 설치되어 있지 않습니다",
+  "maxApps": "시작 시 최대 {max}개의 앱",
+  "unknownEntry": "알 수 없는 진입점",
+  "entryNotAtStartup": "이 진입점은 시작 항목에 없습니다",
+  "skipped": "앱 없이 시작됨: 주소에 ?avvio=no가 포함되어 있습니다"
+}

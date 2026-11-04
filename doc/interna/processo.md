@@ -10,6 +10,8 @@ Il repository non ha ancora una suite di test. Prima di ogni commit:
 
 Le modifiche al kernel (`system/kernel/`) si provano con il kernel acceso e un utente di prova: non c'è ancora una suite di test.
 
+**Se hai scritto o cambiato un testo visibile di lilOS** (interfaccia o messaggio del kernel, non di un'app), la tabella `lilos:<parte>` è in inglese e va aggiunta ai pacchetti di lingua ([ricetta](../sviluppatore/ricette.md#scrivere-un-testo-di-lilos-e-aggiungere-o-aggiornare-una-lingua-di-lilos)). Prima del commit: `node scripts/lilos-strings.mjs` (alla radice) deve leggere tutte le tabelle senza errori e, in `plugins/`, `node scripts/languages.mjs check it` (e le altre lingue) senza problemi. `npm run build` in `plugins/` costruisce anche i pacchetti di lingua e **si ferma** se uno è incompleto: non si può pubblicare finché non sono tutti allineati.
+
 **I sorgenti delle app di sistema stanno in `plugins/`.** Una modifica a File Manager, Editor, Pannello di controllo, AppStore o Pianificazione si fa in `plugins/src/<app>/` e si verifica con `npm run build` in `plugins/` e provando il pacchetto dentro lilOS ([come](../sviluppatore/README.md#le-app-di-sistema-e-il-repository-ufficiale)). Una modifica a lilOS che tocca `src/systemApi.js`, gli argomenti con cui il sistema avvia quelle app o la forma dei dati che condividono va provata con le app installate, e con `npm run build` in `plugins/` se cambia un export.
 
 ### Lista di controllo manuale
@@ -202,6 +204,15 @@ Parti da una scrivania pulita: accedi con un utente nuovo (`npm run kernel:cli -
 - [ ] **Pianifica**: una collezione salvata con un ambiente diventa un'operazione «Collezione di NetTest»; **Esegui ora** dà uno Storico con una riga per richiesta; con una verifica che non passa l'operazione è non riuscita; senza NetTest installato l'operazione è spenta nell'elenco dei «Cosa». Dal Terminale `nettest run`, `nettest send` e `nettest list` (uscita 0 e 1).
 - [ ] **Regole di rete**: con più utenti, una richiesta a `127.0.0.1` e a `192.168.…` dà «Indirizzo non permesso per le connessioni di rete»; da amministratore, **Pannello di controllo → Rete** apre **Questo computer** (e solo quello) o **Tutta la rete locale** o un intervallo: la richiesta riesce subito, senza riavvio, e `config.json` ha `net.allowLocal`/`allowPrivate`/`allow`. `169.254.…`, multicast e `0.0.0.0` restano chiusi anche con l'elenco. Un utente senza ruolo di amministratore non vede la scheda e `GET /api/net/rules` risponde `forbidden`.
 
+**Lingue** (AppStore → Lingue, Pannello di controllo → Lingua)
+- [ ] Senza pacchetti installati, Lingua propone solo `Automatica`, `en-US` e `en-GB`. In AppStore la scheda Lingue elenca i 20 pacchetti con il nome nella loro lingua; arabo e urdu dicono «da destra a sinistra».
+- [ ] Installare `it` da un utente non amministratore funziona e l'AppStore propone **Usa questa lingua**; scegliendola compare «lilOS in Italiano» con **Ricarica ora** / **Più tardi**; dopo la ricarica scrivania, barra, menu di avvio, pagina utente e finestre sono in italiano. Un altro utente la vede nell'elenco Lingua, ma resta nella sua lingua finché non la sceglie.
+- [ ] Una app senza la lingua scelta resta in inglese; il resto di lilOS è nella lingua del pacchetto. Un errore del kernel (per esempio un percorso inesistente) arriva nella lingua scelta.
+- [ ] La schermata di accesso, dopo uscire, è nella lingua dell'ultimo utente di questo browser; con il kernel spento usa la copia delle sue parti che il browser ha tenuto (se è nella lingua voluta).
+- [ ] Rimuovere la lingua: solo chi l'ha installata o un amministratore ha il pulsante; chi la usava ha una notifica e lilOS torna in inglese; un pacchetto già in uso aggiornato dal repository si rilegge da solo.
+- [ ] Con `ar` o `ur`: `<html dir="rtl">`, barra, menu e finestre specchiati, sottomenu dal lato giusto, le frecce dei menu invertite; un'app senza arabo resta a sinistra→destra.
+- [ ] Dopo la modifica a un testo: un pacchetto con una chiave in meno compare con quel testo in inglese (nessuna chiave nuda).
+
 **Pianificazione** (menu di avvio → Pianificazione; serve il Terminale 1.5.0 per i comandi in lilOS)
 - [ ] Una **Nuova operazione** «Promemoria» tra 2 minuti: nell'Elenco ha la prossima volta giusta; all'ora arriva la notifica e lo Storico ha una riga «riuscita». Chiudendo il browser prima dell'ora e riaprendolo dopo, la notifica c'è.
 - [ ] Ripetuta ogni minuto, con «Fine» dopo 3 volte: parte 3 volte e poi non ha più prossime volte («Finita»). Con **Pausa** non parte; con **Riattiva** riparte da adesso senza recuperare le volte perse in pausa.
@@ -276,7 +287,7 @@ Nessun agente fa commit o push: si decide dopo aver letto i report.
 
 **Pubblicare** (in `plugins/`, [D71](decisioni.md#d71-i-sorgenti-delle-app-ufficiali-e-dei-moduli-stanno-nel-repository-di-lilos-sotto-plugins)):
 
-1. `npm run publish:repo -- <copia del repository ufficiale> [nomi…]` costruisce, unisce e minifica e scrive i pacchetti nel repository di destinazione (senza nomi: quelli con versione diversa o mancanti, e lilOS se la versione alla radice non è quella di `system/lilos`). `--sources` copia anche i sorgenti: vietato per l'ufficiale. Stampa «vecchia → nuova» versione.
+1. `npm run publish:repo -- <copia del repository ufficiale> [nomi…]` costruisce, unisce e minifica e scrive i pacchetti nel repository di destinazione (i pacchetti di lingua si chiamano `language/<lingua>` e vanno solo nel repository ufficiale; senza nomi: quelli con versione diversa o mancanti, e lilOS se la versione alla radice non è quella di `system/lilos`). `--sources` copia anche i sorgenti: vietato per l'ufficiale. Stampa «vecchia → nuova» versione.
 2. Controlla i manifesti: `checkManifest` del kernel su tutti i pacchetti e un'installazione da un repository finto prima del tag.
 3. Scrivi `changelog/<tag>.md` nel repository di destinazione (componenti, vecchia → nuova versione, tipo di modifica e perché).
 4. Commit, push e tag nel repository di destinazione, a mano.

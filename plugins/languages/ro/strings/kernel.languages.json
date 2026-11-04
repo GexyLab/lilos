@@ -1,0 +1,11 @@
+{
+  "invalid": "Pachet de limbă nevalid: {message}",
+  "official": "Pachetele de limbă provin doar din depozitul oficial",
+  "notOffered": "Depozitul oficial nu are un pachet de limbă pentru {language}",
+  "noRepo": "Depozitul oficial nu are pachete de limbă",
+  "needs": "{name} necesită lilOS {range} (acesta este {version})",
+  "changed": "{file}: conținutul nu corespunde cu language.json",
+  "notInstalled": "Limba {language} nu este instalată",
+  "removeForbidden": "Doar cel care a instalat {name} sau un administrator o poate elimina",
+  "removed": "Limba {name} a fost eliminată: lilOS este în engleză până când alegeți alta"
+}

@@ -1,0 +1,9 @@
+{
+  "offline": "네트워크 요청은 lilOS 커널이 보내는데, 커널이 연결되어 있지 않습니다",
+  "badRun": "잘못된 실행",
+  "badSession": "잘못된 세션",
+  "blocked": "브라우저가 로그인 창을 차단했습니다",
+  "canceled": "로그인이 취소되었습니다",
+  "failed": "로그인하지 못했습니다",
+  "noAskAddress": "askAddress가 없습니다"
+}

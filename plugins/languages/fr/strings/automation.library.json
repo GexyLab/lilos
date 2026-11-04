@@ -1,0 +1,6 @@
+{
+  "group": "Automatisations",
+  "needRun": "Pour exécuter une automatisation, il faut l’app Automata",
+  "needRecord": "Pour enregistrer une automatisation, il faut l’app Automata",
+  "recordHere": "Enregistrer à partir d’ici"
+}

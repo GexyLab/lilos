@@ -1,0 +1,8 @@
+{
+  "blockedWindow": "Der Browser hat das Anmeldefenster blockiert",
+  "blockedTab": "Der Browser hat den Anmelde-Tab blockiert",
+  "canceled": "Anmeldung abgebrochen",
+  "failed": "Anmeldung fehlgeschlagen",
+  "noAskAddress": "askAddress fehlt",
+  "badAddress": "Ungültige Adresse"
+}

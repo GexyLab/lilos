@@ -1,0 +1,38 @@
+{
+  "newFolder": "Nueva carpeta",
+  "newDocument": "Nuevo documento.txt",
+  "fixedOne": "«{name}» es un elemento fijo del escritorio: no se puede eliminar",
+  "fixedMany": "Los elementos fijos del escritorio no se pueden eliminar",
+  "fixedStay": "Los elementos fijos del escritorio se quedan: solo se elimina el resto",
+  "removeWithAreas": {
+    "one": "{what} y eliminar 1 área de trabajo",
+    "other": "{what} y eliminar {n} áreas de trabajo"
+  },
+  "arrange": "Ordenar iconos",
+  "moveOne": "Mover «{name}»",
+  "moveMany": {
+    "one": "Mover {n} elemento",
+    "other": "Mover {n} elementos"
+  },
+  "gone": "Los elementos ya no están",
+  "area.open": "Abrir el área de trabajo",
+  "rename": "Cambiar nombre",
+  "properties": "Propiedades…",
+  "area.remove": "Eliminar el área de trabajo…",
+  "open": "Abrir",
+  "openMany": {
+    "one": "Abrir {n} elemento",
+    "other": "Abrir {n} elementos"
+  },
+  "fixed.hide": "Quitar del escritorio",
+  "fixed.hidden": "«{name}» se puede volver a poner desde Panel de control → Espacio de trabajo → Este espacio de trabajo",
+  "fixed.settings": "Elementos fijos del escritorio…",
+  "openWith": "Abrir con…",
+  "wallpaper": "Usar como fondo de escritorio",
+  "area.fromSelection": "Crear un área de trabajo con la selección",
+  "remove": "Eliminar",
+  "removeMany": {
+    "one": "Eliminar {n} elemento",
+    "other": "Eliminar {n} elementos"
+  }
+}

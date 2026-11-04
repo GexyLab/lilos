@@ -1,0 +1,15 @@
+{
+  "name": "“{id}”",
+  "nameVersion": "“{id}” ({version})",
+  "restart": {
+    "one": "Precisa do módulo do kernel {modules}, já instalado: ele passa a funcionar na próxima reinicialização do kernel, que um administrador faz pela AppStore.",
+    "other": "Precisa dos módulos do kernel {modules}, já instalados: eles passam a funcionar na próxima reinicialização do kernel, que um administrador faz pela AppStore."
+  },
+  "missing": "Não encontrado: {list}. Um administrador o instala pela AppStore.",
+  "missingModule": "o módulo do kernel {name}",
+  "missingApp": "o app {name}",
+  "openApp": "Abrir um app",
+  "hidden": "{app} está oculto neste espaço de trabalho. Você pode exibi-lo em Painel de controle → Espaço de trabalho.",
+  "cannotStart": "{app} ainda não pode ser iniciado",
+  "notStarted": "{app} não foi iniciado: {message}"
+}

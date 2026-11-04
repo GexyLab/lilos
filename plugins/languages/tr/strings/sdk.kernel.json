@@ -1,0 +1,7 @@
+{
+  "canceled": "İptal edildi",
+  "offline": "lilOS çekirdeği yanıt vermiyor",
+  "status": "Hata {status}",
+  "badModule": "Geçersiz modül",
+  "badPath": "Geçersiz yol"
+}

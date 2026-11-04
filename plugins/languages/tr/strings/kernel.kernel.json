@@ -1,0 +1,9 @@
+{
+  "notFound": "Kaynak bulunamadı",
+  "method": "Yönteme izin verilmiyor",
+  "internal": "Çekirdeğin iç hatası",
+  "unavailable": "Hizmet kullanılamıyor: {name}",
+  "signIn": "Önce oturum açın",
+  "needSocket": "Bir WebSocket gerekiyor",
+  "refused": "Bağlantı reddedildi"
+}

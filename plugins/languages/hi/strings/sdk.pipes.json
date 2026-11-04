@@ -1,0 +1,28 @@
+{
+  "stopped": "कार्य रोका गया",
+  "badName": "अमान्य इवेंट नाम: {name}",
+  "appEvent": "किसी ऐप के इवेंट का नाम <app id>.<name> होता है",
+  "exists": "इवेंट {name} पहले से मौजूद है",
+  "unknown": "अज्ञात इवेंट: {name}",
+  "stage": "stage \"before\" या \"after\" होना चाहिए",
+  "position": "position \"first\", \"middle\" या \"last\" होना चाहिए",
+  "noHandler": "पाइप का फ़ंक्शन मौजूद नहीं है",
+  "reserved": "इवेंट {name} सिस्टम के लिए आरक्षित है",
+  "syncOnly": "{name} एक तत्काल कार्य है: ऐप इसे केवल देख सकते हैं (stage \"after\")",
+  "maxSubs": {
+    "one": "प्रति ऐप अधिकतम {n} सदस्यता",
+    "other": "प्रति ऐप अधिकतम {n} सदस्यताएँ"
+  },
+  "busy": "बहुत अधिक कार्य प्रगति में हैं",
+  "busyApp": "इस ऐप के लिए बहुत अधिक कार्य प्रगति में हैं",
+  "syncAnswer": "{name}: तत्काल कार्य के लिए तत्काल उत्तर आवश्यक है",
+  "handlerFailed": "{name}: {message}",
+  "cannotStop": "{name}: इवेंट {event} को रोका नहीं जा सकता",
+  "whereObject": "where: केवल एक ऑब्जेक्ट",
+  "whereInvalid": "अमान्य where",
+  "whereKey": "where: {key} का उपयोग नहीं होता",
+  "whereMeta": "where.meta: केवल \"own\"",
+  "whereType": "अमान्य where.type",
+  "whereList": "where.{key}: टेक्स्ट की एक सूची",
+  "timeout": "{name} ने समय पर उत्तर नहीं दिया"
+}

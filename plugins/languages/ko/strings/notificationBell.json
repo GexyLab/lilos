@@ -1,0 +1,9 @@
+{
+  "title": "알림",
+  "unread": {
+    "other": "알림: 읽지 않음 {n}개"
+  },
+  "stack": "새 알림",
+  "sender": "{name}: {text}",
+  "dismiss": "표시줄에서 제거"
+}

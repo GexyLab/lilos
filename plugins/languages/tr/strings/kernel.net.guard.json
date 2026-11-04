@@ -1,0 +1,6 @@
+{
+  "ranges": "Aralıklar geçerli değil (en fazla 100)",
+  "range": "Aralık geçerli değil: {range} (örneğin 192.168.1.50/32 yazın)",
+  "noAddress": "{host} için adres yok",
+  "forbidden": "Ağ bağlantıları için bu adrese izin verilmiyor"
+}

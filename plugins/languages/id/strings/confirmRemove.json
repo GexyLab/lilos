@@ -1,0 +1,20 @@
+{
+  "cancel": "Batal",
+  "one": "“{name}”",
+  "many": "{count} item",
+  "trash": "Pindahkan {what} ke tempat sampah",
+  "permanent": "Hapus {what} secara permanen",
+  "inside": {
+    "other": "{what} dan {count} item di dalamnya"
+  },
+  "netRemoveText": "{verb} {what}: {text}",
+  "netRemove": "Hapus",
+  "netRecycles": "Hapus {what} dari {service} (masuk ke tempat sampahnya)",
+  "netServer": "Hapus {what} dari server (permanen)",
+  "netServerFolders": "Hapus {what} dari server beserta seluruh isinya (permanen)",
+  "purge": "Hapus “{name}” secara permanen",
+  "purgeMany": "Hapus {count} item secara permanen",
+  "emptyTrash": {
+    "other": "Hapus semua {count} item di tempat sampah secara permanen"
+  }
+}

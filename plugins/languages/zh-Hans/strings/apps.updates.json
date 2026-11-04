@@ -1,0 +1,59 @@
+{
+  "asksRestart": "{app} {version} 要求在更新后重启 lilOS",
+  "updatedRestart": "{app} 已更新到 {version}：重启 lilOS 后即可使用（按钮位于右下角的通知区域）",
+  "updated": "{app} 已更新到 {version}",
+  "updatedReopen": "{app} 已更新到 {version}：请保存并重启该应用（按钮位于右下角的通知区域）",
+  "updating": "正在更新 {app}：请稍候",
+  "waitsTitle": "{app} 正在等待重启",
+  "waitsLead": "{app} 已更新，将在 lilOS 重启后重新打开。",
+  "windows": {
+    "other": "{n} 个打开的窗口"
+  },
+  "windowsIn": {
+    "other": "{spaces} 个工作区中的 {n} 个打开的窗口"
+  },
+  "background": "后台服务",
+  "both": "{windows}和{background}",
+  "leadUpdate": "更新 {app} 会关闭它打开的所有内容：{closing}。",
+  "leadReinstall": "重新安装 {app} 会关闭它打开的所有内容：{closing}。",
+  "leadMany": "这些应用打开的所有内容都将关闭：",
+  "item": "{app}：{closing}",
+  "save": "继续之前请保存你的工作：有未保存更改的应用会询问你。",
+  "restartAfter": "更新后 lilOS 需要重启（由 {apps} 要求）。",
+  "titleUpdate": "要更新 {app} 吗？",
+  "titleReinstall": "要重新安装 {app} 吗？",
+  "titleUpdateMany": {
+    "other": "要更新 {n} 个应用吗？"
+  },
+  "titleReinstallMany": {
+    "other": "要重新安装 {n} 个应用吗？"
+  },
+  "cancel": "取消",
+  "update": "更新",
+  "reinstall": "重新安装",
+  "closeAndUpdate": "关闭并更新",
+  "closeAndReinstall": "关闭并重新安装",
+  "notReady": "lilOS 尚未就绪",
+  "cancelled": "更新已取消：有一个窗口未关闭",
+  "notLoaded": "{app}：不重启 lilOS 就无法加载新版本",
+  "restarting": "正在重启系统…",
+  "offTitle": "lilOS 已关闭",
+  "offText": "内核已为所有用户停止。要重新开启，请在其运行的位置再次启动它（npm run kernel、服务或 lilOS 程序），然后重新加载此页面。",
+  "reload": "重新加载",
+  "restartTitle": "要重启 lilOS 吗？",
+  "restartLead": "要完成更新，必须重启 lilOS。",
+  "restartHint": "所有窗口都将关闭并重新打开：请在其他应用中保存你的工作。",
+  "later": "稍后",
+  "restartNow": "立即重启",
+  "systemUpdated": "lilOS 已更新到 {version} 版",
+  "failedTitle": "lilOS 更新失败",
+  "failedLead": "lilOS {version} {reason}：lilOS 已自动恢复到 {current} 版。",
+  "failedHint": "没有丢失任何内容。你可以在 AppStore 中重试；内核日志会说明哪里出了问题。",
+  "ok": "确定",
+  "updatedTitle": "lilOS 已更新到 {version}",
+  "updatedLead": "更新成功：正在使用 lilOS {version}。",
+  "updatedAsk": "上一个版本（{from}）仍已安装，仅在需要从 AppStore 恢复到该版本时才用到。要删除它吗？",
+  "keep": "保留",
+  "deleteVersion": "删除 {from}",
+  "deleted": "已删除 lilOS {from}"
+}

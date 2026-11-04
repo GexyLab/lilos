@@ -1,0 +1,22 @@
+{
+  "home": "ホーム",
+  "one": "「{name}」",
+  "many": "{n} 個の項目",
+  "trashToServer": "ごみ箱の中身は、サーバーではなく lilOS のフォルダーに戻ります",
+  "restored": {
+    "other": "{what}を {where} に戻しました"
+  },
+  "moved": {
+    "other": "{what}を {where} に移動しました"
+  },
+  "transferFailed": "転送を開始できませんでした：{message}",
+  "moveFailed": "移動できません：{message}",
+  "importToServer": "コンピューターのファイルは lilOS のフォルダーにコピーされます。そこからサーバーにドラッグしてください",
+  "copied": {
+    "other": "{n} 個のファイルをコンピューターから {where} にコピーしました"
+  },
+  "failed": {
+    "other": "{n} 個のファイルがコピーされませんでした"
+  },
+  "limit": "最初の {max} 個のファイルだけをコピーしました"
+}

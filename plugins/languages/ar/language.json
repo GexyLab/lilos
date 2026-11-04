@@ -1,0 +1,8 @@
+{
+  "id": "lang-ar",
+  "language": "ar",
+  "name": "العربية",
+  "englishName": "Arabic",
+  "version": "1.0.0",
+  "lilos": ">=1.32.0"
+}

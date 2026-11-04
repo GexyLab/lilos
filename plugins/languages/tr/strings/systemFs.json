@@ -1,0 +1,3 @@
+{
+  "welcome": "lilOS’a hoş geldiniz!\n\nBu sonsuz bir masaüstüdür: gezinmek için Boşluk tuşunu basılı tutup sürükleyin,\nyakınlaştırmak için tekerleği kullanın, seçmek için arka planda sürükleyin.\n\n- Bir klasöre çift tıklayın: File Manager’da açılır.\n- Bir metin dosyasına çift tıklayın: Editor’de açılır (bunun gibi).\n- Ctrl K başlat menüsünü açar, Ctrl S Editor’de kaydeder.\n- Logonun yanındaki düğme çalışma alanını değiştirir: her birinin kendi masaüstü,\n  kendi pencereleri ve kendi uygulamaları vardır. Documenti, Immagini ve Download herkese aittir.\n\nKısayollar ve dosyaları açan uygulamalar\nDenetim Masası → Kullanılabilirlik bölümünden değiştirilebilir.\n"
+}

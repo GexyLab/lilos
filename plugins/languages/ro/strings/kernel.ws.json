@@ -1,0 +1,13 @@
+{
+  "needWs": "Este necesară o adresă ws:// sau wss://",
+  "noAnswer": "Serverul nu a răspuns la deschidere",
+  "cancelled": "Anulat",
+  "tooLong": "Răspunsul serverului este prea lung",
+  "notHttp": "Serverul nu a răspuns în HTTP",
+  "closed": "Serverul a închis conexiunea",
+  "status": "Serverul a răspuns {status} în loc să deschidă WebSocketul",
+  "notOpened": "Serverul nu a deschis un WebSocket",
+  "badAccept": "Răspunsul serverului nevalid (Sec-WebSocket-Accept)",
+  "extensions": "Serverul a cerut extensii care nu au fost oferite",
+  "protocol": "Serverul a ales un subprotocol care nu a fost oferit"
+}

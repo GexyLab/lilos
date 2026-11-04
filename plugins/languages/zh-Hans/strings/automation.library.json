@@ -1,0 +1,6 @@
+{
+  "group": "自动化",
+  "needRun": "要运行自动化，你需要 Automata 应用",
+  "needRecord": "要录制自动化，你需要 Automata 应用",
+  "recordHere": "从这里开始录制"
+}

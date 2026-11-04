@@ -1,0 +1,10 @@
+{
+  "unknownEvent": "نامعلوم ایونٹ: {event}",
+  "denied": "اجازت نہیں دی گئی: pipe:{event}",
+  "deniedOwn": "اجازت نہیں دی گئی: pipe:{event} (یا pipe.own:{event})",
+  "reserved": "ایونٹ {event} سسٹم کے لیے مخصوص ہے",
+  "sync": "{event} ایک فوری کارروائی ہے: اسے صرف دیکھا جا سکتا ہے (stage \"after\")",
+  "gone": "ایپ اب انسٹال نہیں ہے",
+  "unhandled": "{app} {what} کو ہینڈل نہیں کرتی (lilos.pipes.subscribe موجود نہیں)",
+  "needApp": "«{file}» کھولنے کے لیے ایپ {app} درکار ہے: اسے AppStore سے انسٹال کریں"
+}

@@ -1,0 +1,30 @@
+{
+  "folderGone": "De map om in op te slaan is er niet meer",
+  "notFolder": "De opslaglocatie is geen map",
+  "notFile": "‘{name}’ is er al en is geen bestand",
+  "protected": "‘{name}’ is beveiligd door een app (bijvoorbeeld versleuteld): het wordt niet overschreven",
+  "secretGone": "De geheime waarde van {name} kan niet meer worden gelezen: die moet opnieuw worden ingevoerd",
+  "fileGone": "Het te verzenden bestand is er niet meer",
+  "noAnswer": {
+    "one": "Geen antwoord binnen {n} seconde",
+    "other": "Geen antwoord binnen {n} seconden"
+  },
+  "untrusted": "{message}: bevestig het één keer vanuit NetTest",
+  "network": "Netwerk: {code}",
+  "redirects": "Te veel omleidingen",
+  "notWeb": "Omleiding naar een adres dat geen webadres is",
+  "otherOrigin": "Omleiding naar een ander adres met een te verzenden hoofdtekst: niet gevolgd",
+  "tooBig": "Antwoord te groot (maximaal 10 MB)",
+  "unfinished": {
+    "one": "Het antwoord was niet binnen {n} seconde klaar",
+    "other": "Het antwoord was niet binnen {n} seconden klaar"
+  },
+  "bytes": {
+    "one": "{n} byte",
+    "other": "{n} bytes"
+  },
+  "saved": "{status} in {ms} ms · {size} · opgeslagen in {name}",
+  "summary": "{status} in {ms} ms · {size}",
+  "status": "Status {status}, verwacht {expected}",
+  "contains": "Het antwoord bevat ‘{text}’ niet"
+}

@@ -1,0 +1,10 @@
+{
+  "title": "Notifications",
+  "unread": {
+    "one": "Notifications : {n} non lue",
+    "other": "Notifications : {n} non lues"
+  },
+  "stack": "Nouvelles notifications",
+  "sender": "{name} : {text}",
+  "dismiss": "Retirer de la barre"
+}

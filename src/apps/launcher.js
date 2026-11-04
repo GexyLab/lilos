@@ -1,4 +1,4 @@
-import { bus, menus, messageBox, pipes, PipeStopped } from '@lilos/sdk';
+import { bus, menus, messageBox, pipes, PipeStopped, locale, textDirection } from '@lilos/sdk';
 import { apps, getApp, isInstalled } from './registry.js';
 import { blockedLaunch } from './updates.js';
 import { notify } from '../notifications/notify.js';
@@ -10,6 +10,21 @@ import { notify } from '../notifications/notify.js';
  */
 let scope = { includes: () => true, center: () => null, bounds: () => null };
 
+const { t } = locale.define('lilos:apps.launcher', {
+  en: { strings: {
+    name: '“{id}”', nameVersion: '“{id}” ({version})',
+    restart: {
+      one: 'It needs the kernel module {modules}, already installed: it starts working at the next restart of the kernel, which an administrator does from the AppStore.',
+      other: 'It needs the kernel modules {modules}, already installed: they start working at the next restart of the kernel, which an administrator does from the AppStore.',
+    },
+    missing: 'Not found: {list}. An administrator installs it from the AppStore.',
+    missingModule: 'the kernel module {name}', missingApp: 'the app {name}',
+    openApp: 'Open an app',
+    hidden: '{app} is hidden in this workspace. You can show it from Control Panel → Workspace.',
+    cannotStart: '{app} cannot start yet', notStarted: '{app} did not start: {message}',
+  } },
+});
+
 /** Key of the saved state of a window that is not the app's main one. */
 const ENTRY = '__entry';
 
@@ -20,13 +35,12 @@ const ENTRY = '__entry';
 function unmetText(app) {
   const unmet = app.package?.unmet;
   if (!unmet?.length) return null;
-  const name = u => `«${u.id}»${u.version ? ` (${u.version})` : ''}`;
+  const name = u => (u.version ? t('nameVersion', { id: u.id, version: u.version }) : t('name', { id: u.id }));
   const restart = unmet.filter(u => u.why === 'restart'), missing = unmet.filter(u => u.why !== 'restart');
   // Only modules wait for the restart: an app is there or not
-  const many = restart.length > 1;
   return [
-    restart.length ? `Ha bisogno ${many ? 'dei moduli del kernel' : 'del modulo del kernel'} ${restart.map(name).join(', ')}, già ${many ? 'installati: entrano' : 'installato: entra'} in funzione al prossimo riavvio del kernel, che fa un amministratore dall’AppStore.` : '',
-    missing.length ? `Non trova: ${missing.map(u => `${u.kind === 'module' ? 'il modulo del kernel' : 'l’app'} ${name(u)}`).join(', ')}. Un amministratore lo installa dall’AppStore.` : '',
+    restart.length ? t('restart', { n: restart.length, modules: restart.map(name).join(', ') }) : '',
+    missing.length ? t('missing', { list: missing.map(u => t(u.kind === 'module' ? 'missingModule' : 'missingApp', { name: name(u) })).join(', ') }) : '',
   ].filter(Boolean).join('\n\n');
 }
 
@@ -59,11 +73,14 @@ export function setLaunchScope(value) {
  */
 export function connectLauncher(wm) {
   // Any menu can offer to open an app: { action: 'app.launch', params: { app } }
-  menus.defineAction('app.launch', {
-    label: 'Apri un’app', icon: 'open',
+  // Defined again in a new language (the menus keep the label they were given)
+  const defineLaunch = () => menus.defineAction('app.launch', {
+    label: t('openApp'), icon: 'open',
     params: raw => (raw && apps.some(a => a.id === raw.app && a.load) ? { app: raw.app } : null),
     run: (ctx, p) => bus.emit('app:launch', { id: p.app }),
   });
+  defineLaunch();
+  locale.on('change', defineLaunch);
 
   const loading = new Set();
   // Secondary windows belong to the app that opens them (an update closes them with it)
@@ -81,6 +98,14 @@ export function connectLauncher(wm) {
     const make = entry !== 'main' && app.trusted && typeof mod[entry] === 'function' ? mod[entry] : mod.default;
     const win = await make({ args, openWindow: windowOpener(app.id), entry, files });
     win.entry = entry;
+    // Its content in the app's own language and direction: an app without Arabic stays left to right in an Arabic lilOS
+    const own = () => {
+      const lang = locale.strings(app.id).lang;
+      win.body.lang = lang;
+      win.body.dir = textDirection(lang);
+    };
+    own();
+    win.on('destroy', locale.on('change', own));
     if (entry !== 'main') {
       const state = win.getState;
       win.getState = () => ({ [ENTRY]: entry, args: state ? state() : args ?? null });
@@ -92,11 +117,11 @@ export function connectLauncher(wm) {
   bus.on('app:launch', async ({ id, args, entry = 'main', files = [] }) => {
     const app = getApp(id);
     if (!app?.load) return console.info('[lilos] app non ancora disponibile:', id);
-    if (!isInstalled(id)) return notify(`${app.name} è nascosta in questo workspace. Si mostra dal Pannello di controllo → Workspace.`, { level: 'warning' });
+    if (!isInstalled(id)) return notify(t('hidden', { app: app.name }), { level: 'warning' });
     // Being updated, or updated and waiting for lilOS to restart: its old code must not start again
     if (blockedLaunch(id)) return;
     const unmet = unmetText(app);
-    if (unmet) return messageBox(null, { icon: 'warning', title: `${app.name} non può ancora partire`, text: unmet });
+    if (unmet) return messageBox(null, { icon: 'warning', title: t('cannotStart', { app: app.name }), text: unmet });
     // The app.launch pipe: a handler may change the args, or stop it
     if (pipes.wants('app.launch', { id, entry, args }, { system: true })) {
       try {
@@ -132,7 +157,7 @@ export function connectLauncher(wm) {
       else wm.open(win, { app: id, center: scope.center(win), bounds: scope.bounds() });
     } catch (err) {
       console.error(`[lilos] impossibile avviare ${id}:`, err);
-      notify(`${app.name} non è partita: ${err.message}`, { level: 'error' });
+      notify(t('notStarted', { app: app.name, message: err.message }), { level: 'error' });
     } finally {
       loading.delete(key);
     }

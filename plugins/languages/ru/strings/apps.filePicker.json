@@ -1,0 +1,14 @@
+{
+  "title": "Выбор файла",
+  "search": "Поиск по имени или пути",
+  "searchLabel": "Поиск",
+  "folders": "Папки",
+  "files": "Файлы",
+  "choose": "Выбрать",
+  "cancel": "Отмена",
+  "home": "Домашняя папка",
+  "noMatch": "Ничего не найдено",
+  "noFolders": "Нет папок",
+  "noFiles": "В lilOS нет файлов",
+  "noFilesOf": "В lilOS нет файлов {exts}"
+}

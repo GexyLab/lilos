@@ -1,0 +1,32 @@
+{
+  "folderGone": "该文件夹已不存在",
+  "namedGone": "{name} 已不存在",
+  "notFolder": "该文件夹不是文件夹",
+  "namedNotFolder": "{name} 不是文件夹",
+  "protected": "受某个应用保护（例如已加密）：不会被覆盖",
+  "mountGone": "{name} 已不在“{mount}”上",
+  "inside": "要复制到的文件夹位于要复制的文件夹内",
+  "newVersion": "新版本：{name}",
+  "fileThere": "复制目标位置已有文件“{name}”",
+  "copied": "已复制 {path}",
+  "tooMany": "超过 {max} 个项目：请复制较小的文件夹",
+  "sameNameFile": "存在同名文件",
+  "removedFile": "已移除文件 {path}（现在它是文件夹）",
+  "sameNameFolder": "存在同名文件夹",
+  "error": "错误 {path}：{message}",
+  "removed": "已删除 {path}",
+  "oldVersion": "已删除旧版本：{name}",
+  "summary": {
+    "other": "已复制 {n} 个文件（{size}）"
+  },
+  "summarySame": {
+    "other": "已复制 {n} 个文件（{size}），{same} 个未更改"
+  },
+  "summaryRemoved": {
+    "other": "已复制 {n} 个文件（{size}），{removed} 个已删除"
+  },
+  "summarySameRemoved": {
+    "other": "已复制 {n} 个文件（{size}），{same} 个未更改，{removed} 个已删除"
+  },
+  "notCopied": "{n} 个未复制：{first}"
+}

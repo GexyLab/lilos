@@ -29,20 +29,7 @@ const { t } = locale.define('lilos:desktop', {
     saved: '«{name}» saved from the computer\'s program', saveFailed: '«{name}» not saved back in lilOS: {error}',
     missing: '«{path}» is not in lilOS',
     driveIn: '«{name}» is in Network › This computer', driveFailed: '«{name}» not connected: {error}',
-  } },
-  it: { strings: {
-    'choose.serial': 'Scegli una porta seriale', 'choose.usb': 'Scegli un dispositivo USB', 'choose.hid': 'Scegli un dispositivo',
-    'choose.bluetooth': 'Scegli un dispositivo Bluetooth', 'choose.screen': 'Scegli cosa condividere',
-    'choose.text.serial': 'Un\'app vuole usare una porta seriale del computer.',
-    'choose.text.usb': 'Un\'app vuole usare un dispositivo USB del computer.',
-    'choose.text.hid': 'Un\'app vuole usare un dispositivo del computer (tastierini, lettori, controller…).',
-    'choose.text.bluetooth': 'Un\'app vuole usare un dispositivo Bluetooth vicino al computer.',
-    'choose.text.screen': 'Un\'app vuole vedere uno schermo o una finestra del computer.',
-    'choose.field': 'Dispositivo', 'choose.none': 'Nessun dispositivo trovato: collegalo e riprova.',
-    connect: 'Collega', share: 'Condividi',
-    saved: '«{name}» salvato dal programma del computer', saveFailed: '«{name}» non risalvato in lilOS: {error}',
-    missing: '«{path}» non c\'è in lilOS',
-    driveIn: '«{name}» è in Rete › Questo computer', driveFailed: '«{name}» non collegata: {error}',
+    serialPort: 'Serial port',
   } },
 });
 
@@ -108,7 +95,7 @@ function connectDeviceEvents() {
   });
   if (!serial.supported) return;
   let ports = null;
-  const name = p => (p.usbVendorId != null ? `USB ${p.usbVendorId.toString(16).padStart(4, '0')}:${(p.usbProductId ?? 0).toString(16).padStart(4, '0')}` : 'Porta seriale');
+  const name = p => (p.usbVendorId != null ? `USB ${p.usbVendorId.toString(16).padStart(4, '0')}:${(p.usbProductId ?? 0).toString(16).padStart(4, '0')}` : t('serialPort'));
   const check = async () => {
     const now = new Map((await serial.ports().catch(() => [])).map(p => [p.id, p]));
     if (ports) {

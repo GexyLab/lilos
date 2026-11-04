@@ -1,0 +1,41 @@
+{
+  "title": "プロパティ",
+  "type": "種類",
+  "app": "アプリ",
+  "linkTarget": "リンク先",
+  "linkState": "状態",
+  "contents": "内容",
+  "size": "サイズ",
+  "opensWith": "プログラム",
+  "deleted": "削除日時",
+  "origin": "元の場所",
+  "location": "場所",
+  "created": "作成日時",
+  "modified": "更新日時",
+  "workspace": "ワークスペース",
+  "tags": "タグ",
+  "apps": "アプリ",
+  "appData": "{id} のデータ",
+  "folder": "フォルダー",
+  "linkFolder": "フォルダーへのリンク",
+  "linkWeb": "Web ページへのリンク",
+  "linkFile": "ファイルへのリンク",
+  "appLink": "アプリへのリンク",
+  "typeExt": "{type}（.{ext}）",
+  "system": "システム{type}",
+  "appMissing": "{id}（未インストール）",
+  "broken": "リンク切れ：前回、リンク先が見つかりませんでした",
+  "notFound": "見つかりません",
+  "mountGone": "接続は削除されました",
+  "ask": "毎回確認する",
+  "files": {
+    "other": "{count} 個のファイル"
+  },
+  "folders": {
+    "other": "{count} 個のフォルダー"
+  },
+  "shared": "すべてのワークスペースで共有",
+  "none": "なし",
+  "orphan": "このアプリはインストールされていません",
+  "remove": "削除"
+}

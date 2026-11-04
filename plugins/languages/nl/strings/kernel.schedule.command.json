@@ -1,0 +1,9 @@
+{
+  "oldTerminal": "Terminal 1.5.0 of nieuwer is nodig: werk het bij vanuit de AppStore",
+  "signal": "Beëindigd door het signaal SIG{signal} ({code})",
+  "signalTail": "Beëindigd door het signaal SIG{signal} ({code}): {tail}",
+  "exit": "Afgesloten met {code}",
+  "exitTail": "Afgesloten met {code}: {tail}",
+  "ok": "Afgesloten met 0",
+  "okTail": "Afgesloten met 0 · {tail}"
+}

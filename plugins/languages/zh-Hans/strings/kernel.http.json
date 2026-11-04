@@ -1,0 +1,9 @@
+{
+  "badPath": "无效的地址",
+  "tooLarge": "请求过大",
+  "notJson": "请求正文不是有效的 JSON",
+  "notAllowed": "不允许的请求",
+  "noOrigin": "缺少 Origin",
+  "badOrigin": "不允许的 Origin",
+  "badHost": "不允许的主机"
+}

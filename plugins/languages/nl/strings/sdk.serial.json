@@ -1,0 +1,8 @@
+{
+  "notFound": "Seriële poort niet gevonden (losgekoppeld?)",
+  "unsupported": "Deze browser kan geen seriële poorten gebruiken (daarvoor zijn Chrome, Edge of Firefox 151+ nodig, via https of localhost)",
+  "click": "De browser wil een klik voordat er een poort wordt gekozen",
+  "baud": "Ongeldige snelheid (baud)",
+  "busy": "De poort is al geopend (door een ander venster of een ander programma)",
+  "failed": "De poort kan niet worden geopend: {message}"
+}

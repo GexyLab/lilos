@@ -1,0 +1,6 @@
+{
+  "removed": {
+    "one": "{app} quitada: {n} elemento modificado está en la Papelera",
+    "other": "{app} quitada: {n} elementos modificados están en la Papelera"
+  }
+}

@@ -7,6 +7,31 @@ import { filePreview } from '../filePreview.js';
 import { notify } from '../../notifications/notify.js';
 import { hardwareRule } from '../../host/desktop.js';
 
+const { t } = locale.define('lilos:apps.methods', {
+  en: { strings: {
+    fileTooBig: 'File too large', textTooLong: 'Text too long', denied: 'Permission denied: {permission}',
+    deniedContent: 'Permission denied: only an app with the file.read and file.write pipes can mark a content as its own',
+    fileGone: 'The file no longer exists', readOnly: 'The file was handed over for reading only',
+    noFile: 'The file does not exist', notFile: 'It is not a file', noFolder: 'The folder does not exist',
+    emptyName: 'The name cannot be empty', notOwnEvent: 'The event {event} does not belong to {app}',
+    notOwnAction: 'The action {action} does not belong to {app}',
+    handOnlyOpen: 'Only files opened with the app can be handed over', nameOnlyOpen: 'Only files opened with the app can be named',
+    useOnlyOpen: 'Only files opened with the app can be used', openOnlyHanded: 'Only a file opened with the app or handed to it can be opened',
+    'window.title': 'Only a window has a title', 'window.close': 'Only a window can be closed',
+    'window.message': 'Only a window can show a message', 'window.terminal': 'Only a window can show a terminal',
+    'window.signIn': 'Only a window can sign in', 'window.session': 'Only a window can show a session',
+    'window.choosePort': 'Only a window can choose a port', 'window.forgetPort': 'Only a window can forget a port',
+    'window.openPort': 'Only a window can open a port', 'window.channel': 'Only a window can open a channel',
+    keepAlive: 'Only a background entry point can stay running',
+    noPipes: 'This part of the app cannot subscribe to pipes', badStage: 'stage must be "before" or "after"',
+    badPosition: 'Invalid position', maxEvents: 'At most {max} events per app', badKey: 'Invalid key',
+    valueTooBig: 'Value too large', unknownSchedulerEntry: 'Unknown entry point of the Scheduler',
+    notNetwork: 'It is not in a network connection', sftpOnly: 'The terminal opens only on SFTP connections',
+    popupBlocked: 'The browser blocked the sign-in tab', noSignIn: 'No such sign-in', badMethod: 'Invalid method',
+    notStarted: '{app} did not start: {message}', unknownMethod: 'Unknown function: {method}',
+  } },
+});
+
 /**
  * What an installed app may ask of lilOS through `lilos` (see bridge.js), each request checked
  * against the app's permissions. The same for every way the app runs; an app that is not
@@ -26,10 +51,10 @@ const fail = msg => { throw new Error(msg); };
 
 /** The contents an app writes: text, or bytes (a Blob, an ArrayBuffer, a typed array). */
 function content(data) {
-  if (data instanceof Blob) return data.size <= MAX_BYTES ? data : fail('File troppo grande');
-  if (data instanceof ArrayBuffer || ArrayBuffer.isView(data)) return data.byteLength <= MAX_BYTES ? new Blob([data]) : fail('File troppo grande');
+  if (data instanceof Blob) return data.size <= MAX_BYTES ? data : fail(t('fileTooBig'));
+  if (data instanceof ArrayBuffer || ArrayBuffer.isView(data)) return data.byteLength <= MAX_BYTES ? new Blob([data]) : fail(t('fileTooBig'));
   const text = String(data);
-  return text.length <= MAX_TEXT ? text : fail('Testo troppo lungo');
+  return text.length <= MAX_TEXT ? text : fail(t('textTooLong'));
 }
 
 /**
@@ -46,52 +71,52 @@ export function hostMethods({ pkg, win = null, handles, readOnly = new Set(), in
   // The channels this window holds (remote terminals, serial ports, kernel modules): they close with it
   const channels = new Set();
   win?.on('destroy', () => channels.forEach(port => port.detach()));
-  const terminal = () => (perms.includes('term') ? term : fail('Permesso negato: term'));
-  const requests = () => (perms.includes('calls') ? calls : fail('Permesso negato: calls'));
+  const terminal = () => (perms.includes('term') ? term : fail(t('denied', { permission: 'term' })));
+  const requests = () => (perms.includes('calls') ? calls : fail(t('denied', { permission: 'calls' })));
   // The OAuth sign-ins by hand this window started (calls.signInByHand)
   const byHand = new Set();
   // Serial ports: with the permission, or for every app when the program lilOS lets all of them (hardwareRule)
-  const ports = () => (perms.includes('serial') || hardwareRule() === 'all' ? serial : fail('Permesso negato: serial'));
-  const moduleApi = name => (typeof name === 'string' && perms.includes(`kernel:${name}`) ? kernel.module(name) : fail(`Permesso negato: kernel:${String(name).slice(0, 40)}`));
+  const ports = () => (perms.includes('serial') || hardwareRule() === 'all' ? serial : fail(t('denied', { permission: 'serial' })));
+  const moduleApi = name => (typeof name === 'string' && perms.includes(`kernel:${name}`) ? kernel.module(name) : fail(t('denied', { permission: `kernel:${String(name).slice(0, 40)}` })));
   // The scheduler: an app's own operations (schedule), all of the user's to read (schedule.read) or to move (schedule.move)
-  const own = () => (perms.includes('schedule') ? schedule.forApp(pkg.id) : fail('Permesso negato: schedule'));
-  const reader = () => (perms.includes('schedule.read') || perms.includes('schedule.move') ? schedule : fail('Permesso negato: schedule.read'));
+  const own = () => (perms.includes('schedule') ? schedule.forApp(pkg.id) : fail(t('denied', { permission: 'schedule' })));
+  const reader = () => (perms.includes('schedule.read') || perms.includes('schedule.move') ? schedule : fail(t('denied', { permission: 'schedule.read' })));
   const SCHEDULER_ENTRIES = new Set(['main', 'edit', 'create', 'history']);
   // What a calendar needs: when, how it went, what kind of action. Never what it does in detail
   // (command lines, addresses, bodies) nor what the runs wrote
   const brief = t => ({ id: t.id, owner: t.owner, app: t.app, name: t.name, enabled: t.enabled, when: t.when, next: t.next, last: t.last, running: t.running, recurrence: t.recurrence, what: { type: t.what?.type } });
   const briefRun = ({ log, text, ...run }) => run;
   const target = (ref, write) => {
-    if (handles.has(ref)) return fs.get(ref) ?? fail('Il file non esiste più');
-    if (readOnly.has(ref)) return write ? fail('Il file è stato passato solo da leggere') : fs.get(ref) ?? fail('Il file non esiste più');
-    if (!coversPath(perms, ref, { write })) fail(`Permesso negato: ${ref}`);
+    if (handles.has(ref)) return fs.get(ref) ?? fail(t('fileGone'));
+    if (readOnly.has(ref)) return write ? fail(t('readOnly')) : fs.get(ref) ?? fail(t('fileGone'));
+    if (!coversPath(perms, ref, { write })) fail(t('denied', { permission: ref }));
     return resolveHome(ref);
   };
   const fileOf = (ref, write) => {
-    const node = target(ref, write) ?? fail('Il file non esiste');
-    return node.type === 'file' ? node : fail('Non è un file');
+    const node = target(ref, write) ?? fail(t('noFile'));
+    return node.type === 'file' ? node : fail(t('notFile'));
   };
   // A new item at `ref` (a path the app may write): its folder, and its name (made unique when asked;
   // the unique name must be covered by the permissions too)
-  const newParent = ref => (resolveHome(splitPath(ref)[0]) ?? fail('La cartella non esiste')).id;
+  const newParent = ref => (resolveHome(splitPath(ref)[0]) ?? fail(t('noFolder'))).id;
   const newName = (ref, unique) => {
     const [dir, name] = splitPath(ref);
     if (!unique) return name;
-    const free = fs.uniqueName(newParent(ref), fs.cleanName(name) || fail('Il nome non può essere vuoto'));
-    return coversPath(perms, `${dir}/${free}`, { write: true }) ? free : fail(`Permesso negato: ${dir}/${free}`);
+    const free = fs.uniqueName(newParent(ref), fs.cleanName(name) || fail(t('emptyName')));
+    return coversPath(perms, `${dir}/${free}`, { write: true }) ? free : fail(t('denied', { permission: `${dir}/${free}` }));
   };
   const made = node => ({ id: node.id, name: node.name, ref: fs.tildePath(node.id) });
   // Who asks, for the handlers of the pipes: its own handlers are skipped
   const caller = node => ({ app: pkg.id, opened: handles.has(node.id) || readOnly.has(node.id), ...(pkg.system && { system: true }) });
   const ownEvent = name => {
     const def = typeof name === 'string' ? pipes.describe(name) : null;
-    return def?.owner === pkg.id ? name : fail(`L’evento ${String(name).slice(0, 60)} non è di ${pkg.manifest.name}`);
+    return def?.owner === pkg.id ? name : fail(t('notOwnEvent', { event: String(name).slice(0, 60), app: pkg.manifest.name }));
   };
   // An app hands another one (or another part of itself) only files it may use itself
   const handed = data => {
     if (!data || typeof data !== 'object') return data;
     const ids = [...('file' in data ? [data.file] : []), ...('files' in data ? (Array.isArray(data.files) ? data.files : [null]) : [])];
-    if (ids.length > 100 || ids.some(id => typeof id !== 'string' || !handles.has(id))) fail('Si possono passare solo file aperti con l’app');
+    if (ids.length > 100 || ids.some(id => typeof id !== 'string' || !handles.has(id))) fail(t('handOnlyOpen'));
     return data;
   };
   // content: true says lilOS must not read the file without the app: only for an app that reads
@@ -101,13 +126,13 @@ export function hostMethods({ pkg, win = null, handles, readOnly = new Set(), in
   const boxes = new Map();
   let boxSeq = 0;
   const claim = value => {
-    if (value && typeof value === 'object' && value.content === true && !ownsContent) fail('Permesso negato: solo un’app con le pipe file.read e file.write segna un contenuto come suo');
+    if (value && typeof value === 'object' && value.content === true && !ownsContent) fail(t('deniedContent'));
     return value;
   };
   return {
-    'window.setTitle': text => (win ? win.setTitle(String(text).slice(0, 100)) : fail('Solo una finestra ha un titolo')),
+    'window.setTitle': text => (win ? win.setTitle(String(text).slice(0, 100)) : fail(t('window.title'))),
     // As the close button: the window manager closes it
-    'window.close': () => (win ? win.emit('close') : fail('Solo una finestra si chiude')),
+    'window.close': () => (win ? win.emit('close') : fail(t('window.close'))),
     // A notification (permission ui.notify, which every app has): lilOS signs it with the app, never the app itself.
     // ui.toast is its old name: there is no message at the bottom of the screen any more
     'ui.toast': async text => { await notifications.send({ app: pkg.id, text: String(text) }); },
@@ -120,7 +145,7 @@ export function hostMethods({ pkg, win = null, handles, readOnly = new Set(), in
     // ui.messageBox.check(box, problem): null closes it (that call resolves the final answer), a
     // text is shown and that call resolves the next answer
     'ui.messageBox': async spec => {
-      if (!win) fail('Solo una finestra mostra un messaggio');
+      if (!win) fail(t('window.message'));
       const options = boxOptions(spec);
       const wrap = r => (r && typeof r === 'object' ? r : { button: r ?? null, values: {} });
       if (plainObject(spec).validate !== true) return wrap(await messageBox(win, options));
@@ -161,24 +186,24 @@ export function hostMethods({ pkg, win = null, handles, readOnly = new Set(), in
       const unique = options?.unique === true;
       let node = unique ? null : target(ref, true);
       if (!node) node = fs.create(newParent(ref, unique), { type: 'file', name: newName(ref, unique) });
-      if (node.type !== 'file') fail('Non è un file');
+      if (node.type !== 'file') fail(t('notFile'));
       const mark = options && typeof options === 'object' && 'mark' in options ? { app: pkg.id, value: claim(options.mark ?? null) } : null;
       await fs.write(node.id, value, { caller: caller(node), mark });
       return made(node);
     },
     // A file the app may use: its name and the app's own data on it
     'files.info': ref => {
-      const node = target(ref, false) ?? fail('Il file non esiste');
+      const node = target(ref, false) ?? fail(t('noFile'));
       return { id: node.id, name: node.name, type: node.type, size: node.size ?? 0, modified: node.modified, path: fs.path(node.id), ref: fs.tildePath(node.id), meta: fs.appMeta(node.id, pkg.id) };
     },
     'files.setMeta': (ref, value) => {
-      const node = target(ref, true) ?? fail('Il file non esiste');
+      const node = target(ref, true) ?? fail(t('noFile'));
       fs.setAppMeta(node.id, pkg.id, claim(value ?? null));
     },
     // Opens one of its files with its app (the file.open pipe again: after unlocking it, for one)
     'files.open': ref => {
-      if (!handles.has(ref)) fail('Si apre solo un file aperto con l’app o che le è stato passato');
-      openFile(fs.get(ref) ?? fail('Il file non esiste più'));
+      if (!handles.has(ref)) fail(t('openOnlyHanded'));
+      openFile(fs.get(ref) ?? fail(t('fileGone')));
     },
     // Files the app has locked again: lilOS closes the windows that show them
     'files.locked': ids => {
@@ -194,10 +219,10 @@ export function hostMethods({ pkg, win = null, handles, readOnly = new Set(), in
       return [...new Set(shown)];
     },
     'pipes.subscribe': (event, opts) => {
-      if (!pipe) fail('Questa parte dell’app non si iscrive alle pipe');
+      if (!pipe) fail(t('noPipes'));
       const o = opts && typeof opts === 'object' ? opts : {};
-      if (o.stage !== undefined && !STAGES.includes(o.stage)) fail('stage deve essere "before" o "after"');
-      if (o.position !== undefined && !POSITIONS.includes(o.position)) fail('position non valida');
+      if (o.stage !== undefined && !STAGES.includes(o.stage)) fail(t('badStage'));
+      if (o.position !== undefined && !POSITIONS.includes(o.position)) fail(t('badPosition'));
       return pipe.subscribe(String(event), { stage: o.stage ?? 'after', position: o.position ?? 'middle', where: o.where ?? null });
     },
     'pipes.unsubscribe': sub => pipe?.unsubscribe(String(sub)),
@@ -205,7 +230,7 @@ export function hostMethods({ pkg, win = null, handles, readOnly = new Set(), in
     'pipes.define': (name, def) => {
       const d = def && typeof def === 'object' ? def : {};
       const fields = v => (Array.isArray(v) ? v.filter(f => typeof f === 'string' && /^(?!__proto__$|constructor$|prototype$)\w{1,40}$/.test(f)).slice(0, 20) : []);
-      if (!pipes.has(String(name)) && pipes.catalog().filter(e => e.owner === pkg.id).length >= MAX_EVENTS) fail(`Al massimo ${MAX_EVENTS} eventi per app`);
+      if (!pipes.has(String(name)) && pipes.catalog().filter(e => e.owner === pkg.id).length >= MAX_EVENTS) fail(t('maxEvents', { max: MAX_EVENTS }));
       pipes.define(String(name), {
         label: typeof d.label === 'string' ? d.label : String(name), description: typeof d.description === 'string' ? d.description : '',
         edit: { before: fields(d.edit?.before), after: fields(d.edit?.after) }, stop: d.stop === true, owner: pkg.id,
@@ -217,40 +242,40 @@ export function hostMethods({ pkg, win = null, handles, readOnly = new Set(), in
     'automation.recording': () => automation.recording && !automation.paused,
     'automation.record': (id, data) => {
       const def = typeof id === 'string' && id.startsWith(`${pkg.id}.`) ? automation.describe(id) : null;
-      if (!def || def.app !== pkg.id) fail(`L’azione ${String(id).slice(0, 60)} non è di ${pkg.manifest.name}`);
+      if (!def || def.app !== pkg.id) fail(t('notOwnAction', { action: String(id).slice(0, 60), app: pkg.manifest.name }));
       const d = plainObject(data);
       const params = plainObject(d.params);
       for (const [name, p] of Object.entries(def.params)) {
         if (!['file', 'files', 'folder'].includes(p.type) || !(name in params)) continue;
-        if ([params[name]].flat().some(ref => typeof ref !== 'string' || !handles.has(ref))) fail('Si possono nominare solo file aperti con l’app');
+        if ([params[name]].flat().some(ref => typeof ref !== 'string' || !handles.has(ref))) fail(t('nameOnlyOpen'));
       }
-      if (d.file != null && !handles.has(d.file)) fail('Si possono nominare solo file aperti con l’app');
+      if (d.file != null && !handles.has(d.file)) fail(t('nameOnlyOpen'));
       const made = [d.result ?? []].flat().filter(ref => typeof ref === 'string' && (handles.has(ref) || coversPath(perms, fs.tildePath(ref), { write: true })));
       return automation.record(id, { params, defaults: d.defaults ?? null, file: d.file ?? null, result: made.length ? made : null }) !== null;
     },
     // The preview of a file it may read, made by the app that opens it (see filePreview.js)
     'files.preview': (ref, options) => {
-      if (!perms.includes('fs.preview')) fail('Permesso negato: fs.preview');
+      if (!perms.includes('fs.preview')) fail(t('denied', { permission: 'fs.preview' }));
       const size = typeof options?.size === 'number' ? Math.min(options.size, 4096) : undefined;
       return filePreview(fileOf(ref, false), { size, from: pkg.id });
     },
     'files.list': path => {
-      if (!coversPath(perms, path, { write: false })) fail(`Permesso negato: ${path}`);
-      const node = resolveHome(path) ?? fail('La cartella non esiste');
+      if (!coversPath(perms, path, { write: false })) fail(t('denied', { permission: path }));
+      const node = resolveHome(path) ?? fail(t('noFolder'));
       return fs.children(node.id).map(n => ({ name: n.name, type: n.type, size: n.size ?? 0, modified: n.modified }));
     },
     // options.unique: always a new folder, 'Archivio 2' when 'Archivio' is taken. → { id, name, ref }
     'files.mkdir': (path, options) => {
       const unique = options?.unique === true;
-      if (!coversPath(perms, path, { write: true })) fail(`Permesso negato: ${path}`);
+      if (!coversPath(perms, path, { write: true })) fail(t('denied', { permission: path }));
       const found = unique ? null : resolveHome(path);
       if (found) return made(found);
       return made(fs.create(newParent(path, unique), { type: 'folder', name: newName(path, unique) }));
     },
-    'storage.get': key => (STORAGE_KEY.test(key) ? storage.get(`app:${pkg.id}:${key}`, null) : fail('Chiave non valida')),
+    'storage.get': key => (STORAGE_KEY.test(key) ? storage.get(`app:${pkg.id}:${key}`, null) : fail(t('badKey'))),
     'storage.set': (key, value) => {
-      if (!STORAGE_KEY.test(key)) fail('Chiave non valida');
-      if ((JSON.stringify(value) ?? '').length > 256 << 10) fail('Valore troppo grande');
+      if (!STORAGE_KEY.test(key)) fail(t('badKey'));
+      if ((JSON.stringify(value) ?? '').length > 256 << 10) fail(t('valueTooBig'));
       storage.set(`app:${pkg.id}:${key}`, value);
     },
     'schedule.list': () => own().list(),
@@ -270,12 +295,12 @@ export function hostMethods({ pkg, win = null, handles, readOnly = new Set(), in
       return (await reader().history({ task: typeof task === 'string' ? task : undefined, limit, before })).map(briefRun);
     },
     'schedule.move': (id, change) => {
-      if (!perms.includes('schedule.move')) fail('Permesso negato: schedule.move');
+      if (!perms.includes('schedule.move')) fail(t('denied', { permission: 'schedule.move' }));
       const { at, to, scope } = plainObject(change);
       return schedule.move(id, { at, to, scope });
     },
     'schedule.open': (entry, args) => {
-      if (!SCHEDULER_ENTRIES.has(entry)) fail('Punto d’ingresso della Pianificazione sconosciuto');
+      if (!SCHEDULER_ENTRIES.has(entry)) fail(t('unknownSchedulerEntry'));
       // An app proposes only when (and, at most, a reminder or opening itself): the user writes the rest
       const a = { ...plainObject(args), from: pkg.id };
       if (a.what && !(a.what.type === 'notify' || (a.what.type === 'open' && a.what.app === pkg.id))) delete a.what;
@@ -300,17 +325,17 @@ export function hostMethods({ pkg, win = null, handles, readOnly = new Set(), in
     // SSH to the server of the SFTP connection a handed file or folder is in, in that folder
     'term.openHere': id => {
       terminal();
-      if (!handles.has(id)) fail('Si possono usare solo file aperti con l’app');
-      const node = fs.get(id) ?? fail('Il file non esiste più');
+      if (!handles.has(id)) fail(t('useOnlyOpen'));
+      const node = fs.get(id) ?? fail(t('fileGone'));
       const folder = node.type === 'folder' ? node.id : node.parent;
-      const ref = fs.isRemote(folder) ? fs.netRef(folder) : fail('Non è in una connessione di rete');
-      if (net.mount(ref.mount)?.protocol !== 'sftp') fail('Il terminale si apre solo sulle connessioni SFTP');
+      const ref = fs.isRemote(folder) ? fs.netRef(folder) : fail(t('notNetwork'));
+      if (net.mount(ref.mount)?.protocol !== 'sftp') fail(t('sftpOnly'));
       return term.open({ mount: ref.mount, path: ref.path });
     },
     'term.close': id => terminal().close(String(id)),
     'term.attach': (id, size) => {
       terminal();
-      if (!win) fail('Solo una finestra mostra un terminale');
+      if (!win) fail(t('window.terminal'));
       const port = term.attach(String(id), plainObject(size));
       channels.add(port);
       return port;
@@ -326,15 +351,15 @@ export function hostMethods({ pkg, win = null, handles, readOnly = new Set(), in
     'calls.token': settings => requests().token(plainObject(settings)),
     // The provider's page in a window lilOS opens (the app's click counts for it), back to lilOS's callback
     'calls.signIn': settings => {
-      if (!win) fail('Solo una finestra fa un accesso');
+      if (!win) fail(t('window.signIn'));
       return requests().signIn({ ...plainObject(settings), redirectUri: '' });
     },
     // To an address of the provider's own (settings.redirectUri): a tab, then the app asks the user where it ended
     'calls.signInByHand': async settings => {
-      if (!win) fail('Solo una finestra fa un accesso');
+      if (!win) fail(t('window.signIn'));
       requests();
       const tab = window.open('about:blank', '_blank');
-      if (!tab) fail('Il browser ha bloccato la scheda di accesso');
+      if (!tab) fail(t('popupBlocked'));
       try {
         const started = await kernel.request('POST', '/calls/oauth/signin', { settings: plainObject(settings) });
         tab.opener = null;
@@ -348,7 +373,7 @@ export function hostMethods({ pkg, win = null, handles, readOnly = new Set(), in
     },
     'calls.signInPaste': async (id, address) => {
       requests();
-      if (!byHand.has(id)) fail('Accesso inesistente');
+      if (!byHand.has(id)) fail(t('noSignIn'));
       const s = await kernel.request('POST', `/calls/oauth/signin/${encodeURIComponent(id)}/paste`, { url: String(address ?? '') });
       if (s.status !== 'pending') byHand.delete(id);
       return s;
@@ -362,7 +387,7 @@ export function hostMethods({ pkg, win = null, handles, readOnly = new Set(), in
     'calls.closeSession': id => requests().closeSession(String(id)),
     'calls.attach': id => {
       requests();
-      if (!win) fail('Solo una finestra mostra una sessione');
+      if (!win) fail(t('window.session'));
       const port = calls.attach(String(id));
       channels.add(port);
       return port;
@@ -370,37 +395,37 @@ export function hostMethods({ pkg, win = null, handles, readOnly = new Set(), in
     'serial.supported': () => ports().supported,
     'serial.ports': () => ports().ports(),
     'serial.request': options => {
-      if (!win) fail('Solo una finestra sceglie una porta');
+      if (!win) fail(t('window.choosePort'));
       const filters = plainObject(options).filters;
       return ports().request({ filters: Array.isArray(filters) ? filters.slice(0, 50).map(plainObject) : [] });
     },
-    'serial.forget': id => (win ? ports().forget(String(id)) : fail('Solo una finestra dimentica una porta')),
+    'serial.forget': id => (win ? ports().forget(String(id)) : fail(t('window.forgetPort'))),
     'serial.open': async (id, options) => {
-      if (!win) fail('Solo una finestra apre una porta');
+      if (!win) fail(t('window.openPort'));
       const port = await ports().open(String(id), plainObject(options));
       channels.add(port);
       return port;
     },
     'kernel.request': (name, method, path, body) => {
-      if (!['GET', 'POST', 'PUT', 'DELETE'].includes(String(method).toUpperCase())) fail('Metodo non valido');
+      if (!['GET', 'POST', 'PUT', 'DELETE'].includes(String(method).toUpperCase())) fail(t('badMethod'));
       return moduleApi(name).request(method, String(path), body === null ? undefined : body);
     },
     'kernel.channel': (name, path) => {
-      if (!win) fail('Solo una finestra apre un canale');
+      if (!win) fail(t('window.channel'));
       const port = moduleApi(name).channel(String(path));
       channels.add(port);
       return port;
     },
     'app.call': (entry, data) => callEntrypoint(pkg.id, entry, handed(data), { from: pkg.id }),
     'app.connect': entry => connectEntrypoint(pkg.id, entry),
-    'app.keepAlive': on => (instance ? instance.setKeepAlive(on === true) : fail('Solo un punto d’ingresso in background resta attivo')),
+    'app.keepAlive': on => (instance ? instance.setKeepAlive(on === true) : fail(t('keepAlive'))),
     'app.failed': message => {
       console.error(`[lilos] ${pkg.id}:`, message);
-      notify(`${pkg.manifest.name} non è partita: ${String(message).slice(0, 200)}`, { level: 'error' });
+      notify(t('notStarted', { app: pkg.manifest.name, message: String(message).slice(0, 200) }), { level: 'error' });
       instance?.stop();
     },
     'apps.call': (app, entry, data) => {
-      if (!perms.includes(`apps.call:${app}`)) fail(`Permesso negato: apps.call:${app}`);
+      if (!perms.includes(`apps.call:${app}`)) fail(t('denied', { permission: `apps.call:${app}` }));
       return callEntrypoint(app, entry, handed(data), { from: pkg.id });
     },
   };
@@ -438,7 +463,7 @@ function boxOptions(spec) {
 /** Runs one request of the app. */
 export function invoke(methods, method, params) {
   const run = typeof method === 'string' && Object.hasOwn(methods, method) ? methods[method] : null;
-  if (!run) fail(`Funzione sconosciuta: ${method}`);
+  if (!run) fail(t('unknownMethod', { method }));
   return run(...(Array.isArray(params) ? params : []));
 }
 

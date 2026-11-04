@@ -12,6 +12,8 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 input { font: inherit; color: inherit; }
 svg { display: block; }
 kbd { font-family: var(--mono); }
+/* Right to left: shortcuts stay as typed (Ctrl+Shift+N), an island of their own */
+[dir="rtl"] kbd { direction: ltr; unicode-bidi: isolate; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
 .ico {
@@ -25,3 +27,7 @@ kbd { font-family: var(--mono); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
+
+/* Letter-spacing breaks the joining of Arabic letters and the headline of Devanagari ones:
+   none in those languages, on every piece of chrome that sets it (the other files list theirs) */
+:root:is(:lang(ar), :lang(ur), :lang(hi)) :is(.avatar, .st-group, .st-head h1) { letter-spacing: 0; }

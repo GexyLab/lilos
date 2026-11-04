@@ -1,0 +1,9 @@
+{
+  "skipped": "dilewati",
+  "check": "pemeriksaan {name} ({actual})",
+  "test": "tes “{name}”: {error}",
+  "counts": "{passed} lulus, {failed} gagal dalam {seconds} dtk",
+  "countsSkipped": "{passed} lulus, {failed} gagal, {skipped} dilewati dalam {seconds} dtk",
+  "cancelled": "Dibatalkan: {counts}",
+  "failedFirst": "{name}: {counts} (pertama: {first})"
+}

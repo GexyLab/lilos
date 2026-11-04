@@ -1,0 +1,46 @@
+{
+  "newFolder": "Nowy folder",
+  "newDocument": "Nowy dokument.txt",
+  "fixedOne": "„{name}” to stały element pulpitu: nie można go usunąć",
+  "fixedMany": "Stałych elementów pulpitu nie można usunąć",
+  "fixedStay": "Stałe elementy pulpitu pozostają: usuwana jest tylko reszta",
+  "removeWithAreas": {
+    "one": "{what} i usuń 1 strefę roboczą",
+    "few": "{what} i usuń {n} strefy robocze",
+    "many": "{what} i usuń {n} stref roboczych",
+    "other": "{what} i usuń {n} strefy roboczej"
+  },
+  "arrange": "Uporządkuj ikony",
+  "moveOne": "Przenieś „{name}”",
+  "moveMany": {
+    "one": "Przenieś {n} element",
+    "few": "Przenieś {n} elementy",
+    "many": "Przenieś {n} elementów",
+    "other": "Przenieś {n} elementu"
+  },
+  "gone": "Tych elementów już nie ma",
+  "area.open": "Otwórz strefę roboczą",
+  "rename": "Zmień nazwę",
+  "properties": "Właściwości…",
+  "area.remove": "Usuń strefę roboczą…",
+  "open": "Otwórz",
+  "openMany": {
+    "one": "Otwórz {n} element",
+    "few": "Otwórz {n} elementy",
+    "many": "Otwórz {n} elementów",
+    "other": "Otwórz {n} elementu"
+  },
+  "fixed.hide": "Usuń z pulpitu",
+  "fixed.hidden": "„{name}” można przywrócić w Panelu sterowania → Obszar roboczy → Ten obszar roboczy",
+  "fixed.settings": "Stałe elementy pulpitu…",
+  "openWith": "Otwórz za pomocą…",
+  "wallpaper": "Ustaw jako tło pulpitu",
+  "area.fromSelection": "Utwórz strefę roboczą z zaznaczenia",
+  "remove": "Usuń",
+  "removeMany": {
+    "one": "Usuń {n} element",
+    "few": "Usuń {n} elementy",
+    "many": "Usuń {n} elementów",
+    "other": "Usuń {n} elementu"
+  }
+}

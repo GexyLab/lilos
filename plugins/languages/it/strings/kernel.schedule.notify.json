@@ -1,0 +1,8 @@
+{
+  "noService": "Nessun modulo del kernel conserva le notifiche",
+  "sent": "Notifica mandata",
+  "sentAdmins": {
+    "one": "Notifica mandata a {n} amministratore",
+    "other": "Notifica mandata a {n} amministratori"
+  }
+}

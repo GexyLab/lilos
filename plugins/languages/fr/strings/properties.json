@@ -1,0 +1,43 @@
+{
+  "title": "Propriétés",
+  "type": "Type",
+  "app": "App",
+  "linkTarget": "Original",
+  "linkState": "État",
+  "contents": "Contenu",
+  "size": "Taille",
+  "opensWith": "S’ouvre avec",
+  "deleted": "Supprimé",
+  "origin": "Emplacement d’origine",
+  "location": "Emplacement",
+  "created": "Créé",
+  "modified": "Modifié",
+  "workspace": "Espace de travail",
+  "tags": "Étiquettes",
+  "apps": "Apps",
+  "appData": "Données de {id}",
+  "folder": "Dossier",
+  "linkFolder": "Raccourci vers un dossier",
+  "linkWeb": "Raccourci vers une page web",
+  "linkFile": "Raccourci vers un fichier",
+  "appLink": "Raccourci vers une app",
+  "typeExt": "{type} (.{ext})",
+  "system": "{type} système",
+  "appMissing": "{id} (non installée)",
+  "broken": "Rompu : l’original n’a pas été trouvé la dernière fois",
+  "notFound": "Introuvable",
+  "mountGone": "Connexion supprimée",
+  "ask": "Toujours demander",
+  "files": {
+    "one": "{count} fichier",
+    "other": "{count} fichiers"
+  },
+  "folders": {
+    "one": "{count} dossier",
+    "other": "{count} dossiers"
+  },
+  "shared": "Partagé par tous les espaces de travail",
+  "none": "Aucun",
+  "orphan": "L’app n’est pas installée",
+  "remove": "Supprimer"
+}

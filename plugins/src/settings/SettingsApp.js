@@ -387,7 +387,8 @@ function userPageSections() {
   ];
 }
 
-const GROUP_ORDER = ['Generale', 'Scrivania', 'Elementi', 'Finestre'];
+// Shortcut groups by the first word of their commands' ids (the names are in the system's language)
+const GROUP_ORDER = ['system', 'desk', 'items', 'windows'];
 
 /** One section per type group (Testo, Codice…), one row per extension, with the app that opens it. */
 function fileTypeSections() {
@@ -480,7 +481,10 @@ function shortcutSections() {
     if (!groups.has(cmd.group)) groups.set(cmd.group, []);
     groups.get(cmd.group).push(cmd);
   }
-  const rank = g => (GROUP_ORDER.includes(g) ? GROUP_ORDER.indexOf(g) : GROUP_ORDER.length);
+  const rank = cmds => {
+    const at = GROUP_ORDER.indexOf(String(cmds[0]?.id ?? '').split('.')[0]);
+    return at < 0 ? GROUP_ORDER.length : at;
+  };
   return [
     {
       title: t('shortcuts.title'),
@@ -490,7 +494,7 @@ function shortcutSections() {
         control: confirmButton(t('shortcuts.all.reset'), t('common.confirm'), () => shortcuts.resetAll()),
       }],
     },
-    ...[...groups].sort(([a], [b]) => rank(a) - rank(b)).map(([group, cmds]) => ({
+    ...[...groups].sort(([, a], [, b]) => rank(a) - rank(b)).map(([group, cmds]) => ({
       title: group,
       rows: cmds.map(cmd => ({
         label: cmd.label,
@@ -610,29 +614,44 @@ function languageName(code, lang = code) {
   }
 }
 
-/** The language of apps: 'auto' (the browser's) or one of lilOS's, each named in its own language. */
+/**
+ * The language of apps: 'auto' (the browser's) or one of lilOS's, each named in its own language.
+ * sdk.LANGUAGES is English and the language packs installed (lilOS with sdk.languagePacks): the
+ * others come from the AppStore's Languages tab («Altre lingue»).
+ */
 function languageSections() {
-  const value = settings.get('language');
+  const stored = settings.get('language');
   const codes = [...(sdk.LANGUAGES ?? [])];
-  // A stored language that is not in the list (set by hand) is shown as it is
+  // A stored language served by a pack of another tag ('it-IT' by 'it'): shown as that pack, not twice
+  const served = sdk.locale?.language;
+  const value = stored !== 'auto' && !codes.includes(stored) && sdk.locale?.code === stored && served && served !== 'en' && codes.includes(served) ? served : stored;
+  // A stored language that is not in the list (set by hand, or its pack was removed) is shown as it is
   if (value !== 'auto' && !codes.includes(value)) codes.push(value);
+  // The pack's own name ('Italiano'), or Intl's
   const own = code => {
-    const name = languageName(code);
+    const name = sdk.locale?.packs?.find(p => p.language === code)?.name ?? languageName(code);
     return name.charAt(0).toUpperCase() + name.slice(1);
   };
+  const packs = !!sdk.languagePacks;
   return [{
     title: t('language.title'),
-    rows: [{
-      label: t('language.label'), description: t('language.row.description'), keywords: t('language.keywords'),
-      control: () => selectField({
-        value, label: t('language.label'),
-        options: [
-          { value: 'auto', label: t('language.auto', { name: languageName(navigator.language || 'en', i18n.lang) }) },
-          ...codes.map(code => ({ value: code, label: own(code) })),
-        ],
-        onChange: v => settings.set('language', v),
-      }),
-    }],
+    rows: [
+      {
+        label: t('language.label'), description: packs ? t('language.row.packs') : t('language.row.description'), keywords: t('language.keywords'),
+        control: () => selectField({
+          value, label: t('language.label'),
+          options: [
+            { value: 'auto', label: t('language.auto', { name: languageName(navigator.language || 'en', i18n.lang) }) },
+            ...codes.map(code => ({ value: code, label: own(code) })),
+          ],
+          onChange: v => settings.set('language', v),
+        }),
+      },
+      packs && {
+        label: t('language.more.label'), description: t('language.more.description'), keywords: t('language.more.keywords'),
+        control: actionButton({ label: t('language.more.button'), onClick: () => launch('appstore', { tab: 'languages' }) }),
+      },
+    ].filter(Boolean),
   }];
 }
 
@@ -937,6 +956,8 @@ export default function createSettings({ openWindow, args } = {}) {
   });
   const offNet = sdk.net?.on?.('mounts', () => { if (win.view.tab?.id === 'onedrive') win.view.render(); });
   const offLocale = sdk.locale?.on('change', () => { win.view.render(); retitle(); });
-  win.on('destroy', () => { offWorkspaces.forEach(off => off?.()); offTrash(); offTags(); offDesk(); offBackground.forEach(off => off?.()); offLocale?.(); offApps.forEach(off => off?.()); offNet?.(); if (view === win.view) view = null; });
+  // Language packs installed or removed (in the AppStore, by another user): Lingua lists them
+  const offLanguages = sdk.locale?.on('languages', () => win.view.render());
+  win.on('destroy', () => { offWorkspaces.forEach(off => off?.()); offTrash(); offTags(); offDesk(); offBackground.forEach(off => off?.()); offLocale?.(); offLanguages?.(); offApps.forEach(off => off?.()); offNet?.(); if (view === win.view) view = null; });
   return win;
 }

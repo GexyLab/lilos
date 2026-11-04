@@ -1,0 +1,12 @@
+{
+  "ok": "OK",
+  "cancel": "Annuler",
+  "continue": "Continuer",
+  "retry": "Réessayer",
+  "required": "Remplissez « {label} »",
+  "invalid": "« {label} » n’est pas valide",
+  "number": "« {label} » doit être un nombre",
+  "min": "« {label} » doit être au moins {min}",
+  "max": "« {label} » doit être au plus {max}",
+  "long": "« {label} » est trop long ({max} caractères au maximum)"
+}

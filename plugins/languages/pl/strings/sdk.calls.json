@@ -1,0 +1,9 @@
+{
+  "offline": "Żądania sieciowe wykonuje kernel lilOS, który nie jest połączony",
+  "badRun": "Nieprawidłowe wykonanie",
+  "badSession": "Nieprawidłowa sesja",
+  "blocked": "Przeglądarka zablokowała okno logowania",
+  "canceled": "Logowanie anulowane",
+  "failed": "Logowanie nie powiodło się",
+  "noAskAddress": "Brak askAddress"
+}

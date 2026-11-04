@@ -1,0 +1,28 @@
+{
+  "stopped": "Bewerking gestopt",
+  "badName": "Ongeldige gebeurtenisnaam: {name}",
+  "appEvent": "Een gebeurtenis van een app heet <app-id>.<naam>",
+  "exists": "De gebeurtenis {name} bestaat al",
+  "unknown": "Onbekende gebeurtenis: {name}",
+  "stage": "stage moet \"before\" of \"after\" zijn",
+  "position": "position moet \"first\", \"middle\" of \"last\" zijn",
+  "noHandler": "De functie van de pipe ontbreekt",
+  "reserved": "De gebeurtenis {name} is voorbehouden aan het systeem",
+  "syncOnly": "{name} is een directe bewerking: apps kunnen die alleen observeren (stage \"after\")",
+  "maxSubs": {
+    "one": "Maximaal {n} abonnement per app",
+    "other": "Maximaal {n} abonnementen per app"
+  },
+  "busy": "Te veel bewerkingen bezig",
+  "busyApp": "Te veel bewerkingen bezig voor deze app",
+  "syncAnswer": "{name}: een directe bewerking vraagt om een direct antwoord",
+  "handlerFailed": "{name}: {message}",
+  "cannotStop": "{name}: de gebeurtenis {event} kan niet worden gestopt",
+  "whereObject": "where: alleen een object",
+  "whereInvalid": "Ongeldige where",
+  "whereKey": "where: {key} wordt niet gebruikt",
+  "whereMeta": "where.meta: alleen \"own\"",
+  "whereType": "Ongeldig where.type",
+  "whereList": "where.{key}: een lijst met teksten",
+  "timeout": "{name} heeft niet op tijd geantwoord"
+}

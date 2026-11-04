@@ -1,0 +1,9 @@
+{
+  "skipped": "atlandı",
+  "check": "{name} denetimi ({actual})",
+  "test": "“{name}” testi: {error}",
+  "counts": "{seconds} sn içinde {passed} başarılı, {failed} başarısız",
+  "countsSkipped": "{seconds} sn içinde {passed} başarılı, {failed} başarısız, {skipped} atlandı",
+  "cancelled": "İptal edildi: {counts}",
+  "failedFirst": "{name}: {counts} (ilki: {first})"
+}

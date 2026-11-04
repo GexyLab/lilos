@@ -1,0 +1,7 @@
+{
+  "noService": "Tidak ada modul kernel yang menyimpan notifikasi",
+  "sent": "Notifikasi terkirim",
+  "sentAdmins": {
+    "other": "Notifikasi terkirim ke {n} administrator"
+  }
+}

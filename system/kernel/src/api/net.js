@@ -2,6 +2,7 @@ import { Transform } from 'node:stream';
 import { KernelError, fail } from '../errors.js';
 import { send, sendStream } from '../http.js';
 import { CALLBACK_PATH, callbackPage } from '../net/signin.js';
+import { defineStrings, localeOf } from '../strings.js';
 
 /**
  * The network connections of the signed-in user (net/network.js) and their transfers
@@ -51,17 +52,23 @@ const ID = /^[a-f0-9]{16}$/;
 const SIGNIN = /^[\w-]{24}$/;
 const ITEM = /^[a-f0-9]{20}$/;
 const MAX_UPLOAD = 1 << 30;
+const { t } = defineStrings('lilos:kernel.api.net', { en: { strings: {
+  signIn: 'Sign in first', adminOnly: 'Administrators only', mount: 'Connection not valid',
+  tooManyTries: 'Too many connection tries in progress', notOnServer: 'It does not exist on the server', notFile: 'It is not a file',
+  webOnly: 'It opens only on the web', tooLarge: 'File too large', op: 'Operation not valid', import: 'Import not valid',
+  signin: 'Sign-in not valid', item: 'Item not valid',
+} } });
 
-const signedIn = principal => principal ?? fail('unauthorized', 'Accesso richiesto');
-const admin = principal => (signedIn(principal).role === 'admin' ? principal : fail('forbidden', 'Solo un amministratore'));
-const mountId = params => (ID.test(params.id) ? params.id : fail('invalid', 'Connessione non valida'));
+const signedIn = principal => principal ?? fail('unauthorized', t('signIn'));
+const admin = principal => (signedIn(principal).role === 'admin' ? principal : fail('forbidden', t('adminOnly')));
+const mountId = params => (ID.test(params.id) ? params.id : fail('invalid', t('mount')));
 const plain = v => (v && typeof v === 'object' && !Array.isArray(v) ? v : {});
 
 /** Connections tried at once by a user (Prova, Elenca): a few, not a scan of the network. */
 const trying = new Map();
 async function limited(user, fn) {
   const n = trying.get(user.id) ?? 0;
-  if (n >= 3) fail('rate_limited', 'Troppe prove di connessione in corso');
+  if (n >= 3) fail('rate_limited', t('tooManyTries'));
   trying.set(user.id, n + 1);
   try {
     return await fn();
@@ -116,10 +123,10 @@ export function netRoutes(kernel) {
     const user = signedIn(principal), id = mountId(params), path = query.get('path') ?? '';
     const controller = new AbortController();
     req.on('close', () => controller.abort());
-    const entry = await net.stat(user, id, path) ?? fail('not_found', 'Non esiste sul server');
-    if (entry.type === 'folder') fail('invalid', 'Non è un file');
+    const entry = await net.stat(user, id, path) ?? fail('not_found', t('notOnServer'));
+    if (entry.type === 'folder') fail('invalid', t('notFile'));
     // A document with no bytes of its own (Google's): its export, of a size not known before
-    if (entry.web && !entry.export) fail('invalid', 'Si apre solo sul web');
+    if (entry.web && !entry.export) fail('invalid', t('webOnly'));
     const stream = await net.read(user, id, path, { signal: controller.signal, ...(entry.web && { format: entry.export }) });
     // A size of 0 may be one the server does not say (Google Photos): no length then
     await sendStream(res, stream, entry.size > 0 && !entry.web ? { 'Content-Length': String(entry.size) } : {});
@@ -127,13 +134,13 @@ export function netRoutes(kernel) {
 
   router.add('PUT', '/api/net/mounts/:id/content', async ({ req, principal, params, query }) => {
     const user = signedIn(principal), id = mountId(params), path = query.get('path') ?? '';
-    if (Number(req.headers['content-length']) > MAX_UPLOAD) fail('too_large', 'File troppo grande');
+    if (Number(req.headers['content-length']) > MAX_UPLOAD) fail('too_large', t('tooLarge'));
     const controller = new AbortController();
     let size = 0;
     const body = new Transform({
       transform(chunk, _enc, done) {
         size += chunk.length;
-        done(size > MAX_UPLOAD ? new KernelError('too_large', 'File troppo grande') : null, chunk);
+        done(size > MAX_UPLOAD ? new KernelError('too_large', t('tooLarge')) : null, chunk);
       },
     });
     req.on('error', err => body.destroy(err));
@@ -150,7 +157,7 @@ export function netRoutes(kernel) {
     if (op === 'mkdir') return net.mkdir(user, id, path);
     if (op === 'rename') return net.rename(user, id, path, to);
     if (op === 'remove') return net.removePath(user, id, path);
-    return fail('invalid', 'Operazione non valida');
+    return fail('invalid', t('op'));
   });
 
   router.add('GET', '/api/net/mounts/:id/link', async ({ principal, params, query }) => {
@@ -164,7 +171,7 @@ export function netRoutes(kernel) {
   router.add('POST', '/api/net/mounts/:id/import', async ({ principal, params }) => net.importStart(signedIn(principal), mountId(params)));
 
   router.add('GET', '/api/net/mounts/:id/import/:imp', async ({ principal, params, query }) => {
-    if (!/^[\w.-]{1,200}$/.test(params.imp)) fail('invalid', 'Importazione non valida');
+    if (!/^[\w.-]{1,200}$/.test(params.imp)) fail('invalid', t('import'));
     return net.importStatus(signedIn(principal), mountId(params), params.imp, { wait: query.get('wait') === '1' });
   });
 
@@ -174,8 +181,8 @@ export function netRoutes(kernel) {
   });
 
   // Before /signin/:id: the provider sends the window back here, without lilOS's session
-  router.add('GET', CALLBACK_PATH, async ({ res, query }) => {
-    const page = callbackPage(await net.signins.callback(query));
+  router.add('GET', CALLBACK_PATH, async ({ req, res, query }) => {
+    const page = callbackPage(await net.signins.callback(query), localeOf(req));
     send(res, 200, page, { 'Content-Type': 'text/html; charset=utf-8', 'Content-Security-Policy': "default-src 'none'; style-src 'unsafe-inline'; frame-ancestors 'none'" });
   });
 
@@ -185,13 +192,13 @@ export function netRoutes(kernel) {
   });
 
   router.add('POST', '/api/net/signin/:id/paste', async ({ principal, params, json }) => {
-    if (!SIGNIN.test(params.id)) fail('invalid', 'Accesso non valido');
+    if (!SIGNIN.test(params.id)) fail('invalid', t('signin'));
     const { url } = await json(16 << 10);
     return net.signins.paste(signedIn(principal), params.id, url);
   });
 
   router.add('GET', '/api/net/signin/:id', async ({ principal, params, query }) => {
-    if (!SIGNIN.test(params.id)) fail('invalid', 'Accesso non valido');
+    if (!SIGNIN.test(params.id)) fail('invalid', t('signin'));
     return net.signins.status(signedIn(principal), params.id, { wait: query.get('wait') === '1' });
   });
 
@@ -227,7 +234,7 @@ export function netRoutes(kernel) {
   router.add('GET', '/api/net/transfers', async ({ principal }) => transfers.snapshot(signedIn(principal)));
 
   router.add('GET', '/api/net/transfers/items/:id', async ({ principal, params }) => {
-    if (!ITEM.test(params.id)) fail('invalid', 'Elemento non valido');
+    if (!ITEM.test(params.id)) fail('invalid', t('item'));
     return transfers.children(signedIn(principal), params.id);
   });
 

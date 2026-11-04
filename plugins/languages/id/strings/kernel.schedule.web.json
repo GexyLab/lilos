@@ -1,0 +1,27 @@
+{
+  "folderGone": "Folder tujuan penyimpanan sudah tidak ada",
+  "notFolder": "Tempat penyimpanan bukan folder",
+  "notFile": "“{name}” sudah ada dan bukan file",
+  "protected": "“{name}” dilindungi oleh aplikasi (misalnya dienkripsi): tidak ditimpa",
+  "secretGone": "Nilai rahasia {name} tidak dapat dibaca lagi: harus dimasukkan lagi",
+  "fileGone": "File yang akan dikirim sudah tidak ada",
+  "noAnswer": {
+    "other": "Tidak ada jawaban dalam {n} detik"
+  },
+  "untrusted": "{message}: konfirmasikan sekali dari NetTest",
+  "network": "Jaringan: {code}",
+  "redirects": "Terlalu banyak pengalihan",
+  "notWeb": "Pengalihan ke alamat yang bukan web",
+  "otherOrigin": "Pengalihan ke alamat lain dengan isi yang akan dikirim: tidak diikuti",
+  "tooBig": "Respons terlalu besar (paling banyak 10 MB)",
+  "unfinished": {
+    "other": "Respons tidak selesai dalam {n} detik"
+  },
+  "bytes": {
+    "other": "{n} byte"
+  },
+  "saved": "{status} dalam {ms} md · {size} · disimpan di {name}",
+  "summary": "{status} dalam {ms} md · {size}",
+  "status": "Status {status}, diharapkan {expected}",
+  "contains": "Respons tidak berisi “{text}”"
+}

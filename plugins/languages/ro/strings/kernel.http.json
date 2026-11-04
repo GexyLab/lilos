@@ -1,0 +1,9 @@
+{
+  "badPath": "Adresă nevalidă",
+  "tooLarge": "Cerere prea mare",
+  "notJson": "Corpul cererii nu este un JSON valid",
+  "notAllowed": "Cerere nepermisă",
+  "noOrigin": "Lipsește originea",
+  "badOrigin": "Origine nepermisă",
+  "badHost": "Gazdă nepermisă"
+}

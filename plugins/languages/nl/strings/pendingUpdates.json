@@ -1,0 +1,7 @@
+{
+  "restart": "Start lilOS opnieuw om de updates te voltooien",
+  "reopen": "Bijgewerkte apps om opnieuw te starten",
+  "heading": "Bijgewerkt, geopend met de vorige versie",
+  "reopenApp": "{name} opnieuw starten ({version})",
+  "restartSystem": "lilOS opnieuw starten"
+}

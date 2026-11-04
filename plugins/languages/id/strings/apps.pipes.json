@@ -1,0 +1,10 @@
+{
+  "unknownEvent": "Peristiwa tidak dikenal: {event}",
+  "denied": "Izin ditolak: pipe:{event}",
+  "deniedOwn": "Izin ditolak: pipe:{event} (atau pipe.own:{event})",
+  "reserved": "Peristiwa {event} dicadangkan untuk sistem",
+  "sync": "{event} adalah operasi langsung: hanya dapat diamati (stage \"after\")",
+  "gone": "Aplikasi sudah tidak terinstal",
+  "unhandled": "{app} tidak menangani {what} (lilos.pipes.subscribe tidak ada)",
+  "needApp": "Untuk membuka “{file}” Anda memerlukan aplikasi {app}: instal dari AppStore"
+}

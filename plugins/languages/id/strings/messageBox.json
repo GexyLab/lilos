@@ -1,0 +1,12 @@
+{
+  "ok": "OK",
+  "cancel": "Batal",
+  "continue": "Lanjutkan",
+  "retry": "Coba lagi",
+  "required": "Isi “{label}”",
+  "invalid": "“{label}” tidak valid",
+  "number": "“{label}” harus berupa angka",
+  "min": "“{label}” minimal {min}",
+  "max": "“{label}” maksimal {max}",
+  "long": "“{label}” terlalu panjang (paling banyak {max} karakter)"
+}

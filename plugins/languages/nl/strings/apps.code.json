@@ -1,0 +1,5 @@
+{
+  "mismatch": "De code van {app} komt niet overeen met het manifest",
+  "download": "De bibliotheek {name} kan niet worden gedownload ({status})",
+  "hash": "De bibliotheek {name} komt niet overeen met haar hash"
+}

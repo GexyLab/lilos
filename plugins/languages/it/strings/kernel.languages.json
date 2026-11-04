@@ -1,0 +1,11 @@
+{
+  "invalid": "Pacchetto di lingua non valido: {message}",
+  "official": "I pacchetti di lingua arrivano solo dal repository ufficiale",
+  "notOffered": "Il repository ufficiale non ha un pacchetto di lingua per {language}",
+  "noRepo": "Il repository ufficiale non ha pacchetti di lingua",
+  "needs": "{name} richiede lilOS {range} (questo è il {version})",
+  "changed": "{file}: il contenuto non corrisponde a language.json",
+  "notInstalled": "La lingua {language} non è installata",
+  "removeForbidden": "Solo chi ha installato {name} o un amministratore può rimuoverla",
+  "removed": "La lingua {name} è stata rimossa: lilOS è in inglese finché non ne scegli un'altra"
+}

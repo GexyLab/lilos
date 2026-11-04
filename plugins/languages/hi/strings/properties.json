@@ -1,0 +1,43 @@
+{
+  "title": "गुण",
+  "type": "प्रकार",
+  "app": "ऐप",
+  "linkTarget": "मूल",
+  "linkState": "स्थिति",
+  "contents": "सामग्री",
+  "size": "आकार",
+  "opensWith": "इससे खुलता है",
+  "deleted": "हटाया गया",
+  "origin": "मूल स्थान",
+  "location": "स्थान",
+  "created": "बनाया गया",
+  "modified": "संशोधित",
+  "workspace": "कार्यस्थान",
+  "tags": "टैग",
+  "apps": "ऐप",
+  "appData": "{id} का डेटा",
+  "folder": "फ़ोल्डर",
+  "linkFolder": "फ़ोल्डर का लिंक",
+  "linkWeb": "वेब पेज का लिंक",
+  "linkFile": "फ़ाइल का लिंक",
+  "appLink": "ऐप का लिंक",
+  "typeExt": "{type} (.{ext})",
+  "system": "सिस्टम {type}",
+  "appMissing": "{id} (इंस्टॉल नहीं है)",
+  "broken": "टूटा हुआ: पिछली बार मूल नहीं मिला",
+  "notFound": "नहीं मिला",
+  "mountGone": "कनेक्शन हटाया गया",
+  "ask": "हर बार पूछें",
+  "files": {
+    "one": "{count} फ़ाइल",
+    "other": "{count} फ़ाइलें"
+  },
+  "folders": {
+    "one": "{count} फ़ोल्डर",
+    "other": "{count} फ़ोल्डर"
+  },
+  "shared": "सभी कार्यस्थानों द्वारा साझा",
+  "none": "कोई नहीं",
+  "orphan": "ऐप इंस्टॉल नहीं है",
+  "remove": "निकालें"
+}

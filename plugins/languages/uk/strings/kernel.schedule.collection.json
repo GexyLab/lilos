@@ -1,0 +1,9 @@
+{
+  "skipped": "пропущено",
+  "check": "перевірка {name} ({actual})",
+  "test": "тест «{name}»: {error}",
+  "counts": "успішно: {passed}, з помилкою: {failed} за {seconds} с",
+  "countsSkipped": "успішно: {passed}, з помилкою: {failed}, пропущено: {skipped} за {seconds} с",
+  "cancelled": "Скасовано: {counts}",
+  "failedFirst": "{name}: {counts} (перша: {first})"
+}

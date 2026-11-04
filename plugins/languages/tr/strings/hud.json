@@ -1,0 +1,12 @@
+{
+  "zoomOut": "Uzaklaştır",
+  "zoomIn": "Yakınlaştır",
+  "fit": "Tümünü göster",
+  "zoomReset": "%100 yakınlaştır",
+  "help": "Denetimler",
+  "withKey": "{text} ({keys})",
+  "help.wheel": "Tekerlek: yakınlaştırma",
+  "help.move": "Boşluk + sürükleme veya orta düğme: hareket",
+  "help.select": "Arka planı sürükleme: seçim",
+  "help.fit": "{keys}: tümünü göster"
+}

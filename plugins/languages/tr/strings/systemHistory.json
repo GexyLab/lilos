@@ -1,0 +1,9 @@
+{
+  "group": "Düzen",
+  "undo": "Geri al",
+  "redo": "Yinele",
+  "undone": "Geri alındı: {label}",
+  "redone": "Yinelendi: {label}",
+  "failed": "Bu artık yapılamıyor: {message}",
+  "error": "hata"
+}

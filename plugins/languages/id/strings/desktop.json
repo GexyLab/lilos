@@ -1,0 +1,22 @@
+{
+  "choose.serial": "Pilih port serial",
+  "choose.usb": "Pilih perangkat USB",
+  "choose.hid": "Pilih perangkat",
+  "choose.bluetooth": "Pilih perangkat Bluetooth",
+  "choose.screen": "Pilih apa yang akan dibagikan",
+  "choose.text.serial": "Sebuah aplikasi ingin menggunakan port serial komputer.",
+  "choose.text.usb": "Sebuah aplikasi ingin menggunakan perangkat USB komputer.",
+  "choose.text.hid": "Sebuah aplikasi ingin menggunakan perangkat komputer (keypad, pembaca, pengontrol…).",
+  "choose.text.bluetooth": "Sebuah aplikasi ingin menggunakan perangkat Bluetooth di dekat komputer.",
+  "choose.text.screen": "Sebuah aplikasi ingin melihat layar atau jendela komputer.",
+  "choose.field": "Perangkat",
+  "choose.none": "Tidak ada perangkat yang ditemukan: hubungkan lalu coba lagi.",
+  "connect": "Hubungkan",
+  "share": "Bagikan",
+  "saved": "“{name}” disimpan dari program komputer",
+  "saveFailed": "“{name}” tidak disimpan kembali di lilOS: {error}",
+  "missing": "“{path}” tidak ada di lilOS",
+  "driveIn": "“{name}” ada di Jaringan › Komputer ini",
+  "driveFailed": "“{name}” tidak terhubung: {error}",
+  "serialPort": "Port serial"
+}

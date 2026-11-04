@@ -1,0 +1,29 @@
+{
+  "home": "Dossier personnel",
+  "one": "« {name} »",
+  "many": {
+    "one": "{n} élément",
+    "other": "{n} éléments"
+  },
+  "trashToServer": "Ce qui est dans la Corbeille retourne dans un dossier de lilOS, pas sur un serveur",
+  "restored": {
+    "one": "{what} restauré dans {where}",
+    "other": "{what} restaurés dans {where}"
+  },
+  "moved": {
+    "one": "{what} déplacé vers {where}",
+    "other": "{what} déplacés vers {where}"
+  },
+  "transferFailed": "Transfert non démarré : {message}",
+  "moveFailed": "Impossible de déplacer : {message}",
+  "importToServer": "Les fichiers de l’ordinateur sont copiés dans un dossier de lilOS : de là, faites-les glisser vers le serveur",
+  "copied": {
+    "one": "{n} fichier copié de l’ordinateur vers {where}",
+    "other": "{n} fichiers copiés de l’ordinateur vers {where}"
+  },
+  "failed": {
+    "one": "{n} fichier n’a pas été copié",
+    "other": "{n} fichiers n’ont pas été copiés"
+  },
+  "limit": "Seuls les {max} premiers fichiers ont été copiés"
+}

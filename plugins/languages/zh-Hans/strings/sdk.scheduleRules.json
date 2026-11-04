@@ -1,0 +1,80 @@
+{
+  "error.dateTime": "无效的日期和时间",
+  "error.cron": "无效的 cron 表达式",
+  "error.cronFields": "cron 表达式有 5 个字段：分 时 日 月 星期",
+  "error.cronField": "字段 {field} 无效",
+  "error.cronStep": "字段 {field} 中的步长无效",
+  "error.cronValue": "字段 {field} 中的值“{value}”无效",
+  "error.cronRange": "字段 {field} 中的范围颠倒",
+  "error.times": "无效的时间",
+  "error.exceptions": "无效的例外",
+  "error.rule": "无效的规则",
+  "error.zone": "未知时区",
+  "error.kind": "规则必须是“once”、“repeat”或“cron”",
+  "error.start": "无效的开始日期和时间",
+  "error.every": "频率：无效的数字或单位",
+  "error.days": "无效的星期",
+  "error.daysUnit": "星期仅适用于分钟、小时和周",
+  "error.between": "无效的时间范围",
+  "error.monthDay": "无效的月中日期",
+  "error.month": "无效的月份",
+  "error.end": "无效的结束日期",
+  "error.endBeforeStart": "结束早于开始",
+  "error.count": "无效的次数",
+  "error.scope": "scope 必须为 this 或 all",
+  "error.cronMove": "cron 规则一次只能移动一个时间",
+  "error.betweenMidnight": "时间范围将超过午夜",
+  "error.monthDayOut": "月中日期将超出该月范围",
+  "once": "一次：{date} {time}",
+  "timed": "{what} {times}",
+  "at": "时间 {times}",
+  "join": "{a}，{b}",
+  "every.minute": {
+    "other": "每 {n} 分钟"
+  },
+  "every.hour": {
+    "other": "每 {n} 小时"
+  },
+  "every.day": {
+    "other": "每 {n} 天"
+  },
+  "every.week": {
+    "other": "每 {n} 周"
+  },
+  "every.month": {
+    "other": "每 {n} 个月"
+  },
+  "every.year": {
+    "other": "每 {n} 年"
+  },
+  "between": "{from} 至 {to}",
+  "weekday.1": "星期一",
+  "weekday.2": "星期二",
+  "weekday.3": "星期三",
+  "weekday.4": "星期四",
+  "weekday.5": "星期五",
+  "weekday.6": "星期六",
+  "weekday.7": "星期日",
+  "days.list": "在{days}",
+  "days.weekdays": "星期一至星期五",
+  "days.weekend": "星期六和星期日",
+  "days.all": "每天",
+  "eachWeekday": "每{day}",
+  "workweek": "星期一至星期五",
+  "monthDay": "{period}的第 {day} 天",
+  "monthLast": "{period}的最后一天",
+  "nth.1": "{period}的第一个{weekday}",
+  "nth.2": "{period}的第二个{weekday}",
+  "nth.3": "{period}的第三个{weekday}",
+  "nth.4": "{period}的第四个{weekday}",
+  "nth.5": "{period}的第五个{weekday}",
+  "nth.last": "{period}的最后一个{weekday}",
+  "yearDay": "{every}的 {date}",
+  "yearLast": "{every}的{month}最后一天",
+  "yearNth": "{every}：{what}",
+  "until": "直到 {date}",
+  "count": {
+    "other": "{n} 次"
+  },
+  "cron": "Cron：{cron}"
+}

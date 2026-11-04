@@ -1,0 +1,7 @@
+{
+  "signIn": "Meld je eerst aan",
+  "kind": "kind moet \"app\" of \"module\" zijn",
+  "id": "Ongeldige id",
+  "target": "install of update is nodig",
+  "package": "Ongeldig pakket"
+}

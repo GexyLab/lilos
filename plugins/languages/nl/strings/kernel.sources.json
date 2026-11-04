@@ -1,0 +1,20 @@
+{
+  "repo": "Ongeldige repository (eigenaar/naam)",
+  "urlLocal": "Ongeldig adres van de repository (https:// of een map)",
+  "url": "Ongeldig adres van de repository (https://)",
+  "ref": "Ongeldige referentie",
+  "path": "Ongeldig pad in de repository",
+  "local": "Lokale mappen als bron zijn alleen toegestaan tijdens ontwikkeling (allowLocalSources)",
+  "dir": "Ongeldige map (absoluut pad)",
+  "type": "Onbekende bron: \"git\", \"github\" of \"local\"",
+  "noGit": "De opdracht git is niet geïnstalleerd op de computer van de kernel",
+  "git": "git: {message}",
+  "gitError": "git: fout",
+  "outside": "Pad buiten het pakket: {path}",
+  "missing": "{path} ontbreekt",
+  "notFile": "{path} is geen bestand of is te groot",
+  "tooMany": "Te veel bestanden in het pakket",
+  "notInRepo": "De repository bevat geen {path}",
+  "json": "lilos.json is geen geldige JSON",
+  "tooLarge": "Pakket te groot"
+}

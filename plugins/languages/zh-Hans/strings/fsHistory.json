@@ -1,0 +1,18 @@
+{
+  "one": "“{name}”",
+  "many": "{n} 个项目",
+  "home": "主文件夹",
+  "gone": "该项目已不存在",
+  "folderGone": "它们所在的文件夹已不存在",
+  "itemsGone": "这些项目已不存在",
+  "notTrashed": "这些项目已不在回收站中",
+  "createdGone": "该文件夹已不存在",
+  "foldersGone": "这些项目或文件夹已不存在",
+  "delete": "删除{what}",
+  "trash": "将{what}移到回收站",
+  "restore": "还原{what}",
+  "create": "创建“{name}”",
+  "rename": "将“{from}”重命名为“{to}”",
+  "move": "将“{name}”移到“{folder}”",
+  "moveMany": "将{what}移到“{folder}”"
+}

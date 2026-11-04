@@ -1,0 +1,11 @@
+{
+  "invalid": "無効な言語パック：{message}",
+  "official": "言語パックは公式リポジトリからのみ提供されます",
+  "notOffered": "公式リポジトリに {language} の言語パックはありません",
+  "noRepo": "公式リポジトリに言語パックはありません",
+  "needs": "{name} には lilOS {range} が必要です（現在は {version}）",
+  "changed": "{file}：内容が language.json と一致しません",
+  "notInstalled": "言語 {language} はインストールされていません",
+  "removeForbidden": "{name} を削除できるのは、インストールした人か管理者だけです",
+  "removed": "言語 {name} を削除しました。別の言語を選ぶまで lilOS は英語で表示されます"
+}

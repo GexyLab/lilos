@@ -1,0 +1,15 @@
+{
+  "text": "Texto",
+  "pdf": "PDF",
+  "document": "Documento",
+  "spreadsheet": "Hoja de cálculo",
+  "presentation": "Presentación",
+  "image": "Imagen",
+  "audio": "Audio",
+  "video": "Vídeo",
+  "archive": "Archivo comprimido",
+  "code": "Código",
+  "term": "Conexión de terminal",
+  "nettest": "Colección de NetTest",
+  "file": "Archivo"
+}

@@ -1,0 +1,16 @@
+{
+  "secret": "غلط خفیہ قدر",
+  "fingerprint": "غلط فنگر پرنٹ",
+  "server": "غلط سرور",
+  "sendsTooMany": "ایک وقت میں زیادہ سے زیادہ {max} درخواستیں",
+  "unopened": "خفیہ اقدار نہیں کھلیں (کسی دوسرے صارف نے یا کسی دوسرے lilOS پر محفوظ کی گئیں): {names}",
+  "runsTooMany": "ایک وقت میں زیادہ سے زیادہ {max} رنز",
+  "collection": "غلط مجموعہ",
+  "runNotFound": "رن نہیں ملا",
+  "needFile": "ایک .nettest فائل درکار ہے",
+  "notCollection": "یہ فائل NetTest مجموعہ نہیں ہے",
+  "noEnvironment": "ماحول نہیں ملا: {name}",
+  "untitled": "مجموعہ",
+  "noProtocol": "پروٹوکول دستیاب نہیں: {protocol} (اس کا kernel ماڈیول موجود نہیں)",
+  "noDescribe": "یہ پروٹوکول سرور کی وضاحت نہیں کرتا"
+}

@@ -1,0 +1,9 @@
+{
+  "oldTerminal": "Потрібен Термінал 1.5.0 або новіший: оновіть його з AppStore",
+  "signal": "Завершено сигналом SIG{signal} ({code})",
+  "signalTail": "Завершено сигналом SIG{signal} ({code}): {tail}",
+  "exit": "Завершено з кодом {code}",
+  "exitTail": "Завершено з кодом {code}: {tail}",
+  "ok": "Завершено з кодом 0",
+  "okTail": "Завершено з кодом 0 · {tail}"
+}

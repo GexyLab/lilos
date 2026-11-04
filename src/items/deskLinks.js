@@ -1,7 +1,20 @@
-import { fs, net, messageBox } from '@lilos/sdk';
+import { fs, net, messageBox, locale } from '@lilos/sdk';
 import { launch } from '../apps/registry.js';
 import { openFile } from '../apps/open.js';
 import { DESK_NAME } from '../systemFs.js';
+
+const { t } = locale.define('lilos:deskLinks', {
+  en: { strings: {
+    noDesk: 'The desktop is not there',
+    notFolder: '«{name}» is no longer a folder.', notFile: '«{name}» is no longer a file.',
+    broken: 'The link «{name}» cannot find the original',
+    trashed: 'The original is in the trash: restore it to use the link again.',
+    deleted: 'The original was deleted, or it is in a workspace that cannot be seen from here.',
+    mountGone: 'The network connection where the original was is no longer there.',
+    pathGone: '«{path}» is no longer on «{mount}».',
+    unreachable: 'Cannot reach «{name}»',
+  } },
+});
 
 /**
  * Links (fs nodes of type 'link'): "Aggiungi un collegamento al desktop" makes one on the desk of
@@ -37,7 +50,7 @@ export function canLinkOnDesk(ids) {
 /** Makes a link on the desk to each of these that can have one, named as it. Returns the ids of the new links. */
 export function addDeskLinks(ids) {
   const desk = deskFolder();
-  if (!desk) throw new Error('La scrivania non c’è');
+  if (!desk) throw new Error(t('noDesk'));
   const made = [];
   for (const id of ids) {
     const link = linkTo(id);
@@ -73,10 +86,10 @@ export async function findLinkTarget(node, { win = null, read = null } = {}) {
   const found = await locateLink(link, { win, read, linkNode: node });
   if (found.stop) return null;
   const missing = found.missing ?? (found.node.type !== link.kind
-    ? (link.kind === 'folder' ? `«${found.node.name}» ora non è più una cartella.` : `«${found.node.name}» ora non è più un file.`) : null);
+    ? t(link.kind === 'folder' ? 'notFolder' : 'notFile', { name: found.node.name }) : null);
   if (missing) {
     if (fs.exists(node.id)) fs.update(node.id, { broken: true });
-    await messageBox(win, { icon: 'error', title: `Il collegamento «${node.name}» non trova l’originale`, text: missing });
+    await messageBox(win, { icon: 'error', title: t('broken', { name: node.name }), text: missing });
     return null;
   }
   if (link.broken && fs.exists(node.id)) fs.update(node.id, { broken: false });
@@ -97,23 +110,23 @@ export async function locateLink(link, { win = null, read = null, linkNode = nul
 function inHome(link) {
   const node = fs.get(link.home);
   if (node) return { node };
-  if (fs.isTrashed?.(link.home)) return { missing: 'L’originale è nel cestino: ripristinalo per usare di nuovo il collegamento.' };
-  return { missing: 'L’originale è stato eliminato, oppure è in un workspace che da qui non si vede.' };
+  if (fs.isTrashed?.(link.home)) return { missing: t('trashed') };
+  return { missing: t('deleted') };
 }
 
 /** The target of a link on a connection, read from the server: { node }, { missing: why } or { stop } (not reached). */
 async function onServer(linkNode, link, win, read) {
   const mount = net.available ? net.mount(link.mount) : null;
-  if (!mount) return { missing: 'La connessione di rete dove si trovava l’originale non c’è più.' };
+  if (!mount) return { missing: t('mountGone') };
   let id = net.mountNode(mount.id);
-  if (!fs.exists(id)) return { missing: 'La connessione di rete dove si trovava l’originale non c’è più.' };
+  if (!fs.exists(id)) return { missing: t('mountGone') };
   read ??= folder => readFolder(folder, mount, linkNode, win);
   for (const part of link.path.split('/').filter(Boolean)) {
     if (!await read(id)) return { stop: true };
     // The name as written; else in other case (servers like SMB do not tell them apart)
     const kids = fs.children(id);
     const child = kids.find(n => n.name === part) ?? kids.find(n => n.name.toLowerCase() === part.toLowerCase());
-    if (!child) return { missing: `«${link.path}» non c’è più su «${mount.name}».` };
+    if (!child) return { missing: t('pathGone', { path: link.path, mount: mount.name }) };
     id = child.id;
   }
   return { node: fs.get(id) };
@@ -131,7 +144,7 @@ async function readFolder(id, mount, linkNode, win) {
         if (linkNode) launch('files', { folder: net.mountNode(mount.id), link: linkNode.id });
         return false;
       }
-      const answer = await messageBox(win, { icon: 'error', title: `Impossibile raggiungere «${mount.name}»`, text: err.message ?? String(err), buttons: ['retry', 'cancel'] });
+      const answer = await messageBox(win, { icon: 'error', title: t('unreachable', { name: mount.name }), text: err.message ?? String(err), buttons: ['retry', 'cancel'] });
       if (answer !== 'retry') return false;
     }
   }

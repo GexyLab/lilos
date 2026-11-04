@@ -1,5 +1,11 @@
 import { pipeline } from 'node:stream/promises';
 import { KernelError, fail } from './errors.js';
+import { defineStrings, localizedJson } from './strings.js';
+
+const { t } = defineStrings('lilos:kernel.http', { en: { strings: {
+  badPath: 'Address not valid', tooLarge: 'Request too large', notJson: 'The request body is not valid JSON',
+  notAllowed: 'Request not allowed', noOrigin: 'Origin missing', badOrigin: 'Origin not allowed', badHost: 'Host not allowed',
+} } });
 
 const HEADERS = {
   'Cache-Control': 'no-store',
@@ -34,7 +40,7 @@ export class Router {
       try {
         r.keys.forEach((k, i) => { params[k] = decodeURIComponent(m[i + 1]); });
       } catch {
-        fail('invalid', 'Indirizzo non valido');
+        fail('invalid', t('badPath'));
       }
       return { handler: r.handler, params };
     }
@@ -42,9 +48,9 @@ export class Router {
   }
 }
 
-export function send(res, status, body, headers = {}) {
+export function send(res, status, body, headers = {}, locale = 'en') {
   const isBuffer = Buffer.isBuffer(body);
-  const payload = body === undefined ? '' : isBuffer || typeof body === 'string' ? body : JSON.stringify(body);
+  const payload = body === undefined ? '' : isBuffer || typeof body === 'string' ? body : localizedJson(body, locale);
   const type = isBuffer || typeof body === 'string' ? 'text/plain; charset=utf-8' : 'application/json; charset=utf-8';
   res.writeHead(status, { ...HEADERS, ...(body !== undefined && { 'Content-Type': type }), ...headers });
   res.end(payload);
@@ -59,13 +65,13 @@ export async function sendStream(res, stream, headers = {}) {
 /** The request body, at most `limit` bytes. */
 export function readBody(req, limit) {
   return new Promise((resolve, reject) => {
-    if (Number(req.headers['content-length']) > limit) return reject(new KernelError('too_large', 'Richiesta troppo grande'));
+    if (Number(req.headers['content-length']) > limit) return reject(new KernelError('too_large', t('tooLarge')));
     const chunks = [];
     let size = 0;
     req.on('data', chunk => {
       size += chunk.length;
       if (size > limit) {
-        reject(new KernelError('too_large', 'Richiesta troppo grande'));
+        reject(new KernelError('too_large', t('tooLarge')));
         req.destroy();
       } else chunks.push(chunk);
     });
@@ -81,7 +87,7 @@ export async function readJson(req, limit) {
     if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error();
     return value;
   } catch {
-    return fail('invalid', 'Il corpo della richiesta non è JSON valido');
+    return fail('invalid', t('notJson'));
   }
 }
 
@@ -101,7 +107,7 @@ export function cookies(req) {
  */
 export function checkOrigin(req, config) {
   if (SAFE.has(req.method)) return;
-  if (req.headers['x-lilos'] !== '1') fail('forbidden', 'Richiesta non permessa');
+  if (req.headers['x-lilos'] !== '1') fail('forbidden', t('notAllowed'));
   if (req.headers.origin) allowedOrigin(req.headers.origin, config);
 }
 
@@ -112,7 +118,7 @@ export function checkOrigin(req, config) {
  */
 export function checkSocketOrigin(req, config) {
   const origin = req.headers.origin;
-  if (!origin) fail('forbidden', 'Origine mancante');
+  if (!origin) fail('forbidden', t('noOrigin'));
   try {
     const url = new URL(origin);
     if (url.host === req.headers.host && (url.protocol === 'http:' || url.protocol === 'https:')) return;
@@ -122,10 +128,10 @@ export function checkSocketOrigin(req, config) {
 
 function allowedOrigin(origin, { origins, loopbackOrigins }) {
   let url;
-  try { url = new URL(origin); } catch { fail('forbidden', 'Origine non permessa'); }
+  try { url = new URL(origin); } catch { fail('forbidden', t('badOrigin')); }
   if (origins.includes(url.origin)) return;
   if (loopbackOrigins && url.protocol === 'http:' && LOOPBACK.has(url.hostname)) return;
-  fail('forbidden', 'Origine non permessa');
+  fail('forbidden', t('badOrigin'));
 }
 
 /**
@@ -135,10 +141,10 @@ function allowedOrigin(origin, { origins, loopbackOrigins }) {
  */
 export function checkHost(req, { origins, loopbackOrigins }) {
   let host;
-  try { host = new URL(`http://${req.headers.host ?? ''}`).hostname; } catch { fail('forbidden', 'Host non permesso'); }
+  try { host = new URL(`http://${req.headers.host ?? ''}`).hostname; } catch { fail('forbidden', t('badHost')); }
   if (LOOPBACK.has(host) && (loopbackOrigins || !origins.length)) return;
   if (origins.some(o => { try { return new URL(o).hostname === host; } catch { return false; } })) return;
-  fail('forbidden', 'Host non permesso');
+  fail('forbidden', t('badHost'));
 }
 
 export const clientIp = req => req.socket.remoteAddress ?? '';

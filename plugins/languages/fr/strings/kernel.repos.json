@@ -1,0 +1,11 @@
+{
+  "official": "lilOS officiel",
+  "adminOnly": "Seul un administrateur gère les dépôts",
+  "missing": "Dépôt introuvable",
+  "present": "Dépôt déjà ajouté",
+  "tooMany": "Au maximum {max} dépôts",
+  "notOfficial": "Le dépôt officiel ne peut pas être supprimé",
+  "catalog": "catalog.json est manquant ou n’est pas un JSON valide",
+  "notInCatalog": "Paquet absent du catalogue",
+  "file": "Fichier non valide"
+}

@@ -1,0 +1,10 @@
+{
+  "group": "Ruang kerja",
+  "next": "Beralih ke ruang kerja berikutnya",
+  "previous": "Beralih ke ruang kerja sebelumnya",
+  "limit": "Paling banyak {max} ruang kerja",
+  "deskOf": "Desktop {name}",
+  "removed": "Ruang kerja “{name}” dihapus",
+  "removedKept": "Ruang kerja “{name}” dihapus. Desktop-nya sekarang adalah {path}",
+  "newName": "Ruang kerja {n}"
+}

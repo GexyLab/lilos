@@ -6,6 +6,18 @@ import { logger } from './log.js';
 import { fail } from './errors.js';
 import { JsonStore } from './jsonFile.js';
 import { cleanPath, joinPath, parentOf, baseName, isSafeName, cleanName } from './net/drivers.js';
+import { defineStrings } from './strings.js';
+
+/** What resolveModules says when the modules would not start: an admin reads it in the AppStore (modulePackage.js). */
+const { t } = defineStrings('lilos:kernel.modules', { en: { strings: {
+  folder: 'module.json does not match the folder {folder}', kernel: '{name} needs kernel {kernel}, this is {api}',
+  services: '{name}: service names not valid', settings: '{name}: settings not valid', replaces: '{name}: replaces not valid',
+  notInstalled: 'Module not installed: {name}', twice: 'Module named twice: {name}',
+  provider: 'The service "{service}" is provided both by {first} and by {second}', cycle: 'Circular dependencies between the modules ({name})',
+  missing: '{name} needs the service "{service}", which no active module provides',
+} } });
+/** An error whose message an admin may read: `text` in their language, `message` in English. */
+const error = text => Object.assign(new Error(String(text)), { text });
 
 /** Field types a module's settings may have (the same descriptions as the fields of net/drivers.js). */
 const SETTING_TYPES = new Set(['text', 'textarea', 'number', 'select', 'checkbox', 'password']);
@@ -90,14 +102,14 @@ export async function scanModules(modulesDir) {
 async function readManifest(mod) {
   const raw = JSON.parse(await readFile(join(mod.dir, 'module.json'), 'utf8'));
   const list = v => (Array.isArray(v) ? v : []);
-  if (raw.name !== mod.name || raw.version !== mod.version) throw new Error(`module.json non corrisponde alla cartella ${mod.name}_${mod.version}`);
-  if (String(raw.kernel) !== String(KERNEL_API)) throw new Error(`${mod.name} richiede il kernel ${raw.kernel}, questo è il ${KERNEL_API}`);
+  if (raw.name !== mod.name || raw.version !== mod.version) throw error(t('folder', { folder: `${mod.name}_${mod.version}` }));
+  if (String(raw.kernel) !== String(KERNEL_API)) throw error(t('kernel', { name: mod.name, kernel: String(raw.kernel), api: KERNEL_API }));
   const services = [...list(raw.provides), ...list(raw.requires)];
-  if (services.some(s => typeof s !== 'string' || !SERVICE.test(s))) throw new Error(`${mod.name}: nomi di servizi non validi`);
+  if (services.some(s => typeof s !== 'string' || !SERVICE.test(s))) throw error(t('services', { name: mod.name }));
   const settings = list(raw.settings);
-  if (settings.some(f => !f || typeof f !== 'object' || !SETTING_KEY.test(f.key ?? '') || !SETTING_TYPES.has(f.type))) throw new Error(`${mod.name}: impostazioni non valide`);
+  if (settings.some(f => !f || typeof f !== 'object' || !SETTING_KEY.test(f.key ?? '') || !SETTING_TYPES.has(f.type))) throw error(t('settings', { name: mod.name }));
   const replaces = list(raw.replaces);
-  if (replaces.some(n => typeof n !== 'string' || !NAME.test(n) || n === mod.name)) throw new Error(`${mod.name}: replaces non valido`);
+  if (replaces.some(n => typeof n !== 'string' || !NAME.test(n) || n === mod.name)) throw error(t('replaces', { name: mod.name }));
   return { ...mod, description: String(raw.description ?? ''), provides: list(raw.provides), requires: list(raw.requires), replaces, settings };
 }
 
@@ -111,10 +123,10 @@ export async function resolveModules(modulesDir, wanted) {
   const chosen = [];
   for (const want of wanted) {
     const versions = installed.get(want.name);
-    if (!versions) throw new Error(`Modulo non installato: ${want.name}`);
+    if (!versions) throw error(t('notInstalled', { name: want.name }));
     const mod = want.version ? versions.find(v => v.version === want.version) : versions[0];
-    if (!mod) throw new Error(`Modulo non installato: ${want.name}_${want.version}`);
-    if (chosen.some(c => c.name === mod.name)) throw new Error(`Modulo indicato due volte: ${mod.name}`);
+    if (!mod) throw error(t('notInstalled', { name: `${want.name}_${want.version}` }));
+    if (chosen.some(c => c.name === mod.name)) throw error(t('twice', { name: mod.name }));
     chosen.push({ ...(await readManifest(mod)), config: want.config ?? {} });
   }
   // A module another one replaces does not start with it (modulePackage.js takes it away for good)
@@ -127,18 +139,18 @@ export async function resolveModules(modulesDir, wanted) {
   const providers = new Map();
   for (const mod of chosen) {
     for (const s of mod.provides) {
-      if (providers.has(s)) throw new Error(`Il servizio "${s}" è fornito sia da ${providers.get(s).name} sia da ${mod.name}`);
+      if (providers.has(s)) throw error(t('provider', { service: s, first: providers.get(s).name, second: mod.name }));
       providers.set(s, mod);
     }
   }
   const ordered = [], state = new Map();
   const visit = mod => {
     if (state.get(mod) === 'done') return;
-    if (state.get(mod) === 'visiting') throw new Error(`Dipendenze circolari tra i moduli (${mod.name})`);
+    if (state.get(mod) === 'visiting') throw error(t('cycle', { name: mod.name }));
     state.set(mod, 'visiting');
     for (const s of mod.requires) {
       const provider = providers.get(s);
-      if (!provider) throw new Error(`${mod.name} richiede il servizio "${s}", che nessun modulo attivo fornisce`);
+      if (!provider) throw error(t('missing', { name: mod.name, service: s }));
       if (provider !== mod) visit(provider);
     }
     state.set(mod, 'done');

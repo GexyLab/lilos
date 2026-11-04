@@ -1,0 +1,7 @@
+{
+  "start": "lilOS 菜单",
+  "menu": "菜单",
+  "menuKeys": "菜单（{keys}）",
+  "taskbar": "任务栏",
+  "tray": "通知区域"
+}

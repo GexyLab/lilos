@@ -1,0 +1,23 @@
+{
+  "signIn": "Conectare necesară",
+  "noProtocol": "Protocol indisponibil: {protocol} (lipsește modulul său de kernel)",
+  "hostName": "Nume de gazdă nevalid",
+  "hostTaken": "Există deja o gazdă „{name}”",
+  "missing": "Lipsesc: {fields}",
+  "tooMany": "Cel mult {max} gazde",
+  "hostNotFound": "Gazda nu a fost găsită",
+  "noPassword": "Nicio parolă de salvat",
+  "sealedOther": "Parola salvată în comanda rapidă este valabilă doar pentru cel care a salvat-o, pe acest lilOS, pentru același server și utilizator",
+  "sessionNotFound": "Sesiunea nu a fost găsită",
+  "sessionsTooMany": "Cel mult {max} sesiuni deschise",
+  "sftpOnly": "Terminalul se deschide doar pe conexiunile SFTP",
+  "sshOnly": "Comenzile planificate merg doar către gazde SSH",
+  "untrusted": "Cheia serverului „{name}” nu este confirmată: conectați-vă o dată din Terminal",
+  "denied": "Acces refuzat de „{name}”: salvați parola sau cheia în gazdă",
+  "stopping": "Kernelul se oprește",
+  "detached": "Închisă după 10 minute fără fereastră",
+  "cancelled": "Conexiune anulată",
+  "failed": "Conexiunea a eșuat",
+  "folder": "Nume de dosar nevalid",
+  "cwd": "Dosar nevalid"
+}

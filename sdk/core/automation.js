@@ -1,4 +1,11 @@
 import { Emitter } from './events.js';
+import { locale } from './locale.js';
+
+const { t } = locale.define('lilos:sdk.automation', {
+  en: { strings: {
+    badAction: 'Invalid action: {id}', noFunction: 'The action’s function is missing', timeout: 'The app did not open the file in time',
+  } },
+});
 
 /**
  * Automation: what the user does, recorded as steps that can be done again (the Automata app).
@@ -114,7 +121,7 @@ class Automation extends Emitter {
    * run?(params, ctx) → result }  (run: lilOS's own actions)
    */
   define(id, def = {}) {
-    if (!ID.test(id)) throw new Error(`Azione non valida: ${String(id).slice(0, 60)}`);
+    if (!ID.test(id)) throw new Error(t('badAction', { id: String(id).slice(0, 60) }));
     const params = {};
     for (const [name, p] of Object.entries(plain(def.params) ? def.params : {}).slice(0, 20)) {
       const clean = PARAM.test(name) ? cleanParam(p) : null;
@@ -295,7 +302,7 @@ class Automation extends Emitter {
    * `file`: the id of the file it shows, or a function giving it (it changes). Returns off().
    */
   handle(id, fn, { window = null, file = null, app = null } = {}) {
-    if (typeof fn !== 'function') throw new Error('Manca la funzione dell’azione');
+    if (typeof fn !== 'function') throw new Error(t('noFunction'));
     if (!this.#handlers.has(id)) this.#handlers.set(id, new Set());
     const h = { fn, window, file, app: app ?? this.#actions.get(id)?.app ?? id.slice(0, id.lastIndexOf('.')), at: Date.now() };
     this.#handlers.get(id).add(h);
@@ -352,7 +359,7 @@ class Automation extends Emitter {
       // A window may register before it has its file: look again for a while
       const poll = setInterval(check, 200);
       const off = this.on('handlers', check);
-      const timer = setTimeout(() => { done(); reject(new Error('L’app non ha aperto il file in tempo')); }, timeout);
+      const timer = setTimeout(() => { done(); reject(new Error(t('timeout'))); }, timeout);
       const done = () => { off(); clearInterval(poll); clearTimeout(timer); };
     });
   }

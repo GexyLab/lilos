@@ -1,0 +1,8 @@
+{
+  "notFound": "Port serial tidak ditemukan (tercabut?)",
+  "unsupported": "Browser ini tidak dapat menggunakan port serial (memerlukan Chrome, Edge, atau Firefox 151+, di https atau localhost)",
+  "click": "Browser memerlukan klik sebelum memilih port",
+  "baud": "Kecepatan tidak valid (baud)",
+  "busy": "Port sudah terbuka (oleh jendela lain atau program lain)",
+  "failed": "Port tidak terbuka: {message}"
+}

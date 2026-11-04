@@ -1,4 +1,8 @@
-import { Emitter, fs, storage } from '@lilos/sdk';
+import { Emitter, fs, storage, locale } from '@lilos/sdk';
+
+const { t } = locale.define('lilos:sidebarLinks', {
+  en: { strings: { add: 'Add to the File Manager sidebar' } },
+});
 
 const STORAGE_KEY = 'files-sidebar';
 const OLD_KEY = 'files-links';   // links before they could go anywhere in the sidebar: added at the end
@@ -121,5 +125,5 @@ export const links = new Links();
 /** Menu entry that adds a link to the File Manager's sidebar, or null if they all have one already. */
 export function linkEntry(ids) {
   const fresh = ids.filter(id => !links.has(id) && fs.exists(id) && id !== fs.root && !fs.get(id).system);
-  return fresh.length ? { label: 'Aggiungi alla barra laterale del File Manager', icon: 'link', action: () => links.add(fresh) } : null;
+  return fresh.length ? { label: t('add'), icon: 'link', action: () => links.add(fresh) } : null;
 }

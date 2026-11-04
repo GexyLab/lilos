@@ -1,0 +1,8 @@
+{
+  "title": "Gegevensoverdracht",
+  "sent": "↑ {done} van {total}",
+  "received": "↓ {done} van {total}",
+  "rate": "{line} · {bytes}/s",
+  "conflict": "Er bestaat al een bestand: kies wat je wilt doen",
+  "failed": "Sommige bestanden zijn niet overgedragen"
+}

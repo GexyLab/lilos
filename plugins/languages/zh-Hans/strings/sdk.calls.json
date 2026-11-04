@@ -1,0 +1,9 @@
+{
+  "offline": "网络请求由 lilOS 内核发出，但内核未连接",
+  "badRun": "无效的运行",
+  "badSession": "无效的会话",
+  "blocked": "浏览器阻止了登录窗口",
+  "canceled": "登录已取消",
+  "failed": "登录失败",
+  "noAskAddress": "缺少 askAddress"
+}

@@ -11,6 +11,7 @@ import { secretFiller } from './request.js';
 import { runRequest, runCollection, flatten, varsOf, MAX_RESULTS } from './runner.js';
 import { resolveDeep } from './vars.js';
 import { homeNode, frontNode, readHomeFile } from './home.js';
+import { defineStrings } from '../strings.js';
 
 /**
  * NetTest's requests, made by the kernel for the signed-in user (the app NetTest, the scheduler's
@@ -33,6 +34,22 @@ const WAIT = 25_000;
 const MAX_SENDS = 8;              // requests of a user going at once (each may hold 50 MB and 10 minutes)
 const str = v => (typeof v === 'string' ? v : '');
 const plain = v => (v && typeof v === 'object' && !Array.isArray(v) ? v : {});
+const { t } = defineStrings('lilos:kernel.calls', { en: { strings: {
+  secret: 'Secret value not valid',
+  fingerprint: 'Fingerprint not valid',
+  server: 'Server not valid',
+  sendsTooMany: 'At most {max} requests at a time',
+  unopened: 'Secret values not opened (saved by another user or on another lilOS): {names}',
+  runsTooMany: 'At most {max} runs at a time',
+  collection: 'Collection not valid',
+  runNotFound: 'Run not found',
+  needFile: 'A .nettest file is needed',
+  notCollection: 'The file is not a NetTest collection',
+  noEnvironment: 'Environment not found: {name}',
+  untitled: 'Collection',
+  noProtocol: 'Protocol not available: {protocol} (its kernel module is missing)',
+  noDescribe: 'This protocol does not describe the server',
+} } });
 const strings = v => Object.fromEntries(Object.entries(plain(v)).filter(([k, x]) => typeof k === 'string' && k.length <= 200 && (typeof x === 'string' || typeof x === 'number' || typeof x === 'boolean')).map(([k, x]) => [k, String(x)]));
 
 export class Calls {
@@ -75,15 +92,15 @@ export class Calls {
 
   /** A secret value for a .nettest file: only this user, on this lilOS, opens it again. */
   async seal(principal, value) {
-    if (typeof value !== 'string' || value.length > 64 << 10) fail('invalid', 'Valore segreto non valido');
+    if (typeof value !== 'string' || value.length > 64 << 10) fail('invalid', t('secret'));
     return { sealed: await this.secrets.seal({ kind: SEALED, user: principal.id, value }) };
   }
 
   /** The user confirmed the certificate of a server: { host, port, fingerprint }. */
   async trust(principal, { host, port, fingerprint }) {
-    if (typeof fingerprint !== 'string' || !/^[0-9A-F:]{32,200}$/i.test(fingerprint)) fail('invalid', 'Impronta non valida');
+    if (typeof fingerprint !== 'string' || !/^[0-9A-F:]{32,200}$/i.test(fingerprint)) fail('invalid', t('fingerprint'));
     const server = serverOf({ host: str(host), port: Number(port) || 443 });
-    if (!server) fail('invalid', 'Server non valido');
+    if (!server) fail('invalid', t('server'));
     await this.knownHosts.set(principal.id, 'tls', server, fingerprint);
   }
 
@@ -144,7 +161,7 @@ export class Calls {
    */
   async send(principal, body, { signal } = {}) {
     const n = this.#sending.get(principal.id) ?? 0;
-    if (n >= MAX_SENDS) fail('rate_limited', `Al massimo ${MAX_SENDS} richieste alla volta`);
+    if (n >= MAX_SENDS) fail('rate_limited', t('sendsTooMany', { max: MAX_SENDS }));
     this.#sending.set(principal.id, n + 1);
     try {
       return await this.#send(principal, body, { signal });
@@ -160,7 +177,7 @@ export class Calls {
     const { scopes, secrets, unopened } = await this.#scopes(principal, body);
     const { ctx, renewed } = this.#context(principal, secrets, signal);
     const result = await runRequest(ctx, { item, chain }, scopes);
-    if (unopened.length) result.logs.unshift({ level: 'warn', text: `Valori segreti non aperti (salvati da un altro utente o su un altro lilOS): ${unopened.join(', ')}`, phase: 'pre' });
+    if (unopened.length) result.logs.unshift({ level: 'warn', text: t('unopened', { names: unopened.join(', ') }), phase: 'pre' });
     return { result, ...Calls.#after(scopes, renewed, unopened) };
   }
 
@@ -170,9 +187,9 @@ export class Calls {
    */
   async run(principal, body) {
     const mine = [...this.#runs.values()].filter(r => r.owner === principal.id && !r.done);
-    if (mine.length >= MAX_RUNS) fail('rate_limited', `Al massimo ${MAX_RUNS} esecuzioni alla volta`);
+    if (mine.length >= MAX_RUNS) fail('rate_limited', t('runsTooMany', { max: MAX_RUNS }));
     const collection = plain(body.collection);
-    if (!Array.isArray(collection.items)) fail('invalid', 'Collezione non valida');
+    if (!Array.isArray(collection.items)) fail('invalid', t('collection'));
     const { scopes, secrets, unopened } = await this.#scopes(principal, { ...body, collection: { values: { ...varsOf(collection.variables), ...strings(plain(body.collection).values) } } });
     const abort = new AbortController();
     const { ctx, renewed } = this.#context(principal, secrets, abort.signal);
@@ -188,7 +205,7 @@ export class Calls {
     }).then(summary => {
       run.summary = { passed: summary.passed, failed: summary.failed, skipped: summary.skipped, ms: summary.ms, cancelled: summary.cancelled, ...Calls.#after(scopes, renewed, unopened) };
     }, err => {
-      run.summary = { passed: 0, failed: 1, skipped: 0, ms: 0, cancelled: false, error: err.message, ...Calls.#after(scopes, renewed, unopened) };
+      run.summary = { passed: 0, failed: 1, skipped: 0, ms: 0, cancelled: false, error: err?.text ?? err?.message, ...Calls.#after(scopes, renewed, unopened) };
     }).finally(() => {
       run.done = true;
       run.ended = Date.now();
@@ -205,7 +222,7 @@ export class Calls {
 
   #run(principal, id) {
     const r = this.#runs.get(id);
-    if (!r || r.owner !== principal.id) fail('not_found', 'Esecuzione inesistente');
+    if (!r || r.owner !== principal.id) fail('not_found', t('runNotFound'));
     return r;
   }
 
@@ -233,17 +250,17 @@ export class Calls {
    */
   async runFile(principal, source, { environment = null, only = null, signal, onResult, data = null, iterations = 1 } = {}) {
     const { view, node } = typeof source === 'string' ? await homeNode({ kernel: this.#kernel, principal }, source) : await frontNode(this.#kernel, principal, source.id);
-    if (node.type !== 'file') fail('invalid', 'Serve un file .nettest');
+    if (node.type !== 'file') fail('invalid', t('needFile'));
     let collection;
     try {
       collection = JSON.parse((await view.fs.read(principal, node.id)).toString('utf8'));
     } catch {
-      fail('invalid', 'Il file non è una collezione di NetTest');
+      fail('invalid', t('notCollection'));
     }
-    if (collection?.format !== 'nettest' || !Array.isArray(collection.items)) fail('invalid', 'Il file non è una collezione di NetTest');
+    if (collection?.format !== 'nettest' || !Array.isArray(collection.items)) fail('invalid', t('notCollection'));
     const envs = Array.isArray(collection.environments) ? collection.environments : [];
     const env = environment ? envs.find(e => e.id === environment || String(e.name).toLowerCase() === String(environment).toLowerCase()) : null;
-    if (environment && !env) fail('not_found', `Ambiente inesistente: ${environment}`);
+    if (environment && !env) fail('not_found', t('noEnvironment', { name: environment }));
     const rows = Array.isArray(env?.variables) ? env.variables.filter(v => v && v.enabled !== false && typeof v.key === 'string') : [];
     const body = {
       environment: { values: varsOf(rows), secrets: Object.fromEntries(rows.filter(v => v.secret && typeof v.sealed === 'string').map(v => [v.key, v.sealed])) },
@@ -252,7 +269,7 @@ export class Calls {
     const { scopes, secrets } = await this.#scopes(principal, body);
     const { ctx } = this.#context(principal, secrets, signal);
     const summary = await runCollection(ctx, collection, scopes, { only, onResult, data, iterations });
-    return { name: str(collection.name) || 'Collezione', ...summary };
+    return { name: str(collection.name) || t('untitled'), ...summary };
   }
 
   /** The values a live session or a module's call gets: the request's fields, variables and secrets in. */
@@ -269,10 +286,11 @@ export class Calls {
     const { item, values, mask } = await this.#liveValues(principal, body);
     const protocol = str(item.protocol);
     const driver = this.drivers.get(protocol);
-    if (typeof driver?.open !== 'function') fail('unavailable', `Protocollo non disponibile: ${protocol} (manca il suo modulo del kernel)`);
+    if (typeof driver?.open !== 'function') fail('unavailable', t('noProtocol', { protocol }));
     const address = mask(values.url || (values.host ? `${values.host}:${values.port ?? ''}` : protocol));
+    const locale = await this.#kernel.userLocale(principal.id).catch(() => 'en');
     return this.sessions.open(principal, {
-      protocol, driver, values, mask, name: str(item.name).slice(0, 80) || address, address, request: str(item.id) || null,
+      protocol, driver, values, mask, locale, name: str(item.name).slice(0, 80) || address, address, request: str(item.id) || null,
       tls: (host, port) => this.#tls(principal, values.settings ?? {}, host, port),
     });
   }
@@ -281,7 +299,7 @@ export class Calls {
   async describe(principal, body) {
     const { item, values, ctx } = await this.#liveValues(principal, body);
     const driver = this.drivers.get(str(item.protocol));
-    if (typeof driver?.describe !== 'function') fail('unavailable', 'Questo protocollo non descrive il server');
+    if (typeof driver?.describe !== 'function') fail('unavailable', t('noDescribe'));
     return driver.describe(values, ctx.driverContext(values));
   }
 

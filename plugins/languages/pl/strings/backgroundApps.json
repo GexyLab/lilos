@@ -1,0 +1,12 @@
+{
+  "one": "Aplikacja {name} działa w tle",
+  "many": {
+    "one": "{n} aplikacja działa w tle",
+    "few": "{n} aplikacje działają w tle",
+    "many": "{n} aplikacji działa w tle",
+    "other": "{n} aplikacji działa w tle"
+  },
+  "heading": "Działające w tle",
+  "item": "{name}: {label}",
+  "stop": "Zatrzymaj"
+}

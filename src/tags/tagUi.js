@@ -1,5 +1,9 @@
-import { fs, tags, h } from '@lilos/sdk';
+import { fs, tags, h, locale } from '@lilos/sdk';
 import { launch } from '../apps/registry.js';
+
+const { t: tr } = locale.define('lilos:tags', {
+  en: { strings: { list: 'Tags: {names}', menu: 'Tag', hides: '{name} (hides)', create: 'New tag…', manage: 'Manage tags…' } },
+});
 
 const MAX_DOTS = 4;
 
@@ -11,7 +15,7 @@ export function tagDots(node, cls = 'tag-dots') {
   const list = (node?.tags ?? []).map(id => tags.get(id)).filter(Boolean);
   if (!list.length) return null;
   const names = list.map(t => t.name).join(', ');
-  return h('span', { class: cls, title: `Tag: ${names}`, role: 'img', 'aria-label': `Tag: ${names}` },
+  return h('span', { class: cls, title: tr('list', { names }), role: 'img', 'aria-label': tr('list', { names }) },
     list.slice(0, MAX_DOTS).map(t => h('span', { class: 'tag-dot', style: { background: t.color } })),
     list.length > MAX_DOTS ? h('span', { class: 'tag-more' }, `+${list.length - MAX_DOTS}`) : null);
 }
@@ -34,18 +38,18 @@ export function tagSubmenu(ids) {
   const nodes = ids.map(id => fs.get(id)).filter(n => n && !n.system);
   const list = tags.list();
   return {
-    label: 'Tag', icon: 'tag', disabled: !nodes.length,
+    label: tr('menu'), icon: 'tag', disabled: !nodes.length,
     items: [
       ...list.map(t => {
         const all = nodes.every(n => n.tags?.includes(t.id));
         return {
-          label: t.visible ? t.name : `${t.name} (nasconde)`, icon: all ? 'check' : null, swatch: t.color,
+          label: t.visible ? t.name : tr('hides', { name: t.name }), icon: all ? 'check' : null, swatch: t.color,
           action: () => setTag(nodes.map(n => n.id), t.id, !all),
         };
       }),
       ...(list.length ? ['-'] : []),
-      { label: 'Nuovo tag…', icon: 'plus', action: () => launch('settings', { tab: 'tags', tagFor: nodes.map(n => n.id) }) },
-      { label: 'Gestisci i tag…', icon: 'gear', action: () => launch('settings', { tab: 'tags' }) },
+      { label: tr('create'), icon: 'plus', action: () => launch('settings', { tab: 'tags', tagFor: nodes.map(n => n.id) }) },
+      { label: tr('manage'), icon: 'gear', action: () => launch('settings', { tab: 'tags' }) },
     ],
   };
 }

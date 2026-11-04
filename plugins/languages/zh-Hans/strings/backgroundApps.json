@@ -1,0 +1,9 @@
+{
+  "one": "{name} 正在后台运行",
+  "many": {
+    "other": "{n} 个应用正在后台运行"
+  },
+  "heading": "正在后台运行",
+  "item": "{name}：{label}",
+  "stop": "停止"
+}

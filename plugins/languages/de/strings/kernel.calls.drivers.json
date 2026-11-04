@@ -1,0 +1,17 @@
+{
+  "port": "Ungültiger Port",
+  "url": "Ungültige Adresse",
+  "closedBy": "Vom Server geschlossen ({code})",
+  "closedByReason": "Vom Server geschlossen ({code}: {reason})",
+  "closed": "Die Verbindung ist geschlossen",
+  "unknownCommand": "Unbekannter Befehl",
+  "notStream": "Der Server hat {status} statt eines Ereignisstroms geantwortet",
+  "notStreamType": "Der Server hat {status} ({type}) statt eines Ereignisstroms geantwortet",
+  "lineTooLong": "Zeile zu lang: verworfen",
+  "eventTooLong": "Ereignis zu lang: verworfen",
+  "streamEnded": "Der Server hat den Stream geschlossen",
+  "receiveOnly": "Server-Sent Events: nur Empfang",
+  "noHost": "Der Server fehlt",
+  "ended": "Der Server hat die Verbindung geschlossen",
+  "tooBig": "Datagramm zu groß (höchstens 65507 Bytes)"
+}

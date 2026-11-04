@@ -1,0 +1,8 @@
+{
+  "noExport": "Kode tidak mengekspor {entry}",
+  "windowClosed": "{app}: jendela ditutup",
+  "libraryFailed": "Pustaka {name} tidak dimuat",
+  "noExportOf": "Kode {app} tidak mengekspor {entry}",
+  "noWindow": "{app} tidak memiliki jendela {entry}",
+  "remoteOrigin": "Aplikasi jarak jauh tidak dapat memiliki alamat lilOS"
+}

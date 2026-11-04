@@ -1,0 +1,10 @@
+{
+  "scriptErrorBefore": "Błąd skryptu (przed): {message}",
+  "scriptErrorAfter": "Błąd skryptu (po): {message}",
+  "scriptTimeoutBefore": "Błąd skryptu (przed): skryptowi skończył się czas (5 sekund)",
+  "scriptTimeoutAfter": "Błąd skryptu (po): skryptowi skończył się czas (5 sekund)",
+  "skipped": "Sesje (WebSocket, SSE, TCP, UDP, MQTT) otwiera się z okna: wykonania je pomijają",
+  "otherServer": "Skrypt zmienił serwer żądania: wartości tajne nie trafiają pod inny adres",
+  "noProtocol": "Protokół niedostępny w wykonaniach: {protocol} (brak jego modułu kernela)",
+  "nothingToSave": "„{name}”: nic do zapisania ({source} {path})"
+}

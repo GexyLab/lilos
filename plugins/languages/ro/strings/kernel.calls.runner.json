@@ -1,0 +1,10 @@
+{
+  "scriptErrorBefore": "Eroare de script (înainte): {message}",
+  "scriptErrorAfter": "Eroare de script (după): {message}",
+  "scriptTimeoutBefore": "Eroare de script (înainte): scriptul a depășit timpul alocat (5 secunde)",
+  "scriptTimeoutAfter": "Eroare de script (după): scriptul a depășit timpul alocat (5 secunde)",
+  "skipped": "Sesiunile (WebSocket, SSE, TCP, UDP, MQTT) se deschid din fereastră: execuțiile le omit",
+  "otherServer": "Un script a schimbat serverul cererii: valorile secrete nu merg la altă adresă",
+  "noProtocol": "Protocol indisponibil în execuții: {protocol} (lipsește modulul său de kernel)",
+  "nothingToSave": "„{name}”: nimic de salvat ({source} {path})"
+}

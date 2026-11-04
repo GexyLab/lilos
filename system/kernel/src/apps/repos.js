@@ -8,6 +8,7 @@ import { parseLocales } from '../../../../sdk/core/i18n.js';
 import { checkModule } from './modulePackage.js';
 import { checkSystem } from './systemPackage.js';
 import { OFFICIAL_URL, cleanSource, isOfficial, normalizeUrl, openSource } from './sources.js';
+import { defineStrings } from '../strings.js';
 
 /**
  * Repositories lilOS takes apps and kernel modules from. The official one is always there; the
@@ -19,10 +20,18 @@ import { OFFICIAL_URL, cleanSource, isOfficial, normalizeUrl, openSource } from 
  *   { name: 'lilOS ufficiale', apps: ['apps/files', …], modules: ['modules/users-basic', …] }
  * Each app folder has lilos.json (see manifest.js), each module folder module.json (modulePackage.js).
  * The official one also has lilOS itself: "system": 'system/lilos', a folder with system.json,
- * README.md and CHANGELOG.md (systemPackage.js); other repositories cannot offer it.
+ * README.md and CHANGELOG.md (systemPackage.js), and the language packs: "languages":
+ * ['languages/it', …], folders with language.json (languagePackage.js); other repositories cannot
+ * offer them.
  */
+const { t } = defineStrings('lilos:kernel.repos', { en: { strings: {
+  official: 'lilOS official', adminOnly: 'Only an administrator manages the repositories', missing: 'Repository not found',
+  present: 'Repository already added', tooMany: 'At most {max} repositories', notOfficial: 'The official repository cannot be removed',
+  catalog: 'catalog.json is missing or is not valid JSON', notInCatalog: 'Package not in the catalog', file: 'File not valid',
+} } });
 const FILE = join(DATA_DIR, 'repos.json');
-const OFFICIAL = Object.freeze({ id: 'official', name: 'lilOS ufficiale', url: 'https://github.com/GexyLab/lilos-plugins-official', official: true });
+/** The official repository; its name (a Text) is put in list(). */
+const OFFICIAL = Object.freeze({ id: 'official', name: null, url: 'https://github.com/GexyLab/lilos-plugins-official', official: true });
 const SUBPATH = /^(?!.*\.\.)[\w.-]+(\/[\w.-]+){0,10}$/;
 const MAX_REPOS = 30;
 const MAX_ENTRIES = 200;
@@ -51,21 +60,23 @@ async function manifestLocales(read, path, manifest) {
   }
 }
 
-const requireAdmin = p => (p?.kind === 'kernel' || p?.role === 'admin' ? p : fail('forbidden', 'Solo un amministratore gestisce i repository'));
+const requireAdmin = p => (p?.kind === 'kernel' || p?.role === 'admin' ? p : fail('forbidden', t('adminOnly')));
 
 export class Repos {
   #allowLocal;
+  #languages;
 
-  constructor({ allowLocalSources }) {
+  constructor({ allowLocalSources }, languages) {
     this.#allowLocal = allowLocalSources;
+    this.#languages = languages;
   }
 
   async list() {
-    return [OFFICIAL, ...(await readRepos()).map(r => ({ ...r, official: false }))];
+    return [{ ...OFFICIAL, name: t('official') }, ...(await readRepos()).map(r => ({ ...r, official: false }))];
   }
 
   async get(id) {
-    return (await this.list()).find(r => r.id === id) ?? fail('not_found', 'Repository inesistente');
+    return (await this.list()).find(r => r.id === id) ?? fail('not_found', t('missing'));
   }
 
   /** Adds a repository after reading its catalog (so a wrong address is said at once). */
@@ -73,8 +84,8 @@ export class Repos {
     requireAdmin(principal);
     const source = cleanSource({ type: 'git', url }, { allowLocal: this.#allowLocal });
     const list = await readRepos();
-    if (normalizeUrl(source.url) === OFFICIAL_URL || list.some(r => normalizeUrl(r.url) === normalizeUrl(source.url))) fail('conflict', 'Repository già presente');
-    if (list.length >= MAX_REPOS) fail('invalid', `Al massimo ${MAX_REPOS} repository`);
+    if (normalizeUrl(source.url) === OFFICIAL_URL || list.some(r => normalizeUrl(r.url) === normalizeUrl(source.url))) fail('conflict', t('present'));
+    if (list.length >= MAX_REPOS) fail('invalid', t('tooMany', { max: MAX_REPOS }));
     const catalog = await this.#readCatalog(source.url);
     const repo = {
       id: randomBytes(6).toString('base64url'),
@@ -87,9 +98,9 @@ export class Repos {
 
   async remove(principal, id) {
     requireAdmin(principal);
-    if (id === OFFICIAL.id) fail('forbidden', 'Il repository ufficiale non si rimuove');
+    if (id === OFFICIAL.id) fail('forbidden', t('notOfficial'));
     const list = await readRepos();
-    if (!list.some(r => r.id === id)) fail('not_found', 'Repository inesistente');
+    if (!list.some(r => r.id === id)) fail('not_found', t('missing'));
     await writeRepos(list.filter(r => r.id !== id));
   }
 
@@ -100,12 +111,12 @@ export class Repos {
       raw = JSON.parse((await read('catalog.json')).toString('utf8'));
     } catch (err) {
       if (err.code && err.code !== 'invalid') throw err;
-      fail('invalid', 'catalog.json manca o non è JSON valido');
+      fail('invalid', t('catalog'));
     }
     const paths = v => (Array.isArray(v) ? v : []).filter(p => typeof p === 'string' && SUBPATH.test(p)).slice(0, MAX_ENTRIES);
     return {
       name: typeof raw.name === 'string' ? raw.name.slice(0, 60) : '', apps: paths(raw.apps), modules: paths(raw.modules),
-      system: typeof raw.system === 'string' && SUBPATH.test(raw.system) ? raw.system : null, read, source,
+      system: typeof raw.system === 'string' && SUBPATH.test(raw.system) ? raw.system : null, languages: paths(raw.languages), read, source,
     };
   }
 
@@ -113,7 +124,8 @@ export class Repos {
    * What a repository offers, at its latest version tag:
    *   { repo, ref, commit, name, apps: [{ path, manifest, locales, readme, readmeTruncated? } | { path, error }],
    *     modules: [{ path, module, readme, readmeTruncated? } | { path, error }],
-   *     system: { path, system, readme, readmeTruncated?, changelog, changelogTruncated? } | { path, error } | null }
+   *     system: { path, system, readme, readmeTruncated?, changelog, changelogTruncated? } | { path, error } | null,
+   *     languages: [{ path, language, readme } | { path, error }] }   (only the official one has them)
    * readme: the text of README.md in the package folder (Markdown), or null. Past 64 KB it is cut at
    * the end of a line and readmeTruncated is true: readme() gives it whole. The same for lilOS's
    * CHANGELOG.md. system: lilOS, only in the official repository (system.json with `files` turned
@@ -123,7 +135,7 @@ export class Repos {
    */
   async catalog(id) {
     const repo = await this.get(id);
-    const { name, apps, modules, system, read, source } = await this.#readCatalog(repo.url);
+    const { name, apps, modules, system, languages, read, source } = await this.#readCatalog(repo.url);
     const doc = async (path, file = 'README.md', key = 'readme') => {
       const text = await read(`${path}/${file}`).then(b => b.toString('utf8'), () => null);
       if (text === null || Buffer.byteLength(text) <= MAX_README) return { [key]: text };
@@ -136,7 +148,7 @@ export class Repos {
         const value = check(JSON.parse((await read(`${path}/${file}`)).toString('utf8')));
         return { path, [key]: value, ...(key === 'manifest' && { locales: await manifestLocales(read, path, value) }), ...await readme(path) };
       } catch (err) {
-        return { path, error: err.message };
+        return { path, error: err.text ?? err.message };
       }
     };
     return {
@@ -147,6 +159,7 @@ export class Repos {
         const { files, ...rest } = checkSystem(raw);
         return { ...rest, files: Object.keys(files).length };
       }, 'system').then(async e => (e.error ? e : { ...e, ...await doc(system, 'CHANGELOG.md', 'changelog') })) : null,
+      languages: repo.official ? await this.#languages.catalog(read, languages) : [],
     };
   }
 
@@ -178,8 +191,8 @@ export class Repos {
     const repo = await this.get(id);
     const { apps, modules, system, read } = await this.#readCatalog(repo.url);
     const isSystem = repo.official && !!system && path === system;
-    if (![...apps, ...modules].includes(path) && !isSystem) fail('not_found', 'Pacchetto non presente nel catalogo');
-    if (file !== 'README.md' && !(isSystem && file === 'CHANGELOG.md')) fail('invalid', 'File non valido');
+    if (![...apps, ...modules].includes(path) && !isSystem) fail('not_found', t('notInCatalog'));
+    if (file !== 'README.md' && !(isSystem && file === 'CHANGELOG.md')) fail('invalid', t('file'));
     return (await read(`${path}/${file}`)).toString('utf8');
   }
 }

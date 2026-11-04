@@ -1,0 +1,80 @@
+{
+  "error.dateTime": "잘못된 날짜 및 시간",
+  "error.cron": "잘못된 cron 식",
+  "error.cronFields": "cron 식에는 5개의 필드가 있습니다: 분 시 일 월 요일",
+  "error.cronField": "{field} 필드가 올바르지 않습니다",
+  "error.cronStep": "{field} 필드의 간격이 잘못되었습니다",
+  "error.cronValue": "{field} 필드의 값 “{value}”이(가) 잘못되었습니다",
+  "error.cronRange": "{field} 필드의 범위가 반대로 되어 있습니다",
+  "error.times": "잘못된 시간",
+  "error.exceptions": "잘못된 예외",
+  "error.rule": "잘못된 규칙",
+  "error.zone": "알 수 없는 표준 시간대",
+  "error.kind": "규칙은 “once”, “repeat” 또는 “cron”입니다",
+  "error.start": "잘못된 시작 날짜 및 시간",
+  "error.every": "반복 간격: 잘못된 숫자 또는 단위",
+  "error.days": "잘못된 요일",
+  "error.daysUnit": "요일은 분, 시간, 주 단위에 적용됩니다",
+  "error.between": "잘못된 시간 범위",
+  "error.monthDay": "잘못된 날짜(일)",
+  "error.month": "잘못된 월",
+  "error.end": "잘못된 종료 날짜",
+  "error.endBeforeStart": "종료가 시작보다 앞섭니다",
+  "error.count": "잘못된 횟수",
+  "error.scope": "scope는 this 또는 all이어야 합니다",
+  "error.cronMove": "cron 규칙은 한 번에 하나의 시간만 이동합니다",
+  "error.betweenMidnight": "시간 범위가 자정을 넘어갑니다",
+  "error.monthDayOut": "날짜가 해당 월을 벗어납니다",
+  "once": "한 번: {date} {time}",
+  "timed": "{what} {times}",
+  "at": "{times}",
+  "join": "{a}, {b}",
+  "every.minute": {
+    "other": "{n}분마다"
+  },
+  "every.hour": {
+    "other": "{n}시간마다"
+  },
+  "every.day": {
+    "other": "{n}일마다"
+  },
+  "every.week": {
+    "other": "{n}주마다"
+  },
+  "every.month": {
+    "other": "{n}개월마다"
+  },
+  "every.year": {
+    "other": "{n}년마다"
+  },
+  "between": "{from}~{to}",
+  "weekday.1": "월요일",
+  "weekday.2": "화요일",
+  "weekday.3": "수요일",
+  "weekday.4": "목요일",
+  "weekday.5": "금요일",
+  "weekday.6": "토요일",
+  "weekday.7": "일요일",
+  "days.list": "{days}",
+  "days.weekdays": "월요일~금요일",
+  "days.weekend": "토요일 및 일요일",
+  "days.all": "매일",
+  "eachWeekday": "매주 {day}",
+  "workweek": "월요일~금요일",
+  "monthDay": "{period} {day}일",
+  "monthLast": "{period} 마지막 날",
+  "nth.1": "{period} 첫째 {weekday}",
+  "nth.2": "{period} 둘째 {weekday}",
+  "nth.3": "{period} 셋째 {weekday}",
+  "nth.4": "{period} 넷째 {weekday}",
+  "nth.5": "{period} 다섯째 {weekday}",
+  "nth.last": "{period} 마지막 {weekday}",
+  "yearDay": "{every} {date}",
+  "yearLast": "{every} {month} 마지막 날",
+  "yearNth": "{every}: {what}",
+  "until": "{date}까지",
+  "count": {
+    "other": "{n}회"
+  },
+  "cron": "Cron: {cron}"
+}

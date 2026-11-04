@@ -1,0 +1,16 @@
+{
+  "remove": "Retirer",
+  "removeCombo": "Retirer {combo}",
+  "none": "Aucune",
+  "pressKeys": "Appuyez sur les touches…",
+  "add": "Ajouter une combinaison",
+  "addFor": "Ajouter une combinaison pour {command}",
+  "resetTitle": "Rétablir la combinaison d’origine",
+  "reset": "Rétablir",
+  "record": "Appuyez sur la combinaison. Échap pour annuler.",
+  "invalid": "{combo} : {error}",
+  "already": "{combo} est déjà attribuée à cette commande",
+  "usedBy": "{combo} est déjà utilisée par « {command} ».",
+  "replace": "Remplacer",
+  "cancel": "Annuler"
+}

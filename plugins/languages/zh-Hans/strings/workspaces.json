@@ -1,0 +1,10 @@
+{
+  "group": "工作区",
+  "next": "切换到下一个工作区",
+  "previous": "切换到上一个工作区",
+  "limit": "最多 {max} 个工作区",
+  "deskOf": "{name} 的桌面",
+  "removed": "已删除工作区“{name}”",
+  "removedKept": "已删除工作区“{name}”。其桌面现在位于 {path}",
+  "newName": "工作区 {n}"
+}

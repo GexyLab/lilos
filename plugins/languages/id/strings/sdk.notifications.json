@@ -1,0 +1,5 @@
+{
+  "noText": "Notifikasi tidak memiliki teks",
+  "badLevel": "Tingkat tidak valid: info, success, warning, atau error",
+  "keep": "Berapa notifikasi yang disimpan: dari 1 hingga 200"
+}

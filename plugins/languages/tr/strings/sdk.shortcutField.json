@@ -1,0 +1,16 @@
+{
+  "remove": "Kaldır",
+  "removeCombo": "{combo} bileşimini kaldır",
+  "none": "Yok",
+  "pressKeys": "Tuşlara basın…",
+  "add": "Bileşim ekle",
+  "addFor": "{command} için bileşim ekle",
+  "resetTitle": "Özgün bileşimi geri yükle",
+  "reset": "Geri yükle",
+  "record": "Bileşime basın. İptal etmek için Esc.",
+  "invalid": "{combo}: {error}",
+  "already": "{combo} zaten bu komuta atanmış",
+  "usedBy": "{combo} zaten “{command}” tarafından kullanılıyor.",
+  "replace": "Değiştir",
+  "cancel": "İptal"
+}

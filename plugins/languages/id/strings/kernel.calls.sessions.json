@@ -1,0 +1,10 @@
+{
+  "notFound": "Sesi tidak ditemukan",
+  "tooMany": "Paling banyak {max} sesi terbuka",
+  "stopping": "Kernel sedang berhenti",
+  "detached": "Ditutup setelah 10 menit tanpa jendela",
+  "notConnected": "Sesi tidak terhubung",
+  "tooBig": "Pesan terlalu besar",
+  "noCommand": "Perintah tidak tersedia",
+  "connected": "Terhubung"
+}

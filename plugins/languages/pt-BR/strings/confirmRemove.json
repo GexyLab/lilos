@@ -1,0 +1,22 @@
+{
+  "cancel": "Cancelar",
+  "one": "“{name}”",
+  "many": "{count} itens",
+  "trash": "Mover {what} para a lixeira",
+  "permanent": "Excluir {what} permanentemente",
+  "inside": {
+    "one": "{what} e o item que contém",
+    "other": "{what} e os {count} itens que contém"
+  },
+  "netRemoveText": "{verb} {what}: {text}",
+  "netRemove": "Excluir",
+  "netRecycles": "Excluir {what} de {service} (vai para a lixeira dele)",
+  "netServer": "Excluir {what} do servidor (permanentemente)",
+  "netServerFolders": "Excluir {what} do servidor com tudo o que contém (permanentemente)",
+  "purge": "Excluir “{name}” permanentemente",
+  "purgeMany": "Excluir {count} itens permanentemente",
+  "emptyTrash": {
+    "one": "Excluir permanentemente o item da lixeira",
+    "other": "Excluir permanentemente todos os {count} itens da lixeira"
+  }
+}

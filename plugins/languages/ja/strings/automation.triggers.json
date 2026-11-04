@@ -1,0 +1,13 @@
+{
+  "theAutomation": "このオートメーション",
+  "noAutomata": "Automata がインストールされていません",
+  "running": "{name} はすでに実行中です",
+  "opened": "{name}：Automata で開きました",
+  "needsNothing": "{name}：対象なしで動作する場合にのみ自動的に開始します（Automata → 起動）",
+  "ran": "{name}：自動的に実行されました",
+  "ranOn": "{name}：{items} 個の項目に対して自動的に実行されました",
+  "failedSteps": {
+    "other": "{n} 個のステップが失敗しました"
+  },
+  "withFailed": "{text}（{failed}）"
+}

@@ -1,0 +1,21 @@
+{
+  "one": "« {name} »",
+  "many": {
+    "one": "{n} élément",
+    "other": "{n} éléments"
+  },
+  "home": "Dossier personnel",
+  "gone": "L’élément n’existe plus",
+  "folderGone": "Le dossier dans lequel ils se trouvaient n’existe plus",
+  "itemsGone": "Les éléments n’existent plus",
+  "notTrashed": "Les éléments ne sont plus dans la Corbeille",
+  "createdGone": "Le dossier n’existe plus",
+  "foldersGone": "Les éléments ou les dossiers n’existent plus",
+  "delete": "Supprimer {what}",
+  "trash": "Mettre {what} à la Corbeille",
+  "restore": "Restaurer {what}",
+  "create": "Créer « {name} »",
+  "rename": "Renommer « {from} » en « {to} »",
+  "move": "Déplacer « {name} » vers « {folder} »",
+  "moveMany": "Déplacer {what} vers « {folder} »"
+}

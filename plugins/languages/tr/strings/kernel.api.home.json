@@ -1,0 +1,10 @@
+{
+  "signIn": "Önce oturum açın",
+  "id": "Tanımlayıcı geçerli değil",
+  "key": "Anahtar geçerli değil: {key}",
+  "tooLarge": "Değer çok büyük: {key}",
+  "changes": "Değişiklikler geçerli değil",
+  "item": "Öğe geçerli değil",
+  "itemData": "Bir öğede çok fazla veri var",
+  "tooMany": "Aynı anda çok fazla anahtar"
+}

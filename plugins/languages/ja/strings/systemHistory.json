@@ -1,0 +1,9 @@
+{
+  "group": "編集",
+  "undo": "元に戻す",
+  "redo": "やり直す",
+  "undone": "元に戻しました：{label}",
+  "redone": "やり直しました：{label}",
+  "failed": "この操作はもう実行できません：{message}",
+  "error": "エラー"
+}

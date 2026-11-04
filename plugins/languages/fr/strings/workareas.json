@@ -1,0 +1,23 @@
+{
+  "tooMany": "Au maximum {max} zones de travail",
+  "overlap": "Il y a déjà une autre zone de travail à cet endroit : les zones ne peuvent pas se chevaucher",
+  "undo.create": "Créer la zone de travail « {title} »",
+  "undo.rename": "Renommer la zone de travail « {before} » en « {after} »",
+  "undo.remove": "Supprimer la zone de travail « {title} »",
+  "undo.move": "Déplacer la zone de travail « {title} »",
+  "undo.resize": "Redimensionner la zone de travail « {title} »",
+  "gone": "La zone de travail n’existe plus",
+  "already": "La zone de travail est déjà là",
+  "occupied": "Il y a maintenant une autre zone de travail à cet endroit",
+  "notOpen": "La zone de travail n’est pas ouverte",
+  "removeOne": "Supprimer la zone de travail « {title} » (son contenu reste sur le bureau)",
+  "removeMany": {
+    "one": "Supprimer {n} zone de travail (son contenu reste sur le bureau)",
+    "other": "Supprimer {n} zones de travail (leur contenu reste sur le bureau)"
+  },
+  "menu.title": "Zone de travail « {title} »",
+  "menu.rename": "Renommer la zone de travail",
+  "menu.properties": "Propriétés…",
+  "menu.collapse": "Réduire en icône",
+  "menu.remove": "Supprimer la zone de travail…"
+}

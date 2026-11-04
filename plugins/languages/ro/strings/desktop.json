@@ -1,0 +1,22 @@
+{
+  "choose.serial": "Alegeți un port serial",
+  "choose.usb": "Alegeți un dispozitiv USB",
+  "choose.hid": "Alegeți un dispozitiv",
+  "choose.bluetooth": "Alegeți un dispozitiv Bluetooth",
+  "choose.screen": "Alegeți ce partajați",
+  "choose.text.serial": "O aplicație dorește să folosească un port serial al computerului.",
+  "choose.text.usb": "O aplicație dorește să folosească un dispozitiv USB al computerului.",
+  "choose.text.hid": "O aplicație dorește să folosească un dispozitiv al computerului (tastaturi numerice, cititoare, controlere…).",
+  "choose.text.bluetooth": "O aplicație dorește să folosească un dispozitiv Bluetooth din apropierea computerului.",
+  "choose.text.screen": "O aplicație dorește să vadă un ecran sau o fereastră a computerului.",
+  "choose.field": "Dispozitiv",
+  "choose.none": "Nu s-a găsit niciun dispozitiv: conectați-l și reîncercați.",
+  "connect": "Conectați",
+  "share": "Partajați",
+  "saved": "„{name}” a fost salvat din programul computerului",
+  "saveFailed": "„{name}” nu a fost salvat înapoi în lilOS: {error}",
+  "missing": "„{path}” nu este în lilOS",
+  "driveIn": "„{name}” este în Rețea › Acest computer",
+  "driveFailed": "„{name}” nu este conectat: {error}",
+  "serialPort": "Port serial"
+}

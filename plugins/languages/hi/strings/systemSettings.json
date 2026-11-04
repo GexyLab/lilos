@@ -1,0 +1,26 @@
+{
+  "retention.days": {
+    "one": "{n} दिन",
+    "other": "{n} दिन"
+  },
+  "retention.year": "1 वर्ष",
+  "retention.forever": "हमेशा के लिए",
+  "lasso": "{keys} + खींचें",
+  "color.blue": "नीला",
+  "color.violet": "बैंगनी",
+  "color.magenta": "मैजेंटा",
+  "color.red": "लाल",
+  "color.orange": "नारंगी",
+  "color.green": "हरा",
+  "color.teal": "टील",
+  "color.graphite": "ग्रेफ़ाइट",
+  "color.night": "रात",
+  "color.deepBlue": "गहरा नीला",
+  "color.forest": "वन",
+  "color.plum": "आलूबुखारा",
+  "color.earth": "मिट्टी",
+  "color.mist": "धुंध",
+  "color.sky": "आकाश",
+  "color.sage": "सेज",
+  "color.sand": "रेत"
+}

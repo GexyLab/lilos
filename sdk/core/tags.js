@@ -1,6 +1,7 @@
 import { Emitter } from './events.js';
 import { storage, uid } from './storage.js';
 import { fs } from './fs.js';
+import { locale } from './locale.js';
 
 const STORAGE_KEY = 'tags';
 const MAX_TAGS = 100;
@@ -8,16 +9,26 @@ const MAX_NAME = 30;
 const ID = /^[\w-]{1,40}$/;
 const COLOR = /^#[0-9a-f]{6}$/i;
 
-/** Colors offered for tags, in order (a new tag takes the first one not in use). */
+const { t } = locale.define('lilos:sdk.tags', {
+  en: { strings: {
+    red: 'Red', orange: 'Orange', yellow: 'Yellow', green: 'Green', teal: 'Teal', blue: 'Blue', purple: 'Purple', gray: 'Gray',
+    emptyName: 'The tag name cannot be empty', exists: 'A tag “{name}” already exists',
+    tooMany: { one: 'At most {n} tag', other: 'At most {n} tags' }, notFound: 'The tag does not exist',
+  } },
+});
+
+const swatch = (value, key) => ({ value, get label() { return t(key); } });
+
+/** Colors offered for tags, in order (a new tag takes the first one not in use). label: in the system's language. */
 export const TAG_COLORS = [
-  { value: '#e5484d', label: 'Rosso' },
-  { value: '#d9822b', label: 'Arancione' },
-  { value: '#d4a72c', label: 'Giallo' },
-  { value: '#30a46c', label: 'Verde' },
-  { value: '#0d9488', label: 'Verde acqua' },
-  { value: '#3b6ef5', label: 'Blu' },
-  { value: '#7c5cdb', label: 'Viola' },
-  { value: '#8b8d98', label: 'Grigio' },
+  swatch('#e5484d', 'red'),
+  swatch('#d9822b', 'orange'),
+  swatch('#d4a72c', 'yellow'),
+  swatch('#30a46c', 'green'),
+  swatch('#0d9488', 'teal'),
+  swatch('#3b6ef5', 'blue'),
+  swatch('#7c5cdb', 'purple'),
+  swatch('#8b8d98', 'gray'),
 ];
 
 const cleanName = v => (typeof v === 'string' ? v.replace(/\s+/g, ' ').trim().slice(0, MAX_NAME) : '');
@@ -63,9 +74,9 @@ class Tags extends Emitter {
   /** New visible tag; returns it. Throws if the name is empty or taken, or there are too many. */
   create({ name, color } = {}) {
     const clean = cleanName(name);
-    if (!clean) throw new Error('Il nome del tag non può essere vuoto');
-    if (this.byName(clean)) throw new Error(`Esiste già un tag «${clean}»`);
-    if (this.#list.length >= MAX_TAGS) throw new Error(`Al massimo ${MAX_TAGS} tag`);
+    if (!clean) throw new Error(t('emptyName'));
+    if (this.byName(clean)) throw new Error(t('exists', { name: clean }));
+    if (this.#list.length >= MAX_TAGS) throw new Error(t('tooMany', { n: MAX_TAGS }));
     const used = new Set(this.#list.map(t => t.color));
     const tag = {
       id: uid(), name: clean, visible: true,
@@ -80,11 +91,11 @@ class Tags extends Emitter {
   rename(id, name) {
     const tag = this.#list.find(t => t.id === id);
     const clean = cleanName(name);
-    if (!tag) throw new Error('Tag inesistente');
-    if (!clean) throw new Error('Il nome del tag non può essere vuoto');
+    if (!tag) throw new Error(t('notFound'));
+    if (!clean) throw new Error(t('emptyName'));
     if (clean === tag.name) return;
     const other = this.byName(clean);
-    if (other && other.id !== id) throw new Error(`Esiste già un tag «${clean}»`);
+    if (other && other.id !== id) throw new Error(t('exists', { name: clean }));
     tag.name = clean;
     this.#save();
   }

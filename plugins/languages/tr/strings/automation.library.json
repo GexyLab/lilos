@@ -1,0 +1,6 @@
+{
+  "group": "Otomasyonlar",
+  "needRun": "Bir otomasyonu çalıştırmak için Automata uygulaması gerekir",
+  "needRecord": "Bir otomasyonu kaydetmek için Automata uygulaması gerekir",
+  "recordHere": "Buradan başlayarak kaydet"
+}

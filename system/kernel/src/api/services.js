@@ -1,4 +1,5 @@
 import { fail } from '../errors.js';
+import { defineStrings, localizedJson } from '../strings.js';
 
 /**
  * The services of installed apps (apps/appServices.js), for signed-in users:
@@ -20,15 +21,18 @@ import { fail } from '../errors.js';
 const APP = /^[a-z0-9][a-z0-9.-]{1,63}$/;
 const ENTRY = /^[a-z][a-zA-Z0-9]{0,30}$/;
 const HEARTBEAT = 25_000;
+const { t } = defineStrings('lilos:kernel.api.services', { en: { strings: {
+  signIn: 'Sign in first', service: 'Service not valid', sender: 'Sender not valid',
+} } });
 
 const target = params => {
-  if (!APP.test(params.app) || !ENTRY.test(params.entry)) fail('invalid', 'Servizio non valido');
+  if (!APP.test(params.app) || !ENTRY.test(params.entry)) fail('invalid', t('service'));
   return [params.app, params.entry];
 };
 
 export function serviceRoutes(kernel) {
   const { router, appServices } = kernel;
-  const signedIn = principal => principal ?? fail('unauthorized', 'Accesso richiesto');
+  const signedIn = principal => principal ?? fail('unauthorized', t('signIn'));
 
   router.add('GET', '/api/services', async ({ principal }) => appServices.list(signedIn(principal)));
 
@@ -45,7 +49,7 @@ export function serviceRoutes(kernel) {
 
   router.add('POST', '/api/services/:app/:entry/call', async ({ principal, params, json }) => {
     const { data = null, from = null } = await json(1 << 20);
-    if (from !== null && (typeof from !== 'string' || !APP.test(from))) fail('invalid', 'Mittente non valido');
+    if (from !== null && (typeof from !== 'string' || !APP.test(from))) fail('invalid', t('sender'));
     return { result: await appServices.call(signedIn(principal), ...target(params), data, from) };
   });
 
@@ -55,11 +59,13 @@ export function serviceRoutes(kernel) {
     const user = signedIn(principal);
     const admin = user.role === 'admin';
     res.writeHead(200, { 'Content-Type': 'text/event-stream; charset=utf-8', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff', 'X-Accel-Buffering': 'no' });
-    const send = (event, data) => res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+    // An event stream carries no headers of lilOS's: the language the user's lilOS last said it is in
+    const locale = await kernel.userLocale(user.id);
+    const send = (event, data) => res.write(`event: ${event}\ndata: ${localizedJson(data, locale)}\n\n`);
     const mine = owner => owner === user.id || owner === '*';
     const onChange = e => { if (mine(e.owner)) send('change', e); };
     const onNotify = e => { if (e.owner === user.id || (e.owner === '*' && admin)) send('notify', { app: e.app, text: e.text }); };
-    const onUser = e => { if (e.owner === user.id) send(e.event, e.data); };
+    const onUser = e => { if (e.owner === user.id || e.owner === '*') send(e.event, e.data); };
     appServices.on('change', onChange);
     appServices.on('notify', onNotify);
     kernel.events.on('user', onUser);

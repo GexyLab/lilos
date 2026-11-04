@@ -1,0 +1,6 @@
+{
+  "purged": {
+    "one": "Se ha eliminado definitivamente 1 elemento anterior al nuevo periodo",
+    "other": "Se han eliminado definitivamente {n} elementos anteriores al nuevo periodo"
+  }
+}

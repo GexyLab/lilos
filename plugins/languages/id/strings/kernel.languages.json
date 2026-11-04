@@ -1,0 +1,11 @@
+{
+  "invalid": "Paket bahasa tidak valid: {message}",
+  "official": "Paket bahasa hanya berasal dari repositori resmi",
+  "notOffered": "Repositori resmi tidak memiliki paket bahasa untuk {language}",
+  "noRepo": "Repositori resmi tidak memiliki paket bahasa",
+  "needs": "{name} memerlukan lilOS {range} (ini adalah {version})",
+  "changed": "{file}: isinya tidak cocok dengan language.json",
+  "notInstalled": "Bahasa {language} tidak terinstal",
+  "removeForbidden": "Hanya yang menginstal {name} atau administrator yang dapat menghapusnya",
+  "removed": "Bahasa {name} telah dihapus: lilOS dalam bahasa Inggris hingga Anda memilih bahasa lain"
+}

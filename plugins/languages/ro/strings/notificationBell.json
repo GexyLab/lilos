@@ -1,0 +1,11 @@
+{
+  "title": "Notificări",
+  "unread": {
+    "one": "Notificări: una necitită",
+    "few": "Notificări: {n} necitite",
+    "other": "Notificări: {n} necitite"
+  },
+  "stack": "Notificări noi",
+  "sender": "{name}: {text}",
+  "dismiss": "Eliminați din bară"
+}

@@ -1,0 +1,8 @@
+{
+  "level.error": "خطأ",
+  "level.warning": "تحذير",
+  "level.success": "تم",
+  "open": "فتح",
+  "openApp": "فتح {name}",
+  "gone": "{name} لم يعد مثبّتًا"
+}

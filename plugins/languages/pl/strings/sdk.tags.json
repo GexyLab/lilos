@@ -1,0 +1,19 @@
+{
+  "red": "Czerwony",
+  "orange": "Pomarańczowy",
+  "yellow": "Żółty",
+  "green": "Zielony",
+  "teal": "Morski",
+  "blue": "Niebieski",
+  "purple": "Fioletowy",
+  "gray": "Szary",
+  "emptyName": "Nazwa tagu nie może być pusta",
+  "exists": "Tag „{name}” już istnieje",
+  "tooMany": {
+    "one": "Najwyżej {n} tag",
+    "few": "Najwyżej {n} tagi",
+    "many": "Najwyżej {n} tagów",
+    "other": "Najwyżej {n} tagu"
+  },
+  "notFound": "Tag nie istnieje"
+}

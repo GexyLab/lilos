@@ -1,0 +1,10 @@
+{
+  "title": "Benachrichtigungen",
+  "unread": {
+    "one": "Benachrichtigungen: {n} ungelesen",
+    "other": "Benachrichtigungen: {n} ungelesen"
+  },
+  "stack": "Neue Benachrichtigungen",
+  "sender": "{name}: {text}",
+  "dismiss": "Aus der Leiste entfernen"
+}

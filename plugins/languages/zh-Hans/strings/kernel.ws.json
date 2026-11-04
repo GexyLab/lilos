@@ -1,0 +1,13 @@
+{
+  "needWs": "需要 ws:// 或 wss:// 地址",
+  "noAnswer": "服务器未响应打开请求",
+  "cancelled": "已取消",
+  "tooLong": "服务器响应过长",
+  "notHttp": "服务器未以 HTTP 响应",
+  "closed": "服务器关闭了连接",
+  "status": "服务器返回了 {status}，而不是打开 WebSocket",
+  "notOpened": "服务器未打开 WebSocket",
+  "badAccept": "服务器响应无效（Sec-WebSocket-Accept）",
+  "extensions": "服务器请求了未提供的扩展",
+  "protocol": "服务器选择了未提供的子协议"
+}

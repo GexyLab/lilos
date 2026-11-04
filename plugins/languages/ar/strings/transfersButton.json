@@ -1,0 +1,8 @@
+{
+  "title": "نقل البيانات",
+  "sent": "↑ {done} من {total}",
+  "received": "↓ {done} من {total}",
+  "rate": "{line} · {bytes}/ث",
+  "conflict": "يوجد ملف بالفعل: اختر ما تريد فعله",
+  "failed": "لم يتم نقل بعض الملفات"
+}

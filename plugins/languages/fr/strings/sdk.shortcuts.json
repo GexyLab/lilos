@@ -1,0 +1,19 @@
+{
+  "key.Enter": "Entrée",
+  "key.Escape": "Échap",
+  "key.Delete": "Suppr",
+  "key.Space": "Espace",
+  "key.Insert": "Inser",
+  "key.End": "Fin",
+  "key.PageUp": "Pg. préc.",
+  "key.PageDown": "Pg. suiv.",
+  "general": "Général",
+  "exists": "Raccourci déjà enregistré : {id}",
+  "unknown": "Raccourci non enregistré : {id}",
+  "invalid": "Combinaison non valide",
+  "noKey": "Appuyez aussi sur une touche autre que Ctrl, Alt ou Maj",
+  "reserved": "Combinaison réservée par le navigateur",
+  "tabSpace": "Tab et Espace seuls servent à se déplacer et à déplacer le bureau",
+  "typingKey": "Une touche qui saisit du texte doit être utilisée avec Ctrl, Alt ou Maj",
+  "whenEditing": "Ce raccourci fonctionne aussi pendant la saisie : il nécessite Ctrl ou Alt"
+}

@@ -1,0 +1,16 @@
+{
+  "home.description": "Główny folder, zawierający wszystkie pozostałe",
+  "folder.description": "Folder {name}, wspólny dla wszystkich obszarów roboczych",
+  "files.description": "Otwiera File Manager",
+  "trash": "Kosz",
+  "trash.description": "Otwiera Kosz; można na niego przeciągać pliki i foldery",
+  "noDesk": "Nie ma pulpitu",
+  "folderGone": "Folderu {name} już nie ma",
+  "trashedOne": "Przeniesiono do Kosza",
+  "trashedMany": {
+    "one": "{n} element przeniesiono do Kosza",
+    "few": "{n} elementy przeniesiono do Kosza",
+    "many": "{n} elementów przeniesiono do Kosza",
+    "other": "{n} elementu przeniesiono do Kosza"
+  }
+}

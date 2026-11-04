@@ -19,17 +19,6 @@ const { t, number } = locale.define('lilos:confirmRemove', {
     purge: 'Delete “{name}” permanently', purgeMany: 'Delete {count} items permanently',
     emptyTrash: { one: 'Delete the item in the trash permanently', other: 'Delete all {count} items in the trash permanently' },
   } },
-  it: { strings: {
-    cancel: 'Annulla',
-    one: '«{name}»', many: '{count} elementi',
-    trash: 'Sposta nel cestino {what}', permanent: 'Elimina definitivamente {what}',
-    inside: { one: '{what} e l’elemento dentro', other: '{what} e i {count} elementi dentro' },
-    netRemoveText: '{verb} {what}: {text}', netRemove: 'Elimina',
-    netRecycles: 'Elimina da {service} {what} (va nel suo cestino)',
-    netServer: 'Elimina dal server {what} (definitivo)', netServerFolders: 'Elimina dal server {what} con tutto quello che contiene (definitivo)',
-    purge: 'Elimina definitivamente «{name}»', purgeMany: 'Elimina definitivamente {count} elementi',
-    emptyTrash: { one: 'Elimina definitivamente l’elemento nel cestino', other: 'Elimina definitivamente tutti i {count} elementi nel cestino' },
-  } },
 });
 
 const what = nodes => (nodes.length === 1 ? t('one', { name: nodes[0].name }) : t('many', { count: number(nodes.length) }));

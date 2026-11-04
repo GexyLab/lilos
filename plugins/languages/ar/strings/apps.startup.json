@@ -1,0 +1,14 @@
+{
+  "mainWindow": "النافذة الرئيسية",
+  "paramsObject": "يجب أن تكون المعلمات كائن JSON، بين { }",
+  "paramsTooLong": "المعلمات طويلة جدًا (4 KB كحد أقصى)",
+  "invalid": "{param}: قيمة غير صالحة",
+  "fileGone": "{param}: الملف لم يعد موجودًا",
+  "folderGone": "{param}: المجلد لم يعد موجودًا",
+  "notOpened": "لم يُفتح {app} تلقائيًا. {message}",
+  "notInstalled": "التطبيق غير مثبّت",
+  "maxApps": "{max} تطبيقات كحد أقصى عند بدء التشغيل",
+  "unknownEntry": "نقطة دخول غير معروفة",
+  "entryNotAtStartup": "نقطة الدخول ليست ضمن بدء التشغيل",
+  "skipped": "بدأ التشغيل بدون تطبيقات: العنوان يحتوي على ?avvio=no"
+}

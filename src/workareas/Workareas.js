@@ -1,4 +1,4 @@
-import { Emitter, trackDrag, openMenu } from '@lilos/sdk';
+import { Emitter, trackDrag, openMenu, locale } from '@lilos/sdk';
 import { setLaunchScope } from '../apps/launcher.js';
 import { DesktopItem } from '../desktop/DesktopItem.js';
 import { WorkareaFrame, HEADER } from './WorkareaFrame.js';
@@ -12,6 +12,21 @@ const PAD = 24;           // around the selection, when a workarea is made from 
 const GAP = 40;           // between areas, when one has to make room
 const SAVE_DELAY = 400;
 const ICON_PREFIX = 'wa:';
+
+const { t } = locale.define('lilos:workareas', {
+  en: { strings: {
+    tooMany: 'At most {max} work areas', overlap: 'There is already another work area there: areas cannot overlap',
+    'undo.create': 'Create the work area «{title}»', 'undo.rename': 'Rename the work area «{before}» to «{after}»',
+    'undo.remove': 'Delete the work area «{title}»', 'undo.move': 'Move the work area «{title}»',
+    'undo.resize': 'Resize the work area «{title}»',
+    gone: 'The work area no longer exists', already: 'The work area is already there',
+    occupied: 'There is now another work area there', notOpen: 'The work area is not open',
+    removeOne: 'Delete the work area «{title}» (its content stays on the desk)',
+    removeMany: { one: 'Delete {n} work area (its content stays on the desk)', other: 'Delete {n} work areas (their content stays on the desk)' },
+    'menu.title': 'Work area «{title}»', 'menu.rename': 'Rename the work area', 'menu.properties': 'Properties…',
+    'menu.collapse': 'Minimize to an icon', 'menu.remove': 'Delete the work area…',
+  } },
+});
 
 const center = r => ({ x: r.x + r.w / 2, y: r.y + r.h / 2 });
 const contains = (r, p) => p.x >= r.x && p.x <= r.x + r.w && p.y >= r.y && p.y <= r.y + r.h;
@@ -205,9 +220,9 @@ export class Workareas extends Emitter {
 
   /** New workarea with its area at `rect`; null (and a message) if it would cover another one. */
   create(rect, { title, rename = true } = {}) {
-    if (this.#list.length >= LIMITS.MAX_WORKAREAS) return this.#say(`Al massimo ${LIMITS.MAX_WORKAREAS} workarea`), null;
+    if (this.#list.length >= LIMITS.MAX_WORKAREAS) return this.#say(t('tooMany', { max: LIMITS.MAX_WORKAREAS })), null;
     const r = { x: Math.round(rect.x), y: Math.round(rect.y), w: Math.round(Math.max(MIN_SIZE.w, rect.w)), h: Math.round(Math.max(MIN_SIZE.h, rect.h)) };
-    if (this.#blocked(r)) return this.#say('Lì c’è già un’altra workarea: le aree non possono sovrapporsi'), null;
+    if (this.#blocked(r)) return this.#say(t('overlap')), null;
     const ws = newWorkarea(r, title);
     this.#list.push(ws);
     this.#mountArea(ws);
@@ -224,9 +239,9 @@ export class Workareas extends Emitter {
     if (!this.get(id)) return;
     let copy = null;
     this.desktop.history.push({
-      label: `Crea la workarea «${this.get(id).title}»`,
+      label: t('undo.create', { title: this.get(id).title }),
       undo: async () => {
-        if (!this.get(id)) throw new Error('La workarea non esiste più');
+        if (!this.get(id)) throw new Error(t('gone'));
         copy = await this.remove(id, { record: false });
       },
       redo: () => this.#putBack(copy),
@@ -235,8 +250,8 @@ export class Workareas extends Emitter {
 
   /** Brings back a deleted workarea (undo), open in the same place: what lies inside it belongs to it again. */
   #putBack(copy) {
-    if (!copy || this.get(copy.id)) throw new Error('La workarea c’è già');
-    if (this.#blocked(copy.rect)) throw new Error('Lì ora c’è un’altra workarea');
+    if (!copy || this.get(copy.id)) throw new Error(t('already'));
+    if (this.#blocked(copy.rect)) throw new Error(t('occupied'));
     const ws = structuredClone(copy);
     this.#list.push(ws);
     this.#mountArea(ws);
@@ -270,11 +285,11 @@ export class Workareas extends Emitter {
     if (!record) return;
     const set = value => {
       const w = this.get(id);
-      if (!w) throw new Error('La workarea non esiste più');
+      if (!w) throw new Error(t('gone'));
       w.title = value;
       this.#touch(w);
     };
-    this.desktop.history.push({ label: `Rinomina la workarea «${before}» in «${clean}»`, undo: () => set(before), redo: () => set(clean) });
+    this.desktop.history.push({ label: t('undo.rename', { before, after: clean }), undo: () => set(before), redo: () => set(clean) });
   }
 
   /** Description and custom metadata. */
@@ -372,9 +387,9 @@ export class Workareas extends Emitter {
     this.canvas.changed();
     if (record) {
       this.desktop.history.push({
-        label: `Elimina la workarea «${copy.title}»`,
+        label: t('undo.remove', { title: copy.title }),
         undo: () => this.#putBack(copy),
-        redo: () => { if (!this.get(id)) throw new Error('La workarea non esiste più'); return this.remove(id, { record: false }); },
+        redo: () => { if (!this.get(id)) throw new Error(t('gone')); return this.remove(id, { record: false }); },
       });
     }
     return copy;
@@ -384,8 +399,8 @@ export class Workareas extends Emitter {
   confirmRemove(ids, x, y) {
     const list = ids.map(id => this.get(id)).filter(Boolean);
     if (!list.length) return;
-    const what = list.length === 1 ? `la workarea «${list[0].title}»` : `${list.length} workarea`;
-    confirmMenu(x, y, `Elimina ${what} (il contenuto resta sulla scrivania)`, () => list.forEach(w => this.remove(w.id)));
+    const text = list.length === 1 ? t('removeOne', { title: list[0].title }) : t('removeMany', { n: list.length });
+    confirmMenu(x, y, text, () => list.forEach(w => this.remove(w.id)));
   }
 
   setCurrent(id) {
@@ -432,7 +447,7 @@ export class Workareas extends Emitter {
           items: items.map(g => [g.it.id, g.x + dx * k, g.y + dy * k]),
           windows: windows.map(g => [g.win, g.x + dx * k, g.y + dy * k]),
         });
-        this.#recordPlace(id, `Sposta la workarea «${ws.title}»`, at(start, 0), at(start, 1));
+        this.#recordPlace(id, t('undo.move', { title: ws.title }), at(start, 0), at(start, 1));
       },
     });
   }
@@ -466,7 +481,7 @@ export class Workareas extends Emitter {
         area.el.classList.remove('resizing');
         this.#touch(ws);
         if (JSON.stringify(r0) !== JSON.stringify(ws.rect)) {
-          this.#recordPlace(id, `Ridimensiona la workarea «${ws.title}»`, { rect: r0 }, { rect: { ...ws.rect } });
+          this.#recordPlace(id, t('undo.resize', { title: ws.title }), { rect: r0 }, { rect: { ...ws.rect } });
         }
       },
     });
@@ -479,8 +494,8 @@ export class Workareas extends Emitter {
   #recordPlace(id, label, before, after) {
     const apply = place => {
       const ws = this.get(id);
-      if (!ws || ws.collapsed) throw new Error('La workarea non è aperta');
-      if (this.#blocked(place.rect, id)) throw new Error('Lì ora c’è un’altra workarea');
+      if (!ws || ws.collapsed) throw new Error(t('notOpen'));
+      if (this.#blocked(place.rect, id)) throw new Error(t('occupied'));
       ws.rect = { ...place.rect };
       this.#areas.get(id)?.setRect(ws.rect);
       for (const [itemId, x, y] of place.items ?? []) this.desktop.items.get(itemId)?.moveTo(x, y);
@@ -508,11 +523,11 @@ export class Workareas extends Emitter {
   menuEntries(id) {
     const ws = this.get(id);
     return [
-      { label: `Workarea «${ws.title}»`, icon: 'workarea', disabled: true },
-      { label: 'Rinomina la workarea', icon: 'pencil', action: () => this.renameInPlace(id) },
-      { label: 'Proprietà…', icon: 'info', action: () => this.properties(id) },
-      { label: 'Riduci a icona', icon: 'minus', action: () => this.collapse(id) },
-      { label: 'Elimina la workarea…', icon: 'trash', danger: true, action: () => {
+      { label: t('menu.title', { title: ws.title }), icon: 'workarea', disabled: true },
+      { label: t('menu.rename'), icon: 'pencil', action: () => this.renameInPlace(id) },
+      { label: t('menu.properties'), icon: 'info', action: () => this.properties(id) },
+      { label: t('menu.collapse'), icon: 'minus', action: () => this.collapse(id) },
+      { label: t('menu.remove'), icon: 'trash', danger: true, action: () => {
         const r = this.#areas.get(id)?.head.getBoundingClientRect();
         this.confirmRemove([id], r ? r.left + 40 : innerWidth / 2, r ? r.bottom : innerHeight / 2);
       } },

@@ -2,6 +2,7 @@ import net, { isIP } from 'node:net';
 import tls from 'node:tls';
 import { performance } from 'node:perf_hooks';
 import { KernelError } from '../errors.js';
+import { Text, defineStrings } from '../strings.js';
 
 /**
  * A TCP connection, or TLS over it, made by the kernel for a user's request (net/http.js, the
@@ -23,12 +24,31 @@ import { KernelError } from '../errors.js';
  */
 const TIMEOUT = 30_000;
 
+const { t } = defineStrings('lilos:kernel.net.connect', { en: { strings: {
+  noConnection: { one: 'No connection in {n} second', other: 'No connection in {n} seconds' },
+  untrusted: 'Certificate of {host} not confirmed ({reason})',
+  cancelled: 'Cancelled',
+  refused: 'Connection refused ({code})',
+  reset: 'Connection broken off by the server ({code})',
+  notFound: 'Unknown server name ({code})',
+  dns: 'Server name not resolved (DNS) ({code})',
+  timeout: 'Timed out ({code})',
+  hostUnreachable: 'Server unreachable ({code})',
+  netUnreachable: 'Network unreachable ({code})',
+  closed: 'Connection closed ({code})',
+  aborted: 'Cancelled ({code})',
+  otherName: 'Certificate for another name ({code})',
+  network: 'Network error',
+} } });
+/** An error whose message reaches the user: `text` is the Text, `message` the English one. */
+const textError = (text, extra) => Object.assign(new Error(String(text)), { text }, extra);
+
 const now = () => performance.now();
 const since = (timings, at = now()) => Math.round((at - timings.start) * 10) / 10;
 const printable = (s, max) => String(s ?? '').replace(/[^\x20-\x7e]/g, '').slice(0, max);
 const first = v => (Array.isArray(v) ? v[0] : v);
 
-export function connectTo({ host, port, secure = false, lookup, signal, timeoutMs = TIMEOUT, alpn, tls: t = {}, timings = {} }) {
+export function connectTo({ host, port, secure = false, lookup, signal, timeoutMs = TIMEOUT, alpn, tls: opts = {}, timings = {} }) {
   timings.start ??= now();
   const bare = String(host ?? '').replace(/^\[|\]$/g, '');
   return new Promise((resolve, reject) => {
@@ -37,11 +57,11 @@ export function connectTo({ host, port, secure = false, lookup, signal, timeoutM
     const socket = secure
       ? tls.connect({
         ...common,
-        ...(!isIP(bare) && { servername: t.servername || bare }),
+        ...(!isIP(bare) && { servername: opts.servername || bare }),
         ...(alpn && { ALPNProtocols: alpn }),
-        ...(t.ca && { ca: t.ca }), ...(t.cert && { cert: t.cert }), ...(t.key && { key: t.key }),
-        ...(t.pfx && { pfx: t.pfx }), ...(t.passphrase && { passphrase: t.passphrase }),
-        minVersion: t.minVersion ?? 'TLSv1.2',
+        ...(opts.ca && { ca: opts.ca }), ...(opts.cert && { cert: opts.cert }), ...(opts.key && { key: opts.key }),
+        ...(opts.pfx && { pfx: opts.pfx }), ...(opts.passphrase && { passphrase: opts.passphrase }),
+        minVersion: opts.minVersion ?? 'TLSv1.2',
         rejectUnauthorized: false,   // checked below: a certificate the user confirmed goes too
       })
       : net.connect(common);
@@ -54,7 +74,7 @@ export function connectTo({ host, port, secure = false, lookup, signal, timeoutM
       if (err) { socket.destroy(); reject(err); } else resolve(value);
     };
     const onAbort = () => finish(abortError());
-    const timer = setTimeout(() => finish(Object.assign(new Error(`Nessuna connessione in ${Math.round(timeoutMs / 1000)} secondi`), { code: 'ETIMEDOUT' })), timeoutMs);
+    const timer = setTimeout(() => finish(textError(t('noConnection', { n: Math.round(timeoutMs / 1000) }), { code: 'ETIMEDOUT' })), timeoutMs);
     signal?.addEventListener('abort', onAbort, { once: true });
     socket.once('lookup', () => { timings.lookup = since(timings); });
     socket.once('connect', () => { timings.connect = since(timings); });
@@ -63,14 +83,14 @@ export function connectTo({ host, port, secure = false, lookup, signal, timeoutM
     socket.once('secureConnect', () => {
       timings.secure = since(timings);
       const info = tlsInfo(socket);
-      if (!socket.authorized && t.verify !== false && info.fingerprint !== t.pinned) {
-        return finish(new KernelError('untrusted', `Certificato di ${bare} non confermato (${printable(socket.authorizationError?.code ?? socket.authorizationError, 60)})`, {
+      if (!socket.authorized && opts.verify !== false && info.fingerprint !== opts.pinned) {
+        return finish(new KernelError('untrusted', t('untrusted', { host: bare, reason: printable(socket.authorizationError?.code ?? socket.authorizationError, 60) }), {
           details: {
             trust: {
               kind: 'tls', fingerprint: info.fingerprint, host: bare, port,
               text: `${printable(info.subject || bare, 80)} · ${info.fingerprint}`,
               reason: printable(socket.authorizationError?.code ?? socket.authorizationError, 60),
-              ...(t.pinned && { changed: true, previous: t.pinned }),
+              ...(opts.pinned && { changed: true, previous: opts.pinned }),
             },
           },
         }));
@@ -103,17 +123,21 @@ export function tlsInfo(socket) {
   };
 }
 
-const abortError = () => Object.assign(new Error('Annullato'), { name: 'AbortError', code: 'ABORT_ERR' });
+const abortError = () => textError(t('cancelled'), { name: 'AbortError', code: 'ABORT_ERR' });
 
-/** A network error as a short line for the user ('Connessione rifiutata (ECONNREFUSED)'), KernelErrors as they are. */
+const WORDS = {
+  ECONNREFUSED: 'refused', ECONNRESET: 'reset', ENOTFOUND: 'notFound', EAI_AGAIN: 'dns', ETIMEDOUT: 'timeout',
+  EHOSTUNREACH: 'hostUnreachable', ENETUNREACH: 'netUnreachable', EPIPE: 'closed', ABORT_ERR: 'aborted', ERR_TLS_CERT_ALTNAME_INVALID: 'otherName',
+};
+
+/**
+ * A network error as a short line for the user ('Connection refused (ECONNREFUSED)'): a Text, or
+ * the error's own message; KernelErrors as they are (their Text when they have one).
+ */
 export function networkMessage(err) {
+  if (err?.text instanceof Text) return err.text;
   if (err instanceof KernelError) return err.message;
   const code = err?.code ?? err?.cause?.code;
-  const words = {
-    ECONNREFUSED: 'Connessione rifiutata', ECONNRESET: 'Connessione interrotta dal server', ENOTFOUND: 'Nome del server sconosciuto',
-    EAI_AGAIN: 'Nome del server non risolto (DNS)', ETIMEDOUT: 'Tempo scaduto', EHOSTUNREACH: 'Server irraggiungibile', ENETUNREACH: 'Rete irraggiungibile',
-    EPIPE: 'Connessione chiusa', ABORT_ERR: 'Annullato', ERR_TLS_CERT_ALTNAME_INVALID: 'Certificato per un altro nome',
-  };
-  const text = words[code] ?? printable(err?.message ?? err, 200);
-  return code && words[code] ? `${text} (${code})` : text || 'Errore di rete';
+  if (code && Object.hasOwn(WORDS, code)) return t(WORDS[code], { code });
+  return printable(err?.message ?? err, 200) || t('network');
 }

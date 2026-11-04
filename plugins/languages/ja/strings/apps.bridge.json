@@ -1,0 +1,7 @@
+{
+  "noPipeFn": "パイプ関数がありません",
+  "noHandler": "{id}：{entry} は呼び出しに応答しません（lilos.handle がありません）",
+  "noPipe": "{id}：このパイプ用の関数がありません",
+  "libraryFailed": "ライブラリが読み込まれていません",
+  "noExport": "コードが {entry} をエクスポートしていません"
+}

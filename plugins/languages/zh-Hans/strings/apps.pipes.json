@@ -1,0 +1,10 @@
+{
+  "unknownEvent": "未知事件：{event}",
+  "denied": "权限被拒绝：pipe:{event}",
+  "deniedOwn": "权限被拒绝：pipe:{event}（或 pipe.own:{event}）",
+  "reserved": "事件 {event} 保留给系统使用",
+  "sync": "{event} 是即时操作：只能被观察（stage \"after\"）",
+  "gone": "该应用已不再安装",
+  "unhandled": "{app} 不处理 {what}（缺少 lilos.pipes.subscribe）",
+  "needApp": "要打开“{file}”，你需要应用 {app}：请从 AppStore 安装"
+}

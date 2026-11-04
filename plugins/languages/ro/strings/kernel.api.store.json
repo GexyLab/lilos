@@ -1,0 +1,6 @@
+{
+  "signIn": "Conectați-vă mai întâi",
+  "adminOnly": "Doar pentru administratori",
+  "name": "Nume nevalid",
+  "notSupervised": "Kernelul nu a fost pornit cu \"npm run kernel\": reporniți-l manual"
+}

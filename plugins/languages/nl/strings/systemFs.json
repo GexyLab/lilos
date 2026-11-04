@@ -1,0 +1,3 @@
+{
+  "welcome": "Welkom bij lilOS!\n\nDit is een eindeloos bureaublad: houd de spatiebalk ingedrukt en sleep om je te verplaatsen,\ngebruik het scrollwiel om te zoomen, sleep over de achtergrond om te selecteren.\n\n- Dubbelklik op een map: die opent in de File Manager.\n- Dubbelklik op een tekstbestand: dat opent in de Editor (zoals dit).\n- Ctrl K opent het startmenu, Ctrl S slaat op in de Editor.\n- De knop naast het logo wisselt van workspace: elke workspace heeft een eigen bureaublad,\n  eigen vensters en eigen apps. Documenti, Immagini en Download zijn van iedereen.\n\nSneltoetsen en de apps die bestanden openen, kun je wijzigen in\nConfiguratiescherm → Gebruiksgemak.\n"
+}

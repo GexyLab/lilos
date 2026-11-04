@@ -1,0 +1,9 @@
+{
+  "skipped": "omisă",
+  "check": "verificare {name} ({actual})",
+  "test": "test „{name}”: {error}",
+  "counts": "{passed} reușite, {failed} eșuate în {seconds} s",
+  "countsSkipped": "{passed} reușite, {failed} eșuate, {skipped} omise în {seconds} s",
+  "cancelled": "Anulată: {counts}",
+  "failedFirst": "{name}: {counts} (primul: {first})"
+}

@@ -1,0 +1,7 @@
+{
+  "restart": "Redémarrez lilOS pour terminer les mises à jour",
+  "reopen": "Apps mises à jour à redémarrer",
+  "heading": "Mises à jour, ouvertes avec la version précédente",
+  "reopenApp": "Redémarrer {name} ({version})",
+  "restartSystem": "Redémarrer lilOS"
+}

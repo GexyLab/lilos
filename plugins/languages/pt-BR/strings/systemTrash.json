@@ -1,0 +1,6 @@
+{
+  "purged": {
+    "one": "1 item mais antigo que o novo período foi excluído permanentemente",
+    "other": "{n} itens mais antigos que o novo período foram excluídos permanentemente"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "signIn": "先にサインインしてください",
+  "run": "無効な実行",
+  "session": "無効なセッション",
+  "signin": "無効なサインイン",
+  "needSocket": "WebSocket が必要です"
+}

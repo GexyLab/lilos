@@ -1,0 +1,26 @@
+{
+  "retention.days": {
+    "one": "{n} día",
+    "other": "{n} días"
+  },
+  "retention.year": "1 año",
+  "retention.forever": "Siempre",
+  "lasso": "{keys} + arrastrar",
+  "color.blue": "Azul",
+  "color.violet": "Violeta",
+  "color.magenta": "Magenta",
+  "color.red": "Rojo",
+  "color.orange": "Naranja",
+  "color.green": "Verde",
+  "color.teal": "Verde azulado",
+  "color.graphite": "Grafito",
+  "color.night": "Noche",
+  "color.deepBlue": "Azul profundo",
+  "color.forest": "Bosque",
+  "color.plum": "Ciruela",
+  "color.earth": "Tierra",
+  "color.mist": "Niebla",
+  "color.sky": "Cielo",
+  "color.sage": "Salvia",
+  "color.sand": "Arena"
+}

@@ -1,0 +1,18 @@
+{
+  "one": "«{name}»",
+  "many": "{n} elementos",
+  "home": "Home",
+  "gone": "El elemento ya no existe",
+  "folderGone": "La carpeta en la que estaban ya no existe",
+  "itemsGone": "Los elementos ya no existen",
+  "notTrashed": "Los elementos ya no están en la papelera",
+  "createdGone": "La carpeta ya no existe",
+  "foldersGone": "Los elementos o las carpetas ya no existen",
+  "delete": "Eliminar {what}",
+  "trash": "Mover {what} a la papelera",
+  "restore": "Restaurar {what}",
+  "create": "Crear «{name}»",
+  "rename": "Cambiar el nombre de «{from}» a «{to}»",
+  "move": "Mover «{name}» a «{folder}»",
+  "moveMany": "Mover {what} a «{folder}»"
+}

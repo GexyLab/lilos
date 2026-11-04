@@ -20,10 +20,6 @@ const { t } = locale.define('lilos:fileTypes', {
     text: 'Text', pdf: 'PDF', document: 'Document', spreadsheet: 'Spreadsheet', presentation: 'Presentation', image: 'Image',
     audio: 'Audio', video: 'Video', archive: 'Archive', code: 'Code', term: 'Terminal connection', nettest: 'NetTest collection', file: 'File',
   } },
-  it: { strings: {
-    text: 'Testo', pdf: 'PDF', document: 'Documento', spreadsheet: 'Foglio di calcolo', presentation: 'Presentazione', image: 'Immagine',
-    audio: 'Audio', video: 'Video', archive: 'Archivio', code: 'Codice', term: 'Collegamento terminale', nettest: 'Collezione di NetTest', file: 'File',
-  } },
 });
 
 export function splitName(name) {

@@ -1,0 +1,7 @@
+{
+  "tooBig": "变量展开后过大（最多 4 MB）",
+  "notJson": "响应不是 JSON",
+  "source": "无效的来源",
+  "regex": "正则表达式无效或过慢",
+  "condition": "无效的条件"
+}

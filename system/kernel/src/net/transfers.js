@@ -7,6 +7,7 @@ import { logger } from '../log.js';
 import { removeJson, userFile, writeJson } from '../jsonFile.js';
 import { openHome, toFrontNode } from '../api/home.js';
 import { cleanPath, joinPath, cleanName, isSafeName } from './drivers.js';
+import { Text, defineStrings, localize } from '../strings.js';
 
 const log = logger('trasferimenti');
 const MAX_ITEMS = 100_000;          // files and folders of one user, all queues together
@@ -17,6 +18,38 @@ const SAVE_EVERY = 2000;
 const ROWS = 200;                   // items a list sends at most
 const TERMINAL = new Set(['done', 'error', 'canceled', 'skipped']);
 const POLICIES = new Set(['replace', 'keep', 'skip']);
+
+const { t } = defineStrings('lilos:kernel.net.transfers', { en: { strings: {
+  sources: 'Items to transfer not valid',
+  notFolder: 'The destination is not a folder',
+  homeToHome: 'Copy between folders of lilOS: it is not a network transfer',
+  intoItself: 'A folder cannot be copied into itself',
+  nothing: 'Nothing to transfer',
+  tooMany: 'Too many transfers in the queue',
+  itemNotFound: 'Item not found',
+  noConflict: 'No conflict to resolve',
+  choice: 'Choice not valid',
+  queueNotFound: 'Queue not found',
+  serverNotFound: 'It does not exist on the server',
+  badName: 'Name that cannot be transferred: {name}',
+  webOnly: '«{name}» opens only on the web: it is not copied',
+  place: 'Place not valid',
+  tooManyFiles: 'Too many files to transfer',
+  tooDeep: 'Folders nested too deeply',
+  someFailed: 'Some files were not transferred',
+  dstLost: 'Destination folder lost',
+  fileThere: 'There is already a file «{name}» where the folder goes',
+  retrying: '{message} · trying again',
+  folderThere: 'There is already a folder «{name}» where the file goes',
+  notFileThere: 'There is already an item «{name}» that is not a file',
+  done: { one: '{n} file transferred to «{queue}» ({size})', other: '{n} files transferred to «{queue}» ({size})' },
+  failed: { one: '{n} file not transferred', other: '{n} files not transferred' },
+  failedIn: { one: '{n} file not transferred to «{queue}»', other: '{n} files not transferred to «{queue}»' },
+  complete: 'Transfer complete: {files}.',
+  allFailed: 'Transfer failed: {files}.',
+  partial: 'Transfer finished with errors: {done}. {failed}.',
+  bytes: { one: '{n} byte', other: '{n} bytes' },
+} } });
 
 /**
  * Copies of files and folders to and from the network connections (net/network.js), done by the
@@ -140,17 +173,17 @@ export class Transfers {
    * target: ref (a folder), workspace? }. Returns { queue } (its id).
    */
   async enqueue(principal, { sources, target, workspace = null } = {}) {
-    if (!Array.isArray(sources) || !sources.length || sources.length > MAX_SOURCES) fail('invalid', 'Elementi da trasferire non validi');
+    if (!Array.isArray(sources) || !sources.length || sources.length > MAX_SOURCES) fail('invalid', t('sources'));
     const u = this.#state(principal);
     const to = await this.#place(principal, target);
-    if (to.type !== 'folder') fail('invalid', 'La destinazione non è una cartella');
+    if (to.type !== 'folder') fail('invalid', t('notFolder'));
     const items = [];
     for (const raw of sources) {
       const from = await this.#place(principal, raw);
       if (from.type !== 'file' && from.type !== 'folder') continue;   // app shortcuts stay where they are
-      if (from.ref.home && to.ref.home) fail('invalid', 'Copia tra cartelle di lilOS: non è un trasferimento di rete');
+      if (from.ref.home && to.ref.home) fail('invalid', t('homeToHome'));
       if (from.ref.mount && from.ref.mount === to.ref.mount && from.type === 'folder' && (to.ref.path === from.ref.path || to.ref.path.startsWith(`${from.ref.path}/`))) {
-        fail('invalid', 'Una cartella non si copia dentro se stessa');
+        fail('invalid', t('intoItself'));
       }
       items.push({
         id: newId(), parent: null, kind: from.type, name: from.name, src: from.ref, dst: to.ref,
@@ -159,8 +192,8 @@ export class Transfers {
         ...(from.type === 'folder' && { children: [] }),
       });
     }
-    if (!items.length) fail('invalid', 'Niente da trasferire');
-    if (u.index.size + items.length > MAX_ITEMS) fail('invalid', 'Troppi trasferimenti in coda');
+    if (!items.length) fail('invalid', t('nothing'));
+    if (u.index.size + items.length > MAX_ITEMS) fail('invalid', t('tooMany'));
     const key = to.ref.mount ?? 'home';
     let q = u.queues.find(x => x.key === key);
     if (!q) {
@@ -194,7 +227,7 @@ export class Transfers {
   /** The items inside a folder of a queue (the window opens it). */
   children(principal, itemId) {
     const found = this.#users.get(principal.id)?.index.get(itemId);
-    if (!found || found.item.kind !== 'folder') fail('not_found', 'Elemento inesistente');
+    if (!found || found.item.kind !== 'folder') fail('not_found', t('itemNotFound'));
     const list = found.item.children ?? [];
     return { items: list.slice(0, ROWS).map(row), more: Math.max(0, list.length - ROWS) };
   }
@@ -218,8 +251,8 @@ export class Transfers {
   /** What to do with a file that exists where it goes: action 'replace' | 'keep' | 'skip'; all: the same for the rest of its queue. */
   resolve(principal, { id, action, all = false } = {}) {
     const found = this.#users.get(principal.id)?.index.get(id);
-    if (!found || found.item.state !== 'conflict') fail('not_found', 'Nessun conflitto da risolvere');
-    if (!POLICIES.has(action)) fail('invalid', 'Scelta non valida');
+    if (!found || found.item.state !== 'conflict') fail('not_found', t('noConflict'));
+    if (!POLICIES.has(action)) fail('invalid', t('choice'));
     const u = this.#users.get(principal.id);
     found.item.resolution = action;
     found.item.state = 'queued';
@@ -269,7 +302,7 @@ export class Transfers {
   /** Pauses (the file being copied stops, and starts again later) or resumes a queue. */
   pause(principal, { queue, paused } = {}) {
     const u = this.#users.get(principal.id);
-    const q = u?.queues.find(x => x.id === queue) ?? fail('not_found', 'Coda inesistente');
+    const q = u?.queues.find(x => x.id === queue) ?? fail('not_found', t('queueNotFound'));
     q.paused = paused === true;
     if (q.paused) q.controller?.abort(new PauseError());
     this.#wake(u, q);
@@ -283,7 +316,7 @@ export class Transfers {
     if (raw && typeof raw.home === 'string') {
       const view = await openHome(this.#kernel, principal);
       const back = raw.home === 'root' ? view.homeId : view.toBack(raw.home);
-      const node = await view.fs.stat(principal, back) ?? fail('not_found', 'Elemento inesistente');
+      const node = await view.fs.stat(principal, back) ?? fail('not_found', t('itemNotFound'));
       return { ref: { home: raw.home }, type: node.type, name: node.name, size: node.size, modified: node.modified, label: await this.#homeLabel(principal, view, back) };
     }
     if (raw && typeof raw.mount === 'string') {
@@ -293,20 +326,20 @@ export class Transfers {
         await this.#net.get(principal, raw.mount);
         return { ref: { mount: raw.mount, path }, type: 'folder', name: mountName, size: 0, label: mountName };
       }
-      const entry = await this.#net.stat(principal, raw.mount, path) ?? fail('not_found', 'Non esiste sul server');
+      const entry = await this.#net.stat(principal, raw.mount, path) ?? fail('not_found', t('serverNotFound'));
       let name = path.slice(path.lastIndexOf('/') + 1);
-      if (!isSafeName(name)) fail('invalid', `Nome non trasferibile: ${JSON.stringify(name)}`);
+      if (!isSafeName(name)) fail('invalid', t('badName', { name: JSON.stringify(name) }));
       const ref = { mount: raw.mount, path };
       // A document with no bytes of its own (Google's): copied as its export ('Verbale' → 'Verbale.docx')
       if (entry.web) {
-        if (!entry.export) fail('invalid', `«${name}» si apre solo sul web: non si copia`);
+        if (!entry.export) fail('invalid', t('webOnly', { name }));
         name = `${name}.${entry.export}`;
-        if (!isSafeName(name)) fail('invalid', `Nome non trasferibile: ${JSON.stringify(name)}`);
+        if (!isSafeName(name)) fail('invalid', t('badName', { name: JSON.stringify(name) }));
         ref.format = entry.export;
       }
       return { ref, type: entry.type === 'folder' ? 'folder' : 'file', name, size: entry.web ? 0 : Number(entry.size) || 0, modified: Number(entry.modified) || 0, label: `${mountName}${path}` };
     }
-    return fail('invalid', 'Posizione non valida');
+    return fail('invalid', t('place'));
   }
 
   /** 'Immagini/sito' (the path in the home), 'Home' for the home. */
@@ -329,7 +362,7 @@ export class Transfers {
     item.scanning = (async () => {
       const add = (parent, entries) => {
         for (const e of entries) {
-          if (u.index.size >= MAX_ITEMS) throw new KernelError('invalid', 'Troppi file da trasferire');
+          if (u.index.size >= MAX_ITEMS) throw new KernelError('invalid', t('tooManyFiles'));
           const child = {
             id: newId(), parent: parent.id, kind: e.type, name: e.name, src: e.src, size: e.type === 'file' ? e.size : 0, done: 0,
             state: 'queued', error: null, modified: e.modified ?? 0, ...(e.type === 'folder' && { children: [] }),
@@ -379,12 +412,12 @@ export class Transfers {
     const principal = { ...u.principal };
     let budget = MAX_ITEMS - u.index.size;
     const walkDir = async (path, depth) => {
-      if (depth > 64) throw new KernelError('invalid', 'Cartelle troppo annidate');
+      if (depth > 64) throw new KernelError('invalid', t('tooDeep'));
       const out = [];
       for (const e of await this.#net.listFolder(principal, src.mount, path)) {
         if (e.link && e.type === 'folder') continue;   // links to folders are not followed (loops, other places)
         if (e.web && (!e.export || !isSafeName(`${e.name}.${e.export}`))) continue;   // only on the web: nothing to copy
-        if (--budget < 0) throw new KernelError('invalid', 'Troppi file da trasferire');
+        if (--budget < 0) throw new KernelError('invalid', t('tooManyFiles'));
         const p = joinPath(path, e.name);
         if (e.web) {
           out.push({ name: `${e.name}.${e.export}`, type: 'file', size: 0, modified: e.modified, src: { mount: src.mount, path: p, format: e.export }, children: [] });
@@ -454,7 +487,7 @@ export class Transfers {
           const inner = visit(it.children);
           if (inner) return inner;
           it.state = it.children.some(c => c.state === 'error') ? 'error' : 'done';
-          if (it.state === 'error' && !it.error) it.error = 'Alcuni file non sono stati trasferiti';
+          if (it.state === 'error' && !it.error) it.error = t('someFailed');
           continue;
         }
         return { item: it };
@@ -467,7 +500,7 @@ export class Transfers {
   /** The folder an item goes into: its own `dst` (items the user sent) or its folder's target. */
   #dstOf(u, it) {
     if (!it.parent) return it.dst;
-    return u.index.get(it.parent)?.item.target ?? fail('invalid', 'Cartella di destinazione persa');
+    return u.index.get(it.parent)?.item.target ?? fail('invalid', t('dstLost'));
   }
 
   /** Makes (or finds) the folder where a folder item goes. */
@@ -487,7 +520,7 @@ export class Transfers {
     } else {
       const path = joinPath(dst.path, cleanName(it.name));
       const entry = await this.#net.stat(p, dst.mount, path);
-      if (entry && entry.type !== 'folder') fail('conflict', `C’è già un file «${it.name}» dove va la cartella`);
+      if (entry && entry.type !== 'folder') fail('conflict', t('fileThere', { name: it.name }));
       if (!entry) await this.#net.mkdir(p, dst.mount, path);
       it.target = { mount: dst.mount, path };
     }
@@ -560,7 +593,7 @@ export class Transfers {
           if (reason instanceof PauseError) { await this.#discard(u, it, dst, writing, left, { keepRemote: true }); it.state = 'queued'; return; }
           if (reason instanceof StopError) throw reason;
           if (err?.code === 'unavailable' && attempt < RETRIES.length) {
-            it.error = `${messageOf(err)} · nuovo tentativo`;
+            it.error = t('retrying', { message: messageOf(err) });
             this.#changed(u, true);
             await delay(RETRIES[attempt]);
             if (it.state === 'canceled') { await this.#discard(u, it, dst, writing, left); return; }
@@ -643,13 +676,13 @@ export class Transfers {
   async #existing(p, dst, name) {
     if (dst.mount) {
       const e = await this.#net.stat(p, dst.mount, joinPath(dst.path, name));
-      if (e?.type === 'folder') fail('conflict', `C’è già una cartella «${name}» dove va il file`);
+      if (e?.type === 'folder') fail('conflict', t('folderThere', { name }));
       return e;
     }
     const view = await openHome(this.#kernel, p);
     const parent = dst.home === 'root' ? view.homeId : view.toBack(dst.home);
     const same = (await view.fs.list(p, parent)).find(n => n.name.toLowerCase() === name.toLowerCase());
-    if (same && same.type !== 'file') fail('conflict', `C’è già un elemento «${name}» che non è un file`);
+    if (same && same.type !== 'file') fail('conflict', t('notFileThere', { name }));
     return same ?? null;
   }
 
@@ -692,10 +725,12 @@ export class Transfers {
   }
 
   async #notify(u, q, { done, error, bytes }) {
-    const parts = [];
-    if (done) parts.push(`${done} ${done === 1 ? 'file trasferito' : 'file trasferiti'} in «${q.label}» (${sizeText(bytes)})`);
-    if (error) parts.push(`${error} ${error === 1 ? 'file non trasferito' : 'file non trasferiti'}${done ? '' : ` in «${q.label}»`}`);
-    const text = `Trasferimento ${error ? (done ? 'finito con errori' : 'non riuscito') : 'completato'}: ${parts.join('. ')}.`;
+    const code = await this.#kernel.userLocale(u.principal.id).catch(() => 'en');
+    const say = text => localize(text, code);
+    const sent = done && say(t('done', { n: done, queue: q.label, size: sizeText(bytes, code) }));
+    const text = say(!error ? t('complete', { files: sent })
+      : done ? t('partial', { done: sent, failed: say(t('failed', { n: error })) })
+        : t('allFailed', { files: say(t('failedIn', { n: error, queue: q.label })) }));
     const level = error ? (done ? 'warning' : 'error') : 'success';
     const service = this.#kernel.services.get('notifications');
     if (service) {
@@ -832,7 +867,7 @@ class CancelError extends Error { constructor() { super('Annullato'); this.name 
 class PauseError extends Error { constructor() { super('In pausa'); this.name = 'AbortError'; } }
 class StopError extends Error { constructor() { super('Kernel in arresto'); this.name = 'AbortError'; } }
 
-const messageOf = err => (err instanceof KernelError ? err.message : String(err?.message ?? err)).slice(0, 300);
+const messageOf = err => (err?.text instanceof Text ? err.text : (err instanceof KernelError ? err.message : String(err?.message ?? err)).slice(0, 300));
 
 function walk(list, fn) {
   for (const it of list) {
@@ -872,12 +907,28 @@ export function uniqueName(name, taken) {
   for (let n = 2; ; n++) if (!set.has(`${base} ${n}${ext}`.toLowerCase())) return `${base} ${n}${ext}`;
 }
 
-/** '1,2 GB' */
-export function sizeText(bytes) {
+/** '1.2 GB' in the language `code` ('1,2 GB' in Italian). */
+export function sizeText(bytes, code = 'en') {
   const units = ['byte', 'KB', 'MB', 'GB', 'TB'];
   let v = bytes, u = 0;
   while (v >= 1024 && u < units.length - 1) { v /= 1024; u++; }
-  return `${u ? v.toLocaleString('it-IT', { maximumFractionDigits: 1 }) : v} ${units[u]}`;
+  if (!u) return localize(t('bytes', { n: v }), code);
+  let shown;
+  try { shown = v.toLocaleString(code, { maximumFractionDigits: 1 }); } catch { shown = v.toLocaleString('en', { maximumFractionDigits: 1 }); }
+  return `${shown} ${units[u]}`;
+}
+
+/** A message as it is saved: a Text as { part, key, params } (it comes back in the user's language), anything else as it is. */
+const savedText = v => (v instanceof Text ? { text: { part: v.part, key: v.key, params: plainParams(v.params) } } : v);
+const plainParams = p => (p ? Object.fromEntries(Object.entries(p).map(([k, x]) => [k, x instanceof Text ? savedText(x) : x])) : null);
+
+/** savedText's other way: a string, a Text, or null. */
+function restoredText(v) {
+  if (typeof v === 'string') return v;
+  const s = v?.text;
+  if (!s || typeof s.part !== 'string' || typeof s.key !== 'string') return null;
+  const params = s.params && typeof s.params === 'object' ? Object.fromEntries(Object.entries(s.params).map(([k, x]) => [k, x && typeof x === 'object' ? restoredText(x) : x])) : null;
+  return new Text(s.part, s.key, params);
 }
 
 const REF = r => (r && typeof r.home === 'string' ? { home: r.home }
@@ -887,7 +938,7 @@ const SAVED = ['id', 'parent', 'kind', 'name', 'size', 'done', 'state', 'error',
 
 function saveItem(it) {
   const out = {};
-  for (const k of SAVED) if (it[k] !== undefined) out[k] = it[k];
+  for (const k of SAVED) if (it[k] !== undefined) out[k] = k === 'error' ? savedText(it[k]) : it[k];
   out.src = it.src;
   if (it.dst) out.dst = it.dst;
   if (it.children) out.children = it.children.map(saveItem);
@@ -907,7 +958,7 @@ function restoreQueue(raw) {
     if (!src || typeof r.id !== 'string' || (r.kind !== 'file' && r.kind !== 'folder') || !isSafeName(r.name) || ++restored > MAX_ITEMS) return null;
     const it = {
       id: r.id, parent, kind: r.kind, name: r.name, src, size: Number(r.size) || 0, done: Number(r.done) || 0,
-      state: typeof r.state === 'string' ? r.state : 'queued', error: typeof r.error === 'string' ? r.error : null,
+      state: typeof r.state === 'string' ? r.state : 'queued', error: restoredText(r.error),
       from: typeof r.from === 'string' ? r.from : '', to: typeof r.to === 'string' ? r.to : '', modified: Number(r.modified) || 0,
     };
     if (!parent) { it.dst = REF(r.dst); if (!it.dst) return null; }

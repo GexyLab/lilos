@@ -1,0 +1,16 @@
+{
+  "title": "सूचनाएँ",
+  "today": "आज",
+  "yesterday": "कल",
+  "markAll": "सभी को पढ़ा हुआ चिह्नित करें",
+  "clearAll": "सभी हटाएँ",
+  "clearFailed": "सूचनाएँ हटाई नहीं गईं: {message}",
+  "removeFailed": "सूचना हटाई नहीं गई: {message}",
+  "kept": "{keep} में से {count} रखी गईं",
+  "fresh": {
+    "one": "{kept} · {n} नई",
+    "other": "{kept} · {n} नई"
+  },
+  "empty": "कोई सूचना नहीं",
+  "remove": "हटाएँ"
+}

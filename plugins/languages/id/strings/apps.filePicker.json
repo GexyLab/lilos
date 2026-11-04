@@ -1,0 +1,14 @@
+{
+  "title": "Pilih file",
+  "search": "Cari berdasarkan nama atau jalur",
+  "searchLabel": "Cari",
+  "folders": "Folder",
+  "files": "File",
+  "choose": "Pilih",
+  "cancel": "Batal",
+  "home": "Beranda",
+  "noMatch": "Tidak ada yang cocok dengan pencarian",
+  "noFolders": "Tidak ada folder",
+  "noFiles": "Tidak ada file di lilOS",
+  "noFilesOf": "Tidak ada file {exts} di lilOS"
+}

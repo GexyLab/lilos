@@ -1,0 +1,16 @@
+{
+  "remove": "移除",
+  "removeCombo": "移除 {combo}",
+  "none": "无",
+  "pressKeys": "请按键…",
+  "add": "添加组合键",
+  "addFor": "为 {command} 添加组合键",
+  "resetTitle": "恢复原始组合键",
+  "reset": "恢复",
+  "record": "请按下组合键。按 Esc 取消。",
+  "invalid": "{combo}：{error}",
+  "already": "{combo} 已分配给此命令",
+  "usedBy": "{combo} 已被“{command}”使用。",
+  "replace": "替换",
+  "cancel": "取消"
+}

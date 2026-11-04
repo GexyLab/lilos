@@ -1,0 +1,11 @@
+{
+  "official": "lilOS 公式",
+  "adminOnly": "リポジトリを管理できるのは管理者だけです",
+  "missing": "リポジトリが見つかりません",
+  "present": "リポジトリはすでに追加されています",
+  "tooMany": "リポジトリは最大 {max} 個です",
+  "notOfficial": "公式リポジトリは削除できません",
+  "catalog": "catalog.json がないか、有効な JSON ではありません",
+  "notInCatalog": "パッケージがカタログにありません",
+  "file": "無効なファイル"
+}

@@ -1,15 +1,29 @@
-import { menus, fs } from '@lilos/sdk';
+import { menus, fs, locale } from '@lilos/sdk';
 import { launch } from '../apps/registry.js';
 import { fileWidget } from './widgets.js';
 
 export const BACKGROUND_MENU = 'desktop.background';
 const MAX_CONTENT = 20_000;
 
-const HTML_PAGE = `<!doctype html>
-<html lang="it">
+const { t } = locale.define('lilos:deskMenu', {
+  en: { strings: {
+    'new': 'New', folder: 'Folder', newFolder: 'New folder', workarea: 'Work area',
+    textDocument: 'Text document', newText: 'New document.txt',
+    markdownDocument: 'Markdown document', newMarkdown: 'New document.md',
+    htmlPage: 'HTML page', newHtml: 'page.html', htmlTitle: 'Page',
+    create: 'Create an item', link: 'Link…', openInFiles: 'Open the Desktop in the File Manager',
+    arrange: 'Arrange icons', selectAll: 'Select all', newWorkarea: 'New work area',
+    fit: 'Show all', zoomReset: 'Zoom to 100%', menu: 'Desktop background',
+    stickyNote: 'Sticky note', newWidget: 'New widget',
+  } },
+});
+
+/** The content of a new HTML page, in the system's language. */
+const htmlPage = () => `<!doctype html>
+<html lang="${locale.language}">
 <head>
   <meta charset="utf-8">
-  <title>Pagina</title>
+  <title>${t('htmlTitle')}</title>
 </head>
 <body>
 
@@ -17,18 +31,18 @@ const HTML_PAGE = `<!doctype html>
 </html>
 `;
 
-/** The default layout of the desk's background menu. */
-const DEFAULTS = [
+/** The default layout of the desk's background menu (in the system's language: made when registered). */
+const defaults = () => [
   {
-    type: 'submenu', label: 'Nuovo', icon: 'plus', items: [
-      { type: 'action', action: 'desktop.create', label: 'Cartella', icon: 'folderPlus', params: { kind: 'folder', name: 'Nuova cartella' } },
-      { type: 'action', action: 'workarea.create', label: 'Workarea', icon: 'workarea' },
+    type: 'submenu', label: t('new'), icon: 'plus', items: [
+      { type: 'action', action: 'desktop.create', label: t('folder'), icon: 'folderPlus', params: { kind: 'folder', name: t('newFolder') } },
+      { type: 'action', action: 'workarea.create', label: t('workarea'), icon: 'workarea' },
       { type: 'separator' },
-      { type: 'action', action: 'desktop.create', label: 'Documento di testo', icon: 'filePlus', params: { kind: 'file', name: 'Nuovo documento.txt' } },
-      { type: 'action', action: 'desktop.create', label: 'Documento Markdown', icon: 'filePlus', params: { kind: 'file', name: 'Nuovo documento.md' } },
-      { type: 'action', action: 'desktop.create', label: 'Pagina HTML', icon: 'filePlus', params: { kind: 'file', name: 'pagina.html', content: HTML_PAGE } },
+      { type: 'action', action: 'desktop.create', label: t('textDocument'), icon: 'filePlus', params: { kind: 'file', name: t('newText') } },
+      { type: 'action', action: 'desktop.create', label: t('markdownDocument'), icon: 'filePlus', params: { kind: 'file', name: t('newMarkdown') } },
+      { type: 'action', action: 'desktop.create', label: t('htmlPage'), icon: 'filePlus', params: { kind: 'file', name: t('newHtml'), content: htmlPage() } },
       { type: 'separator' },
-      { type: 'action', action: 'desktop.newWidget', label: 'Nota adesiva', icon: 'note', params: { app: 'stickynotes', widget: 'note' } },
+      { type: 'action', action: 'desktop.newWidget', label: t('stickyNote'), icon: 'note', params: { app: 'stickynotes', widget: 'note' } },
       { type: 'separator' },
       { type: 'action', action: 'desktop.newLink' },
     ],
@@ -68,29 +82,29 @@ function createParams(raw) {
 export function registerDesktopMenu(desktop) {
   const scope = [BACKGROUND_MENU];
   menus.defineAction('desktop.create', {
-    label: 'Crea un elemento', icon: 'filePlus', menus: scope, params: createParams,
+    label: t('create'), icon: 'filePlus', menus: scope, params: createParams,
     run: (ctx, p) => desktop.create(p.kind, ctx.at, { name: p.name, content: p.content, template: p.template }),
   });
   // A file shown by an app's widget (Note adesive: a note), only while that app shows its type
   menus.defineAction('desktop.newWidget', {
-    label: 'Nuovo widget', icon: 'note', menus: scope, params: widgetParams,
+    label: t('newWidget'), icon: 'note', menus: scope, params: widgetParams,
     visible: (ctx, p) => !!p && !!fileWidget(p.app, p.widget),
     run: (ctx, p) => desktop.createWidget(p.app, p.widget, ctx.at),
   });
   // The File Manager's window "Nuovo collegamento" (its entry point newLink), making the link on the desk
-  menus.defineAction('desktop.newLink', { label: 'Collegamento…', icon: 'link', menus: scope, run: () => launch('files', { folder: desktop.folder }, 'newLink') });
-  menus.defineAction('desktop.openInFiles', { label: 'Apri la Scrivania nel File Manager', icon: 'folder', menus: scope, run: () => launch('files', { folder: desktop.folder }) });
-  menus.defineAction('desktop.arrange', { label: 'Riordina icone', icon: 'grid', menus: scope, run: () => desktop.arrange() });
-  menus.defineAction('desktop.selectAll', { label: 'Seleziona tutto', icon: 'check', menus: scope, shortcut: 'items.selectAll', run: () => desktop.select(desktop.scopeItems()) });
+  menus.defineAction('desktop.newLink', { label: t('link'), icon: 'link', menus: scope, run: () => launch('files', { folder: desktop.folder }, 'newLink') });
+  menus.defineAction('desktop.openInFiles', { label: t('openInFiles'), icon: 'folder', menus: scope, run: () => launch('files', { folder: desktop.folder }) });
+  menus.defineAction('desktop.arrange', { label: t('arrange'), icon: 'grid', menus: scope, run: () => desktop.arrange() });
+  menus.defineAction('desktop.selectAll', { label: t('selectAll'), icon: 'check', menus: scope, shortcut: 'items.selectAll', run: () => desktop.select(desktop.scopeItems()) });
   menus.defineAction('workarea.create', {
-    label: 'Nuova workarea', icon: 'workarea', menus: scope,
+    label: t('newWorkarea'), icon: 'workarea', menus: scope,
     // Areas do not overlap: not inside another one
     enabled: ctx => !!desktop.workareas && !ctx.workarea,
     run: ctx => desktop.workareas.createAt(ctx.at),
   });
-  menus.defineAction('desk.fit', { label: 'Mostra tutto', icon: 'fit', menus: scope, shortcut: 'desk.fit', run: () => desktop.canvas.fit() });
-  menus.defineAction('desk.zoomReset', { label: 'Zoom al 100%', icon: 'zoom', menus: scope, shortcut: 'desk.zoomReset', run: () => desktop.canvas.resetZoom() });
-  menus.register(BACKGROUND_MENU, { label: 'Sfondo della scrivania', defaults: DEFAULTS });
+  menus.defineAction('desk.fit', { label: t('fit'), icon: 'fit', menus: scope, shortcut: 'desk.fit', run: () => desktop.canvas.fit() });
+  menus.defineAction('desk.zoomReset', { label: t('zoomReset'), icon: 'zoom', menus: scope, shortcut: 'desk.zoomReset', run: () => desktop.canvas.resetZoom() });
+  menus.register(BACKGROUND_MENU, { label: t('menu'), defaults: defaults() });
 }
 
 /** Text a new file starts with: its template file's content, or the entry's own content. */

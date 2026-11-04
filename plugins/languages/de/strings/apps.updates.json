@@ -1,0 +1,63 @@
+{
+  "asksRestart": "{app} {version} verlangt nach dem Update einen Neustart von lilOS",
+  "updatedRestart": "{app} wurde auf {version} aktualisiert: Starten Sie lilOS neu, um sie zu verwenden (Schaltfläche im Infobereich, unten rechts)",
+  "updated": "{app} wurde auf {version} aktualisiert",
+  "updatedReopen": "{app} wurde auf {version} aktualisiert: Speichern Sie und starten Sie die App neu (Schaltfläche im Infobereich, unten rechts)",
+  "updating": "{app} wird aktualisiert: einen Moment",
+  "waitsTitle": "{app} wartet auf den Neustart",
+  "waitsLead": "{app} wurde aktualisiert und öffnet sich nach dem Neustart von lilOS wieder.",
+  "windows": {
+    "one": "{n} geöffnetes Fenster",
+    "other": "{n} geöffnete Fenster"
+  },
+  "windowsIn": {
+    "one": "{n} geöffnetes Fenster in {spaces} Workspaces",
+    "other": "{n} geöffnete Fenster in {spaces} Workspaces"
+  },
+  "background": "die Hintergrunddienste",
+  "both": "{windows} und {background}",
+  "leadUpdate": "Beim Aktualisieren von {app} wird alles geschlossen, was sie geöffnet hat: {closing}.",
+  "leadReinstall": "Beim Neuinstallieren von {app} wird alles geschlossen, was sie geöffnet hat: {closing}.",
+  "leadMany": "Alles, was diese Apps geöffnet haben, wird geschlossen:",
+  "item": "{app}: {closing}",
+  "save": "Speichern Sie Ihre Arbeit, bevor Sie fortfahren: Apps mit nicht gespeicherten Änderungen werden Sie fragen.",
+  "restartAfter": "Nach dem Update muss lilOS neu gestartet werden (angefordert von {apps}).",
+  "titleUpdate": "{app} aktualisieren?",
+  "titleReinstall": "{app} neu installieren?",
+  "titleUpdateMany": {
+    "one": "{n} App aktualisieren?",
+    "other": "{n} Apps aktualisieren?"
+  },
+  "titleReinstallMany": {
+    "one": "{n} App neu installieren?",
+    "other": "{n} Apps neu installieren?"
+  },
+  "cancel": "Abbrechen",
+  "update": "Aktualisieren",
+  "reinstall": "Neu installieren",
+  "closeAndUpdate": "Schließen und aktualisieren",
+  "closeAndReinstall": "Schließen und neu installieren",
+  "notReady": "lilOS ist noch nicht bereit",
+  "cancelled": "Update abgebrochen: Ein Fenster wurde nicht geschlossen",
+  "notLoaded": "{app}: Die neue Version wurde ohne Neustart von lilOS nicht geladen",
+  "restarting": "System wird neu gestartet…",
+  "offTitle": "lilOS ist ausgeschaltet",
+  "offText": "Der Kernel wurde für alle Benutzer beendet. Um ihn wieder einzuschalten, starten Sie ihn dort erneut, wo er läuft (npm run kernel, der Dienst oder das Programm lilOS), und laden Sie dann diese Seite neu.",
+  "reload": "Neu laden",
+  "restartTitle": "lilOS neu starten?",
+  "restartLead": "Um das Update abzuschließen, muss lilOS neu gestartet werden.",
+  "restartHint": "Alle Fenster werden geschlossen und wieder geöffnet: Speichern Sie Ihre Arbeit in den anderen Apps.",
+  "later": "Später",
+  "restartNow": "Jetzt neu starten",
+  "systemUpdated": "lilOS wurde auf Version {version} aktualisiert",
+  "failedTitle": "Update von lilOS fehlgeschlagen",
+  "failedLead": "lilOS {version} {reason}: lilOS ist von selbst zu Version {current} zurückgekehrt.",
+  "failedHint": "Es ist nichts verloren gegangen. Sie können es im AppStore erneut versuchen; das Kernelprotokoll zeigt, was nicht funktioniert hat.",
+  "ok": "OK",
+  "updatedTitle": "lilOS auf {version} aktualisiert",
+  "updatedLead": "Das Update war erfolgreich: lilOS {version} wird verwendet.",
+  "updatedAsk": "Die vorherige Version ({from}) ist noch installiert und wird nur benötigt, um im AppStore zu ihr zurückzukehren. Möchten Sie sie löschen?",
+  "keep": "Behalten",
+  "deleteVersion": "{from} löschen",
+  "deleted": "lilOS {from} gelöscht"
+}

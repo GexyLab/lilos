@@ -1,4 +1,13 @@
-import { apps as installed, kernel } from '@lilos/sdk';
+import { apps as installed, kernel, locale } from '@lilos/sdk';
+
+const { t } = locale.define('lilos:apps.isolation', {
+  en: { strings: {
+    notInstalled: 'App not installed',
+    system: 'System apps are part of lilOS and run inside lilOS',
+    remote: 'A remote app is a site of its own: it always runs isolated, at its own origin',
+    sdk1: 'The app uses SDK 1, which works only isolated',
+  } },
+});
 
 /**
  * How an installed app runs. An administrator chooses it for every app (Control Panel → App →
@@ -14,10 +23,10 @@ import { apps as installed, kernel } from '@lilos/sdk';
  * are their own site, apps with sdk '1' run at the top of their module and only in a sandbox.
  */
 export function executionMode(pkg) {
-  if (!pkg) return { mode: 'isolated', fixed: true, reason: 'App non installata' };
-  if (pkg.system) return { mode: 'system', fixed: true, reason: 'Le app di sistema fanno parte di lilOS e girano dentro lilOS' };
-  if (pkg.manifest?.kind !== 'local') return { mode: 'remote', fixed: true, reason: 'Un’app remota è un sito a sé: gira sempre isolata, nella sua origine' };
-  if (String(pkg.manifest.sdk) !== '2') return { mode: 'isolated', fixed: true, reason: 'L’app usa l’SDK 1, che funziona solo isolato' };
+  if (!pkg) return { mode: 'isolated', fixed: true, reason: t('notInstalled') };
+  if (pkg.system) return { mode: 'system', fixed: true, reason: t('system') };
+  if (pkg.manifest?.kind !== 'local') return { mode: 'remote', fixed: true, reason: t('remote') };
+  if (String(pkg.manifest.sdk) !== '2') return { mode: 'isolated', fixed: true, reason: t('sdk1') };
   const own = typeof pkg.isolated === 'boolean' ? pkg.isolated : null;
   const isolated = own ?? installed.security().isolated;
   return { mode: isolated ? 'isolated' : 'open', fixed: false, own };

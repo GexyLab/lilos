@@ -1,0 +1,14 @@
+{
+  "name": "“{id}”",
+  "nameVersion": "“{id}” ({version})",
+  "restart": {
+    "other": "Memerlukan modul kernel {modules} yang sudah terinstal: modul mulai bekerja saat kernel dimulai ulang berikutnya, yang dilakukan administrator dari AppStore."
+  },
+  "missing": "Tidak ditemukan: {list}. Administrator menginstalnya dari AppStore.",
+  "missingModule": "modul kernel {name}",
+  "missingApp": "aplikasi {name}",
+  "openApp": "Buka aplikasi",
+  "hidden": "{app} disembunyikan di ruang kerja ini. Anda dapat menampilkannya dari Panel Kontrol → Ruang kerja.",
+  "cannotStart": "{app} belum dapat dimulai",
+  "notStarted": "{app} tidak dimulai: {message}"
+}

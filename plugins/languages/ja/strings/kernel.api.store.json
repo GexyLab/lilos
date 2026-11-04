@@ -1,0 +1,6 @@
+{
+  "signIn": "先にサインインしてください",
+  "adminOnly": "管理者のみ",
+  "name": "無効な名前",
+  "notSupervised": "カーネルは \"npm run kernel\" で起動されていません。手動で再起動してください"
+}

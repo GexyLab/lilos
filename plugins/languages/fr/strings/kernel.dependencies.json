@@ -1,0 +1,37 @@
+{
+  "adminOnly": "Seul un administrateur installe ou supprime des paquets",
+  "needsLilos": "{name} {version} nécessite lilOS {range} (celui-ci est {system})",
+  "moduleJson": "module.json n’est pas un JSON valide",
+  "byHand": "{id} a été placé manuellement : il se met à jour manuellement",
+  "appInstalled": "{name} est déjà installée : pour une nouvelle version, utilisez la mise à jour",
+  "moduleInstalled": "{name} est déjà installé : pour une nouvelle version, utilisez la mise à jour",
+  "replaced": "{name} a été remplacé par {by} : il ne s’installe plus",
+  "appMissing": "App non installée",
+  "moduleOff": "Module non actif",
+  "otherApp": "Le paquet est celui de l’app {found}, pas de {id}",
+  "otherModule": "Le paquet est celui du module {found}, pas de {id}",
+  "moduleNewer": "Le module {id} {range} est nécessaire : la version {have} est installée et la plus récente est la {newer}",
+  "appNewer": "L’app {id} {range} est nécessaire : la version {have} est installée et la plus récente est la {newer}",
+  "unreadable": "Impossible de lire le dépôt {url} : {message}",
+  "moduleNotInRepo": "Le dépôt {url} n’a pas de module {id}",
+  "appNotInRepo": "Le dépôt {url} n’a pas d’app {id}",
+  "moduleRepoVersion": "Le module {id} {range} est nécessaire : le dépôt a la version {version}",
+  "appRepoVersion": "L’app {id} {range} est nécessaire : le dépôt a la version {version}",
+  "modulePlanned": "{name} a besoin du module {id} {range}, mais c’est la version {version} qui est en cours d’installation",
+  "appPlanned": "{name} a besoin de l’app {id} {range}, mais c’est la version {version} qui est en cours d’installation",
+  "circular": "Dépendance circulaire entre {a} et {b} : aucun des deux ne peut être installé avant l’autre",
+  "consent": "Consentement manquant pour {keys} : vérifiez à nouveau ce qui sera installé",
+  "haveVersion": "{id} {range} (la version {have} est présente)",
+  "missing": "{name} a besoin de : {missing}. Installez-le depuis l’AppStore, qui installe aussi ce dont il a besoin.",
+  "appNeeded": {
+    "one": "L’app {id} est nécessaire à {names} : supprimez d’abord ce paquet",
+    "other": "L’app {id} est nécessaire à {names} : supprimez d’abord ces paquets"
+  },
+  "moduleNeeded": {
+    "one": "Le module {id} est nécessaire à {names} : supprimez d’abord ce paquet",
+    "other": "Le module {id} est nécessaire à {names} : supprimez d’abord ces paquets"
+  },
+  "wantsOne": "{name} veut {id} {range} : la version {version} ne convient pas",
+  "wants": "{name} veut {id} {range}",
+  "wantsMany": "{list} : la version {version} ne convient pas"
+}

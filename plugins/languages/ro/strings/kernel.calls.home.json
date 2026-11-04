@@ -1,0 +1,7 @@
+{
+  "path": "Cale nevalidă: {path}",
+  "notFound": "Nu s-a găsit: {path}",
+  "gone": "Fișierul nu mai există",
+  "notFile": "Nu este un fișier: {path}",
+  "tooBig": "Fișier prea mare (cel mult 50 MB): {path}"
+}

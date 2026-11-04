@@ -1,0 +1,10 @@
+{
+  "scriptErrorBefore": "اسکرپٹ کی خرابی (پہلے): {message}",
+  "scriptErrorAfter": "اسکرپٹ کی خرابی (بعد میں): {message}",
+  "scriptTimeoutBefore": "اسکرپٹ کی خرابی (پہلے): اسکرپٹ کا وقت ختم ہو گیا (5 سیکنڈ)",
+  "scriptTimeoutAfter": "اسکرپٹ کی خرابی (بعد میں): اسکرپٹ کا وقت ختم ہو گیا (5 سیکنڈ)",
+  "skipped": "سیشنز (WebSocket، SSE، TCP، UDP، MQTT) ونڈو سے کھلتے ہیں: رنز انہیں چھوڑ دیتے ہیں",
+  "otherServer": "ایک اسکرپٹ نے درخواست کا سرور بدل دیا: خفیہ اقدار کسی دوسرے پتے پر نہیں جاتیں",
+  "noProtocol": "پروٹوکول رنز میں دستیاب نہیں: {protocol} (اس کا kernel ماڈیول موجود نہیں)",
+  "nothingToSave": "«{name}»: محفوظ کرنے کے لیے کچھ نہیں ({source} {path})"
+}

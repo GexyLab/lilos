@@ -1,0 +1,7 @@
+{
+  "noPipeFn": "La fonction du pipe est manquante",
+  "noHandler": "{id} : {entry} ne répond pas aux appels (lilos.handle est manquant)",
+  "noPipe": "{id} : aucune fonction pour ce pipe",
+  "libraryFailed": "Bibliothèque non chargée",
+  "noExport": "Le code n’exporte pas {entry}"
+}

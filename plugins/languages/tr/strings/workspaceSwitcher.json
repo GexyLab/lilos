@@ -1,0 +1,16 @@
+{
+  "area": "Çalışma alanı",
+  "toChange": "Değiştirmek için {keys}",
+  "menu": "Çalışma alanı…",
+  "menuLabel": "Çalışma alanları menüsü",
+  "button": "Çalışma alanı: {name}",
+  "buttonKeys": "Çalışma alanı: {name} (değiştirmek için {keys})",
+  "buttonLabel": "Çalışma alanı {name}: çalışma alanını değiştir",
+  "heading": "Çalışma alanı",
+  "next": "Sonraki",
+  "previous": "Önceki",
+  "create": "Yeni çalışma alanı",
+  "showCurrent": "Yalnızca geçerli çalışma alanını göster",
+  "showAll": "Tüm çalışma alanlarını göster",
+  "manage": "Çalışma alanlarını yönet…"
+}

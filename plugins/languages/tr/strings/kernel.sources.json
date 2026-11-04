@@ -1,0 +1,20 @@
+{
+  "repo": "Depo geçerli değil (sahip/ad)",
+  "urlLocal": "Deponun adresi geçerli değil (https:// veya bir klasör)",
+  "url": "Deponun adresi geçerli değil (https://)",
+  "ref": "Başvuru geçerli değil",
+  "path": "Depodaki yol geçerli değil",
+  "local": "Kaynak olarak yerel klasörlere yalnızca geliştirme sırasında izin verilir (allowLocalSources)",
+  "dir": "Klasör geçerli değil (mutlak yol)",
+  "type": "Bilinmeyen kaynak: \"git\", \"github\" veya \"local\"",
+  "noGit": "git komutu çekirdeğin çalıştığı bilgisayarda yüklü değil",
+  "git": "git: {message}",
+  "gitError": "git: hata",
+  "outside": "Paketin dışında bir yol: {path}",
+  "missing": "{path} eksik",
+  "notFile": "{path} bir dosya değil veya çok büyük",
+  "tooMany": "Pakette çok fazla dosya var",
+  "notInRepo": "Depoda {path} yok",
+  "json": "lilos.json geçerli bir JSON değil",
+  "tooLarge": "Paket çok büyük"
+}

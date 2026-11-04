@@ -1,0 +1,10 @@
+{
+  "scriptErrorBefore": "Kesalahan skrip (sebelum): {message}",
+  "scriptErrorAfter": "Kesalahan skrip (sesudah): {message}",
+  "scriptTimeoutBefore": "Kesalahan skrip (sebelum): skrip kehabisan waktu (5 detik)",
+  "scriptTimeoutAfter": "Kesalahan skrip (sesudah): skrip kehabisan waktu (5 detik)",
+  "skipped": "Sesi (WebSocket, SSE, TCP, UDP, MQTT) dibuka dari jendela: eksekusi melewatinya",
+  "otherServer": "Skrip mengubah server permintaan: nilai rahasia tidak dikirim ke alamat lain",
+  "noProtocol": "Protokol tidak tersedia dalam eksekusi: {protocol} (modul kernelnya tidak ada)",
+  "nothingToSave": "“{name}”: tidak ada yang disimpan ({source} {path})"
+}

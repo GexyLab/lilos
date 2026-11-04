@@ -1,0 +1,19 @@
+{
+  "noConnection": {
+    "one": "Aucune connexion en {n} seconde",
+    "other": "Aucune connexion en {n} secondes"
+  },
+  "untrusted": "Certificat de {host} non confirmé ({reason})",
+  "cancelled": "Annulé",
+  "refused": "Connexion refusée ({code})",
+  "reset": "Connexion interrompue par le serveur ({code})",
+  "notFound": "Nom de serveur inconnu ({code})",
+  "dns": "Nom de serveur non résolu (DNS) ({code})",
+  "timeout": "Délai dépassé ({code})",
+  "hostUnreachable": "Serveur injoignable ({code})",
+  "netUnreachable": "Réseau injoignable ({code})",
+  "closed": "Connexion fermée ({code})",
+  "aborted": "Annulé ({code})",
+  "otherName": "Certificat émis pour un autre nom ({code})",
+  "network": "Erreur réseau"
+}

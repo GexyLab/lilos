@@ -1,0 +1,11 @@
+{
+  "title": "Birlikte aç",
+  "apps": "Uygulama",
+  "choose": "“{name}” ({type}) öğesini açacak uygulamayı seçin.",
+  "alwaysExt": ".{ext} dosyaları için her zaman bu uygulamayı kullan",
+  "alwaysNoExt": "Uzantısı olmayan dosyalar için her zaman bu uygulamayı kullan",
+  "cancel": "İptal",
+  "open": "Aç",
+  "none": "Yüklü hiçbir uygulama “{name}” öğesini açamıyor.",
+  "close": "Kapat"
+}

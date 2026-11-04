@@ -1,0 +1,15 @@
+{
+  "title": "通知",
+  "today": "今天",
+  "yesterday": "昨天",
+  "markAll": "全部标为已读",
+  "clearAll": "全部删除",
+  "clearFailed": "通知未删除：{message}",
+  "removeFailed": "通知未删除：{message}",
+  "kept": "保留了 {count} / {keep} 条",
+  "fresh": {
+    "other": "{kept} · {n} 条新通知"
+  },
+  "empty": "没有通知",
+  "remove": "删除"
+}

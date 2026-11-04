@@ -1,0 +1,15 @@
+{
+  "name": "«{id}»",
+  "nameVersion": "«{id}» ({version})",
+  "restart": {
+    "one": "Ha bisogno del modulo del kernel {modules}, già installato: entra in funzione al prossimo riavvio del kernel, che fa un amministratore dall’AppStore.",
+    "other": "Ha bisogno dei moduli del kernel {modules}, già installati: entrano in funzione al prossimo riavvio del kernel, che fa un amministratore dall’AppStore."
+  },
+  "missing": "Non trova: {list}. Un amministratore lo installa dall’AppStore.",
+  "missingModule": "il modulo del kernel {name}",
+  "missingApp": "l’app {name}",
+  "openApp": "Apri un’app",
+  "hidden": "{app} è nascosta in questo workspace. Si mostra dal Pannello di controllo → Workspace.",
+  "cannotStart": "{app} non può ancora partire",
+  "notStarted": "{app} non è partita: {message}"
+}

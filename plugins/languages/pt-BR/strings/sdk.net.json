@@ -1,0 +1,8 @@
+{
+  "blockedWindow": "O navegador bloqueou a janela de login",
+  "blockedTab": "O navegador bloqueou a guia de login",
+  "canceled": "Login cancelado",
+  "failed": "Falha no login",
+  "noAskAddress": "Falta askAddress",
+  "badAddress": "Endereço inválido"
+}

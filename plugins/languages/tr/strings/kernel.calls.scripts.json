@@ -1,0 +1,5 @@
+{
+  "noRuntime": "Betikler services-isolate modülünü gerektirir (Denetim Masası → Modüller)",
+  "noStart": "Betikler başlamıyor: {message}",
+  "timeout": "Betiğin süresi doldu (5 saniye)"
+}

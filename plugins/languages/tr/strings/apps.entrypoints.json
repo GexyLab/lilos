@@ -1,0 +1,6 @@
+{
+  "notInstalled": "Uygulama yüklü değil: {id}",
+  "hidden": "{app} bu çalışma alanında gizli",
+  "noEntry": "{app} uygulamasında {entry} giriş noktası yok",
+  "backgroundOnly": "Yalnızca bir arka plan giriş noktasına bağlanabilirsiniz"
+}

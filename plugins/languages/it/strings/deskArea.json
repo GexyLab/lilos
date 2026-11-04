@@ -1,0 +1,38 @@
+{
+  "newFolder": "Nuova cartella",
+  "newDocument": "Nuovo documento.txt",
+  "fixedOne": "«{name}» è un elemento fisso della scrivania: non si può eliminare",
+  "fixedMany": "Gli elementi fissi della scrivania non si possono eliminare",
+  "fixedStay": "Gli elementi fissi della scrivania restano: si elimina solo il resto",
+  "removeWithAreas": {
+    "one": "{what} ed elimina 1 workarea",
+    "other": "{what} ed elimina {n} workarea"
+  },
+  "arrange": "Riordina icone",
+  "moveOne": "Sposta «{name}»",
+  "moveMany": {
+    "one": "Sposta {n} elemento",
+    "other": "Sposta {n} elementi"
+  },
+  "gone": "Gli elementi non ci sono più",
+  "area.open": "Apri la workarea",
+  "rename": "Rinomina",
+  "properties": "Proprietà…",
+  "area.remove": "Elimina la workarea…",
+  "open": "Apri",
+  "openMany": {
+    "one": "Apri {n} elemento",
+    "other": "Apri {n} elementi"
+  },
+  "fixed.hide": "Togli dalla scrivania",
+  "fixed.hidden": "«{name}» si rimette dal Pannello di controllo → Workspace → Questo workspace",
+  "fixed.settings": "Elementi fissi della scrivania…",
+  "openWith": "Apri con…",
+  "wallpaper": "Usa come sfondo desktop",
+  "area.fromSelection": "Crea una workarea con la selezione",
+  "remove": "Elimina",
+  "removeMany": {
+    "one": "Elimina {n} elemento",
+    "other": "Elimina {n} elementi"
+  }
+}

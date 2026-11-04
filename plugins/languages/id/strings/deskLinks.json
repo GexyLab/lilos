@@ -1,0 +1,11 @@
+{
+  "noDesk": "Desktop tidak ada",
+  "notFolder": "“{name}” bukan lagi folder.",
+  "notFile": "“{name}” bukan lagi file.",
+  "broken": "Tautan “{name}” tidak dapat menemukan aslinya",
+  "trashed": "Aslinya ada di tempat sampah: pulihkan untuk menggunakan tautan lagi.",
+  "deleted": "Aslinya telah dihapus, atau berada di ruang kerja yang tidak terlihat dari sini.",
+  "mountGone": "Koneksi jaringan tempat aslinya berada sudah tidak ada.",
+  "pathGone": "“{path}” sudah tidak ada di “{mount}”.",
+  "unreachable": "Tidak dapat menjangkau “{name}”"
+}

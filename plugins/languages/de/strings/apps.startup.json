@@ -1,0 +1,14 @@
+{
+  "mainWindow": "Hauptfenster",
+  "paramsObject": "Die Parameter müssen ein JSON-Objekt sein, zwischen { }",
+  "paramsTooLong": "Parameter zu lang (höchstens 4 KB)",
+  "invalid": "{param}: ungültiger Wert",
+  "fileGone": "{param}: Die Datei ist nicht mehr vorhanden",
+  "folderGone": "{param}: Der Ordner ist nicht mehr vorhanden",
+  "notOpened": "{app} wurde nicht von selbst geöffnet. {message}",
+  "notInstalled": "App nicht installiert",
+  "maxApps": "Höchstens {max} Apps beim Start",
+  "unknownEntry": "Unbekannter Einstiegspunkt",
+  "entryNotAtStartup": "Der Einstiegspunkt ist nicht im Autostart",
+  "skipped": "Ohne Apps gestartet: Die Adresse enthält ?avvio=no"
+}

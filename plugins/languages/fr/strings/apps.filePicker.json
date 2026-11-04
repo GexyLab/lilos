@@ -1,0 +1,14 @@
+{
+  "title": "Choisir un fichier",
+  "search": "Rechercher par nom ou chemin",
+  "searchLabel": "Rechercher",
+  "folders": "Dossiers",
+  "files": "Fichiers",
+  "choose": "Choisir",
+  "cancel": "Annuler",
+  "home": "Dossier personnel",
+  "noMatch": "Aucun résultat pour cette recherche",
+  "noFolders": "Aucun dossier",
+  "noFiles": "Aucun fichier dans lilOS",
+  "noFilesOf": "Aucun fichier {exts} dans lilOS"
+}

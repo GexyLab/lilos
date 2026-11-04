@@ -1,0 +1,12 @@
+{
+  "zoomOut": "축소",
+  "zoomIn": "확대",
+  "fit": "모두 표시",
+  "zoomReset": "100%로 확대/축소",
+  "help": "조작 방법",
+  "withKey": "{text}({keys})",
+  "help.wheel": "휠: 확대/축소",
+  "help.move": "Space + 끌기 또는 가운데 버튼: 이동",
+  "help.select": "배경 끌기: 선택",
+  "help.fit": "{keys}: 모두 표시"
+}

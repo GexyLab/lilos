@@ -1,0 +1,20 @@
+{
+  "repo": "잘못된 저장소(owner/name)",
+  "urlLocal": "잘못된 저장소 주소(https:// 또는 폴더)",
+  "url": "잘못된 저장소 주소(https://)",
+  "ref": "잘못된 참조",
+  "path": "저장소의 경로가 잘못되었습니다",
+  "local": "로컬 폴더를 소스로 사용하는 것은 개발 중에만 허용됩니다(allowLocalSources)",
+  "dir": "잘못된 폴더(절대 경로)",
+  "type": "알 수 없는 소스: \"git\", \"github\" 또는 \"local\"",
+  "noGit": "커널이 실행되는 컴퓨터에 git 명령이 설치되어 있지 않습니다",
+  "git": "git: {message}",
+  "gitError": "git: 오류",
+  "outside": "패키지 밖의 경로: {path}",
+  "missing": "{path}이(가) 없습니다",
+  "notFile": "{path}이(가) 파일이 아니거나 너무 큽니다",
+  "tooMany": "패키지에 파일이 너무 많습니다",
+  "notInRepo": "저장소에 {path}이(가) 없습니다",
+  "json": "lilos.json이 올바른 JSON이 아닙니다",
+  "tooLarge": "패키지가 너무 큽니다"
+}

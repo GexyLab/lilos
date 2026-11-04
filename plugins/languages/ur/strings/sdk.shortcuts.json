@@ -1,0 +1,19 @@
+{
+  "key.Enter": "Enter",
+  "key.Escape": "Esc",
+  "key.Delete": "Del",
+  "key.Space": "Space",
+  "key.Insert": "Ins",
+  "key.End": "End",
+  "key.PageUp": "PgUp",
+  "key.PageDown": "PgDn",
+  "general": "عمومی",
+  "exists": "شارٹ کٹ پہلے سے رجسٹر ہے: {id}",
+  "unknown": "شارٹ کٹ رجسٹر نہیں ہے: {id}",
+  "invalid": "غلط مجموعہ",
+  "noKey": "Ctrl، Alt یا Shift کے علاوہ کوئی کلید بھی دبائیں",
+  "reserved": "یہ مجموعہ براؤزر کے لیے مخصوص ہے",
+  "tabSpace": "اکیلے Tab اور Space ادھر ادھر جانے اور ڈیسک ٹاپ کو حرکت دینے کے لیے ہیں",
+  "typingKey": "ٹائپ کرنے والی کلید کو Ctrl، Alt یا Shift کے ساتھ استعمال کرنا ہو گا",
+  "whenEditing": "یہ شارٹ کٹ ٹائپ کرتے وقت بھی کام کرتا ہے: اسے Ctrl یا Alt درکار ہے"
+}

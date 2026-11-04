@@ -1,0 +1,11 @@
+{
+  "one": "{name} rulează în fundal",
+  "many": {
+    "one": "O aplicație rulează în fundal",
+    "few": "{n} aplicații rulează în fundal",
+    "other": "{n} de aplicații rulează în fundal"
+  },
+  "heading": "Rulează în fundal",
+  "item": "{name}: {label}",
+  "stop": "Opriți"
+}

@@ -1,0 +1,22 @@
+{
+  "choose.serial": "Escolha uma porta serial",
+  "choose.usb": "Escolha um dispositivo USB",
+  "choose.hid": "Escolha um dispositivo",
+  "choose.bluetooth": "Escolha um dispositivo Bluetooth",
+  "choose.screen": "Escolha o que compartilhar",
+  "choose.text.serial": "Um app quer usar uma porta serial do computador.",
+  "choose.text.usb": "Um app quer usar um dispositivo USB do computador.",
+  "choose.text.hid": "Um app quer usar um dispositivo do computador (teclados numéricos, leitores, controles…).",
+  "choose.text.bluetooth": "Um app quer usar um dispositivo Bluetooth próximo do computador.",
+  "choose.text.screen": "Um app quer ver uma tela ou uma janela do computador.",
+  "choose.field": "Dispositivo",
+  "choose.none": "Nenhum dispositivo encontrado: conecte-o e tente de novo.",
+  "connect": "Conectar",
+  "share": "Compartilhar",
+  "saved": "“{name}” salvo pelo programa do computador",
+  "saveFailed": "“{name}” não foi salvo de volta no lilOS: {error}",
+  "missing": "“{path}” não está no lilOS",
+  "driveIn": "“{name}” está em Rede › Este computador",
+  "driveFailed": "“{name}” não conectada: {error}",
+  "serialPort": "Porta serial"
+}

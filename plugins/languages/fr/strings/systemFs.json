@@ -1,0 +1,3 @@
+{
+  "welcome": "Bienvenue dans lilOS !\n\nCeci est un bureau sans fin : maintenez Espace et faites glisser pour vous déplacer,\nutilisez la molette pour zoomer, faites glisser sur l’arrière-plan pour sélectionner.\n\n- Double-cliquez sur un dossier : il s’ouvre dans le File Manager.\n- Double-cliquez sur un fichier texte : il s’ouvre dans l’Editor (comme celui-ci).\n- Ctrl K ouvre le menu Démarrer, Ctrl S enregistre dans l’Editor.\n- Le bouton à côté du logo change d’espace de travail : chacun a son propre bureau,\n  ses propres fenêtres et ses propres apps. Documenti, Immagini et Download appartiennent à tous.\n\nLes raccourcis et les apps qui ouvrent les fichiers se modifient dans\nPanneau de configuration → Ergonomie.\n"
+}

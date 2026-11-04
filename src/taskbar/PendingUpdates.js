@@ -1,5 +1,12 @@
-import { h, icon, openMenu } from '@lilos/sdk';
+import { h, icon, openMenu, locale } from '@lilos/sdk';
 import { updates, reopenApp, restartSystem } from '../apps/updates.js';
+
+const { t } = locale.define('lilos:pendingUpdates', {
+  en: { strings: {
+    restart: 'Restart lilOS to finish the updates', reopen: 'Updated apps to restart',
+    heading: 'Updated, open with the previous version', reopenApp: 'Restart {name} ({version})', restartSystem: 'Restart lilOS',
+  } },
+});
 
 /**
  * Taskbar button for updates not finished yet (apps/updates.js): apps updated elsewhere whose
@@ -12,7 +19,7 @@ export function createPendingUpdates() {
     const list = updates.pending();
     const restart = updates.restartReasons().length > 0;
     button.hidden = !list.length && !restart;
-    const label = restart ? 'Riavvia lilOS per completare gli aggiornamenti' : 'App aggiornate da riavviare';
+    const label = restart ? t('restart') : t('reopen');
     button.title = label;
     button.setAttribute('aria-label', label);
     button.classList.toggle('restart', restart);
@@ -22,15 +29,15 @@ export function createPendingUpdates() {
     const r = button.getBoundingClientRect();
     const reopen = updates.pending().filter(p => p.kind === 'reopen');
     const reasons = updates.restartReasons();
-    openMenu(r.left, r.top, [
+    openMenu((document.documentElement.dir === 'rtl' ? r.right : r.left), r.top, [
       ...(reopen.length ? [
-        { label: 'Aggiornate, aperte con la versione di prima', disabled: true },
-        ...reopen.map(p => ({ label: `Riavvia ${p.name} (${p.version})`, icon: 'download', action: () => reopenApp(p.id) })),
+        { label: t('heading'), disabled: true },
+        ...reopen.map(p => ({ label: t('reopenApp', { name: p.name, version: p.version }), icon: 'download', action: () => reopenApp(p.id) })),
       ] : []),
       ...(reopen.length && reasons.length ? ['-'] : []),
       ...(reasons.length ? [
         ...reasons.map(text => ({ label: text, disabled: true })),
-        { label: 'Riavvia lilOS', icon: 'power', action: () => restartSystem() },
+        { label: t('restartSystem'), icon: 'power', action: () => restartSystem() },
       ] : []),
     ], { placement: 'above' });
   });

@@ -1,0 +1,11 @@
+{
+  "official": "lilOS oficial",
+  "adminOnly": "Doar un administrator gestionează depozitele",
+  "missing": "Depozitul nu a fost găsit",
+  "present": "Depozit deja adăugat",
+  "tooMany": "Cel mult {max} depozite",
+  "notOfficial": "Depozitul oficial nu poate fi eliminat",
+  "catalog": "catalog.json lipsește sau nu este un JSON valid",
+  "notInCatalog": "Pachetul nu este în catalog",
+  "file": "Fișier nevalid"
+}

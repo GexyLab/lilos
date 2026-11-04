@@ -1,0 +1,12 @@
+{
+  "folder": "module.json tidak cocok dengan folder {folder}",
+  "kernel": "{name} memerlukan kernel {kernel}, yang ini {api}",
+  "services": "{name}: nama layanan tidak valid",
+  "settings": "{name}: pengaturan tidak valid",
+  "replaces": "{name}: replaces tidak valid",
+  "notInstalled": "Modul tidak terinstal: {name}",
+  "twice": "Modul disebut dua kali: {name}",
+  "provider": "Layanan \"{service}\" disediakan oleh {first} dan juga oleh {second}",
+  "cycle": "Dependensi melingkar antar modul ({name})",
+  "missing": "{name} memerlukan layanan \"{service}\", yang tidak disediakan oleh modul aktif mana pun"
+}

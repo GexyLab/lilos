@@ -1,0 +1,7 @@
+{
+  "signIn": "Melden Sie sich zuerst an",
+  "kind": "kind muss \"app\" oder \"module\" sein",
+  "id": "Ungültige id",
+  "target": "install oder update ist erforderlich",
+  "package": "Ungültiges Paket"
+}

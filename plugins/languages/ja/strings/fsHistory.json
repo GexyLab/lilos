@@ -1,0 +1,18 @@
+{
+  "one": "「{name}」",
+  "many": "{n} 個の項目",
+  "home": "ホーム",
+  "gone": "その項目はもう存在しません",
+  "folderGone": "それらがあったフォルダーはもう存在しません",
+  "itemsGone": "それらの項目はもう存在しません",
+  "notTrashed": "それらの項目はもうごみ箱にありません",
+  "createdGone": "そのフォルダーはもう存在しません",
+  "foldersGone": "項目またはフォルダーはもう存在しません",
+  "delete": "{what}を削除",
+  "trash": "{what}をごみ箱に移動",
+  "restore": "{what}を元に戻す",
+  "create": "「{name}」を作成",
+  "rename": "「{from}」の名前を「{to}」に変更",
+  "move": "「{name}」を「{folder}」に移動",
+  "moveMany": "{what}を「{folder}」に移動"
+}

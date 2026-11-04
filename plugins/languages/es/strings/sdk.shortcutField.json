@@ -1,0 +1,16 @@
+{
+  "remove": "Quitar",
+  "removeCombo": "Quitar {combo}",
+  "none": "Ninguna",
+  "pressKeys": "Pulsa las teclas…",
+  "add": "Añadir una combinación",
+  "addFor": "Añadir una combinación para {command}",
+  "resetTitle": "Restaurar la combinación original",
+  "reset": "Restaurar",
+  "record": "Pulsa la combinación. Esc para cancelar.",
+  "invalid": "{combo}: {error}",
+  "already": "{combo} ya está asignada a este comando",
+  "usedBy": "{combo} ya la usa «{command}».",
+  "replace": "Reemplazar",
+  "cancel": "Cancelar"
+}

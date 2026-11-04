@@ -1,0 +1,23 @@
+{
+  "signIn": "É necessário fazer login",
+  "noProtocol": "Protocolo não disponível: {protocol} (falta o módulo do kernel dele)",
+  "hostName": "Nome do host inválido",
+  "hostTaken": "Já existe um host “{name}”",
+  "missing": "Faltam: {fields}",
+  "tooMany": "No máximo {max} hosts",
+  "hostNotFound": "Host não encontrado",
+  "noPassword": "Nenhuma senha para salvar",
+  "sealedOther": "A senha salva no atalho vale somente para quem a salvou, neste lilOS, para o mesmo servidor e usuário",
+  "sessionNotFound": "Sessão não encontrada",
+  "sessionsTooMany": "No máximo {max} sessões abertas",
+  "sftpOnly": "O terminal só abre em conexões SFTP",
+  "sshOnly": "Os comandos agendados só vão para hosts SSH",
+  "untrusted": "A chave do servidor de “{name}” não está confirmada: conecte-se uma vez pelo Terminal",
+  "denied": "Acesso negado por “{name}”: salve a senha ou a chave no host",
+  "stopping": "O kernel está parando",
+  "detached": "Fechada após 10 minutos sem janela",
+  "cancelled": "Conexão cancelada",
+  "failed": "Falha na conexão",
+  "folder": "Nome de pasta inválido",
+  "cwd": "Pasta inválida"
+}

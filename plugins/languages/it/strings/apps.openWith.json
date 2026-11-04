@@ -1,0 +1,11 @@
+{
+  "title": "Apri con",
+  "apps": "App",
+  "choose": "Scegli l'app per aprire «{name}» ({type}).",
+  "alwaysExt": "Usa sempre quest'app per i file .{ext}",
+  "alwaysNoExt": "Usa sempre quest'app per i file senza estensione",
+  "cancel": "Annulla",
+  "open": "Apri",
+  "none": "Nessuna app installata può aprire «{name}».",
+  "close": "Chiudi"
+}

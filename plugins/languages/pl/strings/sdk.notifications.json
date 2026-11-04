@@ -1,0 +1,5 @@
+{
+  "noText": "Powiadomienie nie ma tekstu",
+  "badLevel": "Nieprawidłowy poziom: info, success, warning lub error",
+  "keep": "Ile powiadomień zachować: od 1 do 200"
+}

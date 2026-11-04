@@ -1,0 +1,9 @@
+{
+  "skipped": "چھوڑ دیا گیا",
+  "check": "جانچ {name} ({actual})",
+  "test": "ٹیسٹ «{name}»: {error}",
+  "counts": "{seconds} سیکنڈ میں {passed} کامیاب، {failed} ناکام",
+  "countsSkipped": "{seconds} سیکنڈ میں {passed} کامیاب، {failed} ناکام، {skipped} چھوڑے گئے",
+  "cancelled": "منسوخ: {counts}",
+  "failedFirst": "{name}: {counts} (پہلا: {first})"
+}

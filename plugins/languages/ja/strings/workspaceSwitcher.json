@@ -1,0 +1,16 @@
+{
+  "area": "ワークスペース",
+  "toChange": "{keys} で切り替え",
+  "menu": "ワークスペース…",
+  "menuLabel": "ワークスペースメニュー",
+  "button": "ワークスペース：{name}",
+  "buttonKeys": "ワークスペース：{name}（{keys} で切り替え）",
+  "buttonLabel": "ワークスペース {name}：ワークスペースを切り替え",
+  "heading": "ワークスペース",
+  "next": "次へ",
+  "previous": "前へ",
+  "create": "新しいワークスペース",
+  "showCurrent": "現在のワークスペースのみ表示",
+  "showAll": "すべてのワークスペースを表示",
+  "manage": "ワークスペースの管理…"
+}

@@ -1,0 +1,25 @@
+{
+  "retention.days": {
+    "other": "{n}일"
+  },
+  "retention.year": "1년",
+  "retention.forever": "영구",
+  "lasso": "{keys} + 끌기",
+  "color.blue": "파랑",
+  "color.violet": "보라",
+  "color.magenta": "자홍",
+  "color.red": "빨강",
+  "color.orange": "주황",
+  "color.green": "초록",
+  "color.teal": "청록",
+  "color.graphite": "흑연",
+  "color.night": "밤",
+  "color.deepBlue": "짙은 파랑",
+  "color.forest": "숲",
+  "color.plum": "자두",
+  "color.earth": "대지",
+  "color.mist": "안개",
+  "color.sky": "하늘",
+  "color.sage": "세이지",
+  "color.sand": "모래"
+}

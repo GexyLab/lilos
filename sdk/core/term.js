@@ -2,6 +2,10 @@ import { Emitter } from './events.js';
 import { kernel } from './kernel.js';
 import { locale } from './locale.js';
 
+const { t } = locale.define('lilos:sdk.term', {
+  en: { strings: { badSession: 'Invalid session' } },
+});
+
 /**
  * Remote terminals (SSH, Telnet, rlogin, SUPDUP… each protocol a kernel module): the hosts the user
  * saved and the sessions open in the kernel. A session goes on with no window showing it and
@@ -61,7 +65,7 @@ class Term extends Emitter {
 
   /** The channel of a session (see above): a WebSocket to the kernel behind a MessagePort. */
   attach(id, { cols, rows } = {}) {
-    if (!/^[a-f0-9]{16}$/.test(String(id))) throw new Error('Sessione non valida');
+    if (!/^[a-f0-9]{16}$/.test(String(id))) throw new Error(t('badSession'));
     const query = new URLSearchParams();
     if (Number.isInteger(cols)) query.set('cols', String(cols));
     if (Number.isInteger(rows)) query.set('rows', String(rows));

@@ -1,20 +1,25 @@
-import { fs, net, storage } from '@lilos/sdk';
+import { fs, net, storage, locale } from '@lilos/sdk';
 import { seedItems } from './desktop/seed.js';
 
-const WELCOME = `Benvenuto in lilOS!
+// The text of the welcome file the seed puts on the first desk (written in the system's language then)
+const { t } = locale.define('lilos:systemFs', {
+  en: { strings: {
+    welcome: `Welcome to lilOS!
 
-Questa è una scrivania infinita: tieni premuto Spazio e trascina per spostarti,
-usa la rotella per lo zoom, trascina sullo sfondo per selezionare.
+This is an endless desk: hold Space and drag to move around,
+use the wheel to zoom, drag on the background to select.
 
-- Doppio clic su una cartella: si apre nel File Manager.
-- Doppio clic su un file di testo: si apre nell'Editor (come questo).
-- Ctrl K apre il menu di avvio, Ctrl S salva nell'Editor.
-- Il pulsante accanto al logo cambia workspace: ognuno ha la sua scrivania,
-  le sue finestre e le sue app. Documenti, Immagini e Download sono di tutti.
+- Double-click a folder: it opens in the File Manager.
+- Double-click a text file: it opens in the Editor (like this one).
+- Ctrl K opens the start menu, Ctrl S saves in the Editor.
+- The button next to the logo changes workspace: each one has its own desk,
+  its own windows and its own apps. Documenti, Immagini and Download belong to everyone.
 
-Le scorciatoie e le app che aprono i file si cambiano nel
-Pannello di controllo → Usabilità.
-`;
+Shortcuts and the apps that open files can be changed in
+Control Panel → Usability.
+`,
+  } },
+});
 
 /** Name of every workspace's desk folder (private: each workspace sees only its own). */
 export const DESK_NAME = 'Scrivania';
@@ -83,9 +88,9 @@ export function fillDesk(deskId, layoutKey) {
     }
     storage.remove('desktop');
   } else {
-    for (const item of seedItems) {
+    for (const { welcome, ...item } of seedItems()) {
       const node = fs.create(deskId, item);
-      if (node.name === 'benvenuto.txt') fs.write(node.id, WELCOME);
+      if (welcome) fs.write(node.id, t('welcome'));
     }
   }
   storage.set(layoutKey, layout);

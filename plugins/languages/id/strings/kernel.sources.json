@@ -1,0 +1,20 @@
+{
+  "repo": "Repositori tidak valid (owner/name)",
+  "urlLocal": "Alamat repositori tidak valid (https:// atau folder)",
+  "url": "Alamat repositori tidak valid (https://)",
+  "ref": "Referensi tidak valid",
+  "path": "Jalur di repositori tidak valid",
+  "local": "Folder lokal sebagai sumber hanya diizinkan dalam pengembangan (allowLocalSources)",
+  "dir": "Folder tidak valid (jalur absolut)",
+  "type": "Sumber tidak dikenal: \"git\", \"github\", atau \"local\"",
+  "noGit": "Perintah git tidak terinstal di komputer kernel",
+  "git": "git: {message}",
+  "gitError": "git: kesalahan",
+  "outside": "Jalur di luar paket: {path}",
+  "missing": "{path} tidak ada",
+  "notFile": "{path} bukan file atau terlalu besar",
+  "tooMany": "Terlalu banyak file di paket",
+  "notInRepo": "Repositori tidak memiliki {path}",
+  "json": "lilos.json bukan JSON yang valid",
+  "tooLarge": "Paket terlalu besar"
+}

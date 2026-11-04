@@ -1,0 +1,23 @@
+{
+  "signIn": "Perlu masuk",
+  "noProtocol": "Protokol tidak tersedia: {protocol} (modul kernelnya tidak ada)",
+  "hostName": "Nama host tidak valid",
+  "hostTaken": "Sudah ada host “{name}”",
+  "missing": "Tidak ada: {fields}",
+  "tooMany": "Paling banyak {max} host",
+  "hostNotFound": "Host tidak ditemukan",
+  "noPassword": "Tidak ada kata sandi untuk disimpan",
+  "sealedOther": "Kata sandi yang disimpan di pintasan hanya berfungsi untuk yang menyimpannya, di lilOS ini, untuk server dan pengguna yang sama",
+  "sessionNotFound": "Sesi tidak ditemukan",
+  "sessionsTooMany": "Paling banyak {max} sesi terbuka",
+  "sftpOnly": "Terminal hanya terbuka pada koneksi SFTP",
+  "sshOnly": "Perintah terjadwal hanya dikirim ke host SSH",
+  "untrusted": "Kunci server “{name}” belum dikonfirmasi: hubungkan sekali dari Terminal",
+  "denied": "Akses ditolak oleh “{name}”: simpan kata sandi atau kunci di host",
+  "stopping": "Kernel sedang berhenti",
+  "detached": "Ditutup setelah 10 menit tanpa jendela",
+  "cancelled": "Koneksi dibatalkan",
+  "failed": "Koneksi gagal",
+  "folder": "Nama folder tidak valid",
+  "cwd": "Folder tidak valid"
+}

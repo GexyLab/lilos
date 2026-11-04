@@ -1,0 +1,6 @@
+{
+  "late": "{app} zamanında yanıt vermedi",
+  "invalid": "Geçersiz önizleme",
+  "tooBig": "Önizleme çok büyük",
+  "imageType": "Önizleme görüntüsünün türü image/* değil"
+}

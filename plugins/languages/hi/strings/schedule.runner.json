@@ -1,0 +1,19 @@
+{
+  "noAutomata": "Automata इंस्टॉल नहीं है",
+  "theAutomation": "ऑटोमेशन",
+  "theFile": "फ़ाइल",
+  "gone": "{name} अब मौजूद नहीं है",
+  "openedFile": "{name} खोला गया",
+  "appMissing": "ऐप {app} इंस्टॉल नहीं है",
+  "openedApp": "{app} खोला गया",
+  "title": "लंबित कार्य",
+  "skippedByUser": "lilOS उपयोगकर्ता द्वारा छोड़ा गया",
+  "automation": "ऑटोमेशन",
+  "due": "नियत: {time}",
+  "dueWith": "{label} · नियत: {time}",
+  "always": "अब से बिना पूछे चलाएँ",
+  "runNow": "अभी चलाएँ",
+  "skip": "छोड़ें",
+  "lead": "जब lilOS बंद था, तब इनका समय हो गया था:",
+  "hint": "जिनका आप उत्तर नहीं देते, वे lilOS के अगली बार खुलने तक प्रतीक्षा करते रहते हैं, फिर समाप्त हो जाते हैं।"
+}

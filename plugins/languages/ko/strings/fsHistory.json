@@ -1,0 +1,18 @@
+{
+  "one": "“{name}”",
+  "many": "항목 {n}개",
+  "home": "홈",
+  "gone": "항목이 더 이상 존재하지 않습니다",
+  "folderGone": "항목이 있던 폴더가 더 이상 존재하지 않습니다",
+  "itemsGone": "항목이 더 이상 존재하지 않습니다",
+  "notTrashed": "항목이 더 이상 휴지통에 없습니다",
+  "createdGone": "폴더가 더 이상 존재하지 않습니다",
+  "foldersGone": "항목 또는 폴더가 더 이상 존재하지 않습니다",
+  "delete": "{what} 삭제",
+  "trash": "{what}을(를) 휴지통으로 이동",
+  "restore": "{what} 복원",
+  "create": "“{name}” 만들기",
+  "rename": "“{from}”의 이름을 “{to}”(으)로 바꾸기",
+  "move": "“{name}”을(를) “{folder}”(으)로 이동",
+  "moveMany": "{what}을(를) “{folder}”(으)로 이동"
+}

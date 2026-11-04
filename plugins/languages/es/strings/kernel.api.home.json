@@ -1,0 +1,10 @@
+{
+  "signIn": "Inicia sesión primero",
+  "id": "Identificador no válido",
+  "key": "Clave no válida: {key}",
+  "tooLarge": "Valor demasiado grande: {key}",
+  "changes": "Cambios no válidos",
+  "item": "Elemento no válido",
+  "itemData": "Demasiados datos en un elemento",
+  "tooMany": "Demasiadas claves a la vez"
+}

@@ -1,7 +1,13 @@
 import { Emitter } from './events.js';
 import { storage } from './storage.js';
+import { defineLater } from './strings.js';
 
 const STORAGE_KEY = 'settings';
+
+// defineLater, not locale.define: locale.js imports this file (see strings.js)
+const { t } = defineLater('lilos:sdk.settings', {
+  en: { strings: { notDefined: 'Setting not defined: {key}', type: 'Wrong type for {key}' } },
+});
 
 /**
  * User preferences, persisted under 'lilos:settings'.
@@ -28,13 +34,13 @@ class Settings extends Emitter {
   }
 
   get(key) {
-    if (!Object.hasOwn(this.#defaults, key)) throw new Error(`Impostazione non definita: ${key}`);
+    if (!Object.hasOwn(this.#defaults, key)) throw new Error(t('notDefined', { key }));
     return this.#values[key];
   }
 
   set(key, value) {
-    if (!Object.hasOwn(this.#defaults, key)) throw new Error(`Impostazione non definita: ${key}`);
-    if (typeof value !== typeof this.#defaults[key]) throw new TypeError(`Tipo non valido per ${key}`);
+    if (!Object.hasOwn(this.#defaults, key)) throw new Error(t('notDefined', { key }));
+    if (typeof value !== typeof this.#defaults[key]) throw new TypeError(t('type', { key }));
     if (this.#values[key] === value) return;
     this.#values[key] = value;
     storage.set(STORAGE_KEY, this.#values);

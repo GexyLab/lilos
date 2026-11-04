@@ -1,0 +1,10 @@
+{
+  "recording": {
+    "one": "Bezig met opnemen ({n} stap)",
+    "other": "Bezig met opnemen ({n} stappen)"
+  },
+  "paused": {
+    "one": "Opname gepauzeerd ({n} stap)",
+    "other": "Opname gepauzeerd ({n} stappen)"
+  }
+}

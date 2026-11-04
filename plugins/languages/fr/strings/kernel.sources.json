@@ -1,0 +1,20 @@
+{
+  "repo": "Dépôt non valide (propriétaire/nom)",
+  "urlLocal": "Adresse du dépôt non valide (https:// ou un dossier)",
+  "url": "Adresse du dépôt non valide (https://)",
+  "ref": "Référence non valide",
+  "path": "Chemin dans le dépôt non valide",
+  "local": "Les dossiers locaux comme source ne sont autorisés qu’en développement (allowLocalSources)",
+  "dir": "Dossier non valide (chemin absolu)",
+  "type": "Source inconnue : \"git\", \"github\" ou \"local\"",
+  "noGit": "La commande git n’est pas installée sur l’ordinateur du kernel",
+  "git": "git : {message}",
+  "gitError": "git : erreur",
+  "outside": "Chemin en dehors du paquet : {path}",
+  "missing": "{path} est manquant",
+  "notFile": "{path} n’est pas un fichier ou est trop volumineux",
+  "tooMany": "Trop de fichiers dans le paquet",
+  "notInRepo": "Le dépôt ne contient pas {path}",
+  "json": "lilos.json n’est pas un JSON valide",
+  "tooLarge": "Paquet trop volumineux"
+}

@@ -1,0 +1,6 @@
+{
+  "notInstalled": "설치되지 않은 앱: {id}",
+  "hidden": "{app}은(는) 이 작업 공간에서 숨겨져 있습니다",
+  "noEntry": "{app}에 진입점 {entry}이(가) 없습니다",
+  "backgroundOnly": "백그라운드 진입점에만 연결할 수 있습니다"
+}

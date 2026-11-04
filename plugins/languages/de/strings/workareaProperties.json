@@ -1,0 +1,33 @@
+{
+  "subtitle": "Eigenschaften des Arbeitsbereichs",
+  "title": "Titel",
+  "description": "Beschreibung",
+  "placeholder": "Wofür dieser Arbeitsbereich dient",
+  "addMeta": "Metadatenfeld hinzufügen",
+  "created": "Erstellt",
+  "modified": "Geändert",
+  "state": "Status",
+  "collapsed": "Zu einem Symbol minimiert",
+  "open": "Auf dem Schreibtisch geöffnet",
+  "contents": "Inhalt",
+  "items": {
+    "one": "{n} Element",
+    "other": "{n} Elemente"
+  },
+  "windows": {
+    "one": "{n} Fenster",
+    "other": "{n} Fenster"
+  },
+  "contentsValue": "{items}, {windows}",
+  "size": "Größe",
+  "metaName": "Name",
+  "metaNameLabel": "Name des Metadatenfelds {n}",
+  "metaValue": "Wert",
+  "metaValueLabel": "Wert des Metadatenfelds {n}",
+  "removeMeta": "Metadatenfeld entfernen",
+  "removeMetaLabel": "Metadatenfeld {name} entfernen",
+  "noMeta": "Keine Metadaten. Fügen Sie welche hinzu, um zum Beispiel Kunde, Frist oder Status zu notieren.",
+  "maxMeta": "Höchstens {max} Metadatenfelder.",
+  "info": "Informationen",
+  "customMeta": "Benutzerdefinierte Metadaten"
+}

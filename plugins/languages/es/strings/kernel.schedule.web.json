@@ -1,0 +1,30 @@
+{
+  "folderGone": "La carpeta donde guardar ya no está",
+  "notFolder": "Donde guardar no es una carpeta",
+  "notFile": "«{name}» ya existe y no es un archivo",
+  "protected": "«{name}» está protegido por una app (cifrado, por ejemplo): no se sobrescribe",
+  "secretGone": "El valor secreto de {name} ya no se puede leer: hay que volver a introducirlo",
+  "fileGone": "El archivo que enviar ya no está",
+  "noAnswer": {
+    "one": "Sin respuesta en {n} segundo",
+    "other": "Sin respuesta en {n} segundos"
+  },
+  "untrusted": "{message}: confírmalo una vez desde NetTest",
+  "network": "Red: {code}",
+  "redirects": "Demasiadas redirecciones",
+  "notWeb": "Redirección a una dirección que no es web",
+  "otherOrigin": "Redirección a otra dirección con un cuerpo que enviar: no se sigue",
+  "tooBig": "Respuesta demasiado grande (como máximo 10 MB)",
+  "unfinished": {
+    "one": "La respuesta no ha terminado en {n} segundo",
+    "other": "La respuesta no ha terminado en {n} segundos"
+  },
+  "bytes": {
+    "one": "{n} byte",
+    "other": "{n} bytes"
+  },
+  "saved": "{status} en {ms} ms · {size} · guardada en {name}",
+  "summary": "{status} en {ms} ms · {size}",
+  "status": "Estado {status}, se esperaba {expected}",
+  "contains": "La respuesta no contiene «{text}»"
+}

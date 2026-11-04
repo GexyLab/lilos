@@ -8,6 +8,7 @@ import { SDK_VERSIONS, compareVersions, inRange, parseVersion, sha256 } from './
 import { openSource } from './sources.js';
 import { logger } from '../log.js';
 import { writeJson } from '../jsonFile.js';
+import { defineStrings } from '../strings.js';
 
 /**
  * lilOS itself as a package: the build of one version (the page, the kernel, the files of the SDK
@@ -40,17 +41,17 @@ const MAX_SIZE = 200 << 20;
 const DOCS = ['README.md', 'CHANGELOG.md'];
 
 export function checkSystem(raw) {
-  const m = raw && typeof raw === 'object' && !Array.isArray(raw) ? raw : fail('invalid', 'system.json non valido');
-  const bad = msg => fail('invalid', `system.json: ${msg}`);
-  if (m.name !== 'lilos') bad('non è un pacchetto di lilOS');
-  if (!parseVersion(m.version)) bad('versione non valida');
-  if (!Number.isInteger(m.kernel) || m.kernel < 1) bad('versione del kernel non valida');
-  if (!Array.isArray(m.sdk) || !m.sdk.length || m.sdk.some(v => typeof v !== 'string' || !/^\d{1,3}$/.test(v))) bad('versioni dell’SDK non valide');
-  if (!Number.isInteger(m.node) || m.node < 1) bad('versione di Node.js non valida');
-  const files = m.files && typeof m.files === 'object' && !Array.isArray(m.files) ? Object.entries(m.files) : bad('files mancante');
-  if (!files.length || files.length > MAX_FILES) bad('numero di file non valido');
-  if (files.some(([path, hash]) => !FILE.test(path) || !HASH.test(hash ?? ''))) bad('percorso o hash non valido in files');
-  if (!m.files['web/index.html'] || !m.files['system/kernel/src/main.js']) bad('mancano la pagina o il kernel');
+  const m = raw && typeof raw === 'object' && !Array.isArray(raw) ? raw : fail('invalid', t('invalid'));
+  const bad = key => fail('invalid', t(key));
+  if (m.name !== 'lilos') bad('notLilos');
+  if (!parseVersion(m.version)) bad('version');
+  if (!Number.isInteger(m.kernel) || m.kernel < 1) bad('kernel');
+  if (!Array.isArray(m.sdk) || !m.sdk.length || m.sdk.some(v => typeof v !== 'string' || !/^\d{1,3}$/.test(v))) bad('sdk');
+  if (!Number.isInteger(m.node) || m.node < 1) bad('node');
+  const files = m.files && typeof m.files === 'object' && !Array.isArray(m.files) ? Object.entries(m.files) : bad('files');
+  if (!files.length || files.length > MAX_FILES) bad('count');
+  if (files.some(([path, hash]) => !FILE.test(path) || !HASH.test(hash ?? ''))) bad('entry');
+  if (!m.files['web/index.html'] || !m.files['system/kernel/src/main.js']) bad('parts');
   return m;
 }
 
@@ -71,8 +72,21 @@ async function releases() {
   return out.sort((a, b) => compareVersions(b, a));
 }
 
-const requireAdmin = p => (p?.kind === 'kernel' || p?.role === 'admin' ? p : fail('forbidden', 'Solo un amministratore aggiorna lilOS'));
-const requireInstalled = () => INSTALL_DIR || fail('conflict', 'Questo lilOS gira da una copia del repository (sviluppo): si aggiorna con git');
+const { t } = defineStrings('lilos:kernel.systemPackage', { en: { strings: {
+  invalid: 'system.json not valid', notLilos: 'system.json: it is not a lilOS package', version: 'system.json: version not valid',
+  kernel: 'system.json: kernel version not valid', sdk: 'system.json: SDK versions not valid', node: 'system.json: Node.js version not valid',
+  files: 'system.json: files missing', count: 'system.json: number of files not valid', entry: 'system.json: path or hash not valid in files',
+  parts: 'system.json: the page or the kernel is missing',
+  adminOnly: 'Only an administrator updates lilOS', development: 'This lilOS runs from a copy of the repository (development): it is updated with git',
+  noVersions: 'The official repository has no versions of lilOS', json: 'system.json is not valid JSON',
+  older: 'The version available ({version}) is older than the one in use', tooLarge: 'lilOS package too large',
+  changed: '{path}: the content does not match system.json', nodeNeeded: 'lilOS {version} needs Node.js {needed} or later (this has {node})',
+  modules: 'Kernel modules not compatible with lilOS {version}: {names}. Update them first',
+  apps: 'Apps not compatible with lilOS {version}: {names}. Update or remove them first', notInstalled: 'The version {version} is not installed',
+  badVersion: 'Version not valid', inUse: 'The version {version} is in use', notice: 'Unknown notice',
+} } });
+const requireAdmin = p => (p?.kind === 'kernel' || p?.role === 'admin' ? p : fail('forbidden', t('adminOnly')));
+const requireInstalled = () => INSTALL_DIR || fail('conflict', t('development'));
 
 export class SystemReleases {
   #kernel;
@@ -103,18 +117,18 @@ export class SystemReleases {
     requireAdmin(principal);
     requireInstalled();
     const catalog = await this.#kernel.repos.catalog('official');
-    if (!catalog.system?.system) fail('not_found', catalog.system?.error ?? 'Il repository ufficiale non ha versioni di lilOS');
+    if (!catalog.system?.system) fail('not_found', catalog.system?.error ?? t('noVersions'));
     const { read, source } = await openSource({ type: 'git', url: catalog.repo.url, ref: ref ?? catalog.ref, path: catalog.system.path });
     let manifest;
     try {
       manifest = checkSystem(JSON.parse((await read('system.json')).toString('utf8')));
     } catch (err) {
       if (err.code && err.code !== 'invalid') throw err;
-      fail('invalid', err.code ? err.message : 'system.json non è JSON valido');
+      fail('invalid', err.code ? err.text ?? err.message : t('json'));
     }
     const order = compareVersions(manifest.version, SYSTEM_VERSION);
     if (order === 0) return { version: SYSTEM_VERSION, unchanged: true };
-    if (order < 0 && !ref) fail('conflict', `La versione disponibile (${manifest.version}) è più vecchia di quella in uso`);
+    if (order < 0 && !ref) fail('conflict', t('older', { version: manifest.version }));
     await this.#checkCompatible(manifest);
 
     const dest = join(RELEASES, manifest.version);
@@ -124,8 +138,8 @@ export class SystemReleases {
       for (const [path, hash] of Object.entries(manifest.files)) {
         const data = await read(path);
         total += data.length;
-        if (total > MAX_SIZE) fail('too_large', 'Pacchetto di lilOS troppo grande');
-        if (sha256(data) !== hash) fail('invalid', `${path}: il contenuto non corrisponde a system.json`);
+        if (total > MAX_SIZE) fail('too_large', t('tooLarge'));
+        if (sha256(data) !== hash) fail('invalid', t('changed', { path }));
         await mkdir(dirname(join(temp, ...path.split('/'))), { recursive: true });
         await writeFile(join(temp, ...path.split('/')), data);
       }
@@ -150,7 +164,7 @@ export class SystemReleases {
   /** What would not work with that version: throws, saying what to update first. */
   async #checkCompatible(manifest) {
     const node = Number(process.versions.node.split('.')[0]);
-    if (node < manifest.node) fail('conflict', `lilOS ${manifest.version} richiede Node.js ${manifest.node} o successivo (qui c'è il ${node})`);
+    if (node < manifest.node) fail('conflict', t('nodeNeeded', { version: manifest.version, needed: manifest.node, node }));
     const config = await loadConfig();
     const installed = await scanModules(MODULES_DIR);
     const modules = [];
@@ -159,18 +173,18 @@ export class SystemReleases {
       const declared = mod && JSON.parse(await readFile(join(mod.dir, 'module.json'), 'utf8').catch(() => '{}')).kernel;
       if (mod && String(declared) !== String(manifest.kernel)) modules.push(want.name);
     }
-    if (modules.length) fail('conflict', `Moduli del kernel non compatibili con lilOS ${manifest.version}: ${modules.join(', ')}. Aggiornali prima`);
+    if (modules.length) fail('conflict', t('modules', { version: manifest.version, names: modules.join(', ') }));
     const apps = (await this.#kernel.installer.list())
       .filter(a => !manifest.sdk.includes(String(a.manifest.sdk)) || (a.manifest.lilos && !inRange(a.manifest.lilos, manifest.version)))
       .map(a => a.manifest.name ?? a.id);
-    if (apps.length) fail('conflict', `App non compatibili con lilOS ${manifest.version}: ${apps.join(', ')}. Aggiornale o rimuovile prima`);
+    if (apps.length) fail('conflict', t('apps', { version: manifest.version, names: apps.join(', ') }));
   }
 
   /** Goes back (or forth) to another version kept in releases/: it runs from the next restart, on trial as an update. */
   async use(principal, version) {
     requireAdmin(principal);
     requireInstalled();
-    if (!(await releases()).includes(version)) fail('not_found', `La versione ${version} non è installata`);
+    if (!(await releases()).includes(version)) fail('not_found', t('notInstalled', { version }));
     const { failed, updated, trial, ...current } = await readCurrent();
     // The one running: a version waiting for the restart is called off
     if (version === SYSTEM_VERSION) {
@@ -188,10 +202,10 @@ export class SystemReleases {
   async remove(principal, version) {
     requireAdmin(principal);
     requireInstalled();
-    if (!parseVersion(version)) fail('invalid', 'Versione non valida');
+    if (!parseVersion(version)) fail('invalid', t('badVersion'));
     const current = await readCurrent();
-    if (version === SYSTEM_VERSION || version === current.version) fail('conflict', `La versione ${version} è in uso`);
-    if (!(await releases()).includes(version)) fail('not_found', `La versione ${version} non è installata`);
+    if (version === SYSTEM_VERSION || version === current.version) fail('conflict', t('inUse', { version }));
+    if (!(await releases()).includes(version)) fail('not_found', t('notInstalled', { version }));
     await rm(join(RELEASES, version), { recursive: true, force: true });
     const next = { ...current };
     if (next.previous === version) next.previous = null;
@@ -205,7 +219,7 @@ export class SystemReleases {
   async acknowledge(principal, notice) {
     requireAdmin(principal);
     requireInstalled();
-    if (notice !== 'updated' && notice !== 'failed') fail('invalid', 'Avviso sconosciuto');
+    if (notice !== 'updated' && notice !== 'failed') fail('invalid', t('notice'));
     const { [notice]: _, ...rest } = await readCurrent();
     await writeCurrent(rest);
   }

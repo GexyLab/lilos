@@ -1,0 +1,3 @@
+{
+  "welcome": "Bun venit în lilOS!\n\nAcesta este un desktop fără margini: țineți apăsat Spațiu și glisați pentru a vă deplasa,\nfolosiți rotița pentru zoom, glisați pe fundal pentru a selecta.\n\n- Dublu clic pe un dosar: se deschide în File Manager.\n- Dublu clic pe un fișier text: se deschide în Editor (ca acesta).\n- Ctrl K deschide meniul Start, Ctrl S salvează în Editor.\n- Butonul de lângă logo schimbă spațiul de lucru: fiecare are propriul desktop,\n  propriile ferestre și propriile aplicații. Documenti, Immagini și Download sunt ale tuturor.\n\nComenzile rapide și aplicațiile care deschid fișierele se modifică în\nPanou de control → Ușurință în utilizare.\n"
+}

@@ -1,0 +1,6 @@
+{
+  "notInstalled": "App nicht installiert",
+  "system": "System-Apps sind Teil von lilOS und laufen in lilOS",
+  "remote": "Eine Remote-App ist eine eigene Website: Sie läuft immer isoliert, unter ihrem eigenen Ursprung",
+  "sdk1": "Die App verwendet SDK 1, das nur isoliert funktioniert"
+}

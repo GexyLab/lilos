@@ -1,0 +1,17 @@
+{
+  "name": "„{id}”",
+  "nameVersion": "„{id}” ({version})",
+  "restart": {
+    "one": "Wymaga modułu kernela {modules}, już zainstalowanego: zacznie działać po następnym ponownym uruchomieniu kernela, które administrator wykonuje w AppStore.",
+    "few": "Wymaga modułów kernela {modules}, już zainstalowanych: zaczną działać po następnym ponownym uruchomieniu kernela, które administrator wykonuje w AppStore.",
+    "many": "Wymaga modułów kernela {modules}, już zainstalowanych: zaczną działać po następnym ponownym uruchomieniu kernela, które administrator wykonuje w AppStore.",
+    "other": "Wymaga modułów kernela {modules}, już zainstalowanych: zaczną działać po następnym ponownym uruchomieniu kernela, które administrator wykonuje w AppStore."
+  },
+  "missing": "Nie znaleziono: {list}. Administrator instaluje to z AppStore.",
+  "missingModule": "moduł kernela {name}",
+  "missingApp": "aplikacja {name}",
+  "openApp": "Otwórz aplikację",
+  "hidden": "Aplikacja {app} jest ukryta w tym obszarze roboczym. Możesz ją pokazać w Panelu sterowania → Obszar roboczy.",
+  "cannotStart": "Aplikacja {app} nie może się jeszcze uruchomić",
+  "notStarted": "Aplikacja {app} nie uruchomiła się: {message}"
+}

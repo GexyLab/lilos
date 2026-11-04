@@ -1,0 +1,34 @@
+{
+  "home": "Folder domowy",
+  "one": "„{name}”",
+  "many": "elementy ({n})",
+  "trashToServer": "To, co jest w Koszu, wraca do folderu lilOS, a nie na serwer",
+  "restored": {
+    "one": "Przywrócono {what} do {where}",
+    "few": "Przywrócono {what} do {where}",
+    "many": "Przywrócono {what} do {where}",
+    "other": "Przywrócono {what} do {where}"
+  },
+  "moved": {
+    "one": "Przeniesiono {what} do {where}",
+    "few": "Przeniesiono {what} do {where}",
+    "many": "Przeniesiono {what} do {where}",
+    "other": "Przeniesiono {what} do {where}"
+  },
+  "transferFailed": "Nie rozpoczęto przesyłania: {message}",
+  "moveFailed": "Nie można przenieść: {message}",
+  "importToServer": "Pliki z komputera kopiuje się do folderu lilOS: stamtąd przeciągnij je na serwer",
+  "copied": {
+    "one": "Skopiowano {n} plik z komputera do {where}",
+    "few": "Skopiowano {n} pliki z komputera do {where}",
+    "many": "Skopiowano {n} plików z komputera do {where}",
+    "other": "Skopiowano {n} pliku z komputera do {where}"
+  },
+  "failed": {
+    "one": "{n} plik nie został skopiowany",
+    "few": "{n} pliki nie zostały skopiowane",
+    "many": "{n} plików nie zostało skopiowanych",
+    "other": "{n} pliku nie skopiowano"
+  },
+  "limit": "Skopiowano tylko pierwsze pliki (maksymalnie {max})"
+}

@@ -1,0 +1,6 @@
+{
+  "ranges": "Nieprawidłowe zakresy (najwyżej 100)",
+  "range": "Nieprawidłowy zakres: {range} (wpisz na przykład 192.168.1.50/32)",
+  "noAddress": "Brak adresu dla {host}",
+  "forbidden": "Adres niedozwolony dla połączeń sieciowych"
+}

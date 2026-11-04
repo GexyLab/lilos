@@ -1,0 +1,7 @@
+{
+  "start": "lilOS-menu",
+  "menu": "Menu",
+  "menuKeys": "Menu ({keys})",
+  "taskbar": "Taakbalk",
+  "tray": "Systeemvak"
+}

@@ -4,6 +4,7 @@ import { httpRequest, readBody, findHeader } from '../net/http.js';
 import { networkMessage } from '../net/connect.js';
 import { applyAuth, checkAuth, digestAnswer, digestChallenge } from './auth.js';
 import { readHomeFile } from './home.js';
+import { Text, defineStrings } from '../strings.js';
 
 /**
  * One HTTP request of NetTest, its variables already put in (calls/vars.js) but for the secret
@@ -30,6 +31,18 @@ const MAX_BODY = 50 << 20;
 const DEFAULT_MAX = 20 << 20;
 const SHOWN_BODY = 64 << 10;
 const SECRET_HEADERS = /^(authorization|cookie|proxy-authorization|x-api-key|x-amz-security-token)$/i;
+
+const { t } = defineStrings('lilos:kernel.calls.request', { en: { strings: {
+  graphqlVars: 'GraphQL: the variables are not valid JSON',
+  method: 'Method not valid',
+  url: 'Address not valid: {url}',
+  needHttp: 'An http:// or https:// address is needed',
+  headerName: 'Header name not valid: {name}',
+  headerValue: 'Value not valid in the header {name}',
+  bodyTooBig: 'Body too large (50 MB at most)',
+  noAnswer: { one: 'No answer in {n} second', other: 'No answer in {n} seconds' },
+  cancelled: 'Cancelled',
+} } });
 
 const on = row => row && row.enabled !== false;
 const fillDeep = (v, fill) => (typeof v === 'string' ? fill(v) : Array.isArray(v) ? v.map(x => fillDeep(x, fill)) : v && typeof v === 'object' ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, fillDeep(x, fill)])) : v);
@@ -66,7 +79,7 @@ async function buildBody(ctx, body, fill) {
     let variables = {};
     const raw = fill(body.variables ?? '').trim();
     if (raw) {
-      try { variables = JSON.parse(raw); } catch { fail('invalid', 'GraphQL: le variabili non sono JSON valido'); }
+      try { variables = JSON.parse(raw); } catch { fail('invalid', t('graphqlVars')); }
     }
     const text = JSON.stringify({ query: fill(body.query ?? ''), variables, ...(str(body.operationName) && { operationName: str(body.operationName) }) });
     return { payload: Buffer.from(text, 'utf8'), type: TYPES.graphql, shown: text };
@@ -126,21 +139,21 @@ export async function performRequest(ctx, spec) {
   const method = str(spec.method).toUpperCase() || 'GET';
   const out = { request: { method, url: mask(spec.url), headers: [], body: { size: 0 } }, response: null, redirects: [], error: null };
   try {
-    if (!METHOD.test(method)) fail('invalid', 'Metodo non valido');
+    if (!METHOD.test(method)) fail('invalid', t('method'));
     let url;
-    try { url = new URL(fill(spec.url).trim()); } catch { fail('invalid', `Indirizzo non valido: ${mask(spec.url).slice(0, 200)}`); }
-    if (url.protocol !== 'http:' && url.protocol !== 'https:') fail('invalid', 'Serve un indirizzo http:// o https://');
+    try { url = new URL(fill(spec.url).trim()); } catch { fail('invalid', t('url', { url: mask(spec.url).slice(0, 200) })); }
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') fail('invalid', t('needHttp'));
     let headers = [];
     for (const h of (Array.isArray(spec.headers) ? spec.headers : []).filter(on)) {
       const k = fill(h.key).trim();
       if (!k) continue;
-      if (!HEADER.test(k)) fail('invalid', `Nome di header non valido: ${mask(h.key).slice(0, 60)}`);
+      if (!HEADER.test(k)) fail('invalid', t('headerName', { name: mask(h.key).slice(0, 60) }));
       const v = fill(h.value);
-      if (/[\r\n\0]/.test(v)) fail('invalid', `Valore non valido nell’header ${k}`);
+      if (/[\r\n\0]/.test(v)) fail('invalid', t('headerValue', { name: k }));
       headers.push([k, v]);
     }
     const body = await buildBody(ctx, spec.body, fill);
-    if (body.payload && body.payload.length > MAX_BODY) fail('too_large', 'Corpo troppo grande (al massimo 50 MB)');
+    if (body.payload && body.payload.length > MAX_BODY) fail('too_large', t('bodyTooBig'));
     if (body.type && !findHeader(headers, 'content-type')) headers.push(['Content-Type', body.type]);
     if (!findHeader(headers, 'user-agent')) headers.push(['User-Agent', 'lilOS NetTest']);
     if (!findHeader(headers, 'accept')) headers.push(['Accept', '*/*']);
@@ -166,7 +179,7 @@ export async function performRequest(ctx, spec) {
     for (let hop = 0; ; hop++) {
       await calls.guard.check({ url: req.url.href });
       const left = timeoutMs - (Date.now() - started);
-      if (left <= 0) fail('unavailable', `Nessuna risposta in ${Math.round(timeoutMs / 1000)} secondi`);
+      if (left <= 0) fail('unavailable', t('noAnswer', { n: Math.round(timeoutMs / 1000) }));
       out.request = { method: req.method, url: mask(req.url.href), headers: req.headers.map(([k, v]) => [k, SECRET_HEADERS.test(k) ? maskAuth(v, mask) : mask(v)]), body: { size: req.body?.length ?? 0, ...(req.body && { text: mask(body.shown).slice(0, SHOWN_BODY) }) } };
       res = await httpRequest(req.url, {
         method: req.method, headers: req.headers, body: req.body, lookup: calls.guard.lookup, signal: ctx.signal, timeoutMs: left,
@@ -203,11 +216,11 @@ export async function performRequest(ctx, spec) {
       req.url = next;
     }
     const read = await readBody(res, { max: Math.min(MAX_BODY, Number(s.maxBody) || DEFAULT_MAX), decode: s.decode !== false });
-    const t = res.timings;
+    const tm = res.timings;
     out.response = {
       status: res.status, statusText: res.statusText, httpVersion: res.httpVersion, headers: res.headers.map(([k, v]) => [k, mask(v)]),
       body: maskBody(read.data, filler.values()).toString('base64'), size: read.data.length, received: read.size, truncated: read.truncated, decoded: read.decoded,
-      timings: { lookup: t.lookup ?? null, connect: t.connect ?? null, secure: t.secure ?? null, sent: t.sent ?? null, firstByte: t.firstByte ?? null, done: t.done ?? null, total: Date.now() - started },
+      timings: { lookup: tm.lookup ?? null, connect: tm.connect ?? null, secure: tm.secure ?? null, sent: tm.sent ?? null, firstByte: tm.firstByte ?? null, done: tm.done ?? null, total: Date.now() - started },
       tls: res.tls, remote: res.remote, url: mask(req.url.href),
     };
   } catch (err) {
@@ -236,9 +249,19 @@ function maskAuth(value, mask) {
   return m ? `${m[1]} ••••` : mask(value).length ? '••••' : '';
 }
 
-/** An error as the page shows it: { code, message, trust? }. */
+/**
+ * A message with its secret values written ••••: a string, or a Text whose params are (it stays a
+ * Text, to reach the user in their language).
+ */
+export function maskMessage(message, mask = str) {
+  if (!(message instanceof Text)) return mask(message);
+  const params = message.params && Object.fromEntries(Object.entries(message.params).map(([k, v]) => [k, typeof v === 'string' || v instanceof Text ? maskMessage(v, mask) : v]));
+  return new Text(message.part, message.key, params);
+}
+
+/** An error as the page shows it: { code, message, trust? } (message: a string or a Text). */
 export function errorOf(err, mask = str) {
-  if (err instanceof KernelError) return { code: err.code, message: mask(err.message), ...(err.details?.trust && { trust: err.details.trust }) };
-  if (err?.code === 'ABORT_ERR' || err?.name === 'AbortError') return { code: 'cancelled', message: 'Annullata' };
-  return { code: 'network', message: mask(networkMessage(err)), detail: str(err?.code) };
+  if (err instanceof KernelError) return { code: err.code, message: maskMessage(err.text ?? err.message, mask), ...(err.details?.trust && { trust: err.details.trust }) };
+  if (err?.code === 'ABORT_ERR' || err?.name === 'AbortError') return { code: 'cancelled', message: t('cancelled') };
+  return { code: 'network', message: maskMessage(networkMessage(err), mask), detail: str(err?.code) };
 }

@@ -1,0 +1,32 @@
+{
+  "folderGone": "そのフォルダーはもうありません",
+  "namedGone": "{name} はもうありません",
+  "notFolder": "そのフォルダーはフォルダーではありません",
+  "namedNotFolder": "{name} はフォルダーではありません",
+  "protected": "アプリによって保護されています（暗号化など）。上書きされません",
+  "mountGone": "{name} はもう「{mount}」にありません",
+  "inside": "コピー先のフォルダーがコピー元のフォルダーの中にあります",
+  "newVersion": "新しいバージョン：{name}",
+  "fileThere": "コピー先にファイル「{name}」がすでにあります",
+  "copied": "{path} をコピーしました",
+  "tooMany": "項目が {max} 個を超えています。より小さいフォルダーをコピーしてください",
+  "sameNameFile": "同じ名前のファイルがあります",
+  "removedFile": "ファイル {path} を削除しました（現在はフォルダーです）",
+  "sameNameFolder": "同じ名前のフォルダーがあります",
+  "error": "エラー {path}：{message}",
+  "removed": "{path} を削除しました",
+  "oldVersion": "古いバージョンを削除しました：{name}",
+  "summary": {
+    "other": "{n} 個のファイルをコピーしました（{size}）"
+  },
+  "summarySame": {
+    "other": "{n} 個のファイルをコピーしました（{size}）、変更なし {same} 個"
+  },
+  "summaryRemoved": {
+    "other": "{n} 個のファイルをコピーしました（{size}）、削除 {removed} 個"
+  },
+  "summarySameRemoved": {
+    "other": "{n} 個のファイルをコピーしました（{size}）、変更なし {same} 個、削除 {removed} 個"
+  },
+  "notCopied": "{n} 個がコピーされませんでした：{first}"
+}

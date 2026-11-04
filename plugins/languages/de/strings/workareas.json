@@ -1,0 +1,23 @@
+{
+  "tooMany": "Höchstens {max} Arbeitsbereiche",
+  "overlap": "Dort ist bereits ein anderer Arbeitsbereich: Bereiche dürfen sich nicht überlappen",
+  "undo.create": "Arbeitsbereich „{title}“ erstellen",
+  "undo.rename": "Arbeitsbereich „{before}“ in „{after}“ umbenennen",
+  "undo.remove": "Arbeitsbereich „{title}“ löschen",
+  "undo.move": "Arbeitsbereich „{title}“ verschieben",
+  "undo.resize": "Größe des Arbeitsbereichs „{title}“ ändern",
+  "gone": "Der Arbeitsbereich existiert nicht mehr",
+  "already": "Der Arbeitsbereich ist bereits dort",
+  "occupied": "Dort ist jetzt ein anderer Arbeitsbereich",
+  "notOpen": "Der Arbeitsbereich ist nicht geöffnet",
+  "removeOne": "Arbeitsbereich „{title}“ löschen (der Inhalt bleibt auf dem Schreibtisch)",
+  "removeMany": {
+    "one": "{n} Arbeitsbereich löschen (der Inhalt bleibt auf dem Schreibtisch)",
+    "other": "{n} Arbeitsbereiche löschen (der Inhalt bleibt auf dem Schreibtisch)"
+  },
+  "menu.title": "Arbeitsbereich „{title}“",
+  "menu.rename": "Arbeitsbereich umbenennen",
+  "menu.properties": "Eigenschaften…",
+  "menu.collapse": "Zu einem Symbol minimieren",
+  "menu.remove": "Arbeitsbereich löschen…"
+}

@@ -1,4 +1,28 @@
-import { settings } from '@lilos/sdk';
+import { settings, locale } from '@lilos/sdk';
+
+const { t } = locale.define('lilos:systemSettings', {
+  en: { strings: {
+    'retention.days': { one: '{n} day', other: '{n} days' }, 'retention.year': '1 year', 'retention.forever': 'Forever',
+    lasso: '{keys} + drag',
+    'color.blue': 'Blue', 'color.violet': 'Violet', 'color.magenta': 'Magenta', 'color.red': 'Red', 'color.orange': 'Orange',
+    'color.green': 'Green', 'color.teal': 'Teal', 'color.graphite': 'Graphite',
+    'color.night': 'Night', 'color.deepBlue': 'Deep blue', 'color.forest': 'Forest', 'color.plum': 'Plum', 'color.earth': 'Earth',
+    'color.mist': 'Mist', 'color.sky': 'Sky', 'color.sage': 'Sage', 'color.sand': 'Sand',
+  } },
+});
+
+const RETENTION_DAYS = [1, 7, 14, 30, 60, 90, 365, 0];
+const LASSO_VALUES = ['Alt', 'Ctrl+Alt', 'Alt+Shift'];
+const ACCENT_COLORS = [
+  ['#3b6ef5', 'blue'], ['#7c5cdb', 'violet'], ['#c2417a', 'magenta'], ['#e5484d', 'red'],
+  ['#d9822b', 'orange'], ['#30a46c', 'green'], ['#0d9488', 'teal'], ['#5f6673', 'graphite'],
+];
+const DESK_COLOR_LIST = [
+  ['#1f2227', 'graphite'], ['#101826', 'night'], ['#1d3352', 'deepBlue'], ['#1d3b34', 'forest'], ['#3a2340', 'plum'],
+  ['#43302a', 'earth'], ['#e6e8ec', 'mist'], ['#d9e5f2', 'sky'], ['#dde9dc', 'sage'], ['#efe5d8', 'sand'],
+];
+const retentionLabel = days => (days === 0 ? t('retention.forever') : days === 365 ? t('retention.year') : t('retention.days', { n: days }));
+const lassoLabel = value => t('lasso', { keys: value.split('+').join(' + ') });
 
 /** System preferences and their defaults. Imported first by main.js, before anyone reads them. */
 settings.define({
@@ -23,24 +47,11 @@ settings.define({
   taskbarWorkspaces: 'current',  // taskbar: 'current' (one button, the current workspace) or 'all' (one per workspace) (workspaces/WorkspaceSwitcher.js)
 });
 
-/** How long the trash keeps what it holds (days; 0 never deletes by itself). */
-export const RETENTION_OPTIONS = [
-  { value: 1, label: '1 giorno' },
-  { value: 7, label: '7 giorni' },
-  { value: 14, label: '14 giorni' },
-  { value: 30, label: '30 giorni' },
-  { value: 60, label: '60 giorni' },
-  { value: 90, label: '90 giorni' },
-  { value: 365, label: '1 anno' },
-  { value: 0, label: 'Per sempre' },
-];
+/** How long the trash keeps what it holds (days; 0 never deletes by itself), labels in the system's language. */
+export const retentionOptions = () => RETENTION_DAYS.map(value => ({ value, label: retentionLabel(value) }));
 
 /** Modifier combinations that can start the lasso (a plain drag draws the rectangle). */
-export const LASSO_OPTIONS = [
-  { value: 'Alt', label: 'Alt + trascina' },
-  { value: 'Ctrl+Alt', label: 'Ctrl + Alt + trascina' },
-  { value: 'Alt+Shift', label: 'Alt + Shift + trascina' },
-];
+export const lassoOptions = () => LASSO_VALUES.map(value => ({ value, label: lassoLabel(value) }));
 
 /**
  * How a drag on the desk background selects, from the modifiers held when it starts:
@@ -49,37 +60,26 @@ export const LASSO_OPTIONS = [
  */
 export function selectionMode(e) {
   const stored = settings.get('lasso');
-  const combo = (LASSO_OPTIONS.some(o => o.value === stored) ? stored : 'Alt').split('+');
+  const combo = (LASSO_VALUES.includes(stored) ? stored : 'Alt').split('+');
   const held = { Ctrl: e.ctrlKey || e.metaKey, Alt: e.altKey, Shift: e.shiftKey };
   const lasso = combo.every(k => held[k]);
   const additive = (held.Ctrl && !(lasso && combo.includes('Ctrl'))) || (held.Shift && !(lasso && combo.includes('Shift')));
   return { mode: lasso ? 'lasso' : 'rect', additive };
 }
 
-export const ACCENTS = [
-  { value: '#3b6ef5', label: 'Blu' },
-  { value: '#7c5cdb', label: 'Viola' },
-  { value: '#c2417a', label: 'Magenta' },
-  { value: '#e5484d', label: 'Rosso' },
-  { value: '#d9822b', label: 'Arancione' },
-  { value: '#30a46c', label: 'Verde' },
-  { value: '#0d9488', label: 'Verde acqua' },
-  { value: '#5f6673', label: 'Grafite' },
-];
+/** Accent colors, labels in the system's language. */
+export const accents = () => ACCENT_COLORS.map(([value, name]) => ({ value, label: t(`color.${name}`) }));
 
 /** Colors offered for the desk background (any other hex color works too). */
-export const DESK_COLORS = [
-  { value: '#1f2227', label: 'Grafite' },
-  { value: '#101826', label: 'Notte' },
-  { value: '#1d3352', label: 'Blu profondo' },
-  { value: '#1d3b34', label: 'Bosco' },
-  { value: '#3a2340', label: 'Prugna' },
-  { value: '#43302a', label: 'Terra' },
-  { value: '#e6e8ec', label: 'Nebbia' },
-  { value: '#d9e5f2', label: 'Cielo' },
-  { value: '#dde9dc', label: 'Salvia' },
-  { value: '#efe5d8', label: 'Sabbia' },
-];
+export const deskColors = () => DESK_COLOR_LIST.map(([value, name]) => ({ value, label: t(`color.${name}`) }));
+
+// The same lists as constants, for apps built before the functions (Control Panel): the values are
+// fixed, the labels are read in the system's language when used
+const lazy = (pairs, label) => Object.freeze(pairs.map(([value, name]) => Object.freeze({ value, get label() { return label(value, name); } })));
+export const RETENTION_OPTIONS = lazy(RETENTION_DAYS.map(v => [v]), retentionLabel);
+export const LASSO_OPTIONS = lazy(LASSO_VALUES.map(v => [v]), lassoLabel);
+export const ACCENTS = lazy(ACCENT_COLORS, (value, name) => t(`color.${name}`));
+export const DESK_COLORS = lazy(DESK_COLOR_LIST, (value, name) => t(`color.${name}`));
 
 const root = document.documentElement;
 

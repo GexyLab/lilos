@@ -1,0 +1,14 @@
+{
+  "signIn": "Najpierw się zaloguj",
+  "adminOnly": "Tylko dla administratorów",
+  "mount": "Nieprawidłowe połączenie",
+  "tooManyTries": "Zbyt wiele prób połączenia w toku",
+  "notOnServer": "Nie istnieje na serwerze",
+  "notFile": "To nie jest plik",
+  "webOnly": "Otwiera się tylko w sieci WWW",
+  "tooLarge": "Plik jest za duży",
+  "op": "Nieprawidłowa operacja",
+  "import": "Nieprawidłowy import",
+  "signin": "Nieprawidłowe logowanie",
+  "item": "Nieprawidłowy element"
+}

@@ -1,0 +1,9 @@
+{
+  "one": "{name} arka planda çalışıyor",
+  "many": {
+    "other": "Arka planda çalışan {n} uygulama"
+  },
+  "heading": "Arka planda çalışanlar",
+  "item": "{name}: {label}",
+  "stop": "Durdur"
+}

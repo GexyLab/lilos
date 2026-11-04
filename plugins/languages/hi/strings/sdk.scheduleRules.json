@@ -1,0 +1,87 @@
+{
+  "error.dateTime": "अमान्य तिथि और समय",
+  "error.cron": "अमान्य cron एक्सप्रेशन",
+  "error.cronFields": "cron एक्सप्रेशन में 5 फ़ील्ड होते हैं: मिनट घंटा दिन महीना सप्ताह-का-दिन",
+  "error.cronField": "फ़ील्ड {field} मान्य नहीं है",
+  "error.cronStep": "फ़ील्ड {field} में अमान्य चरण",
+  "error.cronValue": "फ़ील्ड {field} में अमान्य मान “{value}”",
+  "error.cronRange": "फ़ील्ड {field} में उलटी सीमा",
+  "error.times": "अमान्य समय",
+  "error.exceptions": "अमान्य अपवाद",
+  "error.rule": "अमान्य नियम",
+  "error.zone": "अज्ञात समय क्षेत्र",
+  "error.kind": "नियम “once”, “repeat” या “cron” होता है",
+  "error.start": "अमान्य प्रारंभ तिथि और समय",
+  "error.every": "कितनी बार: अमान्य संख्या या इकाई",
+  "error.days": "सप्ताह के अमान्य दिन",
+  "error.daysUnit": "सप्ताह के दिन मिनटों, घंटों और सप्ताहों पर लागू होते हैं",
+  "error.between": "अमान्य समय सीमा",
+  "error.monthDay": "महीने का अमान्य दिन",
+  "error.month": "अमान्य महीना",
+  "error.end": "अमान्य समाप्ति तिथि",
+  "error.endBeforeStart": "समाप्ति प्रारंभ से पहले आती है",
+  "error.count": "बारों की अमान्य संख्या",
+  "error.scope": "scope this या all होना चाहिए",
+  "error.cronMove": "cron नियम एक बार में एक समय खिसकाता है",
+  "error.betweenMidnight": "समय सीमा आधी रात के पार चली जाएगी",
+  "error.monthDayOut": "महीने का दिन महीने के बाहर पड़ेगा",
+  "once": "एक बार: {date} को {time} बजे",
+  "timed": "{what}, {times} बजे",
+  "at": "{times} बजे",
+  "join": "{a}, {b}",
+  "every.minute": {
+    "one": "हर मिनट",
+    "other": "हर {n} मिनट"
+  },
+  "every.hour": {
+    "one": "हर घंटे",
+    "other": "हर {n} घंटे"
+  },
+  "every.day": {
+    "one": "हर दिन",
+    "other": "हर {n} दिन"
+  },
+  "every.week": {
+    "one": "हर सप्ताह",
+    "other": "हर {n} सप्ताह"
+  },
+  "every.month": {
+    "one": "हर महीने",
+    "other": "हर {n} महीने"
+  },
+  "every.year": {
+    "one": "हर वर्ष",
+    "other": "हर {n} वर्ष"
+  },
+  "between": "{from} से {to} तक",
+  "weekday.1": "सोमवार",
+  "weekday.2": "मंगलवार",
+  "weekday.3": "बुधवार",
+  "weekday.4": "गुरुवार",
+  "weekday.5": "शुक्रवार",
+  "weekday.6": "शनिवार",
+  "weekday.7": "रविवार",
+  "days.list": "{days} को",
+  "days.weekdays": "सोमवार से शुक्रवार",
+  "days.weekend": "शनिवार और रविवार को",
+  "days.all": "हर दिन",
+  "eachWeekday": "हर {day}",
+  "workweek": "सोमवार से शुक्रवार",
+  "monthDay": "{period} की {day} तारीख को",
+  "monthLast": "{period} के अंतिम दिन",
+  "nth.1": "{period} के पहले {weekday} को",
+  "nth.2": "{period} के दूसरे {weekday} को",
+  "nth.3": "{period} के तीसरे {weekday} को",
+  "nth.4": "{period} के चौथे {weekday} को",
+  "nth.5": "{period} के पाँचवें {weekday} को",
+  "nth.last": "{period} के अंतिम {weekday} को",
+  "yearDay": "{every} {date} को",
+  "yearLast": "{every} {month} के अंतिम दिन",
+  "yearNth": "{every}: {what}",
+  "until": "{date} तक",
+  "count": {
+    "one": "एक बार",
+    "other": "{n} बार"
+  },
+  "cron": "Cron: {cron}"
+}

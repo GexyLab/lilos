@@ -1,0 +1,9 @@
+{
+  "skipped": "छोड़ा गया",
+  "check": "जाँच {name} ({actual})",
+  "test": "परीक्षण “{name}”: {error}",
+  "counts": "{passed} सफल, {failed} विफल, {seconds} से. में",
+  "countsSkipped": "{passed} सफल, {failed} विफल, {skipped} छोड़े गए, {seconds} से. में",
+  "cancelled": "रद्द किया गया: {counts}",
+  "failedFirst": "{name}: {counts} (पहला: {first})"
+}

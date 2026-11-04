@@ -1,0 +1,8 @@
+{
+  "blockedWindow": "浏览器阻止了登录窗口",
+  "blockedTab": "浏览器阻止了登录标签页",
+  "canceled": "登录已取消",
+  "failed": "登录失败",
+  "noAskAddress": "缺少 askAddress",
+  "badAddress": "无效的地址"
+}

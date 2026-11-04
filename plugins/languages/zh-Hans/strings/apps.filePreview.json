@@ -1,0 +1,6 @@
+{
+  "late": "{app} 未及时响应",
+  "invalid": "预览无效",
+  "tooBig": "预览过大",
+  "imageType": "预览图像的类型不是 image/*"
+}

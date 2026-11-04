@@ -1,0 +1,23 @@
+{
+  "signIn": "Anmeldung erforderlich",
+  "noProtocol": "Protokoll nicht verfügbar: {protocol} (sein Kernelmodul fehlt)",
+  "hostName": "Ungültiger Hostname",
+  "hostTaken": "Es gibt bereits einen Host „{name}“",
+  "missing": "Es fehlt: {fields}",
+  "tooMany": "Höchstens {max} Hosts",
+  "hostNotFound": "Host nicht gefunden",
+  "noPassword": "Kein Passwort zum Speichern",
+  "sealedOther": "Das in der Verknüpfung gespeicherte Passwort gilt nur für die Person, die es gespeichert hat, auf diesem lilOS, für denselben Server und Benutzer",
+  "sessionNotFound": "Sitzung nicht gefunden",
+  "sessionsTooMany": "Höchstens {max} offene Sitzungen",
+  "sftpOnly": "Das Terminal öffnet sich nur bei SFTP-Verbindungen",
+  "sshOnly": "Geplante Befehle gehen nur an SSH-Hosts",
+  "untrusted": "Der Schlüssel des Servers von „{name}“ ist nicht bestätigt: Verbinden Sie sich einmal über das Terminal",
+  "denied": "Zugriff verweigert von „{name}“: Speichern Sie das Passwort oder den Schlüssel im Host",
+  "stopping": "Der Kernel wird beendet",
+  "detached": "Nach 10 Minuten ohne Fenster geschlossen",
+  "cancelled": "Verbindung abgebrochen",
+  "failed": "Verbindung fehlgeschlagen",
+  "folder": "Ungültiger Ordnername",
+  "cwd": "Ungültiger Ordner"
+}

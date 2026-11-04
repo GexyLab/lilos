@@ -1,0 +1,13 @@
+{
+  "needWs": "Diperlukan alamat ws:// atau wss://",
+  "noAnswer": "Server tidak menjawab pembukaan",
+  "cancelled": "Dibatalkan",
+  "tooLong": "Respons server terlalu panjang",
+  "notHttp": "Server tidak menjawab dalam HTTP",
+  "closed": "Server menutup koneksi",
+  "status": "Server menjawab {status} alih-alih membuka WebSocket",
+  "notOpened": "Server tidak membuka WebSocket",
+  "badAccept": "Respons server tidak valid (Sec-WebSocket-Accept)",
+  "extensions": "Server meminta ekstensi yang tidak ditawarkan",
+  "protocol": "Server memilih subprotokol yang tidak ditawarkan"
+}

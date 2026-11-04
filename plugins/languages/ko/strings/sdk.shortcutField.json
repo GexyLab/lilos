@@ -1,0 +1,16 @@
+{
+  "remove": "제거",
+  "removeCombo": "{combo} 제거",
+  "none": "없음",
+  "pressKeys": "키를 누르세요…",
+  "add": "조합 추가",
+  "addFor": "{command}에 대한 조합 추가",
+  "resetTitle": "원래 조합 복원",
+  "reset": "복원",
+  "record": "조합을 누르세요. 취소하려면 Esc를 누르세요.",
+  "invalid": "{combo}: {error}",
+  "already": "{combo}은(는) 이미 이 명령에 지정되어 있습니다",
+  "usedBy": "{combo}은(는) 이미 “{command}”에서 사용 중입니다.",
+  "replace": "바꾸기",
+  "cancel": "취소"
+}

@@ -1,0 +1,22 @@
+{
+  "cancel": "Annuler",
+  "one": "« {name} »",
+  "many": "{count} éléments",
+  "trash": "Mettre {what} à la Corbeille",
+  "permanent": "Supprimer {what} définitivement",
+  "inside": {
+    "one": "{what} et l’élément qu’il contient",
+    "other": "{what} et les {count} éléments qu’il contient"
+  },
+  "netRemoveText": "{verb} {what} : {text}",
+  "netRemove": "Supprimer",
+  "netRecycles": "Supprimer {what} de {service} (va dans sa corbeille)",
+  "netServer": "Supprimer {what} du serveur (définitif)",
+  "netServerFolders": "Supprimer {what} du serveur avec tout son contenu (définitif)",
+  "purge": "Supprimer « {name} » définitivement",
+  "purgeMany": "Supprimer {count} éléments définitivement",
+  "emptyTrash": {
+    "one": "Supprimer définitivement l’élément de la Corbeille",
+    "other": "Supprimer définitivement les {count} éléments de la Corbeille"
+  }
+}

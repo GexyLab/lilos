@@ -1,0 +1,87 @@
+{
+  "error.dateTime": "Date et heure non valides",
+  "error.cron": "Expression cron non valide",
+  "error.cronFields": "Une expression cron comporte 5 champs : minute heure jour mois jour-de-la-semaine",
+  "error.cronField": "Le champ {field} n’est pas valide",
+  "error.cronStep": "Pas non valide dans le champ {field}",
+  "error.cronValue": "Valeur « {value} » non valide dans le champ {field}",
+  "error.cronRange": "Plage inversée dans le champ {field}",
+  "error.times": "Heures non valides",
+  "error.exceptions": "Exceptions non valides",
+  "error.rule": "Règle non valide",
+  "error.zone": "Fuseau horaire inconnu",
+  "error.kind": "Une règle est « une fois », « répéter » ou « cron »",
+  "error.start": "Date et heure de début non valides",
+  "error.every": "Fréquence : nombre ou unité non valide",
+  "error.days": "Jours de la semaine non valides",
+  "error.daysUnit": "Les jours de la semaine s’appliquent aux minutes, aux heures et aux semaines",
+  "error.between": "Plage horaire non valide",
+  "error.monthDay": "Jour du mois non valide",
+  "error.month": "Mois non valide",
+  "error.end": "Date de fin non valide",
+  "error.endBeforeStart": "La fin précède le début",
+  "error.count": "Nombre de fois non valide",
+  "error.scope": "scope doit être this ou all",
+  "error.cronMove": "Une règle cron se déplace une occurrence à la fois",
+  "error.betweenMidnight": "La plage horaire dépasserait minuit",
+  "error.monthDayOut": "Le jour du mois tomberait en dehors du mois",
+  "once": "Une fois : le {date} à {time}",
+  "timed": "{what} à {times}",
+  "at": "à {times}",
+  "join": "{a}, {b}",
+  "every.minute": {
+    "one": "Chaque minute",
+    "other": "Toutes les {n} minutes"
+  },
+  "every.hour": {
+    "one": "Chaque heure",
+    "other": "Toutes les {n} heures"
+  },
+  "every.day": {
+    "one": "Chaque jour",
+    "other": "Tous les {n} jours"
+  },
+  "every.week": {
+    "one": "Chaque semaine",
+    "other": "Toutes les {n} semaines"
+  },
+  "every.month": {
+    "one": "chaque mois",
+    "other": "tous les {n} mois"
+  },
+  "every.year": {
+    "one": "Chaque année",
+    "other": "Tous les {n} ans"
+  },
+  "between": "de {from} à {to}",
+  "weekday.1": "lundi",
+  "weekday.2": "mardi",
+  "weekday.3": "mercredi",
+  "weekday.4": "jeudi",
+  "weekday.5": "vendredi",
+  "weekday.6": "samedi",
+  "weekday.7": "dimanche",
+  "days.list": "le {days}",
+  "days.weekdays": "du lundi au vendredi",
+  "days.weekend": "le samedi et le dimanche",
+  "days.all": "tous les jours",
+  "eachWeekday": "Chaque {day}",
+  "workweek": "Du lundi au vendredi",
+  "monthDay": "Le jour {day}, {period}",
+  "monthLast": "Le dernier jour, {period}",
+  "nth.1": "Le premier {weekday}, {period}",
+  "nth.2": "Le deuxième {weekday}, {period}",
+  "nth.3": "Le troisième {weekday}, {period}",
+  "nth.4": "Le quatrième {weekday}, {period}",
+  "nth.5": "Le cinquième {weekday}, {period}",
+  "nth.last": "Le dernier {weekday}, {period}",
+  "yearDay": "{every} le {date}",
+  "yearLast": "{every} le dernier jour de {month}",
+  "yearNth": "{every} : {what}",
+  "until": "jusqu’au {date}",
+  "count": {
+    "one": "une fois",
+    "other": "{n} fois"
+  },
+  "cron": "Cron : {cron}"
+}

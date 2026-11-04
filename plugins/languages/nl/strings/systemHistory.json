@@ -1,0 +1,9 @@
+{
+  "group": "Bewerken",
+  "undo": "Ongedaan maken",
+  "redo": "Opnieuw",
+  "undone": "Ongedaan gemaakt: {label}",
+  "redone": "Opnieuw uitgevoerd: {label}",
+  "failed": "Dit kan niet meer: {message}",
+  "error": "fout"
+}

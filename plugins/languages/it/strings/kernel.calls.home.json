@@ -1,0 +1,7 @@
+{
+  "path": "Percorso non valido: {path}",
+  "notFound": "Non trovato: {path}",
+  "gone": "Il file non c’è più",
+  "notFile": "Non è un file: {path}",
+  "tooBig": "File troppo grande (al massimo 50 MB): {path}"
+}

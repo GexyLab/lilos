@@ -1,0 +1,13 @@
+{
+  "theAutomation": "Otomatisasi",
+  "noAutomata": "Automata tidak terinstal",
+  "running": "{name} sudah berjalan",
+  "opened": "{name}: dibuka di Automata",
+  "needsNothing": "{name}: hanya dimulai sendiri jika tidak mengerjakan apa pun (Automata → Jalankan)",
+  "ran": "{name}: berjalan dengan sendirinya",
+  "ranOn": "{name}: berjalan dengan sendirinya pada {items} item",
+  "failedSteps": {
+    "other": "{n} langkah gagal"
+  },
+  "withFailed": "{text} ({failed})"
+}

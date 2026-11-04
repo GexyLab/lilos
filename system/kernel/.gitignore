@@ -12,3 +12,6 @@ config.json.tmp
 
 # The official repository of the development copy, filled by npm run dev:update (config apps.devRepository)
 /dev-repo/
+
+# Language packs installed (apps/languagePackage.js)
+/languages/

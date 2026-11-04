@@ -1,0 +1,7 @@
+{
+  "list": "Tags: {names}",
+  "menu": "Tag",
+  "hides": "{name} (blendet aus)",
+  "create": "Neuer Tag…",
+  "manage": "Tags verwalten…"
+}

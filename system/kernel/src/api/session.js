@@ -1,5 +1,11 @@
 import { fail } from '../errors.js';
 import { cookies, clientIp } from '../http.js';
+import { defineStrings } from '../strings.js';
+
+const { t } = defineStrings('lilos:kernel.api.session', { en: { strings: {
+  single: 'lilOS has only one user: there is no need to sign in', singleVerify: 'lilOS has only one user: it is not needed',
+  required: 'User name and password are required', signInFirst: 'Sign in first',
+} } });
 
 export const SESSION_COOKIE = 'lilos_session';
 
@@ -27,9 +33,9 @@ export function sessionRoutes(kernel) {
   }));
 
   router.add('POST', '/api/session', async ({ req, res, json }) => {
-    if (!kernel.multiUser) fail('invalid', 'lilOS ha un solo utente: non serve accedere');
+    if (!kernel.multiUser) fail('invalid', t('single'));
     const { username, password, remember = true } = await json(16 << 10);
-    if (typeof username !== 'string' || typeof password !== 'string' || !username || !password) fail('invalid', 'Nome utente e password sono obbligatori');
+    if (typeof username !== 'string' || typeof password !== 'string' || !username || !password) fail('invalid', t('required'));
     const { token, user, expires } = await kernel.service('auth').login(username, password, { ip: clientIp(req) });
     res.setHeader('Set-Cookie', cookie(kernel, token, remember === false ? null : Math.max(0, Math.floor((expires - Date.now()) / 1000))));
     kernel.appServices.userSeen({ kind: 'user', id: user.id, username: user.username, name: user.name, role: user.role });
@@ -39,10 +45,10 @@ export function sessionRoutes(kernel) {
   // Somebody else's password, checked without signing in as them (an administrator lets the program
   // lilOS out of the kiosk at the computer of another user): a sign-in that ends at once
   router.add('POST', '/api/session/verify', async ({ req, json, principal }) => {
-    if (!kernel.multiUser) fail('invalid', 'lilOS ha un solo utente: non serve');
-    if (!principal) fail('unauthorized', 'Accedi prima');
+    if (!kernel.multiUser) fail('invalid', t('singleVerify'));
+    if (!principal) fail('unauthorized', t('signInFirst'));
     const { username, password } = await json(16 << 10);
-    if (typeof username !== 'string' || typeof password !== 'string' || !username || !password) fail('invalid', 'Nome utente e password sono obbligatori');
+    if (typeof username !== 'string' || typeof password !== 'string' || !username || !password) fail('invalid', t('required'));
     const auth = kernel.service('auth');
     const { token, user } = await auth.login(username, password, { ip: clientIp(req) });
     await auth.logout(token);

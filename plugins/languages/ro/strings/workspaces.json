@@ -1,0 +1,10 @@
+{
+  "group": "Spațiu de lucru",
+  "next": "Comutați la spațiul de lucru următor",
+  "previous": "Comutați la spațiul de lucru anterior",
+  "limit": "Cel mult {max} spații de lucru",
+  "deskOf": "Desktopul {name}",
+  "removed": "Spațiul de lucru „{name}” a fost șters",
+  "removedKept": "Spațiul de lucru „{name}” a fost șters. Desktopul său este acum {path}",
+  "newName": "Spațiu de lucru {n}"
+}

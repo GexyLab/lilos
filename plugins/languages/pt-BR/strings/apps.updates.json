@@ -1,0 +1,63 @@
+{
+  "asksRestart": "{app} {version} pede para reiniciar o lilOS após a atualização",
+  "updatedRestart": "{app} foi atualizado para a {version}: reinicie o lilOS para usá-lo (botão na área de notificação, no canto inferior direito)",
+  "updated": "{app} foi atualizado para a {version}",
+  "updatedReopen": "{app} foi atualizado para a {version}: salve e reinicie o app (botão na área de notificação, no canto inferior direito)",
+  "updating": "{app} está sendo atualizado: um momento",
+  "waitsTitle": "{app} está aguardando a reinicialização",
+  "waitsLead": "{app} foi atualizado e abrirá de novo depois que o lilOS reiniciar.",
+  "windows": {
+    "one": "{n} janela aberta",
+    "other": "{n} janelas abertas"
+  },
+  "windowsIn": {
+    "one": "{n} janela aberta em {spaces} espaços de trabalho",
+    "other": "{n} janelas abertas em {spaces} espaços de trabalho"
+  },
+  "background": "os serviços em segundo plano",
+  "both": "{windows} e {background}",
+  "leadUpdate": "Atualizar {app} fecha tudo o que ele tem aberto: {closing}.",
+  "leadReinstall": "Reinstalar {app} fecha tudo o que ele tem aberto: {closing}.",
+  "leadMany": "Tudo o que estes apps têm aberto será fechado:",
+  "item": "{app}: {closing}",
+  "save": "Salve seu trabalho antes de continuar: os apps com alterações não salvas vão perguntar.",
+  "restartAfter": "Após a atualização será necessário reiniciar o lilOS (pedido por {apps}).",
+  "titleUpdate": "Atualizar {app}?",
+  "titleReinstall": "Reinstalar {app}?",
+  "titleUpdateMany": {
+    "one": "Atualizar {n} app?",
+    "other": "Atualizar {n} apps?"
+  },
+  "titleReinstallMany": {
+    "one": "Reinstalar {n} app?",
+    "other": "Reinstalar {n} apps?"
+  },
+  "cancel": "Cancelar",
+  "update": "Atualizar",
+  "reinstall": "Reinstalar",
+  "closeAndUpdate": "Fechar e atualizar",
+  "closeAndReinstall": "Fechar e reinstalar",
+  "notReady": "O lilOS ainda não está pronto",
+  "cancelled": "Atualização cancelada: uma janela não foi fechada",
+  "notLoaded": "{app}: a nova versão não foi carregada sem reiniciar o lilOS",
+  "restarting": "Reiniciando o sistema…",
+  "offTitle": "O lilOS está desligado",
+  "offText": "O kernel parou para todos os usuários. Para ligá-lo de novo, inicie-o novamente onde ele roda (npm run kernel, o serviço ou o programa lilOS) e depois recarregue esta página.",
+  "reload": "Recarregar",
+  "restartTitle": "Reiniciar o lilOS?",
+  "restartLead": "Para concluir a atualização, é preciso reiniciar o lilOS.",
+  "restartHint": "Todas as janelas serão fechadas e abertas de novo: salve seu trabalho nos outros apps.",
+  "later": "Mais tarde",
+  "restartNow": "Reiniciar agora",
+  "systemUpdated": "O lilOS foi atualizado para a versão {version}",
+  "failedTitle": "Falha na atualização do lilOS",
+  "failedLead": "lilOS {version} {reason}: o lilOS voltou sozinho para a versão {current}.",
+  "failedHint": "Nada foi perdido. Você pode tentar de novo pela AppStore; o log do kernel informa o que não funcionou.",
+  "ok": "OK",
+  "updatedTitle": "lilOS atualizado para a {version}",
+  "updatedLead": "A atualização foi concluída: o lilOS {version} está em uso.",
+  "updatedAsk": "A versão anterior ({from}) ainda está instalada e só serve para voltar a ela pela AppStore. Deseja excluí-la?",
+  "keep": "Manter",
+  "deleteVersion": "Excluir a {from}",
+  "deleted": "lilOS {from} excluído"
+}

@@ -1,0 +1,43 @@
+{
+  "sources": "Elementos que transferir no válidos",
+  "notFolder": "El destino no es una carpeta",
+  "homeToHome": "Copia entre carpetas de lilOS: no es una transferencia de red",
+  "intoItself": "Una carpeta no se puede copiar dentro de sí misma",
+  "nothing": "Nada que transferir",
+  "tooMany": "Demasiadas transferencias en la cola",
+  "itemNotFound": "Elemento no encontrado",
+  "noConflict": "Ningún conflicto que resolver",
+  "choice": "Elección no válida",
+  "queueNotFound": "Cola no encontrada",
+  "serverNotFound": "No existe en el servidor",
+  "badName": "Nombre que no se puede transferir: {name}",
+  "webOnly": "«{name}» solo se abre en la web: no se copia",
+  "place": "Ubicación no válida",
+  "tooManyFiles": "Demasiados archivos que transferir",
+  "tooDeep": "Carpetas anidadas a demasiada profundidad",
+  "someFailed": "Algunos archivos no se han transferido",
+  "dstLost": "Carpeta de destino perdida",
+  "fileThere": "Ya hay un archivo «{name}» donde va la carpeta",
+  "retrying": "{message} · reintentando",
+  "folderThere": "Ya hay una carpeta «{name}» donde va el archivo",
+  "notFileThere": "Ya hay un elemento «{name}» que no es un archivo",
+  "done": {
+    "one": "{n} archivo transferido a «{queue}» ({size})",
+    "other": "{n} archivos transferidos a «{queue}» ({size})"
+  },
+  "failed": {
+    "one": "{n} archivo no transferido",
+    "other": "{n} archivos no transferidos"
+  },
+  "failedIn": {
+    "one": "{n} archivo no transferido a «{queue}»",
+    "other": "{n} archivos no transferidos a «{queue}»"
+  },
+  "complete": "Transferencia completada: {files}.",
+  "allFailed": "No se ha podido transferir: {files}.",
+  "partial": "Transferencia terminada con errores: {done}. {failed}.",
+  "bytes": {
+    "one": "{n} byte",
+    "other": "{n} bytes"
+  }
+}

@@ -3,6 +3,13 @@ import { kernel, KernelError } from './kernel.js';
 import { locale } from './locale.js';
 import { fs } from './fs.js';
 
+const { t } = locale.define('lilos:sdk.net', {
+  en: { strings: {
+    blockedWindow: 'The browser blocked the sign-in window', blockedTab: 'The browser blocked the sign-in tab',
+    canceled: 'Sign-in canceled', failed: 'Sign-in failed', noAskAddress: 'askAddress is missing', badAddress: 'Invalid address',
+  } },
+});
+
 /**
  * Network connections (the Rete folder: FTP, SFTP, WebDAV… each protocol a kernel module) and the
  * transfers to and from them, which the kernel does: they go on with the app that started them
@@ -167,10 +174,10 @@ class Net extends Emitter {
     // Opened now, while the click still counts; it goes to the provider's page once the kernel gives it
     const win = window.open('about:blank', `lilos-signin-${Date.now()}`, 'popup,width=520,height=700');
     return (async () => {
-      if (!win) throw new KernelError(0, 'blocked', 'Il browser ha bloccato la finestra di accesso');
+      if (!win) throw new KernelError(0, 'blocked', t('blockedWindow'));
       let id = null;
       const stopped = new Promise((_, reject) => {
-        const stop = () => reject(new KernelError(0, 'canceled', 'Accesso annullato'));
+        const stop = () => reject(new KernelError(0, 'canceled', t('canceled')));
         if (signal?.aborted) stop();
         signal?.addEventListener('abort', stop, { once: true });
       });
@@ -182,7 +189,7 @@ class Net extends Emitter {
         for (;;) {
           const s = await Promise.race([stopped, kernel.request('GET', `/net/signin/${id}?wait=1`)]);
           if (s.status === 'done') return { signin: id, account: s.account };
-          if (s.status === 'error') throw new KernelError(0, 'invalid', s.error ?? 'Accesso non riuscito');
+          if (s.status === 'error') throw new KernelError(0, 'invalid', s.error ?? t('failed'));
         }
       } catch (err) {
         if (id) kernel.request('DELETE', `/net/signin/${id}`).catch(() => {});
@@ -201,10 +208,10 @@ class Net extends Emitter {
   #signInByHand(protocol, values, { signal, askAddress }) {
     const tab = window.open('about:blank', '_blank');
     return (async () => {
-      if (!tab) throw new KernelError(0, 'blocked', 'Il browser ha bloccato la scheda di accesso');
-      if (typeof askAddress !== 'function') throw new Error('askAddress mancante');
+      if (!tab) throw new KernelError(0, 'blocked', t('blockedTab'));
+      if (typeof askAddress !== 'function') throw new Error(t('noAskAddress'));
       let id = null;
-      const stop = () => { throw new KernelError(0, 'canceled', 'Accesso annullato'); };
+      const stop = () => { throw new KernelError(0, 'canceled', t('canceled')); };
       try {
         const started = await kernel.request('POST', '/net/signin', { protocol, values, manual: true });
         id = started.id;
@@ -217,9 +224,9 @@ class Net extends Emitter {
           try {
             const s = await kernel.request('POST', `/net/signin/${id}/paste`, { url: address });
             if (s.status === 'done') return { signin: id, account: s.account };
-            if (s.status === 'error') throw new KernelError(0, 'invalid', s.error ?? 'Accesso non riuscito');
+            if (s.status === 'error') throw Object.assign(new KernelError(0, 'invalid', s.error ?? t('failed')), { failed: true });
           } catch (err) {
-            if (err.code !== 'invalid' || /non riuscito/.test(err.message)) throw err;
+            if (err.code !== 'invalid' || err.failed) throw err;
             error = err.message;   // not the right address: asked again
           }
         }
@@ -264,7 +271,7 @@ class Net extends Emitter {
     return (async () => {
       try {
         const url = await getUrl();
-        if (!/^https:\/\//.test(url)) throw new Error('Indirizzo non valido');
+        if (!/^https:\/\//.test(url)) throw new Error(t('badAddress'));
         if (!tab) { window.open(url, '_blank', 'noopener'); return; }
         tab.opener = null;
         tab.location.href = url;

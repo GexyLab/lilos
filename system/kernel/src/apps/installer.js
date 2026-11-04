@@ -5,6 +5,7 @@ import { SYSTEM_VERSION } from '../config.js';
 import { checkFiles, checkIntegrity, compareVersions, inRange, verifySignature } from './manifest.js';
 import { needsGrant } from './permissions.js';
 import { cleanSource, fetchPackage, isOfficial } from './sources.js';
+import { defineStrings } from '../strings.js';
 
 /**
  * Installs, updates and removes apps, for everyone, through the fs service (as the kernel):
@@ -37,15 +38,32 @@ const appId = id => `app:${id}`;
 const versionId = (id, version) => `app:${id}/${version}`;
 const libId = (name, version) => `lib:${name}/${version}`;
 const SECURITY = 'app-security';
+const { t } = defineStrings('lilos:kernel.installer', { en: { strings: {
+  adminInstall: 'Only an administrator installs or removes apps', adminSecurity: 'Only an administrator changes how apps run',
+  needsLilos: '{name} {version} needs lilOS {range} (this is {system})', isolated: 'isolated must be true or false',
+  isolatedNull: 'isolated must be true, false or null', notInstalled: 'App not installed',
+  oneMode: 'System apps and remote apps have only one way to run', versionMissing: 'Version not installed', noLibrary: 'Library not found',
+  signature: 'The signature of the package does not match: it has been changed. Installation refused.',
+  systemOfficial: 'System apps are installed only from the official repository GexyLab/lilos-plugins-official',
+  systemSignature: 'System app without the official signature', grant: 'Permissions to grant: {permissions}',
+  libraryHash: 'The library {name} {version} in commons has another hash', libraryStatus: 'Library {name} not downloaded: response {status}',
+  libraryFailed: 'Library {name} not downloaded: {message}', libraryLarge: 'Library {name} too large',
+  libraryIntegrity: 'The library {name} does not match its hash: not installed',
+  installed: '{name} is already installed: for a new version use the update',
+  unsigned: 'App not verified: it is installed only by confirming the warning (allowUnsigned)',
+  otherApp: 'The package is of the app {found}, not of {id}', older: 'The version available ({version}) is older than the one installed',
+  staysSystem: 'A system app stays a system app', unsignedVersion: 'Version not verified: it is installed only by confirming the warning (allowUnsigned)',
+  required: '{id} is a required system app: it cannot be removed',
+} } });
 
-function requireAdmin(principal, message = 'Solo un amministratore installa o rimuove app') {
+function requireAdmin(principal, key = 'adminInstall') {
   if (principal?.kind === 'kernel') return;
-  if (principal?.kind !== 'user' || principal.role !== 'admin') fail('forbidden', message);
+  if (principal?.kind !== 'user' || principal.role !== 'admin') fail('forbidden', t(key));
 }
 
 /** An app that says which versions of lilOS it works with (manifest `lilos`) installs only on those. */
 function checkLilos(manifest) {
-  if (manifest.lilos && !inRange(manifest.lilos, SYSTEM_VERSION)) fail('conflict', `${manifest.name} ${manifest.version} richiede lilOS ${manifest.lilos} (questo è il ${SYSTEM_VERSION})`);
+  if (manifest.lilos && !inRange(manifest.lilos, SYSTEM_VERSION)) fail('conflict', t('needsLilos', { name: manifest.name, version: manifest.version, range: manifest.lilos, system: SYSTEM_VERSION }));
 }
 
 export class Installer {
@@ -99,8 +117,8 @@ export class Installer {
   }
 
   async setSecurity(principal, { isolated } = {}) {
-    requireAdmin(principal, 'Solo un amministratore cambia la modalità di esecuzione delle app');
-    if (typeof isolated !== 'boolean') fail('invalid', 'isolated deve essere true o false');
+    requireAdmin(principal, 'adminSecurity');
+    if (typeof isolated !== 'boolean') fail('invalid', t('isolated'));
     const node = await this.#fs.stat(KERNEL, SECURITY);
     await this.#put({ ...(node ?? { id: SECURITY, parent: 'fs:app', name: '.security', type: 'folder' }), meta: { ...node?.meta, security: { isolated } } });
     log.info(`Modalità di esecuzione predefinita: ${isolated ? 'isolata' : 'non isolata'} (${principal.username ?? 'kernel'})`);
@@ -110,10 +128,10 @@ export class Installer {
 
   /** How one app runs: true (isolated), false (not isolated) or null (the general rule). */
   async setAppSecurity(principal, id, isolated) {
-    requireAdmin(principal, 'Solo un amministratore cambia la modalità di esecuzione delle app');
-    if (isolated !== true && isolated !== false && isolated !== null) fail('invalid', 'isolated deve essere true, false o null');
-    const state = await this.state(id) ?? fail('not_found', 'App non installata');
-    if (state.system || state.kind !== 'local') fail('invalid', 'Le app di sistema e le app remote hanno una sola modalità di esecuzione');
+    requireAdmin(principal, 'adminSecurity');
+    if (isolated !== true && isolated !== false && isolated !== null) fail('invalid', t('isolatedNull'));
+    const state = await this.state(id) ?? fail('not_found', t('notInstalled'));
+    if (state.system || state.kind !== 'local') fail('invalid', t('oneMode'));
     const next = { ...state, isolated };
     await this.#saveState(next);
     log.info(`${id}: modalità di esecuzione ${isolated === null ? 'predefinita' : isolated ? 'isolata' : 'non isolata'} (${principal.username ?? 'kernel'})`);
@@ -123,14 +141,14 @@ export class Installer {
 
   /** A file of an installed app: of its current version, or of `version` (the current or the previous one). */
   async file(principal, id, path, version = null) {
-    const state = await this.state(id) ?? fail('not_found', 'App non installata');
-    if (version && version !== state.version && version !== state.previous) fail('not_found', 'Versione non installata');
+    const state = await this.state(id) ?? fail('not_found', t('notInstalled'));
+    if (version && version !== state.version && version !== state.previous) fail('not_found', t('versionMissing'));
     return this.#fs.read(principal, `${versionId(id, version ?? state.version)}/${path}`);
   }
 
   /** A cached library. */
   async library(principal, name, version) {
-    const folder = await this.#fs.stat(principal, libId(name, version)) ?? fail('not_found', 'Libreria inesistente');
+    const folder = await this.#fs.stat(principal, libId(name, version)) ?? fail('not_found', t('noLibrary'));
     return this.#fs.read(principal, `${libId(name, version)}/${folder.meta.file}`);
   }
 
@@ -140,13 +158,13 @@ export class Installer {
    */
   #trust(manifest, source) {
     const key = manifest.publisher.key;
-    if (manifest.signature && !verifySignature(manifest, key)) fail('forbidden', 'La firma del pacchetto non corrisponde: è stato modificato. Installazione rifiutata.');
+    if (manifest.signature && !verifySignature(manifest, key)) fail('forbidden', t('signature'));
     const trusted = this.#config.trustedPublishers?.[manifest.publisher.id];
     const signed = !!manifest.signature && !!trusted && trusted === key;
     const official = isOfficial(source) && (!this.#config.officialKey || (!!manifest.signature && key === this.#config.officialKey));
     if (manifest.system) {
-      if (!isOfficial(source)) fail('forbidden', 'Le app di sistema si installano solo dal repository ufficiale GexyLab/lilos-plugins-official');
-      if (!official) fail('forbidden', 'App di sistema senza la firma ufficiale');
+      if (!isOfficial(source)) fail('forbidden', t('systemOfficial'));
+      if (!official) fail('forbidden', t('systemSignature'));
     }
     return signed || official;
   }
@@ -158,7 +176,7 @@ export class Installer {
 
   #checkGrant(manifest, grant, already = []) {
     const missing = needsGrant(manifest.permissions ?? []).filter(p => !already.includes(p) && !grant.includes(p));
-    if (missing.length) fail('forbidden', `Permessi da concedere: ${missing.join(', ')}`);
+    if (missing.length) fail('forbidden', t('grant', { permissions: missing.join(', ') }));
   }
 
   async #store({ manifest, files }) {
@@ -187,20 +205,21 @@ export class Installer {
       const id = libId(lib.name, lib.version);
       const existing = await this.#fs.stat(KERNEL, id);
       if (existing) {
-        if (existing.meta.integrity !== lib.integrity) fail('conflict', `La libreria ${lib.name} ${lib.version} in commons ha un altro hash`);
+        if (existing.meta.integrity !== lib.integrity) fail('conflict', t('libraryHash', { name: lib.name, version: lib.version }));
         await this.#put({ ...existing, meta: { ...existing.meta, usedBy: [...new Set([...existing.meta.usedBy, manifest.id])] } });
         continue;
       }
       let data;
       try {
         const res = await fetch(lib.url, { signal: AbortSignal.timeout(20_000), redirect: 'follow' });
-        if (!res.ok) throw new Error(`risposta ${res.status}`);
+        if (!res.ok) fail('unavailable', t('libraryStatus', { name: lib.name, status: res.status }));
         data = Buffer.from(await res.arrayBuffer());
       } catch (err) {
-        fail('unavailable', `Libreria ${lib.name} non scaricata: ${err.message}`);
+        if (err.text) throw err;
+        fail('unavailable', t('libraryFailed', { name: lib.name, message: err.message }));
       }
-      if (data.length > MAX_LIBRARY) fail('too_large', `Libreria ${lib.name} troppo grande`);
-      if (!checkIntegrity(data, lib.integrity)) fail('forbidden', `La libreria ${lib.name} non corrisponde al suo hash: non installata`);
+      if (data.length > MAX_LIBRARY) fail('too_large', t('libraryLarge', { name: lib.name }));
+      if (!checkIntegrity(data, lib.integrity)) fail('forbidden', t('libraryIntegrity', { name: lib.name }));
       const file = new URL(lib.url).pathname.split('/').pop().replace(/[^\w.-]/g, '_') || 'index.js';
       await this.#put({ id: `lib:${lib.name}`, parent: 'fs:commons', name: lib.name, type: 'folder' });
       await this.#put({ id, parent: `lib:${lib.name}`, name: lib.version, type: 'folder', meta: { usedBy: [manifest.id], integrity: lib.integrity, url: lib.url, file } });
@@ -234,9 +253,9 @@ export class Installer {
     const { manifest } = pkg;
     checkFiles(manifest, pkg.files);
     checkLilos(manifest);
-    if (await this.state(manifest.id)) fail('conflict', `${manifest.name} è già installata: per una nuova versione usa l'aggiornamento`);
+    if (await this.state(manifest.id)) fail('conflict', t('installed', { name: manifest.name }));
     const signed = this.#trust(manifest, pkg.source);
-    if (!signed && !allowUnsigned) fail('forbidden', 'App non verificata: si installa solo confermando l’avviso (allowUnsigned)');
+    if (!signed && !allowUnsigned) fail('forbidden', t('unsigned'));
     this.#checkGrant(manifest, grant);
     await this.guard?.checkMet('app', manifest);
     await this.#store(pkg);
@@ -271,18 +290,18 @@ export class Installer {
    */
   async update(principal, id, { ref, reinstall = false, grant = [], allowUnsigned = false } = {}) {
     requireAdmin(principal);
-    const state = await this.state(id) ?? fail('not_found', 'App non installata');
+    const state = await this.state(id) ?? fail('not_found', t('notInstalled'));
     const pkg = await fetchPackage(this.updateSource(state, { ref, reinstall }));
     const { manifest } = pkg;
-    if (manifest.id !== id) fail('invalid', `Il pacchetto è dell'app ${manifest.id}, non di ${id}`);
+    if (manifest.id !== id) fail('invalid', t('otherApp', { found: manifest.id, id }));
     checkFiles(manifest, pkg.files);
     checkLilos(manifest);
     const order = compareVersions(manifest.version, state.version);
     if (!reinstall && order === 0) return { ...state, unchanged: true };
-    if (!reinstall && order < 0 && ref === undefined) fail('conflict', `La versione disponibile (${manifest.version}) è più vecchia di quella installata`);
-    if (state.system && !manifest.system) fail('forbidden', 'Un’app di sistema resta di sistema');
+    if (!reinstall && order < 0 && ref === undefined) fail('conflict', t('older', { version: manifest.version }));
+    if (state.system && !manifest.system) fail('forbidden', t('staysSystem'));
     const signed = this.#trust(manifest, pkg.source);
-    if (!signed && !allowUnsigned) fail('forbidden', 'Versione non verificata: si installa solo confermando l’avviso (allowUnsigned)');
+    if (!signed && !allowUnsigned) fail('forbidden', t('unsignedVersion'));
     this.#checkGrant(manifest, grant, state.granted);
     await this.guard?.checkMet('app', manifest);
     if (order !== 0) await this.guard?.checkVersion('app', id, manifest.version);
@@ -306,8 +325,8 @@ export class Installer {
 
   async uninstall(principal, id) {
     requireAdmin(principal);
-    const state = await this.state(id) ?? fail('not_found', 'App non installata');
-    if (state.required) fail('forbidden', `${state.id} è un'app di sistema necessaria: non si rimuove`);
+    const state = await this.state(id) ?? fail('not_found', t('notInstalled'));
+    if (state.required) fail('forbidden', t('required', { id: state.id }));
     await this.guard?.checkRemovable('app', id);
     await this.#fs.remove(KERNEL, [appId(id)]);
     await this.#releaseLibraries(id);

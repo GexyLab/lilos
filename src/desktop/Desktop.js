@@ -1,4 +1,4 @@
-import { bus, fs, storage, settings, openMenu, shortcuts, selectionGesture, menus, UndoStack, tags, pipes } from '@lilos/sdk';
+import { bus, fs, storage, settings, openMenu, shortcuts, selectionGesture, menus, UndoStack, tags, pipes, locale } from '@lilos/sdk';
 import { launch, registry } from '../apps/registry.js';
 import { appActionEntries } from '../apps/appActions.js';
 import { openFile } from '../apps/open.js';
@@ -27,6 +27,27 @@ const ROWS = 8;
 const TYPE_ORDER = { folder: 0, file: 1, app: 2 };
 
 const snap = v => Math.round(v / SNAP) * SNAP;
+
+const { t } = locale.define('lilos:deskArea', {
+  en: { strings: {
+    newFolder: 'New folder', newDocument: 'New document.txt',
+    fixedOne: '«{name}» is a fixed item of the desk: it cannot be deleted',
+    fixedMany: 'The fixed items of the desk cannot be deleted',
+    fixedStay: 'The fixed items of the desk stay: only the rest is deleted',
+    removeWithAreas: { one: '{what} and delete 1 work area', other: '{what} and delete {n} work areas' },
+    arrange: 'Arrange icons',
+    moveOne: 'Move «{name}»', moveMany: { one: 'Move {n} item', other: 'Move {n} items' },
+    gone: 'The items are no longer there',
+    'area.open': 'Open the work area', rename: 'Rename', properties: 'Properties…', 'area.remove': 'Delete the work area…',
+    open: 'Open', openMany: { one: 'Open {n} item', other: 'Open {n} items' },
+    'fixed.hide': 'Remove from the desk',
+    'fixed.hidden': '«{name}» can be put back from Control Panel → Workspace → This workspace',
+    'fixed.settings': 'Fixed items of the desk…',
+    openWith: 'Open with…', wallpaper: 'Use as desktop background',
+    'area.fromSelection': 'Create a work area with the selection',
+    remove: 'Delete', removeMany: { one: 'Delete {n} item', other: 'Delete {n} items' },
+  } },
+});
 
 /**
  * The desk as a view of a folder of the file system (/Scrivania of the current workspace): one
@@ -214,7 +235,7 @@ export class Desktop {
    */
   async create(type, at, { name, content, template } = {}) {
     this.#placeNext = { x: snap(at.x - CELL.w / 2), y: snap(at.y - 24) };
-    const node = fs.create(this.folder, { type, name: name ?? (type === 'folder' ? 'Nuova cartella' : 'Nuovo documento.txt') });
+    const node = fs.create(this.folder, { type, name: name ?? (type === 'folder' ? t('newFolder') : t('newDocument')) });
     const item = this.items.get(node.id);
     this.select([item]);
     // Creating and naming are one step for undo
@@ -269,19 +290,18 @@ export class Desktop {
   remove(selected) {
     const items = selected.filter(it => !it.fixed);
     if (!items.length) {
-      if (selected.length) notify(selected.length === 1 ? `«${selected[0].data.name}» è un elemento fisso della scrivania: non si può eliminare` : 'Gli elementi fissi della scrivania non si possono eliminare', { level: 'warning' });
+      if (selected.length) notify(selected.length === 1 ? t('fixedOne', { name: selected[0].data.name }) : t('fixedMany'), { level: 'warning' });
       return;
     }
-    if (items.length < selected.length) notify('Gli elementi fissi della scrivania restano: si elimina solo il resto', { level: 'warning' });
+    if (items.length < selected.length) notify(t('fixedStay'), { level: 'warning' });
     const r = items[0].el.getBoundingClientRect();
     const x = r.left + r.width / 2, y = r.bottom;
     const areas = items.filter(it => it.workarea).map(it => it.workarea);
     const nodes = items.filter(it => !it.workarea).map(it => it.id);
     if (!areas.length) return confirmRemove(nodes, x, y, this.history);
     if (!nodes.length) return this.workareas?.confirmRemove(areas, x, y);
-    const count = (n, one, many) => (n === 1 ? `1 ${one}` : `${n} ${many}`);
     const files = nodes.map(id => fs.get(id)).filter(n => n && !n.system);
-    confirmMenu(x, y, `${deleteLabel(files)} ed elimina ${count(areas.length, 'workarea', 'workarea')}`, () => {
+    confirmMenu(x, y, t('removeWithAreas', { what: deleteLabel(files), n: areas.length }), () => {
       deleteNodes(this.history, nodes);
       areas.forEach(id => this.workareas?.remove(id));
     });
@@ -300,7 +320,7 @@ export class Desktop {
     // Widgets are not icons in a grid: they stay where the user put them
     const items = all.filter(it => !it.widget);
     const rank = it => (it.fixed ? fixedRank(it.id) - FIXED_ITEMS.length : TYPE_ORDER[it.data.type] ?? 3);
-    const sorted = items.sort((a, b) => rank(a) - rank(b) || a.data.name.localeCompare(b.data.name, 'it', { numeric: true }));
+    const sorted = items.sort((a, b) => rank(a) - rank(b) || a.data.name.localeCompare(b.data.name, locale.code, { numeric: true }));
     const v = this.canvas.viewRect();
     const box = rect
       ? { x: rect.x + MARGIN, y: rect.y + AREA_HEADER + MARGIN, h: rect.h - AREA_HEADER - MARGIN * 2 }
@@ -314,7 +334,7 @@ export class Desktop {
     });
     this.canvas.changed();
     this.save();
-    this.#recordMoves('Riordina icone', before, 'arrange');
+    this.#recordMoves(t('arrange'), before, 'arrange');
   }
 
   /** Puts items of the desk where they are told: [{ id, x, y }] (the ones not on it are skipped). Returns how many. */
@@ -329,7 +349,7 @@ export class Desktop {
     }
     this.canvas.changed();
     this.save();
-    this.#recordMoves(present.length === 1 ? `Sposta «${this.items.get(present[0].id).data.name}»` : `Sposta ${present.length} elementi`, before, 'place');
+    this.#recordMoves(present.length === 1 ? t('moveOne', { name: this.items.get(present[0].id).data.name }) : t('moveMany', { n: present.length }), before, 'place');
     return present.length;
   }
 
@@ -347,7 +367,7 @@ export class Desktop {
     if (moved.length) pipes.notify('desk.place', { workspace: fs.workspace ?? null, reason, items: moved }, { caller: { system: true } });
     const apply = positions => {
       const present = [...positions].filter(([id]) => this.items.has(id));
-      if (!present.length) throw new Error('Gli elementi non ci sono più');
+      if (!present.length) throw new Error(t('gone'));
       for (const [id, [x, y]] of present) {
         const item = this.items.get(id);
         item.moveTo(x, y);
@@ -599,7 +619,7 @@ export class Desktop {
         this.canvas.changed();
         this.save();
         const before = new Map(group.map(g => [g.it.id, [g.x, g.y]]));
-        this.#recordMoves(group.length === 1 ? `Sposta «${group[0].it.data.name}»` : `Sposta ${group.length} elementi`, before);
+        this.#recordMoves(group.length === 1 ? t('moveOne', { name: group[0].it.data.name }) : t('moveMany', { n: group.length }), before);
       },
     });
   }
@@ -639,21 +659,21 @@ export class Desktop {
     const many = selected.length > 1;
     if (!many && item.workarea) {
       return openMenu(e.clientX, e.clientY, [
-        { label: 'Apri la workarea', icon: 'open', shortcut: shortcuts.label('items.open'), action: () => this.open(item) },
-        { label: 'Rinomina', icon: 'pencil', shortcut: shortcuts.label('items.rename'), action: () => this.rename(item) },
-        { label: 'Proprietà…', icon: 'info', action: () => this.workareas.properties(item.workarea) },
+        { label: t('area.open'), icon: 'open', shortcut: shortcuts.label('items.open'), action: () => this.open(item) },
+        { label: t('rename'), icon: 'pencil', shortcut: shortcuts.label('items.rename'), action: () => this.rename(item) },
+        { label: t('properties'), icon: 'info', action: () => this.workareas.properties(item.workarea) },
         '-',
-        { label: 'Elimina la workarea…', icon: 'trash', shortcut: shortcuts.label('items.delete'), danger: true, action: () => this.remove([item]) },
+        { label: t('area.remove'), icon: 'trash', shortcut: shortcuts.label('items.delete'), danger: true, action: () => this.remove([item]) },
       ]);
     }
     if (!many && item.fixed) {
       return openMenu(e.clientX, e.clientY, [
-        { label: 'Apri', icon: 'open', shortcut: shortcuts.label('items.open'), action: () => this.open(item) },
-        { label: 'Togli dalla scrivania', icon: 'eyeOff', action: () => {
+        { label: t('open'), icon: 'open', shortcut: shortcuts.label('items.open'), action: () => this.open(item) },
+        { label: t('fixed.hide'), icon: 'eyeOff', action: () => {
           setFixedShown(item.fixed.key, false);
-          notify(`«${item.data.name}» si rimette dal Pannello di controllo → Workspace → Questo workspace`);
+          notify(t('fixed.hidden', { name: item.data.name }));
         } },
-        { label: 'Elementi fissi della scrivania…', icon: 'info', action: () => launch('settings', { tab: 'workspaces', subtab: 'current' }) },
+        { label: t('fixed.settings'), icon: 'info', action: () => launch('settings', { tab: 'workspaces', subtab: 'current' }) },
       ]);
     }
     // Fixed items are not files: no tags, links or deleting
@@ -665,19 +685,19 @@ export class Desktop {
     const own = !many && item.widget ? item.menuEntries() : [];
     openMenu(e.clientX, e.clientY, [
       ...own, own.length && '-',
-      { label: many ? `Apri ${selected.length} elementi` : 'Apri', icon: 'open', shortcut: shortcuts.label('items.open'), action: () => selected.forEach(it => this.open(it)) },
-      !many && item.data.type === 'file' && { label: 'Apri con…', icon: 'open', action: () => openFile(fs.get(item.id), { choose: true }) },
-      !many && isWallpaperImage(fs.get(item.id)) && { label: 'Usa come sfondo desktop', icon: 'image', action: () => setWallpaper(item.id) },
-      { label: 'Rinomina', icon: 'pencil', shortcut: shortcuts.label('items.rename'), disabled: many, action: () => this.rename(item) },
+      { label: many ? t('openMany', { n: selected.length }) : t('open'), icon: 'open', shortcut: shortcuts.label('items.open'), action: () => selected.forEach(it => this.open(it)) },
+      !many && item.data.type === 'file' && { label: t('openWith'), icon: 'open', action: () => openFile(fs.get(item.id), { choose: true }) },
+      !many && isWallpaperImage(fs.get(item.id)) && { label: t('wallpaper'), icon: 'image', action: () => setWallpaper(item.id) },
+      { label: t('rename'), icon: 'pencil', shortcut: shortcuts.label('items.rename'), disabled: many, action: () => this.rename(item) },
       nodes.length && tagSubmenu(nodes),
       nodes.length && linkEntry(nodes),
-      free && { label: 'Crea una workarea con la selezione', icon: 'workarea', action: () => this.workareas.createAround(selected) },
-      !many && { label: 'Proprietà…', icon: 'info', action: () => showProperties(item.id) },
+      free && { label: t('area.fromSelection'), icon: 'workarea', action: () => this.workareas.createAround(selected) },
+      !many && { label: t('properties'), icon: 'info', action: () => showProperties(item.id) },
       ...appActionEntries(nodes, { separator: true }),
       '-',
       deletable.length
-        ? { label: deletable.length > 1 ? `Elimina ${deletable.length} elementi` : 'Elimina', icon: 'trash', shortcut: shortcuts.label('items.delete'), danger: true, action: () => this.remove(deletable) }
-        : { label: 'Elimina', icon: 'trash', disabled: true },
+        ? { label: deletable.length > 1 ? t('removeMany', { n: deletable.length }) : t('remove'), icon: 'trash', shortcut: shortcuts.label('items.delete'), danger: true, action: () => this.remove(deletable) }
+        : { label: t('remove'), icon: 'trash', disabled: true },
     ].filter(Boolean));
   }
 }

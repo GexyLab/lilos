@@ -1,0 +1,8 @@
+{
+  "notFound": "Nie znaleziono portu szeregowego (odłączony?)",
+  "unsupported": "Ta przeglądarka nie obsługuje portów szeregowych (wymaga Chrome, Edge lub Firefox 151+, przez https lub localhost)",
+  "click": "Przeglądarka wymaga kliknięcia przed wybraniem portu",
+  "baud": "Nieprawidłowa prędkość (baud)",
+  "busy": "Port jest już otwarty (przez inne okno lub inny program)",
+  "failed": "Port się nie otwiera: {message}"
+}

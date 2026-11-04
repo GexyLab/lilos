@@ -1,0 +1,7 @@
+{
+  "tooBig": "Zmienne rozwijają się za bardzo (najwyżej 4 MB)",
+  "notJson": "Odpowiedź nie jest w formacie JSON",
+  "source": "Nieprawidłowe źródło",
+  "regex": "Wyrażenie regularne jest nieprawidłowe lub za wolne",
+  "condition": "Nieprawidłowy warunek"
+}

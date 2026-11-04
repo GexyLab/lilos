@@ -1,0 +1,7 @@
+{
+  "notImage": "«{name}» ليس صورة",
+  "gone": "هذه الصورة لم تعد موجودة",
+  "copyFailed": "تعذّر نسخ «{name}» إلى المجلد {folder}: {error}",
+  "noFolder": "المجلد {folder} مفقود",
+  "openFailed": "تعذّر فتح «{name}» كصورة"
+}

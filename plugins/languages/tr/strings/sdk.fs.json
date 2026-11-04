@@ -1,0 +1,23 @@
+{
+  "notForNet": "Bir ağ bağlantısının dosyaları için kullanılamaz",
+  "badWorkspace": "Geçersiz çalışma alanı",
+  "noTarget": "Hedef klasör yok",
+  "badType": "Geçersiz tür: {type}",
+  "badLink": "Geçersiz bağlantı",
+  "badId": "Geçersiz tanımlayıcı",
+  "privateFolder": "Yalnızca bir çalışma alanına sahip klasör özel olabilir",
+  "notFound": "Öğe yok",
+  "fileNotFound": "Dosya yok",
+  "tooManyApps": "Bu öğede verisi olan çok fazla uygulama var",
+  "tooMuchAppData": "Bu öğede çok fazla uygulama verisi var",
+  "intoItself": "Bir klasör kendi içine taşınamaz",
+  "netTransfer": "Home ile ağ arasında dosyalar bir aktarımla kopyalanır",
+  "systemFolders": "Sistem klasörleri içeriyor",
+  "folderNotFound": "Klasör yok",
+  "notPrivate": "Klasör özel değil",
+  "systemItems": "Sistem öğeleri değiştirilemez",
+  "badApp": "Geçersiz uygulama",
+  "appDataObject": "Bir uygulamanın verisi bir nesne olmalıdır",
+  "appDataTooBig": "Uygulamanın verisi çok büyük (en fazla 1 KB)",
+  "emptyName": "Ad boş olamaz"
+}

@@ -1,0 +1,12 @@
+{
+  "zoomOut": "Pomniejsz",
+  "zoomIn": "Powiększ",
+  "fit": "Pokaż wszystko",
+  "zoomReset": "Powiększenie 100%",
+  "help": "Sterowanie",
+  "withKey": "{text} ({keys})",
+  "help.wheel": "Kółko: powiększenie",
+  "help.move": "Spacja + przeciąganie lub środkowy przycisk: przesuwanie",
+  "help.select": "Przeciąganie tła: zaznaczanie",
+  "help.fit": "{keys}: pokaż wszystko"
+}

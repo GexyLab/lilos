@@ -1,0 +1,22 @@
+{
+  "cancel": "Annuleren",
+  "one": "‘{name}’",
+  "many": "{count} items",
+  "trash": "{what} naar de prullenbak verplaatsen",
+  "permanent": "{what} definitief verwijderen",
+  "inside": {
+    "one": "{what} en het item erin",
+    "other": "{what} en de {count} items erin"
+  },
+  "netRemoveText": "{verb} {what}: {text}",
+  "netRemove": "Verwijderen",
+  "netRecycles": "{what} verwijderen uit {service} (gaat naar de eigen prullenbak)",
+  "netServer": "{what} verwijderen van de server (definitief)",
+  "netServerFolders": "{what} met alles erin verwijderen van de server (definitief)",
+  "purge": "‘{name}’ definitief verwijderen",
+  "purgeMany": "{count} items definitief verwijderen",
+  "emptyTrash": {
+    "one": "Het item in de prullenbak definitief verwijderen",
+    "other": "Alle {count} items in de prullenbak definitief verwijderen"
+  }
+}

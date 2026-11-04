@@ -1,0 +1,6 @@
+{
+  "signIn": "먼저 로그인하세요",
+  "adminOnly": "관리자 전용",
+  "name": "잘못된 이름",
+  "notSupervised": "커널이 \"npm run kernel\"로 시작되지 않았습니다. 수동으로 다시 시작하세요"
+}

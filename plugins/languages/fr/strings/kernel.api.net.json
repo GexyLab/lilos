@@ -1,0 +1,14 @@
+{
+  "signIn": "Connectez-vous d’abord",
+  "adminOnly": "Réservé aux administrateurs",
+  "mount": "Connexion non valide",
+  "tooManyTries": "Trop de tentatives de connexion en cours",
+  "notOnServer": "N’existe pas sur le serveur",
+  "notFile": "Ce n’est pas un fichier",
+  "webOnly": "Ne s’ouvre que sur le web",
+  "tooLarge": "Fichier trop volumineux",
+  "op": "Opération non valide",
+  "import": "Importation non valide",
+  "signin": "Connexion non valide",
+  "item": "Élément non valide"
+}

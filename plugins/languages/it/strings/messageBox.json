@@ -1,0 +1,12 @@
+{
+  "ok": "OK",
+  "cancel": "Annulla",
+  "continue": "Continua",
+  "retry": "Riprova",
+  "required": "Compila «{label}»",
+  "invalid": "«{label}» non è valido",
+  "number": "«{label}» deve essere un numero",
+  "min": "«{label}» deve essere almeno {min}",
+  "max": "«{label}» deve essere al massimo {max}",
+  "long": "«{label}» è troppo lungo (al massimo {max} caratteri)"
+}

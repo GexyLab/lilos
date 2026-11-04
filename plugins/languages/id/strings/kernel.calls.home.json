@@ -1,0 +1,7 @@
+{
+  "path": "Jalur tidak valid: {path}",
+  "notFound": "Tidak ditemukan: {path}",
+  "gone": "File sudah tidak ada",
+  "notFile": "Bukan file: {path}",
+  "tooBig": "File terlalu besar (paling banyak 50 MB): {path}"
+}

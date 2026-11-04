@@ -1,0 +1,9 @@
+{
+  "oldTerminal": "É necessário o Terminal 1.5.0 ou mais recente: atualize-o pela AppStore",
+  "signal": "Encerrado pelo sinal SIG{signal} ({code})",
+  "signalTail": "Encerrado pelo sinal SIG{signal} ({code}): {tail}",
+  "exit": "Saiu com {code}",
+  "exitTail": "Saiu com {code}: {tail}",
+  "ok": "Saiu com 0",
+  "okTail": "Saiu com 0 · {tail}"
+}

@@ -1,0 +1,22 @@
+{
+  "choose.serial": "Kies een seriële poort",
+  "choose.usb": "Kies een USB-apparaat",
+  "choose.hid": "Kies een apparaat",
+  "choose.bluetooth": "Kies een Bluetooth-apparaat",
+  "choose.screen": "Kies wat je wilt delen",
+  "choose.text.serial": "Een app wil een seriële poort van de computer gebruiken.",
+  "choose.text.usb": "Een app wil een USB-apparaat van de computer gebruiken.",
+  "choose.text.hid": "Een app wil een apparaat van de computer gebruiken (toetsenblokken, lezers, controllers…).",
+  "choose.text.bluetooth": "Een app wil een Bluetooth-apparaat in de buurt van de computer gebruiken.",
+  "choose.text.screen": "Een app wil een scherm of een venster van de computer zien.",
+  "choose.field": "Apparaat",
+  "choose.none": "Geen apparaat gevonden: sluit het aan en probeer het opnieuw.",
+  "connect": "Verbinden",
+  "share": "Delen",
+  "saved": "‘{name}’ opgeslagen vanuit het programma van de computer",
+  "saveFailed": "‘{name}’ niet terug opgeslagen in lilOS: {error}",
+  "missing": "‘{path}’ staat niet in lilOS",
+  "driveIn": "‘{name}’ staat in Netwerk › Deze computer",
+  "driveFailed": "‘{name}’ niet verbonden: {error}",
+  "serialPort": "Seriële poort"
+}

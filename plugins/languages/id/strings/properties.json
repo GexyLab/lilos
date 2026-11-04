@@ -1,0 +1,41 @@
+{
+  "title": "Properti",
+  "type": "Jenis",
+  "app": "Aplikasi",
+  "linkTarget": "Asli",
+  "linkState": "Status",
+  "contents": "Isi",
+  "size": "Ukuran",
+  "opensWith": "Dibuka dengan",
+  "deleted": "Dihapus",
+  "origin": "Lokasi asli",
+  "location": "Lokasi",
+  "created": "Dibuat",
+  "modified": "Diubah",
+  "workspace": "Ruang kerja",
+  "tags": "Tag",
+  "apps": "Aplikasi",
+  "appData": "Data {id}",
+  "folder": "Folder",
+  "linkFolder": "Tautan ke folder",
+  "linkWeb": "Tautan ke halaman web",
+  "linkFile": "Tautan ke file",
+  "appLink": "Tautan ke aplikasi",
+  "typeExt": "{type} (.{ext})",
+  "system": "{type} sistem",
+  "appMissing": "{id} (tidak terinstal)",
+  "broken": "Rusak: aslinya tidak ditemukan pada pemeriksaan terakhir",
+  "notFound": "Tidak ditemukan",
+  "mountGone": "Koneksi dihapus",
+  "ask": "Selalu tanya",
+  "files": {
+    "other": "{count} file"
+  },
+  "folders": {
+    "other": "{count} folder"
+  },
+  "shared": "Dibagikan oleh semua ruang kerja",
+  "none": "Tidak ada",
+  "orphan": "Aplikasi tidak terinstal",
+  "remove": "Hapus"
+}

@@ -1,0 +1,52 @@
+{
+  "folderGone": "المجلد لم يعد موجودًا",
+  "namedGone": "{name} لم يعد موجودًا",
+  "notFolder": "المجلد ليس مجلدًا فعليًا",
+  "namedNotFolder": "{name} ليس مجلدًا",
+  "protected": "محمي بواسطة تطبيق (مشفّر مثلًا): لا تتم الكتابة فوقه",
+  "mountGone": "{name} لم يعد موجودًا على «{mount}»",
+  "inside": "المجلد المراد النسخ إليه موجود داخل المجلد المراد نسخه",
+  "newVersion": "إصدار جديد: {name}",
+  "fileThere": "يوجد بالفعل ملف «{name}» في مكان النسخ",
+  "copied": "تم نسخ {path}",
+  "tooMany": "أكثر من {max} عنصر: انسخ مجلدًا أصغر",
+  "sameNameFile": "يوجد ملف بالاسم نفسه",
+  "removedFile": "تمت إزالة الملف {path} (أصبح الآن مجلدًا)",
+  "sameNameFolder": "يوجد مجلد بالاسم نفسه",
+  "error": "خطأ {path}: {message}",
+  "removed": "تم حذف {path}",
+  "oldVersion": "تم حذف الإصدار القديم: {name}",
+  "summary": {
+    "zero": "لم يُنسخ أي ملف ({size})",
+    "one": "تم نسخ ملف واحد ({size})",
+    "two": "تم نسخ ملفين ({size})",
+    "few": "تم نسخ {n} ملفات ({size})",
+    "many": "تم نسخ {n} ملفًا ({size})",
+    "other": "تم نسخ {n} ملف ({size})"
+  },
+  "summarySame": {
+    "zero": "لم يُنسخ أي ملف ({size})، {same} دون تغيير",
+    "one": "تم نسخ ملف واحد ({size})، {same} دون تغيير",
+    "two": "تم نسخ ملفين ({size})، {same} دون تغيير",
+    "few": "تم نسخ {n} ملفات ({size})، {same} دون تغيير",
+    "many": "تم نسخ {n} ملفًا ({size})، {same} دون تغيير",
+    "other": "تم نسخ {n} ملف ({size})، {same} دون تغيير"
+  },
+  "summaryRemoved": {
+    "zero": "لم يُنسخ أي ملف ({size})، {removed} محذوفة",
+    "one": "تم نسخ ملف واحد ({size})، {removed} محذوفة",
+    "two": "تم نسخ ملفين ({size})، {removed} محذوفة",
+    "few": "تم نسخ {n} ملفات ({size})، {removed} محذوفة",
+    "many": "تم نسخ {n} ملفًا ({size})، {removed} محذوفة",
+    "other": "تم نسخ {n} ملف ({size})، {removed} محذوفة"
+  },
+  "summarySameRemoved": {
+    "zero": "لم يُنسخ أي ملف ({size})، {same} دون تغيير، {removed} محذوفة",
+    "one": "تم نسخ ملف واحد ({size})، {same} دون تغيير، {removed} محذوفة",
+    "two": "تم نسخ ملفين ({size})، {same} دون تغيير، {removed} محذوفة",
+    "few": "تم نسخ {n} ملفات ({size})، {same} دون تغيير، {removed} محذوفة",
+    "many": "تم نسخ {n} ملفًا ({size})، {same} دون تغيير، {removed} محذوفة",
+    "other": "تم نسخ {n} ملف ({size})، {same} دون تغيير، {removed} محذوفة"
+  },
+  "notCopied": "لم يُنسخ {n}: {first}"
+}

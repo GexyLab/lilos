@@ -1,0 +1,7 @@
+{
+  "canceled": "Anulată",
+  "offline": "Kernelul lilOS nu răspunde",
+  "status": "Eroare {status}",
+  "badModule": "Modul nevalid",
+  "badPath": "Cale nevalidă"
+}

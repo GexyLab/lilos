@@ -1,0 +1,16 @@
+{
+  "area": "Espacio de trabajo",
+  "toChange": "{keys} para cambiar",
+  "menu": "Espacio de trabajo…",
+  "menuLabel": "Menú de espacios de trabajo",
+  "button": "Espacio de trabajo: {name}",
+  "buttonKeys": "Espacio de trabajo: {name} ({keys} para cambiar)",
+  "buttonLabel": "Espacio de trabajo {name}: cambiar de espacio de trabajo",
+  "heading": "Espacio de trabajo",
+  "next": "Siguiente",
+  "previous": "Anterior",
+  "create": "Nuevo espacio de trabajo",
+  "showCurrent": "Mostrar solo el espacio de trabajo actual",
+  "showAll": "Mostrar todos los espacios de trabajo",
+  "manage": "Gestionar espacios de trabajo…"
+}

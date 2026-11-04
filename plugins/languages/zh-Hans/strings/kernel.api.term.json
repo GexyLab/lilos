@@ -1,0 +1,7 @@
+{
+  "signIn": "请先登录",
+  "host": "无效的主机",
+  "session": "无效的会话",
+  "noSession": "未找到会话",
+  "needSocket": "需要 WebSocket"
+}

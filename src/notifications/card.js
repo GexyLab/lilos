@@ -2,7 +2,14 @@ import { h, icon, logo, appIcon, locale } from '@lilos/sdk';
 import { getApp, launch } from '../apps/registry.js';
 import { notify } from './notify.js';
 
-const LEVELS = { error: 'Errore', warning: 'Avviso', success: 'Fatto' };
+const { t } = locale.define('lilos:notificationCard', {
+  en: { strings: {
+    'level.error': 'Error', 'level.warning': 'Warning', 'level.success': 'Done',
+    open: 'Open', openApp: 'Open {name}', gone: '{name} is no longer installed',
+  } },
+});
+
+const LEVELS = new Set(['error', 'warning', 'success']);
 
 /**
  * What lilOS's own notifications can do on a click: action.entry → fn(args). The kernel's
@@ -33,12 +40,12 @@ export function notificationCard(n, { className = '', onOpen, onClose, closeLabe
   const from = senderOf(n);
   const head = h('div', { class: 'nt-head' },
     h('span', { class: 'nt-from' }, from.name),
-    LEVELS[n.level] ? h('span', { class: `nt-level nt-${n.level}` }, LEVELS[n.level]) : null,
+    LEVELS.has(n.level) ? h('span', { class: `nt-level nt-${n.level}` }, t(`level.${n.level}`)) : null,
     h('time', { class: 'nt-time', datetime: new Date(n.at).toISOString() }, formatTime(n.at)));
   const body = [from.tile(), h('div', { class: 'nt-body' }, head, h('p', { class: 'nt-text' }, n.text))];
   const actionable = !!(n.action && (n.from?.app || (n.from?.system && systemActions.has(n.action.entry))));
   const main = actionable
-    ? h('button', { class: 'nt-main', type: 'button', title: n.from?.system ? "Apri" : `Apri ${from.name}`, onclick: onOpen }, ...body)
+    ? h('button', { class: 'nt-main', type: 'button', title: n.from?.system ? t('open') : t('openApp', { name: from.name }), onclick: onOpen }, ...body)
     : h('div', { class: 'nt-main' }, ...body);
   return h('div', { class: `nt-card ${className}`, dataset: { id: n.id, level: n.level } },
     main,
@@ -52,7 +59,7 @@ export function notificationCard(n, { className = '', onOpen, onClose, closeLabe
 export function runAction(n) {
   if (n.action && n.from?.system) return systemActions.get(n.action.entry)?.(n.action.args ?? null);
   if (!n.action || !n.from?.app) return;
-  if (!getApp(n.from.app)) return notify(`${n.from.name ?? n.from.app} non è più installata`, { level: 'warning' });
+  if (!getApp(n.from.app)) return notify(t('gone', { name: n.from.name ?? n.from.app }), { level: 'warning' });
   let args = n.action.args ?? undefined;
   if (args && typeof args === 'object' && !Array.isArray(args)) {
     const { file, files, ...rest } = args;

@@ -2,6 +2,16 @@ import { getApp, isInstalled, launch } from './registry.js';
 import { entrypoints } from './packages/code.js';
 import * as background from './packages/background.js';
 import { services } from './services.js';
+import { locale } from '@lilos/sdk';
+
+const { t } = locale.define('lilos:apps.entrypoints', {
+  en: { strings: {
+    notInstalled: 'App not installed: {id}',
+    hidden: '{app} is hidden in this workspace',
+    noEntry: '{app} has no entry point {entry}',
+    backgroundOnly: 'You can connect only to a background entry point',
+  } },
+});
 
 /**
  * Entry points: the parts of an app that can start on their own. When the user opens an app its
@@ -17,10 +27,10 @@ export const entrypointsOf = app => (app?.package ? entrypoints(app.text ?? app.
 
 function find(appId, entry) {
   const app = getApp(appId);
-  if (!app?.load) throw new Error(`App non installata: ${appId}`);
-  if (!isInstalled(appId)) throw new Error(`${app.name} è nascosta in questo workspace`);
+  if (!app?.load) throw new Error(t('notInstalled', { id: appId }));
+  if (!isInstalled(appId)) throw new Error(t('hidden', { app: app.name }));
   const ep = typeof entry === 'string' && Object.hasOwn(entrypointsOf(app), entry) ? entrypointsOf(app)[entry] : null;
-  if (!ep) throw new Error(`${app.name} non ha il punto d’ingresso ${String(entry).slice(0, 40)}`);
+  if (!ep) throw new Error(t('noEntry', { app: app.name, entry: String(entry).slice(0, 40) }));
   return { app, ep };
 }
 
@@ -38,6 +48,6 @@ export async function callEntrypoint(appId, entry = 'main', data = null, { from 
 /** A MessagePort to one of the app's background entry points. */
 export function connectEntrypoint(appId, entry) {
   const { app, ep } = find(appId, entry);
-  if (ep.kind !== 'background') throw new Error('Ci si collega solo a un punto d’ingresso in background');
+  if (ep.kind !== 'background') throw new Error(t('backgroundOnly'));
   return background.connect(app, entry);
 }

@@ -1,0 +1,10 @@
+{
+  "one": "{name} draait op de achtergrond",
+  "many": {
+    "one": "{n} app draait op de achtergrond",
+    "other": "{n} apps draaien op de achtergrond"
+  },
+  "heading": "Actief op de achtergrond",
+  "item": "{name}: {label}",
+  "stop": "Stoppen"
+}

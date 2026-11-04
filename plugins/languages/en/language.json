@@ -1,0 +1,8 @@
+{
+  "id": "lang-en",
+  "language": "en",
+  "name": "English",
+  "englishName": "English",
+  "version": "1.0.0",
+  "lilos": ">=1.32.0"
+}

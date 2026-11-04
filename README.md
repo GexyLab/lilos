@@ -47,7 +47,7 @@ sdk/                    @lilos/sdk: basi riutilizzabili da sistema e app
   core/kernel.js        client del kernel: richieste, accesso, sincronizzazione delle modifiche
   core/apps.js          app installate: elenco, installa, aggiorna, rimuovi; repository, moduli del kernel e versioni di lilOS (systemReleases)
   core/settings.js      preferenze dell'utente
-  core/locale.js        lingua del sistema e traduzioni delle app (con core/i18n.js, il motore)
+  core/locale.js        lingua del sistema, traduzioni delle app e pacchetti di lingua di lilOS (con core/i18n.js, il motore, e core/strings.js)
   core/fs.js            file system virtuale (cartelle, file, collegamenti; salvato nel kernel)
   core/net.js           rete: connessioni a server remoti (cartella Rete) e trasferimenti fatti dal kernel
   core/serial.js        porte seriali del computer dell'utente (Web Serial), con un canale per porta
@@ -62,7 +62,8 @@ sdk/                    @lilos/sdk: basi riutilizzabili da sistema e app
 scripts/
   host-shims.mjs        genera public/host/sdk.js e system.js (predev, prebuild)
   release.mjs           la build di lilOS per il repository ufficiale (npm run release)
-plugins/                sorgenti delle app e dei moduli ufficiali (src/<app>, src/shared, modules/<nome>, scripts/, catalog.json); npm install e npm run build si fanno qui
+  lilos-strings.mjs     legge i testi di lilOS dal codice (la base dei pacchetti di lingua)
+plugins/                sorgenti delle app, dei moduli e dei pacchetti di lingua ufficiali (src/<app>, src/shared, modules/<nome>, languages/<lingua>, scripts/, catalog.json); npm install e npm run build si fanno qui
 public/host/            i moduli che le app di sistema importano come @lilos/sdk e @lilos/system (generati)
 system/
   kernel/               il backend: moduli (users-basic, fs-postgres, services-isolate: fa girare i servizi delle app, scheduler: la Pianificazione, un modulo obbligatorio, notifications-basic: le notifiche, ssh (anche SFTP), netfs-ftp, netfs-webdav, netfs-smb: i protocolli di rete della cartella Rete; OneDrive, Google (Drive e Foto), S3, Azure Blob Storage e NFS sono moduli del repository ufficiale; ssh, term-telnet, term-rlogin, term-supdup: i protocolli dei terminali remoti, usati dall'app Terminale; call-grpc e call-mqtt: i protocolli in più di NetTest), API, repository, installazione di app e moduli, aggiornamenti di lilOS (releases/ e current.json in un lilOS installato), riga di comando; run.js lo avvia, lo riavvia e prova le versioni nuove

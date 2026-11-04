@@ -1,0 +1,9 @@
+{
+  "skipped": "تم التخطي",
+  "check": "التحقق من {name} ({actual})",
+  "test": "الاختبار «{name}»: {error}",
+  "counts": "نجح {passed}، وفشل {failed} خلال {seconds} ث",
+  "countsSkipped": "نجح {passed}، وفشل {failed}، وتم تخطي {skipped} خلال {seconds} ث",
+  "cancelled": "تم الإلغاء: {counts}",
+  "failedFirst": "{name}: {counts} (الأول: {first})"
+}

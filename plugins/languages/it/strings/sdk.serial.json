@@ -1,0 +1,8 @@
+{
+  "notFound": "Porta seriale non trovata (scollegata?)",
+  "unsupported": "Questo browser non può usare le porte seriali (servono Chrome, Edge o Firefox 151+, su https o localhost)",
+  "click": "Il browser vuole un clic prima di scegliere una porta",
+  "baud": "Velocità (baud) non valida",
+  "busy": "La porta è già aperta (da un’altra finestra o un altro programma)",
+  "failed": "La porta non si apre: {message}"
+}

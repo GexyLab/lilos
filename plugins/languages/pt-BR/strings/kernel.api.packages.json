@@ -1,0 +1,7 @@
+{
+  "signIn": "Faça login primeiro",
+  "kind": "kind deve ser \"app\" ou \"module\"",
+  "id": "id inválido",
+  "target": "É necessário install ou update",
+  "package": "Pacote inválido"
+}

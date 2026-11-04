@@ -1,0 +1,9 @@
+{
+  "stopped": "自动化已停止",
+  "chooseItems": "选择要处理的内容",
+  "appMissing": "此步骤所需的应用未安装",
+  "password": "此步骤需要输入密码",
+  "stepFailedLabel": "第 {n} 步（{label}）：{message}",
+  "stepFailed": "第 {n} 步：{message}",
+  "cannotRedo": "此操作无法再次执行"
+}

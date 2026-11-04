@@ -1,0 +1,8 @@
+{
+  "noService": "Geen kernelmodule bewaart de meldingen",
+  "sent": "Melding verzonden",
+  "sentAdmins": {
+    "one": "Melding verzonden naar {n} beheerder",
+    "other": "Melding verzonden naar {n} beheerders"
+  }
+}

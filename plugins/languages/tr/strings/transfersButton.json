@@ -1,0 +1,8 @@
+{
+  "title": "Veri aktarımı",
+  "sent": "↑ {done} / {total}",
+  "received": "↓ {done} / {total}",
+  "rate": "{line} · {bytes}/sn",
+  "conflict": "Bir dosya zaten var: ne yapılacağını seçin",
+  "failed": "Bazı dosyalar aktarılmadı"
+}

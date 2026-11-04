@@ -1,0 +1,26 @@
+{
+  "retention.days": {
+    "one": "{n} dag",
+    "other": "{n} dagen"
+  },
+  "retention.year": "1 jaar",
+  "retention.forever": "Voor altijd",
+  "lasso": "{keys} + slepen",
+  "color.blue": "Blauw",
+  "color.violet": "Violet",
+  "color.magenta": "Magenta",
+  "color.red": "Rood",
+  "color.orange": "Oranje",
+  "color.green": "Groen",
+  "color.teal": "Blauwgroen",
+  "color.graphite": "Grafiet",
+  "color.night": "Nacht",
+  "color.deepBlue": "Diepblauw",
+  "color.forest": "Bos",
+  "color.plum": "Pruim",
+  "color.earth": "Aarde",
+  "color.mist": "Nevel",
+  "color.sky": "Hemel",
+  "color.sage": "Salie",
+  "color.sand": "Zand"
+}

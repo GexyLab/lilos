@@ -1,0 +1,12 @@
+{
+  "recording": {
+    "one": "Înregistrare în curs (un pas)",
+    "few": "Înregistrare în curs ({n} pași)",
+    "other": "Înregistrare în curs ({n} de pași)"
+  },
+  "paused": {
+    "one": "Înregistrare întreruptă (un pas)",
+    "few": "Înregistrare întreruptă ({n} pași)",
+    "other": "Înregistrare întreruptă ({n} de pași)"
+  }
+}

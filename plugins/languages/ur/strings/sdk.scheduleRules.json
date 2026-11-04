@@ -1,0 +1,87 @@
+{
+  "error.dateTime": "غلط تاریخ اور وقت",
+  "error.cron": "غلط cron اظہار",
+  "error.cronFields": "cron اظہار میں 5 فیلڈز ہوتی ہیں: منٹ گھنٹہ دن مہینہ ہفتے-کا-دن",
+  "error.cronField": "فیلڈ {field} درست نہیں",
+  "error.cronStep": "فیلڈ {field} میں غلط قدم",
+  "error.cronValue": "فیلڈ {field} میں غلط قدر «{value}»",
+  "error.cronRange": "فیلڈ {field} میں الٹی حد",
+  "error.times": "غلط اوقات",
+  "error.exceptions": "غلط استثنیات",
+  "error.rule": "غلط اصول",
+  "error.zone": "نامعلوم ٹائم زون",
+  "error.kind": "اصول «ایک بار»، «دہرائیں» یا «cron» ہوتا ہے",
+  "error.start": "آغاز کی غلط تاریخ اور وقت",
+  "error.every": "کتنی بار: غلط عدد یا اکائی",
+  "error.days": "ہفتے کے غلط دن",
+  "error.daysUnit": "ہفتے کے دن منٹوں، گھنٹوں اور ہفتوں پر لاگو ہوتے ہیں",
+  "error.between": "غلط وقت کی حد",
+  "error.monthDay": "مہینے کا غلط دن",
+  "error.month": "غلط مہینہ",
+  "error.end": "اختتام کی غلط تاریخ",
+  "error.endBeforeStart": "اختتام آغاز سے پہلے آتا ہے",
+  "error.count": "بار کی غلط تعداد",
+  "error.scope": "scope کو this یا all ہونا چاہیے",
+  "error.cronMove": "cron اصول ایک وقت میں ایک ہی بار منتقل ہوتا ہے",
+  "error.betweenMidnight": "وقت کی حد آدھی رات سے آگے چلی جائے گی",
+  "error.monthDayOut": "مہینے کا دن مہینے سے باہر چلا جائے گا",
+  "once": "ایک بار: {date} کو {time} بجے",
+  "timed": "{what} بوقت {times}",
+  "at": "بوقت {times}",
+  "join": "{a}، {b}",
+  "every.minute": {
+    "one": "ہر منٹ",
+    "other": "ہر {n} منٹ"
+  },
+  "every.hour": {
+    "one": "ہر گھنٹے",
+    "other": "ہر {n} گھنٹے"
+  },
+  "every.day": {
+    "one": "ہر روز",
+    "other": "ہر {n} دن"
+  },
+  "every.week": {
+    "one": "ہر ہفتے",
+    "other": "ہر {n} ہفتے"
+  },
+  "every.month": {
+    "one": "ہر مہینے",
+    "other": "ہر {n} مہینے"
+  },
+  "every.year": {
+    "one": "ہر سال",
+    "other": "ہر {n} سال"
+  },
+  "between": "{from} سے {to} تک",
+  "weekday.1": "پیر",
+  "weekday.2": "منگل",
+  "weekday.3": "بدھ",
+  "weekday.4": "جمعرات",
+  "weekday.5": "جمعہ",
+  "weekday.6": "ہفتہ",
+  "weekday.7": "اتوار",
+  "days.list": "{days} کو",
+  "days.weekdays": "پیر سے جمعہ تک",
+  "days.weekend": "ہفتہ اور اتوار کو",
+  "days.all": "ہر روز",
+  "eachWeekday": "ہر {day}",
+  "workweek": "پیر سے جمعہ تک",
+  "monthDay": "{period} کی {day} تاریخ کو",
+  "monthLast": "{period} کے آخری دن",
+  "nth.1": "{period} کے پہلے {weekday} کو",
+  "nth.2": "{period} کے دوسرے {weekday} کو",
+  "nth.3": "{period} کے تیسرے {weekday} کو",
+  "nth.4": "{period} کے چوتھے {weekday} کو",
+  "nth.5": "{period} کے پانچویں {weekday} کو",
+  "nth.last": "{period} کے آخری {weekday} کو",
+  "yearDay": "{every} {date} کو",
+  "yearLast": "{every} {month} کے آخری دن",
+  "yearNth": "{every}: {what}",
+  "until": "{date} تک",
+  "count": {
+    "one": "ایک بار",
+    "other": "{n} بار"
+  },
+  "cron": "Cron: {cron}"
+}

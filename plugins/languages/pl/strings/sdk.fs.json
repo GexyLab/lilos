@@ -1,0 +1,23 @@
+{
+  "notForNet": "Niedostępne dla plików połączenia sieciowego",
+  "badWorkspace": "Nieprawidłowy obszar roboczy",
+  "noTarget": "Folder docelowy nie istnieje",
+  "badType": "Nieprawidłowy typ: {type}",
+  "badLink": "Nieprawidłowy skrót",
+  "badId": "Nieprawidłowy identyfikator",
+  "privateFolder": "Tylko folder z obszarem roboczym może być prywatny",
+  "notFound": "Element nie istnieje",
+  "fileNotFound": "Plik nie istnieje",
+  "tooManyApps": "Zbyt wiele aplikacji ma dane w tym elemencie",
+  "tooMuchAppData": "Zbyt dużo danych aplikacji w tym elemencie",
+  "intoItself": "Folder nie może znaleźć się wewnątrz samego siebie",
+  "netTransfer": "Między folderem domowym a siecią pliki kopiuje się za pomocą przesyłania",
+  "systemFolders": "Zawiera foldery systemowe",
+  "folderNotFound": "Folder nie istnieje",
+  "notPrivate": "Folder nie jest prywatny",
+  "systemItems": "Elementów systemowych nie można zmieniać",
+  "badApp": "Nieprawidłowa aplikacja",
+  "appDataObject": "Dane aplikacji muszą być obiektem",
+  "appDataTooBig": "Dane aplikacji są za duże (najwyżej 1 KB)",
+  "emptyName": "Nazwa nie może być pusta"
+}

@@ -1,6 +1,7 @@
 import { fail } from '../errors.js';
 import { readBody, send, sendStream } from '../http.js';
 import { visible } from './apps.js';
+import { defineStrings } from '../strings.js';
 
 /**
  * lilOS (the desktop) works on the user's home through these endpoints. It knows nodes by its own
@@ -32,6 +33,10 @@ const MAX_NODES = 5000;
 const MAX_META = 4 << 10;
 const MAX_VALUE = 512 << 10;
 const MAX_CONTENT = 10 << 20;
+const { t } = defineStrings('lilos:kernel.api.home', { en: { strings: {
+  signIn: 'Sign in first', id: 'Identifier not valid', key: 'Key not valid: {key}', tooLarge: 'Value too large: {key}',
+  changes: 'Changes not valid', item: 'Item not valid', itemData: 'Too much data in an item', tooMany: 'Too many keys at once',
+} } });
 
 const finite = v => Number.isFinite(v);
 
@@ -48,7 +53,7 @@ class HomeView {
   toBack(id, { parent = false } = {}) {
     if (parent && id === 'root') return this.homeId;
     if (parent && id === 'trash') return this.trashId;
-    if (typeof id !== 'string' || !FRONT_ID.test(id) || id === 'root' || id === 'trash') fail('invalid', 'Identificatore non valido');
+    if (typeof id !== 'string' || !FRONT_ID.test(id) || id === 'root' || id === 'trash') fail('invalid', t('id'));
     return `${this.homeId}/${id}`;
   }
 
@@ -60,7 +65,7 @@ class HomeView {
   }
 
   keyId(key) {
-    if (typeof key !== 'string' || !KEY.test(key)) fail('invalid', `Chiave non valida: ${String(key).slice(0, 40)}`);
+    if (typeof key !== 'string' || !KEY.test(key)) fail('invalid', t('key', { key: String(key).slice(0, 40) }));
     return `${this.configId}/${key}`;
   }
 }
@@ -68,7 +73,7 @@ class HomeView {
 const ensured = new Set();
 
 export async function openHome(kernel, principal) {
-  if (!principal) fail('unauthorized', 'Accesso richiesto');
+  if (!principal) fail('unauthorized', t('signIn'));
   const fs = kernel.service('fs');
   const home = await fs.home(principal);
   const view = new HomeView(fs, principal, home);
@@ -106,7 +111,7 @@ export async function writeUserKey(kernel, principal, key, value) {
 
 async function writeKey(view, principal, key, value) {
   const text = JSON.stringify(value) ?? 'null';
-  if (text.length > MAX_VALUE) fail('too_large', `Valore troppo grande: ${key}`);
+  if (text.length > MAX_VALUE) fail('too_large', t('tooLarge', { key }));
   const id = view.keyId(key);
   if (!(await view.fs.stat(principal, id))) {
     const now = Date.now();
@@ -128,19 +133,19 @@ export async function homeNodes(kernel, principal) {
 /** Changes of the tree as lilOS's page sends them ({ put: [node], remove: [id] }), in one transaction. */
 export async function syncHome(kernel, principal, { put = [], remove = [] } = {}) {
   const view = await openHome(kernel, principal);
-  if (!Array.isArray(put) || !Array.isArray(remove) || put.length + remove.length > MAX_NODES) fail('invalid', 'Modifiche non valide');
+  if (!Array.isArray(put) || !Array.isArray(remove) || put.length + remove.length > MAX_NODES) fail('invalid', t('changes'));
   await view.fs.apply(principal, { put: put.map(n => toBackNode(view, n)), remove: remove.map(id => view.toBack(id)) });
   return view;
 }
 
 /** A node from lilOS → a node for the fs service. */
 function toBackNode(view, n) {
-  if (!n || typeof n !== 'object') fail('invalid', 'Elemento non valido');
-  if (!TYPES.has(n.type) || typeof n.name !== 'string' || !finite(n.created) || !finite(n.modified)) fail('invalid', 'Elemento non valido');
+  if (!n || typeof n !== 'object') fail('invalid', t('item'));
+  if (!TYPES.has(n.type) || typeof n.name !== 'string' || !finite(n.created) || !finite(n.modified)) fail('invalid', t('item'));
   const meta = {};
   for (const k of META) if (n[k] !== undefined) meta[k] = n[k];
-  if (n.type === 'link' ? !meta.link || typeof meta.link !== 'object' || Array.isArray(meta.link) : 'link' in meta) fail('invalid', 'Elemento non valido');
-  if (JSON.stringify(meta).length > MAX_META) fail('too_large', 'Troppi dati in un elemento');
+  if (n.type === 'link' ? !meta.link || typeof meta.link !== 'object' || Array.isArray(meta.link) : 'link' in meta) fail('invalid', t('item'));
+  if (JSON.stringify(meta).length > MAX_META) fail('too_large', t('itemData'));
   const type = n.type === 'link' ? 'app' : n.type;
   return { id: view.toBack(n.id), parent: view.toBack(n.parent, { parent: true }), name: n.name, type, meta, created: n.created, modified: n.modified };
 }
@@ -202,13 +207,13 @@ export function homeRoutes(kernel) {
   router.add('POST', '/api/storage', async ({ principal, json }) => {
     const view = await openHome(kernel, principal);
     const { set = {}, remove = [] } = await json(8 << 20);
-    if (!set || typeof set !== 'object' || Array.isArray(set) || !Array.isArray(remove)) fail('invalid', 'Modifiche non valide');
+    if (!set || typeof set !== 'object' || Array.isArray(set) || !Array.isArray(remove)) fail('invalid', t('changes'));
     const entries = Object.entries(set);
-    if (entries.length + remove.length > 500) fail('invalid', 'Troppe chiavi in una volta');
+    if (entries.length + remove.length > 500) fail('invalid', t('tooMany'));
     const now = Date.now();
     const values = entries.map(([key, value]) => {
       const text = JSON.stringify(value) ?? 'null';
-      if (text.length > MAX_VALUE) fail('too_large', `Valore troppo grande: ${key}`);
+      if (text.length > MAX_VALUE) fail('too_large', t('tooLarge', { key }));
       return { id: view.keyId(key), key, text };
     });
     const existing = new Set((await view.fs.list(principal, view.configId)).map(n => n.id));

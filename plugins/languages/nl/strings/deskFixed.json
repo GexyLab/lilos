@@ -1,0 +1,14 @@
+{
+  "home.description": "De hoofdmap, met alle andere",
+  "folder.description": "De map {name}, gedeeld door alle workspaces",
+  "files.description": "Opent de File Manager",
+  "trash": "Prullenbak",
+  "trash.description": "Opent de prullenbak; je kunt er bestanden en mappen naartoe slepen",
+  "noDesk": "Het bureaublad is er niet",
+  "folderGone": "De map {name} is er niet meer",
+  "trashedOne": "Naar de prullenbak verplaatst",
+  "trashedMany": {
+    "one": "{n} item naar de prullenbak verplaatst",
+    "other": "{n} items naar de prullenbak verplaatst"
+  }
+}

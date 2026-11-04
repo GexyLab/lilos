@@ -1,0 +1,9 @@
+{
+  "notFound": "Sumber daya tidak ditemukan",
+  "method": "Metode tidak diizinkan",
+  "internal": "Kesalahan internal kernel",
+  "unavailable": "Layanan tidak tersedia: {name}",
+  "signIn": "Masuk terlebih dahulu",
+  "needSocket": "Diperlukan WebSocket",
+  "refused": "Koneksi ditolak"
+}

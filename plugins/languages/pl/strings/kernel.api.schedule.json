@@ -1,0 +1,9 @@
+{
+  "signIn": "Najpierw się zaloguj",
+  "app": "Nieprawidłowa aplikacja",
+  "id": "Nieprawidłowy identyfikator",
+  "number": "Nieprawidłowa liczba",
+  "missing": "Nie znaleziono operacji",
+  "appOwner": "Aplikacja planuje tylko dla użytkownika, który jej używa",
+  "adminOwner": "Tylko administrator planuje dla innych lub dla systemu"
+}

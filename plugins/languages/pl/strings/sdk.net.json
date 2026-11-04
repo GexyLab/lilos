@@ -1,0 +1,8 @@
+{
+  "blockedWindow": "Przeglądarka zablokowała okno logowania",
+  "blockedTab": "Przeglądarka zablokowała kartę logowania",
+  "canceled": "Logowanie anulowane",
+  "failed": "Logowanie nie powiodło się",
+  "noAskAddress": "Brak askAddress",
+  "badAddress": "Nieprawidłowy adres"
+}

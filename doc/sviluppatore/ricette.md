@@ -683,6 +683,42 @@ Un'app installata o di sistema ha un solo file di traduzioni, con l'inglese come
 
 Le app ufficiali usano `appI18n(id, tabella)` di `plugins/src/shared/i18n.js`, che dà `locale.forApp(id).i18n` e ha un ripiego per i lilOS più vecchi, e controllano i file con `plugins/scripts/check-locales.mjs` (`npm run check:locales` in `plugins/`).
 
+## Scrivere un testo di lilOS e aggiungere o aggiornare una lingua di lilOS
+
+I testi di lilOS stesso (non delle app: per quelle vedi [Tradurre un'app](#tradurre-unapp)) stanno in inglese nel codice e le altre lingue sono pacchetti installati dal repository ufficiale. Regole complete e formato: [Testi di lilOS e pacchetti di lingua](api.md#testi-di-lilos-e-pacchetti-di-lingua). Decisione: [D84](../interna/decisioni.md#d84-i-pacchetti-di-lingua-traducono-lilos-non-le-app).
+
+**Aggiungere un testo (o cambiarlo).**
+
+1. Nel file, una tabella scritta per esteso, in inglese, con l'id della parte (unico in tutto lilOS):
+
+   ```js
+   import { locale } from '@lilos/sdk';
+
+   const { t } = locale.define('lilos:notes', {
+     en: { strings: { title: 'Notes', count: { one: '{n} note', other: '{n} notes' } } },
+   });
+   ```
+
+   Nel kernel: `defineStrings('lilos:kernel.notes', …)` da `system/kernel/src/strings.js`; nelle schermate prima dell'SDK (`src/boot/`): `bootStrings`; nei file che `locale.js` importa: `defineLater` da `sdk/core/strings.js`.
+2. Usa `t('title')` **quando disegni**, mai quando il modulo si carica. Niente variabili o chiavi calcolate nella tabella.
+3. Controlla che il codice sia letto: `node scripts/lilos-strings.mjs` (alla radice) elenca le parti, quante stringhe e dove. Si ferma con un errore se una tabella non è leggibile o se due file hanno la stessa parte.
+4. Aggiungi la parte a **ogni pacchetto**: `plugins/languages/<lingua>/strings/notes.json` con `{ "title": "Note", "count": { "one": "{n} nota", "other": "{n} note" } }`. Il nome del file è l'id della parte senza `lilos:`.
+5. Controlla: `node scripts/languages.mjs check it` da `plugins/` (con i nomi di alcune parti in coda, solo quelle). Esce con 1 se manca una parte o una chiave, se ne ha una che il codice non ha, o se un segnaposto non corrisponde all'inglese (`{n}` può mancare in una forma plurale che lo dice a parole).
+6. Alza `version` in `plugins/languages/<lingua>/language.json` di ogni pacchetto che hai cambiato: `publish:repo` pubblica solo i pacchetti con una versione diversa da quella del repository.
+
+**Aggiungere una lingua.**
+
+1. Nuova cartella `plugins/languages/<tag>/` (tag in forma canonica: `it`, `pt-BR`, `zh-Hans`) con:
+   - `language.json`: `{ "id": "lang-<tag>", "language": "<tag>", "name": "<nome nella lingua>", "englishName": "…", "version": "1.0.0", "lilos": ">=1.32.0" }` (senza `files`: lo scrive la build);
+   - `README.md`: ciò che l'AppStore mostra nei dettagli (Markdown);
+   - `strings/<parte>.json` per **ogni** parte di lilOS. Il modello completo è il pacchetto inglese: `node ../scripts/lilos-strings.mjs --json`, lanciato da `plugins/`, stampa tutte le parti in inglese. Una lingua che deriva da un'altra (`pt-PT` da `pt-BR`) parte da una copia dei suoi file.
+2. Aggiungi `"languages/<tag>"` a `languages` in `plugins/catalog.json`.
+3. `node scripts/languages.mjs check <tag>` finché non ha problemi.
+4. `npm run build -- language/<tag>` costruisce `build/languages/<tag>/` (`language.json` con l'hash, `strings.json` con tutte le parti, `README.md`). `npm run build` senza nomi costruisce anche tutti i pacchetti di lingua e si ferma al primo che ha problemi.
+5. Prova senza pubblicare: `npm run publish:repo -- <copia del repository ufficiale> language/<tag> --no-minify` e installala da lilOS con un repository di sviluppo (vedi `dev:update`). I pacchetti di lingua vanno **solo** nel repository ufficiale: `publish:repo` si rifiuta per gli altri.
+
+Per le lingue scritte da destra a sinistra non serve altro: `dir` viene dal tag. Prova l'interfaccia: il CSS di lilOS deve usare proprietà logiche (`margin-inline-start` e simili, mai `left` e `right` per spazi e posizioni che seguono la lettura).
+
 ## Intervenire su un evento con una pipe
 
 Una pipe fa stare la tua app in mezzo a un'operazione del sistema (aprire, leggere o salvare un file, avviare un'app) per cambiarla o fermarla. Per l'esempio, un'app `acme.trim` toglie gli spazi in fondo ai file di testo **che ha segnato lei**. Serve `"sdk": "2"`, un punto d'ingresso `background` e un permesso per l'evento. Riferimento: [pipes](api.md#sdkcorepipesjs-e-sdkcorepipecatalogjs) e [decisione D47](../interna/decisioni.md#d47-pipe-sugli-eventi-dati-delle-app-sui-file-e-filecrypt).

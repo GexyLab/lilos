@@ -1,0 +1,16 @@
+{
+  "remove": "إزالة",
+  "removeCombo": "إزالة {combo}",
+  "none": "لا شيء",
+  "pressKeys": "اضغط المفاتيح…",
+  "add": "إضافة تركيبة",
+  "addFor": "إضافة تركيبة لـ {command}",
+  "resetTitle": "استعادة التركيبة الأصلية",
+  "reset": "استعادة",
+  "record": "اضغط التركيبة. Esc للإلغاء.",
+  "invalid": "{combo}: {error}",
+  "already": "{combo} معيّنة بالفعل لهذا الأمر",
+  "usedBy": "{combo} مستخدمة بالفعل من قِبل «{command}».",
+  "replace": "استبدال",
+  "cancel": "إلغاء"
+}

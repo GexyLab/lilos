@@ -1,0 +1,6 @@
+{
+  "notInstalled": "App non installata: {id}",
+  "hidden": "{app} è nascosta in questo workspace",
+  "noEntry": "{app} non ha il punto d’ingresso {entry}",
+  "backgroundOnly": "Ci si collega solo a un punto d’ingresso in background"
+}

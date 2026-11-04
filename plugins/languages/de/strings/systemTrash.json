@@ -1,0 +1,6 @@
+{
+  "purged": {
+    "one": "1 Element, älter als der neue Zeitraum, endgültig gelöscht",
+    "other": "{n} Elemente, älter als der neue Zeitraum, endgültig gelöscht"
+  }
+}

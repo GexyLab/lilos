@@ -1,0 +1,15 @@
+{
+  "title": "알림",
+  "today": "오늘",
+  "yesterday": "어제",
+  "markAll": "모두 읽음으로 표시",
+  "clearAll": "모두 삭제",
+  "clearFailed": "알림을 삭제하지 못했습니다: {message}",
+  "removeFailed": "알림을 삭제하지 못했습니다: {message}",
+  "kept": "{keep}개 중 {count}개 보관됨",
+  "fresh": {
+    "other": "{kept} · 새 알림 {n}개"
+  },
+  "empty": "알림 없음",
+  "remove": "삭제"
+}

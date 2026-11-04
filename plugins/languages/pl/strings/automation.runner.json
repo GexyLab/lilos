@@ -1,0 +1,9 @@
+{
+  "stopped": "Automatyzacja zatrzymana",
+  "chooseItems": "Wybierz, na czym pracować",
+  "appMissing": "Aplikacja tego kroku nie jest zainstalowana",
+  "password": "Ten krok wymaga hasła",
+  "stepFailedLabel": "Krok {n} ({label}): {message}",
+  "stepFailed": "Krok {n}: {message}",
+  "cannotRedo": "Tej akcji nie można wykonać ponownie"
+}

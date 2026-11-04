@@ -1,0 +1,6 @@
+{
+  "signIn": "Meld je eerst aan",
+  "adminOnly": "Alleen voor beheerders",
+  "name": "Ongeldige naam",
+  "notSupervised": "De kernel is niet gestart met \"npm run kernel\": start hem handmatig opnieuw"
+}

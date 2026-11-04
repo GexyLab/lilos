@@ -1,0 +1,15 @@
+{
+  "theAutomation": "Automatizarea",
+  "noAutomata": "Automata nu este instalată",
+  "running": "{name} rulează deja",
+  "opened": "{name}: deschisă în Automata",
+  "needsNothing": "{name}: pornește singură doar dacă nu prelucrează niciun element (Automata → Lansare)",
+  "ran": "{name}: rulată singură",
+  "ranOn": "{name}: rulată singură pe {items} elemente",
+  "failedSteps": {
+    "one": "un pas a eșuat",
+    "few": "{n} pași au eșuat",
+    "other": "{n} de pași au eșuat"
+  },
+  "withFailed": "{text} ({failed})"
+}

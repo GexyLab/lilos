@@ -1,0 +1,14 @@
+{
+  "title": "选择文件",
+  "search": "按名称或路径搜索",
+  "searchLabel": "搜索",
+  "folders": "文件夹",
+  "files": "文件",
+  "choose": "选择",
+  "cancel": "取消",
+  "home": "主文件夹",
+  "noMatch": "没有与搜索匹配的内容",
+  "noFolders": "没有文件夹",
+  "noFiles": "lilOS 中没有文件",
+  "noFilesOf": "lilOS 中没有 {exts} 文件"
+}

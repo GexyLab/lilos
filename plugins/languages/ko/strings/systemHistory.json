@@ -1,0 +1,9 @@
+{
+  "group": "편집",
+  "undo": "실행 취소",
+  "redo": "다시 실행",
+  "undone": "실행 취소됨: {label}",
+  "redone": "다시 실행됨: {label}",
+  "failed": "더 이상 이 작업을 할 수 없습니다: {message}",
+  "error": "오류"
+}

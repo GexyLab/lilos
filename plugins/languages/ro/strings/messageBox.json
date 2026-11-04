@@ -1,0 +1,12 @@
+{
+  "ok": "OK",
+  "cancel": "Anulați",
+  "continue": "Continuați",
+  "retry": "Reîncercați",
+  "required": "Completați „{label}”",
+  "invalid": "„{label}” nu este valid",
+  "number": "„{label}” trebuie să fie un număr",
+  "min": "„{label}” trebuie să fie cel puțin {min}",
+  "max": "„{label}” trebuie să fie cel mult {max}",
+  "long": "„{label}” este prea lung (cel mult {max} caractere)"
+}

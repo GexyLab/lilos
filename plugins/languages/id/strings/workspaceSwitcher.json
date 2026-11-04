@@ -1,0 +1,16 @@
+{
+  "area": "Ruang kerja",
+  "toChange": "{keys} untuk mengganti",
+  "menu": "Ruang kerja…",
+  "menuLabel": "Menu ruang kerja",
+  "button": "Ruang kerja: {name}",
+  "buttonKeys": "Ruang kerja: {name} ({keys} untuk mengganti)",
+  "buttonLabel": "Ruang kerja {name}: ganti ruang kerja",
+  "heading": "Ruang kerja",
+  "next": "Berikutnya",
+  "previous": "Sebelumnya",
+  "create": "Ruang kerja baru",
+  "showCurrent": "Tampilkan hanya ruang kerja saat ini",
+  "showAll": "Tampilkan semua ruang kerja",
+  "manage": "Kelola ruang kerja…"
+}

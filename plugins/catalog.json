@@ -37,5 +37,27 @@
     "modules/call-grpc",
     "modules/call-mqtt"
   ],
-  "system": "system/lilos"
+  "system": "system/lilos",
+  "languages": [
+    "languages/it",
+    "languages/en",
+    "languages/zh-Hans",
+    "languages/hi",
+    "languages/es",
+    "languages/de",
+    "languages/fr",
+    "languages/pt-BR",
+    "languages/ru",
+    "languages/ar",
+    "languages/ja",
+    "languages/pl",
+    "languages/uk",
+    "languages/ro",
+    "languages/nl",
+    "languages/el",
+    "languages/id",
+    "languages/ur",
+    "languages/tr",
+    "languages/ko"
+  ]
 }

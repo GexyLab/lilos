@@ -19,12 +19,14 @@
  * `alone` (in APPS): entry points in a file of their own (`file` in the manifest), each one module
  * with all it imports in dist/<name>.js, so the other files do not carry what only they need.
  *
- * Kernel modules: build/modules/<name>/, see buildModule.
+ * Kernel modules: build/modules/<name>/, see buildModule. Language packs: build/languages/<language>/,
+ * see scripts/languages.mjs.
  *
- *   npm run build [-- <app or module>…] [--no-minify] [--no-merge]
+ *   npm run build [-- <app, module or language/<language>>…] [--no-minify] [--no-merge]
  *
- * With no names it builds every app and module of catalog.json; a name both an app and a module
- * have needs app/ or module/ before it (scheduler). --no-merge copies the modules' code as it is.
+ * With no names it builds every app, module and language pack of catalog.json; a name both an app
+ * and a module have needs app/ or module/ before it (scheduler); a language pack always has
+ * language/ before it (language/it). --no-merge copies the modules' code as it is.
  */
 import { build } from 'vite';
 import { createHash } from 'node:crypto';
@@ -35,6 +37,7 @@ import { appConfig } from '../vite.config.js';
 import { checkCredits } from './credits.mjs';
 import { checkModuleLibs } from './module-libs.mjs';
 import { sharedTable, checkSharedTable, withShared } from './shared-locales.mjs';
+import { LANGUAGES, buildLanguage } from './languages.mjs';
 
 // Paths here and in vite.config.js are relative to plugins/
 process.chdir(join(dirname(fileURLToPath(import.meta.url)), '..'));
@@ -171,11 +174,17 @@ export async function buildModule(name, { minify = true, merge = true } = {}) {
 }
 
 /**
- * Names as the tags of lilOS's repository give them, 'app/<id>' and 'module/<name>', or bare when
- * only an app or only a module has that name: [{ kind: 'app' | 'module', name }].
+ * Names as the tags of lilOS's repository give them, 'app/<id>', 'module/<name>' and
+ * 'language/<language>', or bare when only an app or only a module has that name:
+ * [{ kind: 'app' | 'module' | 'language', name }].
  */
 export function packagesOf(names) {
   return names.map(full => {
+    const pack = /^language\/(.+)$/.exec(full);
+    if (pack) {
+      if (!LANGUAGES.includes(pack[1])) throw new Error(`Lingua non presente nel catalogo: ${pack[1]}`);
+      return { kind: 'language', name: pack[1] };
+    }
     const [, prefix, name] = /^(?:(app|module)\/)?(.+)$/.exec(full);
     const kinds = [APPS.some(a => a.id === name) && 'app', MODULES.includes(name) && 'module'].filter(k => k && (!prefix || k === prefix));
     if (!kinds.length) throw new Error(`Né app né modulo: ${full}`);
@@ -184,11 +193,12 @@ export function packagesOf(names) {
   });
 }
 
-/** Builds the named apps and modules (all of them with none); returns what it built. */
+/** Builds the named apps, modules and language packs (all of them with none); returns what it built. */
 export async function buildAll(names = [], { minify = true, merge = true } = {}) {
   const chosen = packagesOf(names);
   const apps = APPS.map(a => a.id).filter(id => !names.length || chosen.some(p => p.kind === 'app' && p.name === id));
   const modules = MODULES.filter(n => !names.length || chosen.some(p => p.kind === 'module' && p.name === n));
+  const languages = LANGUAGES.filter(l => !names.length || chosen.some(p => p.kind === 'language' && p.name === l));
   if (apps.length) checkCredits();
   const stale = checkModuleLibs();
   if (stale.length) throw new Error(`codice condiviso dei moduli non allineato (npm run sync:modules): ${stale.join('; ')}`);
@@ -197,7 +207,8 @@ export async function buildAll(names = [], { minify = true, merge = true } = {})
   if (sharedErrors.length) throw new Error(`src/shared/locales.json: ${sharedErrors.join('; ')}`);
   for (const id of apps) await buildApp(id, { minify, shared });
   for (const name of modules) await buildModule(name, { minify, merge });
-  return { apps, modules };
+  for (const language of languages) buildLanguage(language);
+  return { apps, modules, languages };
 }
 
 if (process.argv[1] && resolvePath(process.argv[1]) === fileURLToPath(import.meta.url)) {

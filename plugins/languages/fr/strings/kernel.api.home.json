@@ -1,0 +1,10 @@
+{
+  "signIn": "Connectez-vous d’abord",
+  "id": "Identifiant non valide",
+  "key": "Clé non valide : {key}",
+  "tooLarge": "Valeur trop grande : {key}",
+  "changes": "Modifications non valides",
+  "item": "Élément non valide",
+  "itemData": "Trop de données dans un élément",
+  "tooMany": "Trop de clés à la fois"
+}

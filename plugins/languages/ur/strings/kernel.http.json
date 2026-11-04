@@ -1,0 +1,9 @@
+{
+  "badPath": "غلط پتا",
+  "tooLarge": "درخواست بہت بڑی ہے",
+  "notJson": "درخواست کا مواد درست JSON نہیں ہے",
+  "notAllowed": "درخواست کی اجازت نہیں",
+  "noOrigin": "Origin موجود نہیں",
+  "badOrigin": "Origin کی اجازت نہیں",
+  "badHost": "ہوسٹ کی اجازت نہیں"
+}

@@ -1,0 +1,14 @@
+{
+  "signIn": "Meld je eerst aan",
+  "adminOnly": "Alleen voor beheerders",
+  "mount": "Ongeldige verbinding",
+  "tooManyTries": "Te veel verbindingspogingen bezig",
+  "notOnServer": "Het bestaat niet op de server",
+  "notFile": "Het is geen bestand",
+  "webOnly": "Het opent alleen op het web",
+  "tooLarge": "Bestand te groot",
+  "op": "Ongeldige bewerking",
+  "import": "Ongeldige import",
+  "signin": "Ongeldige aanmelding",
+  "item": "Ongeldig item"
+}

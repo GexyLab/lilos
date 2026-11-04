@@ -1,0 +1,7 @@
+{
+  "signIn": "سجّل الدخول أولًا",
+  "kind": "يجب أن تكون قيمة kind \"app\" أو \"module\"",
+  "id": "id غير صالح",
+  "target": "يلزم install أو update",
+  "package": "حزمة غير صالحة"
+}

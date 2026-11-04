@@ -1,0 +1,37 @@
+{
+  "adminOnly": "Alleen een beheerder installeert of verwijdert pakketten",
+  "needsLilos": "{name} {version} vereist lilOS {range} (dit is {system})",
+  "moduleJson": "module.json is geen geldige JSON",
+  "byHand": "{id} is handmatig geplaatst: het wordt handmatig bijgewerkt",
+  "appInstalled": "{name} is al geïnstalleerd: gebruik voor een nieuwe versie de update",
+  "moduleInstalled": "{name} is al geïnstalleerd: gebruik voor een nieuwe versie de update",
+  "replaced": "{name} is vervangen door {by}: het wordt niet meer geïnstalleerd",
+  "appMissing": "App niet geïnstalleerd",
+  "moduleOff": "Module niet actief",
+  "otherApp": "Het pakket is van de app {found}, niet van {id}",
+  "otherModule": "Het pakket is van de module {found}, niet van {id}",
+  "moduleNewer": "De module {id} {range} is nodig: {have} is geïnstalleerd en de nieuwste is {newer}",
+  "appNewer": "De app {id} {range} is nodig: {have} is geïnstalleerd en de nieuwste is {newer}",
+  "unreadable": "De repository {url} kan niet worden gelezen: {message}",
+  "moduleNotInRepo": "De repository {url} bevat geen module {id}",
+  "appNotInRepo": "De repository {url} bevat geen app {id}",
+  "moduleRepoVersion": "De module {id} {range} is nodig: de repository heeft {version}",
+  "appRepoVersion": "De app {id} {range} is nodig: de repository heeft {version}",
+  "modulePlanned": "{name} heeft de module {id} {range} nodig, maar {version} wordt geïnstalleerd",
+  "appPlanned": "{name} heeft de app {id} {range} nodig, maar {version} wordt geïnstalleerd",
+  "circular": "Circulaire afhankelijkheid tussen {a} en {b}: geen van beide kan vóór de ander worden geïnstalleerd",
+  "consent": "Toestemming ontbreekt voor {keys}: bekijk opnieuw wat er wordt geïnstalleerd",
+  "haveVersion": "{id} {range} ({have} is aanwezig)",
+  "missing": "{name} heeft nodig: {missing}. Installeer het vanuit de AppStore, die ook installeert wat nodig is.",
+  "appNeeded": {
+    "one": "De app {id} is nodig voor {names}: verwijder die eerst",
+    "other": "De app {id} is nodig voor {names}: verwijder die eerst"
+  },
+  "moduleNeeded": {
+    "one": "De module {id} is nodig voor {names}: verwijder die eerst",
+    "other": "De module {id} is nodig voor {names}: verwijder die eerst"
+  },
+  "wantsOne": "{name} wil {id} {range}: {version} voldoet niet",
+  "wants": "{name} wil {id} {range}",
+  "wantsMany": "{list}: {version} voldoet niet"
+}

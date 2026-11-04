@@ -1,0 +1,6 @@
+{
+  "late": "{app} não respondeu a tempo",
+  "invalid": "Visualização inválida",
+  "tooBig": "Visualização grande demais",
+  "imageType": "A imagem da visualização não tem um tipo image/*"
+}

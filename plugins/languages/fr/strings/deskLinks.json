@@ -1,0 +1,11 @@
+{
+  "noDesk": "Le bureau n’est pas là",
+  "notFolder": "« {name} » n’est plus un dossier.",
+  "notFile": "« {name} » n’est plus un fichier.",
+  "broken": "Le raccourci « {name} » ne trouve pas l’original",
+  "trashed": "L’original est dans la Corbeille : restaurez-le pour utiliser à nouveau le raccourci.",
+  "deleted": "L’original a été supprimé, ou il se trouve dans un espace de travail qui n’est pas visible d’ici.",
+  "mountGone": "La connexion réseau où se trouvait l’original n’existe plus.",
+  "pathGone": "« {path} » n’est plus sur « {mount} ».",
+  "unreachable": "Impossible d’atteindre « {name} »"
+}

@@ -1,0 +1,15 @@
+{
+  "name": "«{id}»",
+  "nameVersion": "«{id}» ({version})",
+  "restart": {
+    "one": "اسے kernel ماڈیول {modules} کی ضرورت ہے، جو پہلے سے انسٹال ہے: یہ kernel کے اگلے ری اسٹارٹ پر کام شروع کرے گا، جو منتظم AppStore سے کرتا ہے۔",
+    "other": "اسے kernel ماڈیولز {modules} کی ضرورت ہے، جو پہلے سے انسٹال ہیں: یہ kernel کے اگلے ری اسٹارٹ پر کام شروع کریں گے، جو منتظم AppStore سے کرتا ہے۔"
+  },
+  "missing": "نہیں ملا: {list}۔ منتظم اسے AppStore سے انسٹال کرتا ہے۔",
+  "missingModule": "kernel ماڈیول {name}",
+  "missingApp": "ایپ {name}",
+  "openApp": "ایپ کھولیں",
+  "hidden": "{app} اس ورک اسپیس میں چھپی ہوئی ہے۔ آپ اسے کنٹرول پینل ← ورک اسپیس سے دکھا سکتے ہیں۔",
+  "cannotStart": "{app} ابھی شروع نہیں ہو سکتی",
+  "notStarted": "{app} شروع نہیں ہوئی: {message}"
+}

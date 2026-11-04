@@ -1,0 +1,19 @@
+{
+  "key.Enter": "Intro",
+  "key.Escape": "Esc",
+  "key.Delete": "Supr",
+  "key.Space": "Espacio",
+  "key.Insert": "Insert",
+  "key.End": "Fin",
+  "key.PageUp": "Re Pág",
+  "key.PageDown": "Av Pág",
+  "general": "General",
+  "exists": "Atajo ya registrado: {id}",
+  "unknown": "Atajo no registrado: {id}",
+  "invalid": "Combinación no válida",
+  "noKey": "Pulsa también una tecla además de Ctrl, Alt o Shift",
+  "reserved": "Combinación reservada por el navegador",
+  "tabSpace": "Tab y Espacio solos sirven para moverse y para desplazar el escritorio",
+  "typingKey": "Una tecla que escribe debe usarse con Ctrl, Alt o Shift",
+  "whenEditing": "Este atajo también funciona mientras escribes: necesita Ctrl o Alt"
+}

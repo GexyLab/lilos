@@ -1,0 +1,5 @@
+{
+  "noRuntime": "Les scripts nécessitent le module services-isolate (Panneau de configuration → Modules)",
+  "noStart": "Les scripts ne démarrent pas : {message}",
+  "timeout": "Le script a dépassé le temps imparti (5 secondes)"
+}

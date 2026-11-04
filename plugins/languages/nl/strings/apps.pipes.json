@@ -1,0 +1,10 @@
+{
+  "unknownEvent": "Onbekende gebeurtenis: {event}",
+  "denied": "Machtiging geweigerd: pipe:{event}",
+  "deniedOwn": "Machtiging geweigerd: pipe:{event} (of pipe.own:{event})",
+  "reserved": "De gebeurtenis {event} is voorbehouden aan het systeem",
+  "sync": "{event} is een directe bewerking: die kan alleen worden geobserveerd (stage \"after\")",
+  "gone": "De app is niet meer geïnstalleerd",
+  "unhandled": "{app} verwerkt {what} niet (lilos.pipes.subscribe ontbreekt)",
+  "needApp": "Om ‘{file}’ te openen heb je de app {app} nodig: installeer haar vanuit de AppStore"
+}

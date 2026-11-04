@@ -1,0 +1,14 @@
+{
+  "home.description": "La cartella principale, con tutte le altre",
+  "folder.description": "La cartella {name}, condivisa da tutti i workspace",
+  "files.description": "Apre il File Manager",
+  "trash": "Cestino",
+  "trash.description": "Apre il cestino; ci si possono trascinare file e cartelle",
+  "noDesk": "La scrivania non c’è",
+  "folderGone": "La cartella {name} non c’è più",
+  "trashedOne": "Spostato nel cestino",
+  "trashedMany": {
+    "one": "{n} elemento spostato nel cestino",
+    "other": "{n} elementi spostati nel cestino"
+  }
+}

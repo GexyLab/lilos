@@ -1,0 +1,10 @@
+{
+  "signIn": "Accesso richiesto",
+  "id": "Identificatore non valido",
+  "key": "Chiave non valida: {key}",
+  "tooLarge": "Valore troppo grande: {key}",
+  "changes": "Modifiche non valide",
+  "item": "Elemento non valido",
+  "itemData": "Troppi dati in un elemento",
+  "tooMany": "Troppe chiavi in una volta"
+}

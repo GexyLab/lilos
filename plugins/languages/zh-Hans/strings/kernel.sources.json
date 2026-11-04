@@ -1,0 +1,20 @@
+{
+  "repo": "无效的仓库（owner/name）",
+  "urlLocal": "无效的仓库地址（https:// 或文件夹）",
+  "url": "无效的仓库地址（https://）",
+  "ref": "无效的引用",
+  "path": "仓库中的路径无效",
+  "local": "仅在开发时允许使用本地文件夹作为来源（allowLocalSources）",
+  "dir": "无效的文件夹（绝对路径）",
+  "type": "未知来源：\"git\"、\"github\" 或 \"local\"",
+  "noGit": "内核所在的计算机上未安装 git 命令",
+  "git": "git：{message}",
+  "gitError": "git：错误",
+  "outside": "路径在软件包之外：{path}",
+  "missing": "缺少 {path}",
+  "notFile": "{path} 不是文件或过大",
+  "tooMany": "软件包中的文件过多",
+  "notInRepo": "仓库中没有 {path}",
+  "json": "lilos.json 不是有效的 JSON",
+  "tooLarge": "软件包过大"
+}

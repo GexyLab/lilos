@@ -1,0 +1,41 @@
+{
+  "adminOnly": "Tylko administrator instaluje i usuwa pakiety",
+  "needsLilos": "{name} {version} wymaga lilOS {range} (to jest {system})",
+  "moduleJson": "module.json nie jest prawidłowym JSON",
+  "byHand": "{id} został dodany ręcznie: aktualizuje się go ręcznie",
+  "appInstalled": "{name} jest już zainstalowana: dla nowej wersji użyj aktualizacji",
+  "moduleInstalled": "{name} jest już zainstalowana: dla nowej wersji użyj aktualizacji",
+  "replaced": "{name} została zastąpiona przez {by}: nie jest już zainstalowana",
+  "appMissing": "Aplikacja nie jest zainstalowana",
+  "moduleOff": "Moduł nieaktywny",
+  "otherApp": "Pakiet należy do aplikacji {found}, a nie {id}",
+  "otherModule": "Pakiet należy do modułu {found}, a nie {id}",
+  "moduleNewer": "Wymagany jest moduł {id} {range}: zainstalowana jest wersja {have}, a najnowsza to {newer}",
+  "appNewer": "Wymagana jest aplikacja {id} {range}: zainstalowana jest wersja {have}, a najnowsza to {newer}",
+  "unreadable": "Nie można odczytać repozytorium {url}: {message}",
+  "moduleNotInRepo": "Repozytorium {url} nie ma modułu {id}",
+  "appNotInRepo": "Repozytorium {url} nie ma aplikacji {id}",
+  "moduleRepoVersion": "Wymagany jest moduł {id} {range}: repozytorium ma wersję {version}",
+  "appRepoVersion": "Wymagana jest aplikacja {id} {range}: repozytorium ma wersję {version}",
+  "modulePlanned": "{name} wymaga modułu {id} {range}, ale instalowana jest wersja {version}",
+  "appPlanned": "{name} wymaga aplikacji {id} {range}, ale instalowana jest wersja {version}",
+  "circular": "Zależność cykliczna między {a} a {b}: żadnego nie można zainstalować przed drugim",
+  "consent": "Brak zgody dla {keys}: sprawdź ponownie, co zostanie zainstalowane",
+  "haveVersion": "{id} {range} (jest {have})",
+  "missing": "{name} wymaga: {missing}. Zainstaluj to z AppStore, który zainstaluje też to, czego potrzebuje.",
+  "appNeeded": {
+    "one": "Aplikacja {id} jest potrzebna dla {names}: najpierw usuń tamto",
+    "few": "Aplikacja {id} jest potrzebna dla {names}: najpierw usuń tamte",
+    "many": "Aplikacja {id} jest potrzebna dla {names}: najpierw usuń tamte",
+    "other": "Aplikacja {id} jest potrzebna dla {names}: najpierw usuń tamte"
+  },
+  "moduleNeeded": {
+    "one": "Moduł {id} jest potrzebny dla {names}: najpierw usuń tamto",
+    "few": "Moduł {id} jest potrzebny dla {names}: najpierw usuń tamte",
+    "many": "Moduł {id} jest potrzebny dla {names}: najpierw usuń tamte",
+    "other": "Moduł {id} jest potrzebny dla {names}: najpierw usuń tamte"
+  },
+  "wantsOne": "{name} wymaga {id} {range}: wersja {version} nie wystarczy",
+  "wants": "{name} wymaga {id} {range}",
+  "wantsMany": "{list}: wersja {version} nie wystarczy"
+}

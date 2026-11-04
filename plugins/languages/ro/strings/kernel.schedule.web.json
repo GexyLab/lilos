@@ -1,0 +1,33 @@
+{
+  "folderGone": "Dosarul în care se salvează nu mai există",
+  "notFolder": "Locația de salvare nu este un dosar",
+  "notFile": "„{name}” există deja și nu este un fișier",
+  "protected": "„{name}” este protejat de o aplicație (criptat, de exemplu): nu este suprascris",
+  "secretGone": "Valoarea secretă a {name} nu mai poate fi citită: trebuie introdusă din nou",
+  "fileGone": "Fișierul de trimis nu mai există",
+  "noAnswer": {
+    "one": "Niciun răspuns într-o secundă",
+    "few": "Niciun răspuns în {n} secunde",
+    "other": "Niciun răspuns în {n} de secunde"
+  },
+  "untrusted": "{message}: confirmați-l o dată din NetTest",
+  "network": "Rețea: {code}",
+  "redirects": "Prea multe redirecționări",
+  "notWeb": "Redirecționare către o adresă care nu este web",
+  "otherOrigin": "Redirecționare către altă adresă cu un corp de trimis: nu a fost urmată",
+  "tooBig": "Răspuns prea mare (cel mult 10 MB)",
+  "unfinished": {
+    "one": "Răspunsul nu s-a încheiat într-o secundă",
+    "few": "Răspunsul nu s-a încheiat în {n} secunde",
+    "other": "Răspunsul nu s-a încheiat în {n} de secunde"
+  },
+  "bytes": {
+    "one": "{n} octet",
+    "few": "{n} octeți",
+    "other": "{n} de octeți"
+  },
+  "saved": "{status} în {ms} ms · {size} · salvat în {name}",
+  "summary": "{status} în {ms} ms · {size}",
+  "status": "Stare {status}, așteptat {expected}",
+  "contains": "Răspunsul nu conține „{text}”"
+}

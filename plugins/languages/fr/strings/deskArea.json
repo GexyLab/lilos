@@ -1,0 +1,38 @@
+{
+  "newFolder": "Nouveau dossier",
+  "newDocument": "Nouveau document.txt",
+  "fixedOne": "« {name} » est un élément fixe du bureau : il ne peut pas être supprimé",
+  "fixedMany": "Les éléments fixes du bureau ne peuvent pas être supprimés",
+  "fixedStay": "Les éléments fixes du bureau restent : seul le reste est supprimé",
+  "removeWithAreas": {
+    "one": "{what} et supprimer {n} zone de travail",
+    "other": "{what} et supprimer {n} zones de travail"
+  },
+  "arrange": "Réorganiser les icônes",
+  "moveOne": "Déplacer « {name} »",
+  "moveMany": {
+    "one": "Déplacer {n} élément",
+    "other": "Déplacer {n} éléments"
+  },
+  "gone": "Les éléments n’existent plus",
+  "area.open": "Ouvrir la zone de travail",
+  "rename": "Renommer",
+  "properties": "Propriétés…",
+  "area.remove": "Supprimer la zone de travail…",
+  "open": "Ouvrir",
+  "openMany": {
+    "one": "Ouvrir {n} élément",
+    "other": "Ouvrir {n} éléments"
+  },
+  "fixed.hide": "Retirer du bureau",
+  "fixed.hidden": "« {name} » peut être remis depuis Panneau de configuration → Espace de travail → Cet espace de travail",
+  "fixed.settings": "Éléments fixes du bureau…",
+  "openWith": "Ouvrir avec…",
+  "wallpaper": "Utiliser comme arrière-plan du bureau",
+  "area.fromSelection": "Créer une zone de travail avec la sélection",
+  "remove": "Supprimer",
+  "removeMany": {
+    "one": "Supprimer {n} élément",
+    "other": "Supprimer {n} éléments"
+  }
+}

@@ -1,4 +1,4 @@
-import { h, session, appIcon, avatar, closeMenu, openMenu, icon, shortcuts, kernel, fs } from '@lilos/sdk';
+import { h, session, appIcon, avatar, closeMenu, openMenu, icon, shortcuts, kernel, fs, locale } from '@lilos/sdk';
 import { installedApps, isInstalled, getApp, launch, registry, CATEGORIES } from '../apps/registry.js';
 import { showAppProperties } from '../apps/appProperties.js';
 import { openFile } from '../apps/open.js';
@@ -8,7 +8,34 @@ import { notify } from '../notifications/notify.js';
 import { signOut } from '../user/UserPage.js';
 import { usage } from './usage.js';
 
-const CATEGORY_LABELS = { system: 'Sistema', productivity: 'Produttività', media: 'Media', development: 'Sviluppo', other: 'Altro' };
+const { t } = locale.define('lilos:startMenu', {
+  en: { strings: {
+    'category.system': 'System', 'category.productivity': 'Productivity', 'category.media': 'Media',
+    'category.development': 'Development', 'category.other': 'Other',
+    times: { one: '{n} time', other: '{n} times' },
+    windows: { one: '{n} window', other: '{n} windows' }, items: { one: '{n} item', other: '{n} items' },
+    home: 'Home',
+    search: 'Search apps and files', searchLabel: 'Search apps, work areas and files', apps: 'Apps',
+    reorder: 'drag to reorder', clearTitle: 'Clear the file lists of this workspace (the files stay where they are)', clear: 'Clear list',
+    workspaces: 'Workspaces', dialog: 'Applications menu', userPage: 'User page', settings: 'Control Panel',
+    signOut: 'Sign out', restart: 'Restart session', closeTitle: 'Close (Esc)', closeLabel: 'Close the menu', close: 'Close',
+    favorites: 'Favorites', files: 'Files', shortcut: 'Open or close the start menu', group: 'General',
+    workspace: 'Workspace {name}',
+    noFavorites: 'No favorites in this workspace. Use the star on an app, or drag it here, to pin it.',
+    results: 'Results', workareas: 'Work areas', noResults: 'No apps or work areas for “{query}”',
+    recentAndFrequent: 'Recent and frequent', noApps: 'No apps in this workspace.',
+    recentApps: 'Recently used', frequentApps: 'Used most often', last30: 'last 30 days',
+    noFiles: 'No files for “{query}”', filesHint: 'The files you open in this workspace will show up here.', none: 'None',
+    recentFiles: 'Recently opened', frequentFiles: 'Opened most often',
+    goToWorkspace: 'Go to this workspace', manageWorkspaces: 'Manage workspaces…', current: 'current',
+    unpin: 'Remove from favorites', pin: 'Add to favorites',
+    open: 'Open', openWith: 'Open with…', showInFolder: 'Show in folder', forget: 'Remove from the list',
+    goToArea: 'Go to the work area', properties: 'Properties…', noDescription: 'No description',
+    minimized: 'Minimized', modified: 'modified {when}',
+    moveUp: 'Move up', moveDown: 'Move down', onDesk: 'Already on the desktop', showOnDesk: 'Show on the desktop',
+    backOnDesk: '“{name}” is back on the desktop',
+  } },
+});
 const RECENT_APPS = 6;
 const FREQUENT_APPS = 12;
 const RECENT_FILES = 8;
@@ -18,8 +45,7 @@ const DRAG_TYPE = 'application/x-lilos-app';
 
 /** Lowercase without accents, for search. */
 const fold = s => String(s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
-const times = n => (n === 1 ? '1 volta' : `${n} volte`);
-const count = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+const times = n => t('times', { n });
 
 /** '3 minuti fa', 'ieri', '12 ott'. */
 function ago(time) {
@@ -34,7 +60,7 @@ function ago(time) {
 }
 
 /** Where a file is, from the home: 'Documenti/Clienti' ('Home' at the top). */
-const folderOf = id => fs.ancestors(id).slice(1, -1).map(n => n.name).join('/') || 'Home';
+const folderOf = id => fs.ancestors(id).slice(1, -1).map(n => n.name).join('/') || t('home');
 
 const withColor = (el, color) => { el.style.setProperty('--ws', color); return el; };
 
@@ -58,42 +84,42 @@ export class StartMenu {
 
   constructor(anchor) {
     this.anchor = anchor;
-    this.input = h('input', { type: 'text', placeholder: 'Cerca app e file', spellcheck: 'false', autocomplete: 'off', 'aria-label': 'Cerca app, work area e file' });
+    this.input = h('input', { type: 'text', placeholder: t('search'), spellcheck: 'false', autocomplete: 'off', 'aria-label': t('searchLabel') });
     this.keyHint = h('kbd');
     this.wsLabel = h('div', { class: 'sm-ws' });
-    this.tabs = h('div', { class: 'sm-tabs', role: 'tablist', 'aria-label': 'App' });
+    this.tabs = h('div', { class: 'sm-tabs', role: 'tablist', 'aria-label': t('apps') });
     this.panel = h('div', { class: 'sm-body sm-panel', id: 'sm-panel', role: 'tabpanel' });
     this.favs = h('div', { class: 'sm-body sm-favs' });
-    this.favHint = h('span', { class: 'sm-hint' }, 'trascina per riordinare');
+    this.favHint = h('span', { class: 'sm-hint' }, t('reorder'));
     this.files = h('div', { class: 'sm-body' });
     this.clearFiles = h('button', {
-      class: 'sm-link', type: 'button', title: 'Svuota gli elenchi dei file di questo workspace (i file restano dove sono)',
+      class: 'sm-link', type: 'button', title: t('clearTitle'),
       onclick: () => { usage.clearFiles(); this.input.focus(); },
-    }, 'Cancella elenco');
-    this.wsBar = h('nav', { class: 'sm-wsbar', 'aria-label': 'Workspace' });
+    }, t('clear'));
+    this.wsBar = h('nav', { class: 'sm-wsbar', 'aria-label': t('workspaces') });
 
-    this.el = h('section', { class: 'start-menu', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Menu applicazioni', hidden: true },
+    this.el = h('section', { class: 'start-menu', role: 'dialog', 'aria-modal': 'true', 'aria-label': t('dialog'), hidden: true },
       h('header', { class: 'sm-top' },
         this.wsLabel,
         h('label', { class: 'sm-search' }, icon('search'), this.input, this.keyHint),
         h('div', { class: 'sm-actions' },
-          h('button', { class: 'sm-user', type: 'button', title: 'Pagina utente', onclick: () => { this.close(); this.onUser?.(); } },
+          h('button', { class: 'sm-user', type: 'button', title: t('userPage'), onclick: () => { this.close(); this.onUser?.(); } },
             avatar(session.user, 'avatar user-avatar'), h('span', {}, session.user.name)),
-          h('button', { class: 'sm-btn', type: 'button', title: 'Pannello di controllo', 'aria-label': 'Pannello di controllo', onclick: () => this.#launch('settings') }, icon('gear')),
+          h('button', { class: 'sm-btn', type: 'button', title: t('settings'), 'aria-label': t('settings'), onclick: () => this.#launch('settings') }, icon('gear')),
           kernel.mode === 'multi'
-            ? h('button', { class: 'sm-btn', type: 'button', title: 'Esci', 'aria-label': 'Esci', onclick: () => { this.close(); signOut(); } }, icon('power'))
-            : h('button', { class: 'sm-btn', type: 'button', title: 'Riavvia sessione', 'aria-label': 'Riavvia sessione', onclick: () => { this.close(); signOut(); } }, icon('power')),
-          h('button', { class: 'sm-close', type: 'button', title: 'Chiudi (Esc)', 'aria-label': 'Chiudi il menu', onclick: () => this.close({ focus: true }) },
-            h('span', {}, 'Chiudi'), h('kbd', {}, 'Esc')),
+            ? h('button', { class: 'sm-btn', type: 'button', title: t('signOut'), 'aria-label': t('signOut'), onclick: () => { this.close(); signOut(); } }, icon('power'))
+            : h('button', { class: 'sm-btn', type: 'button', title: t('restart'), 'aria-label': t('restart'), onclick: () => { this.close(); signOut(); } }, icon('power')),
+          h('button', { class: 'sm-close', type: 'button', title: t('closeTitle'), 'aria-label': t('closeLabel'), onclick: () => this.close({ focus: true }) },
+            h('span', {}, t('close')), h('kbd', {}, 'Esc')),
         ),
       ),
       h('div', { class: 'sm-cols' },
         h('section', { class: 'sm-col sm-left', 'aria-labelledby': 'sm-favs-title' },
-          h('div', { class: 'sm-head' }, h('h2', { id: 'sm-favs-title' }, 'Preferite'), this.favHint),
+          h('div', { class: 'sm-head' }, h('h2', { id: 'sm-favs-title' }, t('favorites')), this.favHint),
           this.favs),
-        h('section', { class: 'sm-col sm-center', 'aria-label': 'App' }, this.tabs, this.panel),
+        h('section', { class: 'sm-col sm-center', 'aria-label': t('apps') }, this.tabs, this.panel),
         h('section', { class: 'sm-col sm-right', 'aria-labelledby': 'sm-files-title' },
-          h('div', { class: 'sm-head' }, h('h2', { id: 'sm-files-title' }, 'File'), this.clearFiles),
+          h('div', { class: 'sm-head' }, h('h2', { id: 'sm-files-title' }, t('files')), this.clearFiles),
           this.files),
       ),
       this.wsBar,
@@ -107,7 +133,7 @@ export class StartMenu {
     addEventListener('pointerdown', e => {
       if (this.isOpen && e.target.closest?.('.taskbar') && !anchor.contains(e.target)) this.close();
     }, true);
-    shortcuts.register({ id: 'system.startMenu', label: 'Apri o chiudi il menu di avvio', group: 'Generale', keys: ['Ctrl+K'], whenEditing: true, run: () => this.toggle() });
+    shortcuts.register({ id: 'system.startMenu', label: t('shortcut'), group: t('group'), keys: ['Ctrl+K'], whenEditing: true, run: () => this.toggle() });
   }
 
   /** The workspaces and the workareas (made after the taskbar): their tab and buttons. */
@@ -177,7 +203,9 @@ export class StartMenu {
 
   #renderTop() {
     const ws = this.#ctx?.workspaces.current;
-    this.wsLabel.replaceChildren(...(ws ? [withColor(h('span', { class: 'sm-dot' }), ws.color), 'Workspace ', h('b', {}, ws.name)] : []));
+    // 'Workspace {name}', with the name in bold wherever the language puts it
+    const [before, after = ''] = t('workspace').split('{name}');
+    this.wsLabel.replaceChildren(...(ws ? [withColor(h('span', { class: 'sm-dot' }), ws.color), before, h('b', {}, ws.name), after] : []));
     const keys = shortcuts.label('system.startMenu');
     this.keyHint.textContent = keys ?? '';
     this.keyHint.hidden = !keys;
@@ -194,7 +222,7 @@ export class StartMenu {
         ondragstart: e => this.#dragStart(e, app.id),
         ondragend: () => this.#dragEnd(),
       }, appIcon(app), h('span', { class: 'sm-label' }, app.name), icon('grip', 'ico sm-grip')))
-      : [h('p', { class: 'sm-empty' }, 'Nessuna preferita in questo workspace. Usa la stella su un’app, o trascinala qui, per fissarla.')]));
+      : [h('p', { class: 'sm-empty' }, t('noFavorites'))]));
   }
 
   #renderCenter() {
@@ -202,28 +230,28 @@ export class StartMenu {
     const apps = installedApps();
     const areas = this.#workareas();
     if (query) {
-      this.tabs.replaceChildren(h('span', { class: 'sm-tab', role: 'tab', 'aria-selected': 'true' }, 'Risultati'));
+      this.tabs.replaceChildren(h('span', { class: 'sm-tab', role: 'tab', 'aria-selected': 'true' }, t('results')));
       const hits = apps.filter(app => fold(app.name).includes(query) || fold(app.text?.description).includes(query));
       const areaHits = areas.filter(a => fold(`${a.title} ${a.description}`).includes(query));
       this.panel.replaceChildren(...(hits.length || areaHits.length
         ? [
-          hits.length > 0 && this.#section('App', this.#grid(hits.map(app => this.#tile(app, `res:${app.id}`)))),
-          areaHits.length > 0 && this.#section('Work Area', this.#areaGrid(areaHits)),
+          hits.length > 0 && this.#section(t('apps'), this.#grid(hits.map(app => this.#tile(app, `res:${app.id}`)))),
+          areaHits.length > 0 && this.#section(t('workareas'), this.#areaGrid(areaHits)),
         ]
-        : [h('p', { class: 'sm-empty' }, `Nessuna app o work area per «${this.input.value.trim()}»`)]));
+        : [h('p', { class: 'sm-empty' }, t('noResults', { query: this.input.value.trim() }))]));
       return;
     }
 
     // Only the tabs with something in them
     const used = this.#usedApps();
     const tabs = [
-      (used.recent.length > 0 || used.frequent.length > 0) && ['recent', 'Recenti e frequenti', null],
-      areas.length > 0 && ['areas', 'Work Area', areas.length],
-      ...CATEGORIES.map(c => [c, CATEGORY_LABELS[c], apps.filter(app => app.category === c).length]).filter(([, , n]) => n > 0),
+      (used.recent.length > 0 || used.frequent.length > 0) && ['recent', t('recentAndFrequent'), null],
+      areas.length > 0 && ['areas', t('workareas'), areas.length],
+      ...CATEGORIES.map(c => [c, t(`category.${c}`), apps.filter(app => app.category === c).length]).filter(([, , n]) => n > 0),
     ].filter(Boolean);
     if (!tabs.length) {
       this.tabs.replaceChildren();
-      this.panel.replaceChildren(h('p', { class: 'sm-empty' }, 'Nessuna app in questo workspace.'));
+      this.panel.replaceChildren(h('p', { class: 'sm-empty' }, t('noApps')));
       return;
     }
     if (!tabs.some(([id]) => id === this.#tab)) this.#tab = tabs[0][0];
@@ -253,8 +281,8 @@ export class StartMenu {
 
   #recentApps({ recent, frequent }) {
     return [
-      recent.length > 0 && this.#section('Usate di recente', this.#grid(recent.map(r => this.#tile(getApp(r.id), `rec:${r.id}`, ago(r.last))))),
-      frequent.length > 0 && this.#section(['Usate più spesso', h('span', {}, ' · ultimi 30 giorni')], this.#grid(frequent.map(f => this.#tile(getApp(f.id), `freq:${f.id}`, times(f.count))))),
+      recent.length > 0 && this.#section(t('recentApps'), this.#grid(recent.map(r => this.#tile(getApp(r.id), `rec:${r.id}`, ago(r.last))))),
+      frequent.length > 0 && this.#section([t('frequentApps'), h('span', {}, ` · ${t('last30')}`)], this.#grid(frequent.map(f => this.#tile(getApp(f.id), `freq:${f.id}`, times(f.count))))),
     ].filter(Boolean);
   }
 
@@ -268,15 +296,15 @@ export class StartMenu {
     this.clearFiles.hidden = !usage.recentFiles(exists).length;
     if (!recent.length && !frequent.length) {
       this.files.replaceChildren(h('p', { class: 'sm-empty' }, query
-        ? `Nessun file per «${this.input.value.trim()}»`
-        : 'I file che apri in questo workspace compariranno qui.'));
+        ? t('noFiles', { query: this.input.value.trim() })
+        : t('filesHint')));
       return;
     }
-    const none = h('p', { class: 'sm-empty sm-small' }, 'Nessuno');
+    const none = h('p', { class: 'sm-empty sm-small' }, t('none'));
     this.files.replaceChildren(
-      this.#section('Aperti di recente', recent.length ? recent.map(r => this.#fileRow(fs.get(r.id), `frec:${r.id}`, ago(r.last))) : none),
+      this.#section(t('recentFiles'), recent.length ? recent.map(r => this.#fileRow(fs.get(r.id), `frec:${r.id}`, ago(r.last))) : none),
       h('div', { class: 'sm-divider' }),
-      this.#section(['Aperti più spesso', h('span', {}, ' · ultimi 30 giorni')],
+      this.#section([t('frequentFiles'), h('span', {}, ` · ${t('last30')}`)],
         frequent.length ? frequent.map(f => this.#fileRow(fs.get(f.id), `ffreq:${f.id}`, times(f.count))) : none.cloneNode(true)),
     );
   }
@@ -296,12 +324,12 @@ export class StartMenu {
           e.preventDefault();
           const { x, y } = menuPoint(e);
           openMenu(x, y, [
-            { label: 'Vai a questo workspace', icon: 'workspace', disabled: here, action: () => this.#switchTo(w.id) },
-            { label: 'Gestisci i workspace…', icon: 'gear', action: () => this.#launch('settings', { tab: 'workspaces' }) },
+            { label: t('goToWorkspace'), icon: 'workspace', disabled: here, action: () => this.#switchTo(w.id) },
+            { label: t('manageWorkspaces'), icon: 'gear', action: () => this.#launch('settings', { tab: 'workspaces' }) },
           ]);
         },
       },
-      h('span', { class: 'sm-wsb-name' }, h('span', { class: 'sm-dot' }), h('b', {}, w.name), here && h('span', { class: 'sm-here' }, 'attuale')),
+      h('span', { class: 'sm-wsb-name' }, h('span', { class: 'sm-dot' }), h('b', {}, w.name), here && h('span', { class: 'sm-here' }, t('current'))),
       w.description && h('span', { class: 'sm-wsb-desc' }, w.description)), w.color);
     }));
   }
@@ -328,7 +356,7 @@ export class StartMenu {
     },
     h('span', {
       class: pinned ? 'sm-pin on' : 'sm-pin', 'aria-hidden': 'true',
-      title: pinned ? 'Togli dalle preferite' : 'Aggiungi alle preferite',
+      title: pinned ? t('unpin') : t('pin'),
       onclick: e => { e.stopPropagation(); usage.setPinned(app.id, !pinned); },
     }, icon('star')),
     appIcon(app),
@@ -344,11 +372,11 @@ export class StartMenu {
         e.preventDefault();
         const { x, y } = menuPoint(e);
         openMenu(x, y, [
-          { label: 'Apri', icon: 'open', action: () => { this.close(); openFile(node); } },
-          { label: 'Apri con…', icon: 'open', action: () => { this.close(); openFile(node, { choose: true }); } },
-          { label: 'Mostra nella cartella', icon: 'folderOpen', action: () => this.#launch('files', { folder: node.parent }) },
+          { label: t('open'), icon: 'open', action: () => { this.close(); openFile(node); } },
+          { label: t('openWith'), icon: 'open', action: () => { this.close(); openFile(node, { choose: true }); } },
+          { label: t('showInFolder'), icon: 'folderOpen', action: () => this.#launch('files', { folder: node.parent }) },
           '-',
-          { label: 'Togli dall’elenco', icon: 'x', action: () => usage.forgetFile(node.id) },
+          { label: t('forget'), icon: 'x', action: () => usage.forgetFile(node.id) },
         ]);
       },
     },
@@ -368,22 +396,22 @@ export class StartMenu {
     return h('div', { class: 'sm-areas' }, areas.map(a => {
       const { items, windows } = workareas.contentOf(a.id);
       return h('button', {
-        class: 'sm-area', type: 'button', dataset: { nav: '', key: `area:${a.id}` }, title: 'Vai alla workarea',
+        class: 'sm-area', type: 'button', dataset: { nav: '', key: `area:${a.id}` }, title: t('goToArea'),
         onclick: () => this.#showArea(a.id),
         oncontextmenu: e => {
           e.preventDefault();
           const { x, y } = menuPoint(e);
           openMenu(x, y, [
-            { label: 'Vai alla workarea', icon: 'workarea', action: () => this.#showArea(a.id) },
-            { label: 'Proprietà…', icon: 'info', action: () => { this.close(); workareas.properties(a.id); } },
+            { label: t('goToArea'), icon: 'workarea', action: () => this.#showArea(a.id) },
+            { label: t('properties'), icon: 'info', action: () => { this.close(); workareas.properties(a.id); } },
           ]);
         },
       },
       h('span', { class: 'sm-area-title' }, icon('workarea'), h('span', {}, a.title)),
-      h('span', { class: a.description ? 'sm-area-desc' : 'sm-area-desc none' }, a.description || 'Nessuna descrizione'),
+      h('span', { class: a.description ? 'sm-area-desc' : 'sm-area-desc none' }, a.description || t('noDescription')),
       h('span', { class: 'sm-area-foot' },
-        h('span', { class: 'sm-area-count' }, `${count(windows, 'finestra', 'finestre')} · ${count(items, 'elemento', 'elementi')}`),
-        h('span', { class: 'sm-badge' }, a.collapsed ? 'Ridotta a icona' : `modificata ${ago(a.modified)}`)));
+        h('span', { class: 'sm-area-count' }, `${t('windows', { n: windows })} · ${t('items', { n: items })}`),
+        h('span', { class: 'sm-badge' }, a.collapsed ? t('minimized') : t('modified', { when: ago(a.modified) }))));
     }));
   }
 
@@ -394,13 +422,13 @@ export class StartMenu {
     const order = usage.pinned();
     const at = order.indexOf(app.id);
     openMenu(x, y, [
-      { label: 'Apri', icon: 'open', action: () => this.#launch(app.id) },
-      { label: pinned ? 'Togli dalle preferite' : 'Aggiungi alle preferite', icon: 'star', action: () => usage.setPinned(app.id, !pinned) },
-      favourite && { label: 'Sposta su', icon: 'arrowUp', disabled: at <= 0, action: () => this.#movePinned(app.id, at - 1) },
-      favourite && { label: 'Sposta giù', icon: 'arrowDown', disabled: at >= order.length - 1, action: () => this.#movePinned(app.id, at + 1) },
-      { label: isAppOnDesk(app.id) ? 'Già sul desktop' : 'Mostra sul desktop', icon: 'monitor', disabled: isAppOnDesk(app.id), action: () => this.#showOnDesk(app) },
+      { label: t('open'), icon: 'open', action: () => this.#launch(app.id) },
+      { label: pinned ? t('unpin') : t('pin'), icon: 'star', action: () => usage.setPinned(app.id, !pinned) },
+      favourite && { label: t('moveUp'), icon: 'arrowUp', disabled: at <= 0, action: () => this.#movePinned(app.id, at - 1) },
+      favourite && { label: t('moveDown'), icon: 'arrowDown', disabled: at >= order.length - 1, action: () => this.#movePinned(app.id, at + 1) },
+      { label: isAppOnDesk(app.id) ? t('onDesk') : t('showOnDesk'), icon: 'monitor', disabled: isAppOnDesk(app.id), action: () => this.#showOnDesk(app) },
       '-',
-      { label: 'Proprietà…', icon: 'info', action: () => { this.close(); showAppProperties(app.id); } },
+      { label: t('properties'), icon: 'info', action: () => { this.close(); showAppProperties(app.id); } },
     ].filter(Boolean));
   }
 
@@ -422,7 +450,7 @@ export class StartMenu {
   #showOnDesk(app) {
     try {
       showAppOnDesk(app);
-      notify(`«${app.name}» è di nuovo sul desktop`, { level: 'success' });
+      notify(t('backOnDesk', { name: app.name }), { level: 'success' });
     } catch (err) {
       notify(err.message, { level: 'error' });
     }
@@ -528,7 +556,7 @@ export class StartMenu {
       e.preventDefault();
       const tabs = [...this.tabs.querySelectorAll('[role="tab"]')];
       const i = tabs.indexOf(target);
-      const next = e.key === 'Home' ? 0 : e.key === 'End' ? tabs.length - 1 : (i + (e.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length;
+      const next = e.key === 'Home' ? 0 : e.key === 'End' ? tabs.length - 1 : (i + (e.key === (getComputedStyle(target).direction === 'rtl' ? 'ArrowLeft' : 'ArrowRight') ? 1 : -1) + tabs.length) % tabs.length;
       this.#selectTab(tabs[next].dataset.tab);
       return;
     }

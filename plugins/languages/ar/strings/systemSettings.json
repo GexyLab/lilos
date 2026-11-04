@@ -1,0 +1,30 @@
+{
+  "retention.days": {
+    "zero": "{n} يوم",
+    "one": "يوم واحد",
+    "two": "يومان",
+    "few": "{n} أيام",
+    "many": "{n} يومًا",
+    "other": "{n} يوم"
+  },
+  "retention.year": "سنة واحدة",
+  "retention.forever": "إلى الأبد",
+  "lasso": "{keys} + السحب",
+  "color.blue": "أزرق",
+  "color.violet": "بنفسجي",
+  "color.magenta": "أرجواني",
+  "color.red": "أحمر",
+  "color.orange": "برتقالي",
+  "color.green": "أخضر",
+  "color.teal": "أزرق مخضر",
+  "color.graphite": "رمادي داكن",
+  "color.night": "ليل",
+  "color.deepBlue": "أزرق داكن",
+  "color.forest": "غابة",
+  "color.plum": "برقوقي",
+  "color.earth": "تراب",
+  "color.mist": "ضباب",
+  "color.sky": "سماء",
+  "color.sage": "مريمية",
+  "color.sand": "رمل"
+}

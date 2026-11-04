@@ -1,0 +1,34 @@
+{
+  "home": "Dosar personal",
+  "one": "„{name}”",
+  "many": {
+    "one": "un element",
+    "few": "{n} elemente",
+    "other": "{n} de elemente"
+  },
+  "trashToServer": "Ce se află în Coșul de reciclare revine într-un dosar lilOS, nu pe un server",
+  "restored": {
+    "one": "{what} restaurat în {where}",
+    "few": "{what} restaurate în {where}",
+    "other": "{what} restaurate în {where}"
+  },
+  "moved": {
+    "one": "{what} mutat în {where}",
+    "few": "{what} mutate în {where}",
+    "other": "{what} mutate în {where}"
+  },
+  "transferFailed": "Transferul nu a pornit: {message}",
+  "moveFailed": "Nu se poate muta: {message}",
+  "importToServer": "Fișierele computerului se copiază într-un dosar lilOS: de acolo, glisați-le pe server",
+  "copied": {
+    "one": "Un fișier copiat de pe computer în {where}",
+    "few": "{n} fișiere copiate de pe computer în {where}",
+    "other": "{n} de fișiere copiate de pe computer în {where}"
+  },
+  "failed": {
+    "one": "Un fișier nu a fost copiat",
+    "few": "{n} fișiere nu au fost copiate",
+    "other": "{n} de fișiere nu au fost copiate"
+  },
+  "limit": "Au fost copiate doar primele {max} fișiere"
+}

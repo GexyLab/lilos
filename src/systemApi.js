@@ -6,7 +6,7 @@
  * breaks the installed apps that use it.
  */
 export { version } from '../package.json';
-export { ACCENTS, DESK_COLORS, LASSO_OPTIONS, RETENTION_OPTIONS } from './systemSettings.js';
+export { ACCENTS, DESK_COLORS, LASSO_OPTIONS, RETENTION_OPTIONS, accents, deskColors, lassoOptions, retentionOptions } from './systemSettings.js';
 export { SYSTEM_FOLDERS, DESK_NAME, SYSTEM_NAME, NETWORK_NAME } from './systemFs.js';
 export { FOLDER_COLOR, itemIcon, itemBadges } from './desktop/itemIcons.js';
 export { wallpaper, wallpaperInfo, setWallpaper, clearWallpaper, isWallpaperImage, WALLPAPER_EXTS } from './desktop/wallpaper.js';

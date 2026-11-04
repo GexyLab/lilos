@@ -1,0 +1,24 @@
+{
+  "cancel": "Anulați",
+  "one": "„{name}”",
+  "many": "{count} elemente",
+  "trash": "Mutați {what} în Coșul de reciclare",
+  "permanent": "Ștergeți definitiv {what}",
+  "inside": {
+    "one": "{what} și elementul din interior",
+    "few": "{what} și cele {count} elemente din interior",
+    "other": "{what} și cele {count} de elemente din interior"
+  },
+  "netRemoveText": "{verb} {what}: {text}",
+  "netRemove": "Ștergeți",
+  "netRecycles": "Ștergeți {what} din {service} (ajunge în coșul său de reciclare)",
+  "netServer": "Ștergeți {what} de pe server (definitiv)",
+  "netServerFolders": "Ștergeți {what} de pe server cu tot conținutul (definitiv)",
+  "purge": "Ștergeți definitiv „{name}”",
+  "purgeMany": "Ștergeți definitiv {count} elemente",
+  "emptyTrash": {
+    "one": "Ștergeți definitiv elementul din Coșul de reciclare",
+    "few": "Ștergeți definitiv toate cele {count} elemente din Coșul de reciclare",
+    "other": "Ștergeți definitiv toate cele {count} de elemente din Coșul de reciclare"
+  }
+}

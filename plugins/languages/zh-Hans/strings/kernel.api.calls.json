@@ -1,0 +1,7 @@
+{
+  "signIn": "请先登录",
+  "run": "无效的运行",
+  "session": "无效的会话",
+  "signin": "无效的登录",
+  "needSocket": "需要 WebSocket"
+}

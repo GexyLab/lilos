@@ -1,0 +1,8 @@
+{
+  "noExport": "Le code n’exporte pas {entry}",
+  "windowClosed": "{app} : la fenêtre s’est fermée",
+  "libraryFailed": "Bibliothèque {name} non chargée",
+  "noExportOf": "Le code de {app} n’exporte pas {entry}",
+  "noWindow": "{app} n’a pas de fenêtre {entry}",
+  "remoteOrigin": "Une app distante ne peut pas avoir l’adresse de lilOS"
+}

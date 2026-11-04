@@ -1,5 +1,6 @@
 import { fail } from '../errors.js';
 import { writeHomeFile } from './web.js';
+import { defineStrings } from '../strings.js';
 
 /**
  * «Comando del Terminale»: lines for a shell, run by the kernel as the operation's owner.
@@ -18,10 +19,20 @@ const TERMINAL = 'terminal';
 const ENTRY = 'shell';
 const KEPT = 64 << 10;
 
+const { t } = defineStrings('lilos:kernel.schedule.command', { en: { strings: {
+  oldTerminal: 'Terminal 1.5.0 or newer is needed: update it from the AppStore',
+  signal: 'Ended by the signal SIG{signal} ({code})',
+  signalTail: 'Ended by the signal SIG{signal} ({code}): {tail}',
+  exit: 'Exited with {code}',
+  exitTail: 'Exited with {code}: {tail}',
+  ok: 'Exited with 0',
+  okTail: 'Exited with 0 · {tail}',
+} } });
+
 const lastLine = text => String(text).replace(/\x1b\[[0-9;?]*[A-Za-z]/g, '').replace(/\r/g, '').trim().split('\n').pop()?.slice(0, 200) ?? '';
 const plainText = text => String(text).replace(/\x1b\[[0-9;?]*[A-Za-z]/g, '').replace(/\r\n?/g, '\n');
 
-export async function runCommand({ kernel, task, run, principal, signal }) {
+export async function runCommand({ kernel, task, run, principal, signal, say }) {
   const w = task.what;
   let output, code, ended = null;
   if (w.host) {
@@ -29,7 +40,7 @@ export async function runCommand({ kernel, task, run, principal, signal }) {
     output = plainText(output);
   } else {
     const service = (await kernel.appServices.catalog()).find(s => s.app === TERMINAL && s.entry === ENTRY);
-    if (!service) fail('unavailable', 'Serve il Terminale 1.5.0 o più recente: aggiornalo dall’AppStore');
+    if (!service) fail('unavailable', t('oldTerminal'));
     const result = await kernel.appServices.runScheduled(principal, TERMINAL, ENTRY, { lines: w.lines, cwd: w.cwd }, { task, run, signal });
     if (result?.error && !Number.isInteger(result.code)) fail('unavailable', String(result.error).slice(0, 300));
     output = plainText(result?.log ?? '');
@@ -37,7 +48,7 @@ export async function runCommand({ kernel, task, run, principal, signal }) {
   }
   if (w.saveTo) await writeHomeFile(kernel, principal, w.saveTo.folder, w.saveTo.name, Buffer.from(output, 'utf8'), { append: w.saveTo.mode === 'append' });
   const tail = lastLine(output);
-  if (ended) return { state: 'error', text: `Terminato dal segnale SIG${ended} (${code})${tail ? `: ${tail}` : ''}`, log: output };
-  if (code !== 0) return { state: 'error', text: `Uscito con ${code}${tail ? `: ${tail}` : ''}`, log: output };
-  return { state: 'ok', text: tail ? `Uscito con 0 · ${tail}` : 'Uscito con 0', log: output };
+  if (ended) return { state: 'error', text: say(tail ? t('signalTail', { signal: ended, code, tail }) : t('signal', { signal: ended, code })), log: output };
+  if (code !== 0) return { state: 'error', text: say(tail ? t('exitTail', { code, tail }) : t('exit', { code })), log: output };
+  return { state: 'ok', text: say(tail ? t('okTail', { tail }) : t('ok')), log: output };
 }

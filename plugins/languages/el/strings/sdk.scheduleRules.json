@@ -1,0 +1,87 @@
+{
+  "error.dateTime": "Μη έγκυρη ημερομηνία και ώρα",
+  "error.cron": "Μη έγκυρη έκφραση cron",
+  "error.cronFields": "Μια έκφραση cron έχει 5 πεδία: λεπτό ώρα ημέρα μήνας ημέρα-εβδομάδας",
+  "error.cronField": "Το πεδίο {field} δεν είναι έγκυρο",
+  "error.cronStep": "Μη έγκυρο βήμα στο πεδίο {field}",
+  "error.cronValue": "Μη έγκυρη τιμή «{value}» στο πεδίο {field}",
+  "error.cronRange": "Αντεστραμμένο εύρος στο πεδίο {field}",
+  "error.times": "Μη έγκυρες ώρες",
+  "error.exceptions": "Μη έγκυρες εξαιρέσεις",
+  "error.rule": "Μη έγκυρος κανόνας",
+  "error.zone": "Άγνωστη ζώνη ώρας",
+  "error.kind": "Ένας κανόνας είναι «once», «repeat» ή «cron»",
+  "error.start": "Μη έγκυρη ημερομηνία και ώρα έναρξης",
+  "error.every": "Πόσο συχνά: μη έγκυρος αριθμός ή μονάδα",
+  "error.days": "Μη έγκυρες ημέρες της εβδομάδας",
+  "error.daysUnit": "Οι ημέρες της εβδομάδας ισχύουν για λεπτά, ώρες και εβδομάδες",
+  "error.between": "Μη έγκυρο χρονικό διάστημα",
+  "error.monthDay": "Μη έγκυρη ημέρα του μήνα",
+  "error.month": "Μη έγκυρος μήνας",
+  "error.end": "Μη έγκυρη ημερομηνία λήξης",
+  "error.endBeforeStart": "Η λήξη είναι πριν από την έναρξη",
+  "error.count": "Μη έγκυρος αριθμός επαναλήψεων",
+  "error.scope": "το scope πρέπει να είναι this ή all",
+  "error.cronMove": "Ένας κανόνας cron μετακινείται μία εκτέλεση τη φορά",
+  "error.betweenMidnight": "Το χρονικό διάστημα θα ξεπερνούσε τα μεσάνυχτα",
+  "error.monthDayOut": "Η ημέρα του μήνα θα έπεφτε εκτός του μήνα",
+  "once": "Μία φορά: {date} στις {time}",
+  "timed": "{what} στις {times}",
+  "at": "στις {times}",
+  "join": "{a}, {b}",
+  "every.minute": {
+    "one": "Κάθε λεπτό",
+    "other": "Κάθε {n} λεπτά"
+  },
+  "every.hour": {
+    "one": "Κάθε ώρα",
+    "other": "Κάθε {n} ώρες"
+  },
+  "every.day": {
+    "one": "Κάθε ημέρα",
+    "other": "Κάθε {n} ημέρες"
+  },
+  "every.week": {
+    "one": "Κάθε εβδομάδα",
+    "other": "Κάθε {n} εβδομάδες"
+  },
+  "every.month": {
+    "one": "Κάθε μήνα",
+    "other": "Κάθε {n} μήνες"
+  },
+  "every.year": {
+    "one": "Κάθε χρόνο",
+    "other": "Κάθε {n} χρόνια"
+  },
+  "between": "από {from} έως {to}",
+  "weekday.1": "Δευτέρα",
+  "weekday.2": "Τρίτη",
+  "weekday.3": "Τετάρτη",
+  "weekday.4": "Πέμπτη",
+  "weekday.5": "Παρασκευή",
+  "weekday.6": "Σάββατο",
+  "weekday.7": "Κυριακή",
+  "days.list": "ημέρες: {days}",
+  "days.weekdays": "Δευτέρα έως Παρασκευή",
+  "days.weekend": "Σάββατο και Κυριακή",
+  "days.all": "κάθε ημέρα",
+  "eachWeekday": "Κάθε {day}",
+  "workweek": "Δευτέρα έως Παρασκευή",
+  "monthDay": "{period}, την ημέρα {day}",
+  "monthLast": "{period}, την τελευταία ημέρα",
+  "nth.1": "{period}, την πρώτη εβδομάδα: {weekday}",
+  "nth.2": "{period}, τη δεύτερη εβδομάδα: {weekday}",
+  "nth.3": "{period}, την τρίτη εβδομάδα: {weekday}",
+  "nth.4": "{period}, την τέταρτη εβδομάδα: {weekday}",
+  "nth.5": "{period}, την πέμπτη εβδομάδα: {weekday}",
+  "nth.last": "{period}, την τελευταία εβδομάδα: {weekday}",
+  "yearDay": "{every}, στις {date}",
+  "yearLast": "{every}, την τελευταία ημέρα του μήνα: {month}",
+  "yearNth": "{every}: {what}",
+  "until": "έως {date}",
+  "count": {
+    "one": "μία φορά",
+    "other": "{n} φορές"
+  },
+  "cron": "Cron: {cron}"
+}

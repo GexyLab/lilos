@@ -10,7 +10,7 @@
 .window.max, .window.max .win-titlebar, .window.max .win-body { border-radius: 0; }
 
 .win-titlebar {
-  height: 30px; flex: none; display: flex; align-items: center; gap: 8px; padding: 0 4px 0 10px;
+  height: 30px; flex: none; display: flex; align-items: center; gap: 8px; padding-block: 0; padding-inline: 10px 4px;
   background: var(--chrome); border-bottom: 1px solid var(--border); cursor: default;
   border-radius: var(--radius) var(--radius) 0 0;
 }
@@ -33,7 +33,8 @@
 }
 
 /* Resize handles: straddle the border (half outside, half inside), above everything.
-   Only the extreme corner of the close button belongs to the top-right handle. */
+   Only the extreme corner of the close button belongs to the top-right handle (top-left right to left).
+   Physical on purpose: each handle is a compass side that Window.js resizes. */
 .win-edges { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
 .win-edge { position: absolute; pointer-events: auto; }
 .win-edge.n, .win-edge.s { left: 8px; right: 8px; height: 8px; cursor: ns-resize; }

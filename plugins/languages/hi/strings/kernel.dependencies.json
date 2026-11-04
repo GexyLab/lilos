@@ -1,0 +1,37 @@
+{
+  "adminOnly": "केवल व्यवस्थापक ही पैकेज इंस्टॉल करता है या निकालता है",
+  "needsLilos": "{name} {version} को lilOS {range} चाहिए (यह {system} है)",
+  "moduleJson": "module.json मान्य JSON नहीं है",
+  "byHand": "{id} हाथ से डाला गया था: इसे हाथ से अपडेट किया जाता है",
+  "appInstalled": "{name} पहले से इंस्टॉल है: नए संस्करण के लिए अपडेट का उपयोग करें",
+  "moduleInstalled": "{name} पहले से इंस्टॉल है: नए संस्करण के लिए अपडेट का उपयोग करें",
+  "replaced": "{name} को {by} से बदल दिया गया है: यह अब इंस्टॉल नहीं है",
+  "appMissing": "ऐप इंस्टॉल नहीं है",
+  "moduleOff": "मॉड्यूल सक्रिय नहीं है",
+  "otherApp": "पैकेज ऐप {found} का है, {id} का नहीं",
+  "otherModule": "पैकेज मॉड्यूल {found} का है, {id} का नहीं",
+  "moduleNewer": "मॉड्यूल {id} {range} आवश्यक है: {have} इंस्टॉल है और सबसे नया {newer} है",
+  "appNewer": "ऐप {id} {range} आवश्यक है: {have} इंस्टॉल है और सबसे नया {newer} है",
+  "unreadable": "रिपॉज़िटरी {url} पढ़ी नहीं जा सकती: {message}",
+  "moduleNotInRepo": "रिपॉज़िटरी {url} में मॉड्यूल {id} नहीं है",
+  "appNotInRepo": "रिपॉज़िटरी {url} में ऐप {id} नहीं है",
+  "moduleRepoVersion": "मॉड्यूल {id} {range} आवश्यक है: रिपॉज़िटरी में {version} है",
+  "appRepoVersion": "ऐप {id} {range} आवश्यक है: रिपॉज़िटरी में {version} है",
+  "modulePlanned": "{name} को मॉड्यूल {id} {range} चाहिए, लेकिन {version} इंस्टॉल किया जा रहा है",
+  "appPlanned": "{name} को ऐप {id} {range} चाहिए, लेकिन {version} इंस्टॉल किया जा रहा है",
+  "circular": "{a} और {b} के बीच चक्रीय निर्भरता: कोई भी दूसरे से पहले इंस्टॉल नहीं किया जा सकता",
+  "consent": "{keys} के लिए सहमति नहीं मिली: फिर से देखें कि क्या इंस्टॉल होता है",
+  "haveVersion": "{id} {range} ({have} मौजूद है)",
+  "missing": "{name} को चाहिए: {missing}। इसे AppStore से इंस्टॉल करें, जो इसकी ज़रूरत की चीज़ें भी इंस्टॉल करता है।",
+  "appNeeded": {
+    "one": "ऐप {id} की आवश्यकता {names} को है: पहले उसे निकालें",
+    "other": "ऐप {id} की आवश्यकता {names} को है: पहले उन्हें निकालें"
+  },
+  "moduleNeeded": {
+    "one": "मॉड्यूल {id} की आवश्यकता {names} को है: पहले उसे निकालें",
+    "other": "मॉड्यूल {id} की आवश्यकता {names} को है: पहले उन्हें निकालें"
+  },
+  "wantsOne": "{name} को {id} {range} चाहिए: {version} से काम नहीं चलेगा",
+  "wants": "{name} को {id} {range} चाहिए",
+  "wantsMany": "{list}: {version} से काम नहीं चलेगा"
+}

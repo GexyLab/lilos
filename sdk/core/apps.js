@@ -220,3 +220,21 @@ export const systemReleases = {
   remove: version => kernel.request('DELETE', `/system/releases/${encodeURIComponent(version)}`),
   acknowledge: notice => kernel.request('POST', '/system/acknowledge', { notice }),
 };
+
+/**
+ * Language packs: lilOS's own texts (its interface and the kernel's messages; apps and modules have
+ * their own) in more languages, only from the official repository
+ * (repositories.catalog('official').languages: [{ path, language: { language, name, version, … }, readme }]).
+ * Any signed-in user installs one and it is there for everyone; who installed it or an admin removes it.
+ *   languagePacks.list() → [{ language, name, englishName?, version, lilos?, dir: 'ltr' | 'rtl',
+ *       installedBy: { id, username } | null, installedAt, canRemove }]
+ *   languagePacks.install(language) → the pack (also to update it to the repository's version)
+ *   languagePacks.remove(language)
+ * lilOS loads the pack of its language by itself (locale.js); locale's 'languages' event says
+ * when the packs installed change.
+ */
+export const languagePacks = {
+  list: () => kernel.request('GET', '/languages'),
+  install: language => kernel.request('POST', '/languages', { language }),
+  remove: language => kernel.request('DELETE', `/languages/${encodeURIComponent(language)}`),
+};

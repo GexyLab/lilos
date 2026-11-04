@@ -1,0 +1,36 @@
+{
+  "folderGone": "فولڈر اب موجود نہیں",
+  "namedGone": "{name} اب موجود نہیں",
+  "notFolder": "فولڈر دراصل فولڈر نہیں ہے",
+  "namedNotFolder": "{name} فولڈر نہیں ہے",
+  "protected": "کسی ایپ کے ذریعے محفوظ (مثلاً خفیہ کاری شدہ): اسے اوور رائٹ نہیں کیا جاتا",
+  "mountGone": "{name} اب «{mount}» پر موجود نہیں",
+  "inside": "جس فولڈر میں کاپی کرنا ہے وہ کاپی ہونے والے فولڈر کے اندر ہے",
+  "newVersion": "نیا ورژن: {name}",
+  "fileThere": "جہاں کاپی کرنا ہے وہاں پہلے سے «{name}» فائل موجود ہے",
+  "copied": "کاپی کیا گیا {path}",
+  "tooMany": "{max} سے زیادہ آئٹمز: کوئی چھوٹا فولڈر کاپی کریں",
+  "sameNameFile": "اسی نام کی ایک فائل موجود ہے",
+  "removedFile": "فائل {path} ہٹا دی گئی (اب یہ فولڈر ہے)",
+  "sameNameFolder": "اسی نام کا ایک فولڈر موجود ہے",
+  "error": "خرابی {path}: {message}",
+  "removed": "حذف کیا گیا {path}",
+  "oldVersion": "پرانا ورژن حذف کر دیا گیا: {name}",
+  "summary": {
+    "one": "{n} فائل کاپی کی گئی ({size})",
+    "other": "{n} فائلیں کاپی کی گئیں ({size})"
+  },
+  "summarySame": {
+    "one": "{n} فائل کاپی کی گئی ({size})، {same} غیر تبدیل شدہ",
+    "other": "{n} فائلیں کاپی کی گئیں ({size})، {same} غیر تبدیل شدہ"
+  },
+  "summaryRemoved": {
+    "one": "{n} فائل کاپی کی گئی ({size})، {removed} حذف کی گئیں",
+    "other": "{n} فائلیں کاپی کی گئیں ({size})، {removed} حذف کی گئیں"
+  },
+  "summarySameRemoved": {
+    "one": "{n} فائل کاپی کی گئی ({size})، {same} غیر تبدیل شدہ، {removed} حذف کی گئیں",
+    "other": "{n} فائلیں کاپی کی گئیں ({size})، {same} غیر تبدیل شدہ، {removed} حذف کی گئیں"
+  },
+  "notCopied": "{n} کاپی نہیں ہوئیں: {first}"
+}

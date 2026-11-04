@@ -1,0 +1,17 @@
+{
+  "port": "Ongeldige poort",
+  "url": "Ongeldig adres",
+  "closedBy": "Gesloten door de server ({code})",
+  "closedByReason": "Gesloten door de server ({code}: {reason})",
+  "closed": "De verbinding is gesloten",
+  "unknownCommand": "Onbekende opdracht",
+  "notStream": "De server antwoordde {status} in plaats van een stroom gebeurtenissen",
+  "notStreamType": "De server antwoordde {status} ({type}) in plaats van een stroom gebeurtenissen",
+  "lineTooLong": "Regel te lang: genegeerd",
+  "eventTooLong": "Gebeurtenis te lang: genegeerd",
+  "streamEnded": "De server heeft de stroom gesloten",
+  "receiveOnly": "Server-Sent Events: alleen ontvangen",
+  "noHost": "De server ontbreekt",
+  "ended": "De server heeft de verbinding gesloten",
+  "tooBig": "Datagram te groot (maximaal 65507 bytes)"
+}

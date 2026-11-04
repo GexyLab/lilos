@@ -1,0 +1,80 @@
+{
+  "error.dateTime": "無効な日時",
+  "error.cron": "無効な cron 式",
+  "error.cronFields": "cron 式は 5 つのフィールドで構成されます：分 時 日 月 曜日",
+  "error.cronField": "フィールド {field} が無効です",
+  "error.cronStep": "フィールド {field} の間隔が無効です",
+  "error.cronValue": "フィールド {field} の値「{value}」が無効です",
+  "error.cronRange": "フィールド {field} の範囲が逆になっています",
+  "error.times": "無効な時刻",
+  "error.exceptions": "無効な例外",
+  "error.rule": "無効なルール",
+  "error.zone": "不明なタイムゾーン",
+  "error.kind": "ルールは「once」「repeat」「cron」のいずれかです",
+  "error.start": "無効な開始日時",
+  "error.every": "頻度：数値または単位が無効です",
+  "error.days": "無効な曜日",
+  "error.daysUnit": "曜日は分、時間、週の単位にのみ適用されます",
+  "error.between": "無効な時間帯",
+  "error.monthDay": "無効な日付（月の日）",
+  "error.month": "無効な月",
+  "error.end": "無効な終了日",
+  "error.endBeforeStart": "終了が開始より前です",
+  "error.count": "無効な回数",
+  "error.scope": "scope は this または all である必要があります",
+  "error.cronMove": "cron ルールは一度に 1 回分ずつ移動します",
+  "error.betweenMidnight": "時間帯が午前 0 時をまたいでしまいます",
+  "error.monthDayOut": "日付がその月の範囲外になります",
+  "once": "1 回：{date} {time}",
+  "timed": "{what} {times}",
+  "at": "{times}",
+  "join": "{a}、{b}",
+  "every.minute": {
+    "other": "{n} 分ごと"
+  },
+  "every.hour": {
+    "other": "{n} 時間ごと"
+  },
+  "every.day": {
+    "other": "{n} 日ごと"
+  },
+  "every.week": {
+    "other": "{n} 週間ごと"
+  },
+  "every.month": {
+    "other": "{n} か月ごと"
+  },
+  "every.year": {
+    "other": "{n} 年ごと"
+  },
+  "between": "{from}～{to}",
+  "weekday.1": "月曜日",
+  "weekday.2": "火曜日",
+  "weekday.3": "水曜日",
+  "weekday.4": "木曜日",
+  "weekday.5": "金曜日",
+  "weekday.6": "土曜日",
+  "weekday.7": "日曜日",
+  "days.list": "{days}",
+  "days.weekdays": "月曜日～金曜日",
+  "days.weekend": "土曜日と日曜日",
+  "days.all": "毎日",
+  "eachWeekday": "毎週{day}",
+  "workweek": "月曜日～金曜日",
+  "monthDay": "{period}の {day} 日",
+  "monthLast": "{period}の最終日",
+  "nth.1": "{period}の第 1 {weekday}",
+  "nth.2": "{period}の第 2 {weekday}",
+  "nth.3": "{period}の第 3 {weekday}",
+  "nth.4": "{period}の第 4 {weekday}",
+  "nth.5": "{period}の第 5 {weekday}",
+  "nth.last": "{period}の最終{weekday}",
+  "yearDay": "{every} {date}",
+  "yearLast": "{every} {month}の最終日",
+  "yearNth": "{every}：{what}",
+  "until": "{date}まで",
+  "count": {
+    "other": "{n} 回"
+  },
+  "cron": "Cron：{cron}"
+}

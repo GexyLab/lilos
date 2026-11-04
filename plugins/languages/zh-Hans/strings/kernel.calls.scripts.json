@@ -1,0 +1,5 @@
+{
+  "noRuntime": "脚本需要 services-isolate 模块（控制面板 → 模块）",
+  "noStart": "脚本无法启动：{message}",
+  "timeout": "脚本超时（5 秒）"
+}

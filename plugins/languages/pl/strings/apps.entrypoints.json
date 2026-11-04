@@ -1,0 +1,6 @@
+{
+  "notInstalled": "Aplikacja nie jest zainstalowana: {id}",
+  "hidden": "Aplikacja {app} jest ukryta w tym obszarze roboczym",
+  "noEntry": "Aplikacja {app} nie ma punktu wejścia {entry}",
+  "backgroundOnly": "Można się połączyć tylko z punktem wejścia działającym w tle"
+}

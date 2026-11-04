@@ -1,0 +1,9 @@
+{
+  "skipped": "saltata",
+  "check": "verifica {name} ({actual})",
+  "test": "test «{name}»: {error}",
+  "counts": "{passed} riuscite, {failed} fallite in {seconds} s",
+  "countsSkipped": "{passed} riuscite, {failed} fallite, {skipped} saltate in {seconds} s",
+  "cancelled": "Annullata: {counts}",
+  "failedFirst": "{name}: {counts} (prima: {first})"
+}

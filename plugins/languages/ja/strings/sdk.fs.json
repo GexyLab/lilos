@@ -1,0 +1,23 @@
+{
+  "notForNet": "ネットワーク接続のファイルには使用できません",
+  "badWorkspace": "無効なワークスペース",
+  "noTarget": "移動先のフォルダーが存在しません",
+  "badType": "無効な種類：{type}",
+  "badLink": "無効なリンク",
+  "badId": "無効な識別子",
+  "privateFolder": "プライベートにできるのは、ワークスペースに属するフォルダーだけです",
+  "notFound": "その項目は存在しません",
+  "fileNotFound": "ファイルが存在しません",
+  "tooManyApps": "この項目にデータを持つアプリが多すぎます",
+  "tooMuchAppData": "この項目のアプリデータが多すぎます",
+  "intoItself": "フォルダーを自分自身の中に入れることはできません",
+  "netTransfer": "ホームとネットワークの間では、ファイルは転送によってコピーされます",
+  "systemFolders": "システムフォルダーが含まれています",
+  "folderNotFound": "フォルダーが存在しません",
+  "notPrivate": "このフォルダーはプライベートではありません",
+  "systemItems": "システムの項目は変更できません",
+  "badApp": "無効なアプリ",
+  "appDataObject": "アプリのデータはオブジェクトである必要があります",
+  "appDataTooBig": "アプリのデータが大きすぎます（最大 1 KB）",
+  "emptyName": "名前を空にすることはできません"
+}

@@ -1,0 +1,51 @@
+{
+  "sources": "Nieprawidłowe elementy do przesłania",
+  "notFolder": "Miejsce docelowe nie jest folderem",
+  "homeToHome": "Kopiowanie między folderami lilOS: to nie jest przesyłanie sieciowe",
+  "intoItself": "Folderu nie można skopiować do niego samego",
+  "nothing": "Nic do przesłania",
+  "tooMany": "Zbyt wiele przesyłań w kolejce",
+  "itemNotFound": "Nie znaleziono elementu",
+  "noConflict": "Brak konfliktu do rozwiązania",
+  "choice": "Nieprawidłowy wybór",
+  "queueNotFound": "Nie znaleziono kolejki",
+  "serverNotFound": "Nie istnieje na serwerze",
+  "badName": "Nazwa, której nie można przesłać: {name}",
+  "webOnly": "„{name}” otwiera się tylko w sieci WWW: nie zostanie skopiowany",
+  "place": "Nieprawidłowe miejsce",
+  "tooManyFiles": "Zbyt wiele plików do przesłania",
+  "tooDeep": "Foldery zagnieżdżone zbyt głęboko",
+  "someFailed": "Niektóre pliki nie zostały przesłane",
+  "dstLost": "Utracono folder docelowy",
+  "fileThere": "Tam, gdzie ma trafić folder, jest już plik „{name}”",
+  "retrying": "{message} · ponawianie",
+  "folderThere": "Tam, gdzie ma trafić plik, jest już folder „{name}”",
+  "notFileThere": "Istnieje już element „{name}”, który nie jest plikiem",
+  "done": {
+    "one": "{n} plik przesłano do „{queue}” ({size})",
+    "few": "{n} pliki przesłano do „{queue}” ({size})",
+    "many": "{n} plików przesłano do „{queue}” ({size})",
+    "other": "{n} pliku przesłano do „{queue}” ({size})"
+  },
+  "failed": {
+    "one": "{n} plik nie został przesłany",
+    "few": "{n} pliki nie zostały przesłane",
+    "many": "{n} plików nie zostało przesłanych",
+    "other": "{n} pliku nie przesłano"
+  },
+  "failedIn": {
+    "one": "{n} plik nie został przesłany do „{queue}”",
+    "few": "{n} pliki nie zostały przesłane do „{queue}”",
+    "many": "{n} plików nie zostało przesłanych do „{queue}”",
+    "other": "{n} pliku nie przesłano do „{queue}”"
+  },
+  "complete": "Przesyłanie zakończone: {files}.",
+  "allFailed": "Przesyłanie nie powiodło się: {files}.",
+  "partial": "Przesyłanie zakończone z błędami: {done}. {failed}.",
+  "bytes": {
+    "one": "{n} bajt",
+    "few": "{n} bajty",
+    "many": "{n} bajtów",
+    "other": "{n} bajta"
+  }
+}

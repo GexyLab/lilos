@@ -1,0 +1,12 @@
+{
+  "zoomOut": "Verkleinern",
+  "zoomIn": "Vergrößern",
+  "fit": "Alles anzeigen",
+  "zoomReset": "Zoom auf 100 %",
+  "help": "Steuerung",
+  "withKey": "{text} ({keys})",
+  "help.wheel": "Mausrad: Zoom",
+  "help.move": "Leertaste + Ziehen oder mittlere Taste: verschieben",
+  "help.select": "Hintergrund ziehen: auswählen",
+  "help.fit": "{keys}: alles anzeigen"
+}

@@ -1,0 +1,13 @@
+{
+  "graphqlVars": "GraphQL: variabel bukan JSON yang valid",
+  "method": "Metode tidak valid",
+  "url": "Alamat tidak valid: {url}",
+  "needHttp": "Diperlukan alamat http:// atau https://",
+  "headerName": "Nama header tidak valid: {name}",
+  "headerValue": "Nilai tidak valid di header {name}",
+  "bodyTooBig": "Isi terlalu besar (paling banyak 50 MB)",
+  "noAnswer": {
+    "other": "Tidak ada jawaban dalam {n} detik"
+  },
+  "cancelled": "Dibatalkan"
+}

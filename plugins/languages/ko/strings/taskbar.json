@@ -1,0 +1,7 @@
+{
+  "start": "lilOS 메뉴",
+  "menu": "메뉴",
+  "menuKeys": "메뉴({keys})",
+  "taskbar": "작업 표시줄",
+  "tray": "알림 영역"
+}

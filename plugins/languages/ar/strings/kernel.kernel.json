@@ -1,0 +1,9 @@
+{
+  "notFound": "لم يتم العثور على المورد",
+  "method": "طريقة غير مسموح بها",
+  "internal": "خطأ داخلي في kernel",
+  "unavailable": "الخدمة غير متاحة: {name}",
+  "signIn": "سجّل الدخول أولًا",
+  "needSocket": "يلزم WebSocket",
+  "refused": "تم رفض الاتصال"
+}

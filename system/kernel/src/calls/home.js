@@ -1,6 +1,15 @@
 import { extname } from 'node:path';
 import { fail } from '../errors.js';
 import { openHome } from '../api/home.js';
+import { defineStrings } from '../strings.js';
+
+const { t } = defineStrings('lilos:kernel.calls.home', { en: { strings: {
+  path: 'Path not valid: {path}',
+  notFound: 'Not found: {path}',
+  gone: 'The file is no longer there',
+  notFile: 'Not a file: {path}',
+  tooBig: 'File too large (50 MB at most): {path}',
+} } });
 
 /**
  * Files of the user's home that a NetTest request sends (a body, a field of a form, a client
@@ -20,14 +29,14 @@ export const typeOf = name => TYPES[extname(String(name)).toLowerCase()] ?? 'app
 /** The node at a path of the home, with the view it was found in. */
 export async function homeNode(ctx, path) {
   // Not the hidden ones (lilOS's .config, .trash): a collection passed by someone else could name them
-  if (typeof path !== 'string' || !/^~(\/[^/\0]{1,255}){1,32}$/.test(path) || path.split('/').slice(1).some(p => p.startsWith('.'))) fail('invalid', `Percorso non valido: ${String(path).slice(0, 100)}`);
+  if (typeof path !== 'string' || !/^~(\/[^/\0]{1,255}){1,32}$/.test(path) || path.split('/').slice(1).some(p => p.startsWith('.'))) fail('invalid', t('path', { path: String(path).slice(0, 100) }));
   const view = await openHome(ctx.kernel, ctx.principal);
   let node = { id: view.homeId, type: 'folder' };
   for (const name of path.split('/').slice(1)) {
-    if (node.type !== 'folder') fail('not_found', `Non trovato: ${path}`);
+    if (node.type !== 'folder') fail('not_found', t('notFound', { path }));
     const children = await view.fs.list(ctx.principal, node.id);
     node = children.find(n => n.name === name) ?? children.find(n => n.name.toLowerCase() === name.toLowerCase());
-    if (!node) fail('not_found', `Non trovato: ${path}`);
+    if (!node) fail('not_found', t('notFound', { path }));
   }
   return { view, node };
 }
@@ -36,15 +45,15 @@ export async function homeNode(ctx, path) {
 export async function frontNode(kernel, principal, id) {
   const view = await openHome(kernel, principal);
   const node = await view.fs.stat(principal, view.toBack(String(id ?? ''), { parent: true }));
-  if (!node) fail('not_found', 'Il file non c’è più');
+  if (!node) fail('not_found', t('gone'));
   return { view, node };
 }
 
 /** { name, type, data } of a file of the home. */
 export async function readHomeFile(ctx, path) {
   const { view, node } = await homeNode(ctx, path);
-  if (node.type !== 'file') fail('invalid', `Non è un file: ${path}`);
-  if (node.size > MAX_FILE) fail('too_large', `File troppo grande (al massimo 50 MB): ${path}`);
+  if (node.type !== 'file') fail('invalid', t('notFile', { path }));
+  if (node.size > MAX_FILE) fail('too_large', t('tooBig', { path }));
   const data = await view.fs.read(ctx.principal, node.id);
   return { name: node.name, type: typeOf(node.name), data };
 }

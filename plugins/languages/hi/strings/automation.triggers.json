@@ -1,0 +1,14 @@
+{
+  "theAutomation": "ऑटोमेशन",
+  "noAutomata": "Automata इंस्टॉल नहीं है",
+  "running": "{name} पहले से चल रहा है",
+  "opened": "{name}: Automata में खोला गया",
+  "needsNothing": "{name}: यह अपने आप तभी शुरू होता है जब यह किसी चीज़ पर काम नहीं करता (Automata → चलाएँ)",
+  "ran": "{name}: अपने आप चला",
+  "ranOn": "{name}: {items} आइटम पर अपने आप चला",
+  "failedSteps": {
+    "one": "{n} चरण विफल रहा",
+    "other": "{n} चरण विफल रहे"
+  },
+  "withFailed": "{text} ({failed})"
+}

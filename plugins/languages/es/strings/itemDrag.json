@@ -1,0 +1,26 @@
+{
+  "home": "Home",
+  "one": "«{name}»",
+  "many": "{n} elementos",
+  "trashToServer": "Lo que está en la papelera vuelve a una carpeta de lilOS, no a un servidor",
+  "restored": {
+    "one": "Se ha restaurado {what} en {where}",
+    "other": "Se han restaurado {what} en {where}"
+  },
+  "moved": {
+    "one": "Se ha movido {what} a {where}",
+    "other": "Se han movido {what} a {where}"
+  },
+  "transferFailed": "Transferencia no iniciada: {message}",
+  "moveFailed": "No se puede mover: {message}",
+  "importToServer": "Los archivos del equipo se copian en una carpeta de lilOS: desde allí, arrástralos al servidor",
+  "copied": {
+    "one": "Se ha copiado {n} archivo del equipo en {where}",
+    "other": "Se han copiado {n} archivos del equipo en {where}"
+  },
+  "failed": {
+    "one": "No se ha copiado {n} archivo",
+    "other": "No se han copiado {n} archivos"
+  },
+  "limit": "Solo se han copiado los primeros {max} archivos"
+}

@@ -1,0 +1,7 @@
+{
+  "noPipeFn": "파이프 함수가 없습니다",
+  "noHandler": "{id}: {entry}이(가) 호출에 응답하지 않습니다(lilos.handle 없음)",
+  "noPipe": "{id}: 이 파이프에 대한 함수가 없습니다",
+  "libraryFailed": "라이브러리를 불러오지 못했습니다",
+  "noExport": "코드가 {entry}을(를) 내보내지 않습니다"
+}

@@ -1,0 +1,6 @@
+{
+  "ranges": "Intervalos inválidos (no máximo 100)",
+  "range": "Intervalo inválido: {range} (digite, por exemplo, 192.168.1.50/32)",
+  "noAddress": "Nenhum endereço para {host}",
+  "forbidden": "Endereço não permitido para conexões de rede"
+}

@@ -1,0 +1,37 @@
+{
+  "adminOnly": "صرف منتظم پیکیجز انسٹال کرتا یا ہٹاتا ہے",
+  "needsLilos": "{name} {version} کو lilOS {range} درکار ہے (یہ {system} ہے)",
+  "moduleJson": "module.json درست JSON نہیں ہے",
+  "byHand": "{id} ہاتھ سے رکھا گیا تھا: اسے ہاتھ سے ہی اپ ڈیٹ کیا جاتا ہے",
+  "appInstalled": "{name} پہلے سے انسٹال ہے: نئے ورژن کے لیے اپ ڈیٹ استعمال کریں",
+  "moduleInstalled": "{name} پہلے سے انسٹال ہے: نئے ورژن کے لیے اپ ڈیٹ استعمال کریں",
+  "replaced": "{name} کی جگہ {by} نے لے لی ہے: یہ اب انسٹال نہیں ہوتا",
+  "appMissing": "ایپ انسٹال نہیں ہے",
+  "moduleOff": "ماڈیول فعال نہیں",
+  "otherApp": "یہ پیکیج ایپ {found} کا ہے، {id} کا نہیں",
+  "otherModule": "یہ پیکیج ماڈیول {found} کا ہے، {id} کا نہیں",
+  "moduleNewer": "ماڈیول {id} {range} درکار ہے: {have} انسٹال ہے اور تازہ ترین {newer} ہے",
+  "appNewer": "ایپ {id} {range} درکار ہے: {have} انسٹال ہے اور تازہ ترین {newer} ہے",
+  "unreadable": "ریپوزیٹری {url} پڑھی نہیں جا سکتی: {message}",
+  "moduleNotInRepo": "ریپوزیٹری {url} میں ماڈیول {id} نہیں ہے",
+  "appNotInRepo": "ریپوزیٹری {url} میں ایپ {id} نہیں ہے",
+  "moduleRepoVersion": "ماڈیول {id} {range} درکار ہے: ریپوزیٹری میں {version} ہے",
+  "appRepoVersion": "ایپ {id} {range} درکار ہے: ریپوزیٹری میں {version} ہے",
+  "modulePlanned": "{name} کو ماڈیول {id} {range} درکار ہے، لیکن {version} انسٹال ہو رہا ہے",
+  "appPlanned": "{name} کو ایپ {id} {range} درکار ہے، لیکن {version} انسٹال ہو رہا ہے",
+  "circular": "{a} اور {b} کے درمیان دائری انحصار: کوئی بھی دوسرے سے پہلے انسٹال نہیں ہو سکتا",
+  "consent": "{keys} کے لیے رضامندی موجود نہیں: دوبارہ دیکھیں کہ کیا انسٹال ہو رہا ہے",
+  "haveVersion": "{id} {range} ({have} موجود ہے)",
+  "missing": "{name} کو درکار ہے: {missing}۔ اسے AppStore سے انسٹال کریں، جو اس کی ضروری چیزیں بھی انسٹال کرتا ہے۔",
+  "appNeeded": {
+    "one": "ایپ {id} کی ضرورت {names} کو ہے: پہلے اسے ہٹائیں",
+    "other": "ایپ {id} کی ضرورت {names} کو ہے: پہلے انہیں ہٹائیں"
+  },
+  "moduleNeeded": {
+    "one": "ماڈیول {id} کی ضرورت {names} کو ہے: پہلے اسے ہٹائیں",
+    "other": "ماڈیول {id} کی ضرورت {names} کو ہے: پہلے انہیں ہٹائیں"
+  },
+  "wantsOne": "{name} کو {id} {range} چاہیے: {version} کافی نہیں",
+  "wants": "{name} کو {id} {range} چاہیے",
+  "wantsMany": "{list}: {version} کافی نہیں"
+}

@@ -1,4 +1,5 @@
 import { fail } from '../errors.js';
+import { defineStrings } from '../strings.js';
 
 /**
  * lilOS's own versions (apps/systemPackage.js): the version for every signed-in user, the rest for admins.
@@ -9,7 +10,10 @@ import { fail } from '../errors.js';
  *   POST   /api/system/acknowledge        { notice: 'updated' | 'failed' }: the admins saw it
  * The new version runs after POST /api/kernel/restart (api/store.js).
  */
-const signedIn = principal => principal ?? fail('unauthorized', 'Accesso richiesto');
+const { t } = defineStrings('lilos:kernel.api.system', { en: { strings: {
+  signIn: 'Sign in first', ref: 'Reference not valid', version: 'Version not valid',
+} } });
+const signedIn = principal => principal ?? fail('unauthorized', t('signIn'));
 const VERSION = /^\d{1,6}\.\d{1,6}\.\d{1,6}$/;
 const REF = /^(?!-)[\w./-]{1,200}$/;
 
@@ -19,12 +23,12 @@ export function systemRoutes(kernel) {
   router.add('GET', '/api/system', async ({ principal }) => system.info(signedIn(principal)));
   router.add('POST', '/api/system/update', async ({ principal, json }) => {
     const { ref } = await json(4 << 10);
-    if (ref !== undefined && (typeof ref !== 'string' || !REF.test(ref))) fail('invalid', 'Riferimento non valido');
+    if (ref !== undefined && (typeof ref !== 'string' || !REF.test(ref))) fail('invalid', t('ref'));
     return system.update(signedIn(principal), { ref });
   });
   router.add('POST', '/api/system/use', async ({ principal, json }) => {
     const { version } = await json(4 << 10);
-    if (typeof version !== 'string' || !VERSION.test(version)) fail('invalid', 'Versione non valida');
+    if (typeof version !== 'string' || !VERSION.test(version)) fail('invalid', t('version'));
     return system.use(signedIn(principal), version);
   });
   router.add('DELETE', '/api/system/releases/:version', async ({ principal, params }) => system.remove(signedIn(principal), params.version));

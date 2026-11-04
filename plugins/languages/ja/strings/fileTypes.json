@@ -1,0 +1,15 @@
+{
+  "text": "テキスト",
+  "pdf": "PDF",
+  "document": "ドキュメント",
+  "spreadsheet": "スプレッドシート",
+  "presentation": "プレゼンテーション",
+  "image": "画像",
+  "audio": "オーディオ",
+  "video": "ビデオ",
+  "archive": "アーカイブ",
+  "code": "コード",
+  "term": "ターミナル接続",
+  "nettest": "NetTest コレクション",
+  "file": "ファイル"
+}

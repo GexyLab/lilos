@@ -1,0 +1,7 @@
+{
+  "notImage": "「{name}」は画像ではありません",
+  "gone": "この画像はもうありません",
+  "copyFailed": "「{name}」を {folder} フォルダーにコピーできません：{error}",
+  "noFolder": "{folder} フォルダーがありません",
+  "openFailed": "「{name}」を画像として開けません"
+}

@@ -1,6 +1,7 @@
 import { Emitter } from './events.js';
 import { storage } from './storage.js';
 import { splitName } from './fileTypes.js';
+import { locale } from './locale.js';
 
 /**
  * Pipes on events. Every operation of the system that others may watch or change is an *event*
@@ -41,7 +42,7 @@ import { splitName } from './fileTypes.js';
  *   { app: ['editor'] } app.launch of these apps
  * lilOS's own handlers may also give a function (data) → boolean.
  *
- * Event definition: define(name, def)
+ * Event definition: define(name, def)   label, description: a text, or a function that gives it
  *   { label, description?, edit?: { before?: [field], after?: [field] }, stop?: true,
  *     protected?: true   only lilOS and system apps subscribe
  *     sync?: true        a synchronous operation: before is for lilOS's own synchronous handlers
@@ -64,9 +65,39 @@ const CONTENT_EVENTS = new Set(['file.open', 'file.read', 'file.write']);
 const SEGMENT = /^[a-z][a-zA-Z0-9]{0,40}$/;
 const WHERE_KEYS = new Set(['meta', 'ext', 'type', 'app']);
 
+const { t } = locale.define('lilos:sdk.pipes', {
+  en: { strings: {
+    stopped: 'Operation stopped',
+    badName: 'Invalid event name: {name}',
+    appEvent: 'An app’s event is named <app id>.<name>',
+    exists: 'The event {name} already exists',
+    unknown: 'Unknown event: {name}',
+    stage: 'stage must be "before" or "after"',
+    position: 'position must be "first", "middle" or "last"',
+    noHandler: 'The pipe’s function is missing',
+    reserved: 'The event {name} is reserved for the system',
+    syncOnly: '{name} is an immediate operation: apps can only watch it (stage "after")',
+    maxSubs: { one: 'At most {n} subscription per app', other: 'At most {n} subscriptions per app' },
+    busy: 'Too many operations in progress',
+    busyApp: 'Too many operations in progress for this app',
+    syncAnswer: '{name}: an immediate operation needs an immediate answer',
+    handlerFailed: '{name}: {message}',
+    cannotStop: '{name}: the event {event} cannot be stopped',
+    whereObject: 'where: only an object',
+    whereInvalid: 'Invalid where',
+    whereKey: 'where: {key} is not used',
+    whereMeta: 'where.meta: only "own"',
+    whereType: 'Invalid where.type',
+    whereList: 'where.{key}: a list of texts',
+    timeout: '{name} did not answer in time',
+  } },
+});
+/** A label or description: a text, or a function that gives it in the system's language. */
+const textOf = (v, max) => String((typeof v === 'function' ? v() : v) ?? '').slice(0, max);
+
 export class PipeStopped extends Error {
   constructor(message, { silent = false } = {}) {
-    super(message || 'Operazione fermata');
+    super(message || t('stopped'));
     this.name = 'PipeStopped';
     this.silent = silent;
   }
@@ -80,15 +111,15 @@ class Pipes extends Emitter {
   #byApp = new Map();
 
   define(name, def = {}) {
-    if (!NAME.test(name)) throw new Error(`Nome di evento non valido: ${String(name).slice(0, 60)}`);
+    if (!NAME.test(name)) throw new Error(t('badName', { name: String(name).slice(0, 60) }));
     // '<app id>.<one word>': 'acme' cannot take the names of 'acme.notes'
-    if (def.owner && !(name.startsWith(`${def.owner}.`) && SEGMENT.test(name.slice(def.owner.length + 1)))) throw new Error('Un evento di un’app è <id dell’app>.<nome>');
+    if (def.owner && !(name.startsWith(`${def.owner}.`) && SEGMENT.test(name.slice(def.owner.length + 1)))) throw new Error(t('appEvent'));
     const known = this.#events.get(name);
-    if (known && known.owner !== def.owner) throw new Error(`L’evento ${name} esiste già`);
+    if (known && known.owner !== def.owner) throw new Error(t('exists', { name }));
     this.#events.set(name, {
       name,
-      label: String(def.label ?? name).slice(0, 80),
-      description: def.description ? String(def.description).slice(0, 300) : '',
+      label: typeof def.label === 'function' ? def.label : textOf(def.label ?? name, 80),
+      description: typeof def.description === 'function' ? def.description : def.description ? textOf(def.description, 300) : '',
       edit: { before: [...(def.edit?.before ?? [])], after: [...(def.edit?.after ?? [])] },
       stop: def.stop === true,
       protected: def.protected === true,
@@ -121,7 +152,7 @@ class Pipes extends Emitter {
     const def = this.#events.get(name);
     if (!def) return null;
     const { check, ...rest } = def;
-    return { ...rest, edit: { before: [...def.edit.before], after: [...def.edit.after] } };
+    return { ...rest, label: textOf(def.label, 80) || name, description: textOf(def.description, 300), edit: { before: [...def.edit.before], after: [...def.edit.after] } };
   }
 
   /** Every event: [{ name, label, description, protected, sync, owner, … }], sorted by name. */
@@ -138,15 +169,15 @@ class Pipes extends Emitter {
    */
   subscribe(name, { stage = 'after', position = 'middle', where = null } = {}, handler, owner = {}) {
     const def = this.#events.get(name);
-    if (!def) throw new Error(`Evento sconosciuto: ${String(name).slice(0, 60)}`);
-    if (!STAGES.includes(stage)) throw new Error('stage deve essere "before" o "after"');
-    if (!BANDS.includes(position)) throw new Error('position deve essere "first", "middle" o "last"');
-    if (typeof handler !== 'function') throw new Error('Manca la funzione della pipe');
-    if (def.protected && !owner.trusted) throw new Error(`L’evento ${name} è riservato al sistema`);
+    if (!def) throw new Error(t('unknown', { name: String(name).slice(0, 60) }));
+    if (!STAGES.includes(stage)) throw new Error(t('stage'));
+    if (!BANDS.includes(position)) throw new Error(t('position'));
+    if (typeof handler !== 'function') throw new Error(t('noHandler'));
+    if (def.protected && !owner.trusted) throw new Error(t('reserved', { name }));
     if (def.sync && stage === 'before' && !(owner.trusted && owner.sync)) {
-      throw new Error(`${name} è un’operazione immediata: le app la possono solo osservare (stage "after")`);
+      throw new Error(t('syncOnly', { name }));
     }
-    if (owner.app && !owner.trusted && [...this.#subs.values()].filter(x => x.app === owner.app).length >= MAX_SUBS) throw new Error(`Al massimo ${MAX_SUBS} iscrizioni per app`);
+    if (owner.app && !owner.trusted && [...this.#subs.values()].filter(x => x.app === owner.app).length >= MAX_SUBS) throw new Error(t('maxSubs', { n: MAX_SUBS }));
     const id = `p${++this.#seq}`;
     this.#subs.set(id, {
       id, event: name, stage, position, where: cleanWhere(where, owner.trusted), handler, seq: this.#seq,
@@ -192,10 +223,10 @@ class Pipes extends Emitter {
    */
   async around(name, data, op, { caller = null } = {}) {
     const def = this.#events.get(name);
-    if (!def) throw new Error(`Evento sconosciuto: ${name}`);
+    if (!def) throw new Error(t('unknown', { name }));
     const app = caller?.app ?? null;
-    if (this.#active >= MAX_ACTIVE) throw new Error('Troppe operazioni in corso');
-    if (app && (this.#byApp.get(app) ?? 0) >= MAX_PER_APP) throw new Error('Troppe operazioni in corso per questa app');
+    if (this.#active >= MAX_ACTIVE) throw new Error(t('busy'));
+    if (app && (this.#byApp.get(app) ?? 0) >= MAX_PER_APP) throw new Error(t('busyApp'));
     this.#active++;
     if (app) this.#byApp.set(app, (this.#byApp.get(app) ?? 0) + 1);
     try {
@@ -229,7 +260,7 @@ class Pipes extends Emitter {
     const chain = this.#chainFor(name, 'before', data, caller);
     for (let i = 0; i < chain.length; i++) {
       const out = chain[i].handler(data, this.#ctx(def, 'before', chain, i, caller));
-      if (out && typeof out.then === 'function') throw new Error(`${chain[i].name}: un’operazione immediata vuole una risposta immediata`);
+      if (out && typeof out.then === 'function') throw new Error(t('syncAnswer', { name: chain[i].name }));
       data = this.#apply(def, 'before', chain[i], data, out);
     }
     return data;
@@ -257,7 +288,7 @@ class Pipes extends Emitter {
       out = await withTimeout(sub.handler(forHandler(data, sub), this.#ctx(def, stage, chain, i, caller)), def.timeout, sub.name);
     } catch (err) {
       if (err instanceof PipeStopped) throw err;
-      throw new Error(`${sub.name}: ${err?.message ?? err}`);
+      throw new Error(t('handlerFailed', { name: sub.name, message: err?.message ?? err }));
     }
     return this.#apply(def, stage, sub, data, out);
   }
@@ -265,7 +296,7 @@ class Pipes extends Emitter {
   #apply(def, stage, sub, data, out) {
     if (!out || typeof out !== 'object') return data;
     if (out.stop) {
-      if (!def.stop) throw new Error(`${sub.name}: l’evento ${def.name} non si può fermare`);
+      if (!def.stop) throw new Error(t('cannotStop', { name: sub.name, event: def.name }));
       const why = typeof out.stop === 'object' ? out.stop : {};
       throw new PipeStopped(typeof why.error === 'string' ? why.error.slice(0, 300) : '', { silent: why.silent === true });
     }
@@ -303,16 +334,16 @@ class Pipes extends Emitter {
 function cleanWhere(where, trusted) {
   if (where == null) return null;
   if (typeof where === 'function') {
-    if (!trusted) throw new Error('where: solo un oggetto');
+    if (!trusted) throw new Error(t('whereObject'));
     return where;
   }
-  if (typeof where !== 'object' || Array.isArray(where)) throw new Error('where non valido');
+  if (typeof where !== 'object' || Array.isArray(where)) throw new Error(t('whereInvalid'));
   const out = {};
   for (const [k, v] of Object.entries(where)) {
-    if (!WHERE_KEYS.has(k)) throw new Error(`where: ${k.slice(0, 30)} non si usa`);
-    if (k === 'meta' && v !== 'own') throw new Error('where.meta: solo "own"');
-    if (k === 'type' && !['file', 'folder', 'app'].includes(v)) throw new Error('where.type non valido');
-    if ((k === 'ext' || k === 'app') && (!Array.isArray(v) || v.length > 50 || v.some(x => typeof x !== 'string' || x.length > 64))) throw new Error(`where.${k}: un elenco di testi`);
+    if (!WHERE_KEYS.has(k)) throw new Error(t('whereKey', { key: k.slice(0, 30) }));
+    if (k === 'meta' && v !== 'own') throw new Error(t('whereMeta'));
+    if (k === 'type' && !['file', 'folder', 'app'].includes(v)) throw new Error(t('whereType'));
+    if ((k === 'ext' || k === 'app') && (!Array.isArray(v) || v.length > 50 || v.some(x => typeof x !== 'string' || x.length > 64))) throw new Error(t('whereList', { key: k }));
     out[k] = Array.isArray(v) ? v.map(x => (k === 'ext' ? x.toLowerCase() : x)) : v;
   }
   return out;
@@ -357,7 +388,7 @@ function withTimeout(value, ms, name) {
   let timer;
   return Promise.race([
     value,
-    new Promise((_, reject) => { timer = setTimeout(() => reject(new Error(`${name} non ha risposto in tempo`)), ms); }),
+    new Promise((_, reject) => { timer = setTimeout(() => reject(new Error(t('timeout', { name }))), ms); }),
   ]).finally(() => clearTimeout(timer));
 }
 

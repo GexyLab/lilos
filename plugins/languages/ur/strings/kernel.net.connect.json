@@ -1,0 +1,19 @@
+{
+  "noConnection": {
+    "one": "{n} سیکنڈ میں کوئی کنکشن نہیں",
+    "other": "{n} سیکنڈ میں کوئی کنکشن نہیں"
+  },
+  "untrusted": "{host} کے سرٹیفکیٹ کی تصدیق نہیں ہوئی ({reason})",
+  "cancelled": "منسوخ",
+  "refused": "کنکشن مسترد کر دیا گیا ({code})",
+  "reset": "سرور نے کنکشن توڑ دیا ({code})",
+  "notFound": "سرور کا نامعلوم نام ({code})",
+  "dns": "سرور کا نام حل نہیں ہوا (DNS) ({code})",
+  "timeout": "وقت ختم ہو گیا ({code})",
+  "hostUnreachable": "سرور تک رسائی نہیں ({code})",
+  "netUnreachable": "نیٹ ورک تک رسائی نہیں ({code})",
+  "closed": "کنکشن بند ہو گیا ({code})",
+  "aborted": "منسوخ ({code})",
+  "otherName": "کسی دوسرے نام کا سرٹیفکیٹ ({code})",
+  "network": "نیٹ ورک کی خرابی"
+}

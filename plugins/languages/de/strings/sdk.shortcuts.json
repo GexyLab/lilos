@@ -1,0 +1,19 @@
+{
+  "key.Enter": "Eingabe",
+  "key.Escape": "Esc",
+  "key.Delete": "Entf",
+  "key.Space": "Leertaste",
+  "key.Insert": "Einfg",
+  "key.End": "Ende",
+  "key.PageUp": "Bild ↑",
+  "key.PageDown": "Bild ↓",
+  "general": "Allgemein",
+  "exists": "Tastenkombination bereits registriert: {id}",
+  "unknown": "Tastenkombination nicht registriert: {id}",
+  "invalid": "Ungültige Kombination",
+  "noKey": "Drücken Sie zusätzlich zu Ctrl, Alt oder Shift eine weitere Taste",
+  "reserved": "Vom Browser reservierte Kombination",
+  "tabSpace": "Tab und Leertaste allein dienen zum Navigieren und zum Verschieben des Schreibtischs",
+  "typingKey": "Eine Taste, die Zeichen eingibt, muss mit Ctrl, Alt oder Shift verwendet werden",
+  "whenEditing": "Diese Tastenkombination funktioniert auch während der Eingabe: Sie benötigt Ctrl oder Alt"
+}

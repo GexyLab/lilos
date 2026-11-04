@@ -1,0 +1,22 @@
+{
+  "ok": "“{name}” foi concluída com sucesso",
+  "error": "“{name}” falhou: {why}",
+  "admin.save": "{who}, administrador, alterou sua operação “{name}”",
+  "admin.create": "{who}, administrador, criou para você a operação “{name}”",
+  "admin.remove": "{who}, administrador, excluiu sua operação “{name}”",
+  "admin.on": "{who}, administrador, reativou sua operação “{name}”",
+  "admin.off": "{who}, administrador, pausou sua operação “{name}”",
+  "admin.run": "{who}, administrador, executou sua operação “{name}”",
+  "admin.move": "{who}, administrador, moveu sua operação “{name}”",
+  "userGone": "O usuário desta operação não existe mais",
+  "invalid": "Operação inválida",
+  "unknownAction": "Ação desconhecida: {type}",
+  "systemNoApps": "O sistema não abre apps: é necessário um usuário",
+  "waiting": "Aguardando o lilOS ser aberto",
+  "noPage": "Nenhuma página do lilOS respondeu",
+  "cancelled": "Cancelada ou tempo esgotado",
+  "runNotFound": "Execução não encontrada",
+  "runTaken": "Outra página a está fazendo",
+  "runGone": "Execução já feita ou expirada",
+  "taskNotFound": "Operação não encontrada"
+}

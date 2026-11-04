@@ -1,0 +1,25 @@
+{
+  "retention.days": {
+    "other": "{n} 天"
+  },
+  "retention.year": "1 年",
+  "retention.forever": "永久",
+  "lasso": "{keys} + 拖动",
+  "color.blue": "蓝色",
+  "color.violet": "紫罗兰",
+  "color.magenta": "洋红",
+  "color.red": "红色",
+  "color.orange": "橙色",
+  "color.green": "绿色",
+  "color.teal": "青色",
+  "color.graphite": "石墨",
+  "color.night": "夜色",
+  "color.deepBlue": "深蓝",
+  "color.forest": "森林",
+  "color.plum": "梅紫",
+  "color.earth": "大地",
+  "color.mist": "薄雾",
+  "color.sky": "天空",
+  "color.sage": "鼠尾草",
+  "color.sand": "沙色"
+}

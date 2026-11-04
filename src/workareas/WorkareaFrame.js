@@ -1,7 +1,11 @@
-import { h, icon } from '@lilos/sdk';
+import { h, icon, locale } from '@lilos/sdk';
 
 export const AREA_EDGES = ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'];
 export const HEADER = 34;   // height of the title bar, in world pixels
+
+const { t } = locale.define('lilos:workareaFrame', {
+  en: { strings: { properties: 'Work area properties', collapse: 'Minimize to an icon', label: 'Work area {title}', title: 'Work area title' } },
+});
 
 /**
  * An open workarea on the desk: a frame with a title bar. Only the title bar and the edges take
@@ -17,8 +21,8 @@ export class WorkareaFrame {
     const tool = (glyph, label, onclick) => h('button', { class: 'wa-btn', type: 'button', title: label, 'aria-label': label, onclick }, icon(glyph));
     this.head = h('div', { class: 'wa-head' },
       icon('workarea'), this.title,
-      tool('info', 'Proprietà della workarea', () => onProperties()),
-      tool('minus', 'Riduci a icona', () => onCollapse()));
+      tool('info', t('properties'), () => onProperties()),
+      tool('minus', t('collapse'), () => onCollapse()));
     this.edges = AREA_EDGES.map(edge => h('div', { class: `wa-edge ${edge}`, dataset: { edge } }));
     this.el = h('div', { class: 'wa-area', dataset: { kind: 'workarea', id: ws.id }, role: 'region' }, this.head, ...this.edges);
 
@@ -36,7 +40,7 @@ export class WorkareaFrame {
 
   update(ws) {
     this.title.textContent = ws.title;
-    this.el.setAttribute('aria-label', `Workarea ${ws.title}`);
+    this.el.setAttribute('aria-label', t('label', { title: ws.title }));
     this.head.title = ws.description ? `${ws.title}\n${ws.description}` : ws.title;
     this.setRect(ws.rect);
   }
@@ -53,7 +57,7 @@ export class WorkareaFrame {
   editTitle() {
     return new Promise(resolve => {
       const old = this.title.textContent;
-      const input = h('input', { class: 'wa-title-input', type: 'text', value: old, spellcheck: 'false', 'aria-label': 'Titolo della workarea', maxlength: '80' });
+      const input = h('input', { class: 'wa-title-input', type: 'text', value: old, spellcheck: 'false', 'aria-label': t('title'), maxlength: '80' });
       this.title.replaceWith(input);
       input.focus();
       input.select();

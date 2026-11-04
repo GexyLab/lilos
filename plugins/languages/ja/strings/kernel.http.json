@@ -1,0 +1,9 @@
+{
+  "badPath": "無効なアドレス",
+  "tooLarge": "要求が大きすぎます",
+  "notJson": "要求の本文が有効な JSON ではありません",
+  "notAllowed": "許可されていない要求です",
+  "noOrigin": "Origin がありません",
+  "badOrigin": "許可されていない Origin です",
+  "badHost": "許可されていないホストです"
+}

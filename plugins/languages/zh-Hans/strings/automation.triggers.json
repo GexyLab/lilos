@@ -1,0 +1,13 @@
+{
+  "theAutomation": "该自动化",
+  "noAutomata": "Automata 未安装",
+  "running": "{name} 已在运行",
+  "opened": "{name}：已在 Automata 中打开",
+  "needsNothing": "{name}：只有在不需要处理任何对象时才会自动启动（Automata → 启动）",
+  "ran": "{name}：已自动运行",
+  "ranOn": "{name}：已对 {items} 个项目自动运行",
+  "failedSteps": {
+    "other": "{n} 步失败"
+  },
+  "withFailed": "{text}（{failed}）"
+}

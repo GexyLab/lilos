@@ -1,0 +1,10 @@
+{
+  "signIn": "Melden Sie sich zuerst an",
+  "id": "Ungültige Kennung",
+  "key": "Ungültiger Schlüssel: {key}",
+  "tooLarge": "Wert zu groß: {key}",
+  "changes": "Ungültige Änderungen",
+  "item": "Ungültiges Element",
+  "itemData": "Zu viele Daten in einem Element",
+  "tooMany": "Zu viele Schlüssel auf einmal"
+}

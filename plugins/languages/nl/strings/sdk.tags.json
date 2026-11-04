@@ -1,0 +1,17 @@
+{
+  "red": "Rood",
+  "orange": "Oranje",
+  "yellow": "Geel",
+  "green": "Groen",
+  "teal": "Blauwgroen",
+  "blue": "Blauw",
+  "purple": "Paars",
+  "gray": "Grijs",
+  "emptyName": "De naam van de tag mag niet leeg zijn",
+  "exists": "Er bestaat al een tag ‘{name}’",
+  "tooMany": {
+    "one": "Maximaal {n} tag",
+    "other": "Maximaal {n} tags"
+  },
+  "notFound": "De tag bestaat niet"
+}

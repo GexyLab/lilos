@@ -1,0 +1,16 @@
+{
+  "area": "工作区",
+  "toChange": "按 {keys} 切换",
+  "menu": "工作区…",
+  "menuLabel": "工作区菜单",
+  "button": "工作区：{name}",
+  "buttonKeys": "工作区：{name}（按 {keys} 切换）",
+  "buttonLabel": "工作区 {name}：切换工作区",
+  "heading": "工作区",
+  "next": "下一个",
+  "previous": "上一个",
+  "create": "新建工作区",
+  "showCurrent": "仅显示当前工作区",
+  "showAll": "显示所有工作区",
+  "manage": "管理工作区…"
+}

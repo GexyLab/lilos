@@ -1,0 +1,23 @@
+{
+  "signIn": "로그인이 필요합니다",
+  "noProtocol": "사용할 수 없는 프로토콜: {protocol}(커널 모듈이 없음)",
+  "hostName": "잘못된 호스트 이름",
+  "hostTaken": "“{name}” 호스트가 이미 있습니다",
+  "missing": "누락됨: {fields}",
+  "tooMany": "호스트는 최대 {max}개입니다",
+  "hostNotFound": "호스트를 찾을 수 없습니다",
+  "noPassword": "저장할 암호가 없습니다",
+  "sealedOther": "바로 가기에 저장된 암호는 이 lilOS에서 저장한 사용자에게만, 같은 서버와 사용자에 대해서만 작동합니다",
+  "sessionNotFound": "세션을 찾을 수 없습니다",
+  "sessionsTooMany": "열린 세션은 최대 {max}개입니다",
+  "sftpOnly": "터미널은 SFTP 연결에서만 열립니다",
+  "sshOnly": "예약된 명령은 SSH 호스트에만 보낼 수 있습니다",
+  "untrusted": "“{name}” 서버의 키가 확인되지 않았습니다. 터미널에서 한 번 연결하세요",
+  "denied": "“{name}”에서 액세스를 거부했습니다. 호스트에 암호나 키를 저장하세요",
+  "stopping": "커널이 중지되는 중입니다",
+  "detached": "창 없이 10분이 지나 닫혔습니다",
+  "cancelled": "연결이 취소되었습니다",
+  "failed": "연결하지 못했습니다",
+  "folder": "잘못된 폴더 이름",
+  "cwd": "잘못된 폴더"
+}

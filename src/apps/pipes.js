@@ -23,6 +23,16 @@ import * as background from './packages/background.js';
  * Also here, lilOS's own guard: a file whose content belongs to an app (node.apps[id].content)
  * is not read, written or opened as it is when that app is not installed.
  */
+const { t } = locale.define('lilos:apps.pipes', {
+  en: { strings: {
+    unknownEvent: 'Unknown event: {event}', denied: 'Permission denied: pipe:{event}', deniedOwn: 'Permission denied: pipe:{event} (or pipe.own:{event})',
+    reserved: 'The event {event} is reserved for the system',
+    sync: '{event} is an immediate operation: it can only be observed (stage "after")',
+    gone: 'The app is no longer installed', unhandled: '{app} does not handle {what} (lilos.pipes.subscribe is missing)',
+    needApp: 'To open “{file}” you need the app {app}: install it from the AppStore',
+  } },
+});
+
 const WAKE = 15_000;   // how long a woken entry point has to subscribe
 
 /** Running parts of apps: 'appId#entry' (or a window's key) → target. */
@@ -39,15 +49,15 @@ const pkgOf = id => getApp(id)?.package ?? null;
 /** Throws if the app may not subscribe to this event this way. */
 export function checkPipe(pkg, event, { stage = 'after', where = null } = {}) {
   const def = pipes.describe(event);
-  if (!def) throw new Error(`Evento sconosciuto: ${String(event).slice(0, 60)}`);
+  if (!def) throw new Error(t('unknownEvent', { event: String(event).slice(0, 60) }));
   if (def.owner === pkg.id) return;
   const perms = pkg.manifest.permissions ?? [];
   const own = where?.meta === 'own';
   if (!perms.includes(`pipe:${event}`) && !(own && perms.includes(`pipe.own:${event}`))) {
-    throw new Error(`Permesso negato: pipe:${event}${own ? ` (o pipe.own:${event})` : ''}`);
+    throw new Error(t(own ? 'deniedOwn' : 'denied', { event }));
   }
-  if (def.protected && !pkg.system) throw new Error(`L’evento ${event} è riservato al sistema`);
-  if (def.sync && stage === 'before') throw new Error(`${event} è un’operazione immediata: si può solo osservare (stage "after")`);
+  if (def.protected && !pkg.system) throw new Error(t('reserved', { event }));
+  if (def.sync && stage === 'before') throw new Error(t('sync', { event }));
 }
 
 const owner = (pkg, entry, key) => ({ key, app: pkg.id, entry, name: getApp(pkg.id)?.name ?? pkg.id, trusted: pkg.system === true });
@@ -157,7 +167,7 @@ function registerManifest(app) {
 
 /** Starts the entry point if needed; resolves once it has subscribed `slot`. */
 async function wake(app, entry, key, slot) {
-  if (!app) throw new Error('L’app non è più installata');
+  if (!app) throw new Error(t('gone'));
   await background.start(app, entry);
   const target = targets.get(key);
   if (target?.subs.has(slot)) return target;
@@ -165,7 +175,7 @@ async function wake(app, entry, key, slot) {
     const wait = `${key}|${slot}`;
     const timer = setTimeout(() => {
       waiting.set(wait, (waiting.get(wait) ?? []).filter(fn => fn !== done));
-      reject(new Error(`${app.name} non gestisce ${slot.replace('/', ' ')} (manca lilos.pipes.subscribe)`));
+      reject(new Error(t('unhandled', { app: app.name, what: slot.replace('/', ' ') })));
     }, WAKE);
     const done = () => { clearTimeout(timer); resolve(); };
     waiting.set(wait, [...(waiting.get(wait) ?? []), done]);
@@ -191,7 +201,7 @@ function guard() {
   const stop = data => {
     const id = missing(data.node);
     const name = installed.list().find(p => p.id === id)?.manifest?.name ?? id;
-    return { stop: { error: `Per aprire «${data.node.name}» serve l’app ${name}: installala dall’AppStore` } };
+    return { stop: { error: t('needApp', { file: data.node.name, app: name }) } };
   };
   const lilos = { key: 'lilos:content', name: 'lilOS', trusted: true };
   for (const event of ['file.open', 'file.read', 'file.write']) pipes.subscribe(event, { stage: 'before', position: 'first', where }, stop, lilos);

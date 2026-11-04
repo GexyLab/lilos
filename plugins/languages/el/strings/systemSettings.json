@@ -1,0 +1,26 @@
+{
+  "retention.days": {
+    "one": "{n} ημέρα",
+    "other": "{n} ημέρες"
+  },
+  "retention.year": "1 έτος",
+  "retention.forever": "Για πάντα",
+  "lasso": "{keys} + σύρσιμο",
+  "color.blue": "Μπλε",
+  "color.violet": "Βιολετί",
+  "color.magenta": "Ματζέντα",
+  "color.red": "Κόκκινο",
+  "color.orange": "Πορτοκαλί",
+  "color.green": "Πράσινο",
+  "color.teal": "Πετρόλ",
+  "color.graphite": "Γραφίτης",
+  "color.night": "Νύχτα",
+  "color.deepBlue": "Βαθύ μπλε",
+  "color.forest": "Δάσος",
+  "color.plum": "Δαμάσκηνο",
+  "color.earth": "Γη",
+  "color.mist": "Ομίχλη",
+  "color.sky": "Ουρανός",
+  "color.sage": "Φασκόμηλο",
+  "color.sand": "Άμμος"
+}

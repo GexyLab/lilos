@@ -1,0 +1,9 @@
+{
+  "title": "Notifikasi",
+  "unread": {
+    "other": "Notifikasi: {n} belum dibaca"
+  },
+  "stack": "Notifikasi baru",
+  "sender": "{name}: {text}",
+  "dismiss": "Hapus dari bilah"
+}

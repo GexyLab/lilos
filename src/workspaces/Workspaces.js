@@ -1,4 +1,4 @@
-import { Emitter, fs, storage, uid, shortcuts, closeMenu } from '@lilos/sdk';
+import { Emitter, fs, storage, uid, shortcuts, closeMenu, locale } from '@lilos/sdk';
 import { setInstalledFilter, getApp, registry } from '../apps/registry.js';
 import { ACCENTS } from '../systemSettings.js';
 import { cleanSavedWindow, LIMITS as AREA_LIMITS } from '../workareas/store.js';
@@ -9,6 +9,15 @@ import { WorkspaceSwitcher } from './WorkspaceSwitcher.js';
 import { notify } from '../notifications/notify.js';
 
 const SAVE_DELAY = 400;
+
+const { t } = locale.define('lilos:workspaces', {
+  en: { strings: {
+    group: 'Workspace', next: 'Switch to the next workspace', previous: 'Switch to the previous workspace',
+    limit: 'At most {max} workspaces', deskOf: 'Desk of {name}',
+    removed: 'Workspace «{name}» deleted', removedKept: 'Workspace «{name}» deleted. Its desk is now {path}',
+    newName: 'Workspace {n}',
+  } },
+});
 
 /**
  * Workspaces: separate desks. Each one has its own desk folder (private in fs: the others cannot
@@ -60,9 +69,9 @@ export class Workspaces extends Emitter {
     /** Resolves when the windows saved in the first workspace are back. */
     this.ready = this.#queue;
 
-    const group = 'Workspace';
-    shortcuts.register({ id: 'workspaces.next', label: 'Passa al workspace successivo', group, keys: ['Ctrl+Alt+ArrowRight'], whenEditing: true, when: () => this.list().length > 1, run: () => this.step(1) });
-    shortcuts.register({ id: 'workspaces.previous', label: 'Passa al workspace precedente', group, keys: ['Ctrl+Alt+ArrowLeft'], whenEditing: true, when: () => this.list().length > 1, run: () => this.step(-1) });
+    const group = t('group');
+    shortcuts.register({ id: 'workspaces.next', label: t('next'), group, keys: ['Ctrl+Alt+ArrowRight'], whenEditing: true, when: () => this.list().length > 1, run: () => this.step(1) });
+    shortcuts.register({ id: 'workspaces.previous', label: t('previous'), group, keys: ['Ctrl+Alt+ArrowLeft'], whenEditing: true, when: () => this.list().length > 1, run: () => this.step(-1) });
 
     this.switcher = new WorkspaceSwitcher(taskbar, this);
     wm.on('open', () => this.#saveSoon());
@@ -117,7 +126,7 @@ export class Workspaces extends Emitter {
   create({ name, color } = {}) {
     const live = this.list();
     if (live.length >= LIMITS.MAX_WORKSPACES) {
-      notify(`Al massimo ${LIMITS.MAX_WORKSPACES} workspace`, { level: 'warning' });
+      notify(t('limit', { max: LIMITS.MAX_WORKSPACES }), { level: 'warning' });
       return null;
     }
     const id = uid();
@@ -192,7 +201,7 @@ export class Workspaces extends Emitter {
       this.wm.adopt(id);
       const docs = fs.children(fs.root).find(n => n.name === 'Documenti' && n.system && !n.private) ?? fs.get(fs.root);
       // Shared first, so it can be seen from here: then it is kept, or removed if empty
-      fs.share(ws.desk, docs.id, `Scrivania di ${ws.name}`);
+      fs.share(ws.desk, docs.id, t('deskOf', { name: ws.name }));
       let kept = '';
       if (fs.children(ws.desk).length) kept = fs.path(ws.desk);
       else fs.remove(ws.desk);
@@ -205,7 +214,7 @@ export class Workspaces extends Emitter {
       this.#state.list.splice(i, 1);
       this.#state.list.push({ id: ws.id, name: ws.name, color: ws.color, created: ws.created, removed: Date.now() });
       this.#save();
-      notify(kept ? `Workspace «${ws.name}» eliminato. La sua scrivania ora è ${kept}` : `Workspace «${ws.name}» eliminato`, { level: 'success' });
+      notify(kept ? t('removedKept', { name: ws.name, path: kept }) : t('removed', { name: ws.name }), { level: 'success' });
       return kept;
     });
   }
@@ -298,7 +307,10 @@ export class Workspaces extends Emitter {
 
   #freeName() {
     const taken = new Set(this.list().map(w => w.name.toLowerCase()));
-    for (let n = this.list().length + 1; ; n++) if (!taken.has(`workspace ${n}`)) return `Workspace ${n}`;
+    for (let n = this.list().length + 1; ; n++) {
+      const name = t('newName', { n });
+      if (!taken.has(name.toLowerCase())) return name;
+    }
   }
 
   #freeColor() {

@@ -1,0 +1,13 @@
+{
+  "graphqlVars": "GraphQL：变量不是有效的 JSON",
+  "method": "无效的方法",
+  "url": "无效的地址：{url}",
+  "needHttp": "需要 http:// 或 https:// 地址",
+  "headerName": "无效的标头名称：{name}",
+  "headerValue": "标头 {name} 中的值无效",
+  "bodyTooBig": "正文过大（最多 50 MB）",
+  "noAnswer": {
+    "other": "{n} 秒内没有响应"
+  },
+  "cancelled": "已取消"
+}

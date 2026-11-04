@@ -1,0 +1,11 @@
+{
+  "noDesk": "Der Schreibtisch ist nicht vorhanden",
+  "notFolder": "„{name}“ ist kein Ordner mehr.",
+  "notFile": "„{name}“ ist keine Datei mehr.",
+  "broken": "Die Verknüpfung „{name}“ findet das Original nicht",
+  "trashed": "Das Original befindet sich im Papierkorb: Stellen Sie es wieder her, um die Verknüpfung erneut zu verwenden.",
+  "deleted": "Das Original wurde gelöscht oder befindet sich in einem Workspace, der von hier aus nicht sichtbar ist.",
+  "mountGone": "Die Netzwerkverbindung, in der sich das Original befand, ist nicht mehr vorhanden.",
+  "pathGone": "„{path}“ befindet sich nicht mehr auf „{mount}“.",
+  "unreachable": "„{name}“ ist nicht erreichbar"
+}

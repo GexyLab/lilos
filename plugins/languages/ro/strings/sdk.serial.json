@@ -1,0 +1,8 @@
+{
+  "notFound": "Portul serial nu a fost găsit (deconectat?)",
+  "unsupported": "Acest browser nu poate folosi porturile seriale (este nevoie de Chrome, Edge sau Firefox 151+, pe https sau localhost)",
+  "click": "Browserul cere un clic înainte de a alege un port",
+  "baud": "Viteză (baud) nevalidă",
+  "busy": "Portul este deja deschis (de altă fereastră sau alt program)",
+  "failed": "Portul nu se deschide: {message}"
+}

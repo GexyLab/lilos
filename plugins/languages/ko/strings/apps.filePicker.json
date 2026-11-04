@@ -1,0 +1,14 @@
+{
+  "title": "파일 선택",
+  "search": "이름 또는 경로로 검색",
+  "searchLabel": "검색",
+  "folders": "폴더",
+  "files": "파일",
+  "choose": "선택",
+  "cancel": "취소",
+  "home": "홈",
+  "noMatch": "검색과 일치하는 항목이 없습니다",
+  "noFolders": "폴더 없음",
+  "noFiles": "lilOS에 파일이 없습니다",
+  "noFilesOf": "lilOS에 {exts} 파일이 없습니다"
+}

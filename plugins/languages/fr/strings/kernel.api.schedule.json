@@ -1,0 +1,9 @@
+{
+  "signIn": "Connectez-vous d’abord",
+  "app": "App non valide",
+  "id": "Identifiant non valide",
+  "number": "Nombre non valide",
+  "missing": "Opération introuvable",
+  "appOwner": "Une app ne planifie que pour l’utilisateur qui l’utilise",
+  "adminOwner": "Seul un administrateur planifie pour d’autres ou pour le système"
+}

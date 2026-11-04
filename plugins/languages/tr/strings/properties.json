@@ -1,0 +1,41 @@
+{
+  "title": "Özellikler",
+  "type": "Tür",
+  "app": "Uygulama",
+  "linkTarget": "Özgün öğe",
+  "linkState": "Durum",
+  "contents": "İçerik",
+  "size": "Boyut",
+  "opensWith": "Birlikte açılır",
+  "deleted": "Silinme",
+  "origin": "Özgün konum",
+  "location": "Konum",
+  "created": "Oluşturulma",
+  "modified": "Değiştirilme",
+  "workspace": "Çalışma alanı",
+  "tags": "Etiketler",
+  "apps": "Uygulamalar",
+  "appData": "{id} verileri",
+  "folder": "Klasör",
+  "linkFolder": "Bir klasöre bağlantı",
+  "linkWeb": "Bir web sayfasına bağlantı",
+  "linkFile": "Bir dosyaya bağlantı",
+  "appLink": "Bir uygulamaya bağlantı",
+  "typeExt": "{type} (.{ext})",
+  "system": "Sistem: {type}",
+  "appMissing": "{id} (yüklü değil)",
+  "broken": "Bozuk: özgün öğe son seferde bulunamadı",
+  "notFound": "Bulunamadı",
+  "mountGone": "Bağlantı kaldırıldı",
+  "ask": "Her seferinde sor",
+  "files": {
+    "other": "{count} dosya"
+  },
+  "folders": {
+    "other": "{count} klasör"
+  },
+  "shared": "Tüm çalışma alanlarınca paylaşılır",
+  "none": "Yok",
+  "orphan": "Uygulama yüklü değil",
+  "remove": "Kaldır"
+}

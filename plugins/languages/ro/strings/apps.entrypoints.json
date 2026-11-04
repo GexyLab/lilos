@@ -1,0 +1,6 @@
+{
+  "notInstalled": "Aplicație neinstalată: {id}",
+  "hidden": "{app} este ascunsă în acest spațiu de lucru",
+  "noEntry": "{app} nu are punctul de intrare {entry}",
+  "backgroundOnly": "Vă puteți conecta doar la un punct de intrare în fundal"
+}

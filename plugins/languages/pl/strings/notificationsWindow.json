@@ -1,0 +1,18 @@
+{
+  "title": "Powiadomienia",
+  "today": "Dzisiaj",
+  "yesterday": "Wczoraj",
+  "markAll": "Oznacz wszystkie jako przeczytane",
+  "clearAll": "Usuń wszystkie",
+  "clearFailed": "Nie usunięto powiadomień: {message}",
+  "removeFailed": "Nie usunięto powiadomienia: {message}",
+  "kept": "Zachowano {count} z {keep}",
+  "fresh": {
+    "one": "{kept} · {n} nowe",
+    "few": "{kept} · {n} nowe",
+    "many": "{kept} · {n} nowych",
+    "other": "{kept} · {n} nowego"
+  },
+  "empty": "Brak powiadomień",
+  "remove": "Usuń"
+}

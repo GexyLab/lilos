@@ -1,0 +1,6 @@
+{
+  "signIn": "请先登录",
+  "adminOnly": "仅限管理员",
+  "name": "无效的名称",
+  "notSupervised": "内核不是通过 \"npm run kernel\" 启动的：请手动重启"
+}

@@ -1,0 +1,12 @@
+{
+  "title": "Powiadomienia",
+  "unread": {
+    "one": "Powiadomienia: {n} do przeczytania",
+    "few": "Powiadomienia: {n} do przeczytania",
+    "many": "Powiadomienia: {n} do przeczytania",
+    "other": "Powiadomienia: {n} do przeczytania"
+  },
+  "stack": "Nowe powiadomienia",
+  "sender": "{name}: {text}",
+  "dismiss": "Usuń z paska"
+}

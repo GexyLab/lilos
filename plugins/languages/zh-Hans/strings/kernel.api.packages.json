@@ -1,0 +1,7 @@
+{
+  "signIn": "请先登录",
+  "kind": "kind 必须为 \"app\" 或 \"module\"",
+  "id": "无效的 id",
+  "target": "需要 install 或 update",
+  "package": "无效的软件包"
+}

@@ -1,0 +1,5 @@
+{
+  "noText": "알림에 텍스트가 없습니다",
+  "badLevel": "잘못된 수준: info, success, warning 또는 error",
+  "keep": "보관할 알림 수: 1~200"
+}

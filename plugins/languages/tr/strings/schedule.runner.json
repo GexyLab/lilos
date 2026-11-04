@@ -1,0 +1,19 @@
+{
+  "noAutomata": "Automata yüklü değil",
+  "theAutomation": "Otomasyon",
+  "theFile": "Dosya",
+  "gone": "{name} artık yok",
+  "openedFile": "Açıldı: {name}",
+  "appMissing": "{app} uygulaması yüklü değil",
+  "openedApp": "Açıldı: {app}",
+  "title": "Bekleyen işlemler",
+  "skippedByUser": "lilOS kullanıcısı tarafından atlandı",
+  "automation": "Otomasyon",
+  "due": "zamanı: {time}",
+  "dueWith": "{label} · zamanı: {time}",
+  "always": "Bundan sonra sormadan çalıştır",
+  "runNow": "Şimdi çalıştır",
+  "skip": "Atla",
+  "lead": "lilOS kapalıyken şunların zamanı geldi:",
+  "hint": "Yanıtlamadıklarınız lilOS’un bir sonraki açılışına kadar beklemeye devam eder, sonra süreleri dolar."
+}

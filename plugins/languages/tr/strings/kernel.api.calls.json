@@ -1,0 +1,7 @@
+{
+  "signIn": "Önce oturum açın",
+  "run": "Çalıştırma geçerli değil",
+  "session": "Oturum geçerli değil",
+  "signin": "Oturum açma geçerli değil",
+  "needSocket": "Bir WebSocket gerekiyor"
+}

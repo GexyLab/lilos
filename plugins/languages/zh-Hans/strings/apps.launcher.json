@@ -1,0 +1,14 @@
+{
+  "name": "“{id}”",
+  "nameVersion": "“{id}”（{version}）",
+  "restart": {
+    "other": "它需要已安装的内核模块 {modules}：这些模块将在内核下次重启后开始工作，重启由管理员在 AppStore 中执行。"
+  },
+  "missing": "未找到：{list}。请由管理员从 AppStore 安装。",
+  "missingModule": "内核模块 {name}",
+  "missingApp": "应用 {name}",
+  "openApp": "打开应用",
+  "hidden": "{app} 在此工作区中已隐藏。你可以在“控制面板 → 工作区”中显示它。",
+  "cannotStart": "{app} 暂时无法启动",
+  "notStarted": "{app} 未启动：{message}"
+}

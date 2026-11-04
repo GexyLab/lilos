@@ -1,0 +1,10 @@
+{
+  "noService": "Żaden moduł kernela nie przechowuje powiadomień",
+  "sent": "Wysłano powiadomienie",
+  "sentAdmins": {
+    "one": "Wysłano powiadomienie do {n} administratora",
+    "few": "Wysłano powiadomienie do {n} administratorów",
+    "many": "Wysłano powiadomienie do {n} administratorów",
+    "other": "Wysłano powiadomienie do {n} administratora"
+  }
+}

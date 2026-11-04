@@ -1,0 +1,5 @@
+{
+  "noRuntime": "Skrip memerlukan modul services-isolate (Panel Kontrol → Modul)",
+  "noStart": "Skrip tidak dapat dimulai: {message}",
+  "timeout": "Skrip kehabisan waktu (5 detik)"
+}

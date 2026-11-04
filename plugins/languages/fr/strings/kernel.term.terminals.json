@@ -1,0 +1,23 @@
+{
+  "signIn": "Connexion requise",
+  "noProtocol": "Protocole non disponible : {protocol} (son module du kernel est manquant)",
+  "hostName": "Nom d’hôte non valide",
+  "hostTaken": "Il existe déjà un hôte « {name} »",
+  "missing": "Manquant : {fields}",
+  "tooMany": "Au maximum {max} hôtes",
+  "hostNotFound": "Hôte introuvable",
+  "noPassword": "Aucun mot de passe à enregistrer",
+  "sealedOther": "Le mot de passe enregistré dans le raccourci ne vaut que pour la personne qui l’a enregistré, sur ce lilOS, pour le même serveur et le même utilisateur",
+  "sessionNotFound": "Session introuvable",
+  "sessionsTooMany": "Au maximum {max} sessions ouvertes",
+  "sftpOnly": "Le terminal ne s’ouvre que sur les connexions SFTP",
+  "sshOnly": "Les commandes planifiées ne vont que vers des hôtes SSH",
+  "untrusted": "La clé du serveur de « {name} » n’est pas confirmée : connectez-vous une fois depuis le Terminal",
+  "denied": "Accès refusé par « {name} » : enregistrez le mot de passe ou la clé dans l’hôte",
+  "stopping": "Le kernel est en cours d’arrêt",
+  "detached": "Fermée après 10 minutes sans fenêtre",
+  "cancelled": "Connexion annulée",
+  "failed": "Échec de la connexion",
+  "folder": "Nom de dossier non valide",
+  "cwd": "Dossier non valide"
+}

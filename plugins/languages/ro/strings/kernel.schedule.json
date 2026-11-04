@@ -1,0 +1,22 @@
+{
+  "ok": "„{name}” a reușit",
+  "error": "„{name}” a eșuat: {why}",
+  "admin.save": "{who}, administrator, a modificat operațiunea dumneavoastră „{name}”",
+  "admin.create": "{who}, administrator, a creat pentru dumneavoastră operațiunea „{name}”",
+  "admin.remove": "{who}, administrator, a șters operațiunea dumneavoastră „{name}”",
+  "admin.on": "{who}, administrator, a reactivat operațiunea dumneavoastră „{name}”",
+  "admin.off": "{who}, administrator, a întrerupt operațiunea dumneavoastră „{name}”",
+  "admin.run": "{who}, administrator, a rulat operațiunea dumneavoastră „{name}”",
+  "admin.move": "{who}, administrator, a mutat operațiunea dumneavoastră „{name}”",
+  "userGone": "Utilizatorul acestei operațiuni nu mai există",
+  "invalid": "Operațiune nevalidă",
+  "unknownAction": "Acțiune necunoscută: {type}",
+  "systemNoApps": "Sistemul nu deschide aplicații: este necesar un utilizator",
+  "waiting": "Se așteaptă deschiderea lilOS",
+  "noPage": "Nicio pagină lilOS nu a răspuns",
+  "cancelled": "Anulată sau timp expirat",
+  "runNotFound": "Execuția nu a fost găsită",
+  "runTaken": "O altă pagină se ocupă de ea",
+  "runGone": "Execuție deja efectuată sau expirată",
+  "taskNotFound": "Operațiunea nu a fost găsită"
+}

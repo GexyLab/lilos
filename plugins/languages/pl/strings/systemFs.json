@@ -1,0 +1,3 @@
+{
+  "welcome": "Witaj w lilOS!\n\nTo jest nieskończony pulpit: przytrzymaj Spację i przeciągnij, aby się przemieszczać,\nużyj kółka, aby powiększać, przeciągnij po tle, aby zaznaczać.\n\n- Dwukrotne kliknięcie folderu: otwiera się w File Managerze.\n- Dwukrotne kliknięcie pliku tekstowego: otwiera się w Editorze (jak ten).\n- Ctrl K otwiera menu start, Ctrl S zapisuje w Editorze.\n- Przycisk obok logo zmienia obszar roboczy: każdy ma własny pulpit,\n  własne okna i własne aplikacje. Documenti, Immagini i Download należą do wszystkich.\n\nSkróty i aplikacje otwierające pliki można zmienić w\nPanelu sterowania → Użyteczność.\n"
+}

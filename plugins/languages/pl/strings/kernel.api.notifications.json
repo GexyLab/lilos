@@ -1,0 +1,8 @@
+{
+  "signIn": "Najpierw się zaloguj",
+  "shape": "Powiadomienie to tekst lub { text, level, action }",
+  "noText": "Powiadomienie nie ma tekstu",
+  "level": "Nieprawidłowy poziom: info, success, warning lub error",
+  "action": "Nieprawidłowa akcja: { entry, args }",
+  "sender": "Nieprawidłowy nadawca: aplikacja nie jest zainstalowana"
+}

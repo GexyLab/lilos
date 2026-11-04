@@ -1,0 +1,9 @@
+{
+  "badPath": "Endereço inválido",
+  "tooLarge": "Solicitação grande demais",
+  "notJson": "O corpo da solicitação não é um JSON válido",
+  "notAllowed": "Solicitação não permitida",
+  "noOrigin": "Falta a origem",
+  "badOrigin": "Origem não permitida",
+  "badHost": "Host não permitido"
+}

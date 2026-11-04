@@ -1,0 +1,8 @@
+{
+  "signIn": "Masuk terlebih dahulu",
+  "shape": "Notifikasi adalah teks atau { text, level, action }",
+  "noText": "Notifikasi tidak memiliki teks",
+  "level": "Tingkat tidak valid: info, success, warning, atau error",
+  "action": "Tindakan tidak valid: { entry, args }",
+  "sender": "Pengirim tidak valid: aplikasi tidak terinstal"
+}

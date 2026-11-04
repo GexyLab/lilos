@@ -1,0 +1,6 @@
+{
+  "reload.title": "{name}の lilOS",
+  "reload.text": "すでに開いているものは、表示されたときの言語のままです。すべてを新しい言語で表示するには lilOS を再読み込みしてください。",
+  "reload.now": "今すぐ再読み込み",
+  "reload.later": "後で"
+}

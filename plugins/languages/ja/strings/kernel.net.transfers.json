@@ -1,0 +1,39 @@
+{
+  "sources": "転送する項目が無効です",
+  "notFolder": "転送先がフォルダーではありません",
+  "homeToHome": "lilOS のフォルダー間のコピーです。ネットワーク転送ではありません",
+  "intoItself": "フォルダーを自分自身の中にコピーすることはできません",
+  "nothing": "転送するものがありません",
+  "tooMany": "キュー内の転送が多すぎます",
+  "itemNotFound": "項目が見つかりません",
+  "noConflict": "解決する競合はありません",
+  "choice": "無効な選択",
+  "queueNotFound": "キューが見つかりません",
+  "serverNotFound": "サーバー上に存在しません",
+  "badName": "転送できない名前：{name}",
+  "webOnly": "「{name}」は Web 上でのみ開けるため、コピーしません",
+  "place": "無効な場所",
+  "tooManyFiles": "転送するファイルが多すぎます",
+  "tooDeep": "フォルダーの階層が深すぎます",
+  "someFailed": "一部のファイルを転送できませんでした",
+  "dstLost": "転送先のフォルダーが失われました",
+  "fileThere": "フォルダーを置く場所にファイル「{name}」がすでにあります",
+  "retrying": "{message} · 再試行しています",
+  "folderThere": "ファイルを置く場所にフォルダー「{name}」がすでにあります",
+  "notFileThere": "ファイルではない項目「{name}」がすでにあります",
+  "done": {
+    "other": "{n} 個のファイルを「{queue}」に転送しました（{size}）"
+  },
+  "failed": {
+    "other": "{n} 個のファイルが転送されませんでした"
+  },
+  "failedIn": {
+    "other": "{n} 個のファイルが「{queue}」に転送されませんでした"
+  },
+  "complete": "転送が完了しました：{files}。",
+  "allFailed": "転送に失敗しました：{files}。",
+  "partial": "転送は完了しましたがエラーがあります：{done}。{failed}。",
+  "bytes": {
+    "other": "{n} バイト"
+  }
+}

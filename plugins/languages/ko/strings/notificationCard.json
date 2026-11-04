@@ -1,0 +1,8 @@
+{
+  "level.error": "오류",
+  "level.warning": "경고",
+  "level.success": "완료",
+  "open": "열기",
+  "openApp": "{name} 열기",
+  "gone": "{name}이(가) 더 이상 설치되어 있지 않습니다"
+}

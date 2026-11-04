@@ -1,0 +1,28 @@
+{
+  "stopped": "کارروائی روک دی گئی",
+  "badName": "ایونٹ کا غلط نام: {name}",
+  "appEvent": "ایپ کے ایونٹ کا نام <app id>.<name> ہوتا ہے",
+  "exists": "ایونٹ {name} پہلے سے موجود ہے",
+  "unknown": "نامعلوم ایونٹ: {name}",
+  "stage": "stage کو \"before\" یا \"after\" ہونا چاہیے",
+  "position": "position کو \"first\"، \"middle\" یا \"last\" ہونا چاہیے",
+  "noHandler": "پائپ کا فنکشن موجود نہیں",
+  "reserved": "ایونٹ {name} سسٹم کے لیے مخصوص ہے",
+  "syncOnly": "{name} ایک فوری کارروائی ہے: ایپس اسے صرف دیکھ سکتی ہیں (stage \"after\")",
+  "maxSubs": {
+    "one": "ہر ایپ کے لیے زیادہ سے زیادہ {n} سبسکرپشن",
+    "other": "ہر ایپ کے لیے زیادہ سے زیادہ {n} سبسکرپشنز"
+  },
+  "busy": "بہت زیادہ کارروائیاں جاری ہیں",
+  "busyApp": "اس ایپ کے لیے بہت زیادہ کارروائیاں جاری ہیں",
+  "syncAnswer": "{name}: فوری کارروائی کو فوری جواب درکار ہے",
+  "handlerFailed": "{name}: {message}",
+  "cannotStop": "{name}: ایونٹ {event} روکا نہیں جا سکتا",
+  "whereObject": "where: صرف ایک آبجیکٹ",
+  "whereInvalid": "غلط where",
+  "whereKey": "where: {key} استعمال نہیں ہوتا",
+  "whereMeta": "where.meta: صرف \"own\"",
+  "whereType": "غلط where.type",
+  "whereList": "where.{key}: متون کی فہرست",
+  "timeout": "{name} نے وقت پر جواب نہیں دیا"
+}

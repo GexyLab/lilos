@@ -1,0 +1,22 @@
+{
+  "choose.serial": "Wybierz port szeregowy",
+  "choose.usb": "Wybierz urządzenie USB",
+  "choose.hid": "Wybierz urządzenie",
+  "choose.bluetooth": "Wybierz urządzenie Bluetooth",
+  "choose.screen": "Wybierz, co udostępnić",
+  "choose.text.serial": "Aplikacja chce użyć portu szeregowego komputera.",
+  "choose.text.usb": "Aplikacja chce użyć urządzenia USB komputera.",
+  "choose.text.hid": "Aplikacja chce użyć urządzenia komputera (klawiatury numeryczne, czytniki, kontrolery…).",
+  "choose.text.bluetooth": "Aplikacja chce użyć urządzenia Bluetooth w pobliżu komputera.",
+  "choose.text.screen": "Aplikacja chce widzieć ekran lub okno komputera.",
+  "choose.field": "Urządzenie",
+  "choose.none": "Nie znaleziono urządzenia: podłącz je i spróbuj ponownie.",
+  "connect": "Połącz",
+  "share": "Udostępnij",
+  "saved": "Zapisano „{name}” z programu komputera",
+  "saveFailed": "Nie zapisano „{name}” z powrotem w lilOS: {error}",
+  "missing": "„{path}” nie ma w lilOS",
+  "driveIn": "„{name}” jest w Sieć › Ten komputer",
+  "driveFailed": "Nie połączono „{name}”: {error}",
+  "serialPort": "Port szeregowy"
+}

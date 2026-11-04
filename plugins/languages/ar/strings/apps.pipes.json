@@ -1,0 +1,10 @@
+{
+  "unknownEvent": "حدث غير معروف: {event}",
+  "denied": "تم رفض الإذن: pipe:{event}",
+  "deniedOwn": "تم رفض الإذن: pipe:{event} (أو pipe.own:{event})",
+  "reserved": "الحدث {event} محجوز للنظام",
+  "sync": "{event} عملية فورية: يمكن مراقبتها فقط (stage \"after\")",
+  "gone": "التطبيق لم يعد مثبّتًا",
+  "unhandled": "لا يعالج {app} {what} (lilos.pipes.subscribe مفقودة)",
+  "needApp": "لفتح «{file}» تحتاج إلى التطبيق {app}: ثبّته من AppStore"
+}

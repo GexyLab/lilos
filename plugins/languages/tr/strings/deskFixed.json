@@ -1,0 +1,13 @@
+{
+  "home.description": "Diğer tüm klasörleri içeren ana klasör",
+  "folder.description": "Tüm çalışma alanlarının paylaştığı {name} klasörü",
+  "files.description": "File Manager’ı açar",
+  "trash": "Çöp Kutusu",
+  "trash.description": "Çöp Kutusu’nu açar; dosya ve klasörler üzerine sürüklenebilir",
+  "noDesk": "Masaüstü yok",
+  "folderGone": "{name} klasörü artık yok",
+  "trashedOne": "Çöp Kutusu’na taşındı",
+  "trashedMany": {
+    "other": "{n} öğe Çöp Kutusu’na taşındı"
+  }
+}

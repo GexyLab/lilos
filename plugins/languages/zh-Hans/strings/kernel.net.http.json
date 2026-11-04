@@ -1,0 +1,6 @@
+{
+  "needHttp": "需要 http 或 https 地址",
+  "noAnswer": {
+    "other": "{n} 秒内没有响应"
+  }
+}

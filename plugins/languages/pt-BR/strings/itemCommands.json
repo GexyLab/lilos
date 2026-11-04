@@ -1,0 +1,8 @@
+{
+  "group": "Itens",
+  "open": "Abrir os itens selecionados",
+  "rename": "Renomear",
+  "delete": "Excluir os itens selecionados",
+  "selectAll": "Selecionar tudo",
+  "deselect": "Limpar a seleção"
+}

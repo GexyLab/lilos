@@ -1,6 +1,18 @@
 import { fail } from '../errors.js';
 import { performRequest, errorOf, secretFiller } from './request.js';
 import { resolve, resolveDeep, evalCheck, extractValue, readable } from './vars.js';
+import { Text, defineStrings } from '../strings.js';
+
+const { t } = defineStrings('lilos:kernel.calls.runner', { en: { strings: {
+  scriptErrorBefore: 'Script error (before): {message}',
+  scriptErrorAfter: 'Script error (after): {message}',
+  scriptTimeoutBefore: 'Script error (before): the script ran out of time (5 seconds)',
+  scriptTimeoutAfter: 'Script error (after): the script ran out of time (5 seconds)',
+  skipped: 'Sessions (WebSocket, SSE, TCP, UDP, MQTT) open from the window: runs skip them',
+  otherServer: 'A script changed the server of the request: the secret values do not go to another address',
+  noProtocol: 'Protocol not available in runs: {protocol} (its kernel module is missing)',
+  nothingToSave: '«{name}»: nothing to save ({source} {path})',
+} } });
 
 /**
  * Runs NetTest's requests: one (Invia), a collection or a folder of it (Esegui, Pianificazione, the
@@ -90,7 +102,10 @@ async function runScript(ctx, item, phase, script, scopes, extra, out) {
     for (const k of ['local', 'environment', 'collection', 'globals']) if (answer.vars[k] && typeof answer.vars[k] === 'object') scopes[k] = answer.vars[k];
     if (Array.isArray(answer.secret)) scopes.secret = new Set(answer.secret.filter(n => scopes.secret.has(n)));
   }
-  if (answer?.error) out.logs.push({ level: 'error', text: `Errore nello script (${phase === 'pre' ? 'prima' : 'dopo'}): ${answer.error}`, phase });
+  if (answer?.error) {
+    const timedOut = answer.error instanceof Text && answer.error.part === 'kernel.calls.scripts' && answer.error.key === 'timeout';
+    out.logs.push({ level: 'error', text: t(`${timedOut ? 'scriptTimeout' : 'scriptError'}${phase === 'pre' ? 'Before' : 'After'}`, { message: answer.error }), phase });
+  }
   return answer;
 }
 
@@ -105,7 +120,7 @@ export async function runRequest(ctx, { item, chain }, scopes, extra = {}) {
   scopes.local = {};
   try {
     if (LIVE.has(protocol)) {
-      out.skipped = 'Le sessioni (WebSocket, SSE, TCP, UDP, MQTT) si aprono dalla finestra: nelle esecuzioni si saltano';
+      out.skipped = t('skipped');
       out.ok = true;
       return out;
     }
@@ -127,7 +142,7 @@ export async function runRequest(ctx, { item, chain }, scopes, extra = {}) {
     };
     // A script that sent the request to another server takes no secret there
     if (originOf(resolve(scriptRequest(item).url, scopes).trim()) !== originOf(spec.url) && secretFiller(ctx.secrets ?? {}).has(JSON.stringify([spec.url, spec.headers, spec.body, spec.auth]))) {
-      fail('forbidden', 'Uno script ha cambiato il server della richiesta: i valori segreti non vanno a un altro indirizzo');
+      fail('forbidden', t('otherServer'));
     }
     // GraphQL is HTTP with its body
     if (protocol === 'graphql' && spec.body.kind !== 'graphql') spec.body = { ...spec.body, kind: 'graphql' };
@@ -139,7 +154,7 @@ export async function runRequest(ctx, { item, chain }, scopes, extra = {}) {
       res = done.response && readable(done.response);
     } else {
       const driver = ctx.drivers.get(protocol);
-      if (typeof driver?.invoke !== 'function') fail('unavailable', `Protocollo non disponibile nelle esecuzioni: ${protocol} (manca il suo modulo del kernel)`);
+      if (typeof driver?.invoke !== 'function') fail('unavailable', t('noProtocol', { protocol }));
       const values = ctx.fill(resolveDeep({ ...(item.values ?? {}), url: str(item.url), headers: Array.isArray(item.headers) ? item.headers : [], settings: item.settings ?? {} }, scopes));
       const t0 = Date.now();
       try {
@@ -165,7 +180,7 @@ export async function runRequest(ctx, { item, chain }, scopes, extra = {}) {
       }
       for (const rule of (Array.isArray(item.extract) ? item.extract : []).filter(r => r && r.enabled !== false && str(r.var))) {
         const v = extractValue({ ...rule, path: resolve(str(rule.path), scopes) }, res);
-        if (v === undefined) { out.logs.push({ level: 'warn', text: `«${rule.var}»: niente da salvare (${rule.source} ${rule.path ?? ''})`, phase: 'test' }); continue; }
+        if (v === undefined) { out.logs.push({ level: 'warn', text: t('nothingToSave', { name: rule.var, source: rule.source, path: rule.path ?? '' }), phase: 'test' }); continue; }
         const scope = ['collection', 'globals'].includes(rule.scope) ? rule.scope : 'environment';
         scopes[scope] = { ...scopes[scope], [rule.var]: v };
         if (scope === 'environment') scopes.secret.delete(rule.var);
@@ -180,7 +195,7 @@ export async function runRequest(ctx, { item, chain }, scopes, extra = {}) {
     out.error = errorOf(err, ctx.mask);
   }
   out.ms = Date.now() - started;
-  out.ok = !out.error && out.checks.every(c => c.ok) && out.tests.every(t => t.ok !== false) && !out.logs.some(l => l.level === 'error' && /^Errore nello script/.test(l.text));
+  out.ok = !out.error && out.checks.every(c => c.ok) && out.tests.every(t => t.ok !== false) && !out.logs.some(l => l.level === 'error' && l.text instanceof Text && l.text.part === 'kernel.calls.runner' && l.text.key.startsWith('script'));
   return out;
 }
 

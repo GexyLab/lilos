@@ -1,7 +1,8 @@
 /**
  * When the operations of the scheduler run: the rules, checked, worked out in a time zone, told in
- * words and as iCalendar RRULEs. No imports, so the same code runs in lilOS's page, in the
- * kernel (the 'scheduler' module gets it from the kernel) and in the apps' sandboxes.
+ * words and as iCalendar RRULEs. It imports only its texts (strings.js, which needs nothing of the
+ * page), so the same code runs in lilOS's page and in the kernel (the 'scheduler' module gets it
+ * from the kernel).
  *
  * A rule (`when`), times as written on a clock of its time zone ('YYYY-MM-DDTHH:mm'):
  *
@@ -24,15 +25,89 @@
  * they have gone forward (03:00); one that happens twice (when they go back) runs the first time.
  * Intervals of minutes and hours without `between` count real time (60 minutes are 60 minutes).
  *
- *   checkWhen(raw) → when                 throws RuleError with a message for people
+ *   checkWhen(raw) → when                 throws RuleError with a message for people (in the
+ *                                         system's language; in the kernel `text` may hold its Text)
  *   nextAfter(when, ms) → ms | null       the first time after `ms` (count not considered: the caller counts)
  *   between(when, from, to, limit) → [ms] the times in [from, to)
  *   gap(when) → ms                        the shortest time between two runs (to refuse rules too thick)
  *   toRrule(when) → { rrule, exdate, rdate } | null   rrule null when the rule has no exact RRULE
- *   describe(when, lang) → 'Ogni giorno alle 02:00'
+ *   describe(when, lang) → 'Every day at 02:00'   (in the language of lilOS's texts; lang: dates)
  *   toCron(when) → '0 2 * * *' | null     fromCron(text, base) → when | null   for the editor
  */
-export class RuleError extends Error {}
+import { defineLater } from './strings.js';
+
+export class RuleError extends Error {
+  constructor(message) {
+    super(String(message));
+    // A translator that gives objects (the kernel's Texts): kept, to answer in the user's language
+    if (message && typeof message === 'object') this.text = message;
+  }
+}
+
+const S = defineLater('lilos:sdk.scheduleRules', {
+  en: { strings: {
+    'error.dateTime': 'Invalid date and time',
+    'error.cron': 'Invalid cron expression',
+    'error.cronFields': 'A cron expression has 5 fields: minute hour day month day-of-week',
+    'error.cronField': 'Field {field} is not valid',
+    'error.cronStep': 'Invalid step in field {field}',
+    'error.cronValue': 'Invalid value “{value}” in field {field}',
+    'error.cronRange': 'Reversed range in field {field}',
+    'error.times': 'Invalid times',
+    'error.exceptions': 'Invalid exceptions',
+    'error.rule': 'Invalid rule',
+    'error.zone': 'Unknown time zone',
+    'error.kind': 'A rule is “once”, “repeat” or “cron”',
+    'error.start': 'Invalid start date and time',
+    'error.every': 'How often: invalid number or unit',
+    'error.days': 'Invalid days of the week',
+    'error.daysUnit': 'Days of the week apply to minutes, hours and weeks',
+    'error.between': 'Invalid time range',
+    'error.monthDay': 'Invalid day of the month',
+    'error.month': 'Invalid month',
+    'error.end': 'Invalid end date',
+    'error.endBeforeStart': 'The end comes before the start',
+    'error.count': 'Invalid number of times',
+    'error.scope': 'scope must be this or all',
+    'error.cronMove': 'A cron rule moves one time at a time',
+    'error.betweenMidnight': 'The time range would go past midnight',
+    'error.monthDayOut': 'The day of the month would fall outside the month',
+    once: 'Once: {date} at {time}',
+    timed: '{what} at {times}',
+    at: 'at {times}',
+    join: '{a}, {b}',
+    'every.minute': { one: 'Every minute', other: 'Every {n} minutes' },
+    'every.hour': { one: 'Every hour', other: 'Every {n} hours' },
+    'every.day': { one: 'Every day', other: 'Every {n} days' },
+    'every.week': { one: 'Every week', other: 'Every {n} weeks' },
+    'every.month': { one: 'every month', other: 'every {n} months' },
+    'every.year': { one: 'Every year', other: 'Every {n} years' },
+    between: 'from {from} to {to}',
+    'weekday.1': 'Monday', 'weekday.2': 'Tuesday', 'weekday.3': 'Wednesday', 'weekday.4': 'Thursday',
+    'weekday.5': 'Friday', 'weekday.6': 'Saturday', 'weekday.7': 'Sunday',
+    'days.list': 'on {days}',
+    'days.weekdays': 'Monday to Friday',
+    'days.weekend': 'on Saturday and Sunday',
+    'days.all': 'every day',
+    eachWeekday: 'Every {day}',
+    workweek: 'Monday to Friday',
+    monthDay: 'On day {day} of {period}',
+    monthLast: 'On the last day of {period}',
+    'nth.1': 'On the first {weekday} of {period}',
+    'nth.2': 'On the second {weekday} of {period}',
+    'nth.3': 'On the third {weekday} of {period}',
+    'nth.4': 'On the fourth {weekday} of {period}',
+    'nth.5': 'On the fifth {weekday} of {period}',
+    'nth.last': 'On the last {weekday} of {period}',
+    yearDay: '{every} on {date}',
+    yearLast: '{every} on the last day of {month}',
+    yearNth: '{every}: {what}',
+    until: 'until {date}',
+    count: { one: 'once', other: '{n} times' },
+    cron: 'Cron: {cron}',
+  } },
+});
+const { t } = S;
 
 const UNITS = ['minute', 'hour', 'day', 'week', 'month', 'year'];
 const LOCAL = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/;
@@ -43,7 +118,7 @@ const MAX_TIMES = 48;
 const MAX_MARKS = 500;
 const SEARCH_DAYS = 366 * 12;
 
-const bad = message => { throw new RuleError(message); };
+const bad = (key, params) => { throw new RuleError(t(`error.${key}`, params)); };
 const crons = new Map();
 /** A cron expression parsed once (the rules are plain JSON: nothing is kept on them). */
 const cronOf = text => {
@@ -127,7 +202,7 @@ const dateOfNumber = n => { const t = new Date(n * DAY_MS); return { y: t.getUTC
 /** 'YYYY-MM-DDTHH:mm' of an instant, on the clock of tz. */
 export function localText(ms, tz) {
   const c = clockAt(ms, tz);
-  if (!(c.y >= 1970 && c.y <= 9999)) bad('Data e ora non valide');
+  if (!(c.y >= 1970 && c.y <= 9999)) bad('dateTime');
   return `${c.y}-${pad(c.m)}-${pad(c.d)}T${pad(c.hh)}:${pad(c.mm)}`;
 }
 
@@ -144,37 +219,37 @@ const CRON_FIELDS = [
 
 /** A cron expression → { minute: Set, hour: Set, dom: Set, month: Set, dow: Set, domAny, dowAny, lastDom, nth: [[wd, k]], lastDow: Set }. */
 export function parseCron(text) {
-  if (typeof text !== 'string' || text.length > 200) bad('Espressione cron non valida');
+  if (typeof text !== 'string' || text.length > 200) bad('cron');
   const parts = text.trim().toLowerCase().split(/\s+/);
-  if (parts.length !== 5) bad('Un’espressione cron ha 5 campi: minuto ora giorno mese giorno-della-settimana');
+  if (parts.length !== 5) bad('cronFields');
   const out = { lastDom: false, nth: [], lastDow: new Set() };
   CRON_FIELDS.forEach((f, i) => {
     const set = new Set();
     const field = parts[i];
     out[`${f.key}Any`] = field === '*' || field === '?';
     for (const item of field.split(',')) {
-      if (!item) bad(`Campo ${i + 1} non valido`);
+      if (!item) bad('cronField', { field: i + 1 });
       if (f.key === 'dom' && item === 'l') { out.lastDom = true; continue; }
       if (f.key === 'dow' && /^[0-7]l$/.test(item)) { out.lastDow.add(Number(item[0]) % 7); continue; }
       if (f.key === 'dow' && /^[0-7]#[1-5]$/.test(item)) { out.nth.push([Number(item[0]) % 7, Number(item[2])]); continue; }
       const [range, stepText] = item.split('/');
       const step = stepText === undefined ? 1 : Number(stepText);
-      if (!Number.isInteger(step) || step < 1 || step > f.max) bad(`Passo non valido nel campo ${i + 1}`);
+      if (!Number.isInteger(step) || step < 1 || step > f.max) bad('cronStep', { field: i + 1 });
       const value = v => {
         const n = f.names?.indexOf(v);
         const x = n >= 0 ? n + f.base : /^\d+$/.test(v) ? Number(v) : NaN;
-        if (!Number.isInteger(x) || x < f.min || x > f.max) bad(`Valore «${v}» non valido nel campo ${i + 1}`);
+        if (!Number.isInteger(x) || x < f.min || x > f.max) bad('cronValue', { value: v, field: i + 1 });
         return x;
       };
       let lo, hi;
       if (range === '*' || range === '?') { lo = f.min; hi = f.key === 'dow' ? 6 : f.max; }
-      else if (range.includes('-')) { [lo, hi] = range.split('-').map(value); if (hi < lo) bad(`Intervallo al contrario nel campo ${i + 1}`); }
+      else if (range.includes('-')) { [lo, hi] = range.split('-').map(value); if (hi < lo) bad('cronRange', { field: i + 1 }); }
       else { lo = value(range); hi = stepText === undefined ? lo : f.key === 'dow' ? 6 : f.max; }
       for (let x = lo; x <= hi; x += step) set.add(f.key === 'dow' ? x % 7 : x);
     }
     out[f.key] = set;
   });
-  if (!out.minute.size || !out.hour.size) bad('Espressione cron non valida');
+  if (!out.minute.size || !out.hour.size) bad('cron');
   return out;
 }
 
@@ -195,46 +270,46 @@ function cronDay(c, y, m, d) {
 
 const timeList = (v, fallback) => {
   if (v === undefined) return [fallback];
-  if (!Array.isArray(v) || !v.length || v.length > MAX_TIMES || v.some(t => typeof t !== 'string' || !TIME.test(t))) bad('Orari non validi');
+  if (!Array.isArray(v) || !v.length || v.length > MAX_TIMES || v.some(t => typeof t !== 'string' || !TIME.test(t))) bad('times');
   return [...new Set(v)].sort();
 };
 const marks = v => {
   if (v === undefined) return [];
-  if (!Array.isArray(v) || v.length > MAX_MARKS || v.some(t => !Number.isSafeInteger(t))) bad('Eccezioni non valide');
+  if (!Array.isArray(v) || v.length > MAX_MARKS || v.some(t => !Number.isSafeInteger(t))) bad('exceptions');
   return [...new Set(v)].sort((a, b) => a - b);
 };
 
 /** A rule as saved: only what it may hold, checked. Throws RuleError. */
 export function checkWhen(raw) {
-  if (!plain(raw)) bad('Regola non valida');
+  if (!plain(raw)) bad('rule');
   const tz = raw.tz ?? 'UTC';
-  if (!validZone(tz)) bad('Fuso orario sconosciuto');
+  if (!validZone(tz)) bad('zone');
   const kinds = ['once', 'every', 'cron'].filter(k => raw[k] !== undefined);
-  if (kinds.length !== 1) bad('Una regola è «una volta», «ripeti» o «cron»');
+  if (kinds.length !== 1) bad('kind');
   const out = { tz };
   if (raw.once !== undefined) {
-    if (!parseLocal(raw.once)) bad('Data e ora non valide');
+    if (!parseLocal(raw.once)) bad('dateTime');
     out.once = raw.once;
   } else {
-    const start = parseLocal(raw.start) ?? bad('Data e ora d’inizio non valide');
+    const start = parseLocal(raw.start) ?? bad('start');
     out.start = raw.start;
     if (raw.cron !== undefined) {
       parseCron(raw.cron);
       out.cron = raw.cron.trim().replace(/\s+/g, ' ');
     } else {
       const e = raw.every;
-      if (!plain(e) || !UNITS.includes(e.unit) || !int(e.n, 1, e.unit === 'minute' ? 1440 : e.unit === 'hour' ? 168 : e.unit === 'year' ? 10 : 366)) bad('Ogni quanto: numero o unità non validi');
+      if (!plain(e) || !UNITS.includes(e.unit) || !int(e.n, 1, e.unit === 'minute' ? 1440 : e.unit === 'hour' ? 168 : e.unit === 'year' ? 10 : 366)) bad('every');
       out.every = { n: e.n, unit: e.unit };
       const startTime = `${pad(start.hh)}:${pad(start.mm)}`;
       if (raw.days !== undefined) {
-        if (!Array.isArray(raw.days) || !raw.days.length || raw.days.some(d => !int(d, 1, 7))) bad('Giorni della settimana non validi');
-        if (!['minute', 'hour', 'week'].includes(e.unit)) bad('I giorni della settimana valgono per minuti, ore e settimane');
+        if (!Array.isArray(raw.days) || !raw.days.length || raw.days.some(d => !int(d, 1, 7))) bad('days');
+        if (!['minute', 'hour', 'week'].includes(e.unit)) bad('daysUnit');
         out.days = [...new Set(raw.days)].sort();
       } else if (e.unit === 'week') out.days = [weekdayOf(start.y, start.m, start.d)];
       if (e.unit === 'minute' || e.unit === 'hour') {
         if (raw.between !== undefined) {
           const b = raw.between;
-          if (!Array.isArray(b) || b.length !== 2 || b.some(t => typeof t !== 'string' || !TIME.test(t)) || minutesOf(b[1]) < minutesOf(b[0])) bad('Fascia oraria non valida');
+          if (!Array.isArray(b) || b.length !== 2 || b.some(t => typeof t !== 'string' || !TIME.test(t)) || minutesOf(b[1]) < minutesOf(b[0])) bad('between');
           out.between = [b[0], b[1]];
         }
       } else {
@@ -244,20 +319,20 @@ export function checkWhen(raw) {
         const mo = raw.monthly ?? { day: start.d };
         if (plain(mo) && mo.day !== undefined && (int(mo.day, 1, 31) || mo.day === -1)) out.monthly = { day: mo.day };
         else if (plain(mo) && (int(mo.nth, 1, 5) || mo.nth === -1) && int(mo.weekday, 1, 7)) out.monthly = { nth: mo.nth, weekday: mo.weekday };
-        else bad('Giorno del mese non valido');
+        else bad('monthDay');
       }
       if (e.unit === 'year') {
-        if (raw.month !== undefined && !int(raw.month, 1, 12)) bad('Mese non valido');
+        if (raw.month !== undefined && !int(raw.month, 1, 12)) bad('month');
         out.month = raw.month ?? start.m;
       }
     }
     if (raw.end !== undefined && raw.end !== null) {
-      const end = parseDate(raw.end) ?? bad('Data di fine non valida');
-      if (dayNumber(end.y, end.m, end.d) < dayNumber(start.y, start.m, start.d)) bad('La fine viene prima dell’inizio');
+      const end = parseDate(raw.end) ?? bad('end');
+      if (dayNumber(end.y, end.m, end.d) < dayNumber(start.y, start.m, start.d)) bad('endBeforeStart');
       out.end = raw.end;
     }
     if (raw.count !== undefined && raw.count !== null) {
-      if (!int(raw.count, 1, 100_000)) bad('Numero di volte non valido');
+      if (!int(raw.count, 1, 100_000)) bad('count');
       out.count = raw.count;
     }
   }
@@ -409,7 +484,7 @@ export const firstTime = when => nextAfter(when, when.once ? -Infinity : startMs
  * RuleError when the rule cannot move that way (a cron moves only one time).
  */
 export function moveWhen(when, { at, to, scope }) {
-  if (!Number.isSafeInteger(at) || !Number.isSafeInteger(to) || to < 0 || to > 253402300799000) bad('Orari non validi');
+  if (!Number.isSafeInteger(at) || !Number.isSafeInteger(to) || to < 0 || to > 253402300799000) bad('times');
   const w = { ...when };
   if (scope === 'this') {
     if (w.once) return checkWhen({ ...w, once: localText(to, w.tz) });
@@ -418,9 +493,9 @@ export function moveWhen(when, { at, to, scope }) {
     if (to !== at) w.extra = [...new Set([...(w.extra ?? []), to])].sort((a, b) => a - b);
     return checkWhen(w);
   }
-  if (scope !== 'all') bad('scope deve essere this o all');
+  if (scope !== 'all') bad('scope');
   if (w.once) return checkWhen({ ...w, once: localText(to, w.tz) });
-  if (w.cron) bad('Una regola cron si sposta una volta alla volta');
+  if (w.cron) bad('cronMove');
   const a = clockAt(at, w.tz), b = clockAt(to, w.tz);
   const minutes = (b.hh * 60 + b.mm) - (a.hh * 60 + a.mm);
   const days = dayNumber(b.y, b.m, b.d) - dayNumber(a.y, a.m, a.d);
@@ -438,14 +513,14 @@ export function moveWhen(when, { at, to, scope }) {
   if (w.times) w.times = [...new Set(w.times.map(shiftTime))].sort();
   if (w.between) {
     const [x, y] = w.between.map(shiftTime);
-    if (minutesOf(y) < minutesOf(x)) bad('La fascia oraria passerebbe la mezzanotte');
+    if (minutesOf(y) < minutesOf(x)) bad('betweenMidnight');
     w.between = [x, y];
   }
   const dayShift = days + Math.floor(((a.hh * 60 + a.mm) + minutes) / 1440);
   if (w.days && dayShift % 7) w.days = [...new Set(w.days.map(d => ((d - 1 + dayShift) % 7 + 7) % 7 + 1))].sort();
   if (w.monthly?.day > 0 && dayShift) {
     const nd = w.monthly.day + dayShift;
-    if (nd < 1 || nd > 31) bad('Il giorno del mese uscirebbe dal mese');
+    if (nd < 1 || nd > 31) bad('monthDayOut');
     w.monthly = { day: nd };
   }
   if (w.monthly?.weekday && dayShift % 7) w.monthly = { ...w.monthly, weekday: ((w.monthly.weekday - 1 + dayShift) % 7 + 7) % 7 + 1 };
@@ -575,90 +650,67 @@ export function fromCron(text, base) {
 
 // ---------- In words ----------
 
-const WORDS = {
-  it: {
-    once: d => `Una volta: ${d}`, at: t => `alle ${t}`, and: ' e ',
-    every: { minute: ['Ogni minuto', n => `Ogni ${n} minuti`], hour: ['Ogni ora', n => `Ogni ${n} ore`], day: ['Ogni giorno', n => `Ogni ${n} giorni`], week: ['Ogni settimana', n => `Ogni ${n} settimane`], month: ['ogni mese', n => `ogni ${n} mesi`], year: ['Ogni anno', n => `Ogni ${n} anni`] },
-    between: (a, b) => `dalle ${a} alle ${b}`,
-    weekdays: ['lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato', 'domenica'],
-    onDays: list => `il ${list}`, weekdaysRange: 'dal lunedì al venerdì', weekend: 'il sabato e la domenica', everyDay: 'ogni giorno',
-    eachWeekday: d => `Ogni ${d}`, workweek: 'Dal lunedì al venerdì',
-    monthDay: (d, every) => `Il giorno ${d} di ${every}`, lastDay: every => `L’ultimo giorno di ${every}`,
-    nth: (k, d, every) => `${['', 'Il primo', 'Il secondo', 'Il terzo', 'Il quarto', 'Il quinto'][k] ?? 'L’ultimo'} ${d} di ${every}`,
-    lastNth: (d, every) => `L’ultimo ${d} di ${every}`,
-    yearDay: (date, every) => `${every} il ${date}`, yearLast: (month, every) => `${every} l’ultimo giorno di ${month}`,
-    until: d => `fino al ${d}`, times: n => (n === 1 ? 'una volta' : `${n} volte`), cron: t => `Cron: ${t}`,
-  },
-  en: {
-    once: d => `Once: ${d}`, at: t => `at ${t}`, and: ' and ',
-    every: { minute: ['Every minute', n => `Every ${n} minutes`], hour: ['Every hour', n => `Every ${n} hours`], day: ['Every day', n => `Every ${n} days`], week: ['Every week', n => `Every ${n} weeks`], month: ['every month', n => `every ${n} months`], year: ['Every year', n => `Every ${n} years`] },
-    between: (a, b) => `from ${a} to ${b}`,
-    weekdays: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
-    onDays: list => `on ${list}`, weekdaysRange: 'Monday to Friday', weekend: 'on Saturday and Sunday', everyDay: 'every day',
-    eachWeekday: d => `Every ${d}`, workweek: 'Monday to Friday',
-    monthDay: (d, every) => `On day ${d} of ${every}`, lastDay: every => `On the last day of ${every}`,
-    nth: (k, d, every) => `On the ${['', 'first', 'second', 'third', 'fourth', 'fifth'][k] ?? 'last'} ${d} of ${every}`,
-    lastNth: (d, every) => `On the last ${d} of ${every}`,
-    yearDay: (date, every) => `${every} on ${date}`, yearLast: (month, every) => `${every} on the last day of ${month}`,
-    until: d => `until ${d}`, times: n => (n === 1 ? 'once' : `${n} times`), cron: t => `Cron: ${t}`,
-  },
+/** Items as a list in the language of the texts ('08:00, 12:00 and 18:30'). */
+const list = items => {
+  try { return new Intl.ListFormat(S.lang, { style: 'long', type: 'conjunction' }).format(items); } catch { return items.join(', '); }
 };
+const join = parts => parts.filter(Boolean).reduce((a, b) => t('join', { a, b }));
+const intlTag = tag => { try { return Intl.getCanonicalLocales(tag)[0] ?? 'en'; } catch { return 'en'; } };
 
-const list = (items, and) => (items.length < 2 ? items.join('') : `${items.slice(0, -1).join(', ')}${and}${items[items.length - 1]}`);
-
-/** The rule in words, in Italian or English ('it-CH' → it, anything else → en). */
+/**
+ * The rule in words, in the language of lilOS's texts (the language pack in use, else English).
+ * lang ('it-IT'): the locale of dates and month names, when it is that same language.
+ */
 export function describe(when, lang = 'en') {
-  const code = String(lang).toLowerCase().startsWith('it') ? 'it' : 'en';
-  const W = WORDS[code];
+  const words = intlTag(S.lang);
+  const code = intlTag(lang).split('-')[0] === words.split('-')[0] ? intlTag(lang) : words;
   const dateFmt = (y, m, d, opts) => new Intl.DateTimeFormat(code, { timeZone: 'UTC', ...opts }).format(new Date(Date.UTC(y, m - 1, d)));
+  const weekday = d => t(`weekday.${d}`);
   if (when.once) {
     const o = parseLocal(when.once);
-    return W.once(`${dateFmt(o.y, o.m, o.d, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} ${W.at(`${pad(o.hh)}:${pad(o.mm)}`)}`);
+    return t('once', { date: dateFmt(o.y, o.m, o.d, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }), time: `${pad(o.hh)}:${pad(o.mm)}` });
   }
   let w = when;
   if (w.cron) {
     const like = fromCron(w.cron, { tz: w.tz, start: w.start });
-    if (!like) return W.cron(w.cron);
+    if (!like) return t('cron', { cron: w.cron });
     w = { ...like, end: when.end, count: when.count };
   }
   const { n, unit } = w.every;
-  const [one, many] = W.every[unit];
-  const everyText = n === 1 ? one : many(n);
-  const at = w.times ? W.at(list(w.times, W.and)) : '';
-  const dayNames = ds => list(ds.map(d => W.weekdays[d - 1]), W.and);
+  const everyText = t(`every.${unit}`, { n });
+  const times = w.times ? list(w.times) : '';
+  const timed = what => (times ? t('timed', { what, times }) : what);
   const daysText = ds => {
     if (!ds) return '';
-    if (ds.length === 7) return W.everyDay;
-    if (ds.join() === '1,2,3,4,5') return W.weekdaysRange;
-    if (ds.join() === '6,7') return W.weekend;
-    return W.onDays(dayNames(ds));
+    if (ds.length === 7) return t('days.all');
+    if (ds.join() === '1,2,3,4,5') return t('days.weekdays');
+    if (ds.join() === '6,7') return t('days.weekend');
+    return t('days.list', { days: list(ds.map(weekday)) });
   };
+  const nth = (mo, period) => t(mo.nth === -1 ? 'nth.last' : `nth.${mo.nth}`, { weekday: weekday(mo.weekday), period });
   let text;
   if (unit === 'minute' || unit === 'hour') {
-    text = [everyText, w.between && W.between(...w.between), w.days && daysText(w.days)].filter(Boolean).join(', ');
+    text = join([everyText, w.between && t('between', { from: w.between[0], to: w.between[1] }), w.days && daysText(w.days)]);
   } else if (unit === 'day') {
-    text = `${everyText} ${at}`;
+    text = timed(everyText);
   } else if (unit === 'week') {
-    if (n === 1 && w.days.length === 7) text = `${W.every.day[0]} ${at}`;
-    else if (n === 1 && w.days.join() === '1,2,3,4,5') text = `${W.workweek} ${at}`;
-    else if (n === 1 && w.days.length === 1) text = `${W.eachWeekday(W.weekdays[w.days[0] - 1])} ${at}`;
-    else text = `${everyText}, ${daysText(w.days)}, ${at}`;
+    if (n === 1 && w.days.length === 7) text = timed(t('every.day', { n: 1 }));
+    else if (n === 1 && w.days.join() === '1,2,3,4,5') text = timed(t('workweek'));
+    else if (n === 1 && w.days.length === 1) text = timed(t('eachWeekday', { day: weekday(w.days[0]) }));
+    else text = join([everyText, daysText(w.days), times && t('at', { times })]);
   } else if (unit === 'month') {
     const mo = w.monthly;
-    const every = W.every.month[n === 1 ? 0 : 1];
-    const everyM = n === 1 ? every : every(n);
-    const head = mo.day === -1 ? W.lastDay(everyM) : mo.day !== undefined ? W.monthDay(mo.day, everyM)
-      : mo.nth === -1 ? W.lastNth(W.weekdays[mo.weekday - 1], everyM) : W.nth(mo.nth, W.weekdays[mo.weekday - 1], everyM);
-    text = `${head} ${at}`;
+    const period = t('every.month', { n });
+    text = timed(mo.day === -1 ? t('monthLast', { period }) : mo.day !== undefined ? t('monthDay', { day: mo.day, period }) : nth(mo, period));
   } else {
     const mo = w.monthly;
-    const monthName = dateFmt(2000, w.month, 1, { month: 'long' });
-    if (mo.day === -1) text = `${W.yearLast(monthName, everyText)} ${at}`;
-    else if (mo.day !== undefined) text = `${W.yearDay(dateFmt(2000, w.month, mo.day, { day: 'numeric', month: 'long' }), everyText)} ${at}`;
-    else text = `${everyText}: ${(mo.nth === -1 ? W.lastNth(W.weekdays[mo.weekday - 1], monthName) : W.nth(mo.nth, W.weekdays[mo.weekday - 1], monthName))} ${at}`;
+    const month = dateFmt(2000, w.month, 1, { month: 'long' });
+    if (mo.day === -1) text = timed(t('yearLast', { every: everyText, month }));
+    else if (mo.day !== undefined) text = timed(t('yearDay', { every: everyText, date: dateFmt(2000, w.month, mo.day, { day: 'numeric', month: 'long' }) }));
+    else text = timed(t('yearNth', { every: everyText, what: nth(mo, month) }));
   }
   const tail = [];
-  if (w.end) { const e = parseDate(w.end); tail.push(W.until(dateFmt(e.y, e.m, e.d, { day: 'numeric', month: 'long', year: 'numeric' }))); }
-  if (w.count) tail.push(W.times(w.count));
-  return [text.trim(), ...tail].join(', ');
+  if (w.end) { const e = parseDate(w.end); tail.push(t('until', { date: dateFmt(e.y, e.m, e.d, { day: 'numeric', month: 'long', year: 'numeric' }) })); }
+  if (w.count) tail.push(t('count', { n: w.count }));
+  return join([text.trim(), ...tail]);
 }

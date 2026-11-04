@@ -1,0 +1,7 @@
+{
+  "path": "Ongeldig pad: {path}",
+  "notFound": "Niet gevonden: {path}",
+  "gone": "Het bestand is er niet meer",
+  "notFile": "Geen bestand: {path}",
+  "tooBig": "Bestand te groot (maximaal 50 MB): {path}"
+}

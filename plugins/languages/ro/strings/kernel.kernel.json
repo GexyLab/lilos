@@ -1,0 +1,9 @@
+{
+  "notFound": "Resursa nu a fost găsită",
+  "method": "Metodă nepermisă",
+  "internal": "Eroare internă a kernelului",
+  "unavailable": "Serviciu indisponibil: {name}",
+  "signIn": "Conectați-vă mai întâi",
+  "needSocket": "Este necesar un WebSocket",
+  "refused": "Conexiune refuzată"
+}

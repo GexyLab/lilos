@@ -1,0 +1,17 @@
+{
+  "port": "Porta inválida",
+  "url": "Endereço inválido",
+  "closedBy": "Fechado pelo servidor ({code})",
+  "closedByReason": "Fechado pelo servidor ({code}: {reason})",
+  "closed": "A conexão está fechada",
+  "unknownCommand": "Comando desconhecido",
+  "notStream": "O servidor respondeu {status} em vez de um fluxo de eventos",
+  "notStreamType": "O servidor respondeu {status} ({type}) em vez de um fluxo de eventos",
+  "lineTooLong": "Linha longa demais: descartada",
+  "eventTooLong": "Evento longo demais: descartado",
+  "streamEnded": "O servidor fechou o fluxo",
+  "receiveOnly": "Server-Sent Events: somente recebimento",
+  "noHost": "Falta o servidor",
+  "ended": "O servidor fechou a conexão",
+  "tooBig": "Datagrama grande demais (no máximo 65507 bytes)"
+}

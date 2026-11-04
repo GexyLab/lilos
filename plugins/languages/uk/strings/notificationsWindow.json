@@ -1,0 +1,18 @@
+{
+  "title": "Сповіщення",
+  "today": "Сьогодні",
+  "yesterday": "Учора",
+  "markAll": "Позначити всі як прочитані",
+  "clearAll": "Видалити всі",
+  "clearFailed": "Сповіщення не видалено: {message}",
+  "removeFailed": "Сповіщення не видалено: {message}",
+  "kept": "Зберігається {count} з {keep}",
+  "fresh": {
+    "one": "{kept} · {n} нове",
+    "few": "{kept} · {n} нові",
+    "many": "{kept} · {n} нових",
+    "other": "{kept} · {n} нового"
+  },
+  "empty": "Немає сповіщень",
+  "remove": "Видалити"
+}

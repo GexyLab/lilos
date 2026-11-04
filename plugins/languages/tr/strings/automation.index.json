@@ -1,0 +1,8 @@
+{
+  "recording": {
+    "other": "Kaydediliyor ({n} adım)"
+  },
+  "paused": {
+    "other": "Kayıt duraklatıldı ({n} adım)"
+  }
+}

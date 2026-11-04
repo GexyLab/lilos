@@ -1,0 +1,6 @@
+{
+  "group": "자동화",
+  "needRun": "자동화를 실행하려면 Automata 앱이 필요합니다",
+  "needRecord": "자동화를 기록하려면 Automata 앱이 필요합니다",
+  "recordHere": "여기서부터 기록"
+}

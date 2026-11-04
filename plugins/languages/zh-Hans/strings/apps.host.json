@@ -1,0 +1,8 @@
+{
+  "noExport": "代码未导出 {entry}",
+  "windowClosed": "{app}：窗口已关闭",
+  "libraryFailed": "库 {name} 未加载",
+  "noExportOf": "{app} 的代码未导出 {entry}",
+  "noWindow": "{app} 没有窗口 {entry}",
+  "remoteOrigin": "远程应用不能使用 lilOS 的地址"
+}

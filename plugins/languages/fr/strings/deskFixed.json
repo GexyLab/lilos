@@ -1,0 +1,14 @@
+{
+  "home.description": "Le dossier principal, qui contient tous les autres",
+  "folder.description": "Le dossier {name}, partagé par tous les espaces de travail",
+  "files.description": "Ouvre le File Manager",
+  "trash": "Corbeille",
+  "trash.description": "Ouvre la Corbeille ; vous pouvez y faire glisser des fichiers et des dossiers",
+  "noDesk": "Le bureau n’est pas là",
+  "folderGone": "Le dossier {name} n’existe plus",
+  "trashedOne": "Mis à la Corbeille",
+  "trashedMany": {
+    "one": "{n} élément mis à la Corbeille",
+    "other": "{n} éléments mis à la Corbeille"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "signIn": "Masuk terlebih dahulu",
+  "id": "Pengenal tidak valid",
+  "key": "Kunci tidak valid: {key}",
+  "tooLarge": "Nilai terlalu besar: {key}",
+  "changes": "Perubahan tidak valid",
+  "item": "Item tidak valid",
+  "itemData": "Terlalu banyak data dalam satu item",
+  "tooMany": "Terlalu banyak kunci sekaligus"
+}

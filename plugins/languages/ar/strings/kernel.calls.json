@@ -1,0 +1,16 @@
+{
+  "secret": "قيمة سرية غير صالحة",
+  "fingerprint": "بصمة غير صالحة",
+  "server": "خادم غير صالح",
+  "sendsTooMany": "{max} طلبات كحد أقصى في المرة الواحدة",
+  "unopened": "قيم سرية لم تُفتح (حفظها مستخدم آخر أو على lilOS آخر): {names}",
+  "runsTooMany": "{max} عمليات تشغيل كحد أقصى في المرة الواحدة",
+  "collection": "مجموعة غير صالحة",
+  "runNotFound": "لم يتم العثور على التشغيل",
+  "needFile": "يلزم ملف .nettest",
+  "notCollection": "الملف ليس مجموعة NetTest",
+  "noEnvironment": "لم يتم العثور على البيئة: {name}",
+  "untitled": "مجموعة",
+  "noProtocol": "البروتوكول غير متاح: {protocol} (وحدة kernel الخاصة به مفقودة)",
+  "noDescribe": "هذا البروتوكول لا يصف الخادم"
+}

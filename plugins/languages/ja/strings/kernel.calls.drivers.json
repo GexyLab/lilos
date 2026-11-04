@@ -1,0 +1,17 @@
+{
+  "port": "無効なポート",
+  "url": "無効なアドレス",
+  "closedBy": "サーバーによって閉じられました（{code}）",
+  "closedByReason": "サーバーによって閉じられました（{code}：{reason}）",
+  "closed": "接続は閉じられています",
+  "unknownCommand": "不明なコマンド",
+  "notStream": "サーバーはイベントストリームではなく {status} を返しました",
+  "notStreamType": "サーバーはイベントストリームではなく {status}（{type}）を返しました",
+  "lineTooLong": "行が長すぎるため破棄しました",
+  "eventTooLong": "イベントが長すぎるため破棄しました",
+  "streamEnded": "サーバーがストリームを閉じました",
+  "receiveOnly": "Server-Sent Events：受信のみ",
+  "noHost": "サーバーがありません",
+  "ended": "サーバーが接続を閉じました",
+  "tooBig": "データグラムが大きすぎます（最大 65507 バイト）"
+}

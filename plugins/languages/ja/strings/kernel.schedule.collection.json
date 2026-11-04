@@ -1,0 +1,9 @@
+{
+  "skipped": "スキップ",
+  "check": "チェック {name}（{actual}）",
+  "test": "テスト「{name}」：{error}",
+  "counts": "成功 {passed}、失敗 {failed}（{seconds} 秒）",
+  "countsSkipped": "成功 {passed}、失敗 {failed}、スキップ {skipped}（{seconds} 秒）",
+  "cancelled": "キャンセルされました：{counts}",
+  "failedFirst": "{name}：{counts}（最初の失敗：{first}）"
+}

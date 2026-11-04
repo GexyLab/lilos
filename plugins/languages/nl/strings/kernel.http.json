@@ -1,0 +1,9 @@
+{
+  "badPath": "Ongeldig adres",
+  "tooLarge": "Verzoek te groot",
+  "notJson": "De hoofdtekst van het verzoek is geen geldige JSON",
+  "notAllowed": "Verzoek niet toegestaan",
+  "noOrigin": "Origin ontbreekt",
+  "badOrigin": "Origin niet toegestaan",
+  "badHost": "Host niet toegestaan"
+}

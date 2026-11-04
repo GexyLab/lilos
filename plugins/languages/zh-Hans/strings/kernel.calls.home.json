@@ -1,0 +1,7 @@
+{
+  "path": "无效的路径：{path}",
+  "notFound": "未找到：{path}",
+  "gone": "该文件已不存在",
+  "notFile": "不是文件：{path}",
+  "tooBig": "文件过大（最多 50 MB）：{path}"
+}

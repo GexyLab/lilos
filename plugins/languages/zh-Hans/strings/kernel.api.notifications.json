@@ -1,0 +1,8 @@
+{
+  "signIn": "请先登录",
+  "shape": "通知是文本或 { text, level, action }",
+  "noText": "通知没有文本",
+  "level": "无效的级别：info、success、warning 或 error",
+  "action": "无效的操作：{ entry, args }",
+  "sender": "无效的发送者：该应用未安装"
+}

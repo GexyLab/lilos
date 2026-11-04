@@ -1,0 +1,8 @@
+{
+  "blockedWindow": "Tarayıcı oturum açma penceresini engelledi",
+  "blockedTab": "Tarayıcı oturum açma sekmesini engelledi",
+  "canceled": "Oturum açma iptal edildi",
+  "failed": "Oturum açılamadı",
+  "noAskAddress": "askAddress eksik",
+  "badAddress": "Geçersiz adres"
+}

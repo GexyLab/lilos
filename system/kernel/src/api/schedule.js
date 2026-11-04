@@ -1,4 +1,5 @@
 import { fail } from '../errors.js';
+import { defineStrings } from '../strings.js';
 
 /**
  * The scheduler (the 'scheduler' service and schedule/), for signed-in users. A user sees and
@@ -26,19 +27,24 @@ import { fail } from '../errors.js';
  */
 const APP = /^[a-z0-9][a-z0-9.-]{1,63}$/;
 const ID = /^[\w-]{1,64}$/;
+const { t } = defineStrings('lilos:kernel.api.schedule', { en: { strings: {
+  signIn: 'Sign in first', app: 'App not valid', id: 'Identifier not valid', number: 'Number not valid',
+  missing: 'Operation not found', appOwner: 'An app schedules only for the user who uses it',
+  adminOwner: 'Only an administrator schedules for others or for the system',
+} } });
 
 export function scheduleRoutes(kernel) {
   const { router, schedules } = kernel;
   const service = () => kernel.service('scheduler');
-  const signedIn = p => p ?? fail('unauthorized', 'Accesso richiesto');
-  const appOf = v => (v == null || v === '' ? null : APP.test(v) ? v : fail('invalid', 'App non valida'));
-  const id = v => (ID.test(v ?? '') ? v : fail('invalid', 'Identificatore non valido'));
-  const intOf = v => (v == null || v === '' ? null : Number.isSafeInteger(Number(v)) ? Number(v) : fail('invalid', 'Numero non valido'));
+  const signedIn = p => p ?? fail('unauthorized', t('signIn'));
+  const appOf = v => (v == null || v === '' ? null : APP.test(v) ? v : fail('invalid', t('app')));
+  const id = v => (ID.test(v ?? '') ? v : fail('invalid', t('id')));
+  const intOf = v => (v == null || v === '' ? null : Number.isSafeInteger(Number(v)) ? Number(v) : fail('invalid', t('number')));
 
   /** The task `id`, when `app` (an app asking) may touch it. */
   const mine = async (principal, taskId, app) => {
-    const task = await service().get(principal, id(taskId)) ?? fail('not_found', 'Operazione inesistente');
-    if (app && task.app !== app) fail('not_found', 'Operazione inesistente');
+    const task = await service().get(principal, id(taskId)) ?? fail('not_found', t('missing'));
+    if (app && task.app !== app) fail('not_found', t('missing'));
     return task;
   };
 
@@ -54,8 +60,8 @@ export function scheduleRoutes(kernel) {
     const p = signedIn(principal);
     const body = await json(256 << 10) ?? {};
     const app = appOf(body.app);
-    if (app && body.owner !== undefined && body.owner !== p.id) fail('forbidden', 'Un’app pianifica solo per chi la usa');
-    if (body.owner !== undefined && body.owner !== p.id && p.role !== 'admin') fail('forbidden', 'Solo un amministratore pianifica per altri o per il sistema');
+    if (app && body.owner !== undefined && body.owner !== p.id) fail('forbidden', t('appOwner'));
+    if (body.owner !== undefined && body.owner !== p.id && p.role !== 'admin') fail('forbidden', t('adminOwner'));
     const { id: _ignored, ...rest } = body;
     const task = await service().save(p, await schedules.prepare(p, { ...rest, app }));
     if (task.owner !== p.id) await schedules.tellOwner(p, task, 'create');

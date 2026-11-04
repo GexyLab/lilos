@@ -1,0 +1,11 @@
+{
+  "noDesk": "Masaüstü yok",
+  "notFolder": "“{name}” artık bir klasör değil.",
+  "notFile": "“{name}” artık bir dosya değil.",
+  "broken": "“{name}” bağlantısı özgün öğeyi bulamıyor",
+  "trashed": "Özgün öğe Çöp Kutusu’nda: bağlantıyı yeniden kullanmak için onu geri yükleyin.",
+  "deleted": "Özgün öğe silindi ya da buradan görülemeyen bir çalışma alanında.",
+  "mountGone": "Özgün öğenin bulunduğu ağ bağlantısı artık yok.",
+  "pathGone": "“{path}” artık “{mount}” üzerinde değil.",
+  "unreachable": "“{name}” öğesine ulaşılamıyor"
+}

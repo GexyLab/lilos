@@ -1,0 +1,26 @@
+{
+  "retention.days": {
+    "one": "{n} دن",
+    "other": "{n} دن"
+  },
+  "retention.year": "1 سال",
+  "retention.forever": "ہمیشہ کے لیے",
+  "lasso": "{keys} + گھسیٹیں",
+  "color.blue": "نیلا",
+  "color.violet": "بنفشی",
+  "color.magenta": "میجنٹا",
+  "color.red": "سرخ",
+  "color.orange": "نارنجی",
+  "color.green": "سبز",
+  "color.teal": "فیروزی",
+  "color.graphite": "گریفائٹ",
+  "color.night": "رات",
+  "color.deepBlue": "گہرا نیلا",
+  "color.forest": "جنگل",
+  "color.plum": "آلوچہ",
+  "color.earth": "مٹی",
+  "color.mist": "دھند",
+  "color.sky": "آسمان",
+  "color.sage": "سیج",
+  "color.sand": "ریت"
+}

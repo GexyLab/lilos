@@ -1,0 +1,13 @@
+{
+  "theAutomation": "자동화",
+  "noAutomata": "Automata가 설치되어 있지 않습니다",
+  "running": "{name}이(가) 이미 실행 중입니다",
+  "opened": "{name}: Automata에서 열림",
+  "needsNothing": "{name}: 작업 대상이 없을 때만 자동으로 시작됩니다(Automata → 실행)",
+  "ran": "{name}: 자동으로 실행됨",
+  "ranOn": "{name}: 항목 {items}개에서 자동으로 실행됨",
+  "failedSteps": {
+    "other": "{n}단계 실패"
+  },
+  "withFailed": "{text}({failed})"
+}

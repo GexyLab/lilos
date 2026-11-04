@@ -1,0 +1,22 @@
+{
+  "choose.serial": "选择串口",
+  "choose.usb": "选择 USB 设备",
+  "choose.hid": "选择设备",
+  "choose.bluetooth": "选择蓝牙设备",
+  "choose.screen": "选择要共享的内容",
+  "choose.text.serial": "有应用想要使用计算机的串口。",
+  "choose.text.usb": "有应用想要使用计算机的 USB 设备。",
+  "choose.text.hid": "有应用想要使用计算机的设备（小键盘、读卡器、控制器…）。",
+  "choose.text.bluetooth": "有应用想要使用计算机附近的蓝牙设备。",
+  "choose.text.screen": "有应用想要查看计算机的屏幕或窗口。",
+  "choose.field": "设备",
+  "choose.none": "未找到设备：请连接设备后重试。",
+  "connect": "连接",
+  "share": "共享",
+  "saved": "已从计算机上的程序保存“{name}”",
+  "saveFailed": "“{name}”未能保存回 lilOS：{error}",
+  "missing": "“{path}”不在 lilOS 中",
+  "driveIn": "“{name}”位于“网络 › 此电脑”中",
+  "driveFailed": "“{name}”未连接：{error}",
+  "serialPort": "串口"
+}

@@ -1,0 +1,33 @@
+{
+  "subtitle": "Propriétés de la zone de travail",
+  "title": "Titre",
+  "description": "Description",
+  "placeholder": "À quoi sert cette zone de travail",
+  "addMeta": "Ajouter une métadonnée",
+  "created": "Créée",
+  "modified": "Modifiée",
+  "state": "État",
+  "collapsed": "Réduite en icône",
+  "open": "Ouverte sur le bureau",
+  "contents": "Contenu",
+  "items": {
+    "one": "{n} élément",
+    "other": "{n} éléments"
+  },
+  "windows": {
+    "one": "{n} fenêtre",
+    "other": "{n} fenêtres"
+  },
+  "contentsValue": "{items}, {windows}",
+  "size": "Taille",
+  "metaName": "Nom",
+  "metaNameLabel": "Nom de la métadonnée {n}",
+  "metaValue": "Valeur",
+  "metaValueLabel": "Valeur de la métadonnée {n}",
+  "removeMeta": "Retirer la métadonnée",
+  "removeMetaLabel": "Retirer la métadonnée {name}",
+  "noMeta": "Aucune métadonnée. Ajoutez-en pour noter, par exemple, le client, l’échéance ou l’état.",
+  "maxMeta": "Au maximum {max} métadonnées.",
+  "info": "Informations",
+  "customMeta": "Métadonnées personnalisées"
+}

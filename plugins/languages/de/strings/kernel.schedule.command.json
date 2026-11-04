@@ -1,0 +1,9 @@
+{
+  "oldTerminal": "Terminal 1.5.0 oder neuer ist erforderlich: Aktualisieren Sie es im AppStore",
+  "signal": "Durch das Signal SIG{signal} beendet ({code})",
+  "signalTail": "Durch das Signal SIG{signal} beendet ({code}): {tail}",
+  "exit": "Beendet mit {code}",
+  "exitTail": "Beendet mit {code}: {tail}",
+  "ok": "Beendet mit 0",
+  "okTail": "Beendet mit 0 · {tail}"
+}

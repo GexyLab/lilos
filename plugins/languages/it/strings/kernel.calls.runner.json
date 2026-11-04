@@ -1,0 +1,10 @@
+{
+  "scriptErrorBefore": "Errore nello script (prima): {message}",
+  "scriptErrorAfter": "Errore nello script (dopo): {message}",
+  "scriptTimeoutBefore": "Errore nello script (prima): Lo script ha superato il tempo (5 secondi)",
+  "scriptTimeoutAfter": "Errore nello script (dopo): Lo script ha superato il tempo (5 secondi)",
+  "skipped": "Le sessioni (WebSocket, SSE, TCP, UDP, MQTT) si aprono dalla finestra: nelle esecuzioni si saltano",
+  "otherServer": "Uno script ha cambiato il server della richiesta: i valori segreti non vanno a un altro indirizzo",
+  "noProtocol": "Protocollo non disponibile nelle esecuzioni: {protocol} (manca il suo modulo del kernel)",
+  "nothingToSave": "«{name}»: niente da salvare ({source} {path})"
+}

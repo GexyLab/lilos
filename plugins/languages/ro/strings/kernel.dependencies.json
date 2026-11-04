@@ -1,0 +1,39 @@
+{
+  "adminOnly": "Doar un administrator instalează sau elimină pachete",
+  "needsLilos": "{name} {version} necesită lilOS {range} (acesta este {system})",
+  "moduleJson": "module.json nu este un JSON valid",
+  "byHand": "{id} a fost pus manual: se actualizează manual",
+  "appInstalled": "{name} este deja instalată: pentru o versiune nouă folosiți actualizarea",
+  "moduleInstalled": "{name} este deja instalat: pentru o versiune nouă folosiți actualizarea",
+  "replaced": "{name} a fost înlocuit de {by}: nu se mai instalează",
+  "appMissing": "Aplicație neinstalată",
+  "moduleOff": "Modul inactiv",
+  "otherApp": "Pachetul este al aplicației {found}, nu al {id}",
+  "otherModule": "Pachetul este al modulului {found}, nu al {id}",
+  "moduleNewer": "Este necesar modulul {id} {range}: este instalată versiunea {have}, iar cea mai nouă este {newer}",
+  "appNewer": "Este necesară aplicația {id} {range}: este instalată versiunea {have}, iar cea mai nouă este {newer}",
+  "unreadable": "Depozitul {url} nu poate fi citit: {message}",
+  "moduleNotInRepo": "Depozitul {url} nu are modulul {id}",
+  "appNotInRepo": "Depozitul {url} nu are aplicația {id}",
+  "moduleRepoVersion": "Este necesar modulul {id} {range}: depozitul are versiunea {version}",
+  "appRepoVersion": "Este necesară aplicația {id} {range}: depozitul are versiunea {version}",
+  "modulePlanned": "{name} are nevoie de modulul {id} {range}, dar se instalează versiunea {version}",
+  "appPlanned": "{name} are nevoie de aplicația {id} {range}, dar se instalează versiunea {version}",
+  "circular": "Dependență circulară între {a} și {b}: niciunul nu poate fi instalat înaintea celuilalt",
+  "consent": "Lipsește consimțământul pentru {keys}: verificați din nou ce se instalează",
+  "haveVersion": "{id} {range} (este prezentă versiunea {have})",
+  "missing": "{name} are nevoie de: {missing}. Instalați-l din AppStore, care instalează și ce este necesar.",
+  "appNeeded": {
+    "one": "Aplicația {id} este necesară pentru {names}: eliminați mai întâi acel pachet",
+    "few": "Aplicația {id} este necesară pentru {names}: eliminați mai întâi acele pachete",
+    "other": "Aplicația {id} este necesară pentru {names}: eliminați mai întâi acele pachete"
+  },
+  "moduleNeeded": {
+    "one": "Modulul {id} este necesar pentru {names}: eliminați mai întâi acel pachet",
+    "few": "Modulul {id} este necesar pentru {names}: eliminați mai întâi acele pachete",
+    "other": "Modulul {id} este necesar pentru {names}: eliminați mai întâi acele pachete"
+  },
+  "wantsOne": "{name} cere {id} {range}: versiunea {version} nu este potrivită",
+  "wants": "{name} cere {id} {range}",
+  "wantsMany": "{list}: versiunea {version} nu este potrivită"
+}

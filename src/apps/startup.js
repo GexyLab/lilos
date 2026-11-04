@@ -1,4 +1,4 @@
-import { bus, Emitter, fs, kernel, settings, storage } from '@lilos/sdk';
+import { bus, Emitter, fs, kernel, settings, storage, locale } from '@lilos/sdk';
 import { getApp, isInstalled, launch, registry } from './registry.js';
 import { entrypointsOf } from './entrypoints.js';
 import { notify } from '../notifications/notify.js';
@@ -21,6 +21,18 @@ import { notify } from '../notifications/notify.js';
  * lilOS's own apps and as its path ('~/Documenti') to installed ones. When it declares none,
  * params are any JSON object of at most 4 KB, passed as they are.
  */
+const { t } = locale.define('lilos:apps.startup', {
+  en: { strings: {
+    mainWindow: 'Main window', paramsObject: 'The parameters must be a JSON object, between { }',
+    paramsTooLong: 'Parameters too long (at most 4 KB)', invalid: '{param}: invalid value',
+    fileGone: '{param}: the file is gone', folderGone: '{param}: the folder is gone',
+    notOpened: '{app} did not open by itself. {message}', notInstalled: 'App not installed',
+    maxApps: 'At most {max} apps at start-up', unknownEntry: 'Unknown entry point',
+    entryNotAtStartup: 'The entry point is not at start-up',
+    skipped: 'Started without apps: the address contains ?avvio=no',
+  } },
+});
+
 const KEY = 'startup-apps';
 const MAX_APPS = 50;
 const MAX_JSON = 4096;
@@ -54,7 +66,7 @@ function windowEntries(appId) {
     .filter(([, ep]) => ep?.kind === 'window')
     .map(([entry, ep]) => ({
       entry,
-      label: entry === 'main' ? 'Finestra principale' : ep.label ?? entry,
+      label: entry === 'main' ? t('mainWindow') : ep.label ?? entry,
       params: plain(ep.params) && Object.keys(ep.params).length ? ep.params : null,
     }));
 }
@@ -62,10 +74,10 @@ function windowEntries(appId) {
 /** The params as they are saved: checked against `schema` (or any small JSON object without one). Throws a readable message. */
 function checkParams(schema, values) {
   const given = values ?? {};
-  if (!plain(given)) throw new Error('I parametri devono essere un oggetto JSON, tra { }');
+  if (!plain(given)) throw new Error(t('paramsObject'));
   if (!schema) {
     const text = JSON.stringify(given);
-    if (text.length > MAX_JSON) throw new Error('Parametri troppo lunghi (al massimo 4 KB)');
+    if (text.length > MAX_JSON) throw new Error(t('paramsTooLong'));
     return JSON.parse(text);
   }
   const out = {};
@@ -81,7 +93,7 @@ function checkParams(schema, values) {
       folder: () => typeof v === 'string' && v.length <= 100,
     }[p.type];
     if (!ok) continue;
-    if (!ok()) throw new Error(`${p.label}: valore non valido`);
+    if (!ok()) throw new Error(t('invalid', { param: p.label }));
     out[name] = v;
   }
   return out;
@@ -96,7 +108,7 @@ function argsFor(app, schema, params) {
     if (v === undefined) continue;
     if (p.type === 'file' || p.type === 'folder') {
       const node = fs.get(v);
-      if (node?.type !== p.type) throw new Error(`${p.label}: ${p.type === 'file' ? 'il file non c’è più' : 'la cartella non c’è più'}`);
+      if (node?.type !== p.type) throw new Error(t(p.type === 'file' ? 'fileGone' : 'folderGone', { param: p.label }));
       if (p.type === 'file') files.push(node.id);
       args[name] = p.type === 'folder' && !app.trusted ? fs.tildePath(node.id) : node.id;
     } else {
@@ -118,7 +130,7 @@ function openApps() {
         const { args, files } = argsFor(app, ep.params, params);
         launch(id, args, entry, { files, auto: true });
       } catch (err) {
-        notify(`${app.name} non si è aperta da sola. ${err.message}`, { level: 'error' });
+        notify(t('notOpened', { app: app.name, message: err.message }), { level: 'error' });
       }
     }
   }
@@ -156,10 +168,10 @@ class Startup extends Emitter {
 
   /** Adds an app at the end of the list, with its main window. */
   addApp(appId) {
-    if (!windowEntries(appId).length) throw new Error('App non installata');
+    if (!windowEntries(appId).length) throw new Error(t('notInstalled'));
     const list = read();
     if (list.some(a => a.app === appId)) return;
-    if (list.length >= MAX_APPS) throw new Error(`Al massimo ${MAX_APPS} app all’avvio`);
+    if (list.length >= MAX_APPS) throw new Error(t('maxApps', { max: MAX_APPS }));
     list.push({ app: appId, entries: [{ entry: 'main', params: {} }] });
     this.#write(list);
   }
@@ -175,9 +187,9 @@ class Startup extends Emitter {
     let item = list.find(a => a.app === appId);
     if (on) {
       const order = windowEntries(appId).map(w => w.entry);
-      if (!order.includes(entry)) throw new Error('Punto d’ingresso sconosciuto');
+      if (!order.includes(entry)) throw new Error(t('unknownEntry'));
       if (!item) {
-        if (list.length >= MAX_APPS) throw new Error(`Al massimo ${MAX_APPS} app all’avvio`);
+        if (list.length >= MAX_APPS) throw new Error(t('maxApps', { max: MAX_APPS }));
         list.push(item = { app: appId, entries: [] });
       }
       if (item.entries.some(e => e.entry === entry)) return;
@@ -195,7 +207,7 @@ class Startup extends Emitter {
   setParams(appId, entry, params) {
     const list = read();
     const target = list.find(a => a.app === appId)?.entries.find(e => e.entry === entry);
-    if (!target) throw new Error('Il punto d’ingresso non è all’avvio');
+    if (!target) throw new Error(t('entryNotAtStartup'));
     const ep = windowEntries(appId).find(w => w.entry === entry);
     target.params = checkParams(ep?.params ?? null, params);
     this.#write(list);
@@ -213,7 +225,7 @@ export const startup = new Startup();
 /** Opens the user's apps on 'user:login'; forgets an app when it is removed. */
 export function connectStartup() {
   bus.on('user:login', () => inFirstTab(() => {
-    if (skipped) notify('Avvio senza app: l’indirizzo contiene ?avvio=no');
+    if (skipped) notify(t('skipped'));
     else if (settings.get('startupApps')) openApps();
   }));
   registry.on('change', ({ id, app }) => { if (!app) startup.removeApp(id); });

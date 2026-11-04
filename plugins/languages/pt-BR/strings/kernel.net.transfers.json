@@ -1,0 +1,43 @@
+{
+  "sources": "Itens a transferir inválidos",
+  "notFolder": "O destino não é uma pasta",
+  "homeToHome": "Cópia entre pastas do lilOS: não é uma transferência de rede",
+  "intoItself": "Uma pasta não pode ser copiada para dentro de si mesma",
+  "nothing": "Nada para transferir",
+  "tooMany": "Transferências demais na fila",
+  "itemNotFound": "Item não encontrado",
+  "noConflict": "Nenhum conflito para resolver",
+  "choice": "Escolha inválida",
+  "queueNotFound": "Fila não encontrada",
+  "serverNotFound": "Não existe no servidor",
+  "badName": "Nome que não pode ser transferido: {name}",
+  "webOnly": "“{name}” só abre na web: não é copiado",
+  "place": "Local inválido",
+  "tooManyFiles": "Arquivos demais para transferir",
+  "tooDeep": "Pastas aninhadas em níveis demais",
+  "someFailed": "Alguns arquivos não foram transferidos",
+  "dstLost": "Pasta de destino perdida",
+  "fileThere": "Já existe um arquivo “{name}” onde a pasta deve ficar",
+  "retrying": "{message} · tentando de novo",
+  "folderThere": "Já existe uma pasta “{name}” onde o arquivo deve ficar",
+  "notFileThere": "Já existe um item “{name}” que não é um arquivo",
+  "done": {
+    "one": "{n} arquivo transferido para “{queue}” ({size})",
+    "other": "{n} arquivos transferidos para “{queue}” ({size})"
+  },
+  "failed": {
+    "one": "{n} arquivo não transferido",
+    "other": "{n} arquivos não transferidos"
+  },
+  "failedIn": {
+    "one": "{n} arquivo não transferido para “{queue}”",
+    "other": "{n} arquivos não transferidos para “{queue}”"
+  },
+  "complete": "Transferência concluída: {files}.",
+  "allFailed": "Falha na transferência: {files}.",
+  "partial": "Transferência concluída com erros: {done}. {failed}.",
+  "bytes": {
+    "one": "{n} byte",
+    "other": "{n} bytes"
+  }
+}

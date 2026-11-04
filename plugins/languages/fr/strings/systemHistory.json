@@ -1,0 +1,9 @@
+{
+  "group": "Édition",
+  "undo": "Annuler",
+  "redo": "Rétablir",
+  "undone": "Annulé : {label}",
+  "redone": "Rétabli : {label}",
+  "failed": "Ce n’est plus possible : {message}",
+  "error": "erreur"
+}

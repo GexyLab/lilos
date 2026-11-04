@@ -14,6 +14,8 @@ Gli altri moduli (`src/`) sono il sistema: scrivania, desktop, barra.
 - [sdk/core/events.js](#sdkcoreeventsjs)
 - [sdk/core/storage.js](#sdkcorestoragejs)
 - [sdk/core/session.js](#sdkcoresessionjs)
+- [Traduzioni delle app](#traduzioni-delle-app-sdkcorelocalejs-e-sdkcorei18njs)
+- [Testi di lilOS e pacchetti di lingua](#testi-di-lilos-e-pacchetti-di-lingua)
 - [sdk/core/kernel.js](#sdkcorekerneljs)
 - [sdk/core/apps.js](#sdkcoreappsjs)
 - [sdk/core/notifications.js](#sdkcorenotificationsjs)
@@ -162,7 +164,7 @@ Identificatore breve e unico nella sessione, basato su ora, contatore e una part
 
 ## Traduzioni delle app (sdk/core/locale.js e sdk/core/i18n.js)
 
-Ogni app ha **un file di traduzioni** (`locales.json`, indicato da `locales` nel [manifesto](#manifesto-lilosjson)). La lingua è una sola per tutto il sistema, scelta nel Pannello di controllo → Lingua. lilOS legge il file prima di avviare l'app e le dà le stringhe già risolte in `lilos.locale`: l'app non carica nulla e `t()` è sincrono. I testi dell'interfaccia di lilOS stesso non sono ancora tradotti (restano in italiano): si traducono solo le app.
+Ogni app ha **un file di traduzioni** (`locales.json`, indicato da `locales` nel [manifesto](#manifesto-lilosjson)). La lingua è una sola per tutto il sistema, scelta nel Pannello di controllo → Lingua. lilOS legge il file prima di avviare l'app e le dà le stringhe già risolte in `lilos.locale`: l'app non carica nulla e `t()` è sincrono. Questo file traduce **le app**. I testi di lilOS stesso (interfaccia e messaggi del kernel) si traducono con i [pacchetti di lingua](#testi-di-lilos-e-pacchetti-di-lingua), che non toccano le app.
 
 ### Il file `locales.json`
 
@@ -227,7 +229,12 @@ Esportato da `@lilos/sdk` insieme a `LANGUAGES` e `formatBytes`. È un `Emitter`
 
 | Membro | Descrizione |
 | --- | --- |
-| `LANGUAGES` | `['en-US', 'en-GB', 'it-IT', 'de-DE', 'es-ES', 'fr-FR', 'pt-BR']`: le lingue che il Pannello di controllo → Lingua propone oltre ad «Automatica». Un'app che non ha la lingua scelta ricade su `en`. |
+| `LANGUAGES` | `['en-US', 'en-GB', …]`: le lingue che il Pannello di controllo → Lingua propone oltre ad «Automatica». Sono l'inglese (`en-US`, `en-GB`) più la lingua di ogni pacchetto di lingua installato (`'it'`, `'pt-BR'`…). È sempre lo stesso array e cambia sul posto quando i pacchetti cambiano (evento `languages`). Un'app che non ha la lingua scelta ricade su `en`. |
+| `locale.language` | La lingua dei **testi di lilOS**: quella del pacchetto in uso (`'it'`) o `'en'`. Diversa da `code`: `code` è la scelta (`'it-IT'`), `language` è ciò che lilOS può davvero mostrare. |
+| `locale.dir` | `'rtl'` quando `language` si scrive da destra a sinistra (arabo, urdu…), altrimenti `'ltr'`. |
+| `locale.packs` | I pacchetti di lingua installati (una copia): `[{ language, name, englishName?, version, dir, … }]`, la forma di `GET /api/languages`. |
+| `locale.ready` | Promise: il pacchetto della lingua del sistema è caricato. lilOS la aspetta prima di disegnare, così `t()` non mostra l'inglese per un istante. |
+| `locale.refresh()` | `Promise<boolean>`: rilegge i pacchetti installati e carica quello della lingua del sistema (o lo lascia se non c'è più). Non lancia mai: un pacchetto che non si carica lascia lilOS in inglese. `true` se i testi sono cambiati (l'evento `change` è già partito). Senza kernel non fa niente (`false`). |
 | `locale.code` | La lingua del sistema (`'it-IT'`): l'impostazione `language` (predefinita `'auto'`, che usa `navigator.language`), oppure `'en'` se non si riesce a risolverla. Segue l'impostazione mentre lilOS è aperto. |
 | `locale.forApp(id)` | `{ code, i18n }` di un'app: ha la stessa forma di `lilos.locale` delle app installate. Le app di sistema lo usano così: `const { t } = locale.forApp('files').i18n`. L'oggetto è sempre lo stesso per quell'id e cambia le sue stringhe quando cambia la lingua. Un id senza traduzioni dà un oggetto che restituisce le chiavi. |
 | `locale.manifest(manifesto, tabella?)` | Una copia del manifesto con i testi nella lingua del sistema (chiavi `@`). Senza `tabella` usa quella dell'app installata con l'id del manifesto; con `tabella` (per esempio quella di un catalogo) usa la data. |
@@ -238,13 +245,13 @@ Esportato da `@lilos/sdk` insieme a `LANGUAGES` e `formatBytes`. È un `Emitter`
 | `locale.table(id)` | La tabella dell'app, o `null`. |
 | `locale.engine` | Il motore (`i18nApi` di `i18n.js`). Il sistema lo mette (come testo, con `toString()`) nelle sandbox e nei worker delle app. |
 | `locale.formatBytes(n)`, `formatBytes(n)` | Una dimensione nella lingua del sistema: `'512 B'`, `'1,5 KB'`, `'12,3 MB'` (unità da 1024, da B a PB; al massimo un decimale, nessuno per i byte; `''` per ciò che non è un numero). Da lilOS 1.22.0 (SDK 0.14.0): usala invece di una funzione propria. |
-| `locale.define(id, tabella)` → `i18n` | I testi di una parte di lilOS stessa (sistema e SDK), nel formato di `locales.json` (`{ en: { strings }, it: { strings } }`): restituisce l'`i18n` di `forApp(id)` (`t`, `date`, `number`, `lang`), che segue la lingua. `id` comincia con `'lilos:'` (mai l'id di un'app), per esempio `const { t } = locale.define('lilos:properties', { … })`. Da lilOS 1.22.0. |
+| `locale.define(id, tabella)` → `i18n` | I testi di una parte di lilOS stessa (sistema e SDK), **solo in inglese**: `{ en: { strings } }`. Restituisce l'`i18n` di `forApp(id)` (`t`, `date`, `number`, `lang`), che segue la lingua. `id` è `'lilos:<parte>'` (mai l'id di un'app; altrimenti lancia), per esempio `const { t } = locale.define('lilos:properties', { en: { strings: { … } } })`. Le altre lingue arrivano dal pacchetto di lingua in uso (la sua parte `properties`) e ricadono sull'inglese chiave per chiave. Regole: tabella scritta per esteso, `t()` solo quando si disegna (vedi [Testi di lilOS](#testi-di-lilos-e-pacchetti-di-lingua)). Da lilOS 1.22.0; solo in inglese dalla 1.32.0 (SDK 0.20.0). |
 
-Evento `change` `{ code }`: la lingua del sistema è cambiata. Gli oggetti di `forApp()` hanno già le nuove stringhe; alle app installate arriva l'evento `locale`. La lingua risolta è salvata anche nella chiave [`locale`](#locale), perché il kernel la conosca per i servizi dell'utente.
+Evento `change` `{ code }`: la lingua del sistema, o il pacchetto della sua lingua, è cambiata. Gli oggetti di `forApp()` hanno già le nuove stringhe; alle app installate arriva l'evento `locale`. Evento `languages` `{ languages }`: i pacchetti installati sono cambiati (installati, aggiornati o tolti da chiunque). La lingua risolta è salvata anche nella chiave [`locale`](#locale), perché il kernel la conosca per i servizi e le notifiche dell'utente, ed è mandata a ogni richiesta al kernel (`kernel.locale`, intestazione `X-Lilos-Locale`).
 
 `session.locale` è la lingua del sistema (`locale.code`), in sola lettura. Lo usano l'orologio e le date delle proprietà.
 
-`i18n.js` non ha import, perché lo stesso codice gira nella pagina di lilOS, nelle sandbox e nei worker (`bridge.js` lo inserisce come testo) e nel kernel (che lo importa da `sdk/core/i18n.js`). Esporta anche `parseLocales`, `localeChain`, `resolveLocale`, `localizeManifest`, `canonicalLocale`, `i18nApi`, `DEFAULT_LANG` (`'en'`) e `LOCALE_LIMITS`; fuori dal sistema si usano da `locale`.
+`i18n.js` non ha import, perché lo stesso codice gira nella pagina di lilOS, nelle sandbox e nei worker (`bridge.js` lo inserisce come testo) e nel kernel (che lo importa da `sdk/core/i18n.js`). Esporta anche `parseLocales`, `localeChain`, `resolveLocale`, `localizeManifest`, `canonicalLocale`, `i18nApi`, `DEFAULT_LANG` (`'en'`) e `LOCALE_LIMITS`; fuori dal sistema si usano da `locale`. Per i pacchetti di lingua esporta anche `parseLanguagePack`, `matchLanguage`, `textDirection` e `PACK_LIMITS`; `textDirection` è esportata anche da `@lilos/sdk`.
 
 ### `lilos.locale`
 
@@ -288,6 +295,102 @@ Dove c'è `lilos.locale`:
 
 ---
 
+## Testi di lilOS e pacchetti di lingua
+
+I testi di lilOS stesso (non quelli delle app, né dei moduli del kernel) stanno **in inglese nel codice** e si traducono con i **pacchetti di lingua**, installati dal repository ufficiale ([D84](../interna/decisioni.md#d84-i-pacchetti-di-lingua-traducono-lilos-non-le-app)). Gli utenti li vedono come lingue nell'AppStore (scheda Lingue) e nel Pannello di controllo → Lingua. Qui il lato per chi scrive codice.
+
+### Regole per chi cambia lilOS
+
+1. **Ogni testo visibile passa da una tabella.** Nella pagina e nell'SDK: `locale.define('lilos:<parte>', { en: { strings: { … } } })`. Nel kernel: `defineStrings('lilos:kernel.<parte>', { en: { strings: { … } } })`. File che `locale.js` non può importare: `defineLater`; schermate prima dell'SDK: `bootStrings` (tabella sotto). Sono le stesse tabelle di `locales.json`: chiavi `[\w.:-]`, valori testo con `{segnaposto}` o forme plurali.
+2. **La tabella è scritta per esteso**: stringhe, oggetti con chiavi semplici, nessuna variabile, spread o chiave calcolata. `scripts/lilos-strings.mjs` la legge dal codice senza eseguirlo e **si ferma** se non riesce o se due file definiscono la stessa parte.
+3. **`t()` si chiama quando si disegna, mai quando il modulo si carica.** All'avvio il pacchetto può non essere ancora arrivato, e la lingua può cambiare con lilOS aperto.
+4. **L'id è `lilos:<parte>`**, e la parte è unica in tutto lilOS (`[A-Za-z][\w.-]{0,59}`). Nel kernel comincia per `kernel.`.
+5. **L'italiano non sta più nel codice**: va in `plugins/languages/it/strings/<parte>.json` (vedi [Aggiungere o aggiornare una lingua](ricette.md#scrivere-un-testo-di-lilos-e-aggiungere-o-aggiornare-una-lingua-di-lilos)).
+6. **Cambiare i testi di lilOS vuol dire aggiornare ogni pacchetto.** La build di un pacchetto **si ferma** se gli manca una parte o una chiave, se ne ha una che il codice non ha, o se un testo ha segnaposto diversi dall'inglese. I pacchetti già installati non si rompono: le chiavi che non hanno compaiono in inglese finché non esce una versione nuova. Ma un pacchetto incompleto non si può pubblicare.
+
+### Gli strumenti nel codice
+
+| Cosa | Dove | Descrizione |
+| --- | --- | --- |
+| `locale.define(id, tabella)` | `sdk/core/locale.js` | La pagina e l'SDK (vedi [`locale`](#locale-sdk)). |
+| `defineLater(id, tabella)` → `{ t, lang }` | `sdk/core/strings.js` | Per i file che `locale.js` importa (`kernel.js`, `settings.js`, `storage.js`, `events.js`) e che girano anche nel kernel (`scheduleRules.js`). `t()` dà inglese finché `locale.js` non imposta il traduttore (`translateStrings`): da allora segue la lingua. Il kernel imposta il suo e dà dei `Text`. |
+| `bootStrings(id, tabella)` → `{ t, date, number, lang }` | `src/boot/strings.js` | Le schermate prima dell'SDK (accesso, licenza, avvio). Usa lo stesso motore (`i18n.js`, senza import). |
+| `loadBootLanguage(kernel, codice?)` | `src/boot/strings.js` | Carica il pacchetto di `codice`, o della lingua dell'ultimo utente di questo browser (`localStorage` `lilos.language`), o quella del browser, e imposta `kernel.locale`. Non lancia mai. Senza kernel usa la copia delle parti di avvio tenuta nel browser (`lilos.boot.language`) se è nella lingua voluta. Imposta anche `lang` e `dir` di `<html>`. |
+| `connectLanguage()` | `src/systemLanguage.js` | Tiene `<html lang dir>` aggiornati, rilegge i pacchetti all'evento `languages` del kernel e al suo ritorno e, se la lingua dei testi cambia, propone di ricaricare lilOS (ciò che è già disegnato resta nella lingua di prima). Da chiamare prima di `connectServices()`. |
+| `textDirection(codice)` | `sdk/core/i18n.js`, esportata da `@lilos/sdk` | `'rtl'` o `'ltr'`. Usa `Intl.Locale.getTextInfo` se c'è, poi la scrittura (Arab, Hebr, Thaa…), poi un elenco di lingue (ar, ur, he, fa…). |
+| `matchLanguage(codice, disponibili)` | `sdk/core/i18n.js` | Tra i tag `disponibili`, quello per il `codice`: lo stesso tag, o la stessa lingua nella stessa scrittura (`pt-BR` per `pt-PT`, `zh-Hans` per `zh-CN`, mai per `zh-TW`), con la stessa regione per prima; `null` se nessuno va bene. |
+| `parseLanguagePack(testo \| oggetto)` | `sdk/core/i18n.js` | Controlla il `strings.json` di un pacchetto (sotto) e lo restituisce. Lancia se non è valido. |
+
+`PACK_LIMITS`: `strings.json` fino a 4 MiB, 400 parti, 20 000 stringhe in tutto; ogni testo fino a 4000 caratteri (`LOCALE_LIMITS.text`), chiavi `[\w.:-]{1,200}`.
+
+**Come si sceglie il pacchetto.** `locale.js` prende `code` (impostazione `language`), legge `GET /api/languages` e usa `matchLanguage(code, tag dei pacchetti)`. Poi carica `GET /api/languages/<tag>`. Nella tabella di ogni parte di lilOS il pacchetto sta sopra l'inglese, chiave per chiave. Una lingua senza pacchetto (per esempio `en-GB`): inglese. La lingua dei testi è quella del pacchetto, non `code`: con `code` `'pt-PT'` e il pacchetto `pt-BR`, `locale.language` è `'pt-BR'`.
+
+**Da destra a sinistra.** `locale.dir` e `<html dir>` vengono dalla lingua del pacchetto. Il CSS di lilOS usa proprietà logiche (`margin-inline-start`, `inset-inline-end`…) invece di `left` e `right`; `openMenu` e le frecce dei menu si specchiano (`document.documentElement.dir`). Le **app** tengono la direzione della loro lingua: `host.js` mette `dir` nel documento dell'app in base a `locale.strings(id).lang`, non a quella di lilOS.
+
+### Il pacchetto: `language.json` e `strings.json`
+
+Un pacchetto è una cartella del repository ufficiale, elencata in `catalog.json`:
+
+```json
+{ "languages": ["languages/it", "languages/pt-BR"] }
+```
+
+`language.json` (controllato da `checkLanguage`, `system/kernel/src/apps/languagePackage.js`):
+
+```json
+{
+  "id": "lang-it", "language": "it", "name": "Italiano", "englishName": "Italian", "version": "1.0.0",
+  "lilos": ">=1.32.0",
+  "files": { "strings.json": "sha256-<base64>" }
+}
+```
+
+| Campo | Descrizione |
+| --- | --- |
+| `id` | `lang-<language>`, obbligatorio. |
+| `language` | Il tag, in forma canonica (`it`, `pt-BR`, `zh-Hans`): quello con cui `matchLanguage` lo sceglie. |
+| `name` | Il nome nella lingua stessa (fino a 60 caratteri). |
+| `englishName` | Facoltativo, in inglese. |
+| `version` | `x.y.z`. |
+| `lilos` | Facoltativo: intervallo di lilOS richiesto (`>=1.32.0`). Se lilOS non lo soddisfa, l'installazione dà `conflict`. |
+| `files` | Solo `strings.json`, con il suo hash `sha256-…`. Lo scrive la build. |
+
+`strings.json`: `{ "<parte>": { "<chiave>": testo | { one, other, … } } }`, con la parte uguale all'id senza `lilos:`. Un pacchetto è un dato: `parseLanguagePack` tiene solo ciò che si aspetta, nei limiti sopra. Una parte o una chiave che manca non è un errore per il kernel: quel testo resta in inglese.
+
+### Il kernel e i pacchetti (`apps/languagePackage.js`, `api/languages.js`)
+
+`Languages` (`kernel.languages`) legge all'avvio la cartella `languages/<tag>/` dei dati del kernel (`DATA_DIR`). Un pacchetto con `language.json` non valido, hash che non corrisponde o cartella col nome sbagliato **non si carica** (una riga nel registro) e il kernel parte lo stesso. Ogni cartella ha `language.json` (con `source`), `strings.json`, `README.md` e `installed.json` (`{ by, username, at }`: chi l'ha installato per primo; un aggiornamento fatto da un altro utente non glielo toglie).
+
+| Metodo e percorso | Chi | Corpo → risposta |
+| --- | --- | --- |
+| `GET /api/languages` | tutti, **anche prima dell'accesso** | → `[{ language, name, englishName?, version, lilos?, dir }]`; chi ha fatto l'accesso ha anche `installedBy: { id, username } \| null`, `installedAt`, `canRemove` |
+| `GET /api/languages/:language` | tutti, anche prima dell'accesso | → `{ language, version, dir, strings: { [parte]: { chiave: testo } } }`; `not_found` se non è installato |
+| `POST /api/languages` | utenti | `{ language }` (fino a 4 KB) → il pacchetto, come nella lista. Lo installa, o lo aggiorna, **dal repository ufficiale** (`catalog.languages`), per tutti. Controlla `language.json`, l'intervallo `lilos` (`conflict`) e l'hash di `strings.json` (`invalid`); scrive in una cartella temporanea e la rinomina. `not_found` se il repository non offre quella lingua. Nessun'altra origine è accettata |
+| `DELETE /api/languages/:language` | chi l'ha installato o un amministratore | → 204. Gli altri: `forbidden`. Manda una notifica (livello `warning`, nella loro lingua) a ogni utente la cui chiave `locale` corrispondeva al pacchetto: da quel momento è in inglese |
+
+`:language` e `language` devono essere in forma canonica (`it`, non `IT`): altrimenti `invalid`. Ogni cambiamento arriva a tutti gli utenti come evento `languages` `{ languages: [tag…] }` su `/api/services-events` (`onKernelEvent('languages', fn)`).
+
+Il catalogo del repository ufficiale (`GET /api/repos/official/catalog`) ha anche `languages: [{ path, language, readme } | { path, error }]` (`language` è il `language.json` controllato, `readme` fino a 64 KB); gli altri repository non offrono lingue (`languages: []`). Dal lato SDK: [`languagePacks`](#languagepacks).
+
+### I testi del kernel (`strings.js`)
+
+`defineStrings(id, tabella)` → `{ t }`: `t(chiave, parametri)` non dà una stringa ma un **`Text`** (`{ part, key, params }`). Un `Text` nel corpo di una risposta (un messaggio d'errore, ovunque nel JSON) diventa il testo nella lingua della richiesta: `localizedJson(corpo, codice)`, usato da `send()`. `String(testo)` e il JSON fuori dalle risposte (registri, file) sono in inglese. `KernelError.text` è il `Text` di un errore (`message` è l'inglese). `localize(testo, codice)` traduce a mano, per esempio per le notifiche.
+
+La lingua di una richiesta è `localeOf(req)`: l'intestazione `X-Lilos-Locale` che l'SDK manda (`kernel.locale`), altrimenti il primo valore di `Accept-Language`, altrimenti `en`. Per ciò che il kernel dice per conto suo (notifiche, servizi) usa `kernel.userLocale(id)`: la chiave `locale` dell'utente, o `'en'`. I **moduli** non usano `defineStrings`: tengono i loro testi.
+
+```js
+import { defineStrings } from '../strings.js';
+import { fail } from '../errors.js';
+
+const { t } = defineStrings('lilos:kernel.repos', { en: { strings: {
+  adminOnly: 'Only an administrator manages the repositories', missing: 'Repository {id} not found',
+} } });
+
+fail('forbidden', t('adminOnly'));
+```
+
+---
+
 ## sdk/core/kernel.js
 
 Il client del kernel (il backend, vedi [Il kernel](#il-kernel)). Si importa da `@lilos/sdk` o, senza caricare il resto dell'SDK (lo fa l'avvio, `src/boot/`), da `@lilos/sdk/kernel`.
@@ -298,7 +401,7 @@ import { kernel, KernelError } from '@lilos/sdk';
 
 ### `class KernelError extends Error`
 
-`{ status, code, message, details?, retryAfter? }`. `status` è lo stato HTTP (`0` se il kernel non risponde); `code` è il codice del kernel (`invalid`, `unauthorized`, `invalid_credentials`, `forbidden`, `not_found`, `conflict`, `untrusted`, `secret_required`, `too_large`, `rate_limited`, `unavailable`, `internal`) oppure `'offline'` quando manca la risposta. `message` è in italiano e si può mostrare all'utente. `details` (se c'è) è ciò che il kernel aggiunge ad alcuni errori: l'impronta di un server da confermare (`untrusted`) o il motivo per cui serve la password (`secret_required`). `retryAfter` (dall'SDK 0.18.0) sono i secondi da aspettare prima di riprovare, quando il kernel li manda (intestazione `Retry-After`, per esempio con `rate_limited` dopo troppi accessi sbagliati).
+`{ status, code, message, details?, retryAfter? }`. `status` è lo stato HTTP (`0` se il kernel non risponde); `code` è il codice del kernel (`invalid`, `unauthorized`, `invalid_credentials`, `forbidden`, `not_found`, `conflict`, `untrusted`, `secret_required`, `too_large`, `rate_limited`, `unavailable`, `internal`) oppure `'offline'` quando manca la risposta. `message` si può mostrare all'utente: il kernel lo scrive nella lingua della richiesta (`kernel.locale`, vedi [I testi del kernel](#i-testi-del-kernel-stringsjs)) e in inglese se non la conosce. `details` (se c'è) è ciò che il kernel aggiunge ad alcuni errori: l'impronta di un server da confermare (`untrusted`) o il motivo per cui serve la password (`secret_required`). `retryAfter` (dall'SDK 0.18.0) sono i secondi da aspettare prima di riprovare, quando il kernel li manda (intestazione `Retry-After`, per esempio con `rate_limited` dopo troppi accessi sbagliati).
 
 ### `kernel`
 
@@ -309,6 +412,7 @@ import { kernel, KernelError } from '@lilos/sdk';
 | `connected` | `true` quando `connect()` ha caricato i dati dell'utente. |
 | `mode` | `'multi'` (gli utenti accedono) o `'single'` (un utente, senza accesso); `null` prima di `session()`. |
 | `user` | `{ id, username, name, role }` dell'utente collegato, o `null`. |
+| `locale` | La lingua di lilOS (`'it-IT'`), mandata a ogni richiesta come `X-Lilos-Locale`: il kernel risponde in quella lingua. La imposta `locale.js` (e `loadBootLanguage` prima dell'SDK); `null` = il kernel usa `Accept-Language`. Dall'SDK 0.20.0. |
 | `data` | Ciò che `GET /api/boot` ha restituito: `{ user, home, fresh, nodes, storage, apps, appSecurity }`. Lo leggono `storage`, `fs` e `apps` appena vengono caricati. |
 | `request(method, path, body?, { text = false, blob = false, keepalive = false, signal })` | Una richiesta a `/api<path>`, con il cookie e l'intestazione `X-Lilos: 1`. `body` oggetto = JSON, stringa = testo, `Blob` / `ArrayBuffer` / array tipizzato = byte (`application/octet-stream`). Restituisce il JSON della risposta (il testo con `text: true`, un `Blob` con `blob: true`, `undefined` per 204). Con `signal` (un `AbortSignal`, da lilOS 1.25.0) la richiesta si può interrompere: lancia `KernelError` con codice `canceled`. Lancia `KernelError`. Una risposta 401 con l'utente connesso, in modalità `multi`, emette anche `signedout`. |
 | `channel(path, { maxText = 1048576, maxBytes = 1048576 } = {})` → `MessagePort` | Un canale vivo con il kernel: un WebSocket verso `/api<path>` (`ws:` o `wss:` come la pagina) dietro una `MessagePort`. Le stringhe (fino a `maxText` caratteri) e i byte (`ArrayBuffer` o array tipizzato, fino a `maxBytes`) passano nei due sensi così come sono; i messaggi più grandi o di altri tipi si scartano senza errore. Quelli mandati prima che il socket si apra aspettano. Quando il socket si chiude la porta riceve la stringa `{"t":"gone","code":…}` e si chiude. `port.detach()` chiude il socket (per lilOS: la finestra che teneva il canale è stata chiusa). |
@@ -433,6 +537,25 @@ if (restartRequired) await kernelModules.restart();   // dopo aver chiesto «Ria
 ```
 
 `install` rifà il piano: ogni passo che entra (gli obbligatori, i facoltativi scelti e ciò che questi richiedono) deve avere la sua risposta in `steps`, altrimenti lancia `conflict` («Manca il consenso per …», con `details.unanswered`) e non fa niente: succede anche se tra il piano e `install` è cambiato qualcosa (un pacchetto nuovo nel repository, uno installato nel frattempo), e allora va rifatto `plan`. Se un passo fallisce, i pacchetti **installati** da questa chiamata vengono tolti (l'ultimo per primo); gli **aggiornamenti** già fatti restano.
+
+### `languagePacks`
+
+I pacchetti di lingua di lilOS (da lilOS 1.32.0, SDK 0.20.0): i testi di lilOS e del kernel, non quelli delle app e dei moduli. Si installano **solo dal repository ufficiale**. Qualsiasi utente con l'accesso ne installa uno e vale per tutti; lo toglie chi l'ha installato o un amministratore. Endpoint: [Il kernel e i pacchetti](#il-kernel-e-i-pacchetti-appslanguagepackagejs-apilanguagesjs). Il catalogo: `repositories.catalog('official').languages` → `[{ path, language: { language, name, englishName?, version, lilos?, dir }, readme } | { path, error }]`.
+
+| Metodo | Descrizione |
+| --- | --- |
+| `list()` | `GET /languages` → `[{ language, name, englishName?, version, lilos?, dir: 'ltr' \| 'rtl', installedBy: { id, username } \| null, installedAt, canRemove }]`. |
+| `install(language)` | `POST /languages` → il pacchetto. Installa, o aggiorna alla versione del repository. |
+| `remove(language)` | `DELETE /languages/<language>`. `forbidden` per chi non l'ha installato e non è amministratore. |
+
+```js
+import { languagePacks, locale } from '@lilos/sdk';
+
+await languagePacks.install('it');
+console.log(locale.packs.map(p => p.language));   // ['it'], appena arriva l'evento 'languages'
+```
+
+lilOS carica da solo il pacchetto della sua lingua (`locale.js`) e rilegge l'elenco quando il kernel manda `languages`.
 
 ### `systemReleases`
 
@@ -1021,7 +1144,7 @@ const { items } = await schedule.occurrences({ from: Date.now(), to: Date.now() 
 
 ### `schedule.rules` (`scheduleRules.js`)
 
-Le regole che dicono **quando**: controllate, calcolate in un fuso orario, dette in parole e come RRULE di iCalendar. Non importa niente: lo stesso codice gira nella pagina, nel kernel (il modulo `scheduler` lo riceve da `host.rules`) e nelle sandbox delle app. Gli orari sono scritti come su un orologio del fuso della regola (`'YYYY-MM-DDTHH:mm'`); i momenti assoluti sono millisecondi.
+Le regole che dicono **quando**: controllate, calcolate in un fuso orario, dette in parole e come RRULE di iCalendar. Importa solo `strings.js` (i suoi testi, in inglese finché lilOS non li traduce): lo stesso codice gira nella pagina, nel kernel (il modulo `scheduler` lo riceve da `host.rules`) e nelle sandbox delle app. Gli orari sono scritti come su un orologio del fuso della regola (`'YYYY-MM-DDTHH:mm'`); i momenti assoluti sono millisecondi.
 
 Una regola (`when`), sempre con `tz` (nome IANA, `'UTC'` se manca):
 
@@ -3837,6 +3960,8 @@ Il backend (`system/kernel/`). Panoramica: [README per sviluppatori](README.md#k
 
 Tutto sta sotto `/api`. Le risposte sono JSON, con `Cache-Control: no-store`, `X-Content-Type-Options: nosniff` e una CSP che vieta tutto. Gli errori sono `{ error: codice, message, details? }` (`details` c'è solo per `untrusted` e `secret_required`, vedi [Rete](#rete-connessioni-e-trasferimenti-net-apinetjs)) con questi stati: `invalid` 400, `unauthorized` 401, `invalid_credentials` 401, `forbidden` 403, `not_found` 404, `conflict` 409, `untrusted` 409, `too_large` 413, `secret_required` 428, `rate_limited` 429 (con `Retry-After`), `unavailable` 503; un errore non previsto è `internal` 500 e il messaggio non dice altro. Un metodo non ammesso dà 405 con `Allow`.
 
+Le risposte sono nella lingua della richiesta: l'intestazione `X-Lilos-Locale` (che l'SDK manda, `kernel.locale`) o, senza, `Accept-Language`; i messaggi dei moduli restano come li scrivono (vedi [I testi del kernel](#i-testi-del-kernel-stringsjs)).
+
 Le richieste che modificano (tutte tranne `GET` e `HEAD`) devono avere l'intestazione `X-Lilos: 1` e, se il browser manda `Origin`, questa deve essere in `origins` della configurazione o, con `loopbackOrigins: true`, un `http://localhost`, `127.0.0.1` o `[::1]`; altrimenti `forbidden`. Senza un modulo di accesso chiunque raggiunga il kernel è l'unico utente: per questo ascolta solo su questo computer.
 
 **WebSocket.** Il kernel gestisce anche richieste `upgrade` (`kernel.sockets`, un `Router` come `kernel.router`: i gestori ricevono `{ req, socket, head, params, query, principal }`; `ws.js` fa il handshake di RFC 6455 senza librerie). Il browser non può aggiungere `X-Lilos` a un WebSocket e lo apre verso qualunque sito con i cookie dell'utente (CSWSH): per questo `checkSocketOrigin` (`http.js`) vuole sempre un `Origin`, e deve essere uno di quelli permessi (come sopra) oppure lo stesso indirizzo (`host`) a cui risponde il kernel, cioè la pagina servita da un lilOS installato. Senza `Origin` o con un'altra: `403`. Vale anche `checkHost`. Una rotta senza accesso risponde `401`, una sconosciuta `404`, un handshake sbagliato `400`, sempre prima di cambiare protocollo. Con Vite i WebSocket di `/api` passano dal proxy (`ws: true` in `vite.config.js`).
@@ -3871,6 +3996,7 @@ Le richieste che modificano (tutte tranne `GET` e `HEAD`) devono avere l'intesta
 | `POST /api/repos` | amministratori | `{ url, name? }` → il repository. Legge `catalog.json` prima di salvare |
 | `DELETE /api/repos/:id` | amministratori | Toglie un repository (non l'ufficiale) |
 | `GET /api/repos/:id/catalog` | utenti | → cosa offre il repository: app e moduli (vedi [Repository](#repository-reposjs)). Un modulo che un modulo acceso sostituisce (`replaces`) ha `replacedBy: '<nome>'`: l'AppStore non lo offre (vedi [Sostituzione](#moduli-come-pacchetti-modulepackagejs)) |
+| `GET /api/languages`, `GET /api/languages/:language`, `POST /api/languages`, `DELETE /api/languages/:language` | tutti / utenti | I pacchetti di lingua di lilOS (i primi due anche senza accesso): vedi [Il kernel e i pacchetti](#il-kernel-e-i-pacchetti-appslanguagepackagejs-apilanguagesjs) |
 | `GET /api/repos/:id/readme?path=&file=` | utenti | → il `README.md` completo di un pacchetto del catalogo, come testo. `file` è `README.md` (predefinito) o, per lilOS nel repository ufficiale, `CHANGELOG.md` |
 | `GET /api/modules` | amministratori | → moduli del kernel installati (vedi [Moduli come pacchetti](#moduli-come-pacchetti-modulepackagejs)) |
 | `POST /api/modules` | amministratori | `{ source, allowUnsigned }` → `{ name, version, restartRequired, replaced? }` (`replaced`: i moduli di cui ha preso il posto). `conflict` per un modulo che un modulo acceso sostituisce |
@@ -4646,7 +4772,7 @@ Un repository ha un `catalog.json` alla radice:
 { "name": "Il mio repository", "apps": ["apps/note"], "modules": ["modules/mio"] }
 ```
 
-Il repository ufficiale ha anche `"system": "system/lilos"`: la cartella con la release di lilOS ([lilOS come pacchetto](#lilos-come-pacchetto-systempackagejs)). Negli altri repository `system` è ignorato.
+Il repository ufficiale ha anche `"system": "system/lilos"`: la cartella con la release di lilOS ([lilOS come pacchetto](#lilos-come-pacchetto-systempackagejs)), e `"languages": ["languages/it", …]`: i pacchetti di lingua, cartelle con `language.json` ([Il kernel e i pacchetti](#il-kernel-e-i-pacchetti-appslanguagepackagejs-apilanguagesjs); fino a 200 voci come `apps` e `modules`). Negli altri repository `system` e `languages` sono ignorati. `catalog(id)` ha `languages` solo per l'ufficiale (`[]` per gli altri).
 
 `apps` e `modules` sono elenchi di cartelle (fino a 200 l'uno, percorsi come `apps/note`). Ogni cartella di app contiene `lilos.json`, ogni cartella di modulo `module.json`; può contenere anche un `README.md` (Markdown), che `catalog(id)` restituisce come `readme` (`null` se manca; oltre 64 KB tagliato, con `readmeTruncated: true`). Il testo completo si legge con `readme(id, path)` (`GET /api/repos/:id/readme?path=`). Le voci non valide non fermano il catalogo: compaiono con `error`.
 
@@ -5420,7 +5546,7 @@ Le chiavi non dichiarate e i valori di tipo diverso dal predefinito vengono igno
 
 ### `locale`
 
-La lingua del sistema scelta dall'utente, già risolta (`'it-IT'`; mai `'auto'`). La scrive l'SDK (`locale`, a ogni avvio e a ogni cambio) e la legge il **kernel**, che con essa decide la lingua dei servizi dell'utente (`apps/appServices.js`, `readUserKey(…, 'locale', 'en')`); un valore che non è un testo vale `'en'`. Come le altre chiavi è `lilos:locale` nel browser, o il file `locale` nella `.config` dell'utente. La scelta dell'utente è l'impostazione `language` (`'auto'` o un tag), dentro [`lilos:settings`](#lilossettings).
+La lingua del sistema scelta dall'utente, già risolta (`'it-IT'`; mai `'auto'`). La scrive l'SDK (`locale`, a ogni avvio e a ogni cambio) e la legge il **kernel**, che con essa decide la lingua dei servizi dell'utente (`apps/appServices.js`, `readUserKey(…, 'locale', 'en')`) e delle notifiche che manda per conto suo (`kernel.userLocale(id)`, anche l'avviso di un pacchetto di lingua rimosso); un valore che non è un testo vale `'en'`. Il browser tiene due copie in `localStorage`, senza prefisso `lilos:` e senza passare dal kernel, perché servono prima dell'accesso: `lilos.language` (la stessa lingua, per la schermata di accesso) e `lilos.boot.language` (le parti di avvio dell'ultimo pacchetto caricato, per quando il kernel non risponde). Come le altre chiavi è `lilos:locale` nel browser, o il file `locale` nella `.config` dell'utente. La scelta dell'utente è l'impostazione `language` (`'auto'` o un tag), dentro [`lilos:settings`](#lilossettings).
 
 ### `notifications-keep`
 

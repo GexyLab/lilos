@@ -1,0 +1,9 @@
+{
+  "skipped": "overgeslagen",
+  "check": "controle {name} ({actual})",
+  "test": "test ‘{name}’: {error}",
+  "counts": "{passed} geslaagd, {failed} mislukt in {seconds} s",
+  "countsSkipped": "{passed} geslaagd, {failed} mislukt, {skipped} overgeslagen in {seconds} s",
+  "cancelled": "Geannuleerd: {counts}",
+  "failedFirst": "{name}: {counts} (eerste: {first})"
+}

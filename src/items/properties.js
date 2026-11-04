@@ -32,18 +32,6 @@ const i18n = locale.define('lilos:properties', {
     files: { one: '{count} file', other: '{count} files' }, folders: { one: '{count} folder', other: '{count} folders' },
     shared: 'Shared by all workspaces', none: 'None', orphan: 'The app is not installed', remove: 'Remove',
   } },
-  it: { strings: {
-    title: 'Proprietà',
-    'type': 'Tipo', 'app': 'App', 'linkTarget': 'Originale', 'linkState': 'Stato', 'contents': 'Contenuto', 'size': 'Dimensione',
-    'opensWith': 'Si apre con', 'deleted': 'Eliminato', 'origin': 'Posizione originale', 'location': 'Posizione', 'created': 'Creato', 'modified': 'Modificato',
-    'workspace': 'Workspace', 'tags': 'Tag', 'apps': 'App', appData: 'Dati di {id}',
-    folder: 'Cartella', linkFolder: 'Collegamento a una cartella', linkWeb: 'Collegamento a una pagina web', linkFile: 'Collegamento a un file', appLink: 'Collegamento a un’app',
-    typeExt: '{type} (.{ext})', system: '{type} di sistema',
-    appMissing: '{id} (non installata)', broken: 'Rotto: l’originale non è stato trovato l’ultima volta',
-    notFound: 'Non trovato', mountGone: 'Connessione rimossa', ask: 'Chiedi ogni volta',
-    files: { one: '{count} file', other: '{count} file' }, folders: { one: '{count} cartella', other: '{count} cartelle' },
-    shared: 'Condiviso da tutti i workspace', none: 'Nessuno', orphan: 'L’app non è installata', remove: 'Rimuovi',
-  } },
 });
 const { t } = i18n;
 

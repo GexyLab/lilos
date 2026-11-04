@@ -1,0 +1,7 @@
+{
+  "notImage": "“{name}” bukan gambar",
+  "gone": "Gambar ini sudah tidak ada",
+  "copyFailed": "“{name}” tidak dapat disalin ke folder {folder}: {error}",
+  "noFolder": "folder {folder} tidak ada",
+  "openFailed": "“{name}” tidak terbuka sebagai gambar"
+}

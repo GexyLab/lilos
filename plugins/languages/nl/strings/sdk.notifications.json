@@ -1,0 +1,5 @@
+{
+  "noText": "De melding heeft geen tekst",
+  "badLevel": "Ongeldig niveau: info, success, warning of error",
+  "keep": "Hoeveel meldingen bewaard worden: van 1 tot 200"
+}

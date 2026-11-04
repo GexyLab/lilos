@@ -4,6 +4,7 @@ import { fail } from '../errors.js';
 import { connectTo, networkMessage } from '../net/connect.js';
 import { httpRequest, findHeader } from '../net/http.js';
 import { connectSocket } from '../ws.js';
+import { defineStrings } from '../strings.js';
 
 /**
  * The protocols of NetTest's live sessions (calls/sessions.js): a connection that stays open and
@@ -36,11 +37,29 @@ import { connectSocket } from '../ws.js';
 export const DRIVER_PREFIX = 'call.';
 const MAX_SSE_LINE = 1 << 20;
 
+const { t } = defineStrings('lilos:kernel.calls.drivers', { en: { strings: {
+  port: 'Port not valid',
+  url: 'Address not valid',
+  closedBy: 'Closed by the server ({code})',
+  closedByReason: 'Closed by the server ({code}: {reason})',
+  closed: 'The connection is closed',
+  unknownCommand: 'Unknown command',
+  notStream: 'The server answered {status} instead of a stream of events',
+  notStreamType: 'The server answered {status} ({type}) instead of a stream of events',
+  lineTooLong: 'Line too long: dropped',
+  eventTooLong: 'Event too long: dropped',
+  streamEnded: 'The server closed the stream',
+  receiveOnly: 'Server-Sent Events: receive only',
+  noHost: 'The server is missing',
+  ended: 'The server closed the connection',
+  tooBig: 'Datagram too large (65507 bytes at most)',
+} } });
+
 const label = (en, it) => ({ en, it });
 const str = v => (typeof v === 'string' ? v : v === undefined || v === null ? '' : String(v));
-const port = (v, what = 'Porta') => {
+const port = v => {
   const n = Number(v);
-  return Number.isInteger(n) && n > 0 && n < 65536 ? n : fail('invalid', `${what} non valida`);
+  return Number.isInteger(n) && n > 0 && n < 65536 ? n : fail('invalid', t('port'));
 };
 const payload = msg => {
   if (msg?.type === 'binary') return Buffer.from(str(msg.data), 'base64');
@@ -57,7 +76,7 @@ const websocket = {
   label: label('WebSocket', 'WebSocket'),
   async open(values, ctx) {
     let url;
-    try { url = new URL(str(values.url).trim()); } catch { fail('invalid', 'Indirizzo non valido'); }
+    try { url = new URL(str(values.url).trim()); } catch { fail('invalid', t('url')); }
     if (url.protocol === 'http:') url.protocol = 'ws:';
     if (url.protocol === 'https:') url.protocol = 'wss:';
     await ctx.check({ url: url.href.replace(/^ws/, 'http') });
@@ -71,16 +90,16 @@ const websocket = {
     });
     ws.on('message', (data, binary) => ctx.output(binary ? { type: 'binary', data: data.toString('base64') } : { type: 'text', data: data.toString('utf8') }));
     ws.on('pong', () => ctx.output({ type: 'info', data: 'pong' }));
-    ws.on('close', ({ code, reason }) => ctx.closed({ reason: code === 1000 || code === 1005 ? '' : `Chiuso dal server (${code}${reason ? `: ${reason}` : ''})` }));
+    ws.on('close', ({ code, reason }) => ctx.closed({ reason: code === 1000 || code === 1005 ? '' : reason ? t('closedByReason', { code, reason }) : t('closedBy', { code }) }));
     return {
       info: { status: response.status, protocol: response.protocol, headers: response.headers, tls },
       send(msg) {
-        if (!ws.open) fail('invalid', 'La connessione è chiusa');
+        if (!ws.open) fail('invalid', t('closed'));
         ws.send(msg.type === 'binary' ? payload(msg) : str(msg.data));
       },
       command(name) {
         if (name === 'ping') return ws.ping(Buffer.from('lilOS'));
-        fail('invalid', 'Comando sconosciuto');
+        fail('invalid', t('unknownCommand'));
       },
       close: () => ws.close(1000, ''),
     };
@@ -92,7 +111,7 @@ const sse = {
   label: label('Server-Sent Events', 'Server-Sent Events'),
   async open(values, ctx) {
     let url;
-    try { url = new URL(str(values.url).trim()); } catch { fail('invalid', 'Indirizzo non valido'); }
+    try { url = new URL(str(values.url).trim()); } catch { fail('invalid', t('url')); }
     await ctx.check({ url: url.href });
     const headers = headerPairs(values.headers);
     if (!findHeader(headers, 'accept')) headers.push(['Accept', 'text/event-stream']);
@@ -106,7 +125,7 @@ const sse = {
     const type = String(findHeader(res.headers, 'content-type') ?? '');
     if (res.status !== 200 || !/text\/event-stream/i.test(type)) {
       res.body.destroy();
-      fail('invalid', `Il server ha risposto ${res.status}${type ? ` (${type.split(';')[0]})` : ''} invece di un flusso di eventi`);
+      fail('invalid', type ? t('notStreamType', { status: res.status, type: type.split(';')[0] }) : t('notStream', { status: res.status }));
     }
     let buffer = '', event = {}, data = [], dataSize = 0;
     const dispatch = () => {
@@ -118,7 +137,7 @@ const sse = {
     res.body.setEncoding('utf8');
     res.body.on('data', chunk => {
       buffer += chunk;
-      if (buffer.length > MAX_SSE_LINE && !buffer.includes('\n')) { buffer = ''; return ctx.output({ type: 'error', data: 'Riga troppo lunga: scartata' }); }
+      if (buffer.length > MAX_SSE_LINE && !buffer.includes('\n')) { buffer = ''; return ctx.output({ type: 'error', data: t('lineTooLong') }); }
       const lines = buffer.split(/\r\n|\r|\n/);
       buffer = lines.pop();
       for (const line of lines) {
@@ -129,7 +148,7 @@ const sse = {
         const value = i < 0 ? '' : line.slice(i + 1).replace(/^ /, '');
         if (field === 'data') {
           dataSize += value.length;
-          if (dataSize > MAX_SSE_LINE) { data = []; dataSize = 0; ctx.output({ type: 'error', data: 'Evento troppo lungo: scartato' }); continue; }
+          if (dataSize > MAX_SSE_LINE) { data = []; dataSize = 0; ctx.output({ type: 'error', data: t('eventTooLong') }); continue; }
           data.push(value);
         }
         else if (field === 'event') event.event = value;
@@ -137,11 +156,11 @@ const sse = {
         else if (field === 'retry') ctx.output({ type: 'info', data: `retry ${value} ms` });
       }
     });
-    res.body.on('end', () => ctx.closed({ reason: 'Il server ha chiuso il flusso' }));
+    res.body.on('end', () => ctx.closed({ reason: t('streamEnded') }));
     res.body.on('error', err => ctx.closed({ reason: abort.signal.aborted ? '' : networkMessage(err) }));
     return {
       info: { status: res.status, headers: res.headers, tls: res.tls, httpVersion: res.httpVersion },
-      send() { fail('invalid', 'Server-Sent Events: si riceve soltanto') },
+      send() { fail('invalid', t('receiveOnly')) },
       close() { abort.abort(); res.body.destroy(); },
     };
   },
@@ -151,7 +170,7 @@ function streamDriver(secure) {
   return {
     label: secure ? label('TLS', 'TLS') : label('TCP', 'TCP'),
     async open(values, ctx) {
-      const host = str(values.host).trim() || fail('invalid', 'Manca il server');
+      const host = str(values.host).trim() || fail('invalid', t('noHost'));
       const p = port(values.port);
       await ctx.check({ host });
       const { socket, tls } = await connectTo({
@@ -160,7 +179,7 @@ function streamDriver(secure) {
         alpn: secure && str(values.alpn) ? str(values.alpn).split(',').map(s => s.trim()).filter(Boolean) : undefined,
       });
       socket.on('data', buf => ctx.output(asMessage(buf)));
-      socket.on('end', () => ctx.closed({ reason: 'Il server ha chiuso la connessione' }));
+      socket.on('end', () => ctx.closed({ reason: t('ended') }));
       socket.on('close', () => ctx.closed({ reason: '' }));
       socket.on('error', err => ctx.closed({ reason: networkMessage(err) }));
       return {
@@ -168,7 +187,7 @@ function streamDriver(secure) {
         send(msg) { socket.write(payload(msg)); },
         command(name) {
           if (name === 'end') return socket.end();   // half-close: no more from us, the server may still answer
-          fail('invalid', 'Comando sconosciuto');
+          fail('invalid', t('unknownCommand'));
         },
         close: () => socket.destroy(),
       };
@@ -179,7 +198,7 @@ function streamDriver(secure) {
 const udp = {
   label: label('UDP', 'UDP'),
   async open(values, ctx) {
-    const host = str(values.host).trim() || fail('invalid', 'Manca il server');
+    const host = str(values.host).trim() || fail('invalid', t('noHost'));
     const p = port(values.port);
     // The address is checked once (the guard's lookup) and then used as it is: no name to point elsewhere later
     const address = await new Promise((resolve, reject) => ctx.lookup(host, {}, (err, a) => (err ? reject(err) : resolve(a))));
@@ -195,7 +214,7 @@ const udp = {
       info: { remote: `${address}:${p}`, local: (() => { try { const a = socket.address(); return `${a.address}:${a.port}`; } catch { return null; } })() },
       send(msg) {
         const buf = payload(msg);
-        if (buf.length > 65507) fail('too_large', 'Datagramma troppo grande (al massimo 65507 byte)');
+        if (buf.length > 65507) fail('too_large', t('tooBig'));
         socket.send(buf);
       },
       close: () => socket.close(),

@@ -1,0 +1,16 @@
+{
+  "remove": "Usuń",
+  "removeCombo": "Usuń {combo}",
+  "none": "Brak",
+  "pressKeys": "Naciśnij klawisze…",
+  "add": "Dodaj kombinację",
+  "addFor": "Dodaj kombinację dla polecenia {command}",
+  "resetTitle": "Przywróć oryginalną kombinację",
+  "reset": "Przywróć",
+  "record": "Naciśnij kombinację. Esc, aby anulować.",
+  "invalid": "{combo}: {error}",
+  "already": "{combo} jest już przypisane do tego polecenia",
+  "usedBy": "{combo} jest już używane przez „{command}”.",
+  "replace": "Zastąp",
+  "cancel": "Anuluj"
+}

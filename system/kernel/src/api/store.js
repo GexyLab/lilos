@@ -1,5 +1,6 @@
 import { fail } from '../errors.js';
 import { logger } from '../log.js';
+import { defineStrings } from '../strings.js';
 
 /**
  * What the AppStore uses: reading repositories and catalogs for every signed-in user, the rest for admins:
@@ -20,8 +21,12 @@ import { logger } from '../log.js';
  *                                        again only by hand, or by whatever started it)
  */
 const log = logger('kernel');
-const signedIn = principal => principal ?? fail('unauthorized', 'Accesso richiesto');
-const admin = principal => (signedIn(principal).role === 'admin' ? principal : fail('forbidden', 'Solo un amministratore'));
+const { t } = defineStrings('lilos:kernel.api.store', { en: { strings: {
+  signIn: 'Sign in first', adminOnly: 'Administrators only', name: 'Name not valid',
+  notSupervised: 'The kernel was not started with "npm run kernel": restart it by hand',
+} } });
+const signedIn = principal => principal ?? fail('unauthorized', t('signIn'));
+const admin = principal => (signedIn(principal).role === 'admin' ? principal : fail('forbidden', t('adminOnly')));
 const NAME = /^[a-z][a-z0-9-]{0,40}$/;
 
 export function storeRoutes(kernel) {
@@ -60,7 +65,7 @@ export function storeRoutes(kernel) {
   });
   router.add('POST', '/api/modules/:name/update', async ({ principal, params, json }) => {
     const body = await json(16 << 10);
-    if (!NAME.test(params.name)) fail('invalid', 'Nome non valido');
+    if (!NAME.test(params.name)) fail('invalid', t('name'));
     return moduleAdmin.update(admin(principal), params.name, { ...(typeof body.ref === 'string' && { ref: body.ref }), allowUnsigned: body.allowUnsigned === true });
   });
   router.add('DELETE', '/api/modules/:name', async ({ principal, params }) => moduleAdmin.remove(admin(principal), params.name));
@@ -72,7 +77,7 @@ export function storeRoutes(kernel) {
 
   router.add('POST', '/api/kernel/restart', async ({ principal }) => {
     admin(principal);
-    if (!process.env.LILOS_SUPERVISED) fail('unavailable', 'Il kernel non è stato avviato con "npm run kernel": riavvialo a mano');
+    if (!process.env.LILOS_SUPERVISED) fail('unavailable', t('notSupervised'));
     log.info(`Riavvio chiesto da ${principal.username}`);
     setTimeout(() => kernel.stop().finally(() => process.exit(75)), 200);
     return { restarting: true };

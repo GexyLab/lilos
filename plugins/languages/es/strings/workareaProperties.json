@@ -1,0 +1,33 @@
+{
+  "subtitle": "Propiedades del área de trabajo",
+  "title": "Título",
+  "description": "Descripción",
+  "placeholder": "Para qué sirve esta área de trabajo",
+  "addMeta": "Añadir un campo de metadatos",
+  "created": "Creada",
+  "modified": "Modificada",
+  "state": "Estado",
+  "collapsed": "Minimizada a un icono",
+  "open": "Abierta en el escritorio",
+  "contents": "Contenido",
+  "items": {
+    "one": "{n} elemento",
+    "other": "{n} elementos"
+  },
+  "windows": {
+    "one": "{n} ventana",
+    "other": "{n} ventanas"
+  },
+  "contentsValue": "{items}, {windows}",
+  "size": "Tamaño",
+  "metaName": "Nombre",
+  "metaNameLabel": "Nombre del campo de metadatos {n}",
+  "metaValue": "Valor",
+  "metaValueLabel": "Valor del campo de metadatos {n}",
+  "removeMeta": "Quitar el campo de metadatos",
+  "removeMetaLabel": "Quitar el campo de metadatos {name}",
+  "noMeta": "Sin metadatos. Añade algunos para anotar, por ejemplo, cliente, fecha límite o estado.",
+  "maxMeta": "Como máximo {max} campos de metadatos.",
+  "info": "Información",
+  "customMeta": "Metadatos personalizados"
+}

@@ -1,0 +1,6 @@
+{
+  "late": "{app} heeft niet op tijd geantwoord",
+  "invalid": "Ongeldig voorbeeld",
+  "tooBig": "Voorbeeld te groot",
+  "imageType": "De afbeelding van het voorbeeld heeft geen type image/*"
+}

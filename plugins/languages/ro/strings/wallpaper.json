@@ -1,0 +1,7 @@
+{
+  "notImage": "„{name}” nu este o imagine",
+  "gone": "Această imagine nu mai există",
+  "copyFailed": "„{name}” nu poate fi copiat în dosarul {folder}: {error}",
+  "noFolder": "lipsește dosarul {folder}",
+  "openFailed": "„{name}” nu se deschide ca imagine"
+}

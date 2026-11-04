@@ -3,6 +3,7 @@ import { send } from '../http.js';
 import { acceptSocket } from '../ws.js';
 import { callbackPage } from '../net/signin.js';
 import { CALLBACK } from '../calls/oauth.js';
+import { defineStrings, localeOf } from '../strings.js';
 
 /**
  * NetTest's requests (calls/), for the signed-in user: each user sees and changes only theirs.
@@ -32,10 +33,14 @@ import { CALLBACK } from '../calls/oauth.js';
 const ID = /^[a-f0-9]{16}$/;
 const SIGNIN = /^[\w-]{24}$/;
 const MAX_BODY = 64 << 20;
-const signedIn = principal => principal ?? fail('unauthorized', 'Accesso richiesto');
+const { t } = defineStrings('lilos:kernel.api.calls', { en: { strings: {
+  signIn: 'Sign in first', run: 'Run not valid', session: 'Session not valid', signin: 'Sign-in not valid',
+  needSocket: 'A WebSocket is needed',
+} } });
+const signedIn = principal => principal ?? fail('unauthorized', t('signIn'));
 const plain = v => (v && typeof v === 'object' && !Array.isArray(v) ? v : {});
-const idOf = (params, what) => (ID.test(params.id) ? params.id : fail('invalid', `${what} non valida`));
-const signinOf = params => (SIGNIN.test(params.id) ? params.id : fail('invalid', 'Accesso non valido'));
+const idOf = (params, what) => (ID.test(params.id) ? params.id : fail('invalid', t(what)));
+const signinOf = params => (SIGNIN.test(params.id) ? params.id : fail('invalid', t('signin')));
 
 export function callsRoutes(kernel) {
   const { router, sockets, calls } = kernel;
@@ -52,10 +57,10 @@ export function callsRoutes(kernel) {
   });
 
   router.add('POST', '/api/calls/runs', async ({ principal, json }) => calls.run(signedIn(principal), await json(MAX_BODY)));
-  router.add('GET', '/api/calls/runs/:id', async ({ principal, params, query }) => calls.progress(signedIn(principal), idOf(params, 'Esecuzione'), {
+  router.add('GET', '/api/calls/runs/:id', async ({ principal, params, query }) => calls.progress(signedIn(principal), idOf(params, 'run'), {
     after: Math.max(0, Number(query.get('after')) || 0), wait: query.get('wait') === '1',
   }));
-  router.add('DELETE', '/api/calls/runs/:id', async ({ principal, params }) => { calls.cancelRun(signedIn(principal), idOf(params, 'Esecuzione')); });
+  router.add('DELETE', '/api/calls/runs/:id', async ({ principal, params }) => { calls.cancelRun(signedIn(principal), idOf(params, 'run')); });
 
   router.add('POST', '/api/calls/seal', async ({ principal, json }) => calls.seal(signedIn(principal), (await json(128 << 10)).value));
   router.add('POST', '/api/calls/trust', async ({ principal, json }) => { await calls.trust(signedIn(principal), await json(4 << 10)); });
@@ -63,8 +68,8 @@ export function callsRoutes(kernel) {
 
   router.add('POST', '/api/calls/oauth/token', async ({ principal, json }) => calls.oauth.fetch(signedIn(principal), plain((await json(64 << 10)).settings)));
   // Before /oauth/signin/:id: the provider sends the window back here, without lilOS's session
-  router.add('GET', CALLBACK, async ({ res, query }) => {
-    send(res, 200, callbackPage(await calls.oauth.callback(query)), { 'Content-Type': 'text/html; charset=utf-8', 'Content-Security-Policy': "default-src 'none'; style-src 'unsafe-inline'; frame-ancestors 'none'" });
+  router.add('GET', CALLBACK, async ({ req, res, query }) => {
+    send(res, 200, callbackPage(await calls.oauth.callback(query), localeOf(req)), { 'Content-Type': 'text/html; charset=utf-8', 'Content-Security-Policy': "default-src 'none'; style-src 'unsafe-inline'; frame-ancestors 'none'" });
   });
   router.add('POST', '/api/calls/oauth/signin', async ({ req, principal, json }) => calls.oauth.start(signedIn(principal), plain((await json(64 << 10)).settings), req.headers.origin ?? null));
   router.add('GET', '/api/calls/oauth/signin/:id', async ({ principal, params, query }) => calls.oauth.status(signedIn(principal), signinOf(params), { wait: query.get('wait') === '1' }));
@@ -73,13 +78,13 @@ export function callsRoutes(kernel) {
 
   router.add('GET', '/api/calls/sessions', async ({ principal }) => calls.sessions.list(signedIn(principal)));
   router.add('POST', '/api/calls/sessions', async ({ principal, json }) => calls.openSession(signedIn(principal), await json(4 << 20)));
-  router.add('DELETE', '/api/calls/sessions/:id', async ({ principal, params }) => { await calls.sessions.close(signedIn(principal), idOf(params, 'Sessione')); });
+  router.add('DELETE', '/api/calls/sessions/:id', async ({ principal, params }) => { await calls.sessions.close(signedIn(principal), idOf(params, 'session')); });
 
   sockets.add('GET', '/api/calls/sessions/:id/socket', async ({ req, socket, head, principal, params }) => {
     const user = signedIn(principal);
-    const session = calls.sessions.get(user, idOf(params, 'Sessione'));
+    const session = calls.sessions.get(user, idOf(params, 'session'));
     const ws = acceptSocket(req, socket, head, { maxMessage: 16 << 20 });
-    if (!ws) fail('invalid', 'Serve un WebSocket');
+    if (!ws) fail('invalid', t('needSocket'));
     session.attach(ws);
   });
 }

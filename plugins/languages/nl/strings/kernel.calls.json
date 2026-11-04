@@ -1,0 +1,16 @@
+{
+  "secret": "Ongeldige geheime waarde",
+  "fingerprint": "Ongeldige vingerafdruk",
+  "server": "Ongeldige server",
+  "sendsTooMany": "Maximaal {max} verzoeken tegelijk",
+  "unopened": "Geheime waarden niet geopend (opgeslagen door een andere gebruiker of op een andere lilOS): {names}",
+  "runsTooMany": "Maximaal {max} uitvoeringen tegelijk",
+  "collection": "Ongeldige collectie",
+  "runNotFound": "Uitvoering niet gevonden",
+  "needFile": "Er is een .nettest-bestand nodig",
+  "notCollection": "Het bestand is geen NetTest-collectie",
+  "noEnvironment": "Omgeving niet gevonden: {name}",
+  "untitled": "Collectie",
+  "noProtocol": "Protocol niet beschikbaar: {protocol} (de kernelmodule ervan ontbreekt)",
+  "noDescribe": "Dit protocol beschrijft de server niet"
+}

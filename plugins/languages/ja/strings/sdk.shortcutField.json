@@ -1,0 +1,16 @@
+{
+  "remove": "削除",
+  "removeCombo": "{combo} を削除",
+  "none": "なし",
+  "pressKeys": "キーを押してください…",
+  "add": "組み合わせを追加",
+  "addFor": "{command} の組み合わせを追加",
+  "resetTitle": "元の組み合わせに戻す",
+  "reset": "元に戻す",
+  "record": "組み合わせを押してください。Esc でキャンセルします。",
+  "invalid": "{combo}：{error}",
+  "already": "{combo} はすでにこのコマンドに割り当てられています",
+  "usedBy": "{combo} はすでに「{command}」で使用されています。",
+  "replace": "置き換える",
+  "cancel": "キャンセル"
+}

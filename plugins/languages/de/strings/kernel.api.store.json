@@ -1,0 +1,6 @@
+{
+  "signIn": "Melden Sie sich zuerst an",
+  "adminOnly": "Nur für Administratoren",
+  "name": "Ungültiger Name",
+  "notSupervised": "Der Kernel wurde nicht mit \"npm run kernel\" gestartet: Starten Sie ihn manuell neu"
+}

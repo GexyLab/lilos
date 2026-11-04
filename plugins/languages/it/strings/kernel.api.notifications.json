@@ -1,0 +1,8 @@
+{
+  "signIn": "Accesso richiesto",
+  "shape": "Una notifica è un testo o { text, level, action }",
+  "noText": "La notifica non ha testo",
+  "level": "Livello non valido: info, success, warning o error",
+  "action": "Azione non valida: { entry, args }",
+  "sender": "Mittente non valido: l’app non è installata"
+}

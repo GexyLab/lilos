@@ -1,0 +1,8 @@
+{
+  "signIn": "Önce oturum açın",
+  "shape": "Bir bildirim bir metin veya { text, level, action } olmalıdır",
+  "noText": "Bildirimin metni yok",
+  "level": "Düzey geçerli değil: info, success, warning veya error",
+  "action": "Eylem geçerli değil: { entry, args }",
+  "sender": "Gönderen geçerli değil: uygulama yüklü değil"
+}

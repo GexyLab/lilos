@@ -1,0 +1,9 @@
+{
+  "skipped": "παραλείφθηκε",
+  "check": "έλεγχος {name} ({actual})",
+  "test": "δοκιμή «{name}»: {error}",
+  "counts": "{passed} επιτυχείς, {failed} αποτυχημένες σε {seconds} δευτ.",
+  "countsSkipped": "{passed} επιτυχείς, {failed} αποτυχημένες, {skipped} παραλείφθηκαν σε {seconds} δευτ.",
+  "cancelled": "Ακυρώθηκε: {counts}",
+  "failedFirst": "{name}: {counts} (πρώτη: {first})"
+}

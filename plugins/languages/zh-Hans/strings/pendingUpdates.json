@@ -1,0 +1,7 @@
+{
+  "restart": "重启 lilOS 以完成更新",
+  "reopen": "需要重启的已更新应用",
+  "heading": "已更新，仍以旧版本打开",
+  "reopenApp": "重启 {name}（{version}）",
+  "restartSystem": "重启 lilOS"
+}

@@ -1,0 +1,16 @@
+{
+  "secret": "Gizli değer geçerli değil",
+  "fingerprint": "Parmak izi geçerli değil",
+  "server": "Sunucu geçerli değil",
+  "sendsTooMany": "Aynı anda en fazla {max} istek",
+  "unopened": "Açılmayan gizli değerler (başka bir kullanıcı tarafından veya başka bir lilOS’ta kaydedilmiş): {names}",
+  "runsTooMany": "Aynı anda en fazla {max} çalıştırma",
+  "collection": "Koleksiyon geçerli değil",
+  "runNotFound": "Çalıştırma bulunamadı",
+  "needFile": "Bir .nettest dosyası gerekiyor",
+  "notCollection": "Dosya bir NetTest koleksiyonu değil",
+  "noEnvironment": "Ortam bulunamadı: {name}",
+  "untitled": "Koleksiyon",
+  "noProtocol": "Protokol kullanılamıyor: {protocol} (çekirdek modülü eksik)",
+  "noDescribe": "Bu protokol sunucuyu tanımlamıyor"
+}

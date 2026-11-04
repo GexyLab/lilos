@@ -1,0 +1,22 @@
+{
+  "home": "主文件夹",
+  "one": "“{name}”",
+  "many": "{n} 个项目",
+  "trashToServer": "回收站中的内容会回到 lilOS 的文件夹，而不是服务器",
+  "restored": {
+    "other": "已将{what}还原到 {where}"
+  },
+  "moved": {
+    "other": "已将{what}移到 {where}"
+  },
+  "transferFailed": "传输未开始：{message}",
+  "moveFailed": "无法移动：{message}",
+  "importToServer": "计算机上的文件会被复制到 lilOS 的文件夹中：再从那里将它们拖到服务器",
+  "copied": {
+    "other": "已将 {n} 个文件从计算机复制到 {where}"
+  },
+  "failed": {
+    "other": "{n} 个文件未复制"
+  },
+  "limit": "只复制了前 {max} 个文件"
+}

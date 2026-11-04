@@ -1,0 +1,14 @@
+{
+  "mainWindow": "Janela principal",
+  "paramsObject": "Os parâmetros devem ser um objeto JSON, entre { }",
+  "paramsTooLong": "Parâmetros longos demais (no máximo 4 KB)",
+  "invalid": "{param}: valor inválido",
+  "fileGone": "{param}: o arquivo não existe mais",
+  "folderGone": "{param}: a pasta não existe mais",
+  "notOpened": "{app} não abriu sozinho. {message}",
+  "notInstalled": "App não instalado",
+  "maxApps": "No máximo {max} apps na inicialização",
+  "unknownEntry": "Ponto de entrada desconhecido",
+  "entryNotAtStartup": "O ponto de entrada não está na inicialização",
+  "skipped": "Iniciado sem apps: o endereço contém ?avvio=no"
+}

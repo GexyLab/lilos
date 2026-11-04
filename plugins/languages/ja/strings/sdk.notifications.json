@@ -1,0 +1,5 @@
+{
+  "noText": "通知にテキストがありません",
+  "badLevel": "無効なレベル：info、success、warning、error のいずれか",
+  "keep": "保持する通知の数：1～200"
+}

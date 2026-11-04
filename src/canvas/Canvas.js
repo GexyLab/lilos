@@ -1,4 +1,8 @@
-import { Emitter, h, isEditing, trackDrag, storage, shortcuts } from '@lilos/sdk';
+import { Emitter, h, isEditing, trackDrag, storage, shortcuts, locale } from '@lilos/sdk';
+
+const { t } = locale.define('lilos:canvas', {
+  en: { strings: { group: 'Desktop', zoomIn: 'Zoom in', zoomOut: 'Zoom out', zoomReset: 'Zoom to 100%', fit: 'Show all' } },
+});
 
 const MIN_ZOOM = 0.1;
 const MAX_ZOOM = 3;
@@ -269,11 +273,11 @@ export class Canvas extends Emitter {
   }
 
   #bindKeys() {
-    const group = 'Scrivania';
-    shortcuts.register({ id: 'desk.zoomIn', label: 'Ingrandisci', group, keys: ['Ctrl+Plus', 'Ctrl+Equal'], whenEditing: true, repeat: true, run: () => this.zoomBy(1.2) });
-    shortcuts.register({ id: 'desk.zoomOut', label: 'Riduci', group, keys: ['Ctrl+Minus'], whenEditing: true, repeat: true, run: () => this.zoomBy(1 / 1.2) });
-    shortcuts.register({ id: 'desk.zoomReset', label: 'Zoom al 100%', group, keys: ['Ctrl+0'], whenEditing: true, run: () => this.resetZoom() });
-    shortcuts.register({ id: 'desk.fit', label: 'Mostra tutto', group, keys: ['Shift+1'], run: () => this.fit() });
+    const group = t('group');
+    shortcuts.register({ id: 'desk.zoomIn', label: t('zoomIn'), group, keys: ['Ctrl+Plus', 'Ctrl+Equal'], whenEditing: true, repeat: true, run: () => this.zoomBy(1.2) });
+    shortcuts.register({ id: 'desk.zoomOut', label: t('zoomOut'), group, keys: ['Ctrl+Minus'], whenEditing: true, repeat: true, run: () => this.zoomBy(1 / 1.2) });
+    shortcuts.register({ id: 'desk.zoomReset', label: t('zoomReset'), group, keys: ['Ctrl+0'], whenEditing: true, run: () => this.resetZoom() });
+    shortcuts.register({ id: 'desk.fit', label: t('fit'), group, keys: ['Shift+1'], run: () => this.fit() });
 
     // Hold Space to pan: a fixed key, not a command
     const releaseSpace = () => { this.#space = false; this.el.classList.remove('space'); };

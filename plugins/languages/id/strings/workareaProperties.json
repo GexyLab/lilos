@@ -1,0 +1,31 @@
+{
+  "subtitle": "Properti area kerja",
+  "title": "Judul",
+  "description": "Deskripsi",
+  "placeholder": "Untuk apa area kerja ini",
+  "addMeta": "Tambahkan bidang metadata",
+  "created": "Dibuat",
+  "modified": "Diubah",
+  "state": "Status",
+  "collapsed": "Diminimalkan menjadi ikon",
+  "open": "Terbuka di desktop",
+  "contents": "Isi",
+  "items": {
+    "other": "{n} item"
+  },
+  "windows": {
+    "other": "{n} jendela"
+  },
+  "contentsValue": "{items}, {windows}",
+  "size": "Ukuran",
+  "metaName": "Nama",
+  "metaNameLabel": "Nama bidang metadata {n}",
+  "metaValue": "Nilai",
+  "metaValueLabel": "Nilai bidang metadata {n}",
+  "removeMeta": "Hapus bidang metadata",
+  "removeMetaLabel": "Hapus bidang metadata {name}",
+  "noMeta": "Tidak ada metadata. Tambahkan untuk mencatat, misalnya, pelanggan, tenggat, atau status.",
+  "maxMeta": "Paling banyak {max} bidang metadata.",
+  "info": "Informasi",
+  "customMeta": "Metadata khusus"
+}

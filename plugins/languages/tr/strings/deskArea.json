@@ -1,0 +1,35 @@
+{
+  "newFolder": "Yeni klasör",
+  "newDocument": "Yeni belge.txt",
+  "fixedOne": "“{name}” masaüstünün sabit bir öğesidir: silinemez",
+  "fixedMany": "Masaüstünün sabit öğeleri silinemez",
+  "fixedStay": "Masaüstünün sabit öğeleri kalır: yalnızca geri kalanı silinir",
+  "removeWithAreas": {
+    "one": "{what}; ayrıca 1 çalışma bölgesini sil",
+    "other": "{what}; ayrıca {n} çalışma bölgesini sil"
+  },
+  "arrange": "Simgeleri düzenle",
+  "moveOne": "“{name}” öğesini taşı",
+  "moveMany": {
+    "other": "{n} öğeyi taşı"
+  },
+  "gone": "Öğeler artık orada değil",
+  "area.open": "Çalışma bölgesini aç",
+  "rename": "Yeniden adlandır",
+  "properties": "Özellikler…",
+  "area.remove": "Çalışma bölgesini sil…",
+  "open": "Aç",
+  "openMany": {
+    "other": "{n} öğeyi aç"
+  },
+  "fixed.hide": "Masaüstünden kaldır",
+  "fixed.hidden": "“{name}” öğesi Denetim Masası → Çalışma alanı → Bu çalışma alanı bölümünden geri konabilir",
+  "fixed.settings": "Masaüstünün sabit öğeleri…",
+  "openWith": "Birlikte aç…",
+  "wallpaper": "Masaüstü arka planı olarak kullan",
+  "area.fromSelection": "Seçimle bir çalışma bölgesi oluştur",
+  "remove": "Sil",
+  "removeMany": {
+    "other": "{n} öğeyi sil"
+  }
+}

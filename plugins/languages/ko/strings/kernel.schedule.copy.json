@@ -1,0 +1,32 @@
+{
+  "folderGone": "폴더가 더 이상 없습니다",
+  "namedGone": "{name}이(가) 더 이상 없습니다",
+  "notFolder": "폴더가 폴더가 아닙니다",
+  "namedNotFolder": "{name}은(는) 폴더가 아닙니다",
+  "protected": "앱에 의해 보호되어 있으므로(예: 암호화) 덮어쓰지 않습니다",
+  "mountGone": "{name}이(가) 더 이상 “{mount}”에 없습니다",
+  "inside": "복사할 대상 폴더가 복사할 폴더 안에 있습니다",
+  "newVersion": "새 버전: {name}",
+  "fileThere": "복사할 위치에 이미 “{name}” 파일이 있습니다",
+  "copied": "{path} 복사함",
+  "tooMany": "항목이 {max}개를 초과합니다. 더 작은 폴더를 복사하세요",
+  "sameNameFile": "같은 이름의 파일이 있습니다",
+  "removedFile": "{path} 파일을 제거함(이제 폴더임)",
+  "sameNameFolder": "같은 이름의 폴더가 있습니다",
+  "error": "오류 {path}: {message}",
+  "removed": "{path} 삭제함",
+  "oldVersion": "이전 버전 삭제함: {name}",
+  "summary": {
+    "other": "파일 {n}개 복사함({size})"
+  },
+  "summarySame": {
+    "other": "파일 {n}개 복사함({size}), {same}개 변경 없음"
+  },
+  "summaryRemoved": {
+    "other": "파일 {n}개 복사함({size}), {removed}개 삭제함"
+  },
+  "summarySameRemoved": {
+    "other": "파일 {n}개 복사함({size}), {same}개 변경 없음, {removed}개 삭제함"
+  },
+  "notCopied": "{n}개 복사하지 못함: {first}"
+}

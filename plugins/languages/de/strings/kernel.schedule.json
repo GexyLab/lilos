@@ -1,0 +1,22 @@
+{
+  "ok": "„{name}“ erfolgreich",
+  "error": "„{name}“ fehlgeschlagen: {why}",
+  "admin.save": "{who}, ein Administrator, hat Ihren Vorgang „{name}“ geändert",
+  "admin.create": "{who}, ein Administrator, hat den Vorgang „{name}“ für Sie erstellt",
+  "admin.remove": "{who}, ein Administrator, hat Ihren Vorgang „{name}“ gelöscht",
+  "admin.on": "{who}, ein Administrator, hat Ihren Vorgang „{name}“ wieder aktiviert",
+  "admin.off": "{who}, ein Administrator, hat Ihren Vorgang „{name}“ pausiert",
+  "admin.run": "{who}, ein Administrator, hat Ihren Vorgang „{name}“ ausgeführt",
+  "admin.move": "{who}, ein Administrator, hat Ihren Vorgang „{name}“ verschoben",
+  "userGone": "Der Benutzer dieses Vorgangs existiert nicht mehr",
+  "invalid": "Ungültiger Vorgang",
+  "unknownAction": "Unbekannte Aktion: {type}",
+  "systemNoApps": "Das System öffnet keine Apps: Ein Benutzer ist erforderlich",
+  "waiting": "Wartet darauf, dass lilOS geöffnet wird",
+  "noPage": "Keine Seite von lilOS hat geantwortet",
+  "cancelled": "Abgebrochen oder Zeit überschritten",
+  "runNotFound": "Durchlauf nicht gefunden",
+  "runTaken": "Eine andere Seite führt ihn aus",
+  "runGone": "Durchlauf bereits erledigt oder abgelaufen",
+  "taskNotFound": "Vorgang nicht gefunden"
+}

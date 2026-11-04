@@ -1,0 +1,8 @@
+{
+  "signIn": "Meld je eerst aan",
+  "shape": "Een melding is een tekst of { text, level, action }",
+  "noText": "De melding heeft geen tekst",
+  "level": "Ongeldig niveau: info, success, warning of error",
+  "action": "Ongeldige actie: { entry, args }",
+  "sender": "Ongeldige afzender: de app is niet geïnstalleerd"
+}

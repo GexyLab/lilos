@@ -1,0 +1,12 @@
+{
+  "folder": "module.json не соответствует папке {folder}",
+  "kernel": "{name} требуется ядро {kernel}, здесь {api}",
+  "services": "{name}: недопустимые имена служб",
+  "settings": "{name}: недопустимые настройки",
+  "replaces": "{name}: недопустимое replaces",
+  "notInstalled": "Модуль не установлен: {name}",
+  "twice": "Модуль указан дважды: {name}",
+  "provider": "Службу \"{service}\" предоставляют и {first}, и {second}",
+  "cycle": "Циклические зависимости между модулями ({name})",
+  "missing": "{name} требуется служба \"{service}\", которую не предоставляет ни один активный модуль"
+}

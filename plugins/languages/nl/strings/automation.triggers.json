@@ -1,0 +1,14 @@
+{
+  "theAutomation": "De automatisering",
+  "noAutomata": "Automata is niet geïnstalleerd",
+  "running": "{name} wordt al uitgevoerd",
+  "opened": "{name}: geopend in Automata",
+  "needsNothing": "{name}: start alleen vanzelf als ze met niets werkt (Automata → Starten)",
+  "ran": "{name}: vanzelf uitgevoerd",
+  "ranOn": "{name}: vanzelf uitgevoerd op {items} items",
+  "failedSteps": {
+    "one": "{n} stap mislukt",
+    "other": "{n} stappen mislukt"
+  },
+  "withFailed": "{text} ({failed})"
+}

@@ -1,0 +1,11 @@
+{
+  "official": "lilOS ufficiale",
+  "adminOnly": "Solo un amministratore gestisce i repository",
+  "missing": "Repository inesistente",
+  "present": "Repository già presente",
+  "tooMany": "Al massimo {max} repository",
+  "notOfficial": "Il repository ufficiale non si rimuove",
+  "catalog": "catalog.json manca o non è JSON valido",
+  "notInCatalog": "Pacchetto non presente nel catalogo",
+  "file": "File non valido"
+}

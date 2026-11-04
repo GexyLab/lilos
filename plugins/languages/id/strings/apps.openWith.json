@@ -1,0 +1,11 @@
+{
+  "title": "Buka dengan",
+  "apps": "Aplikasi",
+  "choose": "Pilih aplikasi untuk membuka “{name}” ({type}).",
+  "alwaysExt": "Selalu gunakan aplikasi ini untuk file .{ext}",
+  "alwaysNoExt": "Selalu gunakan aplikasi ini untuk file tanpa ekstensi",
+  "cancel": "Batal",
+  "open": "Buka",
+  "none": "Tidak ada aplikasi terinstal yang dapat membuka “{name}”.",
+  "close": "Tutup"
+}

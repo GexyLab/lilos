@@ -1,0 +1,27 @@
+{
+  "stopped": "Operasi dihentikan",
+  "badName": "Nama peristiwa tidak valid: {name}",
+  "appEvent": "Nama peristiwa aplikasi berformat <app id>.<name>",
+  "exists": "Peristiwa {name} sudah ada",
+  "unknown": "Peristiwa tidak dikenal: {name}",
+  "stage": "stage harus \"before\" atau \"after\"",
+  "position": "position harus \"first\", \"middle\", atau \"last\"",
+  "noHandler": "Fungsi pipe tidak ada",
+  "reserved": "Peristiwa {name} dicadangkan untuk sistem",
+  "syncOnly": "{name} adalah operasi langsung: aplikasi hanya dapat mengamatinya (stage \"after\")",
+  "maxSubs": {
+    "other": "Paling banyak {n} langganan per aplikasi"
+  },
+  "busy": "Terlalu banyak operasi yang sedang berlangsung",
+  "busyApp": "Terlalu banyak operasi yang sedang berlangsung untuk aplikasi ini",
+  "syncAnswer": "{name}: operasi langsung memerlukan jawaban langsung",
+  "handlerFailed": "{name}: {message}",
+  "cannotStop": "{name}: peristiwa {event} tidak dapat dihentikan",
+  "whereObject": "where: hanya objek",
+  "whereInvalid": "where tidak valid",
+  "whereKey": "where: {key} tidak digunakan",
+  "whereMeta": "where.meta: hanya \"own\"",
+  "whereType": "where.type tidak valid",
+  "whereList": "where.{key}: daftar teks",
+  "timeout": "{name} tidak menjawab tepat waktu"
+}

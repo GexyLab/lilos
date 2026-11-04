@@ -1,0 +1,22 @@
+{
+  "ok": "“{name}” berhasil",
+  "error": "“{name}” gagal: {why}",
+  "admin.save": "{who}, seorang administrator, mengubah operasi Anda “{name}”",
+  "admin.create": "{who}, seorang administrator, membuat operasi “{name}” untuk Anda",
+  "admin.remove": "{who}, seorang administrator, menghapus operasi Anda “{name}”",
+  "admin.on": "{who}, seorang administrator, mengaktifkan lagi operasi Anda “{name}”",
+  "admin.off": "{who}, seorang administrator, menjeda operasi Anda “{name}”",
+  "admin.run": "{who}, seorang administrator, menjalankan operasi Anda “{name}”",
+  "admin.move": "{who}, seorang administrator, memindahkan operasi Anda “{name}”",
+  "userGone": "Pengguna operasi ini sudah tidak ada",
+  "invalid": "Operasi tidak valid",
+  "unknownAction": "Tindakan tidak dikenal: {type}",
+  "systemNoApps": "Sistem tidak membuka aplikasi: diperlukan pengguna",
+  "waiting": "Menunggu lilOS dibuka",
+  "noPage": "Tidak ada halaman lilOS yang menjawab",
+  "cancelled": "Dibatalkan atau waktu habis",
+  "runNotFound": "Eksekusi tidak ditemukan",
+  "runTaken": "Halaman lain sedang melakukannya",
+  "runGone": "Eksekusi sudah selesai atau kedaluwarsa",
+  "taskNotFound": "Operasi tidak ditemukan"
+}

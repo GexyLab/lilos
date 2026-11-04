@@ -1,0 +1,6 @@
+{
+  "needHttp": "http 또는 https 주소가 필요합니다",
+  "noAnswer": {
+    "other": "{n}초 동안 응답 없음"
+  }
+}

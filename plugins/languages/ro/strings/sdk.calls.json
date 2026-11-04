@@ -1,0 +1,9 @@
+{
+  "offline": "Cererile de rețea sunt efectuate de kernelul lilOS, care nu este conectat",
+  "badRun": "Execuție nevalidă",
+  "badSession": "Sesiune nevalidă",
+  "blocked": "Browserul a blocat fereastra de conectare",
+  "canceled": "Conectare anulată",
+  "failed": "Conectarea a eșuat",
+  "noAskAddress": "Lipsește askAddress"
+}

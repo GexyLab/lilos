@@ -1,0 +1,31 @@
+{
+  "subtitle": "区域属性",
+  "title": "标题",
+  "description": "描述",
+  "placeholder": "此区域的用途",
+  "addMeta": "添加元数据字段",
+  "created": "创建时间",
+  "modified": "修改时间",
+  "state": "状态",
+  "collapsed": "已最小化为图标",
+  "open": "在桌面上展开",
+  "contents": "内容",
+  "items": {
+    "other": "{n} 个项目"
+  },
+  "windows": {
+    "other": "{n} 个窗口"
+  },
+  "contentsValue": "{items}，{windows}",
+  "size": "大小",
+  "metaName": "名称",
+  "metaNameLabel": "元数据字段 {n} 的名称",
+  "metaValue": "值",
+  "metaValueLabel": "元数据字段 {n} 的值",
+  "removeMeta": "移除元数据字段",
+  "removeMetaLabel": "移除元数据字段 {name}",
+  "noMeta": "没有元数据。可以添加一些来记录，例如客户、截止日期或状态。",
+  "maxMeta": "最多 {max} 个元数据字段。",
+  "info": "信息",
+  "customMeta": "自定义元数据"
+}

@@ -1,0 +1,8 @@
+{
+  "title": "数据传输",
+  "sent": "↑ {done} / {total}",
+  "received": "↓ {done} / {total}",
+  "rate": "{line} · {bytes}/秒",
+  "conflict": "文件已存在：请选择如何处理",
+  "failed": "有些文件未能传输"
+}

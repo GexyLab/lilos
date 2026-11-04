@@ -1,3 +1,5 @@
+import { locale } from '@lilos/sdk';
+
 /**
  * Checks on the permissions of an installed app, the same rules as the kernel's
  * (system/kernel/src/apps/permissions.js): 'fs.read:~/Documenti' lets the app read inside
@@ -22,30 +24,43 @@ export const IMPLICIT_PERMISSIONS = Object.freeze(['fs.app', 'fs.tmp', 'fs.open'
 /** The permissions of a list that need the user's consent ('fs.read:~/Documenti' yes, 'ui.notify' no), as the kernel's needsGrant. */
 export const needsGrant = permissions => (Array.isArray(permissions) ? permissions : []).filter(p => typeof p === 'string' && !IMPLICIT_PERMISSIONS.includes(p.split(':')[0]));
 
-const LABELS = {
-  'fs.app': 'I propri dati', 'fs.tmp': 'I propri file temporanei', 'fs.open': 'I file che apri con l’app',
-  'fs.read': 'Leggere i file in', 'fs.write': 'Leggere e modificare i file in', 'fs.workspaces': 'Vedere i file privati di tutti i workspace',
-  'fs.preview': 'Chiedere l’anteprima dei file all’app che li apre',
-  'tags.read': 'Vedere i tag', 'tags.write': 'Creare e assegnare tag', 'desktop.items': 'Mettere elementi sulla scrivania',
-  'desktop.widget': 'Mostrare widget sulla scrivania', 'ui.notify': 'Mostrare avvisi', 'ui.menus': 'Aggiungere voci ai menu',
-  'ui.commands': 'Aggiungere comandi', 'ui.shortcuts': 'Aggiungere scorciatoie da tastiera', 'clipboard.write': 'Copiare negli appunti',
-  'clipboard.read': 'Leggere gli appunti', net: 'Collegarsi a', term: 'Aprire terminali remoti (SSH, Telnet…) e usare gli host salvati',
-  calls: 'Fare richieste di rete dal kernel (HTTP, WebSocket, TCP, gRPC, MQTT…) verso qualunque server', 'media.camera': 'Usare la fotocamera', 'media.microphone': 'Usare il microfono',
-  geo: 'Conoscere la posizione', 'apps.call': 'Avviare parti dell’app', 'ai.use': 'Usare l’intelligenza artificiale',
-  'ai.expose': 'Rendere le proprie azioni disponibili all’assistente', background: 'Lavorare anche quando lilOS è chiuso',
-  'auth.remote': 'Accedere al proprio servizio', 'apps.manage': 'Installare e rimuovere app', 'workspaces.manage': 'Gestire i workspace',
-  'settings.system': 'Cambiare le impostazioni di sistema', pipe: 'Vedere e cambiare ciò che passa dall’evento',
-  'pipe.own': 'Gestire i propri file nell’evento',
-  serial: 'Usare le porte seriali e USB del tuo computer (schede come Arduino)', kernel: 'Usare il modulo del kernel',
-  schedule: 'Pianificare operazioni (le sue: promemoria, i suoi servizi, aprirsi)',
-  'schedule.read': 'Vedere tutte le operazioni pianificate',
-  'schedule.move': 'Vedere e spostare nel tempo le operazioni pianificate',
-};
+// The labels with {target} take the permission's param ('fs.read:~/Documenti')
+const { t } = locale.define('lilos:apps.permissions', {
+  en: { strings: {
+    'fs.app': 'Its own data', 'fs.tmp': 'Its own temporary files', 'fs.open': 'The files you open with the app',
+    'fs.read': 'Read the files in {target}', 'fs.write': 'Read and change the files in {target}', 'fs.workspaces': 'See the private files of every workspace',
+    'fs.preview': 'Ask the app that opens files for their preview',
+    'tags.read': 'See the tags', 'tags.write': 'Create and assign tags', 'desktop.items': 'Put items on the desktop',
+    'desktop.widget': 'Show widgets on the desktop', 'ui.notify': 'Show notices', 'ui.menus': 'Add menu items',
+    'ui.commands': 'Add commands', 'ui.shortcuts': 'Add keyboard shortcuts', 'clipboard.write': 'Copy to the clipboard',
+    'clipboard.read': 'Read the clipboard', net: 'Connect to {target}', term: 'Open remote terminals (SSH, Telnet…) and use the saved hosts',
+    calls: 'Make network requests from the kernel (HTTP, WebSocket, TCP, gRPC, MQTT…) to any server', 'media.camera': 'Use the camera', 'media.microphone': 'Use the microphone',
+    geo: 'Know the location', 'apps.call': 'Start parts of the app {target}', 'ai.use': 'Use artificial intelligence',
+    'ai.expose': 'Make its actions available to the assistant', background: 'Work even when lilOS is closed',
+    'auth.remote': 'Sign in to its own service', 'apps.manage': 'Install and remove apps', 'workspaces.manage': 'Manage workspaces',
+    'settings.system': 'Change the system settings', pipe: 'See and change what goes through the event {target}',
+    'pipe.own': 'Manage its own files in the event {target}',
+    serial: 'Use the serial and USB ports of your computer (boards like Arduino)', kernel: 'Use the kernel module {target}',
+    schedule: 'Schedule operations (its own: reminders, its services, opening itself)',
+    'schedule.read': 'See all the scheduled operations',
+    'schedule.move': 'See and move in time the scheduled operations',
+    other: '{permission} {target}', home: 'Home',
+  } },
+});
 
-/** 'fs.read:~/Documenti' → 'Leggere i file in Home/Documenti'. */
+const LABELS = new Set(['fs.app', 'fs.tmp', 'fs.open', 'fs.read', 'fs.write', 'fs.workspaces', 'fs.preview', 'tags.read', 'tags.write',
+  'desktop.items', 'desktop.widget', 'ui.notify', 'ui.menus', 'ui.commands', 'ui.shortcuts', 'clipboard.write', 'clipboard.read', 'net',
+  'term', 'calls', 'media.camera', 'media.microphone', 'geo', 'apps.call', 'ai.use', 'ai.expose', 'background', 'auth.remote',
+  'apps.manage', 'workspaces.manage', 'settings.system', 'pipe', 'pipe.own', 'serial', 'kernel', 'schedule', 'schedule.read', 'schedule.move']);
+const TARGETED = new Set(['fs.read', 'fs.write', 'net', 'apps.call', 'pipe', 'pipe.own', 'kernel']);
+
+/** 'fs.read:~/Documenti' → 'Read the files in Home/Documenti', in the system's language. */
 export function describePermission(permission) {
   const i = permission.indexOf(':');
   const name = i < 0 ? permission : permission.slice(0, i);
   const param = i < 0 ? '' : permission.slice(i + 1);
-  return `${LABELS[name] ?? name}${param ? ` ${param.replace(/^~/, 'Home')}` : ''}`;
+  const target = param.replace(/^~/, t('home'));
+  if (TARGETED.has(name)) return t(name, { target }).trim();
+  const label = LABELS.has(name) ? t(name) : name;
+  return param ? t('other', { permission: label, target }) : label;
 }

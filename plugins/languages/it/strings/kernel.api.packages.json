@@ -1,0 +1,7 @@
+{
+  "signIn": "Accesso richiesto",
+  "kind": "kind deve essere \"app\" o \"module\"",
+  "id": "id non valido",
+  "target": "Serve install o update",
+  "package": "Pacchetto non valido"
+}

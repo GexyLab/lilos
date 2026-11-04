@@ -1,0 +1,16 @@
+{
+  "secret": "无效的机密值",
+  "fingerprint": "无效的指纹",
+  "server": "无效的服务器",
+  "sendsTooMany": "一次最多 {max} 个请求",
+  "unopened": "机密值未能打开（由其他用户或在其他 lilOS 上保存）：{names}",
+  "runsTooMany": "一次最多 {max} 个运行",
+  "collection": "无效的集合",
+  "runNotFound": "未找到运行",
+  "needFile": "需要一个 .nettest 文件",
+  "notCollection": "该文件不是 NetTest 集合",
+  "noEnvironment": "未找到环境：{name}",
+  "untitled": "集合",
+  "noProtocol": "协议不可用：{protocol}（缺少其内核模块）",
+  "noDescribe": "此协议不描述服务器"
+}

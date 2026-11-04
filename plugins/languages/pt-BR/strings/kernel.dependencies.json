@@ -1,0 +1,37 @@
+{
+  "adminOnly": "Somente um administrador instala ou remove pacotes",
+  "needsLilos": "{name} {version} precisa do lilOS {range} (este é o {system})",
+  "moduleJson": "module.json não é um JSON válido",
+  "byHand": "{id} foi colocado manualmente: é atualizado manualmente",
+  "appInstalled": "{name} já está instalado: para uma nova versão, use a atualização",
+  "moduleInstalled": "{name} já está instalado: para uma nova versão, use a atualização",
+  "replaced": "{name} foi substituído por {by}: não é mais instalado",
+  "appMissing": "App não instalado",
+  "moduleOff": "Módulo não ativo",
+  "otherApp": "O pacote é do app {found}, não de {id}",
+  "otherModule": "O pacote é do módulo {found}, não de {id}",
+  "moduleNewer": "É necessário o módulo {id} {range}: está instalada a {have} e a mais recente é a {newer}",
+  "appNewer": "É necessário o app {id} {range}: está instalada a {have} e a mais recente é a {newer}",
+  "unreadable": "Não é possível ler o repositório {url}: {message}",
+  "moduleNotInRepo": "O repositório {url} não tem o módulo {id}",
+  "appNotInRepo": "O repositório {url} não tem o app {id}",
+  "moduleRepoVersion": "É necessário o módulo {id} {range}: o repositório tem a {version}",
+  "appRepoVersion": "É necessário o app {id} {range}: o repositório tem a {version}",
+  "modulePlanned": "{name} precisa do módulo {id} {range}, mas está sendo instalada a {version}",
+  "appPlanned": "{name} precisa do app {id} {range}, mas está sendo instalada a {version}",
+  "circular": "Dependência circular entre {a} e {b}: nenhum dos dois pode ser instalado antes do outro",
+  "consent": "Falta o consentimento para {keys}: verifique de novo o que será instalado",
+  "haveVersion": "{id} {range} (está a {have})",
+  "missing": "{name} precisa de: {missing}. Instale-o pela AppStore, que também instala o que for necessário.",
+  "appNeeded": {
+    "one": "O app {id} é necessário para {names}: remova esse item primeiro",
+    "other": "O app {id} é necessário para {names}: remova esses itens primeiro"
+  },
+  "moduleNeeded": {
+    "one": "O módulo {id} é necessário para {names}: remova esse item primeiro",
+    "other": "O módulo {id} é necessário para {names}: remova esses itens primeiro"
+  },
+  "wantsOne": "{name} quer {id} {range}: a {version} não serve",
+  "wants": "{name} quer {id} {range}",
+  "wantsMany": "{list}: a {version} não serve"
+}

@@ -1,0 +1,6 @@
+{
+  "notStarted": "{app} não foi iniciado: {message}",
+  "noExport": "O código não exporta {entry}",
+  "codeError": "erro no código",
+  "stopped": "{app} parou"
+}

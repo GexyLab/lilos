@@ -1,0 +1,23 @@
+{
+  "signIn": "Aanmelding vereist",
+  "noProtocol": "Protocol niet beschikbaar: {protocol} (de kernelmodule ervan ontbreekt)",
+  "hostName": "Ongeldige hostnaam",
+  "hostTaken": "Er is al een host ‘{name}’",
+  "missing": "Ontbreekt: {fields}",
+  "tooMany": "Maximaal {max} hosts",
+  "hostNotFound": "Host niet gevonden",
+  "noPassword": "Geen wachtwoord om op te slaan",
+  "sealedOther": "Het in de snelkoppeling opgeslagen wachtwoord geldt alleen voor wie het heeft opgeslagen, op deze lilOS, voor dezelfde server en gebruiker",
+  "sessionNotFound": "Sessie niet gevonden",
+  "sessionsTooMany": "Maximaal {max} open sessies",
+  "sftpOnly": "De terminal opent alleen bij SFTP-verbindingen",
+  "sshOnly": "Geplande opdrachten gaan alleen naar SSH-hosts",
+  "untrusted": "De sleutel van de server van ‘{name}’ is niet bevestigd: maak één keer verbinding vanuit de Terminal",
+  "denied": "Toegang geweigerd door ‘{name}’: sla het wachtwoord of de sleutel op in de host",
+  "stopping": "De kernel wordt gestopt",
+  "detached": "Gesloten na 10 minuten zonder venster",
+  "cancelled": "Verbinding geannuleerd",
+  "failed": "Verbinding mislukt",
+  "folder": "Ongeldige mapnaam",
+  "cwd": "Ongeldige map"
+}

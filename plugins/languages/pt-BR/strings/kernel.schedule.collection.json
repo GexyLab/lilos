@@ -1,0 +1,9 @@
+{
+  "skipped": "ignorada",
+  "check": "verificação {name} ({actual})",
+  "test": "teste “{name}”: {error}",
+  "counts": "{passed} aprovadas, {failed} com falha em {seconds} s",
+  "countsSkipped": "{passed} aprovadas, {failed} com falha, {skipped} ignoradas em {seconds} s",
+  "cancelled": "Cancelada: {counts}",
+  "failedFirst": "{name}: {counts} (primeira: {first})"
+}

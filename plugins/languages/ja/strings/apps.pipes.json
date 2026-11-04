@@ -1,0 +1,10 @@
+{
+  "unknownEvent": "不明なイベント：{event}",
+  "denied": "アクセス許可がありません：pipe:{event}",
+  "deniedOwn": "アクセス許可がありません：pipe:{event}（または pipe.own:{event}）",
+  "reserved": "イベント {event} はシステム用に予約されています",
+  "sync": "{event} は即時の操作です。監視のみ可能です（stage \"after\"）",
+  "gone": "このアプリはもうインストールされていません",
+  "unhandled": "{app} は {what} を処理しません（lilos.pipes.subscribe がありません）",
+  "needApp": "「{file}」を開くにはアプリ {app} が必要です。AppStore からインストールしてください"
+}

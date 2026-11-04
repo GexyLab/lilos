@@ -1,0 +1,23 @@
+{
+  "tooMany": "No máximo {max} zonas de trabalho",
+  "overlap": "Já existe outra zona de trabalho ali: as zonas não podem se sobrepor",
+  "undo.create": "Criar a zona de trabalho “{title}”",
+  "undo.rename": "Renomear a zona de trabalho “{before}” para “{after}”",
+  "undo.remove": "Excluir a zona de trabalho “{title}”",
+  "undo.move": "Mover a zona de trabalho “{title}”",
+  "undo.resize": "Redimensionar a zona de trabalho “{title}”",
+  "gone": "A zona de trabalho não existe mais",
+  "already": "A zona de trabalho já está ali",
+  "occupied": "Agora existe outra zona de trabalho ali",
+  "notOpen": "A zona de trabalho não está aberta",
+  "removeOne": "Excluir a zona de trabalho “{title}” (o conteúdo fica na área de trabalho)",
+  "removeMany": {
+    "one": "Excluir {n} zona de trabalho (o conteúdo fica na área de trabalho)",
+    "other": "Excluir {n} zonas de trabalho (o conteúdo fica na área de trabalho)"
+  },
+  "menu.title": "Zona de trabalho “{title}”",
+  "menu.rename": "Renomear a zona de trabalho",
+  "menu.properties": "Propriedades…",
+  "menu.collapse": "Minimizar em um ícone",
+  "menu.remove": "Excluir a zona de trabalho…"
+}

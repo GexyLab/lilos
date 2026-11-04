@@ -1,0 +1,7 @@
+{
+  "purged": {
+    "one": "Un element mai vechi decât noua perioadă a fost șters definitiv",
+    "few": "{n} elemente mai vechi decât noua perioadă au fost șterse definitiv",
+    "other": "{n} de elemente mai vechi decât noua perioadă au fost șterse definitiv"
+  }
+}

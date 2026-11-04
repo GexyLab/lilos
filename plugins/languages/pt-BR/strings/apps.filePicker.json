@@ -1,0 +1,14 @@
+{
+  "title": "Escolher um arquivo",
+  "search": "Pesquisar por nome ou caminho",
+  "searchLabel": "Pesquisar",
+  "folders": "Pastas",
+  "files": "Arquivos",
+  "choose": "Escolher",
+  "cancel": "Cancelar",
+  "home": "Home",
+  "noMatch": "Nada corresponde à pesquisa",
+  "noFolders": "Nenhuma pasta",
+  "noFiles": "Nenhum arquivo no lilOS",
+  "noFilesOf": "Nenhum arquivo {exts} no lilOS"
+}

@@ -1,0 +1,17 @@
+{
+  "red": "Vermelho",
+  "orange": "Laranja",
+  "yellow": "Amarelo",
+  "green": "Verde",
+  "teal": "Verde-azulado",
+  "blue": "Azul",
+  "purple": "Roxo",
+  "gray": "Cinza",
+  "emptyName": "O nome da etiqueta não pode ficar vazio",
+  "exists": "Já existe uma etiqueta “{name}”",
+  "tooMany": {
+    "one": "No máximo {n} etiqueta",
+    "other": "No máximo {n} etiquetas"
+  },
+  "notFound": "A etiqueta não existe"
+}

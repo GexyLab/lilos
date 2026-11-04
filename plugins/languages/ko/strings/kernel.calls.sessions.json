@@ -1,0 +1,10 @@
+{
+  "notFound": "세션을 찾을 수 없습니다",
+  "tooMany": "열린 세션은 최대 {max}개입니다",
+  "stopping": "커널이 중지되는 중입니다",
+  "detached": "창 없이 10분이 지나 닫혔습니다",
+  "notConnected": "세션이 연결되어 있지 않습니다",
+  "tooBig": "메시지가 너무 큽니다",
+  "noCommand": "사용할 수 없는 명령",
+  "connected": "연결됨"
+}

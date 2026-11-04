@@ -1,0 +1,6 @@
+{
+  "notStarted": "{app}이(가) 시작되지 않았습니다: {message}",
+  "noExport": "코드가 {entry}을(를) 내보내지 않습니다",
+  "codeError": "코드 오류",
+  "stopped": "{app}이(가) 중지되었습니다"
+}

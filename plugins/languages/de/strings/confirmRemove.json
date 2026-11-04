@@ -1,0 +1,22 @@
+{
+  "cancel": "Abbrechen",
+  "one": "„{name}“",
+  "many": "{count} Elemente",
+  "trash": "{what} in den Papierkorb verschieben",
+  "permanent": "{what} endgültig löschen",
+  "inside": {
+    "one": "{what} und das enthaltene Element",
+    "other": "{what} und die {count} enthaltenen Elemente"
+  },
+  "netRemoveText": "{verb} {what}: {text}",
+  "netRemove": "Löschen",
+  "netRecycles": "{what} aus {service} löschen (landet in dessen Papierkorb)",
+  "netServer": "{what} vom Server löschen (endgültig)",
+  "netServerFolders": "{what} mit dem gesamten Inhalt vom Server löschen (endgültig)",
+  "purge": "„{name}“ endgültig löschen",
+  "purgeMany": "{count} Elemente endgültig löschen",
+  "emptyTrash": {
+    "one": "Das Element im Papierkorb endgültig löschen",
+    "other": "Alle {count} Elemente im Papierkorb endgültig löschen"
+  }
+}

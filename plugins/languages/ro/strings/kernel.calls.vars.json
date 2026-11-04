@@ -1,0 +1,7 @@
+{
+  "tooBig": "Variabilele se extind prea mult (cel mult 4 MB)",
+  "notJson": "Răspunsul nu este JSON",
+  "source": "Sursă nevalidă",
+  "regex": "Expresie regulată nevalidă sau prea lentă",
+  "condition": "Condiție nevalidă"
+}

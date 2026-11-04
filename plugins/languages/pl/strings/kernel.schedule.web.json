@@ -1,0 +1,36 @@
+{
+  "folderGone": "Folderu, do którego ma nastąpić zapis, już nie ma",
+  "notFolder": "Miejsce zapisu nie jest folderem",
+  "notFile": "„{name}” już istnieje i nie jest plikiem",
+  "protected": "„{name}” jest chroniony przez aplikację (na przykład zaszyfrowany): nie zostanie nadpisany",
+  "secretGone": "Wartości tajnej {name} nie można już odczytać: trzeba ją wpisać ponownie",
+  "fileGone": "Pliku do wysłania już nie ma",
+  "noAnswer": {
+    "one": "Brak odpowiedzi w ciągu {n} sekundy",
+    "few": "Brak odpowiedzi w ciągu {n} sekund",
+    "many": "Brak odpowiedzi w ciągu {n} sekund",
+    "other": "Brak odpowiedzi w ciągu {n} sekundy"
+  },
+  "untrusted": "{message}: potwierdź to raz w NetTest",
+  "network": "Sieć: {code}",
+  "redirects": "Zbyt wiele przekierowań",
+  "notWeb": "Przekierowanie na adres, który nie jest internetowy",
+  "otherOrigin": "Przekierowanie na inny adres z treścią do wysłania: nie wykonano",
+  "tooBig": "Odpowiedź jest za duża (najwyżej 10 MB)",
+  "unfinished": {
+    "one": "Odpowiedź nie zakończyła się w ciągu {n} sekundy",
+    "few": "Odpowiedź nie zakończyła się w ciągu {n} sekund",
+    "many": "Odpowiedź nie zakończyła się w ciągu {n} sekund",
+    "other": "Odpowiedź nie zakończyła się w ciągu {n} sekundy"
+  },
+  "bytes": {
+    "one": "{n} bajt",
+    "few": "{n} bajty",
+    "many": "{n} bajtów",
+    "other": "{n} bajta"
+  },
+  "saved": "{status} w {ms} ms · {size} · zapisano w {name}",
+  "summary": "{status} w {ms} ms · {size}",
+  "status": "Status {status}, oczekiwano {expected}",
+  "contains": "Odpowiedź nie zawiera „{text}”"
+}

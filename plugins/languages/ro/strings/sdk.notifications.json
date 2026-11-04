@@ -1,0 +1,5 @@
+{
+  "noText": "Notificarea nu are text",
+  "badLevel": "Nivel nevalid: info, success, warning sau error",
+  "keep": "Câte notificări se păstrează: de la 1 la 200"
+}

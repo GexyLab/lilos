@@ -1,0 +1,10 @@
+{
+  "notFound": "Sessione inesistente",
+  "tooMany": "Al massimo {max} sessioni aperte",
+  "stopping": "Il kernel si sta fermando",
+  "detached": "Chiusa dopo 10 minuti senza finestra",
+  "notConnected": "La sessione non è collegata",
+  "tooBig": "Messaggio troppo grande",
+  "noCommand": "Comando non disponibile",
+  "connected": "Collegato"
+}

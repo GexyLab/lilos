@@ -1,0 +1,19 @@
+{
+  "key.Enter": "Enter",
+  "key.Escape": "Esc",
+  "key.Delete": "Del",
+  "key.Space": "Spacja",
+  "key.Insert": "Ins",
+  "key.End": "End",
+  "key.PageUp": "PgUp",
+  "key.PageDown": "PgDn",
+  "general": "Ogólne",
+  "exists": "Skrót jest już zarejestrowany: {id}",
+  "unknown": "Skrót niezarejestrowany: {id}",
+  "invalid": "Nieprawidłowa kombinacja",
+  "noKey": "Naciśnij też klawisz inny niż Ctrl, Alt lub Shift",
+  "reserved": "Kombinacja zarezerwowana przez przeglądarkę",
+  "tabSpace": "Sam Tab i sama Spacja służą do poruszania się i przesuwania pulpitu",
+  "typingKey": "Klawisz, który wpisuje znak, musi być użyty z Ctrl, Alt lub Shift",
+  "whenEditing": "Ten skrót działa także podczas pisania: wymaga Ctrl lub Alt"
+}

@@ -1,0 +1,13 @@
+{
+  "theAutomation": "Otomasyon",
+  "noAutomata": "Automata yüklü değil",
+  "running": "{name} zaten çalışıyor",
+  "opened": "{name}: Automata’da açıldı",
+  "needsNothing": "{name}: yalnızca hiçbir öğe üzerinde çalışmıyorsa kendiliğinden başlar (Automata → Başlat)",
+  "ran": "{name}: kendiliğinden çalıştı",
+  "ranOn": "{name}: {items} öğe üzerinde kendiliğinden çalıştı",
+  "failedSteps": {
+    "other": "{n} adım başarısız oldu"
+  },
+  "withFailed": "{text} ({failed})"
+}

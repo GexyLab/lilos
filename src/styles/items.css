@@ -2,7 +2,7 @@
 .drop-target { background: var(--accent-soft) !important; outline: 1px dashed var(--accent); outline-offset: -1px; }
 .item-ghost {
   position: fixed; left: 0; top: 0; z-index: 100000; pointer-events: none;
-  display: flex; align-items: center; gap: 6px; max-width: 240px; padding: 4px 9px 4px 6px;
+  display: flex; align-items: center; gap: 6px; max-width: 240px; padding-block: 4px; padding-inline: 6px 9px;
   background: var(--field-bg); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius-sm);
   box-shadow: var(--shadow-pop); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }

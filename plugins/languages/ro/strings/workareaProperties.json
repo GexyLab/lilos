@@ -1,0 +1,35 @@
+{
+  "subtitle": "Proprietățile zonei de lucru",
+  "title": "Titlu",
+  "description": "Descriere",
+  "placeholder": "La ce folosește această zonă de lucru",
+  "addMeta": "Adăugați un câmp de metadate",
+  "created": "Creată",
+  "modified": "Modificată",
+  "state": "Stare",
+  "collapsed": "Minimizată la pictogramă",
+  "open": "Deschisă pe desktop",
+  "contents": "Conținut",
+  "items": {
+    "one": "un element",
+    "few": "{n} elemente",
+    "other": "{n} de elemente"
+  },
+  "windows": {
+    "one": "o fereastră",
+    "few": "{n} ferestre",
+    "other": "{n} de ferestre"
+  },
+  "contentsValue": "{items}, {windows}",
+  "size": "Dimensiuni",
+  "metaName": "Nume",
+  "metaNameLabel": "Numele câmpului de metadate {n}",
+  "metaValue": "Valoare",
+  "metaValueLabel": "Valoarea câmpului de metadate {n}",
+  "removeMeta": "Eliminați câmpul de metadate",
+  "removeMetaLabel": "Eliminați câmpul de metadate {name}",
+  "noMeta": "Nicio metadată. Adăugați câteva pentru a nota, de exemplu, clientul, termenul sau starea.",
+  "maxMeta": "Cel mult {max} câmpuri de metadate.",
+  "info": "Informații",
+  "customMeta": "Metadate personalizate"
+}

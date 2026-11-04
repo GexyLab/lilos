@@ -1,0 +1,7 @@
+{
+  "noPipeFn": "دالة الأنبوب مفقودة",
+  "noHandler": "{id}: لا تستجيب {entry} للاستدعاءات (lilos.handle مفقودة)",
+  "noPipe": "{id}: لا توجد دالة لهذا الأنبوب",
+  "libraryFailed": "لم يتم تحميل المكتبة",
+  "noExport": "لا يصدّر الكود {entry}"
+}

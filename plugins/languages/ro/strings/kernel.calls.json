@@ -1,0 +1,16 @@
+{
+  "secret": "Valoare secretă nevalidă",
+  "fingerprint": "Amprentă nevalidă",
+  "server": "Server nevalid",
+  "sendsTooMany": "Cel mult {max} cereri simultan",
+  "unopened": "Valori secrete nedeschise (salvate de alt utilizator sau pe alt lilOS): {names}",
+  "runsTooMany": "Cel mult {max} execuții simultan",
+  "collection": "Colecție nevalidă",
+  "runNotFound": "Execuția nu a fost găsită",
+  "needFile": "Este necesar un fișier .nettest",
+  "notCollection": "Fișierul nu este o colecție NetTest",
+  "noEnvironment": "Mediul nu a fost găsit: {name}",
+  "untitled": "Colecție",
+  "noProtocol": "Protocol indisponibil: {protocol} (lipsește modulul său de kernel)",
+  "noDescribe": "Acest protocol nu descrie serverul"
+}

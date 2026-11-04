@@ -1,0 +1,6 @@
+{
+  "needHttp": "Diperlukan alamat http atau https",
+  "noAnswer": {
+    "other": "Tidak ada jawaban dalam {n} detik"
+  }
+}

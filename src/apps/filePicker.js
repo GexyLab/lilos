@@ -1,4 +1,12 @@
-import { Window, h, fs, fileType, splitName, actionButton, icon } from '@lilos/sdk';
+import { Window, h, fs, fileType, splitName, actionButton, icon, locale } from '@lilos/sdk';
+
+const { t } = locale.define('lilos:apps.filePicker', {
+  en: { strings: {
+    title: 'Choose a file', search: 'Search by name or path', searchLabel: 'Search', folders: 'Folders', files: 'Files',
+    choose: 'Choose', cancel: 'Cancel', home: 'Home', noMatch: 'Nothing matches the search', noFolders: 'No folders',
+    noFiles: 'No files in lilOS', noFilesOf: 'No {exts} files in lilOS',
+  } },
+});
 
 /**
  * Window to choose a file of lilOS (optionally only some extensions) or, with kind: 'folder', a
@@ -8,7 +16,7 @@ import { Window, h, fs, fileType, splitName, actionButton, icon } from '@lilos/s
  *   const node = await pickFile(openWindow, { title: 'Scegli lo schema', exts: ['json'] });
  *   const dir = await pickFile(openWindow, { kind: 'folder', within: rootId, exclude: movingId });
  */
-export function pickFile(openWindow, { title = 'Scegli un file', exts = null, text = '', kind = 'file', within = fs.root, exclude = null } = {}) {
+export function pickFile(openWindow, { title = t('title'), exts = null, text = '', kind = 'file', within = fs.root, exclude = null } = {}) {
   return new Promise(resolve => {
     const all = [];
     const folders = kind === 'folder';
@@ -37,9 +45,9 @@ export function pickFile(openWindow, { title = 'Scegli un file', exts = null, te
     };
     win.on('destroy', () => { if (!done) { done = true; resolve(null); } });
 
-    const search = h('input', { type: 'text', placeholder: 'Cerca per nome o percorso', spellcheck: 'false', 'aria-label': 'Cerca' });
-    const list = h('div', { class: 'fp-list', role: 'listbox', tabindex: '0', 'aria-label': folders ? 'Cartelle' : 'File' });
-    const ok = actionButton({ label: 'Scegli', primary: true, onClick: () => chosen && finish(fs.get(chosen)) });
+    const search = h('input', { type: 'text', placeholder: t('search'), spellcheck: 'false', 'aria-label': t('searchLabel') });
+    const list = h('div', { class: 'fp-list', role: 'listbox', tabindex: '0', 'aria-label': folders ? t('folders') : t('files') });
+    const ok = actionButton({ label: t('choose'), primary: true, onClick: () => chosen && finish(fs.get(chosen)) });
 
     const render = () => {
       const q = search.value.trim().toLowerCase();
@@ -51,9 +59,9 @@ export function pickFile(openWindow, { title = 'Scegli un file', exts = null, te
       }, folders
         ? h('span', { class: 'fp-badge folder' }, icon('folder'))
         : h('span', { class: 'fp-badge', style: { background: fileType(n.name).color } }, fileType(n.name).badge || 'FILE'),
-        h('span', { class: 'fp-name' }, n.id === fs.root ? 'Home' : n.name),
+        h('span', { class: 'fp-name' }, n.id === fs.root ? t('home') : n.name),
         h('span', { class: 'fp-path' }, n.id === fs.root ? n.path : n.path.slice(0, -n.name.length - 1))))
-        : [h('div', { class: 'fp-empty' }, all.length ? 'Nulla corrisponde alla ricerca' : folders ? 'Nessuna cartella' : `Nessun file${exts ? ` .${exts.join(', .')}` : ''} in lilOS`)]));
+        : [h('div', { class: 'fp-empty' }, all.length ? t('noMatch') : folders ? t('noFolders') : exts ? t('noFilesOf', { exts: `.${exts.join(', .')}` }) : t('noFiles'))]));
     };
     search.addEventListener('input', render);
     list.addEventListener('click', e => { const it = e.target.closest('[data-id]'); if (it) { chosen = it.dataset.id; render(); } });
@@ -79,7 +87,7 @@ export function pickFile(openWindow, { title = 'Scegli un file', exts = null, te
       text && h('p', { class: 'fp-text' }, text),
       h('label', { class: 'fp-search' }, icon('search'), search),
       list,
-      h('div', { class: 'fp-buttons' }, actionButton({ label: 'Annulla', onClick: () => finish(null) }), ok)));
+      h('div', { class: 'fp-buttons' }, actionButton({ label: t('cancel'), onClick: () => finish(null) }), ok)));
     render();
     openWindow(win);
     search.focus();

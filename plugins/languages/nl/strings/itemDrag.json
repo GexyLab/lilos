@@ -1,0 +1,26 @@
+{
+  "home": "Home",
+  "one": "‘{name}’",
+  "many": "{n} items",
+  "trashToServer": "Wat in de prullenbak staat, gaat terug naar een map van lilOS, niet naar een server",
+  "restored": {
+    "one": "{what} teruggezet in {where}",
+    "other": "{what} teruggezet in {where}"
+  },
+  "moved": {
+    "one": "{what} verplaatst naar {where}",
+    "other": "{what} verplaatst naar {where}"
+  },
+  "transferFailed": "Overdracht niet gestart: {message}",
+  "moveFailed": "Kan niet verplaatsen: {message}",
+  "importToServer": "Bestanden van de computer worden naar een map van lilOS gekopieerd: sleep ze van daaruit naar de server",
+  "copied": {
+    "one": "{n} bestand van de computer gekopieerd naar {where}",
+    "other": "{n} bestanden van de computer gekopieerd naar {where}"
+  },
+  "failed": {
+    "one": "{n} bestand is niet gekopieerd",
+    "other": "{n} bestanden zijn niet gekopieerd"
+  },
+  "limit": "Alleen de eerste {max} bestanden zijn gekopieerd"
+}

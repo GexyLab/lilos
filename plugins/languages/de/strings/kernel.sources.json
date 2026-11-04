@@ -1,0 +1,20 @@
+{
+  "repo": "Ungültiges Repository (Besitzer/Name)",
+  "urlLocal": "Ungültige Adresse des Repository (https:// oder ein Ordner)",
+  "url": "Ungültige Adresse des Repository (https://)",
+  "ref": "Ungültige Referenz",
+  "path": "Ungültiger Pfad im Repository",
+  "local": "Lokale Ordner als Quelle sind nur in der Entwicklung erlaubt (allowLocalSources)",
+  "dir": "Ungültiger Ordner (absoluter Pfad)",
+  "type": "Unbekannte Quelle: \"git\", \"github\" oder \"local\"",
+  "noGit": "Der Befehl git ist auf dem Computer des Kernels nicht installiert",
+  "git": "git: {message}",
+  "gitError": "git: Fehler",
+  "outside": "Pfad außerhalb des Pakets: {path}",
+  "missing": "{path} fehlt",
+  "notFile": "{path} ist keine Datei oder zu groß",
+  "tooMany": "Zu viele Dateien im Paket",
+  "notInRepo": "Das Repository enthält {path} nicht",
+  "json": "lilos.json ist kein gültiges JSON",
+  "tooLarge": "Paket zu groß"
+}

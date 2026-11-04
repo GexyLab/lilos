@@ -1,0 +1,8 @@
+{
+  "blockedWindow": "De browser heeft het aanmeldvenster geblokkeerd",
+  "blockedTab": "De browser heeft het aanmeldtabblad geblokkeerd",
+  "canceled": "Aanmelding geannuleerd",
+  "failed": "Aanmelding mislukt",
+  "noAskAddress": "askAddress ontbreekt",
+  "badAddress": "Ongeldig adres"
+}

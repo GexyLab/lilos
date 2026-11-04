@@ -1,6 +1,6 @@
 {
   "name": "scheduler",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Pianificazione: le operazioni a una data e ora o ripetute, anche a lilOS chiuso. Modulo obbligatorio del kernel",
   "icon": { "glyph": "clock", "color": "#6e56cf" },
   "kernel": "1",

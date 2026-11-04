@@ -1,0 +1,22 @@
+{
+  "choose.serial": "シリアルポートを選択",
+  "choose.usb": "USB デバイスを選択",
+  "choose.hid": "デバイスを選択",
+  "choose.bluetooth": "Bluetooth デバイスを選択",
+  "choose.screen": "共有する対象を選択",
+  "choose.text.serial": "アプリがコンピューターのシリアルポートを使用しようとしています。",
+  "choose.text.usb": "アプリがコンピューターの USB デバイスを使用しようとしています。",
+  "choose.text.hid": "アプリがコンピューターのデバイス（キーパッド、リーダー、コントローラー…）を使用しようとしています。",
+  "choose.text.bluetooth": "アプリがコンピューターの近くにある Bluetooth デバイスを使用しようとしています。",
+  "choose.text.screen": "アプリがコンピューターの画面またはウィンドウを見ようとしています。",
+  "choose.field": "デバイス",
+  "choose.none": "デバイスが見つかりません。接続してから再試行してください。",
+  "connect": "接続",
+  "share": "共有",
+  "saved": "コンピューターのプログラムから「{name}」を保存しました",
+  "saveFailed": "「{name}」を lilOS に保存し直せませんでした：{error}",
+  "missing": "「{path}」は lilOS にありません",
+  "driveIn": "「{name}」は「ネットワーク › このコンピューター」にあります",
+  "driveFailed": "「{name}」を接続できませんでした：{error}",
+  "serialPort": "シリアルポート"
+}

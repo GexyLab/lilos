@@ -1,0 +1,16 @@
+{
+  "remove": "Eliminați",
+  "removeCombo": "Eliminați {combo}",
+  "none": "Niciuna",
+  "pressKeys": "Apăsați tastele…",
+  "add": "Adăugați o combinație",
+  "addFor": "Adăugați o combinație pentru {command}",
+  "resetTitle": "Restabiliți combinația inițială",
+  "reset": "Restabiliți",
+  "record": "Apăsați combinația. Esc pentru a anula.",
+  "invalid": "{combo}: {error}",
+  "already": "{combo} este deja atribuită acestei comenzi",
+  "usedBy": "{combo} este deja folosită de „{command}”.",
+  "replace": "Înlocuiți",
+  "cancel": "Anulați"
+}

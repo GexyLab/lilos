@@ -1,0 +1,9 @@
+{
+  "stopped": "Automatizare oprită",
+  "chooseItems": "Alegeți elementele de prelucrat",
+  "appMissing": "Aplicația acestui pas nu este instalată",
+  "password": "Acest pas cere o parolă",
+  "stepFailedLabel": "Pasul {n} ({label}): {message}",
+  "stepFailed": "Pasul {n}: {message}",
+  "cannotRedo": "Această acțiune nu poate fi refăcută"
+}

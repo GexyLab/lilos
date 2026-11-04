@@ -1,0 +1,19 @@
+{
+  "noAutomata": "Automata가 설치되어 있지 않습니다",
+  "theAutomation": "자동화",
+  "theFile": "파일",
+  "gone": "{name}이(가) 없습니다",
+  "openedFile": "{name}을(를) 열었습니다",
+  "appMissing": "앱 {app}이(가) 설치되어 있지 않습니다",
+  "openedApp": "{app}을(를) 열었습니다",
+  "title": "보류 중인 작업",
+  "skippedByUser": "lilOS 사용자가 건너뜀",
+  "automation": "자동화",
+  "due": "예정 시간 {time}",
+  "dueWith": "{label} · 예정 시간 {time}",
+  "always": "이제부터 묻지 않고 실행",
+  "runNow": "지금 실행",
+  "skip": "건너뛰기",
+  "lead": "lilOS가 닫혀 있는 동안 예정 시간이 된 작업:",
+  "hint": "응답하지 않은 작업은 다음에 lilOS가 열릴 때까지 대기한 후 만료됩니다."
+}

@@ -1,0 +1,17 @@
+{
+  "port": "منفذ غير صالح",
+  "url": "عنوان غير صالح",
+  "closedBy": "أغلقه الخادم ({code})",
+  "closedByReason": "أغلقه الخادم ({code}: {reason})",
+  "closed": "الاتصال مغلق",
+  "unknownCommand": "أمر غير معروف",
+  "notStream": "أجاب الخادم بـ {status} بدلًا من تدفق أحداث",
+  "notStreamType": "أجاب الخادم بـ {status} ({type}) بدلًا من تدفق أحداث",
+  "lineTooLong": "السطر طويل جدًا: تم تجاهله",
+  "eventTooLong": "الحدث طويل جدًا: تم تجاهله",
+  "streamEnded": "أغلق الخادم التدفق",
+  "receiveOnly": "Server-Sent Events: استقبال فقط",
+  "noHost": "الخادم مفقود",
+  "ended": "أغلق الخادم الاتصال",
+  "tooBig": "مخطط البيانات (datagram) كبير جدًا (65507 بايت كحد أقصى)"
+}

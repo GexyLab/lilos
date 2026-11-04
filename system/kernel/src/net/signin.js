@@ -1,6 +1,7 @@
 import { createHash, randomBytes } from 'node:crypto';
-import { fail } from '../errors.js';
+import { KernelError, fail } from '../errors.js';
 import { logger } from '../log.js';
+import { Text, defineStrings, localize } from '../strings.js';
 import { checkFields, signInFields, netFail, notReady, onlyManual } from './drivers.js';
 
 const log = logger('rete');
@@ -8,6 +9,33 @@ const LIFE = 10 * 60_000;     // a sign-in not finished by then is dropped
 const PER_USER = 5;           // sign-ins of a user at once
 const WAIT = 25_000;          // longest wait of one status request
 const LOOPBACK = new Set(['localhost', '127.0.0.1', '[::1]']);
+
+const { t } = defineStrings('lilos:kernel.net.signin', { en: { strings: {
+  expired: 'Sign-in expired or already used: try again',
+  noProtocol: 'Protocol not available: {protocol}',
+  noAccounts: 'This protocol has no sign-in with an account',
+  notReady: 'Protocol not ready',
+  tooMany: 'Too many sign-ins in progress',
+  noManual: 'This protocol has no sign-in by pasting the address',
+  url: 'Sign-in address not valid',
+  notManual: 'This sign-in is not done by pasting the address',
+  pasteInvalid: 'Address not valid: copy the whole address of the page that does not open',
+  pasteStart: 'The address must start with {url}',
+  pasteOther: 'This address belongs to another sign-in: paste the one of the last page opened',
+  windowExpired: 'Sign-in expired or already used: close this window and try again.',
+  failedLower: 'sign-in failed',
+  failed: 'Sign-in failed: {message}',
+  failedUnknown: 'Sign-in failed: the provider did not say why',
+  protocolGone: 'Protocol no longer available',
+  noAccount: 'The provider did not give an account',
+  done: 'Signed in as {account}. You can close this window.',
+  otherProtocol: 'Sign-in made for another protocol',
+  notDone: 'Sign-in not completed yet',
+  redirect: 'Return address not valid',
+  redirectHttps: 'Signing in with an account works only with lilOS on https, or on http from this computer (localhost)',
+  pageDone: 'Done',
+  pageFailed: 'Sign-in failed',
+} } });
 
 /** Where the provider sends the sign-in window back. */
 export const CALLBACK_PATH = '/api/net/signin/callback';
@@ -71,7 +99,7 @@ export class SignIns {
   #mine(principal, id) {
     this.#prune();
     const flow = typeof id === 'string' ? this.#flows.get(id) : null;
-    return flow && flow.owner === principal.id ? flow : fail('not_found', 'Accesso scaduto o già usato: riprova');
+    return flow && flow.owner === principal.id ? flow : fail('not_found', t('expired'));
   }
 
   /**
@@ -80,13 +108,13 @@ export class SignIns {
    */
   async start(principal, body, origin) {
     this.#prune();
-    const driver = this.#drivers.get(body?.protocol) ?? fail('unavailable', `Protocollo non disponibile: ${body?.protocol}`);
-    const field = signInFields(driver)[0] ?? fail('invalid', 'Questo protocollo non ha un accesso con account');
+    const driver = this.#drivers.get(body?.protocol) ?? fail('unavailable', t('noProtocol', { protocol: body?.protocol }));
+    const field = signInFields(driver)[0] ?? fail('invalid', t('noAccounts'));
     const why = notReady(driver);
-    if (why) fail('unavailable', typeof why === 'string' ? why : why.it ?? why.en ?? 'Protocollo non pronto');
-    if ([...this.#flows.values()].filter(f => f.owner === principal.id).length >= PER_USER) fail('rate_limited', 'Troppi accessi in corso');
+    if (why) fail('unavailable', typeof why === 'string' || why instanceof Text ? why : why.it ?? why.en ?? t('notReady'));
+    if ([...this.#flows.values()].filter(f => f.owner === principal.id).length >= PER_USER) fail('rate_limited', t('tooMany'));
     const manual = body.manual === true || onlyManual(driver);
-    if (manual && driver.signIn.manual !== true) fail('invalid', 'Questo protocollo non ha l’accesso incollando l’indirizzo');
+    if (manual && driver.signIn.manual !== true) fail('invalid', t('noManual'));
     const redirectUri = manual ? MANUAL_REDIRECT : cleanRedirect(body.redirectUri, origin);
     const { values } = checkFields(driver, body.values ?? {});
     const flow = {
@@ -101,7 +129,7 @@ export class SignIns {
     } catch (err) {
       return netFail(err);
     }
-    if (!isProviderPage(url)) fail('invalid', 'Indirizzo di accesso non valido');
+    if (!isProviderPage(url)) fail('invalid', t('url'));
     this.#flows.set(flow.id, flow);
     this.#byState.set(flow.state, flow);
     return { id: flow.id, url, manual };
@@ -113,12 +141,12 @@ export class SignIns {
    */
   async paste(principal, id, raw) {
     const flow = this.#mine(principal, id);
-    if (!flow.manual) fail('invalid', 'Questo accesso non si fa incollando l’indirizzo');
+    if (!flow.manual) fail('invalid', t('notManual'));
     let url;
-    try { url = new URL(String(raw ?? '').trim().slice(0, 8192)); } catch { fail('invalid', 'Indirizzo non valido: copia tutto l’indirizzo della pagina che non si apre'); }
+    try { url = new URL(String(raw ?? '').trim().slice(0, 8192)); } catch { fail('invalid', t('pasteInvalid')); }
     const expected = new URL(MANUAL_REDIRECT);
-    if (url.origin !== expected.origin || url.pathname !== expected.pathname) fail('invalid', `L’indirizzo deve cominciare con ${MANUAL_REDIRECT}`);
-    if (url.searchParams.get('state') !== flow.state) fail('invalid', 'Questo indirizzo è di un altro accesso: incolla quello dell’ultima pagina aperta');
+    if (url.origin !== expected.origin || url.pathname !== expected.pathname) fail('invalid', t('pasteStart', { url: MANUAL_REDIRECT }));
+    if (url.searchParams.get('state') !== flow.state) fail('invalid', t('pasteOther'));
     if (flow.status === 'pending') await this.callback(url.searchParams);
     return { status: flow.status, ...(flow.result && { account: flow.result.account }), ...(flow.error && { error: flow.error }) };
   }
@@ -130,29 +158,29 @@ export class SignIns {
   async callback(query) {
     this.#prune();
     const flow = this.#byState.get(query.get('state') ?? '');
-    if (!flow) return { ok: false, text: 'Accesso scaduto o già usato: chiudi questa finestra e riprova.' };
+    if (!flow) return { ok: false, text: t('windowExpired') };
     this.#byState.delete(flow.state);
     const code = query.get('code');
     if (!code) {
-      const said = query.get('error_description') || query.get('error') || 'accesso non riuscito';
+      const said = query.get('error_description') || query.get('error');
       flow.status = 'error';
-      flow.error = String(said).split(/\r?\n/)[0].slice(0, 300);
+      flow.error = said ? String(said).split(/\r?\n/)[0].slice(0, 300) : t('failedLower');
       this.#settle(flow);
-      return { ok: false, text: `Accesso non riuscito: ${flow.error}` };
+      return { ok: false, text: failedText(flow) };
     }
     try {
-      const driver = this.#drivers.get(flow.protocol) ?? fail('unavailable', 'Protocollo non più disponibile');
+      const driver = this.#drivers.get(flow.protocol) ?? fail('unavailable', t('protocolGone'));
       const result = await driver.signIn.finish({ values: flow.values, code: code.slice(0, 4096), redirectUri: flow.redirectUri, verifier: flow.verifier, lookup: this.#lookup });
       const account = typeof result?.account === 'string' ? result.account.trim().slice(0, 200) : '';
-      if (!account || result.secret === undefined) throw new Error('Il fornitore non ha dato un account');
+      if (!account || result.secret === undefined) throw new KernelError('invalid', t('noAccount'));
       flow.result = { account, secret: result.secret };
       flow.status = 'done';
-      return { ok: true, text: `Accesso eseguito come ${account}. Puoi chiudere questa finestra.` };
+      return { ok: true, text: t('done', { account }) };
     } catch (err) {
       flow.status = 'error';
-      flow.error = String(err?.message ?? err).slice(0, 300);
+      flow.error = err?.text instanceof Text ? err.text : String(err?.message ?? err).slice(0, 300);
       log.warn(`Accesso a ${flow.protocol} non riuscito: ${flow.error}`);
-      return { ok: false, text: `Accesso non riuscito: ${flow.error}` };
+      return { ok: false, text: failedText(flow) };
     } finally {
       this.#settle(flow);
     }
@@ -177,8 +205,8 @@ export class SignIns {
    */
   take(principal, id, protocol, { keep = false } = {}) {
     const flow = this.#mine(principal, id);
-    if (flow.protocol !== protocol) fail('invalid', 'Accesso fatto per un altro protocollo');
-    if (flow.status !== 'done') fail('invalid', flow.status === 'error' ? `Accesso non riuscito: ${flow.error}` : 'Accesso non ancora completato');
+    if (flow.protocol !== protocol) fail('invalid', t('otherProtocol'));
+    if (flow.status !== 'done') fail('invalid', flow.status === 'error' ? failedText(flow) : t('notDone'));
     if (!keep) this.#drop(flow);
     return { field: flow.field, account: flow.result.account, secret: flow.result.secret, flow };
   }
@@ -199,6 +227,9 @@ export class SignIns {
   }
 }
 
+/** Why a sign-in failed, as the user reads it. */
+const failedText = flow => (flow.error instanceof Text && flow.error.key === 'failedLower' ? t('failedUnknown') : t('failed', { message: flow.error }));
+
 /** A provider's sign-in page: https, or http on this computer (a test provider). */
 function isProviderPage(raw) {
   try {
@@ -212,19 +243,23 @@ function isProviderPage(raw) {
 /** The address the provider sends back to: lilOS's own callback, on https or on this computer. Throws 'invalid'. */
 export function cleanRedirect(raw, origin) {
   let url;
-  try { url = new URL(String(raw ?? '')); } catch { fail('invalid', 'Indirizzo di ritorno non valido'); }
-  if (url.pathname !== CALLBACK_PATH || url.search || url.hash || url.username || url.password) fail('invalid', 'Indirizzo di ritorno non valido');
+  try { url = new URL(String(raw ?? '')); } catch { fail('invalid', t('redirect')); }
+  if (url.pathname !== CALLBACK_PATH || url.search || url.hash || url.username || url.password) fail('invalid', t('redirect'));
   if (url.protocol !== 'https:' && !(url.protocol === 'http:' && LOOPBACK.has(url.hostname))) {
-    fail('invalid', 'L’accesso con account funziona solo con lilOS su https, o su http da questo computer (localhost)');
+    fail('invalid', t('redirectHttps'));
   }
-  if (origin && url.origin !== origin) fail('invalid', 'Indirizzo di ritorno non valido');
+  if (origin && url.origin !== origin) fail('invalid', t('redirect'));
   return url.href;
 }
 
-/** The small page the sign-in window shows at the end (no script: lilOS closes the window itself). */
-export function callbackPage({ ok, text }) {
+/**
+ * The small page the sign-in window shows at the end (no script: lilOS closes the window itself),
+ * in the language `code` (the request's: strings.js localeOf).
+ */
+export function callbackPage({ ok, text }, code = 'en') {
   const escape = s => String(s).replace(/[&<>"']/g, c => `&#${c.charCodeAt(0)};`);
-  return `<!doctype html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>lilOS</title>
+  const say = v => escape(localize(v, code));
+  return `<!doctype html><html lang="${escape(code)}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>lilOS</title>
 <style>body{font:15px/1.5 system-ui,sans-serif;margin:0;min-height:100vh;display:grid;place-items:center;background:#f4f5f7;color:#1f2328}main{max-width:420px;padding:24px;text-align:center}b{display:block;font-size:17px;margin-bottom:6px;color:${ok ? '#1e7a46' : '#c4373c'}}</style></head>
-<body><main><b>${ok ? 'Fatto' : 'Accesso non riuscito'}</b>${escape(text)}</main></body></html>`;
+<body><main><b>${say(ok ? t('pageDone') : t('pageFailed'))}</b>${say(text)}</main></body></html>`;
 }

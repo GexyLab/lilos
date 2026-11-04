@@ -1,5 +1,6 @@
 import { fail } from '../errors.js';
 import { acceptSocket } from '../ws.js';
+import { defineStrings } from '../strings.js';
 
 /**
  * The remote terminals of the signed-in user (term/terminals.js). Each user sees and changes only theirs.
@@ -18,9 +19,13 @@ import { acceptSocket } from '../ws.js';
  * lilOS allows (http.js checkSocketOrigin), so another site cannot open one with the user's cookie.
  */
 const ID = /^[a-f0-9]{16}$/;
-const signedIn = principal => principal ?? fail('unauthorized', 'Accesso richiesto');
+const { t } = defineStrings('lilos:kernel.api.term', { en: { strings: {
+  signIn: 'Sign in first', host: 'Host not valid', session: 'Session not valid', noSession: 'Session not found',
+  needSocket: 'A WebSocket is needed',
+} } });
+const signedIn = principal => principal ?? fail('unauthorized', t('signIn'));
 const plain = v => (v && typeof v === 'object' && !Array.isArray(v) ? v : {});
-const idOf = (params, what) => (ID.test(params.id) ? params.id : fail('invalid', `${what} non valido`));
+const idOf = (params, what) => (ID.test(params.id) ? params.id : fail('invalid', t(what)));
 
 export function termRoutes(kernel) {
   const { router, sockets, terminals: terms } = kernel;
@@ -34,11 +39,11 @@ export function termRoutes(kernel) {
 
   router.add('PUT', '/api/term/hosts/:id', async ({ principal, params, json }) => {
     const body = await json(256 << 10);
-    return terms.update(signedIn(principal), idOf(params, 'Host'), body, plain(body.secret));
+    return terms.update(signedIn(principal), idOf(params, 'host'), body, plain(body.secret));
   });
 
   router.add('DELETE', '/api/term/hosts/:id', async ({ principal, params }) => {
-    await terms.remove(signedIn(principal), idOf(params, 'Host'));
+    await terms.remove(signedIn(principal), idOf(params, 'host'));
   });
 
   router.add('GET', '/api/term/sessions', async ({ principal }) => terms.sessions(signedIn(principal)));
@@ -48,14 +53,14 @@ export function termRoutes(kernel) {
   router.add('POST', '/api/term/seal', async ({ principal, json }) => terms.seal(signedIn(principal), await json(256 << 10)));
 
   router.add('DELETE', '/api/term/sessions/:id', async ({ principal, params }) => {
-    await terms.close(signedIn(principal), idOf(params, 'Sessione'));
+    await terms.close(signedIn(principal), idOf(params, 'session'));
   });
 
   sockets.add('GET', '/api/term/sessions/:id/socket', async ({ req, socket, head, principal, params, query }) => {
-    const user = signedIn(principal), id = idOf(params, 'Sessione');
-    terms.sessions(user).some(s => s.id === id) || fail('not_found', 'Sessione inesistente');
+    const user = signedIn(principal), id = idOf(params, 'session');
+    terms.sessions(user).some(s => s.id === id) || fail('not_found', t('noSession'));
     const ws = acceptSocket(req, socket, head, { maxMessage: 256 << 10 });
-    if (!ws) fail('invalid', 'Serve un WebSocket');
+    if (!ws) fail('invalid', t('needSocket'));
     const size = key => (query.has(key) ? Number(query.get(key)) : undefined);
     terms.attach(user, id, ws, { cols: size('cols'), rows: size('rows') });
   });

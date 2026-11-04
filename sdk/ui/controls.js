@@ -60,7 +60,9 @@ function radioGroup(className, { value, options, onChange, label }, renderOption
     if (notify) onChange?.(v);
   };
   el.addEventListener('keydown', e => {
-    const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key];
+    // ← and → follow the reading direction (right to left: → goes back)
+    const flip = getComputedStyle(el).direction === 'rtl' ? -1 : 1;
+    const step = { ArrowRight: flip, ArrowDown: 1, ArrowLeft: -flip, ArrowUp: -1 }[e.key];
     if (!step) return;
     e.preventDefault();
     let next = buttons.indexOf(document.activeElement);

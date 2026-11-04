@@ -1,0 +1,14 @@
+{
+  "theAutomation": "La automatización",
+  "noAutomata": "Automata no está instalada",
+  "running": "{name} ya se está ejecutando",
+  "opened": "{name}: abierta en Automata",
+  "needsNothing": "{name}: solo se inicia sola si no trabaja sobre nada (Automata → Inicio)",
+  "ran": "{name}: ejecutada sola",
+  "ranOn": "{name}: ejecutada sola sobre {items} elementos",
+  "failedSteps": {
+    "one": "{n} paso ha fallado",
+    "other": "{n} pasos han fallado"
+  },
+  "withFailed": "{text} ({failed})"
+}

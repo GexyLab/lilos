@@ -1,0 +1,5 @@
+{
+  "invalid": "Autentikasi tidak valid",
+  "noToken": "OAuth 2.0: tidak ada token: masuk atau tulis tokennya",
+  "aws": "Tanda tangan AWS: kunci akses atau kunci rahasia tidak ada"
+}

@@ -1,0 +1,5 @@
+{
+  "mismatch": "Codul aplicației {app} nu corespunde manifestului său",
+  "download": "Biblioteca {name} nu poate fi descărcată ({status})",
+  "hash": "Biblioteca {name} nu corespunde hash-ului său"
+}

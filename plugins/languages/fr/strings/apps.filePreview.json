@@ -1,0 +1,6 @@
+{
+  "late": "{app} n’a pas répondu à temps",
+  "invalid": "Aperçu non valide",
+  "tooBig": "Aperçu trop volumineux",
+  "imageType": "L’image de l’aperçu n’a pas de type image/*"
+}

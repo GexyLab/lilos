@@ -1,0 +1,44 @@
+{
+  "folderGone": "Folderu już nie ma",
+  "namedGone": "{name} już nie istnieje",
+  "notFolder": "Folder nie jest folderem",
+  "namedNotFolder": "{name} nie jest folderem",
+  "protected": "chroniony przez aplikację (na przykład zaszyfrowany): nie zostanie nadpisany",
+  "mountGone": "{name} nie ma już w „{mount}”",
+  "inside": "Folder, do którego kopiujesz, jest wewnątrz kopiowanego folderu",
+  "newVersion": "Nowa wersja: {name}",
+  "fileThere": "W miejscu kopiowania jest już plik „{name}”",
+  "copied": "skopiowano {path}",
+  "tooMany": "Ponad {max} elementów: skopiuj mniejszy folder",
+  "sameNameFile": "istnieje plik o tej samej nazwie",
+  "removedFile": "usunięto plik {path} (teraz jest to folder)",
+  "sameNameFolder": "istnieje folder o tej samej nazwie",
+  "error": "BŁĄD {path}: {message}",
+  "removed": "usunięto {path}",
+  "oldVersion": "usunięto starą wersję: {name}",
+  "summary": {
+    "one": "Skopiowano {n} plik ({size})",
+    "few": "Skopiowano {n} pliki ({size})",
+    "many": "Skopiowano {n} plików ({size})",
+    "other": "Skopiowano {n} pliku ({size})"
+  },
+  "summarySame": {
+    "one": "Skopiowano {n} plik ({size}), bez zmian: {same}",
+    "few": "Skopiowano {n} pliki ({size}), bez zmian: {same}",
+    "many": "Skopiowano {n} plików ({size}), bez zmian: {same}",
+    "other": "Skopiowano {n} pliku ({size}), bez zmian: {same}"
+  },
+  "summaryRemoved": {
+    "one": "Skopiowano {n} plik ({size}), usunięto: {removed}",
+    "few": "Skopiowano {n} pliki ({size}), usunięto: {removed}",
+    "many": "Skopiowano {n} plików ({size}), usunięto: {removed}",
+    "other": "Skopiowano {n} pliku ({size}), usunięto: {removed}"
+  },
+  "summarySameRemoved": {
+    "one": "Skopiowano {n} plik ({size}), bez zmian: {same}, usunięto: {removed}",
+    "few": "Skopiowano {n} pliki ({size}), bez zmian: {same}, usunięto: {removed}",
+    "many": "Skopiowano {n} plików ({size}), bez zmian: {same}, usunięto: {removed}",
+    "other": "Skopiowano {n} pliku ({size}), bez zmian: {same}, usunięto: {removed}"
+  },
+  "notCopied": "Nie skopiowano {n}: {first}"
+}

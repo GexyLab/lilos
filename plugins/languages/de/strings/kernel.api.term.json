@@ -1,0 +1,7 @@
+{
+  "signIn": "Melden Sie sich zuerst an",
+  "host": "Ungültiger Host",
+  "session": "Ungültige Sitzung",
+  "noSession": "Sitzung nicht gefunden",
+  "needSocket": "Ein WebSocket ist erforderlich"
+}

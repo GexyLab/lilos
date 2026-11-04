@@ -1,0 +1,27 @@
+{
+  "stopped": "İşlem durduruldu",
+  "badName": "Geçersiz olay adı: {name}",
+  "appEvent": "Bir uygulamanın olayı <app id>.<name> biçiminde adlandırılır",
+  "exists": "{name} olayı zaten var",
+  "unknown": "Bilinmeyen olay: {name}",
+  "stage": "stage \"before\" veya \"after\" olmalıdır",
+  "position": "position \"first\", \"middle\" veya \"last\" olmalıdır",
+  "noHandler": "Pipe’ın işlevi eksik",
+  "reserved": "{name} olayı sisteme ayrılmıştır",
+  "syncOnly": "{name} anlık bir işlemdir: uygulamalar yalnızca izleyebilir (stage \"after\")",
+  "maxSubs": {
+    "other": "Uygulama başına en fazla {n} abonelik"
+  },
+  "busy": "Sürmekte olan çok fazla işlem var",
+  "busyApp": "Bu uygulama için sürmekte olan çok fazla işlem var",
+  "syncAnswer": "{name}: anlık bir işlem anında yanıt gerektirir",
+  "handlerFailed": "{name}: {message}",
+  "cannotStop": "{name}: {event} olayı durdurulamaz",
+  "whereObject": "where: yalnızca bir nesne",
+  "whereInvalid": "Geçersiz where",
+  "whereKey": "where: {key} kullanılmıyor",
+  "whereMeta": "where.meta: yalnızca \"own\"",
+  "whereType": "Geçersiz where.type",
+  "whereList": "where.{key}: bir metin listesi",
+  "timeout": "{name} zamanında yanıt vermedi"
+}

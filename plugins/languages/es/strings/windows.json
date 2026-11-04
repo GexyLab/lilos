@@ -1,0 +1,6 @@
+{
+  "group": "Ventanas",
+  "close": "Cerrar la ventana activa",
+  "next": "Cambiar a la ventana siguiente",
+  "title": "{title} — {subtitle}"
+}

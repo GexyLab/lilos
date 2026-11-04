@@ -1,0 +1,19 @@
+{
+  "key.Enter": "Enter",
+  "key.Escape": "Esc",
+  "key.Delete": "Del",
+  "key.Space": "Spațiu",
+  "key.Insert": "Ins",
+  "key.End": "End",
+  "key.PageUp": "PgUp",
+  "key.PageDown": "PgDn",
+  "general": "General",
+  "exists": "Comandă rapidă deja înregistrată: {id}",
+  "unknown": "Comandă rapidă neînregistrată: {id}",
+  "invalid": "Combinație nevalidă",
+  "noKey": "Apăsați și o tastă în afară de Ctrl, Alt sau Shift",
+  "reserved": "Combinație rezervată de browser",
+  "tabSpace": "Tab și Spațiu singure servesc la navigare și la deplasarea desktopului",
+  "typingKey": "O tastă care scrie trebuie folosită cu Ctrl, Alt sau Shift",
+  "whenEditing": "Această comandă rapidă funcționează și în timp ce scrieți: necesită Ctrl sau Alt"
+}

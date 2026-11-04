@@ -1,0 +1,16 @@
+{
+  "secret": "Nieprawidłowa wartość tajna",
+  "fingerprint": "Nieprawidłowy odcisk",
+  "server": "Nieprawidłowy serwer",
+  "sendsTooMany": "Najwyżej {max} żądań naraz",
+  "unopened": "Nie otwarto wartości tajnych (zapisanych przez innego użytkownika lub w innym lilOS): {names}",
+  "runsTooMany": "Najwyżej {max} wykonań naraz",
+  "collection": "Nieprawidłowa kolekcja",
+  "runNotFound": "Nie znaleziono wykonania",
+  "needFile": "Wymagany jest plik .nettest",
+  "notCollection": "Plik nie jest kolekcją NetTest",
+  "noEnvironment": "Nie znaleziono środowiska: {name}",
+  "untitled": "Kolekcja",
+  "noProtocol": "Protokół niedostępny: {protocol} (brak jego modułu kernela)",
+  "noDescribe": "Ten protokół nie opisuje serwera"
+}

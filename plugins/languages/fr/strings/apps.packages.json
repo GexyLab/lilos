@@ -1,0 +1,6 @@
+{
+  "removed": {
+    "one": "{app} supprimée : {n} élément modifié est dans la Corbeille",
+    "other": "{app} supprimée : {n} éléments modifiés sont dans la Corbeille"
+  }
+}

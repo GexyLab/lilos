@@ -1,0 +1,8 @@
+{
+  "level.error": "错误",
+  "level.warning": "警告",
+  "level.success": "完成",
+  "open": "打开",
+  "openApp": "打开 {name}",
+  "gone": "{name} 已不再安装"
+}

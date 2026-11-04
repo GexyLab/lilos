@@ -1,0 +1,9 @@
+{
+  "group": "Edit",
+  "undo": "Urungkan",
+  "redo": "Ulangi",
+  "undone": "Diurungkan: {label}",
+  "redone": "Diulangi: {label}",
+  "failed": "Ini tidak dapat dilakukan lagi: {message}",
+  "error": "kesalahan"
+}

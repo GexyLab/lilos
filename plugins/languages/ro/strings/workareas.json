@@ -1,0 +1,24 @@
+{
+  "tooMany": "Cel mult {max} zone de lucru",
+  "overlap": "Acolo există deja o altă zonă de lucru: zonele nu se pot suprapune",
+  "undo.create": "Creați zona de lucru „{title}”",
+  "undo.rename": "Redenumiți zona de lucru „{before}” în „{after}”",
+  "undo.remove": "Ștergeți zona de lucru „{title}”",
+  "undo.move": "Mutați zona de lucru „{title}”",
+  "undo.resize": "Redimensionați zona de lucru „{title}”",
+  "gone": "Zona de lucru nu mai există",
+  "already": "Zona de lucru există deja",
+  "occupied": "Acum acolo există o altă zonă de lucru",
+  "notOpen": "Zona de lucru nu este deschisă",
+  "removeOne": "Ștergeți zona de lucru „{title}” (conținutul rămâne pe desktop)",
+  "removeMany": {
+    "one": "Ștergeți o zonă de lucru (conținutul rămâne pe desktop)",
+    "few": "Ștergeți {n} zone de lucru (conținutul rămâne pe desktop)",
+    "other": "Ștergeți {n} de zone de lucru (conținutul rămâne pe desktop)"
+  },
+  "menu.title": "Zona de lucru „{title}”",
+  "menu.rename": "Redenumiți zona de lucru",
+  "menu.properties": "Proprietăți…",
+  "menu.collapse": "Minimizați la pictogramă",
+  "menu.remove": "Ștergeți zona de lucru…"
+}

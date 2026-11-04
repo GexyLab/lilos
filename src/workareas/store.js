@@ -1,4 +1,4 @@
-import { storage, uid } from '@lilos/sdk';
+import { storage, uid, locale } from '@lilos/sdk';
 
 const STORAGE_KEY = 'workareas';
 export const MIN_SIZE = { w: 280, h: 180 };
@@ -10,6 +10,10 @@ const MAX_META_KEY = 60;
 const MAX_META_VALUE = 500;
 const MAX_WINDOWS = 30;
 const MAX_STATE = 4000;   // characters of JSON per window state
+
+const { t } = locale.define('lilos:workareaStore', {
+  en: { strings: { untitled: 'Work area', 'new': 'New work area' } },
+});
 
 /**
  * Saved workareas ('lilos:workareas'), validated on load: stored data is untrusted.
@@ -58,7 +62,7 @@ function cleanWorkarea(raw, now) {
   if (!rect) return null;
   return {
     id: raw.id,
-    title: cleanTitle(raw.title) || 'Workarea',
+    title: cleanTitle(raw.title) || t('untitled'),
     rect,
     collapsed: raw.collapsed === true,
     created: finite(raw.created) ? raw.created : now,
@@ -86,7 +90,7 @@ export function saveWorkareas(list, key = STORAGE_KEY) {
 export function newWorkarea(rect, title) {
   const now = Date.now();
   return {
-    id: uid(), title: cleanTitle(title) || 'Nuova workarea', rect: cleanRect(rect),
+    id: uid(), title: cleanTitle(title) || t('new'), rect: cleanRect(rect),
     collapsed: false, created: now, modified: now, description: '', meta: [], items: [], windows: [],
   };
 }

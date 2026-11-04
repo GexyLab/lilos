@@ -1,0 +1,8 @@
+{
+  "noExport": "Код не експортує {entry}",
+  "windowClosed": "{app}: вікно закрито",
+  "libraryFailed": "Бібліотеку {name} не завантажено",
+  "noExportOf": "Код {app} не експортує {entry}",
+  "noWindow": "{app} не має вікна {entry}",
+  "remoteOrigin": "Віддалений застосунок не може мати адресу lilOS"
+}

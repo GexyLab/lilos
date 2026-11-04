@@ -1,0 +1,5 @@
+{
+  "invalid": "Autentificare nevalidă",
+  "noToken": "OAuth 2.0: niciun token: conectați-vă sau introduceți tokenul",
+  "aws": "Semnătură AWS: lipsește cheia de acces sau cheia secretă"
+}

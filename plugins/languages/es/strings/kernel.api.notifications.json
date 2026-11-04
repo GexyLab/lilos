@@ -1,0 +1,8 @@
+{
+  "signIn": "Inicia sesión primero",
+  "shape": "Una notificación es un texto o { text, level, action }",
+  "noText": "La notificación no tiene texto",
+  "level": "Nivel no válido: info, success, warning o error",
+  "action": "Acción no válida: { entry, args }",
+  "sender": "Remitente no válido: la app no está instalada"
+}

@@ -1698,7 +1698,7 @@ Nel **Pannello di controllo → Tag**, nella scheda del tag, **Elimina…** (due
 
 L'**AppStore** è l'app dove si vedono le app e i «moduli del kernel» (le parti di lilOS che stanno dietro le quinte, come la gestione degli utenti) che si possono installare, e da dove un amministratore le installa, le aggiorna e le toglie. Da qui si aggiorna anche **lilOS stesso** (vedi [Aggiornare lilOS](#aggiornare-lilos)). Aprilo dal menu di avvio. C'è sempre e non si può rimuovere.
 
-**Chi può fare cosa.** Tutti vedono cosa c'è e cosa è installato. Solo un **amministratore** può installare, aggiornare e rimuovere app, aggiornare lilOS, aggiungere o togliere repository e gestire i moduli del kernel. Chi non lo è vede, al posto dei pulsanti, una scritta («Disponibile», «Installata»…) e non ha la scheda **Kernel**.
+**Chi può fare cosa.** Tutti vedono cosa c'è e cosa è installato. Solo un **amministratore** può installare, aggiornare e rimuovere app, aggiornare lilOS, aggiungere o togliere repository e gestire i moduli del kernel. Chi non lo è vede, al posto dei pulsanti, una scritta («Disponibile», «Installata»…) e non ha la scheda **Kernel**. Fanno eccezione le **lingue**: le può installare, aggiornare e (se le ha installate lui) rimuovere qualsiasi utente (vedi [Lingue](#lingue)).
 
 **Cercare.** In alto c'è una casella di ricerca. Cerca solo nella scheda aperta, e ogni scheda ricorda il suo testo. **Esc** lo cancella.
 
@@ -1785,6 +1785,16 @@ Se chiudi la domanda senza rispondere, ricompare la volta dopo.
 **Se hai altre schede aperte.** Quando lilOS riparte con un'altra versione, ogni scheda aperta ti chiede di riavviare lilOS (cioè ricaricare la pagina).
 
 **Se lilOS gira da una copia di lavoro del codice** (lo fanno gli sviluppatori), vedi la versione ma non si aggiorna da qui: si aggiorna con gli strumenti di sviluppo.
+
+### Lingue
+
+La scheda **Lingue** elenca i pacchetti di lingua che il repository ufficiale offre. Un pacchetto traduce i testi di lilOS (scrivania, menu, finestre, messaggi del sistema), **non le app**: ogni app usa la propria traduzione se ce l'ha, altrimenti l'inglese. Come si sceglie e cosa succede lo spiega [La lingua](#la-lingua).
+
+- Ogni lingua mostra il nome nella sua lingua, la versione, se è **In uso** o **Non installata**, chi l'ha installata, e **da destra a sinistra** per l'arabo e l'urdu. Se il repository ha una versione più nuova compare **Aggiornamento disponibile**.
+- Nei dettagli ci sono il codice della lingua, la versione di lilOS richiesta e il testo di presentazione del pacchetto.
+- **Installa** vale per tutti gli utenti, ed è per qualsiasi utente. Dopo l'installazione l'AppStore propone **Usa questa lingua**.
+- **Rimuovi** chiede conferma («sarà rimossa per tutti gli utenti di questo lilOS») ed è per chi l'ha installata o per un amministratore; chi la usava torna all'inglese e riceve una notifica. La lingua si può reinstallare quando vuoi.
+- Le lingue vengono **solo dal repository ufficiale**: non si installano da repository aggiunti né da una cartella. Se il repository ufficiale è spento nelle **Opzioni**, la scheda non ne elenca.
 
 ### Opzioni
 
@@ -2038,7 +2048,7 @@ Le modifiche valgono subito e restano salvate.
 | Aspetto | Colori | Il tema, **Chiaro** o **Scuro** (scrivania, barra delle applicazioni, menu e finestre), e il colore principale di lilOS: selezioni, pulsanti, schede attive, logo |
 | Aspetto | Movimento | Animazioni attive o spente. Se nel sistema operativo hai chiesto di ridurre il movimento, le animazioni restano ridotte comunque. |
 | Pagina utente | — | Cosa mostra la [pagina utente](#la-pagina-utente): un interruttore per ogni voce, in gruppi (vedi [Scegliere cosa mostra](#scegliere-cosa-mostra)) |
-| Lingua | — | La lingua delle app: quella del browser o una a scelta (vedi [La lingua](#la-lingua)) |
+| Lingua | — | La lingua di lilOS: quella del browser o una tra quelle installate; **Altre lingue** apre l'AppStore sulla scheda Lingue (vedi [La lingua](#la-lingua)) |
 | Scrivania | Elementi | L'allineamento alla griglia degli elementi trascinati; **Mostra l'anteprima dei file** (vedi [Anteprima dei file sulla scrivania](#anteprima-dei-file-sulla-scrivania)); un pulsante che porta agli elementi fissi (in Workspace) |
 | Scrivania | Sfondo | Il colore della scrivania (campioni o un colore a scelta) e l'immagine di sfondo (vedi [Colore e immagine di sfondo](#colore-e-immagine-di-sfondo)) |
 | Scrivania | Panoramica | Mappa in miniatura visibile o nascosta |
@@ -2046,7 +2056,7 @@ Le modifiche valgono subito e restano salvate.
 | Workspace | *nome di un altro workspace* | Le stesse impostazioni per quel workspace, e Passa a questo |
 | Workspace | Tutti | Passare a un workspace, eliminarlo o crearne uno nuovo; elementi fissi accesi o spenti in tutti i workspace |
 | Notifiche | — | Quante notifiche stanno insieme nella barra, per quanto restano visibili, quante se ne conservano; una notifica di prova (vedi [Le notifiche](#le-notifiche)) |
-| Lingua | — | La lingua delle app ed eliminare i tag; il colore, se sono visibili o invisibili, quanti elementi hanno; aprirne gli elementi nel File Manager (vedi [I tag](#i-tag)) |
+| Lingua | — | La lingua di lilOS ed eliminare i tag; il colore, se sono visibili o invisibili, quanti elementi hanno; aprirne gli elementi nel File Manager (vedi [I tag](#i-tag)) |
 | Usabilità | Menu contestuale | Le voci del menu del tasto destro sulla scrivania (vedi [Menu contestuale](#menu-contestuale)) |
 | Usabilità | Tipi di file | Per ogni estensione (.txt, .md, .png…, e "Senza estensione"), l'app che apre i file di quel tipo, oppure "Chiedi ogni volta". "Ripristina tutti" torna alle app predefinite |
 | Usabilità | Cestino | Se chiedere conferma prima di eliminare, se eliminare definitivamente senza passare dal cestino, per quanto tempo il cestino conserva gli elementi; aprire e svuotare il cestino (vedi [Il Cestino](#il-cestino)) |
@@ -2066,15 +2076,33 @@ I due pulsanti di ripristino chiedono conferma: al primo clic il pulsante divent
 
 ### La lingua
 
-Nel **Pannello di controllo → Lingua** scegli in che lingua vuoi le app: la lingua del browser (la scelta automatica) oppure una di queste: inglese (Stati Uniti o Regno Unito), italiano, tedesco, spagnolo, francese, portoghese (Brasile).
+Nel **Pannello di controllo → Lingua** scegli la lingua di lilOS: quella del browser (la scelta automatica) oppure una delle lingue installate. Di serie lilOS è in **inglese** (Stati Uniti o Regno Unito). Le altre lingue si installano dall'AppStore (vedi [Installare una lingua](#installare-una-lingua)). Il pulsante **Altre lingue**, nello stesso posto, apre l'AppStore sulla scheda **Lingue**.
 
-- **Il cambio vale subito.** Le app aperte si aggiornano da sole, o al più alla prossima volta che le apri; non serve ricaricare la pagina. Cambiano anche i nomi delle app nel menu di avvio e nei titoli delle finestre, la data e l'ora nella barra delle applicazioni (al minuto successivo).
-- **Se un'app non ha la tua lingua, usa l'inglese.** Succede anche per i testi che mancano: compare l'inglese, o il nome interno del testo.
+- **Cosa cambia.** Cambia la lingua di lilOS: scrivania, barra delle applicazioni, menu di avvio, pagina utente, finestre e messaggi del sistema, schermate di accesso e di avvio. Cambiano anche le date, le ore e i numeri.
+- **Il cambio vale subito per le app, per lilOS dopo un istante.** Le app aperte si aggiornano da sole, o al più alla prossima volta che le apri. Quello che lilOS ha già disegnato resta nella lingua di prima: per questo, quando passi a un'altra lingua di lilOS, compare **lilOS in …** con **Ricarica ora** (la pagina si ricarica e tutto è nella lingua nuova) e **Più tardi**. I testi del pulsante sono quelli della lingua che stai usando.
+- **Ogni app ha le sue traduzioni.** Le lingue di lilOS non traducono le app: ognuna usa la propria traduzione se ce l'ha nella tua lingua, altrimenti l'inglese. Succede anche per i testi che mancano: compare l'inglese, o il nome interno del testo. Una lingua installata non rende quindi tradotte tutte le app.
+- **Se manca una frase, compare in inglese.** Quando una lingua non ha ancora un testo di lilOS, vedi quel testo in inglese. lilOS non mostra mai nomi interni al posto dei testi.
 - **Le parti in sottofondo** (i servizi) usano la lingua che avevi quando sono partite. Per cambiarla spegni e riaccendi il servizio nel **Pannello di controllo → Avvio → Servizi**, o aspetta che riparta. I servizi che lavorano per tutti gli utenti sono sempre in inglese.
-- **Solo le app sono tradotte.** Menu, finestre di lilOS e messaggi del sistema restano in italiano, qualunque lingua scegli. Non puoi ancora aggiungere lingue nuove da solo.
 - **I nomi che hai già creato non cambiano.** Cartelle, file e collegamenti che esistono già (anche il collegamento a un'app sulla scrivania) si chiamano come quando sono stati creati.
 
 La scelta vale per il tuo utente: ognuno ha la sua lingua.
+
+#### Installare una lingua
+
+Le lingue sono **pacchetti di lingua** che vengono solo dal repository ufficiale di lilOS. Nell'**AppStore**, scheda **Lingue**, ogni lingua ha il suo nome scritto nella lingua stessa, la versione e chi l'ha installata.
+
+1. Apri la scheda **Lingue** (o premi **Altre lingue** nel Pannello di controllo → Lingua).
+2. Scegli la lingua e installala.
+3. L'AppStore propone **Usa questa lingua**; oppure scegli la lingua più tardi nel Pannello di controllo → Lingua.
+
+- **Può installarla qualsiasi utente**, non serve essere amministratore. Una lingua installata vale per **tutti** gli utenti di questo lilOS: ognuno poi sceglie la sua.
+- **Aggiornarla** si fa come l'installazione: se il repository ha una versione nuova, la lingua compare anche in **Aggiornamenti**.
+- **La toglie solo chi l'ha installata o un amministratore.** Gli altri non hanno il pulsante. Prima di toglierla l'AppStore ti avvisa che vale per tutti. Chi stava usando quella lingua torna **all'inglese** e riceve una notifica; può scegliere un'altra lingua quando vuole.
+- **Lingue scritte da destra a sinistra** (arabo e urdu): scegliendole, l'interfaccia di lilOS si specchia: barra, menu e finestre vanno da destra a sinistra, i sottomenu si aprono dal lato giusto e le frecce della tastiera nei menu si invertono. Le app tengono la direzione della loro lingua: un'app che non ha l'arabo resta da sinistra a destra anche in un lilOS arabo.
+- **Prima dell'accesso**, la schermata di accesso usa la lingua dell'ultimo utente che ha usato lilOS con questo browser (o quella del browser, se è installata).
+- **Le traduzioni sono state scritte con l'aiuto dell'intelligenza artificiale.** Per hindi, urdu, arabo e greco è consigliata una revisione di chi la lingua la parla, prima di considerarle definitive. Se trovi un testo sbagliato, segnalalo a chi gestisce lilOS.
+
+Le lingue offerte sono 20: italiano, inglese, cinese semplificato, hindi, spagnolo (Spagna), tedesco, francese, portoghese (Brasile), russo, arabo, giapponese, polacco, ucraino, rumeno, olandese, greco, indonesiano, urdu, turco e coreano.
 
 ### Aprire le app all'avvio
 
@@ -2573,7 +2601,10 @@ La versione nuova non è partita e lilOS è tornato da solo a quella di prima: v
 Quelle app arrivano dal repository ufficiale, e il kernel le installa da solo quando parte. Se in quel momento il computer del kernel non riusciva a raggiungerlo (niente rete, accesso negato), lilOS parte senza. Chiedi a chi gestisce lilOS di sistemare l'accesso e di riavviare il kernel: le app compaiono da sole.
 
 **Ho cambiato la lingua ma un'app resta in inglese (o in un'altra lingua).**
-L'app non ha la lingua che hai scelto: in quel caso usa l'inglese. Il menu e le finestre di lilOS sono comunque solo in italiano. Una parte in sottofondo cambia lingua quando riparte (vedi [La lingua](#la-lingua)).
+L'app non ha la lingua che hai scelto: in quel caso usa l'inglese. Le lingue installate dall'AppStore traducono lilOS, non le app. Una parte in sottofondo cambia lingua quando riparte (vedi [La lingua](#la-lingua)).
+
+**Ho scelto una lingua ma lilOS è ancora in inglese (o in parte).**
+Controlla che la lingua sia installata (AppStore → Lingue). Se è appena cambiata, ricarica lilOS quando te lo chiede: quello che era già disegnato resta nella lingua di prima. Se qualcuno ha rimosso la lingua che usavi, lilOS è tornato all'inglese e te l'ha detto con una notifica. Un testo che la lingua non ha ancora compare in inglese.
 
 **Ho installato un'app ma un altro utente (o un'altra scheda) non la vede.**
 Dovrebbe comparire da sola dopo un istante. Se non succede, ricarica la pagina.

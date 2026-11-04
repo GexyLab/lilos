@@ -1,0 +1,34 @@
+{
+  "newFolder": "새 폴더",
+  "newDocument": "새 문서.txt",
+  "fixedOne": "“{name}”은(는) 바탕 화면의 고정 항목이므로 삭제할 수 없습니다",
+  "fixedMany": "바탕 화면의 고정 항목은 삭제할 수 없습니다",
+  "fixedStay": "바탕 화면의 고정 항목은 유지되고 나머지만 삭제됩니다",
+  "removeWithAreas": {
+    "other": "{what} 및 작업 영역 {n}개 삭제"
+  },
+  "arrange": "아이콘 정렬",
+  "moveOne": "“{name}” 이동",
+  "moveMany": {
+    "other": "항목 {n}개 이동"
+  },
+  "gone": "항목이 더 이상 없습니다",
+  "area.open": "작업 영역 열기",
+  "rename": "이름 바꾸기",
+  "properties": "속성…",
+  "area.remove": "작업 영역 삭제…",
+  "open": "열기",
+  "openMany": {
+    "other": "항목 {n}개 열기"
+  },
+  "fixed.hide": "바탕 화면에서 제거",
+  "fixed.hidden": "“{name}”은(는) 제어판 → 작업 공간 → 이 작업 공간에서 다시 놓을 수 있습니다",
+  "fixed.settings": "바탕 화면의 고정 항목…",
+  "openWith": "연결 프로그램…",
+  "wallpaper": "바탕 화면 배경으로 사용",
+  "area.fromSelection": "선택 항목으로 작업 영역 만들기",
+  "remove": "삭제",
+  "removeMany": {
+    "other": "항목 {n}개 삭제"
+  }
+}

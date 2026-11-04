@@ -1,0 +1,5 @@
+{
+  "mismatch": "{app} 的代码与其清单不符",
+  "download": "无法下载库 {name}（{status}）",
+  "hash": "库 {name} 与其哈希值不符"
+}

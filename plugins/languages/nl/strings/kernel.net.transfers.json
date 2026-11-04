@@ -1,0 +1,43 @@
+{
+  "sources": "Ongeldige items om over te dragen",
+  "notFolder": "De bestemming is geen map",
+  "homeToHome": "Kopie tussen mappen van lilOS: dit is geen netwerkoverdracht",
+  "intoItself": "Een map kan niet naar zichzelf worden gekopieerd",
+  "nothing": "Niets om over te dragen",
+  "tooMany": "Te veel overdrachten in de wachtrij",
+  "itemNotFound": "Item niet gevonden",
+  "noConflict": "Geen conflict om op te lossen",
+  "choice": "Ongeldige keuze",
+  "queueNotFound": "Wachtrij niet gevonden",
+  "serverNotFound": "Het bestaat niet op de server",
+  "badName": "Naam die niet kan worden overgedragen: {name}",
+  "webOnly": "‘{name}’ opent alleen op het web: het wordt niet gekopieerd",
+  "place": "Ongeldige plaats",
+  "tooManyFiles": "Te veel bestanden om over te dragen",
+  "tooDeep": "Mappen te diep genest",
+  "someFailed": "Sommige bestanden zijn niet overgedragen",
+  "dstLost": "Doelmap kwijt",
+  "fileThere": "Waar de map moet komen, staat al een bestand ‘{name}’",
+  "retrying": "{message} · nieuwe poging",
+  "folderThere": "Waar het bestand moet komen, staat al een map ‘{name}’",
+  "notFileThere": "Er is al een item ‘{name}’ dat geen bestand is",
+  "done": {
+    "one": "{n} bestand overgedragen naar ‘{queue}’ ({size})",
+    "other": "{n} bestanden overgedragen naar ‘{queue}’ ({size})"
+  },
+  "failed": {
+    "one": "{n} bestand niet overgedragen",
+    "other": "{n} bestanden niet overgedragen"
+  },
+  "failedIn": {
+    "one": "{n} bestand niet overgedragen naar ‘{queue}’",
+    "other": "{n} bestanden niet overgedragen naar ‘{queue}’"
+  },
+  "complete": "Overdracht voltooid: {files}.",
+  "allFailed": "Overdracht mislukt: {files}.",
+  "partial": "Overdracht beëindigd met fouten: {done}. {failed}.",
+  "bytes": {
+    "one": "{n} byte",
+    "other": "{n} bytes"
+  }
+}

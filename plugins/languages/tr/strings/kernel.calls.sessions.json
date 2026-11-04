@@ -1,0 +1,10 @@
+{
+  "notFound": "Oturum bulunamadı",
+  "tooMany": "En fazla {max} açık oturum",
+  "stopping": "Çekirdek duruyor",
+  "detached": "Pencere olmadan 10 dakika geçtiği için kapatıldı",
+  "notConnected": "Oturum bağlı değil",
+  "tooBig": "İleti çok büyük",
+  "noCommand": "Komut kullanılamıyor",
+  "connected": "Bağlandı"
+}

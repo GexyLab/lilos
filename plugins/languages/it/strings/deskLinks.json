@@ -1,0 +1,11 @@
+{
+  "noDesk": "La scrivania non c’è",
+  "notFolder": "«{name}» ora non è più una cartella.",
+  "notFile": "«{name}» ora non è più un file.",
+  "broken": "Il collegamento «{name}» non trova l’originale",
+  "trashed": "L’originale è nel cestino: ripristinalo per usare di nuovo il collegamento.",
+  "deleted": "L’originale è stato eliminato, oppure è in un workspace che da qui non si vede.",
+  "mountGone": "La connessione di rete dove si trovava l’originale non c’è più.",
+  "pathGone": "«{path}» non c’è più su «{mount}».",
+  "unreachable": "Impossibile raggiungere «{name}»"
+}

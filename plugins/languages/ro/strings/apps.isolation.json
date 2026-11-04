@@ -1,0 +1,6 @@
+{
+  "notInstalled": "Aplicație neinstalată",
+  "system": "Aplicațiile de sistem fac parte din lilOS și rulează în lilOS",
+  "remote": "O aplicație la distanță este un site separat: rulează mereu izolată, la propria origine",
+  "sdk1": "Aplicația folosește SDK 1, care funcționează doar izolat"
+}

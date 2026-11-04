@@ -1,0 +1,10 @@
+{
+  "recording": {
+    "one": "Grabando ({n} paso)",
+    "other": "Grabando ({n} pasos)"
+  },
+  "paused": {
+    "one": "Grabación en pausa ({n} paso)",
+    "other": "Grabación en pausa ({n} pasos)"
+  }
+}

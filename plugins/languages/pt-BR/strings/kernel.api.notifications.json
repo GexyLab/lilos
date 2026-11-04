@@ -1,0 +1,8 @@
+{
+  "signIn": "Faça login primeiro",
+  "shape": "Uma notificação é um texto ou { text, level, action }",
+  "noText": "A notificação não tem texto",
+  "level": "Nível inválido: info, success, warning ou error",
+  "action": "Ação inválida: { entry, args }",
+  "sender": "Remetente inválido: o app não está instalado"
+}

@@ -1,0 +1,10 @@
+{
+  "unknownEvent": "Невідома подія: {event}",
+  "denied": "Доступ заборонено: pipe:{event}",
+  "deniedOwn": "Доступ заборонено: pipe:{event} (або pipe.own:{event})",
+  "reserved": "Подію {event} зарезервовано для системи",
+  "sync": "{event} — миттєва операція: її можна лише спостерігати (stage \"after\")",
+  "gone": "Застосунок більше не встановлено",
+  "unhandled": "{app} не обробляє {what} (немає lilos.pipes.subscribe)",
+  "needApp": "Щоб відкрити «{file}», потрібен застосунок {app}: встановіть його з AppStore"
+}

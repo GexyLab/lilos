@@ -1,0 +1,6 @@
+{
+  "single": "lilOS’un yalnızca bir kullanıcısı var: oturum açmaya gerek yok",
+  "singleVerify": "lilOS’un yalnızca bir kullanıcısı var: buna gerek yok",
+  "required": "Kullanıcı adı ve parola gereklidir",
+  "signInFirst": "Önce oturum açın"
+}

@@ -1,0 +1,8 @@
+{
+  "level.error": "Hata",
+  "level.warning": "Uyarı",
+  "level.success": "Tamamlandı",
+  "open": "Aç",
+  "openApp": "{name} uygulamasını aç",
+  "gone": "{name} artık yüklü değil"
+}

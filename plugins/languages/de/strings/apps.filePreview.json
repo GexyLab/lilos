@@ -1,0 +1,6 @@
+{
+  "late": "{app} hat nicht rechtzeitig geantwortet",
+  "invalid": "Ungültige Vorschau",
+  "tooBig": "Vorschau zu groß",
+  "imageType": "Das Bild der Vorschau hat keinen Typ image/*"
+}

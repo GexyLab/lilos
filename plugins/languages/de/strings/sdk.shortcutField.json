@@ -1,0 +1,16 @@
+{
+  "remove": "Entfernen",
+  "removeCombo": "{combo} entfernen",
+  "none": "Keine",
+  "pressKeys": "Tasten drücken…",
+  "add": "Kombination hinzufügen",
+  "addFor": "Kombination für {command} hinzufügen",
+  "resetTitle": "Ursprüngliche Kombination wiederherstellen",
+  "reset": "Wiederherstellen",
+  "record": "Drücken Sie die Kombination. Esc zum Abbrechen.",
+  "invalid": "{combo}: {error}",
+  "already": "{combo} ist diesem Befehl bereits zugewiesen",
+  "usedBy": "{combo} wird bereits von „{command}“ verwendet.",
+  "replace": "Ersetzen",
+  "cancel": "Abbrechen"
+}

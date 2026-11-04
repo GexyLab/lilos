@@ -1,0 +1,25 @@
+{
+  "tooMany": "Najwyżej {max} stref roboczych",
+  "overlap": "W tym miejscu jest już inna strefa robocza: strefy nie mogą na siebie zachodzić",
+  "undo.create": "Utwórz strefę roboczą „{title}”",
+  "undo.rename": "Zmień nazwę strefy roboczej „{before}” na „{after}”",
+  "undo.remove": "Usuń strefę roboczą „{title}”",
+  "undo.move": "Przenieś strefę roboczą „{title}”",
+  "undo.resize": "Zmień rozmiar strefy roboczej „{title}”",
+  "gone": "Strefa robocza już nie istnieje",
+  "already": "Strefa robocza już tam jest",
+  "occupied": "W tym miejscu jest teraz inna strefa robocza",
+  "notOpen": "Strefa robocza nie jest otwarta",
+  "removeOne": "Usuń strefę roboczą „{title}” (jej zawartość pozostanie na pulpicie)",
+  "removeMany": {
+    "one": "Usuń {n} strefę roboczą (jej zawartość pozostanie na pulpicie)",
+    "few": "Usuń {n} strefy robocze (ich zawartość pozostanie na pulpicie)",
+    "many": "Usuń {n} stref roboczych (ich zawartość pozostanie na pulpicie)",
+    "other": "Usuń {n} strefy roboczej (ich zawartość pozostanie na pulpicie)"
+  },
+  "menu.title": "Strefa robocza „{title}”",
+  "menu.rename": "Zmień nazwę strefy roboczej",
+  "menu.properties": "Właściwości…",
+  "menu.collapse": "Zminimalizuj do ikony",
+  "menu.remove": "Usuń strefę roboczą…"
+}

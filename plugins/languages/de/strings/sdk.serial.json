@@ -1,0 +1,8 @@
+{
+  "notFound": "Serieller Port nicht gefunden (getrennt?)",
+  "unsupported": "Dieser Browser kann keine seriellen Ports verwenden (erforderlich sind Chrome, Edge oder Firefox 151+, über https oder localhost)",
+  "click": "Der Browser erwartet einen Klick, bevor ein Port ausgewählt wird",
+  "baud": "Ungültige Geschwindigkeit (Baud)",
+  "busy": "Der Port ist bereits geöffnet (von einem anderen Fenster oder Programm)",
+  "failed": "Der Port lässt sich nicht öffnen: {message}"
+}

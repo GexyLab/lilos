@@ -1,0 +1,9 @@
+{
+  "notFound": "Risorsa inesistente",
+  "method": "Metodo non permesso",
+  "internal": "Errore interno del kernel",
+  "unavailable": "Servizio non disponibile: {name}",
+  "signIn": "Accesso richiesto",
+  "needSocket": "Serve un WebSocket",
+  "refused": "Connessione rifiutata"
+}

@@ -38,8 +38,7 @@ const isPlain = v => !!v && typeof v === 'object' && !Array.isArray(v);
 const fail = message => { throw new Error(`File delle traduzioni non valido: ${message}`); };
 
 function value(v, key) {
-  if (typeof v === 'string') return v.length <= LOCALE_LIMITS.text ? v : fail(`testo troppo lungo (${key})`);
-  if (!isPlain(v)) return fail(`valore non valido (${key})`);
+  if (typeof v === 'string') return v.length <= LOCALE_LIMITS.text ? v : fail(`testo troppo lungo (${key})`);  if (!isPlain(v)) return fail(`valore non valido (${key})`);
   const forms = {};
   for (const [form, text] of Object.entries(v)) {
     if (!FORMS.includes(form) || typeof text !== 'string' || text.length > LOCALE_LIMITS.text) fail(`forma plurale non valida (${key}.${form})`);
@@ -86,6 +85,93 @@ export function parseLocales(input) {
     if (entry.extends && !table[entry.extends]) fail(`lingua ${lang}: estende ${entry.extends}, che non c'è`);
   }
   return table;
+}
+
+/**
+ * Language packs: lilOS's own texts (its interface and the kernel's messages, never apps or
+ * modules) in one more language, installed from the official repository. strings.json of a pack
+ * has the strings of each part of lilOS, by the id its code gives the part without 'lilos:':
+ *
+ *   { "desktop": { "choose.serial": "Scegli una porta seriale", … }, "kernel.repos": { … } }
+ *
+ * A part or a key the pack lacks is in English (the code has it). Values as in a translations file.
+ */
+export const PACK_LIMITS = { bytes: 4 << 20, parts: 400, strings: 20000 };
+const PART = /^[A-Za-z][\w.-]{0,59}$/;
+
+/** Checks the strings of a language pack (text or parsed): { [part]: { [key]: value } }. Throws if not valid. */
+export function parseLanguagePack(input) {
+  // In English (packs come only from the official repository: these are for whoever builds one); `detail` without the lead
+  const wrong = message => { throw Object.assign(new Error(`Language pack not valid: ${message}`), { detail: message }); };
+  if (typeof input === 'string') {
+    if (input.length > PACK_LIMITS.bytes) wrong('too large');
+    try {
+      input = JSON.parse(input);
+    } catch {
+      wrong('not JSON');
+    }
+  }
+  if (!isPlain(input)) wrong('an object with one key per part is needed');
+  const entries = Object.entries(input);
+  if (entries.length > PACK_LIMITS.parts) wrong('too many parts');
+  const parts = {};
+  let count = 0;
+  for (const [part, source] of entries) {
+    if (!PART.test(part)) wrong(`part not valid: ${part.slice(0, 60)}`);
+    if (!isPlain(source)) wrong(`part ${part}: an object is needed`);
+    const strings = {};
+    for (const [key, v] of Object.entries(source)) {
+      if (!KEY.test(key)) wrong(`key not valid: ${key.slice(0, 60)}`);
+      if (++count > PACK_LIMITS.strings) wrong('too many strings');
+      strings[key] = value(v, `${part}/${key}`);
+    }
+    parts[part] = strings;
+  }
+  return parts;
+}
+
+/** 'zh-Hans-CN' for 'zh-CN', 'pt-Latn-BR' for 'pt': language and script, what a pack must share with a locale. */
+function script(tag) {
+  try {
+    const l = new Intl.Locale(tag).maximize();
+    return `${l.language}-${l.script ?? ''}`;
+  } catch {
+    return tag.split('-')[0];
+  }
+}
+
+/**
+ * Of the languages `available` (tags), the one for the locale `code`: the same tag, or else the
+ * same language in the same script (a pack 'pt-BR' for 'pt-PT', 'zh-Hans' for 'zh-CN', never for
+ * 'zh-TW'), the one with the same region first. null when none fits.
+ */
+export function matchLanguage(code, available) {
+  const tag = canonicalLocale(code);
+  if (!tag) return null;
+  const list = (available ?? []).filter(a => canonicalLocale(a));
+  const exact = list.find(a => canonicalLocale(a) === tag);
+  if (exact) return exact;
+  const want = script(tag);
+  const same = list.filter(a => script(canonicalLocale(a)) === want);
+  const region = t => { try { return new Intl.Locale(t).maximize().region; } catch { return null; } };
+  return same.find(a => region(a) === region(tag)) ?? same[0] ?? null;
+}
+
+const RTL = new Set(['ar', 'arc', 'ckb', 'dv', 'fa', 'he', 'iw', 'ks', 'ps', 'sd', 'ug', 'ur', 'yi']);
+
+/** 'rtl' for a language written right to left (ar, ur, he, fa…), 'ltr' for the others. */
+export function textDirection(code) {
+  const tag = canonicalLocale(code);
+  if (!tag) return 'ltr';
+  try {
+    const l = new Intl.Locale(tag);
+    const info = typeof l.getTextInfo === 'function' ? l.getTextInfo() : l.textInfo;
+    if (info?.direction === 'rtl' || info?.direction === 'ltr') return info.direction;
+    const s = l.maximize().script;
+    if (['Arab', 'Hebr', 'Thaa', 'Syrc', 'Nkoo', 'Adlm', 'Rohg'].includes(s)) return 'rtl';
+    if (s) return 'ltr';
+  } catch { /* an engine without Intl.Locale */ }
+  return RTL.has(tag.split('-')[0]) ? 'rtl' : 'ltr';
 }
 
 /** The languages of the table a string is looked for in, in order, for the locale `code`. */

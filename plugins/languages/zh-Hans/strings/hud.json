@@ -1,0 +1,12 @@
+{
+  "zoomOut": "缩小",
+  "zoomIn": "放大",
+  "fit": "显示全部",
+  "zoomReset": "缩放到 100%",
+  "help": "操作方式",
+  "withKey": "{text}（{keys}）",
+  "help.wheel": "滚轮：缩放",
+  "help.move": "空格键 + 拖动或鼠标中键：移动",
+  "help.select": "拖动背景：选择",
+  "help.fit": "{keys}：显示全部"
+}

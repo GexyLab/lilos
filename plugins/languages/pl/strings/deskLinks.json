@@ -1,0 +1,11 @@
+{
+  "noDesk": "Nie ma pulpitu",
+  "notFolder": "„{name}” nie jest już folderem.",
+  "notFile": "„{name}” nie jest już plikiem.",
+  "broken": "Skrót „{name}” nie może znaleźć oryginału",
+  "trashed": "Oryginał jest w Koszu: przywróć go, aby ponownie używać skrótu.",
+  "deleted": "Oryginał został usunięty lub znajduje się w obszarze roboczym, którego stąd nie widać.",
+  "mountGone": "Połączenie sieciowe, w którym był oryginał, już nie istnieje.",
+  "pathGone": "„{path}” nie ma już w „{mount}”.",
+  "unreachable": "Nie można połączyć się z „{name}”"
+}

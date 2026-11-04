@@ -1,0 +1,87 @@
+{
+  "error.dateTime": "Data e ora non valide",
+  "error.cron": "Espressione cron non valida",
+  "error.cronFields": "Un’espressione cron ha 5 campi: minuto ora giorno mese giorno-della-settimana",
+  "error.cronField": "Campo {field} non valido",
+  "error.cronStep": "Passo non valido nel campo {field}",
+  "error.cronValue": "Valore «{value}» non valido nel campo {field}",
+  "error.cronRange": "Intervallo al contrario nel campo {field}",
+  "error.times": "Orari non validi",
+  "error.exceptions": "Eccezioni non valide",
+  "error.rule": "Regola non valida",
+  "error.zone": "Fuso orario sconosciuto",
+  "error.kind": "Una regola è «una volta», «ripeti» o «cron»",
+  "error.start": "Data e ora d’inizio non valide",
+  "error.every": "Ogni quanto: numero o unità non validi",
+  "error.days": "Giorni della settimana non validi",
+  "error.daysUnit": "I giorni della settimana valgono per minuti, ore e settimane",
+  "error.between": "Fascia oraria non valida",
+  "error.monthDay": "Giorno del mese non valido",
+  "error.month": "Mese non valido",
+  "error.end": "Data di fine non valida",
+  "error.endBeforeStart": "La fine viene prima dell’inizio",
+  "error.count": "Numero di volte non valido",
+  "error.scope": "scope deve essere this o all",
+  "error.cronMove": "Una regola cron si sposta una volta alla volta",
+  "error.betweenMidnight": "La fascia oraria passerebbe la mezzanotte",
+  "error.monthDayOut": "Il giorno del mese uscirebbe dal mese",
+  "once": "Una volta: {date} alle {time}",
+  "timed": "{what} alle {times}",
+  "at": "alle {times}",
+  "join": "{a}, {b}",
+  "every.minute": {
+    "one": "Ogni minuto",
+    "other": "Ogni {n} minuti"
+  },
+  "every.hour": {
+    "one": "Ogni ora",
+    "other": "Ogni {n} ore"
+  },
+  "every.day": {
+    "one": "Ogni giorno",
+    "other": "Ogni {n} giorni"
+  },
+  "every.week": {
+    "one": "Ogni settimana",
+    "other": "Ogni {n} settimane"
+  },
+  "every.month": {
+    "one": "ogni mese",
+    "other": "ogni {n} mesi"
+  },
+  "every.year": {
+    "one": "Ogni anno",
+    "other": "Ogni {n} anni"
+  },
+  "between": "dalle {from} alle {to}",
+  "weekday.1": "lunedì",
+  "weekday.2": "martedì",
+  "weekday.3": "mercoledì",
+  "weekday.4": "giovedì",
+  "weekday.5": "venerdì",
+  "weekday.6": "sabato",
+  "weekday.7": "domenica",
+  "days.list": "il {days}",
+  "days.weekdays": "dal lunedì al venerdì",
+  "days.weekend": "il sabato e la domenica",
+  "days.all": "ogni giorno",
+  "eachWeekday": "Ogni {day}",
+  "workweek": "Dal lunedì al venerdì",
+  "monthDay": "Il giorno {day} di {period}",
+  "monthLast": "L’ultimo giorno di {period}",
+  "nth.1": "Il primo {weekday} di {period}",
+  "nth.2": "Il secondo {weekday} di {period}",
+  "nth.3": "Il terzo {weekday} di {period}",
+  "nth.4": "Il quarto {weekday} di {period}",
+  "nth.5": "Il quinto {weekday} di {period}",
+  "nth.last": "L’ultimo {weekday} di {period}",
+  "yearDay": "{every} il {date}",
+  "yearLast": "{every} l’ultimo giorno di {month}",
+  "yearNth": "{every}: {what}",
+  "until": "fino al {date}",
+  "count": {
+    "one": "una volta",
+    "other": "{n} volte"
+  },
+  "cron": "Cron: {cron}"
+}

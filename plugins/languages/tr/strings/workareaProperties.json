@@ -1,0 +1,31 @@
+{
+  "subtitle": "Çalışma bölgesi özellikleri",
+  "title": "Başlık",
+  "description": "Açıklama",
+  "placeholder": "Bu çalışma bölgesi ne için",
+  "addMeta": "Meta veri alanı ekle",
+  "created": "Oluşturulma",
+  "modified": "Değiştirilme",
+  "state": "Durum",
+  "collapsed": "Simge durumuna küçültülmüş",
+  "open": "Masaüstünde açık",
+  "contents": "İçerik",
+  "items": {
+    "other": "{n} öğe"
+  },
+  "windows": {
+    "other": "{n} pencere"
+  },
+  "contentsValue": "{items}, {windows}",
+  "size": "Boyut",
+  "metaName": "Ad",
+  "metaNameLabel": "{n}. meta veri alanının adı",
+  "metaValue": "Değer",
+  "metaValueLabel": "{n}. meta veri alanının değeri",
+  "removeMeta": "Meta veri alanını kaldır",
+  "removeMetaLabel": "{name} meta veri alanını kaldır",
+  "noMeta": "Meta veri yok. Örneğin müşteri, son tarih veya durum not etmek için ekleyin.",
+  "maxMeta": "En fazla {max} meta veri alanı.",
+  "info": "Bilgiler",
+  "customMeta": "Özel meta veriler"
+}

@@ -1,0 +1,9 @@
+{
+  "offline": "Netwerkverzoeken worden gedaan door de lilOS-kernel, die niet verbonden is",
+  "badRun": "Ongeldige uitvoering",
+  "badSession": "Ongeldige sessie",
+  "blocked": "De browser heeft het aanmeldvenster geblokkeerd",
+  "canceled": "Aanmelding geannuleerd",
+  "failed": "Aanmelding mislukt",
+  "noAskAddress": "askAddress ontbreekt"
+}

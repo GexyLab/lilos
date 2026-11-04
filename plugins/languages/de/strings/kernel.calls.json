@@ -1,0 +1,16 @@
+{
+  "secret": "Ungültiger geheimer Wert",
+  "fingerprint": "Ungültiger Fingerabdruck",
+  "server": "Ungültiger Server",
+  "sendsTooMany": "Höchstens {max} Anfragen gleichzeitig",
+  "unopened": "Geheime Werte nicht geöffnet (von einem anderen Benutzer oder auf einem anderen lilOS gespeichert): {names}",
+  "runsTooMany": "Höchstens {max} Ausführungen gleichzeitig",
+  "collection": "Ungültige Sammlung",
+  "runNotFound": "Ausführung nicht gefunden",
+  "needFile": "Eine .nettest-Datei ist erforderlich",
+  "notCollection": "Die Datei ist keine NetTest-Sammlung",
+  "noEnvironment": "Umgebung nicht gefunden: {name}",
+  "untitled": "Sammlung",
+  "noProtocol": "Protokoll nicht verfügbar: {protocol} (sein Kernelmodul fehlt)",
+  "noDescribe": "Dieses Protokoll beschreibt den Server nicht"
+}

@@ -1,0 +1,15 @@
+{
+  "name": "“{id}”",
+  "nameVersion": "“{id}” ({version})",
+  "restart": {
+    "one": "Zaten yüklü olan {modules} çekirdek modülü gerekiyor: çekirdek bir sonraki kez yeniden başlatıldığında çalışmaya başlar; bunu bir yönetici AppStore’dan yapar.",
+    "other": "Zaten yüklü olan {modules} çekirdek modülleri gerekiyor: çekirdek bir sonraki kez yeniden başlatıldığında çalışmaya başlarlar; bunu bir yönetici AppStore’dan yapar."
+  },
+  "missing": "Bulunamadı: {list}. Bir yönetici bunu AppStore’dan yükler.",
+  "missingModule": "{name} çekirdek modülü",
+  "missingApp": "{name} uygulaması",
+  "openApp": "Bir uygulama açın",
+  "hidden": "{app} bu çalışma alanında gizli. Denetim Masası → Çalışma alanı bölümünden gösterebilirsiniz.",
+  "cannotStart": "{app} henüz başlatılamıyor",
+  "notStarted": "{app} başlatılamadı: {message}"
+}

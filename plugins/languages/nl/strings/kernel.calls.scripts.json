@@ -1,0 +1,5 @@
+{
+  "noRuntime": "Scripts hebben de module services-isolate nodig (Configuratiescherm → Modules)",
+  "noStart": "De scripts starten niet: {message}",
+  "timeout": "Het script heeft de tijdslimiet overschreden (5 seconden)"
+}

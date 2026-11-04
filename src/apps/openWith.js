@@ -1,4 +1,4 @@
-import { Window, h, appIcon, actionButton, fileType } from '@lilos/sdk';
+import { Window, h, appIcon, actionButton, fileType, locale } from '@lilos/sdk';
 import { launch } from './registry.js';
 import { installedFileApps, appFor, extensionOf, setAppFor } from './open.js';
 
@@ -6,6 +6,14 @@ import { installedFileApps, appFor, extensionOf, setAppFor } from './open.js';
  * "Apri con": choose the app for a file, optionally remembering it for the extension.
  * One at a time: a new request replaces the open one. Returns a function (node) for setChooser().
  */
+const { t } = locale.define('lilos:apps.openWith', {
+  en: { strings: {
+    title: 'Open with', apps: 'App', choose: 'Choose the app to open “{name}” ({type}).',
+    alwaysExt: 'Always use this app for .{ext} files', alwaysNoExt: 'Always use this app for files without an extension',
+    cancel: 'Cancel', open: 'Open', none: 'No installed app can open “{name}”.', close: 'Close',
+  } },
+});
+
 export function createOpenWith(wm) {
   let current = null;
 
@@ -18,7 +26,7 @@ export function createOpenWith(wm) {
     let chosen = suggested;
 
     const win = new Window({
-      title: 'Apri con', subtitle: node.name, icon: 'open',
+      title: t('title'), subtitle: node.name, icon: 'open',
       width: 380, height: candidates.length ? 176 + candidates.length * 40 : 150,
       controls: { minimize: false, maximize: false }, resizable: false,
     });
@@ -26,10 +34,9 @@ export function createOpenWith(wm) {
     current = win;
     win.on('destroy', () => { if (current === win) current = null; });
 
-    const typeName = ext ? `i file .${ext}` : 'i file senza estensione';
     const remember = h('input', { type: 'checkbox', id: `ow-${node.id}` });
 
-    const list = h('div', { class: 'ow-list', role: 'radiogroup', 'aria-label': 'App' }, candidates.map(app => {
+    const list = h('div', { class: 'ow-list', role: 'radiogroup', 'aria-label': t('apps') }, candidates.map(app => {
       const option = h('button', {
         class: app.id === chosen ? 'ow-app on' : 'ow-app', type: 'button', role: 'radio',
         'aria-checked': String(app.id === chosen), dataset: { id: app.id },
@@ -66,16 +73,16 @@ export function createOpenWith(wm) {
 
     const body = candidates.length
       ? [
-          h('p', { class: 'ow-text' }, `Scegli l'app per aprire «${node.name}» (${fileType(node.name).label}).`),
+          h('p', { class: 'ow-text' }, t('choose', { name: node.name, type: fileType(node.name).label })),
           list,
-          h('label', { class: 'ow-remember', for: remember.id }, remember, `Usa sempre quest'app per ${typeName}`),
+          h('label', { class: 'ow-remember', for: remember.id }, remember, ext ? t('alwaysExt', { ext }) : t('alwaysNoExt')),
           h('div', { class: 'ow-buttons' },
-            actionButton({ label: 'Annulla', onClick: () => wm.close(win) }),
-            actionButton({ label: 'Apri', primary: true, onClick: confirm })),
+            actionButton({ label: t('cancel'), onClick: () => wm.close(win) }),
+            actionButton({ label: t('open'), primary: true, onClick: confirm })),
         ]
       : [
-          h('p', { class: 'ow-text' }, `Nessuna app installata può aprire «${node.name}».`),
-          h('div', { class: 'ow-buttons' }, actionButton({ label: 'Chiudi', primary: true, onClick: () => wm.close(win) })),
+          h('p', { class: 'ow-text' }, t('none', { name: node.name })),
+          h('div', { class: 'ow-buttons' }, actionButton({ label: t('close'), primary: true, onClick: () => wm.close(win) })),
         ];
     win.body.append(h('div', { class: 'ow' }, body));
     win.body.addEventListener('keydown', e => {

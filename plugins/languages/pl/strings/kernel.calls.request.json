@@ -1,0 +1,16 @@
+{
+  "graphqlVars": "GraphQL: zmienne nie są prawidłowym JSON",
+  "method": "Nieprawidłowa metoda",
+  "url": "Nieprawidłowy adres: {url}",
+  "needHttp": "Wymagany jest adres http:// lub https://",
+  "headerName": "Nieprawidłowa nazwa nagłówka: {name}",
+  "headerValue": "Nieprawidłowa wartość w nagłówku {name}",
+  "bodyTooBig": "Treść jest za duża (najwyżej 50 MB)",
+  "noAnswer": {
+    "one": "Brak odpowiedzi w ciągu {n} sekundy",
+    "few": "Brak odpowiedzi w ciągu {n} sekund",
+    "many": "Brak odpowiedzi w ciągu {n} sekund",
+    "other": "Brak odpowiedzi w ciągu {n} sekundy"
+  },
+  "cancelled": "Anulowano"
+}

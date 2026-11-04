@@ -1,4 +1,5 @@
 import { pipes, PipeStopped } from './pipes.js';
+import { locale } from './locale.js';
 
 /**
  * The system's events (see pipes.js), declared once here so that each one gets its pipe however
@@ -26,48 +27,88 @@ import { pipes, PipeStopped } from './pipes.js';
  *
  * Contents travel as Blobs (bytes): a handler that changes one gives back a Blob or a string.
  */
+const { t } = locale.define('lilos:sdk.pipeCatalog', {
+  en: { strings: {
+    content: 'The content must be a Blob or a text',
+    'label.file.open': 'Opening a file',
+    'label.file.read': 'Reading a file',
+    'label.file.write': 'Saving a file',
+    'label.app.launch': 'Starting an app',
+    'label.file.create': 'Creating an item',
+    'label.file.rename': 'Renaming',
+    'label.file.move': 'Moving',
+    'label.file.copy': 'Copying a file',
+    'label.file.remove': 'Deleting for good',
+    'label.trash.put': 'Moving to the Trash',
+    'label.trash.restore': 'Restoring from the Trash',
+    'label.trash.purge': 'Emptying the Trash',
+    'label.tags.assign': 'Tags of an item',
+    'label.window.open': 'Opening a window',
+    'label.window.close': 'Closing a window',
+    'label.workspace.switch': 'Switching workspace',
+    'label.settings.change': 'Changing a setting',
+    'label.desk.place': 'Icons moved on the desktop',
+    'label.device.attach': 'Connecting a device',
+    'label.device.detach': 'Disconnecting a device',
+    'label.system.ready': 'System ready',
+    'label.session.login': 'User signed in',
+    'label.session.logout': 'Signing out',
+    'label.apps.install': 'Installing an app',
+    'label.apps.update': 'Updating an app',
+    'label.apps.remove': 'Removing an app',
+    'label.permissions.change': 'Permissions of an app',
+    'label.settings.system': 'System settings',
+    'label.pipes.change': 'Pipe subscriptions',
+    'description.file.open': 'Before a file opens in its app',
+    'description.file.read': 'The content of a file read by an app',
+    'description.file.write': 'The content of a file before it is saved',
+    'description.app.launch': 'An app, or one of its windows, is about to open',
+  } },
+});
+
 const toBlob = v => (v instanceof Blob ? v : v instanceof ArrayBuffer || ArrayBuffer.isView(v) ? new Blob([v]) : typeof v === 'string' ? new Blob([v]) : null);
 
 function content(data) {
   const blob = toBlob(data.content);
-  if (!blob) throw new Error('Il contenuto deve essere un Blob o un testo');
+  if (!blob) throw new Error(t('content'));
   return { ...data, content: blob };
 }
 
-// lilOS's own synchronous handlers may stop these (runSync): apps only look at them
+// lilOS's own synchronous handlers may stop these (runSync): apps only look at them. Labels are
+// functions: they follow the system's language (pipes.describe)
 const observe = (name, label) => pipes.define(name, { label, sync: true, stop: true });
 const reserved = (name, label) => pipes.define(name, { label, protected: true, sync: true });
 
-pipes.define('file.open', { label: 'Apertura di un file', description: 'Prima che un file si apra nella sua app', edit: { before: ['app'] }, stop: true });
-pipes.define('file.read', { label: 'Lettura di un file', description: 'Il contenuto di un file letto da un’app', edit: { after: ['content'] }, stop: true, check: (d, stage) => (stage === 'after' ? content(d) : d) });
-pipes.define('file.write', { label: 'Salvataggio di un file', description: 'Il contenuto di un file prima che si salvi', edit: { before: ['content'] }, stop: true, check: (d, stage) => (stage === 'before' ? content(d) : d) });
-pipes.define('app.launch', { label: 'Avvio di un’app', description: 'Un’app, o una sua finestra, sta per aprirsi', edit: { before: ['args'] }, stop: true });
+pipes.define('file.open', { label: () => t('label.file.open'), description: () => t('description.file.open'), edit: { before: ['app'] }, stop: true });
+pipes.define('file.read', { label: () => t('label.file.read'), description: () => t('description.file.read'), edit: { after: ['content'] }, stop: true, check: (d, stage) => (stage === 'after' ? content(d) : d) });
+pipes.define('file.write', { label: () => t('label.file.write'), description: () => t('description.file.write'), edit: { before: ['content'] }, stop: true, check: (d, stage) => (stage === 'before' ? content(d) : d) });
+pipes.define('app.launch', { label: () => t('label.app.launch'), description: () => t('description.app.launch'), edit: { before: ['args'] }, stop: true });
 
-observe('file.create', 'Creazione di un elemento');
-observe('file.rename', 'Cambio di nome');
-observe('file.move', 'Spostamento');
-observe('file.copy', 'Copia di un file');
-observe('file.remove', 'Eliminazione definitiva');
-observe('trash.put', 'Spostamento nel Cestino');
-observe('trash.restore', 'Ripristino dal Cestino');
-observe('trash.purge', 'Svuotamento del Cestino');
-observe('tags.assign', 'Tag di un elemento');
-observe('window.open', 'Apertura di una finestra');
-observe('window.close', 'Chiusura di una finestra');
-observe('workspace.switch', 'Cambio di workspace');
-observe('settings.change', 'Cambio di un’impostazione');
-observe('desk.place', 'Icone spostate sulla scrivania');
-observe('device.attach', 'Collegamento di un dispositivo');
-observe('device.detach', 'Scollegamento di un dispositivo');
+observe('file.create', () => t('label.file.create'));
+observe('file.rename', () => t('label.file.rename'));
+observe('file.move', () => t('label.file.move'));
+observe('file.copy', () => t('label.file.copy'));
+observe('file.remove', () => t('label.file.remove'));
+observe('trash.put', () => t('label.trash.put'));
+observe('trash.restore', () => t('label.trash.restore'));
+observe('trash.purge', () => t('label.trash.purge'));
+observe('tags.assign', () => t('label.tags.assign'));
+observe('window.open', () => t('label.window.open'));
+observe('window.close', () => t('label.window.close'));
+observe('workspace.switch', () => t('label.workspace.switch'));
+observe('settings.change', () => t('label.settings.change'));
+observe('desk.place', () => t('label.desk.place'));
+observe('device.attach', () => t('label.device.attach'));
+observe('device.detach', () => t('label.device.detach'));
 
-reserved('system.ready', 'Sistema pronto');
-reserved('session.login', 'Utente entrato');
-reserved('session.logout', 'Uscita dall’account');
-reserved('apps.install', 'Installazione di un’app');
-reserved('apps.update', 'Aggiornamento di un’app');
-reserved('apps.remove', 'Rimozione di un’app');
-reserved('permissions.change', 'Permessi di un’app');
-reserved('settings.system', 'Impostazioni di sistema');
-reserved('pipes.change', 'Iscrizioni alle pipe');
+reserved('system.ready', () => t('label.system.ready'));
+reserved('session.login', () => t('label.session.login'));
+reserved('session.logout', () => t('label.session.logout'));
+reserved('apps.install', () => t('label.apps.install'));
+reserved('apps.update', () => t('label.apps.update'));
+reserved('apps.remove', () => t('label.apps.remove'));
+reserved('permissions.change', () => t('label.permissions.change'));
+reserved('settings.system', () => t('label.settings.system'));
+reserved('pipes.change', () => t('label.pipes.change'));
 
 export { pipes, PipeStopped };

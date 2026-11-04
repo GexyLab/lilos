@@ -1,6 +1,39 @@
 import { kernel } from '@lilos/sdk/kernel';
-import { licenseScreen, loginScreen, messageScreen, progressScreen, rememberSignIn, startScreen } from './screens.js';
+import { errorText, licenseScreen, loginScreen, messageScreen, progressScreen, rememberSignIn, startScreen } from './screens.js';
 import { hasLocalData, importLocalData } from './migrate.js';
+import { bootStrings, loadBootLanguage } from './strings.js';
+
+const { t } = bootStrings('lilos:boot', { en: { strings: {
+  'step.signedIn': 'Sign-in verified',
+  'step.kernel': 'Kernel reached',
+  'step.license': 'License accepted',
+  'step.data': 'Reading your data',
+  'step.desktop': 'Opening the desktop',
+  'offline.title': 'The lilOS kernel is not answering',
+  'offline.text': '{host} is not answering. Start the kernel (npm run kernel, the service or the lilOS program) or check the network.',
+  'failed.title': 'lilOS does not start',
+  retryNow: 'Try again now',
+  retry: 'Try again',
+  exit: 'Exit',
+  'license.waitTitle': 'The lilOS license must be accepted',
+  'license.waitText': 'Before lilOS can be used, an administrator must read and accept its license. Try again once they have.',
+  'license.neededTitle': 'lilOS does not start without its license',
+  'license.neededText': 'lilOS can be used only after its license has been accepted.',
+  'license.read': 'Read the license',
+  'import.title': 'Data in this browser',
+  'import.text': 'This browser has lilOS folders, files and settings saved before accounts existed. Do you want to move them into your account? They will then be deleted from the browser.',
+  'import.later': 'Not now',
+  'import.move': 'Move into my account',
+  'import.progress': 'Moving your data…',
+  'session.otherUser': 'The session of {username} is open here: sign in as that user',
+  'expired.title': 'Session expired',
+  'expired.text': 'Enter the password of {name}: pending changes will be saved.',
+  'locked.title': 'lilOS is locked',
+  'locked.text': 'Enter the password of {name} to come back.',
+  'locked.unlock': 'Unlock',
+  'locked.notYou': 'Not {name}?',
+  'locked.otherUser': 'Sign in as another user',
+} } });
 
 // Seconds before trying the kernel again by itself, at each failed try in a row (then the last)
 const RETRY = [5, 10, 30];
@@ -14,6 +47,8 @@ const RETRY = [5, 10, 30];
  */
 export async function boot(root) {
   for (let failed = 0; ; failed++) {
+    // The language of the last user of this browser (or the browser's) until the user is known
+    await loadBootLanguage(kernel);
     try {
       const { mode, user } = await kernel.session();
       if (mode === 'multi' && !user) await loginScreen(root, (name, password, options) => kernel.login(name, password, options));
@@ -22,20 +57,22 @@ export async function boot(root) {
       const who = kernel.user;
       const start = startScreen(root, {
         name: who?.name || who?.username || null,
-        steps: [mode === 'multi' ? 'Accesso verificato' : 'Kernel raggiunto', 'Licenza accettata', 'Lettura dei tuoi dati', 'Apertura del desktop'],
+        steps: [t(mode === 'multi' ? 'step.signedIn' : 'step.kernel'), t('step.license'), t('step.data'), t('step.desktop')],
       });
       start.step(2);
       await kernel.connect();
+      // The user's own language for the screens of the session (expired, locked)
+      await loadBootLanguage(kernel, kernel.data?.storage?.locale);
       start.step(3);
       return () => root.querySelector(':scope > .boot')?.remove();
     } catch (err) {
       const offline = err.code === 'offline';
       await messageScreen(root, {
-        title: offline ? 'Il kernel di lilOS non risponde' : 'lilOS non si avvia',
-        text: offline ? `${location.host} non risponde. Avvia il kernel (npm run kernel, il servizio o il programma lilOS) o controlla la rete.` : err.message,
+        title: offline ? t('offline.title') : t('failed.title'),
+        text: offline ? t('offline.text', { host: location.host }) : errorText(err),
         tone: 'danger',
         auto: offline ? { seconds: RETRY[Math.min(failed, RETRY.length - 1)], value: true } : null,
-        buttons: [{ label: offline ? 'Riprova ora' : 'Riprova', value: true, primary: true }],
+        buttons: [{ label: offline ? t('retryNow') : t('retry'), value: true, primary: true }],
       });
     }
   }
@@ -52,9 +89,9 @@ async function licenseAccepted(root, mode) {
     const choice = license.canAccept
       ? await licenseScreen(root, license, () => kernel.request('POST', '/license/accept', { sha256: license.sha256 }))
       : await messageScreen(root, {
-        title: 'Licenza di lilOS da accettare',
-        text: "Prima che lilOS si possa usare, un amministratore deve leggere e accettare la sua licenza d'uso. Riprova quando l'ha fatto.",
-        buttons: [{ label: 'Esci', value: 'exit' }, { label: 'Riprova', value: 'retry', primary: true }],
+        title: t('license.waitTitle'),
+        text: t('license.waitText'),
+        buttons: [{ label: t('exit'), value: 'exit' }, { label: t('retry'), value: 'retry', primary: true }],
       });
     if (choice === 'accepted') return true;
     if (choice !== 'exit') continue;
@@ -63,9 +100,9 @@ async function licenseAccepted(root, mode) {
       return false;
     }
     await messageScreen(root, {
-      title: 'Senza la licenza lilOS non parte',
-      text: "lilOS si può usare solo dopo averne accettato la licenza d'uso.",
-      buttons: [{ label: 'Leggi la licenza', value: true, primary: true }],
+      title: t('license.neededTitle'),
+      text: t('license.neededText'),
+      buttons: [{ label: t('license.read'), value: true, primary: true }],
     });
   }
 }
@@ -74,12 +111,12 @@ async function offerImport(root) {
   const { fresh } = await kernel.request('GET', '/boot');
   if (!fresh) return;   // only into an empty home
   const yes = await messageScreen(root, {
-    title: 'Dati in questo browser',
-    text: 'Questo browser ha cartelle, file e impostazioni di lilOS salvati prima degli account. Vuoi portarli nel tuo account? Dopo verranno cancellati dal browser.',
-    buttons: [{ label: 'Non ora', value: false }, { label: 'Porta nel mio account', value: true, primary: true }],
+    title: t('import.title'),
+    text: t('import.text'),
+    buttons: [{ label: t('import.later'), value: false }, { label: t('import.move'), value: true, primary: true }],
   });
   if (!yes) return;
-  progressScreen(root, 'Trasferimento dei dati…');
+  progressScreen(root, t('import.progress'));
   await importLocalData(kernel);
 }
 
@@ -92,7 +129,7 @@ async function signInAgain(options) {
     const { user } = await kernel.request('POST', '/session', { username, password, remember });
     if (user.id !== kernel.data.user.id) {
       await kernel.request('DELETE', '/session').catch(() => {});
-      throw new Error(`Qui è aperta la sessione di ${kernel.data.user.username}: accedi con quell'utente`);
+      throw new Error(t('session.otherUser', { username: kernel.data.user.username }));
     }
   }, { onto: document.body, ...options });
   signingIn = false;
@@ -101,10 +138,12 @@ async function signInAgain(options) {
 
 /** While lilOS runs: when the session ends, sign in again over it; nothing waiting is lost. */
 export function watchSession() {
-  kernel.on('signedout', () => {
+  kernel.on('signedout', async () => {
     if (signingIn) return;
+    signingIn = true;
+    await loadBootLanguage(kernel, kernel.locale);   // the language lilOS is in now
     const { username, name } = kernel.data.user;
-    signInAgain({ title: 'Sessione scaduta', text: `Inserisci la password di ${name}: le modifiche in attesa verranno salvate.`, username, name });
+    signInAgain({ title: t('expired.title'), text: t('expired.text', { name }), username, name });
   });
 }
 
@@ -124,14 +163,15 @@ export async function lockSession() {
     signingIn = false;
     throw err;
   }
+  await loadBootLanguage(kernel, kernel.locale);   // the language lilOS is in now
   const { username, name } = kernel.data.user;
   // Out of reach of the keyboard too while locked
   const under = [...document.body.children].filter(e => !e.inert);
   under.forEach(e => { e.inert = true; });
   await signInAgain({
-    title: 'lilOS è bloccato', text: `Inserisci la password di ${name} per tornare.`, username, name, submit: 'Sblocca',
+    title: t('locked.title'), text: t('locked.text', { name }), username, name, submit: t('locked.unlock'),
     // Session already ended: lilOS starts again from the sign-in
-    other: { lead: `Non sei ${name}?`, label: 'Accedi con un altro utente', onClick: () => location.reload() },
+    other: { lead: t('locked.notYou', { name }), label: t('locked.otherUser'), onClick: () => location.reload() },
   });
   under.forEach(e => { e.inert = false; });
 }

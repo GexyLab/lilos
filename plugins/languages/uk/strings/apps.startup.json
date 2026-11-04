@@ -1,0 +1,14 @@
+{
+  "mainWindow": "Головне вікно",
+  "paramsObject": "Параметри мають бути об’єктом JSON, у { }",
+  "paramsTooLong": "Параметри задовгі (не більше 4 КБ)",
+  "invalid": "{param}: недійсне значення",
+  "fileGone": "{param}: файл зник",
+  "folderGone": "{param}: папка зникла",
+  "notOpened": "{app} не відкрився сам. {message}",
+  "notInstalled": "Застосунок не встановлено",
+  "maxApps": "Не більше {max} застосунків під час запуску",
+  "unknownEntry": "Невідома точка входу",
+  "entryNotAtStartup": "Точка входу не входить до автозапуску",
+  "skipped": "Запуск без застосунків: адреса містить ?avvio=no"
+}

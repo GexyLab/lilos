@@ -1,0 +1,10 @@
+{
+  "group": "Espacio de trabajo",
+  "next": "Cambiar al espacio de trabajo siguiente",
+  "previous": "Cambiar al espacio de trabajo anterior",
+  "limit": "Como máximo {max} espacios de trabajo",
+  "deskOf": "Escritorio de {name}",
+  "removed": "Espacio de trabajo «{name}» eliminado",
+  "removedKept": "Espacio de trabajo «{name}» eliminado. Su escritorio ahora es {path}",
+  "newName": "Espacio de trabajo {n}"
+}

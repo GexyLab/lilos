@@ -1,7 +1,12 @@
-import { fs, storage } from '@lilos/sdk';
+import { fs, storage, locale } from '@lilos/sdk';
 import { apps } from '../apps/registry.js';
 import { DESK_NAME, fillDesk } from '../systemFs.js';
 import { loadWorkspaces, saveWorkspaces, newWorkspace, workspaceKey } from './store.js';
+
+// Names given to workspaces lilOS makes by itself (in the system's language at that moment)
+const { t } = locale.define('lilos:workspaceSetup', {
+  en: { strings: { recovered: 'Recovered workspace', main: 'Main' } },
+});
 
 /** Keys that every workspace now keeps apart: before workspaces they belonged to the only desk. */
 const LEGACY_PARTS = ['camera', 'desktop-layout', 'workareas'];
@@ -46,11 +51,11 @@ export function setupWorkspaces({ firstStart }) {
     if (live().some(w => w.id === desk.workspace)) continue;
     const old = state.list.find(w => w.id === desk.workspace);
     state.list = state.list.filter(w => w !== old);
-    state.list.push(newWorkspace({ id: desk.workspace, name: old?.name ?? 'Workspace recuperato', color: old?.color, desk: desk.id, apps: ids }));
+    state.list.push(newWorkspace({ id: desk.workspace, name: old?.name ?? t('recovered'), color: old?.color, desk: desk.id, apps: ids }));
   }
 
   if (!live().length) {
-    const ws = newWorkspace({ name: 'Principale', desk: null, apps: ids });
+    const ws = newWorkspace({ name: t('main'), desk: null, apps: ids });
     const legacy = fs.children(fs.root).find(n => n.name === DESK_NAME && n.type === 'folder' && n.system && !n.private);
     if (legacy) fs.makePrivate(legacy.id, ws.id);
     ws.desk = legacy?.id ?? createDesk(ws.id);

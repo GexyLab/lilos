@@ -1,0 +1,6 @@
+{
+  "reload.title": "lilOS {name}",
+  "reload.text": "이미 열려 있는 항목은 표시될 때의 언어로 유지됩니다. 모든 항목을 새 언어로 보려면 lilOS를 새로 고치세요.",
+  "reload.now": "지금 새로 고침",
+  "reload.later": "나중에"
+}

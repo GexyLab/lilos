@@ -1,0 +1,15 @@
+{
+  "home.description": "Dosarul principal, care le conține pe toate celelalte",
+  "folder.description": "Dosarul {name}, partajat de toate spațiile de lucru",
+  "files.description": "Deschide File Manager",
+  "trash": "Coș de reciclare",
+  "trash.description": "Deschide Coșul de reciclare; puteți glisa fișiere și dosare pe el",
+  "noDesk": "Desktopul nu există",
+  "folderGone": "Dosarul {name} nu mai există",
+  "trashedOne": "Mutat în Coșul de reciclare",
+  "trashedMany": {
+    "one": "Un element mutat în Coșul de reciclare",
+    "few": "{n} elemente mutate în Coșul de reciclare",
+    "other": "{n} de elemente mutate în Coșul de reciclare"
+  }
+}

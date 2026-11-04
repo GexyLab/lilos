@@ -1,6 +1,13 @@
 import { createHash, createHmac, randomBytes } from 'node:crypto';
 import { fail } from '../errors.js';
 import { findHeader } from '../net/http.js';
+import { defineStrings } from '../strings.js';
+
+const { t } = defineStrings('lilos:kernel.calls.auth', { en: { strings: {
+  invalid: 'Authentication not valid',
+  noToken: 'OAuth 2.0: no token: sign in or write the token',
+  aws: 'AWS signature: the access key or the secret key is missing',
+} } });
 
 /**
  * How a NetTest request proves who it is. The kernel does it, after the secrets are filled in
@@ -28,7 +35,7 @@ const TYPES = ['none', 'basic', 'bearer', 'apikey', 'digest', 'aws4', 'oauth2'];
 
 export function checkAuth(raw) {
   const a = raw && typeof raw === 'object' ? raw : { type: 'none' };
-  if (!TYPES.includes(a.type)) fail('invalid', 'Autenticazione non valida');
+  if (!TYPES.includes(a.type)) fail('invalid', t('invalid'));
   return a;
 }
 
@@ -53,7 +60,7 @@ export async function applyAuth(auth, req, { tokens }) {
       return signAws4(auth, req, set);
     case 'oauth2': {
       const token = auth.grant && auth.grant !== 'token' ? await tokens(auth) : str(auth.token);
-      if (!token) fail('invalid', 'OAuth 2.0: nessun token: fai l’accesso o scrivi il token');
+      if (!token) fail('invalid', t('noToken'));
       return set('Authorization', `${str(auth.prefix) || 'Bearer'} ${token}`);
     }
     default:
@@ -102,7 +109,7 @@ const rfc3986 = s => encodeURIComponent(s).replace(/[!'()*]/g, c => `%${c.charCo
 function signAws4(auth, req, set) {
   const region = str(auth.region).trim() || 'us-east-1';
   const service = str(auth.service).trim() || 'execute-api';
-  if (!str(auth.accessKey) || !str(auth.secretKey)) fail('invalid', 'Firma AWS: mancano la chiave di accesso o quella segreta');
+  if (!str(auth.accessKey) || !str(auth.secretKey)) fail('invalid', t('aws'));
   const amzDate = new Date().toISOString().replace(/[:-]|\.\d{3}/g, '');
   const day = amzDate.slice(0, 8);
   const payloadHash = sha('sha256', req.body ?? Buffer.alloc(0));

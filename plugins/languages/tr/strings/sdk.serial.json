@@ -1,0 +1,8 @@
+{
+  "notFound": "Seri bağlantı noktası bulunamadı (çıkarıldı mı?)",
+  "unsupported": "Bu tarayıcı seri bağlantı noktalarını kullanamıyor (https veya localhost üzerinde Chrome, Edge ya da Firefox 151+ gerekir)",
+  "click": "Tarayıcı, bağlantı noktası seçmeden önce bir tıklama istiyor",
+  "baud": "Geçersiz hız (baud)",
+  "busy": "Bağlantı noktası zaten açık (başka bir pencere veya başka bir program tarafından)",
+  "failed": "Bağlantı noktası açılmıyor: {message}"
+}

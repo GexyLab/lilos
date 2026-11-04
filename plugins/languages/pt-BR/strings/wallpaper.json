@@ -1,0 +1,7 @@
+{
+  "notImage": "“{name}” não é uma imagem",
+  "gone": "Esta imagem não existe mais",
+  "copyFailed": "Não é possível copiar “{name}” para a pasta {folder}: {error}",
+  "noFolder": "a pasta {folder} está faltando",
+  "openFailed": "“{name}” não abre como imagem"
+}

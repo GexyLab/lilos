@@ -1,0 +1,11 @@
+{
+  "noDesk": "Desktopul nu există",
+  "notFolder": "„{name}” nu mai este un dosar.",
+  "notFile": "„{name}” nu mai este un fișier.",
+  "broken": "Comanda rapidă „{name}” nu găsește originalul",
+  "trashed": "Originalul este în Coșul de reciclare: restaurați-l pentru a folosi din nou comanda rapidă.",
+  "deleted": "Originalul a fost șters sau se află într-un spațiu de lucru care nu se vede de aici.",
+  "mountGone": "Conexiunea de rețea în care se afla originalul nu mai există.",
+  "pathGone": "„{path}” nu mai este pe „{mount}”.",
+  "unreachable": "„{name}” nu poate fi accesat"
+}

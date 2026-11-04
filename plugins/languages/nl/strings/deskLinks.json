@@ -1,0 +1,11 @@
+{
+  "noDesk": "Het bureaublad is er niet",
+  "notFolder": "‘{name}’ is geen map meer.",
+  "notFile": "‘{name}’ is geen bestand meer.",
+  "broken": "De snelkoppeling ‘{name}’ vindt het origineel niet",
+  "trashed": "Het origineel staat in de prullenbak: zet het terug om de snelkoppeling weer te gebruiken.",
+  "deleted": "Het origineel is verwijderd, of het staat in een workspace die je van hieruit niet kunt zien.",
+  "mountGone": "De netwerkverbinding waar het origineel stond, is er niet meer.",
+  "pathGone": "‘{path}’ staat niet meer op ‘{mount}’.",
+  "unreachable": "‘{name}’ is onbereikbaar"
+}

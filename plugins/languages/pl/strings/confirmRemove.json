@@ -1,0 +1,26 @@
+{
+  "cancel": "Anuluj",
+  "one": "„{name}”",
+  "many": "elementy ({count})",
+  "trash": "Przenieś {what} do Kosza",
+  "permanent": "Usuń trwale {what}",
+  "inside": {
+    "one": "{what} i element w środku",
+    "few": "{what} i {count} elementy w środku",
+    "many": "{what} i {count} elementów w środku",
+    "other": "{what} i {count} elementu w środku"
+  },
+  "netRemoveText": "{verb} {what}: {text}",
+  "netRemove": "Usuń",
+  "netRecycles": "Usuń {what} z {service} (trafi do jego kosza)",
+  "netServer": "Usuń {what} z serwera (trwale)",
+  "netServerFolders": "Usuń {what} z serwera razem z całą zawartością (trwale)",
+  "purge": "Usuń trwale „{name}”",
+  "purgeMany": "Usuń trwale elementy ({count})",
+  "emptyTrash": {
+    "one": "Usuń trwale element z Kosza",
+    "few": "Usuń trwale wszystkie {count} elementy z Kosza",
+    "many": "Usuń trwale wszystkie {count} elementów z Kosza",
+    "other": "Usuń trwale wszystkie {count} elementu z Kosza"
+  }
+}

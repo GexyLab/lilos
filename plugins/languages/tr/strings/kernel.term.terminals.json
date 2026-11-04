@@ -1,0 +1,23 @@
+{
+  "signIn": "Oturum açmanız gerekiyor",
+  "noProtocol": "Protokol kullanılamıyor: {protocol} (çekirdek modülü eksik)",
+  "hostName": "Ana bilgisayar adı geçerli değil",
+  "hostTaken": "“{name}” adlı bir ana bilgisayar zaten var",
+  "missing": "Eksik: {fields}",
+  "tooMany": "En fazla {max} ana bilgisayar",
+  "hostNotFound": "Ana bilgisayar bulunamadı",
+  "noPassword": "Kaydedilecek parola yok",
+  "sealedOther": "Kısayolda kayıtlı parola yalnızca onu kaydeden kişi için, bu lilOS’ta, aynı sunucu ve kullanıcıyla çalışır",
+  "sessionNotFound": "Oturum bulunamadı",
+  "sessionsTooMany": "En fazla {max} açık oturum",
+  "sftpOnly": "Terminal yalnızca SFTP bağlantılarında açılır",
+  "sshOnly": "Zamanlanmış komutlar yalnızca SSH ana bilgisayarlarına gider",
+  "untrusted": "“{name}” sunucusunun anahtarı onaylanmadı: Terminal’den bir kez bağlanın",
+  "denied": "“{name}” erişimi reddetti: parolayı veya anahtarı ana bilgisayara kaydedin",
+  "stopping": "Çekirdek duruyor",
+  "detached": "Pencere olmadan 10 dakika geçtiği için kapatıldı",
+  "cancelled": "Bağlantı iptal edildi",
+  "failed": "Bağlantı başarısız oldu",
+  "folder": "Klasör adı geçerli değil",
+  "cwd": "Klasör geçerli değil"
+}

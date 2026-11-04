@@ -1,0 +1,8 @@
+{
+  "blockedWindow": "브라우저가 로그인 창을 차단했습니다",
+  "blockedTab": "브라우저가 로그인 탭을 차단했습니다",
+  "canceled": "로그인이 취소되었습니다",
+  "failed": "로그인하지 못했습니다",
+  "noAskAddress": "askAddress가 없습니다",
+  "badAddress": "잘못된 주소"
+}

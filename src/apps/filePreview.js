@@ -3,6 +3,15 @@ import { isInstalled } from './registry.js';
 import { entrypointsOf } from './entrypoints.js';
 import * as background from './packages/background.js';
 import { theme } from './packages/host.js';
+import { locale } from '@lilos/sdk';
+
+const { t } = locale.define('lilos:apps.filePreview', {
+  en: { strings: {
+    late: '{app} did not answer in time',
+    invalid: 'Invalid preview', tooBig: 'Preview too large',
+    imageType: 'The image of the preview has no image/* type',
+  } },
+});
 
 /**
  * Previews made by apps. The app that opens a file (the user's choice for its type, see open.js)
@@ -45,7 +54,7 @@ export async function filePreview(node, { size, from = null } = {}) {
   const app = previewAppFor(node);
   if (!app) return null;
   let timer;
-  const late = new Promise((_, reject) => { timer = setTimeout(() => reject(new Error(`${app.name} non ha risposto in tempo`)), TIMEOUT); });
+  const late = new Promise((_, reject) => { timer = setTimeout(() => reject(new Error(t('late', { app: app.name }))), TIMEOUT); });
   try {
     const answer = await Promise.race([background.call(app, PREVIEW_ENTRY, { file: node.id, ...(size > 0 && { size: Math.round(size) }) }, from, { readOnly: true }), late]);
     const preview = checked(answer);
@@ -58,15 +67,15 @@ export async function filePreview(node, { size, from = null } = {}) {
 /** What an app answered (untrusted): one kind of content, within its limits. */
 function checked(answer) {
   if (answer == null) return null;
-  if (typeof answer !== 'object') fail('Anteprima non valida');
+  if (typeof answer !== 'object') fail(t('invalid'));
   const note = typeof answer.note === 'string' && answer.note.trim() ? answer.note.trim().slice(0, MAX.note) : null;
   if (typeof answer.text === 'string') return { text: answer.text.slice(0, MAX.text), note };
-  if (typeof answer.html === 'string') return answer.html.length <= MAX.html ? { html: previewDocument(answer.html), note } : fail('Anteprima troppo grande');
+  if (typeof answer.html === 'string') return answer.html.length <= MAX.html ? { html: previewDocument(answer.html), note } : fail(t('tooBig'));
   if (answer.image instanceof Blob) {
-    if (!/^image\/[\w.+-]+$/.test(answer.image.type)) fail('L’immagine dell’anteprima non ha un tipo image/*');
-    return answer.image.size <= MAX.image ? { image: answer.image, note } : fail('Anteprima troppo grande');
+    if (!/^image\/[\w.+-]+$/.test(answer.image.type)) fail(t('imageType'));
+    return answer.image.size <= MAX.image ? { image: answer.image, note } : fail(t('tooBig'));
   }
-  fail('Anteprima non valida');
+  fail(t('invalid'));
 }
 
 /**

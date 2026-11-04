@@ -1,0 +1,9 @@
+{
+  "group": "Editare",
+  "undo": "Anulați",
+  "redo": "Refaceți",
+  "undone": "Anulat: {label}",
+  "redone": "Refăcut: {label}",
+  "failed": "Nu mai este posibil: {message}",
+  "error": "eroare"
+}

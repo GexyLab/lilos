@@ -1,0 +1,16 @@
+{
+  "name": "„{id}”",
+  "nameVersion": "„{id}” ({version})",
+  "restart": {
+    "one": "Are nevoie de modulul de kernel {modules}, deja instalat: va funcționa la următoarea repornire a kernelului, pe care o face un administrator din AppStore.",
+    "few": "Are nevoie de modulele de kernel {modules}, deja instalate: vor funcționa la următoarea repornire a kernelului, pe care o face un administrator din AppStore.",
+    "other": "Are nevoie de modulele de kernel {modules}, deja instalate: vor funcționa la următoarea repornire a kernelului, pe care o face un administrator din AppStore."
+  },
+  "missing": "Nu s-a găsit: {list}. Un administrator îl instalează din AppStore.",
+  "missingModule": "modulul de kernel {name}",
+  "missingApp": "aplicația {name}",
+  "openApp": "Deschideți o aplicație",
+  "hidden": "{app} este ascunsă în acest spațiu de lucru. O puteți afișa din Panou de control → Spațiu de lucru.",
+  "cannotStart": "{app} nu poate porni încă",
+  "notStarted": "{app} nu a pornit: {message}"
+}

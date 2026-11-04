@@ -1,4 +1,4 @@
-import { automation, bus, fs, kernel, splitName, storage } from '@lilos/sdk';
+import { automation, bus, fs, kernel, splitName, storage, locale } from '@lilos/sdk';
 import { getApp, isInstalled } from '../apps/registry.js';
 import { start as startBackground } from '../apps/packages/background.js';
 import { notify } from '../notifications/notify.js';
@@ -20,6 +20,15 @@ import { AUTOMATIONS } from './recorder.js';
  * triggers say how it went with a notification; Pianificazione (src/schedule/runner.js) keeps it
  * in its history.
  */
+const { t } = locale.define('lilos:automation.triggers', {
+  en: { strings: {
+    theAutomation: 'The automation', noAutomata: 'Automata is not installed', running: '{name} is already running',
+    opened: '{name}: opened in Automata', needsNothing: '{name}: it starts by itself only if it works on nothing (Automata → Launch)',
+    ran: '{name}: ran by itself', ranOn: '{name}: ran by itself on {items} items',
+    failedSteps: { one: '{n} step failed', other: '{n} steps failed' }, withFailed: '{text} ({failed})',
+  } },
+});
+
 const GATHER = 1500;            // files arriving together make one run
 const LEGACY = ['time', 'every'];   // moved to Pianificazione by Automata ≥ 1.2.0
 
@@ -36,9 +45,9 @@ const arriving = new Map();     // file id of the automation → { ids, timer }
  * or is missing. → { state: 'ok' | 'error' | 'skipped', text, opened? }   opened: in the window
  */
 export async function runByItself(id, items = [], { values = {} } = {}) {
-  let name = library.get(id)?.name ?? fs.get(id)?.name ?? 'L’automazione';
-  if (!isInstalled(AUTOMATA)) return { state: 'error', text: 'Automata non è installata' };
-  if (running.has(id)) return { state: 'skipped', text: `${name} è già in esecuzione` };
+  let name = library.get(id)?.name ?? fs.get(id)?.name ?? t('theAutomation');
+  if (!isInstalled(AUTOMATA)) return { state: 'error', text: t('noAutomata') };
+  if (running.has(id)) return { state: 'skipped', text: t('running', { name }) };
   running.add(id);
   try {
     const doc = checkDocument(await fs.read(id));
@@ -47,13 +56,13 @@ export async function runByItself(id, items = [], { values = {} } = {}) {
       || Object.entries(s.fields ?? {}).some(([field, f]) => f.mode === 'ask' && !Object.hasOwn(values, field))));
     if (asks || doc.steps.some(s => s.enabled && s.missing)) {
       library.start(id, items, values);
-      return { state: 'ok', text: `${doc.name}: aperta in Automata`, opened: true };
+      return { state: 'ok', text: t('opened', { name: doc.name }), opened: true };
     }
     // Started by a login or by Pianificazione there is nothing chosen (a file may say otherwise)
-    if (doc.input !== 'none' && !items.length) return { state: 'error', text: `${doc.name}: parte da sola solo se lavora su niente (Automata → Avvio)` };
+    if (doc.input !== 'none' && !items.length) return { state: 'error', text: t('needsNothing', { name: doc.name }) };
     const result = await runAutomation(doc, { items, values });
-    const failed = result.failed ? ` (${result.failed} ${result.failed === 1 ? 'passo non riuscito' : 'passi non riusciti'})` : '';
-    return { state: 'ok', text: `${doc.name}: eseguita da sola${result.items > 1 ? ` su ${result.items} elementi` : ''}${failed}` };
+    const text = result.items > 1 ? t('ranOn', { name: doc.name, items: result.items }) : t('ran', { name: doc.name });
+    return { state: 'ok', text: result.failed ? t('withFailed', { text, failed: t('failedSteps', { n: result.failed }) }) : text };
   } catch (err) {
     return { state: 'error', text: `${name}: ${err.message}` };
   } finally {

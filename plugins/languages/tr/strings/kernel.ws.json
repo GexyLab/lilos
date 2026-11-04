@@ -1,0 +1,13 @@
+{
+  "needWs": "Bir ws:// veya wss:// adresi gerekiyor",
+  "noAnswer": "Sunucu açılışa yanıt vermedi",
+  "cancelled": "İptal edildi",
+  "tooLong": "Sunucu yanıtı çok uzun",
+  "notHttp": "Sunucu HTTP ile yanıt vermedi",
+  "closed": "Sunucu bağlantıyı kapattı",
+  "status": "Sunucu WebSocket’i açmak yerine {status} yanıtını verdi",
+  "notOpened": "Sunucu bir WebSocket açmadı",
+  "badAccept": "Sunucu yanıtı geçerli değil (Sec-WebSocket-Accept)",
+  "extensions": "Sunucu sunulmayan uzantılar istedi",
+  "protocol": "Sunucu sunulmayan bir alt protokol seçti"
+}

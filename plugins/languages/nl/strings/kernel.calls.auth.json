@@ -1,0 +1,5 @@
+{
+  "invalid": "Ongeldige authenticatie",
+  "noToken": "OAuth 2.0: geen token: meld je aan of voer het token in",
+  "aws": "AWS-handtekening: de toegangssleutel of de geheime sleutel ontbreekt"
+}

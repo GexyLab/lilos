@@ -1,0 +1,10 @@
+{
+  "scriptErrorBefore": "스크립트 오류(이전): {message}",
+  "scriptErrorAfter": "스크립트 오류(이후): {message}",
+  "scriptTimeoutBefore": "스크립트 오류(이전): 스크립트 시간이 초과되었습니다(5초)",
+  "scriptTimeoutAfter": "스크립트 오류(이후): 스크립트 시간이 초과되었습니다(5초)",
+  "skipped": "세션(WebSocket, SSE, TCP, UDP, MQTT)은 창에서 열리므로 실행에서는 건너뜁니다",
+  "otherServer": "스크립트가 요청의 서버를 변경했습니다. 비밀 값은 다른 주소로 보내지 않습니다",
+  "noProtocol": "실행에서 사용할 수 없는 프로토콜: {protocol}(커널 모듈이 없음)",
+  "nothingToSave": "“{name}”: 저장할 내용이 없습니다({source} {path})"
+}

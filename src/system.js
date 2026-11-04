@@ -56,10 +56,18 @@ import { connectSchedule } from './schedule/runner.js';
 import { connectDesktop } from './host/desktop.js';
 import { connectFileDrops } from './items/itemDrag.js';
 import { connectReveal } from './desktop/reveal.js';
+import { connectLanguage } from './systemLanguage.js';
+
+const { t } = sdk.locale.define('lilos:system', {
+  en: { strings: { unsaved: 'Changes not saved: {error}. Retrying…', saved: 'Changes saved' } },
+});
 
 const root = document.getElementById('app');
 watchSession();
 watchSaving();
+// lilOS's own texts in the user's language (its language pack) before anything is drawn
+await sdk.locale.ready;
+connectLanguage();
 // What system apps import as /host/sdk.js and /host/system.js (scripts/host-shims.mjs)
 globalThis.__lilosHost = Object.freeze({ sdk, system: systemApi });
 // Installed apps first (with their translations): the workspaces show every app they find
@@ -141,10 +149,10 @@ function watchSaving() {
   let failing = false;
   kernel.on('status', ({ saving, error }) => {
     if (error) {
-      if (!failing) notify(`Modifiche non salvate: ${error}. Riprovo…`, { level: 'error' });
+      if (!failing) notify(t('unsaved', { error }), { level: 'error' });
       failing = true;
     } else if (!saving && failing) {
-      notify('Modifiche salvate', { level: 'success' });
+      notify(t('saved'), { level: 'success' });
       failing = false;
     }
   });

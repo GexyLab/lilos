@@ -1,0 +1,23 @@
+{
+  "notForNet": "Für Dateien einer Netzwerkverbindung nicht verfügbar",
+  "badWorkspace": "Ungültiger Workspace",
+  "noTarget": "Der Zielordner existiert nicht",
+  "badType": "Ungültiger Typ: {type}",
+  "badLink": "Ungültige Verknüpfung",
+  "badId": "Ungültige Kennung",
+  "privateFolder": "Nur ein Ordner mit einem Workspace kann privat sein",
+  "notFound": "Das Element existiert nicht",
+  "fileNotFound": "Die Datei existiert nicht",
+  "tooManyApps": "Zu viele Apps haben Daten zu diesem Element",
+  "tooMuchAppData": "Zu viele App-Daten zu diesem Element",
+  "intoItself": "Ein Ordner kann nicht in sich selbst verschoben werden",
+  "netTransfer": "Zwischen dem Home und dem Netzwerk werden Dateien mit einer Übertragung kopiert",
+  "systemFolders": "Enthält Systemordner",
+  "folderNotFound": "Der Ordner existiert nicht",
+  "notPrivate": "Der Ordner ist nicht privat",
+  "systemItems": "Systemelemente können nicht geändert werden",
+  "badApp": "Ungültige App",
+  "appDataObject": "Die Daten einer App sind ein Objekt",
+  "appDataTooBig": "Die Daten der App sind zu groß (höchstens 1 KB)",
+  "emptyName": "Der Name darf nicht leer sein"
+}

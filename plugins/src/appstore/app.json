@@ -1,6 +1,6 @@
 {
   "id": "appstore",
-  "version": "1.10.0",
+  "version": "1.11.0",
   "kind": "local",
   "name": "AppStore",
   "description": "Installs, updates and removes apps and kernel modules from repositories; checks for updates even with lilOS closed.",

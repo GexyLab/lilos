@@ -1,0 +1,6 @@
+{
+  "needProgram": "Ini memerlukan program lilOS (tidak berfungsi di browser)",
+  "onlyFiles": "Hanya file yang dapat dibuka di komputer",
+  "tooBig": "File terlalu besar untuk dibuka di komputer (lebih dari 512 MB)",
+  "noFiles": "Tidak ada file untuk diekspor"
+}

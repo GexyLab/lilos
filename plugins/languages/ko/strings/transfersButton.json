@@ -1,0 +1,8 @@
+{
+  "title": "데이터 전송",
+  "sent": "↑ {done}/{total}",
+  "received": "↓ {done}/{total}",
+  "rate": "{line} · {bytes}/s",
+  "conflict": "파일이 이미 있습니다. 처리 방법을 선택하세요",
+  "failed": "일부 파일이 전송되지 않았습니다"
+}

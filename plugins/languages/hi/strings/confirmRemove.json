@@ -1,0 +1,22 @@
+{
+  "cancel": "रद्द करें",
+  "one": "“{name}”",
+  "many": "{count} आइटम",
+  "trash": "{what} को कूड़ेदान में ले जाएँ",
+  "permanent": "{what} को स्थायी रूप से हटाएँ",
+  "inside": {
+    "one": "{what} और उसके अंदर का आइटम",
+    "other": "{what} और उसके अंदर के {count} आइटम"
+  },
+  "netRemoveText": "{what} — {verb}: {text}",
+  "netRemove": "हटाएँ",
+  "netRecycles": "{what} को {service} से हटाएँ (यह उसके रीसायकल बिन में जाता है)",
+  "netServer": "{what} को सर्वर से हटाएँ (स्थायी)",
+  "netServerFolders": "{what} को उसके अंदर की हर चीज़ के साथ सर्वर से हटाएँ (स्थायी)",
+  "purge": "“{name}” को स्थायी रूप से हटाएँ",
+  "purgeMany": "{count} आइटम स्थायी रूप से हटाएँ",
+  "emptyTrash": {
+    "one": "कूड़ेदान का आइटम स्थायी रूप से हटाएँ",
+    "other": "कूड़ेदान के सभी {count} आइटम स्थायी रूप से हटाएँ"
+  }
+}

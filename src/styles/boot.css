@@ -1,8 +1,9 @@
 /*
  * Screens before lilOS starts (src/boot/): sign-in, license, start-up, messages; also signing in
  * again over lilOS. Two halves: the lilOS panel on the left (blue → violet, lilOS's accent and
- * violet), the form on the right. Their own colors: the user's theme is not known yet (data-theme
- * on .boot, dark unless chosen light on the screen).
+ * violet), the form on the right (the other way round in a right-to-left language: the grid
+ * mirrors). Their own colors: the user's theme is not known yet (data-theme on .boot, dark
+ * unless chosen light on the screen).
  */
 .boot {
   --b-accent: #3b6ef5; --b-violet: #7c5cdb; --b-grad: linear-gradient(90deg, #3b6ef5, #7c5cdb);
@@ -66,7 +67,7 @@
 
 /* ---------- Right: what to do ---------- */
 .boot-side { position: relative; display: grid; place-items: center; padding: 64px 30px 30px; min-width: 0; }
-.boot-tools { position: absolute; top: 18px; right: 18px; display: flex; gap: 2px; }
+.boot-tools { position: absolute; top: 18px; inset-inline-end: 18px; display: flex; gap: 2px; }
 .boot-tool { width: 32px; height: 32px; border: 0; border-radius: 7px; display: grid; place-items: center; background: none; color: var(--b-dim); cursor: pointer; }
 .boot-tool:hover { background: var(--b-hover); color: var(--b-text); }
 .boot-form { width: 100%; max-width: 448px; display: flex; flex-direction: column; }
@@ -82,8 +83,8 @@
 }
 .boot-input:focus { background: var(--b-field-focus); border-color: var(--b-accent); box-shadow: 0 0 0 3px rgba(59, 110, 245, .22); }
 .boot-field-box { position: relative; }
-.boot-field-box .boot-input { padding-right: 44px; }
-.boot-eye { position: absolute; top: 6px; right: 6px; width: 32px; height: 32px; border: 0; border-radius: 6px; display: grid; place-items: center; background: none; color: var(--b-faint); cursor: pointer; }
+.boot-field-box .boot-input { padding-inline-end: 44px; }
+.boot-eye { position: absolute; top: 6px; inset-inline-end: 6px; width: 32px; height: 32px; border: 0; border-radius: 6px; display: grid; place-items: center; background: none; color: var(--b-faint); cursor: pointer; }
 .boot-eye:hover { color: var(--b-text); background: var(--b-hover); }
 .boot-caps { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--b-caps); }
 .boot-caps[hidden] { display: none; }
@@ -138,7 +139,7 @@
 .boot-step[data-state="done"] .boot-ico { width: 12px; height: 12px; stroke-width: 3; }
 .boot-step[data-state="now"] .boot-step-mark { border-top-color: var(--b-accent); animation: boot-spin .8s linear infinite; }
 .boot-step[data-state="todo"] { color: var(--b-faint); }
-.boot-step-time { margin-left: auto; font-size: 12px; color: var(--b-faint); font-variant-numeric: tabular-nums; }
+.boot-step-time { margin-inline-start: auto; font-size: 12px; color: var(--b-faint); font-variant-numeric: tabular-nums; }
 .boot-spin { width: 16px; height: 16px; flex: none; border-radius: 50%; border: 2px solid rgba(59, 110, 245, .25); border-top-color: var(--b-accent); animation: boot-spin .8s linear infinite; }
 .boot-spin.big { width: 26px; height: 26px; margin-top: 22px; }
 @keyframes boot-spin { to { transform: rotate(360deg); } }
@@ -159,10 +160,14 @@
 .boot-license h4, .boot-license h5 { font-size: 12.5px; font-weight: 600; margin: 10px 0 4px; }
 .boot-license > :first-child { margin-top: 0; }
 .boot-license p, .boot-license ul, .boot-license ol { margin: 0 0 8px; }
-.boot-license ul, .boot-license ol { padding-left: 20px; }
+.boot-license ul, .boot-license ol { padding-inline-start: 20px; }
 .boot-license li { margin: 2px 0; }
 .boot-license hr { border: 0; border-top: 1px solid var(--b-border); margin: 14px 0; }
-.boot-license code { font-family: var(--mono, ui-monospace, monospace); font-size: 11.5px; }
+.boot-license code { font-family: var(--mono, ui-monospace, monospace); font-size: 11.5px; unicode-bidi: isolate; }
+.boot-license pre { direction: ltr; text-align: left; overflow: auto; }
+/* The license may be in another language than lilOS (not translated): each paragraph takes the
+   direction of its own text, so English stays left to right in an Arabic lilOS */
+.boot-license :is(p, li, h2, h3, h4, h5, blockquote) { unicode-bidi: plaintext; }
 .boot-license a, .boot-note a { color: var(--b-link); }
 .boot-note { margin: 10px 0 0; font-size: 11.5px; color: var(--b-dim); }
 
@@ -180,7 +185,10 @@
   .boot-clock { font-size: 52px; }
   .boot-date { font-size: 14px; }
   .boot-side { place-items: start center; padding: 56px 16px 28px; }
-  .boot-tools { top: 12px; right: 10px; }
+  .boot-tools { top: 12px; inset-inline-end: 10px; }
   .boot-form h1 { font-size: 24px; }
   .boot-text { font-size: 13.5px; }
 }
+
+/* No letter-spacing where it breaks the letters (Arabic joining, Devanagari headline) */
+.boot:is(:lang(ar), :lang(ur), :lang(hi)) :is(.boot-headline, .boot-form h1, .boot-clock) { letter-spacing: 0; }

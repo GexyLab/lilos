@@ -1,0 +1,9 @@
+{
+  "oldTerminal": "ٹرمینل 1.5.0 یا نیا ورژن درکار ہے: اسے AppStore سے اپ ڈیٹ کریں",
+  "signal": "سگنل SIG{signal} سے ختم ہوا ({code})",
+  "signalTail": "سگنل SIG{signal} سے ختم ہوا ({code}): {tail}",
+  "exit": "{code} کے ساتھ ختم ہوا",
+  "exitTail": "{code} کے ساتھ ختم ہوا: {tail}",
+  "ok": "0 کے ساتھ ختم ہوا",
+  "okTail": "0 کے ساتھ ختم ہوا · {tail}"
+}

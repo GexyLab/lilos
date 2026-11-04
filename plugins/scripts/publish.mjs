@@ -2,14 +2,16 @@
  * Puts the built packages into a copy of a repository that lilOS installs from (the official one,
  * the community one or another), ready to commit and tag there:
  *
- *   npm run publish:repo -- <repository folder> [<app | module | lilos>…] [--sources] [--no-minify] [--no-merge] [--no-lilos]
+ *   npm run publish:repo -- <repository folder> [<app | module | language/<language> | lilos>…] [--sources] [--no-minify] [--no-merge] [--no-lilos]
  *
- * Names as for build.mjs (app/scheduler, module/scheduler). With no names it publishes what changed: every app and module whose version differs from the
+ * Names as for build.mjs (app/scheduler, module/scheduler, language/it). With no names it publishes what changed: every app, module and language pack whose version differs from the
  * repository's (or that it lacks), and lilOS itself when the root package.json has a version the
  * repository's system/lilos does not (--no-lilos leaves lilOS out: the repository of the development
  * copy, see the root scripts/dev-update.mjs).
  *   apps/<id>/        build/apps/<id> (lilos.json, dist/, locales.json, README.md), see build.mjs
  *   modules/<name>/   build/modules/<name>, code merged and minified
+ *   languages/<language>/   build/languages/<language> (language.json, strings.json, README.md):
+ *                     only the official repository gets them (lilOS takes them from no other)
  *   system/lilos/     lilOS itself, by the root scripts/release.mjs
  *   catalog.json      the official repository (same name as plugins/catalog.json) gets the lists
  *                     of plugins/catalog.json; any other gets the published packages added
@@ -22,6 +24,7 @@ import { execFileSync } from 'node:child_process';
 import { cpSync, existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { APPS, MODULES, buildAll, packagesOf } from './build.mjs';
+import { LANGUAGES } from './languages.mjs';
 
 const args = process.argv.slice(2);
 const flags = new Set(args.filter(a => a.startsWith('--')));
@@ -39,23 +42,29 @@ if (official && flags.has('--sources')) throw new Error('Il repository ufficiale
 const versions = {
   app: id => [readJson(join(repo, 'apps', id, 'lilos.json'))?.version ?? null, readJson(join('src', id, 'app.json')).version],
   module: name => [readJson(join(repo, 'modules', name, 'module.json'))?.version ?? null, readJson(join('modules', name, 'module.json')).version],
+  language: name => [readJson(join(repo, 'languages', name, 'language.json'))?.version ?? null, readJson(join('languages', name, 'language.json')).version],
   lilos: () => [readJson(join(repo, 'system', 'lilos', 'system.json'))?.version ?? null, readJson(join('..', 'package.json')).version],
 };
-const all = [{ kind: 'lilos', name: 'lilos' }, ...APPS.map(a => ({ kind: 'app', name: a.id })), ...MODULES.map(name => ({ kind: 'module', name }))];
+const all = [
+  { kind: 'lilos', name: 'lilos' }, ...APPS.map(a => ({ kind: 'app', name: a.id })), ...MODULES.map(name => ({ kind: 'module', name })),
+  ...(official ? LANGUAGES.map(name => ({ kind: 'language', name })) : []),
+];
 const chosen = names.length
   ? [...(names.includes('lilos') ? [all[0]] : []), ...packagesOf(names.filter(n => n !== 'lilos'))]
   : all.filter(({ kind, name }) => { const [before, now] = versions[kind](name); return before !== now && !(kind === 'lilos' && flags.has('--no-lilos')); });
 if (!chosen.length) { console.log('Niente da pubblicare: il repository ha già queste versioni'); process.exit(0); }
 
+if (!official && chosen.some(p => p.kind === 'language')) throw new Error('I pacchetti di lingua vanno solo nel repository ufficiale');
 const packages = chosen.filter(p => p.kind !== 'lilos');
+const FOLDER = { app: 'apps', module: 'modules', language: 'languages' };
 const report = chosen.map(p => ({ ...p, from: versions[p.kind](p.name)[0] }));
 if (packages.length) await buildAll(packages.map(p => `${p.kind}/${p.name}`), { minify: !flags.has('--no-minify'), merge: !flags.has('--no-merge') });
 
 for (const { kind, name } of packages) {
-  const folder = kind === 'app' ? 'apps' : 'modules';
+  const folder = FOLDER[kind];
   rmSync(join(repo, folder, name), { recursive: true, force: true });
   cpSync(join('build', folder, name), join(repo, folder, name), { recursive: true });
-  if (!flags.has('--sources')) continue;
+  if (!flags.has('--sources') || kind === 'language') continue;
   const [src, dest] = kind === 'app' ? [join('src', name), join(repo, 'src', name)] : [join('modules', name), join(repo, 'src', 'modules', name)];
   rmSync(dest, { recursive: true, force: true });
   cpSync(src, dest, { recursive: true, filter: path => !/[\\/]node_modules$/.test(path) });
@@ -64,9 +73,9 @@ for (const { kind, name } of packages) {
 
 // The catalog before lilOS's release, which adds "system" to it
 const listed = { ...catalog };
-if (official) Object.assign(listed, { apps: source.apps, modules: source.modules });
+if (official) Object.assign(listed, { apps: source.apps, modules: source.modules, ...(source.languages?.length && { languages: source.languages }) });
 for (const { kind, name } of packages) {
-  const key = kind === 'app' ? 'apps' : 'modules';
+  const key = FOLDER[kind];
   if (!(listed[key] ??= []).includes(`${key}/${name}`)) listed[key] = [...listed[key], `${key}/${name}`];
 }
 writeFileSync(join(repo, 'catalog.json'), `${JSON.stringify(listed, null, 2)}\n`);
@@ -75,6 +84,6 @@ if (chosen.some(p => p.kind === 'lilos')) execFileSync(process.execPath, [join('
 
 console.log(`\nPubblicati in ${repo}:`);
 for (const { name, kind, from } of report) console.log(`  ${kind} ${name}: ${from ?? '(nuovo)'} → ${versions[kind](name)[1]}`);
-for (const path of [...catalog.apps ?? [], ...catalog.modules ?? []]) {
-  if (!listed.apps.includes(path) && !listed.modules?.includes(path)) console.log(`  attenzione: ${path} non è più nel catalogo, la cartella resta: toglila a mano se va rimossa`);
+for (const path of [...catalog.apps ?? [], ...catalog.modules ?? [], ...catalog.languages ?? []]) {
+  if (!listed.apps.includes(path) && !listed.modules?.includes(path) && !listed.languages?.includes(path)) console.log(`  attenzione: ${path} non è più nel catalogo, la cartella resta: toglila a mano se va rimossa`);
 }

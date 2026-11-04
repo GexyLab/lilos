@@ -1,0 +1,8 @@
+{
+  "notFound": "Port série introuvable (débranché ?)",
+  "unsupported": "Ce navigateur ne peut pas utiliser les ports série (il faut Chrome, Edge ou Firefox 151+, en https ou sur localhost)",
+  "click": "Le navigateur demande un clic avant de choisir un port",
+  "baud": "Vitesse (baud) non valide",
+  "busy": "Le port est déjà ouvert (par une autre fenêtre ou un autre programme)",
+  "failed": "Le port ne s’ouvre pas : {message}"
+}

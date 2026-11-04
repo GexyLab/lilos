@@ -1,0 +1,7 @@
+{
+  "restart": "Güncellemeleri tamamlamak için lilOS’u yeniden başlatın",
+  "reopen": "Yeniden başlatılacak güncellenmiş uygulamalar",
+  "heading": "Güncellendi, önceki sürümle açık",
+  "reopenApp": "{name} uygulamasını yeniden başlat ({version})",
+  "restartSystem": "lilOS’u yeniden başlat"
+}

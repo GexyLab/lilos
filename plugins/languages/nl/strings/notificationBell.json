@@ -1,0 +1,10 @@
+{
+  "title": "Meldingen",
+  "unread": {
+    "one": "Meldingen: {n} ongelezen",
+    "other": "Meldingen: {n} ongelezen"
+  },
+  "stack": "Nieuwe meldingen",
+  "sender": "{name}: {text}",
+  "dismiss": "Uit de balk verwijderen"
+}

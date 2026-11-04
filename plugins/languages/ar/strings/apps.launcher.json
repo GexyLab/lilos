@@ -1,0 +1,15 @@
+{
+  "name": "«{id}»",
+  "nameVersion": "«{id}» ({version})",
+  "restart": {
+    "one": "يحتاج إلى وحدة kernel {modules}، وهي مثبّتة بالفعل: ستبدأ العمل عند إعادة التشغيل التالية لـ kernel، التي يجريها المسؤول من AppStore.",
+    "other": "يحتاج إلى وحدات kernel {modules}، وهي مثبّتة بالفعل: ستبدأ العمل عند إعادة التشغيل التالية لـ kernel، التي يجريها المسؤول من AppStore."
+  },
+  "missing": "غير موجود: {list}. يثبّته المسؤول من AppStore.",
+  "missingModule": "وحدة kernel {name}",
+  "missingApp": "التطبيق {name}",
+  "openApp": "فتح تطبيق",
+  "hidden": "{app} مخفي في مساحة العمل هذه. يمكنك إظهاره من لوحة التحكم ← مساحة العمل.",
+  "cannotStart": "لا يمكن تشغيل {app} بعد",
+  "notStarted": "لم يبدأ {app}: {message}"
+}

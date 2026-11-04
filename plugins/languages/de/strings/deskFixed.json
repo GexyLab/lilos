@@ -1,0 +1,14 @@
+{
+  "home.description": "Der Hauptordner, mit allen anderen",
+  "folder.description": "Der Ordner {name}, gemeinsam für alle Workspaces",
+  "files.description": "Öffnet den File Manager",
+  "trash": "Papierkorb",
+  "trash.description": "Öffnet den Papierkorb; Dateien und Ordner können darauf gezogen werden",
+  "noDesk": "Der Schreibtisch ist nicht vorhanden",
+  "folderGone": "Der Ordner {name} ist nicht mehr vorhanden",
+  "trashedOne": "In den Papierkorb verschoben",
+  "trashedMany": {
+    "one": "{n} Element in den Papierkorb verschoben",
+    "other": "{n} Elemente in den Papierkorb verschoben"
+  }
+}

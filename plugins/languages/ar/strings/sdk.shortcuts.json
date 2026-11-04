@@ -1,0 +1,19 @@
+{
+  "key.Enter": "Enter",
+  "key.Escape": "Esc",
+  "key.Delete": "Del",
+  "key.Space": "Space",
+  "key.Insert": "Ins",
+  "key.End": "End",
+  "key.PageUp": "PgUp",
+  "key.PageDown": "PgDn",
+  "general": "عام",
+  "exists": "الاختصار مسجّل بالفعل: {id}",
+  "unknown": "الاختصار غير مسجّل: {id}",
+  "invalid": "تركيبة غير صالحة",
+  "noKey": "اضغط أيضًا على مفتاح آخر غير Ctrl أو Alt أو Shift",
+  "reserved": "تركيبة محجوزة للمتصفح",
+  "tabSpace": "مفتاحا Tab وSpace وحدهما مخصصان للتنقل ولتحريك سطح المكتب",
+  "typingKey": "المفتاح الذي يكتب حرفًا يجب استخدامه مع Ctrl أو Alt أو Shift",
+  "whenEditing": "يعمل هذا الاختصار أيضًا أثناء الكتابة: يحتاج إلى Ctrl أو Alt"
+}

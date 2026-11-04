@@ -1,0 +1,19 @@
+{
+  "key.Enter": "Enter",
+  "key.Escape": "Esc",
+  "key.Delete": "Del",
+  "key.Space": "Space",
+  "key.Insert": "Ins",
+  "key.End": "End",
+  "key.PageUp": "PgUp",
+  "key.PageDown": "PgDn",
+  "general": "Γενικά",
+  "exists": "Η συντόμευση είναι ήδη καταχωρισμένη: {id}",
+  "unknown": "Μη καταχωρισμένη συντόμευση: {id}",
+  "invalid": "Μη έγκυρος συνδυασμός",
+  "noKey": "Πατήστε και ένα πλήκτρο εκτός από Ctrl, Alt ή Shift",
+  "reserved": "Συνδυασμός δεσμευμένος από το πρόγραμμα περιήγησης",
+  "tabSpace": "Τα Tab και Space μόνα τους χρησιμεύουν για πλοήγηση και για μετακίνηση της επιφάνειας εργασίας",
+  "typingKey": "Ένα πλήκτρο που πληκτρολογεί πρέπει να χρησιμοποιείται με Ctrl, Alt ή Shift",
+  "whenEditing": "Αυτή η συντόμευση λειτουργεί και ενώ πληκτρολογείτε: χρειάζεται Ctrl ή Alt"
+}

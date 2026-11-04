@@ -1,4 +1,5 @@
 import { KernelError, fail } from '../errors.js';
+import { Text, defineStrings } from '../strings.js';
 
 /**
  * Network protocols for the Rete folder: a kernel module provides one as the service
@@ -98,6 +99,45 @@ import { KernelError, fail } from '../errors.js';
  *   'lost' (the connection dropped) · 'unsupported' · 'invalid'
  */
 export const DRIVER_PREFIX = 'netfs.';
+
+const { t } = defineStrings('lilos:kernel.net.drivers', { en: { strings: {
+  notReady: 'Protocol not ready',
+  values: 'Connection values not valid',
+  value: 'Value not valid: {key}',
+  path: 'Path not valid',
+  name: 'Name not valid',
+  named: '{name}: {message}',
+  auth: 'Wrong user name or password',
+  authOf: '{name}: wrong user name or password',
+  untrusted: 'Server to confirm',
+  untrustedOf: '{name}: server to confirm',
+  notFound: 'It does not exist on the server',
+  notFoundOf: '{name}: it does not exist on the server',
+  exists: 'It already exists on the server',
+  existsOf: '{name}: it already exists on the server',
+  denied: 'The server does not allow it',
+  deniedOf: '{name}: the server does not allow it',
+  deniedDetail: 'The server does not allow it ({detail})',
+  deniedDetailOf: '{name}: the server does not allow it ({detail})',
+  unreachable: 'Server not reachable',
+  unreachableOf: '{name}: server not reachable',
+  unreachableDetail: 'Server not reachable ({detail})',
+  unreachableDetailOf: '{name}: server not reachable ({detail})',
+  lost: 'Connection lost',
+  lostOf: '{name}: connection lost',
+  lostDetail: 'Connection lost ({detail})',
+  lostDetailOf: '{name}: connection lost ({detail})',
+  unsupported: 'The server does not support it',
+  unsupportedOf: '{name}: the server does not support it',
+  unsupportedDetail: 'The server does not support it ({detail})',
+  unsupportedDetailOf: '{name}: the server does not support it ({detail})',
+  invalid: 'Request not valid for the server',
+  invalidOf: '{name}: request not valid for the server',
+  invalidDetail: 'Request not valid for the server ({detail})',
+  invalidDetailOf: '{name}: request not valid for the server ({detail})',
+  serverError: 'Server error',
+  serverErrorOf: '{name}: server error',
+} } });
 export const FIELD_TYPES = new Set(['text', 'textarea', 'number', 'password', 'select', 'checkbox', 'file', 'signin']);
 const KEY = /^[a-z][a-zA-Z0-9]{0,30}$/;
 
@@ -133,7 +173,7 @@ export function notReady(d) {
   try {
     return d.ready?.() ?? null;
   } catch {
-    return 'Protocollo non pronto';
+    return t('notReady');
   }
 }
 
@@ -176,7 +216,7 @@ const TEXT_MAX = { text: 1024, password: 4096, textarea: 64 << 10, file: 64 << 1
  * driver. Throws 'invalid'. 'signin' fields are left out: only a sign-in sets them (network.js).
  */
 export function checkFields(driver, raw, rawSecret = {}) {
-  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) fail('invalid', 'Valori della connessione non validi');
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) fail('invalid', t('values'));
   const values = {}, secret = {};
   for (const f of driver.fields) {
     if (f.type === 'signin') continue;
@@ -189,12 +229,12 @@ export function checkFields(driver, raw, rawSecret = {}) {
     if (f.type === 'checkbox') value = v === true;
     else if (f.type === 'number') {
       value = Number(v);
-      if (!Number.isInteger(value) || (f.min !== undefined && value < f.min) || (f.max !== undefined && value > f.max)) fail('invalid', `Valore non valido: ${f.key}`);
+      if (!Number.isInteger(value) || (f.min !== undefined && value < f.min) || (f.max !== undefined && value > f.max)) fail('invalid', t('value', { key: f.key }));
     } else if (f.type === 'select') {
-      if (!f.options?.some(o => o.value === v && !o.disabled)) fail('invalid', `Valore non valido: ${f.key}`);
+      if (!f.options?.some(o => o.value === v && !o.disabled)) fail('invalid', t('value', { key: f.key }));
       value = v;
     } else {
-      if (typeof v !== 'string' || v.length > TEXT_MAX[f.type]) fail('invalid', `Valore non valido: ${f.key}`);
+      if (typeof v !== 'string' || v.length > TEXT_MAX[f.type]) fail('invalid', t('value', { key: f.key }));
       value = f.type === 'text' ? v.trim() : v;
     }
     (f.secret ? secret : values)[f.key] = value;
@@ -223,9 +263,9 @@ export const signInFields = driver => driver.fields.filter(f => f.type === 'sign
  * no control characters. Throws 'invalid'.
  */
 export function cleanPath(path) {
-  if (typeof path !== 'string' || path.length > 4096 || /[\0-\x1f]/.test(path)) fail('invalid', 'Percorso non valido');
+  if (typeof path !== 'string' || path.length > 4096 || /[\0-\x1f]/.test(path)) fail('invalid', t('path'));
   const parts = path.split('/').filter(Boolean);
-  if (parts.some(p => p === '.' || p === '..' || p.length > 255)) fail('invalid', 'Percorso non valido');
+  if (parts.some(p => p === '.' || p === '..' || p.length > 255)) fail('invalid', t('path'));
   return `/${parts.join('/')}`;
 }
 
@@ -286,36 +326,30 @@ export const baseName = path => path.slice(path.lastIndexOf('/') + 1);
 
 /** A name for a file or folder on a server: a safe one (isSafeName). Throws 'invalid'. */
 export function cleanName(name) {
-  if (!isSafeName(name)) fail('invalid', 'Nome non valido');
+  if (!isSafeName(name)) fail('invalid', t('name'));
   return name;
 }
 
-const MESSAGES = {
-  auth: 'Utente o password non validi',
-  not_found: 'Non esiste sul server',
-  exists: 'Esiste già sul server',
-  denied: 'Il server non lo permette',
-  unreachable: 'Server non raggiungibile',
-  lost: 'Connessione persa',
-  unsupported: 'Il server non lo supporta',
-  invalid: 'Richiesta non valida per il server',
-};
+/** The message of a kind of error: `what` (the connection's name) before it, the server's `detail` after it. */
+const say = (key, what, detail) => t(`${key}${detail ? 'Detail' : ''}${what ? 'Of' : ''}`, { name: what, detail });
+
+/** The server's own text, or the Text of an error the kernel made (net/oauth.js): with `what` before it. */
+const own = (text, what, fallback) => (!text ? say(fallback, what) : what ? t('named', { name: what, message: text }) : text);
 
 /** A driver's error as the kernel reports it (KernelError), with the server's message when it gave one. */
 export function netFail(err, what = '') {
   if (err instanceof KernelError) throw err;
   if (err?.name === 'AbortError') throw err;
-  const prefix = what ? `${what}: ` : '';
-  const text = String(err?.message ?? err ?? '').slice(0, 300);
+  const text = err?.text instanceof Text ? err.text : String(err?.message ?? err ?? '').slice(0, 300);
   switch (err?.net) {
-    case 'auth': return fail('secret_required', `${prefix}${MESSAGES.auth}`, { details: { reason: 'auth' } });
-    case 'untrusted': return fail('untrusted', `${prefix}${text || 'Server da confermare'}`, { details: { trust: err.trust } });
-    case 'not_found': return fail('not_found', `${prefix}${MESSAGES.not_found}`);
-    case 'exists': return fail('conflict', `${prefix}${MESSAGES.exists}`);
-    case 'denied': return fail('forbidden', `${prefix}${MESSAGES.denied}${text ? ` (${text})` : ''}`);
-    case 'unreachable': case 'lost': return fail('unavailable', `${prefix}${MESSAGES[err.net]}${text ? ` (${text})` : ''}`);
-    case 'unsupported': case 'invalid': return fail('invalid', `${prefix}${MESSAGES[err.net]}${text ? ` (${text})` : ''}`);
-    default: return fail('unavailable', `${prefix}${text || 'Errore del server'}`);
+    case 'auth': return fail('secret_required', say('auth', what), { details: { reason: 'auth' } });
+    case 'untrusted': return fail('untrusted', own(text, what, 'untrusted'), { details: { trust: err.trust } });
+    case 'not_found': return fail('not_found', say('notFound', what));
+    case 'exists': return fail('conflict', say('exists', what));
+    case 'denied': return fail('forbidden', say('denied', what, text));
+    case 'unreachable': case 'lost': return fail('unavailable', say(err.net, what, text));
+    case 'unsupported': case 'invalid': return fail('invalid', say(err.net, what, text));
+    default: return fail('unavailable', own(text, what, 'serverError'));
   }
 }
 

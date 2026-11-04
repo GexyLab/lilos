@@ -1,0 +1,19 @@
+{
+  "noAutomata": "Automata is niet geïnstalleerd",
+  "theAutomation": "De automatisering",
+  "theFile": "Het bestand",
+  "gone": "{name} is er niet meer",
+  "openedFile": "{name} geopend",
+  "appMissing": "De app {app} is niet geïnstalleerd",
+  "openedApp": "{app} geopend",
+  "title": "Bewerkingen in behandeling",
+  "skippedByUser": "Overgeslagen door de gebruiker van lilOS",
+  "automation": "Automatisering",
+  "due": "gepland {time}",
+  "dueWith": "{label} · gepland {time}",
+  "always": "Voortaan uitvoeren zonder te vragen",
+  "runNow": "Nu uitvoeren",
+  "skip": "Overslaan",
+  "lead": "Terwijl lilOS gesloten was, was het tijd voor:",
+  "hint": "Wat je niet beantwoordt, blijft wachten tot lilOS de volgende keer wordt geopend en vervalt dan."
+}

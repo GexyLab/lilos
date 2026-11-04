@@ -1,0 +1,23 @@
+{
+  "notForNet": "Tidak tersedia untuk file koneksi jaringan",
+  "badWorkspace": "Ruang kerja tidak valid",
+  "noTarget": "Folder tujuan tidak ada",
+  "badType": "Jenis tidak valid: {type}",
+  "badLink": "Tautan tidak valid",
+  "badId": "Pengenal tidak valid",
+  "privateFolder": "Hanya folder dengan ruang kerja yang dapat bersifat pribadi",
+  "notFound": "Item tidak ada",
+  "fileNotFound": "File tidak ada",
+  "tooManyApps": "Terlalu banyak aplikasi yang memiliki data pada item ini",
+  "tooMuchAppData": "Terlalu banyak data aplikasi pada item ini",
+  "intoItself": "Folder tidak dapat masuk ke dalam dirinya sendiri",
+  "netTransfer": "Antara beranda dan jaringan, file disalin dengan transfer",
+  "systemFolders": "Berisi folder sistem",
+  "folderNotFound": "Folder tidak ada",
+  "notPrivate": "Folder tidak bersifat pribadi",
+  "systemItems": "Item sistem tidak dapat diubah",
+  "badApp": "Aplikasi tidak valid",
+  "appDataObject": "Data aplikasi harus berupa objek",
+  "appDataTooBig": "Data aplikasi terlalu besar (paling banyak 1 KB)",
+  "emptyName": "Nama tidak boleh kosong"
+}

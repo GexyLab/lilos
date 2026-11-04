@@ -1,0 +1,8 @@
+{
+  "level.error": "Kesalahan",
+  "level.warning": "Peringatan",
+  "level.success": "Selesai",
+  "open": "Buka",
+  "openApp": "Buka {name}",
+  "gone": "{name} sudah tidak terinstal"
+}

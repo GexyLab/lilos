@@ -1,0 +1,33 @@
+{
+  "subtitle": "Proprietà della workarea",
+  "title": "Titolo",
+  "description": "Descrizione",
+  "placeholder": "A cosa serve questa workarea",
+  "addMeta": "Aggiungi un metadato",
+  "created": "Creato",
+  "modified": "Modificato",
+  "state": "Stato",
+  "collapsed": "Ridotto a icona",
+  "open": "Aperto sulla scrivania",
+  "contents": "Contenuto",
+  "items": {
+    "one": "{n} elemento",
+    "other": "{n} elementi"
+  },
+  "windows": {
+    "one": "{n} finestra",
+    "other": "{n} finestre"
+  },
+  "contentsValue": "{items}, {windows}",
+  "size": "Dimensioni",
+  "metaName": "Nome",
+  "metaNameLabel": "Nome del metadato {n}",
+  "metaValue": "Valore",
+  "metaValueLabel": "Valore del metadato {n}",
+  "removeMeta": "Togli il metadato",
+  "removeMetaLabel": "Togli il metadato {name}",
+  "noMeta": "Nessun metadato. Aggiungine per annotare, per esempio, cliente, scadenza o stato.",
+  "maxMeta": "Al massimo {max} metadati.",
+  "info": "Informazioni",
+  "customMeta": "Metadati personalizzati"
+}

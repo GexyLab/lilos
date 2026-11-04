@@ -1,0 +1,6 @@
+{
+  "removed": {
+    "one": "{app} removido: {n} item modificado está na Lixeira",
+    "other": "{app} removido: {n} itens modificados estão na Lixeira"
+  }
+}

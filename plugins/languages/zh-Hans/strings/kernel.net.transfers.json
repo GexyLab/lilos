@@ -1,0 +1,39 @@
+{
+  "sources": "要传输的项目无效",
+  "notFolder": "目标不是文件夹",
+  "homeToHome": "在 lilOS 的文件夹之间复制：这不是网络传输",
+  "intoItself": "文件夹不能复制到其自身中",
+  "nothing": "没有要传输的内容",
+  "tooMany": "队列中的传输过多",
+  "itemNotFound": "未找到项目",
+  "noConflict": "没有需要解决的冲突",
+  "choice": "无效的选择",
+  "queueNotFound": "未找到队列",
+  "serverNotFound": "服务器上不存在",
+  "badName": "无法传输的名称：{name}",
+  "webOnly": "“{name}”只能在网页上打开：不会复制",
+  "place": "无效的位置",
+  "tooManyFiles": "要传输的文件过多",
+  "tooDeep": "文件夹嵌套过深",
+  "someFailed": "有些文件未能传输",
+  "dstLost": "目标文件夹丢失",
+  "fileThere": "文件夹要放置的位置已有文件“{name}”",
+  "retrying": "{message} · 正在重试",
+  "folderThere": "文件要放置的位置已有文件夹“{name}”",
+  "notFileThere": "已有一个不是文件的项目“{name}”",
+  "done": {
+    "other": "已将 {n} 个文件传输到“{queue}”（{size}）"
+  },
+  "failed": {
+    "other": "{n} 个文件未传输"
+  },
+  "failedIn": {
+    "other": "{n} 个文件未传输到“{queue}”"
+  },
+  "complete": "传输完成：{files}。",
+  "allFailed": "传输失败：{files}。",
+  "partial": "传输已完成，但有错误：{done}。{failed}。",
+  "bytes": {
+    "other": "{n} 字节"
+  }
+}

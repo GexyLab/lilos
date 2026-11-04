@@ -1,0 +1,18 @@
+{
+  "noConnection": {
+    "other": "{n} saniye içinde bağlantı yok"
+  },
+  "untrusted": "{host} sertifikası onaylanmadı ({reason})",
+  "cancelled": "İptal edildi",
+  "refused": "Bağlantı reddedildi ({code})",
+  "reset": "Bağlantı sunucu tarafından kesildi ({code})",
+  "notFound": "Bilinmeyen sunucu adı ({code})",
+  "dns": "Sunucu adı çözümlenemedi (DNS) ({code})",
+  "timeout": "Zaman aşımı ({code})",
+  "hostUnreachable": "Sunucuya ulaşılamıyor ({code})",
+  "netUnreachable": "Ağa ulaşılamıyor ({code})",
+  "closed": "Bağlantı kapandı ({code})",
+  "aborted": "İptal edildi ({code})",
+  "otherName": "Sertifika başka bir ad için ({code})",
+  "network": "Ağ hatası"
+}

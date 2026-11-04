@@ -1,0 +1,8 @@
+{
+  "blockedWindow": "El navegador ha bloqueado la ventana de inicio de sesión",
+  "blockedTab": "El navegador ha bloqueado la pestaña de inicio de sesión",
+  "canceled": "Inicio de sesión cancelado",
+  "failed": "No se ha podido iniciar sesión",
+  "noAskAddress": "Falta askAddress",
+  "badAddress": "Dirección no válida"
+}

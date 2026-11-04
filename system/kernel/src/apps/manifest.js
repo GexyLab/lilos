@@ -3,6 +3,7 @@ import { fail } from '../errors.js';
 import { parsePermission, coversPath } from './permissions.js';
 // The translations engine of the SDK: the same checks as lilOS's (it has no imports)
 import { parseLocales } from '../../../../sdk/core/i18n.js';
+import { defineStrings } from '../strings.js';
 
 /**
  * The manifest of an app package (lilos.json at the root of the package).
@@ -85,6 +86,166 @@ import { parseLocales } from '../../../../sdk/core/i18n.js';
  *   'text' { maxLength? }   'number' { min?, max? }   'boolean'   'choice' { options: [{ value, label }] }
  *   'file' (the id of a file the user chose: the app may read and write it)   'folder' (a folder the user chose)
  */
+const { t } = defineStrings('lilos:kernel.manifest', { en: { strings: {
+  list: 'List too long or not valid in the manifest',
+  invalid: 'Manifest not valid',
+  id: 'Manifest: id not valid (lowercase letters, digits, dot and hyphen)',
+  version: 'Manifest: version not valid (x.y.z)',
+  kind: 'Manifest: kind must be "local" or "remote"',
+  name: 'Manifest: name missing',
+  publisher: 'Manifest: publisher missing',
+  publisherKey: 'Manifest: publisher key not valid',
+  sdk: 'Manifest: SDK version not supported',
+  lilos: 'Manifest: lilos: versions of lilOS such as ">=1.8.0" or ">=1.8.0 <2.0.0"',
+  icon: 'Manifest: icon not valid',
+  system: 'Manifest: system can only be true',
+  required: 'Manifest: required applies only to system apps',
+  description: 'Manifest: description not valid',
+  category: 'Manifest: category not valid ({categories})',
+  files: 'Manifest: list of files not valid',
+  path: 'Manifest: path not valid: {path}',
+  hash: 'Manifest: hash not valid for {path}',
+  entry: 'Manifest: entry must be one of the files of the package',
+  styles: 'Manifest: styles: only .css files of the package, in system apps',
+  locales: 'Manifest: locales: a .json file of the package',
+  localesLocal: 'Manifest: locales: only for local apps',
+  url: 'Manifest: url not valid',
+  https: 'Manifest: url must be https',
+  entrypointsLocal: 'Manifest: entrypoints: only in local apps',
+  entrypoints: 'Manifest: entrypoints not valid',
+  entrypointsSdk1: 'Manifest: entrypoints: with sdk "1" only main (for its params) and the services',
+  mainWindow: 'Manifest: the main entry point must be a window',
+  serviceBackground: 'Manifest: service entry points need the background permission',
+  permission: 'Manifest: unknown permission: {permission}',
+  reserved: 'Manifest: it asks for permissions reserved to system apps',
+  library: 'Manifest: library not valid',
+  libraryUrl: 'Manifest: url of the library {name} not valid',
+  libraryHttps: 'Manifest: the library {name} must come from https',
+  contributes: 'Manifest: contributes not valid',
+  window: 'Manifest: window size not valid',
+  fileType: 'Manifest: file type not valid',
+  command: 'Manifest: command not valid (the id starts with the id of the app)',
+  keys: 'Manifest: keys not valid for {id}',
+  shortcuts: 'Manifest: shortcuts need the ui.shortcuts permission',
+  widget: 'Manifest: widget not valid',
+  widgetFileType: "Manifest: widget {id}: fileType must be one of the app's fileTypes",
+  widgetSameType: 'Manifest: two widgets with the same fileType',
+  widgets: 'Manifest: widgets need the desktop.widget permission',
+  menu: 'Manifest: menu not valid (the id starts with the id of the app, one per menu)',
+  menuLabel: 'Manifest: menu {id}: label missing or too long',
+  menuGlyph: 'Manifest: menu {id}: glyph not valid',
+  actionsMenus: 'Manifest: actions need the ui.menus permission',
+  badge: 'Manifest: badge not valid ({ glyph, label })',
+  updateFrom: 'Manifest: update: "from" not valid',
+  restartOnUpdate: 'Manifest: restartOnUpdate: true or a range of versions such as "<2.0.0"',
+  signature: 'Manifest: signature not valid',
+  tooLarge: 'Manifest: too large',
+  'entry.shape': 'Manifest: entry point {entry}: name or shape not valid',
+  'entry.kind': 'Manifest: entry point {entry}: kind must be "window", "background" or "service"',
+  'entry.file': 'Manifest: entry point {entry}: file not in the package or not .js',
+  'entry.label': 'Manifest: entry point {entry}: label not valid',
+  'entry.window': 'Manifest: entry point {entry}: window size not valid',
+  'entry.params': 'Manifest: entry point {entry}: params not valid (at most 10)',
+  'entry.param.shape': 'Manifest: entry point {entry}: parameter {param}: name or shape not valid',
+  'entry.param.type': 'Manifest: entry point {entry}: parameter {param}: type must be one of {types}',
+  'entry.param.subject': 'Manifest: entry point {entry}: parameter {param}: subject can only be true',
+  'entry.param.label': 'Manifest: entry point {entry}: parameter {param}: label missing or too long',
+  'entry.param.description': 'Manifest: entry point {entry}: parameter {param}: description not valid',
+  'entry.param.maxLength': 'Manifest: entry point {entry}: parameter {param}: maxLength between 1 and 2000',
+  'entry.param.minMax': 'Manifest: entry point {entry}: parameter {param}: min and max not valid',
+  'entry.param.options': 'Manifest: entry point {entry}: parameter {param}: options: from 1 to 50 choices',
+  'entry.param.option': 'Manifest: entry point {entry}: parameter {param}: choice not valid ({ value, label })',
+  'entry.param.default': 'Manifest: entry point {entry}: parameter {param}: default value not valid (files, folders and secrets have none)',
+  'event.name': 'Manifest: event {event}: name not valid (<app id>.<one word>)',
+  'event.twice': 'Manifest: event {event}: declared twice',
+  'event.label': 'Manifest: event {event}: label missing or too long',
+  'event.description': 'Manifest: event {event}: description not valid',
+  'event.stop': 'Manifest: event {event}: stop can only be true',
+  'event.edit': 'Manifest: event {event}: edit not valid ({ before, after })',
+  'event.fields': 'Manifest: event {event}: edit.{stage}: up to {max} field names',
+  'pipe.event': 'Manifest: pipe {event}: event not valid',
+  'pipe.stage': 'Manifest: pipe {event}: stage must be "before" or "after"',
+  'pipe.entry': 'Manifest: pipe {event}: entry must be a background entry point',
+  'pipe.position': 'Manifest: pipe {event}: position not valid',
+  'pipe.where': 'Manifest: pipe {event}: where not valid',
+  'pipe.whereMeta': 'Manifest: pipe {event}: where.meta: only "own"',
+  'pipe.whereType': 'Manifest: pipe {event}: where.type not valid',
+  'pipe.whereList': 'Manifest: pipe {event}: where.{key}: a list of texts',
+  'pipe.whereUnknown': 'Manifest: pipe {event}: where.{key} is not used',
+  'pipe.permission': 'Manifest: pipe {event}: the permission pipe:{name} is needed',
+  'pipe.permissionOwn': 'Manifest: pipe {event}: the permission pipe:{name} or pipe.own:{name} is needed',
+  'pipe.protected': 'Manifest: pipe {event}: event reserved to system apps',
+  'action.id': 'Manifest: action {id}: id not valid (it starts with the id of the app)',
+  'action.label': 'Manifest: action {id}: label missing or too long',
+  'action.entry': 'Manifest: action {id}: entry is not an entry point of the app',
+  'action.service': 'Manifest: action {id}: an action does not start a service',
+  'action.on': 'Manifest: action {id}: on must be "file", "folder" or "item"',
+  'action.glyph': 'Manifest: action {id}: glyph not valid',
+  'action.many': 'Manifest: action {id}: many can only be true',
+  'action.menu': 'Manifest: action {id}: menu is not one of the menus of the app (contributes.menus)',
+  'action.when': 'Manifest: action {id}: when not valid',
+  'action.whenMeta': 'Manifest: action {id}: when.meta: "own" or "none"',
+  'action.whenExt': 'Manifest: action {id}: when.ext not valid',
+  'action.whenNotExt': 'Manifest: action {id}: when.notExt not valid',
+  'action.whenNet': 'Manifest: action {id}: when.net: the protocols of the network connections, for example ["sftp"]',
+  'automation.id': 'Manifest: automation {id}: id not valid (<app id>.<one word>)',
+  'automation.twice': 'Manifest: automation {id}: declared twice',
+  'automation.label': 'Manifest: automation {id}: label missing or too long',
+  'automation.description': 'Manifest: automation {id}: description not valid',
+  'automation.target': 'Manifest: automation {id}: target can only be "window"',
+  'automation.entry': 'Manifest: automation {id}: entry: a window or background entry point of the app, without target',
+  'automation.needs': 'Manifest: automation {id}: target "window" or entry is needed',
+  'automation.result': 'Manifest: automation {id}: result can only be "file"',
+  'automation.confirm': 'Manifest: automation {id}: confirm can only be true',
+  'automation.params': 'Manifest: automation {id}: params not valid (at most 10)',
+  'automation.param.shape': 'Manifest: automation {id}: parameter {param}: name or shape not valid',
+  'automation.param.type': 'Manifest: automation {id}: parameter {param}: type must be one of {types}',
+  'automation.param.subject': 'Manifest: automation {id}: parameter {param}: subject can only be true',
+  'automation.param.label': 'Manifest: automation {id}: parameter {param}: label missing or too long',
+  'automation.param.description': 'Manifest: automation {id}: parameter {param}: description not valid',
+  'automation.param.maxLength': 'Manifest: automation {id}: parameter {param}: maxLength between 1 and 2000',
+  'automation.param.minMax': 'Manifest: automation {id}: parameter {param}: min and max not valid',
+  'automation.param.options': 'Manifest: automation {id}: parameter {param}: options: from 1 to 50 choices',
+  'automation.param.option': 'Manifest: automation {id}: parameter {param}: choice not valid ({ value, label })',
+  'automation.param.default': 'Manifest: automation {id}: parameter {param}: default value not valid (files, folders and secrets have none)',
+  'op.bad': 'Operation "{op}" in {where}: not valid',
+  'op.path': 'Operation "{op}" in {where}: path not valid {path}',
+  'op.permission': 'Operation "{op}" in {where}: the fs.write permission is needed for {path}',
+  'op.text': 'Operation "{op}" in {where}: text missing or too long',
+  'op.file': 'Operation "{op}" in {where}: the file {file} is not in the package',
+  'op.desktopItems': 'Operation "{op}" in {where}: the desktop.items permission is needed',
+  'op.target': 'Operation "{op}" in {where}: for now target can only be "app"',
+  'op.tags': 'Operation "{op}" in {where}: the tags.write permission is needed',
+  'op.tag': 'Operation "{op}" in {where}: name or color not valid',
+  'op.setting': 'Operation "{op}" in {where}: key or value not valid',
+  'op.uninstallOnly': 'Operation "{op}" in {where}: only in the uninstall',
+  'op.ask': 'Operation "{op}" in {where}: question not valid',
+  'op.unknown': 'Operation "{op}" in {where}: unknown',
+  'dep.list': 'Manifest: dependencies: a list, at most 30',
+  'dep.entry': 'Manifest: dependencies: entry not valid',
+  'dep.oneOf': 'Manifest: dependencies: each entry has "module" or "app"',
+  'dep.module': 'Manifest: dependencies: module not valid: {name}',
+  'dep.self': 'Manifest: dependencies: a package does not depend on itself',
+  'dep.twice': 'Manifest: dependencies: {key} named twice',
+  'dep.version': 'Manifest: dependencies: {key}: version such as ">=1.0.0" or ">=1.0.0 <2.0.0"',
+  'dep.repo': 'Manifest: dependencies: {key}: repo must be the https:// address of a repository',
+  'dep.optional': 'Manifest: dependencies: {key}: optional can only be true',
+  'dep.reason': 'Manifest: dependencies: {key}: reason not valid',
+  'dep.app': 'Manifest: dependencies: app not valid: {name}',
+  'moduleDep.list': 'module.json: dependencies: a list, at most 30',
+  'moduleDep.entry': 'module.json: dependencies: entry not valid',
+  'moduleDep.oneOf': 'module.json: dependencies: each entry has "module" or "app"',
+  'moduleDep.module': 'module.json: dependencies: module not valid: {name}',
+  'moduleDep.self': 'module.json: dependencies: a package does not depend on itself',
+  'moduleDep.twice': 'module.json: dependencies: {key} named twice',
+  'moduleDep.version': 'module.json: dependencies: {key}: version such as ">=1.0.0" or ">=1.0.0 <2.0.0"',
+  'moduleDep.repo': 'module.json: dependencies: {key}: repo must be the https:// address of a repository',
+  'moduleDep.optional': 'module.json: dependencies: {key}: optional can only be true',
+  'moduleDep.reason': 'module.json: dependencies: {key}: reason not valid',
+  'moduleDep.modulesOnly': 'module.json: dependencies: a module depends only on modules',
+  fileMissing: 'File {path} missing',
+  fileHash: 'The file {path} differs from the one in the manifest (hash)',
+} } });
 const ID = /^[a-z0-9][a-z0-9.-]{1,63}$/;
 const SEMVER = /^(\d{1,6})\.(\d{1,6})\.(\d{1,6})$/;
 const FILE = /^(?!.*\.\.)(?!\/)[\w.-]+(\/[\w.-]+){0,15}$/;
@@ -110,7 +271,7 @@ export const CATEGORIES = ['system', 'productivity', 'media', 'development', 'ot
 const windowSize = w => w?.width >= 200 && w.width <= 4000 && w.height >= 150 && w.height <= 4000;
 
 const str = (v, max = 200) => typeof v === 'string' && v.trim() && v.length <= max;
-const list = (v, max) => (v === undefined ? [] : Array.isArray(v) && v.length <= max ? v : fail('invalid', 'Elenco troppo lungo o non valido nel manifesto'));
+const list = (v, max) => (v === undefined ? [] : Array.isArray(v) && v.length <= max ? v : fail('invalid', t('list')));
 
 export const parseVersion = v => SEMVER.exec(v)?.slice(1).map(Number) ?? null;
 export function compareVersions(a, b) {
@@ -143,29 +304,30 @@ export function inRange(range, version) {
 const MODULE_NAME = /^[a-z][a-z0-9-]{0,40}$/;
 export const dependencyKey = d => (d.module !== undefined ? `module:${d.module}` : `app:${d.app}`);
 
-export function checkDependencies(raw, { self, apps = true, where = 'Manifesto' } = {}) {
+export function checkDependencies(raw, { self, apps = true } = {}) {
   if (raw === undefined) return [];
-  const bad = msg => fail('invalid', `${where}: dependencies: ${msg}`);
-  if (!Array.isArray(raw) || raw.length > 30) bad('un elenco, al massimo 30');
+  // An app's lilos.json, or (apps: false) a module's module.json
+  const bad = (key, params) => fail('invalid', t(`${apps ? 'dep' : 'moduleDep'}.${key}`, params));
+  if (!Array.isArray(raw) || raw.length > 30) bad('list');
   const seen = new Set();
   for (const d of raw) {
-    if (!d || typeof d !== 'object' || Array.isArray(d)) bad('voce non valida');
-    if ((d.module === undefined) === (d.app === undefined)) bad('ogni voce ha "module" oppure "app"');
-    if (d.app !== undefined && !apps) bad('un modulo dipende solo da moduli');
-    if (d.module !== undefined && !MODULE_NAME.test(d.module)) bad(`modulo non valido: ${String(d.module).slice(0, 40)}`);
-    if (d.app !== undefined && !ID.test(d.app)) bad(`app non valida: ${String(d.app).slice(0, 60)}`);
+    if (!d || typeof d !== 'object' || Array.isArray(d)) bad('entry');
+    if ((d.module === undefined) === (d.app === undefined)) bad('oneOf');
+    if (d.app !== undefined && !apps) bad('modulesOnly');
+    if (d.module !== undefined && !MODULE_NAME.test(d.module)) bad('module', { name: String(d.module).slice(0, 40) });
+    if (d.app !== undefined && !ID.test(d.app)) bad('app', { name: String(d.app).slice(0, 60) });
     const key = dependencyKey(d);
-    if (key === self) bad('un pacchetto non dipende da sé');
-    if (seen.has(key)) bad(`${key} indicato due volte`);
+    if (key === self) bad('self');
+    if (seen.has(key)) bad('twice', { key });
     seen.add(key);
-    if (d.version !== undefined && !(typeof d.version === 'string' && LILOS_RANGE.test(d.version))) bad(`${key}: version come ">=1.0.0" o ">=1.0.0 <2.0.0"`);
+    if (d.version !== undefined && !(typeof d.version === 'string' && LILOS_RANGE.test(d.version))) bad('version', { key });
     if (d.repo !== undefined) {
       let url = null;
       try { url = new URL(d.repo); } catch { /* below */ }
-      if (url?.protocol !== 'https:' || url.username || url.password || d.repo.length > 300) bad(`${key}: repo deve essere l’indirizzo https:// di un repository`);
+      if (url?.protocol !== 'https:' || url.username || url.password || d.repo.length > 300) bad('repo', { key });
     }
-    if (d.optional !== undefined && d.optional !== true) bad(`${key}: optional può essere solo true`);
-    if (d.reason !== undefined && !str(d.reason, 200)) bad(`${key}: reason non valido`);
+    if (d.optional !== undefined && d.optional !== true) bad('optional', { key });
+    if (d.reason !== undefined && !str(d.reason, 200)) bad('reason', { key });
   }
   return raw;
 }
@@ -180,69 +342,72 @@ function matchesFrom(range, version) {
 
 function checkOps(ops, permissions, where, files) {
   for (const o of list(ops, MAX.ops)) {
-    const bad = msg => fail('invalid', `Operazione "${o?.op}" in ${where}: ${msg}`);
-    if (!o || typeof o !== 'object') bad('non valida');
-    const homePath = p => (typeof p === 'string' && HOME_PATH.test(p) && !p.split('/').includes('..')) || bad(`percorso non valido ${String(p).slice(0, 60)}`);
-    const writable = p => coversPath(permissions, p) || bad(`serve il permesso fs.write per ${p}`);
+    const bad = (key, params) => fail('invalid', t(`op.${key}`, { op: String(o?.op), where, ...params }));
+    if (!o || typeof o !== 'object') bad('bad');
+    const homePath = p => (typeof p === 'string' && HOME_PATH.test(p) && !p.split('/').includes('..')) || bad('path', { path: String(p).slice(0, 60) });
+    const writable = p => coversPath(permissions, p) || bad('permission', { path: p });
     switch (o.op) {
       case 'mkdir': homePath(o.path); writable(o.path); break;
       case 'write':
         homePath(o.path); writable(o.path);
-        if (typeof o.text !== 'string' || o.text.length > MAX.text) bad('testo mancante o troppo lungo');
+        if (typeof o.text !== 'string' || o.text.length > MAX.text) bad('text');
         break;
       case 'copy':
         homePath(o.to); writable(o.to);
-        if (!files[o.from]) bad(`il file ${String(o.from).slice(0, 60)} non è nel pacchetto`);
+        if (!files[o.from]) bad('file', { file: String(o.from).slice(0, 60) });
         break;
       case 'desktopItem':
-        if (!permissions.includes('desktop.items')) bad('serve il permesso desktop.items');
-        if (o.target !== 'app') bad('per ora target può essere solo "app"');
+        if (!permissions.includes('desktop.items')) bad('desktopItems');
+        if (o.target !== 'app') bad('target');
         break;
       case 'tag':
-        if (!permissions.includes('tags.write')) bad('serve il permesso tags.write');
-        if (!str(o.name, 40) || (o.color !== undefined && !HEX.test(o.color))) bad('nome o colore non valido');
+        if (!permissions.includes('tags.write')) bad('tags');
+        if (!str(o.name, 40) || (o.color !== undefined && !HEX.test(o.color))) bad('tag');
         break;
       case 'setting':
-        if (!KEY.test(o.key ?? '') || JSON.stringify(o.value ?? null).length > 4096) bad('chiave o valore non valido');
+        if (!KEY.test(o.key ?? '') || JSON.stringify(o.value ?? null).length > 4096) bad('setting');
         break;
       case 'remove':
-        if (where !== 'uninstall') bad('solo nella disinstallazione');
+        if (where !== 'uninstall') bad('uninstallOnly');
         homePath(o.path); writable(o.path);
-        if (o.ask !== undefined && !str(o.ask, 200)) bad('domanda non valida');
+        if (o.ask !== undefined && !str(o.ask, 200)) bad('ask');
         break;
-      default: bad('sconosciuta');
+      default: bad('unknown');
     }
   }
 }
 
-/** The where of a pipe: { meta: 'own', ext: [..], type, app: [..] }. */
+/** The where of a pipe: { meta: 'own', ext: [..], type, app: [..] }; `wrong(key, params)` throws (keys pipe.where…). */
 function checkWhere(w, wrong) {
-  if (!w || typeof w !== 'object' || Array.isArray(w)) wrong('where non valido');
+  if (!w || typeof w !== 'object' || Array.isArray(w)) wrong('where');
   for (const [k, v] of Object.entries(w)) {
-    if (k === 'meta') { if (v !== 'own') wrong('where.meta: solo "own"'); }
-    else if (k === 'type') { if (!['file', 'folder', 'app'].includes(v)) wrong('where.type non valido'); }
-    else if (k === 'ext' || k === 'app') { if (!Array.isArray(v) || v.length > 50 || v.some(x => typeof x !== 'string' || x.length > 64)) wrong(`where.${k}: un elenco di testi`); }
-    else wrong(`where.${k.slice(0, 30)} non si usa`);
+    if (k === 'meta') { if (v !== 'own') wrong('whereMeta'); }
+    else if (k === 'type') { if (!['file', 'folder', 'app'].includes(v)) wrong('whereType'); }
+    else if (k === 'ext' || k === 'app') { if (!Array.isArray(v) || v.length > 50 || v.some(x => typeof x !== 'string' || x.length > 64)) wrong('whereList', { key: k }); }
+    else wrong('whereUnknown', { key: k.slice(0, 30) });
   }
 }
 
-/** Checks the params of an entry point (see above); `wrong(msg)` throws. types: the ones allowed. */
+/**
+ * Checks the params of an entry point (see above); `wrong(key, params)` throws (keys params, param.…
+ * of entry. and automation.). types: the ones allowed.
+ */
 function checkParams(params, wrong, types = PARAM_TYPES) {
-  if (!params || typeof params !== 'object' || Array.isArray(params) || Object.keys(params).length > MAX.params) wrong('params non validi (al massimo 10)');
+  if (!params || typeof params !== 'object' || Array.isArray(params) || Object.keys(params).length > MAX.params) wrong('params');
   for (const [name, p] of Object.entries(params)) {
-    const off = msg => wrong(`parametro ${name.slice(0, 40)}: ${msg}`);
-    if (!PARAM.test(name) || !p || typeof p !== 'object' || Array.isArray(p)) off('nome o forma non validi');
-    if (!types.includes(p.type)) off(`type deve essere uno di ${types.join(', ')}`);
-    if (p.subject !== undefined && p.subject !== true) off('subject può essere solo true');
-    if (!str(p.label, 60)) off('etichetta mancante o troppo lunga');
-    if (p.description !== undefined && !str(p.description, 200)) off('descrizione non valida');
+    const off = (key, more) => wrong(`param.${key}`, { param: name.slice(0, 40), ...more });
+    if (!PARAM.test(name) || !p || typeof p !== 'object' || Array.isArray(p)) off('shape');
+    if (!types.includes(p.type)) off('type', { types: types.join(', ') });
+    if (p.subject !== undefined && p.subject !== true) off('subject');
+    if (!str(p.label, 60)) off('label');
+    if (p.description !== undefined && !str(p.description, 200)) off('description');
     const num = v => v === undefined || (typeof v === 'number' && Number.isFinite(v));
-    if (p.type === 'text' && (p.maxLength !== undefined && !(Number.isInteger(p.maxLength) && p.maxLength >= 1 && p.maxLength <= 2000))) off('maxLength tra 1 e 2000');
-    if (p.type === 'number' && (!num(p.min) || !num(p.max) || (p.min !== undefined && p.max !== undefined && p.min > p.max))) off('min e max non validi');
+    if (p.type === 'text' && (p.maxLength !== undefined && !(Number.isInteger(p.maxLength) && p.maxLength >= 1 && p.maxLength <= 2000))) off('maxLength');
+    if (p.type === 'number' && (!num(p.min) || !num(p.max) || (p.min !== undefined && p.max !== undefined && p.min > p.max))) off('minMax');
     if (p.type === 'choice') {
-      const options = Array.isArray(p.options) && p.options.length >= 1 && p.options.length <= MAX.options ? p.options : off('options: da 1 a 50 scelte');
+      const options = Array.isArray(p.options) && p.options.length >= 1 && p.options.length <= MAX.options ? p.options : off('options');
       for (const o of options) {
-        if (!o || !((typeof o.value === 'string' && o.value.length <= 100) || num(o.value)) || o.value === undefined || !str(o.label, 60)) off('scelta non valida ({ value, label })');
+        if (!o || !((typeof o.value === 'string' && o.value.length <= 100) || num(o.value)) || o.value === undefined || !str(o.label, 60)) off('option');
       }
     }
     if (p.default !== undefined) {
@@ -252,178 +417,178 @@ function checkParams(params, wrong, types = PARAM_TYPES) {
         boolean: v => typeof v === 'boolean',
         choice: v => p.options.some(o => o.value === v),
       }[p.type];
-      if (!ok?.(p.default)) off('valore predefinito non valido (file, cartelle e segreti non ne hanno)');
+      if (!ok?.(p.default)) off('default');
     }
   }
 }
 
 /** Validates a manifest (untrusted JSON). Returns it cleaned of unknown fields. */
 export function checkManifest(raw) {
-  const m = raw && typeof raw === 'object' && !Array.isArray(raw) ? raw : fail('invalid', 'Manifesto non valido');
-  const bad = msg => fail('invalid', `Manifesto: ${msg}`);
-  if (!ID.test(m.id ?? '')) bad('id non valido (lettere minuscole, cifre, punto e trattino)');
-  if (!parseVersion(m.version)) bad('versione non valida (x.y.z)');
-  if (m.kind !== 'local' && m.kind !== 'remote') bad('kind deve essere "local" o "remote"');
-  if (!str(m.name, 40)) bad('nome mancante');
-  if (!m.publisher || !KEY.test(m.publisher.id ?? '') || !str(m.publisher.name, 80)) bad('editore mancante');
-  if (m.publisher.key !== undefined && !/^ed25519:[A-Za-z0-9+/]{43}=$/.test(m.publisher.key)) bad('chiave dell’editore non valida');
-  if (!SDK_VERSIONS.includes(String(m.sdk))) bad('versione dell’SDK non supportata');
-  if (m.lilos !== undefined && !(typeof m.lilos === 'string' && LILOS_RANGE.test(m.lilos))) bad('lilos: versioni di lilOS come ">=1.8.0" o ">=1.8.0 <2.0.0"');
+  const m = raw && typeof raw === 'object' && !Array.isArray(raw) ? raw : fail('invalid', t('invalid'));
+  const bad = (key, params) => fail('invalid', t(key, params));
+  if (!ID.test(m.id ?? '')) bad('id');
+  if (!parseVersion(m.version)) bad('version');
+  if (m.kind !== 'local' && m.kind !== 'remote') bad('kind');
+  if (!str(m.name, 40)) bad('name');
+  if (!m.publisher || !KEY.test(m.publisher.id ?? '') || !str(m.publisher.name, 80)) bad('publisher');
+  if (m.publisher.key !== undefined && !/^ed25519:[A-Za-z0-9+/]{43}=$/.test(m.publisher.key)) bad('publisherKey');
+  if (!SDK_VERSIONS.includes(String(m.sdk))) bad('sdk');
+  if (m.lilos !== undefined && !(typeof m.lilos === 'string' && LILOS_RANGE.test(m.lilos))) bad('lilos');
   checkDependencies(m.dependencies, { self: `app:${m.id}` });
-  if (m.icon !== undefined && (!GLYPH.test(m.icon?.glyph ?? '') || !HEX.test(m.icon?.color ?? ''))) bad('icona non valida');
-  if (m.system !== undefined && m.system !== true) bad('system può essere solo true');
-  if (m.required !== undefined && (m.required !== true || !m.system)) bad('required vale solo per le app di sistema');
-  if (m.description !== undefined && !str(m.description, 300)) bad('descrizione non valida');
-  if (m.category !== undefined && !CATEGORIES.includes(m.category)) bad(`categoria non valida (${CATEGORIES.join(', ')})`);
+  if (m.icon !== undefined && (!GLYPH.test(m.icon?.glyph ?? '') || !HEX.test(m.icon?.color ?? ''))) bad('icon');
+  if (m.system !== undefined && m.system !== true) bad('system');
+  if (m.required !== undefined && (m.required !== true || !m.system)) bad('required');
+  if (m.description !== undefined && !str(m.description, 300)) bad('description');
+  if (m.category !== undefined && !CATEGORIES.includes(m.category)) bad('category', { categories: CATEGORIES.join(', ') });
 
   const files = m.files ?? {};
-  if (typeof files !== 'object' || Array.isArray(files) || Object.keys(files).length > MAX.files) bad('elenco dei file non valido');
+  if (typeof files !== 'object' || Array.isArray(files) || Object.keys(files).length > MAX.files) bad('files');
   for (const [path, hash] of Object.entries(files)) {
-    if (!FILE.test(path) || path === 'lilos.json') bad(`percorso non valido: ${path.slice(0, 60)}`);
-    if (!HASH.test(hash)) bad(`hash non valido per ${path.slice(0, 60)}`);
+    if (!FILE.test(path) || path === 'lilos.json') bad('path', { path: path.slice(0, 60) });
+    if (!HASH.test(hash)) bad('hash', { path: path.slice(0, 60) });
   }
   if (m.kind === 'local') {
-    if (!files[m.entry]) bad('entry deve essere uno dei file del pacchetto');
-    for (const css of list(m.styles, 10)) if (!m.system || !files[css] || !css.endsWith('.css')) bad('styles: solo file .css del pacchetto, nelle app di sistema');
-    if (m.locales !== undefined && (typeof m.locales !== 'string' || !files[m.locales] || !m.locales.endsWith('.json'))) bad('locales: un file .json del pacchetto');
+    if (!files[m.entry]) bad('entry');
+    for (const css of list(m.styles, 10)) if (!m.system || !files[css] || !css.endsWith('.css')) bad('styles');
+    if (m.locales !== undefined && (typeof m.locales !== 'string' || !files[m.locales] || !m.locales.endsWith('.json'))) bad('locales');
   } else {
-    if (m.locales !== undefined) bad('locales: solo per le app locali');
+    if (m.locales !== undefined) bad('localesLocal');
     let url;
-    try { url = new URL(m.url); } catch { bad('url non valido'); }
-    if (url.protocol !== 'https:' && !(url.protocol === 'http:' && url.hostname === 'localhost')) bad('url deve essere https');
+    try { url = new URL(m.url); } catch { bad('url'); }
+    if (url.protocol !== 'https:' && !(url.protocol === 'http:' && url.hostname === 'localhost')) bad('https');
   }
 
   if (m.entrypoints !== undefined) {
     const e = m.entrypoints;
-    if (m.kind !== 'local') bad('entrypoints: solo nelle app locali');
-    if (!e || typeof e !== 'object' || Array.isArray(e) || Object.keys(e).length > MAX.entrypoints) bad('entrypoints non validi');
-    if (String(m.sdk) !== '2' && Object.entries(e).some(([name, ep]) => name !== 'main' && ep?.kind !== 'service')) bad('entrypoints: con sdk "1" solo main (per i suoi params) e i service');
+    if (m.kind !== 'local') bad('entrypointsLocal');
+    if (!e || typeof e !== 'object' || Array.isArray(e) || Object.keys(e).length > MAX.entrypoints) bad('entrypoints');
+    if (String(m.sdk) !== '2' && Object.entries(e).some(([name, ep]) => name !== 'main' && ep?.kind !== 'service')) bad('entrypointsSdk1');
     for (const [name, ep] of Object.entries(e)) {
-      const wrong = msg => bad(`punto d’ingresso ${name.slice(0, 40)}: ${msg}`);
-      if (!ENTRY.test(name) || !ep || typeof ep !== 'object' || Array.isArray(ep)) wrong('nome o forma non validi');
-      if (!['window', 'background', 'service'].includes(ep.kind)) wrong('kind deve essere "window", "background" o "service"');
-      if (ep.file !== undefined && (!files[ep.file] || !/\.m?js$/.test(ep.file))) wrong('file non nel pacchetto o non .js');
-      if (ep.label !== undefined && !str(ep.label, 60)) wrong('etichetta non valida');
-      if (ep.window !== undefined && (ep.kind !== 'window' || !windowSize(ep.window))) wrong('dimensioni della finestra non valide');
+      const wrong = (key, params) => bad(`entry.${key}`, { entry: name.slice(0, 40), ...params });
+      if (!ENTRY.test(name) || !ep || typeof ep !== 'object' || Array.isArray(ep)) wrong('shape');
+      if (!['window', 'background', 'service'].includes(ep.kind)) wrong('kind');
+      if (ep.file !== undefined && (!files[ep.file] || !/\.m?js$/.test(ep.file))) wrong('file');
+      if (ep.label !== undefined && !str(ep.label, 60)) wrong('label');
+      if (ep.window !== undefined && (ep.kind !== 'window' || !windowSize(ep.window))) wrong('window');
       if (ep.params !== undefined) checkParams(ep.params, wrong);
     }
-    if (e.main && e.main.kind !== 'window') bad('il punto d’ingresso main deve essere una finestra');
+    if (e.main && e.main.kind !== 'window') bad('mainWindow');
   }
 
   const permissions = list(m.permissions, MAX.permissions);
-  if (Object.values(m.entrypoints ?? {}).some(ep => ep?.kind === 'service') && !permissions.includes('background')) bad('i punti d’ingresso service richiedono il permesso background');
-  for (const p of permissions) if (!parsePermission(p)) bad(`permesso sconosciuto: ${String(p).slice(0, 60)}`);
-  if (!m.system && permissions.some(p => parsePermission(p).level === 'reserved')) bad('chiede permessi riservati alle app di sistema');
+  if (Object.values(m.entrypoints ?? {}).some(ep => ep?.kind === 'service') && !permissions.includes('background')) bad('serviceBackground');
+  for (const p of permissions) if (!parsePermission(p)) bad('permission', { permission: String(p).slice(0, 60) });
+  if (!m.system && permissions.some(p => parsePermission(p).level === 'reserved')) bad('reserved');
 
   for (const lib of list(m.libraries, MAX.libraries)) {
-    if (!lib || !KEY.test(lib.name ?? '') || !parseVersion(lib.version) || !SRI.test(lib.integrity ?? '')) bad('libreria non valida');
+    if (!lib || !KEY.test(lib.name ?? '') || !parseVersion(lib.version) || !SRI.test(lib.integrity ?? '')) bad('library');
     let url;
-    try { url = new URL(lib.url); } catch { bad(`url della libreria ${lib.name} non valido`); }
-    if (url.protocol !== 'https:') bad(`la libreria ${lib.name} deve arrivare da https`);
+    try { url = new URL(lib.url); } catch { bad('libraryUrl', { name: lib.name }); }
+    if (url.protocol !== 'https:') bad('libraryHttps', { name: lib.name });
   }
 
   const c = m.contributes ?? {};
-  if (typeof c !== 'object' || Array.isArray(c)) bad('contributes non valido');
-  if (c.window !== undefined && !windowSize(c.window)) bad('dimensioni della finestra non valide');
-  for (const ext of list(c.fileTypes, 50)) if (typeof ext !== 'string' || !EXT.test(ext)) bad('tipo di file non valido');
+  if (typeof c !== 'object' || Array.isArray(c)) bad('contributes');
+  if (c.window !== undefined && !windowSize(c.window)) bad('window');
+  for (const ext of list(c.fileTypes, 50)) if (typeof ext !== 'string' || !EXT.test(ext)) bad('fileType');
   for (const cmd of list(c.commands, MAX.commands)) {
-    if (!KEY.test(cmd?.id ?? '') || !cmd.id.startsWith(`${m.id}.`) || !str(cmd.label, 60)) bad('comando non valido (l’id inizia con l’id dell’app)');
-    if (cmd.keys !== undefined && (!Array.isArray(cmd.keys) || cmd.keys.length > 3 || cmd.keys.some(k => !str(k, 40)))) bad(`tasti non validi per ${cmd.id}`);
+    if (!KEY.test(cmd?.id ?? '') || !cmd.id.startsWith(`${m.id}.`) || !str(cmd.label, 60)) bad('command');
+    if (cmd.keys !== undefined && (!Array.isArray(cmd.keys) || cmd.keys.length > 3 || cmd.keys.some(k => !str(k, 40)))) bad('keys', { id: cmd.id });
   }
-  if (list(c.commands, MAX.commands).some(cmd => cmd.keys?.length) && !permissions.includes('ui.shortcuts')) bad('le scorciatoie richiedono il permesso ui.shortcuts');
+  if (list(c.commands, MAX.commands).some(cmd => cmd.keys?.length) && !permissions.includes('ui.shortcuts')) bad('shortcuts');
   for (const w of list(c.widgets, MAX.widgets)) {
-    if (!KEY.test(w?.id ?? '') || !str(w.name, 40) || !(w.width >= 80 && w.width <= 1200 && w.height >= 60 && w.height <= 1200)) bad('widget non valido');
-    if (w.fileType !== undefined && (typeof w.fileType !== 'string' || !w.fileType || !EXT.test(w.fileType) || !list(c.fileTypes, 50).includes(w.fileType))) bad(`widget ${w.id}: fileType deve essere uno dei fileTypes dell’app`);
+    if (!KEY.test(w?.id ?? '') || !str(w.name, 40) || !(w.width >= 80 && w.width <= 1200 && w.height >= 60 && w.height <= 1200)) bad('widget');
+    if (w.fileType !== undefined && (typeof w.fileType !== 'string' || !w.fileType || !EXT.test(w.fileType) || !list(c.fileTypes, 50).includes(w.fileType))) bad('widgetFileType', { id: w.id });
   }
   const widgetTypes = list(c.widgets, MAX.widgets).map(w => w.fileType).filter(Boolean);
-  if (new Set(widgetTypes).size < widgetTypes.length) bad('due widget con lo stesso fileType');
-  if (list(c.widgets, MAX.widgets).length && !permissions.includes('desktop.widget')) bad('i widget richiedono il permesso desktop.widget');
+  if (new Set(widgetTypes).size < widgetTypes.length) bad('widgetSameType');
+  if (list(c.widgets, MAX.widgets).length && !permissions.includes('desktop.widget')) bad('widgets');
   const eps = m.entrypoints ?? {};
   const ownEvents = new Set();
   for (const e of list(c.events, MAX.events)) {
-    const wrong = msg => bad(`evento ${String(e?.name).slice(0, 60)}: ${msg}`);
+    const wrong = (key, params) => bad(`event.${key}`, { event: String(e?.name).slice(0, 60), ...params });
     if (!e || typeof e !== 'object' || typeof e.name !== 'string' || !EVENT.test(e.name) || !e.name.startsWith(`${m.id}.`) || !EVENT_WORD.test(e.name.slice(m.id.length + 1))) {
-      wrong('nome non valido (<id dell’app>.<una parola>)');
+      wrong('name');
     }
-    if (ownEvents.has(e.name)) wrong('dichiarato due volte');
+    if (ownEvents.has(e.name)) wrong('twice');
     ownEvents.add(e.name);
-    if (!str(e.label, 80)) wrong('etichetta mancante o troppo lunga');
-    if (e.description !== undefined && !str(e.description, 300)) wrong('descrizione non valida');
-    if (e.stop !== undefined && e.stop !== true) wrong('stop può essere solo true');
+    if (!str(e.label, 80)) wrong('label');
+    if (e.description !== undefined && !str(e.description, 300)) wrong('description');
+    if (e.stop !== undefined && e.stop !== true) wrong('stop');
     if (e.edit !== undefined) {
-      if (!e.edit || typeof e.edit !== 'object' || Array.isArray(e.edit) || Object.keys(e.edit).some(k => k !== 'before' && k !== 'after')) wrong('edit non valido ({ before, after })');
+      if (!e.edit || typeof e.edit !== 'object' || Array.isArray(e.edit) || Object.keys(e.edit).some(k => k !== 'before' && k !== 'after')) wrong('edit');
       for (const stage of ['before', 'after']) {
         const fields = e.edit[stage];
-        if (fields !== undefined && (!Array.isArray(fields) || fields.length > MAX.fields || fields.some(f => typeof f !== 'string' || !FIELD.test(f)))) wrong(`edit.${stage}: fino a ${MAX.fields} nomi di campo`);
+        if (fields !== undefined && (!Array.isArray(fields) || fields.length > MAX.fields || fields.some(f => typeof f !== 'string' || !FIELD.test(f)))) wrong('fields', { stage, max: MAX.fields });
       }
     }
   }
   for (const p of list(c.pipes, MAX.pipes)) {
-    const wrong = msg => bad(`pipe ${String(p?.event).slice(0, 60)}: ${msg}`);
-    if (!p || typeof p !== 'object' || !EVENT.test(p.event ?? '')) wrong('evento non valido');
-    if (p.stage !== 'before' && p.stage !== 'after') wrong('stage deve essere "before" o "after"');
-    if (!Object.hasOwn(eps, p.entry) || eps[p.entry]?.kind !== 'background') wrong('entry deve essere un punto d’ingresso background');
-    if (p.position !== undefined && !['first', 'middle', 'last'].includes(p.position)) wrong('position non valida');
+    const wrong = (key, params) => bad(`pipe.${key}`, { event: String(p?.event).slice(0, 60), ...params });
+    if (!p || typeof p !== 'object' || !EVENT.test(p.event ?? '')) wrong('event');
+    if (p.stage !== 'before' && p.stage !== 'after') wrong('stage');
+    if (!Object.hasOwn(eps, p.entry) || eps[p.entry]?.kind !== 'background') wrong('entry');
+    if (p.position !== undefined && !['first', 'middle', 'last'].includes(p.position)) wrong('position');
     const own = p.where?.meta === 'own';
     if (p.where !== undefined) checkWhere(p.where, wrong);
-    if (!ownEvents.has(p.event) && !permissions.includes(`pipe:${p.event}`) && !(own && permissions.includes(`pipe.own:${p.event}`))) wrong(`serve il permesso pipe:${p.event}${own ? ` o pipe.own:${p.event}` : ''}`);
-    if (isProtectedEvent(p.event) && !m.system) wrong('evento riservato alle app di sistema');
+    if (!ownEvents.has(p.event) && !permissions.includes(`pipe:${p.event}`) && !(own && permissions.includes(`pipe.own:${p.event}`))) wrong(own ? 'permissionOwn' : 'permission', { name: p.event });
+    if (isProtectedEvent(p.event) && !m.system) wrong('protected');
   }
   const menus = new Set();
   for (const menu of list(c.menus, MAX.menus)) {
-    if (!menu || !KEY.test(menu.id ?? '') || !menu.id.startsWith(`${m.id}.`) || menus.has(menu.id)) bad('menu non valido (l’id inizia con l’id dell’app, uno per menu)');
-    if (!str(menu.label, 60)) bad(`menu ${menu.id}: etichetta mancante o troppo lunga`);
-    if (menu.glyph !== undefined && !GLYPH.test(menu.glyph)) bad(`menu ${menu.id}: glyph non valido`);
+    if (!menu || !KEY.test(menu.id ?? '') || !menu.id.startsWith(`${m.id}.`) || menus.has(menu.id)) bad('menu');
+    if (!str(menu.label, 60)) bad('menuLabel', { id: menu.id });
+    if (menu.glyph !== undefined && !GLYPH.test(menu.glyph)) bad('menuGlyph', { id: menu.id });
     menus.add(menu.id);
   }
   const extList = v => Array.isArray(v) && v.length <= 50 && v.every(e => typeof e === 'string' && EXT.test(e));
   for (const a of list(c.actions, MAX.actions)) {
-    const wrong = msg => bad(`azione ${String(a?.id).slice(0, 60)}: ${msg}`);
-    if (!a || !KEY.test(a.id ?? '') || !a.id.startsWith(`${m.id}.`)) wrong('id non valido (inizia con l’id dell’app)');
-    if (!str(a.label, 60)) wrong('etichetta mancante o troppo lunga');
-    if (a.entry !== 'main' && !Object.hasOwn(eps, a.entry)) wrong('entry non è un punto d’ingresso dell’app');
-    if (eps[a.entry]?.kind === 'service') wrong('un’azione non avvia un service');
-    if (!['file', 'folder', 'item'].includes(a.on)) wrong('on deve essere "file", "folder" o "item"');
-    if (a.glyph !== undefined && !GLYPH.test(a.glyph)) wrong('glyph non valido');
-    if (a.many !== undefined && a.many !== true) wrong('many può essere solo true');
-    if (a.menu !== undefined && !menus.has(a.menu)) wrong('menu non è uno dei menu dell’app (contributes.menus)');
+    const wrong = key => bad(`action.${key}`, { id: String(a?.id).slice(0, 60) });
+    if (!a || !KEY.test(a.id ?? '') || !a.id.startsWith(`${m.id}.`)) wrong('id');
+    if (!str(a.label, 60)) wrong('label');
+    if (a.entry !== 'main' && !Object.hasOwn(eps, a.entry)) wrong('entry');
+    if (eps[a.entry]?.kind === 'service') wrong('service');
+    if (!['file', 'folder', 'item'].includes(a.on)) wrong('on');
+    if (a.glyph !== undefined && !GLYPH.test(a.glyph)) wrong('glyph');
+    if (a.many !== undefined && a.many !== true) wrong('many');
+    if (a.menu !== undefined && !menus.has(a.menu)) wrong('menu');
     if (a.when !== undefined) {
-      if (!a.when || typeof a.when !== 'object' || Array.isArray(a.when) || Object.keys(a.when).some(k => !['meta', 'ext', 'notExt', 'net'].includes(k))) wrong('when non valido');
-      if (a.when.meta !== undefined && a.when.meta !== 'own' && a.when.meta !== 'none') wrong('when.meta: "own" o "none"');
-      if (a.when.ext !== undefined && !extList(a.when.ext)) wrong('when.ext non valido');
-      if (a.when.notExt !== undefined && !extList(a.when.notExt)) wrong('when.notExt non valido');
-      if (a.when.net !== undefined && !(Array.isArray(a.when.net) && a.when.net.length <= 20 && a.when.net.every(p => typeof p === 'string' && /^[a-z][a-z0-9-]{0,30}$/.test(p)))) wrong('when.net: i protocolli delle connessioni di rete, per esempio ["sftp"]');
+      if (!a.when || typeof a.when !== 'object' || Array.isArray(a.when) || Object.keys(a.when).some(k => !['meta', 'ext', 'notExt', 'net'].includes(k))) wrong('when');
+      if (a.when.meta !== undefined && a.when.meta !== 'own' && a.when.meta !== 'none') wrong('whenMeta');
+      if (a.when.ext !== undefined && !extList(a.when.ext)) wrong('whenExt');
+      if (a.when.notExt !== undefined && !extList(a.when.notExt)) wrong('whenNotExt');
+      if (a.when.net !== undefined && !(Array.isArray(a.when.net) && a.when.net.length <= 20 && a.when.net.every(p => typeof p === 'string' && /^[a-z][a-z0-9-]{0,30}$/.test(p)))) wrong('whenNet');
     }
   }
-  if (list(c.actions, MAX.actions).length && !permissions.includes('ui.menus')) bad('le azioni richiedono il permesso ui.menus');
+  if (list(c.actions, MAX.actions).length && !permissions.includes('ui.menus')) bad('actionsMenus');
   const automationIds = new Set();
   for (const a of list(c.automation, MAX.automation)) {
-    const wrong = msg => bad(`automazione ${String(a?.id).slice(0, 60)}: ${msg}`);
-    if (!a || typeof a !== 'object' || !KEY.test(a.id ?? '') || !a.id.startsWith(`${m.id}.`) || !EVENT_WORD.test(a.id.slice(m.id.length + 1))) wrong('id non valido (<id dell’app>.<una parola>)');
-    if (automationIds.has(a.id)) wrong('dichiarata due volte');
+    const wrong = (key, params) => bad(`automation.${key}`, { id: String(a?.id).slice(0, 60), ...params });
+    if (!a || typeof a !== 'object' || !KEY.test(a.id ?? '') || !a.id.startsWith(`${m.id}.`) || !EVENT_WORD.test(a.id.slice(m.id.length + 1))) wrong('id');
+    if (automationIds.has(a.id)) wrong('twice');
     automationIds.add(a.id);
-    if (!str(a.label, 60)) wrong('etichetta mancante o troppo lunga');
-    if (a.description !== undefined && !str(a.description, 300)) wrong('descrizione non valida');
-    if (a.target !== undefined && a.target !== 'window') wrong('target può essere solo "window"');
-    if (a.entry !== undefined && (a.target === 'window' || !(a.entry === 'main' || Object.hasOwn(eps, a.entry)) || eps[a.entry]?.kind === 'service')) wrong('entry: un punto d’ingresso window o background dell’app, senza target');
-    if (a.target === undefined && a.entry === undefined) wrong('serve target "window" o entry');
-    if (a.result !== undefined && a.result !== 'file') wrong('result può essere solo "file"');
-    if (a.confirm !== undefined && a.confirm !== true) wrong('confirm può essere solo true');
+    if (!str(a.label, 60)) wrong('label');
+    if (a.description !== undefined && !str(a.description, 300)) wrong('description');
+    if (a.target !== undefined && a.target !== 'window') wrong('target');
+    if (a.entry !== undefined && (a.target === 'window' || !(a.entry === 'main' || Object.hasOwn(eps, a.entry)) || eps[a.entry]?.kind === 'service')) wrong('entry');
+    if (a.target === undefined && a.entry === undefined) wrong('needs');
+    if (a.result !== undefined && a.result !== 'file') wrong('result');
+    if (a.confirm !== undefined && a.confirm !== true) wrong('confirm');
     if (a.params !== undefined) checkParams(a.params, wrong, AUTOMATION_TYPES);
   }
-  if (c.badge !== undefined && (!c.badge || !GLYPH.test(c.badge.glyph ?? '') || !str(c.badge.label, 40))) bad('badge non valido ({ glyph, label })');
+  if (c.badge !== undefined && (!c.badge || !GLYPH.test(c.badge.glyph ?? '') || !str(c.badge.label, 40))) bad('badge');
 
   checkOps(m.install, permissions, 'install', files);
   checkOps(m.uninstall, permissions, 'uninstall', files);
   for (const step of list(m.update, 20)) {
-    if (!step || typeof step.from !== 'string' || !/^(<=?|=)?\d+\.\d+\.\d+$/.test(step.from)) bad('update: "from" non valido');
+    if (!step || typeof step.from !== 'string' || !/^(<=?|=)?\d+\.\d+\.\d+$/.test(step.from)) bad('updateFrom');
     checkOps(step.ops, permissions, 'update', files);
   }
   if (m.restartOnUpdate !== undefined && m.restartOnUpdate !== true && !(typeof m.restartOnUpdate === 'string' && /^(<=?|=)?\d+\.\d+\.\d+$/.test(m.restartOnUpdate))) {
-    bad('restartOnUpdate: true o un intervallo di versioni come "<2.0.0"');
+    bad('restartOnUpdate');
   }
-  if (m.signature !== undefined && !/^ed25519:[A-Za-z0-9+/]{86}==$/.test(m.signature)) bad('firma non valida');
-  if (JSON.stringify(m).length > 256 << 10) bad('troppo grande');
+  if (m.signature !== undefined && !/^ed25519:[A-Za-z0-9+/]{86}==$/.test(m.signature)) bad('signature');
+  if (JSON.stringify(m).length > 256 << 10) bad('tooLarge');
   return m;
 }
 
@@ -457,8 +622,8 @@ export function verifySignature(manifest, key) {
 /** Checks that the hash of every downloaded file is the one in the manifest. */
 export function checkFiles(manifest, files) {
   for (const [path, hash] of Object.entries(manifest.files ?? {})) {
-    const data = files.get(path) ?? fail('invalid', `Manca il file ${path}`);
-    if (sha256(data) !== hash) fail('invalid', `Il file ${path} è diverso da quello del manifesto (hash)`);
+    const data = files.get(path) ?? fail('invalid', t('fileMissing', { path }));
+    if (sha256(data) !== hash) fail('invalid', t('fileHash', { path }));
   }
   if (manifest.locales) {
     try {

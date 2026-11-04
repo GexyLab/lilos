@@ -1,0 +1,11 @@
+{
+  "title": "Deschideți cu",
+  "apps": "Aplicații",
+  "choose": "Alegeți aplicația pentru a deschide „{name}” ({type}).",
+  "alwaysExt": "Folosiți mereu această aplicație pentru fișierele .{ext}",
+  "alwaysNoExt": "Folosiți mereu această aplicație pentru fișierele fără extensie",
+  "cancel": "Anulați",
+  "open": "Deschideți",
+  "none": "Nicio aplicație instalată nu poate deschide „{name}”.",
+  "close": "Închideți"
+}

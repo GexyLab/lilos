@@ -1,0 +1,8 @@
+{
+  "removed": {
+    "one": "Usunięto {app}: {n} zmieniony element jest w Koszu",
+    "few": "Usunięto {app}: {n} zmienione elementy są w Koszu",
+    "many": "Usunięto {app}: {n} zmienionych elementów jest w Koszu",
+    "other": "Usunięto {app}: {n} zmienionego elementu jest w Koszu"
+  }
+}

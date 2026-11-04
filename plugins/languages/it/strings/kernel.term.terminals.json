@@ -1,0 +1,23 @@
+{
+  "signIn": "Accesso richiesto",
+  "noProtocol": "Protocollo non disponibile: {protocol} (manca il suo modulo del kernel)",
+  "hostName": "Nome dell’host non valido",
+  "hostTaken": "C’è già un host «{name}»",
+  "missing": "Mancano: {fields}",
+  "tooMany": "Al massimo {max} host",
+  "hostNotFound": "Host inesistente",
+  "noPassword": "Nessuna password da salvare",
+  "sealedOther": "La password salvata nel collegamento vale solo per chi l’ha salvata, su questo lilOS, per lo stesso server e utente",
+  "sessionNotFound": "Sessione inesistente",
+  "sessionsTooMany": "Al massimo {max} sessioni aperte",
+  "sftpOnly": "Il terminale si apre solo sulle connessioni SFTP",
+  "sshOnly": "I comandi pianificati vanno solo su host SSH",
+  "untrusted": "La chiave del server di «{name}» non è confermata: collegati una volta dal Terminale",
+  "denied": "Accesso negato da «{name}»: salva la password o la chiave nell’host",
+  "stopping": "Il kernel si sta fermando",
+  "detached": "Chiusa dopo 10 minuti senza finestra",
+  "cancelled": "Connessione annullata",
+  "failed": "Connessione non riuscita",
+  "folder": "Nome della cartella non valido",
+  "cwd": "Cartella non valida"
+}

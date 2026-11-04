@@ -1,0 +1,12 @@
+{
+  "ok": "确定",
+  "cancel": "取消",
+  "continue": "继续",
+  "retry": "重试",
+  "required": "请填写“{label}”",
+  "invalid": "“{label}”无效",
+  "number": "“{label}”必须是数字",
+  "min": "“{label}”必须至少为 {min}",
+  "max": "“{label}”必须最多为 {max}",
+  "long": "“{label}”过长（最多 {max} 个字符）"
+}

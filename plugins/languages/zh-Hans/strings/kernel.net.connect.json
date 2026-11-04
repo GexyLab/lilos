@@ -1,0 +1,18 @@
+{
+  "noConnection": {
+    "other": "{n} 秒内未连接"
+  },
+  "untrusted": "{host} 的证书未确认（{reason}）",
+  "cancelled": "已取消",
+  "refused": "连接被拒绝（{code}）",
+  "reset": "连接被服务器中断（{code}）",
+  "notFound": "未知的服务器名称（{code}）",
+  "dns": "服务器名称未解析（DNS）（{code}）",
+  "timeout": "超时（{code}）",
+  "hostUnreachable": "无法访问服务器（{code}）",
+  "netUnreachable": "无法访问网络（{code}）",
+  "closed": "连接已关闭（{code}）",
+  "aborted": "已取消（{code}）",
+  "otherName": "证书属于其他名称（{code}）",
+  "network": "网络错误"
+}

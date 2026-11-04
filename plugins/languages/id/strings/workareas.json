@@ -1,0 +1,22 @@
+{
+  "tooMany": "Paling banyak {max} area kerja",
+  "overlap": "Sudah ada area kerja lain di sana: area tidak boleh tumpang tindih",
+  "undo.create": "Buat area kerja “{title}”",
+  "undo.rename": "Ganti nama area kerja “{before}” menjadi “{after}”",
+  "undo.remove": "Hapus area kerja “{title}”",
+  "undo.move": "Pindahkan area kerja “{title}”",
+  "undo.resize": "Ubah ukuran area kerja “{title}”",
+  "gone": "Area kerja sudah tidak ada",
+  "already": "Area kerja sudah ada",
+  "occupied": "Sekarang ada area kerja lain di sana",
+  "notOpen": "Area kerja tidak terbuka",
+  "removeOne": "Hapus area kerja “{title}” (isinya tetap di desktop)",
+  "removeMany": {
+    "other": "Hapus {n} area kerja (isinya tetap di desktop)"
+  },
+  "menu.title": "Area kerja “{title}”",
+  "menu.rename": "Ganti nama area kerja",
+  "menu.properties": "Properti…",
+  "menu.collapse": "Minimalkan menjadi ikon",
+  "menu.remove": "Hapus area kerja…"
+}

@@ -1,0 +1,6 @@
+{
+  "notInstalled": "Aplikasi tidak terinstal",
+  "system": "Aplikasi sistem adalah bagian dari lilOS dan berjalan di dalam lilOS",
+  "remote": "Aplikasi jarak jauh adalah situs tersendiri: selalu berjalan terisolasi, di origin-nya sendiri",
+  "sdk1": "Aplikasi menggunakan SDK 1, yang hanya bekerja secara terisolasi"
+}

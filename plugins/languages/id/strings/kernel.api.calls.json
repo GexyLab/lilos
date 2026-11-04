@@ -1,0 +1,7 @@
+{
+  "signIn": "Masuk terlebih dahulu",
+  "run": "Eksekusi tidak valid",
+  "session": "Sesi tidak valid",
+  "signin": "Proses masuk tidak valid",
+  "needSocket": "Diperlukan WebSocket"
+}

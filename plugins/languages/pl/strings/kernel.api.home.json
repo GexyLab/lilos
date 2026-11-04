@@ -1,0 +1,10 @@
+{
+  "signIn": "Najpierw się zaloguj",
+  "id": "Nieprawidłowy identyfikator",
+  "key": "Nieprawidłowy klucz: {key}",
+  "tooLarge": "Wartość jest za duża: {key}",
+  "changes": "Nieprawidłowe zmiany",
+  "item": "Nieprawidłowy element",
+  "itemData": "Zbyt dużo danych w elemencie",
+  "tooMany": "Zbyt wiele kluczy naraz"
+}

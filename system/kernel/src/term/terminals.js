@@ -12,6 +12,7 @@ import { serverOf } from '../net/knownHosts.js';
 import { checkFields, fieldShown, netFail } from '../net/drivers.js';
 import { findDrivers, termProtocolInfo, isSecure } from './drivers.js';
 import { History, Charset, ENCODINGS } from './screen.js';
+import { Text, defineStrings, localize, localizedJson } from '../strings.js';
 
 const log = logger('terminali');
 const MAX_HOSTS = 200;
@@ -21,6 +22,30 @@ const HIGH_WATER = 1 << 20;           // bytes waiting for the page: stop readin
 const ID = /^[a-f0-9]{16}$/;
 const TERM = /^[A-Za-z0-9._+-]{1,40}$/;
 const FOLDER_MAX = 60;
+
+const { t } = defineStrings('lilos:kernel.term.terminals', { en: { strings: {
+  signIn: 'Sign-in required',
+  noProtocol: 'Protocol not available: {protocol} (its kernel module is missing)',
+  hostName: 'Host name not valid',
+  hostTaken: 'There is already a host «{name}»',
+  missing: 'Missing: {fields}',
+  tooMany: 'At most {max} hosts',
+  hostNotFound: 'Host not found',
+  noPassword: 'No password to save',
+  sealedOther: 'The password saved in the shortcut works only for whoever saved it, on this lilOS, for the same server and user',
+  sessionNotFound: 'Session not found',
+  sessionsTooMany: 'At most {max} sessions open',
+  sftpOnly: 'The terminal opens only on SFTP connections',
+  sshOnly: 'Scheduled commands go only to SSH hosts',
+  untrusted: 'The key of the server of «{name}» is not confirmed: connect once from the Terminal',
+  denied: 'Access denied by «{name}»: save the password or the key in the host',
+  stopping: 'The kernel is stopping',
+  detached: 'Closed after 10 minutes without a window',
+  cancelled: 'Connection cancelled',
+  failed: 'Connection failed',
+  folder: 'Folder name not valid',
+  cwd: 'Folder not valid',
+} } });
 
 /**
  * Remote terminals (the Terminale remoto app): each user's saved hosts and their open sessions.
@@ -67,7 +92,7 @@ export class Terminals {
   }
 
   async #user(principal) {
-    if (principal?.kind !== 'user') fail('unauthorized', 'Accesso richiesto');
+    if (principal?.kind !== 'user') fail('unauthorized', t('signIn'));
     let user = this.#users.get(principal.id);
     if (user) return user.ready;
     user = { saved: new Map() };
@@ -102,7 +127,7 @@ export class Terminals {
   }
 
   #driver(protocol) {
-    return this.drivers.get(protocol) ?? fail('unavailable', `Protocollo non disponibile: ${protocol} (manca il suo modulo del kernel)`);
+    return this.drivers.get(protocol) ?? fail('unavailable', t('noProtocol', { protocol }));
   }
 
   #emit(userId, event) {
@@ -122,15 +147,15 @@ export class Terminals {
 
   #checkName(user, name, exceptId = null) {
     const clean = typeof name === 'string' ? name.replace(/\s+/g, ' ').trim() : '';
-    if (!clean || clean.length > 60 || /[\0-\x1f]/.test(clean)) fail('invalid', 'Nome dell’host non valido');
-    if ([...user.saved.values()].some(r => r.id !== exceptId && r.name.toLowerCase() === clean.toLowerCase())) fail('conflict', `C’è già un host «${clean}»`);
+    if (!clean || clean.length > 60 || /[\0-\x1f]/.test(clean)) fail('invalid', t('hostName'));
+    if ([...user.saved.values()].some(r => r.id !== exceptId && r.name.toLowerCase() === clean.toLowerCase())) fail('conflict', t('hostTaken', { name: clean }));
     return clean;
   }
 
   /** The values of a connection: the required ones there (the secret ones may be asked in the terminal), then checked by its protocol and by where the kernel may connect. */
   async #accept(driver, values) {
     const missing = driver.fields.filter(f => f.required && !f.secret && fieldShown(f, values) && (values[f.key] === undefined || values[f.key] === ''));
-    if (missing.length) fail('invalid', `Mancano: ${missing.map(f => f.key).join(', ')}`);
+    if (missing.length) fail('invalid', t('missing', { fields: missing.map(f => f.key).join(', ') }));
     try { driver.check?.(values); } catch (err) { netFail(err); }
     await this.guard.check(values);
   }
@@ -149,7 +174,7 @@ export class Terminals {
   /** A new host: { name, folder, protocol, values, settings, remember } and the secret fields apart. */
   async create(principal, body, rawSecret) {
     const user = await this.#user(principal);
-    if (user.saved.size >= MAX_HOSTS) fail('invalid', `Al massimo ${MAX_HOSTS} host`);
+    if (user.saved.size >= MAX_HOSTS) fail('invalid', t('tooMany', { max: MAX_HOSTS }));
     const driver = this.#driver(body?.protocol);
     const { values, secret } = checkFields(driver, body.values, rawSecret);
     await this.#accept(driver, values);
@@ -198,7 +223,7 @@ export class Terminals {
   }
 
   #saved(user, id) {
-    return (typeof id === 'string' && user.saved.get(id)) || fail('not_found', 'Host inesistente');
+    return (typeof id === 'string' && user.saved.get(id)) || fail('not_found', t('hostNotFound'));
   }
 
   async #openSecret(r) {
@@ -234,7 +259,7 @@ export class Terminals {
       protocol = body?.protocol;
       ({ values, secret } = checkFields(this.#driver(protocol), body?.values, body?.secret && typeof body.secret === 'object' ? body.secret : {}));
     }
-    if (!Object.keys(secret).length) fail('invalid', 'Nessuna password da salvare');
+    if (!Object.keys(secret).length) fail('invalid', t('noPassword'));
     const driver = this.#driver(protocol);
     return { sealed: await this.secrets.seal({ kind: SEALED, user: principal.id, protocol, bound: boundOf(driver, values), secret }) };
   }
@@ -245,7 +270,7 @@ export class Terminals {
     try { data = await this.secrets.open(sealed); } catch { /* another lilOS, or damaged */ }
     if (data?.kind !== SEALED || data.user !== principal.id || data.protocol !== protocol || data.bound !== boundOf(driver, values)
       || !data.secret || typeof data.secret !== 'object') {
-      fail('forbidden', 'La password salvata nel collegamento vale solo per chi l’ha salvata, su questo lilOS, per lo stesso server e utente');
+      fail('forbidden', t('sealedOther'));
     }
     return data.secret;
   }
@@ -258,12 +283,12 @@ export class Terminals {
 
   #session(principal, id) {
     const s = typeof id === 'string' && this.#sessions.get(id);
-    if (!s || s.owner !== principal?.id) fail('not_found', 'Sessione inesistente');
+    if (!s || s.owner !== principal?.id) fail('not_found', t('sessionNotFound'));
     return s;
   }
 
   sessions(principal) {
-    if (principal?.kind !== 'user') fail('unauthorized', 'Accesso richiesto');
+    if (principal?.kind !== 'user') fail('unauthorized', t('signIn'));
     return this.#mine(principal).map(s => s.view());
   }
 
@@ -281,7 +306,7 @@ export class Terminals {
   async open(principal, body) {
     const user = await this.#user(principal);
     if (this.#mine(principal).filter(s => s.state !== 'closed').length >= MAX_SESSIONS) {
-      fail('rate_limited', `Al massimo ${MAX_SESSIONS} sessioni aperte`);
+      fail('rate_limited', t('sessionsTooMany', { max: MAX_SESSIONS }));
     }
     let spec;
     if (typeof body?.host === 'string') {
@@ -294,7 +319,7 @@ export class Terminals {
       this.#save(principal.id, user).catch(err => log.error('Host dei terminali non salvati', err));
     } else if (typeof body?.mount === 'string') {
       const { values, secret, name, protocol } = await this.#kernel.network.credentials(principal, body.mount);
-      if (protocol !== 'sftp') fail('invalid', 'Il terminale si apre solo sulle connessioni SFTP');
+      if (protocol !== 'sftp') fail('invalid', t('sftpOnly'));
       const driver = this.#driver('ssh');
       // The server key confirmed for the SFTP connection counts here too: the same store (knownHosts.js)
       const ssh = checkFields(driver, { host: values.host, port: values.port, user: values.user, auth: values.auth }, secret);
@@ -317,7 +342,8 @@ export class Terminals {
     let address = spec.protocol;
     try { address = driver.address(spec.values); } catch { /* the protocol's name, then */ }
     // A quick connection is named by its address without the scheme ('ann@host:2222')
-    const s = new Session(this, principal.id, { ...spec, name: spec.name || address.replace(/^[a-z]+:\/\//, ''), address, secure: isSecure(driver, spec.values), driver });
+    const locale = await this.#kernel.userLocale(principal.id).catch(() => 'en');
+    const s = new Session(this, principal.id, { ...spec, name: spec.name || address.replace(/^[a-z]+:\/\//, ''), address, secure: isSecure(driver, spec.values), driver, locale });
     this.#sessions.set(s.id, s);
     s.armDetached();
     this.#emit(principal.id, 'term.sessions');
@@ -331,9 +357,9 @@ export class Terminals {
     this.forgetSession(s);
   }
 
-  /** A page attaches with its WebSocket (api/term.js). */
-  attach(principal, id, ws, size) {
-    this.#session(principal, id).attach(ws, size);
+  /** A page attaches with its WebSocket (api/term.js); locale: the page's language (strings.js localeOf), if known. */
+  attach(principal, id, ws, size, locale = null) {
+    this.#session(principal, id).attach(ws, size, locale);
   }
 
   /**
@@ -348,7 +374,7 @@ export class Terminals {
   async exec(principal, hostId, command, { signal, maxOutput = 64 << 10 } = {}) {
     const user = await this.#user(principal);
     const r = this.#saved(user, hostId);
-    if (r.protocol !== 'ssh') fail('invalid', 'I comandi pianificati vanno solo su host SSH');
+    if (r.protocol !== 'ssh') fail('invalid', t('sshOnly'));
     const driver = this.#driver('ssh');
     const values = { ...r.values, command };
     await this.#accept(driver, values);
@@ -365,9 +391,9 @@ export class Terminals {
         lookup: this.guard.lookup, paths: PATHS, output: received, closed: info => ended(info ?? {}),
       });
     } catch (err) {
-      if (err?.net === 'untrusted') fail('untrusted', `La chiave del server di «${r.name}» non è confermata: collegati una volta dal Terminale`);
+      if (err?.net === 'untrusted') fail('untrusted', t('untrusted', { name: r.name }));
       // 'cancelled': the server asked again (a password that is wrong or not saved) and nobody is there to answer
-      if (err?.net === 'auth' || (err?.net === 'cancelled' && !signal?.aborted)) fail('forbidden', `Accesso negato da «${r.name}»: salva la password o la chiave nell’host`);
+      if (err?.net === 'auth' || (err?.net === 'cancelled' && !signal?.aborted)) fail('forbidden', t('denied', { name: r.name }));
       netFail(err, r.name);
     }
     // Drivers before lilOS 1.22.0 hand the output and the end through the session
@@ -404,7 +430,7 @@ export class Terminals {
   }
 
   async stop() {
-    await Promise.all([...this.#sessions.values()].map(s => s.end('Il kernel si sta fermando').catch(() => {})));
+    await Promise.all([...this.#sessions.values()].map(s => s.end(t('stopping')).catch(() => {})));
     this.#sessions.clear();
   }
 }
@@ -424,12 +450,14 @@ class Session {
   #trusting = null;           // { trust, resolve }: a server key waiting for the page
   #paused = false;
   #size = { cols: 80, rows: 24 };
+  #locale;                    // the language of what the kernel writes (the user's, or the page's)
 
   constructor(terms, owner, spec) {
     this.#terms = terms;
     this.#spec = spec;
     this.#driver = spec.driver;
     this.#charset = new Charset(spec.settings.encoding);
+    this.#locale = spec.locale ?? 'en';
     this.id = newId();
     this.owner = owner;
     this.state = 'new';
@@ -456,7 +484,7 @@ class Session {
   }
 
   #control(msg) {
-    this.#socket?.send(JSON.stringify(msg));
+    this.#socket?.send(localizedJson(msg, this.#locale));
   }
 
   /** Without a page: closes after DETACHED_FOR (at once if it is over). */
@@ -465,13 +493,14 @@ class Session {
     if (this.state === 'closed') return this.#terms.forgetSession(this);
     this.closesAt = Date.now() + DETACHED_FOR;
     this.#timer = setTimeout(() => {
-      this.end('Chiusa dopo 10 minuti senza finestra').catch(() => {});
+      this.end(t('detached')).catch(() => {});
       this.#terms.forgetSession(this);
     }, DETACHED_FOR);
     this.#timer.unref?.();
   }
 
-  attach(ws, size) {
+  attach(ws, size, locale = null) {
+    if (locale) this.#locale = locale;
     const old = this.#socket;
     if (old) {
       old.send(JSON.stringify({ t: 'taken' }));
@@ -482,7 +511,7 @@ class Session {
     this.#socket = ws;
     this.#resize(size);
     ws.send(this.#history.replay());
-    ws.send(JSON.stringify({ t: 'state', session: this.view() }));
+    ws.send(localizedJson({ t: 'state', session: this.view() }, this.#locale));
     if (this.#trusting) ws.send(JSON.stringify({ t: 'trust', trust: this.#trusting.trust }));
     ws.on('message', (data, binary) => (binary ? this.#input(data) : this.#command(data)));
     ws.on('drain', () => this.#drained());
@@ -541,7 +570,8 @@ class Session {
   }
 
   #print(text) {
-    this.#output(Buffer.from(`${String(text).replace(/\r?\n/g, '\r\n')}\r\n`, 'utf8'));
+    const line = text instanceof Text ? localize(text, this.#locale) : String(text);
+    this.#output(Buffer.from(`${line.replace(/\r?\n/g, '\r\n')}\r\n`, 'utf8'));
   }
 
   /** What the user typed: to a line asked by the kernel, or to the server. */
@@ -640,8 +670,8 @@ class Session {
       this.#setState('on', '');
     } catch (err) {
       if (this.state === 'closed') return;
-      const reason = err?.net === 'cancelled' ? 'Connessione annullata' : messageOf(err);
-      this.#print(`\x1b[31m${reason}\x1b[0m`);
+      const reason = err?.net === 'cancelled' ? t('cancelled') : messageOf(err);
+      this.#print(`\x1b[31m${localize(reason, this.#locale)}\x1b[0m`);
       this.#ended(reason);
     }
   }
@@ -671,9 +701,9 @@ function messageOf(err) {
   try {
     netFail(err);
   } catch (e) {
-    return String(e?.message ?? e).slice(0, 300);
+    return e?.text instanceof Text ? e.text : String(e?.message ?? e).slice(0, 300);
   }
-  return 'Connessione non riuscita';
+  return t('failed');
 }
 
 function cleanSettings(raw = {}) {
@@ -688,14 +718,14 @@ function cleanSettings(raw = {}) {
 function cleanFolder(folder) {
   if (folder === undefined || folder === null || folder === '') return '';
   const clean = typeof folder === 'string' ? folder.replace(/\s+/g, ' ').trim() : '';
-  if (clean.length > FOLDER_MAX || /[\0-\x1f]/.test(clean)) fail('invalid', 'Nome della cartella non valido');
+  if (clean.length > FOLDER_MAX || /[\0-\x1f]/.test(clean)) fail('invalid', t('folder'));
   return clean;
 }
 
 /** A folder on the server to start in: absolute, no control characters. */
 function cleanCwd(path) {
   if (path === undefined || path === null || path === '' || path === '/') return null;
-  if (typeof path !== 'string' || path.length > 4096 || /[\0-\x1f]/.test(path) || !path.startsWith('/')) fail('invalid', 'Cartella non valida');
+  if (typeof path !== 'string' || path.length > 4096 || /[\0-\x1f]/.test(path) || !path.startsWith('/')) fail('invalid', t('cwd'));
   return path;
 }
 

@@ -1,0 +1,7 @@
+{
+  "signIn": "Conectați-vă mai întâi",
+  "host": "Gazdă nevalidă",
+  "session": "Sesiune nevalidă",
+  "noSession": "Sesiunea nu a fost găsită",
+  "needSocket": "Este necesar un WebSocket"
+}

@@ -1,0 +1,9 @@
+{
+  "oldTerminal": "Este necesar Terminal 1.5.0 sau mai nou: actualizați-l din AppStore",
+  "signal": "Încheiat de semnalul SIG{signal} ({code})",
+  "signalTail": "Încheiat de semnalul SIG{signal} ({code}): {tail}",
+  "exit": "Încheiat cu codul {code}",
+  "exitTail": "Încheiat cu codul {code}: {tail}",
+  "ok": "Încheiat cu codul 0",
+  "okTail": "Încheiat cu codul 0 · {tail}"
+}

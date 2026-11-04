@@ -1,0 +1,12 @@
+{
+  "zoomOut": "Zoom arrière",
+  "zoomIn": "Zoom avant",
+  "fit": "Tout afficher",
+  "zoomReset": "Zoom à 100 %",
+  "help": "Commandes",
+  "withKey": "{text} ({keys})",
+  "help.wheel": "Molette : zoom",
+  "help.move": "Espace + glisser ou bouton du milieu : se déplacer",
+  "help.select": "Glisser sur l’arrière-plan : sélectionner",
+  "help.fit": "{keys} : tout afficher"
+}

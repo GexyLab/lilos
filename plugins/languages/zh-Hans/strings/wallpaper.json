@@ -1,0 +1,7 @@
+{
+  "notImage": "“{name}”不是图像",
+  "gone": "此图像已不存在",
+  "copyFailed": "无法将“{name}”复制到 {folder} 文件夹：{error}",
+  "noFolder": "缺少 {folder} 文件夹",
+  "openFailed": "“{name}”无法作为图像打开"
+}

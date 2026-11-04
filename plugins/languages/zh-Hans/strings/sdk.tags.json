@@ -1,0 +1,16 @@
+{
+  "red": "红色",
+  "orange": "橙色",
+  "yellow": "黄色",
+  "green": "绿色",
+  "teal": "青色",
+  "blue": "蓝色",
+  "purple": "紫色",
+  "gray": "灰色",
+  "emptyName": "标签名称不能为空",
+  "exists": "标签“{name}”已存在",
+  "tooMany": {
+    "other": "最多 {n} 个标签"
+  },
+  "notFound": "该标签不存在"
+}

@@ -1,5 +1,9 @@
-import { h } from '@lilos/sdk';
+import { h, locale } from '@lilos/sdk';
 import { union } from './Canvas.js';
+
+const { t } = locale.define('lilos:minimap', {
+  en: { strings: { title: 'Click or drag to move around' } },
+});
 
 const PAD = 8;
 
@@ -14,7 +18,7 @@ export class Minimap {
 
   constructor(canvas) {
     this.canvas = canvas;
-    this.el = h('div', { class: 'minimap', title: 'Clicca o trascina per spostarti' });
+    this.el = h('div', { class: 'minimap', title: t('title') });
     canvas.on('change', () => this.#schedule());
     this.el.addEventListener('pointerdown', e => this.#startNavigate(e));
     this.#schedule();

@@ -1,0 +1,7 @@
+{
+  "removed": {
+    "one": "{app} a fost eliminată: un element modificat este în Coșul de reciclare",
+    "few": "{app} a fost eliminată: {n} elemente modificate sunt în Coșul de reciclare",
+    "other": "{app} a fost eliminată: {n} de elemente modificate sunt în Coșul de reciclare"
+  }
+}

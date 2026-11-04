@@ -1,0 +1,27 @@
+{
+  "stopped": "操作已停止",
+  "badName": "无效的事件名称：{name}",
+  "appEvent": "应用的事件命名为 <app id>.<name>",
+  "exists": "事件 {name} 已存在",
+  "unknown": "未知事件：{name}",
+  "stage": "stage 必须为 \"before\" 或 \"after\"",
+  "position": "position 必须为 \"first\"、\"middle\" 或 \"last\"",
+  "noHandler": "缺少管道的函数",
+  "reserved": "事件 {name} 保留给系统使用",
+  "syncOnly": "{name} 是即时操作：应用只能观察它（stage \"after\"）",
+  "maxSubs": {
+    "other": "每个应用最多 {n} 个订阅"
+  },
+  "busy": "进行中的操作过多",
+  "busyApp": "此应用进行中的操作过多",
+  "syncAnswer": "{name}：即时操作需要即时回应",
+  "handlerFailed": "{name}：{message}",
+  "cannotStop": "{name}：事件 {event} 无法停止",
+  "whereObject": "where：只能是对象",
+  "whereInvalid": "无效的 where",
+  "whereKey": "where：未使用 {key}",
+  "whereMeta": "where.meta：只能是 \"own\"",
+  "whereType": "无效的 where.type",
+  "whereList": "where.{key}：文本列表",
+  "timeout": "{name} 未及时响应"
+}

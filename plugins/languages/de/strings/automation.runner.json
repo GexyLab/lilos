@@ -1,0 +1,9 @@
+{
+  "stopped": "Automatisierung beendet",
+  "chooseItems": "Wählen Sie aus, womit gearbeitet werden soll",
+  "appMissing": "Die App dieses Schritts ist nicht installiert",
+  "password": "Dieser Schritt fragt nach einem Passwort",
+  "stepFailedLabel": "Schritt {n} ({label}): {message}",
+  "stepFailed": "Schritt {n}: {message}",
+  "cannotRedo": "Diese Aktion kann nicht wiederholt werden"
+}

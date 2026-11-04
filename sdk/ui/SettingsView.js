@@ -2,6 +2,11 @@ import { h } from '../core/dom.js';
 import { Emitter } from '../core/events.js';
 import { uid } from '../core/storage.js';
 import { icon } from './icons.js';
+import { locale } from '../core/locale.js';
+
+const { t } = locale.define('lilos:sdk.settingsView', {
+  en: { strings: { sections: 'Sections', search: 'Search settings', noneFound: 'No settings found', noResults: 'No results' } },
+});
 
 /**
  * Tabbed layout shared by every settings window: main tabs listed vertically on the left,
@@ -33,14 +38,14 @@ export class SettingsView extends Emitter {
     super();
     this.#tabs = tabs;
 
-    this.tabList = h('nav', { class: 'st-tabs', role: 'tablist', 'aria-orientation': 'vertical', 'aria-label': 'Sezioni' });
+    this.tabList = h('nav', { class: 'st-tabs', role: 'tablist', 'aria-orientation': 'vertical', 'aria-label': t('sections') });
     this.heading = h('h1', { id: `${this.#ids}-h` });
     this.description = h('p');
     this.head = h('header', { class: 'st-head' }, this.heading, this.description);
     this.subtabList = h('div', { class: 'st-subtabs', role: 'tablist', 'aria-orientation': 'horizontal' });
     this.panel = h('div', { class: 'st-body', role: 'tabpanel', 'aria-labelledby': `${this.#ids}-h`, tabindex: '-1' });
 
-    const searchInput = !search ? null : h('input', { type: 'text', placeholder: 'Cerca impostazioni', 'aria-label': 'Cerca impostazioni', spellcheck: 'false' });
+    const searchInput = !search ? null : h('input', { type: 'text', placeholder: t('search'), 'aria-label': t('search'), spellcheck: 'false' });
     searchInput?.addEventListener('input', () => this.#filter(searchInput.value));
     searchInput?.addEventListener('keydown', e => {
       if (e.key === 'Escape' && searchInput.value) { e.stopPropagation(); searchInput.value = ''; this.#filter(''); }
@@ -58,7 +63,10 @@ export class SettingsView extends Emitter {
       h('div', { class: 'st-main' }, this.head, this.subtabList, this.panel, this.footer));
 
     this.tabList.addEventListener('keydown', e => this.#arrows(e, this.tabList, 'ArrowUp', 'ArrowDown'));
-    this.subtabList.addEventListener('keydown', e => this.#arrows(e, this.subtabList, 'ArrowLeft', 'ArrowRight'));
+    this.subtabList.addEventListener('keydown', e => {
+      const rtl = getComputedStyle(this.subtabList).direction === 'rtl';
+      this.#arrows(e, this.subtabList, rtl ? 'ArrowRight' : 'ArrowLeft', rtl ? 'ArrowLeft' : 'ArrowRight');
+    });
 
     const first = this.#mainTabs()[0];
     if (first) this.select(first.id);
@@ -100,7 +108,7 @@ export class SettingsView extends Emitter {
       this.heading.textContent = '';
       this.description.textContent = '';
       this.subtabList.hidden = true;
-      this.panel.replaceChildren(h('div', { class: 'st-empty' }, 'Nessuna impostazione trovata'));
+      this.panel.replaceChildren(h('div', { class: 'st-empty' }, t('noneFound')));
       return;
     }
     this.heading.textContent = tab.label;
@@ -149,7 +157,7 @@ export class SettingsView extends Emitter {
         onclick: () => this.select(t.id),
       }, icon(t.icon), h('span', { class: 'st-tab-label' }, t.label), t.badge ? h('span', { class: 'st-badge' }, String(t.badge)) : null));
     }
-    if (!visible.size) items.push(h('div', { class: 'st-none' }, 'Nessun risultato'));
+    if (!visible.size) items.push(h('div', { class: 'st-none' }, t('noResults')));
     this.tabList.replaceChildren(...items);
   }
 

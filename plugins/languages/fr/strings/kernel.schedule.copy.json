@@ -1,0 +1,36 @@
+{
+  "folderGone": "Le dossier n’existe plus",
+  "namedGone": "{name} n’existe plus",
+  "notFolder": "Le dossier n’est pas un dossier",
+  "namedNotFolder": "{name} n’est pas un dossier",
+  "protected": "protégé par une app (chiffré, par exemple) : il n’est pas écrasé",
+  "mountGone": "{name} n’est plus sur « {mount} »",
+  "inside": "Le dossier de destination se trouve dans celui à copier",
+  "newVersion": "Nouvelle version : {name}",
+  "fileThere": "À l’emplacement de destination, il existe déjà un fichier « {name} »",
+  "copied": "copié {path}",
+  "tooMany": "Plus de {max} éléments : copiez un dossier plus petit",
+  "sameNameFile": "il existe un fichier du même nom",
+  "removedFile": "fichier {path} supprimé (c’est maintenant un dossier)",
+  "sameNameFolder": "il existe un dossier du même nom",
+  "error": "ERREUR {path} : {message}",
+  "removed": "supprimé {path}",
+  "oldVersion": "ancienne version supprimée : {name}",
+  "summary": {
+    "one": "{n} fichier copié ({size})",
+    "other": "{n} fichiers copiés ({size})"
+  },
+  "summarySame": {
+    "one": "{n} fichier copié ({size}), {same} inchangés",
+    "other": "{n} fichiers copiés ({size}), {same} inchangés"
+  },
+  "summaryRemoved": {
+    "one": "{n} fichier copié ({size}), {removed} supprimés",
+    "other": "{n} fichiers copiés ({size}), {removed} supprimés"
+  },
+  "summarySameRemoved": {
+    "one": "{n} fichier copié ({size}), {same} inchangés, {removed} supprimés",
+    "other": "{n} fichiers copiés ({size}), {same} inchangés, {removed} supprimés"
+  },
+  "notCopied": "{n} non copiés : {first}"
+}

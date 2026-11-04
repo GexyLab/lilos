@@ -1,0 +1,12 @@
+{
+  "folder": "module.json não corresponde à pasta {folder}",
+  "kernel": "{name} precisa do kernel {kernel}; este é o {api}",
+  "services": "{name}: nomes de serviços inválidos",
+  "settings": "{name}: configurações inválidas",
+  "replaces": "{name}: replaces inválido",
+  "notInstalled": "Módulo não instalado: {name}",
+  "twice": "Módulo indicado duas vezes: {name}",
+  "provider": "O serviço \"{service}\" é fornecido tanto por {first} quanto por {second}",
+  "cycle": "Dependências circulares entre os módulos ({name})",
+  "missing": "{name} precisa do serviço \"{service}\", que nenhum módulo ativo fornece"
+}

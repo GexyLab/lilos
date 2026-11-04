@@ -1,0 +1,9 @@
+{
+  "oldTerminal": "टर्मिनल 1.5.0 या नया संस्करण आवश्यक है: इसे AppStore से अपडेट करें",
+  "signal": "सिग्नल SIG{signal} द्वारा समाप्त ({code})",
+  "signalTail": "सिग्नल SIG{signal} द्वारा समाप्त ({code}): {tail}",
+  "exit": "{code} के साथ बाहर निकला",
+  "exitTail": "{code} के साथ बाहर निकला: {tail}",
+  "ok": "0 के साथ बाहर निकला",
+  "okTail": "0 के साथ बाहर निकला · {tail}"
+}

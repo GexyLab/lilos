@@ -1,0 +1,8 @@
+{
+  "noService": "Kein Kernelmodul bewahrt die Benachrichtigungen auf",
+  "sent": "Benachrichtigung gesendet",
+  "sentAdmins": {
+    "one": "Benachrichtigung an {n} Administrator gesendet",
+    "other": "Benachrichtigung an {n} Administratoren gesendet"
+  }
+}

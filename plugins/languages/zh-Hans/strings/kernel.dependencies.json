@@ -1,0 +1,35 @@
+{
+  "adminOnly": "只有管理员才能安装或移除软件包",
+  "needsLilos": "{name} {version} 需要 lilOS {range}（当前为 {system}）",
+  "moduleJson": "module.json 不是有效的 JSON",
+  "byHand": "{id} 是手动放入的：需要手动更新",
+  "appInstalled": "{name} 已安装：如需新版本请使用更新",
+  "moduleInstalled": "{name} 已安装：如需新版本请使用更新",
+  "replaced": "{name} 已被 {by} 取代：不再安装",
+  "appMissing": "应用未安装",
+  "moduleOff": "模块未启用",
+  "otherApp": "该软件包属于应用 {found}，而不是 {id}",
+  "otherModule": "该软件包属于模块 {found}，而不是 {id}",
+  "moduleNewer": "需要模块 {id} {range}：已安装 {have}，最新版本为 {newer}",
+  "appNewer": "需要应用 {id} {range}：已安装 {have}，最新版本为 {newer}",
+  "unreadable": "无法读取仓库 {url}：{message}",
+  "moduleNotInRepo": "仓库 {url} 中没有模块 {id}",
+  "appNotInRepo": "仓库 {url} 中没有应用 {id}",
+  "moduleRepoVersion": "需要模块 {id} {range}：仓库中为 {version}",
+  "appRepoVersion": "需要应用 {id} {range}：仓库中为 {version}",
+  "modulePlanned": "{name} 需要模块 {id} {range}，但正在安装的是 {version}",
+  "appPlanned": "{name} 需要应用 {id} {range}，但正在安装的是 {version}",
+  "circular": "{a} 和 {b} 之间存在循环依赖：两者都无法先于对方安装",
+  "consent": "缺少对 {keys} 的同意：请重新查看将要安装的内容",
+  "haveVersion": "{id} {range}（已有 {have}）",
+  "missing": "{name} 需要：{missing}。请从 AppStore 安装，它也会安装所需的内容。",
+  "appNeeded": {
+    "other": "{names} 需要应用 {id}：请先移除它们"
+  },
+  "moduleNeeded": {
+    "other": "{names} 需要模块 {id}：请先移除它们"
+  },
+  "wantsOne": "{name} 需要 {id} {range}：{version} 不满足要求",
+  "wants": "{name} 需要 {id} {range}",
+  "wantsMany": "{list}：{version} 不满足要求"
+}

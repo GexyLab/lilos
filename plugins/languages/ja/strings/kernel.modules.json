@@ -1,0 +1,12 @@
+{
+  "folder": "module.json がフォルダー {folder} と一致しません",
+  "kernel": "{name} にはカーネル {kernel} が必要です（現在は {api}）",
+  "services": "{name}：サービス名が無効です",
+  "settings": "{name}：設定が無効です",
+  "replaces": "{name}：replaces が無効です",
+  "notInstalled": "モジュールがインストールされていません：{name}",
+  "twice": "モジュールが 2 回指定されています：{name}",
+  "provider": "サービス「{service}」が {first} と {second} の両方から提供されています",
+  "cycle": "モジュール間に循環依存関係があります（{name}）",
+  "missing": "{name} にはサービス「{service}」が必要ですが、それを提供する有効なモジュールがありません"
+}

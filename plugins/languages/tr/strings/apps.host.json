@@ -1,0 +1,8 @@
+{
+  "noExport": "Kod, {entry} öğesini dışa aktarmıyor",
+  "windowClosed": "{app}: pencere kapandı",
+  "libraryFailed": "{name} kitaplığı yüklenmedi",
+  "noExportOf": "{app} uygulamasının kodu {entry} öğesini dışa aktarmıyor",
+  "noWindow": "{app} uygulamasında {entry} penceresi yok",
+  "remoteOrigin": "Uzak bir uygulama lilOS ile aynı adrese sahip olamaz"
+}

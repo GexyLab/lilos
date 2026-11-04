@@ -1,0 +1,8 @@
+{
+  "noExport": "コードが {entry} をエクスポートしていません",
+  "windowClosed": "{app}：ウィンドウが閉じられました",
+  "libraryFailed": "ライブラリ {name} が読み込まれていません",
+  "noExportOf": "{app} のコードが {entry} をエクスポートしていません",
+  "noWindow": "{app} にはウィンドウ {entry} がありません",
+  "remoteOrigin": "リモートアプリに lilOS のアドレスは使えません"
+}

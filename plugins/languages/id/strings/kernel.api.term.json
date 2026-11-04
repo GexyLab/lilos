@@ -1,0 +1,7 @@
+{
+  "signIn": "Masuk terlebih dahulu",
+  "host": "Host tidak valid",
+  "session": "Sesi tidak valid",
+  "noSession": "Sesi tidak ditemukan",
+  "needSocket": "Diperlukan WebSocket"
+}

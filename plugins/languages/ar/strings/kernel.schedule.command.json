@@ -1,0 +1,9 @@
+{
+  "oldTerminal": "يلزم تطبيق الطرفية 1.5.0 أو أحدث: حدّثه من AppStore",
+  "signal": "انتهى بالإشارة SIG{signal} ({code})",
+  "signalTail": "انتهى بالإشارة SIG{signal} ({code}): {tail}",
+  "exit": "خرج بالرمز {code}",
+  "exitTail": "خرج بالرمز {code}: {tail}",
+  "ok": "خرج بالرمز 0",
+  "okTail": "خرج بالرمز 0 · {tail}"
+}

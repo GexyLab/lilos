@@ -1,0 +1,8 @@
+{
+  "noExport": "코드가 {entry}을(를) 내보내지 않습니다",
+  "windowClosed": "{app}: 창이 닫혔습니다",
+  "libraryFailed": "라이브러리 {name}을(를) 불러오지 못했습니다",
+  "noExportOf": "{app}의 코드가 {entry}을(를) 내보내지 않습니다",
+  "noWindow": "{app}에 {entry} 창이 없습니다",
+  "remoteOrigin": "원격 앱은 lilOS의 주소를 사용할 수 없습니다"
+}

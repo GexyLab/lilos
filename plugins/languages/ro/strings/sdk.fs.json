@@ -1,0 +1,23 @@
+{
+  "notForNet": "Indisponibil pentru fișierele unei conexiuni de rețea",
+  "badWorkspace": "Spațiu de lucru nevalid",
+  "noTarget": "Dosarul de destinație nu există",
+  "badType": "Tip nevalid: {type}",
+  "badLink": "Comandă rapidă nevalidă",
+  "badId": "Identificator nevalid",
+  "privateFolder": "Doar un dosar cu un spațiu de lucru poate fi privat",
+  "notFound": "Elementul nu există",
+  "fileNotFound": "Fișierul nu există",
+  "tooManyApps": "Prea multe aplicații au date pe acest element",
+  "tooMuchAppData": "Prea multe date ale aplicațiilor pe acest element",
+  "intoItself": "Un dosar nu poate fi mutat în el însuși",
+  "netTransfer": "Între dosarul personal și rețea, fișierele se copiază printr-un transfer",
+  "systemFolders": "Conține dosare de sistem",
+  "folderNotFound": "Dosarul nu există",
+  "notPrivate": "Dosarul nu este privat",
+  "systemItems": "Elementele de sistem nu pot fi modificate",
+  "badApp": "Aplicație nevalidă",
+  "appDataObject": "Datele unei aplicații sunt un obiect",
+  "appDataTooBig": "Datele aplicației sunt prea mari (cel mult 1 KB)",
+  "emptyName": "Numele nu poate fi gol"
+}

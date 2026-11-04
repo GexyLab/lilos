@@ -1,0 +1,12 @@
+{
+  "folder": "module.json فولڈر {folder} سے مطابقت نہیں رکھتا",
+  "kernel": "{name} کو kernel {kernel} درکار ہے، یہ {api} ہے",
+  "services": "{name}: سروسز کے غلط نام",
+  "settings": "{name}: غلط ترتیبات",
+  "replaces": "{name}: غلط replaces",
+  "notInstalled": "ماڈیول انسٹال نہیں ہے: {name}",
+  "twice": "ماڈیول دو بار درج ہے: {name}",
+  "provider": "سروس \"{service}\" {first} اور {second} دونوں فراہم کرتے ہیں",
+  "cycle": "ماڈیولز کے درمیان دائری انحصارات ({name})",
+  "missing": "{name} کو سروس \"{service}\" درکار ہے، جو کوئی فعال ماڈیول فراہم نہیں کرتا"
+}

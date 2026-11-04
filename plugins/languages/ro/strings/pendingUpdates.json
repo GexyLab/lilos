@@ -1,0 +1,7 @@
+{
+  "restart": "Reporniți lilOS pentru a finaliza actualizările",
+  "reopen": "Aplicații actualizate de repornit",
+  "heading": "Actualizate, deschise cu versiunea anterioară",
+  "reopenApp": "Reporniți {name} ({version})",
+  "restartSystem": "Reporniți lilOS"
+}

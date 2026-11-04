@@ -1,0 +1,5 @@
+{
+  "invalid": "Authentification non valide",
+  "noToken": "OAuth 2.0 : aucun jeton : connectez-vous ou saisissez le jeton",
+  "aws": "Signature AWS : la clé d’accès ou la clé secrète est manquante"
+}

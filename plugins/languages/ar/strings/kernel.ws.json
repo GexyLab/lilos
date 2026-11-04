@@ -1,0 +1,13 @@
+{
+  "needWs": "يلزم عنوان ws:// أو wss://",
+  "noAnswer": "لم يستجب الخادم لطلب الفتح",
+  "cancelled": "تم الإلغاء",
+  "tooLong": "استجابة الخادم طويلة جدًا",
+  "notHttp": "لم يستجب الخادم بـ HTTP",
+  "closed": "أغلق الخادم الاتصال",
+  "status": "أجاب الخادم بـ {status} بدلًا من فتح WebSocket",
+  "notOpened": "لم يفتح الخادم WebSocket",
+  "badAccept": "استجابة الخادم غير صالحة (Sec-WebSocket-Accept)",
+  "extensions": "طلب الخادم امتدادات لم تُعرض",
+  "protocol": "اختار الخادم بروتوكولًا فرعيًا لم يُعرض"
+}

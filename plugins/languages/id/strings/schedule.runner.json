@@ -1,0 +1,19 @@
+{
+  "noAutomata": "Automata tidak terinstal",
+  "theAutomation": "Otomatisasi",
+  "theFile": "File",
+  "gone": "{name} sudah tidak ada",
+  "openedFile": "{name} dibuka",
+  "appMissing": "Aplikasi {app} tidak terinstal",
+  "openedApp": "{app} dibuka",
+  "title": "Operasi tertunda",
+  "skippedByUser": "Dilewati oleh pengguna lilOS",
+  "automation": "Otomatisasi",
+  "due": "jatuh tempo {time}",
+  "dueWith": "{label} · jatuh tempo {time}",
+  "always": "Mulai sekarang jalankan tanpa bertanya",
+  "runNow": "Jalankan sekarang",
+  "skip": "Lewati",
+  "lead": "Selama lilOS ditutup, sudah tiba waktunya untuk:",
+  "hint": "Yang tidak Anda jawab akan tetap menunggu hingga lilOS dibuka berikutnya, lalu kedaluwarsa."
+}

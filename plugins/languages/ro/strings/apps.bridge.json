@@ -1,0 +1,7 @@
+{
+  "noPipeFn": "Lipsește funcția pipe-ului",
+  "noHandler": "{id}: {entry} nu răspunde la apeluri (lipsește lilos.handle)",
+  "noPipe": "{id}: nicio funcție pentru acest pipe",
+  "libraryFailed": "Biblioteca nu s-a încărcat",
+  "noExport": "Codul nu exportă {entry}"
+}

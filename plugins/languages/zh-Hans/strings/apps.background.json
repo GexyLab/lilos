@@ -1,0 +1,6 @@
+{
+  "notStarted": "{app} 未启动：{message}",
+  "noExport": "代码未导出 {entry}",
+  "codeError": "代码出错",
+  "stopped": "{app} 已停止"
+}

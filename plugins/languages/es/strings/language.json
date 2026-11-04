@@ -1,0 +1,6 @@
+{
+  "reload.title": "lilOS en {name}",
+  "reload.text": "Lo que ya está abierto se queda en el idioma en que se dibujó. Recarga lilOS para verlo todo en el nuevo idioma.",
+  "reload.now": "Recargar ahora",
+  "reload.later": "Más tarde"
+}

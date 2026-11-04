@@ -1,0 +1,16 @@
+{
+  "red": "Merah",
+  "orange": "Oranye",
+  "yellow": "Kuning",
+  "green": "Hijau",
+  "teal": "Hijau kebiruan",
+  "blue": "Biru",
+  "purple": "Ungu",
+  "gray": "Abu-abu",
+  "emptyName": "Nama tag tidak boleh kosong",
+  "exists": "Tag “{name}” sudah ada",
+  "tooMany": {
+    "other": "Paling banyak {n} tag"
+  },
+  "notFound": "Tag tidak ada"
+}

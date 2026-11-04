@@ -1,0 +1,7 @@
+{
+  "signIn": "پہلے سائن ان کریں",
+  "host": "غلط ہوسٹ",
+  "session": "غلط سیشن",
+  "noSession": "سیشن نہیں ملا",
+  "needSocket": "WebSocket درکار ہے"
+}

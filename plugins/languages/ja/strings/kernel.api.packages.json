@@ -1,0 +1,7 @@
+{
+  "signIn": "先にサインインしてください",
+  "kind": "kind は \"app\" または \"module\" である必要があります",
+  "id": "無効な id",
+  "target": "install または update が必要です",
+  "package": "無効なパッケージ"
+}

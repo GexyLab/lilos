@@ -1,0 +1,19 @@
+{
+  "noAutomata": "Automata غير مثبّت",
+  "theAutomation": "الأتمتة",
+  "theFile": "الملف",
+  "gone": "{name} لم يعد موجودًا",
+  "openedFile": "تم فتح {name}",
+  "appMissing": "التطبيق {app} غير مثبّت",
+  "openedApp": "تم فتح {app}",
+  "title": "عمليات معلّقة",
+  "skippedByUser": "تخطّاها مستخدم lilOS",
+  "automation": "أتمتة",
+  "due": "موعدها {time}",
+  "dueWith": "{label} · موعدها {time}",
+  "always": "التشغيل من الآن دون سؤال",
+  "runNow": "تشغيل الآن",
+  "skip": "تخطي",
+  "lead": "بينما كان lilOS مغلقًا، حان موعد:",
+  "hint": "العمليات التي لا ترد عليها تبقى بانتظار حتى المرة القادمة التي يُفتح فيها lilOS، ثم تنتهي صلاحيتها."
+}

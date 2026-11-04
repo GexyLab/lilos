@@ -1,0 +1,6 @@
+{
+  "signIn": "Accesso richiesto",
+  "adminOnly": "Solo un amministratore",
+  "name": "Nome non valido",
+  "notSupervised": "Il kernel non è stato avviato con \"npm run kernel\": riavvialo a mano"
+}

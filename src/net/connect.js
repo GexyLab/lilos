@@ -1,9 +1,16 @@
-import { fs, net, term, calls, kernel, shortcuts } from '@lilos/sdk';
+import { fs, net, term, calls, kernel, shortcuts, locale } from '@lilos/sdk';
 import { onKernelEvent } from '../apps/services.js';
 import { sharedFolder, NETWORK_NAME } from '../systemFs.js';
 import { systemActions } from '../notifications/card.js';
 import { notify } from '../notifications/notify.js';
 import { showTransfers, transfersShown } from './TransfersWindow.js';
+
+const { t } = locale.define('lilos:net', {
+  en: { strings: {
+    'shortcut.transfers': 'Open data transfer', 'shortcut.group': 'General',
+    error: 'Network: {message}',
+  } },
+});
 
 /** How long a run of transfers goes before the window opens by itself. */
 const OPEN_AFTER = 5000;
@@ -20,7 +27,7 @@ export function connectNet({ wm, button }) {
   const open = () => showTransfers(wm);
   button.onOpen = () => (transfersShown(wm) && wm.active === wm.get('transfers') ? wm.close(wm.get('transfers')) : open());
   systemActions.set('transfers', open);
-  shortcuts.register({ id: 'system.transfers', label: 'Apri il trasferimento dati', group: 'Generale', keys: [], run: open });
+  shortcuts.register({ id: 'system.transfers', label: t('shortcut.transfers'), group: t('shortcut.group'), keys: [], run: open });
 
   // The connections, as folders of Rete
   const mounts = () => {
@@ -29,7 +36,7 @@ export function connectNet({ wm, button }) {
   };
   net.on('mounts', mounts);
   mounts();
-  fs.on('netError', ({ message }) => notify(`Rete: ${message}`, { level: 'error' }));
+  fs.on('netError', ({ message }) => notify(t('error', { message }), { level: 'error' }));
 
   onKernelEvent('net.mount', () => net.mountChanged());
   onKernelEvent('net.change', d => fs.netChanged(d?.mount, d?.path));

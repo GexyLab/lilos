@@ -1,0 +1,5 @@
+{
+  "mismatch": "Kod aplikacji {app} nie zgadza się z jej manifestem",
+  "download": "Nie można pobrać biblioteki {name} ({status})",
+  "hash": "Biblioteka {name} nie zgadza się ze swoim skrótem"
+}

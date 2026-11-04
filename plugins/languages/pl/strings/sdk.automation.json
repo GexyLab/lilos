@@ -1,0 +1,5 @@
+{
+  "badAction": "Nieprawidłowa akcja: {id}",
+  "noFunction": "Brak funkcji akcji",
+  "timeout": "Aplikacja nie otworzyła pliku na czas"
+}

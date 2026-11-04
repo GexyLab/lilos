@@ -4,6 +4,7 @@ Le preferenze di lilOS in un posto solo.
 
 ## Cosa si cambia
 
+- **Lingua**: la lingua di lilOS e delle app (automatica o una di quelle installate). I testi di lilOS vengono dal pacchetto di lingua; ogni app usa la propria traduzione se ce l'ha, altrimenti l'inglese. *Altre lingue* apre l'AppStore sulla scheda Lingue.
 - **Scrivania → Elementi → Icone**: mostrare l'anteprima dei file sulla scrivania (se la versione di lilOS ha le miniature).
 - **Aspetto**: tema, colore principale, selezione sulla scrivania.
 - **Workspace**: quello attuale e tutti gli altri, con nome e colore.

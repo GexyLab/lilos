@@ -1,0 +1,8 @@
+{
+  "signIn": "پہلے سائن ان کریں",
+  "shape": "اطلاع ایک متن یا { text, level, action } ہوتی ہے",
+  "noText": "اطلاع میں کوئی متن نہیں",
+  "level": "غلط سطح: info، success، warning یا error",
+  "action": "غلط کارروائی: { entry, args }",
+  "sender": "غلط بھیجنے والا: ایپ انسٹال نہیں ہے"
+}

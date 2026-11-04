@@ -1,0 +1,7 @@
+{
+  "noPipeFn": "缺少管道函数",
+  "noHandler": "{id}：{entry} 不响应调用（缺少 lilos.handle）",
+  "noPipe": "{id}：没有用于此管道的函数",
+  "libraryFailed": "库未加载",
+  "noExport": "代码未导出 {entry}"
+}

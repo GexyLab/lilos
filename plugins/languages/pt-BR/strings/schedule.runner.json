@@ -1,0 +1,19 @@
+{
+  "noAutomata": "O Automata não está instalado",
+  "theAutomation": "A automação",
+  "theFile": "O arquivo",
+  "gone": "{name} não existe mais",
+  "openedFile": "{name} aberto",
+  "appMissing": "O app {app} não está instalado",
+  "openedApp": "{app} aberto",
+  "title": "Operações pendentes",
+  "skippedByUser": "Ignorada por quem usa o lilOS",
+  "automation": "Automação",
+  "due": "prevista para {time}",
+  "dueWith": "{label} · prevista para {time}",
+  "always": "De agora em diante, executar sem perguntar",
+  "runNow": "Executar agora",
+  "skip": "Ignorar",
+  "lead": "Enquanto o lilOS estava fechado, chegou a hora de:",
+  "hint": "As que você não responder continuam aguardando até a próxima vez que o lilOS for aberto; depois expiram."
+}

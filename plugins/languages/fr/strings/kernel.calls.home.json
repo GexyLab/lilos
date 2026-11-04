@@ -1,0 +1,7 @@
+{
+  "path": "Chemin non valide : {path}",
+  "notFound": "Introuvable : {path}",
+  "gone": "Le fichier n’existe plus",
+  "notFile": "Ce n’est pas un fichier : {path}",
+  "tooBig": "Fichier trop volumineux (50 Mo au maximum) : {path}"
+}

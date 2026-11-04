@@ -1,0 +1,17 @@
+{
+  "port": "Bağlantı noktası geçerli değil",
+  "url": "Adres geçerli değil",
+  "closedBy": "Sunucu tarafından kapatıldı ({code})",
+  "closedByReason": "Sunucu tarafından kapatıldı ({code}: {reason})",
+  "closed": "Bağlantı kapalı",
+  "unknownCommand": "Bilinmeyen komut",
+  "notStream": "Sunucu bir olay akışı yerine {status} yanıtını verdi",
+  "notStreamType": "Sunucu bir olay akışı yerine {status} ({type}) yanıtını verdi",
+  "lineTooLong": "Satır çok uzun: atıldı",
+  "eventTooLong": "Olay çok uzun: atıldı",
+  "streamEnded": "Sunucu akışı kapattı",
+  "receiveOnly": "Server-Sent Events: yalnızca alma",
+  "noHost": "Sunucu eksik",
+  "ended": "Sunucu bağlantıyı kapattı",
+  "tooBig": "Datagram çok büyük (en fazla 65507 bayt)"
+}

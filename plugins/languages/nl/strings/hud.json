@@ -1,0 +1,12 @@
+{
+  "zoomOut": "Uitzoomen",
+  "zoomIn": "Inzoomen",
+  "fit": "Alles tonen",
+  "zoomReset": "Zoomen naar 100%",
+  "help": "Bediening",
+  "withKey": "{text} ({keys})",
+  "help.wheel": "Scrollwiel: zoomen",
+  "help.move": "Spatiebalk + slepen of middelste knop: verplaatsen",
+  "help.select": "Achtergrond slepen: selecteren",
+  "help.fit": "{keys}: alles tonen"
+}

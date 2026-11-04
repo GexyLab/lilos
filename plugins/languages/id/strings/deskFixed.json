@@ -1,0 +1,13 @@
+{
+  "home.description": "Folder utama, berisi semua folder lainnya",
+  "folder.description": "Folder {name}, dibagikan oleh semua ruang kerja",
+  "files.description": "Membuka File Manager",
+  "trash": "Tempat Sampah",
+  "trash.description": "Membuka tempat sampah; file dan folder dapat diseret ke sini",
+  "noDesk": "Desktop tidak ada",
+  "folderGone": "Folder {name} sudah tidak ada",
+  "trashedOne": "Dipindahkan ke tempat sampah",
+  "trashedMany": {
+    "other": "{n} item dipindahkan ke tempat sampah"
+  }
+}

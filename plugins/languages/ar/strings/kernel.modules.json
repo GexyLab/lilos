@@ -1,0 +1,12 @@
+{
+  "folder": "module.json لا يطابق المجلد {folder}",
+  "kernel": "يتطلب {name} الإصدار kernel {kernel}، وهذا هو {api}",
+  "services": "{name}: أسماء خدمات غير صالحة",
+  "settings": "{name}: إعدادات غير صالحة",
+  "replaces": "{name}: قيمة replaces غير صالحة",
+  "notInstalled": "الوحدة غير مثبّتة: {name}",
+  "twice": "الوحدة مذكورة مرتين: {name}",
+  "provider": "الخدمة \"{service}\" توفرها كل من {first} و{second}",
+  "cycle": "تبعيات دائرية بين الوحدات ({name})",
+  "missing": "يتطلب {name} الخدمة \"{service}\"، ولا توفرها أي وحدة نشطة"
+}

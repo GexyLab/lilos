@@ -1,0 +1,14 @@
+{
+  "mainWindow": "メインウィンドウ",
+  "paramsObject": "パラメーターは { } で囲まれた JSON オブジェクトである必要があります",
+  "paramsTooLong": "パラメーターが長すぎます（最大 4 KB）",
+  "invalid": "{param}：値が無効です",
+  "fileGone": "{param}：ファイルがなくなりました",
+  "folderGone": "{param}：フォルダーがなくなりました",
+  "notOpened": "{app} は自動的に開きませんでした。{message}",
+  "notInstalled": "アプリがインストールされていません",
+  "maxApps": "起動時のアプリは最大 {max} 個です",
+  "unknownEntry": "不明なエントリポイント",
+  "entryNotAtStartup": "このエントリポイントは起動時に実行されません",
+  "skipped": "アプリなしで起動しました：アドレスに ?avvio=no が含まれています"
+}

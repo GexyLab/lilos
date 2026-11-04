@@ -1,0 +1,7 @@
+{
+  "path": "Nieprawidłowa ścieżka: {path}",
+  "notFound": "Nie znaleziono: {path}",
+  "gone": "Pliku już nie ma",
+  "notFile": "To nie jest plik: {path}",
+  "tooBig": "Plik jest za duży (najwyżej 50 MB): {path}"
+}

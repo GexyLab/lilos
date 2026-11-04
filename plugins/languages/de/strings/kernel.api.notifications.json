@@ -1,0 +1,8 @@
+{
+  "signIn": "Melden Sie sich zuerst an",
+  "shape": "Eine Benachrichtigung ist ein Text oder { text, level, action }",
+  "noText": "Die Benachrichtigung hat keinen Text",
+  "level": "Ungültige Stufe: info, success, warning oder error",
+  "action": "Ungültige Aktion: { entry, args }",
+  "sender": "Ungültiger Absender: Die App ist nicht installiert"
+}

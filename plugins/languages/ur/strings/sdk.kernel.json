@@ -1,0 +1,7 @@
+{
+  "canceled": "منسوخ",
+  "offline": "lilOS کا kernel جواب نہیں دے رہا",
+  "status": "خرابی {status}",
+  "badModule": "غلط ماڈیول",
+  "badPath": "غلط راستہ"
+}

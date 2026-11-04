@@ -1,0 +1,14 @@
+{
+  "title": "Wybierz plik",
+  "search": "Szukaj po nazwie lub ścieżce",
+  "searchLabel": "Szukaj",
+  "folders": "Foldery",
+  "files": "Pliki",
+  "choose": "Wybierz",
+  "cancel": "Anuluj",
+  "home": "Folder domowy",
+  "noMatch": "Nic nie pasuje do wyszukiwania",
+  "noFolders": "Brak folderów",
+  "noFiles": "Brak plików w lilOS",
+  "noFilesOf": "Brak plików {exts} w lilOS"
+}

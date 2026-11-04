@@ -1,0 +1,23 @@
+{
+  "signIn": "需要登录",
+  "noProtocol": "协议不可用：{protocol}（缺少其内核模块）",
+  "hostName": "无效的主机名",
+  "hostTaken": "已存在名为“{name}”的主机",
+  "missing": "缺少：{fields}",
+  "tooMany": "最多 {max} 个主机",
+  "hostNotFound": "未找到主机",
+  "noPassword": "没有要保存的密码",
+  "sealedOther": "快捷方式中保存的密码仅对保存它的人在此 lilOS 上、针对相同的服务器和用户有效",
+  "sessionNotFound": "未找到会话",
+  "sessionsTooMany": "最多打开 {max} 个会话",
+  "sftpOnly": "终端只能在 SFTP 连接上打开",
+  "sshOnly": "计划的命令只能发送到 SSH 主机",
+  "untrusted": "“{name}”的服务器密钥未确认：请从终端连接一次",
+  "denied": "“{name}”拒绝访问：请在主机中保存密码或密钥",
+  "stopping": "内核正在停止",
+  "detached": "没有窗口 10 分钟后已关闭",
+  "cancelled": "连接已取消",
+  "failed": "连接失败",
+  "folder": "无效的文件夹名称",
+  "cwd": "无效的文件夹"
+}

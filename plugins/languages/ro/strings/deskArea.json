@@ -1,0 +1,42 @@
+{
+  "newFolder": "Dosar nou",
+  "newDocument": "Document nou.txt",
+  "fixedOne": "„{name}” este un element fix al desktopului: nu poate fi șters",
+  "fixedMany": "Elementele fixe ale desktopului nu pot fi șterse",
+  "fixedStay": "Elementele fixe ale desktopului rămân: se șterge doar restul",
+  "removeWithAreas": {
+    "one": "{what} și ștergeți o zonă de lucru",
+    "few": "{what} și ștergeți {n} zone de lucru",
+    "other": "{what} și ștergeți {n} de zone de lucru"
+  },
+  "arrange": "Aranjați pictogramele",
+  "moveOne": "Mutați „{name}”",
+  "moveMany": {
+    "one": "Mutați un element",
+    "few": "Mutați {n} elemente",
+    "other": "Mutați {n} de elemente"
+  },
+  "gone": "Elementele nu mai există",
+  "area.open": "Deschideți zona de lucru",
+  "rename": "Redenumiți",
+  "properties": "Proprietăți…",
+  "area.remove": "Ștergeți zona de lucru…",
+  "open": "Deschideți",
+  "openMany": {
+    "one": "Deschideți un element",
+    "few": "Deschideți {n} elemente",
+    "other": "Deschideți {n} de elemente"
+  },
+  "fixed.hide": "Eliminați de pe desktop",
+  "fixed.hidden": "„{name}” poate fi pus înapoi din Panou de control → Spațiu de lucru → Acest spațiu de lucru",
+  "fixed.settings": "Elementele fixe ale desktopului…",
+  "openWith": "Deschideți cu…",
+  "wallpaper": "Folosiți ca fundal pentru desktop",
+  "area.fromSelection": "Creați o zonă de lucru cu selecția",
+  "remove": "Ștergeți",
+  "removeMany": {
+    "one": "Ștergeți un element",
+    "few": "Ștergeți {n} elemente",
+    "other": "Ștergeți {n} de elemente"
+  }
+}

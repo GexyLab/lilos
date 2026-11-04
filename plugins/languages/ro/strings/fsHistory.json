@@ -1,0 +1,22 @@
+{
+  "one": "„{name}”",
+  "many": {
+    "one": "un element",
+    "few": "{n} elemente",
+    "other": "{n} de elemente"
+  },
+  "home": "Dosar personal",
+  "gone": "Elementul nu mai există",
+  "folderGone": "Dosarul în care se aflau nu mai există",
+  "itemsGone": "Elementele nu mai există",
+  "notTrashed": "Elementele nu mai sunt în Coșul de reciclare",
+  "createdGone": "Dosarul nu mai există",
+  "foldersGone": "Elementele sau dosarele nu mai există",
+  "delete": "Ștergeți {what}",
+  "trash": "Mutați {what} în Coșul de reciclare",
+  "restore": "Restaurați {what}",
+  "create": "Creați „{name}”",
+  "rename": "Redenumiți „{from}” în „{to}”",
+  "move": "Mutați „{name}” în „{folder}”",
+  "moveMany": "Mutați {what} în „{folder}”"
+}

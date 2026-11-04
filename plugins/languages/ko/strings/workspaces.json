@@ -1,0 +1,10 @@
+{
+  "group": "작업 공간",
+  "next": "다음 작업 공간으로 전환",
+  "previous": "이전 작업 공간으로 전환",
+  "limit": "작업 공간은 최대 {max}개입니다",
+  "deskOf": "{name}의 바탕 화면",
+  "removed": "작업 공간 “{name}” 삭제됨",
+  "removedKept": "작업 공간 “{name}” 삭제됨. 해당 바탕 화면은 이제 {path}입니다",
+  "newName": "작업 공간 {n}"
+}

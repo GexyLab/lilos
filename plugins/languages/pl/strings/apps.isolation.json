@@ -1,0 +1,6 @@
+{
+  "notInstalled": "Aplikacja nie jest zainstalowana",
+  "system": "Aplikacje systemowe są częścią lilOS i działają wewnątrz lilOS",
+  "remote": "Aplikacja zdalna jest osobną witryną: zawsze działa w izolacji, we własnym źródle (origin)",
+  "sdk1": "Aplikacja używa SDK 1, które działa tylko w izolacji"
+}

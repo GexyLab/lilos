@@ -1,0 +1,9 @@
+{
+  "notFound": "وسیلہ نہیں ملا",
+  "method": "طریقہ کی اجازت نہیں",
+  "internal": "kernel کی اندرونی خرابی",
+  "unavailable": "سروس دستیاب نہیں: {name}",
+  "signIn": "پہلے سائن ان کریں",
+  "needSocket": "WebSocket درکار ہے",
+  "refused": "کنکشن مسترد کر دیا گیا"
+}

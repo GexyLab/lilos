@@ -1,0 +1,14 @@
+{
+  "name": "「{id}」",
+  "nameVersion": "「{id}」（{version}）",
+  "restart": {
+    "other": "すでにインストールされているカーネルモジュール {modules} が必要です。カーネルの次回の再起動から動作します。再起動は管理者が AppStore から行います。"
+  },
+  "missing": "見つかりません：{list}。管理者が AppStore からインストールします。",
+  "missingModule": "カーネルモジュール {name}",
+  "missingApp": "アプリ {name}",
+  "openApp": "アプリを開く",
+  "hidden": "{app} はこのワークスペースで非表示になっています。「コントロールパネル → ワークスペース」で表示できます。",
+  "cannotStart": "{app} はまだ起動できません",
+  "notStarted": "{app} は起動しませんでした：{message}"
+}

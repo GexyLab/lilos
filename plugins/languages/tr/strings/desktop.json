@@ -1,0 +1,22 @@
+{
+  "choose.serial": "Bir seri bağlantı noktası seçin",
+  "choose.usb": "Bir USB aygıtı seçin",
+  "choose.hid": "Bir aygıt seçin",
+  "choose.bluetooth": "Bir Bluetooth aygıtı seçin",
+  "choose.screen": "Neyi paylaşacağınızı seçin",
+  "choose.text.serial": "Bir uygulama bilgisayarın bir seri bağlantı noktasını kullanmak istiyor.",
+  "choose.text.usb": "Bir uygulama bilgisayarın bir USB aygıtını kullanmak istiyor.",
+  "choose.text.hid": "Bir uygulama bilgisayarın bir aygıtını (tuş takımları, okuyucular, oyun kumandaları…) kullanmak istiyor.",
+  "choose.text.bluetooth": "Bir uygulama bilgisayarın yakınındaki bir Bluetooth aygıtını kullanmak istiyor.",
+  "choose.text.screen": "Bir uygulama bilgisayarın bir ekranını veya penceresini görmek istiyor.",
+  "choose.field": "Aygıt",
+  "choose.none": "Aygıt bulunamadı: bağlayıp yeniden deneyin.",
+  "connect": "Bağlan",
+  "share": "Paylaş",
+  "saved": "“{name}” bilgisayardaki programdan kaydedildi",
+  "saveFailed": "“{name}” lilOS’a geri kaydedilmedi: {error}",
+  "missing": "“{path}” lilOS’ta yok",
+  "driveIn": "“{name}” şurada: Ağ › Bu bilgisayar",
+  "driveFailed": "“{name}” bağlanmadı: {error}",
+  "serialPort": "Seri bağlantı noktası"
+}

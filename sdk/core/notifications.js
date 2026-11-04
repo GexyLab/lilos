@@ -1,6 +1,14 @@
 import { Emitter } from './events.js';
 import { kernel } from './kernel.js';
 import { storage, uid } from './storage.js';
+import { locale } from './locale.js';
+
+const { t } = locale.define('lilos:sdk.notifications', {
+  en: { strings: {
+    noText: 'The notification has no text', badLevel: 'Invalid level: info, success, warning or error',
+    keep: 'How many notifications to keep: from 1 to 200',
+  } },
+});
 
 /**
  * Notifications for the user: what lilOS and the apps tell them, shown in the notification area
@@ -99,8 +107,8 @@ class Notifications extends Emitter {
 
   /** A notification kept in this page, not by the kernel. */
   #here({ text, level, action, app }) {
-    if (typeof text !== 'string' || !text.trim()) throw new Error('La notifica non ha testo');
-    if (!LEVELS.includes(level)) throw new Error('Livello non valido: info, success, warning o error');
+    if (typeof text !== 'string' || !text.trim()) throw new Error(t('noText'));
+    if (!LEVELS.includes(level)) throw new Error(t('badLevel'));
     const n = {
       id: uid(), at: Date.now(), from: app ? { app, name: app } : { system: true }, level,
       text: text.replace(/\s+/g, ' ').trim().slice(0, MAX_TEXT),
@@ -132,7 +140,7 @@ class Notifications extends Emitter {
   clear() { return this.remove(null); }
 
   async setKeep(keep) {
-    if (!Number.isInteger(keep) || keep < 1 || keep > 200) throw new Error('Quante notifiche conservare: da 1 a 200');
+    if (!Number.isInteger(keep) || keep < 1 || keep > 200) throw new Error(t('keep'));
     this.keep = keep;
     this.#items.length = Math.min(this.#items.length, keep);
     this.emit('change');

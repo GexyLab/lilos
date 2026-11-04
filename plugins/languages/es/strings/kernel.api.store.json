@@ -1,0 +1,6 @@
+{
+  "signIn": "Inicia sesión primero",
+  "adminOnly": "Solo administradores",
+  "name": "Nombre no válido",
+  "notSupervised": "El kernel no se inició con \"npm run kernel\": reinícialo a mano"
+}

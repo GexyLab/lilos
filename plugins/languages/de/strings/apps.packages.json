@@ -1,0 +1,6 @@
+{
+  "removed": {
+    "one": "{app} entfernt: {n} geändertes Element liegt im Papierkorb",
+    "other": "{app} entfernt: {n} geänderte Elemente liegen im Papierkorb"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "noPipeFn": "Fungsi pipe tidak ada",
+  "noHandler": "{id}: {entry} tidak menjawab panggilan (lilos.handle tidak ada)",
+  "noPipe": "{id}: tidak ada fungsi untuk pipe ini",
+  "libraryFailed": "Pustaka tidak dimuat",
+  "noExport": "Kode tidak mengekspor {entry}"
+}

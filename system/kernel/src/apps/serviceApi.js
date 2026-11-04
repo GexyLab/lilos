@@ -6,6 +6,7 @@ import { homeNodes, syncHome, isProtected, readUserKey as readKey } from '../api
 import { compareVersions } from './manifest.js';
 import { normalizeUrl } from './sources.js';
 import { logger } from '../log.js';
+import { defineStrings, localize } from '../strings.js';
 
 /**
  * The lilos API of a service (see appServices.js): what it may ask of the kernel, each request
@@ -36,6 +37,9 @@ import { logger } from '../log.js';
  * Besides the requests, the service has lilos.locale ({ code, i18n }, as in lilOS: the SDK's
  * i18n.js): its strings in its user's language (English for the system), as they were when it started.
  *
+ * The kernel's errors reach the service in the language of its user (`locale`: their code, 'en' for
+ * the system), see appServices.js.
+ *
  * Returns { invoke(method, params) }.
  */
 const STORAGE_KEY = /^[\w.-]{1,64}$/;
@@ -47,12 +51,23 @@ const MAX_FETCH = 5 << 20;
 const METHODS = new Set(['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE']);
 
 const newId = () => randomBytes(9).toString('base64url');
+const { t } = defineStrings('lilos:kernel.serviceApi', { en: { strings: {
+  noHome: 'A system service has no home: no files', key: 'Key not valid', path: 'Path not valid: {path}',
+  denied: 'Permission denied: {permission}', id: 'Identifier not valid', noFile: 'The file does not exist', notFile: 'It is not a file',
+  protected: '«{name}» is protected by an app (encrypted, for example): it opens only in the browser',
+  protectedWrite: '«{name}» is protected by an app (encrypted, for example): it is not overwritten',
+  noFolder: 'The folder does not exist', notFolder: 'It is not a folder', valueTooLarge: 'Value too large (at most 256 KB)',
+  dataTooLarge: 'Data of the service too large (at most 1 MB)', textTooLong: 'Text too long', address: 'Address not valid',
+  method: 'Method not allowed', bodyTooLarge: 'Request body too large', network: 'Network: {message}',
+  timeout: 'Network: no answer in 30 seconds', answerTooLarge: 'Response too large (at most 5 MB)', fileTooLarge: 'File too large',
+  unknown: 'Unknown function: {name}',
+} } });
 const log = logger('services');
 
-export function serviceApi({ kernel, app, owner, notify, readUserKey, writeUserKey }) {
+export function serviceApi({ kernel, app, owner, notify, readUserKey, writeUserKey, locale = 'en' }) {
   const fs = kernel.service('fs');
   const perms = app.manifest.permissions ?? [];
-  const user = () => owner ?? fail('forbidden', 'Un servizio di sistema non ha una home: niente file');
+  const user = () => owner ?? fail('forbidden', t('noHome'));
 
   // ---------- Storage ----------
   const dataId = `app:${app.id}/~data`;
@@ -63,29 +78,29 @@ export function serviceApi({ kernel, app, owner, notify, readUserKey, writeUserK
       return {};
     }
   };
-  const key = k => (typeof k === 'string' && STORAGE_KEY.test(k) ? k : fail('invalid', 'Chiave non valida'));
+  const key = k => (typeof k === 'string' && STORAGE_KEY.test(k) ? k : fail('invalid', t('key')));
 
   // ---------- Files ----------
   const resolve = async (path, write) => {
-    if (typeof path !== 'string' || !HOME_PATH.test(path) || path.split('/').includes('..')) fail('invalid', `Percorso non valido: ${String(path).slice(0, 60)}`);
-    if (!coversPath(perms, path, { write })) fail('forbidden', `Permesso negato: ${path}`);
+    if (typeof path !== 'string' || !HOME_PATH.test(path) || path.split('/').includes('..')) fail('invalid', t('path', { path: String(path).slice(0, 60) }));
+    if (!coversPath(perms, path, { write })) fail('forbidden', t('denied', { permission: path }));
     const home = await fs.home(user());
     return { full: home.path + path.slice(1), home };
   };
   const split = full => [full.slice(0, full.lastIndexOf('/')), full.slice(full.lastIndexOf('/') + 1)];
   /** A file of the owner's home by its front id, unless an app protects its content. */
   const ownNode = async id => {
-    if (typeof id !== 'string' || !/^[\w-]{1,64}$/.test(id)) fail('invalid', 'Identificatore non valido');
+    if (typeof id !== 'string' || !/^[\w-]{1,64}$/.test(id)) fail('invalid', t('id'));
     const home = await fs.home(user());
-    const node = await fs.stat(owner, `${home.id}/${id}`) ?? fail('not_found', 'Il file non esiste');
-    if (node.type !== 'file') fail('invalid', 'Non è un file');
-    if (isProtected(node)) fail('forbidden', `«${node.name}» è protetto da un’app (per esempio cifrato): si apre solo nel browser`);
+    const node = await fs.stat(owner, `${home.id}/${id}`) ?? fail('not_found', t('noFile'));
+    if (node.type !== 'file') fail('invalid', t('notFile'));
+    if (isProtected(node)) fail('forbidden', t('protected', { name: node.name }));
     return node;
   };
   const create = async (full, type) => {
     const [dir, name] = split(full);
-    const parent = await fs.lookup(owner, dir) ?? fail('not_found', 'La cartella non esiste');
-    if (parent.type !== 'folder') fail('invalid', 'Non è una cartella');
+    const parent = await fs.lookup(owner, dir) ?? fail('not_found', t('noFolder'));
+    if (parent.type !== 'folder') fail('invalid', t('notFolder'));
     const home = await fs.home(owner);
     const now = Date.now();
     const node = { id: `${home.id}/${newId()}`, parent: parent.id, name, type, meta: {}, created: now, modified: now };
@@ -102,11 +117,11 @@ export function serviceApi({ kernel, app, owner, notify, readUserKey, writeUserK
     'storage.set': async (k, value) => {
       key(k);
       const text = JSON.stringify(value ?? null);
-      if (text.length > MAX_VALUE) fail('too_large', 'Valore troppo grande (al massimo 256 KB)');
+      if (text.length > MAX_VALUE) fail('too_large', t('valueTooLarge'));
       if (owner) return writeUserKey(owner, `app:${app.id}:${k}`, value ?? null);
       const data = { ...(await systemData()), [k]: value ?? null };
       const all = JSON.stringify(data);
-      if (all.length > MAX_SYSTEM_DATA) fail('too_large', 'Dati del servizio troppo grandi (al massimo 1 MB)');
+      if (all.length > MAX_SYSTEM_DATA) fail('too_large', t('dataTooLarge'));
       if (!(await fs.stat(KERNEL, dataId))) {
         const now = Date.now();
         await fs.apply(KERNEL, { put: [{ id: dataId, parent: `app:${app.id}`, name: '.data', type: 'file', meta: {}, created: now, modified: now }] });
@@ -116,24 +131,24 @@ export function serviceApi({ kernel, app, owner, notify, readUserKey, writeUserK
 
     'files.read': async path => {
       const { full } = await resolve(path, false);
-      const node = await fs.lookup(owner, full) ?? fail('not_found', 'Il file non esiste');
-      if (node.type !== 'file') fail('invalid', 'Non è un file');
-      if (isProtected(node)) fail('forbidden', `«${node.name}» è protetto da un’app (per esempio cifrato): si apre solo nel browser`);
+      const node = await fs.lookup(owner, full) ?? fail('not_found', t('noFile'));
+      if (node.type !== 'file') fail('invalid', t('notFile'));
+      if (isProtected(node)) fail('forbidden', t('protected', { name: node.name }));
       return (await fs.read(owner, node.id)).toString('utf8');
     },
     'files.write': async (path, text) => {
       const { full } = await resolve(path, true);
       const body = String(text ?? '');
-      if (body.length > MAX_TEXT) fail('too_large', 'Testo troppo lungo');
+      if (body.length > MAX_TEXT) fail('too_large', t('textTooLong'));
       const node = await fs.lookup(owner, full) ?? await create(full, 'file');
-      if (node.type !== 'file') fail('invalid', 'Non è un file');
-      if (isProtected(node)) fail('forbidden', `«${node.name}» è protetto da un’app (per esempio cifrato): non si sovrascrive`);
+      if (node.type !== 'file') fail('invalid', t('notFile'));
+      if (isProtected(node)) fail('forbidden', t('protectedWrite', { name: node.name }));
       await fs.write(owner, node.id, Buffer.from(body, 'utf8'));
     },
     'files.list': async path => {
       const { full } = await resolve(path, false);
-      const node = await fs.lookup(owner, full) ?? fail('not_found', 'La cartella non esiste');
-      if (node.type !== 'folder') fail('invalid', 'Non è una cartella');
+      const node = await fs.lookup(owner, full) ?? fail('not_found', t('noFolder'));
+      if (node.type !== 'folder') fail('invalid', t('notFolder'));
       return (await fs.list(owner, node.id))
         .filter(n => !n.name.startsWith('.'))
         .map(n => ({ name: n.name, type: n.type, size: n.size ?? 0, modified: n.modified }));
@@ -146,41 +161,41 @@ export function serviceApi({ kernel, app, owner, notify, readUserKey, writeUserK
 
     'net.fetch': async (url, options = {}) => {
       let target;
-      try { target = new URL(String(url)); } catch { fail('invalid', 'Indirizzo non valido'); }
-      if (!perms.includes(`net:${target.origin}`)) fail('forbidden', `Permesso negato: net:${target.origin}`);
+      try { target = new URL(String(url)); } catch { fail('invalid', t('address')); }
+      if (!perms.includes(`net:${target.origin}`)) fail('forbidden', t('denied', { permission: `net:${target.origin}` }));
       const opts = options && typeof options === 'object' ? options : {};
       const method = String(opts.method ?? 'GET').toUpperCase();
-      if (!METHODS.has(method)) fail('invalid', 'Metodo non permesso');
+      if (!METHODS.has(method)) fail('invalid', t('method'));
       const headers = {};
       for (const [k, v] of Object.entries(opts.headers && typeof opts.headers === 'object' ? opts.headers : {})) {
         if (/^[\w-]{1,64}$/.test(k) && !/^(cookie|host)$/i.test(k)) headers[k] = String(v).slice(0, 4096);
       }
       const body = opts.body == null ? undefined : String(opts.body);
-      if (body && body.length > MAX_FETCH) fail('too_large', 'Corpo della richiesta troppo grande');
+      if (body && body.length > MAX_FETCH) fail('too_large', t('bodyTooLarge'));
       let res;
       try {
         res = await fetch(target, { method, headers, body, redirect: 'manual', signal: AbortSignal.timeout(30_000) });
       } catch (err) {
-        fail('unavailable', `Rete: ${err.name === 'TimeoutError' ? 'nessuna risposta in 30 secondi' : err.message}`);
+        fail('unavailable', err.name === 'TimeoutError' ? t('timeout') : t('network', { message: err.message }));
       }
       const chunks = [];
       let size = 0;
       for await (const chunk of res.body ?? []) {
         size += chunk.length;
-        if (size > MAX_FETCH) fail('too_large', 'Risposta troppo grande (al massimo 5 MB)');
+        if (size > MAX_FETCH) fail('too_large', t('answerTooLarge'));
         chunks.push(chunk);
       }
       return { status: res.status, headers: Object.fromEntries(res.headers), body: Buffer.concat(chunks).toString('utf8') };
     },
 
     'home.load': async () => {
-      if (!coversPath(perms, '~', { write: false })) fail('forbidden', 'Permesso negato: fs.read:~');
+      if (!coversPath(perms, '~', { write: false })) fail('forbidden', t('denied', { permission: 'fs.read:~' }));
       const { view, nodes } = await homeNodes(kernel, user());
       const tags = await readKey(kernel, owner, 'tags', []);
       return { home: view.homePath, nodes, tags: Array.isArray(tags) ? tags : [] };
     },
     'home.sync': async (body = {}) => {
-      if (!coversPath(perms, '~', { write: true })) fail('forbidden', 'Permesso negato: fs.write:~');
+      if (!coversPath(perms, '~', { write: true })) fail('forbidden', t('denied', { permission: 'fs.write:~' }));
       const changes = body && typeof body === 'object' ? body : {};
       const put = Array.isArray(changes.put) ? changes.put : [];
       const remove = Array.isArray(changes.remove) ? changes.remove : [];
@@ -190,22 +205,22 @@ export function serviceApi({ kernel, app, owner, notify, readUserKey, writeUserK
       kernel.events.emit('user', { owner: owner.id, event: 'fs.external', data: { put: put.filter(n => n?.parent !== 'trash'), remove, trash } });
     },
     'home.read': async id => {
-      if (!coversPath(perms, '~', { write: false })) fail('forbidden', 'Permesso negato: fs.read:~');
+      if (!coversPath(perms, '~', { write: false })) fail('forbidden', t('denied', { permission: 'fs.read:~' }));
       const node = await ownNode(id);
       return { base64: (await fs.read(owner, node.id)).toString('base64') };
     },
     'home.write': async (id, data = {}) => {
-      if (!coversPath(perms, '~', { write: true })) fail('forbidden', 'Permesso negato: fs.write:~');
+      if (!coversPath(perms, '~', { write: true })) fail('forbidden', t('denied', { permission: 'fs.write:~' }));
       const node = await ownNode(id);
       const body = typeof data?.base64 === 'string' ? Buffer.from(data.base64, 'base64') : Buffer.from(String(data?.text ?? ''), 'utf8');
-      if (body.length > MAX_TEXT) fail('too_large', 'File troppo grande');
+      if (body.length > MAX_TEXT) fail('too_large', t('fileTooLarge'));
       await fs.write(owner, node.id, body);
     },
 
     'ui.notify': value => notify(value !== null && typeof value === 'object' ? value : String(value ?? '')),
 
     'apps.updates': async () => {
-      if (!perms.includes('apps.manage')) fail('forbidden', 'Permesso negato: apps.manage');
+      if (!perms.includes('apps.manage')) fail('forbidden', t('denied', { permission: 'apps.manage' }));
       const installed = await kernel.installer.list();
       const out = [];
       for (const repo of await kernel.repos.list()) {
@@ -218,7 +233,7 @@ export function serviceApi({ kernel, app, owner, notify, readUserKey, writeUserK
           const have = entry.manifest && installed.find(a => a.id === entry.manifest.id);
           if (!have?.source?.url || normalizeUrl(have.source.url) !== normalizeUrl(repo.url)) continue;
           if (compareVersions(entry.manifest.version, have.version) > 0) {
-            out.push({ id: have.id, name: entry.manifest.name, version: have.version, latest: entry.manifest.version, repo: repo.name ?? '' });
+            out.push({ id: have.id, name: entry.manifest.name, version: have.version, latest: entry.manifest.version, repo: localize(repo.name ?? '', locale) });
           }
         }
       }
@@ -229,7 +244,7 @@ export function serviceApi({ kernel, app, owner, notify, readUserKey, writeUserK
   return {
     invoke(method, params) {
       const run = typeof method === 'string' && Object.hasOwn(methods, method) ? methods[method] : null;
-      if (!run) fail('invalid', `Funzione sconosciuta: ${String(method).slice(0, 40)}`);
+      if (!run) fail('invalid', t('unknown', { name: String(method).slice(0, 40) }));
       return run(...(Array.isArray(params) ? params : []));
     },
   };

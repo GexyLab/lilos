@@ -1,0 +1,10 @@
+{
+  "scriptErrorBefore": "Betik hatası (önce): {message}",
+  "scriptErrorAfter": "Betik hatası (sonra): {message}",
+  "scriptTimeoutBefore": "Betik hatası (önce): betiğin süresi doldu (5 saniye)",
+  "scriptTimeoutAfter": "Betik hatası (sonra): betiğin süresi doldu (5 saniye)",
+  "skipped": "Pencereden açılan oturumlar (WebSocket, SSE, TCP, UDP, MQTT): çalıştırmalar bunları atlar",
+  "otherServer": "Bir betik isteğin sunucusunu değiştirdi: gizli değerler başka bir adrese gönderilmez",
+  "noProtocol": "Protokol çalıştırmalarda kullanılamıyor: {protocol} (çekirdek modülü eksik)",
+  "nothingToSave": "“{name}”: kaydedilecek bir şey yok ({source} {path})"
+}

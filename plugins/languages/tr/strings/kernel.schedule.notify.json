@@ -1,0 +1,7 @@
+{
+  "noService": "Bildirimleri tutan bir çekirdek modülü yok",
+  "sent": "Bildirim gönderildi",
+  "sentAdmins": {
+    "other": "Bildirim {n} yöneticiye gönderildi"
+  }
+}

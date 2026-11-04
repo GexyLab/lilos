@@ -1,0 +1,10 @@
+{
+  "scriptErrorBefore": "Skriptfehler (vorher): {message}",
+  "scriptErrorAfter": "Skriptfehler (nachher): {message}",
+  "scriptTimeoutBefore": "Skriptfehler (vorher): Das Skript hat das Zeitlimit überschritten (5 Sekunden)",
+  "scriptTimeoutAfter": "Skriptfehler (nachher): Das Skript hat das Zeitlimit überschritten (5 Sekunden)",
+  "skipped": "Sitzungen (WebSocket, SSE, TCP, UDP, MQTT) werden im Fenster geöffnet: Ausführungen überspringen sie",
+  "otherServer": "Ein Skript hat den Server der Anfrage geändert: Die geheimen Werte werden nicht an eine andere Adresse gesendet",
+  "noProtocol": "Protokoll in Ausführungen nicht verfügbar: {protocol} (sein Kernelmodul fehlt)",
+  "nothingToSave": "„{name}“: nichts zu speichern ({source} {path})"
+}

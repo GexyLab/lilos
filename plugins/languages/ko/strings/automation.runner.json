@@ -1,0 +1,9 @@
+{
+  "stopped": "자동화가 중지되었습니다",
+  "chooseItems": "작업할 대상 선택",
+  "appMissing": "이 단계의 앱이 설치되어 있지 않습니다",
+  "password": "이 단계에서 암호를 요청합니다",
+  "stepFailedLabel": "{n}단계({label}): {message}",
+  "stepFailed": "{n}단계: {message}",
+  "cannotRedo": "이 작업은 다시 실행할 수 없습니다"
+}

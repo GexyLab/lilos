@@ -1,0 +1,11 @@
+{
+  "title": "打开方式",
+  "apps": "应用",
+  "choose": "选择用于打开“{name}”（{type}）的应用。",
+  "alwaysExt": "始终使用此应用打开 .{ext} 文件",
+  "alwaysNoExt": "始终使用此应用打开没有扩展名的文件",
+  "cancel": "取消",
+  "open": "打开",
+  "none": "没有已安装的应用可以打开“{name}”。",
+  "close": "关闭"
+}

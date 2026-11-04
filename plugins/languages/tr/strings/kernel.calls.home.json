@@ -1,0 +1,7 @@
+{
+  "path": "Yol geçerli değil: {path}",
+  "notFound": "Bulunamadı: {path}",
+  "gone": "Dosya artık yok",
+  "notFile": "Dosya değil: {path}",
+  "tooBig": "Dosya çok büyük (en fazla 50 MB): {path}"
+}

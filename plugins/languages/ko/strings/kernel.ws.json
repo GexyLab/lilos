@@ -1,0 +1,13 @@
+{
+  "needWs": "ws:// 또는 wss:// 주소가 필요합니다",
+  "noAnswer": "서버가 연결 열기에 응답하지 않았습니다",
+  "cancelled": "취소됨",
+  "tooLong": "서버 응답이 너무 깁니다",
+  "notHttp": "서버가 HTTP로 응답하지 않았습니다",
+  "closed": "서버가 연결을 닫았습니다",
+  "status": "서버가 WebSocket을 여는 대신 {status}(으)로 응답했습니다",
+  "notOpened": "서버가 WebSocket을 열지 않았습니다",
+  "badAccept": "잘못된 서버 응답(Sec-WebSocket-Accept)",
+  "extensions": "서버가 제공되지 않은 확장을 요청했습니다",
+  "protocol": "서버가 제공되지 않은 하위 프로토콜을 선택했습니다"
+}

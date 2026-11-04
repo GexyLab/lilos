@@ -1,0 +1,14 @@
+{
+  "mainWindow": "Fereastra principală",
+  "paramsObject": "Parametrii trebuie să fie un obiect JSON, între { }",
+  "paramsTooLong": "Parametri prea lungi (cel mult 4 KB)",
+  "invalid": "{param}: valoare nevalidă",
+  "fileGone": "{param}: fișierul nu mai există",
+  "folderGone": "{param}: dosarul nu mai există",
+  "notOpened": "{app} nu s-a deschis singură. {message}",
+  "notInstalled": "Aplicație neinstalată",
+  "maxApps": "Cel mult {max} aplicații la pornire",
+  "unknownEntry": "Punct de intrare necunoscut",
+  "entryNotAtStartup": "Punctul de intrare nu este la pornire",
+  "skipped": "Pornit fără aplicații: adresa conține ?avvio=no"
+}

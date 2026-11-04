@@ -1,0 +1,7 @@
+{
+  "tooBig": "Değişkenler çok fazla genişliyor (en fazla 4 MB)",
+  "notJson": "Yanıt JSON değil",
+  "source": "Kaynak geçerli değil",
+  "regex": "Normal ifade geçerli değil veya çok yavaş",
+  "condition": "Koşul geçerli değil"
+}

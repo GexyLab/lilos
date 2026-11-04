@@ -1,0 +1,8 @@
+{
+  "title": "Transfer data",
+  "sent": "↑ {done} dari {total}",
+  "received": "↓ {done} dari {total}",
+  "rate": "{line} · {bytes}/dtk",
+  "conflict": "File sudah ada: pilih tindakannya",
+  "failed": "Beberapa file tidak ditransfer"
+}

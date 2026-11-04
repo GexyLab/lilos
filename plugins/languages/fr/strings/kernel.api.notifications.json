@@ -1,0 +1,8 @@
+{
+  "signIn": "Connectez-vous d’abord",
+  "shape": "Une notification est un texte ou { text, level, action }",
+  "noText": "La notification n’a pas de texte",
+  "level": "Niveau non valide : info, success, warning ou error",
+  "action": "Action non valide : { entry, args }",
+  "sender": "Expéditeur non valide : l’app n’est pas installée"
+}

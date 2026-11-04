@@ -1,0 +1,5 @@
+{
+  "noText": "La notificación no tiene texto",
+  "badLevel": "Nivel no válido: info, success, warning o error",
+  "keep": "Cuántas notificaciones conservar: de 1 a 200"
+}

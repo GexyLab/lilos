@@ -1,0 +1,7 @@
+{
+  "restart": "Mulai ulang lilOS untuk menyelesaikan pembaruan",
+  "reopen": "Aplikasi yang diperbarui untuk dimulai ulang",
+  "heading": "Diperbarui, terbuka dengan versi sebelumnya",
+  "reopenApp": "Mulai ulang {name} ({version})",
+  "restartSystem": "Mulai ulang lilOS"
+}

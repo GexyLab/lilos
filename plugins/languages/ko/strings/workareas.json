@@ -1,0 +1,22 @@
+{
+  "tooMany": "작업 영역은 최대 {max}개입니다",
+  "overlap": "그곳에 이미 다른 작업 영역이 있습니다. 영역은 겹칠 수 없습니다",
+  "undo.create": "작업 영역 “{title}” 만들기",
+  "undo.rename": "작업 영역 “{before}”의 이름을 “{after}”(으)로 바꾸기",
+  "undo.remove": "작업 영역 “{title}” 삭제",
+  "undo.move": "작업 영역 “{title}” 이동",
+  "undo.resize": "작업 영역 “{title}” 크기 조정",
+  "gone": "작업 영역이 더 이상 존재하지 않습니다",
+  "already": "작업 영역이 이미 있습니다",
+  "occupied": "이제 그곳에 다른 작업 영역이 있습니다",
+  "notOpen": "작업 영역이 열려 있지 않습니다",
+  "removeOne": "작업 영역 “{title}” 삭제(내용은 바탕 화면에 남음)",
+  "removeMany": {
+    "other": "작업 영역 {n}개 삭제(내용은 바탕 화면에 남음)"
+  },
+  "menu.title": "작업 영역 “{title}”",
+  "menu.rename": "작업 영역 이름 바꾸기",
+  "menu.properties": "속성…",
+  "menu.collapse": "아이콘으로 최소화",
+  "menu.remove": "작업 영역 삭제…"
+}

@@ -1,0 +1,37 @@
+{
+  "adminOnly": "Paketleri yalnızca bir yönetici yükleyebilir veya kaldırabilir",
+  "needsLilos": "{name} {version}, lilOS {range} gerektiriyor (bu sistem: {system})",
+  "moduleJson": "module.json geçerli bir JSON değil",
+  "byHand": "{id} elle eklendi: elle güncellenir",
+  "appInstalled": "{name} zaten yüklü: yeni bir sürüm için güncellemeyi kullanın",
+  "moduleInstalled": "{name} zaten yüklü: yeni bir sürüm için güncellemeyi kullanın",
+  "replaced": "{name} yerine {by} geldi: artık yüklü değil",
+  "appMissing": "Uygulama yüklü değil",
+  "moduleOff": "Modül etkin değil",
+  "otherApp": "Paket {id} uygulamasının değil, {found} uygulamasının",
+  "otherModule": "Paket {id} modülünün değil, {found} modülünün",
+  "moduleNewer": "{id} {range} modülü gerekiyor: {have} yüklü ve en yenisi {newer}",
+  "appNewer": "{id} {range} uygulaması gerekiyor: {have} yüklü ve en yenisi {newer}",
+  "unreadable": "{url} deposu okunamıyor: {message}",
+  "moduleNotInRepo": "{url} deposunda {id} modülü yok",
+  "appNotInRepo": "{url} deposunda {id} uygulaması yok",
+  "moduleRepoVersion": "{id} {range} modülü gerekiyor: depoda {version} var",
+  "appRepoVersion": "{id} {range} uygulaması gerekiyor: depoda {version} var",
+  "modulePlanned": "{name}, {id} {range} modülünü gerektiriyor, ancak {version} yükleniyor",
+  "appPlanned": "{name}, {id} {range} uygulamasını gerektiriyor, ancak {version} yükleniyor",
+  "circular": "{a} ile {b} arasında döngüsel bağımlılık: hiçbiri diğerinden önce yüklenemez",
+  "consent": "{keys} için onay eksik: yüklenecekleri yeniden gözden geçirin",
+  "haveVersion": "{id} {range} ({have} mevcut)",
+  "missing": "{name} için gerekenler: {missing}. Bunu, gerekenleri de yükleyen AppStore’dan yükleyin.",
+  "appNeeded": {
+    "one": "{id} uygulamasına {names} ihtiyaç duyuyor: önce onu kaldırın",
+    "other": "{id} uygulamasına {names} ihtiyaç duyuyor: önce onları kaldırın"
+  },
+  "moduleNeeded": {
+    "one": "{id} modülüne {names} ihtiyaç duyuyor: önce onu kaldırın",
+    "other": "{id} modülüne {names} ihtiyaç duyuyor: önce onları kaldırın"
+  },
+  "wantsOne": "{name}, {id} {range} istiyor: {version} uygun değil",
+  "wants": "{name}, {id} {range} istiyor",
+  "wantsMany": "{list}: {version} uygun değil"
+}

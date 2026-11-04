@@ -1,0 +1,23 @@
+{
+  "notForNet": "네트워크 연결의 파일에는 사용할 수 없습니다",
+  "badWorkspace": "잘못된 작업 공간",
+  "noTarget": "대상 폴더가 존재하지 않습니다",
+  "badType": "잘못된 유형: {type}",
+  "badLink": "잘못된 링크",
+  "badId": "잘못된 식별자",
+  "privateFolder": "작업 공간이 있는 폴더만 비공개로 설정할 수 있습니다",
+  "notFound": "항목이 존재하지 않습니다",
+  "fileNotFound": "파일이 존재하지 않습니다",
+  "tooManyApps": "이 항목에 데이터가 있는 앱이 너무 많습니다",
+  "tooMuchAppData": "이 항목의 앱 데이터가 너무 많습니다",
+  "intoItself": "폴더를 자기 자신 안으로 옮길 수 없습니다",
+  "netTransfer": "홈과 네트워크 간에는 전송으로 파일이 복사됩니다",
+  "systemFolders": "시스템 폴더가 포함되어 있습니다",
+  "folderNotFound": "폴더가 존재하지 않습니다",
+  "notPrivate": "폴더가 비공개가 아닙니다",
+  "systemItems": "시스템 항목은 변경할 수 없습니다",
+  "badApp": "잘못된 앱",
+  "appDataObject": "앱의 데이터는 개체여야 합니다",
+  "appDataTooBig": "앱의 데이터가 너무 큽니다(최대 1KB)",
+  "emptyName": "이름은 비워 둘 수 없습니다"
+}

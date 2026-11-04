@@ -1,0 +1,39 @@
+{
+  "sources": "Aktarılacak öğeler geçerli değil",
+  "notFolder": "Hedef bir klasör değil",
+  "homeToHome": "lilOS klasörleri arasında kopyalama: bu bir ağ aktarımı değil",
+  "intoItself": "Bir klasör kendi içine kopyalanamaz",
+  "nothing": "Aktarılacak bir şey yok",
+  "tooMany": "Kuyrukta çok fazla aktarım var",
+  "itemNotFound": "Öğe bulunamadı",
+  "noConflict": "Çözülecek çakışma yok",
+  "choice": "Seçim geçerli değil",
+  "queueNotFound": "Kuyruk bulunamadı",
+  "serverNotFound": "Sunucuda yok",
+  "badName": "Aktarılamayan ad: {name}",
+  "webOnly": "“{name}” yalnızca web’de açılır: kopyalanmaz",
+  "place": "Konum geçerli değil",
+  "tooManyFiles": "Aktarılacak çok fazla dosya var",
+  "tooDeep": "Klasörler çok derin iç içe",
+  "someFailed": "Bazı dosyalar aktarılmadı",
+  "dstLost": "Hedef klasör kayboldu",
+  "fileThere": "Klasörün gideceği yerde zaten “{name}” adlı bir dosya var",
+  "retrying": "{message} · yeniden deneniyor",
+  "folderThere": "Dosyanın gideceği yerde zaten “{name}” adlı bir klasör var",
+  "notFileThere": "Zaten dosya olmayan “{name}” adlı bir öğe var",
+  "done": {
+    "other": "{n} dosya “{queue}” hedefine aktarıldı ({size})"
+  },
+  "failed": {
+    "other": "{n} dosya aktarılmadı"
+  },
+  "failedIn": {
+    "other": "{n} dosya “{queue}” hedefine aktarılmadı"
+  },
+  "complete": "Aktarım tamamlandı: {files}.",
+  "allFailed": "Aktarım başarısız oldu: {files}.",
+  "partial": "Aktarım hatalarla bitti: {done}. {failed}.",
+  "bytes": {
+    "other": "{n} bayt"
+  }
+}

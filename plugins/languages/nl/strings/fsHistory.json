@@ -1,0 +1,18 @@
+{
+  "one": "‘{name}’",
+  "many": "{n} items",
+  "home": "Home",
+  "gone": "Het item bestaat niet meer",
+  "folderGone": "De map waarin ze stonden, bestaat niet meer",
+  "itemsGone": "De items bestaan niet meer",
+  "notTrashed": "De items staan niet meer in de prullenbak",
+  "createdGone": "De map bestaat niet meer",
+  "foldersGone": "De items of de mappen bestaan niet meer",
+  "delete": "{what} verwijderen",
+  "trash": "{what} naar de prullenbak verplaatsen",
+  "restore": "{what} terugzetten",
+  "create": "‘{name}’ maken",
+  "rename": "‘{from}’ hernoemen naar ‘{to}’",
+  "move": "‘{name}’ verplaatsen naar ‘{folder}’",
+  "moveMany": "{what} verplaatsen naar ‘{folder}’"
+}

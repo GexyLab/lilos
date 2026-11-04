@@ -1,0 +1,32 @@
+{
+  "folderGone": "Folder sudah tidak ada",
+  "namedGone": "{name} sudah tidak ada",
+  "notFolder": "Folder tersebut bukan folder",
+  "namedNotFolder": "{name} bukan folder",
+  "protected": "dilindungi oleh aplikasi (misalnya dienkripsi): tidak ditimpa",
+  "mountGone": "{name} sudah tidak ada di “{mount}”",
+  "inside": "Folder tujuan salinan berada di dalam folder yang akan disalin",
+  "newVersion": "Versi baru: {name}",
+  "fileThere": "Di tempat tujuan salinan sudah ada file “{name}”",
+  "copied": "{path} disalin",
+  "tooMany": "Lebih dari {max} item: salin folder yang lebih kecil",
+  "sameNameFile": "ada file dengan nama yang sama",
+  "removedFile": "file {path} dihapus (sekarang menjadi folder)",
+  "sameNameFolder": "ada folder dengan nama yang sama",
+  "error": "KESALAHAN {path}: {message}",
+  "removed": "{path} dihapus",
+  "oldVersion": "versi lama dihapus: {name}",
+  "summary": {
+    "other": "{n} file disalin ({size})"
+  },
+  "summarySame": {
+    "other": "{n} file disalin ({size}), {same} tidak berubah"
+  },
+  "summaryRemoved": {
+    "other": "{n} file disalin ({size}), {removed} dihapus"
+  },
+  "summarySameRemoved": {
+    "other": "{n} file disalin ({size}), {same} tidak berubah, {removed} dihapus"
+  },
+  "notCopied": "{n} tidak disalin: {first}"
+}

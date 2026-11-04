@@ -1,0 +1,5 @@
+{
+  "badAction": "Tindakan tidak valid: {id}",
+  "noFunction": "Fungsi tindakan tidak ada",
+  "timeout": "Aplikasi tidak membuka file tepat waktu"
+}

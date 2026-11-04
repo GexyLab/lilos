@@ -1,0 +1,36 @@
+{
+  "folderGone": "La cartella non c’è più",
+  "namedGone": "{name} non c’è più",
+  "notFolder": "La cartella non è una cartella",
+  "namedNotFolder": "{name} non è una cartella",
+  "protected": "protetto da un’app (per esempio cifrato): non si sovrascrive",
+  "mountGone": "{name} non c’è più su «{mount}»",
+  "inside": "La cartella dove copiare è dentro quella da copiare",
+  "newVersion": "Nuova versione: {name}",
+  "fileThere": "Dove copiare c’è già un file «{name}»",
+  "copied": "copiato {path}",
+  "tooMany": "Più di {max} elementi: copia una cartella più piccola",
+  "sameNameFile": "c’è un file con lo stesso nome",
+  "removedFile": "rimosso il file {path} (ora è una cartella)",
+  "sameNameFolder": "c’è una cartella con lo stesso nome",
+  "error": "ERRORE {path}: {message}",
+  "removed": "eliminato {path}",
+  "oldVersion": "versione vecchia eliminata: {name}",
+  "summary": {
+    "one": "{n} file copiato ({size})",
+    "other": "{n} file copiati ({size})"
+  },
+  "summarySame": {
+    "one": "{n} file copiato ({size}), {same} invariati",
+    "other": "{n} file copiati ({size}), {same} invariati"
+  },
+  "summaryRemoved": {
+    "one": "{n} file copiato ({size}), {removed} eliminati",
+    "other": "{n} file copiati ({size}), {removed} eliminati"
+  },
+  "summarySameRemoved": {
+    "one": "{n} file copiato ({size}), {same} invariati, {removed} eliminati",
+    "other": "{n} file copiati ({size}), {same} invariati, {removed} eliminati"
+  },
+  "notCopied": "{n} non copiati: {first}"
+}

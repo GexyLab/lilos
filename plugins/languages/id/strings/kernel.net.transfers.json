@@ -1,0 +1,39 @@
+{
+  "sources": "Item yang akan ditransfer tidak valid",
+  "notFolder": "Tujuan bukan folder",
+  "homeToHome": "Salin antar folder lilOS: ini bukan transfer jaringan",
+  "intoItself": "Folder tidak dapat disalin ke dalam dirinya sendiri",
+  "nothing": "Tidak ada yang ditransfer",
+  "tooMany": "Terlalu banyak transfer dalam antrean",
+  "itemNotFound": "Item tidak ditemukan",
+  "noConflict": "Tidak ada konflik untuk diselesaikan",
+  "choice": "Pilihan tidak valid",
+  "queueNotFound": "Antrean tidak ditemukan",
+  "serverNotFound": "Tidak ada di server",
+  "badName": "Nama yang tidak dapat ditransfer: {name}",
+  "webOnly": "“{name}” hanya terbuka di web: tidak disalin",
+  "place": "Tempat tidak valid",
+  "tooManyFiles": "Terlalu banyak file untuk ditransfer",
+  "tooDeep": "Folder bersarang terlalu dalam",
+  "someFailed": "Beberapa file tidak ditransfer",
+  "dstLost": "Folder tujuan hilang",
+  "fileThere": "Sudah ada file “{name}” di tempat folder seharusnya",
+  "retrying": "{message} · mencoba lagi",
+  "folderThere": "Sudah ada folder “{name}” di tempat file seharusnya",
+  "notFileThere": "Sudah ada item “{name}” yang bukan file",
+  "done": {
+    "other": "{n} file ditransfer ke “{queue}” ({size})"
+  },
+  "failed": {
+    "other": "{n} file tidak ditransfer"
+  },
+  "failedIn": {
+    "other": "{n} file tidak ditransfer ke “{queue}”"
+  },
+  "complete": "Transfer selesai: {files}.",
+  "allFailed": "Transfer gagal: {files}.",
+  "partial": "Transfer selesai dengan kesalahan: {done}. {failed}.",
+  "bytes": {
+    "other": "{n} byte"
+  }
+}

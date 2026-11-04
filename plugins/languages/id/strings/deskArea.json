@@ -1,0 +1,34 @@
+{
+  "newFolder": "Folder baru",
+  "newDocument": "Dokumen baru.txt",
+  "fixedOne": "“{name}” adalah item tetap desktop: tidak dapat dihapus",
+  "fixedMany": "Item tetap desktop tidak dapat dihapus",
+  "fixedStay": "Item tetap desktop tetap ada: hanya sisanya yang dihapus",
+  "removeWithAreas": {
+    "other": "{what} dan hapus {n} area kerja"
+  },
+  "arrange": "Rapikan ikon",
+  "moveOne": "Pindahkan “{name}”",
+  "moveMany": {
+    "other": "Pindahkan {n} item"
+  },
+  "gone": "Item sudah tidak ada",
+  "area.open": "Buka area kerja",
+  "rename": "Ganti nama",
+  "properties": "Properti…",
+  "area.remove": "Hapus area kerja…",
+  "open": "Buka",
+  "openMany": {
+    "other": "Buka {n} item"
+  },
+  "fixed.hide": "Hapus dari desktop",
+  "fixed.hidden": "“{name}” dapat dikembalikan dari Panel Kontrol → Ruang kerja → Ruang kerja ini",
+  "fixed.settings": "Item tetap desktop…",
+  "openWith": "Buka dengan…",
+  "wallpaper": "Gunakan sebagai latar belakang desktop",
+  "area.fromSelection": "Buat area kerja dari pilihan",
+  "remove": "Hapus",
+  "removeMany": {
+    "other": "Hapus {n} item"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "group": "Modifica",
+  "undo": "Annulla",
+  "redo": "Ripeti",
+  "undone": "Annullato: {label}",
+  "redone": "Ripetuto: {label}",
+  "failed": "Non si può più fare: {message}",
+  "error": "errore"
+}

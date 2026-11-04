@@ -1,5 +1,5 @@
 import { EventEmitter } from 'node:events';
-import { fail } from '../errors.js';
+import { KernelError, fail } from '../errors.js';
 import { KERNEL } from '../services.js';
 import { logger } from '../log.js';
 import { readUserKey, writeUserKey } from '../api/home.js';
@@ -7,6 +7,7 @@ import { sha256 } from './manifest.js';
 import { serviceApi } from './serviceApi.js';
 import { notificationOf } from '../api/notifications.js';
 import { i18nApi, parseLocales, resolveLocale } from '../../../../sdk/core/i18n.js';
+import { Text, defineStrings, localize } from '../strings.js';
 
 /**
  * The services of installed apps: entry points of kind 'service' (manifest.js), run by the
@@ -50,7 +51,22 @@ const APP = /^[a-z0-9][a-z0-9.-]{1,63}$/;
 const HOME_PATH = /^~(\/[^/\0]{1,255}){0,16}$/;
 const WHEN = ['none', 'login', 'system'];
 
+const { t } = defineStrings('lilos:kernel.appServices', { en: { strings: {
+  paramsObject: 'The parameters must be a JSON object', paramsLong: 'Parameters too long (at most 4 KB)',
+  badValue: '{label}: value not valid', missing: 'Service not found', when: 'when must be none, login or system',
+  adminStartup: 'Only an administrator chooses the services of everyone', enabled: 'enabled must be true or false',
+  action: 'Unknown action', adminControl: 'Only an administrator turns the services of everyone on or off',
+  scheduleField: 'The «schedule» field is reserved to the Scheduler', notStarted: '{name} did not start: {error}',
+  error: 'error', failed: '{label}: {message}',
+  oldRuntime: '{label}: {message}: update the services-isolate module to 1.2.0 (AppStore → Kernel) to use the time limit of the operation',
+  adminLog: 'Only an administrator reads the log of the services of everyone',
+  noRuntime: 'No kernel module runs the services (services-isolate)', codeChanged: 'the code does not match the manifest',
+  logNotStarted: 'It did not start: {message}', logOn: 'On ({reason})', logStopped: 'It stopped: {reason}', logOff: 'Off',
+  crashed: '{reason} (it stopped {n} times in 5 minutes: it stays off)',
+} } });
 const plain = v => !!v && typeof v === 'object' && !Array.isArray(v);
+/** A kernel error for a service's code, in its user's language (the service gets only the message). */
+const inLanguage = (err, code) => (err instanceof KernelError && err.text ? new KernelError(err.code, localize(err.text, code), { details: err.details }) : err);
 const isAdmin = p => p?.kind === 'kernel' || (p?.kind === 'user' && p.role === 'admin');
 
 /** Saved bindings, checked (they are untrusted). */
@@ -67,10 +83,10 @@ function bindings(list) {
 /** Params of a service, checked against its declared ones (or any JSON object of 4 KB). A file or folder is a '~/…' path. */
 export function checkServiceParams(schema, values) {
   const given = values ?? {};
-  if (!plain(given)) fail('invalid', 'I parametri devono essere un oggetto JSON');
+  if (!plain(given)) fail('invalid', t('paramsObject'));
   if (!plain(schema)) {
     const text = JSON.stringify(given);
-    if (text.length > 4096) fail('invalid', 'Parametri troppo lunghi (al massimo 4 KB)');
+    if (text.length > 4096) fail('invalid', t('paramsLong'));
     return JSON.parse(text);
   }
   const out = {};
@@ -86,7 +102,7 @@ export function checkServiceParams(schema, values) {
       folder: () => typeof v === 'string' && HOME_PATH.test(v) && !v.split('/').includes('..'),
     }[p.type];
     if (!ok) continue;
-    if (!ok()) fail('invalid', `${p.label}: valore non valido`);
+    if (!ok()) fail('invalid', t('badValue', { label: p.label }));
     out[name] = v;
   }
   return out;
@@ -133,7 +149,7 @@ export class AppServices extends EventEmitter {
   }
 
   async #service(app, entry) {
-    return (await this.catalog()).find(s => s.app === app && s.entry === entry) ?? fail('not_found', 'Servizio inesistente');
+    return (await this.catalog()).find(s => s.app === app && s.entry === entry) ?? fail('not_found', t('missing'));
   }
 
   async systemStartup() {
@@ -179,7 +195,7 @@ export class AppServices extends EventEmitter {
 
   /** When a service starts by itself: 'none', 'login' (for this user) or 'system' (for everyone: admins). */
   async setStartup(principal, app, entry, { when, params } = {}) {
-    if (!WHEN.includes(when)) fail('invalid', 'when deve essere none, login o system');
+    if (!WHEN.includes(when)) fail('invalid', t('when'));
     const service = await this.#service(app, entry);
     const system = await this.systemStartup();
     const user = await this.userStartup(principal);
@@ -187,7 +203,7 @@ export class AppServices extends EventEmitter {
     const values = params === undefined
       ? (system.find(b => b.app === app && b.entry === entry) ?? user.services.find(b => b.app === app && b.entry === entry))?.params ?? {}
       : checkServiceParams(service.params, params);
-    if ((when === 'system' || isSystem) && !isAdmin(principal)) fail('forbidden', 'Solo un amministratore sceglie i servizi di tutti');
+    if ((when === 'system' || isSystem) && !isAdmin(principal)) fail('forbidden', t('adminStartup'));
     const without = list => list.filter(b => !(b.app === app && b.entry === entry));
     const binding = { app, entry, params: values };
 
@@ -211,7 +227,7 @@ export class AppServices extends EventEmitter {
   }
 
   async setOptions(principal, { enabled }) {
-    if (typeof enabled !== 'boolean') fail('invalid', 'enabled deve essere true o false');
+    if (typeof enabled !== 'boolean') fail('invalid', t('enabled'));
     const user = await this.userStartup(principal);
     await writeUserKey(this.#kernel, principal, USER_KEY, { ...user, enabled });
     return { enabled };
@@ -233,13 +249,13 @@ export class AppServices extends EventEmitter {
   }
 
   async control(principal, app, entry, action) {
-    if (!['start', 'stop', 'restart'].includes(action)) fail('invalid', 'Azione sconosciuta');
-    const t = await this.#target(principal, app, entry);
-    if (t.owner === SYSTEM && !isAdmin(principal)) fail('forbidden', 'Solo un amministratore accende o spegne i servizi di tutti');
-    const inst = this.#instances.get(this.#key(t.owner, app, entry));
+    if (!['start', 'stop', 'restart'].includes(action)) fail('invalid', t('action'));
+    const target = await this.#target(principal, app, entry);
+    if (target.owner === SYSTEM && !isAdmin(principal)) fail('forbidden', t('adminControl'));
+    const inst = this.#instances.get(this.#key(target.owner, app, entry));
     if (action !== 'start' || inst?.status === 'error') await this.#stop(inst);
-    if (action !== 'stop') await this.#start(t, 'manual');
-    const now = this.#instances.get(this.#key(t.owner, app, entry));
+    if (action !== 'stop') await this.#start(target, 'manual');
+    const now = this.#instances.get(this.#key(target.owner, app, entry));
     return { status: now?.status ?? 'off', error: now?.error ?? null };
   }
 
@@ -247,17 +263,17 @@ export class AppServices extends EventEmitter {
   async call(principal, app, entry, data, from) {
     // What the scheduler sends (runScheduled) never comes from a page or an app
     if (from === 'scheduler' || (data && typeof data === 'object' && !Array.isArray(data) && Object.hasOwn(data, 'schedule'))) {
-      fail('forbidden', 'Il campo «schedule» è riservato alla Pianificazione');
+      fail('forbidden', t('scheduleField'));
     }
-    const t = await this.#target(principal, app, entry);
-    let inst = this.#instances.get(this.#key(t.owner, app, entry));
-    if (!inst || inst.status === 'off' || inst.status === 'error') inst = await this.#start(t, 'call');
+    const target = await this.#target(principal, app, entry);
+    let inst = this.#instances.get(this.#key(target.owner, app, entry));
+    if (!inst || inst.status === 'off' || inst.status === 'error') inst = await this.#start(target, 'call');
     await inst.ready;
-    if (inst.status !== 'on') fail('unavailable', `${t.service.name} non è partito: ${inst.error ?? 'errore'}`);
+    if (inst.status !== 'on') fail('unavailable', t('notStarted', { name: target.service.name, error: inst.error ?? t('error') }));
     try {
       return await inst.handle.request(data ?? null, from ?? null);
     } catch (err) {
-      fail('invalid', `${t.service.label}: ${err.message}`);
+      fail('invalid', t('failed', { label: target.service.label, message: err.message }));
     }
   }
 
@@ -281,13 +297,13 @@ export class AppServices extends EventEmitter {
     inst.scheduledUses = (inst.scheduledUses ?? 0) + 1;
     try {
       await inst.ready;
-      if (inst.status !== 'on') fail('unavailable', `${service.name} non è partito: ${inst.error ?? 'errore'}`);
+      if (inst.status !== 'on') fail('unavailable', t('notStarted', { name: service.name, error: inst.error ?? t('error') }));
       const limit = (task.options?.timeoutMin ?? 60) * 60_000 + SCHEDULE_MARGIN;
       return await inst.handle.request({ schedule: { task: task.id, name: task.name, run: run.id, params } }, 'scheduler', { timeoutMs: limit, signal });
     } catch (err) {
       if (err?.code) throw err;
       const old = !inst.handle?.cancellable && !signal?.aborted && /in 60 secondi/.test(err.message ?? '') && (task.options?.timeoutMin ?? 60) > 1;
-      fail('invalid', `${service.label}: ${err.message}${old ? ': aggiorna il modulo services-isolate alla 1.2.0 (AppStore → Kernel) per usare il tempo massimo dell’operazione' : ''}`);
+      fail('invalid', t(old ? 'oldRuntime' : 'failed', { label: service.label, message: err.message }));
     } finally {
       inst.scheduledUses -= 1;
       if (!inst.scheduledUses && inst.scheduledStart && inst.reason === 'schedule') {
@@ -298,9 +314,9 @@ export class AppServices extends EventEmitter {
   }
 
   async log(principal, app, entry) {
-    const t = await this.#target(principal, app, entry);
-    if (t.owner === SYSTEM && !isAdmin(principal)) fail('forbidden', 'Solo un amministratore legge il registro dei servizi di tutti');
-    return { lines: this.#instances.get(this.#key(t.owner, app, entry))?.logs ?? [] };
+    const target = await this.#target(principal, app, entry);
+    if (target.owner === SYSTEM && !isAdmin(principal)) fail('forbidden', t('adminLog'));
+    return { lines: this.#instances.get(this.#key(target.owner, app, entry))?.logs ?? [] };
   }
 
   /** Starts an instance (when not already on); resolves with it, once it is on or has failed. */
@@ -308,7 +324,7 @@ export class AppServices extends EventEmitter {
     const key = this.#key(owner, service.app, service.entry);
     const current = this.#instances.get(key);
     if (current && (current.status === 'on' || current.status === 'starting')) return current;
-    if (!this.available) fail('unavailable', 'Nessun modulo del kernel fa girare i servizi (services-isolate)');
+    if (!this.available) fail('unavailable', t('noRuntime'));
     const inst = current ?? { owner, app: service.app, entry: service.entry, logs: [], crashes: [] };
     clearTimeout(inst.timer);
     Object.assign(inst, { principal, status: 'starting', since: Date.now(), error: null, handle: null, stopping: false, binding, reason });
@@ -317,8 +333,8 @@ export class AppServices extends EventEmitter {
     inst.ready = this.#run(inst, service).catch(err => {
       if (inst.stopping) return;
       inst.status = 'error';
-      inst.error = err.message;
-      this.#line(inst, 'error', `Non è partito: ${err.message}`);
+      inst.error = err.text ?? err.message;
+      this.#line(inst, 'error', t('logNotStarted', { message: inst.error }));
       log.warn(`${key} non è partito: ${err.message}`);
       this.#changed(inst);
     });
@@ -344,11 +360,12 @@ export class AppServices extends EventEmitter {
     const ep = pkg.manifest.entrypoints[inst.entry];
     const file = ep.file ?? pkg.manifest.entry;
     const code = await this.#kernel.installer.file(KERNEL, pkg.id, file);
-    if (sha256(code) !== pkg.manifest.files?.[file]) throw new Error('il codice non corrisponde al manifesto');
+    if (sha256(code) !== pkg.manifest.files?.[file]) throw Object.assign(new Error(String(t('codeChanged'))), { text: t('codeChanged') });
     const params = withDefaults(service.params, inst.binding?.params ?? {});
-    const locale = await this.#locale(pkg, inst.principal);
+    const userCode = inst.principal ? await readUserKey(this.#kernel, inst.principal, 'locale', 'en') : 'en';
+    const locale = await this.#locale(pkg, typeof userCode === 'string' ? userCode : 'en');
     const api = serviceApi({
-      kernel: this.#kernel, app: pkg, owner: inst.principal,
+      kernel: this.#kernel, app: pkg, owner: inst.principal, locale: locale.code,
       notify: value => this.#notify(inst, pkg, value),
       readUserKey: (p, k, fallback) => readUserKey(this.#kernel, p, k, fallback),
       writeUserKey: (p, k, v) => writeUserKey(this.#kernel, p, k, v),
@@ -363,7 +380,7 @@ export class AppServices extends EventEmitter {
       },
       limits: LIMITS,
     }, {
-      call: (method, args) => api.invoke(method, args),
+      call: (method, args) => Promise.resolve().then(() => api.invoke(method, args)).catch(err => { throw inLanguage(err, locale.code); }),
       log: (level, text) => this.#line(inst, level, text),
       exit: reason => this.#exited(inst, handle, reason),
     });
@@ -371,17 +388,16 @@ export class AppServices extends EventEmitter {
     inst.handle = handle;
     inst.status = 'on';
     inst.since = Date.now();
-    this.#line(inst, 'info', `Acceso (${inst.reason})`);
+    this.#line(inst, 'info', t('logOn', { reason: inst.reason }));
     this.#changed(inst);
   }
 
   /**
    * The app's strings for the service (lilos.locale): in the language of its user (the locale
    * lilOS stores for them, 'locale' in .config), English for the system. A translations file
-   * that cannot be read leaves it in English.
+   * that cannot be read leaves it in English. `code`: the user's locale.
    */
-  async #locale(pkg, principal) {
-    const code = principal ? await readUserKey(this.#kernel, principal, 'locale', 'en') : 'en';
+  async #locale(pkg, code) {
     let table = null;
     if (pkg.manifest.locales) {
       try {
@@ -392,7 +408,7 @@ export class AppServices extends EventEmitter {
         log.warn(`Traduzioni di ${pkg.id}: ${err.message}`);
       }
     }
-    return resolveLocale(table, typeof code === 'string' ? code : 'en');
+    return resolveLocale(table, code);
   }
 
   /** It stopped by itself: start it again, unless it keeps failing. */
@@ -401,11 +417,11 @@ export class AppServices extends EventEmitter {
     inst.handle = null;
     const now = Date.now();
     inst.crashes = [...inst.crashes.filter(t => now - t < CRASH_WINDOW), now];
-    this.#line(inst, 'error', `Si è fermato: ${reason}`);
+    this.#line(inst, 'error', t('logStopped', { reason }));
     log.warn(`${this.#key(inst.owner, inst.app, inst.entry)} si è fermato: ${reason}`);
     if (inst.crashes.length > BACKOFF.length) {
       inst.status = 'error';
-      inst.error = `${reason} (si è fermato ${inst.crashes.length} volte in 5 minuti: resta spento)`;
+      inst.error = t('crashed', { reason, n: inst.crashes.length });
       this.#changed(inst);
       return;
     }
@@ -419,7 +435,7 @@ export class AppServices extends EventEmitter {
         await this.#start({ service, owner: inst.owner, principal: inst.principal, binding: inst.binding }, inst.reason);
       } catch (err) {
         inst.status = 'error';
-        inst.error = err.message;
+        inst.error = err.text ?? err.message;
         this.#changed(inst);
       }
     }, BACKOFF[inst.crashes.length - 1]);
@@ -431,7 +447,7 @@ export class AppServices extends EventEmitter {
     inst.stopping = true;
     const handle = inst.handle;
     inst.handle = null;
-    if (inst.status !== 'off') this.#line(inst, 'info', 'Spento');
+    if (inst.status !== 'off') this.#line(inst, 'info', t('logOff'));
     inst.status = 'off';
     inst.error = null;
     inst.crashes = [];
@@ -440,7 +456,7 @@ export class AppServices extends EventEmitter {
   }
 
   #line(inst, level, text) {
-    inst.logs.push({ at: Date.now(), level, text: String(text).slice(0, 2000) });
+    inst.logs.push({ at: Date.now(), level, text: text instanceof Text ? text : String(text).slice(0, 2000) });
     if (inst.logs.length > LOG_LINES) inst.logs.splice(0, inst.logs.length - LOG_LINES);
   }
 

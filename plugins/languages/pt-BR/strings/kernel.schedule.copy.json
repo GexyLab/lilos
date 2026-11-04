@@ -1,0 +1,36 @@
+{
+  "folderGone": "A pasta não existe mais",
+  "namedGone": "{name} não existe mais",
+  "notFolder": "A pasta não é uma pasta",
+  "namedNotFolder": "{name} não é uma pasta",
+  "protected": "protegido por um app (criptografado, por exemplo): não é sobrescrito",
+  "mountGone": "{name} não está mais em “{mount}”",
+  "inside": "A pasta de destino da cópia está dentro da pasta a copiar",
+  "newVersion": "Nova versão: {name}",
+  "fileThere": "No destino da cópia já existe um arquivo “{name}”",
+  "copied": "copiado {path}",
+  "tooMany": "Mais de {max} itens: copie uma pasta menor",
+  "sameNameFile": "existe um arquivo com o mesmo nome",
+  "removedFile": "removido o arquivo {path} (agora é uma pasta)",
+  "sameNameFolder": "existe uma pasta com o mesmo nome",
+  "error": "ERRO {path}: {message}",
+  "removed": "excluído {path}",
+  "oldVersion": "versão antiga excluída: {name}",
+  "summary": {
+    "one": "{n} arquivo copiado ({size})",
+    "other": "{n} arquivos copiados ({size})"
+  },
+  "summarySame": {
+    "one": "{n} arquivo copiado ({size}), {same} sem alterações",
+    "other": "{n} arquivos copiados ({size}), {same} sem alterações"
+  },
+  "summaryRemoved": {
+    "one": "{n} arquivo copiado ({size}), {removed} excluídos",
+    "other": "{n} arquivos copiados ({size}), {removed} excluídos"
+  },
+  "summarySameRemoved": {
+    "one": "{n} arquivo copiado ({size}), {same} sem alterações, {removed} excluídos",
+    "other": "{n} arquivos copiados ({size}), {same} sem alterações, {removed} excluídos"
+  },
+  "notCopied": "{n} não copiados: {first}"
+}

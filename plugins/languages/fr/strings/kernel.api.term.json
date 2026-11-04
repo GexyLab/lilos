@@ -1,0 +1,7 @@
+{
+  "signIn": "Connectez-vous d’abord",
+  "host": "Hôte non valide",
+  "session": "Session non valide",
+  "noSession": "Session introuvable",
+  "needSocket": "Un WebSocket est nécessaire"
+}

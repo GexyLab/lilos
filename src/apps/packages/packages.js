@@ -15,6 +15,12 @@ import { notify } from '../../notifications/notify.js';
  * ('app-setup': { [id]: { version, made: [entry], uninstall: [op] } }): when the app is gone it
  * is taken away again, except what the user changed or filled, which goes to the trash.
  */
+const { t } = locale.define('lilos:apps.packages', {
+  en: { strings: {
+    removed: { one: 'Removed {app}: {n} changed item is in the Trash', other: 'Removed {app}: {n} changed items are in the Trash' },
+  } },
+});
+
 const SETUP_KEY = 'app-setup';
 const commandsOff = new Map();
 const settling = new Map();   // id → the change being put in place
@@ -247,7 +253,7 @@ function undo(record, id) {
   }
   if (trash.length) {
     fs.trash(trash);
-    notify(`Rimossa ${record.name ?? id}: ${trash.length} elementi modificati sono nel Cestino`);
+    notify(t('removed', { app: record.name ?? id, n: trash.length }));
   }
   for (const key of storage.keys()) if (key.startsWith(`app:${id}:`)) storage.remove(key);
 }

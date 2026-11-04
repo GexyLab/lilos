@@ -1,4 +1,12 @@
-import { apps as installed } from '@lilos/sdk';
+import { apps as installed, locale } from '@lilos/sdk';
+
+const { t } = locale.define('lilos:apps.code', {
+  en: { strings: {
+    mismatch: 'The code of {app} does not match its manifest',
+    download: 'The library {name} cannot be downloaded ({status})',
+    hash: 'The library {name} does not match its hash',
+  } },
+});
 
 /**
  * The code of installed apps, checked before it runs: each file against the hash in its
@@ -23,7 +31,7 @@ export async function sri(text, integrity) {
 /** The text of one of the app's files, if it is the one its manifest lists. */
 export async function appCode(pkg, file) {
   const code = await installed.file(pkg.id, file);
-  if (await sha256(code) !== pkg.manifest.files?.[file]) throw new Error(`Il codice di ${pkg.manifest.name} non corrisponde al manifesto`);
+  if (await sha256(code) !== pkg.manifest.files?.[file]) throw new Error(t('mismatch', { app: pkg.manifest.name }));
   return code;
 }
 
@@ -34,10 +42,10 @@ export async function libraryCode(lib) {
     text = await installed.library(lib.name, lib.version);
   } else {
     const res = await fetch(lib.url, { credentials: 'omit', referrerPolicy: 'no-referrer' });
-    if (!res.ok) throw new Error(`La libreria ${lib.name} non si scarica (${res.status})`);
+    if (!res.ok) throw new Error(t('download', { name: lib.name, status: res.status }));
     text = await res.text();
   }
-  if (!await sri(text, lib.integrity)) throw new Error(`La libreria ${lib.name} non corrisponde al suo hash`);
+  if (!await sri(text, lib.integrity)) throw new Error(t('hash', { name: lib.name }));
   return text;
 }
 

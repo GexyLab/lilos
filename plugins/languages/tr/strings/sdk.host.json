@@ -1,0 +1,6 @@
+{
+  "needProgram": "Bunun için lilOS programı gerekir (tarayıcıda çalışmaz)",
+  "onlyFiles": "Bilgisayarda yalnızca dosyalar açılabilir",
+  "tooBig": "Dosya bilgisayarda açılamayacak kadar büyük (512 MB’tan fazla)",
+  "noFiles": "Dışa aktarılacak dosya yok"
+}

@@ -1,6 +1,11 @@
 import { Emitter } from './events.js';
 import { storage } from './storage.js';
 import { shortcuts } from './shortcuts.js';
+import { locale } from './locale.js';
+
+const { t } = locale.define('lilos:sdk.menus', {
+  en: { strings: { unknown: 'Menu not registered: {id}' } },
+});
 
 /**
  * Configurable menus. Parts of the system declare *actions* and the default *layout* of a menu;
@@ -76,7 +81,7 @@ class Menus extends Emitter {
   }
 
   setLayout(menuId, layout) {
-    if (!this.#menus.has(menuId)) throw new Error(`Menu non registrato: ${menuId}`);
+    if (!this.#menus.has(menuId)) throw new Error(t('unknown', { id: menuId }));
     this.#custom[menuId] = this.#clean(menuId, layout, 0) ?? [];
     storage.set(STORAGE_KEY, this.#custom);
     this.emit('change', menuId);

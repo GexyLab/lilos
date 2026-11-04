@@ -1,0 +1,19 @@
+{
+  "key.Enter": "Enter",
+  "key.Escape": "Esc",
+  "key.Delete": "Del",
+  "key.Space": "Space",
+  "key.Insert": "Ins",
+  "key.End": "End",
+  "key.PageUp": "PgUp",
+  "key.PageDown": "PgDn",
+  "general": "सामान्य",
+  "exists": "शॉर्टकट पहले से पंजीकृत है: {id}",
+  "unknown": "शॉर्टकट पंजीकृत नहीं है: {id}",
+  "invalid": "अमान्य संयोजन",
+  "noKey": "Ctrl, Alt या Shift के अलावा एक कुंजी भी दबाएँ",
+  "reserved": "ब्राउज़र द्वारा आरक्षित संयोजन",
+  "tabSpace": "अकेले Tab और Space इधर-उधर जाने और डेस्कटॉप खिसकाने के लिए हैं",
+  "typingKey": "टाइप करने वाली कुंजी का उपयोग Ctrl, Alt या Shift के साथ करना होगा",
+  "whenEditing": "यह शॉर्टकट टाइप करते समय भी काम करता है: इसके लिए Ctrl या Alt चाहिए"
+}

@@ -1,0 +1,14 @@
+{
+  "title": "Elegir un archivo",
+  "search": "Buscar por nombre o ruta",
+  "searchLabel": "Buscar",
+  "folders": "Carpetas",
+  "files": "Archivos",
+  "choose": "Elegir",
+  "cancel": "Cancelar",
+  "home": "Home",
+  "noMatch": "Nada coincide con la búsqueda",
+  "noFolders": "Ninguna carpeta",
+  "noFiles": "No hay archivos en lilOS",
+  "noFilesOf": "No hay archivos {exts} en lilOS"
+}

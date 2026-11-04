@@ -1,0 +1,8 @@
+{
+  "blockedWindow": "Browserul a blocat fereastra de conectare",
+  "blockedTab": "Browserul a blocat fila de conectare",
+  "canceled": "Conectare anulată",
+  "failed": "Conectarea a eșuat",
+  "noAskAddress": "Lipsește askAddress",
+  "badAddress": "Adresă nevalidă"
+}

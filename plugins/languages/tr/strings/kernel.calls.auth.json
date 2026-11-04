@@ -1,0 +1,5 @@
+{
+  "invalid": "Kimlik doğrulama geçerli değil",
+  "noToken": "OAuth 2.0: belirteç yok: oturum açın veya belirteci yazın",
+  "aws": "AWS imzası: erişim anahtarı veya gizli anahtar eksik"
+}

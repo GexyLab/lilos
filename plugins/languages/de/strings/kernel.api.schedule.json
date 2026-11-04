@@ -1,0 +1,9 @@
+{
+  "signIn": "Melden Sie sich zuerst an",
+  "app": "Ungültige App",
+  "id": "Ungültige Kennung",
+  "number": "Ungültige Zahl",
+  "missing": "Vorgang nicht gefunden",
+  "appOwner": "Eine App plant nur für den Benutzer, der sie verwendet",
+  "adminOwner": "Nur ein Administrator plant für andere oder für das System"
+}

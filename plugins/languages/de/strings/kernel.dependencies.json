@@ -1,0 +1,37 @@
+{
+  "adminOnly": "Nur ein Administrator installiert oder entfernt Pakete",
+  "needsLilos": "{name} {version} benötigt lilOS {range} (dies ist {system})",
+  "moduleJson": "module.json ist kein gültiges JSON",
+  "byHand": "{id} wurde manuell hinzugefügt: Es wird manuell aktualisiert",
+  "appInstalled": "{name} ist bereits installiert: Verwenden Sie für eine neue Version das Update",
+  "moduleInstalled": "{name} ist bereits installiert: Verwenden Sie für eine neue Version das Update",
+  "replaced": "{name} wurde durch {by} ersetzt: Es wird nicht mehr installiert",
+  "appMissing": "App nicht installiert",
+  "moduleOff": "Modul nicht aktiv",
+  "otherApp": "Das Paket gehört zur App {found}, nicht zu {id}",
+  "otherModule": "Das Paket gehört zum Modul {found}, nicht zu {id}",
+  "moduleNewer": "Das Modul {id} {range} wird benötigt: {have} ist installiert und die neueste ist {newer}",
+  "appNewer": "Die App {id} {range} wird benötigt: {have} ist installiert und die neueste ist {newer}",
+  "unreadable": "Das Repository {url} kann nicht gelesen werden: {message}",
+  "moduleNotInRepo": "Das Repository {url} enthält kein Modul {id}",
+  "appNotInRepo": "Das Repository {url} enthält keine App {id}",
+  "moduleRepoVersion": "Das Modul {id} {range} wird benötigt: Das Repository hat {version}",
+  "appRepoVersion": "Die App {id} {range} wird benötigt: Das Repository hat {version}",
+  "modulePlanned": "{name} benötigt das Modul {id} {range}, aber {version} wird installiert",
+  "appPlanned": "{name} benötigt die App {id} {range}, aber {version} wird installiert",
+  "circular": "Zirkuläre Abhängigkeit zwischen {a} und {b}: Keines kann vor dem anderen installiert werden",
+  "consent": "Zustimmung fehlt für {keys}: Prüfen Sie erneut, was installiert wird",
+  "haveVersion": "{id} {range} ({have} ist vorhanden)",
+  "missing": "{name} benötigt: {missing}. Installieren Sie es aus dem AppStore, der auch alles Nötige installiert.",
+  "appNeeded": {
+    "one": "Die App {id} wird von {names} benötigt: Entfernen Sie diese zuerst",
+    "other": "Die App {id} wird von {names} benötigt: Entfernen Sie diese zuerst"
+  },
+  "moduleNeeded": {
+    "one": "Das Modul {id} wird von {names} benötigt: Entfernen Sie diese zuerst",
+    "other": "Das Modul {id} wird von {names} benötigt: Entfernen Sie diese zuerst"
+  },
+  "wantsOne": "{name} verlangt {id} {range}: {version} reicht nicht",
+  "wants": "{name} verlangt {id} {range}",
+  "wantsMany": "{list}: {version} reicht nicht"
+}

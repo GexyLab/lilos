@@ -4,6 +4,7 @@ import { splitName } from './fileTypes.js';
 import { contents } from './db.js';
 import { kernel } from './kernel.js';
 import { pipes } from './pipeCatalog.js';
+import { locale } from './locale.js';
 
 const STORAGE_KEY = 'fs';
 const ROOT = 'root';
@@ -19,8 +20,33 @@ const APP_ID = /^[a-z0-9][a-z0-9.-]{1,63}$/;
 const MAX_APPS = 8;          // apps with data on one node
 const MAX_APP_META = 1024;   // characters of JSON, per app
 const MAX_APPS_META = 2048;  // all apps together: the kernel takes at most 4 KB of metadata per node
-const NOT_FOR_NET = 'Non disponibile per i file di una connessione di rete';
 const MOUNT_PREFIX = 'net-';
+
+const { t } = locale.define('lilos:sdk.fs', {
+  en: { strings: {
+    notForNet: 'Not available for the files of a network connection',
+    badWorkspace: 'Invalid workspace',
+    noTarget: 'The destination folder does not exist',
+    badType: 'Invalid type: {type}',
+    badLink: 'Invalid link',
+    badId: 'Invalid identifier',
+    privateFolder: 'Only a folder with a workspace can be private',
+    notFound: 'The item does not exist',
+    fileNotFound: 'The file does not exist',
+    tooManyApps: 'Too many apps have data on this item',
+    tooMuchAppData: 'Too much app data on this item',
+    intoItself: 'A folder cannot go inside itself',
+    netTransfer: 'Between the home and the network, files are copied with a transfer',
+    systemFolders: 'Contains system folders',
+    folderNotFound: 'The folder does not exist',
+    notPrivate: 'The folder is not private',
+    systemItems: 'System items cannot be changed',
+    badApp: 'Invalid app',
+    appDataObject: 'An app’s data is an object',
+    appDataTooBig: 'The app’s data is too large (at most 1 KB)',
+    emptyName: 'The name cannot be empty',
+  } },
+});
 
 /**
  * What the kernel says of an item of a connection beyond name, size and date (net/drivers.js
@@ -160,7 +186,7 @@ class FileSystem extends Emitter {
 
   /** Set by the system when the user changes workspace. Emits 'scope'. */
   setWorkspace(id) {
-    if (id != null && !validWorkspace(id)) throw new Error('Workspace non valido');
+    if (id != null && !validWorkspace(id)) throw new Error(t('badWorkspace'));
     if ((id ?? null) === this.#workspace) return;
     this.#workspace = id ?? null;
     this.emit('scope', this.#workspace);
@@ -297,15 +323,15 @@ class FileSystem extends Emitter {
    */
   create(parentId, { type, name, color, app, link, size, system = false, id, workspace, private: own = false } = {}) {
     const parent = this.#find(parentId);
-    if (!parent || parent.type !== 'folder') throw new Error('La cartella di destinazione non esiste');
-    if (!TYPES.has(type)) throw new Error(`Tipo non valido: ${type}`);
+    if (!parent || parent.type !== 'folder') throw new Error(t('noTarget'));
+    if (!TYPES.has(type)) throw new Error(t('badType', { type }));
     const target = type === 'link' ? cleanLink(link) : null;
-    if (type === 'link' && !target) throw new Error('Collegamento non valido');
+    if (type === 'link' && !target) throw new Error(t('badLink'));
     if (parent.net) return this.#netCreate(parent, type, name);
-    if (id != null && (typeof id !== 'string' || this.#nodes.has(id))) throw new Error('Identificatore non valido');
+    if (id != null && (typeof id !== 'string' || this.#nodes.has(id))) throw new Error(t('badId'));
     const owner = workspace !== undefined ? workspace : system && !own ? null : this.#workspace;
-    if (owner != null && !validWorkspace(owner)) throw new Error('Workspace non valido');
-    if (own && (type !== 'folder' || !owner)) throw new Error('Solo una cartella con un workspace può essere privata');
+    if (owner != null && !validWorkspace(owner)) throw new Error(t('badWorkspace'));
+    if (own && (type !== 'folder' || !owner)) throw new Error(t('privateFolder'));
     pipes.runSync('file.create', { parent: parentId, type, name });
     const now = Date.now();
     const node = {
@@ -348,8 +374,8 @@ class FileSystem extends Emitter {
   /** Change metadata that is not the name (e.g. a folder's color, whether a link was found). */
   update(id, { color, broken } = {}) {
     const node = this.#find(id);
-    if (!node) throw new Error('Elemento inesistente');
-    if (node.net) throw new Error(NOT_FOR_NET);
+    if (!node) throw new Error(t('notFound'));
+    if (node.net) throw new Error(t('notForNet'));
     if (node.type === 'folder' && typeof color === 'string') node.color = color;
     if (node.type === 'link' && typeof broken === 'boolean') {
       if (broken === (node.link.broken === true)) return;
@@ -374,8 +400,8 @@ class FileSystem extends Emitter {
    */
   setAppMeta(id, appId, value) {
     const node = this.#find(id);
-    if (!node || id === ROOT) throw new Error('Elemento inesistente');
-    if (node.net) throw new Error(NOT_FOR_NET);
+    if (!node || id === ROOT) throw new Error(t('notFound'));
+    if (node.net) throw new Error(t('notForNet'));
     this.#setApp(node, appId, value);
     this.#save();
     this.emit('change', { type: 'update', node: copy(node), parent: node.parent });
@@ -418,7 +444,7 @@ class FileSystem extends Emitter {
     if (mark) checkAppMeta(mark.app, mark.value);
     let value = data instanceof Blob ? data : data instanceof ArrayBuffer || ArrayBuffer.isView(data) ? new Blob([data]) : String(data);
     if (node.net) {
-      if (mark) throw new Error(NOT_FOR_NET);
+      if (mark) throw new Error(t('notForNet'));
       await kernel.request('PUT', this.#netUrl(node.net, 'content', this.#netPath(id)), value);
       const now = this.#nodes.get(id);
       if (!now) return;
@@ -450,7 +476,7 @@ class FileSystem extends Emitter {
    */
   async copy(id, parentId, { name } = {}) {
     const source = this.#file(id);
-    if (source.net || this.#find(parentId)?.net) throw new Error(NOT_FOR_NET);
+    if (source.net || this.#find(parentId)?.net) throw new Error(t('notForNet'));
     await this.#tracker?.flush();
     const blob = (await contents.getBlob(id)) ?? new Blob([]);
     const created = this.create(parentId, { type: 'file', name: name ?? source.name, size: blob.size });
@@ -468,7 +494,7 @@ class FileSystem extends Emitter {
   async copyContent(fromId, toId) {
     const source = this.#file(fromId);
     const target = this.#file(toId);
-    if (source.net || target.net) throw new Error(NOT_FOR_NET);
+    if (source.net || target.net) throw new Error(t('notForNet'));
     await this.#tracker?.flush();
     await this.#store(toId, (await contents.getBlob(fromId)) ?? new Blob([]));
     if (!this.#nodes.has(toId)) return;
@@ -497,7 +523,7 @@ class FileSystem extends Emitter {
 
   #file(id) {
     const node = this.#find(id);
-    if (!node || node.type !== 'file') throw new Error('Il file non esiste');
+    if (!node || node.type !== 'file') throw new Error(t('fileNotFound'));
     return node;
   }
 
@@ -509,9 +535,9 @@ class FileSystem extends Emitter {
       if (!Object.keys(node.apps).length) delete node.apps;
       return;
     }
-    if (!node.apps?.[appId] && Object.keys(node.apps ?? {}).length >= MAX_APPS) throw new Error('Troppe app hanno dati su questo elemento');
+    if (!node.apps?.[appId] && Object.keys(node.apps ?? {}).length >= MAX_APPS) throw new Error(t('tooManyApps'));
     const next = { ...node.apps, [appId]: structuredClone(value) };
-    if (JSON.stringify(next).length > MAX_APPS_META) throw new Error('Troppi dati delle app su questo elemento');
+    if (JSON.stringify(next).length > MAX_APPS_META) throw new Error(t('tooMuchAppData'));
     node.apps = next;
     if (value.content === true) this.scrub(node.id);
   }
@@ -535,11 +561,11 @@ class FileSystem extends Emitter {
   move(id, parentId) {
     const node = this.#editable(id);
     const target = this.#find(parentId);
-    if (!target || target.type !== 'folder') throw new Error('La cartella di destinazione non esiste');
-    if (this.isInside(parentId, id)) throw new Error('Una cartella non può andare dentro se stessa');
+    if (!target || target.type !== 'folder') throw new Error(t('noTarget'));
+    if (this.isInside(parentId, id)) throw new Error(t('intoItself'));
     if (node.parent === parentId) return node.name;
     // Between the home and a connection, or two connections: a transfer (net.transfer), not a move
-    if ((node.net || target.net) && node.net !== target.net) throw new Error('Tra la home e la rete i file si copiano con un trasferimento');
+    if ((node.net || target.net) && node.net !== target.net) throw new Error(t('netTransfer'));
     pipes.runSync('file.move', { node: copy(node), to: parentId });
     const from = node.parent;
     const oldPath = node.net ? this.#netPath(id) : null;
@@ -608,7 +634,7 @@ class FileSystem extends Emitter {
   remove(id) {
     const node = this.#editable(id);
     const ids = [id, ...this.#descendants(id)];
-    if (ids.some(i => this.#nodes.get(i).system)) throw new Error('Contiene cartelle di sistema');
+    if (ids.some(i => this.#nodes.get(i).system)) throw new Error(t('systemFolders'));
     pipes.runSync('file.remove', { node: copy(node), ids });
     if (node.net) this.#netOp(node.net, { op: 'remove', path: this.#netPath(id) }, [node.parent]);
     ids.forEach(i => this.#nodes.delete(i));
@@ -758,7 +784,7 @@ class FileSystem extends Emitter {
    */
   setTags(id, tagIds) {
     const node = this.#editable(id);
-    if (node.net) throw new Error(NOT_FOR_NET);
+    if (node.net) throw new Error(t('notForNet'));
     const clean = cleanTags(tagIds);
     if (clean.join() === (node.tags ?? []).join()) return;
     pipes.runSync('tags.assign', { node: copy(node), tags: clean });
@@ -832,7 +858,7 @@ class FileSystem extends Emitter {
    * workspaces existed). Returns how many changed.
    */
   claim(workspaceId) {
-    if (!validWorkspace(workspaceId)) throw new Error('Workspace non valido');
+    if (!validWorkspace(workspaceId)) throw new Error(t('badWorkspace'));
     let count = 0;
     for (const node of this.#nodes.values()) {
       if (node.system || node.workspace) continue;
@@ -853,8 +879,8 @@ class FileSystem extends Emitter {
   /** Makes a folder private to a workspace, which becomes its owner. Its name is made unique if needed. */
   makePrivate(id, workspaceId) {
     const node = this.#nodes.get(id);
-    if (!node || id === ROOT || node.type !== 'folder') throw new Error('Cartella inesistente');
-    if (!validWorkspace(workspaceId)) throw new Error('Workspace non valido');
+    if (!node || id === ROOT || node.type !== 'folder') throw new Error(t('folderNotFound'));
+    if (!validWorkspace(workspaceId)) throw new Error(t('badWorkspace'));
     Object.assign(node, { workspace: workspaceId, private: true });
     node.name = this.#unique(node.parent, node.name, id, node);
     this.#save();
@@ -869,9 +895,9 @@ class FileSystem extends Emitter {
   share(id, parentId, name) {
     const node = this.#nodes.get(id);
     const target = this.#find(parentId);
-    if (!node?.private) throw new Error('La cartella non è privata');
+    if (!node?.private) throw new Error(t('notPrivate'));
     if (!target || target.type !== 'folder' || target.id === id || this.#descendants(id).includes(parentId)) {
-      throw new Error('La cartella di destinazione non esiste');
+      throw new Error(t('noTarget'));
     }
     const from = node.parent;
     delete node.private;
@@ -915,11 +941,11 @@ class FileSystem extends Emitter {
    */
   bring(id, parentId) {
     const node = this.#nodes.get(id);
-    if (!node || node.id === ROOT || node.id === TRASH || this.#inTrash(node) || node.net) throw new Error('Elemento inesistente');
+    if (!node || node.id === ROOT || node.id === TRASH || this.#inTrash(node) || node.net) throw new Error(t('notFound'));
     if (this.#visible(node)) return this.move(id, parentId);
-    if (node.system || node.private) throw new Error('Gli elementi di sistema non si possono modificare');
+    if (node.system || node.private) throw new Error(t('systemItems'));
     const target = this.#find(parentId);
-    if (!target || target.type !== 'folder' || target.net) throw new Error('La cartella di destinazione non esiste');
+    if (!target || target.type !== 'folder' || target.net) throw new Error(t('noTarget'));
     const from = node.parent;
     node.name = this.#unique(parentId, node.name, id, node);
     node.parent = parentId;
@@ -947,7 +973,7 @@ class FileSystem extends Emitter {
   /** Where a node is, as the kernel's transfers name places: { home: id } or { mount, path }. */
   netRef(id) {
     const node = this.#find(id);
-    if (!node) throw new Error('Elemento inesistente');
+    if (!node) throw new Error(t('notFound'));
     return node.net ? { mount: node.net, path: this.#netPath(id) } : { home: id };
   }
 
@@ -1107,7 +1133,7 @@ class FileSystem extends Emitter {
 
   /** A node made in a folder of a connection: in the tree now, on the server a moment later. */
   #netCreate(parent, type, name) {
-    if (type === 'app' || type === 'link') throw new Error(NOT_FOR_NET);
+    if (type === 'app' || type === 'link') throw new Error(t('notForNet'));
     pipes.runSync('file.create', { parent: parent.id, type, name });
     const now = Date.now();
     const node = { id: uid(), type, name: '', parent: parent.id, created: now, modified: now, net: parent.net, ...(type === 'file' && { size: 0 }) };
@@ -1208,8 +1234,8 @@ class FileSystem extends Emitter {
 
   #editable(id) {
     const node = this.#find(id);
-    if (!node) throw new Error('Elemento inesistente');
-    if (node.system || id === ROOT) throw new Error('Gli elementi di sistema non si possono modificare');
+    if (!node) throw new Error(t('notFound'));
+    if (node.system || id === ROOT) throw new Error(t('systemItems'));
     return node;
   }
 
@@ -1310,11 +1336,11 @@ const toBlob = v => (v instanceof Blob ? v : new Blob([v]));
 
 /** An app's data on a node: a plain object of JSON, small (null: none). Throws if not valid. */
 function checkAppMeta(appId, value) {
-  if (typeof appId !== 'string' || !APP_ID.test(appId)) throw new Error('App non valida');
+  if (typeof appId !== 'string' || !APP_ID.test(appId)) throw new Error(t('badApp'));
   if (value == null) return;
-  if (typeof value !== 'object' || Array.isArray(value)) throw new Error('I dati di un’app sono un oggetto');
+  if (typeof value !== 'object' || Array.isArray(value)) throw new Error(t('appDataObject'));
   const text = JSON.stringify(value);
-  if (!text || text.length > MAX_APP_META) throw new Error('Dati dell’app troppo grandi (al massimo 1 KB)');
+  if (!text || text.length > MAX_APP_META) throw new Error(t('appDataTooBig'));
 }
 
 /** Stored apps' data (untrusted): only valid entries, or null. */
@@ -1370,7 +1396,7 @@ function cleanName(name, portable = false) {
 
 function checkName(name) {
   const clean = cleanName(name);
-  if (!clean) throw new Error('Il nome non può essere vuoto');
+  if (!clean) throw new Error(t('emptyName'));
   return clean;
 }
 

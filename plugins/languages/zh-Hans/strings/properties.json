@@ -1,0 +1,41 @@
+{
+  "title": "属性",
+  "type": "类型",
+  "app": "应用",
+  "linkTarget": "原始项目",
+  "linkState": "状态",
+  "contents": "内容",
+  "size": "大小",
+  "opensWith": "打开方式",
+  "deleted": "删除时间",
+  "origin": "原始位置",
+  "location": "位置",
+  "created": "创建时间",
+  "modified": "修改时间",
+  "workspace": "工作区",
+  "tags": "标签",
+  "apps": "应用",
+  "appData": "{id} 的数据",
+  "folder": "文件夹",
+  "linkFolder": "指向文件夹的链接",
+  "linkWeb": "指向网页的链接",
+  "linkFile": "指向文件的链接",
+  "appLink": "指向应用的链接",
+  "typeExt": "{type}（.{ext}）",
+  "system": "系统{type}",
+  "appMissing": "{id}（未安装）",
+  "broken": "已失效：上次未找到原始项目",
+  "notFound": "未找到",
+  "mountGone": "连接已移除",
+  "ask": "每次询问",
+  "files": {
+    "other": "{count} 个文件"
+  },
+  "folders": {
+    "other": "{count} 个文件夹"
+  },
+  "shared": "所有工作区共享",
+  "none": "无",
+  "orphan": "该应用未安装",
+  "remove": "移除"
+}

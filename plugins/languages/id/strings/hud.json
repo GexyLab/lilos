@@ -1,0 +1,12 @@
+{
+  "zoomOut": "Perkecil",
+  "zoomIn": "Perbesar",
+  "fit": "Tampilkan semua",
+  "zoomReset": "Zoom ke 100%",
+  "help": "Kontrol",
+  "withKey": "{text} ({keys})",
+  "help.wheel": "Roda: zoom",
+  "help.move": "Spasi + seret atau tombol tengah: geser",
+  "help.select": "Seret latar belakang: pilih",
+  "help.fit": "{keys}: tampilkan semua"
+}

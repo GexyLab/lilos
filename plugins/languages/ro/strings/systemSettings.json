@@ -1,0 +1,27 @@
+{
+  "retention.days": {
+    "one": "o zi",
+    "few": "{n} zile",
+    "other": "{n} de zile"
+  },
+  "retention.year": "1 an",
+  "retention.forever": "Pentru totdeauna",
+  "lasso": "{keys} + glisare",
+  "color.blue": "Albastru",
+  "color.violet": "Violet",
+  "color.magenta": "Magenta",
+  "color.red": "Roșu",
+  "color.orange": "Portocaliu",
+  "color.green": "Verde",
+  "color.teal": "Turcoaz",
+  "color.graphite": "Grafit",
+  "color.night": "Noapte",
+  "color.deepBlue": "Albastru închis",
+  "color.forest": "Pădure",
+  "color.plum": "Prună",
+  "color.earth": "Pământ",
+  "color.mist": "Ceață",
+  "color.sky": "Cer",
+  "color.sage": "Salvie",
+  "color.sand": "Nisip"
+}

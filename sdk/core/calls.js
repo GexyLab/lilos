@@ -1,5 +1,15 @@
 import { Emitter } from './events.js';
 import { kernel, KernelError } from './kernel.js';
+import { locale } from './locale.js';
+
+const { t } = locale.define('lilos:sdk.calls', {
+  en: { strings: {
+    offline: 'Network requests are made by the lilOS kernel, which is not connected',
+    badRun: 'Invalid run', badSession: 'Invalid session',
+    blocked: 'The browser blocked the sign-in window', canceled: 'Sign-in canceled', failed: 'Sign-in failed',
+    noAskAddress: 'askAddress is missing',
+  } },
+});
 
 /**
  * Network requests made by lilOS's kernel for the user (NetTest): HTTP and GraphQL with variables,
@@ -34,7 +44,7 @@ class Calls extends Emitter {
   get available() { return kernel.connected; }
 
   #need() {
-    if (!kernel.connected) throw new KernelError(0, 'offline', 'Le richieste di rete le fa il kernel di lilOS, che non è collegato');
+    if (!kernel.connected) throw new KernelError(0, 'offline', t('offline'));
   }
 
   info() { this.#need(); return kernel.request('GET', '/calls'); }
@@ -42,7 +52,7 @@ class Calls extends Emitter {
   run(body) { this.#need(); return kernel.request('POST', '/calls/runs', body); }
 
   progress(id, { after = 0, wait = false } = {}) {
-    if (!/^[a-f0-9]{16}$/.test(String(id))) throw new Error('Esecuzione non valida');
+    if (!/^[a-f0-9]{16}$/.test(String(id))) throw new Error(t('badRun'));
     return kernel.request('GET', `/calls/runs/${id}?after=${Math.max(0, Number(after) || 0)}${wait ? '&wait=1' : ''}`);
   }
 
@@ -57,10 +67,10 @@ class Calls extends Emitter {
     // Opened now, while the click still counts; it goes to the provider's page once the kernel gives it
     const win = window.open('about:blank', manual ? '_blank' : `lilos-oauth-${Date.now()}`, manual ? '' : 'popup,width=520,height=700');
     return (async () => {
-      if (!win) throw new KernelError(0, 'blocked', 'Il browser ha bloccato la finestra di accesso');
+      if (!win) throw new KernelError(0, 'blocked', t('blocked'));
       let id = null;
       const stopped = new Promise((_, reject) => {
-        const stop = () => reject(new KernelError(0, 'canceled', 'Accesso annullato'));
+        const stop = () => reject(new KernelError(0, 'canceled', t('canceled')));
         if (signal?.aborted) stop();
         signal?.addEventListener('abort', stop, { once: true });
       });
@@ -73,14 +83,14 @@ class Calls extends Emitter {
         try { win.opener = null; } catch { /* closed */ }
         win.location.href = started.url;
         if (manual) {
-          if (typeof askAddress !== 'function') throw new Error('askAddress mancante');
+          if (typeof askAddress !== 'function') throw new Error(t('noAskAddress'));
           for (let error = null; ;) {
             const address = await Promise.race([stopped, askAddress(error)]);
-            if (!address) throw new KernelError(0, 'canceled', 'Accesso annullato');
+            if (!address) throw new KernelError(0, 'canceled', t('canceled'));
             try {
               const s = await kernel.request('POST', `/calls/oauth/signin/${id}/paste`, { url: address });
               if (s.status === 'done') return s.tokens;
-              if (s.status === 'error') throw new KernelError(0, 'failed', s.error ?? 'Accesso non riuscito');
+              if (s.status === 'error') throw new KernelError(0, 'failed', s.error ?? t('failed'));
             } catch (err) {
               if (err.code !== 'invalid') throw err;
               error = err.message;   // not the right address: asked again
@@ -90,7 +100,7 @@ class Calls extends Emitter {
         for (;;) {
           const s = await Promise.race([stopped, kernel.request('GET', `/calls/oauth/signin/${id}?wait=1`)]);
           if (s.status === 'done') return s.tokens;
-          if (s.status === 'error') throw new KernelError(0, 'failed', s.error ?? 'Accesso non riuscito');
+          if (s.status === 'error') throw new KernelError(0, 'failed', s.error ?? t('failed'));
         }
       } catch (err) {
         if (id) kernel.request('DELETE', `/calls/oauth/signin/${id}`).catch(() => {});
@@ -106,7 +116,7 @@ class Calls extends Emitter {
   closeSession(id) { return kernel.request('DELETE', `/calls/sessions/${encodeURIComponent(id)}`); }
 
   attach(id) {
-    if (!/^[a-f0-9]{16}$/.test(String(id))) throw new Error('Sessione non valida');
+    if (!/^[a-f0-9]{16}$/.test(String(id))) throw new Error(t('badSession'));
     return kernel.channel(`/calls/sessions/${id}/socket`, { maxText: 16 << 20, maxBytes: 0 });
   }
 

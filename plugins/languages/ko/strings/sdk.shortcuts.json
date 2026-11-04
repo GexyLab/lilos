@@ -1,0 +1,19 @@
+{
+  "key.Enter": "Enter",
+  "key.Escape": "Esc",
+  "key.Delete": "Del",
+  "key.Space": "Space",
+  "key.Insert": "Ins",
+  "key.End": "End",
+  "key.PageUp": "PgUp",
+  "key.PageDown": "PgDn",
+  "general": "일반",
+  "exists": "이미 등록된 바로 가기 키: {id}",
+  "unknown": "등록되지 않은 바로 가기 키: {id}",
+  "invalid": "잘못된 조합",
+  "noKey": "Ctrl, Alt, Shift 외에 다른 키도 누르세요",
+  "reserved": "브라우저에서 예약한 조합입니다",
+  "tabSpace": "Tab과 Space 단독 키는 이동과 바탕 화면 이동에 사용됩니다",
+  "typingKey": "입력용 키는 Ctrl, Alt 또는 Shift와 함께 사용해야 합니다",
+  "whenEditing": "이 바로 가기 키는 입력 중에도 작동하므로 Ctrl 또는 Alt가 필요합니다"
+}

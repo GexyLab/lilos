@@ -1,0 +1,9 @@
+{
+  "notFound": "Bron niet gevonden",
+  "method": "Methode niet toegestaan",
+  "internal": "Interne fout van de kernel",
+  "unavailable": "Dienst niet beschikbaar: {name}",
+  "signIn": "Meld je eerst aan",
+  "needSocket": "Er is een WebSocket nodig",
+  "refused": "Verbinding geweigerd"
+}

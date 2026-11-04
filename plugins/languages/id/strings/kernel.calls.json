@@ -1,0 +1,16 @@
+{
+  "secret": "Nilai rahasia tidak valid",
+  "fingerprint": "Sidik jari tidak valid",
+  "server": "Server tidak valid",
+  "sendsTooMany": "Paling banyak {max} permintaan sekaligus",
+  "unopened": "Nilai rahasia tidak dibuka (disimpan oleh pengguna lain atau di lilOS lain): {names}",
+  "runsTooMany": "Paling banyak {max} eksekusi sekaligus",
+  "collection": "Koleksi tidak valid",
+  "runNotFound": "Eksekusi tidak ditemukan",
+  "needFile": "Diperlukan file .nettest",
+  "notCollection": "File ini bukan koleksi NetTest",
+  "noEnvironment": "Lingkungan tidak ditemukan: {name}",
+  "untitled": "Koleksi",
+  "noProtocol": "Protokol tidak tersedia: {protocol} (modul kernelnya tidak ada)",
+  "noDescribe": "Protokol ini tidak mendeskripsikan server"
+}

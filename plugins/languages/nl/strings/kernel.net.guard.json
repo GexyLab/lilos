@@ -1,0 +1,6 @@
+{
+  "ranges": "Ongeldige bereiken (maximaal 100)",
+  "range": "Ongeldig bereik: {range} (schrijf bijvoorbeeld 192.168.1.50/32)",
+  "noAddress": "Geen adres voor {host}",
+  "forbidden": "Adres niet toegestaan voor netwerkverbindingen"
+}

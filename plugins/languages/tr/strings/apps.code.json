@@ -1,0 +1,5 @@
+{
+  "mismatch": "{app} uygulamasının kodu manifest ile eşleşmiyor",
+  "download": "{name} kitaplığı indirilemiyor ({status})",
+  "hash": "{name} kitaplığı karma değeriyle eşleşmiyor"
+}

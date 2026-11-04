@@ -1,0 +1,6 @@
+{
+  "notInstalled": "App nicht installiert: {id}",
+  "hidden": "{app} ist in diesem Workspace ausgeblendet",
+  "noEntry": "{app} hat keinen Einstiegspunkt {entry}",
+  "backgroundOnly": "Sie können sich nur mit einem Einstiegspunkt im Hintergrund verbinden"
+}

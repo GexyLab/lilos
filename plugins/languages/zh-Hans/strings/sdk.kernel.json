@@ -1,0 +1,7 @@
+{
+  "canceled": "已取消",
+  "offline": "lilOS 内核没有响应",
+  "status": "错误 {status}",
+  "badModule": "无效的模块",
+  "badPath": "无效的路径"
+}

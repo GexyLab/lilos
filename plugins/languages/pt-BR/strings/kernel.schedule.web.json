@@ -1,0 +1,30 @@
+{
+  "folderGone": "A pasta onde salvar não existe mais",
+  "notFolder": "O local onde salvar não é uma pasta",
+  "notFile": "“{name}” já existe e não é um arquivo",
+  "protected": "“{name}” está protegido por um app (criptografado, por exemplo): não é sobrescrito",
+  "secretGone": "O valor secreto de {name} não pode mais ser lido: é preciso informá-lo de novo",
+  "fileGone": "O arquivo a enviar não existe mais",
+  "noAnswer": {
+    "one": "Nenhuma resposta em {n} segundo",
+    "other": "Nenhuma resposta em {n} segundos"
+  },
+  "untrusted": "{message}: confirme uma vez pelo NetTest",
+  "network": "Rede: {code}",
+  "redirects": "Redirecionamentos demais",
+  "notWeb": "Redirecionamento para um endereço que não é web",
+  "otherOrigin": "Redirecionamento para outro endereço com um corpo a enviar: não seguido",
+  "tooBig": "Resposta grande demais (no máximo 10 MB)",
+  "unfinished": {
+    "one": "A resposta não terminou em {n} segundo",
+    "other": "A resposta não terminou em {n} segundos"
+  },
+  "bytes": {
+    "one": "{n} byte",
+    "other": "{n} bytes"
+  },
+  "saved": "{status} em {ms} ms · {size} · salva em {name}",
+  "summary": "{status} em {ms} ms · {size}",
+  "status": "Status {status}, esperado {expected}",
+  "contains": "A resposta não contém “{text}”"
+}

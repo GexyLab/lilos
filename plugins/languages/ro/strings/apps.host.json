@@ -1,0 +1,8 @@
+{
+  "noExport": "Codul nu exportă {entry}",
+  "windowClosed": "{app}: fereastra s-a închis",
+  "libraryFailed": "Biblioteca {name} nu s-a încărcat",
+  "noExportOf": "Codul aplicației {app} nu exportă {entry}",
+  "noWindow": "{app} nu are fereastra {entry}",
+  "remoteOrigin": "O aplicație la distanță nu poate avea adresa lilOS"
+}

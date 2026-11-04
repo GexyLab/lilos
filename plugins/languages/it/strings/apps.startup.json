@@ -1,0 +1,14 @@
+{
+  "mainWindow": "Finestra principale",
+  "paramsObject": "I parametri devono essere un oggetto JSON, tra { }",
+  "paramsTooLong": "Parametri troppo lunghi (al massimo 4 KB)",
+  "invalid": "{param}: valore non valido",
+  "fileGone": "{param}: il file non c’è più",
+  "folderGone": "{param}: la cartella non c’è più",
+  "notOpened": "{app} non si è aperta da sola. {message}",
+  "notInstalled": "App non installata",
+  "maxApps": "Al massimo {max} app all’avvio",
+  "unknownEntry": "Punto d’ingresso sconosciuto",
+  "entryNotAtStartup": "Il punto d’ingresso non è all’avvio",
+  "skipped": "Avvio senza app: l’indirizzo contiene ?avvio=no"
+}

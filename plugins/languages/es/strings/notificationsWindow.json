@@ -1,0 +1,16 @@
+{
+  "title": "Notificaciones",
+  "today": "Hoy",
+  "yesterday": "Ayer",
+  "markAll": "Marcar todas como leídas",
+  "clearAll": "Eliminar todas",
+  "clearFailed": "Notificaciones no eliminadas: {message}",
+  "removeFailed": "Notificación no eliminada: {message}",
+  "kept": "{count} de {keep} conservadas",
+  "fresh": {
+    "one": "{kept} · {n} nueva",
+    "other": "{kept} · {n} nuevas"
+  },
+  "empty": "No hay notificaciones",
+  "remove": "Eliminar"
+}

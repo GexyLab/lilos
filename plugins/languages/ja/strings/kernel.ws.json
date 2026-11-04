@@ -1,0 +1,13 @@
+{
+  "needWs": "ws:// または wss:// のアドレスが必要です",
+  "noAnswer": "サーバーがオープン要求に応答しませんでした",
+  "cancelled": "キャンセルされました",
+  "tooLong": "サーバーの応答が長すぎます",
+  "notHttp": "サーバーが HTTP で応答しませんでした",
+  "closed": "サーバーが接続を閉じました",
+  "status": "サーバーは WebSocket を開かずに {status} を返しました",
+  "notOpened": "サーバーが WebSocket を開きませんでした",
+  "badAccept": "サーバーの応答が無効です（Sec-WebSocket-Accept）",
+  "extensions": "サーバーが提示されていない拡張機能を要求しました",
+  "protocol": "サーバーが提示されていないサブプロトコルを選択しました"
+}

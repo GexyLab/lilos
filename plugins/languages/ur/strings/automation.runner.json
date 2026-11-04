@@ -1,0 +1,9 @@
+{
+  "stopped": "آٹومیشن روک دی گئی",
+  "chooseItems": "منتخب کریں کہ کس پر کام کرنا ہے",
+  "appMissing": "اس مرحلے کی ایپ انسٹال نہیں ہے",
+  "password": "یہ مرحلہ پاس ورڈ مانگتا ہے",
+  "stepFailedLabel": "مرحلہ {n} ({label}): {message}",
+  "stepFailed": "مرحلہ {n}: {message}",
+  "cannotRedo": "یہ کارروائی دوبارہ نہیں کی جا سکتی"
+}

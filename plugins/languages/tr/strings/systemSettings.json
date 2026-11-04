@@ -1,0 +1,25 @@
+{
+  "retention.days": {
+    "other": "{n} gün"
+  },
+  "retention.year": "1 yıl",
+  "retention.forever": "Süresiz",
+  "lasso": "{keys} + sürükleme",
+  "color.blue": "Mavi",
+  "color.violet": "Mor",
+  "color.magenta": "Macenta",
+  "color.red": "Kırmızı",
+  "color.orange": "Turuncu",
+  "color.green": "Yeşil",
+  "color.teal": "Deniz mavisi",
+  "color.graphite": "Grafit",
+  "color.night": "Gece",
+  "color.deepBlue": "Koyu mavi",
+  "color.forest": "Orman",
+  "color.plum": "Erik",
+  "color.earth": "Toprak",
+  "color.mist": "Sis",
+  "color.sky": "Gökyüzü",
+  "color.sage": "Adaçayı",
+  "color.sand": "Kum"
+}

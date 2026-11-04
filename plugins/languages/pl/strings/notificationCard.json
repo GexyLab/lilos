@@ -1,0 +1,8 @@
+{
+  "level.error": "Błąd",
+  "level.warning": "Ostrzeżenie",
+  "level.success": "Gotowe",
+  "open": "Otwórz",
+  "openApp": "Otwórz {name}",
+  "gone": "Aplikacja {name} nie jest już zainstalowana"
+}

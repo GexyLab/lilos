@@ -1,0 +1,15 @@
+{
+  "text": "텍스트",
+  "pdf": "PDF",
+  "document": "문서",
+  "spreadsheet": "스프레드시트",
+  "presentation": "프레젠테이션",
+  "image": "이미지",
+  "audio": "오디오",
+  "video": "비디오",
+  "archive": "압축 파일",
+  "code": "코드",
+  "term": "터미널 연결",
+  "nettest": "NetTest 컬렉션",
+  "file": "파일"
+}

@@ -1,0 +1,6 @@
+{
+  "signIn": "Masuk terlebih dahulu",
+  "adminOnly": "Hanya administrator",
+  "name": "Nama tidak valid",
+  "notSupervised": "Kernel tidak dimulai dengan \"npm run kernel\": mulai ulang secara manual"
+}

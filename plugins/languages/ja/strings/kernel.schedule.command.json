@@ -1,0 +1,9 @@
+{
+  "oldTerminal": "ターミナル 1.5.0 以降が必要です。AppStore から更新してください",
+  "signal": "シグナル SIG{signal} で終了しました（{code}）",
+  "signalTail": "シグナル SIG{signal} で終了しました（{code}）：{tail}",
+  "exit": "終了コード {code} で終了しました",
+  "exitTail": "終了コード {code} で終了しました：{tail}",
+  "ok": "終了コード 0 で終了しました",
+  "okTail": "終了コード 0 で終了しました · {tail}"
+}

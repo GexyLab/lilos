@@ -1,0 +1,13 @@
+{
+  "needWs": "Wymagany jest adres ws:// lub wss://",
+  "noAnswer": "Serwer nie odpowiedział na otwarcie",
+  "cancelled": "Anulowano",
+  "tooLong": "Odpowiedź serwera jest za długa",
+  "notHttp": "Serwer nie odpowiedział w HTTP",
+  "closed": "Serwer zamknął połączenie",
+  "status": "Serwer odpowiedział {status} zamiast otworzyć WebSocket",
+  "notOpened": "Serwer nie otworzył WebSocketu",
+  "badAccept": "Nieprawidłowa odpowiedź serwera (Sec-WebSocket-Accept)",
+  "extensions": "Serwer zażądał rozszerzeń, których nie zaoferowano",
+  "protocol": "Serwer wybrał podprotokół, którego nie zaoferowano"
+}

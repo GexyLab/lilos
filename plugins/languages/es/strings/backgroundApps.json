@@ -1,0 +1,10 @@
+{
+  "one": "{name} se está ejecutando en segundo plano",
+  "many": {
+    "one": "{n} app en segundo plano",
+    "other": "{n} apps en segundo plano"
+  },
+  "heading": "En segundo plano",
+  "item": "{name}: {label}",
+  "stop": "Detener"
+}

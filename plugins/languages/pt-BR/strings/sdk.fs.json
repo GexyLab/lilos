@@ -1,0 +1,23 @@
+{
+  "notForNet": "Não disponível para os arquivos de uma conexão de rede",
+  "badWorkspace": "Espaço de trabalho inválido",
+  "noTarget": "A pasta de destino não existe",
+  "badType": "Tipo inválido: {type}",
+  "badLink": "Atalho inválido",
+  "badId": "Identificador inválido",
+  "privateFolder": "Somente uma pasta com um espaço de trabalho pode ser privada",
+  "notFound": "O item não existe",
+  "fileNotFound": "O arquivo não existe",
+  "tooManyApps": "Apps demais têm dados neste item",
+  "tooMuchAppData": "Dados de apps demais neste item",
+  "intoItself": "Uma pasta não pode ficar dentro de si mesma",
+  "netTransfer": "Entre a Home e a rede, os arquivos são copiados com uma transferência",
+  "systemFolders": "Contém pastas do sistema",
+  "folderNotFound": "A pasta não existe",
+  "notPrivate": "A pasta não é privada",
+  "systemItems": "Os itens do sistema não podem ser modificados",
+  "badApp": "App inválido",
+  "appDataObject": "Os dados de um app são um objeto",
+  "appDataTooBig": "Os dados do app são grandes demais (no máximo 1 KB)",
+  "emptyName": "O nome não pode ficar vazio"
+}

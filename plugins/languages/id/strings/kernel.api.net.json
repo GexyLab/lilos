@@ -1,0 +1,14 @@
+{
+  "signIn": "Masuk terlebih dahulu",
+  "adminOnly": "Hanya administrator",
+  "mount": "Koneksi tidak valid",
+  "tooManyTries": "Terlalu banyak percobaan koneksi yang sedang berlangsung",
+  "notOnServer": "Tidak ada di server",
+  "notFile": "Ini bukan file",
+  "webOnly": "Hanya terbuka di web",
+  "tooLarge": "File terlalu besar",
+  "op": "Operasi tidak valid",
+  "import": "Impor tidak valid",
+  "signin": "Proses masuk tidak valid",
+  "item": "Item tidak valid"
+}

@@ -1,0 +1,10 @@
+{
+  "signIn": "Meld je eerst aan",
+  "id": "Ongeldige id",
+  "key": "Ongeldige sleutel: {key}",
+  "tooLarge": "Waarde te groot: {key}",
+  "changes": "Ongeldige wijzigingen",
+  "item": "Ongeldig item",
+  "itemData": "Te veel gegevens in een item",
+  "tooMany": "Te veel sleutels tegelijk"
+}

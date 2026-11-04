@@ -1,0 +1,11 @@
+{
+  "noDesk": "桌面不存在",
+  "notFolder": "“{name}”已不再是文件夹。",
+  "notFile": "“{name}”已不再是文件。",
+  "broken": "链接“{name}”找不到原始项目",
+  "trashed": "原始项目在回收站中：还原后即可再次使用该链接。",
+  "deleted": "原始项目已被删除，或位于从这里无法看到的工作区中。",
+  "mountGone": "原始项目所在的网络连接已不存在。",
+  "pathGone": "“{path}”已不在“{mount}”上。",
+  "unreachable": "无法访问“{name}”"
+}

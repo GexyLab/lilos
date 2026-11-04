@@ -1,0 +1,22 @@
+{
+  "cancel": "Annulla",
+  "one": "«{name}»",
+  "many": "{count} elementi",
+  "trash": "Sposta nel cestino {what}",
+  "permanent": "Elimina definitivamente {what}",
+  "inside": {
+    "one": "{what} e l’elemento dentro",
+    "other": "{what} e i {count} elementi dentro"
+  },
+  "netRemoveText": "{verb} {what}: {text}",
+  "netRemove": "Elimina",
+  "netRecycles": "Elimina da {service} {what} (va nel suo cestino)",
+  "netServer": "Elimina dal server {what} (definitivo)",
+  "netServerFolders": "Elimina dal server {what} con tutto quello che contiene (definitivo)",
+  "purge": "Elimina definitivamente «{name}»",
+  "purgeMany": "Elimina definitivamente {count} elementi",
+  "emptyTrash": {
+    "one": "Elimina definitivamente l’elemento nel cestino",
+    "other": "Elimina definitivamente tutti i {count} elementi nel cestino"
+  }
+}

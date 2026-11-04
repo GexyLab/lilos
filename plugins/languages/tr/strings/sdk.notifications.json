@@ -1,0 +1,5 @@
+{
+  "noText": "Bildirimin metni yok",
+  "badLevel": "Geçersiz düzey: info, success, warning veya error",
+  "keep": "Saklanacak bildirim sayısı: 1 ile 200 arası"
+}

@@ -1,0 +1,7 @@
+{
+  "restart": "lilOS neu starten, um die Updates abzuschließen",
+  "reopen": "Aktualisierte Apps neu starten",
+  "heading": "Aktualisiert, mit der vorherigen Version geöffnet",
+  "reopenApp": "{name} neu starten ({version})",
+  "restartSystem": "lilOS neu starten"
+}

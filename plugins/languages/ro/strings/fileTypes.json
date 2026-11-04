@@ -1,0 +1,15 @@
+{
+  "text": "Text",
+  "pdf": "PDF",
+  "document": "Document",
+  "spreadsheet": "Foaie de calcul",
+  "presentation": "Prezentare",
+  "image": "Imagine",
+  "audio": "Audio",
+  "video": "Video",
+  "archive": "Arhivă",
+  "code": "Cod",
+  "term": "Conexiune terminal",
+  "nettest": "Colecție NetTest",
+  "file": "Fișier"
+}

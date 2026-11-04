@@ -1,0 +1,9 @@
+{
+  "stopped": "Автоматизацію зупинено",
+  "chooseItems": "Виберіть, з чим працювати",
+  "appMissing": "Застосунок цього кроку не встановлено",
+  "password": "Цей крок запитує пароль",
+  "stepFailedLabel": "Крок {n} ({label}): {message}",
+  "stepFailed": "Крок {n}: {message}",
+  "cannotRedo": "Цю дію не можна виконати повторно"
+}

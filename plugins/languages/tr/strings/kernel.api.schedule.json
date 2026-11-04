@@ -1,0 +1,9 @@
+{
+  "signIn": "Önce oturum açın",
+  "app": "Uygulama geçerli değil",
+  "id": "Tanımlayıcı geçerli değil",
+  "number": "Sayı geçerli değil",
+  "missing": "İşlem bulunamadı",
+  "appOwner": "Bir uygulama yalnızca onu kullanan kullanıcı için zamanlama yapar",
+  "adminOwner": "Başkaları veya sistem için yalnızca bir yönetici zamanlama yapabilir"
+}

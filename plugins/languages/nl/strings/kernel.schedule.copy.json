@@ -1,0 +1,36 @@
+{
+  "folderGone": "De map is er niet meer",
+  "namedGone": "{name} is er niet meer",
+  "notFolder": "De map is geen map",
+  "namedNotFolder": "{name} is geen map",
+  "protected": "beveiligd door een app (bijvoorbeeld versleuteld): wordt niet overschreven",
+  "mountGone": "{name} staat niet meer op ‘{mount}’",
+  "inside": "De map waarnaar gekopieerd wordt, ligt in de map die gekopieerd wordt",
+  "newVersion": "Nieuwe versie: {name}",
+  "fileThere": "Op de kopieerbestemming staat al een bestand ‘{name}’",
+  "copied": "{path} gekopieerd",
+  "tooMany": "Meer dan {max} items: kopieer een kleinere map",
+  "sameNameFile": "er is een bestand met dezelfde naam",
+  "removedFile": "bestand {path} verwijderd (nu is het een map)",
+  "sameNameFolder": "er is een map met dezelfde naam",
+  "error": "FOUT {path}: {message}",
+  "removed": "{path} verwijderd",
+  "oldVersion": "oude versie verwijderd: {name}",
+  "summary": {
+    "one": "{n} bestand gekopieerd ({size})",
+    "other": "{n} bestanden gekopieerd ({size})"
+  },
+  "summarySame": {
+    "one": "{n} bestand gekopieerd ({size}), {same} ongewijzigd",
+    "other": "{n} bestanden gekopieerd ({size}), {same} ongewijzigd"
+  },
+  "summaryRemoved": {
+    "one": "{n} bestand gekopieerd ({size}), {removed} verwijderd",
+    "other": "{n} bestanden gekopieerd ({size}), {removed} verwijderd"
+  },
+  "summarySameRemoved": {
+    "one": "{n} bestand gekopieerd ({size}), {same} ongewijzigd, {removed} verwijderd",
+    "other": "{n} bestanden gekopieerd ({size}), {same} ongewijzigd, {removed} verwijderd"
+  },
+  "notCopied": "{n} niet gekopieerd: {first}"
+}

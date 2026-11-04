@@ -1,5 +1,15 @@
 import { Emitter } from './events.js';
 import { fs } from './fs.js';
+import { locale } from './locale.js';
+
+const { t } = locale.define('lilos:sdk.host', {
+  en: { strings: {
+    needProgram: 'This needs the lilOS program (it does not work in the browser)',
+    onlyFiles: 'Only files open on the computer',
+    tooBig: 'The file is too large to open on the computer (more than 512 MB)',
+    noFiles: 'No files to export',
+  } },
+});
 
 /**
  * The program lilOS (lilos-desktop): lilOS in its own window on Windows, macOS and Linux instead
@@ -70,7 +80,7 @@ class Host extends Emitter {
   }
 
   #need() {
-    if (!bridge) throw new Error('Serve il programma lilOS (non funziona nel browser)');
+    if (!bridge) throw new Error(t('needProgram'));
     return bridge;
   }
 
@@ -81,8 +91,8 @@ class Host extends Emitter {
 
   async openOnComputer(id) {
     const node = fs.get(id);
-    if (!node || node.type !== 'file') throw new Error('Si aprono sul computer solo i file');
-    if ((node.size ?? 0) > MAX_OPEN) throw new Error('Il file è troppo grande per aprirlo sul computer (più di 512 MB)');
+    if (!node || node.type !== 'file') throw new Error(t('onlyFiles'));
+    if ((node.size ?? 0) > MAX_OPEN) throw new Error(t('tooBig'));
     const blob = await fs.readBlob(id);
     const { token } = await this.#need().files.openOnComputer({ name: node.name, data: await blob.arrayBuffer() });
     this.#opened.set(token, id);
@@ -103,7 +113,7 @@ class Host extends Emitter {
 
   async exportToComputer(ids) {
     const list = (Array.isArray(ids) ? ids : [ids]).map(id => fs.get(id)).filter(n => n?.type === 'file');
-    if (!list.length) throw new Error('Nessun file da esportare');
+    if (!list.length) throw new Error(t('noFiles'));
     const files = [];
     for (const node of list) files.push({ name: node.name, data: await (await fs.readBlob(node.id)).arrayBuffer() });
     return this.#need().files.exportToComputer(files);

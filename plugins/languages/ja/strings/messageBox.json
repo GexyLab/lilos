@@ -1,0 +1,12 @@
+{
+  "ok": "OK",
+  "cancel": "キャンセル",
+  "continue": "続行",
+  "retry": "再試行",
+  "required": "「{label}」を入力してください",
+  "invalid": "「{label}」が無効です",
+  "number": "「{label}」は数値である必要があります",
+  "min": "「{label}」は {min} 以上である必要があります",
+  "max": "「{label}」は {max} 以下である必要があります",
+  "long": "「{label}」が長すぎます（最大 {max} 文字）"
+}

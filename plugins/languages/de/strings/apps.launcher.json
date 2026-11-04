@@ -1,0 +1,15 @@
+{
+  "name": "„{id}“",
+  "nameVersion": "„{id}“ ({version})",
+  "restart": {
+    "one": "Benötigt das Kernelmodul {modules}, das bereits installiert ist: Es wird beim nächsten Neustart des Kernels aktiv, den ein Administrator im AppStore durchführt.",
+    "other": "Benötigt die Kernelmodule {modules}, die bereits installiert sind: Sie werden beim nächsten Neustart des Kernels aktiv, den ein Administrator im AppStore durchführt."
+  },
+  "missing": "Nicht gefunden: {list}. Ein Administrator installiert es aus dem AppStore.",
+  "missingModule": "das Kernelmodul {name}",
+  "missingApp": "die App {name}",
+  "openApp": "App öffnen",
+  "hidden": "{app} ist in diesem Workspace ausgeblendet. Sie können sie unter Systemsteuerung → Workspace einblenden.",
+  "cannotStart": "{app} kann noch nicht starten",
+  "notStarted": "{app} wurde nicht gestartet: {message}"
+}

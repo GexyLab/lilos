@@ -1,0 +1,14 @@
+{
+  "graphqlVars": "GraphQL: de variabelen zijn geen geldige JSON",
+  "method": "Ongeldige methode",
+  "url": "Ongeldig adres: {url}",
+  "needHttp": "Er is een http://- of https://-adres nodig",
+  "headerName": "Ongeldige headernaam: {name}",
+  "headerValue": "Ongeldige waarde in de header {name}",
+  "bodyTooBig": "Hoofdtekst te groot (maximaal 50 MB)",
+  "noAnswer": {
+    "one": "Geen antwoord binnen {n} seconde",
+    "other": "Geen antwoord binnen {n} seconden"
+  },
+  "cancelled": "Geannuleerd"
+}

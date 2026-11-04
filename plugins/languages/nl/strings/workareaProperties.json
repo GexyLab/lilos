@@ -1,0 +1,33 @@
+{
+  "subtitle": "Eigenschappen van het werkgebied",
+  "title": "Titel",
+  "description": "Beschrijving",
+  "placeholder": "Waarvoor dit werkgebied dient",
+  "addMeta": "Een metagegevensveld toevoegen",
+  "created": "Gemaakt",
+  "modified": "Gewijzigd",
+  "state": "Status",
+  "collapsed": "Geminimaliseerd tot een pictogram",
+  "open": "Open op het bureaublad",
+  "contents": "Inhoud",
+  "items": {
+    "one": "{n} item",
+    "other": "{n} items"
+  },
+  "windows": {
+    "one": "{n} venster",
+    "other": "{n} vensters"
+  },
+  "contentsValue": "{items}, {windows}",
+  "size": "Grootte",
+  "metaName": "Naam",
+  "metaNameLabel": "Naam van metagegevensveld {n}",
+  "metaValue": "Waarde",
+  "metaValueLabel": "Waarde van metagegevensveld {n}",
+  "removeMeta": "Het metagegevensveld verwijderen",
+  "removeMetaLabel": "Het metagegevensveld {name} verwijderen",
+  "noMeta": "Geen metagegevens. Voeg er toe om bijvoorbeeld klant, deadline of status te noteren.",
+  "maxMeta": "Maximaal {max} metagegevensvelden.",
+  "info": "Informatie",
+  "customMeta": "Aangepaste metagegevens"
+}

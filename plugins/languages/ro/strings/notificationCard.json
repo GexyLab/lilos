@@ -1,0 +1,8 @@
+{
+  "level.error": "Eroare",
+  "level.warning": "Avertisment",
+  "level.success": "Finalizat",
+  "open": "Deschideți",
+  "openApp": "Deschideți {name}",
+  "gone": "{name} nu mai este instalată"
+}

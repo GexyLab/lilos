@@ -1,0 +1,8 @@
+{
+  "purged": {
+    "one": "Usunięto na zawsze 1 element starszy niż nowy okres",
+    "few": "Usunięto na zawsze {n} elementy starsze niż nowy okres",
+    "many": "Usunięto na zawsze {n} elementów starszych niż nowy okres",
+    "other": "Usunięto na zawsze {n} elementu starszego niż nowy okres"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "notInstalled": "App niet geïnstalleerd: {id}",
+  "hidden": "{app} is verborgen in deze workspace",
+  "noEntry": "{app} heeft geen ingangspunt {entry}",
+  "backgroundOnly": "Je kunt alleen verbinden met een ingangspunt op de achtergrond"
+}

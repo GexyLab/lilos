@@ -1,0 +1,6 @@
+{
+  "late": "{app} nu a răspuns la timp",
+  "invalid": "Previzualizare nevalidă",
+  "tooBig": "Previzualizare prea mare",
+  "imageType": "Imaginea previzualizării nu are un tip image/*"
+}

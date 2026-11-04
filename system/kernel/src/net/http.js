@@ -4,6 +4,12 @@ import zlib from 'node:zlib';
 import { performance } from 'node:perf_hooks';
 import { fail } from '../errors.js';
 import { connectTo } from './connect.js';
+import { defineStrings } from '../strings.js';
+
+const { t } = defineStrings('lilos:kernel.net.http', { en: { strings: {
+  needHttp: 'An http or https address is needed',
+  noAnswer: { one: 'No answer in {n} second', other: 'No answer in {n} seconds' },
+} } });
 
 /**
  * The kernel's HTTP client, for the requests users make it do: the scheduler's web operations
@@ -43,7 +49,7 @@ export function headerList(headers) {
 export const findHeader = (list, name) => list.find(([k]) => k.toLowerCase() === name)?.[1];
 
 export async function httpRequest(url, { method = 'GET', headers = [], body, lookup, signal, timeoutMs = TIMEOUT, tls = {}, version = 'auto', timings = {} } = {}) {
-  if (url.protocol !== 'http:' && url.protocol !== 'https:') fail('invalid', 'Serve un indirizzo http o https');
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') fail('invalid', t('needHttp'));
   timings.start ??= now();
   const secure = url.protocol === 'https:';
   const host = url.hostname.replace(/^\[|\]$/g, '');
@@ -73,7 +79,9 @@ export async function httpRequest(url, { method = 'GET', headers = [], body, loo
 }
 
 function timedOut(err, timeout, ms) {
-  return timeout.aborted ? Object.assign(new Error(`Nessuna risposta in ${Math.round(ms / 1000)} secondi`), { code: 'ETIMEDOUT' }) : err;
+  if (!timeout.aborted) return err;
+  const text = t('noAnswer', { n: Math.round(ms / 1000) });
+  return Object.assign(new Error(String(text)), { code: 'ETIMEDOUT', text });
 }
 
 function viaHttp1({ url, method, list, payload, socket, signal, timings }) {

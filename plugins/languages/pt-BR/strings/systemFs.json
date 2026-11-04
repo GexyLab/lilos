@@ -1,0 +1,3 @@
+{
+  "welcome": "Boas-vindas ao lilOS!\n\nEsta é uma área de trabalho infinita: mantenha a barra de espaço pressionada e arraste para se deslocar,\nuse a roda do mouse para o zoom e arraste no fundo para selecionar.\n\n- Clique duplo em uma pasta: ela abre no File Manager.\n- Clique duplo em um arquivo de texto: ele abre no Editor (como este).\n- Ctrl K abre o menu Iniciar, Ctrl S salva no Editor.\n- O botão ao lado do logotipo muda de espaço de trabalho: cada um tem sua própria área de trabalho,\n  suas próprias janelas e seus próprios apps. Documenti, Immagini e Download são de todos.\n\nOs atalhos de teclado e os apps que abrem os arquivos podem ser alterados em\nPainel de controle → Usabilidade.\n"
+}

@@ -1,0 +1,19 @@
+{
+  "key.Enter": "Enter",
+  "key.Escape": "Esc",
+  "key.Delete": "Del",
+  "key.Space": "Spatie",
+  "key.Insert": "Ins",
+  "key.End": "End",
+  "key.PageUp": "PgUp",
+  "key.PageDown": "PgDn",
+  "general": "Algemeen",
+  "exists": "Sneltoets al geregistreerd: {id}",
+  "unknown": "Sneltoets niet geregistreerd: {id}",
+  "invalid": "Ongeldige combinatie",
+  "noKey": "Druk naast Ctrl, Alt of Shift ook op een andere toets",
+  "reserved": "Combinatie gereserveerd door de browser",
+  "tabSpace": "Tab en Spatie alleen dienen om te navigeren en om het bureaublad te verplaatsen",
+  "typingKey": "Een toets die tekst typt, moet met Ctrl, Alt of Shift worden gebruikt",
+  "whenEditing": "Deze sneltoets werkt ook terwijl je typt: er is Ctrl of Alt voor nodig"
+}

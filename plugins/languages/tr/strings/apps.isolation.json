@@ -1,0 +1,6 @@
+{
+  "notInstalled": "Uygulama yüklü değil",
+  "system": "Sistem uygulamaları lilOS’un parçasıdır ve lilOS içinde çalışır",
+  "remote": "Uzak bir uygulama kendi başına bir sitedir: her zaman kendi kaynağında (origin) yalıtılmış olarak çalışır",
+  "sdk1": "Uygulama yalnızca yalıtılmış olarak çalışan SDK 1’i kullanıyor"
+}

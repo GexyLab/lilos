@@ -1,0 +1,6 @@
+{
+  "late": "Aplikacja {app} nie odpowiedziała na czas",
+  "invalid": "Nieprawidłowy podgląd",
+  "tooBig": "Podgląd jest za duży",
+  "imageType": "Obraz podglądu nie ma typu image/*"
+}

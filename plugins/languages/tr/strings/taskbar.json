@@ -1,0 +1,7 @@
+{
+  "start": "lilOS menüsü",
+  "menu": "Menü",
+  "menuKeys": "Menü ({keys})",
+  "taskbar": "Görev çubuğu",
+  "tray": "Bildirim alanı"
+}

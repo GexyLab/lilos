@@ -1,0 +1,9 @@
+{
+  "stopped": "ऑटोमेशन रोका गया",
+  "chooseItems": "चुनें कि किस पर काम करना है",
+  "appMissing": "इस चरण का ऐप इंस्टॉल नहीं है",
+  "password": "यह चरण पासवर्ड माँगता है",
+  "stepFailedLabel": "चरण {n} ({label}): {message}",
+  "stepFailed": "चरण {n}: {message}",
+  "cannotRedo": "यह क्रिया फिर से नहीं की जा सकती"
+}

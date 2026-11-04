@@ -1,4 +1,5 @@
 import { fail } from '../errors.js';
+import { defineStrings } from '../strings.js';
 
 /**
  * The license of lilOS (src/license.js), shown before lilOS starts (src/boot/boot.js).
@@ -6,8 +7,11 @@ import { fail } from '../errors.js';
  *                                 source 'remote' | 'bundled' (the copy of the release); url: its page
  *   POST   /api/license/accept   { sha256 } → as GET   (administrators: the text they read)
  */
-const signedIn = principal => principal ?? fail('unauthorized', 'Accesso richiesto');
+const signedIn = principal => principal ?? fail('unauthorized', t('signIn'));
 const SHA256 = /^[0-9a-f]{64}$/;
+const { t } = defineStrings('lilos:kernel.api.license', { en: { strings: {
+  signIn: 'Sign in first', sha256: 'Fingerprint of the license not valid',
+} } });
 
 export function licenseRoutes(kernel) {
   const { router, license } = kernel;
@@ -16,7 +20,7 @@ export function licenseRoutes(kernel) {
   router.add('GET', '/api/license', async ({ principal }) => withRole(signedIn(principal), await license.status()));
   router.add('POST', '/api/license/accept', async ({ principal, json }) => {
     const { sha256 } = await json(4 << 10);
-    if (typeof sha256 !== 'string' || !SHA256.test(sha256)) fail('invalid', 'Impronta della licenza non valida');
+    if (typeof sha256 !== 'string' || !SHA256.test(sha256)) fail('invalid', t('sha256'));
     return withRole(principal, await license.accept(signedIn(principal), sha256));
   });
 }

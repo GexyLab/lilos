@@ -1,0 +1,5 @@
+{
+  "mismatch": "Kode {app} tidak cocok dengan manifesnya",
+  "download": "Pustaka {name} tidak dapat diunduh ({status})",
+  "hash": "Pustaka {name} tidak cocok dengan hash-nya"
+}

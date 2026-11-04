@@ -1,0 +1,14 @@
+{
+  "title": "Alegeți un fișier",
+  "search": "Căutați după nume sau cale",
+  "searchLabel": "Căutare",
+  "folders": "Dosare",
+  "files": "Fișiere",
+  "choose": "Alegeți",
+  "cancel": "Anulați",
+  "home": "Dosar personal",
+  "noMatch": "Niciun rezultat pentru această căutare",
+  "noFolders": "Niciun dosar",
+  "noFiles": "Niciun fișier în lilOS",
+  "noFilesOf": "Niciun fișier {exts} în lilOS"
+}

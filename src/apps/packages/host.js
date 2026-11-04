@@ -1,5 +1,5 @@
-import { Window, h, shortcuts, settings, locale, term, calls, serial, schedule } from '@lilos/sdk';
-import { BRIDGE_SOURCE, lilosApi } from './bridge.js';
+import { Window, h, shortcuts, settings, locale, textDirection, term, calls, serial, schedule } from '@lilos/sdk';
+import { BRIDGE_SOURCE, bridgeTexts, lilosApi } from './bridge.js';
 import { appCode, libraryCode, entrypoints, escapeAttr, inline, netOrigins } from './code.js';
 import { isIsolated } from './isolation.js';
 import { hostMethods, invoke, transferOf } from './methods.js';
@@ -22,6 +22,14 @@ import { pipeTarget } from '../pipes.js';
  *
  * Remote apps are their own site in an iframe: they get the same messages for title and notices.
  */
+const { t } = locale.define('lilos:apps.host', {
+  en: { strings: {
+    noExport: 'The code does not export {entry}', windowClosed: '{app}: the window closed', libraryFailed: 'Library {name} not loaded',
+    noExportOf: 'The code of {app} does not export {entry}', noWindow: '{app} has no window {entry}',
+    remoteOrigin: 'A remote app cannot have the address of lilOS',
+  } },
+});
+
 const TOKENS = ['--accent', '--accent-soft', '--text', '--dim', '--faint', '--surface', '--chrome', '--side', '--field-bg', '--hover', '--border', '--danger', '--radius-sm'];
 const SHADOW_CSS = ':host{all:initial;display:block;height:100%;overflow:auto;box-sizing:border-box;background:var(--surface);color:var(--text);font:13px/1.4 var(--font)}';
 
@@ -70,19 +78,20 @@ async function documentFor(pkg, args, entry) {
     `connect-src ${net.length ? net.join(' ') : "'none'"}`, "form-action 'none'", "base-uri 'none'",
   ].join('; ');
   const strings = locale.strings(pkg.id);
-  const info = { id: pkg.id, version: pkg.version, entry, args: args ?? null, keys: commandKeys(manifest), theme: theme(), locale: strings };
+  const info = { id: pkg.id, version: pkg.version, entry, args: args ?? null, keys: commandKeys(manifest), theme: theme(), locale: strings, texts: bridgeTexts() };
   // sdk '1': the module is the app; sdk '2': the entry point is one of its exports
   const run = String(manifest.sdk) === '2'
     ? `<script type="module">
 (async () => {
   const mod = await import(URL.createObjectURL(new Blob([${inline(JSON.stringify(code))}], { type: 'text/javascript' })));
   const run = mod[${JSON.stringify(entry)}];
-  if (typeof run !== 'function') throw new Error('Il codice non esporta ' + ${JSON.stringify(entry)});
+  if (typeof run !== 'function') throw new Error(${inline(JSON.stringify(t('noExport', { entry })))});
   await run({ lilos, root: document.body, args: lilos.app.args });
 })().catch(err => parent.postMessage({ lilos: 1, id: 0, method: 'app.failed', params: [String(err && err.message || err)] }, '*'));
 </script>`
     : `<script type="module">${inline(code)}</script>`;
-  return `<!doctype html><html lang="${escapeAttr(strings.lang)}"><head><meta charset="utf-8">
+  // The app's own language and its direction, not lilOS's: an app without Arabic stays left to right in an Arabic lilOS
+  return `<!doctype html><html lang="${escapeAttr(strings.lang)}" dir="${textDirection(strings.lang)}"><head><meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="${escapeAttr(csp)}">
 <style>html,body{margin:0;height:100%;background:var(--surface);color:var(--text);font:13px/1.4 var(--font,system-ui)}</style>
 <script data-info="${escapeAttr(JSON.stringify(info))}">${inline(BRIDGE_SOURCE)}</script>
@@ -161,7 +170,7 @@ function connectBridge(win, frame, pkg, handles, entry) {
   return () => {
     removeEventListener('message', onMessage);
     pipe?.close();
-    for (const r of replies.values()) r.reject(new Error(`${pkg.manifest.name}: la finestra si è chiusa`));
+    for (const r of replies.values()) r.reject(new Error(t('windowClosed', { app: pkg.manifest.name })));
     offKeys?.();
     offLocale();
     offTerm.forEach(off => off());
@@ -181,7 +190,7 @@ function loadPageLibraries(manifest) {
       pageLibraries.set(key, libraryCode(lib).then(text => new Promise((resolve, reject) => {
         const s = h('script', { src: URL.createObjectURL(new Blob([text], { type: 'text/javascript' })) });
         s.onload = resolve;
-        s.onerror = () => reject(new Error(`Libreria ${lib.name} non caricata`));
+        s.onerror = () => reject(new Error(t('libraryFailed', { name: lib.name })));
         document.head.append(s);
       })));
       pageLibraries.get(key).catch(() => pageLibraries.delete(key));
@@ -205,9 +214,11 @@ async function mountInPage(win, pkg, entry, args, handles) {
   await loadPageLibraries(manifest);
   const mod = await pageModule(pkg, ep.file ?? manifest.entry);
   const run = mod[entry];
-  if (typeof run !== 'function') throw new Error(`Il codice di ${manifest.name} non esporta ${entry}`);
+  if (typeof run !== 'function') throw new Error(t('noExportOf', { app: manifest.name, entry }));
 
-  const host = h('div', { class: 'pkg-host' });
+  // In the app's own language and direction (see documentFor)
+  const own = () => locale.strings(pkg.id).lang;
+  const host = h('div', { class: 'pkg-host', lang: own(), dir: textDirection(own()) });
   const root = host.attachShadow({ mode: 'open' });
   root.append(h('style', {}, SHADOW_CSS));
   win.body.append(host);
@@ -215,13 +226,17 @@ async function mountInPage(win, pkg, entry, args, handles) {
   let dispatch = null;
   const pipe = windowPipe(pkg, entry, handles, (sub, data, ctx) => dispatch(sub, data, ctx));
   const methods = hostMethods({ pkg, win, handles, pipe });
-  const info = { id: pkg.id, version: pkg.version, entry, args: args ?? null, locale: locale.strings(pkg.id) };
+  const info = { id: pkg.id, version: pkg.version, entry, args: args ?? null, locale: locale.strings(pkg.id), texts: bridgeTexts() };
   const { api, emit, pipe: answerPipe } = lilosApi((method, ...params) => Promise.resolve().then(() => invoke(methods, method, params)), info, locale.engine);
   dispatch = answerPipe;
   // The keyboard reaches lilOS's page: shortcuts go to the active window of the app
   const offs = (manifest.contributes?.commands ?? []).map(cmd => handleCommand(cmd.id, { isActive: () => win.active, run: () => emit('command', cmd.id) }));
   offs.push(...watchTheme(() => emit('theme', theme())));
-  offs.push(locale.on('change', () => emit('locale', locale.strings(pkg.id))));
+  offs.push(locale.on('change', () => {
+    host.lang = own();
+    host.dir = textDirection(own());
+    emit('locale', locale.strings(pkg.id));
+  }));
   offs.push(...termEvents(pkg, what => emit('term', what)));
   offs.push(...callsEvents(pkg, what => emit('calls', what)));
   offs.push(...serialEvents(pkg, what => emit('serial', what)));
@@ -250,7 +265,7 @@ export function packageModule(pkg) {
     default: async ({ args, entry = 'main', files = [] }) => {
       const { manifest } = pkg;
       const ep = entrypoints(manifest)[entry];
-      if (ep?.kind !== 'window') throw new Error(`${manifest.name} non ha la finestra ${entry}`);
+      if (ep?.kind !== 'window') throw new Error(t('noWindow', { app: manifest.name, entry }));
       const size = ep.window ?? manifest.contributes?.window ?? {};
       const text = locale.manifest(manifest);
       const title = entry === 'main' ? text.name : entrypoints(text)[entry].label ?? text.name;
@@ -264,7 +279,7 @@ export function packageModule(pkg) {
       }
       let frame;
       if (manifest.kind === 'remote') {
-        if (new URL(manifest.url).origin === location.origin) throw new Error('Un’app remota non può avere l’indirizzo di lilOS');
+        if (new URL(manifest.url).origin === location.origin) throw new Error(t('remoteOrigin'));
         frame = h('iframe', { class: 'pkg-frame', src: manifest.url, sandbox: 'allow-scripts allow-same-origin allow-forms allow-popups', referrerpolicy: 'no-referrer', allow: '' });
       } else {
         frame = h('iframe', { class: 'pkg-frame', sandbox: 'allow-scripts', referrerpolicy: 'no-referrer', allow: '' });

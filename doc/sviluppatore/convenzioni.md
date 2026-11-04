@@ -4,6 +4,7 @@
 
 - **Interfaccia di lilOS** (testi visibili, tooltip, `aria-label`): italiano. Non è ancora tradotta.
 - **Interfaccia delle app**: i testi visibili si scrivono con `t()` da `lilos.locale.i18n` (o `locale.forApp(id).i18n` per le app di sistema), in un `locales.json` con inglese obbligatorio; i testi del manifesto sono in inglese, con le traduzioni nelle chiavi `@`. Vedi [Traduzioni delle app](api.md#traduzioni-delle-app-sdkcorelocalejs-e-sdkcorei18njs).
+- **Interfaccia di lilOS**: ogni testo visibile (anche del kernel) sta in inglese in una tabella `locale.define('lilos:<parte>', { en: { strings } })` (kernel: `defineStrings`), scritta per esteso; `t()` si chiama quando si disegna, mai al caricamento del modulo; l'italiano e le altre lingue stanno nei pacchetti di `plugins/languages/`, che vanno aggiornati insieme. Per gli spazi usa proprietà CSS logiche (`margin-inline-start`, `inset-inline-end`…), non `left` e `right`: lilOS si specchia per le lingue da destra a sinistra. Vedi [Testi di lilOS e pacchetti di lingua](api.md#testi-di-lilos-e-pacchetti-di-lingua).
 - **Codice** (nomi di variabili, funzioni, classi) e **commenti**: inglese.
 - **Documentazione e messaggi di commit**: italiano.
 

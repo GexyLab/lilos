@@ -1,4 +1,16 @@
-import { fs } from '@lilos/sdk';
+import { fs, locale } from '@lilos/sdk';
+
+const { t } = locale.define('lilos:fsHistory', {
+  en: { strings: {
+    one: '«{name}»', many: '{n} items', home: 'Home',
+    gone: 'The item no longer exists', folderGone: 'The folder they were in no longer exists',
+    itemsGone: 'The items no longer exist', notTrashed: 'The items are no longer in the trash',
+    createdGone: 'The folder no longer exists', foldersGone: 'The items or the folders no longer exist',
+    delete: 'Delete {what}', trash: 'Move {what} to the trash', restore: 'Restore {what}',
+    create: 'Create «{name}»', rename: 'Rename «{from}» to «{to}»',
+    move: 'Move «{name}» to «{folder}»', moveMany: 'Move {what} to «{folder}»',
+  } },
+});
 
 /**
  * File system actions that go into an undo history (UndoStack): the desktop, the File Manager and
@@ -9,10 +21,10 @@ import { fs } from '@lilos/sdk';
  * the entry. Undoing a move to the trash takes the nodes out of it; undoing a permanent removal
  * puts them back with their ids and contents (fs.snapshot).
  */
-const named = nodes => (nodes.length === 1 ? `«${nodes[0].name}»` : `${nodes.length} elementi`);
+const named = nodes => (nodes.length === 1 ? t('one', { name: nodes[0].name }) : t('many', { n: nodes.length }));
 
 const exists = id => {
-  if (!fs.exists(id)) throw new Error('L’elemento non esiste più');
+  if (!fs.exists(id)) throw new Error(t('gone'));
   return fs.get(id);
 };
 
@@ -31,13 +43,13 @@ export async function removeNodes(stack, ids, { permanent = false } = {}) {
   let snap = await fs.snapshot(targets);
   targets.forEach(id => { if (fs.exists(id)) fs.remove(id); });
   stack?.push({
-    label: `Elimina ${named(nodes)}`,
+    label: t('delete', { what: named(nodes) }),
     undo: async () => {
-      if (!(await fs.restore(snap)).length) throw new Error('La cartella in cui si trovavano non esiste più');
+      if (!(await fs.restore(snap)).length) throw new Error(t('folderGone'));
     },
     redo: async () => {
       const present = targets.filter(id => fs.exists(id));
-      if (!present.length) throw new Error('Gli elementi non esistono più');
+      if (!present.length) throw new Error(t('itemsGone'));
       snap = await fs.snapshot(present);
       present.forEach(id => fs.remove(id));
     },
@@ -48,13 +60,13 @@ function trashNodes(stack, nodes) {
   let targets = fs.trash(nodes.map(n => n.id));
   if (!targets.length) return;
   stack?.push({
-    label: `Sposta nel cestino ${named(nodes.filter(n => targets.includes(n.id)))}`,
+    label: t('trash', { what: named(nodes.filter(n => targets.includes(n.id))) }),
     undo: () => {
-      if (!fs.untrash(targets).length) throw new Error('Gli elementi non sono più nel cestino');
+      if (!fs.untrash(targets).length) throw new Error(t('notTrashed'));
     },
     redo: () => {
       targets = fs.trash(targets);
-      if (!targets.length) throw new Error('Gli elementi non esistono più');
+      if (!targets.length) throw new Error(t('itemsGone'));
     },
   });
 }
@@ -68,13 +80,13 @@ export function restoreNodes(stack, ids, parentId = null) {
   let back = restored.map(r => r.id);
   if (back.length) {
     stack?.push({
-      label: `Ripristina ${named(back.map(id => fs.get(id)))}`,
+      label: t('restore', { what: named(back.map(id => fs.get(id))) }),
       undo: () => {
         back = fs.trash(back);
-        if (!back.length) throw new Error('Gli elementi non esistono più');
+        if (!back.length) throw new Error(t('itemsGone'));
       },
       redo: () => {
-        if (!fs.untrash(back, parentId).length) throw new Error('Gli elementi non sono più nel cestino');
+        if (!fs.untrash(back, parentId).length) throw new Error(t('notTrashed'));
       },
     });
   }
@@ -87,14 +99,14 @@ export function recordCreated(stack, id) {
   if (!stack || !node || node.net) return;   // on a server: removing it again is for good, it cannot come back
   let snap = null;
   stack.push({
-    label: `Crea «${node.name}»`,
+    label: t('create', { name: node.name }),
     undo: async () => {
       exists(id);
       snap = await fs.snapshot([id]);   // what was written in it meanwhile comes back on redo
       fs.remove(id);
     },
     redo: async () => {
-      if (!snap || !(await fs.restore(snap)).length) throw new Error('La cartella non esiste più');
+      if (!snap || !(await fs.restore(snap)).length) throw new Error(t('createdGone'));
     },
   });
 }
@@ -105,7 +117,7 @@ export function renameNode(stack, id, name) {
   const after = fs.rename(id, name);
   if (after !== before) {
     stack?.push({
-      label: `Rinomina «${before}» in «${after}»`,
+      label: t('rename', { from: before, to: after }),
       undo: () => { exists(id); fs.rename(id, before); },
       redo: () => { exists(id); fs.rename(id, after); },
     });
@@ -121,7 +133,7 @@ export function moveNode(stack, id, parentId) {
   if (from !== parentId) {
     const where = fs.get(parentId);
     stack?.push({
-      label: `Sposta «${name}» in «${where.name || 'Home'}»`,
+      label: t('move', { name, folder: where.name || t('home') }),
       undo: () => { exists(id); fs.move(id, from); },
       redo: () => { exists(id); fs.move(id, parentId); },
     });
@@ -163,10 +175,10 @@ export function moveNodes(stack, ids, parentId) {
         done++;
       } catch { /* gone, or its folder is: skipped */ }
     }
-    if (!done) throw new Error('Gli elementi o le cartelle non esistono più');
+    if (!done) throw new Error(t('foldersGone'));
   };
   stack?.push({
-    label: `Sposta ${named(moves)} in «${where.name || 'Home'}»`,
+    label: t('moveMany', { what: named(moves), folder: where.name || t('home') }),
     undo: () => apply(null),
     redo: () => apply(parentId),
   });

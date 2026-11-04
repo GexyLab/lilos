@@ -1,0 +1,8 @@
+{
+  "noExport": "لا يصدّر الكود {entry}",
+  "windowClosed": "{app}: أُغلقت النافذة",
+  "libraryFailed": "لم يتم تحميل المكتبة {name}",
+  "noExportOf": "لا يصدّر كود {app} {entry}",
+  "noWindow": "لا يملك {app} النافذة {entry}",
+  "remoteOrigin": "لا يمكن أن يكون للتطبيق البعيد عنوان lilOS نفسه"
+}

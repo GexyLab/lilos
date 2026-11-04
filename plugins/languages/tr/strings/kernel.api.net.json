@@ -1,0 +1,14 @@
+{
+  "signIn": "Önce oturum açın",
+  "adminOnly": "Yalnızca yöneticiler",
+  "mount": "Bağlantı geçerli değil",
+  "tooManyTries": "Sürmekte olan çok fazla bağlantı denemesi var",
+  "notOnServer": "Sunucuda yok",
+  "notFile": "Bu bir dosya değil",
+  "webOnly": "Yalnızca web’de açılır",
+  "tooLarge": "Dosya çok büyük",
+  "op": "İşlem geçerli değil",
+  "import": "İçe aktarma geçerli değil",
+  "signin": "Oturum açma geçerli değil",
+  "item": "Öğe geçerli değil"
+}

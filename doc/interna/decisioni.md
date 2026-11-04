@@ -763,7 +763,7 @@ lilOS legge il file **prima** di avviare l'app e le dà le stringhe già risolte
 - **Il file è un dato di chi scrive l'app, non codice**: `parseLocales` tiene solo ciò che si aspetta, con limiti (1 MiB, 50 lingue, 5000 stringhe, 4000 caratteri per testo, chiavi `[\w.:-]`), e il kernel lo rifiuta all'installazione.
 - **Il kernel importa dall'SDK**: due copie delle regole si sarebbero allontanate. Il motore non ha import proprio per questo e per poterlo mandare nelle sandbox come testo.
 
-**Alternative scartate.** Un file per lingua (`it.json`, `en.json`): più file da firmare con hash e da tenere allineati. Chiavi nel manifesto stesso (`name: { en, it }`): manifesti grossi e un formato che il kernel deve conoscere campo per campo. Un servizio di traduzione che le app chiamano (`await t()`): app che aspettano prima di disegnare. Pacchetti di lingua installabili: per ora rinviati (sotto).
+**Alternative scartate.** Un file per lingua (`it.json`, `en.json`): più file da firmare con hash e da tenere allineati. Chiavi nel manifesto stesso (`name: { en, it }`): manifesti grossi e un formato che il kernel deve conoscere campo per campo. Un servizio di traduzione che le app chiamano (`await t()`): app che aspettano prima di disegnare. Pacchetti di lingua installabili: per ora rinviati (sotto); fatti per lilOS stesso, non per le app, in [D84](#d84-i-pacchetti-di-lingua-traducono-lilos-non-le-app).
 
 **Conseguenze.**
 
@@ -775,7 +775,9 @@ lilOS legge il file **prima** di avviare l'app e le dà le stringhe già risolte
 - I nomi già creati (cartelle, file, collegamento sulla scrivania) non si ritraducono.
 - La traduzione di un nome non ha il limite di 40 caratteri del manifesto (vale quello di 4000 per tutti i testi).
 
-**Quando ripensarla.** Quando si tradurrà l'interfaccia di lilOS (oggi in italiano: potrebbe usare lo stesso motore, con il proprio file), quando si vorranno **pacchetti di lingua installabili** da altri (un file `.lang.json` per aggiungere una lingua a tutte le app, già abbozzato con il suo schema) o lingue da destra a sinistra, e se un'app avrà bisogno di cambiare lingua a un servizio già avviato.
+**Aggiornamento (4 novembre 2026).** La traduzione dell'interfaccia di lilOS, i pacchetti di lingua installabili e le lingue da destra a sinistra sono arrivati con [D84](#d84-i-pacchetti-di-lingua-traducono-lilos-non-le-app), con lo stesso motore ma solo per lilOS stesso: un pacchetto non traduce le app (l'idea di un `.lang.json` per tutte le app è scartata).
+
+**Quando ripensarla.** Se un'app avrà bisogno di cambiare lingua a un servizio già avviato, o se si vorrà che un pacchetto traduca anche le app.
 
 ## D46. Aggiornare le app: ricaricamento a caldo, riavvio solo quando serve
 
@@ -2088,3 +2090,47 @@ Conseguenze: se tutte le schede si chiudono non parte niente; un'automazione con
 - Un widget di un'app aggiornata si rimonta quando cambia l'app che apre il tipo.
 
 **Quando ripensarla.** Quando si vorranno widget di app non di sistema (servirà un sandbox per widget o un protocollo di disegno), widget senza file (un orologio, un meteo), o un'altra eccezione all'isolamento tra workspace oltre alla sola lettura di `everywhere`. Se i promemoria devono avere azioni (Rimanda, Fatto), servono azioni nelle notifiche della Pianificazione.
+
+## D84. I pacchetti di lingua traducono lilOS, non le app
+
+> Completa [D45](#d45-un-file-di-traduzioni-per-app-inglese-predefinito-un-solo-motore): quella decisione lasciava fuori la traduzione dell'interfaccia di lilOS e i pacchetti di lingua installabili. Qui entrambi, ma solo per lilOS stesso: le app restano come in D45.
+
+**Contesto.** Con D45 si traducevano solo le app. Menu, scrivania, finestre di sistema e messaggi del kernel erano in italiano scritto nel codice, qualunque lingua si scegliesse, e non c'era modo di aggiungerne altre senza cambiare il codice. L'utente ha chiesto lilOS in più lingue, con un modo semplice di installarle.
+
+**Decisione.** Decisa il 4 novembre 2026, lilOS 1.32.0, SDK 0.20.0.
+
+- **Cosa traducono.** Un **pacchetto di lingua** traduce la base di lilOS: la sua interfaccia (scrivania, barra, menu applicazioni, pagina utente, finestre di sistema, schermate di accesso e di avvio, componenti dell'SDK) e i messaggi del kernel. **Non** le app né i moduli del kernel: ogni app ha il suo `locales.json` e ricade sull'inglese se non ha la lingua del sistema (come in D45); i moduli tengono i loro testi.
+- **Da dove.** Solo dal **repository ufficiale** (`catalog.json`, `"languages": ["languages/it", …]`). Il kernel rifiuta qualsiasi altra origine e gli altri repository non offrono lingue.
+- **Chi.** Qualsiasi utente con l'accesso installa o aggiorna un pacchetto, e vale per **tutti** gli utenti. Lo rimuove solo chi l'ha installato o un amministratore. Chi aveva lilOS in quella lingua torna all'inglese e riceve una notifica.
+- **L'inglese resta nel codice** come ultimo ripiego: lilOS non mostra mai chiavi nude. Ogni testo è una tabella `locale.define('lilos:<parte>', { en: { strings } })` (kernel: `defineStrings`; schermate di avvio: `bootStrings`; file importati da `locale.js`: `defineLater`) scritta per esteso. L'italiano che era nel codice è il pacchetto `lang-it`; `lang-en` è il modello completo per chi traduce e la base per le varianti regionali.
+- **20 pacchetti alla 1.0.0**: it, en, zh-Hans, hi, es, de, fr, pt-BR, ru, ar, ja, pl, uk, ro, nl, el, id, ur, tr, ko. Varianti scelte: cinese semplificato, portoghese del Brasile, spagnolo di Spagna. Le traduzioni sono scritte da agenti di intelligenza artificiale: per hindi, urdu, arabo e greco è consigliata la revisione di chi le parla prima di considerarle definitive.
+- **Lingue da destra a sinistra** (arabo, urdu): lilOS mette `<html dir="rtl">`, il suo CSS usa proprietà logiche e i menu e le frecce si specchiano. Le finestre delle app tengono la direzione della lingua dell'app.
+- **Dove si scelgono.** Pannello di controllo → Lingua offre l'inglese (en-US, en-GB) e i pacchetti installati; l'AppStore ha la scheda **Lingue** (AppStore 1.11.0) e il Pannello di controllo 1.21.0 il pulsante **Altre lingue**.
+- **Strumenti.** `scripts/lilos-strings.mjs` legge dal codice tutte le tabelle `lilos:`; `plugins/scripts/languages.mjs` costruisce i pacchetti da `plugins/languages/<lingua>/` e **si ferma** se a un pacchetto manca una parte o una chiave, ne ha una in più o ha segnaposto diversi dall'inglese.
+
+**Perché.**
+
+- **Solo la base, non le app.** I testi delle app sono dei loro autori: un pacchetto di lingua che le traducesse dovrebbe seguire ogni app e ogni sua versione. D45 già dà a ogni app il suo file e il ripiego sull'inglese.
+- **Solo dal repository ufficiale.** I testi di lilOS compaiono in dialoghi di sistema (conferme, richieste di password, avvisi di sicurezza). Un pacchetto di un repository qualsiasi potrebbe mettervi testo ingannevole, per esempio una finta richiesta di password.
+- **Chiunque installa, per tutti.** Una lingua non dà accesso a niente e non cambia il comportamento: riservarla agli amministratori costringerebbe a chiedere il permesso per un'azione innocua. Il rischio che qualcuno tolga la lingua agli altri è ridotto dalla regola di rimozione (solo chi l'ha installata o un amministratore) e dall'avviso.
+- **L'inglese nel codice.** Se l'inglese stesse in un pacchetto obbligatorio, senza di esso lilOS mostrerebbe le chiavi. Nel codice ogni testo ha sempre il suo ripiego.
+- **Tabelle scritte per esteso.** Gli script le leggono dal codice senza eseguirlo, quindi la build dei pacchetti conosce sempre l'elenco completo dei testi e controlla ogni pacchetto contro di esso.
+- **La build si ferma se manca una chiave.** Un testo che manca in una lingua sarebbe una mezza traduzione che nessuno nota. Chi cambia i testi di lilOS aggiorna ogni pacchetto prima di pubblicarlo.
+
+**Alternative scartate.**
+
+- Pacchetti che traducono anche le app: ogni app ha i suoi testi.
+- Pacchetti da qualsiasi repository: testi di terzi nei dialoghi di sistema.
+- L'inglese solo in un pacchetto obbligatorio: senza di esso lilOS mostrerebbe le chiavi.
+- Installazione riservata agli amministratori.
+
+**Conseguenze.**
+
+- **Ogni testo nuovo di lilOS tocca ogni pacchetto.** Scrivere un testo vuol dire scrivere la tabella inglese e aggiungere la chiave in 20 pacchetti: finché non è fatto la build dei pacchetti si ferma (quelli già installati restano in inglese per le chiavi nuove). Le istruzioni sono in [Scrivere un testo di lilOS](../sviluppatore/ricette.md#scrivere-un-testo-di-lilos-e-aggiungere-o-aggiornare-una-lingua-di-lilos).
+- `t()` non si chiama mai mentre un modulo si carica: all'avvio il pacchetto può non essere arrivato, e la lingua può cambiare con lilOS aperto. Per questo `locale.ready` fa aspettare il disegno, e quando cambia la lingua dei testi lilOS offre di ricaricare (ciò che è già disegnato resta nella lingua di prima).
+- Le schermate prima dell'SDK (accesso, licenza, avvio) usano lo stesso motore (`bootStrings`) e la lingua dell'ultimo utente di questo browser (`localStorage`); per quando il kernel non risponde tengono una copia delle loro parti.
+- `locale.define` accetta solo l'inglese. Il kernel risponde nella lingua della richiesta (`X-Lilos-Locale`); i suoi messaggi sono `Text`, tradotti dove escono dal kernel.
+- `LANGUAGES` non è più un elenco fisso di sette lingue: è l'inglese più i pacchetti installati.
+- Un pacchetto è un dato non fidato: il kernel lo controlla con limiti (4 MiB, 400 parti, 20 000 stringhe) e con l'hash scritto in `language.json`.
+
+**Quando ripensarla.** Se serviranno pacchetti di terzi (allora serve un modo di firmarli e di segnalarli come non ufficiali), se tenere 20 pacchetti allineati diventa troppo pesante per la frequenza con cui cambiano i testi, o se si vorrà tradurre le app oltre ai loro file.

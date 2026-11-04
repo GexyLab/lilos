@@ -1,0 +1,12 @@
+{
+  "folder": "module.json 与文件夹 {folder} 不符",
+  "kernel": "{name} 需要内核 {kernel}，当前为 {api}",
+  "services": "{name}：服务名称无效",
+  "settings": "{name}：设置无效",
+  "replaces": "{name}：replaces 无效",
+  "notInstalled": "模块未安装：{name}",
+  "twice": "模块被列出两次：{name}",
+  "provider": "服务“{service}”同时由 {first} 和 {second} 提供",
+  "cycle": "模块之间存在循环依赖（{name}）",
+  "missing": "{name} 需要服务“{service}”，但没有已启用的模块提供它"
+}

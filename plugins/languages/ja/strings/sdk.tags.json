@@ -1,0 +1,16 @@
+{
+  "red": "赤",
+  "orange": "オレンジ",
+  "yellow": "黄",
+  "green": "緑",
+  "teal": "ティール",
+  "blue": "青",
+  "purple": "紫",
+  "gray": "グレー",
+  "emptyName": "タグ名を空にすることはできません",
+  "exists": "タグ「{name}」はすでに存在します",
+  "tooMany": {
+    "other": "タグは最大 {n} 個です"
+  },
+  "notFound": "そのタグは存在しません"
+}

@@ -1,0 +1,17 @@
+{
+  "port": "Nieprawidłowy port",
+  "url": "Nieprawidłowy adres",
+  "closedBy": "Zamknięte przez serwer ({code})",
+  "closedByReason": "Zamknięte przez serwer ({code}: {reason})",
+  "closed": "Połączenie jest zamknięte",
+  "unknownCommand": "Nieznane polecenie",
+  "notStream": "Serwer odpowiedział {status} zamiast strumienia zdarzeń",
+  "notStreamType": "Serwer odpowiedział {status} ({type}) zamiast strumienia zdarzeń",
+  "lineTooLong": "Wiersz jest za długi: odrzucono",
+  "eventTooLong": "Zdarzenie jest za długie: odrzucono",
+  "streamEnded": "Serwer zamknął strumień",
+  "receiveOnly": "Server-Sent Events: tylko odbieranie",
+  "noHost": "Brak serwera",
+  "ended": "Serwer zamknął połączenie",
+  "tooBig": "Datagram jest za duży (najwyżej 65507 bajtów)"
+}

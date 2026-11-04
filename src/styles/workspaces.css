@@ -3,14 +3,14 @@
 /* Windows and taskbar buttons of the other workspaces: alive, not shown */
 .window.ws-away, .tb-task.ws-away { display: none !important; }
 
-/* Taskbar workspaces, right of the logo: the current one, or all of them (.all) */
+/* Taskbar workspaces, after the logo: the current one, or all of them (.all) */
 .tb-ws-area { display: flex; align-items: center; gap: 2px; min-width: 0; flex: 0 1 auto; }
 .tb-ws {
-  height: 28px; max-width: 180px; min-width: 0; display: flex; align-items: center; gap: 7px; padding: 0 8px 0 10px;
+  height: 28px; max-width: 180px; min-width: 0; display: flex; align-items: center; gap: 7px; padding-block: 0; padding-inline: 10px 8px;
   border-radius: var(--radius-sm); font-size: 12px; color: var(--bar-text);
 }
 .tb-ws:hover, .tb-ws-more:hover { background: var(--bar-hover); }
-.tb-ws-area.all { max-width: 50%; padding-right: 6px; margin-right: 2px; border-right: 1px solid var(--bar-border); }
+.tb-ws-area.all { max-width: 50%; padding-inline-end: 6px; margin-inline-end: 2px; border-inline-end: 1px solid var(--bar-border); }
 .tb-ws-area.all .tb-ws { max-width: none; padding: 0 10px; color: var(--bar-dim); }
 .tb-ws-area.all .tb-ws-name { max-width: 130px; }
 .tb-ws-area.all .tb-ws:hover { color: var(--bar-text); }

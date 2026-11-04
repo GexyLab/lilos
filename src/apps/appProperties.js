@@ -1,4 +1,4 @@
-import { SettingsWindow, apps as installed, session, selectField } from '@lilos/sdk';
+import { SettingsWindow, apps as installed, session, selectField, locale } from '@lilos/sdk';
 import { getApp, registry } from './registry.js';
 import { entrypointsOf } from './entrypoints.js';
 import { executionMode, canChangeExecution } from './packages/isolation.js';
@@ -18,46 +18,66 @@ export function connectAppProperties(windowManager) {
   wm = windowManager;
 }
 
-const dateLabel = t => (t ? new Date(t).toLocaleDateString(session.locale, { day: '2-digit', month: 'long', year: 'numeric' }) : '—');
+const { t } = locale.define('lilos:apps.appProperties', {
+  en: { strings: {
+    'mode.isolated': 'Isolated', 'mode.open': 'Not isolated', 'mode.system': 'Inside lilOS (system app)', 'mode.remote': 'Isolated, on its own site (remote app)',
+    folder: 'Folder {dir}', kernelFolder: 'A folder on the kernel’s computer',
+    app: 'App', name: 'Name', description: 'Description', version: 'Version', publisher: 'Publisher',
+    signed: 'Signature verified', official: 'Verified: from the official repository', unsigned: 'Not verified: no known signature',
+    source: 'Source', installed: 'Installed', updated: 'Updated',
+    entrypoints: 'Entry points', mainWindow: 'Main window', mainHint: 'Opens when you open the app', otherHint: 'Started by the system and by other apps',
+    window: 'Window', background: 'In the background',
+    permissions: 'Permissions', noPermissions: 'No permissions', noPermissionsHint: 'The app uses only its own data and the files you open with it',
+    modes: 'The two modes',
+    isolatedHint: 'The app runs in a sandbox: it sees only what its permissions allow. Safer.',
+    openHint: 'The app runs in lilOS’s page and in a Web Worker: it is faster, but it can do everything you can do, even beyond its permissions. Only for apps you trust.',
+    execution: 'Execution', mode: 'Mode', generalIsolated: 'isolated', generalOpen: 'not isolated',
+    executionMode: 'Execution mode', asOthers: 'Like the other apps ({mode})',
+    nextOpen: '{app}: it applies from the next time it opens', notChanged: 'Not changed: {message}',
+    now: 'Now: {mode}. It applies from the next time the app opens.', adminOnly: 'Only an administrator can change it.',
+    keywords: 'isolation sandbox iframe worker security',
+    notInstalled: 'The app is not installed',
+    general: 'General', generalHint: 'What app it is and where it comes from.',
+    permissionsHint: 'What the app may do, granted when it was installed.',
+    security: 'Security', securityHint: 'How the app runs.',
+  } },
+});
 
-const MODE_LABELS = {
-  isolated: 'Isolata',
-  open: 'Non isolata',
-  system: 'Dentro lilOS (app di sistema)',
-  remote: 'Isolata, nel suo sito (app remota)',
-};
+const dateLabel = time => (time ? new Date(time).toLocaleDateString(session.locale, { day: '2-digit', month: 'long', year: 'numeric' }) : '—');
+
+const modeLabel = mode => t(`mode.${mode}`);
 
 function sourceLabel(source) {
   if (!source) return '—';
   if (source.type === 'github') return `GitHub: ${source.repo}${source.path ? ` (${source.path})` : ''}`;
   if (source.type === 'git') return `${source.url}${source.path ? ` (${source.path})` : ''}`;
-  return source.dir ? `Cartella ${source.dir}` : 'Cartella del computer del kernel';
+  return source.dir ? t('folder', { dir: source.dir }) : t('kernelFolder');
 }
 
 function generalSections(app) {
   const pkg = app.package;
-  if (!pkg) return [{ rows: [{ label: 'App', control: app.name }] }];
+  if (!pkg) return [{ rows: [{ label: t('app'), control: app.name }] }];
   const manifest = app.text ?? pkg.manifest;   // in the system's language
   const entries = Object.entries(entrypointsOf(app));
   return [
     {
-      title: 'App',
+      title: t('app'),
       rows: [
-        { label: 'Nome', control: manifest.name },
-        manifest.description && { label: 'Descrizione', control: manifest.description },
-        { label: 'Versione', control: pkg.version },
-        { label: 'Editore', description: pkg.signed ? (pkg.manifest?.signature ? 'Firma verificata' : 'Verificata: dal repository ufficiale') : 'Non verificata: nessuna firma riconosciuta', control: pkg.publisher?.name ?? manifest.publisher?.name ?? '—' },
-        { label: 'Provenienza', control: sourceLabel(pkg.source) },
-        { label: 'Installata', control: dateLabel(pkg.installed) },
-        { label: 'Aggiornata', control: dateLabel(pkg.updated) },
+        { label: t('name'), control: manifest.name },
+        manifest.description && { label: t('description'), control: manifest.description },
+        { label: t('version'), control: pkg.version },
+        { label: t('publisher'), description: pkg.signed ? (pkg.manifest?.signature ? t('signed') : t('official')) : t('unsigned'), control: pkg.publisher?.name ?? manifest.publisher?.name ?? '—' },
+        { label: t('source'), control: sourceLabel(pkg.source) },
+        { label: t('installed'), control: dateLabel(pkg.installed) },
+        { label: t('updated'), control: dateLabel(pkg.updated) },
       ].filter(Boolean),
     },
     {
-      title: 'Punti d’ingresso',
+      title: t('entrypoints'),
       rows: entries.map(([name, ep]) => ({
-        label: name === 'main' ? 'Finestra principale' : ep.label ?? name,
-        description: name === 'main' ? 'Si apre quando apri l’app' : 'Lo avviano il sistema e le altre app',
-        control: ep.kind === 'window' ? 'Finestra' : 'In background',
+        label: name === 'main' ? t('mainWindow') : ep.label ?? name,
+        description: name === 'main' ? t('mainHint') : t('otherHint'),
+        control: ep.kind === 'window' ? t('window') : t('background'),
       })),
     },
   ];
@@ -66,10 +86,10 @@ function generalSections(app) {
 function permissionSections(app) {
   const list = app.package?.manifest.permissions ?? [];
   return [{
-    title: 'Permessi',
+    title: t('permissions'),
     rows: list.length
       ? list.map(p => ({ label: describePermission(p), description: p }))
-      : [{ label: 'Nessun permesso', description: 'L’app usa solo i propri dati e i file che apri con lei' }],
+      : [{ label: t('noPermissions'), description: t('noPermissionsHint') }],
   }];
 }
 
@@ -77,46 +97,46 @@ function securitySections(app, rerender) {
   const pkg = app.package;
   const mode = executionMode(pkg);
   const explain = {
-    title: 'Le due modalità',
+    title: t('modes'),
     rows: [
-      { label: 'Isolata', description: 'L’app gira in una sandbox: vede solo quello che i suoi permessi le concedono. Più sicura.' },
-      { label: 'Non isolata', description: 'L’app gira nella pagina di lilOS e in un Web Worker: è più veloce, ma può fare tutto quello che puoi fare tu, anche fuori dai suoi permessi. Solo per app di cui ti fidi.' },
+      { label: modeLabel('isolated'), description: t('isolatedHint') },
+      { label: modeLabel('open'), description: t('openHint') },
     ],
   };
   if (mode.fixed) {
-    return [{ title: 'Esecuzione', rows: [{ label: 'Modalità', description: mode.reason, control: MODE_LABELS[mode.mode] }] }];
+    return [{ title: t('execution'), rows: [{ label: t('mode'), description: mode.reason, control: modeLabel(mode.mode) }] }];
   }
-  const general = installed.security().isolated ? 'isolata' : 'non isolata';
+  const general = installed.security().isolated ? t('generalIsolated') : t('generalOpen');
   const admin = canChangeExecution();
   const value = mode.own === null ? 'default' : mode.own ? 'isolated' : 'open';
   const control = admin
     ? selectField({
-      value, label: 'Modalità di esecuzione',
+      value, label: t('executionMode'),
       options: [
-        { value: 'default', label: `Come le altre app (${general})` },
-        { value: 'isolated', label: 'Isolata' },
-        { value: 'open', label: 'Non isolata' },
+        { value: 'default', label: t('asOthers', { mode: general }) },
+        { value: 'isolated', label: modeLabel('isolated') },
+        { value: 'open', label: modeLabel('open') },
       ],
       onChange: async v => {
         try {
           await installed.setAppSecurity(app.id, v === 'default' ? null : v === 'isolated');
-          notify(`${app.name}: vale dalla prossima apertura`, { level: 'success' });
+          notify(t('nextOpen', { app: app.name }), { level: 'success' });
         } catch (err) {
-          notify(`Non cambiata: ${err.message}`, { level: 'error' });
+          notify(t('notChanged', { message: err.message }), { level: 'error' });
         }
         rerender();
       },
     })
-    : MODE_LABELS[mode.mode];
+    : modeLabel(mode.mode);
   return [
     {
-      title: 'Esecuzione',
+      title: t('execution'),
       rows: [{
-        label: 'Modalità',
+        label: t('mode'),
         description: admin
-          ? `Ora: ${MODE_LABELS[mode.mode].toLowerCase()}. Vale dalla prossima apertura dell’app.`
-          : 'Solo un amministratore la cambia.',
-        keywords: 'isolamento sandbox iframe worker sicurezza',
+          ? t('now', { mode: modeLabel(mode.mode).toLocaleLowerCase(locale.code) })
+          : t('adminOnly'),
+        keywords: t('keywords'),
         control,
       }],
     },
@@ -127,7 +147,7 @@ function securitySections(app, rerender) {
 export function showAppProperties(appId) {
   const app = getApp(appId);
   if (!app || !wm) {
-    notify('L’app non è installata', { level: 'error' });
+    notify(t('notInstalled'), { level: 'error' });
     return null;
   }
   const key = `app-props:${appId}`;
@@ -144,9 +164,9 @@ export function showAppProperties(appId) {
     title: app.name, icon: app.glyph, width: 640, height: 460, minWidth: 480, minHeight: 320, search: false,
     controls: { minimize: false },
     tabs: [
-      { id: 'general', label: 'Generale', icon: 'info', description: 'Che app è e da dove viene.', sections: () => generalSections(current()) },
-      { id: 'permissions', label: 'Permessi', icon: 'check', description: 'Cosa l’app può fare, concesso quando è stata installata.', sections: () => permissionSections(current()) },
-      { id: 'security', label: 'Sicurezza', icon: 'shield', description: 'Come gira l’app.', sections: () => securitySections(current(), rerender) },
+      { id: 'general', label: t('general'), icon: 'info', description: t('generalHint'), sections: () => generalSections(current()) },
+      { id: 'permissions', label: t('permissions'), icon: 'check', description: t('permissionsHint'), sections: () => permissionSections(current()) },
+      { id: 'security', label: t('security'), icon: 'shield', description: t('securityHint'), sections: () => securitySections(current(), rerender) },
     ],
   });
   win.el.classList.add('app-props-window');

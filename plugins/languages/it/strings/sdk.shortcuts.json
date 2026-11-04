@@ -1,0 +1,19 @@
+{
+  "key.Enter": "Invio",
+  "key.Escape": "Esc",
+  "key.Delete": "Canc",
+  "key.Space": "Spazio",
+  "key.Insert": "Ins",
+  "key.End": "Fine",
+  "key.PageUp": "Pag ↑",
+  "key.PageDown": "Pag ↓",
+  "general": "Generale",
+  "exists": "Scorciatoia già registrata: {id}",
+  "unknown": "Scorciatoia non registrata: {id}",
+  "invalid": "Combinazione non valida",
+  "noKey": "Premi anche un tasto oltre a Ctrl, Alt o Shift",
+  "reserved": "Combinazione riservata dal browser",
+  "tabSpace": "Tab e Spazio da soli servono per muoversi e per spostare la scrivania",
+  "typingKey": "Un tasto che scrive va usato con Ctrl, Alt o Shift",
+  "whenEditing": "Questa scorciatoia funziona anche mentre scrivi: serve Ctrl o Alt"
+}

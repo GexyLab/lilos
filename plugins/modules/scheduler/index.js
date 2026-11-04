@@ -363,7 +363,7 @@ function checkTask(principal, raw, old) {
   try {
     when = rules.checkWhen(raw.when);
   } catch (err) {
-    ctx.fail('invalid', err instanceof rules.RuleError ? err.message : 'Regola non valida');
+    ctx.fail('invalid', err instanceof rules.RuleError ? err.text ?? err.message : 'Regola non valida');
   }
   const { minIntervalMinutes: least, appMinIntervalMinutes, maxExtra } = limits();
   // An app's operations: not more often than every 15 minutes
@@ -600,7 +600,7 @@ const service = {
     try {
       when = rules.moveWhen(task.when, { at, to, scope });
     } catch (err) {
-      ctx.fail('invalid', err instanceof rules.RuleError ? err.message : 'Spostamento non valido');
+      ctx.fail('invalid', err instanceof rules.RuleError ? err.text ?? err.message : 'Spostamento non valido');
     }
     const now = Date.now();
     const keepCount = scope === 'this';

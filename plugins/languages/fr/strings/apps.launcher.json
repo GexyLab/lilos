@@ -1,0 +1,15 @@
+{
+  "name": "« {id} »",
+  "nameVersion": "« {id} » ({version})",
+  "restart": {
+    "one": "Elle a besoin du module du kernel {modules}, déjà installé : il fonctionnera au prochain redémarrage du kernel, qu’un administrateur effectue depuis l’AppStore.",
+    "other": "Elle a besoin des modules du kernel {modules}, déjà installés : ils fonctionneront au prochain redémarrage du kernel, qu’un administrateur effectue depuis l’AppStore."
+  },
+  "missing": "Introuvable : {list}. Un administrateur l’installe depuis l’AppStore.",
+  "missingModule": "le module du kernel {name}",
+  "missingApp": "l’app {name}",
+  "openApp": "Ouvrir une app",
+  "hidden": "{app} est masquée dans cet espace de travail. Vous pouvez l’afficher depuis Panneau de configuration → Espace de travail.",
+  "cannotStart": "{app} ne peut pas encore démarrer",
+  "notStarted": "{app} n’a pas démarré : {message}"
+}

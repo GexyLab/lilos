@@ -1,0 +1,8 @@
+{
+  "group": "Elementos",
+  "open": "Abrir los elementos seleccionados",
+  "rename": "Cambiar nombre",
+  "delete": "Eliminar los elementos seleccionados",
+  "selectAll": "Seleccionar todo",
+  "deselect": "Quitar la selección"
+}

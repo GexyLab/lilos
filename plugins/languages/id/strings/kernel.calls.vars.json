@@ -1,0 +1,7 @@
+{
+  "tooBig": "Variabel berkembang terlalu besar (paling banyak 4 MB)",
+  "notJson": "Respons bukan JSON",
+  "source": "Sumber tidak valid",
+  "regex": "Ekspresi reguler tidak valid atau terlalu lambat",
+  "condition": "Kondisi tidak valid"
+}

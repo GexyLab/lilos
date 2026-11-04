@@ -1,0 +1,22 @@
+{
+  "choose.serial": "اختر منفذًا تسلسليًا",
+  "choose.usb": "اختر جهاز USB",
+  "choose.hid": "اختر جهازًا",
+  "choose.bluetooth": "اختر جهاز Bluetooth",
+  "choose.screen": "اختر ما تريد مشاركته",
+  "choose.text.serial": "يريد تطبيق استخدام منفذ تسلسلي في الحاسوب.",
+  "choose.text.usb": "يريد تطبيق استخدام جهاز USB في الحاسوب.",
+  "choose.text.hid": "يريد تطبيق استخدام جهاز في الحاسوب (لوحات أرقام، قارئات، وحدات تحكم…).",
+  "choose.text.bluetooth": "يريد تطبيق استخدام جهاز Bluetooth قريب من الحاسوب.",
+  "choose.text.screen": "يريد تطبيق رؤية شاشة أو نافذة من الحاسوب.",
+  "choose.field": "الجهاز",
+  "choose.none": "لم يتم العثور على أي جهاز: وصّله وأعد المحاولة.",
+  "connect": "اتصال",
+  "share": "مشاركة",
+  "saved": "تم حفظ «{name}» من برنامج الحاسوب",
+  "saveFailed": "لم يتم حفظ «{name}» مجددًا في lilOS: {error}",
+  "missing": "«{path}» غير موجود في lilOS",
+  "driveIn": "«{name}» موجود في الشبكة › هذا الحاسوب",
+  "driveFailed": "لم يتم توصيل «{name}»: {error}",
+  "serialPort": "المنفذ التسلسلي"
+}

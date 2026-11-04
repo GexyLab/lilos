@@ -1,0 +1,7 @@
+{
+  "start": "Menu lilOS",
+  "menu": "Menu",
+  "menuKeys": "Menu ({keys})",
+  "taskbar": "Barra delle applicazioni",
+  "tray": "Area di notifica"
+}

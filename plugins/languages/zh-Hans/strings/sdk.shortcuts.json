@@ -1,0 +1,19 @@
+{
+  "key.Enter": "Enter",
+  "key.Escape": "Esc",
+  "key.Delete": "Del",
+  "key.Space": "空格",
+  "key.Insert": "Ins",
+  "key.End": "End",
+  "key.PageUp": "PgUp",
+  "key.PageDown": "PgDn",
+  "general": "常规",
+  "exists": "快捷键已注册：{id}",
+  "unknown": "快捷键未注册：{id}",
+  "invalid": "无效的组合键",
+  "noKey": "除 Ctrl、Alt 或 Shift 外还需按一个键",
+  "reserved": "该组合键被浏览器保留",
+  "tabSpace": "单独的 Tab 和空格键用于四处移动和移动桌面",
+  "typingKey": "用于输入的键必须与 Ctrl、Alt 或 Shift 一起使用",
+  "whenEditing": "此快捷键在输入时也有效：需要 Ctrl 或 Alt"
+}

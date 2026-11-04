@@ -1,0 +1,16 @@
+{
+  "secret": "Valore segreto non valido",
+  "fingerprint": "Impronta non valida",
+  "server": "Server non valido",
+  "sendsTooMany": "Al massimo {max} richieste alla volta",
+  "unopened": "Valori segreti non aperti (salvati da un altro utente o su un altro lilOS): {names}",
+  "runsTooMany": "Al massimo {max} esecuzioni alla volta",
+  "collection": "Collezione non valida",
+  "runNotFound": "Esecuzione inesistente",
+  "needFile": "Serve un file .nettest",
+  "notCollection": "Il file non è una collezione di NetTest",
+  "noEnvironment": "Ambiente inesistente: {name}",
+  "untitled": "Collezione",
+  "noProtocol": "Protocollo non disponibile: {protocol} (manca il suo modulo del kernel)",
+  "noDescribe": "Questo protocollo non descrive il server"
+}

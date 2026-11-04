@@ -1,0 +1,14 @@
+{
+  "title": "اختر ملفًا",
+  "search": "البحث بالاسم أو المسار",
+  "searchLabel": "بحث",
+  "folders": "المجلدات",
+  "files": "الملفات",
+  "choose": "اختيار",
+  "cancel": "إلغاء",
+  "home": "المنزل",
+  "noMatch": "لا شيء يطابق البحث",
+  "noFolders": "لا توجد مجلدات",
+  "noFiles": "لا توجد ملفات في lilOS",
+  "noFilesOf": "لا توجد ملفات {exts} في lilOS"
+}

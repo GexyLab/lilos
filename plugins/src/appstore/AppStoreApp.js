@@ -26,6 +26,11 @@ import './appstore.css';
  * the newer one in the official repository with README and changelog, the versions kept on disk.
  * A new version starts with the kernel's restart; a copy of the repository (development) is
  * updated with git, not here.
+ *
+ * Languages (with a lilOS that has sdk.languagePacks): the language packs of lilOS's own texts,
+ * offered only by the official repository. Any signed-in user installs or updates one, and it is
+ * there for everyone; the user who installed it or an admin removes it (canRemove). They count in
+ * Updates too. Opened on this tab with { tab: 'languages' } (Control Panel → Lingua → Altre lingue).
  */
 const categories = () => [
   { id: 'system', label: t('category.system') },
@@ -41,6 +46,9 @@ const APP_ICON = { glyph: 'help', color: '#5f6673' };
 const SYSTEM_ICON = { glyph: 'window', color: '#3b6ef5' };
 /** lilOS's own versions: missing in older lilOS */
 const releases = sdk.systemReleases ?? null;
+/** Language packs of lilOS's own texts: missing in older lilOS (then no Languages tab) */
+const packs = sdk.languagePacks ?? null;
+const LANGUAGE_ICON = { glyph: 'globe', color: '#7c5cff' };
 
 settings.define({ 'appstore.showUnofficial': true });
 
@@ -56,10 +64,10 @@ const sameRepo = (source, repo) => !!source?.url && cleanUrl(source.url).toLower
 /** The repository's own name, without its path: the last part of its address. */
 const repoName = repo => cleanUrl(repo.url).split(/[/\\]/).pop() || repo.name;
 
-export default function AppStore() {
+export default function AppStore({ args } = {}) {
   const isAdmin = kernel.user?.role === 'admin';
   const state = {
-    repos: [], catalogs: new Map(), errors: new Map(), modules: [], system: null, loading: true, busy: null, pressed: null,
+    repos: [], catalogs: new Map(), errors: new Map(), modules: [], system: null, packs: [], loading: true, busy: null, pressed: null,
     tab: 'installed', query: {}, view: 'list', key: null, newRepo: { url: '', name: '' }, updates: null,
   };
 
@@ -169,6 +177,7 @@ export default function AppStore() {
       await Promise.all(state.repos.filter(isEnabled).map(readCatalog));
       state.modules = isAdmin ? await kernelModules.list().catch(() => []) : [];
       state.system = releases ? await releases.info().catch(() => null) : null;
+      state.packs = packs ? await packs.list().catch(() => state.packs) : [];
       await loadUpdatesService();
       await loadUpdateTask();
       await apps.refresh();
@@ -252,6 +261,46 @@ export default function AppStore() {
     };
   }
 
+  /** A language's name in the user's language ('it' → 'Italian' for an English lilOS), or its English name. */
+  function languageTitle(tag, englishName) {
+    try {
+      const name = new Intl.DisplayNames([sdk.locale?.code ?? navigator.language ?? 'en'], { type: 'language', fallback: 'none' }).of(tag);
+      if (name && name !== tag) return name.charAt(0).toUpperCase() + name.slice(1);
+    } catch { /* a tag Intl does not know */ }
+    return englishName || tag;
+  }
+
+  /** A language pack: what the official repository offers (entry.language) and what is installed (have, from languagePacks.list()). */
+  function languageItem(repo, entry, have) {
+    const pack = entry?.language ?? have;
+    const offered = entry?.language.version ?? null;
+    const installed = have?.version ?? null;
+    const rtl = pack.dir === 'rtl';
+    const title = languageTitle(pack.language, pack.englishName);
+    const by = have?.installedBy?.username;
+    return {
+      key: `language:${pack.language}`, kind: 'language', id: pack.language, language: pack.language, name: pack.name, title, rtl,
+      description: [title, rtl ? t('languages.rtl') : null, by ? t('languages.installedBy', { name: by }) : null].filter(Boolean).join(' · '),
+      icon: LANGUAGE_ICON, publisher: 'lilOS', category: 'languages', repo, entry, have, lilos: pack.lilos ?? null,
+      readme: entry?.readme ?? null, readmeTruncated: false,
+      offered, installed, here: !!have, elsewhere: false,
+      update: have && offered && compareVersions(offered, installed) > 0 ? offered : null,
+      canRemove: !!have?.canRemove, inUse: !!have && sdk.locale?.language === pack.language, verified: true,
+    };
+  }
+
+  /** The packs of the official repository (when it is on) and those installed, also when it no longer offers them. */
+  function languageItems() {
+    if (!packs) return [];
+    const official = state.repos.find(r => r.official) ?? null;
+    const offered = official && isEnabled(official) ? (state.catalogs.get(official.id)?.languages ?? []).filter(e => typeof e.language?.language === 'string') : [];
+    const installed = state.packs.filter(p => typeof p?.language === 'string');
+    return [
+      ...offered.map(e => languageItem(official, e, installed.find(p => p.language === e.language.language))),
+      ...installed.filter(p => !offered.some(e => e.language.language === p.language)).map(p => languageItem(official, null, p)),
+    ];
+  }
+
   function allItems() {
     const installed = apps.list();
     const modules = state.modules.filter(m => m.enabled || m.running);
@@ -275,6 +324,7 @@ export default function AppStore() {
       if (item.kind !== 'module' || !item.here || !item.have.enabled || item.have.replacedBy) continue;
       item.replacedBy = replacers.find(r => r.module.replaces.includes(item.id)) ?? null;
     }
+    out.push(...languageItems());
     const system = systemItem();
     return system ? [system, ...out] : out;
   }
@@ -286,6 +336,8 @@ export default function AppStore() {
       { id: 'updates', label: t('tab.updates'), filter: pending, badge: true },
       // What came from a repository switched off is only in Installed
       ...categories().filter(c => present.has(c.id) || (c.id === 'kernel' && isAdmin)).map(c => ({ ...c, category: true, filter: i => i.category === c.id && (!i.repo || isEnabled(i.repo)) })),
+      // Always there (with a lilOS that has language packs): Control Panel opens the AppStore on it
+      ...(packs ? [{ id: 'languages', label: t('tab.languages'), separate: true, filter: i => i.kind === 'language' }] : []),
     ];
   }
 
@@ -575,7 +627,7 @@ export default function AppStore() {
       const lilos = items.find(i => i.kind === 'system');
       const replacing = new Set();
       for (const item of items) {
-        if (item === lilos) continue;
+        if (item === lilos || item.kind === 'language') continue;
         if (item.replacedBy) {
           // The module that takes its place (with what it needs), installed once even when it replaces several
           const by = item.replacedBy;
@@ -607,6 +659,15 @@ export default function AppStore() {
       for (const r of (jobs.length && await updateThroughSystem(jobs)) || []) {
         if (r.error) toast(`${r.item.name}: ${r.error.message}`, { timeout: 7000 });
         else done++;
+      }
+      // Language packs: official, nothing to ask
+      for (const item of items.filter(i => i.kind === 'language')) {
+        try {
+          await packs.install(item.language);
+          done++;
+        } catch (err) {
+          toast(`${item.name}: ${err.message}`, { timeout: 7000 });
+        }
       }
       if (lilos && await confirmSystemUpdate(lilos)) {
         try {
@@ -734,6 +795,55 @@ export default function AppStore() {
     if (modules) system.requestRestart?.(t('restart.kernelReason'), 'kernel-modules');
   }, t('done.kernelRestarted'));
 
+  // ---------- Language packs ----------
+
+  /** Installs a language pack for everyone (any signed-in user), then offers to use it. */
+  async function installLanguage(item) {
+    const pack = await act('language', () => packs.install(item.language), null);
+    if (pack) offerLanguage(item);
+  }
+
+  /** The repository's newer version of an installed pack: official, nothing to ask. */
+  const updateLanguage = item => act('language', () => packs.install(item.language),
+    r => t('languages.updated', { name: item.name, version: r?.version ?? item.update }));
+
+  /** After installing: lilOS in that language now, unless it already is (the 'auto' setting may have chosen it). */
+  async function offerLanguage(item) {
+    await sdk.locale?.refresh?.();
+    if (sdk.locale?.language === item.language) return;
+    const use = await ask({
+      title: t('languages.offerTitle', { name: item.name }),
+      text: [t('languages.offerLead', { name: item.name, title: item.title }), t('languages.offerHint')],
+      confirm: { label: t('languages.use'), primary: true }, cancel: t('action.later'),
+    });
+    if (use) useLanguage(item);
+  }
+
+  /** lilOS in this language for this user (the setting Control Panel → Lingua shows). */
+  async function useLanguage(item) {
+    // The list of languages read again first, so Control Panel already offers it
+    await sdk.locale?.refresh?.();
+    settings.set('language', item.language);
+  }
+
+  /** Who installed it or an admin: whoever uses it goes back to English. */
+  async function removeLanguage(item) {
+    const ok = await ask({
+      title: t('languages.removeTitle', { name: item.name }),
+      text: [t('languages.removeLead', { name: item.name, title: item.title }), t('languages.removeEnglish')],
+      confirm: { label: t('action.remove'), danger: true },
+    });
+    // Who was using it gets a notification from lilOS: the same thing is not said twice
+    if (ok) act('language', () => packs.remove(item.language), item.inUse ? null : t('languages.removed', { name: item.name }));
+  }
+
+  /** The packs installed read again: another user (or another lilOS) installed or removed one. */
+  async function reloadPacks() {
+    if (!packs) return;
+    state.packs = await packs.list().catch(() => state.packs);
+    render();
+  }
+
   // ---------- Views ----------
 
   /** key: tells apart buttons with the same label, so the one pressed shows the spinner while its change runs. */
@@ -747,14 +857,22 @@ export default function AppStore() {
   const status = (text, ok = false) => h('span', { class: 'as-state' }, ok ? icon('check') : null, text);
   const repoLabel = item => (item.repo
     ? h('span', { class: 'as-repo', title: item.repo.url }, icon('link'), h('span', {}, repoName(item.repo)))
-    : h('span', { class: 'as-repo' }, icon('folder'), h('span', {}, item.kind === 'module' ? t('repo.manual') : t('repo.localFolder'))));
+    : item.kind === 'language' ? null
+      : h('span', { class: 'as-repo' }, icon('folder'), h('span', {}, item.kind === 'module' ? t('repo.manual') : t('repo.localFolder'))));
   const unofficial = item => (item.repo && !item.repo.official ? h('span', { class: 'as-unofficial' }, t('repo.unofficial')) : null);
-  const installedWord = item => (item.kind === 'system' ? t('system.inUse') : item.kind === 'module' ? t('status.installedModule') : t('status.installedApp'));
+  const installedWord = item => (item.kind === 'system' ? t('system.inUse') : item.kind === 'module' ? t('status.installedModule')
+    : item.kind === 'language' ? t('status.installedLanguage') : t('status.installedApp'));
   const section = (title, ...extra) => h('div', { class: 'as-section-title' }, title, ...extra);
   const fact = (label, value) => h('div', { class: 'as-fact' }, h('b', {}, label), String(value));
   const backButton = label => h('button', { class: 'as-back', onclick: () => show('list') }, icon('arrowLeft'), label);
 
   function cardControl(item) {
+    // Language packs: every user installs and updates them
+    if (item.kind === 'language') {
+      if (item.update) return button(t('action.update'), () => updateLanguage(item), { primary: true, key: item.key });
+      if (item.here) return status(item.inUse ? t('languages.inUse') : installedWord(item), true);
+      return item.entry ? button(t('action.install'), () => installLanguage(item), { key: item.key }) : null;
+    }
     if (item.kind === 'system') {
       if (item.update) return isAdmin ? button(t('action.update'), () => updateSystem(item), { primary: true, key: item.key }) : status(t('status.updateAvailable', { version: item.update }));
       return systemNext() ? status(t('system.nextShort', { version: systemNext() })) : status(t('system.inUse'), true);
@@ -811,6 +929,14 @@ export default function AppStore() {
     const query = (state.query[tab.id] ?? '').trim().toLowerCase();
     const list = items.filter(tab.filter).filter(i => matches(i, query));
     footerText.textContent = state.loading ? t('list.reading') : `${t('list.items', { n: list.length })} · ${t('list.repos', { n: visibleRepos().length })}`;
+    if (tab.id === 'languages') {
+      const empty = state.loading ? t('list.reading') : query ? t('list.noResults', { query, tab: tab.label }) : t('languages.empty');
+      return [
+        ...banners(),
+        h('p', { class: 'as-lead' }, t('languages.lead')),
+        list.length ? grid([...list].sort((a, b) => a.title.localeCompare(b.title))) : h('div', { class: 'as-empty' }, empty),
+      ];
+    }
     if (!list.length) {
       const empty = state.loading && tab.id !== 'installed' ? t('list.reading')
         : query ? t('list.noResults', { query, tab: tab.label })
@@ -819,19 +945,22 @@ export default function AppStore() {
     }
     if (tab.id === 'installed') {
       const appsHere = list.filter(i => i.kind === 'app'), modulesHere = list.filter(i => i.kind === 'module');
-      const system = list.filter(i => i.kind === 'system');
+      const system = list.filter(i => i.kind === 'system'), languagesHere = list.filter(i => i.kind === 'language');
       return [
         ...banners(),
         system.length ? [section('lilOS'), grid(system)] : null,
         appsHere.length ? [section(t('list.apps')), grid(appsHere, { uninstall: true })] : null,
         modulesHere.length ? [section(t('list.modules')), grid(modulesHere)] : null,
+        languagesHere.length ? [section(t('list.languages')), grid(languagesHere)] : null,
       ];
     }
     if (tab.id === 'updates') {
+      // Language packs are every user's to update; the rest an admin's
+      const yours = list.filter(i => isAdmin || i.kind === 'language');
       return [
         ...banners(),
         section(t('list.updates', { n: list.length }),
-          isAdmin && list.length > 1 ? h('span', { class: 'as-bulk' }, button(t('action.updateAll'), () => updateAll(list), { primary: true })) : null),
+          yours.length > 1 ? h('span', { class: 'as-bulk' }, button(t('action.updateAll'), () => updateAll(yours), { primary: true })) : null),
         grid(list),
       ];
     }
@@ -882,8 +1011,47 @@ export default function AppStore() {
         h('button', { class: 'as-link', onclick: e => downloadReadme(item, e.currentTarget) }, icon('download'), t('readme.download'))) : null);
   }
 
+  /** A language pack: its state, who installed it, what it does, its README. */
+  function languageDetailView(item, tab) {
+    const actions = [];
+    if (item.here && !item.inUse) actions.push(button(t('languages.use'), () => useLanguage(item), { primary: !item.update, key: item.key }));
+    if (item.update) actions.push(button(t('action.updateTo', { version: item.update }), () => updateLanguage(item), { primary: true, key: item.key }));
+    if (!item.here && item.entry) actions.push(button(t('action.install'), () => installLanguage(item), { primary: true, key: item.key }));
+    if (item.here && item.canRemove) actions.push(button(t('action.remove'), () => removeLanguage(item), { danger: true, key: item.key }));
+    const now = item.inUse ? t('languages.inUse')
+      : item.update ? t('languages.updateAvailable', { from: item.installed, to: item.update })
+        : item.here ? t('status.installedLanguage') : t('languages.notInstalled');
+    const by = item.have?.installedBy?.username ?? null;
+    footerText.textContent = `${item.name} ${item.offered ?? item.installed}`;
+    return h('div', { class: 'as-detail' },
+      backButton(tab.label),
+      h('div', { class: 'as-detail-head' },
+        appIcon(item.icon),
+        h('div', { class: 'as-detail-title' },
+          h('h1', { lang: item.language, dir: item.rtl ? 'rtl' : null }, item.name),
+          h('div', { class: 'as-sub' }, [item.title, t('detail.kindLanguage')].join(' · ')),
+          h('div', { class: 'as-meta' },
+            repoLabel(item),
+            h('span', { class: 'as-state' }, icon('shield'), t('detail.verified')),
+            item.rtl ? h('span', { class: 'as-state' }, t('languages.rtl')) : null),
+          actions.length ? h('div', { class: 'as-detail-actions' }, ...actions) : null)),
+      h('div', { class: 'as-facts' },
+        fact(t('detail.version'), item.offered ?? item.installed),
+        fact(installedWord(item), item.installed ?? '—'),
+        fact(t('languages.code'), item.language),
+        fact(t('detail.state'), now),
+        item.here ? fact(t('languages.installedByLabel'), by ?? '—') : null,
+        item.lilos ? fact(t('languages.needs'), `lilOS ${item.lilos}`) : null),
+      h('div', { class: 'as-perm' }, h('h3', {}, icon('info'), t('languages.aboutTitle')),
+        h('p', {}, t('languages.about')),
+        item.here && !item.canRemove ? h('p', { class: 'as-muted' }, by ? t('languages.removeOnly', { name: by }) : t('languages.removeAdmin')) : null),
+      h('div', { class: 'as-readme-title' }, icon('file'), 'README.md'),
+      item.readme ? h('article', { class: 'as-readme' }, ...renderMarkdown(item.readme)) : h('p', { class: 'as-muted' }, item.entry ? t('readme.none') : t('languages.notOffered')));
+  }
+
   function detailView(item, tab) {
     if (item.kind === 'system') return systemDetailView(item, tab);
+    if (item.kind === 'language') return languageDetailView(item, tab);
     const isModule = item.kind === 'module';
     const actions = [];
     if (item.here && !isModule) actions.push(button(t('action.open'), () => launch(item.id), { primary: !item.update || !isAdmin }));
@@ -999,10 +1167,11 @@ export default function AppStore() {
       const on = isEnabled(repo);
       const catalog = state.catalogs.get(repo.id);
       const valid = list => (list ?? []).filter(e => !e.error).length;
-      const invalid = [...catalog?.apps ?? [], ...catalog?.modules ?? []].filter(e => e.error);
+      const invalid = [...catalog?.apps ?? [], ...catalog?.modules ?? [], ...catalog?.languages ?? []].filter(e => e.error);
       const what = !on ? t('options.disabled')
         : state.errors.has(repo.id) ? t('options.unreachable', { error: state.errors.get(repo.id) })
           : catalog ? [t('options.apps', { n: valid(catalog.apps) }), t('options.modules', { n: valid(catalog.modules) }),
+            valid(catalog.languages) ? t('options.languages', { n: valid(catalog.languages) }) : null,
             invalid.length ? t('options.invalid', { n: invalid.length }) : null].filter(Boolean).join(' · ')
             : t('options.reading');
       return h('div', { class: on ? 'as-row' : 'as-row as-row-off' },
@@ -1091,7 +1260,7 @@ export default function AppStore() {
     const tab = list.find(tb => tb.id === state.tab);
     const updates = items.filter(pending).length;
     tabBar.replaceChildren(...list.flatMap((tb, n) => [
-      tb.category && !list[n - 1].category ? h('span', { class: 'as-tab-sep' }) : null,
+      (tb.category && !list[n - 1].category) || tb.separate ? h('span', { class: 'as-tab-sep' }) : null,
       h('button', { class: 'as-tab', role: 'tab', 'aria-selected': String(state.view === 'list' && tb.id === state.tab), tabindex: tb.id === state.tab ? '0' : '-1', onclick: () => selectTab(tb.id) },
         tb.label, tb.badge && updates ? h('span', { class: 'as-count' }, String(updates)) : null),
     ].filter(Boolean)));
@@ -1103,16 +1272,23 @@ export default function AppStore() {
     main.replaceChildren(...[view].flat(3).filter(Boolean));
   }
 
-  win.on('launch', args => {
-    const tab = { apps: 'installed', modules: 'kernel' }[args?.tab] ?? args?.tab;
+  /** Opened on a tab ({ tab: 'updates' | 'languages' | a category | 'options' }), also when launched again. */
+  const openOn = a => {
+    const tab = { apps: 'installed', modules: 'kernel' }[a?.tab] ?? a?.tab;
     if (tab === 'repos' || tab === 'options') show('options');
     else if (typeof tab === 'string') selectTab(tab);
-  });
+  };
+  win.on('launch', openOn);
   const offApps = apps.on('change', () => render());
   const offSetting = settings.on('change:appstore.showUnofficial', () => render());
   const offServices = system.services?.on('change', e => { if (e.app === 'appstore') loadUpdatesService().then(render); });
-  win.on('destroy', () => { offApps(); offSetting(); offServices?.(); });
+  // Language packs installed or removed (here, by another user, in another lilOS); the language
+  // in use changed (the names of languages are in it, and which pack is in use)
+  const offLanguages = sdk.locale?.on?.('languages', reloadPacks);
+  const offLocale = sdk.locale?.on?.('change', () => render());
+  win.on('destroy', () => { offApps(); offSetting(); offServices?.(); offLanguages?.(); offLocale?.(); });
   render();
+  openOn(args);
   load();
   return win;
 }

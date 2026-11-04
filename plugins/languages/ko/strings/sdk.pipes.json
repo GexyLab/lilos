@@ -1,0 +1,27 @@
+{
+  "stopped": "작업이 중지되었습니다",
+  "badName": "잘못된 이벤트 이름: {name}",
+  "appEvent": "앱 이벤트의 이름은 <app id>.<name> 형식입니다",
+  "exists": "이벤트 {name}이(가) 이미 있습니다",
+  "unknown": "알 수 없는 이벤트: {name}",
+  "stage": "stage는 \"before\" 또는 \"after\"여야 합니다",
+  "position": "position은 \"first\", \"middle\" 또는 \"last\"여야 합니다",
+  "noHandler": "파이프의 함수가 없습니다",
+  "reserved": "이벤트 {name}은(는) 시스템용으로 예약되어 있습니다",
+  "syncOnly": "{name}은(는) 즉시 실행되는 작업이므로 앱은 관찰만 할 수 있습니다(stage \"after\")",
+  "maxSubs": {
+    "other": "앱당 최대 {n}개의 구독"
+  },
+  "busy": "진행 중인 작업이 너무 많습니다",
+  "busyApp": "이 앱에서 진행 중인 작업이 너무 많습니다",
+  "syncAnswer": "{name}: 즉시 실행되는 작업에는 즉시 응답해야 합니다",
+  "handlerFailed": "{name}: {message}",
+  "cannotStop": "{name}: 이벤트 {event}은(는) 중지할 수 없습니다",
+  "whereObject": "where: 개체만 가능",
+  "whereInvalid": "잘못된 where",
+  "whereKey": "where: {key}은(는) 사용되지 않습니다",
+  "whereMeta": "where.meta: \"own\"만 가능",
+  "whereType": "잘못된 where.type",
+  "whereList": "where.{key}: 텍스트 목록",
+  "timeout": "{name}이(가) 제때 응답하지 않았습니다"
+}

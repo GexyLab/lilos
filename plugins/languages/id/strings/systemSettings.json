@@ -1,0 +1,25 @@
+{
+  "retention.days": {
+    "other": "{n} hari"
+  },
+  "retention.year": "1 tahun",
+  "retention.forever": "Selamanya",
+  "lasso": "{keys} + seret",
+  "color.blue": "Biru",
+  "color.violet": "Ungu",
+  "color.magenta": "Magenta",
+  "color.red": "Merah",
+  "color.orange": "Oranye",
+  "color.green": "Hijau",
+  "color.teal": "Hijau kebiruan",
+  "color.graphite": "Grafit",
+  "color.night": "Malam",
+  "color.deepBlue": "Biru tua",
+  "color.forest": "Hutan",
+  "color.plum": "Plum",
+  "color.earth": "Tanah",
+  "color.mist": "Kabut",
+  "color.sky": "Langit",
+  "color.sage": "Sage",
+  "color.sand": "Pasir"
+}

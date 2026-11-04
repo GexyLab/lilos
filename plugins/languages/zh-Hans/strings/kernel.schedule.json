@@ -1,0 +1,22 @@
+{
+  "ok": "“{name}”已成功",
+  "error": "“{name}”失败：{why}",
+  "admin.save": "管理员 {who} 更改了你的操作“{name}”",
+  "admin.create": "管理员 {who} 为你创建了操作“{name}”",
+  "admin.remove": "管理员 {who} 删除了你的操作“{name}”",
+  "admin.on": "管理员 {who} 重新开启了你的操作“{name}”",
+  "admin.off": "管理员 {who} 暂停了你的操作“{name}”",
+  "admin.run": "管理员 {who} 运行了你的操作“{name}”",
+  "admin.move": "管理员 {who} 移动了你的操作“{name}”",
+  "userGone": "此操作的用户已不存在",
+  "invalid": "无效的操作",
+  "unknownAction": "未知操作：{type}",
+  "systemNoApps": "系统不会打开应用：需要一个用户",
+  "waiting": "正在等待 lilOS 被打开",
+  "noPage": "没有 lilOS 页面响应",
+  "cancelled": "已取消或超时",
+  "runNotFound": "未找到运行",
+  "runTaken": "另一个页面正在执行",
+  "runGone": "运行已完成或已过期",
+  "taskNotFound": "未找到操作"
+}

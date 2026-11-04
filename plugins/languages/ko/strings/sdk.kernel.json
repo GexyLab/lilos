@@ -1,0 +1,7 @@
+{
+  "canceled": "취소됨",
+  "offline": "lilOS 커널이 응답하지 않습니다",
+  "status": "오류 {status}",
+  "badModule": "잘못된 모듈",
+  "badPath": "잘못된 경로"
+}

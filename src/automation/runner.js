@@ -1,4 +1,4 @@
-import { automation, fs, splitName } from '@lilos/sdk';
+import { automation, fs, splitName, locale } from '@lilos/sdk';
 import { launch, isInstalled, getApp } from '../apps/registry.js';
 import { callEntrypoint, entrypointsOf } from '../apps/entrypoints.js';
 
@@ -23,8 +23,16 @@ import { callEntrypoint, entrypointsOf } from '../apps/entrypoints.js';
  * from / only: start at that step (the ones before do not run: what they made is missing), or
  * run only that one. Returns { items, done, skipped, failed, stopped } (counts). Nothing is recorded meanwhile.
  */
+const { t } = locale.define('lilos:automation.runner', {
+  en: { strings: {
+    stopped: 'Automation stopped', chooseItems: 'Choose what to work on', appMissing: 'The app of this step is not installed',
+    password: 'This step asks for a password', stepFailedLabel: 'Step {n} ({label}): {message}', stepFailed: 'Step {n}: {message}',
+    cannotRedo: 'This action cannot be done again',
+  } },
+});
+
 export class RunStopped extends Error {
-  constructor() { super('Automazione fermata'); this.name = 'RunStopped'; }
+  constructor() { super(t('stopped')); this.name = 'RunStopped'; }
 }
 
 const listOf = v => (Array.isArray(v) ? v : v == null ? [] : [v]);
@@ -74,7 +82,7 @@ export async function runAutomation(doc, { items = [], values = {}, ui = {}, con
   const first = Math.max(0, Math.min(from, doc.steps.length));
   const last = only ? first + 1 : doc.steps.length;
   const passes = doc.input === 'files' ? items.map(id => [id]) : [[doc.input === 'folder' ? items[0] ?? null : null]];
-  if (doc.input !== 'none' && !items.length) throw new Error('Scegli su cosa lavorare');
+  if (doc.input !== 'none' && !items.length) throw new Error(t('chooseItems'));
   const remembered = new Map();   // step index → values asked once for every item
   const count = { items: passes.length, done: 0, skipped: 0, failed: 0, stopped: false };
 
@@ -110,7 +118,7 @@ export async function runAutomation(doc, { items = [], values = {}, ui = {}, con
 
 async function runStep(doc, step, i, env, { ui, values, remembered, checkpoint }) {
   const def = automation.describe(step.action);
-  if (!def || step.missing) return fail(new Error('L’app di questo passo non è installata'));
+  if (!def || step.missing) return fail(new Error(t('appMissing')));
   const params = {};
   for (const [name, p] of Object.entries(def.params)) {
     if (name in step.params) params[name] = resolveParam(p, step.params[name], env);
@@ -132,7 +140,7 @@ async function runStep(doc, step, i, env, { ui, values, remembered, checkpoint }
     let answer = remembered.get(i);
     if (!answer) {
       if (!ui.ask) {
-        if (asked.some(([name]) => def.params[name].type === 'secret')) return fail(new Error('Questo passo chiede una password'));
+        if (asked.some(([name]) => def.params[name].type === 'secret')) return fail(new Error(t('password')));
       } else {
         const reply = await ui.ask({
           step, index: i, item: env.item, label: def.label,
@@ -169,13 +177,13 @@ async function runStep(doc, step, i, env, { ui, values, remembered, checkpoint }
         if (reply === 'skip') { ui.progress?.({ type: 'failed', index: i, item: env.item, error: err.message }); return 'failed'; }
         return 'stop';
       }
-      throw new Error(`Passo ${i + 1} (${def.label}): ${err.message}`);
+      throw new Error(t('stepFailedLabel', { n: i + 1, label: def.label, message: err.message }));
     }
   }
 
   function fail(err) {
     if (step.onError === 'skip') { ui.progress?.({ type: 'failed', index: i, item: env.item, error: err.message }); return 'failed'; }
-    throw new Error(`Passo ${i + 1}: ${err.message}`);
+    throw new Error(t('stepFailed', { n: i + 1, message: err.message }));
   }
 }
 
@@ -194,7 +202,7 @@ function coerce(p, v) {
 async function perform(def, step, params, file) {
   const run = automation.runner(def.id);
   if (run) return run(params, { file });
-  if (!def.app || !isInstalled(def.app)) throw new Error('L’app di questo passo non è installata');
+  if (!def.app || !isInstalled(def.app)) throw new Error(t('appMissing'));
   if (def.target === 'window') {
     let handler = automation.handlerFor(def.id, file);
     if (!handler) {
@@ -211,5 +219,5 @@ async function perform(def, step, params, file) {
     if (entrypointsOf(getApp(def.app))[def.entry]?.kind === 'window') return void launch(def.app, data, def.entry, { files: data.files });
     return callEntrypoint(def.app, def.entry, data, { from: 'automata' });
   }
-  throw new Error('Quest’azione non si può rifare');
+  throw new Error(t('cannotRedo'));
 }

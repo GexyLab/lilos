@@ -1,0 +1,29 @@
+{
+  "stopped": "Operațiune oprită",
+  "badName": "Nume de eveniment nevalid: {name}",
+  "appEvent": "Un eveniment al unei aplicații se numește <id aplicație>.<nume>",
+  "exists": "Evenimentul {name} există deja",
+  "unknown": "Eveniment necunoscut: {name}",
+  "stage": "stage trebuie să fie \"before\" sau \"after\"",
+  "position": "position trebuie să fie \"first\", \"middle\" sau \"last\"",
+  "noHandler": "Lipsește funcția pipe-ului",
+  "reserved": "Evenimentul {name} este rezervat sistemului",
+  "syncOnly": "{name} este o operațiune imediată: aplicațiile o pot doar observa (stage \"after\")",
+  "maxSubs": {
+    "one": "Cel mult un abonament per aplicație",
+    "few": "Cel mult {n} abonamente per aplicație",
+    "other": "Cel mult {n} de abonamente per aplicație"
+  },
+  "busy": "Prea multe operațiuni în curs",
+  "busyApp": "Prea multe operațiuni în curs pentru această aplicație",
+  "syncAnswer": "{name}: o operațiune imediată necesită un răspuns imediat",
+  "handlerFailed": "{name}: {message}",
+  "cannotStop": "{name}: evenimentul {event} nu poate fi oprit",
+  "whereObject": "where: doar un obiect",
+  "whereInvalid": "where nevalid",
+  "whereKey": "where: {key} nu se folosește",
+  "whereMeta": "where.meta: doar \"own\"",
+  "whereType": "where.type nevalid",
+  "whereList": "where.{key}: o listă de texte",
+  "timeout": "{name} nu a răspuns la timp"
+}

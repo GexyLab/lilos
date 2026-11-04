@@ -1,0 +1,14 @@
+{
+  "home.description": "A pasta principal, com todas as outras",
+  "folder.description": "A pasta {name}, compartilhada por todos os espaços de trabalho",
+  "files.description": "Abre o File Manager",
+  "trash": "Lixeira",
+  "trash.description": "Abre a lixeira; você pode arrastar arquivos e pastas para ela",
+  "noDesk": "A área de trabalho não existe",
+  "folderGone": "A pasta {name} não existe mais",
+  "trashedOne": "Movido para a lixeira",
+  "trashedMany": {
+    "one": "{n} item movido para a lixeira",
+    "other": "{n} itens movidos para a lixeira"
+  }
+}

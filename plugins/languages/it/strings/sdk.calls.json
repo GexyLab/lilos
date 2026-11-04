@@ -1,0 +1,9 @@
+{
+  "offline": "Le richieste di rete le fa il kernel di lilOS, che non è collegato",
+  "badRun": "Esecuzione non valida",
+  "badSession": "Sessione non valida",
+  "blocked": "Il browser ha bloccato la finestra di accesso",
+  "canceled": "Accesso annullato",
+  "failed": "Accesso non riuscito",
+  "noAskAddress": "askAddress mancante"
+}

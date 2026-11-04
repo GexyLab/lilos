@@ -1,0 +1,14 @@
+{
+  "mainWindow": "Hoofdvenster",
+  "paramsObject": "De parameters moeten een JSON-object zijn, tussen { }",
+  "paramsTooLong": "Parameters te lang (maximaal 4 KB)",
+  "invalid": "{param}: ongeldige waarde",
+  "fileGone": "{param}: het bestand is er niet meer",
+  "folderGone": "{param}: de map is er niet meer",
+  "notOpened": "{app} is niet vanzelf geopend. {message}",
+  "notInstalled": "App niet geïnstalleerd",
+  "maxApps": "Maximaal {max} apps bij het opstarten",
+  "unknownEntry": "Onbekend ingangspunt",
+  "entryNotAtStartup": "Het ingangspunt staat niet bij het opstarten",
+  "skipped": "Gestart zonder apps: het adres bevat ?avvio=no"
+}

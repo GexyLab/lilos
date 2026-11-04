@@ -1,5 +1,5 @@
 import { h, Emitter, kernel, locale, bus, fs } from '@lilos/sdk';
-import { lilosApi, WORKER_SOURCE, SANDBOX_RUNTIME_SOURCE } from './bridge.js';
+import { lilosApi, bridgeTexts, WORKER_SOURCE, SANDBOX_RUNTIME_SOURCE } from './bridge.js';
 import { appCode, librariesCode, entrypoints, inline, escapeAttr, netOrigins } from './code.js';
 import { isIsolated } from './isolation.js';
 import { hostMethods, invoke, transferOf } from './methods.js';
@@ -20,6 +20,13 @@ import { notify } from '../../notifications/notify.js';
  *
  * Each runs once per app and entry point, for the whole session (not per workspace).
  */
+const { t } = locale.define('lilos:apps.background', {
+  en: { strings: {
+    notStarted: '{app} did not start: {message}', noExport: 'The code does not export {entry}',
+    codeError: 'error in the code', stopped: '{app} has stopped',
+  } },
+});
+
 const IDLE = 5 * 60_000;
 const instances = new Map();   // 'appId#entry' → Instance
 
@@ -71,7 +78,7 @@ class Instance {
     this.ready = this.#start();
     this.ready.catch(err => {
       console.error(`[lilos] ${this.key}:`, err);
-      notify(`${app.name} non è partita: ${err.message}`, { level: 'error' });
+      notify(t('notStarted', { app: app.name, message: err.message }), { level: 'error' });
       this.stop();
     });
   }
@@ -83,10 +90,10 @@ class Instance {
   async #start() {
     const { pkg, entry } = this;
     const ep = entrypoints(pkg.manifest)[entry];
-    const info = { id: pkg.id, version: pkg.version, entry, args: null, locale: locale.strings(pkg.id) };
+    const info = { id: pkg.id, version: pkg.version, entry, args: null, locale: locale.strings(pkg.id), texts: bridgeTexts() };
     if (pkg.system) {
       const mod = await this.app.load();
-      if (typeof mod[entry] !== 'function') throw new Error(`Il codice non esporta ${entry}`);
+      if (typeof mod[entry] !== 'function') throw new Error(t('noExport', { entry }));
       const { api, emit, answer, pipe } = lilosApi((method, ...params) => Promise.resolve().then(() => invoke(this.methods, method, params)), info, locale.engine);
       this.#answer = answer;
       this.#pipe = pipe;
@@ -112,7 +119,7 @@ class Instance {
       const worker = new Worker(workerSource(), { name: this.key });
       worker.onerror = e => {
         e.preventDefault();
-        this.methods['app.failed'](e.message || 'errore nel codice');
+        this.methods['app.failed'](e.message || t('codeError'));
       };
       this.#halt = () => worker.terminate();
       worker.postMessage(init, [channel.port2]);
@@ -165,7 +172,7 @@ class Instance {
     this.used = Date.now();
     if (message.pipe && this.#pipe) return this.#pipe(message.pipe, message.data, message.ctx);
     if (!message.pipe && this.#answer) return this.#answer(message.data, message.from);
-    if (!this.port) throw new Error(`${this.app.name} si è fermata`);
+    if (!this.port) throw new Error(t('stopped', { app: this.app.name }));
     return new Promise((resolve, reject) => {
       const id = this.#next++;
       this.#requests.set(id, { resolve, reject });
@@ -202,7 +209,7 @@ class Instance {
     this.#halt();
     this.port?.close();
     this.port = null;
-    for (const r of this.#requests.values()) r.reject(new Error(`${this.app.name} si è fermata`));
+    for (const r of this.#requests.values()) r.reject(new Error(t('stopped', { app: this.app.name })));
     this.#requests.clear();
     backgroundApps.emit('change');
   }

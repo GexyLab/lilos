@@ -1,0 +1,17 @@
+{
+  "port": "Port tidak valid",
+  "url": "Alamat tidak valid",
+  "closedBy": "Ditutup oleh server ({code})",
+  "closedByReason": "Ditutup oleh server ({code}: {reason})",
+  "closed": "Koneksi ditutup",
+  "unknownCommand": "Perintah tidak dikenal",
+  "notStream": "Server menjawab {status} alih-alih aliran peristiwa",
+  "notStreamType": "Server menjawab {status} ({type}) alih-alih aliran peristiwa",
+  "lineTooLong": "Baris terlalu panjang: dibuang",
+  "eventTooLong": "Peristiwa terlalu panjang: dibuang",
+  "streamEnded": "Server menutup aliran",
+  "receiveOnly": "Server-Sent Events: hanya menerima",
+  "noHost": "Server tidak ada",
+  "ended": "Server menutup koneksi",
+  "tooBig": "Datagram terlalu besar (paling banyak 65507 byte)"
+}

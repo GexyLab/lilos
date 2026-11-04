@@ -1,0 +1,20 @@
+{
+  "cancel": "キャンセル",
+  "one": "「{name}」",
+  "many": "{count} 個の項目",
+  "trash": "{what}をごみ箱に移動",
+  "permanent": "{what}を完全に削除",
+  "inside": {
+    "other": "{what}とその中の {count} 個の項目"
+  },
+  "netRemoveText": "{what}を{verb}：{text}",
+  "netRemove": "削除",
+  "netRecycles": "{service} から{what}を削除（そのごみ箱に移動します）",
+  "netServer": "サーバーから{what}を削除（完全に削除）",
+  "netServerFolders": "サーバーから{what}を中身ごと削除（完全に削除）",
+  "purge": "「{name}」を完全に削除",
+  "purgeMany": "{count} 個の項目を完全に削除",
+  "emptyTrash": {
+    "other": "ごみ箱内の {count} 個の項目をすべて完全に削除"
+  }
+}

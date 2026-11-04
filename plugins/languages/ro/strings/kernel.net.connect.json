@@ -1,0 +1,20 @@
+{
+  "noConnection": {
+    "one": "Nicio conexiune într-o secundă",
+    "few": "Nicio conexiune în {n} secunde",
+    "other": "Nicio conexiune în {n} de secunde"
+  },
+  "untrusted": "Certificatul {host} nu este confirmat ({reason})",
+  "cancelled": "Anulat",
+  "refused": "Conexiune refuzată ({code})",
+  "reset": "Conexiune întreruptă de server ({code})",
+  "notFound": "Nume de server necunoscut ({code})",
+  "dns": "Numele serverului nu a fost rezolvat (DNS) ({code})",
+  "timeout": "Timp expirat ({code})",
+  "hostUnreachable": "Server inaccesibil ({code})",
+  "netUnreachable": "Rețea inaccesibilă ({code})",
+  "closed": "Conexiune închisă ({code})",
+  "aborted": "Anulat ({code})",
+  "otherName": "Certificat pentru alt nume ({code})",
+  "network": "Eroare de rețea"
+}

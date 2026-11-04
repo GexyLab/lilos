@@ -1,0 +1,16 @@
+{
+  "area": "Workspace",
+  "toChange": "{keys} zum Wechseln",
+  "menu": "Workspace…",
+  "menuLabel": "Workspace-Menü",
+  "button": "Workspace: {name}",
+  "buttonKeys": "Workspace: {name} ({keys} zum Wechseln)",
+  "buttonLabel": "Workspace {name}: Workspace wechseln",
+  "heading": "Workspace",
+  "next": "Weiter",
+  "previous": "Zurück",
+  "create": "Neuer Workspace",
+  "showCurrent": "Nur den aktuellen Workspace anzeigen",
+  "showAll": "Alle Workspaces anzeigen",
+  "manage": "Workspaces verwalten…"
+}

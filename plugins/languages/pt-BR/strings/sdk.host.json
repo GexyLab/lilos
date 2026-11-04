@@ -1,0 +1,6 @@
+{
+  "needProgram": "Isto precisa do programa lilOS (não funciona no navegador)",
+  "onlyFiles": "Somente arquivos abrem no computador",
+  "tooBig": "O arquivo é grande demais para abrir no computador (mais de 512 MB)",
+  "noFiles": "Nenhum arquivo para exportar"
+}

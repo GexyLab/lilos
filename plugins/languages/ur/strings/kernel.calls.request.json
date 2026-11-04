@@ -1,0 +1,14 @@
+{
+  "graphqlVars": "GraphQL: متغیرات درست JSON نہیں ہیں",
+  "method": "غلط طریقہ",
+  "url": "غلط پتا: {url}",
+  "needHttp": "http:// یا https:// پتا درکار ہے",
+  "headerName": "ہیڈر کا غلط نام: {name}",
+  "headerValue": "ہیڈر {name} میں غلط قدر",
+  "bodyTooBig": "مواد بہت بڑا ہے (زیادہ سے زیادہ 50 MB)",
+  "noAnswer": {
+    "one": "{n} سیکنڈ میں کوئی جواب نہیں",
+    "other": "{n} سیکنڈ میں کوئی جواب نہیں"
+  },
+  "cancelled": "منسوخ"
+}

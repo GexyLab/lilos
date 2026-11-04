@@ -1,0 +1,10 @@
+{
+  "scriptErrorBefore": "Scriptfout (vooraf): {message}",
+  "scriptErrorAfter": "Scriptfout (achteraf): {message}",
+  "scriptTimeoutBefore": "Scriptfout (vooraf): het script heeft de tijdslimiet overschreden (5 seconden)",
+  "scriptTimeoutAfter": "Scriptfout (achteraf): het script heeft de tijdslimiet overschreden (5 seconden)",
+  "skipped": "Sessies (WebSocket, SSE, TCP, UDP, MQTT) worden geopend vanuit het venster: uitvoeringen slaan ze over",
+  "otherServer": "Een script heeft de server van het verzoek gewijzigd: de geheime waarden gaan niet naar een ander adres",
+  "noProtocol": "Protocol niet beschikbaar in uitvoeringen: {protocol} (de kernelmodule ervan ontbreekt)",
+  "nothingToSave": "‘{name}’: niets om op te slaan ({source} {path})"
+}

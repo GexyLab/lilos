@@ -1,0 +1,3 @@
+{
+  "welcome": "¡Te damos la bienvenida a lilOS!\n\nEste es un escritorio infinito: mantén pulsada la barra espaciadora y arrastra para desplazarte,\nusa la rueda para hacer zoom y arrastra sobre el fondo para seleccionar.\n\n- Doble clic en una carpeta: se abre en el File Manager.\n- Doble clic en un archivo de texto: se abre en el Editor (como este).\n- Ctrl K abre el menú de inicio, Ctrl S guarda en el Editor.\n- El botón junto al logotipo cambia de espacio de trabajo: cada uno tiene su propio escritorio,\n  sus propias ventanas y sus propias apps. Documenti, Immagini y Download son de todos.\n\nLos atajos de teclado y las apps que abren los archivos se cambian en\nPanel de control → Usabilidad.\n"
+}

@@ -1,0 +1,10 @@
+{
+  "one": "{name} è attiva in background",
+  "many": {
+    "one": "{n} app attiva in background",
+    "other": "{n} app attive in background"
+  },
+  "heading": "Attive in background",
+  "item": "{name}: {label}",
+  "stop": "Ferma"
+}

@@ -1,0 +1,14 @@
+{
+  "title": "Kies een bestand",
+  "search": "Zoeken op naam of pad",
+  "searchLabel": "Zoeken",
+  "folders": "Mappen",
+  "files": "Bestanden",
+  "choose": "Kiezen",
+  "cancel": "Annuleren",
+  "home": "Home",
+  "noMatch": "Niets komt overeen met de zoekopdracht",
+  "noFolders": "Geen mappen",
+  "noFiles": "Geen bestanden in lilOS",
+  "noFilesOf": "Geen {exts}-bestanden in lilOS"
+}

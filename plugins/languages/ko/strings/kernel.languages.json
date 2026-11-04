@@ -1,0 +1,11 @@
+{
+  "invalid": "잘못된 언어 팩: {message}",
+  "official": "언어 팩은 공식 저장소에서만 제공됩니다",
+  "notOffered": "공식 저장소에 {language} 언어 팩이 없습니다",
+  "noRepo": "공식 저장소에 언어 팩이 없습니다",
+  "needs": "{name}에는 lilOS {range}이(가) 필요합니다(현재 {version})",
+  "changed": "{file}: 내용이 language.json과 일치하지 않습니다",
+  "notInstalled": "언어 {language}이(가) 설치되어 있지 않습니다",
+  "removeForbidden": "{name}은(는) 설치한 사용자나 관리자만 제거할 수 있습니다",
+  "removed": "언어 {name}이(가) 제거되었습니다. 다른 언어를 선택할 때까지 lilOS는 영어로 표시됩니다"
+}

@@ -1,0 +1,9 @@
+{
+  "notFound": "未找到资源",
+  "method": "不允许的方法",
+  "internal": "内核内部错误",
+  "unavailable": "服务不可用：{name}",
+  "signIn": "请先登录",
+  "needSocket": "需要 WebSocket",
+  "refused": "连接被拒绝"
+}

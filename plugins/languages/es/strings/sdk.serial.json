@@ -1,0 +1,8 @@
+{
+  "notFound": "Puerto serie no encontrado (¿desconectado?)",
+  "unsupported": "Este navegador no puede usar puertos serie (se necesita Chrome, Edge o Firefox 151+, en https o localhost)",
+  "click": "El navegador necesita un clic antes de elegir un puerto",
+  "baud": "Velocidad (baudios) no válida",
+  "busy": "El puerto ya está abierto (por otra ventana u otro programa)",
+  "failed": "El puerto no se abre: {message}"
+}

@@ -1,0 +1,8 @@
+{
+  "level.error": "Ошибка",
+  "level.warning": "Предупреждение",
+  "level.success": "Готово",
+  "open": "Открыть",
+  "openApp": "Открыть {name}",
+  "gone": "{name} больше не установлено"
+}

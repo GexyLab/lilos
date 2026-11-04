@@ -1,0 +1,5 @@
+{
+  "noRuntime": "Scripturile necesită modulul services-isolate (Panou de control → Module)",
+  "noStart": "Scripturile nu pornesc: {message}",
+  "timeout": "Scriptul a depășit timpul alocat (5 secunde)"
+}

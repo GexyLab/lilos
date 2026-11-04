@@ -1,6 +1,7 @@
 import { randomInt, randomUUID } from 'node:crypto';
 import vm from 'node:vm';
 import { fail } from '../errors.js';
+import { defineStrings } from '../strings.js';
 
 /**
  * Variables, checks and «save to variable» of NetTest: plain functions, the same for a request
@@ -34,6 +35,13 @@ export const DYNAMIC = {
 };
 
 const ORDER = ['local', 'data', 'environment', 'collection', 'globals'];
+const { t } = defineStrings('lilos:kernel.calls.vars', { en: { strings: {
+  tooBig: 'The variables expand too much (4 MB at most)',
+  notJson: 'The response is not JSON',
+  source: 'Source not valid',
+  regex: 'Regular expression not valid or too slow',
+  condition: 'Condition not valid',
+} } });
 const MAX_GROWTH = 4 << 20;   // what one pass of variables may add to a text: variables that hold variables can grow without end
 const REGEX_MS = 250;         // a user's regular expression on a response: (a+)+$ would stop the kernel for everyone
 
@@ -67,7 +75,7 @@ export function resolve(text, scopes) {
       const v = lookupVar(scopes, name);
       if (v === undefined || v === whole) return whole;
       grown += v.length;
-      if (grown > MAX_GROWTH) fail('too_large', 'Le variabili si espandono troppo (al massimo 4 MB)');
+      if (grown > MAX_GROWTH) fail('too_large', t('tooBig'));
       changed = true;
       return v;
     });
@@ -123,10 +131,10 @@ function read(source, path, res) {
     case 'body': return { found: true, value: res.text };
     case 'json': {
       const json = res.json();
-      if (json === undefined) return { found: false, error: 'La risposta non è JSON' };
+      if (json === undefined) return { found: false, error: t('notJson') };
       return jsonPath(json, path);
     }
-    default: return { found: false, error: 'Origine non valida' };
+    default: return { found: false, error: t('source') };
   }
 }
 
@@ -160,14 +168,14 @@ export function evalCheck(check, res) {
     case 'contains': ok = got.found && has(v, want); break;
     case 'notContains': ok = !got.found || !has(v, want); break;
     case 'matches': {
-      try { ok = got.found && userRegex(want, v); } catch { return { ok: false, actual: show(v), message: 'Espressione regolare non valida o troppo lenta' }; }
+      try { ok = got.found && userRegex(want, v); } catch { return { ok: false, actual: show(v), message: t('regex') }; }
       break;
     }
     case 'in': ok = got.found && String(want).split(',').map(x => x.trim()).some(x => same(v, x)); break;
     case 'type': ok = got.found && typeName(v) === String(want); break;
     case 'empty': ok = !got.found || v === '' || v === null || (Array.isArray(v) && !v.length) || (typeof v === 'object' && v !== null && !Object.keys(v).length); break;
     case 'notEmpty': ok = got.found && !(v === '' || v === null || (Array.isArray(v) && !v.length) || (typeof v === 'object' && v !== null && !Object.keys(v).length)); break;
-    default: return { ok: false, actual: show(v), message: 'Condizione non valida' };
+    default: return { ok: false, actual: show(v), message: t('condition') };
   }
   return { ok: !!ok, actual: got.found ? show(v) : '—', message: '' };
 }

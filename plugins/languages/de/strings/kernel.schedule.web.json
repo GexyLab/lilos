@@ -1,0 +1,30 @@
+{
+  "folderGone": "Der Ordner zum Speichern ist nicht mehr vorhanden",
+  "notFolder": "Der Speicherort ist kein Ordner",
+  "notFile": "„{name}“ ist bereits vorhanden und keine Datei",
+  "protected": "„{name}“ ist durch eine App geschützt (zum Beispiel verschlüsselt): Es wird nicht überschrieben",
+  "secretGone": "Der geheime Wert von {name} kann nicht mehr gelesen werden: Er muss erneut eingegeben werden",
+  "fileGone": "Die zu sendende Datei ist nicht mehr vorhanden",
+  "noAnswer": {
+    "one": "Keine Antwort innerhalb von {n} Sekunde",
+    "other": "Keine Antwort innerhalb von {n} Sekunden"
+  },
+  "untrusted": "{message}: Bestätigen Sie es einmal in NetTest",
+  "network": "Netzwerk: {code}",
+  "redirects": "Zu viele Weiterleitungen",
+  "notWeb": "Weiterleitung an eine Adresse, die keine Webadresse ist",
+  "otherOrigin": "Weiterleitung an eine andere Adresse mit zu sendendem Inhalt: nicht gefolgt",
+  "tooBig": "Antwort zu groß (höchstens 10 MB)",
+  "unfinished": {
+    "one": "Die Antwort wurde nicht innerhalb von {n} Sekunde abgeschlossen",
+    "other": "Die Antwort wurde nicht innerhalb von {n} Sekunden abgeschlossen"
+  },
+  "bytes": {
+    "one": "{n} Byte",
+    "other": "{n} Bytes"
+  },
+  "saved": "{status} in {ms} ms · {size} · gespeichert in {name}",
+  "summary": "{status} in {ms} ms · {size}",
+  "status": "Status {status}, erwartet {expected}",
+  "contains": "Die Antwort enthält „{text}“ nicht"
+}

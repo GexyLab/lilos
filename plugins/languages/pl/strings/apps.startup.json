@@ -1,0 +1,14 @@
+{
+  "mainWindow": "Okno główne",
+  "paramsObject": "Parametry muszą być obiektem JSON, w nawiasach { }",
+  "paramsTooLong": "Parametry są za długie (najwyżej 4 KB)",
+  "invalid": "{param}: nieprawidłowa wartość",
+  "fileGone": "{param}: pliku już nie ma",
+  "folderGone": "{param}: folderu już nie ma",
+  "notOpened": "Aplikacja {app} nie otworzyła się sama. {message}",
+  "notInstalled": "Aplikacja nie jest zainstalowana",
+  "maxApps": "Najwyżej {max} aplikacji przy uruchamianiu",
+  "unknownEntry": "Nieznany punkt wejścia",
+  "entryNotAtStartup": "Punkt wejścia nie jest uruchamiany przy starcie",
+  "skipped": "Uruchomiono bez aplikacji: adres zawiera ?avvio=no"
+}

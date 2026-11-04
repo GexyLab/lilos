@@ -1,0 +1,7 @@
+{
+  "restart": "Reinicie o lilOS para concluir as atualizações",
+  "reopen": "Apps atualizados a reiniciar",
+  "heading": "Atualizados, abertos com a versão anterior",
+  "reopenApp": "Reiniciar {name} ({version})",
+  "restartSystem": "Reiniciar o lilOS"
+}

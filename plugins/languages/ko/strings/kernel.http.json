@@ -1,0 +1,9 @@
+{
+  "badPath": "잘못된 주소",
+  "tooLarge": "요청이 너무 큽니다",
+  "notJson": "요청 본문이 올바른 JSON이 아닙니다",
+  "notAllowed": "허용되지 않는 요청",
+  "noOrigin": "출처가 없습니다",
+  "badOrigin": "허용되지 않는 출처",
+  "badHost": "허용되지 않는 호스트"
+}

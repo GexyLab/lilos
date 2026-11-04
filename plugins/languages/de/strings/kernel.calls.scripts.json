@@ -1,0 +1,5 @@
+{
+  "noRuntime": "Skripte benötigen das Modul services-isolate (Systemsteuerung → Module)",
+  "noStart": "Die Skripte starten nicht: {message}",
+  "timeout": "Das Skript hat das Zeitlimit überschritten (5 Sekunden)"
+}

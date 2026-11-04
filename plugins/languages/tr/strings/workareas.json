@@ -1,0 +1,22 @@
+{
+  "tooMany": "En fazla {max} çalışma bölgesi",
+  "overlap": "Orada zaten başka bir çalışma bölgesi var: bölgeler üst üste binemez",
+  "undo.create": "“{title}” çalışma bölgesini oluştur",
+  "undo.rename": "“{before}” çalışma bölgesini “{after}” olarak yeniden adlandır",
+  "undo.remove": "“{title}” çalışma bölgesini sil",
+  "undo.move": "“{title}” çalışma bölgesini taşı",
+  "undo.resize": "“{title}” çalışma bölgesini yeniden boyutlandır",
+  "gone": "Çalışma bölgesi artık yok",
+  "already": "Çalışma bölgesi zaten orada",
+  "occupied": "Orada artık başka bir çalışma bölgesi var",
+  "notOpen": "Çalışma bölgesi açık değil",
+  "removeOne": "“{title}” çalışma bölgesini sil (içeriği masaüstünde kalır)",
+  "removeMany": {
+    "other": "{n} çalışma bölgesini sil (içerikleri masaüstünde kalır)"
+  },
+  "menu.title": "Çalışma bölgesi “{title}”",
+  "menu.rename": "Çalışma bölgesini yeniden adlandır",
+  "menu.properties": "Özellikler…",
+  "menu.collapse": "Simge durumuna küçült",
+  "menu.remove": "Çalışma bölgesini sil…"
+}

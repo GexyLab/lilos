@@ -1,0 +1,7 @@
+{
+  "list": "태그: {names}",
+  "menu": "태그",
+  "hides": "{name}(숨김)",
+  "create": "새 태그…",
+  "manage": "태그 관리…"
+}

@@ -1,0 +1,15 @@
+{
+  "name": "‘{id}’",
+  "nameVersion": "‘{id}’ ({version})",
+  "restart": {
+    "one": "Heeft de kernelmodule {modules} nodig, al geïnstalleerd: die werkt vanaf de volgende herstart van de kernel, die een beheerder uitvoert vanuit de AppStore.",
+    "other": "Heeft de kernelmodules {modules} nodig, al geïnstalleerd: die werken vanaf de volgende herstart van de kernel, die een beheerder uitvoert vanuit de AppStore."
+  },
+  "missing": "Niet gevonden: {list}. Een beheerder installeert het vanuit de AppStore.",
+  "missingModule": "de kernelmodule {name}",
+  "missingApp": "de app {name}",
+  "openApp": "Een app openen",
+  "hidden": "{app} is verborgen in deze workspace. Je kunt haar tonen via Configuratiescherm → Workspace.",
+  "cannotStart": "{app} kan nog niet starten",
+  "notStarted": "{app} is niet gestart: {message}"
+}

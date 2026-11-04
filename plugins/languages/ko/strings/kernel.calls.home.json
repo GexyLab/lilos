@@ -1,0 +1,7 @@
+{
+  "path": "잘못된 경로: {path}",
+  "notFound": "찾을 수 없음: {path}",
+  "gone": "파일이 더 이상 없습니다",
+  "notFile": "파일이 아님: {path}",
+  "tooBig": "파일이 너무 큽니다(최대 50MB): {path}"
+}

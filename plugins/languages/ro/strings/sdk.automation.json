@@ -1,0 +1,5 @@
+{
+  "badAction": "Acțiune nevalidă: {id}",
+  "noFunction": "Lipsește funcția acțiunii",
+  "timeout": "Aplicația nu a deschis fișierul la timp"
+}

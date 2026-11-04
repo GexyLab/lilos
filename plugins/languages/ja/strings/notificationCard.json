@@ -1,0 +1,8 @@
+{
+  "level.error": "エラー",
+  "level.warning": "警告",
+  "level.success": "完了",
+  "open": "開く",
+  "openApp": "{name} を開く",
+  "gone": "{name} はもうインストールされていません"
+}

@@ -1,0 +1,10 @@
+{
+  "notFound": "Sessie niet gevonden",
+  "tooMany": "Maximaal {max} open sessies",
+  "stopping": "De kernel wordt gestopt",
+  "detached": "Gesloten na 10 minuten zonder venster",
+  "notConnected": "De sessie is niet verbonden",
+  "tooBig": "Bericht te groot",
+  "noCommand": "Opdracht niet beschikbaar",
+  "connected": "Verbonden"
+}

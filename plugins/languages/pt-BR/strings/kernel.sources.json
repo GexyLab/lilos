@@ -1,0 +1,20 @@
+{
+  "repo": "Repositório inválido (proprietário/nome)",
+  "urlLocal": "Endereço do repositório inválido (https:// ou uma pasta)",
+  "url": "Endereço do repositório inválido (https://)",
+  "ref": "Referência inválida",
+  "path": "Caminho no repositório inválido",
+  "local": "Pastas locais como origem só são permitidas em desenvolvimento (allowLocalSources)",
+  "dir": "Pasta inválida (caminho absoluto)",
+  "type": "Origem desconhecida: \"git\", \"github\" ou \"local\"",
+  "noGit": "O comando git não está instalado no computador do kernel",
+  "git": "git: {message}",
+  "gitError": "git: erro",
+  "outside": "Caminho fora do pacote: {path}",
+  "missing": "Falta {path}",
+  "notFile": "{path} não é um arquivo ou é grande demais",
+  "tooMany": "Arquivos demais no pacote",
+  "notInRepo": "O repositório não tem {path}",
+  "json": "lilos.json não é um JSON válido",
+  "tooLarge": "Pacote grande demais"
+}

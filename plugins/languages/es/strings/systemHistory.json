@@ -1,0 +1,9 @@
+{
+  "group": "Edición",
+  "undo": "Deshacer",
+  "redo": "Rehacer",
+  "undone": "Deshecho: {label}",
+  "redone": "Rehecho: {label}",
+  "failed": "Esto ya no se puede hacer: {message}",
+  "error": "error"
+}

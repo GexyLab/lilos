@@ -1,0 +1,22 @@
+{
+  "ok": "‘{name}’ geslaagd",
+  "error": "‘{name}’ mislukt: {why}",
+  "admin.save": "{who}, een beheerder, heeft je bewerking ‘{name}’ gewijzigd",
+  "admin.create": "{who}, een beheerder, heeft de bewerking ‘{name}’ voor je gemaakt",
+  "admin.remove": "{who}, een beheerder, heeft je bewerking ‘{name}’ verwijderd",
+  "admin.on": "{who}, een beheerder, heeft je bewerking ‘{name}’ weer ingeschakeld",
+  "admin.off": "{who}, een beheerder, heeft je bewerking ‘{name}’ gepauzeerd",
+  "admin.run": "{who}, een beheerder, heeft je bewerking ‘{name}’ uitgevoerd",
+  "admin.move": "{who}, een beheerder, heeft je bewerking ‘{name}’ verplaatst",
+  "userGone": "De gebruiker van deze bewerking bestaat niet meer",
+  "invalid": "Ongeldige bewerking",
+  "unknownAction": "Onbekende actie: {type}",
+  "systemNoApps": "Het systeem opent geen apps: er is een gebruiker nodig",
+  "waiting": "Wacht tot lilOS wordt geopend",
+  "noPage": "Geen enkele pagina van lilOS heeft geantwoord",
+  "cancelled": "Geannuleerd of time-out",
+  "runNotFound": "Uitvoering niet gevonden",
+  "runTaken": "Een andere pagina voert haar uit",
+  "runGone": "Uitvoering al gedaan of verlopen",
+  "taskNotFound": "Bewerking niet gevonden"
+}

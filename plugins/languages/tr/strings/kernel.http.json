@@ -1,0 +1,9 @@
+{
+  "badPath": "Adres geçerli değil",
+  "tooLarge": "İstek çok büyük",
+  "notJson": "İstek gövdesi geçerli bir JSON değil",
+  "notAllowed": "İsteğe izin verilmiyor",
+  "noOrigin": "Origin eksik",
+  "badOrigin": "Origin’e izin verilmiyor",
+  "badHost": "Host’a izin verilmiyor"
+}

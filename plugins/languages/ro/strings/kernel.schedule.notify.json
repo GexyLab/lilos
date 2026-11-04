@@ -1,0 +1,9 @@
+{
+  "noService": "Niciun modul de kernel nu păstrează notificările",
+  "sent": "Notificare trimisă",
+  "sentAdmins": {
+    "one": "Notificare trimisă unui administrator",
+    "few": "Notificare trimisă la {n} administratori",
+    "other": "Notificare trimisă la {n} de administratori"
+  }
+}

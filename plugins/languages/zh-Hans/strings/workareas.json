@@ -1,0 +1,22 @@
+{
+  "tooMany": "最多 {max} 个区域",
+  "overlap": "那里已有另一个区域：区域不能重叠",
+  "undo.create": "创建区域“{title}”",
+  "undo.rename": "将区域“{before}”重命名为“{after}”",
+  "undo.remove": "删除区域“{title}”",
+  "undo.move": "移动区域“{title}”",
+  "undo.resize": "调整区域“{title}”的大小",
+  "gone": "该区域已不存在",
+  "already": "该区域已存在",
+  "occupied": "那里现在有另一个区域",
+  "notOpen": "该区域未展开",
+  "removeOne": "删除区域“{title}”（其内容保留在桌面上）",
+  "removeMany": {
+    "other": "删除 {n} 个区域（其内容保留在桌面上）"
+  },
+  "menu.title": "区域“{title}”",
+  "menu.rename": "重命名区域",
+  "menu.properties": "属性…",
+  "menu.collapse": "最小化为图标",
+  "menu.remove": "删除区域…"
+}

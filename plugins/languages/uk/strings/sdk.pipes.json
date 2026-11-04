@@ -1,0 +1,30 @@
+{
+  "stopped": "Операцію зупинено",
+  "badName": "Недійсна назва події: {name}",
+  "appEvent": "Подія застосунку називається <app id>.<name>",
+  "exists": "Подія {name} уже існує",
+  "unknown": "Невідома подія: {name}",
+  "stage": "stage має бути \"before\" або \"after\"",
+  "position": "position має бути \"first\", \"middle\" або \"last\"",
+  "noHandler": "Відсутня функція каналу",
+  "reserved": "Подію {name} зарезервовано для системи",
+  "syncOnly": "{name} — миттєва операція: застосунки можуть лише спостерігати за нею (stage \"after\")",
+  "maxSubs": {
+    "one": "Не більше {n} підписки на застосунок",
+    "few": "Не більше {n} підписок на застосунок",
+    "many": "Не більше {n} підписок на застосунок",
+    "other": "Не більше {n} підписки на застосунок"
+  },
+  "busy": "Виконується забагато операцій",
+  "busyApp": "Для цього застосунку виконується забагато операцій",
+  "syncAnswer": "{name}: миттєвій операції потрібна миттєва відповідь",
+  "handlerFailed": "{name}: {message}",
+  "cannotStop": "{name}: подію {event} не можна зупинити",
+  "whereObject": "where: лише об’єкт",
+  "whereInvalid": "Недійсне where",
+  "whereKey": "where: {key} не використовується",
+  "whereMeta": "where.meta: лише \"own\"",
+  "whereType": "Недійсне where.type",
+  "whereList": "where.{key}: список текстів",
+  "timeout": "{name} не відповів вчасно"
+}

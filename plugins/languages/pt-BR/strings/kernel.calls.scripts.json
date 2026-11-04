@@ -1,0 +1,5 @@
+{
+  "noRuntime": "Os scripts precisam do módulo services-isolate (Painel de controle → Módulos)",
+  "noStart": "Os scripts não iniciam: {message}",
+  "timeout": "O script excedeu o tempo (5 segundos)"
+}

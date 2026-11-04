@@ -1,0 +1,6 @@
+{
+  "removed": {
+    "one": "{app} verwijderd: {n} gewijzigd item staat in de Prullenbak",
+    "other": "{app} verwijderd: {n} gewijzigde items staan in de Prullenbak"
+  }
+}

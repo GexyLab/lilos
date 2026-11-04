@@ -1,0 +1,10 @@
+{
+  "group": "Workspace",
+  "next": "Zum nächsten Workspace wechseln",
+  "previous": "Zum vorherigen Workspace wechseln",
+  "limit": "Höchstens {max} Workspaces",
+  "deskOf": "Schreibtisch von {name}",
+  "removed": "Workspace „{name}“ gelöscht",
+  "removedKept": "Workspace „{name}“ gelöscht. Sein Schreibtisch ist jetzt {path}",
+  "newName": "Workspace {n}"
+}

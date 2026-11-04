@@ -1,0 +1,16 @@
+{
+  "title": "Notifications",
+  "today": "Aujourd’hui",
+  "yesterday": "Hier",
+  "markAll": "Tout marquer comme lu",
+  "clearAll": "Tout supprimer",
+  "clearFailed": "Notifications non supprimées : {message}",
+  "removeFailed": "Notification non supprimée : {message}",
+  "kept": "{count} sur {keep} conservées",
+  "fresh": {
+    "one": "{kept} · {n} nouvelle",
+    "other": "{kept} · {n} nouvelles"
+  },
+  "empty": "Aucune notification",
+  "remove": "Supprimer"
+}

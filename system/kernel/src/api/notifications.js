@@ -1,5 +1,6 @@
 import { fail } from '../errors.js';
 import { KERNEL } from '../services.js';
+import { defineStrings } from '../strings.js';
 
 /**
  * Notifications (the 'notifications' service of a module, such as notifications-basic), for
@@ -17,7 +18,12 @@ import { KERNEL } from '../services.js';
 const APP = /^[a-z0-9][a-z0-9.-]{1,63}$/;
 const ENTRY = /^[a-z][a-zA-Z0-9]{0,30}$/;
 const LEVELS = ['info', 'success', 'warning', 'error'];
-const signedIn = principal => principal ?? fail('unauthorized', 'Accesso richiesto');
+const { t } = defineStrings('lilos:kernel.api.notifications', { en: { strings: {
+  signIn: 'Sign in first', shape: 'A notification is a text or { text, level, action }', noText: 'The notification has no text',
+  level: 'Level not valid: info, success, warning or error', action: 'Action not valid: { entry, args }',
+  sender: 'Sender not valid: the app is not installed',
+} } });
+const signedIn = principal => principal ?? fail('unauthorized', t('signIn'));
 const plain = v => !!v && typeof v === 'object' && !Array.isArray(v);
 
 /**
@@ -25,13 +31,13 @@ const plain = v => !!v && typeof v === 'object' && !Array.isArray(v);
  * Throws 'invalid' for anything else.
  */
 export function notificationOf(value) {
-  const n = typeof value === 'string' ? { text: value } : plain(value) ? value : fail('invalid', 'Una notifica è un testo o { text, level, action }');
-  if (typeof n.text !== 'string' || !n.text.trim()) fail('invalid', 'La notifica non ha testo');
+  const n = typeof value === 'string' ? { text: value } : plain(value) ? value : fail('invalid', t('shape'));
+  if (typeof n.text !== 'string' || !n.text.trim()) fail('invalid', t('noText'));
   const level = n.level ?? 'info';
-  if (!LEVELS.includes(level)) fail('invalid', 'Livello non valido: info, success, warning o error');
+  if (!LEVELS.includes(level)) fail('invalid', t('level'));
   let action = null;
   if (n.action != null) {
-    if (!plain(n.action) || (n.action.entry != null && !ENTRY.test(n.action.entry))) fail('invalid', 'Azione non valida: { entry, args }');
+    if (!plain(n.action) || (n.action.entry != null && !ENTRY.test(n.action.entry))) fail('invalid', t('action'));
     action = { entry: n.action.entry ?? 'main', args: n.action.args ?? null };
   }
   return { text: n.text, level, action };
@@ -40,7 +46,7 @@ export function notificationOf(value) {
 /** The sender as the service saves it: an installed app with its name, or lilOS. */
 export async function senderOf(kernel, app) {
   if (app == null) return { system: true };
-  if (typeof app !== 'string' || !APP.test(app) || !await kernel.installer.state(app)) fail('invalid', 'Mittente non valido: l’app non è installata');
+  if (typeof app !== 'string' || !APP.test(app) || !await kernel.installer.state(app)) fail('invalid', t('sender'));
   let name = app;
   try {
     name = JSON.parse((await kernel.installer.file(KERNEL, app, 'lilos.json')).toString('utf8')).name || app;

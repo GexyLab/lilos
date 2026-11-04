@@ -1,0 +1,14 @@
+{
+  "signIn": "Accesso richiesto",
+  "adminOnly": "Solo un amministratore",
+  "mount": "Connessione non valida",
+  "tooManyTries": "Troppe prove di connessione in corso",
+  "notOnServer": "Non esiste sul server",
+  "notFile": "Non è un file",
+  "webOnly": "Si apre solo sul web",
+  "tooLarge": "File troppo grande",
+  "op": "Operazione non valida",
+  "import": "Importazione non valida",
+  "signin": "Accesso non valido",
+  "item": "Elemento non valido"
+}

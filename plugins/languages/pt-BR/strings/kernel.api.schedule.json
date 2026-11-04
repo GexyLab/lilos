@@ -1,0 +1,9 @@
+{
+  "signIn": "Faça login primeiro",
+  "app": "App inválido",
+  "id": "Identificador inválido",
+  "number": "Número inválido",
+  "missing": "Operação não encontrada",
+  "appOwner": "Um app só agenda para o usuário que o usa",
+  "adminOwner": "Somente um administrador agenda para outros ou para o sistema"
+}

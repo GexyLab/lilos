@@ -1,0 +1,9 @@
+{
+  "offline": "Ağ isteklerini lilOS çekirdeği yapar ve çekirdek bağlı değil",
+  "badRun": "Geçersiz çalıştırma",
+  "badSession": "Geçersiz oturum",
+  "blocked": "Tarayıcı oturum açma penceresini engelledi",
+  "canceled": "Oturum açma iptal edildi",
+  "failed": "Oturum açılamadı",
+  "noAskAddress": "askAddress eksik"
+}

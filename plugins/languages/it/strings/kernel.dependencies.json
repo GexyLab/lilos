@@ -1,0 +1,37 @@
+{
+  "adminOnly": "Solo un amministratore installa o rimuove pacchetti",
+  "needsLilos": "{name} {version} richiede lilOS {range} (questo è il {system})",
+  "moduleJson": "module.json non è JSON valido",
+  "byHand": "{id} è stato messo a mano: si aggiorna a mano",
+  "appInstalled": "{name} è già installata: per una nuova versione usa l'aggiornamento",
+  "moduleInstalled": "{name} è già installato: per una nuova versione usa l'aggiornamento",
+  "replaced": "{name} è stato sostituito da {by}: non si installa più",
+  "appMissing": "App non installata",
+  "moduleOff": "Modulo non attivo",
+  "otherApp": "Il pacchetto è dell'app {found}, non di {id}",
+  "otherModule": "Il pacchetto è del modulo {found}, non di {id}",
+  "moduleNewer": "Serve il modulo {id} {range}: è installata la {have} e la più nuova è la {newer}",
+  "appNewer": "Serve l’app {id} {range}: è installata la {have} e la più nuova è la {newer}",
+  "unreadable": "Il repository {url} non si legge: {message}",
+  "moduleNotInRepo": "Nel repository {url} non c'è il modulo {id}",
+  "appNotInRepo": "Nel repository {url} non c'è l’app {id}",
+  "moduleRepoVersion": "Serve il modulo {id} {range}: il repository ha la {version}",
+  "appRepoVersion": "Serve l’app {id} {range}: il repository ha la {version}",
+  "modulePlanned": "{name} ha bisogno del modulo {id} {range}, ma si installa la {version}",
+  "appPlanned": "{name} ha bisogno dell’app {id} {range}, ma si installa la {version}",
+  "circular": "Dipendenza circolare tra {a} e {b}: nessuno dei due si installa prima dell’altro",
+  "consent": "Manca il consenso per {keys}: guarda di nuovo cosa si installa",
+  "haveVersion": "{id} {range} (c'è la {have})",
+  "missing": "{name} ha bisogno di: {missing}. Installalo dall’AppStore, che installa anche quello che serve.",
+  "appNeeded": {
+    "one": "L’app {id} serve a {names}: rimuovi prima quella",
+    "other": "L’app {id} serve a {names}: rimuovi prima quelle"
+  },
+  "moduleNeeded": {
+    "one": "Il modulo {id} serve a {names}: rimuovi prima quella",
+    "other": "Il modulo {id} serve a {names}: rimuovi prima quelle"
+  },
+  "wantsOne": "{name} vuole {id} {range}: la {version} non va bene",
+  "wants": "{name} vuole {id} {range}",
+  "wantsMany": "{list}: la {version} non va bene"
+}

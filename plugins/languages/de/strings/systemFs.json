@@ -1,0 +1,3 @@
+{
+  "welcome": "Willkommen bei lilOS!\n\nDies ist ein endloser Schreibtisch: Halten Sie die Leertaste gedrückt und ziehen Sie, um sich zu bewegen,\nzoomen Sie mit dem Mausrad, ziehen Sie auf dem Hintergrund, um auszuwählen.\n\n- Doppelklick auf einen Ordner: Er öffnet sich im File Manager.\n- Doppelklick auf eine Textdatei: Sie öffnet sich im Editor (wie diese hier).\n- Ctrl K öffnet das Startmenü, Ctrl S speichert im Editor.\n- Die Schaltfläche neben dem Logo wechselt den Workspace: Jeder hat seinen eigenen Schreibtisch,\n  seine eigenen Fenster und seine eigenen Apps. Documenti, Immagini und Download gehören allen.\n\nTastenkombinationen und die Apps, die Dateien öffnen, können Sie unter\nSystemsteuerung → Bedienung ändern.\n"
+}

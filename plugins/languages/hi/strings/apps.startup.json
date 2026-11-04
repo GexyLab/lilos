@@ -1,0 +1,14 @@
+{
+  "mainWindow": "मुख्य विंडो",
+  "paramsObject": "पैरामीटर एक JSON ऑब्जेक्ट होने चाहिए, { } के बीच",
+  "paramsTooLong": "पैरामीटर बहुत लंबे हैं (अधिकतम 4 KB)",
+  "invalid": "{param}: अमान्य मान",
+  "fileGone": "{param}: फ़ाइल अब नहीं है",
+  "folderGone": "{param}: फ़ोल्डर अब नहीं है",
+  "notOpened": "{app} अपने आप नहीं खुला। {message}",
+  "notInstalled": "ऐप इंस्टॉल नहीं है",
+  "maxApps": "स्टार्टअप पर अधिकतम {max} ऐप",
+  "unknownEntry": "अज्ञात प्रवेश बिंदु",
+  "entryNotAtStartup": "यह प्रवेश बिंदु स्टार्टअप में नहीं है",
+  "skipped": "बिना ऐप के शुरू किया गया: पते में ?avvio=no है"
+}

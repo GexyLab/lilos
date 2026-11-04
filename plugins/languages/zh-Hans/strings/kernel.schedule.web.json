@@ -1,0 +1,27 @@
+{
+  "folderGone": "要保存到的文件夹已不存在",
+  "notFolder": "保存位置不是文件夹",
+  "notFile": "“{name}”已存在且不是文件",
+  "protected": "“{name}”受某个应用保护（例如已加密）：不会被覆盖",
+  "secretGone": "{name} 的机密值已无法读取：必须重新输入",
+  "fileGone": "要发送的文件已不存在",
+  "noAnswer": {
+    "other": "{n} 秒内没有响应"
+  },
+  "untrusted": "{message}：请在 NetTest 中确认一次",
+  "network": "网络：{code}",
+  "redirects": "重定向过多",
+  "notWeb": "重定向到非 Web 地址",
+  "otherOrigin": "重定向到另一个地址且有要发送的正文：未跟随",
+  "tooBig": "响应过大（最多 10 MB）",
+  "unfinished": {
+    "other": "响应未在 {n} 秒内结束"
+  },
+  "bytes": {
+    "other": "{n} 字节"
+  },
+  "saved": "{status}，用时 {ms} 毫秒 · {size} · 已保存到 {name}",
+  "summary": "{status}，用时 {ms} 毫秒 · {size}",
+  "status": "状态 {status}，预期为 {expected}",
+  "contains": "响应中不包含“{text}”"
+}

@@ -1,0 +1,6 @@
+{
+  "single": "lilOS 只有一个用户：无需登录",
+  "singleVerify": "lilOS 只有一个用户：不需要这样做",
+  "required": "需要用户名和密码",
+  "signInFirst": "请先登录"
+}

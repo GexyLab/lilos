@@ -1,0 +1,7 @@
+{
+  "notImage": "„{name}” nie jest obrazem",
+  "gone": "Tego obrazu już nie ma",
+  "copyFailed": "Nie można skopiować „{name}” do folderu {folder}: {error}",
+  "noFolder": "brakuje folderu {folder}",
+  "openFailed": "„{name}” nie otwiera się jako obraz"
+}

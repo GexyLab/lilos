@@ -1,0 +1,11 @@
+{
+  "invalid": "Dil paketi geçerli değil: {message}",
+  "official": "Dil paketleri yalnızca resmi depodan gelir",
+  "notOffered": "Resmi depoda {language} için dil paketi yok",
+  "noRepo": "Resmi depoda dil paketi yok",
+  "needs": "{name}, lilOS {range} gerektiriyor (bu sistem: {version})",
+  "changed": "{file}: içeriği language.json ile eşleşmiyor",
+  "notInstalled": "{language} dili yüklü değil",
+  "removeForbidden": "{name} paketini yalnızca onu yükleyen kişi veya bir yönetici kaldırabilir",
+  "removed": "{name} dil paketi kaldırıldı: siz başka bir dil seçene kadar lilOS İngilizce olacak"
+}

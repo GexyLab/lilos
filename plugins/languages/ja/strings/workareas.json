@@ -1,0 +1,22 @@
+{
+  "tooMany": "ワークエリアは最大 {max} 個です",
+  "overlap": "そこにはすでに別のワークエリアがあります。ワークエリアは重ねられません",
+  "undo.create": "ワークエリア「{title}」を作成",
+  "undo.rename": "ワークエリア「{before}」の名前を「{after}」に変更",
+  "undo.remove": "ワークエリア「{title}」を削除",
+  "undo.move": "ワークエリア「{title}」を移動",
+  "undo.resize": "ワークエリア「{title}」のサイズを変更",
+  "gone": "そのワークエリアはもう存在しません",
+  "already": "そのワークエリアはすでにあります",
+  "occupied": "そこには現在別のワークエリアがあります",
+  "notOpen": "そのワークエリアは開いていません",
+  "removeOne": "ワークエリア「{title}」を削除（中身はデスクトップに残ります）",
+  "removeMany": {
+    "other": "{n} 個のワークエリアを削除（中身はデスクトップに残ります）"
+  },
+  "menu.title": "ワークエリア「{title}」",
+  "menu.rename": "ワークエリアの名前を変更",
+  "menu.properties": "プロパティ…",
+  "menu.collapse": "アイコンに最小化",
+  "menu.remove": "ワークエリアを削除…"
+}

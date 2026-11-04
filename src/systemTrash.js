@@ -1,5 +1,11 @@
-import { fs, settings } from '@lilos/sdk';
+import { fs, settings, locale } from '@lilos/sdk';
 import { notify } from './notifications/notify.js';
+
+const { t } = locale.define('lilos:systemTrash', {
+  en: { strings: {
+    purged: { one: 'Deleted for good 1 item older than the new period', other: 'Deleted for good {n} items older than the new period' },
+  } },
+});
 
 const DAY = 86_400_000;
 const HOUR = 3_600_000;
@@ -18,7 +24,7 @@ export function setupTrash() {
   sweep();
   settings.on('change:trashRetention', () => {
     const n = sweep();
-    if (n) notify(n === 1 ? 'Eliminato definitivamente 1 elemento più vecchio del nuovo periodo' : `Eliminati definitivamente ${n} elementi più vecchi del nuovo periodo`);
+    if (n) notify(t('purged', { n }));
   });
   setInterval(sweep, HOUR);
 }

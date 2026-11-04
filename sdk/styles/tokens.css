@@ -78,6 +78,17 @@
   --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
 }
 
+/* Type by language (<html lang>, src/systemLanguage.js): Manrope covers Latin, Cyrillic and Greek;
+   other scripts get the system fonts made for them (Windows first, then macOS, then Noto). Arabic
+   and Urdu use Naskh-style faces: Nastaliq is taller than the rows of the chrome and gets clipped. */
+:root:lang(ar) { --font: "Segoe UI", "Noto Sans Arabic", Tahoma, system-ui, sans-serif; }
+:root:lang(ur) { --font: "Segoe UI", "Noto Sans Arabic", "Noto Naskh Arabic", Tahoma, system-ui, sans-serif; }
+:root:lang(hi) { --font: "Nirmala UI", "Kohinoor Devanagari", "Noto Sans Devanagari", Mangal, system-ui, sans-serif; }
+:root:lang(zh-Hans) { --font: "Microsoft YaHei UI", "Microsoft YaHei", "PingFang SC", "Noto Sans SC", "Noto Sans CJK SC", system-ui, sans-serif; }
+:root:lang(zh-Hant) { --font: "Microsoft JhengHei UI", "Microsoft JhengHei", "PingFang TC", "Noto Sans TC", "Noto Sans CJK TC", system-ui, sans-serif; }
+:root:lang(ja) { --font: "Yu Gothic UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Noto Sans CJK JP", Meiryo, system-ui, sans-serif; }
+:root:lang(ko) { --font: "Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans KR", "Noto Sans CJK KR", system-ui, sans-serif; }
+
 /* Dark theme: windows dark as well */
 :root[data-theme="dark"] {
   color-scheme: dark;

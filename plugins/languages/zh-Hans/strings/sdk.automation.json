@@ -1,0 +1,5 @@
+{
+  "badAction": "无效的操作：{id}",
+  "noFunction": "缺少操作的函数",
+  "timeout": "应用未及时打开文件"
+}

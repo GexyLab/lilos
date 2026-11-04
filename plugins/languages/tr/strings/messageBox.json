@@ -1,0 +1,12 @@
+{
+  "ok": "Tamam",
+  "cancel": "İptal",
+  "continue": "Devam",
+  "retry": "Yeniden dene",
+  "required": "“{label}” alanını doldurun",
+  "invalid": "“{label}” geçerli değil",
+  "number": "“{label}” bir sayı olmalıdır",
+  "min": "“{label}” en az {min} olmalıdır",
+  "max": "“{label}” en fazla {max} olmalıdır",
+  "long": "“{label}” çok uzun (en fazla {max} karakter)"
+}

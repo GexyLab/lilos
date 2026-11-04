@@ -1,0 +1,5 @@
+{
+  "noText": "Die Benachrichtigung hat keinen Text",
+  "badLevel": "Ungültige Stufe: info, success, warning oder error",
+  "keep": "Wie viele Benachrichtigungen aufbewahrt werden: von 1 bis 200"
+}

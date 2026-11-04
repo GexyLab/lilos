@@ -1,0 +1,12 @@
+{
+  "folder": "module.json komt niet overeen met de map {folder}",
+  "kernel": "{name} vereist kernel {kernel}, dit is {api}",
+  "services": "{name}: ongeldige dienstnamen",
+  "settings": "{name}: ongeldige instellingen",
+  "replaces": "{name}: ongeldige replaces",
+  "notInstalled": "Module niet geïnstalleerd: {name}",
+  "twice": "Module twee keer opgegeven: {name}",
+  "provider": "De dienst \"{service}\" wordt zowel door {first} als door {second} geleverd",
+  "cycle": "Circulaire afhankelijkheden tussen de modules ({name})",
+  "missing": "{name} heeft de dienst \"{service}\" nodig, die geen enkele actieve module levert"
+}

@@ -1,0 +1,9 @@
+{
+  "stopped": "Otomatisasi dihentikan",
+  "chooseItems": "Pilih apa yang akan dikerjakan",
+  "appMissing": "Aplikasi untuk langkah ini tidak terinstal",
+  "password": "Langkah ini meminta kata sandi",
+  "stepFailedLabel": "Langkah {n} ({label}): {message}",
+  "stepFailed": "Langkah {n}: {message}",
+  "cannotRedo": "Tindakan ini tidak dapat dilakukan lagi"
+}

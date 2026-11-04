@@ -1,0 +1,25 @@
+{
+  "retention.days": {
+    "other": "{n} 日"
+  },
+  "retention.year": "1 年",
+  "retention.forever": "無期限",
+  "lasso": "{keys} + ドラッグ",
+  "color.blue": "ブルー",
+  "color.violet": "バイオレット",
+  "color.magenta": "マゼンタ",
+  "color.red": "レッド",
+  "color.orange": "オレンジ",
+  "color.green": "グリーン",
+  "color.teal": "ティール",
+  "color.graphite": "グラファイト",
+  "color.night": "ナイト",
+  "color.deepBlue": "ディープブルー",
+  "color.forest": "フォレスト",
+  "color.plum": "プラム",
+  "color.earth": "アース",
+  "color.mist": "ミスト",
+  "color.sky": "スカイ",
+  "color.sage": "セージ",
+  "color.sand": "サンド"
+}

@@ -1,0 +1,18 @@
+{
+  "one": "„{name}”",
+  "many": "elementy ({n})",
+  "home": "Folder domowy",
+  "gone": "Element już nie istnieje",
+  "folderGone": "Folder, w którym były, już nie istnieje",
+  "itemsGone": "Te elementy już nie istnieją",
+  "notTrashed": "Tych elementów nie ma już w Koszu",
+  "createdGone": "Folder już nie istnieje",
+  "foldersGone": "Elementy lub foldery już nie istnieją",
+  "delete": "Usuń {what}",
+  "trash": "Przenieś {what} do Kosza",
+  "restore": "Przywróć {what}",
+  "create": "Utwórz „{name}”",
+  "rename": "Zmień nazwę „{from}” na „{to}”",
+  "move": "Przenieś „{name}” do „{folder}”",
+  "moveMany": "Przenieś {what} do „{folder}”"
+}

@@ -1,0 +1,6 @@
+{
+  "needHttp": "http または https のアドレスが必要です",
+  "noAnswer": {
+    "other": "{n} 秒以内に応答がありません"
+  }
+}

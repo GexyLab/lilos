@@ -1,0 +1,43 @@
+{
+  "sources": "Ungültige zu übertragende Elemente",
+  "notFolder": "Das Ziel ist kein Ordner",
+  "homeToHome": "Kopie zwischen Ordnern von lilOS: Dies ist keine Netzwerkübertragung",
+  "intoItself": "Ein Ordner kann nicht in sich selbst kopiert werden",
+  "nothing": "Nichts zu übertragen",
+  "tooMany": "Zu viele Übertragungen in der Warteschlange",
+  "itemNotFound": "Element nicht gefunden",
+  "noConflict": "Kein Konflikt zu lösen",
+  "choice": "Ungültige Auswahl",
+  "queueNotFound": "Warteschlange nicht gefunden",
+  "serverNotFound": "Es existiert nicht auf dem Server",
+  "badName": "Name, der nicht übertragen werden kann: {name}",
+  "webOnly": "„{name}“ lässt sich nur im Web öffnen: Es wird nicht kopiert",
+  "place": "Ungültiger Ort",
+  "tooManyFiles": "Zu viele Dateien zum Übertragen",
+  "tooDeep": "Ordner zu tief verschachtelt",
+  "someFailed": "Einige Dateien wurden nicht übertragen",
+  "dstLost": "Zielordner verloren",
+  "fileThere": "Wo der Ordner hingehört, gibt es bereits eine Datei „{name}“",
+  "retrying": "{message} · neuer Versuch",
+  "folderThere": "Wo die Datei hingehört, gibt es bereits einen Ordner „{name}“",
+  "notFileThere": "Es gibt bereits ein Element „{name}“, das keine Datei ist",
+  "done": {
+    "one": "{n} Datei nach „{queue}“ übertragen ({size})",
+    "other": "{n} Dateien nach „{queue}“ übertragen ({size})"
+  },
+  "failed": {
+    "one": "{n} Datei nicht übertragen",
+    "other": "{n} Dateien nicht übertragen"
+  },
+  "failedIn": {
+    "one": "{n} Datei nicht nach „{queue}“ übertragen",
+    "other": "{n} Dateien nicht nach „{queue}“ übertragen"
+  },
+  "complete": "Übertragung abgeschlossen: {files}.",
+  "allFailed": "Übertragung fehlgeschlagen: {files}.",
+  "partial": "Übertragung mit Fehlern beendet: {done}. {failed}.",
+  "bytes": {
+    "one": "{n} Byte",
+    "other": "{n} Bytes"
+  }
+}

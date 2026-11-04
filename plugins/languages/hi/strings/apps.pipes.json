@@ -1,0 +1,10 @@
+{
+  "unknownEvent": "अज्ञात इवेंट: {event}",
+  "denied": "अनुमति अस्वीकृत: pipe:{event}",
+  "deniedOwn": "अनुमति अस्वीकृत: pipe:{event} (या pipe.own:{event})",
+  "reserved": "इवेंट {event} सिस्टम के लिए आरक्षित है",
+  "sync": "{event} एक तत्काल कार्य है: इसे केवल देखा जा सकता है (stage \"after\")",
+  "gone": "ऐप अब इंस्टॉल नहीं है",
+  "unhandled": "{app} {what} को नहीं संभालता (lilos.pipes.subscribe मौजूद नहीं है)",
+  "needApp": "“{file}” खोलने के लिए आपको ऐप {app} चाहिए: इसे AppStore से इंस्टॉल करें"
+}

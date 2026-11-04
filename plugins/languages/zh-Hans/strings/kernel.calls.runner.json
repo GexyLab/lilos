@@ -1,0 +1,10 @@
+{
+  "scriptErrorBefore": "脚本错误（之前）：{message}",
+  "scriptErrorAfter": "脚本错误（之后）：{message}",
+  "scriptTimeoutBefore": "脚本错误（之前）：脚本超时（5 秒）",
+  "scriptTimeoutAfter": "脚本错误（之后）：脚本超时（5 秒）",
+  "skipped": "从窗口打开的会话（WebSocket、SSE、TCP、UDP、MQTT）：运行时会跳过它们",
+  "otherServer": "某个脚本更改了请求的服务器：机密值不会发送到其他地址",
+  "noProtocol": "运行中不可用的协议：{protocol}（缺少其内核模块）",
+  "nothingToSave": "“{name}”：没有要保存的内容（{source} {path}）"
+}

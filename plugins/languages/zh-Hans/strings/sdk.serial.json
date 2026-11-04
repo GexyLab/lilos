@@ -1,0 +1,8 @@
+{
+  "notFound": "未找到串口（已拔出？）",
+  "unsupported": "此浏览器无法使用串口（需要 Chrome、Edge 或 Firefox 151 及以上版本，并通过 https 或 localhost 访问）",
+  "click": "浏览器要求在选择端口之前先点击一下",
+  "baud": "无效的速率（波特）",
+  "busy": "该端口已被打开（由另一个窗口或另一个程序）",
+  "failed": "端口无法打开：{message}"
+}

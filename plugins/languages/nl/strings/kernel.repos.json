@@ -1,0 +1,11 @@
+{
+  "official": "lilOS officieel",
+  "adminOnly": "Alleen een beheerder beheert de repository’s",
+  "missing": "Repository niet gevonden",
+  "present": "Repository al toegevoegd",
+  "tooMany": "Maximaal {max} repository’s",
+  "notOfficial": "De officiële repository kan niet worden verwijderd",
+  "catalog": "catalog.json ontbreekt of is geen geldige JSON",
+  "notInCatalog": "Pakket niet in de catalogus",
+  "file": "Ongeldig bestand"
+}

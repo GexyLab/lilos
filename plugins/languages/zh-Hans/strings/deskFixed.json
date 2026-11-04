@@ -1,0 +1,13 @@
+{
+  "home.description": "主文件夹，包含所有其他文件夹",
+  "folder.description": "{name} 文件夹，所有工作区共享",
+  "files.description": "打开 File Manager",
+  "trash": "回收站",
+  "trash.description": "打开回收站；可以将文件和文件夹拖到上面",
+  "noDesk": "桌面不存在",
+  "folderGone": "{name} 文件夹已不存在",
+  "trashedOne": "已移到回收站",
+  "trashedMany": {
+    "other": "已将 {n} 个项目移到回收站"
+  }
+}

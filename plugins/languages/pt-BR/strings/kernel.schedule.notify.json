@@ -1,0 +1,8 @@
+{
+  "noService": "Nenhum módulo do kernel guarda as notificações",
+  "sent": "Notificação enviada",
+  "sentAdmins": {
+    "one": "Notificação enviada a {n} administrador",
+    "other": "Notificação enviada a {n} administradores"
+  }
+}

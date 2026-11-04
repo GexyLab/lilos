@@ -1,6 +1,7 @@
 import { fail } from '../errors.js';
 import { logger } from '../log.js';
 import { SANDBOX_CODE } from './sandbox.js';
+import { defineStrings } from '../strings.js';
 
 /**
  * NetTest's scripts (before a request, after its response) run in the 'runtime' service of the
@@ -14,6 +15,12 @@ const log = logger('nettest');
 const IDLE = 2 * 60_000;
 const LIMITS = { memoryMb: 96, cpuMs: 5000 };
 const TIMEOUT = 15_000;
+
+const { t } = defineStrings('lilos:kernel.calls.scripts', { en: { strings: {
+  noRuntime: 'Scripts need the services-isolate module (Control Panel → Modules)',
+  noStart: 'The scripts do not start: {message}',
+  timeout: 'The script ran out of time (5 seconds)',
+} } });
 
 export class Scripts {
   #kernel;
@@ -60,12 +67,12 @@ export class Scripts {
 
   /** Runs one script (see sandbox.js for `data` and the answer). */
   async run(principal, data, { signal } = {}) {
-    if (!this.available) fail('unavailable', 'Gli script hanno bisogno del modulo services-isolate (Pannello di controllo → Moduli)');
+    if (!this.available) fail('unavailable', t('noRuntime'));
     let handle;
     try {
       handle = await this.#box(principal);
     } catch (err) {
-      fail('unavailable', `Gli script non partono: ${err.message}`);
+      fail('unavailable', t('noStart', { message: err?.text ?? err.message }));
     }
     try {
       return await handle.request(data, { kind: 'kernel' }, { timeoutMs: TIMEOUT, signal });
@@ -73,7 +80,7 @@ export class Scripts {
       // A script that ran out of time or memory may have left the sandbox unusable: the next one gets a new one
       const box = this.#boxes.get(principal.id);
       if (box) this.#stop(principal.id, box);
-      return { logs: [], tests: [], error: /timed out|Script execution/i.test(err.message) ? 'Lo script ha superato il tempo (5 secondi)' : err.message };
+      return { logs: [], tests: [], error: /timed out|Script execution/i.test(err.message) ? t('timeout') : err?.text ?? err.message };
     }
   }
 

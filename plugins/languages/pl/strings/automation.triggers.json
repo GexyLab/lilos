@@ -1,0 +1,16 @@
+{
+  "theAutomation": "Automatyzacja",
+  "noAutomata": "Automata nie jest zainstalowana",
+  "running": "{name} już działa",
+  "opened": "{name}: otwarto w Automata",
+  "needsNothing": "{name}: uruchamia się samoczynnie tylko wtedy, gdy nie działa na żadnych elementach (Automata → Uruchom)",
+  "ran": "{name}: wykonano samoczynnie",
+  "ranOn": "{name}: wykonano samoczynnie na elementach ({items})",
+  "failedSteps": {
+    "one": "{n} krok się nie powiódł",
+    "few": "{n} kroki się nie powiodły",
+    "many": "{n} kroków się nie powiodło",
+    "other": "{n} kroku się nie powiodło"
+  },
+  "withFailed": "{text} ({failed})"
+}

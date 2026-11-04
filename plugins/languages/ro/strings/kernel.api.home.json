@@ -1,0 +1,10 @@
+{
+  "signIn": "Conectați-vă mai întâi",
+  "id": "Identificator nevalid",
+  "key": "Cheie nevalidă: {key}",
+  "tooLarge": "Valoare prea mare: {key}",
+  "changes": "Modificări nevalide",
+  "item": "Element nevalid",
+  "itemData": "Prea multe date într-un element",
+  "tooMany": "Prea multe chei deodată"
+}

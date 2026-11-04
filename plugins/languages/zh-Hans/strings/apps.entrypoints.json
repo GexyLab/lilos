@@ -1,0 +1,6 @@
+{
+  "notInstalled": "应用未安装：{id}",
+  "hidden": "{app} 在此工作区中已隐藏",
+  "noEntry": "{app} 没有入口点 {entry}",
+  "backgroundOnly": "只能连接到后台入口点"
+}

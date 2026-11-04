@@ -1,0 +1,16 @@
+{
+  "remove": "Hapus",
+  "removeCombo": "Hapus {combo}",
+  "none": "Tidak ada",
+  "pressKeys": "Tekan tombol…",
+  "add": "Tambahkan kombinasi",
+  "addFor": "Tambahkan kombinasi untuk {command}",
+  "resetTitle": "Pulihkan kombinasi asli",
+  "reset": "Pulihkan",
+  "record": "Tekan kombinasinya. Esc untuk membatalkan.",
+  "invalid": "{combo}: {error}",
+  "already": "{combo} sudah ditetapkan untuk perintah ini",
+  "usedBy": "{combo} sudah digunakan oleh “{command}”.",
+  "replace": "Ganti",
+  "cancel": "Batal"
+}

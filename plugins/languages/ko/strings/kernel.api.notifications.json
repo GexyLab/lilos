@@ -1,0 +1,8 @@
+{
+  "signIn": "먼저 로그인하세요",
+  "shape": "알림은 텍스트 또는 { text, level, action }입니다",
+  "noText": "알림에 텍스트가 없습니다",
+  "level": "잘못된 수준: info, success, warning 또는 error",
+  "action": "잘못된 동작: { entry, args }",
+  "sender": "잘못된 보낸 사람: 앱이 설치되어 있지 않습니다"
+}

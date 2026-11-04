@@ -1,0 +1,7 @@
+{
+  "canceled": "Dibatalkan",
+  "offline": "Kernel lilOS tidak merespons",
+  "status": "Kesalahan {status}",
+  "badModule": "Modul tidak valid",
+  "badPath": "Jalur tidak valid"
+}

@@ -1,0 +1,11 @@
+{
+  "invalid": "无效的语言包：{message}",
+  "official": "语言包只能来自官方仓库",
+  "notOffered": "官方仓库中没有 {language} 的语言包",
+  "noRepo": "官方仓库中没有语言包",
+  "needs": "{name} 需要 lilOS {range}（当前为 {version}）",
+  "changed": "{file}：其内容与 language.json 不符",
+  "notInstalled": "语言 {language} 未安装",
+  "removeForbidden": "只有安装 {name} 的人或管理员才能移除它",
+  "removed": "语言 {name} 已移除：在你选择其他语言之前，lilOS 将使用英语"
+}

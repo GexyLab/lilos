@@ -1,0 +1,9 @@
+{
+  "stopped": "Automação interrompida",
+  "chooseItems": "Escolha em que trabalhar",
+  "appMissing": "O app deste passo não está instalado",
+  "password": "Este passo pede uma senha",
+  "stepFailedLabel": "Passo {n} ({label}): {message}",
+  "stepFailed": "Passo {n}: {message}",
+  "cannotRedo": "Esta ação não pode ser refeita"
+}

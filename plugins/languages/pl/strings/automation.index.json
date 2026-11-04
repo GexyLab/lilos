@@ -1,0 +1,14 @@
+{
+  "recording": {
+    "one": "Nagrywanie ({n} krok)",
+    "few": "Nagrywanie ({n} kroki)",
+    "many": "Nagrywanie ({n} kroków)",
+    "other": "Nagrywanie ({n} kroku)"
+  },
+  "paused": {
+    "one": "Nagrywanie wstrzymane ({n} krok)",
+    "few": "Nagrywanie wstrzymane ({n} kroki)",
+    "many": "Nagrywanie wstrzymane ({n} kroków)",
+    "other": "Nagrywanie wstrzymane ({n} kroku)"
+  }
+}

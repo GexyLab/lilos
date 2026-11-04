@@ -1,0 +1,7 @@
+{
+  "signIn": "Önce oturum açın",
+  "kind": "kind \"app\" veya \"module\" olmalıdır",
+  "id": "id geçerli değil",
+  "target": "install veya update gerekli",
+  "package": "Paket geçerli değil"
+}

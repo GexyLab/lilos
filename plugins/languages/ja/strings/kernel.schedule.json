@@ -1,0 +1,22 @@
+{
+  "ok": "「{name}」が成功しました",
+  "error": "「{name}」が失敗しました：{why}",
+  "admin.save": "管理者の {who} さんがあなたの操作「{name}」を変更しました",
+  "admin.create": "管理者の {who} さんがあなたのために操作「{name}」を作成しました",
+  "admin.remove": "管理者の {who} さんがあなたの操作「{name}」を削除しました",
+  "admin.on": "管理者の {who} さんがあなたの操作「{name}」を再びオンにしました",
+  "admin.off": "管理者の {who} さんがあなたの操作「{name}」を一時停止しました",
+  "admin.run": "管理者の {who} さんがあなたの操作「{name}」を実行しました",
+  "admin.move": "管理者の {who} さんがあなたの操作「{name}」を移動しました",
+  "userGone": "この操作のユーザーはもう存在しません",
+  "invalid": "無効な操作",
+  "unknownAction": "不明なアクション：{type}",
+  "systemNoApps": "システムはアプリを開きません。ユーザーが必要です",
+  "waiting": "lilOS が開かれるのを待っています",
+  "noPage": "lilOS のページが応答しませんでした",
+  "cancelled": "キャンセルされたか、タイムアウトしました",
+  "runNotFound": "実行が見つかりません",
+  "runTaken": "別のページが実行しています",
+  "runGone": "実行はすでに完了したか、期限切れです",
+  "taskNotFound": "操作が見つかりません"
+}

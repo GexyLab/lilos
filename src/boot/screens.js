@@ -10,6 +10,80 @@
 import { kernel } from '@lilos/sdk/kernel';
 import { version } from '../../package.json';
 import { markdown } from './markdown.js';
+import { bootStrings } from './strings.js';
+
+const i18n = bootStrings('lilos:bootScreens', { en: { strings: {
+  'hero.title1': 'Your desktop.',
+  'hero.title2': 'Wherever you are.',
+  'hero.lead': 'Your lilOS windows, files and apps from any computer, just as you left them.',
+  'hero.files': 'Your files in your home',
+  'hero.workspaces': 'A workspace for every project',
+  'hero.apps': 'Apps always up to date',
+  'connection.checking': 'Connecting…',
+  'connection.on': 'Connected to {host} · {ms} ms',
+  'connection.onHost': 'Connected to {host}',
+  'connection.off': 'Kernel unreachable',
+  'theme.light': 'Light theme',
+  'theme.dark': 'Dark theme',
+  'password.show': 'Show password',
+  'password.hide': 'Hide password',
+  'password.caps': 'Caps Lock is on',
+  seconds: '{n} s',
+  'login.title': 'Sign in to lilOS',
+  'login.text': 'Welcome back. Enter your details to continue.',
+  'login.submit': 'Sign in',
+  'login.username': 'User name',
+  'login.password': 'Password',
+  'login.remember': 'Stay signed in',
+  'login.forgot': 'Forgot your password?',
+  'login.noAccount': "No account yet? A lilOS administrator creates it.",
+  'login.retryIn': 'Try again in {time}',
+  'login.windowsStay': 'Your windows stay open',
+  'login.pendingSaved': 'Pending changes are saved',
+  'forgot.title': 'Forgotten password',
+  'forgot.text': "A lilOS administrator changes passwords: ask them to choose a new one for your user name. It cannot be reset from here.",
+  'forgot.back': 'Back to sign-in',
+  'error.invalidCredentials': 'Incorrect user name or password',
+  'error.rateLimited': 'Too many attempts: try again shortly',
+  'error.unauthorized': 'Sign-in required',
+  'error.offline': 'The lilOS kernel is not answering',
+  'message.retryIn': 'Trying again in {time}',
+  'license.document': 'License text',
+  'license.remote': 'Text read from {source}.',
+  'license.local': '{source} is not answering: this is the copy included in lilOS. When it can be reached again, lilOS will ask again if the text has changed.',
+  'license.accept': 'Accept and continue',
+  'license.heroTitle1': 'Welcome',
+  'license.heroTitle2': 'to lilOS.',
+  'license.heroLead': 'One last thing before you start: the license applies to this whole installation.',
+  'license.heroAdmin': 'An administrator accepts it, once',
+  'license.heroOfficial': 'The text comes from the official repository',
+  'license.title': 'lilOS license',
+  'license.text': 'Before using lilOS, read its license.',
+  'license.agree': 'I have read and accept the license',
+  'license.exit': 'Exit',
+  'start.hello': 'Hi, {name}',
+  'start.text': 'Getting your lilOS ready…',
+} } });
+const { t } = i18n;
+
+/**
+ * The text of a known error of signing in (the auth module answers in its own language), else the
+ * message the error has.
+ */
+export function errorText(err) {
+  const known = {
+    invalid_credentials: 'error.invalidCredentials', rate_limited: 'error.rateLimited',
+    unauthorized: 'error.unauthorized', offline: 'error.offline',
+  }[err?.code];
+  return known ? t(known) : String(err?.message ?? err);
+}
+
+/** A translated text with an element where its {placeholder} is (the word order is the language's). */
+function withNode(key, name, node) {
+  const mark = '\u0000';
+  const [before, ...rest] = t(key, { [name]: mark }).split(mark);
+  return [before || null, node, rest.join('') || null];
+}
 
 const THEME_KEY = 'lilos.boot.theme';
 const REMEMBER_KEY = 'lilos.boot.remember';
@@ -80,9 +154,9 @@ export const rememberSignIn = () => load(REMEMBER_KEY) !== '0';
 
 // ---------- The left panel ----------
 
-const POINTS = ['I tuoi file nella tua home', 'Un workspace per ogni progetto', 'Le app sempre aggiornate'];
+const heroPoints = () => [t('hero.files'), t('hero.workspaces'), t('hero.apps')];
 
-function heroText({ title = ['Il tuo desktop.', 'Ovunque tu sia.'], lead = 'Finestre, file e app di lilOS da qualsiasi computer, come li hai lasciati.', points = POINTS } = {}) {
+function heroText({ title = [t('hero.title1'), t('hero.title2')], lead = t('hero.lead'), points = heroPoints() } = {}) {
   return [
     el('h2', { class: 'boot-headline' }, ...title.flatMap((line, i) => (i ? [el('br'), line] : [line]))),
     el('p', { class: 'boot-lead' }, lead),
@@ -96,8 +170,8 @@ function heroClock(points = []) {
   const date = el('div', { class: 'boot-date' });
   const tick = () => {
     const now = new Date();
-    time.textContent = now.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
-    date.textContent = now.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' });
+    time.textContent = i18n.date(now, { hour: '2-digit', minute: '2-digit' });
+    date.textContent = i18n.date(now, { weekday: 'long', day: 'numeric', month: 'long' });
   };
   tick();
   const timer = setInterval(() => (time.isConnected ? tick() : clearInterval(timer)), 10_000);
@@ -106,7 +180,7 @@ function heroClock(points = []) {
 
 /** Whether the kernel answers, and how fast; asked again every few seconds while it is shown. */
 function connection() {
-  const label = el('span', {}, 'Connessione…');
+  const label = el('span', {}, t('connection.checking'));
   const pill = el('span', { class: 'boot-pill', role: 'status' }, el('i', { 'aria-hidden': 'true' }), label);
   const ping = async () => {
     if (!pill.isConnected && pill.dataset.state) return;
@@ -114,10 +188,10 @@ function connection() {
     try {
       await kernel.request('GET', '/session');
       pill.dataset.state = 'on';
-      label.textContent = `Connesso a ${location.host} · ${Math.max(1, Math.round(performance.now() - start))} ms`;
+      label.textContent = t('connection.on', { host: location.host, ms: Math.max(1, Math.round(performance.now() - start)) });
     } catch (err) {
       pill.dataset.state = err.code === 'offline' ? 'off' : 'on';
-      label.textContent = err.code === 'offline' ? 'Kernel non raggiungibile' : `Connesso a ${location.host}`;
+      label.textContent = err.code === 'offline' ? t('connection.off') : t('connection.onHost', { host: location.host });
     }
     setTimeout(ping, PING_EVERY);
   };
@@ -144,7 +218,7 @@ function frame(root, { hero, side, onto = null }) {
   const showTheme = () => {
     const dark = screen.dataset.theme === 'dark';
     themeButton.replaceChildren(svgIcon(dark ? 'sun' : 'moon'));
-    themeButton.title = dark ? 'Tema chiaro' : 'Tema scuro';
+    themeButton.title = dark ? t('theme.light') : t('theme.dark');
     themeButton.setAttribute('aria-label', themeButton.title);
   };
   themeButton.addEventListener('click', () => {
@@ -179,13 +253,13 @@ function errorBox() {
 /** A password field with the button that shows it and the Caps Lock warning. */
 function passwordField(attrs) {
   const input = el('input', { class: 'boot-input', type: 'password', ...attrs });
-  const eye = el('button', { class: 'boot-eye', type: 'button', 'aria-pressed': 'false', title: 'Mostra la password', 'aria-label': 'Mostra la password' }, svgIcon('eye'));
-  const caps = el('span', { class: 'boot-caps', hidden: true }, svgIcon('alert'), 'Bloc Maiusc è attivo');
+  const eye = el('button', { class: 'boot-eye', type: 'button', 'aria-pressed': 'false', title: t('password.show'), 'aria-label': t('password.show') }, svgIcon('eye'));
+  const caps = el('span', { class: 'boot-caps', hidden: true }, svgIcon('alert'), t('password.caps'));
   eye.addEventListener('click', () => {
     const show = input.type === 'password';
     input.type = show ? 'text' : 'password';
     eye.setAttribute('aria-pressed', String(show));
-    eye.title = show ? 'Nascondi la password' : 'Mostra la password';
+    eye.title = show ? t('password.hide') : t('password.show');
     eye.setAttribute('aria-label', eye.title);
     eye.replaceChildren(svgIcon(show ? 'eyeOff' : 'eye'));
     input.focus();
@@ -218,8 +292,8 @@ const initials = name => String(name).split(/\s+/).filter(Boolean).slice(0, 2).m
  * `opaque` is kept for the callers: every screen covers what is under it.
  */
 export function loginScreen(root, login, {
-  title = 'Accedi a lilOS', text = 'Bentornato. Inserisci i tuoi dati per continuare.',
-  onto = null, username = null, name = null, other = null, submit: submitLabel = 'Accedi',
+  title = t('login.title'), text = t('login.text'),
+  onto = null, username = null, name = null, other = null, submit: submitLabel = t('login.submit'),
 } = {}) {
   return new Promise(resolve => {
     const user = el('input', { class: 'boot-input', type: 'text', name: 'username', autocomplete: 'username', autocapitalize: 'none', spellcheck: 'false', required: true });
@@ -232,28 +306,28 @@ export function loginScreen(root, login, {
 
     const fields = username
       ? [el('input', { type: 'text', name: 'username', autocomplete: 'username', value: username, hidden: true, readonly: true }),
-        el('label', { class: 'boot-field' }, el('span', {}, 'Password'), pass.wrap, pass.caps)]
-      : [el('label', { class: 'boot-field' }, el('span', {}, 'Nome utente'), user),
-        el('label', { class: 'boot-field' }, el('span', {}, 'Password'), pass.wrap, pass.caps),
+        el('label', { class: 'boot-field' }, el('span', {}, t('login.password')), pass.wrap, pass.caps)]
+      : [el('label', { class: 'boot-field' }, el('span', {}, t('login.username')), user),
+        el('label', { class: 'boot-field' }, el('span', {}, t('login.password')), pass.wrap, pass.caps),
         el('div', { class: 'boot-row' },
-          el('label', { class: 'boot-check' }, remember, el('span', {}, 'Resta connesso')),
-          el('button', { class: 'boot-link', type: 'button', onclick: () => forgot() }, 'Password dimenticata?'))];
+          el('label', { class: 'boot-check' }, remember, el('span', {}, t('login.remember'))),
+          el('button', { class: 'boot-link', type: 'button', onclick: () => forgot() }, t('login.forgot')))];
     const form = el('form', { class: 'boot-fields', novalidate: true }, ...fields, submit);
     const sideContent = [
       username ? el('div', { class: 'boot-avatar', 'aria-hidden': 'true' }, initials(name ?? username)) : null,
       ...heading(title, text), error.box, form,
       other
         ? el('p', { class: 'boot-alt' }, other.lead ? `${other.lead} ` : null, el('button', { class: 'boot-link', type: 'button', onclick: other.onClick }, other.label))
-        : username ? null : el('p', { class: 'boot-alt' }, 'Non hai un account? Lo crea un amministratore di lilOS.'),
+        : username ? null : el('p', { class: 'boot-alt' }, t('login.noAccount')),
     ];
-    const hero = username ? heroClock(['Le finestre restano aperte', 'Le modifiche in attesa vengono salvate']) : heroText();
+    const hero = username ? heroClock([t('login.windowsStay'), t('login.pendingSaved')]) : heroText();
     const { screen, side } = frame(root, { hero, side: sideContent, onto });
 
     const forgot = () => {
-      const back = primaryButton("Torna all'accesso", { arrow: false });
+      const back = primaryButton(t('forgot.back'), { arrow: false });
       side.replaceChildren(
         el('div', { class: 'boot-avatar icon' }, svgIcon('key')),
-        ...heading('Password dimenticata', "La password la cambia un amministratore di lilOS: chiedigli di sceglierne una nuova per il tuo nome utente. Da qui non si può reimpostare."),
+        ...heading(t('forgot.title'), t('forgot.text')),
         back);
       back.addEventListener('click', () => {
         side.replaceChildren(...sideContent);
@@ -268,7 +342,7 @@ export function loginScreen(root, login, {
       submit.disabled = true;
       const tick = () => {
         const left = Math.ceil((end - Date.now()) / 1000);
-        if (left > 0 && screen.isConnected) return submit.label(`Riprova tra ${left} s`);
+        if (left > 0 && screen.isConnected) return submit.label(t('login.retryIn', { time: t('seconds', { n: left }) }));
         clearInterval(waitTimer);
         submit.disabled = false;
         submit.label(submitLabel);
@@ -295,7 +369,7 @@ export function loginScreen(root, login, {
         resolve();
         return;
       } catch (err) {
-        error.show(err.message);
+        error.show(errorText(err));
         if (err.code === 'rate_limited' && err.retryAfter) wait = err.retryAfter;
         pass.input.select();
       } finally {
@@ -333,7 +407,7 @@ export function messageScreen(root, { title, text, buttons, tone = null, auto = 
       return button;
     }));
     const left = el('b');
-    const wait = auto ? el('div', { class: 'boot-note-box' }, el('span', { class: 'boot-spin', 'aria-hidden': 'true' }), el('span', {}, 'Nuovo tentativo tra ', left)) : null;
+    const wait = auto ? el('div', { class: 'boot-note-box' }, el('span', { class: 'boot-spin', 'aria-hidden': 'true' }), el('span', {}, ...withNode('message.retryIn', 'time', left))) : null;
     frame(root, {
       hero: heroText(),
       side: [tone === 'danger' ? el('div', { class: 'boot-avatar icon danger' }, svgIcon('alert')) : null, ...heading(title, text), wait, row],
@@ -343,7 +417,7 @@ export function messageScreen(root, { title, text, buttons, tone = null, auto = 
       const tick = () => {
         const s = Math.ceil((end - Date.now()) / 1000);
         if (s <= 0) return done(auto.value);
-        left.textContent = `${s} s`;
+        left.textContent = t('seconds', { n: s });
       };
       tick();
       timer = setInterval(tick, 250);
@@ -359,13 +433,11 @@ export function messageScreen(root, { title, text, buttons, tone = null, auto = 
  */
 export function licenseScreen(root, { text, source, url }, accept) {
   return new Promise(resolve => {
-    const doc = el('div', { class: 'boot-license', tabindex: '0', role: 'document', 'aria-label': 'Testo della licenza' }, ...markdown(text));
+    const doc = el('div', { class: 'boot-license', tabindex: '0', role: 'document', 'aria-label': t('license.document') }, ...markdown(text));
     const from = el('a', { href: url, target: '_blank', rel: 'noopener noreferrer' }, url.replace(/^https?:\/\//, '').split('/').slice(0, 3).join('/'));
-    const note = el('p', { class: 'boot-note' }, ...(source === 'remote'
-      ? ['Testo letto da ', from, '.']
-      : [from, ' non risponde: questa è la copia inclusa in lilOS. Quando torna raggiungibile, se il testo è cambiato, lilOS lo chiederà di nuovo.']));
+    const note = el('p', { class: 'boot-note' }, ...withNode(source === 'remote' ? 'license.remote' : 'license.local', 'source', from));
     const check = el('input', { type: 'checkbox' });
-    const ok = primaryButton('Accetta e continua');
+    const ok = primaryButton(t('license.accept'));
     ok.disabled = true;
     const error = errorBox();
     check.addEventListener('change', () => { ok.disabled = !check.checked; });
@@ -378,7 +450,7 @@ export function licenseScreen(root, { text, source, url }, accept) {
         resolve('accepted');
       } catch (err) {
         if (err.code === 'conflict') return resolve('changed');
-        error.show(err.message);
+        error.show(errorText(err));
         ok.disabled = !check.checked;
       } finally {
         ok.removeAttribute('aria-busy');
@@ -386,16 +458,16 @@ export function licenseScreen(root, { text, source, url }, accept) {
     });
     const { screen } = frame(root, {
       hero: heroText({
-        title: ['Benvenuto', 'in lilOS.'],
-        lead: "Un'ultima cosa prima di iniziare: la licenza d'uso vale per tutta questa installazione.",
-        points: ['La accetta un amministratore, una volta', 'Il testo viene dal repository ufficiale'],
+        title: [t('license.heroTitle1'), t('license.heroTitle2')],
+        lead: t('license.heroLead'),
+        points: [t('license.heroAdmin'), t('license.heroOfficial')],
       }),
       side: [
-        ...heading('Licenza di lilOS', "Prima di usare lilOS, leggi la sua licenza d'uso."),
+        ...heading(t('license.title'), t('license.text')),
         doc, note,
-        el('label', { class: 'boot-check' }, check, el('span', {}, 'Ho letto la licenza e la accetto')),
+        el('label', { class: 'boot-check' }, check, el('span', {}, t('license.agree'))),
         error.box, ok,
-        el('p', { class: 'boot-alt' }, el('button', { class: 'boot-link', type: 'button', onclick: () => resolve('exit') }, 'Esci')),
+        el('p', { class: 'boot-alt' }, el('button', { class: 'boot-link', type: 'button', onclick: () => resolve('exit') }, t('license.exit'))),
       ],
     });
     screen.classList.add('wide');
@@ -420,7 +492,7 @@ export function startScreen(root, { name, steps }) {
     hero: heroText(),
     side: [
       el('div', { class: 'boot-avatar', 'aria-hidden': 'true' }, initials(name)),
-      ...heading(`Ciao, ${String(name).split(/\s+/)[0]}`, 'Preparo il tuo lilOS…'),
+      ...heading(t('start.hello', { name: String(name).split(/\s+/)[0] }), t('start.text')),
       el('div', { class: 'boot-bar', 'aria-hidden': 'true' }, bar),
       el('ol', { class: 'boot-steps', 'aria-live': 'polite' }, ...rows),
     ],
@@ -430,7 +502,7 @@ export function startScreen(root, { name, steps }) {
       const state = i < current ? 'done' : i === current ? 'now' : 'todo';
       if (row.dataset.state === 'now' && state === 'done') {
         const ms = performance.now() - started[i];
-        row.lastChild.textContent = `${(ms / 1000).toLocaleString('it-IT', { maximumFractionDigits: 1 })} s`;
+        row.lastChild.textContent = t('seconds', { n: i18n.number(ms / 1000, { maximumFractionDigits: 1 }) });
       }
       if (state === 'now' && row.dataset.state !== 'now') started[i] = performance.now();
       row.dataset.state = state;

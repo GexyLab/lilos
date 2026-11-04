@@ -1,0 +1,18 @@
+{
+  "red": "Roșu",
+  "orange": "Portocaliu",
+  "yellow": "Galben",
+  "green": "Verde",
+  "teal": "Turcoaz",
+  "blue": "Albastru",
+  "purple": "Mov",
+  "gray": "Gri",
+  "emptyName": "Numele etichetei nu poate fi gol",
+  "exists": "Există deja o etichetă „{name}”",
+  "tooMany": {
+    "one": "Cel mult o etichetă",
+    "few": "Cel mult {n} etichete",
+    "other": "Cel mult {n} de etichete"
+  },
+  "notFound": "Eticheta nu există"
+}

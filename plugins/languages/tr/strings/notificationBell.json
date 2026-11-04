@@ -1,0 +1,9 @@
+{
+  "title": "Bildirimler",
+  "unread": {
+    "other": "Bildirimler: okunacak {n} bildirim"
+  },
+  "stack": "Yeni bildirimler",
+  "sender": "{name}: {text}",
+  "dismiss": "Çubuktan kaldır"
+}

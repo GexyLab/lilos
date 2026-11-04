@@ -1,6 +1,7 @@
 import { fail } from '../errors.js';
 import { editConfig } from '../config.js';
 import { checkFields, signInFields } from './drivers.js';
+import { Text, defineStrings } from '../strings.js';
 
 /**
  * Signing in to an account of a provider for the network protocols (OAuth 2.0, authorization code
@@ -45,17 +46,72 @@ const TIMEOUT = 60_000;
 const EARLY = 120_000;          // an access token is renewed this long before it ends
 const TENANT = /^[\w.-]{1,100}$/;
 
-const label = (en, it) => ({ en, it });
-const netError = (net, message, extra = {}) => Object.assign(new Error(message), { net, ...extra });
+const { t } = defineStrings('lilos:kernel.net.oauth', { en: { strings: {
+  'microsoft.label': 'Microsoft app',
+  'microsoft.description': 'The app registered on Azure (Microsoft Entra ID) that lilOS signs in with: OneDrive, Azure Blob Storage',
+  'microsoft.clientId': 'Application (client) ID',
+  'microsoft.clientId.hint': 'portal.azure.com → App registrations → your app → Overview',
+  'microsoft.accounts': 'Accounts allowed',
+  'microsoft.accounts.hint': 'As «Supported account types» of the app on Azure',
+  'microsoft.accounts.common': 'Personal, and work or school',
+  'microsoft.accounts.organizations': 'Work or school only',
+  'microsoft.accounts.consumers': 'Personal only',
+  'microsoft.accounts.tenant': 'One organization only',
+  'microsoft.tenant': 'Directory (tenant) ID or domain',
+  'microsoft.notReady': 'An administrator must first enter the ID of the app registered on Azure (Control Panel → Microsoft app)',
+  'microsoft.personalOnly': 'The Microsoft app accepts personal accounts only: this needs a work or school account (Control Panel → Microsoft app)',
+  'microsoft.tenantInvalid': 'Directory (tenant) ID not valid (Control Panel → Microsoft app)',
+  'microsoft.publicClient': 'On Azure, lilOS’s return address must be registered in the «Mobile and desktop applications» platform, with «Allow public client flows» on',
+  'microsoft.redirect': 'lilOS’s return address is not registered in the app on Azure (Control Panel → Microsoft app shows it)',
+  'microsoft.appNotFound': 'App not found on Azure: check the application ID and the accounts allowed (Control Panel → Microsoft app)',
+  'microsoft.noRefresh': 'Microsoft did not give a lasting sign-in (offline_access is missing)',
+  'google.label': 'Google project',
+  'google.description': 'The project on Google Cloud that lilOS signs in with: Google Drive, Google Photos',
+  'google.clientId': 'Client ID',
+  'google.clientId.hint': 'console.cloud.google.com → APIs & Services → Credentials → your OAuth client',
+  'google.clientSecret': 'Client secret',
+  'google.clientSecret.hint': 'Kept encrypted in the kernel: nobody sees it again, it can only be replaced',
+  'google.clientType': 'Client type',
+  'google.clientType.web': 'Web application (sign-in window; elsewhere by pasting the address)',
+  'google.clientType.desktop': 'Desktop app (always by pasting the address)',
+  'google.notReady': 'An administrator must first enter the client ID and secret of the Google Cloud project (Control Panel → Google project)',
+  'google.client': 'Google project not valid: check the client ID and secret ({message})',
+  'google.clientStatus': 'Google project not valid: check the client ID and secret (error {status})',
+  'google.redirect': 'lilOS’s return address is not registered in the Google project (Control Panel → Google project shows it)',
+  'google.noRefresh': 'Google did not give a lasting sign-in: remove lilOS from the apps connected to the account and try again',
+  'custom.notReady': 'The provider’s app is not set yet',
+  'custom.noRefresh': '{name} did not give a lasting sign-in',
+  'custom.provider': 'the provider',
+  signInAgain: 'A new sign-in is needed ({message})',
+  signInAgainStatus: 'A new sign-in is needed (error {status})',
+  appInvalid: 'App of {name} not valid: {message}',
+  appInvalidStatus: 'App of {name} not valid: error {status}',
+  failed: 'Sign-in to {name} failed: {message}',
+  failedStatus: 'Sign-in to {name} failed: error {status}',
+  notReady: 'Sign-in not ready',
+  unreachable: '{name} not reachable ({message})',
+  noAccount: '{name} did not say which account it is',
+  appNotFound: 'App not found',
+  tenantInvalid: 'Directory (tenant) ID not valid',
+  value: 'Value not valid: {key}',
+} } });
+
+const netError = (net, message, extra = {}) => Object.assign(new Error(String(message)), { net, ...(message instanceof Text && { text: message }), ...extra });
 const str = v => (typeof v === 'string' ? v.trim() : '');
-const said = (body, status) => String(body?.error_description ?? body?.error ?? `errore ${status}`).split(/\r?\n/)[0].slice(0, 240);
+/** What the provider said about an error (its first line), or '' when it said nothing. */
+const said = body => String(body?.error_description ?? body?.error ?? '').split(/\r?\n/)[0].slice(0, 240);
+/** A message with what the provider said, or its status when it said nothing ('…Status' key). */
+const withSaid = (key, body, status, params = {}) => {
+  const message = said(body);
+  return message ? t(key, { ...params, message }) : t(`${key}Status`, { ...params, status });
+};
 const isSecret = f => f.type === 'password';
 
 /** What every provider's token errors mean, when the provider's own reading says nothing more. */
 function commonError(body, status, name) {
-  if (['invalid_grant', 'interaction_required', 'consent_required', 'login_required'].includes(body?.error)) return netError('auth', `Serve un nuovo accesso (${said(body, status)})`);
-  if (body?.error === 'invalid_client' || body?.error === 'unauthorized_client') return netError('invalid', `App di ${name} non valida: ${said(body, status)}`);
-  return netError(status >= 500 ? 'unreachable' : 'invalid', `Accesso a ${name} non riuscito: ${said(body, status)}`);
+  if (['invalid_grant', 'interaction_required', 'consent_required', 'login_required'].includes(body?.error)) return netError('auth', withSaid('signInAgain', body, status));
+  if (body?.error === 'invalid_client' || body?.error === 'unauthorized_client') return netError('invalid', withSaid('appInvalid', body, status, { name }));
+  return netError(status >= 500 ? 'unreachable' : 'invalid', withSaid('failed', body, status, { name }));
 }
 
 /**
@@ -68,27 +124,27 @@ export const PROVIDERS = Object.freeze({
   microsoft: {
     id: 'microsoft',
     name: 'Microsoft',
-    label: label('Microsoft app', 'App Microsoft'),
-    description: label('The app registered on Azure (Microsoft Entra ID) that lilOS signs in with: OneDrive, Azure Blob Storage', 'L’app registrata su Azure (Microsoft Entra ID) con cui lilOS fa l’accesso: OneDrive, Azure Blob Storage'),
+    label: t('microsoft.label'),
+    description: t('microsoft.description'),
     fields: [
       {
-        key: 'clientId', type: 'text', label: label('Application (client) ID', 'ID dell’applicazione (client)'),
+        key: 'clientId', type: 'text', label: t('microsoft.clientId'),
         placeholder: '00000000-0000-0000-0000-000000000000',
-        hint: label('portal.azure.com → App registrations → your app → Overview', 'portal.azure.com → Registrazioni app → la tua app → Panoramica'),
+        hint: t('microsoft.clientId.hint'),
       },
       {
-        key: 'accounts', type: 'select', default: 'common', label: label('Accounts allowed', 'Account ammessi'),
-        hint: label('As «Supported account types» of the app on Azure', 'Come «Tipi di account supportati» dell’app su Azure'),
+        key: 'accounts', type: 'select', default: 'common', label: t('microsoft.accounts'),
+        hint: t('microsoft.accounts.hint'),
         options: [
-          { value: 'common', label: label('Personal, and work or school', 'Personali, e di lavoro o dell’istituto') },
-          { value: 'organizations', label: label('Work or school only', 'Solo di lavoro o dell’istituto') },
-          { value: 'consumers', label: label('Personal only', 'Solo personali') },
-          { value: 'tenant', label: label('One organization only', 'Solo di un’organizzazione') },
+          { value: 'common', label: t('microsoft.accounts.common') },
+          { value: 'organizations', label: t('microsoft.accounts.organizations') },
+          { value: 'consumers', label: t('microsoft.accounts.consumers') },
+          { value: 'tenant', label: t('microsoft.accounts.tenant') },
         ],
       },
       {
         key: 'tenant', type: 'text', when: { accounts: 'tenant' }, placeholder: 'contoso.onmicrosoft.com',
-        label: label('Directory (tenant) ID or domain', 'ID della directory (tenant) o dominio'),
+        label: t('microsoft.tenant'),
       },
     ],
     scopes: ['offline_access', 'openid', 'profile'],
@@ -97,8 +153,8 @@ export const PROVIDERS = Object.freeze({
     params: { response_mode: 'query', prompt: 'select_account' },
     client: app => ({ id: str(app.clientId) }),
     ready(app, decl) {
-      if (!str(app.clientId)) return label('An administrator must first enter the ID of the app registered on Azure (Control Panel → Microsoft app)', 'Un amministratore deve prima inserire l’ID dell’app registrata su Azure (Pannello di controllo → App Microsoft)');
-      if (decl.accounts === 'work' && app.accounts === 'consumers') return label('The Microsoft app accepts personal accounts only: this needs a work or school account (Control Panel → Microsoft app)', 'L’app Microsoft accetta solo account personali: qui serve un account di lavoro o dell’istituto (Pannello di controllo → App Microsoft)');
+      if (!str(app.clientId)) return t('microsoft.notReady');
+      if (decl.accounts === 'work' && app.accounts === 'consumers') return t('microsoft.personalOnly');
       return null;
     },
     /** The directory the sign-in goes to: common, organizations, consumers, or one tenant. */
@@ -106,7 +162,7 @@ export const PROVIDERS = Object.freeze({
       let authority = ['common', 'organizations', 'consumers', 'tenant'].includes(app.accounts) ? app.accounts : 'common';
       if (authority === 'tenant') {
         authority = str(app.tenant);
-        if (!TENANT.test(authority)) throw netError('invalid', 'ID della directory (tenant) non valido (Pannello di controllo → App Microsoft)');
+        if (!TENANT.test(authority)) throw netError('invalid', t('microsoft.tenantInvalid'));
       } else if (decl.accounts === 'work') authority = 'organizations';
       const base = `${(str(app.loginUrl) || 'https://login.microsoftonline.com').replace(/\/+$/, '')}/${encodeURIComponent(authority)}/oauth2/v2.0`;
       return { authorize: `${base}/authorize`, token: `${base}/token` };
@@ -115,33 +171,33 @@ export const PROVIDERS = Object.freeze({
     error(body, status) {
       const codes = Array.isArray(body?.error_codes) ? body.error_codes : [];
       if (codes.includes(9002327) || codes.includes(7000218) || codes.includes(700025)) {
-        return netError('invalid', 'Su Azure l’indirizzo di ritorno di lilOS va registrato nella piattaforma «Applicazioni per dispositivi mobili e desktop», con «Consenti flussi client pubblici» attivo');
+        return netError('invalid', t('microsoft.publicClient'));
       }
-      if (codes.includes(50011) || codes.includes(500113)) return netError('invalid', 'L’indirizzo di ritorno di lilOS non è registrato nell’app su Azure (Pannello di controllo → App Microsoft lo mostra)');
-      if (codes.includes(700016)) return netError('invalid', 'App non trovata su Azure: controlla l’ID dell’applicazione e gli account ammessi (Pannello di controllo → App Microsoft)');
+      if (codes.includes(50011) || codes.includes(500113)) return netError('invalid', t('microsoft.redirect'));
+      if (codes.includes(700016)) return netError('invalid', t('microsoft.appNotFound'));
       return commonError(body, status, 'Microsoft');
     },
-    noRefresh: 'Microsoft non ha dato un accesso duraturo (manca offline_access)',
+    noRefresh: t('microsoft.noRefresh'),
   },
   google: {
     id: 'google',
     name: 'Google',
-    label: label('Google project', 'Progetto Google'),
-    description: label('The project on Google Cloud that lilOS signs in with: Google Drive, Google Photos', 'Il progetto su Google Cloud con cui lilOS fa l’accesso: Google Drive, Google Foto'),
+    label: t('google.label'),
+    description: t('google.description'),
     fields: [
       {
-        key: 'clientId', type: 'text', label: label('Client ID', 'ID client'), placeholder: '123456789012-abc.apps.googleusercontent.com',
-        hint: label('console.cloud.google.com → APIs & Services → Credentials → your OAuth client', 'console.cloud.google.com → API e servizi → Credenziali → il tuo client OAuth'),
+        key: 'clientId', type: 'text', label: t('google.clientId'), placeholder: '123456789012-abc.apps.googleusercontent.com',
+        hint: t('google.clientId.hint'),
       },
       {
-        key: 'clientSecret', type: 'password', label: label('Client secret', 'Segreto client'),
-        hint: label('Kept encrypted in the kernel: nobody sees it again, it can only be replaced', 'Cifrato nel kernel: nessuno lo rivede, si può solo sostituire'),
+        key: 'clientSecret', type: 'password', label: t('google.clientSecret'),
+        hint: t('google.clientSecret.hint'),
       },
       {
-        key: 'clientType', type: 'select', default: 'web', label: label('Client type', 'Tipo di client'),
+        key: 'clientType', type: 'select', default: 'web', label: t('google.clientType'),
         options: [
-          { value: 'web', label: label('Web application (sign-in window; elsewhere by pasting the address)', 'Applicazione web (finestra di accesso; altrove incollando l’indirizzo)') },
-          { value: 'desktop', label: label('Desktop app (always by pasting the address)', 'App desktop (sempre incollando l’indirizzo)') },
+          { value: 'web', label: t('google.clientType.web') },
+          { value: 'desktop', label: t('google.clientType.desktop') },
         ],
       },
     ],
@@ -152,16 +208,16 @@ export const PROVIDERS = Object.freeze({
     params: { access_type: 'offline', prompt: 'consent select_account', include_granted_scopes: 'true' },
     client: app => ({ id: str(app.clientId), secret: str(app.clientSecret) }),
     ready(app) {
-      if (!str(app.clientId) || !str(app.clientSecret)) return label('An administrator must first enter the client ID and secret of the Google Cloud project (Control Panel → Google project)', 'Un amministratore deve prima inserire ID e segreto client del progetto Google Cloud (Pannello di controllo → Progetto Google)');
+      if (!str(app.clientId) || !str(app.clientSecret)) return t('google.notReady');
       return null;
     },
     endpoints: app => ({ authorize: str(app.authUrl) || 'https://accounts.google.com/o/oauth2/v2/auth', token: str(app.tokenUrl) || 'https://oauth2.googleapis.com/token' }),
     error(body, status) {
-      if (body?.error === 'invalid_client' || body?.error === 'unauthorized_client') return netError('invalid', `Progetto Google non valido: controlla ID e segreto client (${said(body, status)})`);
-      if (body?.error === 'redirect_uri_mismatch') return netError('invalid', 'L’indirizzo di ritorno di lilOS non è registrato nel progetto Google (Pannello di controllo → Progetto Google lo mostra)');
+      if (body?.error === 'invalid_client' || body?.error === 'unauthorized_client') return netError('invalid', withSaid('google.client', body, status));
+      if (body?.error === 'redirect_uri_mismatch') return netError('invalid', t('google.redirect'));
       return commonError(body, status, 'Google');
     },
-    noRefresh: 'Google non ha dato un accesso duraturo: togli lilOS dalle app collegate all’account e riprova',
+    noRefresh: t('google.noRefresh'),
   },
 });
 
@@ -172,15 +228,15 @@ const providerOf = id => (typeof id === 'string' && Object.hasOwn(PROVIDERS, id)
 function customProvider(p) {
   for (const k of ['authorizeUrl', 'tokenUrl']) if (typeof p[k] !== 'string' || !/^https?:\/\//.test(p[k])) throw new Error(`oauth.provider.${k} non valido`);
   if (typeof p.clientId !== 'function') throw new Error('oauth.provider.clientId deve essere una funzione');
-  const name = typeof p.label === 'string' ? p.label : 'il fornitore';
+  const name = typeof p.label === 'string' ? p.label : t('custom.provider');
   return {
     id: null, name, scopes: [], manual: false, scopeOnToken: p.scopeOnToken === true,
     params: p.params && typeof p.params === 'object' ? p.params : {},
     client: () => ({ id: str(p.clientId()), secret: typeof p.clientSecret === 'function' ? str(p.clientSecret()) : '' }),
-    ready: () => (str(p.clientId()) ? null : label('The app of the provider is not set yet', 'L’app del fornitore non è ancora impostata')),
+    ready: () => (str(p.clientId()) ? null : t('custom.notReady')),
     endpoints: () => ({ authorize: p.authorizeUrl, token: p.tokenUrl }),
     error: (body, status) => commonError(body, status, name),
-    noRefresh: `${name} non ha dato un accesso duraturo`,
+    noRefresh: t('custom.noRefresh', { name }),
   };
 }
 
@@ -260,13 +316,13 @@ class Binding {
     try {
       return this.preset.ready(this.app, this.decl);
     } catch {
-      return label('Sign-in not ready', 'Accesso non pronto');
+      return t('notReady');
     }
   }
 
   #ready() {
     const why = this.notReady();
-    if (why) throw netError('unsupported', typeof why === 'string' ? why : why.it ?? why.en);
+    if (why) throw netError('unsupported', typeof why === 'string' || why instanceof Text ? why : why.it ?? why.en);
   }
 
   /** A request to the provider's token address: form → its answer. Errors carry `net`. */
@@ -285,7 +341,7 @@ class Binding {
       });
     } catch (err) {
       if (err?.net) throw err;
-      throw netError('unreachable', `${this.preset.name} non raggiungibile (${err?.cause?.code ?? err?.message ?? err})`);
+      throw netError('unreachable', t('unreachable', { name: this.preset.name, message: err?.cause?.code ?? err?.message ?? err }));
     }
     const answer = await res.json().catch(() => null);
     if (!res.ok || typeof answer?.access_token !== 'string') {
@@ -323,7 +379,7 @@ class Binding {
         const claims = claimsOf(body.id_token);
         const granted = typeof body.scope === 'string' ? body.scope.split(/\s+/).filter(Boolean) : null;
         const account = String((self.decl.account ? await self.decl.account({ tokens, claims, granted, values }) : accountOf(claims)) ?? '').trim();
-        if (!account) throw netError('invalid', `${self.preset.name} non ha detto chi è l’account`);
+        if (!account) throw netError('invalid', t('noAccount', { name: self.preset.name }));
         return { account, secret: body.refresh_token };
       },
     };
@@ -403,7 +459,7 @@ export class OAuthApps {
    * protocols, ready } (secrets: the keys of the secret fields that are set; ready: null or why not).
    */
   view(id) {
-    const preset = providerOf(id) ?? fail('not_found', 'App inesistente');
+    const preset = providerOf(id) ?? fail('not_found', t('appNotFound'));
     const app = this.values(id);
     return {
       id, label: preset.label, description: preset.description, fields: preset.fields, live: true,
@@ -423,16 +479,16 @@ export class OAuthApps {
    * left out or empty keeps its value; null removes it. → its view
    */
   async save(id, raw) {
-    const preset = providerOf(id) ?? fail('not_found', 'App inesistente');
+    const preset = providerOf(id) ?? fail('not_found', t('appNotFound'));
     const plainFields = preset.fields.filter(f => !isSecret(f));
     const { values } = checkFields({ fields: plainFields }, raw);
-    if (values.tenant !== undefined && !TENANT.test(values.tenant)) fail('invalid', 'ID della directory (tenant) non valido');
+    if (values.tenant !== undefined && !TENANT.test(values.tenant)) fail('invalid', t('tenantInvalid'));
     const sealed = {}, clear = {}, gone = new Set();
     for (const f of preset.fields.filter(isSecret)) {
       const v = raw?.[f.key];
       if (v === null) gone.add(f.key);
       else if (typeof v === 'string' && v.trim()) {
-        if (v.length > 4096) fail('invalid', `Valore non valido: ${f.key}`);
+        if (v.length > 4096) fail('invalid', t('value', { key: f.key }));
         clear[f.key] = v.trim();
         sealed[f.key] = await this.#secrets.seal(v.trim());
       }

@@ -1,0 +1,14 @@
+{
+  "title": "Datei auswählen",
+  "search": "Nach Name oder Pfad suchen",
+  "searchLabel": "Suchen",
+  "folders": "Ordner",
+  "files": "Dateien",
+  "choose": "Auswählen",
+  "cancel": "Abbrechen",
+  "home": "Home",
+  "noMatch": "Keine Treffer für die Suche",
+  "noFolders": "Keine Ordner",
+  "noFiles": "Keine Dateien in lilOS",
+  "noFilesOf": "Keine {exts}-Dateien in lilOS"
+}

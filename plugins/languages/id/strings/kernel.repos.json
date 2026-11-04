@@ -1,0 +1,11 @@
+{
+  "official": "lilOS resmi",
+  "adminOnly": "Hanya administrator yang mengelola repositori",
+  "missing": "Repositori tidak ditemukan",
+  "present": "Repositori sudah ditambahkan",
+  "tooMany": "Paling banyak {max} repositori",
+  "notOfficial": "Repositori resmi tidak dapat dihapus",
+  "catalog": "catalog.json tidak ada atau bukan JSON yang valid",
+  "notInCatalog": "Paket tidak ada di katalog",
+  "file": "File tidak valid"
+}

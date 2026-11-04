@@ -7,8 +7,9 @@ import { Secrets } from './net/secrets.js';
 import { Router, send, readJson, cookies, checkOrigin, checkHost, checkSocketOrigin } from './http.js';
 import { KernelError, fail } from './errors.js';
 import { logger } from './log.js';
+import { defineStrings, localeOf } from './strings.js';
 import { sessionRoutes, SESSION_COOKIE } from './api/session.js';
-import { homeRoutes } from './api/home.js';
+import { homeRoutes, readUserKey } from './api/home.js';
 import { appRoutes } from './api/apps.js';
 import { Installer } from './apps/installer.js';
 import { Repos } from './apps/repos.js';
@@ -35,6 +36,8 @@ import { Calls } from './calls/index.js';
 import { callsRoutes } from './api/calls.js';
 import { acceptSocket, refuseUpgrade } from './ws.js';
 import { SystemReleases } from './apps/systemPackage.js';
+import { Languages } from './apps/languagePackage.js';
+import { languageRoutes } from './api/languages.js';
 import { webFiles } from './web.js';
 import { AppServices } from './apps/appServices.js';
 import { KERNEL } from './services.js';
@@ -42,6 +45,11 @@ import { applyInstallSettings, loadInstallSettings } from './firstStart.js';
 import { importImage } from './image.js';
 
 const log = logger('kernel');
+const { t } = defineStrings('lilos:kernel.kernel', { en: { strings: {
+  notFound: 'Resource not found', method: 'Method not allowed', internal: 'Internal error of the kernel',
+  unavailable: 'Service not available: {name}', signIn: 'Sign in first', needSocket: 'A WebSocket is needed',
+  refused: 'Connection refused',
+} } });
 const LOOPBACK_HOSTS = new Set(['127.0.0.1', '::1', 'localhost']);
 /** The usual ports of the terminal protocols, for the server keys saved without one when the module is not there. */
 const TERM_PORTS = { ssh: 22, telnet: 23, rlogin: 513, supdup: 95 };
@@ -75,7 +83,7 @@ export class Kernel {
   get multiUser() { return this.services.has('auth'); }
 
   service(name) {
-    return this.services.get(name) ?? fail('unavailable', `Servizio non disponibile: ${name}`);
+    return this.services.get(name) ?? fail('unavailable', t('unavailable', { name }));
   }
 
   /** The principal of a user by id ({ kind: 'user', id, username, name, role }), or null when there is none. */
@@ -83,6 +91,19 @@ export class Kernel {
     if (!this.multiUser) return id === LOCAL_USER.id ? { kind: 'user', ...LOCAL_USER } : null;
     const user = await this.services.get('users')?.get(id).catch(() => null);
     return user ? { kind: 'user', id: user.id, username: user.username, name: user.name, role: user.role } : null;
+  }
+
+  /** The language a user's lilOS is in (what it stores as 'locale'), for what the kernel tells them on its own (notifications); 'en' when unknown. */
+  async userLocale(id) {
+    const principal = await this.userPrincipal(id);
+    const code = principal ? await readUserKey(this, principal, 'locale', null).catch(() => null) : null;
+    return typeof code === 'string' ? code : 'en';
+  }
+
+  /** Ids of every user. */
+  async userIds() {
+    if (!this.multiUser) return [LOCAL_USER.id];
+    return (await this.services.get('users')?.list() ?? []).map(u => u.id);
   }
 
   /** Ids of the users who hear what the system says (the notifications of its services): the admins. */
@@ -102,19 +123,19 @@ export class Kernel {
     // Development: the official repository read from the one npm run dev:update fills
     useDevRepository(config.devRepository);
     if (config.devRepository) log.info(`Repository ufficiale letto da ${config.devRepository} (sviluppo, npm run dev:update)`);
-    const route = (method, path, handler) => this.router.add(method, path, ctx => handler({ ...ctx, principal: ctx.principal ?? fail('unauthorized', 'Accesso richiesto') }));
+    const route = (method, path, handler) => this.router.add(method, path, ctx => handler({ ...ctx, principal: ctx.principal ?? fail('unauthorized', t('signIn')) }));
     const emit = (owner, event, data) => this.events.emit('user', { owner, event, data });
     // A module's WebSocket: signed-in users only; the module takes the connection with accept()
     const socket = (path, handler) => this.sockets.add('GET', path, async ({ req, socket: raw, head, params, query, principal }) => {
-      if (!principal) fail('unauthorized', 'Accesso richiesto');
+      if (!principal) fail('unauthorized', t('signIn'));
       let ws = null;
       const accept = ({ maxMessage = 1 << 20 } = {}) => {
         if (ws) return ws;
-        ws = acceptSocket(req, raw, head, { maxMessage }) ?? fail('invalid', 'Serve un WebSocket');
+        ws = acceptSocket(req, raw, head, { maxMessage }) ?? fail('invalid', t('needSocket'));
         return ws;
       };
       await handler({ principal, params, query, accept });
-      if (!ws) fail('forbidden', 'Connessione rifiutata');
+      if (!ws) fail('forbidden', t('refused'));
     });
     this.settingSecrets = new Secrets(join(DATA_DIR, 'net'));
     const mods = await resolveModules(MODULES_DIR, config.modules);
@@ -135,7 +156,9 @@ export class Kernel {
       throw new Error('Senza un modulo di autenticazione il kernel ascolta solo su questo computer (host 127.0.0.1)');
     }
     this.installer = new Installer(this.services.get('fs'), config);
-    this.repos = new Repos(config);
+    this.languages = new Languages(this);
+    await this.languages.load();
+    this.repos = new Repos(config, this.languages);
     this.moduleAdmin = new ModuleAdmin(this, config);
     this.dependencies = new Dependencies(this);
     this.installer.guard = this.dependencies;
@@ -160,6 +183,7 @@ export class Kernel {
     serviceRoutes(this);
     notificationRoutes(this);
     systemRoutes(this);
+    languageRoutes(this);
     licenseRoutes(this);
     netRoutes(this);
     termRoutes(this);
@@ -242,27 +266,28 @@ export class Kernel {
   }
 
   async #handle(req, res) {
+    const locale = localeOf(req);
     try {
       checkHost(req, this.config);
       const url = new URL(req.url, 'http://kernel');
       const found = this.router.match(req.method, url.pathname);
       if (!found && this.#web && !url.pathname.startsWith('/api/') && await this.#web(req, res, url.pathname)) return;
-      if (!found) return send(res, 404, { error: 'not_found', message: 'Risorsa inesistente' });
-      if (!found.handler) return send(res, 405, { error: 'invalid', message: 'Metodo non permesso' }, { Allow: found.allowed.join(', ') });
+      if (!found) return send(res, 404, { error: 'not_found', message: t('notFound') }, {}, locale);
+      if (!found.handler) return send(res, 405, { error: 'invalid', message: t('method') }, { Allow: found.allowed.join(', ') }, locale);
       checkOrigin(req, this.config);
       const result = await found.handler({
         req, res, params: found.params, query: url.searchParams,
         principal: await this.principalOf(req),
         json: (limit = 1 << 20) => readJson(req, limit),
       });
-      if (!res.headersSent) send(res, result === undefined ? 204 : 200, result);
+      if (!res.headersSent) send(res, result === undefined ? 204 : 200, result, {}, locale);
     } catch (err) {
       if (res.headersSent) return res.destroy();
       if (err instanceof KernelError) {
-        return send(res, err.status, { error: err.code, message: err.message, ...(err.details !== undefined && { details: err.details }) }, err.retryAfter ? { 'Retry-After': String(err.retryAfter) } : {});
+        return send(res, err.status, { error: err.code, message: err.text ?? err.message, ...(err.details !== undefined && { details: err.details }) }, err.retryAfter ? { 'Retry-After': String(err.retryAfter) } : {}, locale);
       }
       log.error(`${req.method} ${req.url}`, err);
-      send(res, 500, { error: 'internal', message: 'Errore interno del kernel' });
+      send(res, 500, { error: 'internal', message: t('internal') }, {}, locale);
     }
   }
 

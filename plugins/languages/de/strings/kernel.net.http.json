@@ -1,0 +1,7 @@
+{
+  "needHttp": "Eine http- oder https-Adresse ist erforderlich",
+  "noAnswer": {
+    "one": "Keine Antwort innerhalb von {n} Sekunde",
+    "other": "Keine Antwort innerhalb von {n} Sekunden"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "text": "نص",
+  "pdf": "PDF",
+  "document": "مستند",
+  "spreadsheet": "جدول بيانات",
+  "presentation": "عرض تقديمي",
+  "image": "صورة",
+  "audio": "صوت",
+  "video": "فيديو",
+  "archive": "أرشيف",
+  "code": "كود",
+  "term": "اتصال طرفية",
+  "nettest": "مجموعة NetTest",
+  "file": "ملف"
+}

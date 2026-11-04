@@ -1,0 +1,12 @@
+{
+  "folder": "module.json फ़ोल्डर {folder} से मेल नहीं खाता",
+  "kernel": "{name} को कर्नेल {kernel} चाहिए, यह {api} है",
+  "services": "{name}: सेवा नाम मान्य नहीं हैं",
+  "settings": "{name}: settings मान्य नहीं हैं",
+  "replaces": "{name}: replaces मान्य नहीं है",
+  "notInstalled": "मॉड्यूल इंस्टॉल नहीं है: {name}",
+  "twice": "मॉड्यूल का नाम दो बार दिया गया: {name}",
+  "provider": "सेवा \"{service}\" {first} और {second} दोनों द्वारा प्रदान की जाती है",
+  "cycle": "मॉड्यूल के बीच चक्रीय निर्भरताएँ ({name})",
+  "missing": "{name} को सेवा \"{service}\" चाहिए, जिसे कोई सक्रिय मॉड्यूल प्रदान नहीं करता"
+}

@@ -1,0 +1,6 @@
+{
+  "notInstalled": "App não instalado: {id}",
+  "hidden": "{app} está oculto neste espaço de trabalho",
+  "noEntry": "{app} não tem o ponto de entrada {entry}",
+  "backgroundOnly": "Você só pode se conectar a um ponto de entrada em segundo plano"
+}

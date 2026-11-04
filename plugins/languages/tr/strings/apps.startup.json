@@ -1,0 +1,14 @@
+{
+  "mainWindow": "Ana pencere",
+  "paramsObject": "Parametreler { } arasında bir JSON nesnesi olmalıdır",
+  "paramsTooLong": "Parametreler çok uzun (en fazla 4 KB)",
+  "invalid": "{param}: geçersiz değer",
+  "fileGone": "{param}: dosya artık yok",
+  "folderGone": "{param}: klasör artık yok",
+  "notOpened": "{app} kendiliğinden açılmadı. {message}",
+  "notInstalled": "Uygulama yüklü değil",
+  "maxApps": "Başlangıçta en fazla {max} uygulama",
+  "unknownEntry": "Bilinmeyen giriş noktası",
+  "entryNotAtStartup": "Giriş noktası başlangıçta değil",
+  "skipped": "Uygulamalar olmadan başlatıldı: adreste ?avvio=no var"
+}

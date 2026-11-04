@@ -1,0 +1,8 @@
+{
+  "title": "Transfer de date",
+  "sent": "↑ {done} din {total}",
+  "received": "↓ {done} din {total}",
+  "rate": "{line} · {bytes}/s",
+  "conflict": "Un fișier există deja: alegeți ce faceți",
+  "failed": "Unele fișiere nu au fost transferate"
+}

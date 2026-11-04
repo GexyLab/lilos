@@ -1,0 +1,6 @@
+{
+  "removed": {
+    "one": "Rimossa {app}: {n} elemento modificato è nel Cestino",
+    "other": "Rimossa {app}: {n} elementi modificati sono nel Cestino"
+  }
+}

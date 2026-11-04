@@ -1,0 +1,59 @@
+{
+  "asksRestart": "{app} {version} meminta lilOS dimulai ulang setelah pembaruan",
+  "updatedRestart": "{app} diperbarui ke {version}: mulai ulang lilOS untuk menggunakannya (tombol di area notifikasi, kanan bawah)",
+  "updated": "{app} diperbarui ke {version}",
+  "updatedReopen": "{app} diperbarui ke {version}: simpan lalu mulai ulang aplikasi (tombol di area notifikasi, kanan bawah)",
+  "updating": "{app} sedang diperbarui: tunggu sebentar",
+  "waitsTitle": "{app} menunggu mulai ulang",
+  "waitsLead": "{app} telah diperbarui dan akan terbuka lagi setelah lilOS dimulai ulang.",
+  "windows": {
+    "other": "{n} jendela terbuka"
+  },
+  "windowsIn": {
+    "other": "{n} jendela terbuka di {spaces} ruang kerja"
+  },
+  "background": "layanan latar belakang",
+  "both": "{windows} dan {background}",
+  "leadUpdate": "Memperbarui {app} akan menutup semua yang dibukanya: {closing}.",
+  "leadReinstall": "Menginstal ulang {app} akan menutup semua yang dibukanya: {closing}.",
+  "leadMany": "Semua yang dibuka aplikasi ini akan ditutup:",
+  "item": "{app}: {closing}",
+  "save": "Simpan pekerjaan Anda sebelum melanjutkan: aplikasi dengan perubahan yang belum disimpan akan bertanya kepada Anda.",
+  "restartAfter": "Setelah pembaruan, lilOS perlu dimulai ulang (diminta oleh {apps}).",
+  "titleUpdate": "Perbarui {app}?",
+  "titleReinstall": "Instal ulang {app}?",
+  "titleUpdateMany": {
+    "other": "Perbarui {n} aplikasi?"
+  },
+  "titleReinstallMany": {
+    "other": "Instal ulang {n} aplikasi?"
+  },
+  "cancel": "Batal",
+  "update": "Perbarui",
+  "reinstall": "Instal ulang",
+  "closeAndUpdate": "Tutup dan perbarui",
+  "closeAndReinstall": "Tutup dan instal ulang",
+  "notReady": "lilOS belum siap",
+  "cancelled": "Pembaruan dibatalkan: sebuah jendela tidak tertutup",
+  "notLoaded": "{app}: versi baru tidak dimuat tanpa memulai ulang lilOS",
+  "restarting": "Memulai ulang sistem…",
+  "offTitle": "lilOS mati",
+  "offText": "Kernel berhenti untuk semua pengguna. Untuk menyalakannya lagi, jalankan kembali di tempat ia berjalan (npm run kernel, layanan, atau program lilOS), lalu muat ulang halaman ini.",
+  "reload": "Muat ulang",
+  "restartTitle": "Mulai ulang lilOS?",
+  "restartLead": "Untuk menyelesaikan pembaruan, lilOS harus dimulai ulang.",
+  "restartHint": "Setiap jendela akan ditutup lalu dibuka lagi: simpan pekerjaan Anda di aplikasi lain.",
+  "later": "Nanti",
+  "restartNow": "Mulai ulang sekarang",
+  "systemUpdated": "lilOS diperbarui ke versi {version}",
+  "failedTitle": "Pembaruan lilOS gagal",
+  "failedLead": "lilOS {version} {reason}: lilOS kembali sendiri ke versi {current}.",
+  "failedHint": "Tidak ada yang hilang. Anda dapat mencoba lagi dari AppStore; log kernel menunjukkan apa yang tidak berhasil.",
+  "ok": "OK",
+  "updatedTitle": "lilOS diperbarui ke {version}",
+  "updatedLead": "Pembaruan berhasil: lilOS {version} sedang digunakan.",
+  "updatedAsk": "Versi sebelumnya ({from}) masih terinstal dan hanya diperlukan untuk kembali ke versi itu dari AppStore. Apakah Anda ingin menghapusnya?",
+  "keep": "Pertahankan",
+  "deleteVersion": "Hapus {from}",
+  "deleted": "lilOS {from} dihapus"
+}

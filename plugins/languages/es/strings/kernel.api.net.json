@@ -1,0 +1,14 @@
+{
+  "signIn": "Inicia sesión primero",
+  "adminOnly": "Solo administradores",
+  "mount": "Conexión no válida",
+  "tooManyTries": "Demasiados intentos de conexión en curso",
+  "notOnServer": "No existe en el servidor",
+  "notFile": "No es un archivo",
+  "webOnly": "Solo se abre en la web",
+  "tooLarge": "Archivo demasiado grande",
+  "op": "Operación no válida",
+  "import": "Importación no válida",
+  "signin": "Inicio de sesión no válido",
+  "item": "Elemento no válido"
+}

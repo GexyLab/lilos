@@ -1,0 +1,23 @@
+{
+  "notForNet": "Niet beschikbaar voor de bestanden van een netwerkverbinding",
+  "badWorkspace": "Ongeldige workspace",
+  "noTarget": "De doelmap bestaat niet",
+  "badType": "Ongeldig type: {type}",
+  "badLink": "Ongeldige snelkoppeling",
+  "badId": "Ongeldige id",
+  "privateFolder": "Alleen een map met een workspace kan privé zijn",
+  "notFound": "Het item bestaat niet",
+  "fileNotFound": "Het bestand bestaat niet",
+  "tooManyApps": "Te veel apps hebben gegevens over dit item",
+  "tooMuchAppData": "Te veel app-gegevens over dit item",
+  "intoItself": "Een map kan niet in zichzelf worden geplaatst",
+  "netTransfer": "Tussen de home en het netwerk worden bestanden gekopieerd met een overdracht",
+  "systemFolders": "Bevat systeemmappen",
+  "folderNotFound": "De map bestaat niet",
+  "notPrivate": "De map is niet privé",
+  "systemItems": "Systeemitems kunnen niet worden gewijzigd",
+  "badApp": "Ongeldige app",
+  "appDataObject": "De gegevens van een app zijn een object",
+  "appDataTooBig": "De gegevens van de app zijn te groot (maximaal 1 KB)",
+  "emptyName": "De naam mag niet leeg zijn"
+}

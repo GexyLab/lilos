@@ -1,0 +1,19 @@
+{
+  "noAutomata": "Automata 未安装",
+  "theAutomation": "该自动化",
+  "theFile": "该文件",
+  "gone": "{name} 已不存在",
+  "openedFile": "已打开 {name}",
+  "appMissing": "应用 {app} 未安装",
+  "openedApp": "已打开 {app}",
+  "title": "待处理的操作",
+  "skippedByUser": "已被 lilOS 用户跳过",
+  "automation": "自动化",
+  "due": "应于 {time} 执行",
+  "dueWith": "{label} · 应于 {time} 执行",
+  "always": "今后无需询问直接运行",
+  "runNow": "立即运行",
+  "skip": "跳过",
+  "lead": "在 lilOS 关闭期间，以下操作已到时间：",
+  "hint": "你未回应的操作会一直等待到下次打开 lilOS，然后过期。"
+}

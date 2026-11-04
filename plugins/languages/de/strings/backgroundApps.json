@@ -1,0 +1,10 @@
+{
+  "one": "{name} läuft im Hintergrund",
+  "many": {
+    "one": "{n} App läuft im Hintergrund",
+    "other": "{n} Apps laufen im Hintergrund"
+  },
+  "heading": "Im Hintergrund aktiv",
+  "item": "{name}: {label}",
+  "stop": "Beenden"
+}

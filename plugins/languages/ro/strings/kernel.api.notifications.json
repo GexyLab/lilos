@@ -1,0 +1,8 @@
+{
+  "signIn": "Conectați-vă mai întâi",
+  "shape": "O notificare este un text sau { text, level, action }",
+  "noText": "Notificarea nu are text",
+  "level": "Nivel nevalid: info, success, warning sau error",
+  "action": "Acțiune nevalidă: { entry, args }",
+  "sender": "Expeditor nevalid: aplicația nu este instalată"
+}

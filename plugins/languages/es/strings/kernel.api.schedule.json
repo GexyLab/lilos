@@ -1,0 +1,9 @@
+{
+  "signIn": "Inicia sesión primero",
+  "app": "App no válida",
+  "id": "Identificador no válido",
+  "number": "Número no válido",
+  "missing": "Operación no encontrada",
+  "appOwner": "Una app solo programa para el usuario que la usa",
+  "adminOwner": "Solo un administrador programa para otros o para el sistema"
+}
