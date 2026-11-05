@@ -38,7 +38,7 @@ const INSTALLED = ['releases', 'modules', 'modules-data', '.image', 'run.js', 'p
  * Installs the carried release (and the modules of its configuration, from the official repository),
  * or what the installation settings say (`settingsFile`: another lilOS, an image, other modules…).
  *   noUi            --no-ui: "ui": false in config.json, the module terminal-cli and the community
- *                   repository (lilOS without UI, release 1.33.0 or later)
+ *                   repository (lilOS without UI, release 1.34.0 or later)
  *   acceptLicense   --accept-license: the person accepted the license in the program (the kernel
  *                   writes it at its first start, by "install"): without UI no page can ask it
  */

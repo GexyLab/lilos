@@ -19,7 +19,7 @@ import { openProfile } from './windows.js';
  * is there as for «Su questo computer» (resume() starts it), but its window never opens
  * (windows.js openProfile). From here to lilOS with the UI: switchToUi (only that way, for now).
  */
-export const NO_UI_MIN = '1.33.0';
+export const NO_UI_MIN = '1.34.0';
 
 const newer = (a, b) => {
   const [x, y] = [a, b].map(v => String(v).split('.').map(Number));

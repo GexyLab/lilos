@@ -83,7 +83,7 @@ I dati del programma stanno nella cartella dati di Electron (o in `LILOS_DESKTOP
 
 ## lilOS senza UI
 
-La terza scelta del primo avvio, **Senza UI** (programma 0.4.0, lilOS 1.33.0 o successivo nella release portata: `NO_UI_MIN` in `noui.js`; con una release più vecchia la scelta è spenta e lo dice). Installa come **Su questo computer** (PostgreSQL e kernel, `local/`), ma:
+La terza scelta del primo avvio, **Senza UI** (programma 0.4.0, lilOS 1.34.0 o successivo nella release portata: `NO_UI_MIN` in `noui.js`; con una release più vecchia la scelta è spenta e lo dice). Installa come **Su questo computer** (PostgreSQL e kernel, `local/`), ma:
 
 - **passi** Dove → Licenza → Amministratore → Pronto (`welcome.js`, `order()`). Le altre due scelte restano come prima: lì la licenza la accetta un amministratore al primo accesso, nella pagina di lilOS;
 - **la licenza** si legge da `https://raw.githubusercontent.com/GexyLab/lilos-plugins-official/main/LICENSE.md` (8 s; `LILOS_LICENSE_URL` la cambia, come nel kernel) o, senza rete, da `EULA.md` in cima alla release portata (`runtime/lilos/EULA.md`, messa lì da `scripts/release.mjs`). Il testo è mostrato come markdown semplice, costruito a elementi (mai HTML); «Avanti» resta spento finché la casella non è spuntata;
