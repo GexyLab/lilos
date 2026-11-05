@@ -6,8 +6,9 @@ import { cleanOpened } from './files.js';
 import { t } from './i18n.js';
 import { automaticSetup, forgetInstalled, justInstalled } from './installFile.js';
 import { local } from './local/index.js';
+import { openCliTerminal, settle } from './noui.js';
 import { openWelcome, setupPages } from './pages.js';
-import { addProfile, override, settings } from './store.js';
+import { addProfile, noUi, override, settings } from './store.js';
 import { createTray } from './tray.js';
 import { setupUpdates } from './updates.js';
 import { lilosWindows, openLast, openProfile, profileOf, setQuitting } from './windows.js';
@@ -19,7 +20,8 @@ import { hasRuntime } from './runtime.js';
  * settings say it (lilos-install.json, installFile.js); then it opens the last server used.
  * Installed again over an earlier installation, it first asks whether to use it or start from
  * zero. The lilOS of this computer (if chosen) starts with the program and stops when the
- * program quits; closing the window leaves the program in the tray.
+ * program quits; closing the window leaves the program in the tray. lilOS without UI (noui.js) has
+ * no window at all: the program is its tray icon, and starting it again opens the lilos terminal.
  *   --hidden   start without showing the window (start with the computer)
  *   --session  lilOS is the whole desktop (the Linux session «lilOS»): kiosk, no tray, quitting ends it
  *   lilos://open?path=/Documenti/x.txt   opens a file of lilOS (event 'open' to the page)
@@ -58,8 +60,9 @@ function start() {
 
   app.whenReady().then(ready);
   app.on('window-all-closed', () => {
-    // The tray keeps the program (and the local kernel) alive; without it, it quits
-    if (!settings().stayInTray) quit();
+    // The tray keeps the program (and the local kernel) alive; without it, it quits. Without UI
+    // the tray is all there is: it stays
+    if (!settings().stayInTray && !noUi()) quit();
   });
   app.on('activate', () => showMain());
   let stopped = false;
@@ -83,20 +86,35 @@ function quit() {
 function showMain() {
   if (!settings().profiles.length) return firstStart();
   if (justInstalled()) return openWelcome({ previous: true });
+  // Without UI: started again by hand, the program opens what there is to open, the lilos terminal
+  if (noUi()) return openCliTerminal();
   return openLast();
 }
 
-/** The servers already chosen: the local lilOS starts (even hidden, started with the computer), the last one opens. */
+/**
+ * The servers already chosen: the local lilOS starts (even hidden, started with the computer), the
+ * last one opens. Without UI nothing opens; started by hand (not hidden), the lilos terminal.
+ */
 function resume({ hidden = false } = {}) {
   const s = settings();
   if (s.profiles.some(p => p.kind === 'local') && local.installed) local.start().catch(() => {});
+  if (noUi()) {
+    settle();
+    if (!hidden) openCliTerminal();
+    return;
+  }
   if (!hidden || s.display === 'kiosk') openLast();
 }
 
-/** No profile yet: what the installation settings say (a server, or lilOS here installed by itself), or the welcome page. */
+/**
+ * No profile yet: what the installation settings say (a server, or lilOS here installed by itself),
+ * or the welcome page. lilOS without UI installed by itself still shows the welcome page, at its
+ * step «Pronto» (auto): that page is where it says how to use it.
+ */
 function firstStart() {
   const auto = automaticSetup();
   if (auto?.kind === 'remote') return openProfile(addProfile({ name: auto.server.name, kind: 'remote', url: auto.server.url, trusted: auto.server.trusted }));
+  if (auto?.kind === 'local' && auto.noUi && hasRuntime()) return openWelcome({ auto: true });
   if (auto?.kind === 'local' && hasRuntime()) return openProfile(addProfile({ name: t('profile.local'), kind: 'local', url: null, trusted: true }));
   return openWelcome();
 }

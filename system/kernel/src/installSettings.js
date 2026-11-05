@@ -20,9 +20,10 @@ import { dirname, isAbsolute, resolve } from 'node:path';
  *     lilos:     { source }               'local': the release carried by the installer; 'server': the
  *                                         newest one of the official repository (the carried one stays
  *                                         as the version to go back to)
- *     kernel:    { host, port, origins, loopbackOrigins, secureCookies, net, oauth, settings }   into config.json
+ *     kernel:    { host, port, origins, loopbackOrigins, secureCookies, net, oauth, settings, ui }   into config.json
  *                                         (settings: the kernel's settings, src/settings.js, e.g.
- *                                         { "files.maxFileSize": 2147483648, "files.quota": 10737418240 })
+ *                                         { "files.maxFileSize": 2147483648, "files.quota": 10737418240 };
+ *                                         ui false: lilOS without UI, only the API; see config.js)
  *     modules:   { source, list, config } list: [{ name, source?, config? }] the kernel's modules (null:
  *                                         those of the release's config.json, or of the image); source
  *                                         'server' (newest of the official repository) or 'local' (the
@@ -53,7 +54,7 @@ const MODES = ['local', 'server'];
 const NAME = /^[a-z][a-z0-9-]{0,40}$/;
 const APP_ID = /^[a-z0-9][a-z0-9.-]{0,63}$/;
 const USERNAME = /^[a-z0-9][a-z0-9._-]{1,31}$/;
-const KERNEL_KEYS = ['host', 'port', 'origins', 'loopbackOrigins', 'secureCookies', 'net', 'oauth', 'settings'];
+const KERNEL_KEYS = ['host', 'port', 'origins', 'loopbackOrigins', 'secureCookies', 'net', 'oauth', 'settings', 'ui'];
 const MAX_USERS = 200;
 const MAX_APPS = 200;
 
@@ -128,6 +129,7 @@ export function checkInstallSettings(raw, { base = process.cwd() } = {}) {
   const unknown = Object.keys(kernel).filter(k => !KERNEL_KEYS.includes(k));
   if (unknown.length) bad('kernel', `ha chiavi sconosciute: ${unknown.join(', ')} (ammesse: ${KERNEL_KEYS.join(', ')})`);
   if (kernel.port != null && !(Number.isInteger(kernel.port) && kernel.port > 0 && kernel.port < 65536)) bad('kernel.port', 'non è una porta');
+  if (kernel.ui != null && typeof kernel.ui !== 'boolean') bad('kernel.ui', 'deve essere true o false');
 
   const modules = raw.modules ?? {};
   if (!isObject(modules)) bad('modules', 'deve essere { source, list, config }');

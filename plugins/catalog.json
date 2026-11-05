@@ -21,6 +21,7 @@
     "modules/services-isolate",
     "modules/notifications-basic",
     "modules/scheduler",
+    "modules/terminal-cli",
     "modules/ssh",
     "modules/netfs-ftp",
     "modules/netfs-webdav",

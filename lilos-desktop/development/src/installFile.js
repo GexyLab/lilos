@@ -13,7 +13,9 @@ import { settings, update } from './store.js';
  *   next to the program        put next to the setup (the Windows installer copies it), the
  *                              AppImage or lilOS.app
  * Of it the program reads only what it does itself: where lilOS goes (installer.dir), where it
- * runs (installer.mode, installer.server), the first administrator, whether there is an image.
+ * runs (installer.mode, installer.server), the first administrator, whether there is an image,
+ * whether lilOS has no UI ("installer": { "mode": "local" } with "kernel": { "ui": false }: lilOS
+ * without UI, noui.js) and whether the license is accepted already (acceptLicense).
  */
 export const INSTALL_FILE = 'lilos-install.json';
 
@@ -43,8 +45,9 @@ function expandPath(path, base) {
 let cached;
 
 /**
- * { file, dir, mode, server: { url, name, trusted } | null, admin: { username, password } | null, image }
- * or null when there is no file. A file that is not JSON: null too, and install.js says why.
+ * { file, dir, mode, server: { url, name, trusted } | null, admin: { username, password } | null, image,
+ *   noUi, acceptLicense } or null when there is no file. A file that is not JSON: null too, and
+ * install.js says why.
  */
 export function installSettings() {
   if (cached !== undefined) return cached;
@@ -68,21 +71,25 @@ export function installSettings() {
       server,
       admin: admin ? { username: admin.username.trim().toLowerCase(), password: admin.password } : null,
       image: typeof raw.image === 'string' && !!raw.image.trim(),
+      noUi: i.mode === 'local' && raw.kernel?.ui === false,
+      acceptLicense: raw.acceptLicense === true,
     };
   } catch {
-    cached = { file, dir: null, mode: null, server: null, admin: null, image: false };
+    cached = { file, dir: null, mode: null, server: null, admin: null, image: false, noUi: false, acceptLicense: false };
   }
   return cached;
 }
 
 /**
  * What the program can do by itself at the first start, without the welcome page:
- * { kind: 'remote', server } | { kind: 'local', admin } (admin null: the image has the users) | null.
+ * { kind: 'remote', server } | { kind: 'local', admin, noUi } (admin null: the image has the users) | null.
+ * lilOS without UI goes by itself only when the file accepts the license: no page of lilOS will ask
+ * it later, so otherwise the welcome page shows it first (welcome.js, fromFile).
  */
 export function automaticSetup() {
   const s = installSettings();
   if (s?.mode === 'server') return { kind: 'remote', server: s.server };
-  if (s?.mode === 'local' && (s.admin || s.image)) return { kind: 'local', admin: s.admin };
+  if (s?.mode === 'local' && (s.admin || s.image) && (!s.noUi || s.acceptLicense)) return { kind: 'local', admin: s.admin, noUi: s.noUi };
   return null;
 }
 

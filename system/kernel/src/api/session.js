@@ -18,7 +18,7 @@ const cookie = (kernel, value, maxAge) => [
 const publicUser = p => (p ? { id: p.id, username: p.username, name: p.name, role: p.role } : null);
 
 /**
- *   GET    /api/session   { mode: 'multi' | 'single', user | null }
+ *   GET    /api/session   { mode: 'multi' | 'single', ui, user | null }   ui false: lilOS without UI
  *   POST   /api/session   { username, password, remember } → { user }   signs in (session cookie; with
  *                         remember false it ends when the browser closes, else when the session does)
  *   POST   /api/session/verify  { username, password } → { ok, role }   checks a password, no session
@@ -29,6 +29,8 @@ export function sessionRoutes(kernel) {
 
   router.add('GET', '/api/session', ({ principal }) => ({
     mode: kernel.multiUser ? 'multi' : 'single',
+    // false: lilOS without UI (config.json "ui": false), only the API
+    ui: kernel.config.ui,
     user: publicUser(principal),
   }));
 

@@ -1,0 +1,7 @@
+{
+  "$comment": "scripts/build.mjs: what the bare imports of the bundled code resolve to. The Terminal's shell imports '@lilos/sdk' and '@lilos/system': here they are the command lilos's own, over the kernel's HTTP API",
+  "alias": {
+    "@lilos/sdk": "lib/sdk.js",
+    "@lilos/system": "lib/system.js"
+  }
+}

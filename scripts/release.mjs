@@ -11,8 +11,9 @@
  *                       src/makeImage.js and the chunks they share, all in src/ (config.js and
  *                       install.js find their folders from there; run.js of an installed lilOS starts
  *                       src/main.js); cli.js, setup.js, tools/install.js, tools/pack.js and
- *                       tools/image.js that only import them; run.js (minified, on its own: it is
- *                       copied out of the release); package.json; config.json, the configuration of
+ *                       tools/image.js that only import them; run.js and lilos.mjs (minified, on
+ *                       their own: tools/install.js copies them out of the release); package.json;
+ *                       config.json, the configuration of
  *                       a new installation; tools/lilos-install.json, the installation settings
  *                       install.js uses when given none (src/installSettings.js); modules/ with the
  *                       required modules (REQUIRED_MODULES), as committed
@@ -40,8 +41,10 @@ const [repoArg] = args.filter(a => !a.startsWith('--'));
 const KERNEL_ENTRIES = {
   main: 'system/kernel/src/main.js', cli: 'system/kernel/cli.js', setup: 'system/kernel/setup.js',
   install: 'system/kernel/tools/install.js', pack: 'system/kernel/tools/pack.js', makeImage: 'system/kernel/tools/image.js',
-  run: 'system/kernel/run.js',
+  run: 'system/kernel/run.js', lilos: 'system/kernel/lilos.mjs',
 };
+/** Entries copied out of the release (tools/install.js): their bundled file, where it goes. */
+const STANDALONE = { 'run.js': 'system/kernel/run.js', 'lilos.js': 'system/kernel/lilos.mjs' };
 /** Files of the release that only start a bundled entry, where the sources had them. */
 const KERNEL_SHIMS = {
   'system/kernel/cli.js': './src/cli.js', 'system/kernel/setup.js': './src/setup.js', 'system/kernel/tools/install.js': '../src/install.js',
@@ -77,8 +80,10 @@ async function bundleKernel(dir) {
       },
     },
   });
-  // run.js is copied out of the release (tools/install.js): it must not need the other files
-  if (/\bfrom\s*["']\.\//.test(readFileSync(join(dir, 'run.js'), 'utf8'))) throw new Error('run.js impacchettato importa altri file');
+  // run.js and lilos.mjs are copied out of the release (tools/install.js): they must not need the other files
+  for (const name of Object.keys(STANDALONE)) {
+    if (/\bfrom\s*["']\.\//.test(readFileSync(join(dir, name), 'utf8'))) throw new Error(`${name} impacchettato importa altri file`);
+  }
 }
 
 /** The section of the changelog for this version: the commits since the release before (or since the last version tag). */
@@ -152,7 +157,7 @@ try {
     for (const path of walk(join(build, 'web'))) put(`web/${path}`, readFileSync(join(build, 'web', ...path.split('/'))));
     await bundleKernel(join(build, 'kernel'));
     for (const name of readdirSync(join(build, 'kernel'))) {
-      put(name === 'run.js' ? 'system/kernel/run.js' : `system/kernel/src/${name}`, readFileSync(join(build, 'kernel', name)));
+      put(STANDALONE[name] ?? `system/kernel/src/${name}`, readFileSync(join(build, 'kernel', name)));
     }
     for (const [path, target] of Object.entries(KERNEL_SHIMS)) put(path, `import '${target}';\n`);
     put('system/kernel/package.json', readFileSync(join(root, 'system/kernel/package.json')));

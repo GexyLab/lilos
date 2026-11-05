@@ -27,7 +27,23 @@
 .pill.grey { background: var(--hover); color: var(--dim); }
 
 .working { display: flex; align-items: center; gap: 10px; }
+.ok { width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; background: #e3f5ea; color: #157a42; flex: none; }
+.ok svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
 #ready .log { flex: 1; height: auto; min-height: 140px; }
+.info { background: var(--accent-soft); border: 1px solid #d3defd; border-radius: var(--radius-sm); padding: 9px 11px; font-size: 12.5px; display: grid; gap: 4px; }
+.info code, .body .text code.cmd { font: 11.5px var(--mono); background: rgba(255,255,255,.7); padding: 0 4px; border-radius: 3px; }
+
+/* The license of lilOS: its markdown as simple text (welcome.js, markdown) */
+.license { flex: 1; min-height: 160px; overflow: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--side); padding: 10px 14px; font-size: 12px; line-height: 1.5; display: flex; flex-direction: column; gap: 6px; }
+.license h2 { font-size: 13.5px; margin-top: 4px; }
+.license h3 { font-size: 12.5px; margin-top: 4px; }
+.license ul, .license ol { padding-left: 20px; display: grid; gap: 2px; }
+.license hr { border: 0; border-top: 1px solid var(--border); margin: 6px 0; }
+.license code { font: 11px var(--mono); }
+.license u { text-decoration: none; color: var(--accent); }
+.source { display: flex; gap: 6px; align-items: center; }
+.link { border: 0; background: none; color: var(--accent); font-size: inherit; padding: 0; }
+.link:hover { text-decoration: underline; }
 
 footer { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .actions { display: flex; gap: 8px; }

@@ -18,6 +18,8 @@ try {
   process.on('SIGINT', stop);
   process.on('SIGTERM', stop);
 } catch (err) {
+  // The license not accepted (lilOS without UI): already said why, and run.js does not start it again
+  if (err?.exitCode === 3) process.exit(3);
   log.error('Avvio non riuscito', err);
   process.exit(1);
 }

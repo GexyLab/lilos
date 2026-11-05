@@ -53,8 +53,10 @@ export async function applyInstallSettings(kernel, settings) {
     }
   }
 
-  // The apps still missing: the official ones came with the system apps, the others from their repository
-  for (const app of settings.apps ?? []) {
+  // The apps still missing: the official ones came with the system apps, the others from their repository.
+  // Without UI none: no app could open (the system apps come at the first start with UI)
+  if (!kernel.config.ui && settings.apps?.length) log.warn(`Senza UI le app delle impostazioni di installazione non si installano (${settings.apps.map(a => a.id).join(', ')})`);
+  for (const app of kernel.config.ui ? settings.apps ?? [] : []) {
     try {
       if (await kernel.installer.state(app.id)) continue;
       let repo = app.repo ? (await kernel.repos.list()).find(r => normalizeUrl(r.url) === normalizeUrl(app.repo)) : { id: 'official' };

@@ -49,7 +49,7 @@ const VERSION = /^\d+\.\d+\.\d+$/;
 
 /**
  * config.json (or the file in LILOS_KERNEL_CONFIG):
- *   { host, port, origins: [origin], loopbackOrigins, secureCookies,
+ *   { host, port, origins: [origin], loopbackOrigins, secureCookies, ui,
  *     modules: [{ name, version?, config? }],
  *     apps: { allowLocalSources, trustedPublishers: { id: 'ed25519:<key>' }, officialKey?,
  *             bootstrap: [app ids installed from the official repository when missing],
@@ -64,6 +64,9 @@ const VERSION = /^\d+\.\d+\.\d+$/;
  * devRepository (development only, ignored in an installed lilOS): a git repository on this computer,
  * relative to system/kernel or absolute, read in place of the official one; `npm run dev:update`
  * fills it with the apps and modules of plugins/ (see scripts/dev-update.mjs).
+ * ui (default true): false is lilOS without UI. The kernel serves no page: outside /api/ every
+ * request gets an empty 404 and only the API of the kernel and of its modules answer; the system
+ * apps are not installed; the license is accepted in the console when the kernel starts (license.js).
  * LILOS_KERNEL_HOST and LILOS_KERNEL_PORT override host and port.
  */
 export async function loadConfig() {
@@ -81,6 +84,7 @@ export async function loadConfig() {
     origins: (Array.isArray(raw.origins) ? raw.origins : []).filter(o => typeof o === 'string'),
     loopbackOrigins: raw.loopbackOrigins === true,
     secureCookies: raw.secureCookies === true,
+    ui: raw.ui !== false,
     allowLocalSources: raw.apps?.allowLocalSources === true,
     trustedPublishers: raw.apps?.trustedPublishers && typeof raw.apps.trustedPublishers === 'object' ? raw.apps.trustedPublishers : {},
     officialKey: typeof raw.apps?.officialKey === 'string' ? raw.apps.officialKey : null,

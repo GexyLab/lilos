@@ -10,11 +10,12 @@ import { defineStrings } from './strings.js';
 /**
  * The license of lilOS (EULA.md of the lilOS repository, D76), accepted once per installation by an
  * administrator before lilOS is used (src/boot/boot.js), or by who prepared the installation
- * (acceptLicense in lilos-install.json). The text is read from the official repository
+ * (acceptLicense in lilos-install.json). Without UI (config ui false) there is no page to accept it
+ * in: the kernel asks in its console when it starts (acceptAtStart). The text is read from the official repository
  * (LILOS_LICENSE_URL changes it); when that does not answer, the copy the release carries
  * (EULA.md at its top, or of the repository in development) is used.
  * license.json in the data folder keeps what was accepted:
- *   { sha256, acceptedAt, by: { id, username } | 'install', source: 'remote' | 'bundled' }
+ *   { sha256, acceptedAt, by: { id, username } | 'install' | 'console', source: 'remote' | 'bundled' }
  * A text different from the accepted one (the license changed) is asked again; while only the
  * copy is at hand, any accepted text counts: it is compared again when the repository answers.
  */
@@ -99,11 +100,79 @@ export class License {
     return this.status();
   }
 
+  /**
+   * lilOS without UI, before the kernel opens its port. Accepted already: nothing. Never accepted:
+   * --accept-license (or LILOS_ACCEPT_LICENSE=1) prints the text and accepts it; with a terminal
+   * the text is shown a page at a time and «accetto» accepts it; anything else stops the kernel
+   * (LicenseRefused: exit code 3). Accepted before but the text changed since: asked the same way
+   * when there is a terminal; without one the kernel starts and says so (the admins accept it with
+   * `lilos license`).
+   */
+  async acceptAtStart({ argv = process.argv.slice(2), env = process.env, input = process.stdin, output = process.stdout } = {}) {
+    const status = await this.status();
+    if (status.accepted) return;
+    const before = await this.accepted();
+    const byFlag = argv.includes('--accept-license') || env.LILOS_ACCEPT_LICENSE === '1';
+    const tty = !!input.isTTY && !!output.isTTY;
+    if (before && !tty && !byFlag) {
+      log.warn('Il testo della licenza di lilOS è cambiato dall\'ultima accettazione: un amministratore lo accetta con «lilos license» o al prossimo avvio del kernel da un terminale');
+      return;
+    }
+    if (!byFlag && !tty) {
+      log.error([
+        'Licenza di lilOS non accettata, e nessun terminale per chiederlo.',
+        '  Avvia una volta il kernel da un terminale, oppure: node run.js --accept-license (o LILOS_ACCEPT_LICENSE=1)',
+        '  oppure "acceptLicense": true in lilos-install.json',
+      ].join('\n'));
+      throw new LicenseRefused();
+    }
+    output.write(`\n${before ? 'Il testo della licenza di lilOS è cambiato dall\'ultima accettazione: leggilo e accettalo di nuovo' : 'Prima del primo avvio va accettata la licenza di lilOS'}\n`);
+    if (byFlag) {
+      output.write(`${status.text.replace(/\n*$/, '\n')}\nTesto completo: ${status.url}\n`);
+    } else if (!await askConsole(status, input, output)) {
+      log.error('Licenza di lilOS non accettata: il kernel non parte');
+      throw new LicenseRefused();
+    }
+    await writeJson(FILE, { sha256: status.sha256, acceptedAt: new Date().toISOString(), by: 'console', source: status.source }, { pretty: true });
+    log.info(`Licenza di lilOS accettata${byFlag ? ' con --accept-license' : ''} (console, sha256 ${status.sha256.slice(0, 12)}…)`);
+  }
+
   /** acceptLicense of lilos-install.json: accepted for the installation, when nothing was yet. */
   async acceptFromInstall() {
     if (await this.accepted()) return;
     const now = await this.current();
     await writeJson(FILE, { sha256: now.sha256, acceptedAt: new Date().toISOString(), by: 'install', source: now.source }, { pretty: true });
     log.info('Licenza di lilOS accettata dalle impostazioni di installazione');
+  }
+}
+
+/** The kernel stops: the license of lilOS was not accepted (main.js exits with code 3). */
+export class LicenseRefused extends Error {
+  constructor() {
+    super('Licenza di lilOS non accettata');
+    this.exitCode = 3;
+  }
+}
+
+/** The text a page at a time (Enter: next, q: stop reading), then «accetto» or not. */
+async function askConsole({ text, url }, input, output) {
+  const { createInterface } = await import('node:readline');
+  const rl = createInterface({ input, output, terminal: true });
+  const ask = question => new Promise(resolve => rl.question(question, resolve));
+  try {
+    const lines = text.replace(/\n+$/, '').split('\n');
+    const page = Math.max(5, (output.rows ?? 25) - 4);
+    output.write(`${'─'.repeat(20)} LICENZA D'USO DI lilOS ${'─'.repeat(20)}\n`);
+    for (let i = 0; i < lines.length; i += page) {
+      output.write(`${lines.slice(i, i + page).join('\n')}\n`);
+      if (i + page >= lines.length) break;
+      const key = await ask(`\x1b[2m— righe ${i + 1}-${i + page} di ${lines.length} · Invio avanti, q per finire di leggere —\x1b[0m `);
+      if (key.trim().toLowerCase() === 'q') break;
+    }
+    output.write(`\nTesto completo: ${url}\n\n`);
+    const answer = await ask('Accetti la licenza? Scrivi «accetto» per accettarla, altro per uscire: ');
+    return answer.trim().toLowerCase() === 'accetto';
+  } finally {
+    rl.close();
   }
 }

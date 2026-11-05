@@ -141,22 +141,30 @@ export async function buildApp(id, { minify = true, shared = sharedTable() } = {
  * (runner.js of services-isolate, started as a process of its own) bundled apart; every other file
  * (module.json, README.md, package.json and its lockfile, schema.sql, LICENSE…) copied as it is.
  * npm packages and node: modules stay imports: the kernel installs the npm ones (npm ci).
+ * build.json (not copied), when there: { alias: { '<bare import>': '<file of the module>' } } —
+ * terminal-cli bundles the Terminal's shell with its own '@lilos/sdk' and '@lilos/system'.
  */
 export async function buildModule(name, { minify = true, merge = true } = {}) {
   const src = resolvePath('modules', name);
   const out = resolvePath('build', 'modules', name);
   rmSync(out, { recursive: true, force: true });
-  const reached = new Set();
+  const reached = new Set([join(src, 'build.json')]);
+  const own = existsSync(join(src, 'build.json')) ? JSON.parse(readFileSync(join(src, 'build.json'), 'utf8')) : {};
+  const alias = Object.fromEntries(Object.entries(own.alias ?? {}).map(([from, to]) => [from, join(src, to)]));
+  const aliased = new Set(Object.keys(alias));
   if (merge) {
     const entries = readdirSync(src).filter(f => f.endsWith('.js')).sort((a, b) => (a === 'index.js' ? -1 : b === 'index.js' ? 1 : a < b ? -1 : 1));
     for (const f of entries) {
       if (reached.has(join(src, f))) continue;
       const [output] = [await build({
         configFile: false, logLevel: 'warn', publicDir: false,
+        resolve: { alias },
+        // Everything the module imports by a relative path or an alias is in the bundle
+        ssr: { noExternal: [...aliased] },
         build: {
           outDir: out, emptyOutDir: false, target: 'node22', minify, ssr: join(src, f), copyPublicDir: false,
           rollupOptions: {
-            external: id => !id.startsWith('.') && !isAbsolute(id),   // node: modules and npm packages
+            external: id => !id.startsWith('.') && !isAbsolute(id) && !aliased.has(id),   // node: modules and npm packages
             output: { format: 'es', entryFileNames: f, codeSplitting: false },
           },
         },
@@ -165,7 +173,8 @@ export async function buildModule(name, { minify = true, merge = true } = {}) {
     }
   }
   for (const file of walk(src)) {
-    if (reached.has(file)) continue;
+    // module.json is the package's manifest even when the code imports it (its version)
+    if (reached.has(file) && relative(src, file) !== 'module.json') continue;
     mkdirSync(dirname(join(out, relative(src, file))), { recursive: true });
     cpSync(file, join(out, relative(src, file)));
   }

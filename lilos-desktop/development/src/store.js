@@ -30,7 +30,7 @@ const HARDWARE = ['ask', 'declared', 'all'];
 
 const DEFAULTS = () => ({
   profiles: [], last: null,
-  local: { installed: false, port: null, pgPort: null, pgPassword: null, dir: null },
+  local: { installed: false, port: null, pgPort: null, pgPassword: null, dir: null, ui: true, command: null },
   display: 'window', monitor: null, kioskKeys: true,
   startAtLogin: false, stayInTray: true, notifications: true,
   updates: process.platform === 'darwin' ? 'notify' : 'auto',
@@ -113,6 +113,9 @@ export function addProfile({ name, kind, url, trusted = false }) {
   update(d => { d.profiles.push(profile); });
   return profile;
 }
+
+/** lilOS without UI: the local lilOS has no window, the program lives in the tray (noui.js). */
+export const noUi = () => load().local.ui === false;
 
 export const profile = id => load().profiles.find(p => p.id === id) ?? null;
 export const localProfile = () => load().profiles.find(p => p.kind === 'local') ?? null;

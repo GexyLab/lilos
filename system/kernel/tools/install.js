@@ -8,7 +8,7 @@ import { INSTALL_FILE, checkInstallSettings, readInstallSettings } from '../src/
 
 /**
  * Installs lilOS from a release (the folder system/lilos of the official repository, or a copy of it):
- *   node system/kernel/tools/install.js [<folder>] [--settings <file>] [--from <kernel folder>]
+ *   node system/kernel/tools/install.js [<folder>] [--settings <file>] [--from <kernel folder>] [--no-ui] [--accept-license]
  * run from that release. <folder> gets run.js, package.json, current.json and the release in
  * releases/<version> (see src/apps/systemPackage.js), and the data:
  *   --settings <file> the installation settings (src/installSettings.js): the folder when <folder>
@@ -20,16 +20,40 @@ import { INSTALL_FILE, checkInstallSettings, readInstallSettings } from '../src/
  *                     a copy of the repository (its system/kernel) or of another installed lilOS:
  *                     the same database, so the same users and files
  *   otherwise         the configuration of the release, and its modules from the official repository
+ *   --no-ui           lilOS without UI (kernel.ui false of the settings): only the API, the module
+ *                     terminal-cli (the command lilos) and the community repository added
+ *   --accept-license  acceptLicense of the settings: who installs accepts the license of lilOS
+ * <folder> also gets the command lilos: lilos.mjs and its launcher (lilos.cmd on Windows, lilos
+ * elsewhere), which runs it with the node that runs this installation.
  * Then lilOS starts with: cd <folder> && node run.js (later versions come from the AppStore).
  */
+const COMMUNITY = { url: 'https://github.com/GexyLab/lilos-plugins-community', name: 'lilOS community' };
+const CLI_MODULE = 'terminal-cli';
 const RELEASE = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 const DEFAULT_SETTINGS = join(RELEASE, 'system', 'kernel', 'tools', INSTALL_FILE);
 const args = process.argv.slice(2);
 const flag = name => { const i = args.indexOf(name); return i >= 0 ? args.splice(i, 2)[1] : null; };
+const toggle = name => { const i = args.indexOf(name); if (i >= 0) args.splice(i, 1); return i >= 0; };
 const exists = path => stat(path).then(() => true, () => false);
 const sha256 = data => `sha256-${createHash('sha256').update(data).digest('base64')}`;
 const noNodeModules = path => !/[\\/]node_modules([\\/]|$)/.test(path);
 const temps = [];
+
+/**
+ * The command lilos in the installation: lilos.mjs (like run.js, found again by every version) and
+ * the launcher of this system, with the absolute path of the node that runs this installation.
+ */
+async function writeLaunchers(root, source) {
+  if (!await exists(source)) return console.log('  comando lilos non presente in questa versione di lilOS');
+  await cp(source, join(root, 'lilos.mjs'));
+  if (process.platform === 'win32') {
+    await writeFile(join(root, 'lilos.cmd'), `@echo off\r\n"${process.execPath}" "%~dp0lilos.mjs" %*\r\n`);
+  } else {
+    // The absolute path: the launcher also works through a link (~/.local/bin/lilos of the program lilOS)
+    await writeFile(join(root, 'lilos'), `#!/bin/sh\nexec "${process.execPath}" "${join(root, 'lilos.mjs')}" "$@"\n`, { mode: 0o755 });
+  }
+  console.log(`  comando lilos: ${join(root, process.platform === 'win32' ? 'lilos.cmd' : 'lilos')}`);
+}
 
 /** Extracts a .zip, .tar.gz, .tgz or .tar with the system's tar (on Windows its bsdtar, which reads zip too). */
 async function extract(file) {
@@ -68,6 +92,9 @@ try {
   const from = flag('--from');
   const settingsFile = flag('--settings') ?? (await exists(DEFAULT_SETTINGS) ? DEFAULT_SETTINGS : null);
   const settings = settingsFile ? await readInstallSettings(settingsFile) : checkInstallSettings({});
+  if (toggle('--no-ui')) settings.kernel.ui = false;
+  if (toggle('--accept-license')) settings.acceptLicense = true;
+  const noUi = settings.kernel.ui === false;
   const [target] = args;
   if (!target && !settings.installer.dir) throw new Error('Uso: node system/kernel/tools/install.js [<cartella>] [--settings <file>] [--from <cartella del kernel>]');
   const root = resolve(target ?? settings.installer.dir);
@@ -233,6 +260,10 @@ try {
         if (want.source === 'local') console.log(`  ${want.name}: la release non lo porta, lo prendo dal repository ufficiale`);
         modules.push({ name: want.name, version: await serverModule(want.name), config: want.config ?? {} });
       }
+      // Without UI lilOS is used from the command lilos: its module comes too
+      if (noUi && !modules.some(m => m.name === CLI_MODULE)) {
+        modules.push({ name: CLI_MODULE, version: await serverModule(CLI_MODULE), config: {} });
+      }
       config.modules = modules;
     }
     for (const mod of config.modules ?? []) if (settings.modules.config[mod.name]) mod.config = { ...mod.config, ...settings.modules.config[mod.name] };
@@ -242,7 +273,9 @@ try {
 
     const repos = new Repos({ allowLocalSources: false });
     const known = new Set((await repos.list()).map(r => normalizeUrl(r.url)));
-    for (const repo of settings.repos) {
+    // Without UI `lilos appstore` reads the community repository too
+    const wantedRepos = noUi && !settings.repos.some(r => normalizeUrl(r.url) === normalizeUrl(COMMUNITY.url)) ? [...settings.repos, COMMUNITY] : settings.repos;
+    for (const repo of wantedRepos) {
       if (known.has(normalizeUrl(repo.url))) continue;
       const added = await repos.add({ kind: 'kernel' }, { url: repo.url, ...(repo.name && { name: repo.name }) });
       console.log(`  repository ${added.name} (${added.url})`);
@@ -252,6 +285,7 @@ try {
   // What the kernel does at its first start: users, apps, settings (it removes the passwords afterwards)
   await writeFile(join(root, INSTALL_FILE), `${JSON.stringify(settings, null, 2)}\n`, { mode: 0o600 });
   await writeFile(join(root, 'current.json'), JSON.stringify({ version, previous }, null, 2));
+  await writeLaunchers(root, join(root, 'releases', version, 'system', 'kernel', 'lilos.mjs'));
   console.log(`Fatto. Avvia lilOS con: cd "${root}" && node run.js`);
   if (!from && !settings.image && !settings.users.some(u => u.role === 'admin' && u.password)) {
     console.log(`Un amministratore si crea con: node releases/${version}/system/kernel/cli.js users-basic add <nome> --admin`);

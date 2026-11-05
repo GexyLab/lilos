@@ -3,20 +3,25 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { setAutostart } from './autostart.js';
 import { checkServerUrl } from './bridge.js';
+import { removeCommand } from './command.js';
 import { language, t, texts } from './i18n.js';
-import { forgetInstalled } from './installFile.js';
+import { forgetInstalled, installSettings } from './installFile.js';
+import { LICENSE_PAGE, readLicense } from './license.js';
 import { findInstalled } from './local/detect.js';
 import { local } from './local/index.js';
 import { currentVersion } from './local/kernel.js';
+import { NO_UI_MIN, noUiSupport, openCliTerminal, settle, setupNoUi } from './noui.js';
 import { LILOS_DIR, LOG_DIR, bundledRelease, hasRuntime } from './runtime.js';
 import { addProfile, localProfile, profile as findProfile, reset, settings } from './store.js';
+import { refreshTray } from './tray.js';
 import { PRELOAD, load, openProfile, signIn, windowOf } from './windows.js';
 
 /**
  * The program's own pages, local files with window.lilosShell (preload.cjs):
- *   pages/welcome.html   the first start (where lilOS runs: here, a server, one already installed),
- *                        also to add a server later, and after a new installation of the program
- *                        over an earlier one (previous: use it or start from zero)
+ *   pages/welcome.html   the first start (where lilOS runs: here, a server, here without UI, one
+ *                        already installed), also to add a server later, and after a new
+ *                        installation of the program over an earlier one (previous: use it or start
+ *                        from zero); auto: lilOS without UI installed as lilos-install.json says
  *   pages/status.html    in a lilOS window while the local lilOS starts, or when it fails or the
  *                        server cannot be reached
  */
@@ -41,7 +46,7 @@ function sendToPages(name, data) {
   }
 }
 
-export function openWelcome({ add = false, previous = false } = {}) {
+export function openWelcome({ add = false, previous = false, auto = false } = {}) {
   if (welcome && !welcome.isDestroyed()) {
     welcome.focus();
     return welcome;
@@ -54,10 +59,14 @@ export function openWelcome({ add = false, previous = false } = {}) {
   welcome.setMenuBarVisibility(false);
   welcome.once('ready-to-show', () => welcome.show());
   // Starting from zero opens a new one before this one closes
-  welcome.on('closed', () => { if (welcome === win) welcome = null; });
+  welcome.on('closed', () => {
+    if (welcome === win) welcome = null;
+    // lilOS without UI set up and its page closed: only the tray is left
+    settle();
+  });
   welcome.webContents.on('will-navigate', e => e.preventDefault());
   welcome.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
-  welcome.loadFile(join(PAGES, 'welcome.html'), { query: { lang: language(), add: add ? '1' : '', previous: previous ? '1' : '' } });
+  welcome.loadFile(join(PAGES, 'welcome.html'), { query: { lang: language(), add: add ? '1' : '', previous: previous ? '1' : '', auto: auto ? '1' : '' } });
   return welcome;
 }
 
@@ -69,14 +78,22 @@ const done = profile => {
 const HANDLERS = {
   texts: (_w, prefix) => ({ ...texts('common'), ...texts(String(prefix)) }),
 
-  'welcome.detect': async () => ({
-    runtime: hasRuntime(),
-    release: bundledRelease(),
-    localExists: !!localProfile(),
-    dataDir: dirname(LOG_DIR),
-    installed: await findInstalled().catch(() => []),
-    profiles: settings().profiles.length,
-  }),
+  'welcome.detect': async () => {
+    const file = installSettings();
+    return {
+      runtime: hasRuntime(),
+      release: bundledRelease(),
+      localExists: !!localProfile(),
+      dataDir: dirname(LOG_DIR),
+      installed: await findInstalled().catch(() => []),
+      profiles: settings().profiles.length,
+      platform: process.platform,
+      noUi: { ...noUiSupport(), min: NO_UI_MIN },
+      // lilos-install.json says «without UI»: chosen already; with its administrator (or an image)
+      // only the license is left to ask (fromFile)
+      file: file?.noUi ? { noUi: true, admin: !!(file.admin || file.image), acceptLicense: file.acceptLicense } : null,
+    };
+  },
 
   'welcome.local': async (_w, { username, password } = {}) => {
     if (!hasRuntime()) throw new Error(t('welcome.error.noRuntime'));
@@ -88,6 +105,39 @@ const HANDLERS = {
     // Signed in already with the user just made
     await signIn(profile, { username, password });
     done(profile);
+  },
+
+  /** The license of lilOS to accept for lilOS without UI: { text, source, page }. */
+  'welcome.license': () => readLicense(),
+  'welcome.licensePage': () => shell.openExternal(LICENSE_PAGE),
+
+  /**
+   * lilOS without UI: the administrator typed in the page, or (fromFile) the one of lilos-install.json
+   * (none with an image). The window of lilOS does not open: the page says how to use it.
+   */
+  'welcome.noui': async (_w, { username, password, autostart = true, path = true, fromFile = false } = {}) => {
+    if (!hasRuntime()) throw new Error(t('welcome.error.noRuntime'));
+    let admin = {};
+    if (fromFile) {
+      const auto = installSettings();
+      if (!auto?.noUi || !(auto.admin || auto.image)) throw new Error(t('welcome.error.choose'));
+      admin = auto.admin ?? {};
+    } else {
+      if (!USERNAME.test(String(username ?? ''))) throw new Error(t('welcome.error.username'));
+      if (typeof password !== 'string' || password.length < 8 || password.length > 256) throw new Error(t('welcome.error.password'));
+      admin = { username, password };
+    }
+    try {
+      // The license: accepted in the page, or by the file (install.js reads acceptLicense in it too)
+      return await setupNoUi({ ...admin, autostart: autostart !== false, path: path !== false, acceptLicense: true });
+    } finally {
+      refreshTray();
+    }
+  },
+  'welcome.terminal': () => openCliTerminal(),
+  'welcome.close': () => {
+    welcome?.destroy();
+    settle();
   },
 
   'welcome.remote': async (_w, { url, trusted } = {}) => {
@@ -119,6 +169,8 @@ const HANDLERS = {
   },
 
   'welcome.fresh': async (_w, { erase = false } = {}) => {
+    // The lilos command on the PATH goes with the lilOS it starts
+    await removeCommand().catch(() => {});
     await local.discard({ erase: erase === true });
     if (settings().startAtLogin) setAutostart(false);
     reset();

@@ -1,11 +1,12 @@
 import { EventEmitter } from 'node:events';
 import { existsSync, renameSync, rmSync } from 'node:fs';
 import { sep } from 'node:path';
+import { t } from '../i18n.js';
 import { forgetPasswords, installSettings } from '../installFile.js';
 import { LILOS_DIR, PG_DIR, useLilosDir } from '../runtime.js';
 import { settings, update } from '../store.js';
 import * as pg from './postgres.js';
-import { Kernel, addAdmin, configure, createDatabase, currentVersion, install, installed, waitReady } from './kernel.js';
+import { Kernel, LICENSE_REFUSED, addAdmin, configure, createDatabase, currentVersion, install, installed, setUi, waitReady } from './kernel.js';
 import { freePort, portFree } from './proc.js';
 
 const KERNEL_PORT = 8790;
@@ -30,7 +31,7 @@ class LocalLilos extends EventEmitter {
     this.#kernel.on('line', line => this.emit('progress', line));
     this.#kernel.on('exit', code => {
       if (this.#stopping) return;
-      this.#error = `Il kernel si è fermato (codice ${code})`;
+      this.#error = code === LICENSE_REFUSED ? t('local.error.license') : `Il kernel si è fermato (codice ${code})`;
       this.#set('failed');
     });
   }
@@ -50,6 +51,11 @@ class LocalLilos extends EventEmitter {
     this.emit('progress', text);
   }
 
+  /** A line of what is being done, from who drives the setup (noui.js: license, PATH, …). */
+  note(text) {
+    this.#say(text);
+  }
+
   /** Ports still free, or new ones (another program took them): the kernel's config follows. */
   async #ports() {
     const local = settings().local;
@@ -62,8 +68,10 @@ class LocalLilos extends EventEmitter {
   /**
    * First start: database, lilOS from the carried release (or as the installation settings say),
    * the first administrator (none with an image that has its users), then on.
+   *   noUi            lilOS without UI (install.js --no-ui; "ui": false stays in config.json)
+   *   acceptLicense   accepted in the program: install.js --accept-license
    */
-  setup({ username = null, password = null } = {}) {
+  setup({ username = null, password = null, noUi = false, acceptLicense = false } = {}) {
     return this.#run(async () => {
       const file = installSettings();
       if (!installed() && !settings().local.dir && file?.dir) {
@@ -77,8 +85,10 @@ class LocalLilos extends EventEmitter {
       await pg.start(pgPort);
       if (!installed()) {
         this.#say(file?.image ? 'Installo l’immagine del sistema…' : 'Installo lilOS e i moduli del kernel…');
-        await install(line => this.#say(line), file?.file ?? null);
+        await install(line => this.#say(line), file?.file ?? null, { noUi, acceptLicense });
       }
+      // Also when an earlier, unfinished attempt installed it the other way
+      setUi(!noUi);
       const local = settings().local;
       await createDatabase(pg.url({ ...local, pgPort }).replace(/\/lilos$/, '/postgres'), pg.DATABASE);
       configure({ port, databaseUrl: pg.url({ ...local, pgPort }) });
@@ -87,7 +97,7 @@ class LocalLilos extends EventEmitter {
         await addAdmin(username, password);
       }
       update(d => { d.local.installed = true; });
-      await this.#startKernel(port, true);
+      await this.#startKernel(port, noUi ? 'noUi' : 'first');
       forgetPasswords();
     });
   }
@@ -101,14 +111,21 @@ class LocalLilos extends EventEmitter {
       this.#say('Avvio il database…');
       if (!await pg.running()) await pg.start(pgPort);
       configure({ port, databaseUrl: pg.url({ ...settings().local, pgPort }) });
-      await this.#startKernel(port, false);
+      await this.#startKernel(port);
     });
   }
 
-  async #startKernel(port, first) {
-    this.#say(first ? 'Avvio il kernel e installo le app di sistema (la prima volta ci vuole qualche minuto)…' : 'Avvio il kernel…');
+  /** how: 'first' (installs the system apps), 'noUi' (first start without UI: no apps), else a usual start. */
+  async #startKernel(port, how = null) {
+    this.#say(how === 'first' ? 'Avvio il kernel e installo le app di sistema (la prima volta ci vuole qualche minuto)…' : how === 'noUi' ? t('local.startNoUi') : 'Avvio il kernel…');
     this.#kernel.start();
-    await waitReady(port, { isAlive: () => this.#kernel.running });
+    try {
+      await waitReady(port, { isAlive: () => this.#kernel.running });
+    } catch (err) {
+      // Said plainly: the kernel stopped because nobody accepted the license
+      if (this.#kernel.lastExit === LICENSE_REFUSED) throw new Error(t('local.error.license'));
+      throw err;
+    }
   }
 
   #run(fn) {
@@ -159,10 +176,12 @@ class LocalLilos extends EventEmitter {
     useLilosDir();
   }
 
-  /** Restarts the kernel (not the database): the button after a failure. */
+  /** Restarts the kernel (not the database): the button after a failure, the tray's «Riavvia il kernel». */
   async restart() {
     this.#stopping = true;
     await this.#kernel.stop();
+    // Running until now: start() would think it still is
+    if (this.#status === 'running') this.#set('stopped');
     return this.start();
   }
 }

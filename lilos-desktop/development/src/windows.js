@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { language, t } from './i18n.js';
 import { automaticSetup } from './installFile.js';
 import { local } from './local/index.js';
-import { profile as findProfile, settings, update } from './store.js';
+import { profile as findProfile, noUi, settings, update } from './store.js';
 
 /**
  * The windows of lilOS, one per server (profile), each with its own session (cookies, storage):
@@ -101,7 +101,7 @@ export async function load(win, profile) {
     await showStatus(win, profile, 'starting');
     try {
       const auto = !local.installed && automaticSetup();
-      if (auto?.kind === 'local') {
+      if (auto?.kind === 'local' && !auto.noUi) {
         await local.setup(auto.admin ?? {});
         if (auto.admin) await signIn(profile, auto.admin);
       } else {
@@ -124,8 +124,9 @@ export async function signIn(profile, { username, password }) {
   }).catch(() => null);
 }
 
-/** Opens (or brings forward) the window of a profile. */
+/** Opens (or brings forward) the window of a profile; none for the local one without UI (noui.js). */
 export function openProfile(profile) {
+  if (profile.kind === 'local' && noUi()) return null;
   let win = windows.get(profile.id);
   if (win && !win.isDestroyed()) {
     if (win.isMinimized()) win.restore();

@@ -10,7 +10,8 @@ import { openLog, run, stopTree } from './proc.js';
  * The lilOS run here: installed in <data>/lilos by the release's tools/install.js (as by hand),
  * then started with its run.js (which restarts the kernel when it asks, and tries new versions
  * of lilOS installed from the AppStore, going back if they do not start). The program changes
- * only port and database in config.json; everything else is lilOS's.
+ * only port and database in config.json, and "ui" when lilOS without UI becomes lilOS with the UI
+ * (setUi); everything else is lilOS's.
  */
 export const installed = () => existsSync(join(LILOS_DIR, 'current.json'));
 
@@ -24,27 +25,41 @@ export function currentVersion() {
 
 const configPath = () => join(LILOS_DIR, 'config.json');
 
+/**
+ * The lilos command, written by tools/install.js next to run.js for every installation: lilos.cmd
+ * on Windows, an executable sh script elsewhere. Its absolute path works without the PATH.
+ */
+export const launcherPath = () => join(LILOS_DIR, process.platform === 'win32' ? 'lilos.cmd' : 'lilos');
+
 /** What tools/install.js writes in the folder: a half-done installation loses only these (the folder may be the user's). */
-const INSTALLED = ['releases', 'modules', 'modules-data', '.image', 'run.js', 'package.json', 'config.json', 'repos.json', 'current.json', 'lilos-install.json'];
+const INSTALLED = ['releases', 'modules', 'modules-data', '.image', 'run.js', 'package.json', 'config.json', 'repos.json', 'current.json', 'lilos-install.json', 'lilos.cmd', 'lilos', 'lilos.mjs'];
 
 /**
  * Installs the carried release (and the modules of its configuration, from the official repository),
  * or what the installation settings say (`settingsFile`: another lilOS, an image, other modules…).
+ *   noUi            --no-ui: "ui": false in config.json, the module terminal-cli and the community
+ *                   repository (lilOS without UI, release 1.33.0 or later)
+ *   acceptLicense   --accept-license: the person accepted the license in the program (the kernel
+ *                   writes it at its first start, by "install"): without UI no page can ask it
  */
-export async function install(onLine, settingsFile = null) {
+export async function install(onLine, settingsFile = null, { noUi = false, acceptLicense = false } = {}) {
   const log = openLog('install');
   try {
     // A half-done installation (no current.json) starts again from nothing
     if (existsSync(LILOS_DIR) && !installed()) for (const name of INSTALLED) rmSync(join(LILOS_DIR, name), { recursive: true, force: true });
-    const settings = settingsFile ? ['--settings', settingsFile] : [];
-    const { code, output } = await run(NODE, [join(RELEASE_DIR, 'system', 'kernel', 'tools', 'install.js'), LILOS_DIR, ...settings], { env: toolEnv(), log, onLine });
+    // The folder first: install.js takes the first argument left after its flags as the folder
+    const flags = [...(settingsFile ? ['--settings', settingsFile] : []), ...(noUi ? ['--no-ui'] : []), ...(acceptLicense ? ['--accept-license'] : [])];
+    const { code, output } = await run(NODE, [join(RELEASE_DIR, 'system', 'kernel', 'tools', 'install.js'), LILOS_DIR, ...flags], { env: toolEnv(), log, onLine });
     if (code !== 0) throw new Error(output.trim().split('\n').at(-1) || `install.js: codice ${code}`);
   } finally {
     log.end();
   }
 }
 
-/** Port of the kernel and address of the database, in config.json (the rest stays as it is). */
+/**
+ * Port of the kernel and address of the database, in config.json. The rest stays as it is: "ui"
+ * above all (lilOS without UI keeps its false at every start).
+ */
 export function configure({ port, databaseUrl }) {
   const config = JSON.parse(readFileSync(configPath(), 'utf8'));
   config.host = '127.0.0.1';
@@ -54,6 +69,18 @@ export function configure({ port, databaseUrl }) {
     if (m.name === 'fs-postgres') m.config = { ...m.config, url: databaseUrl };
   }
   writeFileSync(configPath(), `${JSON.stringify(config, null, 2)}\n`);
+}
+
+/**
+ * lilOS with the UI (true: the key goes, the kernel's default) or without (false). The kernel reads
+ * it when it starts: with the UI and no app installed it installs the system apps by itself.
+ */
+export function setUi(on) {
+  const config = JSON.parse(readFileSync(configPath(), 'utf8'));
+  if (on) delete config.ui;
+  else config.ui = false;
+  writeFileSync(configPath(), `${JSON.stringify(config, null, 2)}
+`);
 }
 
 /** The folder of the installed module `name` (its highest version). */
@@ -101,10 +128,18 @@ export async function addAdmin(username, password) {
   }
 }
 
+/**
+ * Exit code of the kernel when the license of lilOS is not accepted and nobody can be asked (lilOS
+ * without UI started with no terminal and no --accept-license): run.js does not try again.
+ */
+export const LICENSE_REFUSED = 3;
+
 /** The running kernel (run.js): events 'line' (its output) and 'exit' (code). */
 export class Kernel extends EventEmitter {
   #child = null;
   #log = null;
+  /** The exit code of the last run (null while it runs, or before the first). */
+  lastExit = null;
 
   get running() {
     return !!this.#child;
@@ -116,6 +151,7 @@ export class Kernel extends EventEmitter {
     this.#log = openLog('kernel');
     const child = spawn(NODE, [join(LILOS_DIR, 'run.js')], { cwd: LILOS_DIR, env: toolEnv({ LILOS_DESKTOP: '1' }), windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });
     this.#child = child;
+    this.lastExit = null;
     const take = chunk => {
       this.#log?.write(chunk);
       for (const line of String(chunk).split(/\r?\n/)) if (line.trim()) this.emit('line', line.trim());
@@ -124,6 +160,7 @@ export class Kernel extends EventEmitter {
     child.stderr.on('data', take);
     child.on('exit', code => {
       if (this.#child === child) this.#child = null;
+      this.lastExit = code;
       this.#log?.end();
       this.#log = null;
       this.emit('exit', code);

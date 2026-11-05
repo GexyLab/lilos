@@ -1,7 +1,7 @@
 {
   "name": "lilos-desktop",
   "productName": "lilOS",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "lilOS nel suo programma per Windows, macOS e Linux, senza browser",
   "author": "GexyLab",
   "homepage": "https://github.com/GexyLab/lilos",

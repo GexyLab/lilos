@@ -159,7 +159,8 @@ export class Repos {
         const { files, ...rest } = checkSystem(raw);
         return { ...rest, files: Object.keys(files).length };
       }, 'system').then(async e => (e.error ? e : { ...e, ...await doc(system, 'CHANGELOG.md', 'changelog') })) : null,
-      languages: repo.official ? await this.#languages.catalog(read, languages) : [],
+      // Without the language packs (tools/install.js reads only the modules): none
+      languages: repo.official && this.#languages ? await this.#languages.catalog(read, languages) : [],
     };
   }
 

@@ -190,8 +190,23 @@ export function homeRoutes(kernel) {
     };
   });
 
-  router.add('POST', '/api/fs/sync', async ({ principal, json }) => {
-    await syncHome(kernel, principal, await json(8 << 20) ?? {});
+  // Only the tree of the home, again (the command lilos before each line: what others changed meanwhile)
+  router.add('GET', '/api/fs/tree', async ({ principal }) => {
+    const { view, nodes } = await homeNodes(kernel, principal);
+    const [tags, locale] = await Promise.all([readUserKey(kernel, principal, 'tags', []), readUserKey(kernel, principal, 'locale', null)]);
+    return { home: view.homePath, nodes, tags: Array.isArray(tags) ? tags : [], locale: typeof locale === 'string' ? locale : null };
+  });
+
+  router.add('POST', '/api/fs/sync', async ({ req, principal, json }) => {
+    const changes = await json(8 << 20) ?? {};
+    await syncHome(kernel, principal, changes);
+    // From the command lilos (no page of its own): the user's open pages get the changes, as from a service
+    if (req.headers['x-lilos-client'] === 'cli') {
+      const put = Array.isArray(changes.put) ? changes.put : [];
+      const remove = Array.isArray(changes.remove) ? changes.remove : [];
+      const trash = put.filter(n => n?.parent === 'trash' && n.trashed).map(n => ({ id: n.id, at: n.trashed.at, from: n.trashed.from }));
+      kernel.events.emit('user', { owner: principal.id, event: 'fs.external', data: { put: put.filter(n => n?.parent !== 'trash'), remove, trash } });
+    }
   });
 
   router.add('GET', '/api/fs/content/:id', async ({ res, principal, params, query }) => {

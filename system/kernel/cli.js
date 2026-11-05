@@ -5,13 +5,16 @@ import { KernelSettings } from './src/settings.js';
 
 /**
  * Commands of the kernel's modules, run without the kernel:
- *   node system/kernel/cli.js <module> <command> [args] [--flag value] [--switch]
- * Only the module and the modules it needs are started.
+ *   node system/kernel/cli.js <module> <command> [args] [--flag value] [--switch] [-- raw args]
+ * Only the module and the modules it needs are started. The command gets the parsed arguments
+ * (up to a `--`), `argv` (every argument as it came), `kernel` ({ url }: where the kernel of this
+ * configuration listens) and the prompts; what it returns, when a number, is the exit code.
  */
 function parseArgs(list) {
   const positional = [], flags = {};
   for (let i = 0; i < list.length; i++) {
     const a = list[i];
+    if (a === '--') break;
     if (!a.startsWith('--')) positional.push(a);
     else if (list[i + 1] && !list[i + 1].startsWith('--')) flags[a.slice(2)] = list[++i];
     else flags[a.slice(2)] = true;
@@ -31,6 +34,12 @@ function readHidden(question) {
     rl.question(question, answer => { rl.close(); process.stdout.write('\n'); resolve(answer); });
     rl.on('SIGINT', () => { rl.close(); reject(new Error('Annullato')); });
   });
+}
+
+/** The address of this configuration's kernel, from this computer (a host of every interface: loopback). */
+function kernelUrl({ host, port }) {
+  const local = { '0.0.0.0': '127.0.0.1', '::': '[::1]', '': '127.0.0.1' }[host] ?? (host.includes(':') ? `[${host}]` : host);
+  return `http://${local}:${port}`;
 }
 
 const prompt = {
@@ -61,9 +70,9 @@ try {
   const target = started.find(m => m.name === name);
   const run = target.impl.commands?.[command];
   if (typeof run !== 'function') throw new Error(`${name} non ha il comando "${command}" (comandi: ${Object.keys(target.impl.commands ?? {}).join(', ') || 'nessuno'})`);
-  await run({ services, args: parseArgs(rest), prompt, ctx: target.ctx });
+  const code = await run({ services, args: parseArgs(rest), argv: rest, kernel: { url: kernelUrl(config) }, prompt, ctx: target.ctx });
   for (const mod of started.reverse()) await mod.impl.stop?.();
-  process.exit(0);
+  process.exit(Number.isInteger(code) && code >= 0 && code <= 255 ? code : 0);
 } catch (err) {
   console.error(err.message);
   process.exit(1);

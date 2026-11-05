@@ -36,7 +36,8 @@ function start() {
   const log = [];
   let ready = false, reason = null, timer = null;
   const output = trial ? 'pipe' : 'inherit';
-  child = spawn(process.execPath, [main], { stdio: ['inherit', output, output, 'ipc'], env: { ...process.env, LILOS_SUPERVISED: '1' } });
+  // Its arguments go to the kernel (--accept-license: lilOS without UI, src/license.js)
+  child = spawn(process.execPath, [main, ...process.argv.slice(2)], { stdio: ['inherit', output, output, 'ipc'], env: { ...process.env, LILOS_SUPERVISED: '1' } });
   if (trial) {
     // Shown as usual, and the last lines kept to say why it did not start
     for (const [from, to] of [[child.stdout, process.stdout], [child.stderr, process.stderr]]) {

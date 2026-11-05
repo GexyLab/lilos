@@ -57,6 +57,12 @@ const LOOPBACK_HOSTS = new Set(['127.0.0.1', '::1', 'localhost']);
 /** The usual ports of the terminal protocols, for the server keys saved without one when the module is not there. */
 const TERM_PORTS = { ssh: 22, telnet: 23, rlogin: 513, supdup: 95 };
 
+/** Without UI, outside /api/: a 404 with nothing in it (not even the kernel's JSON error). */
+function silent(res) {
+  res.writeHead(404, { 'Content-Length': '0' });
+  res.end();
+}
+
 /** Without an 'auth' module lilOS has one user, and the kernel only listens on this machine. */
 const LOCAL_USER = Object.freeze({ id: 'local', username: 'utente', name: 'Utente', role: 'admin' });
 
@@ -64,7 +70,8 @@ const LOCAL_USER = Object.freeze({ id: 'local', username: 'utente', name: 'Utent
  * The kernel: loads the modules named in the configuration, collects the services they provide
  * and serves lilOS's API. Everything that touches a resource (users, files, databases) is done by
  * a module behind a service; the kernel only routes, checks who is asking and passes it on.
- * In an installed lilOS it also serves the page (web.js).
+ * In an installed lilOS it also serves the page (web.js), unless it runs without UI (config ui
+ * false): then nothing answers outside /api/, only the API of the kernel and of its modules.
  */
 export class Kernel {
   services = new Map();
@@ -75,7 +82,7 @@ export class Kernel {
   /** 'user' { owner, event, data }: for that user's open lilOS pages (api/services.js streams them) */
   events = new EventEmitter().setMaxListeners(0);   // one listener per open page
   #server = null;
-  #web = RELEASE_DIR ? webFiles(join(RELEASE_DIR, 'web')) : null;
+  #web = null;
 
   static async start() {
     const kernel = new Kernel();
@@ -122,6 +129,8 @@ export class Kernel {
     const replaced = await applyReplacements();
     const config = required.length || replaced.length ? await loadConfig() : loaded;
     this.config = config;
+    if (config.ui && RELEASE_DIR) this.#web = webFiles(join(RELEASE_DIR, 'web'));
+    if (!config.ui) log.info('Senza UI (config.json "ui": false): nessuna pagina, solo le API del kernel e dei moduli');
     if (!config.modules.some(m => m)) log.warn('Nessun modulo nella configurazione');
     // Development: the official repository read from the one npm run dev:update fills
     useDevRepository(config.devRepository);
@@ -210,12 +219,15 @@ export class Kernel {
     } catch (err) {
       log.error('Immagine del sistema non caricata (si riprova al prossimo avvio)', err);
     }
-    await this.#bootstrapApps(config.bootstrapApps);
+    // Without UI no app can open: none is installed (they come at the first start with UI)
+    if (config.ui) await this.#bootstrapApps(config.bootstrapApps);
     this.install = await applyInstallSettings(this, this.install).catch(err => {
       log.error('Impostazioni di installazione', err);
       return this.install;
     });
     if (this.install?.acceptLicense) await this.license.acceptFromInstall().catch(err => log.error('Licenza dalle impostazioni di installazione', err));
+    // Without UI nobody accepts it in the page: here, before the port opens (or the kernel stops)
+    if (!config.ui) await this.license.acceptAtStart();
 
     this.#server = createServer((req, res) => this.#handle(req, res));
     this.#server.on('upgrade', (req, socket, head) => this.#upgrade(req, socket, head));
@@ -282,8 +294,10 @@ export class Kernel {
   async #handle(req, res) {
     const locale = localeOf(req);
     try {
-      checkHost(req, this.config);
       const url = new URL(req.url, 'http://kernel');
+      // Without UI the web root says nothing at all: no page, no text, no headers of lilOS
+      if (!this.config.ui && !url.pathname.startsWith('/api/')) return silent(res);
+      checkHost(req, this.config);
       const found = this.router.match(req.method, url.pathname);
       if (!found && this.#web && !url.pathname.startsWith('/api/') && await this.#web(req, res, url.pathname)) return;
       if (!found) return send(res, 404, { error: 'not_found', message: t('notFound') }, {}, locale);
@@ -311,9 +325,10 @@ export class Kernel {
   async #upgrade(req, socket, head) {
     socket.on('error', () => {});
     try {
+      const url = new URL(req.url, 'http://kernel');
+      if (!this.config.ui && !url.pathname.startsWith('/api/')) return socket.end('HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\nConnection: close\r\n\r\n');
       checkHost(req, this.config);
       checkSocketOrigin(req, this.config);
-      const url = new URL(req.url, 'http://kernel');
       const found = this.sockets.match(req.method, url.pathname);
       if (!found?.handler) return refuseUpgrade(socket, 404, 'Not Found');
       await found.handler({ req, socket, head, params: found.params, query: url.searchParams, principal: await this.principalOf(req) });
