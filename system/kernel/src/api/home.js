@@ -14,7 +14,9 @@ import { defineStrings } from '../strings.js';
  *   GET  /api/boot                 { user, home, fresh, nodes, storage, apps, appSecurity, net }   everything lilOS needs to start
  *                                  (net: the network connections, as GET /api/net gives them)
  *                                  (home: the path of the home in the file system, '/home/<user>')
- *   POST /api/fs/sync              { put: [node], remove: [id] }     one transaction
+ *   GET  /api/fs/tree              { home, nodes, tags, locale }     the tree again (the command lilos)
+ *   POST /api/fs/sync              { put: [node], remove: [id] }     one transaction (X-Lilos-Client: cli:
+ *                                  the user's open pages get the changes as 'fs.external')
  *   GET  /api/fs/content/:id       text of a file, at most files.maxText (?raw=1: its bytes, as a stream)
  *   PUT  /api/fs/content/:id       saves the content of a file, text or bytes, as it comes: as a stream,
  *                                  checked against files.maxFileSize and the user's space (files.js)
