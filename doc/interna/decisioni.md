@@ -2182,3 +2182,48 @@ Conseguenze: se tutte le schede si chiudono non parte niente; un'automazione con
 - La notifica al 90% si manda una volta, e di nuovo solo dopo che l'utente è sceso sotto l'85%.
 
 **Quando ripensarla.** Quando arriva il modulo che usa openback per impostare i limiti e le altre impostazioni (5 novembre 2026: scelto al posto della fase 2 generica, il modulo `settings`; servirà decidere come scrive nel catalogo, i valori bloccati e il comportamento quando openback non risponde); se le quote devono contare anche le cartelle di Rete o altri moduli `fs` (oggi solo la home, e solo con `usage()`); se servono quote per gruppo invece che per utente; se i dati di `.config` crescono abbastanza da superare davvero la quota; se Compress Archive o altre app devono lavorare a pezzi.
+
+## D86. lilOS senza UI e il comando `lilos`
+
+> Completa [D80](#d80-la-licenza-si-accetta-al-primo-avvio-letta-dal-repository-ufficiale): la licenza ha un secondo posto dove accettarla. Usa le stesse parti del programma lilOS ([D73](#d73-il-programma-lilos-un-guscio-electron-con-il-kernel-e-postgresql-inclusi)) e del Terminale.
+
+**Contesto.** lilOS si usava solo da una pagina web. Mancava un modo per un server, o per chi preferisce la riga di comando, di farlo girare senza scrivania, e un modo di usarlo da un terminale del computer. L'utente ha chiesto lilOS senza UI, con la shell del Terminale a riga di comando, i moduli e le lingue installabili da lì, e un terzo percorso nel programma lilOS. Disegno approvato: `design/terminale-cli.html`.
+
+**Decisione.** Decisa il 5 novembre 2026, lilOS 1.34.0, modulo `terminal-cli` 1.0.0, programma lilOS 0.4.0.
+
+- **`ui: false` in `config.json`.** Il kernel non serve la pagina e fuori da `/api/` **non risponde niente**: ogni richiesta (anche WebSocket) ha un `404` vuoto, senza testo, senza intestazioni di lilOS e senza il controllo dell'host. Rispondono solo l'API del kernel e dei moduli. `GET /api/session` dice `ui`. Le app di sistema non si installano (nessuna app potrebbe aprirsi) e quelle di `lilos-install.json` si saltano con un avviso.
+- **La licenza si accetta all'avvio del kernel, non all'accesso.** Senza pagina non c'è dove farlo. `License.acceptAtStart` gira prima che il kernel apra la porta: con un terminale mostra il testo a pagine e chiede di scrivere «accetto»; `--accept-license` (o `LILOS_ACCEPT_LICENSE=1`) la accetta stampando il testo; senza terminale e mai accettata il kernel esce con il codice **3** e `run.js` non lo riavvia. Se il testo **cambia** dopo l'accettazione e non c'è un terminale, il kernel **parte lo stesso** e avvisa nel log: un amministratore accetta con `lilos license accept`.
+- **`terminal-cli` è un modulo, ma un client HTTP del kernel acceso.** Il comando `lilos` (il lanciatore `lilos.mjs` accanto a `run.js`, con `lilos.cmd` / `lilos`) esegue `cli.js terminal-cli sh -- …`, ma il modulo non apre il database né legge `users.json`: parla con l'API come la pagina (sessione, `/api/fs/*`, `/api/repos`, `/api/packages/plan`, `/api/languages`, `/api/system`, `/api/license`). La shell è quella del Terminale, impacchettata nel modulo.
+- **`appstore` solo per moduli e lingue, più `appstore system`.** Le app hanno bisogno della pagina (finestre, permessi mostrati all'utente); i moduli e le lingue no. Moduli, repository e lilOS sono degli amministratori; le lingue di tutti. Una lingua si scrive `lang:<codice>`. `appstore system` aggiorna lilOS stesso: senza UI non c'è altro modo di farlo.
+- **Si passa solo dalla senza UI alla UI**, in questa versione: dal menu dell'icona del programma, che ferma il kernel, toglie `ui` da `config.json` e lo riavvia; il kernel installa da solo le app di sistema. Il contrario non c'è.
+- **Il programma lilOS (0.4.0)**: terza scelta del primo avvio, **Senza UI** (passi Dove, Licenza, Amministratore, Pronto); poi solo l'icona nell'area di notifica con kernel e database accesi, il comando `lilos` nel PATH dell'utente (se la casella è accesa) e il terminale del computer aperto con un clic.
+- **Correzione fatta lungo la strada.** `src/apps/repos.js` si fermava con «Cannot read properties of undefined (reading 'catalog')» quando `tools/install.js` leggeva il catalogo ufficiale: dai pacchetti di lingua (lilOS 1.32.0) il catalogo chiama un gestore delle lingue che lì non esiste. Nella 1.32.0 pubblicata non si installavano i moduli dal repository ufficiale con `install.js` (anche nella prima installazione del programma).
+
+**Perché.**
+
+- *Niente risposta fuori da `/api/`.* Un server senza UI non deve dire a chi lo scansiona che è lilOS, né con un testo né con le intestazioni. È il comportamento che si vuole anche per un indirizzo esposto per sbaglio.
+- *La licenza all'avvio.* Il testo va letto e accettato da una persona prima di usare lilOS ([D80](#d80-la-licenza-si-accetta-al-primo-avvio-letta-dal-repository-ufficiale)). Senza pagina l'unico momento in cui c'è qualcuno davanti è l'avvio, nel terminale. Il codice 3 impedisce a `run.js` di riprovare in un ciclo. Un testo cambiato, invece, non deve spegnere un server già in uso: ha già un'accettazione, e manca solo quella nuova.
+- *Un client HTTP, non un secondo processo del kernel.* Il comando ha gli **stessi permessi**, passa dal Cestino e dagli stessi eventi (`fs.external` alle pagine aperte, con l'intestazione `X-Lilos-Client: cli`), **funziona anche su un server lontano** (`--server`) e **non apre una seconda volta `users.json`** né il database mentre il kernel li ha in uso (due processi che scrivono lo stesso file sono un guasto certo). È un modulo, e non un programma a parte, per viaggiare con lilOS: si installa e si aggiorna dall'AppStore come gli altri.
+- *Solo moduli e lingue.* Un'app installata senza pagina non potrebbe chiedere i permessi né essere aperta. I moduli sono quello che serve a un server (protocolli, database); le lingue non danno accesso a niente ([D84](#d84-i-pacchetti-di-lingua-traducono-lilos-non-le-app)).
+- *`appstore system`.* Senza UI il pulsante «Aggiorna» dell'AppStore non c'è: se non ci fosse il comando, aggiornare lilOS vorrebbe dire rifare l'installazione.
+- *Un solo senso del passaggio.* Passare alla UI aggiunge soltanto (le app di sistema); passare a senza UI vorrebbe dire togliere app e pagine che l'utente usa, e decidere cosa farne. Rinviato finché serve davvero.
+- *`lang:<codice>`.* Un prefisso evita di confondere una lingua con un modulo dallo stesso nome e non richiede un secondo comando.
+- *`lilos-cli` per i dati sul computer.* Sessione e storia stanno in `%APPDATA%\lilos-cli` (e `~/.config/lilos-cli`): `%APPDATA%\lilOS` è la cartella del programma lilOS, e le due cose non devono mescolarsi.
+
+**Alternative scartate.**
+
+- Il comando come processo che carica i moduli e usa il database di persona (come `kernel:cli`): due scrittori sugli stessi file, nessun controllo dei permessi, niente server lontani.
+- Una pagina vuota o «lilOS non ha UI» al posto del 404 vuoto: dichiara cos'è.
+- Chiedere la licenza al primo accesso del comando `lilos`: il kernel avrebbe già servito richieste senza una licenza accettata.
+- Installare le app anche senza UI: le app hanno bisogno della pagina.
+- Il passaggio in entrambi i sensi: vedi sopra.
+
+**Conseguenze.**
+
+- **Il comando non ha tutto ciò che ha il Terminale**: niente `open`/`xdg-open`, comandi di shell delle app, sessioni remote (`ssh`, `telnet`, …), `nettest`, cambio dei tag. Sono nella roadmap.
+- `cli.js` dei moduli passa gli argomenti dopo `--` (`argv`), `kernel.url`, e usa un valore numerico restituito come codice di uscita: vale per tutti i moduli.
+- `tools/install.js` scrive `lilos.mjs` e il lanciatore in ogni installazione; `scripts/release.mjs` impacchetta `lilos.mjs` da solo come `run.js` (non può importare altri file).
+- `plugins/scripts/build.mjs`: un modulo può avere `build.json` con `alias`, per impacchettare codice con nomi diversi (la shell del Terminale importa `@lilos/sdk` e `@lilos/system`, che qui sono file del modulo).
+- Non provato su macOS e Linux, né con un installer Windows vero.
+
+**Quando ripensarla.** Se serviranno le app senza pagina, se il passaggio inverso diventa una richiesta vera, se `ssh` e `telnet` nel comando lo rendono un secondo Terminale da tenere allineato, o se un modulo per le impostazioni del kernel (roadmap) dovrà poter essere usato da qui con più permessi.

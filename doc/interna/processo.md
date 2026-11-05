@@ -231,6 +231,7 @@ Parti da una scrivania pulita: accedi con un utente nuovo (`npm run kernel:cli -
 - [ ] Un utente non vede le operazioni degli altri. Disinstallando un'app, le sue operazioni se ne vanno; togliendo un utente, anche le sue.
 - [ ] AppStore → Opzioni → «Controlla gli aggiornamenti»: crea un'operazione giornaliera alle 09:00 nella Pianificazione; **Esegui ora** manda la notifica degli aggiornamenti disponibili.
 - [ ] Un'app con `schedule` (per esempio l'AppStore): vede solo le sue operazioni. Un'app con `schedule.read` e `schedule.move` legge `lilos.schedule.tasks()` con `recurrence` e sposta una volta.
+- [ ] lilOS senza UI (`ui: false`): `curl -i` su `/` e su `/qualunque` dà un `404` con `Content-Length: 0` e nessun'altra intestazione di lilOS; `/api/session` dice `ui: false`; senza terminale e senza licenza accettata il kernel esce con il codice 3 e `run.js` non lo riavvia; con `--accept-license` parte. `lilos ls`, `lilos -c "ls | wc -l"` e `lilos` (interattivo) accedono, funzionano e tornano con il codice del comando; una cartella creata da `lilos` compare in una pagina aperta dello stesso utente. `lilos appstore install lang:de` e `lilos license` rispondono; un'app è rifiutata.
 - [ ] Il modulo `scheduler` non ha **Rimuovi** nell'AppStore; spostandolo fuori da `modules/` e dalla configurazione il kernel lo rimette all'avvio. `npm run release` mette `scheduler_1.1.0` in `system/kernel/modules/` della release.
 
 ### Test automatici

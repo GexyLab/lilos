@@ -2313,6 +2313,8 @@ Alla prima apertura il programma chiede dove deve girare lilOS. Hai tre scelte:
 
 I dati del lilOS «su questo computer» (utenti, file, database) stanno nella cartella dei dati del programma, sul tuo computer. Disinstallare il programma **non li cancella**.
 
+Dalla versione 0.4.0 del programma, con lilOS 1.34.0 o successivo, c'è anche una scelta **Senza UI**: lilOS gira su questo computer senza finestre e si usa da un terminale. Vedi [lilOS senza UI](#lilos-senza-ui).
+
 Se qualcosa non parte, il programma mostra una pagina con **Riprova**, **Server** (per sceglierne un altro) e **Apri i log**.
 
 ### Installare di nuovo il programma
@@ -2416,6 +2418,7 @@ Se devi installare lilOS su molti computer, o su un server, puoi preparare in an
 - le impostazioni con cui parte ogni nuovo utente (per esempio tema chiaro e colore);
 - un'**immagine del sistema**: un lilOS già installato e pronto (app, utenti, file) da usare al posto di quello nuovo;
 - `"acceptLicense": true`, se accetti tu la [licenza di lilOS](#la-licenza-di-lilos) per l'installazione che prepari: al primo avvio non viene chiesta a nessuno.
+- `"kernel": { "ui": false }`, per installare [lilOS senza UI](#lilos-senza-ui) (da lilOS 1.34.0); con il programma, insieme a un amministratore e a `"acceptLicense": true`, l'installazione parte e finisce senza domande.
 
 **Dove mettere il file.** Il programma lo cerca, in quest'ordine:
 
@@ -2475,6 +2478,121 @@ Il programma si aggiorna dalle versioni su GitHub; **lilOS** invece continua ad 
 - Il primo avvio ha bisogno di internet (scarica le app di sistema).
 - Le app isolate non possono ancora usare fotocamera e microfono.
 - I pacchetti per macOS e Linux, il kiosk su questi sistemi e i tasti di sistema a schermo intero non sono ancora stati provati su computer veri.
+- lilOS senza UI non è ancora stato provato su macOS e Linux (terminale, comando `lilos` nel PATH).
+
+## lilOS senza UI
+
+**lilOS senza UI** è lilOS che gira su un computer senza scrivania, finestre e pagina web: resta acceso solo il programma che conserva i dati, e lo si usa da un terminale con il comando [`lilos`](#il-comando-lilos). Serve per un server, per un computer che nessuno guarda, o per chi preferisce la riga di comando. Esiste da lilOS 1.34.0 (e dal programma lilOS 0.4.0).
+
+Cosa cambia rispetto al lilOS di sempre:
+
+- **Nessuna pagina.** Se apri l'indirizzo di lilOS in un browser non compare niente: risponde un errore vuoto, senza testo. Rispondono solo le richieste dei programmi, come il comando `lilos`.
+- **Niente app.** File Manager, Editor, AppStore e le altre non si installano, perché non avrebbero dove aprirsi. I tuoi file, gli utenti e le impostazioni ci sono comunque, e li tocchi dal terminale.
+- **Moduli e lingue sì.** Con `lilos appstore` un amministratore installa e toglie i moduli di lilOS, e chiunque installa le lingue (vedi [Moduli e lingue: appstore](#moduli-e-lingue-appstore)).
+- **La licenza si accetta nel terminale**, una volta, quando lilOS parte (vedi [La licenza senza UI](#la-licenza-senza-ui)).
+
+### Come averlo
+
+- **Con il programma lilOS** (il modo più semplice). Al [primo avvio](#il-primo-avvio) scegli **Senza UI**. Il programma ti mostra la licenza (spunta che l'hai letta), poi ti fa creare l'amministratore. Ci sono due caselle, accese per proposta: **Avvia lilOS all'accensione del computer** e **Aggiungi il comando lilos al PATH** (così scrivi `lilos` da qualunque terminale). Alla fine dice **lilOS senza UI è acceso** e puoi premere **Apri il terminale lilOS**.
+  Dopo, il programma non apre nessuna finestra: resta come icona nell'area di notifica. Il suo menu mostra lo stato (acceso, in avvio, fermo, errore) e ha **Apri il terminale lilOS**, **Copia il comando lilos**, **Log del kernel**, **Riavvia il kernel**, **Avvia all'accensione del computer**, **Passa a lilOS con la UI** ed **Esci (ferma lilOS)**.
+- **Senza il programma**, per chi amministra un server: installa lilOS con `node system/kernel/tools/install.js <cartella> --no-ui`, oppure metti `"ui": false` in `config.json`, oppure `"kernel": { "ui": false }` in `lilos-install.json`. Dettagli nella [documentazione per sviluppatori](../sviluppatore/api.md#lilos-senza-ui-ui-false).
+
+**Passare alla UI.** Dal menu dell'icona, **Passa a lilOS con la UI**: lilOS si ferma, riparte con la sua pagina e installa da solo le app di sistema (la prima volta ci vogliono alcuni minuti e serve internet). Utenti, file e comando `lilos` restano come sono. **Il passaggio inverso, dalla UI a senza UI, in questa versione non c'è.**
+
+### La licenza senza UI
+
+Senza pagina non c'è dove accettare la [licenza di lilOS](#la-licenza-di-lilos): lo chiede lilOS stesso nel terminale in cui lo avvii.
+
+- La prima volta compare il testo, a pagine (**Invio** per andare avanti, **q** per smettere di leggere). Per accettare scrivi `accetto` e premi Invio; qualsiasi altra risposta ferma lilOS.
+- Se non c'è un terminale (per esempio parte da solo con il computer) e la licenza non è mai stata accettata, **lilOS non parte** e lo scrive nel log, con codice di uscita 3. Avvialo una volta da un terminale, oppure con l'opzione `--accept-license` (o la variabile `LILOS_ACCEPT_LICENSE=1`), che equivale ad accettarla: usala solo se l'hai letta.
+- Se il testo della licenza cambia dopo che l'hai accettata e non c'è un terminale, lilOS **parte lo stesso** e lo scrive nel log. Un amministratore la rilegge e la accetta con `lilos license accept` (vedi [Licenza: license](#licenza-license)).
+
+## Il comando lilos
+
+`lilos` è il [Terminale](#terminale) di lilOS in un terminale del tuo computer. Funziona con qualunque lilOS, anche con la UI, e anche con uno che gira su un altro computer. Usa gli stessi comandi, le stesse cartelle e gli stessi permessi del Terminale in lilOS: quello che fai da qui compare subito anche nelle finestre aperte (cartelle, file, Cestino).
+
+Il comando c'è dove è installato **lilOS senza UI** o il modulo **terminal-cli** (con lilOS senza UI viene da solo). Se è nel PATH basta scrivere `lilos`; altrimenti scrivi il percorso del file `lilos.cmd` (Windows) o `lilos` (macOS e Linux) che sta nella cartella di lilOS, accanto a `run.js`.
+
+### Usarlo
+
+| Scrivi | Cosa succede |
+| --- | --- |
+| `lilos` | Entra nella shell di lilOS: scrivi un comando dopo l'altro. Hai la modifica della riga, Tab per completare, le frecce per la storia dei comandi, Ctrl+C per interrompere, `exit` o Ctrl+D per uscire. Il file `~/.bashrc` di lilOS si legge all'ingresso, come nel Terminale. |
+| `lilos ls Documenti` | Esegue un solo comando e torna al tuo terminale. Il codice di uscita è quello del comando, quindi si può usare negli script. |
+| `lilos -c "ls \| wc -l"` | Esegue una riga intera, con pipe, `;` e `&&`, secondo la shell di lilOS (non quella del computer). |
+| `lilos < script.sh` | Con l'ingresso da un file o da una pipe, legge ed esegue quello che arriva. |
+
+I comandi sono quelli del Terminale: `help` li elenca. Le cartelle sono quelle di lilOS (la tua home), non quelle del computer.
+
+### Accedere
+
+Con un solo utente non c'è niente da scrivere. Altrimenti `lilos` ti chiede **Utente** e **Password** (la password non si vede mentre scrivi), poi **Resta connesso su questo computer? [S/n]**: con sì, la prossima volta entri subito. La sessione è salvata in un file riservato a te, nella cartella `%APPDATA%\lilos-cli` (Windows) o `~/.config/lilos-cli` (altri sistemi). Per dimenticarla: `lilos --logout`.
+
+Senza un terminale (uno script, un'operazione pianificata) non può chiedere niente: dai l'utente con `--user` e la password con la variabile `LILOS_PASSWORD`, oppure entra prima una volta a mano e scegli di restare connesso.
+
+### Opzioni
+
+| Opzione | Cosa fa |
+| --- | --- |
+| `--server INDIRIZZO` | Usa un altro lilOS, per esempio `lilos.azienda.it:8790`. Senza, usa il lilOS di questo computer. |
+| `--user NOME` | Accede come NOME. |
+| `--cwd CARTELLA` | Parte da questa cartella di lilOS invece che dalla home. |
+| `--no-color` | Niente colori. |
+| `--logout` | Esce e dimentica la sessione salvata per quel lilOS. |
+| `-c "RIGA"` | Esegue una riga. |
+| `--version`, `--help` | Versione e aiuto. |
+
+Le variabili `LILOS_SERVER`, `LILOS_USER` e `LILOS_PASSWORD` valgono come `--server`, `--user` e la password; `NO_COLOR` come `--no-color`. `LILOS_CLI_DIR` cambia la cartella dove si salvano sessione e storia dei comandi.
+
+### Codici di uscita
+
+| Codice | Significato |
+| --- | --- |
+| quello del comando | Per i comandi eseguiti (130 se li interrompi con Ctrl+C) |
+| 2 | Uso sbagliato (opzione sconosciuta, indirizzo non valido) |
+| 3 | lilOS non risponde all'indirizzo |
+| 4 | Accesso non riuscito |
+
+### Cosa non c'è
+
+Il comando non ha una pagina davanti, quindi non tutto è possibile:
+
+- **Aprire cose**: `open` e `xdg-open` non aprono finestre.
+- **I comandi che aggiungono le app**.
+- **Le sessioni remote** (`ssh`, `telnet`, …) e il comando `nettest`.
+- **Cambiare i tag** dei file.
+
+### Moduli e lingue: appstore
+
+Il comando `appstore` fa dal terminale una parte di quello che fa l'[AppStore](#lappstore). **Le app non si installano da qui** (serve la pagina): solo moduli di lilOS e lingue.
+
+```
+lilos appstore list                 # cosa c'è (anche: --installed, --updates, --modules, --languages)
+lilos appstore search mqtt
+lilos appstore info call-mqtt
+lilos appstore install call-mqtt    # un modulo (amministratori)
+lilos appstore install lang:de      # una lingua (tutti, vale per tutti)
+lilos appstore remove call-mqtt
+lilos appstore update               # tutti gli aggiornamenti; oppure con i nomi
+lilos appstore repo list            # repository: add INDIRIZZO | add community | remove ID
+lilos appstore system               # le versioni di lilOS: update | use VERSIONE | remove VERSIONE
+lilos appstore restart              # riavvia il kernel e aspetta che torni
+```
+
+- Una lingua si scrive `lang:` e il codice (`lang:de`, `lang:pt-BR`). Un nome senza prefisso è un modulo.
+- **Moduli, repository e lilOS** li gestisce un amministratore. Le lingue le installa chiunque, e valgono per tutti gli utenti.
+- Prima di installare vedi cosa serve (anche gli altri moduli da cui dipende) e confermi. Con `-y` si conferma da soli. Un modulo **non firmato** chiede una conferma a parte, o si dà `--allow-unsigned`: installalo solo se ti fidi di chi lo ha fatto.
+- I moduli nuovi partono quando lilOS si riavvia: il comando lo propone. L'ultimo modulo dei file non si può togliere.
+- `appstore system` è l'unico modo, senza UI, di aggiornare lilOS stesso. Se la versione nuova non parte, lilOS torna da solo alla precedente.
+- Il repository **community** (moduli non ufficiali) si aggiunge con `appstore repo add community`; l'installazione con `--no-ui` lo aggiunge già.
+
+### Licenza: license
+
+```
+lilos license            # il testo della licenza e se è accettata
+lilos license status     # solo se è accettata (codice di uscita 1 se no)
+lilos license accept     # la accetta (amministratori; -y senza chiedere)
+```
 
 ## I tuoi dati
 

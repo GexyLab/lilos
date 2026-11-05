@@ -153,8 +153,7 @@ export async function main({ argv = [], kernel = {}, prompt } = {}) {
   } catch (err) {
     if (err instanceof Unreachable) { process.stderr.write(`lilos: ${t('cli.unreachable', { url: client.url })}\n`); code = 3; }
     else if (err instanceof ApiError && err.status === 401) { process.stderr.write(`lilos: ${t('cli.sessionEnded')}\n`); code = 4; }
-    else if (err instanceof ApiError) { process.stderr.write(`lilos: ${err.message}\n`); code = 1; }
-    else throw err;
+    else { process.stderr.write(`lilos: ${err?.message ?? err}\n`); code = 1; }
   } finally {
     if (auth.temporary) await client.delete('/api/session').catch(() => {});
   }

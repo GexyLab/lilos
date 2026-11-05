@@ -1,3 +1,6 @@
+import { ApiError } from './client.js';
+import { t } from './strings.js';
+
 /**
  * `lilos.home` (what src/terminal/kernel/kfs.js needs) over the kernel's HTTP API, the same routes
  * lilOS's page uses: the tree (GET /api/fs/tree, reloaded before each line typed), its changes
@@ -6,7 +9,10 @@
 export function httpHome(client) {
   const path = id => `/api/fs/content/${encodeURIComponent(id)}`;
   return {
-    load: () => client.get('/api/fs/tree'),
+    // A kernel older than lilOS 1.34.0 has no /api/fs/tree: said plainly
+    load: () => client.get('/api/fs/tree').catch(err => {
+      throw err instanceof ApiError && err.status === 404 ? new Error(t('cli.oldKernel')) : err;
+    }),
     sync: changes => client.post('/api/fs/sync', changes),
     async read(id) {
       return { base64: (await client.request('GET', `${path(id)}?raw=1`, { raw: true })).toString('base64') };

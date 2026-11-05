@@ -3,6 +3,7 @@
 Il programma lilOS apre lilOS in una finestra, senza browser, su Windows, macOS e Linux. È un guscio [Electron](https://www.electronjs.org) che:
 
 - apre la pagina di lilOS dall'indirizzo di un kernel: quello che il programma stesso fa girare sul computer (con PostgreSQL), oppure quello di un server;
+- oppure fa girare sul computer lilOS **senza UI** (dalla versione 0.4.0): kernel e database senza finestre, usati dal comando `lilos` in un terminale, con il programma ridotto alla sua icona nell'area di notifica;
 - aggiunge ciò che un browser non può fare: area di notifica, avvio con il computer, schermo intero e kiosk, numero di notifiche sull'icona, file aperti con i programmi del computer, scelta di porte seriali, USB, HID, Bluetooth e dello schermo da condividere, chiavette USB.
 
 Questa cartella è dove si **lavora**. Perché è fatto così: [D73](../../doc/interna/decisioni.md#d73-il-programma-lilos-un-guscio-electron-con-il-kernel-e-postgresql-inclusi). Il ponte con la pagina (`window.lilosHost`) e le regole di fiducia: [riferimento API](../../doc/sviluppatore/api.md#il-programma-lilos-lilos-desktop). Chi lo usa: [guida utente](../../doc/utente/guida.md#il-programma-lilos).
@@ -37,6 +38,7 @@ scripts/
 build/
   icon.png              l'icona
   first-run             il segno di una nuova installazione: su Windows va in resources/first-run (win.extraResources)
+  installer.nsh         installer NSIS: copia lilos-install.json accanto al programma; alla disinstallazione toglie il comando lilos dal PATH
   linux/                la sessione «lilOS» per la schermata di accesso (lilos-session, install-session.sh)
 src/
   main.js               avvio: istanza unica, protocollo lilos://, menu di macOS, avvio del kernel, uscita
@@ -46,7 +48,11 @@ src/
   devices.js            permessi di Chromium; porte seriali, USB, HID, Bluetooth e schermo passati a lilOS da scegliere
   files.js              file tra lilOS e il computer: aprire, esportare, mostrare nella cartella, scegliere una cartella
   drives.js             chiavette USB e schede di memoria: elenco, cambiamenti, espulsione
-  tray.js               icona nell'area di notifica e numero di notifiche non lette
+  tray.js               icona nell'area di notifica e numero di notifiche non lette (senza UI: il suo menu)
+  noui.js               lilOS senza UI: installazione, terminale, comando da copiare, log, passaggio alla UI
+  command.js, path.ps1  il comando lilos nel PATH dell'utente (Windows: HKCU\Environment; macOS e Linux: ~/.local/bin/lilos)
+  terminal.js           apre il terminale del computer con lilos avviato
+  license.js            il testo della licenza di lilOS per il passo «Licenza» (repository ufficiale o EULA.md della release)
   updates.js            aggiornamenti del programma (electron-updater)
   autostart.js          avvio con il computer
   installFile.js        lilos-install.json e il segno di una nuova installazione (justInstalled, forgetInstalled)
@@ -74,6 +80,22 @@ src/
 I moduli del kernel e le app di sistema **non** sono inclusi: il kernel li scarica dal repository ufficiale al primo avvio. Impacchettato, il programma li ha in `resources/runtime` e `resources/lilos` (`extraResources` di `electron-builder.yml`).
 
 I dati del programma stanno nella cartella dati di Electron (o in `LILOS_DESKTOP_DATA`): `settings.json`, `lilos/` (il lilOS installato, con `config.json` e `current.json`), `postgres/` e `logs/`. Il kernel parte su una porta libera da 8790, PostgreSQL da 5433.
+
+## lilOS senza UI
+
+La terza scelta del primo avvio, **Senza UI** (programma 0.4.0, lilOS 1.33.0 o successivo nella release portata: `NO_UI_MIN` in `noui.js`; con una release più vecchia la scelta è spenta e lo dice). Installa come **Su questo computer** (PostgreSQL e kernel, `local/`), ma:
+
+- **passi** Dove → Licenza → Amministratore → Pronto (`welcome.js`, `order()`). Le altre due scelte restano come prima: lì la licenza la accetta un amministratore al primo accesso, nella pagina di lilOS;
+- **la licenza** si legge da `https://raw.githubusercontent.com/GexyLab/lilos-plugins-official/main/LICENSE.md` (8 s; `LILOS_LICENSE_URL` la cambia, come nel kernel) o, senza rete, da `EULA.md` in cima alla release portata (`runtime/lilos/EULA.md`, messa lì da `scripts/release.mjs`). Il testo è mostrato come markdown semplice, costruito a elementi (mai HTML); «Avanti» resta spento finché la casella non è spuntata;
+- **`tools/install.js`** riceve `--no-ui` (`"ui": false` in `config.json`, il modulo `terminal-cli`, il repository community) e `--accept-license` (il kernel scrive l'accettazione al primo avvio, `by: "install"`). Il lanciatore `lilos.cmd` / `lilos` accanto a `run.js` lo scrive `install.js` per ogni installazione. `configure()` cambia solo porta e database: `"ui"` resta com'è a ogni avvio; `setUi()` lo toglie solo per il passaggio alla UI;
+- **nessuna finestra di lilOS, mai** (`openProfile` non apre il profilo locale): `settings.local.ui = false`, il programma resta nell'area di notifica con kernel e database accesi, anche se «Resta nell'area di notifica» è spento. Il menu dell'icona: stato («lilOS senza UI · acceso», in avvio, fermo, errore) con versione e porta, **Apri il terminale lilOS**, **Copia il comando lilos** (`lilos` se il programma l'ha messo nel PATH, altrimenti il percorso del lanciatore), **Log del kernel** (`logs/kernel.log`), **Riavvia il kernel**, **Avvia all'accensione del computer**, **Passa a lilOS con la UI**, **Esci (ferma lilOS)**. Il clic sull'icona apre il menu. Avviato di nuovo a mano (non `--hidden`), il programma apre il terminale lilOS;
+- **il terminale** (`terminal.js`): Windows Terminal (`wt.exe`) se c'è, altrimenti `cmd.exe /k`; su macOS Terminale con `osascript`; su Linux `x-terminal-emulator`, poi `gnome-terminal`, `konsole`, `xterm`. Sempre con il percorso assoluto del lanciatore: funziona anche senza PATH;
+- **il PATH** (casella «Aggiungi il comando lilos al PATH»): su Windows `path.ps1` aggiunge la cartella di lilOS al PATH dell'utente in `HKCU\Environment` una volta sola, senza toccare il resto (il tipo `REG_EXPAND_SZ` resta), avvisa Explorer del cambiamento e annota la cartella in `HKCU\Software\GexyLab\lilOS` (`CommandPath`); su macOS e Linux crea il collegamento `~/.local/bin/lilos` e la pagina avvisa se `~/.local/bin` non è nel PATH della shell. `settings.local.command` ricorda la cartella. Lo toglie: la disinstallazione con l'installer `.exe` (`customUnInstall` di `build/installer.nsh`, non negli aggiornamenti) e «Riparti da zero»;
+- **«Pronto»** dice «lilOS senza UI è acceso» e come usarlo, con **Chiudi** e **Apri il terminale lilOS**;
+- **Passa a lilOS con la UI** (solo in questa direzione, per ora): una domanda, poi kernel e database si fermano, `"ui"` esce da `config.json`, `settings.local.ui` torna `true` e si apre la finestra di lilOS come per «Su questo computer»: il kernel, ripartendo con la UI e senza app, installa da sé le app di sistema;
+- **`lilos-install.json`** con `"installer": { "mode": "local" }` e `"kernel": { "ui": false }` sceglie «Senza UI» senza domande se ha anche l'amministratore (o un'immagine) e `"acceptLicense": true`: la pagina di benvenuto va diretta a «Pronto» (avvio con il computer e PATH accesi). Senza `acceptLicense` chiede solo la licenza; senza amministratore preseleziona «Senza UI» e chiede tutto.
+
+Se il kernel esce con il codice 3 (licenza non accettata e nessun terminale per chiederla), l'errore lo dice chiaramente (`local.error.license`), nella pagina di stato e nel menu dell'icona.
 
 ## Installare di nuovo il programma (solo Windows)
 
@@ -105,6 +127,7 @@ Nessun certificato per ora: su Windows compare SmartScreen, su macOS i pacchetti
 
 ## Limiti noti
 
+- **lilOS senza UI non è stato provato su macOS e Linux** (terminale, `~/.local/bin`, nessuna icona nel Dock), né con un vero installer Windows: il PATH lo toglie solo la disinstallazione dell'installer `.exe` (l'`.msi`, i pacchetti di Linux e macOS non hanno un passo di disinstallazione per l'utente; lì resta il collegamento o la voce nel PATH, che punta a un lanciatore senza più Node).
 - **Mac con processore Intel.** `services-isolate` non ha binari `isolated-vm` per `darwin-x64`: i servizi in background delle app isolate non partono.
 - **La domanda sull'installazione precedente c'è solo su Windows** (il segno di una nuova installazione è nel `win.extraResources`) e non è stata provata con un vero `.msi` o `.exe` reinstallato, né con un aggiornamento automatico.
 - **Il primo avvio ha bisogno di internet.** Moduli del kernel e app di sistema si scaricano dal repository ufficiale; senza rete il primo avvio non si completa (non provato).

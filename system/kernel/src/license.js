@@ -134,7 +134,7 @@ export class License {
       throw new LicenseRefused();
     }
     await writeJson(FILE, { sha256: status.sha256, acceptedAt: new Date().toISOString(), by: 'console', source: status.source }, { pretty: true });
-    log.info(`Licenza di lilOS accettata${byFlag ? ' con --accept-license' : ''} (console, sha256 ${status.sha256.slice(0, 12)}…)`);
+    log.info(`Licenza di lilOS accettata${before ? ' (testo cambiato dall\'ultima accettazione)' : ''}${byFlag ? ' con --accept-license' : ''} (console, sha256 ${status.sha256.slice(0, 12)}…)`);
   }
 
   /** acceptLicense of lilos-install.json: accepted for the installation, when nothing was yet. */

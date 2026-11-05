@@ -1396,6 +1396,7 @@ Un modulo in un repository si installa, si aggiorna e si toglie dall'AppStore (M
    - `defaultConfig` è la configurazione con cui il kernel accende il modulo in `config.json` quando lo si installa.
    - `data` elenca i file in cui il modulo tiene i suoi dati (nomi semplici, nella cartella del modulo; leggili da `ctx.dir`). Negli aggiornamenti passano alla nuova versione; alla rimozione la cartella che li contiene **resta**. Lascialo fuori se il modulo non ha dati propri.
    - Le dipendenze npm vanno in `package.json` con il suo `package-lock.json`: il kernel lancia `npm ci --omit=dev --ignore-scripts`, quindi niente pacchetti con script di installazione.
+   - Solo per i moduli del repository dei plugin ufficiali, se il codice importa un nome «nudo» (come `@lilos/sdk`) che nel pacchetto non esiste: `build.json` accanto a `module.json` con `{ "alias": { "@lilos/sdk": "lib/sdk.js" } }`. Il nome è risolto nel file e finisce nel pacchetto; `build.json` non si copia (da lilOS 1.34.0, vedi `terminal-cli`).
 2. Aggiungi la cartella a `modules` in `catalog.json`. Se vuoi, metti nella cartella un `README.md`: l'AppStore lo mostra nei dettagli del modulo.
 3. Committa e crea il tag `vX.Y.Z` (alza `version` a ogni rilascio; le due versioni più recenti restano sul disco).
 4. Da amministratore: AppStore → Kernel → Installa. Un modulo non ufficiale chiede di confermare l'avviso (gira nel kernel con accesso completo). Prima di scrivere in `config.json`, il kernel controlla che si avvierebbe con quel modulo (dipendenze, un modulo `fs`, `auth` o `host` locale): se no, dice perché e non cambia nulla. Poi **Riavvia il kernel**.
@@ -1491,6 +1492,25 @@ Un'immagine è un lilOS già pronto (moduli, app, utenti, file) da installare al
 4. Installa con `node system/kernel/tools/install.js --settings ./lilos-install.json` (la cartella viene da `installer.dir`). Al primo avvio il kernel carica i file e le home dall'immagine e cancella `.image`.
 
 Gli utenti dell'immagine accedono con le password di prima; `users` del file aggiunge altri utenti.
+
+## Installare lilOS senza UI
+
+Per un server, o per un computer che si usa solo da un terminale (lilOS 1.34.0 o successivo). Decisione: [D86](../interna/decisioni.md#d86-lilos-senza-ui-e-il-comando-lilos).
+
+```bash
+cd lilos-plugins-official/system/lilos
+node system/kernel/tools/install.js /opt/lilos --no-ui --accept-license
+cd /opt/lilos
+node releases/1.34.0/system/kernel/cli.js users-basic add eugenio --admin
+node run.js
+./lilos                    # il comando lilos (lilos.cmd su Windows)
+```
+
+- `--no-ui` scrive `"ui": false` in `config.json`, installa il modulo `terminal-cli` e aggiunge il repository community. Equivale a `"kernel": { "ui": false }` in `lilos-install.json`.
+- Senza `--accept-license` (o `"acceptLicense": true`, o `LILOS_ACCEPT_LICENSE=1`) la licenza si accetta nel terminale al primo avvio di `run.js`; se non c'è un terminale il kernel esce con il codice 3 e non viene riavviato.
+- Il kernel non risponde a niente fuori da `/api/`: per provare che è vivo, `curl http://127.0.0.1:8790/api/session` (con `ui: false` nel JSON). La pagina dà un `404` vuoto.
+- Il lanciatore `lilos` sta accanto a `run.js`. Per averlo nel PATH aggiungi quella cartella (Windows: PATH dell'utente) o fai un collegamento in `~/.local/bin`.
+- Passare alla UI: togli `"ui": false` da `config.json` e riavvia il kernel; le app di sistema si installano da sole.
 
 ## Fare un repository non ufficiale
 

@@ -3997,11 +3997,12 @@ Le richieste che modificano (tutte tranne `GET` e `HEAD`) devono avere l'intesta
 
 | Metodo e percorso | Chi | Corpo → risposta |
 | --- | --- | --- |
-| `GET /api/session` | tutti | → `{ mode: 'multi' \| 'single', user \| null }` |
+| `GET /api/session` | tutti | → `{ mode: 'multi' \| 'single', ui, user \| null }`; `ui` è `false` in [lilOS senza UI](#lilos-senza-ui-ui-false) (da 1.34.0) |
 | `POST /api/session` | tutti | `{ username, password, remember = true }` → `{ user }` e il cookie `lilos_session` (`HttpOnly; SameSite=Strict; Path=/api`, `Secure` con `secureCookies`). Il cookie dura quanto la sessione (`Max-Age`); con `remember: false` (da lilOS 1.30.0) è un cookie della sessione del browser, senza `Max-Age`, che il browser cancella alla chiusura (la sessione sul kernel resta valida fino alla sua scadenza, ma nessuno ha più il token). Con un solo utente: `invalid`; troppi tentativi: `rate_limited` con `Retry-After`. |
 | `DELETE /api/session` | tutti | Chiude la sessione e cancella il cookie |
 | `POST /api/session/verify` | utenti | `{ username, password }` (fino a 16 KB) → `{ ok: true, role }`. Controlla una password **senza aprire una sessione**: fa un accesso (`auth.login`, con le sue regole contro i tentativi ripetuti, `invalid_credentials` e `rate_limited`) e lo chiude subito. Serve al programma lilOS: un amministratore dà nome e password per far uscire dal kiosk la finestra di un altro utente. Con un solo utente: `invalid`; senza sessione: `unauthorized`. |
 | `GET /api/boot` | utenti | → `{ user, home, fresh, nodes, storage, apps, appSecurity, net }`: tutto ciò che serve per partire. `home`: il percorso della home nel file system (`/home/<utente>`), da cui `fs.path` parte. `fresh`: la cartella dell'utente è vuota. `apps` è l'elenco di `GET /api/apps`, ma senza nascondere l'origine `local` ai non amministratori. `appSecurity`: `{ isolated }`, la regola generale su come girano le app. `net`: `{ protocols, mounts }`, come `GET /api/net` |
+| `GET /api/fs/tree` | utenti | (da 1.34.0) Solo l'albero della home, di nuovo: → `{ home, nodes, tags, locale }` (`home` il percorso della home, `nodes` i nodi come li vede la pagina, `tags` le etichette, `locale` la lingua scelta o `null`). Lo usa il comando `lilos` prima di ogni riga, per vedere ciò che altri hanno cambiato nel frattempo. |
 | `POST /api/fs/sync` | utenti | `{ put: [nodo], remove: [id] }`, in una transazione; al massimo 5000 voci e 8 MB. L'SDK ne manda al massimo 2000 per richiesta (prima i nodi, con i genitori prima dei figli, poi le eliminazioni), quindi non c'è un limite al numero di modifiche di una volta sola |
 | `GET /api/fs/content/:id` | utenti | → testo del file, al massimo `files.maxText` (10 MB di serie, altrimenti `too_large`). Con `?raw=1`: i byte (`application/octet-stream`); se il modulo `fs` ha `readStream` li manda in streaming, con `Content-Length`, senza tenerli tutti in memoria |
 | `PUT /api/fs/content/:id` | utenti | I byte (o il testo) del file, **in streaming** (da lilOS 1.33.0; prima fino a 10 MB letti per intero). Il kernel non tiene il file: lo passa a `fs.writeFrom` contando i byte che arrivano. `Content-Length`, se c'è, si controlla prima di leggere il corpo. `too_large` (413) oltre `files.maxFileSize` (1 GB di serie); `quota` (507) se non ci sta nello spazio dell'utente. Una richiesta interrotta annulla la scrittura: il file resta com'era |
@@ -4074,6 +4075,8 @@ In un lilOS installato il kernel serve anche la pagina: ogni `GET` e `HEAD` fuor
 
 I percorsi possono finire con `*` (`/api/apps/:id/v/:version/*`): il resto del percorso arriva in `params.rest`.
 
+**`X-Lilos-Client: cli`** (da 1.34.0). Su `POST /api/fs/sync` questa intestazione dice che la richiesta viene dal comando `lilos`, che non ha una pagina sua: il kernel manda alle pagine aperte dell'utente l'evento `fs.external` con i cambiamenti (`put` senza i nodi del Cestino, `remove` e `trash`: `[{ id, at, from }]` per quelli messi nel Cestino), come se li avesse fatti un servizio. Senza l'intestazione l'evento non parte: le pagine sono già quelle che sincronizzano.
+
 **Nodi di `/api/fs/sync`.** `{ id, parent, name, type: 'folder' \| 'file' \| 'app' \| 'link', created, modified, color?, app?, link?, system?, workspace?, private?, tags?, trashed?, apps? }`: gli id di lilOS (`[\w-]{1,64}`; `root` e `trash` solo come `parent`) diventano `<home>/<id>`, in una cartella per utente. Il contenuto dei file non passa di qui. Un `link` (obbligatorio per il tipo `link`, vietato per gli altri, deve essere un oggetto) il servizio `fs` lo salva come una scorciatoia: tipo `app` con `link` nei metadati; lilOS lo rimette `link` quando lo legge (`api/home.js`, `toBackNode` e `toFrontNode`). Il database e i moduli `fs-*` non conoscono il tipo ([D62](../interna/decisioni.md#d62-i-collegamenti-un-tipo-di-nodo-di-lilos-una-scorciatoia-per-il-kernel)). I metadati extra (i campi dopo `modified`, `apps` compreso) non possono superare 4 KB per nodo in tutto (`too_large`: «Troppi dati in un elemento»): `apps` non supera 2 KB in tutto (lo garantisce `fs`), così sta nel limite.
 
 **Dentro la home** di ogni utente: `~trash` (la radice del Cestino, nominata `.trash`) e `~config` (nominata `.config`, un file JSON per ogni chiave di `storage`). Una chiave è `[\w:.-]{1,120}`.
@@ -4101,6 +4104,7 @@ I percorsi possono finire con `*` (`/api/apps/:id/v/:version/*`): il resto del p
 | `host`, `port` | Dove ascolta. Senza modulo `auth` solo `127.0.0.1`, `::1` o `localhost`. `LILOS_KERNEL_HOST` e `LILOS_KERNEL_PORT` hanno la precedenza. |
 | `origins`, `loopbackOrigins` | Origini ammesse per le richieste che modificano. |
 | `secureCookies` | Aggiunge `Secure` al cookie (con HTTPS). |
+| `ui` | Predefinito `true`. `false` è [lilOS senza UI](#lilos-senza-ui-ui-false): il kernel non serve la pagina e risponde solo alle API. Vale `true` per qualunque valore diverso da `false`. |
 | `modules` | Moduli da avviare, `{ name, version?, config? }`. Senza `version`: la più alta installata. Un modulo indicato due volte, non installato, o che richiede un servizio che nessun modulo attivo fornisce, ferma il kernel. |
 | `net` | Facoltativo, con più utenti: dove il kernel può collegarsi per le connessioni di rete (Rete, Terminale, NetTest, richieste web della Pianificazione). `{ allowLocal?: boolean, allowPrivate?: boolean, allow?: string[] }`: questo computer (`127.0.0.1`, `::1`) e la rete locale sono chiusi di serie; `allowLocal: true` apre il primo, `allowPrivate: true` la seconda; `allow`: intervalli CIDR (`'192.168.1.50/32'`) ammessi comunque. Da lilOS 1.25.0 li cambia anche un amministratore dal Pannello di controllo → Rete (`PUT /api/net/rules`): valgono subito e si salvano qui. Vedi [Rete](#rete-connessioni-e-trasferimenti-net-apinetjs). |
 | `settings` | Facoltativo (da lilOS 1.33.0): le [impostazioni del kernel](#limiti-dei-file-quote-e-impostazioni-del-kernel) che differiscono dal valore di serie, `{ "files.maxFileSize": 2147483648, "files.quota": 10737418240, "users": { "<id utente>": { "files.quota": … } } }`. Un valore o una chiave sbagliati si ignorano, con un avviso nel log. Lo scrive il Pannello di controllo (`PUT /api/settings`) e vale subito; nel file resta solo ciò che differisce dal valore di serie |
@@ -4116,6 +4120,35 @@ Il file si può cambiare con la variabile `LILOS_KERNEL_CONFIG`. Il kernel richi
 **File JSON del kernel** (`jsonFile.js`). Tutti i file di dati del kernel (configurazione, repository, connessioni, trasferimenti, host dei terminali, server confermati, `current.json`) si scrivono interi con `writeJson(file, valore, { pretty, mode })`: prima `<file>.tmp`, poi rinominato sopra il file, così chi legge (o un arresto a metà) trova il file vecchio o quello nuovo, mai metà. Permessi `0600` di serie; le scritture sullo stesso file, in questo processo, vanno una alla volta nell'ordine in cui sono chieste. `readJson(file, ripiego)` (file mancante → `ripiego`; JSON non valido → errore), `updateJson(file, fn, { fallback })` (legge, cambia e scrive senza altre scritture in mezzo), `removeJson(file)`, `userFile(cartella, idUtente, prefisso)` (il file di un utente: `<prefisso><32 cifre esadecimali>.json`, hash dell'id) e `JsonStore` (sotto, `ctx.jsonStore`).
 
 `repos.json`, nella cartella del kernel (`system/kernel/`, ignorato da git), contiene i repository aggiunti da un amministratore: `[{ id, name, url }]`, al massimo 30. L'ufficiale non è nel file: c'è sempre.
+
+### lilOS senza UI (`ui: false`)
+
+Da lilOS 1.34.0. Con `"ui": false` in `config.json` (o `kernel.ui` nelle [impostazioni di installazione](#impostazioni-di-installazione-lilos-installjson-e-immagini-del-sistema)) il kernel è un servizio senza pagina. Decisione e motivi: [D86](../interna/decisioni.md#d86-lilos-senza-ui-e-il-comando-lilos).
+
+- **Fuori da `/api/` non risponde niente.** Ogni richiesta (anche l'aggiornamento a WebSocket) ha un `404` con `Content-Length: 0`: né testo né il JSON di errore del kernel, e niente controllo dell'host (`silent` in `kernel.js`). Rispondono solo le rotte `/api/` del kernel e dei moduli, che hanno i loro controlli di sempre.
+- **Nessuna app di sistema.** `apps.bootstrap` non viene eseguito e le `apps` di `lilos-install.json` si saltano con un avviso nel log. Passando alla UI (togliere `ui` da `config.json` e riavviare) il kernel installa le app di sistema che mancano.
+- **La licenza si accetta nella console, all'avvio** (`License.acceptAtStart`, prima che il kernel apra la porta), perché non c'è la pagina:
+  - già accettata: niente;
+  - mai accettata con `--accept-license` (argomento del kernel: `run.js` li passa) o `LILOS_ACCEPT_LICENSE=1`: stampa il testo e la accetta (`by: 'console'`);
+  - mai accettata con un terminale (stdin e stdout): il testo a pagine (Invio avanti, `q` smette di leggere) e va scritto `accetto`; altre risposte fermano il kernel;
+  - mai accettata senza terminale e senza opzione: il kernel esce con il codice **3** (`LicenseRefused`) e `run.js` non lo riavvia;
+  - accettata, ma con un testo cambiato dopo: con un terminale si chiede come sopra; **senza** il kernel parte e scrive un avviso nel log (un amministratore la accetta con `lilos license accept`, che usa `/api/license`).
+  Con `acceptLicense: true` nelle impostazioni di installazione il testo è già accettato (`by: 'install'`).
+- `GET /api/session` dice `ui: false`; un client (il comando `lilos`) lo usa per mostrare «senza UI».
+- Si installa con `node system/kernel/tools/install.js <cartella> --no-ui` ([Prima installazione](#lilos-come-pacchetto-systempackagejs)): scrive `ui: false`, aggiunge il modulo `terminal-cli` e il repository community. Il comando `lilos` è il modulo [`terminal-cli`](#terminal-cli) (di cui `lilos.mjs` è il lanciatore).
+
+### Il comando `lilos` e la riga di comando dei moduli (`cli.js`)
+
+`node system/kernel/cli.js <modulo> <comando> [argomenti] [--opzione valore] [--interruttore] [-- grezzi…]` (e `npm run kernel:cli`). Dalla 1.34.0:
+
+- **`--`** ferma l'analisi delle opzioni: `args` ha solo ciò che lo precede.
+- **`argv`** è l'elenco di tutti gli argomenti dopo il comando, come sono arrivati (anche quelli dopo `--`): serve a chi li interpreta da sé.
+- **`kernel: { url }`** è dove ascolta il kernel di questa configurazione, visto da questo computer (`host` `0.0.0.0` o `::` valgono il loopback).
+- **Il valore restituito** da `commands.<nome>` è il codice di uscita se è un intero tra 0 e 255; altrimenti 0. Un errore lanciato esce con 1.
+
+Il comando `run` riceve dunque `{ services, args, argv, kernel, prompt, ctx }`.
+
+`system/kernel/lilos.mjs` è il lanciatore `lilos`: trova il `cli.js` della versione in uso (`current.json`; in una copia del repository quello accanto) e lancia `terminal-cli sh -- <argomenti>`. Sta accanto a `run.js` e non si aggiorna con le release (come `run.js`); `npm run lilos -- …` lo lancia da una copia del repository. `tools/install.js` lo scrive in ogni installazione, con `lilos.cmd` (Windows) o `lilos` (script `sh`, con il percorso assoluto del `node` che esegue l'installazione), e la release lo porta impacchettato da solo (`scripts/release.mjs`).
 
 ### Avvio e riavvio (`run.js`)
 
@@ -4785,6 +4818,31 @@ Errori: `invalid` (regola o azione non valida; «Troppo spesso» sotto `minInter
 
 ---
 
+### `terminal-cli`
+
+Da lilOS 1.34.0 (modulo 1.0.0, `plugins/modules/terminal-cli/`, nel repository ufficiale). Il comando `lilos`: il Terminale in un terminale del computer. Non fornisce servizi né rotte: il kernel lo carica con `init() {}` e il codice vero (`cli.js`, importato solo quando il comando gira) parte dalla riga di comando, come `terminal-cli sh -- …`. Decisione: [D86](../interna/decisioni.md#d86-lilos-senza-ui-e-il-comando-lilos).
+
+**È un client HTTP del kernel acceso**, non un secondo kernel: usa la stessa API della pagina (sessione, `/api/fs/tree`, `/api/fs/sync` con `X-Lilos-Client: cli`, `/api/fs/content`, `/api/repos`, `/api/packages/plan`, `/api/languages`, `/api/system`, `/api/license`…). Perciò vale gli stessi permessi, passa dal Cestino e dagli eventi come la pagina e può parlare con un kernel lontano.
+
+| Cosa | Dettaglio |
+| --- | --- |
+| Uso | `lilos [opzioni] [comando …]`: senza comando (e con un terminale) la shell interattiva; con parole, una riga fatta con gli argomenti messi tra virgolette; `-c "riga"`, una riga così com'è; con l'ingresso da pipe, uno script. |
+| Opzioni | `--server URL`, `--user NOME`, `--cwd CARTELLA`, `--no-color`, `--logout`, `--version`/`-V`, `--help`/`-h`, `-c RIGA`. |
+| Variabili | `LILOS_SERVER`, `LILOS_USER`, `LILOS_PASSWORD`, `NO_COLOR`, `LILOS_CLI_DIR` (cartella di `cli.json` e `history`). |
+| Server | `--server`, poi `LILOS_SERVER`, poi `kernel.url` dato da `cli.js` (la configurazione di questa installazione), poi `http://127.0.0.1:8790`. Un indirizzo senza schema vale `http://`. |
+| Accesso | Utente singolo: niente. Altrimenti la sessione salvata (`cli.json`), poi utente (`--user`, `LILOS_USER` o chiesto) e password (`LILOS_PASSWORD` o chiesta senza eco, tre tentativi con un terminale). «Resta connesso?» salva il token; senza, la sessione finisce con il comando. |
+| Dati sul computer | `cli.json` (`{ servers: { [url]: { token, username, savedAt } } }`, leggibile solo dall'utente) e `history`, in `%APPDATA%\lilos-cli` (Windows) o `$XDG_CONFIG_HOME/lilos-cli` / `~/.config/lilos-cli` (altrove). Non `lilos`: su Windows sarebbe la cartella del programma lilOS. |
+| Codici di uscita | Quello del comando (130 dopo Ctrl+C), `2` uso sbagliato, `3` kernel non raggiungibile, `4` accesso non riuscito. |
+| Shell | La shell del Terminale (`plugins/src/terminal`) impacchettata nel modulo, con `@lilos/sdk` e `@lilos/system` sostituiti da `lib/sdk.js` e `lib/system.js` del modulo (alias di `build.json`): la home e i file passano per l'API. Prima di ogni riga rilegge l'albero (`GET /api/fs/tree`); i cambiamenti li manda con `POST /api/fs/sync`. |
+| Comandi propri | `appstore` e `license` (sotto). |
+| Non disponibili | `open`/`xdg-open`, i comandi di shell delle app, le sessioni remote (`ssh`, `telnet`, …), `nettest`, il cambio dei tag. |
+
+**`appstore`.** `list [--installed | --updates] [--modules | --languages] [--repo ID]`, `search TESTO`, `info NOME`, `install [-y] [--allow-unsigned] [--repo ID] NOME…`, `remove [-y] NOME…`, `update [-y] [NOME…]`, `repo list | add URL|community [--name N] | remove ID`, `system [update | use VERSIONE | remove VERSIONE]`, `restart`. Solo moduli del kernel e pacchetti di lingua (`lang:<codice>`, solo dal repository ufficiale): le app sono rifiutate. Moduli, repository e `system` per gli amministratori (o con lilOS a utente singolo); le lingue per tutti. Installa mostrando il piano con le dipendenze (`/api/packages/plan`) e chiede conferma (`-y` la dà); un modulo non firmato si chiede a parte (o `--allow-unsigned`). Dopo moduli nuovi propone il riavvio e aspetta fino a 3 minuti che il kernel torni. L'ultimo modulo `fs` non si toglie.
+
+**`license`.** `license` mostra il testo e lo stato; `license status` esce con 1 se non è accettata; `license accept [-y]` la accetta (amministratori). La shell interattiva avvisa, all'ingresso di un amministratore, se la licenza è cambiata.
+
+I testi (`en` e `it`) stanno in `locales.json` del modulo.
+
 ### `users-basic_1.1.0`
 
 Configurazione: `sessionDays` (30) e `idleDays` (7). Tutto sta in `users.json` nella cartella del modulo:
@@ -4897,6 +4955,8 @@ La classe `Dependencies` (`kernel.dependencies`) pianifica e fa le installazioni
 | `settings?` | Elenco di campi (vedi [Moduli](#moduli)): le impostazioni che un amministratore può cambiare, con `GET` e `PUT /api/modules/:nome/settings` (`kernelModules.settings` e `saveSettings`). Vale per i moduli in esecuzione: si controllano all'avvio del kernel, non all'installazione. |
 | `replaces?` | Da lilOS 1.22.0. I nomi dei moduli di cui prende il posto, quando due moduli si fondono in uno (`netfs-google` sostituisce `netfs-gdrive` e `netfs-gphotos`; `ssh` sostituisce `term-ssh` e `netfs-sftp`). Non sé stesso né un modulo obbligatorio. Vedi **Sostituzione** sotto. `list()` lo restituisce come `replaces`. |
 
+**Costruire un modulo del repository ufficiale** (`buildModule` di `plugins/scripts/build.mjs`). Ogni `.js` della cartella (`index.js` per primo) diventa un file solo con Vite, i pacchetti npm e i moduli `node:` restano `import`; ogni altro file si copia com'è (`module.json` sempre, anche se il codice lo importa). Da lilOS 1.34.0 un modulo può avere un `build.json` (non copiato nel pacchetto): `{ "alias": { "<import>": "<file del modulo>" } }`. Gli `import` con quel nome (e quelli relativi) entrano nel pacchetto, e il nome è risolto nel file indicato. `terminal-cli` lo usa per impacchettare la shell del Terminale con un suo `@lilos/sdk` e un suo `@lilos/system` (`lib/sdk.js`, `lib/system.js`).
+
 - **Installazione.** Copia il pacchetto in `modules/<nome>_<versione>/` (con `source.json`: da dove viene, `{ type, url, ref, commit, path, installed }` e `dependency: true` se è stato installato solo perché un altro pacchetto lo richiedeva), esegue `npm ci` (o `npm install` senza lockfile; `--omit=dev --ignore-scripts`) se c'è un `package.json`, e lo aggiunge a `modules` in `config.json` con `defaultConfig`. Prima **verifica che il kernel si avvierebbe** con quella lista (dipendenze soddisfatte, un modulo che fornisce `fs`, e senza `auth` solo `host` locale): se no, lascia tutto com'era e lancia `conflict`.
 - **Aggiornamento.** Parte dal `source.json` registrato (con `ref` opzionale), copia la nuova versione accanto alla vecchia, ci porta i file di `data`, aggiorna la versione in `config.json` e tiene le due versioni più recenti. Senza versione più alta risponde `unchanged: true`. Un modulo senza `source.json` (messo a mano) non si aggiorna da qui.
 - **Rimozione.** Toglie il modulo da `config.json` (dopo aver verificato che il kernel si avvierebbe senza) e cancella le cartelle delle sue versioni, **tranne quelle che contengono file di `data`**: gli utenti di `users-basic` restano. Un modulo obbligatorio (`REQUIRED_MODULES`) non si rimuove (`forbidden`). Reinstallando la stessa versione quella cartella si riusa.
@@ -5003,7 +5063,7 @@ Ogni campo si può omettere. Un valore sbagliato ferma l'installazione con un me
 | `installer.server` | `{ url, name?, trusted? }` oppure solo l'indirizzo. `url` è `http://` o `https://`; `name` è per default il nome host; `trusted` è `false`. Con `mode: "server"` è obbligatorio. | `null` |
 | `image` | Un'immagine del sistema (sotto): cartella, `.zip` o `.tar.gz`, oppure indirizzo `http(s)://` di uno di questi. Al posto della release ufficiale. | `null` |
 | `lilos.source` | `"local"`: la release che porta l'installatore. `"server"`: la più recente del repository ufficiale (quella portata resta come versione a cui tornare). Con `image` non conta. | `"local"` |
-| `kernel` | Chiavi scritte in `config.json`: `host`, `port`, `origins`, `loopbackOrigins`, `secureCookies`, `net`, `oauth`, `settings` (le [impostazioni del kernel](#limiti-dei-file-quote-e-impostazioni-del-kernel), da lilOS 1.33.0; il kernel ignora e scrive nel log un valore non valido). Altre chiavi sono un errore. | `{}` |
+| `kernel` | Chiavi scritte in `config.json`: `host`, `port`, `origins`, `loopbackOrigins`, `secureCookies`, `net`, `oauth`, `settings` (le [impostazioni del kernel](#limiti-dei-file-quote-e-impostazioni-del-kernel), da lilOS 1.33.0; il kernel ignora e scrive nel log un valore non valido), `ui` (booleano: `false` è [lilOS senza UI](#lilos-senza-ui-ui-false), da 1.34.0). Altre chiavi sono un errore. | `{}` |
 | `modules.source` | Da dove vengono i moduli: `"server"` (la versione più recente del repository ufficiale) o `"local"` (la copia che la release porta, se c'è; altrimenti il repository ufficiale). | `"server"` |
 | `modules.list` | I moduli del kernel: `[{ name, source?, config? }]`. Con `null` valgono quelli del `config.json` della release (o dell'immagine). | `null` |
 | `modules.config` | `{ "<modulo>": { … } }`: la configurazione di un modulo, qualunque sia la lista. Si fonde con quella che il modulo ha già. | `{}` |
@@ -5014,12 +5074,14 @@ Ogni campo si può omettere. Un valore sbagliato ferma l'installazione con un me
 | `acceptLicense` | `true`: chi prepara l'installazione accetta la licenza di lilOS (`src/license.js`) per lei, e al primo avvio non si chiede a un amministratore. Si chiede di nuovo se il testo cambia. | `false` |
 | `applied` | Data scritta dal kernel quando ha creato utenti e app. Non scriverla. | `null` |
 
-**Cosa fa `install.js`.** `node system/kernel/tools/install.js [<cartella>] [--settings <file>] [--from <cartella del kernel>]`:
+**Cosa fa `install.js`.** `node system/kernel/tools/install.js [<cartella>] [--settings <file>] [--from <cartella del kernel>] [--no-ui] [--accept-license]`:
 
 - La cartella è `<cartella>` oppure `installer.dir`; senza nessuna delle due si ferma. Rifiuta una cartella dove lilOS è già installato.
 - Scrive `releases/<versione>`, `run.js`, `config.json` (con `kernel` e i moduli scelti), `repos.json` (con `repos`) e `current.json`. Con `lilos.source: "server"` mette la versione più recente accanto a quella portata e `current.json` ha `previous` = la portata.
 - Le `apps` senza `repo` vanno in `apps.bootstrap` di `config.json`: le installa il kernel come app di sistema. Le altre le installa il kernel al primo avvio.
 - Scrive nella cartella dei dati una copia del file (`lilos-install.json`, permessi `0600`) per il kernel.
+- **`--no-ui`** (da 1.34.0) equivale a `kernel.ui: false`: scrive `"ui": false` in `config.json`, aggiunge ai moduli `terminal-cli` (dal repository ufficiale, se manca) e il repository community `https://github.com/GexyLab/lilos-plugins-community` (se non c'è). **`--accept-license`** equivale a `acceptLicense: true`.
+- Accanto a `run.js` scrive il lanciatore del comando `lilos`: `lilos.mjs` più `lilos.cmd` (Windows) o `lilos` (`sh`, eseguibile), che usano il percorso assoluto del `node` che esegue l'installazione.
 - Con `--from` configurazione, moduli e repository sono quelli copiati: delle impostazioni valgono solo `apps`, `users` e `settings`. `--from` e `image` insieme sono un errore.
 
 **Cosa fa il kernel al primo avvio** (`firstStart.js`, dopo aver caricato l'eventuale immagine e le app di sistema):
