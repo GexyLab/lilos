@@ -1,6 +1,6 @@
 {
   "name": "fs-postgres",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "File system di lilOS su un database PostgreSQL, con il controllo degli accessi",
   "kernel": "1",
   "provides": [

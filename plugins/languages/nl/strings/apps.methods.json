@@ -1,6 +1,6 @@
 {
-  "fileTooBig": "Bestand te groot",
-  "textTooLong": "Tekst te lang",
+  "fileTooBig": "Bestand te groot: lilOS slaat bestanden op tot {max}",
+  "textTooLong": "Tekst te lang: hoogstens {max}",
   "denied": "Machtiging geweigerd: {permission}",
   "deniedContent": "Machtiging geweigerd: alleen een app met de pipes file.read en file.write kan een inhoud als de hare markeren",
   "fileGone": "Het bestand bestaat niet meer",

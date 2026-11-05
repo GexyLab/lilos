@@ -3,6 +3,7 @@ import { join, relative, resolve } from 'node:path';
 import { INSTALL_DIR, MODULES_DATA_DIR, MODULES_DIR, loadConfig } from '../src/config.js';
 import { exportFs, writeImageInfo } from '../src/image.js';
 import { resolveModules, startModule } from '../src/modules.js';
+import { KernelSettings } from '../src/settings.js';
 
 /**
  * Makes a system image of this installed lilOS (src/image.js), to install it ready, with its
@@ -41,7 +42,7 @@ try {
   }
   const services = new Map();
   const started = [];
-  const host = { route() {}, socket() {}, emit() {}, dataDir: MODULES_DATA_DIR };
+  const host = { route() {}, socket() {}, emit() {}, dataDir: MODULES_DATA_DIR, settings: new KernelSettings(config.settings).forModule() };
   for (const mod of all.filter(m => needed.has(m.name))) started.push(await startModule(mod, services, host));
   if (!services.has('fs')) throw new Error('Nessun modulo fornisce il servizio "fs"');
   const users = services.has('users') ? await services.get('users').list() : [LOCAL_USER];

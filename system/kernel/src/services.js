@@ -30,6 +30,12 @@
  *   readStream(principal, id, { start }) → Readable     the content from byte `start`
  *   writeFrom(principal, id, source, { signal }) → size  the content from a stream of bytes; it becomes
  *                                                       the file's only once all of it arrived
+ *   usage(principal, userId) → bytes                    the space of a user's home, for the kernel's quotas
+ *                                                       (files.js; kernel only); without it, no quotas
+ *   The kernel wraps the service (files.js): for users, write() and writeFrom() are checked against
+ *   files.maxFileSize and the user's space; writeFrom() is always there (gathered for write() when
+ *   the module lacks it), and its options may say the `size` coming. The module reads its own sizes
+ *   from ctx.settings (files.dbChunk, files.inlineMax, files.maxReadWhole: settings.js).
  *
  *   node: { id, parent, name, type: 'folder' | 'file' | 'app', meta: {}, size, created, modified, content? }
  *

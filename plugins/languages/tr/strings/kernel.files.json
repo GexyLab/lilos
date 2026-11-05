@@ -1,0 +1,14 @@
+{
+  "tooBig": "Dosya çok büyük ({size}): lilOS en fazla {max} boyutunda dosya kaydeder",
+  "quota": "Yeterli alan yok: alanınızdan {free} kaldı",
+  "quotaNear": "Alanınızın %{percent} kadarını kullandınız ({used} / {quota})",
+  "readWhole": "Dosya tek seferde okunamayacak kadar büyük ({size}, en fazla {max})",
+  "text": "Metin çok uzun ({size}, en fazla {max})",
+  "noUpload": "Karşıya yükleme bulunamadı: bitti ya da çok uzun süre boşta kaldı",
+  "offset": "Karşıya yükleme {received}. bayta ulaştı",
+  "uploadSize": "Karşıya yüklemenin boyutu geçerli değil",
+  "tooMany": "Aynı anda çok fazla karşıya yükleme",
+  "notFile": "Bu bir dosya değil",
+  "ended": "Karşıya yükleme kesildi",
+  "sizeDiffers": "Karşıya yüklemenin boyutundan fazla bayt"
+}

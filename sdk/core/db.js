@@ -1,9 +1,11 @@
 import { kernel } from './kernel.js';
+import { kernelSettings, limitOf } from './kernelSettings.js';
 
 /**
  * File contents (text or bytes), by node id. Connected to the kernel they live in the user's home and
- * IndexedDB keeps a copy of what was read or written (database 'lilos:<user id>'), used when the
- * kernel does not answer. Without the kernel IndexedDB ('lilos') is where they live.
+ * IndexedDB keeps a copy of what was read or written (database 'lilos:<user id>'), up to the kernel's
+ * files.cacheMax, used when the kernel does not answer; big contents go to the kernel in pieces
+ * (files.uploadPiece). Without the kernel IndexedDB ('lilos') is where they live.
  * Asynchronous; never throws for the local part: without IndexedDB (some private modes) memory
  * is used, and `persistent` tells which one is in use. Reading or writing through the kernel
  * throws its errors (KernelError).
@@ -60,6 +62,52 @@ const path = key => `/fs/content/${encodeURIComponent(key)}`;
 const asText = value => (value instanceof Blob ? value.text() : value);
 const asBlob = value => (value instanceof Blob ? value : typeof value === 'string' ? new Blob([value]) : value);
 
+const sizeOf = value => (value instanceof Blob ? value.size : String(value).length);
+
+/**
+ * The local copy of a content the kernel has: only up to files.cacheMax (0: all of them), so big
+ * files do not fill the browser; a bigger one drops the old copy.
+ */
+async function keepCopy(key, value) {
+  let max = Infinity;
+  try { max = limitOf((await kernelSettings.limits()).cacheMax); } catch { /* the default: keep it */ }
+  if (sizeOf(value) > max) await local.delete(key);
+  else await local.set(key, value);
+}
+
+const wait = ms => new Promise(r => setTimeout(r, ms));
+
+/**
+ * Sends a content to the kernel: in one request up to files.uploadPiece (0: always one), bigger in
+ * pieces of that size (an upload of the kernel, POST /fs/uploads). A piece that fails for the
+ * network is sent again from the byte the kernel has, 3 times at most.
+ */
+async function upload(key, value) {
+  const { uploadPiece: piece } = await kernelSettings.limits();
+  if (!piece || sizeOf(value) <= piece) return kernel.request('PUT', path(key), value);
+  const blob = value instanceof Blob ? value : new Blob([value]);
+  const { upload: id } = await kernel.request('POST', '/fs/uploads', { id: key, size: blob.size });
+  const at = `/fs/uploads/${encodeURIComponent(id)}`;
+  let received = 0, tries = 0;
+  try {
+    while (received < blob.size) {
+      try {
+        ({ received } = await kernel.request('PUT', `${at}?offset=${received}`, blob.slice(received, Math.min(blob.size, received + piece))));
+        tries = 0;
+      } catch (err) {
+        // Another offset: where the kernel is
+        if (err.code === 'conflict' && Number.isSafeInteger(err.details?.received)) { received = err.details.received; continue; }
+        if (err.code !== 'offline' || ++tries > 3) throw err;
+        await wait(1000 * tries);
+        try { ({ received } = await kernel.request('GET', at)); } catch (e) { if (e.code !== 'offline') throw e; }
+      }
+    }
+  } catch (err) {
+    kernel.request('DELETE', at).catch(() => {});
+    throw err;
+  }
+}
+
 /** From the kernel (text or bytes), keeping a local copy; offline, the local copy. */
 async function fetchContent(key, blob) {
   if (!kernel.connected) return local.get(key);
@@ -67,7 +115,7 @@ async function fetchContent(key, blob) {
     const value = blob
       ? await kernel.request('GET', `${path(key)}?raw=1`, undefined, { blob: true })
       : await kernel.request('GET', path(key), undefined, { text: true });
-    local.set(key, value);
+    keepCopy(key, value).catch(() => {});
     return value;
   } catch (err) {
     if (err.code !== 'offline') throw err;
@@ -87,8 +135,9 @@ export const contents = {
   /** value: a string or a Blob. */
   async set(key, value) {
     if (!(value instanceof Blob)) value = String(value);
-    if (kernel.connected) await kernel.request('PUT', path(key), value);
-    await local.set(key, value);
+    if (!kernel.connected) return local.set(key, value);
+    await upload(key, value);
+    await keepCopy(key, value);
   },
   /** Connected, the kernel removes a file's content with its node: only the local copy goes. */
   delete: key => local.delete(key),

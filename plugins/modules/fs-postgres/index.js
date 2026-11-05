@@ -22,9 +22,13 @@ import { chunks } from './lib/shared/streams.js';
  * unique where it needs to): lookup() takes the oldest.
  *
  * Contents: read() and write() take a whole file in memory. readStream() and writeFrom() go by
- * pieces: what writeFrom() writes is kept in lilos_chunks, 1 MB a row, and becomes the content only
- * when the whole of it arrived (until then readers see the old one). read() refuses a content bigger
- * than 256 MB: those only as a stream.
+ * pieces. A content up to the kernel's files.inlineMax (1 MB) stays in its row (column content); a
+ * bigger one goes in lilos_chunks, files.dbChunk bytes a row (1 MB; the size is kept with each
+ * generation of pieces, chunk_size, so a change does not touch the files already written), and
+ * becomes the content only when the whole of it arrived (until then readers see the old one).
+ * read() refuses a content bigger than files.maxReadWhole (256 MB): those only as a stream.
+ * usage(principal, userId) → bytes of a user's home (the kernel's quotas; kernel only).
+ * The settings come from ctx.settings (lilOS 1.33.0); an older kernel has none: the defaults count.
  *
  * Configuration: { url } (LILOS_PG_URL wins), { poolSize }.
  */
@@ -44,9 +48,19 @@ const TYPES = new Set(['folder', 'file', 'app']);
 const ID = /^[\w:~/.-]{1,300}$/;
 const MAX_NAME = 255;
 const MAX_DEPTH = 256;
-const COLUMNS = 'id, parent, name, type, area, owner, meta, size, created, modified, chunks';
-const CHUNK = 1 << 20;
-const MAX_READ = 256 << 20;
+const COLUMNS = 'id, parent, name, type, area, owner, meta, size, created, modified, chunks, chunk_size';
+const MB = 1 << 20;
+const OLD_CHUNK = MB;   // the pieces written before 1.2.0 (chunk_size null)
+
+/** A size setting of the kernel (ctx.settings), within [min, max]; `fallback` without it. */
+function setting(key, fallback, min, max) {
+  let v;
+  try { v = ctx.settings?.get(key); } catch { v = undefined; }
+  return Number.isSafeInteger(v) && v >= min && v <= max ? v : fallback;
+}
+const pieceSize = () => setting('files.dbChunk', MB, 256 << 10, 16 * MB);
+const inlineMax = () => setting('files.inlineMax', MB, 0, 64 * MB);
+const maxRead = () => { const v = setting('files.maxReadWhole', 256 * MB, 0, Number.MAX_SAFE_INTEGER); return v > 0 ? v : Infinity; };
 
 let pool, ctx;
 
@@ -176,7 +190,7 @@ async function removeOne(db, principal, id) {
 /** The whole content of a row (read with its content), from its column or its pieces. */
 async function contentOf(db, r) {
   if (!r.chunks) return r.content ?? Buffer.alloc(0);
-  if (Number(r.size) > MAX_READ) ctx.fail('too_large', 'File troppo grande da leggere in una volta');
+  if (Number(r.size) > maxRead()) ctx.fail('too_large', 'File troppo grande da leggere in una volta');
   const { rows } = await db.query('select data from lilos_chunks where node = $1 and gen = $2 order by seq', [r.id, r.chunks]);
   return Buffer.concat(rows.map(x => x.data));
 }
@@ -185,7 +199,8 @@ async function contentOf(db, r) {
 function streamOf(r, start) {
   if (!r.chunks) return Readable.from([(r.content ?? Buffer.alloc(0)).subarray(start)], { objectMode: false });
   const { id, chunks: gen } = r;
-  let seq = Math.floor(start / CHUNK), skip = start % CHUNK, got = start;
+  const size = Number(r.chunk_size) || OLD_CHUNK;
+  let seq = Math.floor(start / size), skip = start % size, got = start;
   return Readable.from((async function* () {
     for (;;) {
       const { rows } = await pool.query('select data from lilos_chunks where node = $1 and gen = $2 and seq = $3', [id, gen, seq++]);
@@ -232,6 +247,50 @@ export default {
       await pool.query(
         `insert into lilos_nodes (id, parent, name, type, area, created, modified) values ($1, $2, $3, 'folder', $4, $5, $5) on conflict (id) do nothing`,
         [b.id, b.parent, b.name, b.area, now]);
+    }
+
+    /**
+     * The content from a stream: up to files.inlineMax it is kept in memory and goes in its row; past
+     * it, in pieces of files.dbChunk in lilos_chunks, a new generation that becomes the content at the end.
+     */
+    async function writeFrom(principal, id, source, { signal } = {}) {
+      const first = await readable(pool, principal, id);
+      if (!can(principal, first, true)) ctx.fail('forbidden', 'Non puoi scrivere questo file');
+      if (first.type !== 'file') ctx.fail('invalid', 'Non è un file');
+      const gen = randomUUID();
+      const piece = pieceSize(), small = inlineMax();
+      let seq = 0, size = 0, flushed = false;
+      const held = [];
+      const put = async data => {
+        await pool.query('insert into lilos_chunks (node, gen, seq, data) values ($1, $2, $3, $4)', [id, gen, seq++, data]);
+      };
+      try {
+        for await (const part of chunks(source, piece)) {
+          signal?.throwIfAborted();
+          size += part.length;
+          // Still small enough for its row: kept until it is clear
+          if (!flushed && size <= small) { held.push(part); continue; }
+          if (!flushed) {
+            for (const h of held.splice(0)) await put(h);
+            flushed = true;
+          }
+          await put(part);
+        }
+        signal?.throwIfAborted();
+        const inline = !flushed;
+        await tx(async db => {
+          const r = await readable(db, principal, id, { lock: true });
+          if (!can(principal, r, true)) ctx.fail('forbidden', 'Non puoi scrivere questo file');
+          await db.query(`update lilos_nodes set content = $2, chunks = $3, chunk_size = $4, size = $5, modified = $6, rev = nextval('lilos_rev') where id = $1`,
+            [id, inline ? Buffer.concat(held) : null, inline ? null : gen, inline ? null : piece, size, Date.now()]);
+          // Only the pieces it replaces: another write of the same file may still be adding its own
+          if (r.chunks) await db.query('delete from lilos_chunks where node = $1 and gen = $2', [id, r.chunks]);
+        });
+        return size;
+      } catch (err) {
+        await pool.query('delete from lilos_chunks where node = $1 and gen = $2', [id, gen]).catch(() => {});
+        throw err;
+      }
     }
 
     ctx.provide('fs', {
@@ -305,50 +364,27 @@ export default {
         return streamOf(r, Math.min(start, Number(r.size)));
       },
 
-      async writeFrom(principal, id, source, { signal } = {}) {
-        const first = await readable(pool, principal, id);
-        if (!can(principal, first, true)) ctx.fail('forbidden', 'Non puoi scrivere questo file');
-        if (first.type !== 'file') ctx.fail('invalid', 'Non è un file');
-        const gen = randomUUID();
-        let seq = 0, size = 0, rest = Buffer.alloc(0);
-        const put = async data => {
-          await pool.query('insert into lilos_chunks (node, gen, seq, data) values ($1, $2, $3, $4)', [id, gen, seq++, data]);
-        };
-        try {
-          for await (const piece of chunks(source, CHUNK)) {
-            signal?.throwIfAborted();
-            size += piece.length;
-            if (piece.length === CHUNK) await put(piece);
-            else rest = piece;   // the last one, shorter
-          }
-          signal?.throwIfAborted();
-          // Small: in its column, as write() keeps it
-          const inline = seq === 0;
-          if (!inline && rest.length) await put(rest);
-          await tx(async db => {
-            const r = await readable(db, principal, id, { lock: true });
-            if (!can(principal, r, true)) ctx.fail('forbidden', 'Non puoi scrivere questo file');
-            await db.query(`update lilos_nodes set content = $2, chunks = $3, size = $4, modified = $5, rev = nextval('lilos_rev') where id = $1`,
-              [id, inline ? rest : null, inline ? null : gen, size, Date.now()]);
-            // Only the pieces it replaces: another write of the same file may still be adding its own
-            if (r.chunks) await db.query('delete from lilos_chunks where node = $1 and gen = $2', [id, r.chunks]);
-          });
-          return size;
-        } catch (err) {
-          await pool.query('delete from lilos_chunks where node = $1 and gen = $2', [id, gen]).catch(() => {});
-          throw err;
-        }
-      },
+      writeFrom,
 
       async write(principal, id, data) {
         if (!Buffer.isBuffer(data)) ctx.fail('invalid', 'Contenuto non valido');
+        // Bigger than one row: in pieces, as writeFrom() keeps them
+        if (data.length > inlineMax()) return void await writeFrom(principal, id, Readable.from([data], { objectMode: false }));
         await tx(async db => {
           const r = await readable(db, principal, id, { lock: true });
           if (!can(principal, r, true)) ctx.fail('forbidden', 'Non puoi scrivere questo file');
           if (r.type !== 'file') ctx.fail('invalid', 'Non è un file');
-          await db.query(`update lilos_nodes set content = $2, chunks = null, size = $3, modified = $4, rev = nextval('lilos_rev') where id = $1`, [id, data, data.length, Date.now()]);
+          await db.query(`update lilos_nodes set content = $2, chunks = null, chunk_size = null, size = $3, modified = $4, rev = nextval('lilos_rev') where id = $1`, [id, data, data.length, Date.now()]);
           if (r.chunks) await db.query('delete from lilos_chunks where node = $1 and gen = $2', [id, r.chunks]);
         });
+      },
+
+      /** The bytes of a user's home (trash and lilOS's data included), for the kernel's quotas. */
+      async usage(principal, userId) {
+        if (!isKernel(principal)) ctx.fail('forbidden', 'Solo il kernel');
+        if (typeof userId !== 'string' || !userId) ctx.fail('invalid', 'Utente non valido');
+        const { rows } = await pool.query(`select coalesce(sum(size), 0)::text as used from lilos_nodes where owner = $1 and area = 'home' and type = 'file'`, [userId]);
+        return Number(rows[0].used);
       },
 
       async remove(principal, ids) {

@@ -1,6 +1,6 @@
 {
-  "fileTooBig": "File terlalu besar",
-  "textTooLong": "Teks terlalu panjang",
+  "fileTooBig": "File terlalu besar: lilOS menyimpan file hingga {max}",
+  "textTooLong": "Teks terlalu panjang: maksimal {max}",
   "denied": "Izin ditolak: {permission}",
   "deniedContent": "Izin ditolak: hanya aplikasi dengan pipe file.read dan file.write yang dapat menandai konten sebagai miliknya",
   "fileGone": "File sudah tidak ada",

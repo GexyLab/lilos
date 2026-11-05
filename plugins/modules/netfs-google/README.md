@@ -33,3 +33,11 @@ Ogni installazione usa il **proprio progetto Google Cloud**. Un amministratore l
 Google rimanda la finestra di accesso solo a un indirizzo **https con un nome di dominio**, o a `http://localhost`. Se lilOS è aperto in altro modo (per esempio `http://192.168.1.10:8790`) l'accesso si fa **incollando l'indirizzo**: la pagina di Google si apre in una nuova scheda, alla fine finisce su una pagina che non si apre (`http://127.0.0.1:53682/…`), e l'utente ne incolla l'indirizzo in lilOS. Con un client di tipo **App desktop** l'accesso è sempre così.
 
 Fornisce i servizi `netfs.gdrive` e `netfs.gphotos`. Nessuna dipendenza. Richiede lilOS 1.22.0 o successivo.
+
+## Soglie dei file grandi
+
+Dalla 1.1.0. La dimensione dei pezzi con cui un file va su Drive è un'impostazione del modulo (un amministratore la cambia; vale subito, anche per i trasferimenti che partono dopo). Un invio interrotto riparte dall'ultimo pezzo:
+
+| Chiave | Cosa | Predefinito |
+|---|---|---|
+| `pieceMb` | Dimensione dei pezzi (MB), un numero intero: così è sempre un multiplo di 256 KB, come chiede Google | 8 (da 1 a 1024) |

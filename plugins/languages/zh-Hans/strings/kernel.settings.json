@@ -1,0 +1,11 @@
+{
+  "unknown": "未知设置：{key}",
+  "value": "{key} 的值无效",
+  "noZero": "{key} 不能为 0",
+  "min": "{key} 不能小于 {min}",
+  "max": "{key} 不能大于 {max}",
+  "perUser": "{key} 不能为单个用户设置",
+  "user": "用户不存在",
+  "admin": "只有管理员才能更改内核设置",
+  "changes": "无效的更改"
+}

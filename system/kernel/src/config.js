@@ -56,8 +56,10 @@ const VERSION = /^\d+\.\d+\.\d+$/;
  *             devRepository?: 'dev-repo' },
  *     net: { allowPrivate, allow: ['192.168.1.50/32'] },   where users may connect, with sign-in (net/guard.js):
  *                                                          the local network is closed unless opened here
- *     oauth: { microsoft: {…}, google: {…} } }             the apps registered with the providers, for the
+ *     oauth: { microsoft: {…}, google: {…} },              the apps registered with the providers, for the
  *                                                          sign-ins of the network protocols (net/oauth.js)
+ *     settings: { 'files.maxFileSize': n, …,               the kernel's settings that differ from their default
+ *                 users: { <user id>: { 'files.quota': n } } }   (settings.js; Control Panel changes them) }
  * allowLocalSources lets apps be installed from a folder of this computer (development only).
  * devRepository (development only, ignored in an installed lilOS): a git repository on this computer,
  * relative to system/kernel or absolute, read in place of the official one; `npm run dev:update`
@@ -87,5 +89,7 @@ export async function loadConfig() {
     modules: modules.map(m => ({ name: m.name, version: m.version ?? null, config: m.config && typeof m.config === 'object' ? m.config : {} })),
     net: raw.net && typeof raw.net === 'object' && !Array.isArray(raw.net) ? raw.net : {},
     oauth: raw.oauth && typeof raw.oauth === 'object' && !Array.isArray(raw.oauth) ? raw.oauth : {},
+    // The kernel's settings that differ from their default (settings.js checks them)
+    settings: raw.settings ?? null,
   };
 }

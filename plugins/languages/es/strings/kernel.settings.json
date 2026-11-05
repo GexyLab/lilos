@@ -1,0 +1,11 @@
+{
+  "unknown": "Ajuste desconocido: {key}",
+  "value": "Valor no válido para {key}",
+  "noZero": "{key} no puede ser 0",
+  "min": "{key} debe ser como mínimo {min}",
+  "max": "{key} debe ser como máximo {max}",
+  "perUser": "{key} no se puede asignar a un solo usuario",
+  "user": "El usuario no existe",
+  "admin": "Solo un administrador cambia los ajustes del kernel",
+  "changes": "Cambios no válidos"
+}

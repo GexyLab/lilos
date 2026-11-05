@@ -1,6 +1,6 @@
 {
-  "fileTooBig": "فائل بہت بڑی ہے",
-  "textTooLong": "متن بہت طویل ہے",
+  "fileTooBig": "فائل بہت بڑی ہے: lilOS {max} تک کی فائلیں محفوظ کرتا ہے",
+  "textTooLong": "متن بہت طویل ہے: زیادہ سے زیادہ {max}",
   "denied": "اجازت نہیں دی گئی: {permission}",
   "deniedContent": "اجازت نہیں دی گئی: صرف file.read اور file.write پائپس والی ایپ کسی مواد کو اپنا قرار دے سکتی ہے",
   "fileGone": "فائل اب موجود نہیں",

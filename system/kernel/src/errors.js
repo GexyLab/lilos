@@ -18,6 +18,7 @@ export const STATUS = {
   secret_required: 428,      // a network connection needs its password (again)
   too_large: 413,
   rate_limited: 429,
+  quota: 507,                // the user's space is full (files.quota, files.js)
   unavailable: 503,
 };
 

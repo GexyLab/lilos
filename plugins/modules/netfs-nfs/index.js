@@ -325,7 +325,9 @@ const driver = {
         const root = await nfs.getattr(handle);
         if (root.type !== DIR) throw netError('invalid', 'La cartella esportata non è una cartella');
         const info = await nfs.fsinfo(handle).catch(() => null);
-        const pick = (pref, max) => Math.max(4096, Math.min(MAX_IO, pref || DEFAULT_IO, max || MAX_IO));
+        // ioKb (lilOS 1.33.0): what we ask for, never more than the server says
+        const io = Number(conf?.ioKb) >= 4 && Number(conf?.ioKb) <= 1024 ? Math.round(Number(conf.ioKb)) * 1024 : DEFAULT_IO;
+        const pick = (pref, max) => Math.max(4096, Math.min(MAX_IO, Math.min(pref || io, io), max || MAX_IO));
         return new Session(nfs, handle, { host, dir, cred, io: { read: pick(info?.rtpref, info?.rtmax), write: pick(info?.wtpref, info?.wtmax) } });
       } catch (err) {
         nfs.close();

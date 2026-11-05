@@ -1,0 +1,14 @@
+{
+  "tooBig": "파일이 너무 큽니다({size}): lilOS는 최대 {max}의 파일을 저장합니다",
+  "quota": "공간이 부족합니다: 남은 공간은 {free}입니다",
+  "quotaNear": "공간의 {percent}%를 사용했습니다({quota} 중 {used})",
+  "readWhole": "파일이 너무 커서 한 번에 읽을 수 없습니다({size}, 최대 {max})",
+  "text": "텍스트가 너무 깁니다({size}, 최대 {max})",
+  "noUpload": "업로드를 찾을 수 없습니다: 이미 끝났거나 너무 오래 멈춰 있었습니다",
+  "offset": "업로드가 {received}바이트까지 진행되었습니다",
+  "uploadSize": "업로드 크기가 잘못되었습니다",
+  "tooMany": "동시에 진행 중인 업로드가 너무 많습니다",
+  "notFile": "파일이 아닙니다",
+  "ended": "업로드가 중단되었습니다",
+  "sizeDiffers": "업로드 크기보다 바이트가 많습니다"
+}

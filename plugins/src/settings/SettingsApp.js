@@ -17,6 +17,7 @@ import { cloudTabs, isCloudTab, reloadCloud } from './cloud.js';
 import { creditsSections } from './credits.js';
 import { computerTab } from './computer.js';
 import { networkTab } from './network.js';
+import { storageTab, watchStorage, reloadStorage } from './storage.js';
 import { t, i18n } from './i18n.js';
 import './settings-app.css';
 
@@ -861,11 +862,10 @@ export default function createSettings({ openWindow, args } = {}) {
       // sign in with: only while their modules run
       ...cloudTabs({ rerender: () => view?.render(), select: id => view?.select(id) }),
       { get group() { return t('group.data'); } },
-      {
-        id: 'storage', icon: 'disk',
-        get label() { return t('storage.label'); },
-        get description() { return kernel.connected ? t('storage.description.kernel') : t('storage.description.browser'); },
-        sections: () => [
+      // With the kernel: Il mio spazio, and for admins Limiti and Utenti (lilOS 1.33.0)
+      storageTab({
+        rerender: () => view?.render(),
+        own: () => [
           {
             title: t('storage.space.title'),
             rows: [
@@ -899,7 +899,7 @@ export default function createSettings({ openWindow, args } = {}) {
             ],
           },
         ],
-      },
+      }),
       { group: '' },
       {
         id: 'about', icon: 'info',
@@ -953,11 +953,14 @@ export default function createSettings({ openWindow, args } = {}) {
   // connections change its lists
   win.view.on('select', () => {
     if (isCloudTab(win.view.tab?.id)) { reloadCloud(win.view.tab.id); win.view.render(); }
+    // The space used changes all the time: read again each time the tab is shown
+    if (win.view.tab?.id === 'storage') { reloadStorage(); win.view.render(); }
   });
+  const offStorage = watchStorage(() => win.view.render());
   const offNet = sdk.net?.on?.('mounts', () => { if (win.view.tab?.id === 'onedrive') win.view.render(); });
   const offLocale = sdk.locale?.on('change', () => { win.view.render(); retitle(); });
   // Language packs installed or removed (in the AppStore, by another user): Lingua lists them
   const offLanguages = sdk.locale?.on('languages', () => win.view.render());
-  win.on('destroy', () => { offWorkspaces.forEach(off => off?.()); offTrash(); offTags(); offDesk(); offBackground.forEach(off => off?.()); offLocale?.(); offLanguages?.(); offApps.forEach(off => off?.()); offNet?.(); if (view === win.view) view = null; });
+  win.on('destroy', () => { offWorkspaces.forEach(off => off?.()); offTrash(); offTags(); offDesk(); offBackground.forEach(off => off?.()); offLocale?.(); offLanguages?.(); offApps.forEach(off => off?.()); offNet?.(); offStorage(); if (view === win.view) view = null; });
   return win;
 }

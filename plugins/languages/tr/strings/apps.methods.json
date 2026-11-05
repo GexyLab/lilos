@@ -1,6 +1,6 @@
 {
-  "fileTooBig": "Dosya çok büyük",
-  "textTooLong": "Metin çok uzun",
+  "fileTooBig": "Dosya çok büyük: lilOS en fazla {max} boyutunda dosya kaydeder",
+  "textTooLong": "Metin çok uzun: en fazla {max}",
   "denied": "İzin reddedildi: {permission}",
   "deniedContent": "İzin reddedildi: bir içeriği kendisine ait olarak yalnızca file.read ve file.write pipe’larına sahip bir uygulama işaretleyebilir",
   "fileGone": "Dosya artık yok",

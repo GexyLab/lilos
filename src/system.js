@@ -24,6 +24,7 @@ import { setupFileSystem } from './systemFs.js';
 import { setupTrash } from './systemTrash.js';
 import { registerItemCommands } from './items/targets.js';
 import { launch } from './apps/registry.js';
+import { systemActions } from './notifications/card.js';
 import { registerPackages, connectPackages } from './apps/packages/packages.js';
 import { openFile, setChooser } from './apps/open.js';
 import { createOpenWith } from './apps/openWith.js';
@@ -40,7 +41,7 @@ import { WindowManager } from './windows/WindowManager.js';
 import { connectLauncher } from './apps/launcher.js';
 import { connectUpdates, systemNotices } from './apps/updates.js';
 import { connectStartup } from './apps/startup.js';
-import { connectServices } from './apps/services.js';
+import { connectServices, onKernelEvent } from './apps/services.js';
 import { connectNotifications } from './notifications/connect.js';
 import { connectNet } from './net/connect.js';
 import { connectPipes } from './apps/pipes.js';
@@ -114,6 +115,10 @@ connectStartup();
 connectNotifications({ bell: taskbar.notificationBell, wm }).catch(err => console.error('[lilos] notifiche:', err));
 connectNet({ wm, button: taskbar.transfersButton });
 connectSchedule({ wm });
+// The kernel's settings changed (Control Panel, another admin): the limits of the files are read again.
+// «Spazio quasi esaurito» opens Spazio di archiviazione
+onKernelEvent('settings.change', d => sdk.kernelSettings?.changed(d));
+systemActions.set('storage', () => launch('settings', { tab: 'storage', subtab: 'mine' }));
 connectServices();
 // Inside the program lilOS (not a browser): the icon's number, system notifications, devices
 connectDesktop({ wm });

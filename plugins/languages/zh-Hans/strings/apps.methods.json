@@ -1,6 +1,6 @@
 {
-  "fileTooBig": "文件过大",
-  "textTooLong": "文本过长",
+  "fileTooBig": "文件过大：lilOS 最多保存 {max} 的文件",
+  "textTooLong": "文本过长：最多 {max}",
   "denied": "权限被拒绝：{permission}",
   "deniedContent": "权限被拒绝：只有具有 file.read 和 file.write 管道的应用才能将内容标记为自己的",
   "fileGone": "文件已不存在",

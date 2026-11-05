@@ -27,3 +27,11 @@ anna = 1027:100,101
 La libreria (XDR, ONC RPC con record marking, portmapper, MOUNT v3, NFS v3) sta solo in questo modulo. Fornisce il servizio `netfs.nfs`. Nessuna dipendenza. Richiede lilOS 1.22.0 o successivo.
 
 Versione 1.1.0: il nome del server si risolve con il kernel, che dà solo gli indirizzi permessi (con più utenti, niente rete locale se l'amministratore non la apre): il nome non può cambiare indirizzo tra il controllo del kernel e la connessione. Portmapper, MOUNT e NFS vanno tutti a quell'indirizzo.
+
+## Soglie dei file grandi
+
+Dalla 1.2.0. La dimensione di ogni lettura e scrittura è un'impostazione del modulo (un amministratore la cambia; vale per le connessioni che si aprono dopo averla cambiata):
+
+| Chiave | Cosa | Predefinito |
+|---|---|---|
+| `ioKb` | Quanti KB lilOS chiede a ogni lettura e scrittura; mai più di quanto il server permette | 256 (da 4 a 1024) |

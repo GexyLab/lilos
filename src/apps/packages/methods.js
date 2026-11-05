@@ -1,4 +1,4 @@
-import { fs, storage, pipes, bus, notifications, net, term, calls, serial, kernel, automation, schedule, locale, messageBox } from '@lilos/sdk';
+import { fs, storage, pipes, bus, notifications, net, term, calls, serial, kernel, automation, schedule, locale, messageBox, kernelSettings, formatBytes } from '@lilos/sdk';
 import { launch } from '../registry.js';
 import { coversPath } from './permissions.js';
 import { callEntrypoint, connectEntrypoint } from '../entrypoints.js';
@@ -9,7 +9,7 @@ import { hardwareRule } from '../../host/desktop.js';
 
 const { t } = locale.define('lilos:apps.methods', {
   en: { strings: {
-    fileTooBig: 'File too large', textTooLong: 'Text too long', denied: 'Permission denied: {permission}',
+    fileTooBig: 'File too large: lilOS saves files up to {max}', textTooLong: 'Text too long: at most {max}', denied: 'Permission denied: {permission}',
     deniedContent: 'Permission denied: only an app with the file.read and file.write pipes can mark a content as its own',
     fileGone: 'The file no longer exists', readOnly: 'The file was handed over for reading only',
     noFile: 'The file does not exist', notFile: 'It is not a file', noFolder: 'The folder does not exist',
@@ -37,8 +37,7 @@ const { t } = locale.define('lilos:apps.methods', {
  * against the app's permissions. The same for every way the app runs; an app that is not
  * isolated could go around them, an isolated one cannot.
  */
-const MAX_TEXT = 10 << 20;
-const MAX_BYTES = 10 << 20;
+const MAX_CLIPBOARD = 10 << 20;
 const STORAGE_KEY = /^[\w.-]{1,64}$/;
 const STAGES = ['before', 'after'];
 const MAX_EVENTS = 20;   // events an app defines
@@ -49,12 +48,19 @@ const resolveHome = path => (typeof path === 'string' && /^~(\/[^/]+)*$/.test(pa
 const splitPath = path => [path.slice(0, path.lastIndexOf('/')) || '~', path.slice(path.lastIndexOf('/') + 1)];
 const fail = msg => { throw new Error(msg); };
 
-/** The contents an app writes: text, or bytes (a Blob, an ArrayBuffer, a typed array). */
-function content(data) {
-  if (data instanceof Blob) return data.size <= MAX_BYTES ? data : fail(t('fileTooBig'));
-  if (data instanceof ArrayBuffer || ArrayBuffer.isView(data)) return data.byteLength <= MAX_BYTES ? new Blob([data]) : fail(t('fileTooBig'));
+/**
+ * The contents an app writes: text, or bytes (a Blob, an ArrayBuffer, a typed array), within the
+ * kernel's limits (files.maxFileSize, files.maxText; 0: none). The kernel checks them again, and the
+ * user's space too.
+ */
+async function content(data) {
+  const limits = await kernelSettings.limits().catch(() => null);
+  const over = (size, max) => max > 0 && size > max;
+  const tooBig = () => fail(t('fileTooBig', { max: formatBytes(limits.maxFileSize) }));
+  if (data instanceof Blob) return over(data.size, limits?.maxFileSize) ? tooBig() : data;
+  if (data instanceof ArrayBuffer || ArrayBuffer.isView(data)) return over(data.byteLength, limits?.maxFileSize) ? tooBig() : new Blob([data]);
   const text = String(data);
-  return text.length <= MAX_TEXT ? text : fail(t('textTooLong'));
+  return over(text.length, limits?.maxText) ? fail(t('textTooLong', { max: formatBytes(limits.maxText) })) : text;
 }
 
 /**
@@ -174,7 +180,7 @@ export function hostMethods({ pkg, win = null, handles, readOnly = new Set(), in
       boxes.delete(String(id));
       return check(problem === false ? false : problem == null || problem === true ? true : String(problem).slice(0, 1000));
     },
-    'clipboard.write': text => navigator.clipboard.writeText(String(text).slice(0, MAX_TEXT)),
+    'clipboard.write': text => navigator.clipboard.writeText(String(text).slice(0, MAX_CLIPBOARD)),
     'files.read': async (ref, options) => {
       const node = fileOf(ref, false);
       return options?.bytes === true ? fs.readBlob(node.id, { caller: caller(node) }) : fs.read(node.id, { caller: caller(node) });
@@ -182,7 +188,7 @@ export function hostMethods({ pkg, win = null, handles, readOnly = new Set(), in
     // options.mark: the app's own data on the file, saved with the content (null takes it away);
     // options.unique: always a new file, named 'a 2.txt' when 'a.txt' is taken. → { id, name, ref }
     'files.write': async (ref, data, options) => {
-      const value = content(data);
+      const value = await content(data);
       const unique = options?.unique === true;
       let node = unique ? null : target(ref, true);
       if (!node) node = fs.create(newParent(ref, unique), { type: 'file', name: newName(ref, unique) });

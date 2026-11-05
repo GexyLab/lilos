@@ -1,6 +1,6 @@
 {
   "name": "netfs-google",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Google Drive e Google Foto nella cartella Rete: Il mio Drive o un Drive condiviso, con i documenti Google copiati in formato Office; «Importa da Google Foto» e gli album creati da lilOS",
   "kernel": "1",
   "icon": { "glyph": "cloud", "color": "#137333" },
@@ -32,11 +32,17 @@
       "key": "photos", "type": "checkbox", "default": true,
       "label": { "en": "Google Photos", "it": "Google Foto" },
       "hint": { "en": "Off: only Google Drive (the project then needs no Photos APIs)", "it": "Spento: solo Google Drive (il progetto allora non ha bisogno delle API di Google Foto)" }
+    },
+    {
+      "key": "pieceMb", "type": "number", "default": 8, "min": 1, "max": 1024,
+      "label": { "en": "Upload pieces (MB)", "it": "Pezzi di caricamento (MB)" },
+      "hint": { "en": "A file goes to Drive in pieces of this size; an upload cut off goes on from the last one. From 1 to 1024", "it": "Un file va su Drive in pezzi di questa dimensione; un invio interrotto riparte dall'ultimo. Da 1 a 1024" }
     }
   ],
   "defaultConfig": {
     "shared": true,
     "exportFormat": "office",
-    "photos": true
+    "photos": true,
+    "pieceMb": 8
   }
 }

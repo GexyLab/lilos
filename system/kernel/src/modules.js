@@ -186,12 +186,15 @@ export async function resolveModules(modulesDir, wanted) {
  *   ctx.paths                         (since lilOS 1.22.0) the paths of the network protocols
  *                                     (net/drivers.js): cleanPath, joinPath, parentOf, baseName,
  *                                     isSafeName, cleanName
+ *   ctx.settings                      (since lilOS 1.33.0) the kernel's settings (settings.js):
+ *                                     get(key) → value, onChange(fn) fn(keys) when an admin changed
+ *                                     some; a module for older kernels uses its defaults without it
  */
 export const PATHS = Object.freeze({ cleanPath, joinPath, parentOf, baseName, isSafeName, cleanName });
 const EVENT = /^[a-z][a-z0-9-]{0,30}\.[a-z][a-zA-Z0-9.-]{0,40}$/;
 const PATH = /^(\/[\w:-]+)+$/;
 
-export async function startModule(mod, services, { route, emit, socket, dataDir }) {
+export async function startModule(mod, services, { route, emit, socket, dataDir, settings }) {
   const { default: impl } = await import(pathToFileURL(join(mod.dir, 'index.js')).href);
   const listeners = [];
   if (!impl || typeof impl.init !== 'function') throw new Error(`${mod.name}: index.js non esporta { init }`);
@@ -233,6 +236,7 @@ export async function startModule(mod, services, { route, emit, socket, dataDir 
       return new JsonStore(isAbsolute(file) ? file : join(mod.dir, file), options);
     },
     paths: PATHS,
+    ...(settings && { settings }),
   };
   await impl.init(ctx);
   const missing = mod.provides.filter(s => !services.has(s));

@@ -1,6 +1,6 @@
 {
-  "fileTooBig": "ファイルが大きすぎます",
-  "textTooLong": "テキストが長すぎます",
+  "fileTooBig": "ファイルが大きすぎます：lilOS が保存できるファイルは {max} までです",
+  "textTooLong": "テキストが長すぎます：最大 {max}",
   "denied": "アクセス許可がありません：{permission}",
   "deniedContent": "アクセス許可がありません：コンテンツを自身のものとしてマークできるのは、file.read と file.write のパイプを持つアプリだけです",
   "fileGone": "ファイルはもう存在しません",

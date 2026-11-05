@@ -32,3 +32,7 @@ create table if not exists lilos_chunks (
   data  bytea not null,
   primary key (node, gen, seq)
 );
+
+-- Size of the pieces of a generation (1.2.0): the kernel's files.dbChunk when it was written, so a
+-- change of the setting does not touch the files already in pieces (null: 1 MB, as before 1.2.0).
+alter table lilos_nodes add column if not exists chunk_size integer;

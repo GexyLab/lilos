@@ -44,7 +44,6 @@ import { defineStrings, localize } from '../strings.js';
  */
 const STORAGE_KEY = /^[\w.-]{1,64}$/;
 const HOME_PATH = /^~(\/[^/\0]{1,255}){0,16}$/;
-const MAX_TEXT = 10 << 20;
 const MAX_VALUE = 256 << 10;
 const MAX_SYSTEM_DATA = 1 << 20;
 const MAX_FETCH = 5 << 20;
@@ -139,7 +138,7 @@ export function serviceApi({ kernel, app, owner, notify, readUserKey, writeUserK
     'files.write': async (path, text) => {
       const { full } = await resolve(path, true);
       const body = String(text ?? '');
-      if (body.length > MAX_TEXT) fail('too_large', t('textTooLong'));
+      if (body.length > kernel.settings.limit('files.maxText')) fail('too_large', t('textTooLong'));
       const node = await fs.lookup(owner, full) ?? await create(full, 'file');
       if (node.type !== 'file') fail('invalid', t('notFile'));
       if (isProtected(node)) fail('forbidden', t('protectedWrite', { name: node.name }));
@@ -213,7 +212,8 @@ export function serviceApi({ kernel, app, owner, notify, readUserKey, writeUserK
       if (!coversPath(perms, '~', { write: true })) fail('forbidden', t('denied', { permission: 'fs.write:~' }));
       const node = await ownNode(id);
       const body = typeof data?.base64 === 'string' ? Buffer.from(data.base64, 'base64') : Buffer.from(String(data?.text ?? ''), 'utf8');
-      if (body.length > MAX_TEXT) fail('too_large', t('fileTooLarge'));
+      // Whole in memory (the service's message): at most files.maxReadWhole; size and space are the fs guard's
+      if (body.length > kernel.settings.limit('files.maxReadWhole')) fail('too_large', t('fileTooLarge'));
       await fs.write(owner, node.id, body);
     },
 

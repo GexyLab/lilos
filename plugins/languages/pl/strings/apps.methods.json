@@ -1,6 +1,6 @@
 {
-  "fileTooBig": "Plik jest za duży",
-  "textTooLong": "Tekst jest za długi",
+  "fileTooBig": "Plik jest za duży: lilOS zapisuje pliki do {max}",
+  "textTooLong": "Tekst jest za długi: najwyżej {max}",
   "denied": "Odmowa uprawnień: {permission}",
   "deniedContent": "Odmowa uprawnień: tylko aplikacja z potokami file.read i file.write może oznaczyć zawartość jako własną",
   "fileGone": "Plik już nie istnieje",

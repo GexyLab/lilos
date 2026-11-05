@@ -1,0 +1,14 @@
+{
+  "tooBig": "Plik jest za duży ({size}): lilOS zapisuje pliki do {max}",
+  "quota": "Za mało miejsca: zostało Ci {free} wolnego miejsca",
+  "quotaNear": "Wykorzystano {percent}% Twojego miejsca ({used} z {quota})",
+  "readWhole": "Plik jest za duży, by odczytać go naraz ({size}, najwyżej {max})",
+  "text": "Tekst jest za długi ({size}, najwyżej {max})",
+  "noUpload": "Nie znaleziono przesyłania: zakończyło się albo zbyt długo stało w miejscu",
+  "offset": "Przesyłanie doszło do bajtu {received}",
+  "uploadSize": "Nieprawidłowy rozmiar przesyłania",
+  "tooMany": "Zbyt wiele przesyłań naraz",
+  "notFile": "To nie jest plik",
+  "ended": "Przesyłanie przerwane",
+  "sizeDiffers": "Więcej bajtów niż rozmiar przesyłania"
+}

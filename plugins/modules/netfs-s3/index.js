@@ -25,9 +25,16 @@ import { needLookup } from './lib/shared/kernel.js';
  * badge and cannot be read until restored on the provider's console.
  */
 const MAX_PAGES = 200;                 // 200 × 1000 keys at most in a listing
-const SINGLE_MAX = 16 << 20;           // bigger files go in parts
-const PART = 16 << 20;
 const MAX_PARTS = 10_000;
+let conf = {};
+/** A size of the module's settings, in MB (decimals too): within [min, max], else `def`; in bytes. */
+const sizeMb = (key, def, min, max) => {
+  const n = Number(conf?.[key]);
+  return Math.round((Number.isFinite(n) && n >= min && n <= max ? n : def) * (1 << 20));
+};
+// Settings (lilOS 1.33.0): up to singleMaxMb one PUT, bigger in parts of partMb (S3: 5 MB to 5 GB)
+const singleMax = () => sizeMb('singleMaxMb', 16, 5, 5120);
+const partBytes = () => sizeMb('partMb', 16, 5, 5120);
 const COPY_MAX = 5 * 1024 ** 3;        // CopyObject's limit: bigger objects are copied in parts
 const ARCHIVED = new Set(['GLACIER', 'DEEP_ARCHIVE']);
 
@@ -277,12 +284,14 @@ class Session {
   async write(path, source, { start = 0, signal, size } = {}) {
     if (start > 0) throw netError('unsupported', 'S3 non riprende un invio a metà');
     const key = this.#key(path);
-    if (Number.isSafeInteger(size) && size <= SINGLE_MAX) {
+    if (Number.isSafeInteger(size) && size <= singleMax()) {
       // Known and small: one PUT, streaming
       const res = await this.#request('PUT', key, { body: source, length: size, signal, headers: { 'content-type': 'application/octet-stream' } });
       drain(res);
       return;
     }
+    // Too big for 10.000 parts of that size: bigger parts
+    const PART = partBytes();
     const partSize = Number.isSafeInteger(size) && size > PART * (MAX_PARTS - 100) ? Math.ceil(size / (MAX_PARTS - 100) / (1 << 20)) * (1 << 20) : PART;
     const parts = chunks(source, partSize);
     const first = await parts.next();
@@ -508,6 +517,8 @@ function keysOf(values, secret) {
 
 export default {
   async init(ctx) {
+    conf = ctx.config;
+    ctx.onConfig?.(config => { conf = config; });
     ctx.provide('netfs.s3', driver);
   },
 };

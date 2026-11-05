@@ -1,6 +1,6 @@
 {
   "name": "netfs-s3",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Bucket di Amazon S3 e dei servizi compatibili (Cloudflare R2, Backblaze B2, Wasabi, MinIO…) nella cartella Rete",
   "kernel": "1",
   "icon": { "glyph": "cloud", "color": "#c7781a" },
@@ -8,5 +8,20 @@
     "netfs.s3"
   ],
   "requires": [],
-  "defaultConfig": {}
+  "settings": [
+    {
+      "key": "singleMaxMb", "type": "number", "default": 16, "min": 5, "max": 5120,
+      "label": { "en": "One upload up to (MB)", "it": "Invio unico fino a (MB)" },
+      "hint": { "en": "A file up to this size goes with one request; a bigger one in parts. From 5 to 5120", "it": "Un file fino a questa dimensione va con una sola richiesta; uno più grande in parti. Da 5 a 5120" }
+    },
+    {
+      "key": "partMb", "type": "number", "default": 16, "min": 5, "max": 5120,
+      "label": { "en": "Size of the parts (MB)", "it": "Dimensione delle parti (MB)" },
+      "hint": { "en": "S3 takes at most 10,000 parts: for a bigger file they grow by themselves. From 5 to 5120", "it": "S3 accetta al massimo 10.000 parti: per un file più grande crescono da sole. Da 5 a 5120" }
+    }
+  ],
+  "defaultConfig": {
+    "singleMaxMb": 16,
+    "partMb": 16
+  }
 }

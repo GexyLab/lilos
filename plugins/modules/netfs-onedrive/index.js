@@ -31,7 +31,7 @@ import { needPaths, needKernel } from './lib/shared/kernel.js';
  * For tests only: graphUrl replaces Microsoft's address.
  */
 const SIMPLE_MAX = 4 << 20;                  // bigger files go by upload session
-const CHUNK = 320 * 1024 * 32;               // 10 MiB: upload pieces are multiples of 320 KiB
+const UNIT = 320 * 1024;                      // upload pieces are multiples of 320 KiB, at most 60 MiB
 const RETRIES = 3;                           // throttled (429, 503) or broken requests, tried again
 const MAX_WAIT = 30_000;                     // longest Retry-After honored
 const MAX_PAGES = 200;                       // 200 × 999 entries in a folder, at most
@@ -42,6 +42,12 @@ const RESERVED = /^(\.lock|con|prn|aux|nul|com\d|lpt\d|desktop\.ini|_vti_.*)$/i;
 const label = (en, it) => ({ en, it });
 
 let conf = {};
+/** Pieces of an upload session (chunkMb, lilOS 1.33.0; 10 MB): rounded down to 320 KiB, from 1 MB to 60 MiB. */
+const chunkBytes = () => {
+  const n = Number(conf?.chunkMb);
+  const bytes = (Number.isFinite(n) && n >= 1 && n <= 60 ? n : 10) * (1 << 20);
+  return Math.max(UNIT, Math.floor(bytes / UNIT) * UNIT);
+};
 let moduleCtx = null;
 
 const graphBase = () => String(conf.graphUrl || 'https://graph.microsoft.com/v1.0').replace(/\/+$/, '');
@@ -262,7 +268,7 @@ class Session {
     if (typeof uploadUrl !== 'string' || !/^https?:\/\//.test(uploadUrl)) throw netError('invalid', 'OneDrive non ha aperto la sessione di caricamento');
     try {
       let offset = 0;
-      for await (const piece of chunks(createReadStream(held.file), CHUNK)) {
+      for await (const piece of chunks(createReadStream(held.file), chunkBytes())) {
         const end = offset + piece.length - 1;
         for (let attempt = 0; ; attempt++) {
           // The upload address carries its own authorization: no token with it

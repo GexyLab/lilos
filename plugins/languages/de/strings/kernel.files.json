@@ -1,0 +1,14 @@
+{
+  "tooBig": "Datei zu groß ({size}): lilOS speichert Dateien bis {max}",
+  "quota": "Nicht genug Speicherplatz: Ihnen bleiben noch {free}",
+  "quotaNear": "Sie haben {percent} % Ihres Speicherplatzes belegt ({used} von {quota})",
+  "readWhole": "Datei zu groß, um sie auf einmal zu lesen ({size}, höchstens {max})",
+  "text": "Text zu lang ({size}, höchstens {max})",
+  "noUpload": "Upload nicht gefunden: Er ist beendet oder war zu lange inaktiv",
+  "offset": "Der Upload steht bei Byte {received}",
+  "uploadSize": "Ungültige Größe des Uploads",
+  "tooMany": "Zu viele Uploads gleichzeitig",
+  "notFile": "Es ist keine Datei",
+  "ended": "Upload unterbrochen",
+  "sizeDiffers": "Mehr Bytes als die Größe des Uploads"
+}

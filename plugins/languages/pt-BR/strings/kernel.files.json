@@ -1,0 +1,14 @@
+{
+  "tooBig": "Arquivo grande demais ({size}): o lilOS salva arquivos de até {max}",
+  "quota": "Espaço insuficiente: restam {free} do seu espaço",
+  "quotaNear": "Você usou {percent}% do seu espaço ({used} de {quota})",
+  "readWhole": "Arquivo grande demais para ler de uma vez ({size}, no máximo {max})",
+  "text": "Texto longo demais ({size}, no máximo {max})",
+  "noUpload": "Envio não encontrado: ele terminou ou ficou parado por tempo demais",
+  "offset": "O envio está no byte {received}",
+  "uploadSize": "Tamanho do envio inválido",
+  "tooMany": "Envios demais ao mesmo tempo",
+  "notFile": "Não é um arquivo",
+  "ended": "Envio interrompido",
+  "sizeDiffers": "Mais bytes do que o tamanho do envio"
+}

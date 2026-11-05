@@ -1,0 +1,14 @@
+{
+  "tooBig": "Fișier prea mare ({size}): lilOS salvează fișiere de până la {max}",
+  "quota": "Spațiu insuficient: vă mai rămân {free} din spațiul dumneavoastră",
+  "quotaNear": "Ați folosit {percent}% din spațiul dumneavoastră ({used} din {quota})",
+  "readWhole": "Fișier prea mare pentru a fi citit dintr-odată ({size}, cel mult {max})",
+  "text": "Text prea lung ({size}, cel mult {max})",
+  "noUpload": "Încărcarea nu a fost găsită: s-a terminat sau a stat nefolosită prea mult timp",
+  "offset": "Încărcarea a ajuns la octetul {received}",
+  "uploadSize": "Dimensiune nevalidă a încărcării",
+  "tooMany": "Prea multe încărcări simultan",
+  "notFile": "Nu este un fișier",
+  "ended": "Încărcare întreruptă",
+  "sizeDiffers": "Mai mulți octeți decât dimensiunea încărcării"
+}

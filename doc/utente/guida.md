@@ -529,7 +529,7 @@ L'elenco mostra, dal più recente: **Nome**, **Eliminato** (data e ora), **Dimen
 Cose da sapere:
 
 - Dopo **30 giorni** (se non cambi il periodo) quello che è nel cestino viene eliminato definitivamente. Nel **Pannello di controllo → Usabilità → Cestino → Conserva gli elementi per** scegli da 1 giorno a 1 anno, oppure "Per sempre". La pulizia avviene quando apri lilOS e poi ogni ora.
-- Il cestino occupa spazio come gli altri file. Nelle impostazioni vedi quanti elementi contiene e quanto pesano.
+- Il cestino occupa spazio come gli altri file e **conta nello spazio che hai a disposizione** (vedi [Spazio e limiti dei file](#spazio-e-limiti-dei-file)): se lo spazio è finito, svuotarlo lo libera. Nelle impostazioni vedi quanti elementi contiene e quanto pesano.
 - Quello che elimini dalla **Scrivania** di un workspace compare nel cestino solo di quel workspace. Se elimini il workspace, quegli elementi diventano visibili da tutti.
 - Ripristinare la scrivania e i file iniziali (Pannello di controllo → Archiviazione) svuota anche il cestino.
 
@@ -1075,11 +1075,11 @@ Con il doppio clic su un archivio si apre la finestra di Compress Archive: in al
 
 ### Da sapere
 
-- Archivi e file estratti arrivano a 10 MB ciascuno, come ogni file di lilOS; in tutto Compress Archive lavora su al massimo 256 MB e 10.000 file per volta. Per questo le immagini ISO utili sono solo quelle piccole.
+- Per ogni archivio e ogni file estratto vale il limite di lilOS (1 GB di serie; lo cambia un amministratore, vedi [Spazio e limiti dei file](#spazio-e-limiti-dei-file)). Ma Compress Archive lavora tutto in memoria: in tutto non va oltre 256 MB e 10.000 file per volta. Gli archivi e le immagini ISO più grandi restano fuori.
 - Gli archivi **rar** si aprono ma non si creano: il formato è proprietario.
 - Le compressioni **zstd**, **lz4**, **lzip** e **.Z** vengono riconosciute e la notifica dice che non sono supportate.
 - Nello zip le immagini, i video, la musica e gli altri archivi entrano così come sono, senza comprimerli di nuovo: lo sono già.
-- Dall'archivio restano fuori, e la notifica lo dice, i collegamenti, i dispositivi, i percorsi pericolosi (`..`) e i file più grandi di 10 MB. Le cartelle `__MACOSX` e i file `.DS_Store`, `Thumbs.db` e `desktop.ini` si saltano senza avviso.
+- Dall'archivio restano fuori, e la notifica lo dice, i collegamenti, i dispositivi, i percorsi pericolosi (`..`) e i file più grandi del limite di lilOS. Le cartelle `__MACOSX` e i file `.DS_Store`, `Thumbs.db` e `desktop.ini` si saltano senza avviso.
 - Con una selezione che mescola archivi e altri elementi compare solo **Comprimi come…**.
 - Il lavoro si fa nel processo in background dell'app: puoi continuare a usare lilOS mentre comprime o estrae.
 - **Chi aveva Zip**: Zip non è più nell'AppStore. Installa Compress Archive, poi disinstalla Zip; le automazioni registrate con Zip vanno registrate di nuovo.
@@ -2068,7 +2068,9 @@ Le modifiche valgono subito e restano salvate.
 | Avvio | App | Quali app si aprono da sole, con quale finestra e con quali scelte (cartella, file…) |
 | Rete | — | Solo amministratori, dalla 1.25.0: dove il computer di lilOS può collegarsi per gli utenti (cartella Rete, Terminale, NetTest). Con più utenti, **Questo computer (localhost)** e **Tutta la rete locale** (due interruttori) e **Solo questi indirizzi** (un elenco separato da virgole, per esempio `192.168.1.50/32`) sono le eccezioni; valgono subito. Gli indirizzi link-local (come i metadati dei servizi cloud), multicast e riservati restano sempre chiusi, anche con **Solo questi indirizzi**. Con un solo utente, senza accesso, tutto è già aperto e la scheda lo dice |
 | OneDrive | — | Compare solo se il tuo lilOS ha OneDrive. L'app su Azure e le cartelle condivise (le cambia un amministratore), dove va **Carica su OneDrive e apri**, il doppio clic sui documenti Office (vedi [La scheda OneDrive](#la-scheda-onedrive-del-pannello-di-controllo)) |
-| Archiviazione | — | Quanto spazio usano le tue impostazioni e il contenuto dei tuoi file; ripristino di impostazioni (anche colore e immagine di sfondo), scorciatoie e app dei tipi di file; ripristino della scrivania e dei file iniziali (con i workspace) |
+| Archiviazione | Il mio spazio | Quanto spazio usano le tue impostazioni e il contenuto dei tuoi file, quanto ne hai a disposizione e il file più grande che puoi salvare; ripristino di impostazioni (anche colore e immagine di sfondo), scorciatoie e app dei tipi di file; ripristino della scrivania e dei file iniziali (con i workspace). Vedi [Spazio e limiti dei file](#spazio-e-limiti-dei-file) |
+| Archiviazione | Limiti | Solo amministratori: la dimensione massima di un file e le altre soglie |
+| Archiviazione | Utenti | Solo amministratori: lo spazio di ogni utente e la quota predefinita |
 | Informazioni | lilOS | Versione di lilOS e dell'SDK, lingua, browser |
 | Informazioni | Riconoscimenti | Le librerie, i font e gli strumenti di altri autori che lilOS, le sue app e i moduli del kernel usano: per ognuno versione, licenza, copyright, chi lo usa e il link al sito. Le librerie portate da altre librerie hanno una sezione a parte |
 
@@ -2145,6 +2147,29 @@ Se sposti un servizio acceso da «All'accesso» a «All'avvio del sistema», o a
 I servizi hanno bisogno di un componente del sistema, `services-isolate`. Se manca, la scheda lo dice: si aggiunge dall'AppStore (scheda **Kernel**), e un amministratore deve riavviare il sistema.
 
 **Aggiornamenti dell'AppStore.** In **AppStore → Opzioni** l'interruttore **Controlla gli aggiornamenti** accende un'operazione della [Pianificazione](#pianificazione): ogni giorno alle 09:00 (o ogni lunedì, a scelta), anche a lilOS chiuso, controlla se le app installate hanno una versione nuova. Se ne trova, compare una notifica con il nome dell'app e la versione; per ogni versione ti avvisa una volta sola, e la trovi alla prossima apertura di lilOS. Quando e quanto spesso si cambia dalla Pianificazione. Se un amministratore ha scelto il servizio dell'AppStore per tutti, si cambia dal **Pannello di controllo → Avvio → Servizi**.
+
+### Spazio e limiti dei file
+
+I file che salvi in lilOS possono pesare fino a **1 GB ciascuno**, di serie. Chi gestisce lilOS può cambiare questo limite e può dare a ogni utente uno **spazio** massimo (una *quota*). Di serie lo spazio non ha limite.
+
+Lo vedi nel **Pannello di controllo → Archiviazione → Il mio spazio**:
+
+- **Spazio usato**: quanto occupano tutti i tuoi file, **cestino compreso**. Se c'è una quota, vedi anche una barra e, per esempio, «3,2 GB di 10 GB». Se non c'è, vedi solo quanto usi.
+- **File più grande**: la dimensione fino a cui lilOS salva un file, oppure **Senza limite**.
+
+Cosa succede quando si arriva al limite:
+
+- **File troppo grande.** Il file non viene salvato e un messaggio dice quanto può pesare al massimo. Vale per ogni salvataggio, anche quello delle app.
+- **Spazio quasi finito.** Quando superi il 90% dello spazio arriva una notifica; toccandola si apre **Il mio spazio**. Un'altra notifica arriva solo dopo che sei sceso sotto l'85%.
+- **Spazio finito.** Un salvataggio che non ci sta viene rifiutato, con un messaggio che dice quanto spazio resta. Non perdi nulla di ciò che c'era già. Eliminare file, svuotare il cestino e rimpicciolire un file è sempre possibile. Per liberare spazio **svuota il cestino**: lì i file contano ancora (e l'eliminazione definitiva non si annulla). Le impostazioni e i dati che lilOS tiene per sé continuano a salvarsi anche con lo spazio finito, così il sistema non si blocca.
+- **File grandi.** Un file grosso si carica a pezzi: se la connessione si interrompe, riparte da dove era arrivato invece che dall'inizio.
+
+**Per gli amministratori.** Le altre due schede sono visibili solo a voi:
+
+- **Limiti**: la dimensione massima di un file, il più grande file che un'app apre tutto in una volta in memoria (**Lettura in una volta**), il testo più lungo (**Testo**), la dimensione dei pezzi con cui un file grande arriva dal browser (**Pezzi di caricamento**), le soglie con cui il database tiene i file (**File piccoli in una riga**, **Pezzi nel database**) e fino a che dimensione il browser tiene una copia dei file aperti (**Copia nel browser**). Per ogni valore un'etichetta dice se è quello di serie (**Predefinito**), se l'avete cambiato (**Modificato**), e **Ripristina** torna al valore di serie. Per i valori con «0 = senza limite» scrivere 0 toglie il limite. Le modifiche valgono subito, senza riavviare lilOS.
+- **Utenti**: la **Quota predefinita** (per tutti gli utenti che non ne hanno una loro) e, per ogni utente, quanto spazio usa. **Personalizza** dà a un utente una quota sua (**Personale**); **Usa la predefinita** la toglie. Cambiare una quota non cancella niente: chi è già oltre non può più aggiungere file finché non libera spazio.
+- Le quote funzionano solo se il modulo che conserva i file nel database è abbastanza nuovo (`fs-postgres` 1.2.0 o più recente). Se non lo è, la scheda **Utenti** lo dice e va aggiornato dall'AppStore, scheda **Kernel**.
+- Il limite alla dimensione di un file vale per tutti gli utenti, senza eccezioni; la quota può essere diversa da utente a utente.
 
 ## Il menu di avvio
 
@@ -2466,6 +2491,7 @@ Il salvataggio avviene **nel tuo spazio su lilOS**, non nel browser:
 - gli sketch di **ArduinoIDE4LilOS** sono file normali nella cartella **Arduino** della tua home; le librerie che installi e le tue scelte (scheda, porta) restano tue; le porte che il browser ti ha lasciato usare sono ricordate dal browser, non da lilOS;
 - le **richieste di NetTest**: «Le mie richieste», la cronologia (le ultime 200), le variabili globali, l'ambiente scelto per ogni collezione e i cookie sono salvati nel tuo spazio su lilOS, come le impostazioni; le altre collezioni sono file `.nettest` della tua home. I valori segreti degli ambienti sono sigillati nel file: li apri solo tu, su questo lilOS;
 - gli host del **Terminale** (nome, cartella, indirizzo, impostazioni) sono salvati nel tuo spazio su lilOS, come le connessioni della Rete: le password solo se scegli **Ricorda password e passphrase**, e cifrate. Le sessioni aperte non si salvano: durano finché il kernel resta acceso e al più 10 minuti senza finestra;
+- ogni utente può avere uno **spazio** massimo e ogni file un peso massimo (di serie 1 GB): vedi [Spazio e limiti dei file](#spazio-e-limiti-dei-file);
 - un'impostazione o un file cambiato in due schede insieme: vince l'ultima che salva. Usa una scheda sola.
 
 ## Tipi di file
@@ -2625,6 +2651,9 @@ Il programma che conserva i tuoi dati non è acceso: chiedi a chi gestisce lilOS
 
 **Compare "Modifiche non salvate".**
 lilOS non riesce a raggiungere il suo archivio (il computer ha perso la connessione, o l'archivio è spento). Riprova da solo ogni poco; non chiudere la pagina. Quando ci riesce compare "Modifiche salvate".
+
+**Un file non si salva: "File troppo grande" o "Spazio esaurito".**
+Il file supera la dimensione massima di lilOS, oppure il tuo spazio è finito. Il messaggio dice quanto può pesare un file o quanto spazio resta. Per fare posto elimina file e **svuota il cestino**, che conta nello spazio. Se serve più spazio o un limite più alto, chiedi a un amministratore. Vedi [Spazio e limiti dei file](#spazio-e-limiti-dei-file).
 
 **Ho dimenticato la password di un file cifrato con FileCrypt.**
 Non si può recuperare: il file è perso. Nemmeno un amministratore può aprirlo. Vedi [FileCrypt](#filecrypt).

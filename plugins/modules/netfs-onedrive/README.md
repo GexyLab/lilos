@@ -32,3 +32,11 @@ L'accesso funziona con lilOS su `https://`, o su `http://` solo da questo comput
 Fornisce il servizio `netfs.onedrive`. Nessuna dipendenza. Richiede lilOS 1.22.0 o successivo.
 
 Versione 1.2.0: l'accesso a Microsoft lo fa il kernel, con l'app di **Pannello di controllo → App Microsoft** (le impostazioni dell'app passano lì da sole; le connessioni restano come sono); codice in comune con gli altri moduli di rete.
+
+## Soglie dei file grandi
+
+Dalla 1.3.0. La dimensione dei pezzi con cui un file va su OneDrive è un'impostazione del modulo (un amministratore la cambia; vale subito, anche per i trasferimenti che partono dopo):
+
+| Chiave | Cosa | Predefinito |
+|---|---|---|
+| `chunkMb` | Dimensione dei pezzi (MB) per i file oltre 4 MB; il modulo la arrotonda per difetto a un multiplo di 320 KB, come chiede Microsoft | 10 (da 1 a 60) |

@@ -1,6 +1,6 @@
 {
-  "fileTooBig": "الملف كبير جدًا",
-  "textTooLong": "النص طويل جدًا",
+  "fileTooBig": "الملف كبير جدًا: يحفظ lilOS الملفات حتى {max}",
+  "textTooLong": "النص طويل جدًا: بحد أقصى {max}",
   "denied": "تم رفض الإذن: {permission}",
   "deniedContent": "تم رفض الإذن: لا يمكن إلا لتطبيق يملك الأنبوبين file.read وfile.write أن يعلّم محتوى على أنه خاص به",
   "fileGone": "الملف لم يعد موجودًا",

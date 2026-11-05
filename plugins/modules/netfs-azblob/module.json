@@ -1,6 +1,6 @@
 {
   "name": "netfs-azblob",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Contenitori di Azure Blob Storage (anche Data Lake Storage Gen2) nella cartella Rete, con la chiave dell'account, un token SAS o l'accesso con Microsoft Entra",
   "kernel": "1",
   "icon": { "glyph": "cloud", "color": "#0b5a91" },
@@ -8,5 +8,20 @@
     "netfs.azblob"
   ],
   "requires": [],
-  "defaultConfig": {}
+  "settings": [
+    {
+      "key": "singleMaxMb", "type": "number", "default": 32, "min": 1, "max": 5000,
+      "label": { "en": "One upload up to (MB)", "it": "Invio unico fino a (MB)" },
+      "hint": { "en": "A file of known size up to this goes with one request; a bigger one in blocks. From 1 to 5000", "it": "Un file di dimensione nota fino a questa va con una sola richiesta; uno più grande in blocchi. Da 1 a 5000" }
+    },
+    {
+      "key": "blockMb", "type": "number", "default": 8, "min": 1, "max": 4000,
+      "label": { "en": "Size of the blocks (MB)", "it": "Dimensione dei blocchi (MB)" },
+      "hint": { "en": "Azure takes at most 50,000 blocks: for a bigger file they grow by themselves. From 1 to 4000", "it": "Azure accetta al massimo 50.000 blocchi: per un file più grande crescono da soli. Da 1 a 4000" }
+    }
+  ],
+  "defaultConfig": {
+    "singleMaxMb": 32,
+    "blockMb": 8
+  }
 }

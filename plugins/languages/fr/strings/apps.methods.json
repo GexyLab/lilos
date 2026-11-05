@@ -1,6 +1,6 @@
 {
-  "fileTooBig": "Fichier trop volumineux",
-  "textTooLong": "Texte trop long",
+  "fileTooBig": "Fichier trop volumineux : lilOS enregistre des fichiers jusqu’à {max}",
+  "textTooLong": "Texte trop long : au plus {max}",
   "denied": "Autorisation refusée : {permission}",
   "deniedContent": "Autorisation refusée : seule une app disposant des pipes file.read et file.write peut marquer un contenu comme le sien",
   "fileGone": "Le fichier n’existe plus",

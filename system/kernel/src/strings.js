@@ -35,6 +35,23 @@ export class Text {
   }
 }
 
+/** A size in bytes among a Text's params: written in the language of who reads it ('1,5 GB'). */
+export class Bytes {
+  constructor(n) {
+    this.n = Number(n);
+  }
+
+  toString() {
+    return i18nApi({ code: 'en', lang: 'en', strings: {} }).locale.formatBytes(this.n);
+  }
+
+  toJSON() {
+    return this.toString();
+  }
+}
+
+export const bytes = n => new Bytes(n);
+
 export function defineStrings(id, table) {
   if (!/^lilos:kernel\.[\w.-]+$/.test(id)) throw new Error(`Testi del kernel: id non valido (${id})`);
   const part = id.slice('lilos:'.length);
@@ -64,7 +81,9 @@ export function localize(value, code) {
   if (found === undefined) return value.key;
   const lang = own && Object.hasOwn(own, value.key) ? pack.language : 'en';
   // A Text among the params (an error inside a message) in the same language
-  const params = value.params && Object.fromEntries(Object.entries(value.params).map(([k, v]) => [k, v instanceof Text ? localize(v, code) : v]));
+  // A size (bytes()) as the language writes it: '1,5 GB'
+  const params = value.params && Object.fromEntries(Object.entries(value.params).map(([k, v]) => [k,
+    v instanceof Text ? localize(v, code) : v instanceof Bytes ? i18nApi({ code: code || 'en', lang: code || 'en', strings: {} }).locale.formatBytes(v.n) : v]));
   return i18nApi({ code: lang, lang, strings: { [value.key]: found } }).locale.i18n.t(value.key, params ?? undefined);
 }
 

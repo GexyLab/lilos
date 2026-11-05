@@ -24,3 +24,12 @@ Serve solo per l'accesso con un account Microsoft, che fa il kernel con l'app di
 Le richieste con la chiave sono firmate dal modulo (Shared Key): nessun SDK. Fornisce il servizio `netfs.azblob`. Nessuna dipendenza. Richiede lilOS 1.22.0 o successivo.
 
 Versione 1.1.0: il nome del server si risolve con il kernel, che dà solo gli indirizzi permessi (con più utenti, niente rete locale se l'amministratore non la apre): il nome non può cambiare indirizzo tra il controllo del kernel e la connessione. Un download ripreso controlla che il servizio mandi la parte giusta del file. L'accesso con Microsoft Entra lo fa il kernel, con l'app di Pannello di controllo → App Microsoft (ID e directory passano lì da soli).
+
+## Soglie dei file grandi
+
+Dalla 1.2.0. Le soglie dei file grandi sono impostazioni del modulo (un amministratore le cambia; valgono subito, anche per i trasferimenti che partono dopo):
+
+| Chiave | Cosa | Predefinito |
+|---|---|---|
+| `singleMaxMb` | Fino a questa dimensione (MB) un file di cui si conosce il peso va con un solo `Put Blob`; uno più grande a blocchi | 32 (da 1 a 5000) |
+| `blockMb` | Dimensione dei blocchi (MB). Azure accetta al massimo 50.000 blocchi: per un file più grande i blocchi crescono da soli | 8 (da 1 a 4000) |

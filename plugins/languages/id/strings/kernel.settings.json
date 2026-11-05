@@ -1,0 +1,11 @@
+{
+  "unknown": "Pengaturan tidak dikenal: {key}",
+  "value": "Nilai tidak valid untuk {key}",
+  "noZero": "{key} tidak boleh 0",
+  "min": "{key} minimal harus {min}",
+  "max": "{key} maksimal harus {max}",
+  "perUser": "{key} tidak dapat diatur untuk satu pengguna saja",
+  "user": "Pengguna tidak ditemukan",
+  "admin": "Hanya administrator yang mengubah pengaturan kernel",
+  "changes": "Perubahan tidak valid"
+}

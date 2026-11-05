@@ -1,6 +1,6 @@
 {
-  "fileTooBig": "파일이 너무 큽니다",
-  "textTooLong": "텍스트가 너무 깁니다",
+  "fileTooBig": "파일이 너무 큽니다: lilOS는 최대 {max}의 파일을 저장합니다",
+  "textTooLong": "텍스트가 너무 깁니다: 최대 {max}",
   "denied": "권한 거부됨: {permission}",
   "deniedContent": "권한 거부됨: file.read 및 file.write 파이프가 있는 앱만 콘텐츠를 자신의 것으로 표시할 수 있습니다",
   "fileGone": "파일이 더 이상 존재하지 않습니다",

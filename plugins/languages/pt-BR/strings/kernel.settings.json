@@ -1,0 +1,11 @@
+{
+  "unknown": "Configuração desconhecida: {key}",
+  "value": "Valor inválido para {key}",
+  "noZero": "{key} não pode ser 0",
+  "min": "{key} deve ser pelo menos {min}",
+  "max": "{key} deve ser no máximo {max}",
+  "perUser": "{key} não pode ser definido para um único usuário",
+  "user": "Usuário não encontrado",
+  "admin": "Somente um administrador altera as configurações do kernel",
+  "changes": "Alterações inválidas"
+}

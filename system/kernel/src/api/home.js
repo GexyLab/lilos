@@ -1,5 +1,5 @@
 import { fail } from '../errors.js';
-import { readBody, send, sendStream } from '../http.js';
+import { send, sendStream } from '../http.js';
 import { visible } from './apps.js';
 import { defineStrings } from '../strings.js';
 
@@ -15,8 +15,14 @@ import { defineStrings } from '../strings.js';
  *                                  (net: the network connections, as GET /api/net gives them)
  *                                  (home: the path of the home in the file system, '/home/<user>')
  *   POST /api/fs/sync              { put: [node], remove: [id] }     one transaction
- *   GET  /api/fs/content/:id       text of a file (?raw=1: its bytes, application/octet-stream)
- *   PUT  /api/fs/content/:id       saves the content of a file, text or bytes, as it comes
+ *   GET  /api/fs/content/:id       text of a file, at most files.maxText (?raw=1: its bytes, as a stream)
+ *   PUT  /api/fs/content/:id       saves the content of a file, text or bytes, as it comes: as a stream,
+ *                                  checked against files.maxFileSize and the user's space (files.js)
+ *   GET  /api/fs/limits            the limits that count for the user, their quota and space used
+ *   POST /api/fs/uploads           { id, size } → { upload, received, piece }   a big file in pieces (files.js)
+ *   GET  /api/fs/uploads/:upload   { received, size }
+ *   PUT  /api/fs/uploads/:upload?offset=N   a piece → { received } or, the last one, { received, done: true }
+ *   DELETE /api/fs/uploads/:upload
  *   POST /api/storage              { set: { key: value }, remove: [key] }
  *
  * Access control is the fs module's: these only translate ids and check the shape of the data.
@@ -32,7 +38,6 @@ const META = ['color', 'app', 'link', 'system', 'workspace', 'private', 'tags', 
 const MAX_NODES = 5000;
 const MAX_META = 4 << 10;
 const MAX_VALUE = 512 << 10;
-const MAX_CONTENT = 10 << 20;
 const { t } = defineStrings('lilos:kernel.api.home', { en: { strings: {
   signIn: 'Sign in first', id: 'Identifier not valid', key: 'Key not valid: {key}', tooLarge: 'Value too large: {key}',
   changes: 'Changes not valid', item: 'Item not valid', itemData: 'Too much data in an item', tooMany: 'Too many keys at once',
@@ -41,8 +46,10 @@ const { t } = defineStrings('lilos:kernel.api.home', { en: { strings: {
 const finite = v => Number.isFinite(v);
 
 class HomeView {
-  constructor(fs, principal, home) {
+  constructor(fs, principal, home, store) {
     this.fs = fs;
+    // lilOS's own data (.config): written past the user's quota too, or lilOS could not save its state
+    this.store = store;
     this.principal = principal;
     this.homeId = home.id;
     this.homePath = home.path;
@@ -76,7 +83,7 @@ export async function openHome(kernel, principal) {
   if (!principal) fail('unauthorized', t('signIn'));
   const fs = kernel.service('fs');
   const home = await fs.home(principal);
-  const view = new HomeView(fs, principal, home);
+  const view = new HomeView(fs, principal, home, kernel.fsBase ?? fs);
   if (home.created || !ensured.has(home.id)) {
     const now = Date.now();
     const folder = (id, name) => ({ id, parent: home.id, name, type: 'folder', meta: {}, created: now, modified: now });
@@ -117,7 +124,7 @@ async function writeKey(view, principal, key, value) {
     const now = Date.now();
     await view.fs.apply(principal, { put: [{ id, parent: view.configId, name: key, type: 'file', meta: {}, created: now, modified: now }] });
   }
-  await view.fs.write(principal, id, Buffer.from(text, 'utf8'));
+  await view.store.write(principal, id, Buffer.from(text, 'utf8'));
 }
 
 /** A node whose content an app keeps as its own (content: true in its data: an encrypted file): its keys are never in the kernel. */
@@ -194,14 +201,49 @@ export function homeRoutes(kernel) {
       const node = await view.fs.stat(principal, id);
       return sendStream(res, await view.fs.readStream(principal, id), node ? { 'Content-Length': String(node.size) } : {});
     }
+    if (query.get('raw') !== '1') kernel.fileLimits.checkText((await view.fs.stat(principal, id))?.size ?? 0);
     const data = await view.fs.read(principal, id);
     if (query.get('raw') !== '1') return data.toString('utf8');
     send(res, 200, data, { 'Content-Type': 'application/octet-stream' });
   });
 
+  // As a stream: the kernel never holds the file (files.js counts it against the limits)
   router.add('PUT', '/api/fs/content/:id', async ({ req, principal, params }) => {
     const view = await openHome(kernel, principal);
-    await view.fs.write(principal, view.toBack(params.id), await readBody(req, MAX_CONTENT));
+    const length = Number(req.headers['content-length']);
+    const controller = new AbortController();
+    req.on('close', () => { if (!req.complete) controller.abort(); });
+    await view.fs.writeFrom(principal, view.toBack(params.id), req, { signal: controller.signal, ...(Number.isSafeInteger(length) && length >= 0 && { size: length }) });
+  });
+
+  router.add('GET', '/api/fs/limits', async ({ principal }) => {
+    if (!principal) fail('unauthorized', t('signIn'));
+    return kernel.fileLimits.limitsFor(principal);
+  });
+
+  const uploadId = params => (/^[\w-]{1,64}$/.test(params.upload) ? params.upload : fail('invalid', t('id')));
+
+  router.add('POST', '/api/fs/uploads', async ({ principal, json }) => {
+    const view = await openHome(kernel, principal);
+    const { id, size } = await json(4 << 10);
+    return kernel.uploads.start(principal, view.fs, view.toBack(id), size);
+  });
+
+  router.add('GET', '/api/fs/uploads/:upload', async ({ principal, params }) => {
+    if (!principal) fail('unauthorized', t('signIn'));
+    return kernel.uploads.status(principal, uploadId(params));
+  });
+
+  router.add('PUT', '/api/fs/uploads/:upload', async ({ req, principal, params, query }) => {
+    if (!principal) fail('unauthorized', t('signIn'));
+    const offset = Number(query.get('offset') ?? 0);
+    if (!Number.isSafeInteger(offset) || offset < 0) fail('invalid', t('id'));
+    return kernel.uploads.piece(principal, uploadId(params), offset, req);
+  });
+
+  router.add('DELETE', '/api/fs/uploads/:upload', async ({ principal, params }) => {
+    if (!principal) fail('unauthorized', t('signIn'));
+    kernel.uploads.cancel(principal, uploadId(params));
   });
 
   router.add('POST', '/api/storage', async ({ principal, json }) => {
@@ -221,7 +263,7 @@ export function homeRoutes(kernel) {
     if (fresh.length) {
       await view.fs.apply(principal, { put: fresh.map(v => ({ id: v.id, parent: view.configId, name: v.key, type: 'file', meta: {}, created: now, modified: now })) });
     }
-    for (const v of values) await view.fs.write(principal, v.id, Buffer.from(v.text, 'utf8'));
+    for (const v of values) await view.store.write(principal, v.id, Buffer.from(v.text, 'utf8'));
     const gone = remove.map(key => view.keyId(key)).filter(id => existing.has(id));
     if (gone.length) await view.fs.remove(principal, gone);
   });

@@ -14,6 +14,7 @@ export { textDirection } from './core/i18n.js';
 export { kernel, KernelError } from './core/kernel.js';
 export { apps, repositories, kernelModules, packages, systemReleases, languagePacks } from './core/apps.js';
 export { notifications } from './core/notifications.js';
+export { kernelSettings, DEFAULT_FILE_LIMITS } from './core/kernelSettings.js';
 export { schedule } from './core/schedule.js';
 export { settings } from './core/settings.js';
 export { shortcuts, comboFromEvent } from './core/shortcuts.js';

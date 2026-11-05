@@ -47,6 +47,7 @@ sdk/                    @lilos/sdk: basi riutilizzabili da sistema e app
   core/kernel.js        client del kernel: richieste, accesso, sincronizzazione delle modifiche
   core/apps.js          app installate: elenco, installa, aggiorna, rimuovi; repository, moduli del kernel e versioni di lilOS (systemReleases)
   core/settings.js      preferenze dell'utente
+  core/kernelSettings.js  le impostazioni del kernel e i limiti dei file (dimensione massima, quota, soglie dei pezzi)
   core/locale.js        lingua del sistema, traduzioni delle app e pacchetti di lingua di lilOS (con core/i18n.js, il motore, e core/strings.js)
   core/fs.js            file system virtuale (cartelle, file, collegamenti; salvato nel kernel)
   core/net.js           rete: connessioni a server remoti (cartella Rete) e trasferimenti fatti dal kernel
@@ -66,7 +67,7 @@ scripts/
 plugins/                sorgenti delle app, dei moduli e dei pacchetti di lingua ufficiali (src/<app>, src/shared, modules/<nome>, languages/<lingua>, scripts/, catalog.json); npm install e npm run build si fanno qui
 public/host/            i moduli che le app di sistema importano come @lilos/sdk e @lilos/system (generati)
 system/
-  kernel/               il backend: moduli (users-basic, fs-postgres, services-isolate: fa girare i servizi delle app, scheduler: la Pianificazione, un modulo obbligatorio, notifications-basic: le notifiche, ssh (anche SFTP), netfs-ftp, netfs-webdav, netfs-smb: i protocolli di rete della cartella Rete; OneDrive, Google (Drive e Foto), S3, Azure Blob Storage e NFS sono moduli del repository ufficiale; ssh, term-telnet, term-rlogin, term-supdup: i protocolli dei terminali remoti, usati dall'app Terminale; call-grpc e call-mqtt: i protocolli in più di NetTest), API, repository, installazione di app e moduli, aggiornamenti di lilOS (releases/ e current.json in un lilOS installato), riga di comando; run.js lo avvia, lo riavvia e prova le versioni nuove
+  kernel/               il backend: moduli (users-basic, fs-postgres, services-isolate: fa girare i servizi delle app, scheduler: la Pianificazione, un modulo obbligatorio, notifications-basic: le notifiche, ssh (anche SFTP), netfs-ftp, netfs-webdav, netfs-smb: i protocolli di rete della cartella Rete; OneDrive, Google (Drive e Foto), S3, Azure Blob Storage e NFS sono moduli del repository ufficiale; ssh, term-telnet, term-rlogin, term-supdup: i protocolli dei terminali remoti, usati dall'app Terminale; call-grpc e call-mqtt: i protocolli in più di NetTest), API, repository, installazione di app e moduli, aggiornamenti di lilOS (releases/ e current.json in un lilOS installato), limiti dei file, quote e impostazioni del kernel (settings.js, files.js), riga di comando; run.js lo avvia, lo riavvia e prova le versioni nuove
 examples/apps/note/     app di esempio (lilos.json, index.js)
 lilos-desktop/          il programma lilOS (Electron, per Windows, macOS e Linux): development/ per lavorare, production/ da cui si pubblica (la rifà npm run release:desktop; vedi lilos-desktop/development/README.md)
 src/                    il sistema, costruito sull'SDK
@@ -152,6 +153,7 @@ doc/                    documentazione utente, sviluppatore e interna
 | Workarea | tasto destro su un'icona selezionata → Crea una workarea con la selezione; trascina la barra del titolo per spostarla, bordi e angoli per ridimensionarla, doppio clic sul titolo per rinominarla, pulsante con il trattino per ridurla a icona (doppio clic o Invio sull'icona la riapre) |
 | Workspace | pulsante accanto al logo (menu: elenco, Nuovo workspace, Gestisci), Ctrl Alt → / Ctrl Alt ← per passare al successivo o al precedente |
 | Tag | tasto destro su un elemento → Tag (assegna, "Nuovo tag…", "Gestisci i tag…"); nel File Manager, voce del tag nella barra laterale per vedere tutti gli elementi con quel tag; Pannello di controllo → Tag per colori e visibilità (un tag invisibile nasconde i suoi elementi) |
+| Spazio e limiti dei file | Pannello di controllo → Archiviazione → Il mio spazio: spazio usato (cestino compreso), quota e file più grande (di serie 1 GB); per gli amministratori le schede Limiti e Utenti |
 | Finestre | trascina il titolo, bordi e angoli per ridimensionare, doppio clic sul titolo per ingrandire, pulsante nella barra delle applicazioni per riaprire o ridurre, Alt W chiude, Alt N passa alla successiva |
 | Editor (app opzionale) | Ctrl S salva, Ctrl Alt N nuovo documento, Ctrl O apri un file, Ctrl Alt O apri una cartella (pannello a destra), Ctrl B mostra o nasconde la cartella, Ctrl Spazio suggerimenti (compaiono anche da soli), Tab / Shift Tab rientro |
 

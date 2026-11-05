@@ -1,0 +1,11 @@
+{
+  "unknown": "Paramètre inconnu : {key}",
+  "value": "Valeur non valide pour {key}",
+  "noZero": "{key} ne peut pas être 0",
+  "min": "{key} doit être au moins {min}",
+  "max": "{key} doit être au plus {max}",
+  "perUser": "{key} ne peut pas être défini pour un seul utilisateur",
+  "user": "Utilisateur introuvable",
+  "admin": "Seul un administrateur modifie les paramètres du kernel",
+  "changes": "Modifications non valides"
+}

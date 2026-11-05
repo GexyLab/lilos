@@ -19,3 +19,12 @@ Le richieste sono firmate dal modulo (AWS Signature Version 4): nessun SDK. Con 
 Fornisce il servizio `netfs.s3`. Nessuna dipendenza. Richiede lilOS 1.22.0 o successivo.
 
 Versione 1.1.0: il nome del server si risolve con il kernel, che dà solo gli indirizzi permessi (con più utenti, niente rete locale se l'amministratore non la apre): il nome non può cambiare indirizzo tra il controllo del kernel e la connessione. Un download ripreso controlla che il server mandi la parte giusta del file.
+
+## Soglie dei file grandi
+
+Dalla 1.2.0. Le soglie dei file grandi sono impostazioni del modulo (un amministratore le cambia; valgono subito, anche per i trasferimenti che partono dopo):
+
+| Chiave | Cosa | Predefinito |
+|---|---|---|
+| `singleMaxMb` | Fino a questa dimensione (MB) un file di cui si conosce il peso va con un solo `PUT`; uno più grande in parti | 16 (da 5 a 5120) |
+| `partMb` | Dimensione delle parti (MB) del caricamento multipart. S3 accetta al massimo 10.000 parti: per un file più grande le parti crescono da sole | 16 (da 5 a 5120) |

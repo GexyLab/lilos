@@ -1,0 +1,11 @@
+{
+  "unknown": "Unbekannte Einstellung: {key}",
+  "value": "Ungültiger Wert für {key}",
+  "noZero": "{key} darf nicht 0 sein",
+  "min": "{key} muss mindestens {min} sein",
+  "max": "{key} darf höchstens {max} sein",
+  "perUser": "{key} kann nicht für einen einzelnen Benutzer festgelegt werden",
+  "user": "Benutzer nicht gefunden",
+  "admin": "Nur ein Administrator ändert die Einstellungen des Kernels",
+  "changes": "Ungültige Änderungen"
+}

@@ -1,0 +1,11 @@
+{
+  "unknown": "Onbekende instelling: {key}",
+  "value": "Ongeldige waarde voor {key}",
+  "noZero": "{key} mag niet 0 zijn",
+  "min": "{key} moet minstens {min} zijn",
+  "max": "{key} mag hoogstens {max} zijn",
+  "perUser": "{key} kan niet voor één gebruiker worden ingesteld",
+  "user": "Gebruiker niet gevonden",
+  "admin": "Alleen een beheerder wijzigt de instellingen van de kernel",
+  "changes": "Ongeldige wijzigingen"
+}

@@ -1,0 +1,14 @@
+{
+  "tooBig": "File terlalu besar ({size}): lilOS menyimpan file hingga {max}",
+  "quota": "Ruang tidak cukup: ruang Anda tersisa {free}",
+  "quotaNear": "Anda telah memakai {percent}% ruang Anda ({used} dari {quota})",
+  "readWhole": "File terlalu besar untuk dibaca sekaligus ({size}, maksimal {max})",
+  "text": "Teks terlalu panjang ({size}, maksimal {max})",
+  "noUpload": "Unggahan tidak ditemukan: sudah selesai, atau terlalu lama tidak aktif",
+  "offset": "Unggahan sudah sampai byte {received}",
+  "uploadSize": "Ukuran unggahan tidak valid",
+  "tooMany": "Terlalu banyak unggahan sekaligus",
+  "notFile": "Ini bukan file",
+  "ended": "Unggahan terputus",
+  "sizeDiffers": "Byte lebih banyak dari ukuran unggahan"
+}

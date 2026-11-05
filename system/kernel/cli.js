@@ -1,6 +1,7 @@
 import { createInterface } from 'node:readline';
 import { loadConfig, MODULES_DIR, MODULES_DATA_DIR } from './src/config.js';
 import { resolveModules, startModule } from './src/modules.js';
+import { KernelSettings } from './src/settings.js';
 
 /**
  * Commands of the kernel's modules, run without the kernel:
@@ -55,7 +56,7 @@ try {
   const services = new Map();
   const started = [];
   // No HTTP here: routes, sockets and events of the modules go nowhere
-  const host = { route() {}, socket() {}, emit() {}, dataDir: MODULES_DATA_DIR };
+  const host = { route() {}, socket() {}, emit() {}, dataDir: MODULES_DATA_DIR, settings: new KernelSettings(config.settings).forModule() };
   for (const mod of all.filter(m => needed.has(m.name))) started.push(await startModule(mod, services, host));
   const target = started.find(m => m.name === name);
   const run = target.impl.commands?.[command];

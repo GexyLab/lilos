@@ -27,7 +27,11 @@ import { config, pathsOf, tokensOf, label, timedFetch, googleName, named } from 
  */
 const RETRIES = 4;
 const MAX_PAGES = 100;               // 100 × 1000 items in a folder at most
-const PIECE = 8 << 20;               // a multiple of 256 KiB
+/** Pieces of a resumable upload (pieceMb, lilOS 1.33.0): a whole number of MB, so a multiple of 256 KiB. */
+const piece = () => {
+  const n = Math.round(Number(config()?.pieceMb));
+  return (Number.isFinite(n) && n >= 1 && n <= 1024 ? n : 8) * (1 << 20);
+};
 const LISTING_LIFE = 10_000;         // a folder read is used for paths this long
 const SHARED_NAME = 'Condivisi con me';
 const FOLDER = 'application/vnd.google-apps.folder';
@@ -265,7 +269,7 @@ class Session {
     if (!session || !/^https?:\/\//.test(session)) throw netError('invalid', 'Google non ha aperto il caricamento');
     try {
       let offset = 0, done = false;
-      const it = chunks(source, PIECE);
+      const it = chunks(source, piece());
       let next = await it.next();
       while (!done) {
         const piece = next.done ? Buffer.alloc(0) : next.value;

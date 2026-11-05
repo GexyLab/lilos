@@ -1,6 +1,6 @@
 {
-  "fileTooBig": "File troppo grande",
-  "textTooLong": "Testo troppo lungo",
+  "fileTooBig": "File troppo grande: lilOS salva file fino a {max}",
+  "textTooLong": "Testo troppo lungo: al massimo {max}",
   "denied": "Permesso negato: {permission}",
   "deniedContent": "Permesso negato: solo un’app con le pipe file.read e file.write segna un contenuto come suo",
   "fileGone": "Il file non esiste più",

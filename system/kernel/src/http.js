@@ -80,6 +80,30 @@ export function readBody(req, limit) {
   });
 }
 
+/**
+ * Reads and drops what is left of a request's body (at most `max` bytes, `ms` milliseconds), so a
+ * refusal sent before the body was read (too large, no space) reaches the browser as an answer:
+ * closing the connection while it still sends makes it see a network error instead.
+ */
+export function drainBody(req, { max = 16 << 20, ms = 5000 } = {}) {
+  if (req.complete || req.readableEnded || req.destroyed) return Promise.resolve();
+  return new Promise(resolve => {
+    let size = 0;
+    const done = () => {
+      clearTimeout(timer);
+      req.off('data', onData);
+      resolve();
+    };
+    const onData = chunk => { size += chunk.length; if (size > max) done(); };
+    const timer = setTimeout(done, ms);
+    req.on('data', onData);
+    req.once('end', done);
+    req.once('error', done);
+    req.once('close', done);
+    req.resume();
+  });
+}
+
 export async function readJson(req, limit) {
   const raw = await readBody(req, limit);
   try {

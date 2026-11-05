@@ -1,0 +1,11 @@
+{
+  "unknown": "Setare necunoscută: {key}",
+  "value": "Valoare nevalidă pentru {key}",
+  "noZero": "{key} nu poate fi 0",
+  "min": "{key} trebuie să fie cel puțin {min}",
+  "max": "{key} trebuie să fie cel mult {max}",
+  "perUser": "{key} nu poate fi setat pentru un singur utilizator",
+  "user": "Utilizatorul nu există",
+  "admin": "Doar un administrator modifică setările kernelului",
+  "changes": "Modificări nevalide"
+}

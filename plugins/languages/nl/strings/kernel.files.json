@@ -1,0 +1,14 @@
+{
+  "tooBig": "Bestand te groot ({size}): lilOS slaat bestanden op tot {max}",
+  "quota": "Niet genoeg ruimte: je hebt nog {free} van je ruimte over",
+  "quotaNear": "Je hebt {percent}% van je ruimte gebruikt ({used} van {quota})",
+  "readWhole": "Bestand te groot om in één keer te lezen ({size}, hoogstens {max})",
+  "text": "Tekst te lang ({size}, hoogstens {max})",
+  "noUpload": "Upload niet gevonden: hij is klaar, of stond te lang stil",
+  "offset": "De upload is bij byte {received}",
+  "uploadSize": "Ongeldige grootte van de upload",
+  "tooMany": "Te veel uploads tegelijk",
+  "notFile": "Het is geen bestand",
+  "ended": "Upload onderbroken",
+  "sizeDiffers": "Meer bytes dan de grootte van de upload"
+}

@@ -1,6 +1,6 @@
 {
-  "fileTooBig": "Fișier prea mare",
-  "textTooLong": "Text prea lung",
+  "fileTooBig": "Fișier prea mare: lilOS salvează fișiere de până la {max}",
+  "textTooLong": "Text prea lung: cel mult {max}",
   "denied": "Permisiune refuzată: {permission}",
   "deniedContent": "Permisiune refuzată: doar o aplicație cu pipe-urile file.read și file.write poate marca un conținut ca fiind al ei",
   "fileGone": "Fișierul nu mai există",

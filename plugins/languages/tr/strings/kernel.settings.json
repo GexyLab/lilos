@@ -1,0 +1,11 @@
+{
+  "unknown": "Bilinmeyen ayar: {key}",
+  "value": "{key} için geçersiz değer",
+  "noZero": "{key} 0 olamaz",
+  "min": "{key} en az {min} olmalıdır",
+  "max": "{key} en fazla {max} olmalıdır",
+  "perUser": "{key} tek bir kullanıcı için ayarlanamaz",
+  "user": "Kullanıcı bulunamadı",
+  "admin": "Çekirdeğin ayarlarını yalnızca bir yönetici değiştirebilir",
+  "changes": "Değişiklikler geçerli değil"
+}

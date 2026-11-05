@@ -27,9 +27,16 @@ import { needLookup, needKernel } from './lib/shared/kernel.js';
  */
 const VERSION = '2021-12-02';
 const MAX_PAGES = 100;               // 100 × 5000 names at most in a listing
-const SINGLE_MAX = 32 << 20;         // known and up to this: one Put Blob
-const BLOCK = 8 << 20;
 const MAX_BLOCKS = 50_000;
+let conf = {};
+/** A size of the module's settings, in MB (decimals too): within [min, max], else `def`; in bytes. */
+const sizeMb = (key, def, min, max) => {
+  const n = Number(conf?.[key]);
+  return Math.round((Number.isFinite(n) && n >= min && n <= max ? n : def) * (1 << 20));
+};
+// Settings (lilOS 1.33.0): known and up to singleMaxMb one Put Blob, else blocks of blockMb
+const singleMax = () => sizeMb('singleMaxMb', 32, 1, 5000);
+const blockBytes = () => sizeMb('blockMb', 8, 1, 4000);
 const COPY_WAIT = 30 * 60_000;       // longest wait for a server-side copy
 
 const label = (en, it) => ({ en, it });
@@ -243,10 +250,12 @@ class Session {
     if (start > 0) throw netError('unsupported', 'Azure Blob Storage non riprende un invio a metà');
     const key = this.#key(path);
     const headers = { 'x-ms-blob-type': 'BlockBlob', 'content-type': 'application/octet-stream' };
-    if (Number.isSafeInteger(size) && size <= SINGLE_MAX) {
+    if (Number.isSafeInteger(size) && size <= singleMax()) {
       drain(await this.#request('PUT', key, { headers, body: source, length: size, signal }));
       return;
     }
+    // Too big for 50.000 blocks of that size: bigger blocks
+    const BLOCK = blockBytes();
     const blockSize = Number.isSafeInteger(size) && size > BLOCK * (MAX_BLOCKS - 100) ? Math.ceil(size / (MAX_BLOCKS - 100) / (1 << 20)) * (1 << 20) : BLOCK;
     const ids = [];
     for await (const piece of chunks(source, blockSize, { atLeastOne: true })) {
@@ -481,6 +490,8 @@ const driver = {
 
 export default {
   async init(ctx) {
+    conf = ctx.config;
+    ctx.onConfig?.(config => { conf = config; });
     ctx.provide('netfs.azblob', driver);
   },
 };

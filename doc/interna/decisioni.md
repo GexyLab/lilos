@@ -1166,7 +1166,7 @@ lilOS legge il file **prima** di avviare l'app e le dà le stringhe già risolte
 **Perché.**
 
 - **L'utente vuole che eliminare l'originale non cambi niente.** Con un riferimento, spostare il file nel cestino toglieva lo sfondo: non è quello che ci si aspetta da un'immagine «messa» come sfondo.
-- **Il kernel accetta al massimo 512 KB per valore di storage.** Tenere l'immagine nelle impostazioni (come data URL, come la foto profilo, che per questo è ridotta a 192 px) non è possibile: una foto vera pesa molto di più. Un file può invece arrivare a 10 MB. La copia va quindi nel file system.
+- **Il kernel accetta al massimo 512 KB per valore di storage.** Tenere l'immagine nelle impostazioni (come data URL, come la foto profilo, che per questo è ridotta a 192 px) non è possibile: una foto vera pesa molto di più. Un file poteva invece arrivare a 10 MB (dalla 1.33.0, [D85](#d85-i-limiti-dei-file-sono-impostazioni-del-kernel-a-livelli-con-flusso-e-quote-contate-dal-kernel), a 1 GB di serie: il ragionamento non cambia). La copia va quindi nel file system.
 - **Una cartella di sistema, nascosta.** La copia sta in Sistema (condivisa da tutti i workspace, non si rinomina né si elimina). È roba di lilOS, non dell'utente: dalla 1.13.1 non è più in `SYSTEM_FOLDERS` (niente voce nella barra laterale del File Manager) e `setupFileSystem` la nasconde con `fs.setHiddenNodes`, come un elemento con un tag invisibile: `children()` la esclude (File Manager, selettore, Editor, Terminale, conteggi), `get`, `exists` e `resolve` la trovano. Nella 1.9.4–1.13.0 era visibile, con il simbolo `gear`.
 - **Una sola copia.** Sistema tiene solo quella in uso: un nuovo sfondo, «Togli» e «Ripristina» eliminano la precedente per sempre (non nel cestino), così non si accumulano duplicati. `dropCopy` non tocca mai un file fuori da Sistema.
 - **Lettura prima del workspace.** Con i workspace `fs` mostra solo la scrivania del workspace attuale. Uno sfondo salvato dalla 1.9.0–1.9.3 (id dell'originale, magari nella Scrivania privata di un altro workspace) si copia in Sistema al primo avvio, in `preloadWallpaper`, prima di `setupWorkspaces`. L'originale resta dov'è.
@@ -1774,11 +1774,13 @@ Conseguenze: se tutte le schede si chiudono non parte niente; un'automazione con
 **Conseguenze.**
 
 - La build richiede Docker e circa mezz'ora (la configurazione di libarchive sotto Emscripten è lenta); va rifatta a ogni versione nuova di libarchive o delle librerie, e con i test (`npm run test:compress-archive`, che usano una variante per Node della stessa build).
-- I limiti dei file di lilOS restano: 10 MB per file, quindi archivi e immagini ISO piccoli; tutto in memoria, al massimo 256 MB per volta.
+- I limiti dei file di lilOS restavano: 10 MB per file, quindi archivi e immagini ISO piccoli; tutto in memoria, al massimo 256 MB per volta. Dal 5 novembre 2026 il limite per file non è più 10 MB (vedi l'aggiornamento sotto); il lavoro in memoria, e quindi i 256 MB per volta, restano.
 - libarchive decifra solo gli zip: i file cifrati di rar e 7z restano fuori, con il motivo nella notifica.
 - Chi aveva Zip deve installare Compress Archive e togliere Zip a mano: un'app non ne sostituisce un'altra da sola, e le automazioni registrate con Zip vanno rifatte.
 
 **Aggiornamento (3 novembre 2026).** Compress Archive è passata al repository community [lilos-plugins-community](https://github.com/GexyLab/lilos-plugins-community) (tag v1.2.0; tolta dall'ufficiale nella v1.54.0, dove era entrata nella v1.53.0), con il motore, lo script di build, i test e `doc/compress-archive.md`: i percorsi `plugins/…` qui sopra ora sono alla radice di quel repository. Non è un'app di sistema, come ArduinoIDE4LilOS. La decisione resta valida: il build con `alone` resta anche in `plugins/scripts/build.mjs`, per le app ufficiali che ne avranno bisogno.
+
+**Aggiornamento (5 novembre 2026).** Con lilOS 1.33.0 ([D85](#d85-i-limiti-dei-file-sono-impostazioni-del-kernel-a-livelli-con-flusso-e-quote-contate-dal-kernel)) il ponte delle app non ferma più i file a 10 MB: vale la dimensione massima di un file del kernel (1 GB di serie, cambiata da un amministratore). Compress Archive non è cambiata: lavora ancora tutta in memoria, al massimo 256 MB in tutto per volta, quindi per lei il limite che conta resta quello. La prima condizione qui sotto («se lilOS alza il limite di 10 MB») si è avverata; resta aperto far lavorare l'app a pezzi.
 
 **Quando ripensarla.** Se lilOS alza il limite di 10 MB per file (allora servono letture e scritture a pezzi, non tutto in memoria); se un'altra app vuole libarchive (allora conviene una libreria condivisa del manifesto, `libraries`); se WebAssembly con i thread diventa possibile nelle app (xz e 7z più veloci); se serve zstd.
 
@@ -2134,3 +2136,49 @@ Conseguenze: se tutte le schede si chiudono non parte niente; un'automazione con
 - Un pacchetto è un dato non fidato: il kernel lo controlla con limiti (4 MiB, 400 parti, 20 000 stringhe) e con l'hash scritto in `language.json`.
 
 **Quando ripensarla.** Se serviranno pacchetti di terzi (allora serve un modo di firmarli e di segnalarli come non ufficiali), se tenere 20 pacchetti allineati diventa troppo pesante per la frequenza con cui cambiano i testi, o se si vorrà tradurre le app oltre ai loro file.
+
+## D85. I limiti dei file sono impostazioni del kernel, a livelli, con flusso e quote contate dal kernel
+
+**Contesto.** Un file di lilOS poteva pesare al massimo 10 MB. Il limite non veniva dal file system (`fs-postgres` salvava già a pezzi da 1 MB e leggeva a flusso dalla 1.1.0) ma dalla richiesta che salva un file, che il kernel teneva tutta in memoria, e dal ponte delle app. L'utente voleva file molto più grandi, una quota di spazio per ogni utente e soglie che si possono configurare. Le soglie erano costanti sparse nel codice (di lilOS e dei moduli di rete), e altre impostazioni del kernel stavano già in posti diversi (`config.json`, `repos.json`, i metadati).
+
+**Decisione.** Decisa il 5 novembre 2026, lilOS 1.33.0, SDK 0.21.0. Progetto: `design/limiti-file.html`.
+
+- **I limiti sono impostazioni del kernel.** Un catalogo (`system/kernel/src/settings.js`) dichiara ogni impostazione con tipo, valore di serie, cosa vuol dire `0`, intervallo, ambito (di sistema, o anche di un solo utente) e quando conta. Le chiavi `files.*`: `maxFileSize` (1 GB), `quota` (0, senza limite; anche per utente), `maxReadWhole` (256 MB), `maxText` (10 MB), `uploadPiece` (8 MB), `inlineMax` (1 MB), `dbChunk` (1 MB) e `cacheMax` (10 MB).
+- **Livelli: vince il più alto che ha il valore.** 1 serie (il catalogo), 2 installazione (`kernel.settings` di `lilos-install.json`), 3 questo lilOS (`settings` di `config.json`, che il Pannello di controllo scrive, più `settings.users.<id>` per la quota di un utente). Un quarto livello, un modulo che fornisce il servizio `settings` per gestire molti lilOS da un posto solo (con valori bloccati), è la **fase 2: progettata, non fatta**. Le API mandano già `locked`, sempre `false`.
+- **Il kernel scrive a flusso.** `PUT /api/fs/content` passa il corpo a `fs.writeFrom` senza tenerlo in memoria. I file grandi arrivano dal browser a **pezzi** (`files.uploadPiece`) con sessioni di caricamento riprendibili (`/api/fs/uploads`): il kernel dice dove è arrivato e il browser riparte da lì.
+- **Le sessioni di caricamento non hanno file temporanei.** I pezzi vanno direttamente nello stream di `writeFrom`, e il file diventa il nuovo contenuto solo a fine invio. Una sessione senza pezzi da 10 minuti si scarta, e un riavvio del kernel le scarta tutte.
+- **La quota la conta il kernel, non il modulo.** Il kernel avvolge il servizio `fs` (`FileLimits`): ogni scrittura di un utente passa di lì, da chiunque parta (pagina, app, servizi, trasferimenti, Pianificazione). Il modulo `fs` deve solo dire lo spazio usato con un metodo facoltativo `usage(principal, userId)`; senza, non ci sono quote. Le scritture in corso dello stesso utente si sommano, e i byte di uno stream si contano mentre arrivano.
+- **I dati di `.config` non sono bloccati dalla quota.** Impostazioni e dati di lilOS dell'utente si scrivono con `kernel.fsBase` (il servizio non avvolto): con lo spazio finito lilOS deve poter salvare il proprio stato e dirlo. Contano però nello spazio usato.
+- **`chunk_size` per generazione.** `fs-postgres` 1.2.0 salva con ogni generazione di pezzi la dimensione con cui è stata scritta (`lilos_nodes.chunk_size`; nullo: 1 MB). Cambiare `files.dbChunk` vale solo per i file scritti da ora.
+- **Un codice di errore nuovo, `quota`** (HTTP 507), distinto da `too_large` (413): le app e la pagina sanno se il file è troppo grande in sé o se manca spazio.
+- **Le soglie dei moduli di rete sono impostazioni del modulo**, non del kernel: `netfs-s3` (`singleMaxMb`, `partMb`), `netfs-azblob` (`singleMaxMb`, `blockMb`), `netfs-google` (`pieceMb`), `netfs-onedrive` (`chunkMb`), `netfs-nfs` (`ioKb`). Dipendono dai limiti dei fornitori.
+- **Il modulo vede le impostazioni con `ctx.settings`** (`get`, `onChange`) e la pagina con `kernelSettings` dell'SDK; un cambio arriva alle pagine aperte con l'evento `settings.change`. Il browser tiene una copia dei contenuti (IndexedDB) solo fino a `cacheMax`.
+
+**Perché.**
+
+- **Impostazioni e non costanti.** Il valore giusto dipende da chi installa: un proxy davanti a lilOS può limitare le richieste, un server piccolo può volere una quota, un disco grande file da molti GB. Con le costanti serviva una versione di lilOS per ogni caso.
+- **Livelli e non un solo file.** Chi prepara un'installazione (un'azienda, un'immagine del sistema) deve poter fissare i valori prima del primo avvio, e l'amministratore deve poterli cambiare senza modificare file. Il quarto livello è già pensato perché i primi tre non cambino quando arriverà.
+- **Flusso e pezzi.** Un file da 1 GB tenuto in memoria dal kernel (o dal browser, o da un proxy) non regge. Con il flusso la memoria resta costante qualunque sia la dimensione; con i pezzi un invio interrotto non riparte da zero e ogni richiesta resta sotto i limiti di un proxy.
+- **Niente file temporanei.** Un file temporaneo avrebbe richiesto spazio doppio, una pulizia dopo un crollo e un secondo percorso di scrittura da controllare. Il database già tiene la nuova generazione di pezzi separata fino alla fine (chi legge vede quella vecchia), quindi i pezzi vanno direttamente lì.
+- **Quota contata dal kernel.** Il kernel è l'unico punto da cui passano tutte le scritture di un utente: contarla lì vale per ogni modulo `fs`, presente o futuro, e per ogni percorso senza fidarsi del chiamante. Il modulo fa solo ciò che sa fare: sommare le dimensioni.
+- **`.config` fuori dal blocco.** Se anche i dati di lilOS fossero bloccati, un utente con lo spazio finito non potrebbe cambiare nemmeno un'impostazione per fare posto. Il rischio è piccolo: sono chiavi da 512 KB al massimo.
+- **`chunk_size` per generazione.** Una dimensione dei pezzi globale avrebbe rovinato la lettura dei file già scritti. Salvata con ogni generazione, il cambio non tocca niente e non serve una migrazione.
+- **`quota` distinto da `too_large`.** Per l'utente sono due cose diverse: «il file è troppo grande» (non lo salverà mai) e «manca spazio» (lo salverà se ne libera).
+
+**Alternative scartate.**
+
+- Alzare solo il limite fisso (per esempio a 1 GB): non risolve la memoria (il kernel terrebbe 1 GB per richiesta), né le quote, né i proxy.
+- Una quota contata dal modulo `fs`: ogni modulo dovrebbe rifare gli stessi controlli, e il kernel non saprebbe di quali scritture fidarsi.
+- File temporanei per i caricamenti a pezzi: spazio doppio, pulizia dopo un crollo, un secondo percorso da controllare.
+- Impostazioni solo in `config.json`, a mano: un amministratore non tecnico non le cambierebbe, e per cambiarle servirebbe un riavvio.
+- Un'unica serie di impostazioni per i moduli di rete e per i file: le soglie di S3, Azure, Google, OneDrive e NFS vengono dai limiti dei fornitori e hanno unità e intervalli propri.
+
+**Conseguenze.**
+
+- **Compress Archive non è cambiata.** Il suo lavoro in memoria (256 MB in tutto) resta; le app che aprono un file per intero rifiutano ciò che supera `files.maxReadWhole`.
+- **Senza `usage()`, niente quote.** Con `fs-postgres` più vecchio della 1.2.0 la scheda **Utenti** del Pannello di controllo lo dice e chiede di aggiornare il modulo. Un kernel più vecchio della 1.33.0 non ha `GET /api/fs/limits`: l'SDK ripiega sui limiti di allora (10 MB per file).
+- **Ogni nuova impostazione del kernel entra nel catalogo**, con il suo intervallo e il suo testo nel Pannello di controllo, e ogni testo nuovo va tradotto nei pacchetti di lingua (D84).
+- **Il blocco è alla scrittura.** Abbassare una quota sotto lo spazio già usato non cancella niente: si rifiutano le scritture che non ci stanno, e svuotare il cestino libera spazio.
+- La notifica al 90% si manda una volta, e di nuovo solo dopo che l'utente è sceso sotto l'85%.
+
+**Quando ripensarla.** Quando si fa la fase 2 (il modulo `settings` di un sistema centrale: serve il contratto `load`, `onChange`, `save`, i valori bloccati e il comportamento a console irraggiungibile); se le quote devono contare anche le cartelle di Rete o altri moduli `fs` (oggi solo la home, e solo con `usage()`); se servono quote per gruppo invece che per utente; se i dati di `.config` crescono abbastanza da superare davvero la quota; se Compress Archive o altre app devono lavorare a pezzi.

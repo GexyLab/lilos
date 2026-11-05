@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { loadConfig, DATA_DIR, MODULES_DIR, MODULES_DATA_DIR, RELEASE_DIR, SYSTEM_VERSION } from './config.js';
 import { resolveModules, startModule, openSecretSettings, REQUIRED_MODULES } from './modules.js';
 import { Secrets } from './net/secrets.js';
-import { Router, send, readJson, cookies, checkOrigin, checkHost, checkSocketOrigin } from './http.js';
+import { Router, send, readJson, drainBody, cookies, checkOrigin, checkHost, checkSocketOrigin } from './http.js';
 import { KernelError, fail } from './errors.js';
 import { logger } from './log.js';
 import { defineStrings, localeOf } from './strings.js';
@@ -43,6 +43,9 @@ import { AppServices } from './apps/appServices.js';
 import { KERNEL } from './services.js';
 import { applyInstallSettings, loadInstallSettings } from './firstStart.js';
 import { importImage } from './image.js';
+import { KernelSettings } from './settings.js';
+import { FileLimits, Uploads } from './files.js';
+import { settingsRoutes } from './api/settings.js';
 
 const log = logger('kernel');
 const { t } = defineStrings('lilos:kernel.kernel', { en: { strings: {
@@ -138,6 +141,8 @@ export class Kernel {
       if (!ws) fail('forbidden', t('refused'));
     });
     this.settingSecrets = new Secrets(join(DATA_DIR, 'net'));
+    // The kernel's settings (settings.js), before the modules: they read them too (ctx.settings)
+    this.settings = new KernelSettings(config.settings);
     const mods = await resolveModules(MODULES_DIR, config.modules);
     // The apps registered with the providers, once in the settings of each module (net/oauth.js)
     await migrateOAuthSettings(config, mods, log);
@@ -145,10 +150,18 @@ export class Kernel {
     await this.oauth.open(log);
     for (const mod of mods) {
       await openSecretSettings(mod, this.settingSecrets, log);
-      this.modules.push(await startModule(mod, this.services, { route, emit, socket, dataDir: MODULES_DATA_DIR }));
+      this.modules.push(await startModule(mod, this.services, { route, emit, socket, dataDir: MODULES_DATA_DIR, settings: this.settings.forModule() }));
       log.info(`Modulo avviato: ${mod.name} ${mod.version} (${mod.provides.join(', ') || 'nessun servizio'})`);
     }
     if (!this.services.has('fs')) throw new Error('Nessun modulo fornisce il servizio "fs": lilOS non ha un file system');
+    // Every write of a user checked against the size of a file and their space (files.js): who asks
+    // for 'fs' from now on gets the guarded service; fsBase is the module's own
+    this.fsBase = this.services.get('fs');
+    this.fileLimits = new FileLimits(this, this.fsBase);
+    this.services.set('fs', this.fileLimits.guarded());
+    this.uploads = new Uploads(this);
+    if (!this.fileLimits.quotas) log.info('Il modulo fs non dice lo spazio usato: niente quote');
+    this.settings.on('change', ({ keys, user }) => this.#settingsChanged(keys, user));
     for (const [name, service] of Object.entries(REQUIRED_MODULES)) {
       if (!this.services.has(service)) throw new Error(`Il modulo obbligatorio ${name} non fornisce il servizio "${service}"`);
     }
@@ -189,6 +202,7 @@ export class Kernel {
     termRoutes(this);
     callsRoutes(this);
     scheduleRoutes(this);
+    settingsRoutes(this);
     // An installation from lilos-install.json: a system image first (its apps are not installed again), then what it asks for
     this.install = await loadInstallSettings();
     try {
@@ -283,6 +297,8 @@ export class Kernel {
       if (!res.headersSent) send(res, result === undefined ? 204 : 200, result, {}, locale);
     } catch (err) {
       if (res.headersSent) return res.destroy();
+      // The browser still sending (a file refused before it was read): let it finish, then answer
+      await drainBody(req);
       if (err instanceof KernelError) {
         return send(res, err.status, { error: err.code, message: err.text ?? err.message, ...(err.details !== undefined && { details: err.details }) }, err.retryAfter ? { 'Retry-After': String(err.retryAfter) } : {}, locale);
       }
@@ -308,7 +324,17 @@ export class Kernel {
     }
   }
 
+  /** The kernel's settings changed: the pages of who they count for read the limits again ('settings.change'). */
+  async #settingsChanged(keys, user) {
+    try {
+      for (const owner of user ? [user] : await this.userIds()) this.events.emit('user', { owner, event: 'settings.change', data: { keys } });
+    } catch (err) {
+      log.error('Cambio delle impostazioni', err);
+    }
+  }
+
   async stop() {
+    this.uploads?.stop();
     await this.terminals?.stop().catch(err => log.error('Arresto dei terminali', err));
     await this.calls?.stop().catch(err => log.error('Arresto di NetTest', err));
     await this.appServices?.stopAll();

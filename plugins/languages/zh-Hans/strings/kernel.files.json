@@ -1,0 +1,14 @@
+{
+  "tooBig": "文件过大（{size}）：lilOS 最多保存 {max} 的文件",
+  "quota": "空间不足：你的空间仅剩 {free}",
+  "quotaNear": "你已使用 {percent}% 的空间（已用 {used}，共 {quota}）",
+  "readWhole": "文件过大，无法一次读取（{size}，最多 {max}）",
+  "text": "文本过长（{size}，最多 {max}）",
+  "noUpload": "未找到上传：上传已结束，或闲置时间过长",
+  "offset": "上传已进行到第 {received} 字节",
+  "uploadSize": "上传大小无效",
+  "tooMany": "同时进行的上传过多",
+  "notFile": "这不是文件",
+  "ended": "上传已中断",
+  "sizeDiffers": "字节数超过了上传大小"
+}

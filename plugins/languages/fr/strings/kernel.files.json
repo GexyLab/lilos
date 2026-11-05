@@ -1,0 +1,14 @@
+{
+  "tooBig": "Fichier trop volumineux ({size}) : lilOS enregistre des fichiers jusqu’à {max}",
+  "quota": "Espace insuffisant : il vous reste {free} de votre espace",
+  "quotaNear": "Vous avez utilisé {percent} % de votre espace ({used} sur {quota})",
+  "readWhole": "Fichier trop volumineux pour être lu en une fois ({size}, au plus {max})",
+  "text": "Texte trop long ({size}, au plus {max})",
+  "noUpload": "Chargement introuvable : il est terminé, ou il est resté inactif trop longtemps",
+  "offset": "Le chargement en est à l’octet {received}",
+  "uploadSize": "Taille du chargement non valide",
+  "tooMany": "Trop de chargements à la fois",
+  "notFile": "Ce n’est pas un fichier",
+  "ended": "Chargement interrompu",
+  "sizeDiffers": "Plus d’octets que la taille du chargement"
+}
