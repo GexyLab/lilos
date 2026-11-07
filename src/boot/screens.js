@@ -3,8 +3,8 @@
  * running lilOS (locked, session expired). Plain DOM: the SDK cannot be imported yet (it reads the
  * user's data as soon as it loads), only its kernel client and styles.
  *
- * Every screen has two halves: on the left the lilOS panel (logo, headline or the time, connection
- * to the kernel, version), on the right what to do. Dark unless the user chose light with the
+ * Every screen has two halves: on the left the lilOS panel (logo, headline or the time, a quote,
+ * connection to the kernel, version), on the right what to do. Dark unless the user chose light with the
  * button at the top right (remembered in this browser).
  */
 import { kernel } from '@lilos/sdk/kernel';
@@ -16,9 +16,6 @@ const i18n = bootStrings('lilos:bootScreens', { en: { strings: {
   'hero.title1': 'Your desktop.',
   'hero.title2': 'Wherever you are.',
   'hero.lead': 'Your lilOS windows, files and apps from any computer, just as you left them.',
-  'hero.files': 'Your files in your home',
-  'hero.workspaces': 'A workspace for every project',
-  'hero.apps': 'Apps always up to date',
   'connection.checking': 'Connecting…',
   'connection.on': 'Connected to {host} · {ms} ms',
   'connection.onHost': 'Connected to {host}',
@@ -38,8 +35,6 @@ const i18n = bootStrings('lilos:bootScreens', { en: { strings: {
   'login.forgot': 'Forgot your password?',
   'login.noAccount': "No account yet? A lilOS administrator creates it.",
   'login.retryIn': 'Try again in {time}',
-  'login.windowsStay': 'Your windows stay open',
-  'login.pendingSaved': 'Pending changes are saved',
   'forgot.title': 'Forgotten password',
   'forgot.text': "A lilOS administrator changes passwords: ask them to choose a new one for your user name. It cannot be reset from here.",
   'forgot.back': 'Back to sign-in',
@@ -63,6 +58,44 @@ const i18n = bootStrings('lilos:bootScreens', { en: { strings: {
   'license.exit': 'Exit',
   'start.hello': 'Hi, {name}',
   'start.text': 'Getting your lilOS ready…',
+  'quote.irobot': 'Everything that follows is a result of what you see here.',
+  'quote.irobot.by': 'I, Robot',
+  'quote.apollo': 'Houston, we have a problem.',
+  'quote.apollo.by': 'Apollo 13',
+  'quote.clarke': 'Any sufficiently advanced technology is indistinguishable from magic.',
+  'quote.clarke.by': 'Arthur C. Clarke',
+  'quote.scott': 'Great Scott!',
+  'quote.scott.by': 'Doc, Back to the Future',
+  'quote.future': "It means your future hasn't been written yet. No one's has. Your future is whatever you make it. So make it a good one.",
+  'quote.future.by': 'Doc, Back to the Future',
+  'quote.gigawatt': 'Hey, Doc, what the hell is a gigawatt?!',
+  'quote.gigawatt.by': 'Marty McFly, Back to the Future',
+  'quote.been': 'Hey, Doc, are you going back to the future? … Nope, already been there!',
+  'quote.been.by': 'Marty McFly & Doc, Back to the Future',
+  'quote.stars': 'Remember to look up at the stars and not down at your feet. […] There is always something you can do and succeed at.',
+  'quote.stars.by': 'Stephen Hawking',
+  'quote.heaven': 'There is no heaven or afterlife for broken down computers; that is a fairy story for people afraid of the dark.',
+  'quote.heaven.by': 'Stephen Hawking',
+  'quote.infinite': "Two things are infinite: the universe and human stupidity; and I'm not sure about the universe.",
+  'quote.infinite.by': 'Albert Einstein',
+  'quote.parachute': 'The mind is like a parachute. It only works if it is open.',
+  'quote.parachute.by': 'Albert Einstein',
+  'quote.stardust': 'Every atom in your body came from a star that exploded… It is the most poetic thing I know about physics: you are all stardust.',
+  'quote.stardust.by': 'Lawrence M. Krauss',
+  'quote.optimist': 'The optimist thinks this is the best of all possible worlds. The pessimist knows it is.',
+  'quote.optimist.by': 'J. Robert Oppenheimer',
+  'quote.curie': 'Nothing in life is to be feared, it is only to be understood. Now is the time to understand more, so that we may fear less.',
+  'quote.curie.by': 'Marie Curie',
+  'quote.batty': 'Time enough.',
+  'quote.batty.by': 'Roy Batty, Blade Runner',
+  'quote.interstellar': 'We used to look up at the sky and wonder at our place in the stars. Now we just look down and worry about our place in the dirt.',
+  'quote.interstellar.by': 'Cooper, Interstellar',
+  'quote.watney': 'Mark Watney… space pirate.',
+  'quote.watney.by': 'The Martian',
+  'quote.morpheus': "I can only show you the door. You're the one that has to walk through it.",
+  'quote.morpheus.by': 'Morpheus, The Matrix',
+  'quote.smith': 'Human beings are a disease, a cancer of this planet. You are a plague, and we are the cure.',
+  'quote.smith.by': 'Agent Smith, The Matrix',
 } } });
 const { t } = i18n;
 
@@ -154,18 +187,48 @@ export const rememberSignIn = () => load(REMEMBER_KEY) !== '0';
 
 // ---------- The left panel ----------
 
-const heroPoints = () => [t('hero.files'), t('hero.workspaces'), t('hero.apps')];
+const QUOTES = ['irobot', 'apollo', 'clarke', 'scott', 'future', 'gigawatt', 'been', 'stars', 'heaven', 'infinite', 'parachute', 'stardust', 'optimist', 'curie',
+  'batty', 'interstellar', 'watney', 'morpheus', 'smith'];
+const QUOTE_EVERY = 120_000;
+const QUOTE_FADE = 600;
+// The quote shown: the next screen (start-up after signing in) keeps it
+let quoteAt = Math.floor(Math.random() * QUOTES.length);
+const otherQuote = () => (quoteAt + 1 + Math.floor(Math.random() * (QUOTES.length - 1))) % QUOTES.length;
 
-function heroText({ title = [t('hero.title1'), t('hero.title2')], lead = t('hero.lead'), points = heroPoints() } = {}) {
+/** A quote with its author under it; every two minutes another one at random, fading out and in. */
+function heroQuote() {
+  const text = el('q');
+  const by = el('figcaption');
+  const box = el('figure', { class: 'boot-quote out' }, el('blockquote', {}, text), by);
+  const show = () => {
+    const id = QUOTES[quoteAt];
+    text.textContent = t(`quote.${id}`);
+    by.textContent = t(`quote.${id}.by`);
+    requestAnimationFrame(() => requestAnimationFrame(() => box.classList.remove('out')));
+  };
+  show();
+  const timer = setInterval(() => {
+    if (!box.isConnected) return clearInterval(timer);
+    box.classList.add('out');
+    setTimeout(() => {
+      quoteAt = otherQuote();
+      show();
+    }, QUOTE_FADE);
+  }, QUOTE_EVERY);
+  return box;
+}
+
+/** Headline and lead; under them `points` (a list) or, without, the quotes. */
+function heroText({ title = [t('hero.title1'), t('hero.title2')], lead = t('hero.lead'), points = null } = {}) {
   return [
     el('h2', { class: 'boot-headline' }, ...title.flatMap((line, i) => (i ? [el('br'), line] : [line]))),
     el('p', { class: 'boot-lead' }, lead),
-    points.length ? el('ul', { class: 'boot-points' }, ...points.map(p => el('li', {}, p))) : null,
+    points ? el('ul', { class: 'boot-points' }, ...points.map(p => el('li', {}, p))) : heroQuote(),
   ];
 }
 
-/** The time and date, kept current while the screen is shown. */
-function heroClock(points = []) {
+/** The time and date, kept current while the screen is shown, and the quotes. */
+function heroClock() {
   const time = el('div', { class: 'boot-clock' });
   const date = el('div', { class: 'boot-date' });
   const tick = () => {
@@ -175,7 +238,7 @@ function heroClock(points = []) {
   };
   tick();
   const timer = setInterval(() => (time.isConnected ? tick() : clearInterval(timer)), 10_000);
-  return [time, date, points.length ? el('ul', { class: 'boot-points' }, ...points.map(p => el('li', {}, p))) : null];
+  return [time, date, heroQuote()];
 }
 
 /** Whether the kernel answers, and how fast; asked again every few seconds while it is shown. */
@@ -320,7 +383,7 @@ export function loginScreen(root, login, {
         ? el('p', { class: 'boot-alt' }, other.lead ? `${other.lead} ` : null, el('button', { class: 'boot-link', type: 'button', onclick: other.onClick }, other.label))
         : username ? null : el('p', { class: 'boot-alt' }, t('login.noAccount')),
     ];
-    const hero = username ? heroClock([t('login.windowsStay'), t('login.pendingSaved')]) : heroText();
+    const hero = username ? heroClock() : heroText();
     const { screen, side } = frame(root, { hero, side: sideContent, onto });
 
     const forgot = () => {

@@ -3,6 +3,6 @@
   "language": "es",
   "name": "Español",
   "englishName": "Spanish",
-  "version": "1.1.0",
-  "lilos": ">=1.33.0"
+  "version": "1.2.0",
+  "lilos": ">=1.35.0"
 }
