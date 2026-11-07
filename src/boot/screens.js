@@ -68,9 +68,9 @@ const i18n = bootStrings('lilos:bootScreens', { en: { strings: {
   'quote.scott.by': 'Doc, Back to the Future',
   'quote.future': "It means your future hasn't been written yet. No one's has. Your future is whatever you make it. So make it a good one.",
   'quote.future.by': 'Doc, Back to the Future',
-  'quote.gigawatt': 'Hey, Doc, what the hell is a gigawatt?!',
+  'quote.gigawatt': 'What the hell is a gigawatt?!',
   'quote.gigawatt.by': 'Marty McFly, Back to the Future',
-  'quote.been': 'Hey, Doc, are you going back to the future? … Nope, already been there!',
+  'quote.been': "Hey, Doc! Where you goin' now? Back to the future? … Nope. Already been there.",
   'quote.been.by': 'Marty McFly & Doc, Back to the Future',
   'quote.stars': 'Remember to look up at the stars and not down at your feet. […] There is always something you can do and succeed at.',
   'quote.stars.by': 'Stephen Hawking',
@@ -80,13 +80,13 @@ const i18n = bootStrings('lilos:bootScreens', { en: { strings: {
   'quote.infinite.by': 'Albert Einstein',
   'quote.parachute': 'The mind is like a parachute. It only works if it is open.',
   'quote.parachute.by': 'Albert Einstein',
-  'quote.stardust': 'Every atom in your body came from a star that exploded… It is the most poetic thing I know about physics: you are all stardust.',
+  'quote.stardust': 'Every atom in your body came from a star that exploded… It really is the most poetic thing I know about physics: you are all stardust.',
   'quote.stardust.by': 'Lawrence M. Krauss',
-  'quote.optimist': 'The optimist thinks this is the best of all possible worlds. The pessimist knows it is.',
+  'quote.optimist': 'The optimist thinks this is the best of all possible worlds, and the pessimist knows it.',
   'quote.optimist.by': 'J. Robert Oppenheimer',
   'quote.curie': 'Nothing in life is to be feared, it is only to be understood. Now is the time to understand more, so that we may fear less.',
   'quote.curie.by': 'Marie Curie',
-  'quote.batty': 'Time enough.',
+  'quote.batty': 'Time? Enough.',
   'quote.batty.by': 'Roy Batty, Blade Runner',
   'quote.interstellar': 'We used to look up at the sky and wonder at our place in the stars. Now we just look down and worry about our place in the dirt.',
   'quote.interstellar.by': 'Cooper, Interstellar',
@@ -197,7 +197,7 @@ const otherQuote = () => (quoteAt + 1 + Math.floor(Math.random() * (QUOTES.lengt
 
 /** A quote with its author under it; every two minutes another one at random, fading out and in. */
 function heroQuote() {
-  const text = el('q');
+  const text = el('p');
   const by = el('figcaption');
   const box = el('figure', { class: 'boot-quote out' }, el('blockquote', {}, text), by);
   const show = () => {

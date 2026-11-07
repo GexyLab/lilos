@@ -3,6 +3,6 @@
   "language": "ru",
   "name": "Русский",
   "englishName": "Russian",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "lilos": ">=1.35.0"
 }

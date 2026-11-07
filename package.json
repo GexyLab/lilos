@@ -1,7 +1,7 @@
 {
   "name": "lilos",
   "private": true,
-  "version": "1.35.0",
+  "version": "1.35.1",
   "license": "SEE LICENSE IN LICENSE.md",
   "type": "module",
   "scripts": {

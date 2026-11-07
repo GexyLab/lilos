@@ -3,6 +3,6 @@
   "language": "ja",
   "name": "日本語",
   "englishName": "Japanese",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "lilos": ">=1.35.0"
 }

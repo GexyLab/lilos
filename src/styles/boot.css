@@ -57,8 +57,8 @@
 .boot-points li::before { content: ""; width: 20px; height: 20px; flex: none; border-radius: 50%; background: rgba(255, 255, 255, .28) radial-gradient(circle, #fff 0 3.5px, transparent 4px); }
 .boot-quote { margin: 30px 0 0; padding-inline-start: 18px; border-inline-start: 3px solid rgba(255, 255, 255, .45); transition: opacity .6s ease; }
 .boot-quote.out { opacity: 0; }
-.boot-quote blockquote { margin: 0; font-size: 16px; line-height: 1.6; font-style: italic; color: rgba(255, 255, 255, .95); unicode-bidi: plaintext; }
-.boot-quote q { quotes: auto; }
+.boot-quote blockquote, .boot-quote p { margin: 0; }
+.boot-quote blockquote { font-size: 16px; line-height: 1.6; font-style: italic; color: rgba(255, 255, 255, .95); unicode-bidi: plaintext; }
 .boot-quote figcaption { margin-top: 10px; font-size: 12.5px; color: rgba(255, 255, 255, .7); }
 @media (prefers-reduced-motion: reduce) { .boot-quote { transition: none; } }
 .boot-clock { font-size: 84px; font-weight: 300; letter-spacing: -.03em; line-height: 1; font-variant-numeric: tabular-nums; }
