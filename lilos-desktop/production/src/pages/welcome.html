@@ -15,7 +15,8 @@
   </div>
   <ol class="steps" aria-label="">
     <li data-step="where"><i>1</i><span data-t="step.where"></span></li>
-    <li data-step="user"><i>2</i><span data-t="step.user"></span></li>
+    <li data-step="license"><i>2</i><span data-t="step.license"></span></li>
+    <li data-step="user"><i>2</i><span id="step-user" data-t="step.user"></span></li>
     <li data-step="ready"><i>3</i><span data-t="step.ready"></span></li>
   </ol>
   <section id="previous" class="page" role="radiogroup" hidden>
@@ -50,7 +51,22 @@
         </span>
       </span>
     </label>
+    <label class="choice" id="choice-noui">
+      <input type="radio" name="where" value="noui">
+      <span class="ci"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="m7 9 3 3-3 3M12.5 15H17"/></svg></span>
+      <span class="body"><b><span data-t="noui.title"></span> <em class="pill" data-t="new"></em></b><span class="text" id="noui-text"></span>
+        <span class="more" id="noui-more" hidden>
+          <label class="check"><input type="checkbox" id="noui-autostart" checked><span data-t="noui.autostart"></span></label>
+          <label class="check"><input type="checkbox" id="noui-path" checked><span data-t="noui.path"></span></label>
+        </span>
+      </span>
+    </label>
     <div id="installed"></div>
+  </section>
+  <section id="license" class="page" hidden>
+    <div class="license" id="license-text" tabindex="0" role="document"></div>
+    <p class="hint source"><span id="license-source"></span> <span id="license-dot" hidden>·</span> <button class="link" id="license-open" type="button" data-t="license.open"></button></p>
+    <label class="check"><input type="checkbox" id="license-accept" disabled><span data-t="license.accept"></span></label>
   </section>
   <section id="user" class="page" hidden>
     <p data-t="user.text"></p>
@@ -59,8 +75,9 @@
     <div class="field"><label for="password2" data-t="user.repeat"></label><input class="input" id="password2" type="password" autocomplete="new-password" maxlength="256"><span class="hint" data-t="user.passwordHint"></span></div>
   </section>
   <section id="ready" class="page" hidden>
-    <div class="working"><span class="spinner"></span><b id="work-title"></b></div>
+    <div class="working"><span class="spinner" id="work-spinner"></span><span class="ok" id="work-ok" hidden><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></svg></span><b id="work-title"></b></div>
     <div class="log" id="log" role="log" aria-live="polite"></div>
+    <div class="info" id="noui-info" hidden></div>
   </section>
   <div class="error" id="error" role="alert" hidden></div>
   <footer>
@@ -68,6 +85,8 @@
     <span class="actions">
       <button class="btn" id="back" type="button" data-t="back" hidden></button>
       <button class="btn primary" id="next" type="button" data-t="next"></button>
+      <button class="btn" id="close" type="button" data-t="close" hidden></button>
+      <button class="btn primary" id="terminal" type="button" data-t="terminal" hidden></button>
     </span>
   </footer>
 </main>
