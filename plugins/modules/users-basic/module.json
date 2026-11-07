@@ -1,6 +1,6 @@
 {
   "name": "users-basic",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Utenti e accesso con password, salvati in users.json nella cartella del modulo",
   "icon": { "glyph": "user", "color": "#5f6673" },
   "kernel": "1",

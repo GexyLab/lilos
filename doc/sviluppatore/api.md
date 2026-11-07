@@ -4843,14 +4843,15 @@ Da lilOS 1.34.0 (modulo 1.0.0, `plugins/modules/terminal-cli/`, nel repository u
 
 I testi (`en` e `it`) stanno in `locales.json` del modulo.
 
-### `users-basic_1.1.0`
+### `users-basic_1.2.0`
 
 Configurazione: `sessionDays` (30) e `idleDays` (7). Tutto sta in `users.json` nella cartella del modulo:
 
 ```json
 { "version": 1, "users": [
   { "id": "…", "username": "eugenio", "name": "Eugenio", "role": "admin", "password": "scrypt$32768$8$1$<sale>$<hash>", "created": 1793180000000,
-    "sessions": [{ "hash": "<sha256 del token>", "created": 0, "expires": 0, "seen": 0 }] }
+    "sessions": [{ "hash": "<sha256 del token>", "created": 0, "expires": 0, "seen": 0 }],
+    "lock": { "fails": 0, "last": 0, "until": 0 } }
 ] }
 ```
 
@@ -4858,7 +4859,9 @@ Configurazione: `sessionDays` (30) e `idleDays` (7). Tutto sta in `users.json` n
 - Il cookie contiene un token casuale; qui si salva solo il suo SHA-256. Al massimo 20 sessioni per utente. Una sessione finisce dopo `sessionDays` dall'accesso o `idleDays` senza uso; l'ultimo uso si salva al massimo una volta all'ora.
 - Tentativi: dopo 5 password sbagliate per lo stesso nome utente, o 20 dallo stesso indirizzo, l'attesa raddoppia a ogni errore (2 s, 4 s…, al massimo 15 minuti) e il kernel risponde `rate_limited` con `Retry-After`. Il conteggio è in memoria. Con un nome utente che non esiste il tempo di risposta è lo stesso.
 - Il file si rilegge quando cambia e si valida a ogni lettura; si riscrive intero, una modifica alla volta. Cambiare la password chiude tutte le sessioni dell'utente.
-- Comandi: `add <nome> [--name "Nome visibile"] [--admin]`, `passwd <nome>`, `remove <nome>` (la home resta nel file system), `list`.
+- Comandi: `add <nome> [--name "Nome visibile"] [--admin]`, `passwd <nome> [--reset]`, `remove <nome>` (la home resta nel file system), `list`.
+- `passwd` (dalla 1.2.0) vuole un terminale e chiede la **vecchia password**; con `--reset` chiede invece nome utente e password di un **amministratore** e una conferma (`s`), poi la nuova password. Dopo **3 password sbagliate** di fila (a meno di 5 minuti l'una dall'altra) l'utente a cui appartengono è **bloccato per 5 minuti**: `passwd` e l'accesso rispondono `rate_limited`. Il blocco sta in `lock` di `users.json` (il comando gira fuori dal kernel, che rilegge il file); una password giusta o una password nuova lo toglie.
+- Il servizio `users` ha in più `verify(id, password) → { ok, triesLeft, lockedUntil }` (non fa parte dell'interfaccia che il kernel chiede): conta le password sbagliate come `passwd` e lancia `rate_limited` mentre l'utente è bloccato.
 
 ### `fs-postgres_1.2.0`
 

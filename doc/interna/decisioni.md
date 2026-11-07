@@ -2227,3 +2227,24 @@ Conseguenze: se tutte le schede si chiudono non parte niente; un'automazione con
 - Non provato su macOS e Linux, né con un installer Windows vero.
 
 **Quando ripensarla.** Se serviranno le app senza pagina, se il passaggio inverso diventa una richiesta vera, se `ssh` e `telnet` nel comando lo rendono un secondo Terminale da tenere allineato, o se un modulo per le impostazioni del kernel (roadmap) dovrà poter essere usato da qui con più permessi.
+
+## D87. `passwd` chiede la vecchia password o un amministratore, e blocca dopo 3 errori
+
+> Cambia una parte di [D32](#d32-utenti-in-un-file-il-modulo-users-basic): i comandi di `users-basic` per le password.
+
+**Contesto.** `npm run kernel:cli -- users-basic passwd <nome>` cambiava la password di chiunque senza chiedere niente: bastava avere accesso alla cartella di lilOS e a un terminale. L'utente ha chiesto che il comando chieda la vecchia password, che una password dimenticata si possa reimpostare solo con l'approvazione di un amministratore, e che dopo 3 tentativi sbagliati l'utente non possa accedere per 5 minuti.
+
+**Decisione.** Decisa il 7 novembre 2026, modulo `users-basic` 1.2.0 (nessun cambio al kernel).
+
+- **`passwd <nome>`** chiede la vecchia password, poi la nuova due volte. **`passwd <nome> --reset`** chiede nome utente e password di un amministratore, una conferma (`s`), poi la nuova password; toglie anche un eventuale blocco dell'utente.
+- **3 password sbagliate di fila** (a meno di 5 minuti l'una dall'altra) bloccano **l'utente a cui appartengono** per 5 minuti: con `--reset` è l'amministratore. Durante il blocco `passwd` si rifiuta e l'accesso risponde `rate_limited`. Una password giusta azzera il conto.
+- **Il blocco sta in `users.json`** (`lock: { fails, last, until }`), non in memoria: il comando gira in un processo suo, fuori dal kernel, e il kernel rilegge il file quando cambia. Il servizio `users` ha in più `verify(id, password)`, che fa il conto.
+- `passwd` vuole un terminale: senza, ogni password sarebbe `LILOS_PASSWORD`, la vecchia uguale alla nuova.
+- Le domande visibili (nome dell'amministratore, conferma) le fa il modulo con `node:readline`: `prompt` di `cli.js` sa leggere solo password nascoste, e cambiarlo avrebbe chiesto un lilOS nuovo per un modulo che si aggiorna da solo.
+
+**Alternative scartate.**
+
+- Il blocco nella memoria del kernel, come i limiti dell'accesso: il comando non la vede, e il blocco non fermerebbe l'accesso.
+- Chiedere sempre la vecchia password, senza `--reset`: chi la dimentica non avrebbe più modo di cambiarla se non modificando `users.json` a mano.
+
+**Conseguenze.** Chi ha accesso alla cartella del modulo può ancora modificare `users.json` a mano: il comando protegge chi usa il terminale, non chi ha il disco. Non provato in un terminale vero (le prove usano un terminale finto). I limiti dell'accesso dalla pagina (5 per nome, 20 per indirizzo, attese crescenti) restano come prima e sono separati da questi.

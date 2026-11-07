@@ -1,12 +1,16 @@
 import { randomBytes, scrypt as scryptCallback, timingSafeEqual, createHash } from 'node:crypto';
 import { needKernel } from './lib/shared/kernel.js';
 import { promisify } from 'node:util';
+import { createInterface } from 'node:readline';
 
 /**
  * Users and sign-in, standalone: everything is in users.json, in this module's folder.
  *
  *   { version: 1, users: [{ id, username, name, role: 'admin' | 'user', password, created,
- *                           sessions: [{ hash, created, expires, seen }] }] }
+ *                           sessions: [{ hash, created, expires, seen }], lock?: { fails, last, until } }] }
+ *
+ * `lock`: wrong passwords given to the command line (users.verify). After PASSWD_TRIES in a row the
+ * user cannot sign in until `until`; it is in the file because the command runs apart from the kernel.
  *
  * Passwords: scrypt ('scrypt$N$r$p$salt$hash', base64). Sessions: a random token in the user's
  * cookie, only its SHA-256 here; it ends `sessionDays` after sign-in or `idleDays` after last use.
@@ -29,6 +33,11 @@ const SEEN_EVERY = 3_600_000;   // last use is saved at most once an hour
 // After this many wrong passwords each try waits twice as long; an address may be shared by many people
 const FREE_FAILS = { u: 5, ip: 20 };
 const MAX_WAIT = 15 * 60_000;
+
+// Command line (passwd): wrong passwords in a row, less than PASSWD_LOCK apart, before the user is blocked for PASSWD_LOCK
+const PASSWD_TRIES = 3;
+const PASSWD_LOCK = 5 * 60_000;
+const lockedFor = (user, now = Date.now()) => Math.max(0, (user?.lock?.until ?? 0) - now);
 
 const sha256 = text => createHash('sha256').update(text).digest('hex');
 const publicUser = u => ({ id: u.id, username: u.username, name: u.name, role: u.role });
@@ -57,7 +66,9 @@ function clean(raw) {
     if (!u || !ID.test(u.id) || !USERNAME.test(u.username) || !ROLES.has(u.role) || typeof u.password !== 'string') continue;
     if (users.some(o => o.id === u.id || o.username === u.username)) continue;
     const sessions = (Array.isArray(u.sessions) ? u.sessions : []).filter(s => s && HASH.test(s.hash) && Number.isFinite(s.expires) && Number.isFinite(s.seen));
-    users.push({ id: u.id, username: u.username, name: cleanName(u.name, u.username), role: u.role, password: u.password, created: Number.isFinite(u.created) ? u.created : Date.now(), sessions });
+    const l = u.lock;
+    const lock = l && Number.isInteger(l.fails) && l.fails >= 0 && Number.isFinite(l.last) && Number.isFinite(l.until) ? { fails: l.fails, last: l.last, until: l.until } : undefined;
+    users.push({ id: u.id, username: u.username, name: cleanName(u.name, u.username), role: u.role, password: u.password, created: Number.isFinite(u.created) ? u.created : Date.now(), sessions, lock });
   }
   return { version: 1, users };
 }
@@ -65,6 +76,25 @@ function clean(raw) {
 function checkPassword(ctx, password) {
   if (typeof password !== 'string' || password.length < PASSWORD.min || password.length > PASSWORD.max) {
     ctx.fail('invalid', `La password deve avere da ${PASSWORD.min} a ${PASSWORD.max} caratteri`);
+  }
+}
+
+/** A visible line from the terminal (the command line's prompt reads only hidden passwords). */
+function ask(question) {
+  return new Promise((resolve, reject) => {
+    const rl = createInterface({ input: process.stdin, output: process.stdout, terminal: true });
+    rl.question(question, answer => { rl.close(); resolve(answer.trim()); });
+    rl.on('SIGINT', () => { rl.close(); process.stdout.write('\n'); reject(new Error('Annullato')); });
+  });
+}
+
+/** Asks `user`'s password until it is right; throws after the wrong one that blocks the user. */
+async function askPassword(users, user, prompt, question) {
+  for (;;) {
+    const { ok, triesLeft, lockedUntil } = await users.verify(user.id, await prompt.password(question));
+    if (ok) return;
+    if (lockedUntil) throw new Error(`Password sbagliata. Troppi tentativi: ${user.username} è bloccato per ${PASSWD_LOCK / 60_000} minuti, anche per l'accesso a lilOS`);
+    console.log(`Password sbagliata: ${triesLeft === 1 ? 'ancora un tentativo' : `ancora ${triesLeft} tentativi`}`);
   }
 }
 
@@ -99,6 +129,8 @@ export default {
         const wait = Math.max(...keys.map(waitFor));
         if (wait) ctx.fail('rate_limited', 'Troppi tentativi: riprova tra poco', { retryAfter: Math.ceil(wait / 1000) });
         const user = (await store.read()).users.find(u => u.username === name);
+        const locked = lockedFor(user);
+        if (locked) ctx.fail('rate_limited', 'Troppi tentativi: riprova tra poco', { retryAfter: Math.ceil(locked / 1000) });
         // Same work whether the user exists or not: the answer time does not tell which
         const ok = await verifyPassword(String(password), user?.password ?? dummy) && !!user;
         if (!ok) {
@@ -185,7 +217,36 @@ export default {
           const u = data.users.find(o => o.id === id) ?? ctx.fail('not_found', 'Utente inesistente');
           u.password = hash;
           u.sessions = [];   // a new password signs out everywhere
+          delete u.lock;
         });
+      },
+
+      /**
+       * Checks a user's password for the command line → { ok, triesLeft, lockedUntil }. The wrong ones
+       * count in users.json: the PASSWD_TRIES-th in a row blocks the user (sign-in too) for PASSWD_LOCK.
+       * Throws 'rate_limited' while the user is blocked.
+       */
+      async verify(id, password) {
+        const user = (await store.read()).users.find(o => o.id === id) ?? ctx.fail('not_found', 'Utente inesistente');
+        const wait = lockedFor(user);
+        if (wait) ctx.fail('rate_limited', `${user.username} è bloccato per troppi tentativi: riprova tra ${Math.ceil(wait / 60_000)} minuti`, { retryAfter: Math.ceil(wait / 1000) });
+        const ok = await verifyPassword(String(password), user.password);
+        if (ok && !user.lock) return { ok, triesLeft: PASSWD_TRIES, lockedUntil: 0 };
+        let result;
+        await store.change(data => {
+          const u = data.users.find(o => o.id === id) ?? ctx.fail('not_found', 'Utente inesistente');
+          const now = Date.now();
+          if (ok) {
+            delete u.lock;
+            result = { ok, triesLeft: PASSWD_TRIES, lockedUntil: 0 };
+            return;
+          }
+          const before = u.lock && !lockedFor(u, now) && now - u.lock.last < PASSWD_LOCK ? u.lock.fails : 0;
+          const fails = before + 1;
+          u.lock = fails >= PASSWD_TRIES ? { fails: 0, last: now, until: now + PASSWD_LOCK } : { fails, last: now, until: 0 };
+          result = { ok, triesLeft: Math.max(0, PASSWD_TRIES - fails), lockedUntil: u.lock.until };
+        });
+        return result;
       },
 
       async remove(id) {
@@ -214,10 +275,31 @@ export default {
       console.log(`Creato ${user.username} (${user.role})`);
     },
 
+    /**
+     * passwd <nome>: the old password first. passwd <nome> --reset: an administrator's name and password
+     * and a confirmation instead. PASSWD_TRIES wrong passwords block that user (passwd and sign-in) for PASSWD_LOCK.
+     */
     async passwd({ services, args, prompt }) {
       const users = services.get('users');
-      const user = (await users.list()).find(u => u.username === String(args.positional[0] ?? '').toLowerCase());
+      if (!args.positional[0]) throw new Error('Uso: users-basic passwd <nome> [--reset]');
+      const find = async name => (await users.list()).find(u => u.username === String(name).trim().toLowerCase());
+      const user = await find(args.positional[0]);
       if (!user) throw new Error('Utente inesistente');
+      // Without a terminal every password would be LILOS_PASSWORD: the old one and the new one the same
+      if (!process.stdin.isTTY) throw new Error('passwd chiede le password: serve un terminale');
+      if (args.flags.reset) {
+        console.log(`Per reimpostare la password di ${user.username} serve un amministratore.`);
+        const admin = await find(await ask('Nome utente dell\'amministratore: '));
+        if (admin?.role !== 'admin') throw new Error('Non è un amministratore: password non cambiata');
+        await askPassword(users, admin, prompt, `Password di ${admin.username}: `);
+        const answer = (await ask(`Confermi la nuova password per ${user.username}? (s/N) `)).toLowerCase();
+        if (!['s', 'si', 'sì', 'y', 'yes'].includes(answer)) {
+          console.log('Annullato: password non cambiata');
+          return 1;
+        }
+      } else {
+        await askPassword(users, user, prompt, 'Vecchia password: ');
+      }
       await users.setPassword(user.id, await prompt.password('Nuova password: ', { confirm: true }));
       console.log(`Password cambiata: ${user.username} deve accedere di nuovo`);
     },
