@@ -3,7 +3,8 @@ import { mkdir, readFile, readdir, rename, rm, writeFile } from 'node:fs/promise
 import { join } from 'node:path';
 import { fail } from '../errors.js';
 import { DATA_DIR, SYSTEM_VERSION } from '../config.js';
-import { LILOS_RANGE, inRange, parseVersion, sha256 } from './manifest.js';
+import { LILOS_RANGE, compareVersions, inRange, parseVersion, sha256 } from './manifest.js';
+import { KERNEL } from '../services.js';
 import { openSource } from './sources.js';
 import { logger } from '../log.js';
 import { writeJson } from '../jsonFile.js';
@@ -134,6 +135,28 @@ export class Languages {
         return { path, error: err.text ?? err.message };
       }
     }));
+  }
+
+  /**
+   * At start: the packs installed that the official repository has in a newer version for this
+   * lilOS are updated, so the texts a lilOS update brought are in the language too (not English).
+   * Never throws: without the repository they stay as they are, with a line in the log.
+   */
+  async updateInstalled() {
+    if (!this.#packs.size) return;
+    let catalog;
+    try {
+      catalog = await this.#kernel.repos.catalog('official');
+    } catch (err) {
+      log.warn(`Aggiornamento delle lingue non controllato: ${err.message}`);
+      return;
+    }
+    for (const [language, pack] of this.#packs) {
+      const offered = catalog.languages?.find(e => e.language?.language === language)?.language;
+      if (!offered || compareVersions(offered.version, pack.manifest.version) <= 0) continue;
+      if (offered.lilos && !inRange(offered.lilos, SYSTEM_VERSION)) continue;
+      await this.install(KERNEL, language).catch(err => log.warn(`Lingua ${language} non aggiornata: ${err.text ?? err.message}`));
+    }
   }
 
   /** Installs (or updates) the pack of `language` from the official repository, for everyone. */

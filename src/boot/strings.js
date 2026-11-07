@@ -47,6 +47,14 @@ export function bootStrings(id, table) {
   return api.locale.i18n;
 }
 
+/**
+ * Whether `key` of `part` is in the language of the screens: always in English (or without a pack,
+ * when everything is), else only if the pack has it (one older than the key falls back to English).
+ */
+export function translated(part, key) {
+  return !pack || pack.language === DEFAULT_LANG || Object.hasOwn(pack.strings?.[part] ?? {}, key);
+}
+
 /** Only the boot parts, checked: what a pack (or the copy in this browser) gives these screens. */
 function bootParts(strings) {
   const all = parseLanguagePack(strings ?? {});

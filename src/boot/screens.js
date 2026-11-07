@@ -10,7 +10,7 @@
 import { kernel } from '@lilos/sdk/kernel';
 import { version } from '../../package.json';
 import { markdown } from './markdown.js';
-import { bootStrings } from './strings.js';
+import { bootStrings, translated } from './strings.js';
 
 const i18n = bootStrings('lilos:bootScreens', { en: { strings: {
   'hero.title1': 'Your desktop.',
@@ -192,28 +192,39 @@ const QUOTES = ['irobot', 'apollo', 'clarke', 'scott', 'future', 'gigawatt', 'be
 const QUOTE_EVERY = 120_000;
 const QUOTE_FADE = 600;
 // The quote shown: the next screen (start-up after signing in) keeps it
-let quoteAt = Math.floor(Math.random() * QUOTES.length);
-const otherQuote = () => (quoteAt + 1 + Math.floor(Math.random() * (QUOTES.length - 1))) % QUOTES.length;
+let quoteId = null;
+
+/**
+ * The quote to show, only among those in the language of the screens (a pack older than the
+ * quotes has none: no quote rather than one in English): the one shown if it is still there, else
+ * (or with `change`) another at random; null if there is none.
+ */
+function pickQuote(change) {
+  const list = QUOTES.filter(id => translated('bootScreens', `quote.${id}`) && translated('bootScreens', `quote.${id}.by`));
+  if (!change && list.includes(quoteId)) return quoteId;
+  const others = list.length > 1 ? list.filter(id => id !== quoteId) : list;
+  quoteId = others.length ? others[Math.floor(Math.random() * others.length)] : null;
+  return quoteId;
+}
 
 /** A quote with its author under it; every two minutes another one at random, fading out and in. */
 function heroQuote() {
   const text = el('p');
   const by = el('figcaption');
   const box = el('figure', { class: 'boot-quote out' }, el('blockquote', {}, text), by);
-  const show = () => {
-    const id = QUOTES[quoteAt];
+  const show = change => {
+    const id = pickQuote(change);
+    box.hidden = !id;
+    if (!id) return;
     text.textContent = t(`quote.${id}`);
     by.textContent = t(`quote.${id}.by`);
     requestAnimationFrame(() => requestAnimationFrame(() => box.classList.remove('out')));
   };
-  show();
+  show(false);
   const timer = setInterval(() => {
     if (!box.isConnected) return clearInterval(timer);
     box.classList.add('out');
-    setTimeout(() => {
-      quoteAt = otherQuote();
-      show();
-    }, QUOTE_FADE);
+    setTimeout(() => show(true), QUOTE_FADE);
   }, QUOTE_EVERY);
   return box;
 }

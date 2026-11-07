@@ -240,6 +240,8 @@ export class Kernel {
     await this.network.prune().catch(err => log.error('Pulizia delle connessioni di rete', err));
     await this.terminals.prune().catch(err => log.error('Pulizia degli host dei terminali', err));
     this.transfers.start().catch(err => log.error('Trasferimenti all’avvio', err));
+    // The language packs, up to the texts of this lilOS (after an update)
+    this.languages.updateInstalled().catch(err => log.error('Aggiornamento delle lingue', err));
     // system:ready — the services an admin chose for everyone
     this.appServices.systemReady().catch(err => log.error('Servizi all’avvio', err));
     // The scheduler's clock: what was missed while the kernel was off runs now (once)

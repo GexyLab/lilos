@@ -1790,7 +1790,7 @@ Se chiudi la domanda senza rispondere, ricompare la volta dopo.
 
 La scheda **Lingue** elenca i pacchetti di lingua che il repository ufficiale offre. Un pacchetto traduce i testi di lilOS (scrivania, menu, finestre, messaggi del sistema), **non le app**: ogni app usa la propria traduzione se ce l'ha, altrimenti l'inglese. Come si sceglie e cosa succede lo spiega [La lingua](#la-lingua).
 
-- Ogni lingua mostra il nome nella sua lingua, la versione, se è **In uso** o **Non installata**, chi l'ha installata, e **da destra a sinistra** per l'arabo e l'urdu. Se il repository ha una versione più nuova compare **Aggiornamento disponibile**.
+- Ogni lingua mostra il nome nella sua lingua, la versione, se è **In uso** o **Non installata**, chi l'ha installata, e **da destra a sinistra** per l'arabo e l'urdu. Se il repository ha una versione più nuova compare **Aggiornamento disponibile**. Non serve aggiornarle a mano: a ogni avvio (per esempio dopo un aggiornamento di lilOS) lilOS aggiorna da solo le lingue installate per cui il repository ufficiale ha una versione più nuova adatta a quel lilOS, così anche i testi nuovi compaiono nella tua lingua.
 - Nei dettagli ci sono il codice della lingua, la versione di lilOS richiesta e il testo di presentazione del pacchetto.
 - **Installa** vale per tutti gli utenti, ed è per qualsiasi utente. Dopo l'installazione l'AppStore propone **Usa questa lingua**.
 - **Rimuovi** chiede conferma («sarà rimossa per tutti gli utenti di questo lilOS») ed è per chi l'ha installata o per un amministratore; chi la usava torna all'inglese e riceve una notifica. La lingua si può reinstallare quando vuoi.
