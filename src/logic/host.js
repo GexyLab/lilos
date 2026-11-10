@@ -49,6 +49,7 @@ class LogicHost {
   #wm = null;
   #programs = new Map();     // id → { info, live, consoles: LogicConsoles, windows: Map(name → Window), consoleWins: Map(id|'*' → Window) }
   #active = [];
+  #limits = null;            // the engine's global limits (chartPoints…)
   #apps = new Map();         // program id → the app's manifest (programs of apps run here: stopped with their last window)
   #listeners = new Set();
 
@@ -70,6 +71,7 @@ class LogicHost {
 
   async refresh() {
     try {
+      this.#limits ??= (await logic.status()).limits;
       this.#active = (await logic.programs()).filter(p => p.kind === 'active' && p.status === 'running' && p.windows.length);
     } catch {
       this.#active = [];
@@ -265,6 +267,7 @@ class LogicHost {
       return node ? node.parent : null;
     };
     return {
+      chartPoints: this.#limits?.chartPoints,
       openWindow: name => this.openWindow(id, name),
       closeWindow: () => win.emit('close'),
       consoleView: consoleId => new LogicConsoleView(p.consoles, { console: consoleId }).el,

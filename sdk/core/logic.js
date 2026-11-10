@@ -79,6 +79,12 @@ class Logic extends Emitter {
 
   get #m() { return (this.#api ??= kernel.module(MODULE)); }
 
+  /** A request with a query (kernel.module() takes paths only): /modules/<engine><path>?<query>. */
+  #withQuery(method, path, query) {
+    const q = new URLSearchParams(Object.entries(query).filter(([, v]) => v !== undefined && v !== null && v !== '')).toString();
+    return q ? kernel.request(method, `/modules/${MODULE}${path}?${q}`) : this.#m.request(method, path);
+  }
+
   /** Whether the engine answers (installed and started). */
   async installed() {
     try { await this.status(); return true; } catch { return false; }
@@ -90,16 +96,16 @@ class Logic extends Emitter {
   }
 
   status() { return this.#m.request('GET', '/status'); }
-  programs({ all = false } = {}) { return this.#m.request('GET', `/programs${all ? '?all=1' : ''}`); }
+  programs({ all = false } = {}) { return this.#withQuery('GET', '/programs', { all: all ? '1' : null }); }
   start(options) { return this.#m.request('POST', '/programs', options); }
   program(id) { return this.#m.request('GET', `/programs/${encodeURIComponent(id)}`); }
   stop(id) { return this.#m.request('DELETE', `/programs/${encodeURIComponent(id)}`); }
-  forget(id) { return this.#m.request('DELETE', `/programs/${encodeURIComponent(id)}?forget=1`); }
+  forget(id) { return this.#withQuery('DELETE', `/programs/${encodeURIComponent(id)}`, { forget: '1' }); }
   ui(id) { return this.#m.request('GET', `/programs/${encodeURIComponent(id)}/ui`); }
   /** What opening its windows needs: { id, name, main, windows: { name: .lsui }, texts, entrypoints, consoles, options }. */
   windows(id) { return this.#m.request('GET', `/programs/${encodeURIComponent(id)}/windows`); }
   consoles(id) { return this.#m.request('GET', `/programs/${encodeURIComponent(id)}/consoles`); }
-  logs({ program } = {}) { return this.#m.request('GET', `/logs${program ? `?program=${encodeURIComponent(program)}` : ''}`); }
+  logs({ program } = {}) { return this.#withQuery('GET', '/logs', { program }); }
 
   live(id) { return new LiveProgram(this.#m.channel(`/live/${id}`)); }
 

@@ -48,7 +48,7 @@ function optionsOf(c, extra = {}) {
   const o = {
     lang: c.lang, title: p.label ? c.t(p.label) : '', height: num(p.height) > 0 ? num(p.height) : 200,
     legend: p.legend !== false, tools: p.tools !== false && !c.design, unit: p.unit ?? '', colors: p.colors === 'blue' ? 'blue' : 'standard',
-    maxPoints: num(p.maxPoints) > 0 ? num(p.maxPoints) : 1000,
+    maxPoints: Math.min(num(c.host?.chartPoints) > 0 ? num(c.host.chartPoints) : Infinity, num(p.maxPoints) > 0 ? num(p.maxPoints) : 1000),
     onPick: point => c.send('picked', point),
   };
   if (Number.isInteger(num(p.decimals))) o.decimals = num(p.decimals);

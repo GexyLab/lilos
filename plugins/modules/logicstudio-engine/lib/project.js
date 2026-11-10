@@ -86,7 +86,17 @@ export function buildSpec(documents, registry, limits) {
       if (byId.has(raw.id)) bad(`Due blocchi con lo stesso id (${raw.id}) nello schema ${name}`, { schema: name, block: raw.id });
       const def = registry.blockDef(String(raw.type ?? ''));
       if (!def) bad(`Il blocco ${raw.label ?? raw.id} (${raw.type}) non c'è: manca il suo pacchetto`, { schema: name, block: raw.id });
-      const config = plain(raw.config) ? raw.config : {};
+      let config = plain(raw.config) ? raw.config : {};
+      // Saved by an older version of the block: its definition brings the settings up to date
+      const upgrade = Number.isInteger(raw.v) && raw.v < def.version ? registry.upgrade?.(def.type) : null;
+      if (upgrade) {
+        try {
+          const out = upgrade(JSON.parse(JSON.stringify(config)), raw.v, JSON.parse(JSON.stringify(raw.added ?? {})));
+          if (plain(out?.config ?? out)) config = out.config ?? out;
+        } catch (err) {
+          bad(`Il blocco ${raw.label ?? raw.id} non si aggiorna dalla versione ${raw.v}: ${err.message}`, { schema: name, block: raw.id });
+        }
+      }
       if (JSON.stringify(config).length > MAX_CONFIG) bad(`Le impostazioni del blocco ${raw.id} sono troppo grandi`, { schema: name, block: raw.id });
       const added = cleanAdded(raw.added, def.grow ?? {}, limits, `${name}/${raw.id}`);
       let inputs = new Set([...def.inputs.map(p => p.name), ...added.inputs.map(p => p.id)]);
@@ -192,7 +202,6 @@ function consolesOf(doc, limits) {
     closeAfterAnswer: raw.closeAfterAnswer !== false,
     notify: raw.notify !== false,
     copyToLog: raw.copyToLog === 'all' || raw.copyToLog === 'none' ? raw.copyToLog : 'warnings',
-    hiddenNoFallback: raw.hiddenNoFallback === 'fallback' ? 'fallback' : 'cancel',
     mainOpens: raw.mainOpens === 'onInput' ? 'onInput' : 'start',
   };
 }

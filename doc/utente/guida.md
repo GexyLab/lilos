@@ -1614,6 +1614,141 @@ Ogni nota è un file di testo con estensione `.sticky` nella cartella Scrivania.
 - Se hai già personalizzato il menu **Nuovo** (Pannello di controllo → Usabilità → [Menu contestuale](#menu-contestuale)), la voce **Nota adesiva** non compare da sola: ripristina il menu o aggiungila a mano.
 - La notifica di un promemoria ha un solo clic, che mostra la nota: non ci sono «Rimanda» né «Fatto».
 
+## Logic Studio
+
+**Logic Studio** serve a costruire piccoli programmi senza scrivere codice: si mettono dei **blocchi** su un foglio e li si **collegano** tra loro. I dati passano sui collegamenti e ogni blocco fa la sua parte: un blocco somma due numeri, uno aspetta un secondo, uno ti manda una notifica, uno scrive una riga in un file. Con le **finestre** del progetto (pulsanti, campi, indicatori, grafici) il programma ha anche un'interfaccia, e si può trasformare in un'app.
+
+Un programma di Logic Studio può girare **anche quando lilOS è chiuso nel browser**: lo fa il computer su cui gira lilOS. Per questo, prima di attivarne uno, leggi «[Da sapere](#da-sapere-8)».
+
+Logic Studio non c'è di serie. Serve lilOS dalla 1.37.0 e l'app **Logic Studio IDE** (categoria **Sviluppo**), che un amministratore installa dall'[AppStore](#lappstore): l'AppStore installa con lei anche le parti che le servono (il motore e i blocchi di base). Altri blocchi arrivano con altri pacchetti dello stesso AppStore, nella scheda **Kernel**: liste e matrici, i blocchi di lilOS (notifiche, file), la rete, le componenti delle finestre e i grafici.
+
+### Le parole
+
+| Parola | Cosa vuol dire |
+| --- | --- |
+| Blocco | Un pezzo che fa una cosa: un calcolo, un confronto, una pausa, una scrittura su un file |
+| Porta | Un punto del blocco dove entra (a sinistra) o esce (a destra) un valore |
+| Collegamento | Il segno che porta il valore dall'uscita di un blocco all'ingresso di un altro |
+| Schema | Un foglio di blocchi collegati |
+| Finestra | Un'interfaccia fatta di componenti (pulsanti, campi, grafici…) che il progetto mostra a chi lo usa |
+| Progetto | Uno o più schemi e finestre, con le loro opzioni: è una cartella |
+| Console | Un posto dove il programma scrive righe e fa domande |
+
+Ogni blocco ha anche una porta **Eccezione**: esce un valore da lì quando il blocco non riesce a fare il suo lavoro (per esempio una divisione per zero). Se non la colleghi a niente, l'errore compare nella console principale.
+
+### Aprire Logic Studio
+
+Apri **Logic Studio IDE** dal menu di avvio. Si apre sulla **Home**:
+
+- **Nuovo progetto** crea una cartella con il nome che scegli dentro la cartella **Logic Studio** della tua home, con uno schema e una finestra già pronti. Dentro ci sono le cartelle **schemi**, **ui** e **risorse** (per immagini e altri file da usare nelle finestre).
+- **Apri…** apre un progetto (`.lsproj`) o uno schema da solo (`.lsch`). Un doppio clic su questi file, dal [File Manager](#il-file-manager) o dalla scrivania, apre Logic Studio.
+- **Recenti** elenca gli ultimi progetti aperti.
+- **I miei programmi** elenca i tuoi programmi in esecuzione: prove, programmi attivi, app. Per ognuno puoi **Apri la finestra**, **Apri il progetto** e **Ferma**; un programma fermo si toglie dall'elenco con **Togli**.
+- **Quello che uso** mostra quanti programmi attivi, prove, richieste di rete e quanto registro stai usando rispetto al tuo limite.
+
+Con un progetto aperto la finestra ha, a sinistra, le schede **Progetto** (l'elenco di schemi, finestre e risorse, con le sottocartelle che vuoi) e **Blocchi** (o **Componenti**, quando disegni una finestra); al centro i fogli aperti, ognuno in una scheda; a destra **Proprietà** di quello che hai selezionato; in basso le **console** del programma e i **Problemi**. Puoi allargare o stringere i pannelli laterali trascinando la barra tra loro e il foglio.
+
+### Disegnare uno schema
+
+1. Nella scheda **Blocchi** scegli un blocco (c'è una ricerca in alto): un clic lo mette in mezzo al foglio, trascinandolo lo metti dove lo lasci. I blocchi sono divisi per tipo: valori, logica, matematica, testo, oggetti, liste, matrici, tempo, console, porte di schema, lilOS, rete.
+2. Per **collegare** due blocchi, trascina da un'uscita (a destra) a un ingresso (a sinistra). Per togliere un collegamento, trascina l'estremità dell'ingresso via, oppure selezionalo e premi **Canc**. Le porte di tipo diverso si possono collegare, ma il collegamento è segnalato se i tipi non vanno d'accordo.
+3. Seleziona un blocco per cambiarne le **Impostazioni** nella barra **Proprietà**: per esempio quanti secondi aspettare, o il testo di una domanda. Lì puoi anche dargli un'**Etichetta**, cioè un nome tuo.
+4. Alcuni blocchi (E, O, Somma, Formatta testo, Casi, Scrivi in console…) permettono di **aggiungere ingressi o uscite**: sempre dalla barra **Proprietà**, con **Aggiungi ingresso** o **Aggiungi uscita**; si possono rinominare, spostare su e giù e togliere con **Togli**. Le porte aggiunte hanno il nome in corsivo. Togliere una porta toglie anche i suoi collegamenti, ma **Ctrl Z** li rimette.
+5. Per ogni ingresso, nelle **Proprietà**, scegli se **lo avvia** (se arriva un valore, il blocco lavora) e se ha un **valore iniziale** da quando parte il programma. Un ingresso che non avvia il blocco serve solo a tenere un valore da usare quando il blocco parte per un altro ingresso.
+
+Sul foglio: trascina lo sfondo per selezionare con un rettangolo; per spostare la vista tieni premuto **Spazio** (o usa il tasto centrale del mouse) e trascina; la **rotella** ingrandisce e rimpicciolisce; **Adatta** mostra tutto il foglio. Con il foglio in primo piano: **Canc** elimina quello che hai selezionato, **Ctrl A** seleziona tutto, **Ctrl D** duplica, le **frecce** spostano, **Esc** toglie la selezione. Tasto destro su un blocco: **Duplica**, **Etichetta…**, **Elimina il blocco**; su un collegamento: **Elimina il collegamento**; sul foglio: **Aggiungi un blocco qui**, **Seleziona tutto**. **Ctrl Z** e **Ctrl Y** annullano e ripetono, **Ctrl S** salva tutto.
+
+Un blocco che viene da un pacchetto che non è installato è segnato con **Manca il pacchetto**: installalo dall'AppStore, oppure togli il blocco.
+
+### Più schemi: la mappa
+
+Con il pulsante **Mappa** vedi il progetto intero: ogni schema è un riquadro con le sue **porte**, ogni finestra è un riquadro che dice in quali schemi stanno gli oggetti delle sue componenti. Gli schemi di uno stesso progetto si collegano **solo con le loro porte**: metti in uno schema un blocco **Ingresso di schema** o **Uscita di schema** (con un nome, nelle Proprietà), poi nella mappa trascina da un'uscita di uno schema a un ingresso di un altro. Il progetto ha un solo posto per questi collegamenti, la mappa.
+
+### Disegnare una finestra
+
+Le finestre sono nella cartella **ui**. Un progetto ne ha almeno una, la **finestra main**: è quella che si apre dal menu delle applicazioni. Puoi cambiare quale è la main (dal menu dell'elenco, **Rendila la finestra main**, o dalle Opzioni del progetto), ma non toglierla.
+
+Nella barra in alto scegli **Progetta** (per mettere i pezzi) o **Anteprima** (la finestra funziona come quella vera). Nella scheda **Componenti** a sinistra ci sono i pezzi: testo e valori (etichetta, valore, indicatore, spia, barra di avanzamento, immagine, tabella, console), comandi (pulsante, interruttore, casella di spunta, pulsanti di opzione, selezione, cursore, campo di testo, campo numerico, data e ora, elenco, scegli file, colore), contenitori (colonna, riga, griglia, riquadro, schede, area libera, separatore) e i **grafici** (linee, aree, colonne, barre, torta e ciambella, dispersione, istogramma, tempo reale, gradini, mappa di calore, radar, mini linea). Un clic su un pezzo lo mette nel contenitore selezionato; trascinandolo lo metti dove mostra la linea blu. Le proprietà del pezzo selezionato (testo, minimo e massimo, colori…) sono a destra.
+
+**Come uno schema parla con una componente.** Gli schemi non toccano i pezzi di una finestra direttamente: ogni componente ha il suo **oggetto** in uno schema, un blocco che ne ha le porte. Nelle Proprietà di una componente, **Oggetto nello schema** dice dove sta, e **Crea il suo oggetto** lo mette in uno schema. Poi colleghi gli altri blocchi a quello. Le frecce nelle porte dicono il verso: **←** è quello che imposta uno schema (per esempio il testo da mostrare), **→** è quello che fa chi usa la finestra (per esempio «premuto»). Senza il suo oggetto, una componente si vede ma non fa niente. Se elimini una componente, il suo oggetto resta nello schema e segna un errore finché non togli anche quello.
+
+Un pulsante può anche, al clic, **aprire un'altra finestra** del progetto o **chiudere questa finestra** (**Azione al clic**), oltre a mandare «premuto» al suo oggetto. Una finestra aperta una volta non si apre due volte: aprirla di nuovo la porta davanti.
+
+### Le console
+
+Un programma scrive righe in una **console** e può fare domande a chi lo usa. Il blocco **Scrivi in console** scrive (con un livello: normale, informazione, avviso, errore); **Leggi da console** fa una domanda e aspetta la risposta, di un tipo che scegli: testo, numero, sì/no, un tasto. Puoi dargli un valore predefinito, un tempo massimo e la richiesta di nascondere quello che si scrive (per le password). Se la risposta non va bene, la domanda si ripete (si può spegnere); **Esc** annulla.
+
+In basso nell'IDE c'è una scheda per ogni console del progetto: la **principale** (con la stella) c'è sempre. Nelle **Opzioni del progetto → Console** puoi aggiungerne altre (fino a 10, con nome e colore), scegliere quante righe tenere, e scegliere **cosa succede fuori dall'IDE**, cioè quando il programma gira senza che l'IDE sia aperto:
+
+| Scelta | Cosa succede |
+| --- | --- |
+| Mostrale tutte | Ogni console si apre in una finestra quando si apre la prima finestra del progetto |
+| Solo quando chiedono un dato | È la scelta di serie: una console si apre quando un blocco fa una domanda, e si chiude dopo la risposta (puoi tenerla aperta togliendo la spunta) |
+| Non mostrarle | Le console non si vedono: le domande ricevono il loro valore predefinito (o sono annullate se non ce l'hanno) |
+| Tutte nella console principale | Una finestra sola, con ogni riga segnata dal nome della sua console |
+
+Se un programma fa una domanda e nessuna finestra del progetto è aperta, ricevi una **notifica** che apre la console (si può spegnere nelle opzioni). Le righe si possono anche copiare nel **registro** del progetto: niente, solo avvisi ed errori (di serie), o tutte.
+
+### Provare e attivare
+
+- **Prova** (o **F5**) fa girare il progetto **com'è adesso negli editor**, anche se non l'hai salvato. Sui fogli vedi i valori che passano sui collegamenti e i blocchi che lavorano; le console del progetto sono in basso. Una prova si ferma da sola dopo qualche minuto (5 di serie) o quando premi **Ferma** (o F5 di nuovo). Chiudere l'IDE ferma la prova.
+- **Attiva** fa girare **il progetto salvato** come **programma attivo**: va avanti anche con l'IDE chiuso e **anche con lilOS chiuso nel browser**, e riparte quando riparte il computer su cui gira lilOS. Se hai modifiche non salvate, l'IDE chiede di salvare. Se il progetto è già attivo, puoi **Sostituire** il programma attivo con il progetto com'è adesso.
+- Per fermare un programma attivo usa **Ferma** nella Home (o nel Pannello di controllo). **Non riparte con lilOS finché non lo attivi di nuovo.**
+
+Se un programma attivo si ferma per un errore, ricevi una notifica. Un programma attivo che usa un blocco di un pacchetto che non è più installato resta in attesa (**Aspetta un pacchetto**) e riparte quando il pacchetto torna.
+
+### I progetti nel menu applicazioni
+
+I programmi attivi che hanno finestre compaiono nella scheda **Progetti** del [menu di avvio](#il-menu-di-avvio) (la scheda c'è solo se ne hai): un clic apre la finestra main del progetto, senza aprire l'IDE. Le finestre si comportano come quelle delle app, e le console si aprono secondo la scelta fatta nelle Opzioni del progetto. Se il programma si ferma, le sue finestre si chiudono.
+
+Altre due scelte, in **Opzioni del progetto → L'app e le sue finestre**, valgono per tutte le finestre del progetto:
+
+- **Una finestra riaperta mostra subito gli ultimi valori** (acceso di serie): chi riapre una finestra vede gli ultimi valori ricevuti, non una finestra vuota.
+- **Le copie della stessa finestra restano allineate** (acceso di serie): la stessa finestra aperta su due schermi o due browser mostra gli stessi valori; un cambiamento su una si vede sull'altra.
+
+Pulsanti, interruttori e cursori mandano qualcosa al programma solo quando qualcuno li usa: quando una finestra si apre non viene «ripremuto» niente.
+
+### Opzioni del progetto
+
+Il pulsante **Opzioni del progetto** (l'ingranaggio) apre una finestra con quattro schede: **Generale** (nome, versione con tre numeri come 1.0.0, descrizione), **Finestre** (la finestra main e, per le altre, **Si apre da**), **Console** (vedi sopra) e **L'app e le sue finestre** (vedi sopra).
+
+In **Finestre** ogni finestra che non è la main può avere un punto d'ingresso: aprire un tipo di file (scrivi le estensioni, per esempio `csv, txt`), una voce nel menu dei file, una chiamata da altre app, o l'ingresso dell'utente. Una finestra senza punto d'ingresso si apre solo da un'altra finestra dell'app (un pulsante con **Apri una finestra**). **I punti d'ingresso funzionano solo nelle app fatte con Crea app**, e per ora quelle app non si installano: quindi, per adesso, non fanno ancora niente.
+
+### Fare un'app: Crea app
+
+**Crea app…** trasforma il progetto in un'app di lilOS. Scegli il nome, un id (lettere minuscole, cifre e trattini), la versione, la descrizione e l'icona con il suo colore. **Crea** prepara l'app; **Crea ed esegui** la prepara e la apre.
+
+L'app **non si installa**. Il suo pacchetto sta nella cartella **App create** della tua home, in una cartella con il suo id, e dentro c'è un file `.lsapp`: **aprendo quel file** (doppio clic) l'app parte, **solo per te**, e dura finché le sue finestre sono aperte; quando chiudi l'ultima, il programma si ferma. Per rifarla dopo aver cambiato il progetto, usa di nuovo **Crea app**: **la cartella dell'app con lo stesso id viene sostituita, non va nel Cestino**, quindi non metterci dentro file tuoi.
+
+L'app gira **con i tuoi permessi**. Se i suoi blocchi usano i file, la rete, le notifiche o gli eventi, prima di partire lilOS apre una finestra con **Esegui** e **Annulla** e ti elenca cosa potrà fare (leggere e cambiare i tuoi file, fare richieste su internet, mandarti notifiche, mandare eventi a lilOS) e da quale cartella viene. Esegui un'app solo se ti fidi di chi l'ha fatta (o se l'hai fatta tu). Se premi **Esegui**, lilOS non te lo richiede finché quell'app non cambia; se cambia, te lo chiede di nuovo.
+
+L'app ha le finestre del progetto e usa il motore di questo lilOS: serve lilOS dalla 1.37.0, e funziona solo dove sono installati i pacchetti che il progetto usa.
+
+### Il Pannello di controllo
+
+Se il motore c'è, il [Pannello di controllo](#pannello-di-controllo) ha la sezione **Logic Studio**:
+
+| Scheda | Chi la vede | Cosa c'è |
+| --- | --- | --- |
+| Il mio uso | Tutti | Quanti programmi attivi e prove hai, le richieste di rete di questo minuto, il registro, la CPU e la memoria che puoi usare; i tuoi programmi, con **Ferma** e **Togli** |
+| Limiti | Amministratori | I limiti per tutti: programmi attivi e memoria in tutto, esecuzioni di blocchi, tempo massimo di un blocco, durata di una prova, blocchi e collegamenti per schema, schemi, finestre e componenti per progetto, console. Valgono per i programmi che partono dopo |
+| Quote | Amministratori | Le quote di ogni utente (programmi attivi, prove, CPU %, memoria, richieste al minuto, registro) e, per un utente, quote sue: una casella vuota vuol dire la quota di tutti; **Predefinita** toglie le quote sue |
+| In esecuzione | Amministratori | I programmi di tutti gli utenti, da fermare |
+| Pacchetti | Tutti | I pacchetti di blocchi e componenti installati, con quanti blocchi e componenti danno |
+
+### Da sapere
+
+- **Un programma attivo fa davvero quello che dice, anche quando non guardi.** Un blocco **Scrivi file** sovrascrive il file; **Aggiungi a file** lo allunga; **Richiesta web** chiama davvero il sito. Provalo prima con **Prova**, con file di prova.
+- I blocchi di lilOS lavorano **solo sui file della tua home** (mai la cartella `.config`, né i file protetti da un'app come FileCrypt) e con i tuoi permessi: quello che non puoi fare tu, non lo fa il programma. Si leggono e si scrivono al massimo 5 MB alla volta.
+- La **Richiesta web** non arriva a questo computer né alla rete locale, a meno che un amministratore non lo permetta nelle impostazioni del modulo.
+- Ogni utente ha dei limiti: un numero di programmi attivi, una parte della CPU e della memoria, e un numero di richieste di rete al minuto. Se un programma supera i limiti, si ferma e ricevi un messaggio.
+- Un programma che sembra un ciclo senza fine (più di 10000 esecuzioni di blocchi in 10 secondi, di serie) si ferma da solo.
+- Una domanda di console, se nessuna pagina di lilOS è aperta, **aspetta** finché non arriva una risposta o scade il tempo massimo del blocco: il resto del programma va avanti.
+- I grafici nel tempo mostrano gli ultimi secondi che scegli; **non si possono ingrandire** con il mouse.
+- I testi dell'IDE e dei blocchi sono in inglese e italiano. I testi delle finestre dei tuoi progetti sono quelli che scrivi tu: per ora l'IDE non ha un posto dove tradurli.
+- Un elemento eliminato dall'elenco **Progetto** va nel Cestino, e i suoi collegamenti nel progetto vengono tolti.
+- Non ci sono ancora: schemi e finestre da disporre sulla scrivania come widget, più copie della stessa finestra, i comandi `lilos logic` nel Terminale e le azioni di Automata.
+
 ## Annullare e ripetere
 
 **Ctrl Z** annulla l'ultima azione, **Ctrl Y** (o **Ctrl Shift Z**) la ripete. Agiscono **dove stai lavorando**: ogni posto ha il suo elenco di azioni, e lilOS sceglie quello dove hai fatto clic per ultimo. In basso compare un breve messaggio, per esempio "Annullato: Elimina «Appunti»" o "Ripetuto: Rinomina…".

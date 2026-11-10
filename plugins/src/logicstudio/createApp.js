@@ -92,7 +92,7 @@ async function writePackage(studio, v) {
   const base = folderNamed(fs.root, t('app.folder'));
   // Made again: the old package goes
   const old = fs.children(base).find(n => n.type === 'folder' && n.name === v.id);
-  if (old) fs.remove(old.id);
+  if (old) fs.trash([old.id]);
   const folder = fs.create(base, { type: 'folder', name: v.id }).id;
   const projFolder = fs.create(folder, { type: 'folder', name: 'project' }).id;
   const projName = fs.get(ws.projectFile).name;

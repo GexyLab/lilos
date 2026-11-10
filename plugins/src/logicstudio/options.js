@@ -78,11 +78,11 @@ function consoles(studio, project) {
   const rows = c.list.map(con => h('tr', {},
     h('td', {}, con.id === 'main' ? h('b', {}, con.name || t('console.main'), ' ★') : textField({ value: con.name, maxLength: 60, onChange: v => v.trim() && project.updateConsole(con.id, { name: v.trim() }) })),
     h('td', {}, h('span', { class: 'ls-swatches' }, ...COLORS.map(col => h('button', { type: 'button', class: `sw${(con.color ?? '#6b7280') === col ? ' on' : ''}`, style: `background:${col}`, title: col, 'aria-label': col, onclick: () => project.updateConsole(con.id, { color: col }) })))),
-    h('td', {}, textField({ type: 'number', value: con.keep ?? 1000, min: 100, max: 10000, step: 100, onChange: v => project.updateConsole(con.id, { keep: Math.max(100, Math.min(10000, Number(v) || 1000)) }) })),
+    h('td', {}, textField({ type: 'number', value: con.keep ?? 1000, min: 100, max: 2000, step: 100, onChange: v => project.updateConsole(con.id, { keep: Math.max(100, Math.min(2000, Number(v) || 1000)) }) })),
     h('td', {}, con.id === 'main' ? h('span', { class: 'ls-hint' }, t('options.mainConsole')) : h('button', { type: 'button', class: 'ls-link-btn danger', onclick: () => removeConsole(studio, project, con) }, t('options.remove')))));
   out.push(h('table', { class: 'ls-opt-table' }, h('tr', {}, h('th', {}, t('options.consoleName')), h('th', {}, t('options.color')), h('th', {}, t('options.keep')), h('th', {})), ...rows));
   const add = actionButton({ label: t('console.add'), icon: icon('plus'), onClick: () => project.addConsole(t('options.newConsole', { n: c.list.length })) });
-  add.disabled = c.list.length >= 10;
+  add.disabled = c.list.length >= (studio.limits?.maxConsoles ?? 10);
   out.push(h('div', { class: 'ls-insp-acts' }, add,
     h('span', { class: 'ls-hint' }, t('options.removeHint'))));
   out.push(section(t('options.outside')));

@@ -100,6 +100,11 @@ export class Supervisor {
     try {
       const u = await this.#userWorker(user.id);
       u.programs.add(program.id);
+      // Packages registered after the worker started (a module that came later): loaded first
+      if (u.registryVersion !== this.#registry.version) {
+        await u.call({ t: 'load', files: this.#registry.blockFiles() }, 'loaded', 15_000);
+        u.registryVersion = this.#registry.version;
+      }
       u.worker.postMessage({ t: 'start', id: program.id, spec: { ...spec, limits: runtimeLimits(limits, quota) }, lang, watch });
     } catch (err) {
       this.#fail(program, err.message);
@@ -324,6 +329,7 @@ export class Supervisor {
       worker.on('message', boot);
     });
     worker.on('message', msg => this.#message(u, userId, msg, wake));
+    u.registryVersion = this.#registry.version;
     worker.on('error', err => this.#crashed(userId, u, err));
     worker.on('exit', code => { if (this.#users.get(userId) === u && code !== 0) this.#crashed(userId, u, new Error(`uscito con codice ${code}`)); });
     this.#users.set(userId, u);
@@ -350,6 +356,9 @@ export class Supervisor {
       case 'failed':
         if (program) this.#fail(program, msg.message);
         if (program) u.worker.postMessage({ t: 'stop', id: msg.id });
+        break;
+      case 'loaded':
+        wake('loaded', true);
         break;
       case 'stopped':
         wake(`stopped:${msg.id}`, true);

@@ -328,7 +328,7 @@
       "outside.onInput": "Only when they ask for something",
       "outside.onInput.hint": "a console opens when a Leggi da console block waits",
       "outside.hidden": "Do not show them",
-      "outside.hidden.hint": "lines go to the log, questions get their default value",
+      "outside.hidden.hint": "nothing on screen: lines go to the log as «Copy to the log» says, questions get their default value",
       "outside.main": "All in the main console",
       "outside.main.hint": "one window, each line with the name of its console",
       "options.details": "Details",
@@ -348,7 +348,6 @@
       "options.syncCopies": "Copies of the same window stay in step",
       "options.syncCopiesHint": "The same window open on two devices shows the same values; a change on one shows on the other.",
       "options.commandsHint": "Buttons, switches and sliders send something only when someone uses them in an open window: nothing is pressed again when a window opens.",
-      "window.soon": "The editor of windows comes with the package of UI components.",
       "status.window": "{n} components / {max} · {w} × {h}",
       "window.design": "Design",
       "window.preview": "Preview",
@@ -423,7 +422,8 @@
       "app.done": "«{name}» is ready",
       "app.doneText": "The package is in {path}. Open its .lsapp file to run it.",
       "app.failed": "The app could not be made",
-      "app.appName": "Name of the app"
+      "app.appName": "Name of the app",
+      "kind.app": "App (not installed)"
     }
   },
   "it": {
@@ -755,7 +755,7 @@
       "outside.onInput": "Solo quando chiedono un dato",
       "outside.onInput.hint": "una console si apre quando un blocco Leggi da console aspetta",
       "outside.hidden": "Non mostrarle",
-      "outside.hidden.hint": "le righe vanno nel registro, le domande prendono il valore predefinito",
+      "outside.hidden.hint": "niente sullo schermo: le righe vanno nel registro come dice «Copia nel registro», le domande prendono il valore predefinito",
       "outside.main": "Tutte nella console principale",
       "outside.main.hint": "una finestra, ogni riga con il nome della sua console",
       "options.details": "Dettagli",
@@ -775,7 +775,6 @@
       "options.syncCopies": "Le copie della stessa finestra restano allineate",
       "options.syncCopiesHint": "La stessa finestra aperta su due dispositivi mostra gli stessi valori; un cambiamento su una si vede sull'altra.",
       "options.commandsHint": "Pulsanti, interruttori e cursori mandano qualcosa solo quando qualcuno li usa in una finestra aperta: quando una finestra si apre non viene «ripremuto» niente.",
-      "window.soon": "L'editor delle finestre arriva con il pacchetto delle Componenti UI.",
       "status.window": "{n} componenti / {max} · {w} × {h}",
       "window.design": "Progetta",
       "window.preview": "Anteprima",
@@ -850,7 +849,8 @@
       "app.done": "«{name}» è pronta",
       "app.doneText": "Il pacchetto è in {path}. Apri il suo file .lsapp per eseguirla.",
       "app.failed": "Non si è potuta creare l'app",
-      "app.appName": "Nome dell'app"
+      "app.appName": "Nome dell'app",
+      "kind.app": "App (non installata)"
     }
   }
 }

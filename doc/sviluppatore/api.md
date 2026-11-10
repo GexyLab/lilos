@@ -30,6 +30,8 @@ Gli altri moduli (`src/`) sono il sistema: scrivania, desktop, barra.
 - [sdk/core/pipes.js e sdk/core/pipeCatalog.js](#sdkcorepipesjs-e-sdkcorepipecatalogjs)
 - [sdk/core/automation.js](#sdkcoreautomationjs)
 - [sdk/core/schedule.js e sdk/core/scheduleRules.js](#sdkcoreschedulejs-e-sdkcoreschedulerulesjs)
+- [sdk/core/logic.js e sdk/core/logicModel.js](#sdkcorelogicjs-e-sdkcorelogicmodeljs-logic-studio)
+- [sdk/ui/logic/ e sdk/ui/charts.js](#sdkuilogic-e-sdkuichartsjs-logic-studio)
 - [sdk/core/tags.js](#sdkcoretagsjs)
 - [sdk/core/history.js](#sdkcorehistoryjs)
 - [sdk/core/fileTypes.js](#sdkcorefiletypesjs)
@@ -64,6 +66,7 @@ Gli altri moduli (`src/`) sono il sistema: scrivania, desktop, barra.
 - [net/ (la rete nell'interfaccia)](#net-la-rete-nellinterfaccia)
 - [automation/ (le automazioni nel sistema)](#automation-le-automazioni-nel-sistema)
 - [schedule/ (la pianificazione nell'interfaccia)](#schedule-la-pianificazione-nellinterfaccia)
+- [logic/ (le finestre dei progetti nel sistema)](#logic-le-finestre-dei-progetti-nel-sistema)
 - [sdk/ui/](#sdkui)
 - [sdk/ui/controls.js](#sdkuicontrolsjs)
 - [sdk/ui/shortcutField.js](#sdkuishortcutfieldjs)
@@ -72,6 +75,7 @@ Gli altri moduli (`src/`) sono il sistema: scrivania, desktop, barra.
 - [sdk/ui/SettingsView.js e sdk/ui/SettingsWindow.js](#sdkuisettingsviewjs-e-sdkuisettingswindowjs)
 - [Il programma lilOS (`lilos-desktop`)](#il-programma-lilos-lilos-desktop)
 - [Il kernel](#il-kernel)
+- [Logic Studio: il motore e i pacchetti](#logic-studio-il-motore-e-i-pacchetti)
 - [Eventi del bus](#eventi-del-bus)
 - [Dati salvati](#dati-salvati)
 
@@ -1437,6 +1441,244 @@ const off = automation.handle('acme.resize', ({ width }) => resizeTo(width), { w
 ```
 
 ---
+
+## sdk/core/logic.js e sdk/core/logicModel.js (Logic Studio)
+
+Logic Studio ([D88](../interna/decisioni.md#d88-logic-studio-motore-pacchetti-ide-finestre-dei-progetti), SDK 0.22.0): il client del motore (`logic`, `LiveProgram`) e i documenti che l'IDE modifica (`LogicSchema`, `LogicWindow`, `LogicProject`). Il disegno è in [`sdk/ui/logic/` e `sdk/ui/charts.js`](#sdkuilogic-e-sdkuichartsjs-logic-studio); il motore, con l'API HTTP e WebSocket che il client chiama, in [Logic Studio: il motore e i pacchetti](#logic-studio-il-motore-e-i-pacchetti).
+
+### `logic` (`core/logic.js`)
+
+Il client del modulo del kernel `logicstudio-engine`. Un `Emitter`. Funziona solo collegato al kernel e con il modulo installato; un'app installata ha bisogno del permesso `kernel:logicstudio-engine` (il client usa `kernel.module('logicstudio-engine')`).
+
+| Membro | Descrizione |
+| --- | --- |
+| `available` | `true` se c'è il kernel. |
+| `installed()` → `Promise<boolean>` | `true` se il motore risponde (installato e partito). |
+| `catalog({ fresh = false })` → `{ version, packages }` | I blocchi e le componenti dei pacchetti installati, senza il loro codice. `packages`: `[{ name, version, label: { en, it }, blocks: [def], components: [def], hasComponents }]`. Tenuto in memoria: `fresh: true` lo rilegge. Forma delle definizioni: [Scrivere un pacchetto](#logic-studio-il-motore-e-i-pacchetti). |
+| `status()` → `{ limits, quotaKeys, quota, active, tests, net, log, admin }` | I limiti per tutti, la quota dell'utente e ciò che usa: programmi attivi e prove in corso, richieste di rete dell'ultimo minuto, byte di registro. |
+| `programs({ all = false })` → `[program]` | I programmi dell'utente; `all: true` (solo amministratori) quelli di tutti. |
+| `start({ kind, name, documents, source, lang, watch })` → `program` | Fa partire un programma. `kind`: `'test'`, `'active'` o `'app'` (l'app fatta da un progetto, non si salva). `documents`: `{ project, schemas: { nome: .lsch }, windows: { nome: .lsui } }`, con `project` che può essere `null` per uno schema solo. `source`: `{ path }` (dove stanno i file, solo per mostrarlo). `lang`: la lingua dei testi dei blocchi, `'en'` se manca o non valida. `watch`: `true` per ricevere i valori dei collegamenti (la prova). Errori: `invalid` (con `details.where`: `{ schema, block }` o `{ window }`), `quota`, `too_large`. |
+| `program(id)`, `stop(id)`, `forget(id)` | Un programma; fermarlo; fermarlo e toglierlo dall'elenco. Un amministratore può fermare quelli degli altri. |
+| `ui(id)` → `{ 'finestra:componente.porta': valore }` | Gli ultimi valori mandati alle finestre (vuoto se l'opzione `keepValues` del progetto è spenta). |
+| `windows(id)` → `{ id, name, source, status, main, windows, texts, entrypoints, consoles, options }` | Quello che serve a lilOS per aprire le finestre di un programma senza l'IDE: i documenti `.lsui` per nome, la finestra main, i testi tradotti del progetto, i punti d'ingresso, le impostazioni delle console e le opzioni dell'app. |
+| `consoles(id)` → `[{ id, name, color, main, lines, ask, waiting }]` | Le console con le righe tenute e la domanda in attesa. |
+| `logs({ program })` → `[voce]` | Il registro dell'utente (le ultime 500 voci, la più nuova per ultima), di un programma se dato. |
+| `live(id)` → `LiveProgram` | Il programma in diretta (WebSocket). |
+| `components(pack)` → `Promise<[component]>` | Le Componenti UI di un pacchetto con il loro codice: importa il `components.js` che serve il motore (una volta per pacchetto e versione). Se il file esporta una stringa `styles`, la mette in un `<style data-logic-pack>` nella pagina. `[]` se il pacchetto non ha componenti. |
+| `allComponents()` → `Promise<Map<tipo, component>>` | Le componenti di tutti i pacchetti. Una che non si carica è saltata. |
+| `admin.users()` | (Amministratori) `[{ id, overrides, quota, active, tests, net, log, programs }]`: programmi e quote di ogni utente. |
+| `admin.setQuota(utente, quota)` | (Amministratori) `quota`: un oggetto con alcune chiavi di `quotaKeys`, o `null` per togliere le quote proprie. I valori fuori intervallo sono portati nell'intervallo. |
+| `received(event, data)` | Per il sistema: il flusso del kernel ha detto `logicstudio.ask` o `logicstudio.failed`. |
+
+Eventi: `ask` `{ id, name, console }` (un programma senza nessuno che lo guardi chiede qualcosa), `failed` `{ id, name, error }` (un programma attivo si è fermato per un errore).
+
+`program`: `{ id, owner, user, kind, name, source, status, error, started, stopped, consoles, windows, options }`. `status`: `'starting'`, `'running'`, `'stopped'`, `'failed'`, `'waiting'` (aspetta un pacchetto che non c'è). `windows`: i nomi delle finestre del progetto.
+
+### `LiveProgram` (`core/logic.js`)
+
+Un programma in diretta: `logic.live(id)`. Un `Emitter` sopra un WebSocket (`/live/:id` del motore).
+
+| Membro | Descrizione |
+| --- | --- |
+| `closed` | `true` dopo `close()` o se la connessione è caduta. |
+| `input(schema, block, port, value)` | Un valore a un ingresso di un blocco (il motore controlla che il blocco e la porta esistano). |
+| `component(window, component, port, value)` | L'utente ha agito su una componente: il motore lo manda ai blocchi che ne sono l'oggetto. La porta deve essere un'uscita della componente. |
+| `answer(console, ask, value)`, `cancel(console, ask)` | Risponde a una domanda di console, o la annulla (Esc). |
+| `close()` | Chiude la connessione. |
+
+Il motore accetta al massimo 100 messaggi al secondo per programma (`rate_limited`) e non accetta messaggi più grandi di 512 KB.
+
+Eventi: `hello` `{ program, consoles, ui }` (alla connessione: lo stato di partenza), `status` `{ status, error, reason }`, `values` `{ values }` (`'schema/blocco.porta'` → valore, al massimo ogni 100 ms; solo se il programma è nato con `watch` o c'è un ascoltatore), `states` `{ states }` (`'schema/blocco'` → `'run'` | `'idle'` | `'error'`), `ui` `{ window, component, port, value }`, `console` `{ event, console, … }` (`event`: `'line'` con `line: { at, level, text }`, `'clear'`, `'ask'` con `ask`, `'done'` con `id` e `answer`), `answered` `{ ask, result }` (`'ok'`, `'again'` o `'stale'`), `error` `{ message }`, `gone` (la connessione è chiusa).
+
+```js
+import { logic, LogicConsoles } from '@lilos/sdk';
+
+const program = await logic.start({ kind: 'test', name: 'Prova', documents, lang: 'it', watch: true });
+const live = logic.live(program.id);
+const consoles = new LogicConsoles(live);
+live.on('status', ({ status }) => { if (status !== 'running') live.close(); });
+```
+
+### `LogicSchema`, `LogicWindow`, `LogicProject` (`core/logicModel.js`)
+
+I tre documenti che l'IDE modifica. Hanno in comune una base (`LogicDocument`, un `Emitter`):
+
+| Membro | Descrizione |
+| --- | --- |
+| `data` | Il documento come oggetto semplice (quello del file). |
+| `dirty`, `markSaved()` | Modificato dopo l'ultimo salvataggio; segna come salvato (evento `saved`). |
+| `history` | Un [`UndoStack`](#sdkcorehistoryjs) di 200 passi: ogni modifica è un passo. |
+| `toJSON()`, `toText()` | Una copia dell'oggetto; il testo del file (JSON indentato, a capo finale). |
+| `edit(cosa, fn, { record = true })` | Cambia il documento: `fn(dati)` lavora su una copia; se non cambia niente non succede niente, se lancia il documento resta com'era. Emette `change` `{ what }` (con `undo` o `redo` per l'annulla). Ritorna il valore di `fn`. |
+| `replace(dati)` | Sostituisce tutto (un file riletto) e azzera la storia. |
+
+**Costanti**: `LOGIC_FORMATS` `{ project: 'lilos-lsproj/1', schema: 'lilos-lsch/1', window: 'lilos-lsui/1' }`, `LOGIC_EXTENSIONS` `{ project: 'lsproj', schema: 'lsch', window: 'lsui' }`, `PORT_TYPES` (`number`, `bool`, `text`, `object`, `list`, `matrix`, `any`, `pulse`).
+
+**`LogicSchema`** (`.lsch`): `{ format, name, blocks: [{ id, type, v, x, y, label?, config, ports, added? }], links: [{ from: [blocco, porta], to: [blocco, porta] }], notes, view: { x, y, zoom }, consoles? }`. `ports` è `{ ingresso: { start?, trigger? } }`; `added` è `{ inputs: [{ id, name }], outputs: [...] }` (gli id delle porte aggiunte sono `x1`, `x2`…).
+
+| Metodo | Descrizione |
+| --- | --- |
+| `LogicSchema.create(nome)`, `LogicSchema.parse(json)` | Uno schema vuoto; da un testo o un oggetto, scartando quello che non è valido (blocchi senza id, collegamenti verso blocchi che non ci sono). Lancia se il `format` non è quello. |
+| `block(id)` | Il blocco o `null`. |
+| `addBlock(def, { x, y, config })` → id | Aggiunge un blocco della definizione `def` (del catalogo); le impostazioni partono dai predefiniti. L'id è il nome del tipo più il primo numero libero (`add1`). |
+| `removeBlocks(ids)`, `duplicate(ids, { dx = 24, dy = 24 })` → nuovi id | Toglie blocchi e i loro collegamenti; copia blocchi e collegamenti tra loro. |
+| `place({ id: [x, y] })` | Sposta i blocchi (un solo passo di storia). |
+| `setConfig(id, chiave, valore)`, `setLabel(id, testo)`, `setPort(id, porta, { start, trigger })` | Impostazioni; etichetta (vuota la toglie); le opzioni di un ingresso (`start`: valore all'avvio, `null` o `''` lo toglie; `trigger: false`: tiene il valore senza avviare il blocco). |
+| `addPort(id, def, 'inputs' \| 'outputs', { limit = 32, lang, name })` → `{ id, name }` | Aggiunge una porta se la definizione ha `grow` per quel lato, fino a `min(limit, grow.max)`. Lancia altrimenti. Il nome, se manca, segue `grow.name`: `letter` (a, b, c…), `number` o `user` (etichetta e numero). |
+| `removePort(id, lato, portaId)`, `renamePort(...)`, `movePort(id, lato, da, a)` | Solo per le porte aggiunte; togliere una porta toglie i suoi collegamenti. |
+| `linksOf(id, porta, lato)` | I collegamenti che toccano una porta. |
+| `connect(da, a)` → `boolean`, `disconnect(collegamenti)` | Collega `[blocco, porta]` a `[blocco, porta]` (falso se esiste già o se è lo stesso blocco). |
+| `setView(vista)`, `rename(nome)` | La vista (non entra nella storia); il nome. |
+| `schemaPorts(defDi)` → `{ inputs, outputs }` | Le porte di schema: `[{ name, type, block, description }]` dai blocchi con `role` `schemaIn` e `schemaOut`. `defDi(tipo)` dà la definizione. |
+| `componentObjects(defDi)` → `[{ block, window, component }]` | Gli oggetti di componenti presenti nello schema. |
+
+**`LogicWindow`** (`.lsui`): `{ format, title, size: { w, h, resizable }, root }`; ogni nodo è `{ id, type, v, props, added?, layout?, children? }` e solo i contenitori hanno `children`.
+
+| Metodo | Descrizione |
+| --- | --- |
+| `LogicWindow.create(titolo)`, `LogicWindow.parse(json)` | Una finestra con la colonna `root`; da un file (id doppi o mancanti sono rifatti, fino a 32 livelli, `size` minima 160 × 120). |
+| `nodes()`, `find(id)` | Ogni nodo con padre, posizione e profondità, in ordine; un nodo per id. |
+| `add(def, padre = 'root', posizione, props)` → id | Aggiunge una componente in un contenitore; lancia se `padre` non è un contenitore. |
+| `remove(ids)`, `move(id, padre, posizione)` | Toglie; sposta (non dentro sé stesso). |
+| `setProp(id, chiave, valore)` (`undefined` toglie), `setLayout(id, { x, y, w, h })` | Proprietà; posizione e misura in un'Area libera. |
+| `addPort`, `removePort`, `renamePort` | Come per lo schema, sulle porte aggiunte di una componente. |
+| `setTitle(t)`, `setSize({ w, h, resizable })` | |
+| `components(defDi)` | I nodi che hanno porte (non `root`, non i contenitori). |
+
+**`LogicProject`** (`.lsproj`): `{ format, name, version, description, schemas: { nome: percorso }, windows: { nome: percorso }, main, links: [{ from: 'schema:porta', to: 'schema:porta' }], consoles, options, entrypoints, uses, texts, app }`. I percorsi sono relativi alla cartella del progetto (`schemi/main.lsch`). `consoles` è `{ list: [{ id, name, color?, keep? }], outside: 'all' \| 'onInput' \| 'hidden' \| 'main', closeAfterAnswer, notify, copyToLog: 'none' \| 'warnings' \| 'all', mainOpens: 'start' \| 'onInput' }` (di serie `onInput`, `true`, `true`, `warnings`, `start`; la console `main` c'è sempre). `options` è `{ keepValues, syncCopies }` (entrambe vere di serie). `entrypoints` è `{ finestra: { kind: 'file' \| 'action' \| 'call' \| 'login', ext?, label } }`. `texts` è `{ lingua: { testo: traduzione } }`. `app` è `{ id, icon, runs }` e «Crea app» ci scrive anche `glyph` e `color`.
+
+| Metodo | Descrizione |
+| --- | --- |
+| `LogicProject.create(nome)`, `LogicProject.parse(json)` | Un progetto vuoto; da un file, con i predefiniti per quello che manca. |
+| `setElement('schemas' \| 'windows', nome, percorso)` | Aggiunge o sposta un elemento; la prima finestra diventa la main. |
+| `removeElement(tipo, nome)`, `renameElement(tipo, da, a, percorso?)` | Toglie o rinomina e aggiusta i riferimenti (collegamenti tra schemi, main, punti d'ingresso). |
+| `setMain(nome)` | Cambia la finestra main (la finestra deve esserci). |
+| `link(da, a)` → `boolean`, `unlink(da, a)`, `renamePortRef(schema, da, a)` | I collegamenti tra schemi (`'schema:porta'`); seguono una porta di schema rinominata. |
+| `setConsoles(patch)`, `addConsole(nome)` → id, `removeConsole(id)` (lancia per `main`), `updateConsole(id, patch)` | Le console. |
+| `setOptions`, `setEntrypoint(finestra, entry \| null)`, `setInfo({ name, version, description, icon })`, `setApp`, `setTexts` | Il resto. |
+
+**`portsOf(item, def, { lang = 'en', component = null, errorLabel })`** → `{ inputs, outputs }`: le porte di un blocco (o di una componente) con quelle aggiunte, ognuna `{ name, label, type, added, trigger, error? }`. Prima le porte della definizione, poi le aggiunte (`name` è il loro id `x1`, `label` il loro nome). Ai blocchi si aggiunge l'uscita `error` (Eccezione). Per l'oggetto di una componente in uno schema (`role` `'component'`) si passa `component: { def, added }` della componente. In una porta di schema il tipo è quello scelto nelle impostazioni.
+
+**`typesMatch(da, a)`** → `boolean`: se un collegamento tra due tipi è senza avvisi (`any` va con tutto, uguali vanno insieme, un ingresso `pulse` accetta tutto, un ingresso `text` accetta tutto tranne `pulse`). **`linkKey(l)`**: una chiave di testo per un collegamento. **`logicText`** è la tabella dei testi dell'SDK per questi documenti (`lilos:sdk.logic`).
+
+## sdk/ui/logic/ e sdk/ui/charts.js (Logic Studio)
+
+Gli stili sono in `sdk/styles/logic.css` (`.lgc-*` per lo schema, `.lgcon-*` per le console, `.lui-*` per le finestre e i grafici); i colori dei grafici sono le variabili `--lui-chart-1…8` (e `--lui-chart-b1…6` per la scala blu), chiare e scure.
+
+### `LogicCanvas` (`ui/logic/LogicCanvas.js`)
+
+Il disegno di uno schema: blocchi, porte e collegamenti su una tela che si sposta e si ingrandisce (zoom tra 0,2 e 2,5; griglia di 20). **Le porte non si aggiungono né si tolgono qui** (solo nella barra delle proprietà dell'IDE): le aggiunte si vedono con il nome in corsivo. Un `Emitter`.
+
+```js
+import { LogicCanvas, LogicSchema, logic } from '@lilos/sdk';
+
+const schema = LogicSchema.parse(testo);
+const canvas = new LogicCanvas({ schema, catalog: await logic.catalog(), lang: 'it' });
+el.append(canvas.el);
+canvas.on('select', ({ blocks, links }) => console.log(blocks, links));
+```
+
+| Opzione | Descrizione |
+| --- | --- |
+| `schema` | Il `LogicSchema` da disegnare: il disegno si aggiorna a ogni suo `change`. |
+| `catalog` | `logic.catalog()`: le definizioni dei blocchi. |
+| `lang` | La lingua delle etichette (`'en'`). |
+| `componentOf(blocco)` | Per l'oggetto di una componente: `{ def, added }` della componente (le sue porte sono quelle della componente), o `null`. |
+| `labels` | `{ error, missing }`: i testi dell'app che la usa (predefiniti quelli dell'SDK). |
+| `readOnly` | Niente modifiche (un programma mostrato dal vivo). |
+
+| Membro | Descrizione |
+| --- | --- |
+| `el`, `view`, `selection`, `readOnly` | L'elemento (focalizzabile); `{ x, y, zoom }`; `{ blocks, links }` selezionati. |
+| `setCatalog(catalog)`, `def(tipo)`, `refresh()`, `destroy()` | |
+| `toWorld(clientX, clientY)`, `center()` | Coordinate del foglio. |
+| `setView(vista, { save = true })`, `zoomAt(fattore, clientX?, clientY?)`, `fit(ids?)` | La vista (salvata nello schema dopo 400 ms); ingrandire intorno a un punto; mostrare tutto, o i blocchi dati. |
+| `select(blocks, links, { add })`, `removeSelection()` | |
+| `place(def, at?)` → id | Aggiunge un blocco (in mezzo alla vista, o dove dici) e lo seleziona. |
+| `attach(live, nomeSchema)`, `detach()` | Mostra un programma in esecuzione: i valori sui collegamenti e accanto agli ingressi, i blocchi che lavorano (`run`) o falliti (`err`). |
+
+Mouse: trascinare un blocco lo sposta (la selezione insieme); da un'uscita a un ingresso li collega; da un ingresso collegato, toglie il collegamento; trascinare lo sfondo seleziona a rettangolo; il tasto centrale o **Spazio** premuto sposta la vista; la rotella ingrandisce. Tastiera (con la tela focalizzata): **Canc** o **Backspace** elimina la selezione, **Ctrl A** la allarga a tutto, **Ctrl D** duplica, le frecce spostano, **Esc** deseleziona.
+
+Eventi: `select` `{ blocks, links }`, `open` `{ id }` (doppio clic su un blocco), `contextmenu` `{ kind: 'block' \| 'link' \| 'canvas', id, link, clientX, clientY, world }`, `linkDrop` `{ from, world, clientX, clientY }` (un collegamento lasciato nel vuoto), `view` `{ x, y, zoom }`. Un collegamento tra tipi che non vanno d'accordo (`typesMatch`) ha la classe `mismatch`.
+
+### `LogicConsoles` e `LogicConsoleView` (`ui/logic/LogicConsole.js`)
+
+Le console di un programma in esecuzione.
+
+- `new LogicConsoles(live)`: tiene le righe (le ultime 2000 per console) e le domande che arrivano dal `LiveProgram`. `list()`, `get(id)`, `asking()` (le console con una domanda), `answer(id, valore)`, `cancel(id)`, `destroy()`. Eventi: `change` `{ console }` (`null` = tutte), `ask` `{ console, ask }`, `done` `{ console }`.
+- `new LogicConsoleView(store, { console = 'main', labels })`: `el`, `show(id)` (`null` = tutte insieme, ogni riga col nome della sua console), `focus()`, `render()`, `destroy()`. Se c'è una domanda mostra la riga per rispondere: **Invio** manda, **Esc** annulla; per le domande di tipo «un tasto» basta il tasto; le risposte segrete sono nascoste.
+
+### `LogicUI` e `COMMON_INPUTS` (`ui/logic/LogicUI.js`)
+
+Una finestra di un progetto (`.lsui`) disegnata con le sue Componenti UI e legata al programma che la fa funzionare.
+
+```js
+import { LogicUI, logic } from '@lilos/sdk';
+
+const ui = new LogicUI({ window: doc.data, components: await logic.allComponents(), lang: 'it', texts, host, mode: 'live' });
+el.append(ui.el);
+ui.attach(logic.live(program.id), 'Principale');
+```
+
+| Opzione | Descrizione |
+| --- | --- |
+| `window` | Il documento `.lsui` (`LogicWindow.data`). |
+| `components` | `Map` (o oggetto) tipo → componente, da `logic.allComponents()`. Un tipo che manca è disegnato come «pacchetto mancante». |
+| `lang`, `texts` | La lingua; le traduzioni dei testi del progetto per quella lingua (`{ testo: traduzione }`, quello che una componente passa a `c.t()`). |
+| `host` | Quello che le componenti possono chiedere a dove sta la finestra, tutto facoltativo: `openWindow(nome, valori)`, `closeWindow()`, `pickFile(opzioni)` → percorso, `resourceUrl(percorso)` → indirizzo, `consoleView(id)` → nodo, `charts` (la libreria dei grafici, se chi la ospita ne ha una sua). |
+| `mode` | `'live'` (funziona), `'design'` (l'editor: niente reagisce, i contenitori mostrano dove mettere le cose) o `'preview'` (funziona ma non è legata a un programma). |
+
+| Membro | Descrizione |
+| --- | --- |
+| `el`, `mode`, `elementOf(id)` | |
+| `render(finestra?)` | Disegna di nuovo (il documento è cambiato); i valori ricevuti si riprendono. |
+| `deliver(componente, porta, valore)` | Un valore per l'ingresso di una componente (anche l'anteprima dell'editor). |
+| `attach(live, nomeFinestra)`, `detach()` | Lega la finestra al programma: i valori che i blocchi mandano alle sue componenti, e le azioni dell'utente di ritorno. |
+| `restore(valori)` | Mostra subito gli ultimi valori (`logic.ui(id)`, `{ 'finestra:componente.porta': valore }`). |
+| `destroy()` | |
+
+Eventi: `send` `{ component, port, value }` (l'utente ha agito, anche senza programma: l'anteprima), `action` `{ component, action, values }` (un pulsante con una «Azione al clic» diversa da `none`: `{ kind: 'open', window }` o `{ kind: 'close' }`; `values` è sempre vuoto, per ora).
+
+Ogni componente ha in più gli ingressi **`enabled`** e **`visible`**, che gestisce `LogicUI` e non `render()`; `COMMON_INPUTS` ne dà le definizioni.
+
+Un file `.lsui` può arrivare da altri: `LogicUI` ne usa solo i **valori**. Le proprietà sono ripulite secondo la definizione della componente (un numero resta tra `min` e `max`, un `select` tra le sue opzioni, una `checkbox` è vera o falsa, un testo al massimo 4000 caratteri, un'`action` è `none`, `open` o `close`, un'`icon` solo lettere), e la posizione in un'Area libera è fatta di numeri tra 0 e 10000: niente CSS che arrivi dal file.
+
+### `formatLogicValue(valore, lang = 'en', max = 18)` (`ui/logic/format.js`)
+
+Un valore breve da mettere in un'etichetta di collegamento o accanto a una porta: `∅` per `null`, i numeri nella lingua (fino a 3 decimali), sì/no, le liste come `[3]`, gli oggetti come `{a, b…}`, un errore come `⚠ messaggio`; tagliato a `max` caratteri con `…`.
+
+### `chart(el, { kind, series, options })` e `CHART_KINDS` (`ui/charts.js`)
+
+Grafici per ogni app, disegnati in SVG, **senza dipendenze**. Ritorna una maniglia. `CHART_KINDS`: `line`, `area`, `column`, `bar`, `pie`, `scatter`, `histogram`, `live`, `step`, `heatmap`, `radar`, `spark`.
+
+```js
+import { chart } from '@lilos/sdk';
+
+const ch = chart(el, { kind: 'line', series: [{ name: 'Nord', data: [3, 5, 4] }], options: { title: 'Pioggia', unit: 'mm' } });
+ch.append('Nord', 6);                 // un punto in fondo; nei grafici nel tempo, adesso
+const png = await ch.toPNG();         // Blob
+```
+
+`series` accetta: una lista di numeri; di `{ x, y }` o `[x, y]`; di serie `{ name, data, color? }`; un oggetto nome → valori (o nome → numero: una serie di categorie, per la torta); righe di tabella `[{ mese: 'gen', Nord: 3, Sud: 5 }]` (il primo campo di testo è la x, i numeri sono serie); un testo JSON di uno di questi. `x` può essere un numero, una data (`Date` o testo ISO) o una categoria. La mappa di calore vuole una matrice (lista di liste) o `{ rows, cols, values }`.
+
+| Opzione | Descrizione |
+| --- | --- |
+| `title`, `lang`, `height` | Titolo; lingua (quella di `<html lang>`); altezza in pixel del disegno (200; `'auto'` riempie `el`; 28 per `spark`). |
+| `legend`, `tools` | Legenda (vera dalle due serie in su; un clic accende e spegne una serie); i pulsanti vista tabella, PNG e CSV (veri; non per `spark`). |
+| `unit`, `decimals`, `min`, `max` | Unità, decimali e limiti dell'asse dei valori (un asse solo, mai due). |
+| `maxPoints` | Punti tenuti per serie (1000). |
+| `colors` | `'standard'`, `'blue'` o un elenco di colori. I colori seguono sempre lo stesso ordine: una serie conserva il suo anche se altre sono nascoste. Un colore che arriva nei dati (`color` di una serie, voci di `colors`) è accettato solo se è `#rgb`…`#rrggbbaa`, `rgb()`/`rgba()` o `hsl()`/`hsla()` con numeri; altrimenti vale quello di serie. |
+| `xLabel`, `time` | Titolo dell'asse x; `true` se x è un tempo. |
+| `stacked` | `area`: `false`, `'stacked'` o `'percent'`; `column` e `bar`: `true`. |
+| `sort`, `donut`, `bins`, `binWidth` | `bar`: `'none'`, `'asc'` o `'desc'`; `pie`: ciambella; `histogram`: classi (`'auto'` o un numero) o larghezza. |
+| `window`, `paused` | `live` e `step`: i secondi da mostrare (60 per `live`); fermo. |
+| `rows`, `cols` | `heatmap`: le etichette. |
+| `texts` | `{ chiave: testo }` per sostituire i testi dell'SDK (`lilos:sdk.charts`). |
+| `onPick(punto)` | Un clic (o Invio) su un punto, una barra, una fetta, una cella. |
+
+La maniglia ha `el`, `kind`, `update(serie)`, `append(serie, punto)` (`serie`: indice o nome, una nuova se non c'è), `clear()`, `setOptions(opzioni)`, `resize()` (di solito lo fa da solo un `ResizeObserver`), `tableView(on?)`, `table()` → `{ head, rows, types }`, `toCSV()` → `Blob`, `toPNG(scala = 2)` → `Promise<Blob>`, `destroy()`. È accessibile da tastiera (frecce tra i valori, Invio sceglie) e ha una vista tabella con gli stessi dati.
+
+`icon()` ha dalla 0.22.0 i simboli usati da Logic Studio: `hash`, `copy`, `sync`, `logic`, `not`, `compare`, `branch`, `split`, `merge`, `chart`, `slider`, `text`, `braces`, `wait`, `portIn`, `portOut`, `matrix`, `lamp`, `gauge`, `press`, `progress`, `type`, `rows`, `cols`, `group`, `tabs`, `free`, `toggle`, `eye`.
 
 ## sdk/core/tags.js
 
@@ -3509,6 +3751,33 @@ Chiamata da `system.js` prima di `connectServices()` (che aggiunge i suoi ascolt
 - A una corsa `due` fa `schedule.claim(run)`: se un'altra pagina l'ha già presa (`conflict`) non fa niente; altrimenti fa quello che dice `what` e risponde con `schedule.report(run, { state, text })`. `open` con `file` apre il file con `openFile`; con `app` fa `launch(app, args, entry)`; `automation` fa `runByItself(file, [], { values })` ([triggers.js](#avvio-da-solo-triggersjs)): in silenzio, o nella finestra `run` di Automata se chiede qualcosa; l'esito è quello dell'esecuzione (un errore dell'automazione è `error` nella cronologia). Se l'app, il file o Automata non ci sono, l'esito è `error`.
 - Dopo 3 secondi dall'avvio, e a ogni riconnessione, legge `schedule.pending()` (le corse che aspettavano lilOS aperto): quelle di operazioni con `options.ask: false` le fa subito; per le altre apre la finestra **Operazioni in attesa**, con **Esegui ora** e **Salta** per ognuna e «D'ora in poi esegui senza chiedere» (mette `ask: false` nell'operazione). La apre una sola pagina (Web Lock `lilos:schedule-pending:<id utente>`). **Salta** manda `report(run, { state: 'skipped' })`.
 
+## logic/ (le finestre dei progetti nel sistema)
+
+Il motore ([Logic Studio: il motore e i pacchetti](#logic-studio-il-motore-e-i-pacchetti)) fa girare i programmi; `src/logic/host.js` apre le loro finestre senza l'IDE. Si esporta da `@lilos/system` come `logicHost`.
+
+```js
+import { logicHost } from '@lilos/system';
+
+logicHost.openMain(programId);        // la finestra main di un programma attivo
+```
+
+### `logicHost` (`logic/host.js`)
+
+| Membro | Descrizione |
+| --- | --- |
+| `connect({ wm })` | La chiama `system.js`. Senza kernel non fa niente. Ascolta `logicstudio.ask` e `logicstudio.failed` (una notifica `error` «<nome> stopped: …») e ogni riapertura del flusso, e registra le azioni di notifica `logicstudio.console` e `logicstudio.main`. |
+| `projects()` → `[program]` | I programmi **attivi** in esecuzione che hanno almeno una finestra: li mostra la scheda **Progetti** del menu applicazioni. In memoria; si aggiorna con `refresh()`. |
+| `refresh()` | Rilegge `logic.programs()`; avvisa chi ascolta con `on`. Il menu di avvio lo chiama a ogni apertura. |
+| `on(fn)` → `off` | `fn()` quando `projects()` cambia. |
+| `openMain(id)` | Apre la finestra main del programma, o avvisa con una notifica `warning` se non ne ha o se non è in esecuzione. |
+| `openWindow(id, nome, valori?)` | Apre una finestra del progetto con `LogicUI` (`mode: 'live'`), legata al programma. Se è già aperta la porta davanti (le dà l'evento `launch`). `valori` per ora non fa niente. La chiave della finestra è `logic:<id>:<nome>`. Le dimensioni vengono dal documento (`size`, più 30 pixel di barra del titolo). |
+| `openConsole(id, console = null)` | Apre una console in una finestra (`logic:<id>:console:<console>`), o tutte insieme con `null`. |
+| `runApp(fileId)` → `program \| null` | Fa girare un'app fatta da un progetto **senza installarla**: `fileId` è il file `.lsapp`. Legge il marcatore (`format: 'lilos-lsapp/1'`, `manifest`, `project`), il `lilos.json` e il progetto con i suoi schemi e finestre dalla cartella del pacchetto, fa partire un programma di tipo `app` (`logic.start`) e ne apre la finestra main. Quando si chiude l'ultima finestra (le console non contano) il programma si ferma e si dimentica. Prima di avviarla, se i suoi blocchi usano file (`lilos.file*`, `lilos.folder*`, `lilos.exists`), rete (`net.*`), notifiche (`lilos.notify`) o eventi (`lilos.event`), lilOS apre una finestra di **consenso** che li elenca e dice da dove viene l'app; «Esegui» si ricorda in `lilos:logicstudio.consents`, un'impronta SHA-256 del percorso del `.lsapp` e dei documenti (al massimo 200), quindi un'app cambiata chiede di nuovo. Se l'utente annulla, ritorna `null`. Gli errori sono una notifica «<nome> did not start: …». Vale solo per l'utente che la apre: nessun altro la vede. |
+
+**Console fuori dall'IDE.** Per ogni programma aperto, `logicHost` tiene una connessione viva (`LiveProgram`) e un `LogicConsoles`. Segue l'opzione `consoles.outside` del progetto: `all` apre tutte le console con la prima finestra; `onInput` apre quella con una domanda e la chiude dopo la risposta (se `closeAfterAnswer` non è `false`); `main` apre una sola console con tutte le righe (alla prima finestra, o alla prima domanda se `mainOpens` è `onInput`); `hidden` non apre niente. Se arriva `logicstudio.ask` per un programma di cui non ha niente aperto, manda una notifica (a meno che `outside` sia `hidden` o `notify` sia `false`) con un'azione che apre la console.
+
+Le finestre hanno un `host` per le componenti: `openWindow`, `closeWindow`, `consoleView(id)`, `resourceUrl(percorso)` (un file della cartella del progetto, come indirizzo `blob:`; `null` se non c'è o non è un file: una componente non deve mai usare un indirizzo che non venga da qui) e `pickFile({ kind, exts })` (la finestra dei file di lilOS). Un programma che si ferma o perde la connessione chiude le sue finestre e le sue console. Le finestre mostrano subito gli ultimi valori (`logic.ui(id)`) se l'opzione `keepValues` del progetto non è spenta.
+
 ## sdk/ui/
 
 ### `icons.js`
@@ -5354,6 +5623,187 @@ Alcuni moduli non si possono togliere: lilOS non parte senza. L'elenco è `REQUI
 
 ---
 
+### Logic Studio: il motore e i pacchetti
+
+Da lilOS 1.37.0 ([D88](../interna/decisioni.md#d88-logic-studio-motore-pacchetti-ide-finestre-dei-progetti)). Il motore `logicstudio-engine_1.0.0` (servizio `logicstudio`) fa girare i programmi di Logic Studio; i **pacchetti** sono altri moduli che gli portano blocchi e componenti. Il client è [`logic`](#logic-corelogicjs) dell'SDK, le finestre le apre [`logicHost`](#logic-le-finestre-dei-progetti-nel-sistema).
+
+| Modulo | Cosa porta |
+| --- | --- |
+| `logicstudio-engine` | Il motore, l'API, le quote e i limiti. `requires: []` |
+| `logicstudio-core` | 42 blocchi di base: valori, logica, matematica, testo, oggetti, tempo, le due console, le porte di schema, `core.component` |
+| `logicstudio-collections` | 36 blocchi per liste e matrici (`coll.*`) |
+| `logicstudio-lilos` | 7 blocchi di lilOS (`lilos.*`): notifica, leggere, scrivere e aggiungere a file, elencare cartelle, esiste, evento. Azioni nel kernel come l'utente. Richiede il servizio `notifications` |
+| `logicstudio-net` | `net.request` (Richiesta web); impostazioni `allowPrivate` (falso), `timeoutSeconds` (20, 1-120), `maxResponseKb` (1024, 1-10240) |
+| `logicstudio-ui` | 27 Componenti UI standard (`ui.*`) |
+| `logicstudio-charts` | 12 grafici come Componenti UI (`charts.*`) |
+
+Il motore tiene **un `worker_thread` per ogni utente** con programmi in esecuzione (con `maxOldGenerationSizeMb` uguale alla quota di memoria dell'utente), lo avvia con il primo programma e lo chiude con l'ultimo. Se il worker muore (memoria finita, errore non gestito) tutti i programmi di quell'utente passano a `failed`. Le richieste che toccano i dati dell'utente (azioni, console, finestre) passano dal thread principale, che le esegue **come l'utente**.
+
+**Limiti e quote.** I limiti per tutti sono le impostazioni del modulo (`defaultConfig` e `settings` di `module.json`); le quote di ogni utente sono le chiavi `quota…`, con le deroghe di un amministratore in `quotas.json`. I valori fuori intervallo sono portati nell'intervallo. Valgono per i programmi che partono dopo il cambio (`ctx.onConfig`).
+
+| Impostazione | Predefinito | Intervallo | Significato |
+| --- | --- | --- | --- |
+| `totalActive` | 200 | 1-10000 | Programmi attivi di tutti gli utenti |
+| `totalMemoryMb` | 1024 | 64-65536 | Memoria dei worker di tutti (la somma delle quote dei worker aperti) |
+| `maxBlocks` / `maxLinks` | 200 / 600 | 10-5000 / 10-20000 | Blocchi e collegamenti per schema |
+| `runsPer10s` | 10000 | 100-1000000 | Esecuzioni di blocchi in 10 secondi per programma; oltre, il programma si ferma (un ciclo di collegamenti) |
+| `blockSeconds` | 30 | 1-600 | Tempo massimo di un blocco |
+| `testMinutes` | 5 | 1-240 | Durata massima di una prova |
+| `maxSchemas` / `maxWindows` | 20 / 10 | 1-200 / 1-100 | Per progetto |
+| `maxComponents` | 200 | 10-2000 | Componenti per finestra |
+| `maxProjectLinks` | 200 | 10-5000 | Collegamenti tra schemi per progetto |
+| `maxAddedPorts` | 32 | 1-64 | Porte aggiunte a un blocco o una componente |
+| `maxConsoles` | 10 | 1-50 | Console per progetto |
+| `consoleLinesPerSecond` | 50 | 1-10000 | Righe al secondo per console; le altre sono contate e si dice una volta al secondo «… N righe non mostrate» |
+| `chartPoints` | 1000 | 10-100000 | **Non ancora usato** da niente |
+| `quotaMaxActive` | 10 | 0-1000 | Programmi attivi per utente |
+| `quotaMaxTests` | 2 | 0-100 | Prove in corso per utente |
+| `quotaCpuPercent` | 25 | 1-100 | La parte di CPU che i blocchi di un utente possono usare in un secondo: oltre, il worker aspetta la fine del secondo |
+| `quotaMemoryMb` | 128 | 16-8192 | Memoria del worker |
+| `quotaNetPerMinute` | 120 | 0-100000 | Richieste di rete al minuto (le conta `tools.countNet()` delle azioni di rete) |
+| `quotaLogMb` | 20 | 1-10240 | Registro: oltre, si butta la metà più vecchia |
+
+#### API HTTP e WebSocket
+
+Sotto `/api/modules/logicstudio-engine`, per utenti con l'accesso fatto (le app installate con il permesso `kernel:logicstudio-engine`). Un programma è dell'utente che l'ha fatto partire; un amministratore vede e ferma anche gli altri. Gli errori hanno i soliti codici (`invalid`, `not_found`, `forbidden`, `too_large`, `quota`, `rate_limited`).
+
+| Richiesta | Risposta |
+| --- | --- |
+| `GET /catalog` | `{ version, packages }`: le definizioni dei pacchetti, senza codice |
+| `GET /components/:pack` | Il `components.js` del pacchetto (`text/javascript`, `Cache-Control: no-cache`); `not_found` se non ne ha |
+| `GET /status` | `{ limits, quotaKeys, quota, active, tests, net, log, admin }` |
+| `GET /programs[?all=1]` | I programmi (`all` solo per gli amministratori) |
+| `POST /programs` | `{ kind: 'test' \| 'active' \| 'app', name, documents, source, lang, watch }` → programma. Al massimo 8 MB di documenti (un programma attivo, 2 MB: `too_large`). `invalid` con `details.where` se i documenti non vanno (un blocco senza pacchetto, un collegamento verso una porta che non c'è, un limite superato). `quota`: troppi attivi o prove, programmi attivi di tutti, memoria di tutti |
+| `GET /programs/:id` | Il programma |
+| `DELETE /programs/:id[?forget=1]` | Lo ferma; con `forget=1` lo toglie anche dall'elenco (e, se attivo, dai salvati) |
+| `POST /programs/:id/input` | `{ schema, block, port, value }`: un valore a un ingresso di un blocco (`not_found` se il blocco non c'è, `invalid` se la porta non è un suo ingresso). `value` al massimo 256 KB |
+| `POST /programs/:id/component` | `{ window, component, port, value }`: l'utente ha agito su una componente; la porta deve essere un'uscita (anche aggiunta) della componente |
+| `GET /programs/:id/ui` | Gli ultimi valori mandati alle finestre (`{}` con `keepValues` spento) |
+| `GET /programs/:id/windows` | `{ id, name, source, status, main, windows, texts, entrypoints, consoles, options }` |
+| `GET /programs/:id/consoles` | Le console con le righe tenute e la domanda in attesa |
+| `POST /programs/:id/answer`, `POST /programs/:id/cancel` | `{ console, ask, value }` → `{ result: 'ok' \| 'again' \| 'stale' }`; `{ console, ask }`. Una risposta al massimo 4000 caratteri |
+| `GET /logs[?program=]` | Il registro dell'utente (le ultime 500 voci) |
+| `GET /admin/users` | (Amministratori) `[{ id, overrides, quota, active, tests, net, log, programs }]` |
+| `PUT /admin/quotas/:utente` | (Amministratori) Un oggetto con alcune chiavi di `quotaKeys` (senza `quota`), o `null` per toglierle |
+
+**`WS /live/:id`** (`ctx.socket`): lo stato del programma. Messaggi dal motore: `{ t: 'hello', program, consoles, ui }`, poi `status`, `values`, `states`, `ui`, `console.line`, `console.clear`, `console.ask`, `console.done`, `answered`, `error`. Messaggi verso il motore: `{ t: 'input', … }`, `{ t: 'component', … }`, `{ t: 'answer', console, ask, value }`, `{ t: 'cancel', console, ask }` (stessi campi delle richieste HTTP). Al massimo 100 messaggi al secondo per programma e 512 KB per messaggio; se il client non legge e ha più di 4 MB in coda, i messaggi nuovi si perdono. `LiveProgram` nasconde tutto questo.
+
+**Eventi per le pagine dell'utente** (`ctx.emit`, sul flusso `/api/services-events`): `logicstudio.ask` `{ id, name, console }` (un programma che non è una prova chiede qualcosa e nessun `LiveProgram` lo guarda; al massimo una volta ogni 30 secondi per console), `logicstudio.failed` `{ id, name, error }` (un programma attivo si è fermato per un errore) e `logicstudio.event` `{ program: { id, name }, name, data }` (dal blocco «Evento a lilOS»).
+
+**Dati** (`ctx.dataDir`, restano agli aggiornamenti): `active.json` (`{ programs }`: i programmi attivi con i loro documenti, anche fermi, segnati `stopped`; i fermi non ripartono con il kernel), `quotas.json` (`{ users }`) e `logs/<hash dell'utente>.jsonl` (una riga di JSON per voce: le righe di console copiate e come sono finiti i programmi). Ogni utente può avere al massimo `3 × quotaMaxActive` programmi attivi, anche fermi.
+
+**Il formato dei documenti.** Il motore li ricontrolla tutti prima di far partire un programma (`lib/project.js`), con i limiti sopra e questi controlli: `format` giusto; nomi di schemi e finestre di 1-80 caratteri senza `/ \ :` e caratteri di controllo (e non `__proto__`, `constructor`, `prototype`); id di blocchi e componenti `[\w-]{1,40}` e unici; blocchi di un tipo che nessun pacchetto dà → errore «manca il suo pacchetto»; un collegamento verso un blocco o una porta che non ci sono; i blocchi `core.component` che puntano a una componente che non c'è, o con più di un oggetto per componente; le porte aggiunte entro `grow.max` e `maxAddedPorts`, con id `x1`…`x999`; i collegamenti tra schemi da un'Uscita di schema a un Ingresso di schema che esistono. Le console: id unici, `keep` tra 100 e 2000 righe, quella `main` aggiunta se manca. Una riga di console è tagliata a 1000 caratteri e una console tiene al massimo 400000 caratteri (le righe più vecchie vanno via).
+
+#### Come gira un programma
+
+Un programma è un insieme di schemi con i loro blocchi e collegamenti (flusso di dati, come in OpenBack):
+
+- Un valore che arriva a un ingresso viene tenuto come ultimo valore di quell'ingresso. Se l'ingresso **avvia** il blocco (di serie tutti, tranne quelli con `trigger: false`, o con `trigger` spento nelle proprietà), si chiama `run()` con l'ultimo valore di ogni ingresso, e le uscite che ritorna vanno lungo i collegamenti.
+- Ogni blocco tratta **un valore alla volta**, nell'ordine in cui sono arrivati; blocchi diversi vanno avanti indipendentemente (uno che aspetta l'utente non ferma gli altri).
+- Ogni blocco ha l'uscita **`error`** (Eccezione): quello che `run()` lancia (o un blocco troppo lento) esce da lì come `{ message, block, schema, at }`. Se non è collegata, va nella console principale. I valori che passano da un blocco all'altro **non sono copiati**: un blocco non deve modificare quello che riceve.
+- Un blocco che impiega più di `blockSeconds` è interrotto con un errore sul suo `error`.
+- All'avvio: `start(b)` di ogni blocco, poi i valori iniziali degli ingressi (`ports[porta].start`) e i blocchi `loop`.
+- Il governatore della CPU: ogni 200 esecuzioni il worker guarda quanto tempo hanno preso i blocchi nel secondo corrente e, se sono oltre `quotaCpuPercent`, aspetta la fine del secondo.
+- Una prova si ferma da sola dopo `testMinutes`; i programmi `test` e `app` fermi sono dimenticati dopo un minuto; quelli `active` restano nell'elenco finché non li si toglie.
+
+#### Scrivere un pacchetto di blocchi e componenti
+
+Un pacchetto è un modulo del kernel ([Moduli](#moduli)) che dichiara `requires: ["logicstudio"]`, di solito con `dependencies` verso `logicstudio-engine` (così l'AppStore lo installa insieme) e che nell'`init()` si registra. La procedura è in [Scrivere un pacchetto di blocchi per Logic Studio](ricette.md#scrivere-un-pacchetto-di-blocchi-per-logic-studio).
+
+```js
+import { join } from 'node:path';
+
+export default {
+  async init(ctx) {
+    ctx.provide('logicblock.esempio', { api: 1 });
+    this.handle = await ctx.service('logicstudio').register({
+      name: ctx.name, version: ctx.version,
+      label: { en: 'Example blocks', it: 'Blocchi di esempio' },
+      blocks: join(ctx.dir, 'blocks.js'),          // facoltativo: percorso assoluto
+      components: join(ctx.dir, 'components.js'),  // facoltativo: percorso assoluto
+      actions: { 'esempio.saluta': async (user, args, tools) => ({ testo: `Ciao ${user.name}` }) },
+    });
+  },
+  async stop() { this.handle?.unregister(); },
+};
+```
+
+`register(info)` → `{ unregister() }`. `name` è `[a-z][a-z0-9-]{0,40}`; i due percorsi devono essere assoluti. Il servizio ha anche `catalog()` e `api: 1`. Un blocco o una componente non valido è scartato con un avviso nel log del kernel (gli altri restano); un `type` già dato da un altro pacchetto è scartato. I file si importano con `?v=<versione>` per aggiornarsi con il modulo. Registrarsi fa riprovare i programmi attivi che aspettavano un pacchetto.
+
+**Il codice dei blocchi non è isolato:** gira nel worker con tutte le API di Node, perché lo installa un amministratore. Un blocco non deve usare `node:fs`, `fetch` o altro per conto suo: per tutto ciò che tocca i dati dell'utente o il mondo fuori chiama un'**azione** con `b.call`, così le regole dell'utente restano quelle del kernel. Il worker ha `env` vuoto.
+
+**`blocks.js`** esporta `blocks`, una lista di definizioni. Niente deve girare all'`import`: il thread principale lo importa per leggerle.
+
+| Campo | Significato |
+| --- | --- |
+| `type` | `pacchetto.nome`: `[a-z][a-z0-9]*\.[a-zA-Z][a-zA-Z0-9]{0,40}` |
+| `version` | Intero da 1. La cambia chi cambia il comportamento del blocco |
+| `category` | Dove sta nella tavolozza: `value`, `logic`, `math`, `text`, `object`, `list`, `matrix`, `time`, `console`, `schema`, `ui`, `lilos`, `net` o altra (`other`) |
+| `icon` | Un simbolo di `icon()` (`blocks` di serie) |
+| `label`, `description` | `{ en, it }`; `description` facoltativa |
+| `inputs`, `outputs` | `[{ name, type, label, trigger? }]`. `name`: `[a-zA-Z][a-zA-Z0-9]{0,30}`, unico, mai `error` (c'è già). `type`: `number`, `bool`, `text`, `object`, `list`, `matrix`, `any` o `pulse`. `trigger: false` (solo ingressi): tiene il valore senza avviare il blocco |
+| `config` | Le impostazioni, in ordine: `[{ key, type, default, label, options?, min?, max?, step?, when? }]`. `type`: `text`, `number`, `select` (`options`: testi, o `{ value, label: { en, it } }`), `checkbox`, `console` (sceglie una console del progetto) o `json`. `when: { chiave: valore \| [valori] }` la mostra solo se altre impostazioni hanno quei valori. Arrivano al blocco in `b.config`, con i predefiniti |
+| `grow` | Le porte che l'utente può aggiungere (solo dalla barra delle proprietà): `{ inputs?: g, outputs?: g }` con `g = { max (1-64), type, name: 'letter' \| 'number' \| 'user', label? }`. Le porte aggiunte hanno id `x1`, `x2`… e un nome; `name` dice come ricevono il nome (lettere, numeri, o un testo scelto dall'utente) |
+| `role` | Riservato ai blocchi di base: `schemaIn`, `schemaOut`, `component` |
+| `execution` | `'run'` (di serie) o `'loop'` (vuole `step`) |
+| `start(b)`, `run(inputs, b)`, `step(inputs, b)`, `stop(b)` | Il comportamento, qui sotto. `upgrade` è solo annunciato nel catalogo (`upgradable`): niente lo chiama ancora |
+
+**`start(b)`** all'avvio del programma. **`run(inputs, b)`**: `inputs` è l'ultimo valore di ogni ingresso (per nome, anche degli aggiunti per id), `b.trigger` è l'ingresso che ha avviato il blocco. Ritorna un oggetto `{ porta: valore }` (le uscite; un valore `undefined` è ignorato; un impulso è `true`) o niente. Se lancia, il messaggio esce dall'uscita `error`. Può essere `async`. **`step(inputs, b)`** (blocchi `loop`): ritorna `{ outputs?, wait?, done? }`; `wait` in millisecondi (almeno 10), `done: true` lo ferma. **`stop(b)`** alla fine, con 2 secondi di tempo.
+
+**`b`** (il secondo argomento):
+
+| Membro | Descrizione |
+| --- | --- |
+| `id`, `schema`, `config`, `lang` | Il blocco, il suo schema, le sue impostazioni, la lingua dell'utente |
+| `trigger` | (solo in `run`) l'ingresso che ha avviato il blocco |
+| `added` | `{ inputs: [{ id, name, value }], outputs: [{ id, name }] }`: le porte aggiunte; i valori degli ingressi aggiunti sono lì |
+| `memory()` | Un oggetto vostro, che dura quanto il programma |
+| `send(porta, valore)` | Manda un valore a un'uscita (anche una aggiunta, per id) senza aspettare la fine di `run()` |
+| `setTimeout(fn, ms)`, `setInterval(fn, ms)` → timer, `clearTimer(timer)` | Timer che si fermano con il programma (l'intervallo è almeno 10 ms) |
+| `signal` | Un `AbortSignal` che scatta quando il programma si ferma |
+| `call(azione, args)` → `Promise` | Chiede al kernel un'azione di un pacchetto, come l'utente |
+| `console.write(console, testo, livello)`, `console.clear(console)`, `console.read(console, { prompt, kind, secret, retry, fallback, timeoutMs })` | La console: `livello` `'normal'`, `'info'`, `'warning'` o `'error'`. `read` ritorna `{ value }` o `{ cancelled: true, reason }` (`timeout`, `cancel`, `invalid`, `stop`); `kind`: `text`, `number`, `bool` o `key` |
+| `exportPort(porta, valore)`, `ui(porta, valore)` | Per i blocchi di base (Uscita di schema, oggetto di una componente) |
+| `now()` | `Date.now()` |
+
+**Le azioni** sono funzioni dei pacchetti, chiamate nel thread principale: `async (user, args, tools) => risultato`.
+
+- `user` è `{ kind: 'user', id, username, name, role }`: va passato ai servizi del kernel (`fs`, `notifications`…), che applicano i permessi e le quote di quell'utente. **Non usare mai il principale del kernel.**
+- `args` e il risultato sono JSON, copiati: niente funzioni, niente oggetti con metodi. Un errore lanciato arriva al blocco come `Error` con il suo messaggio (`err.text ?? err.message`), che l'utente leggerà: scrivilo per lui, senza dettagli segreti.
+- `tools`: `program` (`{ id, name, kind }`), `signal` (scatta se il programma si ferma: interrompe una richiesta lunga), `countNet()` (conta una richiesta di rete nella quota dell'utente; lancia se è finita) e `emit(evento, dati)` (un evento per le pagine dell'utente: `<parola>.<parola>`).
+- La chiave è `pacchetto.nome` (`[a-z][a-z0-9]*\.[a-zA-Z][\w.]{0,60}`); due pacchetti con la stessa chiave: vince il primo registrato.
+- Chiedi i servizi quando servono (`ctx.service('fs')` dentro la funzione, non in `init`): il kernel avvolge `fs` con le sue guardie dopo che tutti i moduli sono partiti.
+
+**`components.js`** esporta `components`, una lista di definizioni, ed eventualmente `styles` (testo CSS messo una volta nella pagina). Il browser lo importa dal motore (`GET /components/:pack`) in lilOS e nell'IDE; **non importa niente**.
+
+| Campo | Significato |
+| --- | --- |
+| `type`, `version`, `icon`, `label` | Come i blocchi. `type`: `ui.nome`, `charts.nome`… |
+| `category` | `values`, `commands`, `containers`, `charts` o altra |
+| `container` | `true`: ha figli (`c.children()`) |
+| `inputs`, `outputs` | Le porte **viste dallo schema**: gli `inputs` sono quello che lo schema imposta (un testo, un valore), gli `outputs` quello che fa l'utente. Una porta in entrambi è «↔». Hanno in più `enabled` e `visible`, che gestisce `LogicUI` |
+| `props` | Le proprietà, che l'utente scrive nell'editor: `[{ key, type, default, label, options?, min?, max?, translate? }]`. `type`: `text`, `number`, `select`, `checkbox`, `icon`, `action` (l'azione al clic di un pulsante), `console`, `resource` (un file del progetto). `translate: true`: il testo è una frase da tradurre (`c.t()`) |
+| `grow` | Come per i blocchi: porte aggiunte dall'utente alla componente |
+| `actionPort` | La porta che fa partire l'«Azione al clic» (`pressed` del pulsante) |
+| `render(el, c)` | Disegna la componente dentro `el` |
+
+`c` (il secondo argomento di `render`):
+
+| Membro | Descrizione |
+| --- | --- |
+| `id`, `props`, `lang`, `added` | La componente, le sue proprietà (con i predefiniti), la lingua, le porte aggiunte `{ inputs, outputs }` |
+| `design`, `mode` | `true` nell'editor di finestre (disegna dati finti e non reagire); `'live'`, `'design'` o `'preview'` |
+| `t(testo)` | Il testo tradotto dal progetto |
+| `h`, `icon`, `controls`, `charts` | `h` e `icon` dell'SDK; i controlli dei moduli (`textField`, `selectField`, `slider`, `actionButton`…); `{ chart }` |
+| `host` | Quello che dà dove sta la finestra (`openWindow`, `closeWindow`, `pickFile`, `resourceUrl`, `consoleView`, `charts`) |
+| `send(porta, valore)` | L'utente ha fatto qualcosa: va ai blocchi che sono l'oggetto della componente (non fa niente nell'editor) |
+| `on(porta, fn)` → `off` | Il valore di un ingresso: `fn` si chiama subito con l'ultimo valore, se c'è, e a ogni valore nuovo |
+| `children(dentro?)` | I figli di un contenitore: disegnati in `dentro`, o ritornati |
+
+Una componente deve funzionare se `render` è chiamata di nuovo (l'editor ridisegna) e non deve tenere riferimenti fuori da `el`.
+
+---
+
 ### Protocolli di rete: `netfs-ftp_1.1.0`, `netfs-webdav_1.1.0`, `netfs-smb_1.1.0` e SFTP (nel modulo `ssh_1.0.0`)
 
 Quattro protocolli in quattro moduli (SFTP è nel modulo `ssh`, che fa anche il terminale SSH), ciascuno con il suo `module.json` (`provides: ["netfs.<protocollo>"]`, `requires: []`, `defaultConfig: {}`, nessuna configurazione). Seguono il contratto di [Rete](#rete-connessioni-e-trasferimenti-net-apinetjs). Sono attivi nel `config.json` di sviluppo del repository; altrove un amministratore li aggiunge a `modules` (o li installa dall'AppStore, con il riavvio del kernel). Le dipendenze di `ssh` e `netfs-ftp` si installano con `npm run kernel:setup`.
@@ -5674,6 +6124,18 @@ Le scelte dell'utente per OneDrive (Pannello di controllo 1.14.0 le scrive, File
 | `folder` | Cartella su OneDrive (creata se manca). Predefinito `"/lilOS"`; vuota, torna al predefinito |
 | `ifExists` | Con un file dello stesso nome: `"ask"` (predefinito), `"keep"` o `"replace"` |
 | `doubleClick` | `true` (predefinito): il doppio clic su un documento Office di OneDrive lo apre in Office per il web, a meno che un'app di lilOS sia scelta per quel tipo |
+
+### `lilos:logicstudio.recent`
+
+I progetti aperti da poco in Logic Studio IDE (`plugins/src/logicstudio/LogicStudioApp.js`): array di al massimo 10 id di file (`.lsproj` o `.lsch`), il più recente per primo. Alla lettura si scartano gli id che non sono più file.
+
+### `lilos:logicstudio.consents`
+
+Le app fatte con Logic Studio che l'utente ha accettato di eseguire (`logicHost.runApp`, `src/logic/host.js`): array di al massimo 200 impronte SHA-256 (64 caratteri esadecimali) del percorso del file `.lsapp` e dei documenti del progetto, la più recente per prima. Un'app cambiata ha un'impronta diversa e chiede di nuovo.
+
+### `lilos:logicstudio.panels`
+
+Le larghezze dei pannelli dell'IDE: `{ "left": 220, "right": 280 }`, in pixel, tra 170 e 480.
 
 ### `lilos:settings`
 

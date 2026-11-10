@@ -85,6 +85,7 @@ export class WindowEditor {
   #host() {
     const studio = this.#studio;
     return {
+      chartPoints: studio.limits?.chartPoints,
       consoleView: id => (studio.runner.consoles ? new LogicConsoleView(studio.runner.consoles, { console: id }).el : null),
       resourceUrl: async path => {
         const node = studio.ws?.nodeAt?.(String(path).replace(/^\/+/, ''));

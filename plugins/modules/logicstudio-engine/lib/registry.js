@@ -10,7 +10,7 @@ import { pathToFileURL } from 'node:url';
  *     name: ctx.name, version: ctx.version, label: { en, it },
  *     blocks: join(ctx.dir, 'blocks.js'),           // optional: export const blocks = [...]
  *     components: join(ctx.dir, 'components.js'),   // optional: export const components = [...]
- *     actions: { 'lilos.notify': async (user, args, tools) => … },   // optional, see broker.js
+ *     actions: { 'lilos.notify': async (user, args, tools) => … },   // optional: run in the kernel as the program's user (supervisor.js #action)
  *   })
  *
  * blocks.js runs in each user's worker; here it is only imported to read the definitions (nothing
@@ -36,7 +36,7 @@ export class Registry {
 
   async register({ name, version, label, blocks, components, actions } = {}) {
     if (!PACK.test(name ?? '')) throw new Error(`Pacchetto di Logic Studio senza nome valido: ${name}`);
-    const pack = { name, version: String(version ?? '0.0.0'), label: cleanLabel(label, name), blocksFile: null, componentsFile: null, blocks: new Map(), components: new Map(), actions: new Map() };
+    const pack = { name, version: String(version ?? '0.0.0'), label: cleanLabel(label, name), blocksFile: null, componentsFile: null, blocks: new Map(), components: new Map(), actions: new Map(), upgrades: new Map() };
     if (blocks) {
       if (!isAbsolute(blocks)) throw new Error(`${name}: il file dei blocchi deve essere un percorso assoluto`);
       const mod = await import(`${pathToFileURL(blocks).href}?v=${encodeURIComponent(pack.version)}`);
@@ -45,6 +45,7 @@ export class Registry {
         if (problem) { this.#log.warn(`${name}: blocco ${def?.type ?? '?'} scartato: ${problem}`); continue; }
         if (this.blockDef(def.type)) { this.#log.warn(`${name}: blocco ${def.type} già dato da un altro pacchetto: scartato`); continue; }
         pack.blocks.set(def.type, describeBlock(def, name));
+        if (typeof def.upgrade === 'function') pack.upgrades.set(def.type, def.upgrade);
       }
       pack.blocksFile = blocks;
     }
@@ -78,6 +79,12 @@ export class Registry {
 
   componentDef(type) {
     for (const p of this.#packs.values()) if (p.components.has(type)) return p.components.get(type);
+    return null;
+  }
+
+  /** upgrade(config, from, added) of a block's definition (its settings saved by an older version), or null. */
+  upgrade(type) {
+    for (const p of this.#packs.values()) if (p.upgrades.has(type)) return p.upgrades.get(type);
     return null;
   }
 

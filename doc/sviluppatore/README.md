@@ -136,10 +136,14 @@ sdk/                    @lilos/sdk (vedi sdk/README.md)
     automation.js       automazioni: catalogo delle azioni, registrazione dei passi e gestori per rifarli
     schedule.js         pianificazione: operazioni a una data e ora o ripetute, fatte dal kernel (client delle rotte /api/schedule…); `schedule.rules` e `describe`
     scheduleRules.js    le regole della pianificazione: controllo, volte, fusi e ora legale, cron, parole, RRULE; importa solo `strings.js` per i suoi testi (gira anche nel kernel)
+    logic.js            Logic Studio: client del motore (`logic`, `LiveProgram`): programmi, console, Componenti UI dei pacchetti, quote
+    logicModel.js       i documenti di Logic Studio (`LogicSchema`, `LogicWindow`, `LogicProject`), `portsOf`, `typesMatch`
     db.js               contenuto dei file: dal kernel, con una copia in IndexedDB (interno)
     fileTypes.js        nome ed estensione; tipo, colore ed etichetta dall'estensione
   ui/                   componenti riutilizzabili
     icons.js            simboli SVG e logo
+    charts.js           grafici in SVG senza dipendenze (`chart`); le parti in `charts/` (dati, scale, tipi, esportazione)
+    logic/              Logic Studio: `LogicCanvas` (lo schema), `LogicConsole.js` (console e domande), `LogicUI.js` (le finestre dei progetti), `format.js`
     ContextMenu.js      menu a comparsa
     toast.js            vecchio nome di una notifica da lilOS (`notifications.send`)
     avatar.js           iniziali dell'utente
@@ -300,6 +304,8 @@ src/
     library.js          l'elenco dei file .automata: voce Automazioni nel menu dei file, scorciatoie, avvio
     apps.js             le azioni dichiarate dalle app (contributes.automation) nel catalogo
   schedule/
+  logic/
+    host.js             `logicHost`: apre le finestre e le console dei progetti di Logic Studio in esecuzione, la scheda Progetti del menu applicazioni, `runApp` per le app fatte da un progetto
     runner.js           connectSchedule(): le corse della Pianificazione che girano nel browser (aprire app e file, automazioni) e la finestra Operazioni in attesa
   host/                 desktop.js: lilOS dentro il programma lilOS (numero sull'icona, notifiche del sistema, scelta dei dispositivi, link lilos://, chiavette USB in Rete); non fa niente in un browser
   taskbar/
@@ -453,6 +459,16 @@ Le operazioni a una data e ora o ripetute ([D68](../interna/decisioni.md#d68-la-
 - **Le regole** (`sdk/core/scheduleRules.js`, che importa solo `strings.js` per i suoi testi) sono lo stesso codice nella pagina (editor, anteprima delle volte), nel kernel (l'orologio) e nelle app (calendari). Niente libreria esterna: il modulo deve stare dentro lilOS senza dipendenze.
 
 L'app **Pianificazione** (`plugins/src/scheduler`) è la finestra; l'SDK ha `schedule`; le app installate hanno `lilos.schedule` con i permessi `schedule`, `schedule.read` e `schedule.move`. Le automazioni di Automata partono da sole all'accesso e all'arrivo di file (`launch.triggers` `login` e `folder`, `src/automation/triggers.js`, nella pagina, solo con lilOS aperto); a un'ora o ogni tot minuti sono operazioni della Pianificazione (`what.type: 'automation'`), che la pagina esegue come quelle che partono da sole (`runByItself`: in silenzio, o nella finestra di Automata se chiedono qualcosa). Automata 1.2.0 sposta in Pianificazione i vecchi motivi `time` ed `every` (punto d'ingresso `triggers`, avviato da lilOS all'accesso finché ne restano). Un calendario separato si appoggia a `schedule.tasks()` (con la regola come RRULE di iCalendar), `occurrences`, `move` e ai punti d'ingresso `edit`, `create` e `history` della Pianificazione. Contratti: [API → Pianificazione](api.md#pianificazione-schedule-apischedulejs), [SDK](api.md#sdkcoreschedulejs-e-sdkcoreschedulerulesjs) e [`scheduler_1.1.0`](api.md#scheduler_110). Ricetta: [Pianificare operazioni da un'app](ricette.md#pianificare-operazioni-da-unapp).
+
+### Logic Studio
+
+Programmi fatti di blocchi collegati tra loro, che girano nel kernel anche a lilOS chiuso ([D88](../interna/decisioni.md#d88-logic-studio-motore-pacchetti-ide-finestre-dei-progetti), lilOS 1.37.0).
+
+- **Il motore** è il modulo `logicstudio-engine` (`plugins/modules/logicstudio-engine/`, servizio `logicstudio`): `index.js` (API HTTP e WebSocket), `worker.js` (un `worker_thread` per utente) e `lib/` (`runtime.js` il flusso dei dati, `supervisor.js` programmi, worker e quote, `project.js` il controllo dei documenti, `registry.js` i pacchetti, `consoles.js`, `limits.js`, `logs.js`). Il thread principale è il *broker*: esegue come l'utente tutto ciò che un blocco chiede al kernel.
+- **I pacchetti** sono altri moduli (`logicstudio-core`, `-collections`, `-lilos`, `-net` con i blocchi; `-ui`, `-charts` con le componenti) che si registrano con `ctx.service('logicstudio').register(...)`. Ricetta: [Scrivere un pacchetto di blocchi per Logic Studio](ricette.md#scrivere-un-pacchetto-di-blocchi-per-logic-studio); contratti: [API → Logic Studio](api.md#logic-studio-il-motore-e-i-pacchetti).
+- **L'IDE** è l'app `logicstudio` (`plugins/src/logicstudio/`): `LogicStudioApp.js` (finestra, schede, barra), `workspace.js` (il progetto aperto), `schemaEditor.js`, `windowEditor.js`, `projectMap.js`, `inspector.js` (le proprietà: le porte si aggiungono solo lì), `bottom.js` (console e problemi), `run.js` (Prova e Attiva), `options.js`, `createApp.js`, `home.js`. La pagina del Pannello di controllo è `plugins/src/settings/logicstudio.js`.
+- **Nell'SDK**: il client e i documenti (`core/logic.js`, `core/logicModel.js`), il disegno (`ui/logic/`) e i grafici (`ui/charts.js`), tutti riusabili da altre app ([API](api.md#sdkcorelogicjs-e-sdkcorelogicmodeljs-logic-studio)). **In lilOS**, `src/logic/host.js` apre le finestre dei progetti senza l'IDE.
+- **Formati**: `lilos-lsproj/1`, `lilos-lsch/1`, `lilos-lsui/1`, `lilos-lsapp/1` (JSON).
 
 ### Le app di sistema e il repository ufficiale
 

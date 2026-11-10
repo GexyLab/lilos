@@ -61,7 +61,8 @@ sdk/                    @lilos/sdk: basi riutilizzabili da sistema e app
   core/automation.js    automazioni: azioni, registrazione di ciò che fa l'utente e gestori per rifarlo (app Automata)
   core/schedule.js      pianificazione: operazioni a una data e ora o ripetute, fatte dal kernel (con core/scheduleRules.js, le regole)
   core/tags.js          tag colorati per ritrovare file e cartelle, anche nascondendoli
-  ui/                   icone, menu, controlli, Window, SettingsView, SettingsWindow
+  core/logic.js         Logic Studio: il client del motore (programmi, valori dal vivo) e logicModel.js, il modello di schemi, finestre e progetti
+  ui/                   icone, menu, controlli, Window, SettingsView, SettingsWindow; logic/ (LogicCanvas, LogicUI, console di Logic Studio) e charts.js (i grafici)
   styles/               token, base, componenti, finestre (@lilos/sdk/styles.css)
 scripts/
   host-shims.mjs        genera public/host/sdk.js e system.js (predev, prebuild)
@@ -70,7 +71,7 @@ scripts/
 plugins/                sorgenti delle app, dei moduli e dei pacchetti di lingua ufficiali (src/<app>, src/shared, modules/<nome>, languages/<lingua>, scripts/, catalog.json); npm install e npm run build si fanno qui
 public/host/            i moduli che le app di sistema importano come @lilos/sdk e @lilos/system (generati)
 system/
-  kernel/               il backend: moduli (users-basic, fs-postgres, services-isolate: fa girare i servizi delle app, scheduler: la Pianificazione, un modulo obbligatorio, notifications-basic: le notifiche, ssh (anche SFTP), netfs-ftp, netfs-webdav, netfs-smb: i protocolli di rete della cartella Rete; OneDrive, Google (Drive e Foto), S3, Azure Blob Storage e NFS sono moduli del repository ufficiale; ssh, term-telnet, term-rlogin, term-supdup: i protocolli dei terminali remoti, usati dall'app Terminale; call-grpc e call-mqtt: i protocolli in più di NetTest; terminal-cli: il comando `lilos`, il Terminale a riga di comando per lilOS anche senza UI), API, repository, installazione di app e moduli, aggiornamenti di lilOS (releases/ e current.json in un lilOS installato), limiti dei file, quote e impostazioni del kernel (settings.js, files.js), riga di comando; run.js lo avvia, lo riavvia e prova le versioni nuove; lilos.mjs è il lanciatore del comando lilos
+  kernel/               il backend: moduli (users-basic, fs-postgres, services-isolate: fa girare i servizi delle app, scheduler: la Pianificazione, un modulo obbligatorio, notifications-basic: le notifiche, ssh (anche SFTP), netfs-ftp, netfs-webdav, netfs-smb: i protocolli di rete della cartella Rete; OneDrive, Google (Drive e Foto), S3, Azure Blob Storage e NFS sono moduli del repository ufficiale; ssh, term-telnet, term-rlogin, term-supdup: i protocolli dei terminali remoti, usati dall'app Terminale; call-grpc e call-mqtt: i protocolli in più di NetTest; logicstudio-engine e i pacchetti logicstudio-*: il motore di Logic Studio e i suoi blocchi e Componenti UI; terminal-cli: il comando `lilos`, il Terminale a riga di comando per lilOS anche senza UI), API, repository, installazione di app e moduli, aggiornamenti di lilOS (releases/ e current.json in un lilOS installato), limiti dei file, quote e impostazioni del kernel (settings.js, files.js), riga di comando; run.js lo avvia, lo riavvia e prova le versioni nuove; lilos.mjs è il lanciatore del comando lilos
 examples/apps/note/     app di esempio (lilos.json, index.js)
 lilos-desktop/          il programma lilOS (Electron, per Windows, macOS e Linux): development/ per lavorare, production/ da cui si pubblica (la rifà npm run release:desktop; vedi lilos-desktop/development/README.md)
 src/                    il sistema, costruito sull'SDK

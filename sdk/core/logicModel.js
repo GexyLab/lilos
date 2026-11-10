@@ -480,7 +480,7 @@ export class LogicProject extends LogicDocument {
       schemas: {}, windows: {}, main: null, links: [],
       consoles: { list: [{ id: 'main', name: 'Principale' }], outside: 'onInput', closeAfterAnswer: true, notify: true, copyToLog: 'warnings', mainOpens: 'start' },
       options: { keepValues: true, syncCopies: true },
-      entrypoints: {}, uses: {}, texts: {}, app: { id: null, icon: null, runs: 'open' },
+      entrypoints: {}, uses: {}, texts: {}, app: { id: null, glyph: null, color: null, runs: 'open' },
     });
   }
 

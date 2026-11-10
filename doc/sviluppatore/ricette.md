@@ -36,6 +36,7 @@ Procedure passo per passo per le modifiche più comuni. Per i dettagli delle fun
 - [Aggiungere un modulo al kernel](#aggiungere-un-modulo-al-kernel)
 - [Aggiungere un protocollo di rete](#aggiungere-un-protocollo-di-rete)
 - [Aggiungere un protocollo di NetTest](#aggiungere-un-protocollo-di-nettest)
+- [Scrivere un pacchetto di blocchi per Logic Studio](#scrivere-un-pacchetto-di-blocchi-per-logic-studio)
 - [Fare richieste di rete dalla tua app](#fare-richieste-di-rete-dalla-tua-app)
 - [Pubblicare un modulo del kernel come pacchetto](#pubblicare-un-modulo-del-kernel-come-pacchetto)
 - [Far dipendere un'app da un modulo del kernel](#far-dipendere-unapp-da-un-modulo-del-kernel)
@@ -1350,6 +1351,104 @@ const port = await lilos.kernel.channel('eco', '/eco');
 - Metti i dati che devono sopravvivere agli aggiornamenti del modulo (strumenti scaricati, cache) in `ctx.dataDir`, non in `ctx.dir`: `dir` è la cartella della versione e cambia a ogni versione.
 - Il limite di un messaggio lo decidi tu con `accept({ maxMessage })` (predefinito 1 MiB); `kernel.module(...).channel` accetta fino a 16 MiB, `kernel.channel` ha di suo 1 MiB (`maxText`, `maxBytes`).
 - Quando il socket si chiude, chi ha il canale riceve `{"t":"gone","code":…}`.
+
+## Scrivere un pacchetto di blocchi per Logic Studio
+
+Un **pacchetto** porta blocchi (e, se vuoi, Componenti UI per le finestre) a Logic Studio ([D88](../interna/decisioni.md#d88-logic-studio-motore-pacchetti-ide-finestre-dei-progetti), lilOS ≥ 1.37.0). È un modulo del kernel come gli altri; i contratti completi sono in [API → Logic Studio: il motore e i pacchetti](api.md#logic-studio-il-motore-e-i-pacchetti). Qui un pacchetto con un blocco che somma, uno che chiede qualcosa al kernel e una componente.
+
+1. Crea la cartella del modulo, per esempio `plugins/modules/logicstudio-esempio/`, con un `module.json`. Deve **richiedere** il servizio `logicstudio` e dipendere dal motore e dai blocchi di base (così l'AppStore li installa insieme):
+
+   ```json
+   {
+     "name": "logicstudio-esempio", "version": "1.0.0",
+     "description": "Logic Studio: blocchi di esempio", "kernel": "1",
+     "provides": ["logicblock.esempio"], "requires": ["logicstudio"],
+     "dependencies": [
+       { "module": "logicstudio-engine", "reason": "Il motore che fa girare i blocchi" },
+       { "module": "logicstudio-core", "reason": "I blocchi di base, che servono insieme a questi" }
+     ]
+   }
+   ```
+
+   Il nome comincia per `logicstudio-` per convenzione, ma il motore non lo guarda: quello che conta è registrarsi.
+2. Scrivi `index.js`: nel suo `init()` il pacchetto si **registra**. Le azioni sono funzioni che girano nel kernel come l'utente (il passo 5):
+
+   ```js
+   import { join } from 'node:path';
+
+   let handle = null;
+
+   export default {
+     async init(ctx) {
+       ctx.provide('logicblock.esempio', { api: 1 });
+       handle = await ctx.service('logicstudio').register({
+         name: ctx.name, version: ctx.version,
+         label: { en: 'Example blocks', it: 'Blocchi di esempio' },
+         blocks: join(ctx.dir, 'blocks.js'),
+         actions: {
+           'esempio.saluta': async (user, args) => ({ testo: `Ciao ${user.name}${args?.punto ? '.' : '!'}` }),
+         },
+       });
+     },
+     async stop() { handle?.unregister(); },
+   };
+   ```
+3. Scrivi `blocks.js`: esporta `blocks`. Non deve fare niente all'`import` (il kernel lo importa solo per leggere le definizioni; poi lo carica ogni utente nel suo thread). Ogni testo visibile è `{ en, it }`:
+
+   ```js
+   const L = (en, it) => ({ en, it });
+
+   export const blocks = [
+     {
+       type: 'esempio.somma', version: 1, category: 'math', icon: 'calculator', label: L('Add three', 'Somma tre'),
+       inputs: [{ name: 'a', type: 'number' }, { name: 'b', type: 'number' }],
+       outputs: [{ name: 'result', type: 'number', label: L('result', 'risultato') }],
+       config: [{ key: 'extra', type: 'number', default: 0, label: L('Plus', 'Più') }],
+       grow: { inputs: { type: 'number', max: 8, name: 'letter' } },   // l'utente può aggiungere ingressi dalle Proprietà
+       run(inputs, b) {
+         const valori = [inputs.a, inputs.b, ...b.added.inputs.map(p => p.value)].filter(v => v !== undefined);
+         if (valori.some(v => typeof v !== 'number')) throw new Error('Serve un numero');   // esce dall'uscita «Eccezione»
+         return { result: valori.reduce((s, v) => s + v, b.config.extra) };
+       },
+     },
+     {
+       type: 'esempio.saluta', version: 1, category: 'other', icon: 'bell', label: L('Greet', 'Saluta'),
+       inputs: [{ name: 'run', type: 'pulse', label: L('greet', 'saluta') }],
+       outputs: [{ name: 'text', type: 'text', label: L('text', 'testo') }],
+       async run(inputs, b) {
+         const r = await b.call('esempio.saluta', { punto: false });   // l'azione del passo 2, nel kernel
+         return { text: r.testo };
+       },
+     },
+   ];
+   ```
+
+   Regole delle definizioni: `type` è `pacchetto.nome` (`[a-z][a-z0-9]*\.[a-zA-Z][a-zA-Z0-9]{0,40}`), `version` un intero da 1 che si alza quando il comportamento cambia; le porte hanno `name` `[a-zA-Z][a-zA-Z0-9]{0,30}`, mai `error` (esiste già, è l'uscita Eccezione) e `type` tra `number`, `bool`, `text`, `object`, `list`, `matrix`, `any`, `pulse`. `run` ritorna un oggetto con le uscite (un impulso è `true`), o niente; un errore lanciato esce da `error`. `start`, `stop`, `step` (per `execution: 'loop'`), `b.send`, `b.setTimeout` e `b.memory()` sono nell'API. Un blocco non modifica i valori che riceve.
+4. Se vuoi **componenti** per le finestre, aggiungi `components.js` (e `components: join(ctx.dir, 'components.js')` in `register`). Non importa niente: `render(el, c)` riceve in `c` tutto quello che serve.
+
+   ```js
+   const L = (en, it) => ({ en, it });
+
+   export const components = [{
+     type: 'esempio.contatore', version: 1, category: 'values', icon: 'hash', label: L('Counter', 'Contatore'),
+     inputs: [{ name: 'value', type: 'number', label: L('value', 'valore') }],        // quello che lo schema imposta
+     outputs: [{ name: 'reset', type: 'pulse', label: L('reset', 'azzera') }],         // quello che fa l'utente
+     props: [{ key: 'label', type: 'text', default: '', label: L('Label', 'Etichetta'), translate: true }],
+     render(el, c) {
+       const numero = c.h('b', {}, '—');
+       const azzera = c.controls.actionButton({ label: 'Azzera', onClick: () => c.send('reset', true) });
+       el.append(c.props.label ? c.h('span', {}, `${c.t(c.props.label)} `) : '', numero, azzera);
+       c.on('value', v => { numero.textContent = String(v); });   // si chiama subito con l'ultimo valore, e a ogni valore nuovo
+     },
+   }];
+   ```
+
+   Ogni componente ha anche gli ingressi `enabled` e `visible`: li gestisce `LogicUI`, non `render`. Nell'editor delle finestre `c.design` è vero: mostra dati finti e non reagire.
+5. Se un blocco deve toccare qualcosa fuori dal suo thread (file, notifiche, rete), **non lo fa il blocco**: chiama un'azione con `b.call('pacchetto.nome', args)`. L'azione è una funzione `async (user, args, tools)` che il kernel esegue **come l'utente**: passa `user` ai servizi (`ctx.service('fs')` dentro la funzione, non in `init`), mai il principale del kernel; `args` e il risultato sono JSON. Per la rete chiama `tools.countNet()` prima di ogni richiesta: conta nella quota dell'utente. Un errore con un messaggio chiaro, per l'utente, esce dall'uscita `error` del blocco.
+6. Provalo. Metti il modulo in `config.json` (o installalo dall'AppStore) e riavvia il kernel: nel log compare `Logic Studio: pacchetto logicstudio-esempio 1.0.0 (2 blocchi, 1 componenti)`; un blocco scartato è segnalato lì, con il motivo. Nell'IDE i blocchi sono nella scheda **Blocchi**, le componenti nella scheda **Componenti** di una finestra. Poi un test: un programma con i tuoi blocchi, `Prova`, e guarda i valori sui collegamenti.
+7. Per pubblicarlo, vale [Pubblicare un modulo del kernel come pacchetto](#pubblicare-un-modulo-del-kernel-come-pacchetto) (nel repository ufficiale, aggiungi `modules/logicstudio-esempio` al `catalog.json` dei plugin). Scrivi un `README.md` per l'AppStore e tieni `en` e `it` in tutte le etichette: i pacchetti di lingua traducono lilOS e l'SDK, non i pacchetti.
+
+**Da sapere.** Un blocco che usa `node:fs`, `fetch` o altro per conto suo salta le regole dell'utente (permessi, quote, rete): il codice dei blocchi non è isolato perché lo installa un amministratore, quindi tocca a chi lo scrive. Un pacchetto che arriva dopo che il thread di un utente è partito è visto solo dal thread successivo. Un programma attivo che usa un blocco di un pacchetto che manca resta in attesa (`waiting`) e riparte quando il pacchetto si registra.
 
 ## Far dipendere un'app da un modulo del kernel
 
