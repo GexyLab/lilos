@@ -11,5 +11,6 @@
   "code": "Code",
   "term": "Terminalverbindung",
   "nettest": "NetTest-Sammlung",
+  "nwsession": "NetWave-Sitzung",
   "file": "Datei"
 }

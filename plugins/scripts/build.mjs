@@ -57,6 +57,7 @@ export const APPS = [
   { id: 'nettest', entry: 'NetTestApp.js' },
   { id: 'stickynotes', entry: 'StickyNotesApp.js' },
   { id: 'logicstudio', entry: 'LogicStudioApp.js' },
+  { id: 'netwave', entry: 'NetWaveApp.js' },
 ];
 
 /** The kernel modules of the catalog, by name. */

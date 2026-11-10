@@ -11,5 +11,6 @@
   "code": "코드",
   "term": "터미널 연결",
   "nettest": "NetTest 컬렉션",
+  "nwsession": "NetWave 세션",
   "file": "파일"
 }

@@ -14,7 +14,8 @@
     "apps/scheduler",
     "apps/nettest",
     "apps/stickynotes",
-    "apps/logicstudio"
+    "apps/logicstudio",
+    "apps/netwave"
   ],
   "modules": [
     "modules/users-basic",

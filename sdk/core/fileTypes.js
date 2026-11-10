@@ -13,12 +13,13 @@ const TYPES = [
   { key: 'code', exts: ['html', 'css', 'js', 'ts', 'json', 'py'], color: '#0d9488' },
   { key: 'term', exts: ['term'], color: '#2b3038' },
   { key: 'nettest', exts: ['nettest'], color: '#c2410c' },
+  { key: 'nwsession', exts: ['nwsession'], color: '#1f8fbf' },
 ];
 
 const { t } = locale.define('lilos:fileTypes', {
   en: { strings: {
     text: 'Text', pdf: 'PDF', document: 'Document', spreadsheet: 'Spreadsheet', presentation: 'Presentation', image: 'Image',
-    audio: 'Audio', video: 'Video', archive: 'Archive', code: 'Code', term: 'Terminal connection', nettest: 'NetTest collection', file: 'File',
+    audio: 'Audio', video: 'Video', archive: 'Archive', code: 'Code', term: 'Terminal connection', nettest: 'NetTest collection', nwsession: 'NetWave session', file: 'File',
   } },
 });
 

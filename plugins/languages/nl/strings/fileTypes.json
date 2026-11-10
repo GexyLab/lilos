@@ -11,5 +11,6 @@
   "code": "Code",
   "term": "Terminalverbinding",
   "nettest": "NetTest-collectie",
+  "nwsession": "NetWave-sessie",
   "file": "Bestand"
 }

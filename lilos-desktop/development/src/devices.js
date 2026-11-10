@@ -175,6 +175,8 @@ export function setupBluetooth(contents) {
   let current = null;
   contents.on('select-bluetooth-device', (e, list, callback) => {
     e.preventDefault();
+    // Only the pages of lilOS pick devices (a web page of NetWave gets a no at once: web.js)
+    if (!lilosContents(contents)) return;
     const devices = list.map(d => ({ id: d.deviceId, value: d.deviceId, raw: { deviceId: d.deviceId }, name: d.deviceName || t('devices.unnamed'), detail: d.deviceId }));
     if (current && pending.has(current.id)) {
       current.callback = value => callback(value ?? '');

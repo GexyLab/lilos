@@ -12,6 +12,7 @@ import { addProfile, noUi, override, settings } from './store.js';
 import { createTray } from './tray.js';
 import { setupUpdates } from './updates.js';
 import { lilosWindows, openLast, openProfile, profileOf, setQuitting } from './windows.js';
+import { cleanDownloads } from './web.js';
 import { hasRuntime } from './runtime.js';
 
 /**
@@ -74,6 +75,7 @@ function start() {
     // The local kernel and its database stop before the program goes
     local.stop().catch(() => {}).finally(() => {
       cleanOpened();
+      cleanDownloads();
       app.quit();
     });
   });
@@ -142,6 +144,7 @@ function appMenu() {
 async function ready() {
   appMenu();
   cleanOpened();
+  cleanDownloads();
   setupBridge();
   setupPages({ firstStart, resume });
   setupSession(session.defaultSession);

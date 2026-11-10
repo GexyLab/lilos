@@ -45,12 +45,74 @@ const { t } = locale.define('lilos:sdk.host', {
  *   host.quit() (T)               the program quits: the lilOS it runs (kernel and database) stops with it
  *   host.badge(count)             the number on the program's icon (lilOS sets it)
  *   host.focus()                  brings the window in front
+ *   host.web (T)                  web pages shown by the program over the page of lilOS, each in a
+ *                                 process and a session of its own (NetWave Browser):
+ *       host.web.available() → Promise<boolean>   the program has the engine and trusts this lilOS
+ *       host.web.open({ private?, url?, keys? }) → Promise<WebPage>
+ *           private: a key (6-32 a-z0-9) for a session in memory shared by the pages with the same
+ *           key, wiped when the last closes; without it the pages share the signed-in user's session.
+ *           keys: combos (as in shortcuts) that come back as 'key' events instead of reaching the page
+ *       WebPage: navigate(url) back() forward() reload(hard?) stop() close() focus()
+ *           place({ x, y, width, height } | null, scale?)   where to draw it, in CSS pixels of this
+ *               page (getBoundingClientRect); scale: the zoom of the desk. null hides it
+ *           cover() → data URL | null   a picture of it, then hides it (something of lilOS is above)
+ *           zoom(factor) mute(on) edit('copy' | 'cut' | 'paste' | 'selectAll' | 'undo' | 'redo' | 'delete')
+ *           setKeys([combo]) find(text, { forward, next }) stopFind() grants([{ origin, permission, allow }])
+ *           permission(requestId, allow, remember?) auth(requestId, user | null, password)
+ *           download.read(downloadId) → ArrayBuffer, download.done(id), download.cancel(id)
+ *           events: 'title' 'favicon' 'loading' 'nav' 'error' 'blocked' 'open' 'focus' 'key' 'menu' 'hover'
+ *           'audio' 'found' 'permission' 'auth' 'download' 'gone' 'unresponsive' (see lilos-desktop/development/src/web.js)
  *
- * Events (on): 'drives' [drive], 'settings' {…}, 'display' mode, 'saved' { id, name },
+ * Events (on): 'drives' [drive], 'settings' {…}, 'display' mode, 'saved' { id, name }, 'web' (WebPage's),
  * 'open' { path } (a lilos:// link), 'open-settings' (the program's menu), 'choose' (the system
  * answers it with devices.choose(id, deviceId | null)).
  */
 const bridge = typeof window !== 'undefined' ? window.lilosHost ?? null : null;
+
+/** A web page of host.web: its calls, and its events from the program. */
+class WebPage extends Emitter {
+  #api;
+  #closed = false;
+  constructor(api, id) {
+    super();
+    this.#api = api;
+    this.id = id;
+    this.download = {
+      read: downloadId => api.downloadRead(downloadId),
+      done: downloadId => api.downloadDone(downloadId),
+      cancel: downloadId => api.downloadCancel(downloadId),
+    };
+  }
+  get closed() { return this.#closed; }
+  #call(name, ...args) { return this.#closed ? Promise.resolve(null) : this.#api[name](this.id, ...args); }
+  navigate(url) { return this.#call('navigate', url); }
+  back() { return this.#call('back'); }
+  forward() { return this.#call('forward'); }
+  reload(hard = false) { return this.#call('reload', !!hard); }
+  stop() { return this.#call('stop'); }
+  focus() { return this.#call('focus'); }
+  place(rect, scale = 1) { return this.#call('place', rect ? { x: rect.x, y: rect.y, width: rect.width, height: rect.height } : null, scale); }
+  cover() { return this.#call('cover'); }
+  zoom(factor) { return this.#call('zoom', factor); }
+  mute(on) { return this.#call('mute', !!on); }
+  edit(command) { return this.#call('edit', command); }
+  setKeys(keys) { return this.#call('keys', keys); }
+  find(text, opts = {}) { return this.#call('find', text, opts); }
+  stopFind() { return this.#call('stopFind'); }
+  grants(list) { return this.#call('grants', list); }
+  permission(requestId, allow, remember = false) { return this.#api.permission(requestId, !!allow, !!remember); }
+  auth(requestId, user, password = '') { return this.#api.auth(requestId, user, password); }
+  close() {
+    if (this.#closed) return Promise.resolve();
+    this.#closed = true;
+    pages.delete(this.id);
+    return this.#api.close(this.id).catch(() => {});
+  }
+}
+
+/** Open WebPages by id: the program's 'web' events go to theirs. */
+const pages = new Map();
+let routing = false;
 const MAX_OPEN = 512 << 20;
 // Events of this page only (not of the program)
 const LOCAL_EVENTS = new Set(['saved', 'save-failed']);
@@ -174,6 +236,30 @@ class Host extends Emitter {
   updates = {
     check: () => this.#need().updates.check(),
     install: () => this.#need().updates.install(),
+  };
+
+  web = {
+    available: async () => {
+      if (!bridge?.web) return false;
+      try {
+        const [info, web] = await Promise.all([bridge.info(), bridge.web.info()]);
+        return !!info.profile?.trusted && !!web?.available;
+      } catch {
+        return false;
+      }
+    },
+    open: async (opts = {}) => {
+      const api = this.#need().web;
+      if (!api) throw new Error(t('needProgram'));
+      if (!routing) {
+        routing = true;
+        bridge.on('web', e => pages.get(e?.id)?.emit(e.type, e));
+      }
+      const { id } = await api.create({ private: opts.private ?? undefined, url: opts.url ?? undefined, keys: opts.keys ?? [] });
+      const page = new WebPage(api, id);
+      pages.set(id, page);
+      return page;
+    },
   };
 }
 

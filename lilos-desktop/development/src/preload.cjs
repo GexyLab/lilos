@@ -10,6 +10,7 @@ const { contextBridge, ipcRenderer } = require('electron');
  *   'file-changed'  { token, name, data: ArrayBuffer }: a file opened on the computer was saved there
  *   'settings'      the program's settings changed
  *   'display'       'window' | 'fullscreen' | 'kiosk': the window changed mode
+ *   'web'           { id, type, … }: what a web page of this window did (web.js)
  */
 const call = (name, ...args) => ipcRenderer.invoke('lilos-host', name, ...args);
 const listeners = new Map();
@@ -114,4 +115,9 @@ if (location.protocol === 'file:') {
     check: () => call('updates.check'),
     install: () => call('updates.install'),
   }),
+  // Web pages shown in this window, each isolated in a process and a session of its own (web.js)
+  web: Object.freeze(Object.fromEntries([
+    'info', 'create', 'navigate', 'back', 'forward', 'reload', 'stop', 'close', 'place', 'cover', 'focus', 'zoom', 'mute',
+    'edit', 'keys', 'find', 'stopFind', 'grants', 'permission', 'auth', 'downloadRead', 'downloadDone', 'downloadCancel',
+  ].map(name => [name, (...args) => call(`web.${name}`, ...args)]))),
 }));

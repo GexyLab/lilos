@@ -1,0 +1,25 @@
+{
+  "id": "netwave",
+  "version": "1.0.0",
+  "kind": "local",
+  "name": "NetWave Browser",
+  "description": "A web browser for lilOS: tabs in as many windows as you want, each window saved as a session with all its tabs, and a history of the pages and of the sessions opened. The pages run isolated from lilOS, in the lilOS program.",
+  "category": "productivity",
+  "icon": { "glyph": "globe", "color": "#1f8fbf" },
+  "publisher": { "id": "lilos", "name": "lilOS" },
+  "sdk": "2",
+  "lilos": ">=1.38.0",
+  "system": true,
+  "entrypoints": {
+    "main": { "kind": "window", "params": {
+      "url": {"type": "text", "label": "Address", "description": "A web page to open"},
+      "file": {"type": "file", "label": "Session", "description": "A NetWave session (.nwsession) to open"}
+    } },
+    "filePreview": { "kind": "background", "label": "Previews of .nwsession sessions" }
+  },
+  "permissions": ["fs.write:~"],
+  "contributes": {
+    "window": { "width": 1100, "height": 720 },
+    "fileTypes": ["nwsession"]
+  }
+}

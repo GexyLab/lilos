@@ -11,5 +11,6 @@
   "code": "Код",
   "term": "Подключение терминала",
   "nettest": "Коллекция NetTest",
+  "nwsession": "Сеанс NetWave",
   "file": "Файл"
 }

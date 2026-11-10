@@ -1,5 +1,5 @@
-import { fs, net, messageBox, locale } from '@lilos/sdk';
-import { launch } from '../apps/registry.js';
+import { fs, net, messageBox, locale, host } from '@lilos/sdk';
+import { launch, isInstalled } from '../apps/registry.js';
 import { openFile } from '../apps/open.js';
 import { DESK_NAME } from '../systemFs.js';
 
@@ -59,9 +59,16 @@ export function addDeskLinks(ids) {
   return made;
 }
 
-/** Opens a web page of a link in a new tab of the browser (never with access to lilOS's page). */
+/**
+ * Opens a web page of a link: in NetWave Browser when it is installed and the lilOS program shows
+ * its pages (host.web), else in a new tab of the browser. Never with access to lilOS's page.
+ */
 export function openWebLink(url) {
-  if (/^https?:\/\//i.test(url)) window.open(url, '_blank', 'noopener,noreferrer');
+  if (!/^https?:\/\//i.test(url)) return;
+  const outside = () => window.open(url, '_blank', 'noopener,noreferrer');
+  // In a browser the tab opens right away (later it would be a blocked popup)
+  if (!host.native || !isInstalled('netwave')) return void outside();
+  host.web.available().then(ok => (ok ? launch('netwave', { url }) : outside()), outside);
 }
 
 /**

@@ -10,6 +10,7 @@ import { runtimeVersions } from './runtime.js';
 import { PUBLIC_KEYS, addProfile, checkSetting, publicSettings, settings, update } from './store.js';
 import { setUnread } from './tray.js';
 import { check as checkUpdates, install as installUpdate, schedule as scheduleUpdates } from './updates.js';
+import { WEB_HANDLERS } from './web.js';
 import { applyDisplay, lilosWindows, openProfile, originOf, profileOf, profileUrl } from './windows.js';
 
 /**
@@ -161,6 +162,8 @@ const HANDLERS = {
   'local.openInBrowser': () => (local.url ? shell.openExternal(local.url) : null),
   'updates.check': () => checkUpdates(),
   'updates.install': () => installUpdate(),
+  // NetWave's web pages (web.js): only for trusted servers, which may show pages on this computer
+  ...WEB_HANDLERS,
 };
 
 export function setupBridge() {
