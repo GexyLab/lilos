@@ -7,5 +7,14 @@
   "notRunning": "{name} tidak berjalan: aktifkan di Logic Studio",
   "gone": "Program tidak ada lagi",
   "badApp": "Ini bukan aplikasi buatan Logic Studio, atau filenya hilang",
+  "consentTitle": "Jalankan «{name}»?",
+  "consentText": "Aplikasi ini dibuat dengan Logic Studio dan berjalan atas nama Anda. Aplikasi ini dapat:",
+  "consentFrom": "Dari {path}. Jalankan hanya jika Anda memercayai pembuatnya.",
+  "capFiles": "membaca dan mengubah file Anda",
+  "capNet": "membuat permintaan ke internet",
+  "capNotify": "mengirimi Anda notifikasi",
+  "capEvents": "mengirim peristiwa ke lilOS Anda",
+  "run": "Jalankan",
+  "cancel": "Batal",
   "appFailed": "{name} tidak dapat dimulai: {error}"
 }

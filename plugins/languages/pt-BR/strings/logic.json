@@ -7,5 +7,14 @@
   "notRunning": "{name} não está em execução: ative-o no Logic Studio",
   "gone": "O programa não existe mais",
   "badApp": "Este não é um app criado pelo Logic Studio, ou faltam seus arquivos",
+  "consentTitle": "Executar «{name}»?",
+  "consentText": "Este app foi criado com o Logic Studio e é executado em seu nome. Ele pode:",
+  "consentFrom": "De {path}. Execute-o somente se confiar em quem o criou.",
+  "capFiles": "ler e alterar seus arquivos",
+  "capNet": "fazer solicitações na internet",
+  "capNotify": "enviar notificações para você",
+  "capEvents": "enviar eventos ao seu lilOS",
+  "run": "Executar",
+  "cancel": "Cancelar",
   "appFailed": "{name} não iniciou: {error}"
 }

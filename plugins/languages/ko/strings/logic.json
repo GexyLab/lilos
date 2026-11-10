@@ -7,5 +7,14 @@
   "notRunning": "{name}이(가) 실행 중이 아닙니다: Logic Studio에서 활성화하세요",
   "gone": "프로그램이 더 이상 없습니다",
   "badApp": "Logic Studio로 만든 앱이 아니거나 파일이 없습니다",
+  "consentTitle": "«{name}»을(를) 실행할까요?",
+  "consentText": "이 앱은 Logic Studio로 만들어졌으며 내 권한으로 실행됩니다. 다음을 할 수 있습니다:",
+  "consentFrom": "{path}에서 가져왔습니다. 만든 사람을 신뢰할 때만 실행하세요.",
+  "capFiles": "내 파일 읽기 및 변경",
+  "capNet": "인터넷에 요청 보내기",
+  "capNotify": "알림 보내기",
+  "capEvents": "내 lilOS로 이벤트 보내기",
+  "run": "실행",
+  "cancel": "취소",
   "appFailed": "{name}을(를) 시작하지 못했습니다: {error}"
 }

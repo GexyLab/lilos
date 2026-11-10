@@ -32,7 +32,7 @@ const kb = n => `${Math.round(n / 1024)} KB`;
 const mb = n => `${Math.round(n / (1 << 20))} MB`;
 
 /** An error for the program: Italian, safe to show. */
-const oops = message => new Error(message);
+const oops = message => Object.assign(new Error(message), { lsUser: true });
 
 /** What the kernel's services throw (KernelError, with a code), said for the program. */
 function told(err, shown) {
@@ -118,7 +118,22 @@ export function makeActions(services) {
   }
 
   async function readWhole(user, node, at) {
-    try { return Buffer.from(await fs().read(user, node.id)); } catch (err) { throw told(err, at.shown); }
+    try {
+      // A size not known (a network folder): read as a stream, stopped past the limit
+      const size = Number(node.size);
+      const service = fs();
+      if ((!Number.isFinite(size) || size <= 0) && typeof service.readStream === 'function') {
+        const chunks = [];
+        let total = 0;
+        for await (const chunk of await service.readStream(user, node.id, { start: 0 })) {
+          total += chunk.length;
+          if (total > LIMITS.read) throw oops(`Il file «${at.shown}» è troppo grande (si leggono al massimo ${mb(LIMITS.read)})`);
+          chunks.push(Buffer.from(chunk));
+        }
+        return Buffer.concat(chunks);
+      }
+      return Buffer.from(await service.read(user, node.id));
+    } catch (err) { throw err?.lsUser ? err : told(err, at.shown); }
   }
 
   /** The bytes a block writes: text as it is, json as JSON (pretty), a line of JSON in «lines». */

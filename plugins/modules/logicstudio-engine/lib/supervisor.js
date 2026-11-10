@@ -15,6 +15,10 @@ import { globalLimits, quotaOf, runtimeLimits } from './limits.js';
  */
 
 const STOP_WAIT_MS = 3000;
+const MESSAGES_PER_SECOND = 100;   // from the IDE and the windows, per program
+const UI_KEYS = 2000;              // values kept for the windows, per program
+const MAX_ACTIVE_DOCUMENTS = 2 << 20;
+const own = (obj, key) => !!obj && Object.hasOwn(obj, key);
 const OOM = 'ERR_WORKER_OUT_OF_MEMORY';
 
 export class Supervisor {
@@ -75,6 +79,11 @@ export class Supervisor {
       if (err instanceof ProjectError) this.#ctx.fail('invalid', err.message, { details: { where: err.where } });
       throw err;
     }
+    if (kind === 'active' && JSON.stringify(documents ?? {}).length > MAX_ACTIVE_DOCUMENTS) this.#ctx.fail('too_large', 'Progetto troppo grande per un programma attivo (al massimo 2 MB)');
+    if (kind === 'active' && !restart) {
+      const kept = [...this.#programs.values()].filter(p => p.kind === 'active' && p.owner === user.id).length;
+      if (kept >= quota.maxActive * 3) this.#ctx.fail('quota', 'Troppi programmi attivi, anche fermi: togline qualcuno');
+    }
     const program = {
       id: id ?? randomBytes(9).toString('base64url'), owner: user.id, user, kind, name: String(name ?? 'Programma').slice(0, 120),
       source, documents, spec, lang, status: 'starting', error: null, started: Date.now(), stopped: null,
@@ -126,14 +135,32 @@ export class Supervisor {
   /** A value from the IDE's test panel (an input of a block). */
   input(id, { schema, block, port, value }) {
     const p = this.#running(id);
+    this.#throttle(p);
+    const b = own(p.spec.schemas, schema) ? p.spec.schemas[schema].blocks.find(x => x.id === block) : null;
+    if (!b) this.#ctx.fail('not_found', 'Blocco sconosciuto');
+    const def = this.#registry.blockDef(b.type);
+    const ports = def?.role === 'component' ? null : new Set([...(def?.inputs ?? []).map(x => x.name), ...b.added.inputs.map(x => x.id), ...(def?.role === 'schemaIn' ? ['value'] : [])]);
+    if (ports && !ports.has(port)) this.#ctx.fail('invalid', 'Porta sconosciuta');
     this.#users.get(p.owner)?.worker.postMessage({ t: 'input', id, schema, block, port, value: clone(value) });
+  }
+
+  /** At most MESSAGES_PER_SECOND messages a second to a program (a page gone wild, or someone else's script). */
+  #throttle(p) {
+    const second = Math.floor(Date.now() / 1000);
+    if (p.second !== second) { p.second = second; p.messages = 0; }
+    if (++p.messages > MESSAGES_PER_SECOND) this.#ctx.fail('rate_limited', 'Troppi messaggi al programma');
   }
 
   /** The user acted on a component of an open window. */
   component(id, { window, component, port, value }) {
     const p = this.#running(id);
-    const comp = p.spec.windows[window]?.components[component];
+    this.#throttle(p);
+    const comp = own(p.spec.windows, window) && own(p.spec.windows[window].components, component) ? p.spec.windows[window].components[component] : null;
     if (!comp) this.#ctx.fail('not_found', 'Componente sconosciuta');
+    // Only what the component sends (its outputs, its added outputs)
+    const def = this.#registry.componentDef(comp.type);
+    const outs = new Set([...(def?.outputs ?? []).map(x => x.name), ...comp.added.outputs.map(x => x.id)]);
+    if (!outs.has(port)) this.#ctx.fail('invalid', 'Porta sconosciuta');
     if (p.spec.options.syncCopies) this.#remember(p, window, component, port, value);
     this.#users.get(p.owner)?.worker.postMessage({ t: 'component', id, window, component, port, value: clone(value) });
   }
@@ -148,7 +175,7 @@ export class Supervisor {
   async snapshot(id) {
     const p = this.#running(id);
     const u = this.#users.get(p.owner);
-    return u ? u.call({ t: 'snapshot', id }, 'snapshot', 3000) : {};
+    return u ? u.call({ t: 'snapshot', id }, `snapshot:${id}`, 3000) : {};
   }
 
   watch(id, fn) {
@@ -178,6 +205,11 @@ export class Supervisor {
     const saved = (await this.#store.read()).programs ?? [];
     for (const s of saved) {
       const existing = this.#programs.get(s.id);
+      // Stopped by its user (or by an error): listed, not started again
+      if (s.stopped) {
+        if (!existing) this.#programs.set(s.id, { ...s, owner: s.user.id, kind: 'active', status: 'stopped', error: null, started: null, stopped: null, watchers: new Set(), ui: new Map(), consoles: null, spec: null });
+        continue;
+      }
       if (existing && existing.status !== 'waiting' && existing.status !== 'failed') continue;
       if (existing) this.#programs.delete(s.id);
       try {
@@ -211,7 +243,9 @@ export class Supervisor {
 
   #remember(program, window, component, port, value) {
     if (!program.spec.options.keepValues && !program.spec.options.syncCopies) return;
-    program.ui.set(`${window}:${component}.${port}`, value);
+    const key = `${window}:${component}.${port}`;
+    if (!program.ui.has(key) && program.ui.size >= UI_KEYS) return;
+    program.ui.set(key, value);
   }
 
   #logLine(program, line, c) {
@@ -223,7 +257,7 @@ export class Supervisor {
 
   async #save() {
     const programs = [...this.#programs.values()].filter(p => p.kind === 'active')
-      .map(p => ({ id: p.id, user: p.user, name: p.name, source: p.source, documents: p.documents, lang: p.lang }));
+      .map(p => ({ id: p.id, user: p.user, name: p.name, source: p.source, documents: p.documents, lang: p.lang, stopped: p.status === 'stopped' || p.status === 'failed' }));
     await this.#store.change(data => { data.programs = programs; });
   }
 
@@ -246,6 +280,7 @@ export class Supervisor {
       if (!u.programs.size) this.#endWorker(program.owner);
     }
     if (program.kind === 'active' && status === 'failed') this.#ctx.emit(program.owner, 'logicstudio.failed', { id: program.id, name: program.name, error: reason });
+    if (program.kind === 'active') this.#save().catch(() => {});
     // A test or an app's run is forgotten after a while: whoever ran it has read how it ended
     if (program.kind !== 'active') setTimeout(() => { if (this.#programs.get(program.id) === program) this.#programs.delete(program.id); }, 60_000).unref?.();
   }
@@ -306,7 +341,8 @@ export class Supervisor {
   }
 
   async #message(u, userId, msg, wake) {
-    const program = msg.id ? this.#programs.get(msg.id) : null;
+    const found = msg.id ? this.#programs.get(msg.id) : null;
+    const program = found && found.owner === userId ? found : null;
     switch (msg.t) {
       case 'started':
         if (program && program.status === 'starting') { program.status = 'running'; this.#tell(program, { t: 'status', status: 'running' }); }
@@ -319,7 +355,7 @@ export class Supervisor {
         wake(`stopped:${msg.id}`, true);
         break;
       case 'snapshot':
-        wake('snapshot', msg.values);
+        wake(`snapshot:${msg.id}`, msg.values);
         break;
       case 'values':
         if (program) this.#tell(program, { t: 'values', values: msg.values });
@@ -338,7 +374,9 @@ export class Supervisor {
         if (op === 'write') program.consoles.write(data.console, data.text, data.level);
         else if (op === 'clear') program.consoles.clear(data.console);
         else if (op === 'read') {
-          if (program.kind !== 'test' && program.watchers.size === 0 && program.spec.consoles.outside !== 'hidden') {
+          const asked = (program.asked ??= new Map());
+          if (program.kind !== 'test' && program.watchers.size === 0 && program.spec.consoles.outside !== 'hidden' && Date.now() - (asked.get(data.console) ?? 0) > 30_000) {
+            asked.set(data.console, Date.now());
             this.#ctx.emit(program.owner, 'logicstudio.ask', { id: program.id, name: program.name, console: data.console });
           }
           const answer = await program.consoles.read(data.console, data);

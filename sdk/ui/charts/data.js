@@ -29,14 +29,14 @@ export function toSeries(v) {
     const dataOf = s => s.data ?? s.points ?? s.values;
     if (v.every(s => isPlain(s) && (Array.isArray(dataOf(s)) || isPlain(dataOf(s))))) {
       // a series' data may also be an object name → value
-      return v.map(s => ({ name: String(s.name ?? s.label ?? ''), color: typeof s.color === 'string' ? s.color : null, data: isPlain(dataOf(s)) ? Object.entries(dataOf(s)).map(([x, y]) => ({ x, y })) : dataOf(s) }));
+      return v.map(s => ({ name: String(s.name ?? s.label ?? ''), color: safeColor(s.color), data: isPlain(dataOf(s)) ? Object.entries(dataOf(s)).map(([x, y]) => ({ x, y })) : dataOf(s) }));
     }
     if (v.every(isPlain) && !v.some(r => Y_KEYS.some(k => r[k] !== undefined))) return fromRows(v);
     return [{ name: '', data: v }];
   }
   if (isPlain(v)) {
     if (Array.isArray(v.series)) return toSeries(v.series);
-    if (Array.isArray(v.data)) return [{ name: String(v.name ?? ''), color: typeof v.color === 'string' ? v.color : null, data: v.data }];
+    if (Array.isArray(v.data)) return [{ name: String(v.name ?? ''), color: safeColor(v.color), data: v.data }];
     const entries = Object.entries(v);
     if (!entries.length) return [];
     if (entries.every(([, x]) => Array.isArray(x))) return entries.map(([name, data]) => ({ name, data }));
@@ -119,4 +119,11 @@ export function boolState(v) {
   if (v === 0 || v === 1) return v === 1;
   if (typeof v === 'string') { const s = v.trim().toLowerCase(); if (TRUE.has(s)) return true; if (FALSE.has(s)) return false; }
   return undefined;
+}
+
+/** A colour from data as CSS accepts it safely: #rgb…#rrggbbaa, rgb()/hsl() with numbers; else null. */
+export function safeColor(v) {
+  if (typeof v !== 'string') return null;
+  const c = v.trim();
+  return /^#[0-9a-fA-F]{3,8}$/.test(c) || /^(rgb|rgba|hsl|hsla)\(\s*[\d.%\s,/-]+\)$/.test(c) ? c : null;
 }

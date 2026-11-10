@@ -12,7 +12,8 @@
 const KINDS = new Set(['text', 'number', 'bool', 'key']);
 const YES = new Set(['sì', 'si', 's', 'yes', 'y', 'true', '1', 'vero', 'on']);
 const NO = new Set(['no', 'n', 'false', '0', 'falso', 'off']);
-const MAX_LINE = 4000;
+const MAX_LINE = 1000;
+const MAX_CHARS = 400_000;   // per console: the oldest lines go first
 
 export class Consoles {
   #list = new Map();     // id → { id, name, color, keep, lines: [], asks: [], second: 0, dropped: 0 }
@@ -58,7 +59,9 @@ export class Consoles {
 
   #push(c, line) {
     c.lines.push(line);
-    if (c.lines.length > c.keep) c.lines.splice(0, c.lines.length - c.keep);
+    c.chars = (c.chars ?? 0) + line.text.length;
+    if (c.lines.length > c.keep) for (const gone of c.lines.splice(0, c.lines.length - c.keep)) c.chars -= gone.text.length;
+    while (c.chars > MAX_CHARS && c.lines.length > 1) c.chars -= c.lines.shift().text.length;
     this.#tell('line', { console: c.id, line });
     this.#options.log?.(line, c);
   }
@@ -66,6 +69,7 @@ export class Consoles {
   clear(id) {
     const c = this.#get(id);
     c.lines.length = 0;
+    c.chars = 0;
     this.#tell('clear', { console: c.id });
   }
 

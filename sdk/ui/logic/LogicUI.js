@@ -62,10 +62,12 @@ export class LogicUI extends Emitter {
 
   #node(node, saved) {
     const def = this.#components.get(node.type);
-    const wrap = h('div', { class: `lui-c lui-${(node.type.split('.').pop() || 'c')}`, dataset: { id: node.id, type: node.type } });
-    if (node.layout && this.#mode !== 'flow') {
-      // inside an Area libera
-      const { x = 0, y = 0, w, h: hh } = node.layout;
+    const kind = String(node.type).split('.').pop().replace(/[^a-zA-Z0-9-]/g, '') || 'c';
+    const wrap = h('div', { class: `lui-c lui-${kind}`, dataset: { id: node.id, type: node.type } });
+    if (node.layout && typeof node.layout === 'object') {
+      // inside an Area libera: numbers only (a shared .lsui must not bring its own CSS)
+      const n = (v, d = null) => (Number.isFinite(Number(v)) ? Math.max(0, Math.min(10000, Math.round(Number(v)))) : d);
+      const x = n(node.layout.x, 0), y = n(node.layout.y, 0), w = n(node.layout.w), hh = n(node.layout.h);
       wrap.style.cssText = `left:${x}px;top:${y}px;${w ? `width:${w}px;` : ''}${hh ? `height:${hh}px;` : ''}`;
     }
     if (!def) {
@@ -76,7 +78,7 @@ export class LogicUI extends Emitter {
     const entry = { node, def, el: wrap, listeners: new Map(), last: saved?.get(node.id) ?? new Map() };
     this.#nodes.set(node.id, entry);
     const self = this;
-    const props = Object.freeze({ ...defaultsOf(def), ...(node.props ?? {}) });
+    const props = Object.freeze(cleanProps(def, node.props));
     const c = Object.freeze({
       id: node.id, props, lang: this.#lang, design: this.#mode === 'design', mode: this.#mode,
       t: s => this.#text(s),
@@ -178,6 +180,45 @@ function defaultsOf(def) {
   const out = {};
   for (const p of def.props ?? []) if (p.default !== undefined) out[p.key] = p.default;
   return out;
+}
+
+/**
+ * A component's props as its definition allows them: numbers in their range, a select's value
+ * among its options, a checkbox true/false, text as text. A shared window (.lsui) can only bring
+ * values, never CSS of its own into the page (components put some props in styles).
+ */
+export function cleanProps(def, raw) {
+  const out = defaultsOf(def);
+  const given = raw && typeof raw === 'object' ? raw : {};
+  for (const p of def.props ?? []) {
+    if (!Object.hasOwn(given, p.key)) continue;
+    const v = given[p.key];
+    switch (p.type) {
+      case 'number': {
+        const n = Number(v);
+        if (v === null || v === '' || !Number.isFinite(n)) break;
+        out[p.key] = Math.min(p.max ?? 1e9, Math.max(p.min ?? -1e9, n));
+        break;
+      }
+      case 'select': {
+        const options = (p.options ?? []).map(o => (o && typeof o === 'object' ? o.value : o));
+        if (options.includes(v)) out[p.key] = v;
+        break;
+      }
+      case 'checkbox': out[p.key] = v === true; break;
+      case 'action': if (v && typeof v === 'object') out[p.key] = { kind: ['none', 'open', 'close'].includes(v.kind) ? v.kind : 'none', ...(typeof v.window === 'string' && { window: v.window.slice(0, 80) }) }; break;
+      case 'icon': if (typeof v === 'string' && /^[a-zA-Z]{0,30}$/.test(v)) out[p.key] = v; break;
+      default: if (typeof v === 'string' || typeof v === 'number') out[p.key] = String(v).slice(0, 4000);
+    }
+  }
+  return out;
+}
+
+/** A CSS colour from data: #rgb/#rrggbb(aa), or rgb()/hsl() with numbers, else null. */
+export function safeColor(v) {
+  if (typeof v !== 'string') return null;
+  const s = v.trim();
+  return /^#[0-9a-fA-F]{3,8}$/.test(s) || /^(rgb|rgba|hsl|hsla)\(\s*[\d.%\s,/-]+\)$/.test(s) ? s : null;
 }
 
 /** The ports every component has besides its own: { inputs: [enabled, visible] }. */

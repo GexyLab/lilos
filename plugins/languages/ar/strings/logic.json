@@ -7,5 +7,14 @@
   "notRunning": "{name} غير قيد التشغيل: فعّله في Logic Studio",
   "gone": "البرنامج لم يعد موجودًا",
   "badApp": "هذا ليس تطبيقًا أنشأه Logic Studio، أو ملفاته مفقودة",
+  "consentTitle": "تشغيل «{name}»؟",
+  "consentText": "أُنشئ هذا التطبيق باستخدام Logic Studio ويعمل باسمك. يمكنه:",
+  "consentFrom": "من {path}. لا تشغّله إلا إذا كنت تثق بمن أنشأه.",
+  "capFiles": "قراءة ملفاتك وتغييرها",
+  "capNet": "إرسال طلبات عبر الإنترنت",
+  "capNotify": "إرسال إشعارات إليك",
+  "capEvents": "إرسال أحداث إلى lilOS لديك",
+  "run": "تشغيل",
+  "cancel": "إلغاء",
   "appFailed": "لم يبدأ {name}: {error}"
 }

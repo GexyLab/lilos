@@ -26,7 +26,7 @@ import { h } from '../core/dom.js';
 import { locale } from '../core/locale.js';
 import { icon } from './icons.js';
 import { KINDS, slicesOf, s } from './charts/kinds.js';
-import { toSeries, toGrid, pointOf, ISO_DATE, finite, toNumber } from './charts/data.js';
+import { toSeries, toGrid, pointOf, ISO_DATE, finite, toNumber, safeColor } from './charts/data.js';
 import { formatNumber, withUnit } from './charts/scale.js';
 import { tableOf, cellText, csvOf, pngOf } from './charts/export.js';
 
@@ -110,7 +110,7 @@ export function chart(el, { kind = 'line', series = [], options = {} } = {}) {
 
   const colorOf = i => {
     const c = opts.colors;
-    if (Array.isArray(c) && c.length) return c[i % c.length];
+    if (Array.isArray(c) && c.length) return safeColor(c[i % c.length]) ?? `var(--lui-chart-${(i % 8) + 1})`;
     if (c === 'blue') return `var(--lui-chart-b${(i % BLUE) + 1})`;
     return `var(--lui-chart-${(i % 8) + 1})`;
   };

@@ -7,5 +7,14 @@
   "notRunning": "{name} non è in esecuzione: attivalo in Logic Studio",
   "gone": "Il programma non c'è più",
   "badApp": "Questa non è un'app creata da Logic Studio, oppure mancano i suoi file",
+  "consentTitle": "Eseguire «{name}»?",
+  "consentText": "Questa app è stata fatta con Logic Studio e gira a tuo nome. Può:",
+  "consentFrom": "Da {path}. Eseguila solo se ti fidi di chi l'ha fatta.",
+  "capFiles": "leggere e cambiare i tuoi file",
+  "capNet": "fare richieste su internet",
+  "capNotify": "mandarti notifiche",
+  "capEvents": "mandare eventi al tuo lilOS",
+  "run": "Esegui",
+  "cancel": "Annulla",
   "appFailed": "{name} non è partito: {error}"
 }

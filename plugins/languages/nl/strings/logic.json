@@ -7,5 +7,14 @@
   "notRunning": "{name} draait niet: activeer het in Logic Studio",
   "gone": "Het programma is er niet meer",
   "badApp": "Dit is geen app gemaakt met Logic Studio, of de bestanden ontbreken",
+  "consentTitle": "«{name}» uitvoeren?",
+  "consentText": "Deze app is gemaakt met Logic Studio en draait onder jouw naam. Ze kan:",
+  "consentFrom": "Van {path}. Voer haar alleen uit als je de maker vertrouwt.",
+  "capFiles": "je bestanden lezen en wijzigen",
+  "capNet": "verzoeken op internet doen",
+  "capNotify": "je meldingen sturen",
+  "capEvents": "gebeurtenissen naar je lilOS sturen",
+  "run": "Uitvoeren",
+  "cancel": "Annuleren",
   "appFailed": "{name} is niet gestart: {error}"
 }

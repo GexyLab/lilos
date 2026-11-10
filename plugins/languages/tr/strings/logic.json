@@ -7,5 +7,14 @@
   "notRunning": "{name} çalışmıyor: Logic Studio'da etkinleştirin",
   "gone": "Program artık yok",
   "badApp": "Bu, Logic Studio ile yapılmış bir uygulama değil ya da dosyaları eksik",
+  "consentTitle": "«{name}» çalıştırılsın mı?",
+  "consentText": "Bu uygulama Logic Studio ile yapıldı ve sizin adınıza çalışır. Şunları yapabilir:",
+  "consentFrom": "{path} konumundan. Yalnızca yapanına güveniyorsanız çalıştırın.",
+  "capFiles": "dosyalarınızı okuyup değiştirmek",
+  "capNet": "internette istek yapmak",
+  "capNotify": "size bildirim göndermek",
+  "capEvents": "lilOS’unuza olay göndermek",
+  "run": "Çalıştır",
+  "cancel": "İptal",
   "appFailed": "{name} başlamadı: {error}"
 }

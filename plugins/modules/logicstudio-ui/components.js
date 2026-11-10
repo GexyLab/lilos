@@ -120,7 +120,8 @@ export const components = [
     const img = c.h('img', { alt: c.t(c.props.alt ?? ''), style: `object-fit:${c.props.fit}` });
     const set = async src => {
       if (!src) { img.removeAttribute('src'); return; }
-      try { img.src = (await c.host.resourceUrl?.(String(src))) ?? String(src); } catch { img.removeAttribute('src'); }
+      // Only the project's own resources (never an address outside lilOS)
+      try { const url = await c.host.resourceUrl?.(String(src)); if (url) img.src = url; else img.removeAttribute('src'); } catch { img.removeAttribute('src'); }
     };
     el.append(img);
     set(c.props.source);

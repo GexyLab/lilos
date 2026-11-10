@@ -7,5 +7,14 @@
   "notRunning": "{name} läuft nicht: In Logic Studio aktivieren",
   "gone": "Das Programm ist nicht mehr da",
   "badApp": "Das ist keine mit Logic Studio erstellte App, oder ihre Dateien fehlen",
+  "consentTitle": "„{name}“ ausführen?",
+  "consentText": "Diese App wurde mit Logic Studio erstellt und läuft unter deinem Namen. Sie kann:",
+  "consentFrom": "Von {path}. Führe sie nur aus, wenn du der Person vertraust, die sie erstellt hat.",
+  "capFiles": "deine Dateien lesen und ändern",
+  "capNet": "Anfragen im Internet senden",
+  "capNotify": "dir Benachrichtigungen senden",
+  "capEvents": "Ereignisse an dein lilOS senden",
+  "run": "Ausführen",
+  "cancel": "Abbrechen",
   "appFailed": "{name} wurde nicht gestartet: {error}"
 }

@@ -7,5 +7,14 @@
   "notRunning": "{name} nu rulează: activează-l în Logic Studio",
   "gone": "Programul nu mai există",
   "badApp": "Aceasta nu este o aplicație creată cu Logic Studio sau îi lipsesc fișierele",
+  "consentTitle": "Executați «{name}»?",
+  "consentText": "Această aplicație a fost creată cu Logic Studio și rulează în numele dvs. Poate:",
+  "consentFrom": "Din {path}. Rulați-o numai dacă aveți încredere în cine a creat-o.",
+  "capFiles": "să citească și să modifice fișierele dvs.",
+  "capNet": "să facă cereri pe internet",
+  "capNotify": "să vă trimită notificări",
+  "capEvents": "să trimită evenimente către lilOS-ul dvs.",
+  "run": "Executați",
+  "cancel": "Anulați",
   "appFailed": "{name} nu a pornit: {error}"
 }

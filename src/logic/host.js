@@ -1,4 +1,4 @@
-import { Window, h, fs, kernel, locale, logic, notifications, LogicUI, LogicConsoles, LogicConsoleView } from '@lilos/sdk';
+import { Window, h, fs, kernel, locale, logic, notifications, storage, actionButton, LogicUI, LogicConsoles, LogicConsoleView } from '@lilos/sdk';
 import { onKernelEvent } from '../apps/services.js';
 import { systemActions } from '../notifications/card.js';
 import { notify } from '../notifications/notify.js';
@@ -15,6 +15,15 @@ const { t } = locale.define('lilos:logic', {
     notRunning: '{name} is not running: activate it in Logic Studio',
     gone: 'The program is not there any more',
     badApp: 'This is not an app made by Logic Studio, or its files are missing',
+    consentTitle: 'Run «{name}»?',
+    consentText: 'This app was made with Logic Studio and runs as you. It can:',
+    consentFrom: 'From {path}. Run it only if you trust who made it.',
+    capFiles: 'read and change your files',
+    capNet: 'make requests on the internet',
+    capNotify: 'send you notifications',
+    capEvents: 'send events to your lilOS',
+    run: 'Run',
+    cancel: 'Cancel',
     appFailed: '{name} did not start: {error}',
   } },
 });
@@ -146,7 +155,7 @@ class LogicHost {
       if (action.kind === 'close') win.emit('close');
     });
     win.body.append(h('div', { class: 'logic-win' }, ui.el));
-    win.on('destroy', () => { ui.destroy(); p.windows.delete(name); this.#maybeRelease(id); });
+    win.on('destroy', () => { ui.destroy(); (win.logicUrls ?? []).forEach(u => URL.revokeObjectURL(u)); p.windows.delete(name); this.#maybeRelease(id); });
     p.windows.set(name, win);
     this.#wm.open(win, { key: `logic:${id}:${name}` });
     // «Mostrale tutte»: every console with the first window; «Tutte nella principale», at the start
@@ -204,6 +213,7 @@ class LogicHost {
       };
       const read = async map => Object.fromEntries(await Promise.all(Object.entries(map ?? {}).map(async ([name, rel]) => [name, JSON.parse(await fs.read(inProject(rel)))])));
       const documents = { project, schemas: await read(project.schemas), windows: await read(project.windows) };
+      if (!(await this.#consent(manifest, documents, fs.path(fileId)))) return null;
       const program = await logic.start({ kind: 'app', name: manifest.name ?? project.name, documents, source: { path: fs.path(projFile) }, lang: locale.code });
       this.#apps.set(program.id, manifest);
       await this.openMain(program.id);
@@ -212,6 +222,38 @@ class LogicHost {
       notify(t('appFailed', { name: manifest?.name ?? fs.get(fileId)?.name ?? '', error: err.message }), { level: 'error' });
       return null;
     }
+  }
+
+  /**
+   * What an app may do as the user who runs it (its blocks that use files, the network…): asked
+   * once for that package as it is now; a changed package asks again.
+   */
+  async #consent(manifest, documents, path) {
+    const types = new Set(Object.values(documents.schemas).flatMap(s => (s.blocks ?? []).map(b => String(b.type))));
+    const caps = [];
+    if ([...types].some(t => /^lilos\.(file|folder|exists)/.test(t))) caps.push('capFiles');
+    if ([...types].some(t => t.startsWith('net.'))) caps.push('capNet');
+    if (types.has('lilos.notify')) caps.push('capNotify');
+    if (types.has('lilos.event')) caps.push('capEvents');
+    if (!caps.length) return true;
+    const bytes = new TextEncoder().encode(JSON.stringify([path, documents]));
+    const digest = [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))].map(b => b.toString(16).padStart(2, '0')).join('');
+    const granted = storage.get('logicstudio.consents', []) ?? [];
+    if (granted.includes(digest)) return true;
+    const ok = await new Promise(resolve => {
+      const win = new Window({ title: t('consentTitle', { name: manifest.name ?? '' }), icon: 'shield', width: 440, height: 300, resizable: false });
+      let answered = false;
+      const answer = v => { answered = true; resolve(v); win.emit('close'); };
+      win.body.append(h('div', { class: 'logic-consent' },
+        h('p', {}, t('consentText')),
+        h('ul', {}, ...caps.map(c => h('li', {}, t(c)))),
+        h('p', { class: 'hint' }, t('consentFrom', { path })),
+        h('div', { class: 'acts' }, actionButton({ label: t('cancel'), onClick: () => answer(false) }), actionButton({ label: t('run'), primary: true, onClick: () => answer(true) }))));
+      win.on('destroy', () => { if (!answered) resolve(false); });
+      this.#wm.open(win, { key: `logic:consent:${digest.slice(0, 12)}` });
+    });
+    if (ok) storage.set('logicstudio.consents', [digest, ...granted.filter(d => d !== digest)].slice(0, 200));
+    return ok;
   }
 
   /** What the components of a window may ask of lilOS. */
@@ -228,8 +270,11 @@ class LogicHost {
       consoleView: consoleId => new LogicConsoleView(p.consoles, { console: consoleId }).el,
       resourceUrl: async path => {
         let at = folder();
-        for (const part of String(path).split('/').filter(Boolean)) at = fs.children(at).find(n => n.name === part)?.id;
-        return at ? URL.createObjectURL(await fs.readBlob(at)) : path;
+        for (const part of String(path).split('/').filter(Boolean)) at = at ? fs.children(at).find(n => n.name === part)?.id : null;
+        if (!at || fs.get(at)?.type !== 'file') return null;
+        const url = URL.createObjectURL(await fs.readBlob(at));
+        (win.logicUrls ??= []).push(url);
+        return url;
       },
       pickFile: async ({ kind = 'file', exts = null } = {}) => {
         const node = await pickFile((w, key) => this.#wm.open(w, { key, owner: win }), { kind, exts });

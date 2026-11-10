@@ -7,5 +7,14 @@
   "notRunning": "{name} は実行されていません: Logic Studio で有効にしてください",
   "gone": "プログラムが見つかりません",
   "badApp": "Logic Studio で作られたアプリではないか、ファイルが足りません",
+  "consentTitle": "「{name}」を実行しますか？",
+  "consentText": "このアプリは Logic Studio で作られ、あなたの権限で実行されます。次のことができます：",
+  "consentFrom": "{path} から。作成者を信頼できる場合のみ実行してください。",
+  "capFiles": "ファイルの読み取りと変更",
+  "capNet": "インターネットへのリクエスト",
+  "capNotify": "通知の送信",
+  "capEvents": "lilOS へのイベントの送信",
+  "run": "実行",
+  "cancel": "キャンセル",
   "appFailed": "{name} を起動できませんでした: {error}"
 }

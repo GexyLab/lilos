@@ -18,6 +18,7 @@ export class WindowEditor {
   #sel = null;
   #live = null;
   #drop = null;           // { parent, index, line }
+  #urls = [];             // blob URLs of the resources shown, freed when drawn again
 
   constructor(studio, doc, name) {
     this.#studio = studio;
@@ -68,6 +69,7 @@ export class WindowEditor {
     const d = this.doc.data;
     const mode = this.#mode === 'design' ? 'design' : this.#live ? 'live' : 'preview';
     this.#ui?.destroy();
+    this.#urls.splice(0).forEach(u => URL.revokeObjectURL(u));
     this.#ui = new LogicUI({ window: d, components: studio.components ?? new Map(), lang: i18n.lang, texts: this.#texts(), host: this.#host(), mode });
     if (mode === 'live') this.#ui.attach(this.#live, this.name);
     this.#ui.on('action', ({ action }) => this.#previewAction(action));
@@ -86,7 +88,10 @@ export class WindowEditor {
       consoleView: id => (studio.runner.consoles ? new LogicConsoleView(studio.runner.consoles, { console: id }).el : null),
       resourceUrl: async path => {
         const node = studio.ws?.nodeAt?.(String(path).replace(/^\/+/, ''));
-        return node ? URL.createObjectURL(await fs.readBlob(node.id)) : path;
+        if (!node || node.type !== 'file') return null;
+        const url = URL.createObjectURL(await fs.readBlob(node.id));
+        this.#urls.push(url);
+        return url;
       },
       pickFile: async ({ kind, exts }) => {
         const node = await pickFile(studio.openWindow, { kind, exts });

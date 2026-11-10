@@ -16,7 +16,7 @@
  */
 
 export const FORMATS = { project: 'lilos-lsproj/1', schema: 'lilos-lsch/1', window: 'lilos-lsui/1' };
-const NAME = /^[^\x00-\x1f/\\:]{1,80}$/;
+const NAME = /^(?!(__proto__|constructor|prototype)$)[^\x00-\x1f/\\:]{1,80}$/;
 const ID = /^[\w-]{1,40}$/;
 const PORT = /^[a-zA-Z][a-zA-Z0-9]{0,30}$/;
 const MAX_CONFIG = 64 * 1024;
@@ -182,7 +182,7 @@ function consolesOf(doc, limits) {
   for (const c of Array.isArray(raw.list) ? raw.list : []) {
     if (!plain(c) || !ID.test(String(c.id ?? '')) || seen.has(c.id)) continue;
     seen.add(c.id);
-    list.push({ id: c.id, name: String(c.name ?? c.id).slice(0, 60), color: typeof c.color === 'string' ? c.color.slice(0, 20) : null, keep: clamp(c.keep, 100, 10000, 1000), main: c.id === 'main' });
+    list.push({ id: c.id, name: String(c.name ?? c.id).slice(0, 60), color: typeof c.color === 'string' ? c.color.slice(0, 20) : null, keep: clamp(c.keep, 100, 2000, 1000), main: c.id === 'main' });
   }
   if (!seen.has('main')) list.unshift({ id: 'main', name: 'Principale', color: null, keep: 1000, main: true });
   if (list.length > limits.maxConsoles) bad(`Troppe console: al massimo ${limits.maxConsoles}`);
