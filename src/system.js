@@ -54,6 +54,7 @@ import { Workspaces } from './workspaces/Workspaces.js';
 import { notify } from './notifications/notify.js';
 import { connectAutomation } from './automation/index.js';
 import { connectSchedule } from './schedule/runner.js';
+import { logicHost } from './logic/host.js';
 import { connectDesktop } from './host/desktop.js';
 import { connectFileDrops } from './items/itemDrag.js';
 import { connectReveal } from './desktop/reveal.js';
@@ -115,6 +116,8 @@ connectStartup();
 connectNotifications({ bell: taskbar.notificationBell, wm }).catch(err => console.error('[lilos] notifiche:', err));
 connectNet({ wm, button: taskbar.transfersButton });
 connectSchedule({ wm });
+// Logic Studio: the windows of the projects running in its engine (D88)
+logicHost.connect({ wm });
 // The kernel's settings changed (Control Panel, another admin): the limits of the files are read again.
 // «Spazio quasi esaurito» opens Spazio di archiviazione
 onKernelEvent('settings.change', d => sdk.kernelSettings?.changed(d));

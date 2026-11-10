@@ -126,6 +126,19 @@ export default {
     });
 
     ctx.route('GET', '/programs/:id/ui', ({ principal, params }) => supervisor.uiState(mine(user(principal), params.id).id));
+
+    // What lilOS needs to open the windows of a program without the IDE: their documents, the
+    // main one, the translations, what the consoles do outside the IDE, the options of the app
+    ctx.route('GET', '/programs/:id/windows', ({ principal, params }) => {
+      const p = mine(user(principal), params.id);
+      const project = p.documents?.project ?? null;
+      return {
+        id: p.id, name: p.name, source: p.source ?? null, status: p.status,
+        main: project?.main ?? Object.keys(p.documents?.windows ?? {})[0] ?? null,
+        windows: p.documents?.windows ?? {}, texts: project?.texts ?? {}, entrypoints: project?.entrypoints ?? {},
+        consoles: p.spec?.consoles ?? null, options: p.spec?.options ?? null,
+      };
+    });
     ctx.route('GET', '/programs/:id/consoles', ({ principal, params }) => mine(user(principal), params.id).consoles?.state() ?? []);
 
     ctx.route('POST', '/programs/:id/answer', async ({ principal, params, json }) => {

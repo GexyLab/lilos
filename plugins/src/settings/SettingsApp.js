@@ -18,6 +18,7 @@ import { creditsSections } from './credits.js';
 import { computerTab } from './computer.js';
 import { networkTab } from './network.js';
 import { storageTab, watchStorage, reloadStorage } from './storage.js';
+import { logicStudioTab } from './logicstudio.js';
 import { t, i18n } from './i18n.js';
 import './settings-app.css';
 
@@ -856,6 +857,8 @@ export default function createSettings({ openWindow, args } = {}) {
       },
       // Where users may make the kernel connect, and the admin's exceptions (lilOS 1.25.0)
       networkTab({ rerender: () => view?.render() }),
+      // Logic Studio's engine: my use, limits, quotas, programs (lilOS 1.36.0, D88)
+      kernel.connected && sdk.logic && logicStudioTab({ rerender: () => view?.render() }),
       // The program lilOS (lilos-desktop): only inside it, not in a browser
       computerTab({ rerender: () => view?.render() }),
       // OneDrive, Google Drive, Google Foto, Azure Blob Storage, NFS and the provider apps they

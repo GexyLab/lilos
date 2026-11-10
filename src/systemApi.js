@@ -42,3 +42,4 @@ export { confirmRemove, confirmMenu, confirmPurge, confirmEmptyTrash, deleteLabe
 export { tagDots, tagSubmenu, setTag } from './tags/tagUi.js';
 export { sendKey } from './input/sendKey.js';
 export { automations } from './automation/index.js';
+export { logicHost } from './logic/host.js';

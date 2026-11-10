@@ -11,6 +11,7 @@ import { kernel } from './kernel.js';
  *   logic.start({ kind: 'test'|'active', name, documents, source, lang, watch }) → program
  *   logic.stop(id) / forget(id) / program(id)
  *   logic.ui(id) → { 'window:component.port': value }   the last values its windows got
+ *   logic.windows(id) → { name, main, windows, texts, entrypoints, consoles, options }   to open them
  *   logic.consoles(id) → [{ id, name, color, main, lines, ask, waiting }]
  *   logic.live(id) → LiveProgram                  the program live (WebSocket)
  *   logic.components(pack) → [component]          a package's Componenti UI, with render() (browser code)
@@ -95,6 +96,8 @@ class Logic extends Emitter {
   stop(id) { return this.#m.request('DELETE', `/programs/${encodeURIComponent(id)}`); }
   forget(id) { return this.#m.request('DELETE', `/programs/${encodeURIComponent(id)}?forget=1`); }
   ui(id) { return this.#m.request('GET', `/programs/${encodeURIComponent(id)}/ui`); }
+  /** What opening its windows needs: { id, name, main, windows: { name: .lsui }, texts, entrypoints, consoles, options }. */
+  windows(id) { return this.#m.request('GET', `/programs/${encodeURIComponent(id)}/windows`); }
   consoles(id) { return this.#m.request('GET', `/programs/${encodeURIComponent(id)}/consoles`); }
   logs({ program } = {}) { return this.#m.request('GET', `/logs${program ? `?program=${encodeURIComponent(program)}` : ''}`); }
 

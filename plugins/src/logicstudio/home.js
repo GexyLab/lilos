@@ -1,4 +1,5 @@
 import { h, icon, fs, logic, actionButton, messageBox } from '@lilos/sdk';
+import * as system from '@lilos/system';   // logicHost: lilOS ≥ 1.37.0
 import { launch } from '@lilos/system';
 import { recent } from './LogicStudioApp.js';
 import { t, i18n } from './i18n.js';
@@ -60,6 +61,7 @@ export class Home {
           h('td', {}, h('span', { class: `ls-st ${p.status}` }, t(`state.${p.status}`))),
           h('td', {}, p.started ? i18n.date(p.started, { dateStyle: 'short', timeStyle: 'short' }) : '—'),
           h('td', { class: 'acts' },
+            p.status === 'running' && p.windows?.length && system.logicHost ? h('button', { type: 'button', class: 'ls-link-btn', onclick: () => system.logicHost.openMain(p.id) }, t('home.openWindow')) : null,
             p.source?.path && fs.resolve(p.source.path) ? h('button', { type: 'button', class: 'ls-link-btn', onclick: () => this.#studio.open(fs.resolve(p.source.path).id) }, t('home.openProject')) : null,
             p.status === 'running' || p.status === 'starting'
               ? h('button', { type: 'button', class: 'ls-link-btn', onclick: () => this.#stop(p) }, t('home.stop'))

@@ -397,7 +397,8 @@
       "opt.kind.file": "a file",
       "opt.kind.folder": "a folder",
       "opt.kind.line": "line",
-      "opt.kind.space": "space"
+      "opt.kind.space": "space",
+      "home.openWindow": "Open its window"
     }
   },
   "it": {
@@ -798,7 +799,8 @@
       "opt.kind.file": "un file",
       "opt.kind.folder": "una cartella",
       "opt.kind.line": "linea",
-      "opt.kind.space": "spazio"
+      "opt.kind.space": "spazio",
+      "home.openWindow": "Apri la finestra"
     }
   }
 }

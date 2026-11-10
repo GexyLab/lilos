@@ -1,5 +1,6 @@
 import { h, session, appIcon, avatar, closeMenu, openMenu, icon, shortcuts, kernel, fs, locale } from '@lilos/sdk';
 import { installedApps, isInstalled, getApp, launch, registry, CATEGORIES } from '../apps/registry.js';
+import { logicHost } from '../logic/host.js';
 import { showAppProperties } from '../apps/appProperties.js';
 import { openFile } from '../apps/open.js';
 import { fileIcon } from '../desktop/itemIcons.js';
@@ -24,6 +25,7 @@ const { t } = locale.define('lilos:startMenu', {
     noFavorites: 'No favorites in this workspace. Use the star on an app, or drag it here, to pin it.',
     results: 'Results', workareas: 'Work areas', noResults: 'No apps or work areas for “{query}”',
     recentAndFrequent: 'Recent and frequent', noApps: 'No apps in this workspace.',
+    projects: 'Projects', projectHint: 'A Logic Studio project running: its main window',
     recentApps: 'Recently used', frequentApps: 'Used most often', last30: 'last 30 days',
     noFiles: 'No files for “{query}”', filesHint: 'The files you open in this workspace will show up here.', none: 'None',
     recentFiles: 'Recently opened', frequentFiles: 'Opened most often',
@@ -156,9 +158,10 @@ export class StartMenu {
     this.anchor.classList.add('active');
     this.anchor.setAttribute('aria-expanded', 'true');
     const redraw = () => { if (this.isOpen) this.#render(); };
+    logicHost.refresh();
     const { workspaces, workareas } = this.#ctx ?? {};
     this.#offs = [
-      usage.on('change', redraw), registry.on('change', redraw),
+      usage.on('change', redraw), registry.on('change', redraw), logicHost.on(redraw),
       workspaces?.on('change', redraw), workspaces?.on('switch', redraw), workareas?.on('change', redraw),
     ].filter(Boolean);
     this.panel.scrollTop = 0;
@@ -247,6 +250,7 @@ export class StartMenu {
     const tabs = [
       (used.recent.length > 0 || used.frequent.length > 0) && ['recent', t('recentAndFrequent'), null],
       areas.length > 0 && ['areas', t('workareas'), areas.length],
+      logicHost.projects().length > 0 && ['projects', t('projects'), logicHost.projects().length],
       ...CATEGORIES.map(c => [c, t(`category.${c}`), apps.filter(app => app.category === c).length]).filter(([, , n]) => n > 0),
     ].filter(Boolean);
     if (!tabs.length) {
@@ -264,6 +268,7 @@ export class StartMenu {
 
     if (this.#tab === 'recent') this.panel.replaceChildren(...this.#recentApps(used));
     else if (this.#tab === 'areas') this.panel.replaceChildren(this.#areaGrid(areas));
+    else if (this.#tab === 'projects') this.panel.replaceChildren(this.#grid(logicHost.projects().map(p => this.#projectTile(p))));
     else {
       const list = apps.filter(app => app.category === this.#tab).sort((a, b) => a.name.localeCompare(b.name, session.locale));
       this.panel.replaceChildren(this.#grid(list.map(app => this.#tile(app, `cat:${app.id}`))));
@@ -362,6 +367,14 @@ export class StartMenu {
     appIcon(app),
     h('span', { class: 'sm-label' }, app.name),
     meta && h('span', { class: 'sm-meta' }, meta));
+  }
+
+  /** A Logic Studio project running (an active program): its main window. */
+  #projectTile(p) {
+    return h('button', {
+      class: 'sm-tile', type: 'button', dataset: { nav: '', key: `proj:${p.id}` }, title: t('projectHint'),
+      onclick: () => { this.close(); logicHost.openMain(p.id); },
+    }, appIcon({ glyph: 'blocks', color: '#2da44e' }), h('span', { class: 'sm-label' }, p.name));
   }
 
   #fileRow(node, key, info) {

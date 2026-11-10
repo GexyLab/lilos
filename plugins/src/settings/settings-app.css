@@ -83,3 +83,17 @@
 .set-bar.full > i { background: var(--danger); }
 .set-user-quota { display: inline-flex; align-items: center; gap: 14px; flex-wrap: wrap; justify-content: flex-end; }
 .set-size-hint { color: var(--faint); font-size: 11.5px; white-space: nowrap; }
+
+/* Logic Studio */
+.ls-cp-bar { display: grid; gap: 4px; min-width: 160px; justify-items: end; }
+.ls-cp-bar > i { display: block; width: 160px; height: 5px; border-radius: 3px; background: var(--hover); overflow: hidden; }
+.ls-cp-bar > i > i { display: block; height: 100%; background: var(--accent); }
+.ls-cp-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.ls-cp-table th { text-align: left; font-size: 11px; color: var(--faint); font-weight: 600; padding: 6px 8px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.ls-cp-table td { padding: 6px 8px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.ls-cp-table td small { display: block; color: var(--faint); font-size: 11px; }
+.ls-cp-table td small.err { color: var(--danger); }
+.ls-cp-num { width: 72px; height: 26px; }
+.ls-cp-num.own { border-color: var(--accent); }
+.ls-cp-num::placeholder { color: var(--faint); }
+.ls-cp-empty, .ls-cp-hint { color: var(--faint); font-size: 12px; padding: 4px 0 10px; }
