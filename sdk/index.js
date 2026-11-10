@@ -16,6 +16,8 @@ export { apps, repositories, kernelModules, packages, systemReleases, languagePa
 export { notifications } from './core/notifications.js';
 export { kernelSettings, DEFAULT_FILE_LIMITS } from './core/kernelSettings.js';
 export { schedule } from './core/schedule.js';
+export { logic, LiveProgram } from './core/logic.js';
+export { LogicSchema, LogicWindow, LogicProject, LOGIC_FORMATS, LOGIC_EXTENSIONS, PORT_TYPES, portsOf, typesMatch, linkKey } from './core/logicModel.js';
 export { settings } from './core/settings.js';
 export { shortcuts, comboFromEvent } from './core/shortcuts.js';
 export { menus } from './core/menus.js';
@@ -41,6 +43,9 @@ export { resizeHandle } from './ui/resizeHandle.js';
 export { shortcutField } from './ui/shortcutField.js';
 export { selectionGesture } from './ui/selectionGesture.js';
 export { toast } from './ui/toast.js';
+export { LogicCanvas } from './ui/logic/LogicCanvas.js';
+export { LogicConsoles, LogicConsoleView } from './ui/logic/LogicConsole.js';
+export { formatLogicValue } from './ui/logic/format.js';
 
 // Windows
 export { Window, WINDOW_EDGES } from './ui/Window.js';

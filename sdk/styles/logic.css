@@ -1,0 +1,100 @@
+/* Logic Studio: the schema canvas (LogicCanvas), the consoles (LogicConsole), the windows of the UI (LogicUI) */
+
+.lgc, .lgc-scope {
+  /* types of the ports */
+  --lt-number: #58a6ff; --lt-bool: #f0b429; --lt-text: #3fb950; --lt-object: #bc8cff; --lt-list: #39c5bb;
+  --lt-matrix: #2fb7a5; --lt-any: #9aa1ad; --lt-pulse: #f778ba; --lt-error: #e5484d;
+  /* categories of the blocks */
+  --lc-value: #8b95a5; --lc-logic: #d9a514; --lc-math: #2f81f7; --lc-text: #3fb950; --lc-object: #a371f7; --lc-list: #39c5bb;
+  --lc-matrix: #2fb7a5; --lc-time: #db61a2; --lc-console: #8b5cf6; --lc-schema: #4c8dff; --lc-ui: #2da44e; --lc-lilos: #6e56cf;
+  --lc-net: #0f9d9a; --lc-other: #8b95a5; --lc-missing: #e5484d;
+  --lg-live: #39d0d8;
+  --lg-block: color-mix(in srgb, var(--canvas) 86%, var(--on-canvas));
+  --lg-block-border: color-mix(in srgb, var(--canvas) 72%, var(--on-canvas));
+  --lg-dim: color-mix(in srgb, var(--on-canvas) 55%, var(--canvas));
+}
+
+.lgc {
+  position: relative; overflow: hidden; outline: none; user-select: none; touch-action: none;
+  background-color: var(--canvas);
+  background-image: radial-gradient(circle, var(--canvas-dot) 1px, transparent 1.3px);
+  color: var(--on-canvas); font-size: 11px; cursor: default; contain: strict;
+}
+.lgc.lgc-pan, .lgc.lgc-panning { cursor: grab; }
+.lgc.lgc-panning { cursor: grabbing; }
+.lgc-world { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+.lgc-links { position: absolute; left: 0; top: 0; width: 1px; height: 1px; overflow: visible; pointer-events: none; }
+.lgc-links path { fill: none; }
+.lgc-hit { stroke: transparent; stroke-width: 12; pointer-events: stroke; cursor: pointer; }
+.lgc-link { stroke-width: 2; stroke: var(--lt-any); pointer-events: none; opacity: .9; }
+.lgc-link.sel { stroke-width: 3.5; filter: drop-shadow(0 0 3px var(--accent)); }
+.lgc-link.temp { stroke-dasharray: 5 4; }
+.lgc-link.error { stroke-dasharray: 4 3; }
+.lgc-link.mismatch { stroke-dasharray: 2 3; }
+.lgc-live .lgc-link.live { stroke-dasharray: 7 4; animation: lgc-flow .6s linear infinite; }
+@keyframes lgc-flow { to { stroke-dashoffset: -11; } }
+.lgc-link.t-number { stroke: var(--lt-number); } .lgc-link.t-bool { stroke: var(--lt-bool); } .lgc-link.t-text { stroke: var(--lt-text); }
+.lgc-link.t-object { stroke: var(--lt-object); } .lgc-link.t-list { stroke: var(--lt-list); } .lgc-link.t-matrix { stroke: var(--lt-matrix); }
+.lgc-link.t-pulse { stroke: var(--lt-pulse); } .lgc-link.error { stroke: var(--lt-error); }
+
+.lgc-block {
+  position: absolute; min-width: 132px; max-width: 240px; background: var(--lg-block); border: 1px solid var(--lg-block-border);
+  border-left: 3px solid var(--cat, var(--lc-other)); border-radius: 6px; box-shadow: 0 8px 18px -10px rgba(0, 0, 0, .55);
+  cursor: grab; z-index: 2;
+}
+.lgc-block.sel { outline: 2px solid var(--accent); outline-offset: 2px; z-index: 3; }
+.lgc-block.run { border-color: var(--lg-live); border-left-color: var(--cat); box-shadow: 0 0 0 1px var(--lg-live), 0 8px 18px -10px rgba(0, 0, 0, .55); }
+.lgc-block.err { border-color: var(--lt-error); border-left-color: var(--lt-error); box-shadow: 0 0 0 1px var(--lt-error); }
+.lgc-block.ghost { border-style: dashed; opacity: .8; }
+.lgc-h { height: 23px; display: flex; align-items: center; gap: 6px; padding: 0 8px 0 6px; font-weight: 600; font-size: 11.5px; border-bottom: 1px solid color-mix(in srgb, var(--on-canvas) 8%, transparent); white-space: nowrap; }
+.lgc-h .ico { width: 13px; height: 13px; flex: none; color: var(--cat); }
+.lgc-t { overflow: hidden; text-overflow: ellipsis; }
+.lgc-k { margin-left: auto; padding-left: 8px; color: var(--lg-dim); font-weight: 500; font-size: 10px; }
+.lgc-sub { padding: 3px 9px 0; color: var(--lg-dim); font: 10.5px var(--mono); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lgc-ports { padding: 3px 0 4px; }
+.lgc-p { position: relative; height: 18px; display: flex; align-items: center; gap: 5px; padding: 0 11px; white-space: nowrap; color: color-mix(in srgb, var(--on-canvas) 85%, var(--canvas)); }
+.lgc-p.out { justify-content: flex-end; }
+.lgc-p.added > span { font-style: italic; }
+.lgc-p.dim { opacity: .45; }
+.lgc-p.notrigger > span { text-decoration: underline dotted; }
+.lgc-p.error { color: #ff8d90; }
+.lgc-dot { position: absolute; top: 4px; width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--pc, var(--lt-any)); background: var(--lg-block); cursor: crosshair; }
+.lgc-p.in .lgc-dot { left: -6px; }
+.lgc-p.out .lgc-dot { right: -6px; }
+.lgc-p.on .lgc-dot { background: var(--pc, var(--lt-any)); }
+.lgc-p.target .lgc-dot { box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 45%, transparent); background: var(--pc); }
+.lgc-ro .lgc-dot { cursor: default; }
+.lgc-p.t-number { --pc: var(--lt-number); } .lgc-p.t-bool { --pc: var(--lt-bool); } .lgc-p.t-text { --pc: var(--lt-text); }
+.lgc-p.t-object { --pc: var(--lt-object); } .lgc-p.t-list { --pc: var(--lt-list); } .lgc-p.t-matrix { --pc: var(--lt-matrix); }
+.lgc-p.t-pulse { --pc: var(--lt-pulse); } .lgc-p.error { --pc: var(--lt-error); }
+.lgc-v { font: 10px var(--mono); font-style: normal; color: var(--lg-live); margin-left: auto; padding-left: 6px; }
+.lgc-p.out .lgc-v { display: none; }
+.lgc-val {
+  position: absolute; z-index: 4; transform: translate(-50%, -50%); font: 500 10px var(--mono); color: #062a2c; background: var(--lg-live);
+  padding: 0 6px; border-radius: 8px; white-space: nowrap; pointer-events: none; box-shadow: 0 0 0 2px var(--canvas);
+}
+.lgc-val.error { background: var(--lt-error); color: #fff; }
+.lgc-linking, .lgc-linking * { cursor: crosshair !important; }
+
+.cat-value { --cat: var(--lc-value); } .cat-logic { --cat: var(--lc-logic); } .cat-math { --cat: var(--lc-math); } .cat-text { --cat: var(--lc-text); }
+.cat-object { --cat: var(--lc-object); } .cat-list { --cat: var(--lc-list); } .cat-matrix { --cat: var(--lc-matrix); } .cat-time { --cat: var(--lc-time); }
+.cat-console { --cat: var(--lc-console); } .cat-schema { --cat: var(--lc-schema); } .cat-ui { --cat: var(--lc-ui); } .cat-lilos { --cat: var(--lc-lilos); }
+.cat-net { --cat: var(--lc-net); } .cat-missing { --cat: var(--lc-missing); }
+
+/* Ingresso e Uscita di schema: pills */
+.lgc-block.role-schemaIn, .lgc-block.role-schemaOut { border-radius: 13px; border-left-width: 1px; border-color: var(--lc-schema); background: color-mix(in srgb, var(--lc-schema) 18%, var(--lg-block)); --cat: var(--lc-schema); }
+.lgc-block.role-component { border-color: var(--lc-ui); border-left-width: 3px; background: color-mix(in srgb, var(--lc-ui) 12%, var(--lg-block)); }
+
+/* LogicConsole */
+.lgcon { display: flex; flex-direction: column; min-height: 0; height: 100%; background: var(--surface); color: var(--text); }
+.lgcon-lines { flex: 1; overflow: auto; font: 11px/1.6 var(--mono); padding: 4px 10px; user-select: text; }
+.lgcon-line { white-space: pre-wrap; word-break: break-word; }
+.lgcon-line .t { color: var(--faint); margin-right: 8px; }
+.lgcon-line .src { display: inline-block; padding: 0 5px; border-radius: 3px; font-size: 9.5px; margin-right: 6px; color: #fff; line-height: 15px; }
+.lgcon-line.info { color: var(--accent); } .lgcon-line.warning { color: var(--warning); } .lgcon-line.error { color: var(--danger); }
+.lgcon-line.ask { color: var(--accent); font-weight: 600; } .lgcon-line.answer { color: var(--dim); }
+.lgcon-in { flex: none; display: flex; align-items: center; gap: 8px; border-top: 1px solid var(--border); padding: 0 10px; height: 32px; font: 11px var(--mono); background: var(--field-bg, var(--surface)); }
+.lgcon-in .q { color: var(--accent); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60%; }
+.lgcon-in input { flex: 1; min-width: 40px; border: 0; outline: none; background: transparent; font: inherit; color: inherit; }
+.lgcon-in .h { color: var(--faint); font: 10.5px var(--font); white-space: nowrap; }
+.lgcon-in[hidden] { display: none; }
