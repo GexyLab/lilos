@@ -160,7 +160,7 @@ Puoi anche **mettere file e cartelle dentro una cartella**: trascinali sopra una
 
 **Doppio clic** oppure **Invio** sugli elementi selezionati. Le cartelle si aprono nel [File Manager](#il-file-manager), nella finestra già aperta se c'è; con **Ctrl + doppio clic** (⌘ + doppio clic sul Mac) si aprono invece in una finestra nuova, così puoi averne più di una affiancate. Vale anche per le cartelle dentro una workarea e per i collegamenti a una cartella. Le app si avviano, i file si aprono con l'app associata al loro tipo (i file di testo e di codice nell'[Editor](#leditor)). Se nessuna app è associata compare la finestra [Apri con](#apri-con).
 
-Un [collegamento sulla scrivania](#collegamenti-sulla-scrivania) apre ciò a cui punta: la cartella nel File Manager, il file con la sua app, la pagina web in una nuova scheda del browser.
+Un [collegamento sulla scrivania](#collegamenti-sulla-scrivania) apre ciò a cui punta: la cartella nel File Manager, il file con la sua app, la pagina web in NetWave Browser (se c'è) o in una nuova scheda del browser.
 
 Con il tasto destro su un file, **Apri con…** permette di scegliere l'app anche quando ce n'è già una associata. Su un file immagine c'è anche **Usa come sfondo desktop** (vedi [Colore e immagine di sfondo](#colore-e-immagine-di-sfondo)).
 
@@ -205,7 +205,7 @@ Cosa puoi scrivere:
 | `smb://server/condivisione/cartella` | Una cartella o un file di una condivisione di rete |
 | `webdav://server/cartella`, `webdavs://server/cartella` | Un server WebDAV (`webdav` è su http, `webdavs` su https) |
 | `nfs://…` e altri | Qualunque protocollo che un amministratore ha aggiunto dall'AppStore → Kernel |
-| `https://…` o `http://…` | Una pagina web, che si apre in una nuova scheda del browser |
+| `https://…` o `http://…` | Una pagina web, che si apre in [NetWave Browser](#netwave-browser) se è installato e le pagine web sono disponibili, altrimenti in una nuova scheda del browser |
 
 Regole:
 
@@ -1438,6 +1438,68 @@ I server li raggiunge il computer di lilOS, con le stesse regole della cartella 
 - Non ci sono ancora: i file `.proto` che includono altri file (gli import non si seguono: incolla un file solo) e MQTT su WebSocket.
 - Per le librerie usate (protobufjs per gRPC), i riconoscimenti sono nella pagina di NetTest nell'AppStore e in Pannello di controllo → Informazioni → Riconoscimenti.
 
+## NetWave Browser
+
+**NetWave Browser** è un browser dentro lilOS: apri siti web in schede, in quante finestre vuoi. Ogni finestra può essere salvata come **sessione**, un file con tutte le sue schede, da riaprire quando vuoi.
+
+NetWave non c'è di serie: un amministratore lo installa dall'[AppStore](#lappstore), categoria **Produttività**, e poi lo trovi nel menu di avvio. Serve lilOS dalla 1.38.0. L'app chiede di scrivere i file della tua home (per le sessioni e i download).
+
+**Le pagine web si vedono solo nel [programma lilOS](#il-programma-lilos)** (dalla versione 0.5.0), collegato a un lilOS di cui si fida. Se usi lilOS dal browser, NetWave si apre lo stesso e ti avvisa che qui le pagine non ci sono: **Apri nel browser** apre l'indirizzo nel tuo browser. Le sessioni e la cronologia funzionano comunque. Le pagine girano separate da lilOS: non possono vedere i tuoi file né i tuoi dati di lilOS, e non possono aprire lilOS stesso.
+
+### Schede e finestre
+
+- **Ctrl T** apre una scheda, **Ctrl W** la chiude, **Ctrl Shift T** riapre l'ultima chiusa. **Ctrl N** apre una nuova finestra.
+- Nella barra scrivi un indirizzo o delle parole da cercare. **Ctrl L** porta lì il cursore.
+- Il tasto destro su una scheda la ricarica, duplica, fissa, silenzia, chiude o la sposta in una nuova finestra.
+- **Home** apre la pagina iniziale che scegli nelle Opzioni. Di serie è la pagina di partenza di NetWave, con le sessioni e le finestre chiuse di recente.
+- Un collegamento a una pagina web sulla scrivania (vedi [Collegamenti sulla scrivania](#collegamenti-sulla-scrivania)) si apre in NetWave, se è installata e le pagine web sono disponibili; altrimenti nel browser.
+- **Ctrl F** cerca nella pagina; **Ctrl +**, **Ctrl −** e **Ctrl 0** cambiano lo zoom della scheda.
+
+### Finestra privata
+
+**Ctrl Shift N** apre una finestra privata. Cookie e dati dei siti restano solo in memoria e spariscono quando la chiudi. Le pagine che apri non entrano nella cronologia, non si ricordano i permessi e la finestra non si salva come sessione. Non nasconde niente a chi gestisce la rete né ai siti che visiti.
+
+### Sessioni
+
+Una sessione è un file `.nwsession` con tutte le schede di una finestra. Salvarla serve a ritrovare il lavoro: la ricerca di ieri, le pagine di un progetto.
+
+- **Ctrl S** salva la finestra come sessione (la prima volta chiede nome e cartella; di serie **Documenti › Sessioni NetWave**). **Ctrl Shift S** la salva come una sessione nuova. **Ctrl O** ne apre una.
+- Una sessione aperta o salvata si può far salvare da sola a ogni cambiamento (schede aperte, chiuse, spostate). Se chiudi una finestra legata a una sessione cambiata dopo l'ultimo salvataggio (e che non si salva da sola), NetWave chiede se salvare: **Salva**, **Non salvare** o annulla.
+- Un doppio clic su un file `.nwsession` dal File Manager o dalla scrivania apre la sessione. L'anteprima mostra quante schede ha.
+- Nel file ci sono solo **indirizzi e titoli**. Cookie, password, dati dei moduli e permessi dei siti non si salvano mai in una sessione: puoi darla a un'altra persona.
+- Il file è di testo e si apre anche con l'[Editor](#leditor).
+
+### Cronologia
+
+**Ctrl H** apre la cronologia, tua e di nessun altro. Ha tre parti:
+
+- **Pagine**: quelle che hai visitato, per giorno, con la sessione in cui le hai aperte. Puoi cercare, limitarti a una sessione e togliere una pagina o tutte quelle di un sito.
+- **Sessioni**: quelle che hai aperto, salvato e chiuso. NetWave ne ricorda anche le schede com'erano, così **Riapri** funziona anche se hai cancellato il file.
+- **Chiuse di recente**: le ultime 20 schede e finestre chiuse.
+
+**Cancella cronologia…** toglie l'ultima ora, oggi o tutto, scegliendo se pagine e schede chiuse o sessioni (i file delle sessioni restano dove sono). La cronologia tiene 90 giorni di serie (cambia nelle Opzioni).
+
+### Permessi dei siti
+
+Quando un sito chiede la tua posizione, la fotocamera, il microfono, le notifiche e cose simili, compare una barra di NetWave sopra la pagina con tre scelte: **Blocca**, **Solo questa volta** e **Consenti sempre**. Se non rispondi, vale come Blocca. Lo scudo accanto all'indirizzo mostra cosa hai deciso per il sito e permette di **Chiedi di nuovo**. In una finestra privata la risposta non si ricorda.
+
+### Download
+
+Un file scaricato va nella cartella **Download** della tua home e compare una notifica. **Ctrl J** apre l'elenco degli ultimi 30. Un file può pesare fino a 1 GB.
+
+### Opzioni
+
+Dal menu di NetWave → **Opzioni**: la **pagina iniziale**, il **motore di ricerca** (DuckDuckGo, Startpage, Bing, Google o Ecosia; di serie DuckDuckGo), i **giorni di cronologia** (7, 30, 90, 365 o per sempre) e i **permessi ricordati**.
+
+### Da sapere
+
+- NetWave non apre gli indirizzi di lilOS né i file del tuo computer (`file:`): solo pagine `http` e `https`.
+- I cookie e gli accessi ai siti sono tuoi e sono gli stessi in tutte le tue finestre normali di NetWave; un altro utente di lilOS ne ha di propri. Cancellare la cronologia non li cancella.
+- Mentre sei dentro una pagina, le scorciatoie di lilOS non funzionano: valgono quelle di NetWave (vedi [Scorciatoie da tastiera](#scorciatoie-da-tastiera)).
+- Lo schermo intero chiesto da una pagina (per un video, per esempio) e gli strumenti per sviluppatori sono spenti.
+- Se una notifica o un menu di lilOS passa sopra la pagina, per qualche secondo al suo posto c'è un'immagine: non puoi usarla finché la notifica resta lì.
+- Non ci sono ancora le pagine web per chi usa lilOS dal browser (arriveranno, in un secondo tempo, con un motore sul computer di lilOS).
+
 ## ArduinoIDE4LilOS
 
 **ArduinoIDE4LilOS** serve a scrivere programmi (gli *sketch*) per le schede **Arduino Uno, Nano e Mega**, controllarli e caricarli sulla scheda collegata al tuo computer. Non è un'app ufficiale di lilOS: sta nel repository community [lilos-plugins-community](https://github.com/GexyLab/lilos-plugins-community), con i sorgenti aperti a tutti.
@@ -2612,6 +2674,7 @@ Il programma si aggiorna dalle versioni su GitHub; **lilOS** invece continua ad 
 - Sui Mac con processore Intel il lilOS «su questo computer» non ha ancora tutto: manca il motore dei servizi in background delle app isolate.
 - Il primo avvio ha bisogno di internet (scarica le app di sistema).
 - Le app isolate non possono ancora usare fotocamera e microfono.
+- Le pagine web di NetWave Browser (dalla versione 0.5.0 del programma) non sono state provate su macOS e Linux, né con un lilOS non di fiducia: lì NetWave non mostra le pagine.
 - I pacchetti per macOS e Linux, il kiosk su questi sistemi e i tasti di sistema a schermo intero non sono ancora stati provati su computer veri.
 - lilOS senza UI non è ancora stato provato su macOS e Linux (terminale, comando `lilos` nel PATH).
 
@@ -2743,6 +2806,7 @@ Il salvataggio avviene **nel tuo spazio su lilOS**, non nel browser:
 - le **automazioni** (i passi, le domande, le scorciatoie) sono file `.automata` nella cartella **Automazioni** della tua home (o dove li metti): le password non si salvano mai;
 - gli sketch di **ArduinoIDE4LilOS** sono file normali nella cartella **Arduino** della tua home; le librerie che installi e le tue scelte (scheda, porta) restano tue; le porte che il browser ti ha lasciato usare sono ricordate dal browser, non da lilOS;
 - le **richieste di NetTest**: «Le mie richieste», la cronologia (le ultime 200), le variabili globali, l'ambiente scelto per ogni collezione e i cookie sono salvati nel tuo spazio su lilOS, come le impostazioni; le altre collezioni sono file `.nettest` della tua home. I valori segreti degli ambienti sono sigillati nel file: li apri solo tu, su questo lilOS;
+- le **sessioni di NetWave** sono file `.nwsession` (di serie in Documenti › Sessioni NetWave) con solo indirizzi e titoli; la cronologia delle pagine e delle sessioni, i permessi ricordati per i siti e le opzioni sono nel tuo spazio su lilOS. I cookie e gli accessi ai siti li tiene il programma lilOS sul computer in cui lo usi, per ogni utente di lilOS, e non girano con te su un altro computer;
 - gli host del **Terminale** (nome, cartella, indirizzo, impostazioni) sono salvati nel tuo spazio su lilOS, come le connessioni della Rete: le password solo se scegli **Ricorda password e passphrase**, e cifrate. Le sessioni aperte non si salvano: durano finché il kernel resta acceso e al più 10 minuti senza finestra;
 - ogni utente può avere uno **spazio** massimo e ogni file un peso massimo (di serie 1 GB): vedi [Spazio e limiti dei file](#spazio-e-limiti-dei-file);
 - un'impostazione o un file cambiato in due schede insieme: vince l'ultima che salva. Usa una scheda sola.
@@ -2761,6 +2825,7 @@ Il salvataggio avviene **nel tuo spazio su lilOS**, non nel browser:
 | Rosa | Video | mp4, mov, webm, mkv |
 | Grigio verde | Codice | html, css, js, ts, json, py |
 | Arancione scuro | Collezione di NetTest | nettest |
+| Azzurro | Sessione di NetWave | nwsession |
 | Grigio | Archivio e altri | zip, rar, 7z, tar, gz e ogni estensione non elencata |
 
 ## Scorciatoie da tastiera
@@ -2794,6 +2859,17 @@ Queste sono le combinazioni iniziali. Puoi cambiarle tutte nel **Pannello di con
 | Ctrl Invio | Invia la richiesta (o collega la sessione) in NetTest |
 | Ctrl Alt N | Nuova richiesta HTTP in NetTest (con la sua finestra in primo piano) |
 | Ctrl Alt W | Chiudi la scheda in NetTest |
+| Ctrl T, Ctrl W, Ctrl Shift T | Nuova scheda, chiudi la scheda, riapri la scheda chiusa in NetWave |
+| Ctrl N, Ctrl Shift N | Nuova finestra, nuova finestra privata in NetWave |
+| Ctrl L, Alt D, F6 | Vai all'indirizzo in NetWave |
+| F5 o Ctrl R, Ctrl Shift R | Ricarica, ricarica senza usare la copia salvata in NetWave |
+| Alt ←, Alt →, Alt Home | Indietro, avanti, pagina iniziale in NetWave |
+| Ctrl Tab, Ctrl Shift Tab (o Ctrl Pag giù, Ctrl Pag su) | Scheda successiva, precedente in NetWave |
+| Ctrl 1 … Ctrl 8, Ctrl 9 | Vai alla scheda 1 … 8, all'ultima scheda in NetWave |
+| Ctrl H, Ctrl J | Cronologia, download in NetWave |
+| Ctrl S, Ctrl Shift S, Ctrl O | Salva la sessione, salvala come nuova, apri una sessione in NetWave |
+| Ctrl F, F3 | Cerca nella pagina, cerca ancora in NetWave |
+| Ctrl +, Ctrl −, Ctrl 0 | Ingrandisci, riduci, dimensione reale della pagina in NetWave |
 
 Un comando non ha nessun tasto di serie: **Apri o chiudi le notifiche** (vedi [Le notifiche](#le-notifiche)). Puoi dargliene uno quando vuoi.
 

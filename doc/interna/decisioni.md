@@ -2308,3 +2308,39 @@ Conseguenze: se tutte le schede si chiudono non parte niente; un'automazione con
 - Non provato con decine di utenti con programmi attivi, né con un pacchetto di terzi che si pianta all'`import`.
 
 **Quando ripensarla.** Se serviranno programmi che stanno a lungo in ascolto sulla rete (MQTT, Modbus) e il worker non basta; se le app fatte dai progetti dovranno poter essere installate (permessi, repository della comunità); se le componenti avranno bisogno di librerie esterne (un `components.js` con import); se le quote dovranno distinguere tra progetti. Rinviati: il comando `lilos logic` del Terminale e le azioni di Automata.
+## D89. NetWave Browser: le pagine web le mostra il programma lilOS, ognuna in un processo e una sessione sue
+
+**Contesto.** L'utente ha chiesto un browser dentro lilOS, con schede, più finestre e sessioni salvabili. Una pagina web non può girare nella pagina di lilOS: molti siti vietano di essere incorniciati (`X-Frame-Options`, `frame-ancestors`), e comunque la pagina di lilOS tiene il cookie del kernel e parla con lui.
+
+**Decisione.** Decisa il 10 novembre 2026, lilOS 1.38.0, SDK 0.23.0, programma lilOS 0.5.0, app NetWave Browser 1.0.0 (render approvato: `design/netwave-browser.html`).
+
+- **Il motore è nel programma lilOS** (`lilos-desktop/development/src/web.js`). Ogni scheda è una `WebContentsView` di Electron: processo di rendering suo, `sandbox`, nessun `preload`, nessun Node, nessun ponte verso lilOS. Il ponte è `window.lilosHost.web`, in `bridge.js` solo per i server **di fiducia**.
+- **Una sessione di Chromium per utente.** Le finestre normali usano `persist:netwave-<profilo>-<utente>` (cookie e accessi condivisi tra le finestre dello stesso utente lilOS, mai quelli di lilOS: l'utente lo chiede al kernel con `/api/session`). Una finestra privata usa `netwave-priv-<profilo>-<chiave>`, in memoria, e quando chiude l'ultima scheda la sessione viene svuotata.
+- **Cosa una pagina non può fare.** Aprire indirizzi di lilOS (ogni server del programma e il kernel locale, su tutti i nomi di loopback) o `file:`, né navigando né con richieste (`onBeforeRequest`); si aprono solo `http:` e `https:`. Permessi (posizione, fotocamera, microfono, notifiche…) negati finché NetWave non porta la risposta dell'utente; senza risposta entro 2 minuti vale no. Seriale, USB, HID e Bluetooth mai. Schermo intero HTML e, nel programma installato, strumenti per sviluppatori disattivati. I popup diventano una richiesta di nuova scheda. I download vanno in una cartella temporanea del programma e NetWave li prende per metterli in `~/Download` (fino a 1 GB).
+- **SDK: `host.web`** (`available()`, `open()` → `WebPage`): vedi [`host`](../sviluppatore/api.md#host). Dà alla pagina di lilOS solo ciò che serve a mostrare e guidare una scheda.
+- **La vista nativa sta sopra l'HTML di lilOS.** `plugins/src/netwave/live.js` la nasconde quando qualcosa di lilOS copre il riquadro (campiona con `elementFromPoint`) e mostra al suo posto una foto della pagina (`cover`), aggiornata ogni secondo; lascia liberi 4 px ai bordi per ridimensionare la finestra.
+- **Sessioni** `.nwsession` (JSON, `format: 'netwave-session'`, `version: 1`): tutte le schede di una finestra, solo indirizzi e titoli; il codice (`id`) resta uguale se il file cambia nome o posto. Cartella di serie: Documenti › Sessioni NetWave. Tipo di file `nwsession` nell'SDK. **Cronologia** per utente nei dati dell'app (pagine con la sessione in cui sono state aperte, sessioni aperte/salvate/chiuse con la foto delle schede, 20 schede o finestre chiuse); le finestre private non scrivono niente.
+- **Apertura dei collegamenti web** (`openWebLink` in `src/items/deskLinks.js`): in NetWave se è installata e il motore c'è, altrimenti nel browser.
+
+**Perché.**
+
+- *Un processo e una sessione per scheda, nel programma*: il confine è quello di Chromium, lo stesso di un browser vero, e il codice della pagina non tocca mai il kernel né i dati di lilOS. È il solo modo di mostrare qualunque sito.
+- *Dati dei siti per utente e non per finestra*: chi usa un sito vuole trovarlo già con l'accesso fatto in un'altra finestra; la finestra privata è per il contrario.
+- *Foto al posto della vista*: una vista nativa non si lascia coprire dall'HTML (menu, notifiche, finestre sopra), quindi lilOS la toglie e ne mette l'immagine; è il prezzo di non avere un secondo schermo.
+- *Permessi chiesti da NetWave*: la finestra di lilOS ha già l'interfaccia per dirlo, e il programma non decide da solo di dare la fotocamera a un sito.
+
+**Alternative scartate.**
+
+- Un `iframe` nella pagina di lilOS: molti siti lo rifiutano, e il confine con la pagina di lilOS è debole.
+- Un proxy che riscrive le pagine: rompe i siti (script, cookie, WebSocket) ed è un lavoro senza fine.
+- Subito il motore remoto (un Chromium senza finestra sul computer del kernel): è il passo dopo, deciso insieme all'utente, perché è quello che servirebbe a chi usa lilOS da un browser.
+
+**Conseguenze.**
+
+- **Funziona solo nel programma lilOS con un server di fiducia.** In un browser NetWave mostra un avviso e offre **Apri nel browser**; sessioni e cronologia funzionano lo stesso.
+- Le scorciatoie globali di lilOS non arrivano mentre il focus è nella pagina; quelle di NetWave sì (il programma le manda a NetWave come eventi `key`).
+- Una notifica o un menu sopra la pagina la trasformano per qualche secondo in un'immagine.
+- L'SDK e `web.js` devono restare allineati (le chiamate sono elencate in tre posti: `web.js`, `preload.cjs`, `host.js`).
+- Non provato su macOS e Linux, né con un installer vero.
+
+**Quando ripensarla.** Quando arriverà il motore remoto nel kernel (Chromium senza finestra; se sul computer del kernel manca Chrome, Edge o Chromium si chiederà all'utente, senza scaricare niente da soli): le due strade dovranno stare dietro lo stesso `WebPage`. Anche se Electron permetterà di mettere una vista sotto l'HTML, o se la foto si dimostrerà troppo visibile.

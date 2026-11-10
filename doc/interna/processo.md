@@ -192,6 +192,15 @@ Parti da una scrivania pulita: accedi con un utente nuovo (`npm run kernel:cli -
 - [ ] Un'app che non parte (`launcher`, background), un'app aggiornata che chiede di riavviare e un'app dell'avvio che non si apre danno una notifica.
 - [ ] Senza il modulo `notifications-basic` (tolto da `config.json`) le notifiche compaiono lo stesso ma si perdono ricaricando; la scheda del Pannello di controllo lo dice.
 
+**NetWave Browser** (app da installare dall'AppStore; serve lilOS 1.38.0 e, per le pagine, il programma lilOS 0.5.0 con un server di fiducia)
+- [ ] **Pagine**: nel programma, un indirizzo si apre, le schede si aprono e si chiudono (Ctrl T, Ctrl W, Ctrl Shift T), indietro e avanti, trova nella pagina, zoom; un indirizzo di lilOS (`http://127.0.0.1:<porta>`) e un `file:` non si aprono; un popup diventa una scheda nuova.
+- [ ] **Coperture**: una finestra, un menu, una notifica e il menu di avvio sopra la pagina la nascondono e mostrano una foto; lo spostamento e il ridimensionamento della finestra funzionano dai bordi (4 px).
+- [ ] **Permessi**: un sito che chiede la posizione fa comparire la barra con Blocca, Solo questa volta e Consenti sempre; «sempre» si ricorda e lo scudo permette di tornare a chiedere; in una finestra privata non si ricorda.
+- [ ] **Privata**: Ctrl Shift N; un accesso fatto in una finestra normale non c'è nella privata; chiusa la privata, riaprendola i dati non ci sono; niente cronologia.
+- [ ] **Sessioni**: salvare (Documenti › Sessioni NetWave), riaprire con doppio clic dal File Manager, salvataggio da solo, rinominare o spostare il file, cancellarlo e riaprire dalla cronologia; nel file solo indirizzi e titoli; anteprima con il numero di schede.
+- [ ] **Cronologia**: pagine con la sessione, sessioni aperte/salvate/chiuse, chiuse di recente, cancella per periodo; i giorni di cronologia nelle Opzioni tolgono il vecchio al riavvio.
+- [ ] **Download** in `~/Download` con notifica; **collegamento web** sulla scrivania aperto in NetWave; in un browser, l'avviso con «Apri nel browser».
+
 **NetTest** (app da installare dall'AppStore; serve lilOS 1.25.0)
 - [ ] **HTTP**: una GET con parametri e header verso un server di prova mostra stato, tempi, corpo formattato, header e cookie; **Ferma** annulla una richiesta lenta; un indirizzo con `{{variabile}}` senza valore avvisa «Nessun valore per…» prima di inviare. **Copia come codice** dà gli stessi header nei 12 modi.
 - [ ] **Segreti**: il lucchetto su una variabile dell'ambiente la sigilla; nel file `.nettest` c'è solo `sealed`; usata in un header, la richiesta parte con il valore giusto e richiesta inviata, risposta (anche se il server la rimanda), console e cronologia mostrano `••••`; un file copiato su un altro lilOS (o aperto da un altro utente) non apre il valore.

@@ -44,6 +44,7 @@ src/
   main.js               avvio: istanza unica, protocollo lilos://, menu di macOS, avvio del kernel, uscita
   windows.js            le finestre di lilOS (una per server): limiti, schermo intero e kiosk, F11, navigazione
   bridge.js             risponde a window.lilosHost e applica le regole di fiducia
+  web.js                le pagine web di NetWave Browser (programma 0.5.0): una vista, un processo e una sessione per pagina
   preload.cjs           espone window.lilosHost (le pagine di lilOS) e window.lilosShell (le pagine del programma)
   devices.js            permessi di Chromium; porte seriali, USB, HID, Bluetooth e schermo passati a lilOS da scegliere
   files.js              file tra lilOS e il computer: aprire, esportare, mostrare nella cartella, scegliere una cartella
@@ -112,6 +113,20 @@ Disinstallare il programma non cancella `%APPDATA%\lilOS` (impostazioni, lilOS i
 
 `window.lilosHost.quit` (`host.quit()` dell'SDK, solo per profili di fiducia: non è in `OPEN` di `bridge.js`) risponde e dopo 100 ms chiama `app.quit()`. L'evento `before-quit` ferma già il lilOS locale (kernel e database). Lo usa il tasto **Arresta** della pagina utente (lilOS 1.26.0).
 
+## Le pagine web (`web.js`)
+
+Dalla versione 0.5.0 il programma mostra pagine web dentro la sua finestra per l'app **NetWave Browser** ([D89](../../doc/interna/decisioni.md#d89-netwave-browser-le-pagine-web-le-mostra-il-programma-lilos-ognuna-in-un-processo-e-una-sessione-sue)). Le chiamate sono `window.lilosHost.web.*` (`host.web` nell'SDK, [riferimento](../../doc/sviluppatore/api.md#webpage-hostweb)); `bridge.js` le accetta **solo da profili di fiducia**, e solo dalla cornice principale della pagina che ha creato la vista.
+
+- **Una `WebContentsView` per pagina**, in un processo di rendering suo, con `sandbox`, senza `preload`, senza Node e senza ponte verso lilOS. La vista sta sopra l'HTML di lilOS dove la pagina di lilOS dice (`place`); `cover` ne dà una foto e la nasconde.
+- **Una sessione di Chromium per utente**: `persist:netwave-<id del profilo>-<utente>` (l'utente lo chiede al kernel con `/api/session`), mai la `persist:p-<id del profilo>` di lilOS. Le finestre private usano `netwave-priv-<id del profilo>-<chiave>`, in memoria, svuotata quando si chiude l'ultima vista.
+- **Indirizzi.** Solo `http:`, `https:` e `about:blank`. Gli indirizzi di lilOS (i server del programma e il kernel locale, con tutti i nomi di loopback) e `file:` sono rifiutati sia navigando sia come richieste (`onBeforeRequest`); un tentativo di navigazione arriva alla pagina come evento `blocked`. I popup diventano l'evento `open`.
+- **Permessi.** Quelli di posizione, fotocamera/microfono, notifiche, MIDI, appunti e simili si negano finché la pagina di lilOS non risponde (`permission`); senza risposta entro 2 minuti vale no. Seriale, USB, HID, Bluetooth e cattura dello schermo mai. Schermo intero HTML spento; strumenti per sviluppatori spenti nel programma installato.
+- **Download.** Vanno in `<cartella temporanea>/lilos-netwave/`; la pagina di lilOS li legge (`downloadRead`, fino a 1 GB) e li chiude (`downloadDone`). Quelli non presi si cancellano all'avvio e all'uscita (`cleanDownloads`).
+- **Tasti.** Le combinazioni che la pagina di lilOS ha chiesto (`keys`) non arrivano alla pagina web: tornano come evento `key`.
+- Quando la pagina di lilOS si ricarica o si chiude, le sue viste si chiudono con lei.
+
+Limiti: funziona solo con un server di fiducia (la pagina di lilOS ne chiede la disponibilità con `host.web.available()`); le scorciatoie di lilOS non arrivano mentre il focus è nella pagina; non provato su macOS e Linux.
+
 ## Pubblicare
 
 1. Si lavora in questa cartella. Si alza `version` in `package.json` (la versione del programma) e, se cambia la release di lilOS o una versione portata, `versions.json`. `npm run check` deve passare.
@@ -128,6 +143,7 @@ Nessun certificato per ora: su Windows compare SmartScreen, su macOS i pacchetti
 ## Limiti noti
 
 - **lilOS senza UI non è stato provato su macOS e Linux** (terminale, `~/.local/bin`, nessuna icona nel Dock), né con un vero installer Windows: il PATH lo toglie solo la disinstallazione dell'installer `.exe` (l'`.msi`, i pacchetti di Linux e macOS non hanno un passo di disinstallazione per l'utente; lì resta il collegamento o la voce nel PATH, che punta a un lanciatore senza più Node).
+- **Pagine web (NetWave Browser).** Non provate su macOS e Linux. Le scorciatoie globali di lilOS non arrivano mentre il focus è in una pagina web, e una notifica o un menu sopra la pagina la trasformano per qualche secondo in un'immagine (la vista nativa sta sopra l'HTML di lilOS). Il motore nel kernel per chi usa lilOS da un browser non c'è ancora.
 - **Mac con processore Intel.** `services-isolate` non ha binari `isolated-vm` per `darwin-x64`: i servizi in background delle app isolate non partono.
 - **La domanda sull'installazione precedente c'è solo su Windows** (il segno di una nuova installazione è nel `win.extraResources`) e non è stata provata con un vero `.msi` o `.exe` reinstallato, né con un aggiornamento automatico.
 - **Il primo avvio ha bisogno di internet.** Moduli del kernel e app di sistema si scaricano dal repository ufficiale; senza rete il primo avvio non si completa (non provato).

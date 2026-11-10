@@ -198,7 +198,7 @@ system/
     tools/lilos-install.json  le impostazioni di installazione predefinite, portate dalla release (src/installSettings.js; src/firstStart.js le applica al primo avvio)
 examples/apps/note/     app di esempio (lilos.json, index.js)
 lilos-desktop/          il programma lilOS (Electron): development/ (si lavora qui) e production/ (la copia da cui si pubblica; la crea «pubblica»)
-  development/          src/ (main.js, windows.js, bridge.js, preload.cjs, devices.js, files.js, drives.js, tray.js, updates.js, autostart.js, store.js, local/, pages/), scripts/ (fetch-runtime.mjs, check.mjs), build/linux/ (la sessione «lilOS»), electron-builder.yml, versions.json (vedi il suo README)
+  development/          src/ (main.js, windows.js, bridge.js, preload.cjs, web.js (le pagine web di NetWave), devices.js, files.js, drives.js, tray.js, updates.js, autostart.js, store.js, local/, pages/), scripts/ (fetch-runtime.mjs, check.mjs), build/linux/ (la sessione «lilOS»), electron-builder.yml, versions.json (vedi il suo README)
 .github/workflows/      lilos-desktop.yml: al tag release-vX.Y.Z costruisce gli installer da lilos-desktop/production/ e crea la release GitHub
 plugins/                sorgenti delle app e dei moduli ufficiali: src/<app>/, src/shared/, modules/<nome>/, scripts/ (build.mjs, publish.mjs, languages.mjs, credits.mjs, check-locales.mjs, vendor-tree-sitter.mjs), languages/<lingua>/ (i pacchetti di lingua), catalog.json, package.json; build/ (ignorato da git) è il risultato del build
 scripts/

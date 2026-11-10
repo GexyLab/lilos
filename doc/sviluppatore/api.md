@@ -984,6 +984,8 @@ Le chiamate segnate **(T)** funzionano solo se il programma si fida di questo li
 | `local.status()` **(T)** → `{ status, error, version, url, installed }`, `local.restart()` **(T)**, `local.stop()` **(T)**, `local.openInBrowser()` **(T)** | Il lilOS che il programma fa girare qui (kernel e database). `restart()` riavvia il kernel, non il database. |
 | `updates.check()` → `{ status, version, error }` | Controlla gli aggiornamenti **del programma** (non di lilOS). `status`: `'current'` \| `'available'` \| `'downloaded'` \| `'error'` \| `'dev'` (copia di sviluppo: niente aggiornamenti). Funziona anche con un server non di fiducia. |
 | `updates.install()` **(T)** | Con una versione scaricata riavvia e aggiorna; altrimenti apre in pagina la release. |
+| `web.available()` → `Promise<boolean>` | Da SDK 0.23.0 (programma 0.5.0). `true` se il programma ha il motore delle pagine web e si fida di questo lilOS. In un browser e con un server non di fiducia è `false`, senza lanciare. |
+| `web.open({ private?, url?, keys? })` **(T)** → `Promise<WebPage>` | Da SDK 0.23.0. Apre una pagina web in una vista del programma, in un processo e una sessione suoi (vedi [`WebPage`](#webpage-hostweb)). `private`: una chiave di 6-32 caratteri `a-z0-9`: le pagine con la stessa chiave condividono una sessione in memoria, svuotata quando si chiude l'ultima; senza, le pagine usano la sessione dell'utente che ha fatto l'accesso, uguale in tutte le sue finestre. `url`: l'indirizzo da aprire subito. `keys`: combinazioni di tasti (`Ctrl+T`, `Alt+ArrowLeft`…, al massimo 80) che invece di arrivare alla pagina tornano come evento `key`. Lancia «Serve il programma lilOS (non funziona nel browser)» fuori dal programma; `web:signedOut` se non si sa quale utente ha fatto l'accesso; `web:invalid` per una chiave `private` non valida. |
 
 **Eventi** (`on(tipo, fn)` → `off`): il programma li manda dal primo `on` di quel tipo.
 
@@ -995,6 +997,7 @@ Le chiamate segnate **(T)** funzionano solo se il programma si fida di questo li
 | `open` | `{ path }` | Un collegamento `lilos://open?path=/Documenti/x.txt` è stato aperto. |
 | `open-settings` | `'computer'` | Il menu del programma (macOS: **Impostazioni…**, ⌘,) chiede le impostazioni. |
 | `choose` | `{ id, kind, devices: [{ id, name, detail, thumbnail? }], update? }` | Una pagina vuole un dispositivo o una sorgente da condividere. `kind`: `'serial'`, `'usb'`, `'hid'`, `'bluetooth'`, `'screen'`. Chi ascolta **deve** rispondere con `devices.choose(id, deviceId \| null)`; se nessuno ascolta, il programma apre un suo riquadro. Per Bluetooth l'elenco cresce: lo stesso `id` con `update: true` e l'elenco nuovo. |
+| `web` | `{ id, type, … }` | Quello che fa una pagina web aperta con `host.web.open`. Non si ascolta direttamente: `host` lo gira alla `WebPage` con quell'`id`, come evento `type`. |
 | `saved`, `save-failed` | `{ id, name }`, `{ id, name, error }` | Solo in questa pagina: un file aperto con `openOnComputer` è stato salvato dal programma del computer (o no). |
 
 ```js
@@ -1006,6 +1009,69 @@ if (sdk.host?.native) {
     const folder = await sdk.host.pickFolder();   // finestra del computer
     if (folder) console.log(os, folder);
   }
+}
+```
+
+### `WebPage` (`host.web`)
+
+Una pagina web mostrata dal programma sopra la pagina di lilOS (la usa l'app NetWave Browser). Sorgenti: `sdk/core/host.js` (la classe) e `lilos-desktop/development/src/web.js` (il motore, con il commento in testa). Non c'è per le app isolate.
+
+Ogni pagina è una vista di Electron con un processo di rendering suo (`sandbox`, nessun `preload`, nessun Node, nessun ponte verso lilOS) e una sessione sua: `persist:netwave-<profilo>-<utente>` per le normali, `netwave-priv-<profilo>-<chiave>` (in memoria) per le private. Una pagina non può aprire gli indirizzi di lilOS (nessun server del programma, nemmeno il kernel locale) né `file:`: si aprono solo `http:` e `https:` (e `about:blank`). I permessi (posizione, fotocamera, microfono, notifiche, MIDI, appunti, …) sono negati finché la pagina di lilOS non risponde con `permission()` (senza risposta entro 2 minuti vale no); seriale, USB, HID, Bluetooth e cattura dello schermo mai. Un popup non si apre: arriva come evento `open`. Schermo intero HTML e, nel programma installato, strumenti per sviluppatori sono disattivati. Se la pagina di lilOS si ricarica o si chiude, le sue viste si chiudono con lei.
+
+| Metodo | Descrizione |
+| --- | --- |
+| `navigate(url)` | Apre `url`. Lancia `web:blocked` se non è permesso. Gli errori di caricamento arrivano come evento `error`. |
+| `back()`, `forward()`, `reload(hard = false)`, `stop()` | Navigazione. `hard` ricarica senza usare la copia salvata. |
+| `focus()` | Dà il focus alla pagina (solo se è visibile). |
+| `place(rect \| null, scale = 1)` | Dove disegnarla: `{ x, y, width, height }` in pixel CSS della pagina di lilOS (`getBoundingClientRect`); `scale` (da 0,25 a 4) è lo zoom della scrivania e si moltiplica allo zoom della pagina. `null` la nasconde. La vista sta **sopra** tutta la pagina di lilOS. |
+| `cover()` → `Promise<string \| null>` | Una foto della pagina (data URL JPEG), poi la nasconde: da usare quando qualcosa di lilOS la copre. Funziona anche se è nascosta. |
+| `zoom(factor)` | Zoom della pagina, da 0,25 a 5. |
+| `mute(on)` | Silenzia la pagina. |
+| `edit(command)` | `copy`, `cut`, `paste`, `selectAll`, `undo`, `redo` o `delete` sul campo in focus. |
+| `setKeys([combo])` | Cambia le combinazioni che tornano come evento `key`. |
+| `find(text, { forward = true, next = false })`, `stopFind()` | Cerca nella pagina (fino a 500 caratteri); i risultati arrivano come `found`. |
+| `grants([{ origin, permission, allow }])` | Le risposte già ricordate (fino a 500): le richieste che le corrispondono non vengono chieste. `permission`: uno tra `geolocation`, `media`, `notifications`, `midi`, `midiSysex`, `clipboard-read`, `idle-detection`, `storage-access`, `top-level-storage-access`, `window-management`, `speaker-selection`. |
+| `permission(requestId, allow, remember = false)` | La risposta all'evento `permission`. Con `remember` vale anche per le richieste dopo, di questa pagina. |
+| `auth(requestId, user \| null, password = '')` | La risposta all'evento `auth`; `null` annulla. |
+| `download.read(downloadId)` → `Promise<ArrayBuffer>`, `download.done(id)`, `download.cancel(id)` | Prende il file scaricato (finito, fino a 1 GB; lancia `web:tooBig` oltre), poi `done` lo toglie dalla cartella temporanea del programma; `cancel` ferma lo scaricamento. |
+| `close()` | Chiude la vista. Dopo, i metodi non fanno niente. `closed` dice se è chiusa; `id` è la sua chiave. |
+
+Eventi (`page.on(tipo, fn)`; ogni evento ha anche `id` e `type`):
+
+| Evento | Dati |
+| --- | --- |
+| `title` | `{ title }` |
+| `favicon` | `{ icon }`: data URL, o `null` (fino a 64 KB) |
+| `loading` | `{ loading }` |
+| `nav` | `{ url, canGoBack, canGoForward }` |
+| `error` | `{ code, description, url }`: caricamento della pagina principale non riuscito |
+| `blocked` | `{ url }`: la pagina voleva andare a un indirizzo non permesso |
+| `open` | `{ url, disposition }`: un popup o `target="_blank"`; la pagina non lo apre, tocca a chi ascolta |
+| `hover` | `{ url }`: il link sotto il puntatore (`''` se nessuno) |
+| `focus` | la pagina ha preso il focus |
+| `key` | `{ combo }`: una delle combinazioni di `keys` (`Ctrl+Alt+Shift+Tasto`) |
+| `menu` | `{ x, y, link, linkText, image, selection, editable, flags }`: il tasto destro sulla pagina |
+| `audio` | `{ audible }` |
+| `found` | `{ matches, active, final }` |
+| `permission` | `{ requestId, permission, origin, media }`: va risposto con `permission()` |
+| `auth` | `{ requestId, host, realm, url }`: va risposto con `auth()` |
+| `download` | `{ downloadId, name, mime, url, state, received, total }`; `state`: `progressing`, `completed`, `cancelled` o `interrupted` |
+| `gone` | `{ reason }`: il processo della pagina è finito |
+| `unresponsive` | la pagina non risponde |
+
+```js
+import * as sdk from '@lilos/sdk';
+
+if (await sdk.host.web.available()) {
+  const page = await sdk.host.web.open({ url: 'https://example.com', keys: ['Ctrl+T'] });
+  page.on('title', e => { document.title = e.title; });
+  page.on('permission', e => page.permission(e.requestId, false));   // niente permessi
+  const slot = document.querySelector('#slot');
+  page.place(slot.getBoundingClientRect());                          // la mostra
+  // …qualcosa di lilOS copre il riquadro:
+  const picture = await page.cover();                                // e la nasconde
+  // …
+  await page.close();
 }
 ```
 
@@ -1787,7 +1853,7 @@ Eventi: `undo` | `redo` `{ label, handler }`, dopo un passo riuscito · `error` 
 
 - `splitName(name)` → `[base, ext]`. Un punto iniziale non è un'estensione: `.env` → `['.env', '']`.
 - `fileType(name)` → `{ ext, badge, label, color }`. `badge` è l'estensione in maiuscolo, ripulita a `[A-Z0-9]` e lunga al massimo 4 caratteri.
-- `fileTypeList()` → `[{ label, color, exts }]`: tutti i gruppi di tipi conosciuti (copie). Tra questi `term` (`Collegamento terminale`, `#2b3038`), i collegamenti di Terminale, e `nettest` (`Collezione di NetTest`, `#c2410c`, estensione `nettest`, da SDK 0.16.0), le collezioni di NetTest.
+- `fileTypeList()` → `[{ label, color, exts }]`: tutti i gruppi di tipi conosciuti (copie). Tra questi `term` (`Collegamento terminale`, `#2b3038`), i collegamenti di Terminale, `nettest` (`Collezione di NetTest`, `#c2410c`, estensione `nettest`, da SDK 0.16.0), le collezioni di NetTest, e `nwsession` (`Sessione di NetWave`, `#1f8fbf`, estensione `nwsession`, da SDK 0.23.0), le sessioni di NetWave Browser.
 
 Da lilOS 1.22.0 (SDK 0.14.0) le etichette (`label`) sono nella lingua del sistema (inglese e italiano, testi `lilos:fileTypes` di `locale.define`): non usarle come chiavi, e chiedile quando disegni.
 
@@ -2554,13 +2620,14 @@ Argomenti (`args`) che il sistema usa per avviarle, e stato per le workarea (`wi
 | Editor (`editor`) | `file`: id del file da aprire (in una scheda nuova o in quella che lo mostra già); `folder`: cartella del pannello a destra (assente: l'ultima aperta; `null`: nessuna); `sidebar: false`: pannello chiuso; `session`: id della sessione di schede da riprendere (lo mette `getState`). Senza `session`, la finestra riprende le schede messe da parte da finestre chiuse dall'utente. Apre i tipi di file dichiarati in `contributes.fileTypes` del suo manifesto. | `{ session, file, files, folder, sidebar? }` (`files`: i file delle schede, per `files:locked`) |
 | Pannello di controllo (`settings`) | `tab`: id di una scheda (`'workspaces'`, `'tags'`…), anche a finestra già aperta; `tagFor`: id dei nodi su cui metterà il prossimo tag creato (lo manda «Nuovo tag…» del sottomenu Tag). | nessuno (si riapre sulla prima scheda) |
 | NetTest (`nettest`) | `file`: id di un file `.nettest` da aprire (anche a finestra già aperta, evento `launch`); `tabs` e `active`: le schede da riaprire e quella attiva (le mette `getState`). Apre i file `.nettest` (`contributes.fileTypes`) e ha il punto d'ingresso `filePreview` | `{ tabs: [chiave], active }` (`chiave`: `<chiave della collezione>/<id della richiesta>`) |
+| NetWave Browser (`netwave`) | `url`: una pagina web da aprire (`http:` o `https:`); `file`: id di un file `.nwsession` da aprire; `private: true`: una finestra privata. Sulla finestra già aperta arriva l'evento `launch`: `url` apre una scheda, `file` la sessione. Ogni finestra è una finestra principale: se ne possono aprire quante si vuole. Apre i file `.nwsession` (`contributes.fileTypes`) e ha il punto d'ingresso `filePreview`. Lo usa `openWebLink` (`src/items/deskLinks.js`) per i collegamenti web, se è installata e `host.web.available()` | `{ tabs: [{ url, title, pinned? }], active, session?: { id, name, file, autosave, sig } }`; una finestra privata `{ private: true }` |
 | AppStore (`appstore`) | `tab`: `installed`, `updates`, l'id di una categoria (`system`, `productivity`, `media`, `development`, `other`), `kernel` o `options` (anche `apps`, `modules`, `repos`, dei vecchi collegamenti); anche a finestra già aperta (evento `launch`). | nessuno |
 
 Il sistema dipende da questi argomenti (`launch('files', { folder })` in `system.js`, `launch('settings', { tab: 'workspaces' })` nel pulsante del workspace): cambiarli nell'app rompe il sistema. Il sistema non dipende invece dall'esistenza delle app: se una manca, `launch` scrive solo un'informazione in console (`app non ancora disponibile`).
 
-Cosa salvano (chiavi di `storage`, vedi [Dati salvati](#dati-salvati)): NetTest `nettest.mine`, `nettest.open`, `nettest.history`, `nettest.globals`, `nettest.env`, `nettest.cookies`; File Manager `files-view` (`'list'`, `'grid'` o `'thumbs'`), `files-panels`; Editor `editor-lang`, `editor-tree`, `editor-tabs`, `editor-draft:<scheda>`; Pannello di controllo nulla di proprio (usa `settings`, `shortcuts`, `tags`, `menus`…). Le associazioni dei tipi di file e l'ordine della barra laterale del File Manager sono del sistema (`file-apps`, `files-sidebar`).
+Cosa salvano (chiavi di `storage`, vedi [Dati salvati](#dati-salvati)): NetTest `nettest.mine`, `nettest.open`, `nettest.history`, `nettest.globals`, `nettest.env`, `nettest.cookies`; NetWave Browser `netwave.options`, `netwave.grants`, `netwave.visits.<AAAA-MM-GG>`, `netwave.sessions`, `netwave.closed`; File Manager `files-view` (`'list'`, `'grid'` o `'thumbs'`), `files-panels`; Editor `editor-lang`, `editor-tree`, `editor-tabs`, `editor-draft:<scheda>`; Pannello di controllo nulla di proprio (usa `settings`, `shortcuts`, `tags`, `menus`…). Le associazioni dei tipi di file e l'ordine della barra laterale del File Manager sono del sistema (`file-apps`, `files-sidebar`).
 
-Permessi dichiarati nei manifesti ufficiali: File Manager `fs.write:~`, `fs.workspaces`, `tags.write`, `desktop.items`, `ui.shortcuts`; Editor `fs.write:~`, `ui.shortcuts`, `net:https://json.schemastore.org`; Photo `fs.write:~`, `ui.shortcuts`; Pannello di controllo `settings.system`, `workspaces.manage`, `tags.write`, `ui.shortcuts`; AppStore `apps.manage`; NetTest `fs.write:~`, `calls`. Per le app di sistema non c'è un controllo a ogni uso (non passano dal ponte): i permessi servono al kernel per accettare il manifesto e a mostrare cosa fa l'app.
+Permessi dichiarati nei manifesti ufficiali: File Manager `fs.write:~`, `fs.workspaces`, `tags.write`, `desktop.items`, `ui.shortcuts`; Editor `fs.write:~`, `ui.shortcuts`, `net:https://json.schemastore.org`; Photo `fs.write:~`, `ui.shortcuts`; Pannello di controllo `settings.system`, `workspaces.manage`, `tags.write`, `ui.shortcuts`; AppStore `apps.manage`; NetTest `fs.write:~`, `calls`; NetWave Browser `fs.write:~`. Per le app di sistema non c'è un controllo a ogni uso (non passano dal ponte): i permessi servono al kernel per accettare il manifesto e a mostrare cosa fa l'app.
 
 ---
 
@@ -4170,8 +4237,9 @@ Un guscio Electron (`lilos-desktop/development/`, vedi il suo [README](../../lil
 | `local.status`, `local.restart`, `local.stop`, `local.openInBrowser` | Il lilOS del programma |
 | `quit` | Chiude il programma (dopo 100 ms); `before-quit` ferma il lilOS locale. Solo profili di fiducia (non è in `OPEN` di `bridge.js`) |
 | `updates.check`, `updates.install` | Gli aggiornamenti del programma |
+| `web.info`, `web.create`, `web.navigate`, `web.back`, `web.forward`, `web.reload`, `web.stop`, `web.close`, `web.place`, `web.cover`, `web.focus`, `web.zoom`, `web.mute`, `web.edit`, `web.keys`, `web.find`, `web.stopFind`, `web.grants`, `web.permission`, `web.auth`, `web.downloadRead`, `web.downloadDone`, `web.downloadCancel` | Le pagine web di NetWave (`web.js`, `window.lilosHost.web`, da programma 0.5.0): solo profili di fiducia; ogni vista appartiene alla pagina che l'ha creata e solo lei la comanda. Vedi [`WebPage`](#webpage-hostweb) |
 
-`on(nome, fn)` → `off`: ascolta gli eventi del programma (`choose`, `drives`, `file-changed`, `settings`, `display`, `open`, `open-settings`). Il programma sa quali eventi la pagina ascolta (`lilos-host:listen`): senza `choose` mostra un suo riquadro per scegliere il dispositivo, e osserva le unità solo se c'è chi ascolta `drives`.
+`on(nome, fn)` → `off`: ascolta gli eventi del programma (`choose`, `drives`, `file-changed`, `settings`, `display`, `open`, `open-settings`, `web`). Il programma sa quali eventi la pagina ascolta (`lilos-host:listen`): senza `choose` mostra un suo riquadro per scegliere il dispositivo, e osserva le unità solo se c'è chi ascolta `drives`.
 
 **Regole di fiducia** (in `bridge.js` e `windows.js`; sono la parte che non va indebolita):
 
@@ -6033,6 +6101,20 @@ Cosa tiene l'app NetTest (`store.js`), una chiave ciascuna (collegato al kernel,
 | `nettest.cookies` | `{ host: { nome: { value, path, expires } } }`: i cookie impostati dai server (il kernel non ne tiene) |
 
 Le variabili segrete **non** stanno qui: nei file `.nettest` restano sigillate dal kernel ([Segreti sigillati](#segreti-sigillati)); le variabili globali non hanno il lucchetto, quindi sono in chiaro.
+
+### `lilos:netwave.options`, `netwave.grants`, `netwave.visits.<AAAA-MM-GG>`, `netwave.sessions`, `netwave.closed`
+
+Cosa tiene l'app NetWave Browser (`options.js`, `history.js`), una chiave ciascuna, per utente. Le finestre private non scrivono né cronologia né sessioni né permessi ricordati; leggono solo le opzioni.
+
+| Chiave | Contenuto |
+| --- | --- |
+| `netwave.options` | `{ home, search, keepDays }`: pagina iniziale (`''` = la pagina di partenza di NetWave), motore di ricerca (`duckduckgo` di serie, `startpage`, `bing`, `google`, `ecosia`), giorni di cronologia (7, 30, 90 di serie, 365 o 0 = per sempre). I valori fuori elenco tornano a quelli di serie. |
+| `netwave.grants` | `[{ origin, permission, allow }]`: le risposte «Consenti sempre» e «Blocca» ricordate (al massimo 500, le più recenti). |
+| `netwave.visits.<AAAA-MM-GG>` | Le pagine aperte quel giorno: `[{ at, url, title, session?: { id, name } }]` (al massimo 2000 al giorno). Una chiave per giorno, così una pagina nuova manda solo l'elenco di oggi. |
+| `netwave.sessions` | Le sessioni aperte, salvate o chiuse: `[{ id, name, file?, path?, event, at, tabs }]` (al massimo 300); `tabs` è la foto delle schede (`[{ url, title, pinned? }]`), per riaprire la sessione anche se il file non c'è più. |
+| `netwave.closed` | Le schede e le finestre chiuse di recente: `[{ kind: 'tab' \| 'window', at, tabs, session? }]` (le ultime 20). |
+
+Pagine e sessioni più vecchie di `keepDays` si tolgono all'avvio. Il file `.nwsession` (JSON: `format: 'netwave-session'`, `version: 1`, `id`, `name`, `savedAt`, `autosave`, `active`, `tabs: [{ url, title, pinned? }]`) ha solo indirizzi `http:`/`https:` e titoli, fino a 500 schede e 2 MB: mai cookie, password o permessi. Il suo `id` resta uguale se il file cambia nome o posto.
 
 ### `lilos:editor-tree`
 
