@@ -292,7 +292,7 @@ class Studio {
       items.push(h('span', { class: 'sp' }));
       if (this.ws.project) {
         items.push(b('grid', t('tb.map'), () => this.openMap()));
-        items.push(b('box', t('tb.createApp'), () => createApp(this), { title: t('tb.createAppHint') }));
+        items.push(b('archive', t('tb.createApp'), () => createApp(this), { title: t('tb.createAppHint') }));
         items.push(b('gear', t('tb.options'), () => openProjectOptions(this)));
       }
     } else {

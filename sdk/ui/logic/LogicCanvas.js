@@ -2,7 +2,7 @@ import { h } from '../../core/dom.js';
 import { Emitter } from '../../core/events.js';
 import { icon } from '../icons.js';
 import { selectionGesture } from '../selectionGesture.js';
-import { portsOf, linkKey, typesMatch } from '../../core/logicModel.js';
+import { portsOf, linkKey, typesMatch, logicText } from '../../core/logicModel.js';
 import { formatLogicValue } from './format.js';
 
 /**
@@ -20,7 +20,7 @@ import { formatLogicValue } from './format.js';
  *   lang          the language of the labels
  *   componentOf   block → { def, added } | null: for the object of a Componente UI, the component's
  *                 definition and added ports (its ports are the component's)
- *   labels        { error: 'Eccezione', missing: 'Manca il pacchetto' … } texts of the host app
+ *   labels        { error, missing } the host app's texts (defaults: lilOS's)
  *   readOnly      no editing (a program shown live)
  *
  * Mouse: drag a block to move it (the selected ones together); drag from an output to an input
@@ -53,7 +53,7 @@ export class LogicCanvas extends Emitter {
     this.#schema = schema;
     this.#lang = lang;
     this.#componentOf = componentOf;
-    this.#labels = { error: 'Eccezione', missing: 'Manca il pacchetto', ...labels };
+    this.#labels = { error: logicText('error'), missing: logicText('missing'), ...labels };
     this.#readOnly = readOnly;
     this.setCatalog(catalog);
     this.#svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');

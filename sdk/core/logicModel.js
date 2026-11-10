@@ -1,5 +1,19 @@
 import { Emitter } from './events.js';
 import { UndoStack } from './history.js';
+import { locale } from './locale.js';
+
+const { t } = locale.define('lilos:sdk.logic', {
+  en: { strings: {
+    noGrow: 'This one does not allow adding ports', maxAdded: 'At most {n} added ports', unknownBlock: 'Unknown block',
+    onlyAdded: 'Only added ports can be removed', notSchema: 'This is not a Logic Studio schema (.lsch)',
+    notWindow: 'This is not a Logic Studio window (.lsui)', notProject: 'This is not a Logic Studio project (.lsproj)',
+    intoContainer: 'Components go only inside a container', unknownComponent: 'Unknown component',
+    mainConsole: 'The main console cannot be removed', error: 'Exception', missing: 'The package is missing',
+  } },
+});
+
+/** Texts of the Logic Studio documents (also for LogicCanvas). */
+export const logicText = t;
 
 /**
  * Logic Studio documents, as the IDE (or any app) edits them: a schema (.lsch), a window of the
@@ -86,7 +100,7 @@ function nextId(prefix, taken) {
  * A block also has the output «error» (Eccezione). For the object of a component in a schema
  * (role 'component') pass the component's definition and its added ports as `component`.
  */
-export function portsOf(item, def, { lang = 'en', component = null, errorLabel = 'Eccezione' } = {}) {
+export function portsOf(item, def, { lang = 'en', component = null, errorLabel = t('error') } = {}) {
   const src = component?.def ?? def;
   const added = component ? component.added : item?.added;
   const base = side => (src?.[side] ?? []).map(p => ({ name: p.name, label: label(p.label, lang) || p.name, type: p.type ?? 'any', added: false, trigger: p.trigger !== false }));
@@ -126,12 +140,12 @@ function addedName(grow, side, existing, def, lang) {
 /** Adds a port to item.added (item: a block or a component, in place). Returns the port. */
 function addPortTo(item, def, side, { limit = 32, lang = 'en', name = null } = {}) {
   const grow = def?.grow?.[side];
-  if (!grow) throw new Error('Questo elemento non permette di aggiungere porte');
+  if (!grow) throw new Error(t('noGrow'));
   item.added ??= { inputs: [], outputs: [] };
   item.added.inputs ??= [];
   item.added.outputs ??= [];
   const list = item.added[side];
-  if (list.length >= Math.min(limit, grow.max)) throw new Error(`Al massimo ${Math.min(limit, grow.max)} porte aggiunte`);
+  if (list.length >= Math.min(limit, grow.max)) throw new Error(t('maxAdded', { n: Math.min(limit, grow.max) }));
   const taken = new Set([...item.added.inputs, ...item.added.outputs].map(p => p.id));
   const port = { id: nextId('x', taken), name: name ?? addedName(def.grow, side, list, def, lang) };
   list.push(port);
@@ -148,7 +162,7 @@ export class LogicSchema extends LogicDocument {
   /** From a file's JSON: what is not valid is left out (the engine would refuse it anyway). */
   static parse(json) {
     const raw = typeof json === 'string' ? JSON.parse(json) : json;
-    if (!plain(raw) || raw.format !== LOGIC_FORMATS.schema) throw new Error('Non è uno schema di Logic Studio (.lsch)');
+    if (!plain(raw) || raw.format !== LOGIC_FORMATS.schema) throw new Error(t('notSchema'));
     const ids = new Set();
     const blocks = (Array.isArray(raw.blocks) ? raw.blocks : []).filter(b => plain(b) && ID.test(String(b.id ?? '')) && typeof b.type === 'string' && !ids.has(b.id) && ids.add(b.id))
       .map(b => ({
@@ -248,7 +262,7 @@ export class LogicSchema extends LogicDocument {
   addPort(id, def, side, options) {
     return this.edit('addPort', data => {
       const b = data.blocks.find(x => x.id === id);
-      if (!b) throw new Error('Blocco sconosciuto');
+      if (!b) throw new Error(t('unknownBlock'));
       return addPortTo(b, def, side, options);
     });
   }
@@ -258,7 +272,7 @@ export class LogicSchema extends LogicDocument {
     this.edit('removePort', data => {
       const b = data.blocks.find(x => x.id === id);
       const list = b?.added?.[side];
-      if (!list || !list.some(p => p.id === portId)) throw new Error('Si tolgono solo le porte aggiunte');
+      if (!list || !list.some(p => p.id === portId)) throw new Error(t('onlyAdded'));
       b.added[side] = list.filter(p => p.id !== portId);
       delete b.ports[portId];
       data.links = data.links.filter(l => !(side === 'inputs' ? l.to[0] === id && l.to[1] === portId : l.from[0] === id && l.from[1] === portId));
@@ -334,7 +348,7 @@ export class LogicWindow extends LogicDocument {
 
   static parse(json) {
     const raw = typeof json === 'string' ? JSON.parse(json) : json;
-    if (!plain(raw) || raw.format !== LOGIC_FORMATS.window) throw new Error('Non è una finestra di Logic Studio (.lsui)');
+    if (!plain(raw) || raw.format !== LOGIC_FORMATS.window) throw new Error(t('notWindow'));
     const ids = new Set();
     const clean = (node, depth) => {
       if (!plain(node) || depth > 32 || typeof node.type !== 'string') return null;
@@ -372,7 +386,7 @@ export class LogicWindow extends LogicDocument {
       const walk = n => { all.push(n); (n.children ?? []).forEach(walk); };
       walk(data.root);
       const host = all.find(n => n.id === parent);
-      if (!host || !Array.isArray(host.children)) throw new Error('Si aggiunge solo dentro un contenitore');
+      if (!host || !Array.isArray(host.children)) throw new Error(t('intoContainer'));
       const prefix = (def.type.split('.').pop() || 'c').replace(/[^a-zA-Z]/g, '').toLowerCase() || 'c';
       const id = nextId(prefix, new Set(all.map(n => n.id)));
       const defaults = Object.fromEntries((def.props ?? []).filter(p => p.default !== undefined).map(p => [p.key, p.default]));
@@ -429,7 +443,7 @@ export class LogicWindow extends LogicDocument {
       let target = null;
       const walk = n => { if (n.id === id) target = n; else (n.children ?? []).forEach(walk); };
       walk(data.root);
-      if (!target) throw new Error('Componente sconosciuta');
+      if (!target) throw new Error(t('unknownComponent'));
       return addPortTo(target, def, side, options);
     });
   }
@@ -472,7 +486,7 @@ export class LogicProject extends LogicDocument {
 
   static parse(json) {
     const raw = typeof json === 'string' ? JSON.parse(json) : json;
-    if (!plain(raw) || raw.format !== LOGIC_FORMATS.project) throw new Error('Non è un progetto di Logic Studio (.lsproj)');
+    if (!plain(raw) || raw.format !== LOGIC_FORMATS.project) throw new Error(t('notProject'));
     const base = LogicProject.create(raw.name).data;
     const paths = v => Object.fromEntries(Object.entries(plain(v) ? v : {}).filter(([k, p]) => typeof p === 'string' && k && p));
     return new LogicProject({
@@ -549,7 +563,7 @@ export class LogicProject extends LogicDocument {
   }
 
   removeConsole(id) {
-    if (id === 'main') throw new Error('La console principale non si toglie');
+    if (id === 'main') throw new Error(t('mainConsole'));
     this.edit('removeConsole', data => { data.consoles.list = data.consoles.list.filter(c => c.id !== id); });
   }
 

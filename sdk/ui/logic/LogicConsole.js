@@ -1,5 +1,13 @@
 import { h } from '../../core/dom.js';
 import { Emitter } from '../../core/events.js';
+import { locale } from '../../core/locale.js';
+
+const { t } = locale.define('lilos:sdk.logicConsole', {
+  en: { strings: {
+    hint: 'Enter sends · Esc cancels', answer: 'Answer',
+    text: 'text', number: 'number', bool: 'yes/no', key: 'a key',
+  } },
+});
 
 /**
  * The consoles of a running program (Logic Studio): what the blocks Scrivi in console write and
@@ -69,9 +77,9 @@ export class LogicConsoleView {
   constructor(store, { console = 'main', labels = {} } = {}) {
     this.#store = store;
     this.#console = console;
-    this.#labels = { hint: 'Invio manda · Esc annulla', kinds: { text: 'testo', number: 'numero', bool: 'sì/no', key: 'un tasto' }, ...labels };
+    this.#labels = { hint: t('hint'), kinds: { text: t('text'), number: t('number'), bool: t('bool'), key: t('key') }, ...labels };
     this.#lines = h('div', { class: 'lgcon-lines', role: 'log', 'aria-live': 'polite' });
-    this.#field = h('input', { type: 'text', autocomplete: 'off', spellcheck: false, 'aria-label': 'Risposta' });
+    this.#field = h('input', { type: 'text', autocomplete: 'off', spellcheck: false, 'aria-label': t('answer') });
     this.#question = h('span', { class: 'q' });
     this.#hint = h('span', { class: 'h' });
     this.#input = h('div', { class: 'lgcon-in', hidden: true }, this.#question, this.#field, this.#hint);
