@@ -155,8 +155,10 @@ export function openProfile(profile) {
       backgroundThrottling: false,
     },
   });
+  // Kept here: once the window is closed, reading win.webContents throws (Object has been destroyed)
+  const contentsId = win.webContents.id;
   windows.set(profile.id, win);
-  owners.set(win.webContents.id, profile.id);
+  owners.set(contentsId, profile.id);
   update(d => { d.last = profile.id; });
 
   win.on('page-title-updated', e => e.preventDefault());
@@ -189,7 +191,7 @@ export function openProfile(profile) {
   });
   win.on('closed', () => {
     windows.delete(profile.id);
-    owners.delete(win.webContents?.id);
+    owners.delete(contentsId);
     if (!quitting && !settings().stayInTray && lilosWindows().length === 0) app.quit();
   });
 
