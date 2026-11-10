@@ -36,7 +36,9 @@
     "modules/term-rlogin",
     "modules/term-supdup",
     "modules/call-grpc",
-    "modules/call-mqtt"
+    "modules/call-mqtt",
+    "modules/logicstudio-engine",
+    "modules/logicstudio-core"
   ],
   "system": "system/lilos",
   "languages": [

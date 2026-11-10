@@ -1,0 +1,271 @@
+{
+  "name": "logicstudio-engine",
+  "version": "1.0.0",
+  "description": "Logic Studio Engine: fa girare gli schemi e i progetti di Logic Studio (blocchi logici) per ogni utente, con quote e limiti",
+  "icon": {
+    "glyph": "chip",
+    "color": "#2da44e"
+  },
+  "kernel": "1",
+  "provides": [
+    "logicstudio"
+  ],
+  "requires": [],
+  "data": [],
+  "defaultConfig": {
+    "totalActive": 200,
+    "totalMemoryMb": 1024,
+    "maxBlocks": 200,
+    "maxLinks": 600,
+    "runsPer10s": 10000,
+    "blockSeconds": 30,
+    "testMinutes": 5,
+    "maxSchemas": 20,
+    "maxWindows": 10,
+    "maxComponents": 200,
+    "maxProjectLinks": 200,
+    "maxAddedPorts": 32,
+    "maxConsoles": 10,
+    "consoleLinesPerSecond": 50,
+    "chartPoints": 1000,
+    "quotaMaxActive": 10,
+    "quotaMaxTests": 2,
+    "quotaCpuPercent": 25,
+    "quotaMemoryMb": 128,
+    "quotaNetPerMinute": 120,
+    "quotaLogMb": 20
+  },
+  "settings": [
+    {
+      "key": "totalActive",
+      "type": "number",
+      "min": 1,
+      "max": 10000,
+      "default": 200,
+      "label": {
+        "en": "Active programs of all users, at most",
+        "it": "Programmi attivi di tutti gli utenti, al massimo"
+      }
+    },
+    {
+      "key": "totalMemoryMb",
+      "type": "number",
+      "min": 64,
+      "max": 65536,
+      "default": 1024,
+      "label": {
+        "en": "Memory for all users (MB)",
+        "it": "Memoria per tutti gli utenti (MB)"
+      }
+    },
+    {
+      "key": "maxBlocks",
+      "type": "number",
+      "min": 10,
+      "max": 5000,
+      "default": 200,
+      "label": {
+        "en": "Blocks per schema, at most",
+        "it": "Blocchi per schema, al massimo"
+      }
+    },
+    {
+      "key": "maxLinks",
+      "type": "number",
+      "min": 10,
+      "max": 20000,
+      "default": 600,
+      "label": {
+        "en": "Links per schema, at most",
+        "it": "Collegamenti per schema, al massimo"
+      }
+    },
+    {
+      "key": "runsPer10s",
+      "type": "number",
+      "min": 100,
+      "max": 1000000,
+      "default": 10000,
+      "label": {
+        "en": "Block runs per program in 10 seconds, at most",
+        "it": "Esecuzioni di blocchi per programma in 10 secondi, al massimo"
+      }
+    },
+    {
+      "key": "blockSeconds",
+      "type": "number",
+      "min": 1,
+      "max": 600,
+      "default": 30,
+      "label": {
+        "en": "Time a block may take (seconds)",
+        "it": "Tempo massimo di un blocco (secondi)"
+      }
+    },
+    {
+      "key": "testMinutes",
+      "type": "number",
+      "min": 1,
+      "max": 240,
+      "default": 5,
+      "label": {
+        "en": "Length of a test (minutes)",
+        "it": "Durata massima di una prova (minuti)"
+      }
+    },
+    {
+      "key": "maxSchemas",
+      "type": "number",
+      "min": 1,
+      "max": 200,
+      "default": 20,
+      "label": {
+        "en": "Schemas per project, at most",
+        "it": "Schemi per progetto, al massimo"
+      }
+    },
+    {
+      "key": "maxWindows",
+      "type": "number",
+      "min": 1,
+      "max": 100,
+      "default": 10,
+      "label": {
+        "en": "Windows per project, at most",
+        "it": "Finestre per progetto, al massimo"
+      }
+    },
+    {
+      "key": "maxComponents",
+      "type": "number",
+      "min": 10,
+      "max": 2000,
+      "default": 200,
+      "label": {
+        "en": "UI components per window, at most",
+        "it": "Componenti UI per finestra, al massimo"
+      }
+    },
+    {
+      "key": "maxProjectLinks",
+      "type": "number",
+      "min": 10,
+      "max": 5000,
+      "default": 200,
+      "label": {
+        "en": "Links between schemas per project, at most",
+        "it": "Collegamenti tra schemi per progetto, al massimo"
+      }
+    },
+    {
+      "key": "maxAddedPorts",
+      "type": "number",
+      "min": 1,
+      "max": 64,
+      "default": 32,
+      "label": {
+        "en": "Added ports per block, at most",
+        "it": "Porte aggiunte per blocco, al massimo"
+      }
+    },
+    {
+      "key": "maxConsoles",
+      "type": "number",
+      "min": 1,
+      "max": 50,
+      "default": 10,
+      "label": {
+        "en": "Consoles per project, at most",
+        "it": "Console per progetto, al massimo"
+      }
+    },
+    {
+      "key": "consoleLinesPerSecond",
+      "type": "number",
+      "min": 1,
+      "max": 10000,
+      "default": 50,
+      "label": {
+        "en": "Console lines per second, at most",
+        "it": "Righe al secondo per console, al massimo"
+      }
+    },
+    {
+      "key": "chartPoints",
+      "type": "number",
+      "min": 10,
+      "max": 100000,
+      "default": 1000,
+      "label": {
+        "en": "Points kept per chart series",
+        "it": "Punti tenuti per serie dei grafici"
+      }
+    },
+    {
+      "key": "quotaMaxActive",
+      "type": "number",
+      "min": 0,
+      "max": 1000,
+      "default": 10,
+      "label": {
+        "en": "Active programs per user (default)",
+        "it": "Programmi attivi per utente (predefinito)"
+      }
+    },
+    {
+      "key": "quotaMaxTests",
+      "type": "number",
+      "min": 0,
+      "max": 100,
+      "default": 2,
+      "label": {
+        "en": "Tests running together per user (default)",
+        "it": "Prove insieme per utente (predefinito)"
+      }
+    },
+    {
+      "key": "quotaCpuPercent",
+      "type": "number",
+      "min": 1,
+      "max": 100,
+      "default": 25,
+      "label": {
+        "en": "CPU per user, at most (%) (default)",
+        "it": "CPU per utente, al massimo (%) (predefinito)"
+      }
+    },
+    {
+      "key": "quotaMemoryMb",
+      "type": "number",
+      "min": 16,
+      "max": 8192,
+      "default": 128,
+      "label": {
+        "en": "Memory per user (MB) (default)",
+        "it": "Memoria per utente (MB) (predefinito)"
+      }
+    },
+    {
+      "key": "quotaNetPerMinute",
+      "type": "number",
+      "min": 0,
+      "max": 100000,
+      "default": 120,
+      "label": {
+        "en": "Network requests per minute per user (default)",
+        "it": "Richieste di rete al minuto per utente (predefinito)"
+      }
+    },
+    {
+      "key": "quotaLogMb",
+      "type": "number",
+      "min": 1,
+      "max": 10240,
+      "default": 20,
+      "label": {
+        "en": "Log per user (MB) (default)",
+        "it": "Registro per utente (MB) (predefinito)"
+      }
+    }
+  ]
+}

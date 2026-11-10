@@ -1,0 +1,22 @@
+{
+  "name": "logicstudio-core",
+  "version": "1.0.0",
+  "description": "Logic Studio: i blocchi di base (valori, logica, matematica, testo, oggetti, tempo, console, porte di schema, Componenti UI)",
+  "icon": {
+    "glyph": "chip",
+    "color": "#2da44e"
+  },
+  "kernel": "1",
+  "provides": [
+    "logicblock.core"
+  ],
+  "requires": [
+    "logicstudio"
+  ],
+  "dependencies": [
+    {
+      "module": "logicstudio-engine",
+      "reason": "Il motore che fa girare i blocchi"
+    }
+  ]
+}
