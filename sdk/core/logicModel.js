@@ -173,7 +173,7 @@ export class LogicSchema extends LogicDocument {
   /** Adds a block of a definition at (x, y): its config starts from the defaults. Returns its id. */
   addBlock(def, { x = 0, y = 0, config = {} } = {}) {
     return this.edit('add', data => {
-      const prefix = (def.type.split('.').pop().replace(/[^a-zA-Z]/g, '').slice(0, 8) || 'b').toLowerCase();
+      const prefix = (def.type.split('.').pop().replace(/[^a-zA-Z]/g, '').slice(0, 12) || 'b').toLowerCase();
       const id = nextId(prefix, new Set(data.blocks.map(b => b.id)));
       const defaults = Object.fromEntries((def.config ?? []).filter(c => c.default !== undefined).map(c => [c.key, c.default]));
       data.blocks.push({ id, type: def.type, v: def.version, x: Math.round(x), y: Math.round(y), config: { ...defaults, ...config }, ports: {} });

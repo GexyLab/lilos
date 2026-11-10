@@ -40,7 +40,8 @@
     "modules/call-mqtt",
     "modules/logicstudio-engine",
     "modules/logicstudio-core",
-    "modules/logicstudio-collections"
+    "modules/logicstudio-collections",
+    "modules/logicstudio-ui"
   ],
   "system": "system/lilos",
   "languages": [

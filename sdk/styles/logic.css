@@ -98,3 +98,73 @@
 .lgcon-in input { flex: 1; min-width: 40px; border: 0; outline: none; background: transparent; font: inherit; color: inherit; }
 .lgcon-in .h { color: var(--faint); font: 10.5px var(--font); white-space: nowrap; }
 .lgcon-in[hidden] { display: none; }
+
+/* LogicUI: the windows of the projects and their Componenti UI */
+.lui { position: relative; color: var(--text); font-size: 12.5px; min-height: 0; }
+.lui > .lui-c { height: 100%; }
+.lui-c { position: relative; min-width: 0; }
+.lui-box { display: flex; }
+.lui-col { flex-direction: column; }
+.lui-row { flex-direction: row; }
+.lui-grid { display: grid; }
+.lui-field { display: grid; gap: 4px; }
+.lui-lab { color: var(--dim); font-size: 11.5px; }
+.lui-size-small { font-size: 11px; color: var(--dim); }
+.lui-size-title { font-size: 16px; font-weight: 700; }
+.lui-align-center { text-align: center; } .lui-align-end { text-align: end; }
+.lui-value { color: var(--dim); }
+.lui-value b { color: var(--text); font-size: 14px; }
+.lui-gauge { display: grid; justify-items: center; }
+.lui-gauge svg { width: 120px; height: 70px; }
+.lui-gauge .tr { fill: none; stroke: var(--hover); stroke-width: 9; stroke-linecap: round; }
+.lui-gauge .br { fill: none; stroke: var(--accent); stroke-width: 9; stroke-linecap: round; }
+.lui-gauge-v { margin-top: -26px; font-size: 15px; }
+.lui-gauge-v small { color: var(--dim); }
+.lui-lamp { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+.lui-lamp i { width: 14px; height: 14px; border-radius: 50%; background: var(--hover); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .1); flex: none; }
+.lui-lamp i.on.c-green { background: #30a46c; box-shadow: 0 0 10px 2px rgba(48, 164, 108, .45); }
+.lui-lamp i.on.c-red { background: #e5484d; box-shadow: 0 0 10px 2px rgba(229, 72, 77, .45); }
+.lui-lamp i.on.c-yellow { background: #f0b429; box-shadow: 0 0 10px 2px rgba(240, 180, 41, .45); }
+.lui-lamp i.on.c-blue { background: #3b6ef5; box-shadow: 0 0 10px 2px rgba(59, 110, 245, .45); }
+.lui-progress { display: flex; align-items: center; gap: 8px; }
+.lui-progress .bar { flex: 1; height: 8px; border-radius: 4px; background: var(--hover); overflow: hidden; }
+.lui-progress .bar i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .2s; }
+.lui-image img { max-width: 100%; max-height: 100%; display: block; }
+.lui-table-wrap { max-height: 260px; overflow: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); }
+.lui-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.lui-table th { position: sticky; top: 0; background: var(--side); text-align: left; padding: 5px 8px; font-weight: 600; color: var(--dim); border-bottom: 1px solid var(--border); }
+.lui-table td { padding: 5px 8px; border-bottom: 1px solid var(--border); }
+.lui-table tr.on td { background: var(--accent-soft); }
+.lui-table tr[tabindex]:hover td { background: var(--hover); cursor: pointer; }
+.lui-console { border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; display: flex; }
+.lui-console > .lgcon { flex: 1; }
+.lui-console-ph { flex: 1; display: grid; place-items: center; color: var(--faint); font: 11px var(--mono); gap: 4px; }
+.lui-num { display: flex; align-items: center; gap: 6px; }
+.lui-num small, .lui-path { color: var(--dim); }
+.lui-file { display: flex; align-items: center; gap: 8px; }
+.lui-path { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 11.5px var(--mono); }
+.lui-list { overflow: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); outline: none; }
+.lui-list:focus-visible { box-shadow: 0 0 0 2px var(--accent); }
+.lui-list > div { padding: 4px 8px; cursor: pointer; }
+.lui-list > div:hover { background: var(--hover); }
+.lui-list > div.on { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.lui-group fieldset { border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px 12px; margin: 0; min-width: 0; }
+.lui-group legend { padding: 0 6px; font-weight: 600; font-size: 12px; }
+.lui-tabbar { display: flex; gap: 2px; border-bottom: 1px solid var(--border); margin-bottom: 10px; }
+.lui-tabbar button { height: 28px; padding: 0 12px; border: 0; background: none; color: var(--dim); font: inherit; border-bottom: 2px solid transparent; cursor: pointer; }
+.lui-tabbar button.on { color: var(--text); font-weight: 600; border-bottom-color: var(--accent); }
+.lui-free { position: relative; }
+.lui-free > .lui-c { position: absolute; }
+.lui-sep.line { height: 1px !important; background: var(--border); margin: 6px 0; }
+.lui-off { opacity: .45; }
+.lui-missing { color: var(--danger); font-size: 11px; display: flex; align-items: center; gap: 6px; padding: 4px; border: 1px dashed var(--danger); border-radius: 4px; }
+.lui-missing .ico { width: 13px; height: 13px; }
+/* the editor of windows: containers show where things go */
+.lui-design .lui-c { cursor: default; }
+.lui-design .lui-c > * { pointer-events: none; }
+.lui-design .lui-box, .lui-design .lui-free, .lui-design .lui-group fieldset { outline: 1px dashed color-mix(in srgb, var(--accent) 35%, transparent); outline-offset: -1px; min-height: 36px; }
+.lui-design .lui-box > .lui-c, .lui-design .lui-free > .lui-c, .lui-design .lui-group .lui-box > .lui-c { pointer-events: auto; }
+.lui-design .lui-hidden { opacity: .4; }
+.lui-design .lui-c.lui-sel { outline: 2px solid var(--accent); outline-offset: 2px; z-index: 2; }
+.lui-design .lui-c.lui-drop-in { box-shadow: inset 0 0 0 2px var(--accent); }
+.lui-drop-line { position: absolute; z-index: 5; background: var(--accent); border-radius: 2px; pointer-events: none; }

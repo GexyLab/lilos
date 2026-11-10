@@ -116,7 +116,13 @@ class Logic extends Emitter {
     const key = `${p.name}@${p.version}`;
     if (!this.#components.has(key)) {
       const url = `/api/modules/${MODULE}/components/${encodeURIComponent(p.name)}?v=${encodeURIComponent(p.version)}`;
-      this.#components.set(key, import(/* @vite-ignore */ url).then(m => (Array.isArray(m.components) ? m.components : [])).catch(err => {
+      this.#components.set(key, import(/* @vite-ignore */ url).then(m => {
+        // A package's own styles (CSS text), once in the page
+        if (typeof m.styles === 'string' && !document.querySelector(`style[data-logic-pack="${p.name}"]`)) {
+          document.head.append(Object.assign(document.createElement('style'), { textContent: m.styles, dataset: { logicPack: p.name } }));
+        }
+        return Array.isArray(m.components) ? m.components : [];
+      }).catch(err => {
         this.#components.delete(key);
         throw err;
       }));

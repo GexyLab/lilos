@@ -98,6 +98,16 @@ const GLYPHS = {
   matrix: '<path d="M7 4H4v16h3M17 4h3v16h-3"/><path d="M9 9h.01M12 9h.01M15 9h.01M9 15h.01M12 15h.01M15 15h.01"/>',
   lamp: '<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 3z"/>',
   gauge: '<path d="M4 18a8 8 0 1 1 16 0"/><path d="m12 18 4-6"/>',
+  press: '<rect x="4" y="8" width="16" height="9" rx="3"/><path d="M12 3v3M9 4.5l1 1.5M15 4.5l-1 1.5"/>',
+  progress: '<rect x="3" y="9" width="18" height="6" rx="3"/><path d="M6 12h7"/>',
+  type: '<rect x="3" y="7" width="18" height="10" rx="2"/><path d="M7 10v4"/>',
+  rows: '<rect x="4" y="4" width="16" height="16" rx="1.5"/><path d="M4 12h16"/>',
+  cols: '<rect x="4" y="4" width="16" height="16" rx="1.5"/><path d="M12 4v16"/>',
+  group: '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M6 7V4h7"/>',
+  tabs: '<path d="M3 20V8h6V5h6v3h6v12z"/><path d="M3 8h18"/>',
+  free: '<path d="M4 8V4h4M16 4h4v4M20 16v4h-4M8 20H4v-4"/><rect x="9" y="9" width="6" height="6"/>',
+  toggle: '<rect x="3" y="7" width="18" height="10" rx="5"/><circle cx="16" cy="12" r="3"/>',
+  eye: '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
 };
 
 export function icon(name, className = 'ico') {
