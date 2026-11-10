@@ -857,7 +857,7 @@ export default function createSettings({ openWindow, args } = {}) {
       },
       // Where users may make the kernel connect, and the admin's exceptions (lilOS 1.25.0)
       networkTab({ rerender: () => view?.render() }),
-      // Logic Studio's engine: my use, limits, quotas, programs (lilOS 1.36.0, D88)
+      // Logic Studio's engine: my use, limits, quotas, programs (lilOS 1.37.0, D88)
       kernel.connected && sdk.logic && logicStudioTab({ rerender: () => view?.render() }),
       // The program lilOS (lilos-desktop): only inside it, not in a browser
       computerTab({ rerender: () => view?.render() }),

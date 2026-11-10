@@ -15,7 +15,7 @@
   },
   "sdk": "2",
   "system": true,
-  "lilos": ">=1.36.0",
+  "lilos": ">=1.37.0",
   "entrypoints": {
     "main": {
       "kind": "window"
