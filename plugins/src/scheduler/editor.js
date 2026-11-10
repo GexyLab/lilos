@@ -130,12 +130,12 @@ function editorWindow({ id = null, copy = null, prefill = {} }, openWindow) {
   let loaded = !editing && !copy;
   let error = '';
 
-  const steps = h('div', { class: 'ed-steps', role: 'tablist' });
-  const mainEl = h('div', { class: 'ed-main' });
-  const sideEl = h('aside', { class: 'ed-side', 'aria-live': 'polite' });
-  const errEl = h('p', { class: 'ed-error', role: 'alert' });
-  const foot = h('div', { class: 'ed-foot' });
-  win.body.append(h('div', { class: 'ed' }, steps, h('div', { class: 'ed-body' }, mainEl, sideEl), errEl, foot));
+  const steps = h('div', { class: 'sce-steps', role: 'tablist' });
+  const mainEl = h('div', { class: 'sce-main' });
+  const sideEl = h('aside', { class: 'sce-side', 'aria-live': 'polite' });
+  const errEl = h('p', { class: 'sce-error', role: 'alert' });
+  const foot = h('div', { class: 'sce-foot' });
+  win.body.append(h('div', { class: 'sce' }, steps, h('div', { class: 'sce-body' }, mainEl, sideEl), errEl, foot));
 
   // ---------- Loading ----------
 
@@ -165,10 +165,10 @@ function editorWindow({ id = null, copy = null, prefill = {} }, openWindow) {
   // ---------- Drawing ----------
 
   // A <label> only around one input: a group of buttons or radios inside one would take its clicks
-  const field = (label, control, hint) => h(control?.matches?.('input, select, textarea') ? 'label' : 'div', { class: 'ed-field' },
-    h('span', { class: 'ed-label' }, label), control, hint ? h('small', { class: 'ed-hint' }, hint) : null);
+  const field = (label, control, hint) => h(control?.matches?.('input, select, textarea') ? 'label' : 'div', { class: 'sce-field' },
+    h('span', { class: 'sce-label' }, label), control, hint ? h('small', { class: 'sce-hint' }, hint) : null);
   // The SDK's controls; text fields change the draft at each key (the side follows)
-  const input = (value, onChange, { small = false, ...options } = {}) => textField({ ...options, value: value ?? '', onInput: onChange, className: small ? 'ed-small' : '' });
+  const input = (value, onChange, { small = false, ...options } = {}) => textField({ ...options, value: value ?? '', onInput: onChange, className: small ? 'sce-small' : '' });
   const area = (value, onChange, { rows, mono = false, placeholder = null, maxLength = null } = {}) => {
     const el = h('textarea', { class: `ctl-text${mono ? ' mono' : ''}`, rows, placeholder, maxlength: maxLength, spellcheck: 'false' });
     el.value = value ?? '';
@@ -185,8 +185,8 @@ function editorWindow({ id = null, copy = null, prefill = {} }, openWindow) {
   const seg = (value, options, onChange) => segmented({ value, options, onChange });
   const radio = (value, options, onChange) => radios({ value, options, onChange });
   const pick = async (kind, title, exts = null) => system.pickFile(openWindow, { kind, title, ...(exts && { exts }) });
-  const placeButton = (place, title, onPick) => h('div', { class: 'ed-place' },
-    h('span', { class: 'ctl-text ed-path' }, icon(place?.mount ? 'globe' : 'folder'), place?.label || h('span', { class: 'ed-ph' }, t('editor.choose'))),
+  const placeButton = (place, title, onPick) => h('div', { class: 'sce-place' },
+    h('span', { class: 'ctl-text sce-path' }, icon(place?.mount ? 'globe' : 'folder'), place?.label || h('span', { class: 'sce-ph' }, t('editor.choose'))),
     h('button', { class: 'ctl-btn', type: 'button', onclick: async () => { const node = await pick('folder', title); if (node) onPick(placeOf(node.id)); } }, t('editor.choose')));
 
   function draw() {
@@ -195,8 +195,8 @@ function editorWindow({ id = null, copy = null, prefill = {} }, openWindow) {
       type: 'button', role: 'tab', 'aria-selected': String(i === step), class: i < step ? 'done' : '',
       onclick: () => { step = i; draw(); },
     }, h('i', {}, i < step ? '✓' : String(i + 1)), n)));
-    if (!loaded) { fill(mainEl, h('p', { class: 'ed-hint' }, t('editor.loading'))); return; }
-    fill(mainEl, ...(prefill.from ? [h('p', { class: 'ed-warn' }, icon('info'), t('editor.proposedBy', { app: system.getApp(prefill.from)?.name ?? prefill.from }))] : []), ...[stepWhat, stepWhen, stepOptions][step]());
+    if (!loaded) { fill(mainEl, h('p', { class: 'sce-hint' }, t('editor.loading'))); return; }
+    fill(mainEl, ...(prefill.from ? [h('p', { class: 'sce-warn' }, icon('info'), t('editor.proposedBy', { app: system.getApp(prefill.from)?.name ?? prefill.from }))] : []), ...[stepWhat, stepWhen, stepOptions][step]());
     drawSide();
     errEl.textContent = error;
     const back = h('button', { class: 'ctl-btn', type: 'button', disabled: step === 0, onclick: () => { step--; draw(); } }, t('editor.back'));
@@ -221,17 +221,17 @@ function editorWindow({ id = null, copy = null, prefill = {} }, openWindow) {
   function stepWhat() {
     const automataThere = system.isInstalled('automata');
     const nettestThere = system.isInstalled('nettest');
-    const types = h('div', { class: 'ed-types', role: 'radiogroup', 'aria-label': t('step.what') }, KINDS.map(k => {
+    const types = h('div', { class: 'sce-types', role: 'radiogroup', 'aria-label': t('step.what') }, KINDS.map(k => {
       const off = (k.type === 'automation' && !automataThere) || (k.type === 'collection' && !nettestThere) || (k.type === 'service' && (!catalog.runtime || !catalog.services.length)) || (draft.app && !['notify', 'service', 'open'].includes(k.type));
       return h('button', {
-        type: 'button', role: 'radio', class: `ed-type${draft.what.type === k.type ? ' on' : ''}`, 'aria-checked': String(draft.what.type === k.type), disabled: off || (editing && draft.what.type !== k.type && !!draft.app),
+        type: 'button', role: 'radio', class: `sce-type${draft.what.type === k.type ? ' on' : ''}`, 'aria-checked': String(draft.what.type === k.type), disabled: off || (editing && draft.what.type !== k.type && !!draft.app),
         onclick: () => { if (draft.what.type !== k.type) { draft.what = defaultWhat(k.type); redraw(); } },
       }, h('span', { class: `sc-kico k-${k.type}` }, icon(k.glyph)),
       h('b', {}, t(`kind.${k.type}.name`)),
       h('span', { class: `sc-where${k.where === 'browser' ? ' br' : ''}` }, t(`where.${k.where}`)),
       h('small', {}, off && (k.type === 'automation' || k.type === 'collection') ? t(`kind.${k.type}.missing`) : t(`kind.${k.type}.hint`)));
     }));
-    return [h('div', { class: 'ed-what' }, types, h('div', { class: 'ed-form' }, ...formFor(draft.what)))];
+    return [h('div', { class: 'sce-what' }, types, h('div', { class: 'sce-form' }, ...formFor(draft.what)))];
   }
 
   function formFor(w) {
@@ -245,8 +245,8 @@ function editorWindow({ id = null, copy = null, prefill = {} }, openWindow) {
           w.open = v === 'none' ? null : v === 'file' ? { file: undefined, label: '' } : { app: apps[0]?.id ?? '', entry: 'main', args: null };
           redraw();
         })),
-        openKind === 'file' ? field(t('notify.file'), h('div', { class: 'ed-place' },
-          h('span', { class: 'ctl-text ed-path' }, icon('file'), w.open.label || h('span', { class: 'ed-ph' }, t('editor.choose'))),
+        openKind === 'file' ? field(t('notify.file'), h('div', { class: 'sce-place' },
+          h('span', { class: 'ctl-text sce-path' }, icon('file'), w.open.label || h('span', { class: 'sce-ph' }, t('editor.choose'))),
           h('button', { class: 'ctl-btn', type: 'button', onclick: async () => { const node = await pick('file', t('notify.file')); if (node) { w.open = { file: node.id, label: nodeLabel(node.id) }; redraw(); } } }, t('editor.choose')))) : null,
         openKind === 'app' ? field(t('notify.app'), select(w.open.app, apps.map(a => ({ value: a.id, label: a.name })), v => { w.open = { app: v, entry: 'main', args: null }; })) : null,
       ];
@@ -263,13 +263,13 @@ function editorWindow({ id = null, copy = null, prefill = {} }, openWindow) {
         })),
         service?.params && Object.keys(service.params).length
           ? paramsForm(service.params, w.params, { t, pathAs: 'tilde', live: true, pickFile: options => pick(options.kind, options.title), onChange: next => { w.params = next; } }).el
-          : h('p', { class: 'ed-hint' }, t('service.noParams')),
-        h('p', { class: 'ed-hint' }, t('service.hint')),
+          : h('p', { class: 'sce-hint' }, t('service.noParams')),
+        h('p', { class: 'sce-hint' }, t('service.hint')),
       ];
     }
     if (w.type === 'copy') {
       return [
-        h('div', { class: 'ed-two' },
+        h('div', { class: 'sce-two' },
           field(t('copy.from'), placeButton(w.from, t('copy.from'), p => { w.from = p; redraw(); })),
           field(t('copy.to'), placeButton(w.to, t('copy.to'), p => { w.to = p; redraw(); }))),
         field(t('copy.how'), radio(w.mode, [
@@ -279,7 +279,7 @@ function editorWindow({ id = null, copy = null, prefill = {} }, openWindow) {
         ], v => { w.mode = v; redraw(); })),
         w.mode === 'versions' ? field(t('copy.keep'), input(w.keep, v => { w.keep = Math.max(1, Math.min(100, Number(v) || 1)); }, { type: 'number', min: 1, max: 100 })) : null,
         field(t('copy.exclude'), input(w.exclude.join(', '), v => { w.exclude = v.split(',').map(x => x.trim()).filter(Boolean); }, { placeholder: '*.tmp, ~$*, .cache' }), t('copy.excludeHint')),
-        h('p', { class: 'ed-hint' }, t('copy.hint')),
+        h('p', { class: 'sce-hint' }, t('copy.hint')),
       ];
     }
     if (w.type === 'command') {
@@ -292,37 +292,37 @@ function editorWindow({ id = null, copy = null, prefill = {} }, openWindow) {
         })),
         ssh ? field(t('command.host'), select(w.host, catalog.hosts.map(x => ({ value: x.id, label: `${x.name} · ${x.address}` })), v => { w.host = v; w.hostLabel = catalog.hosts.find(x => x.id === v)?.name ?? ''; })) : null,
         field(t('command.lines'), area(w.lines, v => { w.lines = v; sideOnly(); }, { rows: 6, mono: true, placeholder: t('command.placeholder') }), ssh ? t('command.sshHint') : t('command.hint')),
-        ssh ? null : field(t('command.cwd'), h('div', { class: 'ed-place' },
-          h('span', { class: 'ctl-text ed-path' }, icon('folder'), w.cwdLabel || '~'),
+        ssh ? null : field(t('command.cwd'), h('div', { class: 'sce-place' },
+          h('span', { class: 'ctl-text sce-path' }, icon('folder'), w.cwdLabel || '~'),
           h('button', { class: 'ctl-btn', type: 'button', onclick: async () => { const node = await pick('folder', t('command.cwd')); if (node) { w.cwd = node.id; w.cwdLabel = nodeLabel(node.id); redraw(); } } }, t('editor.choose')))),
         saveToField(w, ['replace', 'append']),
       ];
     }
     if (w.type === 'web') {
-      const headers = h('div', { class: 'ed-headers' }, w.headers.map((hd, i) => h('div', { class: 'ed-header' },
+      const headers = h('div', { class: 'sce-headers' }, w.headers.map((hd, i) => h('div', { class: 'sce-header' },
         input(hd.name, v => { hd.name = v; }, { placeholder: t('web.headerName'), label: t('web.headerName') }),
         hd.secret && hd.set && hd.value === undefined
-          ? h('span', { class: 'ctl-text ed-secret' }, '••••••••', h('button', { class: 'sc-link', type: 'button', onclick: () => { hd.value = ''; hd.set = false; redraw(); } }, t('web.change')))
+          ? h('span', { class: 'ctl-text sce-secret' }, '••••••••', h('button', { class: 'sc-link', type: 'button', onclick: () => { hd.value = ''; hd.set = false; redraw(); } }, t('web.change')))
           : input(hd.value ?? '', v => { hd.value = v; }, { placeholder: t('web.headerValue'), label: t('web.headerValue'), type: hd.secret ? 'password' : 'text' }),
         Object.assign(check(hd.secret, v => { hd.secret = v; redraw(); }, [icon('lock'), t('web.secret')]), { title: t('web.secretHint') }),
         h('button', { class: 'sc-icon', type: 'button', title: t('web.removeHeader'), 'aria-label': t('web.removeHeader'), onclick: () => { w.headers.splice(i, 1); redraw(); } }, icon('x')))));
       const statusValue = typeof w.expect.status === 'number' ? 'n' : w.expect.status;
       return [
-        h('div', { class: 'ed-url' },
+        h('div', { class: 'sce-url' },
           select(w.method, ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE'].map(m => ({ value: m, label: m })), v => { w.method = v; if (v === 'GET' || v === 'HEAD') w.body = { kind: 'none' }; redraw(); }, t('web.method')),
           input(w.url, v => { w.url = v.trim(); sideOnly(); }, { type: 'url', label: t('web.url'), placeholder: 'https://…' })),
         field(t('web.headers'), h('div', {}, headers, h('button', { class: 'ctl-btn', type: 'button', onclick: () => { w.headers.push({ name: '', value: '', secret: false }); redraw(); } }, icon('plus'), t('web.addHeader')))),
         w.method !== 'GET' && w.method !== 'HEAD' ? field(t('web.body'), h('div', {},
           select(w.body.kind, ['none', 'text', 'json', 'form'].map(k => ({ value: k, label: t(`web.body.${k}`) })), v => { w.body = v === 'none' ? { kind: 'none' } : { kind: v, text: w.body.text ?? '' }; redraw(); }, t('web.body')),
           w.body.kind !== 'none' ? area(w.body.text, v => { w.body.text = v; }, { rows: 4, mono: true }) : null)) : null,
-        h('div', { class: 'ed-two' },
-          field(t('web.status'), h('div', { class: 'ed-line' },
+        h('div', { class: 'sce-two' },
+          field(t('web.status'), h('div', { class: 'sce-line' },
             select(statusValue, [{ value: '2xx', label: '200–299' }, { value: 'any', label: t('web.anyStatus') }, { value: 'n', label: t('web.exactStatus') }], v => { w.expect.status = v === 'n' ? 200 : v; redraw(); }, t('web.status')),
             statusValue === 'n' ? input(w.expect.status, v => { w.expect.status = Number(v) || 200; }, { type: 'number', min: 100, max: 599, small: true }) : null)),
           field(t('web.contains'), input(w.expect.contains ?? '', v => { w.expect.contains = v || null; }, { placeholder: t('web.containsPh') }))),
-        field(t('web.timeout'), h('div', { class: 'ed-line' }, input(w.timeoutS, v => { w.timeoutS = Math.max(1, Math.min(300, Number(v) || 30)); }, { type: 'number', min: 1, max: 300, small: true }), h('span', {}, t('web.seconds')))),
+        field(t('web.timeout'), h('div', { class: 'sce-line' }, input(w.timeoutS, v => { w.timeoutS = Math.max(1, Math.min(300, Number(v) || 30)); }, { type: 'number', min: 1, max: 300, small: true }), h('span', {}, t('web.seconds')))),
         saveToField(w, ['replace', 'dated']),
-        h('p', { class: 'ed-hint' }, t('web.hint')),
+        h('p', { class: 'sce-hint' }, t('web.hint')),
       ];
     }
     if (w.type === 'open') {
@@ -336,19 +336,19 @@ function editorWindow({ id = null, copy = null, prefill = {} }, openWindow) {
         })),
         kind === 'app'
           ? field(t('open.app'), select(w.app, apps.map(a => ({ value: a.id, label: a.name })), v => { w.app = v; w.label = apps.find(a => a.id === v)?.name ?? v; sideOnly(); }))
-          : field(t('open.file'), h('div', { class: 'ed-place' },
-            h('span', { class: 'ctl-text ed-path' }, icon('file'), w.label || h('span', { class: 'ed-ph' }, t('editor.choose'))),
+          : field(t('open.file'), h('div', { class: 'sce-place' },
+            h('span', { class: 'ctl-text sce-path' }, icon('file'), w.label || h('span', { class: 'sce-ph' }, t('editor.choose'))),
             h('button', { class: 'ctl-btn', type: 'button', onclick: async () => { const node = await pick('file', t('open.file')); if (node) { w.file = node.id; w.label = nodeLabel(node.id); redraw(); } } }, t('editor.choose')))),
-        h('p', { class: 'ed-warn' }, icon('window'), t('open.browserHint')),
+        h('p', { class: 'sce-warn' }, icon('window'), t('open.browserHint')),
       ];
     }
     if (w.type === 'collection') return collectionForm(w);
     // automation
     return [
-      field(t('automation.file'), h('div', { class: 'ed-place' },
-        h('span', { class: 'ctl-text ed-path' }, icon('automation'), w.label || h('span', { class: 'ed-ph' }, t('editor.choose'))),
+      field(t('automation.file'), h('div', { class: 'sce-place' },
+        h('span', { class: 'ctl-text sce-path' }, icon('automation'), w.label || h('span', { class: 'sce-ph' }, t('editor.choose'))),
         h('button', { class: 'ctl-btn', type: 'button', onclick: async () => { const node = await pick('file', t('automation.file'), ['automata']); if (node) { w.file = node.id; w.label = nodeLabel(node.id); redraw(); } } }, t('editor.choose')))),
-      h('p', { class: 'ed-warn' }, icon('window'), t('automation.hint')),
+      h('p', { class: 'sce-warn' }, icon('window'), t('automation.hint')),
     ];
   }
 
@@ -365,19 +365,19 @@ function editorWindow({ id = null, copy = null, prefill = {} }, openWindow) {
       }).catch(() => {});
     }
     return [
-      field(t('collection.file'), h('div', { class: 'ed-place' },
-        h('span', { class: 'ctl-text ed-path' }, icon('bolt'), w.label || h('span', { class: 'ed-ph' }, t('editor.choose'))),
+      field(t('collection.file'), h('div', { class: 'sce-place' },
+        h('span', { class: 'ctl-text sce-path' }, icon('bolt'), w.label || h('span', { class: 'sce-ph' }, t('editor.choose'))),
         h('button', { class: 'ctl-btn', type: 'button', onclick: async () => { const node = await pick('file', t('collection.file'), ['nettest']); if (node) { w.file = node.id; w.label = nodeLabel(node.id); w.environment = null; w.environmentLabel = ''; redraw(); } } }, t('editor.choose')))),
       field(t('collection.env'), envs),
-      h('p', { class: 'ed-warn' }, icon('monitor'), t('collection.hint')),
+      h('p', { class: 'sce-warn' }, icon('monitor'), t('collection.hint')),
     ];
   }
 
   function saveToField(w, modes) {
     const on = !!w.saveTo;
-    return field(t('saveTo.title'), h('div', { class: 'ed-saveto' },
+    return field(t('saveTo.title'), h('div', { class: 'sce-saveto' },
       check(on, v => { w.saveTo = v ? { folder: 'root', label: '~', name: w.type === 'web' ? 'risposta.txt' : 'output.txt', mode: modes[0] } : null; redraw(); }, t(w.type === 'web' ? 'saveTo.web' : 'saveTo.command')),
-      on ? h('div', { class: 'ed-line' },
+      on ? h('div', { class: 'sce-line' },
         h('button', { class: 'ctl-btn', type: 'button', onclick: async () => { const node = await pick('folder', t('saveTo.folder')); if (node && !fs.isRemote?.(node.id)) { w.saveTo.folder = node.id === fs.root ? 'root' : node.id; w.saveTo.label = nodeLabel(node.id); redraw(); } } }, icon('folder'), w.saveTo.label || '~'),
         input(w.saveTo.name, v => { w.saveTo.name = v.trim(); }, { label: t('saveTo.name') }),
         select(w.saveTo.mode, modes.map(m => ({ value: m, label: t(`saveTo.${m}`) })), v => { w.saveTo.mode = v; }, t('saveTo.mode'))) : null));
@@ -395,24 +395,24 @@ function editorWindow({ id = null, copy = null, prefill = {} }, openWindow) {
       redraw();
     })];
     if (f.mode === 'once') {
-      parts.push(h('div', { class: 'ed-two' },
+      parts.push(h('div', { class: 'sce-two' },
         field(t('when.date'), input(f.once.slice(0, 10), v => { f.once = `${v}T${f.once.slice(11)}`; sideOnly(); }, { type: 'date' })),
         field(t('when.time'), input(f.once.slice(11), v => { f.once = `${f.once.slice(0, 10)}T${v}`; sideOnly(); }, { type: 'time' }))));
     } else if (f.mode === 'cron') {
       parts.push(field(t('when.cronField'), input(f.cron, v => { f.cron = v; sideOnly(); }, { mono: true }), t('when.cronHint')));
     } else {
       const unit = f.every.unit;
-      parts.push(field(t('when.every'), h('div', { class: 'ed-line' },
+      parts.push(field(t('when.every'), h('div', { class: 'sce-line' },
         input(f.every.n, v => { f.every.n = Math.max(1, Number(v) || 1); sideOnly(); }, { type: 'number', min: 1, small: true, label: t('when.n') }),
         select(unit, UNITS.map(u => ({ value: u, label: t(`unit.${u}`, { n: f.every.n }) })), v => { f.every.unit = v; redraw(); }, t('when.unit')))));
       if (unit === 'week' || unit === 'minute' || unit === 'hour') {
-        parts.push(field(unit === 'week' ? t('when.on') : t('when.onlyDays'), h('div', { class: 'ed-days', role: 'group' }, DAYS.map(d => h('button', {
+        parts.push(field(unit === 'week' ? t('when.on') : t('when.onlyDays'), h('div', { class: 'sce-days', role: 'group' }, DAYS.map(d => h('button', {
           type: 'button', 'aria-pressed': String(f.days.includes(d)), title: t(`day.${d}`),
           onclick: () => { f.days = f.days.includes(d) ? f.days.filter(x => x !== d) : [...f.days, d].sort(); if (!f.days.length) f.days = [d]; redraw(); },
         }, t(`day.${d}.short`))))));
       }
       if (unit === 'minute' || unit === 'hour') {
-        parts.push(field(t('when.between'), h('div', { class: 'ed-line' },
+        parts.push(field(t('when.between'), h('div', { class: 'sce-line' },
           check(!!f.between, v => { f.between = v ? ['09:00', '18:00'] : null; redraw(); }, null, t('when.between')),
           f.between ? input(f.between[0], v => { f.between[0] = v; sideOnly(); }, { type: 'time', label: t('when.from') }) : null,
           f.between ? h('span', {}, t('when.to')) : null,
@@ -420,25 +420,25 @@ function editorWindow({ id = null, copy = null, prefill = {} }, openWindow) {
       } else {
         if (unit === 'month' || unit === 'year') {
           const m = f.monthly;
-          parts.push(field(t('when.onDay'), h('div', { class: 'ed-line' },
+          parts.push(field(t('when.onDay'), h('div', { class: 'sce-line' },
             unit === 'year' ? select(f.month, Array.from({ length: 12 }, (_, i) => ({ value: i + 1, label: i18n.date(Date.UTC(2000, i, 1), { month: 'long', timeZone: 'UTC' }) })), v => { f.month = Number(v); sideOnly(); }, t('when.month')) : null,
             select(m.kind, [{ value: 'day', label: t('when.dayN') }, { value: 'last', label: t('when.lastDay') }, { value: 'nth', label: t('when.nthWeekday') }], v => { m.kind = v; redraw(); }, t('when.onDay')),
             m.kind === 'day' ? input(m.day, v => { m.day = Math.max(1, Math.min(31, Number(v) || 1)); sideOnly(); }, { type: 'number', min: 1, max: 31, small: true }) : null,
             m.kind === 'nth' ? select(m.nth, [1, 2, 3, 4, 5, -1].map(n => ({ value: n, label: t(`nth.${n}`) })), v => { m.nth = Number(v); sideOnly(); }, t('when.nth')) : null,
             m.kind === 'nth' ? select(m.weekday, DAYS.map(d => ({ value: d, label: t(`day.${d}`) })), v => { m.weekday = Number(v); sideOnly(); }, t('when.weekday')) : null)));
         }
-        parts.push(field(t('when.at'), h('div', { class: 'ed-times' },
-          f.times.map((time, i) => h('span', { class: 'ed-chip' },
+        parts.push(field(t('when.at'), h('div', { class: 'sce-times' },
+          f.times.map((time, i) => h('span', { class: 'sce-chip' },
             input(time, v => { f.times[i] = v; sideOnly(); }, { type: 'time', label: t('when.time') }),
             f.times.length > 1 ? h('button', { class: 'sc-icon', type: 'button', 'aria-label': t('when.removeTime'), onclick: () => { f.times.splice(i, 1); redraw(); } }, icon('x')) : null)),
           h('button', { class: 'ctl-btn', type: 'button', onclick: () => { f.times.push('12:00'); redraw(); } }, icon('plus'), t('when.addTime')))));
       }
     }
     if (f.mode !== 'once') {
-      parts.push(h('div', { class: 'ed-two' },
+      parts.push(h('div', { class: 'sce-two' },
         field(t('when.start'), input(f.start, v => { f.start = v; sideOnly(); }, { type: 'datetime-local' })),
         field(t('when.zone'), zoneSelect(f))));
-      parts.push(field(t('when.end'), h('div', { class: 'ed-line' },
+      parts.push(field(t('when.end'), h('div', { class: 'sce-line' },
         radio(f.endKind, [{ value: 'never', label: t('when.never') }, { value: 'date', label: t('when.onDate') }, { value: 'count', label: t('when.after') }], v => { f.endKind = v; redraw(); }),
         f.endKind === 'date' ? input(f.end || f.start.slice(0, 10), v => { f.end = v; sideOnly(); }, { type: 'date', label: t('when.onDate') }) : null,
         f.endKind === 'count' ? input(f.count, v => { f.count = Math.max(1, Number(v) || 1); sideOnly(); }, { type: 'number', min: 1, small: true, label: t('when.after') }) : null,
@@ -465,9 +465,9 @@ function editorWindow({ id = null, copy = null, prefill = {} }, openWindow) {
       field(t('opt.missed'), radio(o.missed, [{ value: 'once', label: t('opt.missedOnce') }, { value: 'skip', label: t('opt.missedSkip') }], v => { o.missed = v; })),
       browser ? field(t('opt.closed'), check(o.ask, v => { o.ask = v; }, t('opt.ask'))) : null,
       field(t('opt.overlap'), radio(o.overlap, [{ value: 'skip', label: t('opt.overlapSkip') }, { value: 'queue', label: t('opt.overlapQueue') }, { value: 'parallel', label: t('opt.overlapParallel') }], v => { o.overlap = v; })),
-      h('div', { class: 'ed-two' },
-        field(t('opt.timeout'), h('div', { class: 'ed-line' }, input(o.timeoutMin, v => { o.timeoutMin = Math.max(1, Math.min(1440, Number(v) || 60)); }, { type: 'number', min: 1, max: 1440, small: true }), h('span', {}, t('opt.minutes')))),
-        field(t('opt.retries'), h('div', { class: 'ed-line' },
+      h('div', { class: 'sce-two' },
+        field(t('opt.timeout'), h('div', { class: 'sce-line' }, input(o.timeoutMin, v => { o.timeoutMin = Math.max(1, Math.min(1440, Number(v) || 60)); }, { type: 'number', min: 1, max: 1440, small: true }), h('span', {}, t('opt.minutes')))),
+        field(t('opt.retries'), h('div', { class: 'sce-line' },
           input(o.retries, v => { o.retries = Math.max(0, Math.min(5, Number(v) || 0)); }, { type: 'number', min: 0, max: 5, small: true }), h('span', {}, t('opt.timesEvery')),
           input(o.retryMin, v => { o.retryMin = Math.max(1, Math.min(1440, Number(v) || 5)); }, { type: 'number', min: 1, max: 1440, small: true }), h('span', {}, t('opt.minutes'))))),
       field(t('opt.notify'), radio(o.notify, [{ value: 'error', label: t('opt.notifyError') }, { value: 'always', label: t('opt.notifyAlways') }, { value: 'never', label: t('opt.notifyNever') }], v => { o.notify = v; })),
@@ -493,18 +493,18 @@ function editorWindow({ id = null, copy = null, prefill = {} }, openWindow) {
   function drawSide() {
     let rule = null, problem = '';
     try { rule = schedule.rules.checkWhen(ruleOf(draft.form)); } catch (err) { problem = err.message; }
-    const items = [h('div', { class: 'sc-sub' }, t('side.words')), h('div', { class: 'ed-words' }, rule ? schedule.describe(rule) : '—')];
-    if (rule) items.push(h('div', { class: 'ed-tz' }, rule.tz));
-    if (problem) items.push(h('p', { class: 'ed-bad' }, problem));
+    const items = [h('div', { class: 'sc-sub' }, t('side.words')), h('div', { class: 'sce-words' }, rule ? schedule.describe(rule) : '—')];
+    if (rule) items.push(h('div', { class: 'sce-tz' }, rule.tz));
+    if (problem) items.push(h('p', { class: 'sce-bad' }, problem));
     if (rule) {
       const times = schedule.rules.between(rule, Date.now(), Date.now() + 5 * 366 * 86400_000, 6);
       items.push(h('div', { class: 'sc-sub' }, t('side.next')),
-        times.length ? h('div', { class: 'sc-nexts' }, times.map(ms => h('span', {}, h('b', {}, whenText(ms))))) : h('p', { class: 'ed-hint' }, t('side.noMore')));
+        times.length ? h('div', { class: 'sc-nexts' }, times.map(ms => h('span', {}, h('b', {}, whenText(ms))))) : h('p', { class: 'sce-hint' }, t('side.noMore')));
       const cron = schedule.rules.toCron(rule);
-      if (cron) items.push(h('div', { class: 'sc-sub' }, t('side.cron')), h('code', { class: 'ed-cron' }, cron));
+      if (cron) items.push(h('div', { class: 'sc-sub' }, t('side.cron')), h('code', { class: 'sce-cron' }, cron));
     }
-    items.push(h('div', { class: 'sc-sub' }, t('side.what')), h('div', { class: 'ed-summary' }, h('span', { class: `sc-kico k-${draft.what.type}` }, icon(kindOf(draft.what.type).glyph)), whatText(draft.what, catalog) || t(`kind.${draft.what.type}.name`)));
-    if (kindOf(draft.what.type).where === 'browser') items.push(h('p', { class: 'ed-warn' }, icon('window'), t('side.browser')));
+    items.push(h('div', { class: 'sc-sub' }, t('side.what')), h('div', { class: 'sce-summary' }, h('span', { class: `sc-kico k-${draft.what.type}` }, icon(kindOf(draft.what.type).glyph)), whatText(draft.what, catalog) || t(`kind.${draft.what.type}.name`)));
+    if (kindOf(draft.what.type).where === 'browser') items.push(h('p', { class: 'sce-warn' }, icon('window'), t('side.browser')));
     fill(sideEl, ...items);
   }
 

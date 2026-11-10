@@ -1,6 +1,6 @@
 {
   "id": "scheduler",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "kind": "local",
   "name": "Scheduler",
   "description": "Operations at a date and time or repeated, also with lilOS closed: reminders, backups of folders, web requests, NetTest collections, Terminal commands, apps' services, opening apps and files, automations.",
