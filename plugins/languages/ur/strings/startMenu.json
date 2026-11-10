@@ -69,5 +69,7 @@
   "moveDown": "نیچے منتقل کریں",
   "onDesk": "پہلے سے ڈیسک ٹاپ پر ہے",
   "showOnDesk": "ڈیسک ٹاپ پر دکھائیں",
-  "backOnDesk": "«{name}» دوبارہ ڈیسک ٹاپ پر ہے"
+  "backOnDesk": "«{name}» دوبارہ ڈیسک ٹاپ پر ہے",
+  "projects": "پروجیکٹس",
+  "projectHint": "چلتا ہوا Logic Studio پروجیکٹ: اس کی مرکزی ونڈو"
 }

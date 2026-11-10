@@ -1,0 +1,14 @@
+{
+  "noGrow": "여기에는 포트를 추가할 수 없습니다",
+  "maxAdded": "추가 포트는 최대 {n}개입니다",
+  "unknownBlock": "알 수 없는 블록",
+  "onlyAdded": "추가한 포트만 제거할 수 있습니다",
+  "notSchema": "Logic Studio 스키마(.lsch)가 아닙니다",
+  "notWindow": "Logic Studio 창(.lsui)이 아닙니다",
+  "notProject": "Logic Studio 프로젝트(.lsproj)가 아닙니다",
+  "intoContainer": "구성 요소는 컨테이너 안에만 넣을 수 있습니다",
+  "unknownComponent": "알 수 없는 구성 요소",
+  "mainConsole": "기본 콘솔은 제거할 수 없습니다",
+  "error": "예외",
+  "missing": "패키지가 없습니다"
+}

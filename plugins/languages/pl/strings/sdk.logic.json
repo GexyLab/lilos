@@ -1,0 +1,14 @@
+{
+  "noGrow": "Tu nie można dodawać portów",
+  "maxAdded": "Najwyżej {n} dodanych portów",
+  "unknownBlock": "Nieznany blok",
+  "onlyAdded": "Można usunąć tylko dodane porty",
+  "notSchema": "To nie jest schemat Logic Studio (.lsch)",
+  "notWindow": "To nie jest okno Logic Studio (.lsui)",
+  "notProject": "To nie jest projekt Logic Studio (.lsproj)",
+  "intoContainer": "Komponenty trafiają tylko do kontenera",
+  "unknownComponent": "Nieznany komponent",
+  "mainConsole": "Konsoli głównej nie można usunąć",
+  "error": "Wyjątek",
+  "missing": "Brakuje pakietu"
+}

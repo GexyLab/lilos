@@ -1,0 +1,11 @@
+{
+  "asks": "{name}: η κονσόλα {console} ζητά κάτι",
+  "failed": "Το {name} σταμάτησε: {error}",
+  "consoleTitle": "Κονσόλα {name}",
+  "consoleAll": "Κονσόλα",
+  "noWindows": "Το {name} δεν έχει παράθυρα",
+  "notRunning": "Το {name} δεν εκτελείται: ενεργοποίησέ το στο Logic Studio",
+  "gone": "Το πρόγραμμα δεν υπάρχει πια",
+  "badApp": "Αυτό δεν είναι εφαρμογή του Logic Studio ή λείπουν τα αρχεία της",
+  "appFailed": "Το {name} δεν ξεκίνησε: {error}"
+}

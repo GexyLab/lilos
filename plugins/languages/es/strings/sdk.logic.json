@@ -1,0 +1,14 @@
+{
+  "noGrow": "Este no permite añadir puertos",
+  "maxAdded": "Como máximo {n} puertos añadidos",
+  "unknownBlock": "Bloque desconocido",
+  "onlyAdded": "Solo se pueden quitar los puertos añadidos",
+  "notSchema": "Esto no es un esquema de Logic Studio (.lsch)",
+  "notWindow": "Esto no es una ventana de Logic Studio (.lsui)",
+  "notProject": "Esto no es un proyecto de Logic Studio (.lsproj)",
+  "intoContainer": "Los componentes solo van dentro de un contenedor",
+  "unknownComponent": "Componente desconocido",
+  "mainConsole": "La consola principal no se puede quitar",
+  "error": "Excepción",
+  "missing": "Falta el paquete"
+}

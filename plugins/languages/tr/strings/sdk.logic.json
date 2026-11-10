@@ -1,0 +1,14 @@
+{
+  "noGrow": "Buna bağlantı noktası eklenemez",
+  "maxAdded": "En fazla {n} eklenmiş bağlantı noktası",
+  "unknownBlock": "Bilinmeyen blok",
+  "onlyAdded": "Yalnızca eklenen bağlantı noktaları kaldırılabilir",
+  "notSchema": "Bu bir Logic Studio şeması (.lsch) değil",
+  "notWindow": "Bu bir Logic Studio penceresi (.lsui) değil",
+  "notProject": "Bu bir Logic Studio projesi (.lsproj) değil",
+  "intoContainer": "Bileşenler yalnızca bir kapsayıcının içine konur",
+  "unknownComponent": "Bilinmeyen bileşen",
+  "mainConsole": "Ana konsol kaldırılamaz",
+  "error": "İstisna",
+  "missing": "Paket eksik"
+}

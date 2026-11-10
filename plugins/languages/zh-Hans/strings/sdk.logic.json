@@ -1,0 +1,14 @@
+{
+  "noGrow": "此项不允许添加端口",
+  "maxAdded": "最多添加 {n} 个端口",
+  "unknownBlock": "未知的块",
+  "onlyAdded": "只能移除添加的端口",
+  "notSchema": "这不是 Logic Studio 原理图 (.lsch)",
+  "notWindow": "这不是 Logic Studio 窗口 (.lsui)",
+  "notProject": "这不是 Logic Studio 项目 (.lsproj)",
+  "intoContainer": "组件只能放在容器内",
+  "unknownComponent": "未知的组件",
+  "mainConsole": "主控制台不能移除",
+  "error": "异常",
+  "missing": "缺少该包"
+}

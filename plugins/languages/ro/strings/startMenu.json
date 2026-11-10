@@ -72,5 +72,7 @@
   "moveDown": "Mutați în jos",
   "onDesk": "Deja pe desktop",
   "showOnDesk": "Afișați pe desktop",
-  "backOnDesk": "„{name}” este din nou pe desktop"
+  "backOnDesk": "„{name}” este din nou pe desktop",
+  "projects": "Proiecte",
+  "projectHint": "Un proiect Logic Studio în execuție: fereastra lui principală"
 }

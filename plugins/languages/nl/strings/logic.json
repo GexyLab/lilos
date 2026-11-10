@@ -1,0 +1,11 @@
+{
+  "asks": "{name}: de console {console} vraagt iets",
+  "failed": "{name} is gestopt: {error}",
+  "consoleTitle": "Console {name}",
+  "consoleAll": "Console",
+  "noWindows": "{name} heeft geen vensters",
+  "notRunning": "{name} draait niet: activeer het in Logic Studio",
+  "gone": "Het programma is er niet meer",
+  "badApp": "Dit is geen app gemaakt met Logic Studio, of de bestanden ontbreken",
+  "appFailed": "{name} is niet gestart: {error}"
+}

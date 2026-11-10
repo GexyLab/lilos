@@ -69,5 +69,7 @@
   "moveDown": "Sposta giù",
   "onDesk": "Già sul desktop",
   "showOnDesk": "Mostra sul desktop",
-  "backOnDesk": "«{name}» è di nuovo sul desktop"
+  "backOnDesk": "«{name}» è di nuovo sul desktop",
+  "projects": "Progetti",
+  "projectHint": "Un progetto di Logic Studio in esecuzione: la sua finestra principale"
 }

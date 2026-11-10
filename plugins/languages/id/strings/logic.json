@@ -1,0 +1,11 @@
+{
+  "asks": "{name}: konsol {console} menanyakan sesuatu",
+  "failed": "{name} berhenti: {error}",
+  "consoleTitle": "Konsol {name}",
+  "consoleAll": "Konsol",
+  "noWindows": "{name} tidak punya jendela",
+  "notRunning": "{name} tidak berjalan: aktifkan di Logic Studio",
+  "gone": "Program tidak ada lagi",
+  "badApp": "Ini bukan aplikasi buatan Logic Studio, atau filenya hilang",
+  "appFailed": "{name} tidak dapat dimulai: {error}"
+}

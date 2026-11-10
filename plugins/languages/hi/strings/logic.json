@@ -1,0 +1,11 @@
+{
+  "asks": "{name}: कंसोल {console} कुछ पूछ रहा है",
+  "failed": "{name} रुक गया: {error}",
+  "consoleTitle": "कंसोल {name}",
+  "consoleAll": "कंसोल",
+  "noWindows": "{name} की कोई विंडो नहीं है",
+  "notRunning": "{name} चल नहीं रहा: इसे Logic Studio में चालू करें",
+  "gone": "प्रोग्राम अब मौजूद नहीं है",
+  "badApp": "यह Logic Studio से बना ऐप नहीं है, या इसकी फ़ाइलें गायब हैं",
+  "appFailed": "{name} शुरू नहीं हुआ: {error}"
+}

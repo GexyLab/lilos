@@ -69,5 +69,7 @@
   "moveDown": "Omlaag",
   "onDesk": "Al op het bureaublad",
   "showOnDesk": "Tonen op het bureaublad",
-  "backOnDesk": "‘{name}’ staat weer op het bureaublad"
+  "backOnDesk": "‘{name}’ staat weer op het bureaublad",
+  "projects": "Projecten",
+  "projectHint": "Een draaiend Logic Studio-project: het hoofdvenster"
 }

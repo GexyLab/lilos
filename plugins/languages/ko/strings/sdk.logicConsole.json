@@ -1,0 +1,8 @@
+{
+  "hint": "Enter로 전송 · Esc로 취소",
+  "answer": "응답",
+  "text": "텍스트",
+  "number": "숫자",
+  "bool": "예/아니요",
+  "key": "키"
+}

@@ -66,5 +66,7 @@
   "moveDown": "下移",
   "onDesk": "已在桌面上",
   "showOnDesk": "在桌面上显示",
-  "backOnDesk": "“{name}”已回到桌面上"
+  "backOnDesk": "“{name}”已回到桌面上",
+  "projects": "项目",
+  "projectHint": "正在运行的 Logic Studio 项目：其主窗口"
 }

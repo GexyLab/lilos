@@ -66,5 +66,7 @@
   "moveDown": "Pindahkan ke bawah",
   "onDesk": "Sudah ada di desktop",
   "showOnDesk": "Tampilkan di desktop",
-  "backOnDesk": "“{name}” kembali ada di desktop"
+  "backOnDesk": "“{name}” kembali ada di desktop",
+  "projects": "Proyek",
+  "projectHint": "Proyek Logic Studio yang sedang berjalan: jendela utamanya"
 }

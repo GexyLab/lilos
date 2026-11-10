@@ -69,5 +69,7 @@
   "moveDown": "Bajar",
   "onDesk": "Ya está en el escritorio",
   "showOnDesk": "Mostrar en el escritorio",
-  "backOnDesk": "«{name}» vuelve a estar en el escritorio"
+  "backOnDesk": "«{name}» vuelve a estar en el escritorio",
+  "projects": "Proyectos",
+  "projectHint": "Un proyecto de Logic Studio en ejecución: su ventana principal"
 }

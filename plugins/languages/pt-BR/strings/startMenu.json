@@ -69,5 +69,7 @@
   "moveDown": "Mover para baixo",
   "onDesk": "Já está na área de trabalho",
   "showOnDesk": "Mostrar na área de trabalho",
-  "backOnDesk": "“{name}” voltou para a área de trabalho"
+  "backOnDesk": "“{name}” voltou para a área de trabalho",
+  "projects": "Projetos",
+  "projectHint": "Um projeto do Logic Studio em execução: sua janela principal"
 }

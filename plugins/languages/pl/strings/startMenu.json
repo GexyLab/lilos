@@ -75,5 +75,7 @@
   "moveDown": "Przenieś w dół",
   "onDesk": "Już jest na pulpicie",
   "showOnDesk": "Pokaż na pulpicie",
-  "backOnDesk": "„{name}” wrócił na pulpit"
+  "backOnDesk": "„{name}” wrócił na pulpit",
+  "projects": "Projekty",
+  "projectHint": "Uruchomiony projekt Logic Studio: jego okno główne"
 }

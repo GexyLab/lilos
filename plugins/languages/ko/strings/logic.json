@@ -1,0 +1,11 @@
+{
+  "asks": "{name}: 콘솔 {console}에서 무언가를 요청합니다",
+  "failed": "{name}이(가) 중지되었습니다: {error}",
+  "consoleTitle": "콘솔 {name}",
+  "consoleAll": "콘솔",
+  "noWindows": "{name}에는 창이 없습니다",
+  "notRunning": "{name}이(가) 실행 중이 아닙니다: Logic Studio에서 활성화하세요",
+  "gone": "프로그램이 더 이상 없습니다",
+  "badApp": "Logic Studio로 만든 앱이 아니거나 파일이 없습니다",
+  "appFailed": "{name}을(를) 시작하지 못했습니다: {error}"
+}

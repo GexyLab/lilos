@@ -1,0 +1,14 @@
+{
+  "noGrow": "هذا لا يسمح بإضافة منافذ",
+  "maxAdded": "{n} منافذ مضافة كحد أقصى",
+  "unknownBlock": "كتلة غير معروفة",
+  "onlyAdded": "يمكن إزالة المنافذ المضافة فقط",
+  "notSchema": "هذا ليس مخططًا من Logic Studio (.lsch)",
+  "notWindow": "هذه ليست نافذة من Logic Studio (.lsui)",
+  "notProject": "هذا ليس مشروعًا من Logic Studio (.lsproj)",
+  "intoContainer": "تُوضع المكوّنات داخل حاوية فقط",
+  "unknownComponent": "مكوّن غير معروف",
+  "mainConsole": "لا يمكن إزالة وحدة التحكم الرئيسية",
+  "error": "استثناء",
+  "missing": "الحزمة مفقودة"
+}

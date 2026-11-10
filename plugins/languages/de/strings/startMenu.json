@@ -69,5 +69,7 @@
   "moveDown": "Nach unten",
   "onDesk": "Bereits auf dem Schreibtisch",
   "showOnDesk": "Auf dem Schreibtisch anzeigen",
-  "backOnDesk": "„{name}“ ist wieder auf dem Schreibtisch"
+  "backOnDesk": "„{name}“ ist wieder auf dem Schreibtisch",
+  "projects": "Projekte",
+  "projectHint": "Ein laufendes Logic-Studio-Projekt: sein Hauptfenster"
 }

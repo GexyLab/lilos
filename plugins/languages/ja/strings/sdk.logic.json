@@ -1,0 +1,14 @@
+{
+  "noGrow": "これにはポートを追加できません",
+  "maxAdded": "追加できるポートは最大 {n} 個です",
+  "unknownBlock": "不明なブロック",
+  "onlyAdded": "削除できるのは追加したポートだけです",
+  "notSchema": "Logic Studio のスキーマ (.lsch) ではありません",
+  "notWindow": "Logic Studio のウィンドウ (.lsui) ではありません",
+  "notProject": "Logic Studio のプロジェクト (.lsproj) ではありません",
+  "intoContainer": "コンポーネントはコンテナの中にのみ置けます",
+  "unknownComponent": "不明なコンポーネント",
+  "mainConsole": "メインコンソールは削除できません",
+  "error": "例外",
+  "missing": "パッケージがありません"
+}

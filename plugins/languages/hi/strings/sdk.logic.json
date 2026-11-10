@@ -1,0 +1,14 @@
+{
+  "noGrow": "इसमें पोर्ट जोड़े नहीं जा सकते",
+  "maxAdded": "अधिकतम {n} जोड़े गए पोर्ट",
+  "unknownBlock": "अज्ञात ब्लॉक",
+  "onlyAdded": "केवल जोड़े गए पोर्ट हटाए जा सकते हैं",
+  "notSchema": "यह Logic Studio का स्कीमा (.lsch) नहीं है",
+  "notWindow": "यह Logic Studio की विंडो (.lsui) नहीं है",
+  "notProject": "यह Logic Studio का प्रोजेक्ट (.lsproj) नहीं है",
+  "intoContainer": "कॉम्पोनेंट केवल कंटेनर के अंदर रखे जाते हैं",
+  "unknownComponent": "अज्ञात कॉम्पोनेंट",
+  "mainConsole": "मुख्य कंसोल हटाया नहीं जा सकता",
+  "error": "अपवाद",
+  "missing": "पैकेज गायब है"
+}

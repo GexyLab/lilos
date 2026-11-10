@@ -66,5 +66,7 @@
   "moveDown": "Aşağı taşı",
   "onDesk": "Zaten masaüstünde",
   "showOnDesk": "Masaüstünde göster",
-  "backOnDesk": "“{name}” yeniden masaüstünde"
+  "backOnDesk": "“{name}” yeniden masaüstünde",
+  "projects": "Projeler",
+  "projectHint": "Çalışan bir Logic Studio projesi: ana penceresi"
 }

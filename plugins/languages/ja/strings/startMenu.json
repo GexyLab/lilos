@@ -66,5 +66,7 @@
   "moveDown": "下へ移動",
   "onDesk": "すでにデスクトップにあります",
   "showOnDesk": "デスクトップに表示",
-  "backOnDesk": "「{name}」がデスクトップに戻りました"
+  "backOnDesk": "「{name}」がデスクトップに戻りました",
+  "projects": "プロジェクト",
+  "projectHint": "実行中の Logic Studio プロジェクト: そのメインウィンドウ"
 }

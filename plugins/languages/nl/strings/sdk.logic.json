@@ -1,0 +1,14 @@
+{
+  "noGrow": "Hier kunnen geen poorten worden toegevoegd",
+  "maxAdded": "Hoogstens {n} toegevoegde poorten",
+  "unknownBlock": "Onbekend blok",
+  "onlyAdded": "Alleen toegevoegde poorten kunnen worden verwijderd",
+  "notSchema": "Dit is geen Logic Studio-schema (.lsch)",
+  "notWindow": "Dit is geen Logic Studio-venster (.lsui)",
+  "notProject": "Dit is geen Logic Studio-project (.lsproj)",
+  "intoContainer": "Componenten horen alleen in een container",
+  "unknownComponent": "Onbekende component",
+  "mainConsole": "De hoofdconsole kan niet worden verwijderd",
+  "error": "Uitzondering",
+  "missing": "Het pakket ontbreekt"
+}

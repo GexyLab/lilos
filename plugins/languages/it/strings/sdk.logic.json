@@ -1,0 +1,14 @@
+{
+  "noGrow": "Questo non permette di aggiungere porte",
+  "maxAdded": "Al massimo {n} porte aggiunte",
+  "unknownBlock": "Blocco sconosciuto",
+  "onlyAdded": "Si possono togliere solo le porte aggiunte",
+  "notSchema": "Questo non è uno schema di Logic Studio (.lsch)",
+  "notWindow": "Questa non è una finestra di Logic Studio (.lsui)",
+  "notProject": "Questo non è un progetto di Logic Studio (.lsproj)",
+  "intoContainer": "I componenti vanno solo dentro un contenitore",
+  "unknownComponent": "Componente sconosciuto",
+  "mainConsole": "La console principale non si può togliere",
+  "error": "Eccezione",
+  "missing": "Il pacchetto non c'è"
+}

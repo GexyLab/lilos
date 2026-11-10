@@ -1,0 +1,11 @@
+{
+  "asks": "{name}: consola {console} cere ceva",
+  "failed": "{name} s-a oprit: {error}",
+  "consoleTitle": "Consola {name}",
+  "consoleAll": "Consolă",
+  "noWindows": "{name} nu are ferestre",
+  "notRunning": "{name} nu rulează: activează-l în Logic Studio",
+  "gone": "Programul nu mai există",
+  "badApp": "Aceasta nu este o aplicație creată cu Logic Studio sau îi lipsesc fișierele",
+  "appFailed": "{name} nu a pornit: {error}"
+}

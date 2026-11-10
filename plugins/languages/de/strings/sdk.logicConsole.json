@@ -1,0 +1,8 @@
+{
+  "hint": "Eingabe sendet · Esc bricht ab",
+  "answer": "Antwort",
+  "text": "Text",
+  "number": "Zahl",
+  "bool": "Ja/Nein",
+  "key": "eine Taste"
+}

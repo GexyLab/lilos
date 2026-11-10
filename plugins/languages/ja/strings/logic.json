@@ -1,0 +1,11 @@
+{
+  "asks": "{name}: コンソール {console} が何かを求めています",
+  "failed": "{name} が停止しました: {error}",
+  "consoleTitle": "コンソール {name}",
+  "consoleAll": "コンソール",
+  "noWindows": "{name} にはウィンドウがありません",
+  "notRunning": "{name} は実行されていません: Logic Studio で有効にしてください",
+  "gone": "プログラムが見つかりません",
+  "badApp": "Logic Studio で作られたアプリではないか、ファイルが足りません",
+  "appFailed": "{name} を起動できませんでした: {error}"
+}

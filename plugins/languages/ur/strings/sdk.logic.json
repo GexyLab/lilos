@@ -1,0 +1,14 @@
+{
+  "noGrow": "اس میں پورٹس شامل نہیں کیے جا سکتے",
+  "maxAdded": "زیادہ سے زیادہ {n} شامل کردہ پورٹس",
+  "unknownBlock": "نامعلوم بلاک",
+  "onlyAdded": "صرف شامل کردہ پورٹس ہٹائے جا سکتے ہیں",
+  "notSchema": "یہ Logic Studio کا اسکیما (.lsch) نہیں ہے",
+  "notWindow": "یہ Logic Studio کی ونڈو (.lsui) نہیں ہے",
+  "notProject": "یہ Logic Studio کا پروجیکٹ (.lsproj) نہیں ہے",
+  "intoContainer": "اجزاء صرف کنٹینر کے اندر رکھے جاتے ہیں",
+  "unknownComponent": "نامعلوم جزو",
+  "mainConsole": "مرکزی کنسول ہٹایا نہیں جا سکتا",
+  "error": "استثنا",
+  "missing": "پیکیج غائب ہے"
+}

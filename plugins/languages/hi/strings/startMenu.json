@@ -69,5 +69,7 @@
   "moveDown": "नीचे ले जाएँ",
   "onDesk": "पहले से डेस्कटॉप पर है",
   "showOnDesk": "डेस्कटॉप पर दिखाएँ",
-  "backOnDesk": "“{name}” वापस डेस्कटॉप पर है"
+  "backOnDesk": "“{name}” वापस डेस्कटॉप पर है",
+  "projects": "प्रोजेक्ट",
+  "projectHint": "चलता हुआ Logic Studio प्रोजेक्ट: उसकी मुख्य विंडो"
 }

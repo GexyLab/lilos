@@ -1,0 +1,14 @@
+{
+  "noGrow": "Ini tidak memungkinkan penambahan port",
+  "maxAdded": "Paling banyak {n} port tambahan",
+  "unknownBlock": "Blok tidak dikenal",
+  "onlyAdded": "Hanya port tambahan yang dapat dihapus",
+  "notSchema": "Ini bukan skema Logic Studio (.lsch)",
+  "notWindow": "Ini bukan jendela Logic Studio (.lsui)",
+  "notProject": "Ini bukan proyek Logic Studio (.lsproj)",
+  "intoContainer": "Komponen hanya masuk ke dalam kontainer",
+  "unknownComponent": "Komponen tidak dikenal",
+  "mainConsole": "Konsol utama tidak dapat dihapus",
+  "error": "Pengecualian",
+  "missing": "Paket hilang"
+}

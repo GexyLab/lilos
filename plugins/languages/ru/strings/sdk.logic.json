@@ -1,0 +1,14 @@
+{
+  "noGrow": "Сюда нельзя добавлять порты",
+  "maxAdded": "Не более {n} добавленных портов",
+  "unknownBlock": "Неизвестный блок",
+  "onlyAdded": "Удалять можно только добавленные порты",
+  "notSchema": "Это не схема Logic Studio (.lsch)",
+  "notWindow": "Это не окно Logic Studio (.lsui)",
+  "notProject": "Это не проект Logic Studio (.lsproj)",
+  "intoContainer": "Компоненты размещаются только внутри контейнера",
+  "unknownComponent": "Неизвестный компонент",
+  "mainConsole": "Главную консоль удалить нельзя",
+  "error": "Исключение",
+  "missing": "Пакет отсутствует"
+}

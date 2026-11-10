@@ -1,0 +1,11 @@
+{
+  "asks": "{name}: {console} konsolu bir şey soruyor",
+  "failed": "{name} durdu: {error}",
+  "consoleTitle": "{name} konsolu",
+  "consoleAll": "Konsol",
+  "noWindows": "{name} penceresi yok",
+  "notRunning": "{name} çalışmıyor: Logic Studio'da etkinleştirin",
+  "gone": "Program artık yok",
+  "badApp": "Bu, Logic Studio ile yapılmış bir uygulama değil ya da dosyaları eksik",
+  "appFailed": "{name} başlamadı: {error}"
+}

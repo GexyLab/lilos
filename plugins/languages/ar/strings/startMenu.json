@@ -81,5 +81,7 @@
   "moveDown": "نقل لأسفل",
   "onDesk": "موجود بالفعل على سطح المكتب",
   "showOnDesk": "إظهار على سطح المكتب",
-  "backOnDesk": "عاد «{name}» إلى سطح المكتب"
+  "backOnDesk": "عاد «{name}» إلى سطح المكتب",
+  "projects": "المشاريع",
+  "projectHint": "مشروع Logic Studio قيد التشغيل: نافذته الرئيسية"
 }

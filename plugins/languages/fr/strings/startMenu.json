@@ -69,5 +69,7 @@
   "moveDown": "Descendre",
   "onDesk": "Déjà sur le bureau",
   "showOnDesk": "Afficher sur le bureau",
-  "backOnDesk": "« {name} » est de retour sur le bureau"
+  "backOnDesk": "« {name} » est de retour sur le bureau",
+  "projects": "Projets",
+  "projectHint": "Un projet Logic Studio en cours d'exécution : sa fenêtre principale"
 }

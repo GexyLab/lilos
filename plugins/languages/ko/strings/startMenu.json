@@ -66,5 +66,7 @@
   "moveDown": "아래로 이동",
   "onDesk": "이미 바탕 화면에 있음",
   "showOnDesk": "바탕 화면에 표시",
-  "backOnDesk": "“{name}”이(가) 바탕 화면에 다시 표시됩니다"
+  "backOnDesk": "“{name}”이(가) 바탕 화면에 다시 표시됩니다",
+  "projects": "프로젝트",
+  "projectHint": "실행 중인 Logic Studio 프로젝트: 해당 기본 창"
 }

@@ -1,0 +1,11 @@
+{
+  "asks": "{name}: Die Konsole {console} fragt etwas",
+  "failed": "{name} wurde angehalten: {error}",
+  "consoleTitle": "Konsole {name}",
+  "consoleAll": "Konsole",
+  "noWindows": "{name} hat keine Fenster",
+  "notRunning": "{name} läuft nicht: In Logic Studio aktivieren",
+  "gone": "Das Programm ist nicht mehr da",
+  "badApp": "Das ist keine mit Logic Studio erstellte App, oder ihre Dateien fehlen",
+  "appFailed": "{name} wurde nicht gestartet: {error}"
+}

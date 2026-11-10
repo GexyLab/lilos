@@ -1,0 +1,11 @@
+{
+  "asks": "{name}: консоль {console} про щось запитує",
+  "failed": "{name} зупинився: {error}",
+  "consoleTitle": "Консоль {name}",
+  "consoleAll": "Консоль",
+  "noWindows": "У {name} немає вікон",
+  "notRunning": "{name} не запущено: увімкніть його в Logic Studio",
+  "gone": "Програми більше немає",
+  "badApp": "Це не застосунок, створений у Logic Studio, або його файлів бракує",
+  "appFailed": "{name} не запустився: {error}"
+}

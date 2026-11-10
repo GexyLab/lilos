@@ -1,0 +1,14 @@
+{
+  "noGrow": "Aici nu se pot adăuga porturi",
+  "maxAdded": "Cel mult {n} porturi adăugate",
+  "unknownBlock": "Bloc necunoscut",
+  "onlyAdded": "Se pot elimina doar porturile adăugate",
+  "notSchema": "Aceasta nu este o schemă Logic Studio (.lsch)",
+  "notWindow": "Aceasta nu este o fereastră Logic Studio (.lsui)",
+  "notProject": "Acesta nu este un proiect Logic Studio (.lsproj)",
+  "intoContainer": "Componentele se pun doar într-un container",
+  "unknownComponent": "Componentă necunoscută",
+  "mainConsole": "Consola principală nu poate fi eliminată",
+  "error": "Excepție",
+  "missing": "Pachetul lipsește"
+}

@@ -1,0 +1,14 @@
+{
+  "noGrow": "Hier können keine Anschlüsse hinzugefügt werden",
+  "maxAdded": "Höchstens {n} hinzugefügte Anschlüsse",
+  "unknownBlock": "Unbekannter Block",
+  "onlyAdded": "Nur hinzugefügte Anschlüsse können entfernt werden",
+  "notSchema": "Das ist kein Logic-Studio-Schema (.lsch)",
+  "notWindow": "Das ist kein Logic-Studio-Fenster (.lsui)",
+  "notProject": "Das ist kein Logic-Studio-Projekt (.lsproj)",
+  "intoContainer": "Komponenten gehören nur in einen Container",
+  "unknownComponent": "Unbekannte Komponente",
+  "mainConsole": "Die Hauptkonsole kann nicht entfernt werden",
+  "error": "Ausnahme",
+  "missing": "Das Paket fehlt"
+}

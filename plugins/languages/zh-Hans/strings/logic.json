@@ -1,0 +1,11 @@
+{
+  "asks": "{name}：控制台 {console} 正在请求输入",
+  "failed": "{name} 已停止：{error}",
+  "consoleTitle": "控制台 {name}",
+  "consoleAll": "控制台",
+  "noWindows": "{name} 没有窗口",
+  "notRunning": "{name} 未在运行：请在 Logic Studio 中启用",
+  "gone": "该程序已不存在",
+  "badApp": "这不是由 Logic Studio 制作的应用，或缺少其文件",
+  "appFailed": "{name} 未能启动：{error}"
+}

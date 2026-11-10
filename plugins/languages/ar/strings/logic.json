@@ -1,0 +1,11 @@
+{
+  "asks": "{name}: وحدة التحكم {console} تطلب شيئًا",
+  "failed": "توقف {name}: {error}",
+  "consoleTitle": "وحدة التحكم {name}",
+  "consoleAll": "وحدة التحكم",
+  "noWindows": "{name} ليس له نوافذ",
+  "notRunning": "{name} غير قيد التشغيل: فعّله في Logic Studio",
+  "gone": "البرنامج لم يعد موجودًا",
+  "badApp": "هذا ليس تطبيقًا أنشأه Logic Studio، أو ملفاته مفقودة",
+  "appFailed": "لم يبدأ {name}: {error}"
+}

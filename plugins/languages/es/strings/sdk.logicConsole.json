@@ -1,0 +1,8 @@
+{
+  "hint": "Intro envía · Esc cancela",
+  "answer": "Respuesta",
+  "text": "texto",
+  "number": "número",
+  "bool": "sí/no",
+  "key": "una tecla"
+}
