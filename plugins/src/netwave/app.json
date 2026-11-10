@@ -1,6 +1,6 @@
 {
   "id": "netwave",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "kind": "local",
   "name": "NetWave Browser",
   "description": "A web browser for lilOS: tabs in as many windows as you want, each window saved as a session with all its tabs, and a history of the pages and of the sessions opened. The pages run isolated from lilOS, in the lilOS program.",

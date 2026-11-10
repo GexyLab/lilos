@@ -1442,14 +1442,15 @@ I server li raggiunge il computer di lilOS, con le stesse regole della cartella 
 
 **NetWave Browser** è un browser dentro lilOS: apri siti web in schede, in quante finestre vuoi. Ogni finestra può essere salvata come **sessione**, un file con tutte le sue schede, da riaprire quando vuoi.
 
-NetWave non c'è di serie: un amministratore lo installa dall'[AppStore](#lappstore), categoria **Produttività**, e poi lo trovi nel menu di avvio. Serve lilOS dalla 1.38.0. L'app chiede di scrivere i file della tua home (per le sessioni e i download).
+NetWave non c'è di serie: un amministratore lo installa dall'[AppStore](#lappstore), categoria **Produttività**, e poi lo trovi nel menu di avvio. Serve lilOS dalla 1.38.0 (dalla 1.38.1 per i limiti nuovi su download e popup). L'app chiede di scrivere i file della tua home (per le sessioni e i download).
 
-**Le pagine web si vedono solo nel [programma lilOS](#il-programma-lilos)** (dalla versione 0.5.0), collegato a un lilOS di cui si fida. Se usi lilOS dal browser, NetWave si apre lo stesso e ti avvisa che qui le pagine non ci sono: **Apri nel browser** apre l'indirizzo nel tuo browser. Le sessioni e la cronologia funzionano comunque. Le pagine girano separate da lilOS: non possono vedere i tuoi file né i tuoi dati di lilOS, e non possono aprire lilOS stesso.
+**Le pagine web si vedono solo nel [programma lilOS](#il-programma-lilos)** (dalla versione 0.5.1), collegato a un lilOS di cui si fida. Se usi lilOS dal browser, NetWave si apre lo stesso e ti avvisa che qui le pagine non ci sono: **Apri nel browser** apre l'indirizzo nel tuo browser. Le sessioni e la cronologia funzionano comunque. Le pagine girano separate da lilOS: non possono vedere i tuoi file né i tuoi dati di lilOS, e non possono aprire lilOS stesso, né con il suo indirizzo né con un altro nome di questo computer.
 
 ### Schede e finestre
 
 - **Ctrl T** apre una scheda, **Ctrl W** la chiude, **Ctrl Shift T** riapre l'ultima chiusa. **Ctrl N** apre una nuova finestra.
-- Nella barra scrivi un indirizzo o delle parole da cercare. **Ctrl L** porta lì il cursore.
+- Nella barra scrivi un indirizzo o delle parole da cercare. **Ctrl L** porta lì il cursore. Indirizzi come `file:`, `javascript:`, `mailto:` o `about:` (tranne `about:blank`) non si aprono e non diventano una ricerca: compare la pagina «NetWave non apre questo indirizzo».
+- Quando una pagina vuole aprire una nuova scheda (un popup, un collegamento a una nuova finestra), NetWave lo chiede con una barra sopra la pagina: **Non consentire** o **Apri**. Con la casella **Ricorda per questo sito** la risposta vale per sempre. Se apri tu un collegamento in una scheda sullo sfondo (Ctrl o clic centrale) non chiede. Si può togliere la domanda in **Opzioni** (vedi sotto): allora le schede si aprono subito, al massimo 5 ogni 10 secondi per pagina.
 - Il tasto destro su una scheda la ricarica, duplica, fissa, silenzia, chiude o la sposta in una nuova finestra.
 - **Home** apre la pagina iniziale che scegli nelle Opzioni. Di serie è la pagina di partenza di NetWave, con le sessioni e le finestre chiuse di recente.
 - Un collegamento a una pagina web sulla scrivania (vedi [Collegamenti sulla scrivania](#collegamenti-sulla-scrivania)) si apre in NetWave, se è installata e le pagine web sono disponibili; altrimenti nel browser.
@@ -1481,19 +1482,21 @@ Una sessione è un file `.nwsession` con tutte le schede di una finestra. Salvar
 
 ### Permessi dei siti
 
-Quando un sito chiede la tua posizione, la fotocamera, il microfono, le notifiche e cose simili, compare una barra di NetWave sopra la pagina con tre scelte: **Blocca**, **Solo questa volta** e **Consenti sempre**. Se non rispondi, vale come Blocca. Lo scudo accanto all'indirizzo mostra cosa hai deciso per il sito e permette di **Chiedi di nuovo**. In una finestra privata la risposta non si ricorda.
+Quando un sito chiede la tua posizione, la fotocamera, il microfono, le notifiche e cose simili, compare una barra di NetWave sopra la pagina con due scelte: **Non consentire** e **Consenti**. Con la casella **Ricorda per questo sito** la risposta vale anche la prossima volta; senza, vale solo per questa richiesta. Fotocamera e microfono si chiedono e si ricordano separatamente. Se non rispondi entro 2 minuti vale come «Non consentire» e la barra sparisce. Lo scudo accanto all'indirizzo mostra cosa hai deciso per il sito e permette di **Chiedi di nuovo**, anche per le schede già aperte. In una finestra privata la risposta non si ricorda e la casella non c'è.
 
 ### Download
 
-Un file scaricato va nella cartella **Download** della tua home e compare una notifica. **Ctrl J** apre l'elenco degli ultimi 30. Un file può pesare fino a 1 GB.
+Un file scaricato va nella cartella **Download** della tua home e compare una notifica. **Ctrl J** apre l'elenco degli ultimi 30. Un file può pesare fino a 1 GB: oltre, NetWave non lo scarica e ti avvisa. Si scaricano al massimo 4 file alla volta per finestra di lilOS (gli altri vengono rifiutati con un avviso: riprova quando i primi hanno finito). Se un download viene interrotto, per esempio perché chiudi la scheda, ricevi un avviso. I nomi molto lunghi vengono accorciati a 150 caratteri.
 
 ### Opzioni
 
-Dal menu di NetWave → **Opzioni**: la **pagina iniziale**, il **motore di ricerca** (DuckDuckGo, Startpage, Bing, Google o Ecosia; di serie DuckDuckGo), i **giorni di cronologia** (7, 30, 90, 365 o per sempre) e i **permessi ricordati**.
+Dal menu di NetWave → **Opzioni**: la **pagina iniziale**, il **motore di ricerca** (DuckDuckGo, Startpage, Bing, Google o Ecosia; di serie DuckDuckGo), i **giorni di cronologia** (7, 30, 90, 365 o per sempre), i **permessi ricordati** e, in **Siti**, l'interruttore **Chiedi prima che una pagina apra nuove schede** (acceso di serie).
 
 ### Da sapere
 
-- NetWave non apre gli indirizzi di lilOS né i file del tuo computer (`file:`): solo pagine `http` e `https`.
+- NetWave non apre gli indirizzi di lilOS (con nessun nome di questo computer) né i file del tuo computer (`file:`): solo pagine `http` e `https`.
+- Se NetWave ti avvisa che una pagina ha provato ad aprire un indirizzo non permesso, l'avviso compare al massimo ogni 20 secondi per scheda e mostra solo il tipo e il sito.
+- Il titolo della finestra mostra il sito, non il titolo che la pagina sceglie per sé. Dopo un ricaricamento di lilOS una finestra privata non si riapre (le sue schede e i suoi dati sono già spariti).
 - I cookie e gli accessi ai siti sono tuoi e sono gli stessi in tutte le tue finestre normali di NetWave; un altro utente di lilOS ne ha di propri. Cancellare la cronologia non li cancella.
 - Mentre sei dentro una pagina, le scorciatoie di lilOS non funzionano: valgono quelle di NetWave (vedi [Scorciatoie da tastiera](#scorciatoie-da-tastiera)).
 - Lo schermo intero chiesto da una pagina (per un video, per esempio) e gli strumenti per sviluppatori sono spenti.
@@ -2674,7 +2677,7 @@ Il programma si aggiorna dalle versioni su GitHub; **lilOS** invece continua ad 
 - Sui Mac con processore Intel il lilOS «su questo computer» non ha ancora tutto: manca il motore dei servizi in background delle app isolate.
 - Il primo avvio ha bisogno di internet (scarica le app di sistema).
 - Le app isolate non possono ancora usare fotocamera e microfono.
-- Le pagine web di NetWave Browser (dalla versione 0.5.0 del programma) non sono state provate su macOS e Linux, né con un lilOS non di fiducia: lì NetWave non mostra le pagine.
+- Le pagine web di NetWave Browser (dalla versione 0.5.1 del programma) non sono state provate su macOS e Linux, né con un lilOS non di fiducia: lì NetWave non mostra le pagine.
 - I pacchetti per macOS e Linux, il kiosk su questi sistemi e i tasti di sistema a schermo intero non sono ancora stati provati su computer veri.
 - lilOS senza UI non è ancora stato provato su macOS e Linux (terminale, comando `lilos` nel PATH).
 

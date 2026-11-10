@@ -1,6 +1,10 @@
 import { BrowserWindow, WebContentsView, app, session } from 'electron';
+import { randomInt, randomUUID } from 'node:crypto';
+import { lookup } from 'node:dns/promises';
 import { createReadStream, mkdirSync } from 'node:fs';
-import { rm, stat } from 'node:fs/promises';
+import { open, rm, stat } from 'node:fs/promises';
+import { isIP } from 'node:net';
+import { networkInterfaces } from 'node:os';
 import { join } from 'node:path';
 import { local } from './local/index.js';
 import { settings } from './store.js';
@@ -14,10 +18,14 @@ import { originOf, profileUrl } from './windows.js';
  *       shared    persist:netwave-<profile>-<user>   every normal window of that lilOS user
  *       private   netwave-priv-<profile>-<key>       in memory, one per private window, wiped at the end
  *   - the addresses of lilOS (every server of the program, the local kernel) are refused, so a page
- *     cannot talk to a kernel; only http and https (and about:blank) are opened;
+ *     cannot talk to a kernel: same port and name, and for a server on this computer every name of
+ *     the computer (loopback in all its spellings, its network addresses, names that resolve to
+ *     them), WebSockets too; only http and https (and about:blank) are opened;
  *   - permissions (position, camera, microphone, notifications…) are refused unless the page of lilOS
- *     says yes (it asks the user); popups become a request for a new tab; downloads land in a
- *     folder of the program until the page of lilOS takes them into its files.
+ *     says yes (it asks the user; camera and microphone are asked and remembered apart); popups
+ *     become a request for a new tab (at most POPUP_MAX every POPUP_WINDOW ms per page); downloads
+ *     land in a private folder of the program (at most DOWNLOADS_MAX at a time per lilOS window)
+ *     until the page of lilOS takes them into its files, read in pieces.
  *
  * The view is drawn above the page of lilOS, where the page says (place); the page hides it when
  * something of lilOS covers it (cover returns a picture of it to show meanwhile).
@@ -29,32 +37,44 @@ import { originOf, profileUrl } from './windows.js';
  *   cover(id) → data URL (JPEG) | null      a picture of the page (also when hidden), then hides it
  *   focus(id) · zoom(id, factor) · mute(id, muted) · edit(id, command) · keys(id, [combo])
  *   find(id, text, { forward, next }) · stopFind(id)
- *   permission(requestId, allow, remember?) · grants(id, [{ origin, permission, allow }]) · auth(requestId, user, password)
- *   downloadRead(downloadId) → ArrayBuffer · downloadDone(downloadId) · downloadCancel(downloadId)
+ *   permission(requestId, allow, remember?) · auth(requestId, user, password)
+ *   grants(id, [{ origin, permission, allow }])   the answers remembered: the whole list, it replaces the
+ *       previous one (permission 'camera' / 'microphone'; the old 'media' stands for both)
+ *   downloadChunk(downloadId, offset) → { size, data: ArrayBuffer }   up to CHUNK bytes from offset
+ *   downloadRead(downloadId) → ArrayBuffer   the whole file (programs before 0.5.1 had only this)
+ *   downloadDone(downloadId) · downloadCancel(downloadId)
  *   info() → { available, version }
  * Events, to the owner page only ('web'): { id, type, … }
  *   title · favicon (data URL) · loading · nav { url, canGoBack, canGoForward } · error { code, description, url }
  *   blocked { url } (an address pages may not open: lilOS, file:, mailto:…) · hover { url } · unresponsive
- *   open { url, disposition } · focus · key { combo } · menu { x, y, link, image, selection, editable, flags }
- *   audio { audible } · found { matches, active } · permission { requestId, permission, origin, media }
- *   auth { requestId, host, realm } · download { downloadId, name, state, received, total } · gone { reason }
+ *   open { url, disposition, origin } · popupsDropped { origin } (over the limit) · focus · key { combo }
+ *   menu { x, y, link, image, selection, editable, flags } · audio { audible } · found { matches, active }
+ *   permission { requestId, permission, origin, media } · expired { requestId } (no answer in time: no)
+ *   auth { requestId, host, realm } · download { downloadId, name, state, received, total, reason? } · gone { reason }
+ *       reason of a download stopped by the program: 'tooBig' (over 1 GB) | 'busy' (too many at a time)
  */
 
 const SCHEMES = new Set(['http:', 'https:']);
 const ACCESS = new Set(['geolocation', 'media', 'notifications', 'midi', 'midiSysex', 'clipboard-read', 'idle-detection', 'storage-access', 'top-level-storage-access', 'window-management', 'speaker-selection']);
+// Camera and microphone are asked as 'media' but remembered apart
+const MEDIA = { video: 'camera', audio: 'microphone' };
+const GRANTABLE = new Set([...ACCESS, 'camera', 'microphone']);
 const FAVICON_MAX = 64 << 10;
 const DOWNLOAD_MAX = 1024 << 20;
+const DOWNLOADS_MAX = 4;
+const CHUNK = 8 << 20;
 const ASK_TIMEOUT = 120_000;
+const POPUP_MAX = 5;
+const POPUP_WINDOW = 10_000;
 const KEY_RE = /^[a-z0-9]{6,32}$/;
 const COMBO_RE = /^(Ctrl\+)?(Alt\+)?(Shift\+)?[A-Za-z0-9]{1,12}$/;
 const EDITS = new Set(['copy', 'cut', 'paste', 'selectAll', 'undo', 'redo', 'delete']);
 
-const views = new Map();          // id → { id, view, owner, partition, keys, grants }
+const views = new Map();          // id → { id, view, owner, partition, keys, grants, popups }
 const owners = new WeakSet();     // lilOS pages whose reload or end is watched
 const configured = new Set();     // partitions set up
 const pending = new Map();        // requestId → { owner, callback, timer }
 const downloads = new Map();      // downloadId → { owner, item, path, state }
-let nextId = 1;
 let nextRequest = 1;
 
 const ownerOf = contents => [...views.values()].find(v => v.view.webContents === contents) ?? null;
@@ -63,21 +83,71 @@ function send(owner, data) {
   if (!owner.isDestroyed()) owner.send('lilos-host:event', 'web', data);
 }
 
-/** The origins of lilOS this program knows: pages may never reach them. */
-function lilosOrigins() {
-  const list = new Set();
-  for (const p of settings().profiles ?? []) {
-    const o = originOf(profileUrl(p));
-    if (o) list.add(o);
+// ---------- The addresses of lilOS ----------
+
+// ws and wss are http and https for the servers of lilOS (the kernel takes both on one port)
+const PORTS = { 'http:': '80', 'ws:': '80', 'https:': '443', 'wss:': '443' };
+const portOf = u => u.port || PORTS[u.protocol] || '';
+/** A host as URL gives it, without the final dot and the brackets of IPv6, in lower case. */
+const bare = host => String(host).toLowerCase().replace(/\.$/, '').replace(/^\[(.*)\]$/, '$1');
+
+/** Loopback in every spelling URL leaves (127/8, ::1, ::ffff:127.x as ::ffff:7fxx:x, *.localhost, 0.0.0.0, ::). */
+function isLoopback(host) {
+  const h = bare(host);
+  return h === 'localhost' || h.endsWith('.localhost') || /^127\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(h)
+    || h === '0.0.0.0' || h === '::1' || h === '::' || /^::ffff:(7f[0-9a-f]{2}:[0-9a-f]{1,4}|127\.\d{1,3}\.\d{1,3}\.\d{1,3})$/.test(h);
+}
+
+/** The addresses of this computer's network cards (read again every 30 s). */
+let addresses = { at: 0, set: new Set() };
+function ownAddresses() {
+  if (Date.now() - addresses.at > 30_000) {
+    const set = new Set();
+    for (const list of Object.values(networkInterfaces())) for (const a of list ?? []) set.add(bare(a.address.replace(/%.*$/, '')));
+    addresses = { at: Date.now(), set };
   }
-  if (local.url) {
-    const o = originOf(local.url);
-    list.add(o);
-    // The local kernel answers on every loopback name
-    const port = new URL(o).port;
-    for (const host of ['localhost', '127.0.0.1', '[::1]']) list.add(`http://${host}:${port}`);
-  }
+  return addresses.set;
+}
+const isThisComputer = host => isLoopback(host) || ownAddresses().has(bare(host));
+
+/** The servers of lilOS this program knows: { host, port, here } (here: on this computer). */
+function lilosTargets() {
+  const list = [];
+  const add = url => {
+    try {
+      const u = new URL(url);
+      list.push({ host: bare(u.hostname), port: portOf(u), here: isThisComputer(u.hostname) });
+    } catch { /* no address */ }
+  };
+  for (const p of settings().profiles ?? []) add(profileUrl(p));
+  if (local.url) add(local.url);
   return list;
+}
+
+/**
+ * The server of lilOS an address points to, or null: same port and same name, or, for a server on
+ * this computer, any name of this computer (pages may never reach them).
+ */
+function lilosTarget(u) {
+  const host = bare(u.hostname), port = portOf(u);
+  return lilosTargets().find(t => t.port === port && (t.host === host || (t.here && isThisComputer(host)))) ?? null;
+}
+
+/**
+ * True when a name (not an IP) on the port of a server of lilOS on this computer resolves to this
+ * computer: a name of the DNS that points to 127.0.0.1 (the request is stopped before it leaves).
+ */
+async function resolvesHere(u) {
+  const host = bare(u.hostname);
+  if (isIP(host)) return false;
+  const port = portOf(u);
+  if (!lilosTargets().some(t => t.here && t.port === port)) return false;
+  try {
+    const found = await lookup(host, { all: true });
+    return found.some(a => isThisComputer(a.address));
+  } catch {
+    return false;   // a name that does not resolve reaches nothing
+  }
 }
 
 function allowedUrl(raw) {
@@ -85,8 +155,22 @@ function allowedUrl(raw) {
   try { u = new URL(String(raw)); } catch { return null; }
   if (u.href === 'about:blank') return u.href;
   if (!SCHEMES.has(u.protocol)) return null;
-  if (lilosOrigins().has(u.origin)) return null;
+  if (lilosTarget(u)) return null;
   return u.href;
+}
+
+/** The keys a permission is remembered with: camera and microphone apart. */
+function grantKeys(origin, permission, media) {
+  if (permission !== 'media') return [`${origin}|${permission}`];
+  const kinds = (Array.isArray(media) ? media : [media]).map(m => MEDIA[m]).filter(Boolean);
+  return (kinds.length ? kinds : Object.values(MEDIA)).map(k => `${origin}|${k}`);
+}
+
+/** true / false when every key has the same answer remembered (a no wins), else undefined. */
+function known(v, keys) {
+  const answers = keys.map(k => v.grants.get(k));
+  if (answers.includes(false)) return false;
+  return answers.every(a => a === true) ? true : undefined;
 }
 
 /** The lilOS user signed in in this window (their site data are theirs): asked to the kernel. */
@@ -113,50 +197,59 @@ function configure(partition) {
     if (permission === 'clipboard-sanitized-write') return callback(true);
     if (!ACCESS.has(permission)) return callback(false);
     const origin = originOf(details.requestingUrl) ?? originOf(contents.getURL());
-    const known = v.grants.get(`${origin}|${permission}`);
-    if (known !== undefined) return callback(known);
-    ask(v, { type: 'permission', permission, origin, media: details.mediaTypes ?? [] }, answer => {
+    const media = details.mediaTypes ?? [];
+    const keys = grantKeys(origin, permission, media);
+    const answered = known(v, keys);
+    if (answered !== undefined) return callback(answered);
+    ask(v, { type: 'permission', permission, origin, media }, answer => {
       const allow = !!answer?.allow;
-      if (answer?.remember) v.grants.set(`${origin}|${permission}`, allow);
+      if (answer?.remember) for (const k of keys) v.grants.set(k, allow);
       callback(allow);
     });
   });
-  ses.setPermissionCheckHandler((contents, permission, origin) => {
+  ses.setPermissionCheckHandler((contents, permission, origin, details) => {
     if (permission === 'clipboard-sanitized-write') return true;
     const v = contents && ownerOf(contents);
-    return !!v && v.grants.get(`${originOf(origin)}|${permission}`) === true;
+    return !!v && known(v, grantKeys(originOf(origin), permission, details?.mediaType)) === true;
   });
   // Serial, HID and USB pickers are refused to every page that is not lilOS by devices.js (its rules
   // are on every session); devices and screen capture are never for web pages here
   ses.setDevicePermissionHandler(() => false);
   ses.setDisplayMediaRequestHandler((_req, callback) => callback({}));
 
-  // No page reaches lilOS or the computer's files
+  // No page reaches lilOS or the computer's files (every request: pages, frames, fetch, WebSockets)
   ses.webRequest.onBeforeRequest((details, callback) => {
     let u;
     try { u = new URL(details.url); } catch { return callback({ cancel: true }); }
-    if (u.protocol === 'file:' || lilosOrigins().has(u.origin)) return callback({ cancel: true });
-    callback({});
+    if (u.protocol === 'file:' || lilosTarget(u)) return callback({ cancel: true });
+    resolvesHere(u).then(here => callback(here ? { cancel: true } : {}), () => callback({ cancel: true }));
   });
 
   ses.on('will-download', (_e, item, contents) => {
     const v = contents && ownerOf(contents);
     if (!v) return item.cancel();
     const downloadId = `d${nextRequest++}`;
-    const dir = join(app.getPath('temp'), 'lilos-netwave');
-    const path = join(dir, `${downloadId}-${Date.now()}`);
-    try { mkdirSync(dir, { recursive: true }); } catch { return item.cancel(); }
+    const info = () => ({ id: v.id, type: 'download', downloadId, name: item.getFilename(), mime: item.getMimeType(), url: item.getURL(), received: item.getReceivedBytes(), total: item.getTotalBytes() });
+    // A few at a time per lilOS window: a page cannot fill the memory or the disk with them
+    if ([...downloads.values()].filter(d => d.owner === v.owner).length >= DOWNLOADS_MAX) {
+      send(v.owner, { ...info(), state: 'cancelled', reason: 'busy' });
+      return item.cancel();
+    }
+    // A folder of this copy of the program and of its user only, names nobody can guess
+    const dir = downloadDir();
+    const path = join(dir, `${downloadId}-${randomUUID()}`);
+    try { mkdirSync(dir, { recursive: true, mode: 0o700 }); } catch { return item.cancel(); }
     item.setSavePath(path);
-    const entry = { owner: v.owner, item, path, state: 'progressing' };
+    const entry = { owner: v.owner, item, path, state: 'progressing', reason: null };
     downloads.set(downloadId, entry);
     const report = state => {
       entry.state = state;
-      send(v.owner, { id: v.id, type: 'download', downloadId, name: item.getFilename(), mime: item.getMimeType(), url: item.getURL(), state, received: item.getReceivedBytes(), total: item.getTotalBytes() });
+      send(v.owner, { ...info(), state, ...(entry.reason && { reason: entry.reason }) });
     };
     report('progressing');
     let last = 0;
     item.on('updated', (_ev, state) => {
-      if (item.getReceivedBytes() > DOWNLOAD_MAX) return item.cancel();
+      if (item.getReceivedBytes() > DOWNLOAD_MAX || item.getTotalBytes() > DOWNLOAD_MAX) { entry.reason = 'tooBig'; return item.cancel(); }
       const now = Date.now();
       if (now - last > 250 || state !== 'progressing') { last = now; report(state); }
     });
@@ -171,7 +264,11 @@ function configure(partition) {
 /** Asks the owner page; no answer in time is a no. */
 function ask(v, data, callback) {
   const requestId = `r${nextRequest++}`;
-  const timer = setTimeout(() => answer(requestId, null), ASK_TIMEOUT);
+  const timer = setTimeout(() => {
+    // The page of lilOS takes its question away
+    if (pending.has(requestId)) send(v.owner, { id: v.id, type: 'expired', requestId });
+    answer(requestId, null);
+  }, ASK_TIMEOUT);
   pending.set(requestId, { owner: v.owner, viewId: v.id, callback, timer });
   send(v.owner, { id: v.id, ...data, requestId });
 }
@@ -222,9 +319,20 @@ function watch(v, ses) {
   const emit = data => send(v.owner, { id: v.id, ...data });
   const nav = () => emit({ type: 'nav', url: wc.getURL(), canGoBack: wc.navigationHistory.canGoBack(), canGoForward: wc.navigationHistory.canGoForward() });
 
+  // A popup is a request for a tab (the page of lilOS asks the user); a page cannot flood it
   wc.setWindowOpenHandler(({ url, disposition }) => {
     const ok = allowedUrl(url);
-    if (ok && ok !== 'about:blank') emit({ type: 'open', url: ok, disposition });
+    if (ok && ok !== 'about:blank') {
+      const now = Date.now();
+      v.popups = v.popups.filter(at => now - at < POPUP_WINDOW);
+      const origin = originOf(wc.getURL()) ?? '';
+      if (v.popups.length < POPUP_MAX) {
+        v.popups.push(now);
+        emit({ type: 'open', url: ok, disposition, origin });
+      } else {
+        emit({ type: 'popupsDropped', origin });
+      }
+    }
     return { action: 'deny' };
   });
   const guard = (e, url) => { if (!allowedUrl(url)) { e.preventDefault(); emit({ type: 'blocked', url: String(url).slice(0, 2000) }); } };
@@ -300,8 +408,10 @@ export async function create(owner, profile, opts = {}) {
   view.setBackgroundColor('#ffffff');
   view.setVisible(false);
   win.contentView.addChildView(view);
-  const id = nextId++;
-  const v = { id, view, owner, win, partition, private: opts.private != null, keys: new Set(), grants: new Map(), shown: false, scale: 1, zoom: 1 };
+  // Ids nobody can guess: code of the lilOS page that did not make a view cannot drive it by trying numbers
+  let id;
+  do id = randomInt(1, 2 ** 47); while (views.has(id));
+  const v = { id, view, owner, win, partition, private: opts.private != null, keys: new Set(), grants: new Map(), popups: [], shown: false, scale: 1, zoom: 1 };
   setKeys(v, opts.keys);
   views.set(id, v);
   watch(v, ses);
@@ -398,15 +508,37 @@ function forgetDownload(downloadId) {
   rm(d.path, { force: true }).catch(() => {});
 }
 
-async function readDownload(owner, downloadId) {
+function completedDownload(owner, downloadId) {
   const d = downloads.get(String(downloadId));
   if (!d || d.owner !== owner || d.state !== 'completed') throw new Error('web:unknown');
+  return d;
+}
+
+/** The whole file at once: what lilOS pages with an SDK before 0.23.1 ask. */
+async function readDownload(owner, downloadId) {
+  const d = completedDownload(owner, downloadId);
   const { size } = await stat(d.path);
   if (size > DOWNLOAD_MAX) throw new Error('web:tooBig');
   const chunks = [];
   for await (const chunk of createReadStream(d.path)) chunks.push(chunk);
   const buf = Buffer.concat(chunks);
   return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
+}
+
+/** A piece of a download (up to CHUNK bytes from offset): a large file never sits in memory whole. */
+async function readDownloadChunk(owner, downloadId, offset) {
+  const d = completedDownload(owner, downloadId);
+  const fh = await open(d.path, 'r');
+  try {
+    const { size } = await fh.stat();
+    if (size > DOWNLOAD_MAX) throw new Error('web:tooBig');
+    const start = Math.min(size, Math.max(0, Math.floor(Number(offset) || 0)));
+    const buf = Buffer.alloc(Math.min(CHUNK, size - start));
+    const { bytesRead } = buf.length ? await fh.read(buf, 0, buf.length, start) : { bytesRead: 0 };
+    return { size, data: buf.buffer.slice(buf.byteOffset, buf.byteOffset + bytesRead) };
+  } finally {
+    await fh.close();
+  }
 }
 
 /** Every call of window.lilosHost.web, for bridge.js: (contents, profile, ...args). */
@@ -428,20 +560,32 @@ export const WEB_HANDLERS = {
   'web.keys': (c, _p, id, keys) => setKeys(getView(c, id), keys),
   'web.find': (c, _p, id, text, opts) => { const s = String(text ?? '').slice(0, 500); if (s) getView(c, id).view.webContents.findInPage(s, { forward: opts?.forward !== false, findNext: !!opts?.next }); },
   'web.stopFind': (c, _p, id) => getView(c, id).view.webContents.stopFindInPage('clearSelection'),
+  // The whole list of what the user remembered: an answer taken back ("Ask again") goes for pages already open too
   'web.grants': (c, _p, id, list) => {
     const v = getView(c, id);
-    for (const g of Array.isArray(list) ? list.slice(0, 500) : []) {
-      if (typeof g?.origin === 'string' && ACCESS.has(g.permission)) v.grants.set(`${g.origin}|${g.permission}`, !!g.allow);
+    const grants = new Map();
+    for (const g of Array.isArray(list) ? list.slice(0, 1000) : []) {
+      if (typeof g?.origin !== 'string') continue;
+      if (g.permission === 'media') for (const k of grantKeys(g.origin, 'media', [])) grants.set(k, !!g.allow);
+      else if (GRANTABLE.has(g.permission) && g.permission !== 'media') grants.set(`${g.origin}|${g.permission}`, !!g.allow);
     }
+    v.grants = grants;
   },
   'web.permission': (c, _p, requestId, allow, remember) => answer(String(requestId), { allow: !!allow, remember: !!remember }, c),
   'web.auth': (c, _p, requestId, user, password) => answer(String(requestId), user == null ? null : { user: String(user), password: String(password ?? '') }, c),
   'web.downloadRead': (c, _p, downloadId) => readDownload(c, downloadId),
+  'web.downloadChunk': (c, _p, downloadId, offset) => readDownloadChunk(c, downloadId, offset),
   'web.downloadDone': (c, _p, downloadId) => { const d = downloads.get(String(downloadId)); if (d?.owner === c) forgetDownload(String(downloadId)); },
   'web.downloadCancel': (c, _p, downloadId) => { const d = downloads.get(String(downloadId)); if (d?.owner === c) { if (d.state === 'progressing') d.item.cancel(); forgetDownload(String(downloadId)); } },
 };
 
-/** Leftovers of downloads never taken (the program closed meanwhile). */
+/**
+ * Where downloads wait for lilOS: in the data folder of this copy of the program (not the shared
+ * temporary folder, where another user or another copy could read, replace or wipe them).
+ */
+const downloadDir = () => join(app.getPath('userData'), 'netwave-downloads');
+
+/** Leftovers of downloads never taken (the program closed meanwhile): only this copy's. */
 export function cleanDownloads() {
-  rm(join(app.getPath('temp'), 'lilos-netwave'), { recursive: true, force: true }).catch(() => {});
+  rm(downloadDir(), { recursive: true, force: true }).catch(() => {});
 }

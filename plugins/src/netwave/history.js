@@ -29,7 +29,8 @@ const clip = (s, max) => String(s ?? '').slice(0, max);
 const list = key => { const v = storage.get(key, []); return Array.isArray(v) ? v : []; };
 
 /** Tabs as kept in history and sessions: { url, title, pinned? } only. */
-export const tabsOf = tabs => tabs.filter(x => x?.url).slice(0, 500).map(x => ({ url: clip(x.url, URL_MAX), title: clip(x.title, TITLE_MAX), ...(x.pinned && { pinned: true }) }));
+// Only addresses NetWave opens: what comes back from a saved state or the history is not trusted
+export const tabsOf = tabs => tabs.filter(x => typeof x?.url === 'string' && /^(https?:\/\/|about:blank$)/i.test(x.url)).slice(0, 500).map(x => ({ url: clip(x.url, URL_MAX), title: clip(x.title, TITLE_MAX), ...(x.pinned && { pinned: true }) }));
 
 class History extends Emitter {
   #pruned = false;

@@ -1,4 +1,4 @@
-import { SettingsWindow, selectField, textField, h, icon, messageBox } from '@lilos/sdk';
+import { SettingsWindow, selectField, textField, toggle, h, icon, messageBox } from '@lilos/sdk';
 import { options, SEARCH_ENGINES, KEEP_DAYS, addressOf } from './options.js';
 import { history } from './history.js';
 import { t } from './i18n.js';
@@ -44,6 +44,11 @@ export function openOptions(openWindow) {
         sections: () => {
           const grants = options.grants();
           return [{
+            rows: [{
+              label: t('options.askTabs'), description: t('options.askTabsText'),
+              control: toggle({ value: options.get('askTabs'), label: t('options.askTabs'), onChange: v => options.set('askTabs', !!v) }),
+            }],
+          }, {
             content: () => (grants.length
               ? h('div', { class: 'nw-grants' }, ...grants.map(g => h('div', { class: 'nw-grant' },
                 icon(g.allow ? 'check' : 'x'),

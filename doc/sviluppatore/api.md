@@ -1014,9 +1014,9 @@ if (sdk.host?.native) {
 
 ### `WebPage` (`host.web`)
 
-Una pagina web mostrata dal programma sopra la pagina di lilOS (la usa l'app NetWave Browser). Sorgenti: `sdk/core/host.js` (la classe) e `lilos-desktop/development/src/web.js` (il motore, con il commento in testa). Non c'è per le app isolate.
+Una pagina web mostrata dal programma sopra la pagina di lilOS (la usa l'app NetWave Browser). Sorgenti: `sdk/core/host.js` (la classe) e `lilos-desktop/development/src/web.js` (il motore, con il commento in testa). Serve codice fidato della pagina di lilOS (app non isolate): le app isolate non lo raggiungono. Gli id delle viste sono casuali.
 
-Ogni pagina è una vista di Electron con un processo di rendering suo (`sandbox`, nessun `preload`, nessun Node, nessun ponte verso lilOS) e una sessione sua: `persist:netwave-<profilo>-<utente>` per le normali, `netwave-priv-<profilo>-<chiave>` (in memoria) per le private. Una pagina non può aprire gli indirizzi di lilOS (nessun server del programma, nemmeno il kernel locale) né `file:`: si aprono solo `http:` e `https:` (e `about:blank`). I permessi (posizione, fotocamera, microfono, notifiche, MIDI, appunti, …) sono negati finché la pagina di lilOS non risponde con `permission()` (senza risposta entro 2 minuti vale no); seriale, USB, HID, Bluetooth e cattura dello schermo mai. Un popup non si apre: arriva come evento `open`. Schermo intero HTML e, nel programma installato, strumenti per sviluppatori sono disattivati. Se la pagina di lilOS si ricarica o si chiude, le sue viste si chiudono con lei.
+Ogni pagina è una vista di Electron con un processo di rendering suo (`sandbox`, nessun `preload`, nessun Node, nessun ponte verso lilOS) e una sessione sua: `persist:netwave-<profilo>-<utente>` per le normali, `netwave-priv-<profilo>-<chiave>` (in memoria) per le private. Una pagina non può aprire gli indirizzi di lilOS né `file:` (né navigando né con richieste, WebSocket compresi): si aprono solo `http:` e `https:` (e `about:blank`). Il blocco confronta nome e porta di ogni server del programma e del kernel locale, e `ws:`/`wss:` contano come `http:`/`https:`; per un server di lilOS su questo computer vale ogni nome del computer: loopback in tutte le grafie (`127.x.x.x`, `::1`, `::ffff:127…`, `*.localhost`, `0.0.0.0`), gli indirizzi delle schede di rete e i nomi del DNS che risolvono al computer (controllati a ogni richiesta). I permessi (posizione, fotocamera, microfono, notifiche, MIDI, appunti, …) sono negati finché la pagina di lilOS non risponde con `permission()` (senza risposta entro 2 minuti vale no, e arriva l'evento `expired`); seriale, USB, HID, Bluetooth e cattura dello schermo mai. Un popup non si apre: arriva come evento `open`, al massimo 5 ogni 10 secondi per pagina (oltre, `popupsDropped`). I download aspettano in `netwave-downloads` nella cartella dati del programma (nomi casuali, permessi `0700`), al massimo 4 alla volta per finestra di lilOS e fino a 1 GB. Schermo intero HTML e, nel programma installato, strumenti per sviluppatori sono disattivati. Se la pagina di lilOS si ricarica o si chiude, le sue viste si chiudono con lei.
 
 | Metodo | Descrizione |
 | --- | --- |
@@ -1030,10 +1030,10 @@ Ogni pagina è una vista di Electron con un processo di rendering suo (`sandbox`
 | `edit(command)` | `copy`, `cut`, `paste`, `selectAll`, `undo`, `redo` o `delete` sul campo in focus. |
 | `setKeys([combo])` | Cambia le combinazioni che tornano come evento `key`. |
 | `find(text, { forward = true, next = false })`, `stopFind()` | Cerca nella pagina (fino a 500 caratteri); i risultati arrivano come `found`. |
-| `grants([{ origin, permission, allow }])` | Le risposte già ricordate (fino a 500): le richieste che le corrispondono non vengono chieste. `permission`: uno tra `geolocation`, `media`, `notifications`, `midi`, `midiSysex`, `clipboard-read`, `idle-detection`, `storage-access`, `top-level-storage-access`, `window-management`, `speaker-selection`. |
-| `permission(requestId, allow, remember = false)` | La risposta all'evento `permission`. Con `remember` vale anche per le richieste dopo, di questa pagina. |
+| `grants([{ origin, permission, allow }])` | Le risposte già ricordate (fino a 1000): le richieste che le corrispondono non vengono chieste. Sostituisce l'elenco intero: togliere una risposta («Chiedi di nuovo») vale anche per le pagine già aperte. `permission`: uno tra `geolocation`, `camera`, `microphone`, `media` (vale per tutti e due), `notifications`, `midi`, `midiSysex`, `clipboard-read`, `idle-detection`, `storage-access`, `top-level-storage-access`, `window-management`, `speaker-selection`. |
+| `permission(requestId, allow, remember = false)` | La risposta all'evento `permission`. Con `remember` vale anche per le richieste dopo, di questa pagina. Per fotocamera e microfono (`permission: 'media'`, `media: ['video', 'audio']`) si ricordano `camera` e `microphone` a parte. |
 | `auth(requestId, user \| null, password = '')` | La risposta all'evento `auth`; `null` annulla. |
-| `download.read(downloadId)` → `Promise<ArrayBuffer>`, `download.done(id)`, `download.cancel(id)` | Prende il file scaricato (finito, fino a 1 GB; lancia `web:tooBig` oltre), poi `done` lo toglie dalla cartella temporanea del programma; `cancel` ferma lo scaricamento. |
+| `download.read(downloadId)` → `Promise<Blob>`, `download.done(id)`, `download.cancel(id)` | Prende il file scaricato (finito, fino a 1 GB; lancia `web:tooBig` oltre). Da SDK 0.23.1 lo legge a pezzi da 8 MB (`web.downloadChunk`) e restituisce un `Blob`; con un programma più vecchio della 0.5.1 ripiega su `web.downloadRead` (il file intero). Poi `done` lo toglie dalla cartella d'attesa del programma; `cancel` ferma lo scaricamento. Prima della 0.23.1 `read` restituiva un `ArrayBuffer`. |
 | `close()` | Chiude la vista. Dopo, i metodi non fanno niente. `closed` dice se è chiusa; `id` è la sua chiave. |
 
 Eventi (`page.on(tipo, fn)`; ogni evento ha anche `id` e `type`):
@@ -1046,7 +1046,8 @@ Eventi (`page.on(tipo, fn)`; ogni evento ha anche `id` e `type`):
 | `nav` | `{ url, canGoBack, canGoForward }` |
 | `error` | `{ code, description, url }`: caricamento della pagina principale non riuscito |
 | `blocked` | `{ url }`: la pagina voleva andare a un indirizzo non permesso |
-| `open` | `{ url, disposition }`: un popup o `target="_blank"`; la pagina non lo apre, tocca a chi ascolta |
+| `open` | `{ url, disposition, origin }`: un popup o `target="_blank"`; la pagina non lo apre, tocca a chi ascolta (`origin`: il sito che lo chiede; dal programma 0.5.1) |
+| `popupsDropped` | `{ origin }`: oltre il limite di 5 popup ogni 10 secondi per pagina; da 0.5.1 |
 | `hover` | `{ url }`: il link sotto il puntatore (`''` se nessuno) |
 | `focus` | la pagina ha preso il focus |
 | `key` | `{ combo }`: una delle combinazioni di `keys` (`Ctrl+Alt+Shift+Tasto`) |
@@ -1054,8 +1055,9 @@ Eventi (`page.on(tipo, fn)`; ogni evento ha anche `id` e `type`):
 | `audio` | `{ audible }` |
 | `found` | `{ matches, active, final }` |
 | `permission` | `{ requestId, permission, origin, media }`: va risposto con `permission()` |
+| `expired` | `{ requestId }`: nessuna risposta in 2 minuti, il programma ha detto no: la domanda va tolta (da 0.5.1) |
 | `auth` | `{ requestId, host, realm, url }`: va risposto con `auth()` |
-| `download` | `{ downloadId, name, mime, url, state, received, total }`; `state`: `progressing`, `completed`, `cancelled` o `interrupted` |
+| `download` | `{ downloadId, name, mime, url, state, received, total, reason? }`; `state`: `progressing`, `completed`, `cancelled` o `interrupted`; `reason` (da 0.5.1) se a fermarlo è stato il programma: `tooBig` (oltre 1 GB) o `busy` (più di 4 insieme) |
 | `gone` | `{ reason }`: il processo della pagina è finito |
 | `unresponsive` | la pagina non risponde |
 
@@ -4237,7 +4239,7 @@ Un guscio Electron (`lilos-desktop/development/`, vedi il suo [README](../../lil
 | `local.status`, `local.restart`, `local.stop`, `local.openInBrowser` | Il lilOS del programma |
 | `quit` | Chiude il programma (dopo 100 ms); `before-quit` ferma il lilOS locale. Solo profili di fiducia (non è in `OPEN` di `bridge.js`) |
 | `updates.check`, `updates.install` | Gli aggiornamenti del programma |
-| `web.info`, `web.create`, `web.navigate`, `web.back`, `web.forward`, `web.reload`, `web.stop`, `web.close`, `web.place`, `web.cover`, `web.focus`, `web.zoom`, `web.mute`, `web.edit`, `web.keys`, `web.find`, `web.stopFind`, `web.grants`, `web.permission`, `web.auth`, `web.downloadRead`, `web.downloadDone`, `web.downloadCancel` | Le pagine web di NetWave (`web.js`, `window.lilosHost.web`, da programma 0.5.0): solo profili di fiducia; ogni vista appartiene alla pagina che l'ha creata e solo lei la comanda. Vedi [`WebPage`](#webpage-hostweb) |
+| `web.info`, `web.create`, `web.navigate`, `web.back`, `web.forward`, `web.reload`, `web.stop`, `web.close`, `web.place`, `web.cover`, `web.focus`, `web.zoom`, `web.mute`, `web.edit`, `web.keys`, `web.find`, `web.stopFind`, `web.grants`, `web.permission`, `web.auth`, `web.downloadRead`, `web.downloadChunk`, `web.downloadDone`, `web.downloadCancel` | Le pagine web di NetWave (`web.js`, `window.lilosHost.web`, da programma 0.5.0; `downloadChunk` da 0.5.1): solo profili di fiducia; ogni vista appartiene alla pagina che l'ha creata e solo lei la comanda. Vedi [`WebPage`](#webpage-hostweb) |
 
 `on(nome, fn)` → `off`: ascolta gli eventi del programma (`choose`, `drives`, `file-changed`, `settings`, `display`, `open`, `open-settings`, `web`). Il programma sa quali eventi la pagina ascolta (`lilos-host:listen`): senza `choose` mostra un suo riquadro per scegliere il dispositivo, e osserva le unità solo se c'è chi ascolta `drives`.
 
@@ -6108,8 +6110,8 @@ Cosa tiene l'app NetWave Browser (`options.js`, `history.js`), una chiave ciascu
 
 | Chiave | Contenuto |
 | --- | --- |
-| `netwave.options` | `{ home, search, keepDays }`: pagina iniziale (`''` = la pagina di partenza di NetWave), motore di ricerca (`duckduckgo` di serie, `startpage`, `bing`, `google`, `ecosia`), giorni di cronologia (7, 30, 90 di serie, 365 o 0 = per sempre). I valori fuori elenco tornano a quelli di serie. |
-| `netwave.grants` | `[{ origin, permission, allow }]`: le risposte «Consenti sempre» e «Blocca» ricordate (al massimo 500, le più recenti). |
+| `netwave.options` | `{ home, search, keepDays, askTabs }`: pagina iniziale (`''` = la pagina di partenza di NetWave), motore di ricerca (`duckduckgo` di serie, `startpage`, `bing`, `google`, `ecosia`), giorni di cronologia (7, 30, 90 di serie, 365 o 0 = per sempre). `askTabs` (vero di serie): chiedere prima che una pagina apra nuove schede. I valori fuori elenco tornano a quelli di serie. |
+| `netwave.grants` | `[{ origin, permission, allow }]`: le risposte ricordate con «Ricorda per questo sito» (al massimo 500, le più recenti). `permission` è uno del programma (`geolocation`, `camera`, `microphone`, `notifications`…; il `media` di NetWave 1.0.0 vale per fotocamera e microfono) o `tabs`, il permesso di NetWave di aprire nuove schede. |
 | `netwave.visits.<AAAA-MM-GG>` | Le pagine aperte quel giorno: `[{ at, url, title, session?: { id, name } }]` (al massimo 2000 al giorno). Una chiave per giorno, così una pagina nuova manda solo l'elenco di oggi. |
 | `netwave.sessions` | Le sessioni aperte, salvate o chiuse: `[{ id, name, file?, path?, event, at, tabs }]` (al massimo 300); `tabs` è la foto delle schede (`[{ url, title, pinned? }]`), per riaprire la sessione anche se il file non c'è più. |
 | `netwave.closed` | Le schede e le finestre chiuse di recente: `[{ kind: 'tab' \| 'window', at, tabs, session? }]` (le ultime 20). |

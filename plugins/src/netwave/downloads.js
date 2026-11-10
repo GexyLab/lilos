@@ -9,10 +9,22 @@ import { t } from './i18n.js';
  * Events: 'change'
  */
 const MAX = 30;
+const NAME_MAX = 150;
+
+/** A name for the Download folder: clean, and not too long (the extension stays). */
+function fileName(raw) {
+  const name = fs.cleanName(raw) || 'download';
+  if (name.length <= NAME_MAX) return name;
+  const dot = name.lastIndexOf('.');
+  const ext = dot > 0 && name.length - dot <= 12 ? name.slice(dot) : '';
+  return name.slice(0, NAME_MAX - ext.length) + ext;
+}
 
 class Downloads extends Emitter {
   #list = [];
   #unseen = false;
+  // One download is saved at a time: a few large ones never sit in memory together
+  #queue = Promise.resolve();
 
   get busy() { return this.#list.some(d => d.state === 'progressing' || d.state === 'saving'); }
   get unseen() { return this.#unseen; }
@@ -32,9 +44,12 @@ class Downloads extends Emitter {
     d.total = e.total;
     if (e.state === 'completed') {
       d.state = 'saving';
-      this.#save(d);
+      this.#queue = this.#queue.then(() => this.#save(d));
     } else if (e.state === 'cancelled') {
+      // Not by the user (cancel() marks it first): the program stopped it, or its tab or window closed
       d.state = 'cancelled';
+      const why = e.reason === 'tooBig' ? 'download.tooBig' : e.reason === 'busy' ? 'download.busy' : 'download.stopped';
+      notifications.send({ text: t(why, { name: d.name }), level: 'warning' });
     } else if (e.state === 'interrupted') {
       d.state = 'failed';
       notifications.send({ text: t('download.failedText', { name: d.name }), level: 'error' });
@@ -44,11 +59,11 @@ class Downloads extends Emitter {
 
   async #save(d) {
     try {
-      const bytes = await d.page.download.read(d.id);
+      const data = await d.page.download.read(d.id);   // a Blob (an ArrayBuffer with an SDK before 0.23.1)
       const folder = fs.resolve('~/Download') ?? fs.get(fs.root);
-      const name = fs.uniqueName(folder.id, fs.cleanName(d.name) || 'download');
+      const name = fs.uniqueName(folder.id, fileName(d.name));
       const node = fs.create(folder.id, { type: 'file', name });
-      await fs.write(node.id, new Blob([bytes]));
+      await fs.write(node.id, data instanceof Blob ? data : new Blob([data]));
       Object.assign(d, { node: node.id, name, state: 'saved' });
       this.#unseen = true;
       notifications.send({ text: t('download.done', { name, path: fs.tildePath(folder.id) }), level: 'success' });

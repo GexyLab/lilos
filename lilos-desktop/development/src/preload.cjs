@@ -118,6 +118,6 @@ if (location.protocol === 'file:') {
   // Web pages shown in this window, each isolated in a process and a session of its own (web.js)
   web: Object.freeze(Object.fromEntries([
     'info', 'create', 'navigate', 'back', 'forward', 'reload', 'stop', 'close', 'place', 'cover', 'focus', 'zoom', 'mute',
-    'edit', 'keys', 'find', 'stopFind', 'grants', 'permission', 'auth', 'downloadRead', 'downloadDone', 'downloadCancel',
+    'edit', 'keys', 'find', 'stopFind', 'grants', 'permission', 'auth', 'downloadRead', 'downloadChunk', 'downloadDone', 'downloadCancel',
   ].map(name => [name, (...args) => call(`web.${name}`, ...args)]))),
 }));

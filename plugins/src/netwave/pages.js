@@ -53,6 +53,7 @@ const PROBLEMS = [
   [c => c === 'engine', 'engine'],
   [c => c === 'gone', 'gone'],
   [c => c === 'blocked' || c === -20 || c === -301, 'blocked'],
+  [c => c === 'scheme', 'scheme'],
   [c => c === -105 || c === -137, 'notFound'],
   [c => c === -106, 'offline'],
   [c => c === -102 || c === -109 || c === -104, 'refused'],
@@ -69,17 +70,19 @@ export function problemPage(w, tab, kind = null) {
       h('p', {}, t('engine.missingText')),
       h('p', { class: 'nw-problem-url' }, tab.url),
       h('div', { class: 'nw-problem-actions' },
-        h('button', { type: 'button', class: 'ctl-btn primary', onclick: () => window.open(tab.url, '_blank', 'noopener,noreferrer') }, icon('open'), t('engine.openOutside'))));
+        // Only a web address leaves for the browser (the address of a restored tab is not checked elsewhere)
+        h('button', { type: 'button', class: 'ctl-btn primary', disabled: !/^https?:\/\//i.test(tab.url), onclick: () => { if (/^https?:\/\//i.test(tab.url)) window.open(tab.url, '_blank', 'noopener,noreferrer'); } }, icon('open'), t('engine.openOutside'))));
   }
   const code = tab.error?.code;
   const key = PROBLEMS.find(([test]) => test(code))?.[1] ?? 'generic';
+  const refused = key === 'certificate' || key === 'blocked' || key === 'scheme';
   return h('div', { class: 'nw-problem' },
-    h('div', { class: 'nw-problem-icon' }, icon(key === 'certificate' || key === 'blocked' ? 'shield' : 'warning')),
+    h('div', { class: 'nw-problem-icon' }, icon(refused ? 'shield' : 'warning')),
     h('h2', {}, t(`error.${key}.title`)),
-    h('p', {}, t(`error.${key}.text`, { host: hostOf(tab.error?.url || tab.url) })),
+    h('p', {}, t(`error.${key}.text`, { host: hostOf(tab.error?.url || tab.url), scheme: tab.error?.description ?? '' })),
     h('p', { class: 'nw-problem-url' }, tab.error?.url || tab.url),
-    typeof code === 'number' || tab.error?.description ? h('p', { class: 'nw-problem-code' }, [tab.error?.description, typeof code === 'number' ? `(${code})` : ''].filter(Boolean).join(' ')) : null,
+    key !== 'scheme' && (typeof code === 'number' || tab.error?.description) ? h('p', { class: 'nw-problem-code' }, [tab.error?.description, typeof code === 'number' ? `(${code})` : ''].filter(Boolean).join(' ')) : null,
     h('div', { class: 'nw-problem-actions' },
       ...(tab.canBack ? [h('button', { type: 'button', class: 'ctl-btn', onclick: () => { tab.error = null; w.run('back'); } }, icon('arrowLeft'), t('nav.back'))] : []),
-      ...(key === 'certificate' || key === 'blocked' ? [] : [h('button', { type: 'button', class: 'ctl-btn primary', onclick: () => w.run('reload') }, icon('restart'), t('error.retry'))])));
+      ...(refused ? [] : [h('button', { type: 'button', class: 'ctl-btn primary', onclick: () => w.run('reload') }, icon('restart'), t('error.retry'))])));
 }

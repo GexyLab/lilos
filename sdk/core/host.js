@@ -59,9 +59,12 @@ const { t } = locale.define('lilos:sdk.host', {
  *           zoom(factor) mute(on) edit('copy' | 'cut' | 'paste' | 'selectAll' | 'undo' | 'redo' | 'delete')
  *           setKeys([combo]) find(text, { forward, next }) stopFind() grants([{ origin, permission, allow }])
  *           permission(requestId, allow, remember?) auth(requestId, user | null, password)
- *           download.read(downloadId) → ArrayBuffer, download.done(id), download.cancel(id)
- *           events: 'title' 'favicon' 'loading' 'nav' 'error' 'blocked' 'open' 'focus' 'key' 'menu' 'hover'
- *           'audio' 'found' 'permission' 'auth' 'download' 'gone' 'unresponsive' (see lilos-desktop/development/src/web.js)
+ *           download.read(downloadId) → Blob (read in pieces), download.done(id), download.cancel(id)
+ *           events: 'title' 'favicon' 'loading' 'nav' 'error' 'blocked' 'open' 'popupsDropped' 'focus' 'key'
+ *           'menu' 'hover' 'audio' 'found' 'permission' 'expired' 'auth' 'download' 'gone' 'unresponsive'
+ *           (see lilos-desktop/development/src/web.js)
+ *       The pages and their events belong to the lilOS page, not to an app: host.web is for trusted
+ *       code of the page (apps that are not isolated); isolated apps do not reach it.
  *
  * Events (on): 'drives' [drive], 'settings' {…}, 'display' mode, 'saved' { id, name }, 'web' (WebPage's),
  * 'open' { path } (a lilos:// link), 'open-settings' (the program's menu), 'choose' (the system
@@ -78,7 +81,19 @@ class WebPage extends Emitter {
     this.#api = api;
     this.id = id;
     this.download = {
-      read: downloadId => api.downloadRead(downloadId),
+      // In pieces when the program can (0.5.1): a large file never sits whole in the program's memory
+      read: async downloadId => {
+        if (!api.downloadChunk) return new Blob([await api.downloadRead(downloadId)]);
+        const parts = [];
+        for (let offset = 0, size = Infinity; offset < size;) {
+          const r = await api.downloadChunk(downloadId, offset);
+          size = r.size;
+          if (!r.data?.byteLength) break;
+          parts.push(r.data);
+          offset += r.data.byteLength;
+        }
+        return new Blob(parts);
+      },
       done: downloadId => api.downloadDone(downloadId),
       cancel: downloadId => api.downloadCancel(downloadId),
     };

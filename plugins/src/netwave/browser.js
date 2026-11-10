@@ -4,7 +4,7 @@ import { TabBar } from '../shared/TabBar.js';
 import { FindBar } from '../shared/FindBar.js';
 import { LiveView } from './live.js';
 import { history, tabsOf } from './history.js';
-import { options, addressOf } from './options.js';
+import { options, addressOf, refusedScheme } from './options.js';
 import { EXT, readSession, writeSession, createSession, defaultFolder, nameOfFile } from './sessionFile.js';
 import { startPage, problemPage } from './pages.js';
 import { downloads } from './downloads.js';
@@ -38,6 +38,20 @@ const originOf = url => { try { return new URL(url).origin; } catch { return '';
 const hostOf = url => { try { return new URL(url).host; } catch { return url; } };
 const randomKey = () => Array.from(crypto.getRandomValues(new Uint8Array(12)), b => (b % 36).toString(36)).join('');
 const tabLabel = tab => tab.title || (blank(tab.url) ? t('tabs.newTab') : hostOf(tab.url));
+const noHash = url => String(url ?? '').split('#')[0];
+/** Text a site chose (title, realm), as lilOS shows it: no control or direction characters, one line, short. */
+const plain = (s, max) => String(s ?? '').replace(/[\u0000-\u001f\u007f-\u009f‎‏‪-‮⁦-⁩]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, max);
+/** The permissions a request is remembered as: camera and microphone apart. */
+const MEDIA_KINDS = { video: 'camera', audio: 'microphone' };
+const permissionsOf = ask => {
+  if (ask.permission !== 'media') return [ask.permission];
+  const kinds = [...new Set((ask.media ?? []).map(m => MEDIA_KINDS[m]).filter(Boolean))];
+  return kinds.length ? kinds : ['camera', 'microphone'];
+};
+// Warnings of addresses a page tried to open: one every BLOCKED_GAP per tab
+const BLOCKED_GAP = 20_000;
+// New tabs a page asks for, kept waiting for the user's answer
+const TABS_ASKED_MAX = 20;
 
 /** The window the history or a link should use: the last active normal one. */
 export const lastWindow = () => (lastActive && windows.has(lastActive) && !lastActive.private ? lastActive : [...windows].reverse().find(w => !w.private) ?? null);
@@ -58,6 +72,8 @@ export class NetWaveWindow {
     this.openWindow = openWindow;
     this.private = args.private === true;
     this.privateKey = this.private ? randomKey() : null;
+    // A private window kept by lilOS (the page reloaded): its tabs and data are gone, so it goes too
+    const ended = this.private && args.ended === true;
     this.key = `netwave:${uid()}`;
     const size = args.size;
     const win = this.win = new Window({ title: t('app.name'), icon: 'globe', width: size?.w ?? 1100, height: size?.h ?? 720, minWidth: 460, minHeight: 280 });
@@ -79,8 +95,8 @@ export class NetWaveWindow {
 
     // Toolbar
     const button = (glyph, label, action, cls = '') => h('button', { type: 'button', class: `nw-tbtn ${cls}`.trim(), title: label, 'aria-label': label, onclick: action }, icon(glyph));
-    this.backBtn = button('arrowLeft', t('nav.back'), () => this.run('back'));
-    this.forwardBtn = button('arrowRight', t('nav.forward'), () => this.run('forward'));
+    this.backBtn = button('arrowLeft', t('nav.back'), () => this.run('back'), 'nw-dir');
+    this.forwardBtn = button('arrowRight', t('nav.forward'), () => this.run('forward'), 'nw-dir');
     this.reloadBtn = button('restart', t('nav.reload'), () => (this.active?.loading ? this.active.page?.stop() : this.run('reload')));
     this.homeBtn = button('home', t('nav.home'), () => this.run('home'));
     this.address = h('input', { class: 'nw-address-input', type: 'text', spellcheck: 'false', autocomplete: 'off', 'aria-label': t('address.label'), placeholder: t('address.placeholder') });
@@ -145,7 +161,8 @@ export class NetWaveWindow {
       this.#ensurePage(this.active);
       this.draw();
     });
-    this.#start(args);
+    this.#start(ended ? {} : args);
+    if (ended) setTimeout(() => this.win.emit('close'), 0);
   }
 
   // ---------- Opening ----------
@@ -286,9 +303,10 @@ export class NetWaveWindow {
 
   #wire(tab, page) {
     const shown = () => this.active === tab;
+    let lastBlocked = 0;
     page.on('title', e => {
-      tab.title = e.title;
-      if (!this.private && !blank(tab.url)) history.retitle(tab.url, e.title);
+      tab.title = plain(e.title, 300);
+      if (!this.private && !blank(tab.url)) history.retitle(tab.url, tab.title);
       this.draw();
     });
     page.on('favicon', e => { tab.icon = e.icon; this.draw(); });
@@ -299,6 +317,8 @@ export class NetWaveWindow {
     });
     page.on('nav', e => {
       const changed = e.url !== tab.url;
+      // Another document: its title comes with it, if it has one (a JSON or an image has none)
+      if (noHash(e.url) !== noHash(tab.url)) tab.title = '';
       tab.url = e.url;
       tab.canBack = e.canGoBack;
       tab.canForward = e.canGoForward;
@@ -314,8 +334,22 @@ export class NetWaveWindow {
       this.draw();
     });
     page.on('error', e => { tab.error = { code: e.code, description: e.description, url: e.url }; tab.loading = false; this.draw(); });
-    page.on('blocked', e => notifications.send({ text: t('blocked', { url: e.url }), level: 'warning' }));
-    page.on('open', e => this.newTab(e.url, { after: tab, select: e.disposition !== 'background-tab' }));
+    // A page can try addresses in a loop: one warning every 20 s, with what NetWave refused (scheme
+    // and host), never the rest of the text the page chose
+    page.on('blocked', e => {
+      if (Date.now() - lastBlocked < BLOCKED_GAP) return;
+      lastBlocked = Date.now();
+      let shown = '';
+      try { const u = new URL(e.url); shown = u.host ? `${u.protocol}//${u.host}` : u.protocol; } catch { /* nothing to show */ }
+      notifications.send({ text: t('blocked', { url: shown.slice(0, 80) }), level: 'warning' });
+    });
+    page.on('open', e => this.#pageOpens(tab, e));
+    page.on('popupsDropped', e => this.#pageOpens(tab, { ...e, dropped: true }));
+    page.on('expired', e => {
+      // No answer in time: the program said no, the question goes
+      tab.asks = tab.asks.filter(a => a.requestId !== e.requestId);
+      this.draw();
+    });
     page.on('focus', () => this.#focusWindow());
     page.on('key', e => this.run(KEYS[e.combo]));
     page.on('menu', e => this.#pageMenu(tab, e));
@@ -334,10 +368,43 @@ export class NetWaveWindow {
     });
   }
 
+  /**
+   * A page asks for a new tab (window.open, a link to a new window). The user's choice of a
+   * background tab (Ctrl or middle click) opens it; otherwise NetWave asks, unless the user turned
+   * the question off or answered for the site for good. Requests of the same site wait together.
+   */
+  #pageOpens(tab, e) {
+    const origin = e.origin || originOf(tab.url);
+    const open = () => { if (e.url) this.newTab(e.url, { after: tab, select: e.disposition !== 'background-tab' }); };
+    if (e.disposition === 'background-tab' || !options.get('askTabs')) return open();
+    const remembered = this.private ? undefined : options.grant(origin, 'tabs');
+    if (remembered === true) return open();
+    if (remembered === false) return;
+    let ask = tab.asks.find(a => a.kind === 'tabs' && a.origin === origin);
+    if (!ask) {
+      ask = { kind: 'tabs', origin, urls: [], dropped: false };
+      tab.asks.push(ask);
+    }
+    if (e.dropped) ask.dropped = true;
+    else if (ask.urls.length < TABS_ASKED_MAX) ask.urls.push(e.url);
+    if (ask.urls.length) this.draw();
+    else tab.asks = tab.asks.filter(a => a !== ask);
+  }
+
   go(text) {
+    const tab = this.active ?? this.newTab();
+    const refused = refusedScheme(text);
+    if (refused) {
+      // Not a search either: what was typed (a path of the computer, a script) does not leave lilOS
+      this.#addressEditing = false;
+      this.address.blur();
+      tab.error = { code: 'scheme', description: refused, url: String(text).trim().slice(0, 200) };
+      this.draw();
+      this.slot.focus();
+      return;
+    }
     const url = addressOf(text);
     if (!url) return;
-    const tab = this.active ?? this.newTab();
     tab.url = url;
     tab.error = null;
     this.#addressEditing = false;
@@ -346,7 +413,9 @@ export class NetWaveWindow {
     else this.#ensurePage(tab);
     this.#changed();
     this.draw();
-    tab.page?.focus();
+    // The keys of NetWave keep working when there is no page to take the focus (no engine yet)
+    if (tab.page) tab.page.focus();
+    else this.slot.focus();
   }
 
   // ---------- Commands (keys, menus) ----------
@@ -612,7 +681,7 @@ export class NetWaveWindow {
   }
 
   state() {
-    if (this.private) return { private: true };
+    if (this.private) return { private: true, ended: true };
     const tabs = tabsOf(this.tabs);
     return {
       tabs, active: Math.max(0, this.tabs.indexOf(this.active)),
@@ -629,8 +698,18 @@ export class NetWaveWindow {
 
   #answer(tab, ask, allow, remember) {
     tab.asks = tab.asks.filter(a => a !== ask);
-    tab.page?.permission(ask.requestId, allow, remember && !this.private);
-    if (remember && !this.private) options.setGrant(ask.origin, ask.permission, allow);
+    remember = remember && !this.private;
+    if (ask.kind === 'tabs') {
+      if (remember) options.setGrant(ask.origin, 'tabs', allow);
+      if (allow) {
+        let after = tab;
+        for (const url of ask.urls) after = this.newTab(url, { after, select: url === ask.urls.at(-1) });
+      }
+      this.draw();
+      return;
+    }
+    tab.page?.permission(ask.requestId, allow, remember);
+    if (remember) for (const permission of permissionsOf(ask)) options.setGrant(ask.origin, permission, allow);
     this.draw();
   }
 
@@ -638,7 +717,7 @@ export class NetWaveWindow {
     if (this.active !== tab) this.select(tab);
     this.live.refresh();
     const r = await messageBox(this.win, {
-      icon: 'lock', title: t('auth.title', { host: e.host }), text: e.realm ? t('auth.realm', { realm: e.realm }) : t('auth.text'),
+      icon: 'lock', title: t('auth.title', { host: plain(e.host, 100) }), text: e.realm ? t('auth.realm', { realm: plain(e.realm, 80) }) : t('auth.text'),
       fields: [{ name: 'user', label: t('auth.user'), required: true, maxLength: 200 }, { name: 'password', type: 'password', label: t('auth.password'), maxLength: 500 }],
       buttons: ['cancel', 'ok'],
     });
@@ -822,7 +901,8 @@ export class NetWaveWindow {
     this.#drawAsk();
     this.#drawOverlay();
     this.#drawDownloads();
-    const subtitle = this.session ? `${this.session.name}${this.dirty ? ' •' : ''}` : this.private ? t('private.title') : tab ? tabLabel(tab) : '';
+    // The window's title never carries the page's own: a site could write a message of lilOS there
+    const subtitle = this.session ? `${this.session.name}${this.dirty ? ' •' : ''}` : this.private ? t('private.title') : tab && !blank(tab.url) ? hostOf(tab.url) : '';
     this.win.setTitle(t('app.name'), subtitle);
   }
 
@@ -850,13 +930,26 @@ export class NetWaveWindow {
     const ask = tab?.asks[0];
     this.askBar.hidden = !ask;
     if (!ask) { this.live.refresh(); return; }
-    const what = t(`perm.${ask.permission}`);
+    let glyph, text;
+    if (ask.kind === 'tabs') {
+      glyph = 'plus';
+      text = ask.urls.length > 1 ? t('ask.tabsMany', { n: ask.urls.length }) : t('ask.tabs', { host: hostOf(ask.urls[0]) });
+      if (ask.dropped) text += ` ${t('ask.tabsDropped')}`;
+    } else {
+      const kinds = permissionsOf(ask);
+      const what = ask.permission === 'media' ? t(kinds.length > 1 ? 'perm.media' : `perm.${kinds[0]}`) : t(`perm.${ask.permission}`);
+      glyph = ask.permission === 'geolocation' ? 'home' : ask.permission === 'media' ? 'camera' : ask.permission === 'notifications' ? 'bell' : 'shield';
+      text = t('ask.wants', { what });
+    }
+    // Yes or no for this time; the box remembers the answer for the site (not in a private window)
+    // (kept on the question: the bar is drawn again whenever the window changes)
+    const remember = h('input', { type: 'checkbox', checked: !!ask.remember, onchange: e => { ask.remember = e.currentTarget.checked; } });
     this.askBar.replaceChildren(
-      icon(ask.permission === 'geolocation' ? 'home' : ask.permission === 'media' ? 'camera' : ask.permission === 'notifications' ? 'bell' : 'shield'),
-      h('div', { class: 'nw-ask-text' }, h('b', {}, hostOf(ask.origin)), ` ${t('ask.wants', { what })}`, h('small', {}, t(this.private ? 'ask.hintPrivate' : 'ask.hint'))),
-      h('button', { type: 'button', class: 'ctl-btn', onclick: () => this.#answer(tab, ask, false, true) }, t('ask.block')),
-      h('button', { type: 'button', class: 'ctl-btn', onclick: () => this.#answer(tab, ask, true, false) }, t('ask.once')),
-      ...(this.private ? [] : [h('button', { type: 'button', class: 'ctl-btn primary', onclick: () => this.#answer(tab, ask, true, true) }, t('ask.always'))]),
+      icon(glyph),
+      h('div', { class: 'nw-ask-text' }, h('b', {}, hostOf(ask.origin)), ` ${text}`, h('small', {}, t(this.private ? 'ask.hintPrivate' : ask.kind === 'tabs' ? 'ask.hintTabs' : 'ask.hint'))),
+      ...(this.private ? [] : [h('label', { class: 'nw-ask-remember' }, remember, t('ask.remember'))]),
+      h('button', { type: 'button', class: 'ctl-btn', onclick: () => this.#answer(tab, ask, false, remember.checked) }, t('ask.deny')),
+      h('button', { type: 'button', class: 'ctl-btn primary', onclick: () => this.#answer(tab, ask, true, remember.checked) }, t(ask.kind === 'tabs' ? 'ask.open' : 'ask.allow')),
     );
     this.live.refresh();
   }
@@ -865,8 +958,8 @@ export class NetWaveWindow {
     const tab = this.active;
     let content = null;
     if (!tab) content = null;
-    else if (blank(tab.url)) content = startPage(this);
     else if (tab.error) content = problemPage(this, tab);
+    else if (blank(tab.url)) content = startPage(this);
     else if (this.engine === false) content = problemPage(this, tab, 'engine');
     this.overlay.hidden = !content;
     if (content) this.overlay.replaceChildren(content);
