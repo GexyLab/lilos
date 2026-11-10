@@ -1,0 +1,25 @@
+{
+  "id": "logicstudio",
+  "version": "1.0.0",
+  "kind": "local",
+  "name": "Logic Studio IDE",
+  "description": "Logic blocks linked together, as in OpenBack: schemas, projects with windows made of UI components, consoles. The engine runs them in lilOS, also with lilOS closed.",
+  "category": "development",
+  "icon": { "glyph": "blocks", "color": "#2da44e" },
+  "publisher": { "id": "lilos", "name": "lilOS" },
+  "sdk": "2",
+  "system": true,
+  "lilos": ">=1.36.0",
+  "entrypoints": {
+    "main": { "kind": "window" }
+  },
+  "dependencies": [
+    { "module": "logicstudio-engine", "reason": "Runs the schemas and projects" },
+    { "module": "logicstudio-core", "reason": "The base blocks" }
+  ],
+  "permissions": ["fs.write:~"],
+  "contributes": {
+    "window": { "width": 1240, "height": 760 },
+    "fileTypes": ["lsproj", "lsch", "lsui"]
+  }
+}

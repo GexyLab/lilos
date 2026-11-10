@@ -56,6 +56,7 @@ export const APPS = [
   { id: 'scheduler', entry: 'SchedulerApp.js' },
   { id: 'nettest', entry: 'NetTestApp.js' },
   { id: 'stickynotes', entry: 'StickyNotesApp.js' },
+  { id: 'logicstudio', entry: 'LogicStudioApp.js' },
 ];
 
 /** The kernel modules of the catalog, by name. */

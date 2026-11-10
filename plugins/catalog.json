@@ -13,7 +13,8 @@
     "apps/automata",
     "apps/scheduler",
     "apps/nettest",
-    "apps/stickynotes"
+    "apps/stickynotes",
+    "apps/logicstudio"
   ],
   "modules": [
     "modules/users-basic",

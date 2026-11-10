@@ -71,7 +71,7 @@ export class Supervisor {
     try {
       spec = buildSpec(documents, this.#registry, limits);
     } catch (err) {
-      if (err instanceof ProjectError) this.#ctx.fail('invalid', err.message, { where: err.where });
+      if (err instanceof ProjectError) this.#ctx.fail('invalid', err.message, { details: { where: err.where } });
       throw err;
     }
     const program = {

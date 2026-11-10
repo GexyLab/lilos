@@ -276,7 +276,10 @@ export class LogicCanvas extends Emitter {
   place(def, at = null) {
     if (this.#readOnly) return null;
     const p = at ?? this.center();
-    const id = this.#schema.addBlock(def, { x: snap(p.x - 70), y: snap(p.y - 20) });
+    let x = snap(p.x - 70), y = snap(p.y - 20);
+    // Clicked in the palette again and again: each one a step further, not on top of the last
+    if (!at) while (this.#schema.data.blocks.some(b => Math.abs(b.x - x) < 16 && Math.abs(b.y - y) < 16)) { x += 30; y += 30; }
+    const id = this.#schema.addBlock(def, { x, y });
     this.select([id]);
     this.el.focus({ preventScroll: true });
     return id;
