@@ -140,11 +140,13 @@ settings.watch('minimap', on => {
   canvas.changed();
 });
 
-// Folders open in the File Manager; files with their app (or the "Apri con" window); links what they point to
+// Folders open in the File Manager (in a window of their own with newWindow: Ctrl + double click);
+// files with their app (or the "Apri con" window); links what they point to
 bus.on('item:open', node => {
-  if (node?.type === 'folder') launch('files', { folder: node.id });
+  const newWindow = node?.newWindow === true;
+  if (node?.type === 'folder') launch('files', { folder: node.id }, 'main', { newWindow });
   else if (node?.type === 'file') openFile(node);
-  else if (node?.type === 'link') openLink(node);
+  else if (node?.type === 'link') openLink(node, { newWindow });
 });
 
 if (import.meta.env.DEV) window.lilos = { bus, canvas, desktop, taskbar, wm, workareas, workspaces, settings, shortcuts, fs, history, kernel };

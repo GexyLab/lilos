@@ -56,7 +56,8 @@ export function setLaunchScope(value) {
 /**
  * Turns 'app:launch' ({ id, args, entry, files }) into windows: loads the app module on first use and
  * opens one window per app and entry point in the current scope (launching it again brings the
- * existing window back and emits 'launch' on it with the new args). App modules export a default
+ * existing window back and emits 'launch' on it with the new args; with `newWindow` it opens
+ * another one anyway). App modules export a default
  * function ({ args, openWindow, entry }) → Window (system apps: their other window entry points
  * as exports with that name); openWindow(win, key?, { main?, at? }) opens a secondary window
  * (settings, pickers): with a key, a window already open with that key is shown instead and
@@ -114,7 +115,8 @@ export function connectLauncher(wm) {
   };
 
   // files: ids the user handed the app with this launch (installed apps may then read and write them)
-  bus.on('app:launch', async ({ id, args, entry = 'main', files = [] }) => {
+  let extra = 0;
+  bus.on('app:launch', async ({ id, args, entry = 'main', files = [], newWindow = false }) => {
     const app = getApp(id);
     if (!app?.load) return console.info('[lilos] app non ancora disponibile:', id);
     if (!isInstalled(id)) return notify(t('hidden', { app: app.name }), { level: 'warning' });
@@ -140,14 +142,15 @@ export function connectLauncher(wm) {
         return;
       }
     }
-    const open = wm.windows.find(w => wm.appOf(w) === id && (w.entry ?? 'main') === entry && scope.includes(w));
+    const open = !newWindow && wm.windows.find(w => wm.appOf(w) === id && (w.entry ?? 'main') === entry && scope.includes(w));
     if (open) {
       if (files.length) open.emit('grant', files);
       open.emit('launch', args);
       return wm.show(open);
     }
     const workspace = wm.workspace;
-    const key = `${workspace}/${id}#${entry}`;
+    // A window asked apart neither waits for nor blocks the one being opened already
+    const key = `${workspace}/${id}#${entry}${newWindow ? `+${++extra}` : ''}`;
     if (loading.has(key)) return;
 
     loading.add(key);

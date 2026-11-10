@@ -22,8 +22,10 @@ export class Emitter {
  *   'app:launch'    { id, args, entry?, files?, auto? }   an app was requested (start menu, desktop shortcut;
  *                   auto: started by lilOS itself, at login);
  *                                        entry: one of its window entry points ('main' by default);
- *                                        files: ids of files the user handed it (it may read and write them)
- *   'item:open'     item data      a folder/file on the desktop was opened
+ *                                        files: ids of files the user handed it (it may read and write them);
+ *                                        newWindow: a window of its own even if one is open already
+ *   'item:open'     item data      a folder/file on the desktop was opened (newWindow: true with Ctrl:
+ *                                  a folder in a File Manager window of its own)
  *   'system:ready'  { at }         lilOS is up (apps, settings, desk, saved windows back); once per page
  *   'user:login'    { user, workspace }   right after, the user is in: what starts with them starts
  */

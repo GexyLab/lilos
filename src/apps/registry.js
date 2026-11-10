@@ -60,7 +60,9 @@ export const installedApps = () => apps.filter(app => isInstalled(app.id));
  * Opens the app; `entry`: one of its window entry points other than main (see entrypoints.js).
  * `files`: ids of files the user hands it (an installed app may then read and write them).
  * `auto`: lilOS starts it by itself (at login), not the user: it does not count as used.
+ * `newWindow`: always a window of its own, even if the app has one open already (Ctrl + double
+ * click on a folder of the desk).
  */
-export function launch(id, args, entry = 'main', { files = [], auto = false } = {}) {
-  bus.emit('app:launch', { id, args, entry, files, ...(auto && { auto: true }) });
+export function launch(id, args, entry = 'main', { files = [], auto = false, newWindow = false } = {}) {
+  bus.emit('app:launch', { id, args, entry, files, ...(auto && { auto: true }), ...(newWindow && { newWindow: true }) });
 }

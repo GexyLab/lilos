@@ -115,11 +115,12 @@ export function fixedFolder(item) {
   return fs.children(fs.root).find(n => n.type === 'folder' && n.system && !n.private && n.name === item.name && n.name !== DESK_NAME)?.id ?? null;
 }
 
-export function openFixed(item) {
+/** `newWindow` (Ctrl + double click): its folder, or the trash, in a File Manager window of its own. */
+export function openFixed(item, { newWindow = false } = {}) {
   if (item.kind === 'app') return launch(item.app);
-  if (item.kind === 'trash') return launch('files', { trash: true });
+  if (item.kind === 'trash') return launch('files', { trash: true }, 'main', { newWindow });
   const folder = fixedFolder(item);
-  if (folder) launch('files', { folder });
+  if (folder) launch('files', { folder }, 'main', { newWindow });
   else notify(t('folderGone', { name: item.name }), { level: 'warning' });
 }
 

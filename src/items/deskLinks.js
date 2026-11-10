@@ -64,11 +64,14 @@ export function openWebLink(url) {
   if (/^https?:\/\//i.test(url)) window.open(url, '_blank', 'noopener,noreferrer');
 }
 
-/** Opens what a link points to: a folder in the File Manager, a file with its app, a web page in the browser. Resolves with the node, or null. */
-export async function openLink(node, options) {
+/**
+ * Opens what a link points to: a folder in the File Manager (in a window of its own with
+ * `newWindow`), a file with its app, a web page in the browser. Resolves with the node, or null.
+ */
+export async function openLink(node, { newWindow = false, ...options } = {}) {
   if (node?.link?.kind === 'web') return void openWebLink(node.link.url);
   const target = await findLinkTarget(node, options);
-  if (target?.type === 'folder') launch('files', { folder: target.id });
+  if (target?.type === 'folder') launch('files', { folder: target.id }, 'main', { newWindow });
   else if (target) openFile(target);
   return target;
 }

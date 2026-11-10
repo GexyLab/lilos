@@ -221,12 +221,16 @@ export class Desktop {
 
   // ---------- Actions ----------
 
-  open(item) {
+  /** `newWindow` (Ctrl + double click): a folder opens in a File Manager window of its own. */
+  open(item, { newWindow = false } = {}) {
     if (item.workarea) this.workareas?.expand(item.workarea);
-    else if (item.fixed) openFixed(item.fixed);
+    else if (item.fixed) openFixed(item.fixed, { newWindow });
     else if (item.widget) item.open();
     else if (item.data.type === 'app') launch(item.data.app);
-    else bus.emit('item:open', fs.get(item.id));
+    else {
+      const node = fs.get(item.id);
+      bus.emit('item:open', newWindow && node ? { ...node, newWindow: true } : node);
+    }
   }
 
 /**
@@ -552,7 +556,14 @@ export class Desktop {
       }
       this.#drag(e, item, wasSelected && !additive);
     });
-    item.el.addEventListener('dblclick', () => { if (!item.editing) this.open(item); });
+    // Ctrl (⌘) + double click: a folder in a window of its own. The two Ctrl clicks took the item in
+    // and out of the selection: it stays selected, as after a plain double click
+    item.el.addEventListener('dblclick', e => {
+      if (item.editing) return;
+      const newWindow = e.ctrlKey || e.metaKey;
+      if (newWindow && !this.selection.has(item)) this.toggle(item);
+      this.open(item, { newWindow });
+    });
     item.el.addEventListener('contextmenu', e => {
       e.preventDefault();
       if (!this.selection.has(item)) this.select([item]);
