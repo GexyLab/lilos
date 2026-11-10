@@ -172,3 +172,112 @@
 /* lilOS's windows of a project (src/logic/host.js) */
 .logic-win { height: 100%; overflow: auto; background: var(--surface); }
 .logic-win > .lui { min-height: 100%; }
+
+/* Charts (sdk/ui/charts.js): the series colours, always in this order (checked for colour blindness
+   on adjacent pairs, light and dark), the blue ramp of the heat map and of colors «blue» */
+.lui-chart {
+  --lui-chart-1: #2a78d6; --lui-chart-2: #eb6834; --lui-chart-3: #1baf7a; --lui-chart-4: #eda100;
+  --lui-chart-5: #e87ba4; --lui-chart-6: #008300; --lui-chart-7: #6250d6; --lui-chart-8: #e34948;
+  --lui-chart-other: #9aa1ad;
+  --lui-chart-b1: #86b6ef; --lui-chart-b2: #5598e7; --lui-chart-b3: #2a78d6; --lui-chart-b4: #1c5cab; --lui-chart-b5: #104281; --lui-chart-b6: #0d366b;
+  --lui-chart-seq-lo: #e6f0fd; --lui-chart-seq-hi: #0d366b;
+  --lui-chart-bg: var(--surface);
+  --lui-chart-gap: var(--surface);
+  --lui-chart-grid: color-mix(in srgb, var(--text) 9%, var(--surface));
+  --lui-chart-axis: color-mix(in srgb, var(--text) 28%, var(--surface));
+  --lui-chart-label: var(--dim);
+  --lui-chart-font-size: 10.5px;
+}
+:root[data-theme="dark"] .lui-chart {
+  --lui-chart-1: #3987e5; --lui-chart-2: #d95926; --lui-chart-3: #199e70; --lui-chart-4: #c98500;
+  --lui-chart-5: #d55181; --lui-chart-6: #008300; --lui-chart-7: #9085e9; --lui-chart-8: #e66767;
+  --lui-chart-other: #6f7783;
+  --lui-chart-b1: #184f95; --lui-chart-b2: #256abf; --lui-chart-b3: #3987e5; --lui-chart-b4: #6da7ec; --lui-chart-b5: #9ec5f4; --lui-chart-b6: #cde2fb;
+  --lui-chart-seq-lo: #1f2c3d; --lui-chart-seq-hi: #9ec5f4;
+  --lui-chart-grid: color-mix(in srgb, var(--text) 10%, var(--surface));
+  --lui-chart-axis: color-mix(in srgb, var(--text) 30%, var(--surface));
+}
+.lui-chart { position: relative; display: flex; flex-direction: column; gap: 4px; min-width: 0; color: var(--text); font-size: 12px; outline: none; border-radius: var(--radius-sm); }
+.lui-chart:focus-visible { box-shadow: 0 0 0 2px var(--accent); }
+.lui-chart.lui-chart-fill { height: 100%; }
+.lui-chart.lui-chart-fill .lui-chart-plot { flex: 1; min-height: 60px; }
+.lui-chart-head { display: flex; align-items: center; gap: 8px; min-height: 22px; }
+.lui-chart-head[hidden], .lui-chart-legend[hidden], .lui-chart-tools[hidden] { display: none; }
+.lui-chart-title { flex: 1; min-width: 0; font-weight: 600; font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lui-chart-tools { display: flex; gap: 2px; opacity: 0; transition: opacity .12s; }
+.lui-chart:hover .lui-chart-tools, .lui-chart:focus-within .lui-chart-tools, .lui-chart-tools:has([aria-pressed="true"]) { opacity: 1; }
+.lui-chart-tool { width: 24px; height: 22px; display: grid; place-items: center; border: 0; border-radius: var(--radius-sm); background: none; color: var(--dim); cursor: pointer; padding: 0; }
+.lui-chart-tool:hover, .lui-chart-tool[aria-pressed="true"] { background: var(--hover); color: var(--text); }
+.lui-chart-tool:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.lui-chart-tool .ico { width: 14px; height: 14px; }
+.lui-chart-legend { display: flex; flex-wrap: wrap; gap: 2px 4px; }
+.lui-chart-key { display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 7px 0 5px; border: 0; border-radius: var(--radius-sm); background: none; color: var(--text); font: inherit; font-size: 11.5px; cursor: pointer; }
+.lui-chart-key:hover { background: var(--hover); }
+.lui-chart-key:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.lui-chart-key i { width: 10px; height: 10px; border-radius: 2px; flex: none; }
+.lui-chart-key.off { color: var(--faint); text-decoration: line-through; }
+.lui-chart-key.off i { background: transparent !important; box-shadow: inset 0 0 0 1.5px var(--faint); }
+.lui-chart-plot { position: relative; min-width: 0; }
+.lui-chart-plot[hidden] { display: none; }
+.lui-chart-svg { display: block; overflow: visible; font-size: var(--lui-chart-font-size); font-family: inherit; user-select: none; }
+.lui-chart-svg text { fill: var(--lui-chart-label); font-variant-numeric: tabular-nums; }
+.lui-chart-svg .grid line, .lui-chart-svg .grid polygon { stroke: var(--lui-chart-grid); stroke-width: 1; fill: none; }
+.lui-chart-svg .base, .lui-chart-svg .zero { stroke: var(--lui-chart-axis); stroke-width: 1; }
+.lui-chart-svg .cl text, .lui-chart-svg .al { fill: var(--text); }
+.lui-chart-svg .unit, .lui-chart-svg .rl { fill: var(--faint); }
+.lui-chart-svg .rl, .lui-chart-svg .vl { paint-order: stroke; stroke: var(--lui-chart-bg); stroke-width: 3px; stroke-linejoin: round; }
+.lui-chart-svg .empty { fill: var(--faint); font-size: 12px; }
+.lui-chart-svg .line { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.lui-chart-svg .line.spark { stroke-width: 1.5; }
+.lui-chart-svg .fill { stroke: none; fill-opacity: .16; }
+.lui-chart-svg .fill.spark { fill-opacity: .1; }
+.lui-chart-area .lui-chart-svg .fill { fill-opacity: .2; }
+.lui-chart-svg .dot { stroke: var(--lui-chart-gap); stroke-width: 1.5; }
+.lui-chart-svg .pt { stroke: var(--lui-chart-gap); stroke-width: 1.5; fill-opacity: .85; }
+.lui-chart-svg .bar, .lui-chart-svg .state { stroke: none; }
+.lui-chart-svg .off { stroke: var(--lui-chart-axis); stroke-width: 2; stroke-linecap: round; }
+.lui-chart-svg .slice { stroke: var(--lui-chart-gap); stroke-width: 2; stroke-linejoin: round; transition: opacity .1s; }
+.lui-chart-svg .slices:has(.lui-chart-hl) .slice:not(.lui-chart-hl) { opacity: .55; }
+.lui-chart-svg .pl, .lui-chart-svg .sl { fill: #fff; font-weight: 600; }
+.lui-chart-svg .pl.dark, .lui-chart-svg .sl.dark { fill: #0b0b0b; }
+.lui-chart-svg .vl { fill: var(--dim); }
+.lui-chart-svg .total { fill: var(--text); font-size: 15px; font-weight: 700; }
+.lui-chart-svg .totl { fill: var(--dim); }
+.lui-chart-svg .cell { stroke: none; }
+.lui-chart-svg .nocell { fill: var(--hover); }
+.lui-chart-svg .cv { fill: var(--text); }
+.lui-chart-svg .cv.light { fill: #fff; }
+:root[data-theme="dark"] .lui-chart-svg .cv { fill: #e4e7ec; }
+:root[data-theme="dark"] .lui-chart-svg .cv.light { fill: #0b0b0b; }
+.lui-chart-svg .shape { fill-opacity: .14; stroke-width: 2; stroke-linejoin: round; }
+.lui-chart-svg .overlay { pointer-events: none; }
+.lui-chart-svg .guide { stroke: var(--lui-chart-axis); stroke-width: 1; stroke-dasharray: 3 3; }
+.lui-chart-svg .band { fill: var(--text); fill-opacity: .06; }
+.lui-chart-svg .cellmark { fill: none; stroke: var(--text); stroke-width: 2; }
+.lui-chart-svg .hdot { stroke: var(--lui-chart-gap); stroke-width: 2; }
+.lui-chart-tip {
+  position: absolute; z-index: 3; pointer-events: none; min-width: 90px; max-width: 260px; padding: 6px 9px; border-radius: var(--radius-sm);
+  background: var(--field-bg); color: var(--text); border: 1px solid var(--border); box-shadow: var(--shadow-pop); font-size: 11.5px; line-height: 1.45;
+}
+.lui-chart-tip[hidden] { display: none; }
+.lui-chart-tip b { display: block; font-weight: 600; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lui-chart-tip .r { display: flex; align-items: center; gap: 6px; }
+.lui-chart-tip .r i, .lui-chart-tip .r .sp { width: 8px; height: 8px; border-radius: 2px; flex: none; }
+.lui-chart-tip .r .n { color: var(--dim); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lui-chart-tip .r .v { font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.lui-chart-tablewrap { overflow: auto; max-height: 320px; border: 1px solid var(--border); border-radius: var(--radius-sm); }
+.lui-chart-tablewrap[hidden] { display: none; }
+.lui-chart-table { width: 100%; border-collapse: collapse; font-size: 11.5px; }
+.lui-chart-table caption { text-align: left; padding: 5px 8px; font-weight: 600; color: var(--dim); }
+.lui-chart-table th, .lui-chart-table td { padding: 4px 8px; border-bottom: 1px solid var(--border); text-align: left; white-space: nowrap; }
+.lui-chart-table thead th { position: sticky; top: 0; background: var(--side); color: var(--dim); font-weight: 600; }
+.lui-chart-table tbody th { font-weight: 500; }
+.lui-chart-table td.n, .lui-chart-table th.n { text-align: right; font-variant-numeric: tabular-nums; }
+.lui-chart-more { margin: 0; padding: 5px 8px; color: var(--faint); font-size: 11px; }
+.lui-chart-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+/* the chart components of logicstudio-charts */
+.lui-chartc { min-width: 0; }
+.lui-chartc-spark { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.lui-chartc-spark > .lui-chart { flex: 1; min-width: 40px; }
+.lui-chartc-spark .lui-lab { white-space: nowrap; }
+.lui-chartc-spark b { font-variant-numeric: tabular-nums; white-space: nowrap; }

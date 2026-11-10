@@ -2,6 +2,7 @@ import { h } from '../../core/dom.js';
 import { Emitter } from '../../core/events.js';
 import { icon } from '../icons.js';
 import * as controls from '../controls.js';
+import { chart } from '../charts.js';
 
 /**
  * A window of a Logic Studio project (.lsui) drawn with its Componenti UI, and bound to the
@@ -79,7 +80,7 @@ export class LogicUI extends Emitter {
     const c = Object.freeze({
       id: node.id, props, lang: this.#lang, design: this.#mode === 'design', mode: this.#mode,
       t: s => this.#text(s),
-      h, icon, controls,
+      h, icon, controls, charts: { chart },
       host: this.#host,
       added: node.added ?? { inputs: [], outputs: [] },
       /** The user did something: to the schemas (and 'send' for whoever listens). */

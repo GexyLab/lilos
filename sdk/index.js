@@ -47,6 +47,7 @@ export { LogicCanvas } from './ui/logic/LogicCanvas.js';
 export { LogicConsoles, LogicConsoleView } from './ui/logic/LogicConsole.js';
 export { LogicUI, COMMON_INPUTS } from './ui/logic/LogicUI.js';
 export { formatLogicValue } from './ui/logic/format.js';
+export { chart, CHART_KINDS } from './ui/charts.js';
 
 // Windows
 export { Window, WINDOW_EDGES } from './ui/Window.js';
