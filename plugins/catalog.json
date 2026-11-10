@@ -38,7 +38,8 @@
     "modules/call-grpc",
     "modules/call-mqtt",
     "modules/logicstudio-engine",
-    "modules/logicstudio-core"
+    "modules/logicstudio-core",
+    "modules/logicstudio-collections"
   ],
   "system": "system/lilos",
   "languages": [

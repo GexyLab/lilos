@@ -1,0 +1,22 @@
+{
+  "name": "logicstudio-collections",
+  "version": "1.0.0",
+  "description": "Logic Studio: i blocchi per liste e matrici (elementi, ordina, filtra, somma, cicli su una lista, prodotto e determinante di matrici…)",
+  "icon": {
+    "glyph": "list",
+    "color": "#2f81f7"
+  },
+  "kernel": "1",
+  "provides": [
+    "logicblock.collections"
+  ],
+  "requires": [
+    "logicstudio"
+  ],
+  "dependencies": [
+    {
+      "module": "logicstudio-engine",
+      "reason": "Il motore che fa girare i blocchi"
+    }
+  ]
+}
