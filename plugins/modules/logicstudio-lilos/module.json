@@ -1,0 +1,32 @@
+{
+  "name": "logicstudio-lilos",
+  "version": "1.0.0",
+  "description": "Logic Studio: i blocchi di lilOS (notifiche, leggere e scrivere i file della propria home, elencare cartelle, eventi verso le pagine di lilOS)",
+  "icon": {
+    "glyph": "chip",
+    "color": "#6e56cf"
+  },
+  "kernel": "1",
+  "provides": [
+    "logicblock.lilos"
+  ],
+  "requires": [
+    "logicstudio",
+    "fs",
+    "notifications"
+  ],
+  "dependencies": [
+    {
+      "module": "logicstudio-engine",
+      "reason": "Il motore che fa girare i blocchi"
+    },
+    {
+      "module": "logicstudio-core",
+      "reason": "I blocchi di base, che servono insieme a questi (valori, testo, tempo)"
+    },
+    {
+      "module": "notifications-basic",
+      "reason": "Il servizio delle notifiche, usato dal blocco Notifica"
+    }
+  ]
+}

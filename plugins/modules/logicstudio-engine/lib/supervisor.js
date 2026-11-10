@@ -45,7 +45,7 @@ export class Supervisor {
     const mine = [...this.#programs.values()].filter(p => p.owner === userId && ['running', 'starting', 'waiting'].includes(p.status));
     return {
       quota: this.quota(userId),
-      active: mine.filter(p => p.kind === 'active').length,
+      active: mine.filter(p => p.kind !== 'test').length,
       tests: mine.filter(p => p.kind === 'test').length,
       net: this.#users.get(userId)?.net.filter(t => Date.now() - t < 60_000).length ?? 0,
       log: this.#logs.size(userId),
@@ -57,15 +57,16 @@ export class Supervisor {
    * read: the IDE says it, shown in the lists) or null.
    */
   async start(user, { kind, name, documents, source = null, lang = 'en', watch = false, id = null, restart = false }) {
-    if (kind !== 'test' && kind !== 'active') this.#ctx.fail('invalid', 'Tipo di programma non valido: test o active');
+    // 'app': an app made from a project, run without installing it: it lasts while its windows are open (lilOS stops it)
+    if (kind !== 'test' && kind !== 'active' && kind !== 'app') this.#ctx.fail('invalid', 'Tipo di programma non valido: test, active o app');
     const limits = this.limits;
     const quota = this.quota(user.id);
     const usage = this.usage(user.id);
     if (!restart) {
-      if (kind === 'active' && usage.active >= quota.maxActive) this.#ctx.fail('quota', `Hai già ${usage.active} programmi attivi: al massimo ${quota.maxActive}`);
+      if (kind !== 'test' && usage.active >= quota.maxActive) this.#ctx.fail('quota', `Hai già ${usage.active} programmi attivi: al massimo ${quota.maxActive}`);
       if (kind === 'test' && usage.tests >= quota.maxTests) this.#ctx.fail('quota', `Hai già ${usage.tests} prove in corso: al massimo ${quota.maxTests}`);
-      const all = [...this.#programs.values()].filter(p => p.kind === 'active' && p.status !== 'stopped' && p.status !== 'failed').length;
-      if (kind === 'active' && all >= limits.totalActive) this.#ctx.fail('quota', `lilOS ha già ${all} programmi attivi: al massimo ${limits.totalActive}`);
+      const all = [...this.#programs.values()].filter(p => p.kind !== 'test' && p.status !== 'stopped' && p.status !== 'failed').length;
+      if (kind !== 'test' && all >= limits.totalActive) this.#ctx.fail('quota', `lilOS ha già ${all} programmi attivi: al massimo ${limits.totalActive}`);
     }
     let spec;
     try {
@@ -77,11 +78,11 @@ export class Supervisor {
     const program = {
       id: id ?? randomBytes(9).toString('base64url'), owner: user.id, user, kind, name: String(name ?? 'Programma').slice(0, 120),
       source, documents, spec, lang, status: 'starting', error: null, started: Date.now(), stopped: null,
-      watchers: new Set(), ui: new Map(), endTimer: null,
+      watchers: new Set(), ui: new Map(), endTimer: null, abort: new AbortController(),
     };
     program.consoles = new Consoles(spec.consoles, {
       perSecond: limits.consoleLinesPerSecond,
-      hidden: kind === 'active' && spec.consoles.outside === 'hidden',
+      hidden: kind !== 'test' && spec.consoles.outside === 'hidden',
       log: (line, c) => this.#logLine(program, line, c),
     });
     program.consoles.on((event, data) => this.#tell(program, { t: `console.${event}`, ...data }));
@@ -215,7 +216,7 @@ export class Supervisor {
 
   #logLine(program, line, c) {
     const mode = program.spec?.consoles.copyToLog ?? 'warnings';
-    if (program.kind !== 'active' || mode === 'none') return;
+    if (program.kind === 'test' || mode === 'none') return;
     if (mode === 'warnings' && line.level !== 'warning' && line.level !== 'error') return;
     this.#logs.append(program.owner, { program: program.id, name: program.name, console: c.name, ...line }, this.quota(program.owner).logMb);
   }
@@ -236,6 +237,7 @@ export class Supervisor {
     program.error = status === 'failed' ? reason : null;
     program.stopped = Date.now();
     clearTimeout(program.endTimer);
+    program.abort?.abort();   // the actions still running for it (a long web request) stop too
     program.consoles?.close();
     this.#tell(program, { t: 'status', status, error: program.error, reason });
     const u = this.#users.get(program.owner);
@@ -244,8 +246,8 @@ export class Supervisor {
       if (!u.programs.size) this.#endWorker(program.owner);
     }
     if (program.kind === 'active' && status === 'failed') this.#ctx.emit(program.owner, 'logicstudio.failed', { id: program.id, name: program.name, error: reason });
-    // A test is forgotten after a while: the IDE has read how it ended
-    if (program.kind === 'test') setTimeout(() => { if (this.#programs.get(program.id) === program) this.#programs.delete(program.id); }, 60_000).unref?.();
+    // A test or an app's run is forgotten after a while: whoever ran it has read how it ended
+    if (program.kind !== 'active') setTimeout(() => { if (this.#programs.get(program.id) === program) this.#programs.delete(program.id); }, 60_000).unref?.();
   }
 
   #endWorker(userId) {
@@ -336,7 +338,7 @@ export class Supervisor {
         if (op === 'write') program.consoles.write(data.console, data.text, data.level);
         else if (op === 'clear') program.consoles.clear(data.console);
         else if (op === 'read') {
-          if (program.kind === 'active' && program.watchers.size === 0 && program.spec.consoles.outside !== 'hidden') {
+          if (program.kind !== 'test' && program.watchers.size === 0 && program.spec.consoles.outside !== 'hidden') {
             this.#ctx.emit(program.owner, 'logicstudio.ask', { id: program.id, name: program.name, console: data.console });
           }
           const answer = await program.consoles.read(data.console, data);
@@ -349,7 +351,7 @@ export class Supervisor {
         try {
           reply = { ok: true, value: await this.#action(program, msg.action, msg.args) };
         } catch (err) {
-          reply = { ok: false, error: err?.text ?? err?.message ?? String(err) };
+          reply = { ok: false, error: String(err?.text ?? err?.message ?? err) };
         }
         u.worker.postMessage({ t: 'reply', rid: msg.rid, ...reply });
         break;
@@ -369,6 +371,7 @@ export class Supervisor {
     if (!fn) throw new Error(`Azione sconosciuta: ${key}`);
     const tools = {
       program: { id: program.id, name: program.name, kind: program.kind },
+      signal: program.abort?.signal ?? null,
       countNet: () => { if (!this.countNet(program.owner)) throw new Error('Troppe richieste di rete: hai finito la quota di questo minuto'); },
       emit: (event, data) => this.#ctx.emit(program.owner, event, data),
     };

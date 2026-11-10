@@ -196,3 +196,5 @@
 .ls-wbody > .lui { height: 100%; }
 .ls-tb.on { background: var(--accent-soft); color: var(--accent); }
 .lui-moving { opacity: .4; }
+.ls-app-head { display: flex; align-items: center; gap: 12px; margin: 4px 0 8px; }
+.ls-app-preview .app-icon { width: 40px; height: 40px; }

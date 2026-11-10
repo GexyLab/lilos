@@ -14,6 +14,8 @@ const { t } = locale.define('lilos:logic', {
     noWindows: '{name} has no windows',
     notRunning: '{name} is not running: activate it in Logic Studio',
     gone: 'The program is not there any more',
+    badApp: 'This is not an app made by Logic Studio, or its files are missing',
+    appFailed: '{name} did not start: {error}',
   } },
 });
 
@@ -26,6 +28,9 @@ const { t } = locale.define('lilos:logic', {
  *   logicHost.openWindow(programId, name)      one of its windows (a button's «Apri una finestra»)
  *   logicHost.openConsole(programId, console)  a console (or all of them together: null)
  *   logicHost.projects() → [program]           the active programs, for the apps menu (cached; 'change')
+ *   logicHost.runApp(fileId)                   an app made from a project («Crea app»), run without
+ *                                              installing it: its .lsapp file; the program lasts while
+ *                                              its windows are open
  *
  * The consoles follow the project's option «Fuori dall'IDE»: all of them when its windows open,
  * only when a block asks for something (and closed after the answer), never, or all in the main
@@ -35,6 +40,7 @@ class LogicHost {
   #wm = null;
   #programs = new Map();     // id → { info, live, consoles: LogicConsoles, windows: Map(name → Window), consoleWins: Map(id|'*' → Window) }
   #active = [];
+  #apps = new Map();         // program id → the app's manifest (programs of apps run here: stopped with their last window)
   #listeners = new Set();
 
   connect({ wm }) {
@@ -99,6 +105,13 @@ class LogicHost {
   /** The last window of a program closed (consoles apart): nothing to keep open. */
   #maybeRelease(id) {
     const p = this.#programs.get(id);
+    // An app run from its folder ends with its last window
+    if (p && !p.windows.size && this.#apps.has(id)) {
+      this.#apps.delete(id);
+      for (const w of p.consoleWins.values()) w.emit('close');
+      logic.stop(id).then(() => logic.forget(id)).catch(() => {});
+      return;
+    }
     if (!p || p.windows.size || p.consoleWins.size) return;
     this.#programs.delete(id);
     p.consoles.destroy();
@@ -157,6 +170,48 @@ class LogicHost {
     p.consoleWins.set(key, win);
     this.#wm.open(win, { key: `logic:${id}:console:${key}` });
     setTimeout(() => view.focus(), 50);
+  }
+
+  /**
+   * Runs an app made from a project without installing it: <folder>/<id>.lsapp says where its
+   * manifest (lilos.json) and its project are. Only for the user who runs it; it lasts while its
+   * windows are open.
+   */
+  async runApp(fileId) {
+    let manifest = null;
+    try {
+      const node = fs.get(fileId);
+      const marker = JSON.parse(await fs.read(fileId));
+      if (marker?.format !== 'lilos-lsapp/1') throw new Error(t('badApp'));
+      const at = rel => {
+        let id = node.parent;
+        for (const part of String(rel).split('/').filter(Boolean)) {
+          id = fs.children(id).find(n => n.name === part)?.id;
+          if (!id) throw new Error(t('badApp'));
+        }
+        return id;
+      };
+      manifest = JSON.parse(await fs.read(at(marker.manifest ?? 'lilos.json')));
+      const projFile = at(marker.project);
+      const project = JSON.parse(await fs.read(projFile));
+      const inProject = rel => {
+        let id = fs.get(projFile).parent;
+        for (const part of String(rel).split('/').filter(Boolean)) {
+          id = fs.children(id).find(n => n.name === part)?.id;
+          if (!id) throw new Error(t('badApp'));
+        }
+        return id;
+      };
+      const read = async map => Object.fromEntries(await Promise.all(Object.entries(map ?? {}).map(async ([name, rel]) => [name, JSON.parse(await fs.read(inProject(rel)))])));
+      const documents = { project, schemas: await read(project.schemas), windows: await read(project.windows) };
+      const program = await logic.start({ kind: 'app', name: manifest.name ?? project.name, documents, source: { path: fs.path(projFile) }, lang: locale.code });
+      this.#apps.set(program.id, manifest);
+      await this.openMain(program.id);
+      return program;
+    } catch (err) {
+      notify(t('appFailed', { name: manifest?.name ?? fs.get(fileId)?.name ?? '', error: err.message }), { level: 'error' });
+      return null;
+    }
   }
 
   /** What the components of a window may ask of lilOS. */

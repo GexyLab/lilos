@@ -17,7 +17,7 @@ import { cleanOverrides, globalLimits, QUOTA } from './lib/limits.js';
  *   GET    /components/:pack             the browser code of a package's components (JavaScript)
  *   GET    /status                       limits, my quota and what I use
  *   GET    /programs[?all=1]             my programs (an admin: everyone's with all=1)
- *   POST   /programs                     { kind: 'test'|'active', name, documents, source, lang } → program
+ *   POST   /programs                     { kind: 'test'|'active'|'app', name, documents, source, lang } → program
  *   GET    /programs/:id
  *   DELETE /programs/:id[?forget=1]      stops it (forget: removes it from the list too)
  *   POST   /programs/:id/input           { schema, block, port, value }

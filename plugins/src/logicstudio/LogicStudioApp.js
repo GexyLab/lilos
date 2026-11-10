@@ -1,5 +1,6 @@
 import { Window, h, icon, fs, logic, messageBox, resizeHandle, storage } from '@lilos/sdk';
 import { pickFile } from '@lilos/system';
+import * as system from '@lilos/system';   // logicHost: lilOS ≥ 1.37.0
 import { TabBar } from '../shared/TabBar.js';
 import { Workspace } from './workspace.js';
 import { Explorer } from './explorer.js';
@@ -12,6 +13,7 @@ import { BottomPanel } from './bottom.js';
 import { Runner } from './run.js';
 import { Home } from './home.js';
 import { openProjectOptions } from './options.js';
+import { createApp } from './createApp.js';
 import { t, i18n } from './i18n.js';
 import './logicstudio.css';
 
@@ -29,11 +31,23 @@ import './logicstudio.css';
  * args.file: a .lsproj or .lsch to open (also from «Apri con»).
  */
 export default function createMain({ args, openWindow } = {}) {
+  // An app made from a project (.lsapp): lilOS runs it, the IDE does not open
+  if (args?.file && isApp(args.file)) {
+    system.logicHost?.runApp(args.file);
+    const win = new Window({ title: t('app.name'), icon: 'blocks', width: 280, height: 120 });
+    setTimeout(() => win.emit('close'), 0);
+    return win;
+  }
   const studio = new Studio(openWindow);
   if (args?.file && fs.exists(args.file)) studio.open(args.file);
-  studio.win.on('launch', a => { if (a?.file && fs.exists(a.file)) studio.open(a.file); });
+  studio.win.on('launch', a => {
+    if (a?.file && isApp(a.file)) system.logicHost?.runApp(a.file);
+    else if (a?.file && fs.exists(a.file)) studio.open(a.file);
+  });
   return studio.win;
 }
+
+const isApp = id => fs.get(id)?.name.toLowerCase().endsWith('.lsapp');
 
 class Studio {
   win; openWindow; ws = null; catalog = null;
@@ -278,6 +292,7 @@ class Studio {
       items.push(h('span', { class: 'sp' }));
       if (this.ws.project) {
         items.push(b('grid', t('tb.map'), () => this.openMap()));
+        items.push(b('box', t('tb.createApp'), () => createApp(this), { title: t('tb.createAppHint') }));
         items.push(b('gear', t('tb.options'), () => openProjectOptions(this)));
       }
     } else {

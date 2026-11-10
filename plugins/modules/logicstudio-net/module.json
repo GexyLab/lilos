@@ -1,0 +1,36 @@
+{
+  "name": "logicstudio-net",
+  "version": "1.0.0",
+  "description": "Logic Studio: i blocchi di rete (Richiesta web HTTP e HTTPS), con le richieste verso la rete locale bloccate se l'amministratore non le permette",
+  "icon": {
+    "glyph": "globe",
+    "color": "#0f9d9a"
+  },
+  "kernel": "1",
+  "provides": [
+    "logicblock.net"
+  ],
+  "requires": [
+    "logicstudio"
+  ],
+  "dependencies": [
+    {
+      "module": "logicstudio-engine",
+      "reason": "Il motore che fa girare i blocchi"
+    },
+    {
+      "module": "logicstudio-core",
+      "reason": "I blocchi di base, che servono insieme a questi (Ogni…, valori, testo)"
+    }
+  ],
+  "defaultConfig": {
+    "allowPrivate": false,
+    "timeoutSeconds": 20,
+    "maxResponseKb": 1024
+  },
+  "settings": [
+    { "key": "allowPrivate", "type": "checkbox", "default": false, "label": { "en": "Allow requests to this computer and to the local network", "it": "Permetti le richieste a questo computer e alla rete locale" } },
+    { "key": "timeoutSeconds", "type": "number", "min": 1, "max": 120, "default": 20, "label": { "en": "Time limit of a request (seconds)", "it": "Tempo massimo di una richiesta (secondi)" } },
+    { "key": "maxResponseKb", "type": "number", "min": 1, "max": 10240, "default": 1024, "label": { "en": "Size of a response, at most (KB)", "it": "Dimensione massima di una risposta (KB)" } }
+  ]
+}

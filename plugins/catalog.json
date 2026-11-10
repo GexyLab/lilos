@@ -41,7 +41,9 @@
     "modules/logicstudio-engine",
     "modules/logicstudio-core",
     "modules/logicstudio-collections",
-    "modules/logicstudio-ui"
+    "modules/logicstudio-ui",
+    "modules/logicstudio-lilos",
+    "modules/logicstudio-net"
   ],
   "system": "system/lilos",
   "languages": [
