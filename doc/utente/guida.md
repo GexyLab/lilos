@@ -1715,7 +1715,7 @@ La Home è una scheda come le altre: si chiude con la sua × o con il clic del t
 
 Dentro Logic Studio il **tasto centrale** del mouse vale solo per Logic Studio: sposta la vista dello schema o chiude una scheda, ma non sposta mai la scrivania né la finestra.
 
-Con un progetto aperto la finestra ha, a sinistra, le schede **Progetto** (l'elenco di schemi, finestre e risorse, con le sottocartelle che vuoi) e **Blocchi** (o **Componenti**, quando disegni una finestra); al centro i fogli aperti, ognuno in una scheda; a destra **Proprietà** di quello che hai selezionato; in basso le **console** del programma e i **Problemi**. Puoi allargare o stringere i pannelli laterali trascinando la barra tra loro e il foglio.
+Con un progetto aperto la finestra ha, a sinistra, le schede **Progetto** (l'elenco di schemi, finestre e risorse, con le sottocartelle che vuoi) e **Blocchi** (o **Componenti**, quando disegni una finestra); al centro i fogli aperti, ognuno in una scheda; a destra **Proprietà** di quello che hai selezionato; in basso le **console** del programma e i **Problemi**. Puoi allargare o stringere i pannelli laterali trascinando la barra tra loro e il foglio, e **comprimerli** come quello delle console: la freccia nella loro intestazione li riduce a una striscia stretta con le schede scritte in verticale, e la freccia della striscia (o un clic su una scheda) li riapre. Lo stato resta alla prossima apertura.
 
 ### Disegnare uno schema
 

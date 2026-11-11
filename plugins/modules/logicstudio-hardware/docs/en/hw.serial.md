@@ -133,5 +133,5 @@ The messages are in Italian, as users see them; the English meaning is in parent
 ## See also
 
 - [SerialPort.list (serial ports)](hw.serialList)
-- [String functions](core.text), [Type cast](core.convert), to work on the messages
+- [String functions](core.text), [Cast to number (Number())](core.toNumber), [Cast from JSON text (JSON.parse)](core.parseJson), to work on the messages
 - [Hardware](logicstudio-hardware)

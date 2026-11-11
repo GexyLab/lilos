@@ -18,7 +18,13 @@ The other blocks come with other packages: [Lists and matrices](logicstudio-coll
 |---|---|
 | [Constant · Variable](core.value) | Sends a fixed value (number, text, yes/no or JSON): once when the schema starts, or at every pulse if you link **send**. If you link **set**, the value can change and it becomes a variable. |
 | [Store (set · get)](core.store) | Keeps a value aside: you write it with **set**, read it with **read**, empty it with **clear**. |
-| [Type cast](core.convert) | Changes the type of a value: to number, text, yes/no, JSON text, or from JSON text to object or list. |
+| [Cast to number (Number())](core.toNumber) | Turns a value into a number. |
+| [Cast to text (String())](core.toText) | Turns a value into text. |
+| [Cast to yes/no (Boolean())](core.toBool) | Turns a value into yes/no. |
+| [Cast to JSON text (JSON.stringify)](core.toJson) | Writes a value as JSON text. |
+| [Cast from JSON text (JSON.parse)](core.parseJson) | Reads a JSON text and sends the object, list or value it describes. |
+
+The old single block [Type cast](core.convert) is obsolete: in saved schemas it still works, but it no longer appears in the list.
 
 ### Logic
 

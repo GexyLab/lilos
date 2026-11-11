@@ -52,7 +52,7 @@ Le **Colonne**, **Righe** e gli altri contenitori non hanno la sezione **Oggetto
 - Gli ingressi dell'oggetto **non hanno** le opzioni **lo avvia** e **valore iniziale**: i valori di partenza della componente si impostano nelle sue proprietà, nell'editor della finestra.
 - Se la finestra **non è aperta**, l'ultimo valore di ogni ingresso viene tenuto e la finestra lo mostra quando si apre (con l'opzione del progetto **Una finestra riaperta mostra subito gli ultimi valori**, accesa di serie). Il programma tiene al massimo 2000 valori di questo tipo.
 - Impostare un valore da uno schema **non** fa mandare niente alla componente: per esempio, mandare sì all'ingresso **valore** di un Interruttore lo accende, ma la sua uscita **valore** non manda niente. Escono solo i gesti dell'utente.
-- **abilitato** e **visibile** reagiscono solo al valore **no** vero e proprio (`false`): `false` disabilita o nasconde la componente, qualsiasi altro valore la riabilita o la mostra. Il testo `"no"` o il numero 0 **non** la nascondono: per un testo usa prima [Cast (converti tipo)](core.convert) in sì/no, o un blocco [Costante · Variabile](core.value) di tipo sì/no.
+- **abilitato** e **visibile** reagiscono solo al valore **no** vero e proprio (`false`): `false` disabilita o nasconde la componente, qualsiasi altro valore la riabilita o la mostra. Il testo `"no"` o il numero 0 **non** la nascondono: per un testo usa prima [Cast in sì/no (Boolean())](core.toBool), o un blocco [Costante · Variabile](core.value) di tipo sì/no.
 
 ### Dalla finestra allo schema (uscite)
 
@@ -94,7 +94,7 @@ Quando l'utente spegne l'[Interruttore](ui.toggle), esce no e il [Campo di testo
 [Casella di spunta: avanzate] valore ──▶ valore [Cast (converti tipo): sì/no] risultato ──▶ visibile [Etichetta: suggerimento]
 ```
 
-La [Casella di spunta](ui.checkbox) manda già sì/no, quindi qui [Cast (converti tipo)](core.convert) non sarebbe necessario; diventa necessario se il valore arriva come testo, per esempio `"false"` letto da un file: senza conversione il testo `"false"` **non** nasconderebbe l'etichetta.
+La [Casella di spunta](ui.checkbox) manda già sì/no, quindi qui [Cast in sì/no (Boolean())](core.toBool) non sarebbe necessario; diventa necessario se il valore arriva come testo, per esempio `"false"` letto da un file: senza conversione il testo `"false"` **non** nasconderebbe l'etichetta.
 
 ### 4. Il testo di un pulsante dallo schema
 

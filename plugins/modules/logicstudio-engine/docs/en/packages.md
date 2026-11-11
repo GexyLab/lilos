@@ -134,6 +134,7 @@ When all goes well the log says: `Logic Studio: pacchetto logicstudio-esempio 1.
 | `upgrade(config, from, added)` | Optional: upgrades the settings saved by an old version of the block |
 | `role` | Reserved for the base blocks (`schemaIn`, `schemaOut`, `component`, `catchAll`): do not use it |
 | `showError` | `true`: the **Exception** output is shown on the drawing from the start, instead of being hidden by default (from engine 1.4.1 and lilOS 1.44.0). For blocks whose purpose is to throw exceptions, like [Throw](core.throw) |
+| `obsolete` | A label `{ en, it }` (or `true`) for a block replaced by others. The engine still runs it in schemas already saved (from engine 1.8.0), the catalog gives it as `obsolete`, the IDE (from 1.17.0) does not show it in the **Blocks** list and writes the text in the **Properties** panel. For example `core.convert`, replaced by [Cast to number (Number())](core.toNumber) and the other four Casts |
 
 A block without `run` keeps the values it receives and does nothing else (it is useful, for example, to a `loop` block that reads them at every turn).
 

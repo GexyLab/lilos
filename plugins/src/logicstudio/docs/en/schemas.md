@@ -14,7 +14,7 @@ A **schema** (`.lsch` file) is a sheet of linked blocks. It opens with a click o
 └────────────────────────────┘
 ```
 
-- The **head** has the icon and the name: the **label** you gave it, otherwise the name of the block. The coloured strip on the left is the **category** (Values, Logic, Math, Text, Objects, Lists, Matrices, Units, Geometry, Trigonometry, Functions, Integrals, Numerical analysis, Signals, Time, Console, Schema ports, UI components, lilOS, Network, Hardware, Databases, Exceptions, Drawing).
+- The **head** has the icon and the name: the **label** you gave it, otherwise the name of the block. The coloured strip on the left is the **category** (Values, Math constants, Physical constants, Astronomical constants, Logic, Math, Text, Objects, Lists, Matrices, Units, Geometry, Trigonometry, Functions, Integrals, Numerical analysis, Signals, Time, Console, Schema ports, UI components, lilOS, Network, Hardware, Databases, Exceptions, Drawing).
 - Under the head, in small type, the first two settings that have a value (at most 34 characters).
 - On the left the **inputs**, on the right the **outputs**. The dot has the colour of the **type** of the port and is filled when the port is linked (see [Links and port types](ide/links)).
 - The name of an input **underlined with dots** means that input **does not start** the block.
@@ -46,6 +46,7 @@ The **Blocks** tab on the left lists the blocks of the installed packages, divid
 - **Dragging** the block onto the sheet puts it where you drop it.
 - The blocks of the palette are off when the open tab is not a schema (Home, Map).
 - The object of a component is not in the palette: it is made from the window (see [The object of a component](ide/components)).
+- **Obsolete** blocks are not in the palette: a package keeps them so that saved schemas that use them keep working, but it has replaced them with other blocks. If a schema has one, its **Properties** show the notice **Obsolete block** and say what to use instead (for example [Type cast](core.convert) is replaced by the five Cast blocks, one per conversion).
 
 A new block has the default settings of its package and an id made of its type and a number (`add1`, `value2`, `consolewrite1`).
 

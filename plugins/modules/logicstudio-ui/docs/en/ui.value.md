@@ -48,7 +48,7 @@ When opened the Value shows the **Label**, the **When empty** text in bold and t
 - Invalid numbers (`NaN`, infinity) are shown as text: `NaN`, `Infinity`.
 - The unit always stays, even when «—» is shown.
 
-If you want decimals also for a number that arrived as a text, first pass it through a [Type cast](core.convert) block **To** number.
+If you want decimals also for a number that arrived as a text, first pass it through a [Cast to number (Number())](core.toNumber) block.
 
 ## Examples
 
@@ -90,5 +90,5 @@ Label, value and unit are normal text, read in a row by a screen reader. When th
 ## See also
 
 - [Label](ui.label), [Gauge](ui.gauge), [Progress bar](ui.progress)
-- [Type cast](core.convert), [Math functions](core.math) to round before showing
+- [Cast to number (Number())](core.toNumber), [Math functions](core.math) to round before showing
 - [Standard UI components](logicstudio-ui)

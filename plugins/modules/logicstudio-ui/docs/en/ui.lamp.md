@@ -40,7 +40,7 @@ When opened the lamp is **off**, whatever the properties say: it turns on only w
 | `false`, `0`, `""`, `null` | off |
 | the text `"false"` | off |
 
-> Beware: the **text** `"0"` and the text `"no"` turn it **on**. If the value comes from a file or from a text, first pass it through [Type cast](core.convert) **To** yes/no.
+> Beware: the **text** `"0"` and the text `"no"` turn it **on**. If the value comes from a file or from a text, first pass it through [Cast to yes/no (Boolean())](core.toBool).
 
 **color** — the name of one of the four colors, **in English**: `green`, `red`, `yellow`, `blue`. Changing the color neither turns the lamp on nor off. With a different name (for example `rosso` or `#ff0000`) the lamp stays gray when on, without light: it looks off.
 

@@ -92,6 +92,10 @@ class Studio {
     });
     const leftGrip = grip(this.left, 'left', false);
     const rightGrip = grip(this.right, 'right', true);
+    // Both side panels fold into a thin strip, like the panel at the bottom; remembered with the sizes
+    this.grips = { left: leftGrip, right: rightGrip };
+    this.collapsed = { left: sizes.leftCollapsed === true, right: sizes.rightCollapsed === true };
+    this.#applyCollapsed();
     this.main = h('div', { class: 'ls-main' }, this.center, this.bottom.el);
     this.win.body.append(h('div', { class: 'ls lgc-scope' },
       this.tabBar.el, this.toolbar,
@@ -358,10 +362,35 @@ class Studio {
     const tab = this.current;
     const second = tab?.kind === 'window' ? 'components' : 'blocks';
     if (this.leftTab !== 'project') this.leftTab = second;
+    const secondLabel = second === 'components' ? t('left.components') : t('left.blocks');
+    if (this.collapsed.left) {
+      // folded: the strip shows the two tabs written vertically; a click opens the panel on that tab
+      const open = key => () => { this.leftTab = key; this.setCollapsed('left', false); };
+      const vtab = (key, label) => h('button', { type: 'button', class: `ls-vtab${this.leftTab === key ? ' on' : ''}`, title: label, onclick: open(key) }, h('span', {}, label));
+      this.leftTabs.replaceChildren(h('button', { type: 'button', class: 'ls-fold', title: t('side.expand'), 'aria-expanded': 'false', onclick: open(this.leftTab) }, icon('arrowRight')));
+      this.leftBody.replaceChildren(h('div', { class: 'ls-vtabs' }, vtab('project', t('left.project')), vtab(second, secondLabel)));
+      return;
+    }
     const tabBtn = (key, label) => h('button', { type: 'button', role: 'tab', class: this.leftTab === key ? 'on' : '', 'aria-selected': String(this.leftTab === key), onclick: () => { this.leftTab = key; this.renderLeft(); } }, label);
-    this.leftTabs.replaceChildren(tabBtn('project', t('left.project')), tabBtn(second, second === 'components' ? t('left.components') : t('left.blocks')));
+    this.leftTabs.replaceChildren(tabBtn('project', t('left.project')), tabBtn(second, secondLabel),
+      h('button', { type: 'button', class: 'ls-fold', title: t('side.collapse'), 'aria-expanded': 'true', onclick: () => this.setCollapsed('left', true) }, icon('arrowLeft')));
     this.leftBody.replaceChildren(this.leftTab === 'project' ? this.explorer.el : this.palette.el);
     if (this.leftTab !== 'project') this.palette.render();
+  }
+
+  /** Folds a side panel ('left' | 'right') into its strip, or opens it again; remembered. */
+  setCollapsed(side, collapsed) {
+    this.collapsed[side] = collapsed;
+    this.#applyCollapsed();
+    try { storage.set('logicstudio.panels', { ...storage.get('logicstudio.panels', {}), [`${side}Collapsed`]: collapsed }); } catch { /* not saved: only this session */ }
+    if (side === 'left') this.renderLeft(); else this.inspector.render();
+  }
+
+  #applyCollapsed() {
+    for (const side of ['left', 'right']) {
+      this[side].classList.toggle('collapsed', this.collapsed[side]);
+      this.grips[side].hidden = this.collapsed[side];
+    }
   }
 
   // ------------------------------------------------------------------ saving, closing

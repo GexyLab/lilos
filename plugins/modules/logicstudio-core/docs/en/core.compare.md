@@ -46,7 +46,7 @@ How the comparison is made depends on what arrives:
 
 Comparing as texts means **letter by letter**, like in the dictionary but with computer rules:
 
-- `"10"` is **less** than `"9"` (`1` is compared with `9` first). If your numbers arrive as text (for example from a [Text field](ui.text)), go through [Type cast](core.convert) to number first.
+- `"10"` is **less** than `"9"` (`1` is compared with `9` first). If your numbers arrive as text (for example from a [Text field](ui.text)), go through [Cast to number (Number())](core.toNumber) first.
 - Upper case counts and comes before lower case: `"Z"` < `"a"`; `"Roma"` ≠ `"roma"`.
 - Accented letters come after all the letters without accent: `"è"` > `"z"`.
 - Spaces count: `"ciao "` ≠ `"ciao"`.
@@ -98,7 +98,7 @@ Operation `a = b`, **b** initially `"stop"` (written `stop` in the **initial** f
 
 ### 4. The trick of numbers as text
 
-**a** = `"100"` and **b** = `"20"` both arrive as text from two text fields. With `a > b` the result is **no** (`"1"` comes before `"2"`). Putting a [Type cast](core.convert) to number on each, the result becomes **yes**.
+**a** = `"100"` and **b** = `"20"` both arrive as text from two text fields. With `a > b` the result is **no** (`"1"` comes before `"2"`). Putting a [Cast to number (Number())](core.toNumber) on each, the result becomes **yes**.
 
 ## Errors
 

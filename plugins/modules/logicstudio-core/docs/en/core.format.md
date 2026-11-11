@@ -91,6 +91,6 @@ This block has no errors of its own.
 
 - [Concat text](core.concat) to join texts one after the other, with a separator
 - [String functions](core.text) for upper case, spaces, replacements
-- [Type cast](core.convert) to turn a value into text or JSON text
+- [Cast to text (String())](core.toText) to turn a value into text, and [Cast to JSON text (JSON.stringify)](core.toJson) to write it as JSON text
 - [Join](coll.join) for the items of a list
 - [How a block works](ide/blocks)

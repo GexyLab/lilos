@@ -31,7 +31,7 @@ Ogni volta che arriva un oggetto, il blocco cerca il campo di ogni uscita e lo m
 - Le uscite mandano **una dopo l'altra, dall'alto in basso**, nell'ordine delle porte. Un blocco collegato a più uscite riceve i valori in quell'ordine.
 - Un campo che **non c'è** non manda niente su quella sua uscita, e **non** è un errore: le altre uscite mandano lo stesso.
 - Un campo che vale `null` viene mandato (`null`).
-- Se arriva qualcosa che non è un oggetto né una lista (un testo, un numero), non esce niente. Un testo JSON va prima trasformato con [Cast (converti tipo)](core.convert), impostazione **In** = «da testo JSON».
+- Se arriva qualcosa che non è un oggetto né una lista (un testo, un numero), non esce niente. Un testo JSON va prima trasformato con [Cast da testo JSON (JSON.parse)](core.parseJson).
 - Le regole del percorso sono quelle di [Get proprietà (obj.campo)](core.get): punti come separatori, posizioni da 0, spazi e maiuscole che contano. Un nome lasciato com'è (**campo 1**) cerca un campo che si chiama proprio `campo 1`.
 
 Per le regole generali vedi [Come funziona un blocco](ide/blocks).
@@ -73,7 +73,7 @@ Le uscite si chiamano `hour` e `minute`, come i campi dell'oggetto **parti** di 
                                                          name      ──▶ …
 ```
 
-Se la [HTTP (fetch)](net.request) riceve una risposta JSON come `{"name": "Roma", "main": {"temp": 18.4}}`, escono 18,4 e `"Roma"`. Se la risposta arriva come testo, mettici prima [Cast (converti tipo)](core.convert) con **In** = «da testo JSON».
+Se la [HTTP (fetch)](net.request) riceve una risposta JSON come `{"name": "Roma", "main": {"temp": 18.4}}`, escono 18,4 e `"Roma"`. Se la risposta arriva come testo, mettici prima [Cast da testo JSON (JSON.parse)](core.parseJson).
 
 ## Vedi anche
 

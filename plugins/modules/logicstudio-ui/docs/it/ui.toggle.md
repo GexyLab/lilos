@@ -39,7 +39,7 @@ Un interruttore a levetta, acceso o spento. Quando l'utente lo sposta, manda il 
 | `true`, il testo `"true"`, il numero `1` | acceso |
 | qualsiasi altra cosa: `false`, `0`, `"1"`, `"sì"`, `"on"`, `null` | spento |
 
-> Attenzione: il **testo** `"1"` e il testo `"sì"` lo **spengono**. Se il valore viene da un file o da un testo, passalo prima da [Cast (converti tipo)](core.convert) **In** sì/no.
+> Attenzione: il **testo** `"1"` e il testo `"sì"` lo **spengono**. Se il valore viene da un file o da un testo, passalo prima da [Cast in sì/no (Boolean())](core.toBool).
 
 **All'apertura** si vede lo stato di **Acceso all'inizio**, ma il programma non lo riceve: l'uscita manda qualcosa solo quando l'utente lo sposta. Se lo schema deve sapere lo stato iniziale, dagli lo stesso valore con un blocco [Costante · Variabile](core.value). Con l'opzione «Una finestra riaperta mostra subito gli ultimi valori», riaprendo la finestra l'interruttore mostra l'ultimo stato (dell'utente o dello schema).
 
@@ -96,5 +96,5 @@ Accendendo **Estate**, **Inverno** si spegne, e viceversa. Non c'è un giro senz
 
 - [Casella di spunta](ui.checkbox), con il testo visibile
 - [Spia](ui.lamp), per mostrare uno stato senza farlo cambiare
-- [NOT](core.not), [Cast (converti tipo)](core.convert)
+- [NOT](core.not), [Cast in sì/no (Boolean())](core.toBool)
 - [Componenti UI standard](logicstudio-ui)

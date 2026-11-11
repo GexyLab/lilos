@@ -44,7 +44,7 @@ A group of options one under the other, each with its own dot: the user chooses 
 
 In lists, unlike the text with commas, empty items also become options. An object with neither `value` nor `label` becomes an option «undefined».
 
-**The value that comes out is always a text**, even if the options were numbers: with the options `[1, 2, 3]` choosing the second sends `"2"`. If you need a number, use [Type cast](core.convert) **To** number.
+**The value that comes out is always a text**, even if the options were numbers: with the options `[1, 2, 3]` choosing the second sends `"2"`. If you need a number, use [Cast to number (Number())](core.toNumber).
 
 **Choosing.** The user chooses with a click on the dot or on the text; with the keyboard, the **arrow keys** move to the next or previous option **and choose it**: every arrow key press sends a value. Choosing again the option already chosen sends nothing.
 

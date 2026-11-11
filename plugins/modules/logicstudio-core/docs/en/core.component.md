@@ -52,7 +52,7 @@ On the sheet the object shows as title its label (or the name of the kind of com
 - The inputs of the object **do not have** the **starts it** and **initial value** options: the starting values of the component are set in its properties, in the window editor.
 - If the window **is not open**, the last value of each input is kept and the window shows it when it opens (with the project option **A window opened again shows the last values at once**, on by default). The program keeps at most 2000 values of this kind.
 - Setting a value from a schema does **not** make the component send anything: for example, sending yes to the **value** input of a Switch turns it on, but its **value** output sends nothing. Only the gestures of the user come out.
-- **enabled** and **visible** react only to a real **no** value (`false`): `false` disables or hides the component, any other value enables or shows it again. The text `"no"` or the number 0 do **not** hide it: for a text first use [Type cast](core.convert) to yes/no, or a [Constant · Variable](core.value) of kind yes/no.
+- **enabled** and **visible** react only to a real **no** value (`false`): `false` disables or hides the component, any other value enables or shows it again. The text `"no"` or the number 0 do **not** hide it: for a text first use [Cast to yes/no (Boolean())](core.toBool), or a [Constant · Variable](core.value) of kind yes/no.
 
 ### From the window to the schema (outputs)
 
@@ -94,7 +94,7 @@ When the user turns off the [Switch](ui.toggle), no comes out and the [Text fiel
 [Checkbox: advanced] value ──▶ value [Type cast: yes/no] result ──▶ visible [Label: hint]
 ```
 
-The [Checkbox](ui.checkbox) already sends yes/no, so [Type cast](core.convert) would not be needed here; it becomes needed if the value arrives as text, for example `"false"` read from a file: without the conversion the text `"false"` would **not** hide the label.
+The [Checkbox](ui.checkbox) already sends yes/no, so [Cast to yes/no (Boolean())](core.toBool) would not be needed here; it becomes needed if the value arrives as text, for example `"false"` read from a file: without the conversion the text `"false"` would **not** hide the label.
 
 ### 4. The text of a button from the schema
 

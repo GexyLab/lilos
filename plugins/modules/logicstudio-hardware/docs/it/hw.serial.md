@@ -131,5 +131,5 @@ Ogni pacchetto arriva come `[2, 17, 0, 200, 13, 10]`; il blocco [Get proprietà 
 ## Vedi anche
 
 - [SerialPort.list (porte seriali)](hw.serialList)
-- [Funzioni stringa](core.text), [Cast (converti tipo)](core.convert), per lavorare sui messaggi
+- [Funzioni stringa](core.text), [Cast in numero (Number())](core.toNumber), [Cast da testo JSON (JSON.parse)](core.parseJson), per lavorare sui messaggi
 - [Hardware](logicstudio-hardware)

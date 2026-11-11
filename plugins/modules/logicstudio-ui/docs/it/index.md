@@ -157,7 +157,7 @@ Tutte le componenti hanno questi due ingressi, oltre ai loro:
 | **abilitato** (`enabled`) | sì/no | `false`: la componente diventa più chiara e non risponde più né al mouse né alla tastiera (il Tab la salta). Qualsiasi altro valore la riabilita. |
 | **visibile** (`visible`) | sì/no | `false`: la componente sparisce e non occupa più spazio. Qualsiasi altro valore la fa ricomparire. |
 
-- Conta **solo il valore `false`** (sì/no falso). Il testo `"false"`, il numero 0 o un testo vuoto **non** disabilitano e **non** nascondono niente. Se il valore viene da un calcolo, passalo prima da un blocco [Cast (converti tipo)](core.convert) **In** sì/no.
+- Conta **solo il valore `false`** (sì/no falso). Il testo `"false"`, il numero 0 o un testo vuoto **non** disabilitano e **non** nascondono niente. Se il valore viene da un calcolo, passalo prima da un blocco [Cast in sì/no (Boolean())](core.toBool).
 - Una componente disabilitata o nascosta continua a ricevere i valori dagli schemi: quando torna, mostra l'ultimo.
 - All'inizio ogni componente è abilitata e visibile. Per partire con una componente nascosta, dai all'ingresso **visibile** del suo oggetto il **valore iniziale** `false`.
 

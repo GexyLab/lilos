@@ -39,7 +39,7 @@ A toggle switch, on or off. When the user moves it, it sends the new state to th
 | `true`, the text `"true"`, the number `1` | on |
 | anything else: `false`, `0`, `"1"`, `"sì"`, `"on"`, `null` | off |
 
-> Beware: the **text** `"1"` and the text `"sì"` turn it **off**. If the value comes from a file or from a text, first pass it through [Type cast](core.convert) **To** yes/no.
+> Beware: the **text** `"1"` and the text `"sì"` turn it **off**. If the value comes from a file or from a text, first pass it through [Cast to yes/no (Boolean())](core.toBool).
 
 **When opened** the state of **On at the start** is shown, but the program does not receive it: the output sends something only when the user moves it. If a schema needs to know the initial state, give it the same value with a [Constant · Variable](core.value) block. With the option «A window opened again shows the last values at once», when you reopen the window the switch shows the last state (of the user or of the schema).
 
@@ -96,5 +96,5 @@ Turning on **Summer**, **Winter** turns off, and vice versa. There is no endless
 
 - [Checkbox](ui.checkbox), with the text visible
 - [Lamp](ui.lamp), to show a state without letting it change
-- [NOT](core.not), [Type cast](core.convert)
+- [NOT](core.not), [Cast to yes/no (Boolean())](core.toBool)
 - [Standard UI components](logicstudio-ui)

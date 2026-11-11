@@ -31,7 +31,7 @@ Every time an object arrives, the block looks for the field of each output and s
 - The outputs send **one after the other, from top to bottom**, in the order of the ports. A block linked to several outputs receives the values in that order.
 - A field that **is not there** sends nothing on its output, and is **not** an error: the other outputs send all the same.
 - A field that is `null` is sent (`null`).
-- If something arrives that is neither an object nor a list (a text, a number), nothing comes out. A JSON text must first be transformed with [Type cast](core.convert), setting **To** = "from JSON text".
+- If something arrives that is neither an object nor a list (a text, a number), nothing comes out. A JSON text must first be transformed with [Cast from JSON text (JSON.parse)](core.parseJson).
 - The rules of the path are those of [Get property](core.get): dots as separators, positions from 0, spaces and upper case that count. A name left as it is (**field 1**) looks for a field that is really called `field 1`.
 
 For the general rules see [How a block works](ide/blocks).
@@ -73,7 +73,7 @@ The outputs are named `hour` and `minute`, like the fields of the **parts** obje
                                                   name      ──▶ …
 ```
 
-If the [HTTP request (fetch)](net.request) receives a JSON answer like `{"name": "Rome", "main": {"temp": 18.4}}`, 18.4 and `"Rome"` come out. If the answer arrives as text, put [Type cast](core.convert) before it with **To** = "from JSON text".
+If the [HTTP request (fetch)](net.request) receives a JSON answer like `{"name": "Rome", "main": {"temp": 18.4}}`, 18.4 and `"Rome"` come out. If the answer arrives as text, put [Cast from JSON text (JSON.parse)](core.parseJson) before it.
 
 ## See also
 

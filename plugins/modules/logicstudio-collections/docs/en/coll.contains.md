@@ -50,7 +50,7 @@ On the list `[1, 2, 3]`:
 - value `"2"` (text) → `false`, -1;
 - value `5` → `false`, -1.
 
-If the value comes from a text field and the list has numbers, convert it first with [Type cast](core.convert).
+If the value comes from a text field and the list has numbers, convert it first with [Cast to number (Number())](core.toNumber).
 
 ### 3. An object
 

@@ -44,7 +44,7 @@ Special cases:
 - A field that exists and is **`null`** is sent: `null` comes out on **value**, and it is not an error.
 - If the field **is not there**, the block sends nothing on **value** and sends on **Exception** the message «Il campo «*path*» non esiste» ("The field «*path*» does not exist").
 - If halfway along the path it meets something that is not an object or a list (a text, a number, `null`), the field is not there: for example `name.length` with `name` = `"Ada"` gives the error. For the length of a text use the [String functions](core.text) block.
-- A **JSON text** (for example one read from a file) is not an object: `{"a":1}` written as text gives the error. First transform it with [Type cast](core.convert), setting **To** = "from JSON text".
+- A **JSON text** (for example one read from a file) is not an object: `{"a":1}` written as text gives the error. First transform it with [Cast from JSON text (JSON.parse)](core.parseJson).
 
 The path is fixed, in the settings: there is no input to change it while the program runs. To take an item at a position that changes, use the [Get list[i]](coll.get) block of the Lists package. For the general rules (inputs, "starts it", Exception) see [How a block works](ide/blocks).
 
@@ -84,7 +84,7 @@ If the object that arrives is a list of objects, for example `[{"a": 5}, {"a": 8
 [readFile] content ──▶ value [Type cast: from JSON text] result ──▶ object [Get property: settings.language] value ──▶ value [Print (console.log)]
 ```
 
-The [readFile](lilos.fileRead) block has the **Format** text. If the file contains `{"settings": {"language": "it"}}`, the console writes `it`. Without the [Type cast](core.convert) block the block would receive a text and give the error (alternatively, choose the **Format** JSON in readFile and remove the Type cast).
+The [readFile](lilos.fileRead) block has the **Format** text. If the file contains `{"settings": {"language": "it"}}`, the console writes `it`. Without the [Cast from JSON text (JSON.parse)](core.parseJson) block the block would receive a text and give the error (alternatively, choose the **Format** JSON in readFile and remove the cast block).
 
 ### 4. Handle a field that is sometimes missing
 
@@ -106,5 +106,5 @@ When the discount is there, the console writes it; when it is missing, `0` comes
 - [Destructure object](core.decompose) to take several fields at once
 - [Object literal { }](core.compose) to do the opposite
 - [Get list[i]](coll.get) and [Map field](coll.pluck) for lists
-- [Type cast](core.convert) to turn a JSON text into an object
+- [Cast from JSON text (JSON.parse)](core.parseJson) to turn a JSON text into an object
 - [How a block works](ide/blocks)

@@ -2,6 +2,8 @@
 
 `const.math` · Values · [Constants](logicstudio-constants) · version 1
 
+> **Obsolete block** since version 1.1.0 of the package: saved schemas that use it work as before, but it is no longer in the list of blocks. Each constant now has its own block, in the **Math constants** category: see the list in the [package overview](logicstudio-constants). This page describes the old block.
+
 Gives the value of a mathematical constant, chosen in the settings: π, τ, e, the golden ratio, the roots and logarithms that JavaScript has in `Math` (`Math.PI`, `Math.SQRT2`, `Math.LN2`…), one degree in radians, the Euler–Mascheroni, Catalan, Apéry, Feigenbaum… constants and the limits of JavaScript numbers (`Number.EPSILON`, `Number.MAX_SAFE_INTEGER`…).
 
 ## Inputs

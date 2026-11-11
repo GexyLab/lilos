@@ -63,5 +63,5 @@ Questo blocco non ha errori suoi.
 ## Vedi anche
 
 - [AND](core.and), [OR](core.or), [XOR](core.xor)
-- [Cast (converti tipo)](core.convert) per trasformare un valore in sì/no senza rovesciarlo
+- [Cast in sì/no (Boolean())](core.toBool) per trasformare un valore in sì/no senza rovesciarlo
 - [Come funziona un blocco](ide/blocks)

@@ -2,6 +2,8 @@
 
 `const.physics` · Values · [Constants](logicstudio-constants) · version 1
 
+> **Obsolete block** since version 1.1.0 of the package: saved schemas that use it work as before, but it is no longer in the list of blocks. Each constant now has its own block, in the **Physical constants** category: see the list in the [package overview](logicstudio-constants). This page describes the old block.
+
 Gives the value of a fundamental physical constant, chosen in the settings, with its symbol, SI unit and uncertainty. The values are the **CODATA 2022** recommended ones (published by NIST in 2024): the 7 constants that have defined the International System since 2019 are **exact**, and so are those computed from them alone (ħ, R, F, σ…).
 
 ## Inputs

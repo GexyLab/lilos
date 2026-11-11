@@ -40,7 +40,7 @@ All'apertura la spia è **spenta**, qualunque cosa le proprietà dicano: si acce
 | `false`, `0`, `""`, `null` | spenta |
 | il testo `"false"` | spenta |
 
-> Attenzione: il **testo** `"0"` e il testo `"no"` la **accendono**. Se il valore viene da un file o da un testo, passalo prima da [Cast (converti tipo)](core.convert) **In** sì/no.
+> Attenzione: il **testo** `"0"` e il testo `"no"` la **accendono**. Se il valore viene da un file o da un testo, passalo prima da [Cast in sì/no (Boolean())](core.toBool).
 
 **colore** — il nome di uno dei quattro colori, **in inglese**: `green` (verde), `red` (rosso), `yellow` (giallo), `blue` (blu). Il cambio di colore non accende né spegne la spia. Con un nome diverso (per esempio `rosso` o `#ff0000`) la spia accesa resta grigia, senza luce: sembra spenta.
 

@@ -2668,3 +2668,34 @@ Conseguenze: se tutte le schede si chiudono non parte niente; un'automazione con
 - I limiti noti sono in [Stato e roadmap](stato-e-roadmap.md#logic-studio).
 
 **Quando ripensarla.** Se serviranno Bluetooth Low Energy o SPI (servono un'altra libreria o un ioctl); se si vorrà usare la webcam o il microfono del computer da cui si guarda lilOS (sarebbe una componente del browser, non un'azione del kernel); se il motore avrà un canale di spinta verso il worker (sostituirebbe il long poll); se `ffmpeg` dovrà arrivare con lilOS (installazione senza passi a mano); se i permessi dovranno essere per singolo dispositivo o per gruppo; se una libreria nativa perderà i binari per una piattaforma che serve.
+
+## D98. Logic Studio: un blocco per ogni costante e per ogni Cast, i blocchi obsoleti
+
+**Contesto.** Il pacchetto `logicstudio-constants` 1.0.0 aveva tre blocchi (`const.math`, `const.physics`, `const.astro`) con la costante scelta in un menu delle Proprietà, e `logicstudio-core` aveva un solo blocco di Cast (`core.convert`) con la conversione scelta nell'impostazione **In**. L'utente ha chiesto (11 novembre 2026) un blocco per ogni costante e un blocco per ogni cast.
+
+**Decisione.** Decisa l'11 novembre 2026: lilOS 1.52.0, SDK 0.37.0, Logic Studio IDE 1.17.0, motore 1.8.0, `logicstudio-constants` 1.1.0, `logicstudio-core` 1.6.0.
+
+- **Costanti**: un blocco `const.<chiave>` per ognuna delle 87 costanti, senza impostazioni, con etichetta «nome · simbolo» e le stesse porte di prima (**invia** nascosto; **valore**, e nascoste **simbolo**, **unità**, **incertezza**). Il tipo ammette un solo punto e solo lettere e cifre, quindi due chiavi cambiano nel tipo: la carica elementare `e` (che si scontrava con il numero di Nepero) è `const.qe`, `sqrt1_2` è `const.sqrtHalf`.
+- **Tre categorie nuove** al posto di «Valori»: `constMath`, `constPhysics`, `constAstro` («Costanti matematiche», «Costanti fisiche», «Costanti astronomiche»), con un colore solo (`--lc-const: #8250df`, il colore del pacchetto) in `logic.css`. Con 87 blocchi in «Valori» la categoria sarebbe diventata illeggibile.
+- **Cast**: cinque blocchi `core.toNumber`, `core.toText`, `core.toBool`, `core.toJson`, `core.parseJson`, con il nome della funzione di JavaScript equivalente (Number(), String(), Boolean(), JSON.stringify, JSON.parse) e un'uscita del tipo giusto invece di `any`. Le regole di conversione sono le stesse di prima.
+- **Blocchi obsoleti**: nuovo campo facoltativo `obsolete` (`{ en, it }` o `true`) nella definizione di un blocco. Il motore lo fa girare come prima, il catalogo lo passa all'IDE, la palette non lo mostra e le Proprietà mostrano «Blocco obsoleto…» con il testo che dice cosa usare. I quattro blocchi vecchi lo hanno; le loro pagine di documentazione restano, con un avviso in cima.
+- **Pannelli laterali comprimibili** (stessa versione dell'IDE, chiesto nello stesso giorno): Progetto/Blocchi e Proprietà si riducono a una striscia di 30 px con le schede in verticale, come il pannello delle console; lo stato si salva con le larghezze in `logicstudio.panels` (`leftCollapsed`, `rightCollapsed`).
+
+**Perché.**
+
+- *Un blocco per costante.* La costante si vede nel disegno e si trova cercando nella palette (per nome, simbolo o tipo), senza aprire le Proprietà; uno schema si legge senza cliccare sui blocchi.
+- *Tenere i blocchi vecchi.* Gli schemi salvati con la 1.0.0 (pubblicata lo stesso giorno) e con `core.convert` continuano a girare, anche i programmi attivi che ripartono con il kernel.
+
+**Alternative scartate.**
+
+- Togliere i blocchi vecchi: gli schemi salvati mostrerebbero «Manca il pacchetto» e i programmi attivi si fermerebbero.
+- Convertire da soli gli schemi salvati (un `replace` che cambia il tipo all'apertura): il motore aggiorna solo le impostazioni (`upgrade`), non il tipo, e l'IDE dovrebbe riscrivere i file dell'utente; rinviato, finché non servirà per altri blocchi.
+- Le costanti come sottocategorie di «Valori»: la palette non ha sottocategorie (un'altra sessione le sta aggiungendo: si potranno spostare lì).
+
+**Conseguenze.**
+
+- Le tre categorie hanno il loro colore da lilOS 1.52.0 (SDK 0.37.0): su uno più vecchio la striscia dei blocchi ha il colore di «Altro».
+- Un IDE più vecchio della 1.17.0 mostra ancora i blocchi obsoleti nella palette; un motore più vecchio della 1.8.0 non passa `obsolete`, e l'IDE li mostra.
+- Le pagine delle costanti (174, it e en) sono fatte da uno script che legge `blocks.js`: quando cambia un valore si rifanno con lo stesso script.
+
+**Quando ripensarla.** Se un pacchetto dovrà sostituire molti blocchi, o se gli schemi con blocchi obsoleti diventeranno tanti: allora servirà la conversione automatica.

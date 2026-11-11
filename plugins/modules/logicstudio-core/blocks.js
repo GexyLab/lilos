@@ -19,6 +19,15 @@ const text = v => (v === undefined || v === null ? '' : typeof v === 'object' ? 
 const isNum = v => typeof v === 'number' && Number.isFinite(v);
 const addedValues = b => b.added.inputs.map(p => p.value);
 const PULSE = true;
+const toNumber = v => { const n = num(v); if (Number.isNaN(n)) throw new Error('Non è un numero'); return n; };
+
+/** A Cast block: the value that arrives, converted, on «risultato». */
+const cast = (type, label, to, fn) => ({
+  type, version: 1, category: 'value', icon: 'sync', label,
+  inputs: [{ name: 'value', type: 'any', label: L('value', 'valore') }],
+  outputs: [{ name: 'result', type: to, label: L('result', 'risultato') }],
+  run: ({ value }) => ({ result: fn(value) }),
+});
 
 /** a, b and the added inputs, the ones that have a value. */
 const operands = (inputs, b) => [inputs.a, inputs.b, ...addedValues(b)].filter(v => v !== undefined);
@@ -113,14 +122,23 @@ export const blocks = [
       return { value: m.value ?? null };
     },
   },
+  // ---- Cast: one block per conversion
+  cast('core.toNumber', L('Cast to number (Number())', 'Cast in numero (Number())'), 'number', toNumber),
+  cast('core.toText', L('Cast to text (String())', 'Cast in testo (String())'), 'text', text),
+  cast('core.toBool', L('Cast to yes/no (Boolean())', 'Cast in sì/no (Boolean())'), 'bool', bool),
+  cast('core.toJson', L('Cast to JSON text (JSON.stringify)', 'Cast in testo JSON (JSON.stringify)'), 'text', v => JSON.stringify(v)),
+  cast('core.parseJson', L('Cast from JSON text (JSON.parse)', 'Cast da testo JSON (JSON.parse)'), 'any', v => JSON.parse(text(v))),
   {
+    // Obsolete (core 1.6.0): replaced by the five Cast blocks above. Kept so that saved schemas still run;
+    // the palette no longer shows it.
     type: 'core.convert', version: 1, category: 'value', icon: 'sync', label: L('Type cast', 'Cast (converti tipo)'),
+    obsolete: L('Replaced by one block per conversion: Cast to number, to text, to yes/no, to JSON text and from JSON text.', 'Sostituito da un blocco per ogni conversione: Cast in numero, in testo, in sì/no, in testo JSON e da testo JSON.'),
     inputs: [{ name: 'value', type: 'any', label: L('value', 'valore') }],
     outputs: [{ name: 'result', type: 'any', label: L('result', 'risultato') }],
     config: [{ key: 'to', type: 'select', default: 'number', options: ['number', 'text', 'bool', 'json', 'parse'], label: L('To', 'In') }],
     run({ value }, b) {
       switch (b.config.to) {
-        case 'number': { const n = num(value); if (Number.isNaN(n)) throw new Error('Non è un numero'); return { result: n }; }
+        case 'number': return { result: toNumber(value) };
         case 'text': return { result: text(value) };
         case 'bool': return { result: bool(value) };
         case 'json': return { result: JSON.stringify(value) };

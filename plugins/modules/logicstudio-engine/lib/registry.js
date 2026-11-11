@@ -222,6 +222,8 @@ function describeBlock(def, pack) {
     inputs: plainList(def.inputs), outputs: plainList(def.outputs), config: plainList(def.config),
     grow: def.grow ? JSON.parse(JSON.stringify(def.grow)) : null, role: def.role ?? null, showError: def.showError === true,
     execution: def.execution === 'loop' ? 'loop' : 'run', upgradable: typeof def.upgrade === 'function',
+    // obsolete: replaced by other blocks; saved schemas still run it, the IDE no longer offers it
+    obsolete: def.obsolete ? cleanLabel(def.obsolete === true ? '' : def.obsolete, '') : null,
   };
 }
 

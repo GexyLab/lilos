@@ -18,7 +18,13 @@ Gli altri blocchi arrivano con altri pacchetti: [Liste e matrici](logicstudio-co
 |---|---|
 | [Costante · Variabile](core.value) | Manda un valore fisso (numero, testo, sì/no o JSON): una volta all'avvio dello schema, oppure a ogni impulso se colleghi **invia**. Se colleghi **imposta**, il valore può cambiare e diventa una variabile. |
 | [Memoria (set · get)](core.store) | Tiene da parte un valore: lo scrivi con **imposta**, lo leggi con **leggi**, lo svuoti con **svuota**. |
-| [Cast (converti tipo)](core.convert) | Cambia il tipo di un valore: in numero, testo, sì/no, testo JSON, o da testo JSON a oggetto o lista. |
+| [Cast in numero (Number())](core.toNumber) | Trasforma un valore in numero. |
+| [Cast in testo (String())](core.toText) | Trasforma un valore in testo. |
+| [Cast in sì/no (Boolean())](core.toBool) | Trasforma un valore in sì/no. |
+| [Cast in testo JSON (JSON.stringify)](core.toJson) | Scrive un valore come testo JSON. |
+| [Cast da testo JSON (JSON.parse)](core.parseJson) | Legge un testo JSON e manda l'oggetto, la lista o il valore che descrive. |
+
+Il vecchio blocco unico [Cast (converti tipo)](core.convert) è obsoleto: negli schemi salvati funziona ancora, ma non compare più nell'elenco.
 
 ### Logica
 

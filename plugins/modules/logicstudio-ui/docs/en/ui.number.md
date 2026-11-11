@@ -91,5 +91,5 @@ If the user types 25, the [Clamp](core.clamp) brings it to 10, the field shows 1
 
 - [Slider](ui.slider), to choose in a range with the mouse
 - [Text field](ui.text)
-- [Clamp](core.clamp), [Type cast](core.convert)
+- [Clamp](core.clamp), [Cast to number (Number())](core.toNumber)
 - [Standard UI components](logicstudio-ui)

@@ -2,6 +2,8 @@
 
 `const.astro` · Values · [Constants](logicstudio-constants) · version 1
 
+> **Obsolete block** since version 1.1.0 of the package: saved schemas that use it work as before, but it is no longer in the list of blocks. Each constant now has its own block, in the **Astronomical constants** category: see the list in the [package overview](logicstudio-constants). This page describes the old block.
+
 Gives the value of an astronomical or Earth constant, chosen in the settings, with its symbol, SI unit and uncertainty: the astronomical unit, the light-year, the parsec, the nominal values of the Sun and the Earth and the standard acceleration of gravity.
 
 ## Inputs

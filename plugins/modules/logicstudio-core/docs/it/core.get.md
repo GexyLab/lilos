@@ -44,7 +44,7 @@ Casi particolari:
 - Un campo che esiste e vale **`null`** viene mandato: su **valore** esce `null`, e non è un errore.
 - Se il campo **non c'è**, il blocco non manda niente su **valore** e manda su **Exception** il messaggio «Il campo «*percorso*» non esiste».
 - Se a metà percorso si incontra qualcosa che non è un oggetto o una lista (un testo, un numero, `null`), il campo non c'è: per esempio `nome.length` con `nome` = `"Ada"` dà l'errore. Per la lunghezza di un testo usa il blocco [Funzioni stringa](core.text).
-- Un **testo JSON** (per esempio quello letto da un file) non è un oggetto: `{"a":1}` scritto come testo dà l'errore. Prima trasformalo con il blocco [Cast (converti tipo)](core.convert), impostazione **In** = «da testo JSON».
+- Un **testo JSON** (per esempio quello letto da un file) non è un oggetto: `{"a":1}` scritto come testo dà l'errore. Prima trasformalo con il blocco [Cast da testo JSON (JSON.parse)](core.parseJson).
 
 Il percorso è fisso, nelle impostazioni: non c'è un ingresso per cambiarlo mentre il programma gira. Per prendere un elemento a una posizione che cambia usa il blocco [Leggi lista[i]](coll.get) del pacchetto Liste. Per le regole generali (ingressi, «lo avvia», Exception) vedi [Come funziona un blocco](ide/blocks).
 
@@ -84,7 +84,7 @@ Se l'oggetto che arriva è una lista di oggetti, per esempio `[{"a": 5}, {"a": 8
 [readFile] contenuto ──▶ valore [Cast (converti tipo): da testo JSON] risultato ──▶ oggetto [Get proprietà (obj.campo): impostazioni.lingua] valore ──▶ valore [Print (console.log)]
 ```
 
-Il blocco [readFile](lilos.fileRead) ha il **Formato** testo. Se il file contiene `{"impostazioni": {"lingua": "it"}}`, la console scrive `it`. Senza il blocco [Cast (converti tipo)](core.convert) il blocco riceverebbe un testo e darebbe l'errore (in alternativa, scegli il **Formato** JSON in readFile e togli il Cast).
+Il blocco [readFile](lilos.fileRead) ha il **Formato** testo. Se il file contiene `{"impostazioni": {"lingua": "it"}}`, la console scrive `it`. Senza il blocco [Cast da testo JSON (JSON.parse)](core.parseJson) il blocco riceverebbe un testo e darebbe l'errore (in alternativa, scegli il **Formato** JSON in readFile e togli il blocco Cast).
 
 ### 4. Gestire un campo che a volte manca
 
@@ -106,5 +106,5 @@ Quando lo sconto c'è, la console lo scrive; quando manca, al posto dell'errore 
 - [Destruttura oggetto](core.decompose) per prendere più campi alla volta
 - [Oggetto { }](core.compose) per fare l'opposto
 - [Leggi lista[i]](coll.get) ed [Map campo](coll.pluck) per le liste
-- [Cast (converti tipo)](core.convert) per trasformare un testo JSON in oggetto
+- [Cast da testo JSON (JSON.parse)](core.parseJson) per trasformare un testo JSON in oggetto
 - [Come funziona un blocco](ide/blocks)

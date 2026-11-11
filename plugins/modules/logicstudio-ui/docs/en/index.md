@@ -157,7 +157,7 @@ All components have these two inputs, besides their own:
 | **enabled** (`enabled`) | yes/no | `false`: the component becomes lighter and no longer answers to the mouse or the keyboard (Tab skips it). Any other value enables it again. |
 | **visible** (`visible`) | yes/no | `false`: the component disappears and no longer takes up space. Any other value makes it appear again. |
 
-- **Only the value `false`** (yes/no false) counts. The text `"false"`, the number 0 or an empty text do **not** disable and do **not** hide anything. If the value comes from a calculation, first pass it through a [Type cast](core.convert) block **To** yes/no.
+- **Only the value `false`** (yes/no false) counts. The text `"false"`, the number 0 or an empty text do **not** disable and do **not** hide anything. If the value comes from a calculation, first pass it through a [Cast to yes/no (Boolean())](core.toBool) block.
 - A disabled or hidden component keeps receiving values from the schemas: when it comes back, it shows the last one.
 - At the beginning every component is enabled and visible. To start with a hidden component, give the **visible** input of its object the **at start** value `false`.
 

@@ -2,6 +2,8 @@
 
 `const.astro` · Valori · [Costanti](logicstudio-constants) · versione 1
 
+> **Blocco obsoleto** dalla versione 1.1.0 del pacchetto: gli schemi salvati che lo usano funzionano come prima, ma non è più nell'elenco dei blocchi. Ogni costante ha ora il suo blocco, nella categoria **Costanti astronomiche**: vedi l'elenco nella [panoramica del pacchetto](logicstudio-constants). Questa pagina descrive il blocco vecchio.
+
 Dà il valore di una costante astronomica o della Terra, scelta nelle impostazioni, con il suo simbolo, la sua unità SI e la sua incertezza: l'unità astronomica, l'anno luce, il parsec, i valori nominali del Sole e della Terra e l'accelerazione di gravità standard.
 
 ## Ingressi

@@ -91,6 +91,6 @@ Questo blocco non ha errori suoi.
 
 - [Concat testo](core.concat) per unire testi uno dopo l'altro, con un separatore
 - [Funzioni stringa](core.text) per maiuscole, spazi, sostituzioni
-- [Cast (converti tipo)](core.convert) per trasformare un valore in testo o in testo JSON
+- [Cast in testo (String())](core.toText) per trasformare un valore in testo, e [Cast in testo JSON (JSON.stringify)](core.toJson) per scriverlo come testo JSON
 - [Join](coll.join) per gli elementi di una lista
 - [Come funziona un blocco](ide/blocks)

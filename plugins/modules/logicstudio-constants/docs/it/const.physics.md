@@ -2,6 +2,8 @@
 
 `const.physics` · Valori · [Costanti](logicstudio-constants) · versione 1
 
+> **Blocco obsoleto** dalla versione 1.1.0 del pacchetto: gli schemi salvati che lo usano funzionano come prima, ma non è più nell'elenco dei blocchi. Ogni costante ha ora il suo blocco, nella categoria **Costanti fisiche**: vedi l'elenco nella [panoramica del pacchetto](logicstudio-constants). Questa pagina descrive il blocco vecchio.
+
 Dà il valore di una costante fisica fondamentale, scelta nelle impostazioni, con il suo simbolo, la sua unità SI e la sua incertezza. I valori sono quelli raccomandati **CODATA 2022** (pubblicati dal NIST nel 2024): le 7 costanti che dal 2019 definiscono il Sistema Internazionale sono **esatte**, e lo sono anche quelle che si calcolano solo da loro (ħ, R, F, σ…).
 
 ## Ingressi

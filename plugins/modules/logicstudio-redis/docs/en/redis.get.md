@@ -52,7 +52,7 @@ When a value arrives on **run**, the block asks Redis `GET key`.
 [Interval (setInterval): 5 s] pulse ──▶ run [Redis · Get (GET)] value ──▶ value [Value: visits]
 ```
 
-Every 5 seconds the [Value](ui.value) shows the text of `visite` (for example `1204`). If you want a number, use [Type cast](core.convert) or the **JSON** option: a `1204` written with **JSON** comes back as a number.
+Every 5 seconds the [Value](ui.value) shows the text of `visite` (for example `1204`). If you want a number, use [Cast to number (Number())](core.toNumber) or the **JSON** option: a `1204` written with **JSON** comes back as a number.
 
 ### 2. A configuration in JSON
 

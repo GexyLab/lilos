@@ -95,5 +95,5 @@ Questo blocco non ha errori suoi.
 - [Template (formatta)](core.format) e [Concat testo](core.concat) per costruire testi
 - [Split](coll.split) per spezzare un testo in una lista
 - [Switch · Case](core.switch) per riconoscere un testo tra molti
-- [Cast (converti tipo)](core.convert) per trasformare un testo in numero
+- [Cast in numero (Number())](core.toNumber) per trasformare un testo in numero
 - [Come funziona un blocco](ide/blocks)

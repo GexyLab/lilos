@@ -91,5 +91,5 @@ Se l'utente scrive 25, il blocco [Clamp (limita)](core.clamp) lo porta a 10, il 
 
 - [Cursore](ui.slider), per scegliere in un intervallo con il mouse
 - [Campo di testo](ui.text)
-- [Clamp (limita)](core.clamp), [Cast (converti tipo)](core.convert)
+- [Clamp (limita)](core.clamp), [Cast in numero (Number())](core.toNumber)
 - [Componenti UI standard](logicstudio-ui)

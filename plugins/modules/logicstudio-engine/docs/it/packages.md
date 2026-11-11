@@ -134,6 +134,7 @@ Quando tutto va bene il log dice: `Logic Studio: pacchetto logicstudio-esempio 1
 | `upgrade(config, from, added)` | Facoltativa: aggiorna le impostazioni salvate da una versione vecchia del blocco |
 | `role` | Riservato ai blocchi di base (`schemaIn`, `schemaOut`, `component`, `catchAll`): non usarlo |
 | `showError` | `true`: l'uscita **Exception** si vede nel disegno da subito, invece di essere nascosta di serie (dal motore 1.4.1 e lilOS 1.44.0). Per i blocchi il cui scopo è proprio lanciare eccezioni, come [Throw](core.throw) |
+| `obsolete` | Un'etichetta `{ en, it }` (o `true`) per un blocco sostituito da altri. Il motore lo esegue ancora negli schemi già salvati (dal motore 1.8.0), il catalogo lo dà come `obsolete`, l'IDE (dal 1.17.0) non lo mostra nell'elenco **Blocchi** e scrive il testo nel pannello **Proprietà**. Per esempio `core.convert`, sostituito da [Cast in numero (Number())](core.toNumber) e dagli altri quattro Cast |
 
 Un blocco senza `run` tiene i valori che riceve e non fa altro (serve, per esempio, a un blocco `loop` che li legge a ogni giro).
 

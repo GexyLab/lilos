@@ -46,7 +46,7 @@ Il modo di confrontare dipende da cosa arriva:
 
 Confrontare come testi vuol dire **lettera per lettera**, come nel dizionario ma con regole da computer:
 
-- `"10"` è **minore** di `"9"` (si confronta prima `1` con `9`). Se i tuoi numeri arrivano come testo (per esempio da un [Campo di testo](ui.text)), passa prima da [Cast (converti tipo)](core.convert) in numero.
+- `"10"` è **minore** di `"9"` (si confronta prima `1` con `9`). Se i tuoi numeri arrivano come testo (per esempio da un [Campo di testo](ui.text)), passa prima da [Cast in numero (Number())](core.toNumber).
 - Le maiuscole contano e vengono prima delle minuscole: `"Z"` < `"a"`; `"Roma"` ≠ `"roma"`.
 - Le lettere accentate vengono dopo tutte le lettere senza accento: `"è"` > `"z"`.
 - Gli spazi contano: `"ciao "` ≠ `"ciao"`.
@@ -98,7 +98,7 @@ Operazione `a = b`, **b** iniziale `"stop"` (scritto `stop` nel campo **iniziale
 
 ### 4. Il trucco dei numeri come testo
 
-**a** = `"100"` e **b** = `"20"` arrivano tutti e due come testo da due campi di testo. Con `a > b` il risultato è **no** (`"1"` viene prima di `"2"`). Mettendo un blocco [Cast (converti tipo)](core.convert) in numero su ciascuno, il risultato diventa **sì**.
+**a** = `"100"` e **b** = `"20"` arrivano tutti e due come testo da due campi di testo. Con `a > b` il risultato è **no** (`"1"` viene prima di `"2"`). Mettendo un blocco [Cast in numero (Number())](core.toNumber) su ciascuno, il risultato diventa **sì**.
 
 ## Errori
 

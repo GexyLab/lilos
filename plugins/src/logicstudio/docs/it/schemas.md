@@ -14,7 +14,7 @@ Uno **schema** (file `.lsch`) è un foglio di blocchi collegati. Si apre con un 
 └────────────────────────────┘
 ```
 
-- La **testa** ha l'icona e il nome: l'**etichetta** che gli hai dato, altrimenti il nome del blocco. La riga colorata a sinistra è la **categoria** (Valori, Logica, Matematica, Testo, Oggetti, Liste, Matrici, Unità di misura, Geometria, Trigonometria, Funzioni, Integrali, Analisi numerica, Segnali, Tempo, Console, Porte di schema, Componenti UI, lilOS, Rete, Hardware, Database, Eccezioni, Disegno).
+- La **testa** ha l'icona e il nome: l'**etichetta** che gli hai dato, altrimenti il nome del blocco. La riga colorata a sinistra è la **categoria** (Valori, Costanti matematiche, Costanti fisiche, Costanti astronomiche, Logica, Matematica, Testo, Oggetti, Liste, Matrici, Unità di misura, Geometria, Trigonometria, Funzioni, Integrali, Analisi numerica, Segnali, Tempo, Console, Porte di schema, Componenti UI, lilOS, Rete, Hardware, Database, Eccezioni, Disegno).
 - Sotto la testa, in piccolo, le prime due impostazioni che hanno un valore (al massimo 34 caratteri).
 - A sinistra gli **ingressi**, a destra le **uscite**. Il pallino ha il colore del **tipo** della porta ed è pieno quando la porta è collegata (vedi [Collegamenti e tipi delle porte](ide/links)).
 - Il nome di un ingresso **sottolineato a puntini** vuol dire che quell'ingresso **non avvia** il blocco.
@@ -46,6 +46,7 @@ La scheda **Blocchi** a sinistra elenca i blocchi dei pacchetti installati, divi
 - **Trascinando** il blocco sul foglio lo metti dove lo lasci.
 - I blocchi della palette sono spenti quando la scheda aperta non è uno schema (Home, Mappa).
 - L'oggetto di una componente non è nella palette: si crea dalla finestra (vedi [L'oggetto di una componente](ide/components)).
+- I blocchi **obsoleti** non sono nella palette: un pacchetto li tiene perché gli schemi salvati che li usano continuino a funzionare, ma li ha sostituiti con altri blocchi. Se uno schema ne ha uno, le sue **Proprietà** mostrano l'avviso **Blocco obsoleto** e dicono cosa usare al suo posto (per esempio [Cast (converti tipo)](core.convert) è sostituito dai cinque blocchi Cast, uno per conversione).
 
 Un blocco nuovo ha le impostazioni di serie del suo pacchetto e un id fatto dal suo tipo e da un numero (`add1`, `value2`, `consolewrite1`).
 

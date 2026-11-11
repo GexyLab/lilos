@@ -24,7 +24,16 @@ export class Inspector {
   render() {
     const studio = this.#studio;
     const tab = studio.current;
-    const head = h('div', { class: 'ls-insp-tabs' }, h('span', { class: 'on' }, t('inspector.title')));
+    if (studio.collapsed?.right) {
+      // folded: a strip with the panel's name written vertically; a click opens it again
+      const open = () => studio.setCollapsed('right', false);
+      this.el.replaceChildren(
+        h('div', { class: 'ls-insp-tabs' }, h('button', { type: 'button', class: 'ls-fold', title: t('side.expand'), 'aria-expanded': 'false', onclick: open }, icon('arrowLeft'))),
+        h('div', { class: 'ls-vtabs' }, h('button', { type: 'button', class: 'ls-vtab on', title: t('inspector.title'), onclick: open }, h('span', {}, t('inspector.title')))));
+      return;
+    }
+    const head = h('div', { class: 'ls-insp-tabs' }, h('span', { class: 'on' }, t('inspector.title')), h('i', { class: 'sp' }),
+      h('button', { type: 'button', class: 'ls-fold', title: t('side.collapse'), 'aria-expanded': 'true', onclick: () => studio.setCollapsed('right', true) }, icon('arrowRight')));
     let body;
     if (tab?.kind === 'schema') body = this.#schema(tab.view);
     else if (tab?.kind === 'window') body = tab.view.inspector?.() ?? [];
@@ -162,6 +171,8 @@ export class Inspector {
     out.push(h('div', { class: `ls-insp-h cat-${def.category}` }, icon(def.icon ?? 'blocks'), h('b', {}, studio.label(def)),
       docButton(studio, blockDocAddress(studio, block, b => view.componentOf(b)))));
     if (def.description) out.push(h('p', { class: 'ls-hint' }, studio.label({ label: def.description })));
+    // an obsolete block still runs, but the palette no longer offers it: say what replaces it
+    if (def.obsolete) out.push(h('p', { class: 'ls-insp-note warn' }, [t('block.obsolete'), studio.label({ label: def.obsolete })].filter(Boolean).join(' ')));
     if (!def.role) out.push(this.#row(t('inspector.label'), textField({ value: block.label ?? '', placeholder: studio.label(def), maxLength: 80, onChange: v => doc.setLabel(block.id, v.trim()) })));
     const home = doc.groupOf(block.id);
     if (home) {

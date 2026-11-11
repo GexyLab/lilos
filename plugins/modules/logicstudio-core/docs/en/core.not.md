@@ -63,5 +63,5 @@ This block has no errors of its own.
 ## See also
 
 - [AND](core.and), [OR](core.or), [XOR](core.xor)
-- [Type cast](core.convert) to turn a value into yes/no without flipping it
+- [Cast to yes/no (Boolean())](core.toBool) to turn a value into yes/no without flipping it
 - [How a block works](ide/blocks)

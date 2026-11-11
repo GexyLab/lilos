@@ -95,5 +95,5 @@ This block has no errors of its own.
 - [Template string](core.format) and [Concat text](core.concat) to build texts
 - [Split](coll.split) to break a text into a list
 - [Switch · Case](core.switch) to recognize a text among many
-- [Type cast](core.convert) to turn a text into a number
+- [Cast to number (Number())](core.toNumber) to turn a text into a number
 - [How a block works](ide/blocks)

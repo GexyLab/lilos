@@ -44,7 +44,7 @@ Un gruppo di opzioni una sotto l'altra, ognuna con il suo pallino: l'utente ne s
 
 Nelle liste, a differenza del testo con le virgole, anche le voci vuote diventano opzioni. Un oggetto senza `value` né `label` diventa un'opzione «undefined».
 
-**Il valore che esce è sempre un testo**, anche se le opzioni erano numeri: con le opzioni `[1, 2, 3]` la scelta della seconda manda `"2"`. Se ti serve un numero, usa [Cast (converti tipo)](core.convert) **In** numero.
+**Il valore che esce è sempre un testo**, anche se le opzioni erano numeri: con le opzioni `[1, 2, 3]` la scelta della seconda manda `"2"`. Se ti serve un numero, usa [Cast in numero (Number())](core.toNumber).
 
 **Scegliere.** L'utente sceglie con un clic sul pallino o sul testo; con la tastiera, le **frecce** passano all'opzione successiva o precedente **e la scelgono**: ogni pressione di una freccia manda un valore. Scegliere di nuovo l'opzione già scelta non manda niente.
 

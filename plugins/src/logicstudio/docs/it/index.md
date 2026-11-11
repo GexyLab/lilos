@@ -42,6 +42,7 @@ L'IDE è il posto dove disegni e provi. Chi fa girare i programmi è il **motore
 - **La barra** cambia con la scheda: vedi [Progetti](ide/projects) per i pulsanti comuni, [Schemi](ide/schemas) e [Finestre](ide/windows) per quelli di ogni editor.
 - **A sinistra** due schede: **Progetto** (l'elenco di schemi, finestre e risorse) e **Blocchi**, che diventa **Componenti** quando la scheda aperta è una finestra.
 - **A destra** le **Proprietà** di quello che hai selezionato.
+- I due pannelli laterali si **comprimono** come quello delle console: la freccia nella loro intestazione (**Nascondi il pannello**) li riduce a una striscia stretta, con le schede scritte in verticale; la freccia della striscia (**Mostra il pannello**) o un clic su una scheda li riapre. Lo stato resta anche alla prossima apertura dell'IDE.
 - **In basso** una scheda per ogni console del progetto e la scheda **Problemi**.
 - **In fondo** la barra di stato: se il motore risponde e quanti pacchetti ha, i numeri dell'editor aperto (blocchi e collegamenti, componenti, zoom), il tempo della prova in corso, il nome del progetto.
 
@@ -73,7 +74,7 @@ I blocchi e le componenti arrivano dai **pacchetti**, moduli del kernel che si i
 |---|---|
 | [Blocchi di base](logicstudio-core) (`logicstudio-core`) | Valori, logica, matematica, testo, oggetti, tempo, le due console, le porte di schema, l'oggetto delle Componenti UI. Si installa con l'IDE. |
 | [Liste e matrici](logicstudio-collections) (`logicstudio-collections`) | Blocchi per liste (ordina, filtra, per ogni elemento…) e matrici (prodotto, trasposta, determinante…). |
-| [Costanti](logicstudio-constants) (`logicstudio-constants`) | Le costanti fondamentali: matematiche (π, e, sezione aurea…), fisiche CODATA 2022 (c, h, G, masse delle particelle…) con unità e incertezza, astronomiche e della Terra. |
+| [Costanti](logicstudio-constants) (`logicstudio-constants`) | Le costanti fondamentali, un blocco per ognuna: matematiche (π, e, sezione aurea…), fisiche CODATA 2022 (c, h, G, masse delle particelle…) con unità e incertezza, astronomiche e della Terra. |
 | [Grandezze e unità](logicstudio-units) (`logicstudio-units`) | Conversioni tra unità di misura (lunghezza, massa, temperatura, pressione, energia, dati…), prefissi SI, leggere e scrivere misure come `12,5 km`. |
 | [Geometria solida](logicstudio-solid) (`logicstudio-solid`) | Volumi, aree, diagonali e raggi di cubo, prisma, piramide, cilindro, cono, sfera e sue parti, poliedri regolari; massa da volume e materiale; punti, vettori, piani e coordinate nello spazio. |
 | [Geometria piana](logicstudio-plane) (`logicstudio-plane`) | Punti 2D, distanze, rette (parallele, perpendicolari, bisettrici), intersezioni, cerchi, poligoni anche regolari, coniche, punto dentro una figura, ingombro e inviluppo convesso, trasformazioni e matrici 3×3, disegno in SVG. |

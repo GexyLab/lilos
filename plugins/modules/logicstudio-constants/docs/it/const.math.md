@@ -2,6 +2,8 @@
 
 `const.math` · Valori · [Costanti](logicstudio-constants) · versione 1
 
+> **Blocco obsoleto** dalla versione 1.1.0 del pacchetto: gli schemi salvati che lo usano funzionano come prima, ma non è più nell'elenco dei blocchi. Ogni costante ha ora il suo blocco, nella categoria **Costanti matematiche**: vedi l'elenco nella [panoramica del pacchetto](logicstudio-constants). Questa pagina descrive il blocco vecchio.
+
 Dà il valore di una costante matematica, scelta nelle impostazioni: π, τ, e, la sezione aurea, le radici e i logaritmi che JavaScript ha in `Math` (`Math.PI`, `Math.SQRT2`, `Math.LN2`…), un grado in radianti, le costanti di Eulero-Mascheroni, Catalan, Apéry, Feigenbaum… e i limiti dei numeri di JavaScript (`Number.EPSILON`, `Number.MAX_SAFE_INTEGER`…).
 
 ## Ingressi

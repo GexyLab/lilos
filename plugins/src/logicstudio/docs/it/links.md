@@ -153,7 +153,7 @@ Due blocchi Costante · Variabile (**Tipo** = **sì/no**, con **invia** collegat
 [Campo di testo] testo ──▶ a [Somma (+)] risultato ──▶ valore [Print (console.log)]
 ```
 
-Il collegamento testo → numero è a puntini. Se l'utente scrive `12`, il blocco Somma lo converte e scrive 12; se scrive `ciao`, il blocco Somma manda «Serve un numero» sull'**Exception** e, se non è collegata, la riga va nella console principale. Per un controllo esplicito metti in mezzo un **Cast** (**In** = **numero**) e collega la sua **Exception** a un **Print** con livello **avviso**.
+Il collegamento testo → numero è a puntini. Se l'utente scrive `12`, il blocco Somma lo converte e scrive 12; se scrive `ciao`, il blocco Somma manda «Serve un numero» sull'**Exception** e, se non è collegata, la riga va nella console principale. Per un controllo esplicito metti in mezzo un blocco [Cast in numero (Number())](core.toNumber) e collega la sua **Exception** a un **Print** con livello **avviso**.
 
 ## Vedi anche
 
@@ -161,4 +161,8 @@ Il collegamento testo → numero è a puntini. Se l'utente scrive `12`, il blocc
 - [Schemi](ide/schemas)
 - [L'oggetto di una componente](ide/components)
 - [Gruppi](ide/groups)
-- [Cast (converti tipo)](core.convert)
+- [Cast in numero (Number())](core.toNumber)
+- [Cast in testo (String())](core.toText)
+- [Cast in sì/no (Boolean())](core.toBool)
+- [Cast in testo JSON (JSON.stringify)](core.toJson)
+- [Cast da testo JSON (JSON.parse)](core.parseJson)

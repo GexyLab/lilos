@@ -52,7 +52,7 @@ Quando arriva un valore su **esegui**, il blocco chiede a Redis `GET chiave`.
 [Intervallo (setInterval): 5 s] impulso ──▶ esegui [Redis · Leggi (GET)] valore ──▶ valore [Valore: visite]
 ```
 
-Ogni 5 secondi il [Valore](ui.value) mostra il testo di `visite` (per esempio `1204`). Se vuoi un numero, usa [Cast (converti tipo)](core.convert) o l'opzione **JSON**: un `1204` scritto con **JSON** torna come numero.
+Ogni 5 secondi il [Valore](ui.value) mostra il testo di `visite` (per esempio `1204`). Se vuoi un numero, usa [Cast in numero (Number())](core.toNumber) o l'opzione **JSON**: un `1204` scritto con **JSON** torna come numero.
 
 ### 2. Una configurazione in JSON
 

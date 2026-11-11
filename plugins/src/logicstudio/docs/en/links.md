@@ -153,7 +153,7 @@ Two Constant · Variable blocks (**Kind** = **yes/no**, with **send** linked: to
 [Text field] text ──▶ a [Add (+)] result ──▶ value [Print (console.log)]
 ```
 
-The text → number link is dotted. If the user types `12`, the Add block converts it and writes 12; if they type `ciao`, the Add block sends «Serve un numero» on the **Exception** and, if it is not linked, the line goes to the main console. For an explicit check put a **Type cast** in between (**To** = **number**) and link its **Exception** to a **Print** with level **warning**.
+The text → number link is dotted. If the user types `12`, the Add block converts it and writes 12; if they type `ciao`, the Add block sends «Serve un numero» on the **Exception** and, if it is not linked, the line goes to the main console. For an explicit check put a [Cast to number (Number())](core.toNumber) block in between and link its **Exception** to a **Print** with level **warning**.
 
 ## See also
 
@@ -161,4 +161,8 @@ The text → number link is dotted. If the user types `12`, the Add block conver
 - [Schemas](ide/schemas)
 - [The object of a component](ide/components)
 - [Groups](ide/groups)
-- [Type cast](core.convert)
+- [Cast to number (Number())](core.toNumber)
+- [Cast to text (String())](core.toText)
+- [Cast to yes/no (Boolean())](core.toBool)
+- [Cast to JSON text (JSON.stringify)](core.toJson)
+- [Cast from JSON text (JSON.parse)](core.parseJson)

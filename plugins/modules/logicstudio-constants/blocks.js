@@ -3,16 +3,17 @@
  * kernel's main thread for the catalog: nothing here runs at import). Same format as
  * logicstudio-core/blocks.js.
  *
- * Three blocks, one per family (mathematical, physical, astronomical and Earth): the constant is
- * chosen in the settings. Like core.value, the value goes out at the start of the schema, or at
- * each pulse on «send» when that input is linked. Physical values are CODATA 2022; astronomical
+ * One block per constant (const.<key>), in three categories: constMath, constPhysics, constAstro
+ * (version 1.1.0; until 1.0.0 there were three blocks with the constant chosen in a menu: they stay,
+ * obsolete, so that saved schemas still run). Like core.value, the value goes out at the start of the
+ * schema, or at each pulse on «send» when that input is linked. Physical values are CODATA 2022; astronomical
  * ones are the IAU nominal values (2012, 2015). `u` is the standard uncertainty in the same unit
  * (0 = exact by definition).
  */
 
 const L = (en, it) => ({ en, it });
 
-/** [key, symbol, value, uncertainty, unit, label] */
+/** [key, symbol, value, uncertainty, unit, label]; the key is also the block's type: const.<key> */
 const C = (key, symbol, value, u, unit, label) => ({ key, symbol, value, u, unit, label });
 
 const PI = Math.PI;
@@ -30,7 +31,7 @@ export const MATH = [
   C('silver', 'δS', 1 + Math.SQRT2, 0, '', L('Silver ratio (1 + √2)', 'Rapporto argenteo (1 + √2)')),
   C('plastic', 'ρ', 1.324717957244746, 0, '', L('Plastic number', 'Numero plastico')),
   C('sqrt2', '√2', Math.SQRT2, 0, '', L('Square root of 2 (Math.SQRT2)', 'Radice di 2 (Math.SQRT2)')),
-  C('sqrt1_2', '√½', Math.SQRT1_2, 0, '', L('Square root of 1/2 (Math.SQRT1_2)', 'Radice di 1/2 (Math.SQRT1_2)')),
+  { ...C('sqrtHalf', '√½', Math.SQRT1_2, 0, '', L('Square root of 1/2 (Math.SQRT1_2)', 'Radice di 1/2 (Math.SQRT1_2)')), old: 'sqrt1_2' },
   C('sqrt3', '√3', Math.sqrt(3), 0, '', L('Square root of 3', 'Radice di 3')),
   C('ln2', 'ln 2', Math.LN2, 0, '', L('Natural log of 2 (Math.LN2)', 'Logaritmo naturale di 2 (Math.LN2)')),
   C('ln10', 'ln 10', Math.LN10, 0, '', L('Natural log of 10 (Math.LN10)', 'Logaritmo naturale di 10 (Math.LN10)')),
@@ -55,7 +56,7 @@ export const PHYSICS = [
   C('c', 'c', c, 0, 'm/s', L('Speed of light in vacuum', 'Velocità della luce nel vuoto')),
   C('h', 'h', h, 0, 'J·s', L('Planck constant', 'Costante di Planck')),
   C('hbar', 'ħ', h / (2 * PI), 0, 'J·s', L('Reduced Planck constant (h/2π)', 'Costante di Planck ridotta (h/2π)')),
-  C('e', 'e', qe, 0, 'C', L('Elementary charge', 'Carica elementare')),
+  { ...C('qe', 'e', qe, 0, 'C', L('Elementary charge', 'Carica elementare')), old: 'e' },
   C('kB', 'k', kB, 0, 'J/K', L('Boltzmann constant', 'Costante di Boltzmann')),
   C('NA', 'Nᴀ', NA, 0, 'mol⁻¹', L('Avogadro constant', 'Costante di Avogadro')),
   C('dnuCs', 'ΔνCs', 9192631770, 0, 'Hz', L('Caesium hyperfine frequency', 'Frequenza iperfine del cesio')),
@@ -123,34 +124,51 @@ export const ASTRO = [
   C('gn', 'gₙ', 9.80665, 0, 'm/s²', L('Standard acceleration of gravity', 'Accelerazione di gravità standard')),
 ];
 
-const optionsOf = list => list.map(k => ({ value: k.key, label: L(`${k.symbol} · ${k.label.en}`, `${k.symbol} · ${k.label.it}`) }));
+const optionsOf = list => list.map(k => ({ value: k.old ?? k.key, label: L(`${k.symbol} · ${k.label.en}`, `${k.symbol} · ${k.label.it}`) }));
 
 const OUT_VALUE = { name: 'value', type: 'number', label: L('value', 'valore') };
 const OUT_SYMBOL = { name: 'symbol', type: 'text', label: L('symbol', 'simbolo'), hidden: true };
 const OUT_UNIT = { name: 'unit', type: 'text', label: L('unit', 'unità'), hidden: true };
 const OUT_U = { name: 'uncertainty', type: 'number', label: L('uncertainty', 'incertezza'), hidden: true };
 
+const sendAll = (b, out) => { for (const [port, v] of Object.entries(out)) b.send(port, v); };
+const outputsOf = (k, withUnits) => (withUnits ? { value: k.value, symbol: k.symbol, unit: k.unit, uncertainty: k.u } : { value: k.value, symbol: k.symbol });
+
+/** The block of one constant: const.<key>, its name and symbol as the label. */
+const oneConstant = (k, category, icon, withUnits) => ({
+  type: `const.${k.key}`, version: 1, category, icon,
+  label: L(`${k.label.en} · ${k.symbol}`, `${k.label.it} · ${k.symbol}`),
+  inputs: [{ name: 'send', type: 'pulse', label: L('send', 'invia'), hidden: true }],
+  outputs: withUnits ? [OUT_VALUE, OUT_SYMBOL, OUT_UNIT, OUT_U] : [OUT_VALUE, OUT_SYMBOL],
+  start(b) { if (!b.linked('send')) sendAll(b, outputsOf(k, withUnits)); },
+  run() { return outputsOf(k, withUnits); },
+});
+
+const REPLACED = L('Replaced by one block per constant, in the categories Math constants, Physical constants and Astronomical constants.',
+  'Sostituito da un blocco per ogni costante, nelle categorie Costanti matematiche, Costanti fisiche e Costanti astronomiche.');
+
+/** Obsolete (1.0.0): the constant chosen in a menu. Saved schemas still run it; the palette no longer shows it. */
 const constantBlock = (type, icon, label, list, withUnits) => {
-  const byKey = new Map(list.map(k => [k.key, k]));
+  const byKey = new Map(list.map(k => [k.old ?? k.key, k]));
   const pick = b => {
     const k = byKey.get(b.config.constant);
     if (!k) throw new Error(`Costante sconosciuta: ${b.config.constant}`);
-    return withUnits ? { value: k.value, symbol: k.symbol, unit: k.unit, uncertainty: k.u } : { value: k.value, symbol: k.symbol };
+    return outputsOf(k, withUnits);
   };
   return {
-    type, version: 1, category: 'value', icon, label,
+    type, version: 1, category: 'value', icon, label, obsolete: REPLACED,
     inputs: [{ name: 'send', type: 'pulse', label: L('send', 'invia'), hidden: true }],
     outputs: withUnits ? [OUT_VALUE, OUT_SYMBOL, OUT_UNIT, OUT_U] : [OUT_VALUE, OUT_SYMBOL],
     config: [{ key: 'constant', type: 'select', default: list[0].key, options: optionsOf(list), label: L('Constant', 'Costante') }],
-    start(b) {
-      if (b.linked('send')) return;
-      for (const [port, v] of Object.entries(pick(b))) b.send(port, v);
-    },
+    start(b) { if (!b.linked('send')) sendAll(b, pick(b)); },
     run(_inputs, b) { return pick(b); },
   };
 };
 
 export const blocks = [
+  ...MATH.map(k => oneConstant(k, 'constMath', 'calculator', false)),
+  ...PHYSICS.map(k => oneConstant(k, 'constPhysics', 'bolt', true)),
+  ...ASTRO.map(k => oneConstant(k, 'constAstro', 'globe', true)),
   constantBlock('const.math', 'calculator', L('Math constants (Math.PI, Math.E…)', 'Costanti matematiche (Math.PI, Math.E…)'), MATH, false),
   constantBlock('const.physics', 'bolt', L('Physical constants (CODATA)', 'Costanti fisiche (CODATA)'), PHYSICS, true),
   constantBlock('const.astro', 'globe', L('Astronomical and Earth constants', 'Costanti astronomiche e della Terra'), ASTRO, true),

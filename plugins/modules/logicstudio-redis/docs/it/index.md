@@ -176,7 +176,7 @@ La licenza è anche in Pannello di controllo → Informazioni → Riconoscimenti
 - Niente Sentinel né Cluster: la connessione è a un solo server.
 - Non ci sono blocchi per le transazioni (`MULTI`/`EXEC`), gli script (`EVAL`) e le funzioni, e [Redis · Comando (call)](redis.command) li rifiuta.
 - I messaggi pubblicati non si conservano: [Redis · Iscriviti (SUBSCRIBE · PSUBSCRIBE)](redis.subscribe) riceve solo quelli che arrivano mentre ascolta. Per code che non devono perdere lavori usa una lista.
-- I valori sono testo: i numeri tornano numeri solo con l'opzione **JSON** (o con [Cast (converti tipo)](core.convert)).
+- I valori sono testo: i numeri tornano numeri solo con l'opzione **JSON** (o con [Cast in numero (Number())](core.toNumber)).
 
 ## Vedi anche
 

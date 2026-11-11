@@ -26,7 +26,7 @@ Every time a value arrives on **a** or on **b**, the block calculates a − b wi
 
 - An input that has not received anything yet is **0**: with only **a** = 10 the result is 10; with only **b** = 4 the result is −4.
 - Values are converted to numbers with the same rules as [Add (+)](core.add): `"2,5"` is 2.5; `true` is 1 and `false` is 0; an empty text and `null` are 0.
-- **Unlike the Add (+) block**, a value that cannot be converted (`"ciao"`, an object) does **not** give an error: the result is `NaN` ("not a number"), and it is sent all the same. The blocks after it (for example a [Compare (== != < >)](core.compare)) treat it as a wrong number. If you want an error, put a [Type cast](core.convert) to number first.
+- **Unlike the Add (+) block**, a value that cannot be converted (`"ciao"`, an object) does **not** give an error: the result is `NaN` ("not a number"), and it is sent all the same. The blocks after it (for example a [Compare (== != < >)](core.compare)) treat it as a wrong number. If you want an error, put a [Cast to number (Number())](core.toNumber) first.
 - The decimal numbers of the computer can give small gaps: 0.3 − 0.1 = 0.19999999999999998. Round with [Math functions](core.math) before showing them.
 
 ## Examples
@@ -46,7 +46,7 @@ Goal 100, gathered 35: 65 missing. Gathered 120: −20.
 
 ### 3. A value that is not a number
 
-**a** = 10, **b** = `"dieci"` → the result is `NaN`, with no Exception. With a [Type cast](core.convert) to number in front of **b**, instead, the Exception of the Type cast block receives «Non è un numero» ("It is not a number") and the Subtract (−) block receives nothing.
+**a** = 10, **b** = `"dieci"` → the result is `NaN`, with no Exception. With a [Cast to number (Number())](core.toNumber) in front of **b**, instead, the Exception of the Type cast block receives «Non è un numero» ("It is not a number") and the Subtract (−) block receives nothing.
 
 ## Errors
 

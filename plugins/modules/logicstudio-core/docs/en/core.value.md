@@ -124,6 +124,6 @@ If by mistake you write `{threshold: 30}` (without quotes around the name), the 
 ## See also
 
 - [Store (set · get)](core.store) for a value to write and read at different moments, which can also be cleared
-- [Type cast](core.convert) to change the type of an arriving value
+- [Cast to number (Number())](core.toNumber), [Cast to text (String())](core.toText), [Cast to yes/no (Boolean())](core.toBool), [Cast to JSON text (JSON.stringify)](core.toJson) and [Cast from JSON text (JSON.parse)](core.parseJson) to change the type of an arriving value
 - [On start (main)](core.onStart) for a simple pulse at the start
 - [How a block works](ide/blocks)

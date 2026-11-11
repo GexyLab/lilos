@@ -124,6 +124,6 @@ Se scrivi per sbaglio `{soglia: 30}` (senza virgolette intorno al nome), il valo
 ## Vedi anche
 
 - [Memoria (set · get)](core.store) per un valore da scrivere e leggere in momenti diversi, che si può anche svuotare
-- [Cast (converti tipo)](core.convert) per cambiare il tipo di un valore che arriva
+- [Cast in numero (Number())](core.toNumber), [Cast in testo (String())](core.toText), [Cast in sì/no (Boolean())](core.toBool), [Cast in testo JSON (JSON.stringify)](core.toJson) e [Cast da testo JSON (JSON.parse)](core.parseJson) per cambiare il tipo di un valore che arriva
 - [All'avvio (main)](core.onStart) per un semplice impulso alla partenza
 - [Come funziona un blocco](ide/blocks)

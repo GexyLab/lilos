@@ -176,7 +176,7 @@ The license is also in Control Panel → About → Credits.
 - No Sentinel nor Cluster: the connection is to a single server.
 - There are no blocks for transactions (`MULTI`/`EXEC`), scripts (`EVAL`) and functions, and [Redis · Command (call)](redis.command) refuses them.
 - Published messages are not kept: [Redis · Subscribe (SUBSCRIBE · PSUBSCRIBE)](redis.subscribe) receives only those that arrive while it listens. For queues that must not lose jobs use a list.
-- The values are text: numbers come back as numbers only with the **JSON** option (or with [Type cast](core.convert)).
+- The values are text: numbers come back as numbers only with the **JSON** option (or with [Cast to number (Number())](core.toNumber)).
 
 ## See also
 

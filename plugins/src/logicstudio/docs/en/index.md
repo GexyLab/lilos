@@ -42,6 +42,7 @@ The IDE is the place where you draw and test. What runs the programs is the **en
 - **The toolbar** changes with the tab: see [Projects](ide/projects) for the common buttons, [Schemas](ide/schemas) and [Windows](ide/windows) for those of each editor.
 - **On the left** there are two tabs: **Project** (the list of schemas, windows and resources) and **Blocks**, which becomes **Components** when the open tab is a window.
 - **On the right** are the **Properties** of what you selected.
+- The two side panels **fold** like the consoles' one: the arrow in their header (**Hide the panel**) reduces them to a thin strip, with the tabs written vertically; the strip's arrow (**Show the panel**) or a click on a tab opens them again. The state stays at the next opening of the IDE.
 - **At the bottom** there is a tab for each console of the project and the **Problems** tab.
 - **At the very bottom** is the status bar: whether the engine answers and how many packages it has, the numbers of the open editor (blocks and links, components, zoom), the time of the test in progress, the name of the project.
 
@@ -73,7 +74,7 @@ Blocks and components come from **packages**, kernel modules that you install fr
 |---|---|
 | [Base blocks](logicstudio-core) (`logicstudio-core`) | Values, logic, math, text, objects, time, the two consoles, the schema ports, the object of the UI components. Installs with the IDE. |
 | [Lists and matrices](logicstudio-collections) (`logicstudio-collections`) | Blocks for lists (sort, filter, for each item…) and matrices (product, transpose, determinant…). |
-| [Constants](logicstudio-constants) (`logicstudio-constants`) | The fundamental constants: mathematical (π, e, golden ratio…), CODATA 2022 physical ones (c, h, G, particle masses…) with unit and uncertainty, astronomical and Earth ones. |
+| [Constants](logicstudio-constants) (`logicstudio-constants`) | The fundamental constants, one block each: mathematical (π, e, golden ratio…), CODATA 2022 physical ones (c, h, G, particle masses…) with unit and uncertainty, astronomical and Earth ones. |
 | [Quantities and units](logicstudio-units) (`logicstudio-units`) | Conversions between units of measure (length, mass, temperature, pressure, energy, data…), SI prefixes, reading and writing measures like `12.5 km`. |
 | [Solid geometry](logicstudio-solid) (`logicstudio-solid`) | Volumes, areas, diagonals and radii of cube, prism, pyramid, cylinder, cone, sphere and its parts, regular polyhedra; mass from volume and material; points, vectors, planes and coordinates in space. |
 | [Plane geometry](logicstudio-plane) (`logicstudio-plane`) | 2D points, distances, lines (parallel, perpendicular, bisectors), intersections, circles, polygons (regular too), conics, point inside a figure, bounds and convex hull, transformations and 3×3 matrices, drawing in SVG. |

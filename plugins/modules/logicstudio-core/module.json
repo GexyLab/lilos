@@ -1,6 +1,6 @@
 {
   "name": "logicstudio-core",
-  "version": "1.5.1",
+  "version": "1.6.0",
   "description": "Logic Studio: i blocchi di base (valori, logica, matematica, testo, oggetti, tempo, console, porte di schema, Componenti UI, testi e forme per schemi e finestre)",
   "icon": {
     "glyph": "chip",
