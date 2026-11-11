@@ -194,10 +194,11 @@ Firme, parametri ed esempi: [riferimento API](../doc/sviluppatore/api.md).
 
 ## Versione
 
-`0.36.0`. Finché la versione è `0.x` l'API può cambiare: ogni modifica incompatibile alza la versione minore e va annotata qui sotto.
+`0.36.1`. Finché la versione è `0.x` l'API può cambiare: ogni modifica incompatibile alza la versione minore e va annotata qui sotto.
 
 ### Modifiche
 
+- **0.36.1** (11 novembre 2026, lilOS 1.51.1, compatibile): correzione in `LogicCanvas`: la cornice di un gruppo aperto non prendeva mai la larghezza dei suoi blocchi (l'icona dell'intestazione, un `<svg>`, non ha `offsetWidth` e il conto dava `NaN`), quindi restava larga quanto l'intestazione e non si allargava spostando i blocchi. Ora segue i blocchi in larghezza e in altezza.
 - **0.36.0** (11 novembre 2026, lilOS 1.51.0, compatibile): due categorie di blocchi nuove in `logic.css`, `analysis` (`--lc-analysis: #56d364`, `.cat-analysis`, i blocchi di analisi numerica di `logicstudio-numeric`) e `hardware` (`--lc-hardware: #c9824a`, `.cat-hardware`, i blocchi di `logicstudio-hardware`). Nessun tipo di porta e nessun metodo nuovo. Su un lilOS più vecchio i blocchi funzionano ma la loro striscia ha il colore di «Altro».
 - **0.35.0** (11 novembre 2026, lilOS 1.50.0, compatibile): nuovo metodo `logic.seal(valore)` → `Promise<string>`: cifra un testo per l'utente corrente su questo lilOS (è `POST /seal` del motore `logicstudio-engine` 1.7.0) e dà il testo da tenere nello schema per le impostazioni di tipo `secret` dei blocchi, come le password dei database. Nuovo simbolo `database` in `icon()`. Nuova categoria di blocchi `db` in `logic.css` (`.cat-db`, `--lc-db: #b7791f`), quella dei pacchetti dei database. Un motore più vecchio della 1.7.0 fa fallire `seal`.
 - **0.34.0** (11 novembre 2026, lilOS 1.49.0, compatibile): i programmi da riga di comando di Logic Studio ([D95](../doc/interna/decisioni.md#d95-logic-studio-i-programmi-da-riga-di-comando-con-argomenti-e-codice-di-uscita)). `logic.start` accetta `args` (lista di testi) e il tipo `kind: 'cli'`; il programma ha `args` e `result` (`{ value, at }` se un blocco Exit l'ha chiuso, altrimenti `null`); `LiveProgram` emette `finished` `{ value }`. `logic.css`: colore della categoria `program` (`--lc-program: #64748b`, `.cat-program`). Serve il motore `logicstudio-engine` 1.6.0 per gli argomenti e l'uscita.

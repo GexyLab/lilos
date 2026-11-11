@@ -425,7 +425,9 @@ export class LogicCanvas extends Emitter {
     entry.y = y0 - PAD - HEAD;
     // at least as wide as its header (Run, the name, the thread, −)
     const head = entry.el.firstElementChild;
-    const need = head ? [...head.children].reduce((w, c) => w + c.offsetWidth, 0) + 6 * head.children.length + 10 : 0;
+    // (an icon is an <svg>: it has no offsetWidth, its box is measured on screen and taken back to world units)
+    const width = c => c.offsetWidth ?? c.getBoundingClientRect().width / this.#view.zoom;
+    const need = head ? [...head.children].reduce((w, c) => w + width(c), 0) + 6 * head.children.length + 10 : 0;
     Object.assign(entry.el.style, { left: `${entry.x}px`, top: `${entry.y}px`, width: `${Math.max(x1 - x0 + PAD * 2, need)}px`, height: `${y1 - y0 + PAD * 2 + HEAD}px` });
   }
 
