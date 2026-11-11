@@ -1,6 +1,6 @@
 # Acceleration
 
-`unit.acceleration` · Units · [Quantities and units](logicstudio-units) · version 1
+`unit.acceleration` · Unit conversions · [Quantities and units](logicstudio-units) · version 1
 
 Converts an acceleration: metres per second squared, standard gravity, feet per second squared, gals.
 

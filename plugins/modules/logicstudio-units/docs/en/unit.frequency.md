@@ -1,6 +1,6 @@
 # Frequency
 
-`unit.frequency` · Units · [Quantities and units](logicstudio-units) · version 1
+`unit.frequency` · Unit conversions · [Quantities and units](logicstudio-units) · version 1
 
 Converts a frequency or a rotation speed: hertz and its multiples, revolutions per minute, radians per second.
 

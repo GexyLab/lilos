@@ -1,6 +1,6 @@
 # Massa
 
-`unit.mass` · Unità di misura · [Grandezze e unità](logicstudio-units) · versione 1
+`unit.mass` · Conversioni unità di misura · [Grandezze e unità](logicstudio-units) · versione 1
 
 Converte una massa (quello che di solito si chiama «peso»): tonnellate, chilogrammi e sottomultipli, libbre, once, stone, carati.
 

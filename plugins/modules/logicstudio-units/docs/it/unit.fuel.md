@@ -1,6 +1,6 @@
 # Consumo di carburante
 
-`unit.fuel` · Unità di misura · [Grandezze e unità](logicstudio-units) · versione 1
+`unit.fuel` · Conversioni unità di misura · [Grandezze e unità](logicstudio-units) · versione 1
 
 Converte un consumo di carburante: litri per 100 km, chilometri al litro, miglia per gallone USA e imperiale.
 

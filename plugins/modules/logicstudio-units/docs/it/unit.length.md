@@ -1,6 +1,6 @@
 # Lunghezza
 
-`unit.length` · Unità di misura · [Grandezze e unità](logicstudio-units) · versione 1
+`unit.length` · Conversioni unità di misura · [Grandezze e unità](logicstudio-units) · versione 1
 
 Converte una lunghezza (o una distanza) da un'unità a un'altra: metri e multipli, pollici, piedi, iarde, miglia, miglia nautiche.
 

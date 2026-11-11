@@ -1,6 +1,6 @@
 # Velocità dei dati
 
-`unit.dataRate` · Unità di misura · [Grandezze e unità](logicstudio-units) · versione 1
+`unit.dataRate` · Conversioni unità di misura · [Grandezze e unità](logicstudio-units) · versione 1
 
 Converte una velocità di trasmissione dei dati: bit al secondo e multipli, byte al secondo e multipli.
 

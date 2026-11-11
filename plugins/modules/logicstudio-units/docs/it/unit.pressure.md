@@ -1,6 +1,6 @@
 # Pressione
 
-`unit.pressure` · Unità di misura · [Grandezze e unità](logicstudio-units) · versione 1
+`unit.pressure` · Conversioni unità di misura · [Grandezze e unità](logicstudio-units) · versione 1
 
 Converte una pressione: pascal e multipli, bar, millibar, atmosfere, psi, millimetri e pollici di mercurio, torr, metri d'acqua.
 

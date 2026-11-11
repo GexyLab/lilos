@@ -1,6 +1,6 @@
 # Volume
 
-`unit.volume` · Unità di misura · [Grandezze e unità](logicstudio-units) · versione 1
+`unit.volume` · Conversioni unità di misura · [Grandezze e unità](logicstudio-units) · versione 1
 
 Converte un volume o una capacità: metri e centimetri cubi, litri e sottomultipli, pollici e piedi cubi, galloni, quarti, pinte e once liquide USA e imperiali.
 

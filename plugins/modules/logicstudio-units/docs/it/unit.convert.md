@@ -1,6 +1,6 @@
 # Converti (da · a)
 
-`unit.convert` · Unità di misura · [Grandezze e unità](logicstudio-units) · versione 1
+`unit.convert` · Conversioni unità di misura · [Grandezze e unità](logicstudio-units) · versione 1
 
 Converte un valore da un'unità a un'altra, con le due unità che arrivano **come testo** (`"km/h"`, `"m/s"`). Riconosce da solo la grandezza e funziona con tutte le unità del pacchetto.
 

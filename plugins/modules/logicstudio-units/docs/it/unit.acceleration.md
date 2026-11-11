@@ -1,6 +1,6 @@
 # Accelerazione
 
-`unit.acceleration` · Unità di misura · [Grandezze e unità](logicstudio-units) · versione 1
+`unit.acceleration` · Conversioni unità di misura · [Grandezze e unità](logicstudio-units) · versione 1
 
 Converte un'accelerazione: metri al secondo quadrato, accelerazione di gravità standard, piedi al secondo quadrato, gal.
 

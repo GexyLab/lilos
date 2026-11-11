@@ -1,6 +1,6 @@
 # Leggi misura (parse)
 
-`unit.parse` · Unità di misura · [Grandezze e unità](logicstudio-units) · versione 1
+`unit.parse` · Conversioni unità di misura · [Grandezze e unità](logicstudio-units) · versione 1
 
 Legge un testo come `"12,5 km"` o `"20°C"` e ne ricava il **numero**, l'**unità** e la **grandezza**. Se vuoi, converte subito il valore in un'altra unità.
 

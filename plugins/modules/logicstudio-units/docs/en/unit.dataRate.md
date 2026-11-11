@@ -1,6 +1,6 @@
 # Data rate
 
-`unit.dataRate` · Units · [Quantities and units](logicstudio-units) · version 1
+`unit.dataRate` · Unit conversions · [Quantities and units](logicstudio-units) · version 1
 
 Converts a data rate: bits per second and their multiples, bytes per second and their multiples.
 

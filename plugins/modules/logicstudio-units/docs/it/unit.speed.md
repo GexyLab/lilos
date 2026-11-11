@@ -1,6 +1,6 @@
 # Velocità
 
-`unit.speed` · Unità di misura · [Grandezze e unità](logicstudio-units) · versione 1
+`unit.speed` · Conversioni unità di misura · [Grandezze e unità](logicstudio-units) · versione 1
 
 Converte una velocità: metri al secondo, chilometri orari, miglia orarie, nodi, piedi al secondo.
 

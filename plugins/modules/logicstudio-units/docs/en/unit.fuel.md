@@ -1,6 +1,6 @@
 # Fuel consumption
 
-`unit.fuel` · Units · [Quantities and units](logicstudio-units) · version 1
+`unit.fuel` · Unit conversions · [Quantities and units](logicstudio-units) · version 1
 
 Converts a fuel consumption: litres per 100 km, kilometres per litre, miles per US and imperial gallon.
 

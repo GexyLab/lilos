@@ -1,6 +1,6 @@
 # Speed
 
-`unit.speed` · Units · [Quantities and units](logicstudio-units) · version 1
+`unit.speed` · Unit conversions · [Quantities and units](logicstudio-units) · version 1
 
 Converts a speed: metres per second, kilometres per hour, miles per hour, knots, feet per second.
 

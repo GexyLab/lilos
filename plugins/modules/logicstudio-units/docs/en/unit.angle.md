@@ -1,6 +1,6 @@
 # Angle
 
-`unit.angle` · Units · [Quantities and units](logicstudio-units) · version 1
+`unit.angle` · Unit conversions · [Quantities and units](logicstudio-units) · version 1
 
 Converts an angle: radians, degrees, arcminutes, arcseconds, gradians (gon), turns.
 

@@ -1,6 +1,6 @@
 # Parse measure
 
-`unit.parse` · Units · [Quantities and units](logicstudio-units) · version 1
+`unit.parse` · Unit conversions · [Quantities and units](logicstudio-units) · version 1
 
 Reads a text like `"12.5 km"` or `"20°C"` and gets the **number**, the **unit** and the **quantity** out of it. If you want, it converts the value to another unit right away.
 

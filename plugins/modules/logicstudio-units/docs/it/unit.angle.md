@@ -1,6 +1,6 @@
 # Angolo
 
-`unit.angle` · Unità di misura · [Grandezze e unità](logicstudio-units) · versione 1
+`unit.angle` · Conversioni unità di misura · [Grandezze e unità](logicstudio-units) · versione 1
 
 Converte un angolo: radianti, gradi, primi, secondi d'arco, gradienti centesimali (gon), giri.
 

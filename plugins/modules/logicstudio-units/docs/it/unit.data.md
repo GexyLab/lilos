@@ -1,6 +1,6 @@
 # Dati
 
-`unit.data` · Unità di misura · [Grandezze e unità](logicstudio-units) · versione 1
+`unit.data` · Conversioni unità di misura · [Grandezze e unità](logicstudio-units) · versione 1
 
 Converte una quantità di dati: bit, byte e multipli decimali (kB, MB…) e binari (KiB, MiB…).
 

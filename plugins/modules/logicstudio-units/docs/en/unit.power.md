@@ -1,6 +1,6 @@
 # Power
 
-`unit.power` · Units · [Quantities and units](logicstudio-units) · version 1
+`unit.power` · Unit conversions · [Quantities and units](logicstudio-units) · version 1
 
 Converts a power: watts and their multiples, metric and imperial horsepower, BTUs per hour, kilocalories per hour.
 

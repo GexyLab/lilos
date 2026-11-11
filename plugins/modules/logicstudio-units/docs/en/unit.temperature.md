@@ -1,6 +1,6 @@
 # Temperature
 
-`unit.temperature` · Units · [Quantities and units](logicstudio-units) · version 1
+`unit.temperature` · Unit conversions · [Quantities and units](logicstudio-units) · version 1
 
 Converts a temperature between degrees Celsius, Fahrenheit, kelvins and degrees Rankine.
 

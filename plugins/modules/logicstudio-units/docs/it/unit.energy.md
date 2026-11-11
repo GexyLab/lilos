@@ -1,6 +1,6 @@
 # Energia
 
-`unit.energy` · Unità di misura · [Grandezze e unità](logicstudio-units) · versione 1
+`unit.energy` · Conversioni unità di misura · [Grandezze e unità](logicstudio-units) · versione 1
 
 Converte un'energia: joule e multipli, wattora e chilowattora, calorie e chilocalorie, BTU, elettronvolt.
 

@@ -1,6 +1,6 @@
 # Flow rate
 
-`unit.flow` · Units · [Quantities and units](logicstudio-units) · version 1
+`unit.flow` · Unit conversions · [Quantities and units](logicstudio-units) · version 1
 
 Converts a flow rate (volume that goes by in a time): cubic metres per second and per hour, litres per second, minute and hour, US gallons per minute.
 

@@ -1,6 +1,6 @@
 # Length
 
-`unit.length` · Units · [Quantities and units](logicstudio-units) · version 1
+`unit.length` · Unit conversions · [Quantities and units](logicstudio-units) · version 1
 
 Converts a length (or a distance) from one unit to another: metres and their multiples, inches, feet, yards, miles, nautical miles.
 

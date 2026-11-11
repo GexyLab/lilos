@@ -1,6 +1,6 @@
 # Potenza
 
-`unit.power` · Unità di misura · [Grandezze e unità](logicstudio-units) · versione 1
+`unit.power` · Conversioni unità di misura · [Grandezze e unità](logicstudio-units) · versione 1
 
 Converte una potenza: watt e multipli, cavalli vapore (metrici e britannici), BTU all'ora, chilocalorie all'ora.
 

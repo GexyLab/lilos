@@ -1,6 +1,6 @@
 # Densità
 
-`unit.density` · Unità di misura · [Grandezze e unità](logicstudio-units) · versione 1
+`unit.density` · Conversioni unità di misura · [Grandezze e unità](logicstudio-units) · versione 1
 
 Converte una densità (massa per volume): chilogrammi al metro cubo, grammi al centimetro cubo, chilogrammi e grammi al litro, libbre al piede cubo.
 

@@ -1,6 +1,6 @@
 # Energy
 
-`unit.energy` · Units · [Quantities and units](logicstudio-units) · version 1
+`unit.energy` · Unit conversions · [Quantities and units](logicstudio-units) · version 1
 
 Converts an energy: joules and their multiples, watt-hours and kilowatt-hours, calories and kilocalories, BTUs, electronvolts.
 

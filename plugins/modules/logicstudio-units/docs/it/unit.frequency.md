@@ -1,6 +1,6 @@
 # Frequenza
 
-`unit.frequency` · Unità di misura · [Grandezze e unità](logicstudio-units) · versione 1
+`unit.frequency` · Conversioni unità di misura · [Grandezze e unità](logicstudio-units) · versione 1
 
 Converte una frequenza o una velocità di rotazione: hertz e multipli, giri al minuto, radianti al secondo.
 

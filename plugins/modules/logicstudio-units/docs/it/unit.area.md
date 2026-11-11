@@ -1,6 +1,6 @@
 # Superficie
 
-`unit.area` · Unità di misura · [Grandezze e unità](logicstudio-units) · versione 1
+`unit.area` · Conversioni unità di misura · [Grandezze e unità](logicstudio-units) · versione 1
 
 Converte una superficie: metri quadrati e multipli, ettari, are, pollici, piedi, iarde e miglia quadrate, acri.
 

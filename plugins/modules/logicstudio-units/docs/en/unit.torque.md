@@ -1,6 +1,6 @@
 # Torque
 
-`unit.torque` · Units · [Quantities and units](logicstudio-units) · version 1
+`unit.torque` · Unit conversions · [Quantities and units](logicstudio-units) · version 1
 
 Converts a torque (moment of a force): newton metres, kilogram-force metres, pound-force feet and inches.
 

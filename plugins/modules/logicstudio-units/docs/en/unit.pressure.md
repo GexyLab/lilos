@@ -1,6 +1,6 @@
 # Pressure
 
-`unit.pressure` · Units · [Quantities and units](logicstudio-units) · version 1
+`unit.pressure` · Unit conversions · [Quantities and units](logicstudio-units) · version 1
 
 Converts a pressure: pascals and their multiples, bars, millibars, atmospheres, psi, millimetres and inches of mercury, torrs, metres of water.
 

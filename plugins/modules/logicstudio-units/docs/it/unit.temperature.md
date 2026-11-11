@@ -1,6 +1,6 @@
 # Temperatura
 
-`unit.temperature` · Unità di misura · [Grandezze e unità](logicstudio-units) · versione 1
+`unit.temperature` · Conversioni unità di misura · [Grandezze e unità](logicstudio-units) · versione 1
 
 Converte una temperatura tra gradi Celsius, Fahrenheit, kelvin e gradi Rankine.
 

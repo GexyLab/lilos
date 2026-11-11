@@ -1,6 +1,6 @@
 # Forza
 
-`unit.force` · Unità di misura · [Grandezze e unità](logicstudio-units) · versione 1
+`unit.force` · Conversioni unità di misura · [Grandezze e unità](logicstudio-units) · versione 1
 
 Converte una forza: newton, kilonewton, dine, chilogrammi forza, libbre forza.
 

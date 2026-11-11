@@ -1,6 +1,6 @@
 # Format measure
 
-`unit.format` · Units · [Quantities and units](logicstudio-units) · version 1
+`unit.format` · Unit conversions · [Quantities and units](logicstudio-units) · version 1
 
 Makes a text with a number and its unit, like `12.5 km` or `21.5 °C`, with the decimals you want. If you want, it chooses the handiest prefix by itself: 1500 m becomes `1.5 km`, 0.0042 s becomes `4.2 ms`.
 

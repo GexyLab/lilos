@@ -1,6 +1,6 @@
 # SI prefixes (k, M, m, µ…)
 
-`unit.prefix` · Units · [Quantities and units](logicstudio-units) · version 1
+`unit.prefix` · Unit conversions · [Quantities and units](logicstudio-units) · version 1
 
 Changes the prefix of a value: from milli to micro, from none to kilo, from mega to giga… It works for **any unit**, also those the package does not have as a quantity: volts, amperes, ohms, farads, henries, coulombs.
 

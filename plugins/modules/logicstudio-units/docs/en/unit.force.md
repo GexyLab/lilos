@@ -1,6 +1,6 @@
 # Force
 
-`unit.force` · Units · [Quantities and units](logicstudio-units) · version 1
+`unit.force` · Unit conversions · [Quantities and units](logicstudio-units) · version 1
 
 Converts a force: newtons, kilonewtons, dynes, kilograms-force, pounds-force.
 

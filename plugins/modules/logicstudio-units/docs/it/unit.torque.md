@@ -1,6 +1,6 @@
 # Coppia
 
-`unit.torque` · Unità di misura · [Grandezze e unità](logicstudio-units) · versione 1
+`unit.torque` · Conversioni unità di misura · [Grandezze e unità](logicstudio-units) · versione 1
 
 Converte una coppia (momento di una forza): newton metro, chilogrammi forza metro, libbre forza piede e pollice.
 

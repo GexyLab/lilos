@@ -1,6 +1,6 @@
 # Mass
 
-`unit.mass` · Units · [Quantities and units](logicstudio-units) · version 1
+`unit.mass` · Unit conversions · [Quantities and units](logicstudio-units) · version 1
 
 Converts a mass (what is usually called "weight"): tonnes, kilograms and their submultiples, pounds, ounces, stones, carats.
 

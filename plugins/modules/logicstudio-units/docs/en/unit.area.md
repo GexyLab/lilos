@@ -1,6 +1,6 @@
 # Area
 
-`unit.area` · Units · [Quantities and units](logicstudio-units) · version 1
+`unit.area` · Unit conversions · [Quantities and units](logicstudio-units) · version 1
 
 Converts an area: square metres and their multiples, hectares, ares, square inches, feet, yards and miles, acres.
 

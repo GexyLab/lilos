@@ -1,6 +1,6 @@
 # Scrivi misura (format)
 
-`unit.format` · Unità di misura · [Grandezze e unità](logicstudio-units) · versione 1
+`unit.format` · Conversioni unità di misura · [Grandezze e unità](logicstudio-units) · versione 1
 
 Fa un testo con un numero e la sua unità, come `12,5 km` o `21,5 °C`, con i decimali che vuoi. Se vuoi, sceglie da solo il prefisso più comodo: 1500 m diventa `1,5 km`, 0,0042 s diventa `4,2 ms`.
 

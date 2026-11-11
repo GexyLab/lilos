@@ -1,6 +1,6 @@
 # Prefissi SI (k, M, m, µ…)
 
-`unit.prefix` · Unità di misura · [Grandezze e unità](logicstudio-units) · versione 1
+`unit.prefix` · Conversioni unità di misura · [Grandezze e unità](logicstudio-units) · versione 1
 
 Cambia il prefisso di un valore: da milli a micro, da unità a kilo, da mega a giga… Vale per **qualsiasi unità**, anche quelle che il pacchetto non ha come grandezza: volt, ampere, ohm, farad, henry, coulomb.
 

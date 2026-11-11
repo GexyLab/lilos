@@ -1,6 +1,6 @@
 # Units of a quantity
 
-`unit.list` · Units · [Quantities and units](logicstudio-units) · version 1
+`unit.list` · Unit conversions · [Quantities and units](logicstudio-units) · version 1
 
 Sends the list of the units of a quantity, ready to fill a [Selection](ui.select) or a [List](ui.list) in a window.
 

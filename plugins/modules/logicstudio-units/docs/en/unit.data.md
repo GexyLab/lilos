@@ -1,6 +1,6 @@
 # Data
 
-`unit.data` · Units · [Quantities and units](logicstudio-units) · version 1
+`unit.data` · Unit conversions · [Quantities and units](logicstudio-units) · version 1
 
 Converts an amount of data: bits, bytes and their decimal (kB, MB…) and binary (KiB, MiB…) multiples.
 

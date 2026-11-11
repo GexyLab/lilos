@@ -1,6 +1,6 @@
 # Density
 
-`unit.density` · Units · [Quantities and units](logicstudio-units) · version 1
+`unit.density` · Unit conversions · [Quantities and units](logicstudio-units) · version 1
 
 Converts a density (mass per volume): kilograms per cubic metre, grams per cubic centimetre, kilograms and grams per litre, pounds per cubic foot.
 

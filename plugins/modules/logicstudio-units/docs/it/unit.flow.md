@@ -1,6 +1,6 @@
 # Portata
 
-`unit.flow` · Unità di misura · [Grandezze e unità](logicstudio-units) · versione 1
+`unit.flow` · Conversioni unità di misura · [Grandezze e unità](logicstudio-units) · versione 1
 
 Converte una portata (volume che passa in un tempo): metri cubi al secondo e all'ora, litri al secondo, al minuto e all'ora, galloni USA al minuto.
 

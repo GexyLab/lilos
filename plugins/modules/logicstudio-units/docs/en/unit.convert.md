@@ -1,6 +1,6 @@
 # Convert (from · to)
 
-`unit.convert` · Units · [Quantities and units](logicstudio-units) · version 1
+`unit.convert` · Unit conversions · [Quantities and units](logicstudio-units) · version 1
 
 Converts a value from one unit to another, with the two units arriving **as text** (`"km/h"`, `"m/s"`). It finds the quantity by itself and works with all the units of the package.
 

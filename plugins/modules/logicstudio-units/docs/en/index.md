@@ -6,7 +6,7 @@ The blocks to **convert between units of measure**: one block per quantity (leng
 
 ## How to install it
 
-The package does not come with the IDE. An administrator installs it from the **AppStore**, **Kernel** tab: it is called `logicstudio-units` («Logic Studio: i blocchi per grandezze e unità di misura…», "Logic Studio: the blocks for quantities and units of measure…"). If the engine is missing, the AppStore installs it too. After the installation the blocks appear in the IDE's **Blocks** tab, in the **Units** category.
+The package does not come with the IDE. An administrator installs it from the **AppStore**, **Kernel** tab: it is called `logicstudio-units` («Logic Studio: i blocchi per grandezze e unità di misura…», "Logic Studio: the blocks for quantities and units of measure…"). If the engine is missing, the AppStore installs it too. After the installation the blocks appear in the IDE's **Blocks** tab, in the **Unit conversions** category.
 
 A project that uses these blocks on a lilOS without the package shows the blocks with **The package is missing**, and an active program waits until the package is back.
 

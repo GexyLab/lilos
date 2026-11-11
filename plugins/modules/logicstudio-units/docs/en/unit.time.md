@@ -1,6 +1,6 @@
 # Time
 
-`unit.time` · Units · [Quantities and units](logicstudio-units) · version 1
+`unit.time` · Unit conversions · [Quantities and units](logicstudio-units) · version 1
 
 Converts a duration: seconds and their submultiples, minutes, hours, days, weeks, years.
 

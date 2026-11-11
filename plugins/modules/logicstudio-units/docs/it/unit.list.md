@@ -1,6 +1,6 @@
 # Unità di una grandezza
 
-`unit.list` · Unità di misura · [Grandezze e unità](logicstudio-units) · versione 1
+`unit.list` · Conversioni unità di misura · [Grandezze e unità](logicstudio-units) · versione 1
 
 Manda la lista delle unità di una grandezza, pronta per riempire una [Selezione](ui.select) o un [Elenco](ui.list) in una finestra.
 

@@ -6,7 +6,7 @@ I blocchi per **convertire tra unità di misura**: un blocco per ogni grandezza 
 
 ## Come si installa
 
-Il pacchetto non arriva con l'IDE. Un amministratore lo installa dall'**AppStore**, scheda **Kernel**: si chiama `logicstudio-units` («Logic Studio: i blocchi per grandezze e unità di misura…»). Se manca il motore, l'AppStore lo installa insieme. Dopo l'installazione i blocchi compaiono nella scheda **Blocchi** dell'IDE, nella categoria **Unità di misura**.
+Il pacchetto non arriva con l'IDE. Un amministratore lo installa dall'**AppStore**, scheda **Kernel**: si chiama `logicstudio-units` («Logic Studio: i blocchi per grandezze e unità di misura…»). Se manca il motore, l'AppStore lo installa insieme. Dopo l'installazione i blocchi compaiono nella scheda **Blocchi** dell'IDE, nella categoria **Conversioni unità di misura**.
 
 Un progetto che usa questi blocchi su un lilOS dove il pacchetto non c'è mostra i blocchi con **Manca il pacchetto**, e un programma attivo resta in attesa finché il pacchetto torna.
 

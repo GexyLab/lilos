@@ -1,6 +1,6 @@
 # Tempo
 
-`unit.time` · Unità di misura · [Grandezze e unità](logicstudio-units) · versione 1
+`unit.time` · Conversioni unità di misura · [Grandezze e unità](logicstudio-units) · versione 1
 
 Converte una durata: secondi e sottomultipli, minuti, ore, giorni, settimane, anni.
 
