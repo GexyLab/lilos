@@ -2356,6 +2356,13 @@ Conseguenze: se tutte le schede si chiudono non parte niente; un'automazione con
 - *Altro*: avvisi di indirizzi bloccati al massimo uno ogni 20 secondi per scheda, con solo schema e host; la barra degli indirizzi non trasforma `file:`, `javascript:`, `mailto:`, `chrome:`, `about:` (tranne `about:blank`) in una ricerca e mostra «NetWave non apre questo indirizzo»; lo stato ripristinato accetta solo indirizzi `http(s)` e `about:blank`; una finestra privata non si riapre dopo un ricaricamento di lilOS.
 - *Conseguenza*: un programma più vecchio della 0.5.1 funziona ancora con NetWave 1.1.0 (l'SDK ripiega su `downloadRead`), ma senza i limiti nuovi (indirizzi del computer, popup, download).
 
+**Nota dell'11 novembre 2026 (lilOS 1.53.0, NetWave Browser 1.2.0): i siti web aperti da lilOS vanno in NetWave.** Chiesto dall'utente: NetWave apre anche i siti esterni, non solo i collegamenti web della scrivania, e si può spegnere dalle opzioni.
+
+- *Come*: `connectWebLinks()` (`src/items/deskLinks.js`, chiamata da `system.js`) ascolta nella pagina di lilOS i clic sinistri e centrali sui collegamenti `<a href>` verso siti `http(s)` di un'altra origine e li apre con `launch('netwave', { url })`; `openWebLink` segue la stessa regola. Lo fa lilOS e non il programma: nessun programma nuovo da distribuire, e lilOS sa se NetWave è installata e che cosa ha scelto l'utente.
+- *Opzione*: **Apri in NetWave i siti web** in Opzioni › Generali, chiave `openLinks` di `netwave.options` (vera di serie), letta anche da lilOS. Spenta, i siti vanno nel browser del computer come prima.
+- *Cosa resta fuori*: i clic già gestiti da chi li riceve, i download (`download`), gli indirizzi di lilOS (stessa origine) e di questo computer (`localhost`, `127.x`, `[::1]`), le app isolate (i loro iframe non possono aprire nuove schede) e gli accessi a un servizio di `net` e `calls` (`window.open('about:blank')` poi l'indirizzo: Google e altri rifiutano gli accessi da un browser integrato, e la fine dell'accesso torna a un indirizzo del computer che NetWave non apre). Anche `net.openWeb` (le pagine di un servizio, come la scelta delle foto di Google) resta nel browser del computer, per lo stesso motivo.
+- *Scartato*: farlo nel programma (`setWindowOpenHandler` che chiede a lilOS): prenderebbe anche le app remote, ma vorrebbe un programma nuovo e un ponte in più per una decisione che lilOS sa già prendere.
+
 ## D90. Logic Studio: la documentazione viaggia con i pacchetti
 
 > Completa [D88](#d88-logic-studio-motore-pacchetti-ide-finestre-dei-progetti): stessi pacchetti, stesso motore, una cosa in più che registrano.

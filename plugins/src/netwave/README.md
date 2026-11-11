@@ -12,8 +12,9 @@ Un browser per lilOS: pagine web in schede, in quante finestre vuoi. Ogni finest
 - **Nuove schede chieste da una pagina** (popup, collegamenti a una nuova finestra): NetWave chiede prima, con la stessa barra e la stessa casella (la risposta ricordata è il permesso `tabs`). Non chiede per la scheda in background scelta da te (Ctrl o clic centrale). Il programma ne lascia passare al massimo 5 ogni 10 secondi per pagina.
 - **Download** in **Download** della tua home, con una notifica a fine scaricamento (Ctrl J per l'elenco). Fino a 1 GB e al massimo 4 alla volta per finestra di lilOS; sono letti a pezzi da 8 MB e salvati uno alla volta; i nomi sono accorciati a 150 caratteri. Un avviso dice se un download è troppo grande, troppi insieme o interrotto.
 - **Trova nella pagina** (Ctrl F), **zoom** per ogni scheda e menu del tasto destro sulla pagina.
-- **Opzioni**: pagina iniziale, motore di ricerca (DuckDuckGo, Startpage, Bing, Google, Ecosia), giorni di cronologia (7, 30, 90, 365 o per sempre; di serie 90), permessi ricordati e, in **Siti**, **Chiedi prima che una pagina apra nuove schede** (attivo di serie; spento, le schede si aprono subito).
-- Le sessioni `.nwsession` hanno la loro anteprima sulla scrivania e nel File Manager, e un collegamento a una pagina web sulla scrivania si apre in NetWave.
+- **Opzioni**: pagina iniziale, motore di ricerca (DuckDuckGo, Startpage, Bing, Google, Ecosia), **Apri in NetWave i siti web** (vedi sotto), giorni di cronologia (7, 30, 90, 365 o per sempre; di serie 90), permessi ricordati e, in **Siti**, **Chiedi prima che una pagina apra nuove schede** (attivo di serie; spento, le schede si aprono subito).
+- **I siti web aperti da lilOS si aprono in NetWave**: i collegamenti a una pagina web sulla scrivania e i collegamenti a siti web nelle finestre di lilOS e delle sue app (clic o clic centrale). Si spegne in **Opzioni › Generali › Apri in NetWave i siti web**: spento, vanno nel browser del computer. Restano sempre fuori gli accessi a un servizio (Google, Microsoft…), i download, gli indirizzi di lilOS e del computer e le app isolate. Per i collegamenti nelle finestre serve lilOS 1.53.0; con un lilOS più vecchio vale solo per la scrivania.
+- Le sessioni `.nwsession` hanno la loro anteprima sulla scrivania e nel File Manager.
 
 ## Tasti
 

@@ -1,4 +1,4 @@
-import { fs, net, messageBox, locale, host } from '@lilos/sdk';
+import { fs, net, messageBox, locale, host, storage } from '@lilos/sdk';
 import { launch, isInstalled } from '../apps/registry.js';
 import { openFile } from '../apps/open.js';
 import { DESK_NAME } from '../systemFs.js';
@@ -60,15 +60,56 @@ export function addDeskLinks(ids) {
 }
 
 /**
- * Opens a web page of a link: in NetWave Browser when it is installed and the lilOS program shows
- * its pages (host.web), else in a new tab of the browser. Never with access to lilOS's page.
+ * Web sites open in NetWave Browser when it is installed, the lilOS program shows its pages
+ * (host.web) and NetWave's option «Apri in NetWave i siti web» is on (Opzioni › Generale, stored in
+ * the user's netwave.options as openLinks; on by default). Off, they open in the computer's browser.
+ */
+const NETWAVE_OPTIONS = 'netwave.options';
+const LOOPBACK = /^(localhost|127\.\d+\.\d+\.\d+|\[::1\])$/i;
+let engine = false;   // the last answer of host.web.available()
+
+function wantsNetWave() {
+  if (!host.native || !isInstalled('netwave')) return false;
+  return storage.get(NETWAVE_OPTIONS, {})?.openLinks !== false;
+}
+
+/**
+ * Opens a web page of a link: in NetWave Browser (see wantsNetWave), else in a new tab of the
+ * browser. Never with access to lilOS's page.
  */
 export function openWebLink(url) {
   if (!/^https?:\/\//i.test(url)) return;
   const outside = () => window.open(url, '_blank', 'noopener,noreferrer');
   // In a browser the tab opens right away (later it would be a blocked popup)
-  if (!host.native || !isInstalled('netwave')) return void outside();
-  host.web.available().then(ok => (ok ? launch('netwave', { url }) : outside()), outside);
+  if (!wantsNetWave()) return void outside();
+  host.web.available().then(ok => { engine = ok; return ok ? launch('netwave', { url }) : outside(); }, outside);
+}
+
+/**
+ * Links to web sites clicked anywhere in lilOS's page (system apps, apps that are not isolated,
+ * the AppStore's pages…): in NetWave when wantsNetWave() and the engine is there, else as the
+ * page does without this (in the program, the computer's browser). Not caught: links of lilOS's
+ * own server and of this computer, downloads, links whose click the page handled already.
+ * Isolated apps cannot open new tabs: their links stay where they are.
+ */
+export function connectWebLinks() {
+  if (!host.native) return;
+  const check = () => host.web.available().then(ok => { engine = ok; }, () => { engine = false; });
+  check();
+  host.on('settings', check);
+  const onClick = e => {
+    if (e.defaultPrevented || e.button !== (e.type === 'auxclick' ? 1 : 0)) return;
+    const a = e.composedPath().find(n => n instanceof HTMLAnchorElement && n.hasAttribute('href'));
+    if (!a || a.hasAttribute('download')) return;
+    let url;
+    try { url = new URL(a.href, location.href); } catch { return; }
+    if (!/^https?:$/.test(url.protocol) || url.origin === location.origin || LOOPBACK.test(url.hostname)) return;
+    if (!engine || !wantsNetWave()) return;
+    e.preventDefault();
+    launch('netwave', { url: url.href });
+  };
+  window.addEventListener('click', onClick);
+  window.addEventListener('auxclick', onClick);
 }
 
 /**

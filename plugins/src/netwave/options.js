@@ -7,6 +7,8 @@ import { Emitter, storage } from '@lilos/sdk';
  *   keepDays   days of history kept (0 = for ever)
  *   restore    reopen the windows of the last time (lilOS does it with its workspaces)
  *   askTabs    ask before a page opens a new tab (popups, links to a new window); off: they open
+ *   openLinks  links to web sites in lilOS and its apps, and desk web links, open in NetWave (lilOS
+ *              reads it: src/items/deskLinks.js); off: in the computer's browser
  * Site permissions remembered: netwave.grants, [{ origin, permission, allow }]; permission is one
  * of the program's ('geolocation', 'camera', 'microphone'…; 'media' of 1.0.0 stands for both) or
  * NetWave's own 'tabs' (opening new tabs).
@@ -23,7 +25,7 @@ export const SEARCH_ENGINES = [
   { id: 'ecosia', label: 'Ecosia', url: 'https://www.ecosia.org/search?q=%s' },
 ];
 
-const DEFAULTS = { home: '', search: 'duckduckgo', keepDays: 90, askTabs: true };
+const DEFAULTS = { home: '', search: 'duckduckgo', keepDays: 90, askTabs: true, openLinks: true };
 export const KEEP_DAYS = [7, 30, 90, 365, 0];
 
 class Options extends Emitter {
@@ -31,7 +33,7 @@ class Options extends Emitter {
     const all = { ...DEFAULTS, ...storage.get(KEY, {}) };
     if (name === 'keepDays' && !KEEP_DAYS.includes(all.keepDays)) return DEFAULTS.keepDays;
     if (name === 'search' && !SEARCH_ENGINES.some(e => e.id === all.search)) return DEFAULTS.search;
-    if (name === 'askTabs') return all.askTabs !== false;
+    if (name === 'askTabs' || name === 'openLinks') return all[name] !== false;
     return all[name];
   }
 

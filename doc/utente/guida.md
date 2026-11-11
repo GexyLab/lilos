@@ -160,7 +160,7 @@ Puoi anche **mettere file e cartelle dentro una cartella**: trascinali sopra una
 
 **Doppio clic** oppure **Invio** sugli elementi selezionati. Le cartelle si aprono nel [File Manager](#il-file-manager), nella finestra già aperta se c'è; con **Ctrl + doppio clic** (⌘ + doppio clic sul Mac) si aprono invece in una finestra nuova, così puoi averne più di una affiancate. Vale anche per le cartelle dentro una workarea e per i collegamenti a una cartella. Le app si avviano, i file si aprono con l'app associata al loro tipo (i file di testo e di codice nell'[Editor](#leditor)). Se nessuna app è associata compare la finestra [Apri con](#apri-con).
 
-Un [collegamento sulla scrivania](#collegamenti-sulla-scrivania) apre ciò a cui punta: la cartella nel File Manager, il file con la sua app, la pagina web in NetWave Browser (se c'è) o in una nuova scheda del browser.
+Un [collegamento sulla scrivania](#collegamenti-sulla-scrivania) apre ciò a cui punta: la cartella nel File Manager, il file con la sua app, la pagina web in NetWave Browser (se c'è e la sua opzione **Apri in NetWave i siti web** è accesa) o in una nuova scheda del browser.
 
 Con il tasto destro su un file, **Apri con…** permette di scegliere l'app anche quando ce n'è già una associata. Su un file immagine c'è anche **Usa come sfondo desktop** (vedi [Colore e immagine di sfondo](#colore-e-immagine-di-sfondo)).
 
@@ -205,7 +205,7 @@ Cosa puoi scrivere:
 | `smb://server/condivisione/cartella` | Una cartella o un file di una condivisione di rete |
 | `webdav://server/cartella`, `webdavs://server/cartella` | Un server WebDAV (`webdav` è su http, `webdavs` su https) |
 | `nfs://…` e altri | Qualunque protocollo che un amministratore ha aggiunto dall'AppStore → Kernel |
-| `https://…` o `http://…` | Una pagina web, che si apre in [NetWave Browser](#netwave-browser) se è installato e le pagine web sono disponibili, altrimenti in una nuova scheda del browser |
+| `https://…` o `http://…` | Una pagina web, che si apre in [NetWave Browser](#netwave-browser) se è installato, le pagine web sono disponibili e l'opzione **Apri in NetWave i siti web** è accesa, altrimenti in una nuova scheda del browser |
 
 Regole:
 
@@ -1453,7 +1453,7 @@ NetWave non c'è di serie: un amministratore lo installa dall'[AppStore](#lappst
 - Quando una pagina vuole aprire una nuova scheda (un popup, un collegamento a una nuova finestra), NetWave lo chiede con una barra sopra la pagina: **Non consentire** o **Apri**. Con la casella **Ricorda per questo sito** la risposta vale per sempre. Se apri tu un collegamento in una scheda sullo sfondo (Ctrl o clic centrale) non chiede. Si può togliere la domanda in **Opzioni** (vedi sotto): allora le schede si aprono subito, al massimo 5 ogni 10 secondi per pagina.
 - Il tasto destro su una scheda la ricarica, duplica, fissa, silenzia, chiude o la sposta in una nuova finestra.
 - **Home** apre la pagina iniziale che scegli nelle Opzioni. Di serie è la pagina di partenza di NetWave, con le sessioni e le finestre chiuse di recente.
-- Un collegamento a una pagina web sulla scrivania (vedi [Collegamenti sulla scrivania](#collegamenti-sulla-scrivania)) si apre in NetWave, se è installata e le pagine web sono disponibili; altrimenti nel browser.
+- **I siti web aperti da lilOS si aprono in NetWave**: un collegamento a una pagina web sulla scrivania (vedi [Collegamenti sulla scrivania](#collegamenti-sulla-scrivania)) e i collegamenti a siti web nelle finestre di lilOS e delle sue app (per esempio le pagine dell'AppStore o i Riconoscimenti del Pannello di controllo), con un clic o un clic centrale. Serve che NetWave sia installata, che le pagine web siano disponibili e che in **Opzioni › Generali** sia acceso **Apri in NetWave i siti web** (acceso di serie). Spento, o senza pagine web, si aprono nel browser del computer. Restano sempre nel browser del computer gli accessi a un servizio (Google, Microsoft e simili, per esempio quando colleghi un account in Rete), i download e gli indirizzi di lilOS e di questo computer; i collegamenti delle app isolate non aprono nuove schede.
 - **Ctrl F** cerca nella pagina; **Ctrl +**, **Ctrl −** e **Ctrl 0** cambiano lo zoom della scheda.
 
 ### Finestra privata
@@ -1490,7 +1490,7 @@ Un file scaricato va nella cartella **Download** della tua home e compare una no
 
 ### Opzioni
 
-Dal menu di NetWave → **Opzioni**: la **pagina iniziale**, il **motore di ricerca** (DuckDuckGo, Startpage, Bing, Google o Ecosia; di serie DuckDuckGo), i **giorni di cronologia** (7, 30, 90, 365 o per sempre), i **permessi ricordati** e, in **Siti**, l'interruttore **Chiedi prima che una pagina apra nuove schede** (acceso di serie).
+Dal menu di NetWave → **Opzioni**: la **pagina iniziale**, il **motore di ricerca** (DuckDuckGo, Startpage, Bing, Google o Ecosia; di serie DuckDuckGo), l'interruttore **Apri in NetWave i siti web** (acceso di serie; spento, i siti aperti da lilOS vanno nel browser del computer), i **giorni di cronologia** (7, 30, 90, 365 o per sempre), i **permessi ricordati** e, in **Siti**, l'interruttore **Chiedi prima che una pagina apra nuove schede** (acceso di serie).
 
 ### Da sapere
 

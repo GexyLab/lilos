@@ -33,7 +33,7 @@ import { connectAppProperties } from './apps/appProperties.js';
 import { Canvas } from './canvas/Canvas.js';
 import { createHud } from './canvas/Hud.js';
 import { Desktop } from './desktop/Desktop.js';
-import { openLink } from './items/deskLinks.js';
+import { openLink, connectWebLinks } from './items/deskLinks.js';
 import { preloadWallpaper, connectWallpaper } from './desktop/wallpaper.js';
 import { Taskbar } from './taskbar/Taskbar.js';
 import { UserPage } from './user/UserPage.js';
@@ -127,6 +127,8 @@ connectServices();
 connectDesktop({ wm });
 // Files and folders dragged in from the computer
 connectFileDrops();
+// Links to web sites: in NetWave Browser (its option «Apri in NetWave i siti web»)
+connectWebLinks();
 Promise.all([workspaces.ready, workareas.ready]).then(() => {
   bus.emit('system:ready', { at: Date.now() });
   bus.emit('user:login', { user: kernel.data?.user ?? null, workspace: workspaces.currentId ?? null });

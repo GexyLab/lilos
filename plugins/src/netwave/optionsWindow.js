@@ -3,7 +3,7 @@ import { options, SEARCH_ENGINES, KEEP_DAYS, addressOf } from './options.js';
 import { history } from './history.js';
 import { t } from './i18n.js';
 
-/** NetWave's Options window (one): start, search, history, permissions of sites. */
+/** NetWave's Options window (one): start, search, sites opened from lilOS, history, permissions of sites. */
 const WINDOW_KEY = 'netwave-options';
 let current = null;
 
@@ -23,6 +23,10 @@ export function openOptions(openWindow) {
             {
               label: t('options.search'), description: t('options.searchText'),
               control: selectField({ value: options.get('search'), label: t('options.search'), options: SEARCH_ENGINES.map(e => ({ value: e.id, label: e.label })), onChange: v => options.set('search', v) }),
+            },
+            {
+              label: t('options.openLinks'), description: t('options.openLinksText'),
+              control: toggle({ value: options.get('openLinks'), label: t('options.openLinks'), onChange: v => options.set('openLinks', !!v) }),
             },
           ],
         }],
