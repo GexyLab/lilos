@@ -68,6 +68,7 @@ Con una quota di programmi attivi a 0, un utente non può attivare programmi né
 | Console per progetto | 10 | 1–50 |
 | Righe al secondo per console | 50 | 1–10000 |
 | Punti tenuti per serie dei grafici | 1000 | 10–100000 |
+| Campioni per segnale, al massimo (pacchetto [Segnali](logicstudio-signals)) | 65536 | 1024–1048576 |
 
 ### Cosa succede quando superi un limite
 

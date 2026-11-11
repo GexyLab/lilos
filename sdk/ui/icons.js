@@ -89,6 +89,8 @@ const GLYPHS = {
   split: '<path d="M3 12h6l4-6h8M9 12l4 6h8"/>',
   merge: '<path d="M6 4v5a4 4 0 0 0 4 4h8M6 20v-5a4 4 0 0 1 4-4"/><path d="m15 9 4 4-4 4"/>',
   chart: '<path d="M4 20V4M4 20h16"/><path d="m7 15 4-5 3 3 5-6"/>',
+  wave: '<path d="M3 12c1.5-5 4.5-5 6 0s4.5 5 6 0 4.5-5 6 0"/>',
+  filter: '<path d="M4 5h16l-6 7.5V19l-4-2v-4.5z"/>',
   slider: '<path d="M4 12h16"/><circle cx="10" cy="12" r="3"/>',
   text: '<path d="M5 7V5h14v2M12 5v14M9 19h6"/>',
   braces: '<path d="M8 4H7a2 2 0 0 0-2 2v4l-2 2 2 2v4a2 2 0 0 0 2 2h1M16 4h1a2 2 0 0 1 2 2v4l2 2-2 2v4a2 2 0 0 1-2 2h-1"/>',

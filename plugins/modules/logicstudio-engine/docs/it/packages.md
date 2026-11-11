@@ -119,7 +119,7 @@ Quando tutto va bene il log dice: `Logic Studio: pacchetto logicstudio-esempio 1
 |---|---|
 | `type` | `pacchetto.nome`: `[a-z][a-z0-9]*\.[a-zA-Z][a-zA-Z0-9]{0,40}`, per esempio `esempio.media`. Unico fra tutti i pacchetti |
 | `version` | Un intero da 1. Alzalo quando cambi il comportamento o le impostazioni (vedi **upgrade**) |
-| `category` | Dove sta nella scheda **Blocchi**: `value` (Valori), `logic` (Logica), `math` (Matematica), `text` (Testo), `object` (Oggetti), `list` (Liste), `matrix` (Matrici), `units` (Unità di misura), `time` (Tempo), `console` (Console), `schema` (Porte di schema), `ui` (Componenti UI), `lilos` (lilOS), `net` (Rete), `exception` (Eccezioni). Un'altra parola, o niente: **Altro** |
+| `category` | Dove sta nella scheda **Blocchi**: `value` (Valori), `logic` (Logica), `math` (Matematica), `text` (Testo), `object` (Oggetti), `list` (Liste), `matrix` (Matrici), `units` (Unità di misura), `signal` (Segnali), `time` (Tempo), `console` (Console), `schema` (Porte di schema), `ui` (Componenti UI), `lilos` (lilOS), `net` (Rete), `exception` (Eccezioni). Un'altra parola, o niente: **Altro** |
 | `icon` | Il nome di un'icona di lilOS (`calculator`, `bell`, `globe`, `clock`, `lamp`…). Di serie `blocks` |
 | `label` | Il nome del blocco: `{ en, it }` |
 | `description` | Facoltativa: una frase `{ en, it }` |
@@ -267,6 +267,7 @@ upgrade(config, from, added)   // → le impostazioni nuove, o { config: le impo
 | `b.console.read(console, opzioni)` | Fa una domanda e aspetta: `{ value }` oppure `{ cancelled: true, reason }` |
 | `b.ui(porta, valore)`, `b.exportPort(porta, valore)` | Riservati ai blocchi di base (l'oggetto di una componente, l'Uscita di schema) |
 | `b.now()` | L'ora, come `Date.now()` |
+| `b.limits` | I limiti che un blocco può leggere: `signalSamples`, i campioni al massimo di un segnale (Pannello di controllo → Logic Studio → Limiti; dal motore 1.5.0, prima manca) |
 | `b.signal` | Un `AbortSignal` che scatta quando il programma si ferma |
 
 I timer del motore si fermano da soli quando il programma si ferma. Quello che un timer lancia esce da **Exception**. Non usare `setTimeout` e `setInterval` di Node: non si fermerebbero con il programma.

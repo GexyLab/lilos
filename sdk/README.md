@@ -194,10 +194,11 @@ Firme, parametri ed esempi: [riferimento API](../doc/sviluppatore/api.md).
 
 ## Versione
 
-`0.29.1`. Finché la versione è `0.x` l'API può cambiare: ogni modifica incompatibile alza la versione minore e va annotata qui sotto.
+`0.31.0`. Finché la versione è `0.x` l'API può cambiare: ogni modifica incompatibile alza la versione minore e va annotata qui sotto.
 
 ### Modifiche
 
+- **0.31.0** (11 novembre 2026, lilOS 1.46.0, compatibile): nuovi simboli di `icon()` `wave` (un'onda) e `filter` (un imbuto), e nuova categoria di blocchi `signal` in `LogicCanvas` (`.cat-signal`, `--lc-signal: #d6409f`), quelle del pacchetto `logicstudio-signals` (Segnali).
 - **0.30.0** (11 novembre 2026, lilOS 1.45.0, compatibile): finestre di dialogo. `Window` accetta `modal: true` (classe `modal`, `aria-modal`) e ha `setBlocked(bool)`, `blocked` e `flash()`; il `WindowManager` di lilOS blocca le finestre dello stesso gruppo aperte prima (`wm.open(win, { group })`, di serie l'app). `LogicWindow` ha `state` (`'normal'` | `'maximized'`, nuovo export `LOGIC_WINDOW_STATES`), `modal`, `onTop` e `setOptions({ state, modal, onTop })`. [Riferimento API](../doc/sviluppatore/api.md#sdkuiwindowjs)
 - **0.29.1** (11 novembre 2026, lilOS 1.44.1, compatibile): nuova categoria di blocchi `units` in `LogicCanvas` (`.cat-units`, `--lc-units: #e8743b`), quella del pacchetto `logicstudio-units` (Grandezze e unità).
 - **0.29.0** (11 novembre 2026, lilOS 1.44.0, compatibile): un blocco definito con `showError: true` (per esempio Throw) ha l'uscita Exception visibile di serie. `portsOf` dà `hiddenByDefault` anche per l'uscita `error`; in `portHidden` e `LogicSchema.setPortHidden` il predefinito `diSerie` è ora `null` (la regola di sempre) invece di `false`. [Riferimento API](../doc/sviluppatore/api.md#sdkcorelogicjs-e-sdkcorelogicmodeljs-logic-studio)

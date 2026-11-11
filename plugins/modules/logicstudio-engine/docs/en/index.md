@@ -73,6 +73,7 @@ The blocks and components you see in the IDE are those of the packages installed
 | [Lists and matrices](logicstudio-collections) | Blocks for lists and matrices |
 | [Constants](logicstudio-constants) | Mathematical, physical (CODATA 2022), astronomical and Earth constants |
 | [Quantities and units](logicstudio-units) | Conversions between units of measure, SI prefixes, reading and writing measures |
+| [Signals](logicstudio-signals) | Signal theory: generators, FFT, spectra, IIR and FIR filters, correlation, measures, modulation |
 | [lilOS blocks](logicstudio-lilos) | Notifications, files of your home, events to lilOS |
 | [Network blocks](logicstudio-net) | The HTTP request (fetch) block |
 | [Standard UI components](logicstudio-ui) | Labels, buttons, fields, containers… for the windows |

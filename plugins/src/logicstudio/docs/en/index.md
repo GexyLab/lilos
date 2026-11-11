@@ -75,6 +75,7 @@ Blocks and components come from **packages**, kernel modules that you install fr
 | [Lists and matrices](logicstudio-collections) (`logicstudio-collections`) | Blocks for lists (sort, filter, for each item…) and matrices (product, transpose, determinant…). |
 | [Constants](logicstudio-constants) (`logicstudio-constants`) | The fundamental constants: mathematical (π, e, golden ratio…), CODATA 2022 physical ones (c, h, G, particle masses…) with unit and uncertainty, astronomical and Earth ones. |
 | [Quantities and units](logicstudio-units) (`logicstudio-units`) | Conversions between units of measure (length, mass, temperature, pressure, energy, data…), SI prefixes, reading and writing measures like `12.5 km`. |
+| [Signals](logicstudio-signals) (`logicstudio-signals`) | Signal theory: generators (sine, square, noise, chirp…), FFT and IFFT, power spectral density, spectrogram, IIR, FIR and biquad filters with their frequency response, convolution and correlation, measures (RMS, THD, SNR), AM, FM and PM modulation. |
 | [lilOS blocks](logicstudio-lilos) (`logicstudio-lilos`) | Notifications, reading and writing the files of your home, listing folders, events towards lilOS pages. |
 | [Network](logicstudio-net) (`logicstudio-net`) | **HTTP request** over HTTP and HTTPS. |
 | [UI components](logicstudio-ui) (`logicstudio-ui`) | The components of the windows: labels, values, gauges, buttons, fields, tables, containers. |

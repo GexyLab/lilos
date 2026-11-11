@@ -119,7 +119,7 @@ When all goes well the log says: `Logic Studio: pacchetto logicstudio-esempio 1.
 |---|---|
 | `type` | `package.name`: `[a-z][a-z0-9]*\.[a-zA-Z][a-zA-Z0-9]{0,40}`, for example `esempio.media`. Unique among all packages |
 | `version` | An integer from 1. Raise it when you change the behaviour or the settings (see **upgrade**) |
-| `category` | Where it is in the **Blocks** tab: `value` (Values), `logic` (Logic), `math` (Math), `text` (Text), `object` (Objects), `list` (Lists), `matrix` (Matrices), `units` (Units), `time` (Time), `console` (Console), `schema` (Schema ports), `ui` (UI components), `lilos` (lilOS), `net` (Network), `exception` (Exceptions). Another word, or nothing: **Other** |
+| `category` | Where it is in the **Blocks** tab: `value` (Values), `logic` (Logic), `math` (Math), `text` (Text), `object` (Objects), `list` (Lists), `matrix` (Matrices), `units` (Units), `signal` (Signals), `time` (Time), `console` (Console), `schema` (Schema ports), `ui` (UI components), `lilos` (lilOS), `net` (Network), `exception` (Exceptions). Another word, or nothing: **Other** |
 | `icon` | The name of a lilOS icon (`calculator`, `bell`, `globe`, `clock`, `lamp`…). Default `blocks` |
 | `label` | The name of the block: `{ en, it }` |
 | `description` | Optional: a sentence `{ en, it }` |
@@ -267,6 +267,7 @@ upgrade(config, from, added)   // → the new settings, or { config: the new set
 | `b.console.read(console, options)` | Asks a question and waits: `{ value }` or `{ cancelled: true, reason }` |
 | `b.ui(port, value)`, `b.exportPort(port, value)` | Reserved for the base blocks (the object of a component, the Schema output) |
 | `b.now()` | The time, like `Date.now()` |
+| `b.limits` | The limits a block may read: `signalSamples`, the most samples of a signal (Control Panel → Logic Studio → Limits; from engine 1.5.0, missing before) |
 | `b.signal` | An `AbortSignal` that fires when the program stops |
 
 The timers of the engine stop by themselves when the program stops. What a timer throws comes out of **Exception**. Do not use the `setTimeout` and `setInterval` of Node: they would not stop with the program.

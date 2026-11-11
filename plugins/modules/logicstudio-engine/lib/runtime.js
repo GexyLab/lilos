@@ -56,7 +56,7 @@ const GROUP_DEF = Object.freeze({
 const isOn = v => v !== false && v !== null && v !== undefined;
 
 export class Program {
-  #defs; #host; #limits;
+  #defs; #host; #limits; #blockLimits;
   #nodes = new Map();        // 'schema/block' → node (also 'schema/group' → the group's «run»)
   #groups = [];              // { key, schema, id, name, thread, members, nodes, node, running, gen, runLinked, remote }
   #steps = 0;
@@ -79,6 +79,7 @@ export class Program {
     this.#defs = defs;
     this.#host = host;
     this.#limits = { runsPer10s: 10000, blockMs: 30000, cpuPercent: 100, ...spec.limits };
+    this.#blockLimits = Object.freeze({ signalSamples: Number.isInteger(this.#limits.signalSamples) ? this.#limits.signalSamples : 65536 });
     for (const [schema, s] of Object.entries(spec.schemas)) {
       const links = s.links ?? [];
       const groups = new Map();
@@ -221,6 +222,8 @@ export class Program {
       exportPort: (port, value) => program.#export(node, port, value),
       ui: (port, value) => program.#host.ui(node.config.window, node.config.component, port, value),
       now: () => Date.now(),
+      // what blocks may read of the limits (b.limits.signalSamples: the longest signal of logicstudio-signals)
+      limits: program.#blockLimits,
     });
   }
 

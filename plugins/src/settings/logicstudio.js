@@ -99,7 +99,7 @@ function limitSections(rerender) {
   return [
     { title: t('logic.limits.all'), rows: settingRows(group(['totalActive', 'totalMemoryMb', 'runsPer10s', 'blockSeconds', 'testMinutes', 'maxThreads']), state.settings.values, { t, save }) },
     { title: t('logic.limits.schemas'), rows: settingRows(group(['maxBlocks', 'maxLinks', 'maxAddedPorts']), state.settings.values, { t, save }) },
-    { title: t('logic.limits.projects'), rows: settingRows(group(['maxSchemas', 'maxWindows', 'maxComponents', 'maxProjectLinks', 'maxConsoles', 'consoleLinesPerSecond', 'chartPoints']), state.settings.values, { t, save }) },
+    { title: t('logic.limits.projects'), rows: settingRows(group(['maxSchemas', 'maxWindows', 'maxComponents', 'maxProjectLinks', 'maxConsoles', 'consoleLinesPerSecond', 'chartPoints', 'signalSamples']), state.settings.values, { t, save }) },
     { rows: [{ label: t('logic.limits.when'), description: t('logic.limits.whenHint') }] },
   ];
 }

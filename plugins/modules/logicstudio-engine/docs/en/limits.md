@@ -68,6 +68,7 @@ With the quota of active programs at 0, a user cannot activate programs or open 
 | Consoles per project | 10 | 1–50 |
 | Console lines per second | 50 | 1–10000 |
 | Points kept per chart series | 1000 | 10–100000 |
+| Samples per signal, at most ([Signals](logicstudio-signals) package) | 65536 | 1024–1048576 |
 
 ### What happens when you go over a limit
 

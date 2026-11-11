@@ -2436,3 +2436,30 @@ Conseguenze: se tutte le schede si chiudono non parte niente; un'automazione con
 - I test (fuori dal repository, come per D88) coprono il runtime dei gruppi e il thread anche con il motore compilato, il modello e il canvas e le Proprietà in Chrome.
 
 **Quando ripensarla.** Se serviranno gruppi annidati o riusabili tra schemi; se `maxThreads` non basterà o il thread dovrà avere una quota propria (oggi è metà della memoria); se Run dovrà portare valori e non solo un impulso; se l'avviso di «nessun thread libero» dovrà fermare il programma invece di ripiegare.
+
+## D92. Logic Studio: i segnali viaggiano a finestre di campioni
+
+> Completa [D88](#d88-logic-studio-motore-pacchetti-ide-finestre-dei-progetti): un pacchetto di blocchi in più e un limite in più del motore.
+
+**Contesto.** L'utente ha chiesto (11 novembre 2026) un pacchetto di blocchi per la teoria dei segnali: generatori, analisi in frequenza, filtri, misure, modulazione. Il motore di serie fa al massimo 10.000 esecuzioni ogni 10 secondi per utente: un messaggio per campione reggerebbe solo segnali di poche decine di Hz.
+
+**Decisione.** Decisa l'11 novembre 2026: nuovo modulo `logicstudio-signals` 1.0.0 (37 blocchi `sig.*`, categoria `signal` «Segnali»), motore `logicstudio-engine` 1.5.0, lilOS 1.46.0 / SDK 0.31.0, Logic Studio IDE 1.11.0, Pannello di controllo 1.24.0.
+
+- **Un messaggio porta una finestra di campioni**: `{ fs, t0, samples, im? }` (fs in Hz, t0 in secondi, `im` per i segnali complessi). Una lista di numeri vale come segnale alla «fs delle liste semplici» del blocco (1000 Hz di serie). Gli spettri sono oggetti con `f` e i valori (`kind: 'spectrum' | 'psd' | 'response'`).
+- **Ponte con i valori singoli**: Buffer raccoglie valori (sensori, MQTT, Intervallo) in finestre di N campioni con un passo; Riproduci campioni fa il contrario, al massimo 100 al secondo; Filtro su campioni filtra anche un valore alla volta, con il tempo vero tra i valori.
+- **I filtri tengono lo stato tra le finestre** (nella memoria del blocco): finestre consecutive filtrate una dopo l'altra danno lo stesso risultato di una sola finestra lunga. «Fase zero» filtra avanti e indietro e non tiene stato. All'avvio un filtro manda i suoi coefficienti calcolati alla «fs delle liste semplici», così Risposta in frequenza li disegna senza segnale.
+- **Limite `signalSamples`** del motore (65.536 di serie, 1024–1.048.576, Pannello di controllo → Logic Studio → Limiti): il motore lo dà ai blocchi come `b.limits.signalSamples`, oggetto congelato nel contesto di ogni blocco. Le celle dello spettrogramma possono essere 4 volte tanto. Con un motore più vecchio i blocchi usano 65.536.
+- **Matematica propria** in `lib/dsp.js`, senza dipendenze: FFT radix-2 e di Bluestein per ogni lunghezza, prototipi analogici di Butterworth e Chebyshev I/II con trasformazioni di frequenza e bilineare con precompensazione (come `scipy.signal`), sezioni del secondo ordine, biquad del «Audio EQ Cookbook», FIR a finestra, Hilbert, radici con Durand-Kerner. I nomi dei blocchi ricordano gli equivalenti di NumPy e SciPy.
+
+**Perché.**
+
+- *Finestre di campioni.* È il modo in cui si lavora sui segnali (FFT, filtri a blocchi) e resta dentro il limite di esecuzioni; i segnali lenti dei sensori passano per Buffer.
+- *Stato tra le finestre.* Senza, ogni finestra filtrata ripartirebbe da zero con un transitorio, e un flusso continuo avrebbe salti.
+- *Un limite regolabile.* Un segnale lungo costa memoria e tempo nel worker dell'utente; l'amministratore sceglie quanto concedere, come per i punti dei grafici.
+- *Niente librerie.* Le funzioni servono in piccolo e vanno capite e documentate; una libreria di calcolo numerico avrebbe pesato più del pacchetto.
+
+**Alternative scartate.**
+
+- Un messaggio per campione: troppo lento per qualsiasi segnale non lentissimo.
+- Il limite fisso nel pacchetto: un amministratore non potrebbe concedere segnali più lunghi.
+- Microfono e altoparlante del browser: rimandati, servono componenti UI nuovi perché il motore gira nel kernel.

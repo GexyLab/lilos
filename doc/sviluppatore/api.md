@@ -1788,7 +1788,7 @@ const png = await ch.toPNG();         // Blob
 
 La maniglia ha `el`, `kind`, `update(serie)`, `append(serie, punto)` (`serie`: indice o nome, una nuova se non c'è), `clear()`, `setOptions(opzioni)`, `resize()` (di solito lo fa da solo un `ResizeObserver`), `tableView(on?)`, `table()` → `{ head, rows, types }`, `toCSV()` → `Blob`, `toPNG(scala = 2)` → `Promise<Blob>`, `destroy()`. È accessibile da tastiera (frecce tra i valori, Invio sceglie) e ha una vista tabella con gli stessi dati.
 
-`icon()` ha dalla 0.22.0 i simboli usati da Logic Studio: `hash`, `copy`, `sync`, `logic`, `not`, `compare`, `branch`, `split`, `merge`, `chart`, `slider`, `text`, `braces`, `wait`, `portIn`, `portOut`, `matrix`, `lamp`, `gauge`, `press`, `progress`, `type`, `rows`, `cols`, `group`, `tabs`, `free`, `toggle`, `eye`.
+`icon()` ha dalla 0.22.0 i simboli usati da Logic Studio: `hash`, `copy`, `sync`, `logic`, `not`, `compare`, `branch`, `split`, `merge`, `chart`, `slider`, `text`, `braces`, `wait`, `portIn`, `portOut`, `matrix`, `lamp`, `gauge`, `press`, `progress`, `type`, `rows`, `cols`, `group`, `tabs`, `free`, `toggle`, `eye`; dalla 0.31.0 anche `wave` e `filter` (pacchetto Segnali).
 
 ## sdk/ui/markdown.js
 
@@ -5786,6 +5786,7 @@ Da lilOS 1.37.0 ([D88](../interna/decisioni.md#d88-logic-studio-motore-pacchetti
 | `logicstudio-collections` | 36 blocchi per liste e matrici (`coll.*`) |
 | `logicstudio-constants` | 3 blocchi di costanti (`const.math`, `const.physics`, `const.astro`, categoria `value`): 25 matematiche, 45 fisiche CODATA 2022, 17 astronomiche e della Terra; la costante si sceglie con l'impostazione `constant`; uscite `value` e, nascoste, `symbol`, `unit`, `uncertainty` (non in `const.math`). Escono all'avvio o a ogni impulso su `send` (nascosto), come `core.value`. Da lilOS 1.44.0 (modulo 1.0.0) |
 | `logicstudio-units` | 25 blocchi per grandezze e unità di misura (`unit.*`, categoria `units`): un convertitore per ognuna delle 20 grandezze (`unit.length`, `unit.temperature`…, unità scelte nelle Proprietà), `unit.convert` (unità come testo, simboli unici tra le grandezze), `unit.prefix`, `unit.parse`, `unit.format`, `unit.list`. Nessuna azione nel kernel. Da `logicstudio-units` 1.0.0 (Logic Studio IDE 1.8.0 per la categoria nella palette) |
+| `logicstudio-signals` | 37 blocchi per la teoria dei segnali (`sig.*`, categoria `signal`): un segnale è `{ fs, t0, samples, im? }` (anche una lista di numeri, alla «fs delle liste semplici» del blocco) e viaggia a finestre di campioni. Generatori (`sig.oscillator`, `sig.noise`, `sig.elementary`, `sig.chirp`), dati (`sig.fromList`, `sig.info`, `sig.buffer`, `sig.play`, `sig.toChart`), operazioni nel tempo (`sig.combine`, `sig.gain`, `sig.window`, `sig.edit`, `sig.resample`, `sig.quantize`, `sig.nonlinear`), frequenza (`sig.fft`, `sig.ifft`, `sig.psd`, `sig.spectrogram`, `sig.peaks`, `sig.goertzel`), filtri con stato tra le finestre (`sig.iir`, `sig.biquad`, `sig.fir`, `sig.smooth`, `sig.difference`, `sig.response`), `sig.convolve`, `sig.correlate`, misure (`sig.measure`, `sig.distortion`, `sig.frequency`, `sig.envelope`, `sig.db`), `sig.modulate` e `sig.demodulate` (AM, DSB-SC, FM, PM). Matematica in `lib/dsp.js`, senza dipendenze. Legge il limite `signalSamples` da `b.limits`. Nessuna azione nel kernel. Da `logicstudio-signals` 1.0.0 (motore 1.5.0) |
 | `logicstudio-lilos` | 7 blocchi di lilOS (`lilos.*`): notifica, leggere, scrivere e aggiungere a file, elencare cartelle, esiste, evento. Azioni nel kernel come l'utente. Richiede il servizio `notifications` |
 | `logicstudio-net` | `net.request` (Richiesta web); impostazioni `allowPrivate` (falso), `timeoutSeconds` (20, 1-120), `maxResponseKb` (1024, 1-10240) |
 | `logicstudio-ui` | 27 Componenti UI standard (`ui.*`) |
@@ -5818,6 +5819,7 @@ Il motore tiene **un `worker_thread` per ogni utente** con programmi in esecuzio
 | `maxAddedPorts` | 32 | 1-64 | Porte aggiunte a un blocco o una componente |
 | `maxConsoles` | 10 | 1-50 | Console per progetto |
 | `consoleLinesPerSecond` | 50 | 1-10000 | Righe al secondo per console; le altre sono contate e si dice una volta al secondo «… N righe non mostrate» |
+| `signalSamples` | 65536 | 1024-1048576 | I campioni al massimo di un segnale dei blocchi di `logicstudio-signals` (e la base del limite delle celle dello spettrogramma, 4 volte tanto). Il motore lo dà ai blocchi come `b.limits.signalSamples` (dal motore 1.5.0) |
 | `chartPoints` | 1000 | 10-100000 | Il massimo di punti di un grafico nel tempo: le finestre lo danno alle componenti come `c.host.chartPoints` e i grafici di `logicstudio-charts` tengono il minore tra questo e la loro proprietà `maxPoints` (1000 di serie) |
 | `quotaMaxActive` | 10 | 0-1000 | Programmi attivi per utente |
 | `quotaMaxTests` | 2 | 0-100 | Prove in corso per utente |

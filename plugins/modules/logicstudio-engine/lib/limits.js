@@ -19,6 +19,7 @@ export const GLOBAL = {
   maxConsoles: { min: 1, max: 50, default: 10 },
   consoleLinesPerSecond: { min: 1, max: 10000, default: 50 },
   chartPoints: { min: 10, max: 100000, default: 1000 },
+  signalSamples: { min: 1024, max: 1048576, default: 65536 },
   maxThreads: { min: 0, max: 64, default: 4 },
 };
 
@@ -63,4 +64,5 @@ export function cleanOverrides(raw) {
 export const runtimeLimits = (global, quota) => ({
   runsPer10s: global.runsPer10s, blockMs: global.blockSeconds * 1000, cpuPercent: quota.cpuPercent,
   threads: global.maxThreads, threadMemoryMb: Math.max(16, Math.round(quota.memoryMb / 2)),
+  signalSamples: global.signalSamples,
 });

@@ -44,6 +44,7 @@
     "modules/logicstudio-collections",
     "modules/logicstudio-constants",
     "modules/logicstudio-units",
+    "modules/logicstudio-signals",
     "modules/logicstudio-ui",
     "modules/logicstudio-charts",
     "modules/logicstudio-lilos",
