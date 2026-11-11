@@ -163,7 +163,7 @@ export class Inspector {
       dataset: { eye: key },
       onclick: () => {
         if (linked) return;
-        view.doc.setPortHidden(block.id, side, p.name, !hidden);
+        view.doc.setPortHidden(block.id, side, p.name, !hidden, p.hiddenByDefault);
         // the sidebar was drawn again: the keyboard stays on this eye
         [...this.el.querySelectorAll('[data-eye]')].find(b => b.dataset.eye === key)?.focus();
       },

@@ -1,4 +1,4 @@
-# Componi lista
+# Lista [ ]
 
 `core.list` · Oggetti · [Blocchi di base](logicstudio-core) · versione 1
 
@@ -28,7 +28,7 @@ Ogni volta che arriva un valore su uno degli ingressi, il blocco manda su **list
 - La lista ha **sempre tanti elementi quanti sono gli ingressi**. Un ingresso che non ha ancora ricevuto niente vale `null`: con tre ingressi e solo il secondo arrivato (`"b"`) esce `[null, "b", null]`.
 - I valori restano: dopo l'invio gli ingressi tengono il loro valore.
 - Gli elementi possono essere di qualsiasi tipo, anche oggetti e altre liste.
-- Il blocco gira **a ogni valore**: se ti serve una lista sola, togli **lo avvia** a tutti gli ingressi tranne quello che arriva per ultimo, oppure usa [Aspetta tutti](core.join).
+- Il blocco gira **a ogni valore**: se ti serve una lista sola, togli **lo avvia** a tutti gli ingressi tranne quello che arriva per ultimo, oppure usa il blocco [Attendi tutti (join)](core.join).
 
 Questo blocco sta nella categoria **Oggetti**. Per lavorare sulle liste (aggiungere, ordinare, filtrare, contare…) c'è il pacchetto [Liste e matrici](logicstudio-collections).
 
@@ -37,9 +37,9 @@ Questo blocco sta nella categoria **Oggetti**. Per lavorare sulle liste (aggiung
 ### 1. Tre valori in ordine
 
 ```
-[Valore: testo "a"] valore ──▶ 1  [Componi lista] lista ──▶ valore [Scrivi in console]
-[Valore: testo "b"] valore ──▶ 2
-[Valore: JSON {"z":1}] valore ──▶ 3
+[Costante · Variabile: testo "a"] valore ──▶ 1  [Lista [ ]] lista ──▶ valore [Print (console.log)]
+[Costante · Variabile: testo "b"] valore ──▶ 2
+[Costante · Variabile: JSON {"z":1}] valore ──▶ 3
 ```
 
 All'avvio i tre valori arrivano uno dopo l'altro e la console scrive:
@@ -53,20 +53,20 @@ All'avvio i tre valori arrivano uno dopo l'altro e la console scrive:
 ### 2. Le opzioni di una Selezione
 
 ```
-[Valore: testo "Rosso"] valore ──▶ 1  [Componi lista] lista ──▶ opzioni [Selezione: colore]
-[Valore: testo "Verde"] valore ──▶ 2
-[Valore: testo "Blu"]   valore ──▶ 3
+[Costante · Variabile: testo "Rosso"] valore ──▶ 1  [Lista [ ]] lista ──▶ opzioni [Selezione: colore]
+[Costante · Variabile: testo "Verde"] valore ──▶ 2
+[Costante · Variabile: testo "Blu"]   valore ──▶ 3
 ```
 
 L'ultima lista che arriva, `["Rosso", "Verde", "Blu"]`, diventa l'elenco delle scelte della [Selezione](ui.select) (l'oggetto della componente nello schema).
 
 ### 3. Una riga di una tabella
 
-Collega a **1**, **2** e **3** il nome, la quantità e il prezzo di un articolo, togli **lo avvia** da **1** e **2**: quando arriva il prezzo esce una sola lista, per esempio `["Penne", 3, 1.5]`, da aggiungere a una lista più grande con [Aggiungi elemento](coll.add).
+Collega a **1**, **2** e **3** il nome, la quantità e il prezzo di un articolo, togli **lo avvia** da **1** e **2**: quando arriva il prezzo esce una sola lista, per esempio `["Penne", 3, 1.5]`, da aggiungere a una lista più grande con [Push · Unshift](coll.add).
 
 ## Vedi anche
 
-- [Componi oggetto](core.compose) per valori con un nome
-- [Aggiungi elemento](coll.add), [Lunghezza](coll.length), [Unisci in testo](coll.join)
-- [Aspetta tutti](core.join)
+- [Oggetto { }](core.compose) per valori con un nome
+- [Push · Unshift](coll.add), [Length](coll.length), [Join](coll.join)
+- [Attendi tutti (join)](core.join)
 - [Come funziona un blocco](ide/blocks)

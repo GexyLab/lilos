@@ -1,4 +1,4 @@
-# If
+# If · Else
 
 `core.if` · Logic · [Core blocks](logicstudio-core) · version 1
 
@@ -29,7 +29,7 @@ Every time something arrives on **condition** or on **value**, the block looks a
 What it sends:
 
 - the last value that arrived on **value**;
-- if nothing ever arrived on **value**, or the last value is `null`, it sends a **pulse** (that is, `true`). This way you can use the If even without a value, just to start one thing or the other.
+- if nothing ever arrived on **value**, or the last value is `null`, it sends a **pulse** (that is, `true`). This way you can use the If · Else block even without a value, just to start one thing or the other.
 
 The condition is read as yes/no: a text is **no** if, once spaces are removed and ignoring case, it is empty, `0`, `false`, `no` or `off` (any other text is **yes**, even `"falso"`); a number is **no** if it is 0; `null` is **no**; objects and lists are **yes**. If the condition has not arrived yet, it is **no**.
 
@@ -47,20 +47,20 @@ If you want the condition to serve only to choose the path (and not send the val
 ### 1. Two different messages
 
 ```
-[Compare: a ≥ b] result ──▶ condition [If] then ──▶ send [Value: "adult"] value ──▶ value [Write to console]
-                                           else ──▶ send [Value: "minor"] value ──▶ value [Write to console]
+[Compare (== != < >): a ≥ b] result ──▶ condition [If · Else] then ──▶ send [Constant · Variable: "adult"] value ──▶ value [Print (console.log)]
+                                           else ──▶ send [Constant · Variable: "minor"] value ──▶ value [Print (console.log)]
 ```
 
-Here the If has no **value**: at every comparison it sends a pulse on **then** or on **else**, and the pulse starts the right [Value](core.value) (with **Send at start** removed). With age 20 the console writes `adult`, with 15 `minor`. (You get the same with the **if true** and **if false** outputs of [Compare](core.compare).)
+Here the If · Else block has no **value**: at every comparison it sends a pulse on **then** or on **else**, and the pulse starts the right [Constant · Variable](core.value) block: it has its **send** input linked (you show it with the eye next to the port), so it sends its value only at every pulse. With age 20 the console writes `adult`, with 15 `minor`. (You get the same with the **if true** and **if false** outputs of the [Compare (== != < >)](core.compare) block.)
 
-> If you link the pulse straight to [Write to console](core.consoleWrite), the console writes `true`: a pulse is the value yes.
+> If you link the pulse straight to [Print (console.log)](core.consoleWrite), the console writes `true`: a pulse is the value yes.
 
 ### 2. A filter: let only valid values through
 
 Remove "starts it" from **condition**:
 
 ```
-[Switch: record] value ──▶ condition [If] then ──▶ value [Write to console]
+[Switch: record] value ──▶ condition [If · Else] then ──▶ value [Print (console.log)]
 [Slider: level]  value ──▶ value
 ```
 
@@ -74,7 +74,7 @@ The first value arrives (for example 42) and the condition has not arrived yet: 
 
 ### 4. The case of the null value
 
-If `null` arrives on **value** (for example from an empty [Memory](core.store)), the If does not send `null` but a pulse, that is `true`. Whoever receives sees **yes** instead of an empty value: keep this in mind if the values that pass can be empty.
+If `null` arrives on **value** (for example from an empty [Store (set · get)](core.store) block), the If · Else block does not send `null` but a pulse, that is `true`. Whoever receives sees **yes** instead of an empty value: keep this in mind if the values that pass can be empty.
 
 ## Errors
 
@@ -82,8 +82,8 @@ This block has no errors of its own.
 
 ## See also
 
-- [Compare](core.compare) to get the condition
-- [Cases](core.switch) for more than two paths, depending on the value
-- [Route](core.route) to send a value to one of many outputs
+- [Compare (== != < >)](core.compare) to get the condition
+- [Switch · Case](core.switch) for more than two paths, depending on the value
+- [Route by index (DEMUX)](core.route) to send a value to one of many outputs
 - [NOT](core.not), [AND](core.and), [OR](core.or)
 - [How a block works](ide/blocks)

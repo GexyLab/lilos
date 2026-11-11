@@ -1,4 +1,4 @@
-# Subtract matrices
+# A − B
 
 `coll.matSubtract` · Matrices · [Lists and matrices](logicstudio-collections) · version 1
 
@@ -22,7 +22,7 @@ Subtracts the second matrix from the first, cell by cell.
 
 The block waits until it has **a** and **b**; then, at every new value on either of them, it sends the difference: the cell in row *i* and column *j* of the result is `a[i][j] − b[i][j]`. The order matters: **a − b** is not **b − a**.
 
-The same rules as [Add matrices](coll.matAdd) apply:
+The same rules as [A + B](coll.matAdd) apply:
 
 - valid matrices, with **cells that are real numbers** (a text like `"2"` gives «La matrice deve contenere solo numeri» ("The matrix must contain only numbers"));
 - same rows and columns, otherwise for example «Le matrici devono avere le stesse dimensioni (1×2 e 2×1)» ("The matrices must have the same size (1×2 and 2×1)");
@@ -33,8 +33,8 @@ The same rules as [Add matrices](coll.matAdd) apply:
 ### 1. One row
 
 ```
-[Value (JSON): [[5,5]]] value ──▶ a  [Subtract matrices] result ──▶ value [Write to console]
-[Value (JSON): [[1,2]]] value ──▶ b
+[Constant · Variable (JSON): [[5,5]]] value ──▶ a  [A − B] result ──▶ value [Print (console.log)]
+[Constant · Variable (JSON): [[1,2]]] value ──▶ b
 ```
 
 It writes `[[4,3]]`.
@@ -58,5 +58,5 @@ With the sales of two months by shop and product, **a** = `[[12,9],[14,7]]` (thi
 
 ## See also
 
-- [Add matrices](coll.matAdd), [Scale](coll.matScale) (with factor -1 it changes the sign of all the cells)
+- [A + B](coll.matAdd), [Scale (k·A)](coll.matScale) (with factor -1 it changes the sign of all the cells)
 - [How a block works](ide/blocks)

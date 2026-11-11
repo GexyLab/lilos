@@ -61,7 +61,7 @@ Finestra «Classifica»
 ```
 
 ```
-[Valore (JSON): {"Napoli": 18, "Roma": 42, "Milano": 31, "Torino": 12}] valore ──▶ dati [Barre: Abbonati]
+[Costante · Variabile (JSON): {"Napoli": 18, "Roma": 42, "Milano": 31, "Torino": 12}] valore ──▶ dati [Barre: Abbonati]
 ```
 
 Le righe sono Roma (42), Milano (31), Napoli (18), Torino (12), con il numero in fondo a ogni barra. Un clic su Milano manda `{"category": "Milano", "values": {"Valore": 31}, "index": 2, "series": "", "y": 31}`: `index` è 2 perché nei dati Milano è la terza.
@@ -75,7 +75,7 @@ Il file `~/attivita.json` contiene righe di tabella:
 ```
 
 ```
-[Ogni…: 300 s] impulso ──▶ leggi [Leggi file: ~/attivita.json, JSON] contenuto ──▶ dati [Barre: Settimana]
+[Intervallo (setInterval): 300 s] impulso ──▶ leggi [readFile: ~/attivita.json, JSON] contenuto ──▶ dati [Barre: Settimana]
 ```
 
 Il campo di testo `attività` dà le categorie, il campo numerico `ore` la serie. Con **Unità** `h` e **Decimali** 1 la barra di Riunioni dice «6,5 h». Ogni cinque minuti il file viene riletto e le barre si aggiornano.
@@ -91,5 +91,5 @@ Con **Impilate** acceso e dati `{"Anna": {"Fatto": 7, "Da fare": 3}, "Luca": {"F
 ## Vedi anche
 
 - [Colonne](charts.column), [Torta · Ciambella](charts.pie)
-- [Leggi file](lilos.fileRead), [Ogni…](core.every)
+- [readFile](lilos.fileRead), [Intervallo (setInterval)](core.every)
 - [Grafici](logicstudio-charts): le forme dei dati, i limiti, la tastiera

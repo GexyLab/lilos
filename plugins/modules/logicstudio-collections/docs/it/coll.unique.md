@@ -1,4 +1,4 @@
-# Unici
+# Distinct
 
 `coll.unique` · Liste · [Liste e matrici](logicstudio-collections) · versione 1
 
@@ -45,7 +45,7 @@ Una lista vuota dà `[]`.
 ### 1. Numeri e testi
 
 ```
-[Valore (JSON): [1,"1",1,2,2]] valore ──▶ lista [Unici] risultato ──▶ valore [Scrivi in console]
+[Costante · Variabile (JSON): [1,"1",1,2,2]] valore ──▶ lista [Distinct] risultato ──▶ valore [Print (console.log)]
 ```
 
 Scrive `[1,"1",2]`.
@@ -53,15 +53,15 @@ Scrive `[1,"1",2]`.
 ### 2. Le città dei clienti
 
 ```
-[Valore (JSON): [{"nome":"Anna","città":"Roma"},{"nome":"Bruno","città":"Milano"},{"nome":"Carla","città":"Roma"}]] valore ──▶ lista [Estrai campo: città] risultato ──▶ lista [Unici] risultato ──▶ valore [Scrivi in console]
+[Costante · Variabile (JSON): [{"nome":"Anna","città":"Roma"},{"nome":"Bruno","città":"Milano"},{"nome":"Carla","città":"Roma"}]] valore ──▶ lista [Map campo: città] risultato ──▶ lista [Distinct] risultato ──▶ valore [Print (console.log)]
 ```
 
-Scrive `["Roma","Milano"]`. Senza [Estrai campo](coll.pluck), con **Campo** `città` sull'Unici, avresti invece i clienti (Anna e Bruno), uno per città.
+Scrive `["Roma","Milano"]`. Senza [Map campo](coll.pluck), con **Campo** `città` sul blocco Distinct, avresti invece i clienti (Anna e Bruno), uno per città.
 
 ### 3. Valori nuovi da una lettura continua
 
 ```
-[Accumula (massimo 1000)] lista ──▶ lista [Unici] risultato ──▶ lista [Lunghezza] lunghezza ──▶ valore [Valore mostrato: valori diversi]
+[Accumula (push con limite): massimo 1000] lista ──▶ lista [Distinct] risultato ──▶ lista [Length] lunghezza ──▶ valore [Valore mostrato: valori diversi]
 ```
 
 Mostra quanti valori diversi sono arrivati finora (fra gli ultimi 1000).
@@ -74,5 +74,5 @@ Mostra quanti valori diversi sono arrivati finora (fra gli ultimi 1000).
 
 ## Vedi anche
 
-- [Contiene · Posizione](coll.contains), [Filtra](coll.filter), [Ordina](coll.sort), [Estrai campo](coll.pluck)
+- [Includes · IndexOf](coll.contains), [Filter](coll.filter), [Sort](coll.sort), [Map campo](coll.pluck)
 - [Come funziona un blocco](ide/blocks)

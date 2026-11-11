@@ -1,4 +1,4 @@
-# Somma
+# Somma (+)
 
 `core.add` · Matematica · [Blocchi di base](logicstudio-core) · versione 1
 
@@ -24,7 +24,7 @@ Nelle **Proprietà**, sezione **Porte**, puoi aggiungere fino a 16 ingressi in p
 
 ## Come funziona
 
-Ogni volta che arriva un valore su un ingresso, la Somma ricalcola il totale con l'ultimo valore di ogni ingresso e lo manda su **risultato**.
+Ogni volta che arriva un valore su un ingresso, il blocco Somma ricalcola il totale con l'ultimo valore di ogni ingresso e lo manda su **risultato**.
 
 - Gli ingressi che non hanno ancora ricevuto niente non contano: con solo **a** = 5 il risultato è 5.
 - I valori vengono convertiti in numero:
@@ -42,7 +42,7 @@ Ogni volta che arriva un valore su un ingresso, la Somma ricalcola il totale con
 | `"ciao"`, `"12 kg"`, `"1.234,5"`, un oggetto | non è un numero: errore |
 
 - Se anche un solo valore non si può convertire, il blocco non manda niente su **risultato** e manda su **Eccezione** il messaggio «Serve un numero».
-- I calcoli usano i numeri decimali del computer, che a volte danno risultati come 0,1 + 0,2 = 0,30000000000000004. Per mostrarli, arrotondali con [Calcola](core.math).
+- I calcoli usano i numeri decimali del computer, che a volte danno risultati come 0,1 + 0,2 = 0,30000000000000004. Per mostrarli, arrotondali con [Funzioni Math](core.math).
 - `"Infinity"` vale infinito, e infinito più qualsiasi numero resta infinito.
 
 ## Esempi
@@ -50,20 +50,20 @@ Ogni volta che arriva un valore su un ingresso, la Somma ricalcola il totale con
 ### 1. Due numeri fissi
 
 ```
-[Valore: 2] valore ──▶ a  [Somma] risultato ──▶ valore [Scrivi in console]
-[Valore: 3] valore ──▶ b
+[Costante · Variabile: 2] valore ──▶ a  [Somma (+)] risultato ──▶ valore [Print (console.log)]
+[Costante · Variabile: 3] valore ──▶ b
 ```
 
-All'avvio i due [Valore](core.value) mandano 2 e 3. La Somma gira due volte: prima scrive 2 (solo **a**), poi 5.
+All'avvio del programma i due [Costante · Variabile](core.value) mandano 2 e 3. Il blocco Somma gira due volte: prima scrive 2 (solo **a**), poi 5.
 
-> Se vuoi solo il totale finale, togli «lo avvia» dall'ingresso **a**: la Somma girerà solo quando arriva **b**. Funziona se **a** arriva prima di **b**; se arrivasse prima **b**, la Somma girerebbe con il solo **b** (3). In alternativa dai ad **a** il valore iniziale `2` invece di usare un blocco Valore.
+> Se vuoi solo il totale finale, togli «lo avvia» dall'ingresso **a**: il blocco Somma girerà solo quando arriva **b**. Funziona se **a** arriva prima di **b**; se arrivasse prima **b**, il blocco Somma girerebbe con il solo **b** (3). In alternativa dai ad **a** il valore iniziale `2` invece di usare un blocco [Costante · Variabile](core.value).
 
 ### 2. Un totale da tre campi di una finestra
 
 Aggiungi l'ingresso **c** nelle Proprietà e collega gli oggetti di tre componenti [Campo numerico](ui.number):
 
 ```
-[Campo numerico: primo trimestre]   valore ──▶ a  [Somma] risultato ──▶ valore [Valore: totale]
+[Campo numerico: primo trimestre]   valore ──▶ a  [Somma (+)] risultato ──▶ valore [Valore: totale]
 [Campo numerico: secondo trimestre] valore ──▶ b
 [Campo numerico: terzo trimestre]   valore ──▶ c
 ```
@@ -82,8 +82,8 @@ Ogni volta che l'utente cambia un campo, il totale mostrato dalla componente [Va
 
 ## Vedi anche
 
-- [Sottrai](core.subtract), [Moltiplica](core.multiply), [Dividi](core.divide)
-- [Minimo · Massimo · Media](core.stat) per media, minimo e massimo
-- [Contatore](core.counter) per un totale che sale di un passo alla volta
-- [Somma · Minimo · Massimo · Media](coll.stat) per sommare gli elementi di una lista
+- [Sottrazione (−)](core.subtract), [Moltiplicazione (×)](core.multiply), [Divisione (÷ %)](core.divide)
+- [Min · Max · Avg](core.stat) per media, minimo e massimo
+- [Contatore (++ −−)](core.counter) per un totale che sale di un passo alla volta
+- [Sum · Min · Max · Avg](coll.stat) per sommare gli elementi di una lista
 - [Come funziona un blocco](ide/blocks)

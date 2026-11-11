@@ -77,17 +77,17 @@ Finestra «Documenti»
 ```
 
 ```
-[Pulsante: Aggiorna] premuto ──▶ leggi [Elenca cartella: ~/Documenti] elementi ──▶ righe [Tabella: File]
-[Tabella: File] riga scelta ──▶ oggetto [Prendi campo: name] valore ──▶ testo [Etichetta: label1]
+[Pulsante: Aggiorna] premuto ──▶ leggi [readdir (elenca cartella): ~/Documenti] elementi ──▶ righe [Tabella: File]
+[Tabella: File] riga scelta ──▶ oggetto [Get proprietà (obj.campo): name] valore ──▶ testo [Etichetta: label1]
 ```
 
-La tabella mostra nome e dimensione (in byte) di ogni elemento della cartella; facendo clic su una riga, l'etichetta sotto mostra il nome scelto. I campi che manda [Elenca cartella](lilos.folderList) sono `name`, `type`, `size`, `modified` e `path`; in generale, se non conosci i campi di una lista, lascia **Colonne** vuota la prima volta e guarda l'intestazione.
+La tabella mostra nome e dimensione (in byte) di ogni elemento della cartella; facendo clic su una riga, l'etichetta sotto mostra il nome scelto. I campi che manda [readdir (elenca cartella)](lilos.folderList) sono `name`, `type`, `size`, `modified` e `path`; in generale, se non conosci i campi di una lista, lascia **Colonne** vuota la prima volta e guarda l'intestazione.
 
 ### 2. Una lista di parole
 
 ```
-[Valore: ["rosso","verde","blu"] (JSON)] valore ──▶ righe [Tabella: Colori]
-[Tabella: Colori] riga scelta ──▶ valore [Scrivi in console]
+[Costante · Variabile: ["rosso","verde","blu"] (JSON)] valore ──▶ righe [Tabella: Colori]
+[Tabella: Colori] riga scelta ──▶ valore [Print (console.log)]
 ```
 
 La tabella ha una sola colonna, **valore**, con tre righe. Un clic su «verde» scrive in console `{"value":"verde","index":1}`.
@@ -95,12 +95,12 @@ La tabella ha una sola colonna, **valore**, con tre righe. Un clic su «verde» 
 ### 3. Un registro che cresce
 
 ```
-[Campo di testo: Nota] testo ──▶ nota [Componi oggetto] oggetto ──▶ aggiungi [Accumula: max 50] lista ──▶ righe [Tabella: Note]
-[blocco Data e ora] ISO ──▶ ora [Componi oggetto]
-[Campo di testo: Nota] invio ──▶ leggi [blocco Data e ora]
+[Campo di testo: Nota] testo ──▶ nota [Oggetto { }] oggetto ──▶ aggiungi [Accumula (push con limite): max 50] lista ──▶ righe [Tabella: Note]
+[Now (data e ora)] ISO ──▶ ora [Oggetto { }]
+[Campo di testo: Nota] invio ──▶ leggi [Now (data e ora)]
 ```
 
-Il «blocco Data e ora» è il blocco [Data e ora](core.now) dei Blocchi di base, non la componente. Con [Accumula](coll.accumulate) la tabella mostra le ultime 50 note scritte, ognuna con la sua ora. (Nel [Componi oggetto](core.compose), togli «lo avvia» da **nota**: l'oggetto parte quando arriva l'ora.)
+Il «blocco Data e ora» è il blocco [Now (data e ora)](core.now) dei Blocchi di base, non la componente. Con [Accumula (push con limite)](coll.accumulate) la tabella mostra le ultime 50 note scritte, ognuna con la sua ora. (Nel blocco [Oggetto { }](core.compose), togli «lo avvia» da **nota**: l'oggetto parte quando arriva l'ora.)
 
 ## Accessibilità e tastiera
 
@@ -112,5 +112,5 @@ Il «blocco Data e ora» è il blocco [Data e ora](core.now) dei Blocchi di base
 ## Vedi anche
 
 - [Elenco](ui.list), per scegliere da una lista di nomi
-- [Estrai campo](coll.pluck), [Ordina](coll.sort), [Filtra](coll.filter) per preparare le righe
+- [Map campo](coll.pluck), [Sort](coll.sort), [Filter](coll.filter) per preparare le righe
 - [Componenti UI standard](logicstudio-ui)

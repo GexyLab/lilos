@@ -1,4 +1,4 @@
-# Route
+# Route by index (DEMUX)
 
 `core.route` · Logic · [Core blocks](logicstudio-core) · version 1
 
@@ -30,7 +30,7 @@ Only a value on **value** starts the block. A value on **which** is just remembe
 
 When a value arrives, the block:
 
-1. reads the last **which** as a number (with the rules of [Add](core.add): `"2"` is 2, `"2,0"` is 2, `true` is 1) and drops the decimal part: 2.9 is 2;
+1. reads the last **which** as a number (with the rules of [Add (+)](core.add): `"2"` is 2, `"2,0"` is 2, `true` is 1) and drops the decimal part: 2.9 is 2;
 2. sends the value, as it is (even `null`), on the added output in that position.
 
 If **which** is 0, negative, too large, not a number or not arrived yet, the value goes nowhere and on **Exception** arrives «Non c'è l'uscita …» ("There is no output …") with the value of **which**: for example `Non c'è l'uscita 5`, or `Non c'è l'uscita undefined` if **which** never arrived. To avoid it, give **which** an initial value.
@@ -42,9 +42,9 @@ If **which** is 0, negative, too large, not a number or not arrived yet, the val
 Add three outputs (**1**, **2**, **3**):
 
 ```
-[Text field: message]  text  ──▶ value [Route] 1 ──▶ value [Write to console: info]
-[Number field: level]  value ──▶ which         2 ──▶ value [Write to console: warnings]
-                                               3 ──▶ value [Write to console: errors]
+[Text field: message]  text  ──▶ value [Route by index (DEMUX)] 1 ──▶ value [Print (console.log): info]
+[Number field: level]  value ──▶ which         2 ──▶ value [Print (console.log): warnings]
+                                               3 ──▶ value [Print (console.log): errors]
 ```
 
 With **which** = 2, every message goes to the warnings console. Changing **which** to 3 does not send the last message again: it applies to the messages that arrive afterwards.
@@ -55,7 +55,7 @@ With **which** = 2, every message goes to the warnings console. Changing **which
 
 ### 3. Two paths with a yes/no
 
-A yes/no read as a number is 1 (yes) or 0 (no): **no** therefore gives the error `Non c'è l'uscita false`. To choose between two paths with a yes/no use [If](core.if).
+A yes/no read as a number is 1 (yes) or 0 (no): **no** therefore gives the error `Non c'è l'uscita false`. To choose between two paths with a yes/no use [If · Else](core.if).
 
 ## Errors
 
@@ -65,7 +65,7 @@ A yes/no read as a number is 1 (yes) or 0 (no): **no** therefore gives the error
 
 ## See also
 
-- [Choose](core.select) for the opposite: one of many inputs towards one output
-- [Cases](core.switch) to choose the output with a value (a name) instead of a number
-- [If](core.if) for only two paths
+- [Pick by index (MUX)](core.select) for the opposite: one of many inputs towards one output
+- [Switch · Case](core.switch) to choose the output with a value (a name) instead of a number
+- [If · Else](core.if) for only two paths
 - [How a block works](ide/blocks)

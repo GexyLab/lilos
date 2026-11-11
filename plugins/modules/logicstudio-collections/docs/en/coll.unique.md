@@ -1,4 +1,4 @@
-# Unique
+# Distinct
 
 `coll.unique` · Lists · [Lists and matrices](logicstudio-collections) · version 1
 
@@ -45,7 +45,7 @@ An empty list gives `[]`.
 ### 1. Numbers and texts
 
 ```
-[Value (JSON): [1,"1",1,2,2]] value ──▶ list [Unique] result ──▶ value [Write to console]
+[Constant · Variable (JSON): [1,"1",1,2,2]] value ──▶ list [Distinct] result ──▶ value [Print (console.log)]
 ```
 
 It writes `[1,"1",2]`.
@@ -53,15 +53,15 @@ It writes `[1,"1",2]`.
 ### 2. The customers' cities
 
 ```
-[Value (JSON): [{"nome":"Anna","città":"Roma"},{"nome":"Bruno","città":"Milano"},{"nome":"Carla","città":"Roma"}]] value ──▶ list [Map field: città] result ──▶ list [Unique] result ──▶ value [Write to console]
+[Constant · Variable (JSON): [{"nome":"Anna","città":"Roma"},{"nome":"Bruno","città":"Milano"},{"nome":"Carla","città":"Roma"}]] value ──▶ list [Map field: città] result ──▶ list [Distinct] result ──▶ value [Print (console.log)]
 ```
 
-It writes `["Roma","Milano"]`. Without [Map field](coll.pluck), with **Field** `città` on Unique, you would get the customers instead (Anna and Bruno), one per city.
+It writes `["Roma","Milano"]`. Without [Map field](coll.pluck), with **Field** `città` on Distinct, you would get the customers instead (Anna and Bruno), one per city.
 
 ### 3. New values from a continuous reading
 
 ```
-[Accumulate (max 1000)] list ──▶ list [Unique] result ──▶ list [Length] length ──▶ value [Value: different values]
+[Accumulate (bounded push): max 1000] list ──▶ list [Distinct] result ──▶ list [Length] length ──▶ value [Value: different values]
 ```
 
 It shows how many different values have arrived so far (among the last 1000).
@@ -74,5 +74,5 @@ It shows how many different values have arrived so far (among the last 1000).
 
 ## See also
 
-- [Contains · Index of](coll.contains), [Filter](coll.filter), [Sort](coll.sort), [Map field](coll.pluck)
+- [Includes · IndexOf](coll.contains), [Filter](coll.filter), [Sort](coll.sort), [Map field](coll.pluck)
 - [How a block works](ide/blocks)

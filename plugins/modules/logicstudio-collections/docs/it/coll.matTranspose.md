@@ -1,4 +1,4 @@
-# Trasposta
+# Transpose
 
 `coll.matTranspose` · Matrici · [Liste e matrici](logicstudio-collections) · versione 1
 
@@ -24,31 +24,31 @@ A ogni matrice che arriva il blocco manda la trasposta: la cella in riga *i* e c
 - Le celle possono contenere qualsiasi valore: non servono numeri.
 - Trasporre due volte ridà la matrice di partenza.
 - Una matrice di una riga diventa una matrice di una colonna: `[[1, 2, 3]]` → `[[1], [2], [3]]`.
-- La matrice deve essere valida (righe tutte della stessa lunghezza): vedi [Dimensioni](coll.matSize).
+- La matrice deve essere valida (righe tutte della stessa lunghezza): vedi [Shape](coll.matSize).
 
 ## Esempi
 
 ### 1. Una matrice 2 × 3
 
 ```
-[Valore (JSON): [[1,2,3],[4,5,6]]] valore ──▶ matrice [Trasposta] matrice ──▶ valore [Scrivi in console]
+[Costante · Variabile (JSON): [[1,2,3],[4,5,6]]] valore ──▶ matrice [Transpose] matrice ──▶ valore [Print (console.log)]
 ```
 
 Scrive `[[1,4],[2,5],[3,6]]` (3 × 2).
 
 ### 2. Da colonne di dati a righe
 
-Se hai tre liste della stessa lunghezza, per esempio ore, temperature e umidità, mettile in una matrice (una lista per riga) con [Componi lista](core.list) e trasponi: ottieni una riga per ogni misura, `[ora, temperatura, umidità]`.
+Se hai tre liste della stessa lunghezza, per esempio ore, temperature e umidità, mettile in una matrice (una lista per riga) con [Lista [ ]](core.list) e trasponi: ottieni una riga per ogni misura, `[ora, temperatura, umidità]`.
 
 ```
-[Componi lista] lista ──▶ matrice [Trasposta] matrice ──▶ valore [Scrivi in console]
+[Lista [ ]] lista ──▶ matrice [Transpose] matrice ──▶ valore [Print (console.log)]
 ```
 
 Con `[[8,12,16],[18.5,23,21.5],[60,52,55]]` scrive `[[8,18.5,60],[12,23,52],[16,21.5,55]]`.
 
 ### 3. Un vettore colonna
 
-`[[1, 2, 3]]` diventa `[[1], [2], [3]]`, che si può moltiplicare con [Moltiplica matrici](coll.matMultiply) a destra di una matrice di 3 colonne.
+`[[1, 2, 3]]` diventa `[[1], [2], [3]]`, che si può moltiplicare con [A × B](coll.matMultiply) a destra di una matrice di 3 colonne.
 
 ## Errori
 
@@ -59,5 +59,5 @@ Con `[[8,12,16],[18.5,23,21.5],[60,52,55]]` scrive `[[8,18.5,60],[12,23,52],[16,
 
 ## Vedi anche
 
-- [Moltiplica matrici](coll.matMultiply), [Leggi colonna](coll.matCol), [Dimensioni](coll.matSize)
+- [A × B](coll.matMultiply), [Colonna m[][c]](coll.matCol), [Shape](coll.matSize)
 - [Come funziona un blocco](ide/blocks)

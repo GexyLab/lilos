@@ -72,7 +72,7 @@ Details that matter:
 - **Inside a point** the x is looked for, in this order, in the fields `x`, `t`, `time`, `date`, `name`, `label`, `category`, `key`; the y in `y`, `value`, `v`, `state`, `count`. A point without a y is "empty" and breaks the line.
 - **Numbers written as text** count: `"21,5"` and `"21.5"` are 21.5. A text that is not a number, as a y, is empty (except in the [Steps](charts.step) chart, where it is a state).
 - **The type of the x axis** is decided by the chart: if an x is a text that is not a number and not a date, the x values are **categories** (in the order they arrive); if the x values are dates in ISO format (`"2026-11-11"`, `"2026-11-11T08:30:00Z"`), the axis is **time**; otherwise they are **numbers** (in increasing order). Columns, Bars, Radar and Pie always have categories; Real time and Steps always have time.
-- **Milliseconds are not dates**: a number like `1762848000000` stays a number on the axis. For a time axis send the dates as ISO text (for example the **ISO** output of [Date and time](core.now)).
+- **Milliseconds are not dates**: a number like `1762848000000` stays a number on the axis. For a time axis send the dates as ISO text (for example the **ISO** output of [Now (date and time)](core.now)).
 - **The colour of a series** can be given in the data: `{"name": "North", "data": [3, 4], "color": "#e5484d"}`. Only `#rgb`...`#rrggbbaa`, `rgb(…)`, `rgba(…)`, `hsl(…)`, `hsla(…)` with numbers are accepted; any other colour is ignored.
 - **Series without a name** are called "Series 1", "Series 2"... in the legend; if there is only one series without a name, there is no legend and in the **picked point** values it is called "Value".
 - A value that cannot be read (`null`, `""`, a broken JSON text) **empties** the chart: it is like receiving empty data.
@@ -103,7 +103,7 @@ A chart keeps its points **in the open window**. The program, instead, remembers
 - the values sent with **add point** while the window is closed are **not** seen when you open it: you only see the last one;
 - if you close and reopen the window, the history built with **add point** is lost: the last **data** and the last added point stay.
 
-If the chart must show the history also to those who open the window later, keep the list in the schema (for example with [Accumulate](coll.accumulate)) and send it whole to **data**: see example 2 below.
+If the chart must show the history also to those who open the window later, keep the list in the schema (for example with [Accumulate (bounded push)](coll.accumulate)) and send it whole to **data**: see example 2 below.
 
 ## What all charts have
 
@@ -142,28 +142,28 @@ Window "Sales"
 ```
 
 ```
-[At start] pulse ──▶ read [Read file: ~/sales.json, JSON] content ──▶ data [Columns: Sales by month]
-[Value: {"North": 40, "South": 34}] value ──▶ data [Bars: Total by zone]
+[On start (main)] pulse ──▶ read [readFile: ~/sales.json, JSON] content ──▶ data [Columns: Sales by month]
+[Constant · Variable: {"North": 40, "South": 34}] value ──▶ data [Bars: Total by zone]
 ```
 
-The Columns show three months with two columns each (North and South) and the legend; the Bars show North on top (40) and South below (34), with the values at the end of the bars. [Read file](lilos.fileRead) is from the [lilOS blocks](logicstudio-lilos) package.
+The Columns show three months with two columns each (North and South) and the legend; the Bars show North on top (40) and South below (34), with the values at the end of the bars. [readFile](lilos.fileRead) is from the [lilOS blocks](logicstudio-lilos) package.
 
 ### 2. A measure every 10 seconds, with the history kept
 
 ```
-[Every…: 10 s] pulse ──▶ read [Read file: ~/sensor.txt] content ──▶ add [Accumulate: max 360] list ──▶ data [Lines: Temperature]
+[Interval (setInterval): 10 s] pulse ──▶ read [readFile: ~/sensor.txt] content ──▶ add [Accumulate (bounded push): max 360] list ──▶ data [Lines: Temperature]
                                                         content ──▶ value [Sparkline: Now]
 ```
 
-[Accumulate](coll.accumulate) keeps the last 360 readings (one hour). Every 10 seconds the whole list goes to **data**: whoever opens the window later sees the last hour at once, not only the last reading. The [Sparkline](charts.spark) next to it shows the recent trend and the current value.
+[Accumulate (bounded push)](coll.accumulate) keeps the last 360 readings (one hour). Every 10 seconds the whole list goes to **data**: whoever opens the window later sees the last hour at once, not only the last reading. The [Sparkline](charts.spark) next to it shows the recent trend and the current value.
 
 ### 3. A click on the chart opens the details
 
 ```
-[Columns: Sales by month] picked column ──▶ object [Get field: category] value ──▶ text [Label: Chosen month]
+[Columns: Sales by month] picked column ──▶ object [Get property: category] value ──▶ text [Label: Chosen month]
 ```
 
-A click on the February column sends `{"category": "Feb", "values": {"North": 15, "South": 11}, "index": 1, "series": "North", "y": 15}`; [Get field](core.get) takes `category` from it and the [Label](ui.label) shows "Feb".
+A click on the February column sends `{"category": "Feb", "values": {"North": 15, "South": 11}, "index": 1, "series": "North", "y": 15}`; [Get property](core.get) takes `category` from it and the [Label](ui.label) shows "Feb".
 
 ## Known limits
 
@@ -176,6 +176,6 @@ A click on the February column sends `{"category": "Feb", "values": {"North": 15
 
 - [UI component](core.component): the object of a component in the schema
 - [Standard UI components](logicstudio-ui)
-- [Accumulate](coll.accumulate), [Every…](core.every), [Date and time](core.now)
+- [Accumulate (bounded push)](coll.accumulate), [Interval (setInterval)](core.every), [Now (date and time)](core.now)
 - [Limits](logicstudio-engine/limits)
 - [Window components](ide/components), [Windows](ide/windows)

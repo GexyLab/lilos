@@ -83,7 +83,7 @@ Window "Growth"
 ```
 
 ```
-[Value (JSON): [[4, 1.2], [6, 1.9], [7, 2.4], [9, 3.1], [5, 1.5]]] value ──▶ points {x, y} [Scatter: Sun and growth]
+[Constant · Variable (JSON): [[4, 1.2], [6, 1.9], [7, 2.4], [9, 3.1], [5, 1.5]]] value ──▶ points {x, y} [Scatter: Sun and growth]
 ```
 
 Five points rising from left to right: more hours of sun (x), more centimetres (y). The box on the rightmost point says "x 9", "y 3.1 cm".
@@ -91,7 +91,7 @@ Five points rising from left to right: more hours of sun (x), more centimetres (
 ### 2. One point for each measure
 
 ```
-[Every…: 60 s] pulse ──▶ read [Read file: ~/humidity.json, JSON] content ──▶ add point [Scatter: Humidity and temperature]
+[Interval (setInterval): 60 s] pulse ──▶ read [readFile: ~/humidity.json, JSON] content ──▶ add point [Scatter: Humidity and temperature]
 ```
 
 Each time the file contains an object like `{"x": 22.5, "y": 61}` (temperature and humidity right now). At every reading a point is added; after **Points kept per series** readings, the oldest ones disappear.
@@ -99,7 +99,7 @@ Each time the file contains an object like `{"x": 22.5, "y": 61}` (temperature a
 ### 3. The picked point in a table
 
 ```
-[Scatter: Sun and growth] picked point ──▶ add [Accumulate: max 10] list ──▶ rows [Table: Picked points]
+[Scatter: Sun and growth] picked point ──▶ add [Accumulate (bounded push): max 10] list ──▶ rows [Table: Picked points]
 ```
 
 Every click on a point adds a row to the [Table](ui.table) with the `series`, `x`, `y` and `index` of that point.
@@ -112,5 +112,5 @@ Every click on a point adds a row to the [Table](ui.table) with the `series`, `x
 
 - [Lines](charts.line) for points joined in x order
 - [Histogram](charts.histogram) for a single measure
-- [Accumulate](coll.accumulate), [Table](ui.table)
+- [Accumulate (bounded push)](coll.accumulate), [Table](ui.table)
 - [Charts](logicstudio-charts): the data shapes, the limits, the keyboard

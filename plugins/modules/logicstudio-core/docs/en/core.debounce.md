@@ -1,4 +1,4 @@
-# Settle
+# Debounce
 
 `core.debounce` · Time · [Core blocks](logicstudio-core) · version 1
 
@@ -44,9 +44,9 @@ Comparison with the other time blocks:
 
 | Block | Values that arrive while it waits |
 |---|---|
-| [Wait](core.delay) | They all come out, each after its own wait. |
-| **Settle** | Only the last one comes out, after a bit of calm. |
-| [At most every](core.throttle) | The first comes out at once; those too close are dropped. |
+| [Delay (setTimeout)](core.delay) | They all come out, each after its own wait. |
+| **Debounce** | Only the last one comes out, after a bit of calm. |
+| [Throttle](core.throttle) | The first comes out at once; those too close are dropped. |
 
 For the general rules see [How a block works](ide/blocks).
 
@@ -68,7 +68,7 @@ For the general rules see [How a block works](ide/blocks).
 ### 2. Search while typing
 
 ```
-[Text field: search] text ──▶ value [Settle: 0.5 s] value ──▶ … [Web request]
+[Text field: search] text ──▶ value [Debounce: 0.5 s] value ──▶ … [HTTP request (fetch)]
 ```
 
 While the user types, the [Text field](ui.text) sends a value at every key. The search starts only when the user stops for half a second, with the complete text, instead of starting at every letter.
@@ -76,13 +76,13 @@ While the user types, the [Text field](ui.text) sends a value at every key. The 
 ### 3. Save a slider only when it stops
 
 ```
-[Slider: volume] value ──▶ value [Settle: 1 s] value ──▶ content [Write file: ~/volume.txt]
+[Slider: volume] value ──▶ value [Debounce: 1 s] value ──▶ content [writeFile: ~/volume.txt]
 ```
 
 Dragging the [Slider](ui.slider) from 10 to 80 dozens of values come out; the file is written just once, with 80, a second after the slider has stopped.
 
 ## See also
 
-- [Wait](core.delay) and [At most every](core.throttle)
-- [Edge](core.edge) to react only when a yes/no changes
+- [Delay (setTimeout)](core.delay) and [Throttle](core.throttle)
+- [On change (edge)](core.edge) to react only when a yes/no changes
 - [How a block works](ide/blocks)

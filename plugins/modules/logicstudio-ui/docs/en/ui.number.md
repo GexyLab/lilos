@@ -44,7 +44,7 @@ The field always opens empty: for an initial number use the **value** input with
 - If the user empties the field, the field **sends nothing** (the schema keeps the last number received).
 - If the user types something that is not a number, the browser considers it empty: it sends nothing.
 
-**Minimum, Maximum and Step are not checks.** They apply to the little arrows, but a number **typed by hand** is sent even if it is outside the range or not a multiple of the step: with minimum 1 and maximum 10, if the user types 25, the schema receives 25 (the browser can only mark the field as invalid). If the number must stay in a range, use a [Limit](core.clamp) in the schema.
+**Minimum, Maximum and Step are not checks.** They apply to the little arrows, but a number **typed by hand** is sent even if it is outside the range or not a multiple of the step: with minimum 1 and maximum 10, if the user types 25, the schema receives 25 (the browser can only mark the field as invalid). If the number must stay in a range, use a [Clamp](core.clamp) in the schema.
 
 **From the schema**, a value on **value** is converted to a number and written in the field: `"4,5"` becomes 4.5; `null` and `""` become **0** (they do not empty the field); a text that is not a number (for example `"—"`) **empties** the field. Beware: the field is redrawn and, if the user is typing, it loses what they have not confirmed and the keyboard focus.
 
@@ -60,8 +60,8 @@ Window «VAT»
 ```
 
 ```
-[Number field: Price without VAT] value ──▶ a [Multiply] result ──▶ value [Value: With VAT:]
-[Value: 1.22]                     value ──▶ b
+[Number field: Price without VAT] value ──▶ a [Multiply (×)] result ──▶ value [Value: With VAT:]
+[Constant · Variable: 1.22]                     value ──▶ b
 ```
 
 The user types 100 and presses Enter: you see «With VAT: 122.00 €».
@@ -76,11 +76,11 @@ Window «Order»
 ```
 
 ```
-[Number field: Quantity] value ──▶ value [Limit: 1…10] result ──▶ value [Number field: Quantity]
-                                                       result ──▶ n [Format text: «You order {n} pieces.»] text ──▶ text [Label: label1]
+[Number field: Quantity] value ──▶ value [Clamp: 1…10] result ──▶ value [Number field: Quantity]
+                                                       result ──▶ n [Template string: «You order {n} pieces.»] text ──▶ text [Label: label1]
 ```
 
-If the user types 25, the [Limit](core.clamp) brings it to 10, the field shows 10 and the label says «You order 10 pieces.». Sending the value back to the field does not create an endless loop: a value that arrives on the input of the field does not come out of its output. (In the [Format text](core.format) add the input **n**.)
+If the user types 25, the [Clamp](core.clamp) brings it to 10, the field shows 10 and the label says «You order 10 pieces.». Sending the value back to the field does not create an endless loop: a value that arrives on the input of the field does not come out of its output. (In the [Template string](core.format) add the input **n**.)
 
 ## Accessibility and keyboard
 
@@ -91,5 +91,5 @@ If the user types 25, the [Limit](core.clamp) brings it to 10, the field shows 1
 
 - [Slider](ui.slider), to choose in a range with the mouse
 - [Text field](ui.text)
-- [Limit](core.clamp), [Convert](core.convert)
+- [Clamp](core.clamp), [Type cast](core.convert)
 - [Standard UI components](logicstudio-ui)

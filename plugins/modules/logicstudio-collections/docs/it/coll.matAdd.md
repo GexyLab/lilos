@@ -1,4 +1,4 @@
-# Somma matrici
+# A + B
 
 `coll.matAdd` · Matrici · [Liste e matrici](logicstudio-collections) · versione 1
 
@@ -22,7 +22,7 @@ Somma due matrici della stessa misura, cella per cella.
 
 Il blocco aspetta di avere **a** e **b**; poi, a ogni valore nuovo su uno dei due, manda la somma: la cella in riga *i* e colonna *j* del risultato è `a[i][j] + b[i][j]`.
 
-- Tutte e due devono essere matrici valide (vedi [Dimensioni](coll.matSize)).
+- Tutte e due devono essere matrici valide (vedi [Shape](coll.matSize)).
 - **Le celle devono essere numeri veri**: un testo come `"2"` dà «La matrice deve contenere solo numeri» (a differenza dei blocchi delle liste, qui i testi non vengono convertiti). Anche `null`, `true` e celle vuote danno lo stesso errore.
 - Le due matrici devono avere le stesse righe e colonne, altrimenti esce per esempio «Le matrici devono avere le stesse dimensioni (2×3 e 2×2)».
 - Il risultato non viene arrotondato: `0.1 + 0.2` dà `0.30000000000000004`.
@@ -32,8 +32,8 @@ Il blocco aspetta di avere **a** e **b**; poi, a ogni valore nuovo su uno dei du
 ### 1. Due matrici 2 × 3
 
 ```
-[Valore (JSON): [[1,2,3],[4,5,6]]]       valore ──▶ a  [Somma matrici] risultato ──▶ valore [Scrivi in console]
-[Valore (JSON): [[10,20,30],[40,50,60]]] valore ──▶ b
+[Costante · Variabile (JSON): [[1,2,3],[4,5,6]]]       valore ──▶ a  [A + B] risultato ──▶ valore [Print (console.log)]
+[Costante · Variabile (JSON): [[10,20,30],[40,50,60]]] valore ──▶ b
 ```
 
 Scrive `[[11,22,33],[44,55,66]]`.
@@ -44,7 +44,7 @@ Con **a** = `[[1,2,3],[4,5,6]]` e **b** = `[[1,2],[3,4]]` non esce nessun risult
 
 ### 3. Un testo in una cella
 
-Con **a** = `[[1,"2"]]` e **b** = `[[1,2]]` esce «La matrice deve contenere solo numeri». Se i numeri arrivano come testo (per esempio da [Dividi testo](coll.split)), convertili prima uno per uno o costruisci la matrice da numeri.
+Con **a** = `[[1,"2"]]` e **b** = `[[1,2]]` esce «La matrice deve contenere solo numeri». Se i numeri arrivano come testo (per esempio da [Split](coll.split)), convertili prima uno per uno o costruisci la matrice da numeri.
 
 ## Errori
 
@@ -57,5 +57,5 @@ Con **a** = `[[1,"2"]]` e **b** = `[[1,2]]` esce «La matrice deve contenere sol
 
 ## Vedi anche
 
-- [Sottrai matrici](coll.matSubtract), [Scala](coll.matScale), [Moltiplica matrici](coll.matMultiply)
+- [A − B](coll.matSubtract), [Scala (k·A)](coll.matScale), [A × B](coll.matMultiply)
 - [Come funziona un blocco](ide/blocks)

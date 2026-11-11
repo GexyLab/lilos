@@ -1,4 +1,4 @@
-# Get item
+# Get list[i]
 
 `coll.get` · Lists · [Lists and matrices](logicstudio-collections) · version 1
 
@@ -49,26 +49,26 @@ Other cases:
 ### 1. The second item
 
 ```
-[Value (JSON): [10,20,30]] value ──▶ list  [Get item] item ──▶ value [Write to console]
-[Value: 1]                 value ──▶ index
+[Constant · Variable (JSON): [10,20,30]] value ──▶ list  [Get list[i]] item ──▶ value [Print (console.log)]
+[Constant · Variable: 1]                 value ──▶ index
 ```
 
-It writes `20` (index 1 is the second item). If you put `3` in the Value instead of `1`, «Elemento: Indice fuori dalla lista» ("Get item: Index outside the list") appears in the main console.
+It writes `20` (index 1 is the second item). If you put `3` in the Constant · Variable block instead of `1`, «Leggi lista[i]: Indice fuori dalla lista» ("Get list[i]: Index outside the list") appears in the main console.
 
 ### 2. The last item, whatever the length
 
 Give the **index** input the starting value `-1` (in the block's Properties):
 
 ```
-[Accumulate] list ──▶ list [Get item (starting index -1)] item ──▶ value [Value: last reading]
+[Accumulate (bounded push)] list ──▶ list [Get list[i] (starting index -1)] item ──▶ value [Value: last reading]
 ```
 
-Every time [Accumulate](coll.accumulate) sends the updated list, the block sends the last value added.
+Every time [Accumulate (bounded push)](coll.accumulate) sends the updated list, the block sends the last value added.
 
 ### 3. An entry chosen from a list
 
 ```
-[Value (JSON): ["Lunedì","Martedì","Mercoledì"]] value ──▶ list  [Get item] item ──▶ value [Value]
+[Constant · Variable (JSON): ["Lunedì","Martedì","Mercoledì"]] value ──▶ list  [Get list[i]] item ──▶ value [Value]
 [Number field: day]                              value ──▶ index
 ```
 
@@ -84,8 +84,8 @@ With 0 in the [Number field](ui.number) you see «Lunedì», with 2 «Mercoledì
 
 ## See also
 
-- [Set item](coll.set), [Remove at](coll.removeAt), [Slice](coll.slice)
-- [Contains · Index of](coll.contains) to find the index of a value
-- [Get field](core.get) for a field of an object
-- [Get cell](coll.matGet) for a matrix
+- [Set list[i]](coll.set), [Remove (splice)](coll.removeAt), [Slice](coll.slice)
+- [Includes · IndexOf](coll.contains) to find the index of a value
+- [Get property](core.get) for a field of an object
+- [Get m[r][c]](coll.matGet) for a matrix
 - [How a block works](ide/blocks)

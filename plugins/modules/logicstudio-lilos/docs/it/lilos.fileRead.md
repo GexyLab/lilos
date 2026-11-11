@@ -1,4 +1,4 @@
-# Leggi file
+# readFile
 
 `lilos.fileRead` · lilOS · [Blocchi di lilOS](logicstudio-lilos) · versione 1
 
@@ -58,7 +58,7 @@ Vedi anche [Come funziona un blocco](ide/blocks).
 ### 1. Leggere un testo all'avvio
 
 ```
-[All'avvio] impulso ──▶ leggi [Leggi file: ~/note.txt] contenuto ──▶ valore [Scrivi in console]
+[All'avvio (main)] impulso ──▶ leggi [readFile: ~/note.txt] contenuto ──▶ valore [Print (console.log)]
 ```
 
 Se `~/note.txt` contiene `Comprare il latte`, la console principale mostra «Comprare il latte».
@@ -71,32 +71,32 @@ Il file `~/serra/impostazioni.json` contiene:
 { "soglia": 30, "nome": "Serra nord" }
 ```
 
-Imposta **Formato** JSON e prendi un campo con [Prendi campo](core.get):
+Imposta **Formato** JSON e prendi un campo con [Get proprietà (obj.campo)](core.get):
 
 ```
-[All'avvio] impulso ──▶ leggi [Leggi file: ~/serra/impostazioni.json] contenuto ──▶ oggetto [Prendi campo: soglia] valore ──▶ b [Confronta]
+[All'avvio (main)] impulso ──▶ leggi [readFile: ~/serra/impostazioni.json] contenuto ──▶ oggetto [Get proprietà (obj.campo): soglia] valore ──▶ b [Confronto (== ≠ < >)]
 ```
 
-**contenuto** è l'oggetto `{ "soglia": 30, "nome": "Serra nord" }`; Prendi campo manda `30`.
+**contenuto** è l'oggetto `{ "soglia": 30, "nome": "Serra nord" }`; il blocco Get proprietà manda `30`.
 
 ### 3. Un file scelto dall'utente
 
 ```
-[Campo di testo: nome del file] testo ──▶ a [Formatta testo: "~/Documenti/{a}"] testo ──▶ percorso [Leggi file] contenuto ──▶ valore [Valore: testo letto]
+[Campo di testo: nome del file] testo ──▶ a [Template (formatta): "~/Documenti/{a}"] testo ──▶ percorso [readFile] contenuto ──▶ valore [Valore: testo letto]
 [Pulsante: Apri]                premuto ──────────────────────────────────────────▶ leggi
 ```
 
-L'utente scrive `lista.txt` nel [Campo di testo](ui.text) e preme il [Pulsante](ui.button): il blocco legge `~/Documenti/lista.txt` e la componente [Valore](ui.value) della finestra lo mostra. [Formatta testo](core.format) ha un ingresso aggiunto chiamato **a**. Se il file non c'è, **Eccezione** manda «Il file «~/Documenti/lista.txt» non esiste».
+L'utente scrive `lista.txt` nel [Campo di testo](ui.text) e preme il [Pulsante](ui.button): il blocco legge `~/Documenti/lista.txt` e la componente [Valore](ui.value) della finestra lo mostra. [Template (formatta)](core.format) ha un ingresso aggiunto chiamato **a**. Se il file non c'è, **Eccezione** manda «Il file «~/Documenti/lista.txt» non esiste».
 
 ### 4. Leggere ogni minuto un file aggiornato da altri
 
 ```
-[Ogni… 60 s] impulso ──▶ leggi [Leggi file: ~/sensori/ultimo.txt] contenuto ──▶ valore [Scrivi in console]
-                                              dimensione (byte) ──▶ a [Confronta: a = b] se vero ──▶ invia [Notifica: "Il file è vuoto"]
-                                                       [Valore: 0] valore ──▶ b
+[Intervallo (setInterval): 60 s] impulso ──▶ leggi [readFile: ~/sensori/ultimo.txt] contenuto ──▶ valore [Print (console.log)]
+                                              dimensione (byte) ──▶ a [Confronto (== ≠ < >): a = b] se vero ──▶ invia [Notify: "Il file è vuoto"]
+                                                       [Costante · Variabile: 0] valore ──▶ b
 ```
 
-Utile quando un altro programma (o un'app) aggiorna il file. Con **dimensione (byte)** ti accorgi di un file vuoto (0 byte) e ricevi una [Notifica](lilos.notify).
+Utile quando un altro programma (o un'app) aggiorna il file. Con **dimensione (byte)** ti accorgi di un file vuoto (0 byte) e ricevi una [Notify](lilos.notify).
 
 ## Errori
 
@@ -120,7 +120,7 @@ Utile quando un altro programma (o un'app) aggiorna il file. Con **dimensione (b
 | Non hai il permesso di usare «~/dati.txt» | Il file system ti nega l'accesso. |
 | Il file system di lilOS non risponde: riprova più tardi | Il file system (per esempio una cartella di rete) non risponde. |
 | Il file system di lilOS non c'è | Il modulo del file system manca. |
-| Leggi file ha impiegato più di 30 s | La lettura ha superato il tempo massimo di un blocco (30 secondi di serie). |
+| readFile ha impiegato più di 30 s | La lettura ha superato il tempo massimo di un blocco (30 secondi di serie). |
 | Il programma non è in esecuzione | Il programma si stava fermando. |
 
 ## Permessi
@@ -129,8 +129,8 @@ Il blocco lavora come l'utente che possiede il programma. Un'app fatta con **Cre
 
 ## Vedi anche
 
-- [Scrivi file](lilos.fileWrite), [Aggiungi a file](lilos.fileAppend)
-- [Esiste](lilos.exists), per controllare prima che il file ci sia
-- [Elenca cartella](lilos.folderList)
-- [Prendi campo](core.get), per prendere un campo dal JSON letto
+- [writeFile](lilos.fileWrite), [appendFile](lilos.fileAppend)
+- [exists](lilos.exists), per controllare prima che il file ci sia
+- [readdir (elenca cartella)](lilos.folderList)
+- [Get proprietà (obj.campo)](core.get), per prendere un campo dal JSON letto
 - [Come funziona un blocco](ide/blocks)

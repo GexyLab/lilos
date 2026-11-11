@@ -1,4 +1,4 @@
-# Wait for all
+# Await all (join)
 
 `core.join` · Logic · [Core blocks](logicstudio-core) · version 1
 
@@ -35,18 +35,18 @@ Things to know:
 - An input that receives twice before the others arrive counts **only once**: nothing is accumulated for the next round.
 - Without added inputs the block never sends **ready**.
 - If you remove "starts it" from an added input, that input is never marked as arrived and **ready** never goes off again. Leave them all with "starts it".
-- The values that arrive are not sent again: **ready** is just a pulse. If you need the values, take them from a [Memory](core.store) or keep them in the inputs (with "starts it" removed) of the block that starts with **ready**.
+- The values that arrive are not sent again: **ready** is just a pulse. If you need the values, take them from a [Store (set · get)](core.store) block or keep them in the inputs (with "starts it" removed) of the block that starts with **ready**.
 
 ## Examples
 
 ### 1. Start when two readings are done
 
 ```
-[Read file: a.txt] content ──▶ a [Wait for all] ready ──▶ send [Notification: Data ready]
-[Read file: b.txt] content ──▶ b
+[readFile: a.txt] content ──▶ a [Await all (join)] ready ──▶ send [Notify: Data ready]
+[readFile: b.txt] content ──▶ b
 ```
 
-The two readings finish in any order. The [Notification](lilos.notify) goes off only when both are finished.
+The two readings finish in any order. The [Notify](lilos.notify) goes off only when both are finished.
 
 ### 2. One step after the other, then again
 
@@ -55,7 +55,7 @@ Inputs **a**, **b**, **c**. They arrive, in order: **a**, **a**, **b**, **c** �
 ### 3. Cancel a wait
 
 ```
-[Button: Cancel] pressed ──▶ reset [Wait for all]
+[Button: Cancel] pressed ──▶ reset [Await all (join)]
 ```
 
 If **a** has arrived but **b** has not, and the user presses **Cancel**, the block forgets **a**: for **ready** to go off, both **a** and **b** must arrive again.
@@ -66,7 +66,7 @@ This block has no errors of its own.
 
 ## See also
 
-- [First to arrive](core.merge) to let every value through without waiting
-- [Sequence](core.sequence) to start several things in an order
+- [Merge](core.merge) to let every value through without waiting
+- [Sequence (then)](core.sequence) to start several things in an order
 - [AND](core.and) to send yes only when several conditions are yes
 - [How a block works](ide/blocks)

@@ -46,7 +46,7 @@ Una barra con una manopola da trascinare: l'utente sceglie un numero tra un mini
 - **min** e **max**: cambiano l'intervallo e ridisegnano il cursore, che tiene l'ultimo valore. Se il minimo supera il massimo, il cursore resta bloccato al minimo.
 - Il **Passo** non si può cambiare dallo schema.
 
-**All'apertura** il cursore mostra **All'inizio**, ma il programma non lo riceve: se lo schema deve conoscerlo, dagli lo stesso numero con un blocco [Valore](core.value).
+**All'apertura** il cursore mostra **All'inizio**, ma il programma non lo riceve: se lo schema deve conoscerlo, dagli lo stesso numero con un blocco [Costante · Variabile](core.value).
 
 ## Esempi
 
@@ -60,12 +60,12 @@ Finestra «Allarme»
 ```
 
 ```
-[Valore: 25]      valore ──▶ b [Confronta: a > b] risultato ──▶ accesa [Spia: Sopra la soglia]
+[Costante · Variabile: 25]      valore ──▶ b [Confronto (== ≠ < >): a > b] risultato ──▶ accesa [Spia: Sopra la soglia]
 [Cursore: Soglia] valore ──▶ b
-[Ogni…: 10 s] impulso ──▶ leggi [Leggi file: ~/temperatura.txt] contenuto ──▶ valore [Converti: numero] risultato ──▶ a [Confronta]
+[Intervallo (setInterval): 10 s] impulso ──▶ leggi [readFile: ~/temperatura.txt] contenuto ──▶ valore [Cast (converti tipo): numero] risultato ──▶ a [Confronto (== ≠ < >)]
 ```
 
-Il [Valore](core.value) 25 dà al confronto la soglia iniziale, uguale a quella mostrata. Quando l'utente sposta il cursore su 30,5 e lo lascia, la soglia diventa 30,5.
+Il blocco [Costante · Variabile](core.value) 25 dà al confronto la soglia iniziale, uguale a quella mostrata. Quando l'utente sposta il cursore su 30,5 e lo lascia, la soglia diventa 30,5.
 
 ### 2. Un volume con il massimo che cambia
 
@@ -76,14 +76,14 @@ Finestra «Audio»
   └ Cursore            slider1    Etichetta «Volume»  Unità «%»  All'inizio 50
 ```
 
-Con un [Se](core.if):
+Con un blocco [If · Else](core.if):
 
 ```
-[Casella di spunta: Modalità notte] valore ──▶ condizione [Se] allora  ──▶ invia [Valore: 30]  valore ──▶ max [Cursore: Volume]
-                                                               altrimenti ──▶ invia [Valore: 100] valore ──▶ max
+[Casella di spunta: Modalità notte] valore ──▶ condizione [If · Else] allora  ──▶ invia [Costante · Variabile: 30]  valore ──▶ max [Cursore: Volume]
+                                                               altrimenti ──▶ invia [Costante · Variabile: 100] valore ──▶ max
 ```
 
-Con la modalità notte il cursore va al massimo fino a 30; se era su 50, la manopola va in fondo a destra ma il numero mostra ancora «50%» finché l'utente non lo tocca. Nota: il cursore non manda niente quando cambia il massimo, quindi lo schema continua a credere che il volume sia 50. Se ti serve il valore ridotto, calcolalo anche nello schema con un [Limita](core.clamp).
+Con la modalità notte il cursore va al massimo fino a 30; se era su 50, la manopola va in fondo a destra ma il numero mostra ancora «50%» finché l'utente non lo tocca. Nota: il cursore non manda niente quando cambia il massimo, quindi lo schema continua a credere che il volume sia 50. Se ti serve il valore ridotto, calcolalo anche nello schema con un blocco [Clamp (limita)](core.clamp).
 
 ## Accessibilità e tastiera
 
@@ -95,5 +95,5 @@ Con la modalità notte il cursore va al massimo fino a 30; se era su 50, la mano
 
 - [Campo numerico](ui.number), per scrivere un numero preciso
 - [Barra di avanzamento](ui.progress), [Indicatore](ui.gauge)
-- [Limita](core.clamp)
+- [Clamp (limita)](core.clamp)
 - [Componenti UI standard](logicstudio-ui)

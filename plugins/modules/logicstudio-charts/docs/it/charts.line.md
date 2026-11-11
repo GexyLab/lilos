@@ -84,7 +84,7 @@ Finestra «Meteo»
 ```
 
 ```
-[Valore (JSON): {"Gen": {"Roma": 80, "Milano": 58}, "Feb": {"Roma": 72, "Milano": 49}, "Mar": {"Roma": 61, "Milano": 70}}] valore ──▶ dati [Linee: Pioggia]
+[Costante · Variabile (JSON): {"Gen": {"Roma": 80, "Milano": 58}, "Feb": {"Roma": 72, "Milano": 49}, "Mar": {"Roma": 61, "Milano": 70}}] valore ──▶ dati [Linee: Pioggia]
 ```
 
 Un oggetto i cui valori sono tutti oggetti è letto come **categoria → serie**: l'asse ha Gen, Feb, Mar e ci sono due linee, Roma e Milano, con la legenda. Il riquadro su «Feb» dice «Roma 72 mm», «Milano 49 mm».
@@ -100,7 +100,7 @@ Il file `~/misure.json` contiene:
 ```
 
 ```
-[All'avvio] impulso ──▶ leggi [Leggi file: ~/misure.json, JSON] contenuto ──▶ dati [Linee: Serra]
+[All'avvio (main)] impulso ──▶ leggi [readFile: ~/misure.json, JSON] contenuto ──▶ dati [Linee: Serra]
 ```
 
 Le x sono date ISO: l'asse è il tempo, con le ore nell'ora locale di chi guarda. Un clic sul secondo punto manda `{"x": 1794387600000, "time": "2026-11-11T09:00:00.000Z", "values": {"Valore": 19.2}, "index": 1}`.
@@ -108,11 +108,11 @@ Le x sono date ISO: l'asse è il tempo, con le ore nell'ora locale di chi guarda
 ### 3. Un contatore che cresce, un punto alla volta
 
 ```
-[Ogni…: 2 s] impulso ──▶ più [Contatore] conteggio ──▶ aggiungi punto [Linee: Contatore]
+[Intervallo (setInterval): 2 s] impulso ──▶ più [Contatore (++ −−)] conteggio ──▶ aggiungi punto [Linee: Contatore]
 [Pulsante: Ricomincia] premuto ──▶ pulisci [Linee: Contatore]
 ```
 
-Ogni 2 secondi arriva un numero (1, 2, 3…): il primo punto ha x = 0, il secondo x = 1, e così via. Il [Pulsante](ui.button) svuota il grafico; il punto dopo riparte da x = 0 (il [Contatore](core.counter) invece continua: collega **premuto** anche al suo **azzera** se vuoi ripartire da capo). Se chiudi e riapri la finestra vedi un solo punto, l'ultimo: per tenere la storia usa [Accumula](coll.accumulate) e **dati** (vedi [Grafici](logicstudio-charts)).
+Ogni 2 secondi arriva un numero (1, 2, 3…): il primo punto ha x = 0, il secondo x = 1, e così via. Il [Pulsante](ui.button) svuota il grafico; il punto dopo riparte da x = 0 (il blocco [Contatore (++ −−)](core.counter) invece continua: collega **premuto** anche al suo **azzera** se vuoi ripartire da capo). Se chiudi e riapri la finestra vedi un solo punto, l'ultimo: per tenere la storia usa [Accumula (push con limite)](coll.accumulate) e **dati** (vedi [Grafici](logicstudio-charts)).
 
 ## Accessibilità e tastiera
 
@@ -121,5 +121,5 @@ Il grafico si raggiunge con **Tab**; le frecce passano da una x all'altra e most
 ## Vedi anche
 
 - [Aree](charts.area) per l'area sotto la linea, [Tempo reale](charts.live) per i valori che scorrono, [Mini linea](charts.spark)
-- [Accumula](coll.accumulate), [Contatore](core.counter), [Data e ora](core.now)
+- [Accumula (push con limite)](coll.accumulate), [Contatore (++ −−)](core.counter), [Now (data e ora)](core.now)
 - [Grafici](logicstudio-charts): le forme dei dati, i limiti, la tastiera

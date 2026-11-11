@@ -30,7 +30,7 @@ The Heat map has no **Legend**, **Colours** or **Points kept per series**: inste
 | **enabled** (`enabled`) | yes/no | `false` makes it lighter and turns it off. |
 | **visible** (`visible`) | yes/no | `false` hides it. |
 
-There is no **add point** or **clear**: to change a cell send the whole grid (for example after [Set cell](coll.matSet)); to empty it send `[]`.
+There is no **add point** or **clear**: to change a cell send the whole grid (for example after [Set m[r][c]](coll.matSet)); to empty it send `[]`.
 
 ### Outputs
 
@@ -81,7 +81,7 @@ Window "Visits"
 ```
 
 ```
-[Value (JSON): [[3, 12, 8, 5], [4, 15, 9, 6], [2, 10, 11, 7]]] value ──▶ grid [Heat map: Visits]
+[Constant · Variable (JSON): [[3, 12, 8, 5], [4, 15, 9, 6], [2, 10, 11, 7]]] value ──▶ grid [Heat map: Visits]
 ```
 
 Three rows (Mon, Tue, Wed) and four columns (8, 10, 12, 14). The most intense cell is Tuesday at 10 (15), the lightest Wednesday at 8 (2); the scale says "2" and "15". A click on Tuesday at 12 sends `{"row": "Tue", "col": "12", "rowIndex": 1, "colIndex": 2, "value": 9, "series": "Tue", "y": 9}`.
@@ -95,7 +95,7 @@ The file `~/warehouse.json` contains:
 ```
 
 ```
-[Every…: 60 s] pulse ──▶ read [Read file: ~/warehouse.json, JSON] content ──▶ grid [Heat map: Fill level]
+[Interval (setInterval): 60 s] pulse ──▶ read [readFile: ~/warehouse.json, JSON] content ──▶ grid [Heat map: Fill level]
 ```
 
 With **Minimum** 0, **Maximum** 100 and **Unit** `%` the colour says how full each place is, always on the same scale; level 3 of shelf A is empty (dashed grey, "—").
@@ -103,10 +103,10 @@ With **Minimum** 0, **Maximum** 100 and **Unit** `%` the colour says how full ea
 ### 3. A matrix built in the schema
 
 ```
-[Create matrix: rows 3, columns 3] matrix ──▶ matrix [Set cell: row 1, column 2, value 7] matrix ──▶ grid [Heat map: Test]
+[New matrix (fill): rows 3, columns 3] matrix ──▶ matrix [Set m[r][c]: row 1, column 2, value 7] matrix ──▶ grid [Heat map: Test]
 ```
 
-[Create matrix](coll.matNew) makes a 3 × 3 grid of zeros; [Set cell](coll.matSet) (which counts rows and columns from 0) puts 7 in the second row, third column. In the map that cell is the most intense and all the others are the lightest; the rows and columns are called 1, 2, 3.
+[New matrix (fill)](coll.matNew) makes a 3 × 3 grid of zeros; [Set m[r][c]](coll.matSet) (which counts rows and columns from 0) puts 7 in the second row, third column. In the map that cell is the most intense and all the others are the lightest; the rows and columns are called 1, 2, 3.
 
 ## Accessibility and keyboard
 
@@ -114,6 +114,6 @@ With **Minimum** 0, **Maximum** 100 and **Unit** `%` the colour says how full ea
 
 ## See also
 
-- [Create matrix](coll.matNew), [Set cell](coll.matSet), [Matrix from list](coll.matFromList)
+- [New matrix (fill)](coll.matNew), [Set m[r][c]](coll.matSet), [Reshape](coll.matFromList)
 - [Columns](charts.column) for a few rows and columns
 - [Charts](logicstudio-charts): the data shapes, the limits, the keyboard

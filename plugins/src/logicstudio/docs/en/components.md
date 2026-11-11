@@ -4,9 +4,9 @@ Schemas **do not touch** the components of a window directly. Every component ha
 
 ```
 schema «main»                                         window «Principale»
-[Every…] pulse ──▶ up [Counter] count ──▶ value [Value: contatore]  ═══  ┌──────────────┐
+[Interval (setInterval)] pulse ──▶ up [Counter (++ −−)] count ──▶ value [Value: contatore]  ═══  ┌──────────────┐
                                                                          │ contatore 12 │
-[Button: Azzera] pressed ──▶ reset [Counter]                       ═══  │ [ Azzera ]   │
+[Button: Azzera] pressed ──▶ reset [Counter (++ −−)]                       ═══  │ [ Azzera ]   │
                                                                          └──────────────┘
 ```
 
@@ -97,7 +97,7 @@ Some charts (**Real time**, one series per port; **Steps**, one state per port) 
 In the window: a **Button** (**Text** = `+1`) and a **Value** (**Label** = `Pressioni`). Make the two objects in the schema **main**, then:
 
 ```
-[Button: +1] pressed ──▶ up [Counter] count ──▶ value [Value: Pressioni]
+[Button: +1] pressed ──▶ up [Counter (++ −−)] count ──▶ value [Value: Pressioni]
 ```
 
 **Test** → **Preview**: every click on **+1** makes the number go up.
@@ -105,19 +105,19 @@ In the window: a **Button** (**Text** = `+1`) and a **Value** (**Label** = `Pres
 ### 2. Enabling a button only when a name is typed
 
 ```
-[Text field: nome] text ──▶ text [Text operation: length] result ──▶ a [Compare: a > b, b = 0] result ──▶ enabled [Button: Invia]
+[Text field: nome] text ──▶ text [String functions: length] result ──▶ a [Compare (== != < >): a > b, b = 0] result ──▶ enabled [Button: Invia]
 ```
 
-On **Compare**, **b** has start value `0` and **starts it** unticked. As soon as you type something the button turns on; if you delete everything, it turns off. When the window opens the button is on until you type something: if you want it to start off, also link a **Value** (**Kind** = **yes/no**, **Value** = `no`, **Send at start** ticked) to **enabled**.
+On **Compare**, **b** has start value `0` and **starts it** unticked. As soon as you type something the button turns on; if you delete everything, it turns off. When the window opens the button is on until you type something: if you want it to start off, also link a **Constant · Variable** block (**Kind** = **yes/no**, **Value** = `no`, nothing linked to **send**) to **enabled**.
 
 ### 3. A table from a file
 
 ```
-[At start] pulse ──▶ read [Read file: ~/spesa.json, JSON] content ──▶ rows [Table]
-[Table] chosen row ──▶ value [Write to console: readable JSON]
+[On start (main)] pulse ──▶ read [readFile: ~/spesa.json, JSON] content ──▶ rows [Table]
+[Table] chosen row ──▶ value [Print (console.log): readable JSON]
 ```
 
-`~/spesa.json` contains `[{"cosa": "pane", "quanto": 2}, {"cosa": "latte", "quanto": 1}]`. The table shows the two rows; a click on a row writes it to the console. **Read file** is in the [lilOS blocks](logicstudio-lilos) package.
+`~/spesa.json` contains `[{"cosa": "pane", "quanto": 2}, {"cosa": "latte", "quanto": 1}]`. The table shows the two rows; a click on a row writes it to the console. **readFile** is in the [lilOS blocks](logicstudio-lilos) package.
 
 ## See also
 

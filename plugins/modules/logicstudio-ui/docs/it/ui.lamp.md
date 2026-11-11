@@ -40,7 +40,7 @@ All'apertura la spia è **spenta**, qualunque cosa le proprietà dicano: si acce
 | `false`, `0`, `""`, `null` | spenta |
 | il testo `"false"` | spenta |
 
-> Attenzione: il **testo** `"0"` e il testo `"no"` la **accendono**. Se il valore viene da un file o da un testo, passalo prima da [Converti](core.convert) **In** sì/no.
+> Attenzione: il **testo** `"0"` e il testo `"no"` la **accendono**. Se il valore viene da un file o da un testo, passalo prima da [Cast (converti tipo)](core.convert) **In** sì/no.
 
 **colore** — il nome di uno dei quattro colori, **in inglese**: `green` (verde), `red` (rosso), `yellow` (giallo), `blue` (blu). Il cambio di colore non accende né spegne la spia. Con un nome diverso (per esempio `rosso` o `#ff0000`) la spia accesa resta grigia, senza luce: sembra spenta.
 
@@ -56,8 +56,8 @@ Finestra «Frigo»
 ```
 
 ```
-[Leggi file: ~/frigo.txt] contenuto ──▶ valore [Converti: numero] risultato ──▶ a [Confronta: a > b] risultato ──▶ accesa [Spia: Troppo caldo]
-[Valore: 8] valore ──▶ b [Confronta]
+[readFile: ~/frigo.txt] contenuto ──▶ valore [Cast (converti tipo): numero] risultato ──▶ a [Confronto (== ≠ < >): a > b] risultato ──▶ accesa [Spia: Troppo caldo]
+[Costante · Variabile: 8] valore ──▶ b [Confronto (== ≠ < >)]
 ```
 
 Con 9 gradi la spia rossa si accende; con 6 si spegne.
@@ -72,17 +72,17 @@ Finestra «Servizio»
   └ Spia  lamp1  Etichetta «Stato del servizio»
 ```
 
-Aggiungi al blocco [Casi](core.switch) le uscite **ok**, **avviso**, **errore**:
+Aggiungi al blocco [Switch · Case](core.switch) le uscite **ok**, **avviso**, **errore**:
 
 ```
-[Valore: sì] valore ──▶ accesa [Spia: Stato del servizio]
-[Ogni…: 30 s] impulso ──▶ leggi [Leggi file: ~/stato.txt] contenuto ──▶ testo [Operazione sul testo: togli spazi] risultato ──▶ valore [Casi]
-[Casi] ok     ──▶ invia [Valore: green]  valore ──▶ colore [Spia: Stato del servizio]
-       avviso ──▶ invia [Valore: yellow] valore ──▶ colore
-       errore ──▶ invia [Valore: red]    valore ──▶ colore
+[Costante · Variabile: sì] valore ──▶ accesa [Spia: Stato del servizio]
+[Intervallo (setInterval): 30 s] impulso ──▶ leggi [readFile: ~/stato.txt] contenuto ──▶ testo [Funzioni stringa: togli spazi] risultato ──▶ valore [Switch · Case]
+[Switch · Case] ok     ──▶ invia [Costante · Variabile: green]  valore ──▶ colore [Spia: Stato del servizio]
+       avviso ──▶ invia [Costante · Variabile: yellow] valore ──▶ colore
+       errore ──▶ invia [Costante · Variabile: red]    valore ──▶ colore
 ```
 
-Il file `stato.txt` contiene una parola: `ok`, `avviso` o `errore`. Il primo [Valore](core.value) (tipo sì/no, **Invia all'avvio**) accende la spia all'avvio; gli altri tre (tipo testo) hanno **Invia all'avvio** spento. Finché il file non è letto, la spia è accesa nel suo colore delle Proprietà.
+Il file `stato.txt` contiene una parola: `ok`, `avviso` o `errore`. Il primo blocco [Costante · Variabile](core.value) (tipo sì/no, niente su **invia**) accende la spia all'avvio; gli altri tre (tipo testo) hanno l'ingresso **invia** collegato (mostralo con l'occhio accanto alla porta, nelle Proprietà), quindi mandano il colore solo quando serve. Finché il file non è letto, la spia è accesa nel suo colore delle Proprietà.
 
 ## Accessibilità
 
@@ -91,5 +91,5 @@ Lo stato della spia si vede **solo dal colore**: un lettore di schermo legge l'e
 ## Vedi anche
 
 - [Valore](ui.value), [Indicatore](ui.gauge)
-- [Confronta](core.compare), [Casi](core.switch)
+- [Confronto (== ≠ < >)](core.compare), [Switch · Case](core.switch)
 - [Componenti UI standard](logicstudio-ui)

@@ -66,14 +66,14 @@ Window «Messages»
 ```
 
 ```
-[Text field: text1] text  ──▶ value [If] then ──▶ value [Write to console]
-[Text field: text1] enter ──▶ condition [If]
+[Text field: text1] text  ──▶ value [If · Else] then ──▶ value [Print (console.log)]
+[Text field: text1] enter ──▶ condition [If · Else]
 ```
 
-In the [If](core.if) remove «starts it» from **value**: the If starts with **enter** (always `true`) and sends to the console the last confirmed text. So the user types, presses Enter and the line appears in the console. To empty the field after sending, also link **then** to an empty-text [Value](core.value) (with **Send at start** off) and that one to the **text** input of the field:
+In the [If · Else](core.if) block remove «starts it» from **value**: the block starts with **enter** (always `true`) and sends to the console the last confirmed text. So the user types, presses Enter and the line appears in the console. To empty the field after sending, also link **then** to an empty-text [Constant · Variable](core.value) block (with the **send** input linked, shown with the eye next to the port) and that one to the **text** input of the field:
 
 ```
-[If] then ──▶ send [Value: «»] value ──▶ text [Text field: text1]
+[If · Else] then ──▶ send [Constant · Variable: «»] value ──▶ text [Text field: text1]
 ```
 
 ### 2. A password to unlock
@@ -87,15 +87,15 @@ Window «Login»
 ```
 
 ```
-[Text field: Password] text ──▶ a [Compare: a = b] result ──▶ condition [If] then ──▶ send [Value: «Welcome!»]       value ──▶ text [Label: label1]
-[Value: «secret»] value ──▶ b                                                else ──▶ send [Value: «Wrong password.»] value ──▶ text [Label: label1]
-[Button: Enter]            pressed ──▶ value [If]
-[Text field: Password]     enter   ──▶ value [If]
+[Text field: Password] text ──▶ a [Compare (== != < >): a = b] result ──▶ condition [If · Else] then ──▶ send [Constant · Variable: «Welcome!»]       value ──▶ text [Label: label1]
+[Constant · Variable: «secret»] value ──▶ b                                                else ──▶ send [Constant · Variable: «Wrong password.»] value ──▶ text [Label: label1]
+[Button: Enter]            pressed ──▶ value [If · Else]
+[Text field: Password]     enter   ──▶ value [If · Else]
 ```
 
-In the [If](core.if) remove «starts it» from **condition**: the If starts when the user presses **Enter** (the button) or Enter in the field, with the last result of the comparison. Clicking the **Enter** button makes the field lose the focus and confirm the password **before** the click, so the comparison is already up to date. The two Values of the messages have **Send at start** off.
+In the [If · Else](core.if) block remove «starts it» from **condition**: the block starts when the user presses **Enter** (the button) or Enter in the field, with the last result of the comparison. Clicking the **Enter** button makes the field lose the focus and confirm the password **before** the click, so the comparison is already up to date. The two [Constant · Variable](core.value) blocks of the messages have the **send** input linked.
 
-> This is only an example: a password written in a [Value](core.value) block can be read by opening the project.
+> This is only an example: a password written in a [Constant · Variable](core.value) block can be read by opening the project.
 
 ## Accessibility and keyboard
 
@@ -106,6 +106,6 @@ In the [If](core.if) remove «starts it» from **condition**: the If starts when
 ## See also
 
 - [Number field](ui.number), for numbers
-- [Read from console](core.consoleRead), to ask a question and wait for the answer
-- [Format text](core.format), [Text operation](core.text)
+- [Input (readline)](core.consoleRead), to ask a question and wait for the answer
+- [Template string](core.format), [String functions](core.text)
 - [Standard UI components](logicstudio-ui)

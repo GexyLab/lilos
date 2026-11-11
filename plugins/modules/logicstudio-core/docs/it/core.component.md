@@ -52,7 +52,7 @@ Le **Colonne**, **Righe** e gli altri contenitori non hanno la sezione **Oggetto
 - Gli ingressi dell'oggetto **non hanno** le opzioni **lo avvia** e **valore iniziale**: i valori di partenza della componente si impostano nelle sue proprietà, nell'editor della finestra.
 - Se la finestra **non è aperta**, l'ultimo valore di ogni ingresso viene tenuto e la finestra lo mostra quando si apre (con l'opzione del progetto **Una finestra riaperta mostra subito gli ultimi valori**, accesa di serie). Il programma tiene al massimo 2000 valori di questo tipo.
 - Impostare un valore da uno schema **non** fa mandare niente alla componente: per esempio, mandare sì all'ingresso **valore** di un Interruttore lo accende, ma la sua uscita **valore** non manda niente. Escono solo i gesti dell'utente.
-- **abilitato** e **visibile** reagiscono solo al valore **no** vero e proprio (`false`): `false` disabilita o nasconde la componente, qualsiasi altro valore la riabilita o la mostra. Il testo `"no"` o il numero 0 **non** la nascondono: per un testo usa prima [Converti](core.convert) in sì/no, o un [Valore](core.value) di tipo sì/no.
+- **abilitato** e **visibile** reagiscono solo al valore **no** vero e proprio (`false`): `false` disabilita o nasconde la componente, qualsiasi altro valore la riabilita o la mostra. Il testo `"no"` o il numero 0 **non** la nascondono: per un testo usa prima [Cast (converti tipo)](core.convert) in sì/no, o un blocco [Costante · Variabile](core.value) di tipo sì/no.
 
 ### Dalla finestra allo schema (uscite)
 
@@ -75,7 +75,7 @@ Per le regole generali vedi [Come funziona un blocco](ide/blocks) e [L'oggetto d
 Finestra con un [Pulsante](ui.button) **Conta** e un [Valore](ui.value) **totale**. Crea l'oggetto di tutti e due nello stesso schema:
 
 ```
-[Pulsante: Conta] premuto ──▶ più [Contatore] conteggio ──▶ valore [Valore: totale]
+[Pulsante: Conta] premuto ──▶ più [Contatore (++ −−)] conteggio ──▶ valore [Valore: totale]
 ```
 
 A ogni clic il valore mostrato nella finestra cresce di 1: 1, 2, 3… Chiudendo e riaprendo la finestra, si vede subito l'ultimo numero.
@@ -91,18 +91,18 @@ Quando l'utente spegne l'[Interruttore](ui.toggle), esce no e il [Campo di testo
 ### 3. Nascondere un'etichetta
 
 ```
-[Casella di spunta: avanzate] valore ──▶ valore [Converti: sì/no] risultato ──▶ visibile [Etichetta: suggerimento]
+[Casella di spunta: avanzate] valore ──▶ valore [Cast (converti tipo): sì/no] risultato ──▶ visibile [Etichetta: suggerimento]
 ```
 
-La [Casella di spunta](ui.checkbox) manda già sì/no, quindi qui [Converti](core.convert) non sarebbe necessario; diventa necessario se il valore arriva come testo, per esempio `"false"` letto da un file: senza conversione il testo `"false"` **non** nasconderebbe l'etichetta.
+La [Casella di spunta](ui.checkbox) manda già sì/no, quindi qui [Cast (converti tipo)](core.convert) non sarebbe necessario; diventa necessario se il valore arriva come testo, per esempio `"false"` letto da un file: senza conversione il testo `"false"` **non** nasconderebbe l'etichetta.
 
 ### 4. Il testo di un pulsante dallo schema
 
 ```
-[Ogni… 1 s] impulso ──▶ più [Contatore] conteggio ──▶ s [Formatta testo: "Attendi… {s}"] testo ──▶ testo [Pulsante: Avvia]
+[Intervallo (setInterval): 1 s] impulso ──▶ più [Contatore (++ −−)] conteggio ──▶ s [Template (formatta): "Attendi… {s}"] testo ──▶ testo [Pulsante: Avvia]
 ```
 
-Su [Formatta testo](core.format) aggiungi un ingresso e rinominalo **s**. Il testo del pulsante cambia ogni secondo (`Attendi… 1`, `Attendi… 2`…); il pulsante resta cliccabile e il suo **premuto** continua a uscire.
+Su [Template (formatta)](core.format) aggiungi un ingresso e rinominalo **s**. Il testo del pulsante cambia ogni secondo (`Attendi… 1`, `Attendi… 2`…); il pulsante resta cliccabile e il suo **premuto** continua a uscire.
 
 ## Errori
 
@@ -120,5 +120,5 @@ Sono errori del progetto, non dell'Eccezione: il programma non parte, oppure li 
 
 - [L'oggetto di una componente](ide/components) e [Le finestre](ide/windows)
 - Le componenti: [Pulsante](ui.button), [Campo di testo](ui.text), [Interruttore](ui.toggle), [Valore](ui.value) e le altre in [Componenti UI standard](logicstudio-ui)
-- [Ingresso di schema](core.schemaIn) e [Uscita di schema](core.schemaOut)
+- [Parametro (ingresso di schema)](core.schemaIn) e [Return (uscita di schema)](core.schemaOut)
 - [Come funziona un blocco](ide/blocks)

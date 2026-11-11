@@ -79,15 +79,15 @@ Ogni volta che qualcuno accende o spegne l'[Interruttore](ui.toggle), la corsia 
 ### 2. Una porta letta da un file
 
 ```
-[Ogni…: 5 s] impulso ──▶ leggi [Leggi file: ~/porta.txt] contenuto ──▶ porta [Gradini: Ingresso]
+[Intervallo (setInterval): 5 s] impulso ──▶ leggi [readFile: ~/porta.txt] contenuto ──▶ porta [Gradini: Ingresso]
 ```
 
-Il file contiene `aperto` o `chiuso`: la corsia è sì/no. Ogni 5 secondi arriva lo stato anche se non è cambiato: il disegno non cambia (lo stato continua), ma ogni lettura conta tra i **Punti tenuti per serie** (con 1000 punti e una lettura ogni 5 secondi, la corsia tiene circa 83 minuti: più del **Tempo mostrato** di serie, quindi va bene). Con letture molto fitte e un **Tempo mostrato** lungo, conviene mandare solo i cambi: per esempio [Fronte](core.edge) manda un impulso solo quando un sì/no cambia.
+Il file contiene `aperto` o `chiuso`: la corsia è sì/no. Ogni 5 secondi arriva lo stato anche se non è cambiato: il disegno non cambia (lo stato continua), ma ogni lettura conta tra i **Punti tenuti per serie** (con 1000 punti e una lettura ogni 5 secondi, la corsia tiene circa 83 minuti: più del **Tempo mostrato** di serie, quindi va bene). Con letture molto fitte e un **Tempo mostrato** lungo, conviene mandare solo i cambi: per esempio [Al cambio (fronte ↑↓)](core.edge) manda un impulso solo quando un sì/no cambia.
 
 ### 3. Cosa succedeva alle 10:15?
 
 ```
-[Gradini: Impianto] punto scelto ──▶ valore [Scrivi in console]
+[Gradini: Impianto] punto scelto ──▶ valore [Print (console.log)]
 ```
 
 Un clic sul grafico all'altezza delle 10:15 scrive `{"time": "2026-11-11T09:15:00.000Z", "x": 1794388500000, "values": {"pompa": true, "fase": "riempimento"}}` (l'ora ISO è in UTC: le 10:15 in Italia d'inverno sono le 09:15 UTC).
@@ -100,5 +100,5 @@ Un clic sul grafico all'altezza delle 10:15 scrive `{"time": "2026-11-11T09:15:0
 
 - [Tempo reale](charts.live) per numeri che cambiano
 - [Spia](ui.lamp) per mostrare solo lo stato di adesso
-- [Interruttore](ui.toggle), [Selezione](ui.select), [Fronte](core.edge)
+- [Interruttore](ui.toggle), [Selezione](ui.select), [Al cambio (fronte ↑↓)](core.edge)
 - [Grafici](logicstudio-charts): le forme dei dati, i limiti, la tastiera

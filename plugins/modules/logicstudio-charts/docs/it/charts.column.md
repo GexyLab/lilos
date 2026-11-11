@@ -88,7 +88,7 @@ Finestra «Zone»
 ```
 
 ```
-[Valore (JSON): {"Nord": {"2025": 12, "2026": 15}, "Sud": {"2025": 9, "2026": 11}, "Est": {"2025": 14, "2026": 13}}] valore ──▶ dati [Colonne: Ordini]
+[Costante · Variabile (JSON): {"Nord": {"2025": 12, "2026": 15}, "Sud": {"2025": 9, "2026": 11}, "Est": {"2025": 14, "2026": 13}}] valore ──▶ dati [Colonne: Ordini]
 ```
 
 Tre gruppi di due colonne, con la legenda «2025» e «2026». Un clic sulla colonna 2026 di «Sud» manda `{"category": "Sud", "values": {"2025": 9, "2026": 11}, "index": 1, "series": "2026", "y": 11}`.
@@ -96,11 +96,11 @@ Tre gruppi di due colonne, con la legenda «2025» e «2026». Un clic sulla col
 ### 2. Voti da un sondaggio, che si aggiornano
 
 ```
-[Pulsante: Rosso] premuto ──▶ più [Contatore: rosso] conteggio ──▶ y   [Componi oggetto] oggetto ──▶ aggiungi punto [Colonne: Voti]
-[Valore (testo): Rosso]  valore ──────────────────────────────▶ x
+[Pulsante: Rosso] premuto ──▶ più [Contatore (++ −−): rosso] conteggio ──▶ y   [Oggetto { }] oggetto ──▶ aggiungi punto [Colonne: Voti]
+[Costante · Variabile (testo): Rosso]  valore ──────────────────────────────▶ x
 ```
 
-[Componi oggetto](core.compose) ha due ingressi aggiunti, chiamati **x** e **y**. A ogni voto manda `{"x": "Rosso", "y": 4}`: la prima volta la colonna «Rosso» compare, le volte dopo cresce. Ripeti per gli altri colori.
+[Oggetto { }](core.compose) ha due ingressi aggiunti, chiamati **x** e **y**. A ogni voto manda `{"x": "Rosso", "y": 4}`: la prima volta la colonna «Rosso» compare, le volte dopo cresce. Ripeti per gli altri colori.
 
 ### 3. Entrate e uscite, impilate
 
@@ -114,5 +114,5 @@ Con **Impilate** acceso e dati `{"Gen": {"Entrate": 50, "Uscite": -30}, "Feb": {
 
 - [Barre](charts.bar): le stesse cose in orizzontale, ordinabili
 - [Istogramma](charts.histogram) per contare quanti valori cadono in ogni classe
-- [Componi oggetto](core.compose), [Contatore](core.counter)
+- [Oggetto { }](core.compose), [Contatore (++ −−)](core.counter)
 - [Grafici](logicstudio-charts): le forme dei dati, i limiti, la tastiera

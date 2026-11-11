@@ -1,4 +1,4 @@
-# Get column
+# Column m[][c]
 
 `coll.matCol` · Matrices · [Lists and matrices](logicstudio-collections) · version 1
 
@@ -32,8 +32,8 @@ The block waits until it has **matrix** and **column**; then, at every new value
 ### 1. The second column
 
 ```
-[Value (JSON): [[1,2,3],[4,5,6]]] value ──▶ matrix [Get column] column ──▶ value [Write to console]
-[Value: 1]                        value ──▶ column
+[Constant · Variable (JSON): [[1,2,3],[4,5,6]]] value ──▶ matrix [Column m[][c]] column ──▶ value [Print (console.log)]
+[Constant · Variable: 1]                        value ──▶ column
 ```
 
 It writes `[2,5]`. With column `-1` it writes `[3,6]`; with column `3` the output is «Indice fuori dalla lista».
@@ -43,8 +43,8 @@ It writes `[2,5]`. With column `-1` it writes `[3,6]`; with column `3` the outpu
 A matrix in which every row is `[hour, temperature, humidity]`:
 
 ```
-[Value (JSON): [[8,18.5,60],[12,23,52],[16,21.5,55]]] value ──▶ matrix [Get column] column ──▶ list [Sum · Min · Max · Average: average] result ──▶ value [Value]
-[Value: 1]                                            value ──▶ column
+[Constant · Variable (JSON): [[8,18.5,60],[12,23,52],[16,21.5,55]]] value ──▶ matrix [Column m[][c]] column ──▶ list [Sum · Min · Max · Avg: average] result ──▶ value [Value]
+[Constant · Variable: 1]                                            value ──▶ column
 ```
 
 It shows the average temperature: 21. With column 2, the average humidity: 55.666…
@@ -60,6 +60,6 @@ It shows the average temperature: 21. With column 2, the average humidity: 55.66
 
 ## See also
 
-- [Get row](coll.matRow), [Get cell](coll.matGet), [Transpose](coll.matTranspose)
+- [Row m[r]](coll.matRow), [Get m[r][c]](coll.matGet), [Transpose](coll.matTranspose)
 - [Map field](coll.pluck) with a number as the field does the same on any list of lists
 - [How a block works](ide/blocks)

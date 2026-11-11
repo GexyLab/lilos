@@ -1,4 +1,4 @@
-# Every…
+# Interval (setInterval)
 
 `core.every` · Time · [Core blocks](logicstudio-core) · version 1
 
@@ -28,7 +28,7 @@ Sends a pulse at regular intervals, for example every 30 seconds. It is turned o
 
 ### When it starts and when it stops
 
-- With **Starts on its own** checked, the pulses begin when the program starts. The **first pulse arrives after a whole interval**, not at once: with 30 seconds, the first comes out 30 seconds after the start. If you need a pulse at once too, link an [At start](core.onStart) to the same block as well.
+- With **Starts on its own** checked, the pulses begin when the program starts. The **first pulse arrives after a whole interval**, not at once: with 30 seconds, the first comes out 30 seconds after the start. If you need a pulse at once too, link an [On start (main)](core.onStart) block to the same block as well.
 - A **yes** on **on** turns the pulses on. If they were already on, **nothing changes**: the rhythm does not start again from scratch.
 - A **no** on **on** stops them. A later **yes** turns them on again, and the first pulse arrives again after a whole interval.
 - When the program stops, the pulses stop.
@@ -53,7 +53,7 @@ For the general rules see [How a block works](ide/blocks).
 ### 1. A clock in the console
 
 ```
-[Every… 1 s] pulse ──▶ read [Date and time] ISO ──▶ value [Write to console]
+[Interval (setInterval): 1 s] pulse ──▶ read [Now (date and time)] ISO ──▶ value [Print (console.log)]
 ```
 
 From second 1 on, the console writes a line a second, for example `2026-11-11T14:05:01.003Z`.
@@ -61,7 +61,7 @@ From second 1 on, the console writes a line a second, for example `2026-11-11T14
 ### 2. A check that is turned on and off from a window
 
 ```
-[Switch: check] value ──▶ on [Every… 10 s] pulse ──▶ check [Exists: ~/Documents/order.txt] …
+[Switch: check] value ──▶ on [Interval (setInterval): 10 s] pulse ──▶ check [exists: ~/Documents/order.txt] …
 ```
 
 **Starts on its own** removed. As long as the [Switch](ui.toggle) of the window is on, every 10 seconds the program checks whether the file is there; turning it off, the checks stop.
@@ -69,25 +69,27 @@ From second 1 on, the console writes a line a second, for example `2026-11-11T14
 ### 3. A countdown
 
 ```
-[Every… 1 s] pulse ──▶ down [Counter: Start from 10] count ──▶ a [Compare: a ≤ b, b = 0] if true ──▶ send [Value: yes/no "no"] value ──▶ on [Every… 1 s]
-                                                      count ──▶ value [Write to console]
+[Interval (setInterval): 1 s] pulse ──▶ down [Counter (++ −−): Start from 10] count ──▶ a [Compare (== != < >): a ≤ b, b = 0] if true ──▶ send [Constant · Variable: yes/no "no"] value ──▶ on [Interval (setInterval): 1 s]
+                                                      count ──▶ value [Print (console.log)]
 ```
 
-On [Compare](core.compare) the input **b** has the initial value 0 and **starts it removed**: otherwise at start Compare would run with **a** still empty (which is 0), find 0 ≤ 0 and turn everything off before the first pulse.
+On the [Compare (== != < >)](core.compare) block the input **b** has the initial value 0 and **starts it removed**: otherwise at start Compare would run with **a** still empty (which is 0), find 0 ≤ 0 and turn everything off before the first pulse.
 
-The link goes back to the first block: it is a loop, but it is fine because it goes through an [Every…](core.every) that slows it down. The console writes 9, 8, … 0, then the pulses stop.
+The link goes back to the first block: it is a loop, but it is fine because it goes through an [Interval (setInterval)](core.every) block that slows it down. The console writes 9, 8, … 0, then the pulses stop.
+
+The [Constant · Variable](core.value) block has its **send** input linked (you show it with the eye next to the port, in the **Properties**): that is why it sends its "no" only when the pulse arrives, and not at start.
 
 ### 4. A pulse at once and then every minute
 
 ```
-[At start]   pulse ──▶ read [Date and time] …
-[Every… 60 s] pulse ──▶ read
+[On start (main)]   pulse ──▶ read [Now (date and time)] …
+[Interval (setInterval): 60 s] pulse ──▶ read
 ```
 
 ## See also
 
-- [At start](core.onStart)
-- [Wait](core.delay), [Settle](core.debounce), [At most every](core.throttle)
-- [Date and time](core.now)
-- [Counter](core.counter)
+- [On start (main)](core.onStart)
+- [Delay (setTimeout)](core.delay), [Debounce](core.debounce), [Throttle](core.throttle)
+- [Now (date and time)](core.now)
+- [Counter (++ −−)](core.counter)
 - [How a block works](ide/blocks)

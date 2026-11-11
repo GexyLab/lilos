@@ -1,8 +1,8 @@
-# Memoria
+# Memoria (set · get)
 
 `core.store` · Valori · [Blocchi di base](logicstudio-core) · versione 1
 
-Tiene da parte un valore e lo manda quando glielo chiedi. È la «variabile» di uno schema: la scrivi con **imposta**, la leggi con **leggi**, la svuoti con **svuota**.
+Tiene da parte un valore e lo manda quando glielo chiedi. È la «variabile» di uno schema (in alternativa c'è [Costante · Variabile](core.value), che con **imposta** collegato diventa anch'esso una variabile): la scrivi con **imposta**, la leggi con **leggi**, la svuoti con **svuota**.
 
 ## Ingressi
 
@@ -51,29 +51,29 @@ Vedi anche [Come funziona un blocco](ide/blocks).
 ### 1. Ricordare l'ultimo testo scritto e mostrarlo su richiesta
 
 ```
-[Campo di testo: nome] testo   ──▶ imposta [Memoria] valore ──▶ valore [Scrivi in console]
+[Campo di testo: nome] testo   ──▶ imposta [Memoria (set · get)] valore ──▶ valore [Print (console.log)]
 [Pulsante: Mostra]     premuto ──▶ leggi
 ```
 
-L'utente scrive `Ada` nel [Campo di testo](ui.text): la Memoria lo tiene, senza mandarlo. Quando preme **Mostra**, la console scrive `Ada`. Se preme **Mostra** prima di aver scritto qualcosa, la Memoria manda `null` e la console scrive una riga vuota.
+L'utente scrive `Ada` nel [Campo di testo](ui.text): il blocco Memoria (set · get) lo tiene, senza mandarlo. Quando preme **Mostra**, la console scrive `Ada`. Se preme **Mostra** prima di aver scritto qualcosa, il blocco manda `null` e la console scrive una riga vuota.
 
 ### 2. L'ultimo valore, ogni 10 secondi
 
 Un valore cambia molte volte al secondo, ma vuoi scriverlo solo ogni 10 secondi:
 
 ```
-[Cursore: livello] valore  ──▶ imposta [Memoria] valore ──▶ valore [Scrivi in console]
-[Ogni…: 10 s]      impulso ──▶ leggi
+[Cursore: livello] valore  ──▶ imposta [Memoria (set · get)] valore ──▶ valore [Print (console.log)]
+[Intervallo (setInterval): 10 s]      impulso ──▶ leggi
 ```
 
-Il [Cursore](ui.slider) aggiorna la Memoria a ogni movimento; [Ogni…](core.every) la fa leggere ogni 10 secondi. Se l'utente porta il cursore a 20, poi 35, poi 42 in quei 10 secondi, la console scrive solo `42`.
+Il [Cursore](ui.slider) aggiorna il blocco Memoria (set · get) a ogni movimento; [Intervallo (setInterval)](core.every) glielo fa leggere ogni 10 secondi. Se l'utente porta il cursore a 20, poi 35, poi 42 in quei 10 secondi, la console scrive solo `42`.
 
 Con **Invia quando cambia** spuntata, invece, la console scriverebbe anche `20`, `35` e `42` a ogni movimento.
 
 ### 3. Un valore che si azzera
 
 ```
-[Pulsante: Azzera] premuto ──▶ svuota [Memoria]
+[Pulsante: Azzera] premuto ──▶ svuota [Memoria (set · get)]
 ```
 
 Dopo **Azzera**, un **leggi** manda `null` finché non arriva un nuovo **imposta**.
@@ -84,7 +84,7 @@ Questo blocco non ha errori suoi.
 
 ## Vedi anche
 
-- [Valore](core.value) per un valore fisso
-- [Contatore](core.counter) per un numero che sale e scende
-- [Fronte](core.edge) per sapere quando un sì/no cambia
+- [Costante · Variabile](core.value) per un valore fisso
+- [Contatore (++ −−)](core.counter) per un numero che sale e scende
+- [Al cambio (fronte ↑↓)](core.edge) per sapere quando un sì/no cambia
 - [Come funziona un blocco](ide/blocks)

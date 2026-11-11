@@ -102,10 +102,10 @@ Inside a schema you link blocks. **Between different schemas** of a project only
 
 ```
 schema «sensori»                         schema «allarmi»
-… ──▶ value [Schema output: temp]  ═══▶  [Schema input: temp] value ──▶ …
+… ──▶ value [Return (schema output): temp]  ═══▶  [Parameter (schema input): temp] value ──▶ …
 ```
 
-- You go from a **Schema output** of one schema to a **Schema input** of another.
+- You go from a **Return** of one schema to a **Parameter** of another.
 - An output can go to several inputs, and an input can receive from several outputs.
 - These links are in the project file (`.lsproj`), written as `"sensori:temp"` → `"allarmi:temp"`.
 - When you rename the schema or the port, the links follow.
@@ -127,8 +127,8 @@ A component of a window **is not linked directly**: you link its **object** in a
 ### 1. One value to several blocks
 
 ```
-[Number field: gradi] value ──▶ value [Write to console]
-                      value ──▶ a [Compare: a > b, b = 30] if true ──▶ send [Notification]
+[Number field: gradi] value ──▶ value [Print (console.log)]
+                      value ──▶ a [Compare (== != < >): a > b, b = 30] if true ──▶ send [Notify]
 ```
 
 Every number typed in the field goes both to the console and to **Compare**. When it is above 30, a notification is sent (a block of the [lilOS blocks](logicstudio-lilos) package).
@@ -136,23 +136,23 @@ Every number typed in the field goes both to the console and to **Compare**. Whe
 ### 2. Several values on one input
 
 ```
-[Button: On] pressed ──▶ send [Value: yes] value ──▶ on [Every…]
-[Button: Off] pressed ──▶ send [Value: no] value ──▶ on
+[Button: On] pressed ──▶ send [Constant · Variable: yes] value ──▶ on [Interval (setInterval)]
+[Button: Off] pressed ──▶ send [Constant · Variable: no] value ──▶ on
 ```
 
-Two Values (**Kind** = **yes/no**, **Send at start** unticked) arrive at the same **on** input: the last one pressed counts.
+Two Constant · Variable blocks (**Kind** = **yes/no**, with **send** linked: to see it, turn on the **eye** next to the port in the Properties) send their value only at each pulse. The values arrive at the same **on** input: the last one pressed counts.
 
 ### 3. A marked link that works all the same
 
 ```
-[Text field] text ──▶ a [Add] result ──▶ value [Write to console]
+[Text field] text ──▶ a [Add (+)] result ──▶ value [Print (console.log)]
 ```
 
-The text → number link is dotted. If the user types `12`, Add converts it and writes 12; if they type `ciao`, Add sends «Serve un numero» on the **Exception** and, if it is not linked, the line goes to the main console. For an explicit check put a **Convert** in between (**To** = **number**) and link its **Exception** to a **Write to console** with level **warning**.
+The text → number link is dotted. If the user types `12`, the Add block converts it and writes 12; if they type `ciao`, the Add block sends «Serve un numero» on the **Exception** and, if it is not linked, the line goes to the main console. For an explicit check put a **Type cast** in between (**To** = **number**) and link its **Exception** to a **Print** with level **warning**.
 
 ## See also
 
 - [How a block works](ide/blocks)
 - [Schemas](ide/schemas)
 - [The object of a component](ide/components)
-- [Convert](core.convert)
+- [Type cast](core.convert)

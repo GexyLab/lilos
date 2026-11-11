@@ -1,4 +1,4 @@
-# Contatore
+# Contatore (++ −−)
 
 `core.counter` · Matematica · [Blocchi di base](logicstudio-core) · versione 1
 
@@ -41,8 +41,8 @@ A ogni impulso il blocco cambia il conteggio e lo manda su **conteggio**:
 Cose da sapere:
 
 - Conta solo **che** arrivi qualcosa, non **cosa**: anche `false` o `0` su **più** fanno salire il conteggio.
-- Non c'è un limite: il conteggio può scendere sotto zero e salire quanto vuoi. Per tenerlo tra due valori, metti dopo un [Limita](core.clamp) (che però limita solo quello che esce, non il conteggio interno).
-- Con un **Passo** con i decimali si accumulano piccoli scarti: partendo da 10 con passo 0,1, dopo quattro **più** il conteggio è 10,399999999999999. Arrotonda con [Calcola](core.math) prima di mostrarlo.
+- Non c'è un limite: il conteggio può scendere sotto zero e salire quanto vuoi. Per tenerlo tra due valori, metti dopo un blocco [Clamp (limita)](core.clamp) (che però limita solo quello che esce, non il conteggio interno).
+- Con un **Passo** con i decimali si accumulano piccoli scarti: partendo da 10 con passo 0,1, dopo quattro **più** il conteggio è 10,399999999999999. Arrotonda con [Funzioni Math](core.math) prima di mostrarlo.
 - Con un **Passo** negativo, **più** fa scendere e **meno** fa salire.
 - Se lasci vuoto il **Passo**, vale 0 (il conteggio non cambia). Se lasci vuoto **Parte da**, all'inizio il conteggio è vuoto e il primo **più** dà il Passo.
 - Il conteggio riparte da **Parte da** a ogni avvio del programma: non viene salvato.
@@ -53,7 +53,7 @@ Cose da sapere:
 ### 1. Contare i clic
 
 ```
-[Pulsante: +1]     premuto ──▶ più    [Contatore] conteggio ──▶ valore [Valore: clic]
+[Pulsante: +1]     premuto ──▶ più    [Contatore (++ −−)] conteggio ──▶ valore [Valore: clic]
 [Pulsante: −1]     premuto ──▶ meno
 [Pulsante: Azzera] premuto ──▶ azzera
 ```
@@ -62,7 +62,7 @@ Tre clic su **+1**: la componente [Valore](ui.value) mostra 1, 2, 3. Un clic su 
 
 ### 2. Un conto alla rovescia
 
-Passo 1, Parte da 10. Collega [Ogni…](core.every) (1 secondo) a **meno**: il blocco manda 9, 8, 7… un numero al secondo, e continua sotto lo zero (−1, −2…). Per fermarlo a 0, usa un [Confronta](core.compare) `a ≤ b` con **b** = 0 e manda il risultato, rovesciato con [NON](core.not), all'ingresso **acceso** di Ogni….
+Passo 1, Parte da 10. Collega [Intervallo (setInterval)](core.every) (1 secondo) a **meno**: il blocco manda 9, 8, 7… un numero al secondo, e continua sotto lo zero (−1, −2…). Per fermarlo a 0, usa un blocco [Confronto (== ≠ < >)](core.compare) `a ≤ b` con **b** = 0 e manda il risultato, rovesciato con [NOT](core.not), all'ingresso **acceso** di Ogni….
 
 ### 3. Un indice che avanza di 5
 
@@ -74,8 +74,8 @@ Questo blocco non ha errori suoi.
 
 ## Vedi anche
 
-- [Fronte](core.edge) per contare i cambiamenti di un sì/no
-- [Memoria](core.store) per tenere un valore qualsiasi
-- [Somma](core.add) per sommare numeri che arrivano
-- [Intervallo](coll.range) per una lista di numeri in fila
+- [Al cambio (fronte ↑↓)](core.edge) per contare i cambiamenti di un sì/no
+- [Memoria (set · get)](core.store) per tenere un valore qualsiasi
+- [Somma (+)](core.add) per sommare numeri che arrivano
+- [Range](coll.range) per una lista di numeri in fila
 - [Come funziona un blocco](ide/blocks)

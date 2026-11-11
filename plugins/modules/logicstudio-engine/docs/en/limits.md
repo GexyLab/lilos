@@ -77,11 +77,11 @@ The limits on projects are checked **when the program starts**: if the project d
 | Active programs of everybody | lilOS ha già 200 programmi attivi: al massimo 200 (lilOS already has 200 active programs: at most 200) | The program does not start |
 | Memory for everybody | Logic Studio usa già 960 MB: al massimo 1024 MB per tutti (Logic Studio already uses 960 MB: at most 1024 MB for everybody) | The program starts and stops at once, **Stopped by an error**. It happens only when your worker has to open (you have no other programs running) |
 | Runs in 10 seconds | Troppe esecuzioni: più di 10000 in 10 secondi (un ciclo di collegamenti?) (Too many runs: more than 10000 in 10 seconds (a loop of links?)) | The program stops, **Stopped by an error** |
-| Time a block may take | Leggi file ha impiegato più di 30 s (Read file took more than 30 s) | The message comes out of the **Exception** output of the block (the name is that of the block); the program goes on |
+| Time a block may take | readFile ha impiegato più di 30 s (readFile took more than 30 s) | The message comes out of the **Exception** output of the block (the name is that of the block); the program goes on |
 | Length of a test | Fine della prova: è durata il tempo massimo (End of the test: it lasted the maximum time) | The test stops (**Stopped**) |
 | Blocks per schema | Troppi blocchi nello schema principale: al massimo 200 (Too many blocks in the schema principale: at most 200) | The program does not start |
 | Links per schema | Troppi collegamenti nello schema principale: al massimo 600 (Too many links in the schema principale: at most 600) | The program does not start |
-| Added ports | principale/b7: troppe porte aggiunte (al massimo 16) (principale/b7: too many added ports (at most 16)) | The program does not start. The maximum is the smaller of this limit and that of the block (for example 16 for Add) |
+| Added ports | principale/b7: troppe porte aggiunte (al massimo 16) (principale/b7: too many added ports (at most 16)) | The program does not start. The maximum is the smaller of this limit and that of the block (for example 16 for the Add (+) block) |
 | Schemas | Troppi schemi: al massimo 20 per progetto (Too many schemas: at most 20 per project) | The program does not start |
 | Windows | Troppe finestre: al massimo 10 per progetto (Too many windows: at most 10 per project) | The program does not start |
 | Components | Troppe componenti nella finestra main: al massimo 200 (Too many components in the window main: at most 200) | The program does not start. All components count, containers too |
@@ -94,10 +94,10 @@ In the messages, in place of «principale», «b7» and «main» there are the n
 
 ### The time a block may take, up close
 
-- It counts the time from the beginning to the end of the block's work, **waits included**: a slow [Web request](net.request), a big file, a question in the console.
-- That is why it holds for [Read from console](core.consoleRead) too: today, if nobody answers within 30 seconds (default), the block sends «Leggi da console ha impiegato più di 30 s» ("Read from console took more than 30 s") on **Exception** and the answer given afterwards no longer reaches it.
+- It counts the time from the beginning to the end of the block's work, **waits included**: a slow [HTTP request (fetch)](net.request), a big file, a question in the console.
+- That is why it holds for [Input (readline)](core.consoleRead) too: today, if nobody answers within 30 seconds (default), the block sends «Input (readline) ha impiegato più di 30 s» ("Input (readline) took more than 30 s") on **Exception** and the answer given afterwards no longer reaches it.
 - It also holds for what a block does when the program starts.
-- It does not hold for the wait of the time blocks like [Wait](core.delay) or [Every…](core.every): those do not work while they wait.
+- It does not hold for the wait of the time blocks like [Delay (setTimeout)](core.delay) or [Interval (setInterval)](core.every): those do not work while they wait.
 
 ## Other fixed limits
 
@@ -154,21 +154,21 @@ Marta keeps six home-automation projects always on and wants ten more. The admin
 
 ### 2. A block that calls a slow service
 
-A project makes a [Web request](net.request) to a service that sometimes takes 45 seconds. There are two time limits, and the shorter one holds:
+A project makes a [HTTP request (fetch)](net.request) to a service that sometimes takes 45 seconds. There are two time limits, and the shorter one holds:
 
 - the one of the request, in the settings of the `logicstudio-net` module (**Time limit of a request (seconds)**, 20 seconds by default): after 20 seconds the block sends on **Exception** «Nessuna risposta da … in 20 secondi» ("No answer from … in 20 seconds");
-- the one of each block, here (**Time a block may take (seconds)**, 30 seconds by default): «Richiesta web ha impiegato più di 30 s» ("Web request took more than 30 s").
+- the one of each block, here (**Time a block may take (seconds)**, 30 seconds by default): «HTTP (fetch) ha impiegato più di 30 s» ("HTTP request (fetch) took more than 30 s").
 
 To wait 45 seconds, the administrator raises the first to 60 seconds (in the settings of the module) and the second to 60 seconds (**Limits** tab); then you activate the project again, because the time of a block holds for programs that start afterwards. Or you link **Exception** to a block that tries again later.
 
 ### 3. A console that talks too much
 
 ```
-[Range: from 1 to 200] result ──▶ list  [For each] item ──▶ value [Write to console]
-[Every…: 5 s]          pulse  ──▶ start
+[Range: from 1 to 200] result ──▶ list  [For each] item ──▶ value [Print (console.log)]
+[Interval (setInterval): 5 s]          pulse  ──▶ start
 ```
 
-Give **from** and **to** of the [Range](coll.range) the start values 1 and 200. Every 5 seconds [For each](coll.forEach) sends 200 values in a row, but the console shows only the first 50 of that second. At the line written 5 seconds later the warning «… 150 righe non mostrate (troppe al secondo)» ("… 150 lines not shown (too many per second)") appears first. The program does not stop. If you need all the values, write them to a file with [Append to file](lilos.fileAppend), or show just one every now and then with [At most every](core.throttle).
+Give **from** and **to** of the [Range](coll.range) block the start values 1 and 200. Every 5 seconds [For each](coll.forEach) sends 200 values in a row, but the console shows only the first 50 of that second. At the line written 5 seconds later the warning «… 150 righe non mostrate (troppe al secondo)» ("… 150 lines not shown (too many per second)") appears first. The program does not stop. If you need all the values, write them to a file with [appendFile](lilos.fileAppend), or show just one every now and then with [Throttle](core.throttle).
 
 ## See also
 

@@ -4,9 +4,9 @@ Gli schemi **non toccano direttamente** le componenti di una finestra. Ogni comp
 
 ```
 schema «main»                                         finestra «Principale»
-[Ogni…] impulso ──▶ più [Contatore] conteggio ──▶ valore [Valore: contatore]  ═══  ┌──────────────┐
+[Intervallo (setInterval)] impulso ──▶ più [Contatore (++ −−)] conteggio ──▶ valore [Valore: contatore]  ═══  ┌──────────────┐
                                                                                     │ contatore 12 │
-[Pulsante: Azzera] premuto ──▶ azzera [Contatore]                            ═══  │ [ Azzera ]   │
+[Pulsante: Azzera] premuto ──▶ azzera [Contatore (++ −−)]                            ═══  │ [ Azzera ]   │
                                                                                     └──────────────┘
 ```
 
@@ -97,7 +97,7 @@ Alcuni grafici (**Tempo reale**, una serie per porta; **Gradini**, uno stato per
 Nella finestra: un **Pulsante** (**Testo** = `+1`) e un **Valore** (**Etichetta** = `Pressioni`). Crea i due oggetti nello schema **main**, poi:
 
 ```
-[Pulsante: +1] premuto ──▶ più [Contatore] conteggio ──▶ valore [Valore: Pressioni]
+[Pulsante: +1] premuto ──▶ più [Contatore (++ −−)] conteggio ──▶ valore [Valore: Pressioni]
 ```
 
 **Prova** → **Anteprima**: ogni clic su **+1** fa salire il numero.
@@ -105,19 +105,19 @@ Nella finestra: un **Pulsante** (**Testo** = `+1`) e un **Valore** (**Etichetta*
 ### 2. Abilitare un pulsante solo con un nome scritto
 
 ```
-[Campo di testo: nome] testo ──▶ testo [Operazione sul testo: lunghezza] risultato ──▶ a [Confronta: a > b, b = 0] risultato ──▶ abilitato [Pulsante: Invia]
+[Campo di testo: nome] testo ──▶ testo [Funzioni stringa: lunghezza] risultato ──▶ a [Confronto (== ≠ < >): a > b, b = 0] risultato ──▶ abilitato [Pulsante: Invia]
 ```
 
-Su **Confronta**, **b** ha valore iniziale `0` e **lo avvia** tolto. Appena scrivi qualcosa il pulsante si accende; se cancelli tutto, si spegne. All'apertura della finestra il pulsante è acceso finché non scrivi niente: se vuoi che parta spento, collega anche un **Valore** (**Tipo** = **sì/no**, **Valore** = `no`, **Invia all'avvio** spuntato) ad **abilitato**.
+Su **Confronto**, **b** ha valore iniziale `0` e **lo avvia** tolto. Appena scrivi qualcosa il pulsante si accende; se cancelli tutto, si spegne. All'apertura della finestra il pulsante è acceso finché non scrivi niente: se vuoi che parta spento, collega anche un blocco **Costante · Variabile** (**Tipo** = **sì/no**, **Valore** = `no`, niente collegato a **invia**) ad **abilitato**.
 
 ### 3. Una tabella da un file
 
 ```
-[All'avvio] impulso ──▶ leggi [Leggi file: ~/spesa.json, JSON] contenuto ──▶ righe [Tabella]
-[Tabella] riga scelta ──▶ valore [Scrivi in console: JSON leggibile]
+[All'avvio (main)] impulso ──▶ leggi [readFile: ~/spesa.json, JSON] contenuto ──▶ righe [Tabella]
+[Tabella] riga scelta ──▶ valore [Print (console.log): JSON leggibile]
 ```
 
-`~/spesa.json` contiene `[{"cosa": "pane", "quanto": 2}, {"cosa": "latte", "quanto": 1}]`. La tabella mostra le due righe; un clic su una riga la scrive in console. **Leggi file** è nel pacchetto [Blocchi di lilOS](logicstudio-lilos).
+`~/spesa.json` contiene `[{"cosa": "pane", "quanto": 2}, {"cosa": "latte", "quanto": 1}]`. La tabella mostra le due righe; un clic su una riga la scrive in console. **readFile** è nel pacchetto [Blocchi di lilOS](logicstudio-lilos).
 
 ## Vedi anche
 

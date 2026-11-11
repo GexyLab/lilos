@@ -1,4 +1,4 @@
-# Scrivi in console
+# Print (console.log)
 
 `core.consoleWrite` · Console · [Blocchi di base](logicstudio-core) · versione 1
 
@@ -54,7 +54,7 @@ Come vengono scritti i valori:
 | oggetto | su una riga: `{"a":1,"b":[1,2]}` | su più righe, rientrato di due spazi |
 | lista | su una riga: `[1,2]` | su più righe, rientrato di due spazi |
 
-I numeri sono scritti come li calcola il computer: `0.1 + 0.2` dà `0.30000000000000004`. Per un numero con pochi decimali usa prima [Calcola](core.math) con **arrotonda**.
+I numeri sono scritti come li calcola il computer: `0.1 + 0.2` dà `0.30000000000000004`. Per un numero con pochi decimali usa prima [Funzioni Math](core.math) con **arrotonda**.
 
 ### Livello e registro
 
@@ -88,7 +88,7 @@ Per le regole generali vedi [Come funziona un blocco](ide/blocks).
 Aggiungi due ingressi e chiamali **temp** e **ok**. **Livello** avviso.
 
 ```
-[…] ──▶ valore [Scrivi in console: avviso]
+[…] ──▶ valore [Print (console.log): avviso]
 […] ──▶ temp
 […] ──▶ ok
 ```
@@ -120,25 +120,25 @@ Lettura
 ### 3. Pulire e scrivere a ogni giro
 
 ```
-[Ogni… 5 s] impulso ──▶ pulisci [Scrivi in console]
-            impulso ──▶ leggi [Data e ora] ISO ──▶ valore [Scrivi in console]
+[Intervallo (setInterval): 5 s] impulso ──▶ pulisci [Print (console.log)]
+            impulso ──▶ leggi [Now (data e ora)] ISO ──▶ valore [Print (console.log)]
 ```
 
-I due collegamenti vanno allo **stesso** blocco Scrivi in console: ogni 5 secondi la console viene svuotata e poi mostra solo l'ora dell'ultima lettura.
+I due collegamenti vanno allo **stesso** blocco Print (console.log): ogni 5 secondi la console viene svuotata e poi mostra solo l'ora dell'ultima lettura.
 
 ### 4. Gli errori in una console a parte
 
-Aggiungi nel progetto una console **Errori**. Collega le **Eccezioni** dei blocchi che ti interessano a uno Scrivi in console con **Console** = Errori e **Livello** errore: gli errori non finiscono più nella principale, e nei programmi attivi restano nel registro.
+Aggiungi nel progetto una console **Errori**. Collega le **Eccezioni** dei blocchi che ti interessano a un blocco Print (console.log) con **Console** = Errori e **Livello** errore: gli errori non finiscono più nella principale, e nei programmi attivi restano nel registro.
 
 ```
-[Richiesta web] Eccezione ──▶ valore [Scrivi in console: Errori, errore]
+[HTTP (fetch)] Eccezione ──▶ valore [Print (console.log): Errori, errore]
 ```
 
-La riga è l'oggetto dell'errore, per esempio `{"message":"…","block":"request1","schema":"main","at":1794405901003}`. Per scrivere solo il messaggio, mettici prima [Prendi campo](core.get) con Campo `message`.
+La riga è l'oggetto dell'errore, per esempio `{"message":"…","block":"request1","schema":"main","at":1794405901003}`. Per scrivere solo il messaggio, mettici prima [Get proprietà (obj.campo)](core.get) con Campo `message`.
 
 ## Vedi anche
 
-- [Leggi da console](core.consoleRead)
+- [Input (readline)](core.consoleRead)
 - [Le console](ide/consoles)
-- [Formatta testo](core.format) per costruire righe più complesse
+- [Template (formatta)](core.format) per costruire righe più complesse
 - [Come funziona un blocco](ide/blocks)

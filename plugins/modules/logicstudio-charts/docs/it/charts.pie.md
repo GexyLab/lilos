@@ -82,7 +82,7 @@ Finestra «Spese»
 ```
 
 ```
-[Valore (JSON): {"Acqua": 45, "Concime": 25, "Energia": 18, "Altro": 12}] valore ──▶ dati [Torta · Ciambella: Spese di ottobre]
+[Costante · Variabile (JSON): {"Acqua": 45, "Concime": 25, "Energia": 18, "Altro": 12}] valore ──▶ dati [Torta · Ciambella: Spese di ottobre]
 ```
 
 Quattro fette (45%, 25%, 18%, 12%) e al centro «100 €» con sotto «totale». Un clic sulla fetta dell'energia manda `{"name": "Energia", "value": 18, "share": 0.18, "index": 2}`.
@@ -90,7 +90,7 @@ Quattro fette (45%, 25%, 18%, 12%) e al centro «100 €» con sotto «totale».
 ### 2. Più di sei voci
 
 ```
-[Valore (JSON): {"Foto": 120, "Video": 300, "Musica": 80, "Documenti": 40, "Archivi": 25, "Programmi": 60, "Varie": 10, "Temporanei": 5}] valore ──▶ dati [Torta · Ciambella: Disco]
+[Costante · Variabile (JSON): {"Foto": 120, "Video": 300, "Musica": 80, "Documenti": 40, "Archivi": 25, "Programmi": 60, "Varie": 10, "Temporanei": 5}] valore ──▶ dati [Torta · Ciambella: Disco]
 ```
 
 Otto voci, quindi restano le 5 più grandi (Video 300, Foto 120, Musica 80, Programmi 60, Documenti 40), disegnate nell'ordine dei dati: Foto, Video, Musica, Documenti, Programmi. Archivi, Varie e Temporanei diventano l'ultima fetta, grigia, «Altro», da 40. Il riquadro di quella fetta elenca «Archivi, Varie, Temporanei».
@@ -98,10 +98,10 @@ Otto voci, quindi restano le 5 più grandi (Video 300, Foto 120, Musica 80, Prog
 ### 3. Dalla scelta a un dettaglio
 
 ```
-[Torta · Ciambella: Spese di ottobre] fetta scelta ──▶ oggetto [Prendi campo: name] valore ──▶ testo [Etichetta: Voce]
+[Torta · Ciambella: Spese di ottobre] fetta scelta ──▶ oggetto [Get proprietà (obj.campo): name] valore ──▶ testo [Etichetta: Voce]
 ```
 
-L'[Etichetta](ui.label) mostra il nome della fetta scelta; con [Formatta testo](core.format) e il campo `share` puoi scrivere «Energia: 18% della spesa».
+L'[Etichetta](ui.label) mostra il nome della fetta scelta; con [Template (formatta)](core.format) e il campo `share` puoi scrivere «Energia: 18% della spesa».
 
 ## Accessibilità e tastiera
 
@@ -111,5 +111,5 @@ L'[Etichetta](ui.label) mostra il nome della fetta scelta; con [Formatta testo](
 
 - [Barre](charts.bar): meglio della torta quando le voci sono tante o simili tra loro
 - [Aree](charts.area) al 100% per le parti di un totale che cambiano nel tempo
-- [Prendi campo](core.get), [Formatta testo](core.format)
+- [Get proprietà (obj.campo)](core.get), [Template (formatta)](core.format)
 - [Grafici](logicstudio-charts): le forme dei dati, i limiti, la tastiera

@@ -4,7 +4,7 @@
 
 Un campo per scegliere una data, un'ora, o tutte e due, con il calendario del browser. Il valore viaggia come testo nel formato ISO (`2026-11-11`, `14:30`, `2026-11-11T14:30`).
 
-Non confonderla con il blocco [Data e ora](core.now) dei Blocchi di base, che legge l'ora attuale.
+Non confonderla con il blocco [Now (data e ora)](core.now) dei Blocchi di base, che legge l'ora attuale.
 
 ## Proprietà
 
@@ -55,7 +55,7 @@ Il campo si vede nella lingua e nel formato del browser (per esempio «11/11/202
 | `"2026-11-11T14:30:00"` | 11/11/2026 | vuoto | 11/11/2026 14:30 |
 | un numero (millisecondi) | vuoto | vuoto | vuoto |
 
-> **Attenzione al fuso orario.** L'uscita **ISO** del blocco [Data e ora](core.now) è in **UTC** (finisce con `Z`, per esempio `2026-11-11T13:30:00.000Z`). Il campo non converte: la mostra come se fosse ora locale. In Italia, d'inverno, vedresti le 13:30 invece delle 14:30. Per l'ora locale costruisci il testo con le **parti** del blocco Data e ora (vedi l'esempio 2).
+> **Attenzione al fuso orario.** L'uscita **ISO** del blocco [Now (data e ora)](core.now) è in **UTC** (finisce con `Z`, per esempio `2026-11-11T13:30:00.000Z`). Il campo non converte: la mostra come se fosse ora locale. In Italia, d'inverno, vedresti le 13:30 invece delle 14:30. Per l'ora locale costruisci il testo con le **parti** del blocco Now (vedi l'esempio 2).
 
 Per il tipo **ora** serve un testo che cominci con l'ora: un testo con la data davanti (`2026-11-11T14:30`) lascia il campo vuoto.
 
@@ -78,17 +78,17 @@ Scegliendo l'11 novembre 2026 nel calendario, il Valore mostra «Scade il: 2026-
 
 ### 2. Oggi, all'apertura
 
-Per far partire il campo con la data di oggi (le **parti** del blocco Data e ora sono nell'ora del computer su cui gira lilOS):
+Per far partire il campo con la data di oggi (le **parti** del blocco Now sono nell'ora del computer su cui gira lilOS):
 
 ```
-[All'avvio] impulso ──▶ leggi [blocco Data e ora] parti ──▶ oggetto [Scomponi oggetto] year  ──▶ a [Formatta testo: «{a}-{m}-{g}»] testo ──▶ valore (ISO) [Data e ora: Scadenza]
+[All'avvio (main)] impulso ──▶ leggi [Now (data e ora)] parti ──▶ oggetto [Destruttura oggetto] year  ──▶ a [Template (formatta): «{a}-{m}-{g}»] testo ──▶ valore (ISO) [Data e ora: Scadenza]
                                                                                     month ──▶ m
                                                                                     day   ──▶ g
 ```
 
-Nel [Scomponi oggetto](core.decompose) aggiungi le uscite **year**, **month** e **day**; nel [Formatta testo](core.format) gli ingressi **a**, **m**, **g**, e togli «lo avvia» da **a** e **m** (così il testo parte una volta sola, con **g**).
+Nel [Destruttura oggetto](core.decompose) aggiungi le uscite **year**, **month** e **day**; nel blocco [Template (formatta)](core.format) gli ingressi **a**, **m**, **g**, e togli «lo avvia» da **a** e **m** (così il testo parte una volta sola, con **g**).
 
-> Mese e giorno devono avere due cifre (`2026-03-05`, non `2026-3-5`), altrimenti il campo resta vuoto. Per i mesi e i giorni sotto il 10, aggiungi lo zero nello schema (per esempio con un [Se](core.if) e un [Confronta](core.compare) `< 10`).
+> Mese e giorno devono avere due cifre (`2026-03-05`, non `2026-3-5`), altrimenti il campo resta vuoto. Per i mesi e i giorni sotto il 10, aggiungi lo zero nello schema (per esempio con un blocco [If · Else](core.if) e un blocco [Confronto (== ≠ < >)](core.compare) `< 10`).
 
 ## Accessibilità e tastiera
 
@@ -97,6 +97,6 @@ Nel [Scomponi oggetto](core.decompose) aggiungi le uscite **year**, **month** e 
 
 ## Vedi anche
 
-- [Data e ora](core.now) (il blocco), [Scomponi oggetto](core.decompose)
+- [Now (data e ora)](core.now) (il blocco), [Destruttura oggetto](core.decompose)
 - [Campo di testo](ui.text)
 - [Componenti UI standard](logicstudio-ui)

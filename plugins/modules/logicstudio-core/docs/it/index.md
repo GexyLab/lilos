@@ -16,82 +16,82 @@ Gli altri blocchi arrivano con altri pacchetti: [Liste e matrici](logicstudio-co
 
 | Blocco | Cosa fa |
 |---|---|
-| [Valore](core.value) | Manda un valore fisso (numero, testo, sì/no o JSON) all'avvio e a ogni impulso su **invia**. |
-| [Memoria](core.store) | Tiene da parte un valore: lo scrivi con **imposta**, lo leggi con **leggi**, lo svuoti con **svuota**. |
-| [Converti](core.convert) | Cambia il tipo di un valore: in numero, testo, sì/no, testo JSON, o da testo JSON a oggetto o lista. |
+| [Costante · Variabile](core.value) | Manda un valore fisso (numero, testo, sì/no o JSON): una volta all'avvio dello schema, oppure a ogni impulso se colleghi **invia**. Se colleghi **imposta**, il valore può cambiare e diventa una variabile. |
+| [Memoria (set · get)](core.store) | Tiene da parte un valore: lo scrivi con **imposta**, lo leggi con **leggi**, lo svuoti con **svuota**. |
+| [Cast (converti tipo)](core.convert) | Cambia il tipo di un valore: in numero, testo, sì/no, testo JSON, o da testo JSON a oggetto o lista. |
 
 ### Logica
 
 | Blocco | Cosa fa |
 |---|---|
-| [E](core.and) | Sì solo se tutti gli ingressi che hanno un valore sono sì. |
-| [O](core.or) | Sì se almeno un ingresso è sì. |
-| [O esclusivo](core.xor) | Sì se gli ingressi che valgono sì sono in numero dispari. |
-| [NON](core.not) | Rovescia un sì/no. |
-| [Confronta](core.compare) | Confronta due valori (=, ≠, >, ≥, <, ≤): manda un sì/no e un impulso su **se vero** o **se falso**. |
-| [Se](core.if) | Manda un valore su **allora** o su **altrimenti**, secondo una condizione. |
-| [Casi](core.switch) | Manda un impulso sull'uscita del caso uguale al valore, o su **altrimenti**. |
-| [Scegli](core.select) | Fa passare uno solo dei suoi ingressi, quello indicato da **quale**. |
-| [Smista](core.route) | Manda il valore su una delle sue uscite, quella indicata da **quale**. |
-| [Primo che arriva](core.merge) | Riunisce più ingressi in un'uscita: ogni valore che arriva passa. |
-| [Aspetta tutti](core.join) | Un impulso su **pronto** quando è arrivato qualcosa su tutti gli ingressi aggiunti. |
-| [Sequenza](core.sequence) | A ogni impulso su **avvia**, un impulso su ogni uscita, dall'alto in basso. |
-| [Fronte](core.edge) | Un impulso quando un sì/no cambia: **diventa vero** o **diventa falso**. |
+| [AND](core.and) | Sì solo se tutti gli ingressi che hanno un valore sono sì. |
+| [OR](core.or) | Sì se almeno un ingresso è sì. |
+| [XOR](core.xor) | Sì se gli ingressi che valgono sì sono in numero dispari. |
+| [NOT](core.not) | Rovescia un sì/no. |
+| [Confronto (== ≠ < >)](core.compare) | Confronta due valori (=, ≠, >, ≥, <, ≤): manda un sì/no e un impulso su **se vero** o **se falso**. |
+| [If · Else](core.if) | Manda un valore su **allora** o su **altrimenti**, secondo una condizione. |
+| [Switch · Case](core.switch) | Manda un impulso sull'uscita del caso uguale al valore, o su **altrimenti**. |
+| [Scegli per indice (MUX)](core.select) | Fa passare uno solo dei suoi ingressi, quello indicato da **quale**. |
+| [Instrada per indice (DEMUX)](core.route) | Manda il valore su una delle sue uscite, quella indicata da **quale**. |
+| [Merge (unisci flussi)](core.merge) | Riunisce più ingressi in un'uscita: ogni valore che arriva passa. |
+| [Attendi tutti (join)](core.join) | Un impulso su **pronto** quando è arrivato qualcosa su tutti gli ingressi aggiunti. |
+| [Sequenza (then)](core.sequence) | A ogni impulso su **avvia**, un impulso su ogni uscita, dall'alto in basso. |
+| [Al cambio (fronte ↑↓)](core.edge) | Un impulso quando un sì/no cambia: **diventa vero** o **diventa falso**. |
 
 ### Matematica
 
 | Blocco | Cosa fa |
 |---|---|
-| [Somma](core.add) | Somma due o più numeri. |
-| [Sottrai](core.subtract) | a − b. |
-| [Moltiplica](core.multiply) | Moltiplica due o più numeri. |
-| [Dividi](core.divide) | a ÷ b, con il resto. |
-| [Minimo · Massimo · Media](core.stat) | Il più piccolo, il più grande o la media di due o più numeri. |
-| [Calcola](core.math) | Arrotonda, valore assoluto, radice, cambia segno, seno, coseno, logaritmo, esponenziale. |
-| [Limita](core.clamp) | Tiene un numero tra un minimo e un massimo. |
-| [Contatore](core.counter) | Un numero che sale, scende e si azzera a impulsi. |
+| [Somma (+)](core.add) | Somma due o più numeri. |
+| [Sottrazione (−)](core.subtract) | a − b. |
+| [Moltiplicazione (×)](core.multiply) | Moltiplica due o più numeri. |
+| [Divisione (÷ %)](core.divide) | a ÷ b, con il resto. |
+| [Min · Max · Avg](core.stat) | Il più piccolo, il più grande o la media di due o più numeri. |
+| [Funzioni Math](core.math) | Arrotonda, valore assoluto, radice, cambia segno, seno, coseno, logaritmo, esponenziale. |
+| [Clamp (limita)](core.clamp) | Tiene un numero tra un minimo e un massimo. |
+| [Contatore (++ −−)](core.counter) | Un numero che sale, scende e si azzera a impulsi. |
 
 ### Testo
 
 | Blocco | Cosa fa |
 |---|---|
-| [Formatta testo](core.format) | Un testo da un modello con segnaposto tra graffe, come `Ciao {nome}`. |
-| [Concatena](core.concat) | Unisce due o più testi, con un separatore. |
-| [Operazione sul testo](core.text) | Maiuscolo, minuscolo, togli spazi, lunghezza, contiene, sostituisci. |
+| [Template (formatta)](core.format) | Un testo da un modello con segnaposto tra graffe, come `Ciao {nome}`. |
+| [Concat testo](core.concat) | Unisce due o più testi, con un separatore. |
+| [Funzioni stringa](core.text) | Maiuscolo, minuscolo, togli spazi, lunghezza, contiene, sostituisci. |
 
 ### Oggetti
 
 | Blocco | Cosa fa |
 |---|---|
-| [Prendi campo](core.get) | Prende un campo da un oggetto o un elemento da una lista, con un percorso come `a.b.0`. |
-| [Componi oggetto](core.compose) | Mette insieme più valori in un oggetto, un campo per ingresso. |
-| [Scomponi oggetto](core.decompose) | Divide un oggetto nei suoi campi, un'uscita per campo. |
-| [Componi lista](core.list) | Mette insieme più valori in una lista, nell'ordine degli ingressi. |
+| [Get proprietà (obj.campo)](core.get) | Prende un campo da un oggetto o un elemento da una lista, con un percorso come `a.b.0`. |
+| [Oggetto { }](core.compose) | Mette insieme più valori in un oggetto, un campo per ingresso. |
+| [Destruttura oggetto](core.decompose) | Divide un oggetto nei suoi campi, un'uscita per campo. |
+| [Lista [ ]](core.list) | Mette insieme più valori in una lista, nell'ordine degli ingressi. |
 
 ### Tempo
 
 | Blocco | Cosa fa |
 |---|---|
-| [All'avvio](core.onStart) | Un impulso quando il programma parte. |
-| [Ogni…](core.every) | Un impulso a intervalli regolari; si accende e si spegne con **acceso**. |
-| [Aspetta](core.delay) | Fa uscire ogni valore dopo un certo numero di secondi; nessun valore va perso. |
-| [Antirimbalzo](core.debounce) | Manda solo l'ultimo valore, quando smettono di arrivare per un po'. |
-| [Al massimo ogni](core.throttle) | Lascia passare al massimo un valore ogni tanti secondi; scarta gli altri. |
-| [Data e ora](core.now) | La data e l'ora di adesso: ISO, millisecondi e parti (anno, mese, giorno…). |
+| [All'avvio (main)](core.onStart) | Un impulso quando il programma parte. |
+| [Intervallo (setInterval)](core.every) | Un impulso a intervalli regolari; si accende e si spegne con **acceso**. |
+| [Ritardo (setTimeout)](core.delay) | Fa uscire ogni valore dopo un certo numero di secondi; nessun valore va perso. |
+| [Debounce](core.debounce) | Manda solo l'ultimo valore, quando smettono di arrivare per un po'. |
+| [Throttle](core.throttle) | Lascia passare al massimo un valore ogni tanti secondi; scarta gli altri. |
+| [Now (data e ora)](core.now) | La data e l'ora di adesso: ISO, millisecondi e parti (anno, mese, giorno…). |
 
 ### Console
 
 | Blocco | Cosa fa |
 |---|---|
-| [Scrivi in console](core.consoleWrite) | Scrive una riga in una console, con un livello (normale, informazione, avviso, errore); può pulirla. |
-| [Leggi da console](core.consoleRead) | Fa una domanda e manda la risposta come testo, numero, sì/no o un tasto. |
+| [Print (console.log)](core.consoleWrite) | Scrive una riga in una console, con un livello (normale, informazione, avviso, errore); può pulirla. |
+| [Input (readline)](core.consoleRead) | Fa una domanda e manda la risposta come testo, numero, sì/no o un tasto. |
 
 ### Porte di schema
 
 | Blocco | Cosa fa |
 |---|---|
-| [Ingresso di schema](core.schemaIn) | Una porta d'ingresso dello schema: riceve i valori dagli altri schemi del progetto. |
-| [Uscita di schema](core.schemaOut) | Una porta d'uscita dello schema: manda i valori agli altri schemi del progetto. |
+| [Parametro (ingresso di schema)](core.schemaIn) | Una porta d'ingresso dello schema: riceve i valori dagli altri schemi del progetto. |
+| [Return (uscita di schema)](core.schemaOut) | Una porta d'uscita dello schema: manda i valori agli altri schemi del progetto. |
 
 ### Componenti UI
 
@@ -123,7 +123,7 @@ Ogni blocco (tranne le porte di schema) ha l'uscita **Eccezione**. Quando un blo
 {"message": "Il campo «sconto» non esiste", "block": "get1", "schema": "main", "at": 1794405901003}
 ```
 
-`message` è il messaggio, `block` l'id del blocco, `schema` lo schema, `at` il momento in millisecondi. Se l'Eccezione non è collegata, la console principale scrive una riga rossa con il nome del blocco e il messaggio, per esempio `Prendi campo: Il campo «sconto» non esiste`.
+`message` è il messaggio, `block` l'id del blocco, `schema` lo schema, `at` il momento in millisecondi. Se l'Eccezione non è collegata, la console principale scrive una riga rossa con il nome del blocco e il messaggio, per esempio `Get proprietà (obj.campo): Il campo «sconto» non esiste`.
 
 ### Le porte aggiunte
 
@@ -131,17 +131,17 @@ Alcuni blocchi permettono di aggiungere porte nelle **Proprietà** (mai sul bloc
 
 | Nomi | Blocchi | Si rinominano? |
 |---|---|---|
-| lettere: **c**, **d**, **e**… (o **a**, **b**… se il blocco non ne ha) | E, O, O esclusivo, Somma, Moltiplica, Minimo · Massimo · Media, Concatena, Primo che arriva, Aspetta tutti | no |
-| numeri: **1**, **2**, **3**… (in Scegli partono da **2**: vedi la sua pagina) | Componi lista, Smista, Sequenza, Scegli | no |
-| un nome tuo (nasce come **campo 1**, **segnaposto 1**, **caso 1**, **ingresso 1**…) | Componi oggetto, Scomponi oggetto, Formatta testo, Casi, Scrivi in console | sì, fino a 60 caratteri |
+| lettere: **c**, **d**, **e**… (o **a**, **b**… se il blocco non ne ha) | AND, OR, XOR, Somma (+), Moltiplicazione (×), Min · Max · Avg, Concat testo, Merge (unisci flussi), Attendi tutti (join) | no |
+| numeri: **1**, **2**, **3**… (in Scegli per indice partono da **2**: vedi la sua pagina) | Lista [ ], Instrada per indice (DEMUX), Sequenza (then), Scegli per indice (MUX) | no |
+| un nome tuo (nasce come **campo 1**, **segnaposto 1**, **caso 1**, **ingresso 1**…) | Oggetto { }, Destruttura oggetto, Template (formatta), Switch · Case, Print (console.log) | sì, fino a 60 caratteri |
 
 Un blocco può avere al massimo il numero di porte aggiunte che dice la sua pagina, e comunque non più del limite **Porte aggiunte per blocco** del motore (32 di serie).
 
 ### Il tempo e la partenza
 
-- I blocchi All'avvio, Valore (con **Invia all'avvio**) e Ogni… (con **Parte da solo**) partono quando parte il programma. All'avvio e Valore mandano **prima** che arrivino i **valori iniziali** degli ingressi: vedi [All'avvio](core.onStart).
-- I tempi di Ogni…, Aspetta, Antirimbalzo e Al massimo ogni contano dal computer su cui gira lilOS. Quando il programma si ferma, i valori che stavano aspettando vanno persi.
-- Tutti i blocchi hanno un **tempo massimo** per fare il loro lavoro (30 secondi di serie): conta per [Leggi da console](core.consoleRead), che aspetta una persona. Le attese di Aspetta e Antirimbalzo invece non contano: il blocco ha già finito, è il valore che aspetta.
+- I blocchi All'avvio (main), Costante · Variabile (se **invia** non è collegato) e Intervallo (setInterval) (con **Parte da solo**) partono quando parte il programma. All'avvio (main) e Costante · Variabile mandano **prima** che arrivino i **valori iniziali** degli ingressi: vedi [All'avvio (main)](core.onStart).
+- I tempi di Intervallo (setInterval), Ritardo (setTimeout), Debounce e Throttle contano dal computer su cui gira lilOS. Quando il programma si ferma, i valori che stavano aspettando vanno persi.
+- Tutti i blocchi hanno un **tempo massimo** per fare il loro lavoro (30 secondi di serie): conta per [Input (readline)](core.consoleRead), che aspetta una persona. Le attese di Ritardo (setTimeout) e Debounce invece non contano: il blocco ha già finito, è il valore che aspetta.
 - Un programma che fa più di 10000 esecuzioni di blocchi in 10 secondi (di serie) viene fermato, perché sembra un ciclo senza fine. Vedi [Limiti](logicstudio-engine/limits).
 
 ## Esempi
@@ -151,19 +151,19 @@ Un blocco può avere al massimo il numero di porte aggiunte che dice la sua pagi
 Uno schema solo, che gioca in console.
 
 ```
-[All'avvio] impulso ──▶ chiedi [Leggi da console: "Indovina un numero da 1 a 10", numero] valore    ──▶ a [Confronta: a = b]
-                                                                                     annullato ──▶ invia [Valore: "Alla prossima!"] valore ──▶ valore [Scrivi in console]
+[All'avvio (main)] impulso ──▶ chiedi [Input (readline): "Indovina un numero da 1 a 10", numero] valore    ──▶ a [Confronto (== ≠ < >): a = b]
+                                                                                     annullato ──▶ invia [Costante · Variabile: "Alla prossima!"] valore ──▶ valore [Print (console.log)]
 
-[Confronta] se vero  ──▶ invia [Valore: "Bravo, era 7!"] valore ──▶ valore [Scrivi in console: informazione]
-[Confronta] se falso ──▶ invia [Valore: "No, riprova"]   valore ──▶ valore [Scrivi in console: avviso]
-[Confronta] se falso ──▶ chiedi [Leggi da console]
+[Confronto (== ≠ < >)] se vero  ──▶ invia [Costante · Variabile: "Bravo, era 7!"] valore ──▶ valore [Print (console.log): informazione]
+[Confronto (== ≠ < >)] se falso ──▶ invia [Costante · Variabile: "No, riprova"]   valore ──▶ valore [Print (console.log): avviso]
+[Confronto (== ≠ < >)] se falso ──▶ chiedi [Input (readline)]
 ```
 
 Impostazioni:
 
-- [Confronta](core.compare): operazione **a = b**; su **b** il valore iniziale 7 e **lo avvia** tolto.
-- I tre [Valore](core.value): tipo testo, **Invia all'avvio** tolta.
-- [Leggi da console](core.consoleRead): **Tempo massimo** 25 secondi.
+- [Confronto (== ≠ < >)](core.compare): operazione **a = b**; su **b** il valore iniziale 7 e **lo avvia** tolto.
+- I tre blocchi [Costante · Variabile](core.value): tipo testo, con **invia** collegato (in Proprietà mostralo con l'occhio); così mandano solo quando arriva l'impulso.
+- [Input (readline)](core.consoleRead): **Tempo massimo** 25 secondi.
 
 Una partita:
 
@@ -182,15 +182,15 @@ Il collegamento da **se falso** a **chiedi** torna indietro: è un ciclo, ma ogn
 Un progetto con una finestra **main** che ha un [Pulsante](ui.button) **Azzera**; l'oggetto del pulsante sta nello schema.
 
 ```
-[Ogni… 10 s] impulso ──▶ più [Contatore] conteggio ──▶ giri  [Componi oggetto] oggetto ──▶ valore [Scrivi in console]
-                                         conteggio ──▶ leggi [Data e ora] ISO ──▶ quando
-[Pulsante: Azzera] premuto ──▶ azzera [Contatore]
+[Intervallo (setInterval): 10 s] impulso ──▶ più [Contatore (++ −−)] conteggio ──▶ giri  [Oggetto { }] oggetto ──▶ valore [Print (console.log)]
+                                         conteggio ──▶ leggi [Now (data e ora)] ISO ──▶ quando
+[Pulsante: Azzera] premuto ──▶ azzera [Contatore (++ −−)]
 ```
 
 Impostazioni:
 
-- [Componi oggetto](core.compose): due ingressi aggiunti, rinominati **quando** e **giri**; su **giri** togli **lo avvia**. Il conteggio arriva a **giri** e resta lì; poco dopo arriva l'ora su **quando**, che fa uscire l'oggetto completo.
-- [Scrivi in console](core.consoleWrite): **Formato** testo.
+- [Oggetto { }](core.compose): due ingressi aggiunti, rinominati **quando** e **giri**; su **giri** togli **lo avvia**. Il conteggio arriva a **giri** e resta lì; poco dopo arriva l'ora su **quando**, che fa uscire l'oggetto completo.
+- [Print (console.log)](core.consoleWrite): **Formato** testo.
 
 Ogni 10 secondi la console scrive una riga come:
 
@@ -199,7 +199,7 @@ Ogni 10 secondi la console scrive una riga come:
 {"quando":"2026-11-11T14:05:20.006Z","giri":2}
 ```
 
-Un clic su **Azzera** riporta il [Contatore](core.counter) a 0 e manda 0 su **conteggio**: esce subito una riga con `"giri":0`, e il giro dopo riparte da 1.
+Un clic su **Azzera** riporta il blocco [Contatore (++ −−)](core.counter) a 0 e manda 0 su **conteggio**: esce subito una riga con `"giri":0`, e il giro dopo riparte da 1.
 
 ### 3. Due schemi che si parlano
 
@@ -208,41 +208,41 @@ Un progetto con due schemi, **interfaccia** e **testi**, e una finestra con un [
 Schema **interfaccia**:
 
 ```
-[Campo di testo: cerca] testo ──▶ valore [Antirimbalzo: 0,5 s] valore ──▶ valore [Uscita di schema: domanda, testo]
-[Ingresso di schema: risposta, testo] valore ──▶ valore [Valore: anteprima]
+[Campo di testo: cerca] testo ──▶ valore [Debounce: 0,5 s] valore ──▶ valore [Return (uscita di schema): domanda, testo]
+[Parametro (ingresso di schema): risposta, testo] valore ──▶ valore [Valore: anteprima]
 ```
 
 Schema **testi**:
 
 ```
-[Ingresso di schema: domanda, testo] valore ──▶ testo [Operazione sul testo: MAIUSCOLO] risultato ──▶ valore [Uscita di schema: risposta, testo]
+[Parametro (ingresso di schema): domanda, testo] valore ──▶ testo [Funzioni stringa: MAIUSCOLO] risultato ──▶ valore [Return (uscita di schema): risposta, testo]
 ```
 
 Nella **Mappa** collega **interfaccia › domanda** a **testi › domanda** e **testi › risposta** a **interfaccia › risposta**.
 
-Mentre l'utente scrive «ciao mondo», il campo manda un valore a ogni tasto; l'[Antirimbalzo](core.debounce) aspetta che si fermi per mezzo secondo e manda solo `ciao mondo`; lo schema **testi** lo trasforma e la finestra mostra `CIAO MONDO`.
+Mentre l'utente scrive «ciao mondo», il campo manda un valore a ogni tasto; l'[Debounce](core.debounce) aspetta che si fermi per mezzo secondo e manda solo `ciao mondo`; lo schema **testi** lo trasforma e la finestra mostra `CIAO MONDO`.
 
 ### 4. Gli errori raccolti in una console
 
 Aggiungi nel progetto una console **Errori**. In ogni schema, collega le **Eccezioni** dei blocchi che possono sbagliare a un solo blocco:
 
 ```
-[Prendi campo: prezzo] Eccezione ──▶ oggetto [Prendi campo: message] valore ──▶ valore [Scrivi in console: Errori, errore]
-[Dividi]               Eccezione ──▶ oggetto
+[Get proprietà (obj.campo): prezzo] Eccezione ──▶ oggetto [Get proprietà (obj.campo): message] valore ──▶ valore [Print (console.log): Errori, errore]
+[Divisione (÷ %)]               Eccezione ──▶ oggetto
 ```
 
-Quando un oggetto senza prezzo arriva a [Prendi campo](core.get), la console **Errori** scrive in rosso `Il campo «prezzo» non esiste`; con un divisore 0, `Divisione per zero`. Nei programmi attivi le righe di livello errore finiscono anche nel registro del progetto (di serie).
+Quando un oggetto senza prezzo arriva a [Get proprietà (obj.campo)](core.get), la console **Errori** scrive in rosso `Il campo «prezzo» non esiste`; con un divisore 0, `Divisione per zero`. Nei programmi attivi le righe di livello errore finiscono anche nel registro del progetto (di serie).
 
 ## Limiti noti
 
-- [Leggi da console](core.consoleRead) che aspetta una risposta più del **tempo massimo di un blocco** (30 secondi di serie) dà un'eccezione e la risposta data dopo va persa: imposta un **Tempo massimo** più breve.
-- Il **Valore predefinito** di Leggi da console vale solo con le console nascoste; non riempie una risposta vuota e non sostituisce l'annullamento per tempo scaduto.
-- [All'avvio](core.onStart) e [Valore](core.value) mandano prima dei valori iniziali degli ingressi.
-- [Data e ora](core.now) usa l'ora del computer su cui gira lilOS, non quella del tuo browser.
-- Due [Ingressi di schema](core.schemaIn) con lo stesso nome nello stesso schema: riceve solo uno dei due.
+- [Input (readline)](core.consoleRead) che aspetta una risposta più del **tempo massimo di un blocco** (30 secondi di serie) dà un'eccezione e la risposta data dopo va persa: imposta un **Tempo massimo** più breve.
+- Il **Valore predefinito** di Input (readline) vale solo con le console nascoste; non riempie una risposta vuota e non sostituisce l'annullamento per tempo scaduto.
+- [All'avvio (main)](core.onStart) e [Costante · Variabile](core.value) mandano prima dei valori iniziali degli ingressi.
+- [Now (data e ora)](core.now) usa l'ora del computer su cui gira lilOS, non quella del tuo browser.
+- Due blocchi [Parametro (ingresso di schema)](core.schemaIn) con lo stesso nome nello stesso schema: riceve solo uno dei due.
 - Il **Tipo** delle porte di schema non viene controllato mentre il programma gira.
 - Gli ingressi **abilitato** e **visibile** delle componenti reagiscono solo al valore no vero e proprio, non al testo `"no"`.
-- [Prendi campo](core.get) e [Scomponi oggetto](core.decompose) non sanno leggere un nome di campo che contiene un punto.
+- [Get proprietà (obj.campo)](core.get) e [Destruttura oggetto](core.decompose) non sanno leggere un nome di campo che contiene un punto.
 
 ## Vedi anche
 

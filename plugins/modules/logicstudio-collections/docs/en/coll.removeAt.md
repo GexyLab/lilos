@@ -1,4 +1,4 @@
-# Remove at
+# Remove (splice)
 
 `coll.removeAt` · Lists · [Lists and matrices](logicstudio-collections) · version 1
 
@@ -23,7 +23,7 @@ Takes out the item at a position: it sends the list without that item and, separ
 
 The block waits until it has **list** and **index**, then at every new value it sends on **result** the list without the item and on **removed** the removed item. The items that follow move back by one.
 
-- Valid indexes are as in [Get item](coll.get): from 0 to length-1, or from -1 to -length.
+- Valid indexes are as in [Get list[i]](coll.get): from 0 to length-1, or from -1 to -length.
 - On an empty list every index gives «Indice fuori dalla lista» ("Index outside the list").
 - Removing the only item gives the empty list `[]`.
 - If the removed item is `null`, `null` comes out on **removed**.
@@ -34,8 +34,8 @@ The block waits until it has **list** and **index**, then at every new value it 
 ### 1. Removing the last
 
 ```
-[Value (JSON): [1,2,3]] value ──▶ list  [Remove at] result  ──▶ value [Write to console]
-[Value: -1]             value ──▶ index             removed ──▶ value [Write to console]
+[Constant · Variable (JSON): [1,2,3]] value ──▶ list  [Remove (splice)] result  ──▶ value [Print (console.log)]
+[Constant · Variable: -1]             value ──▶ index             removed ──▶ value [Print (console.log)]
 ```
 
 The two consoles write `[1,2]` and `3`.
@@ -43,21 +43,21 @@ The two consoles write `[1,2]` and `3`.
 ### 2. A queue: first come, first served
 
 ```
-[Memory (Send when set)] value ──▶ list  [Remove at] result ──▶ set [Memory]
-[Button: Next] pressed ──▶ send [Value: 0] value ──▶ index    removed ──▶ value [Write to console]
+[Store (set · get): Send when set] value ──▶ list  [Remove (splice)] result ──▶ set [Store (set · get)]
+[Button: Next] pressed ──▶ send [Constant · Variable: 0] value ──▶ index    removed ──▶ value [Print (console.log)]
 ```
 
-Give the **set** input of the Memory the starting value `["Anna","Bruno","Carla"]`, remove "starts it" from the **list** input and turn off **Send at start** in the [Value](core.value). At every click on the [Button](ui.button) the Value sends 0 on **index**: the console writes `Anna`, then `Bruno`, then `Carla`, and the Memory keeps who is left. At the fourth click the queue is empty and the output is «Indice fuori dalla lista».
+Give the **set** input of the Store (set · get) block the starting value `["Anna","Bruno","Carla"]`, remove "starts it" from the **list** input and, in the Properties, show the **send** input of the [Constant · Variable](core.value) with its eye and link the Button to it: the block then sends only on the pulse, not at the start. At every click on the [Button](ui.button) the Constant · Variable sends 0 on **index**: the console writes `Anna`, then `Bruno`, then `Carla`, and the Store block keeps who is left. At the fourth click the queue is empty and the output is «Indice fuori dalla lista».
 
 ### 3. Removing a value by searching for it
 
 ```
-[Value (JSON): ["a","b","c"]] value ──▶ list  [Contains · Index of] index ──▶ index [Remove at] result ──▶ value [Write to console]
-[Value (text): b]             value ──▶ value
-[Value (JSON): ["a","b","c"]] value ──▶ list [Remove at]
+[Constant · Variable (JSON): ["a","b","c"]] value ──▶ list  [Includes · IndexOf] index ──▶ index [Remove (splice)] result ──▶ value [Print (console.log)]
+[Constant · Variable (text): b]             value ──▶ value
+[Constant · Variable (JSON): ["a","b","c"]] value ──▶ list [Remove (splice)]
 ```
 
-(The same Value linked to two blocks.) [Contains · Index of](coll.contains) finds `b` at position 1 and the console writes `["a","c"]`. Careful: if you look for a value that is not there (`z`), the index is -1 and the block removes the **last** item (`["a","b"]`). Check **found** first, for example with [If](core.if), or use [Filter](coll.filter) with "a ≠ b", which removes all the equal items and does not go wrong if the value is missing.
+(The same Constant · Variable block linked to two blocks.) [Includes · IndexOf](coll.contains) finds `b` at position 1 and the console writes `["a","c"]`. Careful: if you look for a value that is not there (`z`), the index is -1 and the block removes the **last** item (`["a","b"]`). Check **found** first, for example with [If · Else](core.if), or use [Filter](coll.filter) with "a ≠ b", which removes all the equal items and does not go wrong if the value is missing.
 
 ## Errors
 
@@ -69,5 +69,5 @@ Give the **set** input of the Memory the starting value `["Anna","Bruno","Carla"
 
 ## See also
 
-- [Insert at](coll.insert), [Set item](coll.set), [Filter](coll.filter), [Slice](coll.slice)
+- [Insert (splice)](coll.insert), [Set list[i]](coll.set), [Filter](coll.filter), [Slice](coll.slice)
 - [How a block works](ide/blocks)

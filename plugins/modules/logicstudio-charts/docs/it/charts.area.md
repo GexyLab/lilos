@@ -61,7 +61,7 @@ Finestra «Consumi»
 ```
 
 ```
-[Valore (JSON): {"Gen": {"Acqua": 30, "Concime": 10, "Energia": 25}, "Feb": {"Acqua": 28, "Concime": 12, "Energia": 22}, "Mar": {"Acqua": 35, "Concime": 15, "Energia": 18}}] valore ──▶ dati [Aree: Consumi]
+[Costante · Variabile (JSON): {"Gen": {"Acqua": 30, "Concime": 10, "Energia": 25}, "Feb": {"Acqua": 28, "Concime": 12, "Energia": 22}, "Mar": {"Acqua": 35, "Concime": 15, "Energia": 18}}] valore ──▶ dati [Aree: Consumi]
 ```
 
 Tre fasce una sopra l'altra; la cima a gennaio è 65 €, a febbraio 62 €, a marzo 68 €. Il riquadro su «Feb» dice «Acqua 28 €», «Concime 12 €», «Energia 22 €».
@@ -73,7 +73,7 @@ Cambia **Impilate** in `percent`: ogni mese arriva a 100. A gennaio l'acqua occu
 ### 3. Due misure che crescono, un punto per volta
 
 ```
-[Ogni…: 60 s] impulso ──▶ leggi [Leggi file: ~/contatori.json, JSON] contenuto ──▶ aggiungi punto [Aree: Litri]
+[Intervallo (setInterval): 60 s] impulso ──▶ leggi [readFile: ~/contatori.json, JSON] contenuto ──▶ aggiungi punto [Aree: Litri]
 ```
 
 Il file contiene ogni volta un oggetto come `{"Pozzo": 120, "Acquedotto": 45}`: a ogni lettura le due serie ricevono un punto ciascuna, alla x successiva (0, 1, 2…). Per avere l'ora sull'asse, scrivi nel file anche la data: `{"x": "2026-11-11T10:00:00Z", "Pozzo": 120, "Acquedotto": 45}`.

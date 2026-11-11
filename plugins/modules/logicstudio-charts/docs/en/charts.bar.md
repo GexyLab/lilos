@@ -61,7 +61,7 @@ Window "Ranking"
 ```
 
 ```
-[Value (JSON): {"Naples": 18, "Rome": 42, "Milan": 31, "Turin": 12}] value ──▶ data [Bars: Subscribers]
+[Constant · Variable (JSON): {"Naples": 18, "Rome": 42, "Milan": 31, "Turin": 12}] value ──▶ data [Bars: Subscribers]
 ```
 
 The rows are Rome (42), Milan (31), Naples (18), Turin (12), with the number at the end of each bar. A click on Milan sends `{"category": "Milan", "values": {"Value": 31}, "index": 2, "series": "", "y": 31}`: `index` is 2 because in the data Milan is the third.
@@ -75,7 +75,7 @@ The file `~/activities.json` contains table rows:
 ```
 
 ```
-[Every…: 300 s] pulse ──▶ read [Read file: ~/activities.json, JSON] content ──▶ data [Bars: Week]
+[Interval (setInterval): 300 s] pulse ──▶ read [readFile: ~/activities.json, JSON] content ──▶ data [Bars: Week]
 ```
 
 The text field `activity` gives the categories, the numeric field `hours` the series. With **Unit** `h` and **Decimals** 1 the Meetings bar says "6.5 h". Every five minutes the file is read again and the bars update.
@@ -91,5 +91,5 @@ With **Stacked** on and the data `{"Anna": {"Done": 7, "To do": 3}, "Luke": {"Do
 ## See also
 
 - [Columns](charts.column), [Pie · Donut](charts.pie)
-- [Read file](lilos.fileRead), [Every…](core.every)
+- [readFile](lilos.fileRead), [Interval (setInterval)](core.every)
 - [Charts](logicstudio-charts): the data shapes, the limits, the keyboard

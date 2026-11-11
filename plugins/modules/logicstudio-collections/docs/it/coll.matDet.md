@@ -1,4 +1,4 @@
-# Determinante
+# Det
 
 `coll.matDet` · Matrici · [Liste e matrici](logicstudio-collections) · versione 1
 
@@ -34,7 +34,7 @@ A ogni matrice che arriva il blocco calcola il determinante e lo manda su **dete
 ### 1. Una matrice 2 × 2
 
 ```
-[Valore (JSON): [[1,2],[3,4]]] valore ──▶ matrice [Determinante] determinante ──▶ valore [Scrivi in console]
+[Costante · Variabile (JSON): [[1,2],[3,4]]] valore ──▶ matrice [Det] determinante ──▶ valore [Print (console.log)]
 ```
 
 Scrive `-2` (1×4 − 2×3).
@@ -50,8 +50,8 @@ Scrive `-2` (1×4 − 2×3).
 Un sistema di equazioni lineari ha una soluzione sola quando il determinante della matrice dei coefficienti non è 0:
 
 ```
-[Valore (JSON): [[2,1],[1,3]]] valore ──▶ matrice [Determinante] determinante ──▶ valore [Calcola: valore assoluto] risultato ──▶ a [Confronta: a > b] risultato ──▶ accesa [Spia]
-                                                                                                          [Valore: 1e-9] valore ──▶ b
+[Costante · Variabile (JSON): [[2,1],[1,3]]] valore ──▶ matrice [Det] determinante ──▶ valore [Funzioni Math: valore assoluto] risultato ──▶ a [Confronto (== ≠ < >): a > b] risultato ──▶ accesa [Spia]
+                                                                                                          [Costante · Variabile: 1e-9] valore ──▶ b
 ```
 
 Il determinante è 5: la [Spia](ui.lamp) si accende.
@@ -68,6 +68,6 @@ Il determinante è 5: la [Spia](ui.lamp) si accende.
 
 ## Vedi anche
 
-- [Moltiplica matrici](coll.matMultiply), [Identità](coll.matIdentity), [Trasposta](coll.matTranspose)
-- [Calcola](core.math), [Confronta](core.compare)
+- [A × B](coll.matMultiply), [Identità (eye)](coll.matIdentity), [Transpose](coll.matTranspose)
+- [Funzioni Math](core.math), [Confronto (== ≠ < >)](core.compare)
 - [Come funziona un blocco](ide/blocks)

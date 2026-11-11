@@ -1,4 +1,4 @@
-# Aggiungi a file
+# appendFile
 
 `lilos.fileAppend` · lilOS · [Blocchi di lilOS](logicstudio-lilos) · versione 1
 
@@ -47,10 +47,10 @@ Quando arriva un valore su **contenuto**, il blocco prepara i byte da aggiungere
 
 ### Regole e limiti
 
-- Il percorso segue le stesse regole di [Leggi file](lilos.fileRead): `~/…` oppure `/home/<utente>/…`, solo dentro la tua home, mai in `~/.config`.
+- Il percorso segue le stesse regole di [readFile](lilos.fileRead): `~/…` oppure `/home/<utente>/…`, solo dentro la tua home, mai in `~/.config`.
 - Se il file non c'è, viene creato, ma **la sua cartella deve esserci**.
 - Si aggiungono al massimo **5 MB** alla volta.
-- Il file può crescere con questo blocco fino a **64 MB**: oltre, il blocco dà errore e non aggiunge niente. Quando un registro si avvicina al limite, cambia file (per esempio uno al giorno) o svuotalo con [Scrivi file](lilos.fileWrite).
+- Il file può crescere con questo blocco fino a **64 MB**: oltre, il blocco dà errore e non aggiunge niente. Quando un registro si avvicina al limite, cambia file (per esempio uno al giorno) o svuotalo con [writeFile](lilos.fileWrite).
 - Fino a 5 MB il file viene letto e riscritto intero; oltre i 5 MB viene riscritto a pezzi, senza tenerlo tutto in memoria. Se il file system non sa riscrivere a pezzi, oltre i 5 MB il blocco dà errore.
 - Lo spazio conta nella quota della tua home.
 - I file protetti da un'app (FileCrypt) non vengono cambiati.
@@ -65,11 +65,11 @@ Vedi anche [Come funziona un blocco](ide/blocks).
 ### 1. Un registro di temperature
 
 ```
-[Ogni… 60 s] impulso ──▶ leggi [Data e ora] ISO ──▶ ora   [Formatta testo: "{ora};{temp}"] testo ──▶ contenuto [Aggiungi a file: ~/serra/temperature.csv]
-[Leggi file: ~/sensori/ultimo.txt]      contenuto ──▶ temp
+[Intervallo (setInterval): 60 s] impulso ──▶ leggi [Now (data e ora)] ISO ──▶ ora   [Template (formatta): "{ora};{temp}"] testo ──▶ contenuto [appendFile: ~/serra/temperature.csv]
+[readFile: ~/sensori/ultimo.txt]      contenuto ──▶ temp
 ```
 
-[Formatta testo](core.format) ha due ingressi aggiunti, **ora** e **temp**; togli «lo avvia» da **temp**, così la riga si scrive solo quando arriva l'ora (altrimenti ogni nuova temperatura scriverebbe una riga in più). La temperatura arriva da un file che un altro programma aggiorna, letto quando vuoi tu. Ogni minuto il file riceve una riga come:
+[Template (formatta)](core.format) ha due ingressi aggiunti, **ora** e **temp**; togli «lo avvia» da **temp**, così la riga si scrive solo quando arriva l'ora (altrimenti ogni nuova temperatura scriverebbe una riga in più). La temperatura arriva da un file che un altro programma aggiorna, letto quando vuoi tu. Ogni minuto il file riceve una riga come:
 
 ```
 2026-11-11T10:00:00.000Z;22,5
@@ -81,10 +81,10 @@ Vedi anche [Come funziona un blocco](ide/blocks).
 Imposta **Formato** «JSON, uno per riga» e collega un oggetto:
 
 ```
-[Componi oggetto] oggetto ──▶ contenuto [Aggiungi a file: ~/serra/eventi.jsonl]
+[Oggetto { }] oggetto ──▶ contenuto [appendFile: ~/serra/eventi.jsonl]
 ```
 
-Con [Componi oggetto](core.compose) che produce `{ "evento": "porta aperta", "alle": "10:42" }`, il file riceve la riga:
+Con [Oggetto { }](core.compose) che produce `{ "evento": "porta aperta", "alle": "10:42" }`, il file riceve la riga:
 
 ```
 {"evento":"porta aperta","alle":"10:42"}
@@ -95,17 +95,17 @@ Ogni riga è un JSON a sé: è un formato facile da rileggere con altri programm
 ### 3. Tenere gli errori del programma
 
 ```
-[Richiesta web] Eccezione ──▶ oggetto [Prendi campo: message] valore ──▶ contenuto [Aggiungi a file: ~/errori.txt]
+[HTTP (fetch)] Eccezione ──▶ oggetto [Get proprietà (obj.campo): message] valore ──▶ contenuto [appendFile: ~/errori.txt]
 ```
 
-Ogni volta che la [Richiesta web](net.request) non riesce, il messaggio d'errore (per esempio «Indirizzo non trovato: esempio.invalid») finisce in una riga di `~/errori.txt`. Puoi anche collegare **Eccezione** direttamente a **contenuto**: allora viene scritto tutto l'oggetto `{ message, block, schema, at }` su una riga.
+Ogni volta che il blocco [HTTP (fetch)](net.request) non riesce, il messaggio d'errore (per esempio «Indirizzo non trovato: esempio.invalid») finisce in una riga di `~/errori.txt`. Puoi anche collegare **Eccezione** direttamente a **contenuto**: allora viene scritto tutto l'oggetto `{ message, block, schema, at }` su una riga.
 
 ## Errori
 
 | Messaggio | Quando |
 |---|---|
 | Manca il percorso del file | Il percorso è vuoto. |
-| Percorso non valido: … | Il percorso non rispetta le regole (vedi [Leggi file](lilos.fileRead) per tutti i casi). |
+| Percorso non valido: … | Il percorso non rispetta le regole (vedi [readFile](lilos.fileRead) per tutti i casi). |
 | Puoi usare solo i file della tua home (~/… oppure /home/anna/…): … | Il percorso è fuori dalla tua home. |
 | La cartella .config è di lilOS: i programmi non la usano | Il percorso è dentro `~/.config`. |
 | Serve il nome di un file, non la home | Il percorso è `~`. |
@@ -120,7 +120,7 @@ Ogni volta che la [Richiesta web](net.request) non riesce, il messaggio d'errore
 | «~/registro.txt» è troppo grande per i limiti di lilOS | Il file supererebbe la dimensione massima dei file di lilOS. |
 | Non hai il permesso di usare «~/registro.txt» | Il file system ti nega l'accesso. |
 | Il file system di lilOS non risponde: riprova più tardi | Il file system non risponde. |
-| Aggiungi a file ha impiegato più di 30 s | L'operazione ha superato il tempo massimo di un blocco (30 secondi di serie). |
+| appendFile ha impiegato più di 30 s | L'operazione ha superato il tempo massimo di un blocco (30 secondi di serie). |
 | Il programma non è in esecuzione | Il programma si stava fermando. |
 
 ## Permessi
@@ -129,7 +129,7 @@ Il blocco lavora come l'utente che possiede il programma. Un'app fatta con **Cre
 
 ## Vedi anche
 
-- [Scrivi file](lilos.fileWrite), per sostituire tutto il file
-- [Leggi file](lilos.fileRead), [Esiste](lilos.exists), [Elenca cartella](lilos.folderList)
-- [Formatta testo](core.format), per preparare una riga
+- [writeFile](lilos.fileWrite), per sostituire tutto il file
+- [readFile](lilos.fileRead), [exists](lilos.exists), [readdir (elenca cartella)](lilos.folderList)
+- [Template (formatta)](core.format), per preparare una riga
 - [Come funziona un blocco](ide/blocks)

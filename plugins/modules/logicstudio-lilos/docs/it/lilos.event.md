@@ -1,4 +1,4 @@
-# Evento a lilOS
+# Emit (evento a lilOS)
 
 `lilos.event` · lilOS · [Blocchi di lilOS](logicstudio-lilos) · versione 1
 
@@ -45,7 +45,7 @@ Cose da sapere:
 - I dati, scritti come JSON, possono essere lunghi al massimo **64 KB** (circa 65 000 caratteri).
 - Ogni programma può mandare al massimo **20 eventi al secondo**: oltre, il blocco dà errore.
 - Il nome non si può cambiare con un ingresso: per eventi diversi usa più blocchi, ognuno con il suo nome.
-- Per avvisare te, una persona, usa una [Notifica](lilos.notify): l'Evento a lilOS è per il software.
+- Per avvisare te, una persona, usa un blocco [Notify](lilos.notify): il blocco Emit è per il software.
 
 Vedi anche [Come funziona un blocco](ide/blocks).
 
@@ -54,15 +54,15 @@ Vedi anche [Come funziona un blocco](ide/blocks).
 ### 1. Un evento con una misura
 
 ```
-[Ogni… 5 s] impulso ──▶ leggi [Leggi file: ~/sensori/ultimo.txt] contenuto ──▶ temp [Componi oggetto] oggetto ──▶ dati [Evento a lilOS: serra.misura]
+[Intervallo (setInterval): 5 s] impulso ──▶ leggi [readFile: ~/sensori/ultimo.txt] contenuto ──▶ temp [Oggetto { }] oggetto ──▶ dati [Emit (evento a lilOS): serra.misura]
 ```
 
-Ogni 5 secondi le tue pagine di lilOS ricevono `logicstudio.event` con `name` = `serra.misura` e `data` = `{ "temp": "22,5" }` ([Componi oggetto](core.compose) ha l'ingresso aggiunto **temp**). Un'app che ascolta quell'evento può mostrare la misura.
+Ogni 5 secondi le tue pagine di lilOS ricevono `logicstudio.event` con `name` = `serra.misura` e `data` = `{ "temp": "22,5" }` ([Oggetto { }](core.compose) ha l'ingresso aggiunto **temp**). Un'app che ascolta quell'evento può mostrare la misura.
 
 ### 2. Un evento quando premi un pulsante
 
 ```
-[Pulsante: Allarme] premuto ──▶ dati [Evento a lilOS: serra.allarme] inviato ──▶ valore [Scrivi in console]
+[Pulsante: Allarme] premuto ──▶ dati [Emit (evento a lilOS): serra.allarme] inviato ──▶ valore [Print (console.log)]
 ```
 
 **dati** vale `true` (il valore di un impulso). La console scrive `true` quando l'evento è partito.
@@ -70,11 +70,11 @@ Ogni 5 secondi le tue pagine di lilOS ricevono `logicstudio.event` con `name` = 
 ### 3. Attenzione al ritmo
 
 ```
-[Ogni… 0,05 s] impulso ──▶ dati [Evento a lilOS: misura.a]
-               impulso ──▶ dati [Evento a lilOS: misura.b]
+[Intervallo (setInterval): 0,05 s] impulso ──▶ dati [Emit (evento a lilOS): misura.a]
+               impulso ──▶ dati [Emit (evento a lilOS): misura.b]
 ```
 
-Il limite di 20 eventi al secondo vale per **tutto il programma**, non per ogni blocco. Qui i due blocchi insieme ne mandano 40 al secondo: circa metà finisce su **Eccezione** con «Troppi eventi: al massimo 20 al secondo». Rallenta il ritmo, oppure raccogli più valori in una lista con [Accumula](coll.accumulate) e manda la lista ogni tanto.
+Il limite di 20 eventi al secondo vale per **tutto il programma**, non per ogni blocco. Qui i due blocchi insieme ne mandano 40 al secondo: circa metà finisce su **Eccezione** con «Troppi eventi: al massimo 20 al secondo». Rallenta il ritmo, oppure raccogli più valori in una lista con [Accumula (push con limite)](coll.accumulate) e manda la lista ogni tanto.
 
 ## Errori
 
@@ -83,7 +83,7 @@ Il limite di 20 eventi al secondo vale per **tutto il programma**, non per ogni 
 | Nome dell'evento non valido (lettere, numeri, «.», «-» e «_», al massimo 64) | Il nome è vuoto, troppo lungo o ha caratteri non ammessi (per esempio uno spazio). |
 | Dati dell'evento troppo grandi (al massimo 64 KB) | I dati, scritti come JSON, superano 64 KB. |
 | Troppi eventi: al massimo 20 al secondo | Il programma ha già mandato 20 eventi nell'ultimo secondo. |
-| Evento a lilOS ha impiegato più di 30 s | Il kernel non ha risposto entro il tempo massimo di un blocco. |
+| Emit (evento a lilOS) ha impiegato più di 30 s | Il kernel non ha risposto entro il tempo massimo di un blocco. |
 | Il programma non è in esecuzione | Il programma si stava fermando. |
 
 ## Permessi
@@ -92,6 +92,6 @@ Il blocco lavora come l'utente che possiede il programma e manda eventi solo all
 
 ## Vedi anche
 
-- [Notifica](lilos.notify)
-- [Componi oggetto](core.compose), per preparare i dati
+- [Notify](lilos.notify)
+- [Oggetto { }](core.compose), per preparare i dati
 - [Come funziona un blocco](ide/blocks)

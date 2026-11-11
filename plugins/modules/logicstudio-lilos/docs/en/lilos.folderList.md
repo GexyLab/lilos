@@ -1,4 +1,4 @@
-# List folder
+# readdir (list folder)
 
 `lilos.folderList` · lilOS · [lilOS blocks](logicstudio-lilos) · version 1
 
@@ -60,7 +60,7 @@ Things to know:
 - **items** and **names** hold at most **2000** items; **count** says how many there are in all, even beyond 2000.
 - The block lists only the first level: it does not go into the subfolders.
 - If the path is empty, the block lists the home.
-- The path follows the same rules as [Read file](lilos.fileRead): only inside your home, never in `~/.config`.
+- The path follows the same rules as [readFile](lilos.fileRead): only inside your home, never in `~/.config`.
 - You see only the items you can see.
 
 See also [How a block works](ide/blocks).
@@ -72,8 +72,8 @@ See also [How a block works](ide/blocks).
 Set **Path** to `~/Documents` and **Show** to "Files only":
 
 ```
-[At start] pulse ──▶ read [List folder: ~/Documents] names ──▶ value [Write to console]
-                                                     count ──▶ value [Write to console]
+[On start (main)] pulse ──▶ read [readdir (list folder): ~/Documents] names ──▶ value [Print (console.log)]
+                                                     count ──▶ value [Print (console.log)]
 ```
 
 If `~/Documents` contains the folder `Old` and the files `list.txt` and `accounts.csv`, the console writes `["accounts.csv","list.txt"]` and `2`.
@@ -81,19 +81,19 @@ If `~/Documents` contains the folder `Old` and the files `list.txt` and `account
 ### 2. A list of files in a window
 
 ```
-[Button: Refresh] pressed ──▶ read [List folder: ~/Photos] items ──▶ rows [Table]
+[Button: Refresh] pressed ──▶ read [readdir (list folder): ~/Photos] items ──▶ rows [Table]
 ```
 
-The [Table](ui.table) component, with **Columns** `name, size`, shows the name and size of each item. When the user chooses a row, the Table sends the object of the row: with [Get field](core.get) (`path`) you get the path, to send to [Read file](lilos.fileRead) or [Exists](lilos.exists).
+The [Table](ui.table) component, with **Columns** `name, size`, shows the name and size of each item. When the user chooses a row, the Table sends the object of the row: with [Get property](core.get) (`path`) you get the path, to send to [readFile](lilos.fileRead) or [exists](lilos.exists).
 
 ### 3. Checking how many files there are
 
 ```
-[Every… 300 s] pulse ──▶ read [List folder: ~/Incoming] count ──▶ a [Compare: a > b] if true ──▶ send [Notification: "There are new files"]
-                                                  [Value: 0] value ──▶ b
+[Interval (setInterval): 300 s] pulse ──▶ read [readdir (list folder): ~/Incoming] count ──▶ a [Compare (== != < >): a > b] if true ──▶ send [Notify: "There are new files"]
+                                                  [Constant · Variable: 0] value ──▶ b
 ```
 
-Every 5 minutes the program counts the items of `~/Incoming` and sends you a [Notification](lilos.notify) if there is at least one. Remember the limit of 10 notifications per minute.
+Every 5 minutes the program counts the items of `~/Incoming` and sends you a [Notify](lilos.notify) if there is at least one. Remember the limit of 10 notifications per minute.
 
 ## Errors
 
@@ -101,7 +101,7 @@ The messages are in Italian, as users see them; the English meaning is in parent
 
 | Message | When |
 |---|---|
-| Percorso non valido: … ("Invalid path: …") | The path does not follow the rules (see [Read file](lilos.fileRead) for all the cases). |
+| Percorso non valido: … ("Invalid path: …") | The path does not follow the rules (see [readFile](lilos.fileRead) for all the cases). |
 | Puoi usare solo i file della tua home (~/… oppure /home/anna/…): … ("You can only use the files of your home (~/… or /home/anna/…): …") | The path is outside your home. |
 | La cartella .config è di lilOS: i programmi non la usano ("The .config folder belongs to lilOS: programs do not use it") | The path is `~/.config` or inside it. |
 | La cartella «~/Documenti» non esiste ("The folder «~/Documenti» does not exist") | The folder is not there. |
@@ -109,7 +109,7 @@ The messages are in Italian, as users see them; the English meaning is in parent
 | «~/Documenti» non esiste (o non puoi vederlo) ("«~/Documenti» does not exist (or you cannot see it)") | The file system says it is not there. |
 | Non hai il permesso di usare «~/Documenti» ("You do not have permission to use «~/Documenti»") | The file system denies you access. |
 | Il file system di lilOS non risponde: riprova più tardi ("The lilOS file system is not answering: try again later") | The file system is not answering. |
-| Elenca cartella ha impiegato più di 30 s ("List folder took more than 30 s") | The reading went over the maximum time of a block (30 seconds by default). |
+| readdir (elenca cartella) ha impiegato più di 30 s ("readdir (list folder) took more than 30 s") | The reading went over the maximum time of a block (30 seconds by default). |
 | Il programma non è in esecuzione ("The program is not running") | The program was stopping. |
 
 ## Permissions
@@ -118,7 +118,7 @@ The block works as the user who owns the program. An app made with **Make app** 
 
 ## See also
 
-- [Exists](lilos.exists), for a single file or folder
-- [Read file](lilos.fileRead), [Write file](lilos.fileWrite), [Append to file](lilos.fileAppend)
+- [exists](lilos.exists), for a single file or folder
+- [readFile](lilos.fileRead), [writeFile](lilos.fileWrite), [appendFile](lilos.fileAppend)
 - [Length](coll.length) and [Filter](coll.filter), to work on the list
 - [How a block works](ide/blocks)

@@ -1,4 +1,4 @@
-# Min · Max · Average
+# Min · Max · Avg
 
 `core.stat` · Math · [Core blocks](logicstudio-core) · version 1
 
@@ -33,10 +33,10 @@ In the **Properties**, **Ports** section, you can add up to 16 more inputs (fewe
 Every time a value arrives on an input, the block takes the last value of each input, keeps only those that are numbers and sends the result on **result**.
 
 - Inputs that have not received anything yet do not count.
-- Values are converted to numbers with the same rules as [Add](core.add): `"2,5"` is 2.5; `true` is 1 and `false` is 0; **an empty text and `null` are 0** (and so they count, for example they lower the average).
-- **Unlike Add**, values that cannot be converted (`"ciao"`, an object) are **skipped** without an error: the average of 4, `"abc"` and 10 is 7 (that is (4 + 10) ÷ 2).
+- Values are converted to numbers with the same rules as [Add (+)](core.add): `"2,5"` is 2.5; `true` is 1 and `false` is 0; **an empty text and `null` are 0** (and so they count, for example they lower the average).
+- **Unlike the Add (+) block**, values that cannot be converted (`"ciao"`, an object) are **skipped** without an error: the average of 4, `"abc"` and 10 is 7 (that is (4 + 10) ÷ 2).
 - If no valid number is left, the block sends nothing.
-- The average can have many decimals (the average of 1, 2 and 2 is 1.6666666666666667): round it with [Calculate](core.math).
+- The average can have many decimals (the average of 1, 2 and 2 is 1.6666666666666667): round it with [Math functions](core.math).
 
 ## Examples
 
@@ -45,7 +45,7 @@ Every time a value arrives on an input, the block takes the last value of each i
 Operation **average**, input **c** added:
 
 ```
-[Sensor 1] value ──▶ a  [Min · Max · Average] result ──▶ value [Value: average temperature]
+[Sensor 1] value ──▶ a  [Min · Max · Avg] result ──▶ value [Value: average temperature]
 [Sensor 2] value ──▶ b
 [Sensor 3] value ──▶ c
 ```
@@ -66,7 +66,7 @@ This block has no errors of its own.
 
 ## See also
 
-- [Add](core.add) for the total
-- [Limit](core.clamp) to keep a number between a fixed minimum and maximum
-- [Sum · Min · Max · Average](coll.stat) to do the same on the items of a list
+- [Add (+)](core.add) for the total
+- [Clamp](core.clamp) to keep a number between a fixed minimum and maximum
+- [Sum · Min · Max · Avg](coll.stat) to do the same on the items of a list
 - [How a block works](ide/blocks)

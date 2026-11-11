@@ -1722,9 +1722,16 @@ Con un progetto aperto la finestra ha, a sinistra, le schede **Progetto** (l'ele
 1. Nella scheda **Blocchi** scegli un blocco (c'è una ricerca in alto): un clic lo mette in mezzo al foglio, trascinandolo lo metti dove lo lasci. I blocchi sono divisi per tipo: valori, logica, matematica, testo, oggetti, liste, matrici, tempo, console, porte di schema, lilOS, rete.
 2. Per **collegare** due blocchi, trascina da un'uscita (a destra) a un ingresso (a sinistra). Per togliere un collegamento, trascina l'estremità dell'ingresso via, oppure selezionalo e premi **Canc**. Le porte di tipo diverso si possono collegare, ma il collegamento è segnalato se i tipi non vanno d'accordo.
 3. Seleziona un blocco per cambiarne le **Impostazioni** nella barra **Proprietà**: per esempio quanti secondi aspettare, o il testo di una domanda. Lì puoi anche dargli un'**Etichetta**, cioè un nome tuo.
-4. Alcuni blocchi (E, O, Somma, Formatta testo, Casi, Scrivi in console…) permettono di **aggiungere ingressi o uscite**: sempre dalla barra **Proprietà**, con **Aggiungi ingresso** o **Aggiungi uscita**; si possono rinominare, spostare su e giù e togliere con **Togli**. Le porte aggiunte hanno il nome in corsivo. Togliere una porta toglie anche i suoi collegamenti, ma **Ctrl Z** li rimette.
-5. Le porte che non usi si possono **nascondere**: nella barra **Proprietà**, accanto a ogni porta, l'**occhio** la nasconde nel disegno (occhio barrato) o la mostra di nuovo. Una porta **collegata** non si nasconde: il suo occhio è spento finché non togli il collegamento. La porta **Eccezione** parte nascosta: per collegarla premi prima il suo occhio. Nascondere una porta cambia solo il disegno: un ingresso nascosto tiene il suo valore all'avvio.
+4. Alcuni blocchi (AND, OR, Somma, Template, Switch · Case, Print…) permettono di **aggiungere ingressi o uscite**: sempre dalla barra **Proprietà**, con **Aggiungi ingresso** o **Aggiungi uscita**; si possono rinominare, spostare su e giù e togliere con **Togli**. Le porte aggiunte hanno il nome in corsivo. Togliere una porta toglie anche i suoi collegamenti, ma **Ctrl Z** li rimette.
+5. Le porte che non usi si possono **nascondere**: nella barra **Proprietà**, accanto a ogni porta, l'**occhio** la nasconde nel disegno (occhio barrato) o la mostra di nuovo. Una porta **collegata** non si nasconde: il suo occhio è spento finché non togli il collegamento. La porta **Eccezione** parte nascosta: per collegarla premi prima il suo occhio. Anche alcune porte che servono di rado partono nascoste, per esempio **invia** e **imposta** di **Costante · Variabile**. Nascondere una porta cambia solo il disegno: un ingresso nascosto tiene il suo valore all'avvio.
 6. Per ogni ingresso, nelle **Proprietà**, scegli se **lo avvia** (se arriva un valore, il blocco lavora) e se ha un **valore iniziale** da quando parte il programma. Un ingresso che non avvia il blocco serve solo a tenere un valore da usare quando il blocco parte per un altro ingresso.
+
+I nomi dei blocchi richiamano le funzioni equivalenti dei linguaggi di programmazione: **If · Else**, **Switch · Case**, **Intervallo (setInterval)**, **Ritardo (setTimeout)**, **Print (console.log)**, **Push · Unshift**, **readFile**… (dalla 1.1.0 dei pacchetti di blocchi; gli schemi salvati prima non cambiano).
+
+Il blocco **Costante · Variabile** dà un valore (numero, testo, sì/no o JSON). Di serie è una **costante** e il valore esce all'avvio dello schema. Ha due ingressi nascosti, che mostri con l'occhio nelle Proprietà:
+
+- **invia**: se lo colleghi, il valore non esce più all'avvio ma solo a ogni impulso che arriva;
+- **imposta**: se lo colleghi, il blocco diventa una **variabile**: il valore che arriva (convertito nel tipo scelto) prende il posto di quello attuale. Esce subito, oppure al prossimo impulso su **invia** se è collegato. Il valore delle impostazioni è quello di partenza.
 
 Sul foglio: trascina lo sfondo per selezionare con un rettangolo; per spostare la vista tieni premuto **Spazio** (o usa il tasto centrale del mouse) e trascina; la **rotella** ingrandisce e rimpicciolisce; **Adatta** mostra tutto il foglio; **Allinea** (con almeno 2 blocchi selezionati) li mette in fila: in orizzontale sui bordi a sinistra, sui centri o sui bordi a destra, in verticale sui bordi in alto, sui centri o sui bordi in basso, oppure (da 3 blocchi) li **distribuisce** con lo stesso spazio fra l'uno e l'altro; si annulla con Ctrl Z. Con il foglio in primo piano: **Canc** elimina quello che hai selezionato, **Ctrl A** seleziona tutto, **Ctrl D** duplica, le **frecce** spostano, **Esc** toglie la selezione. Tasto destro su un blocco: **Duplica**, **Etichetta…**, **Allinea** (con più blocchi selezionati), **Elimina il blocco**; su un collegamento: **Elimina il collegamento**; sul foglio: **Aggiungi un blocco qui**, **Seleziona tutto**. **Ctrl Z** e **Ctrl Y** annullano e ripetono, **Ctrl S** salva tutto.
 
@@ -1732,7 +1739,7 @@ Un blocco che viene da un pacchetto che non è installato è segnato con **Manca
 
 ### Più schemi: la mappa
 
-Con il pulsante **Mappa** vedi il progetto intero: ogni schema è un riquadro con le sue **porte**, ogni finestra è un riquadro che dice in quali schemi stanno gli oggetti delle sue componenti. Gli schemi di uno stesso progetto si collegano **solo con le loro porte**: metti in uno schema un blocco **Ingresso di schema** o **Uscita di schema** (con un nome, nelle Proprietà), poi nella mappa trascina da un'uscita di uno schema a un ingresso di un altro. Il progetto ha un solo posto per questi collegamenti, la mappa.
+Con il pulsante **Mappa** vedi il progetto intero: ogni schema è un riquadro con le sue **porte**, ogni finestra è un riquadro che dice in quali schemi stanno gli oggetti delle sue componenti. Gli schemi di uno stesso progetto si collegano **solo con le loro porte**: metti in uno schema un blocco **Parametro (ingresso di schema)** o **Return (uscita di schema)** (con un nome, nelle Proprietà), poi nella mappa trascina da un'uscita di uno schema a un ingresso di un altro. Il progetto ha un solo posto per questi collegamenti, la mappa.
 
 ### Disegnare una finestra
 
@@ -1746,7 +1753,7 @@ Un pulsante può anche, al clic, **aprire un'altra finestra** del progetto o **c
 
 ### Le console
 
-Un programma scrive righe in una **console** e può fare domande a chi lo usa. Il blocco **Scrivi in console** scrive (con un livello: normale, informazione, avviso, errore); **Leggi da console** fa una domanda e aspetta la risposta, di un tipo che scegli: testo, numero, sì/no, un tasto. Puoi dargli un valore predefinito, un tempo massimo e la richiesta di nascondere quello che si scrive (per le password). Se la risposta non va bene, la domanda si ripete (si può spegnere); **Esc** annulla.
+Un programma scrive righe in una **console** e può fare domande a chi lo usa. Il blocco **Print (console.log)** scrive (con un livello: normale, informazione, avviso, errore); **Input (readline)** fa una domanda e aspetta la risposta, di un tipo che scegli: testo, numero, sì/no, un tasto. Puoi dargli un valore predefinito, un tempo massimo e la richiesta di nascondere quello che si scrive (per le password). Se la risposta non va bene, la domanda si ripete (si può spegnere); **Esc** annulla.
 
 In basso nell'IDE c'è una scheda per ogni console del progetto: la **principale** (con la stella) c'è sempre. Nelle **Opzioni del progetto → Console** puoi aggiungerne altre (fino a 10, con nome e colore), scegliere quante righe tenere, e scegliere **cosa succede fuori dall'IDE**, cioè quando il programma gira senza che l'IDE sia aperto:
 
@@ -1818,9 +1825,9 @@ Si apre una finestra con l'indice a sinistra (la guida dell'IDE e poi un gruppo 
 
 ### Da sapere
 
-- **Un programma attivo fa davvero quello che dice, anche quando non guardi.** Un blocco **Scrivi file** sovrascrive il file; **Aggiungi a file** lo allunga; **Richiesta web** chiama davvero il sito. Provalo prima con **Prova**, con file di prova.
+- **Un programma attivo fa davvero quello che dice, anche quando non guardi.** Un blocco **writeFile** sovrascrive il file; **appendFile** lo allunga; **HTTP (fetch)** chiama davvero il sito. Provalo prima con **Prova**, con file di prova.
 - I blocchi di lilOS lavorano **solo sui file della tua home** (mai la cartella `.config`, né i file protetti da un'app come FileCrypt) e con i tuoi permessi: quello che non puoi fare tu, non lo fa il programma. Si leggono e si scrivono al massimo 5 MB alla volta.
-- La **Richiesta web** non arriva a questo computer né alla rete locale, a meno che un amministratore non lo permetta nelle impostazioni del modulo.
+- Il blocco **HTTP (fetch)** non arriva a questo computer né alla rete locale, a meno che un amministratore non lo permetta nelle impostazioni del modulo.
 - Ogni utente ha dei limiti: un numero di programmi attivi, una parte della CPU e della memoria, e un numero di richieste di rete al minuto. Se un programma supera i limiti, si ferma e ricevi un messaggio.
 - Un programma che sembra un ciclo senza fine (più di 10000 esecuzioni di blocchi in 10 secondi, di serie) si ferma da solo.
 - Una domanda di console, se nessuna pagina di lilOS è aperta, **aspetta** finché non arriva una risposta o scade il tempo massimo del blocco: il resto del programma va avanti.

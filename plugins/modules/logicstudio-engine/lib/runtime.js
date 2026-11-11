@@ -13,6 +13,8 @@
  *
  * The spec (made and checked by project.js): { schemas: { <name>: { blocks, links } }, projectLinks,
  * limits }. A block: { id, type, v, config, ports: { <port>: { start, trigger } }, added, role? }.
+ * A block's run() and start() get b.linked(port): whether something is linked to that input of it
+ * (a block may behave differently when an optional input is not used, e.g. core.value).
  *
  * How it runs (dataflow, as in OpenBack): a value arriving on an input is kept as that input's
  * value; if the input starts the block (all do, unless its `trigger` is false), the block's run()
@@ -60,6 +62,7 @@ export class Program {
         const to = this.#nodes.get(`${schema}/${l.to[0]}`);
         if (!from || !to) continue;
         (from.links.get(l.from[1]) ?? from.links.set(l.from[1], []).get(l.from[1])).push({ node: to, port: l.to[1] });
+        to.linkedIn.add(l.to[1]);
       }
     }
     // Schema ports: an Uscita di schema delivers to the Ingressi di schema linked in the project
@@ -87,7 +90,7 @@ export class Program {
       key: `${schema}/${b.id}`, schema, id: b.id, def, config,
       ports: b.ports ?? {},
       added: { inputs: b.added?.inputs ?? [], outputs: b.added?.outputs ?? [] },
-      values: {}, links: new Map(), memory: {}, timers: new Set(), inbox: [], pumping: false, failed: false,
+      values: {}, links: new Map(), linkedIn: new Set(), memory: {}, timers: new Set(), inbox: [], pumping: false, failed: false,
     };
     node.ctx = this.#context(node);
     return node;
@@ -104,6 +107,7 @@ export class Program {
       get lang() { return program.#host.lang ?? 'en'; },
       get signal() { return program.#abort.signal; },
       memory: () => node.memory,
+      linked: port => node.linkedIn.has(port),
       send: (port, value) => program.#emit(node, port, value),
       setTimeout: (fn, ms) => program.#timer(node, fn, ms, false),
       setInterval: (fn, ms) => program.#timer(node, fn, ms, true),

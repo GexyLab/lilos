@@ -1424,7 +1424,7 @@ Un **pacchetto** porta blocchi (e, se vuoi, Componenti UI per le finestre) a Log
    ];
    ```
 
-   Regole delle definizioni: `type` è `pacchetto.nome` (`[a-z][a-z0-9]*\.[a-zA-Z][a-zA-Z0-9]{0,40}`), `version` un intero da 1 che si alza quando il comportamento cambia; le porte hanno `name` `[a-zA-Z][a-zA-Z0-9]{0,30}`, mai `error` (esiste già, è l'uscita Eccezione) e `type` tra `number`, `bool`, `text`, `object`, `list`, `matrix`, `any`, `pulse`. `run` ritorna un oggetto con le uscite (un impulso è `true`), o niente; un errore lanciato esce da `error`. `start`, `stop`, `step` (per `execution: 'loop'`), `b.send`, `b.setTimeout` e `b.memory()` sono nell'API. Un blocco non modifica i valori che riceve.
+   Regole delle definizioni: `type` è `pacchetto.nome` (`[a-z][a-z0-9]*\.[a-zA-Z][a-zA-Z0-9]{0,40}`), `version` un intero da 1 che si alza quando il comportamento cambia; le porte hanno `name` `[a-zA-Z][a-zA-Z0-9]{0,30}`, mai `error` (esiste già, è l'uscita Eccezione) e `type` tra `number`, `bool`, `text`, `object`, `list`, `matrix`, `any`, `pulse`. `run` ritorna un oggetto con le uscite (un impulso è `true`), o niente; un errore lanciato esce da `error`. Una porta con `hidden: true` non si disegna finché l'utente non la mostra (porte che servono di rado); `b.linked(porta)` dice se a un ingresso è collegato qualcosa. `start`, `stop`, `step` (per `execution: 'loop'`), `b.send`, `b.setTimeout`, `b.memory()` e `b.linked()` sono nell'API. Un blocco non modifica i valori che riceve.
 4. Se vuoi **componenti** per le finestre, aggiungi `components.js` (e `components: join(ctx.dir, 'components.js')` in `register`). Non importa niente: `render(el, c)` riceve in `c` tutto quello che serve.
 
    ```js

@@ -62,10 +62,10 @@ The app runs **with your permissions**. If its schemas use blocks that touch you
 
 | If it uses | lilOS says it will be able to |
 |---|---|
-| **Read file**, **Write file**, **Append to file**, **List folder**, **Exists** | read and change your files |
+| **readFile**, **writeFile**, **appendFile**, **readdir**, **exists** | read and change your files |
 | a **Network** block | make requests on the internet |
-| **Notification** | send you notifications |
-| **Event to lilOS** | send events to your lilOS |
+| **Notify** | send you notifications |
+| **Emit** | send events to your lilOS |
 
 Below is the path of the `.lsapp` file, with the advice to run it only if you trust whoever made it, and the buttons to cancel or run. The texts of this window belong to lilOS: their original form is in English («Run «Name»?», «This app was made with Logic Studio and runs as you. It can:», **Cancel**, **Run**) and you see them translated if lilOS has the pack of your language.
 
@@ -97,7 +97,7 @@ Below is the path of the `.lsapp` file, with the advice to run it only if you tr
 
 ### 2. An app that writes a file
 
-The project has a **Write file** on `~/note.txt`. At the first start of the app **Run «Note»?** appears with «read and change your files». Press **Run**: the next time it does not ask again. If you change the project and make the app again, it asks again.
+The project has a **writeFile** on `~/note.txt`. At the first start of the app **Run «Note»?** appears with «read and change your files». Press **Run**: the next time it does not ask again. If you change the project and make the app again, it asks again.
 
 ### 3. Updating the app
 

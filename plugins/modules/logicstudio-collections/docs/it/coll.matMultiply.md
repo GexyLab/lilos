@@ -1,4 +1,4 @@
-# Moltiplica matrici
+# A × B
 
 `coll.matMultiply` · Matrici · [Liste e matrici](logicstudio-collections) · versione 1
 
@@ -29,15 +29,15 @@ Il blocco aspetta di avere **a** e **b**; poi, a ogni valore nuovo su uno dei du
 - **Le celle devono essere numeri veri**: un testo come `"2"` dà «La matrice deve contenere solo numeri».
 - Il risultato può avere al massimo 100000 celle (R × C), altrimenti «Matrice troppo grande (massimo 100000 celle)».
 - Il risultato non viene arrotondato.
-- Per moltiplicare cella per cella non c'è un blocco; per moltiplicare tutte le celle per un numero usa [Scala](coll.matScale).
+- Per moltiplicare cella per cella non c'è un blocco; per moltiplicare tutte le celle per un numero usa [Scala (k·A)](coll.matScale).
 
 ## Esempi
 
 ### 1. 2 × 3 per 3 × 2
 
 ```
-[Valore (JSON): [[1,2,3],[4,5,6]]]     valore ──▶ a  [Moltiplica matrici] risultato ──▶ valore [Scrivi in console]
-[Valore (JSON): [[1,0],[0,1],[1,1]]]   valore ──▶ b
+[Costante · Variabile (JSON): [[1,2,3],[4,5,6]]]     valore ──▶ a  [A × B] risultato ──▶ valore [Print (console.log)]
+[Costante · Variabile (JSON): [[1,0],[0,1],[1,1]]]   valore ──▶ b
 ```
 
 Scrive `[[4,5],[10,11]]`. Per esempio la prima cella è `1×1 + 2×0 + 3×1 = 4`.
@@ -49,7 +49,7 @@ Scrive `[[4,5],[10,11]]`. Per esempio la prima cella è `1×1 + 2×0 + 3×1 = 4`
 
 ### 3. Misure sbagliate
 
-**a** = `[[1,2,3],[4,5,6]]` per sé stessa dà «Prodotto impossibile: le colonne di A (3) devono essere quante le righe di B (2)». Con **b** collegata attraverso una [Trasposta](coll.matTranspose) il prodotto si può fare: `[[14,32],[32,77]]`.
+**a** = `[[1,2,3],[4,5,6]]` per sé stessa dà «Prodotto impossibile: le colonne di A (3) devono essere quante le righe di B (2)». Con **b** collegata attraverso un blocco [Transpose](coll.matTranspose) il prodotto si può fare: `[[14,32],[32,77]]`.
 
 ### 4. Ruotare un punto
 
@@ -67,5 +67,5 @@ La matrice `[[0,-1],[1,0]]` ruota di 90° in senso antiorario: con **a** = `[[0,
 
 ## Vedi anche
 
-- [Trasposta](coll.matTranspose), [Identità](coll.matIdentity), [Scala](coll.matScale), [Determinante](coll.matDet)
+- [Transpose](coll.matTranspose), [Identità (eye)](coll.matIdentity), [Scala (k·A)](coll.matScale), [Det](coll.matDet)
 - [Come funziona un blocco](ide/blocks)

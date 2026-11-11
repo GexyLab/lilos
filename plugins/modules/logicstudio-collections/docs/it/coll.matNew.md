@@ -1,4 +1,4 @@
-# Crea matrice
+# Nuova matrice (fill)
 
 `coll.matNew` · Matrici · [Liste e matrici](logicstudio-collections) · versione 1
 
@@ -33,22 +33,22 @@ Il blocco aspetta di avere **righe** e **colonne**; poi, a ogni valore nuovo su 
 - Devono essere almeno 1: 0 o un negativo danno «Righe e colonne devono essere interi maggiori di zero».
 - Le celle sono al massimo 100000 (righe × colonne): 1000 × 101 dà «Matrice troppo grande (massimo 100000 celle)»; 1000 × 100 va bene.
 - Il **riempimento** che arriva sull'ingresso può essere qualsiasi valore: un testo, `null`, perfino una lista (allora ogni cella contiene quella lista). L'impostazione invece è sempre un numero.
-- Una matrice con celle non numeriche va bene per leggere e scrivere celle, ma non per i calcoli (Somma matrici, Moltiplica matrici, Scala, Determinante), che vogliono solo numeri.
+- Una matrice con celle non numeriche va bene per leggere e scrivere celle, ma non per i calcoli (A + B, A × B, Scala (k·A), Det), che vogliono solo numeri.
 
 ## Esempi
 
 ### 1. Una matrice di zeri
 
 ```
-[Valore: 2] valore ──▶ righe   [Crea matrice] matrice ──▶ valore [Scrivi in console]
-[Valore: 3] valore ──▶ colonne
+[Costante · Variabile: 2] valore ──▶ righe   [Nuova matrice (fill)] matrice ──▶ valore [Print (console.log)]
+[Costante · Variabile: 3] valore ──▶ colonne
 ```
 
 Scrive `[[0,0,0],[0,0,0]]`.
 
 ### 2. Una griglia di gioco vuota
 
-Con **righe** 3, **colonne** 3 e sull'ingresso **riempimento** il testo `-` (dato come valore iniziale) il risultato è `[["-","-","-"],["-","-","-"],["-","-","-"]]`. Le mosse si scrivono con [Imposta cella](coll.matSet).
+Con **righe** 3, **colonne** 3 e sull'ingresso **riempimento** il testo `-` (dato come valore iniziale) il risultato è `[["-","-","-"],["-","-","-"],["-","-","-"]]`. Le mosse si scrivono con [Scrivi m[r][c]](coll.matSet).
 
 ### 3. Riempimento con l'impostazione
 
@@ -65,6 +65,6 @@ Con **Valore di riempimento** 7 e 2 × 2: `[[7,7],[7,7]]`. Se poi arriva `null` 
 
 ## Vedi anche
 
-- [Identità](coll.matIdentity), [Matrice da lista](coll.matFromList), [Imposta cella](coll.matSet), [Dimensioni](coll.matSize)
+- [Identità (eye)](coll.matIdentity), [Reshape](coll.matFromList), [Scrivi m[r][c]](coll.matSet), [Shape](coll.matSize)
 - [Liste e matrici](logicstudio-collections) per il formato delle matrici
 - [Come funziona un blocco](ide/blocks)

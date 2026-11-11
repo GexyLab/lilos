@@ -34,7 +34,7 @@ Una casella con il suo testo accanto, spuntata o no. Quando l'utente la cambia, 
 
 **Lo schema** la cambia con l'ingresso **valore**, e in quel caso la casella **non** manda niente. Come per l'[Interruttore](ui.toggle), la spunta c'è solo con `true`, il testo `"true"` o il numero `1`; ogni altro valore (anche il testo `"1"` o `"sì"`) la toglie.
 
-**All'apertura** si vede lo stato di **Spuntata all'inizio**, ma il programma non lo riceve finché l'utente non cambia la casella. Se lo schema deve conoscerlo, dagli lo stesso valore con un blocco [Valore](core.value).
+**All'apertura** si vede lo stato di **Spuntata all'inizio**, ma il programma non lo riceve finché l'utente non cambia la casella. Se lo schema deve conoscerlo, dagli lo stesso valore con un blocco [Costante · Variabile](core.value).
 
 La differenza con l'Interruttore è solo nell'aspetto: la Casella mostra il suo testo, l'Interruttore no. Di solito la casella si usa per una scelta da confermare dopo (in un modulo), l'interruttore per qualcosa che ha effetto subito.
 
@@ -68,14 +68,14 @@ Finestra «Esporta»
 ```
 
 ```
-[Valore: no] valore ──▶ note     [Componi oggetto] oggetto ──▶ valore [Scrivi in console]
-[Valore: no] valore ──▶ immagini
+[Costante · Variabile: no] valore ──▶ note     [Oggetto { }] oggetto ──▶ valore [Print (console.log)]
+[Costante · Variabile: no] valore ──▶ immagini
 [Casella di spunta: Includi le note]      valore ──▶ note
 [Casella di spunta: Includi le immagini]  valore ──▶ immagini
 [Pulsante: Esporta] premuto ──▶ esporta
 ```
 
-Nel [Componi oggetto](core.compose) aggiungi i campi **note**, **immagini** (senza «lo avvia») ed **esporta**. I due [Valori](core.value) sì/no danno lo stato iniziale (`false`), così il campo c'è anche se l'utente non tocca la casella. Premendo **Esporta** la console mostra per esempio `{"note":true,"immagini":false,"esporta":true}`.
+Nel blocco [Oggetto { }](core.compose) aggiungi i campi **note**, **immagini** (senza «lo avvia») ed **esporta**. I due blocchi [Costante · Variabile](core.value) sì/no (senza niente su **invia**, mandano il valore all'avvio) danno lo stato iniziale (`false`), così il campo c'è anche se l'utente non tocca la casella. Premendo **Esporta** la console mostra per esempio `{"note":true,"immagini":false,"esporta":true}`.
 
 ## Accessibilità e tastiera
 
@@ -86,5 +86,5 @@ Nel [Componi oggetto](core.compose) aggiungi i campi **note**, **immagini** (sen
 
 - [Interruttore](ui.toggle)
 - [Pulsanti di opzione](ui.radios), per una scelta tra più possibilità
-- [Componi oggetto](core.compose)
+- [Oggetto { }](core.compose)
 - [Componenti UI standard](logicstudio-ui)

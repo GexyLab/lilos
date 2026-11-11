@@ -99,12 +99,13 @@ function nextId(prefix, taken) {
  * trigger, hidden }] — base ports first, then the added ones (name = their id x1, x2…, label = their
  * name). A block also has the output «error» (Eccezione). For the object of a component in a schema
  * (role 'component') pass the component's definition and its added ports as `component`.
- * `hidden`: the user chose to hide it on the drawing (portHidden); a linked port is shown anyway.
+ * `hidden`: hidden on the drawing (portHidden); a linked port is shown anyway. `hiddenByDefault`:
+ * its definition says `hidden: true` (a port most schemas do not need, shown with the eye).
  */
 export function portsOf(item, def, { lang = 'en', component = null, errorLabel = t('error') } = {}) {
   const src = component?.def ?? def;
   const added = component ? component.added : item?.added;
-  const base = side => (src?.[side] ?? []).map(p => ({ name: p.name, label: label(p.label, lang) || p.name, type: p.type ?? 'any', added: false, trigger: p.trigger !== false }));
+  const base = side => (src?.[side] ?? []).map(p => ({ name: p.name, label: label(p.label, lang) || p.name, type: p.type ?? 'any', added: false, trigger: p.trigger !== false, hiddenByDefault: p.hidden === true }));
   const extra = side => (added?.[side] ?? []).map(p => ({ name: p.id, label: p.name, type: src?.grow?.[side]?.type ?? 'any', added: true, trigger: true }));
   const inputs = [...base('inputs'), ...extra('inputs')];
   const outputs = [...base('outputs'), ...extra('outputs')];
@@ -113,19 +114,20 @@ export function portsOf(item, def, { lang = 'en', component = null, errorLabel =
   if (def?.role === 'schemaOut' && inputs[0]) inputs[0].type = item?.config?.type ?? 'any';
   if (def && !def.role && !component) outputs.push({ name: 'error', label: errorLabel, type: 'any', added: false, error: true });
   if (component) outputs.push({ name: 'error', label: errorLabel, type: 'any', added: false, error: true });
-  for (const p of inputs) p.hidden = portHidden(item, 'inputs', p.name);
-  for (const p of outputs) p.hidden = portHidden(item, 'outputs', p.name);
+  for (const p of inputs) p.hidden = portHidden(item, 'inputs', p.name, p.hiddenByDefault);
+  for (const p of outputs) p.hidden = portHidden(item, 'outputs', p.name, p.hiddenByDefault);
   return { inputs, outputs };
 }
 
 /**
- * Whether the user hid a port of a block on the drawing (item.hide = { inputs: { name: bool },
- * outputs: { … } }). Without a choice only the output «error» (Eccezione) is hidden. A linked port
- * is always drawn: LogicSchema.setPortHidden does not hide it, and the drawing shows it anyway.
+ * Whether a port of a block is hidden on the drawing: the user's choice (item.hide = { inputs:
+ * { name: bool }, outputs: { … } }), else the default — hidden are the output «error» (Eccezione)
+ * and the ports whose definition says `hidden: true` (`byDefault`). A linked port is always drawn:
+ * LogicSchema.setPortHidden does not hide it, and the drawing shows it anyway.
  */
-export function portHidden(item, side, name) {
+export function portHidden(item, side, name, byDefault = false) {
   const v = item?.hide?.[side]?.[name];
-  return typeof v === 'boolean' ? v : side === 'outputs' && name === 'error';
+  return typeof v === 'boolean' ? v : byDefault === true || (side === 'outputs' && name === 'error');
 }
 
 /** item.hide of a file, kept only as { inputs: { name: bool }, outputs: { name: bool } }. */
@@ -283,16 +285,17 @@ export class LogicSchema extends LogicDocument {
   /**
    * Hides a port of a block on the drawing, or shows it again (side 'inputs' | 'outputs'). A linked
    * port is not hidden: false, nothing changed. Only what differs from the default (the output
-   * «error» hidden, the others shown) is kept in the file.
+   * «error» and the ports defined `hidden: true` hidden, the others shown) is kept in the file:
+   * pass `byDefault` true for a port defined hidden.
    */
-  setPortHidden(id, side, port, hidden) {
+  setPortHidden(id, side, port, hidden, byDefault = false) {
     if (hidden && this.linksOf(id, port, side).length) return false;
     this.edit('portHidden', data => {
       const b = data.blocks.find(x => x.id === id);
       if (!b) return;
       b.hide ??= { inputs: {}, outputs: {} };
       b.hide[side] ??= {};
-      if (!!hidden === portHidden(null, side, port)) delete b.hide[side][port];
+      if (!!hidden === portHidden(null, side, port, byDefault)) delete b.hide[side][port];
       else b.hide[side][port] = !!hidden;
       if (!cleanHide(b.hide)) delete b.hide;
     });

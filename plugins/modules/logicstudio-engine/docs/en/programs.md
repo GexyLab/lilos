@@ -23,7 +23,7 @@ The engine takes these steps, in order. If one fails, the program does not start
 3. **Saving.** An active program is saved in the engine, with a copy of the project. At most 2 MB of project: beyond that, «Progetto troppo grande per un programma attivo (al massimo 2 MB)» ("Project too big for an active program (at most 2 MB)").
 4. **The worker.** If you do not have a worker yet (the thread where your programs run), the engine opens it. Here the memory of everybody counts: if it is not enough, the program stops at once with the message «Logic Studio usa già … MB: al massimo … MB per tutti» ("Logic Studio already uses … MB: at most … MB for everybody").
 5. **Starting the blocks.** In the worker the program starts like this:
-   - every block that has something to do at start does it (for example the [Value](core.value) with **Send at start** sends its value);
+   - every block that has something to do at start does it (for example the [Constant · Variable](core.value) block, if nothing is linked to **send**, sends its value);
    - then every input that has a **start value** receives it;
    - then the blocks that run by themselves in a loop start.
 
@@ -58,7 +58,7 @@ You see your programs in two places:
 
 When an **active program** stops because of an error, you receive a lilOS notification with the name of the program and the message (if at that moment you have a lilOS page open).
 
-An error inside a block does **not** stop the program: it comes out of the **Exception** output of that block and, if it is not linked, goes to the main console as a red line. For example «Somma: Serve un numero» ("Add: A number is needed").
+An error inside a block does **not** stop the program: it comes out of the **Exception** output of that block and, if it is not linked, goes to the main console as a red line. For example «Somma (+): Serve un numero» ("Add (+): A number is needed").
 
 ## Stopping and removing
 
@@ -103,7 +103,7 @@ Every program has its own consoles: the **main** one (always there) and those yo
 
 ### The questions
 
-The [Read from console](core.consoleRead) block asks a question and waits for the answer.
+The [Input (readline)](core.consoleRead) block asks a question and waits for the answer.
 
 - In each console there is **one question at a time**: if two blocks ask together in the same console, the second waits in line until the first has its answer.
 - The answer is typed in the console of the IDE, or in the window of the console that lilOS opens. If the same console is open in two places, the first answer to arrive counts.
@@ -122,7 +122,7 @@ The [Read from console](core.consoleRead) block asks a question and waits for th
 - When the program stops, the questions waiting are cancelled.
 - A hidden answer (for passwords) appears in the console as dots.
 
-> **The time a block may take holds for questions too.** Today the engine interrupts a block that works for more than 30 seconds (default, see [Limits and quotas](logicstudio-engine/limits)), and a block that waits for an answer counts as a block that is working. After 30 seconds with no answer, **Read from console** sends «Leggi da console ha impiegato più di 30 s» ("Read from console took more than 30 s") on **Exception**. The question stays in the console, but the answer you give afterwards no longer reaches the block, and until you answer the block ignores new **ask** requests. If you need more time, an administrator can raise the limit.
+> **The time a block may take holds for questions too.** Today the engine interrupts a block that works for more than 30 seconds (default, see [Limits and quotas](logicstudio-engine/limits)), and a block that waits for an answer counts as a block that is working. After 30 seconds with no answer, **Read from console** sends «Input (readline) ha impiegato più di 30 s» ("Input (readline) took more than 30 s") on **Exception**. The question stays in the console, but the answer you give afterwards no longer reaches the block, and until you answer the block ignores new **ask** requests. If you need more time, an administrator can raise the limit.
 
 ### Consoles outside the IDE
 
@@ -171,7 +171,7 @@ Active programs with windows appear in the apps menu, **Projects** tab: a click 
 ### 1. A test that stops by itself
 
 ```
-[Every…: 1 s] pulse ──▶ up [Counter] count ──▶ value [Write to console]
+[Interval (setInterval): 1 s] pulse ──▶ up [Counter (++ −−)] count ──▶ value [Print (console.log)]
 ```
 
 Press **Test**: in the main console 1, 2, 3… appear, one line per second. After 5 minutes (default) the test stops with «Fine della prova: è durata il tempo massimo». If you press **Activate** instead, the count goes on until you press **Stop** in the Home.
@@ -179,22 +179,22 @@ Press **Test**: in the main console 1, 2, 3… appear, one line per second. Afte
 ### 2. A loop of links
 
 ```
-[Value: 1] value ──▶ a [Add] result ──▶ b [the same Add]
+[Constant · Variable: 1] value ──▶ a [Add (+)] result ──▶ b [the same Add (+)]
 ```
 
-The **result** of the [Add](core.add) comes back to its input **b**: every result makes it work again, and the Add never stops (1, 2, 3, 4…). After 10000 runs in 10 seconds the engine stops the program with «Troppe esecuzioni: più di 10000 in 10 secondi (un ciclo di collegamenti?)». To really count use the [Counter](core.counter), or untick **starts it** on the input that closes the circuit.
+The **result** of the [Add (+)](core.add) block comes back to its input **b**: every result makes it work again, and the block never stops (1, 2, 3, 4…). After 10000 runs in 10 seconds the engine stops the program with «Troppe esecuzioni: più di 10000 in 10 secondi (un ciclo di collegamenti?)». To really count use the [Counter (++ −−)](core.counter), or untick **starts it** on the input that closes the circuit.
 
 ### 3. A question to an active program
 
 ```
-[At start] pulse ──▶ ask [Read from console: «Quanti litri?», number] value ──▶ value [Write to console]
+[On start (main)] pulse ──▶ ask [Input (readline): «Quanti litri?», number] value ──▶ value [Print (console.log)]
 ```
 
-You activate the project and close the IDE. The [At start](core.onStart) block starts the question at once: if you have lilOS open, you receive a notification that says the console of the project is asking for something. A click opens the console; type `12,5` and press Enter: in the console 12.5 appears (as a number). If you type `tanti`, the console answers «Serve un numero. Riprova.» and the question stays.
+You activate the project and close the IDE. The [On start (main)](core.onStart) block starts the question at once: if you have lilOS open, you receive a notification that says the console of the project is asking for something. A click opens the console; type `12,5` and press Enter: in the console 12.5 appears (as a number). If you type `tanti`, the console answers «Serve un numero. Riprova.» and the question stays.
 
 ### 4. An active program after a restart
 
-You activated «Serra» (running) and the lilOS computer restarts. After a few seconds «Serra» is **Running** again, but its [Counter](core.counter) starts again from the start value and the console is empty. If you want a value to survive restarts, write it to a file with [Write file](lilos.fileWrite) and read it again at start with [Read file](lilos.fileRead).
+You activated «Serra» (running) and the lilOS computer restarts. After a few seconds «Serra» is **Running** again, but its [Counter (++ −−)](core.counter) starts again from the start value and the console is empty. If you want a value to survive restarts, write it to a file with [writeFile](lilos.fileWrite) and read it again at start with [readFile](lilos.fileRead).
 
 ## See also
 

@@ -9,7 +9,7 @@ The engine brings no blocks: blocks and UI components come from **packages**, ot
 ## What it does
 
 - Starts, keeps alive and stops the **programs**: the tests of the IDE, active programs and the apps made with **Make app**.
-- Keeps the **consoles** of the programs: the lines written by the blocks and the questions of the [Read from console](core.consoleRead) blocks.
+- Keeps the **consoles** of the programs: the lines written by the blocks and the questions of the [Input (readline)](core.consoleRead) blocks.
 - Keeps the last values sent to the **windows** of the projects, so a window opened again is not empty.
 - Checks the **quotas** of each user and the **limits** for everybody.
 - Does in the kernel, **as you**, the things the blocks ask for that touch your data or the world outside: reading a file, sending a notification, making a web request.
@@ -59,7 +59,7 @@ When the lilOS computer restarts, or an administrator restarts the kernel:
 2. A few seconds after the kernel starts, the engine starts again **the active programs that were running**, with the same name and the same project.
 3. The active programs you had stopped (or that had stopped because of an error) do **not** start again: they stay in the list as stopped, until you activate them again or remove them.
 
-A program that starts again begins **from scratch**: the blocks start from the beginning, the start values are sent again, the consoles are empty, the windows no longer have the last values. What a block remembered (for example the count of the [Counter](core.counter) block) is lost.
+A program that starts again begins **from scratch**: the blocks start from the beginning, the start values are sent again, the consoles are empty, the windows no longer have the last values. What a block remembered (for example the count of the [Counter (++ −−)](core.counter) block) is lost.
 
 If an active program is missing a package (for example it was uninstalled), the program stays **Waiting for a package** and starts again by itself as soon as the package comes back.
 
@@ -72,7 +72,7 @@ The blocks and components you see in the IDE are those of the packages installed
 | [Base blocks](logicstudio-core) | Values, logic, math, text, objects, time, console, schema ports, the object of the UI components |
 | [Lists and matrices](logicstudio-collections) | Blocks for lists and matrices |
 | [lilOS blocks](logicstudio-lilos) | Notifications, files of your home, events to lilOS |
-| [Network blocks](logicstudio-net) | The Web request |
+| [Network blocks](logicstudio-net) | The HTTP request (fetch) block |
 | [Standard UI components](logicstudio-ui) | Labels, buttons, fields, containers… for the windows |
 | [Charts](logicstudio-charts) | The charts as UI components |
 
@@ -93,10 +93,10 @@ That is why an active program does not change if you edit the project after acti
 ### 1. A reminder that runs even with lilOS closed
 
 ```
-[Every…: 3600 s] pulse ──▶ send [Notification: text «Alzati e cammina»]
+[Interval (setInterval): 3600 s] pulse ──▶ send [Notify: text «Alzati e cammina»]
 ```
 
-The text of the [Notification](lilos.notify) is in its Properties. To try it, put 10 seconds in the [Every…](core.every) block and press **Test**: a notification arrives every 10 seconds, until the test ends. Then put 3600 seconds back, save and press **Activate**: the program sends a notification every hour, even with the browser closed. The notifications that arrived while lilOS was closed are there when you open it again.
+The text of the [Notify](lilos.notify) block is in its Properties. To try it, put 10 seconds in the [Interval (setInterval)](core.every) block and press **Test**: a notification arrives every 10 seconds, until the test ends. Then put 3600 seconds back, save and press **Activate**: the program sends a notification every hour, even with the browser closed. The notifications that arrived while lilOS was closed are there when you open it again.
 
 ### 2. What happens at a restart
 

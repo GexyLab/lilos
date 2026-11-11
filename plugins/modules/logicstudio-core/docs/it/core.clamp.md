@@ -1,4 +1,4 @@
-# Limita
+# Clamp (limita)
 
 `core.clamp` · Matematica · [Blocchi di base](logicstudio-core) · versione 1
 
@@ -39,7 +39,7 @@ A ogni valore che arriva, il blocco lo converte in numero e lo porta dentro i li
 
 Cose da sapere:
 
-- La conversione segue le regole della [Somma](core.add): `"2,5"` vale 2,5; `true` vale 1 e `false` 0; un testo vuoto e `null` valgono 0.
+- La conversione segue le regole della [Somma (+)](core.add): `"2,5"` vale 2,5; `true` vale 1 e `false` 0; un testo vuoto e `null` valgono 0.
 - Un valore che non si può convertire non dà errore: esce `NaN` («non è un numero»), non limitato.
 - Se il **Minimo** è più grande del **Massimo**, esce **sempre il Massimo**, qualunque valore arrivi (con Minimo 80 e Massimo 20, esce sempre 20).
 - Se lasci **vuoto** il Minimo o il Massimo, quel limite vale **0**: con Minimo 0 e Massimo vuoto, ogni numero positivo diventa 0.
@@ -50,7 +50,7 @@ Cose da sapere:
 ### 1. Una percentuale tra 0 e 100
 
 ```
-[Dividi] risultato ──▶ a [Moltiplica: × 100] risultato ──▶ valore [Limita: 0–100] risultato ──▶ valore [Barra di avanzamento]
+[Divisione (÷ %)] risultato ──▶ a [Moltiplicazione (×): × 100] risultato ──▶ valore [Clamp (limita): 0–100] risultato ──▶ valore [Barra di avanzamento]
 ```
 
 Se il calcolo dà 104 (per esempio perché sono stati fatti più passi del previsto), la [Barra di avanzamento](ui.progress) riceve 100; se dà −3, riceve 0.
@@ -69,7 +69,7 @@ Questo blocco non ha errori suoi.
 
 ## Vedi anche
 
-- [Minimo · Massimo · Media](core.stat) per il più piccolo o il più grande di più numeri
-- [Calcola](core.math) per arrotondare
-- [Confronta](core.compare) per sapere se un numero è fuori dai limiti
+- [Min · Max · Avg](core.stat) per il più piccolo o il più grande di più numeri
+- [Funzioni Math](core.math) per arrotondare
+- [Confronto (== ≠ < >)](core.compare) per sapere se un numero è fuori dai limiti
 - [Come funziona un blocco](ide/blocks)

@@ -1,4 +1,4 @@
-# O
+# OR
 
 `core.or` · Logica · [Blocchi di base](logicstudio-core) · versione 1
 
@@ -44,8 +44,8 @@ Ogni volta che arriva un valore su un ingresso, il blocco rifà il conto con l'u
 ### 1. Un allarme da due sensori
 
 ```
-[Confronta: fumo > 50]         risultato ──▶ a  [O] risultato ──▶ accesa [Spia: allarme]
-[Confronta: temperatura > 60]  risultato ──▶ b
+[Confronto (== ≠ < >): fumo > 50]         risultato ──▶ a  [OR] risultato ──▶ accesa [Spia: allarme]
+[Confronto (== ≠ < >): temperatura > 60]  risultato ──▶ b
 ```
 
 La [Spia](ui.lamp) si accende se c'è troppo fumo **oppure** fa troppo caldo. Con fumo 10 e temperatura 70 il risultato è **sì**; quando la temperatura torna a 40 diventa **no**.
@@ -55,12 +55,12 @@ La [Spia](ui.lamp) si accende se c'è troppo fumo **oppure** fa troppo caldo. Co
 Con tre pulsanti di emergenza, aggiungi l'ingresso **c**. Ogni pulsante manda un impulso (che vale **sì**): ogni volta che uno viene premuto, il blocco manda **sì**.
 
 ```
-[Pulsante: Stop 1] premuto ──▶ a  [O] risultato ──▶ valore [Scrivi in console]
+[Pulsante: Stop 1] premuto ──▶ a  [OR] risultato ──▶ valore [Print (console.log)]
 [Pulsante: Stop 2] premuto ──▶ b
 [Pulsante: Stop 3] premuto ──▶ c
 ```
 
-> Per far passare semplicemente ogni impulso, senza calcolare niente, è più adatto [Primo che arriva](core.merge).
+> Per far passare semplicemente ogni impulso, senza calcolare niente, è più adatto [Merge (unisci flussi)](core.merge).
 
 ### 3. Numeri e testi
 
@@ -72,6 +72,6 @@ Questo blocco non ha errori suoi.
 
 ## Vedi anche
 
-- [E](core.and), [O esclusivo](core.xor), [NON](core.not)
-- [Confronta](core.compare)
+- [AND](core.and), [XOR](core.xor), [NOT](core.not)
+- [Confronto (== ≠ < >)](core.compare)
 - [Come funziona un blocco](ide/blocks)

@@ -47,10 +47,10 @@ When the [Switch](ui.toggle) is on, the **Configure** [Button](ui.button) is dis
 ### 2. "If not…"
 
 ```
-[Compare: level > 10] result ──▶ value [NOT] result ──▶ condition [If]
+[Compare (== != < >): level > 10] result ──▶ value [NOT] result ──▶ condition [If · Else]
 ```
 
-The [If](core.if) takes the **then** path when the level is **not** above 10. (You get the same result by choosing `a ≤ b` in [Compare](core.compare).)
+The [If · Else](core.if) block takes the **then** path when the level is **not** above 10. (You get the same result by choosing `a ≤ b` in [Compare (== != < >)](core.compare).)
 
 ### 3. A text
 
@@ -63,5 +63,5 @@ This block has no errors of its own.
 ## See also
 
 - [AND](core.and), [OR](core.or), [XOR](core.xor)
-- [Convert](core.convert) to turn a value into yes/no without flipping it
+- [Type cast](core.convert) to turn a value into yes/no without flipping it
 - [How a block works](ide/blocks)

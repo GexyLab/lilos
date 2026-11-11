@@ -23,7 +23,7 @@ A **schema** (`.lsch` file) is a sheet of linked blocks. It opens with a click o
 
 Two blocks are special:
 
-- **Schema input** and **Schema output** show as title the **name of the port** and, on the right, the kind of block.
+- **Parameter** and **Return** show as title the **name of the port** and, on the right, the kind of block.
 - The **object of a component** shows the name of the component (or its label) and under it «window › component». See [The object of a component](ide/components).
 
 ## Putting blocks
@@ -45,7 +45,7 @@ When the schema already has the maximum number of blocks (200 by default) **At m
 - **Right click on the sheet** → **Add a block here**: a menu with all the blocks divided by category; the block goes where you clicked.
 - **Release a link on the empty sheet**: you drag from an output and release the button on the sheet, away from an input. The same menu opens, but with **only the blocks that have an input matching** the type of that output; the chosen block is put there and the link goes to its first matching input.
 
-These menus do not contain the **Schema input** and the object of components: take the Schema input from the palette.
+These menus do not contain the **Parameter** block and the object of components: take the Parameter block from the palette.
 
 ## Moving around the sheet
 
@@ -119,7 +119,7 @@ From the top:
 1. **The head**: icon and name of the block, and its description if the package has one.
 2. **Label**: a name of yours, at most 80 characters; empty means the name of the block. It is not there for the schema ports (their title is the name of the port) nor for the object of a component (you can still use **Label…** from the menu).
 3. **UI component**: only for the object of a component (**Window** and **Component**). See [The object of a component](ide/components).
-4. **Settings**: those of the block. Some appear only with certain choices (for example **Decimals (round)** of **Calculate** only with **round**). The kinds of control:
+4. **Settings**: those of the block. Some appear only with certain choices (for example **Decimals (round)** of **Math functions** only with **round**). The kinds of control:
 
 | Control | How to use it |
 |---|---|
@@ -130,7 +130,7 @@ From the top:
 | JSON | A JSON value (`{"a": 1}`, `[1, 2]`); if it is not valid JSON it is kept as text. |
 | Text | At most 2000 characters. |
 
-5. For **Schema input** and **Schema output**, after the settings: **Links in the project** with the schemas linked to this port, each with **Unlink**, and the **In the map** button. If it is not linked: «Not linked yet: link it in the map.» In a schema alone: «In a project, this port can be linked to other schemas in the map.»
+5. For **Parameter** and **Return**, after the settings: **Links in the project** with the schemas linked to this port, each with **Unlink**, and the **In the map** button. If it is not linked: «Not linked yet: link it in the map.» In a schema alone: «In a project, this port can be linked to other schemas in the map.»
 6. **Ports**: the table of **Inputs** and **Outputs**, with the type of each:
    - a base port has the padlock, «Base port: it cannot be removed»;
    - an added port has **↑** (Move up), **↓** (Move down) and **Remove**, and a field for the name if the block lets you choose it;
@@ -163,8 +163,8 @@ When the package is installed, reopen the IDE: the block goes back to normal wit
 
 A project can have several schemas. They talk to each other **only** through the schema ports:
 
-- **Schema output** (category Schema ports): has the **value** input. Every value that arrives leaves the schema with the name of the port.
-- **Schema input**: has the **value** output. It sends into the schema the values that arrive at the port with that name from the other schemas.
+- **Return** (category Schema ports): has the **value** input. Every value that arrives leaves the schema with the name of the port.
+- **Parameter**: has the **value** output. It sends into the schema the values that arrive at the port with that name from the other schemas.
 
 In the Settings: **Port name** (default `uscita` and `ingresso`), **Type** (any, number, yes/no, text, object, list, pulse) and **Description**. The type is that of the port of the block and of the boxes of the Map.
 
@@ -194,14 +194,14 @@ The toolbar has **Fit**; the status bar says «4 schemas · 2 windows · 3 links
 ### 1. Average of three numbers
 
 ```
-[Value: 4] value ──▶ a  [Min · Max · Average] result ──▶ value [Write to console]
-[Value: 8] value ──▶ b
-[Value: 9] value ──▶ c
+[Constant · Variable: 4] value ──▶ a  [Min · Max · Avg] result ──▶ value [Print (console.log)]
+[Constant · Variable: 8] value ──▶ b
+[Constant · Variable: 9] value ──▶ c
 ```
 
-1. Put three **Value** blocks (setting **Value** = `4`, `8`, `9`) and a **Min · Max · Average** with **Operation** = **average**.
-2. Select **Min · Max · Average** and in the Properties press **Add input**: **c** appears in italics.
-3. Link the three Values to **a**, **b**, **c** and **result** to **Write to console**.
+1. Put three **Constant · Variable** blocks (setting **Value** = `4`, `8`, `9`) and a **Min · Max · Avg** with **Operation** = **average**.
+2. Select **Min · Max · Avg** and in the Properties press **Add input**: **c** appears in italics.
+3. Link the three Constant · Variable blocks to **a**, **b**, **c** and **result** to **Print**.
 4. **Test**: the console writes `4`, then `6`, then `7` (the block recalculates at every value that arrives). If you want only `7`, untick **starts it** on **a** and **b**.
 
 ### 2. Two schemas that talk to each other
@@ -209,13 +209,13 @@ The toolbar has **Fit**; the status bar says «4 schemas · 2 windows · 3 links
 In the schema **sensori**:
 
 ```
-[Every…: 5 s] pulse ──▶ read [Date and time] parts ──▶ object [Get field: second] value ──▶ value [Schema output: secondi]
+[Interval (setInterval): 5 s] pulse ──▶ read [Now (date and time)] parts ──▶ object [Get property: second] value ──▶ value [Return (schema output): secondi]
 ```
 
 In the schema **display**:
 
 ```
-[Schema input: secondi] value ──▶ value [Write to console]
+[Parameter (schema input): secondi] value ──▶ value [Print (console.log)]
 ```
 
 1. Create the two schemas and the blocks; in the Settings of the ports type `secondi` as **Port name** and **number** as **Type**.

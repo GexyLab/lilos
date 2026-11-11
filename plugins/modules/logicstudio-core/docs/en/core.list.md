@@ -1,4 +1,4 @@
-# Build list
+# Array literal [ ]
 
 `core.list` · Objects · [Core blocks](logicstudio-core) · version 1
 
@@ -28,7 +28,7 @@ Every time a value arrives on one of the inputs, the block sends on **list** a n
 - The list **always has as many items as there are inputs**. An input that has not received anything yet is `null`: with three inputs and only the second arrived (`"b"`), `[null, "b", null]` comes out.
 - Values stay: after sending, the inputs keep their value.
 - The items can be of any type, even objects and other lists.
-- The block runs **at every value**: if you need a single list, remove **starts it** from all the inputs except the one that arrives last, or use [Wait for all](core.join).
+- The block runs **at every value**: if you need a single list, remove **starts it** from all the inputs except the one that arrives last, or use the [Await all (join)](core.join) block.
 
 This block is in the **Objects** category. To work on lists (add, sort, filter, count…) there is the [Lists and matrices](logicstudio-collections) package.
 
@@ -37,9 +37,9 @@ This block is in the **Objects** category. To work on lists (add, sort, filter, 
 ### 1. Three values in order
 
 ```
-[Value: text "a"]      value ──▶ 1  [Build list] list ──▶ value [Write to console]
-[Value: text "b"]      value ──▶ 2
-[Value: JSON {"z":1}]  value ──▶ 3
+[Constant · Variable: text "a"]      value ──▶ 1  [Array literal [ ]] list ──▶ value [Print (console.log)]
+[Constant · Variable: text "b"]      value ──▶ 2
+[Constant · Variable: JSON {"z":1}]  value ──▶ 3
 ```
 
 At start the three values arrive one after the other and the console writes:
@@ -53,20 +53,20 @@ At start the three values arrive one after the other and the console writes:
 ### 2. The options of a Selection
 
 ```
-[Value: text "Red"]   value ──▶ 1  [Build list] list ──▶ options [Selection: color]
-[Value: text "Green"] value ──▶ 2
-[Value: text "Blue"]  value ──▶ 3
+[Constant · Variable: text "Red"]   value ──▶ 1  [Array literal [ ]] list ──▶ options [Selection: color]
+[Constant · Variable: text "Green"] value ──▶ 2
+[Constant · Variable: text "Blue"]  value ──▶ 3
 ```
 
 The last list that arrives, `["Red", "Green", "Blue"]`, becomes the list of choices of the [Selection](ui.select) (the object of the component in the schema).
 
 ### 3. A row of a table
 
-Link to **1**, **2** and **3** the name, the quantity and the price of an item, remove **starts it** from **1** and **2**: when the price arrives a single list comes out, for example `["Pens", 3, 1.5]`, to add to a bigger list with [Add item](coll.add).
+Link to **1**, **2** and **3** the name, the quantity and the price of an item, remove **starts it** from **1** and **2**: when the price arrives a single list comes out, for example `["Pens", 3, 1.5]`, to add to a bigger list with [Push · Unshift](coll.add).
 
 ## See also
 
-- [Build object](core.compose) for values with a name
-- [Add item](coll.add), [Length](coll.length), [Join into text](coll.join)
-- [Wait for all](core.join)
+- [Object literal { }](core.compose) for values with a name
+- [Push · Unshift](coll.add), [Length](coll.length), [Join](coll.join)
+- [Await all (join)](core.join)
 - [How a block works](ide/blocks)

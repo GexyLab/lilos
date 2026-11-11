@@ -24,16 +24,16 @@ Every time a list arrives on **list**, the block sends on **length** how many it
 - It counts only the first level: `[[1, 2], [3, 4, 5]]` has length 2 (two items, which are lists in turn).
 - An empty list `[]` gives 0.
 - `null` items count: `[null, null]` has length 2.
-- A text is not a list: `"ciao"` does not give 4, but the error «Serve una lista» ("A list is needed"). For the length of a text use [Text operation](core.text).
+- A text is not a list: `"ciao"` does not give 4, but the error «Serve una lista» ("A list is needed"). For the length of a text use [String functions](core.text).
 - An object (`{"a": 1}`) or `null` also give «Serve una lista».
-- A [matrix](logicstudio-collections) is a list of rows: linked here it gives the number of **rows**. The IDE flags the matrix → list link, but it works. For rows and columns together use [Size](coll.matSize).
+- A [matrix](logicstudio-collections) is a list of rows: linked here it gives the number of **rows**. The IDE flags the matrix → list link, but it works. For rows and columns together use [Shape](coll.matSize).
 
 ## Examples
 
 ### 1. How many names there are
 
 ```
-[Value (JSON): ["Anna","Bruno","Carla"]] value ──▶ list [Length] length ──▶ value [Write to console]
+[Constant · Variable (JSON): ["Anna","Bruno","Carla"]] value ──▶ list [Length] length ──▶ value [Print (console.log)]
 ```
 
 It writes `3`.
@@ -41,7 +41,7 @@ It writes `3`.
 ### 2. Empty list
 
 ```
-[Value (JSON): []] value ──▶ list [Length] length ──▶ value [Write to console]
+[Constant · Variable (JSON): []] value ──▶ list [Length] length ──▶ value [Print (console.log)]
 ```
 
 It writes `0`. No error.
@@ -49,10 +49,10 @@ It writes `0`. No error.
 ### 3. Lines read from a text
 
 ```
-[Text field] text ──▶ text [Split text: separator \n] result ──▶ list [Length] length ──▶ value [Value]
+[Text field] text ──▶ text [Split: separator \n] result ──▶ list [Length] length ──▶ value [Value]
 ```
 
-With the text `uno` new line `due` new line `tre` the [Value](ui.value) shows `3`. Careful: an empty field gives 1, not 0, because [Split text](coll.split) of an empty text gives `[""]` (a list with one empty text).
+With the text `uno` new line `due` new line `tre` the [Value](ui.value) shows `3`. Careful: an empty field gives 1, not 0, because [Split](coll.split) of an empty text gives `[""]` (a list with one empty text).
 
 ## Errors
 
@@ -62,6 +62,6 @@ With the text `uno` new line `due` new line `tre` the [Value](ui.value) shows `3
 
 ## See also
 
-- [Size](coll.matSize) for rows and columns of a matrix
-- [Contains · Index of](coll.contains), [Get item](coll.get)
+- [Shape](coll.matSize) for rows and columns of a matrix
+- [Includes · IndexOf](coll.contains), [Get list[i]](coll.get)
 - [How a block works](ide/blocks)

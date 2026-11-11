@@ -71,11 +71,11 @@ Window «Queue»
 ```
 
 ```
-[Number field: People in the queue] value ──▶ a [Compare: a > b] if true  ──▶ send [Value: risorse/rosso.png] value ──▶ source [Image: image1]
-[Value: 10] value ──▶ b                    if false ──▶ send [Value: risorse/verde.png] value ──▶ source
+[Number field: People in the queue] value ──▶ a [Compare (== != < >): a > b] if true  ──▶ send [Constant · Variable: risorse/rosso.png] value ──▶ source [Image: image1]
+[Constant · Variable: 10] value ──▶ b                    if false ──▶ send [Constant · Variable: risorse/verde.png] value ──▶ source
 ```
 
-With more than 10 people the image becomes red, otherwise green. The two [Values](core.value) are of type text, with **Send at start** off.
+With more than 10 people the image becomes red, otherwise green. The two [Constant · Variable](core.value) blocks are of type text and have the **send** input linked, so they send the path only after the comparison.
 
 ## Accessibility
 

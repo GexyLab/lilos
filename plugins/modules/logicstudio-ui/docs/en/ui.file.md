@@ -39,7 +39,7 @@ When opened you see «—» and a «…» button with the icon of a file or a fo
 
 - Choosing the same file again sends it again.
 - The path is the lilOS one, which starts with your home (`/home/anna/…`). The lilOS blocks accept it as it is. The program runs with the permissions of whoever started it: choosing a file gives the program no extra permissions.
-- The file blocks work only in the home: if the user chooses a file outside their home, the [Read file](lilos.fileRead) goes to **Exception** with «Puoi usare solo i file della tua home (~/… oppure /home/anna/…): …» ("You can use only the files of your home (~/… or /home/anna/…): …"). The `.config` folder is also excluded.
+- The file blocks work only in the home: if the user chooses a file outside their home, the [readFile](lilos.fileRead) goes to **Exception** with «Puoi usare solo i file della tua home (~/… oppure /home/anna/…): …» ("You can use only the files of your home (~/… or /home/anna/…): …"). The `.config` folder is also excluded.
 - A long path is shortened with «…» at the end; to see it all, widen the window.
 - From the schema, **path** only changes the text: it does not check that the file exists, and it does not open anything. `null` brings back «—».
 - It also works in the IDE **Preview**.
@@ -56,10 +56,10 @@ Window «Reader»
 ```
 
 ```
-[Choose file: File to read] path ──▶ path [Read file] content ──▶ value [Write to console]
+[Choose file: File to read] path ──▶ path [readFile] content ──▶ value [Print (console.log)]
 ```
 
-In the [Read file](lilos.fileRead) turn on «starts it» on the **path** input (it is off by default): the file is read as soon as the user chooses it, and its content appears in the console of the window.
+In the [readFile](lilos.fileRead) turn on «starts it» on the **path** input (it is off by default): the file is read as soon as the user chooses it, and its content appears in the console of the window.
 
 ### 2. Choosing the destination folder
 
@@ -71,11 +71,11 @@ Window «Export»
 ```
 
 ```
-[Choose file: Save in] path ──▶ folder [Format text: «{folder}/report.txt»] text ──▶ path [Write file]
-[Button: Export] pressed ──▶ send [Value: «Report of the day»] value ──▶ content [Write file]
+[Choose file: Save in] path ──▶ folder [Template string: «{folder}/report.txt»] text ──▶ path [writeFile]
+[Button: Export] pressed ──▶ send [Constant · Variable: «Report of the day»] value ──▶ content [writeFile]
 ```
 
-The user chooses the folder and then presses **Export**: the [Write file](lilos.fileWrite) writes `report.txt` in that folder. If they press **Export** before choosing, the file goes to the path in the settings of the block.
+The user chooses the folder and then presses **Export**: the [writeFile](lilos.fileWrite) writes `report.txt` in that folder. If they press **Export** before choosing, the file goes to the path in the settings of the block.
 
 ## Accessibility and keyboard
 
@@ -84,5 +84,5 @@ The user chooses the folder and then presses **Export**: the [Write file](lilos.
 
 ## See also
 
-- [Read file](lilos.fileRead), [Write file](lilos.fileWrite), [List folder](lilos.folderList)
+- [readFile](lilos.fileRead), [writeFile](lilos.fileWrite), [readdir (list folder)](lilos.folderList)
 - [Standard UI components](logicstudio-ui)

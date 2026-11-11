@@ -1,4 +1,4 @@
-# Contains · Index of
+# Includes · IndexOf
 
 `coll.contains` · Lists · [Lists and matrices](logicstudio-collections) · version 1
 
@@ -36,7 +36,7 @@ When an item is "equal" to the value you look for:
 ### 1. A name in the guest list
 
 ```
-[Value (JSON): ["Anna","Bruno","Carla"]] value ──▶ list  [Contains · Index of] found ──▶ on [Lamp]
+[Constant · Variable (JSON): ["Anna","Bruno","Carla"]] value ──▶ list  [Includes · IndexOf] found ──▶ on [Lamp]
 [Text field: name]                       text  ──▶ value                       index ──▶ value [Value]
 ```
 
@@ -50,7 +50,7 @@ On the list `[1, 2, 3]`:
 - value `"2"` (text) → `false`, -1;
 - value `5` → `false`, -1.
 
-If the value comes from a text field and the list has numbers, convert it first with [Convert](core.convert).
+If the value comes from a text field and the list has numbers, convert it first with [Type cast](core.convert).
 
 ### 3. An object
 
@@ -64,6 +64,6 @@ On the list `[{"id":7,"nome":"Penna"}]` the value `{"id":7,"nome":"Penna"}` is f
 
 ## See also
 
-- [Filter](coll.filter), [Unique](coll.unique), [Get item](coll.get), [Remove at](coll.removeAt)
-- [Compare](core.compare)
+- [Filter](coll.filter), [Distinct](coll.unique), [Get list[i]](coll.get), [Remove (splice)](coll.removeAt)
+- [Compare (== != < >)](core.compare)
 - [How a block works](ide/blocks)

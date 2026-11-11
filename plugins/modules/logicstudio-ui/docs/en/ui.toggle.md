@@ -39,9 +39,9 @@ A toggle switch, on or off. When the user moves it, it sends the new state to th
 | `true`, the text `"true"`, the number `1` | on |
 | anything else: `false`, `0`, `"1"`, `"sì"`, `"on"`, `null` | off |
 
-> Beware: the **text** `"1"` and the text `"sì"` turn it **off**. If the value comes from a file or from a text, first pass it through [Convert](core.convert) **To** yes/no.
+> Beware: the **text** `"1"` and the text `"sì"` turn it **off**. If the value comes from a file or from a text, first pass it through [Type cast](core.convert) **To** yes/no.
 
-**When opened** the state of **On at the start** is shown, but the program does not receive it: the output sends something only when the user moves it. If a schema needs to know the initial state, give it the same value with a [Value](core.value) block. With the option «A window opened again shows the last values at once», when you reopen the window the switch shows the last state (of the user or of the schema).
+**When opened** the state of **On at the start** is shown, but the program does not receive it: the output sends something only when the user moves it. If a schema needs to know the initial state, give it the same value with a [Constant · Variable](core.value) block. With the option «A window opened again shows the last values at once», when you reopen the window the switch shows the last state (of the user or of the schema).
 
 **The label is not shown.** The switch draws only the toggle: the text of the **Label** is only for screen readers. For a visible text, put the switch in a [Row](ui.row) with a [Label](ui.label) next to it, or use a [Checkbox](ui.checkbox), which shows its text.
 
@@ -58,7 +58,7 @@ Window «Living room»
 ```
 
 ```
-[Switch: Light] value ──▶ data [Event to lilOS: light.livingroom]
+[Switch: Light] value ──▶ data [Emit (event to lilOS): light.livingroom]
 ```
 
 Every time the user moves the switch, lilOS receives the event `light.livingroom` with `true` or `false`.
@@ -73,10 +73,10 @@ Window «Collection»
 ```
 
 ```
-[Switch: Collection active] value ──▶ on [Every…: 5 s] pulse ──▶ up [Counter] count ──▶ value [Value: Readings:]
+[Switch: Collection active] value ──▶ on [Interval (setInterval): 5 s] pulse ──▶ up [Counter (++ −−)] count ──▶ value [Value: Readings:]
 ```
 
-[Every…](core.every) starts by itself (like the switch, which is on at the start). Turning the switch off, the readings stop; turning it on again, they restart.
+The [Interval (setInterval)](core.every) block starts by itself (like the switch, which is on at the start). Turning the switch off, the readings stop; turning it on again, they restart.
 
 ### 3. Two switches that exclude each other
 
@@ -96,5 +96,5 @@ Turning on **Summer**, **Winter** turns off, and vice versa. There is no endless
 
 - [Checkbox](ui.checkbox), with the text visible
 - [Lamp](ui.lamp), to show a state without letting it change
-- [NOT](core.not), [Convert](core.convert)
+- [NOT](core.not), [Type cast](core.convert)
 - [Standard UI components](logicstudio-ui)

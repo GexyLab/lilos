@@ -52,7 +52,7 @@ Il grafico **non ha un ingresso dati**: ha un ingresso per ogni serie, fino a **
 - **L'asse dei valori** si adatta ai soli punti visibili: quando un valore alto esce a sinistra, l'asse si riabbassa. Fissa **Minimo** e **Massimo** per tenerlo fermo.
 - **Le etichette del tempo** sono ore locali («10:42:30»), con un passo tondo (5 s, 10 s, 1 min…).
 - **pulisci** svuota tutte le serie; i punti dopo ricominciano da adesso.
-- **Una finestra chiusa non registra niente**: i valori arrivati mentre era chiusa non ci sono. Quando la apri, il programma le manda l'ultimo valore di ogni porta (se l'opzione del progetto **Una finestra riaperta mostra subito gli ultimi valori** è accesa): vedi un punto per serie, «adesso», e da lì il grafico riparte. Per una storia che resti, usa [Linee](charts.line) con date ISO e [Accumula](coll.accumulate).
+- **Una finestra chiusa non registra niente**: i valori arrivati mentre era chiusa non ci sono. Quando la apri, il programma le manda l'ultimo valore di ogni porta (se l'opzione del progetto **Una finestra riaperta mostra subito gli ultimi valori** è accesa): vedi un punto per serie, «adesso», e da lì il grafico riparte. Per una storia che resti, usa [Linee](charts.line) con date ISO e [Accumula (push con limite)](coll.accumulate).
 - Nell'editor della finestra il grafico mostra un minuto di dati inventati, fermi.
 
 **Punto scelto** manda:
@@ -78,7 +78,7 @@ Finestra «Serra»
 ```
 
 ```
-[Ogni…: 2 s] impulso ──▶ leggi [Leggi file: ~/serra.json, JSON] contenuto ──▶ oggetto [Scomponi oggetto] temp ──▶ temperatura [Tempo reale: Serra adesso]
+[Intervallo (setInterval): 2 s] impulso ──▶ leggi [readFile: ~/serra.json, JSON] contenuto ──▶ oggetto [Destruttura oggetto] temp ──▶ temperatura [Tempo reale: Serra adesso]
                                                                                               umid ──▶ umidità
 ```
 
@@ -87,10 +87,10 @@ Ogni 2 secondi arrivano due numeri e le due linee avanzano; si vedono gli ultimi
 ### 2. Il carico di un servizio, con l'asse fermo
 
 ```
-[Ogni…: 1 s] impulso ──▶ invia [Richiesta web: https://esempio.it/stato] risposta ──▶ oggetto [Prendi campo: cpu] valore ──▶ cpu [Tempo reale: Carico]
+[Intervallo (setInterval): 1 s] impulso ──▶ invia [HTTP (fetch): https://esempio.it/stato] risposta ──▶ oggetto [Get proprietà (obj.campo): cpu] valore ──▶ cpu [Tempo reale: Carico]
 ```
 
-Con **Minimo** 0, **Massimo** 100 e **Unità** `%` l'asse resta da 0 a 100 anche quando il carico è basso. [Richiesta web](net.request) è del pacchetto [Blocchi di rete](logicstudio-net): ricorda che conta nelle richieste di rete al minuto (120 di serie), quindi una richiesta al secondo le supera.
+Con **Minimo** 0, **Massimo** 100 e **Unità** `%` l'asse resta da 0 a 100 anche quando il carico è basso. [HTTP (fetch)](net.request) è del pacchetto [Blocchi di rete](logicstudio-net): ricorda che conta nelle richieste di rete al minuto (120 di serie), quindi una richiesta al secondo le supera.
 
 ### 3. Pulire quando si riparte
 
@@ -109,5 +109,5 @@ Le linee spariscono e ripartono dal prossimo valore.
 - [Linee](charts.line) per dati con le loro date, che restano
 - [Gradini](charts.step) per stati (acceso/spento) invece che numeri
 - [Mini linea](charts.spark) per un andamento piccolo in una riga
-- [Ogni…](core.every), [Scomponi oggetto](core.decompose)
+- [Intervallo (setInterval)](core.every), [Destruttura oggetto](core.decompose)
 - [Grafici](logicstudio-charts): le forme dei dati, i limiti, la tastiera

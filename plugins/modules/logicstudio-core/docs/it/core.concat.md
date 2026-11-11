@@ -1,4 +1,4 @@
-# Concatena
+# Concat testo
 
 `core.concat` · Testo · [Blocchi di base](logicstudio-core) · versione 1
 
@@ -53,7 +53,7 @@ Ogni volta che arriva un valore su un ingresso, il blocco prende l'ultimo valore
 Separatore: uno spazio.
 
 ```
-[Campo di testo: nome]    testo ──▶ a [Concatena] testo ──▶ testo [Etichetta: nome completo]
+[Campo di testo: nome]    testo ──▶ a [Concat testo] testo ──▶ testo [Etichetta: nome completo]
 [Campo di testo: cognome] testo ──▶ b
 ```
 
@@ -73,8 +73,8 @@ Questo blocco non ha errori suoi.
 
 ## Vedi anche
 
-- [Formatta testo](core.format) per un testo con i valori dentro un modello
-- [Unisci in testo](coll.join) per unire gli elementi di una lista
-- [Dividi testo](coll.split) per l'operazione opposta
-- [Operazione sul testo](core.text)
+- [Template (formatta)](core.format) per un testo con i valori dentro un modello
+- [Join](coll.join) per unire gli elementi di una lista
+- [Split](coll.split) per l'operazione opposta
+- [Funzioni stringa](core.text)
 - [Come funziona un blocco](ide/blocks)

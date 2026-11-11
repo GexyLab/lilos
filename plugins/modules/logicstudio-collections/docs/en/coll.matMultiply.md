@@ -1,4 +1,4 @@
-# Multiply matrices
+# A × B
 
 `coll.matMultiply` · Matrices · [Lists and matrices](logicstudio-collections) · version 1
 
@@ -29,15 +29,15 @@ The block waits until it has **a** and **b**; then, at every new value on either
 - **The cells must be real numbers**: a text like `"2"` gives «La matrice deve contenere solo numeri» ("The matrix must contain only numbers").
 - The result can have at most 100000 cells (R × C), otherwise «Matrice troppo grande (massimo 100000 celle)» ("Matrix too big (maximum 100000 cells)").
 - The result is not rounded.
-- There is no block to multiply cell by cell; to multiply all the cells by a number use [Scale](coll.matScale).
+- There is no block to multiply cell by cell; to multiply all the cells by a number use [Scale (k·A)](coll.matScale).
 
 ## Examples
 
 ### 1. 2 × 3 by 3 × 2
 
 ```
-[Value (JSON): [[1,2,3],[4,5,6]]]     value ──▶ a  [Multiply matrices] result ──▶ value [Write to console]
-[Value (JSON): [[1,0],[0,1],[1,1]]]   value ──▶ b
+[Constant · Variable (JSON): [[1,2,3],[4,5,6]]]     value ──▶ a  [A × B] result ──▶ value [Print (console.log)]
+[Constant · Variable (JSON): [[1,0],[0,1],[1,1]]]   value ──▶ b
 ```
 
 It writes `[[4,5],[10,11]]`. For example the first cell is `1×1 + 2×0 + 3×1 = 4`.
@@ -67,5 +67,5 @@ The matrix `[[0,-1],[1,0]]` rotates by 90° counterclockwise: with **a** = `[[0,
 
 ## See also
 
-- [Transpose](coll.matTranspose), [Identity](coll.matIdentity), [Scale](coll.matScale), [Determinant](coll.matDet)
+- [Transpose](coll.matTranspose), [Identity (eye)](coll.matIdentity), [Scale (k·A)](coll.matScale), [Det](coll.matDet)
 - [How a block works](ide/blocks)

@@ -1,4 +1,4 @@
-# E
+# AND
 
 `core.and` · Logica · [Blocchi di base](logicstudio-core) · versione 1
 
@@ -45,20 +45,20 @@ Ogni volta che arriva un valore su un ingresso, il blocco rifà il conto con l'u
 ### 1. Due condizioni insieme
 
 ```
-[Interruttore: acceso]      valore ──▶ a  [E] risultato ──▶ acceso [Ogni…: 1 s]
+[Interruttore: acceso]      valore ──▶ a  [AND] risultato ──▶ acceso [Intervallo (setInterval): 1 s]
 [Casella di spunta: armato] valore ──▶ b
 ```
 
-Il blocco [Ogni…](core.every) manda impulsi solo quando l'[Interruttore](ui.toggle) è acceso **e** la [Casella di spunta](ui.checkbox) è spuntata. Togli **Parte da solo** nelle impostazioni di Ogni…, così non parte prima che arrivi il risultato. Dai a **b** il valore iniziale `false`: così, se l'utente accende solo l'interruttore, il risultato resta **no**.
+Il blocco [Intervallo (setInterval)](core.every) manda impulsi solo quando l'[Interruttore](ui.toggle) è acceso **e** la [Casella di spunta](ui.checkbox) è spuntata. Togli **Parte da solo** nelle impostazioni di Ogni…, così non parte prima che arrivi il risultato. Dai a **b** il valore iniziale `false`: così, se l'utente accende solo l'interruttore, il risultato resta **no**.
 
 ### 2. Tre controlli con un ingresso aggiunto
 
-Aggiungi l'ingresso **c** e collega tre [Confronta](core.compare):
+Aggiungi l'ingresso **c** e collega tre [Confronto (== ≠ < >)](core.compare):
 
 ```
-[Confronta: temperatura < 30] risultato ──▶ a  [E] risultato ──▶ condizione [Se]
-[Confronta: umidità < 70]     risultato ──▶ b
-[Confronta: vento < 40]       risultato ──▶ c
+[Confronto (== ≠ < >): temperatura < 30] risultato ──▶ a  [AND] risultato ──▶ condizione [If · Else]
+[Confronto (== ≠ < >): umidità < 70]     risultato ──▶ b
+[Confronto (== ≠ < >): vento < 40]       risultato ──▶ c
 ```
 
 Con temperatura 25, umidità 80 e vento 10, il risultato è **no** (l'umidità non va). Quando l'umidità scende a 60, il blocco manda **sì**.
@@ -73,7 +73,7 @@ Questo blocco non ha errori suoi.
 
 ## Vedi anche
 
-- [O](core.or), [O esclusivo](core.xor), [NON](core.not)
-- [Confronta](core.compare) per ottenere un sì/no da due valori
-- [Se](core.if) per scegliere una strada con un sì/no
+- [OR](core.or), [XOR](core.xor), [NOT](core.not)
+- [Confronto (== ≠ < >)](core.compare) per ottenere un sì/no da due valori
+- [If · Else](core.if) per scegliere una strada con un sì/no
 - [Come funziona un blocco](ide/blocks)

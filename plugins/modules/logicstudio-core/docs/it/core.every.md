@@ -1,4 +1,4 @@
-# Ogni…
+# Intervallo (setInterval)
 
 `core.every` · Tempo · [Blocchi di base](logicstudio-core) · versione 1
 
@@ -28,7 +28,7 @@ Manda un impulso a intervalli regolari, per esempio ogni 30 secondi. Si accende 
 
 ### Quando parte e quando si ferma
 
-- Con **Parte da solo** spuntata, gli impulsi cominciano alla partenza del programma. Il **primo impulso arriva dopo un intervallo intero**, non subito: con 30 secondi, il primo esce 30 secondi dopo la partenza. Se ti serve anche un impulso subito, collega allo stesso blocco anche un [All'avvio](core.onStart).
+- Con **Parte da solo** spuntata, gli impulsi cominciano alla partenza del programma. Il **primo impulso arriva dopo un intervallo intero**, non subito: con 30 secondi, il primo esce 30 secondi dopo la partenza. Se ti serve anche un impulso subito, collega allo stesso blocco anche un blocco [All'avvio (main)](core.onStart).
 - Un **sì** su **acceso** accende gli impulsi. Se erano già accesi **non cambia niente**: il ritmo non ricomincia da capo.
 - Un **no** su **acceso** li ferma. Un **sì** dopo li riaccende, e il primo impulso arriva di nuovo dopo un intervallo intero.
 - Quando il programma si ferma, gli impulsi si fermano.
@@ -53,7 +53,7 @@ Per le regole generali vedi [Come funziona un blocco](ide/blocks).
 ### 1. Un orologio in console
 
 ```
-[Ogni… 1 s] impulso ──▶ leggi [Data e ora] ISO ──▶ valore [Scrivi in console]
+[Intervallo (setInterval): 1 s] impulso ──▶ leggi [Now (data e ora)] ISO ──▶ valore [Print (console.log)]
 ```
 
 Dal secondo 1 in poi la console scrive una riga al secondo, per esempio `2026-11-11T14:05:01.003Z`.
@@ -61,7 +61,7 @@ Dal secondo 1 in poi la console scrive una riga al secondo, per esempio `2026-11
 ### 2. Un controllo che si accende e si spegne da una finestra
 
 ```
-[Interruttore: controllo] valore ──▶ acceso [Ogni… 10 s] impulso ──▶ controlla [Esiste: ~/Documenti/ordine.txt] …
+[Interruttore: controllo] valore ──▶ acceso [Intervallo (setInterval): 10 s] impulso ──▶ controlla [exists: ~/Documenti/ordine.txt] …
 ```
 
 **Parte da solo** tolta. Finché l'[Interruttore](ui.toggle) della finestra è acceso, ogni 10 secondi il programma controlla se il file c'è; spegnendolo, i controlli si fermano.
@@ -69,25 +69,27 @@ Dal secondo 1 in poi la console scrive una riga al secondo, per esempio `2026-11
 ### 3. Un conto alla rovescia
 
 ```
-[Ogni… 1 s] impulso ──▶ meno [Contatore: Parte da 10] conteggio ──▶ a [Confronta: a ≤ b, b = 0] se vero ──▶ invia [Valore: sì/no "no"] valore ──▶ acceso [Ogni… 1 s]
-                                                       conteggio ──▶ valore [Scrivi in console]
+[Intervallo (setInterval): 1 s] impulso ──▶ meno [Contatore (++ −−): Parte da 10] conteggio ──▶ a [Confronto (== ≠ < >): a ≤ b, b = 0] se vero ──▶ invia [Costante · Variabile: sì/no "no"] valore ──▶ acceso [Intervallo (setInterval): 1 s]
+                                                       conteggio ──▶ valore [Print (console.log)]
 ```
 
-Su [Confronta](core.compare) l'ingresso **b** ha il valore iniziale 0 e **lo avvia tolto**: altrimenti all'avvio Confronta girerebbe con **a** ancora vuoto (che vale 0), troverebbe 0 ≤ 0 e spegnerebbe tutto prima del primo impulso.
+Nel blocco [Confronto (== ≠ < >)](core.compare) l'ingresso **b** ha il valore iniziale 0 e **lo avvia tolto**: altrimenti all'avvio il Confronto girerebbe con **a** ancora vuoto (che vale 0), troverebbe 0 ≤ 0 e spegnerebbe tutto prima del primo impulso.
 
-Il collegamento torna indietro al primo blocco: è un ciclo, ma va bene perché passa da un [Ogni…](core.every) che rallenta. La console scrive 9, 8, … 0, poi gli impulsi si fermano.
+Il collegamento torna indietro al primo blocco: è un ciclo, ma va bene perché passa da un blocco [Intervallo (setInterval)](core.every) che rallenta. La console scrive 9, 8, … 0, poi gli impulsi si fermano.
+
+Il blocco [Costante · Variabile](core.value) ha l'ingresso **invia** collegato (lo mostri con l'occhio accanto alla porta, nelle **Proprietà**): per questo manda il suo «no» solo quando arriva l'impulso, e non all'avvio.
 
 ### 4. Un impulso subito e poi ogni minuto
 
 ```
-[All'avvio]   impulso ──▶ leggi [Data e ora] …
-[Ogni… 60 s]  impulso ──▶ leggi
+[All'avvio (main)]   impulso ──▶ leggi [Now (data e ora)] …
+[Intervallo (setInterval): 60 s]  impulso ──▶ leggi
 ```
 
 ## Vedi anche
 
-- [All'avvio](core.onStart)
-- [Aspetta](core.delay), [Antirimbalzo](core.debounce), [Al massimo ogni](core.throttle)
-- [Data e ora](core.now)
-- [Contatore](core.counter)
+- [All'avvio (main)](core.onStart)
+- [Ritardo (setTimeout)](core.delay), [Debounce](core.debounce), [Throttle](core.throttle)
+- [Now (data e ora)](core.now)
+- [Contatore (++ −−)](core.counter)
 - [Come funziona un blocco](ide/blocks)

@@ -1,4 +1,4 @@
-# Unisci liste
+# Concat liste
 
 `coll.concat` · Liste · [Liste e matrici](logicstudio-collections) · versione 1
 
@@ -30,7 +30,7 @@ A ogni valore nuovo su un ingresso il blocco rifà l'unione con l'ultimo valore 
 - Ogni ingresso che ha un valore deve avere una lista: un testo, un numero o un oggetto danno «Serve una lista» e nessun risultato.
 - Le liste vengono unite **di un livello**: `[[1]]` e `[[2]]` danno `[[1], [2]]`, non `[1, 2]`.
 - Le liste vuote non aggiungono niente.
-- Gli elementi doppi restano: per toglierli usa [Unici](coll.unique).
+- Gli elementi doppi restano: per toglierli usa [Distinct](coll.unique).
 - Il risultato può avere al massimo 100000 elementi.
 
 ## Esempi
@@ -38,8 +38,8 @@ A ogni valore nuovo su un ingresso il blocco rifà l'unione con l'ultimo valore 
 ### 1. Due liste
 
 ```
-[Valore (JSON): [1,2]] valore ──▶ a  [Unisci liste] risultato ──▶ valore [Scrivi in console]
-[Valore (JSON): [3]]   valore ──▶ b
+[Costante · Variabile (JSON): [1,2]] valore ──▶ a  [Concat liste] risultato ──▶ valore [Print (console.log)]
+[Costante · Variabile (JSON): [3]]   valore ──▶ b
 ```
 
 All'avvio il blocco gira due volte: scrive `[1,2]` (c'è solo **a**) e poi `[1,2,3]`.
@@ -51,9 +51,9 @@ All'avvio il blocco gira due volte: scrive `[1,2]` (c'è solo **a**) e poi `[1,2
 Aggiungi l'ingresso **c** nelle Proprietà:
 
 ```
-[Valore (JSON): ["lun","mar"]]  valore ──▶ a  [Unisci liste] risultato ──▶ voci [Elenco]
-[Valore (JSON): ["mer"]]        valore ──▶ b
-[Valore (JSON): ["gio","ven"]]  valore ──▶ c
+[Costante · Variabile (JSON): ["lun","mar"]]  valore ──▶ a  [Concat liste] risultato ──▶ voci [Elenco]
+[Costante · Variabile (JSON): ["mer"]]        valore ──▶ b
+[Costante · Variabile (JSON): ["gio","ven"]]  valore ──▶ c
 ```
 
 L'[Elenco](ui.list) mostra alla fine `lun, mar, mer, gio, ven`.
@@ -71,7 +71,7 @@ Una [matrice](logicstudio-collections) è una lista di righe: unendo `[[1,2]]` e
 
 ## Vedi anche
 
-- [Aggiungi elemento](coll.add), [Porzione](coll.slice), [Unici](coll.unique)
-- [Concatena](core.concat) per unire testi
-- [Componi lista](core.list) per fare una lista da valori separati
+- [Push · Unshift](coll.add), [Slice](coll.slice), [Distinct](coll.unique)
+- [Concat testo](core.concat) per unire testi
+- [Lista [ ]](core.list) per fare una lista da valori separati
 - [Come funziona un blocco](ide/blocks)

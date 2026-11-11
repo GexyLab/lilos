@@ -163,7 +163,7 @@ const listOne = (type, label, icon, run, extra = {}) => ({
 export const blocks = [
   // ---- Lists
   {
-    type: 'coll.length', version: 1, category: 'list', icon: 'hash', label: L('Length', 'Lunghezza'),
+    type: 'coll.length', version: 1, category: 'list', icon: 'hash', label: L('Length', 'Length'),
     inputs: [LIST_IN], outputs: [{ name: 'length', type: 'number', label: L('length', 'lunghezza') }],
     run(inputs) {
       if (missing(inputs, 'list')) return undefined;
@@ -171,7 +171,7 @@ export const blocks = [
     },
   },
   {
-    type: 'coll.get', version: 1, category: 'list', icon: 'list', label: L('Get item', 'Elemento'),
+    type: 'coll.get', version: 1, category: 'list', icon: 'list', label: L('Get list[i]', 'Leggi lista[i]'),
     inputs: [LIST_IN, INDEX_IN], outputs: [{ name: 'item', type: 'any', label: L('item', 'elemento') }],
     run(inputs) {
       if (missing(inputs, 'list', 'index')) return undefined;
@@ -180,7 +180,7 @@ export const blocks = [
     },
   },
   {
-    type: 'coll.set', version: 1, category: 'list', icon: 'list', label: L('Set item', 'Imposta elemento'),
+    type: 'coll.set', version: 1, category: 'list', icon: 'list', label: L('Set list[i]', 'Scrivi lista[i]'),
     inputs: [LIST_IN, INDEX_IN, VALUE_IN], outputs: [RESULT],
     run(inputs) {
       if (missing(inputs, 'list', 'index', 'value')) return undefined;
@@ -190,7 +190,7 @@ export const blocks = [
     },
   },
   {
-    type: 'coll.add', version: 1, category: 'list', icon: 'list', label: L('Add item', 'Aggiungi elemento'),
+    type: 'coll.add', version: 1, category: 'list', icon: 'list', label: L('Push · Unshift', 'Push · Unshift'),
     inputs: [LIST_IN, VALUE_IN], outputs: [RESULT],
     config: [{ key: 'where', type: 'select', default: 'end', options: ['end', 'start'], label: L('Where', 'Dove') }],
     run(inputs, b) {
@@ -200,7 +200,7 @@ export const blocks = [
     },
   },
   {
-    type: 'coll.insert', version: 1, category: 'list', icon: 'list', label: L('Insert at', 'Inserisci in posizione'),
+    type: 'coll.insert', version: 1, category: 'list', icon: 'list', label: L('Insert (splice)', 'Inserisci (splice)'),
     inputs: [LIST_IN, INDEX_IN, VALUE_IN], outputs: [RESULT],
     run(inputs) {
       if (missing(inputs, 'list', 'index', 'value')) return undefined;
@@ -210,7 +210,7 @@ export const blocks = [
     },
   },
   {
-    type: 'coll.removeAt', version: 1, category: 'list', icon: 'list', label: L('Remove at', 'Rimuovi in posizione'),
+    type: 'coll.removeAt', version: 1, category: 'list', icon: 'list', label: L('Remove (splice)', 'Rimuovi (splice)'),
     inputs: [LIST_IN, INDEX_IN],
     outputs: [RESULT, { name: 'removed', type: 'any', label: L('removed', 'rimosso') }],
     run(inputs) {
@@ -221,7 +221,7 @@ export const blocks = [
     },
   },
   {
-    type: 'coll.slice', version: 1, category: 'list', icon: 'split', label: L('Slice', 'Porzione'),
+    type: 'coll.slice', version: 1, category: 'list', icon: 'split', label: L('Slice', 'Slice'),
     inputs: [LIST_IN, { name: 'from', type: 'number', label: L('from', 'da') }, { name: 'to', type: 'number', label: L('to (excluded)', 'a (escluso)') }],
     outputs: [RESULT],
     run(inputs) {
@@ -233,7 +233,7 @@ export const blocks = [
     },
   },
   {
-    type: 'coll.concat', version: 1, category: 'list', icon: 'merge', label: L('Concatenate lists', 'Unisci liste'),
+    type: 'coll.concat', version: 1, category: 'list', icon: 'merge', label: L('Concat lists', 'Concat liste'),
     inputs: [{ name: 'a', type: 'list' }, { name: 'b', type: 'list' }], outputs: [RESULT],
     grow: { inputs: { type: 'list', max: 16, name: 'letter' } },
     run(inputs, b) {
@@ -243,7 +243,7 @@ export const blocks = [
     },
   },
   {
-    type: 'coll.contains', version: 1, category: 'list', icon: 'list', label: L('Contains · Index of', 'Contiene · Posizione'),
+    type: 'coll.contains', version: 1, category: 'list', icon: 'list', label: L('Includes · IndexOf', 'Includes · IndexOf'),
     inputs: [LIST_IN, VALUE_IN],
     outputs: [
       { name: 'found', type: 'bool', label: L('found', 'trovato') },
@@ -255,8 +255,8 @@ export const blocks = [
       return { found: index >= 0, index };
     },
   },
-  listOne('coll.reverse', L('Reverse', 'Inverti'), 'sync', list => ({ result: list.slice().reverse() })),
-  listOne('coll.sort', L('Sort', 'Ordina'), 'list', (list, inputs, b) => {
+  listOne('coll.reverse', L('Reverse', 'Reverse'), 'sync', list => ({ result: list.slice().reverse() })),
+  listOne('coll.sort', L('Sort', 'Sort'), 'list', (list, inputs, b) => {
     const { order, kind, field } = b.config;
     const key = x => (field ? getPath(x, field) : x);
     const numeric = kind === 'number' || (kind !== 'text' && list.every(x => Number.isFinite(asNumber(key(x)))));
@@ -271,7 +271,7 @@ export const blocks = [
       FIELD,
     ],
   }),
-  listOne('coll.unique', L('Unique', 'Unici'), 'list', (list, inputs, b) => {
+  listOne('coll.unique', L('Distinct', 'Distinct'), 'list', (list, inputs, b) => {
     const seen = new Set();
     const result = list.filter(x => {
       const v = b.config.field ? getPath(x, b.config.field) : x;
@@ -283,7 +283,7 @@ export const blocks = [
     return { result };
   }, { config: [FIELD] }),
   {
-    type: 'coll.filter', version: 1, category: 'list', icon: 'list', label: L('Filter', 'Filtra'),
+    type: 'coll.filter', version: 1, category: 'list', icon: 'list', label: L('Filter', 'Filter'),
     inputs: [LIST_IN, { name: 'value', type: 'any', label: L('value (optional)', 'valore (facoltativo)') }],
     outputs: [RESULT, { name: 'rest', type: 'list', label: L('rejected', 'scartati') }],
     config: [
@@ -300,12 +300,12 @@ export const blocks = [
       return { result, rest };
     },
   },
-  listOne('coll.pluck', L('Map field', 'Estrai campo'), 'braces', (list, inputs, b) => {
+  listOne('coll.pluck', L('Map field', 'Map campo'), 'braces', (list, inputs, b) => {
     if (!b.config.field) throw new Error('Indica il campo da estrarre');
     return { result: list.map(x => getPath(x, b.config.field) ?? null) };
   }, { config: [{ ...FIELD, default: '', label: L('Field (e.g. a.b)', 'Campo (es. a.b)') }] }),
   {
-    type: 'coll.stat', version: 1, category: 'list', icon: 'chart', label: L('Sum · Min · Max · Average', 'Somma · Minimo · Massimo · Media'),
+    type: 'coll.stat', version: 1, category: 'list', icon: 'chart', label: L('Sum · Min · Max · Avg', 'Sum · Min · Max · Avg'),
     inputs: [LIST_IN], outputs: [{ name: 'result', type: 'number', label: L('result', 'risultato') }],
     config: [{ key: 'op', type: 'select', default: 'sum', options: ['sum', 'min', 'max', 'avg'], label: L('Operation', 'Operazione') }, FIELD],
     run(inputs, b) {
@@ -320,7 +320,7 @@ export const blocks = [
     },
   },
   {
-    type: 'coll.range', version: 1, category: 'list', icon: 'list', label: L('Range', 'Intervallo'),
+    type: 'coll.range', version: 1, category: 'list', icon: 'list', label: L('Range', 'Range'),
     inputs: [
       { name: 'from', type: 'number', label: L('from', 'da') }, { name: 'to', type: 'number', label: L('to', 'a') },
       { name: 'step', type: 'number', label: L('step', 'passo') },
@@ -343,7 +343,7 @@ export const blocks = [
     },
   },
   {
-    type: 'coll.split', version: 1, category: 'list', icon: 'text', label: L('Split text', 'Dividi testo'),
+    type: 'coll.split', version: 1, category: 'list', icon: 'text', label: L('Split', 'Split'),
     inputs: [{ name: 'text', type: 'text', label: L('text', 'testo') }], outputs: [RESULT],
     config: [
       { key: 'separator', type: 'text', default: ',', label: L('Separator (\\n = new line)', 'Separatore (\\n = a capo)') },
@@ -357,7 +357,7 @@ export const blocks = [
     },
   },
   {
-    type: 'coll.join', version: 1, category: 'list', icon: 'text', label: L('Join into text', 'Unisci in testo'),
+    type: 'coll.join', version: 1, category: 'list', icon: 'text', label: L('Join', 'Join'),
     inputs: [LIST_IN], outputs: [{ name: 'text', type: 'text', label: L('text', 'testo') }],
     config: [{ key: 'separator', type: 'text', default: ', ', label: L('Separator (\\n = new line)', 'Separatore (\\n = a capo)') }],
     run(inputs, b) {
@@ -366,7 +366,7 @@ export const blocks = [
     },
   },
   {
-    type: 'coll.forEach', version: 1, category: 'list', icon: 'sync', label: L('For each', 'Per ogni elemento'),
+    type: 'coll.forEach', version: 1, category: 'list', icon: 'sync', label: L('For each', 'For each'),
     inputs: [LIST_IN, { name: 'start', type: 'pulse', label: L('start', 'avvia') }],
     outputs: [
       { name: 'item', type: 'any', label: L('item', 'elemento') },
@@ -382,7 +382,7 @@ export const blocks = [
     },
   },
   {
-    type: 'coll.accumulate', version: 1, category: 'list', icon: 'list', label: L('Accumulate', 'Accumula'),
+    type: 'coll.accumulate', version: 1, category: 'list', icon: 'list', label: L('Accumulate (bounded push)', 'Accumula (push con limite)'),
     inputs: [{ name: 'add', type: 'any', label: L('add', 'aggiungi') }, { name: 'clear', type: 'pulse', label: L('clear', 'svuota') }],
     outputs: [{ name: 'list', type: 'list', label: L('list', 'lista') }, { name: 'count', type: 'number', label: L('count', 'quanti') }],
     config: [{ key: 'max', type: 'number', default: 100, min: 1, max: MAX_ITEMS, label: L('Max length (oldest dropped)', 'Lunghezza massima (via i più vecchi)') }],
@@ -399,7 +399,7 @@ export const blocks = [
     },
   },
   {
-    type: 'coll.random', version: 1, category: 'list', icon: 'list', label: L('Random item', 'Elemento a caso'),
+    type: 'coll.random', version: 1, category: 'list', icon: 'list', label: L('Random item', 'Random'),
     inputs: [LIST_IN, { name: 'pick', type: 'pulse', label: L('pick', 'estrai') }],
     outputs: [{ name: 'item', type: 'any', label: L('item', 'elemento') }, { name: 'index', type: 'number', label: L('index', 'indice') }],
     run(inputs) {
@@ -413,7 +413,7 @@ export const blocks = [
 
   // ---- Matrices
   {
-    type: 'coll.matNew', version: 1, category: 'matrix', icon: 'grid', label: L('Create matrix', 'Crea matrice'),
+    type: 'coll.matNew', version: 1, category: 'matrix', icon: 'grid', label: L('New matrix (fill)', 'Nuova matrice (fill)'),
     inputs: [{ name: 'rows', type: 'number', label: L('rows', 'righe') }, { name: 'cols', type: 'number', label: L('columns', 'colonne') }, { name: 'fill', type: 'any', label: L('fill', 'riempimento') }],
     outputs: [{ name: 'matrix', type: 'matrix', label: L('matrix', 'matrice') }],
     config: [{ key: 'fill', type: 'number', default: 0, label: L('Fill value', 'Valore di riempimento') }],
@@ -426,7 +426,7 @@ export const blocks = [
     },
   },
   {
-    type: 'coll.matSize', version: 1, category: 'matrix', icon: 'grid', label: L('Size', 'Dimensioni'),
+    type: 'coll.matSize', version: 1, category: 'matrix', icon: 'grid', label: L('Shape', 'Shape'),
     inputs: [MATRIX_IN],
     outputs: [{ name: 'rows', type: 'number', label: L('rows', 'righe') }, { name: 'cols', type: 'number', label: L('columns', 'colonne') }],
     run(inputs) {
@@ -436,7 +436,7 @@ export const blocks = [
     },
   },
   {
-    type: 'coll.matGet', version: 1, category: 'matrix', icon: 'grid', label: L('Get cell', 'Leggi cella'),
+    type: 'coll.matGet', version: 1, category: 'matrix', icon: 'grid', label: L('Get m[r][c]', 'Leggi m[r][c]'),
     inputs: [MATRIX_IN, { name: 'row', type: 'number', label: L('row', 'riga') }, { name: 'col', type: 'number', label: L('column', 'colonna') }],
     outputs: [{ name: 'value', type: 'any', label: L('value', 'valore') }],
     run(inputs) {
@@ -446,7 +446,7 @@ export const blocks = [
     },
   },
   {
-    type: 'coll.matSet', version: 1, category: 'matrix', icon: 'grid', label: L('Set cell', 'Imposta cella'),
+    type: 'coll.matSet', version: 1, category: 'matrix', icon: 'grid', label: L('Set m[r][c]', 'Scrivi m[r][c]'),
     inputs: [MATRIX_IN, { name: 'row', type: 'number', label: L('row', 'riga') }, { name: 'col', type: 'number', label: L('column', 'colonna') }, VALUE_IN],
     outputs: [{ name: 'matrix', type: 'matrix', label: L('matrix', 'matrice') }],
     run(inputs) {
@@ -457,7 +457,7 @@ export const blocks = [
     },
   },
   {
-    type: 'coll.matRow', version: 1, category: 'matrix', icon: 'grid', label: L('Get row', 'Leggi riga'),
+    type: 'coll.matRow', version: 1, category: 'matrix', icon: 'grid', label: L('Row m[r]', 'Riga m[r]'),
     inputs: [MATRIX_IN, { name: 'row', type: 'number', label: L('row', 'riga') }], outputs: [{ name: 'row', type: 'list', label: L('row', 'riga') }],
     run(inputs) {
       if (missing(inputs, 'matrix', 'row')) return undefined;
@@ -466,7 +466,7 @@ export const blocks = [
     },
   },
   {
-    type: 'coll.matCol', version: 1, category: 'matrix', icon: 'grid', label: L('Get column', 'Leggi colonna'),
+    type: 'coll.matCol', version: 1, category: 'matrix', icon: 'grid', label: L('Column m[][c]', 'Colonna m[][c]'),
     inputs: [MATRIX_IN, { name: 'col', type: 'number', label: L('column', 'colonna') }], outputs: [{ name: 'col', type: 'list', label: L('column', 'colonna') }],
     run(inputs) {
       if (missing(inputs, 'matrix', 'col')) return undefined;
@@ -475,7 +475,7 @@ export const blocks = [
     },
   },
   {
-    type: 'coll.matTranspose', version: 1, category: 'matrix', icon: 'sync', label: L('Transpose', 'Trasposta'),
+    type: 'coll.matTranspose', version: 1, category: 'matrix', icon: 'sync', label: L('Transpose', 'Transpose'),
     inputs: [MATRIX_IN], outputs: [{ name: 'matrix', type: 'matrix', label: L('matrix', 'matrice') }],
     run(inputs) {
       if (missing(inputs, 'matrix')) return undefined;
@@ -483,15 +483,15 @@ export const blocks = [
       return { matrix: m[0].map((_, c) => m.map(r => r[c])) };
     },
   },
-  matrixOp('coll.matAdd', L('Add matrices', 'Somma matrici'), 'calculator', (a, b) => {
+  matrixOp('coll.matAdd', L('A + B', 'A + B'), 'calculator', (a, b) => {
     sameSize(a, b);
     return a.map((r, i) => r.map((x, j) => x + b[i][j]));
   }),
-  matrixOp('coll.matSubtract', L('Subtract matrices', 'Sottrai matrici'), 'calculator', (a, b) => {
+  matrixOp('coll.matSubtract', L('A − B', 'A − B'), 'calculator', (a, b) => {
     sameSize(a, b);
     return a.map((r, i) => r.map((x, j) => x - b[i][j]));
   }),
-  matrixOp('coll.matMultiply', L('Multiply matrices', 'Moltiplica matrici'), 'calculator', (a, b) => {
+  matrixOp('coll.matMultiply', L('A × B', 'A × B'), 'calculator', (a, b) => {
     const [ar, ac] = dims(a), [br, bc] = dims(b);
     if (ac !== br) throw new Error(`Prodotto impossibile: le colonne di A (${ac}) devono essere quante le righe di B (${br})`);
     checkSize(ar, bc);
@@ -502,7 +502,7 @@ export const blocks = [
     }));
   }),
   {
-    type: 'coll.matScale', version: 1, category: 'matrix', icon: 'calculator', label: L('Scale', 'Scala'),
+    type: 'coll.matScale', version: 1, category: 'matrix', icon: 'calculator', label: L('Scale (k·A)', 'Scala (k·A)'),
     inputs: [MATRIX_IN, { name: 'factor', type: 'number', label: L('factor', 'fattore') }], outputs: [{ name: 'matrix', type: 'matrix', label: L('matrix', 'matrice') }],
     run(inputs) {
       if (missing(inputs, 'matrix', 'factor')) return undefined;
@@ -512,7 +512,7 @@ export const blocks = [
     },
   },
   {
-    type: 'coll.matIdentity', version: 1, category: 'matrix', icon: 'grid', label: L('Identity', 'Identità'),
+    type: 'coll.matIdentity', version: 1, category: 'matrix', icon: 'grid', label: L('Identity (eye)', 'Identità (eye)'),
     inputs: [{ name: 'n', type: 'number', label: L('size', 'dimensione') }], outputs: [{ name: 'matrix', type: 'matrix', label: L('matrix', 'matrice') }],
     run(inputs) {
       if (missing(inputs, 'n')) return undefined;
@@ -522,7 +522,7 @@ export const blocks = [
     },
   },
   {
-    type: 'coll.matDet', version: 1, category: 'matrix', icon: 'calculator', label: L('Determinant', 'Determinante'),
+    type: 'coll.matDet', version: 1, category: 'matrix', icon: 'calculator', label: L('Det', 'Det'),
     inputs: [MATRIX_IN], outputs: [{ name: 'det', type: 'number', label: L('determinant', 'determinante') }],
     run(inputs) {
       if (missing(inputs, 'matrix')) return undefined;
@@ -530,7 +530,7 @@ export const blocks = [
     },
   },
   {
-    type: 'coll.matFromList', version: 1, category: 'matrix', icon: 'grid', label: L('Matrix from list', 'Matrice da lista'),
+    type: 'coll.matFromList', version: 1, category: 'matrix', icon: 'grid', label: L('Reshape', 'Reshape'),
     inputs: [LIST_IN, { name: 'cols', type: 'number', label: L('columns', 'colonne') }], outputs: [{ name: 'matrix', type: 'matrix', label: L('matrix', 'matrice') }],
     run(inputs) {
       if (missing(inputs, 'list', 'cols')) return undefined;
@@ -542,7 +542,7 @@ export const blocks = [
     },
   },
   {
-    type: 'coll.matFlatten', version: 1, category: 'matrix', icon: 'list', label: L('Flatten', 'Appiattisci'),
+    type: 'coll.matFlatten', version: 1, category: 'matrix', icon: 'list', label: L('Flatten', 'Flatten'),
     inputs: [MATRIX_IN], outputs: [RESULT],
     run(inputs) {
       if (missing(inputs, 'matrix')) return undefined;

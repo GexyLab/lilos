@@ -1,8 +1,8 @@
-# Uscita di schema
+# Return (uscita di schema)
 
 `core.schemaOut` · Porte di schema · [Blocchi di base](logicstudio-core) · versione 1
 
-Dà allo schema una **porta d'uscita**: i valori che arrivano a questo blocco vanno, attraverso i collegamenti della mappa del progetto, agli Ingressi di schema degli altri schemi.
+Dà allo schema una **porta d'uscita**: i valori che arrivano a questo blocco vanno, attraverso i collegamenti della mappa del progetto, ai blocchi Parametro (ingresso di schema) degli altri schemi.
 
 ## Ingressi
 
@@ -24,14 +24,14 @@ Nessuna sul blocco: i valori escono dalla porta dello schema, nella mappa. Quest
 
 ## Come funziona
 
-Ogni volta che arriva un valore su **valore**, il blocco lo manda, **senza cambiarlo**, a tutti gli [Ingressi di schema](core.schemaIn) collegati a questa porta nella **Mappa** del progetto. Vedi [Gli schemi](ide/schemas).
+Ogni volta che arriva un valore su **valore**, il blocco lo manda, **senza cambiarlo**, a tutti i blocchi [Parametro (ingresso di schema)](core.schemaIn) collegati a questa porta nella **Mappa** del progetto. Vedi [Gli schemi](ide/schemas).
 
 - Una porta può andare a **più Ingressi**, anche di schemi diversi: ognuno riceve lo stesso valore.
 - Se la porta **non è collegata** nella mappa, i valori non vanno da nessuna parte (e non è un errore). Nell'IDE, in Prova, vedi lo stesso il valore arrivare sul blocco.
 - In uno **schema aperto da solo** (senza progetto) i valori non vanno da nessuna parte.
 - Il **Tipo** serve solo all'IDE: il motore non controlla e non converte il valore.
 - Valgono le solite regole degli ingressi: se togli **lo avvia** da **valore**, il blocco non manda mai niente; un **valore iniziale** viene mandato all'avvio del programma.
-- Due Uscite di schema con **lo stesso nome** nello stesso schema sono la stessa porta: i valori di tutte e due escono da lì.
+- Due blocchi Return con **lo stesso nome** nello stesso schema sono la stessa porta: i valori di tutte e due escono da lì.
 - **Rinominare** la porta nelle Proprietà sposta anche i collegamenti del progetto che la usano.
 - Nelle Proprietà, **Collegamenti nel progetto** elenca dove vanno i valori, con **Scollega**; **Nella mappa** apre la mappa.
 - Sul foglio il titolo del blocco è sempre il **nome della porta** (nelle Proprietà non c'è il campo **Etichetta**).
@@ -45,23 +45,23 @@ Per le regole generali vedi [Come funziona un blocco](ide/blocks).
 Nello schema **calcoli**:
 
 ```
-[Somma] risultato ──▶ valore [Uscita di schema: totale, numero]
+[Somma (+)] risultato ──▶ valore [Return (uscita di schema): totale, numero]
 ```
 
-Nella mappa collega **calcoli › totale** a **interfaccia › totale**. Nello schema **interfaccia** un [Ingresso di schema](core.schemaIn) **totale** lo manda a un [Valore](ui.value) della finestra.
+Nella mappa collega **calcoli › totale** a **interfaccia › totale**. Nello schema **interfaccia** un blocco [Parametro (ingresso di schema)](core.schemaIn) **totale** lo manda a un [Valore](ui.value) della finestra.
 
 ### 2. Una sola uscita, due destinazioni
 
-Collega **sensori › allarme** sia a **notifiche › allarme** sia a **registro › evento**. Ogni valore mandato all'Uscita **allarme** arriva a tutti e due gli schemi: uno manda una [Notifica](lilos.notify), l'altro scrive una riga con [Aggiungi a file](lilos.fileAppend).
+Collega **sensori › allarme** sia a **notifiche › allarme** sia a **registro › evento**. Ogni valore mandato all'Uscita **allarme** arriva a tutti e due gli schemi: uno manda una [Notify](lilos.notify), l'altro scrive una riga con [appendFile](lilos.fileAppend).
 
 ### 3. Le eccezioni di uno schema raccolte da un altro
 
 ```
-[Richiesta web] Eccezione ──▶ valore [Uscita di schema: errori, oggetto]
-[Leggi file]    Eccezione ──▶ valore
+[HTTP (fetch)] Eccezione ──▶ valore [Return (uscita di schema): errori, oggetto]
+[readFile]    Eccezione ──▶ valore
 ```
 
-Due collegamenti arrivano allo stesso ingresso **valore**. Nella mappa colleghi **errori** a uno schema che li scrive tutti in una console **Errori** con [Scrivi in console](core.consoleWrite).
+Due collegamenti arrivano allo stesso ingresso **valore**. Nella mappa colleghi **errori** a uno schema che li scrive tutti in una console **Errori** con [Print (console.log)](core.consoleWrite).
 
 ## Errori
 
@@ -72,6 +72,6 @@ Due collegamenti arrivano allo stesso ingresso **valore**. Nella mappa colleghi 
 
 ## Vedi anche
 
-- [Ingresso di schema](core.schemaIn)
+- [Parametro (ingresso di schema)](core.schemaIn)
 - [Gli schemi](ide/schemas) e [I collegamenti](ide/links)
 - [Come funziona un blocco](ide/blocks)

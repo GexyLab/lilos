@@ -1,4 +1,4 @@
-# Choose
+# Pick by index (MUX)
 
 `core.select` · Logic · [Core blocks](logicstudio-core) · version 1
 
@@ -36,7 +36,7 @@ The position from the top is what counts, not the name: if you move or remove an
 
 Every time something arrives on **which** **or on any of the added inputs**, the block:
 
-1. reads **which** as a number (with the rules of [Add](core.add): `"2"` is 2, `"2,0"` is 2) and drops the decimal part: 2.7 is 2, -1.5 is -1;
+1. reads **which** as a number (with the rules of [Add (+)](core.add): `"2"` is 2, `"2,0"` is 2) and drops the decimal part: 2.7 is 2, -1.5 is -1;
 2. takes the added input in that position;
 3. sends on **value** the last value that arrived on that input.
 
@@ -54,7 +54,7 @@ Edge cases:
 Add three inputs and give them as initial values `"Ciao"`, `"Hello"`, `"Hola"` (in this order). Remove "starts it" from the three inputs.
 
 ```
-[Number field: language] value ──▶ which [Choose] value ──▶ text [Label: greeting]
+[Number field: language] value ──▶ which [Pick by index (MUX)] value ──▶ text [Label: greeting]
 ```
 
 If the user writes 1 in the [Number field](ui.number), the [Label](ui.label) shows `Ciao`; with 2 `Hello`; with 3 `Hola`; with 4 the Exception receives `Non c'è l'ingresso 4`.
@@ -62,7 +62,7 @@ If the user writes 1 in the [Number field](ui.number), the [Label](ui.label) sho
 ### 2. A source chosen by a slider
 
 ```
-[Sensor A] value ──▶ 2  [Choose] value ──▶ value [Value: measure]
+[Sensor A] value ──▶ 2  [Pick by index (MUX)] value ──▶ value [Value: measure]
 [Sensor B] value ──▶ 3
 [Slider: 1-2] value ──▶ which
 ```
@@ -71,7 +71,7 @@ With the slider at 1 the measures of sensor A pass (the input named **2**); at 2
 
 ### 3. From yes/no to one of two values
 
-A yes/no read as a number is 1 (yes) or 0 (no), and 0 is not a valid position. To choose between two values with a yes/no, use [If](core.if) instead.
+A yes/no read as a number is 1 (yes) or 0 (no), and 0 is not a valid position. To choose between two values with a yes/no, use [If · Else](core.if) instead.
 
 ## Errors
 
@@ -81,7 +81,7 @@ A yes/no read as a number is 1 (yes) or 0 (no), and 0 is not a valid position. T
 
 ## See also
 
-- [Route](core.route) for the opposite: one value towards one of many outputs
-- [Cases](core.switch) to choose with a value instead of a position
-- [First to arrive](core.merge) to let through everything that arrives from several inputs
+- [Route by index (DEMUX)](core.route) for the opposite: one value towards one of many outputs
+- [Switch · Case](core.switch) to choose with a value instead of a position
+- [Merge](core.merge) to let through everything that arrives from several inputs
 - [How a block works](ide/blocks)

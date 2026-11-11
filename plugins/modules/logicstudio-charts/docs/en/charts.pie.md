@@ -82,7 +82,7 @@ Window "Expenses"
 ```
 
 ```
-[Value (JSON): {"Water": 45, "Fertiliser": 25, "Energy": 18, "Other": 12}] value ──▶ data [Pie · Donut: October expenses]
+[Constant · Variable (JSON): {"Water": 45, "Fertiliser": 25, "Energy": 18, "Other": 12}] value ──▶ data [Pie · Donut: October expenses]
 ```
 
 Four slices (45%, 25%, 18%, 12%) and in the middle "100 €" with "total" below. A click on the energy slice sends `{"name": "Energy", "value": 18, "share": 0.18, "index": 2}`.
@@ -90,7 +90,7 @@ Four slices (45%, 25%, 18%, 12%) and in the middle "100 €" with "total" below.
 ### 2. More than six items
 
 ```
-[Value (JSON): {"Photos": 120, "Videos": 300, "Music": 80, "Documents": 40, "Archives": 25, "Programs": 60, "Misc": 10, "Temporary": 5}] value ──▶ data [Pie · Donut: Disk]
+[Constant · Variable (JSON): {"Photos": 120, "Videos": 300, "Music": 80, "Documents": 40, "Archives": 25, "Programs": 60, "Misc": 10, "Temporary": 5}] value ──▶ data [Pie · Donut: Disk]
 ```
 
 Eight items, so the 5 largest stay (Videos 300, Photos 120, Music 80, Programs 60, Documents 40), drawn in the order of the data: Photos, Videos, Music, Documents, Programs. Archives, Misc and Temporary become the last slice, grey, "Other", worth 40. The box of that slice lists "Archives, Misc, Temporary".
@@ -98,10 +98,10 @@ Eight items, so the 5 largest stay (Videos 300, Photos 120, Music 80, Programs 6
 ### 3. From the choice to a detail
 
 ```
-[Pie · Donut: October expenses] picked slice ──▶ object [Get field: name] value ──▶ text [Label: Item]
+[Pie · Donut: October expenses] picked slice ──▶ object [Get property: name] value ──▶ text [Label: Item]
 ```
 
-The [Label](ui.label) shows the name of the chosen slice; with [Format text](core.format) and the field `share` you can write "Energy: 18% of the expense".
+The [Label](ui.label) shows the name of the chosen slice; with [Template string](core.format) and the field `share` you can write "Energy: 18% of the expense".
 
 ## Accessibility and keyboard
 
@@ -111,5 +111,5 @@ The [Label](ui.label) shows the name of the chosen slice; with [Format text](cor
 
 - [Bars](charts.bar): better than the pie when the items are many or similar to each other
 - [Areas](charts.area) at 100% for the parts of a total that change over time
-- [Get field](core.get), [Format text](core.format)
+- [Get property](core.get), [Template string](core.format)
 - [Charts](logicstudio-charts): the data shapes, the limits, the keyboard

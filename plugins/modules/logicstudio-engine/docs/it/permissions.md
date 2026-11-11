@@ -63,9 +63,9 @@ Per esempio:
 | Blocchi | Cosa possono fare, e cosa no |
 |---|---|
 | [Blocchi di lilOS](logicstudio-lilos) | Solo i file della **tua home** (`~/…`). Mai la cartella `.config`, mai i file il cui contenuto è protetto da un'app (come FileCrypt). Al massimo 5 MB letti o scritti alla volta |
-| [Richiesta web](net.request) | Solo indirizzi pubblici di internet. Questo computer e la rete locale solo se un amministratore lo permette nelle impostazioni del modulo `logicstudio-net`. Ogni richiesta conta nella tua quota di rete |
-| [Notifica](lilos.notify) | Solo a te, a nome del programma |
-| [Evento a lilOS](lilos.event) | Solo alle tue pagine di lilOS |
+| [HTTP (fetch)](net.request) | Solo indirizzi pubblici di internet. Questo computer e la rete locale solo se un amministratore lo permette nelle impostazioni del modulo `logicstudio-net`. Ogni richiesta conta nella tua quota di rete |
+| [Notify](lilos.notify) | Solo a te, a nome del programma |
+| [Emit (evento a lilOS)](lilos.event) | Solo alle tue pagine di lilOS |
 
 Un programma attivo lavora come te **anche quando non hai fatto l'accesso**: a lilOS chiuso, dopo che sei uscito, dopo un riavvio. Il motore ricorda chi eri quando l'hai attivato. Se non vuoi più che lavori a tuo nome, fermalo.
 
@@ -111,10 +111,10 @@ Prima di farla partire lilOS guarda i blocchi del progetto. Se ci sono blocchi c
 
 | Blocchi | lilOS ti dice che l'app potrà |
 |---|---|
-| file e cartelle ([Leggi file](lilos.fileRead), [Scrivi file](lilos.fileWrite), [Aggiungi a file](lilos.fileAppend), [Elenca cartella](lilos.folderList), [Esiste](lilos.exists)) | leggere e cambiare i tuoi file |
-| la rete ([Richiesta web](net.request)) | fare richieste su internet |
-| le notifiche ([Notifica](lilos.notify)) | mandarti notifiche |
-| gli eventi ([Evento a lilOS](lilos.event)) | mandare eventi a lilOS |
+| file e cartelle ([readFile](lilos.fileRead), [writeFile](lilos.fileWrite), [appendFile](lilos.fileAppend), [readdir (elenca cartella)](lilos.folderList), [exists](lilos.exists)) | leggere e cambiare i tuoi file |
+| la rete ([HTTP (fetch)](net.request)) | fare richieste su internet |
+| le notifiche ([Notify](lilos.notify)) | mandarti notifiche |
+| gli eventi ([Emit (evento a lilOS)](lilos.event)) | mandare eventi a lilOS |
 
 …apre una finestra con l'elenco, la cartella da cui viene l'app e i pulsanti **Esegui** e **Annulla**. Esegui l'app solo se ti fidi di chi l'ha fatta.
 

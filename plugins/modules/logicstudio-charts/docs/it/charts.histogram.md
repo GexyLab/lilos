@@ -78,7 +78,7 @@ Finestra «Prestazioni»
 ```
 
 ```
-[Valore (JSON): [120, 135, 180, 95, 240, 160, 150, 410, 130, 175]] valore ──▶ valori [Istogramma: Tempi di risposta]
+[Costante · Variabile (JSON): [120, 135, 180, 95, 240, 160, 150, 410, 130, 175]] valore ──▶ valori [Istogramma: Tempi di risposta]
 ```
 
 Le classi sono 50–100 (1 valore), 100–150 (3), 150–200 (4), 200–250 (1), poi tre classi vuote e 400–450 (1): si vede subito che quasi tutte le risposte stanno tra 100 e 200 ms e che una è molto lenta. Il riquadro della terza classe dice «150 – 200 ms» e «Conteggio 4».
@@ -86,16 +86,16 @@ Le classi sono 50–100 (1 valore), 100–150 (3), 150–200 (4), 200–250 (1),
 ### 2. Contare mentre le misure arrivano
 
 ```
-[Ogni…: 5 s] impulso ──▶ leggi [Leggi file: ~/peso.txt] contenuto ──▶ aggiungi valore [Istogramma: Pesate]
+[Intervallo (setInterval): 5 s] impulso ──▶ leggi [readFile: ~/peso.txt] contenuto ──▶ aggiungi valore [Istogramma: Pesate]
 [Pulsante: Nuovo lotto] premuto ──▶ pulisci [Istogramma: Pesate]
 ```
 
-Ogni 5 secondi il valore del file si aggiunge ai conteggi e le classi si ricalcolano. **Nuovo lotto** ricomincia da zero. Come per tutti i grafici, i valori aggiunti stanno nella finestra aperta: per non perderli chiudendola, tienili con [Accumula](coll.accumulate) e manda la lista su **valori**.
+Ogni 5 secondi il valore del file si aggiunge ai conteggi e le classi si ricalcolano. **Nuovo lotto** ricomincia da zero. Come per tutti i grafici, i valori aggiunti stanno nella finestra aperta: per non perderli chiudendola, tienili con [Accumula (push con limite)](coll.accumulate) e manda la lista su **valori**.
 
 ### 3. Due serre a confronto
 
 ```
-[Leggi file: ~/temperature.json, JSON] contenuto ──▶ valori [Istogramma: Temperature]
+[readFile: ~/temperature.json, JSON] contenuto ──▶ valori [Istogramma: Temperature]
 ```
 
 Con il file `[{"name": "Serra 1", "data": [21, 22.5, 23, 22]}, {"name": "Serra 2", "data": [19, 20, 21.5, 19.5]}]` ogni classe ha due colonne affiancate, una per serra, e la legenda; un clic sulla legenda nasconde una serra.
@@ -107,6 +107,6 @@ Con il file `[{"name": "Serra 1", "data": [21, 22.5, 23, 22]}, {"name": "Serra 2
 ## Vedi anche
 
 - [Colonne](charts.column) per valori già contati per categoria
-- [Somma · Minimo · Massimo · Media](coll.stat) per riassumere una lista con pochi numeri
-- [Accumula](coll.accumulate)
+- [Sum · Min · Max · Avg](coll.stat) per riassumere una lista con pochi numeri
+- [Accumula (push con limite)](coll.accumulate)
 - [Grafici](logicstudio-charts): le forme dei dati, i limiti, la tastiera

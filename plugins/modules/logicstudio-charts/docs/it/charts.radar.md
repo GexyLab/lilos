@@ -76,7 +76,7 @@ Finestra «Confronto»
 ```
 
 ```
-[Valore (JSON): {"Velocità": {"Auto A": 8, "Auto B": 6}, "Costo": {"Auto A": 5, "Auto B": 8}, "Qualità": {"Auto A": 7, "Auto B": 6}, "Sicurezza": {"Auto A": 9, "Auto B": 7}, "Comfort": {"Auto A": 6, "Auto B": 8}}] valore ──▶ dati [Radar: Auto]
+[Costante · Variabile (JSON): {"Velocità": {"Auto A": 8, "Auto B": 6}, "Costo": {"Auto A": 5, "Auto B": 8}, "Qualità": {"Auto A": 7, "Auto B": 6}, "Sicurezza": {"Auto A": 9, "Auto B": 7}, "Comfort": {"Auto A": 6, "Auto B": 8}}] valore ──▶ dati [Radar: Auto]
 ```
 
 Cinque assi e due figure con la legenda «Auto A» e «Auto B». Con Minimo 0 e Massimo 10 un voto 10 tocca il bordo. Un clic sull'asse «Costo» manda `{"category": "Costo", "values": {"Auto A": 5, "Auto B": 8}, "index": 1}`.
@@ -84,7 +84,7 @@ Cinque assi e due figure con la legenda «Auto A» e «Auto B». Con Minimo 0 e 
 ### 2. Il profilo di un mese, da un file
 
 ```
-[All'avvio] impulso ──▶ leggi [Leggi file: ~/qualita.json, JSON] contenuto ──▶ dati [Radar: Ottobre]
+[All'avvio (main)] impulso ──▶ leggi [readFile: ~/qualita.json, JSON] contenuto ──▶ dati [Radar: Ottobre]
 ```
 
 Il file contiene `{"Puntualità": 92, "Resi": 4, "Soddisfazione": 87, "Consegne": 95}`. Lasciando **Minimo** e **Massimo** vuoti la scala va da 0 a 100 (arrotondata): «Resi», con 4, resta vicino al centro.
@@ -92,10 +92,10 @@ Il file contiene `{"Puntualità": 92, "Resi": 4, "Soddisfazione": 87, "Consegne"
 ### 3. Mostrare il valore scelto
 
 ```
-[Radar: Auto] asse scelto ──▶ oggetto [Prendi campo: values.Auto A] valore ──▶ valore [Valore: Voto di A]
+[Radar: Auto] asse scelto ──▶ oggetto [Get proprietà (obj.campo): values.Auto A] valore ──▶ valore [Valore: Voto di A]
 ```
 
-[Prendi campo](core.get) prende il voto di «Auto A» sull'asse scelto e il [Valore](ui.value) della finestra lo mostra.
+[Get proprietà (obj.campo)](core.get) prende il voto di «Auto A» sull'asse scelto e il [Valore](ui.value) della finestra lo mostra.
 
 ## Accessibilità e tastiera
 
@@ -105,5 +105,5 @@ Il file contiene `{"Puntualità": 92, "Resi": 4, "Soddisfazione": 87, "Consegne"
 
 - [Colonne](charts.column) per gli stessi dati come colonne affiancate
 - [Barre](charts.bar)
-- [Prendi campo](core.get)
+- [Get proprietà (obj.campo)](core.get)
 - [Grafici](logicstudio-charts): le forme dei dati, i limiti, la tastiera

@@ -62,8 +62,8 @@ Finestra «Cruscotto»
 ```
 
 ```
-[Ogni…: 30 s] impulso ──▶ leggi [Leggi file: ~/serra.txt]   contenuto ──▶ valore [Mini linea: Serra]
-[Ogni…: 30 s] impulso ──▶ leggi [Leggi file: ~/esterno.txt] contenuto ──▶ valore [Mini linea: Esterno]
+[Intervallo (setInterval): 30 s] impulso ──▶ leggi [readFile: ~/serra.txt]   contenuto ──▶ valore [Mini linea: Serra]
+[Intervallo (setInterval): 30 s] impulso ──▶ leggi [readFile: ~/esterno.txt] contenuto ──▶ valore [Mini linea: Esterno]
 ```
 
 Due righe compatte: «Serra», la linea delle ultime 50 letture (25 minuti) e «22,4 °C»; sotto lo stesso per l'esterno. Con file che contengono `22.4` o `22,4` il risultato è uguale.
@@ -71,10 +71,10 @@ Due righe compatte: «Serra», la linea delle ultime 50 letture (25 minuti) e «
 ### 2. Il prezzo di un servizio, con scala fissa
 
 ```
-[Ogni…: 300 s] impulso ──▶ invia [Richiesta web: https://esempio.it/prezzo] risposta ──▶ oggetto [Prendi campo: eur] valore ──▶ valore [Mini linea: Prezzo]
+[Intervallo (setInterval): 300 s] impulso ──▶ invia [HTTP (fetch): https://esempio.it/prezzo] risposta ──▶ oggetto [Get proprietà (obj.campo): eur] valore ──▶ valore [Mini linea: Prezzo]
 ```
 
-Con **Minimo** 0 e **Massimo** 200 la linea si muove poco se il prezzo cambia di pochi euro; lasciandoli vuoti, anche una variazione di 1 euro occupa tutta l'altezza. Scegli in base a cosa vuoi notare. [Richiesta web](net.request) è del pacchetto [Blocchi di rete](logicstudio-net).
+Con **Minimo** 0 e **Massimo** 200 la linea si muove poco se il prezzo cambia di pochi euro; lasciandoli vuoti, anche una variazione di 1 euro occupa tutta l'altezza. Scegli in base a cosa vuoi notare. [HTTP (fetch)](net.request) è del pacchetto [Blocchi di rete](logicstudio-net).
 
 ### 3. Ricominciare ogni giorno
 

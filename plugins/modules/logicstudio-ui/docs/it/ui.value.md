@@ -48,7 +48,7 @@ All'apertura il Valore mostra **Etichetta**, il testo di **Quando è vuoto** in 
 - I numeri non validi (`NaN`, infinito) si vedono come testo: `NaN`, `Infinity`.
 - L'unità resta sempre, anche quando si vede «—».
 
-Se vuoi i decimali anche per un numero arrivato come testo, passalo prima da un blocco [Converti](core.convert) **In** numero.
+Se vuoi i decimali anche per un numero arrivato come testo, passalo prima da un blocco [Cast (converti tipo)](core.convert) **In** numero.
 
 ## Esempi
 
@@ -61,7 +61,7 @@ Finestra «Bilancia»
 ```
 
 ```
-[Leggi file: ~/bilancia.txt] contenuto ──▶ valore [Converti: numero] risultato ──▶ valore [Valore: Peso:]
+[readFile: ~/bilancia.txt] contenuto ──▶ valore [Cast (converti tipo): numero] risultato ──▶ valore [Valore: Peso:]
 ```
 
 Se il file contiene `72.456`, la finestra mostra «Peso: **72,5** kg».
@@ -77,7 +77,7 @@ Finestra «Totale»
 ```
 
 ```
-[Campo numerico: Prezzo]   valore ──▶ a [Moltiplica] risultato ──▶ valore [Valore: Totale:]
+[Campo numerico: Prezzo]   valore ──▶ a [Moltiplicazione (×)] risultato ──▶ valore [Valore: Totale:]
 [Campo numerico: Quantità] valore ──▶ b
 ```
 
@@ -90,5 +90,5 @@ Etichetta, valore e unità sono testo normale, letto in fila da un lettore di sc
 ## Vedi anche
 
 - [Etichetta](ui.label), [Indicatore](ui.gauge), [Barra di avanzamento](ui.progress)
-- [Converti](core.convert), [Calcola](core.math) per arrotondare prima di mostrare
+- [Cast (converti tipo)](core.convert), [Funzioni Math](core.math) per arrotondare prima di mostrare
 - [Componenti UI standard](logicstudio-ui)

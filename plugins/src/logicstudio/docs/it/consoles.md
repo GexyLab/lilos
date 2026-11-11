@@ -8,9 +8,9 @@ Le console stanno nel **motore**, non nell'IDE: un programma attivo continua a s
 
 Sono nel pacchetto [Blocchi di base](logicstudio-core), categoria **Console**.
 
-### Scrivi in console
+### Print (console.log)
 
-[Scrivi in console](core.consoleWrite) scrive una riga quando gli arriva un valore su **valore**, e svuota la console quando arriva un impulso su **pulisci**. Dopo aver scritto manda un impulso su **scritto**.
+[Print (console.log)](core.consoleWrite) scrive una riga quando gli arriva un valore su **valore**, e svuota la console quando arriva un impulso su **pulisci**. Dopo aver scritto manda un impulso su **scritto**.
 
 | Impostazione | Scelte |
 |---|---|
@@ -20,9 +20,9 @@ Sono nel pacchetto [Blocchi di base](logicstudio-core), categoria **Console**.
 
 Gli ingressi aggiunti si scrivono sulla stessa riga come `nome=valore` (ma non avviano la scrittura).
 
-### Leggi da console
+### Input (readline)
 
-[Leggi da console](core.consoleRead) fa una domanda quando arriva un impulso su **chiedi**, aspetta la risposta e la manda su **valore**; se la domanda viene annullata, manda un impulso su **annullato**. L'ingresso **domanda** (un testo) prende il posto della domanda scritta nelle impostazioni.
+[Input (readline)](core.consoleRead) fa una domanda quando arriva un impulso su **chiedi**, aspetta la risposta e la manda su **valore**; se la domanda viene annullata, manda un impulso su **annullato**. L'ingresso **domanda** (un testo) prende il posto della domanda scritta nelle impostazioni.
 
 | Impostazione | Cosa fa |
 |---|---|
@@ -52,7 +52,7 @@ Regole:
 - mentre un blocco aspetta, **gli altri blocchi vanno avanti**;
 - quando il programma si ferma, le domande in attesa sono annullate.
 
-> In questa versione una domanda senza risposta per più di **30 secondi** (il «Tempo massimo di un blocco» del motore) fa uscire dal blocco l'errore «Leggi da console ha impiegato più di 30 s» sull'**Eccezione**, e la risposta data dopo va persa. Se ti serve più tempo, chiedi all'amministratore di alzare quel limite nel Pannello di controllo → Logic Studio → Limiti.
+> In questa versione una domanda senza risposta per più di **30 secondi** (il «Tempo massimo di un blocco» del motore) fa uscire dal blocco l'errore «Input (readline) ha impiegato più di 30 s» sull'**Eccezione**, e la risposta data dopo va persa. Se ti serve più tempo, chiedi all'amministratore di alzare quel limite nel Pannello di controllo → Logic Studio → Limiti.
 
 ## Il pannello in basso
 
@@ -108,7 +108,7 @@ Quando il progetto gira come **programma attivo** o come **app**, nessun IDE mos
 | Scelta | Cosa succede |
 |---|---|
 | **Mostrale tutte** | Ogni console si apre in una finestra quando si apre la prima finestra del progetto; una domanda apre (o porta davanti) la sua console. |
-| **Solo quando chiedono un dato** (di serie) | Una console si apre quando un blocco **Leggi da console** aspetta; dopo la risposta si chiude, se è spuntato **Chiudi la console dopo la risposta**. |
+| **Solo quando chiedono un dato** (di serie) | Una console si apre quando un blocco **Input** aspetta; dopo la risposta si chiude, se è spuntato **Chiudi la console dopo la risposta**. |
 | **Non mostrarle** | Niente sullo schermo. Le righe vanno nel registro come dice **Copia nel registro**; le domande prendono subito il **Valore predefinito** (convertito nel tipo di dato) o, se non ce l'hanno o non è valido, sono annullate. |
 | **Tutte nella console principale** | Una sola finestra, **Console**, con le righe di tutte le console; ogni riga che non è della principale ha un'etichetta con il nome della sua console. Si apre secondo **Con «Tutte nella principale», la principale si apre**: **all'avvio** (con la prima finestra del progetto) o **quando chiede un dato**. |
 
@@ -141,33 +141,33 @@ La componente **Console** (pacchetto [Componenti UI](logicstudio-ui)) mostra una
 ### 1. Chiedere un numero e raddoppiarlo
 
 ```
-[All'avvio] impulso ──▶ chiedi [Leggi da console: «Quanti anni hai?», numero] valore ──▶ a [Moltiplica] risultato ──▶ valore [Scrivi in console]
-                                                                                   annullato ──▶ invia [Valore: «Va bene, niente.»] valore ──▶ valore [Scrivi in console]
+[All'avvio (main)] impulso ──▶ chiedi [Input (readline): «Quanti anni hai?», numero] valore ──▶ a [Moltiplicazione (×)] risultato ──▶ valore [Print (console.log)]
+                                                                                   annullato ──▶ invia [Costante · Variabile: «Va bene, niente.»] valore ──▶ valore [Print (console.log)]
 ```
 
-Su **Moltiplica**, **b** ha valore iniziale `2` e **lo avvia** tolto. **Prova**: il pannello si apre sulla principale con «Quanti anni hai? ›». Scrivi `ventidue`: «Serve un numero. Riprova.». Scrivi `22` e **Invio**: la console scrive `44`. Premendo **Esc** invece, scrive «Va bene, niente.».
+Su **Moltiplicazione**, **b** ha valore iniziale `2` e **lo avvia** tolto. **Prova**: il pannello si apre sulla principale con «Quanti anni hai? ›». Scrivi `ventidue`: «Serve un numero. Riprova.». Scrivi `22` e **Invio**: la console scrive `44`. Premendo **Esc** invece, scrive «Va bene, niente.».
 
 ### 2. Una console per gli allarmi
 
 1. In **Opzioni del progetto → Console** premi **Nuova console**, rinominala `Allarmi` e scegli il rosso.
-2. Metti uno **Scrivi in console** con **Console** = **Allarmi** e **Livello** = **errore**, e collegalo a quello che deve segnalare.
+2. Metti un blocco **Print** con **Console** = **Allarmi** e **Livello** = **errore**, e collegalo a quello che deve segnalare.
 3. In **Fuori dall'IDE** scegli **Mostrale tutte**: quando apri la finestra del programma attivo, si apre anche la console **Allarmi**.
 
 ### 3. Una password che non si vede
 
 ```
-[Pulsante: Entra] premuto ──▶ chiedi [Leggi da console: «Password», testo, nascosto] valore ──▶ a [Confronta: a = b, b = "segreta"] se vero ──▶ …
+[Pulsante: Entra] premuto ──▶ chiedi [Input (readline): «Password», testo, nascosto] valore ──▶ a [Confronto (== ≠ < >): a = b, b = "segreta"] se vero ──▶ …
 ```
 
-Con **Nascondi quello che si scrive**, nel campo si vedono puntini e la console mostra `•••••••` al posto della risposta. Su **Confronta**, **b** ha valore iniziale `"segreta"` e **lo avvia** tolto.
+Con **Nascondi quello che si scrive**, nel campo si vedono puntini e la console mostra `•••••••` al posto della risposta. Su **Confronto**, **b** ha valore iniziale `"segreta"` e **lo avvia** tolto.
 
 ### 4. Un programma attivo silenzioso
 
-Un programma attivo che scrive ogni minuto la temperatura e ogni tanto un avviso: in **Fuori dall'IDE** scegli **Non mostrarle** e in **Copia nel registro del progetto** **avvisi ed errori**. Le righe normali restano solo in memoria (le ultime 1000), gli avvisi vanno nel registro, e un **Leggi da console** con **Valore predefinito** `20` riceve subito `20` senza chiedere niente.
+Un programma attivo che scrive ogni minuto la temperatura e ogni tanto un avviso: in **Fuori dall'IDE** scegli **Non mostrarle** e in **Copia nel registro del progetto** **avvisi ed errori**. Le righe normali restano solo in memoria (le ultime 1000), gli avvisi vanno nel registro, e un **Input** con **Valore predefinito** `20` riceve subito `20` senza chiedere niente.
 
 ## Vedi anche
 
-- [Scrivi in console](core.consoleWrite)
-- [Leggi da console](core.consoleRead)
+- [Print (console.log)](core.consoleWrite)
+- [Input (readline)](core.consoleRead)
 - [Prova e programmi attivi](ide/run)
 - [Progetti](ide/projects)

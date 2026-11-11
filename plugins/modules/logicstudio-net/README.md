@@ -2,9 +2,9 @@
 
 I **blocchi di rete** di Logic Studio:
 
-- **Richiesta web**: una richiesta HTTP o HTTPS (GET, POST, PUT, PATCH, DELETE). L'indirizzo viene dalle impostazioni o dall'ingresso **indirizzo**; le intestazioni sono un oggetto JSON nelle impostazioni; il **corpo** è mandato com'è se è testo, come JSON altrimenti. Ogni ingresso aggiunto (fino a 16) è un **parametro** dell'indirizzo, con il nome della porta. Escono la risposta (JSON se il server dice che è JSON, oppure testo o JSON a scelta), lo stato e le intestazioni; un errore di rete va nell'uscita Eccezione. Gli ingressi aggiunti tengono solo il loro valore: la richiesta parte con **invia**.
+- **HTTP (fetch)** (ex Richiesta web): una richiesta HTTP o HTTPS (GET, POST, PUT, PATCH, DELETE). L'indirizzo viene dalle impostazioni o dall'ingresso **indirizzo**; le intestazioni sono un oggetto JSON nelle impostazioni; il **corpo** è mandato com'è se è testo, come JSON altrimenti. Ogni ingresso aggiunto (fino a 16) è un **parametro** dell'indirizzo, con il nome della porta. Escono la risposta (JSON se il server dice che è JSON, oppure testo o JSON a scelta), lo stato e le intestazioni; un errore di rete va nell'uscita Eccezione. Gli ingressi aggiunti tengono solo il loro valore: la richiesta parte con **invia**.
 
-Per chiedere un JSON ogni tanto basta collegare **Ogni…** a **invia** di Richiesta web.
+Per chiedere un JSON ogni tanto basta collegare **Intervallo (setInterval)** a **invia** di HTTP (fetch).
 
 Sicurezza:
 

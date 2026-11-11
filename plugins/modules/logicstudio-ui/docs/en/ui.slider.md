@@ -46,7 +46,7 @@ A bar with a knob to drag: the user chooses a number between a minimum and a max
 - **min** and **max**: change the range and redraw the slider, which keeps the last value. If the minimum exceeds the maximum, the slider stays locked at the minimum.
 - The **Step** cannot be changed from the schema.
 
-**When opened** the slider shows **At the start**, but the program does not receive it: if a schema needs to know it, give it the same number with a [Value](core.value) block.
+**When opened** the slider shows **At the start**, but the program does not receive it: if a schema needs to know it, give it the same number with a [Constant · Variable](core.value) block.
 
 ## Examples
 
@@ -60,12 +60,12 @@ Window «Alarm»
 ```
 
 ```
-[Value: 25]         value ──▶ b [Compare: a > b] result ──▶ on [Lamp: Above the threshold]
+[Constant · Variable: 25]         value ──▶ b [Compare (== != < >): a > b] result ──▶ on [Lamp: Above the threshold]
 [Slider: Threshold] value ──▶ b
-[Every…: 10 s] pulse ──▶ read [Read file: ~/temperature.txt] content ──▶ value [Convert: number] result ──▶ a [Compare]
+[Interval (setInterval): 10 s] pulse ──▶ read [readFile: ~/temperature.txt] content ──▶ value [Type cast: number] result ──▶ a [Compare (== != < >)]
 ```
 
-The [Value](core.value) 25 gives the comparison the initial threshold, the same as the one shown. When the user moves the slider to 30.5 and releases it, the threshold becomes 30.5.
+The [Constant · Variable](core.value) 25 gives the comparison the initial threshold, the same as the one shown. When the user moves the slider to 30.5 and releases it, the threshold becomes 30.5.
 
 ### 2. A volume with a changing maximum
 
@@ -76,14 +76,14 @@ Window «Audio»
   └ Slider    slider1    Label «Volume»  Unit «%»  At the start 50
 ```
 
-With an [If](core.if):
+With an [If · Else](core.if):
 
 ```
-[Checkbox: Night mode] value ──▶ condition [If] then ──▶ send [Value: 30]  value ──▶ max [Slider: Volume]
-                                                else ──▶ send [Value: 100] value ──▶ max
+[Checkbox: Night mode] value ──▶ condition [If · Else] then ──▶ send [Constant · Variable: 30]  value ──▶ max [Slider: Volume]
+                                                else ──▶ send [Constant · Variable: 100] value ──▶ max
 ```
 
-With night mode the slider's maximum goes down to 30; if it was at 50, the knob goes all the way to the right but the number still shows «50%» until the user touches it. Note: the slider sends nothing when the maximum changes, so the schema still believes the volume is 50. If you need the reduced value, calculate it in the schema too with a [Limit](core.clamp).
+With night mode the slider's maximum goes down to 30; if it was at 50, the knob goes all the way to the right but the number still shows «50%» until the user touches it. Note: the slider sends nothing when the maximum changes, so the schema still believes the volume is 50. If you need the reduced value, calculate it in the schema too with a [Clamp](core.clamp).
 
 ## Accessibility and keyboard
 
@@ -95,5 +95,5 @@ With night mode the slider's maximum goes down to 30; if it was at 50, the knob 
 
 - [Number field](ui.number), to type a precise number
 - [Progress bar](ui.progress), [Gauge](ui.gauge)
-- [Limit](core.clamp)
+- [Clamp](core.clamp)
 - [Standard UI components](logicstudio-ui)

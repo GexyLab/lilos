@@ -76,7 +76,7 @@ Un esempio completo:
 | `schemas` | Gli schemi: **nome nel progetto → percorso** del file, relativo alla cartella del progetto e dentro `schemi/`. |
 | `windows` | Le finestre: **nome → percorso**, dentro `ui/`. |
 | `main` | Il nome della finestra main, o `null` se il progetto non ha finestre. |
-| `links` | I collegamenti tra schemi: `from` è `"schema:porta"` di un'**Uscita di schema**, `to` è `"schema:porta"` di un **Ingresso di schema**. |
+| `links` | I collegamenti tra schemi: `from` è `"schema:porta"` di un blocco **Return**, `to` è `"schema:porta"` di un blocco **Parametro**. |
 | `consoles.list` | Le console: `id` (la principale è sempre `main`; le altre `c1`, `c2`…), `name` (al massimo 60 caratteri), `color` (un colore CSS, facoltativo), `keep` (righe tenute, da 100 a 2000, di serie 1000). |
 | `consoles.outside` | Fuori dall'IDE: `all` (Mostrale tutte), `onInput` (Solo quando chiedono un dato, di serie), `hidden` (Non mostrarle), `main` (Tutte nella console principale). |
 | `consoles.closeAfterAnswer` | Chiudi la console dopo la risposta (di serie `true`). |
@@ -103,8 +103,8 @@ Un esempio completo, con un blocco con etichetta, un valore iniziale, una porta 
   "name": "main",
   "blocks": [
     {
-      "id": "value1", "type": "core.value", "v": 1, "x": 40, "y": 60,
-      "config": { "kind": "number", "value": "2", "atStart": true },
+      "id": "value1", "type": "core.value", "v": 2, "x": 40, "y": 60,
+      "config": { "kind": "number", "value": "2" },
       "ports": {}
     },
     {
@@ -280,7 +280,7 @@ Crea con un editor di testo il file `ciao.lsch`:
   "format": "lilos-lsch/1",
   "name": "ciao",
   "blocks": [
-    { "id": "value1", "type": "core.value", "v": 1, "x": 40, "y": 40, "config": { "kind": "text", "value": "Ciao!" } },
+    { "id": "value1", "type": "core.value", "v": 2, "x": 40, "y": 40, "config": { "kind": "text", "value": "Ciao!" } },
     { "id": "consolewrite1", "type": "core.consoleWrite", "v": 1, "x": 260, "y": 40 }
   ],
   "links": [
@@ -289,7 +289,7 @@ Crea con un editor di testo il file `ciao.lsch`:
 }
 ```
 
-Aprilo con Logic Studio IDE: è uno schema da solo. Premi **Prova**: la console scrive `Ciao!`. Il motore dà alle impostazioni che mancano il loro valore di serie (per il Valore, **Invia all'avvio** acceso). Attenzione: le **Proprietà** dell'IDE mostrano vuote, o non spuntate, le impostazioni che nel file mancano, anche se il motore usa il valore di serie. I campi `ports`, `config`, `notes` e `view` vengono scritti la prima volta che salvi una modifica.
+Aprilo con Logic Studio IDE: è uno schema da solo. Premi **Prova**: la console scrive `Ciao!`. Il motore dà alle impostazioni che mancano il loro valore di serie (per il blocco Costante · Variabile, niente collegato a **invia**: manda il valore all'avvio). Attenzione: le **Proprietà** dell'IDE mostrano vuote, o non spuntate, le impostazioni che nel file mancano, anche se il motore usa il valore di serie. I campi `ports`, `config`, `notes` e `view` vengono scritti la prima volta che salvi una modifica.
 
 ### 2. Aggiungere una traduzione
 

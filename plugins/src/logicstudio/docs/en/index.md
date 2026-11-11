@@ -73,7 +73,7 @@ Blocks and components come from **packages**, kernel modules that you install fr
 | [Base blocks](logicstudio-core) (`logicstudio-core`) | Values, logic, math, text, objects, time, the two consoles, the schema ports, the object of the UI components. Installs with the IDE. |
 | [Lists and matrices](logicstudio-collections) (`logicstudio-collections`) | Blocks for lists (sort, filter, for each item…) and matrices (product, transpose, determinant…). |
 | [lilOS blocks](logicstudio-lilos) (`logicstudio-lilos`) | Notifications, reading and writing the files of your home, listing folders, events towards lilOS pages. |
-| [Network](logicstudio-net) (`logicstudio-net`) | **Web request** over HTTP and HTTPS. |
+| [Network](logicstudio-net) (`logicstudio-net`) | **HTTP request** over HTTP and HTTPS. |
 | [UI components](logicstudio-ui) (`logicstudio-ui`) | The components of the windows: labels, values, gauges, buttons, fields, tables, containers. |
 | [Charts](logicstudio-charts) (`logicstudio-charts`) | 12 charts for the windows: lines, areas, columns, bars, pie, real time… |
 | [Logic Studio Engine](logicstudio-engine) (`logicstudio-engine`) | The engine: it runs tests and active programs, with [limits](logicstudio-engine/limits) and [permissions](logicstudio-engine/permissions). Installs with the IDE. |
@@ -92,40 +92,40 @@ You build a counter: every 2 seconds a number grows by 1 and is written to the c
 
 ### 2. Put the blocks
 
-1. On the left switch to the **Blocks** tab. In the search type `every` and click **Every…**: the block appears in the middle of the sheet, already selected.
+1. On the left switch to the **Blocks** tab. In the search type `every` and click **Interval**: the block appears in the middle of the sheet, already selected.
 2. On the right, in the **Properties**, **Settings** section, set **Every (seconds)** to `2`. Leave **Starts on its own** ticked.
-3. In the same way add **Counter**, **Compare**, **NOT**, **Value** and, twice, **Write to console**. Each click puts the block a little lower than the previous one: drag them where you like, for example as in the drawing below.
+3. In the same way add **Counter**, **Compare**, **NOT**, **Constant · Variable** and, twice, **Print**. Each click puts the block a little lower than the previous one: drag them where you like, for example as in the drawing below.
 4. Select **Compare**. In the Settings choose **Operation** = **a ≥ b**. In the **Ports** section, on the row of the input **b**, type `5` in the **at start** field and untick **starts it** (the 5 stays there as a threshold, without making the block run on its own).
-5. Select **Value**. In the Settings choose **Kind** = **text**, type `Fatto!` in **Value** and untick **Send at start**.
+5. Select **Constant · Variable**. In the Settings choose **Kind** = **text** and type `Fatto!` in **Value**. Then, in the **Properties**, turn on the **eye** next to the **send** port: it is hidden by default, and you need it to link it in step 6.
 
 ### 3. Link
 
 To link, drag from the dot of an output (on the right of the block) to the dot of an input (on the left). Make these six links:
 
-1. **Every…** · **pulse** → **Counter** · **up**
-2. **Counter** · **count** → first **Write to console** · **value**
+1. **Interval** · **pulse** → **Counter** · **up**
+2. **Counter** · **count** → first **Print** · **value**
 3. **Counter** · **count** → **Compare** · **a**
 4. **Compare** · **result** → **NOT** · **value**
-5. **NOT** · **result** → **Every…** · **on**
-6. **Compare** · **if true** → **Value** · **send**, and then **Value** · **value** → second **Write to console** · **value**
+5. **NOT** · **result** → **Interval** · **on**
+6. **Compare** · **if true** → **Constant · Variable** · **send**, and then **Constant · Variable** · **value** → second **Print** · **value**
 
 The finished schema:
 
 ```
-[Every…: 2 s] pulse ──▶ up [Counter] count ──▶ value [Write to console]
-                                      count ──▶ a [Compare: a ≥ b, b = 5]
+[Interval (setInterval): 2 s] pulse ──▶ up [Counter (++ −−)] count ──▶ value [Print (console.log)]
+                                      count ──▶ a [Compare (== != < >): a ≥ b, b = 5]
 
-[Compare] result ──▶ value [NOT] result ──▶ on [Every…]
-[Compare] if true ──▶ send [Value: Fatto!] value ──▶ value [Write to console]
+[Compare (== != < >)] result ──▶ value [NOT] result ──▶ on [Interval (setInterval)]
+[Compare (== != < >)] if true ──▶ send [Constant · Variable: Fatto!] value ──▶ value [Print (console.log)]
 ```
 
-What happens: every 2 seconds **Every…** sends a pulse, the **Counter** goes up by 1 and sends the new number both to the console and to **Compare**. While the number is below 5, **Compare** sends `false` on **result**, **NOT** turns it into `true` and **Every…** stays on. When it reaches 5, **result** is `true`, **NOT** sends `false` and **Every…** turns off; meanwhile **if true** starts **Value**, which sends `Fatto!` to the second console.
+What happens: every 2 seconds **Interval** sends a pulse, the **Counter** goes up by 1 and sends the new number both to the console and to **Compare**. While the number is below 5, **Compare** sends `false` on **result**, **NOT** turns it into `true` and **Interval** stays on. When it reaches 5, **result** is `true`, **NOT** sends `false` and **Interval** turns off; meanwhile **if true** starts **Constant · Variable** (which, with **send** linked, sends its value only at each pulse), which sends `Fatto!` to the second console.
 
 ### 4. Test
 
 1. Press **Test** in the toolbar (or **F5**). The button becomes **Testing 00:00** and **Stop** appears.
 2. On the sheet you see the values that go by: a coloured label halfway along each link, the last value next to each input, the light blue border on the block that is working.
-3. At the bottom, in the **Main** console, `1`, `2`, `3`, `4`, `5` appear (one every 2 seconds) and right after the 5 the line `Fatto!`. Then nothing else happens: **Every…** is off.
+3. At the bottom, in the **Main** console, `1`, `2`, `3`, `4`, `5` appear (one every 2 seconds) and right after the 5 the line `Fatto!`. Then nothing else happens: **Interval** is off.
 4. Press **Stop** (or **F5** again). A test stops by itself after 5 minutes anyway.
 
 ### 5. Save and activate
@@ -138,7 +138,7 @@ To understand why the counter starts from 1 and what happens when two values arr
 ## Good to know
 
 - The test uses what is **in the editors now**, even unsaved; **Activate** uses the **saved** project (and asks you to save). See [Test and active programs](ide/run).
-- An active program really does what it says even when you are not looking: a **Write file** overwrites, a **Web request** really calls the site. Test it first.
+- An active program really does what it says even when you are not looking: a **writeFile** overwrites, a **HTTP request** really calls the site. Test it first.
 - The texts of the IDE and of the blocks are in Italian and English.
 - The design choices of Logic Studio are collected in decision D88 of the internal lilOS documentation.
 

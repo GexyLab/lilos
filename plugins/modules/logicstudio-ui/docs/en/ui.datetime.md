@@ -4,7 +4,7 @@
 
 A field to choose a date, a time, or both, with the browser's calendar. The value travels as text in the ISO format (`2026-11-11`, `14:30`, `2026-11-11T14:30`).
 
-Do not confuse it with the [Date and time](core.now) block of the Basic blocks, which reads the current time.
+Do not confuse it with the [Now (date and time)](core.now) block of the Basic blocks, which reads the current time.
 
 ## Properties
 
@@ -55,7 +55,7 @@ The field is shown in the language and format of the browser (for example «11/1
 | `"2026-11-11T14:30:00"` | 11/11/2026 | empty | 11/11/2026 14:30 |
 | a number (milliseconds) | empty | empty | empty |
 
-> **Beware of the time zone.** The **ISO** output of the [Date and time](core.now) block is in **UTC** (it ends with `Z`, for example `2026-11-11T13:30:00.000Z`). The field does not convert: it shows it as if it were local time. In Italy, in winter, you would see 13:30 instead of 14:30. For local time, build the text with the **parts** of the Date and time block (see example 2).
+> **Beware of the time zone.** The **ISO** output of the [Now (date and time)](core.now) block is in **UTC** (it ends with `Z`, for example `2026-11-11T13:30:00.000Z`). The field does not convert: it shows it as if it were local time. In Italy, in winter, you would see 13:30 instead of 14:30. For local time, build the text with the **parts** of the Now block (see example 2).
 
 For the **time** kind you need a text that starts with the time: a text with the date in front (`2026-11-11T14:30`) leaves the field empty.
 
@@ -78,17 +78,17 @@ Choosing 11 November 2026 in the calendar, the Value shows «Due on: 2026-11-11�
 
 ### 2. Today, when opened
 
-To make the field start with today's date (the **parts** of the Date and time block are in the time of the computer where lilOS runs):
+To make the field start with today's date (the **parts** of the Now block are in the time of the computer where lilOS runs):
 
 ```
-[At start] pulse ──▶ read [Date and time block] parts ──▶ object [Split object] year  ──▶ a [Format text: «{a}-{m}-{d}»] text ──▶ value (ISO) [Date and time: Deadline]
+[On start (main)] pulse ──▶ read [Now (date and time)] parts ──▶ object [Destructure object] year  ──▶ a [Template string: «{a}-{m}-{d}»] text ──▶ value (ISO) [Date and time: Deadline]
                                                                                   month ──▶ m
                                                                                   day   ──▶ d
 ```
 
-In the [Split object](core.decompose) add the outputs **year**, **month** and **day**; in the [Format text](core.format) the inputs **a**, **m**, **d**, and remove «starts it» from **a** and **m** (so the text starts only once, with **d**).
+In the [Destructure object](core.decompose) add the outputs **year**, **month** and **day**; in the [Template string](core.format) the inputs **a**, **m**, **d**, and remove «starts it» from **a** and **m** (so the text starts only once, with **d**).
 
-> Month and day must have two digits (`2026-03-05`, not `2026-3-5`), otherwise the field stays empty. For months and days below 10, add the zero in the schema (for example with an [If](core.if) and a [Compare](core.compare) `< 10`).
+> Month and day must have two digits (`2026-03-05`, not `2026-3-5`), otherwise the field stays empty. For months and days below 10, add the zero in the schema (for example with an [If · Else](core.if) and a [Compare (== != < >)](core.compare) `< 10`).
 
 ## Accessibility and keyboard
 
@@ -97,6 +97,6 @@ In the [Split object](core.decompose) add the outputs **year**, **month** and **
 
 ## See also
 
-- [Date and time](core.now) (the block), [Split object](core.decompose)
+- [Now (date and time)](core.now) (the block), [Destructure object](core.decompose)
 - [Text field](ui.text)
 - [Standard UI components](logicstudio-ui)

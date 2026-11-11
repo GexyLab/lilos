@@ -66,14 +66,14 @@ Finestra «Messaggi»
 ```
 
 ```
-[Campo di testo: text1] testo ──▶ valore [Se] allora ──▶ valore [Scrivi in console]
-[Campo di testo: text1] invio ──▶ condizione [Se]
+[Campo di testo: text1] testo ──▶ valore [If · Else] allora ──▶ valore [Print (console.log)]
+[Campo di testo: text1] invio ──▶ condizione [If · Else]
 ```
 
-Nel [Se](core.if) togli «lo avvia» da **valore**: il Se parte con **invio** (sempre `true`) e manda alla console l'ultimo testo confermato. Quindi l'utente scrive, preme Invio e la riga compare nella console. Per svuotare il campo dopo l'invio, collega anche **allora** a un [Valore](core.value) di testo vuoto (con **Invia all'avvio** spento) e quello all'ingresso **testo** del campo:
+Nel blocco [If · Else](core.if) togli «lo avvia» da **valore**: il blocco parte con **invio** (sempre `true`) e manda alla console l'ultimo testo confermato. Quindi l'utente scrive, preme Invio e la riga compare nella console. Per svuotare il campo dopo l'invio, collega anche **allora** a un blocco [Costante · Variabile](core.value) di testo vuoto (con l'ingresso **invia** collegato, mostrato con l'occhio accanto alla porta) e quello all'ingresso **testo** del campo:
 
 ```
-[Se] allora ──▶ invia [Valore: «»] valore ──▶ testo [Campo di testo: text1]
+[If · Else] allora ──▶ invia [Costante · Variabile: «»] valore ──▶ testo [Campo di testo: text1]
 ```
 
 ### 2. Una password per sbloccare
@@ -87,15 +87,15 @@ Finestra «Accesso»
 ```
 
 ```
-[Campo di testo: Password] testo ──▶ a [Confronta: a = b] risultato ──▶ condizione [Se] allora     ──▶ invia [Valore: «Benvenuto!»]          valore ──▶ testo [Etichetta: label1]
-[Valore: «segreta»] valore ──▶ b                                                      altrimenti ──▶ invia [Valore: «Password sbagliata.»] valore ──▶ testo [Etichetta: label1]
-[Pulsante: Entra]          premuto ──▶ valore [Se]
-[Campo di testo: Password] invio   ──▶ valore [Se]
+[Campo di testo: Password] testo ──▶ a [Confronto (== ≠ < >): a = b] risultato ──▶ condizione [If · Else] allora     ──▶ invia [Costante · Variabile: «Benvenuto!»]          valore ──▶ testo [Etichetta: label1]
+[Costante · Variabile: «segreta»] valore ──▶ b                                                      altrimenti ──▶ invia [Costante · Variabile: «Password sbagliata.»] valore ──▶ testo [Etichetta: label1]
+[Pulsante: Entra]          premuto ──▶ valore [If · Else]
+[Campo di testo: Password] invio   ──▶ valore [If · Else]
 ```
 
-Nel [Se](core.if) togli «lo avvia» da **condizione**: il Se parte quando l'utente preme **Entra** o Invio nel campo, con l'ultimo risultato del confronto. Facendo clic su **Entra** il campo perde il fuoco e conferma la password **prima** del clic, quindi il confronto è già aggiornato. I due Valori dei messaggi hanno **Invia all'avvio** spento.
+Nel blocco [If · Else](core.if) togli «lo avvia» da **condizione**: il blocco parte quando l'utente preme **Entra** o Invio nel campo, con l'ultimo risultato del confronto. Facendo clic su **Entra** il campo perde il fuoco e conferma la password **prima** del clic, quindi il confronto è già aggiornato. I due blocchi [Costante · Variabile](core.value) dei messaggi hanno l'ingresso **invia** collegato.
 
-> Questo è solo un esempio: una password scritta in un blocco [Valore](core.value) si legge aprendo il progetto.
+> Questo è solo un esempio: una password scritta in un blocco [Costante · Variabile](core.value) si legge aprendo il progetto.
 
 ## Accessibilità e tastiera
 
@@ -106,6 +106,6 @@ Nel [Se](core.if) togli «lo avvia» da **condizione**: il Se parte quando l'ute
 ## Vedi anche
 
 - [Campo numerico](ui.number), per i numeri
-- [Leggi da console](core.consoleRead), per fare una domanda e aspettare la risposta
-- [Formatta testo](core.format), [Operazione sul testo](core.text)
+- [Input (readline)](core.consoleRead), per fare una domanda e aspettare la risposta
+- [Template (formatta)](core.format), [Funzioni stringa](core.text)
 - [Componenti UI standard](logicstudio-ui)

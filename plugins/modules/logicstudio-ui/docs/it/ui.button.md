@@ -61,20 +61,20 @@ Finestra «Pompa»
 ```
 
 ```
-[Pulsante: Avvia] premuto ──▶ invia [Valore: sì]  valore ──▶ accesa [Spia: In funzione]
-[Pulsante: Ferma] premuto ──▶ invia [Valore: no]  valore ──▶ accesa [Spia: In funzione]
+[Pulsante: Avvia] premuto ──▶ invia [Costante · Variabile: sì]  valore ──▶ accesa [Spia: In funzione]
+[Pulsante: Ferma] premuto ──▶ invia [Costante · Variabile: no]  valore ──▶ accesa [Spia: In funzione]
 ```
 
-I due [Valori](core.value) sono di tipo sì/no, con **Invia all'avvio** spento. **Avvia** accende la spia, **Ferma** la spegne.
+I due blocchi [Costante · Variabile](core.value) sono di tipo sì/no e hanno l'ingresso **invia** collegato (mostralo con l'occhio accanto alla porta, nelle Proprietà): mandano il valore solo quando premi, non all'avvio. **Avvia** accende la spia, **Ferma** la spegne.
 
 Per non poter premere due volte **Avvia**, collega anche lo stato ai pulsanti:
 
 ```
-[Pulsante: Avvia] premuto ──▶ valore [NON] risultato ──▶ abilitato [Pulsante: Avvia]
-[Pulsante: Ferma] premuto ──▶ invia [Valore: sì] valore ──▶ abilitato [Pulsante: Avvia]
+[Pulsante: Avvia] premuto ──▶ valore [NOT] risultato ──▶ abilitato [Pulsante: Avvia]
+[Pulsante: Ferma] premuto ──▶ invia [Costante · Variabile: sì] valore ──▶ abilitato [Pulsante: Avvia]
 ```
 
-Dopo **Avvia** il pulsante si spegne (il [NON](core.not) di `true` è `false`); **Ferma** lo riabilita.
+Dopo **Avvia** il pulsante si spegne (il blocco [NOT](core.not) di `true` è `false`); **Ferma** lo riabilita.
 
 ### 2. Un pulsante che apre le impostazioni
 
@@ -95,10 +95,10 @@ Non servono oggetti: il primo pulsante apre la finestra **Impostazioni**, il sec
 ### 3. Un pulsante che conta i clic sul suo testo
 
 ```
-[Pulsante: Premi] premuto ──▶ più [Contatore] conteggio ──▶ n [Formatta testo: «Premuto {n} volte»] testo ──▶ testo [Pulsante: Premi]
+[Pulsante: Premi] premuto ──▶ più [Contatore (++ −−)] conteggio ──▶ n [Template (formatta): «Premuto {n} volte»] testo ──▶ testo [Pulsante: Premi]
 ```
 
-Nel [Formatta testo](core.format) aggiungi l'ingresso **n**. A ogni clic il pulsante cambia scritta: «Premuto 1 volte», «Premuto 2 volte»…
+Nel [Template (formatta)](core.format) aggiungi l'ingresso **n**. A ogni clic il pulsante cambia scritta: «Premuto 1 volte», «Premuto 2 volte»…
 
 ## Accessibilità e tastiera
 
@@ -109,6 +109,6 @@ Nel [Formatta testo](core.format) aggiungi l'ingresso **n**. A ogni clic il puls
 ## Vedi anche
 
 - [Interruttore](ui.toggle), per uno stato acceso/spento
-- [Contatore](core.counter), [Valore](core.value)
+- [Contatore (++ −−)](core.counter), [Costante · Variabile](core.value)
 - [Finestre](ide/windows)
 - [Componenti UI standard](logicstudio-ui)

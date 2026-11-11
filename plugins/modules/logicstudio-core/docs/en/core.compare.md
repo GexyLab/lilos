@@ -1,4 +1,4 @@
-# Compare
+# Compare (== != < >)
 
 `core.compare` · Logic · [Core blocks](logicstudio-core) · version 1
 
@@ -41,12 +41,12 @@ It sends them at every comparison, even if the result has not changed.
 
 How the comparison is made depends on what arrives:
 
-- **If at least one of the two is a number** (a real number, not a text with digits), both are read as numbers and compared as numbers. The reading rules are those of [Add](core.add): `"2,5"` is 2.5, `true` is 1, `null` and `""` are 0.
+- **If at least one of the two is a number** (a real number, not a text with digits), both are read as numbers and compared as numbers. The reading rules are those of [Add (+)](core.add): `"2,5"` is 2.5, `true` is 1, `null` and `""` are 0.
 - **Otherwise** both are read as texts and compared as texts.
 
 Comparing as texts means **letter by letter**, like in the dictionary but with computer rules:
 
-- `"10"` is **less** than `"9"` (`1` is compared with `9` first). If your numbers arrive as text (for example from a [Text field](ui.text)), go through [Convert](core.convert) to number first.
+- `"10"` is **less** than `"9"` (`1` is compared with `9` first). If your numbers arrive as text (for example from a [Text field](ui.text)), go through [Type cast](core.convert) to number first.
 - Upper case counts and comes before lower case: `"Z"` < `"a"`; `"Roma"` ≠ `"roma"`.
 - Accented letters come after all the letters without accent: `"è"` > `"z"`.
 - Spaces count: `"ciao "` ≠ `"ciao"`.
@@ -75,7 +75,7 @@ An input that has not received anything yet **counts**: it is 0 if the other is 
 Operation `a > b`; on **b** the initial value `30` and "starts it" removed:
 
 ```
-[Slider: temperature] value ──▶ a [Compare: a > b] result ──▶ on [Lamp: hot]
+[Slider: temperature] value ──▶ a [Compare (== != < >): a > b] result ──▶ on [Lamp: hot]
 ```
 
 With the slider at 25 the [Lamp](ui.lamp) is off (**no**); at 31 it turns on (**yes**). At every movement a pulse also goes out on **if true** or **if false**.
@@ -83,22 +83,22 @@ With the slider at 25 the [Lamp](ui.lamp) is off (**no**); at 31 it turns on (**
 ### 2. Do a different thing in the two cases
 
 ```
-[Number field: age] value ──▶ a [Compare: a ≥ b] if true  ──▶ send [Value: "Welcome"]
-                                                  if false ──▶ send [Value: "Access denied"]
+[Number field: age] value ──▶ a [Compare (== != < >): a ≥ b] if true  ──▶ send [Constant · Variable: "Welcome"]
+                                                  if false ──▶ send [Constant · Variable: "Access denied"]
 ```
 
-With **b** initially `18`: if the user writes 20, **if true** goes off and the first [Value](core.value) sends `Welcome`; if they write 15, **if false** goes off.
+With **b** initially `18`: if the user writes 20, **if true** goes off and the first [Constant · Variable](core.value) sends `Welcome`; if they write 15, **if false** goes off.
 
 ### 3. An equal word
 
 Operation `a = b`, **b** initially `"stop"` (written `stop` in the **initial** field):
 
 - `"stop"` arrives → **yes**;
-- `"Stop"` arrives → **no** (upper case counts). To ignore case, go through [Text operation](core.text) with **lower case** first.
+- `"Stop"` arrives → **no** (upper case counts). To ignore case, go through [String functions](core.text) with **lower case** first.
 
 ### 4. The trick of numbers as text
 
-**a** = `"100"` and **b** = `"20"` both arrive as text from two text fields. With `a > b` the result is **no** (`"1"` comes before `"2"`). Putting a [Convert](core.convert) to number on each, the result becomes **yes**.
+**a** = `"100"` and **b** = `"20"` both arrive as text from two text fields. With `a > b` the result is **no** (`"1"` comes before `"2"`). Putting a [Type cast](core.convert) to number on each, the result becomes **yes**.
 
 ## Errors
 
@@ -106,8 +106,8 @@ This block has no errors of its own.
 
 ## See also
 
-- [If](core.if) to send a value one way or the other
-- [Cases](core.switch) to compare a value with many cases
-- [Limit](core.clamp) to keep a number between a minimum and a maximum
+- [If · Else](core.if) to send a value one way or the other
+- [Switch · Case](core.switch) to compare a value with many cases
+- [Clamp](core.clamp) to keep a number between a minimum and a maximum
 - [AND](core.and), [OR](core.or), [NOT](core.not)
 - [How a block works](ide/blocks)

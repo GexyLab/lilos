@@ -1,4 +1,4 @@
-# Al massimo ogni
+# Throttle
 
 `core.throttle` · Tempo · [Blocchi di base](logicstudio-core) · versione 1
 
@@ -31,17 +31,17 @@ Lascia passare al massimo un valore ogni tanti secondi: il primo passa subito, q
 - Il tempo si conta dall'**ultimo valore passato**, non dall'ultimo arrivato: i valori scartati non allungano l'attesa.
 - Con **Secondi** = 0 passano tutti. Se il campo resta **vuoto**, vale 0.
 
-Attenzione: siccome i valori troppo vicini sono scartati, **l'ultimo valore di una raffica può andare perso**. Se ti serve anche l'ultimo, aggiungi un [Antirimbalzo](core.debounce) in parallelo (vedi l'esempio 3).
+Attenzione: siccome i valori troppo vicini sono scartati, **l'ultimo valore di una raffica può andare perso**. Se ti serve anche l'ultimo, aggiungi un blocco [Debounce](core.debounce) in parallelo (vedi l'esempio 3).
 
 Confronto con gli altri blocchi di tempo:
 
 | Blocco | Valori che arrivano mentre aspetta |
 |---|---|
-| [Aspetta](core.delay) | Escono tutti, ognuno dopo la sua attesa. |
-| [Antirimbalzo](core.debounce) | Esce solo l'ultimo, dopo un po' di calma. |
-| **Al massimo ogni** | Esce subito il primo; quelli troppo vicini vengono scartati. |
+| [Ritardo (setTimeout)](core.delay) | Escono tutti, ognuno dopo la sua attesa. |
+| [Debounce](core.debounce) | Esce solo l'ultimo, dopo un po' di calma. |
+| **Throttle** | Esce subito il primo; quelli troppo vicini vengono scartati. |
 
-Per un numero che deve restare tra un minimo e un massimo c'è invece [Limita](core.clamp) (categoria Matematica). Per le regole generali vedi [Come funziona un blocco](ide/blocks).
+Per un numero che deve restare tra un minimo e un massimo c'è invece [Clamp (limita)](core.clamp) (categoria Matematica). Per le regole generali vedi [Come funziona un blocco](ide/blocks).
 
 ## Esempi
 
@@ -61,22 +61,22 @@ Per un numero che deve restare tra un minimo e un massimo c'è invece [Limita](c
 ### 2. Non più di una notifica al minuto
 
 ```
-[Confronta: temperatura > 30] se vero ──▶ valore [Al massimo ogni: 60 s] valore ──▶ invia [Notifica: "Fa caldo!"]
+[Confronto (== ≠ < >): temperatura > 30] se vero ──▶ valore [Throttle: 60 s] valore ──▶ invia [Notify: "Fa caldo!"]
 ```
 
-Anche se la temperatura resta sopra 30 e arriva una lettura ogni 5 secondi, ricevi una [Notifica](lilos.notify) al massimo una volta al minuto.
+Anche se la temperatura resta sopra 30 e arriva una lettura ogni 5 secondi, ricevi una [Notify](lilos.notify) al massimo una volta al minuto.
 
 ### 3. Aggiornare spesso, ma senza perdere l'ultimo valore
 
 ```
-[Cursore] valore ──▶ valore [Al massimo ogni: 0,2 s] valore ──▶ valore [Indicatore]
-          valore ──▶ valore [Antirimbalzo: 0,3 s]    valore ──▶ valore [Indicatore]
+[Cursore] valore ──▶ valore [Throttle: 0,2 s] valore ──▶ valore [Indicatore]
+          valore ──▶ valore [Debounce: 0,3 s]    valore ──▶ valore [Indicatore]
 ```
 
-Mentre il [Cursore](ui.slider) si muove, l'[Indicatore](ui.gauge) si aggiorna 5 volte al secondo; quando si ferma, l'Antirimbalzo manda l'ultima posizione, che altrimenti potrebbe essere stata scartata.
+Mentre il [Cursore](ui.slider) si muove, l'[Indicatore](ui.gauge) si aggiorna 5 volte al secondo; quando si ferma, il blocco Debounce manda l'ultima posizione, che altrimenti potrebbe essere stata scartata.
 
 ## Vedi anche
 
-- [Aspetta](core.delay) e [Antirimbalzo](core.debounce)
-- [Limita](core.clamp) per tenere un numero tra due valori
+- [Ritardo (setTimeout)](core.delay) e [Debounce](core.debounce)
+- [Clamp (limita)](core.clamp) per tenere un numero tra due valori
 - [Come funziona un blocco](ide/blocks)

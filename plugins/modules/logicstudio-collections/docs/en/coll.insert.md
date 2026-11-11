@@ -1,4 +1,4 @@
-# Insert at
+# Insert (splice)
 
 `coll.insert` · Lists · [Lists and matrices](logicstudio-collections) · version 1
 
@@ -29,13 +29,13 @@ With a list of length N the valid indexes are **from 0 to N** (one more than in 
 |---|---|
 | 0 | at the start |
 | 1 … N-1 | before the item that was at that position |
-| N | at the end (like [Add item](coll.add)) |
+| N | at the end (like [Push · Unshift](coll.add)) |
 | -1 | **before the last**, not at the end |
 | -N | at the start |
 | more than N, less than -N | error «Indice fuori dalla lista» ("Index outside the list") |
 
 - On an empty list the only valid index is 0 (also `-0`).
-- The index is read as in [Get item](coll.get): `"2"` is worth 2, `""` and `null` are worth 0, `1.5` is an error.
+- The index is read as in [Get list[i]](coll.get): `"2"` is worth 2, `""` and `null` are worth 0, `1.5` is an error.
 - The value is inserted as a single item: inserting a list does not "open" it.
 - The result can have at most 100000 items.
 
@@ -44,9 +44,9 @@ With a list of length N the valid indexes are **from 0 to N** (one more than in 
 ### 1. In the middle
 
 ```
-[Value (JSON): ["a","b","c"]] value ──▶ list  [Insert at] result ──▶ value [Write to console]
-[Value: 1]                    value ──▶ index
-[Value (text): X]             value ──▶ value
+[Constant · Variable (JSON): ["a","b","c"]] value ──▶ list  [Insert (splice)] result ──▶ value [Print (console.log)]
+[Constant · Variable: 1]                    value ──▶ index
+[Constant · Variable (text): X]             value ──▶ value
 ```
 
 It writes `["a","X","b","c"]`.
@@ -75,5 +75,5 @@ On `[]` with index `0` and value `5` the result is `[5]`; with index `1` it is t
 
 ## See also
 
-- [Add item](coll.add), [Set item](coll.set), [Remove at](coll.removeAt)
+- [Push · Unshift](coll.add), [Set list[i]](coll.set), [Remove (splice)](coll.removeAt)
 - [How a block works](ide/blocks)

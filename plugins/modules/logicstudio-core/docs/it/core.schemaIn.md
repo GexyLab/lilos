@@ -1,8 +1,8 @@
-# Ingresso di schema
+# Parametro (ingresso di schema)
 
 `core.schemaIn` · Porte di schema · [Blocchi di base](logicstudio-core) · versione 1
 
-Dà allo schema una **porta d'ingresso**: nella mappa del progetto, le Uscite di schema degli altri schemi si collegano a questa porta, e i valori che mandano escono da questo blocco.
+Dà allo schema una **porta d'ingresso**: nella mappa del progetto, i blocchi Return (uscita di schema) degli altri schemi si collegano a questa porta, e i valori che mandano escono da questo blocco.
 
 ## Ingressi
 
@@ -26,11 +26,11 @@ Questo blocco non ha l'uscita **Eccezione**.
 
 ## Come funziona
 
-Gli schemi di un progetto si parlano **solo** attraverso le porte di schema. Uno schema manda con un'[Uscita di schema](core.schemaOut); nella **Mappa** colleghi quell'uscita alla porta di un altro schema; nell'altro schema l'**Ingresso di schema** con lo stesso nome manda il valore ai blocchi collegati. Vedi [Gli schemi](ide/schemas).
+Gli schemi di un progetto si parlano **solo** attraverso le porte di schema. Uno schema manda con un blocco [Return (uscita di schema)](core.schemaOut); nella **Mappa** colleghi quell'uscita alla porta di un altro schema; nell'altro schema il blocco **Parametro (ingresso di schema)** con lo stesso nome manda il valore ai blocchi collegati. Vedi [Gli schemi](ide/schemas).
 
 - Ogni valore che arriva esce subito su **valore**, **senza cambiarlo**: niente conversioni.
 - Il **Tipo** serve solo all'IDE (il colore della porta e l'avviso sui collegamenti di tipo diverso, nello schema e nella mappa): il motore **non controlla e non converte** il valore. Se dichiari numero e arriva un testo, esce il testo.
-- Una porta può ricevere da **più Uscite di schema** (più collegamenti nella mappa): ogni valore che arriva, da qualsiasi parte, esce.
+- Una porta può ricevere da **più blocchi Return** (più collegamenti nella mappa): ogni valore che arriva, da qualsiasi parte, esce.
 - **Rinominare** la porta nelle Proprietà sposta anche i collegamenti del progetto che la usano: non si perdono.
 - Nelle Proprietà del blocco, **Collegamenti nel progetto** elenca da dove arrivano i valori, con **Scollega** per togliere un collegamento; **Nella mappa** apre la mappa.
 - In uno **schema aperto da solo** (senza progetto) la porta non riceve niente: l'IDE lo ricorda con «In un progetto, questa porta si collega agli altri schemi nella mappa.»
@@ -39,8 +39,8 @@ Gli schemi di un progetto si parlano **solo** attraverso le porte di schema. Uno
 Cose da evitare:
 
 - **Una porta senza nome**: il pannello **Problemi** segnala «Una porta di schema non ha nome».
-- **Due Ingressi di schema con lo stesso nome nello stesso schema**: nella mappa sembrano una porta sola, ma i valori arrivano **solo a uno dei due** (l'ultimo aggiunto). Usa nomi diversi, oppure un Ingresso solo collegato a più blocchi.
-- **Togliere** o rinominare un Ingresso di schema a mano nel file mentre un collegamento della mappa lo usa: il programma non parte, con l'errore «Collegamento del progetto: lo schema *nome* non ha l'ingresso «*porta*»».
+- **Due blocchi Parametro con lo stesso nome nello stesso schema**: nella mappa sembrano una porta sola, ma i valori arrivano **solo a uno dei due** (l'ultimo aggiunto). Usa nomi diversi, oppure un solo Parametro collegato a più blocchi.
+- **Togliere** o rinominare un blocco Parametro a mano nel file mentre un collegamento della mappa lo usa: il programma non parte, con l'errore «Collegamento del progetto: lo schema *nome* non ha l'ingresso «*porta*»».
 
 Per le regole generali vedi [Come funziona un blocco](ide/blocks).
 
@@ -51,28 +51,28 @@ Per le regole generali vedi [Come funziona un blocco](ide/blocks).
 Nello schema **misure**:
 
 ```
-[Ogni… 2 s] impulso ──▶ più [Contatore] conteggio ──▶ valore [Uscita di schema: giri, numero]
+[Intervallo (setInterval): 2 s] impulso ──▶ più [Contatore (++ −−)] conteggio ──▶ valore [Return (uscita di schema): giri, numero]
 ```
 
 Nello schema **vista**:
 
 ```
-[Ingresso di schema: giri, numero] valore ──▶ valore [Scrivi in console]
+[Parametro (ingresso di schema): giri, numero] valore ──▶ valore [Print (console.log)]
 ```
 
 Nella **Mappa** trascina dall'uscita **giri** di **misure** all'ingresso **giri** di **vista**. Ogni 2 secondi la console scrive 1, 2, 3…
 
 ### 2. Un ingresso, più fonti
 
-Nella mappa collega a **vista › messaggi** sia **misure › allarmi** sia **rete › errori**: lo stesso Ingresso di schema **messaggi** manda a [Scrivi in console](core.consoleWrite) i valori di tutti e due gli schemi, nell'ordine in cui arrivano.
+Nella mappa collega a **vista › messaggi** sia **misure › allarmi** sia **rete › errori**: lo stesso blocco Parametro **messaggi** manda a [Print (console.log)](core.consoleWrite) i valori di tutti e due gli schemi, nell'ordine in cui arrivano.
 
 ### 3. Un comando che arriva da un altro schema
 
 ```
-[Ingresso di schema: avvia, impulso] valore ──▶ acceso [Ogni… 5 s]
+[Parametro (ingresso di schema): avvia, impulso] valore ──▶ acceso [Intervallo (setInterval): 5 s]
 ```
 
-Quando un altro schema manda qualcosa sulla sua Uscita collegata ad **avvia**, l'[Ogni…](core.every) di questo schema si accende (un impulso vale sì).
+Quando un altro schema manda qualcosa sulla sua Uscita collegata ad **avvia**, l'[Intervallo (setInterval)](core.every) di questo schema si accende (un impulso vale sì).
 
 ## Errori
 
@@ -83,7 +83,7 @@ Quando un altro schema manda qualcosa sulla sua Uscita collegata ad **avvia**, l
 
 ## Vedi anche
 
-- [Uscita di schema](core.schemaOut)
+- [Return (uscita di schema)](core.schemaOut)
 - [Gli schemi](ide/schemas) e [I collegamenti](ide/links)
 - [Componente UI](core.component), l'altro modo in cui uno schema parla con l'esterno
 - [Come funziona un blocco](ide/blocks)

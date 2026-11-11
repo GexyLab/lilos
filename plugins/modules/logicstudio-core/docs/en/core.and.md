@@ -45,20 +45,20 @@ Every time a value arrives on an input, the block does the count again with the 
 ### 1. Two conditions together
 
 ```
-[Switch: on]          value ──▶ a  [AND] result ──▶ on [Every…: 1 s]
+[Switch: on]          value ──▶ a  [AND] result ──▶ on [Interval (setInterval): 1 s]
 [Checkbox: armed]     value ──▶ b
 ```
 
-The [Every…](core.every) block sends pulses only when the [Switch](ui.toggle) is on **and** the [Checkbox](ui.checkbox) is checked. Remove **Starts on its own** in the settings of Every…, so it does not start before the result arrives. Give **b** the initial value `false`: this way, if the user turns on only the switch, the result stays **no**.
+The [Interval (setInterval)](core.every) block sends pulses only when the [Switch](ui.toggle) is on **and** the [Checkbox](ui.checkbox) is checked. Remove **Starts on its own** in the settings of Every…, so it does not start before the result arrives. Give **b** the initial value `false`: this way, if the user turns on only the switch, the result stays **no**.
 
 ### 2. Three checks with an added input
 
-Add the input **c** and link three [Compare](core.compare) blocks:
+Add the input **c** and link three [Compare (== != < >)](core.compare) blocks:
 
 ```
-[Compare: temperature < 30] result ──▶ a  [AND] result ──▶ condition [If]
-[Compare: humidity < 70]    result ──▶ b
-[Compare: wind < 40]        result ──▶ c
+[Compare (== != < >): temperature < 30] result ──▶ a  [AND] result ──▶ condition [If · Else]
+[Compare (== != < >): humidity < 70]    result ──▶ b
+[Compare (== != < >): wind < 40]        result ──▶ c
 ```
 
 With temperature 25, humidity 80 and wind 10, the result is **no** (the humidity is not right). When the humidity drops to 60, the block sends **yes**.
@@ -74,6 +74,6 @@ This block has no errors of its own.
 ## See also
 
 - [OR](core.or), [XOR](core.xor), [NOT](core.not)
-- [Compare](core.compare) to get a yes/no from two values
-- [If](core.if) to choose a path with a yes/no
+- [Compare (== != < >)](core.compare) to get a yes/no from two values
+- [If · Else](core.if) to choose a path with a yes/no
 - [How a block works](ide/blocks)

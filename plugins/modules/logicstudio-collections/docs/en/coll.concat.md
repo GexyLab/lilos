@@ -1,4 +1,4 @@
-# Concatenate lists
+# Concat lists
 
 `coll.concat` · Lists · [Lists and matrices](logicstudio-collections) · version 1
 
@@ -30,7 +30,7 @@ At every new value on an input, the block redoes the join with the latest value 
 - Every input that has a value must have a list: a text, a number or an object gives «Serve una lista» ("A list is needed") and no result.
 - Lists are joined **one level deep**: `[[1]]` and `[[2]]` give `[[1], [2]]`, not `[1, 2]`.
 - Empty lists add nothing.
-- Duplicate items stay: to remove them use [Unique](coll.unique).
+- Duplicate items stay: to remove them use [Distinct](coll.unique).
 - The result can have at most 100000 items.
 
 ## Examples
@@ -38,8 +38,8 @@ At every new value on an input, the block redoes the join with the latest value 
 ### 1. Two lists
 
 ```
-[Value (JSON): [1,2]] value ──▶ a  [Concatenate lists] result ──▶ value [Write to console]
-[Value (JSON): [3]]   value ──▶ b
+[Constant · Variable (JSON): [1,2]] value ──▶ a  [Concat lists] result ──▶ value [Print (console.log)]
+[Constant · Variable (JSON): [3]]   value ──▶ b
 ```
 
 At start the block runs twice: it writes `[1,2]` (only **a** is there) and then `[1,2,3]`.
@@ -51,9 +51,9 @@ At start the block runs twice: it writes `[1,2]` (only **a** is there) and then 
 Add the **c** input in the Properties:
 
 ```
-[Value (JSON): ["lun","mar"]]  value ──▶ a  [Concatenate lists] result ──▶ items [List]
-[Value (JSON): ["mer"]]        value ──▶ b
-[Value (JSON): ["gio","ven"]]  value ──▶ c
+[Constant · Variable (JSON): ["lun","mar"]]  value ──▶ a  [Concat lists] result ──▶ items [List]
+[Constant · Variable (JSON): ["mer"]]        value ──▶ b
+[Constant · Variable (JSON): ["gio","ven"]]  value ──▶ c
 ```
 
 In the end the [List](ui.list) shows `lun, mar, mer, gio, ven`.
@@ -71,7 +71,7 @@ A [matrix](logicstudio-collections) is a list of rows: joining `[[1,2]]` and `[[
 
 ## See also
 
-- [Add item](coll.add), [Slice](coll.slice), [Unique](coll.unique)
-- [Join text](core.concat) to join texts
-- [Build list](core.list) to make a list from separate values
+- [Push · Unshift](coll.add), [Slice](coll.slice), [Distinct](coll.unique)
+- [Concat text](core.concat) to join texts
+- [Array literal [ ]](core.list) to make a list from separate values
 - [How a block works](ide/blocks)

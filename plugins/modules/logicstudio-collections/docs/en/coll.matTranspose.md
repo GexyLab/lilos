@@ -24,31 +24,31 @@ At every matrix that arrives, the block sends the transpose: the cell in row *i*
 - The cells can contain any value: numbers are not needed.
 - Transposing twice gives back the starting matrix.
 - A one-row matrix becomes a one-column matrix: `[[1, 2, 3]]` → `[[1], [2], [3]]`.
-- The matrix must be valid (all rows of the same length): see [Size](coll.matSize).
+- The matrix must be valid (all rows of the same length): see [Shape](coll.matSize).
 
 ## Examples
 
 ### 1. A 2 × 3 matrix
 
 ```
-[Value (JSON): [[1,2,3],[4,5,6]]] value ──▶ matrix [Transpose] matrix ──▶ value [Write to console]
+[Constant · Variable (JSON): [[1,2,3],[4,5,6]]] value ──▶ matrix [Transpose] matrix ──▶ value [Print (console.log)]
 ```
 
 It writes `[[1,4],[2,5],[3,6]]` (3 × 2).
 
 ### 2. From columns of data to rows
 
-If you have three lists of the same length, for example hours, temperatures and humidity, put them in a matrix (one list per row) with [Build list](core.list) and transpose: you get one row for each measurement, `[hour, temperature, humidity]`.
+If you have three lists of the same length, for example hours, temperatures and humidity, put them in a matrix (one list per row) with [Array literal [ ]](core.list) and transpose: you get one row for each measurement, `[hour, temperature, humidity]`.
 
 ```
-[Build list] list ──▶ matrix [Transpose] matrix ──▶ value [Write to console]
+[Array literal [ ]] list ──▶ matrix [Transpose] matrix ──▶ value [Print (console.log)]
 ```
 
 With `[[8,12,16],[18.5,23,21.5],[60,52,55]]` it writes `[[8,18.5,60],[12,23,52],[16,21.5,55]]`.
 
 ### 3. A column vector
 
-`[[1, 2, 3]]` becomes `[[1], [2], [3]]`, which can be multiplied with [Multiply matrices](coll.matMultiply) on the right of a matrix with 3 columns.
+`[[1, 2, 3]]` becomes `[[1], [2], [3]]`, which can be multiplied with [A × B](coll.matMultiply) on the right of a matrix with 3 columns.
 
 ## Errors
 
@@ -59,5 +59,5 @@ With `[[8,12,16],[18.5,23,21.5],[60,52,55]]` it writes `[[8,18.5,60],[12,23,52],
 
 ## See also
 
-- [Multiply matrices](coll.matMultiply), [Get column](coll.matCol), [Size](coll.matSize)
+- [A × B](coll.matMultiply), [Column m[][c]](coll.matCol), [Shape](coll.matSize)
 - [How a block works](ide/blocks)

@@ -1,4 +1,4 @@
-# Matrix from list
+# Reshape
 
 `coll.matFromList` · Matrices · [Lists and matrices](logicstudio-collections) · version 1
 
@@ -33,8 +33,8 @@ The block waits until it has **list** and **columns**; then, at every new value,
 ### 1. Six numbers in two rows
 
 ```
-[Value (JSON): [1,2,3,4,5,6]] value ──▶ list    [Matrix from list] matrix ──▶ value [Write to console]
-[Value: 3]                    value ──▶ columns
+[Constant · Variable (JSON): [1,2,3,4,5,6]] value ──▶ list    [Reshape] matrix ──▶ value [Print (console.log)]
+[Constant · Variable: 3]                    value ──▶ columns
 ```
 
 It writes `[[1,2,3],[4,5,6]]`. With **columns** 2 it writes `[[1,2],[3,4],[5,6]]`; with **columns** 4 it gives «La lista (6 elementi) non si divide in righe di 4».
@@ -42,10 +42,10 @@ It writes `[[1,2,3],[4,5,6]]`. With **columns** 2 it writes `[[1,2],[3,4],[5,6]]
 ### 2. A matrix typed in a field
 
 ```
-[Text field] text ──▶ text [Split text: ;] result ──▶ list [Matrix from list (columns 2)] matrix ──▶ matrix [Determinant]
+[Text field] text ──▶ text [Split: ;] result ──▶ list [Reshape (columns 2)] matrix ──▶ matrix [Det]
 ```
 
-Typing `1; 2; 3; 4` gives the matrix `[["1","2"],["3","4"]]`, but the values are **texts** and the [Determinant](coll.matDet) gives «La matrice deve contenere solo numeri» ("The matrix must contain only numbers"). For calculations the values must be numbers: use for example a [Value](core.value) of kind JSON with `[1,2,3,4]`.
+Typing `1; 2; 3; 4` gives the matrix `[["1","2"],["3","4"]]`, but the values are **texts** and the [Det](coll.matDet) gives «La matrice deve contenere solo numeri» ("The matrix must contain only numbers"). For calculations the values must be numbers: use for example a [Constant · Variable](core.value) of kind JSON with `[1,2,3,4]`.
 
 ### 3. Rows of 1
 
@@ -64,5 +64,5 @@ With **columns** 1, `[7, 8, 9]` becomes the column matrix `[[7],[8],[9]]`.
 ## See also
 
 - [Flatten](coll.matFlatten), the opposite of this block
-- [Create matrix](coll.matNew), [Size](coll.matSize)
+- [New matrix (fill)](coll.matNew), [Shape](coll.matSize)
 - [How a block works](ide/blocks)

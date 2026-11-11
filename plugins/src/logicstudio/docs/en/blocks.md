@@ -20,7 +20,7 @@ In the **Properties**, under each input, there is the **starts it** checkbox:
 
 On the block, the name of an input that does not start it is **underlined with dots**.
 
-Some blocks have inputs that **by their design** do not start them: for example **question** of [Read from console](core.consoleRead), **title** and **text** of [Notification](lilos.notify), **path** of [Read file](lilos.fileRead). The page of the block says so.
+Some blocks have inputs that **by their design** do not start them: for example **question** of [Input (readline)](core.consoleRead), **title** and **text** of [Notify](lilos.notify), **path** of [readFile](lilos.fileRead). The page of the block says so.
 
 > In this version, for these inputs the Properties still show **starts it** ticked and the name is not underlined, but the block does not start. Careful: if you give one of these inputs a **start value**, the engine treats it as an input that starts. To be sure it does not start the block, untick **starts it** on that input yourself.
 
@@ -29,7 +29,7 @@ The **pulses** (inputs of type pulse, like **send**, **read**, **up**) exist pre
 ### An example
 
 ```
-[Slider: price]    value ──▶ a  [Multiply] result ──▶ value [Value component: total]
+[Slider: price]    value ──▶ a  [Multiply (×)] result ──▶ value [Value component: total]
 [Slider: quantity] value ──▶ b
 ```
 
@@ -45,13 +45,13 @@ Every input (except those of type pulse) can have a **start value**, in the **at
 
 The field reads the text as JSON (`5` is a number, `"5"` a text, `true` a yes, `[1,2]` a list, `{"a":1}` an object); what is not JSON is a text (`ciao`). Empty means no start value. You cannot give `null` as a start value.
 
-The start value is handy for parameters: the threshold of a **Compare**, the divisor of a **Divide**, the fixed text of a **Write to console**.
+The start value is handy for parameters: the threshold of the **Compare** block, the divisor of the **Divide** block, the fixed text of the **Print** block.
 
 ## The start of the program
 
 When a program starts (test, active program or app), the engine:
 
-1. calls the start of every block that has one, in the order of the blocks in the file: for example **Value** with **Send at start** sends its value, **At start** sends a pulse, **Every…** with **Starts on its own** turns its clock on, **Counter** sets itself to the **Start from** value;
+1. calls the start of every block that has one, in the order of the blocks in the file: for example **Constant · Variable** with nothing linked to **send** sends its value, **On start** sends a pulse, **Interval** with **Starts on its own** turns its clock on, **Counter** sets itself to the **Start from** value;
 2. gives every input its **start value**;
 3. starts the blocks that run continuously (if a package has any).
 
@@ -68,11 +68,11 @@ Every block has a **queue** of incoming values and handles them **one at a time,
 
 Consequences:
 
-- a slow block (a **Web request**, a question in the console) **does not stop the others**: the other blocks go on, only the values for it wait in line;
+- a slow block (an **HTTP request** block, a question in the console) **does not stop the others**: the other blocks go on, only the values for it wait in line;
 - a block never works twice at the same time;
 - when a block sends values from several outputs, the blocks that receive them begin after it has finished sending them all.
 
-A block knows **which input** started it and can behave differently: the **Counter** goes up with **up**, goes down with **down** and returns to the start with **reset**; **Write to console** writes with **value** and clears with **clear**.
+A block knows **which input** started it and can behave differently: the **Counter** goes up with **up**, goes down with **down** and returns to the start with **reset**; **Print** writes with **value** and clears with **clear**.
 
 ## The outputs
 
@@ -80,7 +80,7 @@ When a block has finished, it sends its results from the outputs, along **all** 
 
 - A block that **gives nothing** on an output sends nothing on that output: **Compare** sends a pulse on **if true** or on **if false**, never on both.
 - An output that is not linked does nothing (except **Exception**, see below).
-- Some blocks send values **later**, by themselves: **Wait** after the chosen seconds, **Every…** at every tick, **Settle** when the input stops.
+- Some blocks send values **later**, by themselves: **Delay** after the chosen seconds, **Interval** at every tick, **Debounce** when the input stops.
 - The values are those that can be written in JSON: numbers, texts, yes/no, lists, objects and `null`. Between the engine and the windows (or the IDE) they travel as copies; a value that comes from a window can be at most 256 KB.
 
 ## The «Exception» output
@@ -104,19 +104,19 @@ Every block has, as its last output, **Exception** (internal name `error`). When
 | `at` | When it happened, in milliseconds since 1 January 1970. |
 
 - If **Exception is linked**, the object goes along its links like any value. You can write it to a console, send a notification, count the errors…
-- If it is **not linked**, a line of level error appears in the **main console** with the name of the block and the message, for example `Dividi: Divisione per zero`. The name is that of the kind of block (in Italian), not the label you gave it.
+- If it is **not linked**, a line of level error appears in the **main console** with the name of the block and the message, for example `Divisione (÷ %): Divisione per zero`. The name is that of the kind of block (in Italian), not the label you gave it.
 
 During the test a block that has gone into error has a **red border**, until it works again without errors; the label on the link of an Exception is red with `⚠`.
 
 ### A block that is too slow
 
-A block that takes more than **30 seconds** (default: «Time a block may take», in the limits of the engine) is considered failed: on **Exception** arrives «Dividi ha impiegato più di 30 s» ("Dividi took more than 30 s", with the name of the block) and what the block gives later is thrown away.
+A block that takes more than **30 seconds** (default: «Time a block may take», in the limits of the engine) is considered failed: on **Exception** arrives «Divisione (÷ %) ha impiegato più di 30 s» ("Dividi took more than 30 s", with the name of the block) and what the block gives later is thrown away.
 
-> This holds for **Read from console** too: in this version a question that nobody answers within 30 seconds sends «Leggi da console ha impiegato più di 30 s» ("Leggi da console took more than 30 s") on the Exception, and the answer given afterwards is lost. See [Consoles](ide/consoles).
+> This holds for **Input** too: in this version a question that nobody answers within 30 seconds sends «Input (readline) ha impiegato più di 30 s» ("Leggi da console took more than 30 s") on the Exception, and the answer given afterwards is lost. See [Consoles](ide/consoles).
 
 ## Added ports
 
-Some blocks allow you to **add ports**: **Add** more addends, **AND** and **OR** more conditions, **Format text** more placeholders, **Cases** more cases, **Write to console** more values to write on the same line. The page of each block says how many and of what type.
+Some blocks allow you to **add ports**: the **Add** block more addends, **AND** and **OR** more conditions, **Template string** more placeholders, **Switch · Case** more cases, **Print** more values to write on the same line. The page of each block says how many and of what type.
 
 - They are added **only** in the **Properties**, **Ports** section, with **Add input** or **Add output**. Next to it is the count: **Added: 2 of 16**. At most the number the block says, and in any case no more than **32** per block (limit of the engine).
 - On the block the added ports have the name in ***italics***.
@@ -125,15 +125,15 @@ Some blocks allow you to **add ports**: **Add** more addends, **AND** and **OR**
 | The block gives | Names | Example |
 |---|---|---|
 | letters | the first free letter | **Add**: **c**, **d**, **e**… |
-| numbers | the number that follows the base ports | **Choose**: **2**, **3**… |
-| a name of yours | a proposed name, which you can change | **Format text**: «placeholder 1», then you rename it to `nome` |
+| numbers | the number that follows the base ports | **Pick by index**: **2**, **3**… |
+| a name of yours | a proposed name, which you can change | **Template string**: «placeholder 1», then you rename it to `nome` |
 
 - With **Move up** and **Move down** (↑ and ↓) you change the order of the added ports (for example the order of the steps of a **Sequence**).
 - With **Remove** you remove an added port: if it has links, the IDE asks for confirmation and removes them; **Ctrl+Z** puts everything back.
 - The **base ports** (the ones the block always has) have the padlock: they cannot be removed. (The hint says **Base port: it cannot be removed**.)
 - Renaming a port does not touch its links: inside, every added port has a fixed id (`x1`, `x2`…).
 
-For many blocks the added ports **only keep their value**: they do not start the block, which starts with a base input. For example in **Write to console** it writes only when **value** arrives, and the added inputs are added to the line as `name=value`. The page of the block says so.
+For many blocks the added ports **only keep their value**: they do not start the block, which starts with a base input. For example in the **Print** block it writes only when **value** arrives, and the added inputs are added to the line as `name=value`. The page of the block says so.
 
 ## Loops
 
@@ -141,11 +141,11 @@ You can make a **loop**: the output of a block comes back, through other blocks,
 
 The engine counts the **runs** of the blocks of each program: beyond **10000 in 10 seconds** (default) the program stops with «Troppe esecuzioni: più di 10000 in 10 secondi (un ciclo di collegamenti?)» ("Too many runs: more than 10000 in 10 seconds (a loop of links?)"). In a test you see it in the **Problems**; for an active program you get a notification.
 
-For a loop that must last, put a **Wait** in the circuit:
+For a loop that must last, put a **Delay** in the circuit:
 
 ```
-[At start] pulse ──▶ up [Counter] count ──▶ value [Wait: 1 s] value ──▶ up [Counter]
-                         count ──▶ value [Write to console]
+[On start (main)] pulse ──▶ up [Counter (++ −−)] count ──▶ value [Delay (setTimeout): 1 s] value ──▶ up [Counter (++ −−)]
+                         count ──▶ value [Print (console.log)]
 ```
 
 Every second the counter goes up by 1 and writes it, forever (or until the end of the test).
@@ -164,8 +164,8 @@ See [Limits](logicstudio-engine/limits).
 
 ## Special blocks
 
-- **Schema input**: it does not work; it sends from its **value** output what arrives at its port from the other schemas.
-- **Schema output**: when a value arrives on **value**, it sends it to the **Schema inputs** linked in the Map.
+- **Parameter**: it does not work; it sends from its **value** output what arrives at its port from the other schemas.
+- **Return**: when a value arrives on **value**, it sends it to the **Parameter** blocks linked in the Map.
 - **Object of a component**: the values that arrive at its inputs go to the component in the window (the text of a label, the value of a gauge); what the user does in the window comes out of its outputs (**pressed**, **value**). It does not work like a normal block and has neither **starts it** nor start values. See [The object of a component](ide/components).
 
 ## Examples
@@ -173,45 +173,45 @@ See [Limits](logicstudio-engine/limits).
 ### 1. Recalculating at every value
 
 ```
-[Value: 2] value ──▶ a  [Add] result ──▶ value [Write to console]
-[Value: 3] value ──▶ b
+[Constant · Variable: 2] value ──▶ a  [Add (+)] result ──▶ value [Print (console.log)]
+[Constant · Variable: 3] value ──▶ b
 ```
 
-At start the two Values send 2 and 3. The Add works twice: the console writes `2` (only **a** has a value) and then `5`.
+At start the two Constant · Variable blocks send 2 and 3. The Add block works twice: the console writes `2` (only **a** has a value) and then `5`.
 
 ### 2. Only the final result, with «starts it»
 
-Same schema, but in the Properties of the Add untick **starts it** on **a**. At start 2 arrives on **a** (kept), then 3 on **b** (starts): the console writes only `5`.
+Same schema, but in the Properties of the Add block untick **starts it** on **a**. At start 2 arrives on **a** (kept), then 3 on **b** (starts): the console writes only `5`.
 
 ### 3. A threshold with the start value
 
 ```
-[Number field] value ──▶ a [Compare: a > b, b = 30] if true ──▶ send [Value: Troppo caldo] value ──▶ value [Write to console]
+[Number field] value ──▶ a [Compare (== != < >): a > b, b = 30] if true ──▶ send [Constant · Variable: Troppo caldo] value ──▶ value [Print (console.log)]
 ```
 
 1. On **Compare**: **Operation** = **a > b**; on **b** start value `30` and **starts it** unticked.
-2. On **Value**: **Kind** = **text**, **Value** = `Troppo caldo`, **Send at start** unticked.
-3. Link **if true** to **send** of the Value (not directly to **Write to console**: the pulse would carry `true`, and the console would write `true`).
+2. On **Constant · Variable**: **Kind** = **text**, **Value** = `Troppo caldo`. Then, in the Properties, turn on the **eye** next to the **send** port, which is hidden by default.
+3. Link **if true** to **send** of the Constant · Variable block (with **send** linked, it sends the value only at each pulse and not at start; not directly to **Print**: the pulse would carry `true`, and the console would write `true`).
 
 Every number above 30 typed in the field makes «Troppo caldo» ("Too hot") be written.
 
 ### 4. Handling an error
 
 ```
-[Number field: divisore] value ──▶ b [Divide] result ──▶ value [Value component: risultato]
-                                          Exception ──▶ object [Get field: message] value ──▶ value [Write to console: warning]
+[Number field: divisore] value ──▶ b [Divide (÷ %)] result ──▶ value [Value component: risultato]
+                                          Exception ──▶ object [Get property: message] value ──▶ value [Print (console.log): warning]
 ```
 
-On **Divide**, **a** has start value `100` and **starts it** unticked. Typing `4` in the window shows 25. Typing `0`, **Divide** sends the error object on **Exception**; **Get field** (setting **Field (a.b.0)** = `message`) takes the message from it and the console writes `Divisione per zero` as a warning, instead of the error line `Dividi: Divisione per zero` in the main console.
+On **Divide**, **a** has start value `100` and **starts it** unticked. Typing `4` in the window shows 25. Typing `0`, **Divide** sends the error object on **Exception**; **Get property** (setting **Field (a.b.0)** = `message`) takes the message from it and the console writes `Divisione per zero` as a warning, instead of the error line `Divisione (÷ %): Divisione per zero` in the main console.
 
 ### 5. An added port that keeps a value
 
 ```
-[Text field: nome]      text ──▶ nome   [Write to console]
+[Text field: nome]      text ──▶ nome   [Print (console.log)]
 [Text field: messaggio] text ──▶ value
 ```
 
-On **Write to console** press **Add input** and rename the port to `nome`. Typing in the field **nome** writes nothing (the port only keeps the value); typing `ciao` in the field **messaggio** writes the line `ciao  nome=Ada`.
+On **Print** press **Add input** and rename the port to `nome`. Typing in the field **nome** writes nothing (the port only keeps the value); typing `ciao` in the field **messaggio** writes the line `ciao  nome=Ada`.
 
 ## See also
 

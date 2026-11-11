@@ -44,7 +44,7 @@ Un gruppo di opzioni una sotto l'altra, ognuna con il suo pallino: l'utente ne s
 
 Nelle liste, a differenza del testo con le virgole, anche le voci vuote diventano opzioni. Un oggetto senza `value` né `label` diventa un'opzione «undefined».
 
-**Il valore che esce è sempre un testo**, anche se le opzioni erano numeri: con le opzioni `[1, 2, 3]` la scelta della seconda manda `"2"`. Se ti serve un numero, usa [Converti](core.convert) **In** numero.
+**Il valore che esce è sempre un testo**, anche se le opzioni erano numeri: con le opzioni `[1, 2, 3]` la scelta della seconda manda `"2"`. Se ti serve un numero, usa [Cast (converti tipo)](core.convert) **In** numero.
 
 **Scegliere.** L'utente sceglie con un clic sul pallino o sul testo; con la tastiera, le **frecce** passano all'opzione successiva o precedente **e la scelgono**: ogni pressione di una freccia manda un valore. Scegliere di nuovo l'opzione già scelta non manda niente.
 
@@ -65,27 +65,27 @@ Finestra «Ordine»
   └ Valore               value1   Etichetta «Prezzo:»  Unità «€»  Decimali 2
 ```
 
-Aggiungi al blocco [Casi](core.switch) le uscite **S**, **M**, **L**, **XL**:
+Aggiungi al blocco [Switch · Case](core.switch) le uscite **S**, **M**, **L**, **XL**:
 
 ```
-[Pulsanti di opzione: Taglia] valore ──▶ valore [Casi] S  ──▶ invia [Valore: 9]  valore ──▶ valore [Valore: Prezzo:]
-                                                       M  ──▶ invia [Valore: 10] valore ──▶ valore
-                                                       L  ──▶ invia [Valore: 11] valore ──▶ valore
-                                                       XL ──▶ invia [Valore: 12] valore ──▶ valore
+[Pulsanti di opzione: Taglia] valore ──▶ valore [Switch · Case] S  ──▶ invia [Costante · Variabile: 9]  valore ──▶ valore [Valore: Prezzo:]
+                                                       M  ──▶ invia [Costante · Variabile: 10] valore ──▶ valore
+                                                       L  ──▶ invia [Costante · Variabile: 11] valore ──▶ valore
+                                                       XL ──▶ invia [Costante · Variabile: 12] valore ──▶ valore
 ```
 
-Scegliendo **L**, il prezzo diventa «11,00 €». (Il prezzo di M non si vede finché l'utente non sceglie qualcosa: per mostrarlo subito, dai **Invia all'avvio** al Valore 10.)
+Scegliendo **L**, il prezzo diventa «11,00 €». (Il prezzo di M non si vede finché l'utente non sceglie qualcosa: per mostrarlo subito, collega un blocco [All'avvio (main)](core.onStart) anche all'ingresso **invia** del blocco che manda 10.)
 
 ### 2. Opzioni con un codice
 
 Lo schema dà le opzioni all'avvio, con un codice diverso dal testo:
 
 ```
-[Valore: JSON] valore ──▶ opzioni [Pulsanti di opzione: Spedizione]
-[Pulsanti di opzione: Spedizione] valore ──▶ valore [Scrivi in console]
+[Costante · Variabile: JSON] valore ──▶ opzioni [Pulsanti di opzione: Spedizione]
+[Pulsanti di opzione: Spedizione] valore ──▶ valore [Print (console.log)]
 ```
 
-Il [Valore](core.value), di tipo JSON, contiene `[{"value":"std","label":"Standard (3-5 giorni)"},{"value":"exp","label":"Espresso (24 ore)"}]`. L'utente vede i due testi lunghi; scegliendo «Espresso (24 ore)» la console scrive `exp`.
+Il blocco [Costante · Variabile](core.value), di tipo JSON, contiene `[{"value":"std","label":"Standard (3-5 giorni)"},{"value":"exp","label":"Espresso (24 ore)"}]`. L'utente vede i due testi lunghi; scegliendo «Espresso (24 ore)» la console scrive `exp`.
 
 ## Accessibilità e tastiera
 
@@ -97,5 +97,5 @@ Il [Valore](core.value), di tipo JSON, contiene `[{"value":"std","label":"Standa
 
 - [Selezione](ui.select), per molte opzioni in poco spazio
 - [Elenco](ui.list), per un elenco sempre aperto
-- [Casi](core.switch), per fare cose diverse secondo la scelta
+- [Switch · Case](core.switch), per fare cose diverse secondo la scelta
 - [Componenti UI standard](logicstudio-ui)

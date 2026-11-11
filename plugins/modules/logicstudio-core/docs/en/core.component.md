@@ -52,7 +52,7 @@ On the sheet the object shows as title its label (or the name of the kind of com
 - The inputs of the object **do not have** the **starts it** and **initial value** options: the starting values of the component are set in its properties, in the window editor.
 - If the window **is not open**, the last value of each input is kept and the window shows it when it opens (with the project option **A window opened again shows the last values at once**, on by default). The program keeps at most 2000 values of this kind.
 - Setting a value from a schema does **not** make the component send anything: for example, sending yes to the **value** input of a Switch turns it on, but its **value** output sends nothing. Only the gestures of the user come out.
-- **enabled** and **visible** react only to a real **no** value (`false`): `false` disables or hides the component, any other value enables or shows it again. The text `"no"` or the number 0 do **not** hide it: for a text first use [Convert](core.convert) to yes/no, or a [Value](core.value) of kind yes/no.
+- **enabled** and **visible** react only to a real **no** value (`false`): `false` disables or hides the component, any other value enables or shows it again. The text `"no"` or the number 0 do **not** hide it: for a text first use [Type cast](core.convert) to yes/no, or a [Constant · Variable](core.value) of kind yes/no.
 
 ### From the window to the schema (outputs)
 
@@ -75,7 +75,7 @@ For the general rules see [How a block works](ide/blocks) and [The object of a c
 A window with a [Button](ui.button) **Count** and a [Value](ui.value) **total**. Create the object of both in the same schema:
 
 ```
-[Button: Count] pressed ──▶ up [Counter] count ──▶ value [Value: total]
+[Button: Count] pressed ──▶ up [Counter (++ −−)] count ──▶ value [Value: total]
 ```
 
 At every click the value shown in the window grows by 1: 1, 2, 3… Closing and reopening the window, you see the last number at once.
@@ -91,18 +91,18 @@ When the user turns off the [Switch](ui.toggle), no comes out and the [Text fiel
 ### 3. Hide a label
 
 ```
-[Checkbox: advanced] value ──▶ value [Convert: yes/no] result ──▶ visible [Label: hint]
+[Checkbox: advanced] value ──▶ value [Type cast: yes/no] result ──▶ visible [Label: hint]
 ```
 
-The [Checkbox](ui.checkbox) already sends yes/no, so [Convert](core.convert) would not be needed here; it becomes needed if the value arrives as text, for example `"false"` read from a file: without the conversion the text `"false"` would **not** hide the label.
+The [Checkbox](ui.checkbox) already sends yes/no, so [Type cast](core.convert) would not be needed here; it becomes needed if the value arrives as text, for example `"false"` read from a file: without the conversion the text `"false"` would **not** hide the label.
 
 ### 4. The text of a button from the schema
 
 ```
-[Every… 1 s] pulse ──▶ up [Counter] count ──▶ s [Format text: "Wait… {s}"] text ──▶ text [Button: Start]
+[Interval (setInterval): 1 s] pulse ──▶ up [Counter (++ −−)] count ──▶ s [Template string: "Wait… {s}"] text ──▶ text [Button: Start]
 ```
 
-On [Format text](core.format) add an input and rename it **s**. The text of the button changes every second (`Wait… 1`, `Wait… 2`…); the button stays clickable and its **pressed** keeps coming out.
+On [Template string](core.format) add an input and rename it **s**. The text of the button changes every second (`Wait… 1`, `Wait… 2`…); the button stays clickable and its **pressed** keeps coming out.
 
 ## Errors
 
@@ -120,5 +120,5 @@ These are errors of the project, not of the Exception: the program does not star
 
 - [The object of a component](ide/components) and [Windows](ide/windows)
 - The components: [Button](ui.button), [Text field](ui.text), [Switch](ui.toggle), [Value](ui.value) and the others in [Standard UI components](logicstudio-ui)
-- [Schema input](core.schemaIn) and [Schema output](core.schemaOut)
+- [Parameter (schema input)](core.schemaIn) and [Return (schema output)](core.schemaOut)
 - [How a block works](ide/blocks)

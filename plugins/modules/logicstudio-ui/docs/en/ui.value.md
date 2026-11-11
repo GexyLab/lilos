@@ -48,7 +48,7 @@ When opened the Value shows the **Label**, the **When empty** text in bold and t
 - Invalid numbers (`NaN`, infinity) are shown as text: `NaN`, `Infinity`.
 - The unit always stays, even when «—» is shown.
 
-If you want decimals also for a number that arrived as a text, first pass it through a [Convert](core.convert) block **To** number.
+If you want decimals also for a number that arrived as a text, first pass it through a [Type cast](core.convert) block **To** number.
 
 ## Examples
 
@@ -61,7 +61,7 @@ Window «Scale»
 ```
 
 ```
-[Read file: ~/scale.txt] content ──▶ value [Convert: number] result ──▶ value [Value: Weight:]
+[readFile: ~/scale.txt] content ──▶ value [Type cast: number] result ──▶ value [Value: Weight:]
 ```
 
 If the file contains `72.456`, the window shows «Weight: **72.5** kg».
@@ -77,7 +77,7 @@ Window «Total»
 ```
 
 ```
-[Number field: Price]    value ──▶ a [Multiply] result ──▶ value [Value: Total:]
+[Number field: Price]    value ──▶ a [Multiply (×)] result ──▶ value [Value: Total:]
 [Number field: Quantity] value ──▶ b
 ```
 
@@ -90,5 +90,5 @@ Label, value and unit are normal text, read in a row by a screen reader. When th
 ## See also
 
 - [Label](ui.label), [Gauge](ui.gauge), [Progress bar](ui.progress)
-- [Convert](core.convert), [Calculate](core.math) to round before showing
+- [Type cast](core.convert), [Math functions](core.math) to round before showing
 - [Standard UI components](logicstudio-ui)

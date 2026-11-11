@@ -47,7 +47,7 @@ Other details:
 ### 1. From 0 to 5
 
 ```
-[Value: 5] value ──▶ to [Range] result ──▶ value [Write to console]
+[Constant · Variable: 5] value ──▶ to [Range] result ──▶ value [Print (console.log)]
 ```
 
 It writes `[0,1,2,3,4,5]`. With **Include the last value** off: `[0,1,2,3,4]`.
@@ -55,7 +55,7 @@ It writes `[0,1,2,3,4,5]`. With **Include the last value** off: `[0,1,2,3,4]`.
 ### 2. Repeating something N times
 
 ```
-[Number field: how many times] value ──▶ to [Range (from = 1)] result ──▶ list [For each] item ──▶ value [Write to console]
+[Number field: how many times] value ──▶ to [Range (from = 1)] result ──▶ list [For each] item ──▶ value [Print (console.log)]
 [Button: Go]                   pressed ──▶ start [For each]
 ```
 
@@ -75,6 +75,6 @@ Give **from** the starting value 1. With 3 in the [Number field](ui.number) and 
 
 ## See also
 
-- [For each](coll.forEach), [Sum · Min · Max · Average](coll.stat)
-- [Counter](core.counter) to count one number at a time
+- [For each](coll.forEach), [Sum · Min · Max · Avg](coll.stat)
+- [Counter (++ −−)](core.counter) to count one number at a time
 - [How a block works](ide/blocks)

@@ -1,4 +1,4 @@
-# Estrai campo
+# Map campo
 
 `coll.pluck` · Liste · [Liste e matrici](logicstudio-collections) · versione 1
 
@@ -31,7 +31,7 @@ Come si scrive il campo:
 
 - `nome` prende il campo `nome` dell'oggetto;
 - `indirizzo.città` prende il campo `città` dentro il campo `indirizzo` (ogni punto scende di un livello);
-- un numero prende un elemento di una lista: `1` sulla lista di righe `[[1,2],[3,4]]` dà `[2,4]` (la seconda colonna). Per le matrici c'è anche [Leggi colonna](coll.matCol);
+- un numero prende un elemento di una lista: `1` sulla lista di righe `[[1,2],[3,4]]` dà `[2,4]` (la seconda colonna). Per le matrici c'è anche [Colonna m[][c]](coll.matCol);
 - non c'è modo di indicare un campo che ha un punto nel nome.
 
 Casi da sapere:
@@ -46,7 +46,7 @@ Casi da sapere:
 ### 1. I nomi
 
 ```
-[Valore (JSON): [{"nome":"Anna","età":31},{"nome":"Bruno","età":27}]] valore ──▶ lista [Estrai campo: nome] risultato ──▶ valore [Scrivi in console]
+[Costante · Variabile (JSON): [{"nome":"Anna","età":31},{"nome":"Bruno","età":27}]] valore ──▶ lista [Map campo: nome] risultato ──▶ valore [Print (console.log)]
 ```
 
 Scrive `["Anna","Bruno"]`. Con **Campo** `età`: `[31,27]`.
@@ -58,15 +58,15 @@ Sulla lista `[{"a":{"c":3}}, 5, null, {"a":{}}]` il campo `a.c` dà `[3, null, n
 ### 3. La media dei prezzi
 
 ```
-[Valore (JSON): [{"p":2},{"p":4},{"p":9}]] valore ──▶ lista [Estrai campo: p] risultato ──▶ lista [Somma · Minimo · Massimo · Media: media] risultato ──▶ valore [Valore mostrato]
+[Costante · Variabile (JSON): [{"p":2},{"p":4},{"p":9}]] valore ──▶ lista [Map campo: p] risultato ──▶ lista [Sum · Min · Max · Avg: media] risultato ──▶ valore [Valore mostrato]
 ```
 
-Mostra 5. Lo stesso risultato si ha anche senza Estrai campo, mettendo **Campo** `p` direttamente nel blocco [Somma · Minimo · Massimo · Media](coll.stat).
+Mostra 5. Lo stesso risultato si ha anche senza Map campo, mettendo **Campo** `p` direttamente nel blocco [Sum · Min · Max · Avg](coll.stat).
 
 ### 4. Testo da una lista di oggetti
 
 ```
-[Filtra] risultato ──▶ lista [Estrai campo: nome] risultato ──▶ lista [Unisci in testo] testo ──▶ testo [Pulsante]
+[Filter] risultato ──▶ lista [Map campo: nome] risultato ──▶ lista [Join] testo ──▶ testo [Pulsante]
 ```
 
 Il [Pulsante](ui.button) mostra per esempio «Penna, Quaderno».
@@ -80,7 +80,7 @@ Il [Pulsante](ui.button) mostra per esempio «Penna, Quaderno».
 
 ## Vedi anche
 
-- [Prendi campo](core.get) per un campo di un oggetto solo
-- [Filtra](coll.filter), [Ordina](coll.sort), [Unici](coll.unique) (hanno anche loro un **Campo**)
-- [Leggi colonna](coll.matCol)
+- [Get proprietà (obj.campo)](core.get) per un campo di un oggetto solo
+- [Filter](coll.filter), [Sort](coll.sort), [Distinct](coll.unique) (hanno anche loro un **Campo**)
+- [Colonna m[][c]](coll.matCol)
 - [Come funziona un blocco](ide/blocks)

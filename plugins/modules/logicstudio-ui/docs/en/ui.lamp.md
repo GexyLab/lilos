@@ -40,7 +40,7 @@ When opened the lamp is **off**, whatever the properties say: it turns on only w
 | `false`, `0`, `""`, `null` | off |
 | the text `"false"` | off |
 
-> Beware: the **text** `"0"` and the text `"no"` turn it **on**. If the value comes from a file or from a text, first pass it through [Convert](core.convert) **To** yes/no.
+> Beware: the **text** `"0"` and the text `"no"` turn it **on**. If the value comes from a file or from a text, first pass it through [Type cast](core.convert) **To** yes/no.
 
 **color** — the name of one of the four colors, **in English**: `green`, `red`, `yellow`, `blue`. Changing the color neither turns the lamp on nor off. With a different name (for example `rosso` or `#ff0000`) the lamp stays gray when on, without light: it looks off.
 
@@ -56,8 +56,8 @@ Window «Fridge»
 ```
 
 ```
-[Read file: ~/fridge.txt] content ──▶ value [Convert: number] result ──▶ a [Compare: a > b] result ──▶ on [Lamp: Too hot]
-[Value: 8] value ──▶ b [Compare]
+[readFile: ~/fridge.txt] content ──▶ value [Type cast: number] result ──▶ a [Compare (== != < >): a > b] result ──▶ on [Lamp: Too hot]
+[Constant · Variable: 8] value ──▶ b [Compare (== != < >)]
 ```
 
 At 9 degrees the red lamp turns on; at 6 it turns off.
@@ -72,17 +72,17 @@ Window «Service»
   └ Lamp  lamp1  Label «Service status»
 ```
 
-Add to the [Cases](core.switch) block the outputs **ok**, **warning**, **error**:
+Add to the [Switch · Case](core.switch) block the outputs **ok**, **warning**, **error**:
 
 ```
-[Value: yes] value ──▶ on [Lamp: Service status]
-[Every…: 30 s] pulse ──▶ read [Read file: ~/status.txt] content ──▶ text [Text operation: trim spaces] result ──▶ value [Cases]
-[Cases] ok      ──▶ send [Value: green]  value ──▶ color [Lamp: Service status]
-        warning ──▶ send [Value: yellow] value ──▶ color
-        error   ──▶ send [Value: red]    value ──▶ color
+[Constant · Variable: yes] value ──▶ on [Lamp: Service status]
+[Interval (setInterval): 30 s] pulse ──▶ read [readFile: ~/status.txt] content ──▶ text [String functions: trim spaces] result ──▶ value [Switch · Case]
+[Switch · Case] ok      ──▶ send [Constant · Variable: green]  value ──▶ color [Lamp: Service status]
+        warning ──▶ send [Constant · Variable: yellow] value ──▶ color
+        error   ──▶ send [Constant · Variable: red]    value ──▶ color
 ```
 
-The file `status.txt` contains one word: `ok`, `warning` or `error`. The first [Value](core.value) (type yes/no, **Send at start**) turns the lamp on at the start; the other three (type text) have **Send at start** off. Until the file is read, the lamp is on in its color from the Properties.
+The file `status.txt` contains one word: `ok`, `warning` or `error`. The first [Constant · Variable](core.value) block (type yes/no, nothing on **send**) turns the lamp on at the start; the other three (type text) have the **send** input linked (show it with the eye next to the port, in the Properties), so they send the color only when needed. Until the file is read, the lamp is on in its color from the Properties.
 
 ## Accessibility
 
@@ -91,5 +91,5 @@ The state of the lamp is seen **only from the color**: a screen reader reads the
 ## See also
 
 - [Value](ui.value), [Gauge](ui.gauge)
-- [Compare](core.compare), [Cases](core.switch)
+- [Compare (== != < >)](core.compare), [Switch · Case](core.switch)
 - [Standard UI components](logicstudio-ui)

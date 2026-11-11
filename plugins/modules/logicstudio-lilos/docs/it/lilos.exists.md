@@ -1,4 +1,4 @@
-# Esiste
+# exists
 
 `lilos.exists` · lilOS · [Blocchi di lilOS](logicstudio-lilos) · versione 1
 
@@ -39,8 +39,8 @@ Cose da sapere:
 
 - Un file che non puoi vedere (di un altro utente, per esempio) per il blocco **non esiste**.
 - `~` (la tua home) esiste sempre: tipo `folder`, dimensione 0.
-- Il percorso segue le stesse regole di [Leggi file](lilos.fileRead). Un percorso **non valido** non dà `false`: va su **Eccezione**. Lo stesso per `~/.config`, che i programmi non possono usare: anche lì il blocco dà errore invece di rispondere.
-- Un file protetto da un'app (FileCrypt) risulta esistente con il suo tipo e la sua dimensione, ma [Leggi file](lilos.fileRead) e [Scrivi file](lilos.fileWrite) non lo useranno.
+- Il percorso segue le stesse regole di [readFile](lilos.fileRead). Un percorso **non valido** non dà `false`: va su **Eccezione**. Lo stesso per `~/.config`, che i programmi non possono usare: anche lì il blocco dà errore invece di rispondere.
+- Un file protetto da un'app (FileCrypt) risulta esistente con il suo tipo e la sua dimensione, ma [readFile](lilos.fileRead) e [writeFile](lilos.fileWrite) non lo useranno.
 - Il controllo e l'uso successivo non sono un'unica operazione: tra il controllo e una lettura il file può sparire. Collega comunque l'**Eccezione** del blocco che lo usa.
 - Le lettere maiuscole e minuscole nella parte `/home/<utente>` non contano; per il resto del percorso dipende dal file system (con quello di serie di lilOS non contano).
 
@@ -51,16 +51,16 @@ Vedi anche [Come funziona un blocco](ide/blocks).
 ### 1. Leggere le impostazioni, o crearle la prima volta
 
 ```
-[All'avvio] impulso ──▶ controlla [Esiste: ~/serra/impostazioni.json] se esiste     ──▶ leggi [Leggi file: ~/serra/impostazioni.json]
-                                                                     se non esiste ──▶ invia [Valore: {"soglia": 30}] valore ──▶ contenuto [Scrivi file: ~/serra/impostazioni.json]
+[All'avvio (main)] impulso ──▶ controlla [exists: ~/serra/impostazioni.json] se esiste     ──▶ leggi [readFile: ~/serra/impostazioni.json]
+                                                                     se non esiste ──▶ invia [Costante · Variabile: {"soglia": 30}] valore ──▶ contenuto [writeFile: ~/serra/impostazioni.json]
 ```
 
-All'avvio: se il file c'è, viene letto; se non c'è, il programma lo crea con i valori di partenza. Il [Valore](core.value) è di tipo JSON e ha **Invia all'avvio** tolto, così manda il suo valore solo quando arriva **se non esiste**. Leggi file e Scrivi file usano il formato JSON.
+All'avvio: se il file c'è, viene letto; se non c'è, il programma lo crea con i valori di partenza. Il blocco [Costante · Variabile](core.value) è di tipo JSON e ha **invia** collegato (si mostra con l'occhio accanto alla porta, in Proprietà), così manda il suo valore solo quando arriva **se non esiste**. [readFile](lilos.fileRead) e [writeFile](lilos.fileWrite) usano il formato JSON.
 
 ### 2. Controllare un nome scritto dall'utente
 
 ```
-[Campo di testo: percorso] testo ──▶ percorso [Esiste] esiste ──▶ accesa [Spia]
+[Campo di testo: percorso] testo ──▶ percorso [exists] esiste ──▶ accesa [Spia]
                                                        tipo (file, folder) ──▶ valore [Valore: tipo]
 ```
 
@@ -69,22 +69,22 @@ Ogni volta che l'utente cambia il percorso nel [Campo di testo](ui.text), il blo
 ### 3. Aspettare un file
 
 ```
-[Ogni… 10 s] impulso ──▶ controlla [Esiste: ~/In arrivo/ordine.json] se esiste ──▶ leggi [Leggi file: ~/In arrivo/ordine.json]
+[Intervallo (setInterval): 10 s] impulso ──▶ controlla [exists: ~/In arrivo/ordine.json] se esiste ──▶ leggi [readFile: ~/In arrivo/ordine.json]
 ```
 
-Ogni 10 secondi il programma guarda se è arrivato il file; appena c'è, lo legge. Per non leggerlo a ogni giro, dopo averlo usato spostalo o svuotalo con [Scrivi file](lilos.fileWrite).
+Ogni 10 secondi il programma guarda se è arrivato il file; appena c'è, lo legge. Per non leggerlo a ogni giro, dopo averlo usato spostalo o svuotalo con [writeFile](lilos.fileWrite).
 
 ## Errori
 
 | Messaggio | Quando |
 |---|---|
 | Manca il percorso del file | Il percorso è vuoto. |
-| Percorso non valido: … | Il percorso non rispetta le regole (vedi [Leggi file](lilos.fileRead) per tutti i casi). |
+| Percorso non valido: … | Il percorso non rispetta le regole (vedi [readFile](lilos.fileRead) per tutti i casi). |
 | Puoi usare solo i file della tua home (~/… oppure /home/anna/…): … | Il percorso è fuori dalla tua home. |
 | La cartella .config è di lilOS: i programmi non la usano | Il percorso è `~/.config` o dentro di essa. |
 | Non hai il permesso di usare «~/dati.txt» | Il file system ti nega l'accesso. |
 | Il file system di lilOS non risponde: riprova più tardi | Il file system non risponde. |
-| Esiste ha impiegato più di 30 s | Il controllo ha superato il tempo massimo di un blocco (30 secondi di serie). |
+| exists ha impiegato più di 30 s | Il controllo ha superato il tempo massimo di un blocco (30 secondi di serie). |
 | Il programma non è in esecuzione | Il programma si stava fermando. |
 
 ## Permessi
@@ -93,6 +93,6 @@ Il blocco lavora come l'utente che possiede il programma. Un'app fatta con **Cre
 
 ## Vedi anche
 
-- [Leggi file](lilos.fileRead), [Scrivi file](lilos.fileWrite), [Elenca cartella](lilos.folderList)
-- [Se](core.if), per scegliere con il valore di **esiste**
+- [readFile](lilos.fileRead), [writeFile](lilos.fileWrite), [readdir (elenca cartella)](lilos.folderList)
+- [If · Else](core.if), per scegliere con il valore di **esiste**
 - [Come funziona un blocco](ide/blocks)

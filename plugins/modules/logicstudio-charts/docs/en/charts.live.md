@@ -52,7 +52,7 @@ The chart **has no data input**: it has one input for each series, up to **8**, 
 - **The value axis** adapts to the visible points only: when a high value leaves on the left, the axis goes down again. Set **Minimum** and **Maximum** to keep it still.
 - **The time labels** are local times ("10:42:30"), with a round step (5 s, 10 s, 1 min...).
 - **clear** empties all the series; the points after it start again from now.
-- **A closed window records nothing**: the values that arrived while it was closed are not there. When you open it, the program sends it the last value of each port (if the project option **A window opened again shows the last values at once** is on): you see one point per series, "now", and from there the chart starts again. For a history that stays, use [Lines](charts.line) with ISO dates and [Accumulate](coll.accumulate).
+- **A closed window records nothing**: the values that arrived while it was closed are not there. When you open it, the program sends it the last value of each port (if the project option **A window opened again shows the last values at once** is on): you see one point per series, "now", and from there the chart starts again. For a history that stays, use [Lines](charts.line) with ISO dates and [Accumulate (bounded push)](coll.accumulate).
 - In the window editor the chart shows one minute of made-up data, still.
 
 **Picked point** sends:
@@ -78,7 +78,7 @@ Window "Greenhouse"
 ```
 
 ```
-[Every…: 2 s] pulse ──▶ read [Read file: ~/greenhouse.json, JSON] content ──▶ object [Split object] temp  ──▶ temperature [Real time: Greenhouse now]
+[Interval (setInterval): 2 s] pulse ──▶ read [readFile: ~/greenhouse.json, JSON] content ──▶ object [Destructure object] temp  ──▶ temperature [Real time: Greenhouse now]
                                                                                                  humid ──▶ humidity
 ```
 
@@ -87,10 +87,10 @@ Every 2 seconds two numbers arrive and the two lines advance; you see the last 5
 ### 2. The load of a service, with a still axis
 
 ```
-[Every…: 1 s] pulse ──▶ send [Web request: https://example.com/status] response ──▶ object [Get field: cpu] value ──▶ cpu [Real time: Load]
+[Interval (setInterval): 1 s] pulse ──▶ send [HTTP request (fetch): https://example.com/status] response ──▶ object [Get property: cpu] value ──▶ cpu [Real time: Load]
 ```
 
-With **Minimum** 0, **Maximum** 100 and **Unit** `%` the axis stays from 0 to 100 even when the load is low. [Web request](net.request) is from the [Network blocks](logicstudio-net) package: remember that it counts in the network requests per minute (120 by default), so one request per second goes over them.
+With **Minimum** 0, **Maximum** 100 and **Unit** `%` the axis stays from 0 to 100 even when the load is low. [HTTP request (fetch)](net.request) is from the [Network blocks](logicstudio-net) package: remember that it counts in the network requests per minute (120 by default), so one request per second goes over them.
 
 ### 3. Clearing when you start again
 
@@ -109,5 +109,5 @@ The lines disappear and start again from the next value.
 - [Lines](charts.line) for data with their own dates, which stay
 - [Steps](charts.step) for states (on/off) instead of numbers
 - [Sparkline](charts.spark) for a small trend in a row
-- [Every…](core.every), [Split object](core.decompose)
+- [Interval (setInterval)](core.every), [Destructure object](core.decompose)
 - [Charts](logicstudio-charts): the data shapes, the limits, the keyboard

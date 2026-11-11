@@ -1,4 +1,4 @@
-# Multiply
+# Multiply (×)
 
 `core.multiply` · Math · [Core blocks](logicstudio-core) · version 1
 
@@ -27,16 +27,16 @@ In the **Properties**, **Ports** section, you can add up to 16 more inputs (fewe
 Every time a value arrives on an input, the block multiplies the last value of each input and sends the product on **result**.
 
 - Inputs that have not received anything yet do not count: with only **a** = 4 the result is 4 (not 0).
-- Values are converted to numbers with the same rules as [Add](core.add): `"2,5"` is 2.5; `true` is 1 and `false` is 0; an empty text and `null` are **0** (so they zero the product).
+- Values are converted to numbers with the same rules as the [Add (+)](core.add) block: `"2,5"` is 2.5; `true` is 1 and `false` is 0; an empty text and `null` are **0** (so they zero the product).
 - If a value cannot be converted (for example `"ciao"` or an object), the block sends nothing on **result** and sends «Serve un numero» ("A number is needed") on **Exception**.
-- The decimal numbers of the computer can give small gaps: 1.1 × 3 = 3.3000000000000003. Round with [Calculate](core.math) before showing them.
+- The decimal numbers of the computer can give small gaps: 1.1 × 3 = 3.3000000000000003. Round with the [Math functions](core.math) block before showing them.
 
 ## Examples
 
 ### 1. Price times quantity
 
 ```
-[Number field: price]    value ──▶ a  [Multiply] result ──▶ value [Value: total]
+[Number field: price]    value ──▶ a  [Multiply (×)] result ──▶ value [Value: total]
 [Number field: quantity] value ──▶ b
 ```
 
@@ -58,7 +58,7 @@ Add the input **c**: length 2, width 3, height `"1,5"` → volume 9.
 
 ## See also
 
-- [Add](core.add), [Subtract](core.subtract), [Divide](core.divide)
-- [Calculate](core.math) to round and other operations on a number
-- [Scale](coll.matScale) to multiply a matrix by a number
+- [Add (+)](core.add), [Subtract (−)](core.subtract), [Divide (÷ %)](core.divide)
+- [Math functions](core.math) to round and other operations on a number
+- [Scale (k·A)](coll.matScale) to multiply a matrix by a number
 - [How a block works](ide/blocks)

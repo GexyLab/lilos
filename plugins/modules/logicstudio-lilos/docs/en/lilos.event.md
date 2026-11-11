@@ -1,4 +1,4 @@
-# Event to lilOS
+# Emit (event to lilOS)
 
 `lilos.event` · lilOS · [lilOS blocks](logicstudio-lilos) · version 1
 
@@ -45,7 +45,7 @@ Things to know:
 - The data, written as JSON, can be at most **64 KB** long (about 65 000 characters).
 - Each program can send at most **20 events per second**: beyond it, the block gives an error.
 - The name cannot be changed with an input: for different events use more blocks, each with its own name.
-- To alert you, a person, use a [Notification](lilos.notify): Event to lilOS is for software.
+- To alert you, a person, use a [Notify](lilos.notify) block: the Emit block is for software.
 
 See also [How a block works](ide/blocks).
 
@@ -54,15 +54,15 @@ See also [How a block works](ide/blocks).
 ### 1. An event with a measure
 
 ```
-[Every… 5 s] pulse ──▶ read [Read file: ~/sensors/last.txt] content ──▶ temp [Build object] object ──▶ data [Event to lilOS: greenhouse.measure]
+[Interval (setInterval): 5 s] pulse ──▶ read [readFile: ~/sensors/last.txt] content ──▶ temp [Object literal { }] object ──▶ data [Emit (event to lilOS): greenhouse.measure]
 ```
 
-Every 5 seconds your lilOS pages receive `logicstudio.event` with `name` = `greenhouse.measure` and `data` = `{ "temp": "22,5" }` ([Build object](core.compose) has the added input **temp**). An app that listens to that event can show the measure.
+Every 5 seconds your lilOS pages receive `logicstudio.event` with `name` = `greenhouse.measure` and `data` = `{ "temp": "22,5" }` ([Object literal { }](core.compose) has the added input **temp**). An app that listens to that event can show the measure.
 
 ### 2. An event when you press a button
 
 ```
-[Button: Alarm] pressed ──▶ data [Event to lilOS: greenhouse.alarm] sent ──▶ value [Write to console]
+[Button: Alarm] pressed ──▶ data [Emit (event to lilOS): greenhouse.alarm] sent ──▶ value [Print (console.log)]
 ```
 
 **data** is `true` (the value of a pulse). The console writes `true` when the event has gone out.
@@ -70,11 +70,11 @@ Every 5 seconds your lilOS pages receive `logicstudio.event` with `name` = `gree
 ### 3. Watch the pace
 
 ```
-[Every… 0.05 s] pulse ──▶ data [Event to lilOS: measure.a]
-                pulse ──▶ data [Event to lilOS: measure.b]
+[Interval (setInterval): 0.05 s] pulse ──▶ data [Emit (event to lilOS): measure.a]
+                pulse ──▶ data [Emit (event to lilOS): measure.b]
 ```
 
-The limit of 20 events per second applies to **the whole program**, not to each block. Here the two blocks together send 40 per second: about half end up on **Exception** with "Troppi eventi: al massimo 20 al secondo" ("Too many events: at most 20 per second"). Slow down the pace, or gather more values in a list with [Accumulate](coll.accumulate) and send the list now and then.
+The limit of 20 events per second applies to **the whole program**, not to each block. Here the two blocks together send 40 per second: about half end up on **Exception** with "Troppi eventi: al massimo 20 al secondo" ("Too many events: at most 20 per second"). Slow down the pace, or gather more values in a list with [Accumulate (bounded push)](coll.accumulate) and send the list now and then.
 
 ## Errors
 
@@ -85,7 +85,7 @@ The messages are in Italian, as users see them; the English meaning is in parent
 | Nome dell'evento non valido (lettere, numeri, «.», «-» e «_», al massimo 64) ("Invalid event name (letters, numbers, «.», «-» and «_», at most 64)") | The name is empty, too long or has characters that are not allowed (for example a space). |
 | Dati dell'evento troppo grandi (al massimo 64 KB) ("Event data too big (at most 64 KB)") | The data, written as JSON, is over 64 KB. |
 | Troppi eventi: al massimo 20 al secondo ("Too many events: at most 20 per second") | The program has already sent 20 events in the last second. |
-| Evento a lilOS ha impiegato più di 30 s ("Event to lilOS took more than 30 s") | The kernel did not answer within the maximum time of a block. |
+| Emit (evento a lilOS) ha impiegato più di 30 s ("Emit (event to lilOS) took more than 30 s") | The kernel did not answer within the maximum time of a block. |
 | Il programma non è in esecuzione ("The program is not running") | The program was stopping. |
 
 ## Permissions
@@ -94,6 +94,6 @@ The block works as the user who owns the program and sends events only to their 
 
 ## See also
 
-- [Notification](lilos.notify)
-- [Build object](core.compose), to prepare the data
+- [Notify](lilos.notify)
+- [Object literal { }](core.compose), to prepare the data
 - [How a block works](ide/blocks)

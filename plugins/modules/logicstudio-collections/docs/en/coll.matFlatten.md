@@ -21,17 +21,17 @@ Puts all the cells of a matrix in a row, row after row, in a single list.
 
 At every matrix that arrives, the block sends the list of its cells, row after row.
 
-- The matrix must be valid: the rows must all have the same length. `[[1], [2, 3]]` gives «Le righe della matrice devono avere tutte la stessa lunghezza» ("The rows of the matrix must all have the same length"), even if in theory it could be put in a row. To join lists of different lengths use [Concatenate lists](coll.concat).
+- The matrix must be valid: the rows must all have the same length. `[[1], [2, 3]]` gives «Le righe della matrice devono avere tutte la stessa lunghezza» ("The rows of the matrix must all have the same length"), even if in theory it could be put in a row. To join lists of different lengths use [Concat lists](coll.concat).
 - It flattens **one level only**: if the cells are lists, they stay lists. `[[[1,2]],[[3,4]]]` gives `[[1,2],[3,4]]`.
 - The cells can be of any type.
-- To go back to the matrix use [Matrix from list](coll.matFromList) with the same number of columns.
+- To go back to the matrix use [Reshape](coll.matFromList) with the same number of columns.
 
 ## Examples
 
 ### 1. A 2 × 2 matrix
 
 ```
-[Value (JSON): [[1,2],[3,4]]] value ──▶ matrix [Flatten] result ──▶ value [Write to console]
+[Constant · Variable (JSON): [[1,2],[3,4]]] value ──▶ matrix [Flatten] result ──▶ value [Print (console.log)]
 ```
 
 It writes `[1,2,3,4]`.
@@ -39,14 +39,14 @@ It writes `[1,2,3,4]`.
 ### 2. The sum of all the cells
 
 ```
-[Flatten] result ──▶ list [Sum · Min · Max · Average: sum] result ──▶ value [Value]
+[Flatten] result ──▶ list [Sum · Min · Max · Avg: sum] result ──▶ value [Value]
 ```
 
 On the matrix `[[1,2,3],[4,5,6]]` it shows `21`. With **Operation** maximum it shows the biggest cell, `6`.
 
 ### 3. There and back
 
-`[[1,2,3],[4,5,6]]` → Flatten → `[1,2,3,4,5,6]` → [Matrix from list](coll.matFromList) with **columns** 3 → `[[1,2,3],[4,5,6]]`. With **columns** 2 you get instead the same list divided into three rows: `[[1,2],[3,4],[5,6]]`.
+`[[1,2,3],[4,5,6]]` → Flatten → `[1,2,3,4,5,6]` → [Reshape](coll.matFromList) with **columns** 3 → `[[1,2,3],[4,5,6]]`. With **columns** 2 you get instead the same list divided into three rows: `[[1,2],[3,4],[5,6]]`.
 
 ## Errors
 
@@ -57,5 +57,5 @@ On the matrix `[[1,2,3],[4,5,6]]` it shows `21`. With **Operation** maximum it s
 
 ## See also
 
-- [Matrix from list](coll.matFromList), [Get row](coll.matRow), [Concatenate lists](coll.concat)
+- [Reshape](coll.matFromList), [Row m[r]](coll.matRow), [Concat lists](coll.concat)
 - [How a block works](ide/blocks)

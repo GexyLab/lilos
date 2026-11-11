@@ -78,7 +78,7 @@ Window "Performance"
 ```
 
 ```
-[Value (JSON): [120, 135, 180, 95, 240, 160, 150, 410, 130, 175]] value ──▶ values [Histogram: Response times]
+[Constant · Variable (JSON): [120, 135, 180, 95, 240, 160, 150, 410, 130, 175]] value ──▶ values [Histogram: Response times]
 ```
 
 The classes are 50–100 (1 value), 100–150 (3), 150–200 (4), 200–250 (1), then three empty classes and 400–450 (1): you see at once that almost all the responses are between 100 and 200 ms and that one is very slow. The box of the third class says "150 – 200 ms" and "Count 4".
@@ -86,16 +86,16 @@ The classes are 50–100 (1 value), 100–150 (3), 150–200 (4), 200–250 (1),
 ### 2. Counting while the measures arrive
 
 ```
-[Every…: 5 s] pulse ──▶ read [Read file: ~/weight.txt] content ──▶ add value [Histogram: Weighings]
+[Interval (setInterval): 5 s] pulse ──▶ read [readFile: ~/weight.txt] content ──▶ add value [Histogram: Weighings]
 [Button: New batch] pressed ──▶ clear [Histogram: Weighings]
 ```
 
-Every 5 seconds the value of the file is added to the counts and the classes are recalculated. **New batch** starts again from zero. As for all charts, the added values live in the open window: to avoid losing them when you close it, keep them with [Accumulate](coll.accumulate) and send the list to **values**.
+Every 5 seconds the value of the file is added to the counts and the classes are recalculated. **New batch** starts again from zero. As for all charts, the added values live in the open window: to avoid losing them when you close it, keep them with [Accumulate (bounded push)](coll.accumulate) and send the list to **values**.
 
 ### 3. Two greenhouses compared
 
 ```
-[Read file: ~/temperatures.json, JSON] content ──▶ values [Histogram: Temperatures]
+[readFile: ~/temperatures.json, JSON] content ──▶ values [Histogram: Temperatures]
 ```
 
 With the file `[{"name": "Greenhouse 1", "data": [21, 22.5, 23, 22]}, {"name": "Greenhouse 2", "data": [19, 20, 21.5, 19.5]}]` every class has two columns side by side, one per greenhouse, and the legend; a click on the legend hides a greenhouse.
@@ -107,6 +107,6 @@ With the file `[{"name": "Greenhouse 1", "data": [21, 22.5, 23, 22]}, {"name": "
 ## See also
 
 - [Columns](charts.column) for values already counted by category
-- [Sum · Min · Max · Average](coll.stat) to summarise a list with a few numbers
-- [Accumulate](coll.accumulate)
+- [Sum · Min · Max · Avg](coll.stat) to summarise a list with a few numbers
+- [Accumulate (bounded push)](coll.accumulate)
 - [Charts](logicstudio-charts): the data shapes, the limits, the keyboard

@@ -1,4 +1,4 @@
-# O esclusivo
+# XOR
 
 `core.xor` · Logica · [Blocchi di base](logicstudio-core) · versione 1
 
@@ -27,7 +27,7 @@ Nelle **Proprietà**, sezione **Porte**, puoi aggiungere fino a 16 ingressi in p
 Ogni volta che arriva un valore su un ingresso, il blocco conta quanti ingressi valgono **sì** (con l'ultimo valore di ognuno) e manda **sì** se sono 1, 3, 5…, **no** se sono 0, 2, 4…
 
 - Con **due** ingressi è il classico «o l'uno o l'altro, non tutti e due».
-- Con **tre o più** ingressi **non** vuol dire «uno solo»: con **a**, **b** e **c** tutti a sì il risultato è **sì** (sono 3, dispari). Per sapere se ce n'è esattamente uno, contali con una [Somma](core.add) (sì vale 1, no vale 0) e controlla il totale con un [Confronta](core.compare) con operazione `a = b` e valore iniziale 1 su **b**.
+- Con **tre o più** ingressi **non** vuol dire «uno solo»: con **a**, **b** e **c** tutti a sì il risultato è **sì** (sono 3, dispari). Per sapere se ce n'è esattamente uno, contali con un blocco [Somma (+)](core.add) (sì vale 1, no vale 0) e controlla il totale con un blocco [Confronto (== ≠ < >)](core.compare) con operazione `a = b` e valore iniziale 1 su **b**.
 - Gli ingressi che non hanno ancora ricevuto niente non contano.
 - Ogni valore viene letto come sì/no: un testo è **no** se, tolti gli spazi e senza badare alle maiuscole, è vuoto, `0`, `false`, `no` o `off` (ogni altro testo è **sì**, anche `"falso"`); un numero è **no** se è 0; `null` è **no**; oggetti e liste sono **sì**.
 
@@ -44,7 +44,7 @@ Ogni volta che arriva un valore su un ingresso, il blocco conta quanti ingressi 
 ### 1. Una luce con due interruttori (deviatore)
 
 ```
-[Interruttore: in basso] valore ──▶ a  [O esclusivo] risultato ──▶ accesa [Spia: luce]
+[Interruttore: in basso] valore ──▶ a  [XOR] risultato ──▶ accesa [Spia: luce]
 [Interruttore: in alto]  valore ──▶ b
 ```
 
@@ -52,7 +52,7 @@ Come le luci delle scale: cambiare **uno qualsiasi** dei due interruttori cambia
 
 ### 2. Due valori diversi
 
-Con **a** = sì e **b** = no il risultato è **sì**: i due valori sono diversi. Con due sì/no, l'O esclusivo vale **sì** proprio quando sono diversi.
+Con **a** = sì e **b** = no il risultato è **sì**: i due valori sono diversi. Con due sì/no, il blocco XOR vale **sì** proprio quando sono diversi.
 
 ### 3. Il controllo di parità
 
@@ -64,6 +64,6 @@ Questo blocco non ha errori suoi.
 
 ## Vedi anche
 
-- [E](core.and), [O](core.or), [NON](core.not)
-- [Fronte](core.edge) per sapere quando un sì/no cambia
+- [AND](core.and), [OR](core.or), [NOT](core.not)
+- [Al cambio (fronte ↑↓)](core.edge) per sapere quando un sì/no cambia
 - [Come funziona un blocco](ide/blocks)

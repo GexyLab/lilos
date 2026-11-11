@@ -2,7 +2,7 @@
 
 `logicstudio-net` · richiede il motore `logicstudio-engine` e i [Blocchi di base](logicstudio-core)
 
-I blocchi che fanno parlare un programma di Logic Studio con internet. Per ora c'è un blocco solo, la [Richiesta web](net.request): una richiesta HTTP o HTTPS a un sito o a un'API, con la risposta già pronta come JSON o come testo. Nell'elenco dei blocchi dell'IDE è nella categoria **Rete**.
+I blocchi che fanno parlare un programma di Logic Studio con internet. Per ora c'è un blocco solo, il blocco [HTTP (fetch)](net.request): una richiesta HTTP o HTTPS a un sito o a un'API, con la risposta già pronta come JSON o come testo. Nell'elenco dei blocchi dell'IDE è nella categoria **Rete**.
 
 ## Come si installa
 
@@ -12,7 +12,7 @@ Il pacchetto non arriva con Logic Studio IDE: un amministratore lo installa dall
 
 | Blocco | Tipo | Cosa fa |
 |---|---|---|
-| [Richiesta web](net.request) | `net.request` | Una richiesta HTTP o HTTPS (GET, POST, PUT, PATCH, DELETE); manda la risposta, lo stato e le intestazioni. Ogni ingresso aggiunto è un parametro dell'indirizzo. |
+| [HTTP (fetch)](net.request) | `net.request` | Una richiesta HTTP o HTTPS (GET, POST, PUT, PATCH, DELETE); manda la risposta, lo stato e le intestazioni. Ogni ingresso aggiunto è un parametro dell'indirizzo. |
 
 MQTT e gli altri protocolli non ci sono ancora.
 
@@ -24,7 +24,7 @@ La richiesta non parte dal tuo browser ma dal **kernel**, cioè dal computer su 
 
 - funziona anche quando lilOS è chiuso nel browser, se il programma è attivo;
 - un programma attivo chiama davvero il sito, anche quando non guardi: provalo prima con **Prova**;
-- il kernel controlla dove va la richiesta: **non arriva a questo computer né alla rete locale**, a meno che un amministratore non lo permetta, e non arriva **mai** agli indirizzi «link-local» (dove molti cloud tengono i dati segreti della macchina) né agli indirizzi multicast. I dettagli sono nella pagina [Richiesta web](net.request).
+- il kernel controlla dove va la richiesta: **non arriva a questo computer né alla rete locale**, a meno che un amministratore non lo permetta, e non arriva **mai** agli indirizzi «link-local» (dove molti cloud tengono i dati segreti della macchina) né agli indirizzi multicast. I dettagli sono nella pagina [HTTP (fetch)](net.request).
 
 ### Impostazioni del modulo
 
@@ -51,42 +51,42 @@ La quota di rete è dell'utente: vale per tutti i suoi programmi insieme, prove 
 
 ### Le app fatte con Crea app
 
-Un'app fatta con **Crea app** che contiene una Richiesta web, prima di partire, apre una finestra «Eseguire «nome»?» che dice che l'app potrà «fare richieste su internet». Con **Esegui** l'app parte e lilOS non lo chiede più finché l'app non cambia; con **Annulla** non parte. Le prove e i programmi attivi dei tuoi progetti non chiedono niente. Vedi [Permessi](logicstudio-engine/permissions) e [Fare un'app](ide/create-app).
+Un'app fatta con **Crea app** che contiene un blocco HTTP (fetch), prima di partire, apre una finestra «Eseguire «nome»?» che dice che l'app potrà «fare richieste su internet». Con **Esegui** l'app parte e lilOS non lo chiede più finché l'app non cambia; con **Annulla** non parte. Le prove e i programmi attivi dei tuoi progetti non chiedono niente. Vedi [Permessi](logicstudio-engine/permissions) e [Fare un'app](ide/create-app).
 
 ## Esempi completi
 
 ### 1. Una stazione meteo in una finestra
 
-**Indirizzo** della Richiesta web: `https://api.open-meteo.com/v1/forecast?latitude=45.46&longitude=9.19&current=temperature_2m,relative_humidity_2m`.
+**Indirizzo** del blocco HTTP (fetch): `https://api.open-meteo.com/v1/forecast?latitude=45.46&longitude=9.19&current=temperature_2m,relative_humidity_2m`.
 
 ```
-[Ogni… 600 s] impulso ──▶ invia [Richiesta web] risposta ──▶ oggetto [Prendi campo: current.temperature_2m]    valore ──▶ valore [Valore: temperatura]
-                                                risposta ──▶ oggetto [Prendi campo: current.relative_humidity_2m] valore ──▶ valore [Valore: umidità]
-                                                Eccezione ──▶ valore [Scrivi in console]
+[Intervallo (setInterval): 600 s] impulso ──▶ invia [HTTP (fetch)] risposta ──▶ oggetto [Get proprietà (obj.campo): current.temperature_2m]    valore ──▶ valore [Valore: temperatura]
+                                                risposta ──▶ oggetto [Get proprietà (obj.campo): current.relative_humidity_2m] valore ──▶ valore [Valore: umidità]
+                                                Eccezione ──▶ valore [Print (console.log)]
 ```
 
-[Ogni…](core.every) parte da solo all'avvio e poi ogni 10 minuti: sono 6 richieste l'ora, ben dentro la quota. Due [Prendi campo](core.get) leggono i valori e due componenti [Valore](ui.value) li mostrano nella finestra del progetto.
+[Intervallo (setInterval)](core.every) parte da solo all'avvio e poi ogni 10 minuti: sono 6 richieste l'ora, ben dentro la quota. Due [Get proprietà (obj.campo)](core.get) leggono i valori e due componenti [Valore](ui.value) li mostrano nella finestra del progetto.
 
 ### 2. Un registro delle risposte
 
 ```
-[Ogni… 300 s] impulso ──▶ leggi [Data e ora] ISO ──▶ alle [Componi oggetto] oggetto ──▶ contenuto [Aggiungi a file: ~/controllo-sito.jsonl]
-              impulso ──▶ invia [Richiesta web] stato ──▶ codice
+[Intervallo (setInterval): 300 s] impulso ──▶ leggi [Now (data e ora)] ISO ──▶ alle [Oggetto { }] oggetto ──▶ contenuto [appendFile: ~/controllo-sito.jsonl]
+              impulso ──▶ invia [HTTP (fetch)] stato ──▶ codice
 ```
 
-Ogni 5 minuti il programma chiama un sito e, con i [Blocchi di lilOS](logicstudio-lilos), aggiunge (con **Formato** «JSON, uno per riga») una riga con l'ora e lo stato, per esempio `{"alle":"2026-11-11T10:05:00.000Z","codice":200}`. Su [Componi oggetto](core.compose) togli «lo avvia» da **alle**, così la riga si scrive solo quando arriva lo stato. Così sai quando il sito ha risposto con un errore.
+Ogni 5 minuti il programma chiama un sito e, con i [Blocchi di lilOS](logicstudio-lilos), aggiunge (con **Formato** «JSON, uno per riga») una riga con l'ora e lo stato, per esempio `{"alle":"2026-11-11T10:05:00.000Z","codice":200}`. Su [Oggetto { }](core.compose) togli «lo avvia» da **alle**, così la riga si scrive solo quando arriva lo stato. Così sai quando il sito ha risposto con un errore.
 
 ### 3. Mandare una misura e avvisare se non va
 
 **Metodo** POST, **Indirizzo** `https://esempio.it/api/misure`, **Intestazioni** `{"Authorization": "Bearer abc123"}`.
 
 ```
-[Campo numerico: misura] valore ──▶ temp [Componi oggetto] oggetto ──▶ corpo [Richiesta web] stato ──▶ a [Confronta: a < b] se falso ──▶ invia [Notifica: "Il server ha rifiutato la misura"]
-[Pulsante: Invia]      premuto ──────────────────────────────────────▶ invia            [Valore: 300] valore ──▶ b
-                                                                          [Richiesta web] Eccezione ──▶ invia [Notifica: "Server non raggiungibile"]
+[Campo numerico: misura] valore ──▶ temp [Oggetto { }] oggetto ──▶ corpo [HTTP (fetch)] stato ──▶ a [Confronto (== ≠ < >): a < b] se falso ──▶ invia [Notify: "Il server ha rifiutato la misura"]
+[Pulsante: Invia]      premuto ──────────────────────────────────────▶ invia            [Costante · Variabile: 300] valore ──▶ b
+                                                                          [HTTP (fetch)] Eccezione ──▶ invia [Notify: "Server non raggiungibile"]
 ```
 
-Gli stati da 200 a 299 vogliono dire «riuscita»: [Confronta](core.compare) con `a < b` e 300 lascia passare **se falso** per 300 e oltre (4xx, 5xx). Gli errori di rete invece arrivano dall'**Eccezione**. Le due [Notifiche](lilos.notify) coprono i due casi.
+Gli stati da 200 a 299 vogliono dire «riuscita»: [Confronto (== ≠ < >)](core.compare) con `a < b` e 300 lascia passare **se falso** per 300 e oltre (4xx, 5xx). Gli errori di rete invece arrivano dall'**Eccezione**. I due blocchi [Notify](lilos.notify) coprono i due casi.
 
 ## Limiti noti
 

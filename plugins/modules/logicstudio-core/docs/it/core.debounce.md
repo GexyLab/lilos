@@ -1,4 +1,4 @@
-# Antirimbalzo
+# Debounce
 
 `core.debounce` · Tempo · [Blocchi di base](logicstudio-core) · versione 1
 
@@ -44,9 +44,9 @@ Confronto con gli altri blocchi di tempo:
 
 | Blocco | Valori che arrivano mentre aspetta |
 |---|---|
-| [Aspetta](core.delay) | Escono tutti, ognuno dopo la sua attesa. |
-| **Antirimbalzo** | Esce solo l'ultimo, dopo un po' di calma. |
-| [Al massimo ogni](core.throttle) | Esce subito il primo; quelli troppo vicini vengono scartati. |
+| [Ritardo (setTimeout)](core.delay) | Escono tutti, ognuno dopo la sua attesa. |
+| **Debounce** | Esce solo l'ultimo, dopo un po' di calma. |
+| [Throttle](core.throttle) | Esce subito il primo; quelli troppo vicini vengono scartati. |
 
 Per le regole generali vedi [Come funziona un blocco](ide/blocks).
 
@@ -68,7 +68,7 @@ Per le regole generali vedi [Come funziona un blocco](ide/blocks).
 ### 2. Cercare mentre si scrive
 
 ```
-[Campo di testo: cerca] testo ──▶ valore [Antirimbalzo: 0,5 s] valore ──▶ … [Richiesta web]
+[Campo di testo: cerca] testo ──▶ valore [Debounce: 0,5 s] valore ──▶ … [HTTP (fetch)]
 ```
 
 Mentre l'utente scrive, il [Campo di testo](ui.text) manda un valore a ogni tasto. La ricerca parte solo quando l'utente si ferma per mezzo secondo, con il testo completo, invece di partire a ogni lettera.
@@ -76,13 +76,13 @@ Mentre l'utente scrive, il [Campo di testo](ui.text) manda un valore a ogni tast
 ### 3. Salvare un cursore solo quando si ferma
 
 ```
-[Cursore: volume] valore ──▶ valore [Antirimbalzo: 1 s] valore ──▶ contenuto [Scrivi file: ~/volume.txt]
+[Cursore: volume] valore ──▶ valore [Debounce: 1 s] valore ──▶ contenuto [writeFile: ~/volume.txt]
 ```
 
 Trascinando il [Cursore](ui.slider) da 10 a 80 escono decine di valori; il file viene scritto una volta sola, con 80, un secondo dopo che il cursore si è fermato.
 
 ## Vedi anche
 
-- [Aspetta](core.delay) e [Al massimo ogni](core.throttle)
-- [Fronte](core.edge) per reagire solo quando un sì/no cambia
+- [Ritardo (setTimeout)](core.delay) e [Throttle](core.throttle)
+- [Al cambio (fronte ↑↓)](core.edge) per reagire solo quando un sì/no cambia
 - [Come funziona un blocco](ide/blocks)

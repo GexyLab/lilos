@@ -27,7 +27,7 @@ In the **Properties**, **Ports** section, you can add up to 16 more inputs (fewe
 Every time a value arrives on an input, the block counts how many inputs are **yes** (with the last value of each) and sends **yes** if they are 1, 3, 5…, **no** if they are 0, 2, 4…
 
 - With **two** inputs it is the classic "one or the other, not both".
-- With **three or more** inputs it does **not** mean "exactly one": with **a**, **b** and **c** all yes the result is **yes** (they are 3, odd). To know if there is exactly one, count them with an [Add](core.add) (yes is 1, no is 0) and check the total with a [Compare](core.compare) with operation `a = b` and initial value 1 on **b**.
+- With **three or more** inputs it does **not** mean "exactly one": with **a**, **b** and **c** all yes the result is **yes** (they are 3, odd). To know if there is exactly one, count them with an [Add (+)](core.add) block (yes is 1, no is 0) and check the total with a [Compare (== != < >)](core.compare) with operation `a = b` and initial value 1 on **b**.
 - Inputs that have not received anything yet do not count.
 - Every value is read as yes/no: a text is **no** if, once spaces are removed and ignoring case, it is empty, `0`, `false`, `no` or `off` (any other text is **yes**, even `"falso"`); a number is **no** if it is 0; `null` is **no**; objects and lists are **yes**.
 
@@ -65,5 +65,5 @@ This block has no errors of its own.
 ## See also
 
 - [AND](core.and), [OR](core.or), [NOT](core.not)
-- [Edge](core.edge) to know when a yes/no changes
+- [On change (edge)](core.edge) to know when a yes/no changes
 - [How a block works](ide/blocks)

@@ -1,4 +1,4 @@
-# Scomponi oggetto
+# Destruttura oggetto
 
 `core.decompose` · Oggetti · [Blocchi di base](logicstudio-core) · versione 1
 
@@ -22,7 +22,7 @@ Il blocco nasce **senza uscite** (a parte l'Eccezione): aggiungi un'uscita per o
 
 Nelle **Proprietà**, sezione **Porte**, con **Aggiungi uscita** aggiungi fino a 32 uscite (o meno, se un amministratore ha abbassato il limite **Porte aggiunte per blocco**). Ogni uscita è di tipo qualsiasi e nasce con il nome **campo 1**, **campo 2**…: **rinominala** con il nome del campo da prendere (fino a 60 caratteri). Le frecce ↑ ↓ cambiano l'ordine. Vedi [Come funziona un blocco](ide/blocks).
 
-Il nome di un'uscita è un **percorso**, come il Campo di [Prendi campo](core.get): `indirizzo.città` prende un campo dentro un campo, `voti.0` il primo elemento della lista `voti`, `voti.length` quanti elementi ha.
+Il nome di un'uscita è un **percorso**, come il Campo di [Get proprietà (obj.campo)](core.get): `indirizzo.città` prende un campo dentro un campo, `voti.0` il primo elemento della lista `voti`, `voti.length` quanti elementi ha.
 
 ## Come funziona
 
@@ -31,8 +31,8 @@ Ogni volta che arriva un oggetto, il blocco cerca il campo di ogni uscita e lo m
 - Le uscite mandano **una dopo l'altra, dall'alto in basso**, nell'ordine delle porte. Un blocco collegato a più uscite riceve i valori in quell'ordine.
 - Un campo che **non c'è** non manda niente su quella sua uscita, e **non** è un errore: le altre uscite mandano lo stesso.
 - Un campo che vale `null` viene mandato (`null`).
-- Se arriva qualcosa che non è un oggetto né una lista (un testo, un numero), non esce niente. Un testo JSON va prima trasformato con [Converti](core.convert), impostazione **In** = «da testo JSON».
-- Le regole del percorso sono quelle di [Prendi campo](core.get): punti come separatori, posizioni da 0, spazi e maiuscole che contano. Un nome lasciato com'è (**campo 1**) cerca un campo che si chiama proprio `campo 1`.
+- Se arriva qualcosa che non è un oggetto né una lista (un testo, un numero), non esce niente. Un testo JSON va prima trasformato con [Cast (converti tipo)](core.convert), impostazione **In** = «da testo JSON».
+- Le regole del percorso sono quelle di [Get proprietà (obj.campo)](core.get): punti come separatori, posizioni da 0, spazi e maiuscole che contano. Un nome lasciato com'è (**campo 1**) cerca un campo che si chiama proprio `campo 1`.
 
 Per le regole generali vedi [Come funziona un blocco](ide/blocks).
 
@@ -49,35 +49,35 @@ Negli esempi l'oggetto che arriva è:
 Uscite chiamate `nome`, `indirizzo.città`, `telefono`, `voti.0`:
 
 ```
-                    nome            ──▶ [Scrivi in console]
-[Scomponi oggetto]  indirizzo.città ──▶ [Scrivi in console]
-                    telefono        ──▶ [Scrivi in console]
-                    voti.0          ──▶ [Scrivi in console]
+                    nome            ──▶ [Print (console.log)]
+[Destruttura oggetto]  indirizzo.città ──▶ [Print (console.log)]
+                    telefono        ──▶ [Print (console.log)]
+                    voti.0          ──▶ [Print (console.log)]
 ```
 
 Escono, in quest'ordine, `"Ada"`, `"Roma"` e `7`. Da `telefono` non esce niente, e non c'è nessun errore.
 
-### 2. Ora e minuti da Data e ora
+### 2. Ora e minuti da Now (data e ora)
 
 ```
-[Ogni… 60 s] impulso ──▶ leggi [Data e ora] parti ──▶ oggetto [Scomponi oggetto] hour   ──▶ ore    [Formatta testo: "{ore}:{minuti}"] testo ──▶ valore [Scrivi in console]
+[Intervallo (setInterval): 60 s] impulso ──▶ leggi [Now (data e ora)] parti ──▶ oggetto [Destruttura oggetto] hour   ──▶ ore    [Template (formatta): "{ore}:{minuti}"] testo ──▶ valore [Print (console.log)]
                                                                                  minute ──▶ minuti
 ```
 
-Le uscite si chiamano `hour` e `minute`, come i campi dell'oggetto **parti** di [Data e ora](core.now). Su [Formatta testo](core.format) aggiungi due ingressi, rinominali **ore** e **minuti**, e togli **lo avvia** da **ore**: `hour` esce per primo e resta come valore, `minute` esce dopo e fa scrivere la riga, per esempio `14:5` (i minuti non hanno lo zero davanti).
+Le uscite si chiamano `hour` e `minute`, come i campi dell'oggetto **parti** di [Now (data e ora)](core.now). Su [Template (formatta)](core.format) aggiungi due ingressi, rinominali **ore** e **minuti**, e togli **lo avvia** da **ore**: `hour` esce per primo e resta come valore, `minute` esce dopo e fa scrivere la riga, per esempio `14:5` (i minuti non hanno lo zero davanti).
 
 ### 3. Una risposta web
 
 ```
-[Richiesta web] risposta ──▶ oggetto [Scomponi oggetto] main.temp ──▶ …
+[HTTP (fetch)] risposta ──▶ oggetto [Destruttura oggetto] main.temp ──▶ …
                                                          name      ──▶ …
 ```
 
-Se la [Richiesta web](net.request) riceve una risposta JSON come `{"name": "Roma", "main": {"temp": 18.4}}`, escono 18,4 e `"Roma"`. Se la risposta arriva come testo, mettici prima [Converti](core.convert) con **In** = «da testo JSON».
+Se la [HTTP (fetch)](net.request) riceve una risposta JSON come `{"name": "Roma", "main": {"temp": 18.4}}`, escono 18,4 e `"Roma"`. Se la risposta arriva come testo, mettici prima [Cast (converti tipo)](core.convert) con **In** = «da testo JSON».
 
 ## Vedi anche
 
-- [Prendi campo](core.get) per un campo solo, con l'errore se manca
-- [Componi oggetto](core.compose) per fare l'opposto
-- [Estrai campo](coll.pluck) per lo stesso campo da ogni elemento di una lista
+- [Get proprietà (obj.campo)](core.get) per un campo solo, con l'errore se manca
+- [Oggetto { }](core.compose) per fare l'opposto
+- [Map campo](coll.pluck) per lo stesso campo da ogni elemento di una lista
 - [Come funziona un blocco](ide/blocks)

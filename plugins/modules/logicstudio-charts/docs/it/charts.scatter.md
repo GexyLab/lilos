@@ -83,7 +83,7 @@ Finestra «Crescita»
 ```
 
 ```
-[Valore (JSON): [[4, 1.2], [6, 1.9], [7, 2.4], [9, 3.1], [5, 1.5]]] valore ──▶ punti {x, y} [Dispersione: Sole e crescita]
+[Costante · Variabile (JSON): [[4, 1.2], [6, 1.9], [7, 2.4], [9, 3.1], [5, 1.5]]] valore ──▶ punti {x, y} [Dispersione: Sole e crescita]
 ```
 
 Cinque punti che salgono da sinistra a destra: più ore di sole (x), più centimetri (y). Il riquadro sul punto più a destra dice «x 9», «y 3,1 cm».
@@ -91,7 +91,7 @@ Cinque punti che salgono da sinistra a destra: più ore di sole (x), più centim
 ### 2. Un punto a ogni misura
 
 ```
-[Ogni…: 60 s] impulso ──▶ leggi [Leggi file: ~/umidita.json, JSON] contenuto ──▶ aggiungi punto [Dispersione: Umidità e temperatura]
+[Intervallo (setInterval): 60 s] impulso ──▶ leggi [readFile: ~/umidita.json, JSON] contenuto ──▶ aggiungi punto [Dispersione: Umidità e temperatura]
 ```
 
 Il file contiene ogni volta un oggetto come `{"x": 22.5, "y": 61}` (temperatura e umidità di adesso). A ogni lettura si aggiunge un punto; dopo **Punti tenuti per serie** letture, i più vecchi spariscono.
@@ -99,7 +99,7 @@ Il file contiene ogni volta un oggetto come `{"x": 22.5, "y": 61}` (temperatura 
 ### 3. Il punto scelto in una tabella
 
 ```
-[Dispersione: Sole e crescita] punto scelto ──▶ aggiungi [Accumula: max 10] lista ──▶ righe [Tabella: Punti scelti]
+[Dispersione: Sole e crescita] punto scelto ──▶ aggiungi [Accumula (push con limite): max 10] lista ──▶ righe [Tabella: Punti scelti]
 ```
 
 Ogni clic su un punto aggiunge una riga alla [Tabella](ui.table) con `series`, `x`, `y` e `index` di quel punto.
@@ -112,5 +112,5 @@ Ogni clic su un punto aggiunge una riga alla [Tabella](ui.table) con `series`, `
 
 - [Linee](charts.line) per punti uniti in ordine di x
 - [Istogramma](charts.histogram) per una misura sola
-- [Accumula](coll.accumulate), [Tabella](ui.table)
+- [Accumula (push con limite)](coll.accumulate), [Tabella](ui.table)
 - [Grafici](logicstudio-charts): le forme dei dati, i limiti, la tastiera

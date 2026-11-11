@@ -61,17 +61,17 @@ Window «Pump»
 ```
 
 ```
-[Button: Start] pressed ──▶ send [Value: yes]  value ──▶ on [Lamp: Running]
-[Button: Stop]  pressed ──▶ send [Value: no]   value ──▶ on [Lamp: Running]
+[Button: Start] pressed ──▶ send [Constant · Variable: yes]  value ──▶ on [Lamp: Running]
+[Button: Stop]  pressed ──▶ send [Constant · Variable: no]   value ──▶ on [Lamp: Running]
 ```
 
-The two [Values](core.value) are of type yes/no, with **Send at start** off. **Start** turns the lamp on, **Stop** turns it off.
+The two [Constant · Variable](core.value) blocks are of type yes/no and have the **send** input linked (show it with the eye next to the port, in the Properties): they send the value only when you press, not at the start. **Start** turns the lamp on, **Stop** turns it off.
 
 To avoid pressing **Start** twice, link the state to the buttons too:
 
 ```
 [Button: Start] pressed ──▶ value [NOT] result ──▶ enabled [Button: Start]
-[Button: Stop]  pressed ──▶ send [Value: yes] value ──▶ enabled [Button: Start]
+[Button: Stop]  pressed ──▶ send [Constant · Variable: yes] value ──▶ enabled [Button: Start]
 ```
 
 After **Start** the button turns off (the [NOT](core.not) of `true` is `false`); **Stop** enables it again.
@@ -95,10 +95,10 @@ No objects are needed: the first button opens the **Settings** window, the secon
 ### 3. A button that counts the clicks on its own text
 
 ```
-[Button: Press] pressed ──▶ up [Counter] count ──▶ n [Format text: «Pressed {n} times»] text ──▶ text [Button: Press]
+[Button: Press] pressed ──▶ up [Counter (++ −−)] count ──▶ n [Template string: «Pressed {n} times»] text ──▶ text [Button: Press]
 ```
 
-In the [Format text](core.format) add the input **n**. At every click the button changes its text: «Pressed 1 times», «Pressed 2 times»…
+In the [Template string](core.format) add the input **n**. At every click the button changes its text: «Pressed 1 times», «Pressed 2 times»…
 
 ## Accessibility and keyboard
 
@@ -109,6 +109,6 @@ In the [Format text](core.format) add the input **n**. At every click the button
 ## See also
 
 - [Switch](ui.toggle), for an on/off state
-- [Counter](core.counter), [Value](core.value)
+- [Counter (++ −−)](core.counter), [Constant · Variable](core.value)
 - [Windows](ide/windows)
 - [Standard UI components](logicstudio-ui)

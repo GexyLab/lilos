@@ -9,7 +9,7 @@ Il motore non porta blocchi: i blocchi e le Componenti UI arrivano dai **pacchet
 ## Cosa fa
 
 - Fa partire, tiene in vita e ferma i **programmi**: le prove dell'IDE, i programmi attivi e le app fatte con **Crea app**.
-- Tiene le **console** dei programmi: le righe scritte dai blocchi e le domande dei blocchi [Leggi da console](core.consoleRead).
+- Tiene le **console** dei programmi: le righe scritte dai blocchi e le domande dei blocchi [Input (readline)](core.consoleRead).
 - Tiene gli ultimi valori mandati alle **finestre** dei progetti, così una finestra riaperta non è vuota.
 - Controlla le **quote** di ogni utente e i **limiti** per tutti.
 - Fa nel kernel, **come te**, le cose che i blocchi chiedono e che toccano i tuoi dati o il mondo fuori: leggere un file, mandare una notifica, fare una richiesta web.
@@ -59,7 +59,7 @@ Quando il computer di lilOS si riavvia, o un amministratore riavvia il kernel:
 2. Pochi secondi dopo la partenza del kernel, il motore fa ripartire **i programmi attivi che erano in esecuzione**, con lo stesso nome e lo stesso progetto.
 3. I programmi attivi che avevi fermato (o che si erano fermati per un errore) **non** ripartono: restano nell'elenco come fermi, finché non li attivi di nuovo o li togli.
 
-Un programma che riparte comincia **da capo**: i blocchi ripartono dall'inizio, i valori iniziali vengono mandati di nuovo, le console sono vuote, le finestre non hanno più gli ultimi valori. Quello che un blocco ricordava (per esempio il conteggio del blocco [Contatore](core.counter)) è perso.
+Un programma che riparte comincia **da capo**: i blocchi ripartono dall'inizio, i valori iniziali vengono mandati di nuovo, le console sono vuote, le finestre non hanno più gli ultimi valori. Quello che un blocco ricordava (per esempio il conteggio del blocco [Contatore (++ −−)](core.counter)) è perso.
 
 Se a un programma attivo manca un pacchetto (per esempio è stato disinstallato), il programma resta **Aspetta un pacchetto** e riparte da solo appena il pacchetto torna.
 
@@ -72,7 +72,7 @@ I blocchi e le componenti che vedi nell'IDE sono quelli dei pacchetti installati
 | [Blocchi di base](logicstudio-core) | Valori, logica, matematica, testo, oggetti, tempo, console, porte di schema, l'oggetto delle Componenti UI |
 | [Liste e matrici](logicstudio-collections) | Blocchi per liste e matrici |
 | [Blocchi di lilOS](logicstudio-lilos) | Notifiche, file della tua home, eventi a lilOS |
-| [Blocchi di rete](logicstudio-net) | La Richiesta web |
+| [Blocchi di rete](logicstudio-net) | Il blocco HTTP (fetch) |
 | [Componenti UI standard](logicstudio-ui) | Etichette, pulsanti, campi, contenitori… per le finestre |
 | [Grafici](logicstudio-charts) | I grafici come Componenti UI |
 
@@ -93,10 +93,10 @@ Per questo un programma attivo non cambia se modifichi il progetto dopo averlo a
 ### 1. Un promemoria che gira anche a lilOS chiuso
 
 ```
-[Ogni…: 3600 s] impulso ──▶ invia [Notifica: testo «Alzati e cammina»]
+[Intervallo (setInterval): 3600 s] impulso ──▶ invia [Notify: testo «Alzati e cammina»]
 ```
 
-Il testo della [Notifica](lilos.notify) è nelle sue Proprietà. Per provarlo, metti 10 secondi nel blocco [Ogni…](core.every) e premi **Prova**: arriva una notifica ogni 10 secondi, finché la prova finisce. Poi rimetti 3600 secondi, salva e premi **Attiva**: il programma manda una notifica ogni ora, anche con il browser chiuso. Le notifiche arrivate mentre lilOS era chiuso le trovi quando lo riapri.
+Il testo del blocco [Notify](lilos.notify) è nelle sue Proprietà. Per provarlo, metti 10 secondi nel blocco [Intervallo (setInterval)](core.every) e premi **Prova**: arriva una notifica ogni 10 secondi, finché la prova finisce. Poi rimetti 3600 secondi, salva e premi **Attiva**: il programma manda una notifica ogni ora, anche con il browser chiuso. Le notifiche arrivate mentre lilOS era chiuso le trovi quando lo riapri.
 
 ### 2. Cosa succede a un riavvio
 

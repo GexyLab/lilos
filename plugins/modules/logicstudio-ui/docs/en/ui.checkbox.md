@@ -34,7 +34,7 @@ A box with its text next to it, checked or not. When the user changes it, it sen
 
 **The schema** changes it with the **value** input, and in that case the box sends **nothing**. As for the [Switch](ui.toggle), the check is there only with `true`, the text `"true"` or the number `1`; any other value (even the text `"1"` or `"sì"`) removes it.
 
-**When opened** the state of **Checked at the start** is shown, but the program does not receive it until the user changes the box. If a schema needs to know it, give it the same value with a [Value](core.value) block.
+**When opened** the state of **Checked at the start** is shown, but the program does not receive it until the user changes the box. If a schema needs to know it, give it the same value with a [Constant · Variable](core.value) block.
 
 The only difference from the Switch is in the look: the Checkbox shows its text, the Switch does not. Usually the checkbox is used for a choice to be confirmed later (in a form), the switch for something that has an effect at once.
 
@@ -68,14 +68,14 @@ Window «Export»
 ```
 
 ```
-[Value: no] value ──▶ notes     [Build object] object ──▶ value [Write to console]
-[Value: no] value ──▶ images
+[Constant · Variable: no] value ──▶ notes     [Object literal { }] object ──▶ value [Print (console.log)]
+[Constant · Variable: no] value ──▶ images
 [Checkbox: Include the notes]  value ──▶ notes
 [Checkbox: Include the images] value ──▶ images
 [Button: Export] pressed ──▶ export
 ```
 
-In the [Build object](core.compose) add the fields **notes**, **images** (without «starts it») and **export**. The two yes/no [Values](core.value) give the initial state (`false`), so the field is there even if the user does not touch the box. Pressing **Export**, the console shows for example `{"notes":true,"images":false,"export":true}`.
+In the [Object literal { }](core.compose) block add the fields **notes**, **images** (without «starts it») and **export**. The two yes/no [Constant · Variable](core.value) blocks (with nothing on **send**, they send the value at the start) give the initial state (`false`), so the field is there even if the user does not touch the box. Pressing **Export**, the console shows for example `{"notes":true,"images":false,"export":true}`.
 
 ## Accessibility and keyboard
 
@@ -86,5 +86,5 @@ In the [Build object](core.compose) add the fields **notes**, **images** (withou
 
 - [Switch](ui.toggle)
 - [Option buttons](ui.radios), for a choice among several possibilities
-- [Build object](core.compose)
+- [Object literal { }](core.compose)
 - [Standard UI components](logicstudio-ui)

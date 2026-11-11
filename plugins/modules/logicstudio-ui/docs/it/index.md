@@ -157,7 +157,7 @@ Tutte le componenti hanno questi due ingressi, oltre ai loro:
 | **abilitato** (`enabled`) | sì/no | `false`: la componente diventa più chiara e non risponde più né al mouse né alla tastiera (il Tab la salta). Qualsiasi altro valore la riabilita. |
 | **visibile** (`visible`) | sì/no | `false`: la componente sparisce e non occupa più spazio. Qualsiasi altro valore la fa ricomparire. |
 
-- Conta **solo il valore `false`** (sì/no falso). Il testo `"false"`, il numero 0 o un testo vuoto **non** disabilitano e **non** nascondono niente. Se il valore viene da un calcolo, passalo prima da un blocco [Converti](core.convert) **In** sì/no.
+- Conta **solo il valore `false`** (sì/no falso). Il testo `"false"`, il numero 0 o un testo vuoto **non** disabilitano e **non** nascondono niente. Se il valore viene da un calcolo, passalo prima da un blocco [Cast (converti tipo)](core.convert) **In** sì/no.
 - Una componente disabilitata o nascosta continua a ricevere i valori dagli schemi: quando torna, mostra l'ultimo.
 - All'inizio ogni componente è abilitata e visibile. Per partire con una componente nascosta, dai all'ingresso **visibile** del suo oggetto il **valore iniziale** `false`.
 
@@ -177,7 +177,7 @@ Il programma gira anche quando nessuna finestra è aperta: gli schemi continuano
 Cose da sapere:
 
 - Quando una finestra si apre, **nessuna componente manda niente** al programma: un pulsante non viene «ripremuto», un interruttore non rimanda il suo stato. Le uscite mandano solo quando l'utente agisce.
-- Allo stesso modo, il valore «all'inizio» di una componente (per esempio **Acceso all'inizio** di un Interruttore) è solo quello che si vede: il programma non lo riceve. Se uno schema deve conoscerlo, dagli lo stesso valore con un blocco [Valore](core.value).
+- Allo stesso modo, il valore «all'inizio» di una componente (per esempio **Acceso all'inizio** di un Interruttore) è solo quello che si vede: il programma non lo riceve. Se uno schema deve conoscerlo, dagli lo stesso valore con un blocco [Costante · Variabile](core.value).
 - Il motore ricorda i valori **per porta**: se a un Valore arrivano 10 numeri mentre la finestra è chiusa, riaprendola vedi solo l'ultimo.
 - In lilOS una finestra di un programma si apre **una volta sola**: aprirla di nuovo la porta davanti. Due copie della stessa finestra esistono solo su due dispositivi o due browser.
 - Se il programma si ferma, le sue finestre si chiudono. Se chiudi l'ultima finestra di un'app fatta con **Crea app**, il suo programma si ferma.
@@ -206,7 +206,7 @@ Finestra «Contatore» 320 × 200
 Crea gli oggetti di `value1`, `button1` e `button2` nello schema, poi:
 
 ```
-[Pulsante: Conta]  premuto ──▶ più    [Contatore] conteggio ──▶ valore [Valore: Clic:]
+[Pulsante: Conta]  premuto ──▶ più    [Contatore (++ −−)] conteggio ──▶ valore [Valore: Clic:]
 [Pulsante: Azzera] premuto ──▶ azzera
 ```
 
@@ -224,24 +224,24 @@ Finestra «Nuovo contatto» 380 × 300
   └ Etichetta       label1    Testo «»   Dimensione piccolo
 ```
 
-Il pulsante deve salvare i valori del momento, non uno a ogni modifica. Usa un [Componi oggetto](core.compose) con tre campi aggiunti (**nome**, **email**, **newsletter**) a cui **togli «lo avvia»**, e un quarto campo **salva** che lo avvia:
+Il pulsante deve salvare i valori del momento, non uno a ogni modifica. Usa un blocco [Oggetto { }](core.compose) con tre campi aggiunti (**nome**, **email**, **newsletter**) a cui **togli «lo avvia»**, e un quarto campo **salva** che lo avvia:
 
 ```
-[Campo di testo: Nome]       testo  ──▶ nome        [Componi oggetto] oggetto ──▶ contenuto [Aggiungi a file]
+[Campo di testo: Nome]       testo  ──▶ nome        [Oggetto { }] oggetto ──▶ contenuto [appendFile]
 [Campo di testo: Email]      testo  ──▶ email
 [Casella di spunta: Iscrivimi…] valore ──▶ newsletter
 [Pulsante: Salva]            premuto ──▶ salva
-[Aggiungi a file] scritto ──▶ invia [Valore «Salvato.»] valore ──▶ testo [Etichetta: label1]
+[appendFile] scritto ──▶ invia [Costante · Variabile «Salvato.»] valore ──▶ testo [Etichetta: label1]
 ```
 
-Nell'[Aggiungi a file](lilos.fileAppend) scegli il **Formato** «JSON, uno per riga».
+Nell'[appendFile](lilos.fileAppend) scegli il **Formato** «JSON, uno per riga».
 
-Il Campo di testo manda **testo** quando l'utente conferma (Invio o uscendo dal campo): quando preme **Salva**, i campi sono già arrivati al Componi oggetto, che parte con **salva** e scrive una riga nel file, per esempio `{"nome":"Anna","email":"anna@esempio.it","newsletter":true,"salva":true}`. Poi l'etichetta piccola mostra «Salvato.».
+Il Campo di testo manda **testo** quando l'utente conferma (Invio o uscendo dal campo): quando preme **Salva**, i campi sono già arrivati al blocco Oggetto { }, che parte con **salva** e scrive una riga nel file, per esempio `{"nome":"Anna","email":"anna@esempio.it","newsletter":true,"salva":true}`. Poi l'etichetta piccola mostra «Salvato.».
 
 - Anche **salva** finisce nell'oggetto, perché è uno dei suoi campi.
 - Se l'utente non tocca mai la casella, **newsletter** manca dalla riga: la casella manda il suo valore solo quando la cambi.
 
-> Il blocco [Valore](core.value) qui ha **Invia all'avvio** spento, così «Salvato.» compare solo dopo il primo salvataggio.
+> Il blocco [Costante · Variabile](core.value) qui ha il suo ingresso **invia** collegato (si mostra con l'occhio accanto alla porta, nelle Proprietà), così «Salvato.» compare solo dopo il primo salvataggio e non all'avvio.
 
 ### 3. Una sonda con allarme e due schede
 
@@ -256,16 +256,16 @@ Finestra «Serra» 420 × 320
       └ Cursore     slider1 Etichetta «Soglia»  Minimo 20  Massimo 45  All'inizio 30  Unità « °C»
 ```
 
-Nello schema, un blocco [Leggi file](lilos.fileRead) legge ogni 10 secondi la temperatura da un file scritto da un altro programma:
+Nello schema, un blocco [readFile](lilos.fileRead) legge ogni 10 secondi la temperatura da un file scritto da un altro programma:
 
 ```
-[Ogni…: 10 s] impulso ──▶ leggi [Leggi file: ~/serra.txt] contenuto ──▶ valore [Converti: numero] risultato ──▶ valore [Indicatore: Temperatura]
-                                                                          risultato ──▶ a [Confronta: a > b] risultato ──▶ accesa [Spia: Troppo caldo]
-[Valore: 30] valore ──▶ b [Confronta]
-[Cursore: Soglia] valore ──▶ b [Confronta]
+[Intervallo (setInterval): 10 s] impulso ──▶ leggi [readFile: ~/serra.txt] contenuto ──▶ valore [Cast (converti tipo): numero] risultato ──▶ valore [Indicatore: Temperatura]
+                                                                          risultato ──▶ a [Confronto (== ≠ < >): a > b] risultato ──▶ accesa [Spia: Troppo caldo]
+[Costante · Variabile: 30] valore ──▶ b [Confronto (== ≠ < >)]
+[Cursore: Soglia] valore ──▶ b [Confronto (== ≠ < >)]
 ```
 
-L'indicatore segue la temperatura; la spia si accende quando supera la soglia. Il [Valore](core.value) 30 dà al confronto la stessa soglia che il cursore mostra all'inizio (il cursore non la manda finché l'utente non lo sposta). Il valore della pagina «Impostazioni» arriva al confronto anche se l'utente sta guardando la pagina «Ora».
+L'indicatore segue la temperatura; la spia si accende quando supera la soglia. Il blocco [Costante · Variabile](core.value) 30 dà al confronto la stessa soglia che il cursore mostra all'inizio (il cursore non la manda finché l'utente non lo sposta). Il valore della pagina «Impostazioni» arriva al confronto anche se l'utente sta guardando la pagina «Ora».
 
 ## Limiti noti
 

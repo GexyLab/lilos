@@ -36,7 +36,7 @@ The piece contains the items with position from **from** up to **to** − 1. Exa
 | 10 | — | `[]` (past the end) |
 | -100 | 100 | `[10, 20, 30, 40, 50]` |
 
-Unlike [Get item](coll.get), **here a position outside the list is not an error**: it is brought to the nearest limit (the start or the end). A negative number counts from the end, as in the other blocks.
+Unlike [Get list[i]](coll.get), **here a position outside the list is not an error**: it is brought to the nearest limit (the start or the end). A negative number counts from the end, as in the other blocks.
 
 How **from** and **to** are read:
 
@@ -49,8 +49,8 @@ How **from** and **to** are read:
 ### 1. The first three
 
 ```
-[Value (JSON): ["a","b","c","d","e"]] value ──▶ list         [Slice] result ──▶ value [Write to console]
-[Value: 3]                            value ──▶ to (excluded)
+[Constant · Variable (JSON): ["a","b","c","d","e"]] value ──▶ list         [Slice] result ──▶ value [Print (console.log)]
+[Constant · Variable: 3]                            value ──▶ to (excluded)
 ```
 
 It writes `["a","b","c"]` (**from** does not arrive and is 0).
@@ -62,14 +62,14 @@ It writes `["a","b","c"]` (**from** does not arrive and is 0).
 Give the **from** input the starting value `-10`:
 
 ```
-[Accumulate (max 1000)] list ──▶ list [Slice (from = -10)] result ──▶ data [Lines]
+[Accumulate (bounded push): max 1000] list ──▶ list [Slice (from = -10)] result ──▶ data [Lines]
 ```
 
 The [Lines](charts.line) chart always shows the last 10 values collected; until fewer than 10 have arrived, it shows them all.
 
 ### 3. Pages of a table
 
-With 20 rows per page, page *n* (from 0) goes from `n × 20` to `n × 20 + 20`. Calculate the two numbers with [Multiply](core.multiply) and [Add](core.add) and link them to **from** and **to (excluded)**: past the last page the result is `[]`, without errors.
+With 20 rows per page, page *n* (from 0) goes from `n × 20` to `n × 20 + 20`. Calculate the two numbers with [Multiply (×)](core.multiply) and [Add (+)](core.add) and link them to **from** and **to (excluded)**: past the last page the result is `[]`, without errors.
 
 ## Errors
 
@@ -81,5 +81,5 @@ With 20 rows per page, page *n* (from 0) goes from `n × 20` to `n × 20 + 20`. 
 
 ## See also
 
-- [Get item](coll.get), [Remove at](coll.removeAt), [Concatenate lists](coll.concat)
+- [Get list[i]](coll.get), [Remove (splice)](coll.removeAt), [Concat lists](coll.concat)
 - [How a block works](ide/blocks)

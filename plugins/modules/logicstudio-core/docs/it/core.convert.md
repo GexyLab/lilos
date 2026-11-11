@@ -1,4 +1,4 @@
-# Converti
+# Cast (converti tipo)
 
 `core.convert` · Valori · [Blocchi di base](logicstudio-core) · versione 1
 
@@ -79,8 +79,8 @@ Quando la conversione non riesce, il blocco non manda niente su **risultato** e 
 ### 1. Un numero da un campo di testo
 
 ```
-[Campo di testo: età] testo ──▶ valore [Converti: In numero] risultato ──▶ a [Confronta: a ≥ b]
-                                                              Eccezione ──▶ valore [Scrivi in console]
+[Campo di testo: età] testo ──▶ valore [Cast (converti tipo): In numero] risultato ──▶ a [Confronto (== ≠ < >): a ≥ b]
+                                                              Eccezione ──▶ valore [Print (console.log)]
 ```
 
 Se l'utente scrive `18`, arriva il numero 18 e il confronto funziona come un confronto tra numeri. Se scrive `diciotto`, la console scrive `Non è un numero` (con il nome del blocco).
@@ -88,15 +88,15 @@ Se l'utente scrive `18`, arriva il numero 18 e il confronto funziona come un con
 ### 2. Leggere il contenuto di un file JSON
 
 ```
-[Leggi file: dati.json] contenuto ──▶ valore [Converti: da testo JSON] risultato ──▶ oggetto [Prendi campo: utenti.0.nome]
+[readFile: dati.json] contenuto ──▶ valore [Cast (converti tipo): da testo JSON] risultato ──▶ oggetto [Get proprietà (obj.campo): utenti.0.nome]
 ```
 
-Se il file contiene `{"utenti":[{"nome":"Ada"}]}`, [Prendi campo](core.get) manda `Ada`.
+Se il file contiene `{"utenti":[{"nome":"Ada"}]}`, [Get proprietà (obj.campo)](core.get) manda `Ada`.
 
 ### 3. Salvare un oggetto come testo
 
 ```
-[Componi oggetto] oggetto ──▶ valore [Converti: testo JSON] risultato ──▶ contenuto [Scrivi file]
+[Oggetto { }] oggetto ──▶ valore [Cast (converti tipo): testo JSON] risultato ──▶ contenuto [writeFile]
 ```
 
 L'oggetto `{ nome: "Ada", anni: 36 }` diventa il testo `{"nome":"Ada","anni":36}`.
@@ -115,7 +115,7 @@ Con **In: sì/no**: `"on"` → sì, `"OFF"` → no, `" no "` → no, `"1"` → s
 
 ## Vedi anche
 
-- [Valore](core.value) per un valore fisso di un tipo scelto
-- [Formatta testo](core.format) e [Concatena](core.concat) per costruire testi
-- [Operazione sul testo](core.text)
+- [Costante · Variabile](core.value) per un valore fisso di un tipo scelto
+- [Template (formatta)](core.format) e [Concat testo](core.concat) per costruire testi
+- [Funzioni stringa](core.text)
 - [Come funziona un blocco](ide/blocks)

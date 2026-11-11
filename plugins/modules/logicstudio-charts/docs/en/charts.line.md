@@ -84,7 +84,7 @@ Window "Weather"
 ```
 
 ```
-[Value (JSON): {"Jan": {"Rome": 80, "Milan": 58}, "Feb": {"Rome": 72, "Milan": 49}, "Mar": {"Rome": 61, "Milan": 70}}] value ──▶ data [Lines: Rain]
+[Constant · Variable (JSON): {"Jan": {"Rome": 80, "Milan": 58}, "Feb": {"Rome": 72, "Milan": 49}, "Mar": {"Rome": 61, "Milan": 70}}] value ──▶ data [Lines: Rain]
 ```
 
 An object whose values are all objects is read as **category → series**: the axis has Jan, Feb, Mar and there are two lines, Rome and Milan, with the legend. The box on "Feb" says "Rome 72 mm", "Milan 49 mm".
@@ -100,7 +100,7 @@ The file `~/measures.json` contains:
 ```
 
 ```
-[At start] pulse ──▶ read [Read file: ~/measures.json, JSON] content ──▶ data [Lines: Greenhouse]
+[On start (main)] pulse ──▶ read [readFile: ~/measures.json, JSON] content ──▶ data [Lines: Greenhouse]
 ```
 
 The x values are ISO dates: the axis is time, with the hours in the local time of the viewer. A click on the second point sends `{"x": 1794387600000, "time": "2026-11-11T09:00:00.000Z", "values": {"Value": 19.2}, "index": 1}`.
@@ -108,11 +108,11 @@ The x values are ISO dates: the axis is time, with the hours in the local time o
 ### 3. A counter that grows, one point at a time
 
 ```
-[Every…: 2 s] pulse ──▶ up [Counter] count ──▶ add point [Lines: Counter]
+[Interval (setInterval): 2 s] pulse ──▶ up [Counter (++ −−)] count ──▶ add point [Lines: Counter]
 [Button: Start again] pressed ──▶ clear [Lines: Counter]
 ```
 
-Every 2 seconds a number arrives (1, 2, 3...): the first point has x = 0, the second x = 1, and so on. The [Button](ui.button) empties the chart; the next point starts again from x = 0 (the [Counter](core.counter) instead goes on: link **pressed** also to its **reset** if you want to start from the beginning). If you close and reopen the window you see only one point, the last one: to keep the history use [Accumulate](coll.accumulate) and **data** (see [Charts](logicstudio-charts)).
+Every 2 seconds a number arrives (1, 2, 3...): the first point has x = 0, the second x = 1, and so on. The [Button](ui.button) empties the chart; the next point starts again from x = 0 (the [Counter (++ −−)](core.counter) block instead goes on: link **pressed** also to its **reset** if you want to start from the beginning). If you close and reopen the window you see only one point, the last one: to keep the history use [Accumulate (bounded push)](coll.accumulate) and **data** (see [Charts](logicstudio-charts)).
 
 ## Accessibility and keyboard
 
@@ -121,5 +121,5 @@ You reach the chart with **Tab**; the arrows go from one x to the next and show 
 ## See also
 
 - [Areas](charts.area) for the area under the line, [Real time](charts.live) for scrolling values, [Sparkline](charts.spark)
-- [Accumulate](coll.accumulate), [Counter](core.counter), [Date and time](core.now)
+- [Accumulate (bounded push)](coll.accumulate), [Counter (++ −−)](core.counter), [Now (date and time)](core.now)
 - [Charts](logicstudio-charts): the data shapes, the limits, the keyboard

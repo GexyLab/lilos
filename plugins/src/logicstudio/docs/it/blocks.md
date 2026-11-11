@@ -20,7 +20,7 @@ Nelle **Proprietà**, sotto ogni ingresso, c'è la casella **lo avvia**:
 
 Sul blocco, il nome di un ingresso che non avvia è **sottolineato a puntini**.
 
-Alcuni blocchi hanno ingressi che **per come sono fatti** non li avviano: per esempio **domanda** di [Leggi da console](core.consoleRead), **titolo** e **testo** di [Notifica](lilos.notify), **percorso** di [Leggi file](lilos.fileRead). La pagina del blocco lo dice.
+Alcuni blocchi hanno ingressi che **per come sono fatti** non li avviano: per esempio **domanda** di [Input (readline)](core.consoleRead), **titolo** e **testo** di [Notify](lilos.notify), **percorso** di [readFile](lilos.fileRead). La pagina del blocco lo dice.
 
 > In questa versione, per questi ingressi le Proprietà mostrano comunque **lo avvia** spuntato e il nome non è sottolineato, ma il blocco non parte. Attenzione: se a uno di questi ingressi dai un **valore iniziale**, il motore lo considera un ingresso che avvia. Per essere sicuro che non avvii il blocco, togli tu la spunta da **lo avvia** su quell'ingresso.
 
@@ -29,7 +29,7 @@ Gli **impulsi** (ingressi di tipo impulso, come **invia**, **leggi**, **più**) 
 ### Un esempio
 
 ```
-[Cursore: prezzo]   valore ──▶ a  [Moltiplica] risultato ──▶ valore [Componente Valore: totale]
+[Cursore: prezzo]   valore ──▶ a  [Moltiplicazione (×)] risultato ──▶ valore [Componente Valore: totale]
 [Cursore: quantità] valore ──▶ b
 ```
 
@@ -45,13 +45,13 @@ Ogni ingresso (tranne quelli di tipo impulso) può avere un **valore iniziale**,
 
 Il campo legge il testo come JSON (`5` è un numero, `"5"` un testo, `true` un sì, `[1,2]` una lista, `{"a":1}` un oggetto); quello che non è JSON è un testo (`ciao`). Vuoto vuol dire nessun valore iniziale. Non si può dare `null` come valore iniziale.
 
-Il valore iniziale è comodo per i parametri: la soglia di un **Confronta**, il divisore di una **Dividi**, il testo fisso di uno **Scrivi in console**.
+Il valore iniziale è comodo per i parametri: la soglia del blocco **Confronto**, il divisore del blocco **Divisione**, il testo fisso del blocco **Print**.
 
 ## L'avvio del programma
 
 Quando un programma parte (prova, programma attivo o app), il motore:
 
-1. chiama la partenza di ogni blocco che ne ha una, nell'ordine dei blocchi nel file: per esempio **Valore** con **Invia all'avvio** manda il suo valore, **All'avvio** manda un impulso, **Ogni…** con **Parte da solo** accende il suo orologio, **Contatore** si mette al valore **Parte da**;
+1. chiama la partenza di ogni blocco che ne ha una, nell'ordine dei blocchi nel file: per esempio **Costante · Variabile** con niente collegato a **invia** manda il suo valore, **All'avvio** manda un impulso, **Intervallo** con **Parte da solo** accende il suo orologio, **Contatore** si mette al valore **Parte da**;
 2. dà a ogni ingresso il suo **valore iniziale**;
 3. avvia i blocchi che girano in continuazione (se un pacchetto ne ha).
 
@@ -68,19 +68,19 @@ Ogni blocco ha una **fila** di valori in arrivo e li tratta **uno alla volta, ne
 
 Conseguenze:
 
-- un blocco lento (una **Richiesta web**, una domanda in console) **non ferma gli altri**: gli altri blocchi vanno avanti, solo i valori per lui aspettano in fila;
+- un blocco lento (un blocco **HTTP**, una domanda in console) **non ferma gli altri**: gli altri blocchi vanno avanti, solo i valori per lui aspettano in fila;
 - un blocco non lavora mai due volte insieme;
 - quando un blocco manda valori da più uscite, i blocchi che li ricevono cominciano dopo che lui ha finito di mandarli tutti.
 
-Un blocco sa **quale ingresso** l'ha avviato e può comportarsi in modo diverso: il **Contatore** sale con **più**, scende con **meno** e torna all'inizio con **azzera**; **Scrivi in console** scrive con **valore** e pulisce con **pulisci**.
+Un blocco sa **quale ingresso** l'ha avviato e può comportarsi in modo diverso: il **Contatore** sale con **più**, scende con **meno** e torna all'inizio con **azzera**; **Print** scrive con **valore** e pulisce con **pulisci**.
 
 ## Le uscite
 
 Quando un blocco ha finito, manda i suoi risultati dalle uscite, lungo **tutti** i collegamenti di ogni uscita.
 
-- Un blocco che su un'uscita **non dà niente** non manda niente su quella uscita: **Confronta** manda un impulso su **se vero** oppure su **se falso**, mai su tutte e due.
+- Un blocco che su un'uscita **non dà niente** non manda niente su quella uscita: **Confronto** manda un impulso su **se vero** oppure su **se falso**, mai su tutte e due.
 - Un'uscita non collegata non fa niente (tranne **Eccezione**, vedi sotto).
-- Alcuni blocchi mandano valori **più tardi**, da soli: **Aspetta** dopo i secondi scelti, **Ogni…** a ogni scatto, **Antirimbalzo** quando l'ingresso si ferma.
+- Alcuni blocchi mandano valori **più tardi**, da soli: **Ritardo** dopo i secondi scelti, **Intervallo** a ogni scatto, **Debounce** quando l'ingresso si ferma.
 - I valori sono quelli che si scrivono in JSON: numeri, testi, sì/no, liste, oggetti e `null`. Tra il motore e le finestre (o l'IDE) viaggiano come copie; un valore che arriva da una finestra può essere al massimo di 256 KB.
 
 ## L'uscita «Eccezione»
@@ -104,19 +104,19 @@ Ogni blocco ha, come ultima uscita, **Eccezione** (nome interno `error`). Quando
 | `at` | Quando è successo, in millisecondi dal 1° gennaio 1970. |
 
 - Se **Eccezione è collegata**, l'oggetto va lungo i suoi collegamenti come un valore qualsiasi. Puoi scriverlo in una console, mandare una notifica, contare gli errori…
-- Se **non è collegata**, nella **console principale** compare una riga di livello errore con il nome del blocco e il messaggio, per esempio `Dividi: Divisione per zero`. Il nome è quello del tipo di blocco, non l'etichetta che gli hai dato.
+- Se **non è collegata**, nella **console principale** compare una riga di livello errore con il nome del blocco e il messaggio, per esempio `Divisione (÷ %): Divisione per zero`. Il nome è quello del tipo di blocco, non l'etichetta che gli hai dato.
 
 Durante la prova un blocco andato in errore ha il **bordo rosso**, finché non lavora di nuovo senza errori; l'etichetta sul collegamento di un'Eccezione è rossa con `⚠`.
 
 ### Un blocco troppo lento
 
-Un blocco che impiega più di **30 secondi** (di serie: «Tempo massimo di un blocco», nei limiti del motore) viene considerato fallito: su **Eccezione** arriva «Dividi ha impiegato più di 30 s» (con il nome del blocco) e quello che il blocco darà dopo viene buttato via.
+Un blocco che impiega più di **30 secondi** (di serie: «Tempo massimo di un blocco», nei limiti del motore) viene considerato fallito: su **Eccezione** arriva «Divisione (÷ %) ha impiegato più di 30 s» (con il nome del blocco) e quello che il blocco darà dopo viene buttato via.
 
-> Questo vale anche per **Leggi da console**: in questa versione una domanda a cui nessuno risponde entro 30 secondi manda «Leggi da console ha impiegato più di 30 s» sull'Eccezione, e la risposta data dopo va persa. Vedi [Console](ide/consoles).
+> Questo vale anche per **Input**: in questa versione una domanda a cui nessuno risponde entro 30 secondi manda «Input (readline) ha impiegato più di 30 s» sull'Eccezione, e la risposta data dopo va persa. Vedi [Console](ide/consoles).
 
 ## Le porte aggiuntive
 
-Alcuni blocchi permettono di **aggiungere porte**: la **Somma** altri addendi, **E** e **O** altre condizioni, **Formatta testo** altri segnaposto, **Casi** altri casi, **Scrivi in console** altri valori da scrivere sulla stessa riga. La pagina di ogni blocco dice quante e di che tipo.
+Alcuni blocchi permettono di **aggiungere porte**: il blocco **Somma** altri addendi, **AND** e **OR** altre condizioni, **Template** altri segnaposto, **Switch · Case** altri casi, **Print** altri valori da scrivere sulla stessa riga. La pagina di ogni blocco dice quante e di che tipo.
 
 - Si aggiungono **solo** nelle **Proprietà**, sezione **Porte**, con **Aggiungi ingresso** o **Aggiungi uscita**. Accanto c'è il conto: **Aggiunte: 2 di 16**. Al massimo il numero che dice il blocco, e comunque non più di **32** per blocco (limite del motore).
 - Sul blocco le porte aggiunte hanno il nome in ***corsivo***.
@@ -125,15 +125,15 @@ Alcuni blocchi permettono di **aggiungere porte**: la **Somma** altri addendi, *
 | Il blocco dà | Nomi | Esempio |
 |---|---|---|
 | lettere | la prima lettera libera | **Somma**: **c**, **d**, **e**… |
-| numeri | il numero che segue le porte di base | **Scegli**: **2**, **3**… |
-| un nome tuo | un nome proposto, che puoi cambiare | **Formatta testo**: «segnaposto 1», poi lo rinomini in `nome` |
+| numeri | il numero che segue le porte di base | **Scegli per indice**: **2**, **3**… |
+| un nome tuo | un nome proposto, che puoi cambiare | **Template**: «segnaposto 1», poi lo rinomini in `nome` |
 
 - Con **↑** e **↓** cambi l'ordine delle porte aggiunte (per esempio l'ordine dei passi di una **Sequenza**).
 - Con **Togli** togli una porta aggiunta: se ha collegamenti, l'IDE chiede conferma e li toglie; **Ctrl+Z** rimette tutto.
 - Le **porte di base** (quelle che il blocco ha sempre) hanno il lucchetto: non si tolgono.
 - Rinominare una porta non tocca i suoi collegamenti: dentro, ogni porta aggiunta ha un id fisso (`x1`, `x2`…).
 
-Per molti blocchi le porte aggiunte **tengono solo il loro valore**: non avviano il blocco, che parte con un ingresso di base. Per esempio in **Scrivi in console** si scrive solo quando arriva **valore**, e gli ingressi aggiunti si aggiungono alla riga come `nome=valore`. La pagina del blocco lo dice.
+Per molti blocchi le porte aggiunte **tengono solo il loro valore**: non avviano il blocco, che parte con un ingresso di base. Per esempio nel blocco **Print** si scrive solo quando arriva **valore**, e gli ingressi aggiunti si aggiungono alla riga come `nome=valore`. La pagina del blocco lo dice.
 
 ## Cicli
 
@@ -141,11 +141,11 @@ Puoi fare un **ciclo**: l'uscita di un blocco torna, attraverso altri blocchi, a
 
 Il motore conta le **esecuzioni** dei blocchi di ogni programma: oltre **10000 in 10 secondi** (di serie) il programma si ferma con «Troppe esecuzioni: più di 10000 in 10 secondi (un ciclo di collegamenti?)». Nella prova lo vedi nei **Problemi**; per un programma attivo ricevi una notifica.
 
-Per un ciclo che deve durare, metti un **Aspetta** nel giro:
+Per un ciclo che deve durare, metti un **Ritardo** nel giro:
 
 ```
-[All'avvio] impulso ──▶ più [Contatore] conteggio ──▶ valore [Aspetta: 1 s] valore ──▶ più [Contatore]
-                                conteggio ──▶ valore [Scrivi in console]
+[All'avvio (main)] impulso ──▶ più [Contatore (++ −−)] conteggio ──▶ valore [Ritardo (setTimeout): 1 s] valore ──▶ più [Contatore (++ −−)]
+                                conteggio ──▶ valore [Print (console.log)]
 ```
 
 Ogni secondo il contatore sale di 1 e lo scrive, per sempre (o fino alla fine della prova).
@@ -164,8 +164,8 @@ Vedi [Limiti](logicstudio-engine/limits).
 
 ## Blocchi speciali
 
-- **Ingresso di schema**: non lavora; manda dalla sua uscita **valore** quello che arriva alla sua porta dagli altri schemi.
-- **Uscita di schema**: quando le arriva un valore su **valore**, lo manda agli **Ingressi di schema** collegati nella Mappa.
+- **Parametro**: non lavora; manda dalla sua uscita **valore** quello che arriva alla sua porta dagli altri schemi.
+- **Return**: quando le arriva un valore su **valore**, lo manda ai blocchi **Parametro** collegati nella Mappa.
 - **Oggetto di una componente**: i valori che arrivano ai suoi ingressi vanno alla componente nella finestra (il testo di un'etichetta, il valore di un indicatore); quello che fa l'utente nella finestra esce dalle sue uscite (**premuto**, **valore**). Non lavora come un blocco normale e non ha **lo avvia** né valori iniziali. Vedi [L'oggetto di una componente](ide/components).
 
 ## Esempi
@@ -173,45 +173,45 @@ Vedi [Limiti](logicstudio-engine/limits).
 ### 1. Ricalcolare a ogni valore
 
 ```
-[Valore: 2] valore ──▶ a  [Somma] risultato ──▶ valore [Scrivi in console]
-[Valore: 3] valore ──▶ b
+[Costante · Variabile: 2] valore ──▶ a  [Somma (+)] risultato ──▶ valore [Print (console.log)]
+[Costante · Variabile: 3] valore ──▶ b
 ```
 
-All'avvio i due Valori mandano 2 e 3. La Somma lavora due volte: la console scrive `2` (solo **a** ha un valore) e poi `5`.
+All'avvio i due blocchi Costante · Variabile mandano 2 e 3. Il blocco Somma lavora due volte: la console scrive `2` (solo **a** ha un valore) e poi `5`.
 
 ### 2. Solo il risultato finale, con «lo avvia»
 
-Stesso schema, ma nelle Proprietà della Somma togli **lo avvia** da **a**. All'avvio arriva 2 su **a** (tenuto), poi 3 su **b** (avvia): la console scrive solo `5`.
+Stesso schema, ma nelle Proprietà del blocco Somma togli **lo avvia** da **a**. All'avvio arriva 2 su **a** (tenuto), poi 3 su **b** (avvia): la console scrive solo `5`.
 
 ### 3. Una soglia con il valore iniziale
 
 ```
-[Campo numerico] valore ──▶ a [Confronta: a > b, b = 30] se vero ──▶ invia [Valore: Troppo caldo] valore ──▶ valore [Scrivi in console]
+[Campo numerico] valore ──▶ a [Confronto (== ≠ < >): a > b, b = 30] se vero ──▶ invia [Costante · Variabile: Troppo caldo] valore ──▶ valore [Print (console.log)]
 ```
 
-1. Su **Confronta**: **Operazione** = **a > b**; su **b** valore iniziale `30` e **lo avvia** tolto.
-2. Su **Valore**: **Tipo** = **testo**, **Valore** = `Troppo caldo`, **Invia all'avvio** tolto.
-3. Collega **se vero** a **invia** del Valore (non direttamente a **Scrivi in console**: l'impulso porterebbe `true`, e la console scriverebbe `true`).
+1. Su **Confronto**: **Operazione** = **a > b**; su **b** valore iniziale `30` e **lo avvia** tolto.
+2. Su **Costante · Variabile**: **Tipo** = **testo**, **Valore** = `Troppo caldo`. Poi, nelle Proprietà, accendi l'**occhio** accanto alla porta **invia**, che di serie è nascosta.
+3. Collega **se vero** a **invia** del blocco Costante · Variabile (con **invia** collegata, manda il valore solo a ogni impulso e non all'avvio; non direttamente a **Print**: l'impulso porterebbe `true`, e la console scriverebbe `true`).
 
 Ogni numero sopra 30 scritto nel campo fa scrivere «Troppo caldo».
 
 ### 4. Gestire un errore
 
 ```
-[Campo numerico: divisore] valore ──▶ b [Dividi] risultato ──▶ valore [Componente Valore: risultato]
-                                              Eccezione ──▶ oggetto [Prendi campo: message] valore ──▶ valore [Scrivi in console: avviso]
+[Campo numerico: divisore] valore ──▶ b [Divisione (÷ %)] risultato ──▶ valore [Componente Valore: risultato]
+                                              Eccezione ──▶ oggetto [Get proprietà (obj.campo): message] valore ──▶ valore [Print (console.log): avviso]
 ```
 
-Su **Dividi**, **a** ha valore iniziale `100` e **lo avvia** tolto. Scrivendo `4` nella finestra si vede 25. Scrivendo `0`, **Dividi** manda l'oggetto dell'errore su **Eccezione**; **Prendi campo** (impostazione **Campo (a.b.0)** = `message`) ne prende il messaggio e la console scrive `Divisione per zero` come avviso, invece della riga d'errore `Dividi: Divisione per zero` nella console principale.
+Su **Divisione**, **a** ha valore iniziale `100` e **lo avvia** tolto. Scrivendo `4` nella finestra si vede 25. Scrivendo `0`, **Divisione** manda l'oggetto dell'errore su **Eccezione**; **Get proprietà** (impostazione **Campo (a.b.0)** = `message`) ne prende il messaggio e la console scrive `Divisione per zero` come avviso, invece della riga d'errore `Divisione (÷ %): Divisione per zero` nella console principale.
 
 ### 5. Una porta aggiunta che tiene un valore
 
 ```
-[Campo di testo: nome]      testo ──▶ nome   [Scrivi in console]
+[Campo di testo: nome]      testo ──▶ nome   [Print (console.log)]
 [Campo di testo: messaggio] testo ──▶ valore
 ```
 
-Su **Scrivi in console** premi **Aggiungi ingresso** e rinomina la porta in `nome`. Scrivere nel campo **nome** non scrive niente (la porta tiene solo il valore); scrivere `ciao` nel campo **messaggio** scrive la riga `ciao  nome=Ada`.
+Su **Print** premi **Aggiungi ingresso** e rinomina la porta in `nome`. Scrivere nel campo **nome** non scrive niente (la porta tiene solo il valore); scrivere `ciao` nel campo **messaggio** scrive la riga `ciao  nome=Ada`.
 
 ## Vedi anche
 

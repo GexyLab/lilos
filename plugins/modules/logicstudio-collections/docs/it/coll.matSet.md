@@ -1,4 +1,4 @@
-# Imposta cella
+# Scrivi m[r][c]
 
 `coll.matSet` · Matrici · [Liste e matrici](logicstudio-collections) · versione 1
 
@@ -24,20 +24,20 @@ Cambia il valore di una cella e manda la matrice nuova.
 
 Il blocco aspetta di avere tutti e quattro gli ingressi; poi, a ogni valore nuovo, manda la matrice con la cella cambiata.
 
-- Righe e colonne si contano da 0; i negativi contano dalla fine (come in [Leggi cella](coll.matGet)).
+- Righe e colonne si contano da 0; i negativi contano dalla fine (come in [Leggi m[r][c]](coll.matGet)).
 - Si può cambiare solo una cella che c'è: la matrice non si allarga. Fuori esce «Indice fuori dalla lista».
-- Il valore può essere qualsiasi cosa, anche un testo o `null`. Una matrice con celle non numeriche non va però bene per i calcoli (Somma matrici, Moltiplica matrici, Scala, Determinante).
-- La matrice in ingresso resta com'era: se va anche ad altri blocchi, loro vedono la vecchia. Per tenere la matrice cambiata, rimandala in una [Memoria](core.store).
+- Il valore può essere qualsiasi cosa, anche un testo o `null`. Una matrice con celle non numeriche non va però bene per i calcoli (A + B, A × B, Scala (k·A), Det).
+- La matrice in ingresso resta com'era: se va anche ad altri blocchi, loro vedono la vecchia. Per tenere la matrice cambiata, rimandala in un blocco [Memoria (set · get)](core.store).
 
 ## Esempi
 
 ### 1. Una cella
 
 ```
-[Valore (JSON): [[1,2,3],[4,5,6]]] valore ──▶ matrice [Imposta cella] matrice ──▶ valore [Scrivi in console]
-[Valore: 0]                        valore ──▶ riga
-[Valore: 0]                        valore ──▶ colonna
-[Valore: 9]                        valore ──▶ valore
+[Costante · Variabile (JSON): [[1,2,3],[4,5,6]]] valore ──▶ matrice [Scrivi m[r][c]] matrice ──▶ valore [Print (console.log)]
+[Costante · Variabile: 0]                        valore ──▶ riga
+[Costante · Variabile: 0]                        valore ──▶ colonna
+[Costante · Variabile: 9]                        valore ──▶ valore
 ```
 
 Scrive `[[9,2,3],[4,5,6]]`.
@@ -49,14 +49,14 @@ Sulla stessa matrice, riga `-1`, colonna `-1` e valore `"x"` danno `[[1,2,3],[4,
 ### 3. Una griglia di gioco
 
 ```
-[Memoria (Invia quando cambia)] valore ──▶ matrice [Imposta cella] matrice ──▶ imposta [Memoria]
+[Memoria (set · get): Invia quando cambia] valore ──▶ matrice [Scrivi m[r][c]] matrice ──▶ imposta [Memoria (set · get)]
                                                                     matrice ──▶ righe [Tabella]
 [Campo numerico: riga]    valore ──▶ riga
 [Campo numerico: colonna] valore ──▶ colonna
-[Valore (testo): X]       valore ──▶ valore
+[Costante · Variabile (testo): X]       valore ──▶ valore
 ```
 
-Dai all'ingresso **imposta** della Memoria la matrice di partenza (per esempio fatta con [Crea matrice](coll.matNew) 3 × 3 di `"-"`) e togli «lo avvia» da **matrice**. A ogni coppia riga e colonna la X va nella cella. La [Tabella](ui.table) mostra una riga per ogni riga della griglia, scritta come lista (per esempio `["X","-","-"]`): la Tabella divide in colonne solo le righe fatte di oggetti.
+Dai all'ingresso **imposta** del blocco Memoria (set · get) la matrice di partenza (per esempio fatta con [Nuova matrice (fill)](coll.matNew) 3 × 3 di `"-"`) e togli «lo avvia» da **matrice**. A ogni coppia riga e colonna la X va nella cella. La [Tabella](ui.table) mostra una riga per ogni riga della griglia, scritta come lista (per esempio `["X","-","-"]`): la Tabella divide in colonne solo le righe fatte di oggetti.
 
 ## Errori
 
@@ -69,6 +69,6 @@ Dai all'ingresso **imposta** della Memoria la matrice di partenza (per esempio f
 
 ## Vedi anche
 
-- [Leggi cella](coll.matGet), [Crea matrice](coll.matNew)
-- [Imposta elemento](coll.set) per una lista
+- [Leggi m[r][c]](coll.matGet), [Nuova matrice (fill)](coll.matNew)
+- [Scrivi lista[i]](coll.set) per una lista
 - [Come funziona un blocco](ide/blocks)

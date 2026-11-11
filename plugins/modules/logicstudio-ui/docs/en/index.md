@@ -157,7 +157,7 @@ All components have these two inputs, besides their own:
 | **enabled** (`enabled`) | yes/no | `false`: the component becomes lighter and no longer answers to the mouse or the keyboard (Tab skips it). Any other value enables it again. |
 | **visible** (`visible`) | yes/no | `false`: the component disappears and no longer takes up space. Any other value makes it appear again. |
 
-- **Only the value `false`** (yes/no false) counts. The text `"false"`, the number 0 or an empty text do **not** disable and do **not** hide anything. If the value comes from a calculation, first pass it through a [Convert](core.convert) block **To** yes/no.
+- **Only the value `false`** (yes/no false) counts. The text `"false"`, the number 0 or an empty text do **not** disable and do **not** hide anything. If the value comes from a calculation, first pass it through a [Type cast](core.convert) block **To** yes/no.
 - A disabled or hidden component keeps receiving values from the schemas: when it comes back, it shows the last one.
 - At the beginning every component is enabled and visible. To start with a hidden component, give the **visible** input of its object the **at start** value `false`.
 
@@ -177,7 +177,7 @@ The program also runs when no window is open: the schemas keep sending values to
 Things to know:
 
 - When a window opens, **no component sends anything** to the program: a button is not «pressed again», a switch does not send its state again. Outputs send only when the user acts.
-- In the same way, the «at start» value of a component (for example **On at the start** of a Switch) is only what is shown: the program does not receive it. If a schema needs to know it, give it the same value with a [Value](core.value) block.
+- In the same way, the «at start» value of a component (for example **On at the start** of a Switch) is only what is shown: the program does not receive it. If a schema needs to know it, give it the same value with a [Constant · Variable](core.value) block.
 - The engine remembers the values **per port**: if 10 numbers arrive at a Value while the window is closed, when you reopen it you see only the last one.
 - In lilOS a window of a program opens **only once**: opening it again brings it to the front. Two copies of the same window exist only on two devices or two browsers.
 - If the program stops, its windows close. If you close the last window of an app made with **Make app**, its program stops.
@@ -206,7 +206,7 @@ Window «Counter» 320 × 200
 Make the objects of `value1`, `button1` and `button2` in the schema, then:
 
 ```
-[Button: Count] pressed ──▶ up    [Counter] count ──▶ value [Value: Clicks:]
+[Button: Count] pressed ──▶ up    [Counter (++ −−)] count ──▶ value [Value: Clicks:]
 [Button: Reset] pressed ──▶ reset
 ```
 
@@ -224,24 +224,24 @@ Window «New contact» 380 × 300
   └ Label       label1    Text «»   Size small
 ```
 
-The button must save the values of the moment, not one at every change. Use a [Build object](core.compose) with three added fields (**name**, **email**, **newsletter**) from which you **remove «starts it»**, and a fourth field **save** that starts it:
+The button must save the values of the moment, not one at every change. Use a [Object literal { }](core.compose) with three added fields (**name**, **email**, **newsletter**) from which you **remove «starts it»**, and a fourth field **save** that starts it:
 
 ```
-[Text field: Name]       text   ──▶ name        [Build object] object ──▶ content [Append to file]
+[Text field: Name]       text   ──▶ name        [Object literal { }] object ──▶ content [appendFile]
 [Text field: Email]      text   ──▶ email
 [Checkbox: Subscribe me…] value ──▶ newsletter
 [Button: Save]           pressed ──▶ save
-[Append to file] written ──▶ send [Value «Saved.»] value ──▶ text [Label: label1]
+[appendFile] written ──▶ send [Constant · Variable «Saved.»] value ──▶ text [Label: label1]
 ```
 
-In the [Append to file](lilos.fileAppend) choose the **Format** «JSON, one per line».
+In the [appendFile](lilos.fileAppend) choose the **Format** «JSON, one per line».
 
-The Text field sends **text** when the user confirms (Enter or leaving the field): when they press **Save**, the fields have already reached the Build object, which starts with **save** and writes a line in the file, for example `{"name":"Anna","email":"anna@example.com","newsletter":true,"save":true}`. Then the small label shows «Saved.».
+The Text field sends **text** when the user confirms (Enter or leaving the field): when they press **Save**, the fields have already reached the Object literal { } block, which starts with **save** and writes a line in the file, for example `{"name":"Anna","email":"anna@example.com","newsletter":true,"save":true}`. Then the small label shows «Saved.».
 
 - **save** also ends up in the object, because it is one of its fields.
 - If the user never touches the box, **newsletter** is missing from the line: the box sends its value only when you change it.
 
-> The [Value](core.value) block here has **Send at start** off, so «Saved.» appears only after the first save.
+> The [Constant · Variable](core.value) block here has its **send** input linked (shown with the eye next to the port, in the Properties), so «Saved.» appears only after the first save and not at the start.
 
 ### 3. A probe with an alarm and two tabs
 
@@ -256,16 +256,16 @@ Window «Greenhouse» 420 × 320
       └ Slider slider1 Label «Threshold»  Minimum 20  Maximum 45  At the start 30  Unit « °C»
 ```
 
-In the schema, a [Read file](lilos.fileRead) block reads every 10 seconds the temperature from a file written by another program:
+In the schema, a [readFile](lilos.fileRead) block reads every 10 seconds the temperature from a file written by another program:
 
 ```
-[Every…: 10 s] pulse ──▶ read [Read file: ~/greenhouse.txt] content ──▶ value [Convert: number] result ──▶ value [Gauge: Temperature]
-                                                                    result ──▶ a [Compare: a > b] result ──▶ on [Lamp: Too hot]
-[Value: 30] value ──▶ b [Compare]
-[Slider: Threshold] value ──▶ b [Compare]
+[Interval (setInterval): 10 s] pulse ──▶ read [readFile: ~/greenhouse.txt] content ──▶ value [Type cast: number] result ──▶ value [Gauge: Temperature]
+                                                                    result ──▶ a [Compare (== != < >): a > b] result ──▶ on [Lamp: Too hot]
+[Constant · Variable: 30] value ──▶ b [Compare (== != < >)]
+[Slider: Threshold] value ──▶ b [Compare (== != < >)]
 ```
 
-The gauge follows the temperature; the lamp turns on when it goes over the threshold. The [Value](core.value) 30 gives the comparison the same threshold the slider shows at the start (the slider does not send it until the user moves it). The value of the «Settings» page reaches the comparison even if the user is looking at the «Now» page.
+The gauge follows the temperature; the lamp turns on when it goes over the threshold. The [Constant · Variable](core.value) 30 gives the comparison the same threshold the slider shows at the start (the slider does not send it until the user moves it). The value of the «Settings» page reaches the comparison even if the user is looking at the «Now» page.
 
 ## Known limits
 

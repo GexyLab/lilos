@@ -36,7 +36,7 @@ Un menu a tendina: si vede la scelta fatta, e un clic apre l'elenco delle opzion
 
 **La Selezione mostra sempre un'opzione.** Senza **Scelta all'inizio** mostra la prima. Questo ha una conseguenza importante:
 
-> **Scegliere l'opzione già mostrata non manda niente.** Se all'apertura si vede «Milano» e l'utente la vuole, non c'è modo di mandarla: la Selezione manda qualcosa solo quando la scelta **cambia**. Se lo schema deve sapere la scelta anche quando l'utente non la cambia, o dagli lo stesso valore iniziale con un blocco [Valore](core.value), o metti come prima opzione un invito come `— scegli —` e controlla nello schema che non sia quello.
+> **Scegliere l'opzione già mostrata non manda niente.** Se all'apertura si vede «Milano» e l'utente la vuole, non c'è modo di mandarla: la Selezione manda qualcosa solo quando la scelta **cambia**. Se lo schema deve sapere la scelta anche quando l'utente non la cambia, o dagli lo stesso valore iniziale con un blocco [Costante · Variabile](core.value), o metti come prima opzione un invito come `— scegli —` e controlla nello schema che non sia quello.
 
 **Dallo schema.** Un valore su **valore** mostra l'opzione con quel valore (confrontato come testo). Se nessuna opzione ha quel valore, il menu mostra la prima opzione, anche se lo schema ne aveva chiesta un'altra. Quando arrivano nuove **opzioni**, resta mostrata quella con lo stesso valore di prima, se c'è ancora, altrimenti la prima.
 
@@ -54,12 +54,12 @@ Finestra «Meteo»
 ```
 
 ```
-[Selezione: Città] valore ──▶ a [Confronta: a ≠ b] risultato ──▶ condizione [Se] allora ──▶ nome [Formatta testo: «Hai scelto {nome}»] testo ──▶ testo [Etichetta: label1]
-[Valore: «— scegli —»] valore ──▶ b [Confronta]
-[Selezione: Città] valore ──▶ valore [Se]
+[Selezione: Città] valore ──▶ a [Confronto (== ≠ < >): a ≠ b] risultato ──▶ condizione [If · Else] allora ──▶ nome [Template (formatta): «Hai scelto {nome}»] testo ──▶ testo [Etichetta: label1]
+[Costante · Variabile: «— scegli —»] valore ──▶ b [Confronto (== ≠ < >)]
+[Selezione: Città] valore ──▶ valore [If · Else]
 ```
 
-Nel [Se](core.if) togli «lo avvia» da **valore**: il Se parte quando arriva la condizione, con l'ultima città scelta. All'apertura si vede «— scegli —». Scegliendo «Roma» l'etichetta dice «Hai scelto Roma»; se l'utente torna a «— scegli —», il [Confronta](core.compare) dà `false` e l'etichetta non cambia.
+Nel blocco [If · Else](core.if) togli «lo avvia» da **valore**: il blocco parte quando arriva la condizione, con l'ultima città scelta. All'apertura si vede «— scegli —». Scegliendo «Roma» l'etichetta dice «Hai scelto Roma»; se l'utente torna a «— scegli —», il blocco [Confronto (== ≠ < >)](core.compare) dà `false` e l'etichetta non cambia.
 
 ### 2. Le opzioni da una cartella
 
@@ -71,12 +71,12 @@ Finestra «Apri»
 ```
 
 ```
-[All'avvio] impulso ──▶ leggi [Elenca cartella: ~/Rapporti  mostra file] nomi ──▶ opzioni [Selezione: Rapporto]
-[Selezione: Rapporto] valore ──▶ nome [Formatta testo: «~/Rapporti/{nome}»] testo ──▶ percorso [Leggi file]
-[Pulsante: Apri] premuto ──▶ leggi [Leggi file]
+[All'avvio (main)] impulso ──▶ leggi [readdir (elenca cartella): ~/Rapporti  mostra file] nomi ──▶ opzioni [Selezione: Rapporto]
+[Selezione: Rapporto] valore ──▶ nome [Template (formatta): «~/Rapporti/{nome}»] testo ──▶ percorso [readFile]
+[Pulsante: Apri] premuto ──▶ leggi [readFile]
 ```
 
-All'avvio la Selezione si riempie con i nomi dei file della cartella. Nel [Leggi file](lilos.fileRead) l'ingresso **percorso** non avvia il blocco (è così di serie): il file si legge quando l'utente preme **Apri**.
+All'avvio la Selezione si riempie con i nomi dei file della cartella. Nel [readFile](lilos.fileRead) l'ingresso **percorso** non avvia il blocco (è così di serie): il file si legge quando l'utente preme **Apri**.
 
 > Attenzione: se l'utente preme **Apri** senza cambiare la Selezione, il percorso non è ancora arrivato (vedi sopra). Per evitarlo, metti in testa alle opzioni un invito, oppure usa un [Elenco](ui.list), che non mostra nessuna scelta finché l'utente non ne fa una.
 
@@ -89,5 +89,5 @@ All'avvio la Selezione si riempie con i nomi dei file della cartella. Nel [Leggi
 ## Vedi anche
 
 - [Pulsanti di opzione](ui.radios), [Elenco](ui.list)
-- [Casi](core.switch)
+- [Switch · Case](core.switch)
 - [Componenti UI standard](logicstudio-ui)

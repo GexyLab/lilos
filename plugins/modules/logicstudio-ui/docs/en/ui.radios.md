@@ -44,7 +44,7 @@ A group of options one under the other, each with its own dot: the user chooses 
 
 In lists, unlike the text with commas, empty items also become options. An object with neither `value` nor `label` becomes an option «undefined».
 
-**The value that comes out is always a text**, even if the options were numbers: with the options `[1, 2, 3]` choosing the second sends `"2"`. If you need a number, use [Convert](core.convert) **To** number.
+**The value that comes out is always a text**, even if the options were numbers: with the options `[1, 2, 3]` choosing the second sends `"2"`. If you need a number, use [Type cast](core.convert) **To** number.
 
 **Choosing.** The user chooses with a click on the dot or on the text; with the keyboard, the **arrow keys** move to the next or previous option **and choose it**: every arrow key press sends a value. Choosing again the option already chosen sends nothing.
 
@@ -65,27 +65,27 @@ Window «Order»
   └ Value           value1   Label «Price:»  Unit «€»  Decimals 2
 ```
 
-Add to the [Cases](core.switch) block the outputs **S**, **M**, **L**, **XL**:
+Add to the [Switch · Case](core.switch) block the outputs **S**, **M**, **L**, **XL**:
 
 ```
-[Option buttons: Size] value ──▶ value [Cases] S  ──▶ send [Value: 9]  value ──▶ value [Value: Price:]
-                                               M  ──▶ send [Value: 10] value ──▶ value
-                                               L  ──▶ send [Value: 11] value ──▶ value
-                                               XL ──▶ send [Value: 12] value ──▶ value
+[Option buttons: Size] value ──▶ value [Switch · Case] S  ──▶ send [Constant · Variable: 9]  value ──▶ value [Value: Price:]
+                                               M  ──▶ send [Constant · Variable: 10] value ──▶ value
+                                               L  ──▶ send [Constant · Variable: 11] value ──▶ value
+                                               XL ──▶ send [Constant · Variable: 12] value ──▶ value
 ```
 
-Choosing **L**, the price becomes «11.00 €». (The price of M is not shown until the user chooses something: to show it at once, turn on **Send at start** for the Value 10.)
+Choosing **L**, the price becomes «11.00 €». (The price of M is not shown until the user chooses something: to show it at once, link an [On start (main)](core.onStart) block also to the **send** input of the block that sends 10.)
 
 ### 2. Options with a code
 
 The schema gives the options at the start, with a code different from the text:
 
 ```
-[Value: JSON] value ──▶ options [Option buttons: Shipping]
-[Option buttons: Shipping] value ──▶ value [Write to console]
+[Constant · Variable: JSON] value ──▶ options [Option buttons: Shipping]
+[Option buttons: Shipping] value ──▶ value [Print (console.log)]
 ```
 
-The [Value](core.value), of type JSON, contains `[{"value":"std","label":"Standard (3-5 days)"},{"value":"exp","label":"Express (24 hours)"}]`. The user sees the two long texts; choosing «Express (24 hours)» the console writes `exp`.
+The [Constant · Variable](core.value), of type JSON, contains `[{"value":"std","label":"Standard (3-5 days)"},{"value":"exp","label":"Express (24 hours)"}]`. The user sees the two long texts; choosing «Express (24 hours)» the console writes `exp`.
 
 ## Accessibility and keyboard
 
@@ -97,5 +97,5 @@ The [Value](core.value), of type JSON, contains `[{"value":"std","label":"Standa
 
 - [Selection](ui.select), for many options in little space
 - [List](ui.list), for a list that is always open
-- [Cases](core.switch), to do different things according to the choice
+- [Switch · Case](core.switch), to do different things according to the choice
 - [Standard UI components](logicstudio-ui)

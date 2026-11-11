@@ -1,4 +1,4 @@
-# Convert
+# Type cast
 
 `core.convert` · Values · [Core blocks](logicstudio-core) · version 1
 
@@ -79,8 +79,8 @@ When the conversion fails, the block sends nothing on **result** and sends the m
 ### 1. A number from a text field
 
 ```
-[Text field: age] text ──▶ value [Convert: To number] result ──▶ a [Compare: a ≥ b]
-                                                      Exception ──▶ value [Write to console]
+[Text field: age] text ──▶ value [Type cast: To number] result ──▶ a [Compare (== != < >): a ≥ b]
+                                                      Exception ──▶ value [Print (console.log)]
 ```
 
 If the user writes `18`, the number 18 arrives and the comparison works as a comparison between numbers. If they write `diciotto`, the console writes `Non è un numero` (with the name of the block).
@@ -88,15 +88,15 @@ If the user writes `18`, the number 18 arrives and the comparison works as a com
 ### 2. Read the content of a JSON file
 
 ```
-[Read file: dati.json] content ──▶ value [Convert: from JSON text] result ──▶ object [Get field: utenti.0.nome]
+[readFile: dati.json] content ──▶ value [Type cast: from JSON text] result ──▶ object [Get property: utenti.0.nome]
 ```
 
-If the file contains `{"utenti":[{"nome":"Ada"}]}`, [Get field](core.get) sends `Ada`.
+If the file contains `{"utenti":[{"nome":"Ada"}]}`, [Get property](core.get) sends `Ada`.
 
 ### 3. Save an object as text
 
 ```
-[Build object] object ──▶ value [Convert: JSON text] result ──▶ content [Write file]
+[Object literal { }] object ──▶ value [Type cast: JSON text] result ──▶ content [writeFile]
 ```
 
 The object `{ nome: "Ada", anni: 36 }` becomes the text `{"nome":"Ada","anni":36}`.
@@ -115,7 +115,7 @@ With **To: yes/no**: `"on"` → yes, `"OFF"` → no, `" no "` → no, `"1"` → 
 
 ## See also
 
-- [Value](core.value) for a fixed value of a chosen type
-- [Format text](core.format) and [Join text](core.concat) to build texts
-- [Text operation](core.text)
+- [Constant · Variable](core.value) for a fixed value of a chosen type
+- [Template string](core.format) and [Concat text](core.concat) to build texts
+- [String functions](core.text)
 - [How a block works](ide/blocks)

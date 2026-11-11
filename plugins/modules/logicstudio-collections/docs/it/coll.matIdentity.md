@@ -1,4 +1,4 @@
-# Identità
+# Identità (eye)
 
 `coll.matIdentity` · Matrici · [Liste e matrici](logicstudio-collections) · versione 1
 
@@ -24,14 +24,14 @@ A ogni valore su **dimensione** il blocco manda la matrice identità di quella m
 - La dimensione deve essere un intero: `2.5` dà «Dimensione: serve un numero intero». `"3"` vale 3, `true` vale 1; `""` e `null` valgono 0 e danno l'errore sotto.
 - Deve essere almeno 1: 0 o un negativo danno «Righe e colonne devono essere interi maggiori di zero».
 - Le celle sono al massimo 100000: la dimensione massima è quindi 316 (316 × 316 = 99856). Con 317 esce «Matrice troppo grande (massimo 100000 celle)».
-- Moltiplicare una matrice quadrata per l'identità della stessa misura ([Moltiplica matrici](coll.matMultiply)) ridà la stessa matrice.
+- Moltiplicare una matrice quadrata per l'identità della stessa misura ([A × B](coll.matMultiply)) ridà la stessa matrice.
 
 ## Esempi
 
 ### 1. 3 × 3
 
 ```
-[Valore: 3] valore ──▶ dimensione [Identità] matrice ──▶ valore [Scrivi in console]
+[Costante · Variabile: 3] valore ──▶ dimensione [Identità (eye)] matrice ──▶ valore [Print (console.log)]
 ```
 
 Scrive `[[1,0,0],[0,1,0],[0,0,1]]`.
@@ -39,15 +39,15 @@ Scrive `[[1,0,0],[0,1,0],[0,0,1]]`.
 ### 2. Una matrice con tutti 5 sulla diagonale
 
 ```
-[Identità: 2] matrice ──▶ matrice [Scala] matrice ──▶ valore [Scrivi in console]
-[Valore: 5]   valore  ──▶ fattore
+[Identità (eye): 2] matrice ──▶ matrice [Scala (k·A)] matrice ──▶ valore [Print (console.log)]
+[Costante · Variabile: 5]   valore  ──▶ fattore
 ```
 
 Con dimensione 2 scrive `[[5,0],[0,5]]`.
 
 ### 3. Il determinante
 
-Il [Determinante](coll.matDet) di un'identità vale sempre 1.
+Il blocco [Det](coll.matDet) di un'identità vale sempre 1.
 
 ## Errori
 
@@ -59,5 +59,5 @@ Il [Determinante](coll.matDet) di un'identità vale sempre 1.
 
 ## Vedi anche
 
-- [Crea matrice](coll.matNew), [Scala](coll.matScale), [Moltiplica matrici](coll.matMultiply), [Determinante](coll.matDet)
+- [Nuova matrice (fill)](coll.matNew), [Scala (k·A)](coll.matScale), [A × B](coll.matMultiply), [Det](coll.matDet)
 - [Come funziona un blocco](ide/blocks)

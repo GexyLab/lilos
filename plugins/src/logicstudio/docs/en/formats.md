@@ -76,7 +76,7 @@ A complete example:
 | `schemas` | The schemas: **name in the project → path** of the file, relative to the project folder and inside `schemi/`. |
 | `windows` | The windows: **name → path**, inside `ui/`. |
 | `main` | The name of the main window, or `null` if the project has no windows. |
-| `links` | The links between schemas: `from` is `"schema:port"` of a **Schema output**, `to` is `"schema:port"` of a **Schema input**. |
+| `links` | The links between schemas: `from` is `"schema:port"` of a **Return**, `to` is `"schema:port"` of a **Parameter**. |
 | `consoles.list` | The consoles: `id` (the main one is always `main`; the others `c1`, `c2`…), `name` (at most 60 characters), `color` (a CSS colour, optional), `keep` (lines kept, from 100 to 2000, default 1000). |
 | `consoles.outside` | Outside the IDE: `all` (Show them all), `onInput` (Only when they ask for something, default), `hidden` (Do not show them), `main` (All in the main console). |
 | `consoles.closeAfterAnswer` | Close the console after the answer (default `true`). |
@@ -103,8 +103,8 @@ A complete example, with a block with a label, a start value, an added port, a S
   "name": "main",
   "blocks": [
     {
-      "id": "value1", "type": "core.value", "v": 1, "x": 40, "y": 60,
-      "config": { "kind": "number", "value": "2", "atStart": true },
+      "id": "value1", "type": "core.value", "v": 2, "x": 40, "y": 60,
+      "config": { "kind": "number", "value": "2" },
       "ports": {}
     },
     {
@@ -280,7 +280,7 @@ Create with a text editor the file `ciao.lsch`:
   "format": "lilos-lsch/1",
   "name": "ciao",
   "blocks": [
-    { "id": "value1", "type": "core.value", "v": 1, "x": 40, "y": 40, "config": { "kind": "text", "value": "Ciao!" } },
+    { "id": "value1", "type": "core.value", "v": 2, "x": 40, "y": 40, "config": { "kind": "text", "value": "Ciao!" } },
     { "id": "consolewrite1", "type": "core.consoleWrite", "v": 1, "x": 260, "y": 40 }
   ],
   "links": [
@@ -289,7 +289,7 @@ Create with a text editor the file `ciao.lsch`:
 }
 ```
 
-Open it with Logic Studio IDE: it is a schema alone. Press **Test**: the console writes `Ciao!`. The engine gives the missing settings their default value (for the Value, **Send at start** on). Careful: the **Properties** of the IDE show empty, or unticked, the settings that are missing in the file, even if the engine uses the default value. The fields `ports`, `config`, `notes` and `view` are written the first time you save a change.
+Open it with Logic Studio IDE: it is a schema alone. Press **Test**: the console writes `Ciao!`. The engine gives the missing settings their default value (for the Constant · Variable block, nothing linked to **send**: it sends the value at start). Careful: the **Properties** of the IDE show empty, or unticked, the settings that are missing in the file, even if the engine uses the default value. The fields `ports`, `config`, `notes` and `view` are written the first time you save a change.
 
 ### 2. Adding a translation
 

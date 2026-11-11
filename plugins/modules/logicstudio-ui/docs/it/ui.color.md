@@ -46,7 +46,7 @@ I sette colori, sempre gli stessi:
 - Con la tastiera, le **frecce** passano al colore successivo o precedente **e lo scelgono**: ogni pressione manda un codice. Dall'ultimo si torna al primo.
 - Non si possono scegliere altri colori: solo i sette della tabella.
 - **Dallo schema**, **colore** sceglie il quadratino con quel codice esatto. `#2A78D6` (maiuscole), `blue` o `rgb(…)` non corrispondono a nessuno: nessun quadratino risulta scelto.
-- **All'apertura** il programma non riceve il colore iniziale: se lo schema deve conoscerlo, dagli lo stesso codice con un blocco [Valore](core.value).
+- **All'apertura** il programma non riceve il colore iniziale: se lo schema deve conoscerlo, dagli lo stesso codice con un blocco [Costante · Variabile](core.value).
 
 ## Esempi
 
@@ -61,22 +61,22 @@ Finestra «Nota»
 ```
 
 ```
-[Valore: «#eda100»]       valore ──▶ colore [Componi oggetto] oggetto ──▶ contenuto [Scrivi file: ~/nota.json  JSON]
+[Costante · Variabile: «#eda100»]       valore ──▶ colore [Oggetto { }] oggetto ──▶ contenuto [writeFile: ~/nota.json  JSON]
 [Campo di testo: Titolo]  testo  ──▶ titolo
 [Colore: Colore]          colore ──▶ colore
 [Pulsante: Salva]         premuto ──▶ salva
 ```
 
-Nel [Componi oggetto](core.compose) i campi **colore** e **titolo** non avviano il blocco; **salva** sì. Il [Valore](core.value) iniziale dà al campo **colore** lo stesso giallo che si vede all'apertura. Premendo **Salva** il file contiene, per esempio, `{"colore":"#e34948","titolo":"Spesa","salva":true}`.
+Nel blocco [Oggetto { }](core.compose) i campi **colore** e **titolo** non avviano il blocco; **salva** sì. Il blocco [Costante · Variabile](core.value) iniziale dà al campo **colore** lo stesso giallo che si vede all'apertura. Premendo **Salva** il file contiene, per esempio, `{"colore":"#e34948","titolo":"Spesa","salva":true}`.
 
 ### 2. Una priorità a colori
 
 ```
-[Colore: Priorità] colore ──▶ valore [Casi] #e34948    ──▶ invia [Valore: «Urgente»]  valore ──▶ testo [Etichetta: label1]
-                                            altrimenti ──▶ invia [Valore: «Normale»]  valore ──▶ testo [Etichetta: label1]
+[Colore: Priorità] colore ──▶ valore [Switch · Case] #e34948    ──▶ invia [Costante · Variabile: «Urgente»]  valore ──▶ testo [Etichetta: label1]
+                                            altrimenti ──▶ invia [Costante · Variabile: «Normale»]  valore ──▶ testo [Etichetta: label1]
 ```
 
-Aggiungi al [Casi](core.switch) un'uscita chiamata `#e34948`, uguale al codice del rosso. Scegliendo il rosso l'etichetta dice «Urgente»; con qualsiasi altro colore dice «Normale». I due [Valori](core.value) hanno **Invia all'avvio** spento.
+Aggiungi al blocco [Switch · Case](core.switch) un'uscita chiamata `#e34948`, uguale al codice del rosso. Scegliendo il rosso l'etichetta dice «Urgente»; con qualsiasi altro colore dice «Normale». I due blocchi [Costante · Variabile](core.value) hanno l'ingresso **invia** collegato, quindi mandano il testo solo quando cambia il colore.
 
 ## Accessibilità e tastiera
 

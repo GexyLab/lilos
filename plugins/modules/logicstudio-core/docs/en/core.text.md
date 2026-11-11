@@ -1,4 +1,4 @@
-# Text operation
+# String functions
 
 `core.text` · Text · [Core blocks](logicstudio-core) · version 1
 
@@ -52,14 +52,14 @@ Details of each operation:
 - **replace** with **Find** empty puts **Replace with** between every letter: with Replace with `-`, `abc` → `a-b-c`.
 - **Find** and **Replace with** are written in a one-line field: you cannot look for a new line.
 
-To ignore upper case in **contains** or in a [Compare](core.compare), first put a Text operation with **lower case** and write **Find** in lower case.
+To ignore upper case in **contains** or in a [Compare (== != < >)](core.compare), first put a [String functions](core.text) block with **lower case** and write **Find** in lower case.
 
 ## Examples
 
 ### 1. Clean up what the user writes
 
 ```
-[Text field: code] text ──▶ text [Text operation: trim spaces] result ──▶ text [Text operation: UPPER CASE] result ──▶ value [Write to console]
+[Text field: code] text ──▶ text [String functions: trim spaces] result ──▶ text [String functions: UPPER CASE] result ──▶ value [Print (console.log)]
 ```
 
 `"  ab123 "` → `"ab123"` → `"AB123"`.
@@ -69,7 +69,7 @@ To ignore upper case in **contains** or in a [Compare](core.compare), first put 
 Operation **contains**, Find `errore`:
 
 ```
-[Read file: log.txt] content ──▶ text [Text operation: contains] result ──▶ condition [If]
+[readFile: log.txt] content ──▶ text [String functions: contains] result ──▶ condition [If · Else]
 ```
 
 If the file contains `... errore di rete ...` the result is **yes**; if it contains `Errore` (with the capital), it is **no**.
@@ -77,14 +77,14 @@ If the file contains `... errore di rete ...` the result is **yes**; if it conta
 ### 3. A number with a comma
 
 ```
-[Calculate: round, 2 decimals] result ──▶ text [Text operation: replace] result ──▶ text [Label: price]
+[Math functions: round, 2 decimals] result ──▶ text [String functions: replace] result ──▶ text [Label: price]
 ```
 
 Find `.`, Replace with `,`: the number 12.75 arrives as `12.75` and becomes `12,75`.
 
 ### 4. Minimum length of a password
 
-Operation **length**, then a [Compare](core.compare) `a ≥ b` with **b** = 8: `segreto` (7) → **no**; `segreto1` (8) → **yes**.
+Operation **length**, then a [Compare (== != < >)](core.compare) `a ≥ b` with **b** = 8: `segreto` (7) → **no**; `segreto1` (8) → **yes**.
 
 ## Errors
 
@@ -92,8 +92,8 @@ This block has no errors of its own.
 
 ## See also
 
-- [Format text](core.format) and [Join text](core.concat) to build texts
-- [Split text](coll.split) to break a text into a list
-- [Cases](core.switch) to recognize a text among many
-- [Convert](core.convert) to turn a text into a number
+- [Template string](core.format) and [Concat text](core.concat) to build texts
+- [Split](coll.split) to break a text into a list
+- [Switch · Case](core.switch) to recognize a text among many
+- [Type cast](core.convert) to turn a text into a number
 - [How a block works](ide/blocks)

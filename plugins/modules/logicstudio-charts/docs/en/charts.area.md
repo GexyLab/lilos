@@ -61,7 +61,7 @@ Window "Consumption"
 ```
 
 ```
-[Value (JSON): {"Jan": {"Water": 30, "Fertiliser": 10, "Energy": 25}, "Feb": {"Water": 28, "Fertiliser": 12, "Energy": 22}, "Mar": {"Water": 35, "Fertiliser": 15, "Energy": 18}}] value ──▶ data [Areas: Consumption]
+[Constant · Variable (JSON): {"Jan": {"Water": 30, "Fertiliser": 10, "Energy": 25}, "Feb": {"Water": 28, "Fertiliser": 12, "Energy": 22}, "Mar": {"Water": 35, "Fertiliser": 15, "Energy": 18}}] value ──▶ data [Areas: Consumption]
 ```
 
 Three bands one on top of the other; the top in January is 65 €, in February 62 €, in March 68 €. The box on "Feb" says "Water 28 €", "Fertiliser 12 €", "Energy 22 €".
@@ -73,7 +73,7 @@ Change **Stacking** to `percent`: every month reaches 100. In January water take
 ### 3. Two measures that grow, one point at a time
 
 ```
-[Every…: 60 s] pulse ──▶ read [Read file: ~/meters.json, JSON] content ──▶ add point [Areas: Litres]
+[Interval (setInterval): 60 s] pulse ──▶ read [readFile: ~/meters.json, JSON] content ──▶ add point [Areas: Litres]
 ```
 
 Each time the file contains an object like `{"Well": 120, "Mains": 45}`: at every reading the two series receive one point each, at the next x (0, 1, 2...). To have the time on the axis, write the date in the file too: `{"x": "2026-11-11T10:00:00Z", "Well": 120, "Mains": 45}`.

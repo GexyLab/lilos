@@ -1,4 +1,4 @@
-# Elemento
+# Leggi lista[i]
 
 `coll.get` · Liste · [Liste e matrici](logicstudio-collections) · versione 1
 
@@ -49,26 +49,26 @@ Altri casi:
 ### 1. Il secondo elemento
 
 ```
-[Valore (JSON): [10,20,30]] valore ──▶ lista  [Elemento] elemento ──▶ valore [Scrivi in console]
-[Valore: 1]                 valore ──▶ indice
+[Costante · Variabile (JSON): [10,20,30]] valore ──▶ lista  [Leggi lista[i]] elemento ──▶ valore [Print (console.log)]
+[Costante · Variabile: 1]                 valore ──▶ indice
 ```
 
-Scrive `20` (l'indice 1 è il secondo elemento). Se nel Valore metti `3` invece di `1`, nella console principale compare «Elemento: Indice fuori dalla lista».
+Scrive `20` (l'indice 1 è il secondo elemento). Se nel blocco Costante · Variabile metti `3` invece di `1`, nella console principale compare «Leggi lista[i]: Indice fuori dalla lista».
 
 ### 2. L'ultimo elemento, qualunque sia la lunghezza
 
 Dai all'ingresso **indice** il valore iniziale `-1` (nelle Proprietà del blocco):
 
 ```
-[Accumula] lista ──▶ lista [Elemento (indice iniziale -1)] elemento ──▶ valore [Valore mostrato: ultima lettura]
+[Accumula (push con limite)] lista ──▶ lista [Leggi lista[i] (indice iniziale -1)] elemento ──▶ valore [Valore mostrato: ultima lettura]
 ```
 
-Ogni volta che [Accumula](coll.accumulate) manda la lista aggiornata, il blocco manda l'ultimo valore aggiunto.
+Ogni volta che [Accumula (push con limite)](coll.accumulate) manda la lista aggiornata, il blocco manda l'ultimo valore aggiunto.
 
 ### 3. Una voce scelta da un elenco
 
 ```
-[Valore (JSON): ["Lunedì","Martedì","Mercoledì"]] valore ──▶ lista  [Elemento] elemento ──▶ valore [Valore mostrato]
+[Costante · Variabile (JSON): ["Lunedì","Martedì","Mercoledì"]] valore ──▶ lista  [Leggi lista[i]] elemento ──▶ valore [Valore mostrato]
 [Campo numerico: giorno]                          valore ──▶ indice
 ```
 
@@ -84,8 +84,8 @@ Con 0 nel [Campo numerico](ui.number) si vede «Lunedì», con 2 «Mercoledì»,
 
 ## Vedi anche
 
-- [Imposta elemento](coll.set), [Rimuovi in posizione](coll.removeAt), [Porzione](coll.slice)
-- [Contiene · Posizione](coll.contains) per trovare l'indice di un valore
-- [Prendi campo](core.get) per un campo di un oggetto
-- [Leggi cella](coll.matGet) per una matrice
+- [Scrivi lista[i]](coll.set), [Rimuovi (splice)](coll.removeAt), [Slice](coll.slice)
+- [Includes · IndexOf](coll.contains) per trovare l'indice di un valore
+- [Get proprietà (obj.campo)](core.get) per un campo di un oggetto
+- [Leggi m[r][c]](coll.matGet) per una matrice
 - [Come funziona un blocco](ide/blocks)

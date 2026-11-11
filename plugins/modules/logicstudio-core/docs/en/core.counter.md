@@ -1,4 +1,4 @@
-# Counter
+# Counter (++ −−)
 
 `core.counter` · Math · [Core blocks](logicstudio-core) · version 1
 
@@ -41,8 +41,8 @@ At every pulse the block changes the count and sends it on **count**:
 Things to know:
 
 - All that matters is **that** something arrives, not **what**: even `false` or `0` on **up** make the count go up.
-- There is no limit: the count can go below zero and up as far as you like. To keep it between two values, put a [Limit](core.clamp) after it (which, however, limits only what comes out, not the internal count).
-- With a **Step** with decimals, small gaps build up: starting from 10 with step 0.1, after four **up** the count is 10.399999999999999. Round with [Calculate](core.math) before showing it.
+- There is no limit: the count can go below zero and up as far as you like. To keep it between two values, put a [Clamp](core.clamp) after it (which, however, limits only what comes out, not the internal count).
+- With a **Step** with decimals, small gaps build up: starting from 10 with step 0.1, after four **up** the count is 10.399999999999999. Round with [Math functions](core.math) before showing it.
 - With a negative **Step**, **up** makes it go down and **down** makes it go up.
 - If you leave the **Step** empty, it is 0 (the count does not change). If you leave **Start from** empty, at the beginning the count is empty and the first **up** gives the Step.
 - The count starts again from **Start from** at every start of the program: it is not saved.
@@ -53,7 +53,7 @@ Things to know:
 ### 1. Count the clicks
 
 ```
-[Button: +1]    pressed ──▶ up    [Counter] count ──▶ value [Value: clicks]
+[Button: +1]    pressed ──▶ up    [Counter (++ −−)] count ──▶ value [Value: clicks]
 [Button: −1]    pressed ──▶ down
 [Button: Reset] pressed ──▶ reset
 ```
@@ -62,7 +62,7 @@ Three clicks on **+1**: the [Value](ui.value) component shows 1, 2, 3. One click
 
 ### 2. A countdown
 
-Step 1, Start from 10. Link [Every…](core.every) (1 second) to **down**: the block sends 9, 8, 7… one number a second, and goes on below zero (−1, −2…). To stop it at 0, use a [Compare](core.compare) `a ≤ b` with **b** = 0 and send the result, flipped with [NOT](core.not), to the **on** input of Every….
+Step 1, Start from 10. Link [Interval (setInterval)](core.every) (1 second) to **down**: the block sends 9, 8, 7… one number a second, and goes on below zero (−1, −2…). To stop it at 0, use a [Compare (== != < >)](core.compare) `a ≤ b` with **b** = 0 and send the result, flipped with [NOT](core.not), to the **on** input of Every….
 
 ### 3. An index that moves by 5
 
@@ -74,8 +74,8 @@ This block has no errors of its own.
 
 ## See also
 
-- [Edge](core.edge) to count the changes of a yes/no
-- [Memory](core.store) to keep any value
-- [Add](core.add) to add numbers that arrive
+- [On change (edge)](core.edge) to count the changes of a yes/no
+- [Store (set · get)](core.store) to keep any value
+- [Add (+)](core.add) to add numbers that arrive
 - [Range](coll.range) for a list of numbers in a row
 - [How a block works](ide/blocks)

@@ -77,11 +77,11 @@ I limiti dei progetti si controllano **quando il programma parte**: se il proget
 | Programmi attivi di tutti | lilOS ha già 200 programmi attivi: al massimo 200 | Il programma non parte |
 | Memoria per tutti | Logic Studio usa già 960 MB: al massimo 1024 MB per tutti | Il programma parte e si ferma subito, **Fermo per un errore**. Succede solo quando il tuo worker deve aprirsi (non hai altri programmi in esecuzione) |
 | Esecuzioni in 10 secondi | Troppe esecuzioni: più di 10000 in 10 secondi (un ciclo di collegamenti?) | Il programma si ferma, **Fermo per un errore** |
-| Tempo massimo di un blocco | Leggi file ha impiegato più di 30 s | Il messaggio esce dall'uscita **Eccezione** del blocco (il nome è quello del blocco); il programma va avanti |
+| Tempo massimo di un blocco | readFile ha impiegato più di 30 s | Il messaggio esce dall'uscita **Eccezione** del blocco (il nome è quello del blocco); il programma va avanti |
 | Durata di una prova | Fine della prova: è durata il tempo massimo | La prova si ferma (**Fermo**) |
 | Blocchi per schema | Troppi blocchi nello schema principale: al massimo 200 | Il programma non parte |
 | Collegamenti per schema | Troppi collegamenti nello schema principale: al massimo 600 | Il programma non parte |
-| Porte aggiunte | principale/b7: troppe porte aggiunte (al massimo 16) | Il programma non parte. Il massimo è il più piccolo tra questo limite e quello del blocco (per esempio 16 per la Somma) |
+| Porte aggiunte | principale/b7: troppe porte aggiunte (al massimo 16) | Il programma non parte. Il massimo è il più piccolo tra questo limite e quello del blocco (per esempio 16 per il blocco Somma (+)) |
 | Schemi | Troppi schemi: al massimo 20 per progetto | Il programma non parte |
 | Finestre | Troppe finestre: al massimo 10 per progetto | Il programma non parte |
 | Componenti | Troppe componenti nella finestra main: al massimo 200 | Il programma non parte. Contano tutte le componenti, anche i contenitori |
@@ -94,10 +94,10 @@ Nei messaggi, al posto di «principale», «b7» e «main» c'è il nome del tuo
 
 ### Il tempo massimo di un blocco, da vicino
 
-- Conta il tempo dall'inizio alla fine del lavoro del blocco, **comprese le attese**: una [Richiesta web](net.request) lenta, un file grande, una domanda in console.
-- Per questo vale anche per [Leggi da console](core.consoleRead): oggi, se nessuno risponde entro 30 secondi (di serie), il blocco manda «Leggi da console ha impiegato più di 30 s» su **Eccezione** e la risposta data dopo non gli arriva più.
+- Conta il tempo dall'inizio alla fine del lavoro del blocco, **comprese le attese**: una [HTTP (fetch)](net.request) lenta, un file grande, una domanda in console.
+- Per questo vale anche per [Input (readline)](core.consoleRead): oggi, se nessuno risponde entro 30 secondi (di serie), il blocco manda «Input (readline) ha impiegato più di 30 s» su **Eccezione** e la risposta data dopo non gli arriva più.
 - Vale anche per quello che un blocco fa all'avvio del programma.
-- Non vale per l'attesa dei blocchi del tempo come [Aspetta](core.delay) o [Ogni…](core.every): quelli non lavorano mentre aspettano.
+- Non vale per l'attesa dei blocchi del tempo come [Ritardo (setTimeout)](core.delay) o [Intervallo (setInterval)](core.every): quelli non lavorano mentre aspettano.
 
 ## Altri limiti fissi
 
@@ -154,21 +154,21 @@ Marta tiene sei progetti di domotica sempre accesi e ne vuole dieci in più. L'a
 
 ### 2. Un blocco che chiama un servizio lento
 
-Un progetto fa una [Richiesta web](net.request) a un servizio che a volte impiega 45 secondi. Ci sono due tempi massimi, e vale il più corto:
+Un progetto fa una [HTTP (fetch)](net.request) a un servizio che a volte impiega 45 secondi. Ci sono due tempi massimi, e vale il più corto:
 
 - quello della richiesta, nelle impostazioni del modulo `logicstudio-net` (**Tempo massimo di una richiesta**, 20 secondi di serie): dopo 20 secondi il blocco manda su **Eccezione** «Nessuna risposta da … in 20 secondi»;
-- quello di ogni blocco, qui (**Tempo massimo di un blocco**, 30 secondi di serie): «Richiesta web ha impiegato più di 30 s».
+- quello di ogni blocco, qui (**Tempo massimo di un blocco**, 30 secondi di serie): «HTTP (fetch) ha impiegato più di 30 s».
 
 Per aspettare 45 secondi, l'amministratore porta il primo a 60 secondi (nelle impostazioni del modulo) e il secondo a 60 secondi (scheda **Limiti**); poi tu attivi di nuovo il progetto, perché il tempo di un blocco vale per i programmi che partono dopo. Oppure colleghi **Eccezione** a un blocco che riprova più tardi.
 
 ### 3. Una console troppo chiacchierona
 
 ```
-[Intervallo: da 1 a 200] risultato ──▶ lista  [Per ogni elemento] elemento ──▶ valore [Scrivi in console]
-[Ogni…: 5 s]             impulso   ──▶ avvia
+[Range: da 1 a 200] risultato ──▶ lista  [For each] elemento ──▶ valore [Print (console.log)]
+[Intervallo (setInterval): 5 s]             impulso   ──▶ avvia
 ```
 
-Dai a **da** e **a** dell'[Intervallo](coll.range) i valori iniziali 1 e 200. Ogni 5 secondi [Per ogni elemento](coll.forEach) manda 200 valori di fila, ma la console ne mostra solo i primi 50 di quel secondo. Alla riga scritta 5 secondi dopo compare prima l'avviso «… 150 righe non mostrate (troppe al secondo)». Il programma non si ferma. Se ti servono tutti i valori, scrivili in un file con [Aggiungi a file](lilos.fileAppend), oppure mostra solo uno ogni tanto con [Al massimo ogni](core.throttle).
+Dai a **da** e **a** del blocco [Range](coll.range) i valori iniziali 1 e 200. Ogni 5 secondi [For each](coll.forEach) manda 200 valori di fila, ma la console ne mostra solo i primi 50 di quel secondo. Alla riga scritta 5 secondi dopo compare prima l'avviso «… 150 righe non mostrate (troppe al secondo)». Il programma non si ferma. Se ti servono tutti i valori, scrivili in un file con [appendFile](lilos.fileAppend), oppure mostra solo uno ogni tanto con [Throttle](core.throttle).
 
 ## Vedi anche
 

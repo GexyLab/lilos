@@ -4,7 +4,7 @@ La documentazione di Logic Studio si legge dentro l'IDE, nella finestra **Docume
 
 - la **guida dell'IDE** (questa), che parte dalla [panoramica](ide/index);
 - una pagina per ogni **pacchetto**, con l'elenco dei suoi blocchi o delle sue componenti (per esempio [Blocchi di base](logicstudio-core)), e le pagine del [motore](logicstudio-engine);
-- una pagina per ogni **blocco** e ogni **componente**, con porte, impostazioni, come funziona ed esempi (per esempio [Somma](core.add) o [Pulsante](ui.button)).
+- una pagina per ogni **blocco** e ogni **componente**, con porte, impostazioni, come funziona ed esempi (per esempio [Somma (+)](core.add) o [Pulsante](ui.button)).
 
 ## Come si apre
 

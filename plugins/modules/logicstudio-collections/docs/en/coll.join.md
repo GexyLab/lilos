@@ -1,4 +1,4 @@
-# Join into text
+# Join
 
 `coll.join` · Lists · [Lists and matrices](logicstudio-collections) · version 1
 
@@ -46,7 +46,7 @@ How the items become text:
 ### 1. With the default separator
 
 ```
-[Value (JSON): ["Anna","Bruno","Carla"]] value ──▶ list [Join into text] text ──▶ value [Write to console]
+[Constant · Variable (JSON): ["Anna","Bruno","Carla"]] value ──▶ list [Join] text ──▶ value [Print (console.log)]
 ```
 
 It writes `Anna, Bruno, Carla`.
@@ -60,7 +60,7 @@ The list `[1, null, true, {"a":1}, [2,3]]` gives `1, , true, {"a":1}, [2,3]` (th
 With the **Separator** `\n`:
 
 ```
-[Filter] result ──▶ list [Join into text: \n] text ──▶ value [Write to console]
+[Filter] result ──▶ list [Join: \n] text ──▶ value [Print (console.log)]
 ```
 
 The console writes one item per line, in a single write.
@@ -73,7 +73,7 @@ The console writes one item per line, in a single write.
 
 ## See also
 
-- [Split text](coll.split), the opposite of this block
-- [Join text](core.concat), [Format text](core.format)
+- [Split](coll.split), the opposite of this block
+- [Concat text](core.concat), [Template string](core.format)
 - [Map field](coll.pluck) to join only one field of each object
 - [How a block works](ide/blocks)

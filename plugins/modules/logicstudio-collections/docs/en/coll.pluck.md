@@ -31,7 +31,7 @@ How to write the field:
 
 - `nome` takes the field `nome` of the object;
 - `indirizzo.città` takes the field `città` inside the field `indirizzo` (each dot goes down one level);
-- a number takes an item of a list: `1` on the list of rows `[[1,2],[3,4]]` gives `[2,4]` (the second column). For matrices there is also [Get column](coll.matCol);
+- a number takes an item of a list: `1` on the list of rows `[[1,2],[3,4]]` gives `[2,4]` (the second column). For matrices there is also [Column m[][c]](coll.matCol);
 - there is no way to give a field that has a dot in its name.
 
 Cases to know:
@@ -46,7 +46,7 @@ Cases to know:
 ### 1. The names
 
 ```
-[Value (JSON): [{"nome":"Anna","età":31},{"nome":"Bruno","età":27}]] value ──▶ list [Map field: nome] result ──▶ value [Write to console]
+[Constant · Variable (JSON): [{"nome":"Anna","età":31},{"nome":"Bruno","età":27}]] value ──▶ list [Map field: nome] result ──▶ value [Print (console.log)]
 ```
 
 It writes `["Anna","Bruno"]`. With **Field** `età`: `[31,27]`.
@@ -58,15 +58,15 @@ On the list `[{"a":{"c":3}}, 5, null, {"a":{}}]` the field `a.c` gives `[3, null
 ### 3. The average of the prices
 
 ```
-[Value (JSON): [{"p":2},{"p":4},{"p":9}]] value ──▶ list [Map field: p] result ──▶ list [Sum · Min · Max · Average: average] result ──▶ value [Value]
+[Constant · Variable (JSON): [{"p":2},{"p":4},{"p":9}]] value ──▶ list [Map field: p] result ──▶ list [Sum · Min · Max · Avg: average] result ──▶ value [Value]
 ```
 
-It shows 5. You get the same result without Map field too, by putting **Field** `p` directly in the [Sum · Min · Max · Average](coll.stat) block.
+It shows 5. You get the same result without Map field too, by putting **Field** `p` directly in the [Sum · Min · Max · Avg](coll.stat) block.
 
 ### 4. Text from a list of objects
 
 ```
-[Filter] result ──▶ list [Map field: nome] result ──▶ list [Join into text] text ──▶ text [Button]
+[Filter] result ──▶ list [Map field: nome] result ──▶ list [Join] text ──▶ text [Button]
 ```
 
 The [Button](ui.button) shows for example «Penna, Quaderno».
@@ -80,7 +80,7 @@ The [Button](ui.button) shows for example «Penna, Quaderno».
 
 ## See also
 
-- [Get field](core.get) for a field of a single object
-- [Filter](coll.filter), [Sort](coll.sort), [Unique](coll.unique) (they also have a **Field**)
-- [Get column](coll.matCol)
+- [Get property](core.get) for a field of a single object
+- [Filter](coll.filter), [Sort](coll.sort), [Distinct](coll.unique) (they also have a **Field**)
+- [Column m[][c]](coll.matCol)
 - [How a block works](ide/blocks)

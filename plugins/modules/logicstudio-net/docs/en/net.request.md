@@ -1,8 +1,8 @@
-# Web request
+# HTTP request (fetch)
 
 `net.request` · Network · [Network blocks](logicstudio-net) · version 1
 
-Makes an HTTP or HTTPS request to a site or a service (an API) and sends the response: the content, the status and the headers. With [Every…](core.every) linked to **send** you can ask for a piece of data every now and then, for example the weather every 10 minutes.
+Makes an HTTP or HTTPS request to a site or a service (an API) and sends the response: the content, the status and the headers. With [Interval (setInterval)](core.every) linked to **send** you can ask for a piece of data every now and then, for example the weather every 10 minutes.
 
 ## Inputs
 
@@ -73,7 +73,7 @@ When a value arrives on **send**:
 
 ### The response
 
-- HTTP error statuses (**404**, **500**...) are **not** errors of the block: they come out normally on **status**, **headers** and **response**. If you only care about a successful response, check **status** (for example with [Compare](core.compare): 200).
+- HTTP error statuses (**404**, **500**...) are **not** errors of the block: they come out normally on **status**, **headers** and **response**. If you only care about a successful response, check **status** (for example with [Compare (== != < >)](core.compare): 200).
 - **Automatic response**: if the server says the content is JSON (`Content-Type` like `application/json` or `…+json`), the JSON value comes out; if the JSON is not valid, or the server does not say JSON, the text comes out. An empty response comes out as empty text.
 - **JSON response**: the content is always read as JSON; empty gives `null`; an invalid JSON gives the error "La risposta non è JSON valido" ("The response is not valid JSON").
 - **Text response**: the text always comes out, even if it is JSON.
@@ -109,12 +109,12 @@ The request starts from the kernel, that is the computer lilOS runs on. To keep 
 
 - The settings of the module are changed by an administrator and apply at once, from the next request.
 - **Every** request counts in the network quota per minute, and every redirect counts as one more request. The quota belongs to the user: it applies to all their programs together, tests included.
-- If the time limit of a request is longer than the maximum time of a block, the block is the first to stop, with "Richiesta web ha impiegato più di 30 s" ("Web request took more than 30 s").
+- If the time limit of a request is longer than the maximum time of a block, the block is the first to stop, with "HTTP (fetch) ha impiegato più di 30 s" ("HTTP request (fetch) took more than 30 s").
 - When the program stops, the requests in progress stop too.
 
 ### One request at a time
 
-Like every block, the Web request handles the values one at a time: if another **send** arrives while a request is in progress, it waits its turn and starts after. If the pulses arrive faster than the requests last, they pile up. Use a calm pace, or more blocks for different addresses.
+Like every block, HTTP request (fetch) handles the values one at a time: if another **send** arrives while a request is in progress, it waits its turn and starts after. If the pulses arrive faster than the requests last, they pile up. Use a calm pace, or more blocks for different addresses.
 
 ## Examples
 
@@ -123,18 +123,18 @@ Like every block, the Web request handles the values one at a time: if another *
 Settings: **Method** GET, **Address (URL)** `https://api.open-meteo.com/v1/forecast?latitude=45.46&longitude=9.19&current=temperature_2m`.
 
 ```
-[Every… 600 s] pulse ──▶ send [Web request] response ──▶ object [Get field: current.temperature_2m] value ──▶ value [Write to console]
-                                             Exception ──▶ value [Write to console: error]
+[Interval (setInterval): 600 s] pulse ──▶ send [HTTP request (fetch)] response ──▶ object [Get property: current.temperature_2m] value ──▶ value [Print (console.log)]
+                                             Exception ──▶ value [Print (console.log): error]
 ```
 
-The server answers with `Content-Type: application/json`, so **response** is already an object, for example `{ "current": { "temperature_2m": 12.4, … }, … }`. [Get field](core.get) sends `12.4`. If the network is down, the console writes for example "Indirizzo non trovato: api.open-meteo.com" ("Address not found: api.open-meteo.com").
+The server answers with `Content-Type: application/json`, so **response** is already an object, for example `{ "current": { "temperature_2m": 12.4, … }, … }`. [Get property](core.get) sends `12.4`. If the network is down, the console writes for example "Indirizzo non trovato: api.open-meteo.com" ("Address not found: api.open-meteo.com").
 
 ### 2. A search with a parameter
 
 Add an input and rename it `q`. **Address (URL)**: `https://example.com/api/search`.
 
 ```
-[Text field: search] text ──▶ q    [Web request] response ──▶ rows [Table]
+[Text field: search] text ──▶ q    [HTTP request (fetch)] response ──▶ rows [Table]
 [Button: Search]   pressed ──▶ send
 ```
 
@@ -145,20 +145,20 @@ The user writes `coffee and milk` and presses the [Button](ui.button): the reque
 Settings: **Method** POST, **Address (URL)** `https://example.com/api/measures`, **Headers (JSON)** `{"Authorization": "Bearer abc123"}`.
 
 ```
-[Build object] object ──▶ body [Web request] status ──▶ a [Compare: a = b] if false ──▶ send [Notification: "Sending failed"]
-[Button: Send] pressed ──▶ send                    [Value: 201] value ──▶ b
+[Object literal { }] object ──▶ body [HTTP request (fetch)] status ──▶ a [Compare (== != < >): a = b] if false ──▶ send [Notify: "Sending failed"]
+[Button: Send] pressed ──▶ send                    [Constant · Variable: 201] value ──▶ b
 ```
 
-[Build object](core.compose) prepares `{ "sensor": "greenhouse", "temp": 22.5 }`, which goes out as JSON with `Content-Type: application/json`. If the server answers with a status other than 201 (for example 401 if the key is wrong), you receive a [Notification](lilos.notify). Remember: a 401 does not go to **Exception**.
+[Object literal { }](core.compose) prepares `{ "sensor": "greenhouse", "temp": 22.5 }`, which goes out as JSON with `Content-Type: application/json`. If the server answers with a status other than 201 (for example 401 if the key is wrong), you receive a [Notify](lilos.notify). Remember: a 401 does not go to **Exception**.
 
 ### 4. An address that changes
 
 ```
-[Selection: country] value ──▶ a [Format text: "https://example.com/countries/{a}.json"] text ──▶ address (URL) [Web request]
-                                                                                       text ──▶ value [Wait: 0.1 s] value ──▶ send
+[Selection: country] value ──▶ a [Template string: "https://example.com/countries/{a}.json"] text ──▶ address (URL) [HTTP request (fetch)]
+                                                                                       text ──▶ value [Delay (setTimeout): 0.1 s] value ──▶ send
 ```
 
-Every time the user chooses a country in the [Selection](ui.select) (for example `IT`), [Format text](core.format) prepares the address `https://example.com/countries/IT.json`. Since **address (URL)** does not start the block, the request starts with **send**: here the same text goes through [Wait](core.delay), so **send** arrives a moment after the address and the request always uses the new one. If **send** arrived before **address (URL)** has a value, the block would use the **Address** in the settings.
+Every time the user chooses a country in the [Selection](ui.select) (for example `IT`), [Template string](core.format) prepares the address `https://example.com/countries/IT.json`. Since **address (URL)** does not start the block, the request starts with **send**: here the same text goes through [Delay (setTimeout)](core.delay), so **send** arrives a moment after the address and the request always uses the new one. If **send** arrived before **address (URL)** has a value, the block would use the **Address** in the settings.
 
 ## Errors
 
@@ -192,18 +192,18 @@ The messages are in Italian, as users see them; the English meaning is in parent
 | La risposta non è JSON valido ("The response is not valid JSON") | **Response** JSON and the content is not JSON. |
 | Richiesta a … non riuscita: … ("Request to … failed: …") | Other network problems, with the technical explanation. |
 | Troppe richieste di rete: hai finito la quota di questo minuto ("Too many network requests: you have used up the quota of this minute") | You went over the requests per minute of your quota. |
-| Richiesta web ha impiegato più di 30 s ("Web request took more than 30 s") | The request went over the maximum time of a block. |
+| HTTP (fetch) ha impiegato più di 30 s ("HTTP request (fetch) took more than 30 s") | The request went over the maximum time of a block. |
 | Il programma non è in esecuzione ("The program is not running") | The program was stopping. |
 
 ## Permissions
 
-The request starts from the computer lilOS runs on, on behalf of the user who owns the program, and counts in their quota. An app made with **Make app** that contains a Web request, before starting, asks you for permission to "make requests on the internet". See [Permissions](logicstudio-engine/permissions).
+The request starts from the computer lilOS runs on, on behalf of the user who owns the program, and counts in their quota. An app made with **Make app** that contains an HTTP request (fetch) block, before starting, asks you for permission to "make requests on the internet". See [Permissions](logicstudio-engine/permissions).
 
 ## See also
 
-- [Every…](core.every), for requests at intervals
-- [Get field](core.get), to read a field of the response
-- [Build object](core.compose), to prepare a JSON body
-- [Format text](core.format), to build an address
-- [Append to file](lilos.fileAppend), to keep a log of the responses
+- [Interval (setInterval)](core.every), for requests at intervals
+- [Get property](core.get), to read a field of the response
+- [Object literal { }](core.compose), to prepare a JSON body
+- [Template string](core.format), to build an address
+- [appendFile](lilos.fileAppend), to keep a log of the responses
 - [Limits](logicstudio-engine/limits), [How a block works](ide/blocks)

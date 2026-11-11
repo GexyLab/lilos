@@ -1,4 +1,4 @@
-# Join text
+# Concat text
 
 `core.concat` · Text · [Core blocks](logicstudio-core) · version 1
 
@@ -53,7 +53,7 @@ Every time a value arrives on an input, the block takes the last value of each i
 Separator: a space.
 
 ```
-[Text field: first name] text ──▶ a [Join text] text ──▶ text [Label: full name]
+[Text field: first name] text ──▶ a [Concat text] text ──▶ text [Label: full name]
 [Text field: last name]  text ──▶ b
 ```
 
@@ -73,8 +73,8 @@ This block has no errors of its own.
 
 ## See also
 
-- [Format text](core.format) for a text with the values inside a template
-- [Join into text](coll.join) to join the items of a list
-- [Split text](coll.split) for the opposite operation
-- [Text operation](core.text)
+- [Template string](core.format) for a text with the values inside a template
+- [Join](coll.join) to join the items of a list
+- [Split](coll.split) for the opposite operation
+- [String functions](core.text)
 - [How a block works](ide/blocks)

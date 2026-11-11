@@ -71,11 +71,11 @@ Finestra «Coda»
 ```
 
 ```
-[Campo numerico: Persone in coda] valore ──▶ a [Confronta: a > b] se vero  ──▶ invia [Valore: risorse/rosso.png] valore ──▶ sorgente [Immagine: image1]
-[Valore: 10] valore ──▶ b                    se falso ──▶ invia [Valore: risorse/verde.png] valore ──▶ sorgente
+[Campo numerico: Persone in coda] valore ──▶ a [Confronto (== ≠ < >): a > b] se vero  ──▶ invia [Costante · Variabile: risorse/rosso.png] valore ──▶ sorgente [Immagine: image1]
+[Costante · Variabile: 10] valore ──▶ b                    se falso ──▶ invia [Costante · Variabile: risorse/verde.png] valore ──▶ sorgente
 ```
 
-Con più di 10 persone l'immagine diventa rossa, altrimenti verde. I due [Valori](core.value) sono di tipo testo, con **Invia all'avvio** spento.
+Con più di 10 persone l'immagine diventa rossa, altrimenti verde. I due blocchi [Costante · Variabile](core.value) sono di tipo testo e hanno l'ingresso **invia** collegato, quindi mandano il percorso solo dopo il confronto.
 
 ## Accessibilità
 

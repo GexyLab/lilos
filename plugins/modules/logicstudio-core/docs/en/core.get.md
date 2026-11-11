@@ -1,4 +1,4 @@
-# Get field
+# Get property
 
 `core.get` · Objects · [Core blocks](logicstudio-core) · version 1
 
@@ -43,10 +43,10 @@ Special cases:
 - **Empty field**: the block sends the whole object, unchanged (whatever arrived, even a text or a number).
 - A field that exists and is **`null`** is sent: `null` comes out on **value**, and it is not an error.
 - If the field **is not there**, the block sends nothing on **value** and sends on **Exception** the message «Il campo «*path*» non esiste» ("The field «*path*» does not exist").
-- If halfway along the path it meets something that is not an object or a list (a text, a number, `null`), the field is not there: for example `name.length` with `name` = `"Ada"` gives the error. For the length of a text use [Text operation](core.text).
-- A **JSON text** (for example one read from a file) is not an object: `{"a":1}` written as text gives the error. First transform it with [Convert](core.convert), setting **To** = "from JSON text".
+- If halfway along the path it meets something that is not an object or a list (a text, a number, `null`), the field is not there: for example `name.length` with `name` = `"Ada"` gives the error. For the length of a text use the [String functions](core.text) block.
+- A **JSON text** (for example one read from a file) is not an object: `{"a":1}` written as text gives the error. First transform it with [Type cast](core.convert), setting **To** = "from JSON text".
 
-The path is fixed, in the settings: there is no input to change it while the program runs. To take an item at a position that changes, use [Get item](coll.get) of the Lists package. For the general rules (inputs, "starts it", Exception) see [How a block works](ide/blocks).
+The path is fixed, in the settings: there is no input to change it while the program runs. To take an item at a position that changes, use the [Get list[i]](coll.get) block of the Lists package. For the general rules (inputs, "starts it", Exception) see [How a block works](ide/blocks).
 
 ## Examples
 
@@ -81,19 +81,19 @@ If the object that arrives is a list of objects, for example `[{"a": 5}, {"a": 8
 ### 3. A JSON answer read from a file
 
 ```
-[Read file] content ──▶ value [Convert: from JSON text] result ──▶ object [Get field: settings.language] value ──▶ value [Write to console]
+[readFile] content ──▶ value [Type cast: from JSON text] result ──▶ object [Get property: settings.language] value ──▶ value [Print (console.log)]
 ```
 
-[Read file](lilos.fileRead) has the **Format** text. If the file contains `{"settings": {"language": "it"}}`, the console writes `it`. Without [Convert](core.convert) the block would receive a text and give the error (alternatively, choose the **Format** JSON in Read file and remove the Convert).
+The [readFile](lilos.fileRead) block has the **Format** text. If the file contains `{"settings": {"language": "it"}}`, the console writes `it`. Without the [Type cast](core.convert) block the block would receive a text and give the error (alternatively, choose the **Format** JSON in readFile and remove the Type cast).
 
 ### 4. Handle a field that is sometimes missing
 
 ```
-[Get field: discount] value     ──▶ value [Write to console]
-                      Exception ──▶ send  [Value: 0] value ──▶ value [Write to console]
+[Get property: discount] value     ──▶ value [Print (console.log)]
+                      Exception ──▶ send  [Constant · Variable: 0] value ──▶ value [Print (console.log)]
 ```
 
-When the discount is there, the console writes it; when it is missing, `0` comes out instead of the error in the main console.
+When the discount is there, the console writes it; when it is missing, `0` comes out instead of the error in the main console: the [Constant · Variable](core.value) block has its **send** input linked, so it sends its `0` only when the error arrives.
 
 ## Errors
 
@@ -103,8 +103,8 @@ When the discount is there, the console writes it; when it is missing, `0` comes
 
 ## See also
 
-- [Split object](core.decompose) to take several fields at once
-- [Build object](core.compose) to do the opposite
-- [Get item](coll.get) and [Map field](coll.pluck) for lists
-- [Convert](core.convert) to turn a JSON text into an object
+- [Destructure object](core.decompose) to take several fields at once
+- [Object literal { }](core.compose) to do the opposite
+- [Get list[i]](coll.get) and [Map field](coll.pluck) for lists
+- [Type cast](core.convert) to turn a JSON text into an object
 - [How a block works](ide/blocks)

@@ -65,16 +65,16 @@ Window «Copy»
 ```
 
 ```
-[Button: Copy] pressed ──▶ read [Read file: ~/data.txt] content ──▶ content [Write file: ~/copy.txt] written ──▶ send [Value: «Copied.»] value ──▶ text [Label: label1]
-[Read file] Exception ──▶ object [Get field: message] value ──▶ text [Label: label1]
+[Button: Copy] pressed ──▶ read [readFile: ~/data.txt] content ──▶ content [writeFile: ~/copy.txt] written ──▶ send [Constant · Variable: «Copied.»] value ──▶ text [Label: label1]
+[readFile] Exception ──▶ object [Get property: message] value ──▶ text [Label: label1]
 ```
 
-If the copy succeeds, the label says «Copied.»; if the file is not there, it shows the error message of the [Read file](lilos.fileRead) block.
+If the copy succeeds, the label says «Copied.»; if the file is not there, it shows the error message of the [readFile](lilos.fileRead) block.
 
 ### 3. A composed text
 
 ```
-[Text field: Name] text ──▶ name [Format text: «Hello, {name}!»] text ──▶ text [Label: label1]
+[Text field: Name] text ──▶ name [Template string: «Hello, {name}!»] text ──▶ text [Label: label1]
 ```
 
 When the user types «Luke» and presses Enter, the label shows «Hello, Luke!».
@@ -86,5 +86,5 @@ The label is normal text: a screen reader reads it when it gets there. It is not
 ## See also
 
 - [Value](ui.value), to show numbers with unit and decimals
-- [Format text](core.format)
+- [Template string](core.format)
 - [Standard UI components](logicstudio-ui)

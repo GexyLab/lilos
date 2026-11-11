@@ -1,4 +1,4 @@
-# Fronte
+# Al cambio (fronte ↑↓)
 
 `core.edge` · Logica · [Blocchi di base](logicstudio-core) · versione 1
 
@@ -37,11 +37,11 @@ Cose da sapere:
 ### 1. Una notifica quando la temperatura supera la soglia
 
 ```
-[Confronta: temperatura > 30] risultato ──▶ valore [Fronte] diventa vero  ──▶ invia [Notifica: Troppo caldo]
-                                                            diventa falso ──▶ invia [Notifica: Tutto a posto]
+[Confronto (== ≠ < >): temperatura > 30] risultato ──▶ valore [Al cambio (fronte ↑↓)] diventa vero  ──▶ invia [Notify: Troppo caldo]
+                                                            diventa falso ──▶ invia [Notify: Tutto a posto]
 ```
 
-Il [Confronta](core.compare) manda sì o no a ogni misura, magari ogni secondo. Senza il Fronte riceveresti una notifica a ogni misura sopra i 30 gradi; con il Fronte, una sola quando la temperatura supera i 30 e una quando torna sotto.
+Il blocco [Confronto (== ≠ < >)](core.compare) manda sì o no a ogni misura, magari ogni secondo. Senza il blocco Al cambio riceveresti una notifica a ogni misura sopra i 30 gradi; con il blocco Al cambio, una sola quando la temperatura supera i 30 e una quando torna sotto.
 
 ### 2. Una sequenza di valori
 
@@ -60,10 +60,10 @@ Arrivano, in ordine: `false`, `false`, `true`, `"sì"`, `"no"`, `0`, `1`.
 ### 3. Contare quante volte si accende
 
 ```
-[Interruttore: pompa] valore ──▶ valore [Fronte] diventa vero ──▶ più [Contatore] conteggio ──▶ valore [Valore: accensioni]
+[Interruttore: pompa] valore ──▶ valore [Al cambio (fronte ↑↓)] diventa vero ──▶ più [Contatore (++ −−)] conteggio ──▶ valore [Valore: accensioni]
 ```
 
-Il [Contatore](core.counter) sale di 1 ogni volta che la pompa si accende, non ogni volta che l'interruttore manda il suo stato.
+Il blocco [Contatore (++ −−)](core.counter) sale di 1 ogni volta che la pompa si accende, non ogni volta che l'interruttore manda il suo stato.
 
 ## Errori
 
@@ -71,7 +71,7 @@ Questo blocco non ha errori suoi.
 
 ## Vedi anche
 
-- [Confronta](core.compare) per ottenere il sì/no da sorvegliare
-- [Contatore](core.counter) per contare i cambiamenti
-- [Antirimbalzo](core.debounce) per ignorare i cambiamenti troppo rapidi
+- [Confronto (== ≠ < >)](core.compare) per ottenere il sì/no da sorvegliare
+- [Contatore (++ −−)](core.counter) per contare i cambiamenti
+- [Debounce](core.debounce) per ignorare i cambiamenti troppo rapidi
 - [Come funziona un blocco](ide/blocks)

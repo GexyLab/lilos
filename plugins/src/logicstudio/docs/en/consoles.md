@@ -8,9 +8,9 @@ Consoles live in the **engine**, not in the IDE: an active program goes on writi
 
 They are in the [Base blocks](logicstudio-core) package, category **Console**.
 
-### Write to console
+### Print (console.log)
 
-[Write to console](core.consoleWrite) writes a line when a value arrives on **value**, and clears the console when a pulse arrives on **clear**. After writing it sends a pulse on **written**.
+[Print (console.log)](core.consoleWrite) writes a line when a value arrives on **value**, and clears the console when a pulse arrives on **clear**. After writing it sends a pulse on **written**.
 
 | Setting | Choices |
 |---|---|
@@ -20,9 +20,9 @@ They are in the [Base blocks](logicstudio-core) package, category **Console**.
 
 The added inputs are written on the same line as `name=value` (but they do not start the writing).
 
-### Read from console
+### Input (readline)
 
-[Read from console](core.consoleRead) asks a question when a pulse arrives on **ask**, waits for the answer and sends it on **value**; if the question is cancelled, it sends a pulse on **cancelled**. The **question** input (a text) takes the place of the question written in the settings.
+[Input (readline)](core.consoleRead) asks a question when a pulse arrives on **ask**, waits for the answer and sends it on **value**; if the question is cancelled, it sends a pulse on **cancelled**. The **question** input (a text) takes the place of the question written in the settings.
 
 | Setting | What it does |
 |---|---|
@@ -52,7 +52,7 @@ Rules:
 - while a block waits, **the other blocks go on**;
 - when the program stops, the questions waiting are cancelled.
 
-> In this version a question with no answer for more than **30 seconds** (the engine's «Time a block may take») makes the block send the error «Leggi da console ha impiegato più di 30 s» ("Leggi da console took more than 30 s") on the **Exception**, and the answer given afterwards is lost. If you need more time, ask the administrator to raise that limit in the Control Panel → Logic Studio → Limits.
+> In this version a question with no answer for more than **30 seconds** (the engine's «Time a block may take») makes the block send the error «Input (readline) ha impiegato più di 30 s» ("Leggi da console took more than 30 s") on the **Exception**, and the answer given afterwards is lost. If you need more time, ask the administrator to raise that limit in the Control Panel → Logic Studio → Limits.
 
 ## The panel at the bottom
 
@@ -108,7 +108,7 @@ When the project runs as an **active program** or as an **app**, no IDE shows th
 | Choice | What happens |
 |---|---|
 | **Show them all** | Each console opens in a window when the first window of the project opens; a question opens (or brings to the front) its console. |
-| **Only when they ask for something** (default) | A console opens when a **Read from console** block waits; after the answer it closes, if **Close the console after the answer** is ticked. |
+| **Only when they ask for something** (default) | A console opens when a **Input** block waits; after the answer it closes, if **Close the console after the answer** is ticked. |
 | **Do not show them** | Nothing on screen. The lines go to the log as **Copy to the log** says; questions get the **Default value** at once (converted to the kind of answer) or, if they have none or it is not valid, are cancelled. |
 | **All in the main console** | One window, **Console**, with the lines of all the consoles; every line that is not from the main one has a label with the name of its console. It opens according to **With «All in the main console», the main one opens**: **when the project starts** (with the first window of the project) or **when it asks for something**. |
 
@@ -141,8 +141,8 @@ The **Console** component ([UI components](logicstudio-ui) package) shows a cons
 ### 1. Asking for a number and doubling it
 
 ```
-[At start] pulse ──▶ ask [Read from console: «Quanti anni hai?», number] value ──▶ a [Multiply] result ──▶ value [Write to console]
-                                                                      cancelled ──▶ send [Value: «Va bene, niente.»] value ──▶ value [Write to console]
+[On start (main)] pulse ──▶ ask [Input (readline): «Quanti anni hai?», number] value ──▶ a [Multiply (×)] result ──▶ value [Print (console.log)]
+                                                                      cancelled ──▶ send [Constant · Variable: «Va bene, niente.»] value ──▶ value [Print (console.log)]
 ```
 
 On **Multiply**, **b** has start value `2` and **starts it** unticked. **Test**: the panel opens on the main console with «Quanti anni hai? ›» ("How old are you?"). Type `ventidue`: «Serve un numero. Riprova.». Type `22` and **Enter**: the console writes `44`. Pressing **Esc** instead, it writes «Va bene, niente.» ("Okay, never mind.").
@@ -150,24 +150,24 @@ On **Multiply**, **b** has start value `2` and **starts it** unticked. **Test**:
 ### 2. A console for alarms
 
 1. In **Project options → Consoles** press **New console**, rename it `Allarmi` and choose red.
-2. Put a **Write to console** with **Console** = **Allarmi** and **Level** = **error**, and link it to whatever it has to signal.
+2. Put a **Print** with **Console** = **Allarmi** and **Level** = **error**, and link it to whatever it has to signal.
 3. In **Outside the IDE** choose **Show them all**: when you open the window of the active program, the **Allarmi** console opens too.
 
 ### 3. A password that is not shown
 
 ```
-[Button: Entra] pressed ──▶ ask [Read from console: «Password», text, hidden] value ──▶ a [Compare: a = b, b = "segreta"] if true ──▶ …
+[Button: Entra] pressed ──▶ ask [Input (readline): «Password», text, hidden] value ──▶ a [Compare (== != < >): a = b, b = "segreta"] if true ──▶ …
 ```
 
 With **Hide what is typed**, dots are shown in the field and the console shows `•••••••` in place of the answer. On **Compare**, **b** has start value `"segreta"` and **starts it** unticked.
 
 ### 4. A silent active program
 
-An active program that writes the temperature every minute and now and then a warning: in **Outside the IDE** choose **Do not show them** and in **Copy to the log of the project** **warnings and errors**. The normal lines stay only in memory (the last 1000), the warnings go to the log, and a **Read from console** with **Default value** `20` receives `20` at once without asking anything.
+An active program that writes the temperature every minute and now and then a warning: in **Outside the IDE** choose **Do not show them** and in **Copy to the log of the project** **warnings and errors**. The normal lines stay only in memory (the last 1000), the warnings go to the log, and a **Input** with **Default value** `20` receives `20` at once without asking anything.
 
 ## See also
 
-- [Write to console](core.consoleWrite)
-- [Read from console](core.consoleRead)
+- [Print (console.log)](core.consoleWrite)
+- [Input (readline)](core.consoleRead)
 - [Test and active programs](ide/run)
 - [Projects](ide/projects)

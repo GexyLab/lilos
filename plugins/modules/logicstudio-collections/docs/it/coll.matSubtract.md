@@ -1,4 +1,4 @@
-# Sottrai matrici
+# A − B
 
 `coll.matSubtract` · Matrici · [Liste e matrici](logicstudio-collections) · versione 1
 
@@ -22,7 +22,7 @@ Sottrae la seconda matrice dalla prima, cella per cella.
 
 Il blocco aspetta di avere **a** e **b**; poi, a ogni valore nuovo su uno dei due, manda la differenza: la cella in riga *i* e colonna *j* del risultato è `a[i][j] − b[i][j]`. L'ordine conta: **a − b** non è **b − a**.
 
-Valgono le stesse regole di [Somma matrici](coll.matAdd):
+Valgono le stesse regole di [A + B](coll.matAdd):
 
 - matrici valide, con **celle che sono numeri veri** (un testo come `"2"` dà «La matrice deve contenere solo numeri»);
 - stesse righe e colonne, altrimenti per esempio «Le matrici devono avere le stesse dimensioni (1×2 e 2×1)»;
@@ -33,8 +33,8 @@ Valgono le stesse regole di [Somma matrici](coll.matAdd):
 ### 1. Una riga
 
 ```
-[Valore (JSON): [[5,5]]] valore ──▶ a  [Sottrai matrici] risultato ──▶ valore [Scrivi in console]
-[Valore (JSON): [[1,2]]] valore ──▶ b
+[Costante · Variabile (JSON): [[5,5]]] valore ──▶ a  [A − B] risultato ──▶ valore [Print (console.log)]
+[Costante · Variabile (JSON): [[1,2]]] valore ──▶ b
 ```
 
 Scrive `[[4,3]]`.
@@ -45,7 +45,7 @@ Con le vendite di due mesi per negozio e prodotto, **a** = `[[12,9],[14,7]]` (qu
 
 ### 3. Misure diverse
 
-**a** = `[[1,2]]` e **b** = `[[1],[2]]` danno «Le matrici devono avere le stesse dimensioni (1×2 e 2×1)». Per sottrarre una colonna da una riga, prima trasponi con [Trasposta](coll.matTranspose).
+**a** = `[[1,2]]` e **b** = `[[1],[2]]` danno «Le matrici devono avere le stesse dimensioni (1×2 e 2×1)». Per sottrarre una colonna da una riga, prima trasponi con [Transpose](coll.matTranspose).
 
 ## Errori
 
@@ -58,5 +58,5 @@ Con le vendite di due mesi per negozio e prodotto, **a** = `[[12,9],[14,7]]` (qu
 
 ## Vedi anche
 
-- [Somma matrici](coll.matAdd), [Scala](coll.matScale) (con fattore -1 cambia il segno di tutte le celle)
+- [A + B](coll.matAdd), [Scala (k·A)](coll.matScale) (con fattore -1 cambia il segno di tutte le celle)
 - [Come funziona un blocco](ide/blocks)

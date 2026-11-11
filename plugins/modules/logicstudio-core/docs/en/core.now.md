@@ -1,4 +1,4 @@
-# Date and time
+# Now (date and time)
 
 `core.now` · Time · [Core blocks](logicstudio-core) · version 1
 
@@ -41,7 +41,7 @@ Good to know:
 - **ISO** is always in universal time (it ends with `Z`): in Italy in winter it is one hour behind **parts**, in summer two.
 - The numbers of **parts** have no zero in front: 9:05 is `hour` 9 and `minute` 5.
 - There are no milliseconds in **parts**: use **milliseconds** or **ISO**.
-- **milliseconds** is for measuring how much time passes: the difference between two readings, with [Subtract](core.subtract), is the duration in milliseconds.
+- **milliseconds** is for measuring how much time passes: the difference between two readings, with [Subtract (−)](core.subtract), is the duration in milliseconds.
 
 For the general rules see [How a block works](ide/blocks).
 
@@ -60,32 +60,32 @@ Read on 11 November 2026 at 15:05:01 in Italy (winter time, UTC+1):
 ### 2. A line with the time at every click
 
 ```
-[Button: Clock in] pressed ──▶ read [Date and time] parts ──▶ object [Split object] hour   ──▶ h [Format text: "In at {h}:{m}"] text ──▶ value [Write to console]
+[Button: Clock in] pressed ──▶ read [Now (date and time)] parts ──▶ object [Destructure object] hour   ──▶ h [Template string: "In at {h}:{m}"] text ──▶ value [Print (console.log)]
                                                                                     minute ──▶ m
 ```
 
-On [Format text](core.format) add two inputs, rename them **h** and **m**, and remove **starts it** from **h**, so it writes a single line per click: `In at 15:5`.
+On [Template string](core.format) add two inputs, rename them **h** and **m**, and remove **starts it** from **h**, so it writes a single line per click: `In at 15:5`.
 
 ### 3. How long it took
 
 ```
-[Button: Go]   pressed ──▶ read [Date and time A] milliseconds ──▶ b [Subtract] result ──▶ a [Divide: b = 1000] result ──▶ value [Write to console]
-[Button: Stop] pressed ──▶ read [Date and time B] milliseconds ──▶ a
+[Button: Go]   pressed ──▶ read [Now (date and time) A] milliseconds ──▶ b [Subtract (−)] result ──▶ a [Divide (÷ %): b = 1000] result ──▶ value [Print (console.log)]
+[Button: Stop] pressed ──▶ read [Now (date and time) B] milliseconds ──▶ a
 ```
 
-On [Subtract](core.subtract) remove **starts it** from **b**: at the click on **Stop** the console writes the seconds passed since the click on **Go**, for example `12.48`. On [Divide](core.divide) the input **b** has the initial value 1000 and **starts it removed** (otherwise at start Divide would run with **a** empty and the console would write `0`).
+On the [Subtract (−)](core.subtract) block remove **starts it** from **b**: at the click on **Stop** the console writes the seconds passed since the click on **Go**, for example `12.48`. On the [Divide (÷ %)](core.divide) block the input **b** has the initial value 1000 and **starts it removed** (otherwise at start Divide (÷ %) would run with **a** empty and the console would write `0`).
 
 ### 4. Only on weekdays
 
 ```
-[Every… 3600 s] pulse ──▶ read [Date and time] parts ──▶ object [Get field: weekday] value ──▶ a [Compare: a ≥ b, b = 1] …
+[Interval (setInterval): 3600 s] pulse ──▶ read [Now (date and time)] parts ──▶ object [Get property: weekday] value ──▶ a [Compare (== != < >): a ≥ b, b = 1] …
 ```
 
-With a second Compare (`a ≤ b`, **b** = 5) and an [AND](core.and) you know whether today is a day from Monday to Friday. On the two Compare blocks remove **starts it** from **b**, which has only the initial value.
+With a second Compare (== != < >) block (`a ≤ b`, **b** = 5) and an [AND](core.and) block you know whether today is a day from Monday to Friday. On the two Compare (== != < >) blocks remove **starts it** from **b**, which has only the initial value.
 
 ## See also
 
-- [Every…](core.every) to read the time at intervals
-- [Split object](core.decompose) and [Get field](core.get) to use the fields of **parts**
-- [Format text](core.format)
+- [Interval (setInterval)](core.every) to read the time at intervals
+- [Destructure object](core.decompose) and [Get property](core.get) to use the fields of **parts**
+- [Template string](core.format)
 - [How a block works](ide/blocks)

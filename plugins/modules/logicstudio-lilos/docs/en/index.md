@@ -14,13 +14,13 @@ A project that uses these blocks, on a lilOS that does not have the package, sho
 
 | Block | Type | What it does |
 |---|---|---|
-| [Notification](lilos.notify) | `lilos.notify` | Sends you a lilOS notification on behalf of the program, with `{name}` placeholders in the text. |
-| [Read file](lilos.fileRead) | `lilos.fileRead` | Reads a file in your home, as text or as JSON (at most 5 MB). |
-| [Write file](lilos.fileWrite) | `lilos.fileWrite` | Writes (replaces) a file in your home, as text or as JSON. |
-| [Append to file](lilos.fileAppend) | `lilos.fileAppend` | Adds at the end of a file: a log, one line at a time (up to 64 MB). |
-| [List folder](lilos.folderList) | `lilos.folderList` | The items of a folder: name, type, size, date, path. |
-| [Exists](lilos.exists) | `lilos.exists` | Tells whether a file or folder is there, what type it is and how big. |
-| [Event to lilOS](lilos.event) | `lilos.event` | Sends the event `logicstudio.event` to your open lilOS pages. |
+| [Notify](lilos.notify) | `lilos.notify` | Sends you a lilOS notification on behalf of the program, with `{name}` placeholders in the text. |
+| [readFile](lilos.fileRead) | `lilos.fileRead` | Reads a file in your home, as text or as JSON (at most 5 MB). |
+| [writeFile](lilos.fileWrite) | `lilos.fileWrite` | Writes (replaces) a file in your home, as text or as JSON. |
+| [appendFile](lilos.fileAppend) | `lilos.fileAppend` | Adds at the end of a file: a log, one line at a time (up to 64 MB). |
+| [readdir (list folder)](lilos.folderList) | `lilos.folderList` | The items of a folder: name, type, size, date, path. |
+| [exists](lilos.exists) | `lilos.exists` | Tells whether a file or folder is there, what type it is and how big. |
+| [Emit (event to lilOS)](lilos.event) | `lilos.event` | Sends the event `logicstudio.event` to your open lilOS pages. |
 
 ## To know for all the blocks
 
@@ -31,7 +31,7 @@ The blocks do not touch lilOS by themselves: they ask the kernel (the computer l
 - they see and change only what you can see and change: what you cannot do, the program does not do;
 - the space they use counts in the **quota of your home**;
 - they also work when lilOS is closed in the browser, if the program is active;
-- an active program really does what it says: a **Write file** really replaces the file, even when you are not looking. Try it first with **Test**, on test files.
+- an active program really does what it says: a **writeFile** block really replaces the file, even when you are not looking. Try it first with **Test**, on test files.
 
 ### The paths
 
@@ -46,18 +46,18 @@ The blocks do not touch lilOS by themselves: they ask the kernel (the computer l
 - Never the `~/.config` folder: these are your lilOS settings.
 - Never the files whose content is protected by an app (for example encrypted with FileCrypt): they cannot be read or changed.
 - No `.` and `..`, no `\`, at most 32 levels and 255 characters per name.
-- A linked **path** input takes the place of the path written in the settings. In all blocks, except [Exists](lilos.exists), **path** does not start the block: it keeps the value until the next command.
+- A linked **path** input takes the place of the path written in the settings. In all blocks, except [exists](lilos.exists), **path** does not start the block: it keeps the value until the next command.
 
 ### The limits
 
 | What | Limit |
 |---|---|
-| A file read by [Read file](lilos.fileRead) | 5 MB |
+| A file read by [readFile](lilos.fileRead) | 5 MB |
 | Data written or appended at once | 5 MB |
-| A file grown by [Append to file](lilos.fileAppend) | 64 MB |
-| Items given by [List folder](lilos.folderList) | 2000 (the count still says how many there are) |
+| A file grown by [appendFile](lilos.fileAppend) | 64 MB |
+| Items given by [readdir (list folder)](lilos.folderList) | 2000 (the count still says how many there are) |
 | Notifications | 10 per minute per user, for all the Logic Studio programs together; text cut at 300 characters |
-| Data of an [Event to lilOS](lilos.event) | 64 KB (as JSON) |
+| Data of an [Emit (event to lilOS)](lilos.event) | 64 KB (as JSON) |
 | Events to lilOS | 20 per second per program |
 | Time of an operation | The maximum time of an engine block (30 seconds by default) |
 
@@ -75,9 +75,9 @@ An app made with **Make app** runs with the permissions of whoever opens it. If 
 
 | Blocks in the app | Line of the window |
 |---|---|
-| Read file, Write file, Append to file, List folder, Exists | read and change your files |
-| Notification | send you notifications |
-| Event to lilOS | send events to your lilOS |
+| readFile, writeFile, appendFile, readdir, exists | read and change your files |
+| Notify | send you notifications |
+| Emit | send events to your lilOS |
 
 With **Run** the app starts and lilOS remembers it for that app as it is, in that folder: it does not ask again until the app changes (lilOS remembers the last 200 allowed apps). With **Cancel** the app does not start. Tests and active programs of your projects ask nothing: they are yours. See [Permissions](logicstudio-engine/permissions) and [Making an app](ide/create-app).
 
@@ -88,41 +88,41 @@ With **Run** the app starts and lilOS remembers it for that app as it is, in tha
 Every minute the program reads a temperature from a file, adds it to a log and, if it goes over the threshold, alerts you.
 
 ```
-[Every… 60 s] pulse ──▶ read [Read file: ~/sensors/temp.txt]
-              pulse ──▶ read [Date and time]
+[Interval (setInterval): 60 s] pulse ──▶ read [readFile: ~/sensors/temp.txt]
+              pulse ──▶ read [Now (date and time)]
 
-[Date and time] ISO     ──▶ time  [Format text: "{time};{temp}"] text ──▶ content [Append to file: ~/sensors/log.csv]
-[Read file] content ──▶ temp
+[Now (date and time)] ISO     ──▶ time  [Template string: "{time};{temp}"] text ──▶ content [appendFile: ~/sensors/log.csv]
+[readFile] content ──▶ temp
 
-[Read file] content ──▶ a [Compare: a > b] result ──▶ value [Edge] becomes true ──▶ send [Notification]
-[Value: 30]    value ──▶ b
-[Read file] content ──▶ temp [Notification]
+[readFile] content ──▶ a [Compare (== != < >): a > b] result ──▶ value [On change (edge)] becomes true ──▶ send [Notify]
+[Constant · Variable: 30]    value ──▶ b
+[readFile] content ──▶ temp [Notify]
 ```
 
-- There is only one Read file block: three links start from its **content** output.
-- [Format text](core.format) has the added inputs **time** and **temp**; remove "starts it" from **temp**, so it writes only one line per minute.
-- The [Notification](lilos.notify) has **Title** `Greenhouse`, **Text** `Temperature: {temp} °C`, **Kind** Warning, and an added input **temp**.
-- [Edge](core.edge) makes the notification go out only when the temperature **goes over** 30, not every minute.
+- There is only one readFile block: three links start from its **content** output.
+- [Template string](core.format) has the added inputs **time** and **temp**; remove "starts it" from **temp**, so it writes only one line per minute.
+- The [Notify](lilos.notify) block has **Title** `Greenhouse`, **Text** `Temperature: {temp} °C`, **Kind** Warning, and an added input **temp**.
+- [On change (edge)](core.edge) makes the notification go out only when the temperature **goes over** 30, not every minute.
 
 ### 2. Settings that stay
 
 The values of a program are lost when it stops. To keep them, save them in a JSON file and read them again at start:
 
 ```
-[At start] pulse ──▶ check [Exists: ~/serra/impostazioni.json] if it exists ──▶ read [Read file: JSON] content ──▶ object [Get field: threshold] value ──▶ value [Number field: threshold]
-                                                                if not       ──▶ send [Value: JSON {"threshold": 30}] value ──▶ content [Write file: JSON]
+[On start (main)] pulse ──▶ check [exists: ~/serra/impostazioni.json] if it exists ──▶ read [readFile: JSON] content ──▶ object [Get property: threshold] value ──▶ value [Number field: threshold]
+                                                                if not       ──▶ send [Constant · Variable: JSON {"threshold": 30}] value ──▶ content [writeFile: JSON]
 
-[Number field: threshold] value ──▶ threshold [Build object] object ──▶ content [Write file: JSON]
+[Number field: threshold] value ──▶ threshold [Object literal { }] object ──▶ content [writeFile: JSON]
 ```
 
-At start the program reads the settings (or creates them the first time) and puts the threshold in the [Number field](ui.number) of the window; every time the user changes it, [Build object](core.compose) prepares `{ "threshold": 28 }` and [Write file](lilos.fileWrite) saves it. All the file blocks use the same path `~/serra/impostazioni.json` and the JSON format.
+At start the program reads the settings (or creates them the first time) and puts the threshold in the [Number field](ui.number) of the window; every time the user changes it, [Object literal { }](core.compose) prepares `{ "threshold": 28 }` and [writeFile](lilos.fileWrite) saves it. All the file blocks use the same path `~/serra/impostazioni.json` and the JSON format.
 
 ### 3. A watched folder
 
 ```
-[Every… 30 s] pulse ──▶ read [List folder: ~/Incoming, Files only] count ──▶ a [Compare: a > b] result ──▶ value [Edge] becomes true ──▶ send [Notification: "There are new files in Incoming"]
-                                                          [Value: 0] value ──▶ b
-                                       [List folder] names ──▶ content [Append to file: ~/Incoming.log, JSON one per line]
+[Interval (setInterval): 30 s] pulse ──▶ read [readdir (list folder): ~/Incoming, Files only] count ──▶ a [Compare (== != < >): a > b] result ──▶ value [On change (edge)] becomes true ──▶ send [Notify: "There are new files in Incoming"]
+                                                          [Constant · Variable: 0] value ──▶ b
+                                       [readdir (list folder)] names ──▶ content [appendFile: ~/Incoming.log, JSON one per line]
 ```
 
 Every 30 seconds the program counts the files in `~/Incoming`: when they go from none to at least one you receive a notification, and every turn writes the list of names as a JSON line in the log.
@@ -132,7 +132,7 @@ Every 30 seconds the program counts the files in `~/Incoming`: when they go from
 - The blocks work only on your home: for files shared with you, ask whoever owns them to put them in your home.
 - There is no block to create folders, rename, move or delete files.
 - Files are read whole (at most 5 MB): a piece of a big file cannot be read.
-- The [Event to lilOS](lilos.event) is not listened to anywhere in lilOS for now.
+- The [Emit (event to lilOS)](lilos.event) is not listened to anywhere in lilOS for now.
 - Notifications are limited to 10 per minute for all your Logic Studio programs together.
 
 ## See also

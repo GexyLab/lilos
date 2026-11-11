@@ -79,17 +79,17 @@ Window «Documents»
 ```
 
 ```
-[Button: Refresh] pressed ──▶ read [List folder: ~/Documents] items ──▶ rows [Table: Files]
-[Table: Files] chosen row ──▶ object [Get field: name] value ──▶ text [Label: label1]
+[Button: Refresh] pressed ──▶ read [readdir (list folder): ~/Documents] items ──▶ rows [Table: Files]
+[Table: Files] chosen row ──▶ object [Get property: name] value ──▶ text [Label: label1]
 ```
 
-The table shows the name and size (in bytes) of each item of the folder; clicking a row, the label below shows the chosen name. The fields that [List folder](lilos.folderList) sends are `name`, `type`, `size`, `modified` and `path`; in general, if you do not know the fields of a list, leave **Columns** empty the first time and look at the header.
+The table shows the name and size (in bytes) of each item of the folder; clicking a row, the label below shows the chosen name. The fields that [readdir (list folder)](lilos.folderList) sends are `name`, `type`, `size`, `modified` and `path`; in general, if you do not know the fields of a list, leave **Columns** empty the first time and look at the header.
 
 ### 2. A list of words
 
 ```
-[Value: ["red","green","blue"] (JSON)] value ──▶ rows [Table: Colors]
-[Table: Colors] chosen row ──▶ value [Write to console]
+[Constant · Variable: ["red","green","blue"] (JSON)] value ──▶ rows [Table: Colors]
+[Table: Colors] chosen row ──▶ value [Print (console.log)]
 ```
 
 The table has a single column, **valore**, with three rows. A click on «green» writes `{"value":"green","index":1}` in the console.
@@ -97,12 +97,12 @@ The table has a single column, **valore**, with three rows. A click on «green»
 ### 3. A log that grows
 
 ```
-[Text field: Note] text ──▶ note [Build object] object ──▶ add [Accumulate: max 50] list ──▶ rows [Table: Notes]
-[Date and time block] ISO ──▶ time [Build object]
-[Text field: Note] enter ──▶ read [Date and time block]
+[Text field: Note] text ──▶ note [Object literal { }] object ──▶ add [Accumulate (bounded push): max 50] list ──▶ rows [Table: Notes]
+[Now (date and time)] ISO ──▶ time [Object literal { }]
+[Text field: Note] enter ──▶ read [Now (date and time)]
 ```
 
-The «Date and time block» is the [Date and time](core.now) block of the Basic blocks, not the component. With [Accumulate](coll.accumulate) the table shows the last 50 notes written, each with its time. (In the [Build object](core.compose), remove «starts it» from **note**: the object starts when the time arrives.)
+The «Date and time block» is the [Now (date and time)](core.now) block of the Basic blocks, not the component. With [Accumulate (bounded push)](coll.accumulate) the table shows the last 50 notes written, each with its time. (In the [Object literal { }](core.compose) block, remove «starts it» from **note**: the object starts when the time arrives.)
 
 ## Accessibility and keyboard
 

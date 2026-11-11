@@ -1,4 +1,4 @@
-# Primo che arriva
+# Merge (unisci flussi)
 
 `core.merge` · Logica · [Blocchi di base](logicstudio-core) · versione 1
 
@@ -23,7 +23,7 @@ Il blocco nasce senza ingressi: aggiungili nelle **Proprietà**, sezione **Porte
 
 ## Come funziona
 
-Nonostante il nome, il blocco non fa passare solo il primo valore: **fa passare ogni valore, nell'ordine in cui arriva**, da qualunque ingresso venga. È il punto in cui due o più strade di uno schema tornano a essere una.
+Il blocco non fa passare solo il primo valore: **fa passare ogni valore, nell'ordine in cui arriva**, da qualunque ingresso venga. È il punto in cui due o più strade di uno schema tornano a essere una.
 
 - Il valore passa così com'è, anche `null`, `false` o `0`.
 - Non aspetta gli altri ingressi e non li ricorda: un valore arrivato su **a** non viene rimandato quando arriva qualcosa su **b**.
@@ -35,20 +35,20 @@ Nonostante il nome, il blocco non fa passare solo il primo valore: **fa passare 
 ### 1. Due pulsanti per la stessa azione
 
 ```
-[Pulsante: Salva]          premuto ──▶ a  [Primo che arriva] valore ──▶ invia [Notifica: Salvato]
+[Pulsante: Salva]          premuto ──▶ a  [Merge (unisci flussi)] valore ──▶ invia [Notify: Salvato]
 [Pulsante: Salva e chiudi] premuto ──▶ b
 ```
 
-Qualunque dei due pulsanti venga premuto, l'impulso arriva al blocco [Notifica](lilos.notify), che ti avvisa.
+Qualunque dei due pulsanti venga premuto, l'impulso arriva al blocco [Notify](lilos.notify), che ti avvisa.
 
-### 2. Le due strade di un Se tornano insieme
+### 2. Le due strade di un If · Else tornano insieme
 
 ```
-[Se] allora     ──▶ a [Moltiplica: × 1,22] risultato ──▶ a [Primo che arriva] valore ──▶ valore [Valore: prezzo]
+[If · Else] allora     ──▶ a [Moltiplicazione (×): × 1,22] risultato ──▶ a [Merge (unisci flussi)] valore ──▶ valore [Valore: prezzo]
      altrimenti ────────────────────────────────────────▶ b
 ```
 
-La [Moltiplica](core.multiply) ha il valore iniziale 1,22 su **b**. Se il prezzo va tassato, passa dalla Moltiplica; altrimenti passa com'è. In ogni caso arriva alla componente [Valore](ui.value) dallo stesso blocco. Con 100 e la condizione sì, arriva 122; con la condizione no, arriva 100.
+Il blocco [Moltiplicazione (×)](core.multiply) ha il valore iniziale 1,22 su **b**. Se il prezzo va tassato, passa dalla moltiplicazione; altrimenti passa com'è. In ogni caso arriva alla componente [Valore](ui.value) dallo stesso blocco. Con 100 e la condizione sì, arriva 122; con la condizione no, arriva 100.
 
 ### 3. Valori da più sensori in una sola console
 
@@ -60,6 +60,6 @@ Questo blocco non ha errori suoi.
 
 ## Vedi anche
 
-- [Aspetta tutti](core.join) per partire solo quando sono arrivati tutti
-- [Scegli](core.select) per far passare un solo ingresso, scelto con un numero
+- [Attendi tutti (join)](core.join) per partire solo quando sono arrivati tutti
+- [Scegli per indice (MUX)](core.select) per far passare un solo ingresso, scelto con un numero
 - [Come funziona un blocco](ide/blocks)

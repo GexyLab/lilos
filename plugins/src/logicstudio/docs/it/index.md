@@ -73,7 +73,7 @@ I blocchi e le componenti arrivano dai **pacchetti**, moduli del kernel che si i
 | [Blocchi di base](logicstudio-core) (`logicstudio-core`) | Valori, logica, matematica, testo, oggetti, tempo, le due console, le porte di schema, l'oggetto delle Componenti UI. Si installa con l'IDE. |
 | [Liste e matrici](logicstudio-collections) (`logicstudio-collections`) | Blocchi per liste (ordina, filtra, per ogni elemento…) e matrici (prodotto, trasposta, determinante…). |
 | [Blocchi di lilOS](logicstudio-lilos) (`logicstudio-lilos`) | Notifiche, leggere e scrivere i file della tua home, elencare cartelle, eventi verso le pagine di lilOS. |
-| [Rete](logicstudio-net) (`logicstudio-net`) | **Richiesta web** HTTP e HTTPS. |
+| [Rete](logicstudio-net) (`logicstudio-net`) | **HTTP** HTTP e HTTPS. |
 | [Componenti UI](logicstudio-ui) (`logicstudio-ui`) | Le componenti delle finestre: etichette, valori, indicatori, pulsanti, campi, tabelle, contenitori. |
 | [Grafici](logicstudio-charts) (`logicstudio-charts`) | 12 grafici per le finestre: linee, aree, colonne, barre, torta, tempo reale… |
 | [Logic Studio Engine](logicstudio-engine) (`logicstudio-engine`) | Il motore: fa girare prove e programmi attivi, con [limiti](logicstudio-engine/limits) e [permessi](logicstudio-engine/permissions). Si installa con l'IDE. |
@@ -92,40 +92,40 @@ Costruisci un contatore: ogni 2 secondi un numero cresce di 1 e viene scritto in
 
 ### 2. Metti i blocchi
 
-1. A sinistra passa alla scheda **Blocchi**. Nella ricerca scrivi `ogni` e fai clic su **Ogni…**: il blocco compare in mezzo al foglio, già selezionato.
+1. A sinistra passa alla scheda **Blocchi**. Nella ricerca scrivi `interv` e fai clic su **Intervallo**: il blocco compare in mezzo al foglio, già selezionato.
 2. A destra, nelle **Proprietà**, sezione **Impostazioni**, metti **Ogni (secondi)** a `2`. Lascia spuntato **Parte da solo**.
-3. Allo stesso modo aggiungi **Contatore**, **Confronta**, **NON**, **Valore** e due volte **Scrivi in console**. Ogni clic mette il blocco un po' più in basso del precedente: trascinali dove vuoi, per esempio come nel disegno qui sotto.
-4. Seleziona **Confronta**. Nelle Impostazioni scegli **Operazione** = **a ≥ b**. Nella sezione **Porte**, alla riga dell'ingresso **b**, scrivi `5` nel campo **iniziale** e togli la spunta da **lo avvia** (il 5 resta lì come soglia, senza far girare il blocco da solo).
-5. Seleziona **Valore**. Nelle Impostazioni scegli **Tipo** = **testo**, scrivi `Fatto!` in **Valore** e togli la spunta da **Invia all'avvio**.
+3. Allo stesso modo aggiungi **Contatore**, **Confronto**, **NOT**, **Costante · Variabile** e due volte **Print**. Ogni clic mette il blocco un po' più in basso del precedente: trascinali dove vuoi, per esempio come nel disegno qui sotto.
+4. Seleziona **Confronto**. Nelle Impostazioni scegli **Operazione** = **a ≥ b**. Nella sezione **Porte**, alla riga dell'ingresso **b**, scrivi `5` nel campo **iniziale** e togli la spunta da **lo avvia** (il 5 resta lì come soglia, senza far girare il blocco da solo).
+5. Seleziona **Costante · Variabile**. Nelle Impostazioni scegli **Tipo** = **testo** e scrivi `Fatto!` in **Valore**. Poi, nelle **Proprietà**, accendi l'**occhio** accanto alla porta **invia**: di serie è nascosta, e serve per collegarla nel passo 6.
 
 ### 3. Collega
 
 Per collegare, trascina dal pallino di un'uscita (a destra del blocco) al pallino di un ingresso (a sinistra). Fai questi sei collegamenti:
 
-1. **Ogni…** · **impulso** → **Contatore** · **più**
-2. **Contatore** · **conteggio** → primo **Scrivi in console** · **valore**
-3. **Contatore** · **conteggio** → **Confronta** · **a**
-4. **Confronta** · **risultato** → **NON** · **valore**
-5. **NON** · **risultato** → **Ogni…** · **acceso**
-6. **Confronta** · **se vero** → **Valore** · **invia**, e poi **Valore** · **valore** → secondo **Scrivi in console** · **valore**
+1. **Intervallo** · **impulso** → **Contatore** · **più**
+2. **Contatore** · **conteggio** → primo **Print** · **valore**
+3. **Contatore** · **conteggio** → **Confronto** · **a**
+4. **Confronto** · **risultato** → **NOT** · **valore**
+5. **NOT** · **risultato** → **Intervallo** · **acceso**
+6. **Confronto** · **se vero** → **Costante · Variabile** · **invia**, e poi **Costante · Variabile** · **valore** → secondo **Print** · **valore**
 
 Lo schema finito:
 
 ```
-[Ogni…: 2 s] impulso ──▶ più [Contatore] conteggio ──▶ valore [Scrivi in console]
-                                         conteggio ──▶ a [Confronta: a ≥ b, b = 5]
+[Intervallo (setInterval): 2 s] impulso ──▶ più [Contatore (++ −−)] conteggio ──▶ valore [Print (console.log)]
+                                         conteggio ──▶ a [Confronto (== ≠ < >): a ≥ b, b = 5]
 
-[Confronta] risultato ──▶ valore [NON] risultato ──▶ acceso [Ogni…]
-[Confronta] se vero ──▶ invia [Valore: Fatto!] valore ──▶ valore [Scrivi in console]
+[Confronto (== ≠ < >)] risultato ──▶ valore [NOT] risultato ──▶ acceso [Intervallo (setInterval)]
+[Confronto (== ≠ < >)] se vero ──▶ invia [Costante · Variabile: Fatto!] valore ──▶ valore [Print (console.log)]
 ```
 
-Cosa succede: ogni 2 secondi **Ogni…** manda un impulso, il **Contatore** sale di 1 e manda il nuovo numero sia alla console sia a **Confronta**. Finché il numero è sotto 5, **Confronta** manda `false` su **risultato**, **NON** lo gira in `true` e **Ogni…** resta acceso. Quando arriva 5, **risultato** è `true`, **NON** manda `false` e **Ogni…** si spegne; intanto **se vero** fa partire **Valore**, che manda `Fatto!` alla seconda console.
+Cosa succede: ogni 2 secondi **Intervallo** manda un impulso, il **Contatore** sale di 1 e manda il nuovo numero sia alla console sia a **Confronto**. Finché il numero è sotto 5, **Confronto** manda `false` su **risultato**, **NOT** lo gira in `true` e **Intervallo** resta acceso. Quando arriva 5, **risultato** è `true`, **NOT** manda `false` e **Intervallo** si spegne; intanto **se vero** fa partire **Costante · Variabile** (che, con **invia** collegata, manda il valore solo a ogni impulso), che manda `Fatto!` alla seconda console.
 
 ### 4. Prova
 
 1. Premi **Prova** nella barra (o **F5**). Il pulsante diventa **Prova in corso 00:00** e compare **Ferma**.
 2. Sul foglio vedi i valori che passano: un'etichetta colorata a metà di ogni collegamento, l'ultimo valore accanto a ogni ingresso, il bordo azzurro sul blocco che lavora.
-3. In basso, nella console **Principale**, compaiono `1`, `2`, `3`, `4`, `5` (uno ogni 2 secondi) e subito dopo il 5 la riga `Fatto!`. Poi non succede più niente: **Ogni…** è spento.
+3. In basso, nella console **Principale**, compaiono `1`, `2`, `3`, `4`, `5` (uno ogni 2 secondi) e subito dopo il 5 la riga `Fatto!`. Poi non succede più niente: **Intervallo** è spento.
 4. Premi **Ferma** (o di nuovo **F5**). Una prova si ferma comunque da sola dopo 5 minuti.
 
 ### 5. Salva e attiva
@@ -138,7 +138,7 @@ Per capire perché il contatore parte da 1 e cosa succede quando due valori arri
 ## Da sapere
 
 - La prova usa quello che c'è **negli editor adesso**, anche non salvato; **Attiva** usa il progetto **salvato** (e ti chiede di salvare). Vedi [Prova e programmi attivi](ide/run).
-- Un programma attivo fa davvero quello che dice anche quando non guardi: un **Scrivi file** sovrascrive, una **Richiesta web** chiama davvero il sito. Provalo prima.
+- Un programma attivo fa davvero quello che dice anche quando non guardi: un **writeFile** sovrascrive, un blocco **HTTP** chiama davvero il sito. Provalo prima.
 - I testi dell'IDE e dei blocchi sono in italiano e inglese.
 - Le scelte di progetto di Logic Studio sono raccolte nella decisione D88 della documentazione interna di lilOS.
 

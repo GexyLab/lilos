@@ -30,7 +30,7 @@ La Mappa di calore non ha **Legenda**, **Colori** né **Punti tenuti per serie**
 | **abilitato** (`enabled`) | sì/no | `false` lo rende più chiaro e lo spegne. |
 | **visibile** (`visible`) | sì/no | `false` lo nasconde. |
 
-Non ci sono **aggiungi punto** né **pulisci**: per cambiare una casella manda la griglia intera (per esempio dopo [Imposta cella](coll.matSet)); per svuotarla manda `[]`.
+Non ci sono **aggiungi punto** né **pulisci**: per cambiare una casella manda la griglia intera (per esempio dopo [Scrivi m[r][c]](coll.matSet)); per svuotarla manda `[]`.
 
 ### Uscite
 
@@ -81,7 +81,7 @@ Finestra «Accessi»
 ```
 
 ```
-[Valore (JSON): [[3, 12, 8, 5], [4, 15, 9, 6], [2, 10, 11, 7]]] valore ──▶ griglia [Mappa di calore: Accessi]
+[Costante · Variabile (JSON): [[3, 12, 8, 5], [4, 15, 9, 6], [2, 10, 11, 7]]] valore ──▶ griglia [Mappa di calore: Accessi]
 ```
 
 Tre righe (Lun, Mar, Mer) e quattro colonne (8, 10, 12, 14). La casella più intensa è martedì alle 10 (15), la più chiara mercoledì alle 8 (2); la scala dice «2» e «15». Un clic su martedì alle 12 manda `{"row": "Mar", "col": "12", "rowIndex": 1, "colIndex": 2, "value": 9, "series": "Mar", "y": 9}`.
@@ -95,7 +95,7 @@ Il file `~/magazzino.json` contiene:
 ```
 
 ```
-[Ogni…: 60 s] impulso ──▶ leggi [Leggi file: ~/magazzino.json, JSON] contenuto ──▶ griglia [Mappa di calore: Riempimento]
+[Intervallo (setInterval): 60 s] impulso ──▶ leggi [readFile: ~/magazzino.json, JSON] contenuto ──▶ griglia [Mappa di calore: Riempimento]
 ```
 
 Con **Minimo** 0, **Massimo** 100 e **Unità** `%` il colore dice quanto è pieno ogni posto, sempre sulla stessa scala; il piano 3 dello scaffale A è vuoto (grigio tratteggiato, «—»).
@@ -103,10 +103,10 @@ Con **Minimo** 0, **Massimo** 100 e **Unità** `%` il colore dice quanto è pien
 ### 3. Una matrice costruita nello schema
 
 ```
-[Crea matrice: righe 3, colonne 3] matrice ──▶ matrice [Imposta cella: riga 1, colonna 2, valore 7] matrice ──▶ griglia [Mappa di calore: Prova]
+[Nuova matrice (fill): righe 3, colonne 3] matrice ──▶ matrice [Scrivi m[r][c]: riga 1, colonna 2, valore 7] matrice ──▶ griglia [Mappa di calore: Prova]
 ```
 
-[Crea matrice](coll.matNew) fa una griglia 3 × 3 di zeri; [Imposta cella](coll.matSet) (che conta righe e colonne da 0) mette 7 nella seconda riga, terza colonna. Nella mappa quella casella è la più intensa e tutte le altre sono le più chiare; le righe e le colonne si chiamano 1, 2, 3.
+[Nuova matrice (fill)](coll.matNew) fa una griglia 3 × 3 di zeri; [Scrivi m[r][c]](coll.matSet) (che conta righe e colonne da 0) mette 7 nella seconda riga, terza colonna. Nella mappa quella casella è la più intensa e tutte le altre sono le più chiare; le righe e le colonne si chiamano 1, 2, 3.
 
 ## Accessibilità e tastiera
 
@@ -114,6 +114,6 @@ Con **Minimo** 0, **Massimo** 100 e **Unità** `%` il colore dice quanto è pien
 
 ## Vedi anche
 
-- [Crea matrice](coll.matNew), [Imposta cella](coll.matSet), [Matrice da lista](coll.matFromList)
+- [Nuova matrice (fill)](coll.matNew), [Scrivi m[r][c]](coll.matSet), [Reshape](coll.matFromList)
 - [Colonne](charts.column) per poche righe e colonne
 - [Grafici](logicstudio-charts): le forme dei dati, i limiti, la tastiera

@@ -65,16 +65,16 @@ Finestra «Copia»
 ```
 
 ```
-[Pulsante: Copia] premuto ──▶ leggi [Leggi file: ~/dati.txt] contenuto ──▶ contenuto [Scrivi file: ~/copia.txt] scritto ──▶ invia [Valore: «Copiato.»] valore ──▶ testo [Etichetta: label1]
-[Leggi file] Eccezione ──▶ oggetto [Prendi campo: message] valore ──▶ testo [Etichetta: label1]
+[Pulsante: Copia] premuto ──▶ leggi [readFile: ~/dati.txt] contenuto ──▶ contenuto [writeFile: ~/copia.txt] scritto ──▶ invia [Costante · Variabile: «Copiato.»] valore ──▶ testo [Etichetta: label1]
+[readFile] Eccezione ──▶ oggetto [Get proprietà (obj.campo): message] valore ──▶ testo [Etichetta: label1]
 ```
 
-Se la copia riesce, l'etichetta dice «Copiato.»; se il file non c'è, mostra il messaggio d'errore del blocco [Leggi file](lilos.fileRead).
+Se la copia riesce, l'etichetta dice «Copiato.»; se il file non c'è, mostra il messaggio d'errore del blocco [readFile](lilos.fileRead).
 
 ### 3. Un testo composto
 
 ```
-[Campo di testo: Nome] testo ──▶ nome [Formatta testo: «Ciao, {nome}!»] testo ──▶ testo [Etichetta: label1]
+[Campo di testo: Nome] testo ──▶ nome [Template (formatta): «Ciao, {nome}!»] testo ──▶ testo [Etichetta: label1]
 ```
 
 Quando l'utente scrive «Luca» e preme Invio, l'etichetta mostra «Ciao, Luca!».
@@ -86,5 +86,5 @@ L'etichetta è testo normale: un lettore di schermo la legge quando arriva lì. 
 ## Vedi anche
 
 - [Valore](ui.value), per mostrare numeri con unità e decimali
-- [Formatta testo](core.format)
+- [Template (formatta)](core.format)
 - [Componenti UI standard](logicstudio-ui)

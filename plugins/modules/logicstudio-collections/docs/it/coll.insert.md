@@ -1,4 +1,4 @@
-# Inserisci in posizione
+# Inserisci (splice)
 
 `coll.insert` · Liste · [Liste e matrici](logicstudio-collections) · versione 1
 
@@ -29,13 +29,13 @@ Con una lista di lunghezza N gli indici validi sono **da 0 a N** (uno in più ch
 |---|---|
 | 0 | all'inizio |
 | 1 … N-1 | prima dell'elemento che era in quella posizione |
-| N | in fondo (come [Aggiungi elemento](coll.add)) |
+| N | in fondo (come [Push · Unshift](coll.add)) |
 | -1 | **prima dell'ultimo**, non in fondo |
 | -N | all'inizio |
 | più di N, meno di -N | errore «Indice fuori dalla lista» |
 
 - Su una lista vuota l'unico indice valido è 0 (anche `-0`).
-- L'indice si legge come in [Elemento](coll.get): `"2"` vale 2, `""` e `null` valgono 0, `1.5` è un errore.
+- L'indice si legge come in [Leggi lista[i]](coll.get): `"2"` vale 2, `""` e `null` valgono 0, `1.5` è un errore.
 - Il valore è inserito come un elemento solo: inserire una lista non la «apre».
 - Il risultato può avere al massimo 100000 elementi.
 
@@ -44,9 +44,9 @@ Con una lista di lunghezza N gli indici validi sono **da 0 a N** (uno in più ch
 ### 1. In mezzo
 
 ```
-[Valore (JSON): ["a","b","c"]] valore ──▶ lista  [Inserisci in posizione] risultato ──▶ valore [Scrivi in console]
-[Valore: 1]                    valore ──▶ indice
-[Valore (testo): X]            valore ──▶ valore
+[Costante · Variabile (JSON): ["a","b","c"]] valore ──▶ lista  [Inserisci (splice)] risultato ──▶ valore [Print (console.log)]
+[Costante · Variabile: 1]                    valore ──▶ indice
+[Costante · Variabile (testo): X]            valore ──▶ valore
 ```
 
 Scrive `["a","X","b","c"]`.
@@ -75,5 +75,5 @@ Su `[]` con indice `0` e valore `5` il risultato è `[5]`; con indice `1` è l'e
 
 ## Vedi anche
 
-- [Aggiungi elemento](coll.add), [Imposta elemento](coll.set), [Rimuovi in posizione](coll.removeAt)
+- [Push · Unshift](coll.add), [Scrivi lista[i]](coll.set), [Rimuovi (splice)](coll.removeAt)
 - [Come funziona un blocco](ide/blocks)

@@ -54,7 +54,7 @@ Window «Boiler»
 ```
 
 ```
-[Every…: 5 s] pulse ──▶ read [Read file: ~/boiler.txt] content ──▶ value [Gauge: Water]
+[Interval (setInterval): 5 s] pulse ──▶ read [readFile: ~/boiler.txt] content ──▶ value [Gauge: Water]
 ```
 
 If the file contains `55`, the arc is half full ((55 − 20) / (90 − 20) = 0.5) and below you read «55 °C».
@@ -68,11 +68,11 @@ Window «Space»
 ```
 
 ```
-[Value: 256] value ──▶ max    [Gauge: Used]
-[Value: 180] value ──▶ value
+[Constant · Variable: 256] value ──▶ max    [Gauge: Used]
+[Constant · Variable: 180] value ──▶ value
 ```
 
-At the start the two [Values](core.value) send 256 and 180: the arc is 70% full and you read «180.0 GB». In the real project, instead of the second Value put the block that calculates the used space.
+At the start the two [Constant · Variable](core.value) blocks send 256 and 180: the arc is 70% full and you read «180.0 GB». In the real project, instead of the second block put the block that calculates the used space.
 
 ## Accessibility
 
@@ -81,5 +81,5 @@ The arc is a drawing: a screen reader does not read it. It reads the number with
 ## See also
 
 - [Progress bar](ui.progress), [Value](ui.value)
-- [Limit](core.clamp) to keep a value between two numbers
+- [Clamp](core.clamp) to keep a value between two numbers
 - [Standard UI components](logicstudio-ui)

@@ -1,4 +1,4 @@
-# Formatta testo
+# Template (formatta)
 
 `core.format` · Testo · [Blocchi di base](logicstudio-core) · versione 1
 
@@ -51,10 +51,10 @@ Come vengono scritti i valori:
 
 Altre cose da sapere:
 
-- Senza ingressi aggiunti il blocco **non parte mai**, quindi non manda niente (nemmeno un modello senza segnaposto). Per un testo fisso usa [Valore](core.value) con tipo testo.
+- Senza ingressi aggiunti il blocco **non parte mai**, quindi non manda niente (nemmeno un modello senza segnaposto). Per un testo fisso usa il blocco [Costante · Variabile](core.value) con tipo testo.
 - Non c'è modo di scrivere una graffa «vera» al posto di un segnaposto che ha un ingresso con quel nome.
 - Il modello si scrive in un campo di una riga: non puoi andare a capo.
-- Per scrivere un numero con la virgola o con un certo numero di decimali, preparalo prima: arrotondalo con [Calcola](core.math) e, se ti serve la virgola, passalo da [Operazione sul testo](core.text) con **sostituisci** `.` con `,`.
+- Per scrivere un numero con la virgola o con un certo numero di decimali, preparalo prima: arrotondalo con il blocco [Funzioni Math](core.math) e, se ti serve la virgola, passalo dal blocco [Funzioni stringa](core.text) con **sostituisci** `.` con `,`.
 
 ## Esempi
 
@@ -63,7 +63,7 @@ Altre cose da sapere:
 Modello `Ciao {nome}, hai {anni} anni`; due ingressi rinominati `nome` e `anni`:
 
 ```
-[Campo di testo: nome]  testo  ──▶ nome [Formatta testo] testo ──▶ testo [Etichetta: saluto]
+[Campo di testo: nome]  testo  ──▶ nome [Template (formatta)] testo ──▶ testo [Etichetta: saluto]
 [Campo numerico: anni]  valore ──▶ anni
 ```
 
@@ -89,8 +89,8 @@ Questo blocco non ha errori suoi.
 
 ## Vedi anche
 
-- [Concatena](core.concat) per unire testi uno dopo l'altro, con un separatore
-- [Operazione sul testo](core.text) per maiuscole, spazi, sostituzioni
-- [Converti](core.convert) per trasformare un valore in testo o in testo JSON
-- [Unisci in testo](coll.join) per gli elementi di una lista
+- [Concat testo](core.concat) per unire testi uno dopo l'altro, con un separatore
+- [Funzioni stringa](core.text) per maiuscole, spazi, sostituzioni
+- [Cast (converti tipo)](core.convert) per trasformare un valore in testo o in testo JSON
+- [Join](coll.join) per gli elementi di una lista
 - [Come funziona un blocco](ide/blocks)

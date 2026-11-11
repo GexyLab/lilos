@@ -1,4 +1,4 @@
-# Somma · Minimo · Massimo · Media
+# Sum · Min · Max · Avg
 
 `coll.stat` · Liste · [Liste e matrici](logicstudio-collections) · versione 1
 
@@ -44,14 +44,14 @@ Se anche un solo elemento non lo è, esce «Serve un numero in ogni elemento» e
 
 Attenzione ai testi con le migliaia: solo la **prima** virgola diventa un punto. `"1,000"` vale 1 (non mille) e `"1.000,5"` non è un numero.
 
-Il risultato non viene arrotondato: `[0.1, 0.2]` sommati danno `0.30000000000000004`, come in ogni calcolo con la virgola sul computer. Arrotonda con [Calcola](core.math) se serve. Numeri enormi possono dare `Infinity`.
+Il risultato non viene arrotondato: `[0.1, 0.2]` sommati danno `0.30000000000000004`, come in ogni calcolo con la virgola sul computer. Arrotonda con [Funzioni Math](core.math) se serve. Numeri enormi possono dare `Infinity`.
 
 ## Esempi
 
 ### 1. Somma e media
 
 ```
-[Valore (JSON): [4,8,9]] valore ──▶ lista [Somma · Minimo · Massimo · Media] risultato ──▶ valore [Scrivi in console]
+[Costante · Variabile (JSON): [4,8,9]] valore ──▶ lista [Sum · Min · Max · Avg] risultato ──▶ valore [Print (console.log)]
 ```
 
 Con **Operazione** somma scrive `21`; con media `7`; con minimo `4`; con massimo `9`.
@@ -59,7 +59,7 @@ Con **Operazione** somma scrive `21`; con media `7`; con minimo `4`; con massimo
 ### 2. Il totale di un carrello
 
 ```
-[Valore (JSON): [{"articolo":"Penna","prezzo":"2,50"},{"articolo":"Zaino","prezzo":35}]] valore ──▶ lista [Somma · Minimo · Massimo · Media: somma, Campo prezzo] risultato ──▶ valore [Valore mostrato: totale]
+[Costante · Variabile (JSON): [{"articolo":"Penna","prezzo":"2,50"},{"articolo":"Zaino","prezzo":35}]] valore ──▶ lista [Sum · Min · Max · Avg: somma, Campo prezzo] risultato ──▶ valore [Valore mostrato: totale]
 ```
 
 Il totale è 37,5: il testo `"2,50"` vale 2,5. Se un articolo non avesse il campo `prezzo`, il totale non si aggiornerebbe e uscirebbe «Serve un numero in ogni elemento».
@@ -67,7 +67,7 @@ Il totale è 37,5: il testo `"2,50"` vale 2,5. Se un articolo non avesse il camp
 ### 3. La media mobile delle ultime 5 letture
 
 ```
-[Campo numerico: lettura] valore ──▶ aggiungi [Accumula: massimo 5] lista ──▶ lista [Somma · Minimo · Massimo · Media: media] risultato ──▶ valore [Valore mostrato]
+[Campo numerico: lettura] valore ──▶ aggiungi [Accumula (push con limite): massimo 5] lista ──▶ lista [Sum · Min · Max · Avg: media] risultato ──▶ valore [Valore mostrato]
 ```
 
 Con le letture 10, 20, 30 il Valore mostrato indica 10, poi 15, poi 20. Dopo la sesta lettura la più vecchia esce dal conto.
@@ -82,6 +82,6 @@ Con le letture 10, 20, 30 il Valore mostrato indica 10, poi 15, poi 20. Dopo la 
 
 ## Vedi anche
 
-- [Minimo · Massimo · Media](core.stat) per numeri su ingressi separati
-- [Estrai campo](coll.pluck), [Accumula](coll.accumulate), [Ordina](coll.sort)
+- [Min · Max · Avg](core.stat) per numeri su ingressi separati
+- [Map campo](coll.pluck), [Accumula (push con limite)](coll.accumulate), [Sort](coll.sort)
 - [Come funziona un blocco](ide/blocks)

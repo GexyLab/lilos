@@ -1,4 +1,4 @@
-# Cases
+# Switch · Case
 
 `core.switch` · Logic · [Core blocks](logicstudio-core) · version 1
 
@@ -35,7 +35,7 @@ The comparison is between texts, letter by letter:
 - `null` is the empty text: it finds no case (a case cannot have an empty name) and goes to **otherwise**;
 - objects and lists are written as JSON (for example `[1,2]`).
 
-The block sends **a pulse**, not the value. If you need the value too, link it also to the input of the block that starts with the pulse (with "starts it" removed), or use [Route](core.route).
+The block sends **a pulse**, not the value. If you need the value too, link it also to the input of the block that starts with the pulse (with "starts it" removed), or use [Route by index (DEMUX)](core.route).
 
 If two cases have the same name, the first from the top wins.
 
@@ -46,10 +46,10 @@ If two cases have the same name, the first from the top wins.
 Add three outputs and name them `rosso`, `giallo`, `verde`:
 
 ```
-[Selection: color] value ──▶ value [Cases] rosso     ──▶ send [Notification: Stop]
-                                           giallo    ──▶ send [Notification: Slow down]
-                                           verde     ──▶ send [Notification: Go]
-                                           otherwise ──▶ send [Value: "unknown color"] value ──▶ value [Write to console]
+[Selection: color] value ──▶ value [Switch · Case] rosso     ──▶ send [Notify: Stop]
+                                           giallo    ──▶ send [Notify: Slow down]
+                                           verde     ──▶ send [Notify: Go]
+                                           otherwise ──▶ send [Constant · Variable: "unknown color"] value ──▶ value [Print (console.log)]
 ```
 
 If the [Selection](ui.select) sends `giallo`, the notification **Slow down** goes off. If it sends `blu`, **otherwise** goes off and the console writes `unknown color`.
@@ -57,10 +57,10 @@ If the [Selection](ui.select) sends `giallo`, the notification **Slow down** goe
 ### 2. Commands typed in the console
 
 ```
-[Read from console] value ──▶ text [Text operation: lower case] result ──▶ value [Cases]
+[Input (readline)] value ──▶ text [String functions: lower case] result ──▶ value [Switch · Case]
 ```
 
-With the cases `avvia`, `ferma`, `stato`: if the user writes `AVVIA`, the text becomes `avvia` and the output **avvia** goes off. Going through [Text operation](core.text) is there to ignore upper case; with **trim spaces** you can also ignore spaces.
+With the cases `avvia`, `ferma`, `stato`: if the user writes `AVVIA`, the text becomes `avvia` and the output **avvia** goes off. Going through [String functions](core.text) is there to ignore upper case; with **trim spaces** you can also ignore spaces.
 
 ### 3. Numbers
 
@@ -72,8 +72,8 @@ This block has no errors of its own.
 
 ## See also
 
-- [If](core.if) for only two paths
-- [Route](core.route) to send the value itself to one of many outputs, chosen with a number
-- [Choose](core.select) for the opposite: choosing one of many inputs
-- [Text operation](core.text) to prepare the value (lower case, spaces)
+- [If · Else](core.if) for only two paths
+- [Route by index (DEMUX)](core.route) to send the value itself to one of many outputs, chosen with a number
+- [Pick by index (MUX)](core.select) for the opposite: choosing one of many inputs
+- [String functions](core.text) to prepare the value (lower case, spaces)
 - [How a block works](ide/blocks)

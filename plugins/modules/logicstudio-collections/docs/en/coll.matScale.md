@@ -1,4 +1,4 @@
-# Scale
+# Scale (k·A)
 
 `coll.matScale` · Matrices · [Lists and matrices](logicstudio-collections) · version 1
 
@@ -32,8 +32,8 @@ The block waits until it has **matrix** and **factor**; then, at every new value
 ### 1. Double
 
 ```
-[Value (JSON): [[1,2,3],[4,5,6]]] value ──▶ matrix [Scale] matrix ──▶ value [Write to console]
-[Value: 2]                        value ──▶ factor
+[Constant · Variable (JSON): [[1,2,3],[4,5,6]]] value ──▶ matrix [Scale (k·A)] matrix ──▶ value [Print (console.log)]
+[Constant · Variable: 2]                        value ──▶ factor
 ```
 
 It writes `[[2,4,6],[8,10,12]]`.
@@ -57,5 +57,5 @@ A matrix of measurements in centimeters, `[[120, 85], [200, 150]]`, with factor 
 
 ## See also
 
-- [Add matrices](coll.matAdd), [Subtract matrices](coll.matSubtract), [Multiply matrices](coll.matMultiply)
+- [A + B](coll.matAdd), [A − B](coll.matSubtract), [A × B](coll.matMultiply)
 - [How a block works](ide/blocks)

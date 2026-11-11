@@ -194,10 +194,11 @@ Firme, parametri ed esempi: [riferimento API](../doc/sviluppatore/api.md).
 
 ## Versione
 
-`0.25.0`. Finché la versione è `0.x` l'API può cambiare: ogni modifica incompatibile alza la versione minore e va annotata qui sotto.
+`0.26.0`. Finché la versione è `0.x` l'API può cambiare: ogni modifica incompatibile alza la versione minore e va annotata qui sotto.
 
 ### Modifiche
 
+- **0.26.0** (11 novembre 2026, lilOS 1.41.0, compatibile): porte nascoste di serie in Logic Studio. Una porta della definizione di un blocco o di una componente può dire `hidden: true`: `portsOf` dà `hiddenByDefault`, `portHidden(item, lato, porta, diSerie)` e `LogicSchema.setPortHidden(id, lato, porta, nascosta, diSerie)` ne tengono conto (nel file resta solo la scelta diversa dal predefinito). [Riferimento API](../doc/sviluppatore/api.md#sdkcorelogicjs-e-sdkcorelogicmodeljs-logic-studio)
 - **0.25.0** (11 novembre 2026, lilOS 1.40.0, compatibile): la documentazione di Logic Studio. Nuovo export `markdown(testo, { link })` (`ui/markdown.js`: Markdown → nodi DOM, mai HTML) e nuovo foglio di stile `markdown.css` (`.lilos-md`). Nuovi metodi di `logic`: `docIndex(lang = 'en')` (le pagine di ogni pacchetto e del motore, con i titoli; `[]` con un motore più vecchio della 1.1.0) e `doc(pack, page = 'index', lang = 'en')` (una pagina `{ pack, page, lang, markdown }`, o `null`). [Riferimento API](../doc/sviluppatore/api.md#sdkuimarkdownjs)
 - **0.24.1** (11 novembre 2026, lilOS 1.39.1, compatibile): in `LogicCanvas` il titolo dell'oggetto di una componente (un'area della UI) è `UI > <nome>`, non più solo il nome, così nello schema si distingue dagli altri blocchi. [Riferimento API](../doc/sviluppatore/api.md#logiccanvas-uilogiclogiccanvasjs)
 - **0.24.0** (11 novembre 2026, lilOS 1.39.0, compatibile): porte nascoste nei blocchi di Logic Studio. Nuovo export `portHidden(item, lato, porta)`; `LogicSchema.setPortHidden(id, lato, porta, nascosta)` (una porta collegata non si nasconde); `portsOf` dà anche `hidden`; `LogicSchema.parse` tiene `hide` dei blocchi. `LogicCanvas` non disegna le porte nascoste (l'uscita Eccezione lo è se non la si mostra) tranne quelle collegate, e ridisegna un blocco quando cambiano i suoi collegamenti. [Riferimento API](../doc/sviluppatore/api.md#sdkcorelogicjs-e-sdkcorelogicmodeljs-logic-studio)

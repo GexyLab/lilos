@@ -1,4 +1,4 @@
-# Minimo · Massimo · Media
+# Min · Max · Avg
 
 `core.stat` · Matematica · [Blocchi di base](logicstudio-core) · versione 1
 
@@ -33,10 +33,10 @@ Nelle **Proprietà**, sezione **Porte**, puoi aggiungere fino a 16 ingressi in p
 Ogni volta che arriva un valore su un ingresso, il blocco prende l'ultimo valore di ogni ingresso, tiene solo quelli che sono numeri e manda il risultato su **risultato**.
 
 - Gli ingressi che non hanno ancora ricevuto niente non contano.
-- I valori vengono convertiti in numero con le stesse regole della [Somma](core.add): `"2,5"` vale 2,5; `true` vale 1 e `false` 0; **un testo vuoto e `null` valgono 0** (e quindi contano, per esempio abbassano la media).
-- **Diversamente dalla Somma**, i valori che non si possono convertire (`"ciao"`, un oggetto) vengono **saltati** senza errore: la media di 4, `"abc"` e 10 è 7 (cioè (4 + 10) ÷ 2).
+- I valori vengono convertiti in numero con le stesse regole del blocco [Somma (+)](core.add): `"2,5"` vale 2,5; `true` vale 1 e `false` 0; **un testo vuoto e `null` valgono 0** (e quindi contano, per esempio abbassano la media).
+- **Diversamente dal blocco Somma**, i valori che non si possono convertire (`"ciao"`, un oggetto) vengono **saltati** senza errore: la media di 4, `"abc"` e 10 è 7 (cioè (4 + 10) ÷ 2).
 - Se non resta nessun numero valido, il blocco non manda niente.
-- La media può avere molti decimali (la media di 1, 2 e 2 è 1,6666666666666667): arrotondala con [Calcola](core.math).
+- La media può avere molti decimali (la media di 1, 2 e 2 è 1,6666666666666667): arrotondala con [Funzioni Math](core.math).
 
 ## Esempi
 
@@ -45,7 +45,7 @@ Ogni volta che arriva un valore su un ingresso, il blocco prende l'ultimo valore
 Operazione **media**, ingresso **c** aggiunto:
 
 ```
-[Sensore 1] valore ──▶ a  [Minimo · Massimo · Media] risultato ──▶ valore [Valore: temperatura media]
+[Sensore 1] valore ──▶ a  [Min · Max · Avg] risultato ──▶ valore [Valore: temperatura media]
 [Sensore 2] valore ──▶ b
 [Sensore 3] valore ──▶ c
 ```
@@ -66,7 +66,7 @@ Questo blocco non ha errori suoi.
 
 ## Vedi anche
 
-- [Somma](core.add) per il totale
-- [Limita](core.clamp) per tenere un numero tra un minimo e un massimo fissi
-- [Somma · Minimo · Massimo · Media](coll.stat) per fare lo stesso sugli elementi di una lista
+- [Somma (+)](core.add) per il totale
+- [Clamp (limita)](core.clamp) per tenere un numero tra un minimo e un massimo fissi
+- [Sum · Min · Max · Avg](coll.stat) per fare lo stesso sugli elementi di una lista
 - [Come funziona un blocco](ide/blocks)

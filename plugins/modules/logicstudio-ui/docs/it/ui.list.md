@@ -59,7 +59,7 @@ Finestra «Spesa»
 ```
 
 ```
-[Elenco: Prodotti] scelto ──▶ prodotto [Formatta testo: «Hai scelto: {prodotto}»] testo ──▶ testo [Etichetta: label1]
+[Elenco: Prodotti] scelto ──▶ prodotto [Template (formatta): «Hai scelto: {prodotto}»] testo ──▶ testo [Etichetta: label1]
 ```
 
 Un clic su «Latte» fa dire all'etichetta «Hai scelto: Latte».
@@ -74,20 +74,20 @@ Finestra «Note»
 ```
 
 ```
-[All'avvio] impulso ──▶ leggi [Elenca cartella: ~/Note  mostra file] nomi ──▶ voci [Elenco: Le tue note]
-[Elenco: Le tue note] scelto ──▶ nome [Formatta testo: «~/Note/{nome}»] testo ──▶ percorso [Leggi file] contenuto ──▶ testo [Etichetta: label1]
+[All'avvio (main)] impulso ──▶ leggi [readdir (elenca cartella): ~/Note  mostra file] nomi ──▶ voci [Elenco: Le tue note]
+[Elenco: Le tue note] scelto ──▶ nome [Template (formatta): «~/Note/{nome}»] testo ──▶ percorso [readFile] contenuto ──▶ testo [Etichetta: label1]
 ```
 
-All'avvio l'elenco si riempie con i nomi dei file della cartella. Un clic su una nota la legge e l'etichetta ne mostra il contenuto. Nel [Leggi file](lilos.fileRead) accendi «lo avvia» sull'ingresso **percorso** (di serie è spento), così il blocco legge il file appena arriva il percorso. Con le frecce l'utente scorre le note una dopo l'altra, e ognuna viene letta.
+All'avvio l'elenco si riempie con i nomi dei file della cartella. Un clic su una nota la legge e l'etichetta ne mostra il contenuto. Nel [readFile](lilos.fileRead) accendi «lo avvia» sull'ingresso **percorso** (di serie è spento), così il blocco legge il file appena arriva il percorso. Con le frecce l'utente scorre le note una dopo l'altra, e ognuna viene letta.
 
 ### 3. Voci con un codice
 
 ```
-[Valore: JSON] valore ──▶ voci [Elenco: Reparti]
-[Elenco: Reparti] scelto ──▶ valore [Scrivi in console]
+[Costante · Variabile: JSON] valore ──▶ voci [Elenco: Reparti]
+[Elenco: Reparti] scelto ──▶ valore [Print (console.log)]
 ```
 
-Il [Valore](core.value), di tipo JSON, contiene `[{"value":"A1","label":"Amministrazione"},{"value":"M2","label":"Magazzino"}]`. L'elenco mostra «Amministrazione» e «Magazzino»; un clic su «Magazzino» scrive `M2` nella console. Per evidenziare una voce dallo schema, manda `"M2"` (il valore, non il testo) su **scelto**.
+Il blocco [Costante · Variabile](core.value), di tipo JSON, contiene `[{"value":"A1","label":"Amministrazione"},{"value":"M2","label":"Magazzino"}]`. L'elenco mostra «Amministrazione» e «Magazzino»; un clic su «Magazzino» scrive `M2` nella console. Per evidenziare una voce dallo schema, manda `"M2"` (il valore, non il testo) su **scelto**.
 
 ## Accessibilità e tastiera
 

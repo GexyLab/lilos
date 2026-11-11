@@ -54,7 +54,7 @@ Finestra «Caldaia»
 ```
 
 ```
-[Ogni…: 5 s] impulso ──▶ leggi [Leggi file: ~/caldaia.txt] contenuto ──▶ valore [Indicatore: Acqua]
+[Intervallo (setInterval): 5 s] impulso ──▶ leggi [readFile: ~/caldaia.txt] contenuto ──▶ valore [Indicatore: Acqua]
 ```
 
 Se il file contiene `55`, l'arco è pieno a metà ((55 − 20) / (90 − 20) = 0,5) e sotto si legge «55 °C».
@@ -68,11 +68,11 @@ Finestra «Spazio»
 ```
 
 ```
-[Valore: 256] valore ──▶ max    [Indicatore: Usati]
-[Valore: 180] valore ──▶ valore
+[Costante · Variabile: 256] valore ──▶ max    [Indicatore: Usati]
+[Costante · Variabile: 180] valore ──▶ valore
 ```
 
-All'avvio i due [Valori](core.value) mandano 256 e 180: l'arco è pieno al 70% e si legge «180,0 GB». Nel progetto vero, al posto del secondo Valore metti il blocco che calcola lo spazio usato.
+All'avvio i due blocchi [Costante · Variabile](core.value) mandano 256 e 180: l'arco è pieno al 70% e si legge «180,0 GB». Nel progetto vero, al posto del secondo blocco metti il blocco che calcola lo spazio usato.
 
 ## Accessibilità
 
@@ -81,5 +81,5 @@ L'arco è un disegno: un lettore di schermo non lo legge. Si leggono il numero c
 ## Vedi anche
 
 - [Barra di avanzamento](ui.progress), [Valore](ui.value)
-- [Limita](core.clamp) per tenere un valore tra due numeri
+- [Clamp (limita)](core.clamp) per tenere un valore tra due numeri
 - [Componenti UI standard](logicstudio-ui)

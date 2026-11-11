@@ -62,10 +62,10 @@ L'app gira **con i tuoi permessi**. Se i suoi schemi usano blocchi che toccano i
 
 | Se usa | lilOS dice che potrà |
 |---|---|
-| **Leggi file**, **Scrivi file**, **Aggiungi a file**, **Elenca cartella**, **Esiste** | leggere e cambiare i tuoi file |
+| **readFile**, **writeFile**, **appendFile**, **readdir**, **exists** | leggere e cambiare i tuoi file |
 | un blocco di **Rete** | fare richieste su internet |
-| **Notifica** | mandarti notifiche |
-| **Evento a lilOS** | mandare eventi al tuo lilOS |
+| **Notify** | mandarti notifiche |
+| **Emit** | mandare eventi al tuo lilOS |
 
 Sotto c'è il percorso del file `.lsapp`, con il consiglio di eseguirla solo se ti fidi di chi l'ha fatta, e i pulsanti per annullare o eseguire. I testi di questa finestra sono di lilOS: la loro forma originale è in inglese («Run «Nome»?», «This app was made with Logic Studio and runs as you. It can:», **Cancel**, **Run**) e li vedi tradotti se lilOS ha il pacchetto della tua lingua.
 
@@ -97,7 +97,7 @@ Sotto c'è il percorso del file `.lsapp`, con il consiglio di eseguirla solo se 
 
 ### 2. Un'app che scrive un file
 
-Il progetto ha un **Scrivi file** su `~/note.txt`. Al primo avvio dell'app compare **Eseguire «Note»?** con «leggere e cambiare i tuoi file». Premi **Esegui**: la volta dopo non te lo chiede più. Se cambi il progetto e rifai l'app, te lo chiede di nuovo.
+Il progetto ha un **writeFile** su `~/note.txt`. Al primo avvio dell'app compare **Eseguire «Note»?** con «leggere e cambiare i tuoi file». Premi **Esegui**: la volta dopo non te lo chiede più. Se cambi il progetto e rifai l'app, te lo chiede di nuovo.
 
 ### 3. Aggiornare l'app
 

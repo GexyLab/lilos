@@ -1,8 +1,8 @@
-# Memory
+# Store (set · get)
 
 `core.store` · Values · [Core blocks](logicstudio-core) · version 1
 
-Keeps a value aside and sends it when you ask. It is the "variable" of a schema: you write it with **set**, read it with **read**, empty it with **clear**.
+Keeps a value aside and sends it when you ask. It is the "variable" of a schema (the alternative is [Constant · Variable](core.value), which becomes a variable too when **set** is linked): you write it with **set**, read it with **read**, empty it with **clear**.
 
 ## Inputs
 
@@ -51,29 +51,29 @@ See also [How a block works](ide/blocks).
 ### 1. Remember the last text written and show it on request
 
 ```
-[Text field: name] text    ──▶ set [Memory] value ──▶ value [Write to console]
+[Text field: name] text    ──▶ set [Store (set · get)] value ──▶ value [Print (console.log)]
 [Button: Show]     pressed ──▶ read
 ```
 
-The user writes `Ada` in the [Text field](ui.text): the Memory keeps it, without sending it. When they press **Show**, the console writes `Ada`. If they press **Show** before writing anything, the Memory sends `null` and the console writes an empty line.
+The user writes `Ada` in the [Text field](ui.text): the Store (set · get) block keeps it, without sending it. When they press **Show**, the console writes `Ada`. If they press **Show** before writing anything, the block sends `null` and the console writes an empty line.
 
 ### 2. The last value, every 10 seconds
 
 A value changes many times a second, but you want to write it only every 10 seconds:
 
 ```
-[Slider: level] value ──▶ set [Memory] value ──▶ value [Write to console]
-[Every…: 10 s]  pulse ──▶ read
+[Slider: level] value ──▶ set [Store (set · get)] value ──▶ value [Print (console.log)]
+[Interval (setInterval): 10 s]  pulse ──▶ read
 ```
 
-The [Slider](ui.slider) updates the Memory at every movement; [Every…](core.every) makes it read every 10 seconds. If in those 10 seconds the user moves the slider to 20, then 35, then 42, the console writes only `42`.
+The [Slider](ui.slider) updates the Store (set · get) block at every movement; [Interval (setInterval)](core.every) makes it read every 10 seconds. If in those 10 seconds the user moves the slider to 20, then 35, then 42, the console writes only `42`.
 
 With **Send when set** checked, instead, the console would also write `20`, `35` and `42` at every movement.
 
 ### 3. A value that resets
 
 ```
-[Button: Reset] pressed ──▶ clear [Memory]
+[Button: Reset] pressed ──▶ clear [Store (set · get)]
 ```
 
 After **Reset**, a **read** sends `null` until a new **set** arrives.
@@ -84,7 +84,7 @@ This block has no errors of its own.
 
 ## See also
 
-- [Value](core.value) for a fixed value
-- [Counter](core.counter) for a number that goes up and down
-- [Edge](core.edge) to know when a yes/no changes
+- [Constant · Variable](core.value) for a fixed value
+- [Counter (++ −−)](core.counter) for a number that goes up and down
+- [On change (edge)](core.edge) to know when a yes/no changes
 - [How a block works](ide/blocks)

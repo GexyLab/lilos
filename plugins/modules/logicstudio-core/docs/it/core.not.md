@@ -1,4 +1,4 @@
-# NON
+# NOT
 
 `core.not` · Logica · [Blocchi di base](logicstudio-core) · versione 1
 
@@ -39,7 +39,7 @@ Per i testi: tolti gli spazi ai lati e senza badare alle maiuscole, solo vuoto, 
 ### 1. Un pulsante abilitato solo quando il programma è fermo
 
 ```
-[Interruttore: in funzione] valore ──▶ valore [NON] risultato ──▶ abilitato [Pulsante: Configura]
+[Interruttore: in funzione] valore ──▶ valore [NOT] risultato ──▶ abilitato [Pulsante: Configura]
 ```
 
 Quando l'[Interruttore](ui.toggle) è acceso, il [Pulsante](ui.button) **Configura** è disabilitato; quando è spento, si può premere.
@@ -47,10 +47,10 @@ Quando l'[Interruttore](ui.toggle) è acceso, il [Pulsante](ui.button) **Configu
 ### 2. «Se non…»
 
 ```
-[Confronta: livello > 10] risultato ──▶ valore [NON] risultato ──▶ condizione [Se]
+[Confronto (== ≠ < >): livello > 10] risultato ──▶ valore [NOT] risultato ──▶ condizione [If · Else]
 ```
 
-Il [Se](core.if) prende la strada **allora** quando il livello **non** è sopra 10. (Lo stesso risultato si ottiene scegliendo `a ≤ b` nel [Confronta](core.compare).)
+Il blocco [If · Else](core.if) prende la strada **allora** quando il livello **non** è sopra 10. (Lo stesso risultato si ottiene scegliendo `a ≤ b` nel blocco [Confronto (== ≠ < >)](core.compare).)
 
 ### 3. Un testo
 
@@ -62,6 +62,6 @@ Questo blocco non ha errori suoi.
 
 ## Vedi anche
 
-- [E](core.and), [O](core.or), [O esclusivo](core.xor)
-- [Converti](core.convert) per trasformare un valore in sì/no senza rovesciarlo
+- [AND](core.and), [OR](core.or), [XOR](core.xor)
+- [Cast (converti tipo)](core.convert) per trasformare un valore in sì/no senza rovesciarlo
 - [Come funziona un blocco](ide/blocks)

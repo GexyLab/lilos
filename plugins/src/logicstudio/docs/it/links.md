@@ -102,10 +102,10 @@ Dentro uno schema colleghi blocchi. **Tra schemi diversi** di un progetto si col
 
 ```
 schema «sensori»                         schema «allarmi»
-… ──▶ valore [Uscita di schema: temp]  ═══▶  [Ingresso di schema: temp] valore ──▶ …
+… ──▶ valore [Return (uscita di schema): temp]  ═══▶  [Parametro (ingresso di schema): temp] valore ──▶ …
 ```
 
-- Si va da un'**Uscita di schema** di uno schema a un **Ingresso di schema** di un altro.
+- Si va da un blocco **Return** di uno schema a un blocco **Parametro** di un altro.
 - Un'uscita può andare a più ingressi, e un ingresso può ricevere da più uscite.
 - Questi collegamenti stanno nel file del progetto (`.lsproj`), scritti come `"sensori:temp"` → `"allarmi:temp"`.
 - Rinominando lo schema o la porta, i collegamenti seguono.
@@ -127,32 +127,32 @@ Una componente di una finestra **non si collega direttamente**: si collega il su
 ### 1. Un valore a più blocchi
 
 ```
-[Campo numerico: gradi] valore ──▶ valore [Scrivi in console]
-                        valore ──▶ a [Confronta: a > b, b = 30] se vero ──▶ invia [Notifica]
+[Campo numerico: gradi] valore ──▶ valore [Print (console.log)]
+                        valore ──▶ a [Confronto (== ≠ < >): a > b, b = 30] se vero ──▶ invia [Notify]
 ```
 
-Ogni numero scritto nel campo va sia in console sia al **Confronta**. Quando è sopra 30, parte una notifica (blocco del pacchetto [Blocchi di lilOS](logicstudio-lilos)).
+Ogni numero scritto nel campo va sia in console sia al **Confronto**. Quando è sopra 30, parte una notifica (blocco del pacchetto [Blocchi di lilOS](logicstudio-lilos)).
 
 ### 2. Più valori su un ingresso
 
 ```
-[Pulsante: Acceso] premuto ──▶ invia [Valore: sì] valore ──▶ acceso [Ogni…]
-[Pulsante: Spento] premuto ──▶ invia [Valore: no] valore ──▶ acceso
+[Pulsante: Acceso] premuto ──▶ invia [Costante · Variabile: sì] valore ──▶ acceso [Intervallo (setInterval)]
+[Pulsante: Spento] premuto ──▶ invia [Costante · Variabile: no] valore ──▶ acceso
 ```
 
-Due Valori (**Tipo** = **sì/no**, **Invia all'avvio** tolto) arrivano allo stesso ingresso **acceso**: vale l'ultimo premuto.
+Due blocchi Costante · Variabile (**Tipo** = **sì/no**, con **invia** collegata: per vederla accendi l'**occhio** accanto alla porta nelle Proprietà) mandano il valore solo a ogni impulso. I valori arrivano allo stesso ingresso **acceso**: vale l'ultimo premuto.
 
 ### 3. Un collegamento segnato che funziona lo stesso
 
 ```
-[Campo di testo] testo ──▶ a [Somma] risultato ──▶ valore [Scrivi in console]
+[Campo di testo] testo ──▶ a [Somma (+)] risultato ──▶ valore [Print (console.log)]
 ```
 
-Il collegamento testo → numero è a puntini. Se l'utente scrive `12`, la Somma lo converte e scrive 12; se scrive `ciao`, la Somma manda «Serve un numero» sull'**Eccezione** e, se non è collegata, la riga va nella console principale. Per un controllo esplicito metti in mezzo un **Converti** (**In** = **numero**) e collega la sua **Eccezione** a un **Scrivi in console** con livello **avviso**.
+Il collegamento testo → numero è a puntini. Se l'utente scrive `12`, il blocco Somma lo converte e scrive 12; se scrive `ciao`, il blocco Somma manda «Serve un numero» sull'**Eccezione** e, se non è collegata, la riga va nella console principale. Per un controllo esplicito metti in mezzo un **Cast** (**In** = **numero**) e collega la sua **Eccezione** a un **Print** con livello **avviso**.
 
 ## Vedi anche
 
 - [Come funziona un blocco](ide/blocks)
 - [Schemi](ide/schemas)
 - [L'oggetto di una componente](ide/components)
-- [Converti](core.convert)
+- [Cast (converti tipo)](core.convert)

@@ -1,4 +1,4 @@
-# Smista
+# Instrada per indice (DEMUX)
 
 `core.route` · Logica · [Blocchi di base](logicstudio-core) · versione 1
 
@@ -30,7 +30,7 @@ Solo un valore su **valore** fa partire il blocco. Un valore su **quale** viene 
 
 Quando arriva un valore, il blocco:
 
-1. legge l'ultimo **quale** come numero (con le regole di [Somma](core.add): `"2"` vale 2, `"2,0"` vale 2, `true` vale 1) e toglie la parte decimale: 2,9 vale 2;
+1. legge l'ultimo **quale** come numero (con le regole di [Somma (+)](core.add): `"2"` vale 2, `"2,0"` vale 2, `true` vale 1) e toglie la parte decimale: 2,9 vale 2;
 2. manda il valore, così com'è (anche `null`), sull'uscita aggiunta in quella posizione.
 
 Se **quale** è 0, negativo, troppo grande, non è un numero o non è ancora arrivato, il valore non va da nessuna parte e su **Eccezione** arriva «Non c'è l'uscita …» con il valore di **quale**: per esempio `Non c'è l'uscita 5`, oppure `Non c'è l'uscita undefined` se **quale** non è mai arrivato. Per evitarlo, dai a **quale** un valore iniziale.
@@ -42,9 +42,9 @@ Se **quale** è 0, negativo, troppo grande, non è un numero o non è ancora arr
 Aggiungi tre uscite (**1**, **2**, **3**):
 
 ```
-[Campo di testo: messaggio] testo  ──▶ valore [Smista] 1 ──▶ valore [Scrivi in console: info]
-[Campo numerico: livello]   valore ──▶ quale           2 ──▶ valore [Scrivi in console: avvisi]
-                                                       3 ──▶ valore [Scrivi in console: errori]
+[Campo di testo: messaggio] testo  ──▶ valore [Instrada per indice (DEMUX)] 1 ──▶ valore [Print (console.log): info]
+[Campo numerico: livello]   valore ──▶ quale           2 ──▶ valore [Print (console.log): avvisi]
+                                                       3 ──▶ valore [Print (console.log): errori]
 ```
 
 Con **quale** = 2, ogni messaggio va nella console degli avvisi. Cambiare **quale** in 3 non rimanda l'ultimo messaggio: vale per i messaggi che arrivano dopo.
@@ -55,7 +55,7 @@ Con **quale** = 2, ogni messaggio va nella console degli avvisi. Cambiare **qual
 
 ### 3. Due strade con un sì/no
 
-Un sì/no letto come numero vale 1 (sì) o 0 (no): **no** dà quindi l'errore `Non c'è l'uscita false`. Per scegliere tra due strade con un sì/no usa [Se](core.if).
+Un sì/no letto come numero vale 1 (sì) o 0 (no): **no** dà quindi l'errore `Non c'è l'uscita false`. Per scegliere tra due strade con un sì/no usa [If · Else](core.if).
 
 ## Errori
 
@@ -65,7 +65,7 @@ Un sì/no letto come numero vale 1 (sì) o 0 (no): **no** dà quindi l'errore `N
 
 ## Vedi anche
 
-- [Scegli](core.select) per il contrario: uno di molti ingressi verso un'uscita
-- [Casi](core.switch) per scegliere l'uscita con un valore (un nome) invece che con un numero
-- [Se](core.if) per due sole strade
+- [Scegli per indice (MUX)](core.select) per il contrario: uno di molti ingressi verso un'uscita
+- [Switch · Case](core.switch) per scegliere l'uscita con un valore (un nome) invece che con un numero
+- [If · Else](core.if) per due sole strade
 - [Come funziona un blocco](ide/blocks)

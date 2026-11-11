@@ -4,7 +4,7 @@ The Logic Studio documentation is read inside the IDE, in the **Logic Studio doc
 
 - the **IDE guide** (this one), which starts from the [overview](ide/index);
 - a page for each **package**, with the list of its blocks or components (for example [Base blocks](logicstudio-core)), and the pages of the [engine](logicstudio-engine);
-- a page for each **block** and each **component**, with ports, settings, how it works and examples (for example [Add](core.add) or [Button](ui.button)).
+- a page for each **block** and each **component**, with ports, settings, how it works and examples (for example [Add (+)](core.add) or [Button](ui.button)).
 
 ## How to open it
 

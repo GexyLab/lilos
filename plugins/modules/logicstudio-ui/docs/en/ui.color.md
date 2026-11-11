@@ -46,7 +46,7 @@ The seven colors, always the same:
 - With the keyboard, the **arrow keys** move to the next or previous color **and choose it**: every key press sends a code. From the last one you go back to the first.
 - You cannot choose other colors: only the seven in the table.
 - **From the schema**, **color** chooses the square with exactly that code. `#2A78D6` (uppercase), `blue` or `rgb(…)` match none: no square is chosen.
-- **When opened** the program does not receive the initial color: if a schema needs to know it, give it the same code with a [Value](core.value) block.
+- **When opened** the program does not receive the initial color: if a schema needs to know it, give it the same code with a [Constant · Variable](core.value) block.
 
 ## Examples
 
@@ -61,22 +61,22 @@ Window «Note»
 ```
 
 ```
-[Value: «#eda100»]       value ──▶ color [Build object] object ──▶ content [Write file: ~/note.json  JSON]
+[Constant · Variable: «#eda100»]       value ──▶ color [Object literal { }] object ──▶ content [writeFile: ~/note.json  JSON]
 [Text field: Title]      text  ──▶ title
 [Color: Color]           color ──▶ color
 [Button: Save]           pressed ──▶ save
 ```
 
-In the [Build object](core.compose) the fields **color** and **title** do not start the block; **save** does. The initial [Value](core.value) gives the **color** field the same yellow that is shown when opened. Pressing **Save**, the file contains, for example, `{"color":"#e34948","title":"Shopping","save":true}`.
+In the [Object literal { }](core.compose) block the fields **color** and **title** do not start the block; **save** does. The initial [Constant · Variable](core.value) gives the **color** field the same yellow that is shown when opened. Pressing **Save**, the file contains, for example, `{"color":"#e34948","title":"Shopping","save":true}`.
 
 ### 2. A color-coded priority
 
 ```
-[Color: Priority] color ──▶ value [Cases] #e34948   ──▶ send [Value: «Urgent»]  value ──▶ text [Label: label1]
-                                          otherwise ──▶ send [Value: «Normal»]  value ──▶ text [Label: label1]
+[Color: Priority] color ──▶ value [Switch · Case] #e34948   ──▶ send [Constant · Variable: «Urgent»]  value ──▶ text [Label: label1]
+                                          otherwise ──▶ send [Constant · Variable: «Normal»]  value ──▶ text [Label: label1]
 ```
 
-Add to the [Cases](core.switch) an output called `#e34948`, equal to the code of red. Choosing red, the label says «Urgent»; with any other color it says «Normal». The two [Values](core.value) have **Send at start** off.
+Add to the [Switch · Case](core.switch) an output called `#e34948`, equal to the code of red. Choosing red, the label says «Urgent»; with any other color it says «Normal». The two [Constant · Variable](core.value) blocks have the **send** input linked, so they send the text only when the color changes.
 
 ## Accessibility and keyboard
 

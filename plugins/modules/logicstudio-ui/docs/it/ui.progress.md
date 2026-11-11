@@ -48,11 +48,11 @@ Finestra «Attesa»
 ```
 
 ```
-[Ogni…: 1 s] impulso ──▶ più [Contatore] conteggio ──▶ a [Moltiplica] risultato ──▶ valore (0–100) [Barra: Preparazione…]
-                                         [Valore: 10] valore ──▶ b
+[Intervallo (setInterval): 1 s] impulso ──▶ più [Contatore (++ −−)] conteggio ──▶ a [Moltiplicazione (×)] risultato ──▶ valore (0–100) [Barra: Preparazione…]
+                                         [Costante · Variabile: 10] valore ──▶ b
 ```
 
-Ogni secondo il [Contatore](core.counter) sale di 1 e la [Moltiplica](core.multiply) lo porta in percentuale: la barra mostra 10%, 20%… e dopo 10 secondi 100%. Dopo, il conteggio continua (110, 120…) ma la barra resta piena.
+Ogni secondo il blocco [Contatore (++ −−)](core.counter) sale di 1 e la [Moltiplicazione (×)](core.multiply) lo porta in percentuale: la barra mostra 10%, 20%… e dopo 10 secondi 100%. Dopo, il conteggio continua (110, 120…) ma la barra resta piena.
 
 ### 2. Un conto alla rovescia
 
@@ -63,11 +63,11 @@ Finestra «Pausa»
 ```
 
 ```
-[Ogni…: 1 s] impulso ──▶ più [Contatore] conteggio ──▶ b [Sottrai] risultato ──▶ valore (0–100) [Barra: Tempo rimasto]
-                                        [Valore: 100] valore ──▶ a
+[Intervallo (setInterval): 1 s] impulso ──▶ più [Contatore (++ −−)] conteggio ──▶ b [Sottrazione (−)] risultato ──▶ valore (0–100) [Barra: Tempo rimasto]
+                                        [Costante · Variabile: 100] valore ──▶ a
 ```
 
-Per una pausa di 100 secondi: la [Sottrai](core.subtract) calcola 100 − secondi passati, e la barra si svuota di un centesimo al secondo, senza numero accanto. Sotto lo zero la barra resta vuota.
+Per una pausa di 100 secondi: la [Sottrazione (−)](core.subtract) calcola 100 − secondi passati, e la barra si svuota di un centesimo al secondo, senza numero accanto. Sotto lo zero la barra resta vuota.
 
 ### 3. Lo stesso valore di un cursore
 

@@ -25,7 +25,7 @@ const modeField = { key: 'mode', type: 'select', default: 'text', options: [{ va
 
 export const blocks = [
   {
-    type: 'lilos.notify', version: 1, category: 'lilos', icon: 'bell', label: L('Notification', 'Notifica'),
+    type: 'lilos.notify', version: 1, category: 'lilos', icon: 'bell', label: L('Notify', 'Notify'),
     description: L('Sends a lilOS notification to you, from the program', 'Ti manda una notifica di lilOS, a nome del programma'),
     inputs: [
       { name: 'send', type: 'pulse', label: L('send', 'invia') },
@@ -54,7 +54,7 @@ export const blocks = [
     },
   },
   {
-    type: 'lilos.fileRead', version: 1, category: 'lilos', icon: 'file', label: L('Read file', 'Leggi file'),
+    type: 'lilos.fileRead', version: 1, category: 'lilos', icon: 'file', label: L('readFile', 'readFile'),
     inputs: [{ name: 'read', type: 'pulse', label: L('read', 'leggi') }, pathInput],
     outputs: [{ name: 'content', type: 'any', label: L('content', 'contenuto') }, { name: 'size', type: 'number', label: L('size (bytes)', 'dimensione (byte)') }],
     config: [pathField('~/dati.txt'), modeField],
@@ -64,7 +64,7 @@ export const blocks = [
     },
   },
   {
-    type: 'lilos.fileWrite', version: 1, category: 'lilos', icon: 'save', label: L('Write file', 'Scrivi file'),
+    type: 'lilos.fileWrite', version: 1, category: 'lilos', icon: 'save', label: L('writeFile', 'writeFile'),
     inputs: [{ name: 'content', type: 'any', label: L('content', 'contenuto') }, pathInput],
     outputs: [{ name: 'written', type: 'pulse', label: L('written', 'scritto') }, { name: 'size', type: 'number', label: L('size (bytes)', 'dimensione (byte)') }],
     config: [pathField('~/dati.txt'), modeField],
@@ -75,7 +75,7 @@ export const blocks = [
     },
   },
   {
-    type: 'lilos.fileAppend', version: 1, category: 'lilos', icon: 'pencil', label: L('Append to file', 'Aggiungi a file'),
+    type: 'lilos.fileAppend', version: 1, category: 'lilos', icon: 'pencil', label: L('appendFile', 'appendFile'),
     inputs: [{ name: 'content', type: 'any', label: L('content', 'contenuto') }, pathInput],
     outputs: [{ name: 'written', type: 'pulse', label: L('written', 'scritto') }, { name: 'size', type: 'number', label: L('size (bytes)', 'dimensione (byte)') }],
     config: [
@@ -90,7 +90,7 @@ export const blocks = [
     },
   },
   {
-    type: 'lilos.folderList', version: 1, category: 'lilos', icon: 'folder', label: L('List folder', 'Elenca cartella'),
+    type: 'lilos.folderList', version: 1, category: 'lilos', icon: 'folder', label: L('readdir (list folder)', 'readdir (elenca cartella)'),
     inputs: [{ name: 'read', type: 'pulse', label: L('read', 'leggi') }, pathInput],
     outputs: [
       { name: 'items', type: 'list', label: L('items', 'elementi') },
@@ -110,7 +110,7 @@ export const blocks = [
     },
   },
   {
-    type: 'lilos.exists', version: 1, category: 'lilos', icon: 'search', label: L('Exists', 'Esiste'),
+    type: 'lilos.exists', version: 1, category: 'lilos', icon: 'search', label: L('exists', 'exists'),
     inputs: [{ name: 'check', type: 'pulse', label: L('check', 'controlla') }, { name: 'path', type: 'text', label: L('path', 'percorso') }],
     outputs: [
       { name: 'exists', type: 'bool', label: L('exists', 'esiste') },
@@ -126,7 +126,7 @@ export const blocks = [
     },
   },
   {
-    type: 'lilos.event', version: 1, category: 'lilos', icon: 'bolt', label: L('Event to lilOS', 'Evento a lilOS'),
+    type: 'lilos.event', version: 1, category: 'lilos', icon: 'bolt', label: L('Emit (event to lilOS)', 'Emit (evento a lilOS)'),
     description: L('Sends an event to your open lilOS pages (logicstudio.event)', 'Manda un evento alle tue pagine di lilOS aperte (logicstudio.event)'),
     inputs: [{ name: 'data', type: 'any', label: L('data', 'dati') }],
     outputs: [{ name: 'sent', type: 'pulse', label: L('sent', 'inviato') }],

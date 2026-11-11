@@ -1,4 +1,4 @@
-# Format text
+# Template string
 
 `core.format` · Text · [Core blocks](logicstudio-core) · version 1
 
@@ -51,10 +51,10 @@ How values are written:
 
 Other things to know:
 
-- Without added inputs the block **never starts**, so it sends nothing (not even a template without placeholders). For a fixed text use [Value](core.value) with kind text.
+- Without added inputs the block **never starts**, so it sends nothing (not even a template without placeholders). For a fixed text use the [Constant · Variable](core.value) block with kind text.
 - There is no way to write a "real" brace in place of a placeholder that has an input with that name.
 - The template is written in a one-line field: you cannot start a new line.
-- To write a number with a comma or with a certain number of decimals, prepare it first: round it with [Calculate](core.math) and, if you need the comma, pass it through [Text operation](core.text) with **replace** `.` with `,`.
+- To write a number with a comma or with a certain number of decimals, prepare it first: round it with the [Math functions](core.math) block and, if you need the comma, pass it through the [String functions](core.text) block with **replace** `.` with `,`.
 
 ## Examples
 
@@ -63,7 +63,7 @@ Other things to know:
 Template `Hello {name}, you are {age} years old`; two inputs renamed `name` and `age`:
 
 ```
-[Text field: name]    text  ──▶ name [Format text] text ──▶ text [Label: greeting]
+[Text field: name]    text  ──▶ name [Template string] text ──▶ text [Label: greeting]
 [Number field: age]   value ──▶ age
 ```
 
@@ -89,8 +89,8 @@ This block has no errors of its own.
 
 ## See also
 
-- [Join text](core.concat) to join texts one after the other, with a separator
-- [Text operation](core.text) for upper case, spaces, replacements
-- [Convert](core.convert) to turn a value into text or JSON text
-- [Join into text](coll.join) for the items of a list
+- [Concat text](core.concat) to join texts one after the other, with a separator
+- [String functions](core.text) for upper case, spaces, replacements
+- [Type cast](core.convert) to turn a value into text or JSON text
+- [Join](coll.join) for the items of a list
 - [How a block works](ide/blocks)

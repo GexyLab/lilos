@@ -1,4 +1,4 @@
-# Set cell
+# Set m[r][c]
 
 `coll.matSet` · Matrices · [Lists and matrices](logicstudio-collections) · version 1
 
@@ -24,20 +24,20 @@ Changes the value of a cell and sends the new matrix.
 
 The block waits until it has all four inputs; then, at every new value, it sends the matrix with the cell changed.
 
-- Rows and columns are counted from 0; negatives count from the end (as in [Get cell](coll.matGet)).
+- Rows and columns are counted from 0; negatives count from the end (as in [Get m[r][c]](coll.matGet)).
 - You can only change a cell that exists: the matrix does not grow. Outside, the output is «Indice fuori dalla lista» ("Index outside the list").
-- The value can be anything, even a text or `null`. A matrix with non-numeric cells is not fine for calculations, though (Add matrices, Multiply matrices, Scale, Determinant).
-- The input matrix stays as it was: if it also goes to other blocks, they see the old one. To keep the changed matrix, send it back into a [Memory](core.store).
+- The value can be anything, even a text or `null`. A matrix with non-numeric cells is not fine for calculations, though (A + B, A × B, Scale (k·A), Det).
+- The input matrix stays as it was: if it also goes to other blocks, they see the old one. To keep the changed matrix, send it back into a [Store (set · get)](core.store).
 
 ## Examples
 
 ### 1. A cell
 
 ```
-[Value (JSON): [[1,2,3],[4,5,6]]] value ──▶ matrix [Set cell] matrix ──▶ value [Write to console]
-[Value: 0]                        value ──▶ row
-[Value: 0]                        value ──▶ column
-[Value: 9]                        value ──▶ value
+[Constant · Variable (JSON): [[1,2,3],[4,5,6]]] value ──▶ matrix [Set m[r][c]] matrix ──▶ value [Print (console.log)]
+[Constant · Variable: 0]                        value ──▶ row
+[Constant · Variable: 0]                        value ──▶ column
+[Constant · Variable: 9]                        value ──▶ value
 ```
 
 It writes `[[9,2,3],[4,5,6]]`.
@@ -49,14 +49,14 @@ On the same matrix, row `-1`, column `-1` and value `"x"` give `[[1,2,3],[4,5,"x
 ### 3. A game grid
 
 ```
-[Memory (Send when set)] value ──▶ matrix [Set cell] matrix ──▶ set [Memory]
+[Store (set · get): Send when set] value ──▶ matrix [Set m[r][c]] matrix ──▶ set [Store (set · get)]
                                                      matrix ──▶ rows [Table]
 [Number field: row]    value ──▶ row
 [Number field: column] value ──▶ column
-[Value (text): X]      value ──▶ value
+[Constant · Variable (text): X]      value ──▶ value
 ```
 
-Give the **set** input of the Memory the starting matrix (for example made with [Create matrix](coll.matNew) 3 × 3 of `"-"`) and remove "starts it" from **matrix**. At every row and column pair the X goes into the cell. The [Table](ui.table) shows one line for each row of the grid, written as a list (for example `["X","-","-"]`): the Table splits into columns only rows made of objects.
+Give the **set** input of the Store (set · get) block the starting matrix (for example made with [New matrix (fill)](coll.matNew) 3 × 3 of `"-"`) and remove "starts it" from **matrix**. At every row and column pair the X goes into the cell. The [Table](ui.table) shows one line for each row of the grid, written as a list (for example `["X","-","-"]`): the Table splits into columns only rows made of objects.
 
 ## Errors
 
@@ -69,6 +69,6 @@ Give the **set** input of the Memory the starting matrix (for example made with 
 
 ## See also
 
-- [Get cell](coll.matGet), [Create matrix](coll.matNew)
-- [Set item](coll.set) for a list
+- [Get m[r][c]](coll.matGet), [New matrix (fill)](coll.matNew)
+- [Set list[i]](coll.set) for a list
 - [How a block works](ide/blocks)

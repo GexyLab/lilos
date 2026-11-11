@@ -52,7 +52,7 @@ Other cases:
 ### 1. Numbers
 
 ```
-[Value (JSON): [10,9,100,1]] value ──▶ list [Sort] result ──▶ value [Write to console]
+[Constant · Variable (JSON): [10,9,100,1]] value ──▶ list [Sort] result ──▶ value [Print (console.log)]
 ```
 
 It writes `[1,9,10,100]`. With **Order** descending: `[100,10,9,1]`. With **Compare as** text: `[1,10,100,9]`.
@@ -64,7 +64,7 @@ The list `["10","9","100","1"]` with `auto` gives `["1","9","10","100"]` (they a
 ### 3. Products by price
 
 ```
-[Value (JSON): [{"nome":"Zaino","prezzo":35},{"nome":"Penna","prezzo":2.5},{"nome":"Quaderno","prezzo":4}]] value ──▶ list [Sort] result ──▶ rows [Table]
+[Constant · Variable (JSON): [{"nome":"Zaino","prezzo":35},{"nome":"Penna","prezzo":2.5},{"nome":"Quaderno","prezzo":4}]] value ──▶ list [Sort] result ──▶ rows [Table]
 ```
 
 With **Field** `prezzo` and **Order** ascending the [Table](ui.table) shows Penna, Quaderno, Zaino. With **Field** `nome` and descending: Zaino, Quaderno, Penna.
@@ -72,10 +72,10 @@ With **Field** `prezzo` and **Order** ascending the [Table](ui.table) shows Penn
 ### 4. The ranking
 
 ```
-[Accumulate] list ──▶ list [Sort: punti, descending] result ──▶ list [Slice: to = 3] result ──▶ rows [Table]
+[Accumulate (bounded push)] list ──▶ list [Sort: punti, descending] result ──▶ list [Slice: to = 3] result ──▶ rows [Table]
 ```
 
-Each result `{"nome": …, "punti": …}` collected by [Accumulate](coll.accumulate) enters the ranking and the table shows the top three.
+Each result `{"nome": …, "punti": …}` collected by [Accumulate (bounded push)](coll.accumulate) enters the ranking and the table shows the top three.
 
 ## Errors
 
@@ -86,6 +86,6 @@ Each result `{"nome": …, "punti": …}` collected by [Accumulate](coll.accumul
 
 ## See also
 
-- [Reverse](coll.reverse), [Unique](coll.unique), [Filter](coll.filter)
-- [Sum · Min · Max · Average](coll.stat) to get only the smallest or the biggest
+- [Reverse](coll.reverse), [Distinct](coll.unique), [Filter](coll.filter)
+- [Sum · Min · Max · Avg](coll.stat) to get only the smallest or the biggest
 - [How a block works](ide/blocks)

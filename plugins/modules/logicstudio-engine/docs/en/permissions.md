@@ -63,9 +63,9 @@ For example:
 | Blocks | What they can do, and what not |
 |---|---|
 | [lilOS blocks](logicstudio-lilos) | Only the files of **your home** (`~/…`). Never the `.config` folder, never the files whose content is protected by an app (like FileCrypt). At most 5 MB read or written at a time |
-| [Web request](net.request) | Only public internet addresses. This computer and the local network only if an administrator allows it in the settings of the `logicstudio-net` module. Each request counts in your network quota |
-| [Notification](lilos.notify) | Only to you, on behalf of the program |
-| [Event to lilOS](lilos.event) | Only to your lilOS pages |
+| [HTTP request (fetch)](net.request) | Only public internet addresses. This computer and the local network only if an administrator allows it in the settings of the `logicstudio-net` module. Each request counts in your network quota |
+| [Notify](lilos.notify) | Only to you, on behalf of the program |
+| [Emit (event to lilOS)](lilos.event) | Only to your lilOS pages |
 
 An active program works as you **even when you have not signed in**: with lilOS closed, after you signed out, after a restart. The engine remembers who you were when you activated it. If you no longer want it to work in your name, stop it.
 
@@ -111,10 +111,10 @@ Before starting it, lilOS looks at the blocks of the project. If there are block
 
 | Blocks | lilOS tells you the app will be able to |
 |---|---|
-| files and folders ([Read file](lilos.fileRead), [Write file](lilos.fileWrite), [Append to file](lilos.fileAppend), [List folder](lilos.folderList), [Exists](lilos.exists)) | read and change your files |
-| the network ([Web request](net.request)) | make requests on the internet |
-| notifications ([Notification](lilos.notify)) | send you notifications |
-| events ([Event to lilOS](lilos.event)) | send events to lilOS |
+| files and folders ([readFile](lilos.fileRead), [writeFile](lilos.fileWrite), [appendFile](lilos.fileAppend), [readdir (list folder)](lilos.folderList), [exists](lilos.exists)) | read and change your files |
+| the network ([HTTP request (fetch)](net.request)) | make requests on the internet |
+| notifications ([Notify](lilos.notify)) | send you notifications |
+| events ([Emit (event to lilOS)](lilos.event)) | send events to lilOS |
 
 …it opens a window with the list, the folder the app comes from and the buttons **Run** and **Cancel**. Run the app only if you trust whoever made it.
 

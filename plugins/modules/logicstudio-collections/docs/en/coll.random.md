@@ -23,7 +23,7 @@ Picks a random item of the list and sends the item and its position.
 
 The block makes a draw **every time it runs**: both when a pulse arrives on **pick** and when a new list arrives on **list** (both inputs "start it").
 
-- Every item has the same chance of coming out. The draws are independent: the same item can come out several times in a row. To draw without repeats, remove the drawn item with [Remove at](coll.removeAt) using the **index**.
+- Every item has the same chance of coming out. The draws are independent: the same item can come out several times in a row. To draw without repeats, remove the drawn item with [Remove (splice)](coll.removeAt) using the **index**.
 - A pulse on **pick** before a list has arrived **does nothing** (no error).
 - An empty list gives the error «Lista vuota» ("Empty list").
 - A `null` item can be drawn: `null` comes out.
@@ -36,7 +36,7 @@ If you want to draw **only** with the pulse, remove "starts it" from **list**: t
 ### 1. Who buys the coffee
 
 ```
-[Value (JSON): ["Anna","Bruno","Carla"]] value ──▶ list [Random item (list does not start it)] item ──▶ value [Value]
+[Constant · Variable (JSON): ["Anna","Bruno","Carla"]] value ──▶ list [Random item (list does not start it)] item ──▶ value [Value]
 [Button: Pick]                            pressed ──▶ pick
 ```
 
@@ -45,15 +45,15 @@ At every click the [Value](ui.value) shows one of the three names, for example �
 ### 2. A die
 
 ```
-[Value: 6] value ──▶ to [Range (from = 1)] result ──▶ list [Random item] item ──▶ value [Write to console]
-[Every…: 2 seconds] pulse ──▶ pick
+[Constant · Variable: 6] value ──▶ to [Range (from = 1)] result ──▶ list [Random item] item ──▶ value [Print (console.log)]
+[Interval (setInterval): 2 seconds] pulse ──▶ pick
 ```
 
 [Range](coll.range) makes `[1, 2, 3, 4, 5, 6]`; every 2 seconds the console writes a number from 1 to 6 (and once right away, when the list arrives, because **list** "starts it").
 
 ### 3. Empty list
 
-With the list `[]` every draw gives, in the main console, «Elemento a caso: Lista vuota» ("Random item: Empty list").
+With the list `[]` every draw gives, in the main console, «Random: Lista vuota» ("Random item: Empty list").
 
 ## Errors
 
@@ -64,6 +64,6 @@ With the list `[]` every draw gives, in the main console, «Elemento a caso: Lis
 
 ## See also
 
-- [Get item](coll.get), [Remove at](coll.removeAt), [Range](coll.range)
-- [Calculate](core.math)
+- [Get list[i]](coll.get), [Remove (splice)](coll.removeAt), [Range](coll.range)
+- [Math functions](core.math)
 - [How a block works](ide/blocks)

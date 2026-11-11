@@ -62,8 +62,8 @@ Window "Dashboard"
 ```
 
 ```
-[Every…: 30 s] pulse ──▶ read [Read file: ~/greenhouse.txt] content ──▶ value [Sparkline: Greenhouse]
-[Every…: 30 s] pulse ──▶ read [Read file: ~/outside.txt]    content ──▶ value [Sparkline: Outside]
+[Interval (setInterval): 30 s] pulse ──▶ read [readFile: ~/greenhouse.txt] content ──▶ value [Sparkline: Greenhouse]
+[Interval (setInterval): 30 s] pulse ──▶ read [readFile: ~/outside.txt]    content ──▶ value [Sparkline: Outside]
 ```
 
 Two compact rows: "Greenhouse", the line of the last 50 readings (25 minutes) and "22.4 °C"; below it the same for the outside. With files that contain `22.4` or `22,4` the result is the same.
@@ -71,10 +71,10 @@ Two compact rows: "Greenhouse", the line of the last 50 readings (25 minutes) an
 ### 2. The price of a service, with a fixed scale
 
 ```
-[Every…: 300 s] pulse ──▶ send [Web request: https://example.com/price] response ──▶ object [Get field: eur] value ──▶ value [Sparkline: Price]
+[Interval (setInterval): 300 s] pulse ──▶ send [HTTP request (fetch): https://example.com/price] response ──▶ object [Get property: eur] value ──▶ value [Sparkline: Price]
 ```
 
-With **Minimum** 0 and **Maximum** 200 the line moves little if the price changes by a few euros; leaving them empty, even a change of 1 euro takes the whole height. Choose according to what you want to notice. [Web request](net.request) is from the [Network blocks](logicstudio-net) package.
+With **Minimum** 0 and **Maximum** 200 the line moves little if the price changes by a few euros; leaving them empty, even a change of 1 euro takes the whole height. Choose according to what you want to notice. [HTTP request (fetch)](net.request) is from the [Network blocks](logicstudio-net) package.
 
 ### 3. Starting again every day
 

@@ -1,4 +1,4 @@
-# Casi
+# Switch · Case
 
 `core.switch` · Logica · [Blocchi di base](logicstudio-core) · versione 1
 
@@ -35,7 +35,7 @@ Il confronto è tra testi, lettera per lettera:
 - `null` è il testo vuoto: non trova nessun caso (un caso non può avere il nome vuoto) e va su **altrimenti**;
 - oggetti e liste sono scritti in JSON (per esempio `[1,2]`).
 
-Il blocco manda **un impulso**, non il valore. Se ti serve anche il valore, collegalo pure all'ingresso del blocco che parte con l'impulso (con «lo avvia» tolto), oppure usa [Smista](core.route).
+Il blocco manda **un impulso**, non il valore. Se ti serve anche il valore, collegalo pure all'ingresso del blocco che parte con l'impulso (con «lo avvia» tolto), oppure usa [Instrada per indice (DEMUX)](core.route).
 
 Se due casi hanno lo stesso nome, vince il primo dall'alto.
 
@@ -46,10 +46,10 @@ Se due casi hanno lo stesso nome, vince il primo dall'alto.
 Aggiungi tre uscite e chiamale `rosso`, `giallo`, `verde`:
 
 ```
-[Selezione: colore] valore ──▶ valore [Casi] rosso      ──▶ invia [Notifica: Fermati]
-                                             giallo     ──▶ invia [Notifica: Rallenta]
-                                             verde      ──▶ invia [Notifica: Vai]
-                                             altrimenti ──▶ invia [Valore: "colore sconosciuto"] valore ──▶ valore [Scrivi in console]
+[Selezione: colore] valore ──▶ valore [Switch · Case] rosso      ──▶ invia [Notify: Fermati]
+                                             giallo     ──▶ invia [Notify: Rallenta]
+                                             verde      ──▶ invia [Notify: Vai]
+                                             altrimenti ──▶ invia [Costante · Variabile: "colore sconosciuto"] valore ──▶ valore [Print (console.log)]
 ```
 
 Se la [Selezione](ui.select) manda `giallo`, parte la notifica **Rallenta**. Se manda `blu`, parte **altrimenti** e la console scrive `colore sconosciuto`.
@@ -57,10 +57,10 @@ Se la [Selezione](ui.select) manda `giallo`, parte la notifica **Rallenta**. Se 
 ### 2. Comandi scritti nella console
 
 ```
-[Leggi da console] valore ──▶ testo [Operazione sul testo: minuscolo] risultato ──▶ valore [Casi]
+[Input (readline)] valore ──▶ testo [Funzioni stringa: minuscolo] risultato ──▶ valore [Switch · Case]
 ```
 
-Con i casi `avvia`, `ferma`, `stato`: se l'utente scrive `AVVIA`, il testo diventa `avvia` e parte l'uscita **avvia**. Il passaggio per [Operazione sul testo](core.text) serve a non badare alle maiuscole; con **togli gli spazi ai lati** puoi anche ignorare gli spazi.
+Con i casi `avvia`, `ferma`, `stato`: se l'utente scrive `AVVIA`, il testo diventa `avvia` e parte l'uscita **avvia**. Il passaggio per [Funzioni stringa](core.text) serve a non badare alle maiuscole; con **togli gli spazi ai lati** puoi anche ignorare gli spazi.
 
 ### 3. Numeri
 
@@ -72,8 +72,8 @@ Questo blocco non ha errori suoi.
 
 ## Vedi anche
 
-- [Se](core.if) per due sole strade
-- [Smista](core.route) per mandare il valore stesso su una di molte uscite, scelta con un numero
-- [Scegli](core.select) per l'opposto: scegliere uno di molti ingressi
-- [Operazione sul testo](core.text) per preparare il valore (minuscolo, spazi)
+- [If · Else](core.if) per due sole strade
+- [Instrada per indice (DEMUX)](core.route) per mandare il valore stesso su una di molte uscite, scelta con un numero
+- [Scegli per indice (MUX)](core.select) per l'opposto: scegliere uno di molti ingressi
+- [Funzioni stringa](core.text) per preparare il valore (minuscolo, spazi)
 - [Come funziona un blocco](ide/blocks)

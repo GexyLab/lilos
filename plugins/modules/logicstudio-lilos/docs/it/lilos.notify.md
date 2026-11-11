@@ -1,4 +1,4 @@
-# Notifica
+# Notify
 
 `lilos.notify` · lilOS · [Blocchi di lilOS](logicstudio-lilos) · versione 1
 
@@ -50,7 +50,7 @@ Cose da sapere:
 - La notifica arriva **a te**, cioè all'utente che possiede il programma, e risulta mandata dal programma: come mittente c'è il nome del programma (al massimo 80 caratteri). Cliccarla non apre niente.
 - lilOS tiene solo le ultime notifiche di ogni utente (20 di serie): le più vecchie spariscono.
 - **Al massimo 10 notifiche al minuto.** Il limite è per utente e vale per **tutti i tuoi programmi di Logic Studio insieme**, perché per lilOS il mittente è sempre Logic Studio. Oltre il limite il blocco manda su **Eccezione** «Troppe notifiche in poco tempo: riprova tra N secondi».
-- Non collegare **invia** a un blocco che manda valori di continuo (per esempio [Ogni…](core.every) con pochi secondi): metti prima un controllo, come [Fronte](core.edge) o [Se](core.if), così la notifica parte solo quando qualcosa cambia.
+- Non collegare **invia** a un blocco che manda valori di continuo (per esempio [Intervallo (setInterval)](core.every) con pochi secondi): metti prima un controllo, come [Al cambio (fronte ↑↓)](core.edge) o [If · Else](core.if), così la notifica parte solo quando qualcosa cambia.
 - Il blocco ha bisogno del servizio delle notifiche (`notifications-basic`), che l'AppStore installa insieme a questo pacchetto.
 
 ## Esempi
@@ -58,43 +58,43 @@ Cose da sapere:
 ### 1. Una notifica fissa all'avvio
 
 ```
-[All'avvio] impulso ──▶ invia [Notifica]
+[All'avvio (main)] impulso ──▶ invia [Notify]
 ```
 
-Nelle impostazioni della Notifica: **Titolo** `Irrigazione`, **Testo** `Il programma è partito`, **Tipo** Riuscita. Appena il programma parte ricevi la notifica «Irrigazione — Il programma è partito».
+Nelle impostazioni del blocco Notify: **Titolo** `Irrigazione`, **Testo** `Il programma è partito`, **Tipo** Riuscita. Appena il programma parte ricevi la notifica «Irrigazione — Il programma è partito».
 
 ### 2. Un valore dentro il testo
 
-Aggiungi un ingresso alla Notifica e rinominalo `temp`. Nelle impostazioni: **Titolo** `Serra`, **Testo** `Temperatura alta: {temp} °C`, **Tipo** Avviso.
+Aggiungi un ingresso al blocco Notify e rinominalo `temp`. Nelle impostazioni: **Titolo** `Serra`, **Testo** `Temperatura alta: {temp} °C`, **Tipo** Avviso.
 
 ```
-[Valore: 31,5]  valore ──▶ temp  [Notifica]
+[Costante · Variabile: 31,5]  valore ──▶ temp  [Notify]
 [Pulsante: avvisa] premuto ──▶ invia
 ```
 
-Quando premi il [Pulsante](ui.button) ricevi «Serra — Temperatura alta: 31,5 °C». Il Valore arriva su **temp** all'avvio, ma da solo non manda niente: serve **invia**.
+Quando premi il [Pulsante](ui.button) ricevi «Serra — Temperatura alta: 31,5 °C». La costante arriva su **temp** all'avvio, ma da solo non manda niente: serve **invia**.
 
 ### 3. Avvisare solo quando si supera una soglia
 
 ```
-[Ogni… 60 s] impulso ──▶ leggi [Leggi file: ~/serra/temp.txt] contenuto ──▶ a [Confronta: a > b] risultato ──▶ valore [Fronte] diventa vero ──▶ invia [Notifica]
+[Intervallo (setInterval): 60 s] impulso ──▶ leggi [readFile: ~/serra/temp.txt] contenuto ──▶ a [Confronto (== ≠ < >): a > b] risultato ──▶ valore [Al cambio (fronte ↑↓)] diventa vero ──▶ invia [Notify]
                                                                  contenuto ──▶ temp
-[Valore: 30]                                                    valore ──▶ b
+[Costante · Variabile: 30]                                                    valore ──▶ b
 ```
 
-Ogni minuto il programma legge la temperatura da un file (per esempio `31,5`) e la confronta con 30. Il blocco [Fronte](core.edge) manda **diventa vero** solo quando il confronto passa da falso a vero: ricevi una notifica quando la temperatura supera 30, non una al minuto. L'ingresso aggiunto **temp** della Notifica riceve il contenuto del file, per scriverlo nel testo `{temp} °C`.
+Ogni minuto il programma legge la temperatura da un file (per esempio `31,5`) e la confronta con 30. Il blocco [Al cambio (fronte ↑↓)](core.edge) manda **diventa vero** solo quando il confronto passa da falso a vero: ricevi una notifica quando la temperatura supera 30, non una al minuto. L'ingresso aggiunto **temp** del blocco Notify riceve il contenuto del file, per scriverlo nel testo `{temp} °C`.
 
-> Il Fronte non manda niente al primo valore che riceve: se la temperatura è già sopra 30 quando il programma parte, la prima notifica arriva solo dopo che è scesa e risalita.
+> Il blocco Al cambio non manda niente al primo valore che riceve: se la temperatura è già sopra 30 quando il programma parte, la prima notifica arriva solo dopo che è scesa e risalita.
 
 ### 4. Titolo e testo da altri blocchi
 
 ```
-[Formatta testo: "Ordine {numero} arrivato"] testo ──▶ testo [Notifica]
-[Valore: "Negozio"]                          valore ──▶ titolo
-[Richiesta web]                               stato ──▶ invia
+[Template (formatta): "Ordine {numero} arrivato"] testo ──▶ testo [Notify]
+[Costante · Variabile: "Negozio"]                          valore ──▶ titolo
+[HTTP (fetch)]                               stato ──▶ invia
 ```
 
-Gli ingressi **titolo** e **testo** non avviano il blocco: tengono il valore finché arriva **invia**. Qui la notifica parte quando la [Richiesta web](net.request) risponde, con il testo preparato da [Formatta testo](core.format) (che ha un suo ingresso aggiunto **numero**).
+Gli ingressi **titolo** e **testo** non avviano il blocco: tengono il valore finché arriva **invia**. Qui la notifica parte quando il blocco [HTTP (fetch)](net.request) risponde, con il testo preparato da [Template (formatta)](core.format) (che ha un suo ingresso aggiunto **numero**).
 
 ## Errori
 
@@ -106,15 +106,15 @@ Gli ingressi **titolo** e **testo** non avviano il blocco: tengono il valore fin
 | Notifica non valida: … | lilOS ha rifiutato la notifica (per esempio un tipo non valido). |
 | Il servizio delle notifiche non c'è | Il modulo delle notifiche non è installato o non è partito. |
 | Il programma non è in esecuzione | Il programma si stava fermando mentre il blocco lavorava. |
-| Notifica ha impiegato più di 30 s | lilOS non ha risposto entro il tempo massimo di un blocco (30 secondi di serie). |
+| Notify ha impiegato più di 30 s | lilOS non ha risposto entro il tempo massimo di un blocco (30 secondi di serie). |
 
 ## Permessi
 
-Il blocco lavora come l'utente che possiede il programma e manda notifiche solo a lui. Un'app fatta con **Crea app** che contiene una Notifica, prima di partire, ti chiede il permesso di «mandarti notifiche». Vedi [Permessi](logicstudio-engine/permissions) e [Fare un'app](ide/create-app).
+Il blocco lavora come l'utente che possiede il programma e manda notifiche solo a lui. Un'app fatta con **Crea app** che contiene un blocco Notify, prima di partire, ti chiede il permesso di «mandarti notifiche». Vedi [Permessi](logicstudio-engine/permissions) e [Fare un'app](ide/create-app).
 
 ## Vedi anche
 
-- [Evento a lilOS](lilos.event), per avvisare le pagine di lilOS senza una notifica
-- [Scrivi in console](core.consoleWrite), per messaggi che restano nella console del programma
-- [Fronte](core.edge) e [Se](core.if), per mandare la notifica solo quando serve
+- [Emit (evento a lilOS)](lilos.event), per avvisare le pagine di lilOS senza una notifica
+- [Print (console.log)](core.consoleWrite), per messaggi che restano nella console del programma
+- [Al cambio (fronte ↑↓)](core.edge) e [If · Else](core.if), per mandare la notifica solo quando serve
 - [Come funziona un blocco](ide/blocks)

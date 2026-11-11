@@ -1,4 +1,4 @@
-# Leggi cella
+# Leggi m[r][c]
 
 `coll.matGet` · Matrici · [Liste e matrici](logicstudio-collections) · versione 1
 
@@ -27,7 +27,7 @@ Il blocco aspetta di avere **matrice**, **riga** e **colonna**; poi, a ogni valo
 - I numeri negativi contano dalla fine: riga -1 è l'ultima, colonna -3 (in una matrice di 3 colonne) è la prima.
 - Fuori dalla matrice esce «Indice fuori dalla lista» (il messaggio parla di «lista» anche qui).
 - Riga e colonna devono essere interi: `0.5` dà «Indice: serve un numero intero». `"1"` vale 1; `""` e `null` valgono 0.
-- La matrice deve essere valida (righe tutte della stessa lunghezza): vedi [Dimensioni](coll.matSize).
+- La matrice deve essere valida (righe tutte della stessa lunghezza): vedi [Shape](coll.matSize).
 - Se la cella contiene `null`, esce `null`.
 
 ## Esempi
@@ -35,9 +35,9 @@ Il blocco aspetta di avere **matrice**, **riga** e **colonna**; poi, a ogni valo
 ### 1. Una cella
 
 ```
-[Valore (JSON): [[1,2,3],[4,5,6]]] valore ──▶ matrice [Leggi cella] valore ──▶ valore [Scrivi in console]
-[Valore: 1]                        valore ──▶ riga
-[Valore: 2]                        valore ──▶ colonna
+[Costante · Variabile (JSON): [[1,2,3],[4,5,6]]] valore ──▶ matrice [Leggi m[r][c]] valore ──▶ valore [Print (console.log)]
+[Costante · Variabile: 1]                        valore ──▶ riga
+[Costante · Variabile: 2]                        valore ──▶ colonna
 ```
 
 Scrive `6` (seconda riga, terza colonna).
@@ -49,12 +49,12 @@ Sulla stessa matrice, riga `-1` e colonna `-3` danno `4` (ultima riga, prima col
 ### 3. Una tabellina
 
 ```
-[Campo numerico: riga]    valore ──▶ riga    [Leggi cella] valore ──▶ valore [Valore mostrato]
+[Campo numerico: riga]    valore ──▶ riga    [Leggi m[r][c]] valore ──▶ valore [Valore mostrato]
 [Campo numerico: colonna] valore ──▶ colonna
-[Valore (JSON): [[1,2,3],[2,4,6],[3,6,9]]] valore ──▶ matrice
+[Costante · Variabile (JSON): [[1,2,3],[2,4,6],[3,6,9]]] valore ──▶ matrice
 ```
 
-Scrivendo 2 nel campo **riga** e 1 nel campo **colonna** il [Valore mostrato](ui.value) indica `6`. Per contare da 1 nei campi, togli 1 con [Sottrai](core.subtract) prima di **riga** e **colonna**.
+Scrivendo 2 nel campo **riga** e 1 nel campo **colonna** il [Valore mostrato](ui.value) indica `6`. Per contare da 1 nei campi, togli 1 con [Sottrazione (−)](core.subtract) prima di **riga** e **colonna**.
 
 ## Errori
 
@@ -67,6 +67,6 @@ Scrivendo 2 nel campo **riga** e 1 nel campo **colonna** il [Valore mostrato](ui
 
 ## Vedi anche
 
-- [Imposta cella](coll.matSet), [Leggi riga](coll.matRow), [Leggi colonna](coll.matCol)
-- [Elemento](coll.get) per una lista
+- [Scrivi m[r][c]](coll.matSet), [Riga m[r]](coll.matRow), [Colonna m[][c]](coll.matCol)
+- [Leggi lista[i]](coll.get) per una lista
 - [Come funziona un blocco](ide/blocks)

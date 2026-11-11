@@ -1,4 +1,4 @@
-# Build object
+# Object literal { }
 
 `core.compose` · Objects · [Core blocks](logicstudio-core) · version 1
 
@@ -26,10 +26,10 @@ Every time a value arrives on one of the fields, the block sends on **object** a
 - Fields that have not received anything yet are **not in** the object. With the fields `name` and `age`, if only `name` = `"Ada"` has arrived, `{"name": "Ada"}` comes out.
 - A field that receives `null` is there, and is `null`.
 - Values stay: after sending, the fields keep their value and the next time the object still contains them. To start again from scratch you must stop the program.
-- The name is used **as it is** as the name of the field: a name with a dot, like `a.b`, makes a field that is really called `a.b` (not an object inside another). For objects inside objects use two Build object blocks, one linked to a field of the other.
+- The name is used **as it is** as the name of the field: a name with a dot, like `a.b`, makes a field that is really called `a.b` (not an object inside another). For objects inside objects use two [Object literal { }](core.compose) blocks, one linked to a field of the other.
 - If two fields have the **same name**, the one lower in the list of ports wins in the object.
 - The order of the fields in the object is the order of the ports.
-- The block runs **at every value**: with three fields that arrive one after the other, three objects come out, more and more complete. If you want a single object, remove **starts it** from all the fields except the one that arrives last, or use [Wait for all](core.join).
+- The block runs **at every value**: with three fields that arrive one after the other, three objects come out, more and more complete. If you want a single object, remove **starts it** from all the fields except the one that arrives last, or use [Await all (join)](core.join).
 
 For the general rules (inputs, "starts it", initial value, Exception) see [How a block works](ide/blocks).
 
@@ -40,9 +40,9 @@ For the general rules (inputs, "starts it", initial value, Exception) see [How a
 Add three inputs and name them `name`, `age` and `city`:
 
 ```
-[Value: text "Ada"]  value ──▶ name  [Build object] object ──▶ value [Write to console]
-[Value: number 36]   value ──▶ age
-[Value: text "Rome"] value ──▶ city
+[Constant · Variable: text "Ada"]  value ──▶ name  [Object literal { }] object ──▶ value [Print (console.log)]
+[Constant · Variable: number 36]   value ──▶ age
+[Constant · Variable: text "Rome"] value ──▶ city
 ```
 
 At start the console writes three lines, one for each value that arrives:
@@ -60,7 +60,7 @@ Remove **starts it** from `name` and `age`: only the last line is left.
 Name the fields `sensor` and `degrees`. On `sensor` remove **starts it** and write the initial value `"kitchen"`; link the readings to `degrees`:
 
 ```
-[readings] ──▶ degrees [Build object] object ──▶ … 
+[readings] ──▶ degrees [Object literal { }] object ──▶ … 
 ```
 
 Every reading, for example 21.5, makes `{"sensor": "kitchen", "degrees": 21.5}` come out.
@@ -68,14 +68,14 @@ Every reading, for example 21.5, makes `{"sensor": "kitchen", "degrees": 21.5}` 
 ### 3. An object inside an object
 
 ```
-[Build object: street, city] object ──▶ address [Build object: name, address] object ──▶ …
+[Object literal { }: street, city] object ──▶ address [Object literal { }: name, address] object ──▶ …
 ```
 
 With street `"1 Main Street"`, city `"Rome"` and name `"Ada"`, `{"name": "Ada", "address": {"street": "1 Main Street", "city": "Rome"}}` comes out.
 
 ## See also
 
-- [Split object](core.decompose) and [Get field](core.get) to read the fields
-- [Build list](core.list) to put values together in a list
-- [Wait for all](core.join) to wait until all have arrived
+- [Destructure object](core.decompose) and [Get property](core.get) to read the fields
+- [Array literal [ ]](core.list) to put values together in a list
+- [Await all (join)](core.join) to wait until all have arrived
 - [How a block works](ide/blocks)

@@ -1,4 +1,4 @@
-# Divide
+# Divide (÷ %)
 
 `core.divide` · Math · [Core blocks](logicstudio-core) · version 1
 
@@ -25,13 +25,13 @@ This block has only two inputs: you cannot add more.
 
 Every time a value arrives on **a** or on **b**, the block divides the last **a** by the last **b** and sends **result** and **remainder** together.
 
-- Values are converted to numbers with the same rules as [Add](core.add): `"2,5"` is 2.5; `true` is 1 and `false` is 0; an empty text and `null` are 0.
+- Values are converted to numbers with the same rules as [Add (+)](core.add): `"2,5"` is 2.5; `true` is 1 and `false` is 0; an empty text and `null` are 0.
 - An input that has not received anything yet is **0**.
 - **If b is 0** (also because it has not arrived yet, or it is `""`, `null`, `false`, `"0,0"`), the block sends nothing and sends «Divisione per zero» ("Division by zero") on **Exception**.
 - **result** is the division with decimals: 7 ÷ 2 = 3.5 (not 3).
 - **remainder** is what is left after taking **b** away from **a** as many times as possible: 7 and 2 → 1; 17 and 5 → 2; 7.5 and 2 → 1.5. The remainder has the **sign of a**: −7 and 3 → −1; 7 and −3 → 1.
 - A value that is not a number (`"ciao"`, an object) gives no error: **result** and **remainder** are `NaN` ("not a number").
-- The whole-number quotient is not an output: to get it, use [Calculate](core.math) with **round down** on the **result** (for positive numbers).
+- The whole-number quotient is not an output: to get it, use [Math functions](core.math) with **round down** on the **result** (for positive numbers).
 
 ### Watch the order of arrival
 
@@ -49,7 +49,7 @@ See [How a block works](ide/blocks).
 ### 1. Split a bill
 
 ```
-[Number field: total]  value ──▶ a  [Divide] result ──▶ value [Calculate: round, 2 decimals] result ──▶ value [Value: each]
+[Number field: total]  value ──▶ a  [Divide (÷ %)] result ──▶ value [Math functions: round, 2 decimals] result ──▶ value [Value: each]
 [Number field: people] value ──▶ b
 ```
 
@@ -57,7 +57,7 @@ With **b** initially `1`: total 100 and 3 people → result 33.333333333333336 �
 
 ### 2. Even or odd
 
-Give **b** the initial value `2` and remove "starts it" from **b**. Link **remainder** to a [Compare](core.compare) with `a = b` and **b** = 0:
+Give **b** the initial value `2` and remove "starts it" from **b**. Link **remainder** to a [Compare (== != < >)](core.compare) with `a = b` and **b** = 0:
 
 - 10 → remainder 0 → **yes** (even);
 - 7 → remainder 1 → **no** (odd).
@@ -74,6 +74,6 @@ Give **b** the initial value `2` and remove "starts it" from **b**. Link **remai
 
 ## See also
 
-- [Add](core.add), [Subtract](core.subtract), [Multiply](core.multiply)
-- [Calculate](core.math) to round the result
+- [Add (+)](core.add), [Subtract (−)](core.subtract), [Multiply (×)](core.multiply)
+- [Math functions](core.math) to round the result
 - [How a block works](ide/blocks)

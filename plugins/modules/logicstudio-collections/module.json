@@ -1,6 +1,6 @@
 {
   "name": "logicstudio-collections",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Logic Studio: i blocchi per liste e matrici (elementi, ordina, filtra, somma, cicli su una lista, prodotto e determinante di matrici…)",
   "icon": {
     "glyph": "list",

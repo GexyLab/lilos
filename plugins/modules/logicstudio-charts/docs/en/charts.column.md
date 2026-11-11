@@ -88,7 +88,7 @@ Window "Zones"
 ```
 
 ```
-[Value (JSON): {"North": {"2025": 12, "2026": 15}, "South": {"2025": 9, "2026": 11}, "East": {"2025": 14, "2026": 13}}] value ──▶ data [Columns: Orders]
+[Constant · Variable (JSON): {"North": {"2025": 12, "2026": 15}, "South": {"2025": 9, "2026": 11}, "East": {"2025": 14, "2026": 13}}] value ──▶ data [Columns: Orders]
 ```
 
 Three groups of two columns, with the legend "2025" and "2026". A click on the 2026 column of "South" sends `{"category": "South", "values": {"2025": 9, "2026": 11}, "index": 1, "series": "2026", "y": 11}`.
@@ -96,11 +96,11 @@ Three groups of two columns, with the legend "2025" and "2026". A click on the 2
 ### 2. Votes from a poll, updating
 
 ```
-[Button: Red] pressed ──▶ up [Counter: red] count ──▶ y   [Build object] object ──▶ add point [Columns: Votes]
-[Value (text): Red]  value ──────────────────────────────▶ x
+[Button: Red] pressed ──▶ up [Counter (++ −−): red] count ──▶ y   [Object literal { }] object ──▶ add point [Columns: Votes]
+[Constant · Variable (text): Red]  value ──────────────────────────────▶ x
 ```
 
-[Build object](core.compose) has two added inputs, named **x** and **y**. At every vote it sends `{"x": "Red", "y": 4}`: the first time the "Red" column appears, the following times it grows. Repeat for the other colours.
+[Object literal { }](core.compose) has two added inputs, named **x** and **y**. At every vote it sends `{"x": "Red", "y": 4}`: the first time the "Red" column appears, the following times it grows. Repeat for the other colours.
 
 ### 3. Income and expenses, stacked
 
@@ -114,5 +114,5 @@ With **Stacked** on and the data `{"Jan": {"Income": 50, "Expenses": -30}, "Feb"
 
 - [Bars](charts.bar): the same things horizontally, sortable
 - [Histogram](charts.histogram) to count how many values fall in each class
-- [Build object](core.compose), [Counter](core.counter)
+- [Object literal { }](core.compose), [Counter (++ −−)](core.counter)
 - [Charts](logicstudio-charts): the data shapes, the limits, the keyboard

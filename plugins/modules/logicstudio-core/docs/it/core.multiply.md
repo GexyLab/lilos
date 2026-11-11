@@ -1,4 +1,4 @@
-# Moltiplica
+# Moltiplicazione (×)
 
 `core.multiply` · Matematica · [Blocchi di base](logicstudio-core) · versione 1
 
@@ -27,16 +27,16 @@ Nelle **Proprietà**, sezione **Porte**, puoi aggiungere fino a 16 ingressi in p
 Ogni volta che arriva un valore su un ingresso, il blocco moltiplica l'ultimo valore di ogni ingresso e manda il prodotto su **risultato**.
 
 - Gli ingressi che non hanno ancora ricevuto niente non contano: con solo **a** = 4 il risultato è 4 (non 0).
-- I valori vengono convertiti in numero con le stesse regole della [Somma](core.add): `"2,5"` vale 2,5; `true` vale 1 e `false` 0; un testo vuoto e `null` valgono **0** (quindi azzerano il prodotto).
+- I valori vengono convertiti in numero con le stesse regole del blocco [Somma (+)](core.add): `"2,5"` vale 2,5; `true` vale 1 e `false` 0; un testo vuoto e `null` valgono **0** (quindi azzerano il prodotto).
 - Se un valore non si può convertire (per esempio `"ciao"` o un oggetto), il blocco non manda niente su **risultato** e manda su **Eccezione** «Serve un numero».
-- I numeri decimali del computer possono dare piccoli scarti: 1,1 × 3 = 3,3000000000000003. Arrotonda con [Calcola](core.math) prima di mostrarli.
+- I numeri decimali del computer possono dare piccoli scarti: 1,1 × 3 = 3,3000000000000003. Arrotonda con il blocco [Funzioni Math](core.math) prima di mostrarli.
 
 ## Esempi
 
 ### 1. Prezzo per quantità
 
 ```
-[Campo numerico: prezzo]   valore ──▶ a  [Moltiplica] risultato ──▶ valore [Valore: totale]
+[Campo numerico: prezzo]   valore ──▶ a  [Moltiplicazione (×)] risultato ──▶ valore [Valore: totale]
 [Campo numerico: quantità] valore ──▶ b
 ```
 
@@ -58,7 +58,7 @@ Aggiungi l'ingresso **c**: lunghezza 2, larghezza 3, altezza `"1,5"` → volume 
 
 ## Vedi anche
 
-- [Somma](core.add), [Sottrai](core.subtract), [Dividi](core.divide)
-- [Calcola](core.math) per arrotondare e altre operazioni su un numero
-- [Scala](coll.matScale) per moltiplicare una matrice per un numero
+- [Somma (+)](core.add), [Sottrazione (−)](core.subtract), [Divisione (÷ %)](core.divide)
+- [Funzioni Math](core.math) per arrotondare e altre operazioni su un numero
+- [Scala (k·A)](coll.matScale) per moltiplicare una matrice per un numero
 - [Come funziona un blocco](ide/blocks)

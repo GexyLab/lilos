@@ -1,4 +1,4 @@
-# Unisci in testo
+# Join
 
 `coll.join` · Liste · [Liste e matrici](logicstudio-collections) · versione 1
 
@@ -46,7 +46,7 @@ Come diventano testo gli elementi:
 ### 1. Con il separatore predefinito
 
 ```
-[Valore (JSON): ["Anna","Bruno","Carla"]] valore ──▶ lista [Unisci in testo] testo ──▶ valore [Scrivi in console]
+[Costante · Variabile (JSON): ["Anna","Bruno","Carla"]] valore ──▶ lista [Join] testo ──▶ valore [Print (console.log)]
 ```
 
 Scrive `Anna, Bruno, Carla`.
@@ -60,7 +60,7 @@ La lista `[1, null, true, {"a":1}, [2,3]]` dà `1, , true, {"a":1}, [2,3]` (il `
 Con il **Separatore** `\n`:
 
 ```
-[Filtra] risultato ──▶ lista [Unisci in testo: \n] testo ──▶ valore [Scrivi in console]
+[Filter] risultato ──▶ lista [Join: \n] testo ──▶ valore [Print (console.log)]
 ```
 
 La console scrive un elemento per riga, in una sola scrittura.
@@ -73,7 +73,7 @@ La console scrive un elemento per riga, in una sola scrittura.
 
 ## Vedi anche
 
-- [Dividi testo](coll.split), il contrario di questo blocco
-- [Concatena](core.concat), [Formatta testo](core.format)
-- [Estrai campo](coll.pluck) per unire solo un campo di ogni oggetto
+- [Split](coll.split), il contrario di questo blocco
+- [Concat testo](core.concat), [Template (formatta)](core.format)
+- [Map campo](coll.pluck) per unire solo un campo di ogni oggetto
 - [Come funziona un blocco](ide/blocks)

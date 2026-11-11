@@ -1,4 +1,4 @@
-# Add matrices
+# A + B
 
 `coll.matAdd` · Matrices · [Lists and matrices](logicstudio-collections) · version 1
 
@@ -22,7 +22,7 @@ Adds two matrices of the same size, cell by cell.
 
 The block waits until it has **a** and **b**; then, at every new value on either of them, it sends the sum: the cell in row *i* and column *j* of the result is `a[i][j] + b[i][j]`.
 
-- Both must be valid matrices (see [Size](coll.matSize)).
+- Both must be valid matrices (see [Shape](coll.matSize)).
 - **The cells must be real numbers**: a text like `"2"` gives «La matrice deve contenere solo numeri» ("The matrix must contain only numbers") (unlike the list blocks, here texts are not converted). `null`, `true` and empty cells give the same error too.
 - The two matrices must have the same rows and columns, otherwise you get for example «Le matrici devono avere le stesse dimensioni (2×3 e 2×2)» ("The matrices must have the same size (2×3 and 2×2)").
 - The result is not rounded: `0.1 + 0.2` gives `0.30000000000000004`.
@@ -32,8 +32,8 @@ The block waits until it has **a** and **b**; then, at every new value on either
 ### 1. Two 2 × 3 matrices
 
 ```
-[Value (JSON): [[1,2,3],[4,5,6]]]       value ──▶ a  [Add matrices] result ──▶ value [Write to console]
-[Value (JSON): [[10,20,30],[40,50,60]]] value ──▶ b
+[Constant · Variable (JSON): [[1,2,3],[4,5,6]]]       value ──▶ a  [A + B] result ──▶ value [Print (console.log)]
+[Constant · Variable (JSON): [[10,20,30],[40,50,60]]] value ──▶ b
 ```
 
 It writes `[[11,22,33],[44,55,66]]`.
@@ -44,7 +44,7 @@ With **a** = `[[1,2,3],[4,5,6]]` and **b** = `[[1,2],[3,4]]` no result comes out
 
 ### 3. A text in a cell
 
-With **a** = `[[1,"2"]]` and **b** = `[[1,2]]` the output is «La matrice deve contenere solo numeri». If the numbers arrive as text (for example from [Split text](coll.split)), convert them first one by one or build the matrix from numbers.
+With **a** = `[[1,"2"]]` and **b** = `[[1,2]]` the output is «La matrice deve contenere solo numeri». If the numbers arrive as text (for example from [Split](coll.split)), convert them first one by one or build the matrix from numbers.
 
 ## Errors
 
@@ -57,5 +57,5 @@ With **a** = `[[1,"2"]]` and **b** = `[[1,2]]` the output is «La matrice deve c
 
 ## See also
 
-- [Subtract matrices](coll.matSubtract), [Scale](coll.matScale), [Multiply matrices](coll.matMultiply)
+- [A − B](coll.matSubtract), [Scale (k·A)](coll.matScale), [A × B](coll.matMultiply)
 - [How a block works](ide/blocks)

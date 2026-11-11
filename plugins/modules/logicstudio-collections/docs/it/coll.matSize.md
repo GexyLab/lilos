@@ -1,4 +1,4 @@
-# Dimensioni
+# Shape
 
 `coll.matSize` · Matrici · [Liste e matrici](logicstudio-collections) · versione 1
 
@@ -35,19 +35,19 @@ Le celle possono contenere qualsiasi valore: `[["a", null]]` è una matrice 1 ×
 ### 1. Una matrice 2 × 3
 
 ```
-[Valore (JSON): [[1,2,3],[4,5,6]]] valore ──▶ matrice [Dimensioni] righe   ──▶ valore [Scrivi in console]
-                                                                   colonne ──▶ valore [Scrivi in console]
+[Costante · Variabile (JSON): [[1,2,3],[4,5,6]]] valore ──▶ matrice [Shape] righe   ──▶ valore [Print (console.log)]
+                                                                   colonne ──▶ valore [Print (console.log)]
 ```
 
 Le due console scrivono `2` e `3`.
 
 ### 2. Righe di lunghezza diversa
 
-Con `[[1], [2, 3]]` non esce niente su **righe** e **colonne**, e sull'**Eccezione** (o nella console principale) arriva «Dimensioni: Le righe della matrice devono avere tutte la stessa lunghezza».
+Con `[[1], [2, 3]]` non esce niente su **righe** e **colonne**, e sull'**Eccezione** (o nella console principale) arriva «Shape: Le righe della matrice devono avere tutte la stessa lunghezza».
 
 ### 3. L'ultima cella
 
-Per leggere l'ultima cella non servono le dimensioni: [Leggi cella](coll.matGet) accetta riga -1 e colonna -1.
+Per leggere l'ultima cella non servono le dimensioni: [Leggi m[r][c]](coll.matGet) accetta riga -1 e colonna -1.
 
 ## Errori
 
@@ -58,6 +58,6 @@ Per leggere l'ultima cella non servono le dimensioni: [Leggi cella](coll.matGet)
 
 ## Vedi anche
 
-- [Lunghezza](coll.length) per una lista
-- [Crea matrice](coll.matNew), [Leggi riga](coll.matRow), [Leggi colonna](coll.matCol)
+- [Length](coll.length) per una lista
+- [Nuova matrice (fill)](coll.matNew), [Riga m[r]](coll.matRow), [Colonna m[][c]](coll.matCol)
 - [Come funziona un blocco](ide/blocks)

@@ -1,4 +1,4 @@
-# All'avvio
+# All'avvio (main)
 
 `core.onStart` · Tempo · [Blocchi di base](logicstudio-core) · versione 1
 
@@ -24,24 +24,24 @@ Il blocco manda **un solo impulso** per ogni partenza del programma, e poi non f
 - un programma attivo riparte da solo perché è ripartito il computer su cui gira lilOS;
 - si apre un'app fatta con **Crea app**.
 
-Quindi in un programma attivo l'impulso può arrivare **più volte nella vita del programma**: una a ogni ripartenza. Se il blocco serve a fare qualcosa una volta sola per sempre (per esempio creare un file), controlla prima se è già stato fatto, per esempio con [Esiste](lilos.exists).
+Quindi in un programma attivo l'impulso può arrivare **più volte nella vita del programma**: una a ogni ripartenza. Se il blocco serve a fare qualcosa una volta sola per sempre (per esempio creare un file), controlla prima se è già stato fatto, per esempio con [exists](lilos.exists).
 
 ### Prima dei valori iniziali
 
-L'impulso parte **prima** che gli ingressi dei blocchi ricevano i loro **valori iniziali**. Un blocco collegato direttamente ad All'avvio può quindi girare una prima volta senza i suoi valori iniziali, e poi un'altra volta quando arriva il valore iniziale (se quell'ingresso **lo avvia**).
+L'impulso parte **prima** che gli ingressi dei blocchi ricevano i loro **valori iniziali**. Un blocco collegato direttamente al blocco All'avvio (main) può quindi girare una prima volta senza i suoi valori iniziali, e poi un'altra volta quando arriva il valore iniziale (se quell'ingresso **lo avvia**).
 
-Per esempio, con [Concatena](core.concat) che ha il valore iniziale `"X"` su **a** e All'avvio collegato a **b**, la console scrive prima `true` e poi `Xtrue`.
+Per esempio, con [Concat testo](core.concat) che ha il valore iniziale `"X"` su **a** e il blocco All'avvio (main) collegato a **b**, la console scrive prima `true` e poi `Xtrue`.
 
 Per farlo girare una volta sola con tutti i valori iniziali:
 
-1. metti un blocco [Aspetta](core.delay) con **Secondi** = 0 tra All'avvio e il blocco: l'impulso arriva subito dopo i valori iniziali;
+1. metti un blocco [Ritardo (setTimeout)](core.delay) con **Secondi** = 0 tra il blocco All'avvio (main) e il blocco: l'impulso arriva subito dopo i valori iniziali;
 2. togli **lo avvia** dagli ingressi che hanno il valore iniziale.
 
 Con queste due cose l'esempio di prima scrive solo `Xtrue`.
 
-### Più blocchi All'avvio
+### Più blocchi All'avvio (main)
 
-Puoi mettere più blocchi All'avvio, anche in schemi diversi: ognuno manda il suo impulso. L'ordine tra loro non è garantito: se più cose devono succedere in un ordine preciso, usa un All'avvio solo e una [Sequenza](core.sequence).
+Puoi mettere più blocchi All'avvio (main), anche in schemi diversi: ognuno manda il suo impulso. L'ordine tra loro non è garantito: se più cose devono succedere in un ordine preciso, usa un solo blocco All'avvio (main) e un blocco [Sequenza (then)](core.sequence).
 
 Per le regole generali vedi [Come funziona un blocco](ide/blocks).
 
@@ -50,15 +50,15 @@ Per le regole generali vedi [Come funziona un blocco](ide/blocks).
 ### 1. Un messaggio alla partenza
 
 ```
-[All'avvio] impulso ──▶ invia [Valore: testo "Programma partito"] valore ──▶ valore [Scrivi in console: informazione]
+[All'avvio (main)] impulso ──▶ invia [Costante · Variabile: testo "Programma partito"] valore ──▶ valore [Print (console.log): informazione]
 ```
 
-A ogni partenza la console scrive `Programma partito`. Lo stesso si ottiene con il solo [Valore](core.value) e **Invia all'avvio** spuntata; All'avvio serve quando lo stesso blocco deve partire anche per altri motivi (con **Invia all'avvio** tolta e altri collegamenti su **invia**).
+A ogni partenza la console scrive `Programma partito`. Lo stesso si ottiene con il solo blocco [Costante · Variabile](core.value), senza niente collegato a **invia** (così manda il valore una volta all'avvio dello schema); All'avvio (main) serve quando lo stesso blocco deve partire anche per altri motivi: con un collegamento su **invia**, il blocco manda solo a ogni impulso, e l'impulso di All'avvio (main) gli dà anche la partenza.
 
 ### 2. Una domanda all'utente appena parte
 
 ```
-[All'avvio] impulso ──▶ chiedi [Leggi da console: "Come ti chiami?"] valore ──▶ … 
+[All'avvio (main)] impulso ──▶ chiedi [Input (readline): "Come ti chiami?"] valore ──▶ … 
 ```
 
 Appena il programma parte, la console fa la domanda.
@@ -66,17 +66,17 @@ Appena il programma parte, la console fa la domanda.
 ### 3. Tre cose in ordine
 
 ```
-[All'avvio] impulso ──▶ avvia [Sequenza] 1 ──▶ pulisci [Scrivi in console]
-                                         2 ──▶ leggi   [Data e ora] ISO ──▶ valore [Scrivi in console]
-                                         3 ──▶ acceso  [Ogni… 10 s]
+[All'avvio (main)] impulso ──▶ avvia [Sequenza (then)] 1 ──▶ pulisci [Print (console.log)]
+                                         2 ──▶ leggi   [Now (data e ora)] ISO ──▶ valore [Print (console.log)]
+                                         3 ──▶ acceso  [Intervallo (setInterval): 10 s]
 ```
 
-La [Sequenza](core.sequence) ha tre uscite aggiunte, **1**, **2** e **3**. All'avvio la console viene pulita, poi scrive la data e l'ora, poi parte un [Ogni…](core.every) che aveva **Parte da solo** tolta (l'impulso vale sì, quindi lo accende).
+Il blocco [Sequenza (then)](core.sequence) ha tre uscite aggiunte, **1**, **2** e **3**. All'avvio la console viene pulita, poi scrive la data e l'ora, poi parte un blocco [Intervallo (setInterval)](core.every) che aveva **Parte da solo** tolta (l'impulso vale sì, quindi lo accende).
 
 ## Vedi anche
 
-- [Ogni…](core.every) per impulsi che si ripetono
-- [Valore](core.value) con **Invia all'avvio**
-- [Sequenza](core.sequence)
+- [Intervallo (setInterval)](core.every) per impulsi che si ripetono
+- [Costante · Variabile](core.value), che manda da solo all'avvio se **invia** non è collegato
+- [Sequenza (then)](core.sequence)
 - [Prova e programmi attivi](ide/run)
 - [Come funziona un blocco](ide/blocks)

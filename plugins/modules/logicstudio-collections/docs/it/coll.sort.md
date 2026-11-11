@@ -1,4 +1,4 @@
-# Ordina
+# Sort
 
 `coll.sort` · Liste · [Liste e matrici](logicstudio-collections) · versione 1
 
@@ -52,7 +52,7 @@ Altri casi:
 ### 1. Numeri
 
 ```
-[Valore (JSON): [10,9,100,1]] valore ──▶ lista [Ordina] risultato ──▶ valore [Scrivi in console]
+[Costante · Variabile (JSON): [10,9,100,1]] valore ──▶ lista [Sort] risultato ──▶ valore [Print (console.log)]
 ```
 
 Scrive `[1,9,10,100]`. Con **Ordine** decrescente: `[100,10,9,1]`. Con **Confronta come** testo: `[1,10,100,9]`.
@@ -64,7 +64,7 @@ La lista `["10","9","100","1"]` con `auto` dà `["1","9","10","100"]` (sono tutt
 ### 3. Prodotti per prezzo
 
 ```
-[Valore (JSON): [{"nome":"Zaino","prezzo":35},{"nome":"Penna","prezzo":2.5},{"nome":"Quaderno","prezzo":4}]] valore ──▶ lista [Ordina] risultato ──▶ righe [Tabella]
+[Costante · Variabile (JSON): [{"nome":"Zaino","prezzo":35},{"nome":"Penna","prezzo":2.5},{"nome":"Quaderno","prezzo":4}]] valore ──▶ lista [Sort] risultato ──▶ righe [Tabella]
 ```
 
 Con **Campo** `prezzo` e **Ordine** crescente la [Tabella](ui.table) mostra Penna, Quaderno, Zaino. Con **Campo** `nome` e decrescente: Zaino, Quaderno, Penna.
@@ -72,10 +72,10 @@ Con **Campo** `prezzo` e **Ordine** crescente la [Tabella](ui.table) mostra Penn
 ### 4. La classifica
 
 ```
-[Accumula] lista ──▶ lista [Ordina: punti, decrescente] risultato ──▶ lista [Porzione: a = 3] risultato ──▶ righe [Tabella]
+[Accumula (push con limite)] lista ──▶ lista [Sort: punti, decrescente] risultato ──▶ lista [Slice: a = 3] risultato ──▶ righe [Tabella]
 ```
 
-Ogni risultato `{"nome": …, "punti": …}` raccolto da [Accumula](coll.accumulate) entra in classifica e la tabella mostra i primi tre.
+Ogni risultato `{"nome": …, "punti": …}` raccolto da [Accumula (push con limite)](coll.accumulate) entra in classifica e la tabella mostra i primi tre.
 
 ## Errori
 
@@ -86,6 +86,6 @@ Ogni risultato `{"nome": …, "punti": …}` raccolto da [Accumula](coll.accumul
 
 ## Vedi anche
 
-- [Inverti](coll.reverse), [Unici](coll.unique), [Filtra](coll.filter)
-- [Somma · Minimo · Massimo · Media](coll.stat) per avere solo il più piccolo o il più grande
+- [Reverse](coll.reverse), [Distinct](coll.unique), [Filter](coll.filter)
+- [Sum · Min · Max · Avg](coll.stat) per avere solo il più piccolo o il più grande
 - [Come funziona un blocco](ide/blocks)

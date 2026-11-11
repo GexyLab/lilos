@@ -39,9 +39,9 @@ Un interruttore a levetta, acceso o spento. Quando l'utente lo sposta, manda il 
 | `true`, il testo `"true"`, il numero `1` | acceso |
 | qualsiasi altra cosa: `false`, `0`, `"1"`, `"sì"`, `"on"`, `null` | spento |
 
-> Attenzione: il **testo** `"1"` e il testo `"sì"` lo **spengono**. Se il valore viene da un file o da un testo, passalo prima da [Converti](core.convert) **In** sì/no.
+> Attenzione: il **testo** `"1"` e il testo `"sì"` lo **spengono**. Se il valore viene da un file o da un testo, passalo prima da [Cast (converti tipo)](core.convert) **In** sì/no.
 
-**All'apertura** si vede lo stato di **Acceso all'inizio**, ma il programma non lo riceve: l'uscita manda qualcosa solo quando l'utente lo sposta. Se lo schema deve sapere lo stato iniziale, dagli lo stesso valore con un blocco [Valore](core.value). Con l'opzione «Una finestra riaperta mostra subito gli ultimi valori», riaprendo la finestra l'interruttore mostra l'ultimo stato (dell'utente o dello schema).
+**All'apertura** si vede lo stato di **Acceso all'inizio**, ma il programma non lo riceve: l'uscita manda qualcosa solo quando l'utente lo sposta. Se lo schema deve sapere lo stato iniziale, dagli lo stesso valore con un blocco [Costante · Variabile](core.value). Con l'opzione «Una finestra riaperta mostra subito gli ultimi valori», riaprendo la finestra l'interruttore mostra l'ultimo stato (dell'utente o dello schema).
 
 **L'etichetta non si vede.** L'interruttore disegna solo la levetta: il testo dell'**Etichetta** è solo per i lettori di schermo. Per una scritta visibile, metti l'interruttore in una [Riga](ui.row) con un'[Etichetta](ui.label) accanto, oppure usa una [Casella di spunta](ui.checkbox), che mostra il suo testo.
 
@@ -58,7 +58,7 @@ Finestra «Salotto»
 ```
 
 ```
-[Interruttore: Luce] valore ──▶ dati [Evento a lilOS: luce.salotto]
+[Interruttore: Luce] valore ──▶ dati [Emit (evento a lilOS): luce.salotto]
 ```
 
 Ogni volta che l'utente sposta l'interruttore, lilOS riceve l'evento `luce.salotto` con `true` o `false`.
@@ -73,16 +73,16 @@ Finestra «Raccolta»
 ```
 
 ```
-[Interruttore: Raccolta attiva] valore ──▶ acceso [Ogni…: 5 s] impulso ──▶ più [Contatore] conteggio ──▶ valore [Valore: Letture:]
+[Interruttore: Raccolta attiva] valore ──▶ acceso [Intervallo (setInterval): 5 s] impulso ──▶ più [Contatore (++ −−)] conteggio ──▶ valore [Valore: Letture:]
 ```
 
-[Ogni…](core.every) parte da solo (come l'interruttore, che è acceso all'inizio). Spegnendo l'interruttore le letture si fermano; riaccendendolo ripartono.
+Il blocco [Intervallo (setInterval)](core.every) parte da solo (come l'interruttore, che è acceso all'inizio). Spegnendo l'interruttore le letture si fermano; riaccendendolo ripartono.
 
 ### 3. Due interruttori che si escludono
 
 ```
-[Interruttore: Estate] valore ──▶ valore [NON] risultato ──▶ valore [Interruttore: Inverno]
-[Interruttore: Inverno] valore ──▶ valore [NON] risultato ──▶ valore [Interruttore: Estate]
+[Interruttore: Estate] valore ──▶ valore [NOT] risultato ──▶ valore [Interruttore: Inverno]
+[Interruttore: Inverno] valore ──▶ valore [NOT] risultato ──▶ valore [Interruttore: Estate]
 ```
 
 Accendendo **Estate**, **Inverno** si spegne, e viceversa. Non c'è un giro senza fine: un valore che arriva sull'ingresso di un interruttore non esce dalla sua uscita.
@@ -96,5 +96,5 @@ Accendendo **Estate**, **Inverno** si spegne, e viceversa. Non c'è un giro senz
 
 - [Casella di spunta](ui.checkbox), con il testo visibile
 - [Spia](ui.lamp), per mostrare uno stato senza farlo cambiare
-- [NON](core.not), [Converti](core.convert)
+- [NOT](core.not), [Cast (converti tipo)](core.convert)
 - [Componenti UI standard](logicstudio-ui)

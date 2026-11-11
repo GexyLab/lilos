@@ -1,4 +1,4 @@
-# Confronta
+# Confronto (== ≠ < >)
 
 `core.compare` · Logica · [Blocchi di base](logicstudio-core) · versione 1
 
@@ -41,12 +41,12 @@ Li manda a ogni confronto, anche se il risultato non è cambiato.
 
 Il modo di confrontare dipende da cosa arriva:
 
-- **Se almeno uno dei due è un numero** (un vero numero, non un testo con delle cifre), tutti e due vengono letti come numeri e confrontati come numeri. Le regole di lettura sono quelle di [Somma](core.add): `"2,5"` vale 2,5, `true` vale 1, `null` e `""` valgono 0.
+- **Se almeno uno dei due è un numero** (un vero numero, non un testo con delle cifre), tutti e due vengono letti come numeri e confrontati come numeri. Le regole di lettura sono quelle di [Somma (+)](core.add): `"2,5"` vale 2,5, `true` vale 1, `null` e `""` valgono 0.
 - **Altrimenti** tutti e due vengono letti come testi e confrontati come testi.
 
 Confrontare come testi vuol dire **lettera per lettera**, come nel dizionario ma con regole da computer:
 
-- `"10"` è **minore** di `"9"` (si confronta prima `1` con `9`). Se i tuoi numeri arrivano come testo (per esempio da un [Campo di testo](ui.text)), passa prima da [Converti](core.convert) in numero.
+- `"10"` è **minore** di `"9"` (si confronta prima `1` con `9`). Se i tuoi numeri arrivano come testo (per esempio da un [Campo di testo](ui.text)), passa prima da [Cast (converti tipo)](core.convert) in numero.
 - Le maiuscole contano e vengono prima delle minuscole: `"Z"` < `"a"`; `"Roma"` ≠ `"roma"`.
 - Le lettere accentate vengono dopo tutte le lettere senza accento: `"è"` > `"z"`.
 - Gli spazi contano: `"ciao "` ≠ `"ciao"`.
@@ -75,7 +75,7 @@ Un ingresso che non ha ancora ricevuto niente **conta**: vale 0 se l'altro è un
 Operazione `a > b`; su **b** il valore iniziale `30` e «lo avvia» tolto:
 
 ```
-[Cursore: temperatura] valore ──▶ a [Confronta: a > b] risultato ──▶ accesa [Spia: caldo]
+[Cursore: temperatura] valore ──▶ a [Confronto (== ≠ < >): a > b] risultato ──▶ accesa [Spia: caldo]
 ```
 
 Con il cursore a 25 la [Spia](ui.lamp) è spenta (**no**); a 31 si accende (**sì**). A ogni movimento parte anche un impulso su **se vero** o **se falso**.
@@ -83,22 +83,22 @@ Con il cursore a 25 la [Spia](ui.lamp) è spenta (**no**); a 31 si accende (**s�
 ### 2. Fare una cosa diversa nei due casi
 
 ```
-[Campo numerico: età] valore ──▶ a [Confronta: a ≥ b] se vero  ──▶ invia [Valore: "Benvenuto"]
-                                                       se falso ──▶ invia [Valore: "Accesso negato"]
+[Campo numerico: età] valore ──▶ a [Confronto (== ≠ < >): a ≥ b] se vero  ──▶ invia [Costante · Variabile: "Benvenuto"]
+                                                       se falso ──▶ invia [Costante · Variabile: "Accesso negato"]
 ```
 
-Con **b** iniziale `18`: se l'utente scrive 20, parte **se vero** e il primo [Valore](core.value) manda `Benvenuto`; se scrive 15, parte **se falso**.
+Con **b** iniziale `18`: se l'utente scrive 20, parte **se vero** e il primo [Costante · Variabile](core.value) manda `Benvenuto`; se scrive 15, parte **se falso**.
 
 ### 3. Una parola uguale
 
 Operazione `a = b`, **b** iniziale `"stop"` (scritto `stop` nel campo **iniziale**):
 
 - arriva `"stop"` → **sì**;
-- arriva `"Stop"` → **no** (le maiuscole contano). Per non badare alle maiuscole, passa prima da [Operazione sul testo](core.text) con **minuscolo**.
+- arriva `"Stop"` → **no** (le maiuscole contano). Per non badare alle maiuscole, passa prima da [Funzioni stringa](core.text) con **minuscolo**.
 
 ### 4. Il trucco dei numeri come testo
 
-**a** = `"100"` e **b** = `"20"` arrivano tutti e due come testo da due campi di testo. Con `a > b` il risultato è **no** (`"1"` viene prima di `"2"`). Mettendo un [Converti](core.convert) in numero su ciascuno, il risultato diventa **sì**.
+**a** = `"100"` e **b** = `"20"` arrivano tutti e due come testo da due campi di testo. Con `a > b` il risultato è **no** (`"1"` viene prima di `"2"`). Mettendo un blocco [Cast (converti tipo)](core.convert) in numero su ciascuno, il risultato diventa **sì**.
 
 ## Errori
 
@@ -106,8 +106,8 @@ Questo blocco non ha errori suoi.
 
 ## Vedi anche
 
-- [Se](core.if) per mandare un valore da una parte o dall'altra
-- [Casi](core.switch) per confrontare un valore con molti casi
-- [Limita](core.clamp) per tenere un numero tra un minimo e un massimo
-- [E](core.and), [O](core.or), [NON](core.not)
+- [If · Else](core.if) per mandare un valore da una parte o dall'altra
+- [Switch · Case](core.switch) per confrontare un valore con molti casi
+- [Clamp (limita)](core.clamp) per tenere un numero tra un minimo e un massimo
+- [AND](core.and), [OR](core.or), [NOT](core.not)
 - [Come funziona un blocco](ide/blocks)

@@ -23,7 +23,7 @@ Il motore fa questi passi, in ordine. Se uno non va, il programma non parte e l'
 3. **Il salvataggio.** Un programma attivo viene salvato nel motore, con una copia del progetto. Al massimo 2 MB di progetto: oltre, «Progetto troppo grande per un programma attivo (al massimo 2 MB)».
 4. **Il worker.** Se non hai ancora un worker (il thread dove girano i tuoi programmi), il motore lo apre. Qui conta la memoria di tutti: se non basta, il programma si ferma subito con il messaggio «Logic Studio usa già … MB: al massimo … MB per tutti».
 5. **L'avvio dei blocchi.** Nel worker il programma parte così:
-   - per ogni blocco che ha qualcosa da fare all'avvio, lo fa (per esempio il [Valore](core.value) con **Invia all'avvio** manda il suo valore);
+   - per ogni blocco che ha qualcosa da fare all'avvio, lo fa (per esempio il blocco [Costante · Variabile](core.value), se a **invia** non è collegato niente, manda il suo valore);
    - poi ogni ingresso che ha un **valore iniziale** lo riceve;
    - poi partono i blocchi che girano da soli in un ciclo.
 
@@ -58,7 +58,7 @@ Vedi i tuoi programmi in due posti:
 
 Quando un **programma attivo** si ferma per un errore, ricevi una notifica di lilOS con il nome del programma e il messaggio (se in quel momento hai una pagina di lilOS aperta).
 
-Un errore dentro un blocco **non** ferma il programma: esce dall'uscita **Eccezione** di quel blocco e, se non è collegata, va nella console principale come una riga rossa. Per esempio «Somma: Serve un numero».
+Un errore dentro un blocco **non** ferma il programma: esce dall'uscita **Eccezione** di quel blocco e, se non è collegata, va nella console principale come una riga rossa. Per esempio «Somma (+): Serve un numero».
 
 ## Fermare e togliere
 
@@ -103,7 +103,7 @@ Ogni programma ha le sue console: la **principale** (c'è sempre) e quelle che h
 
 ### Le domande
 
-Il blocco [Leggi da console](core.consoleRead) fa una domanda e aspetta la risposta.
+Il blocco [Input (readline)](core.consoleRead) fa una domanda e aspetta la risposta.
 
 - In ogni console c'è **una domanda alla volta**: se due blocchi chiedono insieme nella stessa console, il secondo aspetta in fila che il primo abbia la risposta.
 - La risposta si scrive nella console dell'IDE, o nella finestra della console che apre lilOS. Se la stessa console è aperta in due posti, vale la prima risposta che arriva.
@@ -122,7 +122,7 @@ Il blocco [Leggi da console](core.consoleRead) fa una domanda e aspetta la rispo
 - Quando il programma si ferma, le domande in attesa sono annullate.
 - Una risposta nascosta (per le password) compare nella console come pallini.
 
-> **Il tempo massimo di un blocco vale anche per le domande.** Oggi il motore interrompe un blocco che lavora più di 30 secondi (di serie, vedi [Limiti e quote](logicstudio-engine/limits)), e un blocco che aspetta una risposta conta come un blocco che lavora. Dopo 30 secondi senza risposta, **Leggi da console** manda su **Eccezione** «Leggi da console ha impiegato più di 30 s». La domanda resta nella console, ma la risposta che dai dopo non arriva più al blocco, e finché non rispondi il blocco ignora le nuove richieste **chiedi**. Se ti serve più tempo, un amministratore può alzare il limite.
+> **Il tempo massimo di un blocco vale anche per le domande.** Oggi il motore interrompe un blocco che lavora più di 30 secondi (di serie, vedi [Limiti e quote](logicstudio-engine/limits)), e un blocco che aspetta una risposta conta come un blocco che lavora. Dopo 30 secondi senza risposta, **Leggi da console** manda su **Eccezione** «Input (readline) ha impiegato più di 30 s». La domanda resta nella console, ma la risposta che dai dopo non arriva più al blocco, e finché non rispondi il blocco ignora le nuove richieste **chiedi**. Se ti serve più tempo, un amministratore può alzare il limite.
 
 ### Le console fuori dall'IDE
 
@@ -171,7 +171,7 @@ I programmi attivi con finestre compaiono nel menu delle applicazioni, scheda **
 ### 1. Una prova che si ferma da sola
 
 ```
-[Ogni…: 1 s] impulso ──▶ più [Contatore] conteggio ──▶ valore [Scrivi in console]
+[Intervallo (setInterval): 1 s] impulso ──▶ più [Contatore (++ −−)] conteggio ──▶ valore [Print (console.log)]
 ```
 
 Premi **Prova**: nella console principale compaiono 1, 2, 3… una riga al secondo. Dopo 5 minuti (di serie) la prova si ferma con «Fine della prova: è durata il tempo massimo». Se premi **Attiva** invece, il conteggio va avanti finché non premi **Ferma** nella Home.
@@ -179,22 +179,22 @@ Premi **Prova**: nella console principale compaiono 1, 2, 3… una riga al secon
 ### 2. Un ciclo di collegamenti
 
 ```
-[Valore: 1] valore ──▶ a [Somma] risultato ──▶ b [la stessa Somma]
+[Costante · Variabile: 1] valore ──▶ a [Somma (+)] risultato ──▶ b [la stessa Somma (+)]
 ```
 
-Il **risultato** della [Somma](core.add) torna al suo ingresso **b**: ogni risultato la fa lavorare di nuovo, e la Somma non si ferma mai (1, 2, 3, 4…). Dopo 10000 esecuzioni in 10 secondi il motore ferma il programma con «Troppe esecuzioni: più di 10000 in 10 secondi (un ciclo di collegamenti?)». Per contare davvero usa il [Contatore](core.counter), o togli **lo avvia** dall'ingresso che chiude il giro.
+Il **risultato** del blocco [Somma (+)](core.add) torna al suo ingresso **b**: ogni risultato la fa lavorare di nuovo, e il blocco non si ferma mai (1, 2, 3, 4…). Dopo 10000 esecuzioni in 10 secondi il motore ferma il programma con «Troppe esecuzioni: più di 10000 in 10 secondi (un ciclo di collegamenti?)». Per contare davvero usa il blocco [Contatore (++ −−)](core.counter), o togli **lo avvia** dall'ingresso che chiude il giro.
 
 ### 3. Una domanda a un programma attivo
 
 ```
-[All'avvio] impulso ──▶ chiedi [Leggi da console: «Quanti litri?», numero] valore ──▶ valore [Scrivi in console]
+[All'avvio (main)] impulso ──▶ chiedi [Input (readline): «Quanti litri?», numero] valore ──▶ valore [Print (console.log)]
 ```
 
-Attivi il progetto e chiudi l'IDE. Il blocco [All'avvio](core.onStart) fa partire subito la domanda: se hai lilOS aperto, ricevi una notifica che dice che la console del progetto chiede qualcosa. Un clic apre la console; scrivi `12,5` e premi Invio: nella console compare 12.5 (come numero). Se scrivi `tanti`, la console risponde «Serve un numero. Riprova.» e la domanda resta.
+Attivi il progetto e chiudi l'IDE. Il blocco [All'avvio (main)](core.onStart) fa partire subito la domanda: se hai lilOS aperto, ricevi una notifica che dice che la console del progetto chiede qualcosa. Un clic apre la console; scrivi `12,5` e premi Invio: nella console compare 12.5 (come numero). Se scrivi `tanti`, la console risponde «Serve un numero. Riprova.» e la domanda resta.
 
 ### 4. Un programma attivo dopo un riavvio
 
-Hai attivato «Serra» (in esecuzione) e il computer di lilOS si riavvia. Dopo qualche secondo «Serra» è di nuovo **In esecuzione**, ma il suo [Contatore](core.counter) riparte dal valore iniziale e la console è vuota. Se vuoi che un valore sopravviva ai riavvii, scrivilo in un file con [Scrivi file](lilos.fileWrite) e rileggilo all'avvio con [Leggi file](lilos.fileRead).
+Hai attivato «Serra» (in esecuzione) e il computer di lilOS si riavvia. Dopo qualche secondo «Serra» è di nuovo **In esecuzione**, ma il suo [Contatore (++ −−)](core.counter) riparte dal valore iniziale e la console è vuota. Se vuoi che un valore sopravviva ai riavvii, scrivilo in un file con [writeFile](lilos.fileWrite) e rileggilo all'avvio con [readFile](lilos.fileRead).
 
 ## Vedi anche
 

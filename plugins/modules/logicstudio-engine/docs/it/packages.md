@@ -156,6 +156,7 @@ Una porta è `{ name, type, label, trigger }`:
 
 - `label`: il nome mostrato, `{ en, it }`. Senza, l'IDE mostra `name`.
 - `trigger: false` (solo ingressi): l'ingresso tiene il valore ma **non avvia** il blocco. L'utente può cambiarlo nelle Proprietà (**lo avvia**).
+- `hidden: true`: la porta è **nascosta di serie** nel disegno; l'utente la mostra con l'occhio nelle Proprietà (dal motore 1.2.0 e lilOS 1.41.0). Serve alle porte che si usano di rado, come **invia** e **imposta** di [Costante · Variabile](core.value). Una porta collegata si vede sempre.
 
 L'utente può dare a ogni ingresso un **valore iniziale**, che il motore manda all'avvio. Vedi [Come funziona un blocco](ide/blocks).
 
@@ -254,6 +255,7 @@ upgrade(config, from, added)   // → le impostazioni nuove, o { config: le impo
 | `b.trigger` | Solo in `run`: il nome dell'ingresso che ha avviato il blocco |
 | `b.added` | Le porte aggiunte: `{ inputs: [{ id, name, value }], outputs: [{ id, name }] }` |
 | `b.memory()` | Un oggetto tuo, sempre lo stesso per questo blocco, che dura quanto il programma. Si svuota quando il programma riparte |
+| `b.linked(porta)` | `true` se nello schema c'è un collegamento verso quell'ingresso del blocco (dal motore 1.2.0). Per un ingresso facoltativo che cambia il comportamento solo se usato: [Costante · Variabile](core.value) manda il valore all'avvio se **invia** non è collegato. Un valore iniziale dato all'ingresso non conta come collegamento |
 | `b.send(porta, valore)` | Manda subito un valore su un'uscita (anche aggiunta, per id), senza aspettare la fine di `run`. Utile nei timer e per mandare più valori di fila. `undefined` non viene mandato; dopo l'arresto non manda niente |
 | `b.setTimeout(fn, ms)` | Un timer che chiama `fn` una volta. Ritorna il timer |
 | `b.setInterval(fn, ms)` | Un timer che chiama `fn` ogni `ms` (almeno 10). Ritorna il timer |
@@ -475,7 +477,7 @@ export default {
 };
 ```
 
-La richiesta di `esempio.cambio` va a un indirizzo fisso. Se un'azione deve andare a un indirizzo scelto dall'utente, deve anche controllare che non sia questo computer o la rete locale, come fa la [Richiesta web](net.request).
+La richiesta di `esempio.cambio` va a un indirizzo fisso. Se un'azione deve andare a un indirizzo scelto dall'utente, deve anche controllare che non sia questo computer o la rete locale, come fa la [HTTP (fetch)](net.request).
 
 ### blocks.js
 
@@ -673,7 +675,7 @@ export const components = [
 Nello schema il suo oggetto ha a sinistra **colore**, **abilitato** e **visibile**, a destra **cliccato**:
 
 ```
-[Valore: "green"] valore ──▶ colore [Semaforo: sem1] cliccato ──▶ valore [Scrivi in console]
+[Costante · Variabile: "green"] valore ──▶ colore [Semaforo: sem1] cliccato ──▶ valore [Print (console.log)]
 ```
 
 ### docs/it/esempio.media.md
@@ -702,8 +704,8 @@ La media degli ingressi che hanno un valore.
 ## Esempi
 
 ```
-[Valore: 4] valore ──▶ a  [Media] risultato ──▶ valore [Scrivi in console]
-[Valore: 6] valore ──▶ b
+[Costante · Variabile: 4] valore ──▶ a  [Media] risultato ──▶ valore [Print (console.log)]
+[Costante · Variabile: 6] valore ──▶ b
 ```
 
 Scrive 4, poi 5.

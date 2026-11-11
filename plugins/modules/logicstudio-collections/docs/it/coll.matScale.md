@@ -1,4 +1,4 @@
-# Scala
+# Scala (k·A)
 
 `coll.matScale` · Matrici · [Liste e matrici](logicstudio-collections) · versione 1
 
@@ -32,8 +32,8 @@ Il blocco aspetta di avere **matrice** e **fattore**; poi, a ogni valore nuovo, 
 ### 1. Il doppio
 
 ```
-[Valore (JSON): [[1,2,3],[4,5,6]]] valore ──▶ matrice [Scala] matrice ──▶ valore [Scrivi in console]
-[Valore: 2]                        valore ──▶ fattore
+[Costante · Variabile (JSON): [[1,2,3],[4,5,6]]] valore ──▶ matrice [Scala (k·A)] matrice ──▶ valore [Print (console.log)]
+[Costante · Variabile: 2]                        valore ──▶ fattore
 ```
 
 Scrive `[[2,4,6],[8,10,12]]`.
@@ -57,5 +57,5 @@ Una matrice di misure in centimetri, `[[120, 85], [200, 150]]`, con fattore `0.0
 
 ## Vedi anche
 
-- [Somma matrici](coll.matAdd), [Sottrai matrici](coll.matSubtract), [Moltiplica matrici](coll.matMultiply)
+- [A + B](coll.matAdd), [A − B](coll.matSubtract), [A × B](coll.matMultiply)
 - [Come funziona un blocco](ide/blocks)

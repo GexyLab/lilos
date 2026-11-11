@@ -24,7 +24,7 @@ function headersOf(raw) {
 
 export const blocks = [
   {
-    type: 'net.request', version: 1, category: 'net', icon: 'globe', label: L('Web request', 'Richiesta web'),
+    type: 'net.request', version: 1, category: 'net', icon: 'globe', label: L('HTTP request (fetch)', 'HTTP (fetch)'),
     description: L('An HTTP or HTTPS request; each added input is a query parameter', 'Una richiesta HTTP o HTTPS; ogni ingresso aggiunto è un parametro dell\'indirizzo'),
     inputs: [
       { name: 'run', type: 'pulse', label: L('send', 'invia') },

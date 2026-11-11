@@ -76,7 +76,7 @@ Window "Comparison"
 ```
 
 ```
-[Value (JSON): {"Speed": {"Car A": 8, "Car B": 6}, "Cost": {"Car A": 5, "Car B": 8}, "Quality": {"Car A": 7, "Car B": 6}, "Safety": {"Car A": 9, "Car B": 7}, "Comfort": {"Car A": 6, "Car B": 8}}] value ──▶ data [Radar: Cars]
+[Constant · Variable (JSON): {"Speed": {"Car A": 8, "Car B": 6}, "Cost": {"Car A": 5, "Car B": 8}, "Quality": {"Car A": 7, "Car B": 6}, "Safety": {"Car A": 9, "Car B": 7}, "Comfort": {"Car A": 6, "Car B": 8}}] value ──▶ data [Radar: Cars]
 ```
 
 Five axes and two shapes with the legend "Car A" and "Car B". With Minimum 0 and Maximum 10 a score of 10 touches the edge. A click on the "Cost" axis sends `{"category": "Cost", "values": {"Car A": 5, "Car B": 8}, "index": 1}`.
@@ -84,7 +84,7 @@ Five axes and two shapes with the legend "Car A" and "Car B". With Minimum 0 and
 ### 2. The profile of a month, from a file
 
 ```
-[At start] pulse ──▶ read [Read file: ~/quality.json, JSON] content ──▶ data [Radar: October]
+[On start (main)] pulse ──▶ read [readFile: ~/quality.json, JSON] content ──▶ data [Radar: October]
 ```
 
 The file contains `{"Punctuality": 92, "Returns": 4, "Satisfaction": 87, "Deliveries": 95}`. Leaving **Minimum** and **Maximum** empty the scale goes from 0 to 100 (rounded): "Returns", with 4, stays close to the centre.
@@ -92,10 +92,10 @@ The file contains `{"Punctuality": 92, "Returns": 4, "Satisfaction": 87, "Delive
 ### 3. Showing the chosen value
 
 ```
-[Radar: Cars] picked axis ──▶ object [Get field: values.Car A] value ──▶ value [Value: Score of A]
+[Radar: Cars] picked axis ──▶ object [Get property: values.Car A] value ──▶ value [Value: Score of A]
 ```
 
-[Get field](core.get) takes the score of "Car A" on the chosen axis and the [Value](ui.value) of the window shows it.
+[Get property](core.get) takes the score of "Car A" on the chosen axis and the [Value](ui.value) of the window shows it.
 
 ## Accessibility and keyboard
 
@@ -105,5 +105,5 @@ The file contains `{"Punctuality": 92, "Returns": 4, "Satisfaction": 87, "Delive
 
 - [Columns](charts.column) for the same data as side-by-side columns
 - [Bars](charts.bar)
-- [Get field](core.get)
+- [Get property](core.get)
 - [Charts](logicstudio-charts): the data shapes, the limits, the keyboard

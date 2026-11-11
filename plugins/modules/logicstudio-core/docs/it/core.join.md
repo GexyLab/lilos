@@ -1,4 +1,4 @@
-# Aspetta tutti
+# Attendi tutti (join)
 
 `core.join` · Logica · [Blocchi di base](logicstudio-core) · versione 1
 
@@ -35,18 +35,18 @@ Cose da sapere:
 - Un ingresso che riceve due volte prima che arrivino gli altri conta **una volta sola**: non si accumula niente per il giro dopo.
 - Senza ingressi aggiunti il blocco non manda mai **pronto**.
 - Se togli «lo avvia» da un ingresso aggiunto, quell'ingresso non viene mai segnato come arrivato e **pronto** non parte più. Lasciali tutti con «lo avvia».
-- I valori che arrivano non vengono rimandati: **pronto** è solo un impulso. Se ti servono i valori, prendili da una [Memoria](core.store) o tienili negli ingressi (con «lo avvia» tolto) del blocco che parte con **pronto**.
+- I valori che arrivano non vengono rimandati: **pronto** è solo un impulso. Se ti servono i valori, prendili da un blocco [Memoria (set · get)](core.store) o tienili negli ingressi (con «lo avvia» tolto) del blocco che parte con **pronto**.
 
 ## Esempi
 
 ### 1. Partire quando due letture sono finite
 
 ```
-[Leggi file: a.txt] contenuto ──▶ a [Aspetta tutti] pronto ──▶ invia [Notifica: Dati pronti]
-[Leggi file: b.txt] contenuto ──▶ b
+[readFile: a.txt] contenuto ──▶ a [Attendi tutti (join)] pronto ──▶ invia [Notify: Dati pronti]
+[readFile: b.txt] contenuto ──▶ b
 ```
 
-Le due letture finiscono in un ordine qualsiasi. La [Notifica](lilos.notify) parte solo quando sono finite tutte e due.
+Le due letture finiscono in un ordine qualsiasi. Il blocco [Notify](lilos.notify) parte solo quando sono finite tutte e due.
 
 ### 2. Un passo dopo l'altro, poi di nuovo
 
@@ -55,7 +55,7 @@ Ingressi **a**, **b**, **c**. Arrivano, in ordine: **a**, **a**, **b**, **c** �
 ### 3. Annullare un'attesa
 
 ```
-[Pulsante: Annulla] premuto ──▶ azzera [Aspetta tutti]
+[Pulsante: Annulla] premuto ──▶ azzera [Attendi tutti (join)]
 ```
 
 Se **a** è arrivato ma **b** no, e l'utente preme **Annulla**, il blocco dimentica **a**: per far partire **pronto** devono arrivare di nuovo sia **a** sia **b**.
@@ -66,7 +66,7 @@ Questo blocco non ha errori suoi.
 
 ## Vedi anche
 
-- [Primo che arriva](core.merge) per far passare ogni valore senza aspettare
-- [Sequenza](core.sequence) per far partire più cose in un ordine
-- [E](core.and) per mandare sì solo quando più condizioni sono sì
+- [Merge (unisci flussi)](core.merge) per far passare ogni valore senza aspettare
+- [Sequenza (then)](core.sequence) per far partire più cose in un ordine
+- [AND](core.and) per mandare sì solo quando più condizioni sono sì
 - [Come funziona un blocco](ide/blocks)

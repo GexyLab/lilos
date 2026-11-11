@@ -1,4 +1,4 @@
-# Size
+# Shape
 
 `coll.matSize` · Matrices · [Lists and matrices](logicstudio-collections) · version 1
 
@@ -35,19 +35,19 @@ The cells can contain any value: `[["a", null]]` is a 1 × 2 matrix.
 ### 1. A 2 × 3 matrix
 
 ```
-[Value (JSON): [[1,2,3],[4,5,6]]] value ──▶ matrix [Size] rows    ──▶ value [Write to console]
-                                                          columns ──▶ value [Write to console]
+[Constant · Variable (JSON): [[1,2,3],[4,5,6]]] value ──▶ matrix [Shape] rows    ──▶ value [Print (console.log)]
+                                                          columns ──▶ value [Print (console.log)]
 ```
 
 The two consoles write `2` and `3`.
 
 ### 2. Rows of different length
 
-With `[[1], [2, 3]]` nothing comes out on **rows** and **columns**, and «Dimensioni: Le righe della matrice devono avere tutte la stessa lunghezza» ("Size: The rows of the matrix must all have the same length") arrives on the **Exception** (or in the main console).
+With `[[1], [2, 3]]` nothing comes out on **rows** and **columns**, and «Shape: Le righe della matrice devono avere tutte la stessa lunghezza» ("Shape: The rows of the matrix must all have the same length") arrives on the **Exception** (or in the main console).
 
 ### 3. The last cell
 
-To read the last cell you do not need the size: [Get cell](coll.matGet) accepts row -1 and column -1.
+To read the last cell you do not need the size: [Get m[r][c]](coll.matGet) accepts row -1 and column -1.
 
 ## Errors
 
@@ -59,5 +59,5 @@ To read the last cell you do not need the size: [Get cell](coll.matGet) accepts 
 ## See also
 
 - [Length](coll.length) for a list
-- [Create matrix](coll.matNew), [Get row](coll.matRow), [Get column](coll.matCol)
+- [New matrix (fill)](coll.matNew), [Row m[r]](coll.matRow), [Column m[][c]](coll.matCol)
 - [How a block works](ide/blocks)

@@ -48,11 +48,11 @@ Window «Wait»
 ```
 
 ```
-[Every…: 1 s] pulse ──▶ up [Counter] count ──▶ a [Multiply] result ──▶ value (0–100) [Bar: Preparing…]
-                                      [Value: 10] value ──▶ b
+[Interval (setInterval): 1 s] pulse ──▶ up [Counter (++ −−)] count ──▶ a [Multiply (×)] result ──▶ value (0–100) [Bar: Preparing…]
+                                      [Constant · Variable: 10] value ──▶ b
 ```
 
-Every second the [Counter](core.counter) goes up by 1 and the [Multiply](core.multiply) turns it into a percentage: the bar shows 10%, 20%… and after 10 seconds 100%. After that, the count goes on (110, 120…) but the bar stays full.
+Every second the [Counter (++ −−)](core.counter) goes up by 1 and the [Multiply (×)](core.multiply) turns it into a percentage: the bar shows 10%, 20%… and after 10 seconds 100%. After that, the count goes on (110, 120…) but the bar stays full.
 
 ### 2. A countdown
 
@@ -63,11 +63,11 @@ Window «Break»
 ```
 
 ```
-[Every…: 1 s] pulse ──▶ up [Counter] count ──▶ b [Subtract] result ──▶ value (0–100) [Bar: Time left]
-                                      [Value: 100] value ──▶ a
+[Interval (setInterval): 1 s] pulse ──▶ up [Counter (++ −−)] count ──▶ b [Subtract (−)] result ──▶ value (0–100) [Bar: Time left]
+                                      [Constant · Variable: 100] value ──▶ a
 ```
 
-For a break of 100 seconds: the [Subtract](core.subtract) calculates 100 − seconds passed, and the bar empties by one hundredth per second, with no number next to it. Below zero the bar stays empty.
+For a break of 100 seconds: the [Subtract (−)](core.subtract) calculates 100 − seconds passed, and the bar empties by one hundredth per second, with no number next to it. Below zero the bar stays empty.
 
 ### 3. The same value as a slider
 

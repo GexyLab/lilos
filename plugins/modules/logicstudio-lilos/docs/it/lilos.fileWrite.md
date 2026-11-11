@@ -1,4 +1,4 @@
-# Scrivi file
+# writeFile
 
 `lilos.fileWrite` · lilOS · [Blocchi di lilOS](logicstudio-lilos) · versione 1
 
@@ -41,12 +41,12 @@ Quando arriva un valore su **contenuto**, il blocco prende il percorso (quello d
 | `null` | file vuoto | `null` |
 
 - Nel formato **Testo** non viene aggiunto un a capo alla fine.
-- Il formato **JSON** scrive un JSON leggibile, con un campo per riga e 2 spazi di rientro: è quello che serve per rileggerlo con [Leggi file](lilos.fileRead) in formato JSON.
+- Il formato **JSON** scrive un JSON leggibile, con un campo per riga e 2 spazi di rientro: è quello che serve per rileggerlo con [readFile](lilos.fileRead) in formato JSON.
 - Il testo è scritto in UTF-8, senza BOM.
 
 ### Regole
 
-- Il percorso segue le stesse regole di [Leggi file](lilos.fileRead): `~/…` oppure `/home/<utente>/…`, solo dentro la tua home, mai in `~/.config`, niente `.` e `..`.
+- Il percorso segue le stesse regole di [readFile](lilos.fileRead): `~/…` oppure `/home/<utente>/…`, solo dentro la tua home, mai in `~/.config`, niente `.` e `..`.
 - Il percorso deve essere quello di un **file**: `~` da solo (la home) è rifiutato.
 - Se il file non c'è, viene creato. **La sua cartella però deve esserci**: il blocco non crea cartelle.
 - Se il file c'è, viene sostituito per intero.
@@ -65,7 +65,7 @@ Vedi anche [Come funziona un blocco](ide/blocks).
 ### 1. Salvare un numero
 
 ```
-[Campo numerico: soglia] valore ──▶ contenuto [Scrivi file: ~/serra/soglia.txt] scritto ──▶ valore [Scrivi in console]
+[Campo numerico: soglia] valore ──▶ contenuto [writeFile: ~/serra/soglia.txt] scritto ──▶ valore [Print (console.log)]
 ```
 
 Ogni volta che l'utente cambia il [Campo numerico](ui.number), per esempio a 28, il file `~/serra/soglia.txt` contiene `28` e la console scrive `true`. La cartella `~/serra` deve esistere.
@@ -73,11 +73,11 @@ Ogni volta che l'utente cambia il [Campo numerico](ui.number), per esempio a 28,
 ### 2. Salvare le impostazioni in JSON
 
 ```
-[Campo numerico: soglia] valore ──▶ soglia [Componi oggetto] oggetto ──▶ contenuto [Scrivi file: ~/serra/impostazioni.json]
+[Campo numerico: soglia] valore ──▶ soglia [Oggetto { }] oggetto ──▶ contenuto [writeFile: ~/serra/impostazioni.json]
 [Campo di testo: nome]   testo  ──▶ nome
 ```
 
-Con **Formato** JSON, [Componi oggetto](core.compose) (con gli ingressi aggiunti **soglia** e **nome**) produce `{ "soglia": 28, "nome": "Serra nord" }` e il file diventa:
+Con **Formato** JSON, [Oggetto { }](core.compose) (con gli ingressi aggiunti **soglia** e **nome**) produce `{ "soglia": 28, "nome": "Serra nord" }` e il file diventa:
 
 ```
 {
@@ -86,17 +86,17 @@ Con **Formato** JSON, [Componi oggetto](core.compose) (con gli ingressi aggiunti
 }
 ```
 
-All'avvio puoi rileggerlo con [Leggi file](lilos.fileRead) in formato JSON.
+All'avvio puoi rileggerlo con [readFile](lilos.fileRead) in formato JSON.
 
 ### 3. Salvare una nota con un pulsante
 
 ```
-[Campo di testo: nome] testo ──▶ a [Formatta testo: "~/Note/{a}.txt"] testo ──▶ percorso [Scrivi file]
-[Campo di testo: nota] testo ──▶ imposta [Memoria] valore ─────────────────────▶ contenuto
+[Campo di testo: nome] testo ──▶ a [Template (formatta): "~/Note/{a}.txt"] testo ──▶ percorso [writeFile]
+[Campo di testo: nota] testo ──▶ imposta [Memoria (set · get)] valore ─────────────────────▶ contenuto
 [Pulsante: Salva]    premuto ──▶ leggi
 ```
 
-L'utente scrive `spesa` nel primo campo, `latte, pane` nel secondo e preme **Salva**: il file `~/Note/spesa.txt` contiene `latte, pane`. Il percorso arriva da [Formatta testo](core.format) (con l'ingresso aggiunto **a**) e, siccome **percorso** non avvia il blocco, cambiare il nome non scrive niente. La nota aspetta in [Memoria](core.store) e va su **contenuto** solo quando premi il [Pulsante](ui.button). La cartella `~/Note` deve esistere.
+L'utente scrive `spesa` nel primo campo, `latte, pane` nel secondo e preme **Salva**: il file `~/Note/spesa.txt` contiene `latte, pane`. Il percorso arriva da [Template (formatta)](core.format) (con l'ingresso aggiunto **a**) e, siccome **percorso** non avvia il blocco, cambiare il nome non scrive niente. La nota aspetta in [Memoria (set · get)](core.store) e va su **contenuto** solo quando premi il [Pulsante](ui.button). La cartella `~/Note` deve esistere.
 
 > Se **contenuto** arriva prima che **percorso** abbia un valore, il blocco usa il **Percorso** delle impostazioni (`~/dati.txt` di serie).
 
@@ -105,7 +105,7 @@ L'utente scrive `spesa` nel primo campo, `latte, pane` nel secondo e preme **Sal
 | Messaggio | Quando |
 |---|---|
 | Manca il percorso del file | Il percorso è vuoto. |
-| Percorso non valido: … | Il percorso non rispetta le regole (vedi [Leggi file](lilos.fileRead) per tutti i casi). |
+| Percorso non valido: … | Il percorso non rispetta le regole (vedi [readFile](lilos.fileRead) per tutti i casi). |
 | Puoi usare solo i file della tua home (~/… oppure /home/anna/…): … | Il percorso è fuori dalla tua home. |
 | La cartella .config è di lilOS: i programmi non la usano | Il percorso è dentro `~/.config`. |
 | Serve il nome di un file, non la home | Il percorso è `~` (o la home scritta per intero). |
@@ -120,7 +120,7 @@ L'utente scrive `spesa` nel primo campo, `latte, pane` nel secondo e preme **Sal
 | «~/dati.txt» non esiste (o non puoi vederlo) | Il file system non trova il file mentre lo scrive. |
 | «~/dati.txt»: … | Il file system rifiuta l'operazione, con la sua spiegazione. |
 | Il file system di lilOS non risponde: riprova più tardi | Il file system non risponde. |
-| Scrivi file ha impiegato più di 30 s | La scrittura ha superato il tempo massimo di un blocco (30 secondi di serie). |
+| writeFile ha impiegato più di 30 s | La scrittura ha superato il tempo massimo di un blocco (30 secondi di serie). |
 | Il programma non è in esecuzione | Il programma si stava fermando. |
 
 ## Permessi
@@ -129,7 +129,7 @@ Il blocco lavora come l'utente che possiede il programma. Un'app fatta con **Cre
 
 ## Vedi anche
 
-- [Aggiungi a file](lilos.fileAppend), per allungare un file invece di sostituirlo
-- [Leggi file](lilos.fileRead), [Esiste](lilos.exists), [Elenca cartella](lilos.folderList)
-- [Componi oggetto](core.compose), per preparare un JSON
+- [appendFile](lilos.fileAppend), per allungare un file invece di sostituirlo
+- [readFile](lilos.fileRead), [exists](lilos.exists), [readdir (elenca cartella)](lilos.folderList)
+- [Oggetto { }](core.compose), per preparare un JSON
 - [Come funziona un blocco](ide/blocks)

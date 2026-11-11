@@ -1,4 +1,4 @@
-# At most every
+# Throttle
 
 `core.throttle` · Time · [Core blocks](logicstudio-core) · version 1
 
@@ -31,17 +31,17 @@ Lets at most one value through every so many seconds: the first goes through at 
 - The time is counted from the **last value that went through**, not from the last that arrived: dropped values do not lengthen the wait.
 - With **Seconds** = 0 they all go through. If the field is left **empty**, it is 0.
 
-Watch out: since values that are too close are dropped, **the last value of a burst can be lost**. If you need the last one too, add a [Settle](core.debounce) in parallel (see example 3).
+Watch out: since values that are too close are dropped, **the last value of a burst can be lost**. If you need the last one too, add a [Debounce](core.debounce) in parallel (see example 3).
 
 Comparison with the other time blocks:
 
 | Block | Values that arrive while it waits |
 |---|---|
-| [Wait](core.delay) | They all come out, each after its own wait. |
-| [Settle](core.debounce) | Only the last one comes out, after a bit of calm. |
-| **At most every** | The first comes out at once; those too close are dropped. |
+| [Delay (setTimeout)](core.delay) | They all come out, each after its own wait. |
+| [Debounce](core.debounce) | Only the last one comes out, after a bit of calm. |
+| **Throttle** | The first comes out at once; those too close are dropped. |
 
-For a number that must stay between a minimum and a maximum there is [Limit](core.clamp) instead (Math category). For the general rules see [How a block works](ide/blocks).
+For a number that must stay between a minimum and a maximum there is [Clamp](core.clamp) instead (Math category). For the general rules see [How a block works](ide/blocks).
 
 ## Examples
 
@@ -61,22 +61,22 @@ For a number that must stay between a minimum and a maximum there is [Limit](cor
 ### 2. No more than one notification a minute
 
 ```
-[Compare: temperature > 30] if true ──▶ value [At most every: 60 s] value ──▶ send [Notification: "It is hot!"]
+[Compare (== != < >): temperature > 30] if true ──▶ value [Throttle: 60 s] value ──▶ send [Notify: "It is hot!"]
 ```
 
-Even if the temperature stays above 30 and a reading arrives every 5 seconds, you receive a [Notification](lilos.notify) at most once a minute.
+Even if the temperature stays above 30 and a reading arrives every 5 seconds, you receive a [Notify](lilos.notify) at most once a minute.
 
 ### 3. Update often, but without losing the last value
 
 ```
-[Slider] value ──▶ value [At most every: 0.2 s] value ──▶ value [Gauge]
-         value ──▶ value [Settle: 0.3 s]        value ──▶ value [Gauge]
+[Slider] value ──▶ value [Throttle: 0.2 s] value ──▶ value [Gauge]
+         value ──▶ value [Debounce: 0.3 s]        value ──▶ value [Gauge]
 ```
 
-While the [Slider](ui.slider) moves, the [Gauge](ui.gauge) updates 5 times a second; when it stops, the Settle sends the last position, which might otherwise have been dropped.
+While the [Slider](ui.slider) moves, the [Gauge](ui.gauge) updates 5 times a second; when it stops, the Debounce block sends the last position, which might otherwise have been dropped.
 
 ## See also
 
-- [Wait](core.delay) and [Settle](core.debounce)
-- [Limit](core.clamp) to keep a number between two values
+- [Delay (setTimeout)](core.delay) and [Debounce](core.debounce)
+- [Clamp](core.clamp) to keep a number between two values
 - [How a block works](ide/blocks)

@@ -1,4 +1,4 @@
-# Read file
+# readFile
 
 `lilos.fileRead` · lilOS · [lilOS blocks](logicstudio-lilos) · version 1
 
@@ -58,7 +58,7 @@ See also [How a block works](ide/blocks).
 ### 1. Reading a text at start
 
 ```
-[At start] pulse ──▶ read [Read file: ~/note.txt] content ──▶ value [Write to console]
+[On start (main)] pulse ──▶ read [readFile: ~/note.txt] content ──▶ value [Print (console.log)]
 ```
 
 If `~/note.txt` contains `Buy milk`, the main console shows "Buy milk".
@@ -71,32 +71,32 @@ The file `~/serra/impostazioni.json` contains:
 { "threshold": 30, "name": "North greenhouse" }
 ```
 
-Set **Format** to JSON and take a field with [Get field](core.get):
+Set **Format** to JSON and take a field with [Get property](core.get):
 
 ```
-[At start] pulse ──▶ read [Read file: ~/serra/impostazioni.json] content ──▶ object [Get field: threshold] value ──▶ b [Compare]
+[On start (main)] pulse ──▶ read [readFile: ~/serra/impostazioni.json] content ──▶ object [Get property: threshold] value ──▶ b [Compare (== != < >)]
 ```
 
-**content** is the object `{ "threshold": 30, "name": "North greenhouse" }`; Get field sends `30`.
+**content** is the object `{ "threshold": 30, "name": "North greenhouse" }`; the Get property block sends `30`.
 
 ### 3. A file chosen by the user
 
 ```
-[Text field: file name] text ──▶ a [Format text: "~/Documents/{a}"] text ──▶ path [Read file] content ──▶ value [Value: text read]
+[Text field: file name] text ──▶ a [Template string: "~/Documents/{a}"] text ──▶ path [readFile] content ──▶ value [Value: text read]
 [Button: Open]       pressed ──────────────────────────────────────────▶ read
 ```
 
-The user writes `list.txt` in the [Text field](ui.text) and presses the [Button](ui.button): the block reads `~/Documents/list.txt` and the [Value](ui.value) component of the window shows it. [Format text](core.format) has an added input called **a**. If the file is not there, **Exception** sends "Il file «~/Documents/list.txt» non esiste" ("The file «~/Documents/list.txt» does not exist").
+The user writes `list.txt` in the [Text field](ui.text) and presses the [Button](ui.button): the block reads `~/Documents/list.txt` and the [Value](ui.value) component of the window shows it. [Template string](core.format) has an added input called **a**. If the file is not there, **Exception** sends "Il file «~/Documents/list.txt» non esiste" ("The file «~/Documents/list.txt» does not exist").
 
 ### 4. Reading every minute a file updated by others
 
 ```
-[Every… 60 s] pulse ──▶ read [Read file: ~/sensors/last.txt] content ──▶ value [Write to console]
-                                              size (bytes) ──▶ a [Compare: a = b] if true ──▶ send [Notification: "The file is empty"]
-                                                       [Value: 0] value ──▶ b
+[Interval (setInterval): 60 s] pulse ──▶ read [readFile: ~/sensors/last.txt] content ──▶ value [Print (console.log)]
+                                              size (bytes) ──▶ a [Compare (== != < >): a = b] if true ──▶ send [Notify: "The file is empty"]
+                                                       [Constant · Variable: 0] value ──▶ b
 ```
 
-Useful when another program (or an app) updates the file. With **size (bytes)** you notice an empty file (0 bytes) and receive a [Notification](lilos.notify).
+Useful when another program (or an app) updates the file. With **size (bytes)** you notice an empty file (0 bytes) and receive a [Notify](lilos.notify).
 
 ## Errors
 
@@ -122,7 +122,7 @@ The messages are in Italian, as users see them; the English meaning is in parent
 | Non hai il permesso di usare «~/dati.txt» ("You do not have permission to use «~/dati.txt»") | The file system denies you access. |
 | Il file system di lilOS non risponde: riprova più tardi ("The lilOS file system is not answering: try again later") | The file system (for example a network folder) is not answering. |
 | Il file system di lilOS non c'è ("The lilOS file system is not there") | The file system module is missing. |
-| Leggi file ha impiegato più di 30 s ("Read file took more than 30 s") | The reading went over the maximum time of a block (30 seconds by default). |
+| readFile ha impiegato più di 30 s ("readFile took more than 30 s") | The reading went over the maximum time of a block (30 seconds by default). |
 | Il programma non è in esecuzione ("The program is not running") | The program was stopping. |
 
 ## Permissions
@@ -131,8 +131,8 @@ The block works as the user who owns the program. An app made with **Make app** 
 
 ## See also
 
-- [Write file](lilos.fileWrite), [Append to file](lilos.fileAppend)
-- [Exists](lilos.exists), to check first that the file is there
-- [List folder](lilos.folderList)
-- [Get field](core.get), to take a field from the JSON read
+- [writeFile](lilos.fileWrite), [appendFile](lilos.fileAppend)
+- [exists](lilos.exists), to check first that the file is there
+- [readdir (list folder)](lilos.folderList)
+- [Get property](core.get), to take a field from the JSON read
 - [How a block works](ide/blocks)

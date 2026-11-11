@@ -1,4 +1,4 @@
-# Sum · Min · Max · Average
+# Sum · Min · Max · Avg
 
 `coll.stat` · Lists · [Lists and matrices](logicstudio-collections) · version 1
 
@@ -44,14 +44,14 @@ If even a single item is not, the output is «Serve un numero in ogni elemento»
 
 Beware of texts with thousands: only the **first** comma becomes a dot. `"1,000"` is worth 1 (not a thousand) and `"1.000,5"` is not a number.
 
-The result is not rounded: `[0.1, 0.2]` added give `0.30000000000000004`, as in every floating-point calculation on the computer. Round with [Calculate](core.math) if needed. Huge numbers can give `Infinity`.
+The result is not rounded: `[0.1, 0.2]` added give `0.30000000000000004`, as in every floating-point calculation on the computer. Round with [Math functions](core.math) if needed. Huge numbers can give `Infinity`.
 
 ## Examples
 
 ### 1. Sum and average
 
 ```
-[Value (JSON): [4,8,9]] value ──▶ list [Sum · Min · Max · Average] result ──▶ value [Write to console]
+[Constant · Variable (JSON): [4,8,9]] value ──▶ list [Sum · Min · Max · Avg] result ──▶ value [Print (console.log)]
 ```
 
 With **Operation** sum it writes `21`; with average `7`; with minimum `4`; with maximum `9`.
@@ -59,7 +59,7 @@ With **Operation** sum it writes `21`; with average `7`; with minimum `4`; with 
 ### 2. The total of a cart
 
 ```
-[Value (JSON): [{"articolo":"Penna","prezzo":"2,50"},{"articolo":"Zaino","prezzo":35}]] value ──▶ list [Sum · Min · Max · Average: sum, Field prezzo] result ──▶ value [Value: total]
+[Constant · Variable (JSON): [{"articolo":"Penna","prezzo":"2,50"},{"articolo":"Zaino","prezzo":35}]] value ──▶ list [Sum · Min · Max · Avg: sum, Field prezzo] result ──▶ value [Value: total]
 ```
 
 The total is 37.5: the text `"2,50"` is worth 2.5. If an article did not have the `prezzo` field, the total would not update and the output would be «Serve un numero in ogni elemento».
@@ -67,7 +67,7 @@ The total is 37.5: the text `"2,50"` is worth 2.5. If an article did not have th
 ### 3. The moving average of the last 5 readings
 
 ```
-[Number field: reading] value ──▶ add [Accumulate: max 5] list ──▶ list [Sum · Min · Max · Average: average] result ──▶ value [Value]
+[Number field: reading] value ──▶ add [Accumulate (bounded push): max 5] list ──▶ list [Sum · Min · Max · Avg: average] result ──▶ value [Value]
 ```
 
 With the readings 10, 20, 30 the Value shows 10, then 15, then 20. After the sixth reading the oldest one drops out of the count.
@@ -82,6 +82,6 @@ With the readings 10, 20, 30 the Value shows 10, then 15, then 20. After the six
 
 ## See also
 
-- [Min · Max · Average](core.stat) for numbers on separate inputs
-- [Map field](coll.pluck), [Accumulate](coll.accumulate), [Sort](coll.sort)
+- [Min · Max · Avg](core.stat) for numbers on separate inputs
+- [Map field](coll.pluck), [Accumulate (bounded push)](coll.accumulate), [Sort](coll.sort)
 - [How a block works](ide/blocks)

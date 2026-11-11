@@ -36,7 +36,7 @@ A drop-down menu: the choice made is shown, and a click opens the list of option
 
 **The Selection always shows an option.** Without **Chosen at the start** it shows the first one. This has an important consequence:
 
-> **Choosing the option already shown sends nothing.** If «Milan» is shown when opened and the user wants it, there is no way to send it: the Selection sends something only when the choice **changes**. If the schema must know the choice even when the user does not change it, either give it the same initial value with a [Value](core.value) block, or put as the first option an invitation such as `— choose —` and check in the schema that it is not that one.
+> **Choosing the option already shown sends nothing.** If «Milan» is shown when opened and the user wants it, there is no way to send it: the Selection sends something only when the choice **changes**. If the schema must know the choice even when the user does not change it, either give it the same initial value with a [Constant · Variable](core.value) block, or put as the first option an invitation such as `— choose —` and check in the schema that it is not that one.
 
 **From the schema.** A value on **value** shows the option with that value (compared as text). If no option has that value, the menu shows the first option, even if the schema had asked for another. When new **options** arrive, the one with the same value as before stays shown, if it is still there, otherwise the first.
 
@@ -54,12 +54,12 @@ Window «Weather»
 ```
 
 ```
-[Selection: City] value ──▶ a [Compare: a ≠ b] result ──▶ condition [If] then ──▶ name [Format text: «You chose {name}»] text ──▶ text [Label: label1]
-[Value: «— choose —»] value ──▶ b [Compare]
-[Selection: City] value ──▶ value [If]
+[Selection: City] value ──▶ a [Compare (== != < >): a ≠ b] result ──▶ condition [If · Else] then ──▶ name [Template string: «You chose {name}»] text ──▶ text [Label: label1]
+[Constant · Variable: «— choose —»] value ──▶ b [Compare (== != < >)]
+[Selection: City] value ──▶ value [If · Else]
 ```
 
-In the [If](core.if) remove «starts it» from **value**: the If starts when the condition arrives, with the last city chosen. When opened you see «— choose —». Choosing «Rome» the label says «You chose Rome»; if the user goes back to «— choose —», the [Compare](core.compare) gives `false` and the label does not change.
+In the [If · Else](core.if) block remove «starts it» from **value**: the block starts when the condition arrives, with the last city chosen. When opened you see «— choose —». Choosing «Rome» the label says «You chose Rome»; if the user goes back to «— choose —», the [Compare (== != < >)](core.compare) gives `false` and the label does not change.
 
 ### 2. Options from a folder
 
@@ -71,12 +71,12 @@ Window «Open»
 ```
 
 ```
-[At start] pulse ──▶ read [List folder: ~/Reports  show files only] names ──▶ options [Selection: Report]
-[Selection: Report] value ──▶ name [Format text: «~/Reports/{name}»] text ──▶ path [Read file]
-[Button: Open] pressed ──▶ read [Read file]
+[On start (main)] pulse ──▶ read [readdir (list folder): ~/Reports  show files only] names ──▶ options [Selection: Report]
+[Selection: Report] value ──▶ name [Template string: «~/Reports/{name}»] text ──▶ path [readFile]
+[Button: Open] pressed ──▶ read [readFile]
 ```
 
-At the start the Selection fills with the names of the files of the folder. In the [Read file](lilos.fileRead) the **path** input does not start the block (this is the default): the file is read when the user presses **Open**.
+At the start the Selection fills with the names of the files of the folder. In the [readFile](lilos.fileRead) the **path** input does not start the block (this is the default): the file is read when the user presses **Open**.
 
 > Beware: if the user presses **Open** without changing the Selection, the path has not arrived yet (see above). To avoid this, put an invitation at the head of the options, or use a [List](ui.list), which shows no choice until the user makes one.
 
@@ -89,5 +89,5 @@ At the start the Selection fills with the names of the files of the folder. In t
 ## See also
 
 - [Option buttons](ui.radios), [List](ui.list)
-- [Cases](core.switch)
+- [Switch · Case](core.switch)
 - [Standard UI components](logicstudio-ui)

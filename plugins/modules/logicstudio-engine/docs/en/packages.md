@@ -156,6 +156,7 @@ A port is `{ name, type, label, trigger }`:
 
 - `label`: the name shown, `{ en, it }`. Without it, the IDE shows `name`.
 - `trigger: false` (inputs only): the input keeps the value but **does not start** the block. The user can change it in the Properties (**starts it**).
+- `hidden: true`: the port is **hidden by default** on the drawing; the user shows it with the eye in the Properties (from engine 1.2.0 and lilOS 1.41.0). It is meant for ports used rarely, like **send** and **set** of [Constant · Variable](core.value). A linked port is always shown.
 
 The user can give every input a **start value**, which the engine sends at start. See [How a block works](ide/blocks).
 
@@ -254,6 +255,7 @@ upgrade(config, from, added)   // → the new settings, or { config: the new set
 | `b.trigger` | Only in `run`: the name of the input that started the block |
 | `b.added` | The added ports: `{ inputs: [{ id, name, value }], outputs: [{ id, name }] }` |
 | `b.memory()` | An object of your own, always the same for this block, which lasts as long as the program. It is emptied when the program starts again |
+| `b.linked(port)` | `true` if in the schema there is a link to that input of the block (from engine 1.2.0). For an optional input that changes the behaviour only when used: [Constant · Variable](core.value) sends its value at the start if **send** is not linked. A start value given to the input does not count as a link |
 | `b.send(port, value)` | Sends a value at once on an output (an added one too, by id), without waiting for the end of `run`. Useful in timers and to send several values in a row. `undefined` is not sent; after the stop it sends nothing |
 | `b.setTimeout(fn, ms)` | A timer that calls `fn` once. Returns the timer |
 | `b.setInterval(fn, ms)` | A timer that calls `fn` every `ms` (at least 10). Returns the timer |
@@ -475,7 +477,7 @@ export default {
 };
 ```
 
-The request of `esempio.cambio` goes to a fixed address. If an action has to go to an address chosen by the user, it must also check that it is not this computer or the local network, as the [Web request](net.request) does.
+The request of `esempio.cambio` goes to a fixed address. If an action has to go to an address chosen by the user, it must also check that it is not this computer or the local network, as the [HTTP request (fetch)](net.request) does.
 
 ### blocks.js
 
@@ -673,7 +675,7 @@ export const components = [
 In the schema its object has **color**, **enabled** and **visible** on the left, **clicked** on the right:
 
 ```
-[Value: "green"] value ──▶ color [Traffic light: sem1] clicked ──▶ value [Write to console]
+[Constant · Variable: "green"] value ──▶ color [Traffic light: sem1] clicked ──▶ value [Print (console.log)]
 ```
 
 ### docs/en/esempio.media.md
@@ -702,8 +704,8 @@ The average of the inputs that have a value.
 ## Examples
 
 ```
-[Value: 4] value ──▶ a  [Average] result ──▶ value [Write to console]
-[Value: 6] value ──▶ b
+[Constant · Variable: 4] value ──▶ a  [Average] result ──▶ value [Print (console.log)]
+[Constant · Variable: 6] value ──▶ b
 ```
 
 Writes 4, then 5.

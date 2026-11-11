@@ -1,4 +1,4 @@
-# Exists
+# exists
 
 `lilos.exists` · lilOS · [lilOS blocks](logicstudio-lilos) · version 1
 
@@ -39,8 +39,8 @@ Things to know:
 
 - A file you cannot see (of another user, for example) **does not exist** for the block.
 - `~` (your home) always exists: type `folder`, size 0.
-- The path follows the same rules as [Read file](lilos.fileRead). An **invalid** path does not give `false`: it goes to **Exception**. The same for `~/.config`, which programs cannot use: there too the block gives an error instead of answering.
-- A file protected by an app (FileCrypt) appears as existing, with its type and size, but [Read file](lilos.fileRead) and [Write file](lilos.fileWrite) will not use it.
+- The path follows the same rules as [readFile](lilos.fileRead). An **invalid** path does not give `false`: it goes to **Exception**. The same for `~/.config`, which programs cannot use: there too the block gives an error instead of answering.
+- A file protected by an app (FileCrypt) appears as existing, with its type and size, but [readFile](lilos.fileRead) and [writeFile](lilos.fileWrite) will not use it.
 - The check and the later use are not a single operation: between the check and a reading the file can disappear. Link the **Exception** of the block that uses it anyway.
 - Upper and lower case letters in the `/home/<user>` part do not matter; for the rest of the path it depends on the file system (with the default lilOS one they do not matter).
 
@@ -51,16 +51,16 @@ See also [How a block works](ide/blocks).
 ### 1. Reading the settings, or creating them the first time
 
 ```
-[At start] pulse ──▶ check [Exists: ~/serra/impostazioni.json] if it exists ──▶ read [Read file: ~/serra/impostazioni.json]
-                                                                 if not       ──▶ send [Value: {"threshold": 30}] value ──▶ content [Write file: ~/serra/impostazioni.json]
+[On start (main)] pulse ──▶ check [exists: ~/serra/impostazioni.json] if it exists ──▶ read [readFile: ~/serra/impostazioni.json]
+                                                                 if not       ──▶ send [Constant · Variable: {"threshold": 30}] value ──▶ content [writeFile: ~/serra/impostazioni.json]
 ```
 
-At start: if the file is there, it is read; if it is not, the program creates it with the starting values. The [Value](core.value) is of type JSON and has **Send at start** removed, so it sends its value only when **if not** arrives. Read file and Write file use the JSON format.
+At start: if the file is there, it is read; if it is not, the program creates it with the starting values. The [Constant · Variable](core.value) block is of type JSON and has **send** linked (shown with the eye next to the port, in Properties), so it sends its value only when **if not** arrives. [readFile](lilos.fileRead) and [writeFile](lilos.fileWrite) use the JSON format.
 
 ### 2. Checking a name written by the user
 
 ```
-[Text field: path] text ──▶ path [Exists] exists ──▶ on [Lamp]
+[Text field: path] text ──▶ path [exists] exists ──▶ on [Lamp]
                                                        kind (file, folder) ──▶ value [Value: kind]
 ```
 
@@ -69,10 +69,10 @@ Every time the user changes the path in the [Text field](ui.text), the block che
 ### 3. Waiting for a file
 
 ```
-[Every… 10 s] pulse ──▶ check [Exists: ~/Incoming/order.json] if it exists ──▶ read [Read file: ~/Incoming/order.json]
+[Interval (setInterval): 10 s] pulse ──▶ check [exists: ~/Incoming/order.json] if it exists ──▶ read [readFile: ~/Incoming/order.json]
 ```
 
-Every 10 seconds the program looks whether the file has arrived; as soon as it is there, it reads it. To avoid reading it at every turn, after using it move it or empty it with [Write file](lilos.fileWrite).
+Every 10 seconds the program looks whether the file has arrived; as soon as it is there, it reads it. To avoid reading it at every turn, after using it move it or empty it with [writeFile](lilos.fileWrite).
 
 ## Errors
 
@@ -81,12 +81,12 @@ The messages are in Italian, as users see them; the English meaning is in parent
 | Message | When |
 |---|---|
 | Manca il percorso del file ("The path of the file is missing") | The path is empty. |
-| Percorso non valido: … ("Invalid path: …") | The path does not follow the rules (see [Read file](lilos.fileRead) for all the cases). |
+| Percorso non valido: … ("Invalid path: …") | The path does not follow the rules (see [readFile](lilos.fileRead) for all the cases). |
 | Puoi usare solo i file della tua home (~/… oppure /home/anna/…): … ("You can only use the files of your home (~/… or /home/anna/…): …") | The path is outside your home. |
 | La cartella .config è di lilOS: i programmi non la usano ("The .config folder belongs to lilOS: programs do not use it") | The path is `~/.config` or inside it. |
 | Non hai il permesso di usare «~/dati.txt» ("You do not have permission to use «~/dati.txt»") | The file system denies you access. |
 | Il file system di lilOS non risponde: riprova più tardi ("The lilOS file system is not answering: try again later") | The file system is not answering. |
-| Esiste ha impiegato più di 30 s ("Exists took more than 30 s") | The check went over the maximum time of a block (30 seconds by default). |
+| exists ha impiegato più di 30 s ("exists took more than 30 s") | The check went over the maximum time of a block (30 seconds by default). |
 | Il programma non è in esecuzione ("The program is not running") | The program was stopping. |
 
 ## Permissions
@@ -95,6 +95,6 @@ The block works as the user who owns the program. An app made with **Make app** 
 
 ## See also
 
-- [Read file](lilos.fileRead), [Write file](lilos.fileWrite), [List folder](lilos.folderList)
-- [If](core.if), to choose with the value of **exists**
+- [readFile](lilos.fileRead), [writeFile](lilos.fileWrite), [readdir (list folder)](lilos.folderList)
+- [If · Else](core.if), to choose with the value of **exists**
 - [How a block works](ide/blocks)

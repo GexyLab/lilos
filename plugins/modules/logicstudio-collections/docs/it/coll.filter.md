@@ -1,4 +1,4 @@
-# Filtra
+# Filter
 
 `coll.filter` · Liste · [Liste e matrici](logicstudio-collections) · versione 1
 
@@ -47,7 +47,7 @@ Casi da sapere:
 
 **contiene.**
 
-- Se **a** è una lista, è vero quando uno dei suoi elementi è **identico** a b (tipo compreso, come in [Contiene · Posizione](coll.contains)). Dato che l'impostazione **Valore** è sempre un testo, `[1, 2]` non «contiene» il Valore `2`: per cercare un numero mandalo sull'ingresso **valore**.
+- Se **a** è una lista, è vero quando uno dei suoi elementi è **identico** a b (tipo compreso, come in [Includes · IndexOf](coll.contains)). Dato che l'impostazione **Valore** è sempre un testo, `[1, 2]` non «contiene» il Valore `2`: per cercare un numero mandalo sull'ingresso **valore**.
 - Altrimenti **a** e **b** diventano testi ed è vero se b è un pezzo di a. Distingue maiuscole e minuscole: `"Mela"` non contiene `"mel"`.
 - Un b vuoto è contenuto in ogni testo: con «contiene» e Valore vuoto passano tutti gli elementi che non sono liste.
 
@@ -56,8 +56,8 @@ Casi da sapere:
 ### 1. Numeri sopra una soglia
 
 ```
-[Valore (JSON): [1,5,10,"5",null]] valore ──▶ lista [Filtra: a > b, Valore 4] risultato ──▶ valore [Scrivi in console]
-                                                                     scartati  ──▶ valore [Scrivi in console]
+[Costante · Variabile (JSON): [1,5,10,"5",null]] valore ──▶ lista [Filter: a > b, Valore 4] risultato ──▶ valore [Print (console.log)]
+                                                                     scartati  ──▶ valore [Print (console.log)]
 ```
 
 Le due console scrivono `[5,10,"5"]` e `[1,null]`.
@@ -65,7 +65,7 @@ Le due console scrivono `[5,10,"5"]` e `[1,null]`.
 ### 2. Prodotti economici
 
 ```
-[Valore (JSON): [{"nome":"Penna","prezzo":2.5},{"nome":"Zaino","prezzo":35},{"nome":"Quaderno","prezzo":4}]] valore ──▶ lista [Filtra] risultato ──▶ righe [Tabella]
+[Costante · Variabile (JSON): [{"nome":"Penna","prezzo":2.5},{"nome":"Zaino","prezzo":35},{"nome":"Quaderno","prezzo":4}]] valore ──▶ lista [Filter] risultato ──▶ righe [Tabella]
 [Campo numerico: prezzo massimo] valore ──▶ valore (facoltativo)
 ```
 
@@ -74,7 +74,7 @@ Con **Tieni gli elementi** «a ≤ b» e **Campo** `prezzo`: scrivendo 5 nel cam
 ### 3. Cercare un pezzo di testo
 
 ```
-[Valore (JSON): ["mela","pera","melone","Melagrana"]] valore ──▶ lista [Filtra: contiene] risultato ──▶ voci [Elenco]
+[Costante · Variabile (JSON): ["mela","pera","melone","Melagrana"]] valore ──▶ lista [Filter: contiene] risultato ──▶ voci [Elenco]
 [Campo di testo: cerca]                                testo  ──▶ valore (facoltativo)
 ```
 
@@ -92,6 +92,6 @@ Con «a ≠ b» e Valore `rosso`, la lista `["rosso","verde","rosso","blu"]` dà
 
 ## Vedi anche
 
-- [Estrai campo](coll.pluck), [Ordina](coll.sort), [Unici](coll.unique), [Contiene · Posizione](coll.contains)
-- [Confronta](core.compare) per confrontare due valori soli
+- [Map campo](coll.pluck), [Sort](coll.sort), [Distinct](coll.unique), [Includes · IndexOf](coll.contains)
+- [Confronto (== ≠ < >)](core.compare) per confrontare due valori soli
 - [Come funziona un blocco](ide/blocks)

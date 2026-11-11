@@ -1,4 +1,4 @@
-# Leggi da console
+# Input (readline)
 
 `core.consoleRead` · Console · [Blocchi di base](logicstudio-core) · versione 1
 
@@ -96,9 +96,9 @@ Con la console visibile il valore predefinito **si vede solo come suggerimento**
 
 ### Attenzione: il tempo massimo di un blocco
 
-Il motore non lascia lavorare un blocco più di un certo tempo: **30 secondi** di serie (**Tempo massimo di un blocco**, nel Pannello di controllo → Logic Studio → Limiti; vedi [Limiti](logicstudio-engine/limits)). Leggi da console conta come al lavoro **finché aspetta la risposta**. Per questo oggi, se nessuno risponde entro quel tempo:
+Il motore non lascia lavorare un blocco più di un certo tempo: **30 secondi** di serie (**Tempo massimo di un blocco**, nel Pannello di controllo → Logic Studio → Limiti; vedi [Limiti](logicstudio-engine/limits)). Il blocco Input (readline) conta come al lavoro **finché aspetta la risposta**. Per questo oggi, se nessuno risponde entro quel tempo:
 
-- il blocco manda su **Eccezione** il messaggio «Leggi da console ha impiegato più di 30 s» (con il numero di secondi del limite);
+- il blocco manda su **Eccezione** il messaggio «Input (readline) ha impiegato più di 30 s» (con il numero di secondi del limite);
 - la domanda **resta nella console**, ma la risposta data dopo **non esce** più su **valore** (va persa);
 - finché quella domanda non riceve una risposta o non viene annullata (Esc), gli altri **chiedi** che arrivano a quel blocco **vengono ignorati**.
 
@@ -115,14 +115,14 @@ Per le regole generali vedi [Come funziona un blocco](ide/blocks).
 ### 1. Chiedere l'età e rispondere
 
 ```
-[All'avvio] impulso ──▶ chiedi [Leggi da console: "Quanti anni hai?", numero] valore    ──▶ a [Confronta: a ≥ b]
-                                                                             annullato ──▶ invia [Valore: "Nessuna risposta"] valore ──▶ valore [Scrivi in console]
+[All'avvio (main)] impulso ──▶ chiedi [Input (readline): "Quanti anni hai?", numero] valore    ──▶ a [Confronto (== ≠ < >): a ≥ b]
+                                                                             annullato ──▶ invia [Costante · Variabile: "Nessuna risposta"] valore ──▶ valore [Print (console.log)]
 
-[Confronta] se vero  ──▶ invia [Valore: "Puoi entrare"]           valore ──▶ valore [Scrivi in console]
-[Confronta] se falso ──▶ invia [Valore: "Torna fra qualche anno"] valore ──▶ valore [Scrivi in console]
+[Confronto (== ≠ < >)] se vero  ──▶ invia [Costante · Variabile: "Puoi entrare"]           valore ──▶ valore [Print (console.log)]
+[Confronto (== ≠ < >)] se falso ──▶ invia [Costante · Variabile: "Torna fra qualche anno"] valore ──▶ valore [Print (console.log)]
 ```
 
-Su [Confronta](core.compare) **b** ha il valore iniziale 18 e **lo avvia** tolto. I tre [Valore](core.value) sono di tipo testo e hanno **Invia all'avvio** tolta, così parlano solo quando ricevono un impulso. Cosa succede con alcune risposte:
+Su [Confronto (== ≠ < >)](core.compare) **b** ha il valore iniziale 18 e **lo avvia** tolto. I tre [Costante · Variabile](core.value) sono di tipo testo e hanno collegato l'ingresso **invia**, così parlano solo quando ricevono un impulso (e non all'avvio). Cosa succede con alcune risposte:
 
 | Scritto nella console | Risultato |
 |---|---|
@@ -138,34 +138,34 @@ Se nessuno risponde per più di 30 secondi scatta l'errore descritto in **Attenz
 **Tipo di dato** un tasto, **Domanda** `Cancello il file? (s/n)`, **Tempo massimo** 20.
 
 ```
-[Leggi da console] valore    ──▶ a [Confronta: a = b] se vero ──▶ … [Scrivi file]
+[Input (readline)] valore    ──▶ a [Confronto (== ≠ < >): a = b] se vero ──▶ … [writeFile]
                    annullato ──▶ …
 ```
 
-Su Confronta **b** ha il valore iniziale `s` e **lo avvia** tolto.
+Su Confronto (== ≠ < >) **b** ha il valore iniziale `s` e **lo avvia** tolto.
 
 Premendo `s` il file viene scritto; premendo `n` (o qualsiasi altro tasto) no. Dopo 20 secondi senza risposta esce **annullato**. Attenzione: `S` maiuscola è un altro carattere; per accettarle tutte e due usa il tipo **sì/no**, che accetta `s`, `S`, `sì`, `yes`…
 
 ### 3. Una password
 
-**Tipo di dato** testo, **Domanda** `Password del server:`, **Nascondi quello che si scrive** spuntata. Scrivendo `segreto1` la console mostra `••••••••` e su **valore** esce `"segreto1"`, da collegare dove serve (per esempio a una [Richiesta web](net.request)), senza mai scriverlo in console.
+**Tipo di dato** testo, **Domanda** `Password del server:`, **Nascondi quello che si scrive** spuntata. Scrivendo `segreto1` la console mostra `••••••••` e su **valore** esce `"segreto1"`, da collegare dove serve (per esempio a una [HTTP (fetch)](net.request)), senza mai scriverlo in console.
 
 ### 4. Un programma senza console visibili
 
-Progetto con **Opzioni del progetto → Console → Non mostrarle**, attivato. Un Leggi da console con tipo numero e **Valore predefinito** `5` manda subito 5 su **valore**, senza mostrare niente. Con **Valore predefinito** vuoto manda subito **annullato**.
+Progetto con **Opzioni del progetto → Console → Non mostrarle**, attivato. Un blocco Input (readline) con tipo numero e **Valore predefinito** `5` manda subito 5 su **valore**, senza mostrare niente. Con **Valore predefinito** vuoto manda subito **annullato**.
 
 ## Errori
 
 | Messaggio | Quando |
 |---|---|
-| Leggi da console ha impiegato più di *N* s | Nessuna risposta entro il **Tempo massimo di un blocco** del motore (30 secondi di serie). Vedi **Attenzione** sopra. |
+| Input (readline) ha impiegato più di *N* s | Nessuna risposta entro il **Tempo massimo di un blocco** del motore (30 secondi di serie). Vedi **Attenzione** sopra. |
 
 Gli avvisi «Serve un numero. Riprova.», «Serve sì o no. Riprova.» e «Serve un tasto. Riprova.» compaiono nella console, non sull'Eccezione.
 
 ## Vedi anche
 
-- [Scrivi in console](core.consoleWrite)
+- [Print (console.log)](core.consoleWrite)
 - [Le console](ide/consoles)
-- [Confronta](core.compare) e [Casi](core.switch) per decidere cosa fare con la risposta
+- [Confronto (== ≠ < >)](core.compare) e [Switch · Case](core.switch) per decidere cosa fare con la risposta
 - [Limiti](logicstudio-engine/limits)
 - [Come funziona un blocco](ide/blocks)

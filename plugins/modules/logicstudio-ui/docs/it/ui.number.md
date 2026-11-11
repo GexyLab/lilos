@@ -44,7 +44,7 @@ Il campo si apre sempre vuoto: per un numero iniziale usa l'ingresso **valore** 
 - Se l'utente svuota il campo, il campo **non manda niente** (lo schema tiene l'ultimo numero ricevuto).
 - Se l'utente scrive qualcosa che non è un numero, il browser lo considera vuoto: non manda niente.
 
-**Minimo, Massimo e Passo non sono controlli.** Valgono per le freccette, ma un numero **scritto a mano** parte anche se è fuori dall'intervallo o non è un multiplo del passo: con minimo 1 e massimo 10, se l'utente scrive 25, lo schema riceve 25 (il browser può solo segnare il campo come non valido). Se il numero deve stare in un intervallo, usa nello schema un [Limita](core.clamp).
+**Minimo, Massimo e Passo non sono controlli.** Valgono per le freccette, ma un numero **scritto a mano** parte anche se è fuori dall'intervallo o non è un multiplo del passo: con minimo 1 e massimo 10, se l'utente scrive 25, lo schema riceve 25 (il browser può solo segnare il campo come non valido). Se il numero deve stare in un intervallo, usa nello schema un blocco [Clamp (limita)](core.clamp).
 
 **Dallo schema**, un valore su **valore** viene convertito in numero e scritto nel campo: `"4,5"` diventa 4,5; `null` e `""` diventano **0** (non svuotano il campo); un testo che non è un numero (per esempio `"—"`) **svuota** il campo. Attenzione: il campo viene ridisegnato e, se l'utente sta scrivendo, perde quello che non ha confermato e il fuoco della tastiera.
 
@@ -60,8 +60,8 @@ Finestra «IVA»
 ```
 
 ```
-[Campo numerico: Prezzo senza IVA] valore ──▶ a [Moltiplica] risultato ──▶ valore [Valore: Con IVA:]
-[Valore: 1.22]                     valore ──▶ b
+[Campo numerico: Prezzo senza IVA] valore ──▶ a [Moltiplicazione (×)] risultato ──▶ valore [Valore: Con IVA:]
+[Costante · Variabile: 1.22]                     valore ──▶ b
 ```
 
 L'utente scrive 100 e preme Invio: si vede «Con IVA: 122,00 €».
@@ -76,11 +76,11 @@ Finestra «Ordine»
 ```
 
 ```
-[Campo numerico: Quantità] valore ──▶ valore [Limita: 1…10] risultato ──▶ valore [Campo numerico: Quantità]
-                                                            risultato ──▶ n [Formatta testo: «Ordini {n} pezzi.»] testo ──▶ testo [Etichetta: label1]
+[Campo numerico: Quantità] valore ──▶ valore [Clamp (limita): 1…10] risultato ──▶ valore [Campo numerico: Quantità]
+                                                            risultato ──▶ n [Template (formatta): «Ordini {n} pezzi.»] testo ──▶ testo [Etichetta: label1]
 ```
 
-Se l'utente scrive 25, il [Limita](core.clamp) lo porta a 10, il campo mostra 10 e l'etichetta dice «Ordini 10 pezzi.». Rimandare il valore al campo non crea un giro senza fine: un valore che arriva sull'ingresso del campo non esce dalla sua uscita. (Nel [Formatta testo](core.format) aggiungi l'ingresso **n**.)
+Se l'utente scrive 25, il blocco [Clamp (limita)](core.clamp) lo porta a 10, il campo mostra 10 e l'etichetta dice «Ordini 10 pezzi.». Rimandare il valore al campo non crea un giro senza fine: un valore che arriva sull'ingresso del campo non esce dalla sua uscita. (Nel [Template (formatta)](core.format) aggiungi l'ingresso **n**.)
 
 ## Accessibilità e tastiera
 
@@ -91,5 +91,5 @@ Se l'utente scrive 25, il [Limita](core.clamp) lo porta a 10, il campo mostra 10
 
 - [Cursore](ui.slider), per scegliere in un intervallo con il mouse
 - [Campo di testo](ui.text)
-- [Limita](core.clamp), [Converti](core.convert)
+- [Clamp (limita)](core.clamp), [Cast (converti tipo)](core.convert)
 - [Componenti UI standard](logicstudio-ui)

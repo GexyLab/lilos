@@ -1,4 +1,4 @@
-# Limit
+# Clamp
 
 `core.clamp` · Math · [Core blocks](logicstudio-core) · version 1
 
@@ -39,7 +39,7 @@ At every value that arrives, the block converts it to a number and brings it ins
 
 Things to know:
 
-- The conversion follows the rules of [Add](core.add): `"2,5"` is 2.5; `true` is 1 and `false` is 0; an empty text and `null` are 0.
+- The conversion follows the rules of [Add (+)](core.add): `"2,5"` is 2.5; `true` is 1 and `false` is 0; an empty text and `null` are 0.
 - A value that cannot be converted gives no error: `NaN` ("not a number") comes out, not limited.
 - If the **Minimum** is larger than the **Maximum**, the **Maximum always** comes out, whatever value arrives (with Minimum 80 and Maximum 20, 20 always comes out).
 - If you leave the Minimum or the Maximum **empty**, that limit is **0**: with Minimum 0 and Maximum empty, every positive number becomes 0.
@@ -50,7 +50,7 @@ Things to know:
 ### 1. A percentage between 0 and 100
 
 ```
-[Divide] result ──▶ a [Multiply: × 100] result ──▶ value [Limit: 0–100] result ──▶ value [Progress bar]
+[Divide (÷ %)] result ──▶ a [Multiply (×): × 100] result ──▶ value [Clamp: 0–100] result ──▶ value [Progress bar]
 ```
 
 If the calculation gives 104 (for example because more steps were done than planned), the [Progress bar](ui.progress) receives 100; if it gives −3, it receives 0.
@@ -69,7 +69,7 @@ This block has no errors of its own.
 
 ## See also
 
-- [Min · Max · Average](core.stat) for the smallest or the largest of several numbers
-- [Calculate](core.math) to round
-- [Compare](core.compare) to know if a number is outside the limits
+- [Min · Max · Avg](core.stat) for the smallest or the largest of several numbers
+- [Math functions](core.math) to round
+- [Compare (== != < >)](core.compare) to know if a number is outside the limits
 - [How a block works](ide/blocks)

@@ -72,7 +72,7 @@ Dettagli che contano:
 - **Dentro un punto** la x si cerca, in quest'ordine, nei campi `x`, `t`, `time`, `date`, `name`, `label`, `category`, `key`; la y in `y`, `value`, `v`, `state`, `count`. Un punto senza y vale «vuoto» e interrompe la linea.
 - **I numeri scritti come testo** valgono: `"21,5"` e `"21.5"` sono 21,5. Un testo che non è un numero, come y, vale vuoto (tranne nel grafico a [Gradini](charts.step), dove è uno stato).
 - **Il tipo dell'asse x** lo decide il grafico: se una x è un testo che non è un numero e non è una data, le x sono **categorie** (nell'ordine in cui arrivano); se le x sono date in formato ISO (`"2026-11-11"`, `"2026-11-11T08:30:00Z"`), l'asse è il **tempo**; altrimenti sono **numeri** (in ordine crescente). Colonne, Barre, Radar e Torta hanno sempre categorie; Tempo reale e Gradini hanno sempre il tempo.
-- **I millisecondi non sono date**: un numero come `1762848000000` resta un numero sull'asse. Per un asse del tempo manda le date come testo ISO (per esempio l'uscita **ISO** di [Data e ora](core.now)).
+- **I millisecondi non sono date**: un numero come `1762848000000` resta un numero sull'asse. Per un asse del tempo manda le date come testo ISO (per esempio l'uscita **ISO** di [Now (data e ora)](core.now)).
 - **Il colore di una serie** si può dare nei dati: `{"name": "Nord", "data": [3, 4], "color": "#e5484d"}`. Sono accettati solo `#rgb`…`#rrggbbaa`, `rgb(…)`, `rgba(…)`, `hsl(…)`, `hsla(…)` con numeri; ogni altro colore è ignorato.
 - **Le serie senza nome** si chiamano «Serie 1», «Serie 2»… nella legenda; se c'è una sola serie senza nome, la legenda non c'è e nei valori di **punto scelto** si chiama «Valore».
 - Un valore che non si può leggere (`null`, `""`, un testo JSON rovinato) **svuota** il grafico: è come ricevere dati vuoti.
@@ -103,7 +103,7 @@ Un grafico tiene i suoi punti **nella finestra aperta**. Il programma, invece, r
 - i valori mandati con **aggiungi punto** mentre la finestra è chiusa **non** si vedono quando la apri: vedi solo l'ultimo;
 - se chiudi e riapri la finestra, la storia costruita con **aggiungi punto** si perde: restano l'ultimo **dati** e l'ultimo punto aggiunto.
 
-Se il grafico deve mostrare la storia anche a chi apre la finestra più tardi, tieni la lista nello schema (per esempio con [Accumula](coll.accumulate)) e mandala intera su **dati**: vedi l'esempio 2 qui sotto.
+Se il grafico deve mostrare la storia anche a chi apre la finestra più tardi, tieni la lista nello schema (per esempio con [Accumula (push con limite)](coll.accumulate)) e mandala intera su **dati**: vedi l'esempio 2 qui sotto.
 
 ## Le cose che hanno tutti
 
@@ -142,28 +142,28 @@ Finestra «Vendite»
 ```
 
 ```
-[All'avvio] impulso ──▶ leggi [Leggi file: ~/vendite.json, JSON] contenuto ──▶ dati [Colonne: Vendite per mese]
-[Valore: {"Nord": 40, "Sud": 34}] valore ──▶ dati [Barre: Totale per zona]
+[All'avvio (main)] impulso ──▶ leggi [readFile: ~/vendite.json, JSON] contenuto ──▶ dati [Colonne: Vendite per mese]
+[Costante · Variabile: {"Nord": 40, "Sud": 34}] valore ──▶ dati [Barre: Totale per zona]
 ```
 
-Le Colonne mostrano tre mesi con due colonne ciascuno (Nord e Sud) e la legenda; le Barre mostrano Nord sopra (40) e Sud sotto (34), con i valori in fondo alle barre. [Leggi file](lilos.fileRead) è del pacchetto [Blocchi di lilOS](logicstudio-lilos).
+Le Colonne mostrano tre mesi con due colonne ciascuno (Nord e Sud) e la legenda; le Barre mostrano Nord sopra (40) e Sud sotto (34), con i valori in fondo alle barre. [readFile](lilos.fileRead) è del pacchetto [Blocchi di lilOS](logicstudio-lilos).
 
 ### 2. Una misura ogni 10 secondi, con la storia che resta
 
 ```
-[Ogni…: 10 s] impulso ──▶ leggi [Leggi file: ~/sensore.txt] contenuto ──▶ aggiungi [Accumula: max 360] lista ──▶ dati [Linee: Temperatura]
+[Intervallo (setInterval): 10 s] impulso ──▶ leggi [readFile: ~/sensore.txt] contenuto ──▶ aggiungi [Accumula (push con limite): max 360] lista ──▶ dati [Linee: Temperatura]
                                                             contenuto ──▶ valore [Mini linea: Ora]
 ```
 
-[Accumula](coll.accumulate) tiene le ultime 360 letture (un'ora). Ogni 10 secondi la lista intera va su **dati**: chi apre la finestra dopo vede subito l'ultima ora, non solo l'ultima lettura. La [Mini linea](charts.spark) accanto mostra l'andamento recente e il valore attuale.
+[Accumula (push con limite)](coll.accumulate) tiene le ultime 360 letture (un'ora). Ogni 10 secondi la lista intera va su **dati**: chi apre la finestra dopo vede subito l'ultima ora, non solo l'ultima lettura. La [Mini linea](charts.spark) accanto mostra l'andamento recente e il valore attuale.
 
 ### 3. Un clic sul grafico apre i dettagli
 
 ```
-[Colonne: Vendite per mese] colonna scelta ──▶ oggetto [Prendi campo: category] valore ──▶ testo [Etichetta: Mese scelto]
+[Colonne: Vendite per mese] colonna scelta ──▶ oggetto [Get proprietà (obj.campo): category] valore ──▶ testo [Etichetta: Mese scelto]
 ```
 
-Un clic sulla colonna di febbraio manda `{"category": "Feb", "values": {"Nord": 15, "Sud": 11}, "index": 1, "series": "Nord", "y": 15}`; [Prendi campo](core.get) ne prende `category` e l'[Etichetta](ui.label) mostra «Feb».
+Un clic sulla colonna di febbraio manda `{"category": "Feb", "values": {"Nord": 15, "Sud": 11}, "index": 1, "series": "Nord", "y": 15}`; [Get proprietà (obj.campo)](core.get) ne prende `category` e l'[Etichetta](ui.label) mostra «Feb».
 
 ## Limiti noti
 
@@ -176,6 +176,6 @@ Un clic sulla colonna di febbraio manda `{"category": "Feb", "values": {"Nord": 
 
 - [Componente UI](core.component): l'oggetto di una componente nello schema
 - [Componenti UI standard](logicstudio-ui)
-- [Accumula](coll.accumulate), [Ogni…](core.every), [Data e ora](core.now)
+- [Accumula (push con limite)](coll.accumulate), [Intervallo (setInterval)](core.every), [Now (data e ora)](core.now)
 - [Limiti](logicstudio-engine/limits)
 - [Componenti delle finestre](ide/components), [Finestre](ide/windows)

@@ -44,8 +44,8 @@ Every time a value arrives on an input, the block does the count again with the 
 ### 1. An alarm from two sensors
 
 ```
-[Compare: smoke > 50]        result ──▶ a  [OR] result ──▶ on [Lamp: alarm]
-[Compare: temperature > 60]  result ──▶ b
+[Compare (== != < >): smoke > 50]        result ──▶ a  [OR] result ──▶ on [Lamp: alarm]
+[Compare (== != < >): temperature > 60]  result ──▶ b
 ```
 
 The [Lamp](ui.lamp) turns on if there is too much smoke **or** it is too hot. With smoke 10 and temperature 70 the result is **yes**; when the temperature goes back to 40 it becomes **no**.
@@ -55,12 +55,12 @@ The [Lamp](ui.lamp) turns on if there is too much smoke **or** it is too hot. Wi
 With three emergency buttons, add the input **c**. Each button sends a pulse (which counts as **yes**): every time one is pressed, the block sends **yes**.
 
 ```
-[Button: Stop 1] pressed ──▶ a  [OR] result ──▶ value [Write to console]
+[Button: Stop 1] pressed ──▶ a  [OR] result ──▶ value [Print (console.log)]
 [Button: Stop 2] pressed ──▶ b
 [Button: Stop 3] pressed ──▶ c
 ```
 
-> To simply let every pulse through, without calculating anything, [First to arrive](core.merge) is a better fit.
+> To simply let every pulse through, without calculating anything, [Merge](core.merge) is a better fit.
 
 ### 3. Numbers and texts
 
@@ -73,5 +73,5 @@ This block has no errors of its own.
 ## See also
 
 - [AND](core.and), [XOR](core.xor), [NOT](core.not)
-- [Compare](core.compare)
+- [Compare (== != < >)](core.compare)
 - [How a block works](ide/blocks)

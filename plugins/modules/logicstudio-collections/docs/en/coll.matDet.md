@@ -1,4 +1,4 @@
-# Determinant
+# Det
 
 `coll.matDet` · Matrices · [Lists and matrices](logicstudio-collections) · version 1
 
@@ -22,7 +22,7 @@ Calculates the determinant of a square matrix, up to 10 × 10.
 At every matrix that arrives, the block calculates the determinant and sends it on **determinant**.
 
 - The matrix must be **square**: `[[1,2,3]]` gives «La matrice deve essere quadrata» ("The matrix must be square").
-- At most **10 × 10**: an 11 × 11 matrix gives «Determinante: al massimo 10×10» ("Determinant: 10×10 at most").
+- At most **10 × 10**: an 11 × 11 matrix gives «Determinante: al massimo 10×10» ("Det: 10×10 at most").
 - **The cells must be real numbers**: a text like `"2"` gives «La matrice deve contenere solo numeri» ("The matrix must contain only numbers").
 - The determinant of a 1 × 1 matrix is its only value.
 - The calculation uses Gaussian elimination (with row swaps for precision) and rounds the result to 12 significant digits, so `[[0.1,0.2],[0.3,0.4]]` gives `-0.02` and not `-0.020000000000000004`.
@@ -34,7 +34,7 @@ At every matrix that arrives, the block calculates the determinant and sends it 
 ### 1. A 2 × 2 matrix
 
 ```
-[Value (JSON): [[1,2],[3,4]]] value ──▶ matrix [Determinant] determinant ──▶ value [Write to console]
+[Constant · Variable (JSON): [[1,2],[3,4]]] value ──▶ matrix [Det] determinant ──▶ value [Print (console.log)]
 ```
 
 It writes `-2` (1×4 − 2×3).
@@ -50,8 +50,8 @@ It writes `-2` (1×4 − 2×3).
 A system of linear equations has only one solution when the determinant of the coefficient matrix is not 0:
 
 ```
-[Value (JSON): [[2,1],[1,3]]] value ──▶ matrix [Determinant] determinant ──▶ value [Calculate: absolute value] result ──▶ a [Compare: a > b] result ──▶ on [Lamp]
-                                                                                                                [Value: 1e-9] value ──▶ b
+[Constant · Variable (JSON): [[2,1],[1,3]]] value ──▶ matrix [Det] determinant ──▶ value [Math functions: absolute value] result ──▶ a [Compare (== != < >): a > b] result ──▶ on [Lamp]
+                                                                                                                [Constant · Variable: 1e-9] value ──▶ b
 ```
 
 The determinant is 5: the [Lamp](ui.lamp) turns on.
@@ -68,6 +68,6 @@ The determinant is 5: the [Lamp](ui.lamp) turns on.
 
 ## See also
 
-- [Multiply matrices](coll.matMultiply), [Identity](coll.matIdentity), [Transpose](coll.matTranspose)
-- [Calculate](core.math), [Compare](core.compare)
+- [A × B](coll.matMultiply), [Identity (eye)](coll.matIdentity), [Transpose](coll.matTranspose)
+- [Math functions](core.math), [Compare (== != < >)](core.compare)
 - [How a block works](ide/blocks)

@@ -135,11 +135,11 @@ A component of a package that is not installed shows as a box with its type and 
 1. Open the window **Principale**. In the Properties (nothing selected) set **Title** = `Greetings`, **Width (px)** = `360`, **Height (px)** = `200`.
 2. From the **Components** tab click **Text field** (property **Label** = `Your name`), then **Button** (**Text** = `Greet`), then **Label** (**Text** empty).
 3. For each of the three, in the Properties, leave **In the schema** = **main** and press **Make its object**: the IDE opens the schema with the new object.
-4. In the schema **main** add a **Format text**. In its Properties press **Add input** twice and rename the ports to `nome` and `via`; untick **starts it** on `nome`; type the **Template** `Ciao, {nome}!`.
+4. In the schema **main** add a **Template string**. In its Properties press **Add input** twice and rename the ports to `nome` and `via`; untick **starts it** on `nome`; type the **Template** `Ciao, {nome}!`.
 5. Link:
 
 ```
-[Text field] text ──▶ nome [Format text: «Ciao, {nome}!»] text ──▶ text [Label]
+[Text field] text ──▶ nome [Template string: «Ciao, {nome}!»] text ──▶ text [Label]
 [Button: Greet] pressed ──▶ via
 ```
 

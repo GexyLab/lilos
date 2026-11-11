@@ -1,8 +1,8 @@
-# Richiesta web
+# HTTP (fetch)
 
 `net.request` · Rete · [Blocchi di rete](logicstudio-net) · versione 1
 
-Fa una richiesta HTTP o HTTPS a un sito o a un servizio (un'API) e manda la risposta: il contenuto, lo stato e le intestazioni. Con [Ogni…](core.every) collegato a **invia** puoi chiedere un dato ogni tanto, per esempio il meteo ogni 10 minuti.
+Fa una richiesta HTTP o HTTPS a un sito o a un servizio (un'API) e manda la risposta: il contenuto, lo stato e le intestazioni. Con [Intervallo (setInterval)](core.every) collegato a **invia** puoi chiedere un dato ogni tanto, per esempio il meteo ogni 10 minuti.
 
 ## Ingressi
 
@@ -73,7 +73,7 @@ Quando arriva un valore su **invia**:
 
 ### La risposta
 
-- Gli stati di errore HTTP (**404**, **500**…) **non** sono errori del blocco: escono normalmente su **stato**, **intestazioni** e **risposta**. Se ti interessa solo una risposta riuscita, controlla **stato** (per esempio con [Confronta](core.compare): 200).
+- Gli stati di errore HTTP (**404**, **500**…) **non** sono errori del blocco: escono normalmente su **stato**, **intestazioni** e **risposta**. Se ti interessa solo una risposta riuscita, controlla **stato** (per esempio con [Confronto (== ≠ < >)](core.compare): 200).
 - **Risposta Automatica**: se il server dice che il contenuto è JSON (`Content-Type` come `application/json` o `…+json`), esce il valore JSON; se il JSON non è valido, o il server non dice JSON, esce il testo. Una risposta vuota esce come testo vuoto.
 - **Risposta JSON**: il contenuto è sempre letto come JSON; vuoto dà `null`; un JSON non valido dà l'errore «La risposta non è JSON valido».
 - **Risposta Testo**: esce sempre il testo, anche se è JSON.
@@ -109,12 +109,12 @@ La richiesta parte dal kernel, cioè dal computer su cui gira lilOS. Per non far
 
 - Le impostazioni del modulo le cambia un amministratore e valgono subito, dalla richiesta successiva.
 - **Ogni** richiesta conta nella quota di rete al minuto, e ogni reindirizzamento conta come una richiesta in più. La quota è dell'utente: vale per tutti i suoi programmi insieme, prove comprese.
-- Se il tempo massimo di una richiesta è più lungo del tempo massimo di un blocco, è il blocco a fermarsi per primo, con «Richiesta web ha impiegato più di 30 s».
+- Se il tempo massimo di una richiesta è più lungo del tempo massimo di un blocco, è il blocco a fermarsi per primo, con «HTTP (fetch) ha impiegato più di 30 s».
 - Quando il programma si ferma, le richieste in corso si fermano anche loro.
 
 ### Una richiesta alla volta
 
-Come ogni blocco, la Richiesta web tratta i valori uno alla volta: se arriva un altro **invia** mentre una richiesta è in corso, aspetta il suo turno e parte dopo. Se gli impulsi arrivano più in fretta di quanto durano le richieste, si accumulano. Usa un ritmo tranquillo, o più blocchi per indirizzi diversi.
+Come ogni blocco, HTTP (fetch) tratta i valori uno alla volta: se arriva un altro **invia** mentre una richiesta è in corso, aspetta il suo turno e parte dopo. Se gli impulsi arrivano più in fretta di quanto durano le richieste, si accumulano. Usa un ritmo tranquillo, o più blocchi per indirizzi diversi.
 
 ## Esempi
 
@@ -123,18 +123,18 @@ Come ogni blocco, la Richiesta web tratta i valori uno alla volta: se arriva un 
 Impostazioni: **Metodo** GET, **Indirizzo** `https://api.open-meteo.com/v1/forecast?latitude=45.46&longitude=9.19&current=temperature_2m`.
 
 ```
-[Ogni… 600 s] impulso ──▶ invia [Richiesta web] risposta ──▶ oggetto [Prendi campo: current.temperature_2m] valore ──▶ valore [Scrivi in console]
-                                                Eccezione ──▶ valore [Scrivi in console: errore]
+[Intervallo (setInterval): 600 s] impulso ──▶ invia [HTTP (fetch)] risposta ──▶ oggetto [Get proprietà (obj.campo): current.temperature_2m] valore ──▶ valore [Print (console.log)]
+                                                Eccezione ──▶ valore [Print (console.log): errore]
 ```
 
-Il server risponde con `Content-Type: application/json`, quindi **risposta** è già un oggetto, per esempio `{ "current": { "temperature_2m": 12.4, … }, … }`. [Prendi campo](core.get) manda `12.4`. Se la rete non va, la console scrive per esempio «Indirizzo non trovato: api.open-meteo.com».
+Il server risponde con `Content-Type: application/json`, quindi **risposta** è già un oggetto, per esempio `{ "current": { "temperature_2m": 12.4, … }, … }`. [Get proprietà (obj.campo)](core.get) manda `12.4`. Se la rete non va, la console scrive per esempio «Indirizzo non trovato: api.open-meteo.com».
 
 ### 2. Una ricerca con un parametro
 
 Aggiungi un ingresso e rinominalo `q`. **Indirizzo**: `https://esempio.it/api/cerca`.
 
 ```
-[Campo di testo: cerca] testo ──▶ q    [Richiesta web] risposta ──▶ righe [Tabella]
+[Campo di testo: cerca] testo ──▶ q    [HTTP (fetch)] risposta ──▶ righe [Tabella]
 [Pulsante: Cerca]     premuto ──▶ invia
 ```
 
@@ -145,20 +145,20 @@ L'utente scrive `caffè e latte` e preme il [Pulsante](ui.button): la richiesta 
 Impostazioni: **Metodo** POST, **Indirizzo** `https://esempio.it/api/misure`, **Intestazioni** `{"Authorization": "Bearer abc123"}`.
 
 ```
-[Componi oggetto] oggetto ──▶ corpo [Richiesta web] stato ──▶ a [Confronta: a = b] se falso ──▶ invia [Notifica: "Invio non riuscito"]
-[Pulsante: Invia] premuto ──▶ invia                    [Valore: 201] valore ──▶ b
+[Oggetto { }] oggetto ──▶ corpo [HTTP (fetch)] stato ──▶ a [Confronto (== ≠ < >): a = b] se falso ──▶ invia [Notify: "Invio non riuscito"]
+[Pulsante: Invia] premuto ──▶ invia                    [Costante · Variabile: 201] valore ──▶ b
 ```
 
-[Componi oggetto](core.compose) prepara `{ "sensore": "serra", "temp": 22.5 }`, che parte come JSON con `Content-Type: application/json`. Se il server risponde con uno stato diverso da 201 (per esempio 401 se la chiave è sbagliata), ricevi una [Notifica](lilos.notify). Ricorda: un 401 non va su **Eccezione**.
+[Oggetto { }](core.compose) prepara `{ "sensore": "serra", "temp": 22.5 }`, che parte come JSON con `Content-Type: application/json`. Se il server risponde con uno stato diverso da 201 (per esempio 401 se la chiave è sbagliata), ricevi una [Notify](lilos.notify). Ricorda: un 401 non va su **Eccezione**.
 
 ### 4. Un indirizzo che cambia
 
 ```
-[Selezione: paese] valore ──▶ a [Formatta testo: "https://esempio.it/paesi/{a}.json"] testo ──▶ indirizzo (URL) [Richiesta web]
-                                                                                       testo ──▶ valore [Aspetta: 0,1 s] valore ──▶ invia
+[Selezione: paese] valore ──▶ a [Template (formatta): "https://esempio.it/paesi/{a}.json"] testo ──▶ indirizzo (URL) [HTTP (fetch)]
+                                                                                       testo ──▶ valore [Ritardo (setTimeout): 0,1 s] valore ──▶ invia
 ```
 
-Ogni volta che l'utente sceglie un paese nella [Selezione](ui.select) (per esempio `IT`), [Formatta testo](core.format) prepara l'indirizzo `https://esempio.it/paesi/IT.json`. Siccome **indirizzo (URL)** non avvia il blocco, la richiesta parte con **invia**: qui lo stesso testo passa da [Aspetta](core.delay), così **invia** arriva un attimo dopo l'indirizzo e la richiesta usa sempre quello nuovo. Se **invia** arrivasse prima che **indirizzo (URL)** abbia un valore, il blocco userebbe l'**Indirizzo** delle impostazioni.
+Ogni volta che l'utente sceglie un paese nella [Selezione](ui.select) (per esempio `IT`), [Template (formatta)](core.format) prepara l'indirizzo `https://esempio.it/paesi/IT.json`. Siccome **indirizzo (URL)** non avvia il blocco, la richiesta parte con **invia**: qui lo stesso testo passa da [Ritardo (setTimeout)](core.delay), così **invia** arriva un attimo dopo l'indirizzo e la richiesta usa sempre quello nuovo. Se **invia** arrivasse prima che **indirizzo (URL)** abbia un valore, il blocco userebbe l'**Indirizzo** delle impostazioni.
 
 ## Errori
 
@@ -190,18 +190,18 @@ Ogni volta che l'utente sceglie un paese nella [Selezione](ui.select) (per esemp
 | La risposta non è JSON valido | **Risposta** JSON e il contenuto non è JSON. |
 | Richiesta a … non riuscita: … | Altri problemi di rete, con la spiegazione tecnica. |
 | Troppe richieste di rete: hai finito la quota di questo minuto | Hai superato le richieste al minuto della tua quota. |
-| Richiesta web ha impiegato più di 30 s | La richiesta ha superato il tempo massimo di un blocco. |
+| HTTP (fetch) ha impiegato più di 30 s | La richiesta ha superato il tempo massimo di un blocco. |
 | Il programma non è in esecuzione | Il programma si stava fermando. |
 
 ## Permessi
 
-La richiesta parte dal computer su cui gira lilOS, a nome dell'utente che possiede il programma, e conta nella sua quota. Un'app fatta con **Crea app** che contiene una Richiesta web, prima di partire, ti chiede il permesso di «fare richieste su internet». Vedi [Permessi](logicstudio-engine/permissions).
+La richiesta parte dal computer su cui gira lilOS, a nome dell'utente che possiede il programma, e conta nella sua quota. Un'app fatta con **Crea app** che contiene un blocco HTTP (fetch), prima di partire, ti chiede il permesso di «fare richieste su internet». Vedi [Permessi](logicstudio-engine/permissions).
 
 ## Vedi anche
 
-- [Ogni…](core.every), per richieste a intervalli
-- [Prendi campo](core.get), per leggere un campo della risposta
-- [Componi oggetto](core.compose), per preparare un corpo JSON
-- [Formatta testo](core.format), per costruire un indirizzo
-- [Aggiungi a file](lilos.fileAppend), per tenere un registro delle risposte
+- [Intervallo (setInterval)](core.every), per richieste a intervalli
+- [Get proprietà (obj.campo)](core.get), per leggere un campo della risposta
+- [Oggetto { }](core.compose), per preparare un corpo JSON
+- [Template (formatta)](core.format), per costruire un indirizzo
+- [appendFile](lilos.fileAppend), per tenere un registro delle risposte
 - [Limiti](logicstudio-engine/limits), [Come funziona un blocco](ide/blocks)

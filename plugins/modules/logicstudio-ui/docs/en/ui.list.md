@@ -59,7 +59,7 @@ Window «Shopping»
 ```
 
 ```
-[List: Products] chosen ──▶ product [Format text: «You chose: {product}»] text ──▶ text [Label: label1]
+[List: Products] chosen ──▶ product [Template string: «You chose: {product}»] text ──▶ text [Label: label1]
 ```
 
 A click on «Milk» makes the label say «You chose: Milk».
@@ -74,20 +74,20 @@ Window «Notes»
 ```
 
 ```
-[At start] pulse ──▶ read [List folder: ~/Notes  show files only] names ──▶ items [List: Your notes]
-[List: Your notes] chosen ──▶ name [Format text: «~/Notes/{name}»] text ──▶ path [Read file] content ──▶ text [Label: label1]
+[On start (main)] pulse ──▶ read [readdir (list folder): ~/Notes  show files only] names ──▶ items [List: Your notes]
+[List: Your notes] chosen ──▶ name [Template string: «~/Notes/{name}»] text ──▶ path [readFile] content ──▶ text [Label: label1]
 ```
 
-At the start the list fills with the names of the files of the folder. A click on a note reads it and the label shows its content. In the [Read file](lilos.fileRead) turn on «starts it» on the **path** input (it is off by default), so the block reads the file as soon as the path arrives. With the arrow keys the user goes through the notes one after the other, and each one is read.
+At the start the list fills with the names of the files of the folder. A click on a note reads it and the label shows its content. In the [readFile](lilos.fileRead) turn on «starts it» on the **path** input (it is off by default), so the block reads the file as soon as the path arrives. With the arrow keys the user goes through the notes one after the other, and each one is read.
 
 ### 3. Items with a code
 
 ```
-[Value: JSON] value ──▶ items [List: Departments]
-[List: Departments] chosen ──▶ value [Write to console]
+[Constant · Variable: JSON] value ──▶ items [List: Departments]
+[List: Departments] chosen ──▶ value [Print (console.log)]
 ```
 
-The [Value](core.value), of type JSON, contains `[{"value":"A1","label":"Administration"},{"value":"M2","label":"Warehouse"}]`. The list shows «Administration» and «Warehouse»; a click on «Warehouse» writes `M2` in the console. To highlight an item from the schema, send `"M2"` (the value, not the text) on **chosen**.
+The [Constant · Variable](core.value), of type JSON, contains `[{"value":"A1","label":"Administration"},{"value":"M2","label":"Warehouse"}]`. The list shows «Administration» and «Warehouse»; a click on «Warehouse» writes `M2` in the console. To highlight an item from the schema, send `"M2"` (the value, not the text) on **chosen**.
 
 ## Accessibility and keyboard
 

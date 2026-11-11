@@ -1,4 +1,4 @@
-# Write to console
+# Print (console.log)
 
 `core.consoleWrite` · Console · [Core blocks](logicstudio-core) · version 1
 
@@ -54,7 +54,7 @@ How values are written:
 | object | on one line: `{"a":1,"b":[1,2]}` | on several lines, indented by two spaces |
 | list | on one line: `[1,2]` | on several lines, indented by two spaces |
 
-Numbers are written the way the computer calculates them: `0.1 + 0.2` gives `0.30000000000000004`. For a number with few decimals, first use [Calculate](core.math) with **round**.
+Numbers are written the way the computer calculates them: `0.1 + 0.2` gives `0.30000000000000004`. For a number with few decimals, first use [Math functions](core.math) with **round**.
 
 ### Level and log
 
@@ -88,7 +88,7 @@ For the general rules see [How a block works](ide/blocks).
 Add two inputs and name them **temp** and **ok**. **Level** warning.
 
 ```
-[…] ──▶ value [Write to console: warning]
+[…] ──▶ value [Print (console.log): warning]
 […] ──▶ temp
 […] ──▶ ok
 ```
@@ -120,25 +120,25 @@ Reading
 ### 3. Clear and write at every round
 
 ```
-[Every… 5 s] pulse ──▶ clear [Write to console]
-             pulse ──▶ read [Date and time] ISO ──▶ value [Write to console]
+[Interval (setInterval): 5 s] pulse ──▶ clear [Print (console.log)]
+             pulse ──▶ read [Now (date and time)] ISO ──▶ value [Print (console.log)]
 ```
 
-The two links go to the **same** Write to console block: every 5 seconds the console is emptied and then shows only the time of the last reading.
+The two links go to the **same** Print (console.log) block: every 5 seconds the console is emptied and then shows only the time of the last reading.
 
 ### 4. Errors in a separate console
 
-Add a console **Errors** to the project. Link the **Exceptions** of the blocks you care about to a Write to console with **Console** = Errors and **Level** error: errors no longer end up in the main one, and in active programs they stay in the log.
+Add a console **Errors** to the project. Link the **Exceptions** of the blocks you care about to a Print (console.log) block with **Console** = Errors and **Level** error: errors no longer end up in the main one, and in active programs they stay in the log.
 
 ```
-[Web request] Exception ──▶ value [Write to console: Errors, error]
+[HTTP request (fetch)] Exception ──▶ value [Print (console.log): Errors, error]
 ```
 
-The line is the object of the error, for example `{"message":"…","block":"request1","schema":"main","at":1794405901003}`. To write only the message, put [Get field](core.get) with Field `message` before it.
+The line is the object of the error, for example `{"message":"…","block":"request1","schema":"main","at":1794405901003}`. To write only the message, put [Get property](core.get) with Field `message` before it.
 
 ## See also
 
-- [Read from console](core.consoleRead)
+- [Input (readline)](core.consoleRead)
 - [Consoles](ide/consoles)
-- [Format text](core.format) to build more complex lines
+- [Template string](core.format) to build more complex lines
 - [How a block works](ide/blocks)

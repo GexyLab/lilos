@@ -1,4 +1,4 @@
-# Prendi campo
+# Get proprietà (obj.campo)
 
 `core.get` · Oggetti · [Blocchi di base](logicstudio-core) · versione 1
 
@@ -43,10 +43,10 @@ Casi particolari:
 - **Campo vuoto**: il blocco manda l'oggetto intero, senza cambiarlo (qualunque cosa sia arrivata, anche un testo o un numero).
 - Un campo che esiste e vale **`null`** viene mandato: su **valore** esce `null`, e non è un errore.
 - Se il campo **non c'è**, il blocco non manda niente su **valore** e manda su **Eccezione** il messaggio «Il campo «*percorso*» non esiste».
-- Se a metà percorso si incontra qualcosa che non è un oggetto o una lista (un testo, un numero, `null`), il campo non c'è: per esempio `nome.length` con `nome` = `"Ada"` dà l'errore. Per la lunghezza di un testo usa [Operazione sul testo](core.text).
-- Un **testo JSON** (per esempio quello letto da un file) non è un oggetto: `{"a":1}` scritto come testo dà l'errore. Prima trasformalo con [Converti](core.convert), impostazione **In** = «da testo JSON».
+- Se a metà percorso si incontra qualcosa che non è un oggetto o una lista (un testo, un numero, `null`), il campo non c'è: per esempio `nome.length` con `nome` = `"Ada"` dà l'errore. Per la lunghezza di un testo usa il blocco [Funzioni stringa](core.text).
+- Un **testo JSON** (per esempio quello letto da un file) non è un oggetto: `{"a":1}` scritto come testo dà l'errore. Prima trasformalo con il blocco [Cast (converti tipo)](core.convert), impostazione **In** = «da testo JSON».
 
-Il percorso è fisso, nelle impostazioni: non c'è un ingresso per cambiarlo mentre il programma gira. Per prendere un elemento a una posizione che cambia usa [Elemento](coll.get) del pacchetto Liste. Per le regole generali (ingressi, «lo avvia», Eccezione) vedi [Come funziona un blocco](ide/blocks).
+Il percorso è fisso, nelle impostazioni: non c'è un ingresso per cambiarlo mentre il programma gira. Per prendere un elemento a una posizione che cambia usa il blocco [Leggi lista[i]](coll.get) del pacchetto Liste. Per le regole generali (ingressi, «lo avvia», Eccezione) vedi [Come funziona un blocco](ide/blocks).
 
 ## Esempi
 
@@ -81,19 +81,19 @@ Se l'oggetto che arriva è una lista di oggetti, per esempio `[{"a": 5}, {"a": 8
 ### 3. Una risposta JSON letta da un file
 
 ```
-[Leggi file] contenuto ──▶ valore [Converti: da testo JSON] risultato ──▶ oggetto [Prendi campo: impostazioni.lingua] valore ──▶ valore [Scrivi in console]
+[readFile] contenuto ──▶ valore [Cast (converti tipo): da testo JSON] risultato ──▶ oggetto [Get proprietà (obj.campo): impostazioni.lingua] valore ──▶ valore [Print (console.log)]
 ```
 
-[Leggi file](lilos.fileRead) ha il **Formato** testo. Se il file contiene `{"impostazioni": {"lingua": "it"}}`, la console scrive `it`. Senza [Converti](core.convert) il blocco riceverebbe un testo e darebbe l'errore (in alternativa, scegli il **Formato** JSON in Leggi file e togli Converti).
+Il blocco [readFile](lilos.fileRead) ha il **Formato** testo. Se il file contiene `{"impostazioni": {"lingua": "it"}}`, la console scrive `it`. Senza il blocco [Cast (converti tipo)](core.convert) il blocco riceverebbe un testo e darebbe l'errore (in alternativa, scegli il **Formato** JSON in readFile e togli il Cast).
 
 ### 4. Gestire un campo che a volte manca
 
 ```
-[Prendi campo: sconto] valore    ──▶ valore [Scrivi in console]
-                       Eccezione ──▶ invia  [Valore: 0] valore ──▶ valore [Scrivi in console]
+[Get proprietà (obj.campo): sconto] valore    ──▶ valore [Print (console.log)]
+                       Eccezione ──▶ invia  [Costante · Variabile: 0] valore ──▶ valore [Print (console.log)]
 ```
 
-Quando lo sconto c'è, la console lo scrive; quando manca, al posto dell'errore nella console principale esce `0`.
+Quando lo sconto c'è, la console lo scrive; quando manca, al posto dell'errore nella console principale esce `0`: il blocco [Costante · Variabile](core.value) ha l'ingresso **invia** collegato, quindi manda il suo `0` solo quando arriva l'errore.
 
 ## Errori
 
@@ -103,8 +103,8 @@ Quando lo sconto c'è, la console lo scrive; quando manca, al posto dell'errore 
 
 ## Vedi anche
 
-- [Scomponi oggetto](core.decompose) per prendere più campi alla volta
-- [Componi oggetto](core.compose) per fare l'opposto
-- [Elemento](coll.get) ed [Estrai campo](coll.pluck) per le liste
-- [Converti](core.convert) per trasformare un testo JSON in oggetto
+- [Destruttura oggetto](core.decompose) per prendere più campi alla volta
+- [Oggetto { }](core.compose) per fare l'opposto
+- [Leggi lista[i]](coll.get) ed [Map campo](coll.pluck) per le liste
+- [Cast (converti tipo)](core.convert) per trasformare un testo JSON in oggetto
 - [Come funziona un blocco](ide/blocks)

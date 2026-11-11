@@ -1,4 +1,4 @@
-# Split text
+# Split
 
 `coll.split` · Lists · [Lists and matrices](logicstudio-collections) · version 1
 
@@ -37,14 +37,14 @@ At every text that arrives, the block cuts it where it finds the separator and s
 - You can write `\n`, `\t`, `\r` together with other things too (for example `;\n`). There is no way to give the text `\n` literally.
 - A text with "Windows" new lines (`\r\n`) cut with `\n` leaves a `\r` at the end of each piece: with **Trim spaces** on it disappears, off it stays.
 - If a value that is not a text arrives, it is first written as text: a number `12.5` with separator `.` gives `["12", "5"]`; a list or an object becomes its JSON (`[1,2]` with `,` gives `["[1", "2]"]`); `null` is an empty text.
-- The pieces are **always texts**: `"1,2,3"` gives `["1", "2", "3"]`, not numbers. Blocks like [Sum · Min · Max · Average](coll.stat) and [Sort](coll.sort) still read them as numbers.
+- The pieces are **always texts**: `"1,2,3"` gives `["1", "2", "3"]`, not numbers. Blocks like [Sum · Min · Max · Avg](coll.stat) and [Sort](coll.sort) still read them as numbers.
 
 ## Examples
 
 ### 1. A list written with commas
 
 ```
-[Value (text): mele, pere ,uva] value ──▶ text [Split text] result ──▶ value [Write to console]
+[Constant · Variable (text): mele, pere ,uva] value ──▶ text [Split] result ──▶ value [Print (console.log)]
 ```
 
 It writes `["mele","pere","uva"]`. With **Trim spaces** off: `["mele"," pere ","uva"]`.
@@ -52,7 +52,7 @@ It writes `["mele","pere","uva"]`. With **Trim spaces** off: `["mele"," pere ","
 ### 2. One line per entry
 
 ```
-[Text field] text ──▶ text [Split text: \n] result ──▶ items [List]
+[Text field] text ──▶ text [Split: \n] result ──▶ items [List]
 ```
 
 With the **Separator** `\n` every line of the text becomes an entry of the [List](ui.list).
@@ -62,7 +62,7 @@ With the **Separator** `\n` every line of the text becomes an entry of the [List
 The grades `7,5; 8; 6` cannot be split with the comma (it is also in the numbers). Use the separator `;`:
 
 ```
-[Value (text): 7,5; 8; 6] value ──▶ text [Split text: ;] result ──▶ list [Sum · Min · Max · Average: average] result ──▶ value [Write to console]
+[Constant · Variable (text): 7,5; 8; 6] value ──▶ text [Split: ;] result ──▶ list [Sum · Min · Max · Avg: average] result ──▶ value [Print (console.log)]
 ```
 
 The pieces are `["7,5", "8", "6"]` and the average is 7.1666…
@@ -75,6 +75,6 @@ The pieces are `["7,5", "8", "6"]` and the average is 7.1666…
 
 ## See also
 
-- [Join into text](coll.join), the opposite of this block
-- [Text operation](core.text), [Format text](core.format)
+- [Join](coll.join), the opposite of this block
+- [String functions](core.text), [Template string](core.format)
 - [How a block works](ide/blocks)

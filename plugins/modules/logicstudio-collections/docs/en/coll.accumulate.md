@@ -1,4 +1,4 @@
-# Accumulate
+# Accumulate (bounded push)
 
 `coll.accumulate` · Lists · [Lists and matrices](logicstudio-collections) · version 1
 
@@ -57,21 +57,21 @@ With **Max length** 3, sending 1, 2, 3, 4 to **add**:
 ### 2. A scrolling chart
 
 ```
-[Every…: 1 second] pulse ──▶ read [Memory] value ──▶ add [Accumulate: max 60] list ──▶ data [Lines]
-[Number field: temperature] value ──▶ set [Memory]
-[Button: Restart] pressed ──▶ clear [Accumulate]
+[Interval (setInterval): 1 second] pulse ──▶ read [Store (set · get)] value ──▶ add [Accumulate (bounded push): max 60] list ──▶ data [Lines]
+[Number field: temperature] value ──▶ set [Store (set · get)]
+[Button: Restart] pressed ──▶ clear [Accumulate (bounded push)]
 ```
 
-Every second the latest temperature enters the list (until the field has a value, the [Memory](core.store) sends `null`, which enters the list too) and the [Lines](charts.line) chart shows the last minute. The [Button](ui.button) starts again from zero.
+Every second the latest temperature enters the list (until the field has a value, the [Store (set · get)](core.store) sends `null`, which enters the list too) and the [Lines](charts.line) chart shows the last minute. The [Button](ui.button) starts again from zero.
 
 ### 3. Collecting the items of a round, starting from zero
 
 ```
-[Button: Count] pressed ──▶ clear [Accumulate]
-                pressed ──▶ start [For each] item ──▶ add [Accumulate: max 1000] count ──▶ value [Value]
+[Button: Count] pressed ──▶ clear [Accumulate (bounded push)]
+                pressed ──▶ start [For each] item ──▶ add [Accumulate (bounded push): max 1000] count ──▶ value [Value]
 ```
 
-(The Button is linked to two inputs.) At every click the Accumulate is emptied and then receives the items of the round of [For each](coll.forEach): the clearing always comes first, because the Button sends it right away, while the items only start when For each runs. The Value goes to 0, then counts 1, 2, 3… up to the length of the list. Do not link **done** to **clear**: the list would be emptied as soon as it is collected.
+(The Button is linked to two inputs.) At every click the Accumulate (bounded push) block is emptied and then receives the items of the round of [For each](coll.forEach): the clearing always comes first, because the Button sends it right away, while the items only start when For each runs. The Value goes to 0, then counts 1, 2, 3… up to the length of the list. Do not link **done** to **clear**: the list would be emptied as soon as it is collected.
 
 ## Errors
 
@@ -79,7 +79,7 @@ This block has no errors of its own.
 
 ## See also
 
-- [Add item](coll.add) if you already have the list
-- [Slice](coll.slice), [Sum · Min · Max · Average](coll.stat), [Get item](coll.get) (index -1 for the last)
-- [Memory](core.store) to keep a single value
+- [Push · Unshift](coll.add) if you already have the list
+- [Slice](coll.slice), [Sum · Min · Max · Avg](coll.stat), [Get list[i]](coll.get) (index -1 for the last)
+- [Store (set · get)](core.store) to keep a single value
 - [How a block works](ide/blocks)

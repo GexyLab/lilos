@@ -47,7 +47,7 @@ Cases to know:
 
 **contains.**
 
-- If **a** is a list, it is true when one of its items is **identical** to b (type included, as in [Contains · Index of](coll.contains)). Since the **Value** setting is always a text, `[1, 2]` does not "contain" the Value `2`: to look for a number, send it on the **value** input.
+- If **a** is a list, it is true when one of its items is **identical** to b (type included, as in [Includes · IndexOf](coll.contains)). Since the **Value** setting is always a text, `[1, 2]` does not "contain" the Value `2`: to look for a number, send it on the **value** input.
 - Otherwise **a** and **b** become texts and it is true if b is a piece of a. It tells uppercase from lowercase: `"Mela"` does not contain `"mel"`.
 - An empty b is contained in every text: with "contains" and an empty Value, all the items that are not lists pass.
 
@@ -56,8 +56,8 @@ Cases to know:
 ### 1. Numbers above a threshold
 
 ```
-[Value (JSON): [1,5,10,"5",null]] value ──▶ list [Filter: a > b, Value 4] result   ──▶ value [Write to console]
-                                                                       rejected ──▶ value [Write to console]
+[Constant · Variable (JSON): [1,5,10,"5",null]] value ──▶ list [Filter: a > b, Value 4] result   ──▶ value [Print (console.log)]
+                                                                       rejected ──▶ value [Print (console.log)]
 ```
 
 The two consoles write `[5,10,"5"]` and `[1,null]`.
@@ -65,7 +65,7 @@ The two consoles write `[5,10,"5"]` and `[1,null]`.
 ### 2. Cheap products
 
 ```
-[Value (JSON): [{"nome":"Penna","prezzo":2.5},{"nome":"Zaino","prezzo":35},{"nome":"Quaderno","prezzo":4}]] value ──▶ list [Filter] result ──▶ rows [Table]
+[Constant · Variable (JSON): [{"nome":"Penna","prezzo":2.5},{"nome":"Zaino","prezzo":35},{"nome":"Quaderno","prezzo":4}]] value ──▶ list [Filter] result ──▶ rows [Table]
 [Number field: maximum price] value ──▶ value (optional)
 ```
 
@@ -74,7 +74,7 @@ With **Keep items that are** "a ≤ b" and **Field** `prezzo`: typing 5 in the n
 ### 3. Looking for a piece of text
 
 ```
-[Value (JSON): ["mela","pera","melone","Melagrana"]] value ──▶ list [Filter: contains] result ──▶ items [List]
+[Constant · Variable (JSON): ["mela","pera","melone","Melagrana"]] value ──▶ list [Filter: contains] result ──▶ items [List]
 [Text field: search]                                  text  ──▶ value (optional)
 ```
 
@@ -92,6 +92,6 @@ With "a ≠ b" and Value `rosso`, the list `["rosso","verde","rosso","blu"]` giv
 
 ## See also
 
-- [Map field](coll.pluck), [Sort](coll.sort), [Unique](coll.unique), [Contains · Index of](coll.contains)
-- [Compare](core.compare) to compare two single values
+- [Map field](coll.pluck), [Sort](coll.sort), [Distinct](coll.unique), [Includes · IndexOf](coll.contains)
+- [Compare (== != < >)](core.compare) to compare two single values
 - [How a block works](ide/blocks)

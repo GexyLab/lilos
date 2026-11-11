@@ -1,4 +1,4 @@
-# Matrice da lista
+# Reshape
 
 `coll.matFromList` · Matrici · [Liste e matrici](logicstudio-collections) · versione 1
 
@@ -33,8 +33,8 @@ Il blocco aspetta di avere **lista** e **colonne**; poi, a ogni valore nuovo, ma
 ### 1. Sei numeri in due righe
 
 ```
-[Valore (JSON): [1,2,3,4,5,6]] valore ──▶ lista   [Matrice da lista] matrice ──▶ valore [Scrivi in console]
-[Valore: 3]                    valore ──▶ colonne
+[Costante · Variabile (JSON): [1,2,3,4,5,6]] valore ──▶ lista   [Reshape] matrice ──▶ valore [Print (console.log)]
+[Costante · Variabile: 3]                    valore ──▶ colonne
 ```
 
 Scrive `[[1,2,3],[4,5,6]]`. Con **colonne** 2 scrive `[[1,2],[3,4],[5,6]]`; con **colonne** 4 dà «La lista (6 elementi) non si divide in righe di 4».
@@ -42,10 +42,10 @@ Scrive `[[1,2,3],[4,5,6]]`. Con **colonne** 2 scrive `[[1,2],[3,4],[5,6]]`; con 
 ### 2. Una matrice scritta in un campo
 
 ```
-[Campo di testo] testo ──▶ testo [Dividi testo: ;] risultato ──▶ lista [Matrice da lista (colonne 2)] matrice ──▶ matrice [Determinante]
+[Campo di testo] testo ──▶ testo [Split: ;] risultato ──▶ lista [Reshape (colonne 2)] matrice ──▶ matrice [Det]
 ```
 
-Scrivendo `1; 2; 3; 4` si ottiene la matrice `[["1","2"],["3","4"]]`, ma i valori sono **testi** e il [Determinante](coll.matDet) dà «La matrice deve contenere solo numeri». Per i calcoli i valori devono essere numeri: usa per esempio un [Valore](core.value) di tipo JSON con `[1,2,3,4]`.
+Scrivendo `1; 2; 3; 4` si ottiene la matrice `[["1","2"],["3","4"]]`, ma i valori sono **testi** e il blocco [Det](coll.matDet) dà «La matrice deve contenere solo numeri». Per i calcoli i valori devono essere numeri: usa per esempio un blocco [Costante · Variabile](core.value) di tipo JSON con `[1,2,3,4]`.
 
 ### 3. Righe di 1
 
@@ -63,6 +63,6 @@ Con **colonne** 1, `[7, 8, 9]` diventa la matrice colonna `[[7],[8],[9]]`.
 
 ## Vedi anche
 
-- [Appiattisci](coll.matFlatten), il contrario di questo blocco
-- [Crea matrice](coll.matNew), [Dimensioni](coll.matSize)
+- [Flatten](coll.matFlatten), il contrario di questo blocco
+- [Nuova matrice (fill)](coll.matNew), [Shape](coll.matSize)
 - [Come funziona un blocco](ide/blocks)

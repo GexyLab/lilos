@@ -39,7 +39,7 @@ All'apertura si vede «—» e un pulsante «…» con l'icona di un file o di u
 
 - Scegliere di nuovo lo stesso file lo manda di nuovo.
 - Il percorso è quello di lilOS, che comincia con la tua home (`/home/anna/…`). I blocchi di lilOS lo accettano così com'è. Il programma gira con i permessi di chi lo ha avviato: la scelta di un file non dà al programma permessi in più.
-- I blocchi dei file lavorano solo nella home: se l'utente sceglie un file fuori dalla sua home, il [Leggi file](lilos.fileRead) va in **Eccezione** con «Puoi usare solo i file della tua home (~/… oppure /home/anna/…): …». Anche la cartella `.config` è esclusa.
+- I blocchi dei file lavorano solo nella home: se l'utente sceglie un file fuori dalla sua home, il blocco [readFile](lilos.fileRead) va in **Eccezione** con «Puoi usare solo i file della tua home (~/… oppure /home/anna/…): …». Anche la cartella `.config` è esclusa.
 - Un percorso lungo si accorcia con «…» alla fine; per vederlo tutto, allarga la finestra.
 - Dallo schema, **percorso** cambia solo la scritta: non controlla che il file esista, e non apre niente. `null` riporta «—».
 - Funziona anche nell'**Anteprima** dell'IDE.
@@ -56,10 +56,10 @@ Finestra «Lettore»
 ```
 
 ```
-[Scegli file: File da leggere] percorso ──▶ percorso [Leggi file] contenuto ──▶ valore [Scrivi in console]
+[Scegli file: File da leggere] percorso ──▶ percorso [readFile] contenuto ──▶ valore [Print (console.log)]
 ```
 
-Nel [Leggi file](lilos.fileRead) accendi «lo avvia» sull'ingresso **percorso** (di serie è spento): il file si legge appena l'utente lo sceglie, e il suo contenuto compare nella console della finestra.
+Nel [readFile](lilos.fileRead) accendi «lo avvia» sull'ingresso **percorso** (di serie è spento): il file si legge appena l'utente lo sceglie, e il suo contenuto compare nella console della finestra.
 
 ### 2. Scegliere la cartella di destinazione
 
@@ -71,11 +71,11 @@ Finestra «Esporta»
 ```
 
 ```
-[Scegli file: Salva in] percorso ──▶ cartella [Formatta testo: «{cartella}/rapporto.txt»] testo ──▶ percorso [Scrivi file]
-[Pulsante: Esporta] premuto ──▶ invia [Valore: «Rapporto del giorno»] valore ──▶ contenuto [Scrivi file]
+[Scegli file: Salva in] percorso ──▶ cartella [Template (formatta): «{cartella}/rapporto.txt»] testo ──▶ percorso [writeFile]
+[Pulsante: Esporta] premuto ──▶ invia [Costante · Variabile: «Rapporto del giorno»] valore ──▶ contenuto [writeFile]
 ```
 
-L'utente sceglie la cartella e poi preme **Esporta**: il [Scrivi file](lilos.fileWrite) scrive `rapporto.txt` in quella cartella. Se preme **Esporta** prima di scegliere, il file va nel percorso delle impostazioni del blocco.
+L'utente sceglie la cartella e poi preme **Esporta**: il blocco [writeFile](lilos.fileWrite) scrive `rapporto.txt` in quella cartella. Se preme **Esporta** prima di scegliere, il file va nel percorso delle impostazioni del blocco.
 
 ## Accessibilità e tastiera
 
@@ -84,5 +84,5 @@ L'utente sceglie la cartella e poi preme **Esporta**: il [Scrivi file](lilos.fil
 
 ## Vedi anche
 
-- [Leggi file](lilos.fileRead), [Scrivi file](lilos.fileWrite), [Elenca cartella](lilos.folderList)
+- [readFile](lilos.fileRead), [writeFile](lilos.fileWrite), [readdir (elenca cartella)](lilos.folderList)
 - [Componenti UI standard](logicstudio-ui)

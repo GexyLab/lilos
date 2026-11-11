@@ -1,4 +1,4 @@
-# Leggi colonna
+# Colonna m[][c]
 
 `coll.matCol` · Matrici · [Liste e matrici](logicstudio-collections) · versione 1
 
@@ -32,8 +32,8 @@ Il blocco aspetta di avere **matrice** e **colonna**; poi, a ogni valore nuovo, 
 ### 1. La seconda colonna
 
 ```
-[Valore (JSON): [[1,2,3],[4,5,6]]] valore ──▶ matrice [Leggi colonna] colonna ──▶ valore [Scrivi in console]
-[Valore: 1]                        valore ──▶ colonna
+[Costante · Variabile (JSON): [[1,2,3],[4,5,6]]] valore ──▶ matrice [Colonna m[][c]] colonna ──▶ valore [Print (console.log)]
+[Costante · Variabile: 1]                        valore ──▶ colonna
 ```
 
 Scrive `[2,5]`. Con colonna `-1` scrive `[3,6]`; con colonna `3` esce «Indice fuori dalla lista».
@@ -43,8 +43,8 @@ Scrive `[2,5]`. Con colonna `-1` scrive `[3,6]`; con colonna `3` esce «Indice f
 Una matrice in cui ogni riga è `[ora, temperatura, umidità]`:
 
 ```
-[Valore (JSON): [[8,18.5,60],[12,23,52],[16,21.5,55]]] valore ──▶ matrice [Leggi colonna] colonna ──▶ lista [Somma · Minimo · Massimo · Media: media] risultato ──▶ valore [Valore mostrato]
-[Valore: 1]                                            valore ──▶ colonna
+[Costante · Variabile (JSON): [[8,18.5,60],[12,23,52],[16,21.5,55]]] valore ──▶ matrice [Colonna m[][c]] colonna ──▶ lista [Sum · Min · Max · Avg: media] risultato ──▶ valore [Valore mostrato]
+[Costante · Variabile: 1]                                            valore ──▶ colonna
 ```
 
 Mostra la temperatura media: 21. Con colonna 2, l'umidità media: 55,666…
@@ -60,6 +60,6 @@ Mostra la temperatura media: 21. Con colonna 2, l'umidità media: 55,666…
 
 ## Vedi anche
 
-- [Leggi riga](coll.matRow), [Leggi cella](coll.matGet), [Trasposta](coll.matTranspose)
-- [Estrai campo](coll.pluck) con un numero come campo fa lo stesso su qualsiasi lista di liste
+- [Riga m[r]](coll.matRow), [Leggi m[r][c]](coll.matGet), [Transpose](coll.matTranspose)
+- [Map campo](coll.pluck) con un numero come campo fa lo stesso su qualsiasi lista di liste
 - [Come funziona un blocco](ide/blocks)

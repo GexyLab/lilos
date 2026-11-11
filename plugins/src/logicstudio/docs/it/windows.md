@@ -135,11 +135,11 @@ Una componente di un pacchetto non installato si vede come un riquadro con il su
 1. Apri la finestra **Principale**. Nelle Proprietà (niente selezionato) metti **Titolo** = `Saluti`, **Larghezza (px)** = `360`, **Altezza (px)** = `200`.
 2. Dalla scheda **Componenti** fai clic su **Campo di testo** (proprietà **Etichetta** = `Il tuo nome`), poi su **Pulsante** (**Testo** = `Saluta`), poi su **Etichetta** (**Testo** vuoto).
 3. Per ognuna delle tre, nelle Proprietà, lascia **Nello schema** = **main** e premi **Crea il suo oggetto**: l'IDE apre lo schema con l'oggetto nuovo.
-4. Nello schema **main** aggiungi un **Formatta testo**. Nelle sue Proprietà premi due volte **Aggiungi ingresso** e rinomina le porte in `nome` e `via`; togli **lo avvia** da `nome`; scrivi il **Modello** `Ciao, {nome}!`.
+4. Nello schema **main** aggiungi un **Template**. Nelle sue Proprietà premi due volte **Aggiungi ingresso** e rinomina le porte in `nome` e `via`; togli **lo avvia** da `nome`; scrivi il **Modello** `Ciao, {nome}!`.
 5. Collega:
 
 ```
-[Campo di testo] testo ──▶ nome [Formatta testo: «Ciao, {nome}!»] testo ──▶ testo [Etichetta]
+[Campo di testo] testo ──▶ nome [Template (formatta): «Ciao, {nome}!»] testo ──▶ testo [Etichetta]
 [Pulsante: Saluta] premuto ──▶ via
 ```
 

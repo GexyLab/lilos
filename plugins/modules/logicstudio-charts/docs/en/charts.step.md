@@ -79,15 +79,15 @@ Every time someone turns the [Switch](ui.toggle) on or off, the "pump" lane chan
 ### 2. A door read from a file
 
 ```
-[Every…: 5 s] pulse ──▶ read [Read file: ~/door.txt] content ──▶ door [Steps: Entrance]
+[Interval (setInterval): 5 s] pulse ──▶ read [readFile: ~/door.txt] content ──▶ door [Steps: Entrance]
 ```
 
-The file contains `aperto` or `chiuso` (open or closed): the lane is yes/no. Every 5 seconds the state arrives even if it has not changed: the drawing does not change (the state continues), but every reading counts among the **Points kept per series** (with 1000 points and a reading every 5 seconds, the lane keeps about 83 minutes: more than the default **Time shown**, so it is fine). With very frequent readings and a long **Time shown**, it is better to send only the changes: for example [Edge](core.edge) sends a pulse only when a yes/no changes.
+The file contains `aperto` or `chiuso` (open or closed): the lane is yes/no. Every 5 seconds the state arrives even if it has not changed: the drawing does not change (the state continues), but every reading counts among the **Points kept per series** (with 1000 points and a reading every 5 seconds, the lane keeps about 83 minutes: more than the default **Time shown**, so it is fine). With very frequent readings and a long **Time shown**, it is better to send only the changes: for example [On change (edge)](core.edge) sends a pulse only when a yes/no changes.
 
 ### 3. What was happening at 10:15?
 
 ```
-[Steps: Plant] picked point ──▶ value [Write to console]
+[Steps: Plant] picked point ──▶ value [Print (console.log)]
 ```
 
 A click on the chart at the height of 10:15 writes `{"time": "2026-11-11T09:15:00.000Z", "x": 1794388500000, "values": {"pump": true, "phase": "filling"}}` (the ISO time is in UTC: 10:15 in Italy in winter is 09:15 UTC).
@@ -100,5 +100,5 @@ A click on the chart at the height of 10:15 writes `{"time": "2026-11-11T09:15:0
 
 - [Real time](charts.live) for numbers that change
 - [Lamp](ui.lamp) to show only the state right now
-- [Switch](ui.toggle), [Selection](ui.select), [Edge](core.edge)
+- [Switch](ui.toggle), [Selection](ui.select), [On change (edge)](core.edge)
 - [Charts](logicstudio-charts): the data shapes, the limits, the keyboard

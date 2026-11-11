@@ -1,4 +1,4 @@
-# Write file
+# writeFile
 
 `lilos.fileWrite` · lilOS · [lilOS blocks](logicstudio-lilos) · version 1
 
@@ -41,12 +41,12 @@ When a value arrives on **content**, the block takes the path (the one of the **
 | `null` | empty file | `null` |
 
 - In the **Text** format no new line is added at the end.
-- The **JSON** format writes a readable JSON, with one field per line and 2 spaces of indentation: it is what you need to read it again with [Read file](lilos.fileRead) in JSON format.
+- The **JSON** format writes a readable JSON, with one field per line and 2 spaces of indentation: it is what you need to read it again with [readFile](lilos.fileRead) in JSON format.
 - The text is written in UTF-8, without BOM.
 
 ### Rules
 
-- The path follows the same rules as [Read file](lilos.fileRead): `~/…` or `/home/<user>/…`, only inside your home, never in `~/.config`, no `.` and `..`.
+- The path follows the same rules as [readFile](lilos.fileRead): `~/…` or `/home/<user>/…`, only inside your home, never in `~/.config`, no `.` and `..`.
 - The path must be that of a **file**: `~` alone (the home) is refused.
 - If the file is not there, it is created. **Its folder, though, must be there**: the block does not create folders.
 - If the file is there, it is replaced entirely.
@@ -65,7 +65,7 @@ See also [How a block works](ide/blocks).
 ### 1. Saving a number
 
 ```
-[Number field: threshold] value ──▶ content [Write file: ~/serra/threshold.txt] written ──▶ value [Write to console]
+[Number field: threshold] value ──▶ content [writeFile: ~/serra/threshold.txt] written ──▶ value [Print (console.log)]
 ```
 
 Every time the user changes the [Number field](ui.number), for example to 28, the file `~/serra/threshold.txt` contains `28` and the console writes `true`. The folder `~/serra` must exist.
@@ -73,11 +73,11 @@ Every time the user changes the [Number field](ui.number), for example to 28, th
 ### 2. Saving the settings in JSON
 
 ```
-[Number field: threshold] value ──▶ threshold [Build object] object ──▶ content [Write file: ~/serra/settings.json]
+[Number field: threshold] value ──▶ threshold [Object literal { }] object ──▶ content [writeFile: ~/serra/settings.json]
 [Text field: name]        text  ──▶ name
 ```
 
-With **Format** JSON, [Build object](core.compose) (with the added inputs **threshold** and **name**) produces `{ "threshold": 28, "name": "North greenhouse" }` and the file becomes:
+With **Format** JSON, [Object literal { }](core.compose) (with the added inputs **threshold** and **name**) produces `{ "threshold": 28, "name": "North greenhouse" }` and the file becomes:
 
 ```
 {
@@ -86,17 +86,17 @@ With **Format** JSON, [Build object](core.compose) (with the added inputs **thre
 }
 ```
 
-At start you can read it again with [Read file](lilos.fileRead) in JSON format.
+At start you can read it again with [readFile](lilos.fileRead) in JSON format.
 
 ### 3. Saving a note with a button
 
 ```
-[Text field: name] text ──▶ a [Format text: "~/Notes/{a}.txt"] text ──▶ path [Write file]
-[Text field: note] text ──▶ set [Memory] value ─────────────────────▶ content
+[Text field: name] text ──▶ a [Template string: "~/Notes/{a}.txt"] text ──▶ path [writeFile]
+[Text field: note] text ──▶ set [Store (set · get)] value ─────────────────────▶ content
 [Button: Save]   pressed ──▶ read
 ```
 
-The user writes `shopping` in the first field, `milk, bread` in the second and presses **Save**: the file `~/Notes/shopping.txt` contains `milk, bread`. The path comes from [Format text](core.format) (with the added input **a**) and, since **path** does not start the block, changing the name writes nothing. The note waits in [Memory](core.store) and goes to **content** only when you press the [Button](ui.button). The folder `~/Notes` must exist.
+The user writes `shopping` in the first field, `milk, bread` in the second and presses **Save**: the file `~/Notes/shopping.txt` contains `milk, bread`. The path comes from [Template string](core.format) (with the added input **a**) and, since **path** does not start the block, changing the name writes nothing. The note waits in [Store (set · get)](core.store) and goes to **content** only when you press the [Button](ui.button). The folder `~/Notes` must exist.
 
 > If **content** arrives before **path** has a value, the block uses the **Path** in the settings (`~/dati.txt` by default).
 
@@ -107,7 +107,7 @@ The messages are in Italian, as users see them; the English meaning is in parent
 | Message | When |
 |---|---|
 | Manca il percorso del file ("The path of the file is missing") | The path is empty. |
-| Percorso non valido: … ("Invalid path: …") | The path does not follow the rules (see [Read file](lilos.fileRead) for all the cases). |
+| Percorso non valido: … ("Invalid path: …") | The path does not follow the rules (see [readFile](lilos.fileRead) for all the cases). |
 | Puoi usare solo i file della tua home (~/… oppure /home/anna/…): … ("You can only use the files of your home (~/… or /home/anna/…): …") | The path is outside your home. |
 | La cartella .config è di lilOS: i programmi non la usano ("The .config folder belongs to lilOS: programs do not use it") | The path is inside `~/.config`. |
 | Serve il nome di un file, non la home ("A file name is needed, not the home") | The path is `~` (or the home written in full). |
@@ -122,7 +122,7 @@ The messages are in Italian, as users see them; the English meaning is in parent
 | «~/dati.txt» non esiste (o non puoi vederlo) ("«~/dati.txt» does not exist (or you cannot see it)") | The file system does not find the file while writing it. |
 | «~/dati.txt»: … | The file system refuses the operation, with its own explanation. |
 | Il file system di lilOS non risponde: riprova più tardi ("The lilOS file system is not answering: try again later") | The file system is not answering. |
-| Scrivi file ha impiegato più di 30 s ("Write file took more than 30 s") | The writing went over the maximum time of a block (30 seconds by default). |
+| writeFile ha impiegato più di 30 s ("writeFile took more than 30 s") | The writing went over the maximum time of a block (30 seconds by default). |
 | Il programma non è in esecuzione ("The program is not running") | The program was stopping. |
 
 ## Permissions
@@ -131,7 +131,7 @@ The block works as the user who owns the program. An app made with **Make app** 
 
 ## See also
 
-- [Append to file](lilos.fileAppend), to make a file longer instead of replacing it
-- [Read file](lilos.fileRead), [Exists](lilos.exists), [List folder](lilos.folderList)
-- [Build object](core.compose), to prepare a JSON
+- [appendFile](lilos.fileAppend), to make a file longer instead of replacing it
+- [readFile](lilos.fileRead), [exists](lilos.exists), [readdir (list folder)](lilos.folderList)
+- [Object literal { }](core.compose), to prepare a JSON
 - [How a block works](ide/blocks)

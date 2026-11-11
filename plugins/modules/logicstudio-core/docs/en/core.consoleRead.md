@@ -1,4 +1,4 @@
-# Read from console
+# Input (readline)
 
 `core.consoleRead` · Console · [Core blocks](logicstudio-core) · version 1
 
@@ -96,9 +96,9 @@ With the console visible the default value **shows only as a hint** in grey in t
 
 ### Watch out: the time a block may take
 
-The engine does not let a block work longer than a certain time: **30 seconds** by default (**Time a block may take (seconds)**, in Control Panel → Logic Studio → Limits; see [Limits](logicstudio-engine/limits)). Read from console counts as at work **while it waits for the answer**. So today, if nobody answers within that time:
+The engine does not let a block work longer than a certain time: **30 seconds** by default (**Time a block may take (seconds)**, in Control Panel → Logic Studio → Limits; see [Limits](logicstudio-engine/limits)). The Input (readline) block counts as at work **while it waits for the answer**. So today, if nobody answers within that time:
 
-- the block sends on **Exception** the message «Leggi da console ha impiegato più di 30 s» ("Read from console took more than 30 s", with the number of seconds of the limit);
+- the block sends on **Exception** the message «Input (readline) ha impiegato più di 30 s» ("Input (readline) took more than 30 s", with the number of seconds of the limit);
 - the question **stays in the console**, but the answer given afterwards **no longer comes out** on **value** (it is lost);
 - until that question receives an answer or is cancelled (Esc), the other **ask** that arrive at that block **are ignored**.
 
@@ -115,14 +115,14 @@ For the general rules see [How a block works](ide/blocks).
 ### 1. Ask the age and answer
 
 ```
-[At start] pulse ──▶ ask [Read from console: "How old are you?", number] value     ──▶ a [Compare: a ≥ b]
-                                                                          cancelled ──▶ send [Value: "No answer"] value ──▶ value [Write to console]
+[On start (main)] pulse ──▶ ask [Input (readline): "How old are you?", number] value     ──▶ a [Compare (== != < >): a ≥ b]
+                                                                          cancelled ──▶ send [Constant · Variable: "No answer"] value ──▶ value [Print (console.log)]
 
-[Compare] if true  ──▶ send [Value: "You can come in"]           value ──▶ value [Write to console]
-[Compare] if false ──▶ send [Value: "Come back in a few years"]  value ──▶ value [Write to console]
+[Compare (== != < >)] if true  ──▶ send [Constant · Variable: "You can come in"]           value ──▶ value [Print (console.log)]
+[Compare (== != < >)] if false ──▶ send [Constant · Variable: "Come back in a few years"]  value ──▶ value [Print (console.log)]
 ```
 
-On [Compare](core.compare) **b** has the initial value 18 and **starts it** removed. The three [Value](core.value) blocks are of kind text and have **Send at start** removed, so they speak only when they receive a pulse. What happens with some answers:
+On [Compare (== != < >)](core.compare) **b** has the initial value 18 and **starts it** removed. The three [Constant · Variable](core.value) blocks are of kind text and have the input **send** linked, so they speak only when they receive a pulse (and not at start). What happens with some answers:
 
 | Written in the console | Result |
 |---|---|
@@ -138,34 +138,34 @@ If nobody answers for more than 30 seconds the error described in **Watch out** 
 **Kind of answer** a key, **Question** `Delete the file? (y/n)`, **Time limit** 20.
 
 ```
-[Read from console] value     ──▶ a [Compare: a = b] if true ──▶ … [Write file]
+[Input (readline)] value     ──▶ a [Compare (== != < >): a = b] if true ──▶ … [writeFile]
                     cancelled ──▶ …
 ```
 
-On Compare **b** has the initial value `y` and **starts it** removed.
+On Compare (== != < >) **b** has the initial value `y` and **starts it** removed.
 
 Pressing `y` the file is written; pressing `n` (or any other key) it is not. After 20 seconds without an answer **cancelled** comes out. Watch out: capital `Y` is another character; to accept both use the kind **yes/no**, which accepts `s`, `S`, `sì`, `yes`…
 
 ### 3. A password
 
-**Kind of answer** text, **Question** `Server password:`, **Hide what is typed** checked. Writing `segreto1` the console shows `••••••••` and on **value** `"segreto1"` comes out, to link where needed (for example to a [Web request](net.request)), without ever writing it to the console.
+**Kind of answer** text, **Question** `Server password:`, **Hide what is typed** checked. Writing `segreto1` the console shows `••••••••` and on **value** `"segreto1"` comes out, to link where needed (for example to a [HTTP request (fetch)](net.request)), without ever writing it to the console.
 
 ### 4. A program with no visible consoles
 
-A project with **Project options → Consoles → Do not show them**, activated. A Read from console with kind number and **Default value** `5` sends 5 on **value** at once, showing nothing. With **Default value** empty it sends **cancelled** at once.
+A project with **Project options → Consoles → Do not show them**, activated. An Input (readline) block with kind number and **Default value** `5` sends 5 on **value** at once, showing nothing. With **Default value** empty it sends **cancelled** at once.
 
 ## Errors
 
 | Message | When |
 |---|---|
-| Leggi da console ha impiegato più di *N* s ("Read from console took more than *N* s") | No answer within the **Time a block may take** of the engine (30 seconds by default). See **Watch out** above. |
+| Input (readline) ha impiegato più di *N* s ("Input (readline) took more than *N* s") | No answer within the **Time a block may take** of the engine (30 seconds by default). See **Watch out** above. |
 
 The warnings «Serve un numero. Riprova.», «Serve sì o no. Riprova.» and «Serve un tasto. Riprova.» appear in the console, not on the Exception.
 
 ## See also
 
-- [Write to console](core.consoleWrite)
+- [Print (console.log)](core.consoleWrite)
 - [Consoles](ide/consoles)
-- [Compare](core.compare) and [Cases](core.switch) to decide what to do with the answer
+- [Compare (== != < >)](core.compare) and [Switch · Case](core.switch) to decide what to do with the answer
 - [Limits](logicstudio-engine/limits)
 - [How a block works](ide/blocks)

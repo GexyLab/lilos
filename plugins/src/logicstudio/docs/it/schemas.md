@@ -23,7 +23,7 @@ Uno **schema** (file `.lsch`) è un foglio di blocchi collegati. Si apre con un 
 
 Due blocchi sono speciali:
 
-- **Ingresso di schema** e **Uscita di schema** mostrano come titolo il **nome della porta** e, a destra, il tipo di blocco.
+- **Parametro** e **Return** mostrano come titolo il **nome della porta** e, a destra, il tipo di blocco.
 - L'**oggetto di una componente** mostra il nome della componente (o la sua etichetta) e sotto «finestra › componente». Vedi [L'oggetto di una componente](ide/components).
 
 ## Mettere i blocchi
@@ -45,7 +45,7 @@ Quando lo schema ha già il numero massimo di blocchi (200 di serie) compare **A
 - **Tasto destro sul foglio** → **Aggiungi un blocco qui**: un menu con tutti i blocchi divisi per categoria; il blocco va dove hai fatto clic.
 - **Lascia un collegamento nel vuoto**: trascini da un'uscita e lasci il tasto sul foglio, lontano da un ingresso. Si apre lo stesso menu, ma con **solo i blocchi che hanno un ingresso adatto** al tipo di quell'uscita; il blocco scelto viene messo lì e il collegamento va sul suo primo ingresso adatto.
 
-In questi menu non ci sono l'**Ingresso di schema** e l'oggetto delle componenti: prendi l'Ingresso di schema dalla palette.
+In questi menu non c'è il blocco **Parametro** e l'oggetto delle componenti: prendi il blocco Parametro dalla palette.
 
 ## Muoversi sul foglio
 
@@ -119,7 +119,7 @@ Dall'alto:
 1. **La testa**: icona e nome del blocco, e la sua descrizione se il pacchetto ne ha una.
 2. **Etichetta**: un nome tuo, al massimo 80 caratteri; vuoto vuol dire il nome del blocco. Non c'è per le porte di schema (il loro titolo è il nome della porta) né per l'oggetto di una componente (puoi comunque usare **Etichetta…** dal menu).
 3. **Componente UI**: solo per l'oggetto di una componente (**Finestra** e **Componente**). Vedi [L'oggetto di una componente](ide/components).
-4. **Impostazioni**: quelle del blocco. Alcune compaiono solo con certe scelte (per esempio **Decimali (arrotonda)** di **Calcola** solo con **arrotonda**). I tipi di controllo:
+4. **Impostazioni**: quelle del blocco. Alcune compaiono solo con certe scelte (per esempio **Decimali (arrotonda)** di **Funzioni Math** solo con **arrotonda**). I tipi di controllo:
 
 | Controllo | Come si usa |
 |---|---|
@@ -130,7 +130,7 @@ Dall'alto:
 | JSON | Un valore JSON (`{"a": 1}`, `[1, 2]`); se non è JSON valido viene tenuto come testo. |
 | Testo | Al massimo 2000 caratteri. |
 
-5. Per **Ingresso di schema** e **Uscita di schema**, dopo le impostazioni: **Collegamenti nel progetto** con gli schemi collegati a questa porta, ognuno con **Scollega**, e il pulsante **Nella mappa**. Se non è collegata: «Non ancora collegata: collegala nella mappa.» In uno schema da solo: «In un progetto, questa porta si collega agli altri schemi nella mappa.»
+5. Per **Parametro** e **Return**, dopo le impostazioni: **Collegamenti nel progetto** con gli schemi collegati a questa porta, ognuno con **Scollega**, e il pulsante **Nella mappa**. Se non è collegata: «Non ancora collegata: collegala nella mappa.» In uno schema da solo: «In un progetto, questa porta si collega agli altri schemi nella mappa.»
 6. **Porte**: la tabella di **Ingressi** e **Uscite**, con il tipo di ognuna:
    - una porta di base ha il lucchetto, «Porta di base: non si toglie»;
    - una porta aggiunta ha **↑** (Sposta su), **↓** (Sposta giù) e **Togli**, e un campo per il nome se il blocco lascia sceglierlo;
@@ -163,8 +163,8 @@ Quando il pacchetto viene installato, riapri l'IDE: il blocco torna normale con 
 
 Un progetto può avere più schemi. Si parlano **solo** attraverso le porte di schema:
 
-- **Uscita di schema** (categoria Porte di schema): ha l'ingresso **valore**. Ogni valore che le arriva esce dallo schema con il nome della porta.
-- **Ingresso di schema**: ha l'uscita **valore**. Manda nello schema i valori che arrivano alla porta con quel nome dagli altri schemi.
+- **Return** (categoria Porte di schema): ha l'ingresso **valore**. Ogni valore che le arriva esce dallo schema con il nome della porta.
+- **Parametro**: ha l'uscita **valore**. Manda nello schema i valori che arrivano alla porta con quel nome dagli altri schemi.
 
 Nelle Impostazioni: **Nome della porta** (di serie `uscita` e `ingresso`), **Tipo** (qualsiasi, numero, sì/no, testo, oggetto, lista, impulso) e **Descrizione**. Il tipo è quello della porta del blocco e dei riquadri della Mappa.
 
@@ -194,14 +194,14 @@ La barra ha **Adatta**; la barra di stato dice «4 schemi · 2 finestre · 3 col
 ### 1. Media di tre numeri
 
 ```
-[Valore: 4] valore ──▶ a  [Minimo · Massimo · Media] risultato ──▶ valore [Scrivi in console]
-[Valore: 8] valore ──▶ b
-[Valore: 9] valore ──▶ c
+[Costante · Variabile: 4] valore ──▶ a  [Min · Max · Avg] risultato ──▶ valore [Print (console.log)]
+[Costante · Variabile: 8] valore ──▶ b
+[Costante · Variabile: 9] valore ──▶ c
 ```
 
-1. Metti tre **Valore** (impostazione **Valore** = `4`, `8`, `9`) e un **Minimo · Massimo · Media** con **Operazione** = **media**.
-2. Seleziona **Minimo · Massimo · Media** e nelle Proprietà premi **Aggiungi ingresso**: compare **c** in corsivo.
-3. Collega i tre Valori ad **a**, **b**, **c** e **risultato** a **Scrivi in console**.
+1. Metti tre blocchi **Costante · Variabile** (impostazione **Valore** = `4`, `8`, `9`) e un **Min · Max · Avg** con **Operazione** = **media**.
+2. Seleziona **Min · Max · Avg** e nelle Proprietà premi **Aggiungi ingresso**: compare **c** in corsivo.
+3. Collega i tre blocchi Costante · Variabile ad **a**, **b**, **c** e **risultato** a **Print**.
 4. **Prova**: la console scrive `4`, poi `6`, poi `7` (il blocco ricalcola a ogni valore che arriva). Se vuoi solo `7`, togli **lo avvia** da **a** e **b**.
 
 ### 2. Due schemi che si parlano
@@ -209,13 +209,13 @@ La barra ha **Adatta**; la barra di stato dice «4 schemi · 2 finestre · 3 col
 Nello schema **sensori**:
 
 ```
-[Ogni…: 5 s] impulso ──▶ leggi [Data e ora] parti ──▶ oggetto [Prendi campo: second] valore ──▶ valore [Uscita di schema: secondi]
+[Intervallo (setInterval): 5 s] impulso ──▶ leggi [Now (data e ora)] parti ──▶ oggetto [Get proprietà (obj.campo): second] valore ──▶ valore [Return (uscita di schema): secondi]
 ```
 
 Nello schema **display**:
 
 ```
-[Ingresso di schema: secondi] valore ──▶ valore [Scrivi in console]
+[Parametro (ingresso di schema): secondi] valore ──▶ valore [Print (console.log)]
 ```
 
 1. Crea i due schemi e i blocchi; nelle Impostazioni delle porte scrivi `secondi` come **Nome della porta** e **numero** come **Tipo**.

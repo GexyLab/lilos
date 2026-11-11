@@ -1,4 +1,4 @@
-# Get row
+# Row m[r]
 
 `coll.matRow` · Matrices · [Lists and matrices](logicstudio-collections) · version 1
 
@@ -25,15 +25,15 @@ The block waits until it has **matrix** and **row**; then, at every new value, i
 - Rows are counted from 0; negatives count from the end (-1 is the last).
 - Outside the matrix the output is «Indice fuori dalla lista» ("Index outside the list").
 - The row must be an integer: `1.5` gives «Indice: serve un numero intero» ("Index: an integer is needed"). `"1"` is worth 1; `""` and `null` are worth 0.
-- The output is a normal list: you can use it with all the list blocks (for example [Sum · Min · Max · Average](coll.stat) for the total of the row).
+- The output is a normal list: you can use it with all the list blocks (for example [Sum · Min · Max · Avg](coll.stat) for the total of the row).
 
 ## Examples
 
 ### 1. The second row
 
 ```
-[Value (JSON): [[1,2,3],[4,5,6]]] value ──▶ matrix [Get row] row ──▶ value [Write to console]
-[Value: 1]                        value ──▶ row
+[Constant · Variable (JSON): [[1,2,3],[4,5,6]]] value ──▶ matrix [Row m[r]] row ──▶ value [Print (console.log)]
+[Constant · Variable: 1]                        value ──▶ row
 ```
 
 It writes `[4,5,6]`. With row `-2` it writes `[1,2,3]`; with row `2` the output is «Indice fuori dalla lista».
@@ -41,7 +41,7 @@ It writes `[4,5,6]`. With row `-2` it writes `[1,2,3]`; with row `2` the output 
 ### 2. The total of a row
 
 ```
-[Get row] row ──▶ list [Sum · Min · Max · Average: sum] result ──▶ value [Value]
+[Row m[r]] row ──▶ list [Sum · Min · Max · Avg: sum] result ──▶ value [Value]
 ```
 
 On the previous matrix, with row 0, it shows `6`.
@@ -57,6 +57,6 @@ On the previous matrix, with row 0, it shows `6`.
 
 ## See also
 
-- [Get column](coll.matCol), [Get cell](coll.matGet), [Flatten](coll.matFlatten)
-- [Get item](coll.get): on a matrix it also gives the row, but without checking that the matrix is valid
+- [Column m[][c]](coll.matCol), [Get m[r][c]](coll.matGet), [Flatten](coll.matFlatten)
+- [Get list[i]](coll.get): on a matrix it also gives the row, but without checking that the matrix is valid
 - [How a block works](ide/blocks)

@@ -1,4 +1,4 @@
-# Componi oggetto
+# Oggetto { }
 
 `core.compose` · Oggetti · [Blocchi di base](logicstudio-core) · versione 1
 
@@ -26,10 +26,10 @@ Ogni volta che arriva un valore su uno dei campi, il blocco manda su **oggetto**
 - I campi che non hanno ancora ricevuto niente **non ci sono** nell'oggetto. Con i campi `nome` ed `età`, se è arrivato solo `nome` = `"Ada"` esce `{"nome": "Ada"}`.
 - Un campo che riceve `null` c'è, e vale `null`.
 - I valori restano: dopo l'invio i campi tengono il loro valore e la volta dopo l'oggetto li contiene ancora. Per ricominciare da capo bisogna fermare il programma.
-- Il nome è usato **così com'è** come nome del campo: un nome con un punto, come `a.b`, fa un campo che si chiama proprio `a.b` (non un oggetto dentro un altro). Per oggetti dentro oggetti usa due blocchi Componi oggetto, uno collegato a un campo dell'altro.
+- Il nome è usato **così com'è** come nome del campo: un nome con un punto, come `a.b`, fa un campo che si chiama proprio `a.b` (non un oggetto dentro un altro). Per oggetti dentro oggetti usa due blocchi [Oggetto { }](core.compose), uno collegato a un campo dell'altro.
 - Se due campi hanno lo **stesso nome**, nell'oggetto vince quello più in basso nell'elenco delle porte.
 - L'ordine dei campi nell'oggetto è quello delle porte.
-- Il blocco gira **a ogni valore**: con tre campi che arrivano uno dopo l'altro, escono tre oggetti, sempre più completi. Se vuoi un oggetto solo, togli **lo avvia** a tutti i campi tranne quello che arriva per ultimo, oppure usa [Aspetta tutti](core.join).
+- Il blocco gira **a ogni valore**: con tre campi che arrivano uno dopo l'altro, escono tre oggetti, sempre più completi. Se vuoi un oggetto solo, togli **lo avvia** a tutti i campi tranne quello che arriva per ultimo, oppure usa [Attendi tutti (join)](core.join).
 
 Per le regole generali (ingressi, «lo avvia», valore iniziale, Eccezione) vedi [Come funziona un blocco](ide/blocks).
 
@@ -40,9 +40,9 @@ Per le regole generali (ingressi, «lo avvia», valore iniziale, Eccezione) vedi
 Aggiungi tre ingressi e chiamali `nome`, `età` e `città`:
 
 ```
-[Valore: testo "Ada"] valore ──▶ nome  [Componi oggetto] oggetto ──▶ valore [Scrivi in console]
-[Valore: numero 36]   valore ──▶ età
-[Valore: testo "Roma"] valore ──▶ città
+[Costante · Variabile: testo "Ada"] valore ──▶ nome  [Oggetto { }] oggetto ──▶ valore [Print (console.log)]
+[Costante · Variabile: numero 36]   valore ──▶ età
+[Costante · Variabile: testo "Roma"] valore ──▶ città
 ```
 
 All'avvio la console scrive tre righe, una per ogni valore che arriva:
@@ -60,7 +60,7 @@ Togli **lo avvia** da `nome` ed `età`: resta solo l'ultima riga.
 Chiama i campi `sensore` e `gradi`. Su `sensore` togli **lo avvia** e scrivi il valore iniziale `"cucina"`; collega a `gradi` le letture:
 
 ```
-[letture] ──▶ gradi [Componi oggetto] oggetto ──▶ … 
+[letture] ──▶ gradi [Oggetto { }] oggetto ──▶ … 
 ```
 
 Ogni lettura, per esempio 21,5, fa uscire `{"sensore": "cucina", "gradi": 21.5}`.
@@ -68,14 +68,14 @@ Ogni lettura, per esempio 21,5, fa uscire `{"sensore": "cucina", "gradi": 21.5}`
 ### 3. Un oggetto dentro un oggetto
 
 ```
-[Componi oggetto: via, città] oggetto ──▶ indirizzo [Componi oggetto: nome, indirizzo] oggetto ──▶ …
+[Oggetto { }: via, città] oggetto ──▶ indirizzo [Oggetto { }: nome, indirizzo] oggetto ──▶ …
 ```
 
 Con via `"Corso Italia 1"`, città `"Roma"` e nome `"Ada"` esce `{"nome": "Ada", "indirizzo": {"via": "Corso Italia 1", "città": "Roma"}}`.
 
 ## Vedi anche
 
-- [Scomponi oggetto](core.decompose) e [Prendi campo](core.get) per leggere i campi
-- [Componi lista](core.list) per mettere insieme valori in una lista
-- [Aspetta tutti](core.join) per aspettare che siano arrivati tutti
+- [Destruttura oggetto](core.decompose) e [Get proprietà (obj.campo)](core.get) per leggere i campi
+- [Lista [ ]](core.list) per mettere insieme valori in una lista
+- [Attendi tutti (join)](core.join) per aspettare che siano arrivati tutti
 - [Come funziona un blocco](ide/blocks)

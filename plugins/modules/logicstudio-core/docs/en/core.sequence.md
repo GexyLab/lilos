@@ -1,4 +1,4 @@
-# Sequence
+# Sequence (then)
 
 `core.sequence` · Logic · [Core blocks](logicstudio-core) · version 1
 
@@ -28,8 +28,8 @@ When something arrives on **start** (any value, even `false`), the block sends a
 What "one after the other" means:
 
 - The pulses **start** in order, right one after the other: the block linked to **1** receives its pulse before the one linked to **2**.
-- The Sequence **does not wait** for what you linked to **1** to finish: if **1** starts a long job (a web request, a wait, a question in the console), **2** goes off all the same right after. The blocks work independently.
-- If you need step 2 to start only **after** step 1 has finished, link the end output of step 1 (for example **written** of [Write to console](core.consoleWrite)) to the start of step 2, instead of using the Sequence.
+- The Sequence (then) block **does not wait** for what you linked to **1** to finish: if **1** starts a long job (a web request, a wait, a question in the console), **2** goes off all the same right after. The blocks work independently.
+- If you need step 2 to start only **after** step 1 has finished, link the end output of step 1 (for example **written** of [Print (console.log)](core.consoleWrite)) to the start of step 2, instead of using the Sequence (then) block.
 
 Without added outputs, the block does nothing.
 
@@ -38,18 +38,18 @@ Without added outputs, the block does nothing.
 ### 1. Prepare a window at start
 
 ```
-[At start] pulse ──▶ start [Sequence] 1 ──▶ send [Value: 0]       value ──▶ value [Gauge: level]
-                                      2 ──▶ send [Value: "Ready"] value ──▶ text [Label: status]
-                                      3 ──▶ send [Value: true]    value ──▶ enabled [Button: Start]
+[On start (main)] pulse ──▶ start [Sequence (then)] 1 ──▶ send [Constant · Variable: 0]       value ──▶ value [Gauge: level]
+                                      2 ──▶ send [Constant · Variable: "Ready"] value ──▶ text [Label: status]
+                                      3 ──▶ send [Constant · Variable: true]    value ──▶ enabled [Button: Start]
 ```
 
-At start the three [Value](core.value) blocks (with **Send at start** removed) go off in this order: first the [Gauge](ui.gauge) goes back to 0, then the [Label](ui.label) shows `Ready`, then the [Button](ui.button) can be pressed.
+At start the three [Constant · Variable](core.value) blocks that have **send** linked to the Sequence (in the Properties show **send** with the eye) go off in this order: first the [Gauge](ui.gauge) goes back to 0, then the [Label](ui.label) shows `Ready`, then the [Button](ui.button) can be pressed.
 
 ### 2. Clear the console and then write
 
 ```
-[Button: New round] pressed ──▶ start [Sequence] 1 ──▶ clear [Write to console]
-                                                  2 ──▶ send [Value: "--- new round ---"] value ──▶ value [Write to console]
+[Button: New round] pressed ──▶ start [Sequence (then)] 1 ──▶ clear [Print (console.log)]
+                                                  2 ──▶ send [Constant · Variable: "--- new round ---"] value ──▶ value [Print (console.log)]
 ```
 
 At every click the pulse **1** clears the main console and the pulse **2** writes the starting line there. Clearing is a quick operation, so the line arrives after the clearing; with a slow step 1 (a web request, a wait) the order of the results would not be guaranteed.
@@ -64,7 +64,7 @@ This block has no errors of its own.
 
 ## See also
 
-- [Wait for all](core.join) to start when several things are finished
-- [At start](core.onStart) and [Every…](core.every) to start a sequence
-- [Wait](core.delay) to put a pause between two steps
+- [Await all (join)](core.join) to start when several things are finished
+- [On start (main)](core.onStart) and [Interval (setInterval)](core.every) to start a sequence
+- [Delay (setTimeout)](core.delay) to put a pause between two steps
 - [How a block works](ide/blocks)

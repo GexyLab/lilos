@@ -1,4 +1,4 @@
-# Intervallo
+# Range
 
 `coll.range` · Liste · [Liste e matrici](logicstudio-collections) · versione 1
 
@@ -47,7 +47,7 @@ Altri dettagli:
 ### 1. Da 0 a 5
 
 ```
-[Valore: 5] valore ──▶ a [Intervallo] risultato ──▶ valore [Scrivi in console]
+[Costante · Variabile: 5] valore ──▶ a [Range] risultato ──▶ valore [Print (console.log)]
 ```
 
 Scrive `[0,1,2,3,4,5]`. Con **Includi l'ultimo valore** spento: `[0,1,2,3,4]`.
@@ -55,11 +55,11 @@ Scrive `[0,1,2,3,4,5]`. Con **Includi l'ultimo valore** spento: `[0,1,2,3,4]`.
 ### 2. Ripetere qualcosa N volte
 
 ```
-[Campo numerico: quante volte] valore ──▶ a [Intervallo (da = 1)] risultato ──▶ lista [Per ogni elemento] elemento ──▶ valore [Scrivi in console]
-[Pulsante: Vai]                premuto ──▶ avvia [Per ogni elemento]
+[Campo numerico: quante volte] valore ──▶ a [Range (da = 1)] risultato ──▶ lista [For each] elemento ──▶ valore [Print (console.log)]
+[Pulsante: Vai]                premuto ──▶ avvia [For each]
 ```
 
-Dai a **da** il valore iniziale 1. Con 3 nel [Campo numerico](ui.number) e un clic sul [Pulsante](ui.button), [Per ogni elemento](coll.forEach) manda 1, 2, 3 e la console li scrive uno per riga.
+Dai a **da** il valore iniziale 1. Con 3 nel [Campo numerico](ui.number) e un clic sul [Pulsante](ui.button), [For each](coll.forEach) manda 1, 2, 3 e la console li scrive uno per riga.
 
 ### 3. Un asse di valori per un grafico
 
@@ -75,6 +75,6 @@ Dai a **da** il valore iniziale 1. Con 3 nel [Campo numerico](ui.number) e un cl
 
 ## Vedi anche
 
-- [Per ogni elemento](coll.forEach), [Somma · Minimo · Massimo · Media](coll.stat)
-- [Contatore](core.counter) per contare un numero alla volta
+- [For each](coll.forEach), [Sum · Min · Max · Avg](coll.stat)
+- [Contatore (++ −−)](core.counter) per contare un numero alla volta
 - [Come funziona un blocco](ide/blocks)

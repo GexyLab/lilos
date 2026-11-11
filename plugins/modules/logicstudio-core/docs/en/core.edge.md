@@ -1,4 +1,4 @@
-# Edge
+# On change (edge)
 
 `core.edge` · Logic · [Core blocks](logicstudio-core) · version 1
 
@@ -37,11 +37,11 @@ Things to know:
 ### 1. A notification when the temperature goes over the threshold
 
 ```
-[Compare: temperature > 30] result ──▶ value [Edge] becomes true  ──▶ send [Notification: Too hot]
-                                                     becomes false ──▶ send [Notification: All fine]
+[Compare (== != < >): temperature > 30] result ──▶ value [On change (edge)] becomes true  ──▶ send [Notify: Too hot]
+                                                     becomes false ──▶ send [Notify: All fine]
 ```
 
-The [Compare](core.compare) sends yes or no at every measure, maybe every second. Without the Edge you would get a notification at every measure above 30 degrees; with the Edge, just one when the temperature goes over 30 and one when it goes back under.
+The [Compare (== != < >)](core.compare) block sends yes or no at every measure, maybe every second. Without the On change block you would get a notification at every measure above 30 degrees; with the On change block, just one when the temperature goes over 30 and one when it goes back under.
 
 ### 2. A sequence of values
 
@@ -60,10 +60,10 @@ They arrive, in order: `false`, `false`, `true`, `"sì"`, `"no"`, `0`, `1`.
 ### 3. Count how many times it turns on
 
 ```
-[Switch: pump] value ──▶ value [Edge] becomes true ──▶ up [Counter] count ──▶ value [Value: turn-ons]
+[Switch: pump] value ──▶ value [On change (edge)] becomes true ──▶ up [Counter (++ −−)] count ──▶ value [Value: turn-ons]
 ```
 
-The [Counter](core.counter) goes up by 1 every time the pump turns on, not every time the switch sends its state.
+The [Counter (++ −−)](core.counter) block goes up by 1 every time the pump turns on, not every time the switch sends its state.
 
 ## Errors
 
@@ -71,7 +71,7 @@ This block has no errors of its own.
 
 ## See also
 
-- [Compare](core.compare) to get the yes/no to watch
-- [Counter](core.counter) to count the changes
-- [Settle](core.debounce) to ignore changes that are too fast
+- [Compare (== != < >)](core.compare) to get the yes/no to watch
+- [Counter (++ −−)](core.counter) to count the changes
+- [Debounce](core.debounce) to ignore changes that are too fast
 - [How a block works](ide/blocks)

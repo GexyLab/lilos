@@ -1,4 +1,4 @@
-# Per ogni elemento
+# For each
 
 `coll.forEach` · Liste · [Liste e matrici](logicstudio-collections) · versione 1
 
@@ -41,27 +41,27 @@ Tutto questo succede **in un colpo solo**: il blocco non aspetta che i blocchi c
 
 Se colleghi **elemento** e **indice** a due ingressi dello stesso blocco, attento all'ordine: **elemento arriva prima di indice**. Se tutti e due gli ingressi «lo avviano», il blocco gira due volte per elemento, e la prima volta con l'indice **dell'elemento precedente**.
 
-Togli «lo avvia» dall'ingresso che riceve **elemento** e lascialo su quello che riceve **indice**: il blocco gira una volta per elemento, con la coppia giusta. Esempio verificato con la lista `[10, 20, 30]`, **elemento** su **a** e **indice** su **b** di una [Somma](core.add):
+Togli «lo avvia» dall'ingresso che riceve **elemento** e lascialo su quello che riceve **indice**: il blocco gira una volta per elemento, con la coppia giusta. Esempio verificato con la lista `[10, 20, 30]`, **elemento** su **a** e **indice** su **b** di un blocco [Somma (+)](core.add):
 
 | «lo avvia» | Risultati |
 |---|---|
 | su **a** e **b** | 10, 10, 20, 21, 31, 32 |
 | solo su **b** | 10, 21, 32 |
 
-**Non mettere blocchi in mezzo su una sola delle due strade.** Gli elementi partono tutti insieme: se l'**indice** passa prima da un altro blocco (per esempio una Somma per contare da 1) e l'**elemento** no, quando arriva il primo indice il blocco di destinazione ha già ricevuto **tutti** gli elementi e usa l'ultimo. Con `["Anna","Bruno","Carla"]` otterresti `1. Carla`, `2. Carla`, `3. Carla`. Se devi trasformare l'indice o l'elemento, fallo dopo il blocco che li riunisce, sul suo risultato.
+**Non mettere blocchi in mezzo su una sola delle due strade.** Gli elementi partono tutti insieme: se l'**indice** passa prima da un altro blocco (per esempio un blocco Somma (+) per contare da 1) e l'**elemento** no, quando arriva il primo indice il blocco di destinazione ha già ricevuto **tutti** gli elementi e usa l'ultimo. Con `["Anna","Bruno","Carla"]` otterresti `1. Carla`, `2. Carla`, `3. Carla`. Se devi trasformare l'indice o l'elemento, fallo dopo il blocco che li riunisce, sul suo risultato.
 
 ### Quando arriva «fatto»
 
-**fatto** parte dopo che tutti gli elementi sono stati **mandati**, non dopo che i blocchi collegati li hanno **trattati**. Un blocco che riceve gli elementi e anche **fatto** (sullo stesso ingresso o su un altro) li riceve in ordine, con **fatto** per ultimo. Ma se **fatto** va a un blocco diverso, quel blocco può lavorare prima che gli altri abbiano finito: per esempio, una [Scrivi in console](core.consoleWrite) collegata a **fatto** può scrivere prima di un'altra che scrive gli elementi.
+**fatto** parte dopo che tutti gli elementi sono stati **mandati**, non dopo che i blocchi collegati li hanno **trattati**. Un blocco che riceve gli elementi e anche **fatto** (sullo stesso ingresso o su un altro) li riceve in ordine, con **fatto** per ultimo. Ma se **fatto** va a un blocco diverso, quel blocco può lavorare prima che gli altri abbiano finito: per esempio, un blocco [Print (console.log)](core.consoleWrite) collegato a **fatto** può scrivere prima di un'altra che scrive gli elementi.
 
-Se ti serve un risultato su tutta la lista (somma, filtro, valori estratti…), è più semplice e sicuro usare i blocchi che lavorano sulla lista intera: [Somma · Minimo · Massimo · Media](coll.stat), [Filtra](coll.filter), [Estrai campo](coll.pluck).
+Se ti serve un risultato su tutta la lista (somma, filtro, valori estratti…), è più semplice e sicuro usare i blocchi che lavorano sulla lista intera: [Sum · Min · Max · Avg](coll.stat), [Filter](coll.filter), [Map campo](coll.pluck).
 
 ### Lista e impulso all'avvio
 
-Se **lista** e **avvia** arrivano tutti e due quando parte il programma (per esempio da un [Valore](core.value) e da un [All'avvio](core.onStart)), **l'ordine non è garantito**: dipende dall'ordine in cui i blocchi sono stati messi nello schema. Se arriva prima l'impulso, esce «Manca la lista». Per essere sicuro:
+Se **lista** e **avvia** arrivano tutti e due quando parte il programma (per esempio da un blocco [Costante · Variabile](core.value) e da un blocco [All'avvio (main)](core.onStart)), **l'ordine non è garantito**: dipende dall'ordine in cui i blocchi sono stati messi nello schema. Se arriva prima l'impulso, esce «Manca la lista». Per essere sicuro:
 
-- collega lo **stesso** Valore sia a **lista** sia ad **avvia**, facendo prima il collegamento verso **lista**: il Valore manda la lista ai due ingressi nell'ordine in cui hai fatto i collegamenti;
-- oppure fai partire il giro da un'azione successiva (un [Pulsante](ui.button)), o passa l'impulso da un [Aspetta](core.delay).
+- collega lo **stesso** blocco Costante · Variabile sia a **lista** sia ad **avvia**, facendo prima il collegamento verso **lista**: il blocco manda la lista ai due ingressi nell'ordine in cui hai fatto i collegamenti;
+- oppure fai partire il giro da un'azione successiva (un [Pulsante](ui.button)), o passa l'impulso da un blocco [Ritardo (setTimeout)](core.delay).
 
 ### Limiti
 
@@ -72,7 +72,7 @@ Ogni elemento fa lavorare i blocchi collegati: con liste lunghe si raggiunge in 
 ### 1. Scrivere ogni elemento
 
 ```
-[Valore (JSON): ["Anna","Bruno","Carla"]] valore ──▶ lista [Per ogni elemento] elemento ──▶ valore [Scrivi in console]
+[Costante · Variabile (JSON): ["Anna","Bruno","Carla"]] valore ──▶ lista [For each] elemento ──▶ valore [Print (console.log)]
                                           valore ──▶ avvia
 ```
 
@@ -81,11 +81,11 @@ Fai prima il collegamento verso **lista**, poi quello verso **avvia**. La consol
 ### 2. Numerare le righe
 
 ```
-[Per ogni elemento] elemento ──▶ nome [Formatta testo: {i}: {nome}] testo ──▶ valore [Scrivi in console]
+[For each] elemento ──▶ nome [Template (formatta): {i}: {nome}] testo ──▶ valore [Print (console.log)]
                     indice   ──▶ i
 ```
 
-In [Formatta testo](core.format) aggiungi i segnaposto **nome** e **i**, e togli «lo avvia» da **nome**. Con `["Anna","Bruno","Carla"]` la console scrive `0: Anna`, `1: Bruno`, `2: Carla`. Gli indici partono da 0. Non provare a contare da 1 mettendo una [Somma](core.add) solo sulla strada dell'indice: per l'avvertenza in «Elemento e indice nello stesso blocco», usciresti con il nome sbagliato.
+In [Template (formatta)](core.format) aggiungi i segnaposto **nome** e **i**, e togli «lo avvia» da **nome**. Con `["Anna","Bruno","Carla"]` la console scrive `0: Anna`, `1: Bruno`, `2: Carla`. Gli indici partono da 0. Non provare a contare da 1 mettendo un blocco [Somma (+)](core.add) solo sulla strada dell'indice: per l'avvertenza in «Elemento e indice nello stesso blocco», usciresti con il nome sbagliato.
 
 ### 3. Lista vuota
 
@@ -93,7 +93,7 @@ Con la lista `[]` e un impulso su **avvia**, non esce niente su **elemento** e *
 
 ### 4. Senza lista
 
-Un impulso su **avvia** prima che sia arrivata una lista dà, nella console principale, «Per ogni elemento: Manca la lista».
+Un impulso su **avvia** prima che sia arrivata una lista dà, nella console principale, «For each: Manca la lista».
 
 ## Errori
 
@@ -104,8 +104,8 @@ Un impulso su **avvia** prima che sia arrivata una lista dà, nella console prin
 
 ## Vedi anche
 
-- [Intervallo](coll.range) per ripetere qualcosa N volte
-- [Accumula](coll.accumulate) per raccogliere di nuovo i valori in una lista
-- [Somma · Minimo · Massimo · Media](coll.stat), [Filtra](coll.filter), [Estrai campo](coll.pluck)
-- [Sequenza](core.sequence), [Aspetta](core.delay)
+- [Range](coll.range) per ripetere qualcosa N volte
+- [Accumula (push con limite)](coll.accumulate) per raccogliere di nuovo i valori in una lista
+- [Sum · Min · Max · Avg](coll.stat), [Filter](coll.filter), [Map campo](coll.pluck)
+- [Sequenza (then)](core.sequence), [Ritardo (setTimeout)](core.delay)
 - [Come funziona un blocco](ide/blocks), [Limiti](logicstudio-engine/limits)
