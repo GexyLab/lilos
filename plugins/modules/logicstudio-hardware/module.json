@@ -1,6 +1,6 @@
 {
   "name": "logicstudio-hardware",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Logic Studio: i blocchi Hardware del computer dove gira lilOS (porte seriali, USB, HID, webcam, audio, MIDI, informazioni di sistema, stampanti, GPIO e I²C su Linux), solo per chi ha il permesso",
   "icon": {
     "glyph": "chip",

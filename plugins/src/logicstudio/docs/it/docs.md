@@ -24,7 +24,7 @@ La finestra è una sola: se è già aperta, va in primo piano e mostra la pagina
 
 ## Come si usa
 
-- A sinistra c'è l'**indice**: la guida dell'IDE, poi un gruppo per ogni pacchetto installato, con la **Panoramica** del pacchetto e i suoi blocchi o componenti divisi per categoria, come nella palette. La pagina aperta è evidenziata.
+- A sinistra c'è l'**indice**: la guida dell'IDE, poi un gruppo per ogni pacchetto installato, con la **Panoramica** del pacchetto e i suoi blocchi o componenti divisi per categoria e sottocategoria, come nella palette. La pagina aperta è evidenziata.
 - I **collegamenti** nel testo portano ad altre pagine: un blocco, un pacchetto, una pagina di questa guida. Quelli che vanno fuori da lilOS si aprono in una nuova scheda del browser.
 - **Indietro** e **Avanti** (le frecce in alto a sinistra, oppure **Alt+←** e **Alt+→**) ripercorrono le pagine viste; la casetta torna alla **Pagina iniziale** (la panoramica della guida).
 - La **ricerca** (casella sopra l'indice, oppure **Ctrl+F**) filtra l'indice per titolo e per tipo: scrivi il nome di un blocco (`somma`) o il suo tipo (`core.add`). **Invio** apre la prima pagina trovata.

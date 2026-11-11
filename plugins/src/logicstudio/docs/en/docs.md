@@ -24,7 +24,7 @@ There is only one window: if it is already open, it comes to the front and shows
 
 ## How to use it
 
-- On the left is the **contents**: the IDE guide, then a group for each installed package, with the **Overview** of the package and its blocks or components divided by category, as in the palette. The open page is highlighted.
+- On the left is the **contents**: the IDE guide, then a group for each installed package, with the **Overview** of the package and its blocks or components divided by category and subcategory, as in the palette. The open page is highlighted.
 - The **links** in the text lead to other pages: a block, a package, a page of this guide. Those that go outside lilOS open in a new browser tab.
 - **Back** and **Forward** (the arrows at the top left, or **Alt+←** and **Alt+→**) go back over the pages seen; the little house returns to the **Start page** (the overview of the guide).
 - The **search** (the box above the contents, or **Ctrl+F**) filters the contents by title and by type: type the name of a block (`add`) or its type (`core.add`). **Enter** opens the first page found.

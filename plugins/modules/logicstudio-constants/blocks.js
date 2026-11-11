@@ -174,3 +174,32 @@ export const blocks = [
   constantBlock('const.astro', 'globe', L('Astronomical and Earth constants', 'Costanti astronomiche e della Terra'), ASTRO, true),
 ];
 
+
+/**
+ * The subcategories of the Blocchi sidebar of Logic Studio IDE: it groups the blocks of a crowded
+ * category under them, in `order` (shared by every package of the same category).
+ */
+const SUBCATEGORIES = {
+  constMath: [
+    ['classic', L('Classic constants', 'Costanti classiche'), ['const.pi', 'const.tau', 'const.e', 'const.phi', 'const.silver', 'const.plastic', 'const.sqrt2', 'const.sqrtHalf', 'const.sqrt3', 'const.ln2', 'const.ln10', 'const.log2e', 'const.log10e', 'const.deg']],
+    ['analysis', L('Analysis and dynamical systems', 'Analisi e sistemi dinamici'), ['const.gamma', 'const.catalan', 'const.apery', 'const.omega', 'const.khinchin', 'const.feigenbaumDelta', 'const.feigenbaumAlpha']],
+    ['limits', L('Number limits', 'I limiti dei numeri'), ['const.epsilon', 'const.maxSafe', 'const.maxValue', 'const.minValue']],
+  ],
+  constPhysics: [
+    ['si', L('The SI defining constants, and ħ', 'Le costanti che definiscono il SI, e ħ'), ['const.c', 'const.h', 'const.hbar', 'const.qe', 'const.kB', 'const.NA', 'const.dnuCs', 'const.Kcd']],
+    ['planck', L('Gravitation and Planck units', 'Gravitazione e unità di Planck'), ['const.G', 'const.planckLength', 'const.planckMass', 'const.planckTime', 'const.planckTemp']],
+    ['em', L('Electromagnetic', 'Elettromagnetiche'), ['const.mu0', 'const.eps0', 'const.ke', 'const.Z0', 'const.Phi0', 'const.G0', 'const.KJ', 'const.RK', 'const.muB', 'const.muN']],
+    ['atomic', L('Atomic and nuclear', 'Atomiche e nucleari'), ['const.alpha', 'const.alphaInv', 'const.Rinf', 'const.a0', 'const.Eh', 'const.me', 'const.mp', 'const.mn', 'const.mmu', 'const.mpme', 'const.u', 'const.re', 'const.lambdaC', 'const.eV']],
+    ['chemistry', L('Physico-chemical', 'Fisico-chimiche'), ['const.R', 'const.F', 'const.sigma', 'const.b', 'const.Vm', 'const.n0', 'const.atm', 'const.T0']],
+  ],
+  constAstro: [
+    ['distances', L('Distances and times', 'Distanze e tempi'), ['const.au', 'const.ly', 'const.pc', 'const.year']],
+    ['sun', L('The Sun', 'Il Sole'), ['const.GMsun', 'const.Msun', 'const.Rsun', 'const.Lsun', 'const.Tsun', 'const.S']],
+    ['earth', L('The Earth', 'La Terra'), ['const.GMearth', 'const.Mearth', 'const.ReEarth', 'const.RpEarth', 'const.RmEarth', 'const.omegaEarth', 'const.gn']],
+  ],
+};
+for (const [category, subs] of Object.entries(SUBCATEGORIES)) {
+  subs.forEach(([id, label, types], i) => {
+    for (const b of blocks) if (b.category === category && types.includes(b.type)) b.subcategory = { id, label, order: i };
+  });
+}

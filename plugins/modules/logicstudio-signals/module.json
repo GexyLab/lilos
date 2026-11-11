@@ -1,6 +1,6 @@
 {
   "name": "logicstudio-signals",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Logic Studio: i blocchi per la teoria dei segnali (generatori, FFT, densità spettrale, spettrogramma, filtri IIR, FIR e biquad, convoluzione, correlazione, misure, distorsione, modulazione AM, FM e PM)",
   "icon": {
     "glyph": "chart",

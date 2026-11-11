@@ -1,6 +1,6 @@
 {
   "name": "logicstudio-influxdb",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Logic Studio: i blocchi InfluxDB (2.x, 3.x e 1.8+): scrivere punti, query Flux, InfluxQL e SQL, bucket e cancellazione, con i server della rete locale bloccati se l'amministratore non li permette",
   "icon": {
     "glyph": "database",

@@ -95,6 +95,14 @@
 .ls-pal-it:hover:not(:disabled) { background: var(--hover); }
 .ls-pal-it:disabled { opacity: .5; cursor: default; }
 .ls-pal-it .ico { color: var(--cat, var(--lc-other)); }
+/* subcategories of a crowded category: a smaller heading, the blocks one step further in */
+.ls-pal-sub { display: flex; align-items: center; gap: 6px; width: 100%; padding: 5px 12px 2px 18px; border: 0; background: none; font: inherit; font-size: 11px; font-weight: 600; color: var(--dim); text-align: left; cursor: pointer; }
+.ls-pal-sub:hover { color: var(--text); }
+.ls-pal-sub:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.ls-pal-sub .tw { width: 10px; flex: none; text-align: center; font-size: 9px; color: var(--faint, var(--dim)); }
+.ls-pal-sub .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ls-pal-sub .n { font-weight: 500; color: var(--faint, var(--dim)); }
+.ls-pal-it.nested { padding-left: 34px; }
 .ls-pal-it span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* Proprietà */
@@ -255,6 +263,7 @@
 .ls-doc-tree { flex: 1; overflow: auto; padding: 0 0 12px; }
 .ls-doc-group { padding: 12px 12px 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--dim); }
 .ls-doc-cat { padding: 6px 12px 2px 18px; font-size: 11px; font-weight: 600; color: var(--faint); }
+.ls-doc-cat.sub { padding: 4px 12px 1px 26px; font-weight: 500; font-style: italic; }
 .ls-doc-it { display: block; width: 100%; padding: 4px 12px 4px 22px; border: 0; background: none; color: var(--text); font: inherit; font-size: 12.5px; text-align: start; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ls-doc-it.strong { font-weight: 600; }
 .ls-doc-it:hover { background: var(--hover); }

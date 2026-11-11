@@ -184,18 +184,33 @@ export class DocsViewer {
         const cat = x.def?.category ?? 'other';
         (byCat.get(cat) ?? byCat.set(cat, []).get(cat)).push(x);
       }
+      const byTitle = (a, b) => a.title.localeCompare(b.title);
+      const page = x => ({ address: x.page, title: x.title, pack: p.pack, page: x.page, type: x.page });
       for (const [cat, list] of byCat) {
         const kind = list[0].def && this.#studio.componentDef(list[0].page) ? 'components' : 'blocks';
-        items.push({ heading: t(`cat.${kind}.${cat}`) ?? cat });
-        for (const x of list.sort((a, b) => a.title.localeCompare(b.title))) items.push({ address: x.page, title: x.title, pack: p.pack, page: x.page, type: x.page });
+        items.push({ heading: t(`cat.${kind}.${cat}`) ?? cat, level: 1 });
+        // the subcategories of the palette, when the category has them
+        if (!list.some(x => x.def?.subcategory)) { for (const x of list.sort(byTitle)) items.push(page(x)); continue; }
+        const subs = new Map();
+        list.forEach((x, i) => {
+          const sc = x.def?.subcategory;
+          const id = sc?.id ?? '~other';
+          if (!subs.has(id)) subs.set(id, { label: sc ? this.#studio.label(sc) : t('palette.otherSub'), order: sc?.order ?? Infinity, first: sc ? i : Infinity, list: [] });
+          subs.get(id).list.push(x);
+        });
+        for (const s of [...subs.values()].sort((a, b) => a.order - b.order || a.first - b.first)) {
+          items.push({ heading: s.label, level: 2 });
+          for (const x of s.list.sort(byTitle)) items.push(page(x));
+        }
       }
-      // a category stays when something under it is found
+      // a category (and a subcategory) stays when something under it is found
       const shown = [];
-      let heading = null;
+      let pending = [];
       for (const it of items) {
-        if (it.heading) { heading = it; continue; }
+        if (it.heading) { pending = [...pending.filter(x => x.level < it.level), it]; continue; }
         if (!match(it.title, it.type, p.pack)) continue;
-        if (heading) { shown.push(heading); heading = null; }
+        shown.push(...pending);
+        pending = [];
         shown.push(it);
       }
       groups.push({ label: this.#studio.label(p) || p.pack, items: shown });
@@ -207,7 +222,7 @@ export class DocsViewer {
       if (!g.items.some(it => !it.heading)) continue;
       rows.push(h('div', { class: 'ls-doc-group' }, g.label));
       for (const it of g.items) {
-        if (it.heading) { rows.push(h('div', { class: 'ls-doc-cat' }, it.heading)); continue; }
+        if (it.heading) { rows.push(h('div', { class: it.level === 2 ? 'ls-doc-cat sub' : 'ls-doc-cat' }, it.heading)); continue; }
         const on = cur && cur.pack === it.pack && cur.page === it.page;
         rows.push(h('button', {
           type: 'button', class: `ls-doc-it${on ? ' on' : ''}${it.strong ? ' strong' : ''}`, title: it.type ?? '',

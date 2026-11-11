@@ -1,6 +1,6 @@
 {
   "name": "logicstudio-elasticsearch",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Logic Studio: i blocchi Elasticsearch e OpenSearch: indicizzare, leggere, cercare, aggiornare, cancellare e contare documenti, con i server della rete locale bloccati se l'amministratore non li permette",
   "icon": {
     "glyph": "database",

@@ -1,6 +1,6 @@
 {
   "name": "logicstudio-db",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Logic Studio: i blocchi dei database SQL (PostgreSQL, MySQL e MariaDB, SQL Server, SQLite, Oracle, ClickHouse): query con parametri, tabelle senza SQL, transazioni, cursori e LISTEN di PostgreSQL, con password cifrate e il database di lilOS sempre escluso",
   "icon": {
     "glyph": "database",

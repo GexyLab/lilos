@@ -1,6 +1,6 @@
 {
   "name": "logicstudio-constants",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Logic Studio: i blocchi delle costanti fondamentali (matematiche come π ed e, fisiche CODATA 2022 come c, h e G, astronomiche e della Terra)",
   "icon": {
     "glyph": "calculator",

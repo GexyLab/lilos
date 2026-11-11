@@ -579,5 +579,19 @@ export const blocks = [
   },
 ];
 
+/**
+ * The subcategories of the Blocchi sidebar of Logic Studio IDE: it groups the blocks of a crowded
+ * category under them, in `order` (shared by every package of the same category).
+ */
+const SUBCATEGORIES = [
+  ['space', L('Space and time', 'Spazio e tempo'), ['unit.length', 'unit.area', 'unit.volume', 'unit.angle', 'unit.time', 'unit.speed', 'unit.acceleration', 'unit.frequency']],
+  ['mechanics', L('Mass, force and energy', 'Massa, forza ed energia'), ['unit.mass', 'unit.force', 'unit.pressure', 'unit.energy', 'unit.power', 'unit.torque', 'unit.density', 'unit.flow']],
+  ['other', L('Heat, data and fuel', 'Calore, dati e consumi'), ['unit.temperature', 'unit.data', 'unit.dataRate', 'unit.fuel']],
+  ['general', L('General blocks', 'Blocchi generici'), ['unit.convert', 'unit.prefix', 'unit.parse', 'unit.format', 'unit.list']],
+];
+SUBCATEGORIES.forEach(([id, label, types], i) => {
+  for (const b of blocks) if (types.includes(b.type)) b.subcategory = { id, label, order: i };
+});
+
 /** For the tests and the documentation generator: the tables (not used by the engine). */
 export const tables = { QUANTITIES, UNITS, ALIASES, PREFIXES, PREFIXABLE };

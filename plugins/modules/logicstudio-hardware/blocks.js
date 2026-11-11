@@ -937,3 +937,18 @@ function gpioEdges(b) {
     },
   });
 }
+
+/**
+ * The subcategories of the Blocchi sidebar of Logic Studio IDE: it groups the blocks of a crowded
+ * category under them, in `order` (shared by every package of the same category).
+ */
+const SUBCATEGORIES = [
+  ['serial', L('Serial, USB and HID', 'Seriale, USB e HID'), ['hw.serialList', 'hw.serial', 'hw.usbList', 'hw.usbHotplug', 'hw.usbTransfer', 'hw.hid']],
+  ['video', L('Webcam and video', 'Webcam e video'), ['hw.webcamList', 'hw.photo', 'hw.webcamStream', 'hw.videoRecord']],
+  ['audio', L('Audio and MIDI', 'Audio e MIDI'), ['hw.audioDevices', 'hw.play', 'hw.tone', 'hw.speak', 'hw.audioRecord', 'hw.micLevel', 'hw.volume', 'hw.midi']],
+  ['system', L('System', 'Sistema'), ['hw.systemInfo', 'hw.battery', 'hw.disks', 'hw.network', 'hw.printers']],
+  ['pins', L('GPIO and I²C', 'GPIO e I²C'), ['hw.gpio', 'hw.i2c']],
+];
+SUBCATEGORIES.forEach(([id, label, types], i) => {
+  for (const b of blocks) if (types.includes(b.type)) b.subcategory = { id, label, order: i };
+});

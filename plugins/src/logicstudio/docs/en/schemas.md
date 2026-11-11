@@ -42,6 +42,7 @@ The **Blocks** tab on the left lists the blocks of the installed packages, divid
 
 - **Search…** at the top filters by name or by type (`add`, `core.add`). If it finds nothing: **Nothing found**.
 - **A click on the name of a category** collapses it (▸) or expands it again (▾); next to it is how many blocks it has. Collapsed categories stay so the next time too. **Right click** on the name: **Collapse** / **Expand**, **Collapse all**, **Expand all**. While searching, the categories with results are all open: those you collapse there open again when you change the search.
+- Categories with **many blocks** are split into **subcategories**, with a smaller title: for example **Signals** into Generation, Frequency, Filters…, **Databases** into SQL databases, MongoDB, Redis, InfluxDB and Elasticsearch, **Geometry** into plane, solids and space. A subcategory too collapses and expands with a click on its title, and stays so the next time; **right click** on the title: **Collapse** / **Expand**, **Collapse the groups of this category**, **Expand the groups of this category**. The blocks of a package that does not give a subcategory go under **Others**, at the end. While searching only the subcategories with results are shown.
 - **One click** on a block puts it in the middle of the view and selects it. Repeated clicks put the blocks a little lower and to the right of each other, never one on top of the other.
 - **Dragging** the block onto the sheet puts it where you drop it.
 - The blocks of the palette are off when the open tab is not a schema (Home, Map).

@@ -703,6 +703,19 @@ export const blocks = [
   },
 ];
 
+/**
+ * The subcategories of the Blocchi sidebar of Logic Studio IDE: it groups the blocks of a crowded
+ * category under them, in `order` (shared by every package of the same category).
+ */
+const SUBCATEGORIES = [
+  ['boolean', L('Booleans and comparison', 'Booleani e confronti'), ['core.and', 'core.or', 'core.xor', 'core.not', 'core.compare']],
+  ['decisions', L('Decisions', 'Decisioni'), ['core.if', 'core.switch', 'core.select', 'core.route']],
+  ['flows', L('Flows', 'Flussi'), ['core.merge', 'core.join', 'core.sequence', 'core.edge']],
+];
+SUBCATEGORIES.forEach(([id, label, types], i) => {
+  for (const b of blocks) if (types.includes(b.type)) b.subcategory = { id, label, order: i };
+});
+
 function valueOf(config) {
   const v = config.value;
   switch (config.kind) {

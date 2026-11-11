@@ -339,3 +339,9 @@ export const blocks = [
     },
   },
 ];
+
+/**
+ * The subcategories of the Blocchi sidebar of Logic Studio IDE: it groups the blocks of a crowded
+ * category under them, in `order` (shared by every package of the same category).
+ */
+for (const b of blocks) b.subcategory = { id: 'mongodb', label: L('MongoDB', 'MongoDB'), order: 1 };

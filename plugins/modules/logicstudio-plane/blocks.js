@@ -828,3 +828,16 @@ export const blocks = [
     },
   }),
 ];
+
+/**
+ * The subcategories of the Blocchi sidebar of Logic Studio IDE: it groups the blocks of a crowded
+ * category under them, in `order` (shared by every package of the same category).
+ */
+const SUBCATEGORIES = [
+  ['planePoints', L('Plane: points and lines', 'Piano: punti e rette'), ['plane.point', 'plane.split', 'plane.distance', 'plane.midpoint', 'plane.line', 'plane.parallel', 'plane.bisector', 'plane.intersect']],
+  ['planeShapes', L('Plane: shapes', 'Piano: figure'), ['plane.circle', 'plane.polygon', 'plane.regular', 'plane.conic', 'plane.inside', 'plane.bounds', 'plane.hull']],
+  ['planeTransform', L('Plane: transformations and drawing', 'Piano: trasformazioni e disegno'), ['plane.transform', 'plane.matrix', 'plane.apply', 'plane.svg']],
+];
+SUBCATEGORIES.forEach(([id, label, types], i) => {
+  for (const b of blocks) if (types.includes(b.type)) b.subcategory = { id, label, order: i };
+});

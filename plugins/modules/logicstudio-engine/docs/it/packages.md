@@ -120,6 +120,7 @@ Quando tutto va bene il log dice: `Logic Studio: pacchetto logicstudio-esempio 1
 | `type` | `pacchetto.nome`: `[a-z][a-z0-9]*\.[a-zA-Z][a-zA-Z0-9]{0,40}`, per esempio `esempio.media`. Unico fra tutti i pacchetti |
 | `version` | Un intero da 1. Alzalo quando cambi il comportamento o le impostazioni (vedi **upgrade**) |
 | `category` | Dove sta nella scheda **Blocchi**: `value` (Valori), `logic` (Logica), `math` (Matematica), `text` (Testo), `object` (Oggetti), `list` (Liste), `matrix` (Matrici), `units` (Unità di misura), `geometry` (Geometria: piana e solida), `trig` (Trigonometria), `functions` (Funzioni), `integrals` (Integrali), `analysis` (Analisi numerica), `signal` (Segnali), `time` (Tempo), `console` (Console), `schema` (Porte di schema), `ui` (Componenti UI), `lilos` (lilOS), `net` (Rete), `hardware` (Hardware), `db` (Database), `exception` (Eccezioni). Un'altra parola, o niente: **Altro** |
+| `subcategory` | Come per i blocchi |
 | `icon` | Il nome di un'icona di lilOS (`calculator`, `bell`, `globe`, `clock`, `lamp`…). Di serie `blocks` |
 | `label` | Il nome del blocco: `{ en, it }` |
 | `description` | Facoltativa: una frase `{ en, it }` |
@@ -135,6 +136,7 @@ Quando tutto va bene il log dice: `Logic Studio: pacchetto logicstudio-esempio 1
 | `role` | Riservato ai blocchi di base (`schemaIn`, `schemaOut`, `component`, `catchAll`): non usarlo |
 | `showError` | `true`: l'uscita **Exception** si vede nel disegno da subito, invece di essere nascosta di serie (dal motore 1.4.1 e lilOS 1.44.0). Per i blocchi il cui scopo è proprio lanciare eccezioni, come [Throw](core.throw) |
 | `obsolete` | Un'etichetta `{ en, it }` (o `true`) per un blocco sostituito da altri. Il motore lo esegue ancora negli schemi già salvati (dal motore 1.8.0), il catalogo lo dà come `obsolete`, l'IDE (dal 1.17.0) non lo mostra nell'elenco **Blocchi** e scrive il testo nel pannello **Proprietà**. Per esempio `core.convert`, sostituito da [Cast in numero (Number())](core.toNumber) e dagli altri quattro Cast |
+| `subcategory` | Facoltativo, dal motore 1.9.0 e dall'IDE 1.18.0: `{ id, label: { en, it }, order }`, la **sottocategoria** dentro la categoria, per le categorie con molti blocchi. `id`: lettere e cifre; `order`: un intero da 0 a 999 che mette in ordine le sottocategorie della stessa categoria, anche tra pacchetti diversi (per esempio `logicstudio-plane` usa 0-2 e `logicstudio-solid` 3-4 in `geometry`). Nella palette i blocchi di una categoria con sottocategorie vanno sotto un titolo più piccolo; quelli senza vanno in **Altri**. Un valore non valido vale come niente; un motore più vecchio lo ignora |
 
 Un blocco senza `run` tiene i valori che riceve e non fa altro (serve, per esempio, a un blocco `loop` che li legge a ogni giro).
 

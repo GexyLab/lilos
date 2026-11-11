@@ -1449,3 +1449,21 @@ function decimate(xs, ys, max) {
   return out;
 }
 
+
+/**
+ * The subcategories of the Blocchi sidebar of Logic Studio IDE: it groups the blocks of a crowded
+ * category under them, in `order` (shared by every package of the same category).
+ */
+const SUBCATEGORIES = [
+  ['generation', L('Generation', 'Generazione'), ['sig.oscillator', 'sig.noise', 'sig.elementary', 'sig.chirp']],
+  ['data', L('Signal ↔ data', 'Segnale ↔ dati'), ['sig.fromList', 'sig.info', 'sig.buffer', 'sig.play', 'sig.toChart']],
+  ['time', L('Time-domain operations', 'Operazioni nel tempo'), ['sig.combine', 'sig.gain', 'sig.window', 'sig.edit', 'sig.resample', 'sig.quantize', 'sig.nonlinear']],
+  ['frequency', L('Frequency', 'Frequenza'), ['sig.fft', 'sig.ifft', 'sig.psd', 'sig.spectrogram', 'sig.peaks', 'sig.goertzel']],
+  ['filters', L('Filters', 'Filtri'), ['sig.iir', 'sig.biquad', 'sig.fir', 'sig.smooth', 'sig.difference', 'sig.response']],
+  ['convolution', L('Convolution and correlation', 'Convoluzione e correlazione'), ['sig.convolve', 'sig.correlate']],
+  ['measures', L('Measures', 'Misure'), ['sig.measure', 'sig.distortion', 'sig.frequency', 'sig.envelope', 'sig.db']],
+  ['modulation', L('Modulation', 'Modulazione'), ['sig.modulate', 'sig.demodulate']],
+];
+SUBCATEGORIES.forEach(([id, label, types], i) => {
+  for (const b of blocks) if (types.includes(b.type)) b.subcategory = { id, label, order: i };
+});

@@ -172,6 +172,16 @@ async function readPages(dir, lang) {
 
 const cleanLabel = (label, fallback) => (label && typeof label === 'object' ? { en: String(label.en ?? fallback), ...(label.it && { it: String(label.it) }) } : { en: String(label ?? fallback) });
 
+/**
+ * Where a definition goes inside its category of the IDE's palette: { id, label, order } or null.
+ * `order` puts the subcategories of a category in order, also across packages (0…999).
+ */
+function cleanSubcategory(sc) {
+  if (!sc || typeof sc !== 'object' || !/^[a-zA-Z][a-zA-Z0-9]{0,30}$/.test(sc.id ?? '')) return null;
+  const order = Number.isInteger(sc.order) && sc.order >= 0 && sc.order <= 999 ? sc.order : null;
+  return { id: sc.id, label: cleanLabel(sc.label, sc.id), order };
+}
+
 function checkPorts(list) {
   if (list === undefined) return null;
   if (!Array.isArray(list)) return 'porte non valide';
@@ -224,6 +234,7 @@ function describeBlock(def, pack) {
     execution: def.execution === 'loop' ? 'loop' : 'run', upgradable: typeof def.upgrade === 'function',
     // obsolete: replaced by other blocks; saved schemas still run it, the IDE no longer offers it
     obsolete: def.obsolete ? cleanLabel(def.obsolete === true ? '' : def.obsolete, '') : null,
+    subcategory: cleanSubcategory(def.subcategory),
   };
 }
 
@@ -234,5 +245,6 @@ function describeComponent(def, pack) {
     label: cleanLabel(def.label, def.type), container: def.container === true,
     inputs: plainList(def.inputs), outputs: plainList(def.outputs), props: plainList(def.props),
     grow: def.grow ? JSON.parse(JSON.stringify(def.grow)) : null, size: def.size ?? null,
+    subcategory: cleanSubcategory(def.subcategory),
   };
 }

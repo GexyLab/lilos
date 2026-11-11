@@ -550,3 +550,21 @@ export const blocks = [
     },
   },
 ];
+
+/**
+ * The subcategories of the Blocchi sidebar of Logic Studio IDE: it groups the blocks of a crowded
+ * category under them, in `order` (shared by every package of the same category).
+ */
+const SUBCATEGORIES = [
+  ['read', L('Read', 'Leggere'), ['coll.length', 'coll.get', 'coll.slice', 'coll.contains', 'coll.random']],
+  ['change', L('Change', 'Modificare'), ['coll.set', 'coll.add', 'coll.insert', 'coll.removeAt', 'coll.concat', 'coll.accumulate']],
+  ['order', L('Sort and filter', 'Ordinare e filtrare'), ['coll.reverse', 'coll.sort', 'coll.unique', 'coll.filter', 'coll.pluck']],
+  ['make', L('Make and convert', 'Creare e convertire'), ['coll.range', 'coll.split', 'coll.join']],
+  ['compute', L('Compute and loop', 'Calcolare e scorrere'), ['coll.stat', 'coll.forEach']],
+  ['matMake', L('Make', 'Creare'), ['coll.matNew', 'coll.matIdentity', 'coll.matFromList']],
+  ['matRead', L('Read and write', 'Leggere e scrivere'), ['coll.matSize', 'coll.matGet', 'coll.matSet', 'coll.matRow', 'coll.matCol', 'coll.matFlatten']],
+  ['matOps', L('Operations', 'Operazioni'), ['coll.matTranspose', 'coll.matAdd', 'coll.matSubtract', 'coll.matMultiply', 'coll.matScale', 'coll.matDet']],
+];
+SUBCATEGORIES.forEach(([id, label, types], i) => {
+  for (const b of blocks) if (types.includes(b.type)) b.subcategory = { id, label, order: i };
+});

@@ -1,6 +1,6 @@
 {
   "name": "logicstudio-plane",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Logic Studio: i blocchi di geometria piana (punti 2D, distanze, rette, intersezioni, cerchi, poligoni, coniche, trasformazioni 2D con le matrici 3×3, disegno SVG)",
   "icon": {
     "glyph": "grid",

@@ -1,6 +1,6 @@
 {
   "name": "logicstudio-functions",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Logic Studio: i blocchi per le funzioni algebriche, esponenziali e logaritmiche e il calcolo differenziale (espressioni come 3x^2 + sin(x), equazioni, polinomi, derivate simboliche e numeriche, tangente, limiti, Taylor, studio di funzione)",
   "icon": {
     "glyph": "function",
