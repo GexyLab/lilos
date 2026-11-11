@@ -62,6 +62,7 @@ This block has no added ports.
 - **Isolation**: Oracle only knows *Read committed* (the default) and *Serializable*; *Repeatable read* and *Snapshot* become *Serializable*.
 - **Encrypted connection**: the encryption is made by lilOS itself, with a small local tunnel used only by this connection. The listener's redirects to another address (RAC installations) are not followed.
 - Notifications (LISTEN and NOTIFY) are not available.
+- **Redirects**: lilOS always reaches the server through a small local tunnel (also without encryption) and closes the connection if the listener asks to move to another address (a *redirect*, typical of RAC and shared servers): so the kernel never reaches an address it did not check. A server that redirects cannot be used: connect to the instance directly.
 
 ## Examples
 
@@ -94,6 +95,7 @@ The messages are in Italian, as the block sends them; the server's own messages 
 
 | Message | When |
 |---|---|
+| Il server Oracle ha chiesto di collegarsi a un altro indirizzo (redirect): non è permesso | The listener asked to move to another address (redirect, not allowed); connect to the instance directly. |
 | Manca il servizio di Oracle (nome del servizio, per esempio FREEPDB1, o il database) | **Service name** is empty. |
 | Nome del servizio non valido: … (lettere, cifre, . _ $ # -) | The service name has symbols that are not allowed (invalid service name). |
 | La connessione TLS a Oracle non è riuscita: … | The encryption could not be set up (invalid certificate, unencrypted port...): the TLS connection to Oracle failed. |

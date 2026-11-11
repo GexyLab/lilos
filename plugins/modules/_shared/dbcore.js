@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { networkInterfaces } from 'node:os';
 import { join } from 'node:path';
 import dns from 'node:dns';
-import { isIP } from 'node:net';
+import { BlockList, isIP } from 'node:net';
 import { checkIp, guardedLookup, isLoopback, resolveChecked } from './ipguard.js';
 
 /**
@@ -70,9 +70,12 @@ export function kernelDatabases(dataDir) {
     if (Array.isArray(v)) { for (const x of v) walk(x, depth + 1); return; }
     if (typeof v === 'object') for (const x of Object.values(v)) walk(x, depth + 1);
   };
+  walk(process.env.LILOS_PG_URL);   // fs-postgres takes its database from here first
   try {
     const raw = JSON.parse(readFileSync(file, 'utf8'));
     for (const m of raw.modules ?? []) walk(m?.config);
+    // the kernel's own API
+    out.push({ host: String(process.env.LILOS_KERNEL_HOST ?? raw.host ?? '127.0.0.1').toLowerCase(), port: Number(process.env.LILOS_KERNEL_PORT ?? raw.port ?? 8790) });
   } catch { /* no config to read: nothing more to keep out */ }
   return out;
 }
@@ -89,29 +92,38 @@ function localAddresses() {
  * `lookup(port)` → a `lookup` for libraries that resolve by themselves (mongodb, http).
  */
 export function makeGuard({ module, dataDir, settings }) {
-  let blocked = null;   // [{ port, ips: Set, local }]
+  let blocked = null;   // [{ host, port, list: BlockList }]
   const blockedList = async () => {
     if (blocked) return blocked;
-    const list = [];
+    const out = [];
     for (const { host, port } of kernelDatabases(dataDir)) {
-      const ips = new Set();
-      let local = host === 'localhost' || isLoopback(host);
+      // BlockList compares addresses, not texts: ::ffff:7f00:1 is 127.0.0.1
+      const list = new BlockList();
+      const add = ip => { const f = isIP(ip); if (f) list.addAddress(ip, f === 6 ? 'ipv6' : 'ipv4'); };
+      let local = host === 'localhost' || isLoopback(host) || host === '0.0.0.0' || host === '::';
+      add(host);
       try {
-        for (const a of isIP(host) ? [{ address: host }] : await dns.promises.lookup(host, { all: true })) {
-          ips.add(a.address.toLowerCase());
+        for (const a of isIP(host) ? [] : await dns.promises.lookup(host, { all: true })) {
+          add(a.address);
           if (isLoopback(a.address)) local = true;
         }
-      } catch { /* a name that does not resolve now: compared by name below */ }
-      list.push({ host, port, ips, local });
+      } catch { /* a name that does not resolve now: compared by name in target() */ }
+      if (local) {
+        list.addSubnet('127.0.0.0', 8, 'ipv4');
+        list.addAddress('::1', 'ipv6');
+        for (const ip of localAddresses()) add(ip.split('%')[0]);
+      }
+      out.push({ host, port, list });
     }
-    blocked = list;
+    blocked = out;
     setTimeout(() => { blocked = null; }, 60_000).unref?.();   // read again now and then (an admin may change it)
     return blocked;
   };
-  const local = () => localAddresses();
+  /** port null: any port (addresses a server announced: SRV, members of a replica set). */
   const isKernelDb = (ip, port, list) => {
-    const a = String(ip).toLowerCase().replace(/^::ffff:/, '');
-    return list.some(b => b.port === port && (b.ips.has(a) || (b.local && (isLoopback(a) || local().has(a)))));
+    const a = String(ip).toLowerCase().split('%')[0];
+    const f = isIP(a);
+    return !!f && list.some(b => (port === null || b.port === port) && b.list.check(a, f === 6 ? 'ipv6' : 'ipv4'));
   };
   const refuse = () => oops('Questo è il database di lilOS: i blocchi non possono usarlo', 'forbidden');
 
@@ -132,12 +144,13 @@ export function makeGuard({ module, dataDir, settings }) {
     async lookup(port) {
       const s = settings();
       const list = await blockedList();
-      return guardedLookup({ allowPrivate: s.allowPrivate, module, extra: ip => { if (isKernelDb(ip, Number(port), list)) throw refuse(); } });
+      const p = port === null || port === undefined ? null : Number(port);
+      return guardedLookup({ allowPrivate: s.allowPrivate, module, extra: ip => { if (isKernelDb(ip, p, list)) throw refuse(); } });
     },
     /** Checks an IP given as it is (an address a library got from a server, such as a redirect). */
     async check(ip, port) {
       checkIp(ip, { allowPrivate: settings().allowPrivate, module });
-      if (isKernelDb(ip, Number(port), await blockedList())) throw refuse();
+      if (isKernelDb(ip, port === null || port === undefined ? null : Number(port), await blockedList())) throw refuse();
     },
   };
 }
@@ -256,7 +269,7 @@ export function plain(v, depth = 0) {
   if (Buffer.isBuffer(v) || v instanceof Uint8Array) return { $bytes: Buffer.from(v.buffer, v.byteOffset, v.byteLength).toString('base64') };
   if (v instanceof ArrayBuffer) return { $bytes: Buffer.from(v).toString('base64') };
   if (Array.isArray(v)) return v.map(x => plain(x, depth + 1));
-  if (v instanceof Map) return Object.fromEntries([...v].map(([k, x]) => [String(k), plain(x, depth + 1)]));
+  if (v instanceof Map) return Object.fromEntries([...v].map(([k, x]) => [String(k), plain(x, depth + 1)]));   // fromEntries defines: __proto__ stays a field
   if (v instanceof Set) return [...v].map(x => plain(x, depth + 1));
   if (typeof v.toJSON === 'function' && Object.getPrototypeOf(v) !== Object.prototype) {
     try { return plain(v.toJSON(), depth + 1); } catch { return String(v); }
@@ -264,7 +277,8 @@ export function plain(v, depth = 0) {
   const proto = Object.getPrototypeOf(v);
   if (proto !== Object.prototype && proto !== null && typeof v.toString === 'function' && v.toString !== Object.prototype.toString) return String(v);
   const out = {};
-  for (const [k, x] of Object.entries(v)) out[k] = plain(x, depth + 1);
+  // defineProperty: a key «__proto__» stays a field (an assignment would change the prototype)
+  for (const [k, x] of Object.entries(v)) Object.defineProperty(out, k, { value: plain(x, depth + 1), enumerable: true, writable: true, configurable: true });
   return out;
 }
 

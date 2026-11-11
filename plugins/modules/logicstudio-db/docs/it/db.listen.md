@@ -82,6 +82,7 @@ Quando un altro programma (o un trigger del database) manda un `NOTIFY allarmi`,
 
 | Messaggio | Quando |
 |---|---|
+| Troppe transazioni, cursori o ascolti aperti su questa connessione (al massimo 20) | Sulla stessa connessione ce ne sono già 20 aperti: chiudi quelli che non servono. |
 | SQL · Ascolta (LISTEN) funziona solo con le connessioni PostgreSQL | La connessione non è di PostgreSQL, o è una transazione o un cursore. |
 | Canale non valido: «…» (lettere, cifre e _) | Il **Canale** ha spazi o simboli non ammessi. |
 | Manca la connessione: collega l'uscita «connessione» del blocco di connessione all'ingresso «connessione» | L'ingresso **connessione** non ha un valore. |

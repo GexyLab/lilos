@@ -64,6 +64,7 @@ Questo blocco non ha porte aggiuntive.
 - **Tabelle**: [SQL · Tabelle e colonne (schema)](db.tables) elenca le tabelle e le viste (senza quelle `sqlite_…`), con lo schema `main`.
 - **Isolamento**: *Serializable* e *Repeatable read* aprono la transazione con `BEGIN IMMEDIATE`; gli altri livelli con `BEGIN DEFERRED`.
 - Le notifiche (LISTEN e NOTIFY) non ci sono.
+- **Memoria**: il database non può crescere oltre la **Dimensione massima di un file SQLite (MB)** delle impostazioni del modulo, neanche «In memoria»; le impostazioni di SQLite che toglierebbero il limite o la sola lettura (`max_page_count`, `page_size`, `query_only`, `writable_schema`, `mmap_size`, `cache_size`) non si cambiano dai blocchi. In **Sola lettura** è SQLite stesso a rifiutare ogni modifica.
 
 ## Esempi
 
@@ -106,6 +107,8 @@ Il blocco si apre all'avvio e **connesso** fa partire la query. La query ha più
 
 | Messaggio | Quando |
 |---|---|
+| Questa impostazione di SQLite non si cambia dai blocchi | L'SQL nomina un'impostazione bloccata (`max_page_count`, `page_size`, `query_only`…). |
+| Il database ha raggiunto la dimensione massima (… MB, impostazione del modulo) | Il database è cresciuto fino al limite delle impostazioni del modulo. |
 | Manca il file del database SQLite (per esempio ~/Documenti/dati.sqlite) | **File** è vuoto (e **In memoria** non è spuntato). |
 | Percorso non valido: … | Il percorso ha un carattere non ammesso (il backslash `\`, un carattere nullo), un `.` o un `..`, oppure `~` seguito da altro che non sia `/`. |
 | Percorso non valido: … (scrivi ~/… oppure /home/…) | Il percorso non comincia con `~/` né con `/`. |

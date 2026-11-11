@@ -101,6 +101,7 @@ Ogni elemento è per esempio `{ "fields": { "kw": 1.2 }, "time": "2026-11-11T09:
 
 | Messaggio | Quando |
 |---|---|
+| … non può finire con \: … | Un nome di misura, tag o campo, o il valore di un tag, finisce con `\` (InfluxDB lo leggerebbe come un carattere protetto). |
 | Manca la misura (measurement) | Nessuna misura, né nell'ingresso né nelle impostazioni. |
 | Il nome della misura non può cominciare con # | La misura comincia con `#`. |
 | Il nome della misura non può contenere un a capo: … | La misura ha un a capo (così anche per «Il nome di un tag», «Il valore di un tag», «Il nome di un campo»). |

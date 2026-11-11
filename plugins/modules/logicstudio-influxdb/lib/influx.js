@@ -100,7 +100,8 @@ export function makeActions({ settings, guard, conns }) {
           if (rows.length >= s.maxRows) return { rows, truncated: true };
           const row = {};
           if (series.name) row._measurement = series.name;
-          Object.assign(row, series.tags ?? {});
+          // defineProperty: a tag named «__proto__» stays a field
+          for (const [k, v] of Object.entries(series.tags ?? {})) Object.defineProperty(row, k, { value: v, enumerable: true, writable: true, configurable: true });
           (series.columns ?? []).forEach((c, i) => { row[c] = values[i] ?? null; });
           rows.push(row);
         }

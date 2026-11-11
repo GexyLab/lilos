@@ -84,6 +84,7 @@ export function makeActions({ config, dataDir, module, fs, workerFile }) {
 
   /** A sub-entry (transaction, cursor, listening) of a connection: closed with it. */
   const child = (user, tools, parent, entry) => {
+    if (parent.children.size >= 20) throw oops('Troppe transazioni, cursori o ascolti aperti su questa connessione (al massimo 20)');
     const handle = conns.add(user, tools, { kind: parent.kind, name: parent.name, session: parent.session, ...entry }, null);
     parent.children.add(handle);
     const close = entry.close;
@@ -107,7 +108,7 @@ export function makeActions({ config, dataDir, module, fs, workerFile }) {
         pw = await password(tools, args.password, c.password);
         const options = {
           kind, database: text(c.database).trim(), user: text(c.user).trim(), password: pw, tls: ['off', 'on', 'verify'].includes(c.tls) ? c.tls : 'verify',
-          poolSize: Math.max(1, Math.min(10, Number(c.poolSize) || 4)), timeoutMs: s.timeoutMs, options: c, readOnly: c.readOnly === true, workerFile,
+          poolSize: Math.max(1, Math.min(10, Number(c.poolSize) || 4)), timeoutMs: s.timeoutMs, options: c, readOnly: c.readOnly === true, workerFile, sqliteMaxBytes: sqliteMax(),
         };
         let name;
         if (kind === 'sqlite') {
@@ -255,6 +256,7 @@ export function makeActions({ config, dataDir, module, fs, workerFile }) {
       if (parent.role) throw oops('Scorri righe usa una connessione (non una transazione)');
       const sql = text(args.sql).trim();
       if (!sql) throw oops('Manca la query SQL');
+      if (sql.length > 100_000) throw oops('Query troppo lunga (al massimo 100.000 caratteri)');
       const bound = bindNamed(sql, valuesOf(args.values), parent.session.dialect);
       const cursor = await timed(s, () => parent.session.cursor(bound.sql, params(parent.session, bound.params)));
       const state = { cursor, count: 0 };
@@ -314,6 +316,7 @@ export function makeActions({ config, dataDir, module, fs, workerFile }) {
       const entry = conns.get(tools, args?.subscription);
       if (entry.role !== 'listen') throw oops('Serve un ascolto aperto');
       const st = entry.state;
+      if (!(Number(args.waitMs) > 0)) conns.count(user);   // a poll that does not wait counts as an operation
       if (!st.queue.length && !st.closed) {
         const waitMs = Math.max(0, Math.min(25_000, Number(args.waitMs) || 20_000));
         await new Promise(resolve => {

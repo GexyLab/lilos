@@ -105,6 +105,7 @@ Se il totale non va bene, **annulla** cancella anche le righe inserite.
 
 | Messaggio | Quando |
 |---|---|
+| Troppe transazioni, cursori o ascolti aperti su questa connessione (al massimo 20) | Sulla stessa connessione ce ne sono già 20 aperti: chiudi quelli che non servono. |
 | Una transazione è già aperta: confermala o annullala prima di iniziarne un'altra | **inizia** con una transazione già aperta in questo blocco. |
 | Nessuna transazione aperta | **conferma** o **annulla** senza una transazione aperta (per esempio due **conferma** di fila). |
 | Una transazione si apre su una connessione (non dentro un'altra transazione) | **connessione** ha il riferimento di una transazione, di un cursore o di un ascolto. |

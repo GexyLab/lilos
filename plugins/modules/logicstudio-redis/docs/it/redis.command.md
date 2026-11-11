@@ -51,9 +51,9 @@ Il blocco non esegue questi comandi, perché danneggerebbero il server o gli alt
 
 | Comandi | Perché |
 |---|---|
-| `FLUSHALL`, `FLUSHDB`, `CONFIG`, `SHUTDOWN`, `DEBUG`, `MONITOR`, `SLAVEOF`, `REPLICAOF`, `MODULE`, `ACL`, `SAVE`, `BGSAVE`, `BGREWRITEAOF`, `FAILOVER`, `SWAPDB`, `SYNC`, `PSYNC`, `REPLCONF`, `CLUSTER`, `SENTINEL`, `PFDEBUG`, `PFSELFTEST`, e i sotto-comandi `MEMORY PURGE`, `LATENCY RESET`, `SLOWLOG RESET` | Amministrazione del server. |
+| `FLUSHALL`, `FLUSHDB`, `CONFIG`, `SHUTDOWN`, `DEBUG`, `MONITOR`, `SLAVEOF`, `REPLICAOF`, `MODULE`, `ACL`, `SAVE`, `BGSAVE`, `BGREWRITEAOF`, `FAILOVER`, `SWAPDB`, `SYNC`, `PSYNC`, `REPLCONF`, `CLUSTER`, `SENTINEL`, `PFDEBUG`, `PFSELFTEST`, e i sotto-comandi `MEMORY PURGE`, `LATENCY RESET`/`HISTORY`/`LATEST`/`GRAPH`/`DOCTOR`, `SLOWLOG RESET`/`GET`, `OBJECT FREQ` | Amministrazione del server. |
 | `MIGRATE` | Si collega a un altro server. |
-| `EVAL`, `EVALSHA`, `EVAL_RO`, `EVALSHA_RO`, `FCALL`, `FCALL_RO`, `SCRIPT`, `FUNCTION` | Eseguono codice sul server, che potrebbe usare i comandi non permessi. |
+| `EVAL`, `EVALSHA`, `EVAL_RO`, `EVALSHA_RO`, `FCALL`, `FCALL_RO`, `SCRIPT`, `FUNCTION`, `RG.PYEXECUTE`, `RG.PYSTATS`, `TFUNCTION`, `TFCALL`, `TFCALLASYNC` | Eseguono codice sul server, che potrebbe usare i comandi non permessi. |
 | `KEYS` | Blocca il server su un database grande: usa [Redis · Cerca chiavi (SCAN)](redis.scan). |
 | `SUBSCRIBE`, `PSUBSCRIBE`, `SSUBSCRIBE`, `UNSUBSCRIBE`, `PUNSUBSCRIBE`, `SUNSUBSCRIBE` | C'è il blocco [Redis · Iscriviti (SUBSCRIBE · PSUBSCRIBE)](redis.subscribe). |
 | `SELECT`, `AUTH`, `HELLO`, `RESET`, `QUIT`, `CLIENT`, `MULTI`, `EXEC`, `DISCARD`, `WATCH`, `UNWATCH`, `READONLY`, `READWRITE` | Cambiano lo stato della connessione, che è condivisa con gli altri blocchi. |
@@ -100,7 +100,7 @@ I messaggi sono in italiano, come li manda il blocco; i messaggi del server Redi
 |---|---|
 | L'amministratore ha disattivato il blocco Comando (impostazioni del modulo) | Il blocco è disattivato nelle impostazioni del modulo logicstudio-redis. |
 | Comando non permesso: NOME … | Il comando è tra quelli rifiutati; dopo il nome c'è il motivo (per esempio «è un comando di amministrazione del server»). |
-| Comando non permesso: NOME SOTTOCOMANDO è un comando di amministrazione del server | Per `MEMORY PURGE`, `LATENCY RESET`, `SLOWLOG RESET`. |
+| Comando non permesso: NOME SOTTOCOMANDO è un comando di amministrazione del server | Per `MEMORY PURGE`, `LATENCY RESET`/`HISTORY`/`LATEST`/`GRAPH`/`DOCTOR`, `SLOWLOG RESET`/`GET`, `OBJECT FREQ`. |
 | Comando non permesso: XREAD con BLOCK blocca la connessione (usa il blocco Lista: Togli, con l'attesa) | `XREAD` o `XREADGROUP` con l'argomento `BLOCK` (con `XREADGROUP` il nome è quello del comando). |
 | Comando non valido: … | Il nome del comando non è fatto di lettere, cifre e `_ . | -`, o non comincia con una lettera. |
 | Comando non valido: scrivi una lista JSON, per esempio ["ZADD", "classifica", 10, "anna"] | Il testo comincia per `[` ma non è JSON. |

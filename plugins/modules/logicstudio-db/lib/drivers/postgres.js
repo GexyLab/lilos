@@ -45,7 +45,9 @@ export async function open(o) {
   pg ??= (await import('pg')).default;
   const ssl = o.tls === 'off' ? false : { rejectUnauthorized: o.tls === 'verify', servername: o.host };
   const pool = new pg.Pool({
-    host: o.address, port: o.port, database: o.database || undefined, user: o.user || undefined, password: o.password ?? '',
+    host: o.address, port: o.port, database: o.database || 'postgres', user: o.user || 'postgres',
+    // a function, also for no password: pg never takes PGPASSWORD or ~/.pgpass of the kernel's machine
+    password: async () => o.password ?? '',
     ssl, max: o.poolSize, idleTimeoutMillis: 30_000, connectionTimeoutMillis: o.timeoutMs,
     statement_timeout: o.timeoutMs, query_timeout: o.timeoutMs + 1000, application_name: 'lilOS Logic Studio', types,
   });

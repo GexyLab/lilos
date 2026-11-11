@@ -163,5 +163,17 @@ export function chunks(rows, dialect) {
   return out;
 }
 
-/** Whether a statement only reads (for SQLite's write back and for the read-only mode). */
-export const readsOnly = sql => /^\s*(?:--[^\n]*\n\s*|\/\*[\s\S]*?\*\/\s*)*(select|with\s[\s\S]*?\bselect\b(?![\s\S]*\b(insert|update|delete|merge)\b)|pragma\s+\w+\s*$|explain|show|describe|values)\b/i.test(String(sql ?? ''));
+/**
+ * Whether a text of SQL only reads (for SQLite's write back): linear and careful (a doubt says
+ * «it writes»). The read-only mode of SQLite does not rely on it: the worker runs with query_only.
+ */
+const WRITES = /\b(insert|update|delete|replace|merge|upsert|create|drop|alter|attach|detach|vacuum|reindex|analyze|truncate|grant|revoke|begin|commit|rollback|savepoint|release)\b/i;
+export function readsOnly(sql) {
+  let s = String(sql ?? '');
+  if (s.length > 200_000) return false;
+  s = s.replace(/--[^\n]*/g, ' ').replace(/\/\*[^*]*\*+(?:[^/*][^*]*\*+)*\//g, ' ').trim();
+  const first = /^([a-z]+)/i.exec(s)?.[1]?.toLowerCase();
+  if (!['select', 'with', 'explain', 'values', 'show', 'describe', 'pragma'].includes(first)) return false;
+  if (first === 'pragma' && s.includes('=')) return false;
+  return !WRITES.test(s);
+}

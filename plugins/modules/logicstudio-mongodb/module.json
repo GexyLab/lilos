@@ -1,6 +1,6 @@
 {
   "name": "logicstudio-mongodb",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Logic Studio: i blocchi MongoDB (connessione, trova, inserisci, aggiorna, elimina, conta, aggrega, osserva modifiche, raccolte), con i server della rete locale bloccati se l'amministratore non li permette",
   "icon": {
     "glyph": "database",

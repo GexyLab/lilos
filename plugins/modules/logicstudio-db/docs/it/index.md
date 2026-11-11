@@ -90,7 +90,7 @@ Un database nella tua rete di casa o dell'ufficio ha quindi bisogno che un ammin
 
 ### Il database di lilOS non si apre mai
 
-I database che lilOS usa per sé (per esempio quello di `fs-postgres`, scritto nella configurazione del kernel) **non sono raggiungibili** dai blocchi, neanche con la rete locale permessa e neanche con un altro nome dello stesso computer: la connessione dà «Questo è il database di lilOS: i blocchi non possono usarlo». Per lo stesso server puoi usare un altro database o un'altra porta, non quello di lilOS.
+I database che lilOS usa per sé (per esempio quello di `fs-postgres`, scritto nella configurazione del kernel o nella variabile `LILOS_PG_URL`) e l'API del kernel stesso **non sono raggiungibili** dai blocchi, neanche con la rete locale permessa e neanche con un altro nome dello stesso computer: la connessione dà «Questo è il database di lilOS: i blocchi non possono usarlo». Per lo stesso server puoi usare un altro database o un'altra porta, non quello di lilOS.
 
 ### I valori
 
@@ -185,10 +185,14 @@ ClickHouse usa la sua interfaccia HTTP, senza librerie. Le licenze sono anche in
 
 ## Limiti noti
 
-`- MySQL e MariaDB accettano una sola istruzione per query.
+- MySQL e MariaDB accettano una sola istruzione per query.
 - ClickHouse non ha transazioni.
 - SQL · Ascolta (LISTEN) e SQL · Notifica (NOTIFY) ci sono solo per PostgreSQL.
-- Non ci sono ancora i database NoSQL (MongoDB, Redis…) in questo pacchetto.
+- MongoDB, Redis, InfluxDB ed Elasticsearch hanno i loro pacchetti: [Blocchi MongoDB](logicstudio-mongodb), [Blocchi Redis](logicstudio-redis), [Blocchi InfluxDB](logicstudio-influxdb), [Blocchi Elasticsearch](logicstudio-elasticsearch).
+- Su una connessione ci sono al massimo 20 transazioni, cursori e ascolti aperti insieme.
+- Le righe e la dimensione massime si controllano quando il risultato è arrivato al kernel: una query che restituisce moltissimi dati occupa memoria finché non arriva il suo errore. Chiedi solo le righe che servono (LIMIT, condizioni) o usa [SQL · Scorri righe (cursor)](db.cursor).
+- La password cifrata vale per te su questo lilOS, ma non è legata al server: se qualcuno può cambiare il tuo schema e mettere un altro server, la password andrebbe a quel server. Non dare ad altri il permesso di scrivere i tuoi schemi.
+- La cifratura (TLS) è spenta di serie per PostgreSQL, MySQL, Oracle e ClickHouse: per un server su internet scegli «Cifrata e controllata».
 
 ## Vedi anche
 

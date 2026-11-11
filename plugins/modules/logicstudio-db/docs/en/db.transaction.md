@@ -107,6 +107,7 @@ The messages are in Italian, as the block sends them. In English:
 
 | Message | When |
 |---|---|
+| Troppe transazioni, cursori o ascolti aperti su questa connessione (al massimo 20) | The same connection already has 20 open (too many): close the ones you do not need. |
 | Una transazione è già aperta: confermala o annullala prima di iniziarne un'altra | **begin** with a transaction already open in this block (a transaction is already open: commit or roll it back first). |
 | Nessuna transazione aperta | **commit** or **roll back** without an open transaction (for example two **commit** in a row): no open transaction. |
 | Una transazione si apre su una connessione (non dentro un'altra transazione) | **connection** holds the reference of a transaction, a cursor or a listening (a transaction opens on a connection, not inside another). |

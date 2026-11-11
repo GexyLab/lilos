@@ -62,6 +62,7 @@ The messages are in Italian.
 
 | Message | When |
 |---|---|
+| Id del documento non valido: «..» | The id is `.` or `..`, which in the address would mean the whole index (id not valid). |
 | Manca l'indice | No index. |
 | Nome dell'indice non valido: … | The index has capitals, forbidden symbols or spaces (see [Elasticsearch blocks](logicstudio-elasticsearch)). |
 | Manca l'id del documento | The id is empty. |

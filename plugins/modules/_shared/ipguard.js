@@ -26,8 +26,45 @@ const rules = list => {
 /** Never, not even with allowPrivate: cloud metadata (link-local), multicast, «this network». */
 export const NEVER = rules([
   ['0.0.0.0', 8, 'ipv4'], ['169.254.0.0', 16, 'ipv4'], ['224.0.0.0', 4, 'ipv4'], ['255.255.255.255', 32, 'ipv4'],
-  ['::', 128, 'ipv6'], ['fe80::', 10, 'ipv6'], ['ff00::', 8, 'ipv6'],
+  ['100.100.100.200', 32, 'ipv4'], ['192.0.0.192', 32, 'ipv4'],   // metadata of Alibaba Cloud and Oracle Cloud
+  ['::', 128, 'ipv6'], ['fe80::', 10, 'ipv6'], ['ff00::', 8, 'ipv6'], ['fd00:ec2::', 64, 'ipv6'],   // fd00:ec2::254: AWS metadata over IPv6
 ]);
+
+/**
+ * The IPv4 address carried inside an IPv6 one (NAT64 64:ff9b::/96, 6to4 2002::/16, IPv4-compatible
+ * ::/96, IPv4-translated ::ffff:0:0:0/96, Teredo 2001::/32 with the client address inverted), or null.
+ */
+function embeddedIpv4(ip) {
+  if (isIP(ip) !== 6) return null;
+  const words = expand6(ip);
+  if (!words) return null;
+  const v4 = (hi, lo) => [hi >> 8, hi & 255, lo >> 8, lo & 255].join('.');
+  if (words[0] === 0x64 && words[1] === 0xff9b) return v4(words[6], words[7]);
+  if (words[0] === 0x2002) return v4(words[1], words[2]);
+  if (words[0] === 0x2001 && words[1] === 0) return v4(~words[6] & 0xffff, ~words[7] & 0xffff);
+  // IPv4-compatible ::a.b.c.d and IPv4-translated ::ffff:0:a.b.c.d (not ::, ::1: their «IPv4» would start with 0)
+  const compatible = words[4] === 0 && words[5] === 0;
+  const translated = words[4] === 0xffff && words[5] === 0;
+  if (words.slice(0, 4).every(w => w === 0) && (compatible || translated) && words[6] >= 0x100) return v4(words[6], words[7]);
+  return null;
+}
+
+/** An IPv6 address as its 8 words, or null. */
+function expand6(ip) {
+  let s = ip.split('%')[0].toLowerCase();
+  const dotted = /(\d+\.\d+\.\d+\.\d+)$/.exec(s);
+  if (dotted) {
+    const p = dotted[1].split('.').map(Number);
+    s = s.slice(0, -dotted[1].length) + `${((p[0] << 8) | p[1]).toString(16)}:${((p[2] << 8) | p[3]).toString(16)}`;
+  }
+  const [head, tail] = s.includes('::') ? s.split('::') : [s, null];
+  const a = head ? head.split(':') : [];
+  const b = tail ? tail.split(':') : [];
+  const missing = 8 - a.length - b.length;
+  if (tail === null ? a.length !== 8 : missing < 0) return null;
+  const words = [...a, ...Array(tail === null ? 0 : missing).fill('0'), ...b].map(h => parseInt(h || '0', 16));
+  return words.length === 8 && words.every(w => w >= 0 && w <= 0xffff) ? words : null;
+}
 
 /**
  * Not public (only with allowPrivate): this computer, the private networks, shared address space,
@@ -55,7 +92,8 @@ export function checkIp(ip, { allowPrivate = false, module = 'logicstudio-net' }
   const family = isIP(ip);
   if (!family) throw oops(`Indirizzo non valido: ${ip}`, 'forbidden');
   const kind = family === 6 ? 'ipv6' : 'ipv4';
-  if (NEVER.check(ip, kind)) throw oops(`Indirizzo non permesso: ${ip}`, 'forbidden');
+  const inner = embeddedIpv4(ip);
+  if (NEVER.check(ip, kind) || (inner && NEVER.check(inner, 'ipv4'))) throw oops(`Indirizzo non permesso: ${ip}`, 'forbidden');
   if (!allowPrivate && PRIVATE.check(ip, kind)) {
     throw oops(`Indirizzo non permesso: ${ip} è di questo computer o della rete locale (l'amministratore può permetterlo nelle impostazioni del modulo ${module})`, 'forbidden');
   }

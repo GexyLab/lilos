@@ -75,6 +75,7 @@ The messages are in Italian.
 
 | Message | When |
 |---|---|
+| Id del documento non valido: «..» | The id is `.` or `..`, which in the address would mean the whole index (id not valid). |
 | Manca l'indice | No index, neither in the input nor in the settings. |
 | Nome dell'indice non valido: … (solo lettere minuscole) | The index has capital letters. |
 | Nome dell'indice non valido: … (niente \ / * ? " < > \| , # : né spazi) | The index has forbidden symbols or spaces. |

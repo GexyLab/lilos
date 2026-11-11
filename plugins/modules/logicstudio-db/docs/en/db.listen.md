@@ -84,6 +84,7 @@ The messages are in Italian, as the block sends them. In English:
 
 | Message | When |
 |---|---|
+| Troppe transazioni, cursori o ascolti aperti su questa connessione (al massimo 20) | The same connection already has 20 open (too many): close the ones you do not need. |
 | SQL · Ascolta (LISTEN) funziona solo con le connessioni PostgreSQL | The connection is not PostgreSQL's, or it is a transaction or a cursor. |
 | Canale non valido: «…» (lettere, cifre e _) | The **Channel** has spaces or symbols that are not allowed (invalid channel). |
 | Manca la connessione: collega l'uscita «connessione» del blocco di connessione all'ingresso «connessione» | The **connection** input has no value. |

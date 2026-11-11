@@ -62,6 +62,7 @@ Questo blocco non ha porte aggiuntive.
 - **Isolamento**: Oracle conosce solo *Read committed* (di serie) e *Serializable*; *Repeatable read* e *Snapshot* diventano *Serializable*.
 - **Connessione cifrata**: la cifratura la fa lilOS stesso, con un piccolo tunnel locale usato solo da questa connessione. I reindirizzamenti del listener a un altro indirizzo (installazioni RAC) non vengono seguiti.
 - Le notifiche (LISTEN e NOTIFY) non ci sono.
+- **Reindirizzamenti**: lilOS si collega al server sempre attraverso un piccolo tunnel locale (anche senza cifratura) e chiude la connessione se il listener chiede di passare a un altro indirizzo (*redirect*, tipico di RAC e dei server condivisi): così il kernel non arriva mai a un indirizzo che non ha controllato. Un server che reindirizza non si può usare: collegati direttamente all'istanza.
 
 ## Esempi
 
@@ -94,6 +95,7 @@ Gli errori comuni (server, indirizzo, quote, password non leggibile…) sono ele
 
 | Messaggio | Quando |
 |---|---|
+| Il server Oracle ha chiesto di collegarsi a un altro indirizzo (redirect): non è permesso | Il listener ha chiesto di passare a un altro indirizzo; collegati direttamente all'istanza. |
 | Manca il servizio di Oracle (nome del servizio, per esempio FREEPDB1, o il database) | **Nome del servizio** è vuoto. |
 | Nome del servizio non valido: … (lettere, cifre, . _ $ # -) | Il nome del servizio ha simboli non ammessi. |
 | La connessione TLS a Oracle non è riuscita: … | La cifratura non si è stabilita (certificato non valido, porta non cifrata…). |

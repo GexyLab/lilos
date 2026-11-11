@@ -63,6 +63,8 @@ export function indexList(v) {
 export function idOf(v, required = true) {
   const s = v === undefined || v === null ? '' : typeof v === 'number' ? String(v) : text(v);
   if (!s) { if (required) throw oops('Manca l\'id del documento'); return ''; }
+  // «.» and «..» would be path segments: DELETE /indice/_doc/.. is DELETE /indice/ (the whole index)
+  if (s === '.' || s === '..') throw oops(`Id del documento non valido: «${s}»`);
   if (Buffer.byteLength(s) > MAX_ID) throw oops(`Id del documento troppo lungo (al massimo ${MAX_ID} byte)`);
   return encodeURIComponent(s);
 }

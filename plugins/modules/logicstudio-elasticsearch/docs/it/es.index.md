@@ -73,6 +73,7 @@ Se esiste già un documento con quell'id, il cluster risponde 409 e [Notify](lil
 
 | Messaggio | Quando |
 |---|---|
+| Id del documento non valido: «..» | L'id è `.` o `..`, che nell'indirizzo indicherebbero l'indice intero. |
 | Manca l'indice | Nessun indice, né nell'ingresso né nelle impostazioni. |
 | Nome dell'indice non valido: … (solo lettere minuscole) | L'indice ha lettere maiuscole. |
 | Nome dell'indice non valido: … (niente \ / * ? " < > \| , # : né spazi) | L'indice ha simboli o spazi vietati. |

@@ -97,6 +97,7 @@ La [Tabella](ui.table) riceve una lista di 100 righe alla volta (a ogni gruppo s
 
 | Messaggio | Quando |
 |---|---|
+| Troppe transazioni, cursori o ascolti aperti su questa connessione (al massimo 20) | Sulla stessa connessione ce ne sono già 20 aperti: chiudi quelli che non servono. |
 | Manca la query SQL | L'**SQL** è vuoto. |
 | Manca il valore del parametro :nome (aggiungi un ingresso «nome» al blocco) | L'SQL ha `:nome` ma non c'è l'ingresso con un valore. |
 | Scorri righe usa una connessione (non una transazione) | **connessione** ha il riferimento di una transazione, o di un cursore o ascolto. |

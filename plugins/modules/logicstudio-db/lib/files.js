@@ -89,7 +89,13 @@ export function makeFiles(fsService, { maxBytes = () => 1 << 30 } = {}) {
       if (node && !readOnly && locks.has(node.id) && locks.get(node.id) !== programId) {
         throw oops(`Il file «${at.shown}» è già aperto da un altro programma: chiudilo lì, oppure aprilo in sola lettura`);
       }
-      const bytes = node ? await read(user, node, at.shown) : null;
+      // the lock is taken now, before anything else waits: two programs opening it together cannot both pass
+      if (node && !readOnly) locks.set(node.id, programId);
+      let bytes;
+      try { bytes = node ? await read(user, node, at.shown) : null; } catch (err) {
+        if (node && !readOnly && locks.get(node.id) === programId) locks.delete(node.id);
+        throw err;
+      }
       if (!node) {
         // a new database: the file is made at the first save, in a folder that must be there
         const dirFull = at.full.slice(0, at.full.lastIndexOf('/'));

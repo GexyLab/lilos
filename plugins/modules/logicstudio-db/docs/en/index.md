@@ -90,7 +90,7 @@ A database on your home or office network therefore needs an administrator to ti
 
 ### The lilOS database is never opened
 
-The databases lilOS uses for itself (for example the one of `fs-postgres`, written in the kernel's configuration) **cannot be reached** by the blocks, not even with the local network allowed and not even under another name of the same computer: the connection gives "Questo è il database di lilOS: i blocchi non possono usarlo" (this is lilOS's own database: the blocks cannot use it). On the same server you can use another database or another port, not the one of lilOS.
+The databases lilOS uses for itself (for example the one of `fs-postgres`, written in the kernel's configuration or in the `LILOS_PG_URL` variable) and the kernel's own API **cannot be reached** by the blocks, not even with the local network allowed and not even under another name of the same computer: the connection gives "Questo è il database di lilOS: i blocchi non possono usarlo" (this is lilOS's own database: the blocks cannot use it). On the same server you can use another database or another port, not the one of lilOS.
 
 ### The values
 
@@ -188,7 +188,11 @@ ClickHouse uses its HTTP interface, with no library. The licenses are also in Co
 - MySQL and MariaDB accept a single statement per query.
 - ClickHouse has no transactions.
 - SQL · Listen (LISTEN) and SQL · Notify (NOTIFY) exist only for PostgreSQL.
-- The NoSQL databases (MongoDB, Redis...) are not in this package yet.
+- MongoDB, Redis, InfluxDB and Elasticsearch have their own packages: [MongoDB blocks](logicstudio-mongodb), [Redis blocks](logicstudio-redis), [InfluxDB blocks](logicstudio-influxdb), [Elasticsearch blocks](logicstudio-elasticsearch).
+- A connection has at most 20 transactions, cursors and listenings open together.
+- The maximum rows and size are checked once the result has reached the kernel: a query that returns a lot of data takes memory until its error comes. Ask only for the rows you need (LIMIT, conditions) or use [SQL · Read rows one by one (cursor)](db.cursor).
+- The encrypted password is valid for you on this lilOS, but it is not bound to the server: if someone can change your schema and put another server, the password would go to that server. Do not let others write your schemas.
+- Encryption (TLS) is off by default for PostgreSQL, MySQL, Oracle and ClickHouse: for a server on the internet choose «Encrypted and checked».
 
 ## See also
 

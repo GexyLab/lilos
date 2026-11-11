@@ -65,6 +65,7 @@ Quando arriva un valore su **esegui**, il blocco manda `POST /indice/_update/id`
 
 | Messaggio | Quando |
 |---|---|
+| Id del documento non valido: «..» | L'id è `.` o `..`, che nell'indirizzo indicherebbero l'indice intero. |
 | Manca l'indice | Nessun indice. |
 | Nome dell'indice non valido: … | L'indice ha maiuscole, simboli o spazi vietati (vedi [Blocchi Elasticsearch](logicstudio-elasticsearch)). |
 | Manca l'id del documento | L'id è vuoto. |

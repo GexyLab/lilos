@@ -1,6 +1,6 @@
 {
   "name": "logicstudio-net",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "Logic Studio: i blocchi di rete (Richiesta web HTTP e HTTPS), con le richieste verso la rete locale bloccate se l'amministratore non le permette",
   "icon": {
     "glyph": "globe",

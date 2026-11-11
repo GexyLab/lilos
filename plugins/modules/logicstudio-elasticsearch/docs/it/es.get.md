@@ -57,6 +57,7 @@ Con **trovato** `false` il confronto con `true` dà falso e [Notify](lilos.notif
 
 | Messaggio | Quando |
 |---|---|
+| Id del documento non valido: «..» | L'id è `.` o `..`, che nell'indirizzo indicherebbero l'indice intero. |
 | Manca l'indice | Nessun indice, né nell'ingresso né nelle impostazioni. |
 | Nome dell'indice non valido: … | L'indice ha maiuscole, simboli o spazi vietati, o comincia con `-`, `_`, `+` (vedi [Blocchi Elasticsearch](logicstudio-elasticsearch)). |
 | Manca l'id del documento | L'id è vuoto. |

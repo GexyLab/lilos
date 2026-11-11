@@ -64,6 +64,7 @@ This block has no added ports.
 - **Tables**: [SQL · Tables and columns (schema)](db.tables) lists the tables and views (without the `sqlite_…` ones), with the schema `main`.
 - **Isolation**: *Serializable* and *Repeatable read* open the transaction with `BEGIN IMMEDIATE`; the other levels with `BEGIN DEFERRED`.
 - Notifications (LISTEN and NOTIFY) are not available.
+- **Memory**: the database cannot grow past the module's **Size of a SQLite file, at most (MB)** setting, not even «In memory»; the SQLite settings that would lift the limit or the read-only mode (`max_page_count`, `page_size`, `query_only`, `writable_schema`, `mmap_size`, `cache_size`) cannot be changed from the blocks. With **Read only**, SQLite itself refuses every change.
 
 ## Examples
 
@@ -108,6 +109,8 @@ The messages are in Italian, as the block sends them; SQLite's own messages are 
 
 | Message | When |
 |---|---|
+| Questa impostazione di SQLite non si cambia dai blocchi | The SQL names a locked setting (`max_page_count`, `page_size`, `query_only`…): it cannot be changed from the blocks. |
+| Il database ha raggiunto la dimensione massima (… MB, impostazione del modulo) | The database grew up to the module's limit (maximum size reached). |
 | Manca il file del database SQLite (per esempio ~/Documenti/dati.sqlite) | **File** is empty (and **In memory** is not ticked): the SQLite database file is missing. |
 | Percorso non valido: … | The path has a character that is not allowed (the backslash `\`, a null character), a `.` or a `..`, or `~` followed by something other than `/` (invalid path). |
 | Percorso non valido: … (scrivi ~/… oppure /home/…) | The path starts with neither `~/` nor `/` (write ~/… or /home/…). |

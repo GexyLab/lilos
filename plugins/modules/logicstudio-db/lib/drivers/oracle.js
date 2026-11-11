@@ -12,8 +12,11 @@ import tls from 'node:tls';
  * Here the TLS is made by this driver instead: a tunnel on 127.0.0.1 (a random port, only for this
  * connection) where every socket opens a TLS connection to the checked address with the server's
  * name (SNI and, for «verify», the certificate's name and chain), and oracledb speaks plain TCP to
- * the tunnel. The listener redirects of RAC/shared servers to other addresses are not followed
- * through the tunnel.
+ * the tunnel. Without TLS the tunnel is plain TCP: oracledb always talks only to the tunnel.
+ *
+ * Redirects: oracledb follows a listener's REDIRECT (TNS packet type 5) to an address the server
+ * chooses, out of the guard's checks. The tunnel reads the server's packets until the session is
+ * accepted and closes the connection on a REDIRECT: RAC/shared servers that redirect cannot be used.
  *
  * Positional binds :1, :2… (bound by position of appearance), autoCommit outside transactions,
  * one row per INSERT. NUMBER becomes a number when exact, text otherwise; CLOB text, BLOB bytes,
@@ -85,7 +88,36 @@ function fetchTypeHandler(meta) {
 const timeoutError = ms => Object.assign(new Error(`Oracle non ha risposto in ${Math.max(1, Math.round(ms / 1000))} s: la query è stata annullata`), { code: 'timeout' });
 const isTimeout = err => /NJS-123|DPI-1067|call timeout/i.test(String(err?.message ?? ''));
 
-/** The TLS tunnel (see above): → { port, error() (the last TLS failure), close() }. */
+const TNS_ACCEPT = 2, TNS_REFUSE = 4, TNS_REDIRECT = 5;
+
+/**
+ * The server's side of the tunnel: its packets are read (2-byte length, as before the session is
+ * accepted) until ACCEPT or REFUSE; a REDIRECT closes the connection. Then everything passes.
+ */
+function redirectGuard(onRedirect) {
+  let buf = Buffer.alloc(0);
+  let open = false;
+  return chunk => {
+    if (open) return chunk;
+    buf = Buffer.concat([buf, chunk]);
+    let at = 0;
+    while (buf.length - at >= 5) {
+      const type = buf[at + 4];
+      if (type === TNS_REDIRECT) { onRedirect(); return null; }
+      if (type === TNS_ACCEPT || type === TNS_REFUSE) { open = true; break; }
+      const len = buf.readUInt16BE(at);
+      if (len < 8 || buf.length - at < len) break;
+      at += len;
+    }
+    if (open) { const out = buf; buf = null; return out; }
+    // not accepted yet: what is complete goes on, the rest waits
+    const out = buf.subarray(0, at);
+    buf = buf.subarray(at);
+    return out.length ? out : Buffer.alloc(0);
+  };
+}
+
+/** The tunnel (see above): → { port, error() (the last failure), close() }. TLS unless o.tls is 'off'. */
 async function tlsTunnel(o) {
   const verify = o.tls === 'verify';
   const name = net.isIP(o.host) ? undefined : o.host;
@@ -93,14 +125,25 @@ async function tlsTunnel(o) {
   let lastError = null;
   const server = net.createServer({ pauseOnConnect: true }, local => {
     if (sockets.size >= (o.poolSize + 4) * 2) { local.destroy(); return; }
-    const remote = tls.connect({
+    const plain = o.tls === 'off';
+    const remote = plain ? net.connect({ host: o.address, port: o.port }) : tls.connect({
       host: o.address, port: o.port, servername: name, rejectUnauthorized: verify,
       checkServerIdentity: (_, cert) => (verify ? tls.checkServerIdentity(o.host, cert) : undefined),
     });
     sockets.add(local);
     sockets.add(remote);
     const end = () => { local.destroy(); remote.destroy(); sockets.delete(local); sockets.delete(remote); };
-    remote.once('secureConnect', () => { lastError = null; local.pipe(remote); remote.pipe(local); local.resume(); });
+    const check = redirectGuard(() => {
+      lastError = Object.assign(new Error('Il server Oracle ha chiesto di collegarsi a un altro indirizzo (redirect): non è permesso'), { redirect: true });
+      end();
+    });
+    remote.once(plain ? 'connect' : 'secureConnect', () => {
+      lastError = null;
+      local.pipe(remote);
+      remote.on('data', chunk => { const out = check(chunk); if (out?.length) local.write(out); });
+      remote.on('end', () => local.end());
+      local.resume();
+    });
     remote.on('error', err => { lastError = err; end(); });
     local.on('error', end);
     local.on('close', end);
@@ -123,9 +166,9 @@ export async function open(o) {
   if (!sid && !service) throw new Error('Manca il servizio di Oracle (nome del servizio, per esempio FREEPDB1, o il database)');
   if (!SERVICE.test(sid || service)) throw new Error(`Nome del servizio non valido: «${String(sid || service).slice(0, 80)}» (lettere, cifre, . _ $ # -)`);
 
-  const tunnel = o.tls === 'off' ? null : await tlsTunnel(o);
-  const host = tunnel ? '127.0.0.1' : o.address;
-  const port = tunnel ? tunnel.port : o.port;
+  const tunnel = await tlsTunnel(o);   // always: also without TLS (redirects, see above)
+  const host = '127.0.0.1';
+  const port = tunnel.port;
   const connectString = `(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=${host})(PORT=${port}))(CONNECT_DATA=${sid ? `(SID=${sid})` : `(SERVICE_NAME=${service})`}))`;
   const seconds = Math.max(1, Math.ceil(o.timeoutMs / 1000));
   let pool;
@@ -142,7 +185,8 @@ export async function open(o) {
     await pool?.close(0).catch(() => {});
     const tlsErr = tunnel?.error();
     tunnel?.close();
-    if (tlsErr) throw new Error(`La connessione TLS a Oracle non è riuscita: ${tlsErr.message}`);
+    if (tlsErr?.redirect) throw tlsErr;
+    if (tlsErr) throw new Error(`${o.tls === 'off' ? 'La connessione' : 'La connessione TLS'} a Oracle non è riuscita: ${tlsErr.message}`);
     throw err;
   }
   const version = first.oracleServerVersionString;

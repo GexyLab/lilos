@@ -103,6 +103,7 @@ The messages are in Italian.
 
 | Message | When |
 |---|---|
+| … non può finire con \: … | A measurement, tag or field name, or a tag value, ends with `\` (InfluxDB would read it as an escaped character): it cannot end with \. |
 | Manca la misura (measurement) | No measurement, neither in the input nor in the settings. |
 | Il nome della misura non può cominciare con # | The measurement starts with `#`. |
 | Il nome della misura non può contenere un a capo: … | The measurement has a line break (same for "Il nome di un tag", "Il valore di un tag", "Il nome di un campo"). |

@@ -10,7 +10,12 @@
 const oops = (message, code) => Object.assign(new Error(message), code && { code });
 export const PRECISIONS = { ns: 1n, us: 1_000n, ms: 1_000_000n, s: 1_000_000_000n };
 
-const noNewline = (s, what) => { if (/[\r\n]/.test(s)) throw oops(`${what} non può contenere un a capo: ${s.slice(0, 60)}`); return s; };
+const noNewline = (s, what) => {
+  if (/[\r\n]/.test(s)) throw oops(`${what} non può contenere un a capo: ${s.slice(0, 60)}`);
+  // a final \ would escape the comma or the space after it, joining the next tag or field
+  if (s.endsWith('\\')) throw oops(`${what} non può finire con \\: ${s.slice(0, 60)}`);
+  return s;
+};
 const escMeasurement = s => noNewline(s, 'Il nome della misura').replace(/[, ]/g, m => `\\${m}`);
 const escKey = (s, what) => noNewline(s, what).replace(/[,= ]/g, m => `\\${m}`);
 const escString = s => `"${s.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;

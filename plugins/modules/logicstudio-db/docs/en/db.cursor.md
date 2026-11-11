@@ -99,6 +99,7 @@ The messages are in Italian, as the block sends them. In English:
 
 | Message | When |
 |---|---|
+| Troppe transazioni, cursori o ascolti aperti su questa connessione (al massimo 20) | The same connection already has 20 open (too many): close the ones you do not need. |
 | Manca la query SQL | The **SQL** is empty (the SQL query is missing). |
 | Manca il valore del parametro :nome (aggiungi un ingresso «nome» al blocco) | The SQL has `:name` but the input with a value is missing. |
 | Scorri righe usa una connessione (non una transazione) | **connection** holds the reference of a transaction, or of a cursor or listening (the cursor uses a connection, not a transaction). |

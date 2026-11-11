@@ -97,6 +97,8 @@ export class HttpClient {
    */
   async request({ method = 'GET', path = '/', query, headers = {}, body, timeoutMs = 30_000, maxBytes = 4 << 20, signal } = {}) {
     const url = new URL(this.#base.href);
+    // a «.» or «..» segment would move the request to another path (a whole index instead of a document)
+    if (String(path).split('/').some(seg => seg === '.' || seg === '..' || /^%2e(%2e)?$/i.test(seg))) throw oops('Percorso della richiesta non valido', 'invalid');
     url.pathname = `${this.#base.pathname.replace(/\/+$/, '')}${path.startsWith('/') ? path : `/${path}`}`;   // the base's '/' is ''
     const pairs = Array.isArray(query) ? query : Object.entries(query ?? {});
     for (const [k, v] of pairs) if (v !== undefined && v !== null) url.searchParams.append(k, String(v));

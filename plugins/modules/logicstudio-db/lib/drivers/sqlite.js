@@ -61,7 +61,7 @@ export async function open(o) {
   let inTx = false;
 
   const start = () => new Promise((resolve, reject) => {
-    const w = new Worker(o.workerFile, { workerData: { bytes: file?.bytes ?? null }, resourceLimits: { maxOldGenerationSizeMb: 2048 } });
+    const w = new Worker(o.workerFile, { workerData: { bytes: file?.bytes ?? null, maxBytes: o.sqliteMaxBytes, readOnly: !!file?.readOnly }, resourceLimits: { maxOldGenerationSizeMb: 512 } });
     const fail = err => {
       for (const p of pending.values()) p.reject(err);
       pending.clear();
@@ -120,7 +120,6 @@ export async function open(o) {
 
   const lock = makeLock();
   const run = async (sql, params, maxRows) => {
-    if (file?.readOnly && !readsOnly(sql)) throw new Error('Il database è aperto in sola lettura');
     const r = await call('query', { sql, params, maxRows });
     if (r.affected > 0 || !readsOnly(sql)) { if (!inTx) saveSoon(); else dirty = true; }
     return r;

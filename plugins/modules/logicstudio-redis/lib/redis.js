@@ -42,6 +42,7 @@ export const DENIED = new Map([
     'BGREWRITEAOF', 'FAILOVER', 'SWAPDB', 'SYNC', 'PSYNC', 'REPLCONF', 'CLUSTER', 'SENTINEL', 'PFDEBUG', 'PFSELFTEST'].map(c => [c, ADMIN]),
   ['MIGRATE', 'si collega a un altro server'],
   ...['EVAL', 'EVALSHA', 'EVAL_RO', 'EVALSHA_RO', 'FCALL', 'FCALL_RO', 'SCRIPT', 'FUNCTION'].map(c => [c, 'esegue codice sul server, che potrebbe usare i comandi non permessi']),
+  ...['RG.PYEXECUTE', 'RG.PYSTATS', 'TFUNCTION', 'TFCALL', 'TFCALLASYNC'].map(c => [c, 'esegue codice sul server, che potrebbe usare i comandi non permessi']),
   ['KEYS', 'blocca il server su un database grande (usa il blocco Cerca chiavi, che usa SCAN)'],
   ...['SUBSCRIBE', 'PSUBSCRIBE', 'SSUBSCRIBE', 'UNSUBSCRIBE', 'PUNSUBSCRIBE', 'SUNSUBSCRIBE'].map(c => [c, 'ha il suo blocco: Iscriviti']),
   ...['SELECT', 'AUTH', 'HELLO', 'RESET', 'QUIT', 'CLIENT', 'MULTI', 'EXEC', 'DISCARD', 'WATCH', 'UNWATCH', 'READONLY', 'READWRITE'].map(c => [c, STATE]),
@@ -50,8 +51,9 @@ export const DENIED = new Map([
 /** Sub-commands refused (the others of the same command are allowed). */
 const DENIED_SUB = new Map([
   ['MEMORY', new Set(['PURGE'])],
-  ['LATENCY', new Set(['RESET'])],
-  ['SLOWLOG', new Set(['RESET'])],
+  ['LATENCY', new Set(['RESET', 'HISTORY', 'LATEST', 'GRAPH', 'DOCTOR'])],   // they show the commands of the other clients
+  ['SLOWLOG', new Set(['RESET', 'GET'])],
+  ['OBJECT', new Set(['FREQ'])],
 ]);
 
 const oops = (message, code) => Object.assign(new Error(message), code && { code });

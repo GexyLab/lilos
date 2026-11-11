@@ -356,7 +356,9 @@ export function makeActions({ config, module = 'logicstudio-mongodb', dataDir = 
     try {
       client = new MongoClient(plan.url, {
         ...plan.options,
-        lookup: await guard.lookup(port),
+        // one host: its port; SRV or more hosts: the server may announce others on any port, so
+        // lilOS's own databases are refused on every port
+        lookup: await guard.lookup(plan.hosts.length === 1 && !plan.srv ? port : null),
         serverSelectionTimeoutMS: Math.min(s.timeoutMs, 30_000),
         monitorCommands: false,
       });
