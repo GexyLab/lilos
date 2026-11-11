@@ -64,8 +64,8 @@ Open a window of the project in the IDE and choose **Design** in the top bar. In
 - **Dragging** a piece puts it where the **blue line** shows. The container that receives it turns blue.
 - To **move** a component that is already there, drag it (the move starts after 5 pixels of movement). You cannot put it inside itself.
 - **A click** on a component selects it; a click on the background of the window clears the selection and shows the properties of the window.
-- **A double click** on a component opens its object in the schema, if there is one.
-- With the window in the foreground: **Del** (or **Backspace**) removes the selected component, **Esc** clears the selection. **Remove the component**, at the bottom of its Properties, does the same. If the component has an object in a schema, the IDE asks for confirmation first. Removing a container also removes everything it contains.
+- **A double click** on a component opens its object in the schema, if there is one (the first schema that has one).
+- With the window in the foreground: **Del** (or **Backspace**) removes the selected component, **Esc** clears the selection. **Remove the component**, at the bottom of its Properties, does the same. Removing a component also removes its objects in the schemas (if at least one is linked to other blocks, the IDE asks for confirmation first). Removing a container also removes everything it contains, objects included.
 
 **Preview** makes the window work like the real one: you can press, type, choose. If a **Test** is running, the preview is connected to the program: what you do reaches the objects in the schemas, and the values of the schemas reach the components. Without a test, the components react but nothing reaches anybody.
 
@@ -108,7 +108,7 @@ In the [Free area](ui.free) the position of a piece is saved as coordinates (x, 
 
 Schemas never touch the window: every component has an **object** in a schema, a **UI component** block (`core.component`, category **UI components**, from the [Basic blocks](logicstudio-core) package) with the ports of the component. See also [The object of a component](ide/components).
 
-**Making it.** Select the component in **Design**. In the **Properties** bar, **Object in a schema** section, choose the schema in **In the schema** and press **Make its object**. The object appears in the middle of the view of that schema, which opens; its label is the **Label** or the **Text** of the component (at most 80 characters). If the object is already there, the section says in which schema and block it is, with **Open it in the schema**.
+**Making it.** Select the component in **Design**. In the **Properties** bar, **Objects in the schemas** section, choose the schema in **In the schema** and press **Make its object**. The object appears in the middle of the view of that schema, which opens; its label is the **Label** or the **Text** of the component (at most 80 characters). If the object is already there, the section lists every object as «schema › block», with **Open it in the schema**. To have it in another schema too, choose the schema in **Also in the schema** and press **Put it in this schema too**.
 
 **The ports.** The **Ports** section of the Properties lists them with an arrow:
 
@@ -120,12 +120,12 @@ Every object also has the common inputs **enabled** and **visible** (see below) 
 
 **Rules.**
 
-- **One object per component**, in the whole project. If you have two (for example by duplicating the object with Ctrl D), the project does not start: «La componente Principale › button1 ha già il suo oggetto in Calcolo/b3» ("The component Principale › button1 already has its object in Calcolo/b3").
+- **At most one object per component in each schema**, but a component can have them in several schemas. What the user does comes out of every object; the values sent to the inputs from different schemas all reach the component, and the last one that arrives wins. If you have two in the same schema (for example by duplicating the object with Ctrl D), the project does not start: «La componente Principale › button1 ha già il suo oggetto in questo schema: Calcolo/b3» ("The component Principale › button1 already has its object in this schema: Calcolo/b3").
 - The **starts it** settings do not count for the object: every value that arrives always goes to the component.
 - An **at start** value on an input of the object sets the component when the program starts (for example the starting text of a label).
-- If you remove a component, the IDE warns you that its object stays in the schema and marks an error («Il blocco b3 rappresenta la componente «button1», che non c'è», "The block b3 stands for the component «button1», which is not there") until you remove that too. The project does not start: «Il blocco b3 rappresenta una componente che non c'è (Principale › button1)» ("The block b3 stands for a component that is not there (Principale › button1)").
+- If you remove a component, its objects in the schemas are removed too. If they are linked to other blocks, the IDE asks first: "Its objects in the schemas go too, and they are linked to other blocks: «main» (3 links)… Those links will be removed." If a component disappears some other way (for example you remove a window from the project), the object stays and the project does not start: «Il blocco b3 rappresenta una componente che non c'è (Principale › button1)» ("The block b3 stands for a component that is not there (Principale › button1)").
 - In the Properties of an object (in the schema) you can change the **Window** and the **Component** it corresponds to. Right click on the object → **Open its window**.
-- **Containers have no object** that can be made from the IDE: the **Object in a schema** section is not there for Column, Row, Grid, Box, Tabs and Free area. Because of this, today the **title** input of the Box, the **open tab** input of the Tabs and the **enabled** and **visible** inputs of the containers cannot be used from the IDE.
+- **Containers have no object** that can be made from the IDE: the **Objects in the schemas** section is not there for Column, Row, Grid, Box, Tabs and Free area. Because of this, today the **title** input of the Box, the **open tab** input of the Tabs and the **enabled** and **visible** inputs of the containers cannot be used from the IDE.
 
 ### In the names of the examples
 

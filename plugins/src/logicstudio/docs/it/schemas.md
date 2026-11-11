@@ -68,6 +68,7 @@ In questi menu non c'è il blocco **Parametro** e l'oggetto delle componenti: pr
 | Tornare al 100% | Clic sulla percentuale nella barra (**Dimensione reale**). |
 | Vedere tutto | **Adatta** nella barra o nel menu del foglio: mostra tutti i blocchi, al massimo al 120%. |
 | Spostare la vista | Tieni premuto **Spazio** e trascina; oppure trascina con il **tasto centrale**; **Maiusc+rotella** sposta in orizzontale. |
+| Raggiungere un blocco fuori vista | Quando un collegamento porta a un blocco che non si vede, sul bordo della vista, dove il collegamento esce, c'è un'etichetta con una freccia e il **nome di quel blocco**. Se più collegamenti della stessa porta escono vicini, l'etichetta ha i nomi di tutti i loro blocchi (fino a tre, poi «+2»…). Un clic su un nome porta quel blocco al centro della vista, allo stesso zoom, e lo seleziona. |
 
 Lo zoom e la posizione della vista si salvano nello schema. Uno schema aperto la prima volta, o vuoto, viene adattato da solo.
 
@@ -101,7 +102,7 @@ Un blocco **specchiato** ha gli **ingressi a destra** e le **uscite a sinistra**
 - È un passo di Annulla (**Ctrl+Z**) e si salva nello schema; una copia (**Ctrl+D**) resta specchiata.
 - I **disegni** (testi e forme) e i gruppi non si specchiano: **Specchia** è spento se sono selezionati solo disegni.
 
-> **Ctrl+D** non controlla il numero massimo di blocchi: oltre il limite te ne accorgi alla prova. Duplicando un **oggetto di componente** ottieni due oggetti per la stessa componente, e la prova lo rifiuta («La componente … ha già il suo oggetto in …»): cambia la componente della copia o eliminala.
+> **Ctrl+D** non controlla il numero massimo di blocchi: oltre il limite te ne accorgi alla prova. Duplicando un **oggetto di componente** ottieni due oggetti della stessa componente nello stesso schema, e la prova lo rifiuta («La componente … ha già il suo oggetto in questo schema: …»): cambia la componente della copia o eliminala.
 
 I tasti valgono quando il foglio è in primo piano (dopo un clic sul foglio).
 

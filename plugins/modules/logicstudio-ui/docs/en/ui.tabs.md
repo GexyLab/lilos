@@ -27,7 +27,7 @@ Several pages in the same space, one visible at a time: at the top a row of tabs
 | **enabled** (`enabled`) | input | yes/no | `false` disables the Tabs with all the pages. |
 | **visible** (`visible`) | input | yes/no | `false` hides them. |
 
-> **Today these ports cannot be used from the IDE.** The Tabs are a container, and for containers the Properties do not show the **Object in a schema** section: there is no way to make their object. The tabs work all the same (the user changes page with a click), but a schema cannot know which page is open nor open one. See [Standard UI components](logicstudio-ui).
+> **Today these ports cannot be used from the IDE.** The Tabs are a container, and for containers the Properties do not show the **Objects in the schemas** section: there is no way to make their object. The tabs work all the same (the user changes page with a click), but a schema cannot know which page is open nor open one. See [Standard UI components](logicstudio-ui).
 
 ## How it works
 

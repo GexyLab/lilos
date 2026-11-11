@@ -194,8 +194,8 @@ Le prove non scrivono mai nel registro. Il registro è uno per utente, per tutti
 
 Un programma con finestre parla con le sue componenti attraverso i loro **oggetti** negli schemi. Vedi [Le componenti nello schema](ide/components).
 
-- Quando uno schema manda un valore a un ingresso dell'oggetto di una componente (per esempio il testo di un'[Etichetta](ui.label)), il motore lo manda a tutte le finestre aperte di quel progetto.
-- Quando qualcuno usa una componente (preme un [Pulsante](ui.button), sposta un cursore), la finestra lo manda al motore, che lo fa uscire dall'oggetto della componente nello schema. Il motore accetta solo le porte che la componente manda davvero (le sue uscite), e al massimo 100 messaggi al secondo per programma.
+- Quando uno schema manda un valore a un ingresso dell'oggetto di una componente (per esempio il testo di un'[Etichetta](ui.label)), il motore lo manda a tutte le finestre aperte di quel progetto. Se la stessa componente ha il suo oggetto in più schemi, i valori arrivano tutti alla componente: vale l'ultimo che arriva.
+- Quando qualcuno usa una componente (preme un [Pulsante](ui.button), sposta un cursore), la finestra lo manda al motore, che lo fa uscire da ogni oggetto della componente, in ogni schema. Il motore accetta solo le porte che la componente manda davvero (le sue uscite), e al massimo 100 messaggi al secondo per programma.
 - Un valore che arriva da una finestra è al massimo 256 KB.
 - Con l'opzione **Una finestra riaperta mostra subito gli ultimi valori** (accesa di serie), il motore ricorda l'ultimo valore di ogni porta (fino a 2000 porte per programma) e lo dà alla finestra quando si apre.
 - Quando una finestra si apre, nessun pulsante viene «ripremuto»: al programma arriva solo quello che fa chi usa la finestra.

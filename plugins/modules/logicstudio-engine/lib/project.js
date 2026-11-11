@@ -73,7 +73,7 @@ export function buildSpec(documents, registry, limits) {
 
   // Schemas
   const schemas = {};
-  const proxies = new Map();   // 'window:component' → 'schema/block'
+  const proxies = new Map();   // 'schema|window:component' → block: a component has at most one object per schema (it can be in several schemas)
   for (const name of schemaNames) {
     if (!NAME.test(name)) bad(`Nome di schema non valido: ${name}`);
     const doc = schemaDocs[name];
@@ -105,12 +105,12 @@ export function buildSpec(documents, registry, limits) {
       let inputs = new Set([...def.inputs.map(p => p.name), ...added.inputs.map(p => p.id)]);
       let outputs = new Set([...def.outputs.map(p => p.name), ...added.outputs.map(p => p.id), 'error']);
       if (def.role === 'component') {
-        const key = `${config.window}:${config.component}`;
+        const key = `${name}|${config.window}:${config.component}`;
         const win = windows[config.window];
         const comp = win?.components[config.component];
         if (!comp) bad(`Il blocco ${raw.id} rappresenta una componente che non c'è (${config.window} › ${config.component})`, { schema: name, block: raw.id });
-        if (proxies.has(key)) bad(`La componente ${config.window} › ${config.component} ha già il suo oggetto in ${proxies.get(key)}`, { schema: name, block: raw.id });
-        proxies.set(key, `${name}/${raw.id}`);
+        if (proxies.has(key)) bad(`La componente ${config.window} › ${config.component} ha già il suo oggetto in questo schema: ${name}/${proxies.get(key)}`, { schema: name, block: raw.id });
+        proxies.set(key, raw.id);
         const cdef = registry.componentDef(comp.type);
         if (!cdef) bad(`La componente ${config.component} (${comp.type}) non c'è: manca il suo pacchetto`, { window: config.window });
         inputs = new Set([...cdef.inputs.map(p => p.name), ...comp.added.inputs.map(p => p.id)]);

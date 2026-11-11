@@ -36,19 +36,19 @@ The ports of each component are in its page, for example [Button](ui.button), [L
 From the window:
 
 1. Open the window and, in **Design**, select the component.
-2. In the **Properties**, **Object in a schema** section, read «No schema has its object yet: without it the component shows and does nothing.»
+2. In the **Properties**, **Objects in the schemas** section, read «No schema has its object yet: without it the component shows and does nothing.»
 3. In **In the schema** choose the schema (by default the first of the project).
 4. Press **Make its object**.
 
 The IDE puts the object in the schema, more or less at the top left of the visible part, gives it as label the text or the label of the component (for example «Saluta» for a button), opens the schema and selects it. The schema shows as modified: remember to save.
 
-A component has **one object in the whole project**. You can put it in the schema you prefer; if you move it to another schema, remove the old one.
+A component can have its object in **several schemas** of the project, but **at most one per schema**. What the user does (for example **pressed**) comes out of every object, in every schema. The values sent to the inputs from different schemas all reach the component: the last one that arrives wins. To have it in another schema too, choose the schema in **Also in the schema** and press **Put it in this schema too**.
 
 The containers (Column, Row, Grid, Box, Tabs, Free area) **have no object** in the IDE: you cannot switch them off, hide them or change the open tab of **Tabs** from a schema. To hide a group of components, send **visible** to each one.
 
 ## Finding the object
 
-- In the window, **double click** on the component (in Design), or Properties → **Open it in the schema**: the IDE opens the schema, selects the object and brings it into view. The Properties also show where it is: «main › button1».
+- In the window, **double click** on the component (in Design), or Properties → **Open it in the schema**: the IDE opens the schema, selects the object and brings it into view. The Properties list every object in the **Objects in the schemas** section (for example «main › button1»), each with its own button to open it. The double click opens the first schema that has one; with the right click, **Show its object in the schema** has a submenu with the names of the schemas.
 - In the schema, **double click** on the object, or right click → **Open its window**: it opens the window.
 - In the **Map**, each window says in which schemas the objects of its components are.
 
@@ -80,9 +80,9 @@ A **Button** with **Action on click** (Open a window, Close this window) does it
 | Problem | What you see | What to do |
 |---|---|---|
 | The component has no object | It shows but does nothing. | **Make its object**. |
-| You removed the component | The object stays in the schema; when you test: «The block component1 stands for the component «button1», which is not there». | Remove the object, or choose another **Component**. |
+| The component is no longer there (for example a window file disappeared from the project) | When you test: «The block component1 stands for the component «button1», which is not there». | Remove the object, or choose another **Component**. |
 | You removed or renamed the window | When you test: «The block component1 stands for a component of the window «Old name», which is not there». | Choose **Window** and **Component** again. |
-| Two objects for the same component (for example after **Duplicate**) | The engine rejects it: «La componente Principale › button1 ha già il suo oggetto in main/component1» ("The component Principale › button1 already has its object in main/component1"). | Remove one of the two. |
+| Two objects of the same component in the same schema (for example after **Duplicate**) | The engine rejects it: «La componente Principale › button1 ha già il suo oggetto in questo schema: main/component1» ("The component Principale › button1 already has its object in this schema: main/component1"). | Remove one of the two, or change the component of the copy. |
 | The object has no component (—) | When you test: «The block component2 stands for the component «», which is not there». | Choose the **Component**. |
 | The package of the component is not installed | The engine: «La componente button1 (ui.button) non c'è: manca il suo pacchetto» ("The component button1 (ui.button) is not there: its package is missing"). | Install the package from the AppStore → Kernel. |
 

@@ -47,7 +47,9 @@ In **Progetta**:
 - **Canc** o **Backspace**: elimina la componente selezionata (e quello che contiene); **Esc**: toglie la selezione;
 - **doppio clic**: apre lo schema con l'**oggetto** della componente e lo seleziona, se l'oggetto c'è.
 
-Eliminando una componente che ha un oggetto in uno schema, l'IDE chiede **Eliminare la componente?** — «Il suo oggetto nello schema «main» resta lì e segna un errore finché non togli anche quello.»
+Eliminando una componente (**Canc**, **Elimina la componente** o il tasto destro) si eliminano **anche i suoi oggetti in tutti gli schemi** (per un contenitore, anche gli oggetti di tutte le componenti dentro). Se nessuno di quegli oggetti è collegato, succede senza chiedere. Se almeno uno è collegato ad altri blocchi, l'IDE chiede prima **Eliminare la componente?** — «Si eliminano anche i suoi oggetti negli schemi, e sono collegati ad altri blocchi: «main» (3 collegamenti), «Calcolo» (1 collegamento). Quei collegamenti verranno tolti.»
+
+Gli schemi cambiati si salvano con **Salva** come ogni altra modifica (hanno il puntino delle modifiche non salvate). **Ctrl+Z** nell'editor della finestra riporta la componente ma **non** i suoi oggetti: ogni oggetto torna con **Ctrl+Z** nella cronologia del suo schema (con i suoi collegamenti).
 
 Ogni cambiamento si annulla con **Ctrl+Z**.
 
@@ -105,10 +107,10 @@ Poi **Si apre da**: **Menu applicazioni (finestra main)**, **Si apre solo da alt
 | Azione al clic | Vedi sotto. |
 
 - **Porte**: le porte della componente, che userai attraverso il suo oggetto: **←** è quello che imposta uno schema (per esempio **testo**, **abilitato**, **visibile**), **→** è quello che fa l'utente (per esempio **premuto**, **valore**). «← quello che imposta uno schema, → quello che fa l'utente. Gli schemi raggiungono la componente con il suo oggetto.»
-- **Oggetto nello schema**: dove sta il suo oggetto, con **Aprilo nello schema**; oppure «Nessuno schema ha ancora il suo oggetto: senza, la componente si vede ma non fa niente.» con **Nello schema** e **Crea il suo oggetto**. Vedi [L'oggetto di una componente](ide/components).
+- **Oggetti negli schemi**: l'elenco dei suoi oggetti, ognuno come «schema › blocco» con un pulsante per aprirlo (**Aprilo nello schema**). Se nessuno schema ne ha uno: «Nessuno schema ha ancora il suo oggetto: senza, la componente si vede ma non fa niente.» con **Nello schema** e **Crea il suo oggetto**. Se ne ha già: **Anche nello schema** (solo gli schemi che non lo hanno ancora) e **Mettilo anche in questo schema**. Se tutti gli schemi lo hanno, campo e pulsante non ci sono. Vedi [L'oggetto di una componente](ide/components).
 - **Elimina la componente**.
 
-I contenitori non hanno le sezioni Porte e Oggetto nello schema.
+I contenitori non hanno le sezioni Porte e Oggetti negli schemi.
 
 ## L'azione al clic di un pulsante
 

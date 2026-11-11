@@ -21,7 +21,7 @@ Il margine interno è fisso (circa 10 pixel sopra, 12 ai lati e sotto). Le compo
 | **abilitato** (`enabled`) | ingresso | sì/no | `false` disabilita il riquadro **e tutto quello che contiene**. |
 | **visibile** (`visible`) | ingresso | sì/no | `false` nasconde il riquadro con tutto il contenuto. |
 
-> **Oggi queste porte non si possono usare dall'IDE.** Il Riquadro è un contenitore, e per i contenitori le Proprietà non mostrano la sezione **Oggetto nello schema**: non c'è modo di creare il suo oggetto. Il titolo resta quello delle proprietà, e per nascondere o disabilitare il contenuto devi farlo componente per componente. Vedi [Componenti UI standard](logicstudio-ui).
+> **Oggi queste porte non si possono usare dall'IDE.** Il Riquadro è un contenitore, e per i contenitori le Proprietà non mostrano la sezione **Oggetti negli schemi**: non c'è modo di creare il suo oggetto. Il titolo resta quello delle proprietà, e per nascondere o disabilitare il contenuto devi farlo componente per componente. Vedi [Componenti UI standard](logicstudio-ui).
 
 ## Come funziona
 

@@ -14,7 +14,7 @@ Un contenitore che mette le componenti una sotto l'altra, dall'alto in basso. È
 
 ## Porte del suo oggetto nello schema
 
-Una Colonna, come tutti i contenitori, oggi **non ha un oggetto** che si possa creare dall'IDE: nelle sue Proprietà non c'è la sezione **Oggetto nello schema**. I suoi ingressi **abilitato** e **visibile** esistono (valgono per tutta la colonna, con tutto quello che contiene) ma dall'IDE non si possono usare. Per nascondere un gruppo di componenti, oggi devi nasconderle una per una. Vedi [Componenti UI standard](logicstudio-ui).
+Una Colonna, come tutti i contenitori, oggi **non ha un oggetto** che si possa creare dall'IDE: nelle sue Proprietà non c'è la sezione **Oggetti negli schemi**. I suoi ingressi **abilitato** e **visibile** esistono (valgono per tutta la colonna, con tutto quello che contiene) ma dall'IDE non si possono usare. Per nascondere un gruppo di componenti, oggi devi nasconderle una per una. Vedi [Componenti UI standard](logicstudio-ui).
 
 ## Come funziona
 

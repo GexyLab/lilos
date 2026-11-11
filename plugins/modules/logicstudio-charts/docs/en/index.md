@@ -31,7 +31,7 @@ The package does **not** come with Logic Studio IDE: an administrator installs i
 
 1. Open a window of the project in **Design**, choose the chart in the **Components** tab (**Charts** group) and put it in a container (for example a [Column](ui.column)).
 2. In the **Properties** choose title, height, unit, colours...
-3. Still in the Properties, in the **Object in a schema** section, press **Make its object**: the block that stands for the chart appears in the schema.
+3. Still in the Properties, in the **Objects in the schemas** section, press **Make its object**: the block that stands for the chart appears in the schema.
 4. Link to that block the values to show (on the **data**, **add point**, **clear**... inputs) and, if you want, use its **picked point** output.
 
 In the window editor (**Design**) every chart shows **made-up data**, to show you what it will look like; the tool buttons are not there. In **Preview**, in a **Test** and in the real window the chart starts empty ("No data") and shows only what the schema sends to it.

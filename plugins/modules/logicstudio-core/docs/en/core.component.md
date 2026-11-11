@@ -35,14 +35,14 @@ In a schema opened alone (without a project) the Properties say "A schema alone 
 The object is **not** in the **Blocks** tab: it is created from the window.
 
 1. Open the window and, in **Design**, select the component.
-2. In the Properties, **Object in a schema** section, choose the schema in **In the schema** and press **Make its object**.
+2. In the Properties, **Objects in the schemas** section, choose the schema in **In the schema** and press **Make its object**.
 3. The IDE puts the object in the middle of the schema, gives it as title the label or the text of the component, and opens it selected.
 
-From then on, in the Properties of the component, **Object in a schema** says where the object is (schema › block) and **Open it in the schema** shows it. A **double click** on the component, in Design, also opens its object. From the right click on the object, **Open its window** does the opposite. Until a component has its object, the Properties warn: "No schema has its object yet: without it the component shows and does nothing."
+From then on, in the Properties of the component, **Objects in the schemas** lists the objects (schema › block) and **Open it in the schema** shows them. To put it in another schema too: **Also in the schema** and **Put it in this schema too**. A **double click** on the component, in Design, also opens its object. From the right click on the object, **Open its window** does the opposite. Until a component has its object, the Properties warn: "No schema has its object yet: without it the component shows and does nothing."
 
 On the sheet the object shows as title its label (or the name of the kind of component) and below it `window › component`. In the Properties there is no **Label** field: to change it use the right click, **Label…**.
 
-**Columns**, **Rows** and the other containers do not have the **Object in a schema** section: from the IDE you cannot create an object for them.
+**Columns**, **Rows** and the other containers do not have the **Objects in the schemas** section: from the IDE you cannot create an object for them.
 
 ## How it works
 
@@ -60,11 +60,11 @@ On the sheet the object shows as title its label (or the name of the kind of com
 - When a window **opens**, nothing comes out: no button is "pressed again".
 - If the same window is open in several copies (two screens, two browsers), the gesture made in one comes out of the object only once and, with the option **Copies of the same window stay in step**, is seen in the others too.
 
-### One object per component
+### The objects of a component
 
-Each component has **a single object**, in only one of the schemas of the project. If there are two (for example after duplicating the object with **Ctrl D**), the program does not start: «La componente *window* › *component* ha già il suo oggetto in *schema*/*block*» ("The component *window* › *component* already has its object in *schema*/*block*"). If you need the value of a component in more schemas, carry it with the [schema ports](core.schemaOut).
+Each component can have its object in **several schemas** of the project, but **at most one per schema**. What the user does comes out of every object, in every schema. The values sent to the inputs from different schemas all reach the component: the last one that arrives wins. If there are two in the same schema (for example after duplicating the object with **Ctrl D**), the program does not start: «La componente *window* › *component* ha già il suo oggetto in questo schema: *schema*/*block*» ("The component *window* › *component* already has its object in this schema: *schema*/*block*").
 
-If you remove the component from the window, its object stays in the schema and shows an error until you remove it too (the IDE reminds you when you remove the component).
+If you remove the component from the window, the IDE removes its objects in the schemas too (if they are linked to other blocks, it asks first and removes those links).
 
 For the general rules see [How a block works](ide/blocks) and [The object of a component](ide/components).
 
@@ -111,9 +111,9 @@ These are errors of the project, not of the Exception: the program does not star
 | Message | When |
 |---|---|
 | Il blocco *id* rappresenta una componente della finestra «*window*», che non c'è ("The block *id* stands for a component of the window «*window*», which is not there") | (Problems) The chosen window is no longer in the project. |
-| Il blocco *id* rappresenta la componente «*component*», che non c'è ("The block *id* stands for the component «*component*», which is not there") | (Problems) The component was removed from the window, or **Component** is empty. |
+| Il blocco *id* rappresenta la componente «*component*», che non c'è ("The block *id* stands for the component «*component*», which is not there") | (Problems) The component is no longer in the window (for example the window file disappeared), or **Component** is empty. |
 | Il blocco *id* rappresenta una componente che non c'è (*window* › *component*) ("The block *id* stands for a component that is not there") | The program does not start, for the same reason. |
-| La componente *window* › *component* ha già il suo oggetto in *schema*/*block* ("The component already has its object in …") | Two objects for the same component. |
+| La componente *window* › *component* ha già il suo oggetto in questo schema: *schema*/*block* ("The component already has its object in this schema: …") | Two objects of the same component in the same schema. |
 | La componente *component* (*kind*) non c'è: manca il suo pacchetto ("The component *component* (*kind*) is not there: its package is missing") | The package of the component (for example [Standard UI components](logicstudio-ui)) is not installed. |
 
 ## See also

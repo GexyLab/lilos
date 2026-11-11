@@ -53,6 +53,11 @@ import { drawShape, drawColor, drawTextStyle } from './shapes.js';
  * selects all, Ctrl+D duplicates, Ctrl+G makes a group of the selected blocks, Ctrl+Shift+G undoes
  * the selected groups, arrows move the selection, Esc deselects.
  *
+ * Links that leave the view: where a link with one end in view crosses the edge of the view, a label
+ * shows the name of the block at the other end (of the blocks, when links of one port leave the view
+ * close to each other); a
+ * click on a name brings that block to the middle of the view and selects it.
+ *
  * Events: 'select' { blocks, links, groups } · 'open' { id } (double click on a block) ·
  * 'contextmenu' { kind: 'block'|'link'|'group'|'canvas', id, link, clientX, clientY, world } ·
  * 'linkDrop' { from, world, clientX, clientY } (a link dropped on nothing) · 'view' { x, y, zoom }
@@ -74,6 +79,8 @@ export class LogicCanvas extends Emitter {
   #live = null; #liveOff = []; #values = new Map(); #states = new Map(); #schemaName = '';
   #drawing = false; #space = false; #temp = null;
   #pick = null;            // Ctrl + clicks on ports: { first: { bid, side, port }, picked: [...], rubber, off }
+  #edges;                  // the labels of the links that leave the view
+  #ends = [];              // the links drawn: [{ a, b, type, from, to }], world points of their ends (for #edges)
   #offs = [];
 
   constructor({ schema, catalog, lang = 'en', componentOf = () => null, labels = {}, readOnly = false } = {}) {
@@ -90,9 +97,15 @@ export class LogicCanvas extends Emitter {
     this.#svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     this.#svg.setAttribute('class', 'lgc-links');
     this.#world = h('div', { class: 'lgc-world' }, this.#svg);
-    this.el = h('div', { class: 'lgc', tabIndex: 0, dataset: { wheel: 'native', pan: 'native' } }, this.#world);
+    this.#edges = h('div', { class: 'lgc-edges' });
+    this.el = h('div', { class: 'lgc', tabIndex: 0, dataset: { wheel: 'native', pan: 'native' } }, this.#world, this.#edges);
     this.#view = { ...(schema.data.view ?? { x: 0, y: 0, zoom: 1 }) };
     this.#bind();
+    if (typeof ResizeObserver === 'function') {
+      const ro = new ResizeObserver(() => this.#drawEdges());
+      ro.observe(this.el);
+      this.#offs.push(() => ro.disconnect());
+    }
     const onChange = () => this.refresh();
     schema.on('change', onChange);
     this.#offs.push(() => schema.off('change', onChange));
@@ -504,6 +517,7 @@ export class LogicCanvas extends Emitter {
     const ns = 'http://www.w3.org/2000/svg';
     this.#svg.replaceChildren();
     for (const old of this.#world.querySelectorAll('.lgc-val')) old.remove();
+    this.#ends = [];
     for (const l of this.#schema.data.links) {
       if (this.#insideCollapsed(l)) continue;
       const a = this.#portAt(l.from[0], 'out', l.from[1]);
@@ -522,6 +536,7 @@ export class LogicCanvas extends Emitter {
       path.setAttribute('class', `lgc-link t-${type}${this.#selLinks.has(key) ? ' sel' : ''}${l.from[1] === 'error' ? ' error' : ''}${typesMatch(type, toType) ? '' : ' mismatch'}`);
       path.dataset.link = key;
       this.#svg.append(hit, path);
+      this.#ends.push({ a, b, type: l.from[1] === 'error' ? 'error' : type, from: [l.from[0], l.from[1]], to: [l.to[0], l.to[1]] });
       const value = this.#values.get(`${l.from[0]}.${l.from[1]}`);
       if (value !== undefined) {
         path.classList.add('live');
@@ -531,6 +546,98 @@ export class LogicCanvas extends Emitter {
     }
     if (this.#temp) this.#svg.append(this.#temp);
     this.#drawPick();
+    this.#drawEdges();
+  }
+
+  /**
+   * The labels on the edge of the view: a link with one end in view and the other out of it gets,
+   * where its curve leaves the view, the name of the block at the far end. The links of one port that
+   * leave the view close to each other share a label (the names of all their blocks). Labels on one
+   * side do not overlap.
+   */
+  #drawEdges() {
+    const box = this.#edges;
+    if (!box) return;
+    box.replaceChildren();
+    const W = this.el.clientWidth, H = this.el.clientHeight;
+    if (!W || !H || !this.#ends.length) return;
+    const M = 6;   // the labels stay this far from the edge
+    const { x: vx, y: vy, zoom } = this.#view;
+    const screen = p => ({ x: vx + p.x * zoom, y: vy + p.y * zoom });
+    const inView = p => p.x >= M && p.x <= W - M && p.y >= M && p.y <= H - M;
+    const labels = new Map();   // 'visible port|side' → [{ side, xs, ys, type, names: Map(id → name) }]
+    for (const e of this.#ends) {
+      const fromIn = inView(screen(e.a)), toIn = inView(screen(e.b));
+      if (fromIn === toIn) continue;
+      // along the curve, from the end in view, to where it leaves the view
+      const at = t => screen(bezier(e.a, e.b, fromIn ? t : 1 - t));
+      let lo = 0, hi = 1;
+      for (let i = 1; i <= 24; i++) { if (!inView(at(i / 24))) { hi = i / 24; break; } lo = i / 24; }
+      for (let i = 0; i < 12; i++) { const mid = (lo + hi) / 2; if (inView(at(mid))) lo = mid; else hi = mid; }
+      const p = at(lo);
+      const side = p.x <= M + 1 ? 'l' : p.x >= W - M - 1 ? 'r' : p.y <= M + 1 ? 't' : 'b';
+      const near = fromIn ? e.from : e.to;
+      const far = this.#endName(fromIn ? e.to[0] : e.from[0]);
+      const key = `${fromIn ? 'out' : 'in'}:${near[0]}.${near[1]}|${side}`;
+      // one label for the links of one port that leave the view close to each other
+      const along = side === 'l' || side === 'r' ? 'ys' : 'xs';
+      const pos = along === 'ys' ? p.y : p.x;
+      const list = labels.get(key) ?? labels.set(key, []).get(key);
+      let label = list.find(x => Math.abs(x[along].reduce((s, v) => s + v, 0) / x[along].length - pos) < 32);
+      if (!label) list.push(label = { side, xs: [], ys: [], type: e.type, names: new Map() });
+      label.xs.push(p.x); label.ys.push(p.y);
+      label.names.set(far.id, far.name);
+    }
+    const placed = [];
+    for (const { side, xs, ys, type, names } of [...labels.values()].flat()) {
+      const all = [...names];
+      const shown = all.slice(0, 3);
+      const el = h('div', { class: `lgc-edge ${side}`, style: `--pc: var(--lt-${type}, var(--lt-any))` },
+        h('span', { class: 'lgc-edge-a', 'aria-hidden': 'true' }, { l: '←', r: '→', t: '↑', b: '↓' }[side]),
+        ...shown.map(([id, name]) => h('button', { type: 'button', class: 'lgc-edge-n', dataset: { id }, title: name }, name)),
+        all.length > shown.length ? h('span', { class: 'lgc-edge-more', title: all.slice(3).map(([, n]) => n).join(', ') }, `+${all.length - shown.length}`) : null);
+      box.append(el);
+      const w = el.offsetWidth, ht = el.offsetHeight;
+      const px = xs.reduce((s, v) => s + v, 0) / xs.length, py = ys.reduce((s, v) => s + v, 0) / ys.length;
+      let x = side === 'l' ? M : side === 'r' ? W - M - w : px - w / 2;
+      let y = side === 't' ? M : side === 'b' ? H - M - ht : py - ht / 2;
+      x = Math.min(Math.max(M, x), Math.max(M, W - M - w));
+      y = Math.min(Math.max(M, y), Math.max(M, H - M - ht));
+      placed.push({ el, side, x, y, w, h: ht });
+    }
+    // On each side, one after the other along the edge
+    for (const side of ['l', 'r', 't', 'b']) {
+      const along = side === 'l' || side === 'r' ? 'y' : 'x', size = along === 'y' ? 'h' : 'w';
+      let end = -Infinity;
+      for (const p of placed.filter(q => q.side === side).sort((a, b) => a[along] - b[along])) {
+        p[along] = Math.max(p[along], end + 3);
+        end = p[along] + p[size];
+      }
+    }
+    for (const p of placed) Object.assign(p.el.style, { left: `${p.x}px`, top: `${p.y}px` });
+  }
+
+  /** The name a label shows for the end of a link: the block, or the group it is drawn as. */
+  #endName(id) {
+    const holder = this.#schema.groupOf(id);
+    const g = this.#schema.group(id) ?? (holder?.collapsed ? holder : null);
+    if (g) return { id: g.id, name: g.name };
+    const b = this.#schema.block(id);
+    const def = b && this.#defs.get(b.type);
+    const comp = def?.role === 'component' ? this.#componentOf(b) : null;
+    return { id, name: b ? this.#titles(b, def, comp).title : id };
+  }
+
+  /** Brings a block (or a group) to the middle of the view, at the same zoom, and selects it. */
+  reveal(id) {
+    const g = this.#schema.group(id);
+    const entry = g ? this.#groups.get(id) : this.#blocks.get(id);
+    const b = g ? null : this.#schema.block(id);
+    if (!entry || (!g && !b)) return;
+    const x = (g ? entry.x : b.x) + entry.el.offsetWidth / 2, y = (g ? entry.y : b.y) + entry.el.offsetHeight / 2;
+    const { zoom } = this.#view;
+    this.setView({ x: this.el.clientWidth / 2 - x * zoom, y: this.el.clientHeight / 2 - y * zoom, zoom });
+    if (g) this.select([], [], { groups: [id] }); else this.select([id]);
   }
 
   #applyView() {
@@ -538,6 +645,7 @@ export class LogicCanvas extends Emitter {
     this.#world.style.transform = `translate(${x}px, ${y}px) scale(${zoom})`;
     this.el.style.backgroundPosition = `${x}px ${y}px`;
     this.el.style.backgroundSize = `${GRID * zoom}px ${GRID * zoom}px`;
+    this.#drawEdges();
   }
 
   // ------------------------------------------------------------------ view
@@ -730,6 +838,10 @@ export class LogicCanvas extends Emitter {
 
     el.addEventListener('pointerdown', e => {
       if (e.target.closest?.('.lgc-dt[contenteditable="true"], .lgc-dt[contenteditable="plaintext-only"]')) return;   // writing a drawing's text
+      // a label of a link that leaves the view: its block comes in view
+      const edgeName = e.button === 0 ? e.target.closest?.('.lgc-edge-n') : null;
+      if (edgeName) { e.preventDefault(); this.reveal(edgeName.dataset.id); el.focus({ preventScroll: true }); return; }
+      if (e.target.closest?.('.lgc-edge')) { e.preventDefault(); return; }
       el.focus({ preventScroll: true });
       if (e.button === 1 || (e.button === 0 && this.#space)) { e.preventDefault(); this.#pan(e); return; }
       if (e.button !== 0) return;
@@ -752,6 +864,7 @@ export class LogicCanvas extends Emitter {
     });
 
     el.addEventListener('dblclick', e => {
+      if (e.target.closest('.lgc-edges > *')) return;
       if (e.target.closest('.lgc-dot, [data-collapse]')) return;
       const block = e.target.closest('.lgc-block');
       const head = e.target.closest('.lgc-gh');
@@ -763,6 +876,7 @@ export class LogicCanvas extends Emitter {
 
     el.addEventListener('contextmenu', e => {
       e.preventDefault();
+      if (e.target.closest('.lgc-edges > *')) return;
       const block = e.target.closest('.lgc-block');
       const head = e.target.closest('.lgc-gh');
       const link = e.target.closest('[data-link]');
@@ -1064,6 +1178,17 @@ function curve(a, b) {
   const dx = Math.max(40, Math.abs(b.x - a.x) / 2);
   const da = a.dir ?? 1, db = b.dir ?? -1;
   return `M${a.x} ${a.y} C${a.x + dx * da} ${a.y}, ${b.x + dx * db} ${b.y}, ${b.x} ${b.y}`;
+}
+
+/** The point at `t` (0 → a, 1 → b) of the curve that curve() draws. */
+function bezier(a, b, t) {
+  const dx = Math.max(40, Math.abs(b.x - a.x) / 2);
+  const p1 = { x: a.x + dx * (a.dir ?? 1), y: a.y }, p2 = { x: b.x + dx * (b.dir ?? -1), y: b.y };
+  const u = 1 - t;
+  return {
+    x: u * u * u * a.x + 3 * u * u * t * p1.x + 3 * u * t * t * p2.x + t * t * t * b.x,
+    y: u * u * u * a.y + 3 * u * u * t * p1.y + 3 * u * t * t * p2.y + t * t * t * b.y,
+  };
 }
 
 /** A short line under a block's title: its main settings. */

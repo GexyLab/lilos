@@ -36,19 +36,19 @@ Le porte di ogni componente sono nella sua pagina, per esempio [Pulsante](ui.but
 Dalla finestra:
 
 1. Apri la finestra e, in **Progetta**, seleziona la componente.
-2. Nelle **Proprietà**, sezione **Oggetto nello schema**, leggi «Nessuno schema ha ancora il suo oggetto: senza, la componente si vede ma non fa niente.»
+2. Nelle **Proprietà**, sezione **Oggetti negli schemi**, leggi «Nessuno schema ha ancora il suo oggetto: senza, la componente si vede ma non fa niente.»
 3. In **Nello schema** scegli lo schema (di serie il primo del progetto).
 4. Premi **Crea il suo oggetto**.
 
 L'IDE mette l'oggetto nello schema, più o meno in alto a sinistra della parte visibile, gli dà come etichetta il testo o l'etichetta della componente (per esempio «Saluta» per un pulsante), apre lo schema e lo seleziona. Lo schema risulta modificato: ricordati di salvare.
 
-Una componente ha **un solo oggetto in tutto il progetto**. Puoi metterlo nello schema che preferisci; se lo sposti in un altro schema, togli quello vecchio.
+Una componente può avere il suo oggetto in **più schemi** del progetto, ma **al massimo uno per schema**. Quello che fa l'utente (per esempio **premuto**) esce da ogni oggetto, in ogni schema. I valori mandati agli ingressi da schemi diversi arrivano tutti alla componente: vale l'ultimo che arriva. Per averlo anche in un altro schema, scegli lo schema in **Anche nello schema** e premi **Mettilo anche in questo schema**.
 
 I contenitori (Colonna, Riga, Griglia, Riquadro, Schede, Area libera) **non hanno oggetto** nell'IDE: non puoi spegnerli, nasconderli o cambiare la scheda aperta di **Schede** da uno schema. Per nascondere un gruppo di componenti, manda **visibile** a ognuna.
 
 ## Trovare l'oggetto
 
-- Nella finestra, **doppio clic** sulla componente (in Progetta), oppure Proprietà → **Aprilo nello schema**: l'IDE apre lo schema, seleziona l'oggetto e lo mette in vista. Le Proprietà mostrano anche dove sta: «main › button1».
+- Nella finestra, **doppio clic** sulla componente (in Progetta), oppure Proprietà → **Aprilo nello schema**: l'IDE apre lo schema, seleziona l'oggetto e lo mette in vista. Le Proprietà elencano tutti gli oggetti nella sezione **Oggetti negli schemi** (per esempio «main › button1»), ognuno con il suo pulsante per aprirlo. Il doppio clic apre il primo schema che ne ha uno; con il tasto destro, **Mostra il suo oggetto nello schema** ha un sottomenu con i nomi degli schemi.
 - Nello schema, **doppio clic** sull'oggetto, oppure tasto destro → **Apri la sua finestra**: apre la finestra.
 - Nella **Mappa**, ogni finestra dice in quali schemi stanno gli oggetti delle sue componenti.
 
@@ -80,9 +80,9 @@ Un **Pulsante** con **Azione al clic** (Apri una finestra, Chiudi questa finestr
 | Problema | Cosa vedi | Cosa fare |
 |---|---|---|
 | La componente non ha oggetto | Si vede ma non fa niente. | **Crea il suo oggetto**. |
-| Hai eliminato la componente | L'oggetto resta nello schema; alla prova: «Il blocco component1 rappresenta la componente «button1», che non c'è». | Elimina l'oggetto, o scegli un'altra **Componente**. |
+| La componente non c'è più (per esempio un file di finestra è sparito dal progetto) | Alla prova: «Il blocco component1 rappresenta la componente «button1», che non c'è». | Elimina l'oggetto, o scegli un'altra **Componente**. |
 | Hai eliminato o rinominato la finestra | Alla prova: «Il blocco component1 rappresenta una componente della finestra «Vecchio nome», che non c'è». | Scegli di nuovo **Finestra** e **Componente**. |
-| Due oggetti per la stessa componente (per esempio dopo **Duplica**) | Il motore rifiuta: «La componente Principale › button1 ha già il suo oggetto in main/component1». | Elimina uno dei due. |
+| Due oggetti della stessa componente nello stesso schema (per esempio dopo **Duplica**) | Il motore rifiuta: «La componente Principale › button1 ha già il suo oggetto in questo schema: main/component1». | Elimina uno dei due, o cambia la componente della copia. |
 | L'oggetto non ha componente (—) | Alla prova: «Il blocco component2 rappresenta la componente «», che non c'è». | Scegli la **Componente**. |
 | Il pacchetto della componente non è installato | Il motore: «La componente button1 (ui.button) non c'è: manca il suo pacchetto». | Installa il pacchetto dall'AppStore → Kernel. |
 

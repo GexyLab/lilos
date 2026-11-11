@@ -75,7 +75,7 @@ The engine checks everything again and stops at the **first** problem. These mes
 | Due blocchi con lo stesso id (add1) nello schema main (Two blocks with the same id (add1) in the schema main) | A file edited by hand. |
 | Lo schema main: il blocco add1 non ha l'ingresso c (The schema main: the block add1 does not have the input c) | A link to a port that is no longer there. |
 | Lo schema main ha un collegamento verso un blocco che non c'è (The schema main has a link to a block that is not there) | A file edited by hand. |
-| La componente Principale › button1 ha già il suo oggetto in main/component1 (The component Principale › button1 already has its object in main/component1) | Two objects for the same component. |
+| La componente Principale › button1 ha già il suo oggetto in questo schema: main/component1 (The component Principale › button1 already has its object in this schema: main/component1) | Two objects of the same component in the same schema. |
 | Il blocco component1 rappresenta una componente che non c'è (Principale › button9) (The block component1 stands for a component that is not there (Principale › button9)) | The object points to a component that is not there. |
 | Collegamento del progetto: lo schema sensori non ha l'uscita «temp» (Project link: the schema sensori does not have the output «temp») | A link of the map to a port that is no longer there. |
 | Collegamento del progetto: lo schema allarmi non ha l'ingresso «temp» (Project link: the schema allarmi does not have the input «temp») | As above, on the input side. |

@@ -194,8 +194,8 @@ Tests never write to the log. The log is one per user, for all your programs; wh
 
 A program with windows talks to its components through their **objects** in the schemas. See [The components in the schema](ide/components).
 
-- When a schema sends a value to an input of the object of a component (for example the text of a [Label](ui.label)), the engine sends it to all the open windows of that project.
-- When someone uses a component (presses a [Button](ui.button), moves a slider), the window sends it to the engine, which makes it come out of the object of the component in the schema. The engine accepts only the ports that the component really sends (its outputs), and at most 100 messages per second per program.
+- When a schema sends a value to an input of the object of a component (for example the text of a [Label](ui.label)), the engine sends it to all the open windows of that project. If the same component has its object in several schemas, the values all reach the component: the last one that arrives wins.
+- When someone uses a component (presses a [Button](ui.button), moves a slider), the window sends it to the engine, which makes it come out of every object of the component, in every schema. The engine accepts only the ports that the component really sends (its outputs), and at most 100 messages per second per program.
 - A value that comes from a window is at most 256 KB.
 - With the option **A window opened again shows the last values at once** (on by default), the engine remembers the last value of each port (up to 2000 ports per program) and gives it to the window when it opens.
 - When a window opens, no button is «pressed again»: the program receives only what whoever uses the window does.

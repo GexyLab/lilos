@@ -64,8 +64,8 @@ Apri una finestra del progetto nell'IDE e scegli **Progetta** nella barra in alt
 - **Trascinando** un pezzo lo metti dove mostra la **linea blu**. Il contenitore che lo riceve si colora di blu.
 - Per **spostare** una componente che c'è già, trascinala (dopo 5 pixel di movimento parte lo spostamento). Non puoi metterla dentro se stessa.
 - **Un clic** su una componente la seleziona; un clic sullo sfondo della finestra toglie la selezione e mostra le proprietà della finestra.
-- **Doppio clic** su una componente apre il suo oggetto nello schema, se c'è.
-- Con la finestra in primo piano: **Canc** (o **Backspace**) elimina la componente selezionata, **Esc** toglie la selezione. Lo stesso fa **Elimina la componente**, in fondo alle sue Proprietà. Se la componente ha un oggetto in uno schema, prima l'IDE chiede conferma. Eliminare un contenitore elimina anche tutto quello che contiene.
+- **Doppio clic** su una componente apre il suo oggetto nello schema, se c'è (il primo schema che ne ha uno).
+- Con la finestra in primo piano: **Canc** (o **Backspace**) elimina la componente selezionata, **Esc** toglie la selezione. Lo stesso fa **Elimina la componente**, in fondo alle sue Proprietà. Eliminare una componente elimina anche i suoi oggetti negli schemi (se almeno uno è collegato ad altri blocchi, prima l'IDE chiede conferma). Eliminare un contenitore elimina anche tutto quello che contiene, oggetti compresi.
 
 **Anteprima** fa funzionare la finestra come quella vera: puoi premere, scrivere, scegliere. Se una **Prova** è in corso, l'anteprima è collegata al programma: quello che fai arriva agli oggetti negli schemi, e i valori degli schemi arrivano alle componenti. Senza prova, le componenti reagiscono ma non arriva niente a nessuno.
 
@@ -108,7 +108,7 @@ Nell'[Area libera](ui.free) la posizione di un pezzo è salvata come coordinate 
 
 Gli schemi non toccano mai la finestra: ogni componente ha un **oggetto** in uno schema, un blocco **Componente UI** (`core.component`, categoria **Componenti UI**, del pacchetto [Blocchi di base](logicstudio-core)) con le porte della componente. Vedi anche [Oggetto di una componente](ide/components).
 
-**Crearlo.** Seleziona la componente in **Progetta**. Nella barra **Proprietà**, sezione **Oggetto nello schema**, scegli lo schema in **Nello schema** e premi **Crea il suo oggetto**. L'oggetto compare al centro della vista di quello schema, che si apre; prende come etichetta l'**Etichetta** o il **Testo** della componente (al massimo 80 caratteri). Se l'oggetto c'è già, la sezione dice in quale schema e blocco sta, con **Aprilo nello schema**.
+**Crearlo.** Seleziona la componente in **Progetta**. Nella barra **Proprietà**, sezione **Oggetti negli schemi**, scegli lo schema in **Nello schema** e premi **Crea il suo oggetto**. L'oggetto compare al centro della vista di quello schema, che si apre; prende come etichetta l'**Etichetta** o il **Testo** della componente (al massimo 80 caratteri). Se l'oggetto c'è già, la sezione elenca ogni oggetto come «schema › blocco», con **Aprilo nello schema**. Per averlo anche in un altro schema, scegli lo schema in **Anche nello schema** e premi **Mettilo anche in questo schema**.
 
 **Le porte.** La sezione **Porte** delle Proprietà le elenca con una freccia:
 
@@ -120,12 +120,12 @@ Ogni oggetto ha anche gli ingressi comuni **abilitato** e **visibile** (vedi sot
 
 **Regole.**
 
-- **Un solo oggetto per componente**, in tutto il progetto. Se ne hai due (per esempio duplicando l'oggetto con Ctrl D), il progetto non parte: «La componente Principale › button1 ha già il suo oggetto in Calcolo/b3».
+- **Al massimo un oggetto per componente in ogni schema**, ma una componente può averne in più schemi. Quello che fa l'utente esce da ogni oggetto; i valori mandati agli ingressi da schemi diversi arrivano tutti alla componente e vale l'ultimo che arriva. Se ne hai due nello stesso schema (per esempio duplicando l'oggetto con Ctrl D), il progetto non parte: «La componente Principale › button1 ha già il suo oggetto in questo schema: Calcolo/b3».
 - Le impostazioni di **lo avvia** non contano per l'oggetto: ogni valore che arriva va sempre alla componente.
 - Un **valore iniziale** su un ingresso dell'oggetto imposta la componente all'avvio del programma (per esempio il testo di partenza di un'etichetta).
-- Se elimini una componente, l'IDE ti avvisa che il suo oggetto resta nello schema e segna un errore («Il blocco b3 rappresenta la componente «button1», che non c'è») finché non togli anche quello. Il progetto non parte: «Il blocco b3 rappresenta una componente che non c'è (Principale › button1)».
+- Se elimini una componente, si eliminano anche i suoi oggetti negli schemi. Se sono collegati ad altri blocchi, l'IDE chiede prima: «Si eliminano anche i suoi oggetti negli schemi, e sono collegati ad altri blocchi: «main» (3 collegamenti)… Quei collegamenti verranno tolti.» Se una componente sparisce in un altro modo (per esempio togli una finestra dal progetto), l'oggetto resta e il progetto non parte: «Il blocco b3 rappresenta una componente che non c'è (Principale › button1)».
 - Nelle Proprietà di un oggetto (nello schema) puoi cambiare **Finestra** e **Componente** a cui corrisponde. Tasto destro sull'oggetto → **Apri la sua finestra**.
-- **I contenitori non hanno un oggetto** che si possa creare dall'IDE: la sezione **Oggetto nello schema** non c'è per Colonna, Riga, Griglia, Riquadro, Schede e Area libera. Per questo, oggi, gli ingressi **titolo** del Riquadro, **scheda aperta** delle Schede e **abilitato** e **visibile** dei contenitori non si possono usare dall'IDE.
+- **I contenitori non hanno un oggetto** che si possa creare dall'IDE: la sezione **Oggetti negli schemi** non c'è per Colonna, Riga, Griglia, Riquadro, Schede e Area libera. Per questo, oggi, gli ingressi **titolo** del Riquadro, **scheda aperta** delle Schede e **abilitato** e **visibile** dei contenitori non si possono usare dall'IDE.
 
 ### Nei nomi degli esempi
 

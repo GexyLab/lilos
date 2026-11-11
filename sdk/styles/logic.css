@@ -89,6 +89,24 @@
   padding: 0 6px; border-radius: 8px; white-space: nowrap; pointer-events: none; box-shadow: 0 0 0 2px var(--canvas);
 }
 .lgc-val.error { background: var(--lt-error); color: #fff; }
+/* Links that leave the view: on the edge, the name of the block at the other end (a click brings it in view) */
+.lgc-edges { position: absolute; inset: 0; z-index: 5; pointer-events: none; overflow: hidden; }
+.lgc-edge {
+  position: absolute; display: flex; align-items: center; gap: 3px; max-width: min(320px, 45%); padding: 1px 3px 1px 6px; pointer-events: auto;
+  font: 500 11px var(--font, inherit); color: var(--on-canvas, var(--text)); white-space: nowrap;
+  background: color-mix(in srgb, var(--pc) 14%, var(--lg-block)); border: 1px solid color-mix(in srgb, var(--pc) 70%, transparent); border-radius: 10px;
+  box-shadow: 0 2px 8px -4px rgba(0, 0, 0, .5);
+}
+.lgc-edge.l, .lgc-edge.t { padding: 1px 6px 1px 3px; }
+.lgc-edge.l .lgc-edge-a, .lgc-edge.t .lgc-edge-a { order: -1; }
+.lgc-edge.r .lgc-edge-a, .lgc-edge.b .lgc-edge-a { order: 1; }
+.lgc-edge-a { color: var(--pc); font-weight: 700; flex: none; }
+.lgc-edge-n {
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; border: 0; background: none; color: inherit; font: inherit; padding: 1px 4px;
+  border-radius: 6px; cursor: pointer;
+}
+.lgc-edge-n:hover, .lgc-edge-n:focus-visible { background: color-mix(in srgb, var(--pc) 30%, transparent); outline: none; }
+.lgc-edge-more { flex: none; color: var(--dim, inherit); padding: 0 3px; }
 .lgc-linking, .lgc-linking * { cursor: crosshair !important; }
 
 .cat-value { --cat: var(--lc-value); } .cat-logic { --cat: var(--lc-logic); } .cat-math { --cat: var(--lc-math); } .cat-text { --cat: var(--lc-text); }

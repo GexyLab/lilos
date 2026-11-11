@@ -67,9 +67,9 @@ In **Progetta**, con la finestra in primo piano:
 
 | Tasti o gesto | Cosa fanno |
 |---|---|
-| **Canc** o **Backspace** | Elimina la componente selezionata (chiede conferma se ha un oggetto in uno schema). |
+| **Canc** o **Backspace** | Elimina la componente selezionata e i suoi oggetti negli schemi (chiede conferma se almeno uno è collegato ad altri blocchi). |
 | **Esc** | Toglie la selezione. |
-| **doppio clic** su una componente | Apre il suo oggetto nello schema. |
+| **doppio clic** su una componente | Apre il suo oggetto nello schema (il primo schema che ne ha uno). |
 | trascinare una componente | La sposta dove mostra la linea blu. |
 
 ## L'elenco «Progetto»

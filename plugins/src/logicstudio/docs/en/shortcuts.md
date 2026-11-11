@@ -67,9 +67,9 @@ In **Design**, with the window in front:
 
 | Keys or gesture | What they do |
 |---|---|
-| **Delete** or **Backspace** | Removes the selected component (asks for confirmation if it has an object in a schema). |
+| **Delete** or **Backspace** | Removes the selected component and its objects in the schemas (asks for confirmation if at least one is linked to other blocks). |
 | **Esc** | Clears the selection. |
-| **double click** on a component | Opens its object in the schema. |
+| **double click** on a component | Opens its object in the schema (the first schema that has one). |
 | drag a component | Moves it where the blue line shows. |
 
 ## The «Project» list

@@ -1,6 +1,6 @@
 {
   "id": "logicstudio",
-  "version": "1.19.1",
+  "version": "1.20.0",
   "kind": "local",
   "name": "Logic Studio IDE",
   "description": "Logic blocks linked together, as in OpenBack: schemas, projects with windows made of UI components, consoles. The engine runs them in lilOS, also with lilOS closed.",
@@ -24,7 +24,7 @@
   "dependencies": [
     {
       "module": "logicstudio-engine",
-      "version": ">=1.7.0",
+      "version": ">=1.10.0",
       "reason": "Runs the schemas and projects"
     },
     {

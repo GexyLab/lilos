@@ -75,7 +75,7 @@ Il motore ricontrolla tutto e si ferma al **primo** problema. Alcuni messaggi:
 | Due blocchi con lo stesso id (add1) nello schema main | Un file modificato a mano. |
 | Lo schema main: il blocco add1 non ha l'ingresso c | Un collegamento verso una porta che non c'è più. |
 | Lo schema main ha un collegamento verso un blocco che non c'è | Un file modificato a mano. |
-| La componente Principale › button1 ha già il suo oggetto in main/component1 | Due oggetti per la stessa componente. |
+| La componente Principale › button1 ha già il suo oggetto in questo schema: main/component1 | Due oggetti della stessa componente nello stesso schema. |
 | Il blocco component1 rappresenta una componente che non c'è (Principale › button9) | L'oggetto punta a una componente che non c'è. |
 | Collegamento del progetto: lo schema sensori non ha l'uscita «temp» | Un collegamento della mappa verso una porta che non c'è più. |
 | Collegamento del progetto: lo schema allarmi non ha l'ingresso «temp» | Come sopra, dal lato dell'ingresso. |

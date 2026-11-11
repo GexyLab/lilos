@@ -124,6 +124,9 @@
 .ls-port-line { display: flex; align-items: center; gap: 6px; padding: 3px 0; }
 .ls-port-line em { margin-left: auto; color: var(--faint); font-style: normal; font-size: 11px; }
 .ls-port-line .ico { width: 13px; height: 13px; color: var(--lc-schema, #4c8dff); }
+.ls-port-line .ls-obj-open { margin-left: auto; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: var(--radius-sm); background: none; color: var(--text); cursor: pointer; }
+.ls-port-line .ls-obj-open:hover { background: var(--hover); }
+.ls-port-line .ls-obj-open .ico { color: inherit; }
 .ls-ports { width: 100%; border-collapse: collapse; font-size: 11.5px; }
 .ls-ports th { text-align: left; font-size: 10.5px; color: var(--faint); font-weight: 600; padding: 6px 0 2px; }
 .ls-ports td { padding: 3px 4px 3px 0; border-bottom: 1px solid var(--border); vertical-align: middle; }

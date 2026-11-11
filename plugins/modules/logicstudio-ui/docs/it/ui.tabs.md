@@ -27,7 +27,7 @@ Più pagine nello stesso spazio, una visibile alla volta: in alto una fila di li
 | **abilitato** (`enabled`) | ingresso | sì/no | `false` disabilita le Schede con tutte le pagine. |
 | **visibile** (`visible`) | ingresso | sì/no | `false` le nasconde. |
 
-> **Oggi queste porte non si possono usare dall'IDE.** Le Schede sono un contenitore, e per i contenitori le Proprietà non mostrano la sezione **Oggetto nello schema**: non c'è modo di creare il loro oggetto. Le schede funzionano lo stesso (l'utente cambia pagina con un clic), ma uno schema non può sapere quale pagina è aperta né aprirne una. Vedi [Componenti UI standard](logicstudio-ui).
+> **Oggi queste porte non si possono usare dall'IDE.** Le Schede sono un contenitore, e per i contenitori le Proprietà non mostrano la sezione **Oggetti negli schemi**: non c'è modo di creare il loro oggetto. Le schede funzionano lo stesso (l'utente cambia pagina con un clic), ma uno schema non può sapere quale pagina è aperta né aprirne una. Vedi [Componenti UI standard](logicstudio-ui).
 
 ## Come funziona
 

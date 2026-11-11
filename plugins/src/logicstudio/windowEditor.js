@@ -41,6 +41,7 @@ export class WindowEditor {
     doc.on('change', () => { this.render(); studio.inspector.render(); studio.renderStatus(); });
     this.#bind();
     this.render();
+    this.#loadSchemas();
   }
 
   get selected() { return this.#sel; }
@@ -216,7 +217,9 @@ export class WindowEditor {
       const node = id ? this.doc.find(id)?.node : null;
       const items = [];
       if (node) {
-        if (this.#objectOf(id)) items.push({ label: t('menu.openObject'), icon: 'blocks', action: () => this.#openObject(id) });
+        const objects = this.#objectsOf(id);
+        if (objects.length === 1) items.push({ label: t('menu.openObject'), icon: 'blocks', action: () => this.#openObject(id) });
+        else if (objects.length) items.push({ label: t('menu.openObject'), icon: 'blocks', items: objects.map(o => ({ label: o.schema, action: () => this.#openObject(id, o.schema) })) });
         items.push({ label: t('menu.docs'), icon: 'help', shortcut: 'F1', action: () => this.#studio.showDoc(node.type) });
         items.push('-');
         items.push({ label: t('window.remove'), icon: 'trash', danger: true, shortcut: 'Canc', action: () => this.#remove(id) });
@@ -364,35 +367,68 @@ export class WindowEditor {
     if (clear) this.#drop = null;
   }
 
+  /**
+   * Removes a component (a container with the components inside it) and their objects in every
+   * schema. When an object is linked to other blocks it asks first: those links go too.
+   */
   async #remove(id) {
-    const obj = this.#objectOf(id);
-    if (obj) {
+    const found = this.doc.find(id);
+    if (!found) return;
+    await this.#loadSchemas();
+    const ids = [];
+    const walk = n => { ids.push(n.id); (n.children ?? []).forEach(walk); };
+    walk(found.node);
+    const objects = ids.flatMap(c => this.#objectsOf(c));
+    const linked = objects.filter(o => o.links);
+    if (linked.length) {
       const res = await messageBox(this.#studio.win, {
-        icon: 'warning', title: t('window.removeQ'), text: t('window.removeObject', { schema: obj.schema }),
+        icon: 'warning', title: t('window.removeQ'),
+        text: t('window.removeLinked', { list: linked.map(o => t(o.links === 1 ? 'window.linkedOne' : 'window.linkedMany', { schema: o.schema, n: o.links })).join(', ') }),
         buttons: ['cancel', { value: 'ok', label: t('explorer.remove'), danger: true }],
       });
-      if (res !== 'ok') return;
+      if (res !== 'ok' || !this.doc.find(id)) return;
     }
+    const bySchema = new Map();
+    for (const o of objects) (bySchema.get(o.doc) ?? bySchema.set(o.doc, []).get(o.doc)).push(o.block);
+    for (const [doc, blocks] of bySchema) doc.removeBlocks(blocks);
     this.doc.remove([id]);
     this.select(null);
   }
 
-  // ------------------------------------------------------------------ the object in a schema
+  // ------------------------------------------------------------------ the objects in the schemas
 
-  /** The schema (open or not, loaded) that holds the object of a component: { schema, path, block } | null. */
-  #objectOf(id) {
+  /** Every schema of the project, loaded: the objects of the components are looked for in all of them. */
+  async #loadSchemas() {
     const ws = this.#studio.ws;
-    if (!ws?.project) return null;
-    for (const [schema, path] of Object.entries(ws.project.data.schemas)) {
-      const doc = ws.loaded(path);
-      const b = doc?.data.blocks.find(x => this.#studio.blockDef(x.type)?.role === 'component' && x.config.window === this.name && x.config.component === id);
-      if (b) return { schema, path, block: b.id };
-    }
-    return null;
+    if (!ws?.project) return;
+    const missing = Object.values(ws.project.data.schemas).filter(path => !ws.loaded(path));
+    if (!missing.length) return;
+    for (const path of missing) await ws.doc(path).catch(() => null);
+    if (this.#studio.current?.view === this) this.#studio.inspector.render();
   }
 
-  async #openObject(id) {
-    const obj = this.#objectOf(id);
+  /**
+   * The objects of a component, in the schemas loaded (all of them once #loadSchemas is done): at
+   * most one per schema. [{ schema, path, doc, block, links }], `links`: how many links it has.
+   */
+  #objectsOf(id) {
+    const ws = this.#studio.ws;
+    if (!ws?.project) return [];
+    const out = [];
+    for (const [schema, path] of Object.entries(ws.project.data.schemas)) {
+      const doc = ws.loaded(path);
+      for (const b of doc?.data.blocks ?? []) {
+        if (this.#studio.blockDef(b.type)?.role !== 'component' || b.config.window !== this.name || b.config.component !== id) continue;
+        out.push({ schema, path, doc, block: b.id, links: doc.data.links.filter(l => l.from[0] === b.id || l.to[0] === b.id).length });
+      }
+    }
+    return out;
+  }
+
+  /** Shows the object of a component in its schema (`schema`: in that one; else the first). */
+  async #openObject(id, schema = null) {
+    const objects = this.#objectsOf(id);
+    const obj = objects.find(o => o.schema === schema) ?? objects[0];
     if (!obj) return;
     await this.#studio.openElement('schemas', obj.path);
     const view = this.#studio.current?.view;
@@ -401,8 +437,9 @@ export class WindowEditor {
   }
 
   /**
-   * Makes the object of a component in a schema (at the middle of its view). It shows it there,
-   * unless `show` is false: then the window editor stays in front and Proprietà shows where it went.
+   * Makes the object of a component in a schema (at the middle of its view): one per schema, the
+   * same component can have one in several schemas. It shows it there, unless `show` is false: then
+   * the window editor stays in front and Proprietà shows where it went.
    */
   async #makeObject(id, schema, { show = true } = {}) {
     const ws = this.#studio.ws;
@@ -410,13 +447,14 @@ export class WindowEditor {
     const def = (this.#studio.catalog?.packages ?? []).flatMap(p => p.blocks).find(b => b.role === 'component');
     if (!path || !def) return;
     const doc = await ws.doc(path);
+    if (this.#objectsOf(id).some(o => o.schema === schema)) { if (show) await this.#openObject(id, schema); return; }
     const node = this.doc.find(id)?.node;
     const v = doc.data.view ?? { x: 0, y: 0, zoom: 1 };
     // the objects made one after the other do not fall on top of each other
     const step = (doc.data.blocks.filter(b => this.#studio.blockDef(b.type)?.role === 'component').length % 8) * 24;
     const blockId = doc.addBlock(def, { x: Math.round((-v.x + 300) / (v.zoom || 1)) + step, y: Math.round((-v.y + 160) / (v.zoom || 1)) + step, config: { window: this.name, component: id } });
     if (node?.props?.label || node?.props?.text) doc.setLabel(blockId, String(node.props.label || node.props.text).slice(0, 80));
-    if (show) await this.#openObject(id);
+    if (show) await this.#openObject(id, schema);
     else { this.#studio.inspector.render(); this.#studio.renderToolbar(); }
   }
 
@@ -513,18 +551,25 @@ export class WindowEditor {
         ...ports.outputs.filter(p => !p.error).map(p => h('tr', {}, h('td', { class: 'nm' }, h('i', { class: `ls-dotc t-${p.type}` }), p.label), h('td', { class: 'ty' }, `→ ${t(`type.${p.type}`)}`)))));
       out.push(h('p', { class: 'ls-hint' }, t('window.portsHint')));
       // Its object in a schema
+      // Its objects in the schemas: one per schema, in as many schemas as wanted
       out.push(sec(t('window.object')));
-      const obj = this.#objectOf(node.id);
+      const objects = this.#objectsOf(node.id);
       const ws = studio.ws;
-      if (obj) {
-        out.push(h('div', { class: 'ls-port-line' }, icon('blocks'), h('span', {}, `${obj.schema} › ${obj.block}`)));
-        out.push(h('div', { class: 'ls-insp-acts' }, actionButton({ label: t('window.openObject'), icon: icon('open'), onClick: () => this.#openObject(node.id) })));
-      } else if (ws?.project) {
-        const schemas = Object.keys(ws.project.data.schemas);
-        out.push(h('p', { class: 'ls-hint' }, t('window.noObject')));
-        let chosen = schemas.includes(this.#lastSchema) ? this.#lastSchema : schemas[0];
-        out.push(row(t('window.inSchema'), selectField({ value: chosen, options: schemas, onChange: v => { chosen = v; } })));
-        out.push(h('div', { class: 'ls-insp-acts' }, actionButton({ label: t('window.makeObject'), icon: icon('plus'), primary: true, onClick: () => this.#makeObject(node.id, chosen) })));
+      for (const obj of objects) {
+        out.push(h('div', { class: 'ls-port-line' }, icon('blocks'), h('span', {}, `${obj.schema} › ${obj.block}`),
+          h('button', { type: 'button', class: 'ls-obj-open', title: t('window.openObject'), 'aria-label': t('window.openObject'), onclick: () => this.#openObject(node.id, obj.schema) }, icon('open'))));
+      }
+      if (ws?.project) {
+        const schemas = Object.keys(ws.project.data.schemas).filter(x => !objects.some(o => o.schema === x));
+        if (!objects.length) out.push(h('p', { class: 'ls-hint' }, t('window.noObject')));
+        if (schemas.length) {
+          let chosen = schemas.includes(this.#lastSchema) ? this.#lastSchema : schemas[0];
+          out.push(row(t(objects.length ? 'window.inOtherSchema' : 'window.inSchema'), selectField({ value: chosen, options: schemas, onChange: v => { chosen = v; } })));
+          out.push(h('div', { class: 'ls-insp-acts' }, actionButton({
+            label: t(objects.length ? 'window.makeObjectToo' : 'window.makeObject'), icon: icon('plus'), primary: !objects.length,
+            onClick: () => { this.#lastSchema = chosen; this.#makeObject(node.id, chosen); },
+          })));
+        }
       }
     }
     out.push(h('div', { class: 'ls-insp-acts' }, actionButton({ label: t('window.remove'), icon: icon('trash'), danger: true, onClick: () => this.#remove(node.id) })));

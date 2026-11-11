@@ -21,7 +21,7 @@ The inner margin is fixed (about 10 pixels above, 12 at the sides and below). Th
 | **enabled** (`enabled`) | input | yes/no | `false` disables the box **and everything it contains**. |
 | **visible** (`visible`) | input | yes/no | `false` hides the box with all its content. |
 
-> **Today these ports cannot be used from the IDE.** The Box is a container, and for containers the Properties do not show the **Object in a schema** section: there is no way to make its object. The title stays the one in the properties, and to hide or disable the content you have to do it component by component. See [Standard UI components](logicstudio-ui).
+> **Today these ports cannot be used from the IDE.** The Box is a container, and for containers the Properties do not show the **Objects in the schemas** section: there is no way to make its object. The title stays the one in the properties, and to hide or disable the content you have to do it component by component. See [Standard UI components](logicstudio-ui).
 
 ## How it works
 

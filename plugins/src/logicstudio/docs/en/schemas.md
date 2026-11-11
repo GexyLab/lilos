@@ -68,6 +68,7 @@ These menus do not contain the **Parameter** block and the object of components:
 | Back to 100% | Click on the percentage in the toolbar (**Actual size**). |
 | See everything | **Fit** in the toolbar or in the menu of the sheet: shows all the blocks, at most at 120%. |
 | Move the view | Hold down **Space** and drag; or drag with the **middle button**; **Shift+wheel** moves horizontally. |
+| Reach a block out of view | When a link leads to a block you cannot see, on the edge of the view, where the link leaves it, a label shows an arrow and the **name of that block**. When more links of the same port leave close to each other, the label has the names of all their blocks (up to three, then «+2»…). A click on a name brings that block to the middle of the view, at the same zoom, and selects it. |
 
 The zoom and the position of the view are saved in the schema. A schema opened for the first time, or an empty one, is fitted by itself.
 
@@ -101,7 +102,7 @@ A **mirrored** block has its **inputs on the right** and its **outputs on the le
 - It is one Undo step (**Ctrl+Z**) and it is saved in the schema; a copy (**Ctrl+D**) stays mirrored.
 - **Drawings** (texts and shapes) and groups are not mirrored: **Mirror** is off when only drawings are selected.
 
-> **Ctrl+D** does not check the maximum number of blocks: beyond the limit you notice it when you test. If you duplicate an **object of a component** you get two objects for the same component, and the test rejects it («La componente … ha già il suo oggetto in …», "The component … already has its object in …"): change the component of the copy or remove it.
+> **Ctrl+D** does not check the maximum number of blocks: beyond the limit you notice it when you test. If you duplicate an **object of a component** you get two objects of the same component in the same schema, and the test rejects it («La componente … ha già il suo oggetto in questo schema: …», "The component … already has its object in this schema: …"): change the component of the copy or remove it.
 
 The keys work when the sheet is in front (after a click on the sheet).
 

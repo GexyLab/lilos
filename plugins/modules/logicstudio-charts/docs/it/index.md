@@ -31,7 +31,7 @@ Il pacchetto **non** arriva con Logic Studio IDE: un amministratore lo installa 
 
 1. Apri una finestra del progetto in **Progetta**, scegli il grafico nella scheda **Componenti** (gruppo **Grafici**) e mettilo in un contenitore (per esempio una [Colonna](ui.column)).
 2. Nelle **Proprietà** scegli titolo, altezza, unità, colori…
-3. Sempre nelle Proprietà, sezione **Oggetto nello schema**, premi **Crea il suo oggetto**: nello schema compare il blocco che rappresenta il grafico.
+3. Sempre nelle Proprietà, sezione **Oggetti negli schemi**, premi **Crea il suo oggetto**: nello schema compare il blocco che rappresenta il grafico.
 4. Collega a quel blocco i valori da mostrare (sugli ingressi **dati**, **aggiungi punto**, **pulisci**…) e, se vuoi, usa la sua uscita **punto scelto**.
 
 Nell'editor della finestra (**Progetta**) ogni grafico mostra **dati inventati**, per farti vedere come apparirà; i pulsanti degli strumenti non ci sono. In **Anteprima**, in una **Prova** e nella finestra vera il grafico parte vuoto («Nessun dato») e mostra solo quello che gli manda lo schema.

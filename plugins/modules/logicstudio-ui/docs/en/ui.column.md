@@ -14,7 +14,7 @@ A container that puts the components one under the other, from top to bottom. It
 
 ## Ports of its object in the schema
 
-A Column, like all containers, today **has no object** that can be made from the IDE: in its Properties there is no **Object in a schema** section. Its **enabled** and **visible** inputs exist (they apply to the whole column, with everything it contains) but they cannot be used from the IDE. To hide a group of components, today you have to hide them one by one. See [Standard UI components](logicstudio-ui).
+A Column, like all containers, today **has no object** that can be made from the IDE: in its Properties there is no **Objects in the schemas** section. Its **enabled** and **visible** inputs exist (they apply to the whole column, with everything it contains) but they cannot be used from the IDE. To hide a group of components, today you have to hide them one by one. See [Standard UI components](logicstudio-ui).
 
 ## How it works
 

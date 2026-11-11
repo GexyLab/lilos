@@ -35,14 +35,14 @@ In uno schema aperto da solo (senza progetto) le Proprietà dicono «Uno schema 
 L'oggetto **non** è nella scheda **Blocchi**: si crea dalla finestra.
 
 1. Apri la finestra e, in **Progetta**, seleziona la componente.
-2. Nelle Proprietà, sezione **Oggetto nello schema**, scegli lo schema in **Nello schema** e premi **Crea il suo oggetto**.
+2. Nelle Proprietà, sezione **Oggetti negli schemi**, scegli lo schema in **Nello schema** e premi **Crea il suo oggetto**.
 3. L'IDE mette l'oggetto in mezzo allo schema, gli dà come titolo l'etichetta o il testo della componente, e lo apre selezionato.
 
-Da lì in poi, nelle Proprietà della componente, **Oggetto nello schema** dice dove sta l'oggetto (schema › blocco) e **Aprilo nello schema** lo mostra. Anche un **doppio clic** sulla componente, in Progetta, apre il suo oggetto. Dal tasto destro sull'oggetto, **Apri la sua finestra** fa il contrario. Finché una componente non ha il suo oggetto, le Proprietà avvisano: «Nessuno schema ha ancora il suo oggetto: senza, la componente si vede ma non fa niente.»
+Da lì in poi, nelle Proprietà della componente, **Oggetti negli schemi** elenca gli oggetti (schema › blocco) e **Aprilo nello schema** li mostra. Per metterlo anche in un altro schema: **Anche nello schema** e **Mettilo anche in questo schema**. Anche un **doppio clic** sulla componente, in Progetta, apre il suo oggetto. Dal tasto destro sull'oggetto, **Apri la sua finestra** fa il contrario. Finché una componente non ha il suo oggetto, le Proprietà avvisano: «Nessuno schema ha ancora il suo oggetto: senza, la componente si vede ma non fa niente.»
 
 Sul foglio l'oggetto mostra come titolo la sua etichetta (o il nome del tipo di componente) e sotto `finestra › componente`. Nelle Proprietà non c'è il campo **Etichetta**: per cambiarla usa il tasto destro, **Etichetta…**.
 
-Le **Colonne**, **Righe** e gli altri contenitori non hanno la sezione **Oggetto nello schema**: dall'IDE non si crea un oggetto per loro.
+Le **Colonne**, **Righe** e gli altri contenitori non hanno la sezione **Oggetti negli schemi**: dall'IDE non si crea un oggetto per loro.
 
 ## Come funziona
 
@@ -60,11 +60,11 @@ Le **Colonne**, **Righe** e gli altri contenitori non hanno la sezione **Oggetto
 - Quando una finestra **si apre**, non esce niente: nessun pulsante viene «ripremuto».
 - Se la stessa finestra è aperta in più copie (due schermi, due browser), il gesto fatto in una esce una volta sola dall'oggetto e, con l'opzione **Le copie della stessa finestra restano allineate**, si vede anche nelle altre.
 
-### Un oggetto per componente
+### Gli oggetti di una componente
 
-Ogni componente ha **un solo oggetto**, in uno solo degli schemi del progetto. Se ce ne sono due (per esempio dopo aver duplicato l'oggetto con **Ctrl D**), il programma non parte: «La componente *finestra* › *componente* ha già il suo oggetto in *schema*/*blocco*». Se ti serve il valore di una componente in più schemi, portalo con le [porte di schema](core.schemaOut).
+Ogni componente può avere il suo oggetto in **più schemi** del progetto, ma **al massimo uno per schema**. Quello che fa l'utente esce da ogni oggetto, in ogni schema. I valori mandati agli ingressi da schemi diversi arrivano tutti alla componente: vale l'ultimo che arriva. Se in uno stesso schema ce ne sono due (per esempio dopo aver duplicato l'oggetto con **Ctrl D**), il programma non parte: «La componente *finestra* › *componente* ha già il suo oggetto in questo schema: *schema*/*blocco*».
 
-Se elimini la componente dalla finestra, il suo oggetto resta nello schema e segna un errore finché non togli anche lui (l'IDE te lo ricorda quando elimini la componente).
+Se elimini la componente dalla finestra, l'IDE elimina anche i suoi oggetti negli schemi (se sono collegati ad altri blocchi, prima chiede conferma e toglie quei collegamenti).
 
 Per le regole generali vedi [Come funziona un blocco](ide/blocks) e [L'oggetto di una componente](ide/components).
 
@@ -111,9 +111,9 @@ Sono errori del progetto, non dell'Exception: il programma non parte, oppure li 
 | Messaggio | Quando |
 |---|---|
 | Il blocco *id* rappresenta una componente della finestra «*finestra*», che non c'è | (Problemi) La finestra scelta non c'è più nel progetto. |
-| Il blocco *id* rappresenta la componente «*componente*», che non c'è | (Problemi) La componente è stata eliminata dalla finestra, o **Componente** è vuoto. |
+| Il blocco *id* rappresenta la componente «*componente*», che non c'è | (Problemi) La componente non c'è più nella finestra (per esempio il file della finestra è sparito), o **Componente** è vuoto. |
 | Il blocco *id* rappresenta una componente che non c'è (*finestra* › *componente*) | Il programma non parte, per lo stesso motivo. |
-| La componente *finestra* › *componente* ha già il suo oggetto in *schema*/*blocco* | Due oggetti per la stessa componente. |
+| La componente *finestra* › *componente* ha già il suo oggetto in questo schema: *schema*/*blocco* | Due oggetti della stessa componente nello stesso schema. |
 | La componente *componente* (*tipo*) non c'è: manca il suo pacchetto | Il pacchetto della componente (per esempio [Componenti UI standard](logicstudio-ui)) non è installato. |
 
 ## Vedi anche

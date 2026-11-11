@@ -47,7 +47,9 @@ In **Design**:
 - **Delete** or **Backspace**: removes the selected component (and what it contains); **Esc**: clears the selection;
 - **double click**: opens the schema with the **object** of the component and selects it, if the object exists.
 
-When you remove a component that has an object in a schema, the IDE asks **Remove the component?** — «Its object in the schema «main» stays there and shows an error until you remove it too.»
+When you remove a component (**Del**, **Remove the component** or the right click) **its objects in every schema are removed too** (for a container, also the objects of every component inside it). If none of those objects is linked, it happens without asking. If at least one is linked to other blocks, the IDE asks first **Remove the component?** — «Its objects in the schemas go too, and they are linked to other blocks: «main» (3 links), «Calcolo» (1 link). Those links will be removed.»
+
+The schemas that changed are saved with **Save** like any other change (they get the unsaved dot). **Ctrl+Z** in the window editor brings the component back but **not** its objects: each object comes back with **Ctrl+Z** in the history of its own schema (links included).
 
 Every change can be undone with **Ctrl+Z**.
 
@@ -105,10 +107,10 @@ Then **Opens from**: **Apps menu (main window)**, **Opens only from other window
 | Action on click | See below. |
 
 - **Ports**: the ports of the component, which you will use through its object: **←** is what a schema sets (for example **text**, **enabled**, **visible**), **→** is what the user does (for example **pressed**, **value**). «← what a schema sets, → what the user does. The schemas reach the component through its object.»
-- **Object in a schema**: where its object is, with **Open it in the schema**; or «No schema has its object yet: without it the component shows and does nothing.» with **In the schema** and **Make its object**. See [The object of a component](ide/components).
+- **Objects in the schemas**: the list of its objects, each as «schema › block» with a button to open it (**Open it in the schema**). If no schema has one: «No schema has its object yet: without it the component shows and does nothing.» with **In the schema** and **Make its object**. If it already has some: **Also in the schema** (only the schemas that do not have it yet) and **Put it in this schema too**. When every schema has it, the field and the button are not there. See [The object of a component](ide/components).
 - **Remove the component**.
 
-The containers do not have the Ports and Object in a schema sections.
+The containers do not have the Ports and Objects in the schemas sections.
 
 ## The action on click of a button
 
