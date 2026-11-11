@@ -28,7 +28,7 @@ Un IDE fa **una prova alla volta**. Di serie puoi avere **2 prove** insieme in t
 
 - **Sugli schemi aperti**: l'ultimo valore passato su ogni collegamento (un'etichetta a metà, i collegamenti con i valori scorrono), l'ultimo valore accanto a ogni ingresso, il **bordo azzurro** sul blocco che sta lavorando, il **bordo rosso** su un blocco andato in errore. Vedi [Collegamenti e tipi delle porte](ide/links).
 - **Nelle console** in basso: le righe e le domande. Vedi [Console](ide/consoles).
-- **Nelle finestre**: apri la scheda di una finestra e scegli **Anteprima**: è legata alla prova, e i pulsanti e i campi mandano davvero i loro valori. La prova **non apre** le finestre da sola. Puoi anche aprire la finestra main vera dalla Home, **I miei programmi** → **Apri la finestra**.
+- **Nelle finestre**: apri la scheda di una finestra: con la prova in corso è in **Anteprima** da sola (anche se era in **Progetta**, dove torna alla fine) ed è legata alla prova, e i pulsanti e i campi mandano davvero i loro valori. La prova **non apre** le finestre da sola. Puoi anche aprire la finestra main vera dalla Home, **I miei programmi** → **Apri la finestra**.
 
 Uno schema aperto mentre la prova è già in corso mostra i valori che passano da quel momento in poi.
 

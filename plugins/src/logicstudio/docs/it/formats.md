@@ -153,6 +153,7 @@ Un esempio completo, con un blocco con etichetta, un valore iniziale, una porta 
 | `blocks[].v` | La versione del blocco quando è stato messo. Se il pacchetto ne ha una più nuova e sa aggiornare le impostazioni, il motore le aggiorna quando parte. |
 | `blocks[].x`, `y` | La posizione sul foglio, in pixel. |
 | `blocks[].label` | L'etichetta (facoltativa, al massimo 80 caratteri). |
+| `blocks[].mirror` | `true` per un blocco specchiato (ingressi a destra, uscite a sinistra); solo il disegno, il motore lo ignora. Un blocco normale non ce l'ha. |
 | `blocks[].config` | Le impostazioni, con le chiavi interne (al massimo 64 KB). Quelle che mancano prendono il valore di serie. |
 | `blocks[].ports` | Per ingresso: `start` (il valore iniziale) e `trigger: false` (non lo avvia). Un ingresso senza niente di speciale non c'è. |
 | `blocks[].added` | Le porte aggiunte: `inputs` e `outputs`, ognuna `{ "id": "x1", "name": "c" }`. Gli id `x` + numero sono unici nel blocco (tra ingressi e uscite). |

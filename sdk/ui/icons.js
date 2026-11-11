@@ -117,6 +117,7 @@ const GLYPHS = {
   function: '<path d="M13.5 4H12a2.5 2.5 0 0 0-2.5 2.5v11A2.5 2.5 0 0 1 7 20H5.5M6.5 10h6"/><path d="m14.5 11 5 7M19.5 11l-5 7"/>',
   integral: '<path d="M16 5.5A2.5 2.5 0 0 0 13.5 3C11.8 3 11 4.3 11 6v12c0 1.7-.8 3-2.5 3A2.5 2.5 0 0 1 6 18.5"/>',
   database: '<ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.66 3.58 3 8 3s8-1.34 8-3V5"/><path d="M4 12c0 1.66 3.58 3 8 3s8-1.34 8-3"/>',
+  mirror: '<path d="M12 3v18" stroke-dasharray="2 2.5"/><path d="M9 7L3 17h6zM15 7l6 10h-6z"/>',
 };
 
 export function icon(name, className = 'ico') {

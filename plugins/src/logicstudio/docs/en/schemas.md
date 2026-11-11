@@ -91,6 +91,16 @@ The status bar at the bottom says, for the open schema: **Blocks 12 / 200 · lin
 
 Every move, duplication or removal can be undone with **Ctrl+Z**.
 
+## Mirroring blocks
+
+A **mirrored** block has its **inputs on the right** and its **outputs on the left**: it helps when a block receives from the right and sends to the left, for example in a loop that goes back, so that the links do not go around the block. Only the drawing changes: the block works as before.
+
+- Select one or more blocks and press **Mirror** in the toolbar at the top; or right click on a block → **Mirror**.
+- Each selected block turns over: a normal one becomes mirrored, a mirrored one goes back to normal. Pressing again puts it back as it was.
+- The links leave and arrive on the new side; the title and the texts stay readable.
+- It is one Undo step (**Ctrl+Z**) and it is saved in the schema; a copy (**Ctrl+D**) stays mirrored.
+- **Drawings** (texts and shapes) and groups are not mirrored: **Mirror** is off when only drawings are selected.
+
 > **Ctrl+D** does not check the maximum number of blocks: beyond the limit you notice it when you test. If you duplicate an **object of a component** you get two objects for the same component, and the test rejects it («La componente … ha già il suo oggetto in …», "The component … already has its object in …"): change the component of the copy or remove it.
 
 The keys work when the sheet is in front (after a click on the sheet).
@@ -102,6 +112,7 @@ On a **block** (if it was not selected, it becomes the selection):
 | Item | What it does |
 |---|---|
 | **Duplicate** (Ctrl+D) | Duplicates the selected blocks. |
+| **Mirror** | Mirrors the selected blocks: inputs and outputs change side (see «Mirroring blocks» above). Not on drawings. |
 | **Label…** | Asks «A name for this block, shown on it instead of its kind.» (at most 80 characters; empty removes it). |
 | **Group** (Ctrl+G) | Makes a group of the selected blocks that are not in a group. |
 | **Add to group** › | Puts the selected blocks in a group that already exists. |

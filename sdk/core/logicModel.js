@@ -248,6 +248,7 @@ export class LogicSchema extends LogicDocument {
         config: plain(b.config) ? b.config : {}, ports: plain(b.ports) ? b.ports : {},
         ...(plain(b.added) && { added: { inputs: Array.isArray(b.added.inputs) ? b.added.inputs : [], outputs: Array.isArray(b.added.outputs) ? b.added.outputs : [] } }),
         ...(cleanHide(b.hide) && { hide: cleanHide(b.hide) }),
+        ...(b.mirror === true && { mirror: true }),
       }));
     // A group's «run» is reached with the group's id
     const groupIds = new Set((Array.isArray(raw.groups) ? raw.groups : []).map(g => g?.id).filter(id => typeof id === 'string' && !ids.has(id)));
@@ -483,6 +484,22 @@ export class LogicSchema extends LogicDocument {
     });
   }
 
+  /**
+   * Mirrors blocks (one step of the history): a mirrored block has its inputs on the right and its
+   * outputs on the left; only the drawing changes, never how it runs. `on`: true | false for all of
+   * them, null (the default) turns each one over.
+   */
+  setMirror(ids, on = null) {
+    const set = new Set(ids);
+    this.edit('mirror', data => {
+      for (const b of data.blocks) {
+        if (!set.has(b.id)) continue;
+        if (on === null ? !b.mirror : on) b.mirror = true;
+        else delete b.mirror;
+      }
+    });
+  }
+
   setLabel(id, text) {
     this.edit('label', data => {
       const b = data.blocks.find(x => x.id === id);
@@ -579,6 +596,22 @@ export class LogicSchema extends LogicDocument {
     if (this.data.links.some(l => l.from[0] === from[0] && l.from[1] === from[1] && l.to[0] === to[0] && l.to[1] === to[1])) return false;
     this.edit('link', data => { data.links.push({ from: [...from], to: [...to] }); tidyGroups(data); });
     return true;
+  }
+
+  /**
+   * Several links in one step of the history: [[from, to], …]. Those already there or not possible
+   * (see canLink) are left out. Returns how many were made.
+   */
+  connectMany(pairs) {
+    const ok = [];
+    for (const [from, to] of pairs) {
+      if (!this.canLink(from, to)) continue;
+      const same = l => l.from[0] === from[0] && l.from[1] === from[1] && l.to[0] === to[0] && l.to[1] === to[1];
+      if (this.data.links.some(same) || ok.some(same)) continue;
+      ok.push({ from: [...from], to: [...to] });
+    }
+    if (ok.length) this.edit('link', data => { data.links.push(...ok); tidyGroups(data); });
+    return ok.length;
   }
 
   /** A link taken from its input and dropped on another one (one step). false when not possible. */

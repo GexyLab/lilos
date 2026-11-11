@@ -91,6 +91,16 @@ La barra di stato in basso dice per lo schema aperto: **Blocchi 12 / 200 · coll
 
 Ogni spostamento, duplicazione o eliminazione si annulla con **Ctrl+Z**.
 
+## Specchiare i blocchi
+
+Un blocco **specchiato** ha gli **ingressi a destra** e le **uscite a sinistra**: serve quando un blocco riceve da destra e manda a sinistra, per esempio in un ciclo che torna indietro, così i collegamenti non fanno il giro del blocco. Cambia solo il disegno: il blocco funziona come prima.
+
+- Seleziona uno o più blocchi e premi **Specchia** nella barra in alto; oppure tasto destro su un blocco → **Specchia**.
+- Ogni blocco selezionato si gira: uno normale diventa specchiato, uno specchiato torna normale. Premere di nuovo lo rimette com'era.
+- I collegamenti escono e arrivano dal lato nuovo; il titolo e le scritte restano leggibili.
+- È un passo di Annulla (**Ctrl+Z**) e si salva nello schema; una copia (**Ctrl+D**) resta specchiata.
+- I **disegni** (testi e forme) e i gruppi non si specchiano: **Specchia** è spento se sono selezionati solo disegni.
+
 > **Ctrl+D** non controlla il numero massimo di blocchi: oltre il limite te ne accorgi alla prova. Duplicando un **oggetto di componente** ottieni due oggetti per la stessa componente, e la prova lo rifiuta («La componente … ha già il suo oggetto in …»): cambia la componente della copia o eliminala.
 
 I tasti valgono quando il foglio è in primo piano (dopo un clic sul foglio).
@@ -102,6 +112,7 @@ Su un **blocco** (se non era selezionato, diventa la selezione):
 | Voce | Cosa fa |
 |---|---|
 | **Duplica** (Ctrl+D) | Duplica i blocchi selezionati. |
+| **Specchia** | Specchia i blocchi selezionati: ingressi e uscite cambiano lato (vedi «Specchiare i blocchi» qui sopra). Non c'è sui disegni. |
 | **Etichetta…** | Chiede «Un nome per questo blocco, che si vede al posto del suo tipo.» (al massimo 80 caratteri; vuoto la toglie). |
 | **Raggruppa** (Ctrl+G) | Fa un gruppo dei blocchi selezionati che non sono in un gruppo. |
 | **Aggiungi al gruppo** › | Mette i blocchi selezionati in un gruppo che c'è già. |

@@ -92,7 +92,22 @@ export class SchemaEditor {
         const r = e.currentTarget.getBoundingClientRect();
         openMenu(r.left, r.bottom + 2, this.#alignItems());
       }, { disabled: this.canvas.readOnly || this.canvas.selection.blocks.length < 2, title: t('tb.alignHint') }),
+      b('mirror', t('tb.mirror'), () => this.mirror(), { disabled: this.canvas.readOnly || !this.#mirrorable().length, title: t('tb.mirrorHint') }),
     ];
+  }
+
+  /** The selected blocks that can be mirrored: those with ports (not the drawings). */
+  #mirrorable() {
+    return this.canvas.selection.blocks.filter(id => {
+      const b = this.doc.block(id);
+      return b && this.#studio.blockDef(b.type)?.role !== 'drawing';
+    });
+  }
+
+  /** Mirrors the selected blocks (one step of the history): each one turns over, inputs and outputs change side. */
+  mirror() {
+    const ids = this.#mirrorable();
+    if (ids.length && !this.canvas.readOnly) this.doc.setMirror(ids);
   }
 
   /** The «Allinea» menu: horizontally (left, centre, right, spread), vertically (top, middle, bottom, spread). */
@@ -162,6 +177,7 @@ export class SchemaEditor {
       items.push({ label: t('menu.duplicate'), icon: 'copy', shortcut: 'Ctrl+D', action: () => this.canvas.duplicateSelection() });
       if (def?.role === 'drawing') items.push({ label: t('menu.editText'), icon: 'pencil', disabled: this.canvas.readOnly, action: () => this.canvas.editText(e.id) });
       else items.push({ label: t('menu.label'), icon: 'pencil', action: () => this.#rename(e.id) });
+      if (def?.role !== 'drawing') items.push({ label: t('menu.mirror'), icon: 'mirror', disabled: this.canvas.readOnly, action: () => this.mirror() });
       items.push(...this.#groupItemsOfBlocks(sel.blocks));
       if (sel.blocks.length > 1 && !this.canvas.readOnly) items.push({ label: t('tb.align'), icon: 'cols', items: this.#alignItems() });
       if (def?.role === 'component') items.push({ label: t('menu.openWindow'), icon: 'window', action: () => this.#open(e.id) });

@@ -125,7 +125,7 @@ The **Button** has the **Action on click** property:
 ## Preview and live test
 
 - In **Preview**, without a test: the window reacts (a switch turns on, a field is typed in), but there is no program that answers.
-- In **Preview** with a **test in progress**: the window is **tied to the test**. The values that the schemas send to the components are shown, and what you do (press, type, move a slider) reaches the objects in the schemas. This is the way to test windows in the IDE: the test **does not open** the windows of the project by itself.
+- In **Preview** with a **test in progress**: the window is **tied to the test**. When you press **Test**, the windows open in **Design** switch to **Preview** by themselves, and go back to **Design** when the test ends (unless you changed the mode yourself meanwhile). The values that the schemas send to the components are shown, and what you do (press, type, move a slider) reaches the objects in the schemas. This is the way to test windows in the IDE: the test **does not open** the windows of the project by itself.
 - A button with **Open a window** opens the other window in a lilOS window with the subtitle **Preview**, also tied to the test, opened like the real one: **Maximized**, **Dialog** and **Always on top** apply here too. A dialog in preview blocks the IDE's windows until you close it. **Close this window** does nothing in preview.
 - During a test you can also open the real windows from the Home: **My programs** → **Open its window**.
 
@@ -161,7 +161,7 @@ A component of a package that is not installed shows as a box with its type and 
 [Button: Greet] pressed ──▶ via
 ```
 
-6. Press **Test**, go back to the tab of the window and choose **Preview**. Type `Ada` and press **Greet**: the label shows «Ciao, Ada!».
+6. Press **Test** and go back to the tab of the window: it is already in **Preview**. Type `Ada` and press **Greet**: the label shows «Ciao, Ada!».
 
 The text field sends the name at every change, but **nome** does not start the block: the greeting changes only when the pulse of the button arrives on **via**.
 

@@ -153,6 +153,7 @@ A complete example, with a block with a label, a start value, an added port, a S
 | `blocks[].v` | The version of the block when it was put. If the package has a newer one and knows how to upgrade the settings, the engine upgrades them when it starts. |
 | `blocks[].x`, `y` | The position on the sheet, in pixels. |
 | `blocks[].label` | The label (optional, at most 80 characters). |
+| `blocks[].mirror` | `true` for a mirrored block (inputs on the right, outputs on the left); only the drawing, the engine ignores it. A normal block does not have it. |
 | `blocks[].config` | The settings, with the internal keys (at most 64 KB). Missing ones take the default value. |
 | `blocks[].ports` | Per input: `start` (the start value) and `trigger: false` (it does not start it). An input with nothing special is not there. |
 | `blocks[].added` | The added ports: `inputs` and `outputs`, each `{ "id": "x1", "name": "c" }`. The ids `x` + number are unique in the block (among inputs and outputs). |

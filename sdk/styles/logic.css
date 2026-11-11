@@ -68,11 +68,22 @@
 .lgc-p.on .lgc-dot { background: var(--pc, var(--lt-any)); }
 .lgc-p.target .lgc-dot { box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 45%, transparent); background: var(--pc); }
 .lgc-ro .lgc-dot { cursor: default; }
+/* Ctrl + clicks on ports: the ports picked (the first one stronger), linked when Ctrl is released */
+.lgc-picking .lgc-p { cursor: crosshair; }
+.lgc-p.picked .lgc-dot { background: var(--pc, var(--lt-any)); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 55%, transparent); }
+.lgc-p.picked.first .lgc-dot { box-shadow: 0 0 0 4px var(--accent); }
+.lgc-p.picked > span { font-weight: 700; }
 .lgc-p.t-number { --pc: var(--lt-number); } .lgc-p.t-bool { --pc: var(--lt-bool); } .lgc-p.t-text { --pc: var(--lt-text); }
 .lgc-p.t-object { --pc: var(--lt-object); } .lgc-p.t-list { --pc: var(--lt-list); } .lgc-p.t-matrix { --pc: var(--lt-matrix); }
 .lgc-p.t-pulse { --pc: var(--lt-pulse); } .lgc-p.error { --pc: var(--lt-error); }
 .lgc-v { font: 10px var(--mono); font-style: normal; color: var(--lg-live); margin-left: auto; padding-left: 6px; }
 .lgc-p.out .lgc-v { display: none; }
+/* a mirrored block: inputs on the right (their value on the left of the name), outputs on the left */
+.lgc-block.mirror .lgc-p.in { flex-direction: row-reverse; }
+.lgc-block.mirror .lgc-p.out { justify-content: flex-start; }
+.lgc-block.mirror .lgc-p.in .lgc-dot { left: auto; right: -6px; }
+.lgc-block.mirror .lgc-p.out .lgc-dot { right: auto; left: -6px; }
+.lgc-block.mirror .lgc-p.in .lgc-v { margin-left: 0; margin-right: auto; padding-left: 0; padding-right: 6px; }
 .lgc-val {
   position: absolute; z-index: 4; transform: translate(-50%, -50%); font: 500 10px var(--mono); color: #062a2c; background: var(--lg-live);
   padding: 0 6px; border-radius: 8px; white-space: nowrap; pointer-events: none; box-shadow: 0 0 0 2px var(--canvas);

@@ -1,15 +1,26 @@
 # Links and port types
 
-A **link** carries values from the **output** of one block to the **input** of another. It always goes from right (output) to left (input). Every value that leaves the output reaches, in the same order, all the linked inputs.
+A **link** carries values from the **output** of one block to the **input** of another. It always goes from an output (on the right side of the block) to an input (on the left side); in a [mirrored block](ide/schemas) the sides are swapped and the link leaves and arrives on the other side. Every value that leaves the output reaches, in the same order, all the linked inputs.
 
 ## Making a link
 
 1. Move the mouse over the dot of an output, on the right of the block: the pointer becomes a cross.
-2. Hold down and drag: a dashed line follows.
+2. Hold down and drag: from the first move the link is shown, dashed, and follows the pointer.
 3. When you pass over an input of another block, its dot lights up.
 4. Release the button over the input: the link is made.
 
 If you release the button on the empty sheet, the menu of the **matching blocks** opens: choose one and it is put there, already linked to its first matching input (see [Schemas](ide/schemas)). If you release the button on an output or on the same block, nothing happens.
+
+### Several links with Ctrl
+
+To link one port to many others without dragging each time:
+
+1. Hold down **Ctrl** (**Cmd** on a Mac).
+2. Click the **first port**: the links start from it. It lights up, and a dashed link follows the pointer.
+3. Still holding **Ctrl**, click the **other ports**, on the opposite side: for each one a dashed link from the first appears.
+4. **Release Ctrl**: the links are all made together (a single Undo step).
+
+If the first port is an output, the links go from it to each chosen input; if it is an input, from each chosen output to it. Ports on the same side as the first one, and those that cannot be linked (the same block, the rules of groups), are not taken. A click on a port already chosen leaves it out; a click on the first port, or **Esc**, gives up everything. You click on the dot or on the name of the port.
 
 Rules:
 

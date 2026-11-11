@@ -125,7 +125,7 @@ Il **Pulsante** ha la proprietà **Azione al clic**:
 ## Anteprima e prova dal vivo
 
 - In **Anteprima**, senza prova: la finestra reagisce (un interruttore si accende, un campo si scrive), ma non c'è un programma che risponde.
-- In **Anteprima** con una **prova in corso**: la finestra è **legata alla prova**. I valori che gli schemi mandano alle componenti si vedono, e quello che fai (premere, scrivere, muovere un cursore) arriva agli oggetti negli schemi. È il modo per provare le finestre nell'IDE: la prova **non apre** le finestre del progetto da sola.
+- In **Anteprima** con una **prova in corso**: la finestra è **legata alla prova**. Quando premi **Prova**, le finestre aperte in **Progetta** passano da sole in **Anteprima**, e tornano in **Progetta** quando la prova finisce (se nel frattempo non hai cambiato modo tu). I valori che gli schemi mandano alle componenti si vedono, e quello che fai (premere, scrivere, muovere un cursore) arriva agli oggetti negli schemi. È il modo per provare le finestre nell'IDE: la prova **non apre** le finestre del progetto da sola.
 - Un pulsante con **Apri una finestra** apre l'altra finestra in una finestra di lilOS con sottotitolo **Anteprima**, anche lei legata alla prova, aperta come quella vera: **Estesa**, **Finestra di dialogo** e **Sempre in primo piano** valgono anche qui. Una finestra di dialogo in anteprima blocca le finestre dell'IDE finché non la chiudi. **Chiudi questa finestra** in anteprima non fa niente.
 - Durante una prova puoi anche aprire le finestre vere dalla Home: **I miei programmi** → **Apri la finestra**.
 
@@ -161,7 +161,7 @@ Una componente di un pacchetto non installato si vede come un riquadro con il su
 [Pulsante: Saluta] premuto ──▶ via
 ```
 
-6. Premi **Prova**, torna sulla scheda della finestra e scegli **Anteprima**. Scrivi `Ada` e premi **Saluta**: l'etichetta mostra «Ciao, Ada!».
+6. Premi **Prova** e torna sulla scheda della finestra: è già in **Anteprima**. Scrivi `Ada` e premi **Saluta**: l'etichetta mostra «Ciao, Ada!».
 
 Il campo di testo manda il nome a ogni cambiamento, ma **nome** non avvia il blocco: il saluto cambia solo quando arriva l'impulso del pulsante su **via**.
 

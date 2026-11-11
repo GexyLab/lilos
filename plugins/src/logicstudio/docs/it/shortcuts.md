@@ -53,6 +53,7 @@ Con il mouse:
 | **Alt** mentre trascini un blocco | Senza griglia. |
 | trascinare da un'uscita | Fa un collegamento; lasciato nel vuoto, apre il menu dei blocchi adatti. |
 | trascinare da un ingresso collegato | Stacca il suo ultimo collegamento, per spostarlo o toglierlo. |
+| **Ctrl+clic** su una porta, poi su altre porte, poi lasciare **Ctrl** | Collega la prima porta a ognuna delle altre (vedi [Collegamenti](ide/links)); **Esc** lascia perdere. |
 | **doppio clic** sull'oggetto di una componente | Apre la sua finestra. |
 | trascinare la testata di un gruppo (o un gruppo compresso) | Sposta il gruppo con tutti i suoi blocchi. |
 | lasciare un blocco libero dentro la cornice di un gruppo | Lo mette nel gruppo. |

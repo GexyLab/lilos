@@ -1,15 +1,26 @@
 # Collegamenti e tipi delle porte
 
-Un **collegamento** porta i valori dall'**uscita** di un blocco all'**ingresso** di un altro. Va sempre da destra (uscita) a sinistra (ingresso). Ogni valore che esce dall'uscita arriva, nello stesso ordine, a tutti gli ingressi collegati.
+Un **collegamento** porta i valori dall'**uscita** di un blocco all'**ingresso** di un altro. Va sempre da un'uscita (sul lato destro del blocco) a un ingresso (sul lato sinistro); in un [blocco specchiato](ide/schemas) i lati sono scambiati e il collegamento esce e arriva dall'altra parte. Ogni valore che esce dall'uscita arriva, nello stesso ordine, a tutti gli ingressi collegati.
 
 ## Fare un collegamento
 
 1. Porta il mouse sul pallino di un'uscita, a destra del blocco: il puntatore diventa una croce.
-2. Tieni premuto e trascina: segue una linea tratteggiata.
+2. Tieni premuto e trascina: dal primo movimento il collegamento si vede, tratteggiato, e segue il puntatore.
 3. Passando su un ingresso di un altro blocco, il suo pallino si illumina.
 4. Lascia il tasto sopra l'ingresso: il collegamento c'è.
 
 Se lasci il tasto nel vuoto, si apre il menu dei **blocchi adatti**: scegline uno e viene messo lì, già collegato al suo primo ingresso adatto (vedi [Schemi](ide/schemas)). Se lasci il tasto su un'uscita o sullo stesso blocco, non succede niente.
+
+### Più collegamenti con Ctrl
+
+Per collegare una porta a tante altre senza trascinare ogni volta:
+
+1. Tieni premuto **Ctrl** (**Cmd** su un Mac).
+2. Fai clic sulla **prima porta**: è quella da cui partono i collegamenti. Si illumina, e un collegamento tratteggiato segue il puntatore.
+3. Sempre con **Ctrl** premuto, fai clic sulle **altre porte**, del lato opposto: per ognuna compare un collegamento tratteggiato dalla prima.
+4. **Lascia Ctrl**: i collegamenti si fanno tutti insieme (un solo passo di Annulla).
+
+Se la prima porta è un'uscita, i collegamenti vanno da lei a ogni ingresso scelto; se è un ingresso, da ogni uscita scelta a lei. Le porte dello stesso lato della prima, e quelle che non si possono collegare (lo stesso blocco, le regole dei gruppi), non si prendono. Un clic su una porta già scelta la toglie; un clic sulla prima porta, o **Esc**, lascia perdere tutto. Si fa clic sul pallino o sul nome della porta.
 
 Regole:
 

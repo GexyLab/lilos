@@ -28,7 +28,7 @@ An IDE does **one test at a time**. By default you can have **2 tests** together
 
 - **On the open schemas**: the last value that went through each link (a label halfway, the links with values flow), the last value next to each input, the **light blue border** on the block that is working, the **red border** on a block that went into error. See [Links and port types](ide/links).
 - **In the consoles** at the bottom: the lines and the questions. See [Consoles](ide/consoles).
-- **In the windows**: open the tab of a window and choose **Preview**: it is tied to the test, and buttons and fields really send their values. The test **does not open** the windows by itself. You can also open the real main window from the Home, **My programs** → **Open its window**.
+- **In the windows**: open the tab of a window: with the test in progress it is in **Preview** by itself (even if it was in **Design**, where it goes back at the end) and it is tied to the test, and buttons and fields really send their values. The test **does not open** the windows by itself. You can also open the real main window from the Home, **My programs** → **Open its window**.
 
 A schema opened while the test is already running shows the values that go through from that moment on.
 

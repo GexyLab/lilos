@@ -53,6 +53,7 @@ With the mouse:
 | **Alt** while dragging a block | No grid. |
 | drag from an output | Makes a link; dropped on the empty sheet, it opens the menu of the matching blocks. |
 | drag from a linked input | Detaches its last link, to move it or remove it. |
+| **Ctrl+click** on a port, then on other ports, then release **Ctrl** | Links the first port to each of the others (see [Links](ide/links)); **Esc** gives up. |
 | **double click** on the object of a component | Opens its window. |
 | drag the header of a group (or a collapsed group) | Moves the group with all its blocks. |
 | drop a free block inside the frame of a group | Puts it in the group. |

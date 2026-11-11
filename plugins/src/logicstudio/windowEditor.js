@@ -26,6 +26,7 @@ export class WindowEditor {
   #studio; #surface; #frame; #ui = null; #mode = 'design';
   #sel = null;
   #live = null;
+  #designAfterTest = false;   // the test switched it from Progetta to Anteprima: back to Progetta when it ends
   #drop = null;           // { parent, index, line }
   #urls = [];             // blob URLs of the resources shown, freed when drawn again
   #lastSchema = null;     // the schema chosen last time a component was added
@@ -61,13 +62,26 @@ export class WindowEditor {
 
   setMode(mode) {
     this.#mode = mode;
+    this.#designAfterTest = false;   // chosen by hand: it stays
     this.render();
     this.#studio.renderToolbar();
   }
 
-  /** A test is running: the preview shows it live. */
-  attach(live) { this.#live = live; if (this.#mode !== 'design') this.render(); }
-  detach() { this.#live = null; if (this.#mode !== 'design') this.render(); }
+  /**
+   * A test is running: the window goes to Anteprima (from Progetta too) and shows it live; when the
+   * test ends it goes back to Progetta, if it was there and nobody changed the mode meanwhile.
+   */
+  attach(live) {
+    this.#live = live;
+    if (this.#mode === 'design') { this.#mode = 'preview'; this.#designAfterTest = true; this.#studio.renderToolbar(); }
+    this.render();
+  }
+
+  detach() {
+    this.#live = null;
+    if (this.#designAfterTest) { this.#mode = 'design'; this.#designAfterTest = false; this.#studio.renderToolbar(); }
+    this.render();
+  }
 
   #texts() {
     const texts = this.#studio.ws?.project?.data.texts ?? {};

@@ -18,6 +18,10 @@ import { drawShape, drawColor, drawTextStyle } from './shapes.js';
  * text: its width); a double click writes its text right there (Ctrl+Enter or a click elsewhere
  * keeps it, Esc leaves it as it was). A shape without a fill is taken only by its line.
  *
+ * Mirrored blocks (`mirror: true`, LogicSchema.setMirror) have their inputs on the right and their
+ * outputs on the left, and their links come in and go out on those sides; drawings and groups are
+ * never mirrored.
+ *
  * Groups: an open group is a frame around its blocks (it follows them), with its port «Run» in
  * the header: the dot on the left edge is reached from outside, the one after «Run» goes to the
  * blocks inside. The ports a group exposes have a ring. A collapsed group is drawn as one block:
@@ -39,7 +43,10 @@ import { drawShape, drawColor, drawTextStyle } from './shapes.js';
  *
  * Mouse: drag a block to move it (the selected ones together); drag a group by its header (or a
  * collapsed one) to move it with its blocks; a block dropped inside an open group goes into it;
- * drag from an output to an input to link them, from a linked input to take its link away; drag
+ * drag from an output to an input to link them (the link follows the pointer), from a linked input
+ * to take its link away; with Ctrl (Cmd) held, click a port and then other ports of the other
+ * side: on releasing Ctrl the links go from the first port to each of the others (one step of the
+ * history; Esc, or the first port clicked again, gives up; a port clicked again is left out); drag
  * the background to select with a rectangle, with the middle button (or Space held) to move the
  * view; the wheel zooms where the pointer is; double click on a collapsed group opens it, on the
  * header of an open one collapses it, on a drawing writes its text. Keys (the canvas focused): Canc removes the selection, Ctrl+A
@@ -66,6 +73,7 @@ export class LogicCanvas extends Emitter {
   #selGroups = new Set();
   #live = null; #liveOff = []; #values = new Map(); #states = new Map(); #schemaName = '';
   #drawing = false; #space = false; #temp = null;
+  #pick = null;            // Ctrl + clicks on ports: { first: { bid, side, port }, picked: [...], rubber, off }
   #offs = [];
 
   constructor({ schema, catalog, lang = 'en', componentOf = () => null, labels = {}, readOnly = false } = {}) {
@@ -105,6 +113,7 @@ export class LogicCanvas extends Emitter {
   setReadOnly(on) { this.#readOnly = !!on; this.el.classList.toggle('lgc-ro', this.#readOnly); }
 
   destroy() {
+    this.#endPick(false);
     this.detach();
     this.#offs.forEach(f => f());
     this.el.remove();
@@ -195,7 +204,7 @@ export class LogicCanvas extends Emitter {
       return el;
     };
     const el = h('div', {
-      class: `lgc-block cat-${def?.category ?? 'missing'}${def ? '' : ' ghost'}${def?.role ? ` role-${def.role}` : ''}`,
+      class: `lgc-block cat-${def?.category ?? 'missing'}${def ? '' : ' ghost'}${def?.role ? ` role-${def.role}` : ''}${b.mirror ? ' mirror' : ''}`,
       dataset: { id: b.id },
       style: `left:${b.x}px;top:${b.y}px`,
     },
@@ -458,7 +467,10 @@ export class LogicCanvas extends Emitter {
     return this.#blocks.get(id)?.ports.get(`${side}:${port}`) ?? null;
   }
 
-  /** Where a port's dot is, in world coordinates. */
+  /**
+   * Where a port's dot is, in world coordinates, and `dir`: the way its link leaves it (1 to the
+   * right, -1 to the left; a mirrored block's ports the other way).
+   */
   #portAt(id, side, port) {
     const el = this.#portEl(id, side, port);
     if (!el) return null;
@@ -469,15 +481,16 @@ export class LogicCanvas extends Emitter {
       if (g && !g.collapsed) {
         // the frame's header: «run» from outside on the left edge; to the inside after its word
         const x = entry.x + (side === 'in' ? 0 : el.offsetLeft + el.offsetWidth);
-        return { x, y: entry.y + el.offsetTop + el.offsetHeight / 2 };
+        return { x, y: entry.y + el.offsetTop + el.offsetHeight / 2, dir: side === 'in' ? -1 : 1 };
       }
-      return { x: entry.x + (side === 'in' ? 0 : entry.el.offsetWidth), y: entry.y + el.offsetTop + el.offsetHeight / 2 };
+      return { x: entry.x + (side === 'in' ? 0 : entry.el.offsetWidth), y: entry.y + el.offsetTop + el.offsetHeight / 2, dir: side === 'in' ? -1 : 1 };
     }
     const entry = this.#blocks.get(id);
     const b = this.#schema.block(id);
-    const x = b.x + (side === 'in' ? 0 : entry.el.offsetWidth);
+    const right = (side === 'out') !== !!b.mirror;
+    const x = b.x + (right ? entry.el.offsetWidth : 0);
     const y = b.y + el.offsetTop + el.offsetHeight / 2;
-    return { x, y };
+    return { x, y, dir: right ? 1 : -1 };
   }
 
   /** A link inside a collapsed group (both ends in it, or from its «run»): not drawn. */
@@ -517,6 +530,7 @@ export class LogicCanvas extends Emitter {
       }
     }
     if (this.#temp) this.#svg.append(this.#temp);
+    this.#drawPick();
   }
 
   #applyView() {
@@ -725,6 +739,8 @@ export class LogicCanvas extends Emitter {
       const link = e.target.closest('[data-link]');
       const collapse = e.target.closest('[data-collapse]');
       if (collapse) { e.preventDefault(); if (!this.#readOnly) this.#schema.setGroup(collapse.dataset.collapse, { collapsed: true }); return; }
+      const portRowEl = e.target.closest('.lgc-p');
+      if ((e.ctrlKey || e.metaKey) && portRowEl?.dataset.bid && !this.#readOnly) { e.preventDefault(); this.#pickPort(portRowEl, e); return; }
       if (dot && !this.#readOnly) { e.preventDefault(); this.#linkDrag(e, dot.parentElement); return; }
       const rs = e.target.closest('.lgc-rs');
       if (rs && !this.#readOnly) { this.#resizeDrag(e, rs.dataset.rs); return; }
@@ -774,7 +790,7 @@ export class LogicCanvas extends Emitter {
       else if (mod && e.key.toLowerCase() === 'a') { this.selectAll(); e.preventDefault(); }
       else if (mod && e.key.toLowerCase() === 'd' && (this.#sel.size || this.#selGroups.size) && !this.#readOnly) { this.duplicateSelection(); e.preventDefault(); }
       else if (mod && e.key.toLowerCase() === 'g' && !this.#readOnly) { if (e.shiftKey) this.ungroupSelection(); else this.groupSelection(); e.preventDefault(); }
-      else if (e.key === 'Escape') this.select([]);
+      else if (e.key === 'Escape') { if (this.#pick) this.#endPick(false); else this.select([]); }
       else if (e.key.startsWith('Arrow') && (this.#sel.size || this.#selGroups.size) && !this.#readOnly) {
         const step = e.shiftKey ? GRID : 1;
         const [dx, dy] = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] }[e.key];
@@ -895,6 +911,84 @@ export class LogicCanvas extends Emitter {
     this.#moveDrag(e, this.#movingIds());
   }
 
+  // ---- links made with Ctrl + clicks
+
+  /**
+   * A port clicked with Ctrl (Cmd) held: the first one starts, the next ones (of the other side,
+   * that can be linked to it) are added or, clicked again, left out. Releasing Ctrl makes the links.
+   */
+  #pickPort(el, e) {
+    const at = { bid: el.dataset.bid, side: el.dataset.side, port: el.dataset.port };
+    const same = (p, q) => p.bid === q.bid && p.side === q.side && p.port === q.port;
+    const pick = this.#pick;
+    if (!pick) {
+      const ns = 'http://www.w3.org/2000/svg';
+      const rubber = document.createElementNS(ns, 'path');
+      rubber.setAttribute('class', `lgc-link temp t-${el.dataset.type ?? 'any'}`);
+      const move = ev => {
+        const a = this.#portAt(at.bid, at.side, at.port);
+        if (!a) return;
+        const p = this.toWorld(ev.clientX, ev.clientY);
+        rubber.setAttribute('d', at.side === 'out' ? curve(a, p) : curve({ ...p, dir: 1 }, a));
+      };
+      const up = ev => { if (ev.key === 'Control' || ev.key === 'Meta') this.#endPick(true); };
+      const blur = () => this.#endPick(false);
+      addEventListener('pointermove', move);
+      addEventListener('keyup', up, true);
+      addEventListener('blur', blur);
+      this.#pick = { first: at, picked: [], rubber, off: () => { removeEventListener('pointermove', move); removeEventListener('keyup', up, true); removeEventListener('blur', blur); } };
+      this.el.classList.add('lgc-picking');
+      move(e);
+      this.#drawLinks();
+      return;
+    }
+    if (same(pick.first, at)) { this.#endPick(false); return; }
+    const i = pick.picked.findIndex(p => same(p, at));
+    if (i >= 0) pick.picked.splice(i, 1);
+    else if (at.side !== pick.first.side && this.#schema.canLink(...this.#pickPair(pick.first, at))) pick.picked.push(at);
+    this.#drawLinks();
+  }
+
+  /** [from, to] of a link between the first port picked and another one. */
+  #pickPair(first, other) {
+    const f = [first.bid, first.port], o = [other.bid, other.port];
+    return first.side === 'out' ? [f, o] : [o, f];
+  }
+
+  /** The ports picked (marked) and the links that releasing Ctrl will make (dashed). */
+  #drawPick() {
+    for (const el of this.el.querySelectorAll('.lgc-p.picked')) el.classList.remove('picked', 'first');
+    const pick = this.#pick;
+    if (!pick) return;
+    const ns = 'http://www.w3.org/2000/svg';
+    const first = this.#portEl(pick.first.bid, pick.first.side, pick.first.port);
+    first?.classList.add('picked', 'first');
+    for (const p of pick.picked) {
+      const el = this.#portEl(p.bid, p.side, p.port);
+      el?.classList.add('picked');
+      const [from, to] = this.#pickPair(pick.first, p);
+      const a = this.#portAt(from[0], 'out', from[1]), b = this.#portAt(to[0], 'in', to[1]);
+      if (!a || !b) continue;
+      const path = document.createElementNS(ns, 'path');
+      path.setAttribute('d', curve(a, b));
+      path.setAttribute('class', `lgc-link temp t-${this.#portEl(from[0], 'out', from[1])?.dataset.type ?? 'any'}`);
+      this.#svg.append(path);
+    }
+    this.#svg.append(pick.rubber);
+  }
+
+  /** Ctrl released (make = true): the links from the first port to the others; Esc: nothing. */
+  #endPick(make) {
+    const pick = this.#pick;
+    if (!pick) return;
+    pick.off();
+    pick.rubber.remove();
+    this.#pick = null;
+    this.el.classList.remove('lgc-picking');
+    if (make && pick.picked.length) this.#schema.connectMany(pick.picked.map(p => this.#pickPair(pick.first, p)));
+    this.#drawLinks();
+  }
+
   /** Dragging a link: from an output; from a linked input it takes its last link away. */
   #linkDrag(e, portEl) {
     const side = portEl.dataset.side;
@@ -912,7 +1006,9 @@ export class LogicCanvas extends Emitter {
     if (!a) return;
     const temp = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     temp.setAttribute('class', `lgc-link temp t-${this.#portEl(from[0], 'out', from[1])?.dataset.type ?? 'any'}`);
+    temp.setAttribute('d', curve(a, this.toWorld(e.clientX, e.clientY)));
     this.#temp = temp;
+    this.#svg.append(temp);   // seen while dragging, from the first move
     if (removing) { this.#schema.data.links = this.#schema.data.links.filter(l => l !== removing); this.#drawLinks(); }
     this.el.classList.add('lgc-linking');
     const targetOf = ev => {
@@ -963,9 +1059,11 @@ function portRow(p, side, bid, port, linked) {
 
 const snap = v => Math.round(v / (GRID / 2)) * (GRID / 2);
 
+/** A link from an output to an input: it leaves `a` and reaches `b` on their sides (`dir`: 1 right, -1 left; default out right, in left). */
 function curve(a, b) {
   const dx = Math.max(40, Math.abs(b.x - a.x) / 2);
-  return `M${a.x} ${a.y} C${a.x + dx} ${a.y}, ${b.x - dx} ${b.y}, ${b.x} ${b.y}`;
+  const da = a.dir ?? 1, db = b.dir ?? -1;
+  return `M${a.x} ${a.y} C${a.x + dx * da} ${a.y}, ${b.x + dx * db} ${b.y}, ${b.x} ${b.y}`;
 }
 
 /** A short line under a block's title: its main settings. */
