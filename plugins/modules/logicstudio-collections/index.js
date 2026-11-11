@@ -13,6 +13,7 @@ export default {
       name: ctx.name, version: ctx.version,
       label: { en: 'Lists and matrices', it: 'Liste e matrici' },
       blocks: join(ctx.dir, 'blocks.js'),
+      docs: join(ctx.dir, 'docs'),   // the documentation (docs/<lang>/…), shown in the IDE
     });
   },
   async stop() { handle?.unregister(); },

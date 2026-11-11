@@ -14,6 +14,7 @@ import { Runner } from './run.js';
 import { Home } from './home.js';
 import { openProjectOptions } from './options.js';
 import { createApp } from './createApp.js';
+import { showDoc, blockDocAddress } from './docs.js';
 import { t, i18n } from './i18n.js';
 import './logicstudio.css';
 
@@ -135,6 +136,25 @@ class Studio {
   }
 
   label(obj) { return obj?.label?.[i18n.lang] ?? obj?.label?.en ?? obj?.type ?? ''; }
+
+  /** The documentation's window on a page: 'ide/<page>', a block or component type, '<pack>[/<page>]' (docs.js). */
+  showDoc(address) { return showDoc(this, address); }
+
+  /** The page about what is selected in the tab shown (F1), else about that tab. */
+  docOfSelection() {
+    const tab = this.current;
+    if (tab?.kind === 'schema') {
+      const sel = tab.view.selection;
+      if (sel.blocks.length === 1) return blockDocAddress(this, tab.view.doc.block(sel.blocks[0]), b => tab.view.componentOf(b));
+      return sel.links.length ? 'ide/links' : 'ide/schemas';
+    }
+    if (tab?.kind === 'window') {
+      const node = tab.view.selected && tab.view.doc.find(tab.view.selected)?.node;
+      return node?.type ?? 'ide/windows';
+    }
+    if (tab?.kind === 'map') return 'ide/projects';
+    return 'ide/index';
+  }
 
   renderStatus() {
     const tab = this.current;
@@ -323,6 +343,7 @@ class Studio {
       items.push(h('span', { class: 'sp' }));
     }
     if (!this.tabs.some(x => x.kind === 'home')) items.push(b('home', t('tb.home'), () => this.openHome()));
+    items.push(b('help', null, () => this.showDoc(this.docOfSelection()), { title: `${t('tb.docs')} (F1)` }));
     this.toolbar.replaceChildren(...items);
     doc?.history && !doc._lsHistory && (doc._lsHistory = true, doc.history.on('change', () => this.renderToolbar()));
   }
@@ -367,6 +388,7 @@ class Studio {
       const editing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName ?? '');
       if (mod && e.key.toLowerCase() === 's') { e.preventDefault(); this.saveAll(); return; }
       if (e.key === 'F5') { e.preventDefault(); this.runner.program ? this.runner.stop() : this.runner.test(); return; }
+      if (e.key === 'F1') { e.preventDefault(); this.showDoc(this.docOfSelection()); return; }
       if (editing) return;
       const doc = this.current?.doc ?? (this.current?.kind === 'map' ? this.ws?.project : null);
       if (mod && !e.shiftKey && e.key.toLowerCase() === 'z') { e.preventDefault(); doc?.history.undo(); }

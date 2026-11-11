@@ -15,6 +15,8 @@ import { cleanOverrides, globalLimits, QUOTA } from './lib/limits.js';
  * kernel:logicstudio-engine):
  *   GET    /catalog                      blocks and components of the installed packages
  *   GET    /components/:pack             the browser code of a package's components (JavaScript)
+ *   GET    /docs/:lang                   the documentation's pages of every package (and of the engine), with titles
+ *   GET    /docs/:pack/:page/:lang       a page: { pack, page, lang, markdown } (page: index, a type as core:add, or a name)
  *   GET    /status                       limits, my quota and what I use
  *   GET    /programs[?all=1]             my programs (an admin: everyone's with all=1)
  *   POST   /programs                     { kind: 'test'|'active'|'app', name, documents, source, lang } → program
@@ -85,6 +87,18 @@ export default {
       if (!pack?.componentsCode) ctx.fail('not_found', 'Pacchetto senza componenti');
       res.writeHead(200, { 'Content-Type': 'text/javascript; charset=utf-8', 'Cache-Control': 'no-cache', 'X-Content-Type-Options': 'nosniff' });
       res.end(pack.componentsCode);
+    });
+
+    // The documentation: the packages' docs/ folders, and the engine's own (pages logicstudio-engine/…)
+    const engineDocs = () => ({ name: ctx.name, version: ctx.version, label: { en: 'Logic Studio Engine', it: 'Logic Studio Engine' }, dir: join(ctx.dir, 'docs') });
+    ctx.route('GET', '/docs/:lang', async ({ principal, params }) => {
+      user(principal);
+      return registry.docIndex(params.lang, [engineDocs()]);
+    });
+    ctx.route('GET', '/docs/:pack/:page/:lang', async ({ principal, params }) => {
+      user(principal);
+      // a type comes as core:add (the SDK's module paths have no dots)
+      return (await registry.doc(params.pack, String(params.page).replace(':', '.'), params.lang, engineDocs())) ?? ctx.fail('not_found', 'Pagina della documentazione non trovata');
     });
 
     ctx.route('GET', '/status', ({ principal }) => {

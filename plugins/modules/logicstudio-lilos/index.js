@@ -16,6 +16,7 @@ export default {
       name: ctx.name, version: ctx.version,
       label: { en: 'lilOS blocks', it: 'Blocchi di lilOS' },
       blocks: join(ctx.dir, 'blocks.js'),
+      docs: join(ctx.dir, 'docs'),   // the documentation (docs/<lang>/…), shown in the IDE
       actions: makeActions({ fs: () => ctx.service('fs'), notifications: () => ctx.service('notifications') }),
     });
   },

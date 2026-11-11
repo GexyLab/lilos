@@ -1,5 +1,5 @@
-import { readFile } from 'node:fs/promises';
-import { isAbsolute } from 'node:path';
+import { readFile, readdir, stat } from 'node:fs/promises';
+import { isAbsolute, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 /**
@@ -11,6 +11,7 @@ import { pathToFileURL } from 'node:url';
  *     blocks: join(ctx.dir, 'blocks.js'),           // optional: export const blocks = [...]
  *     components: join(ctx.dir, 'components.js'),   // optional: export const components = [...]
  *     actions: { 'lilos.notify': async (user, args, tools) => … },   // optional: run in the kernel as the program's user (supervisor.js #action)
+ *     docs: join(ctx.dir, 'docs'),                  // optional: docs/<lang>/index.md and docs/<lang>/<type>.md (Markdown)
  *   })
  *
  * blocks.js runs in each user's worker; here it is only imported to read the definitions (nothing
@@ -34,9 +35,10 @@ export class Registry {
   /** Changes every time a package comes or goes: the catalog's ETag. */
   get version() { return this.#version; }
 
-  async register({ name, version, label, blocks, components, actions } = {}) {
+  async register({ name, version, label, blocks, components, actions, docs } = {}) {
     if (!PACK.test(name ?? '')) throw new Error(`Pacchetto di Logic Studio senza nome valido: ${name}`);
-    const pack = { name, version: String(version ?? '0.0.0'), label: cleanLabel(label, name), blocksFile: null, componentsFile: null, blocks: new Map(), components: new Map(), actions: new Map(), upgrades: new Map() };
+    if (docs !== undefined && docs !== null && !isAbsolute(docs)) throw new Error(`${name}: la cartella della documentazione deve essere un percorso assoluto`);
+    const pack = { name, version: String(version ?? '0.0.0'), label: cleanLabel(label, name), blocksFile: null, componentsFile: null, blocks: new Map(), components: new Map(), actions: new Map(), upgrades: new Map(), docsDir: docs ?? null };
     if (blocks) {
       if (!isAbsolute(blocks)) throw new Error(`${name}: il file dei blocchi deve essere un percorso assoluto`);
       const mod = await import(`${pathToFileURL(blocks).href}?v=${encodeURIComponent(pack.version)}`);
@@ -104,10 +106,68 @@ export class Registry {
       version: this.#version,
       packages: this.packs().map(p => ({
         name: p.name, version: p.version, label: p.label,
-        blocks: [...p.blocks.values()], components: [...p.components.values()], hasComponents: !!p.componentsFile,
+        blocks: [...p.blocks.values()], components: [...p.components.values()], hasComponents: !!p.componentsFile, hasDocs: !!p.docsDir,
       })),
     };
   }
+
+  /**
+   * A page of a package's documentation, in `lang` or else in English, else in Italian:
+   * { pack, page, lang, markdown } or null. `extra` is a folder for a name that is not a package
+   * (the engine's own pages). Names are checked here: never a path from outside.
+   */
+  async doc(packName, page, lang, extra = null) {
+    const dir = extra?.name === packName ? extra.dir : this.#packs.get(packName)?.docsDir;
+    if (!dir || !DOC_PAGE.test(page ?? '') || !LANG.test(lang ?? '')) return null;
+    for (const l of [...new Set([lang, lang.split('-')[0], 'en', 'it'])]) {
+      try {
+        const file = join(dir, l, `${page}.md`);
+        if ((await stat(file)).size > MAX_DOC) continue;
+        return { pack: packName, page, lang: l, markdown: await readFile(file, 'utf8') };
+      } catch { /* not in this language */ }
+    }
+    return null;
+  }
+
+  /**
+   * The pages of every package's documentation in `lang` (or the fallback language), with their
+   * titles (the first «# » line): [{ pack, label, pages: [{ page, title }] }]. Read once per
+   * package version and language.
+   */
+  async docIndex(lang, extra = []) {
+    const out = [];
+    const sources = [...extra.map(e => ({ name: e.name, version: e.version, label: e.label, docsDir: e.dir })), ...this.#packs.values()];
+    for (const p of sources) {
+      if (!p.docsDir || !LANG.test(lang ?? '')) continue;
+      const key = `${p.name}@${p.version}:${lang}`;
+      if (!this.#docIndex.has(key)) this.#docIndex.set(key, readPages(p.docsDir, lang));
+      out.push({ pack: p.name, label: p.label, pages: await this.#docIndex.get(key) });
+    }
+    return out;
+  }
+
+  #docIndex = new Map();
+}
+
+const DOC_PAGE = /^(?:index|[a-z][a-z0-9-]{0,40}|[a-z][a-z0-9]*\.[a-zA-Z][a-zA-Z0-9]{0,40})$/;
+const LANG = /^[a-z]{2,3}(?:-[A-Za-z0-9]{2,8})?$/;
+const MAX_DOC = 512 * 1024;
+
+/** The pages of a docs/ folder: those in `lang`, plus those only in the fallback languages. */
+async function readPages(dir, lang) {
+  const pages = new Map();
+  for (const l of [...new Set([lang, lang.split('-')[0], 'en', 'it'])]) {
+    let names;
+    try { names = (await readdir(join(dir, l))).filter(f => f.endsWith('.md') && DOC_PAGE.test(f.slice(0, -3))); } catch { continue; }
+    for (const f of names) {
+      const page = f.slice(0, -3);
+      if (pages.has(page)) continue;
+      const text = await readFile(join(dir, l, f), 'utf8').catch(() => '');
+      const title = /^#\s+(.+)$/m.exec(text)?.[1]?.trim() ?? page;
+      pages.set(page, { page, title: title.slice(0, 120) });
+    }
+  }
+  return [...pages.values()].sort((a, b) => (a.page < b.page ? -1 : 1));
 }
 
 const cleanLabel = (label, fallback) => (label && typeof label === 'object' ? { en: String(label.en ?? fallback), ...(label.it && { it: String(label.it) }) } : { en: String(label ?? fallback) });

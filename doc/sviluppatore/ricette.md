@@ -1385,6 +1385,7 @@ Un **pacchetto** porta blocchi (e, se vuoi, Componenti UI per le finestre) a Log
          name: ctx.name, version: ctx.version,
          label: { en: 'Example blocks', it: 'Blocchi di esempio' },
          blocks: join(ctx.dir, 'blocks.js'),
+         docs: join(ctx.dir, 'docs'),   // la documentazione, vedi il passo 6
          actions: {
            'esempio.saluta': async (user, args) => ({ testo: `Ciao ${user.name}${args?.punto ? '.' : '!'}` }),
          },
@@ -1445,10 +1446,25 @@ Un **pacchetto** porta blocchi (e, se vuoi, Componenti UI per le finestre) a Log
 
    Ogni componente ha anche gli ingressi `enabled` e `visible`: li gestisce `LogicUI`, non `render`. Nell'editor delle finestre `c.design` è vero: mostra dati finti e non reagire.
 5. Se un blocco deve toccare qualcosa fuori dal suo thread (file, notifiche, rete), **non lo fa il blocco**: chiama un'azione con `b.call('pacchetto.nome', args)`. L'azione è una funzione `async (user, args, tools)` che il kernel esegue **come l'utente**: passa `user` ai servizi (`ctx.service('fs')` dentro la funzione, non in `init`), mai il principale del kernel; `args` e il risultato sono JSON. Per la rete chiama `tools.countNet()` prima di ogni richiesta: conta nella quota dell'utente. Un errore con un messaggio chiaro, per l'utente, esce dall'uscita `error` del blocco.
-6. Provalo. Metti il modulo in `config.json` (o installalo dall'AppStore) e riavvia il kernel: nel log compare `Logic Studio: pacchetto logicstudio-esempio 1.0.0 (2 blocchi, 1 componenti)`; un blocco scartato è segnalato lì, con il motivo. Nell'IDE i blocchi sono nella scheda **Blocchi**, le componenti nella scheda **Componenti** di una finestra. Poi un test: un programma con i tuoi blocchi, `Prova`, e guarda i valori sui collegamenti.
-7. Per pubblicarlo, vale [Pubblicare un modulo del kernel come pacchetto](#pubblicare-un-modulo-del-kernel-come-pacchetto) (nel repository ufficiale, aggiungi `modules/logicstudio-esempio` al `catalog.json` dei plugin). Scrivi un `README.md` per l'AppStore e tieni `en` e `it` in tutte le etichette: i pacchetti di lingua traducono lilOS e l'SDK, non i pacchetti.
+6. Scrivi la documentazione, in italiano e in inglese (dal motore 1.1.0, SDK 0.25.0). Nella cartella del modulo crea `docs/it/` e `docs/en/` (`docs` è già in `register` nel passo 2). Per ogni lingua:
 
-**Da sapere.** Un blocco che usa `node:fs`, `fetch` o altro per conto suo salta le regole dell'utente (permessi, quote, rete): il codice dei blocchi non è isolato perché lo installa un amministratore, quindi tocca a chi lo scrive. Un pacchetto che arriva dopo che il thread di un utente è partito è visto solo dal thread successivo. Un programma attivo che usa un blocco di un pacchetto che manca resta in attesa (`waiting`) e riparte quando il pacchetto si registra.
+   - `index.md`: la pagina del pacchetto (che cosa porta, l'elenco dei blocchi e delle componenti);
+   - una pagina per **ogni blocco e ogni componente**, con il tipo come nome del file: `esempio.somma.md`, `esempio.contatore.md`. È la pagina che si apre con **F1** o con **Documentazione** sul blocco;
+   - se serve, altre pagine con nomi come `come-iniziare.md` (`[a-z][a-z0-9-]{0,40}`).
+
+   La prima riga di ogni pagina è il titolo (`# Somma tre`): è quello che compare nell'indice. I collegamenti tra le pagine si scrivono senza `.md`:
+
+   ```md
+   # Somma tre
+
+   Somma due numeri e quelli che aggiungi. Vedi anche [Contatore](esempio.contatore) e [tutti i blocchi](logicstudio-esempio).
+   ```
+
+   `[Contatore](esempio.contatore)` apre la pagina di un tipo, `[testo](logicstudio-esempio)` la pagina `index` di un pacchetto, `[testo](logicstudio-esempio/come-iniziare)` un'altra pagina, `[testo](ide/projects)` la guida dell'IDE; un indirizzo `https://…` si apre in una nuova scheda. Niente HTML e niente immagini. Una pagina può pesare al massimo 512 KB; se manca nella lingua di chi legge, si vede in inglese e poi in italiano. Il motore legge l'elenco delle pagine una volta per versione del pacchetto: se aggiungi una pagina, alza `version`. Il Markdown si disegna con [`markdown()`](api.md#sdkuimarkdownjs); formato e regole complete: [API → register()](api.md#scrivere-un-pacchetto-di-blocchi-e-componenti).
+7. Provalo. Metti il modulo in `config.json` (o installalo dall'AppStore) e riavvia il kernel: nel log compare `Logic Studio: pacchetto logicstudio-esempio 1.0.0 (2 blocchi, 1 componenti)`; un blocco scartato è segnalato lì, con il motivo. Nell'IDE i blocchi sono nella scheda **Blocchi**, le componenti nella scheda **Componenti** di una finestra; con **F1** su un blocco selezionato si apre la sua pagina della documentazione (o «Pagina non trovata», se l'hai dimenticata). Poi un test: un programma con i tuoi blocchi, `Prova`, e guarda i valori sui collegamenti.
+8. Per pubblicarlo, vale [Pubblicare un modulo del kernel come pacchetto](#pubblicare-un-modulo-del-kernel-come-pacchetto) (nel repository ufficiale, aggiungi `modules/logicstudio-esempio` al `catalog.json` dei plugin). Scrivi un `README.md` per l'AppStore e tieni `en` e `it` in tutte le etichette: i pacchetti di lingua traducono lilOS e l'SDK, non i pacchetti.
+
+**Da sapere.** Un blocco che usa `node:fs`, `fetch` o altro per conto suo salta le regole dell'utente (permessi, quote, rete): il codice dei blocchi non è isolato perché lo installa un amministratore, quindi tocca a chi lo scrive. Un pacchetto che arriva dopo che il thread di un utente è partito è visto dai programmi che partono dopo (il motore rilegge i blocchi a ogni avvio di programma se i pacchetti sono cambiati), ma una versione nuova di un blocco già caricato la vede solo il thread successivo. Un programma attivo che usa un blocco di un pacchetto che manca resta in attesa (`waiting`) e riparte quando il pacchetto si registra.
 
 ## Far dipendere un'app da un modulo del kernel
 

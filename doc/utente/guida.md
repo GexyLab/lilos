@@ -1685,7 +1685,7 @@ Ogni nota è un file di testo con estensione `.sticky` nella cartella Scrivania.
 
 Un programma di Logic Studio può girare **anche quando lilOS è chiuso nel browser**: lo fa il computer su cui gira lilOS. Per questo, prima di attivarne uno, leggi «[Da sapere](#da-sapere-8)».
 
-Logic Studio non c'è di serie. Serve lilOS dalla 1.37.0 e l'app **Logic Studio IDE** (categoria **Sviluppo**), che un amministratore installa dall'[AppStore](#lappstore): l'AppStore installa con lei anche le parti che le servono (il motore e i blocchi di base). Altri blocchi arrivano con altri pacchetti dello stesso AppStore, nella scheda **Kernel**: liste e matrici, i blocchi di lilOS (notifiche, file), la rete, le componenti delle finestre e i grafici.
+Logic Studio non c'è di serie. Serve lilOS dalla 1.37.0 (dalla 1.40.0 per la documentazione, vedi «[La documentazione](#la-documentazione)») e l'app **Logic Studio IDE** (categoria **Sviluppo**), che un amministratore installa dall'[AppStore](#lappstore): l'AppStore installa con lei anche le parti che le servono (il motore e i blocchi di base). Altri blocchi arrivano con altri pacchetti dello stesso AppStore, nella scheda **Kernel**: liste e matrici, i blocchi di lilOS (notifiche, file), la rete, le componenti delle finestre e i grafici.
 
 ### Le parole
 
@@ -1805,6 +1805,16 @@ Se il motore c'è, il [Pannello di controllo](#pannello-di-controllo) ha la sezi
 | Quote | Amministratori | Le quote di ogni utente (programmi attivi, prove, CPU %, memoria, richieste al minuto, registro) e, per un utente, quote sue: una casella vuota vuol dire la quota di tutti; **Predefinita** toglie le quote sue |
 | In esecuzione | Amministratori | I programmi di tutti gli utenti, da fermare |
 | Pacchetti | Tutti | I pacchetti di blocchi e componenti installati, con quanti blocchi e componenti danno |
+
+### La documentazione
+
+Logic Studio ha la sua guida, scritta in italiano e in inglese e **dentro l'IDE**: ogni blocco e ogni componente ha una pagina che dice a cosa serve, che porte ha, come funziona e con qualche esempio. Per aprirla:
+
+- premi **F1**: si apre la pagina di ciò che hai selezionato (un blocco, una componente, un collegamento); se non hai selezionato niente, la pagina dell'editor che stai usando;
+- fai clic con il tasto destro su un blocco, un collegamento, un punto vuoto dello schema, una componente, una finestra, una voce dell'elenco dei blocchi o dei progetti e scegli **Documentazione**;
+- premi il pulsante **?** accanto al nome del blocco nelle **Proprietà**, oppure quello nella barra in alto.
+
+Si apre una finestra con l'indice a sinistra (la guida dell'IDE e poi un gruppo per ogni pacchetto, con i blocchi divisi per categoria) e la pagina a destra. Con le frecce in alto, o **Alt+←** e **Alt+→**, torni alle pagine già viste; la casetta riporta alla pagina iniziale; la ricerca (o **Ctrl+F**) cerca nei titoli. Le pagine sono nella lingua di lilOS; se una non c'è, la vedi in inglese. Le pagine dei blocchi arrivano con il loro pacchetto: se togli un pacchetto, spariscono le sue pagine. La documentazione si può solo leggere.
 
 ### Da sapere
 

@@ -1,6 +1,8 @@
 {
   "en": {
     "strings": {
+      "@name": "Logic Studio IDE",
+      "@description": "Logic blocks linked together, as in OpenBack: schemas, projects with windows made of UI components, consoles. The engine runs them in lilOS, also with lilOS closed.",
       "app.name": "Logic Studio IDE",
       "tabs.label": "Open editors",
       "tabs.home": "Home",
@@ -442,11 +444,34 @@
       "app.doneText": "The package is in {path}. Open its .lsapp file to run it.",
       "app.failed": "The app could not be made",
       "app.appName": "Name of the app",
-      "kind.app": "App (not installed)"
+      "kind.app": "App (not installed)",
+      "tb.docs": "Documentation",
+      "menu.docs": "Documentation",
+      "menu.docsSchema": "Documentation of the schema editor",
+      "menu.docsWindow": "Documentation of the window editor",
+      "menu.openObject": "Show its object in the schema",
+      "palette.add": "Add",
+      "docs.title": "Logic Studio documentation",
+      "docs.back": "Back (Alt+←)",
+      "docs.forward": "Forward (Alt+→)",
+      "docs.home": "Start page",
+      "docs.search": "Search the documentation",
+      "docs.contents": "Contents",
+      "docs.loading": "Loading…",
+      "docs.failed": "The page could not be read: {error}",
+      "docs.missingTitle": "Page not found",
+      "docs.missingType": "«{name}» ({type}) has no documentation page yet.",
+      "docs.missing": "There is no page at «{address}».",
+      "docs.packIndex": "Go to the package's page",
+      "docs.ide": "Guide to the IDE",
+      "docs.overview": "Overview",
+      "docs.noResults": "Nothing found."
     }
   },
   "it": {
     "strings": {
+      "@name": "Logic Studio IDE",
+      "@description": "Blocchi logici collegati tra loro, come in OpenBack: schemi, progetti con finestre fatte di componenti UI, console. Il motore li fa girare in lilOS, anche a lilOS chiuso.",
       "app.name": "Logic Studio IDE",
       "tabs.label": "Editor aperti",
       "tabs.home": "Home",
@@ -888,7 +913,28 @@
       "app.doneText": "Il pacchetto è in {path}. Apri il suo file .lsapp per eseguirla.",
       "app.failed": "Non si è potuta creare l'app",
       "app.appName": "Nome dell'app",
-      "kind.app": "App (non installata)"
+      "kind.app": "App (non installata)",
+      "tb.docs": "Documentazione",
+      "menu.docs": "Documentazione",
+      "menu.docsSchema": "Documentazione dell'editor degli schemi",
+      "menu.docsWindow": "Documentazione dell'editor delle finestre",
+      "menu.openObject": "Mostra il suo oggetto nello schema",
+      "palette.add": "Aggiungi",
+      "docs.title": "Documentazione di Logic Studio",
+      "docs.back": "Indietro (Alt+←)",
+      "docs.forward": "Avanti (Alt+→)",
+      "docs.home": "Pagina iniziale",
+      "docs.search": "Cerca nella documentazione",
+      "docs.contents": "Indice",
+      "docs.loading": "Caricamento…",
+      "docs.failed": "Non è stato possibile leggere la pagina: {error}",
+      "docs.missingTitle": "Pagina non trovata",
+      "docs.missingType": "«{name}» ({type}) non ha ancora una pagina di documentazione.",
+      "docs.missing": "Non c'è nessuna pagina all'indirizzo «{address}».",
+      "docs.packIndex": "Vai alla pagina del pacchetto",
+      "docs.ide": "Guida dell'IDE",
+      "docs.overview": "Panoramica",
+      "docs.noResults": "Nessun risultato."
     }
   }
 }

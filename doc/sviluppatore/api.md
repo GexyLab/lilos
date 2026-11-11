@@ -32,6 +32,7 @@ Gli altri moduli (`src/`) sono il sistema: scrivania, desktop, barra.
 - [sdk/core/schedule.js e sdk/core/scheduleRules.js](#sdkcoreschedulejs-e-sdkcoreschedulerulesjs)
 - [sdk/core/logic.js e sdk/core/logicModel.js](#sdkcorelogicjs-e-sdkcorelogicmodeljs-logic-studio)
 - [sdk/ui/logic/ e sdk/ui/charts.js](#sdkuilogic-e-sdkuichartsjs-logic-studio)
+- [sdk/ui/markdown.js](#sdkuimarkdownjs)
 - [sdk/core/tags.js](#sdkcoretagsjs)
 - [sdk/core/history.js](#sdkcorehistoryjs)
 - [sdk/core/fileTypes.js](#sdkcorefiletypesjs)
@@ -1531,6 +1532,8 @@ Il client del modulo del kernel `logicstudio-engine`. Un `Emitter`. Funziona sol
 | `windows(id)` → `{ id, name, source, status, main, windows, texts, entrypoints, consoles, options }` | Quello che serve a lilOS per aprire le finestre di un programma senza l'IDE: i documenti `.lsui` per nome, la finestra main, i testi tradotti del progetto, i punti d'ingresso, le impostazioni delle console e le opzioni dell'app. |
 | `consoles(id)` → `[{ id, name, color, main, lines, ask, waiting }]` | Le console con le righe tenute e la domanda in attesa. |
 | `logs({ program })` → `[voce]` | Il registro dell'utente (le ultime 500 voci, la più nuova per ultima), di un programma se dato. |
+| `docIndex(lang = 'en')` → `Promise<[{ pack, label, pages: [{ page, title }] }]>` | (SDK 0.25.0) La documentazione dei pacchetti installati e del motore (che compare con `pack: 'logicstudio-engine'`), con il titolo di ogni pagina (la sua prima riga `# …`). Un pacchetto senza `docs` non c'è. Le pagine mancanti nella lingua `lang` ci sono in inglese (e, se manca anche lì, in italiano). `[]` con un motore più vecchio della 1.1.0 o con una `lang` non valida. |
+| `doc(pack, page = 'index', lang = 'en')` → `Promise<{ pack, page, lang, markdown } | null>` | (SDK 0.25.0) Una pagina: `pack` è il nome del pacchetto, `page` è `'index'`, il tipo di un blocco o di una componente (`'core.add'`) o un altro nome di pagina. `lang` nel risultato è la lingua in cui la pagina è stata trovata (la tua, poi senza variante, poi inglese, poi italiano). `null` se la pagina non c'è o i nomi non sono validi. `markdown` è il testo, da dare a [`markdown()`](#sdkuimarkdownjs). |
 | `live(id)` → `LiveProgram` | Il programma in diretta (WebSocket). |
 | `components(pack)` → `Promise<[component]>` | Le Componenti UI di un pacchetto con il loro codice: importa il `components.js` che serve il motore (una volta per pacchetto e versione). Se il file esporta una stringa `styles`, la mette in un `<style data-logic-pack>` nella pagina. `[]` se il pacchetto non ha componenti. |
 | `allComponents()` → `Promise<Map<tipo, component>>` | Le componenti di tutti i pacchetti. Una che non si carica è saltata. |
@@ -1541,6 +1544,23 @@ Il client del modulo del kernel `logicstudio-engine`. Un `Emitter`. Funziona sol
 Eventi: `ask` `{ id, name, console }` (un programma senza nessuno che lo guardi chiede qualcosa), `failed` `{ id, name, error }` (un programma attivo si è fermato per un errore).
 
 `program`: `{ id, owner, user, kind, name, source, status, error, started, stopped, consoles, windows, options }`. `status`: `'starting'`, `'running'`, `'stopped'`, `'failed'`, `'waiting'` (aspetta un pacchetto che non c'è). `windows`: i nomi delle finestre del progetto.
+
+**La documentazione.** Le pagine stanno nei pacchetti (cartella `docs/<lingua>/`, vedi [Scrivere un pacchetto](#scrivere-un-pacchetto-di-blocchi-e-componenti)) e le serve il motore; `docIndex` e `doc` le leggono, `markdown()` le disegna:
+
+```js
+import { logic, markdown, h } from '@lilos/sdk';
+
+const indice = await logic.docIndex('it');            // [{ pack: 'logicstudio-core', label, pages: [{ page: 'core.add', title: 'Somma' }, …] }, …]
+const pagina = await logic.doc('logicstudio-core', 'core.add', 'it');
+if (pagina) {
+  const el = h('article', { class: 'lilos-md' }, ...markdown(pagina.markdown, {
+    link: href => (href === 'core.add' ? () => console.log('apri la pagina di core.add') : null),
+  }));
+  document.body.append(el);
+}
+```
+
+Il motore tiene l'elenco delle pagine in memoria per ogni versione di pacchetto e lingua: aggiungere una pagina a un pacchetto già installato si vede solo alzando la versione o riavviando il kernel. `docIndex` e `doc` non hanno cache nel client.
 
 ### `LiveProgram` (`core/logic.js`)
 
@@ -1750,6 +1770,38 @@ const png = await ch.toPNG();         // Blob
 La maniglia ha `el`, `kind`, `update(serie)`, `append(serie, punto)` (`serie`: indice o nome, una nuova se non c'è), `clear()`, `setOptions(opzioni)`, `resize()` (di solito lo fa da solo un `ResizeObserver`), `tableView(on?)`, `table()` → `{ head, rows, types }`, `toCSV()` → `Blob`, `toPNG(scala = 2)` → `Promise<Blob>`, `destroy()`. È accessibile da tastiera (frecce tra i valori, Invio sceglie) e ha una vista tabella con gli stessi dati.
 
 `icon()` ha dalla 0.22.0 i simboli usati da Logic Studio: `hash`, `copy`, `sync`, `logic`, `not`, `compare`, `branch`, `split`, `merge`, `chart`, `slider`, `text`, `braces`, `wait`, `portIn`, `portOut`, `matrix`, `lamp`, `gauge`, `press`, `progress`, `type`, `rows`, `cols`, `group`, `tabs`, `free`, `toggle`, `eye`.
+
+## sdk/ui/markdown.js
+
+Il testo Markdown della documentazione, disegnato senza mai passare da HTML (SDK 0.25.0). Il foglio di stile è `sdk/styles/markdown.css`.
+
+### `markdown(source, { link })` (`ui/markdown.js`)
+
+`markdown(source, options = {})` → `Node[]`: i nodi DOM di un testo Markdown, fatti uno a uno con `h()` (nessun `innerHTML`): è sicuro anche per testi che vengono da pacchetti, repository o rete. Mettili in un elemento con la classe **`lilos-md`**, che porta gli stili.
+
+| Si capisce | Note |
+| --- | --- |
+| Titoli `#`…`######` | Sono `h1`…`h6`. |
+| Paragrafi | Le righe vicine si uniscono in uno. |
+| Elenchi con `-`, `*`, `+` o `1.` | Anche annidati (fino a 8 livelli); un elenco numerato che non parte da 1 tiene il suo numero. |
+| Blocchi di codice con tre apici inversi (o `~~~`) | Il linguaggio scritto dopo l'apertura va in `data-lang` del `code`. |
+| Citazioni `>`, righe `---` | |
+| Tabelle con la riga `---` sotto l'intestazione | In un `div.md-table`. Un `\|` dentro una cella è una barra verticale. |
+| `**grassetto**`, `*corsivo*`, `_corsivo_`, codice tra apici inversi | |
+| `[testo](indirizzo)` e `<https://…>` | Vedi sotto. |
+| `![alt](indirizzo)` | Si vede solo il testo `alt`: **le immagini non si caricano mai**. |
+
+Non c'è HTML: un tag scritto nel testo si vede come testo.
+
+**I collegamenti.** Un indirizzo `http:` o `https:` diventa un `<a>` che si apre in una nuova scheda (`rel="noopener noreferrer"`). Qualunque altro indirizzo (`core.add`, `ide/index`, `javascript:…`) non diventa mai un `href`: si chiede a `options.link(href)`, che restituisce **la funzione da chiamare al clic** (riceve l'evento) oppure `null`, e allora il testo resta semplice. Senza `link`, questi collegamenti sono testo semplice. Per quelli con la funzione il `<a>` ha `href="#"` e `data-href` con l'indirizzo.
+
+```js
+import { markdown, h } from '@lilos/sdk';
+
+const pagina = h('article', { class: 'lilos-md' }, ...markdown('# Titolo\n\nVai a [Somma](core.add) o al [sito](https://example.org).', {
+  link: href => (/^[\w.:/-]+$/.test(href) ? () => apriPagina(href) : null),
+}));
+```
 
 ## sdk/core/tags.js
 
@@ -5698,7 +5750,7 @@ Alcuni moduli non si possono togliere: lilOS non parte senza. L'elenco è `REQUI
 
 ### Logic Studio: il motore e i pacchetti
 
-Da lilOS 1.37.0 ([D88](../interna/decisioni.md#d88-logic-studio-motore-pacchetti-ide-finestre-dei-progetti)). Il motore `logicstudio-engine_1.0.0` (servizio `logicstudio`) fa girare i programmi di Logic Studio; i **pacchetti** sono altri moduli che gli portano blocchi e componenti. Il client è [`logic`](#logic-corelogicjs) dell'SDK, le finestre le apre [`logicHost`](#logic-le-finestre-dei-progetti-nel-sistema).
+Da lilOS 1.37.0 ([D88](../interna/decisioni.md#d88-logic-studio-motore-pacchetti-ide-finestre-dei-progetti)); la documentazione dei pacchetti da lilOS 1.40.0, motore e pacchetti alla 1.1.0 ([D90](../interna/decisioni.md#d90-logic-studio-la-documentazione-viaggia-con-i-pacchetti)). Il motore `logicstudio-engine_1.1.0` (servizio `logicstudio`) fa girare i programmi di Logic Studio; i **pacchetti** sono altri moduli che gli portano blocchi e componenti. Il client è [`logic`](#logic-corelogicjs) dell'SDK, le finestre le apre [`logicHost`](#logic-le-finestre-dei-progetti-nel-sistema).
 
 | Modulo | Cosa porta |
 | --- | --- |
@@ -5728,7 +5780,7 @@ Il motore tiene **un `worker_thread` per ogni utente** con programmi in esecuzio
 | `maxAddedPorts` | 32 | 1-64 | Porte aggiunte a un blocco o una componente |
 | `maxConsoles` | 10 | 1-50 | Console per progetto |
 | `consoleLinesPerSecond` | 50 | 1-10000 | Righe al secondo per console; le altre sono contate e si dice una volta al secondo «… N righe non mostrate» |
-| `chartPoints` | 1000 | 10-100000 | **Non ancora usato** da niente |
+| `chartPoints` | 1000 | 10-100000 | Il massimo di punti di un grafico nel tempo: le finestre lo danno alle componenti come `c.host.chartPoints` e i grafici di `logicstudio-charts` tengono il minore tra questo e la loro proprietà `maxPoints` (1000 di serie) |
 | `quotaMaxActive` | 10 | 0-1000 | Programmi attivi per utente |
 | `quotaMaxTests` | 2 | 0-100 | Prove in corso per utente |
 | `quotaCpuPercent` | 25 | 1-100 | La parte di CPU che i blocchi di un utente possono usare in un secondo: oltre, il worker aspetta la fine del secondo |
@@ -5744,6 +5796,8 @@ Sotto `/api/modules/logicstudio-engine`, per utenti con l'accesso fatto (le app 
 | --- | --- |
 | `GET /catalog` | `{ version, packages }`: le definizioni dei pacchetti, senza codice |
 | `GET /components/:pack` | Il `components.js` del pacchetto (`text/javascript`, `Cache-Control: no-cache`); `not_found` se non ne ha |
+| `GET /docs/:lang` | (motore 1.1.0) `[{ pack, label, pages: [{ page, title }] }]`: le pagine della documentazione di ogni pacchetto che ha dato `docs` e quelle del motore (`pack: 'logicstudio-engine'`: `index`, `programs`, `limits`, `permissions`, `packages`), nella lingua o, per le pagine che non ci sono, in inglese e in italiano. L'elenco è letto una volta per versione del pacchetto e lingua. `lang`: `[a-z]{2,3}` con una variante facoltativa (`pt-BR`); altrimenti l'elenco è vuoto |
+| `GET /docs/:pack/:page/:lang` | (motore 1.1.0) `{ pack, page, lang, markdown }`. `page` è `index`, un nome (`[a-z][a-z0-9-]{0,40}`) o il tipo di un blocco o una componente **con i due punti al posto del punto** (`core:add`, perché i percorsi dei moduli non hanno punti; l'SDK lo fa da solo). La lingua cercata è `:lang`, poi quella senza variante, poi `en`, poi `it`; `lang` nel risultato è quella trovata. `not_found` se la pagina o il pacchetto non ci sono. Una pagina è al massimo 512 KB |
 | `GET /status` | `{ limits, quotaKeys, quota, active, tests, net, log, admin }` |
 | `GET /programs[?all=1]` | I programmi (`all` solo per gli amministratori) |
 | `POST /programs` | `{ kind: 'test' \| 'active' \| 'app', name, documents, source, lang, watch }` → programma. Al massimo 8 MB di documenti (un programma attivo, 2 MB: `too_large`). `invalid` con `details.where` se i documenti non vanno (un blocco senza pacchetto, un collegamento verso una porta che non c'è, un limite superato). `quota`: troppi attivi o prove, programmi attivi di tutti, memoria di tutti |
@@ -5795,13 +5849,14 @@ export default {
       blocks: join(ctx.dir, 'blocks.js'),          // facoltativo: percorso assoluto
       components: join(ctx.dir, 'components.js'),  // facoltativo: percorso assoluto
       actions: { 'esempio.saluta': async (user, args, tools) => ({ testo: `Ciao ${user.name}` }) },
+      docs: join(ctx.dir, 'docs'),                 // facoltativo: percorso assoluto (docs/<lingua>/*.md)
     });
   },
   async stop() { this.handle?.unregister(); },
 };
 ```
 
-`register(info)` → `{ unregister() }`. `name` è `[a-z][a-z0-9-]{0,40}`; i due percorsi devono essere assoluti. Il servizio ha anche `catalog()` e `api: 1`. Un blocco o una componente non valido è scartato con un avviso nel log del kernel (gli altri restano); un `type` già dato da un altro pacchetto è scartato. I file si importano con `?v=<versione>` per aggiornarsi con il modulo. Registrarsi fa riprovare i programmi attivi che aspettavano un pacchetto.
+`register(info)` → `{ unregister() }`. `name` è `[a-z][a-z0-9-]{0,40}`; i tre percorsi (`blocks`, `components`, `docs`) devono essere assoluti. `docs` (dal motore 1.1.0) è la cartella della documentazione: `docs/<lingua>/index.md` è la pagina del pacchetto, `docs/<lingua>/<tipo>.md` quella di un blocco o di una componente (il nome del file è il tipo, per esempio `core.add.md`) e `docs/<lingua>/<nome>.md` un'altra pagina (`[a-z][a-z0-9-]{0,40}`); gli altri nomi sono ignorati. Il titolo di una pagina è la sua prima riga `# …`. I collegamenti tra le pagine si scrivono senza `.md`: `[Somma](core.add)` (un tipo), `[Blocchi di base](logicstudio-core)` (la pagina `index` di un pacchetto), `[Altro](logicstudio-core/pagina)`, `[Progetti](ide/projects)` (la guida dell'IDE). Il catalogo dice `hasDocs` per ogni pacchetto. Il servizio ha anche `catalog()` e `api: 1`. Un blocco o una componente non valido è scartato con un avviso nel log del kernel (gli altri restano); un `type` già dato da un altro pacchetto è scartato. I file si importano con `?v=<versione>` per aggiornarsi con il modulo. Registrarsi fa riprovare i programmi attivi che aspettavano un pacchetto.
 
 **Il codice dei blocchi non è isolato:** gira nel worker con tutte le API di Node, perché lo installa un amministratore. Un blocco non deve usare `node:fs`, `fetch` o altro per conto suo: per tutto ciò che tocca i dati dell'utente o il mondo fuori chiama un'**azione** con `b.call`, così le regole dell'utente restano quelle del kernel. Il worker ha `env` vuoto.
 
@@ -5819,7 +5874,7 @@ export default {
 | `grow` | Le porte che l'utente può aggiungere (solo dalla barra delle proprietà): `{ inputs?: g, outputs?: g }` con `g = { max (1-64), type, name: 'letter' \| 'number' \| 'user', label? }`. Le porte aggiunte hanno id `x1`, `x2`… e un nome; `name` dice come ricevono il nome (lettere, numeri, o un testo scelto dall'utente) |
 | `role` | Riservato ai blocchi di base: `schemaIn`, `schemaOut`, `component` |
 | `execution` | `'run'` (di serie) o `'loop'` (vuole `step`) |
-| `start(b)`, `run(inputs, b)`, `step(inputs, b)`, `stop(b)` | Il comportamento, qui sotto. `upgrade` è solo annunciato nel catalogo (`upgradable`): niente lo chiama ancora |
+| `start(b)`, `run(inputs, b)`, `step(inputs, b)`, `stop(b)` | Il comportamento, qui sotto. `upgrade(config, from, added)` è facoltativa: `lib/project.js` la chiama quando un blocco salvato in uno schema ha una `v` più bassa della `version` della definizione (può restituire le impostazioni nuove o `{ config }`; se lancia, il programma non parte: «non si aggiorna dalla versione …»). La versione del blocco nel catalogo è `upgradable` se c'è |
 
 **`start(b)`** all'avvio del programma. **`run(inputs, b)`**: `inputs` è l'ultimo valore di ogni ingresso (per nome, anche degli aggiunti per id), `b.trigger` è l'ingresso che ha avviato il blocco. Ritorna un oggetto `{ porta: valore }` (le uscite; un valore `undefined` è ignorato; un impulso è `true`) o niente. Se lancia, il messaggio esce dall'uscita `error`. Può essere `async`. **`step(inputs, b)`** (blocchi `loop`): ritorna `{ outputs?, wait?, done? }`; `wait` in millisecondi (almeno 10), `done: true` lo ferma. **`stop(b)`** alla fine, con 2 secondi di tempo.
 

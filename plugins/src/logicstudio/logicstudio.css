@@ -202,3 +202,24 @@
 .lui-moving { opacity: .4; }
 .ls-app-head { display: flex; align-items: center; gap: 12px; margin: 4px 0 8px; }
 .ls-app-preview .app-icon { width: 40px; height: 40px; }
+
+/* Documentazione (docs.js) */
+.ls-doc-q { display: inline-grid; place-items: center; width: 22px; height: 22px; margin-inline-start: auto; padding: 0; border: 0; border-radius: var(--radius-sm); background: none; color: var(--dim); cursor: pointer; }
+.ls-doc-q:hover { background: var(--hover); color: var(--text); }
+.ls-insp-h .ls-hint + .ls-doc-q { margin-inline-start: 0; }
+.ls-doc { display: flex; flex-direction: row; height: 100%; min-height: 0; background: var(--surface); }
+.ls-doc-side { display: flex; flex-direction: column; width: 250px; flex: none; border-inline-end: 1px solid var(--border); background: var(--side); min-height: 0; }
+.ls-doc-bar { display: flex; gap: 2px; padding: 8px 8px 0; }
+.ls-doc-nav { display: inline-grid; place-items: center; width: 28px; height: 28px; padding: 0; border: 0; border-radius: var(--radius-sm); background: none; color: var(--text); cursor: pointer; }
+.ls-doc-nav:hover:not(:disabled) { background: var(--hover); }
+.ls-doc-nav:disabled { opacity: .4; cursor: default; }
+.ls-doc-tree { flex: 1; overflow: auto; padding: 0 0 12px; }
+.ls-doc-group { padding: 12px 12px 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--dim); }
+.ls-doc-cat { padding: 6px 12px 2px 18px; font-size: 11px; font-weight: 600; color: var(--faint); }
+.ls-doc-it { display: block; width: 100%; padding: 4px 12px 4px 22px; border: 0; background: none; color: var(--text); font: inherit; font-size: 12.5px; text-align: start; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ls-doc-it.strong { font-weight: 600; }
+.ls-doc-it:hover { background: var(--hover); }
+.ls-doc-it.on { background: var(--accent-soft); color: var(--accent-strong); }
+.ls-doc-main { flex: 1; min-width: 0; overflow: auto; }
+.ls-doc-page { max-width: 860px; padding: 22px 28px 40px; outline: none; }
+@media (max-width: 640px) { .ls-doc-side { width: 180px; } .ls-doc-page { padding: 16px; } }

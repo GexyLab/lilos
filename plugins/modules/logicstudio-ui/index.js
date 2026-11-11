@@ -13,6 +13,7 @@ export default {
       name: ctx.name, version: ctx.version,
       label: { en: 'Standard UI components', it: 'Componenti UI standard' },
       components: join(ctx.dir, 'components.js'),
+      docs: join(ctx.dir, 'docs'),   // the documentation (docs/<lang>/…), shown in the IDE
     });
   },
   async stop() { handle?.unregister(); },

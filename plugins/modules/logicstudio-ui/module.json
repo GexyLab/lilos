@@ -1,6 +1,6 @@
 {
   "name": "logicstudio-ui",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Logic Studio: le Componenti UI standard per le finestre dei progetti (etichette, valori, indicatori, pulsanti, interruttori, selezioni, cursori, campi, tabelle, contenitori)",
   "icon": { "glyph": "window", "color": "#2da44e" },
   "kernel": "1",

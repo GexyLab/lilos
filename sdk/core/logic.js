@@ -107,6 +107,37 @@ class Logic extends Emitter {
   consoles(id) { return this.#m.request('GET', `/programs/${encodeURIComponent(id)}/consoles`); }
   logs({ program } = {}) { return this.#withQuery('GET', '/logs', { program }); }
 
+  /**
+   * The documentation of the packages (and of the engine), in `lang` or else in English:
+   * [{ pack, label, pages: [{ page, title }] }]. Empty with an engine older than 1.1.0.
+   */
+  async docIndex(lang = 'en') {
+    try {
+      if (!/^[\w-]{1,16}$/.test(String(lang))) return [];
+      return await this.#m.request('GET', `/docs/${lang}`);
+    } catch (err) {
+      if (err?.status === 404) return [];
+      throw err;
+    }
+  }
+
+  /**
+   * A page of a package's documentation: page 'index', a block or component type ('core.add') or
+   * another page name. → { pack, page, lang, markdown } (Markdown, for markdown()), or null.
+   */
+  async doc(pack, page = 'index', lang = 'en') {
+    // Module paths have letters, digits, - and : only (never %): checked here, and a type's dot
+    // goes as ':' (core.add → core:add)
+    const [p, g, l] = [pack, page, lang].map(String);
+    if (!/^[a-z][a-z0-9-]{0,40}$/.test(p) || !/^[a-z][\w-]{0,40}(\.[a-zA-Z]\w{0,40})?$/.test(g) || !/^[\w-]{1,16}$/.test(l)) return null;
+    try {
+      return await this.#m.request('GET', `/docs/${p}/${g.replace('.', ':')}/${l}`);
+    } catch (err) {
+      if (err?.status === 404) return null;
+      throw err;
+    }
+  }
+
   live(id) { return new LiveProgram(this.#m.channel(`/live/${id}`)); }
 
   admin = Object.freeze({

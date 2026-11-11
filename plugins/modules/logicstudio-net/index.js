@@ -17,6 +17,7 @@ export default {
       name: ctx.name, version: ctx.version,
       label: { en: 'Network blocks', it: 'Blocchi di rete' },
       blocks: join(ctx.dir, 'blocks.js'),
+      docs: join(ctx.dir, 'docs'),   // the documentation (docs/<lang>/…), shown in the IDE
       actions: makeActions(() => ctx.config ?? {}),
     });
   },

@@ -1,0 +1,23 @@
+/* markdown() of the SDK: put its nodes in an element with the class lilos-md */
+.lilos-md { font-size: 13px; line-height: 1.6; overflow-wrap: anywhere; user-select: text; }
+.lilos-md > :first-child { margin-top: 0; }
+.lilos-md > :last-child { margin-bottom: 0; }
+.lilos-md h1 { margin: 0 0 8px; font-size: 20px; font-weight: 600; }
+.lilos-md h2 { margin: 22px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--border); font-size: 15px; font-weight: 600; }
+.lilos-md h3 { margin: 16px 0 6px; font-size: 13.5px; font-weight: 600; }
+.lilos-md h4, .lilos-md h5, .lilos-md h6 { margin: 12px 0 4px; font-size: 13px; font-weight: 600; color: var(--dim); }
+.lilos-md p, .lilos-md ul, .lilos-md ol, .lilos-md pre, .lilos-md blockquote, .lilos-md .md-table { margin: 0 0 10px; }
+.lilos-md ul, .lilos-md ol { padding-inline-start: 22px; }
+.lilos-md li > ul, .lilos-md li > ol { margin: 2px 0 0; }
+.lilos-md a { color: var(--accent); }
+.lilos-md code { padding: 1px 4px; border-radius: 3px; background: var(--chrome); font: 12px var(--mono); }
+.lilos-md pre { padding: 10px 12px; border-radius: 6px; background: var(--chrome); overflow: auto; }
+.lilos-md pre code { padding: 0; background: none; line-height: 1.5; white-space: pre; }
+.lilos-md blockquote { padding-inline-start: 12px; border-inline-start: 3px solid var(--accent-tint); color: var(--dim); }
+.lilos-md hr { margin: 16px 0; border: 0; border-top: 1px solid var(--border); }
+.lilos-md .md-table { overflow-x: auto; }
+.lilos-md table { border-collapse: collapse; font-size: 12.5px; }
+.lilos-md th, .lilos-md td { padding: 5px 10px; border: 1px solid var(--border); text-align: start; vertical-align: top; overflow-wrap: normal; word-break: normal; }
+.lilos-md td { min-width: 4em; }
+.lilos-md th { white-space: nowrap; }
+.lilos-md th { background: var(--chrome); font-weight: 600; }

@@ -1,5 +1,6 @@
 import { h, LogicCanvas, openMenu, messageBox, portsOf, typesMatch, linkKey } from '@lilos/sdk';
 import { DRAG_TYPE } from './palette.js';
+import { blockDocAddress } from './docs.js';
 import { t, i18n } from './i18n.js';
 
 /**
@@ -17,7 +18,7 @@ export class SchemaEditor {
     this.name = name;
     this.canvas = new LogicCanvas({
       schema: doc, catalog: studio.catalog, lang: i18n.lang,
-      componentOf: b => this.#componentOf(b),
+      componentOf: b => this.componentOf(b),
       labels: { error: t('port.error'), missing: t('block.missing') },
     });
     this.el = h('div', { class: 'ls-editor ls-schema' }, this.canvas.el);
@@ -51,7 +52,7 @@ export class SchemaEditor {
   }
 
   /** For the object of a Componente UI: the component's definition and its added ports. */
-  #componentOf(block) {
+  componentOf(block) {
     const ws = this.#studio.ws;
     const path = ws?.project?.data.windows[block.config.window];
     const win = path ? ws.loaded(path) : null;
@@ -159,14 +160,19 @@ export class SchemaEditor {
       items.push({ label: t('menu.label'), icon: 'pencil', action: () => this.#rename(e.id) });
       if (sel.blocks.length > 1 && !this.canvas.readOnly) items.push({ label: t('tb.align'), icon: 'cols', items: this.#alignItems() });
       if (def?.role === 'component') items.push({ label: t('menu.openWindow'), icon: 'window', action: () => this.#open(e.id) });
+      items.push({ label: t('menu.docs'), icon: 'help', shortcut: 'F1', action: () => this.#studio.showDoc(blockDocAddress(this.#studio, block, b => this.componentOf(b))) });
       items.push('-');
       items.push({ label: t(sel.blocks.length > 1 ? 'menu.removeBlocks' : 'menu.removeBlock', { n: sel.blocks.length }), icon: 'trash', danger: true, shortcut: 'Canc', action: () => this.canvas.removeSelection() });
     } else if (e.kind === 'link') {
+      items.push({ label: t('menu.docs'), icon: 'help', action: () => this.#studio.showDoc('ide/links') });
+      items.push('-');
       items.push({ label: t('menu.removeLink'), icon: 'trash', danger: true, shortcut: 'Canc', action: () => this.canvas.removeSelection() });
     } else {
       items.push({ label: t('menu.addHere'), icon: 'plus', action: () => this.#quickAdd({ world: e.world, clientX: e.clientX, clientY: e.clientY }) });
       items.push({ label: t('menu.selectAll'), shortcut: 'Ctrl+A', action: () => this.canvas.select(this.doc.data.blocks.map(b => b.id)) });
       items.push({ label: t('tb.fit'), icon: 'fit', action: () => this.canvas.fit() });
+      items.push('-');
+      items.push({ label: t('menu.docsSchema'), icon: 'help', shortcut: 'F1', action: () => this.#studio.showDoc('ide/schemas') });
     }
     openMenu(e.clientX, e.clientY, items);
   }

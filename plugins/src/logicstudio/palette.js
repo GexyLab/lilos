@@ -1,9 +1,10 @@
-import { h, icon } from '@lilos/sdk';
+import { h, icon, openMenu } from '@lilos/sdk';
 import { t } from './i18n.js';
 
 /**
  * Blocchi (or Componenti, in a window): what the installed packages give, by category, with a
- * search. A click puts it in the middle of the editor; dragging puts it where it is dropped.
+ * search. A click puts it in the middle of the editor; dragging puts it where it is dropped; the
+ * context menu (and F1 on an item) also opens its documentation.
  */
 const BLOCK_ORDER = ['value', 'logic', 'math', 'text', 'object', 'list', 'matrix', 'time', 'console', 'schema', 'ui', 'lilos', 'net', 'other'];
 const COMPONENT_ORDER = ['text', 'values', 'commands', 'containers', 'charts', 'other'];
@@ -56,6 +57,18 @@ export class Palette {
           onclick: () => view?.place?.(def),
         }, icon(def.icon ?? 'blocks'), h('span', {}, studio.label(def)));
         row.addEventListener('dragstart', e => { e.dataTransfer.setData(DRAG_TYPE, def.type); e.dataTransfer.effectAllowed = 'copy'; });
+        row.addEventListener('contextmenu', e => {
+          e.preventDefault();
+          const r = row.getBoundingClientRect();
+          const x = e.clientX || r.left + 24, y = e.clientY || r.bottom;
+          openMenu(x, y, [
+            { label: t('palette.add'), icon: 'plus', disabled: !view?.place, action: () => view?.place?.(def) },
+            { label: t('menu.docs'), icon: 'help', shortcut: 'F1', action: () => studio.showDoc(def.type) },
+          ]);
+        });
+        row.addEventListener('keydown', e => {
+          if (e.key === 'F1') { e.preventDefault(); e.stopPropagation(); studio.showDoc(def.type); }
+        });
         rows.push(row);
       }
     }

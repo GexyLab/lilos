@@ -322,4 +322,4 @@ Su GitHub Pages il frontend sarebbe servito da `/lilos/`, ma senza un kernel die
 
 ## Documentazione
 
-La documentazione fa parte della modifica: un commit che cambia un comportamento aggiorna anche le pagine interessate (vedi [indice](../README.md#aggiornare-questa-documentazione)).
+La documentazione fa parte della modifica: un commit che cambia un comportamento aggiorna anche le pagine interessate (vedi [indice](../README.md#aggiornare-questa-documentazione)). Per Logic Studio vale anche per le pagine `docs/it` e `docs/en` dei pacchetti e dell'IDE: chi cambia un blocco, una componente o una funzione dell'IDE aggiorna la loro pagina nello stesso cambiamento ([D90](decisioni.md#d90-logic-studio-la-documentazione-viaggia-con-i-pacchetti)).

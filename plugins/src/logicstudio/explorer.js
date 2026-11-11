@@ -144,7 +144,9 @@ export class Explorer {
       items.push({ label: t('explorer.rename'), icon: 'pencil', shortcut: 'F2', action: () => this.#rename(node, name) });
       items.push({ label: t('explorer.remove'), icon: 'trash', danger: true, shortcut: 'Canc', action: () => this.#remove(node, name) });
     }
-    if (items.length) openMenu(e.clientX, e.clientY, items);
+    if (items.length) items.push('-');
+    items.push({ label: t('menu.docs'), icon: 'help', action: () => this.#studio.showDoc({ schemas: 'ide/schemas', windows: 'ide/windows' }[group] ?? 'ide/projects') });
+    openMenu(e.clientX, e.clientY, items);
   }
 
   async #create(group, folderId) {

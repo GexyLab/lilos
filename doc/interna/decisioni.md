@@ -2302,9 +2302,9 @@ Conseguenze: se tutte le schede si chiudono non parte niente; un'automazione con
 - **Una domanda di console senza nessuna pagina di lilOS aperta aspetta** finché arriva una risposta o scade il tempo massimo del blocco (`timeout`, di serie nessuno): il blocco resta fermo su quella domanda, gli altri vanno avanti.
 - **I grafici nel tempo non hanno lo zoom**: si sceglie la finestra di secondi da mostrare, non si ingrandisce con il mouse.
 - **I pacchetti di lingua traducono i testi di lilOS e dell'SDK** ([D84](#d84-i-pacchetti-di-lingua-traducono-lilos-non-le-app)): l'IDE, i pacchetti di blocchi e componenti e il Pannello di controllo sono in inglese e italiano; le finestre dei progetti hanno la tabella dei testi del progetto. Gli errori dei blocchi che vengono dal kernel sono in italiano.
-- **Il worker di un utente carica i blocchi dei pacchetti registrati nel momento in cui parte.** Un pacchetto che si registra dopo lo vede solo il worker successivo, cioè quando l'ultimo programma dell'utente si ferma e ne parte un altro. Un programma attivo il cui pacchetto manca resta in stato `waiting` e il motore riprova (dopo mezzo secondo) a ogni registrazione di un pacchetto.
-- `upgrade()` dei blocchi è solo annunciato (`upgradable` nel catalogo): niente lo chiama ancora. La versione `v` scritta in uno schema è riscritta con quella del pacchetto a ogni avvio.
-- Il limite `chartPoints` è tra le impostazioni ma nessun codice lo legge ancora: i grafici usano la proprietà `maxPoints` di ognuno.
+- **Il worker di un utente carica i blocchi dei pacchetti registrati quando parte, e li ricarica a ogni programma che parte se nel frattempo i pacchetti sono cambiati** (`start()` in `supervisor.js` rilegge i file se la versione del registro è cambiata). Un pacchetto arrivato dopo lo vedono quindi anche i programmi che partono dopo nello stesso worker; una versione nuova di un tipo di blocco già caricato no (il worker tiene la prima definizione) e la vede solo il worker successivo. Un programma attivo il cui pacchetto manca resta in stato `waiting` e il motore riprova (dopo mezzo secondo) a ogni registrazione di un pacchetto.
+- `upgrade(config, from, added)` dei blocchi lo chiama `project.js` quando la `v` salvata nello schema è più bassa della `version` della definizione; poi la `v` è riscritta con quella della definizione. Per le componenti non c'è.
+- Il limite `chartPoints` lo leggono i grafici (arriva alle componenti come `c.host.chartPoints`, da `logicHost` e dall'editor delle finestre): tengono il minore tra questo e la loro proprietà `maxPoints`.
 - Non provato con decine di utenti con programmi attivi, né con un pacchetto di terzi che si pianta all'`import`.
 
 **Quando ripensarla.** Se serviranno programmi che stanno a lungo in ascolto sulla rete (MQTT, Modbus) e il worker non basta; se le app fatte dai progetti dovranno poter essere installate (permessi, repository della comunità); se le componenti avranno bisogno di librerie esterne (un `components.js` con import); se le quote dovranno distinguere tra progetti. Rinviati: il comando `lilos logic` del Terminale e le azioni di Automata.
@@ -2355,3 +2355,44 @@ Conseguenze: se tutte le schede si chiudono non parte niente; un'automazione con
 - *Download*: letti a pezzi (`web.downloadChunk`, nuovo; `downloadRead` resta per i programmi e le pagine più vecchi; nell'SDK `download.read` restituisce un `Blob`, prima un `ArrayBuffer`), salvati uno alla volta, nomi in `~/Download` di al massimo 150 caratteri, avviso se superano 1 GB, se sono troppi insieme o se il programma o la chiusura della scheda li ferma.
 - *Altro*: avvisi di indirizzi bloccati al massimo uno ogni 20 secondi per scheda, con solo schema e host; la barra degli indirizzi non trasforma `file:`, `javascript:`, `mailto:`, `chrome:`, `about:` (tranne `about:blank`) in una ricerca e mostra «NetWave non apre questo indirizzo»; lo stato ripristinato accetta solo indirizzi `http(s)` e `about:blank`; una finestra privata non si riapre dopo un ricaricamento di lilOS.
 - *Conseguenza*: un programma più vecchio della 0.5.1 funziona ancora con NetWave 1.1.0 (l'SDK ripiega su `downloadRead`), ma senza i limiti nuovi (indirizzi del computer, popup, download).
+
+## D90. Logic Studio: la documentazione viaggia con i pacchetti
+
+> Completa [D88](#d88-logic-studio-motore-pacchetti-ide-finestre-dei-progetti): stessi pacchetti, stesso motore, una cosa in più che registrano.
+
+**Contesto.** Logic Studio ha decine di blocchi e componenti, e altri ne possono portare pacchetti di terzi. L'utente ha chiesto una documentazione per ognuno, in italiano e in inglese, leggibile dentro l'IDE e raggiungibile da dove si lavora (F1, menu contestuali, pulsante «?»).
+
+**Decisione.** Decisa l'11 novembre 2026: lilOS 1.40.0, SDK 0.25.0, Logic Studio IDE 1.4.0, motore `logicstudio-engine` 1.1.0 e i sei pacchetti alla 1.1.0.
+
+- **Le pagine stanno nel modulo del pacchetto**, in `docs/<lingua>/`: `index.md` (il pacchetto), `<tipo>.md` per ogni blocco o componente (`core.add.md`) e altre pagine con nomi `[a-z][a-z0-9-]{0,40}.md`. Il motore ha le sue (`logicstudio-engine/docs`: `index`, `programs`, `limits`, `permissions`, `packages`). La guida dell'IDE sta nell'app, in `plugins/src/logicstudio/docs/<lingua>/`, e si raggiunge come pagine `ide/<pagina>`.
+- **Il motore le serve.** `register({ …, docs })` prende il percorso assoluto della cartella. Due route: `GET /docs/:lang` (indice di tutte le pagine con i titoli, anche quelle del motore) e `GET /docs/:pack/:page/:lang` (una pagina). Il tipo di un blocco viaggia con i due punti (`core:add`) perché i percorsi dei moduli non hanno punti. Il client è `logic.docIndex(lang)` e `logic.doc(pack, page, lang)` dell'SDK.
+- **Ripiego di lingua:** la lingua chiesta, poi quella senza variante (`pt` per `pt-BR`), poi inglese, poi italiano. Vale per le singole pagine: l'indice mette insieme le pagine della lingua e quelle che esistono solo nelle altre.
+- **Formato dei link nelle pagine:** senza `.md` e senza percorsi. `[Somma](core.add)` è la pagina di un tipo, `[testo](logicstudio-core)` la `index` di un pacchetto, `[testo](logicstudio-core/pagina)` un'altra pagina, `[testo](ide/projects)` la guida dell'IDE; `http(s)` si apre in una nuova scheda.
+- **Il Markdown lo disegna l'SDK** (`markdown(testo, { link })`, `ui/markdown.js`): nodi DOM fatti uno a uno, mai HTML, senza immagini. I collegamenti che non sono `http(s)` non diventano mai un `href`: li risolve la funzione `link(href)` di chi lo usa.
+- **L'indice sta in memoria** nel motore, per versione del pacchetto e lingua (`nome@versione:lingua`): le pagine si leggono dal disco una volta. Aggiungere una pagina a un pacchetto richiede di alzarne la versione (o riavviare il kernel).
+- **Limiti:** una pagina pesa al massimo 512 KB; nomi di pacchetto, pagina e lingua sono controllati prima di toccare il disco (mai un percorso che viene da fuori); le route chiedono l'accesso fatto, come le altre del motore.
+
+**Perché.**
+
+- *Nei moduli e non nell'IDE.* La pagina di un blocco è versionata con il blocco: quando il comportamento cambia (e la sua `version` sale), la documentazione cambia nello stesso commit, e chi installa una versione vecchia del pacchetto legge la pagina giusta. Il pacchetto di un terzo può avere la sua senza toccare l'IDE, e un pacchetto non installato non ha pagine che parlano di blocchi che non esistono.
+- *Il motore la serve.* È già lui a conoscere i pacchetti installati, le loro versioni e le cartelle; il browser non può leggere il disco del kernel. Una route in più costa poco e passa dai controlli di accesso che già ci sono.
+- *Il ripiego sull'inglese e poi sull'italiano.* Una pagina mancante in una lingua non deve diventare un buco: le lingue di lilOS sono venti, la documentazione per ora due.
+- *Il renderer nell'SDK.* Lo possono usare anche altre parti di lilOS (app, AppStore). Costruire i nodi uno a uno dà la sicurezza di un testo che viene da un pacchetto di terzi senza una libreria da aggiornare e da riconoscere nei Riconoscimenti.
+- *L'indice in memoria per versione.* L'elenco serve a ogni apertura della finestra e a ogni ricerca; leggere centinaia di file ogni volta sarebbe lento, e la versione del pacchetto è già il segno che qualcosa è cambiato.
+
+**Alternative scartate.**
+
+- Tutta la documentazione dentro l'app dell'IDE: avrebbe documentato blocchi che l'utente può non avere, si sarebbe staccata dalle versioni dei pacchetti e non ci sarebbe stato posto per i pacchetti di terzi.
+- Un sito o un wiki esterno: non funziona offline né da un lilOS senza rete.
+- Una libreria Markdown esterna (con HTML pulito): una dipendenza in più e il rischio di HTML da testi non fidati.
+- Pagine scritte come stringhe nei `blocks.js`: meno comode di un file `.md` per chi scrive.
+
+**Conseguenze.**
+
+- **Regola del progetto:** ogni modifica aggiorna la documentazione nello stesso cambiamento. Per Logic Studio vuol dire anche le pagine `docs/it` e `docs/en` del blocco, della componente o dell'IDE che cambia (vedi [Processo](processo.md#documentazione)).
+- Una pagina vecchia non si vede mai da sola: il motore e l'IDE non confrontano il testo con il codice. Dipende da chi scrive.
+- Un motore più vecchio della 1.1.0 non ha le route: `logic.docIndex` dà `[]` e `logic.doc` dà `null`, e l'IDE mostra le sole pagine della sua guida. L'IDE 1.4.0 chiede lilOS 1.40.0.
+- Oggi ci sono `it` e `en`; le altre lingue ripiegano sull'inglese.
+- Non ci sono test automatici su `markdown()` né sulle route.
+
+**Quando ripensarla.** Se serviranno immagini o schemi nelle pagine (oggi non si caricano); se le lingue delle pagine saranno più di due e conviene un controllo che avvisi delle pagine mancanti; se la ricerca dovrà cercare nel testo e non solo nei titoli (allora l'indice non basta); se altre app vorranno la stessa organizzazione (sarebbe da portare fuori da Logic Studio).

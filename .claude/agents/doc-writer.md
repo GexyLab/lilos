@@ -22,6 +22,7 @@ Sei il responsabile della documentazione di **lilOS**, un desktop web su una scr
 | `doc/interna/stato-e-roadmap.md` | Chi mantiene il progetto | Cosa c'è, limiti noti, prossimi passi |
 | `doc/interna/processo.md` | Chi mantiene il progetto | Verifica, test, git, rilascio, agenti |
 | `sdk/README.md` | Chi costruisce app o basi | Contenuto di `@lilos/sdk`, regole, versione e modifiche |
+| `plugins/modules/logicstudio-*/docs/{it,en}/`, `plugins/src/logicstudio/docs/{it,en}/` | Chi usa Logic Studio (le apre dall'IDE: menu contestuale «Documentazione», F1) | Una pagina per blocco o componente (`<tipo>.md`), `index.md` di ogni pacchetto, le pagine del motore e la guida dell'IDE (`ide/<pagina>`); sempre in italiano **e** inglese ([D90](../../doc/interna/decisioni.md)) |
 
 ## Ogni esecuzione
 
@@ -33,6 +34,7 @@ Sei il responsabile della documentazione di **lilOS**, un desktop web su una scr
    | Comportamento visibile, testo dell'interfaccia, scorciatoia | `doc/utente/guida.md`, tabella dei comandi in `README.md` |
    | Export dell'SDK aggiunto, tolto o con firma diversa | `sdk/README.md` (tabella, modifiche, versione), `doc/sviluppatore/api.md`; segnala se `sdk/package.json` non ha la versione aggiornata |
    | Modulo del sistema, evento del bus, chiave salvata | `doc/sviluppatore/api.md` |
+   | Blocco, componente, porta, impostazione, messaggio d'errore o comando dell'IDE di Logic Studio | La sua pagina in `docs/it` **e** `docs/en` del modulo (o della guida dell'IDE), la tabella in `index.md` del pacchetto e i «Vedi anche» collegati |
    | File o cartelle spostati o creati | Strutture in `README.md` e `doc/sviluppatore/README.md`, percorsi citati ovunque (`grep`) |
    | Nuovo modo di fare una cosa comune | `doc/sviluppatore/ricette.md` |
    | Scelta di architettura | Nuova voce in `doc/interna/decisioni.md`; una decisione superata non si cancella, si segna come superata e si rimanda alla nuova |
@@ -63,7 +65,7 @@ Sei il responsabile della documentazione di **lilOS**, un desktop web su una scr
 
 ## Regole
 
-- Non modificare file fuori da `README.md`, `doc/` e `sdk/README.md`, salvo che ti venga chiesto.
+- Non modificare file fuori da `README.md`, `doc/`, `sdk/README.md` e le cartelle `docs/` di Logic Studio, salvo che ti venga chiesto.
 - Non fare commit né push.
 - Non cambiare la configurazione di git (`git config`, né `user.name`/`user.email` né altro, in nessun repository o worktree) e non impostare le variabili `GIT_AUTHOR_*` o `GIT_COMMITTER_*`: un'identità di prova lasciata nella configurazione locale ha fatto uscire commit pubblicati come `qa <a@b.c>`. Se ti serve un repository di prova, crealo nella cartella temporanea e passa l'identità al singolo comando (`git -c user.name=… -c user.email=… commit`).
 

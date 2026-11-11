@@ -1,4 +1,5 @@
 import { h, icon, textField, selectField, checkbox, actionButton, messageBox, portsOf, PORT_TYPES } from '@lilos/sdk';
+import { docButton, blockDocAddress } from './docs.js';
 import { t, i18n } from './i18n.js';
 
 /**
@@ -66,7 +67,8 @@ export class Inspector {
       return [h('p', { class: 'ls-insp-note warn' }, t('block.missingText', { type: block.type })),
         h('div', { class: 'ls-insp-acts' }, actionButton({ label: t('menu.removeBlock'), danger: true, icon: icon('trash'), onClick: () => view.canvas.removeSelection() }))];
     }
-    out.push(h('div', { class: `ls-insp-h cat-${def.category}` }, icon(def.icon ?? 'blocks'), h('b', {}, studio.label(def))));
+    out.push(h('div', { class: `ls-insp-h cat-${def.category}` }, icon(def.icon ?? 'blocks'), h('b', {}, studio.label(def)),
+      docButton(studio, blockDocAddress(studio, block, b => view.componentOf(b)))));
     if (def.description) out.push(h('p', { class: 'ls-hint' }, studio.label({ label: def.description })));
     if (!def.role) out.push(this.#row(t('inspector.label'), textField({ value: block.label ?? '', placeholder: studio.label(def), maxLength: 80, onChange: v => doc.setLabel(block.id, v.trim()) })));
 

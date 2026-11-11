@@ -1,6 +1,7 @@
-import { h, icon, fs, LogicUI, LogicConsoleView, textField, selectField, checkbox, actionButton, messageBox, Window, portsOf } from '@lilos/sdk';
+import { h, icon, fs, LogicUI, LogicConsoleView, textField, selectField, checkbox, actionButton, messageBox, Window, portsOf, openMenu } from '@lilos/sdk';
 import { pickFile } from '@lilos/system';
 import { DRAG_TYPE } from './palette.js';
+import { docButton } from './docs.js';
 import { t, i18n } from './i18n.js';
 
 /**
@@ -164,6 +165,26 @@ export class WindowEditor {
     s.addEventListener('dblclick', e => {
       const c = e.target.closest('.lui-c');
       if (c && this.#mode === 'design') this.#openObject(c.dataset.id);
+    });
+    // The context menu: the component under the pointer (selected), or the window
+    s.addEventListener('contextmenu', e => {
+      if (this.#mode !== 'design') return;
+      e.preventDefault();
+      const c = e.target.closest('.lui-c');
+      const id = c && c.dataset.id !== 'root' ? c.dataset.id : null;
+      this.select(id);
+      const node = id ? this.doc.find(id)?.node : null;
+      const items = [];
+      if (node) {
+        if (this.#objectOf(id)) items.push({ label: t('menu.openObject'), icon: 'blocks', action: () => this.#openObject(id) });
+        items.push({ label: t('menu.docs'), icon: 'help', shortcut: 'F1', action: () => this.#studio.showDoc(node.type) });
+        items.push('-');
+        items.push({ label: t('window.remove'), icon: 'trash', danger: true, shortcut: 'Canc', action: () => this.#remove(id) });
+      } else {
+        items.push({ label: t('menu.docsWindow'), icon: 'help', shortcut: 'F1', action: () => this.#studio.showDoc('ide/windows') });
+      }
+      const r = (c ?? s).getBoundingClientRect();
+      openMenu(e.clientX || r.left + 20, e.clientY || r.top + 20, items);
     });
     s.addEventListener('keydown', e => {
       if (this.#mode !== 'design' || !this.#sel || /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
@@ -399,7 +420,7 @@ export class WindowEditor {
     const node = found.node;
     const def = studio.componentDef(node.type);
     if (!def) return [h('p', { class: 'ls-insp-note warn' }, t('window.missing', { type: node.type }))];
-    const out = [h('div', { class: 'ls-insp-h cat-ui' }, icon(def.icon ?? 'window'), h('b', {}, studio.label(def)), h('span', { class: 'ls-hint mono', style: 'margin-left:auto' }, node.id))];
+    const out = [h('div', { class: 'ls-insp-h cat-ui' }, icon(def.icon ?? 'window'), h('b', {}, studio.label(def)), h('span', { class: 'ls-hint mono', style: 'margin-left:auto' }, node.id), docButton(studio, def.type))];
     if ((def.props ?? []).length) out.push(sec(t('inspector.settings')));
     for (const p of def.props ?? []) out.push(this.#prop(node, p));
     if (!def.container) {
