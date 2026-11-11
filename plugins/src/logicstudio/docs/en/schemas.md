@@ -14,7 +14,7 @@ A **schema** (`.lsch` file) is a sheet of linked blocks. It opens with a click o
 └────────────────────────────┘
 ```
 
-- The **head** has the icon and the name: the **label** you gave it, otherwise the name of the block. The coloured strip on the left is the **category** (Values, Logic, Math, Text, Objects, Lists, Matrices, Units, Solid geometry, Trigonometry, Functions, Integrals, Signals, Time, Console, Schema ports, UI components, lilOS, Network, Databases, Exceptions, Drawing).
+- The **head** has the icon and the name: the **label** you gave it, otherwise the name of the block. The coloured strip on the left is the **category** (Values, Logic, Math, Text, Objects, Lists, Matrices, Units, Geometry, Trigonometry, Functions, Integrals, Numerical analysis, Signals, Time, Console, Schema ports, UI components, lilOS, Network, Hardware, Databases, Exceptions, Drawing).
 - Under the head, in small type, the first two settings that have a value (at most 34 characters).
 - On the left the **inputs**, on the right the **outputs**. The dot has the colour of the **type** of the port and is filled when the port is linked (see [Links and port types](ide/links)).
 - The name of an input **underlined with dots** means that input **does not start** the block.

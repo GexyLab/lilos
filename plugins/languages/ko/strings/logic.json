@@ -14,6 +14,7 @@
   "capNet": "인터넷에 요청 보내기",
   "capNotify": "알림 보내기",
   "capEvents": "내 lilOS로 이벤트 보내기",
+  "capHardware": "lilOS가 실행되는 컴퓨터의 하드웨어 사용(시리얼 포트, USB, 웹캠, 오디오…)",
   "run": "실행",
   "cancel": "취소",
   "appFailed": "{name}을(를) 시작하지 못했습니다: {error}"

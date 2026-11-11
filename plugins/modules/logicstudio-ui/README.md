@@ -6,6 +6,8 @@ Le **Componenti UI** standard di Logic Studio, per costruire le finestre (`.lsui
 - **comandi**: pulsante (anche «apri una finestra»), interruttore, casella di spunta, pulsanti di opzione, selezione, cursore, campo di testo, campo numerico, data e ora, elenco, scegli file, colore;
 - **contenitori**: colonna, riga, griglia, riquadro, schede, area libera, separatore.
 
+L'immagine mostra un file del progetto oppure un'immagine mandata dal programma come data URL (PNG, JPEG, WebP, GIF, al massimo 2 MB: le foto e i fotogrammi dei blocchi Hardware), dalla 1.2.0.
+
 Ogni componente ha il suo oggetto in uno schema: gli altri blocchi si collegano a quello. Tutte hanno anche gli ingressi «abilitato» e «visibile». I grafici sono nel pacchetto `logicstudio-charts`.
 
 Richiede `logicstudio-engine` e `logicstudio-core`.

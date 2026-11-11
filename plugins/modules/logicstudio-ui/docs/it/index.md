@@ -23,7 +23,7 @@ Se una finestra usa una componente di un pacchetto che non c'è, al suo posto ve
 | [Indicatore](ui.gauge) | `ui.gauge` | Un numero su un arco, tra un minimo e un massimo. |
 | [Spia](ui.lamp) | `ui.lamp` | Un pallino che si accende e si spegne, in quattro colori. |
 | [Barra di avanzamento](ui.progress) | `ui.progress` | Una barra da 0 a 100, con la percentuale. |
-| [Immagine](ui.image) | `ui.image` | Un'immagine presa dalla cartella del progetto. |
+| [Immagine](ui.image) | `ui.image` | Un'immagine presa dalla cartella del progetto, o mandata dal programma (una foto della webcam). |
 | [Tabella](ui.table) | `ui.table` | Una lista di oggetti in righe e colonne; si può scegliere una riga. |
 | [Console](ui.console) | `ui.console` | Una console del programma dentro la finestra. |
 

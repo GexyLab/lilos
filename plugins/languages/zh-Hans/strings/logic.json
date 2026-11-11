@@ -14,6 +14,7 @@
   "capNet": "在互联网上发出请求",
   "capNotify": "向你发送通知",
   "capEvents": "向你的 lilOS 发送事件",
+  "capHardware": "使用运行 lilOS 的计算机的硬件(串口、USB、摄像头、音频…)",
   "run": "运行",
   "cancel": "取消",
   "appFailed": "{name} 未能启动：{error}"

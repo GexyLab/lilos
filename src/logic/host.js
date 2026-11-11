@@ -22,6 +22,7 @@ const { t } = locale.define('lilos:logic', {
     capNet: 'make requests on the internet',
     capNotify: 'send you notifications',
     capEvents: 'send events to your lilOS',
+    capHardware: 'use the hardware of the computer that runs lilOS (serial ports, USB, webcam, audio…)',
     run: 'Run',
     cancel: 'Cancel',
     appFailed: '{name} did not start: {error}',
@@ -248,13 +249,14 @@ class LogicHost {
     if ([...types].some(t => /^(net|mongo|redis|influx|es)\.|^db\.(postgres|mysql|mssql|oracle|clickhouse)$/.test(t))) caps.push('capNet');
     if (types.has('lilos.notify')) caps.push('capNotify');
     if (types.has('lilos.event')) caps.push('capEvents');
+    if ([...types].some(t => t.startsWith('hw.'))) caps.push('capHardware');
     if (!caps.length) return true;
     const bytes = new TextEncoder().encode(JSON.stringify([path, documents]));
     const digest = [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))].map(b => b.toString(16).padStart(2, '0')).join('');
     const granted = storage.get('logicstudio.consents', []) ?? [];
     if (granted.includes(digest)) return true;
     const ok = await new Promise(resolve => {
-      const win = new Window({ title: t('consentTitle', { name: manifest.name ?? '' }), icon: 'shield', width: 440, height: 300, resizable: false });
+      const win = new Window({ title: t('consentTitle', { name: manifest.name ?? '' }), icon: 'shield', width: 440, height: 340, resizable: false });
       let answered = false;
       const answer = v => { answered = true; resolve(v); win.emit('close'); };
       win.body.append(h('div', { class: 'logic-consent' },

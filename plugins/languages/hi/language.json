@@ -3,6 +3,6 @@
   "language": "hi",
   "name": "हिन्दी",
   "englishName": "Hindi",
-  "version": "1.2.4",
+  "version": "1.2.5",
   "lilos": ">=1.35.0"
 }

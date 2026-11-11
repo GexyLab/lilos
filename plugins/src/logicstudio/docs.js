@@ -13,7 +13,7 @@ import { t, i18n } from './i18n.js';
  * menus («Documentazione»), F1, the «?» of Proprietà and the toolbar.
  */
 const IDE_ORDER = ['index', 'projects', 'schemas', 'blocks', 'links', 'groups', 'windows', 'components', 'consoles', 'run', 'create-app', 'formats', 'shortcuts', 'docs'];
-const PACK_ORDER = ['logicstudio-core', 'logicstudio-collections', 'logicstudio-constants', 'logicstudio-units', 'logicstudio-signals', 'logicstudio-solid', 'logicstudio-trig', 'logicstudio-functions', 'logicstudio-integrals', 'logicstudio-lilos', 'logicstudio-net', 'logicstudio-db', 'logicstudio-mongodb', 'logicstudio-redis', 'logicstudio-influxdb', 'logicstudio-elasticsearch', 'logicstudio-ui', 'logicstudio-charts', 'logicstudio-engine'];
+const PACK_ORDER = ['logicstudio-core', 'logicstudio-collections', 'logicstudio-constants', 'logicstudio-units', 'logicstudio-signals', 'logicstudio-solid', 'logicstudio-plane', 'logicstudio-trig', 'logicstudio-functions', 'logicstudio-integrals', 'logicstudio-numeric', 'logicstudio-lilos', 'logicstudio-net', 'logicstudio-hardware', 'logicstudio-db', 'logicstudio-mongodb', 'logicstudio-redis', 'logicstudio-influxdb', 'logicstudio-elasticsearch', 'logicstudio-ui', 'logicstudio-charts', 'logicstudio-engine'];
 const TYPE = /^[a-z][a-z0-9]*\.[a-zA-Z][a-zA-Z0-9]{0,40}$/;
 const PAGE = /^[a-z][a-z0-9-]{0,40}$/;
 const PACK = /^[a-z][a-z0-9-]{0,40}$/;

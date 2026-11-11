@@ -9,6 +9,7 @@ import { t, i18n } from './i18n.js';
  *   Limiti          (admins) the limits for everybody (the module's settings)
  *   Quote           (admins) the default quotas, and a user's own
  *   In esecuzione   (admins) every user's programs, to stop them
+ *   Hardware        (admins) who may use which devices (module logicstudio-hardware)
  *   Pacchetti       the packages of blocks and components installed
  */
 const MODULE = 'logicstudio-engine';
@@ -19,6 +20,7 @@ const logic = () => sdk.logic;
 
 export function reloadLogicStudio() {
   Object.assign(state, { status: null, programs: null, all: null, users: null, overrides: null, settings: null, catalog: null, error: '' });
+  Object.assign(hw, { policy: null, status: null, error: '', missing: false });
 }
 
 function load(rerender) {
@@ -154,6 +156,87 @@ function packageSections(rerender) {
   }, { rows: [{ label: t('logic.packages.more'), description: t('logic.packages.moreHint') }] }];
 }
 
+/**
+ * Hardware (admins): who may use which kind of device through the blocks of logicstudio-hardware
+ * (its routes GET/PUT /admin/policy and GET /status). Administrators may always; the others only
+ * what is allowed to everybody or to them.
+ */
+const HW_MODULE = 'logicstudio-hardware';
+const HW_CLASSES = ['serial', 'usb', 'hid', 'camera', 'audio', 'midi', 'system', 'gpio'];
+const hw = { policy: null, status: null, error: '', loading: false, missing: false };
+
+function loadHardware(rerender) {
+  if (hw.loading) return;
+  hw.loading = true;
+  const api = kernel.module(HW_MODULE);
+  Promise.all([api.request('GET', '/admin/policy'), api.request('GET', '/status')])
+    .then(([policy, status]) => Object.assign(hw, { policy, status, error: '', missing: false }),
+      err => Object.assign(hw, { error: err.message, missing: err.status === 404 || err.code === 'not_found' }))
+    .finally(() => { hw.loading = false; rerender(); });
+}
+
+async function saveHardware(next, rerender) {
+  try {
+    hw.policy = await kernel.module(HW_MODULE).request('PUT', '/admin/policy', next);
+    hw.error = '';
+  } catch (err) {
+    hw.error = err.message;
+  }
+  rerender();
+}
+
+function hardwareSections(rerender) {
+  if (!hw.policy && !hw.error) { loadHardware(rerender); return [{ rows: [{ label: t('logic.loading') }] }]; }
+  if (!hw.policy) {
+    return [{ rows: [{ label: hw.missing ? t('logic.hw.missing') : t('logic.hw.error'), description: hw.missing ? t('logic.hw.missingHint') : hw.error }] }];
+  }
+  const policy = { defaultAllow: { ...(hw.policy.defaultAllow ?? {}) }, users: { ...(hw.policy.users ?? {}) } };
+  const everybody = HW_CLASSES.map(c => ({
+    label: t(`logic.hw.class.${c}`), description: t(`logic.hw.classHint.${c}`),
+    control: () => sdk.toggle({ value: policy.defaultAllow[c] === true, label: t(`logic.hw.class.${c}`), onChange: v => saveHardware({ ...policy, defaultAllow: { ...policy.defaultAllow, [c]: v } }, rerender) }),
+  }));
+  const users = (state.users ?? []).filter(u => u.role !== 'admin');
+  const cell = (u, c) => {
+    const own = policy.users[u.id]?.[c];
+    const select = h('select', { class: 'ctl-select', 'aria-label': `${u.name ?? u.username} · ${t(`logic.hw.class.${c}`)}` },
+      ...[['', t('logic.hw.asAll')], ['yes', t('logic.hw.yes')], ['no', t('logic.hw.no')]].map(([v, label]) =>
+        h('option', { value: v, selected: (own === true ? 'yes' : own === false ? 'no' : '') === v }, label)));
+    select.addEventListener('change', () => {
+      const mine = { ...(policy.users[u.id] ?? {}) };
+      if (select.value === '') delete mine[c]; else mine[c] = select.value === 'yes';
+      const next = { ...policy.users };
+      if (Object.keys(mine).length) next[u.id] = mine; else delete next[u.id];
+      saveHardware({ ...policy, users: next }, rerender);
+    });
+    return h('td', {}, select);
+  };
+  const table = () => (users.length
+    ? h('table', { class: 'ls-cp-table quotas' },
+      h('tr', {}, h('th', {}, t('logic.user')), ...HW_CLASSES.map(c => h('th', {}, t(`logic.hw.class.${c}`)))),
+      ...users.map(u => h('tr', {}, h('td', {}, h('b', {}, u.name ?? u.username), h('small', {}, u.username)), ...HW_CLASSES.map(c => cell(u, c)))))
+    : h('p', { class: 'ls-cp-empty' }, t('logic.hw.noUsers')));
+  // tools: { ffmpeg: true|false, … }; libraries: { serialport: 'ok' | 'non caricata' | 'errore: …' }
+  const tools = Object.entries(hw.status?.tools ?? {});
+  const libs = Object.entries(hw.status?.libraries ?? {});
+  // kernel.module().request takes no ?query: the module's route through kernel.request
+  const refresh = () => kernel.request('GET', `/modules/${HW_MODULE}/status?refresh=1`)
+    .then(status => { hw.status = status; }, err => { hw.error = err.message; }).finally(rerender);
+  return [
+    { title: t('logic.hw.everybody'), rows: [{ label: t('logic.hw.admins'), description: t('logic.hw.adminsHint') }, ...everybody] },
+    // eight columns: the table scrolls sideways instead of going past the window's edge
+    { title: t('logic.hw.perUser'), content: () => h('div', {}, h('p', { class: 'ls-cp-hint' }, t('logic.hw.perUserHint')), h('div', { style: 'overflow-x: auto; max-width: 100%' }, table())) },
+    {
+      title: t('logic.hw.tools'),
+      rows: [
+        ...libs.map(([name, v]) => ({ label: name, description: t('logic.hw.library'), control: v === 'ok' ? t('logic.hw.found') : String(v) })),
+        ...tools.map(([name, v]) => ({ label: name, description: t('logic.hw.tool'), control: v ? t('logic.hw.found') : t('logic.hw.notFound') })),
+        { label: t('logic.hw.refresh'), description: t('logic.hw.refreshHint'), control: () => actionButton({ label: t('logic.hw.refreshButton'), onClick: refresh }) },
+      ],
+    },
+    ...(hw.error ? [{ rows: [{ label: t('logic.hw.error'), description: hw.error }] }] : []),
+  ];
+}
+
 export function logicStudioTab({ rerender }) {
   return {
     id: 'logicstudio', icon: 'blocks',
@@ -165,6 +248,7 @@ export function logicStudioTab({ rerender }) {
         { id: 'limits', get label() { return t('logic.limits.label'); }, sections: () => limitSections(rerender) },
         { id: 'quotas', get label() { return t('logic.quota.label'); }, sections: () => quotaSections(rerender) },
         { id: 'running', get label() { return t('logic.running.label'); }, sections: () => runningSections(rerender) },
+        { id: 'hardware', get label() { return t('logic.hw.label'); }, sections: () => hardwareSections(rerender) },
       ] : []),
       { id: 'packages', get label() { return t('logic.packages.label'); }, sections: () => packageSections(rerender) },
     ],

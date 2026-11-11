@@ -119,7 +119,7 @@ When all goes well the log says: `Logic Studio: pacchetto logicstudio-esempio 1.
 |---|---|
 | `type` | `package.name`: `[a-z][a-z0-9]*\.[a-zA-Z][a-zA-Z0-9]{0,40}`, for example `esempio.media`. Unique among all packages |
 | `version` | An integer from 1. Raise it when you change the behaviour or the settings (see **upgrade**) |
-| `category` | Where it is in the **Blocks** tab: `value` (Values), `logic` (Logic), `math` (Math), `text` (Text), `object` (Objects), `list` (Lists), `matrix` (Matrices), `units` (Units), `geometry` (Solid geometry), `trig` (Trigonometry), `functions` (Functions), `integrals` (Integrals), `signal` (Signals), `time` (Time), `console` (Console), `schema` (Schema ports), `ui` (UI components), `lilos` (lilOS), `net` (Network), `db` (Databases), `exception` (Exceptions). Another word, or nothing: **Other** |
+| `category` | Where it is in the **Blocks** tab: `value` (Values), `logic` (Logic), `math` (Math), `text` (Text), `object` (Objects), `list` (Lists), `matrix` (Matrices), `units` (Units), `geometry` (Geometry: plane and solid), `trig` (Trigonometry), `functions` (Functions), `integrals` (Integrals), `analysis` (Numerical analysis), `signal` (Signals), `time` (Time), `console` (Console), `schema` (Schema ports), `ui` (UI components), `lilos` (lilOS), `net` (Network), `hardware` (Hardware), `db` (Databases), `exception` (Exceptions). Another word, or nothing: **Other** |
 | `icon` | The name of a lilOS icon (`calculator`, `bell`, `globe`, `clock`, `lamp`…). Default `blocks` |
 | `label` | The name of the block: `{ en, it }` |
 | `description` | Optional: a sentence `{ en, it }` |

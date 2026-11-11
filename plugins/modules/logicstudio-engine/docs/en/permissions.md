@@ -37,7 +37,7 @@ A user who tries to open a program of another receives «Programma sconosciuto»
 
 A user with the **administrator** role also has:
 
-- in the **Control Panel → Logic Studio**, the **Limits**, **Quotas** and **Running** tabs;
+- in the **Control Panel → Logic Studio**, the **Limits**, **Quotas**, **Running** and **Hardware** tabs (who can use which devices: see below);
 - the list of the programs of all users, with **Stop** and **Remove**. A program stopped by an administrator reports «Fermato da un amministratore» ("Stopped by an administrator");
 - for the engine, the possibility of watching and using a program of another user as if it were their own: its consoles (including the questions waiting), its windows, the values. Today lilOS has no button for this (the Control Panel only has **Stop** and **Remove**), but the engine allows it to an app or a script that talks to it on behalf of the administrator.
 
@@ -66,6 +66,18 @@ For example:
 | [HTTP request (fetch)](net.request) | Only public internet addresses. This computer and the local network only if an administrator allows it in the settings of the `logicstudio-net` module. Each request counts in your network quota |
 | [Notify](lilos.notify) | Only to you, on behalf of the program |
 | [Emit (event to lilOS)](lilos.event) | Only to your lilOS pages |
+| [Hardware](logicstudio-hardware) | The devices of the **computer that runs lilOS** (serial ports, USB, HID, webcams, audio, MIDI, system information, printers, GPIO and I²C), not those of the computer you look at lilOS from in the browser. Only if the **class** of the device is allowed to you (see below) |
+
+### The permissions of the hardware
+
+The Hardware blocks have one permission for each class of devices: `serial`, `usb`, `hid`, `camera`, `audio`, `midi`, `system` (printers too) and `gpio` (GPIO and I²C). By default **only administrators** use them. An administrator, in the **Control Panel → Logic Studio → Hardware**, can:
+
+- turn on a **Allowed to everybody** switch for a class;
+- choose for a user **As everybody**, **Yes** or **No**: the choice for the user wins over the one for everybody, both ways.
+
+Without the permission the block comes out of the **Exception** port with «Non hai il permesso di usare le porte seriali: chiedi a un amministratore (Pannello di controllo → Logic Studio → Hardware)» (the message is always in Italian). If the permission is taken away while a device is open, the device closes at the next read. An open device belongs to **one program at a time** (and to one user): another program does not see it. Each user can open at most 16.
+
+In the same tab, **Found on this computer** says which libraries of the package and which programs of the system (like `ffmpeg`) are there; **Look again** looks for them once more. The permissions are kept in the data of the `logicstudio-hardware` module.
 
 An active program works as you **even when you have not signed in**: with lilOS closed, after you signed out, after a restart. The engine remembers who you were when you activated it. If you no longer want it to work in your name, stop it.
 
@@ -115,6 +127,7 @@ Before starting it, lilOS looks at the blocks of the project. If there are block
 | the network ([HTTP request (fetch)](net.request)) | make requests on the internet |
 | notifications ([Notify](lilos.notify)) | send you notifications |
 | events ([Emit (event to lilOS)](lilos.event)) | send events to lilOS |
+| the [Hardware](logicstudio-hardware) blocks | use the hardware of the computer that runs lilOS (serial ports, USB, webcam, audio…) |
 
 …it opens a window with the list, the folder the app comes from and the buttons **Run** and **Cancel**. Run the app only if you trust whoever made it.
 

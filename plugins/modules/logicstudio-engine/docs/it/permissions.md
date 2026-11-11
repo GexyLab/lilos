@@ -37,7 +37,7 @@ Un utente che prova ad aprire un programma di un altro riceve «Programma sconos
 
 Un utente con il ruolo **amministratore** ha in più:
 
-- nel **Pannello di controllo → Logic Studio**, le schede **Limiti**, **Quote** e **In esecuzione**;
+- nel **Pannello di controllo → Logic Studio**, le schede **Limiti**, **Quote**, **In esecuzione** e **Hardware** (chi può usare quali dispositivi: vedi sotto);
 - l'elenco dei programmi di tutti gli utenti, con **Ferma** e **Togli**. Un programma fermato da un amministratore riporta «Fermato da un amministratore»;
 - per il motore, la possibilità di guardare e usare un programma di un altro utente come se fosse il suo: le sue console (comprese le domande in attesa), le sue finestre, i valori. Oggi lilOS non ha un pulsante per farlo (il Pannello di controllo ha solo **Ferma** e **Togli**), ma il motore lo permette a un'app o a uno script che parla con lui a nome dell'amministratore.
 
@@ -66,6 +66,18 @@ Per esempio:
 | [HTTP (fetch)](net.request) | Solo indirizzi pubblici di internet. Questo computer e la rete locale solo se un amministratore lo permette nelle impostazioni del modulo `logicstudio-net`. Ogni richiesta conta nella tua quota di rete |
 | [Notify](lilos.notify) | Solo a te, a nome del programma |
 | [Emit (evento a lilOS)](lilos.event) | Solo alle tue pagine di lilOS |
+| [Hardware](logicstudio-hardware) | I dispositivi del **computer su cui gira lilOS** (porte seriali, USB, HID, webcam, audio, MIDI, informazioni di sistema, stampanti, GPIO e I²C), non quelli del computer da cui guardi lilOS nel browser. Solo se la **classe** del dispositivo ti è permessa (vedi sotto) |
+
+### I permessi dell'hardware
+
+I blocchi Hardware hanno un permesso per ogni classe di dispositivi: `serial`, `usb`, `hid`, `camera`, `audio`, `midi`, `system` (anche le stampanti) e `gpio` (GPIO e I²C). Di serie li usano **solo gli amministratori**. Un amministratore, nel **Pannello di controllo → Logic Studio → Hardware**, può:
+
+- accendere un interruttore di **Permesso a tutti** per una classe;
+- scegliere per un utente **Come tutti**, **Sì** o **No**: la scelta per l'utente vince su quella per tutti, nei due sensi.
+
+Senza il permesso il blocco esce dalla porta **Exception** con «Non hai il permesso di usare le porte seriali: chiedi a un amministratore (Pannello di controllo → Logic Studio → Hardware)». Se il permesso viene tolto mentre un dispositivo è aperto, il dispositivo si chiude alla lettura successiva. Un dispositivo aperto è **di un programma alla volta** (e di un solo utente): un altro programma non lo vede. Ogni utente ne può aprire al massimo 16.
+
+Nella stessa scheda, **Trovati su questo computer** dice quali librerie del pacchetto e quali programmi del sistema (come `ffmpeg`) ci sono; **Cerca di nuovo** li cerca un'altra volta. I permessi stanno nei dati del modulo `logicstudio-hardware`.
 
 Un programma attivo lavora come te **anche quando non hai fatto l'accesso**: a lilOS chiuso, dopo che sei uscito, dopo un riavvio. Il motore ricorda chi eri quando l'hai attivato. Se non vuoi più che lavori a tuo nome, fermalo.
 
@@ -115,6 +127,7 @@ Prima di farla partire lilOS guarda i blocchi del progetto. Se ci sono blocchi c
 | la rete ([HTTP (fetch)](net.request)) | fare richieste su internet |
 | le notifiche ([Notify](lilos.notify)) | mandarti notifiche |
 | gli eventi ([Emit (evento a lilOS)](lilos.event)) | mandare eventi a lilOS |
+| i blocchi [Hardware](logicstudio-hardware) | usare l'hardware del computer su cui gira lilOS (porte seriali, USB, webcam, audio…) |
 
 …apre una finestra con l'elenco, la cartella da cui viene l'app e i pulsanti **Esegui** e **Annulla**. Esegui l'app solo se ti fidi di chi l'ha fatta.
 

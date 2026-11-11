@@ -8,7 +8,7 @@
   --lc-value: #8b95a5; --lc-logic: #d9a514; --lc-math: #2f81f7; --lc-text: #3fb950; --lc-object: #a371f7; --lc-list: #39c5bb;
   --lc-matrix: #2fb7a5; --lc-time: #db61a2; --lc-console: #8b5cf6; --lc-schema: #4c8dff; --lc-ui: #2da44e; --lc-lilos: #6e56cf;
   --lc-net: #0f9d9a; --lc-exception: #ff2b2b; --lc-units: #e8743b; --lc-db: #b7791f; --lc-signal: #d6409f;
-  --lc-geometry: #c97b2a; --lc-trig: #0ea5e9; --lc-functions: #6366f1; --lc-integrals: #65a30d; --lc-draw: #c9a227; --lc-program: #64748b; --lc-other: #8b95a5; --lc-missing: #e5484d;
+  --lc-geometry: #c97b2a; --lc-trig: #0ea5e9; --lc-functions: #6366f1; --lc-integrals: #65a30d; --lc-analysis: #56d364; --lc-hardware: #c9824a; --lc-draw: #c9a227; --lc-program: #64748b; --lc-other: #8b95a5; --lc-missing: #e5484d;
   --lg-live: #39d0d8;
   --lg-block: color-mix(in srgb, var(--canvas) 86%, var(--on-canvas));
   --lg-block-border: color-mix(in srgb, var(--canvas) 72%, var(--on-canvas));
@@ -85,6 +85,7 @@
 .cat-console { --cat: var(--lc-console); } .cat-schema { --cat: var(--lc-schema); } .cat-ui { --cat: var(--lc-ui); } .cat-lilos { --cat: var(--lc-lilos); }
 .cat-net { --cat: var(--lc-net); } .cat-exception { --cat: var(--lc-exception); } .cat-units { --cat: var(--lc-units); } .cat-db { --cat: var(--lc-db); } .cat-signal { --cat: var(--lc-signal); } .cat-draw { --cat: var(--lc-draw); } .cat-program { --cat: var(--lc-program); } .cat-missing { --cat: var(--lc-missing); }
 .cat-geometry { --cat: var(--lc-geometry); } .cat-trig { --cat: var(--lc-trig); } .cat-functions { --cat: var(--lc-functions); } .cat-integrals { --cat: var(--lc-integrals); }
+.cat-analysis { --cat: var(--lc-analysis); } .cat-hardware { --cat: var(--lc-hardware); }
 
 /* Ingresso e Uscita di schema: pills */
 .lgc-block.role-schemaIn, .lgc-block.role-schemaOut { border-radius: 13px; border-left-width: 1px; border-color: var(--lc-schema); background: color-mix(in srgb, var(--lc-schema) 18%, var(--lg-block)); --cat: var(--lc-schema); }

@@ -14,6 +14,7 @@
   "capNet": "Anfragen im Internet senden",
   "capNotify": "dir Benachrichtigungen senden",
   "capEvents": "Ereignisse an dein lilOS senden",
+  "capHardware": "die Hardware des Computers nutzen, auf dem lilOS läuft (serielle Ports, USB, Webcam, Audio…)",
   "run": "Ausführen",
   "cancel": "Abbrechen",
   "appFailed": "{name} wurde nicht gestartet: {error}"

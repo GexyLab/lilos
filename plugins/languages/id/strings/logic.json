@@ -14,6 +14,7 @@
   "capNet": "membuat permintaan ke internet",
   "capNotify": "mengirimi Anda notifikasi",
   "capEvents": "mengirim peristiwa ke lilOS Anda",
+  "capHardware": "memakai perangkat keras komputer yang menjalankan lilOS (port serial, USB, webcam, audio…)",
   "run": "Jalankan",
   "cancel": "Batal",
   "appFailed": "{name} tidak dapat dimulai: {error}"

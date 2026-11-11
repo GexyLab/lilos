@@ -46,9 +46,11 @@
     "modules/logicstudio-units",
     "modules/logicstudio-signals",
     "modules/logicstudio-solid",
+    "modules/logicstudio-plane",
     "modules/logicstudio-trig",
     "modules/logicstudio-functions",
     "modules/logicstudio-integrals",
+    "modules/logicstudio-numeric",
     "modules/logicstudio-ui",
     "modules/logicstudio-charts",
     "modules/logicstudio-lilos",
@@ -57,7 +59,8 @@
     "modules/logicstudio-mongodb",
     "modules/logicstudio-redis",
     "modules/logicstudio-influxdb",
-    "modules/logicstudio-elasticsearch"
+    "modules/logicstudio-elasticsearch",
+    "modules/logicstudio-hardware"
   ],
   "system": "system/lilos",
   "languages": [

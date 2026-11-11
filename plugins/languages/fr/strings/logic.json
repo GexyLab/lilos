@@ -14,6 +14,7 @@
   "capNet": "faire des requêtes sur internet",
   "capNotify": "vous envoyer des notifications",
   "capEvents": "envoyer des événements à votre lilOS",
+  "capHardware": "utiliser le matériel de l’ordinateur qui exécute lilOS (ports série, USB, webcam, audio…)",
   "run": "Exécuter",
   "cancel": "Annuler",
   "appFailed": "{name} n'a pas démarré : {error}"

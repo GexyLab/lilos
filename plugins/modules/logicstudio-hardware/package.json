@@ -1,0 +1,13 @@
+{
+  "name": "lilos-module-logicstudio-hardware",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@julusian/midi": "3.8.1",
+    "node-hid": "3.4.0",
+    "serialport": "13.0.0",
+    "systeminformation": "5.33.16",
+    "usb": "3.2.1"
+  }
+}

@@ -251,6 +251,22 @@ function packageInfo(dir, lockLicense) {
   };
 }
 
+/**
+ * An optional package npm does not install on this computer, because it is for another platform
+ * (the prebuilt binaries of usb: @node-usb/usb-darwin-arm64…): its license from the lockfile, the
+ * copyright and site of a sibling of the same scope and prefix installed here, if any.
+ */
+function otherPlatform(dir, e) {
+  const name = dir.split(sep).pop();
+  const parent = dirname(dir);
+  const prefix = name.split('-').slice(0, 2).join('-');
+  const sibling = existsSync(parent) && readdirSync(parent).find(n => n !== name && n.startsWith(prefix) && existsSync(join(parent, n, 'package.json')));
+  const known = sibling ? packageInfo(join(parent, sibling), e.lockLicense) : {};
+  const license = e.lockLicense ?? known.license;
+  if (!license) throw new Error(`${rel(dir)} non è installato (è per un'altra piattaforma) e il lockfile non dice la licenza`);
+  return { license, copyright: known.copyright ?? '', url: `https://www.npmjs.com/package/${e.name}` };
+}
+
 function build() {
   const out = [];
   for (const e of collect()) {
@@ -259,7 +275,8 @@ function build() {
     else if (e.kind === 'library' && !e.vendored) {
       // A module's package lives in that module's node_modules
       const module = [...e.usedBy].find(u => u.startsWith('module:'));
-      info = packageInfo(join(root, ...(module ? ['modules', module.slice(7)] : []), e.path), e.lockLicense);
+      const dir = join(root, ...(module ? ['modules', module.slice(7)] : []), e.path);
+      info = e.optional && !existsSync(join(dir, 'package.json')) ? otherPlatform(dir, e) : packageInfo(dir, e.lockLicense);
     }
     const entry = {
       kind: e.kind, name: e.name, version: e.version ?? '',

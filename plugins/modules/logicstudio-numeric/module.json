@@ -1,0 +1,22 @@
+{
+  "name": "logicstudio-numeric",
+  "version": "1.0.0",
+  "description": "Logic Studio: i blocchi per l'analisi numerica (campionare una funzione, composizione, semplificazione, gradiente, massimi, minimi e flessi, derivata di dati, successioni e serie, simulazione di equazioni differenziali in tempo reale, interpolazione, regressione, numeri complessi)",
+  "icon": {
+    "glyph": "calculator",
+    "color": "#56d364"
+  },
+  "kernel": "1",
+  "provides": [
+    "logicblock.numeric"
+  ],
+  "requires": [
+    "logicstudio"
+  ],
+  "dependencies": [
+    {
+      "module": "logicstudio-engine",
+      "reason": "Il motore che fa girare i blocchi"
+    }
+  ]
+}

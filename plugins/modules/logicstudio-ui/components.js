@@ -14,7 +14,10 @@ const P = (key, type, en, it, extra = {}) => ({ key, type, label: L(en, it), ...
 const labelProp = P('label', 'text', 'Label', 'Etichetta', { default: '', translate: true });
 const text = v => (v === undefined || v === null ? '' : typeof v === 'object' ? JSON.stringify(v) : String(v));
 const num = v => (typeof v === 'number' ? v : Number(String(v ?? '').replace(',', '.')));
-const optionsOf = v => (Array.isArray(v) ? v : String(v ?? '').split(',').map(s => s.trim()).filter(Boolean)).map(o => (o && typeof o === 'object' ? { value: String(o.value ?? o.label), label: String(o.label ?? o.value) } : { value: String(o), label: String(o) }));
+// The images an Immagine takes from the program (camera frames): base64 data URLs of these types only
+const DATA_IMAGE = /^data:image\/(?:png|jpeg|webp|gif);base64,[A-Za-z0-9+/]+={0,2}$/;
+const DATA_IMAGE_MAX = 2 << 20;
+const optionsOf = v =>(Array.isArray(v) ? v : String(v ?? '').split(',').map(s => s.trim()).filter(Boolean)).map(o => (o && typeof o === 'object' ? { value: String(o.value ?? o.label), label: String(o.label ?? o.value) } : { value: String(o), label: String(o) }));
 
 function def(type, category, icon, label, spec, render) {
   return {
@@ -118,10 +121,24 @@ export const components = [
   }, (el, c) => {
     el.classList.add('lui-image');
     const img = c.h('img', { alt: c.t(c.props.alt ?? ''), style: `object-fit:${c.props.fit}` });
+    let shown = 0;   // the last source asked for: a slower one before it never takes its place
     const set = async src => {
+      const n = ++shown;
       if (!src) { img.removeAttribute('src'); return; }
-      // Only the project's own resources (never an address outside lilOS)
-      try { const url = await c.host.resourceUrl?.(String(src)); if (url) img.src = url; else img.removeAttribute('src'); } catch { img.removeAttribute('src'); }
+      const s = String(src);
+      // An image made by the program (a webcam frame of the Hardware blocks): only a base64 data URL
+      // of PNG, JPEG, WebP or GIF, at most 2 MB; never another scheme, never SVG
+      if (s.startsWith('data:')) {
+        if (s.length <= DATA_IMAGE_MAX && DATA_IMAGE.test(s)) img.src = s;
+        else img.removeAttribute('src');
+        return;
+      }
+      // Else only the project's own resources (never an address outside lilOS)
+      try {
+        const url = await c.host.resourceUrl?.(s);
+        if (n !== shown) return;
+        if (url) img.src = url; else img.removeAttribute('src');
+      } catch { if (n === shown) img.removeAttribute('src'); }
     };
     el.append(img);
     set(c.props.source);

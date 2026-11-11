@@ -2496,7 +2496,7 @@ Conseguenze: se tutte le schede si chiudono non parte niente; un'automazione con
 **Conseguenze.**
 
 - Le categorie e i simboli nuovi chiedono lilOS 1.47.0 (SDK 0.32.0): su un lilOS più vecchio i blocchi funzionano ma la loro striscia ha il colore di «Altro» e l'icona manca.
-- I due moduli che usano le espressioni hanno ognuno una copia di `mathexpr.js` e `mathblocks.js` (lo script `npm run sync:modules` le tiene allineate, la build le controlla).
+- I moduli che usano le espressioni hanno ognuno una copia di `mathexpr.js` e `mathblocks.js` (due al momento di questa decisione; da [D97](#d97-logic-studio-geometria-piana-analisi-numerica-e-hardware) anche `logicstudio-numeric`) (lo script `npm run sync:modules` le tiene allineate, la build le controlla).
 - I test sono fuori dal repository, come per D88: un banco con oltre 1100 controlli dei blocchi, programmi veri nel runtime del motore e un fuzz delle espressioni (stampa e rilettura, derivate simboliche contro numeriche).
 
 **Quando ripensarla.** Se servirà un tipo di porta per le funzioni (per esempio per disegnarle in un grafico senza campionarle); se la tabella delle primitive non basterà e servirà un vero sistema di calcolo simbolico; se serviranno numeri complessi in tutti i blocchi e non solo nelle radici.
@@ -2612,3 +2612,59 @@ Conseguenze: se tutte le schede si chiudono non parte niente; un'automazione con
 - I limiti noti (tra cui OpenSearch provato solo contro un server simulato) sono in [Stato e roadmap](stato-e-roadmap.md#logic-studio).
 
 **Quando ripensarla.** Se serviranno password condivise tra utenti (per esempio un database di un gruppo); se la chiave dovrà stare fuori dalla cartella dei dati del motore (un deposito di segreti del sistema); se i database di lilOS dovranno poter essere usati da programmi di amministratori; se il thread principale del kernel diventerà un collo di bottiglia per molte query lunghe.
+
+
+## D97. Logic Studio: geometria piana, analisi numerica e hardware
+
+> Completa [D93](#d93-logic-studio-i-pacchetti-di-matematica-e-le-espressioni-come-testo) (stesso parser di espressioni, stesse regole di matematica) e [D96](#d96-logic-studio-i-database-le-password-cifrate-dal-motore-e-i-database-di-lilos-sempre-esclusi) (stessa regola «le azioni girano nel kernel»): tre pacchetti nuovi, nessuna modifica al formato degli schemi.
+
+**Contesto.** L'utente ha chiesto (11 novembre 2026) pacchetti per la geometria, per il calcolo e per l'hardware del computer. Mentre li costruivo, altre sessioni hanno pubblicato i pacchetti di geometria solida, trigonometria, funzioni e derivate, integrali e segnali ([D92](#d92-logic-studio-i-segnali-viaggiano-a-finestre-di-campioni), [D93](#d93-logic-studio-i-pacchetti-di-matematica-e-le-espressioni-come-testo)): gran parte di quello che avevo pensato esisteva già. L'utente ha scelto di **tenere solo le parti nuove**. Una prima bozza, con pacchetti `logicstudio-geometry` e `logicstudio-analysis` e tre tipi di porta nuovi (`point`, `shape`, `function`), è stata scartata.
+
+**Decisione.** Decisa l'11 novembre 2026: lilOS 1.51.0, SDK 0.36.0, Logic Studio IDE 1.16.0 (palette e finestra della documentazione), Pannello di controllo 1.25.0, `logicstudio-ui` 1.2.0, `logicstudio-engine` 1.7.1 e `logicstudio-core` 1.5.1 (solo documentazione) e tre moduli nuovi alla 1.0.0: `logicstudio-plane`, `logicstudio-numeric`, `logicstudio-hardware`.
+
+- **`logicstudio-plane`, «Geometria piana»**: 19 blocchi `plane.*` solo nel piano (punti, distanze, rette, parallele e perpendicolari, bisettrici, intersezioni, cerchi, poligoni, coniche, punto dentro una figura, ingombro, inviluppo convesso, trasformazioni e matrici 3×3, figura → SVG). Stanno nella categoria `geometry` che già c'era, che ora si chiama «Geometria» perché contiene piano e spazio. Solidi e 3D restano in `logicstudio-solid`; angoli, triangoli e polari in `logicstudio-trig`.
+- **`logicstudio-numeric`, «Analisi numerica»**: 12 blocchi `num.*` in una categoria nuova, `analysis` (campionare una funzione, comporre, semplificare, gradiente, massimi, minimi e flessi, derivata di dati, successioni, serie Σ e Π, simulazione di equazioni differenziali in tempo reale, interpolazione, regressione, numeri complessi). **Le formule sono testi** con la stessa sintassi e lo stesso parser dei blocchi `fn.*` (`_shared/mathexpr.js`); niente math.js. Derivate, limiti, Taylor e studio di funzione sono in `logicstudio-functions`, integrali ed equazioni differenziali risolte in `logicstudio-integrals`, la FFT in `logicstudio-signals`.
+- **Nessun tipo di porta nuovo.** I punti sono liste `[x, y]` (come `solid.*`), le figure oggetti con un campo `kind`, le funzioni testi.
+- **`logicstudio-hardware`, «Hardware»**: 25 blocchi `hw.*`, categoria nuova `hardware`: porte seriali, USB (elenco, collegato e scollegato, trasferimenti), HID, webcam, audio (suoni, tono, voce, registrazione, livello del microfono, volume), MIDI, informazioni di sistema, batteria, dischi, rete, stampanti, GPIO e I²C su Linux. Le azioni girano nel kernel, come l'utente, nel thread principale.
+- **Librerie native con binari precompilati, caricate solo all'uso.** `serialport`, `usb`, `node-hid`, `@julusian/midi` e `systeminformation` arrivano con i loro binari nei pacchetti npm, perché il kernel installa con `--ignore-scripts` (niente compilazione). Si importano la prima volta che un blocco le usa: una che non si carica rompe solo i suoi blocchi e lo dice `GET /status`; il modulo parte lo stesso.
+- **`ffmpeg` del sistema, non incluso.** Webcam, registrazioni e livello del microfono lo cercano sul computer; suoni, voce, volume e stampa usano programmi che di solito ci sono già (PowerShell, `paplay`, `espeak-ng`, `lp`, `say`…). Sempre `spawn` con percorso assoluto e argomenti, mai una shell.
+- **I dati in arrivo si leggono con un long poll** (`hw.read`, al massimo 20 secondi), non con un canale che il motore spinge verso il worker: il motore non ha un canale così, e crearlo avrebbe cambiato il motore e tutti i pacchetti. Il blocco tiene il suo ciclo di lettura fuori da `run`. Le code sono limitate: si perdono i dati più vecchi e si contano.
+- **Maniglie esclusive.** Un dispositivo aperto è di (utente, programma): un altro programma non lo vede e non lo apre. Al massimo 16 per utente; si chiudono con il blocco, con la fine del programma e allo stop del modulo.
+- **Permessi per classe, di serie solo gli amministratori.** Otto classi (`serial`, `usb`, `hid`, `camera`, `audio`, `midi`, `system`, `gpio`); un amministratore le dà a tutti o a singoli utenti (il permesso per l'utente vince nei due sensi) nel **Pannello di controllo → Logic Studio → Hardware**. La politica sta nei dati del modulo (`policy.json`). Un permesso tolto chiude i dispositivi aperti alla lettura successiva.
+- **Consenso di «Crea app»**: i blocchi `hw.*` aggiungono la voce `capHardware` («usare l'hardware del computer su cui gira lilOS (porte seriali, USB, webcam, audio…)»), in tutti i 20 pacchetti di lingua; la finestra del consenso è un po' più alta.
+- **Cose mai aperte.** Le tastiere HID (su Linux anche gli altri tasti dello stesso `hidraw`); nei trasferimenti USB le memorie di massa, gli hub e gli HID; gli schermi non sono webcam.
+- **File come l'utente.** Foto, registrazioni e suoni usano la home dell'utente attraverso il servizio `fs`, con il nuovo `_shared/logic-files.js` (`homeFiles`), le stesse regole di `logicstudio-lilos`.
+- **`logicstudio-ui` 1.2.0**: la sorgente di `ui.image` accetta `data:image/(png|jpeg|webp|gif);base64,…` fino a 2 MB, perché la foto e i fotogrammi arrivino a una finestra senza passare da un file; con la correzione di una gara (un'immagine più lenta non sovrascrive una più recente).
+- **SDK 0.36.0**: le categorie `analysis` (`--lc-analysis: #56d364`) e `hardware` (`--lc-hardware: #c9824a`) in `logic.css`.
+
+**Perché.**
+
+- *Solo le parti nuove.* Duplicare solidi, trigonometria, derivate e integrali avrebbe dato due blocchi per la stessa cosa in due pacchetti, da tenere uguali. Il nuovo è quello che mancava: il piano, i calcoli su dati e successioni, i dispositivi.
+- *Testi e liste, non tipi nuovi.* Come in D93: un tipo di porta tocca SDK, IDE e lingue; con liste e testi i pacchetti nuovi lavorano con quelli già pubblicati (un `solid.point` si collega a un `plane.point`). Con i tipi della bozza anche i pacchetti vecchi sarebbero diventati incoerenti.
+- *Parser nostro, niente math.js.* Per le ragioni di D93 (le espressioni arrivano dagli schemi, `eval` no, una libreria in più da seguire e da riconoscere), con il vantaggio che `num.*` e `fn.*` capiscono le stesse formule.
+- *Binari precompilati e caricamento all'uso.* Il kernel non compila; chi non usa l'hardware non paga la memoria, e una libreria non adatta alla piattaforma non ferma il kernel (vedi anche il difetto noto del modulo che fallisce all'avvio).
+- *`ffmpeg` del sistema.* Il suo peso, la licenza e gli aggiornamenti di sicurezza sono del sistema operativo, non di lilOS.
+- *Long poll.* Funziona con il motore com'è, il blocco decide quanto aspettare e la lettura si ferma da sola con il programma.
+- *Solo gli amministratori di serie.* Una webcam, una porta seriale o una stampante sono del computer, non dell'utente: un programma attivo le usa anche quando nessuno guarda.
+- *Esclusive.* Due programmi sulla stessa porta seriale si rubano i byte; meglio un errore chiaro.
+
+**Alternative scartate.**
+
+- Tipi di porta `point`, `shape` e `function` (la bozza): vedi sopra.
+- Includere math.js o un sistema di calcolo simbolico: dimensione e dipendenza, per una parte piccola di quello che fa.
+- Un unico pacchetto di geometria con anche il 3D, o uno di analisi con derivate e integrali: esistono già (D93).
+- Un canale dal motore al worker per i dati dei dispositivi (push): obbligava a cambiare il motore.
+- Includere `ffmpeg` in lilOS: peso, licenza e aggiornamenti per ogni piattaforma.
+- Permessi aperti a tutti di serie, o un unico permesso «hardware»: troppo larghi.
+- Bluetooth Low Energy, SPI e i dispositivi del browser: rinviati, vedi sotto.
+
+**Conseguenze.**
+
+- Le categorie e i colori nuovi chiedono lilOS 1.51.0 (SDK 0.36.0): su uno più vecchio i blocchi funzionano ma la loro striscia ha il colore di «Altro».
+- La finestra di consenso di «Crea app» ha un testo nuovo (`capHardware`) in tutte le lingue: un testo nuovo del nucleo vuole tutti i pacchetti di lingua.
+- Su un computer senza `ffmpeg` o senza i permessi del sistema (gruppi `dialout`, `plugdev`, `video`, regole di `udev`, driver WinUSB) i blocchi danno errori in italiano che lo dicono; le istruzioni stanno nella pagina del pacchetto.
+- `mathexpr.js` e `mathblocks.js` hanno ora tre copie (`functions`, `integrals`, `numeric`); `logic-files.js` ne ha una, in `hardware`. `npm run sync:modules` le tiene allineate.
+- Lo script dei riconoscimenti (`plugins/scripts/credits.mjs`) accredita anche i pacchetti opzionali costruiti per altre piattaforme (per esempio `@node-usb/usb-darwin-arm64`) leggendo la licenza dal lockfile.
+- I limiti noti sono in [Stato e roadmap](stato-e-roadmap.md#logic-studio).
+
+**Quando ripensarla.** Se serviranno Bluetooth Low Energy o SPI (servono un'altra libreria o un ioctl); se si vorrà usare la webcam o il microfono del computer da cui si guarda lilOS (sarebbe una componente del browser, non un'azione del kernel); se il motore avrà un canale di spinta verso il worker (sostituirebbe il long poll); se `ffmpeg` dovrà arrivare con lilOS (installazione senza passi a mano); se i permessi dovranno essere per singolo dispositivo o per gruppo; se una libreria nativa perderà i binari per una piattaforma che serve.

@@ -76,12 +76,15 @@ I blocchi e le componenti che vedi nell'IDE sono quelli dei pacchetti installati
 | [Costanti](logicstudio-constants) | Costanti matematiche, fisiche (CODATA 2022), astronomiche e della Terra |
 | [Grandezze e unità](logicstudio-units) | Conversioni tra unità di misura, prefissi SI, leggere e scrivere misure |
 | [Geometria solida](logicstudio-solid) | Volumi e aree dei solidi, poliedri regolari, massa dal materiale, punti, vettori e piani nello spazio |
+| [Geometria piana](logicstudio-plane) | Punti 2D, distanze, rette e intersezioni, cerchi, poligoni, coniche, trasformazioni del piano, disegno in SVG |
 | [Trigonometria](logicstudio-trig) | Funzioni trigonometriche, inverse e iperboliche, angoli, triangoli, coordinate polari, onde |
 | [Funzioni e derivate](logicstudio-functions) | Espressioni come `3x^2 + sin(x)`, equazioni, polinomi, esponenziali e logaritmi, derivate, limiti, studio di funzione |
 | [Integrali](logicstudio-integrals) | Integrali definiti e primitive, aree, volumi di rotazione, dati e segnali, equazioni differenziali |
+| [Analisi numerica](logicstudio-numeric) | Campionare e studiare una funzione, successioni e serie, simulazione di equazioni differenziali, interpolazione, regressione, numeri complessi |
 | [Segnali](logicstudio-signals) | Teoria dei segnali: generatori, FFT, spettri, filtri IIR e FIR, correlazione, misure, modulazione |
 | [Blocchi di lilOS](logicstudio-lilos) | Notifiche, file della tua home, eventi a lilOS |
 | [Blocchi di rete](logicstudio-net) | Il blocco HTTP (fetch) |
+| [Hardware](logicstudio-hardware) | Porte seriali, USB, HID, webcam, audio, MIDI, informazioni di sistema, stampanti, GPIO e I²C del computer dove gira lilOS, solo per chi ha il permesso |
 | [Blocchi database (SQL)](logicstudio-db) | PostgreSQL, MySQL e MariaDB, SQL Server, SQLite, Oracle, ClickHouse |
 | [Blocchi MongoDB](logicstudio-mongodb) | Documenti di MongoDB: trova, inserisci, aggiorna, aggrega, osserva |
 | [Blocchi Redis](logicstudio-redis) | Chiavi, hash, liste e canali di Redis |

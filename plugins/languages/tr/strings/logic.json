@@ -14,6 +14,7 @@
   "capNet": "internette istek yapmak",
   "capNotify": "size bildirim göndermek",
   "capEvents": "lilOS’unuza olay göndermek",
+  "capHardware": "lilOS’un çalıştığı bilgisayarın donanımını kullanmak (seri portlar, USB, web kamerası, ses…)",
   "run": "Çalıştır",
   "cancel": "İptal",
   "appFailed": "{name} başlamadı: {error}"

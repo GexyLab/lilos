@@ -76,12 +76,15 @@ The blocks and components you see in the IDE are those of the packages installed
 | [Constants](logicstudio-constants) | Mathematical, physical (CODATA 2022), astronomical and Earth constants |
 | [Quantities and units](logicstudio-units) | Conversions between units of measure, SI prefixes, reading and writing measures |
 | [Solid geometry](logicstudio-solid) | Volumes and areas of solids, regular polyhedra, mass from the material, points, vectors and planes in space |
+| [Plane geometry](logicstudio-plane) | 2D points, distances, lines and intersections, circles, polygons, conics, transformations of the plane, drawing in SVG |
 | [Trigonometry](logicstudio-trig) | Trigonometric, inverse and hyperbolic functions, angles, triangles, polar coordinates, waves |
 | [Functions and derivatives](logicstudio-functions) | Expressions like `3x^2 + sin(x)`, equations, polynomials, exponentials and logarithms, derivatives, limits, study of a function |
 | [Integrals](logicstudio-integrals) | Definite integrals and antiderivatives, areas, volumes of revolution, data and signals, differential equations |
+| [Numerical analysis](logicstudio-numeric) | Sampling and studying a function, sequences and series, simulation of differential equations, interpolation, regression, complex numbers |
 | [Signals](logicstudio-signals) | Signal theory: generators, FFT, spectra, IIR and FIR filters, correlation, measures, modulation |
 | [lilOS blocks](logicstudio-lilos) | Notifications, files of your home, events to lilOS |
 | [Network blocks](logicstudio-net) | The HTTP request (fetch) block |
+| [Hardware](logicstudio-hardware) | Serial ports, USB, HID, webcam, audio, MIDI, system information, printers, GPIO and I²C of the computer lilOS runs on, only for who has the permission |
 | [Database blocks (SQL)](logicstudio-db) | PostgreSQL, MySQL and MariaDB, SQL Server, SQLite, Oracle, ClickHouse |
 | [MongoDB blocks](logicstudio-mongodb) | MongoDB documents: find, insert, update, aggregate, watch |
 | [Redis blocks](logicstudio-redis) | Redis keys, hashes, lists and channels |

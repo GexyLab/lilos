@@ -1685,7 +1685,7 @@ Ogni nota è un file di testo con estensione `.sticky` nella cartella Scrivania.
 
 Un programma di Logic Studio può girare **anche quando lilOS è chiuso nel browser**: lo fa il computer su cui gira lilOS. Per questo, prima di attivarne uno, leggi «[Da sapere](#da-sapere-8)».
 
-Logic Studio non c'è di serie. Serve lilOS dalla 1.37.0 (dalla 1.40.0 per la documentazione, vedi «[La documentazione](#la-documentazione)»; dalla 1.48.0 per i testi e le forme, vedi «[Testi e forme sul foglio](#testi-e-forme-sul-foglio)»; dalla 1.49.0 per gli argomenti e il codice di uscita, vedi «[Programmi da riga di comando](#programmi-da-riga-di-comando)») e l'app **Logic Studio IDE** (categoria **Sviluppo**), che un amministratore installa dall'[AppStore](#lappstore): l'AppStore installa con lei anche le parti che le servono (il motore e i blocchi di base). Altri blocchi arrivano con altri pacchetti dello stesso AppStore, nella scheda **Kernel**: liste e matrici, grandezze e unità di misura, i segnali (generatori, FFT, filtri, modulazione), geometria solida, trigonometria, funzioni e derivate, integrali, i blocchi di lilOS (notifiche, file), la rete, i database, le componenti delle finestre e i grafici. I blocchi dei database e le password cifrate nelle Proprietà chiedono lilOS dalla 1.50.0 e l'IDE dalla 1.15.0 (vedi «[I database](#i-database)»).
+Logic Studio non c'è di serie. Serve lilOS dalla 1.37.0 (dalla 1.40.0 per la documentazione, vedi «[La documentazione](#la-documentazione)»; dalla 1.48.0 per i testi e le forme, vedi «[Testi e forme sul foglio](#testi-e-forme-sul-foglio)»; dalla 1.49.0 per gli argomenti e il codice di uscita, vedi «[Programmi da riga di comando](#programmi-da-riga-di-comando)») e l'app **Logic Studio IDE** (categoria **Sviluppo**), che un amministratore installa dall'[AppStore](#lappstore): l'AppStore installa con lei anche le parti che le servono (il motore e i blocchi di base). Altri blocchi arrivano con altri pacchetti dello stesso AppStore, nella scheda **Kernel**: liste e matrici, grandezze e unità di misura, i segnali (generatori, FFT, filtri, modulazione), geometria solida e geometria piana, trigonometria, funzioni e derivate, integrali, analisi numerica (campionare una funzione, serie, equazioni differenziali, interpolazione, regressione, numeri complessi), i blocchi di lilOS (notifiche, file), la rete, l'hardware del computer (porte seriali, USB, webcam, audio…), i database, le componenti delle finestre e i grafici. I blocchi dei database e le password cifrate nelle Proprietà chiedono lilOS dalla 1.50.0 e l'IDE dalla 1.15.0 (vedi «[I database](#i-database)»); i blocchi dell'hardware chiedono lilOS dalla 1.51.0 e l'IDE dalla 1.16.0 (vedi «[L'hardware](#lhardware)»).
 
 ### Le parole
 
@@ -1783,6 +1783,18 @@ I pacchetti dei database portano blocchi per leggere e scrivere dati in un datab
 - **SQLite** apre un file della tua home e lo tiene in memoria mentre lavora; sopra un limite (di serie 1024 MB) non lo apre. Le modifiche si scrivono nel file un attimo dopo.
 - **ClickHouse** non ha le transazioni: le modifiche non si possono annullare.
 - Come gli altri blocchi che toccano i dati, un programma attivo scrive **davvero** nel database, anche quando non guardi. Prova prima su una copia.
+
+### L'hardware
+
+I blocchi **Hardware** (categoria **Hardware**) fanno usare a un programma i dispositivi del **computer su cui gira lilOS**: le porte seriali (per esempio un Arduino), i dispositivi USB, le webcam, il microfono e gli altoparlanti, la voce che legge un testo, le tastiere e le schede MIDI, le informazioni sul computer (processore, memoria, batteria, dischi, rete), le stampanti e, su Linux, i pin GPIO e il bus I²C (per esempio su un Raspberry Pi). Non sono i dispositivi del computer da cui guardi lilOS nel browser: se lilOS gira su un altro computer, la webcam è la sua. Si installano dall'[AppStore](#lappstore), scheda **Kernel**, e funzionano anche a lilOS chiuso. Il pacchetto chiede lilOS dalla 1.51.0 e l'IDE dalla 1.16.0.
+
+- **Chi può usarli.** Di serie **solo gli amministratori**. Un amministratore può permettere ogni tipo di dispositivo (porte seriali, USB, HID, webcam, audio, MIDI, informazioni di sistema e stampanti, GPIO e I²C) a tutti, o a singoli utenti, nel **Pannello di controllo → Logic Studio → Hardware**. Senza il permesso il blocco esce dalla porta **Exception** con un messaggio che lo dice.
+- **Un dispositivo alla volta per programma.** Una porta, una webcam o un dispositivo aperti da un programma non li può usare un altro programma finché il primo non li chiude o non si ferma. Ogni utente ne può tenere aperti al massimo 16.
+- **Webcam e registrazioni** (foto, fotogrammi, video, registrazione audio, livello del microfono) usano il programma **ffmpeg**, che deve essere già installato sul computer: lilOS non lo porta con sé. Anche la voce, i suoni, il volume e la stampa usano programmi del sistema operativo; la pagina di ogni blocco dice quali.
+- **USB su Windows.** I trasferimenti diretti con un dispositivo USB funzionano solo se il dispositivo ha il driver **WinUSB** (si installa con un programma come Zadig). Le tastiere non si aprono mai; nei trasferimenti USB diretti non si usano nemmeno le memorie di massa, gli hub e i dispositivi HID.
+- **Una foto in una finestra.** Il blocco della foto dà anche l'immagine pronta per il pezzo **Immagine** di una finestra (serve il pacchetto delle componenti dalla 1.2.0).
+- **Cosa non c'è.** SPI, Bluetooth e i dispositivi del browser (la webcam o il microfono del computer da cui guardi).
+- **Non provato.** Webcam e microfoni veri, e Linux e macOS, non sono ancora stati provati su dispositivi reali.
 
 ### Gruppi di blocchi
 
@@ -1902,7 +1914,7 @@ In **Finestre** ogni finestra che non è la main può avere un punto d'ingresso:
 
 L'app **non si installa**. Il suo pacchetto sta nella cartella **App create** della tua home, in una cartella con il suo id, e dentro c'è un file `.lsapp`: **aprendo quel file** (doppio clic) l'app parte, **solo per te**, e dura finché le sue finestre sono aperte; quando chiudi l'ultima, il programma si ferma. Per rifarla dopo aver cambiato il progetto, usa di nuovo **Crea app**: **la cartella dell'app con lo stesso id viene sostituita, non va nel Cestino**, quindi non metterci dentro file tuoi.
 
-L'app gira **con i tuoi permessi**. Se i suoi blocchi usano i file, la rete, le notifiche o gli eventi, prima di partire lilOS apre una finestra con **Esegui** e **Annulla** e ti elenca cosa potrà fare (leggere e cambiare i tuoi file, fare richieste su internet o parlare con dei database, mandarti notifiche, mandare eventi a lilOS) e da quale cartella viene. Esegui un'app solo se ti fidi di chi l'ha fatta (o se l'hai fatta tu). Se premi **Esegui**, lilOS non te lo richiede finché quell'app non cambia; se cambia, te lo chiede di nuovo.
+L'app gira **con i tuoi permessi**. Se i suoi blocchi usano i file, la rete, le notifiche, gli eventi o l'hardware, prima di partire lilOS apre una finestra con **Esegui** e **Annulla** e ti elenca cosa potrà fare (leggere e cambiare i tuoi file, fare richieste su internet o parlare con dei database, mandarti notifiche, mandare eventi a lilOS, usare l'hardware del computer su cui gira lilOS) e da quale cartella viene. Esegui un'app solo se ti fidi di chi l'ha fatta (o se l'hai fatta tu). Se premi **Esegui**, lilOS non te lo richiede finché quell'app non cambia; se cambia, te lo chiede di nuovo.
 
 L'app ha le finestre del progetto e usa il motore di questo lilOS: serve lilOS dalla 1.37.0, e funziona solo dove sono installati i pacchetti che il progetto usa.
 
@@ -1916,6 +1928,7 @@ Se il motore c'è, il [Pannello di controllo](#pannello-di-controllo) ha la sezi
 | Limiti | Amministratori | I limiti per tutti: programmi attivi e memoria in tutto, esecuzioni di blocchi, tempo massimo di un blocco, durata di una prova, gruppi in un thread a parte per utente, blocchi e collegamenti per schema, schemi, finestre e componenti per progetto, console. Valgono per i programmi che partono dopo |
 | Quote | Amministratori | Le quote di ogni utente (programmi attivi, prove, CPU %, memoria, richieste al minuto, registro) e, per un utente, quote sue: una casella vuota vuol dire la quota di tutti; **Predefinita** toglie le quote sue |
 | In esecuzione | Amministratori | I programmi di tutti gli utenti, da fermare |
+| Hardware | Amministratori | Chi può usare quali dispositivi del computer (porte seriali, USB, HID, webcam, audio, MIDI, informazioni di sistema, GPIO e I²C): un interruttore **Permesso a tutti** per ogni tipo e, per ogni utente, **Come tutti**, **Sì** o **No**. In **Trovati su questo computer** vedi quali librerie e quali programmi del sistema (come ffmpeg) ci sono; **Cerca di nuovo** li cerca un'altra volta. Se il pacchetto non c'è, dice «Il pacchetto Hardware non è installato» |
 | Pacchetti | Tutti | I pacchetti di blocchi e componenti installati, con quanti blocchi e componenti danno |
 
 ### La documentazione
@@ -1933,6 +1946,7 @@ Si apre una finestra con l'indice a sinistra (la guida dell'IDE e poi un gruppo 
 - **Un programma attivo fa davvero quello che dice, anche quando non guardi.** Un blocco **writeFile** sovrascrive il file; **appendFile** lo allunga; **HTTP (fetch)** chiama davvero il sito. Provalo prima con **Prova**, con file di prova.
 - I blocchi di lilOS lavorano **solo sui file della tua home** (mai la cartella `.config`, né i file protetti da un'app come FileCrypt) e con i tuoi permessi: quello che non puoi fare tu, non lo fa il programma. Si leggono e si scrivono al massimo 5 MB alla volta.
 - Il blocco **HTTP (fetch)** non arriva a questo computer né alla rete locale, a meno che un amministratore non lo permetta nelle impostazioni del modulo.
+- I blocchi **Hardware** usano i dispositivi del computer su cui gira lilOS e, di serie, li possono usare solo gli amministratori (vedi «[L'hardware](#lhardware)»). Un programma attivo che usa una webcam, una porta seriale o una stampante continua a farlo anche quando non guardi.
 - Ogni utente ha dei limiti: un numero di programmi attivi, una parte della CPU e della memoria, e un numero di richieste di rete al minuto. Se un programma supera i limiti, si ferma e ricevi un messaggio.
 - Un programma che sembra un ciclo senza fine (più di 10000 esecuzioni di blocchi in 10 secondi, di serie) si ferma da solo.
 - Una domanda di console, se nessuna pagina di lilOS è aperta, **aspetta** finché non arriva una risposta o scade il tempo massimo del blocco: il resto del programma va avanti.

@@ -23,7 +23,7 @@ If a window uses a component from a package that is not there, you see a dashed 
 | [Gauge](ui.gauge) | `ui.gauge` | A number on an arc, between a minimum and a maximum. |
 | [Lamp](ui.lamp) | `ui.lamp` | A dot that turns on and off, in four colors. |
 | [Progress bar](ui.progress) | `ui.progress` | A bar from 0 to 100, with the percentage. |
-| [Image](ui.image) | `ui.image` | An image taken from the project folder. |
+| [Image](ui.image) | `ui.image` | An image taken from the project folder, or sent by the program (a webcam photo). |
 | [Table](ui.table) | `ui.table` | A list of objects in rows and columns; you can choose a row. |
 | [Console](ui.console) | `ui.console` | A console of the program inside the window. |
 
