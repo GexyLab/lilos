@@ -8,7 +8,7 @@
   --lc-value: #8b95a5; --lc-logic: #d9a514; --lc-math: #2f81f7; --lc-text: #3fb950; --lc-object: #a371f7; --lc-list: #39c5bb;
   --lc-matrix: #2fb7a5; --lc-time: #db61a2; --lc-console: #8b5cf6; --lc-schema: #4c8dff; --lc-ui: #2da44e; --lc-lilos: #6e56cf;
   --lc-net: #0f9d9a; --lc-exception: #ff2b2b; --lc-units: #e8743b; --lc-signal: #d6409f;
-  --lc-geometry: #c97b2a; --lc-trig: #0ea5e9; --lc-functions: #6366f1; --lc-integrals: #65a30d; --lc-other: #8b95a5; --lc-missing: #e5484d;
+  --lc-geometry: #c97b2a; --lc-trig: #0ea5e9; --lc-functions: #6366f1; --lc-integrals: #65a30d; --lc-draw: #c9a227; --lc-other: #8b95a5; --lc-missing: #e5484d;
   --lg-live: #39d0d8;
   --lg-block: color-mix(in srgb, var(--canvas) 86%, var(--on-canvas));
   --lg-block-border: color-mix(in srgb, var(--canvas) 72%, var(--on-canvas));
@@ -83,11 +83,37 @@
 .cat-value { --cat: var(--lc-value); } .cat-logic { --cat: var(--lc-logic); } .cat-math { --cat: var(--lc-math); } .cat-text { --cat: var(--lc-text); }
 .cat-object { --cat: var(--lc-object); } .cat-list { --cat: var(--lc-list); } .cat-matrix { --cat: var(--lc-matrix); } .cat-time { --cat: var(--lc-time); }
 .cat-console { --cat: var(--lc-console); } .cat-schema { --cat: var(--lc-schema); } .cat-ui { --cat: var(--lc-ui); } .cat-lilos { --cat: var(--lc-lilos); }
-.cat-net { --cat: var(--lc-net); } .cat-exception { --cat: var(--lc-exception); } .cat-units { --cat: var(--lc-units); } .cat-signal { --cat: var(--lc-signal); } .cat-missing { --cat: var(--lc-missing); }
+.cat-net { --cat: var(--lc-net); } .cat-exception { --cat: var(--lc-exception); } .cat-units { --cat: var(--lc-units); } .cat-signal { --cat: var(--lc-signal); } .cat-draw { --cat: var(--lc-draw); } .cat-missing { --cat: var(--lc-missing); }
 .cat-geometry { --cat: var(--lc-geometry); } .cat-trig { --cat: var(--lc-trig); } .cat-functions { --cat: var(--lc-functions); } .cat-integrals { --cat: var(--lc-integrals); }
 
 /* Ingresso e Uscita di schema: pills */
 .lgc-block.role-schemaIn, .lgc-block.role-schemaOut { border-radius: 13px; border-left-width: 1px; border-color: var(--lc-schema); background: color-mix(in srgb, var(--lc-schema) 18%, var(--lg-block)); --cat: var(--lc-schema); }
+/* Drawings (role 'drawing'): texts and shapes on the sheet, below the links and the blocks */
+.lgc-block.lgc-draw {
+  min-width: 0; max-width: none; background: none; border: 0; border-radius: 0; box-shadow: none; z-index: 0;
+  color: color-mix(in srgb, var(--on-canvas) 78%, var(--canvas));
+}
+.lgc-block.lgc-draw.sel { outline: 1.5px dashed var(--accent); outline-offset: 3px; z-index: 0; }
+.lgc-draw .lgc-dt { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.3; color: var(--on-canvas); }
+.lgc-draw-text .lgc-dt { min-width: 20px; max-width: 4000px; width: max-content; padding: 2px 4px; }
+.lgc-draw-text .lgc-dt.bg { padding: 4px 8px; border-radius: 4px; }
+.lgc-draw .lgc-dt.empty { color: var(--lg-dim); font-style: italic; }
+.lgc-draw-shape { pointer-events: none; }
+.lgc-draw-shape > svg { position: absolute; left: 0; top: 0; pointer-events: none; }
+.lgc-draw-shape > svg > * { pointer-events: none; }
+.lgc-draw-shape > svg > .lgc-dhit { pointer-events: stroke; cursor: grab; }
+.lgc-draw-shape.filled > svg > :not(.lgc-dhit) { pointer-events: visiblePainted; }
+.lgc-draw-shape > .lgc-dt { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); max-width: 100%; text-align: center; pointer-events: auto; }
+.lgc-draw .lgc-dt[contenteditable="true"], .lgc-draw .lgc-dt[contenteditable="plaintext-only"] {
+  user-select: text; cursor: text; outline: 1.5px solid var(--accent); outline-offset: 2px; background: color-mix(in srgb, var(--canvas) 70%, transparent); min-width: 40px;
+}
+.lgc-rs {
+  position: absolute; right: -6px; bottom: -6px; width: 10px; height: 10px; border-radius: 2px; display: none; pointer-events: auto;
+  background: var(--accent); border: 1.5px solid var(--canvas); cursor: nwse-resize;
+}
+.lgc-draw.sel:not(.editing) > .lgc-rs { display: block; }
+.lgc-ro .lgc-rs { display: none !important; }
+
 .lgc-block.role-component { border-color: var(--lc-ui); border-left-width: 3px; background: color-mix(in srgb, var(--lc-ui) 12%, var(--lg-block)); }
 
 /* Groups: an open one is a frame around its blocks (below them, below the links), «Run» in its header;

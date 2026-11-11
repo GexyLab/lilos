@@ -25,7 +25,7 @@ Nella barra del titolo disegnata, accanto al titolo, delle etichette ricordano c
 
 ## Le componenti
 
-La scheda **Componenti** elenca le componenti dei pacchetti installati, divise in **Testo e valori**, **Comandi**, **Contenitori** e **Grafici** (comprimibili con un clic sul nome, come i [blocchi](ide/schemas)), con una ricerca (**Cerca…**). Le componenti di base sono in [Componenti UI](logicstudio-ui), i grafici in [Grafici](logicstudio-charts).
+La scheda **Componenti** elenca le componenti dei pacchetti installati, divise in **Testo e valori**, **Comandi**, **Contenitori**, **Grafici** e **Disegno** (comprimibili con un clic sul nome, come i [blocchi](ide/schemas)), con una ricerca (**Cerca…**). Le componenti di base sono in [Componenti UI](logicstudio-ui), i grafici in [Grafici](logicstudio-charts); **Disegno** ha [Testo formattato](core.uiText) e [Forma](core.uiShape), dei [Blocchi di base](logicstudio-core). Le proprietà di colore si scelgono con il quadratino o si scrivono (`#rrggbb`, un nome); le proprietà di testo lungo hanno un campo su più righe.
 
 ### Aggiungere
 

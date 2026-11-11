@@ -2,7 +2,7 @@
 
 `logicstudio-core` · needs the [Logic Studio Engine](logicstudio-engine) and lilOS 1.37.0 or later
 
-The blocks you need in almost every Logic Studio schema: fixed values and memories, logic and comparisons, calculations, text, objects, time (intervals and waits), the consoles that write lines and ask questions, the ports that link the schemas of a project, and the object that links a schema to a component of a window.
+The blocks you need in almost every Logic Studio schema: fixed values and memories, logic and comparisons, calculations, text, objects, time (intervals and waits), the consoles that write lines and ask questions, the ports that link the schemas of a project, and the object that links a schema to a component of a window, and texts and shapes to draw on schemas and in windows.
 
 ## How to install it
 
@@ -108,6 +108,24 @@ The other blocks come with other packages: [Lists and matrices](logicstudio-coll
 |---|---|
 | [UI component](core.component) | The object of a window component, in a schema: it has the ports of the component. You create it from the window, not from the Blocks tab. |
 
+### Drawing
+
+Texts and shapes on the sheet of the schema. They have no ports and the program does not run them: they are for whoever reads the schema, like comments in code.
+
+| Block | What it does |
+|---|---|
+| [Text · Comment (// note)](core.drawText) | A text on the sheet, with size, colour, background and style; you write it with a double click. |
+| [Shape](core.drawShape) | A rectangle (also rounded), an ellipse, a diamond, a triangle, a line or an arrow, with line, fill and a text inside. |
+
+## UI components
+
+The package also brings two components for windows, in the **Drawing** category of the **Components** tab (from package 1.4.0):
+
+| Component | What it does |
+|---|---|
+| [Styled text](core.uiText) | A text with the size, colour, background and style you want; a schema changes its text and colour. |
+| [Shape](core.uiShape) | A shape to draw in the window (plants, boxes, arrows); a schema changes its fill, line colour and text. |
+
 ## Good to know for all blocks
 
 ### How a block runs
@@ -126,7 +144,7 @@ Many blocks convert what they receive. The rules are the same across the whole p
 
 ### The Exception
 
-Every block (except the schema ports) has the **Exception** output. When a block cannot do its job, an object comes out there:
+Every block (except the schema ports and the drawings) has the **Exception** output. When a block cannot do its job, an object comes out there:
 
 ```
 {"message": "Il campo «sconto» non esiste", "block": "get1", "type": "core.get", "schema": "main", "at": 1794405901003}

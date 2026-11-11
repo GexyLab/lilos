@@ -2,6 +2,7 @@ import { h, icon, fs, LogicUI, LogicConsoleView, textField, selectField, checkbo
 import { pickFile } from '@lilos/system';
 import { DRAG_TYPE } from './palette.js';
 import { docButton } from './docs.js';
+import { textareaField, colorField } from './fields.js';
 import { t, i18n } from './i18n.js';
 
 /**
@@ -533,7 +534,9 @@ export class WindowEditor {
     switch (p.type) {
       case 'checkbox': return h('div', { class: 'ls-field' }, checkbox({ value: !!value, label, onChange: set }));
       case 'number': return row(textField({ type: 'number', value: value ?? '', min: p.min, max: p.max, step: p.step ?? 'any', onChange: v => set(v === '' ? undefined : Number(v)) }));
-      case 'select': return row(selectField({ value, options: (p.options ?? []).map(o => ({ value: o, label: optLabel(p.key, o) })), onChange: set }));
+      case 'select': return row(selectField({ value, options: (p.options ?? []).map(o => (o && typeof o === 'object' ? { value: o.value, label: studio.label(o) } : { value: o, label: optLabel(p.key, o) })), onChange: set }));
+      case 'textarea': return row(textareaField({ value: value ?? '', onChange: set }));
+      case 'color': return row(colorField({ value: value ?? '', onChange: set }));
       case 'icon': return row(selectField({ value: value ?? '', options: ICONS.map(i => ({ value: i, label: i || '—' })), onChange: set }));
       case 'console': {
         const list = studio.ws?.project?.data.consoles.list ?? [{ id: 'main', name: t('console.main') }];

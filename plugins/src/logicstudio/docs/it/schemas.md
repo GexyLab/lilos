@@ -14,7 +14,7 @@ Uno **schema** (file `.lsch`) è un foglio di blocchi collegati. Si apre con un 
 └────────────────────────────┘
 ```
 
-- La **testa** ha l'icona e il nome: l'**etichetta** che gli hai dato, altrimenti il nome del blocco. La riga colorata a sinistra è la **categoria** (Valori, Logica, Matematica, Testo, Oggetti, Liste, Matrici, Unità di misura, Geometria solida, Trigonometria, Funzioni, Integrali, Segnali, Tempo, Console, Porte di schema, Componenti UI, lilOS, Rete, Eccezioni).
+- La **testa** ha l'icona e il nome: l'**etichetta** che gli hai dato, altrimenti il nome del blocco. La riga colorata a sinistra è la **categoria** (Valori, Logica, Matematica, Testo, Oggetti, Liste, Matrici, Unità di misura, Geometria solida, Trigonometria, Funzioni, Integrali, Segnali, Tempo, Console, Porte di schema, Componenti UI, lilOS, Rete, Eccezioni, Disegno).
 - Sotto la testa, in piccolo, le prime due impostazioni che hanno un valore (al massimo 34 caratteri).
 - A sinistra gli **ingressi**, a destra le **uscite**. Il pallino ha il colore del **tipo** della porta ed è pieno quando la porta è collegata (vedi [Collegamenti e tipi delle porte](ide/links)).
 - Il nome di un ingresso **sottolineato a puntini** vuol dire che quell'ingresso **non avvia** il blocco.
@@ -25,6 +25,16 @@ Due blocchi sono speciali:
 
 - **Parametro** e **Return** mostrano come titolo il **nome della porta** e, a destra, il tipo di blocco.
 - L'**oggetto di una componente** mostra il nome della componente (o la sua etichetta) e sotto «finestra › componente». Vedi [L'oggetto di una componente](ide/components).
+
+### Testi e forme (Disegno)
+
+I blocchi della categoria **Disegno**, [Testo · Commento](core.drawText) e [Forma](core.drawShape), non sono riquadri con porte: sul foglio si vede il testo o la forma, sotto i collegamenti e i blocchi. Il programma non li esegue; servono a spiegare lo schema, come i commenti nel codice.
+
+- Si spostano, si selezionano, si duplicano, si allineano e si cancellano come gli altri blocchi, e possono stare in un [gruppo](ide/groups).
+- Selezionato, un disegno ha un **quadratino nell'angolo in basso a destra**: trascinalo per cambiare la grandezza (per un testo, la larghezza). Si muove a passi di 10 px; con **Alt** premuto è libero.
+- **Doppio clic** su un disegno (o tasto destro → **Scrivi il testo**) per scriverne il testo lì sul foglio: **Ctrl Invio** o un clic altrove lo tiene, **Esc** lo lascia com'era.
+- Una forma **senza riempimento** si prende solo dalla sua linea: dentro, i clic e il rettangolo di selezione arrivano ai blocchi. Puoi quindi racchiudere dei blocchi in un riquadro e continuare a lavorarci.
+- Nelle **Proprietà** un disegno ha solo le impostazioni (niente Etichetta, niente porte). I colori si scelgono con il quadratino o si scrivono (`#2f81f7`, `#2f81f733` con trasparenza, `rgb(…)`, `hsl(…)`, un nome come `orange`); vuoto vuol dire il colore del tema.
 
 ## Mettere i blocchi
 

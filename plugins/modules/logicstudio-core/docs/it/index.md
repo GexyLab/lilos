@@ -1,8 +1,8 @@
 # Blocchi di base
 
-`logicstudio-core` · richiede il motore [Logic Studio Engine](logicstudio-engine) e lilOS dalla 1.37.0
+`logicstudio-core` · richiede il motore [Logic Studio Engine](logicstudio-engine) e lilOS dalla 1.37.0 (i testi e le forme si vedono disegnati dalla 1.48.0)
 
-I blocchi che servono in quasi ogni schema di Logic Studio: valori fissi e memorie, logica e confronti, calcoli, testo, oggetti, tempo (intervalli e attese), le console per scrivere righe e fare domande, le porte per collegare gli schemi di un progetto e l'oggetto che collega uno schema a una componente di una finestra.
+I blocchi che servono in quasi ogni schema di Logic Studio: valori fissi e memorie, logica e confronti, calcoli, testo, oggetti, tempo (intervalli e attese), le console per scrivere righe e fare domande, le porte per collegare gli schemi di un progetto, l'oggetto che collega uno schema a una componente di una finestra, e testi e forme per disegnare sugli schemi e nelle finestre.
 
 ## Come si installa
 
@@ -108,6 +108,24 @@ Gli altri blocchi arrivano con altri pacchetti: [Liste e matrici](logicstudio-co
 |---|---|
 | [Componente UI](core.component) | L'oggetto di una componente di una finestra in uno schema: ha le porte della componente. Si crea dalla finestra, non dalla scheda Blocchi. |
 
+### Disegno
+
+Testi e forme sul foglio dello schema. Non hanno porte e il programma non li esegue: servono a chi legge lo schema, come i commenti nel codice.
+
+| Blocco | Cosa fa |
+|---|---|
+| [Testo · Commento (// nota)](core.drawText) | Un testo sul foglio, con dimensione, colore, sfondo e stile; si scrive con un doppio clic. |
+| [Forma](core.drawShape) | Un rettangolo (anche arrotondato), un'ellisse, un rombo, un triangolo, una linea o una freccia, con linea, riempimento e un testo dentro. |
+
+## Le componenti UI
+
+Il pacchetto porta anche due componenti per le finestre, nella categoria **Disegno** della scheda **Componenti** (dal pacchetto 1.4.0):
+
+| Componente | Cosa fa |
+|---|---|
+| [Testo formattato](core.uiText) | Un testo con la dimensione, il colore, lo sfondo e lo stile che vuoi; uno schema ne cambia il testo e il colore. |
+| [Forma](core.uiShape) | Una forma per disegnare nella finestra (impianti, riquadri, frecce); uno schema ne cambia il riempimento, il colore della linea e il testo. |
+
 ## Da sapere per tutti i blocchi
 
 ### Come gira un blocco
@@ -126,7 +144,7 @@ Molti blocchi convertono quello che ricevono. Le regole sono le stesse in tutto 
 
 ### L'Exception
 
-Ogni blocco (tranne le porte di schema) ha l'uscita **Exception**. Quando un blocco non riesce a fare il suo lavoro, lì esce un oggetto:
+Ogni blocco (tranne le porte di schema e i disegni) ha l'uscita **Exception**. Quando un blocco non riesce a fare il suo lavoro, lì esce un oggetto:
 
 ```
 {"message": "Il campo «sconto» non esiste", "block": "get1", "type": "core.get", "schema": "main", "at": 1794405901003}

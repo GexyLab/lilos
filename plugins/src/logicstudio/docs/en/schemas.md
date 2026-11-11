@@ -14,7 +14,7 @@ A **schema** (`.lsch` file) is a sheet of linked blocks. It opens with a click o
 └────────────────────────────┘
 ```
 
-- The **head** has the icon and the name: the **label** you gave it, otherwise the name of the block. The coloured strip on the left is the **category** (Values, Logic, Math, Text, Objects, Lists, Matrices, Units, Solid geometry, Trigonometry, Functions, Integrals, Signals, Time, Console, Schema ports, UI components, lilOS, Network, Exceptions).
+- The **head** has the icon and the name: the **label** you gave it, otherwise the name of the block. The coloured strip on the left is the **category** (Values, Logic, Math, Text, Objects, Lists, Matrices, Units, Solid geometry, Trigonometry, Functions, Integrals, Signals, Time, Console, Schema ports, UI components, lilOS, Network, Exceptions, Drawing).
 - Under the head, in small type, the first two settings that have a value (at most 34 characters).
 - On the left the **inputs**, on the right the **outputs**. The dot has the colour of the **type** of the port and is filled when the port is linked (see [Links and port types](ide/links)).
 - The name of an input **underlined with dots** means that input **does not start** the block.
@@ -25,6 +25,16 @@ Two blocks are special:
 
 - **Parameter** and **Return** show as title the **name of the port** and, on the right, the kind of block.
 - The **object of a component** shows the name of the component (or its label) and under it «window › component». See [The object of a component](ide/components).
+
+### Texts and shapes (Drawing)
+
+The blocks of the **Drawing** category, [Text · Comment](core.drawText) and [Shape](core.drawShape), are not boxes with ports: on the sheet you see the text or the shape, below the links and the blocks. The program does not run them; they explain the schema, like comments in code.
+
+- They move, are selected, duplicated, aligned and deleted like the other blocks, and can be in a [group](ide/groups).
+- When selected, a drawing has a **small square in the bottom right corner**: drag it to change the size (for a text, the width). It moves in steps of 10 px; with **Alt** held it is free.
+- **Double click** on a drawing (or right click → **Write the text**) to write its text right there on the sheet: **Ctrl Enter** or a click elsewhere keeps it, **Esc** leaves it as it was.
+- A shape **without a fill** is picked only by its line: inside it, clicks and the selection rectangle reach the blocks. So you can enclose some blocks in a box and keep working on them.
+- In the **Properties** a drawing has only the settings (no Label, no ports). Colours are chosen with the small square or typed (`#2f81f7`, `#2f81f733` with transparency, `rgb(…)`, `hsl(…)`, a name like `orange`); empty means the colour of the theme.
 
 ## Putting blocks
 

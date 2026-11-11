@@ -59,6 +59,14 @@ function getPath(obj, path) {
 
 const consoleField = { key: 'console', type: 'console', default: 'main', label: L('Console', 'Console') };
 
+// The choices of the drawing blocks (Testo, Forma): the same as the UI components Testo and Forma in components.js
+const O = (value, en, it) => ({ value, label: L(en, it) });
+const ALIGN = [O('start', 'Left', 'A sinistra'), O('center', 'Centre', 'Al centro'), O('end', 'Right', 'A destra')];
+const SHAPES = [O('rect', 'Rectangle', 'Rettangolo'), O('rounded', 'Rounded rectangle', 'Rettangolo arrotondato'), O('ellipse', 'Ellipse · circle', 'Ellisse · cerchio'), O('diamond', 'Diamond', 'Rombo'), O('triangle', 'Triangle', 'Triangolo'), O('line', 'Line · arrow', 'Linea · freccia')];
+const DIRECTIONS = [O('horizontal', 'Horizontal', 'Orizzontale'), O('vertical', 'Vertical', 'Verticale'), O('down', 'Diagonal ↘', 'Diagonale ↘'), O('up', 'Diagonal ↗', 'Diagonale ↗')];
+const ARROWS = [O('none', 'None', 'Nessuna'), O('end', 'At the end', 'Alla fine'), O('start', 'At the start', 'All\'inizio'), O('both', 'At both ends', 'A entrambi i capi')];
+const DASHES = [O('solid', 'Solid', 'Continua'), O('dashed', 'Dashed', 'Tratteggiata'), O('dotted', 'Dotted', 'Punteggiata')];
+
 export const blocks = [
   // ---- Valori
   {
@@ -575,6 +583,42 @@ export const blocks = [
     config: [
       { key: 'window', type: 'text', default: '', label: L('Window', 'Finestra') },
       { key: 'component', type: 'text', default: '', label: L('Component', 'Componente') },
+    ],
+  },
+
+  // ---- Disegno: testi e forme sul foglio dello schema (role 'drawing'). Nessuna porta, il
+  // motore non li esegue: il canvas (SDK LogicCanvas) li disegna sotto i collegamenti e i blocchi.
+  {
+    type: 'core.drawText', version: 1, category: 'draw', icon: 'text', label: L('Text · Comment (// note)', 'Testo · Commento (// nota)'), role: 'drawing',
+    inputs: [], outputs: [],
+    config: [
+      { key: 'text', type: 'textarea', default: 'Testo', label: L('Text', 'Testo') },
+      { key: 'size', type: 'number', default: 14, min: 8, max: 96, label: L('Size (px)', 'Dimensione (px)') },
+      { key: 'color', type: 'color', default: '', label: L('Colour (empty: the theme\'s)', 'Colore (vuoto: quello del tema)') },
+      { key: 'background', type: 'color', default: '', label: L('Background (empty: none)', 'Sfondo (vuoto: nessuno)') },
+      { key: 'bold', type: 'checkbox', default: false, label: L('Bold', 'Grassetto') },
+      { key: 'italic', type: 'checkbox', default: false, label: L('Italic', 'Corsivo') },
+      { key: 'underline', type: 'checkbox', default: false, label: L('Underlined', 'Sottolineato') },
+      { key: 'align', type: 'select', default: 'start', options: ALIGN, label: L('Alignment', 'Allineamento') },
+      { key: 'w', type: 'number', default: 0, min: 0, max: 4000, label: L('Width (px, 0: as long as the text)', 'Larghezza (px, 0: quanto il testo)') },
+    ],
+  },
+  {
+    type: 'core.drawShape', version: 1, category: 'draw', icon: 'shapes', label: L('Shape', 'Forma'), role: 'drawing',
+    inputs: [], outputs: [],
+    config: [
+      { key: 'shape', type: 'select', default: 'rect', options: SHAPES, label: L('Shape', 'Forma') },
+      { key: 'w', type: 'number', default: 200, min: 4, max: 4000, label: L('Width (px)', 'Larghezza (px)') },
+      { key: 'h', type: 'number', default: 120, min: 4, max: 4000, label: L('Height (px)', 'Altezza (px)') },
+      { key: 'direction', type: 'select', default: 'horizontal', options: DIRECTIONS, label: L('Direction', 'Direzione'), when: { shape: 'line' } },
+      { key: 'arrows', type: 'select', default: 'none', options: ARROWS, label: L('Arrows', 'Frecce'), when: { shape: 'line' } },
+      { key: 'radius', type: 'number', default: 12, min: 0, max: 400, label: L('Corner radius (px)', 'Raggio degli angoli (px)'), when: { shape: 'rounded' } },
+      { key: 'stroke', type: 'color', default: '', label: L('Line colour (empty: the theme\'s)', 'Colore della linea (vuoto: quello del tema)') },
+      { key: 'strokeWidth', type: 'number', default: 2, min: 0, max: 40, label: L('Line width (px, 0: no line)', 'Spessore della linea (px, 0: senza linea)') },
+      { key: 'dash', type: 'select', default: 'solid', options: DASHES, label: L('Line', 'Linea') },
+      { key: 'fill', type: 'color', default: '', label: L('Fill (empty: none)', 'Riempimento (vuoto: nessuno)'), when: { shape: ['rect', 'rounded', 'ellipse', 'diamond', 'triangle'] } },
+      { key: 'text', type: 'textarea', default: '', label: L('Text inside', 'Testo dentro') },
+      { key: 'textSize', type: 'number', default: 13, min: 8, max: 96, label: L('Text size (px)', 'Dimensione del testo (px)') },
     ],
   },
 ];

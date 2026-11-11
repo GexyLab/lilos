@@ -1447,6 +1447,8 @@ Un **pacchetto** porta blocchi (e, se vuoi, Componenti UI per le finestre) a Log
    ```
 
    Ogni componente ha anche gli ingressi `enabled` e `visible`: li gestisce `LogicUI`, non `render`. Nell'editor delle finestre `c.design` è vero: mostra dati finti e non reagire.
+
+   Nelle `config` dei blocchi e nelle `props` delle componenti, oltre a `text`, `number`, `select` e `checkbox`, l'IDE (dalla 1.13.0) conosce `textarea` (testo su più righe) e `color` (selettore e testo; vuoto = colore del tema). Una IDE più vecchia mostra un campo di testo. Le `options` di un `select` possono essere `{ value, label: { en, it } }` anche nelle `props`. Un blocco con `role: 'drawing'` non ha porte e non viene eseguito (è un testo o una forma sul foglio): guarda `core.drawText` e `core.drawShape` in `plugins/modules/logicstudio-core/blocks.js`; filtra sempre i colori che arrivano da dati prima di metterli in uno stile (vedi `colorOf` in `components.js`).
 5. Se un blocco deve toccare qualcosa fuori dal suo thread (file, notifiche, rete), **non lo fa il blocco**: chiama un'azione con `b.call('pacchetto.nome', args)`. L'azione è una funzione `async (user, args, tools)` che il kernel esegue **come l'utente**: passa `user` ai servizi (`ctx.service('fs')` dentro la funzione, non in `init`), mai il principale del kernel; `args` e il risultato sono JSON. Per la rete chiama `tools.countNet()` prima di ogni richiesta: conta nella quota dell'utente. Un errore con un messaggio chiaro, per l'utente, esce dall'uscita `error` del blocco.
 6. Scrivi la documentazione, in italiano e in inglese (dal motore 1.1.0, SDK 0.25.0). Nella cartella del modulo crea `docs/it/` e `docs/en/` (`docs` è già in `register` nel passo 2). Per ogni lingua:
 

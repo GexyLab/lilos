@@ -243,3 +243,8 @@
 .ls-doc-main { flex: 1; min-width: 0; overflow: auto; }
 .ls-doc-page { max-width: 860px; padding: 22px 28px 40px; outline: none; }
 @media (max-width: 640px) { .ls-doc-side { width: 180px; } .ls-doc-page { padding: 16px; } }
+
+/* Proprietà: a colour (fields.js) */
+.ls-color { display: flex; gap: 6px; align-items: center; }
+.ls-color-pick { flex: none; width: 34px; height: 28px; padding: 1px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: none; cursor: pointer; }
+.ls-color > .ctl-text { flex: 1; min-width: 0; }

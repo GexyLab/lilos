@@ -160,7 +160,8 @@ export class SchemaEditor {
       const block = this.doc.block(e.id);
       const def = this.#studio.blockDef(block?.type);
       items.push({ label: t('menu.duplicate'), icon: 'copy', shortcut: 'Ctrl+D', action: () => this.canvas.duplicateSelection() });
-      items.push({ label: t('menu.label'), icon: 'pencil', action: () => this.#rename(e.id) });
+      if (def?.role === 'drawing') items.push({ label: t('menu.editText'), icon: 'pencil', disabled: this.canvas.readOnly, action: () => this.canvas.editText(e.id) });
+      else items.push({ label: t('menu.label'), icon: 'pencil', action: () => this.#rename(e.id) });
       items.push(...this.#groupItemsOfBlocks(sel.blocks));
       if (sel.blocks.length > 1 && !this.canvas.readOnly) items.push({ label: t('tb.align'), icon: 'cols', items: this.#alignItems() });
       if (def?.role === 'component') items.push({ label: t('menu.openWindow'), icon: 'window', action: () => this.#open(e.id) });

@@ -2500,3 +2500,39 @@ Conseguenze: se tutte le schede si chiudono non parte niente; un'automazione con
 - I test sono fuori dal repository, come per D88: un banco con oltre 1100 controlli dei blocchi, programmi veri nel runtime del motore e un fuzz delle espressioni (stampa e rilettura, derivate simboliche contro numeriche).
 
 **Quando ripensarla.** Se servirà un tipo di porta per le funzioni (per esempio per disegnarle in un grafico senza campionarle); se la tabella delle primitive non basterà e servirà un vero sistema di calcolo simbolico; se serviranno numeri complessi in tutti i blocchi e non solo nelle radici.
+
+## D94. Logic Studio: i disegni sul foglio sono blocchi senza porte che il motore non esegue
+
+> Completa [D88](#d88-logic-studio-motore-pacchetti-ide-finestre-dei-progetti): un ruolo di blocco in più e la prima volta che il pacchetto di base porta anche componenti.
+
+**Contesto.** L'utente ha chiesto (11 novembre 2026) di poter scrivere note e disegnare forme sul foglio di uno schema (riquadri, frecce, commenti `// nota`), e di avere le stesse cose come componenti nelle finestre dei progetti. Le ha volute nel pacchetto di base, `logicstudio-core`.
+
+**Decisione.** Decisa l'11 novembre 2026: `logicstudio-core` 1.4.0, lilOS 1.48.0, SDK 0.33.0, Logic Studio IDE 1.13.0 (chiede lilOS `>=1.48.0`).
+
+- **Un disegno è un blocco** con `role: 'drawing'`, nella categoria `draw` («Disegno»): `core.drawText` («Testo · Commento (// nota)») e `core.drawShape` («Forma»). Nessuna porta, nemmeno Exception; niente `run` né `start`, quindi il motore non li esegue. Contano però nel limite dei blocchi per schema. Stanno in `blocks` del `.lsch` come ogni altro blocco: spostare, copiare, annullare, raggruppare e i blocchi mancanti funzionano senza codice nuovo.
+- **Li disegna `LogicCanvas`**, sotto i collegamenti e i blocchi: un testo, o una forma se la definizione ha la chiave `shape` tra le impostazioni. La maniglia in basso a destra scrive `w`/`h` in un solo passo di storia (scatti di 10 px, Alt a mano libera); il doppio clic, o `canvas.editText(id)`, scrive il testo sul foglio. Una forma senza riempimento si afferra solo dal contorno. Il disegno sta in `sdk/ui/logic/shapes.js` (`drawShape`, `drawColor`, `drawTextStyle`), un modulo interno non esportato dall'SDK.
+- **Componenti UI** `core.uiText` («Testo formattato») e `core.uiShape` («Forma»), categoria `draw`, in un nuovo `components.js` di `logicstudio-core` (che prima non ne aveva). Stanno lì e non in `logicstudio-ui` perché l'utente le ha chieste nel pacchetto di base. Ingressi: `text` e `color` per il testo; `fill`, `stroke` e `text` per la forma.
+- **Colori dai dati.** Un colore scritto dall'utente nelle impostazioni, o che arriva da un ingresso o da un file condiviso, entra in uno stile solo se è `#hex`, `rgb()`/`rgba()`/`hsl()`/`hsla()` con soli numeri o un nome semplice; altrimenti vale il colore del tema. Evita che un `.lsch` o un `.lsui` altrui metta CSS qualsiasi in una pagina.
+- **Campi nuovi nelle Proprietà** (`plugins/src/logicstudio/fields.js`): `textarea` (testo su più righe) e `color` (selettore e testo, vuoto = colore del tema). Un tipo sconosciuto diventa un campo di testo, perciò una IDE più vecchia mostra comunque il disegno modificabile. Le `options` dei `select` delle componenti accettano `{ value, label: { en, it } }` come quelle dei blocchi. Le Proprietà di un disegno mostrano solo le sue impostazioni e un suggerimento (niente etichetta, niente porte); il menu ha «Scrivi il testo» al posto di «Etichetta…».
+
+**Perché.**
+
+- *Blocchi e non una lista a parte.* `LogicSchema` ha già un campo `notes: []` che nessuno usa e che è rimasto com'era. Una lista separata avrebbe voluto un suo formato, i suoi comandi di selezione, copia, annulla e gruppi, e un posto nei limiti. Come blocco, un disegno eredita tutto, il catalogo lo distribuisce con il pacchetto e la documentazione ha una pagina per tipo come per gli altri.
+- *Il canvas, non il motore.* Un disegno non ha comportamento: il motore non deve nemmeno saperne, e non serve cambiare il motore (non provato con motori più vecchi).
+- *Componenti nel pacchetto di base.* È stata una richiesta; il costo è che `logicstudio-core` ha ora un `components.js` e il pacchetto `logicstudio-ui` non è più l'unico posto delle componenti di base.
+- *Filtrare i colori.* I colori finiscono in `style=`: senza controllo, un file ricevuto da altri potrebbe mettere CSS a piacere (immagini remote, `url()`).
+
+**Alternative scartate.**
+
+- Usare `notes` di `LogicSchema`: formato nuovo, selezione e storia da riscrivere.
+- Un blocco con porte che «non fa niente»: porte inutili e un'esecuzione per niente.
+- Le componenti in `logicstudio-ui`: più coerente, ma contro la richiesta.
+
+**Conseguenze.**
+
+- Uno schema con disegni aperto da un SDK più vecchio di 0.33.0 li mostra come blocchi senza porte (non provato), e con una IDE più vecchia i campi `textarea` e `color` sono di testo; il pacchetto `core` 1.4.0 senza IDE 1.13.0 funziona.
+- Il campo `notes` di `LogicSchema` resta, non usato.
+- Il motore non controlla chi usa `role: 'drawing'`: un altro pacchetto può definire disegni suoi, con la stessa convenzione (una chiave `shape` nella `config` = forma, altrimenti testo; `w`, `h`, i colori come nei blocchi di base). Per ora gli unici sono quelli di base.
+- I disegni contano per `maxBlocks` (di serie 200): uno schema con molte note può arrivare al limite.
+
+**Quando ripensarla.** Se serviranno disegni con collegamenti a loro (frecce che seguono i blocchi), immagini, o altre forme; se i pacchetti di terzi vorranno i propri disegni (allora il ruolo va aperto e definito); se `notes` andrà usato o tolto.

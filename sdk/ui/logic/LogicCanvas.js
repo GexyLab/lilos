@@ -4,12 +4,19 @@ import { icon } from '../icons.js';
 import { selectionGesture } from '../selectionGesture.js';
 import { portsOf, linkKey, typesMatch, logicText, GROUP_RUN } from '../../core/logicModel.js';
 import { formatLogicValue } from './format.js';
+import { drawShape, drawColor, drawTextStyle } from './shapes.js';
 
 /**
  * The drawing of a Logic Studio schema (LogicSchema): blocks, their ports, the links between them
  * and the groups, on a canvas that pans and zooms. Ports are never added, removed, hidden or shown
  * here (only in the properties sidebar): the added ones are shown with their name in italics; the
  * hidden ones (portHidden: the output «error» unless shown) are not drawn, unless they are linked.
+ *
+ * Drawings (blocks with role 'drawing': Testo and Forma of the base package) are texts and shapes
+ * on the sheet, below the links and the blocks, with no ports: they move, are selected, copied and
+ * removed like blocks. A selected one has a handle at its bottom right corner to resize it (a
+ * text: its width); a double click writes its text right there (Ctrl+Enter or a click elsewhere
+ * keeps it, Esc leaves it as it was). A shape without a fill is taken only by its line.
  *
  * Groups: an open group is a frame around its blocks (it follows them), with its port «Run» in
  * the header: the dot on the left edge is reached from outside, the one after «Run» goes to the
@@ -35,7 +42,7 @@ import { formatLogicValue } from './format.js';
  * drag from an output to an input to link them, from a linked input to take its link away; drag
  * the background to select with a rectangle, with the middle button (or Space held) to move the
  * view; the wheel zooms where the pointer is; double click on a collapsed group opens it, on the
- * header of an open one collapses it. Keys (the canvas focused): Canc removes the selection, Ctrl+A
+ * header of an open one collapses it, on a drawing writes its text. Keys (the canvas focused): Canc removes the selection, Ctrl+A
  * selects all, Ctrl+D duplicates, Ctrl+G makes a group of the selected blocks, Ctrl+Shift+G undoes
  * the selected groups, arrows move the selection, Esc deselects.
  *
@@ -127,8 +134,9 @@ export class LogicCanvas extends Emitter {
       const ex = exposed.get(b.id) ?? new Set();
       const sig = JSON.stringify([b, !!def, comp?.def?.type, comp?.added, this.#lang, [...on].sort(), [...ex].sort()]);
       let entry = this.#blocks.get(b.id);
+      if (entry?.editing) continue;   // its text is being written: drawn again when done
       if (!entry || entry.sig !== sig || all) {
-        const fresh = this.#blockEl(b, def, comp, on, ex);
+        const fresh = def?.role === 'drawing' ? this.#drawingEl(b, def) : this.#blockEl(b, def, comp, on, ex);
         if (entry) entry.el.replaceWith(fresh.el); else this.#world.append(fresh.el);
         entry = { ...fresh, sig };
         this.#blocks.set(b.id, entry);
@@ -195,6 +203,127 @@ export class LogicCanvas extends Emitter {
     sub ? h('div', { class: 'lgc-sub' }, sub) : null,
     h('div', { class: 'lgc-ports' }, ...ports.inputs.map(p => row(p, 'in')), ...ports.outputs.map(p => row(p, 'out'))));
     return { el, ports: portEls };
+  }
+
+  /**
+   * A drawing: a text, or a shape (its definition has the setting «shape») with its text inside.
+   * Sizes and colours come from the block's settings, colours only when they are colours.
+   */
+  #drawingEl(b, def) {
+    const c = b.config ?? {};
+    const isShape = (def.config ?? []).some(x => x.key === 'shape');
+    const handle = h('i', { class: 'lgc-rs', dataset: { rs: b.id } });
+    const style = `left:${b.x}px;top:${b.y}px`;
+    if (!isShape) {
+      const bg = drawColor(c.background);
+      const align = ['start', 'center', 'end'].includes(c.align) ? c.align : 'start';
+      const w = Number(c.w) > 0 ? Math.min(4000, Math.max(20, Number(c.w))) : 0;
+      const text = String(c.text ?? '');
+      const box = h('div', {
+        class: `lgc-dt${text ? '' : ' empty'}${bg ? ' bg' : ''}`,
+        style: `${drawTextStyle(c, drawColor(c.color))};text-align:${align};${bg ? `background:${bg};` : ''}${w ? `width:${w}px;` : ''}`,
+      }, text || (def.label?.[this.#lang] ?? def.label?.en ?? ''));
+      return { el: h('div', { class: 'lgc-block lgc-draw lgc-draw-text', dataset: { id: b.id, draw: 'text' }, style }, box, handle), ports: new Map() };
+    }
+    const svg = drawShape(c);
+    // a thick line nobody sees, to take a shape by its line (a shape without a fill is taken only there)
+    const sw = Math.max(10, Math.min(40, Number(c.strokeWidth) || 0) + 8);
+    for (const n of [...svg.children]) {
+      if (n.classList.contains('head')) continue;
+      const hit = n.cloneNode();
+      for (const [k, v] of Object.entries({ stroke: 'transparent', 'stroke-width': sw, fill: 'none', class: 'lgc-dhit' })) hit.setAttribute(k, String(v));
+      hit.removeAttribute('stroke-dasharray');
+      svg.append(hit);
+    }
+    const text = String(c.text ?? '');
+    const filled = c.shape !== 'line' && !!drawColor(c.fill);
+    const label = h('div', { class: `lgc-dt${text ? '' : ' empty'}`, style: drawTextStyle({ size: c.textSize }), hidden: !text }, text);
+    const el = h('div', {
+      class: `lgc-block lgc-draw lgc-draw-shape${filled ? ' filled' : ''}`,
+      dataset: { id: b.id, draw: 'shape' },
+      style: `${style};width:${svg.getAttribute('width')}px;height:${svg.getAttribute('height')}px`,
+    }, svg, label, handle);
+    return { el, ports: new Map() };
+  }
+
+  /** Writes the text of a drawing right on it: Ctrl+Enter or a click elsewhere keeps it, Esc leaves it as it was. */
+  editText(id) {
+    const entry = this.#blocks.get(id);
+    const b = this.#schema.block(id);
+    if (this.#readOnly || !entry || !b || this.#defs.get(b.type)?.role !== 'drawing' || entry.editing) return;
+    const box = entry.el.querySelector('.lgc-dt');
+    if (!box) return;
+    const before = String(b.config?.text ?? '');
+    entry.editing = true;
+    entry.el.classList.add('editing');
+    box.hidden = false;
+    box.classList.remove('empty');
+    box.textContent = before;
+    box.contentEditable = 'plaintext-only';
+    if (box.contentEditable !== 'plaintext-only') box.contentEditable = 'true';
+    box.spellcheck = false;
+    box.focus({ preventScroll: true });
+    getSelection()?.selectAllChildren(box);
+    const done = keep => {
+      box.removeEventListener('blur', onBlur);
+      box.removeEventListener('keydown', onKey);
+      box.contentEditable = 'false';
+      entry.editing = false;
+      entry.el.classList.remove('editing');
+      const value = box.innerText.replace(/\n$/, '').slice(0, 2000);
+      entry.sig = '';   // drawn again from the settings
+      if (keep && value !== before) this.#schema.setConfig(id, 'text', value);
+      else this.refresh();
+      this.el.focus({ preventScroll: true });
+    };
+    const onBlur = () => done(true);
+    const onKey = e => {
+      e.stopPropagation();
+      if (e.key === 'Escape') { e.preventDefault(); done(false); }
+      else if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); done(true); }
+    };
+    box.addEventListener('blur', onBlur);
+    box.addEventListener('keydown', onKey);
+  }
+
+  /** Dragging the corner of a drawing: its size (a text: its width) follows; one step of the history at the end. */
+  #resizeDrag(e, id) {
+    const b = this.#schema.block(id);
+    const entry = this.#blocks.get(id);
+    const def = b && this.#defs.get(b.type);
+    if (this.#readOnly || !b || !entry || def?.role !== 'drawing') return;
+    e.preventDefault();
+    e.stopPropagation();
+    const isShape = entry.el.dataset.draw === 'shape';
+    const w0 = isShape ? (Number(b.config.w) || 200) : (Number(b.config.w) || entry.el.offsetWidth);
+    const h0 = Number(b.config.h) || 120;
+    const sx = e.clientX, sy = e.clientY;
+    let size = null;
+    const move = ev => {
+      const round = ev.altKey ? v => Math.round(v) : snap;
+      const w = Math.min(4000, Math.max(isShape ? 4 : 20, round(w0 + (ev.clientX - sx) / this.#view.zoom)));
+      const hh = Math.min(4000, Math.max(4, round(h0 + (ev.clientY - sy) / this.#view.zoom)));
+      size = { w, h: hh };
+      const fresh = this.#drawingEl({ ...b, config: { ...b.config, w, ...(isShape && { h: hh }) } }, def);
+      entry.el.style.cssText = fresh.el.style.cssText;
+      entry.el.replaceChildren(...fresh.el.childNodes);
+      this.#layoutGroups();
+    };
+    const end = () => {
+      removeEventListener('pointermove', move);
+      removeEventListener('pointerup', end);
+      if (!size) return;
+      entry.sig = '';
+      this.#schema.edit('resize', data => {
+        const x = data.blocks.find(k => k.id === id);
+        if (!x) return;
+        x.config.w = size.w;
+        if (isShape) x.config.h = size.h;
+      });
+      this.refresh();
+    };
+    addEventListener('pointermove', move);
+    addEventListener('pointerup', end);
   }
 
   /** A block's title, the word beside it and the line under it. */
@@ -584,6 +713,7 @@ export class LogicCanvas extends Emitter {
     }, { passive: false });
 
     el.addEventListener('pointerdown', e => {
+      if (e.target.closest?.('.lgc-dt[contenteditable="true"], .lgc-dt[contenteditable="plaintext-only"]')) return;   // writing a drawing's text
       el.focus({ preventScroll: true });
       if (e.button === 1 || (e.button === 0 && this.#space)) { e.preventDefault(); this.#pan(e); return; }
       if (e.button !== 0) return;
@@ -594,6 +724,8 @@ export class LogicCanvas extends Emitter {
       const collapse = e.target.closest('[data-collapse]');
       if (collapse) { e.preventDefault(); if (!this.#readOnly) this.#schema.setGroup(collapse.dataset.collapse, { collapsed: true }); return; }
       if (dot && !this.#readOnly) { e.preventDefault(); this.#linkDrag(e, dot.parentElement); return; }
+      const rs = e.target.closest('.lgc-rs');
+      if (rs && !this.#readOnly) { this.#resizeDrag(e, rs.dataset.rs); return; }
       if (block?.dataset.group) { this.#groupDrag(e, block.dataset.group); return; }
       if (head) { this.#groupDrag(e, head.dataset.group); return; }
       if (block) { this.#blockDrag(e, block.dataset.id); return; }
@@ -607,6 +739,7 @@ export class LogicCanvas extends Emitter {
       const head = e.target.closest('.lgc-gh');
       if (block?.dataset.group) { if (!this.#readOnly) this.#schema.setGroup(block.dataset.group, { collapsed: false }); return; }
       if (head) { if (!this.#readOnly) this.#schema.setGroup(head.dataset.group, { collapsed: true }); return; }
+      if (block?.dataset.draw) { this.editText(block.dataset.id); return; }
       if (block) this.emit('open', { id: block.dataset.id });
     });
 

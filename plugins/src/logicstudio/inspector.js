@@ -1,5 +1,6 @@
 import { h, icon, textField, selectField, checkbox, actionButton, messageBox, portsOf, PORT_TYPES } from '@lilos/sdk';
 import { docButton, blockDocAddress } from './docs.js';
+import { textareaField, colorField } from './fields.js';
 import { t, i18n } from './i18n.js';
 
 /**
@@ -181,7 +182,13 @@ export class Inspector {
       if (def.role === 'schemaIn' || def.role === 'schemaOut') out.push(...this.#schemaPortLinks(view, block, def));
     }
 
-    // Ports
+    // Ports (a drawing, Testo or Forma, has none)
+    if (def.role === 'drawing') {
+      out.push(h('p', { class: 'ls-hint' }, t('inspector.drawingHint')));
+      out.push(this.#section(t('inspector.block')));
+      out.push(h('p', { class: 'ls-hint mono' }, `${def.type} v${def.version}`));
+      return out;
+    }
     const comp = def.role === 'component' ? view.canvas && this.#componentOf(view, block) : null;
     const ports = portsOf(block, def, { lang: i18n.lang, component: comp, errorLabel: t('port.error') });
     out.push(this.#section(t('inspector.ports')));
@@ -305,6 +312,8 @@ export class Inspector {
       case 'number': return textField({ type: 'number', value: value ?? '', min: c.min, max: c.max, step: c.step ?? 'any', onChange: v => set(v === '' ? null : Number(v)) });
       case 'console': return selectField({ value: value ?? 'main', options: this.#consoles().map(x => ({ value: x.id, label: x.name })), onChange: set });
       case 'json': return textField({ value: value === undefined ? '' : JSON.stringify(value), mono: true, onChange: v => { try { set(JSON.parse(v)); } catch { set(v); } } });
+      case 'textarea': return textareaField({ value: value ?? '', onChange: set });
+      case 'color': return colorField({ value: value ?? '', onChange: set });
       default: return textField({ value: value ?? '', maxLength: 2000, onChange: set });
     }
   }

@@ -25,7 +25,7 @@ In the drawn title bar, next to the title, labels recall how the window opens: *
 
 ## The components
 
-The **Components** tab lists the components of the installed packages, divided into **Text and values**, **Commands**, **Containers** and **Charts** (collapsible with a click on the name, like the [blocks](ide/schemas)), with a search (**Search…**). The base components are in [UI components](logicstudio-ui), the charts in [Charts](logicstudio-charts).
+The **Components** tab lists the components of the installed packages, divided into **Text and values**, **Commands**, **Containers**, **Charts** and **Drawing** (collapsible with a click on the name, like the [blocks](ide/schemas)), with a search (**Search…**). The base components are in [UI components](logicstudio-ui), the charts in [Charts](logicstudio-charts); **Drawing** has [Styled text](core.uiText) and [Shape](core.uiShape), from the [Core blocks](logicstudio-core). Colour properties are chosen with the small square or typed (`#rrggbb`, a name); long-text properties have a multi-line field.
 
 ### Adding
 
