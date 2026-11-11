@@ -210,6 +210,9 @@ Un esempio completo, con contenitori, un pulsante che apre un'altra finestra e u
   "format": "lilos-lsui/1",
   "title": "Serra",
   "size": { "w": 480, "h": 420, "resizable": true },
+  "state": "normal",
+  "modal": false,
+  "onTop": false,
   "root": {
     "id": "root",
     "type": "ui.column",
@@ -240,7 +243,10 @@ Un esempio completo, con contenitori, un pulsante che apre un'altra finestra e u
 |---|---|
 | `format` | Sempre `lilos-lsui/1`. |
 | `title` | Il titolo (al massimo 120 caratteri). |
-| `size` | `w` e `h` in pixel (almeno 160 × 120), `resizable`. |
+| `size` | `w` e `h` in pixel (almeno 160 × 120), `resizable`. Sono le misure del contenuto: la barra del titolo è in più. |
+| `state` | Come si apre: `normal` (di serie) o `maximized` (estesa). Un altro valore vale `normal`. |
+| `modal` | `true`: è una finestra di dialogo, le altre finestre del programma aperte prima non si usano finché non si chiude. Di serie `false`. |
+| `onTop` | `true`: sempre in primo piano. Di serie `false`. |
 | `root` | La componente di fondo: una **Colonna** con id `root`. |
 | `…id` | L'id della componente, unico nella finestra: è quello che usano gli oggetti negli schemi. |
 | `…type` | Il tipo della componente (`ui.button`, `charts.line`). |

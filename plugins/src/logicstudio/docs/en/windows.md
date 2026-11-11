@@ -15,6 +15,14 @@ A click on a window in the **Project** list opens it in a tab. In the middle you
 
 The status bar says «8 components / 200 · 480 × 360» (the components that have ports, the limit, the size).
 
+### Resizing with the mouse
+
+The window is resized by dragging its **right edge**, its **bottom edge** or its **bottom-right corner** (the one with the slanted lines), in **Design** and in **Preview**. While you drag, a label shows the size (`420 × 300`); when you release the mouse the size goes into **Width (px)** and **Height (px)** and **Ctrl+Z** undoes it in one step. The size is that of the **content**: the title bar (30 pixels) comes on top, as in the real window. It never goes below 160 × 120 or beyond 4000 × 4000.
+
+You can resize it even when **The user can resize it** is unticked: that box is for whoever uses the app, not for whoever designs it.
+
+In the drawn title bar, next to the title, labels recall how the window opens: **Maximized**, **Dialog**, **On top** (see below).
+
 ## The components
 
 The **Components** tab lists the components of the installed packages, divided into **Text and values**, **Commands**, **Containers** and **Charts** (collapsible with a click on the name, like the [blocks](ide/schemas)), with a search (**Search…**). The base components are in [UI components](logicstudio-ui), the charts in [Charts](logicstudio-charts).
@@ -68,6 +76,16 @@ The window is a **Column** (the one at the bottom, which cannot be selected or r
 | **Height (px)** | From 120 to 4000. |
 | **The user can resize it** | If unticked, the window has a fixed size. |
 
+Width and height also change by dragging the edges of the window (see [Resizing with the mouse](ide/windows)).
+
+Then **When it opens**, how lilOS opens the window:
+
+| Field | What it does |
+|---|---|
+| **State** | **Normal** (default): the window opens at its size. **Maximized**: it opens maximized, as big as the screen, as with the maximize button; the user can bring it back to its normal size with the same button or a double click on the title bar. |
+| **Dialog** | While it is open, the **other windows of the app opened before it** cannot be used: a click on one of them (or on its taskbar button, or **Alt N**) brings the dialog forward, and the dialog flashes. They are covered by a grey veil. When the dialog closes they work again. Windows opened **after** it (for example from a button of the dialog) can be used; a dialog opened from another dialog blocks that one too. The program's consoles and the other apps stay free. |
+| **Always on top** | The window stays above every window that is not on top, even while another one is in use. |
+
 Then **Opens from**: **Apps menu (main window)**, **Opens only from other windows of the app** or the entry point chosen in **Project options → Windows** (see [Projects](ide/projects)). And the hint: «Add components from the palette on the left: a click puts it into the container selected, dragging puts it where the blue line shows.»
 
 ### A component
@@ -108,7 +126,7 @@ The **Button** has the **Action on click** property:
 
 - In **Preview**, without a test: the window reacts (a switch turns on, a field is typed in), but there is no program that answers.
 - In **Preview** with a **test in progress**: the window is **tied to the test**. The values that the schemas send to the components are shown, and what you do (press, type, move a slider) reaches the objects in the schemas. This is the way to test windows in the IDE: the test **does not open** the windows of the project by itself.
-- A button with **Open a window** opens the other window in a lilOS window with the subtitle **Preview**, also tied to the test. **Close this window** does nothing in preview.
+- A button with **Open a window** opens the other window in a lilOS window with the subtitle **Preview**, also tied to the test, opened like the real one: **Maximized**, **Dialog** and **Always on top** apply here too. A dialog in preview blocks the IDE's windows until you close it. **Close this window** does nothing in preview.
 - During a test you can also open the real windows from the Home: **My programs** → **Open its window**.
 
 ## Translations
@@ -161,6 +179,14 @@ The text field sends the name at every change, but **nome** does not start the b
 3. In the window **Dettagli** add a **Button** with **Text** = `Close` and **Action on click** = **Close this window**.
 
 Without any schema, the two buttons already open and close the window when the project runs.
+
+### 4. A dialog
+
+1. Create the window **Conferma** and, in its Properties (nothing selected), set **Width (px)** = `320`, **Height (px)** = `120` (or drag the corner until the label says `320 × 120`), untick **The user can resize it** and tick **Dialog** and **Always on top**. **Dialog** and **On top** appear in the drawn title bar.
+2. Add a **Label** with **Text** = `Reset the counters?` and a **Button** `Yes` with **Action on click** = **Close this window** (and its object in the schema, to do the reset on **pressed**).
+3. In the window **Principale** add a **Button** `Reset…` with **Action on click** = **Open a window** → **Conferma**.
+
+When the project runs, while **Conferma** is open the window **Principale** does not respond: a click on it makes **Conferma** flash.
 
 ## See also
 

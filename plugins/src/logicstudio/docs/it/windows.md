@@ -15,6 +15,14 @@ Un clic su una finestra nell'elenco **Progetto** la apre in una scheda. Al centr
 
 La barra di stato dice «8 componenti / 200 · 480 × 360» (le componenti che hanno porte, il limite, la dimensione).
 
+### Ridimensionare con il mouse
+
+La finestra si ridimensiona trascinando il **bordo destro**, il **bordo in basso** o l'**angolo in basso a destra** (quello con le righe oblique), sia in **Progetta** sia in **Anteprima**. Mentre trascini, un'etichetta mostra la dimensione (`420 × 300`); quando lasci il mouse la dimensione va in **Larghezza (px)** e **Altezza (px)** e si annulla con **Ctrl+Z** in un passo solo. La dimensione è quella del **contenuto**: la barra del titolo (30 pixel) è in più, come nella finestra vera. Non scende sotto 160 × 120 e non va oltre 4000 × 4000.
+
+Si può ridimensionare anche se **L'utente può ridimensionarla** è tolta: quella casella vale per chi usa l'app, non per chi la disegna.
+
+Nella barra del titolo disegnata, accanto al titolo, delle etichette ricordano come si apre la finestra: **Estesa**, **Dialogo**, **In primo piano** (vedi sotto).
+
 ## Le componenti
 
 La scheda **Componenti** elenca le componenti dei pacchetti installati, divise in **Testo e valori**, **Comandi**, **Contenitori** e **Grafici** (comprimibili con un clic sul nome, come i [blocchi](ide/schemas)), con una ricerca (**Cerca…**). Le componenti di base sono in [Componenti UI](logicstudio-ui), i grafici in [Grafici](logicstudio-charts).
@@ -68,6 +76,16 @@ La finestra è una **Colonna** (quella di fondo, che non si seleziona e non si t
 | **Altezza (px)** | Da 120 a 4000. |
 | **L'utente può ridimensionarla** | Se tolta, la finestra ha la dimensione fissa. |
 
+Larghezza e altezza si cambiano anche trascinando i bordi della finestra (vedi [Ridimensionare con il mouse](ide/windows)).
+
+Poi **All'apertura**, come lilOS apre la finestra:
+
+| Campo | Cosa fa |
+|---|---|
+| **Stato** | **Normale** (di serie): la finestra si apre con la sua dimensione. **Estesa**: si apre ingrandita, grande quanto lo schermo, come con il pulsante per ingrandire; l'utente la può riportare alla dimensione normale con lo stesso pulsante o con un doppio clic sulla barra del titolo. |
+| **Finestra di dialogo** | Finché è aperta, le **altre finestre dell'app aperte prima di lei** non si possono usare: un clic su una di loro (o sul suo pulsante nella barra delle applicazioni, o **Alt N**) porta avanti la finestra di dialogo, che lampeggia. Si coprono di un velo grigio. Quando la finestra di dialogo si chiude tornano normali. Le finestre aperte **dopo** (per esempio da un pulsante della finestra di dialogo) si usano; una finestra di dialogo aperta da un'altra finestra di dialogo blocca anche quella. Le console del programma e le altre app restano libere. |
+| **Sempre in primo piano** | La finestra resta sopra tutte le finestre che non sono in primo piano, anche quando si usa un'altra. |
+
 Poi **Si apre da**: **Menu applicazioni (finestra main)**, **Si apre solo da altre finestre dell'app** o il punto d'ingresso scelto nelle **Opzioni del progetto → Finestre** (vedi [Progetti](ide/projects)). E il suggerimento: «Aggiungi le componenti dalla tavolozza a sinistra: un clic la mette nel contenitore selezionato, trascinandola va dove mostra la linea blu.»
 
 ### Una componente
@@ -108,7 +126,7 @@ Il **Pulsante** ha la proprietà **Azione al clic**:
 
 - In **Anteprima**, senza prova: la finestra reagisce (un interruttore si accende, un campo si scrive), ma non c'è un programma che risponde.
 - In **Anteprima** con una **prova in corso**: la finestra è **legata alla prova**. I valori che gli schemi mandano alle componenti si vedono, e quello che fai (premere, scrivere, muovere un cursore) arriva agli oggetti negli schemi. È il modo per provare le finestre nell'IDE: la prova **non apre** le finestre del progetto da sola.
-- Un pulsante con **Apri una finestra** apre l'altra finestra in una finestra di lilOS con sottotitolo **Anteprima**, anche lei legata alla prova. **Chiudi questa finestra** in anteprima non fa niente.
+- Un pulsante con **Apri una finestra** apre l'altra finestra in una finestra di lilOS con sottotitolo **Anteprima**, anche lei legata alla prova, aperta come quella vera: **Estesa**, **Finestra di dialogo** e **Sempre in primo piano** valgono anche qui. Una finestra di dialogo in anteprima blocca le finestre dell'IDE finché non la chiudi. **Chiudi questa finestra** in anteprima non fa niente.
 - Durante una prova puoi anche aprire le finestre vere dalla Home: **I miei programmi** → **Apri la finestra**.
 
 ## Traduzioni
@@ -161,6 +179,14 @@ Il campo di testo manda il nome a ogni cambiamento, ma **nome** non avvia il blo
 3. Nella finestra **Dettagli** aggiungi un **Pulsante** con **Testo** = `Chiudi` e **Azione al clic** = **Chiudi questa finestra**.
 
 Senza nessuno schema, i due pulsanti già aprono e chiudono la finestra quando il progetto gira.
+
+### 4. Una finestra di dialogo
+
+1. Crea la finestra **Conferma** e, nelle sue Proprietà (niente selezionato), metti **Larghezza (px)** = `320`, **Altezza (px)** = `120` (o trascina l'angolo finché l'etichetta dice `320 × 120`), togli **L'utente può ridimensionarla** e spunta **Finestra di dialogo** e **Sempre in primo piano**. Nella barra del titolo disegnata compaiono **Dialogo** e **In primo piano**.
+2. Aggiungi un'**Etichetta** con **Testo** = `Azzerare i contatori?` e un **Pulsante** `Sì` con **Azione al clic** = **Chiudi questa finestra** (e il suo oggetto nello schema, per fare l'azzeramento su **premuto**).
+3. Nella finestra **Principale** aggiungi un **Pulsante** `Azzera…` con **Azione al clic** = **Apri una finestra** → **Conferma**.
+
+Quando il progetto gira, finché **Conferma** è aperta la finestra **Principale** non risponde: un clic su di lei fa lampeggiare **Conferma**.
 
 ## Vedi anche
 

@@ -134,7 +134,7 @@ Con uno schema da solo il menu non c'è.
 3. Premi **Crea**. Il file si chiama come l'elemento (`Nome.lsch` o `Nome.lsui`); se nella cartella c'è già un file con quel nome, il file prende un nome libero, ma l'elemento resta «Nome».
 4. L'elemento si apre in una scheda. Il progetto viene salvato subito, per non perderlo.
 
-Una nuova finestra ha titolo uguale al nome, 480 × 360 pixel, ridimensionabile, con una **Colonna** vuota. Se il progetto non aveva finestre, diventa la main.
+Una nuova finestra ha titolo uguale al nome, 480 × 360 pixel, ridimensionabile, stato **Normale**, non di dialogo e non in primo piano, con una **Colonna** vuota. Se il progetto non aveva finestre, diventa la main.
 
 > Il **+** del gruppo **Risorse** apre una finestra **Aggiungi una risorsa** che in questa versione non riesce a creare niente. Per aggiungere una risorsa copia il file nella cartella `risorse/` del progetto con il File Manager: compare subito nell'elenco.
 

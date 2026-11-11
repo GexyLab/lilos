@@ -28,6 +28,11 @@ export const WINDOW_EDGES = ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'];
  * but the focus, and the active window, stay where they were (the on-screen keyboard types there).
  * `onTop: true` keeps it above the windows without it.
  *
+ * A window with `modal: true` is a dialog: while it is open, the windows opened before it in its
+ * group (the window manager's `group`, by default the app that opened it) cannot be used. A press on
+ * one of them brings the dialog forward and makes it flash; its title bar, body and edges get
+ * `inert` and a layer covers it (setBlocked, called by the window manager).
+ *
  * Before closing on the user's request, the window manager asks canClose() if the window sets it
  * (e.g. to offer saving changes): return true / false, or a Promise of it.
  *
@@ -61,16 +66,17 @@ export class Window extends Emitter {
   getState = null;
   #controls = { minimize: true, maximize: true, close: true };
   #edges = new Set(WINDOW_EDGES);
+  #flashTimer = 0;
 
   constructor({
     title = '', subtitle = '', icon: glyph = 'help',
     width = 640, height = 440, minWidth = 320, minHeight = 200, maxWidth = Infinity, maxHeight = Infinity,
-    controls = {}, resizable = true, focusable = true, onTop = false,
+    controls = {}, resizable = true, focusable = true, onTop = false, modal = false,
     // Shorthands, same as controls.minimize / controls.maximize / controls.close
     minimizable, maximizable, closable,
   } = {}) {
     super();
-    Object.assign(this, { glyph, minWidth, minHeight, maxWidth, maxHeight, focusable, onTop });
+    Object.assign(this, { glyph, minWidth, minHeight, maxWidth, maxHeight, focusable, onTop, modal: !!modal });
 
     this.titleText = h('span', { class: 'win-title-text' });
     this.subtitleText = h('em');
@@ -81,6 +87,10 @@ export class Window extends Emitter {
     this.body = h('div', { class: 'win-body', dataset: { wheel: 'native' } });
     this.edgeLayer = h('div', { class: 'win-edges', 'aria-hidden': 'true' });
     this.el = h('section', { class: 'window', dataset: { kind: 'window' }, role: 'dialog' }, this.titlebar, this.body, this.edgeLayer);
+    if (this.modal) {
+      this.el.classList.add('modal');
+      this.el.setAttribute('aria-modal', 'true');
+    }
 
     if (!focusable) {
       this.el.classList.add('no-focus');
@@ -177,9 +187,35 @@ export class Window extends Emitter {
     }
   }
 
+  /**
+   * A dialog (modal window) is open over this one: nothing in it can be used, a layer covers it.
+   * Called by the window manager.
+   */
+  setBlocked(blocked) {
+    blocked = !!blocked;
+    if (this.el.classList.contains('blocked') === blocked) return;
+    this.el.classList.toggle('blocked', blocked);
+    for (const part of [this.titlebar, this.body, this.edgeLayer]) part.inert = blocked;
+    if (blocked) this.el.append(h('div', { class: 'win-blocker', 'aria-hidden': 'true' }));
+    else this.el.querySelector(':scope > .win-blocker')?.remove();
+  }
+
+  /** True while a dialog keeps this window from being used. */
+  get blocked() { return this.el.classList.contains('blocked'); }
+
+  /** A short flash of the frame: the dialog asks for attention when its blocked window is pressed. */
+  flash() {
+    this.el.classList.remove('flash');
+    void this.el.offsetWidth;   // restart the animation
+    this.el.classList.add('flash');
+    clearTimeout(this.#flashTimer);
+    this.#flashTimer = setTimeout(() => this.el.classList.remove('flash'), 700);
+  }
+
   /** Removes the element and every listener tied to `signal`. Called by the window manager. */
   destroy() {
     this.#abort.abort();
+    clearTimeout(this.#flashTimer);
     this.el.remove();
     this.emit('destroy');
   }

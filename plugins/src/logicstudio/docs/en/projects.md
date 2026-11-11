@@ -134,7 +134,7 @@ With a schema alone there is no menu.
 3. Press **Create**. The file is called like the element (`Name.lsch` or `Name.lsui`); if there is already a file with that name in the folder, the file gets a free name, but the element stays «Name».
 4. The element opens in a tab. The project is saved at once, so as not to lose it.
 
-A new window has a title equal to the name, 480 × 360 pixels, resizable, with an empty **Column**. If the project had no windows, it becomes the main one.
+A new window has a title equal to the name, 480 × 360 pixels, resizable, state **Normal**, not a dialog and not on top, with an empty **Column**. If the project had no windows, it becomes the main one.
 
 > The **+** of the **Resources** group opens an **Add a resource** window that in this version cannot create anything. To add a resource copy the file into the `risorse/` folder of the project with the File Manager: it appears in the list at once.
 

@@ -24,12 +24,18 @@ const styleRect = el => ({
  * windows of the current workspace are shown, with their taskbar buttons, and only they count for
  * `windows`, get(key), focus and cycling; the others stay alive, hidden, as they were.
  *
+ * Dialogs: a window with `modal: true` blocks the windows of its group opened before it (the group
+ * given to open(), by default its owner app; a dialog without a group blocks every window opened
+ * before it) until it closes. They cannot take the focus: pressing one, its taskbar button or
+ * Alt N brings the dialog forward (restored if minimized) and makes it flash. Dialogs nest.
+ *
  * Events: 'focus' (window | null) — null when the desk itself gets the focus; 'open' and 'close' (window).
  */
 export class WindowManager extends Emitter {
   #order = [];          // bottom → top, every workspace
-  #entries = new Map(); // window → { key, app, owner, task, restore, workspace }
+  #entries = new Map(); // window → { key, app, owner, group, seq, task, restore, workspace }
   #opened = 0;
+  #seq = 0;             // order in which the windows opened, for dialogs
   #workspace = null;
   #lastActive = new Map();   // workspace → its window that had the focus when the user left it
   active = null;
@@ -51,7 +57,7 @@ export class WindowManager extends Emitter {
    * all, except those that never take the focus (on-screen keyboard).
    */
   cycle() {
-    const order = this.windows.filter(w => w.focusable !== false);
+    const order = this.windows.filter(w => w.focusable !== false && !this.blocker(w));
     if (!order.length) return;
     const next = order.length > 1 || this.#hidden(order[0]) || this.active !== order[0] ? order[0] : null;
     if (next) this.show(next);
@@ -148,8 +154,9 @@ export class WindowManager extends Emitter {
    * `workspace` (the current one by default): a window for another workspace opens hidden, without
    * taking the focus, and shows up when the user goes there.
    * `owner`: the app that opened a secondary window (closed with it when the app is updated).
+   * `group`: the windows a dialog (win.modal) blocks are those of its group; by default the owner app.
    */
-  open(win, { key = null, app = null, owner = null, center = null, bounds = null, at = null, workspace = this.#workspace } = {}) {
+  open(win, { key = null, app = null, owner = null, group = null, center = null, bounds = null, at = null, workspace = this.#workspace } = {}) {
     const w = win.el.offsetWidth || parseFloat(win.el.style.width);
     const hgt = win.el.offsetHeight || parseFloat(win.el.style.height);
     if (at) {
@@ -174,7 +181,7 @@ export class WindowManager extends Emitter {
     }, icon(win.glyph), h('span', {}, win.title));
     this.taskbar.tasks.append(task);
 
-    this.#entries.set(win, { key, app, owner: owner ?? app, task, restore: null, workspace });
+    this.#entries.set(win, { key, app, owner: owner ?? app, group: group ?? owner ?? app, seq: ++this.#seq, task, restore: null, workspace });
     this.#order.push(win);
     this.canvas.add(win.el);
     this.#bind(win, task);
@@ -195,6 +202,7 @@ export class WindowManager extends Emitter {
     } else {
       this.show(win);
     }
+    if (win.modal) this.#updateBlocked();
     this.emit('open', win);
     return win;
   }
@@ -203,13 +211,25 @@ export class WindowManager extends Emitter {
   show(win) {
     win.el.hidden = false;
     this.#entries.get(win)?.task.classList.remove('min');
+    const shown = this.blocker(win) ?? win;   // a window under a dialog: the dialog is framed
     this.focus(win);
     this.canvas.changed();
-    this.canvas.bringIntoView(this.canvas.rectOf(win.el));
+    this.canvas.bringIntoView(this.canvas.rectOf(shown.el));
   }
 
   focus(win) {
     if (win && this.#entries.get(win)?.workspace !== this.#workspace) return;   // unknown, or in another workspace
+    // A window under a dialog: the dialog comes forward instead (restored if minimized) and flashes
+    const dialog = win && this.blocker(win);
+    if (dialog && this.#entries.get(dialog).workspace === this.#workspace) {
+      if (this.#hidden(dialog)) {
+        dialog.el.hidden = false;
+        this.#entries.get(dialog).task.classList.remove('min');
+        this.canvas.changed();
+      }
+      dialog.flash?.();
+      win = dialog;
+    }
     if (win) {
       this.#order = [...this.#order.filter(w => w !== win), win];
       this.#order.forEach((w, i) => { w.el.style.zIndex = String((w.onTop ? Z_TOP : Z_BASE) + i); });
@@ -276,19 +296,42 @@ export class WindowManager extends Emitter {
     this.#entries.delete(win);
     this.#order = this.#order.filter(w => w !== win);
     win.destroy();
+    if (win.modal) this.#updateBlocked();
     if (this.active === win) this.focus(this.#topVisible());
     this.canvas.changed();
     this.emit('close', win);
   }
 
+  /**
+   * The dialog that keeps `win` from being used, or null: the last one opened after it in its group
+   * (a dialog without a group: in every group).
+   */
+  blocker(win) {
+    const entry = this.#entries.get(win);
+    if (!entry) return null;
+    let found = null, seq = -1;
+    for (const [w, e] of this.#entries) {
+      if (w === win || !w.modal || e.seq < entry.seq || e.seq < seq) continue;
+      if (e.group != null && e.group !== entry.group) continue;
+      found = w;
+      seq = e.seq;
+    }
+    return found;
+  }
+
   // ---------- Internals ----------
+
+  /** A dialog opened or closed: which windows are blocked now. */
+  #updateBlocked() {
+    for (const w of this.#entries.keys()) w.setBlocked?.(!!this.blocker(w));
+  }
 
   #hidden(win) {
     return win.el.hidden;
   }
 
   #topVisible() {
-    return this.windows.reverse().find(w => !this.#hidden(w) && w.focusable !== false) ?? null;
+    return this.windows.reverse().find(w => !this.#hidden(w) && w.focusable !== false && !this.blocker(w)) ?? null;
   }
 
   #bind(win, task) {

@@ -46,3 +46,14 @@
 .win-edge.ne { top: -4px; right: -4px; cursor: nesw-resize; } .win-edge.sw { bottom: -4px; left: -4px; cursor: nesw-resize; }
 .window.max .win-edges { display: none; }
 .window.resizing, .window.resizing * { user-select: none; }
+
+/* Dialogs (modal windows): the windows they block get a layer that takes every press (the window
+   manager brings the dialog forward), and the dialog flashes when one of them is pressed. */
+.win-blocker { position: absolute; inset: 0; z-index: 4; border-radius: var(--radius); background: rgba(0, 0, 0, .08); cursor: not-allowed; }
+.window.max .win-blocker { border-radius: 0; }
+.window.flash { animation: win-flash .6s ease-out; }
+@keyframes win-flash {
+  0%, 50% { box-shadow: 0 0 0 2px var(--accent), 0 10px 28px -8px rgba(0, 0, 0, .5); }
+  25%, 75%, 100% { box-shadow: 0 0 0 1px rgba(0, 0, 0, .25), 0 10px 28px -8px rgba(0, 0, 0, .5); }
+}
+@media (prefers-reduced-motion: reduce) { .window.flash { animation: none; box-shadow: 0 0 0 2px var(--accent), 0 10px 28px -8px rgba(0, 0, 0, .5); } }

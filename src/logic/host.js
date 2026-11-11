@@ -41,6 +41,10 @@ const { t } = locale.define('lilos:logic', {
  *                                              installing it: its .lsapp file; the program lasts while
  *                                              its windows are open
  *
+ * A window opens as its .lsui says: normal or maximized (`state`), as a dialog (`modal`: the other
+ * windows of the program opened before it cannot be used until it closes; the consoles stay free)
+ * and always in front (`onTop`).
+ *
  * The consoles follow the project's option «Fuori dall'IDE»: all of them when its windows open,
  * only when a block asks for something (and closed after the answer), never, or all in the main
  * one. A question with no window of the project open becomes a notification that opens the console.
@@ -147,7 +151,11 @@ class LogicHost {
     if (open) { this.#wm.focus?.(open); open.emit('launch'); return; }
     const first = !p.windows.size;
     const size = doc.size ?? { w: 480, h: 360 };
-    const win = new Window({ title: doc.title || name, subtitle: p.info.name, icon: 'blocks', width: size.w, height: size.h + 30, resizable: size.resizable !== false });
+    const win = new Window({
+      title: doc.title || name, subtitle: p.info.name, icon: 'blocks', width: size.w, height: size.h + 30,
+      minWidth: Math.min(320, size.w), minHeight: Math.min(200, size.h + 30),
+      resizable: size.resizable !== false, modal: doc.modal === true, onTop: doc.onTop === true,
+    });
     const texts = p.info.texts?.[locale.code] ?? p.info.texts?.[locale.code?.split('-')[0]] ?? {};
     const ui = new LogicUI({ window: doc, components: await logic.allComponents(), lang: locale.code, texts, host: this.#hostFor(id, win), mode: 'live' });
     ui.attach(p.live, name);
@@ -159,7 +167,9 @@ class LogicHost {
     win.body.append(h('div', { class: 'logic-win' }, ui.el));
     win.on('destroy', () => { ui.destroy(); (win.logicUrls ?? []).forEach(u => URL.revokeObjectURL(u)); p.windows.delete(name); this.#maybeRelease(id); });
     p.windows.set(name, win);
-    this.#wm.open(win, { key: `logic:${id}:${name}` });
+    // Its group: a dialog blocks the program's windows, not the consoles nor other apps
+    this.#wm.open(win, { key: `logic:${id}:${name}`, group: `logic:${id}` });
+    if (doc.state === 'maximized') this.#wm.toggleMaximize(win);
     // «Mostrale tutte»: every console with the first window; «Tutte nella principale», at the start
     const mode = p.info.consoles?.outside;
     if (first && mode === 'all') for (const c of p.consoles.list()) this.openConsole(id, c.id);

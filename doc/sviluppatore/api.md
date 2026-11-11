@@ -1637,7 +1637,7 @@ I tre documenti che l'IDE modifica. Hanno in comune una base (`LogicDocument`, u
 | `relink(collegamento, a)` → `boolean` | Sposta l'estremità d'ingresso di un collegamento su un'altra porta, in un solo passo di storia. |
 | `duplicateGroups(ids, { dx = 24, dy = 24 })` → nuovi id | Copia i gruppi con i loro blocchi, i collegamenti fra loro e quelli di `run`. |
 
-**`LogicWindow`** (`.lsui`): `{ format, title, size: { w, h, resizable }, root }`; ogni nodo è `{ id, type, v, props, added?, layout?, children? }` e solo i contenitori hanno `children`.
+**`LogicWindow`** (`.lsui`): `{ format, title, size: { w, h, resizable }, state, modal, onTop, root }`; `size` misura il contenuto (la barra del titolo, 30 px, è in più); `state` è `'normal'` o `'maximized'` (`LOGIC_WINDOW_STATES`), `modal` (finestra di dialogo) e `onTop` (sempre in primo piano) sono booleani, tutti e tre da SDK 0.30.0 e di serie `'normal'`, `false`, `false`; ogni nodo è `{ id, type, v, props, added?, layout?, children? }` e solo i contenitori hanno `children`.
 
 | Metodo | Descrizione |
 | --- | --- |
@@ -1648,6 +1648,7 @@ I tre documenti che l'IDE modifica. Hanno in comune una base (`LogicDocument`, u
 | `setProp(id, chiave, valore)` (`undefined` toglie), `setLayout(id, { x, y, w, h })` | Proprietà; posizione e misura in un'Area libera. |
 | `addPort`, `removePort`, `renamePort` | Come per lo schema, sulle porte aggiunte di una componente. |
 | `setTitle(t)`, `setSize({ w, h, resizable })` | |
+| `setOptions({ state?, modal?, onTop? })` | Come si apre la finestra; uno `state` che non è in `LOGIC_WINDOW_STATES` è ignorato. Un passo di storia. |
 | `components(defDi)` | I nodi che hanno porte (non `root`, non i contenitori). |
 
 **`LogicProject`** (`.lsproj`): `{ format, name, version, description, schemas: { nome: percorso }, windows: { nome: percorso }, main, links: [{ from: 'schema:porta', to: 'schema:porta' }], consoles, options, entrypoints, uses, texts, app }`. I percorsi sono relativi alla cartella del progetto (`schemi/main.lsch`). `consoles` è `{ list: [{ id, name, color?, keep? }], outside: 'all' \| 'onInput' \| 'hidden' \| 'main', closeAfterAnswer, notify, copyToLog: 'none' \| 'warnings' \| 'all', mainOpens: 'start' \| 'onInput' }` (di serie `onInput`, `true`, `true`, `warnings`, `start`; la console `main` c'è sempre). `options` è `{ keepValues, syncCopies }` (entrambe vere di serie). `entrypoints` è `{ finestra: { kind: 'file' \| 'action' \| 'call' \| 'login', ext?, label } }`. `texts` è `{ lingua: { testo: traduzione } }`. `app` è `{ id, icon, runs }` e «Crea app» ci scrive anche `glyph` e `color`.
@@ -3367,7 +3368,8 @@ sendKey({ key: 'z', code: 'KeyZ', ctrl: true });                // annulla
 
 | Membro | Descrizione |
 | --- | --- |
-| `open(win, { key?, app?, owner?, center?, bounds?, at?, workspace? })` | Mette la finestra, aggiunge il pulsante nella barra, le dà il focus ed emette `open`. Per impostazione predefinita al centro della vista (le successive scalate di 24 px). `key` permette di ritrovarla con `get`; `app` è l'id dell'app a cui appartiene (vedi `appOf`); `owner` l'app che ha aperto una finestra secondaria (il launcher lo mette in `openWindow` di ogni app; se manca vale `app`): `windowsOfApp` la conta tra le finestre di quell'app; `center` è un punto del mondo su cui centrarla; `bounds` un rettangolo del mondo in cui tenerla (se è troppo grande vince l'angolo in alto a sinistra); `at` (`{ x, y, w?, h?, minimized? }`) la rimette esattamente lì, senza muovere la camera e senza cascata (`minimized` la apre ridotta a icona, senza focus). `workspace` (predefinito l'attuale): una finestra per un altro workspace si apre nascosta, senza focus, e compare quando l'utente ci va. |
+| `open(win, { key?, app?, owner?, group?, center?, bounds?, at?, workspace? })` | Mette la finestra, aggiunge il pulsante nella barra, le dà il focus ed emette `open`. Per impostazione predefinita al centro della vista (le successive scalate di 24 px). `key` permette di ritrovarla con `get`; `app` è l'id dell'app a cui appartiene (vedi `appOf`); `owner` l'app che ha aperto una finestra secondaria (il launcher lo mette in `openWindow` di ogni app; se manca vale `app`): `windowsOfApp` la conta tra le finestre di quell'app; `center` è un punto del mondo su cui centrarla; `bounds` un rettangolo del mondo in cui tenerla (se è troppo grande vince l'angolo in alto a sinistra); `at` (`{ x, y, w?, h?, minimized? }`) la rimette esattamente lì, senza muovere la camera e senza cascata (`minimized` la apre ridotta a icona, senza focus). `workspace` (predefinito l'attuale): una finestra per un altro workspace si apre nascosta, senza focus, e compare quando l'utente ci va. `group` (da lilOS 1.45.0): le finestre che una finestra di dialogo blocca sono quelle del suo gruppo; se manca vale `owner` (quindi l'app). Il host di Logic Studio usa `logic:<id del programma>` per le finestre di un programma (non per le sue console). |
+| `blocker(win)` | La finestra di dialogo che blocca `win`, o `null`: l'ultima aperta dopo di lei nello stesso gruppo (una finestra di dialogo senza gruppo, cioè con `group`, `owner` e `app` tutti `null`, blocca le finestre di ogni gruppo aperte prima). |
 | `appOf(win)` | L'app data a `open` come `app`, o `null` (finestre secondarie: impostazioni, selettori, proprietà). |
 | `geometry(win)` | `{ x, y, w, h, minimized, maximized }` in coordinate mondo. Una finestra ingrandita riporta le misure che riavrà ripristinata. |
 | `get(key)` | La finestra aperta con quella chiave **nel workspace attuale**, o `null`. |
@@ -3386,7 +3388,7 @@ sendKey({ key: 'z', code: 'KeyZ', ctrl: true });                // annulla
 | `toggleMaximize(win)` | Finestra grande come lo schermo, con la vista al 100% su di essa; di nuovo per ripristinare dimensioni, posizione e vista. Non ingrandisce se il controllo `maximize` è spento; se viene spento mentre la finestra è ingrandita, la ripristina. |
 | `requestClose(win)` | Chiusura chiesta dall'utente (pulsante, Alt W): chiede prima `win.canClose()`, se c'è; se dice sì, emette `dismiss` sulla finestra e la chiude. `Promise<boolean>`: chiusa o no (`false` anche se nel frattempo è stata chiusa da altri). `close(win)` invece non emette `dismiss`. |
 | `close(win)` | Chiude subito, senza chiedere: toglie il pulsante e chiama `win.destroy()`. |
-| `cycle()` | Porta in primo piano la finestra più in basso (riaprendola se ridotta a icona): ripetuto, le visita tutte. |
+| `cycle()` | Porta in primo piano la finestra più in basso (riaprendola se ridotta a icona): ripetuto, le visita tutte, tranne quelle bloccate da una finestra di dialogo. |
 
 Gestisce anche: trascinamento dalla barra del titolo e ridimensionamento da ogni bordo attivo della finestra (il lato opposto resta fermo, lo spostamento è diviso per lo zoom, le dimensioni rispettano i limiti della finestra), focus con un clic o con il focus da tastiera dentro la finestra, focus alla scrivania con un clic fuori da ogni finestra. Il pulsante nella barra riduce a icona la finestra attiva (se ha il controllo `minimize`) e riapre le altre.
 
@@ -3395,6 +3397,8 @@ Eventi: `focus` con la finestra o `null`; `open` e `close` con la finestra (le a
 Scorciatoie registrate (gruppo Finestre, attive anche mentre si scrive): `windows.close` (Alt W, solo se la finestra attiva ha il controllo `close`) e `windows.next` (Alt N).
 
 Gli `z-index` delle finestre partono da 100 e seguono l'ordine di sovrapposizione; quelle con `onTop` partono da 900 (sopra le altre, sotto gli elementi della scrivania trascinati). Una finestra con `focusable: false`, quando viene portata avanti, non prende il focus: `setActive(false)`, e il focus e la finestra attiva restano dov'erano. Non diventa mai la finestra attiva e non viene scelta per il focus quando un'altra si chiude.
+
+**Finestre di dialogo.** Quando si apre o si chiude una finestra con `modal: true`, il gestore ricalcola quali finestre sono bloccate (`blocker`) e chiama `win.setBlocked`. `focus(win)` su una finestra bloccata dà invece il focus alla sua finestra di dialogo (riaprendola se ridotta a icona) e la fa lampeggiare: vale per il clic sulla finestra, per il suo pulsante nella barra (`show` inquadra la finestra di dialogo) e per Alt N, che salta le finestre bloccate. Quando una finestra si chiude o si riduce a icona, il focus non va a una finestra bloccata. Le finestre di dialogo si annidano: una aperta da un'altra blocca anche quella; le finestre aperte dopo una finestra di dialogo non sono bloccate da lei.
 
 ---
 
@@ -4062,6 +4066,7 @@ new Window({
   resizable = true,                                             // true, false o un elenco di bordi
   focusable = true,                                             // false: non prende mai il focus
   onTop = false,                                                // true: resta sopra le finestre senza
+  modal = false,                                                // true: finestra di dialogo (SDK 0.30.0)
   minimizable?, maximizable?, closable?,                        // scorciatoie per controls.*
 })
 ```
@@ -4079,6 +4084,8 @@ win.setResizable(['e', 'w']);         // solo in larghezza
 
 **Finestre che non prendono il focus** (`focusable: false`, per le tastiere a schermo). Cliccarla la porta avanti, ma il focus e la finestra attiva restano dove erano: il `mousedown` fuori da `input`, `textarea`, `select` e `[contenteditable]` ha `preventDefault`, così il focus del browser non si sposta. Ha la classe `no-focus`, appare sempre inattiva, non diventa mai la finestra attiva e non viene scelta per il focus quando un'altra si chiude. `onTop: true` la tiene sopra le finestre senza (`z-index` da 900 invece che da 100, ma sotto gli elementi della scrivania trascinati). Le due opzioni sono indipendenti. Le gestisce il `WindowManager`.
 
+**Finestre di dialogo** (`modal: true`, da SDK 0.30.0). Finché è aperta, le finestre del suo **gruppo** aperte **prima** di lei non si possono usare (il gruppo lo dà `wm.open`, di serie l'app che l'ha aperta: per un'app è una finestra modale per l'app, non per tutto lilOS). Ha la classe `modal` e `aria-modal="true"`. Il `WindowManager` chiama `setBlocked(true)` sulle finestre bloccate: classe `blocked`, `inert` su barra del titolo, corpo e bordi e uno strato `.win-blocker` sopra tutto che prende i clic; un clic su una di loro porta avanti la finestra di dialogo e la fa lampeggiare (`flash()`, classe `flash` per 0,6 s, senza animazione con `prefers-reduced-motion`).
+
 DOM: `section.window[data-kind="window"][role="dialog"]` con `.win-titlebar` (e i pulsanti in `.win-controls`), `.win-body` (`data-wheel="native"`) e `.win-edges` con una `.win-edge[data-edge]` per ogni bordo attivo. Le maniglie stanno a cavallo del bordo (4 px dentro e 4 fuori). La classe `resizable` indica che c'è almeno un bordo attivo.
 
 | Membro | Descrizione |
@@ -4088,7 +4095,9 @@ DOM: `section.window[data-kind="window"][role="dialog"]` con `.win-titlebar` (e 
 | `controls` | Copia di `{ minimize, maximize, close }`. |
 | `resizable` | Bordi attivi, nell'ordine di `WINDOW_EDGES` (`[]` se non si ridimensiona). |
 | `minWidth`, `minHeight`, `maxWidth`, `maxHeight` | Limiti delle dimensioni. |
-| `focusable`, `onTop` | Le opzioni del costruttore, lette dal `WindowManager`. |
+| `focusable`, `onTop`, `modal` | Le opzioni del costruttore, lette dal `WindowManager`. |
+| `setBlocked(bool)`, `blocked` | Una finestra di dialogo la blocca (chiamato dal `WindowManager`); se è bloccata. |
+| `flash()` | Fa lampeggiare la cornice (la finestra di dialogo quando si preme una finestra che blocca). |
 | `setControl(name, enabled)`, `setControls({ … })` | Accende o spegne uno o più controlli; emette `controls`. |
 | `setResizable(value)` | `true`, `false` o elenco di bordi; emette `controls`. |
 | `constrain(w, h)` | `{ w, h }` riportati entro i limiti. |

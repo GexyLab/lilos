@@ -624,9 +624,12 @@ export const linkKey = l => `${l.from[0]}.${l.from[1]}>${l.to[0]}.${l.to[1]}`;
 
 // ---------------------------------------------------------------------------------------- window
 
+/** How a window opens: state 'normal' | 'maximized', modal (a dialog), onTop (always in front). */
+export const LOGIC_WINDOW_STATES = Object.freeze(['normal', 'maximized']);
+
 export class LogicWindow extends LogicDocument {
   static create(title = 'Finestra') {
-    return new LogicWindow({ format: LOGIC_FORMATS.window, title: String(title), size: { w: 480, h: 360, resizable: true }, root: { id: 'root', type: 'ui.column', props: { gap: 10, padding: 14 }, children: [] } });
+    return new LogicWindow({ format: LOGIC_FORMATS.window, title: String(title), size: { w: 480, h: 360, resizable: true }, state: 'normal', modal: false, onTop: false, root: { id: 'root', type: 'ui.column', props: { gap: 10, padding: 14 }, children: [] } });
   }
 
   static parse(json) {
@@ -646,7 +649,10 @@ export class LogicWindow extends LogicDocument {
     };
     const root = clean(raw.root, 0) ?? { id: 'root', type: 'ui.column', props: {}, children: [] };
     const size = plain(raw.size) ? { w: Math.max(160, Number(raw.size.w) || 480), h: Math.max(120, Number(raw.size.h) || 360), resizable: raw.size.resizable !== false } : { w: 480, h: 360, resizable: true };
-    return new LogicWindow({ format: LOGIC_FORMATS.window, title: String(raw.title ?? 'Finestra'), size, root });
+    return new LogicWindow({
+      format: LOGIC_FORMATS.window, title: String(raw.title ?? 'Finestra'), size,
+      state: LOGIC_WINDOW_STATES.includes(raw.state) ? raw.state : 'normal', modal: raw.modal === true, onTop: raw.onTop === true, root,
+    });
   }
 
   /** Every node with its parent: [{ node, parent, index, depth }] in document order. */
@@ -747,6 +753,15 @@ export class LogicWindow extends LogicDocument {
 
   setTitle(title) { this.edit('title', data => { data.title = String(title).slice(0, 120); }); }
   setSize(size) { this.edit('size', data => { data.size = { ...data.size, ...size }; }); }
+
+  /** How it opens: { state: 'normal' | 'maximized', modal: bool, onTop: bool } (any of them). */
+  setOptions({ state, modal, onTop } = {}) {
+    this.edit('options', data => {
+      if (LOGIC_WINDOW_STATES.includes(state)) data.state = state;
+      if (modal !== undefined) data.modal = !!modal;
+      if (onTop !== undefined) data.onTop = !!onTop;
+    });
+  }
 
   /** The components with ports (not the containers), for the schemas: [{ id, type }]. */
   components(componentDef) {

@@ -10,7 +10,14 @@ import { t, i18n } from './i18n.js';
  * puts them where the blue line shows; «Anteprima» works like the real window, live while a test runs.
  * Each component has its object in a schema (Proprietà → «Oggetto nello schema»): the schemas
  * reach it only through that.
+ * The window is resized with the mouse from its right and bottom edges and its corner (the size of
+ * its content, without the title bar); how it opens (normal or maximized, dialog, always in front)
+ * is in Proprietà with nothing selected.
  */
+const TITLE_H = 30;      // the title bar, outside the window's size (as in lilOS)
+const MIN = { w: 160, h: 120 }, MAX = 4000;
+const RESIZE_EDGES = ['e', 's', 'se'];
+
 const ICONS = ['', 'drop', 'play', 'stop', 'power', 'gear', 'bell', 'check', 'x', 'plus', 'minus', 'refresh', 'save', 'trash', 'warning', 'info', 'home', 'window', 'link'];
 
 export class WindowEditor {
@@ -76,10 +83,17 @@ export class WindowEditor {
     if (mode === 'live') this.#ui.attach(this.#live, this.name);
     this.#ui.on('action', ({ action }) => this.#previewAction(action));
     this.#frame.style.width = `${d.size.w}px`;
-    this.#frame.style.height = `${d.size.h}px`;
+    this.#frame.style.height = `${d.size.h + TITLE_H}px`;
+    // How it opens, at a glance
+    const flags = [
+      d.state === 'maximized' && h('span', { class: 'ls-wflag', title: t('window.state') }, icon('max'), t('window.state.maximized')),
+      d.modal && h('span', { class: 'ls-wflag', title: t('window.modalHint') }, icon('lock'), t('window.flag.modal')),
+      d.onTop && h('span', { class: 'ls-wflag', title: t('window.onTop') }, icon('star'), t('window.flag.onTop')),
+    ].filter(Boolean);
     this.#frame.replaceChildren(
-      h('div', { class: 'ls-wtitle' }, icon('window'), h('span', {}, d.title || this.name), h('span', { class: 'sp' }), h('i'), h('i'), h('i')),
-      h('div', { class: 'ls-wbody' }, this.#ui.el));
+      h('div', { class: 'ls-wtitle' }, icon('window'), h('span', {}, d.title || this.name), ...flags, h('span', { class: 'sp' }), h('i'), h('i'), h('i')),
+      h('div', { class: 'ls-wbody' }, this.#ui.el),
+      ...RESIZE_EDGES.map(edge => h('div', { class: `ls-wresize ${edge}`, dataset: { edge }, title: t('window.resize') })));
     if (this.#sel) this.#ui.elementOf(this.#sel)?.classList.add('lui-sel');
   }
 
@@ -111,12 +125,18 @@ export class WindowEditor {
     const path = studio.ws?.project?.data.windows[action.window];
     if (!path) return;
     const doc = await studio.ws.doc(path);
-    const win = new Window({ title: doc.data.title || action.window, subtitle: t('window.previewOf'), icon: 'window', width: doc.data.size.w, height: doc.data.size.h + 30 });
+    const d = doc.data;
+    const win = new Window({
+      title: d.title || action.window, subtitle: t('window.previewOf'), icon: 'window', width: d.size.w, height: d.size.h + TITLE_H,
+      minWidth: Math.min(320, d.size.w), minHeight: Math.min(200, d.size.h + TITLE_H),
+      resizable: d.size.resizable !== false, modal: d.modal === true, onTop: d.onTop === true,
+    });
     const ui = new LogicUI({ window: doc.data, components: studio.components, lang: i18n.lang, texts: this.#texts(), host: this.#host(), mode: this.#live ? 'live' : 'preview' });
     if (this.#live) ui.attach(this.#live, action.window);
     win.body.append(h('div', { class: 'ls-wbody' }, ui.el));
     win.on('destroy', () => ui.destroy());
     studio.openWindow(win, `preview-${action.window}`);
+    if (d.state === 'maximized' && !win.el.classList.contains('max')) win.emit('maximize');
   }
 
   // ------------------------------------------------------------------ selection, adding, moving
@@ -157,8 +177,13 @@ export class WindowEditor {
 
   #bind() {
     const s = this.#surface;
+    // Resizing the window from its edges, in every mode
+    s.addEventListener('pointerdown', e => {
+      const edge = e.button === 0 && e.target.closest?.('.ls-wresize')?.dataset.edge;
+      if (edge) this.#resize(e, edge);
+    }, true);
     s.addEventListener('click', e => {
-      if (this.#mode !== 'design') return;
+      if (this.#mode !== 'design' || e.target.closest('.ls-wresize')) return;
       const c = e.target.closest('.lui-c');
       this.select(c && c.dataset.id !== 'root' ? c.dataset.id : null);
     });
@@ -236,6 +261,42 @@ export class WindowEditor {
       addEventListener('pointermove', move);
       addEventListener('pointerup', end);
     });
+  }
+
+  /** Drags an edge of the window: its size follows the mouse, saved (one step to undo) on release. */
+  #resize(e, edge) {
+    e.preventDefault();
+    e.stopPropagation();
+    const f = this.#frame;
+    const scale = f.getBoundingClientRect().width / f.offsetWidth || 1;   // the lilOS desk may be zoomed
+    const { w: w0, h: h0 } = this.doc.data.size;
+    const sx = e.clientX, sy = e.clientY;
+    let w = w0, hgt = h0;
+    const handle = e.target.closest('.ls-wresize');
+    const badge = h('div', { class: 'ls-wsize' }, `${w0} × ${h0}`);
+    f.append(badge);
+    f.classList.add('resizing');
+    handle.classList.add('on');
+    const clamp = (v, lo) => Math.max(lo, Math.min(MAX, Math.round(v)));
+    const move = ev => {
+      if (edge.includes('e')) w = clamp(w0 + (ev.clientX - sx) / scale, MIN.w);
+      if (edge.includes('s')) hgt = clamp(h0 + (ev.clientY - sy) / scale, MIN.h);
+      f.style.width = `${w}px`;
+      f.style.height = `${hgt + TITLE_H}px`;
+      badge.textContent = `${w} × ${hgt}`;
+    };
+    const end = () => {
+      removeEventListener('pointermove', move);
+      removeEventListener('pointerup', end);
+      removeEventListener('pointercancel', end);
+      badge.remove();
+      f.classList.remove('resizing');
+      handle.classList.remove('on');
+      if (w !== w0 || hgt !== h0) this.doc.setSize({ w, h: hgt });
+    };
+    addEventListener('pointermove', move);
+    addEventListener('pointerup', end);
+    addEventListener('pointercancel', end);
   }
 
   /** Where something dropped at (x, y) goes: { parent, index } (and a layout in an Area libera). */
@@ -407,9 +468,15 @@ export class WindowEditor {
       return [
         sec(t('window.window')),
         row(t('window.title'), textField({ value: d.title, maxLength: 120, onChange: v => this.doc.setTitle(v) })),
-        row(t('window.width'), textField({ type: 'number', value: d.size.w, min: 160, max: 4000, onChange: v => this.doc.setSize({ w: Math.max(160, Number(v) || 480) }) })),
-        row(t('window.height'), textField({ type: 'number', value: d.size.h, min: 120, max: 4000, onChange: v => this.doc.setSize({ h: Math.max(120, Number(v) || 360) }) })),
+        row(t('window.width'), textField({ type: 'number', value: d.size.w, min: MIN.w, max: MAX, onChange: v => this.doc.setSize({ w: Math.min(MAX, Math.max(MIN.w, Number(v) || 480)) }) })),
+        row(t('window.height'), textField({ type: 'number', value: d.size.h, min: MIN.h, max: MAX, onChange: v => this.doc.setSize({ h: Math.min(MAX, Math.max(MIN.h, Number(v) || 360)) }) })),
+        h('p', { class: 'ls-hint' }, t('window.resizeHint')),
         h('div', { class: 'ls-field' }, checkbox({ value: d.size.resizable !== false, label: t('window.resizable'), onChange: v => this.doc.setSize({ resizable: v }) })),
+        sec(t('window.opening')),
+        row(t('window.state'), selectField({ value: d.state ?? 'normal', options: ['normal', 'maximized'].map(v => ({ value: v, label: t(`window.state.${v}`) })), onChange: v => this.doc.setOptions({ state: v }) })),
+        h('div', { class: 'ls-field' }, checkbox({ value: d.modal === true, label: t('window.modal'), onChange: v => this.doc.setOptions({ modal: v }) })),
+        h('p', { class: 'ls-hint' }, t('window.modalHint')),
+        h('div', { class: 'ls-field' }, checkbox({ value: d.onTop === true, label: t('window.onTop'), onChange: v => this.doc.setOptions({ onTop: v }) })),
         sec(t('window.opens')),
         h('p', { class: 'ls-hint' }, this.#entryText()),
         h('p', { class: 'ls-hint' }, t('window.hint')),

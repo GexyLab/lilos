@@ -1790,6 +1790,8 @@ Nella barra in alto scegli **Progetta** (per mettere i pezzi) o **Anteprima** (l
 
 Un pulsante può anche, al clic, **aprire un'altra finestra** del progetto o **chiudere questa finestra** (**Azione al clic**), oltre a mandare «premuto» al suo oggetto. Una finestra aperta una volta non si apre due volte: aprirla di nuovo la porta davanti.
 
+**Dimensione e apertura della finestra.** La finestra che disegni si ridimensiona con il mouse: trascina il bordo destro, il bordo in basso o l'angolo in basso a destra, e un'etichetta mostra la misura mentre trascini (Ctrl+Z la annulla). Con niente selezionato, nelle Proprietà, sotto **All'apertura** scegli come lilOS la apre: **Stato** **Normale** o **Estesa** (grande quanto lo schermo), **Finestra di dialogo** (finché è aperta, le altre finestre dell'app aperte prima non si usano: un clic su di loro porta avanti la finestra di dialogo, che lampeggia; le console e le altre app restano libere) e **Sempre in primo piano**. Nella barra del titolo disegnata delle etichette ricordano le scelte.
+
 ### Le console
 
 Un programma scrive righe in una **console** e può fare domande a chi lo usa. Il blocco **Print (console.log)** scrive (con un livello: normale, informazione, avviso, errore); **Input (readline)** fa una domanda e aspetta la risposta, di un tipo che scegli: testo, numero, sì/no, un tasto. Puoi dargli un valore predefinito, un tempo massimo e la richiesta di nascondere quello che si scrive (per le password). Se la risposta non va bene, la domanda si ripete (si può spegnere); **Esc** annulla.

@@ -210,6 +210,9 @@ A complete example, with containers, a button that opens another window and a Fr
   "format": "lilos-lsui/1",
   "title": "Serra",
   "size": { "w": 480, "h": 420, "resizable": true },
+  "state": "normal",
+  "modal": false,
+  "onTop": false,
   "root": {
     "id": "root",
     "type": "ui.column",
@@ -240,7 +243,10 @@ A complete example, with containers, a button that opens another window and a Fr
 |---|---|
 | `format` | Always `lilos-lsui/1`. |
 | `title` | The title (at most 120 characters). |
-| `size` | `w` and `h` in pixels (at least 160 × 120), `resizable`. |
+| `size` | `w` and `h` in pixels (at least 160 × 120), `resizable`. They measure the content: the title bar comes on top. |
+| `state` | How it opens: `normal` (default) or `maximized`. Any other value counts as `normal`. |
+| `modal` | `true`: it is a dialog, the program's other windows opened before it cannot be used until it closes. Default `false`. |
+| `onTop` | `true`: always on top. Default `false`. |
 | `root` | The bottom component: a **Column** with id `root`. |
 | `…id` | The id of the component, unique in the window: it is what the objects in the schemas use. |
 | `…type` | The type of the component (`ui.button`, `charts.line`). |

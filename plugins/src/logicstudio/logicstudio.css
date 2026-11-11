@@ -202,9 +202,19 @@
 
 /* Editor delle finestre */
 .ls-wsurface { flex: 1; overflow: auto; padding: 32px; outline: none; background: var(--canvas); background-image: radial-gradient(circle, var(--canvas-dot) 1px, transparent 1.3px); background-size: 20px 20px; }
-.ls-wframe { position: relative; margin: 0 auto; display: flex; flex-direction: column; background: var(--surface); border-radius: var(--radius); box-shadow: 0 0 0 1px rgba(0, 0, 0, .25), 0 16px 40px -12px rgba(0, 0, 0, .55); overflow: hidden; }
+.ls-wframe { position: relative; margin: 0; display: flex; flex-direction: column; background: var(--surface); border-radius: var(--radius); box-shadow: 0 0 0 1px rgba(0, 0, 0, .25), 0 16px 40px -12px rgba(0, 0, 0, .55); overflow: hidden; }
 .ls-wtitle { flex: none; height: 30px; display: flex; align-items: center; gap: 8px; padding: 0 10px; background: var(--chrome); border-bottom: 1px solid var(--border); font-weight: 600; font-size: 12px; }
 .ls-wtitle .sp { flex: 1; }
+.ls-wflag { display: inline-flex; align-items: center; gap: 4px; padding: 1px 7px; border-radius: 9px; background: var(--hover); color: var(--dim); font-weight: 400; font-size: 11px; white-space: nowrap; }
+.ls-wflag .ico { width: 11px; height: 11px; }
+/* Resize handles of the window being designed: right and bottom edges, and the corner (a grip) */
+.ls-wresize { position: absolute; z-index: 5; }
+.ls-wresize.e { top: 30px; right: 0; bottom: 14px; width: 7px; cursor: ew-resize; }
+.ls-wresize.s { left: 0; right: 14px; bottom: 0; height: 7px; cursor: ns-resize; }
+.ls-wresize.se { right: 0; bottom: 0; width: 14px; height: 14px; cursor: nwse-resize; background-image: linear-gradient(135deg, transparent 50%, var(--dim) 50%, var(--dim) 58%, transparent 58%, transparent 70%, var(--dim) 70%, var(--dim) 78%, transparent 78%); }
+.ls-wresize:hover, .ls-wresize.on { background-color: color-mix(in srgb, var(--accent) 22%, transparent); }
+.ls-wframe.resizing, .ls-wframe.resizing * { user-select: none; }
+.ls-wsize { position: absolute; right: 18px; bottom: 16px; z-index: 6; padding: 2px 8px; border-radius: var(--radius-sm); background: var(--text); color: var(--surface); font-size: 11px; font-variant-numeric: tabular-nums; pointer-events: none; }
 .ls-wtitle > i { width: 10px; height: 10px; border-radius: 50%; background: var(--border); }
 .ls-wbody { flex: 1; min-height: 0; overflow: auto; padding: 0; }
 .ls-wbody > .lui { height: 100%; }
