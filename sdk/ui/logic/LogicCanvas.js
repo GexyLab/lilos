@@ -137,7 +137,8 @@ export class LogicCanvas extends Emitter {
     let title = b.label || name, kind = '';
     let sub = def ? summary(b, def, lang) : this.#labels.missing;
     if (def?.role === 'schemaIn' || def?.role === 'schemaOut') { title = b.config.port || name; kind = name; sub = ''; }
-    if (def?.role === 'component') { title = b.label || comp?.def?.label?.[lang] || comp?.def?.label?.en || name; sub = `${b.config.window ?? ''} › ${b.config.component ?? ''}`; }
+    // The object of a UI area: "UI > <area name>", so it reads as a piece of the window
+    if (def?.role === 'component') { title = `UI > ${b.label || comp?.def?.label?.[lang] || comp?.def?.label?.en || name}`; sub = `${b.config.window ?? ''} › ${b.config.component ?? ''}`; }
     const portEls = new Map();
     const row = (p, side) => {
       const el = h('div', {
