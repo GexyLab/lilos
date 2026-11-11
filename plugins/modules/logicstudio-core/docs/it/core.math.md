@@ -81,4 +81,5 @@ Questo blocco non ha errori suoi.
 - [Clamp (limita)](core.clamp) per tenere un numero tra un minimo e un massimo
 - [Divisione (÷ %)](core.divide) per il resto di una divisione
 - [Somma (+)](core.add), [Moltiplicazione (×)](core.multiply)
+- [Angolo](unit.angle) per passare da gradi a radianti prima di seno e coseno (pacchetto [Grandezze e unità](logicstudio-units))
 - [Come funziona un blocco](ide/blocks)

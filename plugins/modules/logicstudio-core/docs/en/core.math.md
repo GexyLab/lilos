@@ -81,4 +81,5 @@ This block has no errors of its own.
 - [Clamp](core.clamp) to keep a number between a minimum and a maximum
 - [Divide (÷ %)](core.divide) for the remainder of a division
 - [Add (+)](core.add), [Multiply (×)](core.multiply)
+- [Angle](unit.angle) to go from degrees to radians before sine and cosine (package [Quantities and units](logicstudio-units))
 - [How a block works](ide/blocks)

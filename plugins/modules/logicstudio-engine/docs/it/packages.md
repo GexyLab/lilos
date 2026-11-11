@@ -119,7 +119,7 @@ Quando tutto va bene il log dice: `Logic Studio: pacchetto logicstudio-esempio 1
 |---|---|
 | `type` | `pacchetto.nome`: `[a-z][a-z0-9]*\.[a-zA-Z][a-zA-Z0-9]{0,40}`, per esempio `esempio.media`. Unico fra tutti i pacchetti |
 | `version` | Un intero da 1. Alzalo quando cambi il comportamento o le impostazioni (vedi **upgrade**) |
-| `category` | Dove sta nella scheda **Blocchi**: `value` (Valori), `logic` (Logica), `math` (Matematica), `text` (Testo), `object` (Oggetti), `list` (Liste), `matrix` (Matrici), `time` (Tempo), `console` (Console), `schema` (Porte di schema), `ui` (Componenti UI), `lilos` (lilOS), `net` (Rete). Un'altra parola, o niente: **Altro** |
+| `category` | Dove sta nella scheda **Blocchi**: `value` (Valori), `logic` (Logica), `math` (Matematica), `text` (Testo), `object` (Oggetti), `list` (Liste), `matrix` (Matrici), `units` (Unità di misura), `time` (Tempo), `console` (Console), `schema` (Porte di schema), `ui` (Componenti UI), `lilos` (lilOS), `net` (Rete), `exception` (Eccezioni). Un'altra parola, o niente: **Altro** |
 | `icon` | Il nome di un'icona di lilOS (`calculator`, `bell`, `globe`, `clock`, `lamp`…). Di serie `blocks` |
 | `label` | Il nome del blocco: `{ en, it }` |
 | `description` | Facoltativa: una frase `{ en, it }` |

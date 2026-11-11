@@ -1685,7 +1685,7 @@ Ogni nota è un file di testo con estensione `.sticky` nella cartella Scrivania.
 
 Un programma di Logic Studio può girare **anche quando lilOS è chiuso nel browser**: lo fa il computer su cui gira lilOS. Per questo, prima di attivarne uno, leggi «[Da sapere](#da-sapere-8)».
 
-Logic Studio non c'è di serie. Serve lilOS dalla 1.37.0 (dalla 1.40.0 per la documentazione, vedi «[La documentazione](#la-documentazione)») e l'app **Logic Studio IDE** (categoria **Sviluppo**), che un amministratore installa dall'[AppStore](#lappstore): l'AppStore installa con lei anche le parti che le servono (il motore e i blocchi di base). Altri blocchi arrivano con altri pacchetti dello stesso AppStore, nella scheda **Kernel**: liste e matrici, i blocchi di lilOS (notifiche, file), la rete, le componenti delle finestre e i grafici.
+Logic Studio non c'è di serie. Serve lilOS dalla 1.37.0 (dalla 1.40.0 per la documentazione, vedi «[La documentazione](#la-documentazione)») e l'app **Logic Studio IDE** (categoria **Sviluppo**), che un amministratore installa dall'[AppStore](#lappstore): l'AppStore installa con lei anche le parti che le servono (il motore e i blocchi di base). Altri blocchi arrivano con altri pacchetti dello stesso AppStore, nella scheda **Kernel**: liste e matrici, grandezze e unità di misura, i blocchi di lilOS (notifiche, file), la rete, le componenti delle finestre e i grafici.
 
 ### Le parole
 

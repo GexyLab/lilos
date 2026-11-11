@@ -74,6 +74,7 @@ I blocchi e le componenti arrivano dai **pacchetti**, moduli del kernel che si i
 | [Blocchi di base](logicstudio-core) (`logicstudio-core`) | Valori, logica, matematica, testo, oggetti, tempo, le due console, le porte di schema, l'oggetto delle Componenti UI. Si installa con l'IDE. |
 | [Liste e matrici](logicstudio-collections) (`logicstudio-collections`) | Blocchi per liste (ordina, filtra, per ogni elemento…) e matrici (prodotto, trasposta, determinante…). |
 | [Costanti](logicstudio-constants) (`logicstudio-constants`) | Le costanti fondamentali: matematiche (π, e, sezione aurea…), fisiche CODATA 2022 (c, h, G, masse delle particelle…) con unità e incertezza, astronomiche e della Terra. |
+| [Grandezze e unità](logicstudio-units) (`logicstudio-units`) | Conversioni tra unità di misura (lunghezza, massa, temperatura, pressione, energia, dati…), prefissi SI, leggere e scrivere misure come `12,5 km`. |
 | [Blocchi di lilOS](logicstudio-lilos) (`logicstudio-lilos`) | Notifiche, leggere e scrivere i file della tua home, elencare cartelle, eventi verso le pagine di lilOS. |
 | [Rete](logicstudio-net) (`logicstudio-net`) | **HTTP** HTTP e HTTPS. |
 | [Componenti UI](logicstudio-ui) (`logicstudio-ui`) | Le componenti delle finestre: etichette, valori, indicatori, pulsanti, campi, tabelle, contenitori. |
