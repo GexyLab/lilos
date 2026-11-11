@@ -21,7 +21,8 @@ export class SchemaEditor {
       labels: { error: t('port.error'), missing: t('block.missing') },
     });
     this.el = h('div', { class: 'ls-editor ls-schema' }, this.canvas.el);
-    this.canvas.on('select', () => studio.inspector.render());
+    // the toolbar too: «Allinea» works from 2 selected blocks
+    this.canvas.on('select', () => { studio.inspector.render(); studio.renderToolbar(); });
     this.canvas.on('open', ({ id }) => this.#open(id));
     this.canvas.on('contextmenu', e => this.#menu(e));
     this.canvas.on('linkDrop', e => this.#quickAdd(e));
@@ -83,7 +84,59 @@ export class SchemaEditor {
       b(null, `${Math.round(this.canvas.view.zoom * 100)}%`, () => this.canvas.setView({ ...this.canvas.view, zoom: 1 }), { cls: 'pct', title: t('tb.zoomReset') }),
       b('plus', null, () => this.canvas.zoomAt(1.2), { title: t('tb.zoomIn') }),
       b('fit', t('tb.fit'), () => this.canvas.fit()),
+      b('cols', t('tb.align'), e => {
+        const r = e.currentTarget.getBoundingClientRect();
+        openMenu(r.left, r.bottom + 2, this.#alignItems());
+      }, { disabled: this.canvas.readOnly || this.canvas.selection.blocks.length < 2, title: t('tb.alignHint') }),
     ];
+  }
+
+  /** The «Allinea» menu: horizontally (left, centre, right, spread), vertically (top, middle, bottom, spread). */
+  #alignItems() {
+    const n = this.canvas.selection.blocks.length;
+    const item = (how, disabled = false) => ({ label: t(`align.${how}`), disabled, action: () => this.align(how) });
+    return [
+      item('left'), item('center'), item('right'), item('spreadX', n < 3),
+      '-',
+      item('top'), item('middle'), item('bottom'), item('spreadY', n < 3),
+    ];
+  }
+
+  /**
+   * Lines up the selected blocks (one step of the history): 'left' | 'center' | 'right' | 'top' |
+   * 'middle' | 'bottom' on the edge (or centre) of the box around them; 'spreadX' | 'spreadY' leave
+   * the first and last where they are and the same gap between the others (from 3 blocks).
+   */
+  align(how) {
+    const list = this.canvas.selection.blocks.map(id => {
+      const b = this.doc.block(id);
+      const el = this.canvas.el.querySelector(`.lgc-block[data-id="${CSS.escape(id)}"]`);
+      return b && { id, x: b.x, y: b.y, w: el?.offsetWidth ?? 160, h: el?.offsetHeight ?? 80 };
+    }).filter(Boolean);
+    if (list.length < 2 || this.canvas.readOnly) return;
+    const x0 = Math.min(...list.map(r => r.x)), x1 = Math.max(...list.map(r => r.x + r.w));
+    const y0 = Math.min(...list.map(r => r.y)), y1 = Math.max(...list.map(r => r.y + r.h));
+    const pos = Object.fromEntries(list.map(r => [r.id, [r.x, r.y]]));
+    const spread = (axis, size, from, to) => {
+      if (list.length < 3) return;
+      const sorted = [...list].sort((a, b) => a[axis] - b[axis]);
+      const gap = (to - from - sorted.reduce((s, r) => s + r[size], 0)) / (sorted.length - 1);
+      let at = from;
+      for (const r of sorted) { pos[r.id][axis === 'x' ? 0 : 1] = at; at += r[size] + gap; }
+    };
+    for (const r of list) {
+      const p = pos[r.id];
+      if (how === 'left') p[0] = x0;
+      else if (how === 'center') p[0] = (x0 + x1 - r.w) / 2;
+      else if (how === 'right') p[0] = x1 - r.w;
+      else if (how === 'top') p[1] = y0;
+      else if (how === 'middle') p[1] = (y0 + y1 - r.h) / 2;
+      else if (how === 'bottom') p[1] = y1 - r.h;
+    }
+    if (how === 'spreadX') spread('x', 'w', x0, x1);
+    if (how === 'spreadY') spread('y', 'h', y0, y1);
+    const moved = list.filter(r => Math.round(pos[r.id][0]) !== r.x || Math.round(pos[r.id][1]) !== r.y);
+    if (moved.length) this.doc.place(Object.fromEntries(moved.map(r => [r.id, pos[r.id]])));
   }
 
   #open(id) {
@@ -104,6 +157,7 @@ export class SchemaEditor {
       const def = this.#studio.blockDef(block?.type);
       items.push({ label: t('menu.duplicate'), icon: 'copy', shortcut: 'Ctrl+D', action: () => this.canvas.select(this.doc.duplicate(sel.blocks)) });
       items.push({ label: t('menu.label'), icon: 'pencil', action: () => this.#rename(e.id) });
+      if (sel.blocks.length > 1 && !this.canvas.readOnly) items.push({ label: t('tb.align'), icon: 'cols', items: this.#alignItems() });
       if (def?.role === 'component') items.push({ label: t('menu.openWindow'), icon: 'window', action: () => this.#open(e.id) });
       items.push('-');
       items.push({ label: t(sel.blocks.length > 1 ? 'menu.removeBlocks' : 'menu.removeBlock', { n: sel.blocks.length }), icon: 'trash', danger: true, shortcut: 'Canc', action: () => this.canvas.removeSelection() });
