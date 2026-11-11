@@ -7,7 +7,9 @@ import { t, i18n } from './i18n.js';
  * inputs (whether they start it, a value at the start) and its ports. The ports a block allows
  * to add (its definition's `grow`) are added, renamed, moved and removed only here; base ports
  * have a lock and never go. The eye beside each port hides it on the drawing or shows it again
- * (not when it is linked); the Eccezione output starts hidden.
+ * (not when it is linked); the Exception output starts hidden. For a block in a group, the button
+ * beside the eye exposes the port (reached from outside the group). For a group: its name,
+ * collapsed or not, its thread, its «Run» and the ports it exposes.
  */
 export class Inspector {
   el;
@@ -33,12 +35,16 @@ export class Inspector {
   // ------------------------------------------------------------------ schema
 
   #schema(view) {
-    const { blocks, links } = view.selection;
+    const { blocks, links, groups = [] } = view.selection;
     const doc = view.doc;
-    if (blocks.length === 1) return this.#block(view, doc.block(blocks[0]));
-    if (blocks.length > 1) {
-      return [h('p', { class: 'ls-insp-note' }, t('inspector.many', { n: blocks.length })),
-        h('div', { class: 'ls-insp-acts' }, actionButton({ label: t('menu.removeBlocks', { n: blocks.length }), danger: true, icon: 'trash', onClick: () => view.canvas.removeSelection() }))];
+    if (groups.length === 1 && !blocks.length) return this.#group(view, doc.group(groups[0]));
+    if (blocks.length === 1 && !groups.length) return this.#block(view, doc.block(blocks[0]));
+    if (blocks.length || groups.length) {
+      const free = blocks.filter(id => !doc.groupOf(id)).length;
+      return [h('p', { class: 'ls-insp-note' }, groups.length ? t('group.manySel', { blocks: blocks.length, groups: groups.length }) : t('inspector.many', { n: blocks.length })),
+        h('div', { class: 'ls-insp-acts col' },
+          free && !view.canvas.readOnly ? actionButton({ label: t('group.make'), icon: icon('group'), primary: true, onClick: () => view.canvas.groupSelection() }) : null,
+          actionButton({ label: t('menu.removeBlocks', { n: blocks.length + groups.length }), danger: true, icon: 'trash', onClick: () => view.canvas.removeSelection() }))];
     }
     if (links.length) {
       return [h('p', { class: 'ls-insp-note' }, t('inspector.links', { n: links.length })),
@@ -57,6 +63,91 @@ export class Inspector {
     return out;
   }
 
+  // ------------------------------------------------------------------ group
+
+  #group(view, g) {
+    if (!g) return [];
+    const studio = this.#studio;
+    const doc = view.doc;
+    const ro = view.canvas.readOnly;
+    const out = [];
+    out.push(h('div', { class: 'ls-insp-h cat-group' }, icon('group'), h('b', {}, g.name), docButton(studio, 'ide/groups')));
+    out.push(this.#row(t('inspector.name'), textField({ value: g.name, maxLength: 80, disabled: ro, onChange: v => doc.setGroup(g.id, { name: v }) })));
+    out.push(h('div', { class: 'ls-field' }, checkbox({ value: g.collapsed, label: t('group.collapsedField'), disabled: ro, onChange: v => doc.setGroup(g.id, { collapsed: v }) })));
+    out.push(h('div', { class: 'ls-field' }, checkbox({ value: g.thread, label: t('group.threadField'), disabled: ro, onChange: v => doc.setGroup(g.id, { thread: v }) })));
+    out.push(h('p', { class: 'ls-hint' }, t('group.threadHint')));
+    if (g.thread && g.blocks.some(id => ['schemaIn', 'schemaOut', 'component'].includes(studio.blockDef(doc.block(id)?.type)?.role))) out.push(h('p', { class: 'ls-insp-note warn' }, t('group.threadNo')));
+
+    // Run
+    out.push(this.#section(t('group.run')));
+    const from = doc.data.links.filter(l => l.to[0] === g.id);
+    const to = doc.data.links.filter(l => l.from[0] === g.id);
+    out.push(h('p', { class: `ls-insp-note${from.length ? '' : ' warn'}` }, from.length ? t('group.runOn', { n: from.length }) : t('group.runOff')));
+    out.push(h('p', { class: 'ls-hint' }, t('group.runInside', { n: to.length })));
+
+    // Exposed ports
+    out.push(this.#section(t('group.exposed')));
+    if (!g.expose.length) out.push(h('p', { class: 'ls-hint' }, t('group.noExposed')));
+    else {
+      const rows = [];
+      g.expose.forEach((e, i) => {
+        const b = doc.block(e.block);
+        const def = b && studio.blockDef(b.type);
+        const comp = def?.role === 'component' ? view.componentOf(b) : null;
+        const p = def && portsOf(b, def, { lang: i18n.lang, component: comp, errorLabel: t('port.error') })[e.side === 'in' ? 'inputs' : 'outputs'].find(x => x.name === e.port);
+        if (!p) return;
+        const where = `${b.label || studio.label(def)} › ${p.label}`;
+        rows.push(h('tr', {},
+          h('td', { class: 'vis' }, h('span', { title: t(e.side === 'in' ? 'inspector.inputs' : 'inspector.outputs') }, icon(e.side === 'in' ? 'portIn' : 'portOut'))),
+          h('td', { class: 'nm' }, h('i', { class: `ls-dotc t-${p.type}` }),
+            textField({ value: e.name ?? '', placeholder: p.label, maxLength: 60, className: 'ls-port-name', disabled: ro, onChange: v => doc.renameExposed(g.id, e.block, e.side, e.port, v) })),
+          h('td', { class: 'acts' }, h('span', { class: 'ls-port-acts' },
+            h('button', { type: 'button', class: 'ls-icon-btn', title: t('inspector.up'), disabled: ro || i === 0, onclick: () => doc.moveExposed(g.id, i, i - 1) }, icon('arrowUp')),
+            h('button', { type: 'button', class: 'ls-icon-btn', title: t('inspector.down'), disabled: ro || i === g.expose.length - 1, onclick: () => doc.moveExposed(g.id, i, i + 1) }, icon('arrowDown')),
+            h('button', { type: 'button', class: 'ls-link-btn danger', disabled: ro, onclick: () => this.#unexpose(view, g, e, p.label) }, t('inspector.removePort'))))));
+        rows.push(h('tr', { class: 'opts' }, h('td', { colspan: 3 }, h('span', { class: 'ls-hint' }, where))));
+      });
+      out.push(h('table', { class: 'ls-ports' }, ...rows));
+    }
+    out.push(h('p', { class: 'ls-hint' }, t('group.exposeHint')));
+
+    out.push(this.#section(t('inspector.blocks')));
+    out.push(h('p', { class: 'ls-hint' }, t('group.blocks', { n: g.blocks.length })));
+    out.push(h('div', { class: 'ls-insp-acts col' },
+      actionButton({ label: t('group.ungroup'), icon: icon('group'), disabled: ro, onClick: () => view.canvas.ungroupSelection() }),
+      actionButton({ label: t('group.remove'), icon: icon('trash'), danger: true, disabled: ro, onClick: () => view.canvas.removeSelection() })));
+    return out;
+  }
+
+  /** Stops exposing a port: the links across the group's edge to it go too (asked first). */
+  async #unexpose(view, g, e, label) {
+    const doc = view.doc;
+    const inside = id => g.blocks.includes(id) || id === g.id;
+    const crossing = doc.data.links.filter(l => (e.side === 'out' ? l.from[0] === e.block && l.from[1] === e.port && !inside(l.to[0]) : l.to[0] === e.block && l.to[1] === e.port && !inside(l.from[0])));
+    if (crossing.length) {
+      const res = await messageBox(this.#studio.win, {
+        icon: 'warning', title: t('group.unexposeQ', { name: label }), text: t('inspector.removeLinks', { n: crossing.length }),
+        buttons: ['cancel', { value: 'ok', label: t('group.unexpose'), danger: true }],
+      });
+      if (res !== 'ok') return;
+    }
+    doc.setExposed(g.id, e.block, e.side, e.port, false);
+  }
+
+  /** For a port of a block in a group: exposed (reached from outside the group) or not. */
+  #exposeButton(view, block, side, p) {
+    const g = view.doc.groupOf(block.id);
+    if (!g) return null;
+    const s = side === 'inputs' ? 'in' : 'out';
+    const on = g.expose.some(e => e.block === block.id && e.side === s && e.port === p.name);
+    const label = t(on ? 'group.unexpose' : 'group.expose');
+    return h('button', {
+      type: 'button', class: `ls-icon-btn ls-expose${on ? ' on' : ''}`, title: label, 'aria-label': `${label}: ${p.label}`, 'aria-pressed': on ? 'true' : 'false',
+      disabled: view.canvas?.readOnly,
+      onclick: () => (on ? this.#unexpose(view, g, { block: block.id, side: s, port: p.name }, p.label) : view.doc.setExposed(g.id, block.id, s, p.name, true)),
+    }, icon(side === 'inputs' ? 'portIn' : 'portOut'));
+  }
+
   #block(view, block) {
     if (!block) return [];
     const studio = this.#studio;
@@ -71,6 +162,11 @@ export class Inspector {
       docButton(studio, blockDocAddress(studio, block, b => view.componentOf(b)))));
     if (def.description) out.push(h('p', { class: 'ls-hint' }, studio.label({ label: def.description })));
     if (!def.role) out.push(this.#row(t('inspector.label'), textField({ value: block.label ?? '', placeholder: studio.label(def), maxLength: 80, onChange: v => doc.setLabel(block.id, v.trim()) })));
+    const home = doc.groupOf(block.id);
+    if (home) {
+      out.push(h('div', { class: 'ls-port-line' }, icon('group'), h('span', {}, t('group.inGroup', { name: home.name })),
+        h('button', { type: 'button', class: 'ls-link-btn', onclick: () => view.canvas.select([], [], { groups: [home.id] }) }, t('group.show'))));
+    }
 
     // Settings
     if (def.role === 'component') out.push(...this.#componentObject(view, block));
@@ -136,7 +232,7 @@ export class Inspector {
             h('button', { type: 'button', class: 'ls-link-btn danger', onclick: () => this.#removePort(view, block, side, p) }, t('inspector.removePort')));
         }
         rows.push(h('tr', { class: `${p.error ? 'err' : ''}${p.hidden && !this.#linked(doc, block, side, p) ? ' hid' : ''}` },
-          h('td', { class: 'vis' }, this.#eye(view, block, side, p)),
+          h('td', { class: `vis${doc.groupOf(block.id) ? ' two' : ''}` }, this.#eye(view, block, side, p), this.#exposeButton(view, block, side, p)),
           h('td', { class: 'nm' }, h('i', { class: `ls-dotc t-${p.type}` }), name),
           h('td', { class: 'ty' }, t(`type.${p.type}`)),
           h('td', { class: 'acts' }, tail)));

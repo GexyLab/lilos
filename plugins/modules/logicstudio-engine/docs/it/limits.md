@@ -47,6 +47,7 @@ Con una quota di programmi attivi a 0, un utente non può attivare programmi né
 | Esecuzioni di blocchi per programma in 10 secondi | 10000 | 100–1000000 | Oltre, il programma si ferma: di solito è un ciclo di collegamenti |
 | Tempo massimo di un blocco | 30 s | 1–600 | Oltre, il motore smette di aspettare il blocco e manda un errore sulla sua Exception |
 | Durata massima di una prova | 5 minuti | 1–240 | Poi la prova si ferma da sola |
+| Gruppi in un thread a parte per utente | 4 | 0–64 | Quanti [gruppi](ide/groups) con **Esegui in un thread a parte** possono girare insieme per ogni utente (tutti i suoi programmi). Oltre, il gruppo gira nel thread del programma, con un avviso nella console principale. Ogni thread ha metà della quota di memoria dell'utente (almeno 16 MB), oltre a quella del suo worker |
 
 ### Gli schemi
 

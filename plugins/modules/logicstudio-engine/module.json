@@ -1,6 +1,6 @@
 {
   "name": "logicstudio-engine",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Logic Studio Engine: fa girare gli schemi e i progetti di Logic Studio (blocchi logici) per ogni utente, con quote e limiti",
   "icon": {
     "glyph": "chip",
@@ -28,6 +28,7 @@
     "maxConsoles": 10,
     "consoleLinesPerSecond": 50,
     "chartPoints": 1000,
+    "maxThreads": 4,
     "quotaMaxActive": 10,
     "quotaMaxTests": 2,
     "quotaCpuPercent": 25,
@@ -199,6 +200,17 @@
       "label": {
         "en": "Points kept per chart series",
         "it": "Punti tenuti per serie dei grafici"
+      }
+    },
+    {
+      "key": "maxThreads",
+      "type": "number",
+      "min": 0,
+      "max": 64,
+      "default": 4,
+      "label": {
+        "en": "Groups in a thread of their own per user, at most",
+        "it": "Gruppi in un thread a parte per utente, al massimo"
       }
     },
     {

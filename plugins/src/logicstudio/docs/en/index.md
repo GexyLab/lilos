@@ -54,6 +54,7 @@ The two side panels get wider and narrower when you drag the bar between them an
 | [Projects](ide/projects) | Creating, opening, saving, closing a project; the **Project** list; the **Project options**. |
 | [Schemas](ide/schemas) | The schema editor: putting blocks, selecting, moving, the menus, the Properties of a block, the **Map**. |
 | [Links and port types](ide/links) | How links are made and removed, the port types, when a link is marked, links between schemas. |
+| [Groups](ide/groups) | Grouping blocks, the **Run** port, exposed ports, collapsing a group into a block, the thread of its own. |
 | [How a block works](ide/blocks) | Inputs, «starts it», start value, one thing at a time, the **Exception** output, added ports, loops. |
 | [Windows](ide/windows) | The window editor: Design and Preview, containers, properties, button actions. |
 | [The object of a component](ide/components) | How a schema talks with a component of a window. |

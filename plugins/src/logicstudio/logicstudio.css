@@ -97,7 +97,11 @@
 .ls-ports td.nm { white-space: nowrap; }
 .ls-ports td.nm .added { font-style: italic; }
 .ls-ports td.acts { text-align: right; white-space: nowrap; }
-.ls-ports td.vis { width: 24px; padding-right: 2px; }
+.ls-ports td.vis { width: 24px; padding-right: 2px;; white-space: nowrap; }
+.ls-ports td.vis.two { width: 48px; }
+.ls-ports .ls-expose { color: var(--faint); }
+.ls-ports .ls-expose.on { color: #ef7d57; background: color-mix(in srgb, #ef7d57 14%, transparent); }
+.ls-insp-h.cat-group .ico { color: #ef7d57; }
 .ls-ports .ls-eye[aria-disabled="true"] { opacity: .35; cursor: default; }
 .ls-ports .ls-eye[aria-disabled="true"]:hover { background: none; color: var(--dim); }
 .ls-ports tr.hid td.nm, .ls-ports tr.hid td.ty { opacity: .5; }

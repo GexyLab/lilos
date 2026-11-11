@@ -7,7 +7,10 @@
  * .lsproj  { format: 'lilos-lsproj/1', name, schemas: { <name>: path }, windows: { <name>: path },
  *            main, links: [{ from: 'schema:port', to: 'schema:port' }], consoles, options, entrypoints, … }
  * .lsch    { format: 'lilos-lsch/1', name, blocks: [{ id, type, v, config, ports, added, x, y, label }],
- *            links: [{ from: [block, port], to: [block, port] }], consoles? (a schema alone), view, notes }
+ *            links: [{ from: [block, port], to: [block, port] }], groups?, consoles? (a schema alone), view, notes }
+ *            groups: [{ id, name, blocks: [ids], thread, collapsed, expose }]: a block is in one group at
+ *            most; a group's port «run» is reached with its id: [group, 'run'] as `to` from a block
+ *            outside it (what starts it), as `from` towards the blocks inside it (the pulse at its start)
  * .lsui    { format: 'lilos-lsui/1', title, size, root: { id?, type, v, props, children } }
  *
  * The links between schemas go from an Uscita di schema to an Ingresso di schema (ports named in
@@ -120,7 +123,35 @@ export function buildSpec(documents, registry, limits) {
       }
       for (const p of def.inputs) if (p.trigger === false && !ports[p.name]) ports[p.name] = { trigger: false };
       byId.set(raw.id, { inputs, outputs });
-      outBlocks.push({ id: raw.id, type: def.type, v: def.version, config, ports, added });
+      // The ports that carry a pulse (true, then back to false): the runtime needs them for the proxies too
+      const types = def.role === 'component' ? registry.componentDef(windows[config.window].components[config.component].type) : def;
+      const pulses = {
+        in: [...types.inputs.filter(p => p.type === 'pulse').map(p => p.name), ...(types.grow?.inputs?.type === 'pulse' ? added.inputs.map(p => p.id) : [])],
+        out: [...types.outputs.filter(p => p.type === 'pulse').map(p => p.name), ...(types.grow?.outputs?.type === 'pulse' ? added.outputs.map(p => p.id) : [])],
+      };
+      outBlocks.push({ id: raw.id, type: def.type, v: def.version, config, ports, added, pulses, role: def.role ?? null });
+    }
+    // Groups: blocks that start only when their «run» gets a pulse, maybe in a thread of their own
+    const groupOf = new Map();
+    const outGroups = [];
+    const rawGroups = Array.isArray(doc.groups) ? doc.groups : [];
+    if (rawGroups.length > limits.maxBlocks) bad(`Troppi gruppi nello schema ${name}`, { schema: name });
+    for (const g of rawGroups) {
+      if (!plain(g) || !ID.test(String(g.id ?? ''))) bad(`Lo schema ${name} ha un gruppo senza id valido`, { schema: name });
+      if (byId.has(g.id)) bad(`Lo schema ${name}: l'id ${g.id} è di due elementi`, { schema: name, block: g.id });
+      const label = String(g.name ?? g.id).slice(0, 80);
+      const members = [...new Set(Array.isArray(g.blocks) ? g.blocks : [])].filter(id => byId.has(id) && !byId.get(id).group);
+      for (const id of members) {
+        if (groupOf.has(id)) bad(`Lo schema ${name}: il blocco ${id} è in due gruppi`, { schema: name, block: id });
+        groupOf.set(id, g.id);
+      }
+      const thread = g.thread === true;
+      if (thread) {
+        const special = members.find(id => ['schemaIn', 'schemaOut', 'component'].includes(outBlocks.find(b => b.id === id)?.role));
+        if (special) bad(`Il gruppo ${label} gira in un thread a parte: non può contenere Ingressi o Uscite di schema né oggetti della UI (${special})`, { schema: name, block: special });
+      }
+      byId.set(g.id, { inputs: new Set(['run']), outputs: new Set(['run']), group: true });
+      outGroups.push({ id: g.id, name: label, blocks: members, thread });
     }
     const outLinks = [];
     for (const l of links) {
@@ -130,9 +161,12 @@ export function buildSpec(documents, registry, limits) {
       if (!from || !to) bad(`Lo schema ${name} ha un collegamento verso un blocco che non c'è`, { schema: name });
       if (!from.outputs.has(fp)) bad(`Lo schema ${name}: il blocco ${fb} non ha l'uscita ${fp}`, { schema: name, block: fb });
       if (!to.inputs.has(tp)) bad(`Lo schema ${name}: il blocco ${tb} non ha l'ingresso ${tp}`, { schema: name, block: tb });
+      // «run» of a group: from outside into it, and from it to the blocks inside it
+      if (from.group && groupOf.get(tb) !== fb) bad(`Lo schema ${name}: la porta Run del gruppo ${fb} va solo ai blocchi dentro il gruppo`, { schema: name, block: fb });
+      if (to.group && (groupOf.get(fb) === tb || fb === tb)) bad(`Lo schema ${name}: la porta Run del gruppo ${tb} si collega da fuori del gruppo`, { schema: name, block: tb });
       outLinks.push({ from: [fb, fp], to: [tb, tp] });
     }
-    schemas[name] = { blocks: outBlocks, links: outLinks };
+    schemas[name] = { blocks: outBlocks.map(({ role, ...b }) => b), links: outLinks, groups: outGroups };
   }
 
   // Links between schemas: 'schema:port' → 'schema:port', from an output port to an input port

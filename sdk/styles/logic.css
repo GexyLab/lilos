@@ -88,6 +88,44 @@
 .lgc-block.role-schemaIn, .lgc-block.role-schemaOut { border-radius: 13px; border-left-width: 1px; border-color: var(--lc-schema); background: color-mix(in srgb, var(--lc-schema) 18%, var(--lg-block)); --cat: var(--lc-schema); }
 .lgc-block.role-component { border-color: var(--lc-ui); border-left-width: 3px; background: color-mix(in srgb, var(--lc-ui) 12%, var(--lg-block)); }
 
+/* Groups: an open one is a frame around its blocks (below them, below the links), «Run» in its header;
+   a collapsed one is a block. The ports a group exposes have a ring. */
+.lgc { --lc-group: #ef7d57; }
+.lgc-links { z-index: 1; }
+.lgc-grp {
+  position: absolute; z-index: 0; pointer-events: none; border-radius: 9px;
+  border: 1.5px solid color-mix(in srgb, var(--lc-group) 55%, transparent);
+  background: color-mix(in srgb, var(--lc-group) 6%, transparent);
+}
+.lgc-grp.off { border-style: dashed; }
+.lgc-grp.sel { outline: 2px solid var(--accent); outline-offset: 2px; }
+.lgc-grp.run { border-color: var(--lg-live); box-shadow: 0 0 0 1px var(--lg-live); }
+.lgc-gh {
+  pointer-events: auto; height: 28px; display: flex; align-items: center; gap: 6px; padding: 0 6px 0 0; cursor: grab;
+  background: color-mix(in srgb, var(--lc-group) 16%, var(--canvas)); border-radius: 8px 8px 0 0; font-weight: 600; font-size: 11.5px;
+  white-space: nowrap; overflow: visible;
+}
+.lgc-gh > .ico { width: 13px; height: 13px; flex: none; color: var(--lc-group); }
+.lgc-gh .lgc-t { flex: none; }
+.lgc-gh .lgc-k { display: inline-flex; align-items: center; gap: 3px; }
+.lgc-gh .lgc-k .ico { width: 11px; height: 11px; }
+.lgc-gh .lgc-p { padding: 0 9px; height: 28px; font-weight: 700; }
+.lgc-gh .lgc-p .lgc-dot { top: 9px; }
+.lgc-gh .lgc-p.inner { padding: 0 6px 0 0; margin-left: -8px; }
+.lgc-gh .lgc-p .lgc-v { display: none; }
+.lgc-gx {
+  margin-left: auto; flex: none; width: 20px; height: 20px; display: grid; place-items: center; border: 0; border-radius: 4px;
+  background: transparent; color: var(--lg-dim); cursor: pointer; padding: 0;
+}
+.lgc-gx:hover { background: color-mix(in srgb, var(--on-canvas) 12%, transparent); color: var(--on-canvas); }
+.lgc-gx .ico { width: 12px; height: 12px; }
+.lgc-block.lgc-grp-c { --cat: var(--lc-group); border-color: color-mix(in srgb, var(--lc-group) 60%, var(--lg-block-border)); border-left-width: 4px; background: color-mix(in srgb, var(--lc-group) 10%, var(--lg-block)); box-shadow: 3px 3px 0 -1px var(--lg-block), 3px 3px 0 0 color-mix(in srgb, var(--lc-group) 45%, transparent), 0 8px 18px -10px rgba(0, 0, 0, .55); }
+.lgc-block.lgc-grp-c.off { border-style: dashed; border-left-style: solid; }
+.lgc-block.lgc-grp-c .lgc-k .ico { color: var(--lc-group); }
+.lgc-p.lgc-run > span { font-weight: 700; }
+.lgc-p.exposed .lgc-dot { box-shadow: 0 0 0 2px var(--lg-block), 0 0 0 3.5px var(--lc-group); }
+.lgc-p.exposed.target .lgc-dot { box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 45%, transparent); }
+
 /* LogicConsole */
 .lgcon { display: flex; flex-direction: column; min-height: 0; height: 100%; background: var(--surface); color: var(--text); }
 .lgcon-lines { flex: 1; overflow: auto; font: 11px/1.6 var(--mono); padding: 4px 10px; user-select: text; }

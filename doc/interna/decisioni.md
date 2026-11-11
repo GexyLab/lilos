@@ -2396,3 +2396,43 @@ Conseguenze: se tutte le schede si chiudono non parte niente; un'automazione con
 - Non ci sono test automatici su `markdown()` né sulle route.
 
 **Quando ripensarla.** Se serviranno immagini o schemi nelle pagine (oggi non si caricano); se le lingue delle pagine saranno più di due e conviene un controllo che avvisi delle pagine mancanti; se la ricerca dovrà cercare nel testo e non solo nei titoli (allora l'indice non basta); se altre app vorranno la stessa organizzazione (sarebbe da portare fuori da Logic Studio).
+
+## D91. Logic Studio: i gruppi di blocchi, la porta Run, gli impulsi che tornano a false e i thread a parte
+
+> Completa [D88](#d88-logic-studio-motore-pacchetti-ide-finestre-dei-progetti): stesso motore, stesso formato `.lsch` con un campo in più; cambia anche il significato dei valori degli impulsi.
+
+**Contesto.** Gli schemi grandi diventano illeggibili, e i programmi lunghi non hanno modo di ripartire da capo una parte senza fermare tutto. L'utente ha chiesto (11 novembre 2026) di raggruppare blocchi in uno schema, di poter comprimere un gruppo in un blocco esponendo solo le porte che servono fuori, di farlo girare a scelta in un thread a parte, e una porta Run collegabile alle porte di avvio dei blocchi interni: senza niente su Run i blocchi non partono, con Run collegata partono dai blocchi che partono da soli (Valori…). Ha chiesto anche che le porte di avvio siano booleane a impulso: da `false` a `true` e subito di nuovo `false`. Prima un impulso era un `true` che restava sull'ingresso.
+
+**Decisione.** Decisa l'11 novembre 2026: lilOS 1.43.0, SDK 0.28.0, Logic Studio IDE 1.7.0, motore `logicstudio-engine` 1.4.0, Pannello di controllo (`settings`) 1.23.1.
+
+- **Il gruppo è nello schema**, non in un file a parte: `groups: [{ id, name, blocks, collapsed, thread, expose }]` nel `.lsch` (assente se non ci sono gruppi). Un blocco sta in un solo gruppo; un gruppo vuoto sparisce; niente gruppi dentro i gruppi. Il modello (`LogicSchema`) ripulisce i gruppi dopo ogni modifica (`tidyGroups`).
+- **Run è una porta di tipo impulso** con l'id del gruppo come «blocco» nei collegamenti: `[gruppo, 'run']` da fuori, `from: [gruppo, 'run']` verso i blocchi interni. **I blocchi di un gruppo non partono con il programma**: partono quando Run riceve un impulso (i loro `start()`, i valori iniziali, i cicli, e l'impulso sui collegamenti di Run). Ogni impulso li fa **ripartire da capo** (`stop()`, timer cancellati, memoria azzerata; i valori degli ingressi restano). Senza niente su Run non partono mai. Lo stato del gruppo esce come `'schema/gruppo'`.
+- **Porte esposte.** Un collegamento che attraversa il bordo tocca solo porte esposte (`expose`); collegarne una la espone, e `Raggruppa` espone quelle dei collegamenti già presenti. Smettere di esporre toglie i collegamenti da fuori (l'IDE chiede conferma). Il motore non guarda le esposizioni: servono al disegno e alle regole dell'IDE.
+- **Compresso** è solo un aspetto (`collapsed`): un blocco con Run e le porte esposte, senza i collegamenti interni.
+- **Thread a parte** (`thread: true`): un `worker_thread` figlio del worker dell'utente, che esegue lo stesso `worker.js` (`workerData.thread`); i valori del bordo passano per messaggi, mentre azioni, console, finestre e valori dal vivo passano dal worker dell'utente. Il limite è la nuova impostazione globale `maxThreads` (di serie 4, 0-64, per utente; Pannello di controllo → Logic Studio → Limiti); ogni thread ha metà della memoria della quota dell'utente (almeno 16 MB). Senza un thread libero il gruppo gira nel thread del programma, con un avviso nella console principale. Un gruppo in thread non può avere Ingressi/Uscite di schema né oggetti della UI: il motore rifiuta lo schema. Parte solo se Run è collegata.
+- **Impulsi.** Una porta impulso manda `true` e torna subito a `false` (il valore dal vivo sull'uscita torna `false`). Un ingresso impulso vale `true` per l'esecuzione che avvia, poi torna `false` senza riavviare il blocco (con «Lo avvia» tolto resta `true` fino alla prossima esecuzione) e non parte con `false` né con `null`. `typesMatch('pulse', 'bool')` è ora vero.
+
+**Perché.**
+
+- *Nello schema.* Il gruppo non ha comportamento proprio oltre a Run e alle porte: è un modo di organizzare blocchi dello stesso schema. Un file a parte (come un sotto-programma) avrebbe imposto porte, versioni e un posto dove tenerlo; i collegamenti tra schemi del progetto già coprono quel caso.
+- *Run con l'id del gruppo nei collegamenti.* Si riusa il formato dei collegamenti (`[chi, porta]`) senza un tipo di collegamento nuovo: i file vecchi restano validi e il motore tratta il gruppo come un nodo con un solo ingresso e una sola uscita.
+- *Ripartire da capo a ogni impulso.* Rende un gruppo una unità che si può riavviare (un ciclo di lavoro) senza fermare il programma; la memoria azzerata evita stati rimasti da prima.
+- *Impulsi che tornano a `false`.* Il successivo impulso è un valore nuovo e distinguibile, e un ingresso impulso non riparte per un `false`. Il costo è che un blocco legge `true` solo durante l'esecuzione che l'impulso avvia.
+- *Thread figlio dello stesso `worker.js`.* Un solo file e una sola logica per i due casi; l'accesso ai dati dell'utente resta nel thread principale del kernel, come per ogni blocco. La memoria dimezzata tiene il totale dell'utente dentro la quota.
+
+**Alternative scartate.**
+
+- Gruppi che partono con il programma e un interruttore per fermarli: non permette di ripartire da capo.
+- Sotto-schemi in file separati con porte proprie: più pesanti per un'esigenza di ordine e di avvio.
+- Un processo per gruppo (invece di un thread): più memoria e più lavoro per far passare dati e permessi.
+- Gruppi dentro i gruppi: aumentano le regole (porte esposte a catena, Run annidata) senza un caso d'uso chiaro.
+
+**Conseguenze.**
+
+- Uno schema con gruppi aperto da un SDK più vecchio perde i gruppi e i collegamenti di Run (`LogicSchema.parse` lascia fuori i collegamenti verso id che non conosce); un motore più vecchio di 1.4.0 rifiuta lo schema («ha un collegamento verso un blocco che non c'è»). Per questo l'IDE 1.7.0 chiede il motore `>=1.4.0`.
+- Uno schema con gruppi in thread chiede il motore 1.4.0; l'IDE 1.7.0 chiede lilOS 1.43.0 (SDK 0.28.0).
+- Gli schemi con impulsi collegati a ingressi che aspettavano `true` fermo cambiano comportamento: chi scrive blocchi per i pacchetti deve sapere che un ingresso impulso vale `true` solo in quell'esecuzione.
+- Un thread in più costa memoria e un avvio (si carica `worker.js`): conviene per lavori lunghi.
+- I test (fuori dal repository, come per D88) coprono il runtime dei gruppi e il thread anche con il motore compilato, il modello e il canvas e le Proprietà in Chrome.
+
+**Quando ripensarla.** Se serviranno gruppi annidati o riusabili tra schemi; se `maxThreads` non basterà o il thread dovrà avere una quota propria (oggi è metà della memoria); se Run dovrà portare valori e non solo un impulso; se l'avviso di «nessun thread libero» dovrà fermare il programma invece di ripiegare.

@@ -160,6 +160,30 @@ Un esempio completo, con un blocco con etichetta, un valore iniziale, una porta 
 | `notes` | Riservato, vuoto. |
 | `view` | Posizione e zoom della vista quando hai chiuso lo schema. |
 | `consoles` | Solo in uno **schema da solo**, facoltativo: le console come in `.lsproj` (`list`, `outside`…). |
+| `groups` | Facoltativo, solo se lo schema ha dei [gruppi](ide/groups): vedi sotto. |
+
+### I gruppi
+
+```json
+"groups": [
+  {
+    "id": "grp1", "name": "Calcolo", "blocks": ["value1", "add1"],
+    "collapsed": false, "thread": false,
+    "expose": [{ "block": "add1", "side": "out", "port": "result", "name": "totale" }]
+  }
+]
+```
+
+| Campo | Cosa contiene |
+|---|---|
+| `id` | L'id del gruppo (`grp` + numero), unico tra blocchi e gruppi dello schema. |
+| `name` | Il nome (al massimo 80 caratteri). |
+| `blocks` | Gli id dei suoi blocchi. Un blocco sta in un solo gruppo. |
+| `collapsed` | `true`: disegnato come un blocco. Non cambia come gira. |
+| `thread` | `true`: il motore lo fa girare in un thread a parte. |
+| `expose` | Le porte raggiungibili da fuori: `block`, `side` (`in` o `out`), `port` e, facoltativo, `name` (il nome sul gruppo compresso). |
+
+La porta **Run** di un gruppo si scrive nei `links` con l'id del gruppo: `{ "from": ["start1", "pulse"], "to": ["grp1", "run"] }` la fa partire da fuori; `{ "from": ["grp1", "run"], "to": ["counter1", "up"] }` manda il suo impulso a un blocco dentro.
 
 Le porte dell'**oggetto di una componente** (`core.component`) sono quelle della componente, con i loro nomi interni (per un Pulsante `pressed`, `text`, `enabled`, `visible`). Le porte delle **porte di schema**: l'Ingresso di schema ha l'uscita `value`, l'Uscita di schema l'ingresso `value`.
 
@@ -174,6 +198,8 @@ Cosa succede con un file vecchio o rovinato:
 | `x`, `y`, `v` non numerici | Li mette a 0 (e `v` a 1). | — |
 | `config`, `ports` non oggetti | Li svuota. | Li svuota. |
 | Valori iniziali di porte che il blocco non ha | Li tiene. | Li ignora. |
+| Un gruppo senza blocchi validi, o un blocco in due gruppi | Toglie il gruppo vuoto; il blocco resta nel primo gruppo. | «Lo schema main: il blocco add1 è in due gruppi» |
+| Run di un gruppo collegata male | Toglie il collegamento. | «Lo schema main: la porta Run del gruppo grp1 va solo ai blocchi dentro il gruppo» / «… si collega da fuori del gruppo» |
 
 ## La finestra: `.lsui`
 

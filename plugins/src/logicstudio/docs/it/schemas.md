@@ -67,6 +67,7 @@ La barra di stato in basso dice per lo schema aperto: **Blocchi 12 / 200 · coll
 - **Trascina sul fondo**: seleziona i blocchi toccati dal rettangolo; con **Maiusc** li aggiunge a quelli già scelti. Un clic sul fondo senza trascinare toglie la selezione.
 - **Clic su un collegamento**: lo seleziona (più spesso, illuminato); **Maiusc+clic** ne aggiunge altri.
 - **Ctrl+A** seleziona tutti i blocchi; **Esc** toglie la selezione.
+- **Clic sulla testata di un gruppo** (o su un gruppo compresso): seleziona il gruppo. Vedi [Gruppi](ide/groups).
 
 ## Spostare, duplicare, eliminare
 
@@ -89,8 +90,13 @@ Su un **blocco** (se non era selezionato, diventa la selezione):
 |---|---|
 | **Duplica** (Ctrl+D) | Duplica i blocchi selezionati. |
 | **Etichetta…** | Chiede «Un nome per questo blocco, che si vede al posto del suo tipo.» (al massimo 80 caratteri; vuoto la toglie). |
+| **Raggruppa** (Ctrl+G) | Fa un gruppo dei blocchi selezionati che non sono in un gruppo. |
+| **Aggiungi al gruppo** › | Mette i blocchi selezionati in un gruppo che c'è già. |
+| **Togli dal gruppo** | Toglie i blocchi selezionati dal loro gruppo. |
 | **Apri la sua finestra** | Solo per l'oggetto di una componente: apre la finestra della componente. |
 | **Elimina il blocco** / **Elimina 3 blocchi** (Canc) | Elimina la selezione. |
+
+Su un **gruppo**: vedi [Il menu di un gruppo](ide/groups).
 
 Su un **collegamento**: **Elimina il collegamento** (Canc).
 
@@ -110,7 +116,7 @@ Il pannello a destra mostra quello che hai selezionato.
 
 ### Più blocchi o collegamenti
 
-**3 blocchi selezionati** con il pulsante **Elimina 3 blocchi**; oppure **2 collegamenti selezionati** con **Elimina il collegamento**.
+**3 blocchi selezionati** con i pulsanti **Raggruppa** (se qualcuno non è in un gruppo) ed **Elimina 3 blocchi**; oppure **2 collegamenti selezionati** con **Elimina il collegamento**. Le Proprietà di un gruppo sono in [Gruppi](ide/groups).
 
 ### Un blocco
 

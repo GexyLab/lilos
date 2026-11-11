@@ -38,7 +38,7 @@ Ogni porta ha un **tipo**, che si vede dal colore del pallino e del collegamento
 | lista | turchese | `[1, 2, 3]` |
 | matrice | verde acqua | una lista di righe: `[[1, 2], [3, 4]]` |
 | qualsiasi | grigio | qualunque valore |
-| impulso | rosa | un segnale «adesso»: il valore conta poco (di solito `true`) |
+| impulso | rosa | un segnale «adesso»: `true` per un istante, poi di nuovo `false` |
 | (Exception) | rosso | l'oggetto dell'errore `{ message, block, type, schema, at }` |
 
 Il tipo è un **accordo**, non un obbligo: il motore non blocca un valore perché è del tipo «sbagliato». È il blocco che lo riceve a decidere cosa farne. Quasi tutti i blocchi convertono: una **Somma** accetta `"2,5"` come 2,5 e `true` come 1; se proprio non ci riesce manda un errore sull'uscita **Exception** (per esempio «Serve un numero»).
@@ -52,7 +52,8 @@ Puoi collegare porte di tipo diverso. Se i due tipi non vanno d'accordo, il coll
 | qualsiasi | qualunque | sì |
 | qualunque | qualsiasi | sì |
 | un tipo | lo stesso tipo | sì |
-| qualunque | impulso | sì: qualunque valore che arriva fa partire un ingresso impulso |
+| qualunque | impulso | sì: qualunque valore che arriva fa partire un ingresso impulso, tranne `false` (e un valore vuoto) |
+| impulso | sì/no | sì: un impulso è un sì che torna subito no |
 | qualunque tranne impulso | testo | sì: il valore si mostra come testo |
 | impulso | testo | segnato |
 | tutti gli altri casi | | segnato |
@@ -68,7 +69,7 @@ Esempi:
 | numero → sì/no | **segnato** (0 diventa no, gli altri sì, per i blocchi che convertono) |
 | sì/no → numero | **segnato** |
 | lista → matrice | **segnato** |
-| impulso → sì/no | **segnato** |
+| impulso → sì/no | normale |
 | impulso → testo | **segnato** |
 
 Gli altri segni sui collegamenti:
@@ -113,6 +114,10 @@ schema «sensori»                         schema «allarmi»
 
 Il motore controlla che le due porte esistano: se no, la prova non parte e i Problemi dicono per esempio «Collegamento del progetto: lo schema sensori non ha l'uscita «temp»». I tipi delle porte di schema non vengono controllati.
 
+## Collegamenti e gruppi
+
+Il bordo di un [gruppo](ide/groups) si attraversa solo verso le sue **porte esposte**: collegando da fuori una porta di un blocco del gruppo, la porta viene esposta da sola. La porta **Run** di un gruppo si collega da fuori (pallino sul bordo sinistro della testata) e, dentro, ai blocchi del gruppo (pallino dopo la scritta Run); un collegamento che non rispetta queste regole non si fa.
+
 ## Componenti delle finestre
 
 Una componente di una finestra **non si collega direttamente**: si collega il suo **oggetto** in uno schema, che ha le porte della componente. Vedi [L'oggetto di una componente](ide/components).
@@ -155,4 +160,5 @@ Il collegamento testo → numero è a puntini. Se l'utente scrive `12`, il blocc
 - [Come funziona un blocco](ide/blocks)
 - [Schemi](ide/schemas)
 - [L'oggetto di una componente](ide/components)
+- [Gruppi](ide/groups)
 - [Cast (converti tipo)](core.convert)

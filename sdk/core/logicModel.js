@@ -138,13 +138,63 @@ function cleanHide(raw) {
   return Object.keys(hide.inputs).length || Object.keys(hide.outputs).length ? hide : null;
 }
 
-/** Whether a port of type `from` may go into one of type `to` without a warning. */
+/**
+ * Whether a port of type `from` may go into one of type `to` without a warning. A pulse is a
+ * boolean that is true for an instant (then false again): it goes into a bool input too.
+ */
 export function typesMatch(from, to) {
   if (!from || !to || from === 'any' || to === 'any') return true;
   if (from === to) return true;
-  if (to === 'pulse') return true;              // anything arriving starts a pulse input
+  if (to === 'pulse') return true;              // anything arriving starts a pulse input (not false)
+  if (from === 'pulse' && to === 'bool') return true;
   if (to === 'text') return from !== 'pulse';   // shown as text
   return false;
+}
+
+/** The port of a group that starts it: [group, 'run'] (from outside) and, inside, towards its blocks. */
+export const GROUP_RUN = 'run';
+
+/**
+ * The groups of a schema kept valid (in place, after any change): each block in one group at
+ * most, no empty group, the links of «run» only from outside into a group and from a group to its
+ * blocks, and every port reached by a link across a group's edge exposed by that group.
+ */
+function tidyGroups(data) {
+  if (!Array.isArray(data.groups)) { delete data.groups; return; }
+  const blockIds = new Set(data.blocks.map(b => b.id));
+  const seen = new Set();
+  data.groups = data.groups.filter(g => plain(g) && ID.test(String(g.id ?? '')) && !blockIds.has(g.id)).map(g => ({
+    id: g.id, name: String(g.name ?? g.id).slice(0, 80),
+    blocks: (Array.isArray(g.blocks) ? g.blocks : []).filter(id => blockIds.has(id) && !seen.has(id) && seen.add(id)),
+    collapsed: g.collapsed === true, thread: g.thread === true,
+    expose: (Array.isArray(g.expose) ? g.expose : []).filter(e => plain(e) && (e.side === 'in' || e.side === 'out') && typeof e.port === 'string')
+      .map(e => ({ block: e.block, side: e.side, port: e.port, ...(typeof e.name === 'string' && e.name.trim() && { name: e.name.trim().slice(0, 60) }) })),
+  })).filter(g => g.blocks.length);
+  const gids = new Set(data.groups.map(g => g.id));
+  const groupOf = new Map(data.groups.flatMap(g => g.blocks.map(id => [id, g.id])));
+  data.links = data.links.filter(l => {
+    const fromG = gids.has(l.from[0]), toG = gids.has(l.to[0]);
+    if ((!blockIds.has(l.from[0]) && !fromG) || (!blockIds.has(l.to[0]) && !toG)) return false;
+    if (fromG && (l.from[1] !== GROUP_RUN || groupOf.get(l.to[0]) !== l.from[0])) return false;
+    if (toG && (l.to[1] !== GROUP_RUN || l.from[0] === l.to[0] || groupOf.get(l.from[0]) === l.to[0])) return false;
+    return true;
+  });
+  for (const g of data.groups) {
+    const keys = new Set();
+    g.expose = g.expose.filter(e => groupOf.get(e.block) === g.id && !keys.has(`${e.side}:${e.block}.${e.port}`) && keys.add(`${e.side}:${e.block}.${e.port}`));
+  }
+  const expose = (gid, block, side, port) => {
+    const g = data.groups.find(x => x.id === gid);
+    if (!g.expose.some(e => e.block === block && e.side === side && e.port === port)) g.expose.push({ block, side, port });
+  };
+  for (const l of data.links) {
+    const sf = gids.has(l.from[0]) ? l.from[0] : groupOf.get(l.from[0]) ?? null;
+    const st = gids.has(l.to[0]) ? null : groupOf.get(l.to[0]) ?? null;
+    if (sf === st) continue;
+    if (sf && !gids.has(l.from[0])) expose(sf, l.from[0], 'out', l.from[1]);
+    if (st) expose(st, l.to[0], 'in', l.to[1]);
+  }
+  if (!data.groups.length) delete data.groups;
 }
 
 /** The name a newly added port gets. */
@@ -195,43 +245,209 @@ export class LogicSchema extends LogicDocument {
         ...(plain(b.added) && { added: { inputs: Array.isArray(b.added.inputs) ? b.added.inputs : [], outputs: Array.isArray(b.added.outputs) ? b.added.outputs : [] } }),
         ...(cleanHide(b.hide) && { hide: cleanHide(b.hide) }),
       }));
-    const links = (Array.isArray(raw.links) ? raw.links : []).filter(l => Array.isArray(l?.from) && Array.isArray(l?.to) && ids.has(l.from[0]) && ids.has(l.to[0]))
+    // A group's «run» is reached with the group's id
+    const groupIds = new Set((Array.isArray(raw.groups) ? raw.groups : []).map(g => g?.id).filter(id => typeof id === 'string' && !ids.has(id)));
+    const known = id => ids.has(id) || groupIds.has(id);
+    const links = (Array.isArray(raw.links) ? raw.links : []).filter(l => Array.isArray(l?.from) && Array.isArray(l?.to) && known(l.from[0]) && known(l.to[0]))
       .map(l => ({ from: [l.from[0], String(l.from[1])], to: [l.to[0], String(l.to[1])] }));
-    const doc = new LogicSchema({
+    const data = {
       format: LOGIC_FORMATS.schema, name: String(raw.name ?? 'schema'), blocks, links,
+      ...(Array.isArray(raw.groups) && { groups: raw.groups }),
       notes: Array.isArray(raw.notes) ? raw.notes.filter(plain) : [],
       view: plain(raw.view) ? { x: Number(raw.view.x) || 0, y: Number(raw.view.y) || 0, zoom: Number(raw.view.zoom) || 1 } : { x: 0, y: 0, zoom: 1 },
       ...(plain(raw.consoles) && { consoles: raw.consoles }),
-    });
-    return doc;
+    };
+    tidyGroups(data);
+    return new LogicSchema(data);
   }
 
   block(id) { return this.data.blocks.find(b => b.id === id) ?? null; }
 
+  // ---- groups
+  //
+  // A group (data.groups: [{ id, name, blocks, collapsed, thread, expose: [{ block, side: 'in'|'out',
+  // port, name? }] }]) holds some blocks of the schema. Its blocks start only when its port «run»
+  // gets a pulse (the engine: nothing linked to «run», they never start); inside, «run» goes on to
+  // the blocks it is linked to. Links across its edge reach only the ports it exposes (linking one
+  // exposes it). Collapsed, it is drawn as one block with «run» and the exposed ports; `thread`:
+  // the engine runs it in a thread of its own.
+
+  get groups() { return this.data.groups ?? []; }
+  group(id) { return this.groups.find(g => g.id === id) ?? null; }
+  /** The group a block is in, or null. */
+  groupOf(blockId) { return this.groups.find(g => g.blocks.includes(blockId)) ?? null; }
+
+  /** Makes a group of blocks that are in no group (the others are left out). Returns its id, or null. */
+  addGroup(ids, { name = null } = {}) {
+    return this.edit('group', data => {
+      const inGroup = new Set((data.groups ?? []).flatMap(g => g.blocks));
+      const blocks = ids.filter(id => data.blocks.some(b => b.id === id) && !inGroup.has(id));
+      if (!blocks.length) return null;
+      const id = nextId('grp', new Set([...data.blocks.map(b => b.id), ...(data.groups ?? []).map(g => g.id)]));
+      data.groups ??= [];
+      data.groups.push({ id, name: String(name ?? id).slice(0, 80), blocks, collapsed: false, thread: false, expose: [] });
+      tidyGroups(data);
+      return id;
+    });
+  }
+
+  /** Undoes groups: their blocks stay where they are, out of any group; the links of their «run» go. */
+  ungroup(ids) {
+    const set = new Set(ids);
+    this.edit('ungroup', data => {
+      data.groups = (data.groups ?? []).filter(g => !set.has(g.id));
+      data.links = data.links.filter(l => !set.has(l.from[0]) && !set.has(l.to[0]));
+      tidyGroups(data);
+    });
+  }
+
+  /** Removes groups with their blocks (and the links of both); `blocks`: other blocks to remove in the same step. */
+  removeGroups(ids, { blocks = [] } = {}) {
+    const set = new Set(ids);
+    this.edit('removeGroup', data => {
+      const gone = new Set([...blocks, ...(data.groups ?? []).filter(g => set.has(g.id)).flatMap(g => [g.id, ...g.blocks])]);
+      data.groups = (data.groups ?? []).filter(g => !set.has(g.id));
+      data.blocks = data.blocks.filter(b => !gone.has(b.id));
+      data.links = data.links.filter(l => !gone.has(l.from[0]) && !gone.has(l.to[0]));
+      tidyGroups(data);
+    });
+  }
+
+  /** Changes a group: { name, collapsed, thread }. */
+  setGroup(id, patch) {
+    this.edit('groupSet', data => {
+      const g = (data.groups ?? []).find(x => x.id === id);
+      if (!g) return;
+      if (typeof patch.name === 'string') g.name = patch.name.trim().slice(0, 80) || g.name;
+      if (patch.collapsed !== undefined) g.collapsed = !!patch.collapsed;
+      if (patch.thread !== undefined) g.thread = !!patch.thread;
+    });
+  }
+
+  /** Puts blocks into a group (out of the one they were in): the links that now cross its edge expose their ports. */
+  addToGroup(id, ids) {
+    this.edit('groupAdd', data => {
+      const g = (data.groups ?? []).find(x => x.id === id);
+      if (!g) return;
+      for (const other of data.groups) other.blocks = other.blocks.filter(b => !ids.includes(b) || other === g);
+      for (const b of ids) if (data.blocks.some(x => x.id === b) && !g.blocks.includes(b)) g.blocks.push(b);
+      tidyGroups(data);
+    });
+  }
+
+  /** Takes blocks out of their groups (a group left empty goes). */
+  removeFromGroup(ids) {
+    this.edit('groupRemove', data => {
+      for (const g of data.groups ?? []) g.blocks = g.blocks.filter(b => !ids.includes(b));
+      tidyGroups(data);
+    });
+  }
+
+  /**
+   * Exposes a port of a block of a group (side 'in' | 'out'), so that it is reached from outside
+   * the group, or stops exposing it: then the links across the edge to it go too.
+   */
+  setExposed(id, block, side, port, on) {
+    this.edit('expose', data => {
+      const g = (data.groups ?? []).find(x => x.id === id);
+      if (!g || !g.blocks.includes(block)) return;
+      const has = e => e.block === block && e.side === side && e.port === port;
+      if (on) { if (!g.expose.some(has)) g.expose.push({ block, side, port }); return; }
+      g.expose = g.expose.filter(e => !has(e));
+      const inside = b => g.blocks.includes(b) || b === g.id;
+      data.links = data.links.filter(l => !(side === 'out' ? l.from[0] === block && l.from[1] === port && !inside(l.to[0])
+        : l.to[0] === block && l.to[1] === port && !inside(l.from[0]) && l.from[0] !== g.id));
+      tidyGroups(data);
+    });
+  }
+
+  /** The name an exposed port has on the collapsed group ('' = the port's own label). */
+  renameExposed(id, block, side, port, name) {
+    this.edit('exposeName', data => {
+      const e = (data.groups ?? []).find(x => x.id === id)?.expose.find(x => x.block === block && x.side === side && x.port === port);
+      if (!e) return;
+      if (String(name ?? '').trim()) e.name = String(name).trim().slice(0, 60);
+      else delete e.name;
+    });
+  }
+
+  /** Moves an exposed port from index `from` to `to` (the order on the collapsed group). */
+  moveExposed(id, from, to) {
+    this.edit('exposeMove', data => {
+      const list = (data.groups ?? []).find(x => x.id === id)?.expose;
+      if (!list || from < 0 || from >= list.length) return;
+      const [e] = list.splice(from, 1);
+      list.splice(Math.max(0, Math.min(list.length, to)), 0, e);
+    });
+  }
+
+  /** Whether a link may go from `from` to `to` across the groups (a group's «run» only from outside / to the inside). */
+  canLink(from, to) {
+    const g = id => this.group(id);
+    if (from[0] === to[0]) return false;
+    if (g(from[0]) && (from[1] !== GROUP_RUN || this.groupOf(to[0])?.id !== from[0])) return false;
+    if (g(to[0]) && (to[1] !== GROUP_RUN || this.groupOf(from[0])?.id === to[0])) return false;
+    return true;
+  }
+
+  /** Copies groups with their blocks and the links among them (and their «run»): the new group ids. */
+  duplicateGroups(ids, { dx = 24, dy = 24 } = {}) {
+    return this.edit('duplicate', data => {
+      const out = [];
+      for (const g of (data.groups ?? []).filter(x => ids.includes(x.id))) {
+        const taken = new Set([...data.blocks.map(b => b.id), ...data.groups.map(x => x.id)]);
+        const map = new Map();
+        const gid = nextId('grp', taken);
+        taken.add(gid);
+        map.set(g.id, gid);
+        for (const b of data.blocks.filter(x => g.blocks.includes(x.id))) {
+          const id = nextId(b.id.replace(/\d+$/, '') || 'b', taken);
+          taken.add(id);
+          map.set(b.id, id);
+          data.blocks.push({ ...clone(b), id, x: b.x + dx, y: b.y + dy });
+        }
+        for (const l of data.links.filter(x => map.has(x.from[0]) && map.has(x.to[0]))) {
+          data.links.push({ from: [map.get(l.from[0]), l.from[1]], to: [map.get(l.to[0]), l.to[1]] });
+        }
+        data.groups.push({ ...clone(g), id: gid, blocks: g.blocks.map(b => map.get(b)), expose: g.expose.map(e => ({ ...e, block: map.get(e.block) })) });
+        out.push(gid);
+      }
+      tidyGroups(data);
+      return out;
+    });
+  }
+
   /** Adds a block of a definition at (x, y): its config starts from the defaults. Returns its id. */
-  addBlock(def, { x = 0, y = 0, config = {} } = {}) {
+  addBlock(def, { x = 0, y = 0, config = {}, group = null } = {}) {
     return this.edit('add', data => {
       const prefix = (def.type.split('.').pop().replace(/[^a-zA-Z]/g, '').slice(0, 12) || 'b').toLowerCase();
-      const id = nextId(prefix, new Set(data.blocks.map(b => b.id)));
+      const id = nextId(prefix, new Set([...data.blocks.map(b => b.id), ...(data.groups ?? []).map(g => g.id)]));
+      data.groups?.find(g => g.id === group)?.blocks.push(id);
       const defaults = Object.fromEntries((def.config ?? []).filter(c => c.default !== undefined).map(c => [c.key, c.default]));
       data.blocks.push({ id, type: def.type, v: def.version, x: Math.round(x), y: Math.round(y), config: { ...defaults, ...config }, ports: {} });
       return id;
     });
   }
 
-  /** Removes blocks and their links. */
+  /** Removes blocks and their links (a group left empty goes too). */
   removeBlocks(ids) {
     const set = new Set(ids);
     this.edit('remove', data => {
       data.blocks = data.blocks.filter(b => !set.has(b.id));
       data.links = data.links.filter(l => !set.has(l.from[0]) && !set.has(l.to[0]));
+      tidyGroups(data);
     });
   }
 
-  /** Copies blocks (and the links among them) moved by (dx, dy): returns the new ids. */
+  /**
+   * Copies blocks (and the links among them) moved by (dx, dy): returns the new ids. Copies of
+   * blocks all of one group stay in that group.
+   */
   duplicate(ids, { dx = 24, dy = 24 } = {}) {
     return this.edit('duplicate', data => {
-      const taken = new Set(data.blocks.map(b => b.id));
+      const taken = new Set([...data.blocks.map(b => b.id), ...(data.groups ?? []).map(g => g.id)]);
+      const groups = new Set(ids.map(id => (data.groups ?? []).find(g => g.blocks.includes(id))?.id ?? null));
+      const home = groups.size === 1 ? (data.groups ?? []).find(g => g.id === [...groups][0]) : null;
       const map = new Map();
       for (const b of data.blocks.filter(x => ids.includes(x.id))) {
         const prefix = b.id.replace(/\d+$/, '') || 'b';
@@ -243,6 +459,8 @@ export class LogicSchema extends LogicDocument {
       for (const l of data.links.filter(x => map.has(x.from[0]) && map.has(x.to[0]))) {
         data.links.push({ from: [map.get(l.from[0]), l.from[1]], to: [map.get(l.to[0]), l.to[1]] });
       }
+      if (home) home.blocks.push(...map.values());
+      tidyGroups(data);
       return [...map.values()];
     });
   }
@@ -321,6 +539,8 @@ export class LogicSchema extends LogicDocument {
       delete b.ports[portId];
       if (b.hide?.[side]) { delete b.hide[side][portId]; if (!cleanHide(b.hide)) delete b.hide; }
       data.links = data.links.filter(l => !(side === 'inputs' ? l.to[0] === id && l.to[1] === portId : l.from[0] === id && l.from[1] === portId));
+      for (const g of data.groups ?? []) g.expose = g.expose.filter(e => !(e.block === id && e.port === portId && e.side === (side === 'inputs' ? 'in' : 'out')));
+      tidyGroups(data);
     });
   }
 
@@ -346,11 +566,25 @@ export class LogicSchema extends LogicDocument {
     return this.data.links.filter(l => (side === 'inputs' ? l.to[0] === id && l.to[1] === port : l.from[0] === id && l.from[1] === port));
   }
 
-  /** Links an output to an input. false when it is there already or not possible. */
+  /**
+   * Links an output to an input. false when it is there already or not possible (see canLink). A
+   * link across a group's edge exposes the port it reaches inside the group.
+   */
   connect(from, to) {
-    if (from[0] === to[0]) return false;
+    if (!this.canLink(from, to)) return false;
     if (this.data.links.some(l => l.from[0] === from[0] && l.from[1] === from[1] && l.to[0] === to[0] && l.to[1] === to[1])) return false;
-    this.edit('link', data => { data.links.push({ from: [...from], to: [...to] }); });
+    this.edit('link', data => { data.links.push({ from: [...from], to: [...to] }); tidyGroups(data); });
+    return true;
+  }
+
+  /** A link taken from its input and dropped on another one (one step). false when not possible. */
+  relink(link, to) {
+    if (!this.canLink(link.from, to)) return false;
+    this.edit('relink', data => {
+      data.links = data.links.filter(l => linkKey(l) !== linkKey(link));
+      if (!data.links.some(l => linkKey(l) === linkKey({ from: link.from, to }))) data.links.push({ from: [...link.from], to: [...to] });
+      tidyGroups(data);
+    });
     return true;
   }
 

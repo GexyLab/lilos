@@ -75,6 +75,8 @@ Il motore ricontrolla tutto e si ferma al **primo** problema. Alcuni messaggi:
 | Collegamento del progetto: lo schema allarmi non ha l'ingresso «temp» | Come sopra, dal lato dell'ingresso. |
 | main/add1: troppe porte aggiunte (al massimo 16) | Un file modificato a mano. |
 | Le impostazioni del blocco value1 sono troppo grandi | Impostazioni oltre 64 KB. |
+| Il gruppo Calcolo gira in un thread a parte: non può contenere Ingressi o Uscite di schema né oggetti della UI (…) | Un gruppo con **Esegui in un thread a parte** che contiene una porta di schema o l'oggetto di una componente. Vedi [Gruppi](ide/groups). |
+| Lo schema main: la porta Run del gruppo grp1 va solo ai blocchi dentro il gruppo | Un file modificato a mano. |
 | Nome di schema non valido: … | Un nome con `/`, `\`, `:` o caratteri di controllo, o più lungo di 80. |
 
 Mentre il programma gira:
@@ -85,6 +87,8 @@ Mentre il programma gira:
 | Memoria finita: i programmi hanno usato più della tua quota di memoria | Si fermano tutti i tuoi programmi. |
 | Il motore si è fermato: … | Si fermano tutti i tuoi programmi. |
 | Il motore non risponde | Il motore non ha risposto in tempo. |
+| Gruppo 1: nessun thread libero, il gruppo gira nel thread del programma | (avviso in console) Hai già tutti i thread a parte che puoi avere: il gruppo gira lo stesso, insieme al resto. |
+| Gruppo 1: memoria finita nel thread del gruppo | Il thread del gruppo ha usato più della sua memoria (metà della tua quota): il programma si ferma. |
 
 I messaggi del motore sono in italiano qualunque sia la lingua di lilOS.
 

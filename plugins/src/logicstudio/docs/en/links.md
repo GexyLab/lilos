@@ -38,7 +38,7 @@ Every port has a **type**, which you see from the colour of the dot and of the l
 | list | turquoise | `[1, 2, 3]` |
 | matrix | teal | a list of rows: `[[1, 2], [3, 4]]` |
 | any | grey | any value |
-| pulse | pink | a «now» signal: the value matters little (usually `true`) |
+| pulse | pink | a «now» signal: `true` for an instant, then `false` again |
 | (Exception) | red | the error object `{ message, block, type, schema, at }` |
 
 The type is an **agreement**, not an obligation: the engine does not block a value because it is of the «wrong» type. It is the block that receives it that decides what to do with it. Almost all blocks convert: an **Add** accepts `"2,5"` as 2.5 and `true` as 1; if it really cannot, it sends an error on the **Exception** output (for example «Serve un numero», "A number is needed").
@@ -52,7 +52,8 @@ You can link ports of different types. If the two types do not agree, the link i
 | any | whatever | yes |
 | whatever | any | yes |
 | a type | the same type | yes |
-| whatever | pulse | yes: any value that arrives starts a pulse input |
+| whatever | pulse | yes: any value that arrives starts a pulse input, except `false` (and an empty value) |
+| pulse | yes/no | yes: a pulse is a yes that goes back to no at once |
 | whatever except pulse | text | yes: the value is shown as text |
 | pulse | text | marked |
 | all the other cases | | marked |
@@ -68,7 +69,7 @@ Examples:
 | number → yes/no | **marked** (0 becomes no, the others yes, for the blocks that convert) |
 | yes/no → number | **marked** |
 | list → matrix | **marked** |
-| pulse → yes/no | **marked** |
+| pulse → yes/no | normal |
 | pulse → text | **marked** |
 
 The other signs on links:
@@ -113,6 +114,10 @@ schema «sensori»                         schema «allarmi»
 
 The engine checks that the two ports exist: if not, the test does not start and the Problems say for example «Collegamento del progetto: lo schema sensori non ha l'uscita «temp»» ("Project link: the schema sensori does not have the output «temp»"). The types of the schema ports are not checked.
 
+## Links and groups
+
+The edge of a [group](ide/groups) is crossed only towards its **exposed ports**: linking from outside a port of a block of the group, the port is exposed by itself. The **Run** port of a group is linked from outside (dot on the left edge of the header) and, inside, to the blocks of the group (dot after the word Run); a link that does not respect these rules is not made.
+
 ## Components of windows
 
 A component of a window **is not linked directly**: you link its **object** in a schema, which has the ports of the component. See [The object of a component](ide/components).
@@ -155,4 +160,5 @@ The text → number link is dotted. If the user types `12`, the Add block conver
 - [How a block works](ide/blocks)
 - [Schemas](ide/schemas)
 - [The object of a component](ide/components)
+- [Groups](ide/groups)
 - [Type cast](core.convert)

@@ -19,7 +19,10 @@ export class SchemaEditor {
     this.canvas = new LogicCanvas({
       schema: doc, catalog: studio.catalog, lang: i18n.lang,
       componentOf: b => this.componentOf(b),
-      labels: { error: t('port.error'), missing: t('block.missing') },
+      labels: {
+        error: t('port.error'), missing: t('block.missing'), run: t('group.run'), group: t('group.name'), blocks: t('group.blocks'),
+        thread: t('group.thread'), collapse: t('group.collapse'), runOff: t('group.runOff'),
+      },
     });
     this.el = h('div', { class: 'ls-editor ls-schema' }, this.canvas.el);
     // the toolbar too: «Allinea» works from 2 selected blocks
@@ -156,25 +159,69 @@ export class SchemaEditor {
     if (e.kind === 'block') {
       const block = this.doc.block(e.id);
       const def = this.#studio.blockDef(block?.type);
-      items.push({ label: t('menu.duplicate'), icon: 'copy', shortcut: 'Ctrl+D', action: () => this.canvas.select(this.doc.duplicate(sel.blocks)) });
+      items.push({ label: t('menu.duplicate'), icon: 'copy', shortcut: 'Ctrl+D', action: () => this.canvas.duplicateSelection() });
       items.push({ label: t('menu.label'), icon: 'pencil', action: () => this.#rename(e.id) });
+      items.push(...this.#groupItemsOfBlocks(sel.blocks));
       if (sel.blocks.length > 1 && !this.canvas.readOnly) items.push({ label: t('tb.align'), icon: 'cols', items: this.#alignItems() });
       if (def?.role === 'component') items.push({ label: t('menu.openWindow'), icon: 'window', action: () => this.#open(e.id) });
       items.push({ label: t('menu.docs'), icon: 'help', shortcut: 'F1', action: () => this.#studio.showDoc(blockDocAddress(this.#studio, block, b => this.componentOf(b))) });
       items.push('-');
       items.push({ label: t(sel.blocks.length > 1 ? 'menu.removeBlocks' : 'menu.removeBlock', { n: sel.blocks.length }), icon: 'trash', danger: true, shortcut: 'Canc', action: () => this.canvas.removeSelection() });
+    } else if (e.kind === 'group') {
+      items.push(...this.#groupItems(e.id));
     } else if (e.kind === 'link') {
       items.push({ label: t('menu.docs'), icon: 'help', action: () => this.#studio.showDoc('ide/links') });
       items.push('-');
       items.push({ label: t('menu.removeLink'), icon: 'trash', danger: true, shortcut: 'Canc', action: () => this.canvas.removeSelection() });
     } else {
       items.push({ label: t('menu.addHere'), icon: 'plus', action: () => this.#quickAdd({ world: e.world, clientX: e.clientX, clientY: e.clientY }) });
-      items.push({ label: t('menu.selectAll'), shortcut: 'Ctrl+A', action: () => this.canvas.select(this.doc.data.blocks.map(b => b.id)) });
+      items.push({ label: t('menu.selectAll'), shortcut: 'Ctrl+A', action: () => this.canvas.selectAll() });
       items.push({ label: t('tb.fit'), icon: 'fit', action: () => this.canvas.fit() });
       items.push('-');
       items.push({ label: t('menu.docsSchema'), icon: 'help', shortcut: 'F1', action: () => this.#studio.showDoc('ide/schemas') });
     }
     openMenu(e.clientX, e.clientY, items);
+  }
+
+  /** For selected blocks: make a group of them, put them into one, take them out of theirs. */
+  #groupItemsOfBlocks(ids) {
+    if (this.canvas.readOnly) return [];
+    const free = ids.filter(id => !this.doc.groupOf(id));
+    const items = [];
+    if (free.length) {
+      items.push({ label: t('group.make'), icon: 'group', shortcut: 'Ctrl+G', action: () => this.canvas.groupSelection() });
+      const open = this.doc.groups;
+      if (open.length) items.push({ label: t('group.addTo'), icon: 'group', items: open.map(g => ({ label: g.name, action: () => this.doc.addToGroup(g.id, free) })) });
+    }
+    if (free.length < ids.length) items.push({ label: t('group.takeOut'), icon: 'arrowLeft', action: () => this.doc.removeFromGroup(ids) });
+    return items;
+  }
+
+  /** The menu of a group (its header, or the group collapsed). */
+  #groupItems(id) {
+    const g = this.doc.group(id);
+    if (!g) return [];
+    const ro = this.canvas.readOnly;
+    return [
+      { label: t(g.collapsed ? 'group.expand' : 'group.collapse'), icon: g.collapsed ? 'plus' : 'minus', disabled: ro, action: () => this.doc.setGroup(id, { collapsed: !g.collapsed }) },
+      { label: t('group.rename'), icon: 'pencil', disabled: ro, action: () => this.renameGroup(id) },
+      { label: t('group.threadToggle'), icon: g.thread ? 'check' : 'chip', disabled: ro, action: () => this.doc.setGroup(id, { thread: !g.thread }) },
+      { label: t('menu.duplicate'), icon: 'copy', shortcut: 'Ctrl+D', disabled: ro, action: () => this.canvas.duplicateSelection() },
+      { label: t('group.ungroup'), icon: 'group', shortcut: 'Ctrl+Shift+G', disabled: ro, action: () => this.canvas.ungroupSelection() },
+      { label: t('menu.docs'), icon: 'help', shortcut: 'F1', action: () => this.#studio.showDoc('ide/groups') },
+      '-',
+      { label: t('group.remove'), icon: 'trash', danger: true, shortcut: 'Canc', disabled: ro, action: () => this.canvas.removeSelection() },
+    ];
+  }
+
+  async renameGroup(id) {
+    const g = this.doc.group(id);
+    const res = await messageBox(this.#studio.win, {
+      icon: 'pencil', title: t('group.rename'),
+      fields: [{ name: 'name', label: t('inspector.name'), value: g?.name ?? '', maxLength: 80 }],
+      buttons: ['cancel', { value: 'ok', label: t('common.ok'), primary: true }],
+    });
+    if (res?.button === 'ok' && String(res.values.name ?? '').trim()) this.doc.setGroup(id, { name: String(res.values.name) });
   }
 
   async #rename(id) {

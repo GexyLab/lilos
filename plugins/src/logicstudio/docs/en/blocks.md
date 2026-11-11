@@ -24,7 +24,7 @@ Some blocks have inputs that **by their design** do not start them: for example 
 
 > In this version, for these inputs the Properties still show **starts it** ticked and the name is not underlined, but the block does not start. Careful: if you give one of these inputs a **start value**, the engine treats it as an input that starts. To be sure it does not start the block, untick **starts it** on that input yourself.
 
-The **pulses** (inputs of type pulse, like **send**, **read**, **up**) exist precisely to start: the value they carry does not matter, the moment it arrives does.
+The **pulses** (inputs of type pulse, like **send**, **read**, **up**) exist precisely to start: the moment they arrive matters. A pulse is a `true` that lasts an instant: the input is `true` for the work it starts, then goes back to `false` without making the block start again. A pulse input does not start with `false`.
 
 ### An example
 
@@ -56,6 +56,8 @@ When a program starts (test, active program or app), the engine:
 3. starts the blocks that run continuously (if a package has any).
 
 The values sent in this phase travel like all the others: a block that receives two values at start works twice.
+
+The blocks that are in a **group** do none of this when the program starts: they do it when the **Run** port of the group receives a pulse, and again at every pulse. See [Groups](ide/groups).
 
 ## One thing at a time
 

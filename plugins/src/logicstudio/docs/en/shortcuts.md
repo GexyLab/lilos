@@ -29,9 +29,11 @@ They work when the sheet is in front: click on the sheet first.
 
 | Keys | What they do |
 |---|---|
-| **Delete** or **Backspace** | Removes the selected blocks (with their links); if no blocks are selected, the selected links. |
-| **Ctrl+A** | Selects all the blocks. |
-| **Ctrl+D** | Duplicates the selected blocks (and the links between them). |
+| **Delete** or **Backspace** | Removes the selected blocks (with their links) and the selected groups with their blocks; if no blocks or groups are selected, the selected links. |
+| **Ctrl+A** | Selects all the blocks (and the collapsed groups). |
+| **Ctrl+D** | Duplicates the selected blocks (and the links between them); a selected group is duplicated with its blocks. |
+| **Ctrl+G** | Makes a group of the selected blocks (see [Groups](ide/groups)). |
+| **Ctrl+Shift+G** | Ungroups the selected groups: the blocks stay. |
 | **Arrows** | Move the selection by 1 pixel. |
 | **Shift+arrows** | Move the selection by 20 pixels. |
 | **Esc** | Clears the selection. |
@@ -52,8 +54,11 @@ With the mouse:
 | drag from an output | Makes a link; dropped on the empty sheet, it opens the menu of the matching blocks. |
 | drag from a linked input | Detaches its last link, to move it or remove it. |
 | **double click** on the object of a component | Opens its window. |
+| drag the header of a group (or a collapsed group) | Moves the group with all its blocks. |
+| drop a free block inside the frame of a group | Puts it in the group. |
+| **double click** on a collapsed group / on the header of a group | Opens it / collapses it. |
 | **double click** on a box of the Map | Opens the schema or the window. |
-| **right button** | The menu of the block, of the link or of the sheet. |
+| **right button** | The menu of the block, of the group, of the link or of the sheet. |
 
 ## The editor of a window
 

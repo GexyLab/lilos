@@ -75,6 +75,8 @@ The engine checks everything again and stops at the **first** problem. These mes
 | Collegamento del progetto: lo schema allarmi non ha l'ingresso «temp» (Project link: the schema allarmi does not have the input «temp») | As above, on the input side. |
 | main/add1: troppe porte aggiunte (al massimo 16) (main/add1: too many added ports (at most 16)) | A file edited by hand. |
 | Le impostazioni del blocco value1 sono troppo grandi (The settings of the block value1 are too big) | Settings over 64 KB. |
+| Il gruppo Calcolo gira in un thread a parte: non può contenere Ingressi o Uscite di schema né oggetti della UI (…) (The group Calcolo runs in a thread of its own: it cannot contain schema Inputs or Outputs nor UI objects (…)) | A group with **Run in a thread of its own** that contains a schema port or the object of a component. See [Groups](ide/groups). |
+| Lo schema main: la porta Run del gruppo grp1 va solo ai blocchi dentro il gruppo (The schema main: the Run port of the group grp1 goes only to the blocks inside the group) | A file edited by hand. |
 | Nome di schema non valido: … (Invalid schema name: …) | A name with `/`, `\`, `:` or control characters, or longer than 80. |
 
 While the program runs:
@@ -85,6 +87,8 @@ While the program runs:
 | Memoria finita: i programmi hanno usato più della tua quota di memoria (Memory is out: the programs used more than your memory quota) | All your programs stop. |
 | Il motore si è fermato: … (The engine stopped: …) | All your programs stop. |
 | Il motore non risponde (The engine does not answer) | The engine did not answer in time. |
+| Gruppo 1: nessun thread libero, il gruppo gira nel thread del programma (Group 1: no free thread, the group runs in the thread of the program) | (warning in the console) You already have all the threads of their own that you can have: the group runs anyway, together with the rest. |
+| Gruppo 1: memoria finita nel thread del gruppo (Group 1: memory is out in the thread of the group) | The thread of the group used more than its memory (half of your quota): the program stops. |
 
 The engine's messages are in Italian whatever the language of lilOS.
 

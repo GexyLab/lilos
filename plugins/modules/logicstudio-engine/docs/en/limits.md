@@ -47,6 +47,7 @@ With the quota of active programs at 0, a user cannot activate programs or open 
 | Block runs per program in 10 seconds | 10000 | 100–1000000 | Beyond it, the program stops: usually it is a loop of links |
 | Time a block may take | 30 s | 1–600 | Beyond it, the engine stops waiting for the block and sends an error on its Exception |
 | Length of a test | 5 minutes | 1–240 | Then the test stops by itself |
+| Groups in a thread of their own per user | 4 | 0–64 | How many [groups](ide/groups) with **Run in a thread of its own** can run together for each user (all their programs). Beyond that, the group runs in the thread of the program, with a warning in the main console. Every thread has half of the memory quota of the user (at least 16 MB), besides that of its worker |
 
 ### The schemas
 

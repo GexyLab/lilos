@@ -27,6 +27,9 @@ The engine takes these steps, in order. If one fails, the program does not start
    - then every input that has a **start value** receives it;
    - then the blocks that run by themselves in a loop start.
 
+   The blocks that are in a **group** stay still: they start when the **Run** port of the group receives a pulse, and start again from scratch at every pulse (stopped, memory reset, the values arrived at the inputs stay). If nothing is linked to Run they never start. See [Groups](ide/groups).
+6. **The threads of the groups.** A group with **Run in a thread of its own** (and something linked to Run) runs in a thread of its own, opened by your worker: the values that cross the edge of the group pass from one thread to the other, and actions, console, windows and live values go through your worker as for the other blocks. If you already have all the threads you can have (see [Limits and quotas](logicstudio-engine/limits)), the group runs in the thread of the program and the main console says so.
+
 From here on the program goes on by itself: every value that arrives at an input makes the block work, and its outputs go along the links. See [How a block works](ide/blocks).
 
 ## The states
@@ -55,6 +58,8 @@ You see your programs in two places:
 | Il motore non risponde (The engine does not answer) | The worker did not answer in time while loading the blocks |
 | Logic Studio usa già … MB: al massimo … MB per tutti (Logic Studio already uses … MB: at most … MB for everybody) | There was no memory to open your worker |
 | Blocco sconosciuto: … (Unknown block: …) | The worker does not know a block of the project (a package that arrived half way) |
+| Gruppo 1: memoria finita nel thread del gruppo (Group 1: memory is out in the thread of the group) | The thread of its own of a group ran out of memory (half of your quota) |
+| Gruppo 1: il thread del gruppo si è fermato (…) (Group 1: the thread of the group stopped (…)) | The thread of its own of a group closed for another reason |
 
 When an **active program** stops because of an error, you receive a lilOS notification with the name of the program and the message (if at that moment you have a lilOS page open).
 

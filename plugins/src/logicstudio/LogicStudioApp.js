@@ -146,6 +146,7 @@ class Studio {
     if (tab?.kind === 'schema') {
       const sel = tab.view.selection;
       if (sel.blocks.length === 1) return blockDocAddress(this, tab.view.doc.block(sel.blocks[0]), b => tab.view.componentOf(b));
+      if (sel.groups?.length) return 'ide/groups';
       return sel.links.length ? 'ide/links' : 'ide/schemas';
     }
     if (tab?.kind === 'window') {

@@ -160,6 +160,30 @@ A complete example, with a block with a label, a start value, an added port, a S
 | `notes` | Reserved, empty. |
 | `view` | Position and zoom of the view when you closed the schema. |
 | `consoles` | Only in a **schema alone**, optional: the consoles as in the `.lsproj` (`list`, `outside`…). |
+| `groups` | Optional, only if the schema has [groups](ide/groups): see below. |
+
+### The groups
+
+```json
+"groups": [
+  {
+    "id": "grp1", "name": "Calcolo", "blocks": ["value1", "add1"],
+    "collapsed": false, "thread": false,
+    "expose": [{ "block": "add1", "side": "out", "port": "result", "name": "totale" }]
+  }
+]
+```
+
+| Field | What it contains |
+|---|---|
+| `id` | The id of the group (`grp` + number), unique among the blocks and groups of the schema. |
+| `name` | The name (at most 80 characters). |
+| `blocks` | The ids of its blocks. A block is in one group only. |
+| `collapsed` | `true`: drawn as one block. It does not change how it runs. |
+| `thread` | `true`: the engine runs it in a thread of its own. |
+| `expose` | The ports reachable from outside: `block`, `side` (`in` or `out`), `port` and, optional, `name` (the name on the collapsed group). |
+
+The **Run** port of a group is written in the `links` with the id of the group: `{ "from": ["start1", "pulse"], "to": ["grp1", "run"] }` makes it start from outside; `{ "from": ["grp1", "run"], "to": ["counter1", "up"] }` sends its pulse to a block inside.
 
 The ports of the **object of a component** (`core.component`) are those of the component, with their internal names (for a Button `pressed`, `text`, `enabled`, `visible`). The ports of the **schema ports**: the Schema input has the output `value`, the Schema output the input `value`.
 
@@ -174,6 +198,8 @@ What happens with an old or damaged file:
 | `x`, `y`, `v` not numbers | Sets them to 0 (and `v` to 1). | — |
 | `config`, `ports` not objects | Empties them. | Empties them. |
 | Start values of ports that the block does not have | Keeps them. | Ignores them. |
+| A group without valid blocks, or a block in two groups | Removes the empty group; the block stays in the first group. | «Lo schema main: il blocco add1 è in due gruppi» ("The schema main: the block add1 is in two groups") |
+| Run of a group linked wrongly | Removes the link. | «Lo schema main: la porta Run del gruppo grp1 va solo ai blocchi dentro il gruppo» ("The schema main: the Run port of the group grp1 goes only to the blocks inside the group") / «… si collega da fuori del gruppo» ("… is linked from outside the group") |
 
 ## The window: `.lsui`
 

@@ -1600,26 +1600,42 @@ I tre documenti che l'IDE modifica. Hanno in comune una base (`LogicDocument`, u
 | `edit(cosa, fn, { record = true })` | Cambia il documento: `fn(dati)` lavora su una copia; se non cambia niente non succede niente, se lancia il documento resta com'era. Emette `change` `{ what }` (con `undo` o `redo` per l'annulla). Ritorna il valore di `fn`. |
 | `replace(dati)` | Sostituisce tutto (un file riletto) e azzera la storia. |
 
-**Costanti**: `LOGIC_FORMATS` `{ project: 'lilos-lsproj/1', schema: 'lilos-lsch/1', window: 'lilos-lsui/1' }`, `LOGIC_EXTENSIONS` `{ project: 'lsproj', schema: 'lsch', window: 'lsui' }`, `PORT_TYPES` (`number`, `bool`, `text`, `object`, `list`, `matrix`, `any`, `pulse`).
+**Costanti**: `GROUP_RUN` (`'run'`, dalla 0.28.0: il nome della porta Run di un gruppo), `LOGIC_FORMATS` `{ project: 'lilos-lsproj/1', schema: 'lilos-lsch/1', window: 'lilos-lsui/1' }`, `LOGIC_EXTENSIONS` `{ project: 'lsproj', schema: 'lsch', window: 'lsui' }`, `PORT_TYPES` (`number`, `bool`, `text`, `object`, `list`, `matrix`, `any`, `pulse`).
 
-**`LogicSchema`** (`.lsch`): `{ format, name, blocks: [{ id, type, v, x, y, label?, config, ports, added? }], links: [{ from: [blocco, porta], to: [blocco, porta] }], notes, view: { x, y, zoom }, consoles? }`. `ports` è `{ ingresso: { start?, trigger? } }`; `added` è `{ inputs: [{ id, name }], outputs: [...] }` (gli id delle porte aggiunte sono `x1`, `x2`…).
+**`LogicSchema`** (`.lsch`): `{ format, name, blocks: [{ id, type, v, x, y, label?, config, ports, added? }], links: [{ from: [blocco, porta], to: [blocco, porta] }], notes, view: { x, y, zoom }, consoles?, groups? }`. `ports` è `{ ingresso: { start?, trigger? } }`; `added` è `{ inputs: [{ id, name }], outputs: [...] }` (gli id delle porte aggiunte sono `x1`, `x2`…). `groups` (dalla 0.28.0; assente se non ci sono gruppi) è `[{ id, name, blocks: [id], collapsed, thread, expose: [{ block, side: 'in' \| 'out', port, name? }] }]`: vedi «Gruppi» sotto.
 
 | Metodo | Descrizione |
 | --- | --- |
 | `LogicSchema.create(nome)`, `LogicSchema.parse(json)` | Uno schema vuoto; da un testo o un oggetto, scartando quello che non è valido (blocchi senza id, collegamenti verso blocchi che non ci sono). Lancia se il `format` non è quello. |
 | `block(id)` | Il blocco o `null`. |
-| `addBlock(def, { x, y, config })` → id | Aggiunge un blocco della definizione `def` (del catalogo); le impostazioni partono dai predefiniti. L'id è il nome del tipo più il primo numero libero (`add1`). |
-| `removeBlocks(ids)`, `duplicate(ids, { dx = 24, dy = 24 })` → nuovi id | Toglie blocchi e i loro collegamenti; copia blocchi e collegamenti tra loro. |
+| `addBlock(def, { x, y, config, group })` → id | Aggiunge un blocco della definizione `def` (del catalogo); le impostazioni partono dai predefiniti. L'id è il nome del tipo più il primo numero libero (`add1`). `group` (dalla 0.28.0): l'id di un gruppo in cui metterlo. |
+| `removeBlocks(ids)`, `duplicate(ids, { dx = 24, dy = 24 })` → nuovi id | Toglie blocchi e i loro collegamenti; copia blocchi e collegamenti tra loro; se i blocchi sono tutti dello stesso gruppo, le copie restano in quel gruppo (dalla 0.28.0). Togliere blocchi toglie anche i gruppi che restano vuoti. |
 | `place({ id: [x, y] })` | Sposta i blocchi (un solo passo di storia). |
 | `setConfig(id, chiave, valore)`, `setLabel(id, testo)`, `setPort(id, porta, { start, trigger })` | Impostazioni; etichetta (vuota la toglie); le opzioni di un ingresso (`start`: valore all'avvio, `null` o `''` lo toglie; `trigger: false`: tiene il valore senza avviare il blocco). |
 | `addPort(id, def, 'inputs' \| 'outputs', { limit = 32, lang, name })` → `{ id, name }` | Aggiunge una porta se la definizione ha `grow` per quel lato, fino a `min(limit, grow.max)`. Lancia altrimenti. Il nome, se manca, segue `grow.name`: `letter` (a, b, c…), `number` o `user` (etichetta e numero). |
 | `removePort(id, lato, portaId)`, `renamePort(...)`, `movePort(id, lato, da, a)` | Solo per le porte aggiunte; togliere una porta toglie i suoi collegamenti. |
 | `linksOf(id, porta, lato)` | I collegamenti che toccano una porta. |
 | `setPortHidden(id, lato, porta, nascosta, diSerie = false)` | Nasconde una porta nel disegno o la mostra di nuovo (`lato` `'inputs'` o `'outputs'`); solo l'aspetto, il motore la ignora. Una porta collegata non si nasconde: restituisce `false` e non cambia niente. Nel blocco resta `hide: { inputs: { porta: bool }, outputs: { … } }` solo per ciò che è diverso dal predefinito (dalla 0.24.0); `diSerie` è `true` per una porta che la definizione dichiara `hidden: true` (il `hiddenByDefault` di `portsOf`, dalla 0.26.0). |
-| `connect(da, a)` → `boolean`, `disconnect(collegamenti)` | Collega `[blocco, porta]` a `[blocco, porta]` (falso se esiste già o se è lo stesso blocco). |
+| `connect(da, a)` → `boolean`, `disconnect(collegamenti)` | Collega `[blocco, porta]` a `[blocco, porta]` (falso se esiste già, se è lo stesso blocco o se `canLink` dice no: dalla 0.28.0 i collegamenti non validi per i gruppi si rifiutano). |
 | `setView(vista)`, `rename(nome)` | La vista (non entra nella storia); il nome. |
 | `schemaPorts(defDi)` → `{ inputs, outputs }` | Le porte di schema: `[{ name, type, block, description }]` dai blocchi con `role` `schemaIn` e `schemaOut`. `defDi(tipo)` dà la definizione. |
 | `componentObjects(defDi)` → `[{ block, window, component }]` | Gli oggetti di componenti presenti nello schema. |
+
+**Gruppi** (dalla 0.28.0, [D91](../interna/decisioni.md#d91-logic-studio-i-gruppi-di-blocchi-la-porta-run-gli-impulsi-che-tornano-a-false-e-i-thread-a-parte)). Un gruppo raccoglie blocchi; un blocco sta in un solo gruppo, non ci sono gruppi dentro i gruppi, un gruppo senza blocchi sparisce. Il gruppo ha una porta `run` (`GROUP_RUN`, tipo impulso) indirizzata con l'id del gruppo: `{ from: [blocco, porta], to: [gruppo, 'run'] }` la fa partire da fuori; `{ from: [gruppo, 'run'], to: [blocco, porta] }` porta l'impulso a un blocco interno. Un collegamento che attraversa il bordo del gruppo tocca solo porte *esposte*; collegarne una la espone da sola. Dopo ogni modifica i gruppi si ripuliscono (`tidyGroups`): blocchi e collegamenti che non esistono più, `run` usata nel verso sbagliato, esposizioni mancanti o doppie. L'id di un gruppo è `grp` più un numero e non coincide mai con quello di un blocco.
+
+| Metodo | Descrizione |
+| --- | --- |
+| `groups`, `group(id)`, `groupOf(idBlocco)` | I gruppi (`[]` se non ce ne sono); un gruppo o `null`; il gruppo di un blocco o `null`. |
+| `addGroup(ids, { name })` → id \| `null` | Raggruppa i blocchi che non sono già in un gruppo (gli altri restano fuori); `null` se non ne resta nessuno. Il nome predefinito è l'id. Espone le porte dei collegamenti che già attraversano il bordo. |
+| `ungroup(ids)` | Scioglie i gruppi: i blocchi restano, i collegamenti di `run` si tolgono. |
+| `removeGroups(ids, { blocks })` | Toglie i gruppi con i loro blocchi e i loro collegamenti; `blocks`: altri blocchi da togliere nello stesso passo di storia. |
+| `setGroup(id, { name, collapsed, thread })` | Cambia nome (fino a 80 caratteri), compresso, thread a parte. |
+| `addToGroup(id, ids)`, `removeFromGroup(ids)` | Mette blocchi in un gruppo (togliendoli da quello in cui erano); li toglie dai gruppi (un gruppo che resta vuoto sparisce). I collegamenti che ora attraversano il bordo espongono le loro porte. |
+| `setExposed(id, blocco, lato, porta, on)` | Espone (`on` vero) una porta di un blocco del gruppo, `lato` `'in'` o `'out'`, o smette di esporla: allora si tolgono anche i collegamenti che la raggiungono da fuori. |
+| `renameExposed(id, blocco, lato, porta, nome)`, `moveExposed(id, da, a)` | Il nome che la porta ha sul gruppo compresso (vuoto = il suo nome); sposta una porta esposta nell'ordine. |
+| `canLink(da, a)` → `boolean` | Se un collegamento è valido rispetto ai gruppi: `run` di un gruppo solo da fuori verso il gruppo o dal gruppo verso un suo blocco. `connect` e `relink` lo chiamano. |
+| `relink(collegamento, a)` → `boolean` | Sposta l'estremità d'ingresso di un collegamento su un'altra porta, in un solo passo di storia. |
+| `duplicateGroups(ids, { dx = 24, dy = 24 })` → nuovi id | Copia i gruppi con i loro blocchi, i collegamenti fra loro e quelli di `run`. |
 
 **`LogicWindow`** (`.lsui`): `{ format, title, size: { w, h, resizable }, root }`; ogni nodo è `{ id, type, v, props, added?, layout?, children? }` e solo i contenitori hanno `children`.
 
@@ -1650,7 +1666,7 @@ I tre documenti che l'IDE modifica. Hanno in comune una base (`LogicDocument`, u
 
 **`portHidden(item, lato, porta, diSerie = false)`** → `boolean` (dalla 0.24.0): se una porta di un blocco è nascosta nel disegno. Senza una scelta dell'utente (`item.hide`) sono nascoste l'uscita `error` (Exception) e, dalla 0.26.0, le porte con `diSerie` `true` (dichiarate `hidden: true` nella definizione). `LogicCanvas` non disegna le porte nascoste, ma una porta collegata la disegna sempre (uno schema salvato prima, o l'Exception già collegata).
 
-**`typesMatch(da, a)`** → `boolean`: se un collegamento tra due tipi è senza avvisi (`any` va con tutto, uguali vanno insieme, un ingresso `pulse` accetta tutto, un ingresso `text` accetta tutto tranne `pulse`). **`linkKey(l)`**: una chiave di testo per un collegamento. **`logicText`** è la tabella dei testi dell'SDK per questi documenti (`lilos:sdk.logic`).
+**`typesMatch(da, a)`** → `boolean`: se un collegamento tra due tipi è senza avvisi (`any` va con tutto, uguali vanno insieme, un ingresso `pulse` accetta tutto, un'uscita `pulse` va anche in un ingresso `bool` (dalla 0.28.0: un impulso è un sì/no), un ingresso `text` accetta tutto tranne `pulse`). **`linkKey(l)`**: una chiave di testo per un collegamento. **`logicText`** è la tabella dei testi dell'SDK per questi documenti (`lilos:sdk.logic`).
 
 ## sdk/ui/logic/ e sdk/ui/charts.js (Logic Studio)
 
@@ -1675,22 +1691,24 @@ canvas.on('select', ({ blocks, links }) => console.log(blocks, links));
 | `catalog` | `logic.catalog()`: le definizioni dei blocchi. |
 | `lang` | La lingua delle etichette (`'en'`). |
 | `componentOf(blocco)` | Per l'oggetto di una componente: `{ def, added }` della componente (le sue porte sono quelle della componente), o `null`. Il titolo dell'oggetto è `UI > ` seguito dall'etichetta del blocco o, senza, dal nome del tipo di componente (dalla 0.24.1); sotto, `finestra › componente`. |
-| `labels` | `{ error, missing }`: i testi dell'app che la usa (predefiniti quelli dell'SDK). |
+| `labels` | `{ error, missing, run, group, blocks, thread, collapse, runOff }`: i testi dell'app che la usa (predefiniti quelli dell'SDK; `blocks` contiene `{n}`, per esempio `'{n} blocks'`; `group` è anche l'inizio del nome dei gruppi nuovi). |
 | `readOnly` | Niente modifiche (un programma mostrato dal vivo). |
 
 | Membro | Descrizione |
 | --- | --- |
-| `el`, `view`, `selection`, `readOnly` | L'elemento (focalizzabile); `{ x, y, zoom }`; `{ blocks, links }` selezionati. |
+| `el`, `view`, `selection`, `readOnly` | L'elemento (focalizzabile); `{ x, y, zoom }`; `{ blocks, links, groups }` selezionati. |
 | `setCatalog(catalog)`, `def(tipo)`, `refresh()`, `destroy()` | |
 | `toWorld(clientX, clientY)`, `center()` | Coordinate del foglio. |
 | `setView(vista, { save = true })`, `zoomAt(fattore, clientX?, clientY?)`, `fit(ids?)` | La vista (salvata nello schema dopo 400 ms); ingrandire intorno a un punto; mostrare tutto, o i blocchi dati. |
-| `select(blocks, links, { add })`, `removeSelection()` | |
+| `select(blocks, links, { add, groups })`, `selectAll()`, `removeSelection()` | `groups`: gli id dei gruppi da selezionare (dalla 0.28.0). |
+| `groupSelection()` → id \| `null`, `ungroupSelection()`, `duplicateSelection()` | Raggruppa i blocchi selezionati (quelli già in un gruppo restano dov'erano) e seleziona il gruppo, chiamato «`labels.group` n»; scioglie i gruppi selezionati; copia blocchi e gruppi selezionati. Con `readOnly` non fanno niente. |
+| `groupAt(world)` | Il gruppo aperto la cui cornice è in quel punto del foglio, o `null`. |
 | `place(def, at?)` → id | Aggiunge un blocco (in mezzo alla vista, o dove dici) e lo seleziona. |
 | `attach(live, nomeSchema)`, `detach()` | Mostra un programma in esecuzione: i valori sui collegamenti e accanto agli ingressi, i blocchi che lavorano (`run`) o falliti (`err`). |
 
-Mouse: trascinare un blocco lo sposta (la selezione insieme); da un'uscita a un ingresso li collega; da un ingresso collegato, toglie il collegamento; trascinare lo sfondo seleziona a rettangolo; il tasto centrale o **Spazio** premuto sposta la vista (la tela ha `data-pan="native"`: il tasto centrale non sposta mai la scrivania); la rotella ingrandisce. Tastiera (con la tela focalizzata): **Canc** o **Backspace** elimina la selezione, **Ctrl A** la allarga a tutto, **Ctrl D** duplica, le frecce spostano, **Esc** deseleziona.
+Mouse: trascinare un blocco lo sposta (la selezione insieme); da un'uscita a un ingresso li collega; da un ingresso collegato, toglie il collegamento; trascinare lo sfondo seleziona a rettangolo; il tasto centrale o **Spazio** premuto sposta la vista (la tela ha `data-pan="native"`: il tasto centrale non sposta mai la scrivania); la rotella ingrandisce. Tastiera (con la tela focalizzata): **Canc** o **Backspace** elimina la selezione, **Ctrl A** la allarga a tutto, **Ctrl D** duplica, **Ctrl G** raggruppa, **Ctrl Maiusc G** scioglie i gruppi selezionati, le frecce spostano, **Esc** deseleziona. Un gruppo aperto è una cornice con la porta Run nella testata (il pallino sul bordo sinistro riceve da fuori, quello dopo la scritta «Run» manda ai blocchi interni; la cornice è tratteggiata se a Run non è collegato niente); le porte esposte hanno un anello. Trascinare la testata (o il gruppo compresso) sposta il gruppo con i suoi blocchi; un blocco lasciato dentro una cornice entra nel gruppo; doppio clic su un gruppo compresso lo apre, sulla testata lo comprime. Compresso, il gruppo è un solo blocco con Run e le porte esposte, e i collegamenti interni non si disegnano.
 
-Eventi: `select` `{ blocks, links }`, `open` `{ id }` (doppio clic su un blocco), `contextmenu` `{ kind: 'block' \| 'link' \| 'canvas', id, link, clientX, clientY, world }`, `linkDrop` `{ from, world, clientX, clientY }` (un collegamento lasciato nel vuoto), `view` `{ x, y, zoom }`. Un collegamento tra tipi che non vanno d'accordo (`typesMatch`) ha la classe `mismatch`.
+Eventi: `select` `{ blocks, links }`, `open` `{ id }` (doppio clic su un blocco), `contextmenu` `{ kind: 'block' \| 'link' \| 'group' \| 'canvas', id, link, clientX, clientY, world }`, `linkDrop` `{ from, world, clientX, clientY }` (un collegamento lasciato nel vuoto), `view` `{ x, y, zoom }`. Un collegamento tra tipi che non vanno d'accordo (`typesMatch`) ha la classe `mismatch`.
 
 ### `LogicConsoles` e `LogicConsoleView` (`ui/logic/LogicConsole.js`)
 
@@ -5764,12 +5782,21 @@ Da lilOS 1.37.0 ([D88](../interna/decisioni.md#d88-logic-studio-motore-pacchetti
 
 Il motore tiene **un `worker_thread` per ogni utente** con programmi in esecuzione (con `maxOldGenerationSizeMb` uguale alla quota di memoria dell'utente), lo avvia con il primo programma e lo chiude con l'ultimo. Se il worker muore (memoria finita, errore non gestito) tutti i programmi di quell'utente passano a `failed`. Le richieste che toccano i dati dell'utente (azioni, console, finestre) passano dal thread principale, che le esegue **come l'utente**.
 
+**Gruppi e impulsi nel motore** (motore 1.4.0, [D91](../interna/decisioni.md#d91-logic-studio-i-gruppi-di-blocchi-la-porta-run-gli-impulsi-che-tornano-a-false-e-i-thread-a-parte)). `lib/project.js` passa i `groups` dello schema al `Program` (`{ id, name, blocks, thread }` per schema); il motore non controlla le esposizioni, solo le regole di Run:
+
+- I blocchi di un gruppo **non partono con il programma**. Partono quando la porta `run` del gruppo (indirizzata `[gruppo, 'run']`) riceve un impulso: allora girano i loro `start()` (i blocchi che partono da soli), i valori iniziali degli ingressi e i cicli, e l'impulso va sui collegamenti da `run` ai blocchi interni.
+- **A ogni nuovo impulso il gruppo riparte da capo**: i suoi blocchi sono fermati (`stop()`, timer cancellati) e la loro `memory()` azzerata; i valori già arrivati agli ingressi restano. Con niente collegato a `run` il gruppo non parte mai. I valori che arrivano a un gruppo non ancora partito restano sull'ingresso senza avviare il blocco.
+- Lo stato del gruppo esce come quello dei blocchi, con chiave `'schema/gruppo'`: `'run'` (partito) o `'idle'`.
+- **Thread a parte** (`thread: true`): il gruppo gira in un `worker_thread` figlio del worker dell'utente, che esegue lo stesso `worker.js` (con `workerData.thread`); i valori che attraversano il bordo viaggiano per messaggi, mentre azioni, console, finestre e valori dal vivo passano dal worker dell'utente. `lib/project.js` rifiuta lo schema se il gruppo contiene blocchi con `role` (Ingresso e Uscita di schema, oggetti di componenti). Il limite per utente è `maxThreads` (sotto), ogni thread ha metà della memoria della quota dell'utente (almeno 16 MB). Se non c'è un thread libero (`host.thread()` dà `null`) il gruppo gira nel thread del programma e la console principale scrive un avviso. Un thread parte solo se `run` è collegata.
+- **Impulsi.** Una porta `pulse` manda `true` e torna subito a `false` (anche il valore che si vede dal vivo sull'uscita). L'ingresso `pulse` che riceve un impulso vale `true` per l'esecuzione che avvia, poi torna `false` senza far ripartire il blocco (con `trigger: false` resta `true` fino alla prossima esecuzione). Un ingresso `pulse` non è avviato da `false` né da `null`. Un blocco che legge un ingresso `pulse` in `run(inputs)` lo trova quindi `true` solo in quell'esecuzione.
+
 **Limiti e quote.** I limiti per tutti sono le impostazioni del modulo (`defaultConfig` e `settings` di `module.json`); le quote di ogni utente sono le chiavi `quota…`, con le deroghe di un amministratore in `quotas.json`. I valori fuori intervallo sono portati nell'intervallo. Valgono per i programmi che partono dopo il cambio (`ctx.onConfig`).
 
 | Impostazione | Predefinito | Intervallo | Significato |
 | --- | --- | --- | --- |
 | `totalActive` | 200 | 1-10000 | Programmi attivi di tutti gli utenti |
 | `totalMemoryMb` | 1024 | 64-65536 | Memoria dei worker di tutti (la somma delle quote dei worker aperti) |
+| `maxThreads` | 4 | 0-64 | Gruppi di Logic Studio che girano in un thread a parte, per utente (dal motore 1.4.0). Ogni thread ha metà della memoria della quota dell'utente (almeno 16 MB). Senza un thread libero il gruppo gira nel worker dell'utente e la console principale scrive un avviso |
 | `maxBlocks` / `maxLinks` | 200 / 600 | 10-5000 / 10-20000 | Blocchi e collegamenti per schema |
 | `runsPer10s` | 10000 | 100-1000000 | Esecuzioni di blocchi in 10 secondi per programma; oltre, il programma si ferma (un ciclo di collegamenti) |
 | `blockSeconds` | 30 | 1-600 | Tempo massimo di un blocco |
@@ -5876,7 +5903,7 @@ export default {
 | `execution` | `'run'` (di serie) o `'loop'` (vuole `step`) |
 | `start(b)`, `run(inputs, b)`, `step(inputs, b)`, `stop(b)` | Il comportamento, qui sotto. `upgrade(config, from, added)` è facoltativa: `lib/project.js` la chiama quando un blocco salvato in uno schema ha una `v` più bassa della `version` della definizione (può restituire le impostazioni nuove o `{ config }`; se lancia, il programma non parte: «non si aggiorna dalla versione …»). La versione del blocco nel catalogo è `upgradable` se c'è |
 
-**`start(b)`** all'avvio del programma. **`run(inputs, b)`**: `inputs` è l'ultimo valore di ogni ingresso (per nome, anche degli aggiunti per id), `b.trigger` è l'ingresso che ha avviato il blocco. Ritorna un oggetto `{ porta: valore }` (le uscite; un valore `undefined` è ignorato; un impulso è `true`) o niente. Se lancia, il messaggio esce dall'uscita `error`. Può essere `async`. **`step(inputs, b)`** (blocchi `loop`): ritorna `{ outputs?, wait?, done? }`; `wait` in millisecondi (almeno 10), `done: true` lo ferma. **`stop(b)`** alla fine, con 2 secondi di tempo.
+**`start(b)`** all'avvio del programma. **`run(inputs, b)`**: `inputs` è l'ultimo valore di ogni ingresso (per nome, anche degli aggiunti per id), `b.trigger` è l'ingresso che ha avviato il blocco. Ritorna un oggetto `{ porta: valore }` (le uscite; un valore `undefined` è ignorato; un impulso è `true` e torna subito `false`) o niente. Se lancia, il messaggio esce dall'uscita `error`. Può essere `async`. **`step(inputs, b)`** (blocchi `loop`): ritorna `{ outputs?, wait?, done? }`; `wait` in millisecondi (almeno 10), `done: true` lo ferma. **`stop(b)`** alla fine, con 2 secondi di tempo.
 
 **`b`** (il secondo argomento):
 

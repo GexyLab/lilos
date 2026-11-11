@@ -24,7 +24,7 @@ Alcuni blocchi hanno ingressi che **per come sono fatti** non li avviano: per es
 
 > In questa versione, per questi ingressi le Proprietà mostrano comunque **lo avvia** spuntato e il nome non è sottolineato, ma il blocco non parte. Attenzione: se a uno di questi ingressi dai un **valore iniziale**, il motore lo considera un ingresso che avvia. Per essere sicuro che non avvii il blocco, togli tu la spunta da **lo avvia** su quell'ingresso.
 
-Gli **impulsi** (ingressi di tipo impulso, come **invia**, **leggi**, **più**) servono proprio ad avviare: il valore che portano non conta, conta il momento in cui arriva.
+Gli **impulsi** (ingressi di tipo impulso, come **invia**, **leggi**, **più**) servono proprio ad avviare: conta il momento in cui arrivano. Un impulso è un `true` che dura un istante: l'ingresso vale `true` per il lavoro che fa partire, poi torna `false` senza far ripartire il blocco. Un ingresso impulso non parte con `false`.
 
 ### Un esempio
 
@@ -56,6 +56,8 @@ Quando un programma parte (prova, programma attivo o app), il motore:
 3. avvia i blocchi che girano in continuazione (se un pacchetto ne ha).
 
 I valori mandati in questa fase viaggiano come tutti gli altri: un blocco che riceve due valori all'avvio lavora due volte.
+
+I blocchi che stanno in un **gruppo** non fanno niente di tutto questo all'avvio del programma: lo fanno quando la porta **Run** del gruppo riceve un impulso, e di nuovo a ogni impulso. Vedi [Gruppi](ide/groups).
 
 ## Una cosa alla volta
 

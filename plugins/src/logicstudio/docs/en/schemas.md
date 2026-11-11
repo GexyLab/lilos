@@ -67,6 +67,7 @@ The status bar at the bottom says, for the open schema: **Blocks 12 / 200 · lin
 - **Drag on the background**: selects the blocks touched by the rectangle; with **Shift** it adds them to those already chosen. A click on the background without dragging clears the selection.
 - **Click on a link**: selects it (thicker, lit); **Shift+click** adds others.
 - **Ctrl+A** selects all the blocks; **Esc** clears the selection.
+- **Click on the header of a group** (or on a collapsed group): selects the group. See [Groups](ide/groups).
 
 ## Moving, duplicating, removing
 
@@ -89,8 +90,13 @@ On a **block** (if it was not selected, it becomes the selection):
 |---|---|
 | **Duplicate** (Ctrl+D) | Duplicates the selected blocks. |
 | **Label…** | Asks «A name for this block, shown on it instead of its kind.» (at most 80 characters; empty removes it). |
+| **Group** (Ctrl+G) | Makes a group of the selected blocks that are not in a group. |
+| **Add to group** › | Puts the selected blocks in a group that already exists. |
+| **Take out of the group** | Takes the selected blocks out of their group. |
 | **Open its window** | Only for the object of a component: opens the window of the component. |
 | **Remove the block** / **Remove 3 blocks** (Delete) | Removes the selection. |
+
+On a **group**: see [The menu of a group](ide/groups).
 
 On a **link**: **Remove the link** (Delete).
 
@@ -110,7 +116,7 @@ The panel on the right shows what you selected.
 
 ### Several blocks or links
 
-**3 blocks selected** with the button **Remove 3 blocks**; or **2 links selected** with **Remove the link**.
+**3 blocks selected** with the buttons **Group** (if some are not in a group) and **Remove 3 blocks**; or **2 links selected** with **Remove the link**. The Properties of a group are in [Groups](ide/groups).
 
 ### A block
 

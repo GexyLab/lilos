@@ -1733,9 +1733,48 @@ Il blocco **Costante · Variabile** dà un valore (numero, testo, sì/no o JSON)
 - **invia**: se lo colleghi, il valore non esce più all'avvio ma solo a ogni impulso che arriva;
 - **imposta**: se lo colleghi, il blocco diventa una **variabile**: il valore che arriva (convertito nel tipo scelto) prende il posto di quello attuale. Esce subito, oppure al prossimo impulso su **invia** se è collegato. Il valore delle impostazioni è quello di partenza.
 
-Sul foglio: trascina lo sfondo per selezionare con un rettangolo; per spostare la vista tieni premuto **Spazio** (o usa il tasto centrale del mouse) e trascina; la **rotella** ingrandisce e rimpicciolisce; **Adatta** mostra tutto il foglio; **Allinea** (con almeno 2 blocchi selezionati) li mette in fila: in orizzontale sui bordi a sinistra, sui centri o sui bordi a destra, in verticale sui bordi in alto, sui centri o sui bordi in basso, oppure (da 3 blocchi) li **distribuisce** con lo stesso spazio fra l'uno e l'altro; si annulla con Ctrl Z. Con il foglio in primo piano: **Canc** elimina quello che hai selezionato, **Ctrl A** seleziona tutto, **Ctrl D** duplica, le **frecce** spostano, **Esc** toglie la selezione. Tasto destro su un blocco: **Duplica**, **Etichetta…**, **Allinea** (con più blocchi selezionati), **Elimina il blocco**; su un collegamento: **Elimina il collegamento**; sul foglio: **Aggiungi un blocco qui**, **Seleziona tutto**. **Ctrl Z** e **Ctrl Y** annullano e ripetono, **Ctrl S** salva tutto.
+Sul foglio: trascina lo sfondo per selezionare con un rettangolo; per spostare la vista tieni premuto **Spazio** (o usa il tasto centrale del mouse) e trascina; la **rotella** ingrandisce e rimpicciolisce; **Adatta** mostra tutto il foglio; **Allinea** (con almeno 2 blocchi selezionati) li mette in fila: in orizzontale sui bordi a sinistra, sui centri o sui bordi a destra, in verticale sui bordi in alto, sui centri o sui bordi in basso, oppure (da 3 blocchi) li **distribuisce** con lo stesso spazio fra l'uno e l'altro; si annulla con Ctrl Z. Con il foglio in primo piano: **Canc** elimina quello che hai selezionato, **Ctrl A** seleziona tutto, **Ctrl D** duplica, **Ctrl G** raggruppa, **Ctrl Maiusc G** scioglie i gruppi, le **frecce** spostano, **Esc** toglie la selezione. Tasto destro su un blocco: **Duplica**, **Etichetta…**, **Allinea** (con più blocchi selezionati), **Raggruppa**, **Aggiungi al gruppo**, **Togli dal gruppo**, **Elimina il blocco** (i gruppi: vedi «[Gruppi di blocchi](#gruppi-di-blocchi)»); su un collegamento: **Elimina il collegamento**; sul foglio: **Aggiungi un blocco qui**, **Seleziona tutto**. **Ctrl Z** e **Ctrl Y** annullano e ripetono, **Ctrl S** salva tutto.
 
 Un blocco che viene da un pacchetto che non è installato è segnato con **Manca il pacchetto**: installalo dall'AppStore, oppure togli il blocco.
+
+### Gruppi di blocchi
+
+Un **gruppo** raccoglie alcuni blocchi in una cornice, con un nome. Serve a tenere in ordine uno schema grande, a farlo ripartire da capo quando serve e, se vuoi, a farlo lavorare in un **thread a parte**, cioè in una parte del computer tutta sua.
+
+- **Fare un gruppo.** Seleziona i blocchi e premi **Ctrl G**, oppure tasto destro e **Raggruppa**. Un blocco può stare in un solo gruppo; i gruppi non si mettono uno dentro l'altro. Per mettere un blocco in un gruppo che c'è già: tasto destro sul blocco, **Aggiungi al gruppo**, oppure trascinalo dentro la cornice e lascialo lì. Per toglierlo: **Togli dal gruppo**.
+- **Sciogliere un gruppo.** **Ctrl Maiusc G**, oppure tasto destro sul gruppo e **Sciogli il gruppo**: i blocchi restano dove sono. **Elimina il gruppo e i suoi blocchi** invece toglie tutto (**Ctrl Z** rimette).
+- **Spostarlo.** Trascina la testata della cornice (la barra in alto): i blocchi vanno con lei.
+- **Comprimerlo.** Doppio clic sulla testata, oppure **Comprimi** nel menu del gruppo: il gruppo diventa un solo blocco, con il suo nome e solo le porte che hai scelto di mostrare. Doppio clic sul gruppo compresso per riaprirlo. I collegamenti interni non si vedono finché è compresso.
+- **Rinominarlo.** **Rinomina il gruppo** nel menu, oppure il nome nelle **Proprietà**. Il menu ha anche **Duplica** e **Documentazione**.
+
+#### La porta Run
+
+Ogni gruppo ha una porta **Run**, di tipo impulso. **I blocchi di un gruppo non partono con il programma: partono quando Run riceve un impulso.**
+
+- Per far partire il gruppo, collega a Run (il pallino sul bordo sinistro della cornice) l'uscita di un blocco **fuori** dal gruppo, per esempio **All'avvio**.
+- Per far partire un blocco *dentro* il gruppo dall'impulso, collega a quel blocco il secondo pallino di Run (quello dopo la scritta «Run»).
+- Se a Run non è collegato niente, i blocchi del gruppo **non partono mai**; la cornice è tratteggiata per ricordartelo.
+- Quando Run riceve un impulso, partono i blocchi che partono da soli (una costante, **All'avvio**, un **Intervallo** che parte da solo, gli ingressi con un valore iniziale) e l'impulso va ai blocchi collegati a Run.
+- **A ogni nuovo impulso il gruppo riparte da capo**: i suoi blocchi si fermano, i timer si annullano, quello che i blocchi ricordavano si azzera. I valori già arrivati agli ingressi restano.
+- Se arrivano valori a un gruppo che non è ancora partito, restano sugli ingressi e non fanno partire niente.
+
+#### Le porte esposte
+
+Un collegamento che passa dal bordo del gruppo può toccare solo una **porta esposta**. Basta collegare dall'esterno una porta di un blocco del gruppo: si espone da sola, e ha un anello arancione. Anche **Raggruppa** espone le porte dei collegamenti che già attraversano il bordo.
+
+Nelle **Proprietà** di un blocco che sta in un gruppo, accanto all'occhio di ogni porta, il pulsante **Esponi fuori dal gruppo** o **Non esporre** lo fa a mano. **Attenzione:** smettere di esporre una porta toglie i collegamenti che la raggiungono da fuori (prima ti viene chiesto di confermare; **Ctrl Z** li rimette). Nelle Proprietà del gruppo, **Porte esposte** elenca le porte: dai a ognuna il nome che vedrai sul gruppo compresso, spostala su e giù o toglila con **Togli**.
+
+#### In un thread a parte
+
+Con **Esegui in un thread a parte** (nel menu o nelle Proprietà del gruppo) i blocchi del gruppo lavorano separati dal resto del programma. Così un gruppo che calcola a lungo non rallenta gli altri blocchi.
+
+- Ogni utente ha un numero massimo di thread (di serie **4**, lo cambia un amministratore: [Il Pannello di controllo](#il-pannello-di-controllo)). Se non ce n'è uno libero il gruppo gira insieme agli altri e la console principale scrive un avviso.
+- Un gruppo in un thread a parte **non può contenere** blocchi **Ingresso** e **Uscita di schema** né oggetti delle finestre: lo schema non parte e ti dice quale blocco toglie. Le Proprietà del gruppo lo avvisano.
+- Parte solo se Run è collegata.
+
+#### Impulsi
+
+Un **impulso** è un sì che dura un attimo: la porta manda «sì» e torna subito su «no». Un ingresso che riceve un impulso vale «sì» per l'esecuzione che fa partire, poi torna «no» senza far ripartire il blocco. Se togli **Lo avvia** da quell'ingresso, resta «sì» fino alla prossima esecuzione. Un ingresso impulso non parte mai con «no». Un impulso si può collegare anche a un ingresso sì/no, senza segnalazione. Il valore che vedi sull'uscita impulso, mentre il programma gira, torna «no».
 
 ### Più schemi: la mappa
 
@@ -1808,7 +1847,7 @@ Se il motore c'è, il [Pannello di controllo](#pannello-di-controllo) ha la sezi
 | Scheda | Chi la vede | Cosa c'è |
 | --- | --- | --- |
 | Il mio uso | Tutti | Quanti programmi attivi e prove hai, le richieste di rete di questo minuto, il registro, la CPU e la memoria che puoi usare; i tuoi programmi, con **Ferma** e **Togli** |
-| Limiti | Amministratori | I limiti per tutti: programmi attivi e memoria in tutto, esecuzioni di blocchi, tempo massimo di un blocco, durata di una prova, blocchi e collegamenti per schema, schemi, finestre e componenti per progetto, console. Valgono per i programmi che partono dopo |
+| Limiti | Amministratori | I limiti per tutti: programmi attivi e memoria in tutto, esecuzioni di blocchi, tempo massimo di un blocco, durata di una prova, gruppi in un thread a parte per utente, blocchi e collegamenti per schema, schemi, finestre e componenti per progetto, console. Valgono per i programmi che partono dopo |
 | Quote | Amministratori | Le quote di ogni utente (programmi attivi, prove, CPU %, memoria, richieste al minuto, registro) e, per un utente, quote sue: una casella vuota vuol dire la quota di tutti; **Predefinita** toglie le quote sue |
 | In esecuzione | Amministratori | I programmi di tutti gli utenti, da fermare |
 | Pacchetti | Tutti | I pacchetti di blocchi e componenti installati, con quanti blocchi e componenti danno |

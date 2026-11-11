@@ -12,7 +12,7 @@ import { t, i18n } from './i18n.js';
  * The same addresses are the links inside the pages ([Somma](core.add)). Opened from the context
  * menus («Documentazione»), F1, the «?» of Proprietà and the toolbar.
  */
-const IDE_ORDER = ['index', 'projects', 'schemas', 'blocks', 'links', 'windows', 'components', 'consoles', 'run', 'create-app', 'formats', 'shortcuts', 'docs'];
+const IDE_ORDER = ['index', 'projects', 'schemas', 'blocks', 'links', 'groups', 'windows', 'components', 'consoles', 'run', 'create-app', 'formats', 'shortcuts', 'docs'];
 const PACK_ORDER = ['logicstudio-core', 'logicstudio-collections', 'logicstudio-lilos', 'logicstudio-net', 'logicstudio-ui', 'logicstudio-charts', 'logicstudio-engine'];
 const TYPE = /^[a-z][a-z0-9]*\.[a-zA-Z][a-zA-Z0-9]{0,40}$/;
 const PAGE = /^[a-z][a-z0-9-]{0,40}$/;

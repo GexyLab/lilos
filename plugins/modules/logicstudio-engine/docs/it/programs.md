@@ -27,6 +27,9 @@ Il motore fa questi passi, in ordine. Se uno non va, il programma non parte e l'
    - poi ogni ingresso che ha un **valore iniziale** lo riceve;
    - poi partono i blocchi che girano da soli in un ciclo.
 
+   I blocchi che stanno in un **gruppo** restano fermi: partono quando la porta **Run** del gruppo riceve un impulso, e ripartono da capo a ogni impulso (fermati, memoria azzerata, i valori arrivati agli ingressi restano). Se a Run non è collegato niente non partono mai. Vedi [Gruppi](ide/groups).
+6. **I thread dei gruppi.** Un gruppo con **Esegui in un thread a parte** (e qualcosa collegato a Run) gira in un thread suo, aperto dal tuo worker: i valori che attraversano il bordo del gruppo passano da un thread all'altro, e azioni, console, finestre e valori dal vivo passano dal tuo worker come per gli altri blocchi. Se hai già tutti i thread che puoi avere (vedi [Limiti e quote](logicstudio-engine/limits)), il gruppo gira nel thread del programma e la console principale lo dice.
+
 Da qui in avanti il programma va avanti da solo: ogni valore che arriva a un ingresso fa lavorare il blocco, e le sue uscite vanno lungo i collegamenti. Vedi [Come funziona un blocco](ide/blocks).
 
 ## Gli stati
@@ -55,6 +58,8 @@ Vedi i tuoi programmi in due posti:
 | Il motore non risponde | Il worker non ha risposto in tempo mentre caricava i blocchi |
 | Logic Studio usa già … MB: al massimo … MB per tutti | Non c'era memoria per aprire il tuo worker |
 | Blocco sconosciuto: … | Il worker non conosce un blocco del progetto (un pacchetto arrivato a metà) |
+| Gruppo 1: memoria finita nel thread del gruppo | Il thread a parte di un gruppo ha finito la sua memoria (metà della tua quota) |
+| Gruppo 1: il thread del gruppo si è fermato (…) | Il thread a parte di un gruppo si è chiuso per un altro motivo |
 
 Quando un **programma attivo** si ferma per un errore, ricevi una notifica di lilOS con il nome del programma e il messaggio (se in quel momento hai una pagina di lilOS aperta).
 

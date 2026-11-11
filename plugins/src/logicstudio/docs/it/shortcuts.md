@@ -29,9 +29,11 @@ Valgono quando il foglio è in primo piano: fai prima un clic sul foglio.
 
 | Tasti | Cosa fanno |
 |---|---|
-| **Canc** o **Backspace** | Elimina i blocchi selezionati (con i loro collegamenti); se non ci sono blocchi selezionati, i collegamenti selezionati. |
-| **Ctrl+A** | Seleziona tutti i blocchi. |
-| **Ctrl+D** | Duplica i blocchi selezionati (e i collegamenti tra di loro). |
+| **Canc** o **Backspace** | Elimina i blocchi selezionati (con i loro collegamenti) e i gruppi selezionati con i loro blocchi; se non ci sono blocchi né gruppi selezionati, i collegamenti selezionati. |
+| **Ctrl+A** | Seleziona tutti i blocchi (e i gruppi compressi). |
+| **Ctrl+D** | Duplica i blocchi selezionati (e i collegamenti tra di loro); un gruppo selezionato si duplica con i suoi blocchi. |
+| **Ctrl+G** | Fa un gruppo dei blocchi selezionati (vedi [Gruppi](ide/groups)). |
+| **Ctrl+Maiusc+G** | Scioglie i gruppi selezionati: i blocchi restano. |
 | **Frecce** | Spostano la selezione di 1 pixel. |
 | **Maiusc+frecce** | Spostano la selezione di 20 pixel. |
 | **Esc** | Toglie la selezione. |
@@ -52,8 +54,11 @@ Con il mouse:
 | trascinare da un'uscita | Fa un collegamento; lasciato nel vuoto, apre il menu dei blocchi adatti. |
 | trascinare da un ingresso collegato | Stacca il suo ultimo collegamento, per spostarlo o toglierlo. |
 | **doppio clic** sull'oggetto di una componente | Apre la sua finestra. |
+| trascinare la testata di un gruppo (o un gruppo compresso) | Sposta il gruppo con tutti i suoi blocchi. |
+| lasciare un blocco libero dentro la cornice di un gruppo | Lo mette nel gruppo. |
+| **doppio clic** su un gruppo compresso / sulla testata di un gruppo | Lo apre / lo comprime. |
 | **doppio clic** su un riquadro della Mappa | Apre lo schema o la finestra. |
-| **tasto destro** | Il menu del blocco, del collegamento o del foglio. |
+| **tasto destro** | Il menu del blocco, del gruppo, del collegamento o del foglio. |
 
 ## L'editor di una finestra
 
