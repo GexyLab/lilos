@@ -319,7 +319,10 @@ class Studio {
   renderToolbar() {
     const tab = this.current;
     const doc = tab?.doc ?? (tab?.kind === 'map' ? this.ws?.project : null);
-    const b = (glyph, label, onClick, { disabled = false, cls = '', title = null } = {}) => h('button', { class: `ls-tb ${cls}`, type: 'button', disabled, title: title ?? label, onclick: onClick }, glyph ? icon(glyph) : null, label ? h('span', {}, label) : null);
+    // Icons only: the name is in the tooltip (and read by screen readers); a button without an icon (the zoom %) shows its text
+    const b = (glyph, label, onClick, { disabled = false, cls = '', title = null } = {}) => h('button', {
+      class: `ls-tb ${cls}`, type: 'button', disabled, title: title ?? label ?? '', 'aria-label': title ?? label ?? '', onclick: onClick,
+    }, glyph ? icon(glyph) : h('span', {}, label));
     const items = [];
     if (this.ws) {
       items.push(b('save', t('tb.save'), () => this.saveAll(), { disabled: !this.ws.dirty, title: `${t('tb.save')} (Ctrl+S)` }));

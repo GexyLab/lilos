@@ -11,7 +11,7 @@ A project (or a schema alone) runs in the Logic Studio **engine** as a **program
 
 ## Test
 
-1. Press **Test** in the toolbar, or **F5** (also while you type in a field).
+1. Press **Test** (▶) in the toolbar, or **F5** (also while you type in a field).
 2. Before calling the engine, the IDE checks the project. If it finds a serious problem, the test **does not start** and the **Problems** tab opens with the list.
 3. If all is well, the button becomes **Testing 00:12** (the time passing, also in the status bar) and **Stop** appears.
 4. To stop it: **Stop**, or **F5** again.

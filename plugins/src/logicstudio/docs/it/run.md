@@ -11,7 +11,7 @@ Un progetto (o uno schema da solo) gira nel **motore** di Logic Studio come **pr
 
 ## Prova
 
-1. Premi **Prova** nella barra, o **F5** (anche mentre scrivi in un campo).
+1. Premi **Prova** (▶) nella barra, o **F5** (anche mentre scrivi in un campo).
 2. Prima di chiamare il motore, l'IDE controlla il progetto. Se trova un problema grave, la prova **non parte** e la scheda **Problemi** si apre con l'elenco.
 3. Se va tutto bene, il pulsante diventa **Prova in corso 00:12** (il tempo che passa, anche nella barra di stato) e compare **Ferma**.
 4. Per fermarla: **Ferma**, oppure **F5** di nuovo.

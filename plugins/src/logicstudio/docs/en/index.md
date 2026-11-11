@@ -26,7 +26,7 @@ The IDE is the place where you draw and test. What runs the programs is the **en
 
 ```
 ┌ Home │ Map │ main │ Principale ─────────────────────────────────────────────┐  tabs of the editors
-├ Save │ ↶ ↷ │ ▶ Test  ⏻ Activate │ − 100% + Fit      Map  Make app…  ⚙ ┤  toolbar
+├ 🖫 │ ↶ ↷ │ ▶ >_ ⏻ │ − 100% + ⤢ ⇹ ⇆           ▦ ▣ ⚙ ? ┤  toolbar (icons only)
 ├──────────────┬────────────────────────────────────┬──────────────────┤
 │ Project      │                                    │ Properties       │
 │ Blocks       │        the open sheet              │                  │
@@ -39,7 +39,7 @@ The IDE is the place where you draw and test. What runs the programs is the **en
 ```
 
 - **At the top** are the tabs of the open editors: the **Home** (it cannot be closed), the **Map** of the project, the schemas and the windows. You reorder the tabs by dragging them; a dot marks the ones with unsaved changes.
-- **The toolbar** changes with the tab: see [Projects](ide/projects) for the common buttons, [Schemas](ide/schemas) and [Windows](ide/windows) for those of each editor.
+- **The toolbar** has icons only: the name of each button (and its shortcut, like **Ctrl+S**) shows when you hold the mouse over it. It changes with the tab: see [Projects](ide/projects) for the common buttons, [Schemas](ide/schemas) and [Windows](ide/windows) for those of each editor.
 - **On the left** there are two tabs: **Project** (the list of schemas, windows and resources) and **Blocks**, which becomes **Components** when the open tab is a window.
 - **On the right** are the **Properties** of what you selected.
 - The two side panels **fold** like the consoles' one: the arrow in their header (**Hide the panel**) reduces them to a thin strip, with the tabs written vertically; the strip's arrow (**Show the panel**) or a click on a tab opens them again. The state stays at the next opening of the IDE.
@@ -140,7 +140,7 @@ What happens: every 2 seconds **Interval** sends a pulse, the **Counter** goes u
 
 ### 4. Test
 
-1. Press **Test** in the toolbar (or **F5**). The button becomes **Testing 00:00** and **Stop** appears.
+1. Press **Test** (the green triangle ▶) in the toolbar, or **F5**. The button turns green, with the mouse over it it says **Testing 00:00**, and **Stop** (the red square) appears next to it.
 2. On the sheet you see the values that go by: a coloured label halfway along each link, the last value next to each input, the light blue border on the block that is working.
 3. At the bottom, in the **Main** console, `1`, `2`, `3`, `4`, `5` appear (one every 2 seconds) and right after the 5 the line `Fatto!`. Then nothing else happens: **Interval** is off.
 4. Press **Stop** (or **F5** again). A test stops by itself after 5 minutes anyway.

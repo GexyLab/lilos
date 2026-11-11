@@ -3,7 +3,7 @@
 .ls .ico { width: 14px; height: 14px; flex: none; }
 
 .ls-tbar { flex: none; display: flex; align-items: center; gap: 2px; padding: 4px 8px; border-bottom: 1px solid var(--border); background: var(--surface); flex-wrap: wrap; }
-.ls-tb { height: 26px; display: inline-flex; align-items: center; gap: 6px; padding: 0 8px; border-radius: var(--radius-sm); border: 0; background: none; color: var(--text); cursor: pointer; font: inherit; }
+.ls-tb { height: 26px; min-width: 28px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 0 6px; border-radius: var(--radius-sm); border: 0; background: none; color: var(--text); cursor: pointer; font: inherit; }
 .ls-tb:hover:not(:disabled) { background: var(--hover); }
 .ls-tb:disabled { opacity: .45; cursor: default; }
 .ls-tb.test { color: var(--success); font-weight: 600; }

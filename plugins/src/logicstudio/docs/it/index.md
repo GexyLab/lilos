@@ -26,7 +26,7 @@ L'IDE è il posto dove disegni e provi. Chi fa girare i programmi è il **motore
 
 ```
 ┌ Home │ Mappa │ main │ Principale ───────────────────────────────────┐  schede degli editor
-├ Salva │ ↶ ↷ │ ▶ Prova  ⏻ Attiva │ − 100% + Adatta    Mappa  Crea app…  ⚙ ┤  barra
+├ 🖫 │ ↶ ↷ │ ▶ >_ ⏻ │ − 100% + ⤢ ⇹ ⇆           ▦ ▣ ⚙ ? ┤  barra (solo icone)
 ├──────────────┬────────────────────────────────────┬──────────────────┤
 │ Progetto     │                                    │ Proprietà        │
 │ Blocchi      │        il foglio aperto            │                  │
@@ -39,7 +39,7 @@ L'IDE è il posto dove disegni e provi. Chi fa girare i programmi è il **motore
 ```
 
 - **In alto** le schede degli editor aperti: la **Home** (non si chiude), la **Mappa** del progetto, gli schemi e le finestre. Le schede si riordinano trascinandole; un pallino segna quelle con modifiche non salvate.
-- **La barra** cambia con la scheda: vedi [Progetti](ide/projects) per i pulsanti comuni, [Schemi](ide/schemas) e [Finestre](ide/windows) per quelli di ogni editor.
+- **La barra** ha solo icone: il nome di ogni pulsante (e la sua scorciatoia, come **Ctrl+S**) compare tenendoci sopra il mouse. Cambia con la scheda: vedi [Progetti](ide/projects) per i pulsanti comuni, [Schemi](ide/schemas) e [Finestre](ide/windows) per quelli di ogni editor.
 - **A sinistra** due schede: **Progetto** (l'elenco di schemi, finestre e risorse) e **Blocchi**, che diventa **Componenti** quando la scheda aperta è una finestra.
 - **A destra** le **Proprietà** di quello che hai selezionato.
 - I due pannelli laterali si **comprimono** come quello delle console: la freccia nella loro intestazione (**Nascondi il pannello**) li riduce a una striscia stretta, con le schede scritte in verticale; la freccia della striscia (**Mostra il pannello**) o un clic su una scheda li riapre. Lo stato resta anche alla prossima apertura dell'IDE.
@@ -140,7 +140,7 @@ Cosa succede: ogni 2 secondi **Intervallo** manda un impulso, il **Contatore** s
 
 ### 4. Prova
 
-1. Premi **Prova** nella barra (o **F5**). Il pulsante diventa **Prova in corso 00:00** e compare **Ferma**.
+1. Premi **Prova** (il triangolo verde ▶) nella barra, o **F5**. Il pulsante si colora di verde, tenendoci sopra il mouse dice **Prova in corso 00:00**, e accanto compare **Ferma** (il quadrato rosso).
 2. Sul foglio vedi i valori che passano: un'etichetta colorata a metà di ogni collegamento, l'ultimo valore accanto a ogni ingresso, il bordo azzurro sul blocco che lavora.
 3. In basso, nella console **Principale**, compaiono `1`, `2`, `3`, `4`, `5` (uno ogni 2 secondi) e subito dopo il 5 la riga `Fatto!`. Poi non succede più niente: **Intervallo** è spento.
 4. Premi **Ferma** (o di nuovo **F5**). Una prova si ferma comunque da sola dopo 5 minuti.
