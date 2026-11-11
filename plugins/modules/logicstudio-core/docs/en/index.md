@@ -8,7 +8,7 @@ The blocks you need in almost every Logic Studio schema: fixed values and memori
 
 The package installs **by itself** together with the **Logic Studio IDE** app: the AppStore brings it along with the engine, because the IDE needs it. If it is missing (for example because it was removed), an administrator installs it from the **AppStore**, **Kernel** tab, by searching for "logicstudio-core". The package asks for no permissions: its blocks do not touch files, the network or notifications.
 
-The other blocks come with other packages: [Lists and matrices](logicstudio-collections), the [Constants](logicstudio-constants) (π, e, c, h, G…), [Quantities and units](logicstudio-units) (unit conversions), the [Signals](logicstudio-signals) (FFT, filters, modulation…), [lilOS blocks](logicstudio-lilos) (notifications, files, events), [Network blocks](logicstudio-net), the [Standard UI components](logicstudio-ui) and the [Charts](logicstudio-charts).
+The other blocks come with other packages: [Lists and matrices](logicstudio-collections), the [Constants](logicstudio-constants) (π, e, c, h, G…), [Quantities and units](logicstudio-units) (unit conversions), [Solid geometry](logicstudio-solid), [Trigonometry](logicstudio-trig), [Functions and derivatives](logicstudio-functions) (expressions like `3x^2 + sin(x)`, equations, derivatives), [Integrals](logicstudio-integrals) (differential equations too), the [Signals](logicstudio-signals) (FFT, filters, modulation…), [lilOS blocks](logicstudio-lilos) (notifications, files, events), [Network blocks](logicstudio-net), the [Standard UI components](logicstudio-ui) and the [Charts](logicstudio-charts).
 
 ## The blocks
 

@@ -8,7 +8,7 @@ I blocchi che servono in quasi ogni schema di Logic Studio: valori fissi e memor
 
 Il pacchetto si installa **da solo** insieme all'app **Logic Studio IDE**: l'AppStore lo porta con sé, insieme al motore, perché l'IDE ne ha bisogno. Se manca (per esempio perché è stato tolto), un amministratore lo installa dall'**AppStore**, scheda **Kernel**, cercando «logicstudio-core». Il pacchetto non chiede permessi: i suoi blocchi non toccano file, rete o notifiche.
 
-Gli altri blocchi arrivano con altri pacchetti: [Liste e matrici](logicstudio-collections), le [Costanti](logicstudio-constants) (π, e, c, h, G…), [Grandezze e unità](logicstudio-units) (conversioni tra unità di misura), i [Segnali](logicstudio-signals) (FFT, filtri, modulazione…), [Blocchi di lilOS](logicstudio-lilos) (notifiche, file, eventi), [Blocchi di rete](logicstudio-net), le [Componenti UI standard](logicstudio-ui) e i [Grafici](logicstudio-charts).
+Gli altri blocchi arrivano con altri pacchetti: [Liste e matrici](logicstudio-collections), le [Costanti](logicstudio-constants) (π, e, c, h, G…), [Grandezze e unità](logicstudio-units) (conversioni tra unità di misura), [Geometria solida](logicstudio-solid), [Trigonometria](logicstudio-trig), [Funzioni e derivate](logicstudio-functions) (espressioni come `3x^2 + sin(x)`, equazioni, derivate), [Integrali](logicstudio-integrals) (anche equazioni differenziali), i [Segnali](logicstudio-signals) (FFT, filtri, modulazione…), [Blocchi di lilOS](logicstudio-lilos) (notifiche, file, eventi), [Blocchi di rete](logicstudio-net), le [Componenti UI standard](logicstudio-ui) e i [Grafici](logicstudio-charts).
 
 ## I blocchi
 

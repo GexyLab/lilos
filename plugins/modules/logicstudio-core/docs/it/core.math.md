@@ -82,4 +82,8 @@ Questo blocco non ha errori suoi.
 - [Divisione (÷ %)](core.divide) per il resto di una divisione
 - [Somma (+)](core.add), [Moltiplicazione (×)](core.multiply)
 - [Angolo](unit.angle) per passare da gradi a radianti prima di seno e coseno (pacchetto [Grandezze e unità](logicstudio-units))
+- [Funzioni trigonometriche (Math.sin, Math.cos…)](trig.fn) per seno, coseno e tangente con l'angolo in gradi (pacchetto [Trigonometria](logicstudio-trig))
+- [Potenze e radici (Math.pow, Math.sqrt)](fn.power), [Esponenziali (Math.exp)](fn.exp) e [Logaritmi (Math.log)](fn.log) (pacchetto [Funzioni e derivate](logicstudio-functions))
+- [Funzioni trigonometriche (Math.sin, Math.cos…)](trig.fn) per seno, coseno e tangente con l'angolo in gradi (pacchetto [Trigonometria](logicstudio-trig))
+- [Potenze e radici (Math.pow, Math.sqrt)](fn.power), [Esponenziali (Math.exp)](fn.exp) e [Logaritmi (Math.log)](fn.log) (pacchetto [Funzioni e derivate](logicstudio-functions))
 - [Come funziona un blocco](ide/blocks)

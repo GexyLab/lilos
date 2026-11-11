@@ -73,6 +73,10 @@ The blocks and components you see in the IDE are those of the packages installed
 | [Lists and matrices](logicstudio-collections) | Blocks for lists and matrices |
 | [Constants](logicstudio-constants) | Mathematical, physical (CODATA 2022), astronomical and Earth constants |
 | [Quantities and units](logicstudio-units) | Conversions between units of measure, SI prefixes, reading and writing measures |
+| [Solid geometry](logicstudio-solid) | Volumes and areas of solids, regular polyhedra, mass from the material, points, vectors and planes in space |
+| [Trigonometry](logicstudio-trig) | Trigonometric, inverse and hyperbolic functions, angles, triangles, polar coordinates, waves |
+| [Functions and derivatives](logicstudio-functions) | Expressions like `3x^2 + sin(x)`, equations, polynomials, exponentials and logarithms, derivatives, limits, study of a function |
+| [Integrals](logicstudio-integrals) | Definite integrals and antiderivatives, areas, volumes of revolution, data and signals, differential equations |
 | [Signals](logicstudio-signals) | Signal theory: generators, FFT, spectra, IIR and FIR filters, correlation, measures, modulation |
 | [lilOS blocks](logicstudio-lilos) | Notifications, files of your home, events to lilOS |
 | [Network blocks](logicstudio-net) | The HTTP request (fetch) block |

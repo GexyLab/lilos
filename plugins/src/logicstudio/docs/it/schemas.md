@@ -14,7 +14,7 @@ Uno **schema** (file `.lsch`) è un foglio di blocchi collegati. Si apre con un 
 └────────────────────────────┘
 ```
 
-- La **testa** ha l'icona e il nome: l'**etichetta** che gli hai dato, altrimenti il nome del blocco. La riga colorata a sinistra è la **categoria** (Valori, Logica, Matematica, Testo, Oggetti, Liste, Matrici, Unità di misura, Segnali, Tempo, Console, Porte di schema, Componenti UI, lilOS, Rete, Eccezioni).
+- La **testa** ha l'icona e il nome: l'**etichetta** che gli hai dato, altrimenti il nome del blocco. La riga colorata a sinistra è la **categoria** (Valori, Logica, Matematica, Testo, Oggetti, Liste, Matrici, Unità di misura, Geometria solida, Trigonometria, Funzioni, Integrali, Segnali, Tempo, Console, Porte di schema, Componenti UI, lilOS, Rete, Eccezioni).
 - Sotto la testa, in piccolo, le prime due impostazioni che hanno un valore (al massimo 34 caratteri).
 - A sinistra gli **ingressi**, a destra le **uscite**. Il pallino ha il colore del **tipo** della porta ed è pieno quando la porta è collegata (vedi [Collegamenti e tipi delle porte](ide/links)).
 - Il nome di un ingresso **sottolineato a puntini** vuol dire che quell'ingresso **non avvia** il blocco.

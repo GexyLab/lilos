@@ -110,6 +110,11 @@ const GLYPHS = {
   free: '<path d="M4 8V4h4M16 4h4v4M20 16v4h-4M8 20H4v-4"/><rect x="9" y="9" width="6" height="6"/>',
   toggle: '<rect x="3" y="7" width="18" height="10" rx="5"/><circle cx="16" cy="12" r="3"/>',
   eye: '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+  cube: '<path d="M12 3 4 7.5v9L12 21l8-4.5v-9z"/><path d="M4 7.5 12 12l8-4.5M12 12v9"/>',
+  sphere: '<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12c0 1.9 3.8 3.4 8.5 3.4s8.5-1.5 8.5-3.4"/><path d="M12 3.5c-2.4 2.2-2.4 14.8 0 17"/>',
+  triangle: '<path d="M4 20h16L4 4z"/><path d="M4 16h4v4"/>',
+  function: '<path d="M13.5 4H12a2.5 2.5 0 0 0-2.5 2.5v11A2.5 2.5 0 0 1 7 20H5.5M6.5 10h6"/><path d="m14.5 11 5 7M19.5 11l-5 7"/>',
+  integral: '<path d="M16 5.5A2.5 2.5 0 0 0 13.5 3C11.8 3 11 4.3 11 6v12c0 1.7-.8 3-2.5 3A2.5 2.5 0 0 1 6 18.5"/>',
 };
 
 export function icon(name, className = 'ico') {

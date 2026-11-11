@@ -73,6 +73,10 @@ I blocchi e le componenti che vedi nell'IDE sono quelli dei pacchetti installati
 | [Liste e matrici](logicstudio-collections) | Blocchi per liste e matrici |
 | [Costanti](logicstudio-constants) | Costanti matematiche, fisiche (CODATA 2022), astronomiche e della Terra |
 | [Grandezze e unità](logicstudio-units) | Conversioni tra unità di misura, prefissi SI, leggere e scrivere misure |
+| [Geometria solida](logicstudio-solid) | Volumi e aree dei solidi, poliedri regolari, massa dal materiale, punti, vettori e piani nello spazio |
+| [Trigonometria](logicstudio-trig) | Funzioni trigonometriche, inverse e iperboliche, angoli, triangoli, coordinate polari, onde |
+| [Funzioni e derivate](logicstudio-functions) | Espressioni come `3x^2 + sin(x)`, equazioni, polinomi, esponenziali e logaritmi, derivate, limiti, studio di funzione |
+| [Integrali](logicstudio-integrals) | Integrali definiti e primitive, aree, volumi di rotazione, dati e segnali, equazioni differenziali |
 | [Segnali](logicstudio-signals) | Teoria dei segnali: generatori, FFT, spettri, filtri IIR e FIR, correlazione, misure, modulazione |
 | [Blocchi di lilOS](logicstudio-lilos) | Notifiche, file della tua home, eventi a lilOS |
 | [Blocchi di rete](logicstudio-net) | Il blocco HTTP (fetch) |

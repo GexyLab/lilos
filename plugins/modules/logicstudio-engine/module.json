@@ -1,6 +1,6 @@
 {
   "name": "logicstudio-engine",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "Logic Studio Engine: fa girare gli schemi e i progetti di Logic Studio (blocchi logici) per ogni utente, con quote e limiti",
   "icon": {
     "glyph": "chip",

@@ -2463,3 +2463,40 @@ Conseguenze: se tutte le schede si chiudono non parte niente; un'automazione con
 - Un messaggio per campione: troppo lento per qualsiasi segnale non lentissimo.
 - Il limite fisso nel pacchetto: un amministratore non potrebbe concedere segnali più lunghi.
 - Microfono e altoparlante del browser: rimandati, servono componenti UI nuovi perché il motore gira nel kernel.
+
+## D93. Logic Studio: i pacchetti di matematica e le espressioni come testo
+
+> Completa [D88](#d88-logic-studio-motore-pacchetti-ide-finestre-dei-progetti) e [D90](#d90-logic-studio-la-documentazione-viaggia-con-i-pacchetti): quattro pacchetti nuovi, nessuna modifica al motore né al formato degli schemi.
+
+**Contesto.** L'utente ha chiesto (11 novembre 2026) un pacchetto di blocchi per la geometria solida, uno per la trigonometria, uno per le funzioni algebriche, esponenziali e logaritmiche e il calcolo differenziale, uno per gli integrali. Derivate e integrali hanno bisogno di una funzione f(x) che viaggi tra i blocchi; i blocchi di base hanno solo `core.math` (poche funzioni in radianti).
+
+**Decisione.** Decisa l'11 novembre 2026, con le scelte che avevo proposto e che l'utente ha accettato con «vai»: lilOS 1.47.0, SDK 0.32.0, Logic Studio IDE 1.12.0; moduli `logicstudio-solid`, `logicstudio-trig`, `logicstudio-functions`, `logicstudio-integrals` 1.0.0.
+
+- **Quattro moduli del kernel**, uno per argomento, ognuno con la sua categoria della palette (`geometry`, `trig`, `functions`, `integrals`), il suo colore in `logic.css` e il suo simbolo (`cube`, `triangle`, `function`, `integral`; anche `sphere`).
+- **Una funzione è un testo** (`3x^2 + 2sin(x)`), non un tipo di porta nuovo: passa su porte `text`. Ogni blocco la prende dall'ingresso `f` o, se non è collegato, dall'impostazione `expr`. I nomi diversi dalla variabile sono parametri: prendono un valore nel blocco `fn.define` (porte aggiunte), altrimenti il blocco dà «Parametro senza valore».
+- **Un parser nostro** (`modules/_shared/mathexpr.js`, copiato in `lib/shared/` dei due moduli che lo usano): niente `eval`, niente librerie. Fa l'analisi (con la moltiplicazione implicita), la valutazione compilata, le derivate simboliche con una semplificazione, le primitive per una tabella di forme (per parti e per sostituzione comprese), l'integrazione numerica (Gauss-Kronrod adattivo, Simpson adattivo, Romberg, trapezi, rettangoli, estremi infiniti), le radici (Brent, Newton, Aberth-Ehrlich per i polinomi), i limiti numerici (estrapolazione di Richardson) e le equazioni differenziali (Dormand-Prince, RK4, Eulero).
+- **Ogni primitiva è controllata**: la si deriva e la si confronta con f in più punti; se non torna, o se la forma non è nella tabella, il blocco dà un'eccezione invece di un risultato sbagliato. Allo stesso modo una radice trovata su un polo e una derivata in un punto angoloso danno un'eccezione.
+- **Angoli in gradi di serie** nei blocchi di trigonometria e di geometria (impostazione `unit`: gradi, radianti, gradi centesimali, giri), con gli angoli retti esatti; dentro le espressioni gli angoli sono radianti, come in analisi.
+- **Limiti di calcolo per blocco**: 100000 valutazioni per un integrale, 2000000 per i doppi e tripli, 1000000 per un'equazione differenziale, 10000 elementi per le liste; oltre, un'eccezione chiara. Il motore ha già il suo limite di tempo per blocco.
+- **Radici complesse** come oggetti `{ re, im }`; i punti e i vettori come liste `[x, y, z]`, come le liste di `logicstudio-collections`.
+
+**Perché.**
+
+- *Il testo invece di un tipo `funzione`.* Un tipo nuovo avrebbe cambiato SDK, IDE (colori, compatibilità tra porte) e i pacchetti di lingua, e un'espressione si scrive e si mostra comunque come testo. Con il testo una funzione si costruisce anche con i blocchi di testo e si scrive in un file.
+- *Un parser nostro.* Le espressioni arrivano dagli schemi, anche da file e dalla rete: `eval` o `Function` eseguirebbero codice. Una libreria come math.js avrebbe aggiunto dimensione, una dipendenza da seguire e un riconoscimento, per una parte piccola di quello che fa.
+- *Primitive controllate.* Un sistema di calcolo simbolico completo è fuori misura; una tabella onesta più il controllo per derivazione non dà mai un risultato sbagliato.
+- *Gradi di serie.* Chi usa i blocchi di trigonometria e di geometria pensa in gradi; le espressioni seguono la convenzione dell'analisi, perché derivate e integrali di sin e cos valgono solo in radianti.
+
+**Alternative scartate.**
+
+- Un solo pacchetto «matematica»: troppi blocchi in una categoria e un'installazione unica per chi vuole solo la trigonometria.
+- Funzioni come catene di blocchi (un blocco per ogni operazione) da derivare e integrare: illeggibile per espressioni normali.
+- Primitive solo numeriche: la richiesta era il calcolo di integrali anche in forma chiusa.
+
+**Conseguenze.**
+
+- Le categorie e i simboli nuovi chiedono lilOS 1.47.0 (SDK 0.32.0): su un lilOS più vecchio i blocchi funzionano ma la loro striscia ha il colore di «Altro» e l'icona manca.
+- I due moduli che usano le espressioni hanno ognuno una copia di `mathexpr.js` e `mathblocks.js` (lo script `npm run sync:modules` le tiene allineate, la build le controlla).
+- I test sono fuori dal repository, come per D88: un banco con oltre 1100 controlli dei blocchi, programmi veri nel runtime del motore e un fuzz delle espressioni (stampa e rilettura, derivate simboliche contro numeriche).
+
+**Quando ripensarla.** Se servirà un tipo di porta per le funzioni (per esempio per disegnarle in un grafico senza campionarle); se la tabella delle primitive non basterà e servirà un vero sistema di calcolo simbolico; se serviranno numeri complessi in tutti i blocchi e non solo nelle radici.

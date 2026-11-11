@@ -82,4 +82,8 @@ This block has no errors of its own.
 - [Divide (÷ %)](core.divide) for the remainder of a division
 - [Add (+)](core.add), [Multiply (×)](core.multiply)
 - [Angle](unit.angle) to go from degrees to radians before sine and cosine (package [Quantities and units](logicstudio-units))
+- [Trigonometric functions (Math.sin, Math.cos…)](trig.fn) for sine, cosine and tangent with the angle in degrees (package [Trigonometry](logicstudio-trig))
+- [Powers and roots (Math.pow, Math.sqrt)](fn.power), [Exponentials (Math.exp)](fn.exp) and [Logarithms (Math.log)](fn.log) (package [Functions and derivatives](logicstudio-functions))
+- [Trigonometric functions (Math.sin, Math.cos…)](trig.fn) for sine, cosine and tangent with the angle in degrees (package [Trigonometry](logicstudio-trig))
+- [Powers and roots (Math.pow, Math.sqrt)](fn.power), [Exponentials (Math.exp)](fn.exp) and [Logarithms (Math.log)](fn.log) (package [Functions and derivatives](logicstudio-functions))
 - [How a block works](ide/blocks)
