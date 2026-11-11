@@ -168,6 +168,13 @@ Gli altri limiti che valgono mentre il programma gira:
 
 Vedi [Limiti](logicstudio-engine/limits).
 
+## Password e testi lunghi
+
+Alcune impostazioni nelle **Proprietà** sono campi speciali:
+
+- **Password** (per esempio quella di un blocco database): quello che scrivi non si vede e non torna indietro. Il motore lo **cifra** per te su questo lilOS e lo schema tiene solo il testo cifrato; sotto il campo c'è scritto «Salvata, cifrata: scrivi per cambiarla» o «Non impostata», e **Cancella** la toglie. Uno schema copiato da un altro utente, o aperto su un altro lilOS, non può usarla: il blocco manda all'uscita Exception «Password non leggibile: va inserita di nuovo nelle Proprietà del blocco» e basta riscriverla.
+- **Testi su più righe** (per esempio una query SQL): un riquadro a caratteri fissi che si allarga trascinando l'angolo. Il testo vale quando esci dal campo.
+
 ## Blocchi speciali
 
 - **Parametro**: non lavora; manda dalla sua uscita **valore** quello che arriva alla sua porta dagli altri schemi.

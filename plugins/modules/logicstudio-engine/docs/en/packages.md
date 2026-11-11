@@ -119,7 +119,7 @@ When all goes well the log says: `Logic Studio: pacchetto logicstudio-esempio 1.
 |---|---|
 | `type` | `package.name`: `[a-z][a-z0-9]*\.[a-zA-Z][a-zA-Z0-9]{0,40}`, for example `esempio.media`. Unique among all packages |
 | `version` | An integer from 1. Raise it when you change the behaviour or the settings (see **upgrade**) |
-| `category` | Where it is in the **Blocks** tab: `value` (Values), `logic` (Logic), `math` (Math), `text` (Text), `object` (Objects), `list` (Lists), `matrix` (Matrices), `units` (Units), `geometry` (Solid geometry), `trig` (Trigonometry), `functions` (Functions), `integrals` (Integrals), `signal` (Signals), `time` (Time), `console` (Console), `schema` (Schema ports), `ui` (UI components), `lilos` (lilOS), `net` (Network), `exception` (Exceptions). Another word, or nothing: **Other** |
+| `category` | Where it is in the **Blocks** tab: `value` (Values), `logic` (Logic), `math` (Math), `text` (Text), `object` (Objects), `list` (Lists), `matrix` (Matrices), `units` (Units), `geometry` (Solid geometry), `trig` (Trigonometry), `functions` (Functions), `integrals` (Integrals), `signal` (Signals), `time` (Time), `console` (Console), `schema` (Schema ports), `ui` (UI components), `lilos` (lilOS), `net` (Network), `db` (Databases), `exception` (Exceptions). Another word, or nothing: **Other** |
 | `icon` | The name of a lilOS icon (`calculator`, `bell`, `globe`, `clock`, `lamp`…). Default `blocks` |
 | `label` | The name of the block: `{ en, it }` |
 | `description` | Optional: a sentence `{ en, it }` |
@@ -173,6 +173,8 @@ The user can give every input a **start value**, which the engine sends at start
 | `checkbox` | A checkbox | `true` / `false` |
 | `console` | The choice of a console of the project | The id of the console (`'main'` by default) |
 | `json` | A field for a JSON value | The value (or the text, if it is not valid JSON) |
+| `code` | A text on several lines, in a fixed-width font (an SQL query, a filter…; at most `maxLength`, 20000 by default) | Text |
+| `secret` | A password: what is typed is never shown nor given back; the engine **encrypts** it for the user on this lilOS (engine 1.7.0) | The encrypted text `ls1:…` (or `''`): open it in the action with `tools.secret(text)`, never in the worker |
 
 - `default` is the starting value: `b.config` always has the defaults, covered by what the user chose.
 - `min`, `max` and `step` hold only for the field of the IDE: the engine does **not** check them. Check the values yourself in `run`.
@@ -314,6 +316,7 @@ actions: {
 | `tools.signal` | An `AbortSignal` that fires when the program stops: pass it to a long request |
 | `tools.countNet()` | Counts a network request in the quota of the user; throws «Troppe richieste di rete: hai finito la quota di questo minuto» ("Too many network requests: you have used up the quota of this minute") if it is used up. Call it **before every** request (redirects too) |
 | `tools.emit(event, data)` | Sends an event to the lilOS pages of the user |
+| `tools.secret(text)` | (engine 1.7.0) Opens a `secret` setting of the block (`ls1:…`) for the program's owner: a promise of the plain text. Throws «Password non leggibile: va inserita di nuovo nelle Proprietà del blocco (…)» (the password cannot be read: type it again) when another user or another lilOS encrypted it. Never put the plain text in an error or a log |
 
 Rules:
 

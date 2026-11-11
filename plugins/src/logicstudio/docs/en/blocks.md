@@ -168,6 +168,13 @@ The other limits that hold while the program runs:
 
 See [Limits](logicstudio-engine/limits).
 
+## Passwords and long texts
+
+Some settings in **Properties** are special fields:
+
+- **Password** (for example a database block's): what you type is never shown nor given back. The engine **encrypts** it for you on this lilOS and the schema keeps only the encrypted text; under the field you read «Saved, encrypted: type to change it» or «Not set», and **Clear** removes it. A schema copied from another user, or opened on another lilOS, cannot use it: the block sends «Password non leggibile: va inserita di nuovo nelle Proprietà del blocco» (the password cannot be read: type it again in the block's Properties) to its Exception output, and typing it again is enough.
+- **Texts on several lines** (for example an SQL query): a box in a fixed-width font that grows by dragging its corner. The text counts when you leave the field.
+
 ## Special blocks
 
 - **Parameter**: it does not work; it sends from its **value** output what arrives at its port from the other schemas.

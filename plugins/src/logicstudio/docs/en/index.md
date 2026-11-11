@@ -82,6 +82,11 @@ Blocks and components come from **packages**, kernel modules that you install fr
 | [Signals](logicstudio-signals) (`logicstudio-signals`) | Signal theory: generators (sine, square, noise, chirp…), FFT and IFFT, power spectral density, spectrogram, IIR, FIR and biquad filters with their frequency response, convolution and correlation, measures (RMS, THD, SNR), AM, FM and PM modulation. |
 | [lilOS blocks](logicstudio-lilos) (`logicstudio-lilos`) | Notifications, reading and writing the files of your home, listing folders, events towards lilOS pages. |
 | [Network](logicstudio-net) (`logicstudio-net`) | **HTTP request** over HTTP and HTTPS. |
+| [Databases (SQL)](logicstudio-db) (`logicstudio-db`) | PostgreSQL, MySQL and MariaDB, SQL Server, SQLite, Oracle, ClickHouse: queries with parameters, tables without SQL, transactions, cursors. |
+| [MongoDB](logicstudio-mongodb) (`logicstudio-mongodb`) | Find, insert, update, delete, aggregate and watch MongoDB documents. |
+| [Redis](logicstudio-redis) (`logicstudio-redis`) | Redis keys, counters, hashes, lists and channels. |
+| [InfluxDB](logicstudio-influxdb) (`logicstudio-influxdb`) | Write points and query time series (Flux, InfluxQL, SQL). |
+| [Elasticsearch](logicstudio-elasticsearch) (`logicstudio-elasticsearch`) | Index, read and search documents in Elasticsearch and OpenSearch. |
 | [UI components](logicstudio-ui) (`logicstudio-ui`) | The components of the windows: labels, values, gauges, buttons, fields, tables, containers. |
 | [Charts](logicstudio-charts) (`logicstudio-charts`) | 12 charts for the windows: lines, areas, columns, bars, pie, real time… |
 | [Logic Studio Engine](logicstudio-engine) (`logicstudio-engine`) | The engine: it runs tests and active programs, with [limits](logicstudio-engine/limits) and [permissions](logicstudio-engine/permissions). Installs with the IDE. |

@@ -1,0 +1,47 @@
+{
+  "name": "logicstudio-elasticsearch",
+  "version": "1.0.0",
+  "description": "Logic Studio: i blocchi Elasticsearch e OpenSearch: indicizzare, leggere, cercare, aggiornare, cancellare e contare documenti, con i server della rete locale bloccati se l'amministratore non li permette",
+  "icon": {
+    "glyph": "database",
+    "color": "#00a9a5"
+  },
+  "kernel": "1",
+  "provides": [
+    "logicblock.es"
+  ],
+  "requires": [
+    "logicstudio"
+  ],
+  "dependencies": [
+    {
+      "module": "logicstudio-engine",
+      "version": ">=1.7.0",
+      "reason": "Il motore che fa girare i blocchi (con le password dei blocchi custodite nel kernel)"
+    },
+    {
+      "module": "logicstudio-core",
+      "reason": "I blocchi di base, che servono insieme a questi (Ogni…, valori, testo)"
+    }
+  ],
+  "defaultConfig": {
+    "allowPrivate": false,
+    "timeoutSeconds": 30,
+    "maxRows": 10000,
+    "maxResultKb": 4096,
+    "maxConnections": 10,
+    "perMinute": 600,
+    "allowElasticsearch": true,
+    "allowOpensearch": true
+  },
+  "settings": [
+    { "key": "allowPrivate", "type": "checkbox", "default": false, "label": { "en": "Allow the databases on this computer and on the local network", "it": "Permetti i database su questo computer e sulla rete locale" } },
+    { "key": "timeoutSeconds", "type": "number", "min": 1, "max": 600, "default": 30, "label": { "en": "Time limit of an operation (seconds)", "it": "Tempo massimo di un'operazione (secondi)" } },
+    { "key": "maxRows", "type": "number", "min": 1, "max": 1000000, "default": 10000, "label": { "en": "Documents of a result (and of a bulk), at most", "it": "Documenti di un risultato (e di un blocco di documenti), al massimo" } },
+    { "key": "maxResultKb", "type": "number", "min": 16, "max": 65536, "default": 4096, "label": { "en": "Size of a result, at most (KB)", "it": "Dimensione massima di un risultato (KB)" } },
+    { "key": "maxConnections", "type": "number", "min": 1, "max": 100, "default": 10, "label": { "en": "Open connections per user, at most", "it": "Connessioni aperte per utente, al massimo" } },
+    { "key": "perMinute", "type": "number", "min": 1, "max": 100000, "default": 600, "label": { "en": "Operations per minute per user, at most", "it": "Operazioni al minuto per utente, al massimo" } },
+    { "key": "allowElasticsearch", "type": "checkbox", "default": true, "label": { "en": "Allow Elasticsearch", "it": "Permetti Elasticsearch" } },
+    { "key": "allowOpensearch", "type": "checkbox", "default": true, "label": { "en": "Allow OpenSearch", "it": "Permetti OpenSearch" } }
+  ]
+}

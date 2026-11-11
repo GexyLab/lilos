@@ -1,4 +1,4 @@
-import { h, icon, textField, selectField, checkbox, actionButton, messageBox, portsOf, PORT_TYPES } from '@lilos/sdk';
+import { h, icon, textField, selectField, checkbox, actionButton, messageBox, portsOf, PORT_TYPES, logic } from '@lilos/sdk';
 import { docButton, blockDocAddress } from './docs.js';
 import { textareaField, colorField } from './fields.js';
 import { t, i18n } from './i18n.js';
@@ -311,11 +311,32 @@ export class Inspector {
       case 'select': return selectField({ value, options: (c.options ?? []).map(o => (typeof o === 'object' ? { value: o.value, label: studio.label(o) } : { value: o, label: optionLabel(c.key, o) })), onChange: set });
       case 'number': return textField({ type: 'number', value: value ?? '', min: c.min, max: c.max, step: c.step ?? 'any', onChange: v => set(v === '' ? null : Number(v)) });
       case 'console': return selectField({ value: value ?? 'main', options: this.#consoles().map(x => ({ value: x.id, label: x.name })), onChange: set });
+      case 'secret': return this.#secretControl(value, set);
+      // a long text on several lines in a fixed-width font (an SQL query, a filter…)
+      case 'code': return textareaField({ value: value ?? '', onChange: set, rows: 6, maxLength: c.maxLength ?? 20000, mono: true, className: 'ls-code', label: studio.label(c) });
       case 'json': return textField({ value: value === undefined ? '' : JSON.stringify(value), mono: true, onChange: v => { try { set(JSON.parse(v)); } catch { set(v); } } });
       case 'textarea': return textareaField({ value: value ?? '', onChange: set });
       case 'color': return colorField({ value: value ?? '', onChange: set });
       default: return textField({ value: value ?? '', maxLength: 2000, onChange: set });
     }
+  }
+
+  /**
+   * A secret setting (type 'secret', a password): never shown; what is typed is sealed by the
+   * engine for this user (logic.seal) and only the sealed text goes in the schema.
+   */
+  #secretControl(value, set) {
+    const saved = typeof value === 'string' && value !== '';
+    const status = h('div', { class: 'ls-secret-status' }, saved ? t('inspector.secretSaved') : t('inspector.secretEmpty'));
+    const field = textField({
+      type: 'password', value: '', placeholder: saved ? '••••••••' : '',
+      onChange: async v => {
+        if (v === '') return;
+        try { set(await logic.seal(v)); } catch (err) { status.textContent = t('inspector.secretFailed', { message: err?.message ?? String(err) }); }
+      },
+    });
+    const clear = saved ? actionButton({ label: t('inspector.secretClear'), onClick: () => set('') }) : null;
+    return h('div', { class: 'ls-secret' }, field, status, clear);
   }
 
   /** The consoles of the project (or of the schema alone). */

@@ -243,8 +243,9 @@ class LogicHost {
   async #consent(manifest, documents, path) {
     const types = new Set(Object.values(documents.schemas).flatMap(s => (s.blocks ?? []).map(b => String(b.type))));
     const caps = [];
-    if ([...types].some(t => /^lilos\.(file|folder|exists)/.test(t))) caps.push('capFiles');
-    if ([...types].some(t => t.startsWith('net.'))) caps.push('capNet');
+    // the database blocks reach servers (as a request does) and SQLite reads and writes a file of the home
+    if ([...types].some(t => /^lilos\.(file|folder|exists)/.test(t)) || types.has('db.sqlite')) caps.push('capFiles');
+    if ([...types].some(t => /^(net|mongo|redis|influx|es)\.|^db\.(postgres|mysql|mssql|oracle|clickhouse)$/.test(t))) caps.push('capNet');
     if (types.has('lilos.notify')) caps.push('capNotify');
     if (types.has('lilos.event')) caps.push('capEvents');
     if (!caps.length) return true;

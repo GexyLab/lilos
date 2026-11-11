@@ -12,6 +12,7 @@ Il motore non porta blocchi: i blocchi e le Componenti UI arrivano dai **pacchet
 - Tiene le **console** dei programmi: le righe scritte dai blocchi e le domande dei blocchi [Input (readline)](core.consoleRead).
 - Tiene gli ultimi valori mandati alle **finestre** dei progetti, così una finestra riaperta non è vuota.
 - Controlla le **quote** di ogni utente e i **limiti** per tutti.
+- **Cifra le password** che scrivi nelle Proprietà di un blocco (per esempio quella di un database): lo schema tiene solo il testo cifrato, legato a te e a questo lilOS, e solo il kernel lo apre quando il blocco si connette. Su un altro lilOS, o in uno schema copiato da un altro utente, la password va scritta di nuovo.
 - Fa nel kernel, **come te**, le cose che i blocchi chiedono e che toccano i tuoi dati o il mondo fuori: leggere un file, mandare una notifica, fare una richiesta web.
 - Serve all'IDE il catalogo dei blocchi e delle componenti installati e la documentazione dei pacchetti (queste pagine).
 
@@ -81,6 +82,11 @@ I blocchi e le componenti che vedi nell'IDE sono quelli dei pacchetti installati
 | [Segnali](logicstudio-signals) | Teoria dei segnali: generatori, FFT, spettri, filtri IIR e FIR, correlazione, misure, modulazione |
 | [Blocchi di lilOS](logicstudio-lilos) | Notifiche, file della tua home, eventi a lilOS |
 | [Blocchi di rete](logicstudio-net) | Il blocco HTTP (fetch) |
+| [Blocchi database (SQL)](logicstudio-db) | PostgreSQL, MySQL e MariaDB, SQL Server, SQLite, Oracle, ClickHouse |
+| [Blocchi MongoDB](logicstudio-mongodb) | Documenti di MongoDB: trova, inserisci, aggiorna, aggrega, osserva |
+| [Blocchi Redis](logicstudio-redis) | Chiavi, hash, liste e canali di Redis |
+| [Blocchi InfluxDB](logicstudio-influxdb) | Serie temporali di InfluxDB: scrivi punti, query Flux, InfluxQL e SQL |
+| [Blocchi Elasticsearch](logicstudio-elasticsearch) | Documenti e ricerche di Elasticsearch e OpenSearch |
 | [Componenti UI standard](logicstudio-ui) | Etichette, pulsanti, campi, contenitori… per le finestre |
 | [Grafici](logicstudio-charts) | I grafici come Componenti UI |
 

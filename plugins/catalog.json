@@ -52,7 +52,12 @@
     "modules/logicstudio-ui",
     "modules/logicstudio-charts",
     "modules/logicstudio-lilos",
-    "modules/logicstudio-net"
+    "modules/logicstudio-net",
+    "modules/logicstudio-db",
+    "modules/logicstudio-mongodb",
+    "modules/logicstudio-redis",
+    "modules/logicstudio-influxdb",
+    "modules/logicstudio-elasticsearch"
   ],
   "system": "system/lilos",
   "languages": [

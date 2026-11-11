@@ -1,0 +1,47 @@
+{
+  "name": "logicstudio-redis",
+  "version": "1.0.0",
+  "description": "Logic Studio: i blocchi Redis (connessione, leggi, scrivi, elimina, incrementa, scadenza, hash, liste, pubblica e iscriviti, cerca chiavi, comando), con i server della rete locale bloccati se l'amministratore non li permette",
+  "icon": {
+    "glyph": "database",
+    "color": "#d82c20"
+  },
+  "kernel": "1",
+  "provides": [
+    "logicblock.redis"
+  ],
+  "requires": [
+    "logicstudio"
+  ],
+  "dependencies": [
+    {
+      "module": "logicstudio-engine",
+      "version": ">=1.7.0",
+      "reason": "Il motore che fa girare i blocchi e conserva cifrate le password dei blocchi di connessione"
+    },
+    {
+      "module": "logicstudio-core",
+      "reason": "I blocchi di base, che servono insieme a questi (Ogni…, valori, testo, oggetti)"
+    }
+  ],
+  "defaultConfig": {
+    "allowPrivate": false,
+    "timeoutSeconds": 30,
+    "maxRows": 10000,
+    "maxResultKb": 4096,
+    "maxConnections": 10,
+    "perMinute": 600,
+    "allowRedis": true,
+    "allowCommand": true
+  },
+  "settings": [
+    { "key": "allowPrivate", "type": "checkbox", "default": false, "label": { "en": "Allow the databases on this computer and on the local network", "it": "Permetti i database su questo computer e sulla rete locale" } },
+    { "key": "timeoutSeconds", "type": "number", "min": 1, "max": 600, "default": 30, "label": { "en": "Time limit of an operation (seconds)", "it": "Tempo massimo di un'operazione (secondi)" } },
+    { "key": "maxRows", "type": "number", "min": 1, "max": 1000000, "default": 10000, "label": { "en": "Values in a result, at most (keys, list items, hash fields)", "it": "Valori in un risultato, al massimo (chiavi, elementi di una lista, campi di un hash)" } },
+    { "key": "maxResultKb", "type": "number", "min": 16, "max": 65536, "default": 4096, "label": { "en": "Size of a result, at most (KB)", "it": "Dimensione massima di un risultato (KB)" } },
+    { "key": "maxConnections", "type": "number", "min": 1, "max": 100, "default": 10, "label": { "en": "Connections open per user, at most (each subscription counts as one)", "it": "Connessioni aperte per utente, al massimo (ogni iscrizione conta come una)" } },
+    { "key": "perMinute", "type": "number", "min": 1, "max": 100000, "default": 600, "label": { "en": "Operations per minute per user, at most", "it": "Operazioni al minuto per utente, al massimo" } },
+    { "key": "allowRedis", "type": "checkbox", "default": true, "label": { "en": "Allow the Redis databases", "it": "Permetti i database Redis" } },
+    { "key": "allowCommand", "type": "checkbox", "default": true, "label": { "en": "Allow the «Command» block (any command except the administration ones)", "it": "Permetti il blocco «Comando» (qualsiasi comando tranne quelli di amministrazione)" } }
+  ]
+}

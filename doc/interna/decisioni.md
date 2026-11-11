@@ -2574,3 +2574,41 @@ Conseguenze: se tutte le schede si chiudono non parte niente; un'automazione con
 - Provato su un kernel di prova: `lilos logic run prove/ciao.lsch --name Eugenio --code=7` stampa «Eugenio» ed esce con 7; una domanda di console ha avuto risposta dallo stdin (42); l'affitto ha fermato dopo circa 60 secondi un lancio abbandonato.
 
 **Quando ripensarla.** Se serviranno `logic` nell'app Terminale, le azioni di Automata per avviare e fermare i progetti, flussi (stdin/stdout continui) tra il terminale e il programma, o argomenti più grandi dei limiti.
+
+## D96. Logic Studio: i database, le password cifrate dal motore e i database di lilOS sempre esclusi
+
+> Completa [D88](#d88-logic-studio-motore-pacchetti-ide-finestre-dei-progetti) e [D90](#d90-logic-studio-la-documentazione-viaggia-con-i-pacchetti): stessi pacchetti, stessa regola «le azioni girano nel kernel»; cambia il modo di tenere i segreti degli schemi.
+
+**Contesto.** L'utente ha chiesto (11 novembre 2026) blocchi per usare i database dai programmi di Logic Studio: PostgreSQL, MySQL e MariaDB, SQL Server, SQLite, Oracle, ClickHouse, e poi MongoDB, Redis, InfluxDB ed Elasticsearch. Un blocco di database ha bisogno di una password, e lo schema è un file che l'utente salva, copia e condivide: scriverla in chiaro lì dentro non va. Inoltre lilOS usa a sua volta dei database (per esempio PostgreSQL per i file), e un programma non deve poterli leggere o rovinare.
+
+**Decisione.** Decisa l'11 novembre 2026: lilOS 1.50.0, SDK 0.35.0, Logic Studio IDE 1.15.0 (chiede lilOS `>=1.50.0` e motore `>=1.7.0`), motore `logicstudio-engine` 1.7.0, `logicstudio-net` 1.2.2 e cinque moduli nuovi alla 1.0.0: `logicstudio-db`, `logicstudio-mongodb`, `logicstudio-redis`, `logicstudio-influxdb`, `logicstudio-elasticsearch`.
+
+- **La password è un'impostazione di tipo `secret`.** L'IDE non la mostra mai: quello che l'utente scrive va al motore (`logic.seal`, `POST /seal`), che lo cifra con AES-256-GCM e dà un testo `ls1:…`; solo questo finisce nello schema. La chiave è `secret.key` nella cartella dei dati del motore (creata al primo uso, leggibile solo da chi avvia il kernel) e l'id dell'utente è un dato aggiuntivo dell'autenticazione: un testo cifrato si apre **solo per lo stesso utente, sullo stesso lilOS**. L'azione del pacchetto lo apre nel kernel con `tools.secret`; il worker non vede mai il segreto.
+- **I driver girano nel thread principale del kernel, come azioni** del pacchetto (come `net.request` e i blocchi di `logicstudio-lilos`). Un blocco di connessione dà al programma una **maniglia** che vale solo per quel programma; le connessioni di un programma si chiudono quando si ferma. Limiti per utente (connessioni aperte, operazioni al minuto) e per risultato (righe, KB, tempo) sono impostazioni del modulo.
+- **I database di lilOS sono sempre rifiutati.** Gli URL di database del `config.json` del kernel (server e porta, anche sotto altri nomi o per indirizzo, e «questo computer» se il server è locale) non si raggiungono, nemmeno con `allowPrivate`. Gli altri indirizzi seguono le regole di `logicstudio-net`, ora in `_shared/ipguard.js` e usate da tutti: la rete locale solo se l'amministratore la permette, ogni indirizzo di un nome controllato e la connessione fatta sull'indirizzo controllato.
+- **Un pacchetto per famiglia di database**, non uno solo: SQL (sei motori, che condividono query con parametri `:nome`, tabelle senza SQL, transazioni, cursori), MongoDB, Redis, InfluxDB, Elasticsearch/OpenSearch. Ogni pacchetto ha le sue librerie, le sue impostazioni e un interruttore per ogni tipo di database. Le etichette dei blocchi hanno un prefisso di famiglia («SQL · », «MongoDB · », «Redis · », «InfluxDB · », «Elasticsearch · ») e la categoria `db` («Database») ha un suo colore e un suo simbolo.
+- **Il consenso di «Crea app» conta i blocchi dei database**: le connessioni di rete come «fare richieste su internet», `db.sqlite` come «leggere e cambiare i tuoi file». Nessun testo nuovo.
+
+**Perché.**
+
+- *Cifrare nel motore.* L'IDE è codice nel browser: una chiave lì non proteggerebbe niente. Il motore è nel kernel, già conosce l'utente e apre i segreti solo per le azioni, quindi la password non passa mai per il worker dei blocchi.
+- *Legata a utente e lilOS.* Uno schema copiato o condiviso non porta con sé una password che qualcun altro potrebbe usare; il prezzo è doverla riscrivere.
+- *Azioni nel kernel e non driver nel worker.* Il worker ha tutte le API di Node ma non deve toccare reti e segreti per conto suo (D88); le guardie sugli indirizzi, le quote e la chiusura delle connessioni stanno in un posto solo.
+- *Un pacchetto per famiglia.* Chi non usa Redis non carica `ioredis`, e un amministratore può installare o togliere una famiglia sola.
+- *Rifiutare i database di lilOS.* Un programma attivo gira anche a lilOS chiuso e con i permessi dell'utente: raggiungere il database del sistema salterebbe i controlli di accesso del modulo del file system.
+
+**Alternative scartate.**
+
+- La password in chiaro nello schema, o cifrata con una chiave dell'utente: la prima la regala a chi riceve il file, la seconda chiede all'utente di tenerne una.
+- Le password nel Pannello di controllo, come impostazioni del modulo: non sono per utente e non seguono lo schema.
+- Un solo pacchetto con tutti i database: tutte le librerie sempre, e un solo interruttore.
+- Driver nel worker dell'utente: il segreto e i socket sarebbero accanto al codice dei blocchi.
+
+**Conseguenze.**
+
+- Lo schema con una password cifrata non si apre su un altro utente o un altro lilOS: serve riscriverla («Password non leggibile»). Se `secret.key` si perde, vanno riscritte tutte.
+- Un SDK o un motore più vecchi non sanno cifrare: l'IDE 1.15.0 chiede il motore 1.7.0 e lilOS 1.50.0.
+- Le regole sugli indirizzi hanno un solo codice (`_shared/ipguard.js`), copiato in `lib/shared/` di ogni modulo: una correzione va riportata in tutte le copie.
+- I limiti noti (tra cui OpenSearch provato solo contro un server simulato) sono in [Stato e roadmap](stato-e-roadmap.md#logic-studio).
+
+**Quando ripensarla.** Se serviranno password condivise tra utenti (per esempio un database di un gruppo); se la chiave dovrà stare fuori dalla cartella dei dati del motore (un deposito di segreti del sistema); se i database di lilOS dovranno poter essere usati da programmi di amministratori; se il thread principale del kernel diventerà un collo di bottiglia per molte query lunghe.

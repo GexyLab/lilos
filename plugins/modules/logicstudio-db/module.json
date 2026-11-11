@@ -1,0 +1,58 @@
+{
+  "name": "logicstudio-db",
+  "version": "1.0.0",
+  "description": "Logic Studio: i blocchi dei database SQL (PostgreSQL, MySQL e MariaDB, SQL Server, SQLite, Oracle, ClickHouse): query con parametri, tabelle senza SQL, transazioni, cursori e LISTEN di PostgreSQL, con password cifrate e il database di lilOS sempre escluso",
+  "icon": {
+    "glyph": "database",
+    "color": "#b7791f"
+  },
+  "kernel": "1",
+  "provides": [
+    "logicblock.db"
+  ],
+  "requires": [
+    "logicstudio",
+    "fs"
+  ],
+  "dependencies": [
+    {
+      "module": "logicstudio-engine",
+      "version": ">=1.7.0",
+      "reason": "Il motore che fa girare i blocchi e che cifra le password"
+    },
+    {
+      "module": "logicstudio-core",
+      "reason": "I blocchi di base, che servono insieme a questi (valori, testo, eccezioni)"
+    }
+  ],
+  "defaultConfig": {
+    "allowPrivate": false,
+    "timeoutSeconds": 30,
+    "maxRows": 10000,
+    "maxResultKb": 4096,
+    "maxConnections": 10,
+    "perMinute": 600,
+    "sqliteMaxMb": 1024,
+    "allowPostgres": true,
+    "allowMysql": true,
+    "allowMssql": true,
+    "allowSqlite": true,
+    "allowOracle": true,
+    "allowClickhouse": true
+  },
+  "settings": [
+    { "key": "allowPrivate", "type": "checkbox", "default": false, "label": { "en": "Allow databases on this computer and on the local network", "it": "Permetti i database su questo computer e sulla rete locale" } },
+    { "key": "timeoutSeconds", "type": "number", "min": 1, "max": 600, "default": 30, "label": { "en": "Time limit of an operation (seconds)", "it": "Tempo massimo di un'operazione (secondi)" } },
+    { "key": "maxRows", "type": "number", "min": 1, "max": 1000000, "default": 10000, "label": { "en": "Rows of a result, at most", "it": "Righe massime di un risultato" } },
+    { "key": "maxResultKb", "type": "number", "min": 16, "max": 65536, "default": 4096, "label": { "en": "Size of a result, at most (KB)", "it": "Dimensione massima di un risultato (KB)" } },
+    { "key": "maxConnections", "type": "number", "min": 1, "max": 100, "default": 10, "label": { "en": "Open connections per user, at most", "it": "Connessioni aperte per utente, al massimo" } },
+    { "key": "perMinute", "type": "number", "min": 1, "max": 100000, "default": 600, "label": { "en": "Operations per minute per user, at most", "it": "Operazioni al minuto per utente, al massimo" } },
+    { "key": "sqliteMaxMb", "type": "number", "min": 1, "max": 1024, "default": 1024, "label": { "en": "Size of a SQLite file, at most (MB)", "it": "Dimensione massima di un file SQLite (MB)" } },
+    { "key": "allowPostgres", "type": "checkbox", "default": true, "label": { "en": "Allow PostgreSQL", "it": "Permetti PostgreSQL" } },
+    { "key": "allowMysql", "type": "checkbox", "default": true, "label": { "en": "Allow MySQL and MariaDB", "it": "Permetti MySQL e MariaDB" } },
+    { "key": "allowMssql", "type": "checkbox", "default": true, "label": { "en": "Allow SQL Server", "it": "Permetti SQL Server" } },
+    { "key": "allowSqlite", "type": "checkbox", "default": true, "label": { "en": "Allow SQLite (files of the user's home)", "it": "Permetti SQLite (file della home dell'utente)" } },
+    { "key": "allowOracle", "type": "checkbox", "default": true, "label": { "en": "Allow Oracle", "it": "Permetti Oracle" } },
+    { "key": "allowClickhouse", "type": "checkbox", "default": true, "label": { "en": "Allow ClickHouse", "it": "Permetti ClickHouse" } }
+  ]
+}

@@ -4,6 +4,7 @@ import { Registry } from './lib/registry.js';
 import { Supervisor, publicProgram } from './lib/supervisor.js';
 import { Logs } from './lib/logs.js';
 import { cleanOverrides, globalLimits, QUOTA } from './lib/limits.js';
+import { Secrets } from './lib/secrets.js';
 
 /**
  * Logic Studio Engine: runs the schemas and projects of Logic Studio (logic blocks, dataflow) for
@@ -18,6 +19,8 @@ import { cleanOverrides, globalLimits, QUOTA } from './lib/limits.js';
  *   GET    /docs/:lang                   the documentation's pages of every package (and of the engine), with titles
  *   GET    /docs/:pack/:page/:lang       a page: { pack, page, lang, markdown } (page: index, a type as core:add, or a name)
  *   GET    /status                       limits, my quota and what I use
+ *   POST   /seal                         { value } → { sealed }: a secret setting of a block (type 'secret', such as
+ *                                        a password), sealed for me on this lilOS (lib/secrets.js)
  *   GET    /programs[?all=1]             my programs (an admin: everyone's with all=1)
  *   POST   /programs                     { kind: 'test'|'active'|'app', name, documents, source, lang } → program
  *   GET    /programs/:id
@@ -48,7 +51,8 @@ export default {
     const quotas = ctx.jsonStore(join(ctx.dataDir, 'quotas.json'), { clean: d => ({ users: d?.users && typeof d.users === 'object' ? d.users : {} }) });
     await Promise.all([store.read(), quotas.read()]);
     const logs = new Logs(ctx.dataDir);
-    supervisor = new Supervisor({ ctx, registry, store, quotas, logs, workerFile: join(ctx.dir, 'worker.js') });
+    const secrets = new Secrets(ctx.dataDir);
+    supervisor = new Supervisor({ ctx, registry, store, quotas, logs, secrets, workerFile: join(ctx.dir, 'worker.js') });
 
     // A package that arrives may be what a saved program was waiting for
     const restoreSoon = (ms = 500) => {
@@ -99,6 +103,14 @@ export default {
       user(principal);
       // a type comes as core:add (the SDK's module paths have no dots)
       return (await registry.doc(params.pack, String(params.page).replace(':', '.'), params.lang, engineDocs())) ?? ctx.fail('not_found', 'Pagina della documentazione non trovata');
+    });
+
+    // A secret setting of a block (a password): the schema keeps it sealed, only the kernel opens it
+    ctx.route('POST', '/seal', async ({ principal, json }) => {
+      const p = user(principal);
+      const { value: v } = await json(16 << 10);
+      if (typeof v !== 'string' || v.length > 4096) ctx.fail('invalid', 'Serve un testo di al massimo 4096 caratteri');
+      return { sealed: await secrets.seal(p.id, v) };
     });
 
     ctx.route('GET', '/status', ({ principal }) => {

@@ -1685,7 +1685,7 @@ Ogni nota è un file di testo con estensione `.sticky` nella cartella Scrivania.
 
 Un programma di Logic Studio può girare **anche quando lilOS è chiuso nel browser**: lo fa il computer su cui gira lilOS. Per questo, prima di attivarne uno, leggi «[Da sapere](#da-sapere-8)».
 
-Logic Studio non c'è di serie. Serve lilOS dalla 1.37.0 (dalla 1.40.0 per la documentazione, vedi «[La documentazione](#la-documentazione)»; dalla 1.48.0 per i testi e le forme, vedi «[Testi e forme sul foglio](#testi-e-forme-sul-foglio)»; dalla 1.49.0 per gli argomenti e il codice di uscita, vedi «[Programmi da riga di comando](#programmi-da-riga-di-comando)») e l'app **Logic Studio IDE** (categoria **Sviluppo**), che un amministratore installa dall'[AppStore](#lappstore): l'AppStore installa con lei anche le parti che le servono (il motore e i blocchi di base). Altri blocchi arrivano con altri pacchetti dello stesso AppStore, nella scheda **Kernel**: liste e matrici, grandezze e unità di misura, i segnali (generatori, FFT, filtri, modulazione), geometria solida, trigonometria, funzioni e derivate, integrali, i blocchi di lilOS (notifiche, file), la rete, le componenti delle finestre e i grafici.
+Logic Studio non c'è di serie. Serve lilOS dalla 1.37.0 (dalla 1.40.0 per la documentazione, vedi «[La documentazione](#la-documentazione)»; dalla 1.48.0 per i testi e le forme, vedi «[Testi e forme sul foglio](#testi-e-forme-sul-foglio)»; dalla 1.49.0 per gli argomenti e il codice di uscita, vedi «[Programmi da riga di comando](#programmi-da-riga-di-comando)») e l'app **Logic Studio IDE** (categoria **Sviluppo**), che un amministratore installa dall'[AppStore](#lappstore): l'AppStore installa con lei anche le parti che le servono (il motore e i blocchi di base). Altri blocchi arrivano con altri pacchetti dello stesso AppStore, nella scheda **Kernel**: liste e matrici, grandezze e unità di misura, i segnali (generatori, FFT, filtri, modulazione), geometria solida, trigonometria, funzioni e derivate, integrali, i blocchi di lilOS (notifiche, file), la rete, i database, le componenti delle finestre e i grafici. I blocchi dei database e le password cifrate nelle Proprietà chiedono lilOS dalla 1.50.0 e l'IDE dalla 1.15.0 (vedi «[I database](#i-database)»).
 
 ### Le parole
 
@@ -1719,7 +1719,7 @@ Con un progetto aperto la finestra ha, a sinistra, le schede **Progetto** (l'ele
 
 ### Disegnare uno schema
 
-1. Nella scheda **Blocchi** scegli un blocco (c'è una ricerca in alto): un clic lo mette in mezzo al foglio, trascinandolo lo metti dove lo lasci. I blocchi sono divisi per tipo: valori, logica, matematica, testo, oggetti, liste, matrici, unità di misura, tempo, console, porte di schema, lilOS, rete, eccezioni, disegno. Un clic sul nome di un tipo lo comprime o lo riapre (con il tasto destro: **Comprimi tutte**, **Espandi tutte**); le categorie compresse restano tali alla prossima apertura.
+1. Nella scheda **Blocchi** scegli un blocco (c'è una ricerca in alto): un clic lo mette in mezzo al foglio, trascinandolo lo metti dove lo lasci. I blocchi sono divisi per tipo: valori, logica, matematica, testo, oggetti, liste, matrici, unità di misura, tempo, console, porte di schema, lilOS, rete, database, eccezioni, disegno. Un clic sul nome di un tipo lo comprime o lo riapre (con il tasto destro: **Comprimi tutte**, **Espandi tutte**); le categorie compresse restano tali alla prossima apertura.
 2. Per **collegare** due blocchi, trascina da un'uscita (a destra) a un ingresso (a sinistra). Per togliere un collegamento, trascina l'estremità dell'ingresso via, oppure selezionalo e premi **Canc**. Le porte di tipo diverso si possono collegare, ma il collegamento è segnalato se i tipi non vanno d'accordo.
 3. Seleziona un blocco per cambiarne le **Impostazioni** nella barra **Proprietà**: per esempio quanti secondi aspettare, o il testo di una domanda. Lì puoi anche dargli un'**Etichetta**, cioè un nome tuo.
 4. Alcuni blocchi (AND, OR, Somma, Template, Switch · Case, Print…) permettono di **aggiungere ingressi o uscite**: sempre dalla barra **Proprietà**, con **Aggiungi ingresso** o **Aggiungi uscita**; si possono rinominare, spostare su e giù e togliere con **Togli**. Le porte aggiunte hanno il nome in corsivo. Togliere una porta toglie anche i suoi collegamenti, ma **Ctrl Z** li rimette.
@@ -1753,6 +1753,36 @@ Questi pezzi **non hanno porte e non fanno niente**: il programma li ignora. Sta
 - I pezzi di disegno contano nel numero massimo di blocchi di uno schema.
 
 Anche le finestre dei progetti hanno **Testo formattato** e **Forma** (categoria **Disegno** della scheda **Componenti**), con le stesse scelte. Il testo e il colore del testo, e il riempimento, il colore della linea e il testo della forma, li può cambiare uno schema collegato al loro oggetto. Un colore che arriva da uno schema vale solo se è scritto come `#336699`, `rgb(…)`, `hsl(…)` o con un nome semplice come `red`; altrimenti si usa il colore del tema.
+
+### I database
+
+I pacchetti dei database portano blocchi per leggere e scrivere dati in un database. Si installano dall'[AppStore](#lappstore), nella scheda **Kernel**, e nella scheda **Blocchi** stanno nella categoria **Database**. Ogni blocco ha un nome che comincia con la famiglia: «SQL · », «MongoDB · », «Redis · », «InfluxDB · », «Elasticsearch · ».
+
+| Pacchetto | Database |
+| --- | --- |
+| Database SQL | PostgreSQL, MySQL e MariaDB, SQL Server, SQLite (un file della tua home), Oracle, ClickHouse |
+| MongoDB | MongoDB |
+| Redis | Redis |
+| InfluxDB | InfluxDB |
+| Elasticsearch | Elasticsearch e OpenSearch |
+
+**Come si usano.**
+
+1. Metti il blocco di **connessione** del tuo database (per esempio «SQL · PostgreSQL (connect)») e scrivi nelle **Proprietà** indirizzo, porta, nome del database e utente.
+2. Collega la sua uscita **connection** agli altri blocchi dello stesso database. La connessione resta aperta finché il programma gira e si chiude da sola quando il programma si ferma.
+3. Aggiungi i blocchi che servono. Per i database SQL, **Query** esegue una richiesta SQL con parametri scritti come `:nome` (i valori arrivano da ingressi con quel nome, mai incollati nel testo, e così non si rompono con apici e virgolette); **Leggi tabella**, **Inserisci**, **Aggiorna** ed **Elimina** fanno lo stesso senza scrivere SQL; **Transazione** raggruppa più modifiche e, se qualcosa va storto, le annulla tutte da sola; **Scorri righe** legge un risultato grande una riga alla volta; **Tabelle e colonne** mostra com'è fatto il database; **Ascolta** e **Notifica** (solo PostgreSQL) mettono in contatto programmi diversi. Anche gli altri pacchetti hanno i loro blocchi (trova, inserisci, aggiorna, elimina, scrivi punti, cerca documenti…); ognuno ha la sua pagina nella [documentazione](#la-documentazione).
+
+**La password.** Nelle **Proprietà** di un blocco di connessione il campo **Password** non mostra mai quello che hai scritto. Dopo averla scritta compare «Salvata, cifrata: scrivi per cambiarla»; se non c'è, «Non impostata». **Cancella** la toglie. La password è **cifrata da lilOS** e nello schema resta solo il testo cifrato: si apre solo per **te**, su **questo** lilOS. Se copi lo schema a un altro utente o a un altro lilOS, la password va riscritta. Alcuni blocchi hanno anche una porta **password** (nascosta di serie) per darla da un altro blocco.
+
+**Le impostazioni lunghe.** Dove serve scrivere più righe (una query, un filtro) le Proprietà mostrano un campo di testo grande, con caratteri a larghezza fissa.
+
+**Cosa non si può fare.**
+
+- I database di lilOS stesso non si raggiungono mai, in nessun modo.
+- Di serie non si arriva ai database di **questo computer** né della **rete locale**: solo a quelli su internet. Un amministratore può permetterlo nelle impostazioni del modulo del pacchetto. Lo stesso amministratore può anche spegnere un tipo di database, e fissare quante righe e quanti KB al massimo restituisce un risultato (di serie 10000 righe e 4096 KB), il tempo massimo di un'operazione (30 secondi), quante connessioni aperte può avere ogni utente (10) e quante operazioni al minuto (600).
+- **SQLite** apre un file della tua home e lo tiene in memoria mentre lavora; sopra un limite (di serie 1024 MB) non lo apre. Le modifiche si scrivono nel file un attimo dopo.
+- **ClickHouse** non ha le transazioni: le modifiche non si possono annullare.
+- Come gli altri blocchi che toccano i dati, un programma attivo scrive **davvero** nel database, anche quando non guardi. Prova prima su una copia.
 
 ### Gruppi di blocchi
 
@@ -1872,7 +1902,7 @@ In **Finestre** ogni finestra che non è la main può avere un punto d'ingresso:
 
 L'app **non si installa**. Il suo pacchetto sta nella cartella **App create** della tua home, in una cartella con il suo id, e dentro c'è un file `.lsapp`: **aprendo quel file** (doppio clic) l'app parte, **solo per te**, e dura finché le sue finestre sono aperte; quando chiudi l'ultima, il programma si ferma. Per rifarla dopo aver cambiato il progetto, usa di nuovo **Crea app**: **la cartella dell'app con lo stesso id viene sostituita, non va nel Cestino**, quindi non metterci dentro file tuoi.
 
-L'app gira **con i tuoi permessi**. Se i suoi blocchi usano i file, la rete, le notifiche o gli eventi, prima di partire lilOS apre una finestra con **Esegui** e **Annulla** e ti elenca cosa potrà fare (leggere e cambiare i tuoi file, fare richieste su internet, mandarti notifiche, mandare eventi a lilOS) e da quale cartella viene. Esegui un'app solo se ti fidi di chi l'ha fatta (o se l'hai fatta tu). Se premi **Esegui**, lilOS non te lo richiede finché quell'app non cambia; se cambia, te lo chiede di nuovo.
+L'app gira **con i tuoi permessi**. Se i suoi blocchi usano i file, la rete, le notifiche o gli eventi, prima di partire lilOS apre una finestra con **Esegui** e **Annulla** e ti elenca cosa potrà fare (leggere e cambiare i tuoi file, fare richieste su internet o parlare con dei database, mandarti notifiche, mandare eventi a lilOS) e da quale cartella viene. Esegui un'app solo se ti fidi di chi l'ha fatta (o se l'hai fatta tu). Se premi **Esegui**, lilOS non te lo richiede finché quell'app non cambia; se cambia, te lo chiede di nuovo.
 
 L'app ha le finestre del progetto e usa il motore di questo lilOS: serve lilOS dalla 1.37.0, e funziona solo dove sono installati i pacchetti che il progetto usa.
 

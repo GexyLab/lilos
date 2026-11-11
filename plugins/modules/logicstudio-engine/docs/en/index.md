@@ -12,6 +12,7 @@ The engine brings no blocks: blocks and UI components come from **packages**, ot
 - Keeps the **consoles** of the programs: the lines written by the blocks and the questions of the [Input (readline)](core.consoleRead) blocks.
 - Keeps the last values sent to the **windows** of the projects, so a window opened again is not empty.
 - Checks the **quotas** of each user and the **limits** for everybody.
+- **Encrypts the passwords** you type in the Properties of a block (for example a database's): the schema keeps only the encrypted text, bound to you and to this lilOS, and only the kernel opens it when the block connects. On another lilOS, or in a schema copied from another user, the password must be typed again.
 - Does in the kernel, **as you**, the things the blocks ask for that touch your data or the world outside: reading a file, sending a notification, making a web request.
 - Serves the IDE the catalog of the installed blocks and components and the documentation of the packages (these pages).
 
@@ -81,6 +82,11 @@ The blocks and components you see in the IDE are those of the packages installed
 | [Signals](logicstudio-signals) | Signal theory: generators, FFT, spectra, IIR and FIR filters, correlation, measures, modulation |
 | [lilOS blocks](logicstudio-lilos) | Notifications, files of your home, events to lilOS |
 | [Network blocks](logicstudio-net) | The HTTP request (fetch) block |
+| [Database blocks (SQL)](logicstudio-db) | PostgreSQL, MySQL and MariaDB, SQL Server, SQLite, Oracle, ClickHouse |
+| [MongoDB blocks](logicstudio-mongodb) | MongoDB documents: find, insert, update, aggregate, watch |
+| [Redis blocks](logicstudio-redis) | Redis keys, hashes, lists and channels |
+| [InfluxDB blocks](logicstudio-influxdb) | InfluxDB time series: write points, Flux, InfluxQL and SQL queries |
+| [Elasticsearch blocks](logicstudio-elasticsearch) | Elasticsearch and OpenSearch documents and searches |
 | [Standard UI components](logicstudio-ui) | Labels, buttons, fields, containers… for the windows |
 | [Charts](logicstudio-charts) | The charts as UI components |
 

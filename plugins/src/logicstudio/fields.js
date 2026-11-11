@@ -7,8 +7,8 @@ import { t } from './i18n.js';
  *   textarea  text on several lines (onChange when it loses the focus)
  *   color     a colour: the picker, or written (#rgb, #rrggbb, rgb()…, a name); empty = the theme's
  */
-export function textareaField({ value = '', onChange, rows = 3, maxLength = 2000 } = {}) {
-  const el = h('textarea', { class: 'ctl-text', rows, spellcheck: 'false', maxlength: maxLength });
+export function textareaField({ value = '', onChange, rows = 3, maxLength = 2000, mono = false, className = '', label } = {}) {
+  const el = h('textarea', { class: ['ctl-text', mono && 'mono', className].filter(Boolean).join(' '), rows, spellcheck: 'false', maxlength: maxLength, 'aria-label': label });
   el.value = String(value ?? '');
   el.addEventListener('change', () => onChange?.(el.value));
   return el;

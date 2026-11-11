@@ -2,6 +2,286 @@
   "libraries": [
     {
       "kind": "library",
+      "name": "@azure-rest/core-client",
+      "version": "2.9.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) Microsoft Corporation.",
+      "url": "https://github.com/Azure/azure-sdk-for-js/blob/main/sdk/core/core-client-rest/",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "@azure/abort-controller",
+      "version": "2.2.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) Microsoft Corporation.",
+      "url": "https://github.com/Azure/azure-sdk-for-js/tree/main/sdk/core/abort-controller/README.md",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "@azure/core-auth",
+      "version": "1.11.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) Microsoft Corporation.",
+      "url": "https://github.com/Azure/azure-sdk-for-js/tree/main/sdk/core/core-auth/README.md",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "@azure/core-client",
+      "version": "1.11.2",
+      "license": "MIT",
+      "copyright": "Copyright (c) Microsoft Corporation.",
+      "url": "https://github.com/Azure/azure-sdk-for-js/blob/main/sdk/core/core-client/",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "@azure/core-lro",
+      "version": "2.7.2",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2020 Microsoft",
+      "url": "https://github.com/Azure/azure-sdk-for-js/blob/main/sdk/core/core-lro/README.md",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "@azure/core-paging",
+      "version": "1.7.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) Microsoft Corporation.",
+      "url": "https://github.com/Azure/azure-sdk-for-js/tree/main/sdk/core/core-paging/README.md",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "@azure/core-process",
+      "version": "1.0.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2018 Microsoft",
+      "url": "https://github.com/Azure/azure-sdk-for-js/tree/main/sdk/core/core-process",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "@azure/core-rest-pipeline",
+      "version": "1.25.1",
+      "license": "MIT",
+      "copyright": "Copyright (c) Microsoft Corporation.",
+      "url": "https://github.com/Azure/azure-sdk-for-js/tree/main/sdk/core/core-rest-pipeline/README.md",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "@azure/core-tracing",
+      "version": "1.4.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) Microsoft Corporation.",
+      "url": "https://github.com/Azure/azure-sdk-for-js/blob/main/sdk/core/core-tracing/README.md",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "@azure/core-util",
+      "version": "1.14.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) Microsoft Corporation.",
+      "url": "https://github.com/Azure/azure-sdk-for-js/blob/main/sdk/core/core-util/",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "@azure/identity",
+      "version": "4.14.1",
+      "license": "MIT",
+      "copyright": "Copyright (c) Microsoft Corporation.",
+      "url": "https://github.com/Azure/azure-sdk-for-js/tree/main/sdk/identity/identity/README.md",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "@azure/keyvault-common",
+      "version": "2.1.1",
+      "license": "MIT",
+      "copyright": "Copyright (c) Microsoft Corporation.",
+      "url": "https://github.com/Azure/azure-sdk-for-js/tree/main/sdk/keyvault/keyvault-common/README.md",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "@azure/keyvault-keys",
+      "version": "4.10.2",
+      "license": "MIT",
+      "copyright": "Copyright (c) Microsoft Corporation.",
+      "url": "https://github.com/Azure/azure-sdk-for-js/tree/main/sdk/keyvault/keyvault-keys/README.md",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "@azure/logger",
+      "version": "1.4.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) Microsoft Corporation.",
+      "url": "https://github.com/Azure/azure-sdk-for-js/tree/main/sdk/core/logger/README.md",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "@azure/msal-browser",
+      "version": "5.29.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) Microsoft Corporation. All rights reserved.",
+      "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "@azure/msal-common",
+      "version": "16.16.1",
+      "license": "MIT",
+      "copyright": "Copyright (c) Microsoft Corporation. All rights reserved.",
+      "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "@azure/msal-node",
+      "version": "7.2.1",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2020 Microsoft",
+      "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "@ioredis/commands",
+      "version": "2.0.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2022 Zihua Li",
+      "url": "https://github.com/ioredis/commands",
+      "usedBy": [
+        "module:logicstudio-redis"
+      ],
+      "via": [
+        "ioredis"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "@js-joda/core",
+      "version": "6.3.2",
+      "license": "BSD-3-Clause",
+      "copyright": "Copyright (c) 2016, Philipp Thürwächter & Pattrick Hüper",
+      "url": "https://js-joda.github.io/js-joda",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "@mongodb-js/saslprep",
+      "version": "1.6.3",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2014 Dmitry Tsvettsikh",
+      "url": "https://github.com/mongodb-js/devtools-shared/tree/main/packages/saslprep",
+      "usedBy": [
+        "module:logicstudio-mongodb"
+      ],
+      "via": [
+        "mongodb"
+      ]
+    },
+    {
+      "kind": "library",
       "name": "@noble/ciphers",
       "version": "1.3.0",
       "license": "MIT",
@@ -105,6 +385,20 @@
     },
     {
       "kind": "library",
+      "name": "@typespec/ts-http-runtime",
+      "version": "0.3.10",
+      "license": "MIT",
+      "copyright": "Copyright (c) Microsoft Corporation.",
+      "url": "https://github.com/Azure/azure-sdk-for-js/tree/main/sdk/core/ts-http-runtime/README.md",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
       "name": "@ungap/structured-clone",
       "version": "1.4.0",
       "license": "ISC",
@@ -179,6 +473,34 @@
     },
     {
       "kind": "library",
+      "name": "abort-controller",
+      "version": "3.0.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2017 Toru Nagashima",
+      "url": "https://github.com/mysticatea/abort-controller",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "agent-base",
+      "version": "9.0.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2013 Nathan Rajlich <nathan@tootallnate.net>",
+      "url": "https://github.com/TooTallNate/proxy-agents",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
       "name": "asn1",
       "version": "0.2.6",
       "license": "MIT",
@@ -189,6 +511,34 @@
       ],
       "via": [
         "ssh2"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "aws-ssl-profiles",
+      "version": "1.1.2",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2024 Andrey Sidorov, Douglas Wilson, Weslley Araújo and contributors.",
+      "url": "https://github.com/mysqljs/aws-ssl-profiles",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "mysql2"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "base64-js",
+      "version": "1.5.1",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2014 Jameson Little",
+      "url": "https://github.com/beatgammit/base64-js",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
       ]
     },
     {
@@ -218,6 +568,62 @@
     },
     {
       "kind": "library",
+      "name": "bl",
+      "version": "6.1.6",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2013-2019 bl contributors",
+      "url": "https://github.com/rvagg/bl",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "bson",
+      "version": "7.3.4",
+      "license": "Apache-2.0",
+      "copyright": "© The MongoDB NodeJS Team",
+      "url": "https://github.com/mongodb/js-bson",
+      "usedBy": [
+        "module:logicstudio-mongodb"
+      ],
+      "via": [
+        "mongodb"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "buffer",
+      "version": "6.0.3",
+      "license": "MIT",
+      "copyright": "Copyright (c) Feross Aboukhadijeh, and other contributors.",
+      "url": "https://github.com/feross/buffer",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "buffer-equal-constant-time",
+      "version": "1.0.1",
+      "license": "BSD-3-Clause",
+      "copyright": "Copyright (c) 2013, GoInstant Inc., a salesforce.com company",
+      "url": "git@github.com:goinstant/buffer-equal-constant-time",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
       "name": "buildcheck",
       "version": "0.0.7",
       "license": "MIT",
@@ -230,6 +636,20 @@
         "ssh2"
       ],
       "optional": true
+    },
+    {
+      "kind": "library",
+      "name": "bundle-name",
+      "version": "4.1.1",
+      "license": "MIT",
+      "copyright": "Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)",
+      "url": "https://github.com/sindresorhus/bundle-name",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
+      ]
     },
     {
       "kind": "library",
@@ -275,6 +695,20 @@
     },
     {
       "kind": "library",
+      "name": "cluster-key-slot",
+      "version": "1.1.1",
+      "license": "Apache-2.0",
+      "copyright": "Copyright (c) 2018 Mike Diarmid (Salakar) <mike.diarmid@gmail.com>",
+      "url": "https://github.com/Salakar/cluster-key-slot",
+      "usedBy": [
+        "module:logicstudio-redis"
+      ],
+      "via": [
+        "ioredis"
+      ]
+    },
+    {
+      "kind": "library",
       "name": "comma-separated-tokens",
       "version": "2.0.3",
       "license": "MIT",
@@ -304,6 +738,78 @@
     },
     {
       "kind": "library",
+      "name": "debug",
+      "version": "4.4.3",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2014-2017 TJ Holowaychuk <tj@vision-media.ca>",
+      "url": "https://github.com/debug-js/debug",
+      "usedBy": [
+        "module:logicstudio-db",
+        "module:logicstudio-redis"
+      ],
+      "via": [
+        "ioredis",
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "default-browser",
+      "version": "5.5.1",
+      "license": "MIT",
+      "copyright": "Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)",
+      "url": "https://github.com/sindresorhus/default-browser",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "default-browser-id",
+      "version": "5.0.1",
+      "license": "MIT",
+      "copyright": "Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)",
+      "url": "https://github.com/sindresorhus/default-browser-id",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "define-lazy-prop",
+      "version": "3.0.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)",
+      "url": "https://github.com/sindresorhus/define-lazy-prop",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "denque",
+      "version": "2.1.0",
+      "license": "Apache-2.0",
+      "copyright": "Copyright 2018-present Invertase Limited",
+      "url": "https://docs.page/invertase/denque",
+      "usedBy": [
+        "module:logicstudio-redis"
+      ],
+      "via": [
+        "ioredis"
+      ]
+    },
+    {
+      "kind": "library",
       "name": "dequal",
       "version": "2.0.3",
       "license": "MIT",
@@ -328,6 +834,62 @@
       ],
       "via": [
         "@shikijs/core"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "ecdsa-sig-formatter",
+      "version": "1.0.11",
+      "license": "Apache-2.0",
+      "copyright": "Copyright 2015 D2L Corporation",
+      "url": "https://github.com/Brightspace/node-ecdsa-sig-formatter",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "event-target-shim",
+      "version": "5.0.1",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2015 Toru Nagashima",
+      "url": "https://github.com/mysticatea/event-target-shim",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "events",
+      "version": "3.3.0",
+      "license": "MIT",
+      "copyright": "Copyright Joyent, Inc. and other Node contributors.",
+      "url": "https://github.com/Gozala/events",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "generate-function",
+      "version": "2.3.1",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2014 Mathias Buus",
+      "url": "https://github.com/mafintosh/generate-function",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "mysql2"
       ]
     },
     {
@@ -374,6 +936,158 @@
     },
     {
       "kind": "library",
+      "name": "http-proxy-agent",
+      "version": "9.1.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2013 Nathan Rajlich <nathan@tootallnate.net>",
+      "url": "https://github.com/TooTallNate/proxy-agents",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "https-proxy-agent",
+      "version": "9.1.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2013 Nathan Rajlich <nathan@tootallnate.net>",
+      "url": "https://github.com/TooTallNate/proxy-agents",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "iconv-lite",
+      "version": "0.7.3",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2011 Alexander Shtuchkin",
+      "url": "https://github.com/pillarjs/iconv-lite",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "mysql2",
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "ieee754",
+      "version": "1.2.1",
+      "license": "BSD-3-Clause",
+      "copyright": "Copyright 2008 Fair Oaks Labs, Inc.",
+      "url": "https://github.com/feross/ieee754",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "inherits",
+      "version": "2.0.4",
+      "license": "ISC",
+      "copyright": "Copyright (c) Isaac Z. Schlueter",
+      "url": "https://github.com/isaacs/inherits",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "ioredis",
+      "version": "6.0.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2015-2022 Zihua Li",
+      "url": "https://github.com/redis/ioredis",
+      "usedBy": [
+        "module:logicstudio-redis"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "is-docker",
+      "version": "3.0.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)",
+      "url": "https://github.com/sindresorhus/is-docker",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "is-in-ssh",
+      "version": "1.0.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)",
+      "url": "https://github.com/sindresorhus/is-in-ssh",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "is-inside-container",
+      "version": "1.0.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)",
+      "url": "https://github.com/sindresorhus/is-inside-container",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "is-property",
+      "version": "1.0.2",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2013 Mikola Lysenko",
+      "url": "https://github.com/mikolalysenko/is-property",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "mysql2"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "is-wsl",
+      "version": "3.1.1",
+      "license": "MIT",
+      "copyright": "Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)",
+      "url": "https://github.com/sindresorhus/is-wsl",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
       "name": "isolated-vm",
       "version": "6.2.0",
       "license": "ISC",
@@ -381,6 +1095,20 @@
       "url": "https://github.com/laverdet/isolated-vm",
       "usedBy": [
         "module:services-isolate"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "js-md4",
+      "version": "0.3.2",
+      "license": "MIT",
+      "copyright": "Copyright 2015-2017 Yi-Cyuan Chen",
+      "url": "https://github.com/emn178/js-md4",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
       ]
     },
     {
@@ -399,16 +1127,172 @@
     },
     {
       "kind": "library",
+      "name": "jsonwebtoken",
+      "version": "9.0.3",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2015 Auth0, Inc. <support@auth0.com> (http://auth0.com)",
+      "url": "https://github.com/auth0/node-jsonwebtoken",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "jwa",
+      "version": "2.0.1",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2013 Brian J. Brennan",
+      "url": "https://github.com/brianloveswords/node-jwa",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "jws",
+      "version": "4.0.1",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2013 Brian J. Brennan",
+      "url": "https://github.com/brianloveswords/node-jws",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "lodash.includes",
+      "version": "4.3.0",
+      "license": "MIT",
+      "copyright": "Copyright jQuery Foundation and other contributors <https://jquery.org/>",
+      "url": "https://lodash.com/",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "lodash.isboolean",
+      "version": "3.0.3",
+      "license": "MIT",
+      "copyright": "Copyright 2012-2016 The Dojo Foundation <http://dojofoundation.org/>",
+      "url": "https://lodash.com/",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "lodash.isinteger",
+      "version": "4.0.4",
+      "license": "MIT",
+      "copyright": "Copyright jQuery Foundation and other contributors <https://jquery.org/>",
+      "url": "https://lodash.com/",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "lodash.isnumber",
+      "version": "3.0.3",
+      "license": "MIT",
+      "copyright": "Copyright 2012-2016 The Dojo Foundation <http://dojofoundation.org/>",
+      "url": "https://lodash.com/",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "lodash.isplainobject",
+      "version": "4.0.6",
+      "license": "MIT",
+      "copyright": "Copyright jQuery Foundation and other contributors <https://jquery.org/>",
+      "url": "https://lodash.com/",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "lodash.isstring",
+      "version": "4.0.1",
+      "license": "MIT",
+      "copyright": "Copyright 2012-2016 The Dojo Foundation <http://dojofoundation.org/>",
+      "url": "https://lodash.com/",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "lodash.once",
+      "version": "4.1.1",
+      "license": "MIT",
+      "copyright": "Copyright jQuery Foundation and other contributors <https://jquery.org/>",
+      "url": "https://lodash.com/",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
       "name": "long",
       "version": "5.3.2",
       "license": "Apache-2.0",
       "copyright": "© Daniel Wirtz",
       "url": "https://github.com/dcodeIO/long.js",
       "usedBy": [
-        "module:call-grpc"
+        "module:call-grpc",
+        "module:logicstudio-db"
       ],
       "via": [
+        "mysql2",
         "protobufjs"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "lru.min",
+      "version": "1.1.5",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2024-current Weslley Araújo (@wellwelwel)",
+      "url": "https://github.com/wellwelwel/lru.min",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "mysql2"
       ]
     },
     {
@@ -423,6 +1307,20 @@
       ],
       "via": [
         "@shikijs/core"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "memory-pager",
+      "version": "1.5.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2017 Mathias Buus",
+      "url": "https://github.com/mafintosh/memory-pager",
+      "usedBy": [
+        "module:logicstudio-mongodb"
+      ],
+      "via": [
+        "mongodb"
       ]
     },
     {
@@ -497,6 +1395,72 @@
     },
     {
       "kind": "library",
+      "name": "mongodb",
+      "version": "7.8.0",
+      "license": "Apache-2.0",
+      "copyright": "Copyright {yyyy} {name of copyright owner}",
+      "url": "https://github.com/mongodb/node-mongodb-native",
+      "usedBy": [
+        "module:logicstudio-mongodb"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "mongodb-connection-string-url",
+      "version": "7.0.2",
+      "license": "Apache-2.0",
+      "copyright": "Copyright 2020 MongoDB Inc.",
+      "url": "https://github.com/mongodb-js/mongodb-connection-string-url",
+      "usedBy": [
+        "module:logicstudio-mongodb"
+      ],
+      "via": [
+        "mongodb"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "ms",
+      "version": "2.1.3",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2020 Vercel, Inc.",
+      "url": "https://github.com/vercel/ms",
+      "usedBy": [
+        "module:logicstudio-db",
+        "module:logicstudio-redis"
+      ],
+      "via": [
+        "ioredis",
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "mysql2",
+      "version": "3.24.6",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2016 Andrey Sidorov (sidorares@yandex.ru) and contributors",
+      "url": "https://sidorares.github.io/node-mysql2/docs",
+      "usedBy": [
+        "module:logicstudio-db"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "named-placeholders",
+      "version": "1.1.6",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2014 Andrey Sidorov",
+      "url": "https://github.com/mysqljs/named-placeholders",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "mysql2"
+      ]
+    },
+    {
+      "kind": "library",
       "name": "nan",
       "version": "2.30.0",
       "license": "MIT",
@@ -509,6 +1473,20 @@
         "ssh2"
       ],
       "optional": true
+    },
+    {
+      "kind": "library",
+      "name": "native-duplexpair",
+      "version": "1.0.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2017 Anna Henningsen",
+      "url": "https://github.com/tediousjs/native-duplexpair",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
+      ]
     },
     {
       "kind": "library",
@@ -554,13 +1532,39 @@
     },
     {
       "kind": "library",
+      "name": "open",
+      "version": "11.0.4",
+      "license": "MIT",
+      "copyright": "Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)",
+      "url": "https://github.com/sindresorhus/open",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "oracledb",
+      "version": "26.0.0",
+      "license": "(Apache-2.0 OR UPL-1.0)",
+      "copyright": "Copyright (c) 2015, 2026, Oracle and/or its affiliates.",
+      "url": "https://oracle.github.io/node-oracledb/",
+      "usedBy": [
+        "module:logicstudio-db"
+      ]
+    },
+    {
+      "kind": "library",
       "name": "pg",
       "version": "8.23.1",
       "license": "MIT",
       "copyright": "Copyright (c) 2010 - 2021 Brian Carlson",
       "url": "https://github.com/brianc/node-postgres",
       "usedBy": [
-        "module:fs-postgres"
+        "module:fs-postgres",
+        "module:logicstudio-db"
       ]
     },
     {
@@ -571,7 +1575,8 @@
       "copyright": "Copyright (c) 2010 - 2021 Brian Carlson",
       "url": "https://github.com/brianc/node-postgres",
       "usedBy": [
-        "module:fs-postgres"
+        "module:fs-postgres",
+        "module:logicstudio-db"
       ],
       "via": [
         "pg"
@@ -586,7 +1591,8 @@
       "copyright": "Copyright (c) 2014 Iced Development",
       "url": "https://github.com/brianc/node-postgres/tree/master/packages/pg-connection-string",
       "usedBy": [
-        "module:fs-postgres"
+        "module:fs-postgres",
+        "module:logicstudio-db"
       ],
       "via": [
         "pg"
@@ -600,7 +1606,8 @@
       "copyright": "Copyright © 2017, Charmander <~@charmander.me>",
       "url": "https://github.com/charmander/pg-int8",
       "usedBy": [
-        "module:fs-postgres"
+        "module:fs-postgres",
+        "module:logicstudio-db"
       ],
       "via": [
         "pg"
@@ -614,7 +1621,8 @@
       "copyright": "Copyright (c) 2017 Brian M. Carlson",
       "url": "https://github.com/brianc/node-postgres/tree/master/packages/pg-pool",
       "usedBy": [
-        "module:fs-postgres"
+        "module:fs-postgres",
+        "module:logicstudio-db"
       ],
       "via": [
         "pg"
@@ -628,7 +1636,8 @@
       "copyright": "Copyright (c) 2010 - 2021 Brian Carlson",
       "url": "https://github.com/brianc/node-postgres",
       "usedBy": [
-        "module:fs-postgres"
+        "module:fs-postgres",
+        "module:logicstudio-db"
       ],
       "via": [
         "pg"
@@ -642,7 +1651,8 @@
       "copyright": "© Brian M. Carlson",
       "url": "https://github.com/brianc/node-pg-types",
       "usedBy": [
-        "module:fs-postgres"
+        "module:fs-postgres",
+        "module:logicstudio-db"
       ],
       "via": [
         "pg"
@@ -656,7 +1666,8 @@
       "copyright": "© Hannes Hörl",
       "url": "https://github.com/hoegaarden/pgpass",
       "usedBy": [
-        "module:fs-postgres"
+        "module:fs-postgres",
+        "module:logicstudio-db"
       ],
       "via": [
         "pg"
@@ -670,7 +1681,8 @@
       "copyright": "Copyright (c) Ben Drucker <bvdrucker@gmail.com> (bendrucker.me)",
       "url": "https://github.com/bendrucker/postgres-array",
       "usedBy": [
-        "module:fs-postgres"
+        "module:fs-postgres",
+        "module:logicstudio-db"
       ],
       "via": [
         "pg"
@@ -684,7 +1696,8 @@
       "copyright": "Copyright (c) Ben Drucker <bvdrucker@gmail.com> (bendrucker.me)",
       "url": "https://github.com/bendrucker/postgres-bytea",
       "usedBy": [
-        "module:fs-postgres"
+        "module:fs-postgres",
+        "module:logicstudio-db"
       ],
       "via": [
         "pg"
@@ -698,7 +1711,8 @@
       "copyright": "Copyright (c) Ben Drucker <bvdrucker@gmail.com> (bendrucker.me)",
       "url": "https://github.com/bendrucker/postgres-date",
       "usedBy": [
-        "module:fs-postgres"
+        "module:fs-postgres",
+        "module:logicstudio-db"
       ],
       "via": [
         "pg"
@@ -712,10 +1726,39 @@
       "copyright": "Copyright (c) Ben Drucker <bvdrucker@gmail.com> (bendrucker.me)",
       "url": "https://github.com/bendrucker/postgres-interval",
       "usedBy": [
-        "module:fs-postgres"
+        "module:fs-postgres",
+        "module:logicstudio-db"
       ],
       "via": [
         "pg"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "powershell-utils",
+      "version": "0.2.1",
+      "license": "MIT",
+      "copyright": "Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)",
+      "url": "https://github.com/sindresorhus/powershell-utils",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "process",
+      "version": "0.11.10",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2013 Roman Shtylman <shtylman@gmail.com>",
+      "url": "https://github.com/shtylman/node-process",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
       ]
     },
     {
@@ -741,6 +1784,62 @@
       "url": "https://github.com/protobufjs/protobuf.js",
       "usedBy": [
         "module:call-grpc"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "proxy-agent-negotiate",
+      "version": "1.1.0",
+      "license": "MIT",
+      "copyright": "© Nathan Rajlich",
+      "url": "https://github.com/TooTallNate/proxy-agents",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "punycode",
+      "version": "2.3.1",
+      "license": "MIT",
+      "copyright": "© Mathias Bynens",
+      "url": "https://mths.be/punycode",
+      "usedBy": [
+        "module:logicstudio-mongodb"
+      ],
+      "via": [
+        "mongodb"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "readable-stream",
+      "version": "4.8.0",
+      "license": "MIT",
+      "copyright": "Copyright Node.js contributors. All rights reserved.",
+      "url": "https://github.com/nodejs/readable-stream",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "redis-errors",
+      "version": "1.2.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2017 Ruben Bridgewater",
+      "url": "https://github.com/NodeRedis/redis-errors",
+      "usedBy": [
+        "module:logicstudio-redis"
+      ],
+      "via": [
+        "ioredis"
       ]
     },
     {
@@ -787,16 +1886,61 @@
     },
     {
       "kind": "library",
+      "name": "run-applescript",
+      "version": "7.1.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)",
+      "url": "https://github.com/sindresorhus/run-applescript",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "safe-buffer",
+      "version": "5.2.1",
+      "license": "MIT",
+      "copyright": "Copyright (c) Feross Aboukhadijeh",
+      "url": "https://github.com/feross/safe-buffer",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
       "name": "safer-buffer",
       "version": "2.1.2",
       "license": "MIT",
       "copyright": "Copyright (c) 2018 Nikita Skovoroda <chalkerx@gmail.com>",
       "url": "https://github.com/ChALkeR/safer-buffer",
       "usedBy": [
+        "module:logicstudio-db",
         "module:ssh"
       ],
       "via": [
-        "ssh2"
+        "mysql2",
+        "ssh2",
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "semver",
+      "version": "7.8.6",
+      "license": "ISC",
+      "copyright": "Copyright (c) Isaac Z. Schlueter and Contributors",
+      "url": "https://github.com/npm/node-semver",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
       ]
     },
     {
@@ -826,16 +1970,56 @@
     },
     {
       "kind": "library",
+      "name": "sparse-bitfield",
+      "version": "3.0.3",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2016 Mathias Buus",
+      "url": "https://github.com/mafintosh/sparse-bitfield",
+      "usedBy": [
+        "module:logicstudio-mongodb"
+      ],
+      "via": [
+        "mongodb"
+      ]
+    },
+    {
+      "kind": "library",
       "name": "split2",
       "version": "4.2.0",
       "license": "ISC",
       "copyright": "Copyright (c) 2014-2018, Matteo Collina <hello@matteocollina.com>",
       "url": "https://github.com/mcollina/split2",
       "usedBy": [
-        "module:fs-postgres"
+        "module:fs-postgres",
+        "module:logicstudio-db"
       ],
       "via": [
         "pg"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "sql-escaper",
+      "version": "1.5.2",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2026 Weslley Araújo, Andrey Sidorov, Douglas Wilson, and contributors.",
+      "url": "https://github.com/mysqljs/sql-escaper",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "mysql2"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "sql.js",
+      "version": "1.16.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2017 sql.js authors (see AUTHORS)",
+      "url": "https://github.com/sql-js/sql.js",
+      "usedBy": [
+        "module:logicstudio-db"
       ]
     },
     {
@@ -851,6 +2035,34 @@
     },
     {
       "kind": "library",
+      "name": "standard-as-callback",
+      "version": "2.1.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2018 Zihua Li",
+      "url": "https://github.com/luin/asCallback",
+      "usedBy": [
+        "module:logicstudio-redis"
+      ],
+      "via": [
+        "ioredis"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "string_decoder",
+      "version": "1.3.0",
+      "license": "MIT",
+      "copyright": "Copyright Node.js contributors. All rights reserved.",
+      "url": "https://github.com/nodejs/string_decoder",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
       "name": "stringify-entities",
       "version": "4.0.4",
       "license": "MIT",
@@ -861,6 +2073,31 @@
       ],
       "via": [
         "@shikijs/core"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "tedious",
+      "version": "20.3.8",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2010-2026 Mike D Pilsbury",
+      "url": "https://github.com/tediousjs/tedious",
+      "usedBy": [
+        "module:logicstudio-db"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "tr46",
+      "version": "5.1.1",
+      "license": "MIT",
+      "copyright": "Copyright (c) Sebastian Mayr",
+      "url": "https://github.com/jsdom/tr46",
+      "usedBy": [
+        "module:logicstudio-mongodb"
+      ],
+      "via": [
+        "mongodb"
       ]
     },
     {
@@ -941,6 +2178,20 @@
       ],
       "via": [
         "@shikijs/core"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "tslib",
+      "version": "2.9.1",
+      "license": "0BSD",
+      "copyright": "Copyright (c) Microsoft Corporation.",
+      "url": "https://www.typescriptlang.org/",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
       ]
     },
     {
@@ -1144,13 +2395,56 @@
     },
     {
       "kind": "library",
+      "name": "webidl-conversions",
+      "version": "7.0.0",
+      "license": "BSD-2-Clause",
+      "copyright": "Copyright (c) 2014, Domenic Denicola",
+      "url": "https://github.com/jsdom/webidl-conversions",
+      "usedBy": [
+        "module:logicstudio-mongodb"
+      ],
+      "via": [
+        "mongodb"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "whatwg-url",
+      "version": "14.2.0",
+      "license": "MIT",
+      "copyright": "Copyright (c) Sebastian Mayr",
+      "url": "https://github.com/jsdom/whatwg-url",
+      "usedBy": [
+        "module:logicstudio-mongodb"
+      ],
+      "via": [
+        "mongodb"
+      ]
+    },
+    {
+      "kind": "library",
+      "name": "wsl-utils",
+      "version": "1.0.1",
+      "license": "MIT",
+      "copyright": "Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)",
+      "url": "https://github.com/sindresorhus/wsl-utils",
+      "usedBy": [
+        "module:logicstudio-db"
+      ],
+      "via": [
+        "tedious"
+      ]
+    },
+    {
+      "kind": "library",
       "name": "xtend",
       "version": "4.0.2",
       "license": "MIT",
       "copyright": "Copyright (c) 2012-2014 Raynos.",
       "url": "https://github.com/Raynos/xtend",
       "usedBy": [
-        "module:fs-postgres"
+        "module:fs-postgres",
+        "module:logicstudio-db"
       ],
       "via": [
         "pg"

@@ -31,6 +31,10 @@
 .ls-hint { color: var(--faint); font-size: 11.5px; line-height: 1.45; }
 .ls-hint.mono, .mono { font-family: var(--mono); }
 .ls-hint.ind { margin: -4px 0 10px 24px; }
+.ls-code { width: 100%; height: auto; padding: 6px 8px; min-height: 96px; resize: vertical; white-space: pre; font-size: 12px; line-height: 1.45; }
+.ls-secret { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
+.ls-secret .ctl-text { width: 100%; }
+.ls-secret-status { color: var(--faint); font-size: 11.5px; }
 .ls-icon-btn { width: 22px; height: 22px; display: inline-grid; place-items: center; border: 0; border-radius: var(--radius-sm); background: none; color: var(--dim); cursor: pointer; }
 .ls-icon-btn:hover:not(:disabled) { background: var(--hover); color: var(--text); }
 .ls-icon-btn:disabled { opacity: .35; cursor: default; }

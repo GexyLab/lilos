@@ -1,0 +1,9 @@
+{
+  "name": "lilos-module-logicstudio-mongodb",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "mongodb": "7.8.0"
+  }
+}

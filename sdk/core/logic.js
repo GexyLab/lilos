@@ -100,6 +100,8 @@ class Logic extends Emitter {
   }
 
   status() { return this.#m.request('GET', '/status'); }
+  /** A secret setting of a block (type 'secret', a password), sealed by the engine for me on this lilOS: the text to keep in the schema (since 0.30.0). */
+  async seal(value) { return (await this.#m.request('POST', '/seal', { value: String(value ?? '') })).sealed; }
   programs({ all = false } = {}) { return this.#withQuery('GET', '/programs', { all: all ? '1' : null }); }
   start(options) { return this.#m.request('POST', '/programs', options); }
   program(id) { return this.#m.request('GET', `/programs/${encodeURIComponent(id)}`); }

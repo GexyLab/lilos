@@ -33,13 +33,14 @@ const own = (obj, key) => !!obj && Object.hasOwn(obj, key);
 const OOM = 'ERR_WORKER_OUT_OF_MEMORY';
 
 export class Supervisor {
-  #ctx; #registry; #store; #logs; #workerFile;
+  #ctx; #registry; #store; #logs; #workerFile; #secrets;
   #users = new Map();      // userId → { worker, ready: Promise, programs: Set<id>, memoryMb, pending: Map, net: [] }
   #programs = new Map();
   #quotas;                 // jsonStore: { users: { id: overrides } }
   #leaseTimer = null;      // checks the runs from the command line (kind 'cli')
 
-  constructor({ ctx, registry, store, quotas, logs, workerFile }) {
+  constructor({ ctx, registry, store, quotas, logs, secrets = null, workerFile }) {
+    this.#secrets = secrets;
     this.#ctx = ctx;
     this.#workerFile = workerFile;   // worker.js, next to index.js (also once bundled)
     this.#registry = registry;
@@ -474,6 +475,8 @@ export class Supervisor {
       signal: program.abort?.signal ?? null,
       countNet: () => { if (!this.countNet(program.owner)) throw new Error('Troppe richieste di rete: hai finito la quota di questo minuto'); },
       emit: (event, data) => this.#ctx.emit(program.owner, event, data),
+      // a secret setting of a block (type 'secret'), opened for the program's owner (lib/secrets.js)
+      secret: sealed => { if (!this.#secrets) throw new Error('Segreti non disponibili'); return this.#secrets.open(program.owner, sealed); },
     };
     return clone(await fn({ kind: 'user', ...program.user }, clone(args), tools));
   }

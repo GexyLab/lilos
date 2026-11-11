@@ -82,6 +82,11 @@ I blocchi e le componenti arrivano dai **pacchetti**, moduli del kernel che si i
 | [Segnali](logicstudio-signals) (`logicstudio-signals`) | Teoria dei segnali: generatori (seno, quadra, rumore, chirp…), FFT e IFFT, densità spettrale, spettrogramma, filtri IIR, FIR e biquad con la loro risposta in frequenza, convoluzione e correlazione, misure (RMS, THD, SNR), modulazione AM, FM e PM. |
 | [Blocchi di lilOS](logicstudio-lilos) (`logicstudio-lilos`) | Notifiche, leggere e scrivere i file della tua home, elencare cartelle, eventi verso le pagine di lilOS. |
 | [Rete](logicstudio-net) (`logicstudio-net`) | **HTTP** HTTP e HTTPS. |
+| [Database (SQL)](logicstudio-db) (`logicstudio-db`) | PostgreSQL, MySQL e MariaDB, SQL Server, SQLite, Oracle, ClickHouse: query con parametri, tabelle senza SQL, transazioni, cursori. |
+| [MongoDB](logicstudio-mongodb) (`logicstudio-mongodb`) | Trova, inserisci, aggiorna, elimina, aggrega e osserva i documenti di MongoDB. |
+| [Redis](logicstudio-redis) (`logicstudio-redis`) | Chiavi, contatori, hash, liste e canali di Redis. |
+| [InfluxDB](logicstudio-influxdb) (`logicstudio-influxdb`) | Scrivi punti e interroga le serie temporali (Flux, InfluxQL, SQL). |
+| [Elasticsearch](logicstudio-elasticsearch) (`logicstudio-elasticsearch`) | Indicizza, leggi e cerca documenti in Elasticsearch e OpenSearch. |
 | [Componenti UI](logicstudio-ui) (`logicstudio-ui`) | Le componenti delle finestre: etichette, valori, indicatori, pulsanti, campi, tabelle, contenitori. |
 | [Grafici](logicstudio-charts) (`logicstudio-charts`) | 12 grafici per le finestre: linee, aree, colonne, barre, torta, tempo reale… |
 | [Logic Studio Engine](logicstudio-engine) (`logicstudio-engine`) | Il motore: fa girare prove e programmi attivi, con [limiti](logicstudio-engine/limits) e [permessi](logicstudio-engine/permissions). Si installa con l'IDE. |

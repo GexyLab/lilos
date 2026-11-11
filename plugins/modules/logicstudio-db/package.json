@@ -1,0 +1,13 @@
+{
+  "name": "lilos-module-logicstudio-db",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "mysql2": "3.24.6",
+    "oracledb": "26.0.0",
+    "pg": "8.23.1",
+    "sql.js": "1.16.0",
+    "tedious": "20.3.8"
+  }
+}
