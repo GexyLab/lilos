@@ -5,7 +5,8 @@ import { t, i18n } from './i18n.js';
  * Proprietà: what is selected in the editor shown. For a block: its label, its settings, its
  * inputs (whether they start it, a value at the start) and its ports. The ports a block allows
  * to add (its definition's `grow`) are added, renamed, moved and removed only here; base ports
- * have a lock and never go.
+ * have a lock and never go. The eye beside each port hides it on the drawing or shows it again
+ * (not when it is linked); the Eccezione output starts hidden.
  */
 export class Inspector {
   el;
@@ -116,7 +117,7 @@ export class Inspector {
     for (const side of ['inputs', 'outputs']) {
       const list = ports[side];
       if (!list.length) continue;
-      rows.push(h('tr', { class: 'side' }, h('th', { colspan: 3 }, t(side === 'inputs' ? 'inspector.inputs' : 'inspector.outputs'))));
+      rows.push(h('tr', { class: 'side' }, h('th', { colspan: 4 }, t(side === 'inputs' ? 'inspector.inputs' : 'inspector.outputs'))));
       const added = list.filter(p => p.added);
       for (const p of list) {
         const name = p.added && def.grow?.[side]?.name === 'user' && !comp
@@ -132,14 +133,39 @@ export class Inspector {
             h('button', { type: 'button', class: 'ls-icon-btn', title: t('inspector.down'), disabled: i === added.length - 1, onclick: () => doc.movePort(block.id, side, i, i + 1) }, icon('arrowDown')),
             h('button', { type: 'button', class: 'ls-link-btn danger', onclick: () => this.#removePort(view, block, side, p) }, t('inspector.removePort')));
         }
-        rows.push(h('tr', { class: p.error ? 'err' : '' },
+        rows.push(h('tr', { class: `${p.error ? 'err' : ''}${p.hidden && !this.#linked(doc, block, side, p) ? ' hid' : ''}` },
+          h('td', { class: 'vis' }, this.#eye(view, block, side, p)),
           h('td', { class: 'nm' }, h('i', { class: `ls-dotc t-${p.type}` }), name),
           h('td', { class: 'ty' }, t(`type.${p.type}`)),
           h('td', { class: 'acts' }, tail)));
-        if (side === 'inputs' && !p.error && !comp) rows.push(h('tr', { class: 'opts' }, h('td', { colspan: 3 }, this.#inputOptions(doc, block, p))));
+        if (side === 'inputs' && !p.error && !comp) rows.push(h('tr', { class: 'opts' }, h('td', { colspan: 4 }, this.#inputOptions(doc, block, p))));
       }
     }
     return h('table', { class: 'ls-ports' }, ...rows);
+  }
+
+  #linked(doc, block, side, p) { return doc.linksOf(block.id, p.name, side).length > 0; }
+
+  /** The eye of a port: hides it on the drawing or shows it again; a linked port is always shown. */
+  #eye(view, block, side, p) {
+    const linked = this.#linked(view.doc, block, side, p);
+    const hidden = p.hidden && !linked;
+    const key = `${side}:${p.name}`;
+    return h('button', {
+      type: 'button', class: `ls-icon-btn ls-eye${hidden ? ' off' : ''}`,
+      title: linked ? t('inspector.linkedPort') : t(hidden ? 'inspector.showPort' : 'inspector.hidePort'),
+      'aria-label': `${linked ? t('inspector.linkedPort') : t(hidden ? 'inspector.showPort' : 'inspector.hidePort')}: ${p.label}`,
+      // not `disabled` when linked: its tooltip says why
+      'aria-disabled': linked ? 'true' : null,
+      disabled: view.canvas?.readOnly,
+      dataset: { eye: key },
+      onclick: () => {
+        if (linked) return;
+        view.doc.setPortHidden(block.id, side, p.name, !hidden);
+        // the sidebar was drawn again: the keyboard stays on this eye
+        [...this.el.querySelectorAll('[data-eye]')].find(b => b.dataset.eye === key)?.focus();
+      },
+    }, icon(hidden ? 'eyeOff' : 'eye'));
   }
 
   /** «Lo avvia» and the value at the start of an input. */

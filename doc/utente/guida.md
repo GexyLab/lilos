@@ -1699,7 +1699,7 @@ Logic Studio non c'è di serie. Serve lilOS dalla 1.37.0 e l'app **Logic Studio 
 | Progetto | Uno o più schemi e finestre, con le loro opzioni: è una cartella |
 | Console | Un posto dove il programma scrive righe e fa domande |
 
-Ogni blocco ha anche una porta **Eccezione**: esce un valore da lì quando il blocco non riesce a fare il suo lavoro (per esempio una divisione per zero). Se non la colleghi a niente, l'errore compare nella console principale.
+Ogni blocco ha anche una porta **Eccezione**: esce un valore da lì quando il blocco non riesce a fare il suo lavoro (per esempio una divisione per zero). Se non la colleghi a niente, l'errore compare nella console principale. Nel disegno l'Eccezione è **nascosta** finché non la mostri (vedi sotto).
 
 ### Aprire Logic Studio
 
@@ -1723,7 +1723,8 @@ Con un progetto aperto la finestra ha, a sinistra, le schede **Progetto** (l'ele
 2. Per **collegare** due blocchi, trascina da un'uscita (a destra) a un ingresso (a sinistra). Per togliere un collegamento, trascina l'estremità dell'ingresso via, oppure selezionalo e premi **Canc**. Le porte di tipo diverso si possono collegare, ma il collegamento è segnalato se i tipi non vanno d'accordo.
 3. Seleziona un blocco per cambiarne le **Impostazioni** nella barra **Proprietà**: per esempio quanti secondi aspettare, o il testo di una domanda. Lì puoi anche dargli un'**Etichetta**, cioè un nome tuo.
 4. Alcuni blocchi (E, O, Somma, Formatta testo, Casi, Scrivi in console…) permettono di **aggiungere ingressi o uscite**: sempre dalla barra **Proprietà**, con **Aggiungi ingresso** o **Aggiungi uscita**; si possono rinominare, spostare su e giù e togliere con **Togli**. Le porte aggiunte hanno il nome in corsivo. Togliere una porta toglie anche i suoi collegamenti, ma **Ctrl Z** li rimette.
-5. Per ogni ingresso, nelle **Proprietà**, scegli se **lo avvia** (se arriva un valore, il blocco lavora) e se ha un **valore iniziale** da quando parte il programma. Un ingresso che non avvia il blocco serve solo a tenere un valore da usare quando il blocco parte per un altro ingresso.
+5. Le porte che non usi si possono **nascondere**: nella barra **Proprietà**, accanto a ogni porta, l'**occhio** la nasconde nel disegno (occhio barrato) o la mostra di nuovo. Una porta **collegata** non si nasconde: il suo occhio è spento finché non togli il collegamento. La porta **Eccezione** parte nascosta: per collegarla premi prima il suo occhio. Nascondere una porta cambia solo il disegno: un ingresso nascosto tiene il suo valore all'avvio.
+6. Per ogni ingresso, nelle **Proprietà**, scegli se **lo avvia** (se arriva un valore, il blocco lavora) e se ha un **valore iniziale** da quando parte il programma. Un ingresso che non avvia il blocco serve solo a tenere un valore da usare quando il blocco parte per un altro ingresso.
 
 Sul foglio: trascina lo sfondo per selezionare con un rettangolo; per spostare la vista tieni premuto **Spazio** (o usa il tasto centrale del mouse) e trascina; la **rotella** ingrandisce e rimpicciolisce; **Adatta** mostra tutto il foglio. Con il foglio in primo piano: **Canc** elimina quello che hai selezionato, **Ctrl A** seleziona tutto, **Ctrl D** duplica, le **frecce** spostano, **Esc** toglie la selezione. Tasto destro su un blocco: **Duplica**, **Etichetta…**, **Elimina il blocco**; su un collegamento: **Elimina il collegamento**; sul foglio: **Aggiungi un blocco qui**, **Seleziona tutto**. **Ctrl Z** e **Ctrl Y** annullano e ripetono, **Ctrl S** salva tutto.
 

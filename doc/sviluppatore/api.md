@@ -1595,6 +1595,7 @@ I tre documenti che l'IDE modifica. Hanno in comune una base (`LogicDocument`, u
 | `addPort(id, def, 'inputs' \| 'outputs', { limit = 32, lang, name })` → `{ id, name }` | Aggiunge una porta se la definizione ha `grow` per quel lato, fino a `min(limit, grow.max)`. Lancia altrimenti. Il nome, se manca, segue `grow.name`: `letter` (a, b, c…), `number` o `user` (etichetta e numero). |
 | `removePort(id, lato, portaId)`, `renamePort(...)`, `movePort(id, lato, da, a)` | Solo per le porte aggiunte; togliere una porta toglie i suoi collegamenti. |
 | `linksOf(id, porta, lato)` | I collegamenti che toccano una porta. |
+| `setPortHidden(id, lato, porta, nascosta)` | Nasconde una porta nel disegno o la mostra di nuovo (`lato` `'inputs'` o `'outputs'`); solo l'aspetto, il motore la ignora. Una porta collegata non si nasconde: restituisce `false` e non cambia niente. Nel blocco resta `hide: { inputs: { porta: bool }, outputs: { … } }` solo per ciò che è diverso dal predefinito (dalla 0.24.0). |
 | `connect(da, a)` → `boolean`, `disconnect(collegamenti)` | Collega `[blocco, porta]` a `[blocco, porta]` (falso se esiste già o se è lo stesso blocco). |
 | `setView(vista)`, `rename(nome)` | La vista (non entra nella storia); il nome. |
 | `schemaPorts(defDi)` → `{ inputs, outputs }` | Le porte di schema: `[{ name, type, block, description }]` dai blocchi con `role` `schemaIn` e `schemaOut`. `defDi(tipo)` dà la definizione. |
@@ -1625,7 +1626,9 @@ I tre documenti che l'IDE modifica. Hanno in comune una base (`LogicDocument`, u
 | `setConsoles(patch)`, `addConsole(nome)` → id, `removeConsole(id)` (lancia per `main`), `updateConsole(id, patch)` | Le console. |
 | `setOptions`, `setEntrypoint(finestra, entry \| null)`, `setInfo({ name, version, description, icon })`, `setApp`, `setTexts` | Il resto. |
 
-**`portsOf(item, def, { lang = 'en', component = null, errorLabel })`** → `{ inputs, outputs }`: le porte di un blocco (o di una componente) con quelle aggiunte, ognuna `{ name, label, type, added, trigger, error? }`. Prima le porte della definizione, poi le aggiunte (`name` è il loro id `x1`, `label` il loro nome). Ai blocchi si aggiunge l'uscita `error` (Eccezione). Per l'oggetto di una componente in uno schema (`role` `'component'`) si passa `component: { def, added }` della componente. In una porta di schema il tipo è quello scelto nelle impostazioni.
+**`portsOf(item, def, { lang = 'en', component = null, errorLabel })`** → `{ inputs, outputs }`: le porte di un blocco (o di una componente) con quelle aggiunte, ognuna `{ name, label, type, added, trigger, hidden, error? }`. Prima le porte della definizione, poi le aggiunte (`name` è il loro id `x1`, `label` il loro nome). Ai blocchi si aggiunge l'uscita `error` (Eccezione). Per l'oggetto di una componente in uno schema (`role` `'component'`) si passa `component: { def, added }` della componente. In una porta di schema il tipo è quello scelto nelle impostazioni. `hidden` dice se l'utente l'ha nascosta (`portHidden`).
+
+**`portHidden(item, lato, porta)`** → `boolean` (dalla 0.24.0): se una porta di un blocco è nascosta nel disegno. Senza una scelta dell'utente (`item.hide`) è nascosta solo l'uscita `error` (Eccezione). `LogicCanvas` non disegna le porte nascoste, ma una porta collegata la disegna sempre (uno schema salvato prima, o l'Eccezione già collegata).
 
 **`typesMatch(da, a)`** → `boolean`: se un collegamento tra due tipi è senza avvisi (`any` va con tutto, uguali vanno insieme, un ingresso `pulse` accetta tutto, un ingresso `text` accetta tutto tranne `pulse`). **`linkKey(l)`**: una chiave di testo per un collegamento. **`logicText`** è la tabella dei testi dell'SDK per questi documenti (`lilos:sdk.logic`).
 

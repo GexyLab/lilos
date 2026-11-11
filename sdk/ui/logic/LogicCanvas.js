@@ -7,8 +7,9 @@ import { formatLogicValue } from './format.js';
 
 /**
  * The drawing of a Logic Studio schema (LogicSchema): blocks, their ports and the links between
- * them, on a canvas that pans and zooms. Ports are never added or removed here (only in the
- * properties sidebar): the added ones are shown with their name in italics.
+ * them, on a canvas that pans and zooms. Ports are never added, removed, hidden or shown here (only
+ * in the properties sidebar): the added ones are shown with their name in italics; the hidden ones
+ * (portHidden: the output «error» unless shown) are not drawn, unless they are linked.
  *
  *   const canvas = new LogicCanvas({ schema, catalog, lang, componentOf, labels });
  *   el.append(canvas.el);
@@ -93,14 +94,19 @@ export class LogicCanvas extends Emitter {
   refresh(all = false) {
     const data = this.#schema.data;
     const seen = new Set();
+    // The linked ports of each block: they are drawn filled, and never hidden
+    const linked = new Map();
+    const mark = (id, key) => { if (!linked.has(id)) linked.set(id, new Set()); linked.get(id).add(key); };
+    for (const l of data.links) { mark(l.from[0], `out:${l.from[1]}`); mark(l.to[0], `in:${l.to[1]}`); }
     for (const b of data.blocks) {
       seen.add(b.id);
       const def = this.#defs.get(b.type);
       const comp = def?.role === 'component' ? this.#componentOf(b) : null;
-      const sig = JSON.stringify([b, !!def, comp?.def?.type, comp?.added, this.#lang]);
+      const on = linked.get(b.id) ?? new Set();
+      const sig = JSON.stringify([b, !!def, comp?.def?.type, comp?.added, this.#lang, [...on].sort()]);
       let entry = this.#blocks.get(b.id);
       if (!entry || entry.sig !== sig || all) {
-        const fresh = this.#blockEl(b, def, comp);
+        const fresh = this.#blockEl(b, def, comp, on);
         if (entry) entry.el.replaceWith(fresh.el); else this.#world.append(fresh.el);
         entry = { ...fresh, sig };
         this.#blocks.set(b.id, entry);
@@ -120,12 +126,14 @@ export class LogicCanvas extends Emitter {
     this.#drawLinks();
   }
 
-  #blockEl(b, def, comp) {
+  #blockEl(b, def, comp, linked) {
     const lang = this.#lang;
     const name = def ? (def.label?.[lang] ?? def.label?.en ?? def.type) : b.type;
-    const ports = def ? portsOf(b, def, { lang, component: comp, errorLabel: this.#labels.error }) : { inputs: [], outputs: [] };
-    const linkedIn = new Set(this.#schema.data.links.filter(l => l.to[0] === b.id).map(l => l.to[1]));
-    const linkedOut = new Set(this.#schema.data.links.filter(l => l.from[0] === b.id).map(l => l.from[1]));
+    const all = def ? portsOf(b, def, { lang, component: comp, errorLabel: this.#labels.error }) : { inputs: [], outputs: [] };
+    const linkedIn = new Set([...linked].filter(k => k.startsWith('in:')).map(k => k.slice(3)));
+    const linkedOut = new Set([...linked].filter(k => k.startsWith('out:')).map(k => k.slice(4)));
+    // Hidden ports are not drawn, unless linked (a schema saved before they were hidden)
+    const ports = { inputs: all.inputs.filter(p => !p.hidden || linkedIn.has(p.name)), outputs: all.outputs.filter(p => !p.hidden || linkedOut.has(p.name)) };
     let title = b.label || name, kind = '';
     let sub = def ? summary(b, def, lang) : this.#labels.missing;
     if (def?.role === 'schemaIn' || def?.role === 'schemaOut') { title = b.config.port || name; kind = name; sub = ''; }

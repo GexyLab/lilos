@@ -17,7 +17,7 @@ export { notifications } from './core/notifications.js';
 export { kernelSettings, DEFAULT_FILE_LIMITS } from './core/kernelSettings.js';
 export { schedule } from './core/schedule.js';
 export { logic, LiveProgram } from './core/logic.js';
-export { LogicSchema, LogicWindow, LogicProject, LOGIC_FORMATS, LOGIC_EXTENSIONS, PORT_TYPES, portsOf, typesMatch, linkKey } from './core/logicModel.js';
+export { LogicSchema, LogicWindow, LogicProject, LOGIC_FORMATS, LOGIC_EXTENSIONS, PORT_TYPES, portsOf, portHidden, typesMatch, linkKey } from './core/logicModel.js';
 export { settings } from './core/settings.js';
 export { shortcuts, comboFromEvent } from './core/shortcuts.js';
 export { menus } from './core/menus.js';

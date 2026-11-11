@@ -96,9 +96,10 @@ function nextId(prefix, taken) {
 
 /**
  * The ports of a block (or of a component): { inputs, outputs }, each [{ name, label, type, added,
- * trigger }] — base ports first, then the added ones (name = their id x1, x2…, label = their name).
- * A block also has the output «error» (Eccezione). For the object of a component in a schema
+ * trigger, hidden }] — base ports first, then the added ones (name = their id x1, x2…, label = their
+ * name). A block also has the output «error» (Eccezione). For the object of a component in a schema
  * (role 'component') pass the component's definition and its added ports as `component`.
+ * `hidden`: the user chose to hide it on the drawing (portHidden); a linked port is shown anyway.
  */
 export function portsOf(item, def, { lang = 'en', component = null, errorLabel = t('error') } = {}) {
   const src = component?.def ?? def;
@@ -112,7 +113,27 @@ export function portsOf(item, def, { lang = 'en', component = null, errorLabel =
   if (def?.role === 'schemaOut' && inputs[0]) inputs[0].type = item?.config?.type ?? 'any';
   if (def && !def.role && !component) outputs.push({ name: 'error', label: errorLabel, type: 'any', added: false, error: true });
   if (component) outputs.push({ name: 'error', label: errorLabel, type: 'any', added: false, error: true });
+  for (const p of inputs) p.hidden = portHidden(item, 'inputs', p.name);
+  for (const p of outputs) p.hidden = portHidden(item, 'outputs', p.name);
   return { inputs, outputs };
+}
+
+/**
+ * Whether the user hid a port of a block on the drawing (item.hide = { inputs: { name: bool },
+ * outputs: { … } }). Without a choice only the output «error» (Eccezione) is hidden. A linked port
+ * is always drawn: LogicSchema.setPortHidden does not hide it, and the drawing shows it anyway.
+ */
+export function portHidden(item, side, name) {
+  const v = item?.hide?.[side]?.[name];
+  return typeof v === 'boolean' ? v : side === 'outputs' && name === 'error';
+}
+
+/** item.hide of a file, kept only as { inputs: { name: bool }, outputs: { name: bool } }. */
+function cleanHide(raw) {
+  if (!plain(raw)) return null;
+  const side = s => Object.fromEntries(Object.entries(plain(raw[s]) ? raw[s] : {}).filter(([k, v]) => k && typeof v === 'boolean').slice(0, 200));
+  const hide = { inputs: side('inputs'), outputs: side('outputs') };
+  return Object.keys(hide.inputs).length || Object.keys(hide.outputs).length ? hide : null;
 }
 
 /** Whether a port of type `from` may go into one of type `to` without a warning. */
@@ -170,6 +191,7 @@ export class LogicSchema extends LogicDocument {
         ...(typeof b.label === 'string' && b.label && { label: b.label.slice(0, 80) }),
         config: plain(b.config) ? b.config : {}, ports: plain(b.ports) ? b.ports : {},
         ...(plain(b.added) && { added: { inputs: Array.isArray(b.added.inputs) ? b.added.inputs : [], outputs: Array.isArray(b.added.outputs) ? b.added.outputs : [] } }),
+        ...(cleanHide(b.hide) && { hide: cleanHide(b.hide) }),
       }));
     const links = (Array.isArray(raw.links) ? raw.links : []).filter(l => Array.isArray(l?.from) && Array.isArray(l?.to) && ids.has(l.from[0]) && ids.has(l.to[0]))
       .map(l => ({ from: [l.from[0], String(l.from[1])], to: [l.to[0], String(l.to[1])] }));
@@ -258,6 +280,25 @@ export class LogicSchema extends LogicDocument {
     });
   }
 
+  /**
+   * Hides a port of a block on the drawing, or shows it again (side 'inputs' | 'outputs'). A linked
+   * port is not hidden: false, nothing changed. Only what differs from the default (the output
+   * «error» hidden, the others shown) is kept in the file.
+   */
+  setPortHidden(id, side, port, hidden) {
+    if (hidden && this.linksOf(id, port, side).length) return false;
+    this.edit('portHidden', data => {
+      const b = data.blocks.find(x => x.id === id);
+      if (!b) return;
+      b.hide ??= { inputs: {}, outputs: {} };
+      b.hide[side] ??= {};
+      if (!!hidden === portHidden(null, side, port)) delete b.hide[side][port];
+      else b.hide[side][port] = !!hidden;
+      if (!cleanHide(b.hide)) delete b.hide;
+    });
+    return true;
+  }
+
   /** Adds a port (only from the properties sidebar): side 'inputs' | 'outputs'. Returns the port. */
   addPort(id, def, side, options) {
     return this.edit('addPort', data => {
@@ -275,6 +316,7 @@ export class LogicSchema extends LogicDocument {
       if (!list || !list.some(p => p.id === portId)) throw new Error(t('onlyAdded'));
       b.added[side] = list.filter(p => p.id !== portId);
       delete b.ports[portId];
+      if (b.hide?.[side]) { delete b.hide[side][portId]; if (!cleanHide(b.hide)) delete b.hide; }
       data.links = data.links.filter(l => !(side === 'inputs' ? l.to[0] === id && l.to[1] === portId : l.from[0] === id && l.from[1] === portId));
     });
   }
