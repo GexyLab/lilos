@@ -98,7 +98,7 @@ Every line is a JSON on its own: it is a format that is easy to read again with 
 [HTTP request (fetch)] Exception ──▶ object [Get property: message] value ──▶ content [appendFile: ~/errors.txt]
 ```
 
-Every time the [HTTP request (fetch)](net.request) block fails, the error message (for example "Indirizzo non trovato: esempio.invalid", meaning "Address not found") ends up in a line of `~/errors.txt`. You can also link **Exception** directly to **content**: then the whole object `{ message, block, schema, at }` is written on one line.
+Every time the [HTTP request (fetch)](net.request) block fails, the error message (for example "Indirizzo non trovato: esempio.invalid", meaning "Address not found") ends up in a line of `~/errors.txt`. You can also link **Exception** directly to **content**: then the whole object `{ message, block, type, schema, at }` is written on one line.
 
 ## Errors
 

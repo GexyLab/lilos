@@ -48,7 +48,7 @@ Negli esempi di queste pagine `[Linee: Vendite]` è l'oggetto nello schema della
 | **abilitato** (`enabled`) | sì/no | tutti | `false` rende il grafico più chiaro e lo spegne: niente riquadro dei valori, clic, tastiera, pulsanti. `true` lo riaccende. |
 | **visibile** (`visible`) | sì/no | tutti | `false` lo nasconde, `true` lo mostra. |
 | **punto scelto** (`picked`) | oggetto | tutti tranne Mini linea | Esce quando chi guarda fa clic su un punto, una colonna, una fetta, una cella… (o preme **Invio** sul grafico). Il nome cambia: **colonna scelta**, **barra scelta**, **fetta scelta**, **classe scelta**, **cella scelta**, **asse scelto**. |
-| **Eccezione** (`error`) | oggetto | tutti | Come ogni blocco; per i grafici oggi non ci passa niente. |
+| **Exception** (`error`) | oggetto | tutti | Come ogni blocco; per i grafici oggi non ci passa niente. |
 
 ## Che forma devono avere i dati
 

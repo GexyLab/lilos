@@ -26,7 +26,7 @@ Un testo nella finestra: un titolo, una spiegazione, un messaggio che uno schema
 
 | Porta | Tipo | Descrizione |
 |---|---|---|
-| **Eccezione** (`error`) | oggetto | Come ogni blocco; per questa componente oggi non ci passa niente. |
+| **Exception** (`error`) | oggetto | Come ogni blocco; per questa componente oggi non ci passa niente. |
 
 L'Etichetta non manda niente: l'utente non può agire su di lei.
 
@@ -66,7 +66,7 @@ Finestra «Copia»
 
 ```
 [Pulsante: Copia] premuto ──▶ leggi [readFile: ~/dati.txt] contenuto ──▶ contenuto [writeFile: ~/copia.txt] scritto ──▶ invia [Costante · Variabile: «Copiato.»] valore ──▶ testo [Etichetta: label1]
-[readFile] Eccezione ──▶ oggetto [Get proprietà (obj.campo): message] valore ──▶ testo [Etichetta: label1]
+[readFile] Exception ──▶ oggetto [Get proprietà (obj.campo): message] valore ──▶ testo [Etichetta: label1]
 ```
 
 Se la copia riesce, l'etichetta dice «Copiato.»; se il file non c'è, mostra il messaggio d'errore del blocco [readFile](lilos.fileRead).

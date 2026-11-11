@@ -10,7 +10,7 @@ Uno **schema** (file `.lsch`) è un foglio di blocchi collegati. Si apre con un 
 │● a                    ○    │
 │● b       risultato ●       │
 │○ c                         │   ← porta aggiunta: nome in corsivo
-│            Eccezione ○     │   ← sbiadita finché non è collegata
+│            Exception ○     │   ← sbiadita finché non è collegata
 └────────────────────────────┘
 ```
 
@@ -19,7 +19,7 @@ Uno **schema** (file `.lsch`) è un foglio di blocchi collegati. Si apre con un 
 - A sinistra gli **ingressi**, a destra le **uscite**. Il pallino ha il colore del **tipo** della porta ed è pieno quando la porta è collegata (vedi [Collegamenti e tipi delle porte](ide/links)).
 - Il nome di un ingresso **sottolineato a puntini** vuol dire che quell'ingresso **non avvia** il blocco.
 - Le **porte aggiunte** hanno il nome in *corsivo*.
-- L'ultima uscita è sempre **Eccezione**, rossa, sbiadita finché non la colleghi.
+- L'ultima uscita è sempre **Exception**, rossa, sbiadita finché non la colleghi.
 
 Due blocchi sono speciali:
 

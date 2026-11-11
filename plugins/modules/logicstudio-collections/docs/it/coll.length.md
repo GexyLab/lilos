@@ -15,7 +15,7 @@ Conta gli elementi di una lista e manda il numero.
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **lunghezza** (`length`) | numero | Quanti elementi ha la lista: 0 se è vuota. |
-| **Eccezione** (`error`) | oggetto | Quando il valore arrivato non è una lista. |
+| **Exception** (`error`) | oggetto | Quando il valore arrivato non è una lista. |
 
 ## Come funziona
 

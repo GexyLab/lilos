@@ -15,7 +15,7 @@ Prende un campo da un oggetto (o un elemento da una lista) e lo manda. Il campo 
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **valore** (`value`) | qualsiasi | Il valore del campo, così com'è: numero, testo, sì/no, oggetto, lista o `null`. |
-| **Eccezione** (`error`) | oggetto | Quando il campo non c'è. |
+| **Exception** (`error`) | oggetto | Quando il campo non c'è. |
 
 ## Impostazioni
 
@@ -42,11 +42,11 @@ Casi particolari:
 
 - **Campo vuoto**: il blocco manda l'oggetto intero, senza cambiarlo (qualunque cosa sia arrivata, anche un testo o un numero).
 - Un campo che esiste e vale **`null`** viene mandato: su **valore** esce `null`, e non è un errore.
-- Se il campo **non c'è**, il blocco non manda niente su **valore** e manda su **Eccezione** il messaggio «Il campo «*percorso*» non esiste».
+- Se il campo **non c'è**, il blocco non manda niente su **valore** e manda su **Exception** il messaggio «Il campo «*percorso*» non esiste».
 - Se a metà percorso si incontra qualcosa che non è un oggetto o una lista (un testo, un numero, `null`), il campo non c'è: per esempio `nome.length` con `nome` = `"Ada"` dà l'errore. Per la lunghezza di un testo usa il blocco [Funzioni stringa](core.text).
 - Un **testo JSON** (per esempio quello letto da un file) non è un oggetto: `{"a":1}` scritto come testo dà l'errore. Prima trasformalo con il blocco [Cast (converti tipo)](core.convert), impostazione **In** = «da testo JSON».
 
-Il percorso è fisso, nelle impostazioni: non c'è un ingresso per cambiarlo mentre il programma gira. Per prendere un elemento a una posizione che cambia usa il blocco [Leggi lista[i]](coll.get) del pacchetto Liste. Per le regole generali (ingressi, «lo avvia», Eccezione) vedi [Come funziona un blocco](ide/blocks).
+Il percorso è fisso, nelle impostazioni: non c'è un ingresso per cambiarlo mentre il programma gira. Per prendere un elemento a una posizione che cambia usa il blocco [Leggi lista[i]](coll.get) del pacchetto Liste. Per le regole generali (ingressi, «lo avvia», Exception) vedi [Come funziona un blocco](ide/blocks).
 
 ## Esempi
 
@@ -65,7 +65,7 @@ Negli esempi l'oggetto che arriva è:
 | `indirizzo` | l'oggetto `{"città": "Roma"}` su **valore** |
 | `note` | `null` su **valore** |
 | *(vuoto)* | l'oggetto intero su **valore** |
-| `telefono` | niente su **valore**; su **Eccezione** «Il campo «telefono» non esiste» |
+| `telefono` | niente su **valore**; su **Exception** «Il campo «telefono» non esiste» |
 
 ### 2. Un elemento di una lista e la sua lunghezza
 
@@ -90,7 +90,7 @@ Il blocco [readFile](lilos.fileRead) ha il **Formato** testo. Se il file contien
 
 ```
 [Get proprietà (obj.campo): sconto] valore    ──▶ valore [Print (console.log)]
-                       Eccezione ──▶ invia  [Costante · Variabile: 0] valore ──▶ valore [Print (console.log)]
+                       Exception ──▶ invia  [Costante · Variabile: 0] valore ──▶ valore [Print (console.log)]
 ```
 
 Quando lo sconto c'è, la console lo scrive; quando manca, al posto dell'errore nella console principale esce `0`: il blocco [Costante · Variabile](core.value) ha l'ingresso **invia** collegato, quindi manda il suo `0` solo quando arriva l'errore.

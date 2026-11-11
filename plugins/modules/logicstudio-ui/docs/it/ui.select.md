@@ -28,7 +28,7 @@ Un menu a tendina: si vede la scelta fatta, e un clic apre l'elenco delle opzion
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **valore** (`value`) | testo | Quando l'utente sceglie un'opzione **diversa** da quella mostrata: il suo valore. |
-| **Eccezione** (`error`) | oggetto | Come ogni blocco; per questa componente oggi non ci passa niente. |
+| **Exception** (`error`) | oggetto | Come ogni blocco; per questa componente oggi non ci passa niente. |
 
 ## Come funziona
 

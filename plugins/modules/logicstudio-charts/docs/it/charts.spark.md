@@ -34,7 +34,7 @@ La Mini linea non ha legenda, strumenti (tabella, PNG, CSV) né il limite di pun
 
 | Porta | Tipo | Descrizione |
 |---|---|---|
-| **Eccezione** (`error`) | oggetto | Come ogni blocco; oggi non ci passa niente. |
+| **Exception** (`error`) | oggetto | Come ogni blocco; oggi non ci passa niente. |
 
 La Mini linea non ha **punto scelto**: un clic non manda niente.
 

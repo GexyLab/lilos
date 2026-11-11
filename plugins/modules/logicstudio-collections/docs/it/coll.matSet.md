@@ -18,7 +18,7 @@ Cambia il valore di una cella e manda la matrice nuova.
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **matrice** (`matrix`) | matrice | Una copia della matrice con la cella cambiata. Ha le stesse dimensioni. |
-| **Eccezione** (`error`) | oggetto | Matrice non valida, riga o colonna non intere o fuori dalla matrice. |
+| **Exception** (`error`) | oggetto | Matrice non valida, riga o colonna non intere o fuori dalla matrice. |
 
 ## Come funziona
 

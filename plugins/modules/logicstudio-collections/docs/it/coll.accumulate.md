@@ -17,7 +17,7 @@ Raccoglie in una lista i valori che arrivano uno alla volta, e la manda aggiorna
 |---|---|---|
 | **lista** (`list`) | lista | La lista raccolta finora, dal più vecchio al più recente. |
 | **quanti** (`count`) | numero | Quanti elementi ha la lista. |
-| **Eccezione** (`error`) | oggetto | Non usata da questo blocco in condizioni normali. |
+| **Exception** (`error`) | oggetto | Non usata da questo blocco in condizioni normali. |
 
 ## Impostazioni
 

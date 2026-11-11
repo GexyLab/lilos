@@ -28,7 +28,7 @@ Un pulsante: quando l'utente lo preme, manda un impulso allo schema. Può anche,
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **premuto** (`pressed`) | impulso | Ogni volta che l'utente preme il pulsante. Il valore è `true`. |
-| **Eccezione** (`error`) | oggetto | Come ogni blocco; per questa componente oggi non ci passa niente. |
+| **Exception** (`error`) | oggetto | Come ogni blocco; per questa componente oggi non ci passa niente. |
 
 ## Come funziona
 

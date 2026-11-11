@@ -15,7 +15,7 @@ Fa un'operazione su un testo: lo mette in maiuscolo o minuscolo, toglie gli spaz
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **risultato** (`result`) | qualsiasi | Un testo, un numero (per **lunghezza**) o un sì/no (per **contiene**). |
-| **Eccezione** (`error`) | oggetto | In pratica questo blocco non manda mai niente qui. |
+| **Exception** (`error`) | oggetto | In pratica questo blocco non manda mai niente qui. |
 
 ## Impostazioni
 

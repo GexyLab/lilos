@@ -9,6 +9,6 @@ Una **lista** (o array) è un elenco ordinato di valori; una **matrice** è una 
 
 I nomi richiamano le funzioni equivalenti dei linguaggi di programmazione (dalla 1.1.0).
 
-Gli errori (indice fuori dalla lista, matrici di misure incompatibili…) escono dalla porta «Eccezione» del blocco, o vanno nella console principale se non è collegata.
+Gli errori (indice fuori dalla lista, matrici di misure incompatibili…) escono dalla porta «Exception» del blocco, o vanno nella console principale se non è collegata.
 
 Richiede il motore `logicstudio-engine`.

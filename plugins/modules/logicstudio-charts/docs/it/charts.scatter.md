@@ -38,7 +38,7 @@ Un punto per ogni coppia di valori (x, y), senza linee: per vedere se due misure
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **punto scelto** (`picked`) | oggetto | Il punto più vicino al clic (entro 24 pixel), o quello raggiunto con le frecce e **Invio**. |
-| **Eccezione** (`error`) | oggetto | Come ogni blocco; oggi non ci passa niente. |
+| **Exception** (`error`) | oggetto | Come ogni blocco; oggi non ci passa niente. |
 
 ## Come funziona
 

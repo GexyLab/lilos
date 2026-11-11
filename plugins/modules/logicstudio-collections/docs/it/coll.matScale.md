@@ -16,7 +16,7 @@ Moltiplica ogni cella di una matrice per lo stesso numero.
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **matrice** (`matrix`) | matrice | La matrice con ogni cella moltiplicata per il fattore. |
-| **Eccezione** (`error`) | oggetto | Fattore non numerico, matrice non valida o con celle non numeriche. |
+| **Exception** (`error`) | oggetto | Fattore non numerico, matrice non valida o con celle non numeriche. |
 
 ## Come funziona
 

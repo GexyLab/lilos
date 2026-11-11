@@ -26,7 +26,7 @@ Un pallino che si accende e si spegne, come la spia di un quadro elettrico, con 
 
 | Porta | Tipo | Descrizione |
 |---|---|---|
-| **Eccezione** (`error`) | oggetto | Come ogni blocco; per questa componente oggi non ci passa niente. |
+| **Exception** (`error`) | oggetto | Come ogni blocco; per questa componente oggi non ci passa niente. |
 
 ## Come funziona
 

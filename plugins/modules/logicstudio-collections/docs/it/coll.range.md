@@ -17,7 +17,7 @@ Fa una lista di numeri da un valore a un altro, con un passo: per esempio 0, 1, 
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **risultato** (`result`) | lista | I numeri da **da** verso **a**, a distanza di **passo**. |
-| **Eccezione** (`error`) | oggetto | Un ingresso non è un numero, passo zero, lista troppo lunga. |
+| **Exception** (`error`) | oggetto | Un ingresso non è un numero, passo zero, lista troppo lunga. |
 
 ## Impostazioni
 

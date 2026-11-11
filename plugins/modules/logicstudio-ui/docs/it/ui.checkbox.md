@@ -26,7 +26,7 @@ Una casella con il suo testo accanto, spuntata o no. Quando l'utente la cambia, 
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **valore** (`value`) | sì/no | Quando l'utente la cambia: `true` se ora è spuntata, `false` se non lo è. |
-| **Eccezione** (`error`) | oggetto | Come ogni blocco; per questa componente oggi non ci passa niente. |
+| **Exception** (`error`) | oggetto | Come ogni blocco; per questa componente oggi non ci passa niente. |
 
 ## Come funziona
 

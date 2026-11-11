@@ -17,7 +17,7 @@ Legge un file della tua home, tutto intero, come testo o come JSON, e ne manda i
 |---|---|---|
 | **contenuto** (`content`) | qualsiasi | Il contenuto del file: un testo, oppure (formato JSON) il valore letto dal JSON. |
 | **dimensione (byte)** (`size`) | numero | Quanti byte ha il file. |
-| **Eccezione** (`error`) | oggetto | Quando il file non si può leggere: non c'è, non è un file, è troppo grande, il JSON non è valido… |
+| **Exception** (`error`) | oggetto | Quando il file non si può leggere: non c'è, non è un file, è troppo grande, il JSON non è valido… |
 
 ## Impostazioni
 
@@ -86,7 +86,7 @@ Imposta **Formato** JSON e prendi un campo con [Get proprietà (obj.campo)](core
 [Pulsante: Apri]                premuto ──────────────────────────────────────────▶ leggi
 ```
 
-L'utente scrive `lista.txt` nel [Campo di testo](ui.text) e preme il [Pulsante](ui.button): il blocco legge `~/Documenti/lista.txt` e la componente [Valore](ui.value) della finestra lo mostra. [Template (formatta)](core.format) ha un ingresso aggiunto chiamato **a**. Se il file non c'è, **Eccezione** manda «Il file «~/Documenti/lista.txt» non esiste».
+L'utente scrive `lista.txt` nel [Campo di testo](ui.text) e preme il [Pulsante](ui.button): il blocco legge `~/Documenti/lista.txt` e la componente [Valore](ui.value) della finestra lo mostra. [Template (formatta)](core.format) ha un ingresso aggiunto chiamato **a**. Se il file non c'è, **Exception** manda «Il file «~/Documenti/lista.txt» non esiste».
 
 ### 4. Leggere ogni minuto un file aggiornato da altri
 

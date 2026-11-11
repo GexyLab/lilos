@@ -97,7 +97,7 @@ function nextId(prefix, taken) {
 /**
  * The ports of a block (or of a component): { inputs, outputs }, each [{ name, label, type, added,
  * trigger, hidden }] — base ports first, then the added ones (name = their id x1, x2…, label = their
- * name). A block also has the output «error» (Eccezione). For the object of a component in a schema
+ * name). A block also has the output «error» (Exception). For the object of a component in a schema
  * (role 'component') pass the component's definition and its added ports as `component`.
  * `hidden`: hidden on the drawing (portHidden); a linked port is shown anyway. `hiddenByDefault`:
  * its definition says `hidden: true` (a port most schemas do not need, shown with the eye).
@@ -121,7 +121,7 @@ export function portsOf(item, def, { lang = 'en', component = null, errorLabel =
 
 /**
  * Whether a port of a block is hidden on the drawing: the user's choice (item.hide = { inputs:
- * { name: bool }, outputs: { … } }), else the default — hidden are the output «error» (Eccezione)
+ * { name: bool }, outputs: { … } }), else the default — hidden are the output «error» (Exception)
  * and the ports whose definition says `hidden: true` (`byDefault`). A linked port is always drawn:
  * LogicSchema.setPortHidden does not hide it, and the drawing shows it anyway.
  */

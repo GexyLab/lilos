@@ -16,7 +16,7 @@ Scrive una riga in una console del progetto ogni volta che arriva un valore. Pu�
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **scritto** (`written`) | impulso | Un impulso dopo ogni riga scritta. |
-| **Eccezione** (`error`) | oggetto | In pratica non succede. |
+| **Exception** (`error`) | oggetto | In pratica non succede. |
 
 ## Impostazioni
 
@@ -128,10 +128,10 @@ I due collegamenti vanno allo **stesso** blocco Print (console.log): ogni 5 seco
 
 ### 4. Gli errori in una console a parte
 
-Aggiungi nel progetto una console **Errori**. Collega le **Eccezioni** dei blocchi che ti interessano a un blocco Print (console.log) con **Console** = Errori e **Livello** errore: gli errori non finiscono più nella principale, e nei programmi attivi restano nel registro.
+Aggiungi nel progetto una console **Errori**. Collega le uscite **Exception** dei blocchi che ti interessano a un blocco Print (console.log) con **Console** = Errori e **Livello** errore: gli errori non finiscono più nella principale, e nei programmi attivi restano nel registro.
 
 ```
-[HTTP (fetch)] Eccezione ──▶ valore [Print (console.log): Errori, errore]
+[HTTP (fetch)] Exception ──▶ valore [Print (console.log): Errori, errore]
 ```
 
 La riga è l'oggetto dell'errore, per esempio `{"message":"…","block":"request1","schema":"main","at":1794405901003}`. Per scrivere solo il messaggio, mettici prima [Get proprietà (obj.campo)](core.get) con Campo `message`.

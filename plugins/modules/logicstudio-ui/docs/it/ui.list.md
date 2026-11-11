@@ -28,7 +28,7 @@ Un elenco di voci sempre aperto, in un riquadro che scorre: l'utente fa clic su 
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **scelto** (`value`) | qualsiasi | Il valore della voce, ogni volta che l'utente ne sceglie una. È sempre un testo. |
-| **Eccezione** (`error`) | oggetto | Come ogni blocco; per questa componente oggi non ci passa niente. |
+| **Exception** (`error`) | oggetto | Come ogni blocco; per questa componente oggi non ci passa niente. |
 
 ## Come funziona
 

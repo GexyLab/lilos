@@ -38,7 +38,7 @@ I sette colori, sempre gli stessi:
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **colore** (`value`) | testo | Il codice del colore, quando l'utente ne sceglie uno. |
-| **Eccezione** (`error`) | oggetto | Come ogni blocco; per questa componente oggi non ci passa niente. |
+| **Exception** (`error`) | oggetto | Come ogni blocco; per questa componente oggi non ci passa niente. |
 
 ## Come funziona
 

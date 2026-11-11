@@ -17,7 +17,7 @@ Toglie l'elemento in una posizione: manda la lista senza quell'elemento e, a par
 |---|---|---|
 | **risultato** (`result`) | lista | La lista con un elemento in meno. |
 | **rimosso** (`removed`) | qualsiasi | L'elemento tolto. |
-| **Eccezione** (`error`) | oggetto | Lista non valida, indice non intero o fuori dalla lista. |
+| **Exception** (`error`) | oggetto | Lista non valida, indice non intero o fuori dalla lista. |
 
 ## Come funziona
 

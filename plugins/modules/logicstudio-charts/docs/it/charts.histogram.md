@@ -36,7 +36,7 @@ Divide i valori di una misura in **classi** (intervalli uguali, per esempio da 1
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **classe scelta** (`picked`) | oggetto | La classe su cui chi guarda fa clic o preme **Invio**. |
-| **Eccezione** (`error`) | oggetto | Come ogni blocco; oggi non ci passa niente. |
+| **Exception** (`error`) | oggetto | Come ogni blocco; oggi non ci passa niente. |
 
 ## Come funziona
 

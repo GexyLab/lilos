@@ -16,7 +16,7 @@ Mette in fila due o più liste e ne fa una sola.
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **risultato** (`result`) | lista | Gli elementi di **a**, poi quelli di **b**, poi quelli degli ingressi aggiunti, nell'ordine. |
-| **Eccezione** (`error`) | oggetto | Un ingresso non è una lista, o il risultato è troppo lungo. |
+| **Exception** (`error`) | oggetto | Un ingresso non è una lista, o il risultato è troppo lungo. |
 
 ## Porte aggiuntive
 

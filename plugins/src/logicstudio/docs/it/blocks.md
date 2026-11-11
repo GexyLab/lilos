@@ -79,13 +79,13 @@ Un blocco sa **quale ingresso** l'ha avviato e può comportarsi in modo diverso:
 Quando un blocco ha finito, manda i suoi risultati dalle uscite, lungo **tutti** i collegamenti di ogni uscita.
 
 - Un blocco che su un'uscita **non dà niente** non manda niente su quella uscita: **Confronto** manda un impulso su **se vero** oppure su **se falso**, mai su tutte e due.
-- Un'uscita non collegata non fa niente (tranne **Eccezione**, vedi sotto).
+- Un'uscita non collegata non fa niente (tranne **Exception**, vedi sotto).
 - Alcuni blocchi mandano valori **più tardi**, da soli: **Ritardo** dopo i secondi scelti, **Intervallo** a ogni scatto, **Debounce** quando l'ingresso si ferma.
 - I valori sono quelli che si scrivono in JSON: numeri, testi, sì/no, liste, oggetti e `null`. Tra il motore e le finestre (o l'IDE) viaggiano come copie; un valore che arriva da una finestra può essere al massimo di 256 KB.
 
-## L'uscita «Eccezione»
+## L'uscita «Exception»
 
-Ogni blocco ha, come ultima uscita, **Eccezione** (nome interno `error`). Quando qualcosa va storto mentre il blocco lavora (un numero che non è un numero, una divisione per zero, un file che non c'è, una rete che non risponde), il blocco **non manda niente sulle sue uscite normali** e manda su **Eccezione** un oggetto:
+Ogni blocco ha, come ultima uscita, **Exception** (nome interno `error`). Quando qualcosa va storto mentre il blocco lavora (un numero che non è un numero, una divisione per zero, un file che non c'è, una rete che non risponde), il blocco **non manda niente sulle sue uscite normali** e manda su **Exception** un oggetto:
 
 ```json
 {
@@ -100,19 +100,23 @@ Ogni blocco ha, come ultima uscita, **Eccezione** (nome interno `error`). Quando
 |---|---|
 | `message` | Il messaggio dell'errore. |
 | `block` | L'id del blocco nello schema (per esempio `divide1`). |
+| `type` | Il tipo del blocco (per esempio `core.divide`; dal motore 1.3.0). |
 | `schema` | Il nome dello schema. |
 | `at` | Quando è successo, in millisecondi dal 1° gennaio 1970. |
 
-- Se **Eccezione è collegata**, l'oggetto va lungo i suoi collegamenti come un valore qualsiasi. Puoi scriverlo in una console, mandare una notifica, contare gli errori…
-- Se **non è collegata**, nella **console principale** compare una riga di livello errore con il nome del blocco e il messaggio, per esempio `Divisione (÷ %): Divisione per zero`. Il nome è quello del tipo di blocco, non l'etichetta che gli hai dato.
+- Se **Exception è collegata**, l'oggetto va lungo i suoi collegamenti come un valore qualsiasi. Puoi scriverlo in una console, mandare una notifica, contare gli errori…
+- Se **non è collegata**, l'oggetto va al blocco [Catch globale (onerror)](core.onError) dello schema (o di tutto il programma), se c'è. Altrimenti nella **console principale** compare una riga di livello errore con il nome del blocco e il messaggio, per esempio `Divisione (÷ %): Divisione per zero`. Il nome è quello del tipo di blocco, non l'etichetta che gli hai dato.
+- Per **gestire** le eccezioni ci sono i blocchi della categoria **Eccezioni**: [Catch (cattura)](core.catch) sceglie quali gestire, [Dati di Exception (e.message…)](core.errorInfo) ne legge i campi, [Throw (lancia Exception)](core.throw) ne lancia una tua o rilancia quella che arriva.
 
-Durante la prova un blocco andato in errore ha il **bordo rosso**, finché non lavora di nuovo senza errori; l'etichetta sul collegamento di un'Eccezione è rossa con `⚠`.
+Nello schema la porta **Exception** è **rossa** (anche il suo collegamento), così si distingue dalle altre.
+
+Durante la prova un blocco andato in errore ha il **bordo rosso**, finché non lavora di nuovo senza errori; l'etichetta sul collegamento di un'Exception è rossa con `⚠`.
 
 ### Un blocco troppo lento
 
-Un blocco che impiega più di **30 secondi** (di serie: «Tempo massimo di un blocco», nei limiti del motore) viene considerato fallito: su **Eccezione** arriva «Divisione (÷ %) ha impiegato più di 30 s» (con il nome del blocco) e quello che il blocco darà dopo viene buttato via.
+Un blocco che impiega più di **30 secondi** (di serie: «Tempo massimo di un blocco», nei limiti del motore) viene considerato fallito: su **Exception** arriva «Divisione (÷ %) ha impiegato più di 30 s» (con il nome del blocco) e quello che il blocco darà dopo viene buttato via.
 
-> Questo vale anche per **Input**: in questa versione una domanda a cui nessuno risponde entro 30 secondi manda «Input (readline) ha impiegato più di 30 s» sull'Eccezione, e la risposta data dopo va persa. Vedi [Console](ide/consoles).
+> Questo vale anche per **Input**: in questa versione una domanda a cui nessuno risponde entro 30 secondi manda «Input (readline) ha impiegato più di 30 s» sull'Exception, e la risposta data dopo va persa. Vedi [Console](ide/consoles).
 
 ## Le porte aggiuntive
 
@@ -155,7 +159,7 @@ Gli altri limiti che valgono mentre il programma gira:
 | Limite | Di serie | Cosa succede |
 |---|---|---|
 | Esecuzioni in 10 secondi | 10000 | Il programma si ferma. |
-| Tempo di un blocco | 30 s | Errore sull'**Eccezione** del blocco. |
+| Tempo di un blocco | 30 s | Errore sull'**Exception** del blocco. |
 | CPU | 25% per utente | I blocchi rallentano: dopo aver usato la loro parte di un secondo, aspettano il secondo dopo. |
 | Memoria | 128 MB per utente | Si fermano **tutti** i tuoi programmi: «Memoria finita: i programmi hanno usato più della tua quota di memoria». |
 | Righe di console | 50 al secondo per console | Le righe in più non si scrivono: «… 12 righe non mostrate (troppe al secondo)». |
@@ -199,10 +203,10 @@ Ogni numero sopra 30 scritto nel campo fa scrivere «Troppo caldo».
 
 ```
 [Campo numerico: divisore] valore ──▶ b [Divisione (÷ %)] risultato ──▶ valore [Componente Valore: risultato]
-                                              Eccezione ──▶ oggetto [Get proprietà (obj.campo): message] valore ──▶ valore [Print (console.log): avviso]
+                                              Exception ──▶ oggetto [Get proprietà (obj.campo): message] valore ──▶ valore [Print (console.log): avviso]
 ```
 
-Su **Divisione**, **a** ha valore iniziale `100` e **lo avvia** tolto. Scrivendo `4` nella finestra si vede 25. Scrivendo `0`, **Divisione** manda l'oggetto dell'errore su **Eccezione**; **Get proprietà** (impostazione **Campo (a.b.0)** = `message`) ne prende il messaggio e la console scrive `Divisione per zero` come avviso, invece della riga d'errore `Divisione (÷ %): Divisione per zero` nella console principale.
+Su **Divisione**, **a** ha valore iniziale `100` e **lo avvia** tolto. Scrivendo `4` nella finestra si vede 25. Scrivendo `0`, **Divisione** manda l'oggetto dell'errore su **Exception**; **Get proprietà** (impostazione **Campo (a.b.0)** = `message`) ne prende il messaggio e la console scrive `Divisione per zero` come avviso, invece della riga d'errore `Divisione (÷ %): Divisione per zero` nella console principale.
 
 ### 5. Una porta aggiunta che tiene un valore
 

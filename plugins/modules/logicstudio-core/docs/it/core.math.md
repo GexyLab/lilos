@@ -15,7 +15,7 @@ Fa un'operazione su un numero: arrotonda, valore assoluto, radice quadrata, camb
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **risultato** (`result`) | numero | Il risultato dell'operazione. |
-| **Eccezione** (`error`) | oggetto | In pratica questo blocco non manda mai niente qui. |
+| **Exception** (`error`) | oggetto | In pratica questo blocco non manda mai niente qui. |
 
 ## Impostazioni
 

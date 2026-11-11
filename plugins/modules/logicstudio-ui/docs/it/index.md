@@ -116,7 +116,7 @@ Gli schemi non toccano mai la finestra: ogni componente ha un **oggetto** in uno
 - **→** sono le **uscite**: quello che **fa l'utente** (ha premuto, ha scelto, ha scritto). L'uscita manda il valore solo quando l'utente agisce.
 - Alcune componenti hanno una porta con lo stesso nome nei due versi (per esempio **valore** nell'Interruttore). Un valore che arriva sull'ingresso cambia la componente ma **non** esce dall'uscita: esce solo quello che fa l'utente. Così puoi collegare l'uscita a uno schema che poi rimanda un valore all'ingresso, senza creare un giro senza fine.
 
-Ogni oggetto ha anche gli ingressi comuni **abilitato** e **visibile** (vedi sotto) e, come ogni blocco, l'uscita **Eccezione**: per un oggetto di componente oggi non ci passa niente.
+Ogni oggetto ha anche gli ingressi comuni **abilitato** e **visibile** (vedi sotto) e, come ogni blocco, l'uscita **Exception**: per un oggetto di componente oggi non ci passa niente.
 
 **Regole.**
 

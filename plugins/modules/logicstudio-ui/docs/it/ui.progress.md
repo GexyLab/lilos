@@ -25,7 +25,7 @@ Una barra orizzontale che si riempie da 0 a 100, con la percentuale accanto: per
 
 | Porta | Tipo | Descrizione |
 |---|---|---|
-| **Eccezione** (`error`) | oggetto | Come ogni blocco; per questa componente oggi non ci passa niente. |
+| **Exception** (`error`) | oggetto | Come ogni blocco; per questa componente oggi non ci passa niente. |
 
 ## Come funziona
 

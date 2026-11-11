@@ -16,7 +16,7 @@ Manda il valore che riceve su una delle sue uscite, quella indicata da un numero
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | (le uscite aggiunte) | qualsiasi | Il valore, sull'uscita scelta. |
-| **Eccezione** (`error`) | oggetto | Quando **quale** non indica un'uscita che c'è. |
+| **Exception** (`error`) | oggetto | Quando **quale** non indica un'uscita che c'è. |
 
 ## Porte aggiuntive
 
@@ -33,7 +33,7 @@ Quando arriva un valore, il blocco:
 1. legge l'ultimo **quale** come numero (con le regole di [Somma (+)](core.add): `"2"` vale 2, `"2,0"` vale 2, `true` vale 1) e toglie la parte decimale: 2,9 vale 2;
 2. manda il valore, così com'è (anche `null`), sull'uscita aggiunta in quella posizione.
 
-Se **quale** è 0, negativo, troppo grande, non è un numero o non è ancora arrivato, il valore non va da nessuna parte e su **Eccezione** arriva «Non c'è l'uscita …» con il valore di **quale**: per esempio `Non c'è l'uscita 5`, oppure `Non c'è l'uscita undefined` se **quale** non è mai arrivato. Per evitarlo, dai a **quale** un valore iniziale.
+Se **quale** è 0, negativo, troppo grande, non è un numero o non è ancora arrivato, il valore non va da nessuna parte e su **Exception** arriva «Non c'è l'uscita …» con il valore di **quale**: per esempio `Non c'è l'uscita 5`, oppure `Non c'è l'uscita undefined` se **quale** non è mai arrivato. Per evitarlo, dai a **quale** un valore iniziale.
 
 ## Esempi
 
@@ -51,7 +51,7 @@ Con **quale** = 2, ogni messaggio va nella console degli avvisi. Cambiare **qual
 
 ### 2. Un numero da 1 a N
 
-**quale** = `"1"` (testo) → uscita **1**. **quale** = 3,7 → uscita **3**. **quale** = 0 → `Non c'è l'uscita 0` sull'Eccezione.
+**quale** = `"1"` (testo) → uscita **1**. **quale** = 3,7 → uscita **3**. **quale** = 0 → `Non c'è l'uscita 0` sull'Exception.
 
 ### 3. Due strade con un sì/no
 

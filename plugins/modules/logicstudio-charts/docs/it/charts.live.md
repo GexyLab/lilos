@@ -36,7 +36,7 @@ Linee che **scorrono**: mostrano gli ultimi secondi (o minuti) dei valori che ar
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **punto scelto** (`picked`) | oggetto | L'istante su cui chi guarda fa clic o preme **Invio**. |
-| **Eccezione** (`error`) | oggetto | Come ogni blocco; oggi non ci passa niente. |
+| **Exception** (`error`) | oggetto | Come ogni blocco; oggi non ci passa niente. |
 
 ## Porte aggiuntive
 

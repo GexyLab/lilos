@@ -31,7 +31,7 @@ Il campo si apre sempre vuoto: per un numero iniziale usa l'ingresso **valore** 
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **valore** (`value`) | numero | Il numero, quando l'utente conferma una modifica: preme Invio o esce dal campo (e, secondo il browser, a ogni clic sulle freccette). |
-| **Eccezione** (`error`) | oggetto | Come ogni blocco; per questa componente oggi non ci passa niente. |
+| **Exception** (`error`) | oggetto | Come ogni blocco; per questa componente oggi non ci passa niente. |
 
 ## Come funziona
 

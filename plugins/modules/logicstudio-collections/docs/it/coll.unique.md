@@ -15,7 +15,7 @@ Toglie i doppioni: di ogni valore tiene solo il primo.
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **risultato** (`result`) | lista | La lista senza doppioni, nell'ordine di partenza. |
-| **Eccezione** (`error`) | oggetto | Quando il valore su **lista** non è una lista. |
+| **Exception** (`error`) | oggetto | Quando il valore su **lista** non è una lista. |
 
 ## Impostazioni
 

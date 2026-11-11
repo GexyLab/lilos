@@ -19,7 +19,7 @@ Fa una richiesta HTTP o HTTPS a un sito o a un servizio (un'API) e manda la risp
 | **stato** (`status`) | numero | Il codice di stato HTTP della risposta: 200, 201, 404, 500… |
 | **intestazioni** (`headers`) | oggetto | Le intestazioni della risposta, con i nomi in minuscolo. |
 | **risposta** (`body`) | qualsiasi | Il contenuto della risposta: un valore JSON o un testo (vedi **Risposta** nelle impostazioni). |
-| **Eccezione** (`error`) | oggetto | Quando la richiesta non arriva a una risposta: indirizzo non valido o non permesso, sito che non c'è o non risponde, risposta troppo grande, quota finita… |
+| **Exception** (`error`) | oggetto | Quando la richiesta non arriva a una risposta: indirizzo non valido o non permesso, sito che non c'è o non risponde, risposta troppo grande, quota finita… |
 
 ## Impostazioni
 
@@ -124,7 +124,7 @@ Impostazioni: **Metodo** GET, **Indirizzo** `https://api.open-meteo.com/v1/forec
 
 ```
 [Intervallo (setInterval): 600 s] impulso ──▶ invia [HTTP (fetch)] risposta ──▶ oggetto [Get proprietà (obj.campo): current.temperature_2m] valore ──▶ valore [Print (console.log)]
-                                                Eccezione ──▶ valore [Print (console.log): errore]
+                                                Exception ──▶ valore [Print (console.log): errore]
 ```
 
 Il server risponde con `Content-Type: application/json`, quindi **risposta** è già un oggetto, per esempio `{ "current": { "temperature_2m": 12.4, … }, … }`. [Get proprietà (obj.campo)](core.get) manda `12.4`. Se la rete non va, la console scrive per esempio «Indirizzo non trovato: api.open-meteo.com».
@@ -149,7 +149,7 @@ Impostazioni: **Metodo** POST, **Indirizzo** `https://esempio.it/api/misure`, **
 [Pulsante: Invia] premuto ──▶ invia                    [Costante · Variabile: 201] valore ──▶ b
 ```
 
-[Oggetto { }](core.compose) prepara `{ "sensore": "serra", "temp": 22.5 }`, che parte come JSON con `Content-Type: application/json`. Se il server risponde con uno stato diverso da 201 (per esempio 401 se la chiave è sbagliata), ricevi una [Notify](lilos.notify). Ricorda: un 401 non va su **Eccezione**.
+[Oggetto { }](core.compose) prepara `{ "sensore": "serra", "temp": 22.5 }`, che parte come JSON con `Content-Type: application/json`. Se il server risponde con uno stato diverso da 201 (per esempio 401 se la chiave è sbagliata), ricevi una [Notify](lilos.notify). Ricorda: un 401 non va su **Exception**.
 
 ### 4. Un indirizzo che cambia
 

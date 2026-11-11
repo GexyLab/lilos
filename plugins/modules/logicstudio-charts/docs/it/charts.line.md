@@ -36,7 +36,7 @@ Una o più serie di valori, ognuna disegnata come una linea che unisce i suoi pu
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **punto scelto** (`picked`) | oggetto | Il punto su cui chi guarda fa clic o preme **Invio**. |
-| **Eccezione** (`error`) | oggetto | Come ogni blocco; per questa componente oggi non ci passa niente. |
+| **Exception** (`error`) | oggetto | Come ogni blocco; per questa componente oggi non ci passa niente. |
 
 ## Come funziona
 

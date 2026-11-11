@@ -15,7 +15,7 @@ Calcola la somma, il minimo, il massimo o la media dei numeri di una lista.
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **risultato** (`result`) | numero | Il risultato dell'operazione scelta. |
-| **Eccezione** (`error`) | oggetto | Lista non valida, un elemento non numerico, lista vuota (salvo per la somma). |
+| **Exception** (`error`) | oggetto | Lista non valida, un elemento non numerico, lista vuota (salvo per la somma). |
 
 ## Impostazioni
 

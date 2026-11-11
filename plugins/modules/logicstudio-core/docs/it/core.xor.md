@@ -16,7 +16,7 @@ Manda **sì** se gli ingressi che valgono **sì** sono in numero dispari: con du
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **risultato** (`result`) | sì/no | **sì** se il numero di ingressi a sì è dispari, altrimenti **no**. |
-| **Eccezione** (`error`) | oggetto | In pratica questo blocco non manda mai niente qui. |
+| **Exception** (`error`) | oggetto | In pratica questo blocco non manda mai niente qui. |
 
 ## Porte aggiuntive
 

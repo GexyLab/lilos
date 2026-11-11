@@ -15,7 +15,7 @@ Mette in ordine gli elementi di una lista: numeri dal più piccolo al più grand
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **risultato** (`result`) | lista | Gli stessi elementi, in ordine. |
-| **Eccezione** (`error`) | oggetto | Lista non valida, o un elemento non numerico quando confronti come numeri. |
+| **Exception** (`error`) | oggetto | Lista non valida, o un elemento non numerico quando confronti come numeri. |
 
 ## Impostazioni
 

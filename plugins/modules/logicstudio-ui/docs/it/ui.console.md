@@ -24,7 +24,7 @@ Mette una console del programma dentro la finestra: le righe scritte da [Print (
 
 | Porta | Tipo | Descrizione |
 |---|---|---|
-| **Eccezione** (`error`) | oggetto | Come ogni blocco; per questa componente oggi non ci passa niente. |
+| **Exception** (`error`) | oggetto | Come ogni blocco; per questa componente oggi non ci passa niente. |
 
 La Console non ha porte sue: le righe ci arrivano dai blocchi di console, non dal suo oggetto. L'oggetto serve solo per nasconderla o disabilitarla.
 
@@ -50,7 +50,7 @@ Finestra «Backup»
 
 ```
 [Pulsante: Avvia il backup] premuto ──▶ leggi [readFile: ~/dati.txt] contenuto ──▶ contenuto [writeFile: ~/backup/dati.txt] scritto ──▶ invia [Costante · Variabile: «Backup fatto.»] valore ──▶ valore [Print (console.log): livello informazione]
-[readFile] Eccezione ──▶ valore [Print (console.log): livello errore]
+[readFile] Exception ──▶ valore [Print (console.log): livello errore]
 ```
 
 Ogni backup scrive una riga nella console della finestra: «Backup fatto.» o l'errore.

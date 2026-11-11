@@ -39,7 +39,7 @@ Every port has a **type**, which you see from the colour of the dot and of the l
 | matrix | teal | a list of rows: `[[1, 2], [3, 4]]` |
 | any | grey | any value |
 | pulse | pink | a «now» signal: the value matters little (usually `true`) |
-| (Exception) | red | the error object `{ message, block, schema, at }` |
+| (Exception) | red | the error object `{ message, block, type, schema, at }` |
 
 The type is an **agreement**, not an obligation: the engine does not block a value because it is of the «wrong» type. It is the block that receives it that decides what to do with it. Almost all blocks convert: an **Add** accepts `"2,5"` as 2.5 and `true` as 1; if it really cannot, it sends an error on the **Exception** output (for example «Serve un numero», "A number is needed").
 

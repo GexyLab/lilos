@@ -15,7 +15,7 @@ Lascia passare al massimo un valore ogni tanti secondi: il primo passa subito, q
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **valore** (`value`) | qualsiasi | I valori lasciati passare, subito e senza cambiarli. |
-| **Eccezione** (`error`) | oggetto | In pratica non succede. |
+| **Exception** (`error`) | oggetto | In pratica non succede. |
 
 ## Impostazioni
 

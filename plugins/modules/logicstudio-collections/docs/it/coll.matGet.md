@@ -17,7 +17,7 @@ Prende il valore di una cella della matrice, data la riga e la colonna.
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **valore** (`value`) | qualsiasi | Il contenuto della cella. |
-| **Eccezione** (`error`) | oggetto | Matrice non valida, riga o colonna non intere o fuori dalla matrice. |
+| **Exception** (`error`) | oggetto | Matrice non valida, riga o colonna non intere o fuori dalla matrice. |
 
 ## Come funziona
 

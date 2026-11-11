@@ -38,7 +38,7 @@ Barre orizzontali, una riga per categoria: come [Colonne](charts.column), ma gir
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **barra scelta** (`picked`) | oggetto | La categoria su cui chi guarda fa clic o preme **Invio**: `{ category, values, index }` (più `series` e `y` con un clic su una barra). |
-| **Eccezione** (`error`) | oggetto | Come ogni blocco; oggi non ci passa niente. |
+| **Exception** (`error`) | oggetto | Come ogni blocco; oggi non ci passa niente. |
 
 ## Come funziona
 

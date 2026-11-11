@@ -20,7 +20,7 @@ Dice se un file o una cartella della tua home c'è, di che tipo è e quanto è g
 | **se non esiste** (`no`) | impulso | Manda `true` solo se il percorso non c'è. |
 | **tipo (file, folder)** (`kind`) | testo | `file` o `folder` (o un altro tipo di lilOS, come `app`); testo vuoto se non esiste. |
 | **dimensione (byte)** (`size`) | numero | La dimensione in byte; `0` per le cartelle e quando non esiste. |
-| **Eccezione** (`error`) | oggetto | Quando il percorso non è valido o il file system non risponde. |
+| **Exception** (`error`) | oggetto | Quando il percorso non è valido o il file system non risponde. |
 
 ## Impostazioni
 
@@ -39,9 +39,9 @@ Cose da sapere:
 
 - Un file che non puoi vedere (di un altro utente, per esempio) per il blocco **non esiste**.
 - `~` (la tua home) esiste sempre: tipo `folder`, dimensione 0.
-- Il percorso segue le stesse regole di [readFile](lilos.fileRead). Un percorso **non valido** non dà `false`: va su **Eccezione**. Lo stesso per `~/.config`, che i programmi non possono usare: anche lì il blocco dà errore invece di rispondere.
+- Il percorso segue le stesse regole di [readFile](lilos.fileRead). Un percorso **non valido** non dà `false`: va su **Exception**. Lo stesso per `~/.config`, che i programmi non possono usare: anche lì il blocco dà errore invece di rispondere.
 - Un file protetto da un'app (FileCrypt) risulta esistente con il suo tipo e la sua dimensione, ma [readFile](lilos.fileRead) e [writeFile](lilos.fileWrite) non lo useranno.
-- Il controllo e l'uso successivo non sono un'unica operazione: tra il controllo e una lettura il file può sparire. Collega comunque l'**Eccezione** del blocco che lo usa.
+- Il controllo e l'uso successivo non sono un'unica operazione: tra il controllo e una lettura il file può sparire. Collega comunque l'**Exception** del blocco che lo usa.
 - Le lettere maiuscole e minuscole nella parte `/home/<utente>` non contano; per il resto del percorso dipende dal file system (con quello di serie di lilOS non contano).
 
 Vedi anche [Come funziona un blocco](ide/blocks).
@@ -64,7 +64,7 @@ All'avvio: se il file c'è, viene letto; se non c'è, il programma lo crea con i
                                                        tipo (file, folder) ──▶ valore [Valore: tipo]
 ```
 
-Ogni volta che l'utente cambia il percorso nel [Campo di testo](ui.text), il blocco lo controlla subito (qui **percorso** avvia il blocco). La [Spia](ui.lamp) si accende se il percorso c'è; la componente [Valore](ui.value) mostra `file` o `folder`. Se l'utente scrive un percorso non valido, come `dati.txt` senza `~/`, il messaggio va su **Eccezione**.
+Ogni volta che l'utente cambia il percorso nel [Campo di testo](ui.text), il blocco lo controlla subito (qui **percorso** avvia il blocco). La [Spia](ui.lamp) si accende se il percorso c'è; la componente [Valore](ui.value) mostra `file` o `folder`. Se l'utente scrive un percorso non valido, come `dati.txt` senza `~/`, il messaggio va su **Exception**.
 
 ### 3. Aspettare un file
 

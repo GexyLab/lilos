@@ -16,7 +16,7 @@ Taglia una lista in righe della stessa lunghezza e ne fa una matrice.
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **matrice** (`matrix`) | matrice | La matrice: i primi **colonne** valori sono la prima riga, i successivi la seconda, e così via. |
-| **Eccezione** (`error`) | oggetto | Lista non valida, colonne non valide, lista che non si divide esattamente. |
+| **Exception** (`error`) | oggetto | Lista non valida, colonne non valide, lista che non si divide esattamente. |
 
 ## Come funziona
 

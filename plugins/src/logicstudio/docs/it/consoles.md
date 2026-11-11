@@ -52,7 +52,7 @@ Regole:
 - mentre un blocco aspetta, **gli altri blocchi vanno avanti**;
 - quando il programma si ferma, le domande in attesa sono annullate.
 
-> In questa versione una domanda senza risposta per più di **30 secondi** (il «Tempo massimo di un blocco» del motore) fa uscire dal blocco l'errore «Input (readline) ha impiegato più di 30 s» sull'**Eccezione**, e la risposta data dopo va persa. Se ti serve più tempo, chiedi all'amministratore di alzare quel limite nel Pannello di controllo → Logic Studio → Limiti.
+> In questa versione una domanda senza risposta per più di **30 secondi** (il «Tempo massimo di un blocco» del motore) fa uscire dal blocco l'errore «Input (readline) ha impiegato più di 30 s» sull'**Exception**, e la risposta data dopo va persa. Se ti serve più tempo, chiedi all'amministratore di alzare quel limite nel Pannello di controllo → Logic Studio → Limiti.
 
 ## Il pannello in basso
 

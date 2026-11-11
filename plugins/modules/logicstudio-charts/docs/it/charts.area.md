@@ -37,7 +37,7 @@ Come [Linee](charts.line), con lo spazio tra la linea e lo zero colorato. Le are
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **punto scelto** (`picked`) | oggetto | La x scelta con un clic o **Invio**: `{ x, time?, values, index }`, come in [Linee](charts.line). |
-| **Eccezione** (`error`) | oggetto | Come ogni blocco; oggi non ci passa niente. |
+| **Exception** (`error`) | oggetto | Come ogni blocco; oggi non ci passa niente. |
 
 ## Come funziona
 

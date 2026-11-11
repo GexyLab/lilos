@@ -15,7 +15,7 @@ Mette in fila tutte le celle di una matrice, riga dopo riga, in una lista sola.
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **risultato** (`result`) | lista | Le celle della prima riga, poi quelle della seconda, e così via. Ha righe × colonne elementi. |
-| **Eccezione** (`error`) | oggetto | Quando il valore non è una matrice valida. |
+| **Exception** (`error`) | oggetto | Quando il valore non è una matrice valida. |
 
 ## Come funziona
 

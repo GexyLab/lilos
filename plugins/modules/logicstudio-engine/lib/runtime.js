@@ -19,8 +19,9 @@
  * How it runs (dataflow, as in OpenBack): a value arriving on an input is kept as that input's
  * value; if the input starts the block (all do, unless its `trigger` is false), the block's run()
  * is called with every input's latest value and its outputs go on along the links. Every block has
- * an output «error» (Eccezione): what run() throws goes there, or to the main console if nothing
- * is linked to it. Each block handles the values sent to it one at a time, in the order they
+ * an output «error» (Exception): what run() throws goes there ({ message, block, type, schema, at }),
+ * to the global catches (core.onError) if nothing
+ * is linked to it, else to the main console. Each block handles the values sent to it one at a time, in the order they
  * came; blocks go on independently (one waiting for the user does not stop the others).
  */
 
@@ -38,6 +39,7 @@ export class Program {
   #abort = new AbortController();
   #exports = new Map();      // 'schema:port' → [{ schema, block }] of core.schemaIn blocks to deliver to
   #components = new Map();   // 'window:component' → [node] proxies of that component
+  #catchers = [];            // blocks with role 'catchAll' (core.onError): they get the unhandled exceptions
   #busy = 0;                 // ms spent running blocks in the current second (CPU governor)
   #busySince = 0;
 
@@ -69,6 +71,7 @@ export class Program {
     const inputs = new Map();
     for (const node of this.#nodes.values()) {
       if (node.def.role === 'schemaIn') inputs.set(`${node.schema}:${node.config.port}`, node);
+      if (node.def.role === 'catchAll') this.#catchers.push(node);
       if (node.def.role === 'component') {
         const key = `${node.config.window}:${node.config.component}`;
         (this.#components.get(key) ?? this.#components.set(key, []).get(key)).push(node);
@@ -182,10 +185,23 @@ export class Program {
     this.#host.value(`${node.key}.${port}`, value);
     const targets = node.links.get(port);
     if (!targets) {
-      if (port === ERROR_PORT) this.#host.console('write', { console: 'main', level: 'error', text: `${labelOf(node)}: ${messageOf(value)}` });
+      if (port === ERROR_PORT) this.#unhandled(node, value);
       return;
     }
     for (const t of targets) this.#enqueue(t.node, t.port, value);
+  }
+
+  /**
+   * An exception nobody linked: to the global catches (core.onError) of its schema, or of the
+   * program, if there are; else (or when they ask for it too) a line in the main console. A
+   * global catch never gets its own exceptions (no loops).
+   */
+  #unhandled(node, value) {
+    const catchers = this.#catchers.filter(c => c !== node && (c.config.scope === 'program' || c.schema === node.schema));
+    for (const c of catchers) { this.#emit(c, 'exception', value); this.#emit(c, 'message', messageOf(value)); }
+    if (!catchers.length || catchers.some(c => c.config.console)) {
+      this.#host.console('write', { console: 'main', level: 'error', text: `${labelOf(node)}: ${messageOf(value)}` });
+    }
   }
 
   #export(node, port, value) {
@@ -258,7 +274,7 @@ export class Program {
     } catch (err) {
       if (this.#stopped) return undefined;
       node.failed = true;
-      this.#emit(node, ERROR_PORT, { message: messageOf(err), block: node.id, schema: node.schema, at: Date.now() });
+      this.#emit(node, ERROR_PORT, { message: messageOf(err), block: node.id, type: node.def.type, schema: node.schema, at: Date.now() });
       return undefined;
     }
   }
@@ -284,7 +300,7 @@ export class Program {
     const t = { handle: null };
     const fire = async () => {
       if (!repeat) { this.#timers.delete(t); node.timers.delete(t); }
-      try { await fn(); } catch (err) { this.#emit(node, ERROR_PORT, { message: messageOf(err), block: node.id, schema: node.schema, at: Date.now() }); }
+      try { await fn(); } catch (err) { this.#emit(node, ERROR_PORT, { message: messageOf(err), block: node.id, type: node.def.type, schema: node.schema, at: Date.now() }); }
     };
     const wait = Math.max(0, Number(ms) || 0);
     t.handle = repeat ? setInterval(fire, Math.max(MIN_LOOP_MS, wait)) : setTimeout(fire, wait);

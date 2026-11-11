@@ -17,7 +17,7 @@ Crea una matrice di righe e colonne, con tutte le celle uguali.
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **matrice** (`matrix`) | matrice | La matrice nuova: una lista di **righe** liste, ognuna di **colonne** valori. |
-| **Eccezione** (`error`) | oggetto | Righe o colonne non valide, matrice troppo grande. |
+| **Exception** (`error`) | oggetto | Righe o colonne non valide, matrice troppo grande. |
 
 ## Impostazioni
 

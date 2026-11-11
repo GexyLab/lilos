@@ -17,7 +17,7 @@ Fa una domanda in una console del progetto, aspetta la risposta di chi usa il pr
 |---|---|---|
 | **valore** (`value`) | qualsiasi | La risposta valida, nel **Tipo di dato** scelto: testo, numero o sì/no (un tasto è un testo di un carattere). |
 | **annullato** (`cancelled`) | impulso | Un impulso quando la domanda finisce senza una risposta valida: **Esc**, tempo scaduto, risposta non valida senza **Richiedi**, console nascoste senza valore predefinito. |
-| **Eccezione** (`error`) | oggetto | Quando il blocco aspetta più del tempo massimo di un blocco (vedi **Attenzione** sotto). |
+| **Exception** (`error`) | oggetto | Quando il blocco aspetta più del tempo massimo di un blocco (vedi **Attenzione** sotto). |
 
 ## Impostazioni
 
@@ -98,7 +98,7 @@ Con la console visibile il valore predefinito **si vede solo come suggerimento**
 
 Il motore non lascia lavorare un blocco più di un certo tempo: **30 secondi** di serie (**Tempo massimo di un blocco**, nel Pannello di controllo → Logic Studio → Limiti; vedi [Limiti](logicstudio-engine/limits)). Il blocco Input (readline) conta come al lavoro **finché aspetta la risposta**. Per questo oggi, se nessuno risponde entro quel tempo:
 
-- il blocco manda su **Eccezione** il messaggio «Input (readline) ha impiegato più di 30 s» (con il numero di secondi del limite);
+- il blocco manda su **Exception** il messaggio «Input (readline) ha impiegato più di 30 s» (con il numero di secondi del limite);
 - la domanda **resta nella console**, ma la risposta data dopo **non esce** più su **valore** (va persa);
 - finché quella domanda non riceve una risposta o non viene annullata (Esc), gli altri **chiedi** che arrivano a quel blocco **vengono ignorati**.
 
@@ -160,7 +160,7 @@ Progetto con **Opzioni del progetto → Console → Non mostrarle**, attivato. U
 |---|---|
 | Input (readline) ha impiegato più di *N* s | Nessuna risposta entro il **Tempo massimo di un blocco** del motore (30 secondi di serie). Vedi **Attenzione** sopra. |
 
-Gli avvisi «Serve un numero. Riprova.», «Serve sì o no. Riprova.» e «Serve un tasto. Riprova.» compaiono nella console, non sull'Eccezione.
+Gli avvisi «Serve un numero. Riprova.», «Serve sì o no. Riprova.» e «Serve un tasto. Riprova.» compaiono nella console, non sull'Exception.
 
 ## Vedi anche
 

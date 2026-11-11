@@ -9,6 +9,6 @@
   "intoContainer": "Komponenty trafiają tylko do kontenera",
   "unknownComponent": "Nieznany komponent",
   "mainConsole": "Konsoli głównej nie można usunąć",
-  "error": "Wyjątek",
+  "error": "Exception",
   "missing": "Brakuje pakietu"
 }

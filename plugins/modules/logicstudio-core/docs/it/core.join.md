@@ -16,7 +16,7 @@ Aspetta che arrivi qualcosa su **tutti** i suoi ingressi aggiunti, in qualsiasi 
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **pronto** (`ready`) | impulso | Un impulso quando su ogni ingresso aggiunto è arrivato qualcosa. |
-| **Eccezione** (`error`) | oggetto | In pratica questo blocco non manda mai niente qui. |
+| **Exception** (`error`) | oggetto | In pratica questo blocco non manda mai niente qui. |
 
 ## Porte aggiuntive
 

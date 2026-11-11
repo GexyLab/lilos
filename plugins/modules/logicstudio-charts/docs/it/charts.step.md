@@ -32,7 +32,7 @@
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **punto scelto** (`picked`) | oggetto | Gli stati di tutte le corsie nell'istante scelto con un clic o **Invio**. |
-| **Eccezione** (`error`) | oggetto | Come ogni blocco; oggi non ci passa niente. |
+| **Exception** (`error`) | oggetto | Come ogni blocco; oggi non ci passa niente. |
 
 ## Porte aggiuntive
 

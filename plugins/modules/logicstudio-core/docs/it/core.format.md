@@ -15,7 +15,7 @@ Costruisce un testo da un modello con dei segnaposto tra graffe, come `Ciao {nom
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **testo** (`text`) | testo | Il modello con i segnaposto sostituiti. |
-| **Eccezione** (`error`) | oggetto | In pratica questo blocco non manda mai niente qui. |
+| **Exception** (`error`) | oggetto | In pratica questo blocco non manda mai niente qui. |
 
 ## Impostazioni
 

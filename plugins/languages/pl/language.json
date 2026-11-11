@@ -3,6 +3,6 @@
   "language": "pl",
   "name": "Polski",
   "englishName": "Polish",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "lilos": ">=1.35.0"
 }

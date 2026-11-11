@@ -132,7 +132,7 @@ Quando tutto va bene il log dice: `Logic Studio: pacchetto logicstudio-esempio 1
 | `step(inputs, b)` | Solo per `execution: 'loop'` |
 | `stop(b)` | Facoltativa: quando il programma si ferma |
 | `upgrade(config, from, added)` | Facoltativa: aggiorna le impostazioni salvate da una versione vecchia del blocco |
-| `role` | Riservato ai blocchi di base (`schemaIn`, `schemaOut`, `component`): non usarlo |
+| `role` | Riservato ai blocchi di base (`schemaIn`, `schemaOut`, `component`, `catchAll`): non usarlo |
 
 Un blocco senza `run` tiene i valori che riceve e non fa altro (serve, per esempio, a un blocco `loop` che li legge a ogni giro).
 
@@ -140,7 +140,7 @@ Un blocco senza `run` tiene i valori che riceve e non fa altro (serve, per esemp
 
 Una porta è `{ name, type, label, trigger }`:
 
-- `name`: `[a-zA-Z][a-zA-Z0-9]{0,30}`, unico dalla sua parte. **Mai `error`**: ogni blocco ha già l'uscita **Eccezione**, che si chiama così.
+- `name`: `[a-zA-Z][a-zA-Z0-9]{0,30}`, unico dalla sua parte. **Mai `error`**: ogni blocco ha già l'uscita **Exception**, che si chiama così.
 - `type`: uno di questi. Il tipo serve all'IDE per segnalare i collegamenti tra tipi che non vanno d'accordo; il motore non converte niente, quindi il blocco deve controllare quello che riceve.
 
 | `type` | Nell'IDE | Valore tipico |
@@ -207,8 +207,8 @@ Le porte aggiunte hanno un id fisso (`x1`, `x2`…) e un nome mostrato. Nel codi
 - **`start(b)`** gira all'avvio del programma, per ogni blocco, prima dei valori iniziali degli ingressi. Può mandare valori con `b.send`.
 - **`run(inputs, b)`** gira ogni volta che arriva un valore su un ingresso che avvia il blocco. `inputs` ha l'ultimo valore di ogni ingresso (anche quelli aggiunti, per id); `b.trigger` è il nome dell'ingresso che l'ha avviato. Ritorna un oggetto `{ porta: valore }` con le uscite da mandare, oppure niente. Un valore `undefined` non viene mandato; un impulso è `true`. Può essere `async`.
 - Un blocco tratta **un valore alla volta**: finché `run` non finisce, i valori nuovi aspettano in fila. Blocchi diversi vanno avanti ognuno per conto suo.
-- Quello che `run` (o `start`, o `step`, o un timer) **lancia** esce dall'uscita **Eccezione** del blocco come `{ message, block, schema, at }`. Se Eccezione non è collegata, va nella console principale: «Media: Serve un numero». Scrivi messaggi per chi usa il blocco, in italiano semplice.
-- Un `run` che dura più di **Tempo massimo di un blocco** (30 secondi di serie) non è più aspettato: su Eccezione esce «Media ha impiegato più di 30 s» e il blocco passa al valore dopo. Il codice di quel `run` però va avanti fino alla fine: quello che ritorna è ignorato, ma i `b.send` che fa nel frattempo partono ancora. Il tempo comprende le attese (`await b.call(…)`, `await b.console.read(…)`).
+- Quello che `run` (o `start`, o `step`, o un timer) **lancia** esce dall'uscita **Exception** del blocco come `{ message, block, type, schema, at }`. Se Exception non è collegata, va nella console principale: «Media: Serve un numero». Scrivi messaggi per chi usa il blocco, in italiano semplice.
+- Un `run` che dura più di **Tempo massimo di un blocco** (30 secondi di serie) non è più aspettato: su Exception esce «Media ha impiegato più di 30 s» e il blocco passa al valore dopo. Il codice di quel `run` però va avanti fino alla fine: quello che ritorna è ignorato, ma i `b.send` che fa nel frattempo partono ancora. Il tempo comprende le attese (`await b.call(…)`, `await b.console.read(…)`).
 - **`stop(b)`** gira quando il programma si ferma, con al massimo 2 secondi. Gli errori sono ignorati. I timer del blocco sono già fermi e `b.send` non manda più niente.
 - I valori **non sono copiati** passando da un blocco all'altro: non cambiare mai un oggetto o una lista che ricevi. Fanne una copia: `const lista = [...inputs.lista]`.
 
@@ -226,7 +226,7 @@ Un blocco con `execution: 'loop'` gira da solo, senza aspettare valori: il motor
 
 - `inputs` ha l'ultimo valore di ogni ingresso; `b.trigger` non c'è.
 - Ogni giro conta nelle **esecuzioni in 10 secondi** del programma: un `wait` di 10 ms fa 1000 giri in 10 secondi.
-- Se `step` lancia, l'errore esce da **Eccezione** e il giro dopo parte dopo 10 ms. Se l'errore si ripete, controlla tu e ritorna un `wait` più lungo.
+- Se `step` lancia, l'errore esce da **Exception** e il giro dopo parte dopo 10 ms. Se l'errore si ripete, controlla tu e ritorna un `wait` più lungo.
 - Il blocco può avere anche `run`, per reagire agli ingressi; senza `run`, gli ingressi tengono solo il valore.
 
 ### Le versioni: upgrade()
@@ -268,7 +268,7 @@ upgrade(config, from, added)   // → le impostazioni nuove, o { config: le impo
 | `b.now()` | L'ora, come `Date.now()` |
 | `b.signal` | Un `AbortSignal` che scatta quando il programma si ferma |
 
-I timer del motore si fermano da soli quando il programma si ferma. Quello che un timer lancia esce da **Eccezione**. Non usare `setTimeout` e `setInterval` di Node: non si fermerebbero con il programma.
+I timer del motore si fermano da soli quando il programma si ferma. Quello che un timer lancia esce da **Exception**. Non usare `setTimeout` e `setInterval` di Node: non si fermerebbero con il programma.
 
 Le opzioni di `b.console.read`:
 
@@ -621,9 +621,9 @@ function spegni(b) {
 
 Cosa mostra:
 
-- **Media**: con **a** = 4, **b** = 6 e un ingresso aggiunto **c** = 11 manda 7 su **risultato**; con **a** = `"ciao"` manda «Serve un numero» su **Eccezione**. Il campo **Decimali** svuotato vale `null`: il blocco usa 2.
+- **Media**: con **a** = 4, **b** = 6 e un ingresso aggiunto **c** = 11 manda 7 su **risultato**; con **a** = `"ciao"` manda «Serve un numero» su **Exception**. Il campo **Decimali** svuotato vale `null`: il blocco usa 2.
 - **Saluto**: **chi** non avvia il blocco (`trigger: false`); quando arriva **invia**, il blocco chiede l'azione e manda «Ciao Ada, da «Serra»».
-- **Cambio**: ogni **leggi** fa una richiesta, contata nella quota di rete. Se il servizio non risponde, il messaggio esce da **Eccezione**.
+- **Cambio**: ogni **leggi** fa una richiesta, contata nella quota di rete. Se il servizio non risponde, il messaggio esce da **Exception**.
 - **Lampeggia**: `true` su **acceso** fa partire un timer che manda `true`, `false`, `true`… su **stato**; `false` lo ferma e manda `false`. Uno schema salvato con la versione 1 (`{ seconds: 2 }`) parte con `{ ms: 2000 }`.
 - **Rampa**: un valore su **obiettivo** fa salire o scendere **valore** di un **passo** ogni 100 ms, fino all'obiettivo; poi il blocco aspetta senza mandare niente.
 
@@ -699,7 +699,7 @@ La media degli ingressi che hanno un valore.
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **risultato** (`result`) | numero | La media, con i decimali scelti. |
-| **Eccezione** (`error`) | oggetto | Quando un ingresso non è un numero. |
+| **Exception** (`error`) | oggetto | Quando un ingresso non è un numero. |
 
 ## Esempi
 

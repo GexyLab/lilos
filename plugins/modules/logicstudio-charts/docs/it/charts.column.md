@@ -37,7 +37,7 @@ Colonne verticali, una per categoria e per serie: per confrontare quantità tra 
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **colonna scelta** (`picked`) | oggetto | La categoria su cui chi guarda fa clic o preme **Invio**. |
-| **Eccezione** (`error`) | oggetto | Come ogni blocco; oggi non ci passa niente. |
+| **Exception** (`error`) | oggetto | Come ogni blocco; oggi non ci passa niente. |
 
 ## Come funziona
 

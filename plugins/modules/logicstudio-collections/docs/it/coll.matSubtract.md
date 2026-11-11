@@ -16,7 +16,7 @@ Sottrae la seconda matrice dalla prima, cella per cella.
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **risultato** (`result`) | matrice | La matrice in cui ogni cella è `a − b` nella stessa posizione. |
-| **Eccezione** (`error`) | oggetto | Matrice non valida, celle non numeriche, misure diverse. |
+| **Exception** (`error`) | oggetto | Matrice non valida, celle non numeriche, misure diverse. |
 
 ## Come funziona
 

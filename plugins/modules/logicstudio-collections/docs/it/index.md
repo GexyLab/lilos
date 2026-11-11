@@ -69,7 +69,7 @@ Una lista si può avere:
 - da [Lista [ ]](core.list), che fa una lista con i valori dei suoi ingressi;
 - dai blocchi di questo pacchetto ([Range](coll.range), [Split](coll.split), [Accumula (push con limite)](coll.accumulate)…) e da altri blocchi e componenti (righe di una [Tabella](ui.table), file letti…).
 
-**Un testo non è una lista**, e nemmeno un oggetto: un blocco che vuole una lista e riceve altro manda «Serve una lista» sull'**Eccezione**.
+**Un testo non è una lista**, e nemmeno un oggetto: un blocco che vuole una lista e riceve altro manda «Serve una lista» sull'**Exception**.
 
 **I blocchi non cambiano mai la lista che ricevono**: mandano sempre una copia nuova. Se la stessa lista va a più blocchi, ognuno la vede com'era. Per «tenere» una lista che cambia, rimanda il risultato in un blocco [Memoria (set · get)](core.store), o usa [Accumula (push con limite)](coll.accumulate).
 
@@ -147,7 +147,7 @@ Valgono le regole di tutti i blocchi ([Come funziona un blocco](ide/blocks)): og
 
 - I blocchi di questo pacchetto **aspettano in silenzio** finché non hanno tutti gli ingressi obbligatori: niente uscita e niente errore. Fanno eccezione [For each](coll.forEach), che dà «Manca la lista» se riceve **avvia** senza lista, e gli ingressi facoltativi (**da** e **a** di [Slice](coll.slice), **da** e **passo** di [Range](coll.range), **valore** di [Filter](coll.filter), **riempimento** di [Nuova matrice (fill)](coll.matNew), tutti gli ingressi di [Concat liste](coll.concat)).
 - Con due ingressi che «lo avviano», il blocco gira a ogni arrivo: quando all'avvio arrivano due valori, il primo risultato è fatto con un ingresso solo (o non c'è, se l'altro è obbligatorio). Togli «lo avvia» dall'ingresso che non deve far ripartire il blocco.
-- Ciò che va storto esce sull'**Eccezione** del blocco come `{ message, block, schema, at }`; se l'Eccezione non è collegata, nella console principale compare una riga come «Leggi lista[i]: Indice fuori dalla lista» (il nome del blocco, poi il messaggio).
+- Ciò che va storto esce sull'**Exception** del blocco come `{ message, block, type, schema, at }`; se l'Exception non è collegata, nella console principale compare una riga come «Leggi lista[i]: Indice fuori dalla lista» (il nome del blocco, poi il messaggio).
 
 ## Limiti
 

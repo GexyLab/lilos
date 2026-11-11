@@ -17,7 +17,7 @@ Prende un pezzo di una lista: gli elementi da una posizione a un'altra (quest'ul
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **risultato** (`result`) | lista | Il pezzo di lista: può essere vuoto. |
-| **Eccezione** (`error`) | oggetto | Lista non valida, **da** o **a** non interi. |
+| **Exception** (`error`) | oggetto | Lista non valida, **da** o **a** non interi. |
 
 ## Come funziona
 

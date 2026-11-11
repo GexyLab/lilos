@@ -15,7 +15,7 @@ Manda un impulso a intervalli regolari, per esempio ogni 30 secondi. Si accende 
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **impulso** (`tick`) | impulso | Un impulso (il valore sì) a ogni intervallo. |
-| **Eccezione** (`error`) | oggetto | In pratica non succede. |
+| **Exception** (`error`) | oggetto | In pratica non succede. |
 
 ## Impostazioni
 

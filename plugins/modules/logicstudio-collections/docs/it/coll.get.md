@@ -16,7 +16,7 @@ Prende l'elemento che sta in una posizione della lista.
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **elemento** (`item`) | qualsiasi | L'elemento in quella posizione, così com'è (numero, testo, oggetto, lista, `null`…). |
-| **Eccezione** (`error`) | oggetto | Quando la lista non è una lista, l'indice non è un intero o è fuori dalla lista. |
+| **Exception** (`error`) | oggetto | Quando la lista non è una lista, l'indice non è un intero o è fuori dalla lista. |
 
 ## Come funziona
 
@@ -72,7 +72,7 @@ Ogni volta che [Accumula (push con limite)](coll.accumulate) manda la lista aggi
 [Campo numerico: giorno]                          valore ──▶ indice
 ```
 
-Con 0 nel [Campo numerico](ui.number) si vede «Lunedì», con 2 «Mercoledì», con -1 di nuovo «Mercoledì», con 3 non cambia niente e l'errore va nella console principale (o sull'**Eccezione**, se è collegata).
+Con 0 nel [Campo numerico](ui.number) si vede «Lunedì», con 2 «Mercoledì», con -1 di nuovo «Mercoledì», con 3 non cambia niente e l'errore va nella console principale (o sull'**Exception**, se è collegata).
 
 ## Errori
 

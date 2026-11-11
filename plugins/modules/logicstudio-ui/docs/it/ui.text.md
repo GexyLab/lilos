@@ -30,7 +30,7 @@ Il campo si apre sempre vuoto: non c'è una proprietà per un testo iniziale (us
 |---|---|---|
 | **testo** (`value`) | testo | Il testo del campo, quando l'utente **conferma** una modifica: preme Invio o esce dal campo. |
 | **invio** (`enter`) | impulso | Ogni volta che l'utente preme **Invio** nel campo. Il valore è `true`. |
-| **Eccezione** (`error`) | oggetto | Come ogni blocco; per questa componente oggi non ci passa niente. |
+| **Exception** (`error`) | oggetto | Come ogni blocco; per questa componente oggi non ci passa niente. |
 
 ## Come funziona
 

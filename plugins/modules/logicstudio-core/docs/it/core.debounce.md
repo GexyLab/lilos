@@ -15,7 +15,7 @@ Aspetta che i valori smettano di arrivare e poi manda solo l'ultimo. Serve quand
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **valore** (`value`) | qualsiasi | L'ultimo valore arrivato, quando per **Fermo per** secondi non ne è arrivato un altro. |
-| **Eccezione** (`error`) | oggetto | In pratica non succede. |
+| **Exception** (`error`) | oggetto | In pratica non succede. |
 
 ## Impostazioni
 

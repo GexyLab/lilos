@@ -18,7 +18,7 @@ Manda gli elementi di una lista uno alla volta, con la loro posizione, e alla fi
 | **elemento** (`item`) | qualsiasi | Ogni elemento della lista, uno dopo l'altro. |
 | **indice** (`index`) | numero | La posizione dell'elemento appena mandato: 0, 1, 2… |
 | **fatto** (`done`) | impulso | Un impulso quando tutti gli elementi sono stati mandati. |
-| **Eccezione** (`error`) | oggetto | Manca la lista, o non è una lista. |
+| **Exception** (`error`) | oggetto | Manca la lista, o non è una lista. |
 
 ## Come funziona
 

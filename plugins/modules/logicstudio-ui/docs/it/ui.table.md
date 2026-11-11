@@ -26,7 +26,7 @@ Mostra una lista in righe e colonne: ogni elemento della lista è una riga, ogni
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **riga scelta** (`selected`) | oggetto | La riga su cui l'utente fa clic (o preme Invio o Spazio). |
-| **Eccezione** (`error`) | oggetto | Come ogni blocco; per questa componente oggi non ci passa niente. |
+| **Exception** (`error`) | oggetto | Come ogni blocco; per questa componente oggi non ci passa niente. |
 
 ## Come funziona
 

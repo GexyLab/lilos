@@ -16,7 +16,7 @@ Ha più ingressi di valori e ne fa passare uno solo, quello indicato da un numer
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **valore** (`value`) | qualsiasi | L'ultimo valore dell'ingresso scelto. |
-| **Eccezione** (`error`) | oggetto | Quando **quale** non indica un ingresso che c'è. |
+| **Exception** (`error`) | oggetto | Quando **quale** non indica un ingresso che c'è. |
 
 ## Porte aggiuntive
 
@@ -43,7 +43,7 @@ Ogni volta che arriva qualcosa su **quale** **o su uno qualsiasi degli ingressi 
 Casi limite:
 
 - Se l'ingresso scelto non ha ancora ricevuto niente, il blocco non manda niente (e non dà errore).
-- Se **quale** è 0, negativo, più grande del numero di ingressi o non è un numero, il blocco manda su **Eccezione** «Non c'è l'ingresso …» con il valore arrivato su **quale** (per esempio `Non c'è l'ingresso 0`, `Non c'è l'ingresso abc`).
+- Se **quale** è 0, negativo, più grande del numero di ingressi o non è un numero, il blocco manda su **Exception** «Non c'è l'ingresso …» con il valore arrivato su **quale** (per esempio `Non c'è l'ingresso 0`, `Non c'è l'ingresso abc`).
 - Se arriva un valore su un ingresso aggiunto quando **quale** non è ancora arrivato, l'errore è `Non c'è l'ingresso undefined`. Per evitarlo, dai a **quale** un valore iniziale (per esempio `1`).
 - Ogni valore che arriva sull'ingresso scelto passa subito; anche i valori che arrivano sugli altri ingressi fanno ripartire il blocco, che **rimanda il valore dell'ingresso scelto**. Se non vuoi questi invii ripetuti, togli «lo avvia» dagli ingressi aggiunti: il blocco partirà solo quando cambia **quale**.
 
@@ -57,7 +57,7 @@ Aggiungi tre ingressi e dai loro come valore iniziale `"Ciao"`, `"Hello"`, `"Hol
 [Campo numerico: lingua] valore ──▶ quale [Scegli per indice (MUX)] valore ──▶ testo [Etichetta: saluto]
 ```
 
-Se l'utente scrive 1 nel [Campo numerico](ui.number), l'[Etichetta](ui.label) mostra `Ciao`; con 2 `Hello`; con 3 `Hola`; con 4 l'Eccezione riceve `Non c'è l'ingresso 4`.
+Se l'utente scrive 1 nel [Campo numerico](ui.number), l'[Etichetta](ui.label) mostra `Ciao`; con 2 `Hello`; con 3 `Hola`; con 4 l'Exception riceve `Non c'è l'ingresso 4`.
 
 ### 2. Una sorgente scelta da un cursore
 

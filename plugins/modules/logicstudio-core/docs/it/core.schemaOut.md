@@ -12,7 +12,7 @@ Dà allo schema una **porta d'uscita**: i valori che arrivano a questo blocco va
 
 ## Uscite
 
-Nessuna sul blocco: i valori escono dalla porta dello schema, nella mappa. Questo blocco non ha l'uscita **Eccezione**.
+Nessuna sul blocco: i valori escono dalla porta dello schema, nella mappa. Questo blocco non ha l'uscita **Exception**.
 
 ## Impostazioni
 
@@ -57,8 +57,8 @@ Collega **sensori › allarme** sia a **notifiche › allarme** sia a **registro
 ### 3. Le eccezioni di uno schema raccolte da un altro
 
 ```
-[HTTP (fetch)] Eccezione ──▶ valore [Return (uscita di schema): errori, oggetto]
-[readFile]    Eccezione ──▶ valore
+[HTTP (fetch)] Exception ──▶ valore [Return (uscita di schema): errori, oggetto]
+[readFile]    Exception ──▶ valore
 ```
 
 Due collegamenti arrivano allo stesso ingresso **valore**. Nella mappa colleghi **errori** a uno schema che li scrive tutti in una console **Errori** con [Print (console.log)](core.consoleWrite).

@@ -16,7 +16,7 @@ Guarda un sì/no che arriva più volte e manda un impulso solo quando **cambia**
 |---|---|---|
 | **diventa vero** (`rise`) | impulso | Un impulso quando il valore passa da no a sì. |
 | **diventa falso** (`fall`) | impulso | Un impulso quando il valore passa da sì a no. |
-| **Eccezione** (`error`) | oggetto | In pratica questo blocco non manda mai niente qui. |
+| **Exception** (`error`) | oggetto | In pratica questo blocco non manda mai niente qui. |
 
 ## Come funziona
 

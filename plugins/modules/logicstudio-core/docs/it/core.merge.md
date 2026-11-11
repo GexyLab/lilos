@@ -15,7 +15,7 @@ Riunisce più ingressi in una sola uscita: ogni valore che arriva su uno qualsia
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **valore** (`value`) | qualsiasi | Ogni valore arrivato, così com'è. |
-| **Eccezione** (`error`) | oggetto | In pratica questo blocco non manda mai niente qui. |
+| **Exception** (`error`) | oggetto | In pratica questo blocco non manda mai niente qui. |
 
 ## Porte aggiuntive
 

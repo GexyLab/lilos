@@ -15,7 +15,7 @@ Fa uscire ogni valore che arriva dopo un certo numero di secondi, senza cambiarl
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **valore** (`value`) | qualsiasi | Lo stesso valore, dopo l'attesa. |
-| **Eccezione** (`error`) | oggetto | In pratica non succede. |
+| **Exception** (`error`) | oggetto | In pratica non succede. |
 
 ## Impostazioni
 
@@ -64,7 +64,7 @@ Al clic la [Spia](ui.lamp) si accende (premuto vale sì) e 5 secondi dopo si spe
 ### 3. Ritentare dopo un errore
 
 ```
-[HTTP (fetch)] Eccezione ──▶ valore [Ritardo (setTimeout): 10 s] valore ──▶ invia [HTTP (fetch)]
+[HTTP (fetch)] Exception ──▶ valore [Ritardo (setTimeout): 10 s] valore ──▶ invia [HTTP (fetch)]
 ```
 
 Se la [HTTP (fetch)](net.request) non riesce, riprova da sola 10 secondi dopo. Attenzione: se non riesce mai, riprova per sempre ogni 10 secondi.

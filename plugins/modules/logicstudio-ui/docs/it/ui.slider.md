@@ -32,7 +32,7 @@ Una barra con una manopola da trascinare: l'utente sceglie un numero tra un mini
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **valore** (`value`) | numero | Quando l'utente **lascia** il cursore in una nuova posizione: il numero scelto. |
-| **Eccezione** (`error`) | oggetto | Come ogni blocco; per questa componente oggi non ci passa niente. |
+| **Exception** (`error`) | oggetto | Come ogni blocco; per questa componente oggi non ci passa niente. |
 
 ## Come funziona
 

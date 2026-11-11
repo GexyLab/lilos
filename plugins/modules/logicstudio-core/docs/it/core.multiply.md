@@ -16,7 +16,7 @@ Moltiplica due o più numeri e manda il prodotto.
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **risultato** (`result`) | numero | Il prodotto degli ingressi che hanno un valore. |
-| **Eccezione** (`error`) | oggetto | Quando un ingresso non è un numero. |
+| **Exception** (`error`) | oggetto | Quando un ingresso non è un numero. |
 
 ## Porte aggiuntive
 
@@ -28,7 +28,7 @@ Ogni volta che arriva un valore su un ingresso, il blocco moltiplica l'ultimo va
 
 - Gli ingressi che non hanno ancora ricevuto niente non contano: con solo **a** = 4 il risultato è 4 (non 0).
 - I valori vengono convertiti in numero con le stesse regole del blocco [Somma (+)](core.add): `"2,5"` vale 2,5; `true` vale 1 e `false` 0; un testo vuoto e `null` valgono **0** (quindi azzerano il prodotto).
-- Se un valore non si può convertire (per esempio `"ciao"` o un oggetto), il blocco non manda niente su **risultato** e manda su **Eccezione** «Serve un numero».
+- Se un valore non si può convertire (per esempio `"ciao"` o un oggetto), il blocco non manda niente su **risultato** e manda su **Exception** «Serve un numero».
 - I numeri decimali del computer possono dare piccoli scarti: 1,1 × 3 = 3,3000000000000003. Arrotonda con il blocco [Funzioni Math](core.math) prima di mostrarli.
 
 ## Esempi

@@ -20,7 +20,7 @@ Tutti e due gli ingressi sono **nascosti di serie**: per collegarli, mostrali pr
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **valore** (`value`) | qualsiasi | Il valore attuale: quello delle impostazioni, o l'ultimo arrivato su **imposta**. |
-| **Eccezione** (`error`) | oggetto | Quando il tipo è **JSON** e il testo non è JSON valido, o quando su **imposta** arriva un valore che non è un numero con il tipo **numero**. |
+| **Exception** (`error`) | oggetto | Quando il tipo è **JSON** e il testo non è JSON valido, o quando su **imposta** arriva un valore che non è un numero con il tipo **numero**. |
 
 ## Impostazioni
 
@@ -53,7 +53,7 @@ Il testo che scrivi in **Valore** viene letto secondo il **Tipo**:
 | **sì/no** | È **no** se, tolti gli spazi e senza badare alle maiuscole, è vuoto, `0`, `false`, `no` oppure `off`. Qualsiasi altro testo è **sì**. | `no` → no; `OFF` → no; `sì` → sì; `falso` → **sì** |
 | **JSON** | Il testo è letto come JSON. Vuoto vale `null`. | `{"nome":"Ada"}` → un oggetto; `[1,2,3]` → una lista; `"ciao"` → il testo ciao; `null` → null |
 
-Quello che arriva su **imposta** è convertito allo stesso modo: con il tipo **numero** il testo `"7"` diventa 7 e un testo che non è un numero va in **Eccezione** (il valore resta quello di prima); con **testo** un oggetto diventa il suo testo JSON; con **sì/no** valgono le regole della tabella; con **JSON** il valore passa così com'è.
+Quello che arriva su **imposta** è convertito allo stesso modo: con il tipo **numero** il testo `"7"` diventa 7 e un testo che non è un numero va in **Exception** (il valore resta quello di prima); con **testo** un oggetto diventa il suo testo JSON; con **sì/no** valgono le regole della tabella; con **JSON** il valore passa così com'è.
 
 Attenzione ai casi limite:
 
@@ -61,9 +61,9 @@ Attenzione ai casi limite:
 - Con il tipo **sì/no**, la parola italiana `falso` vale **sì**: per il no scrivi `no`, `0`, `false` oppure `off`.
 - Con il tipo **JSON** puoi mandare `null`: arriva ai blocchi collegati come valore vuoto.
 
-Se il testo JSON non è valido, il blocco non manda niente su **valore** e manda su **Eccezione** il messaggio del lettore JSON (vedi **Errori**).
+Se il testo JSON non è valido, il blocco non manda niente su **valore** e manda su **Exception** il messaggio del lettore JSON (vedi **Errori**).
 
-Per una variabile da leggere in un momento diverso da quando la scrivi puoi usare anche [Memoria (set · get)](core.store), che ha in più **svuota**. Per le regole generali (ingressi, «lo avvia», porte nascoste, Eccezione) vedi [Come funziona un blocco](ide/blocks).
+Per una variabile da leggere in un momento diverso da quando la scrivi puoi usare anche [Memoria (set · get)](core.store), che ha in più **svuota**. Per le regole generali (ingressi, «lo avvia», porte nascoste, Exception) vedi [Come funziona un blocco](ide/blocks).
 
 ## Esempi
 
@@ -112,7 +112,7 @@ Tipo **JSON**, Valore:
 
 All'avvio il blocco manda l'oggetto. Con un blocco [Get proprietà (obj.campo)](core.get) con Campo `soglia` ottieni il numero 30.
 
-Se scrivi per sbaglio `{soglia: 30}` (senza virgolette intorno al nome), il valore non parte e l'Eccezione riceve un messaggio del tipo `Expected property name or '}' in JSON at position 1 (line 1 column 2)`.
+Se scrivi per sbaglio `{soglia: 30}` (senza virgolette intorno al nome), il valore non parte e l'Exception riceve un messaggio del tipo `Expected property name or '}' in JSON at position 1 (line 1 column 2)`.
 
 ## Errori
 

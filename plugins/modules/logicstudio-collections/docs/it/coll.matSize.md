@@ -16,7 +16,7 @@ Dice quante righe e quante colonne ha una matrice. Serve anche a controllare che
 |---|---|---|
 | **righe** (`rows`) | numero | Il numero di righe. |
 | **colonne** (`cols`) | numero | Il numero di colonne. |
-| **Eccezione** (`error`) | oggetto | Quando il valore non è una matrice valida. |
+| **Exception** (`error`) | oggetto | Quando il valore non è una matrice valida. |
 
 ## Come funziona
 
@@ -43,7 +43,7 @@ Le due console scrivono `2` e `3`.
 
 ### 2. Righe di lunghezza diversa
 
-Con `[[1], [2, 3]]` non esce niente su **righe** e **colonne**, e sull'**Eccezione** (o nella console principale) arriva «Shape: Le righe della matrice devono avere tutte la stessa lunghezza».
+Con `[[1], [2, 3]]` non esce niente su **righe** e **colonne**, e sull'**Exception** (o nella console principale) arriva «Shape: Le righe della matrice devono avere tutte la stessa lunghezza».
 
 ### 3. L'ultima cella
 

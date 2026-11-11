@@ -17,7 +17,7 @@ Regole:
 - lo stesso collegamento (stessa uscita, stesso ingresso) non si fa due volte;
 - **un'uscita** può andare a **quanti ingressi vuoi**;
 - **un ingresso** può ricevere da **più uscite**: ogni valore che arriva prende il posto del precedente (vale l'ultimo arrivato);
-- l'uscita **Eccezione** si collega come le altre.
+- l'uscita **Exception** si collega come le altre.
 
 ## Togliere o spostare un collegamento
 
@@ -39,9 +39,9 @@ Ogni porta ha un **tipo**, che si vede dal colore del pallino e del collegamento
 | matrice | verde acqua | una lista di righe: `[[1, 2], [3, 4]]` |
 | qualsiasi | grigio | qualunque valore |
 | impulso | rosa | un segnale «adesso»: il valore conta poco (di solito `true`) |
-| (Eccezione) | rosso | l'oggetto dell'errore `{ message, block, schema, at }` |
+| (Exception) | rosso | l'oggetto dell'errore `{ message, block, type, schema, at }` |
 
-Il tipo è un **accordo**, non un obbligo: il motore non blocca un valore perché è del tipo «sbagliato». È il blocco che lo riceve a decidere cosa farne. Quasi tutti i blocchi convertono: una **Somma** accetta `"2,5"` come 2,5 e `true` come 1; se proprio non ci riesce manda un errore sull'uscita **Eccezione** (per esempio «Serve un numero»).
+Il tipo è un **accordo**, non un obbligo: il motore non blocca un valore perché è del tipo «sbagliato». È il blocco che lo riceve a decidere cosa farne. Quasi tutti i blocchi convertono: una **Somma** accetta `"2,5"` come 2,5 e `true` come 1; se proprio non ci riesce manda un errore sull'uscita **Exception** (per esempio «Serve un numero»).
 
 ## Quando un collegamento è segnato
 
@@ -77,7 +77,7 @@ Gli altri segni sui collegamenti:
 |---|---|
 | linea piena del colore del tipo | normale |
 | linea più spessa, illuminata | selezionato |
-| tratteggio rosso | parte da un'uscita **Eccezione** |
+| tratteggio rosso | parte da un'uscita **Exception** |
 | tratteggio che scorre, con un'etichetta a metà | durante la prova: ci è passato un valore; l'etichetta è l'ultimo valore |
 
 ## I valori dal vivo
@@ -148,7 +148,7 @@ Due blocchi Costante · Variabile (**Tipo** = **sì/no**, con **invia** collegat
 [Campo di testo] testo ──▶ a [Somma (+)] risultato ──▶ valore [Print (console.log)]
 ```
 
-Il collegamento testo → numero è a puntini. Se l'utente scrive `12`, il blocco Somma lo converte e scrive 12; se scrive `ciao`, il blocco Somma manda «Serve un numero» sull'**Eccezione** e, se non è collegata, la riga va nella console principale. Per un controllo esplicito metti in mezzo un **Cast** (**In** = **numero**) e collega la sua **Eccezione** a un **Print** con livello **avviso**.
+Il collegamento testo → numero è a puntini. Se l'utente scrive `12`, il blocco Somma lo converte e scrive 12; se scrive `ciao`, il blocco Somma manda «Serve un numero» sull'**Exception** e, se non è collegata, la riga va nella console principale. Per un controllo esplicito metti in mezzo un **Cast** (**In** = **numero**) e collega la sua **Exception** a un **Print** con livello **avviso**.
 
 ## Vedi anche
 

@@ -15,7 +15,7 @@ Tiene un numero tra un minimo e un massimo: se è più piccolo del minimo manda 
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **risultato** (`result`) | numero | Il numero, portato dentro i limiti. |
-| **Eccezione** (`error`) | oggetto | In pratica questo blocco non manda mai niente qui. |
+| **Exception** (`error`) | oggetto | In pratica questo blocco non manda mai niente qui. |
 
 ## Impostazioni
 

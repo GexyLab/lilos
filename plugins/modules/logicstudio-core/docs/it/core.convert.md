@@ -15,7 +15,7 @@ Cambia il tipo di un valore: in numero, in testo, in sì/no, in testo JSON, oppu
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **risultato** (`result`) | qualsiasi | Il valore convertito. |
-| **Eccezione** (`error`) | oggetto | Quando la conversione non è possibile (in **numero** o **da testo JSON**). |
+| **Exception** (`error`) | oggetto | Quando la conversione non è possibile (in **numero** o **da testo JSON**). |
 
 ## Impostazioni
 
@@ -72,7 +72,7 @@ Legge un testo JSON e manda il valore che descrive: `'{"x":[1,2]}'` → l'oggett
 - Un testo vuoto o `null` danno errore (`Unexpected end of JSON input`).
 - Un testo che non è JSON (`abc`, `{a:1}`, `{'a':1}`) dà errore, con il messaggio del lettore JSON in inglese.
 
-Quando la conversione non riesce, il blocco non manda niente su **risultato** e manda il messaggio su **Eccezione**. Vedi [Come funziona un blocco](ide/blocks).
+Quando la conversione non riesce, il blocco non manda niente su **risultato** e manda il messaggio su **Exception**. Vedi [Come funziona un blocco](ide/blocks).
 
 ## Esempi
 
@@ -80,7 +80,7 @@ Quando la conversione non riesce, il blocco non manda niente su **risultato** e 
 
 ```
 [Campo di testo: età] testo ──▶ valore [Cast (converti tipo): In numero] risultato ──▶ a [Confronto (== ≠ < >): a ≥ b]
-                                                              Eccezione ──▶ valore [Print (console.log)]
+                                                              Exception ──▶ valore [Print (console.log)]
 ```
 
 Se l'utente scrive `18`, arriva il numero 18 e il confronto funziona come un confronto tra numeri. Se scrive `diciotto`, la console scrive `Non è un numero` (con il nome del blocco).

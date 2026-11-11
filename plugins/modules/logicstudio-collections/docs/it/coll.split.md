@@ -15,7 +15,7 @@ Taglia un testo in pezzi a ogni separatore e manda la lista dei pezzi.
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **risultato** (`result`) | lista | I pezzi, come testi, nell'ordine in cui stanno nel testo. |
-| **Eccezione** (`error`) | oggetto | Quando i pezzi sarebbero più di 100000. |
+| **Exception** (`error`) | oggetto | Quando i pezzi sarebbero più di 100000. |
 
 ## Impostazioni
 

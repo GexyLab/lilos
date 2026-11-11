@@ -28,7 +28,7 @@ Un gruppo di opzioni una sotto l'altra, ognuna con il suo pallino: l'utente ne s
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **valore** (`value`) | testo | Quando l'utente sceglie un'opzione: il suo valore. |
-| **Eccezione** (`error`) | oggetto | Come ogni blocco; per questa componente oggi non ci passa niente. |
+| **Exception** (`error`) | oggetto | Come ogni blocco; per questa componente oggi non ci passa niente. |
 
 ## Come funziona
 

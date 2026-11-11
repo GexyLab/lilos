@@ -6,7 +6,7 @@ import { t } from './i18n.js';
  * search. A click puts it in the middle of the editor; dragging puts it where it is dropped; the
  * context menu (and F1 on an item) also opens its documentation.
  */
-const BLOCK_ORDER = ['value', 'logic', 'math', 'text', 'object', 'list', 'matrix', 'time', 'console', 'schema', 'ui', 'lilos', 'net', 'other'];
+const BLOCK_ORDER = ['value', 'logic', 'math', 'text', 'object', 'list', 'matrix', 'time', 'console', 'schema', 'ui', 'lilos', 'net', 'exception', 'other'];
 const COMPONENT_ORDER = ['text', 'values', 'commands', 'containers', 'charts', 'other'];
 export const DRAG_TYPE = 'application/x-logicstudio-item';
 

@@ -15,7 +15,7 @@ Calcola il determinante di una matrice quadrata, fino a 10 × 10.
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **determinante** (`det`) | numero | Il determinante. |
-| **Eccezione** (`error`) | oggetto | Matrice non valida, non quadrata, troppo grande o con celle non numeriche. |
+| **Exception** (`error`) | oggetto | Matrice non valida, non quadrata, troppo grande o con celle non numeriche. |
 
 ## Come funziona
 

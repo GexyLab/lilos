@@ -156,7 +156,7 @@ Un esempio completo, con un blocco con etichetta, un valore iniziale, una porta 
 | `blocks[].config` | Le impostazioni, con le chiavi interne (al massimo 64 KB). Quelle che mancano prendono il valore di serie. |
 | `blocks[].ports` | Per ingresso: `start` (il valore iniziale) e `trigger: false` (non lo avvia). Un ingresso senza niente di speciale non c'è. |
 | `blocks[].added` | Le porte aggiunte: `inputs` e `outputs`, ognuna `{ "id": "x1", "name": "c" }`. Gli id `x` + numero sono unici nel blocco (tra ingressi e uscite). |
-| `links` | I collegamenti: `from` = `[id del blocco, uscita]`, `to` = `[id del blocco, ingresso]`. L'uscita Eccezione si chiama `error`. |
+| `links` | I collegamenti: `from` = `[id del blocco, uscita]`, `to` = `[id del blocco, ingresso]`. L'uscita Exception si chiama `error`. |
 | `notes` | Riservato, vuoto. |
 | `view` | Posizione e zoom della vista quando hai chiuso lo schema. |
 | `consoles` | Solo in uno **schema da solo**, facoltativo: le console come in `.lsproj` (`list`, `outside`…). |

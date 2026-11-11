@@ -9,6 +9,6 @@
   "intoContainer": "تُوضع المكوّنات داخل حاوية فقط",
   "unknownComponent": "مكوّن غير معروف",
   "mainConsole": "لا يمكن إزالة وحدة التحكم الرئيسية",
-  "error": "استثناء",
+  "error": "Exception",
   "missing": "الحزمة مفقودة"
 }

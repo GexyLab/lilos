@@ -18,7 +18,7 @@ Elenca gli elementi di una cartella della tua home: file, cartelle, o entrambi. 
 | **elementi** (`items`) | lista | Un oggetto per elemento (vedi sotto). |
 | **nomi** (`names`) | lista | Solo i nomi, nello stesso ordine. |
 | **quanti** (`count`) | numero | Quanti elementi ci sono, dopo i filtri. |
-| **Eccezione** (`error`) | oggetto | Quando la cartella non si può leggere: non c'è, non è una cartella, percorso non valido… |
+| **Exception** (`error`) | oggetto | Quando la cartella non si può leggere: non c'è, non è una cartella, percorso non valido… |
 
 ## Impostazioni
 

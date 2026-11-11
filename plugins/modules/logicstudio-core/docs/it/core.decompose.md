@@ -12,11 +12,11 @@ Divide un oggetto nei suoi campi: ogni uscita che aggiungi manda il campo con il
 
 ## Uscite
 
-Il blocco nasce **senza uscite** (a parte l'Eccezione): aggiungi un'uscita per ogni campo che ti serve (vedi **Porte aggiuntive**).
+Il blocco nasce **senza uscite** (a parte l'Exception): aggiungi un'uscita per ogni campo che ti serve (vedi **Porte aggiuntive**).
 
 | Porta | Tipo | Descrizione |
 |---|---|---|
-| **Eccezione** (`error`) | oggetto | In pratica non succede: un campo che manca non è un errore. |
+| **Exception** (`error`) | oggetto | In pratica non succede: un campo che manca non è un errore. |
 
 ## Porte aggiuntive
 

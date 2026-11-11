@@ -15,7 +15,7 @@ Crea la matrice identità: quadrata, con 1 sulla diagonale e 0 altrove.
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **matrice** (`matrix`) | matrice | La matrice n × n con 1 dove riga e colonna coincidono, 0 nelle altre celle. |
-| **Eccezione** (`error`) | oggetto | Dimensione non valida o troppo grande. |
+| **Exception** (`error`) | oggetto | Dimensione non valida o troppo grande. |
 
 ## Come funziona
 

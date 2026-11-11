@@ -16,7 +16,7 @@ Toglie **b** da **a** e manda la differenza: a − b.
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **risultato** (`result`) | numero | a − b. |
-| **Eccezione** (`error`) | oggetto | In pratica questo blocco non manda mai niente qui (vedi sotto i valori che non sono numeri). |
+| **Exception** (`error`) | oggetto | In pratica questo blocco non manda mai niente qui (vedi sotto i valori che non sono numeri). |
 
 Questo blocco ha solo due ingressi: non se ne possono aggiungere.
 
@@ -46,7 +46,7 @@ Obiettivo 100, raccolti 35: mancano 65. Raccolti 120: −20.
 
 ### 3. Un valore non numerico
 
-**a** = 10, **b** = `"dieci"` → il risultato è `NaN`, senza Eccezione. Con un blocco [Cast (converti tipo)](core.convert) in numero davanti a **b**, invece, l'Eccezione del blocco Cast riceve «Non è un numero» e la Sottrazione non riceve niente.
+**a** = 10, **b** = `"dieci"` → il risultato è `NaN`, senza Exception. Con un blocco [Cast (converti tipo)](core.convert) in numero davanti a **b**, invece, l'Exception del blocco Cast riceve «Non è un numero» e la Sottrazione non riceve niente.
 
 ## Errori
 

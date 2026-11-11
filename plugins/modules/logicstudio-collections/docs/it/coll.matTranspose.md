@@ -15,7 +15,7 @@ Scambia righe e colonne: la prima riga diventa la prima colonna, la seconda riga
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **matrice** (`matrix`) | matrice | La trasposta: se la matrice ha R righe e C colonne, questa ha C righe e R colonne. |
-| **Eccezione** (`error`) | oggetto | Quando il valore non è una matrice valida. |
+| **Exception** (`error`) | oggetto | Quando il valore non è una matrice valida. |
 
 ## Come funziona
 

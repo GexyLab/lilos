@@ -3,11 +3,11 @@
 .lgc, .lgc-scope {
   /* types of the ports */
   --lt-number: #58a6ff; --lt-bool: #f0b429; --lt-text: #3fb950; --lt-object: #bc8cff; --lt-list: #39c5bb;
-  --lt-matrix: #2fb7a5; --lt-any: #9aa1ad; --lt-pulse: #f778ba; --lt-error: #e5484d;
+  --lt-matrix: #2fb7a5; --lt-any: #9aa1ad; --lt-pulse: #f778ba; --lt-error: #ff2b2b;
   /* categories of the blocks */
   --lc-value: #8b95a5; --lc-logic: #d9a514; --lc-math: #2f81f7; --lc-text: #3fb950; --lc-object: #a371f7; --lc-list: #39c5bb;
   --lc-matrix: #2fb7a5; --lc-time: #db61a2; --lc-console: #8b5cf6; --lc-schema: #4c8dff; --lc-ui: #2da44e; --lc-lilos: #6e56cf;
-  --lc-net: #0f9d9a; --lc-other: #8b95a5; --lc-missing: #e5484d;
+  --lc-net: #0f9d9a; --lc-exception: #ff2b2b; --lc-other: #8b95a5; --lc-missing: #e5484d;
   --lg-live: #39d0d8;
   --lg-block: color-mix(in srgb, var(--canvas) 86%, var(--on-canvas));
   --lg-block-border: color-mix(in srgb, var(--canvas) 72%, var(--on-canvas));
@@ -57,7 +57,10 @@
 .lgc-p.added > span { font-style: italic; }
 .lgc-p.dim { opacity: .45; }
 .lgc-p.notrigger > span { text-decoration: underline dotted; }
-.lgc-p.error { color: #ff8d90; }
+/* the output Exception: bright red, never dimmed, so it is seen even when nothing is linked to it */
+.lgc-p.error { color: var(--lt-error); font-weight: 700; }
+.lgc-p.error.dim { opacity: 1; }
+.lgc-p.error .lgc-dot { border-width: 2.5px; box-shadow: 0 0 0 2px color-mix(in srgb, var(--lt-error) 35%, transparent); }
 .lgc-dot { position: absolute; top: 4px; width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--pc, var(--lt-any)); background: var(--lg-block); cursor: crosshair; }
 .lgc-p.in .lgc-dot { left: -6px; }
 .lgc-p.out .lgc-dot { right: -6px; }
@@ -79,7 +82,7 @@
 .cat-value { --cat: var(--lc-value); } .cat-logic { --cat: var(--lc-logic); } .cat-math { --cat: var(--lc-math); } .cat-text { --cat: var(--lc-text); }
 .cat-object { --cat: var(--lc-object); } .cat-list { --cat: var(--lc-list); } .cat-matrix { --cat: var(--lc-matrix); } .cat-time { --cat: var(--lc-time); }
 .cat-console { --cat: var(--lc-console); } .cat-schema { --cat: var(--lc-schema); } .cat-ui { --cat: var(--lc-ui); } .cat-lilos { --cat: var(--lc-lilos); }
-.cat-net { --cat: var(--lc-net); } .cat-missing { --cat: var(--lc-missing); }
+.cat-net { --cat: var(--lc-net); } .cat-exception { --cat: var(--lc-exception); } .cat-missing { --cat: var(--lc-missing); }
 
 /* Ingresso e Uscita di schema: pills */
 .lgc-block.role-schemaIn, .lgc-block.role-schemaOut { border-radius: 13px; border-left-width: 1px; border-color: var(--lc-schema); background: color-mix(in srgb, var(--lc-schema) 18%, var(--lg-block)); --cat: var(--lc-schema); }

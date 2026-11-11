@@ -15,7 +15,7 @@ A ogni impulso su **avvia** manda un impulso su ognuna delle sue uscite, una dop
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | (le uscite aggiunte) | impulso | Un impulso ciascuna, nell'ordine. |
-| **Eccezione** (`error`) | oggetto | In pratica questo blocco non manda mai niente qui. |
+| **Exception** (`error`) | oggetto | In pratica questo blocco non manda mai niente qui. |
 
 ## Porte aggiuntive
 

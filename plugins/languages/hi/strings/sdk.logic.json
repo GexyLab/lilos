@@ -9,6 +9,6 @@
   "intoContainer": "कॉम्पोनेंट केवल कंटेनर के अंदर रखे जाते हैं",
   "unknownComponent": "अज्ञात कॉम्पोनेंट",
   "mainConsole": "मुख्य कंसोल हटाया नहीं जा सकता",
-  "error": "अपवाद",
+  "error": "Exception",
   "missing": "पैकेज गायब है"
 }

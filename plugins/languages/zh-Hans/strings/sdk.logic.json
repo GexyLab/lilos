@@ -9,6 +9,6 @@
   "intoContainer": "组件只能放在容器内",
   "unknownComponent": "未知的组件",
   "mainConsole": "主控制台不能移除",
-  "error": "异常",
+  "error": "Exception",
   "missing": "缺少该包"
 }

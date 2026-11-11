@@ -86,6 +86,15 @@ The other blocks come with other packages: [Lists and matrices](logicstudio-coll
 | [Print (console.log)](core.consoleWrite) | Writes a line to a console, with a level (normal, information, warning, error); it can clear it. |
 | [Input (readline)](core.consoleRead) | Asks a question and sends the answer as text, number, yes/no or a key. |
 
+### Exceptions
+
+| Block | What it does |
+|---|---|
+| [Throw](core.throw) | Throws an exception with a message of yours, or rethrows the one that arrives. |
+| [Catch](core.catch) | Receives exceptions and separates the ones to handle (by text, expression, block or type) from the others. |
+| [Exception data (e.message…)](core.errorInfo) | Splits an exception: message, block, block type, schema, moment. |
+| [Global catch (onerror)](core.onError) | Receives the exceptions that nobody linked, of the schema or of the whole program. |
+
 ### Schema ports
 
 | Block | What it does |
@@ -120,10 +129,10 @@ Many blocks convert what they receive. The rules are the same across the whole p
 Every block (except the schema ports) has the **Exception** output. When a block cannot do its job, an object comes out there:
 
 ```
-{"message": "Il campo «sconto» non esiste", "block": "get1", "schema": "main", "at": 1794405901003}
+{"message": "Il campo «sconto» non esiste", "block": "get1", "type": "core.get", "schema": "main", "at": 1794405901003}
 ```
 
-`message` is the message, `block` is the id of the block, `schema` is the schema, `at` is the moment in milliseconds. The messages of the engine and of the blocks are written in Italian, so you see them in Italian: this one means "The field «sconto» does not exist". If the Exception is not linked, the main console writes a red line with the name of the block and the message, for example `Get property: Il campo «sconto» non esiste`.
+`message` is the message, `block` is the id of the block, `type` is its type (from engine 1.3.0), `schema` is the schema, `at` is the moment in milliseconds. On the schema the **Exception** port is red; it is hidden by default and shown with the eye in the Properties. The messages of the engine and of the blocks are written in Italian, so you see them in Italian: this one means "The field «sconto» does not exist". If the Exception is not linked, the object goes to the [Global catch (onerror)](core.onError) of the schema (or of the program), if there is one; otherwise the main console writes a red line with the name of the block and the message, for example `Get property: Il campo «sconto» non esiste`. To handle exceptions there are the blocks of the **Exceptions** category: [Catch](core.catch), [Throw](core.throw), [Exception data](core.errorInfo) and [Global catch](core.onError).
 
 ### Added ports
 

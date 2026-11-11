@@ -1,6 +1,6 @@
 {
   "name": "logicstudio-lilos",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Logic Studio: i blocchi di lilOS (notifiche, leggere e scrivere i file della propria home, elencare cartelle, eventi verso le pagine di lilOS)",
   "icon": {
     "glyph": "chip",

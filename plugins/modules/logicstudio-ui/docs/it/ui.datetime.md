@@ -30,7 +30,7 @@ Il campo si apre sempre vuoto: per una data iniziale usa l'ingresso **valore (IS
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **valore (ISO)** (`value`) | testo | La data o l'ora scelta, quando l'utente la cambia. |
-| **Eccezione** (`error`) | oggetto | Come ogni blocco; per questa componente oggi non ci passa niente. |
+| **Exception** (`error`) | oggetto | Come ogni blocco; per questa componente oggi non ci passa niente. |
 
 ## Come funziona
 

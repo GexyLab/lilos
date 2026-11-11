@@ -9,6 +9,6 @@
   "intoContainer": "Bileşenler yalnızca bir kapsayıcının içine konur",
   "unknownComponent": "Bilinmeyen bileşen",
   "mainConsole": "Ana konsol kaldırılamaz",
-  "error": "İstisna",
+  "error": "Exception",
   "missing": "Paket eksik"
 }

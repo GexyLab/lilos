@@ -15,7 +15,7 @@ Fa un testo solo con gli elementi di una lista, mettendo un separatore tra l'uno
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **testo** (`text`) | testo | Gli elementi scritti uno dopo l'altro, con il separatore in mezzo. |
-| **Eccezione** (`error`) | oggetto | Quando il valore su **lista** non è una lista. |
+| **Exception** (`error`) | oggetto | Quando il valore su **lista** non è una lista. |
 
 ## Impostazioni
 

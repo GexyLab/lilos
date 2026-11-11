@@ -15,7 +15,7 @@ Manda un evento alle tue pagine di lilOS aperte, con un nome e dei dati. È pens
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **inviato** (`sent`) | impulso | Manda `true` quando l'evento è partito. |
-| **Eccezione** (`error`) | oggetto | Quando l'evento non parte: nome non valido, dati troppo grandi, troppi eventi. |
+| **Exception** (`error`) | oggetto | Quando l'evento non parte: nome non valido, dati troppo grandi, troppi eventi. |
 
 ## Impostazioni
 
@@ -74,7 +74,7 @@ Ogni 5 secondi le tue pagine di lilOS ricevono `logicstudio.event` con `name` = 
                impulso ──▶ dati [Emit (evento a lilOS): misura.b]
 ```
 
-Il limite di 20 eventi al secondo vale per **tutto il programma**, non per ogni blocco. Qui i due blocchi insieme ne mandano 40 al secondo: circa metà finisce su **Eccezione** con «Troppi eventi: al massimo 20 al secondo». Rallenta il ritmo, oppure raccogli più valori in una lista con [Accumula (push con limite)](coll.accumulate) e manda la lista ogni tanto.
+Il limite di 20 eventi al secondo vale per **tutto il programma**, non per ogni blocco. Qui i due blocchi insieme ne mandano 40 al secondo: circa metà finisce su **Exception** con «Troppi eventi: al massimo 20 al secondo». Rallenta il ritmo, oppure raccogli più valori in una lista con [Accumula (push con limite)](coll.accumulate) e manda la lista ogni tanto.
 
 ## Errori
 

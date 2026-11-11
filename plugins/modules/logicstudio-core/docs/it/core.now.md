@@ -17,7 +17,7 @@ Legge la data e l'ora di adesso e le manda in tre forme: come testo ISO, come nu
 | **ISO** (`iso`) | testo | La data e l'ora nel formato ISO, **in tempo universale** (UTC): per esempio `2026-11-11T14:05:01.003Z`. |
 | **millisecondi** (`ms`) | numero | I millisecondi passati dal 1° gennaio 1970 alle 00:00 UTC: per esempio `1794405901003`. |
 | **parti** (`parts`) | oggetto | La data e l'ora divise in campi, **nell'ora locale** (vedi sotto). |
-| **Eccezione** (`error`) | oggetto | In pratica non succede. |
+| **Exception** (`error`) | oggetto | In pratica non succede. |
 
 ## Come funziona
 

@@ -17,7 +17,7 @@ Divide una lista in due: gli elementi che rispettano una condizione e quelli che
 |---|---|---|
 | **risultato** (`result`) | lista | Gli elementi che rispettano la condizione, nell'ordine di partenza. |
 | **scartati** (`rest`) | lista | Tutti gli altri, nell'ordine di partenza. |
-| **Eccezione** (`error`) | oggetto | Quando il valore su **lista** non è una lista. |
+| **Exception** (`error`) | oggetto | Quando il valore su **lista** non è una lista. |
 
 ## Impostazioni
 

@@ -16,7 +16,7 @@ Somma due matrici della stessa misura, cella per cella.
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **risultato** (`result`) | matrice | La matrice in cui ogni cella è la somma delle celle nella stessa posizione di **a** e **b**. |
-| **Eccezione** (`error`) | oggetto | Matrice non valida, celle non numeriche, misure diverse. |
+| **Exception** (`error`) | oggetto | Matrice non valida, celle non numeriche, misure diverse. |
 
 ## Come funziona
 

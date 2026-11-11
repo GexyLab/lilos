@@ -27,7 +27,7 @@ Un pulsante che apre la finestra di lilOS per scegliere un file (o una cartella)
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **percorso** (`value`) | testo | Il percorso scelto, quando l'utente sceglie un file o una cartella. |
-| **Eccezione** (`error`) | oggetto | Come ogni blocco; per questa componente oggi non ci passa niente. |
+| **Exception** (`error`) | oggetto | Come ogni blocco; per questa componente oggi non ci passa niente. |
 
 ## Come funziona
 
@@ -39,7 +39,7 @@ All'apertura si vede «—» e un pulsante «…» con l'icona di un file o di u
 
 - Scegliere di nuovo lo stesso file lo manda di nuovo.
 - Il percorso è quello di lilOS, che comincia con la tua home (`/home/anna/…`). I blocchi di lilOS lo accettano così com'è. Il programma gira con i permessi di chi lo ha avviato: la scelta di un file non dà al programma permessi in più.
-- I blocchi dei file lavorano solo nella home: se l'utente sceglie un file fuori dalla sua home, il blocco [readFile](lilos.fileRead) va in **Eccezione** con «Puoi usare solo i file della tua home (~/… oppure /home/anna/…): …». Anche la cartella `.config` è esclusa.
+- I blocchi dei file lavorano solo nella home: se l'utente sceglie un file fuori dalla sua home, il blocco [readFile](lilos.fileRead) va in **Exception** con «Puoi usare solo i file della tua home (~/… oppure /home/anna/…): …». Anche la cartella `.config` è esclusa.
 - Un percorso lungo si accorcia con «…» alla fine; per vederlo tutto, allarga la finestra.
 - Dallo schema, **percorso** cambia solo la scritta: non controlla che il file esista, e non apre niente. `null` riporta «—».
 - Funziona anche nell'**Anteprima** dell'IDE.

@@ -18,7 +18,7 @@ Un oggetto ha:
 
 - **ingressi** (← nelle Proprietà della componente): **quello che imposta uno schema**. Un valore che arriva lì va alla componente. Per esempio **testo** di un'**Etichetta**, **valore** di un **Indicatore**, **righe** di una **Tabella**, **opzioni** di una **Selezione**;
 - **uscite** (→): **quello che fa l'utente**. Escono quando qualcuno usa la componente in una finestra aperta: **premuto** di un **Pulsante**, **valore** di un **Interruttore** o di un **Cursore**, **testo** e **invio** di un **Campo di testo**, **riga scelta** di una **Tabella**;
-- l'uscita **Eccezione**, come ogni blocco.
+- l'uscita **Exception**, come ogni blocco.
 
 Ogni componente (tranne i contenitori) ha anche due ingressi in più:
 

@@ -9,6 +9,6 @@
   "intoContainer": "Componenten horen alleen in een container",
   "unknownComponent": "Onbekende component",
   "mainConsole": "De hoofdconsole kan niet worden verwijderd",
-  "error": "Uitzondering",
+  "error": "Exception",
   "missing": "Het pakket ontbreekt"
 }

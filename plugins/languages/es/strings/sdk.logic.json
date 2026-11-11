@@ -9,6 +9,6 @@
   "intoContainer": "Los componentes solo van dentro de un contenedor",
   "unknownComponent": "Componente desconocido",
   "mainConsole": "La consola principal no se puede quitar",
-  "error": "Excepción",
+  "error": "Exception",
   "missing": "Falta el paquete"
 }

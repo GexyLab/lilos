@@ -16,7 +16,7 @@ Confronta un valore con un elenco di casi, ognuno con la sua uscita, e manda un 
 |---|---|---|
 | **altrimenti** (`else`) | impulso | Un impulso quando il valore non è uguale a nessun caso. |
 | (le uscite aggiunte) | impulso | Un impulso quando il valore è uguale al nome dell'uscita. |
-| **Eccezione** (`error`) | oggetto | In pratica questo blocco non manda mai niente qui. |
+| **Exception** (`error`) | oggetto | In pratica questo blocco non manda mai niente qui. |
 
 ## Porte aggiuntive
 

@@ -16,7 +16,7 @@ Manda **sì** se almeno uno degli ingressi che hanno un valore è **sì**.
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **risultato** (`result`) | sì/no | **sì** se almeno un ingresso con un valore è sì, altrimenti **no**. |
-| **Eccezione** (`error`) | oggetto | In pratica questo blocco non manda mai niente qui. |
+| **Exception** (`error`) | oggetto | In pratica questo blocco non manda mai niente qui. |
 
 ## Porte aggiuntive
 

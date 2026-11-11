@@ -13,7 +13,7 @@ Il blocco nasce **senza ingressi**: aggiungi un ingresso per ogni elemento della
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **lista** (`list`) | lista | Una lista con un elemento per ogni ingresso, nello stesso ordine. |
-| **Eccezione** (`error`) | oggetto | In pratica non succede: il blocco non ha errori suoi. |
+| **Exception** (`error`) | oggetto | In pratica non succede: il blocco non ha errori suoi. |
 
 ## Porte aggiuntive
 

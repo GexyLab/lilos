@@ -16,7 +16,7 @@ Prende una riga intera di una matrice, come lista.
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **riga** (`row`) | lista | Una copia della riga: tanti valori quante sono le colonne. |
-| **Eccezione** (`error`) | oggetto | Matrice non valida, riga non intera o fuori dalla matrice. |
+| **Exception** (`error`) | oggetto | Matrice non valida, riga non intera o fuori dalla matrice. |
 
 ## Come funziona
 

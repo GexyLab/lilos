@@ -16,7 +16,7 @@ Tra due o più numeri, manda il più piccolo, il più grande o la media.
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **risultato** (`result`) | numero | Il minimo, il massimo o la media dei numeri validi. |
-| **Eccezione** (`error`) | oggetto | In pratica questo blocco non manda mai niente qui. |
+| **Exception** (`error`) | oggetto | In pratica questo blocco non manda mai niente qui. |
 
 ## Impostazioni
 

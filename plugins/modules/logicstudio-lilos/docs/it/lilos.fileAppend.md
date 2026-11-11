@@ -17,7 +17,7 @@ Aggiunge un valore in fondo a un file della tua home, senza toccare quello che c
 |---|---|---|
 | **scritto** (`written`) | impulso | Manda `true` quando il valore è stato aggiunto. |
 | **dimensione (byte)** (`size`) | numero | La nuova dimensione del file, in byte. |
-| **Eccezione** (`error`) | oggetto | Quando non si può aggiungere: percorso non valido, cartella che non c'è, file troppo grande, quota finita… |
+| **Exception** (`error`) | oggetto | Quando non si può aggiungere: percorso non valido, cartella che non c'è, file troppo grande, quota finita… |
 
 ## Impostazioni
 
@@ -95,10 +95,10 @@ Ogni riga è un JSON a sé: è un formato facile da rileggere con altri programm
 ### 3. Tenere gli errori del programma
 
 ```
-[HTTP (fetch)] Eccezione ──▶ oggetto [Get proprietà (obj.campo): message] valore ──▶ contenuto [appendFile: ~/errori.txt]
+[HTTP (fetch)] Exception ──▶ oggetto [Get proprietà (obj.campo): message] valore ──▶ contenuto [appendFile: ~/errori.txt]
 ```
 
-Ogni volta che il blocco [HTTP (fetch)](net.request) non riesce, il messaggio d'errore (per esempio «Indirizzo non trovato: esempio.invalid») finisce in una riga di `~/errori.txt`. Puoi anche collegare **Eccezione** direttamente a **contenuto**: allora viene scritto tutto l'oggetto `{ message, block, schema, at }` su una riga.
+Ogni volta che il blocco [HTTP (fetch)](net.request) non riesce, il messaggio d'errore (per esempio «Indirizzo non trovato: esempio.invalid») finisce in una riga di `~/errori.txt`. Puoi anche collegare **Exception** direttamente a **contenuto**: allora viene scritto tutto l'oggetto `{ message, block, type, schema, at }` su una riga.
 
 ## Errori
 

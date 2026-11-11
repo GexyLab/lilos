@@ -17,7 +17,7 @@ Scrive un valore in un file della tua home, come testo o come JSON. **Il file vi
 |---|---|---|
 | **scritto** (`written`) | impulso | Manda `true` quando il file è stato scritto. |
 | **dimensione (byte)** (`size`) | numero | Quanti byte sono stati scritti (la nuova dimensione del file). |
-| **Eccezione** (`error`) | oggetto | Quando il file non si può scrivere: percorso non valido, cartella che non c'è, dati troppo grandi, quota finita… |
+| **Exception** (`error`) | oggetto | Quando il file non si può scrivere: percorso non valido, cartella che non c'è, dati troppo grandi, quota finita… |
 
 ## Impostazioni
 

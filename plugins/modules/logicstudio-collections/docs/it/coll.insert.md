@@ -17,7 +17,7 @@ Mette un valore in una posizione della lista, spostando avanti quelli che seguon
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **risultato** (`result`) | lista | La lista con un elemento in più. |
-| **Eccezione** (`error`) | oggetto | Lista non valida, indice non intero o fuori dalla lista, lista troppo lunga. |
+| **Exception** (`error`) | oggetto | Lista non valida, indice non intero o fuori dalla lista, lista troppo lunga. |
 
 ## Come funziona
 

@@ -15,7 +15,7 @@ Da una lista di oggetti fa la lista dei valori di un loro campo.
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **risultato** (`result`) | lista | Per ogni elemento, il valore del campo; `null` se l'elemento non ce l'ha. Ha la stessa lunghezza della lista. |
-| **Eccezione** (`error`) | oggetto | Lista non valida o campo non indicato. |
+| **Exception** (`error`) | oggetto | Lista non valida o campo non indicato. |
 
 ## Impostazioni
 

@@ -17,7 +17,7 @@ Manda un valore su **allora** se la condizione è sì, su **altrimenti** se è n
 |---|---|---|
 | **allora** (`then`) | qualsiasi | Il valore, quando la condizione è sì. |
 | **altrimenti** (`else`) | qualsiasi | Il valore, quando la condizione è no. |
-| **Eccezione** (`error`) | oggetto | In pratica questo blocco non manda mai niente qui. |
+| **Exception** (`error`) | oggetto | In pratica questo blocco non manda mai niente qui. |
 
 ## Come funziona
 

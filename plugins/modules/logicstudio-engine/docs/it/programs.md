@@ -58,7 +58,7 @@ Vedi i tuoi programmi in due posti:
 
 Quando un **programma attivo** si ferma per un errore, ricevi una notifica di lilOS con il nome del programma e il messaggio (se in quel momento hai una pagina di lilOS aperta).
 
-Un errore dentro un blocco **non** ferma il programma: esce dall'uscita **Eccezione** di quel blocco e, se non è collegata, va nella console principale come una riga rossa. Per esempio «Somma (+): Serve un numero».
+Un errore dentro un blocco **non** ferma il programma: esce dall'uscita **Exception** di quel blocco e, se non è collegata, va nella console principale come una riga rossa. Per esempio «Somma (+): Serve un numero».
 
 ## Fermare e togliere
 
@@ -122,7 +122,7 @@ Il blocco [Input (readline)](core.consoleRead) fa una domanda e aspetta la rispo
 - Quando il programma si ferma, le domande in attesa sono annullate.
 - Una risposta nascosta (per le password) compare nella console come pallini.
 
-> **Il tempo massimo di un blocco vale anche per le domande.** Oggi il motore interrompe un blocco che lavora più di 30 secondi (di serie, vedi [Limiti e quote](logicstudio-engine/limits)), e un blocco che aspetta una risposta conta come un blocco che lavora. Dopo 30 secondi senza risposta, **Leggi da console** manda su **Eccezione** «Input (readline) ha impiegato più di 30 s». La domanda resta nella console, ma la risposta che dai dopo non arriva più al blocco, e finché non rispondi il blocco ignora le nuove richieste **chiedi**. Se ti serve più tempo, un amministratore può alzare il limite.
+> **Il tempo massimo di un blocco vale anche per le domande.** Oggi il motore interrompe un blocco che lavora più di 30 secondi (di serie, vedi [Limiti e quote](logicstudio-engine/limits)), e un blocco che aspetta una risposta conta come un blocco che lavora. Dopo 30 secondi senza risposta, **Leggi da console** manda su **Exception** «Input (readline) ha impiegato più di 30 s». La domanda resta nella console, ma la risposta che dai dopo non arriva più al blocco, e finché non rispondi il blocco ignora le nuove richieste **chiedi**. Se ti serve più tempo, un amministratore può alzare il limite.
 
 ### Le console fuori dall'IDE
 

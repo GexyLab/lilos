@@ -17,7 +17,7 @@ Dice se un valore è nella lista e in quale posizione si trova la prima volta.
 |---|---|---|
 | **trovato** (`found`) | sì/no | `true` se il valore è nella lista, altrimenti `false`. |
 | **posizione (-1 se manca)** (`index`) | numero | La posizione (da 0) del primo elemento uguale; -1 se non c'è. |
-| **Eccezione** (`error`) | oggetto | Quando il valore su **lista** non è una lista. |
+| **Exception** (`error`) | oggetto | Quando il valore su **lista** non è una lista. |
 
 ## Come funziona
 

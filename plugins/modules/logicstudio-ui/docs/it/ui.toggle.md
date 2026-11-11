@@ -26,7 +26,7 @@ Un interruttore a levetta, acceso o spento. Quando l'utente lo sposta, manda il 
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **valore** (`value`) | sì/no | Quando l'utente lo sposta: `true` se ora è acceso, `false` se è spento. |
-| **Eccezione** (`error`) | oggetto | Come ogni blocco; per questa componente oggi non ci passa niente. |
+| **Exception** (`error`) | oggetto | Come ogni blocco; per questa componente oggi non ci passa niente. |
 
 ## Come funziona
 

@@ -17,7 +17,7 @@ Tiene un numero che sale di un passo a ogni impulso su **più**, scende a ogni i
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **conteggio** (`count`) | numero | Il conteggio, dopo ogni impulso. |
-| **Eccezione** (`error`) | oggetto | In pratica questo blocco non manda mai niente qui. |
+| **Exception** (`error`) | oggetto | In pratica questo blocco non manda mai niente qui. |
 
 ## Impostazioni
 

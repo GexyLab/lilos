@@ -18,7 +18,7 @@ Confronta due valori (uguale, diverso, maggiore, minore…) e dice se il confron
 | **risultato** (`result`) | sì/no | **sì** se il confronto è vero, **no** se è falso. |
 | **se vero** (`true`) | impulso | Un impulso quando il confronto è vero. |
 | **se falso** (`false`) | impulso | Un impulso quando il confronto è falso. |
-| **Eccezione** (`error`) | oggetto | In pratica questo blocco non manda mai niente qui. |
+| **Exception** (`error`) | oggetto | In pratica questo blocco non manda mai niente qui. |
 
 ## Impostazioni
 

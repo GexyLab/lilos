@@ -9,6 +9,6 @@
   "intoContainer": "Componentele se pun doar într-un container",
   "unknownComponent": "Componentă necunoscută",
   "mainConsole": "Consola principală nu poate fi eliminată",
-  "error": "Excepție",
+  "error": "Exception",
   "missing": "Pachetul lipsește"
 }

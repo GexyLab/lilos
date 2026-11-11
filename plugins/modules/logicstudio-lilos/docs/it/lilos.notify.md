@@ -17,7 +17,7 @@ Ti manda una notifica di lilOS, a nome del programma. La notifica compare nella 
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **inviata** (`sent`) | impulso | Manda `true` quando lilOS ha accettato la notifica. |
-| **Eccezione** (`error`) | oggetto | Quando la notifica non parte: niente testo, troppe notifiche, servizio delle notifiche assente. |
+| **Exception** (`error`) | oggetto | Quando la notifica non parte: niente testo, troppe notifiche, servizio delle notifiche assente. |
 
 ## Impostazioni
 
@@ -49,7 +49,7 @@ Cose da sapere:
 - Il testo della notifica si ferma a **300 caratteri**: il resto viene tagliato senza errore.
 - La notifica arriva **a te**, cioè all'utente che possiede il programma, e risulta mandata dal programma: come mittente c'è il nome del programma (al massimo 80 caratteri). Cliccarla non apre niente.
 - lilOS tiene solo le ultime notifiche di ogni utente (20 di serie): le più vecchie spariscono.
-- **Al massimo 10 notifiche al minuto.** Il limite è per utente e vale per **tutti i tuoi programmi di Logic Studio insieme**, perché per lilOS il mittente è sempre Logic Studio. Oltre il limite il blocco manda su **Eccezione** «Troppe notifiche in poco tempo: riprova tra N secondi».
+- **Al massimo 10 notifiche al minuto.** Il limite è per utente e vale per **tutti i tuoi programmi di Logic Studio insieme**, perché per lilOS il mittente è sempre Logic Studio. Oltre il limite il blocco manda su **Exception** «Troppe notifiche in poco tempo: riprova tra N secondi».
 - Non collegare **invia** a un blocco che manda valori di continuo (per esempio [Intervallo (setInterval)](core.every) con pochi secondi): metti prima un controllo, come [Al cambio (fronte ↑↓)](core.edge) o [If · Else](core.if), così la notifica parte solo quando qualcosa cambia.
 - Il blocco ha bisogno del servizio delle notifiche (`notifications-basic`), che l'AppStore installa insieme a questo pacchetto.
 

@@ -9,6 +9,6 @@
   "intoContainer": "اجزاء صرف کنٹینر کے اندر رکھے جاتے ہیں",
   "unknownComponent": "نامعلوم جزو",
   "mainConsole": "مرکزی کنسول ہٹایا نہیں جا سکتا",
-  "error": "استثنا",
+  "error": "Exception",
   "missing": "پیکیج غائب ہے"
 }

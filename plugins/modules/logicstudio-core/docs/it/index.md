@@ -86,6 +86,15 @@ Gli altri blocchi arrivano con altri pacchetti: [Liste e matrici](logicstudio-co
 | [Print (console.log)](core.consoleWrite) | Scrive una riga in una console, con un livello (normale, informazione, avviso, errore); può pulirla. |
 | [Input (readline)](core.consoleRead) | Fa una domanda e manda la risposta come testo, numero, sì/no o un tasto. |
 
+### Eccezioni
+
+| Blocco | Cosa fa |
+|---|---|
+| [Throw (lancia Exception)](core.throw) | Lancia un'eccezione con un messaggio tuo, o rilancia quella che arriva. |
+| [Catch (cattura)](core.catch) | Riceve le eccezioni e separa quelle da gestire (per testo, espressione, blocco o tipo) dalle altre. |
+| [Dati di Exception (e.message…)](core.errorInfo) | Scompone un'eccezione: messaggio, blocco, tipo di blocco, schema, momento. |
+| [Catch globale (onerror)](core.onError) | Riceve le eccezioni che nessuno ha collegato, dello schema o di tutto il programma. |
+
 ### Porte di schema
 
 | Blocco | Cosa fa |
@@ -115,15 +124,15 @@ Molti blocchi convertono quello che ricevono. Le regole sono le stesse in tutto 
 | **un sì/no** | Un testo è **no** se, tolti gli spazi e senza badare alle maiuscole, è vuoto, `0`, `false`, `no` o `off`; ogni altro testo è **sì** (anche `falso`). Gli altri valori: 0, `null` e un valore che manca sono no; ogni oggetto e ogni lista, anche vuoti, sono sì. |
 | **un testo** | Un testo resta com'è; un numero o un sì/no diventa il suo testo (`21.5`, `true`); `null` diventa un testo vuoto; un oggetto o una lista diventano JSON su una riga (`{"a":1}`). |
 
-### L'Eccezione
+### L'Exception
 
-Ogni blocco (tranne le porte di schema) ha l'uscita **Eccezione**. Quando un blocco non riesce a fare il suo lavoro, lì esce un oggetto:
+Ogni blocco (tranne le porte di schema) ha l'uscita **Exception**. Quando un blocco non riesce a fare il suo lavoro, lì esce un oggetto:
 
 ```
-{"message": "Il campo «sconto» non esiste", "block": "get1", "schema": "main", "at": 1794405901003}
+{"message": "Il campo «sconto» non esiste", "block": "get1", "type": "core.get", "schema": "main", "at": 1794405901003}
 ```
 
-`message` è il messaggio, `block` l'id del blocco, `schema` lo schema, `at` il momento in millisecondi. Se l'Eccezione non è collegata, la console principale scrive una riga rossa con il nome del blocco e il messaggio, per esempio `Get proprietà (obj.campo): Il campo «sconto» non esiste`.
+`message` è il messaggio, `block` l'id del blocco, `type` il suo tipo (dal motore 1.3.0), `schema` lo schema, `at` il momento in millisecondi. Nello schema la porta **Exception** è rossa; è nascosta di serie e si mostra con l'occhio nelle Proprietà. Se l'Exception non è collegata, l'oggetto va al [Catch globale (onerror)](core.onError) dello schema (o del programma), se c'è; altrimenti la console principale scrive una riga rossa con il nome del blocco e il messaggio, per esempio `Get proprietà (obj.campo): Il campo «sconto» non esiste`. Per gestire le eccezioni ci sono i blocchi della categoria **Eccezioni**: [Catch (cattura)](core.catch), [Throw](core.throw), [Dati di Exception](core.errorInfo) e [Catch globale](core.onError).
 
 ### Le porte aggiunte
 
@@ -224,11 +233,11 @@ Mentre l'utente scrive «ciao mondo», il campo manda un valore a ogni tasto; l'
 
 ### 4. Gli errori raccolti in una console
 
-Aggiungi nel progetto una console **Errori**. In ogni schema, collega le **Eccezioni** dei blocchi che possono sbagliare a un solo blocco:
+Aggiungi nel progetto una console **Errori**. In ogni schema, collega le uscite **Exception** dei blocchi che possono sbagliare a un solo blocco:
 
 ```
-[Get proprietà (obj.campo): prezzo] Eccezione ──▶ oggetto [Get proprietà (obj.campo): message] valore ──▶ valore [Print (console.log): Errori, errore]
-[Divisione (÷ %)]               Eccezione ──▶ oggetto
+[Get proprietà (obj.campo): prezzo] Exception ──▶ oggetto [Get proprietà (obj.campo): message] valore ──▶ valore [Print (console.log): Errori, errore]
+[Divisione (÷ %)]               Exception ──▶ oggetto
 ```
 
 Quando un oggetto senza prezzo arriva a [Get proprietà (obj.campo)](core.get), la console **Errori** scrive in rosso `Il campo «prezzo» non esiste`; con un divisore 0, `Divisione per zero`. Nei programmi attivi le righe di livello errore finiscono anche nel registro del progetto (di serie).

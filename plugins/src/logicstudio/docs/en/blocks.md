@@ -100,11 +100,15 @@ Every block has, as its last output, **Exception** (internal name `error`). When
 |---|---|
 | `message` | The error message (written in Italian by the blocks: here «Divisione per zero», "Division by zero"). |
 | `block` | The id of the block in the schema (for example `divide1`). |
+| `type` | The type of the block (for example `core.divide`; from engine 1.3.0). |
 | `schema` | The name of the schema. |
 | `at` | When it happened, in milliseconds since 1 January 1970. |
 
 - If **Exception is linked**, the object goes along its links like any value. You can write it to a console, send a notification, count the errors…
-- If it is **not linked**, a line of level error appears in the **main console** with the name of the block and the message, for example `Divisione (÷ %): Divisione per zero`. The name is that of the kind of block (in Italian), not the label you gave it.
+- If it is **not linked**, the object goes to the [Global catch (onerror)](core.onError) block of the schema (or of the whole program), if there is one. Otherwise a line of level error appears in the **main console** with the name of the block and the message, for example `Divisione (÷ %): Divisione per zero`. The name is that of the kind of block (in Italian), not the label you gave it.
+- To **handle** exceptions there are the blocks of the **Exceptions** category: [Catch](core.catch) chooses which ones to handle, [Exception data (e.message…)](core.errorInfo) reads their fields, [Throw](core.throw) throws one of yours or rethrows the one that arrives.
+
+On the schema the **Exception** port is **red** (its link too), so it stands out from the others.
 
 During the test a block that has gone into error has a **red border**, until it works again without errors; the label on the link of an Exception is red with `⚠`.
 

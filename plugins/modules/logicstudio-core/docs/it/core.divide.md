@@ -17,7 +17,7 @@ Divide **a** per **b** e manda il quoziente e il resto.
 |---|---|---|
 | **risultato** (`result`) | numero | a ÷ b, con i decimali. |
 | **resto** (`rest`) | numero | Il resto della divisione di a per b. |
-| **Eccezione** (`error`) | oggetto | Quando **b** vale 0. |
+| **Exception** (`error`) | oggetto | Quando **b** vale 0. |
 
 Questo blocco ha solo due ingressi: non se ne possono aggiungere.
 
@@ -27,7 +27,7 @@ Ogni volta che arriva un valore su **a** o su **b**, il blocco divide l'ultimo *
 
 - I valori vengono convertiti in numero con le stesse regole della [Somma (+)](core.add): `"2,5"` vale 2,5; `true` vale 1 e `false` 0; un testo vuoto e `null` valgono 0.
 - Un ingresso che non ha ancora ricevuto niente vale **0**.
-- **Se b vale 0** (anche perché non è ancora arrivato, o è `""`, `null`, `false`, `"0,0"`), il blocco non manda niente e manda su **Eccezione** «Divisione per zero».
+- **Se b vale 0** (anche perché non è ancora arrivato, o è `""`, `null`, `false`, `"0,0"`), il blocco non manda niente e manda su **Exception** «Divisione per zero».
 - **risultato** è la divisione con i decimali: 7 ÷ 2 = 3,5 (non 3).
 - **resto** è quello che avanza togliendo **b** da **a** quante più volte possibile: 7 e 2 → 1; 17 e 5 → 2; 7,5 e 2 → 1,5. Il resto ha il **segno di a**: −7 e 3 → −1; 7 e −3 → 1.
 - Un valore che non è un numero (`"ciao"`, un oggetto) non dà errore: **risultato** e **resto** sono `NaN` («non è un numero»).
@@ -40,7 +40,7 @@ Visto che un **b** mancante vale 0, se **a** arriva prima di **b** il blocco dà
 - dai a **b** un valore iniziale diverso da 0, oppure
 - togli «lo avvia» da **a**, se **a** arriva sempre prima di **b**.
 
-Se non colleghi l'**Eccezione**, il messaggio finisce nella console principale.
+Se non colleghi l'**Exception**, il messaggio finisce nella console principale.
 
 Vedi [Come funziona un blocco](ide/blocks).
 
@@ -53,7 +53,7 @@ Vedi [Come funziona un blocco](ide/blocks).
 [Campo numerico: persone] valore ──▶ b
 ```
 
-Con **b** iniziale `1`: totale 100 e 3 persone → risultato 33,333333333333336 → arrotondato 33,33. Se l'utente scrive 0 persone, l'Eccezione riceve «Divisione per zero».
+Con **b** iniziale `1`: totale 100 e 3 persone → risultato 33,333333333333336 → arrotondato 33,33. Se l'utente scrive 0 persone, l'Exception riceve «Divisione per zero».
 
 ### 2. Pari o dispari
 

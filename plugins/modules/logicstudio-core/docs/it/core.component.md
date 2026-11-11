@@ -17,7 +17,7 @@ Le porte non sono fisse: sono **quelle della componente** che l'oggetto rapprese
 
 Ogni componente ha gli ingressi **abilitato** e **visibile**. Le porte di ogni componente sono descritte nella sua pagina: con l'oggetto selezionato, **F1** (o **?** nelle Proprietà) apre la pagina della componente.
 
-L'oggetto ha anche l'uscita **Eccezione**, che però non manda mai niente: l'oggetto non fa calcoli suoi.
+L'oggetto ha anche l'uscita **Exception**, che però non manda mai niente: l'oggetto non fa calcoli suoi.
 
 ## Impostazioni
 
@@ -106,7 +106,7 @@ Su [Template (formatta)](core.format) aggiungi un ingresso e rinominalo **s**. I
 
 ## Errori
 
-Sono errori del progetto, non dell'Eccezione: il programma non parte, oppure li segnala il pannello **Problemi**.
+Sono errori del progetto, non dell'Exception: il programma non parte, oppure li segnala il pannello **Problemi**.
 
 | Messaggio | Quando |
 |---|---|

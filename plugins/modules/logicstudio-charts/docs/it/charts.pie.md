@@ -34,7 +34,7 @@ La Torta non ha **aggiungi punto** né **pulisci**: per cambiarla manda dati nuo
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **fetta scelta** (`picked`) | oggetto | La fetta su cui chi guarda fa clic o preme **Invio**. |
-| **Eccezione** (`error`) | oggetto | Come ogni blocco; oggi non ci passa niente. |
+| **Exception** (`error`) | oggetto | Come ogni blocco; oggi non ci passa niente. |
 
 ## Come funziona
 

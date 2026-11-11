@@ -9,6 +9,6 @@
   "intoContainer": "Komponen hanya masuk ke dalam kontainer",
   "unknownComponent": "Komponen tidak dikenal",
   "mainConsole": "Konsol utama tidak dapat dihapus",
-  "error": "Pengecualian",
+  "error": "Exception",
   "missing": "Paket hilang"
 }

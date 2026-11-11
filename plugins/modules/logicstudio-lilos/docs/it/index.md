@@ -63,11 +63,11 @@ I blocchi non toccano lilOS da soli: chiedono al kernel (il computer su cui gira
 
 Valgono anche la quota della tua home, la dimensione massima dei file di lilOS e i limiti del motore di Logic Studio (programmi attivi, esecuzioni, CPU, memoria): vedi [Limiti](logicstudio-engine/limits).
 
-Se un'operazione supera il tempo massimo di un blocco, il blocco manda su **Eccezione** «*Nome del blocco* ha impiegato più di 30 s». L'operazione nel kernel però non viene annullata: per esempio una scrittura lenta può finire lo stesso poco dopo.
+Se un'operazione supera il tempo massimo di un blocco, il blocco manda su **Exception** «*Nome del blocco* ha impiegato più di 30 s». L'operazione nel kernel però non viene annullata: per esempio una scrittura lenta può finire lo stesso poco dopo.
 
 ### Gli errori
 
-Ogni blocco ha l'uscita **Eccezione**. I messaggi sono in italiano e dicono il percorso nella forma `~/…`, per esempio «Il file «~/dati.txt» non esiste». Se non colleghi **Eccezione**, il messaggio va nella console principale. Ogni pagina elenca i messaggi del suo blocco.
+Ogni blocco ha l'uscita **Exception**. I messaggi sono in italiano e dicono il percorso nella forma `~/…`, per esempio «Il file «~/dati.txt» non esiste». Se non colleghi **Exception**, il messaggio va nella console principale. Ogni pagina elenca i messaggi del suo blocco.
 
 ### Le app fatte con Crea app
 

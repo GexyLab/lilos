@@ -35,7 +35,7 @@ Il Radar non ha **aggiungi punto** né **pulisci**: per cambiarlo manda dati nuo
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **asse scelto** (`picked`) | oggetto | L'asse su cui chi guarda fa clic o preme **Invio**, con i valori di ogni serie. |
-| **Eccezione** (`error`) | oggetto | Come ogni blocco; oggi non ci passa niente. |
+| **Exception** (`error`) | oggetto | Come ogni blocco; oggi non ci passa niente. |
 
 ## Come funziona
 

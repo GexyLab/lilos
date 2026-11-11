@@ -14,7 +14,7 @@ Nessuno: i valori arrivano dagli altri schemi, attraverso i collegamenti della m
 |---|---|---|
 | **valore** (`value`) | quello scelto in **Tipo** | Ogni valore che arriva alla porta dello schema, così com'è. |
 
-Questo blocco non ha l'uscita **Eccezione**.
+Questo blocco non ha l'uscita **Exception**.
 
 ## Impostazioni
 

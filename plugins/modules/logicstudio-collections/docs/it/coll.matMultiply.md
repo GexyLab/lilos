@@ -16,7 +16,7 @@ Fa il prodotto righe per colonne di due matrici (il prodotto «matematico», non
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **risultato** (`result`) | matrice | Il prodotto: ha le righe di **a** e le colonne di **b**. |
-| **Eccezione** (`error`) | oggetto | Matrice non valida, celle non numeriche, misure che non si possono moltiplicare, risultato troppo grande. |
+| **Exception** (`error`) | oggetto | Matrice non valida, celle non numeriche, misure che non si possono moltiplicare, risultato troppo grande. |
 
 ## Come funziona
 

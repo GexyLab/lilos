@@ -13,7 +13,7 @@ Il blocco nasce **senza ingressi**: aggiungi un ingresso per ogni campo dell'ogg
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **oggetto** (`object`) | oggetto | L'oggetto con un campo per ogni ingresso che ha già ricevuto un valore. |
-| **Eccezione** (`error`) | oggetto | In pratica non succede: il blocco non ha errori suoi. |
+| **Exception** (`error`) | oggetto | In pratica non succede: il blocco non ha errori suoi. |
 
 ## Porte aggiuntive
 
@@ -31,7 +31,7 @@ Ogni volta che arriva un valore su uno dei campi, il blocco manda su **oggetto**
 - L'ordine dei campi nell'oggetto è quello delle porte.
 - Il blocco gira **a ogni valore**: con tre campi che arrivano uno dopo l'altro, escono tre oggetti, sempre più completi. Se vuoi un oggetto solo, togli **lo avvia** a tutti i campi tranne quello che arriva per ultimo, oppure usa [Attendi tutti (join)](core.join).
 
-Per le regole generali (ingressi, «lo avvia», valore iniziale, Eccezione) vedi [Come funziona un blocco](ide/blocks).
+Per le regole generali (ingressi, «lo avvia», valore iniziale, Exception) vedi [Come funziona un blocco](ide/blocks).
 
 ## Esempi
 

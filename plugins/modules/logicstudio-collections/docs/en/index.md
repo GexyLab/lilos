@@ -147,7 +147,7 @@ The rules of all blocks apply ([How a block works](ide/blocks)): every value tha
 
 - The blocks of this package **wait silently** until they have all the required inputs: no output and no error. The exceptions are [For each](coll.forEach), which gives «Manca la lista» ("The list is missing") if it receives **start** without a list, and the optional inputs (**from** and **to** of [Slice](coll.slice), **from** and **step** of [Range](coll.range), **value** of [Filter](coll.filter), **fill** of [New matrix (fill)](coll.matNew), all the inputs of [Concat lists](coll.concat)).
 - With two inputs that "start it", the block runs at every arrival: when two values arrive at start, the first result is made with one input only (or there is none, if the other is required). Remove "starts it" from the input that must not make the block run again.
-- What goes wrong comes out on the block's **Exception** as `{ message, block, schema, at }`; if the Exception is not linked, a line like «Leggi lista[i]: Indice fuori dalla lista» appears in the main console (the block name, then the message).
+- What goes wrong comes out on the block's **Exception** as `{ message, block, type, schema, at }`; if the Exception is not linked, a line like «Leggi lista[i]: Indice fuori dalla lista» appears in the main console (the block name, then the message).
 
 ## Limits
 

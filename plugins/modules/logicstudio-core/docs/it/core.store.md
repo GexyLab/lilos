@@ -17,7 +17,7 @@ Tiene da parte un valore e lo manda quando glielo chiedi. È la «variabile» di
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **valore** (`value`) | qualsiasi | Il valore tenuto, quando arriva **leggi** (o subito, con **Invia quando cambia**). |
-| **Eccezione** (`error`) | oggetto | In pratica questo blocco non manda mai niente qui. |
+| **Exception** (`error`) | oggetto | In pratica questo blocco non manda mai niente qui. |
 
 ## Impostazioni
 

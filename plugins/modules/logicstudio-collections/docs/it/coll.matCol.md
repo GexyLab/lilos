@@ -16,7 +16,7 @@ Prende una colonna intera di una matrice, come lista: il valore di quella colonn
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **colonna** (`col`) | lista | I valori della colonna, dalla prima riga all'ultima: tanti quante sono le righe. |
-| **Eccezione** (`error`) | oggetto | Matrice non valida, colonna non intera o fuori dalla matrice. |
+| **Exception** (`error`) | oggetto | Matrice non valida, colonna non intera o fuori dalla matrice. |
 
 ## Come funziona
 

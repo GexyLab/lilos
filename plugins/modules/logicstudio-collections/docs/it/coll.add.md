@@ -16,7 +16,7 @@ Aggiunge un valore in fondo (o all'inizio) di una lista e manda la lista nuova.
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **risultato** (`result`) | lista | La lista con un elemento in più. |
-| **Eccezione** (`error`) | oggetto | Lista non valida o lista troppo lunga. |
+| **Exception** (`error`) | oggetto | Lista non valida o lista troppo lunga. |
 
 ## Impostazioni
 

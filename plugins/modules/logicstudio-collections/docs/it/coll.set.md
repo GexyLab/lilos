@@ -17,7 +17,7 @@ Sostituisce l'elemento in una posizione e manda la lista nuova.
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **risultato** (`result`) | lista | Una copia della lista con il valore nuovo nella posizione scelta. Ha la stessa lunghezza. |
-| **Eccezione** (`error`) | oggetto | Lista non valida, indice non intero o fuori dalla lista. |
+| **Exception** (`error`) | oggetto | Lista non valida, indice non intero o fuori dalla lista. |
 
 ## Come funziona
 

@@ -31,7 +31,7 @@ C'è anche una regola che non si cambia: puoi tenere al massimo **3 volte** la q
 | Prove | Premi **Prova** | La prova non parte | Hai già 2 prove in corso: al massimo 2 |
 | CPU | Mentre gira | Il programma rallenta: ogni 200 esecuzioni di blocchi il motore guarda quanto hanno lavorato nel secondo in corso e, se è più della quota, il blocco che sta lavorando aspetta la fine di quel secondo | Nessuno |
 | Memoria | Mentre gira | Il worker si chiude e si fermano **tutti** i tuoi programmi | Memoria finita: i programmi hanno usato più della tua quota di memoria |
-| Richieste di rete | Un blocco di rete lavora | La richiesta non parte e il blocco manda il messaggio su **Eccezione** | Troppe richieste di rete: hai finito la quota di questo minuto |
+| Richieste di rete | Un blocco di rete lavora | La richiesta non parte e il blocco manda il messaggio su **Exception** | Troppe richieste di rete: hai finito la quota di questo minuto |
 | Registro | Il motore scrive nel registro | Si butta la metà più vecchia del registro | Nessuno |
 
 Con una quota di programmi attivi a 0, un utente non può attivare programmi né aprire app fatte con Crea app; con le prove a 0, non può provare.
@@ -45,7 +45,7 @@ Con una quota di programmi attivi a 0, un utente non può attivare programmi né
 | Programmi attivi di tutti gli utenti | 200 | 1–10000 | I programmi attivi e le app in esecuzione, di tutti, insieme |
 | Memoria per tutti gli utenti | 1024 MB | 64–65536 | La somma della memoria dei worker aperti (ogni worker usa la quota di memoria del suo utente) |
 | Esecuzioni di blocchi per programma in 10 secondi | 10000 | 100–1000000 | Oltre, il programma si ferma: di solito è un ciclo di collegamenti |
-| Tempo massimo di un blocco | 30 s | 1–600 | Oltre, il motore smette di aspettare il blocco e manda un errore sulla sua Eccezione |
+| Tempo massimo di un blocco | 30 s | 1–600 | Oltre, il motore smette di aspettare il blocco e manda un errore sulla sua Exception |
 | Durata massima di una prova | 5 minuti | 1–240 | Poi la prova si ferma da sola |
 
 ### Gli schemi
@@ -77,7 +77,7 @@ I limiti dei progetti si controllano **quando il programma parte**: se il proget
 | Programmi attivi di tutti | lilOS ha già 200 programmi attivi: al massimo 200 | Il programma non parte |
 | Memoria per tutti | Logic Studio usa già 960 MB: al massimo 1024 MB per tutti | Il programma parte e si ferma subito, **Fermo per un errore**. Succede solo quando il tuo worker deve aprirsi (non hai altri programmi in esecuzione) |
 | Esecuzioni in 10 secondi | Troppe esecuzioni: più di 10000 in 10 secondi (un ciclo di collegamenti?) | Il programma si ferma, **Fermo per un errore** |
-| Tempo massimo di un blocco | readFile ha impiegato più di 30 s | Il messaggio esce dall'uscita **Eccezione** del blocco (il nome è quello del blocco); il programma va avanti |
+| Tempo massimo di un blocco | readFile ha impiegato più di 30 s | Il messaggio esce dall'uscita **Exception** del blocco (il nome è quello del blocco); il programma va avanti |
 | Durata di una prova | Fine della prova: è durata il tempo massimo | La prova si ferma (**Fermo**) |
 | Blocchi per schema | Troppi blocchi nello schema principale: al massimo 200 | Il programma non parte |
 | Collegamenti per schema | Troppi collegamenti nello schema principale: al massimo 600 | Il programma non parte |
@@ -95,7 +95,7 @@ Nei messaggi, al posto di «principale», «b7» e «main» c'è il nome del tuo
 ### Il tempo massimo di un blocco, da vicino
 
 - Conta il tempo dall'inizio alla fine del lavoro del blocco, **comprese le attese**: una [HTTP (fetch)](net.request) lenta, un file grande, una domanda in console.
-- Per questo vale anche per [Input (readline)](core.consoleRead): oggi, se nessuno risponde entro 30 secondi (di serie), il blocco manda «Input (readline) ha impiegato più di 30 s» su **Eccezione** e la risposta data dopo non gli arriva più.
+- Per questo vale anche per [Input (readline)](core.consoleRead): oggi, se nessuno risponde entro 30 secondi (di serie), il blocco manda «Input (readline) ha impiegato più di 30 s» su **Exception** e la risposta data dopo non gli arriva più.
 - Vale anche per quello che un blocco fa all'avvio del programma.
 - Non vale per l'attesa dei blocchi del tempo come [Ritardo (setTimeout)](core.delay) o [Intervallo (setInterval)](core.every): quelli non lavorano mentre aspettano.
 
@@ -156,10 +156,10 @@ Marta tiene sei progetti di domotica sempre accesi e ne vuole dieci in più. L'a
 
 Un progetto fa una [HTTP (fetch)](net.request) a un servizio che a volte impiega 45 secondi. Ci sono due tempi massimi, e vale il più corto:
 
-- quello della richiesta, nelle impostazioni del modulo `logicstudio-net` (**Tempo massimo di una richiesta**, 20 secondi di serie): dopo 20 secondi il blocco manda su **Eccezione** «Nessuna risposta da … in 20 secondi»;
+- quello della richiesta, nelle impostazioni del modulo `logicstudio-net` (**Tempo massimo di una richiesta**, 20 secondi di serie): dopo 20 secondi il blocco manda su **Exception** «Nessuna risposta da … in 20 secondi»;
 - quello di ogni blocco, qui (**Tempo massimo di un blocco**, 30 secondi di serie): «HTTP (fetch) ha impiegato più di 30 s».
 
-Per aspettare 45 secondi, l'amministratore porta il primo a 60 secondi (nelle impostazioni del modulo) e il secondo a 60 secondi (scheda **Limiti**); poi tu attivi di nuovo il progetto, perché il tempo di un blocco vale per i programmi che partono dopo. Oppure colleghi **Eccezione** a un blocco che riprova più tardi.
+Per aspettare 45 secondi, l'amministratore porta il primo a 60 secondi (nelle impostazioni del modulo) e il secondo a 60 secondi (scheda **Limiti**); poi tu attivi di nuovo il progetto, perché il tempo di un blocco vale per i programmi che partono dopo. Oppure colleghi **Exception** a un blocco che riprova più tardi.
 
 ### 3. Una console troppo chiacchierona
 

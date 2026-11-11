@@ -13,7 +13,7 @@ Nessuno.
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **impulso** (`pulse`) | impulso | Un impulso (il valore sì) appena il programma parte. |
-| **Eccezione** (`error`) | oggetto | In pratica non succede. |
+| **Exception** (`error`) | oggetto | In pratica non succede. |
 
 ## Come funziona
 

@@ -15,7 +15,7 @@ Rovescia un sì/no: manda **no** quando riceve sì, e **sì** quando riceve no.
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **risultato** (`result`) | sì/no | Il contrario del valore. |
-| **Eccezione** (`error`) | oggetto | In pratica questo blocco non manda mai niente qui. |
+| **Exception** (`error`) | oggetto | In pratica questo blocco non manda mai niente qui. |
 
 ## Come funziona
 

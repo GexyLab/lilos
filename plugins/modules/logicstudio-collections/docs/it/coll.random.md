@@ -17,7 +17,7 @@ Sceglie a caso un elemento della lista e manda l'elemento e la sua posizione.
 |---|---|---|
 | **elemento** (`item`) | qualsiasi | L'elemento estratto. |
 | **indice** (`index`) | numero | La sua posizione (da 0). |
-| **Eccezione** (`error`) | oggetto | Lista non valida o vuota. |
+| **Exception** (`error`) | oggetto | Lista non valida o vuota. |
 
 ## Come funziona
 

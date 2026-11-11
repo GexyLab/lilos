@@ -24,7 +24,7 @@ Una linea orizzontale sottile, o uno spazio vuoto, tra due componenti di una col
 
 | Porta | Tipo | Descrizione |
 |---|---|---|
-| **Eccezione** (`error`) | oggetto | Come ogni blocco; per questa componente oggi non ci passa niente. |
+| **Exception** (`error`) | oggetto | Come ogni blocco; per questa componente oggi non ci passa niente. |
 
 A differenza degli altri contenitori, il Separatore ha un oggetto che si può creare dall'IDE (non contiene niente: è un contenitore solo di nome).
 

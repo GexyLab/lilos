@@ -54,7 +54,7 @@ I due pannelli laterali si allargano e si stringono trascinando la barra tra lor
 | [Progetti](ide/projects) | Creare, aprire, salvare, chiudere un progetto; l'elenco **Progetto**; le **Opzioni del progetto**. |
 | [Schemi](ide/schemas) | L'editor degli schemi: mettere blocchi, selezionare, spostare, i menu, le Proprietà di un blocco, la **Mappa**. |
 | [Collegamenti e tipi delle porte](ide/links) | Come si fanno e si tolgono i collegamenti, i tipi delle porte, quando un collegamento è segnato, i collegamenti tra schemi. |
-| [Come funziona un blocco](ide/blocks) | Ingressi, «lo avvia», valore iniziale, una cosa alla volta, l'uscita **Eccezione**, le porte aggiuntive, i cicli. |
+| [Come funziona un blocco](ide/blocks) | Ingressi, «lo avvia», valore iniziale, una cosa alla volta, l'uscita **Exception**, le porte aggiuntive, i cicli. |
 | [Finestre](ide/windows) | L'editor delle finestre: Progetta e Anteprima, contenitori, proprietà, azioni dei pulsanti. |
 | [L'oggetto di una componente](ide/components) | Come uno schema parla con una componente di una finestra. |
 | [Console](ide/consoles) | Scrivere e chiedere; il pannello in basso; cosa fanno le console fuori dall'IDE. |

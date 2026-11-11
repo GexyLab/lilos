@@ -37,7 +37,7 @@ Non ci sono **aggiungi punto** né **pulisci**: per cambiare una casella manda l
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **cella scelta** (`picked`) | oggetto | La casella su cui chi guarda fa clic o preme **Invio**. |
-| **Eccezione** (`error`) | oggetto | Come ogni blocco; oggi non ci passa niente. |
+| **Exception** (`error`) | oggetto | Come ogni blocco; oggi non ci passa niente. |
 
 ## Come funziona
 

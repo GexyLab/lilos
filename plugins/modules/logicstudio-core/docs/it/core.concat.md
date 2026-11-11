@@ -16,7 +16,7 @@ Unisce due o più testi uno dopo l'altro, con un separatore a scelta tra uno e l
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **testo** (`text`) | testo | I pezzi uniti. |
-| **Eccezione** (`error`) | oggetto | In pratica questo blocco non manda mai niente qui. |
+| **Exception** (`error`) | oggetto | In pratica questo blocco non manda mai niente qui. |
 
 ## Impostazioni
 

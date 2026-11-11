@@ -62,7 +62,7 @@ Un'app fatta con **Crea app** che contiene un blocco HTTP (fetch), prima di part
 ```
 [Intervallo (setInterval): 600 s] impulso ──▶ invia [HTTP (fetch)] risposta ──▶ oggetto [Get proprietà (obj.campo): current.temperature_2m]    valore ──▶ valore [Valore: temperatura]
                                                 risposta ──▶ oggetto [Get proprietà (obj.campo): current.relative_humidity_2m] valore ──▶ valore [Valore: umidità]
-                                                Eccezione ──▶ valore [Print (console.log)]
+                                                Exception ──▶ valore [Print (console.log)]
 ```
 
 [Intervallo (setInterval)](core.every) parte da solo all'avvio e poi ogni 10 minuti: sono 6 richieste l'ora, ben dentro la quota. Due [Get proprietà (obj.campo)](core.get) leggono i valori e due componenti [Valore](ui.value) li mostrano nella finestra del progetto.
@@ -83,10 +83,10 @@ Ogni 5 minuti il programma chiama un sito e, con i [Blocchi di lilOS](logicstudi
 ```
 [Campo numerico: misura] valore ──▶ temp [Oggetto { }] oggetto ──▶ corpo [HTTP (fetch)] stato ──▶ a [Confronto (== ≠ < >): a < b] se falso ──▶ invia [Notify: "Il server ha rifiutato la misura"]
 [Pulsante: Invia]      premuto ──────────────────────────────────────▶ invia            [Costante · Variabile: 300] valore ──▶ b
-                                                                          [HTTP (fetch)] Eccezione ──▶ invia [Notify: "Server non raggiungibile"]
+                                                                          [HTTP (fetch)] Exception ──▶ invia [Notify: "Server non raggiungibile"]
 ```
 
-Gli stati da 200 a 299 vogliono dire «riuscita»: [Confronto (== ≠ < >)](core.compare) con `a < b` e 300 lascia passare **se falso** per 300 e oltre (4xx, 5xx). Gli errori di rete invece arrivano dall'**Eccezione**. I due blocchi [Notify](lilos.notify) coprono i due casi.
+Gli stati da 200 a 299 vogliono dire «riuscita»: [Confronto (== ≠ < >)](core.compare) con `a < b` e 300 lascia passare **se falso** per 300 e oltre (4xx, 5xx). Gli errori di rete invece arrivano dall'**Exception**. I due blocchi [Notify](lilos.notify) coprono i due casi.
 
 ## Limiti noti
 

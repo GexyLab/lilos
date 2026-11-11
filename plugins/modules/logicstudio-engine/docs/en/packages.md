@@ -132,7 +132,7 @@ When all goes well the log says: `Logic Studio: pacchetto logicstudio-esempio 1.
 | `step(inputs, b)` | Only for `execution: 'loop'` |
 | `stop(b)` | Optional: when the program stops |
 | `upgrade(config, from, added)` | Optional: upgrades the settings saved by an old version of the block |
-| `role` | Reserved for the base blocks (`schemaIn`, `schemaOut`, `component`): do not use it |
+| `role` | Reserved for the base blocks (`schemaIn`, `schemaOut`, `component`, `catchAll`): do not use it |
 
 A block without `run` keeps the values it receives and does nothing else (it is useful, for example, to a `loop` block that reads them at every turn).
 
@@ -207,7 +207,7 @@ Added ports have a fixed id (`x1`, `x2`…) and a shown name. In the code you fi
 - **`start(b)`** runs at the start of the program, for every block, before the start values of the inputs. It can send values with `b.send`.
 - **`run(inputs, b)`** runs every time a value arrives at an input that starts the block. `inputs` has the last value of every input (the added ones too, by id); `b.trigger` is the name of the input that started it. It returns an object `{ port: value }` with the outputs to send, or nothing. An `undefined` value is not sent; a pulse is `true`. It can be `async`.
 - A block handles **one value at a time**: until `run` finishes, new values wait in line. Different blocks go on each on their own.
-- What `run` (or `start`, or `step`, or a timer) **throws** comes out of the **Exception** output of the block as `{ message, block, schema, at }`. If Exception is not linked, it goes to the main console: «Media: Serve un numero». Write messages for whoever uses the block, in plain language.
+- What `run` (or `start`, or `step`, or a timer) **throws** comes out of the **Exception** output of the block as `{ message, block, type, schema, at }`. If Exception is not linked, it goes to the main console: «Media: Serve un numero». Write messages for whoever uses the block, in plain language.
 - A `run` that lasts more than **Time a block may take** (30 seconds by default) is no longer waited for: «Media ha impiegato più di 30 s» comes out on Exception and the block moves on to the next value. The code of that `run`, however, goes on to the end: what it returns is ignored, but the `b.send` it makes in the meantime still go out. The time includes the waits (`await b.call(…)`, `await b.console.read(…)`).
 - **`stop(b)`** runs when the program stops, with at most 2 seconds. Errors are ignored. The timers of the block are already stopped and `b.send` no longer sends anything.
 - Values are **not copied** when passing from one block to another: never change an object or a list that you receive. Make a copy: `const list = [...inputs.list]`.

@@ -16,7 +16,7 @@ Somma due o più numeri e manda il totale.
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **risultato** (`result`) | numero | La somma degli ingressi che hanno un valore. |
-| **Eccezione** (`error`) | oggetto | Quando un ingresso non è un numero. |
+| **Exception** (`error`) | oggetto | Quando un ingresso non è un numero. |
 
 ## Porte aggiuntive
 
@@ -41,7 +41,7 @@ Ogni volta che arriva un valore su un ingresso, il blocco Somma ricalcola il tot
 | `[1,2]` | 1,2 (una lista viene letta come testo, con gli elementi separati da virgole) |
 | `"ciao"`, `"12 kg"`, `"1.234,5"`, un oggetto | non è un numero: errore |
 
-- Se anche un solo valore non si può convertire, il blocco non manda niente su **risultato** e manda su **Eccezione** il messaggio «Serve un numero».
+- Se anche un solo valore non si può convertire, il blocco non manda niente su **risultato** e manda su **Exception** il messaggio «Serve un numero».
 - I calcoli usano i numeri decimali del computer, che a volte danno risultati come 0,1 + 0,2 = 0,30000000000000004. Per mostrarli, arrotondali con [Funzioni Math](core.math).
 - `"Infinity"` vale infinito, e infinito più qualsiasi numero resta infinito.
 
@@ -72,7 +72,7 @@ Ogni volta che l'utente cambia un campo, il totale mostrato dalla componente [Va
 
 ### 3. Valori misti
 
-**a** = `"2,5"` (testo), **b** = `true` → risultato 3,5. **a** = `"2,5"`, **b** = `"tre"` → nessun risultato, e l'Eccezione riceve «Serve un numero».
+**a** = `"2,5"` (testo), **b** = `true` → risultato 3,5. **a** = `"2,5"`, **b** = `"tre"` → nessun risultato, e l'Exception riceve «Serve un numero».
 
 ## Errori
 

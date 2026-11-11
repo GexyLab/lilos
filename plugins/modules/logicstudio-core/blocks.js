@@ -469,6 +469,81 @@ export const blocks = [
     },
   },
 
+  // ---- Eccezioni (Exception: { message, block, type, schema, at })
+  {
+    type: 'core.throw', version: 1, category: 'exception', icon: 'bolt', label: L('Throw', 'Throw (lancia Exception)'),
+    inputs: [{ name: 'value', type: 'any', label: L('throw', 'lancia') }],
+    outputs: [],
+    config: [{ key: 'message', type: 'text', default: '', label: L('Message ({value} = what arrives; empty = the value itself)', 'Messaggio ({value} = ciò che arriva; vuoto = il valore stesso)') }],
+    run({ value }, b) {
+      // an exception that arrives (from a Catch, a Global catch…) goes on as it is: rethrow
+      if (isException(value) && !b.config.message) { b.send('error', value); return undefined; }
+      const shown = isException(value) ? value.message : text(value);
+      const msg = b.config.message ? String(b.config.message).replace(/\{value\}/g, shown) : shown;
+      throw new Error(msg || 'Errore');
+    },
+  },
+  {
+    type: 'core.catch', version: 1, category: 'exception', icon: 'shield', label: L('Catch', 'Catch (cattura)'),
+    inputs: [{ name: 'exception', type: 'object', label: L('exception', 'exception') }],
+    outputs: [
+      { name: 'caught', type: 'object', label: L('caught', 'catturata') },
+      { name: 'message', type: 'text', label: L('message', 'messaggio') },
+      { name: 'else', type: 'object', label: L('not caught', 'non catturata') },
+    ],
+    config: [
+      { key: 'match', type: 'select', default: 'all', options: ['all', 'contains', 'regex', 'block', 'type'], label: L('Catch', 'Cattura') },
+      { key: 'pattern', type: 'text', default: '', label: L('Text, expression, block id or block type', 'Testo, espressione, id o tipo del blocco'), when: { match: ['contains', 'regex', 'block', 'type'] } },
+    ],
+    grow: { inputs: { type: 'object', max: 16, name: 'letter' } },
+    run(inputs, b) {
+      const e = asException(inputs[b.trigger]);
+      if (!e) return undefined;
+      const p = String(b.config.pattern ?? '');
+      let hit;
+      switch (b.config.match) {
+        case 'contains': hit = e.message.toLowerCase().includes(p.toLowerCase()); break;
+        case 'regex': {
+          let re;
+          try { re = new RegExp(p, 'i'); } catch { throw new Error(`Espressione non valida: ${p}`); }
+          hit = re.test(e.message); break;
+        }
+        case 'block': hit = e.block === p; break;
+        case 'type': hit = e.type === p; break;
+        default: hit = true;
+      }
+      return hit ? { caught: e, message: e.message } : { else: e };
+    },
+  },
+  {
+    type: 'core.errorInfo', version: 1, category: 'exception', icon: 'info', label: L('Exception data (e.message…)', 'Dati di Exception (e.message…)'),
+    inputs: [{ name: 'exception', type: 'object', label: L('exception', 'exception') }],
+    outputs: [
+      { name: 'message', type: 'text', label: L('message', 'messaggio') },
+      { name: 'block', type: 'text', label: L('block', 'blocco') },
+      { name: 'type', type: 'text', label: L('block type', 'tipo di blocco') },
+      { name: 'schema', type: 'text', label: L('schema', 'schema') },
+      { name: 'at', type: 'number', label: L('when (ms)', 'quando (ms)') },
+      { name: 'time', type: 'text', label: L('when (ISO)', 'quando (ISO)') },
+    ],
+    run({ exception }) {
+      const e = asException(exception);
+      if (!e) return undefined;
+      const at = isNum(e.at) ? e.at : undefined;
+      return { message: e.message, block: e.block ?? '', type: e.type ?? '', schema: e.schema ?? '', at, time: at === undefined ? undefined : new Date(at).toISOString() };
+    },
+  },
+  {
+    // Gets the exceptions that nobody linked (the engine delivers them: role 'catchAll')
+    type: 'core.onError', version: 1, category: 'exception', icon: 'warning', label: L('Global catch (onerror)', 'Catch globale (onerror)'), role: 'catchAll',
+    inputs: [],
+    outputs: [{ name: 'exception', type: 'object', label: L('exception', 'exception') }, { name: 'message', type: 'text', label: L('message', 'messaggio') }],
+    config: [
+      { key: 'scope', type: 'select', default: 'schema', options: ['schema', 'program'], label: L('Catches the exceptions of', 'Cattura le exception di') },
+      { key: 'console', type: 'checkbox', default: false, label: L('Write them in the main console too', 'Scrivile anche nella console principale') },
+    ],
+  },
+
   // ---- Porte di schema e componenti
   {
     type: 'core.schemaIn', version: 1, category: 'schema', icon: 'portIn', label: L('Parameter (schema input)', 'Parametro (ingresso di schema)'), role: 'schemaIn',
@@ -511,6 +586,16 @@ function valueOf(config) {
     case 'json': return JSON.parse(text(v) || 'null');
     default: return text(v);
   }
+}
+
+/** An exception of the engine: { message, block?, type?, schema?, at? }. */
+function isException(v) { return !!v && typeof v === 'object' && !Array.isArray(v) && typeof v.message === 'string'; }
+
+/** What arrives as an exception: the object itself, or a text / an Error made into one. */
+function asException(v) {
+  if (v === undefined || v === null) return null;
+  if (isException(v)) return v;
+  return { message: v instanceof Error ? v.message : text(v) };
 }
 
 /** A value arriving on «imposta», as the kind of the block (json: as it is). */

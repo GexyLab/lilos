@@ -15,7 +15,7 @@ Manda la lista al contrario: l'ultimo elemento diventa il primo.
 | Porta | Tipo | Descrizione |
 |---|---|---|
 | **risultato** (`result`) | lista | Gli stessi elementi in ordine inverso. |
-| **Eccezione** (`error`) | oggetto | Quando il valore su **lista** non è una lista. |
+| **Exception** (`error`) | oggetto | Quando il valore su **lista** non è una lista. |
 
 ## Come funziona
 
