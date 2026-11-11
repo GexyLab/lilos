@@ -1,29 +1,49 @@
-import { h, icon, openMenu } from '@lilos/sdk';
+import { h, icon, openMenu, storage } from '@lilos/sdk';
 import { t } from './i18n.js';
 
 /**
  * Blocchi (or Componenti, in a window): what the installed packages give, by category, with a
  * search. A click puts it in the middle of the editor; dragging puts it where it is dropped; the
- * context menu (and F1 on an item) also opens its documentation.
+ * context menu (and F1 on an item) also opens its documentation. A click on a category folds it or
+ * opens it again; the folded ones are remembered per list (blocks / components). While searching
+ * every category with results is open, and folding one lasts only until the search changes.
  */
 const BLOCK_ORDER = ['value', 'logic', 'math', 'text', 'object', 'list', 'matrix', 'units', 'time', 'console', 'schema', 'ui', 'lilos', 'net', 'exception', 'other'];
 const COMPONENT_ORDER = ['text', 'values', 'commands', 'containers', 'charts', 'other'];
 export const DRAG_TYPE = 'application/x-logicstudio-item';
+const FOLD_KEY = 'logicstudio.palette';   // { blocks: [folded categories], components: [...] }
 
 export class Palette {
   el; #list; #search;
   #studio;
   #query = '';
+  #folded = { blocks: new Set(), components: new Set() };
+  #searchFolded = new Set();   // folded while searching, forgotten when the search changes
 
   constructor(studio) {
     this.#studio = studio;
     this.#search = h('input', { type: 'search', class: 'ls-search', placeholder: t('palette.search'), 'aria-label': t('palette.search') });
-    this.#search.addEventListener('input', () => { this.#query = this.#search.value.trim().toLowerCase(); this.render(); });
+    this.#search.addEventListener('input', () => { this.#query = this.#search.value.trim().toLowerCase(); this.#searchFolded.clear(); this.render(); });
+    const saved = storage.get(FOLD_KEY, {}) ?? {};
+    for (const kind of ['blocks', 'components']) {
+      if (Array.isArray(saved[kind])) saved[kind].filter(c => typeof c === 'string').forEach(c => this.#folded[kind].add(c));
+    }
     this.#list = h('div', { class: 'ls-pal-list' });
     this.el = h('div', { class: 'ls-pal' }, this.#search, this.#list);
   }
 
   get kind() { return this.#studio.current?.kind === 'window' ? 'components' : 'blocks'; }
+
+  #foldSet() { return this.#query ? this.#searchFolded : this.#folded[this.kind]; }
+
+  #setFolded(cats, folded) {
+    const set = this.#foldSet();
+    for (const c of cats) folded ? set.add(c) : set.delete(c);
+    if (!this.#query) {
+      try { storage.set(FOLD_KEY, { blocks: [...this.#folded.blocks], components: [...this.#folded.components] }); } catch { /* not saved: only this session */ }
+    }
+    this.render();
+  }
 
   render() {
     const studio = this.#studio;
@@ -46,10 +66,27 @@ export class Palette {
       (groups.get(cat) ?? groups.set(cat, []).get(cat)).push(it);
     }
     const rows = [];
-    for (const cat of order) {
+    const folds = this.#foldSet();
+    const cats = order.filter(c => groups.has(c));
+    for (const cat of cats) {
       const list = groups.get(cat);
-      if (!list) continue;
-      rows.push(h('div', { class: `ls-pal-cat cat-${cat}` }, h('i', { class: 'sw' }), t(`cat.${kind}.${cat}`)));
+      const folded = folds.has(cat);
+      const head = h('button', {
+        type: 'button', class: `ls-pal-cat cat-${cat}${folded ? ' folded' : ''}`, 'aria-expanded': String(!folded),
+        title: t(folded ? 'palette.expand' : 'palette.collapse'),
+        onclick: () => this.#setFolded([cat], !folded),
+      }, h('span', { class: 'tw', 'aria-hidden': 'true' }, folded ? '▸' : '▾'), h('i', { class: 'sw' }), h('span', { class: 'nm' }, t(`cat.${kind}.${cat}`)), h('span', { class: 'n' }, String(list.length)));
+      head.addEventListener('contextmenu', e => {
+        e.preventDefault();
+        const r = head.getBoundingClientRect();
+        openMenu(e.clientX || r.left + 24, e.clientY || r.bottom, [
+          { label: t(folded ? 'palette.expand' : 'palette.collapse'), icon: folded ? 'plus' : 'minus', action: () => this.#setFolded([cat], !folded) },
+          { label: t('palette.collapseAll'), disabled: cats.every(c => folds.has(c)), action: () => this.#setFolded(cats, true) },
+          { label: t('palette.expandAll'), disabled: !cats.some(c => folds.has(c)), action: () => this.#setFolded(cats, false) },
+        ]);
+      });
+      rows.push(head);
+      if (folded) continue;
       for (const { def, pack } of list.sort((a, b) => studio.label(a.def).localeCompare(studio.label(b.def)))) {
         const row = h('button', {
           type: 'button', class: `ls-pal-it cat-${def.category}`, draggable: true, title: `${def.type} · ${pack.name} ${pack.version}`,

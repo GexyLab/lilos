@@ -17,7 +17,7 @@ La barra di stato dice «8 componenti / 200 · 480 × 360» (le componenti che h
 
 ## Le componenti
 
-La scheda **Componenti** elenca le componenti dei pacchetti installati, divise in **Testo e valori**, **Comandi**, **Contenitori** e **Grafici**, con una ricerca (**Cerca…**). Le componenti di base sono in [Componenti UI](logicstudio-ui), i grafici in [Grafici](logicstudio-charts).
+La scheda **Componenti** elenca le componenti dei pacchetti installati, divise in **Testo e valori**, **Comandi**, **Contenitori** e **Grafici** (comprimibili con un clic sul nome, come i [blocchi](ide/schemas)), con una ricerca (**Cerca…**). Le componenti di base sono in [Componenti UI](logicstudio-ui), i grafici in [Grafici](logicstudio-charts).
 
 ### Aggiungere
 

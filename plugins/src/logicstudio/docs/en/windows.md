@@ -17,7 +17,7 @@ The status bar says «8 components / 200 · 480 × 360» (the components that ha
 
 ## The components
 
-The **Components** tab lists the components of the installed packages, divided into **Text and values**, **Commands**, **Containers** and **Charts**, with a search (**Search…**). The base components are in [UI components](logicstudio-ui), the charts in [Charts](logicstudio-charts).
+The **Components** tab lists the components of the installed packages, divided into **Text and values**, **Commands**, **Containers** and **Charts** (collapsible with a click on the name, like the [blocks](ide/schemas)), with a search (**Search…**). The base components are in [UI components](logicstudio-ui), the charts in [Charts](logicstudio-charts).
 
 ### Adding
 

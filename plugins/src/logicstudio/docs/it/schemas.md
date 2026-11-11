@@ -31,6 +31,7 @@ Due blocchi sono speciali:
 La scheda **Blocchi** a sinistra elenca i blocchi dei pacchetti installati, divisi per categoria, in ordine alfabetico. Passando il mouse su un blocco vedi il suo tipo e il pacchetto (per esempio `core.add · logicstudio-core 1.0.0`).
 
 - **Cerca…** in alto filtra per nome o per tipo (`somma`, `core.add`, `add`). Se non trova niente: **Non c'è niente**.
+- **Un clic sul nome di una categoria** la comprime (▸) o la espande di nuovo (▾); accanto c'è quanti blocchi ha. Le categorie compresse restano tali anche alla prossima apertura. **Tasto destro** sul nome: **Comprimi** / **Espandi**, **Comprimi tutte**, **Espandi tutte**. Mentre cerchi, le categorie con risultati sono tutte aperte: quelle che comprimi lì tornano aperte quando cambi la ricerca.
 - **Un clic** su un blocco lo mette al centro della vista e lo seleziona. Clic ripetuti mettono i blocchi uno un po' più in basso a destra dell'altro, mai uno sopra l'altro.
 - **Trascinando** il blocco sul foglio lo metti dove lo lasci.
 - I blocchi della palette sono spenti quando la scheda aperta non è uno schema (Home, Mappa).

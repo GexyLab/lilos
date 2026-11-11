@@ -31,6 +31,7 @@ Two blocks are special:
 The **Blocks** tab on the left lists the blocks of the installed packages, divided by category, in alphabetical order. With the mouse over a block you see its type and the package (for example `core.add · logicstudio-core 1.0.0`).
 
 - **Search…** at the top filters by name or by type (`add`, `core.add`). If it finds nothing: **Nothing found**.
+- **A click on the name of a category** collapses it (▸) or expands it again (▾); next to it is how many blocks it has. Collapsed categories stay so the next time too. **Right click** on the name: **Collapse** / **Expand**, **Collapse all**, **Expand all**. While searching, the categories with results are all open: those you collapse there open again when you change the search.
 - **One click** on a block puts it in the middle of the view and selects it. Repeated clicks put the blocks a little lower and to the right of each other, never one on top of the other.
 - **Dragging** the block onto the sheet puts it where you drop it.
 - The blocks of the palette are off when the open tab is not a schema (Home, Map).

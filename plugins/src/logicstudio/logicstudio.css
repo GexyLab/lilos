@@ -64,7 +64,13 @@
 .ls-pal { display: flex; flex-direction: column; min-height: 100%; }
 .ls-search { margin: 8px; height: 28px; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0 8px; font: inherit; background: var(--field-bg, var(--surface)); color: var(--text); }
 .ls-pal-list { padding: 0 0 10px; }
-.ls-pal-cat { display: flex; align-items: center; gap: 7px; padding: 8px 12px 3px; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--dim); }
+.ls-pal-cat { display: flex; align-items: center; gap: 7px; width: 100%; padding: 8px 12px 3px 6px; border: 0; background: none; font: inherit; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--dim); text-align: left; cursor: pointer; }
+.ls-pal-cat:hover { color: var(--text); }
+.ls-pal-cat:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.ls-pal-cat .tw { width: 10px; flex: none; text-align: center; font-size: 10px; color: var(--faint, var(--dim)); }
+.ls-pal-cat .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ls-pal-cat .n { font-weight: 600; letter-spacing: 0; color: var(--faint, var(--dim)); }
+.ls-pal-cat.folded { padding-bottom: 6px; }
 .ls-pal-cat .sw { width: 8px; height: 8px; border-radius: 2px; background: var(--cat, var(--lc-other)); }
 .ls-pal-it { display: flex; align-items: center; gap: 8px; width: 100%; height: 26px; padding: 0 12px 0 22px; border: 0; background: none; color: var(--text); font: inherit; text-align: left; cursor: grab; }
 .ls-pal-it:hover:not(:disabled) { background: var(--hover); }
