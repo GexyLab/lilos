@@ -1,6 +1,6 @@
 {
   "id": "logicstudio",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "kind": "local",
   "name": "Logic Studio IDE",
   "description": "Logic blocks linked together, as in OpenBack: schemas, projects with windows made of UI components, consoles. The engine runs them in lilOS, also with lilOS closed.",
@@ -15,7 +15,7 @@
   },
   "sdk": "2",
   "system": true,
-  "lilos": ">=1.37.0",
+  "lilos": ">=1.39.0",
   "entrypoints": {
     "main": {
       "kind": "window"
