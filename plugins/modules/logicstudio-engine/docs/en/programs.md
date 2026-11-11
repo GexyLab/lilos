@@ -4,13 +4,45 @@
 
 A **program** is a project (or a schema alone) that the engine is running. This page tells its life: how it starts, what state it is in, what it writes, how it answers questions, how it stops and what happens when the kernel restarts.
 
-## The three kinds
+## The kinds
 
 | Kind | In the Control Panel | Where it starts | Is it saved? |
 |---|---|---|---|
 | Test | **Test** | **Test** or **F5** in the IDE | No |
-| Active program | **Active** | **Activate** in the IDE | Yes: it starts again with the kernel |
+| Active program | **Active** | **Activate** in the IDE, or `lilos logic run --active` | Yes: it starts again with the kernel |
 | App | **App (not installed)** | The `.lsapp` file of an app made with **Make app** | No |
+| Command line | **Command line** | `lilos logic run` in a terminal (from engine 1.6.0) | No |
+
+A program from the command line counts as an active program for the quotas and lasts as long as the command waits for it: if the command disappears (the terminal closed, the computer switched off) and for **one minute** nobody asks about the program, the engine stops it.
+
+## From the command line
+
+The `lilos` command (kernel module `terminal-cli`, from 1.1.0) runs a program from a terminal of the computer, like a script:
+
+```
+lilos logic run [-q] [--active] [--name NAME] FILE [ARGUMENTS…]
+lilos logic list [--all]
+lilos logic stop ID
+```
+
+- **FILE** is a project (`.lsproj`), a schema alone (`.lsch`) or an app made with **Make app** (`.lsapp`), in the lilOS files (relative to the home, or to the data folder with `--cwd`). The command reads the project, its schemas and its windows as they are saved.
+- Everything that comes after FILE are the **arguments** of the program, passed as they are: the [Arguments (argv)](core.args) and [Option (-x · --name)](core.option) blocks read them. The options of `logic run` (`-q`, `--active`, `--name`) go **before** FILE.
+- The command **waits** for the program: the lines of the consoles arrive in the terminal (warnings and errors on the error output; consoles other than the main one with their name in square brackets), the questions of the [Input (readline)](core.consoleRead) blocks are asked there and answered with the keyboard (or from a pipe), **Ctrl+C** stops the program.
+- When an [Exit](core.exit) block closes the program, a **whole number from 0 to 255** becomes the exit code of the command; `true` and `null` give 0, `false` 1; a text is written as it is, any other value in JSON, and the code is 0 (`-q`: nothing is written). A program that fails gives 1 (the message on the error output); one stopped from elsewhere (from the Home, by an administrator, because it expired) gives 1 with «the program was stopped».
+- `--active` makes an **active program** with those arguments: it starts, the command writes its id and returns at once; the arguments stay also when the program starts again with the kernel.
+- A program without an Exit block runs until you stop it (Ctrl+C).
+- The arguments are at most 256, of at most 4096 characters each and 64 KB in all; the returned value at most 64 KB in JSON (beyond that, it is cut and returned as text).
+
+For example, with a schema that reads `--name` and closes with the value of `--code`:
+
+```
+$ lilos logic run prove/ciao.lsch --name Eugenio --code=7
+Ciao Eugenio
+$ echo $?
+7
+```
+
+For those who use the API: `POST /programs` accepts `args` (a list of texts) and `kind: 'cli'`; every program has `args` and `result` (`{ value, at }` when a block closed it, otherwise `null`); `GET /programs/:id` keeps a `cli` program alive.
 
 ## How it starts
 
@@ -38,7 +70,7 @@ From here on the program goes on by itself: every value that arrives at an input
 |---|---|
 | **Starting** | The engine is starting it |
 | **Running** | It runs |
-| **Stopped** | It has stopped: you (or an administrator) stopped it, or the time of a test ran out |
+| **Stopped** | It has stopped: you (or an administrator) stopped it, the time of a test ran out, an [Exit](core.exit) block closed it, or the command line that started it is gone |
 | **Stopped by an error** | It stopped by itself because of a problem; the message is under the name |
 | **Waiting for a package** | An active program that cannot start again because a package is missing: it starts again by itself when the package comes back |
 

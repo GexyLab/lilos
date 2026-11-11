@@ -1685,7 +1685,7 @@ Ogni nota è un file di testo con estensione `.sticky` nella cartella Scrivania.
 
 Un programma di Logic Studio può girare **anche quando lilOS è chiuso nel browser**: lo fa il computer su cui gira lilOS. Per questo, prima di attivarne uno, leggi «[Da sapere](#da-sapere-8)».
 
-Logic Studio non c'è di serie. Serve lilOS dalla 1.37.0 (dalla 1.40.0 per la documentazione, vedi «[La documentazione](#la-documentazione)»; dalla 1.48.0 per i testi e le forme, vedi «[Testi e forme sul foglio](#testi-e-forme-sul-foglio)») e l'app **Logic Studio IDE** (categoria **Sviluppo**), che un amministratore installa dall'[AppStore](#lappstore): l'AppStore installa con lei anche le parti che le servono (il motore e i blocchi di base). Altri blocchi arrivano con altri pacchetti dello stesso AppStore, nella scheda **Kernel**: liste e matrici, grandezze e unità di misura, i segnali (generatori, FFT, filtri, modulazione), geometria solida, trigonometria, funzioni e derivate, integrali, i blocchi di lilOS (notifiche, file), la rete, le componenti delle finestre e i grafici.
+Logic Studio non c'è di serie. Serve lilOS dalla 1.37.0 (dalla 1.40.0 per la documentazione, vedi «[La documentazione](#la-documentazione)»; dalla 1.48.0 per i testi e le forme, vedi «[Testi e forme sul foglio](#testi-e-forme-sul-foglio)»; dalla 1.49.0 per gli argomenti e il codice di uscita, vedi «[Programmi da riga di comando](#programmi-da-riga-di-comando)») e l'app **Logic Studio IDE** (categoria **Sviluppo**), che un amministratore installa dall'[AppStore](#lappstore): l'AppStore installa con lei anche le parti che le servono (il motore e i blocchi di base). Altri blocchi arrivano con altri pacchetti dello stesso AppStore, nella scheda **Kernel**: liste e matrici, grandezze e unità di misura, i segnali (generatori, FFT, filtri, modulazione), geometria solida, trigonometria, funzioni e derivate, integrali, i blocchi di lilOS (notifiche, file), la rete, le componenti delle finestre e i grafici.
 
 ### Le parole
 
@@ -1830,7 +1830,24 @@ Se un programma fa una domanda e nessuna finestra del progetto è aperta, ricevi
 - **Attiva** fa girare **il progetto salvato** come **programma attivo**: va avanti anche con l'IDE chiuso e **anche con lilOS chiuso nel browser**, e riparte quando riparte il computer su cui gira lilOS. Se hai modifiche non salvate, l'IDE chiede di salvare. Se il progetto è già attivo, puoi **Sostituire** il programma attivo con il progetto com'è adesso.
 - Per fermare un programma attivo usa **Ferma** nella Home (o nel Pannello di controllo). **Non riparte con lilOS finché non lo attivi di nuovo.**
 
+- **Argomenti** (accanto a **Prova**) apre una finestra con una riga di testo: sono gli argomenti che le prove danno al programma, come se lo avviassi dal terminale. Gli spazi li separano; per un argomento con degli spazi usa le virgolette (`-o "Il mio file.txt"`). Quando c'è qualcosa scritto, il pulsante ha un pallino. La riga si ricorda per ogni progetto (gli ultimi 50). Vale solo per le prove: **Attiva** parte senza argomenti.
+
 Se un programma attivo si ferma per un errore, ricevi una notifica. Un programma attivo che usa un blocco di un pacchetto che non è più installato resta in attesa (**Aspetta un pacchetto**) e riparte quando il pacchetto torna.
+
+### Programmi da riga di comando
+
+Un progetto può comportarsi come un programma del terminale: riceve **argomenti** (`report.csv --verbose --port=8080`) e, alla fine, restituisce un **valore**. Nella scheda **Blocchi**, categoria **Programma**, ci sono tre pezzi:
+
+- **Argomenti (argv)**: dà tutti gli argomenti, quelli che non sono opzioni (i «posizionali») e le opzioni già lette (`--port=8080` diventa `port` con valore 8080).
+- **Opzione (-x · --nome)**: legge una sola opzione, con il nome corto e il nome lungo. Puoi dire se è un interruttore (c'è o non c'è), se vuole un valore, se il valore è un testo, un numero o sì/no, il valore da usare quando manca e se è obbligatoria.
+- **Exit (chiudi il programma · return)**: chiude tutto il programma e dà un valore. Per i dettagli apri la pagina del blocco con il tasto destro → **Documentazione**.
+
+Dove si usano:
+
+- **Nell'IDE**, con il pulsante **Argomenti** (vedi [Provare e attivare](#provare-e-attivare)). Quando un blocco **Exit** chiude la prova, la barra di stato dice «Chiuso dal programma con il valore …» fino alla prova seguente.
+- **Da un terminale**, con il comando `lilos logic run` (vedi [Programmi di Logic Studio: logic](#programmi-di-logic-studio-logic)). Serve il motore di Logic Studio dalla 1.6.0.
+
+Un programma attivo chiuso da **Exit** si ferma e **non riparte** quando riparte lilOS. Nel Pannello di controllo e nella Home, un programma lanciato da terminale ha il tipo **Riga di comando**.
 
 ### I progetti nel menu applicazioni
 
@@ -1892,7 +1909,7 @@ Si apre una finestra con l'indice a sinistra (la guida dell'IDE e poi un gruppo 
 - I grafici nel tempo mostrano gli ultimi secondi che scegli; **non si possono ingrandire** con il mouse.
 - I testi dell'IDE e dei blocchi sono in inglese e italiano. I testi delle finestre dei tuoi progetti sono quelli che scrivi tu: per ora l'IDE non ha un posto dove tradurli.
 - Un elemento eliminato dall'elenco **Progetto** va nel Cestino, e i suoi collegamenti nel progetto vengono tolti.
-- Non ci sono ancora: schemi e finestre da disporre sulla scrivania come widget, più copie della stessa finestra, i comandi `lilos logic` nel Terminale e le azioni di Automata.
+- Non ci sono ancora: schemi e finestre da disporre sulla scrivania come widget, più copie della stessa finestra, il comando `logic` nell'app Terminale (c'è solo nel comando `lilos`) e le azioni di Automata.
 
 ## Annullare e ripetere
 
@@ -2842,6 +2859,7 @@ Il comando non ha una pagina davanti, quindi non tutto è possibile:
 - **I comandi che aggiungono le app**.
 - **Le sessioni remote** (`ssh`, `telnet`, …) e il comando `nettest`.
 - **Cambiare i tag** dei file.
+- **Il comando `logic`** (`logic` per i progetti di Logic Studio) c'è solo nel comando `lilos`, non nell'app Terminale.
 
 ### Moduli e lingue: appstore
 
@@ -2866,6 +2884,24 @@ lilos appstore restart              # riavvia il kernel e aspetta che torni
 - I moduli nuovi partono quando lilOS si riavvia: il comando lo propone. L'ultimo modulo dei file non si può togliere.
 - `appstore system` è l'unico modo, senza UI, di aggiornare lilOS stesso. Se la versione nuova non parte, lilOS torna da solo alla precedente.
 - Il repository **community** (moduli non ufficiali) si aggiunge con `appstore repo add community`; l'installazione con `--no-ui` lo aggiunge già.
+
+### Programmi di Logic Studio: logic
+
+Il comando `logic` fa girare i progetti di Logic Studio come programmi del terminale. Serve il motore di Logic Studio dalla 1.6.0.
+
+```
+lilos logic run Documenti/ciao.lsch --name Eugenio    # esegue e aspetta la fine
+lilos logic run -q Documenti/ciao.lsch                # senza scrivere niente
+lilos logic run --active Documenti/server.lsproj      # lo lascia acceso come programma attivo
+lilos logic list                                      # i tuoi programmi (--all: di tutti, per gli amministratori)
+lilos logic stop ID                                   # ferma un programma
+```
+
+- Il file è un progetto (`.lsproj`), uno schema (`.lsch`) o un'app fatta con Crea app (`.lsapp`), tra i file di lilOS. **Tutto quello che scrivi dopo il file** va al programma come argomenti, anche `-x` e `--nome`.
+- Il comando aspetta che il programma finisca. Scrive le righe delle console (avvisi ed errori sull'uscita degli errori) e, se il programma fa una domanda, la fa a te e legge la risposta dalla tastiera. **Ctrl+C** ferma il programma.
+- **Il codice di uscita** viene dal blocco **Exit**: un numero intero da 0 a 255 è il codice; `true` o niente, 0; `false`, 1; qualsiasi altro valore viene scritto (un testo così com'è, il resto in JSON) e il codice è 0. Se il programma va in errore, o lo ferma qualcun altro, il codice è 1.
+- Con `-q` non scrive niente (resta il codice).
+- Se chiudi il terminale a metà, il programma si ferma da solo dopo circa un minuto. Con `--active` invece resta acceso, come quando lo attivi dall'IDE (e riparte con lilOS).
 
 ### Licenza: license
 

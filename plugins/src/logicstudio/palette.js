@@ -8,7 +8,7 @@ import { t } from './i18n.js';
  * opens it again; the folded ones are remembered per list (blocks / components). While searching
  * every category with results is open, and folding one lasts only until the search changes.
  */
-const BLOCK_ORDER = ['value', 'logic', 'math', 'text', 'object', 'list', 'matrix', 'units', 'signal', 'geometry', 'trig', 'functions', 'integrals', 'time', 'console', 'schema', 'ui', 'lilos', 'net', 'exception', 'draw', 'other'];
+const BLOCK_ORDER = ['value', 'logic', 'math', 'text', 'object', 'list', 'matrix', 'units', 'signal', 'geometry', 'trig', 'functions', 'integrals', 'time', 'console', 'schema', 'ui', 'lilos', 'net', 'exception', 'program', 'draw', 'other'];
 const COMPONENT_ORDER = ['text', 'values', 'commands', 'containers', 'charts', 'draw', 'other'];
 export const DRAG_TYPE = 'application/x-logicstudio-item';
 const FOLD_KEY = 'logicstudio.palette';   // { blocks: [folded categories], components: [...] }

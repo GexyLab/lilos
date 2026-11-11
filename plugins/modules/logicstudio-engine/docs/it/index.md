@@ -27,13 +27,14 @@ Cosa vuol dire per te:
 
 ## Prova e programma attivo
 
-Ci sono tre tipi di programma:
+Ci sono quattro tipi di programma:
 
 | Tipo | Come parte | Cosa fa girare | Quanto dura |
 |---|---|---|---|
 | **Prova** | **Prova** (o **F5**) nell'IDE | Il progetto com'è adesso negli editor, anche se non l'hai salvato | Al massimo 5 minuti (di serie), oppure finché premi **Ferma** o chiudi l'IDE |
 | **Programma attivo** | **Attiva** nell'IDE | Il progetto **salvato** | Finché non lo fermi: anche con l'IDE chiuso e con lilOS chiuso nel browser |
 | **App (non installata)** | Aprendo il file `.lsapp` di un'app fatta con **Crea app** | La copia del progetto che sta nella cartella dell'app | Finché le sue finestre sono aperte |
+| **Riga di comando** | `lilos logic run FILE ARGOMENTI…` in un terminale (dal motore 1.6.0) | Il progetto **salvato**, con gli argomenti | Finché il comando lo aspetta: un blocco [Exit](core.exit) lo chiude con un valore, **Ctrl+C** lo ferma; vedi [I programmi](logicstudio-engine/programs) |
 
 Una prova serve a vedere cosa succede: sugli schemi vedi i valori che passano sui collegamenti e i blocchi che lavorano. Non lascia niente acceso. Vedi [Provare e attivare](ide/run).
 

@@ -27,13 +27,14 @@ What it means for you:
 
 ## Test and active program
 
-There are three kinds of program:
+There are four kinds of program:
 
 | Kind | How it starts | What it runs | How long it lasts |
 |---|---|---|---|
 | **Test** | **Test** (or **F5**) in the IDE | The project as it is now in the editors, even if you have not saved it | At most 5 minutes (default), or until you press **Stop** or close the IDE |
 | **Active program** | **Activate** in the IDE | The **saved** project | Until you stop it: even with the IDE closed and with lilOS closed in the browser |
 | **App (not installed)** | Opening the `.lsapp` file of an app made with **Make app** | The copy of the project that is in the folder of the app | As long as its windows are open |
+| **Command line** | `lilos logic run FILE ARGUMENTS…` in a terminal (from engine 1.6.0) | The **saved** project, with the arguments | As long as the command waits for it: an [Exit](core.exit) block closes it with a value, **Ctrl+C** stops it; see [Programs](logicstudio-engine/programs) |
 
 A test is for seeing what happens: on the schemas you see the values that go along the links and the blocks that are working. It leaves nothing switched on. See [Test and activate](ide/run).
 

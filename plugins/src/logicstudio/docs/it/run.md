@@ -1,12 +1,13 @@
 # Prova e programmi attivi
 
-Un progetto (o uno schema da solo) gira nel **motore** di Logic Studio come **programma**. Ci sono tre tipi di programma:
+Un progetto (o uno schema da solo) gira nel **motore** di Logic Studio come **programma**. Ci sono quattro tipi di programma:
 
 | Tipo | Come parte | Cosa fa girare | Quanto dura |
 |---|---|---|---|
 | **Prova** | **Prova** nell'IDE (o **F5**) | Il progetto **com'è negli editor**, anche non salvato | Finché premi **Ferma**, chiudi l'IDE o apri un altro progetto, e al massimo **5 minuti** (di serie) |
 | **Attivo** | **Attiva** nell'IDE | Il progetto **salvato** | Finché lo fermi: anche con l'IDE chiuso, anche con lilOS chiuso nel browser; riparte quando riparte il computer su cui gira lilOS |
 | **App (non installata)** | Aprendo il file `.lsapp` di un'app fatta con **Crea app…** | La copia del progetto dentro l'app | Finché le sue finestre sono aperte |
+| **Riga di comando** | `lilos logic run FILE ARGOMENTI…` in un terminale del computer | Il progetto **salvato**, con gli argomenti | Finché il comando lo aspetta; vedi [I programmi](logicstudio-engine/programs) |
 
 ## Prova
 
@@ -16,6 +17,10 @@ Un progetto (o uno schema da solo) gira nel **motore** di Logic Studio come **pr
 4. Per fermarla: **Ferma**, oppure **F5** di nuovo.
 
 La prova usa **tutti** gli schemi e le finestre del progetto: quelli aperti nelle schede così come sono adesso, gli altri come sono salvati. Uno schema da solo fa girare solo se stesso.
+
+### Gli argomenti della prova
+
+Accanto a **Prova** c'è **Argomenti**: apre un riquadro dove scrivi la riga di comando della prova, come se il programma partisse con `lilos logic run FILE` seguito da quella riga (per esempio `report.csv --verbose --port=8080 -o "Il mio file.txt"`: gli spazi separano gli argomenti, uno con degli spazi va tra virgolette). La leggono i blocchi [Argomenti (argv)](core.args) e [Opzione (-x · --nome)](core.option). Premi **Tieni**: il pulsante diventa **Argomenti ●** e, passandoci sopra con il mouse, mostra la riga. Gli argomenti restano per quel progetto (o schema da solo) su questo lilOS, anche chiudendo l'IDE; per toglierli svuota il campo. Valgono solo per le prove: **Attiva** fa partire il programma senza argomenti (per un programma attivo con argomenti usa `lilos logic run --active`, vedi [I programmi](logicstudio-engine/programs)).
 
 Un IDE fa **una prova alla volta**. Di serie puoi avere **2 prove** insieme in tutto (per esempio con due IDE aperti); oltre: «Hai già 2 prove in corso: al massimo 2».
 
@@ -33,6 +38,7 @@ Uno schema aperto mentre la prova è già in corso mostra i valori che passano d
 - Dopo **5 minuti** (di serie: «Durata massima di una prova», nei limiti del motore): si ferma da sola, senza messaggi nell'IDE.
 - Chiudendo l'IDE, aprendo un altro progetto o creandone uno nuovo.
 - Per un errore del programma (troppe esecuzioni, memoria finita…): il messaggio va nei **Problemi**.
+- Quando un blocco [Exit](core.exit) chiude il programma: la barra di stato dice «Chiuso dal programma con il valore …» fino alla prova seguente.
 
 Quando finisce, i valori spariscono dagli schemi e i bordi tornano normali; le console restano leggibili fino alla prova successiva.
 

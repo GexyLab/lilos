@@ -1526,7 +1526,7 @@ Il client del modulo del kernel `logicstudio-engine`. Un `Emitter`. Funziona sol
 | `catalog({ fresh = false })` → `{ version, packages }` | I blocchi e le componenti dei pacchetti installati, senza il loro codice. `packages`: `[{ name, version, label: { en, it }, blocks: [def], components: [def], hasComponents }]`. Tenuto in memoria: `fresh: true` lo rilegge. Forma delle definizioni: [Scrivere un pacchetto](#logic-studio-il-motore-e-i-pacchetti). |
 | `status()` → `{ limits, quotaKeys, quota, active, tests, net, log, admin }` | I limiti per tutti, la quota dell'utente e ciò che usa: programmi attivi e prove in corso, richieste di rete dell'ultimo minuto, byte di registro. |
 | `programs({ all = false })` → `[program]` | I programmi dell'utente; `all: true` (solo amministratori) quelli di tutti. |
-| `start({ kind, name, documents, source, lang, watch })` → `program` | Fa partire un programma. `kind`: `'test'`, `'active'` o `'app'` (l'app fatta da un progetto, non si salva). `documents`: `{ project, schemas: { nome: .lsch }, windows: { nome: .lsui } }`, con `project` che può essere `null` per uno schema solo. `source`: `{ path }` (dove stanno i file, solo per mostrarlo). `lang`: la lingua dei testi dei blocchi, `'en'` se manca o non valida. `watch`: `true` per ricevere i valori dei collegamenti (la prova). Errori: `invalid` (con `details.where`: `{ schema, block }` o `{ window }`), `quota`, `too_large`. |
+| `start({ kind, name, documents, source, lang, watch, args })` → `program` | Fa partire un programma. `kind`: `'test'`, `'active'`, `'app'` (l'app fatta da un progetto, non si salva) o `'cli'` (dalla 0.34.0: un lancio dalla riga di comando, vedi sotto). `args` (dalla 0.34.0, motore 1.6.0): gli argomenti del programma, una lista di testi (al massimo 256, 4096 caratteri ciascuno, 64 KB in tutto; `invalid` altrimenti), che i blocchi leggono con `b.args`. `documents`: `{ project, schemas: { nome: .lsch }, windows: { nome: .lsui } }`, con `project` che può essere `null` per uno schema solo. `source`: `{ path }` (dove stanno i file, solo per mostrarlo). `lang`: la lingua dei testi dei blocchi, `'en'` se manca o non valida. `watch`: `true` per ricevere i valori dei collegamenti (la prova). Errori: `invalid` (con `details.where`: `{ schema, block }` o `{ window }`), `quota`, `too_large`. |
 | `program(id)`, `stop(id)`, `forget(id)` | Un programma; fermarlo; fermarlo e toglierlo dall'elenco. Un amministratore può fermare quelli degli altri. |
 | `ui(id)` → `{ 'finestra:componente.porta': valore }` | Gli ultimi valori mandati alle finestre (vuoto se l'opzione `keepValues` del progetto è spenta). |
 | `windows(id)` → `{ id, name, source, status, main, windows, texts, entrypoints, consoles, options }` | Quello che serve a lilOS per aprire le finestre di un programma senza l'IDE: i documenti `.lsui` per nome, la finestra main, i testi tradotti del progetto, i punti d'ingresso, le impostazioni delle console e le opzioni dell'app. |
@@ -1543,7 +1543,7 @@ Il client del modulo del kernel `logicstudio-engine`. Un `Emitter`. Funziona sol
 
 Eventi: `ask` `{ id, name, console }` (un programma senza nessuno che lo guardi chiede qualcosa), `failed` `{ id, name, error }` (un programma attivo si è fermato per un errore).
 
-`program`: `{ id, owner, user, kind, name, source, status, error, started, stopped, consoles, windows, options }`. `status`: `'starting'`, `'running'`, `'stopped'`, `'failed'`, `'waiting'` (aspetta un pacchetto che non c'è). `windows`: i nomi delle finestre del progetto.
+`program`: `{ id, owner, user, kind, name, source, status, error, started, stopped, args, result, consoles, windows, options }`. `args`: gli argomenti con cui è partito (`[]` se non ne ha). `result`: `{ value, at }` se un blocco Exit l'ha chiuso (dal motore 1.6.0), altrimenti `null`. `kind`: `'test'`, `'active'`, `'app'` o `'cli'`. `status`: `'starting'`, `'running'`, `'stopped'`, `'failed'`, `'waiting'` (aspetta un pacchetto che non c'è). `windows`: i nomi delle finestre del progetto.
 
 **La documentazione.** Le pagine stanno nei pacchetti (cartella `docs/<lingua>/`, vedi [Scrivere un pacchetto](#scrivere-un-pacchetto-di-blocchi-e-componenti)) e le serve il motore; `docIndex` e `doc` le leggono, `markdown()` le disegna:
 
@@ -1576,7 +1576,7 @@ Un programma in diretta: `logic.live(id)`. Un `Emitter` sopra un WebSocket (`/li
 
 Il motore accetta al massimo 100 messaggi al secondo per programma (`rate_limited`) e non accetta messaggi più grandi di 512 KB.
 
-Eventi: `hello` `{ program, consoles, ui }` (alla connessione: lo stato di partenza), `status` `{ status, error, reason }`, `values` `{ values }` (`'schema/blocco.porta'` → valore, al massimo ogni 100 ms; solo se il programma è nato con `watch` o c'è un ascoltatore), `states` `{ states }` (`'schema/blocco'` → `'run'` | `'idle'` | `'error'`), `ui` `{ window, component, port, value }`, `console` `{ event, console, … }` (`event`: `'line'` con `line: { at, level, text }`, `'clear'`, `'ask'` con `ask`, `'done'` con `id` e `answer`), `answered` `{ ask, result }` (`'ok'`, `'again'` o `'stale'`), `error` `{ message }`, `gone` (la connessione è chiusa).
+Eventi: `hello` `{ program, consoles, ui }` (alla connessione: lo stato di partenza), `status` `{ status, error, reason }`, `values` `{ values }` (`'schema/blocco.porta'` → valore, al massimo ogni 100 ms; solo se il programma è nato con `watch` o c'è un ascoltatore), `states` `{ states }` (`'schema/blocco'` → `'run'` | `'idle'` | `'error'`), `ui` `{ window, component, port, value }`, `console` `{ event, console, … }` (`event`: `'line'` con `line: { at, level, text }`, `'clear'`, `'ask'` con `ask`, `'done'` con `id` e `answer`), `answered` `{ ask, result }` (`'ok'`, `'again'` o `'stale'`), `finished` `{ value }` (dalla 0.34.0: un blocco Exit ha chiuso il programma; subito dopo arriva `status` con `stopped`), `error` `{ message }`, `gone` (la connessione è chiusa).
 
 ```js
 import { logic, LogicConsoles } from '@lilos/sdk';
@@ -5258,12 +5258,26 @@ Da lilOS 1.34.0 (modulo 1.0.0, `plugins/modules/terminal-cli/`, nel repository u
 | Dati sul computer | `cli.json` (`{ servers: { [url]: { token, username, savedAt } } }`, leggibile solo dall'utente) e `history`, in `%APPDATA%\lilos-cli` (Windows) o `$XDG_CONFIG_HOME/lilos-cli` / `~/.config/lilos-cli` (altrove). Non `lilos`: su Windows sarebbe la cartella del programma lilOS. |
 | Codici di uscita | Quello del comando (130 dopo Ctrl+C), `2` uso sbagliato, `3` kernel non raggiungibile, `4` accesso non riuscito. |
 | Shell | La shell del Terminale (`plugins/src/terminal`) impacchettata nel modulo, con `@lilos/sdk` e `@lilos/system` sostituiti da `lib/sdk.js` e `lib/system.js` del modulo (alias di `build.json`): la home e i file passano per l'API. Prima di ogni riga rilegge l'albero (`GET /api/fs/tree`); i cambiamenti li manda con `POST /api/fs/sync`. |
-| Comandi propri | `appstore` e `license` (sotto). |
+| Comandi propri | `appstore`, `license` e (dalla 1.1.0) `logic` (sotto). |
 | Non disponibili | `open`/`xdg-open`, i comandi di shell delle app, le sessioni remote (`ssh`, `telnet`, …), `nettest`, il cambio dei tag. |
 
 **`appstore`.** `list [--installed | --updates] [--modules | --languages] [--repo ID]`, `search TESTO`, `info NOME`, `install [-y] [--allow-unsigned] [--repo ID] NOME…`, `remove [-y] NOME…`, `update [-y] [NOME…]`, `repo list | add URL|community [--name N] | remove ID`, `system [update | use VERSIONE | remove VERSIONE]`, `restart`. Solo moduli del kernel e pacchetti di lingua (`lang:<codice>`, solo dal repository ufficiale): le app sono rifiutate. Moduli, repository e `system` per gli amministratori (o con lilOS a utente singolo); le lingue per tutti. Installa mostrando il piano con le dipendenze (`/api/packages/plan`) e chiede conferma (`-y` la dà); un modulo non firmato si chiede a parte (o `--allow-unsigned`). Dopo moduli nuovi propone il riavvio e aspetta fino a 3 minuti che il kernel torni. L'ultimo modulo `fs` non si toglie.
 
 **`license`.** `license` mostra il testo e lo stato; `license status` esce con 1 se non è accettata; `license accept [-y]` la accetta (amministratori). La shell interattiva avvisa, all'ingresso di un amministratore, se la licenza è cambiata.
+
+**`logic`** (dal modulo 1.1.0, `lib/logic.js`, [D95](../interna/decisioni.md#d95-logic-studio-i-programmi-da-riga-di-comando-con-argomenti-e-codice-di-uscita)). Lancia i progetti di Logic Studio come programmi da riga di comando. Richiede `logicstudio-engine` `>=1.6.0`; c'è solo nel comando `lilos`, non (ancora) nell'app Terminale.
+
+| Comando | Cosa fa |
+| --- | --- |
+| `logic run [-q] [--active] [--name NOME] FILE [ARGS…]` | Legge `FILE` (`.lsproj`, `.lsch` o `.lsapp`, dai file di lilOS) con gli schemi e le finestre che servono, lo avvia con `POST /programs` (tipo `cli`) e interroga `GET /programs/:id` ogni 400 ms (ogni 15 secondi mentre aspetta una risposta). Con `--active` il programma è invece `active`: parte, il comando stampa il suo id ed esce, e il programma resta acceso (si salva e riparte con il kernel). Senza `--active` stampa le righe delle console (avvisi ed errori su stderr), risponde sullo stdin alle domande delle console, con Ctrl+C ferma il programma. Tutto ciò che segue `FILE` è passato al programma come argomenti (anche `-x` e `--nome`). `-q` non stampa niente. |
+| `logic list [--all]` | I programmi dell'utente (di tutti con `--all`, per gli amministratori). |
+| `logic stop ID` | Ferma un programma. |
+
+Codice di uscita di `logic run`, dal valore con cui un blocco Exit ha chiuso il programma: intero 0–255 → quel codice; `true` o `null` → 0; `false` → 1; qualsiasi altro valore → stampato (il testo così com'è, il resto come JSON) e codice 0. Se il programma è fallito, o è stato fermato da altri, 1. Usa il polling e non il WebSocket perché il client HTTP del comando ha il cookie di sessione e il `WebSocket` di Node non sa mandarlo in modo portabile.
+
+```bash
+lilos logic run prove/ciao.lsch --name Eugenio --code=7   # stampa «Eugenio», esce con 7
+```
 
 I testi (`en` e `it`) stanno in `locales.json` del modulo.
 
@@ -5785,7 +5799,7 @@ Da lilOS 1.37.0 ([D88](../interna/decisioni.md#d88-logic-studio-motore-pacchetti
 | Modulo | Cosa porta |
 | --- | --- |
 | `logicstudio-engine` | Il motore, l'API, le quote e i limiti. `requires: []` |
-| `logicstudio-core` | 43 blocchi di base: valori, logica, matematica, testo, oggetti, tempo, le due console, le porte di schema, `core.component`, le eccezioni e, dalla 1.4.0, i due disegni `core.drawText` e `core.drawShape` (categoria `draw`, `role: 'drawing'`, senza porte). Dalla 1.4.0 ha anche `components.js`, la sua prima volta: `core.uiText` e `core.uiShape` (categoria `draw`), vedi sotto |
+| `logicstudio-core` | 46 blocchi di base: valori, logica, matematica, testo, oggetti, tempo, le due console, le porte di schema, `core.component`, le eccezioni e, dalla 1.4.0, i due disegni `core.drawText` e `core.drawShape` (categoria `draw`, `role: 'drawing'`, senza porte) e, dalla 1.5.0 (chiede il motore `>=1.6.0`), i tre blocchi della categoria `program` («Programma»): `core.args`, `core.option` e `core.exit` ([D95](../interna/decisioni.md#d95-logic-studio-i-programmi-da-riga-di-comando-con-argomenti-e-codice-di-uscita)). Dalla 1.4.0 ha anche `components.js`, la sua prima volta: `core.uiText` e `core.uiShape` (categoria `draw`), vedi sotto |
 | `logicstudio-collections` | 36 blocchi per liste e matrici (`coll.*`) |
 | `logicstudio-constants` | 3 blocchi di costanti (`const.math`, `const.physics`, `const.astro`, categoria `value`): 25 matematiche, 45 fisiche CODATA 2022, 17 astronomiche e della Terra; la costante si sceglie con l'impostazione `constant`; uscite `value` e, nascoste, `symbol`, `unit`, `uncertainty` (non in `const.math`). Escono all'avvio o a ogni impulso su `send` (nascosto), come `core.value`. Da lilOS 1.44.0 (modulo 1.0.0) |
 | `logicstudio-units` | 25 blocchi per grandezze e unità di misura (`unit.*`, categoria `units`): un convertitore per ognuna delle 20 grandezze (`unit.length`, `unit.temperature`…, unità scelte nelle Proprietà), `unit.convert` (unità come testo, simboli unici tra le grandezze), `unit.prefix`, `unit.parse`, `unit.format`, `unit.list`. Nessuna azione nel kernel. Da `logicstudio-units` 1.0.0 (Logic Studio IDE 1.8.0 per la categoria nella palette) |
@@ -5849,8 +5863,8 @@ Sotto `/api/modules/logicstudio-engine`, per utenti con l'accesso fatto (le app 
 | `GET /docs/:pack/:page/:lang` | (motore 1.1.0) `{ pack, page, lang, markdown }`. `page` è `index`, un nome (`[a-z][a-z0-9-]{0,40}`) o il tipo di un blocco o una componente **con i due punti al posto del punto** (`core:add`, perché i percorsi dei moduli non hanno punti; l'SDK lo fa da solo). La lingua cercata è `:lang`, poi quella senza variante, poi `en`, poi `it`; `lang` nel risultato è quella trovata. `not_found` se la pagina o il pacchetto non ci sono. Una pagina è al massimo 512 KB |
 | `GET /status` | `{ limits, quotaKeys, quota, active, tests, net, log, admin }` |
 | `GET /programs[?all=1]` | I programmi (`all` solo per gli amministratori) |
-| `POST /programs` | `{ kind: 'test' \| 'active' \| 'app', name, documents, source, lang, watch }` → programma. Al massimo 8 MB di documenti (un programma attivo, 2 MB: `too_large`). `invalid` con `details.where` se i documenti non vanno (un blocco senza pacchetto, un collegamento verso una porta che non c'è, un limite superato). `quota`: troppi attivi o prove, programmi attivi di tutti, memoria di tutti |
-| `GET /programs/:id` | Il programma |
+| `POST /programs` | `{ kind: 'test' \| 'active' \| 'app' \| 'cli', name, documents, source, lang, watch, args }` → programma. `args`: lista di testi (anche numeri e booleani, che diventano testo), al massimo 256 argomenti di 4096 caratteri e 64 KB in tutto, altrimenti `invalid`. Al massimo 8 MB di documenti (un programma attivo, 2 MB: `too_large`). `invalid` con `details.where` se i documenti non vanno (un blocco senza pacchetto, un collegamento verso una porta che non c'è, un limite superato). `quota`: troppi attivi o prove, programmi attivi di tutti, memoria di tutti |
+| `GET /programs/:id` | Il programma. Se è un lancio `cli` del chiamante, rinnova il suo «affitto» (vedi sotto) |
 | `DELETE /programs/:id[?forget=1]` | Lo ferma; con `forget=1` lo toglie anche dall'elenco (e, se attivo, dai salvati) |
 | `POST /programs/:id/input` | `{ schema, block, port, value }`: un valore a un ingresso di un blocco (`not_found` se il blocco non c'è, `invalid` se la porta non è un suo ingresso). `value` al massimo 256 KB |
 | `POST /programs/:id/component` | `{ window, component, port, value }`: l'utente ha agito su una componente; la porta deve essere un'uscita (anche aggiunta) della componente |
@@ -5862,7 +5876,7 @@ Sotto `/api/modules/logicstudio-engine`, per utenti con l'accesso fatto (le app 
 | `GET /admin/users` | (Amministratori) `[{ id, overrides, quota, active, tests, net, log, programs }]` |
 | `PUT /admin/quotas/:utente` | (Amministratori) Un oggetto con alcune chiavi di `quotaKeys` (senza `quota`), o `null` per toglierle |
 
-**`WS /live/:id`** (`ctx.socket`): lo stato del programma. Messaggi dal motore: `{ t: 'hello', program, consoles, ui }`, poi `status`, `values`, `states`, `ui`, `console.line`, `console.clear`, `console.ask`, `console.done`, `answered`, `error`. Messaggi verso il motore: `{ t: 'input', … }`, `{ t: 'component', … }`, `{ t: 'answer', console, ask, value }`, `{ t: 'cancel', console, ask }` (stessi campi delle richieste HTTP). Al massimo 100 messaggi al secondo per programma e 512 KB per messaggio; se il client non legge e ha più di 4 MB in coda, i messaggi nuovi si perdono. `LiveProgram` nasconde tutto questo.
+**`WS /live/:id`** (`ctx.socket`): lo stato del programma. Messaggi dal motore: `{ t: 'hello', program, consoles, ui }`, poi `status`, `values`, `states`, `ui`, `console.line`, `console.clear`, `console.ask`, `console.done`, `answered`, `finished`, `error`. Messaggi verso il motore: `{ t: 'input', … }`, `{ t: 'component', … }`, `{ t: 'answer', console, ask, value }`, `{ t: 'cancel', console, ask }` (stessi campi delle richieste HTTP). Al massimo 100 messaggi al secondo per programma e 512 KB per messaggio; se il client non legge e ha più di 4 MB in coda, i messaggi nuovi si perdono. `LiveProgram` nasconde tutto questo.
 
 **Eventi per le pagine dell'utente** (`ctx.emit`, sul flusso `/api/services-events`): `logicstudio.ask` `{ id, name, console }` (un programma che non è una prova chiede qualcosa e nessun `LiveProgram` lo guarda; al massimo una volta ogni 30 secondi per console), `logicstudio.failed` `{ id, name, error }` (un programma attivo si è fermato per un errore) e `logicstudio.event` `{ program: { id, name }, name, data }` (dal blocco «Evento a lilOS»).
 
@@ -5881,6 +5895,8 @@ Un programma è un insieme di schemi con i loro blocchi e collegamenti (flusso d
 - All'avvio: `start(b)` di ogni blocco, poi i valori iniziali degli ingressi (`ports[porta].start`) e i blocchi `loop`.
 - Il governatore della CPU: ogni 200 esecuzioni il worker guarda quanto tempo hanno preso i blocchi nel secondo corrente e, se sono oltre `quotaCpuPercent`, aspetta la fine del secondo.
 - Una prova si ferma da sola dopo `testMinutes`; i programmi `test` e `app` fermi sono dimenticati dopo un minuto; quelli `active` restano nell'elenco finché non li si toglie.
+- **Argomenti e uscita** ([D95](../interna/decisioni.md#d95-logic-studio-i-programmi-da-riga-di-comando-con-argomenti-e-codice-di-uscita), motore 1.6.0). I blocchi leggono gli argomenti con `b.args` (lista di testi congelata) e chiudono il programma con `b.exit(valore)`: vale la prima chiamata, il programma passa a `stopped` (motivo «Chiuso dal programma con il valore …»), `result` è `{ value, at }` (il valore, tagliato a 64 KB di JSON) e il canale live manda `finished`. Anche un `core.exit` dentro un gruppo chiude tutto il programma. Un programma `active` chiuso così non riparte con il kernel. Un programma attivo salvato conserva i suoi `args`.
+- **Il tipo `cli`** è un lancio dalla riga di comando (`lilos logic run`). Conta come attivo per le quote, non si salva mai, le sue domande di console non passano per la pagina di lilOS (le risponde chi lo ha lanciato) e **si ferma da solo** (motivo «La riga di comando che l'ha avviato non c'è più») se per 60 secondi nessuno fa `GET /programs/:id`; il controllo gira ogni 10 secondi. Un `cli` fermo è dimenticato dopo un minuto, come `test` e `app`.
 
 #### Scrivere un pacchetto di blocchi e componenti
 
@@ -5915,7 +5931,7 @@ export default {
 | --- | --- |
 | `type` | `pacchetto.nome`: `[a-z][a-z0-9]*\.[a-zA-Z][a-zA-Z0-9]{0,40}` |
 | `version` | Intero da 1. La cambia chi cambia il comportamento del blocco |
-| `category` | Dove sta nella tavolozza: `value`, `logic`, `math`, `text`, `object`, `list`, `matrix`, `time`, `console`, `schema`, `ui`, `lilos`, `net`, `draw` (i disegni, dal pacchetto di base 1.4.0) o altra (`other`) |
+| `category` | Dove sta nella tavolozza: `value`, `logic`, `math`, `text`, `object`, `list`, `matrix`, `time`, `console`, `schema`, `ui`, `lilos`, `net`, `draw` (i disegni, dal pacchetto di base 1.4.0), `program` (gli argomenti e l'uscita, dal pacchetto di base 1.5.0) o altra (`other`) |
 | `icon` | Un simbolo di `icon()` (`blocks` di serie) |
 | `label`, `description` | `{ en, it }`; `description` facoltativa |
 | `inputs`, `outputs` | `[{ name, type, label, trigger?, hidden? }]`. `name`: `[a-zA-Z][a-zA-Z0-9]{0,30}`, unico, mai `error` (c'è già). `type`: `number`, `bool`, `text`, `object`, `list`, `matrix`, `any` o `pulse`. `trigger: false` (solo ingressi): tiene il valore senza avviare il blocco. `hidden: true`: la porta non si disegna finché l'utente non la mostra con l'occhio nelle Proprietà (per le porte che servono di rado; dall'SDK 0.26.0) |
@@ -5934,6 +5950,8 @@ export default {
 | `id`, `schema`, `config`, `lang` | Il blocco, il suo schema, le sue impostazioni, la lingua dell'utente |
 | `trigger` | (solo in `run`) l'ingresso che ha avviato il blocco |
 | `added` | `{ inputs: [{ id, name, value }], outputs: [{ id, name }] }`: le porte aggiunte; i valori degli ingressi aggiunti sono lì |
+| `args` | (dal motore 1.6.0) Gli argomenti del programma: lista di testi congelata, vuota se non ne ha |
+| `exit(valore)` | (dal motore 1.6.0) Chiude l'intero programma con un valore (copiato come JSON; `undefined` diventa `null`). Vale solo la prima chiamata |
 | `memory()` | Un oggetto vostro, che dura quanto il programma |
 | `linked(porta)` → `boolean` | Se allo schema è collegato qualcosa a quell'ingresso del blocco (dal motore 1.2.0): per un ingresso facoltativo, che cambia il comportamento solo se usato (es. «Costante · Variabile»: senza nulla su «invia» manda il valore all'avvio) |
 | `send(porta, valore)` | Manda un valore a un'uscita (anche una aggiunta, per id) senza aspettare la fine di `run()` |

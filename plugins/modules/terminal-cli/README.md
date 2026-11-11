@@ -44,6 +44,16 @@ appstore restart
 
 Una lingua si scrive `lang:de`, `lang:pt-BR`. Moduli, repository e `system` sono per gli amministratori; le lingue per tutti (valgono per tutti). Prima di installare mostra il piano con le dipendenze e chiede conferma (`-y` la dà); un modulo non firmato si conferma a parte, o con `--allow-unsigned`. I moduli nuovi partono al riavvio del kernel, che il comando propone e aspetta. L'ultimo modulo dei file non si può togliere. `appstore system` aggiorna lilOS stesso; se la versione nuova non parte, lilOS torna da solo alla precedente.
 
+**`logic`** (dalla 1.1.0, serve il modulo `logicstudio-engine` 1.6.0): i programmi di Logic Studio.
+
+```
+logic run [-q] [--active] [--name NOME] FILE [ARGOMENTI…]
+logic list [--all]
+logic stop ID
+```
+
+`logic run` fa girare un progetto (`.lsproj`), uno schema (`.lsch`) o un'app di **Crea app** (`.lsapp`) dei file di lilOS e lo aspetta. Tutto quello che segue FILE va al programma come argomenti (blocchi **Argomenti (argv)** e **Opzione (-x · --nome)**). Le righe delle console arrivano qui (avvisi ed errori sull'uscita degli errori), le domande si fanno qui, **Ctrl+C** ferma il programma. Quando un blocco **Exit** lo chiude, un intero da 0 a 255 è il codice di uscita; un altro valore viene scritto (testo così com'è, il resto in JSON) e il codice è 0 (`-q`: niente). Un programma in errore o fermato altrove dà 1. `--active` lo lascia acceso come programma attivo, con gli argomenti. Il motore ferma da solo un programma della riga di comando se per un minuto nessuno ne chiede (il comando chiede ogni 400 ms).
+
 **`license`**: `license` mostra il testo e se è accettata; `license status` esce con 1 se non lo è; `license accept [-y]` la accetta (amministratori).
 
 ## Per chi amministra
@@ -57,6 +67,6 @@ Una lingua si scrive `lang:de`, `lang:pt-BR`. Moduli, repository e `system` sono
 ## Per chi scrive codice
 
 - `index.js`: `init()` vuoto e il comando `sh`, che importa `cli.js` solo quando gira (il kernel non carica la shell).
-- `cli.js`: argomenti, accesso, shell interattiva o riga; `lib/` ha il client HTTP (`client.js`), l'accesso (`login.js`), la riga interattiva (`repl.js`), la shell (`shell.js`, `commands.js`, `home.js`), `appstore.js`, `eula.js`, `io.js`, `ask.js` e i testi (`strings.js`; `locales.json`, `en` e `it`).
+- `cli.js`: argomenti, accesso, shell interattiva o riga; `lib/` ha il client HTTP (`client.js`), l'accesso (`login.js`), la riga interattiva (`repl.js`), la shell (`shell.js`, `commands.js`, `home.js`), `appstore.js`, `eula.js`, `logic.js` (il comando `logic`, sull'API del motore), `io.js`, `ask.js` e i testi (`strings.js`; `locales.json`, `en` e `it`).
 - La shell è quella del Terminale (`plugins/src/terminal`). `build.json` sostituisce i suoi `@lilos/sdk` e `@lilos/system` con `lib/sdk.js` e `lib/system.js`: la home e i file passano per l'API. Con `build.json` (non copiato nel pacchetto) `plugins/scripts/build.mjs` impacchetta tutto in un file.
 - Riferimento: [API](../../../doc/sviluppatore/api.md#terminal-cli). Decisione: [D86](../../../doc/interna/decisioni.md#d86-lilos-senza-ui-e-il-comando-lilos).

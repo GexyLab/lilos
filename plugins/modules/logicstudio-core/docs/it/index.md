@@ -2,7 +2,7 @@
 
 `logicstudio-core` · richiede il motore [Logic Studio Engine](logicstudio-engine) e lilOS dalla 1.37.0 (i testi e le forme si vedono disegnati dalla 1.48.0)
 
-I blocchi che servono in quasi ogni schema di Logic Studio: valori fissi e memorie, logica e confronti, calcoli, testo, oggetti, tempo (intervalli e attese), le console per scrivere righe e fare domande, le porte per collegare gli schemi di un progetto, l'oggetto che collega uno schema a una componente di una finestra, e testi e forme per disegnare sugli schemi e nelle finestre.
+I blocchi che servono in quasi ogni schema di Logic Studio: valori fissi e memorie, logica e confronti, calcoli, testo, oggetti, tempo (intervalli e attese), le console per scrivere righe e fare domande, le porte per collegare gli schemi di un progetto, l'oggetto che collega uno schema a una componente di una finestra, gli argomenti della riga di comando e la chiusura del programma con un valore, e testi e forme per disegnare sugli schemi e nelle finestre.
 
 ## Come si installa
 
@@ -107,6 +107,16 @@ Gli altri blocchi arrivano con altri pacchetti: [Liste e matrici](logicstudio-co
 | Blocco | Cosa fa |
 |---|---|
 | [Componente UI](core.component) | L'oggetto di una componente di una finestra in uno schema: ha le porte della componente. Si crea dalla finestra, non dalla scheda Blocchi. |
+
+### Programma
+
+Gli argomenti con cui è partito il programma (`lilos logic run FILE ARGOMENTI…`, o il pulsante **Argomenti** dell'IDE per le prove) e la sua chiusura con un valore. Dal pacchetto 1.5.0, con il motore dalla 1.6.0.
+
+| Blocco | Cosa fa |
+|---|---|
+| [Argomenti (argv)](core.args) | Tutti gli argomenti, le opzioni con `-` e `--` lette in un oggetto, i posizionali. |
+| [Opzione (-x · --nome)](core.option) | Una sola opzione, con il suo nome corto e lungo: interruttore, con un valore o ripetibile; numero, testo o sì/no; obbligatoria o con un valore di serie. |
+| [Exit (chiudi il programma · return)](core.exit) | Chiude tutto il programma con un valore: con `lilos logic run`, un intero da 0 a 255 è il codice di uscita. |
 
 ### Disegno
 

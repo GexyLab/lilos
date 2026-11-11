@@ -2,7 +2,7 @@
 
 `logicstudio-core` · needs the [Logic Studio Engine](logicstudio-engine) and lilOS 1.37.0 or later
 
-The blocks you need in almost every Logic Studio schema: fixed values and memories, logic and comparisons, calculations, text, objects, time (intervals and waits), the consoles that write lines and ask questions, the ports that link the schemas of a project, and the object that links a schema to a component of a window, and texts and shapes to draw on schemas and in windows.
+The blocks you need in almost every Logic Studio schema: fixed values and memories, logic and comparisons, calculations, text, objects, time (intervals and waits), the consoles that write lines and ask questions, the ports that link the schemas of a project, and the object that links a schema to a component of a window, the command-line arguments and the closing of the program with a value, and texts and shapes to draw on schemas and in windows.
 
 ## How to install it
 
@@ -107,6 +107,16 @@ The other blocks come with other packages: [Lists and matrices](logicstudio-coll
 | Block | What it does |
 |---|---|
 | [UI component](core.component) | The object of a window component, in a schema: it has the ports of the component. You create it from the window, not from the Blocks tab. |
+
+### Program
+
+The arguments the program was started with (`lilos logic run FILE ARGUMENTS…`, or the **Arguments** button of the IDE for the tests) and its closing with a value. From package 1.5.0, with the engine from 1.6.0.
+
+| Block | What it does |
+|---|---|
+| [Arguments (argv)](core.args) | All the arguments, the options with `-` and `--` read into an object, the positional ones. |
+| [Option (-x · --name)](core.option) | A single option, with its short and long name: flag, with a value or repeatable; number, text or yes/no; required or with a default value. |
+| [Exit (close the program · return)](core.exit) | Closes the whole program with a value: with `lilos logic run`, a whole number from 0 to 255 is the exit code. |
 
 ### Drawing
 

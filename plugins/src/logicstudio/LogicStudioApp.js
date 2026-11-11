@@ -164,6 +164,7 @@ class Studio {
     else parts.push(h('span', { class: 'ls-eng' }, t('status.engine', { n: (this.catalog?.packages ?? []).length })));
     if (tab?.view?.statusText) parts.push(h('span', {}, tab.view.statusText()));
     if (this.runner.program) parts.push(h('span', { class: 'ls-run-st' }, this.runner.statusText()));
+    else if (this.runner.result) parts.push(h('span', { class: 'ls-run-st' }, this.runner.result));
     parts.push(h('span', { class: 'sp' }));
     if (this.ws) parts.push(h('span', {}, this.ws.project ? t('status.project', { name: this.ws.name }) : t('status.single')));
     this.status.replaceChildren(...parts);
@@ -327,6 +328,10 @@ class Studio {
         items.push(b('stop', t('tb.stop'), () => this.runner.stop(), { cls: 'stop' }));
       } else {
         items.push(b('play', t('tb.test'), () => this.runner.test(), { cls: 'test', title: `${t('tb.test')} (F5)` }));
+      }
+      {
+        const args = this.runner.argsText();
+        items.push(b('terminal', args ? t('tb.argsSet') : t('tb.args'), () => this.runner.editArgs(), { cls: args ? 'on' : '', title: args ? `${t('tb.argsHint')}: ${args}` : t('tb.argsHint'), disabled: !!this.runner.program }));
       }
       items.push(b('power', t('tb.activate'), () => this.runner.activate(), { title: t('tb.activateHint') }));
       items.push(h('span', { class: 'sep' }));

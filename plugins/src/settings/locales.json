@@ -903,7 +903,8 @@
       "logic.packages.counts": "{blocks} blocks · {components} components",
       "logic.packages.more": "More packages",
       "logic.packages.moreHint": "New blocks and components come with kernel modules: install them from the AppStore.",
-      "logic.kind.app": "App (not installed)"
+      "logic.kind.app": "App (not installed)",
+      "logic.kind.cli": "Command line"
     }
   },
   "it": {
@@ -1810,7 +1811,8 @@
       "logic.packages.counts": "{blocks} blocchi · {components} componenti",
       "logic.packages.more": "Altri pacchetti",
       "logic.packages.moreHint": "Blocchi e componenti nuovi arrivano con i moduli del kernel: installali dall'AppStore.",
-      "logic.kind.app": "App (non installata)"
+      "logic.kind.app": "App (non installata)",
+      "logic.kind.cli": "Riga di comando"
     }
   }
 }

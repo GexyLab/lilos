@@ -2307,7 +2307,7 @@ Conseguenze: se tutte le schede si chiudono non parte niente; un'automazione con
 - Il limite `chartPoints` lo leggono i grafici (arriva alle componenti come `c.host.chartPoints`, da `logicHost` e dall'editor delle finestre): tengono il minore tra questo e la loro proprietà `maxPoints`.
 - Non provato con decine di utenti con programmi attivi, né con un pacchetto di terzi che si pianta all'`import`.
 
-**Quando ripensarla.** Se serviranno programmi che stanno a lungo in ascolto sulla rete (MQTT, Modbus) e il worker non basta; se le app fatte dai progetti dovranno poter essere installate (permessi, repository della comunità); se le componenti avranno bisogno di librerie esterne (un `components.js` con import); se le quote dovranno distinguere tra progetti. Rinviati: il comando `lilos logic` del Terminale e le azioni di Automata.
+**Quando ripensarla.** Se serviranno programmi che stanno a lungo in ascolto sulla rete (MQTT, Modbus) e il worker non basta; se le app fatte dai progetti dovranno poter essere installate (permessi, repository della comunità); se le componenti avranno bisogno di librerie esterne (un `components.js` con import); se le quote dovranno distinguere tra progetti. Rinviati: il comando `lilos logic` del Terminale (fatto in parte in [D95](#d95-logic-studio-i-programmi-da-riga-di-comando-con-argomenti-e-codice-di-uscita): c'è nella riga di comando `lilos`, non nell'app Terminale) e le azioni di Automata.
 ## D89. NetWave Browser: le pagine web le mostra il programma lilOS, ognuna in un processo e una sessione sue
 
 **Contesto.** L'utente ha chiesto un browser dentro lilOS, con schede, più finestre e sessioni salvabili. Una pagina web non può girare nella pagina di lilOS: molti siti vietano di essere incorniciati (`X-Frame-Options`, `frame-ancestors`), e comunque la pagina di lilOS tiene il cookie del kernel e parla con lui.
@@ -2536,3 +2536,41 @@ Conseguenze: se tutte le schede si chiudono non parte niente; un'automazione con
 - I disegni contano per `maxBlocks` (di serie 200): uno schema con molte note può arrivare al limite.
 
 **Quando ripensarla.** Se serviranno disegni con collegamenti a loro (frecce che seguono i blocchi), immagini, o altre forme; se i pacchetti di terzi vorranno i propri disegni (allora il ruolo va aperto e definito); se `notes` andrà usato o tolto.
+
+## D95. Logic Studio: i programmi da riga di comando, con argomenti e codice di uscita
+
+> Completa [D88](#d88-logic-studio-motore-pacchetti-ide-finestre-dei-progetti) e realizza una parte di ciò che D88 aveva rinviato (il comando `lilos logic`). Le azioni di Automata restano da fare.
+
+**Contesto.** L'utente ha chiesto (11 novembre 2026) di poter lanciare un progetto di Logic Studio da un terminale, come un programma: con argomenti (`-x`, `--nome`, parole libere), un valore di ritorno (`return`) e un codice di uscita. Ha voluto i blocchi nel pacchetto di base, `logicstudio-core`.
+
+**Decisione.** Decisa l'11 novembre 2026: `logicstudio-core` 1.5.0 (chiede `logicstudio-engine` `>=1.6.0`), `logicstudio-engine` 1.6.0, `terminal-cli` 1.1.0, lilOS 1.49.0, SDK 0.34.0, Logic Studio IDE 1.14.0 (chiede lilOS `>=1.49.0`), Pannello di controllo 1.24.1.
+
+- **Gli argomenti sono una proprietà del programma**, passata all'avvio (`args` in `POST /programs`: lista di testi, al massimo 256 argomenti, 4096 caratteri ciascuno, 64 KB in tutto). I blocchi li leggono dal contesto (`b.args`, lista congelata). Il motore li conserva quando salva e ripristina un programma attivo.
+- **Tre blocchi nella categoria «Programma»** (`program`) di `logicstudio-core`: `core.args` («Argomenti (argv)»), `core.option` («Opzione (-x · --nome)») e `core.exit` («Exit (chiudi il programma · return)»). Le regole di lettura delle opzioni sono nelle pagine `core.args`, `core.option` e `core.exit` della documentazione del pacchetto.
+- **Uscita.** `b.exit(valore)` chiude il programma: vale la prima chiamata, il programma si ferma come «stopped» con `result: { value, at }` (il valore è tagliato a 64 KB di JSON). `publicProgram` ha `args` e `result`; il canale live manda l'evento `finished { value }`. Un programma attivo chiuso da Exit non riparte.
+- **Un tipo nuovo, `cli`.** Conta come attivo per le quote, non si salva mai e si ferma da solo se nessuno fa `GET /programs/:id` per 60 secondi (un «affitto»).
+- **Il comando `logic` di `terminal-cli`** (`lib/logic.js`): `logic run [-q] [--active] [--name NOME] FILE [ARGS…]`, `logic list [--all]`, `logic stop ID`. Legge `.lsproj`, `.lsch` e `.lsapp` dai file di lilOS, interroga il programma ogni 400 ms, stampa le console (avvisi ed errori su stderr), risponde sullo stdin alle domande delle console, Ctrl+C ferma il programma.
+- **Codice di uscita.** Intero da 0 a 255: quel codice. `true` o `null`: 0. `false`: 1. Qualsiasi altro valore: stampato (il testo così com'è, il resto come JSON) con codice 0. Con `-q` non stampa niente. Programma fallito, o fermato da altri: 1.
+
+**Perché.**
+
+- *Argomenti alla partenza e non nella configurazione di un blocco.* Cambiano a ogni lancio, e lo stesso schema deve poter girare con argomenti diversi; nel `.lsch` ci sarebbe finito un valore che non è parte del progetto. Come proprietà del programma servono anche all'IDE (campo «Argomenti», uno per progetto) e alle prove.
+- *Un tipo `cli` con affitto di 60 secondi.* Un programma lanciato da un terminale che muore (finestra chiusa, connessione persa, processo ucciso) non può restare acceso per sempre a consumare quote e thread. L'affitto si rinnova a ogni lettura del client; se i lettori spariscono, il motore lo ferma. Non si salva perché il programma appartiene a quella sessione di terminale, non all'utente.
+- *Polling e non il WebSocket.* Il client HTTP della riga di comando ha già il cookie di sessione; il `WebSocket` di Node non sa mandarlo in modo portabile. Ogni 400 ms basta per un terminale e rinnova l'affitto.
+- *Codici di uscita come nelle shell.* Così `logic run` si usa negli script (`&&`, `||`, `$?`) e un valore booleano ha il significato che ci si aspetta.
+- *Blocchi nel pacchetto di base.* È stata una richiesta; il costo è che il pacchetto di base ora richiede un motore `>=1.6.0`.
+
+**Alternative scartate.**
+
+- Argomenti come impostazione di un blocco: vedi sopra.
+- Un programma `cli` senza affitto: i programmi abbandonati restano accesi.
+- Il WebSocket nel client della riga di comando: non portabile con il cookie.
+
+**Conseguenze.**
+
+- Il comando `logic` c'è solo in `lilos` (da riga di comando), non ancora nell'app Terminale.
+- Un `core.exit` in un programma avviato dall'IDE lo ferma come «stopped»; la barra di stato dice «Chiuso dal programma con il valore …».
+- Con un motore più vecchio di 1.6.0 i blocchi «Programma» non si caricano (il pacchetto lo chiede); un terminal-cli 1.1.0 con un motore più vecchio non passa gli argomenti.
+- Provato su un kernel di prova: `lilos logic run prove/ciao.lsch --name Eugenio --code=7` stampa «Eugenio» ed esce con 7; una domanda di console ha avuto risposta dallo stdin (42); l'affitto ha fermato dopo circa 60 secondi un lancio abbandonato.
+
+**Quando ripensarla.** Se serviranno `logic` nell'app Terminale, le azioni di Automata per avviare e fermare i progetti, flussi (stdin/stdout continui) tra il terminale e il programma, o argomenti più grandi dei limiti.

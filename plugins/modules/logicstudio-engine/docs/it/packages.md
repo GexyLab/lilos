@@ -268,6 +268,8 @@ upgrade(config, from, added)   // → le impostazioni nuove, o { config: le impo
 | `b.ui(porta, valore)`, `b.exportPort(porta, valore)` | Riservati ai blocchi di base (l'oggetto di una componente, l'Uscita di schema) |
 | `b.now()` | L'ora, come `Date.now()` |
 | `b.limits` | I limiti che un blocco può leggere: `signalSamples`, i campioni al massimo di un segnale (Pannello di controllo → Logic Studio → Limiti; dal motore 1.5.0, prima manca) |
+| `b.args` | Gli argomenti del programma, una lista bloccata di testi: quelli scritti dopo il file in `lilos logic run FILE ARGOMENTI…`, o nel pulsante **Argomenti** dell'IDE per le prove; vuota se il programma è partito senza (dal motore 1.6.0, prima manca). Vedi [Argomenti (argv)](core.args) |
+| `b.exit(valore)` | Chiude tutto il programma con quel valore (copiato come JSON): il motore lo ferma e il programma ha `result: { value, at }`; conta solo la prima chiamata. Vedi [Exit](core.exit) e [I programmi](logicstudio-engine/programs) (dal motore 1.6.0) |
 | `b.signal` | Un `AbortSignal` che scatta quando il programma si ferma |
 
 I timer del motore si fermano da soli quando il programma si ferma. Quello che un timer lancia esce da **Exception**. Non usare `setTimeout` e `setInterval` di Node: non si fermerebbero con il programma.

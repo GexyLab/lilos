@@ -116,10 +116,15 @@ export default {
       const body = await json(MAX_DOCUMENTS);
       const lang = typeof body?.lang === 'string' && /^[a-z]{2}(-[A-Z]{2})?$/.test(body.lang) ? body.lang : 'en';
       const source = body?.source && typeof body.source.path === 'string' ? { path: body.source.path.slice(0, 1000) } : null;
-      return supervisor.start(who(p), { kind: body?.kind, name: body?.name, documents: body?.documents ?? {}, source, lang, watch: !!body?.watch });
+      return supervisor.start(who(p), { kind: body?.kind, name: body?.name, documents: body?.documents ?? {}, source, lang, watch: !!body?.watch, args: body?.args });
     });
 
-    ctx.route('GET', '/programs/:id', ({ principal, params }) => publicProgram(mine(user(principal), params.id)));
+    // Asking keeps a run from the command line going (kind 'cli', see supervisor.touch)
+    ctx.route('GET', '/programs/:id', ({ principal, params }) => {
+      const p = mine(user(principal), params.id);
+      if (p.owner === principal.id) supervisor.touch(p.id);
+      return publicProgram(p);
+    });
 
     ctx.route('DELETE', '/programs/:id', async ({ principal, params, query }) => {
       const p = mine(user(principal), params.id);

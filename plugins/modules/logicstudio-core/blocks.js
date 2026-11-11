@@ -6,7 +6,8 @@
  * execution?, start?, run?, step?, stop?, upgrade? }. Ports: { name, type, label?, hidden? }; types
  * are number, bool, text, object, list, any, pulse; `hidden: true` = not drawn until the user shows
  * it (the eye in Proprietà); b.linked(port) tells whether an input is used. Every block also has
- * the output «error».
+ * the output «error». b.args: the program's arguments (from the command line); b.exit(value)
+ * closes the whole program with a value (engine 1.6.0).
  * grow: what can be added in the properties sidebar (never on the block): { inputs|outputs: { type,
  * max, name: 'letter'|'number'|'user', label } }; added ports have ids x1, x2… and a name.
  */
@@ -66,6 +67,9 @@ const SHAPES = [O('rect', 'Rectangle', 'Rettangolo'), O('rounded', 'Rounded rect
 const DIRECTIONS = [O('horizontal', 'Horizontal', 'Orizzontale'), O('vertical', 'Vertical', 'Verticale'), O('down', 'Diagonal ↘', 'Diagonale ↘'), O('up', 'Diagonal ↗', 'Diagonale ↗')];
 const ARROWS = [O('none', 'None', 'Nessuna'), O('end', 'At the end', 'Alla fine'), O('start', 'At the start', 'All\'inizio'), O('both', 'At both ends', 'A entrambi i capi')];
 const DASHES = [O('solid', 'Solid', 'Continua'), O('dashed', 'Dashed', 'Tratteggiata'), O('dotted', 'Dotted', 'Punteggiata')];
+// The choices of Opzione (-x · --nome)
+const OPTION_KINDS = [O('flag', 'Flag, yes/no (-v, --verbose)', 'Interruttore, sì/no (-v, --verbose)'), O('value', 'With a value (-o FILE, --output=FILE)', 'Con un valore (-o FILE, --output=FILE)'), O('list', 'Repeatable, a list (-I a -I b)', 'Ripetibile, una lista (-I a -I b)')];
+const OPTION_TYPES = [O('text', 'Text', 'Testo'), O('number', 'Number', 'Numero'), O('bool', 'Yes/no', 'Sì/no')];
 
 export const blocks = [
   // ---- Valori
@@ -586,6 +590,64 @@ export const blocks = [
     ],
   },
 
+  // ---- Programma: gli argomenti della riga di comando (lilos logic run FILE ARGOMENTI…) e la chiusura
+  {
+    // Every argument as it came, and a first reading: -a, -abc, --name, --name=value, --no-name, «--»
+    type: 'core.args', version: 1, category: 'program', icon: 'terminal', label: L('Arguments (argv)', 'Argomenti (argv)'),
+    inputs: [{ name: 'send', type: 'pulse', label: L('send', 'invia'), hidden: true }],
+    outputs: [
+      { name: 'all', type: 'list', label: L('all', 'tutti') },
+      { name: 'options', type: 'object', label: L('options', 'opzioni') },
+      { name: 'positional', type: 'list', label: L('positional', 'posizionali') },
+      { name: 'count', type: 'number', label: L('count', 'quanti'), hidden: true },
+    ],
+    config: [
+      { key: 'flags', type: 'text', default: '', label: L('Options without a value (comma separated: v, verbose…)', 'Opzioni senza valore (separate da virgola: v, verbose…)') },
+      { key: 'numbers', type: 'checkbox', default: true, label: L('Numbers as numbers', 'I numeri come numeri') },
+    ],
+    start(b) { if (!b.linked('send')) sendArgs(b); },
+    run(inputs, b) { return readArgs(b); },
+  },
+  {
+    // One option, read exactly: -o, -o VALUE, -oVALUE, --output VALUE, --output=VALUE, --no-output
+    type: 'core.option', version: 1, category: 'program', icon: 'tag', label: L('Option (-x · --name)', 'Opzione (-x · --nome)'),
+    inputs: [{ name: 'send', type: 'pulse', label: L('send', 'invia'), hidden: true }],
+    outputs: [
+      { name: 'value', type: 'any', label: L('value', 'valore') },
+      { name: 'present', type: 'bool', label: L('given', 'data') },
+    ],
+    config: [
+      { key: 'short', type: 'text', default: '', label: L('Short name (one letter: -o)', 'Nome corto (una lettera: -o)') },
+      { key: 'long', type: 'text', default: 'output', label: L('Long name (--output)', 'Nome lungo (--output)') },
+      { key: 'kind', type: 'select', default: 'value', options: OPTION_KINDS, label: L('Kind', 'Tipo') },
+      { key: 'type', type: 'select', default: 'text', options: OPTION_TYPES, label: L('Value', 'Valore'), when: { kind: ['value', 'list'] } },
+      { key: 'default', type: 'text', default: '', label: L('When it is not given', 'Quando non c\'è') },
+      { key: 'required', type: 'checkbox', default: false, label: L('Required (an Exception when missing)', 'Obbligatoria (Exception se manca)') },
+    ],
+    start(b) { if (!b.linked('send')) sendOption(b); },
+    run(inputs, b) { return readOption(b); },
+  },
+  {
+    // exit(value) / return: closes the whole program; a whole number from 0 to 255 becomes the exit code of lilos logic run
+    type: 'core.exit', version: 1, category: 'program', icon: 'power', label: L('Exit (close the program · return)', 'Exit (chiudi il programma · return)'),
+    inputs: [
+      { name: 'value', type: 'any', label: L('value', 'valore') },
+      { name: 'close', type: 'pulse', label: L('close', 'chiudi'), hidden: true },
+    ],
+    outputs: [],
+    config: [
+      { key: 'kind', type: 'select', default: 'number', options: ['number', 'text', 'bool', 'json'], label: L('Kind', 'Tipo') },
+      { key: 'value', type: 'text', default: '0', label: L('Value when none arrives', 'Valore se non ne arriva nessuno') },
+    ],
+    run(inputs, b) {
+      // «chiudi» linked: a value only waits; else the value that arrives closes
+      if (b.linked('close') && b.trigger !== 'close') return undefined;
+      const v = inputs.value !== undefined && inputs.value !== null && b.linked('value') ? inputs.value : valueOf(b.config);
+      b.exit(v);
+      return undefined;
+    },
+  },
+
   // ---- Disegno: testi e forme sul foglio dello schema (role 'drawing'). Nessuna porta, il
   // motore non li esegue: il canvas (SDK LogicCanvas) li disegna sotto i collegamenti e i blocchi.
   {
@@ -663,4 +725,128 @@ function stopTicks(b) {
   const m = b.memory();
   b.clearTimer(m.timer);
   m.timer = null;
+}
+
+// ---- The arguments of the program (b.args: the command line's), for Argomenti and Opzione
+
+const isNegNum = s => /^-(\d|\.\d)/.test(s);
+const NUMBER = /^-?(\d+\.?\d*|\.\d+)(e[+-]?\d+)?$/i;
+const BAD_KEY = new Set(['__proto__', 'constructor', 'prototype']);
+
+/**
+ * A first reading of the arguments, as most programs do: --name=value, --name value (unless name
+ * is in `flags` or the next one is an option), --no-name (false), -abc (a, b, c true; the last one
+ * takes the next argument as its value unless it is in `flags`), -n5 and -n=5, «--» (all the rest
+ * positional). An option given more than once becomes a list.
+ */
+function parseArgs(argv, flags, numbers) {
+  const options = {}, positional = [];
+  const conv = v => (numbers && typeof v === 'string' && NUMBER.test(v.trim()) ? Number(v) : v);
+  const set = (k, v) => {
+    if (!k || BAD_KEY.has(k)) return;
+    options[k] = Object.hasOwn(options, k) ? [].concat(options[k], v) : v;
+  };
+  const takesNext = (name, i) => !flags.has(name) && i + 1 < argv.length && (!argv[i + 1].startsWith('-') || isNegNum(argv[i + 1]));
+  for (let i = 0; i < argv.length; i++) {
+    const a = argv[i];
+    if (a === '--') { positional.push(...argv.slice(i + 1).map(conv)); break; }
+    if (a.startsWith('--')) {
+      const eq = a.indexOf('=');
+      if (eq > 2) { set(a.slice(2, eq), conv(a.slice(eq + 1))); continue; }
+      const name = a.slice(2);
+      if (name.startsWith('no-') && name.length > 3) { set(name.slice(3), false); continue; }
+      if (takesNext(name, i)) { set(name, conv(argv[i + 1])); i++; } else set(name, true);
+      continue;
+    }
+    if (a.startsWith('-') && a.length > 1 && !isNegNum(a)) {
+      const letters = [...a.slice(1)];
+      for (let j = 0; j < letters.length; j++) {
+        const c = letters[j], rest = letters.slice(j + 1).join('');
+        if (rest.startsWith('=')) { set(c, conv(rest.slice(1))); break; }
+        if (rest && /^-?\d/.test(rest) && !flags.has(c)) { set(c, conv(rest)); break; }
+        if (j < letters.length - 1) { set(c, true); continue; }
+        if (takesNext(c, i)) { set(c, conv(argv[i + 1])); i++; } else set(c, true);
+      }
+      continue;
+    }
+    positional.push(conv(a));
+  }
+  return { options, positional };
+}
+
+function readArgs(b) {
+  const flags = new Set(String(b.config.flags ?? '').split(',').map(s => s.trim().replace(/^-+/, '')).filter(Boolean));
+  const all = [...(b.args ?? [])];
+  const { options, positional } = parseArgs(all, flags, b.config.numbers !== false);
+  return { all, options, positional, count: all.length };
+}
+
+function sendArgs(b) {
+  for (const [port, value] of Object.entries(readArgs(b))) b.send(port, value);
+}
+
+/** One option, read exactly as the block says (its names, whether it takes a value): { value, present }. */
+function readOption(b) {
+  const c = b.config;
+  const short = String(c.short ?? '').trim().replace(/^-+/, '');
+  const long = String(c.long ?? '').trim().replace(/^-+/, '');
+  if (!short && !long) throw new Error('Dai all\'opzione un nome corto o un nome lungo');
+  if ([...short].length > 1) throw new Error('Il nome corto è una lettera sola, come -o');
+  const shown = long ? `--${long}` : `-${short}`;
+  const kind = ['flag', 'value', 'list'].includes(c.kind) ? c.kind : 'value';
+  const argv = b.args ?? [];
+  const found = [];          // the values given (as texts)
+  let present = false, flag = null;
+  const valueAt = i => {
+    if (i < argv.length && argv[i] !== '--') return argv[i];
+    throw new Error(`L'opzione ${shown} vuole un valore`);
+  };
+  for (let i = 0; i < argv.length; i++) {
+    const a = argv[i];
+    if (a === '--') break;
+    if (a.startsWith('--')) {
+      if (!long) continue;
+      const body = a.slice(2), eq = body.indexOf('=');
+      const name = eq >= 0 ? body.slice(0, eq) : body;
+      if (name === long) {
+        present = true;
+        if (kind === 'flag') flag = eq >= 0 ? bool(body.slice(eq + 1)) : true;
+        else if (eq >= 0) found.push(body.slice(eq + 1));
+        else found.push(valueAt(++i));
+      } else if (kind === 'flag' && eq < 0 && name === `no-${long}`) {
+        present = true;
+        flag = false;
+      }
+      continue;
+    }
+    if (!short || !a.startsWith('-') || a.length < 2 || isNegNum(a)) continue;
+    const letters = [...a.slice(1)];
+    const k = letters.indexOf(short);
+    if (k < 0) continue;
+    present = true;
+    if (kind === 'flag') { flag = true; continue; }
+    const rest = letters.slice(k + 1).join('').replace(/^=/, '');
+    if (rest) found.push(rest);
+    else found.push(valueAt(++i));
+  }
+  if (c.required && !present) throw new Error(`Manca l'opzione obbligatoria ${shown}`);
+  const fallback = String(c.default ?? '');
+  if (kind === 'flag') return { value: flag ?? (fallback ? bool(fallback) : false), present };
+  const cast = v => {
+    if (c.type === 'number') { const n = num(v); if (Number.isNaN(n) || String(v).trim() === '') throw new Error(`${shown}: «${v}» non è un numero`); return n; }
+    if (c.type === 'bool') return bool(v);
+    return String(v);
+  };
+  if (kind === 'list') {
+    const list = found.length ? found : fallback ? fallback.split(',').map(s => s.trim()).filter(Boolean) : [];
+    return { value: list.map(cast), present };
+  }
+  if (found.length) return { value: cast(found.at(-1)), present };
+  return { value: fallback ? cast(fallback) : null, present };
+}
+
+function sendOption(b) {
+  const { value, present } = readOption(b);
+  b.send('value', value);
+  b.send('present', present);
 }

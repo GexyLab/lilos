@@ -9,6 +9,7 @@ import { Program } from './lib/runtime.js';
  * In:  load { files }   start { id, spec, limits, lang }   stop { id, reason }   input { id, schema, block, port, value }
  *      component { id, window, component, port, value }   watch { id, on }   snapshot { id, rid }   reply { rid, ok, value, error }
  * Out: ready   started { id }   failed { id, message }   stopped { id }   call { rid, id, action, args }
+ *      finished { id, value } (a block closed the program: Exit)
  *      console { id, op, data, rid? }   ui { id, window, component, port, value }   values { id, values }
  *      states { id, states }   snapshot { rid, values }
  *
@@ -21,6 +22,7 @@ import { Program } from './lib/runtime.js';
  *                    out: ready   exit { schema, block, port, value, pulse }   values { values }   states { states }
  *                    call { rid, action, args }   console { op, data, rid? }   ui { window, component, port, value }
  *                    fail { message }   log { level, text }   stopped   unhandled { schema, block, value }
+ *                    finish { value } (Exit inside the group: the whole program closes)
  */
 
 const VALUE_EVERY_MS = 100;
@@ -93,6 +95,7 @@ function hostFor(id, lang, limits) {
       later(e);
     },
     fail: message => post({ t: 'failed', id, message }),
+    finish: value => post({ t: 'finished', id, value }),
     thread: (spec, cb) => groupThread(spec, cb, host, limits),
   };
   return host;
@@ -135,6 +138,7 @@ function groupThread(spec, cb, host, limits = {}) {
             else host.console(msg.op, msg.data);
             break;
           case 'fail': host.fail(`${cb.name}: ${msg.message}`); break;
+          case 'finish': host.finish(msg.value); break;
           case 'log': post({ t: 'log', level: msg.level, text: `${cb.name}: ${msg.text}` }); break;
           case 'stopped': stopped?.(); break;
           default: break;
@@ -193,6 +197,7 @@ function threadMain() {
     fail: message => post({ t: 'fail', message }),
     exit: (schema, block, port, value, pulse) => post({ t: 'exit', schema, block, port, value, pulse }),
     unhandled: (schema, block, value) => post({ t: 'unhandled', schema, block, value }),
+    finish: value => post({ t: 'finish', value }),
   });
   parentPort.on('message', async msg => {
     try {

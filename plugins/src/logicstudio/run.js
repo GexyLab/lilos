@@ -1,14 +1,38 @@
-import { logic, messageBox, LogicConsoles, fs } from '@lilos/sdk';
+import { logic, messageBox, LogicConsoles, fs, storage } from '@lilos/sdk';
 import { t, i18n } from './i18n.js';
 
 /**
  * Prova and Attiva. A test runs what is in the editors now (saved or not) for a few minutes; its
  * values show on the schemas, its consoles in the panel below. Activating runs the saved project
  * as an active program of the user: it goes on with the IDE (and lilOS) closed.
+ *
+ * A test can get arguments, as if run from the command line (lilos logic run FILE ARGUMENTS…):
+ * «Argomenti» beside Prova writes them, kept per project (app storage logicstudio.args). When a
+ * block closes the program (Exit), the status bar says with which value until the next test.
  */
+const ARGS_KEY = 'logicstudio.args';   // { [path of the project or schema]: 'text as typed' }
+
+/** A command line split like a shell does: spaces apart, '…' and "…" kept whole, \ escapes. */
+export function splitArgs(text) {
+  const out = [];
+  let cur = '', has = false, quote = null;
+  const s = String(text ?? '');
+  for (let i = 0; i < s.length; i++) {
+    const c = s[i];
+    if (quote === "'") { if (c === "'") quote = null; else cur += c; continue; }
+    if (c === '\\' && i + 1 < s.length && (quote !== '"' || '"\\$`'.includes(s[i + 1]))) { cur += s[++i]; has = true; continue; }
+    if (quote === '"') { if (c === '"') quote = null; else cur += c; continue; }
+    if (c === "'" || c === '"') { quote = c; has = true; continue; }
+    if (/\s/.test(c)) { if (has) { out.push(cur); cur = ''; has = false; } continue; }
+    cur += c; has = true;
+  }
+  if (has) out.push(cur);
+  return out;
+}
 export class Runner {
   program = null;      // the test running
   live = null;
+  result = '';         // how the last test ended, when a block closed it (Exit): for the status bar
   consoles = null;
   #studio;
   #timer = null;
@@ -36,10 +60,12 @@ export class Runner {
     }
     const problems = this.#check(documents);
     if (problems.some(p => p.level !== 'warning')) { studio.bottom.setProblems(problems); return; }
+    this.result = '';
     try {
       const status = await logic.status().catch(() => null);
       this.#limitMin = status?.limits?.testMinutes ?? 5;
-      this.program = await logic.start({ kind: 'test', name: studio.ws.name, documents, lang: i18n.lang, watch: true });
+      const args = splitArgs(this.argsText());
+      this.program = await logic.start({ kind: 'test', name: studio.ws.name, documents, lang: i18n.lang, watch: true, ...(args.length && { args }) });
     } catch (err) {
       studio.bottom.setProblems([...problems, { message: err.message, where: err.details?.where ?? null }]);
       return;
@@ -52,11 +78,50 @@ export class Runner {
       if (status === 'failed' && error) studio.bottom.setProblems([{ message: error }]);
       this.#ended();
     });
+    this.live.on('finished', ({ value }) => {
+      const json = JSON.stringify(value) ?? 'null';
+      this.result = t('run.closed', { value: json.length > 60 ? `${json.slice(0, 59)}…` : json });
+    });
     this.live.on('gone', () => this.#ended());
     this.live.on('error', ({ message }) => studio.bottom.setProblems([{ message }]));
     studio.bottom.attach(this.consoles);
     this.attachAll();
     this.#timer = setInterval(() => { studio.renderToolbar(); studio.renderStatus(); }, 1000);
+    studio.renderToolbar();
+  }
+
+  /** The arguments of the tests of this project (or schema alone), as typed. */
+  argsText() {
+    const path = this.#argsPath();
+    const all = storage.get(ARGS_KEY, {}) ?? {};
+    return path && typeof all[path] === 'string' ? all[path] : '';
+  }
+
+  #argsPath() {
+    const ws = this.#studio.ws;
+    const file = ws?.projectFile ?? ws?.single;
+    try { return file ? fs.path(file) : null; } catch { return null; }
+  }
+
+  /** «Argomenti»: the command line of the tests, written in a box. */
+  async editArgs() {
+    const studio = this.#studio;
+    const path = this.#argsPath();
+    if (!path) return;
+    const res = await messageBox(studio.win, {
+      icon: 'info', title: t('args.title'), text: t('args.text'),
+      fields: [{ name: 'args', label: t('args.label'), value: this.argsText(), placeholder: t('args.placeholder'), maxLength: 4000 }],
+      buttons: ['cancel', { value: 'ok', label: t('args.save'), primary: true }],
+      width: 520,
+    });
+    if (res?.button !== 'ok') return;
+    const all = { ...(storage.get(ARGS_KEY, {}) ?? {}) };
+    const text = String(res.values.args ?? '').trim();
+    if (text) all[path] = text; else delete all[path];
+    // the 50 projects used last, not more
+    const keys = Object.keys(all);
+    for (const k of keys.slice(0, Math.max(0, keys.length - 50))) delete all[k];
+    try { storage.set(ARGS_KEY, all); } catch { /* not saved: only this session */ }
     studio.renderToolbar();
   }
 

@@ -4,13 +4,45 @@
 
 Un **programma** è un progetto (o uno schema da solo) che il motore sta facendo girare. Questa pagina racconta la sua vita: come parte, in che stato è, cosa scrive, come risponde alle domande, come si ferma e cosa succede quando il kernel riparte.
 
-## I tre tipi
+## I tipi
 
 | Tipo | Nel Pannello di controllo | Da dove parte | Si salva? |
 |---|---|---|---|
 | Prova | **Prova** | **Prova** o **F5** nell'IDE | No |
-| Programma attivo | **Attivo** | **Attiva** nell'IDE | Sì: riparte con il kernel |
+| Programma attivo | **Attivo** | **Attiva** nell'IDE, o `lilos logic run --active` | Sì: riparte con il kernel |
 | App | **App (non installata)** | Il file `.lsapp` di un'app fatta con **Crea app** | No |
+| Riga di comando | **Riga di comando** | `lilos logic run` in un terminale (dal motore 1.6.0) | No |
+
+Un programma dalla riga di comando conta come un programma attivo per le quote e dura finché il comando lo aspetta: se il comando sparisce (il terminale chiuso, il computer spento) e per **un minuto** nessuno chiede del programma, il motore lo ferma.
+
+## Dalla riga di comando
+
+Il comando `lilos` (modulo del kernel `terminal-cli`, dalla 1.1.0) fa girare un programma da un terminale del computer, come uno script:
+
+```
+lilos logic run [-q] [--active] [--name NOME] FILE [ARGOMENTI…]
+lilos logic list [--all]
+lilos logic stop ID
+```
+
+- **FILE** è un progetto (`.lsproj`), uno schema da solo (`.lsch`) o un'app fatta con **Crea app** (`.lsapp`), nei file di lilOS (relativo alla home, o alla cartella data con `--cwd`). Il comando legge il progetto, i suoi schemi e le sue finestre così come sono salvati.
+- Tutto quello che viene dopo FILE sono gli **argomenti** del programma, passati così come sono: li leggono i blocchi [Argomenti (argv)](core.args) e [Opzione (-x · --nome)](core.option). Le opzioni di `logic run` (`-q`, `--active`, `--name`) vanno **prima** di FILE.
+- Il comando **aspetta** il programma: le righe delle console arrivano nel terminale (avvisi ed errori sull'uscita degli errori; le console diverse dalla principale con il loro nome tra parentesi quadre), le domande dei blocchi [Input (readline)](core.consoleRead) si fanno lì e si risponde con la tastiera (o da una pipe), **Ctrl+C** ferma il programma.
+- Quando un blocco [Exit](core.exit) chiude il programma, un **intero da 0 a 255** diventa il codice di uscita del comando; `true` e `null` danno 0, `false` 1; un testo viene scritto così com'è, ogni altro valore in JSON, e il codice è 0 (`-q`: non scrive niente). Un programma che va in errore dà 1 (il messaggio sull'uscita degli errori); uno fermato da un'altra parte (dalla Home, da un amministratore, perché è scaduto) dà 1 con «il programma è stato fermato».
+- `--active` fa un **programma attivo** con quegli argomenti: parte, il comando scrive il suo id e torna subito; gli argomenti restano anche quando il programma riparte con il kernel.
+- Un programma senza un blocco Exit gira finché non lo fermi (Ctrl+C).
+- Gli argomenti sono al massimo 256, di al massimo 4096 caratteri ciascuno e 64 KB in tutto; il valore restituito al massimo 64 KB in JSON (oltre, viene tagliato e restituito come testo).
+
+Per esempio, con uno schema che legge `--name` e chiude con il valore di `--code`:
+
+```
+$ lilos logic run prove/ciao.lsch --name Eugenio --code=7
+Ciao Eugenio
+$ echo $?
+7
+```
+
+Per chi usa l'API: `POST /programs` accetta `args` (una lista di testi) e `kind: 'cli'`; ogni programma ha `args` e `result` (`{ value, at }` quando un blocco l'ha chiuso, altrimenti `null`); `GET /programs/:id` tiene vivo un programma `cli`.
 
 ## Come parte
 
@@ -38,7 +70,7 @@ Da qui in avanti il programma va avanti da solo: ogni valore che arriva a un ing
 |---|---|
 | **Si avvia** | Il motore lo sta facendo partire |
 | **In esecuzione** | Gira |
-| **Fermo** | Si è fermato: l'hai fermato tu (o un amministratore), o è finito il tempo di una prova |
+| **Fermo** | Si è fermato: l'hai fermato tu (o un amministratore), è finito il tempo di una prova, un blocco [Exit](core.exit) l'ha chiuso, o la riga di comando che l'aveva avviato non c'è più |
 | **Fermo per un errore** | Si è fermato da solo per un problema; il messaggio è sotto il nome |
 | **Aspetta un pacchetto** | Un programma attivo che non può ripartire perché manca un pacchetto: riparte da solo quando il pacchetto torna |
 

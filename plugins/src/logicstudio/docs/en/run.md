@@ -1,12 +1,13 @@
 # Test and active programs
 
-A project (or a schema alone) runs in the Logic Studio **engine** as a **program**. There are three kinds of program:
+A project (or a schema alone) runs in the Logic Studio **engine** as a **program**. There are four kinds of program:
 
 | Kind | How it starts | What it runs | How long it lasts |
 |---|---|---|---|
 | **Test** | **Test** in the IDE (or **F5**) | The project **as it is in the editors**, even unsaved | Until you press **Stop**, close the IDE or open another project, and at most **5 minutes** (default) |
 | **Active** | **Activate** in the IDE | The **saved** project | Until you stop it: even with the IDE closed, even with lilOS closed in the browser; it starts again when the computer lilOS runs on starts again |
 | **App (not installed)** | Opening the `.lsapp` file of an app made with **Make app…** | The copy of the project inside the app | As long as its windows are open |
+| **Command line** | `lilos logic run FILE ARGUMENTS…` in a terminal of the computer | The **saved** project, with the arguments | As long as the command waits for it; see [Programs](logicstudio-engine/programs) |
 
 ## Test
 
@@ -16,6 +17,10 @@ A project (or a schema alone) runs in the Logic Studio **engine** as a **program
 4. To stop it: **Stop**, or **F5** again.
 
 The test uses **all** the schemas and windows of the project: those open in tabs as they are now, the others as they are saved. A schema alone runs only itself.
+
+### The arguments of the test
+
+Next to **Test** there is **Arguments**: it opens a box where you write the command line of the test, as if the program started with `lilos logic run FILE` followed by that line (for example `report.csv --verbose --port=8080 -o "My file.txt"`: spaces separate the arguments, one with spaces goes between quotes). The [Arguments (argv)](core.args) and [Option (-x · --name)](core.option) blocks read it. Press **Keep**: the button becomes **Arguments ●** and, when you hover over it with the mouse, it shows the line. The arguments stay for that project (or schema alone) on this lilOS, even after closing the IDE; to remove them empty the field. They only apply to tests: **Activate** starts the program without arguments (for an active program with arguments use `lilos logic run --active`, see [Programs](logicstudio-engine/programs)).
 
 An IDE does **one test at a time**. By default you can have **2 tests** together in all (for example with two IDEs open); beyond that: «Hai già 2 prove in corso: al massimo 2» ("You already have 2 tests running: at most 2").
 
@@ -33,6 +38,7 @@ A schema opened while the test is already running shows the values that go throu
 - After **5 minutes** (default: «Length of a test», in the limits of the engine): it stops by itself, with no messages in the IDE.
 - By closing the IDE, opening another project or creating a new one.
 - Because of a program error (too many runs, memory out…): the message goes to the **Problems**.
+- When an [Exit](core.exit) block closes the program: the status bar says «Closed by the program with the value …» until the next test.
 
 When it ends, the values disappear from the schemas and the borders go back to normal; the consoles stay readable until the next test.
 

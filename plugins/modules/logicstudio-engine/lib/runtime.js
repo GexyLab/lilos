@@ -67,6 +67,8 @@ export class Program {
   #exports = new Map();      // 'schema:port' → [{ schema, block }] of core.schemaIn blocks to deliver to
   #components = new Map();   // 'window:component' → [node] proxies of that component
   #catchers = [];            // blocks with role 'catchAll' (core.onError): they get the unhandled exceptions
+  #args;                     // the program's arguments (b.args): the command line's
+  #finished = false;         // a block closed the program (b.exit)
   #busy = 0;                 // ms spent running blocks in the current second (CPU governor)
   #busySince = 0;
 
@@ -79,6 +81,7 @@ export class Program {
     this.#defs = defs;
     this.#host = host;
     this.#limits = { runsPer10s: 10000, blockMs: 30000, cpuPercent: 100, ...spec.limits };
+    this.#args = Object.freeze((Array.isArray(spec.args) ? spec.args : []).map(String));
     this.#blockLimits = Object.freeze({ signalSamples: Number.isInteger(this.#limits.signalSamples) ? this.#limits.signalSamples : 65536 });
     for (const [schema, s] of Object.entries(spec.schemas)) {
       const links = s.links ?? [];
@@ -177,7 +180,7 @@ export class Program {
     }
     const spec = {
       schemas: { [grp.schema]: { blocks, links, exits, entries, groups: [{ id: grp.id, name: grp.name, blocks: [...grp.members], thread: false }] } },
-      projectLinks: [], limits: this.#limits,
+      projectLinks: [], limits: this.#limits, args: this.#args,
     };
     const handle = this.#host.thread(spec, {
       name: grp.name,
@@ -224,7 +227,19 @@ export class Program {
       now: () => Date.now(),
       // what blocks may read of the limits (b.limits.signalSamples: the longest signal of logicstudio-signals)
       limits: program.#blockLimits,
+      // the program's arguments (from the command line: lilos logic run … ARGS), a frozen list of texts
+      args: program.#args,
+      // closes the whole program with a value (the block Exit); only the first call counts
+      exit: value => program.#finish(value),
     });
+  }
+
+  /** A block closed the program: the host ends it with that value (the engine stops it). */
+  #finish(value) {
+    if (this.#stopped || this.#finished) return;
+    this.#finished = true;
+    if (typeof this.#host.finish !== 'function') throw new Error('Questo motore non sa chiudere un programma con un valore');
+    this.#host.finish(value === undefined ? null : JSON.parse(JSON.stringify(value) ?? 'null'));
   }
 
   /** Starts the blocks out of the groups: start() of each, the start values of their inputs, the loops. */

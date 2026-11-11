@@ -268,6 +268,8 @@ upgrade(config, from, added)   // → the new settings, or { config: the new set
 | `b.ui(port, value)`, `b.exportPort(port, value)` | Reserved for the base blocks (the object of a component, the Schema output) |
 | `b.now()` | The time, like `Date.now()` |
 | `b.limits` | The limits a block may read: `signalSamples`, the most samples of a signal (Control Panel → Logic Studio → Limits; from engine 1.5.0, missing before) |
+| `b.args` | The program's arguments, a frozen list of texts: those written after the file in `lilos logic run FILE ARGUMENTS…`, or in the IDE's **Arguments** button for tests; empty when the program started without any (from engine 1.6.0, missing before). See [Arguments (argv)](core.args) |
+| `b.exit(value)` | Closes the whole program with that value (copied as JSON): the engine stops it and the program gets `result: { value, at }`; only the first call counts. See [Exit](core.exit) and [Programs](logicstudio-engine/programs) (from engine 1.6.0) |
 | `b.signal` | An `AbortSignal` that fires when the program stops |
 
 The timers of the engine stop by themselves when the program stops. What a timer throws comes out of **Exception**. Do not use the `setTimeout` and `setInterval` of Node: they would not stop with the program.

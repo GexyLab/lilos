@@ -7,10 +7,18 @@ import { globalLimits, quotaOf, runtimeLimits } from './limits.js';
 /**
  * Runs the programs: one worker per user with programs, started when the first one starts and
  * ended when the last one stops. A program is a test (from the IDE, at most testMinutes) or an
- * active program (it runs until stopped, also with lilOS closed, and starts again with the kernel).
+ * active program (it runs until stopped, also with lilOS closed, and starts again with the kernel),
+ * an app's run (lilOS stops it when its windows close) or a run from the command line (kind 'cli':
+ * `lilos logic run`; it counts as an active program, is never saved, and stops when the command
+ * stops asking how it is, CLI_LEASE_MS).
  *
- * program: { id, owner, user, kind, name, source, documents, spec, status, error, started, consoles,
- *            watchers: Set<fn>, ui: Map('window:component.port' → value) }
+ * A program may get arguments (args: the command line's, as `lilos logic run` passes them): the
+ * blocks read them (b.args). A block can close the program with a value (b.exit(value), the block
+ * Exit): it ends as stopped, with `result: { value, at }`, which the command line turns into its
+ * exit code.
+ *
+ * program: { id, owner, user, kind, name, source, documents, args, spec, status, error, started, consoles,
+ *            watchers: Set<fn>, ui: Map('window:component.port' → value), result }
  * status: 'starting' | 'running' | 'stopped' | 'failed' | 'waiting' (a package it needs is missing)
  */
 
@@ -18,6 +26,9 @@ const STOP_WAIT_MS = 3000;
 const MESSAGES_PER_SECOND = 100;   // from the IDE and the windows, per program
 const UI_KEYS = 2000;              // values kept for the windows, per program
 const MAX_ACTIVE_DOCUMENTS = 2 << 20;
+const MAX_ARGS = 256, MAX_ARG = 4096, MAX_ARGS_TOTAL = 64 * 1024;   // the arguments of a program
+const MAX_RESULT = 64 * 1024;      // the value a program closes with, as JSON
+const CLI_LEASE_MS = 60_000;       // a run from the command line nobody asks about for this long stops
 const own = (obj, key) => !!obj && Object.hasOwn(obj, key);
 const OOM = 'ERR_WORKER_OUT_OF_MEMORY';
 
@@ -26,6 +37,7 @@ export class Supervisor {
   #users = new Map();      // userId → { worker, ready: Promise, programs: Set<id>, memoryMb, pending: Map, net: [] }
   #programs = new Map();
   #quotas;                 // jsonStore: { users: { id: overrides } }
+  #leaseTimer = null;      // checks the runs from the command line (kind 'cli')
 
   constructor({ ctx, registry, store, quotas, logs, workerFile }) {
     this.#ctx = ctx;
@@ -60,9 +72,11 @@ export class Supervisor {
    * Starts a program. documents: { project, schemas, windows }; source: { path } (where it was
    * read: the IDE says it, shown in the lists) or null.
    */
-  async start(user, { kind, name, documents, source = null, lang = 'en', watch = false, id = null, restart = false }) {
+  async start(user, { kind, name, documents, source = null, lang = 'en', watch = false, id = null, restart = false, args = [] }) {
     // 'app': an app made from a project, run without installing it: it lasts while its windows are open (lilOS stops it)
-    if (kind !== 'test' && kind !== 'active' && kind !== 'app') this.#ctx.fail('invalid', 'Tipo di programma non valido: test, active o app');
+    // 'cli': run from the command line (lilos logic run): it lasts while the command asks about it
+    if (!['test', 'active', 'app', 'cli'].includes(kind)) this.#ctx.fail('invalid', 'Tipo di programma non valido: test, active, app o cli');
+    const argv = this.#cleanArgs(args);
     const limits = this.limits;
     const quota = this.quota(user.id);
     const usage = this.usage(user.id);
@@ -86,12 +100,12 @@ export class Supervisor {
     }
     const program = {
       id: id ?? randomBytes(9).toString('base64url'), owner: user.id, user, kind, name: String(name ?? 'Programma').slice(0, 120),
-      source, documents, spec, lang, status: 'starting', error: null, started: Date.now(), stopped: null,
-      watchers: new Set(), ui: new Map(), endTimer: null, abort: new AbortController(),
+      source, documents, args: argv, spec, lang, status: 'starting', error: null, started: Date.now(), stopped: null,
+      watchers: new Set(), ui: new Map(), endTimer: null, abort: new AbortController(), result: null, lease: Date.now(),
     };
     program.consoles = new Consoles(spec.consoles, {
       perSecond: limits.consoleLinesPerSecond,
-      hidden: kind !== 'test' && spec.consoles.outside === 'hidden',
+      hidden: kind !== 'test' && kind !== 'cli' && spec.consoles.outside === 'hidden',
       log: (line, c) => this.#logLine(program, line, c),
     });
     program.consoles.on((event, data) => this.#tell(program, { t: `console.${event}`, ...data }));
@@ -105,13 +119,41 @@ export class Supervisor {
         await u.call({ t: 'load', files: this.#registry.blockFiles() }, 'loaded', 15_000);
         u.registryVersion = this.#registry.version;
       }
-      u.worker.postMessage({ t: 'start', id: program.id, spec: { ...spec, limits: runtimeLimits(limits, quota) }, lang, watch });
+      u.worker.postMessage({ t: 'start', id: program.id, spec: { ...spec, args: argv, limits: runtimeLimits(limits, quota) }, lang, watch });
     } catch (err) {
       this.#fail(program, err.message);
       return publicProgram(program);
     }
     if (kind === 'test') program.endTimer = setTimeout(() => this.stop(program.id, 'Fine della prova: è durata il tempo massimo'), limits.testMinutes * 60_000);
+    if (kind === 'cli') this.#watchLeases();
     return publicProgram(program);
+  }
+
+  /** The arguments of a program: a list of texts (at most MAX_ARGS, MAX_ARG characters each). */
+  #cleanArgs(args) {
+    if (args === undefined || args === null) return [];
+    if (!Array.isArray(args)) this.#ctx.fail('invalid', 'Gli argomenti devono essere una lista di testi');
+    if (args.length > MAX_ARGS) this.#ctx.fail('invalid', `Troppi argomenti: al massimo ${MAX_ARGS}`);
+    const out = args.map(a => (typeof a === 'string' || typeof a === 'number' || typeof a === 'boolean' ? String(a) : this.#ctx.fail('invalid', 'Gli argomenti devono essere testi')));
+    if (out.some(a => a.length > MAX_ARG) || out.join('').length > MAX_ARGS_TOTAL) this.#ctx.fail('invalid', 'Argomenti troppo lunghi');
+    return out;
+  }
+
+  /** A run from the command line asked about (GET /programs/:id): it goes on. */
+  touch(id) {
+    const p = this.#programs.get(id);
+    if (p) p.lease = Date.now();
+  }
+
+  /** The runs from the command line whose command is gone (nobody asked for CLI_LEASE_MS) stop. */
+  #watchLeases() {
+    if (this.#leaseTimer) return;
+    this.#leaseTimer = setInterval(() => {
+      const runs = [...this.#programs.values()].filter(p => p.kind === 'cli' && (p.status === 'running' || p.status === 'starting'));
+      for (const p of runs) if (Date.now() - p.lease > CLI_LEASE_MS) this.stop(p.id, 'La riga di comando che l\'ha avviato non c\'è più').catch(() => {});
+      if (!runs.length) { clearInterval(this.#leaseTimer); this.#leaseTimer = null; }
+    }, 10_000);
+    this.#leaseTimer.unref?.();
   }
 
   async stop(id, reason = null) {
@@ -262,7 +304,7 @@ export class Supervisor {
 
   async #save() {
     const programs = [...this.#programs.values()].filter(p => p.kind === 'active')
-      .map(p => ({ id: p.id, user: p.user, name: p.name, source: p.source, documents: p.documents, lang: p.lang, stopped: p.status === 'stopped' || p.status === 'failed' }));
+      .map(p => ({ id: p.id, user: p.user, name: p.name, source: p.source, documents: p.documents, lang: p.lang, args: p.args ?? [], stopped: p.status === 'stopped' || p.status === 'failed' }));
     await this.#store.change(data => { data.programs = programs; });
   }
 
@@ -384,7 +426,7 @@ export class Supervisor {
         else if (op === 'clear') program.consoles.clear(data.console);
         else if (op === 'read') {
           const asked = (program.asked ??= new Map());
-          if (program.kind !== 'test' && program.watchers.size === 0 && program.spec.consoles.outside !== 'hidden' && Date.now() - (asked.get(data.console) ?? 0) > 30_000) {
+          if (program.kind !== 'test' && program.kind !== 'cli' && program.watchers.size === 0 && program.spec.consoles.outside !== 'hidden' && Date.now() - (asked.get(data.console) ?? 0) > 30_000) {
             asked.set(data.console, Date.now());
             this.#ctx.emit(program.owner, 'logicstudio.ask', { id: program.id, name: program.name, console: data.console });
           }
@@ -406,6 +448,17 @@ export class Supervisor {
       case 'log':
         this.#ctx.log[msg.level === 'error' ? 'error' : 'warn'](`Logic Studio (${userId}): ${msg.text}`);
         break;
+      case 'finished': {
+        // A block closed the program (Exit): it ends with that value; the first one counts
+        if (!program || program.result || (program.status !== 'running' && program.status !== 'starting')) break;
+        let value = msg.value === undefined ? null : msg.value;
+        let json = JSON.stringify(value) ?? 'null';
+        if (json.length > MAX_RESULT) { value = json.slice(0, MAX_RESULT); json = JSON.stringify(value); }
+        program.result = { value, at: Date.now() };
+        this.#tell(program, { t: 'finished', value });
+        this.stop(program.id, `Chiuso dal programma con il valore ${json.length > 80 ? `${json.slice(0, 79)}…` : json}`).catch(() => {});
+        break;
+      }
       default:
         break;
     }
@@ -432,7 +485,7 @@ export function publicProgram(p) {
   return {
     id: p.id, owner: p.owner, user: p.user ? { id: p.user.id, username: p.user.username, name: p.user.name } : null,
     kind: p.kind, name: p.name, source: p.source ?? null, status: p.status, error: p.error ?? null,
-    started: p.started ?? null, stopped: p.stopped ?? null,
+    started: p.started ?? null, stopped: p.stopped ?? null, args: p.args ?? [], result: p.result ?? null,
     consoles: p.spec?.consoles ?? null, windows: p.spec ? Object.keys(p.spec.windows) : [], options: p.spec?.options ?? null,
   };
 }

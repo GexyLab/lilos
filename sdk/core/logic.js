@@ -8,7 +8,9 @@ import { kernel } from './kernel.js';
  *   logic.catalog() → { version, packages: [{ name, version, label, blocks, components, hasComponents }] }
  *   logic.status() → { limits, quota, active, tests, net, log, admin }
  *   logic.programs({ all }) → [program]          mine (an admin: everyone's with all)
- *   logic.start({ kind: 'test'|'active', name, documents, source, lang, watch }) → program
+ *   logic.start({ kind: 'test'|'active'|'app'|'cli', name, documents, source, lang, watch, args }) → program
+ *                                                 args: the program's arguments, a list of texts (b.args;
+ *                                                 the command line's for lilos logic run)
  *   logic.stop(id) / forget(id) / program(id)
  *   logic.ui(id) → { 'window:component.port': value }   the last values its windows got
  *   logic.windows(id) → { name, main, windows, texts, entrypoints, consoles, options }   to open them
@@ -18,7 +20,8 @@ import { kernel } from './kernel.js';
  *   logic.logs({ program }) → [entry]
  *   logic.admin.users() / admin.setQuota(user, quota | null)
  *
- *   program  { id, owner, user, kind, name, source, status, error, started, stopped, consoles, windows, options }
+ *   program  { id, owner, user, kind, name, source, status, error, started, stopped, args, result, consoles, windows, options }
+ *            result { value, at }: a block closed it with that value (Exit), else null
  *            status 'starting' | 'running' | 'stopped' | 'failed' | 'waiting'
  *
  * Events: 'ask' { id, name, console } a program with no one watching asks for something;
@@ -36,7 +39,8 @@ export class LiveProgram extends Emitter {
    * Events: 'hello' { program, consoles, ui }; 'status' { status, error, reason }; 'values' { values }
    * ('schema/block.port' → value); 'states' { states } ('schema/block' → 'run'|'idle'|'error');
    * 'ui' { window, component, port, value }; 'console' { event: 'line'|'clear'|'ask'|'done', console, … };
-   * 'answered' { ask, result }; 'error' { message }; 'gone' (the connection closed).
+   * 'answered' { ask, result }; 'finished' { value } (a block closed the program: Exit; a 'status'
+   * stopped follows); 'error' { message }; 'gone' (the connection closed).
    */
   constructor(port) {
     super();
