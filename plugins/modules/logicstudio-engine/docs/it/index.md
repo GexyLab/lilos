@@ -71,6 +71,7 @@ I blocchi e le componenti che vedi nell'IDE sono quelli dei pacchetti installati
 |---|---|
 | [Blocchi di base](logicstudio-core) | Valori, logica, matematica, testo, oggetti, tempo, console, porte di schema, l'oggetto delle Componenti UI |
 | [Liste e matrici](logicstudio-collections) | Blocchi per liste e matrici |
+| [Costanti](logicstudio-constants) | Costanti matematiche, fisiche (CODATA 2022), astronomiche e della Terra |
 | [Blocchi di lilOS](logicstudio-lilos) | Notifiche, file della tua home, eventi a lilOS |
 | [Blocchi di rete](logicstudio-net) | Il blocco HTTP (fetch) |
 | [Componenti UI standard](logicstudio-ui) | Etichette, pulsanti, campi, contenitori… per le finestre |

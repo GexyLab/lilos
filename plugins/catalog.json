@@ -42,6 +42,7 @@
     "modules/logicstudio-engine",
     "modules/logicstudio-core",
     "modules/logicstudio-collections",
+    "modules/logicstudio-constants",
     "modules/logicstudio-ui",
     "modules/logicstudio-charts",
     "modules/logicstudio-lilos",

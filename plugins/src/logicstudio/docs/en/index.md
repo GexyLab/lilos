@@ -73,6 +73,7 @@ Blocks and components come from **packages**, kernel modules that you install fr
 |---|---|
 | [Base blocks](logicstudio-core) (`logicstudio-core`) | Values, logic, math, text, objects, time, the two consoles, the schema ports, the object of the UI components. Installs with the IDE. |
 | [Lists and matrices](logicstudio-collections) (`logicstudio-collections`) | Blocks for lists (sort, filter, for each item…) and matrices (product, transpose, determinant…). |
+| [Constants](logicstudio-constants) (`logicstudio-constants`) | The fundamental constants: mathematical (π, e, golden ratio…), CODATA 2022 physical ones (c, h, G, particle masses…) with unit and uncertainty, astronomical and Earth ones. |
 | [lilOS blocks](logicstudio-lilos) (`logicstudio-lilos`) | Notifications, reading and writing the files of your home, listing folders, events towards lilOS pages. |
 | [Network](logicstudio-net) (`logicstudio-net`) | **HTTP request** over HTTP and HTTPS. |
 | [UI components](logicstudio-ui) (`logicstudio-ui`) | The components of the windows: labels, values, gauges, buttons, fields, tables, containers. |

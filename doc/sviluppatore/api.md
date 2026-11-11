@@ -5775,6 +5775,7 @@ Da lilOS 1.37.0 ([D88](../interna/decisioni.md#d88-logic-studio-motore-pacchetti
 | `logicstudio-engine` | Il motore, l'API, le quote e i limiti. `requires: []` |
 | `logicstudio-core` | 42 blocchi di base: valori, logica, matematica, testo, oggetti, tempo, le due console, le porte di schema, `core.component` |
 | `logicstudio-collections` | 36 blocchi per liste e matrici (`coll.*`) |
+| `logicstudio-constants` | 3 blocchi di costanti (`const.math`, `const.physics`, `const.astro`, categoria `value`): 25 matematiche, 45 fisiche CODATA 2022, 17 astronomiche e della Terra; la costante si sceglie con l'impostazione `constant`; uscite `value` e, nascoste, `symbol`, `unit`, `uncertainty` (non in `const.math`). Escono all'avvio o a ogni impulso su `send` (nascosto), come `core.value`. Da lilOS 1.44.0 (modulo 1.0.0) |
 | `logicstudio-lilos` | 7 blocchi di lilOS (`lilos.*`): notifica, leggere, scrivere e aggiungere a file, elencare cartelle, esiste, evento. Azioni nel kernel come l'utente. Richiede il servizio `notifications` |
 | `logicstudio-net` | `net.request` (Richiesta web); impostazioni `allowPrivate` (falso), `timeoutSeconds` (20, 1-120), `maxResponseKb` (1024, 1-10240) |
 | `logicstudio-ui` | 27 Componenti UI standard (`ui.*`) |
