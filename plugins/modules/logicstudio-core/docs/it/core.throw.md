@@ -14,7 +14,7 @@ Lancia un'eccezione, come `throw` nei linguaggi di programmazione: quando arriva
 
 | Porta | Tipo | Descrizione |
 |---|---|---|
-| **Exception** (`error`) | oggetto | L'eccezione lanciata: `{ message, block, type, schema, at }`. È l'unica uscita del blocco. |
+| **Exception** (`error`) | oggetto | L'eccezione lanciata: `{ message, block, type, schema, at }`. È l'unica uscita del blocco ed è visibile di serie. |
 
 ## Impostazioni
 
@@ -30,7 +30,7 @@ Lancia un'eccezione, come `throw` nei linguaggi di programmazione: quando arriva
 | un'eccezione (un oggetto con `message`) | la **stessa** eccezione, rilanciata così com'è: `block`, `type` e `schema` restano quelli del blocco che l'aveva lanciata per primo | nuova eccezione con il messaggio, `{value}` = il messaggio di quella arrivata |
 | un valore vuoto (`""`) con messaggio vuoto | nuova eccezione con il messaggio `Errore` | — |
 
-Una nuova eccezione ha `block` e `type` di questo blocco (`core.throw`). Come per ogni blocco, se a **Exception** non è collegato niente l'eccezione va al [Catch globale (onerror)](core.onError) dello schema, se c'è, altrimenti nella console principale. La porta **Exception** è nascosta di serie: mostrala con l'occhio nelle Proprietà per collegarla.
+Una nuova eccezione ha `block` e `type` di questo blocco (`core.throw`). Come per ogni blocco, se a **Exception** non è collegato niente l'eccezione va al [Catch globale (onerror)](core.onError) dello schema, se c'è, altrimenti nella console principale. A differenza degli altri blocchi, qui la porta **Exception** è **visibile di serie** (è l'unica uscita del blocco); puoi comunque nasconderla con l'occhio nelle Proprietà (dalla 1.3.1 dei blocchi di base, con lilOS 1.44.0).
 
 ## Esempi
 

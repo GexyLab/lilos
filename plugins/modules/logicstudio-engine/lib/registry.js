@@ -220,7 +220,7 @@ function describeBlock(def, pack) {
     pack, type: def.type, version: def.version, category: String(def.category ?? 'other'), icon: def.icon ?? 'blocks',
     label: cleanLabel(def.label, def.type), description: def.description ? cleanLabel(def.description, '') : null,
     inputs: plainList(def.inputs), outputs: plainList(def.outputs), config: plainList(def.config),
-    grow: def.grow ? JSON.parse(JSON.stringify(def.grow)) : null, role: def.role ?? null,
+    grow: def.grow ? JSON.parse(JSON.stringify(def.grow)) : null, role: def.role ?? null, showError: def.showError === true,
     execution: def.execution === 'loop' ? 'loop' : 'run', upgradable: typeof def.upgrade === 'function',
   };
 }

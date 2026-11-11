@@ -472,6 +472,7 @@ export const blocks = [
   // ---- Eccezioni (Exception: { message, block, type, schema, at })
   {
     type: 'core.throw', version: 1, category: 'exception', icon: 'bolt', label: L('Throw', 'Throw (lancia Exception)'),
+    showError: true,   // its only output: shown on the drawing from the start
     inputs: [{ name: 'value', type: 'any', label: L('throw', 'lancia') }],
     outputs: [],
     config: [{ key: 'message', type: 'text', default: '', label: L('Message ({value} = what arrives; empty = the value itself)', 'Messaggio ({value} = ciò che arriva; vuoto = il valore stesso)') }],

@@ -112,8 +112,9 @@ export function portsOf(item, def, { lang = 'en', component = null, errorLabel =
   // A schema port has the type chosen in its settings
   if (def?.role === 'schemaIn' && outputs[0]) outputs[0].type = item?.config?.type ?? 'any';
   if (def?.role === 'schemaOut' && inputs[0]) inputs[0].type = item?.config?.type ?? 'any';
-  if (def && !def.role && !component) outputs.push({ name: 'error', label: errorLabel, type: 'any', added: false, error: true });
-  if (component) outputs.push({ name: 'error', label: errorLabel, type: 'any', added: false, error: true });
+  // the Exception is hidden by default, unless the block's definition says showError: true (core.throw)
+  if (def && !def.role && !component) outputs.push({ name: 'error', label: errorLabel, type: 'any', added: false, error: true, hiddenByDefault: def.showError !== true });
+  if (component) outputs.push({ name: 'error', label: errorLabel, type: 'any', added: false, error: true, hiddenByDefault: true });
   for (const p of inputs) p.hidden = portHidden(item, 'inputs', p.name, p.hiddenByDefault);
   for (const p of outputs) p.hidden = portHidden(item, 'outputs', p.name, p.hiddenByDefault);
   return { inputs, outputs };
@@ -122,12 +123,15 @@ export function portsOf(item, def, { lang = 'en', component = null, errorLabel =
 /**
  * Whether a port of a block is hidden on the drawing: the user's choice (item.hide = { inputs:
  * { name: bool }, outputs: { … } }), else the default — hidden are the output «error» (Exception)
- * and the ports whose definition says `hidden: true` (`byDefault`). A linked port is always drawn:
- * LogicSchema.setPortHidden does not hide it, and the drawing shows it anyway.
+ * and the ports whose definition says `hidden: true`. `byDefault` (the `hiddenByDefault` of
+ * portsOf) gives the default of that port when known: a block defined `showError: true` has its
+ * Exception shown. A linked port is always drawn: LogicSchema.setPortHidden does not hide it, and
+ * the drawing shows it anyway.
  */
-export function portHidden(item, side, name, byDefault = false) {
+export function portHidden(item, side, name, byDefault = null) {
   const v = item?.hide?.[side]?.[name];
-  return typeof v === 'boolean' ? v : byDefault === true || (side === 'outputs' && name === 'error');
+  if (typeof v === 'boolean') return v;
+  return typeof byDefault === 'boolean' ? byDefault : side === 'outputs' && name === 'error';
 }
 
 /** item.hide of a file, kept only as { inputs: { name: bool }, outputs: { name: bool } }. */
@@ -504,9 +508,9 @@ export class LogicSchema extends LogicDocument {
    * Hides a port of a block on the drawing, or shows it again (side 'inputs' | 'outputs'). A linked
    * port is not hidden: false, nothing changed. Only what differs from the default (the output
    * «error» and the ports defined `hidden: true` hidden, the others shown) is kept in the file:
-   * pass `byDefault` true for a port defined hidden.
+   * pass `byDefault`, the port's `hiddenByDefault` from portsOf.
    */
-  setPortHidden(id, side, port, hidden, byDefault = false) {
+  setPortHidden(id, side, port, hidden, byDefault = null) {
     if (hidden && this.linksOf(id, port, side).length) return false;
     this.edit('portHidden', data => {
       const b = data.blocks.find(x => x.id === id);

@@ -14,7 +14,7 @@ Throws an exception, like `throw` in programming languages: when a value arrives
 
 | Port | Type | Description |
 |---|---|---|
-| **Exception** (`error`) | object | The thrown exception: `{ message, block, type, schema, at }`. It is the only output of the block. |
+| **Exception** (`error`) | object | The thrown exception: `{ message, block, type, schema, at }`. It is the only output of the block and is shown by default. |
 
 ## Settings
 
@@ -30,7 +30,7 @@ Throws an exception, like `throw` in programming languages: when a value arrives
 | an exception (an object with `message`) | the **same** exception, rethrown as it is: `block`, `type` and `schema` stay those of the block that threw it first | new exception with the message, `{value}` = the message of the one that arrived |
 | an empty value (`""`) with an empty message | new exception with the message `Errore` ("Error") | — |
 
-A new exception has the `block` and `type` of this block (`core.throw`). As for every block, if nothing is linked to **Exception** the exception goes to the [Global catch (onerror)](core.onError) of the schema, if there is one, otherwise to the main console. The **Exception** port is hidden by default: show it with the eye in Properties to link it.
+A new exception has the `block` and `type` of this block (`core.throw`). As for every block, if nothing is linked to **Exception** the exception goes to the [Global catch (onerror)](core.onError) of the schema, if there is one, otherwise to the main console. Unlike the other blocks, here the **Exception** port is **shown by default** (it is the only output of the block); you can still hide it with the eye in Properties (from core blocks 1.3.1, with lilOS 1.44.0).
 
 ## Examples
 

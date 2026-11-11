@@ -133,6 +133,7 @@ When all goes well the log says: `Logic Studio: pacchetto logicstudio-esempio 1.
 | `stop(b)` | Optional: when the program stops |
 | `upgrade(config, from, added)` | Optional: upgrades the settings saved by an old version of the block |
 | `role` | Reserved for the base blocks (`schemaIn`, `schemaOut`, `component`, `catchAll`): do not use it |
+| `showError` | `true`: the **Exception** output is shown on the drawing from the start, instead of being hidden by default (from engine 1.4.1 and lilOS 1.44.0). For blocks whose purpose is to throw exceptions, like [Throw](core.throw) |
 
 A block without `run` keeps the values it receives and does nothing else (it is useful, for example, to a `loop` block that reads them at every turn).
 

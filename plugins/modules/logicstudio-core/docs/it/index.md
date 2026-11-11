@@ -132,7 +132,7 @@ Ogni blocco (tranne le porte di schema) ha l'uscita **Exception**. Quando un blo
 {"message": "Il campo «sconto» non esiste", "block": "get1", "type": "core.get", "schema": "main", "at": 1794405901003}
 ```
 
-`message` è il messaggio, `block` l'id del blocco, `type` il suo tipo (dal motore 1.3.0), `schema` lo schema, `at` il momento in millisecondi. Nello schema la porta **Exception** è rossa; è nascosta di serie e si mostra con l'occhio nelle Proprietà. Se l'Exception non è collegata, l'oggetto va al [Catch globale (onerror)](core.onError) dello schema (o del programma), se c'è; altrimenti la console principale scrive una riga rossa con il nome del blocco e il messaggio, per esempio `Get proprietà (obj.campo): Il campo «sconto» non esiste`. Per gestire le eccezioni ci sono i blocchi della categoria **Eccezioni**: [Catch (cattura)](core.catch), [Throw](core.throw), [Dati di Exception](core.errorInfo) e [Catch globale](core.onError).
+`message` è il messaggio, `block` l'id del blocco, `type` il suo tipo (dal motore 1.3.0), `schema` lo schema, `at` il momento in millisecondi. Nello schema la porta **Exception** è rossa; è nascosta di serie (tranne in [Throw](core.throw)) e si mostra con l'occhio nelle Proprietà. Se l'Exception non è collegata, l'oggetto va al [Catch globale (onerror)](core.onError) dello schema (o del programma), se c'è; altrimenti la console principale scrive una riga rossa con il nome del blocco e il messaggio, per esempio `Get proprietà (obj.campo): Il campo «sconto» non esiste`. Per gestire le eccezioni ci sono i blocchi della categoria **Eccezioni**: [Catch (cattura)](core.catch), [Throw](core.throw), [Dati di Exception](core.errorInfo) e [Catch globale](core.onError).
 
 ### Le porte aggiunte
 
