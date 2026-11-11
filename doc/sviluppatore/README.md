@@ -393,7 +393,7 @@ Durante un trascinamento lo spostamento dello schermo va diviso per lo zoom: `mo
 
 Il canvas ascolta `pointerdown` **in fase di cattura**. Avvia uno spostamento della vista, e blocca l'evento, quando:
 
-- si preme il tasto centrale ovunque;
+- si preme il tasto centrale ovunque, tranne sugli elementi con `data-pan="native"` (o loro discendenti), che tengono il tasto centrale per sé (lilOS 1.38.2: la tela `LogicCanvas` dell'SDK e la finestra di Logic Studio);
 - è premuto Spazio;
 - su uno schermo touch, un dito si appoggia su un punto vuoto.
 

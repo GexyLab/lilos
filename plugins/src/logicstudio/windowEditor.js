@@ -19,6 +19,7 @@ export class WindowEditor {
   #live = null;
   #drop = null;           // { parent, index, line }
   #urls = [];             // blob URLs of the resources shown, freed when drawn again
+  #lastSchema = null;     // the schema chosen last time a component was added
 
   constructor(studio, doc, name) {
     this.#studio = studio;
@@ -145,6 +146,7 @@ export class WindowEditor {
       const id = this.doc.add(def, parent, index, props);
       if (target?.layout) this.doc.setLayout(id, target.layout);
       this.select(id);
+      if (!def.container) this.#askObject(id, def);
       return id;
     } catch (err) {
       messageBox(this.#studio.win, { icon: 'warning', title: err.message });
@@ -301,8 +303,11 @@ export class WindowEditor {
     view?.canvas.fit([obj.block]);
   }
 
-  /** Makes the object of a component in a schema (at the middle of its view) and shows it there. */
-  async #makeObject(id, schema) {
+  /**
+   * Makes the object of a component in a schema (at the middle of its view). It shows it there,
+   * unless `show` is false: then the window editor stays in front and Proprietà shows where it went.
+   */
+  async #makeObject(id, schema, { show = true } = {}) {
     const ws = this.#studio.ws;
     const path = ws.project.data.schemas[schema];
     const def = (this.#studio.catalog?.packages ?? []).flatMap(p => p.blocks).find(b => b.role === 'component');
@@ -310,9 +315,64 @@ export class WindowEditor {
     const doc = await ws.doc(path);
     const node = this.doc.find(id)?.node;
     const v = doc.data.view ?? { x: 0, y: 0, zoom: 1 };
-    const blockId = doc.addBlock(def, { x: Math.round((-v.x + 300) / (v.zoom || 1)), y: Math.round((-v.y + 160) / (v.zoom || 1)), config: { window: this.name, component: id } });
+    // the objects made one after the other do not fall on top of each other
+    const step = (doc.data.blocks.filter(b => this.#studio.blockDef(b.type)?.role === 'component').length % 8) * 24;
+    const blockId = doc.addBlock(def, { x: Math.round((-v.x + 300) / (v.zoom || 1)) + step, y: Math.round((-v.y + 160) / (v.zoom || 1)) + step, config: { window: this.name, component: id } });
     if (node?.props?.label || node?.props?.text) doc.setLabel(blockId, String(node.props.label || node.props.text).slice(0, 80));
-    await this.#openObject(id);
+    if (show) await this.#openObject(id);
+    else { this.#studio.inspector.render(); this.#studio.renderToolbar(); }
+  }
+
+  /** A component just added: asks in which schema its object (logic block) goes, or a new schema. */
+  async #askObject(id, def) {
+    const studio = this.#studio;
+    const ws = studio.ws;
+    const hasProxy = (studio.catalog?.packages ?? []).some(p => p.blocks.some(b => b.role === 'component'));
+    if (!ws?.project || !hasProxy) return;
+    const schemas = Object.keys(ws.project.data.schemas);
+    const NEW = '/new';   // a schema name never has a /
+    const res = await messageBox(studio.win, {
+      icon: 'blocks', title: t('window.askTitle', { name: studio.label(def) }), text: t('window.askText'),
+      fields: [{
+        name: 'schema', type: 'select', label: t('window.inSchema'),
+        value: schemas.includes(this.#lastSchema) ? this.#lastSchema : schemas[0] ?? NEW,
+        options: [...schemas, { value: NEW, label: t('window.newSchema') }],
+      }],
+      buttons: [{ value: 'cancel', label: t('window.later') }, { value: 'ok', label: t('window.makeObject'), primary: true }],
+    });
+    if (res?.button !== 'ok' || !this.doc.find(id)) return;
+    let schema = res.values.schema;
+    if (schema === NEW) {
+      schema = await this.#newSchema();
+      if (!schema) return;
+    }
+    this.#lastSchema = schema;
+    try {
+      await this.#makeObject(id, schema, { show: false });
+    } catch (err) {
+      messageBox(studio.win, { icon: 'error', title: t('explorer.failed'), text: err.message });
+    }
+  }
+
+  /** A new schema in the schemi folder, for the object of a component: its name, or null. */
+  async #newSchema() {
+    const studio = this.#studio;
+    const ws = studio.ws;
+    const folder = ws.groups.find(g => g.key === 'schemas')?.folder;
+    const res = await messageBox(studio.win, {
+      icon: 'blocks', title: t('explorer.new.schemas'),
+      fields: [{ name: 'name', label: t('explorer.name'), value: this.name, required: true, maxLength: 60, pattern: /^[^/\\:*?"<>|]+$/, invalid: t('explorer.badName') }],
+      buttons: ['cancel', { value: 'ok', label: t('common.create'), primary: true }],
+      validate: v => (String(v.name).trim() in ws.project.data.schemas ? t('ws.nameTaken', { name: String(v.name).trim() }) : true),
+    });
+    if (res?.button !== 'ok' || !folder) return null;
+    try {
+      const path = await ws.createElement('schemas', folder, res.values.name);
+      return ws.nameOf('schemas', path);
+    } catch (err) {
+      messageBox(studio.win, { icon: 'error', title: t('explorer.failed'), text: err.message });
+      return null;
+    }
   }
 
   // ------------------------------------------------------------------ Proprietà
@@ -359,7 +419,7 @@ export class WindowEditor {
       } else if (ws?.project) {
         const schemas = Object.keys(ws.project.data.schemas);
         out.push(h('p', { class: 'ls-hint' }, t('window.noObject')));
-        let chosen = schemas[0];
+        let chosen = schemas.includes(this.#lastSchema) ? this.#lastSchema : schemas[0];
         out.push(row(t('window.inSchema'), selectField({ value: chosen, options: schemas, onChange: v => { chosen = v; } })));
         out.push(h('div', { class: 'ls-insp-acts' }, actionButton({ label: t('window.makeObject'), icon: icon('plus'), primary: true, onClick: () => this.#makeObject(node.id, chosen) })));
       }

@@ -1,4 +1,4 @@
-import { Window, h, icon, fs, logic, messageBox, resizeHandle, storage } from '@lilos/sdk';
+import { Window, h, icon, fs, logic, messageBox, actionButton, resizeHandle, storage } from '@lilos/sdk';
 import { pickFile } from '@lilos/system';
 import * as system from '@lilos/system';   // logicHost: lilOS ≥ 1.37.0
 import { TabBar } from '../shared/TabBar.js';
@@ -58,6 +58,8 @@ class Studio {
   constructor(openWindow) {
     this.openWindow = openWindow;
     this.win = new Window({ title: t('app.name'), icon: 'blocks', width: 1240, height: 760, minWidth: 760, minHeight: 480 });
+    // The middle button belongs to Logic Studio: it never moves the desk (and so the window)
+    this.win.el.dataset.pan = 'native';
     this.win.getState = () => ({ file: this.ws ? this.ws.projectFile ?? this.ws.single : null });
     this.win.canClose = () => this.canClose();
     this.win.on('destroy', () => { this.#abort.abort(); this.runner?.stop(); });
@@ -220,8 +222,14 @@ class Studio {
 
   openMap() {
     if (!this.ws?.project) return;
-    if (!this.tabs.some(x => x.key === 'map')) this.tabs.splice(1, 0, { key: 'map', kind: 'map', label: t('tabs.map', { name: this.ws.name }), view: new ProjectMap(this) });
+    if (!this.tabs.some(x => x.key === 'map')) this.tabs.splice(this.tabs[0]?.kind === 'home' ? 1 : 0, 0, { key: 'map', kind: 'map', label: t('tabs.map', { name: this.ws.name }), view: new ProjectMap(this) });
     this.show('map');
+  }
+
+  /** The Home tab: it closes like the others and comes back (first) from the toolbar or the empty page. */
+  openHome() {
+    if (!this.tabs.some(x => x.kind === 'home')) this.tabs.unshift({ key: 'home', kind: 'home', label: t('tabs.home'), view: this.home });
+    this.show('home');
   }
 
   get current() { return this.tabs.find(x => x.key === this.active) ?? null; }
@@ -242,7 +250,7 @@ class Studio {
 
   async closeTab(key) {
     const tab = this.tabs.find(x => x.key === key);
-    if (!tab || tab.kind === 'home') return;
+    if (!tab) return;
     if (tab.doc?.dirty) {
       const res = await messageBox(this.win, {
         icon: 'warning', title: t('close.unsaved', { name: tab.label }), text: t('close.unsavedText'),
@@ -251,18 +259,32 @@ class Studio {
       if (!res || res === 'cancel') return;
       if (res === 'save') await this.ws.save(tab.doc);
     }
-    tab.view.destroy?.();
+    if (tab.kind !== 'home') tab.view.destroy?.();   // Home is kept, to come back
     const i = this.tabs.indexOf(tab);
     this.tabs.splice(i, 1);
-    if (this.active === key) this.show(this.tabs[Math.max(0, i - 1)].key);
-    else this.renderTabs();
+    if (this.active !== key) this.renderTabs();
+    else if (this.tabs.length) this.show(this.tabs[Math.max(0, i - 1)].key);
+    else this.#showEmpty();
+  }
+
+  /** No tab open: a page with the way back to Home. */
+  #showEmpty() {
+    this.current?.view?.hide?.();
+    this.active = null;
+    this.center.replaceChildren(h('div', { class: 'ls-notabs' },
+      h('p', {}, t('empty.text')),
+      actionButton({ label: t('tb.home'), icon: icon('home'), onClick: () => this.openHome() })));
+    this.renderTabs();
+    this.renderToolbar();
+    this.renderLeft();
+    this.inspector.render();
+    this.renderStatus();
   }
 
   renderTabs() {
     this.tabBar.render(this.tabs.map(x => ({
       key: x.key, label: x.label, icon: { home: 'home', map: 'grid', schema: 'blocks', window: 'window' }[x.kind],
       dirty: x.kind === 'map' ? !!this.ws?.project?.dirty : !!x.doc?.dirty,
-      closeLabel: x.kind === 'home' ? null : undefined, class: x.kind === 'home' ? 'ls-home-tab' : '',
     })), this.active);
   }
 
@@ -298,7 +320,9 @@ class Studio {
     } else {
       items.push(b('plus', t('home.new'), () => this.newProject()));
       items.push(b('open', t('home.open'), () => this.openProjectPicker()));
+      items.push(h('span', { class: 'sp' }));
     }
+    if (!this.tabs.some(x => x.kind === 'home')) items.push(b('home', t('tb.home'), () => this.openHome()));
     this.toolbar.replaceChildren(...items);
     doc?.history && !doc._lsHistory && (doc._lsHistory = true, doc.history.on('change', () => this.renderToolbar()));
   }

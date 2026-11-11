@@ -221,8 +221,10 @@ export class Canvas extends Emitter {
   #bindPointer() {
     this.el.addEventListener('pointerdown', e => {
       const onBackground = !e.target.closest('.obj');
+      // Elements marked data-pan="native" (and what is inside them) keep the middle button for themselves
+      const ownMiddle = e.button === 1 && !!e.target.closest?.('[data-pan="native"]');
       // Pan: middle button or Space anywhere; one finger on the background of a touch screen
-      const pan = e.button === 1 || this.#space || (e.button === 0 && onBackground && e.pointerType === 'touch');
+      const pan = (e.button === 1 && !ownMiddle) || this.#space || (e.button === 0 && onBackground && e.pointerType === 'touch');
       if (!pan) {
         if (e.button !== 0 || !onBackground) return;
         // Left button on the background belongs to the listeners (selection); a click without moving is background:click

@@ -59,7 +59,7 @@ export class LogicCanvas extends Emitter {
     this.#svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     this.#svg.setAttribute('class', 'lgc-links');
     this.#world = h('div', { class: 'lgc-world' }, this.#svg);
-    this.el = h('div', { class: 'lgc', tabIndex: 0, dataset: { wheel: 'native' } }, this.#world);
+    this.el = h('div', { class: 'lgc', tabIndex: 0, dataset: { wheel: 'native', pan: 'native' } }, this.#world);
     this.#view = { ...(schema.data.view ?? { x: 0, y: 0, zoom: 1 }) };
     this.#bind();
     const onChange = () => this.refresh();

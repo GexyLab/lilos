@@ -1665,7 +1665,7 @@ canvas.on('select', ({ blocks, links }) => console.log(blocks, links));
 | `place(def, at?)` → id | Aggiunge un blocco (in mezzo alla vista, o dove dici) e lo seleziona. |
 | `attach(live, nomeSchema)`, `detach()` | Mostra un programma in esecuzione: i valori sui collegamenti e accanto agli ingressi, i blocchi che lavorano (`run`) o falliti (`err`). |
 
-Mouse: trascinare un blocco lo sposta (la selezione insieme); da un'uscita a un ingresso li collega; da un ingresso collegato, toglie il collegamento; trascinare lo sfondo seleziona a rettangolo; il tasto centrale o **Spazio** premuto sposta la vista; la rotella ingrandisce. Tastiera (con la tela focalizzata): **Canc** o **Backspace** elimina la selezione, **Ctrl A** la allarga a tutto, **Ctrl D** duplica, le frecce spostano, **Esc** deseleziona.
+Mouse: trascinare un blocco lo sposta (la selezione insieme); da un'uscita a un ingresso li collega; da un ingresso collegato, toglie il collegamento; trascinare lo sfondo seleziona a rettangolo; il tasto centrale o **Spazio** premuto sposta la vista (la tela ha `data-pan="native"`: il tasto centrale non sposta mai la scrivania); la rotella ingrandisce. Tastiera (con la tela focalizzata): **Canc** o **Backspace** elimina la selezione, **Ctrl A** la allarga a tutto, **Ctrl D** duplica, le frecce spostano, **Esc** deseleziona.
 
 Eventi: `select` `{ blocks, links }`, `open` `{ id }` (doppio clic su un blocco), `contextmenu` `{ kind: 'block' \| 'link' \| 'canvas', id, link, clientX, clientY, world }`, `linkDrop` `{ from, world, clientX, clientY }` (un collegamento lasciato nel vuoto), `view` `{ x, y, zoom }`. Un collegamento tra tipi che non vanno d'accordo (`typesMatch`) ha la classe `mismatch`.
 
@@ -1923,7 +1923,7 @@ Il rettangolo che contiene tutti quelli dati. L'array non deve essere vuoto.
 | `background:click` | `PointerEvent` | Clic sinistro su un punto vuoto, senza trascinare. |
 | `background:contextmenu` | `MouseEvent` | Tasto destro su un punto vuoto, se nessun oggetto ha già gestito l'evento. |
 
-**Spostamento della vista**: tasto centrale, Spazio + trascina, o un dito su un punto vuoto di uno schermo touch. Il tasto sinistro su un punto vuoto non sposta la vista.
+**Spostamento della vista**: tasto centrale, Spazio + trascina, o un dito su un punto vuoto di uno schermo touch. Il tasto sinistro su un punto vuoto non sposta la vista. Un elemento con `data-pan="native"` (e quello che contiene) tiene il tasto centrale per sé: lì la scrivania non si sposta (lilOS ≥ 1.38.2; per esempio `win.el.dataset.pan = 'native'` per un'intera finestra).
 
 **Scorciatoie registrate** (gruppo Scrivania): `desk.zoomIn` (Ctrl +, Ctrl =), `desk.zoomOut` (Ctrl −), `desk.zoomReset` (Ctrl 0), `desk.fit` (Shift 1). Spazio + trascina resta un tasto fisso.
 
